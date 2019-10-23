@@ -3,77 +3,111 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E10B0CA9EB6
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Oct 2019 14:45:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71F65CA9EB6
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Oct 2019 15:12:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B591F2086D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Oct 2019 14:45:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4B6CC21872
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Oct 2019 15:12:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390045AbfJWOpy (ORCPT
+        id S2392431AbfJWPMW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 23 Oct 2019 10:45:54 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:9677 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389989AbfJWOpy (ORCPT
+        Wed, 23 Oct 2019 11:12:22 -0400
+Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:50357 "EHLO
+        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2390140AbfJWPMV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 23 Oct 2019 10:45:54 -0400
-Received: from [192.168.1.6] (unknown [180.157.106.45])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 4A915416E1;
-        Wed, 23 Oct 2019 22:45:50 +0800 (CST)
-Subject: Re: [PATCH nf-next,RFC 0/2] nf_tables encapsulation/decapsulation
- support
+        Wed, 23 Oct 2019 11:12:21 -0400
+Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
+        by mail104.syd.optusnet.com.au (Postfix) with SMTP id 11BD743E6D7
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2019 02:12:06 +1100 (AEDT)
+Received: (qmail 6173 invoked by uid 501); 23 Oct 2019 15:12:05 -0000
+Date:   Thu, 24 Oct 2019 02:12:05 +1100
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de
-References: <20191022154733.8789-1-pablo@netfilter.org>
- <10ad5a64-f9cb-0ee6-2daa-5b88884fd224@ucloud.cn>
- <20191023101658.onmzadkop7vqfrgj@salvia>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <6b37142f-c59e-90c2-4c86-6f4740abe071@ucloud.cn>
-Date:   Wed, 23 Oct 2019 22:45:28 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.9.0
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH libnfnetlink 1/1] src: Minimally resurrect doxygen
+ documentation
+Message-ID: <20191023151205.GA5848@dimstar.local.net>
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20191014020223.21757-1-duncan_roe@optusnet.com.au>
+ <20191014020223.21757-2-duncan_roe@optusnet.com.au>
+ <20191023111346.4xoujsy6h2j7cv6y@salvia>
 MIME-Version: 1.0
-In-Reply-To: <20191023101658.onmzadkop7vqfrgj@salvia>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSkJMS0tLSU1OSklKT01ZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Mk06Mgw6Czg5MR8MCDA9Vjoz
-        TEMwChxVSlVKTkxKQ09KQk5LT0xKVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpDS1VK
-        TkxVSktNVU9OWVdZCAFZQUlJSE43Bg++
-X-HM-Tid: 0a6df914c2d42086kuqy4a915416e1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191023111346.4xoujsy6h2j7cv6y@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.2 cv=P6RKvmIu c=1 sm=1 tr=0
+        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
+        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=kj9zAlcOel0A:10 a=XobE76Q3jBoA:10
+        a=ln3mycrPa8d4u8wgigQA:9 a=CjuIK1q_8ugA:10
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-在 2019/10/23 18:16, Pablo Neira Ayuso 写道:
-> On Wed, Oct 23, 2019 at 11:49:57AM +0800, wenxu wrote:
->> On 10/22/2019 11:47 PM, Pablo Neira Ayuso wrote:
->>> Hi,
->>>
->>> This is a RFC patchset, untested, to introduce new infrastructure to
->>> specify protocol decapsulation and encapsulation actions. This patchset
->>> comes with initial support for VLAN, eg.
->>>
->>> 1) VLAN decapsulation:
->>>
->>> 	... meta iif . vlan id { eth0 . 10, eth1 . 11} decap vlan
->>>
->>> The decapsulation is a single statement with no extra options.
->> Currently there is no vlan meta match expr.  So it is better to
->> extend the meta expr or add new ntf_vlan_get_expr?
-> There's nft_payload to get the vlan information.
+On Wed, Oct 23, 2019 at 01:13:46PM +0200, Pablo Neira Ayuso wrote:
+> On Mon, Oct 14, 2019 at 01:02:23PM +1100, Duncan Roe wrote:
+> > The documentation was written in the days before doxygen required groups or even
+> > doxygen.cfg, so create doxygen.cfg.in and introduce one \defgroup per source
+> > file, encompassing pretty-much the whole file.
+> >
+> > Also add a tiny \mainpage.
+> >
+> > Added:
+> >
+> >  doxygen.cfg.in: Same as for libmnl except FILE_PATTERNS = *.c linux_list.h
+> >
+> > Updated:
+> >
+> >  configure.ac: Create doxygen.cfg
+> >
+> >  include/linux_list.h: Add defgroup
+> >
+> >  src/iftable.c: Add defgroup
+> >
+> >  src/libnfnetlink.c: Add mainpage and defgroup
 >
-There are some limtaion for geting the vlan information through nft_payload
+> I'm ambivalent about this, it's been up on the table for a while.
+>
+> This library is rather old, and new applications should probably
+> be based instead used libmnl, which is a better choice.
+>
+> Did you already queue patches to make documentation for libnfnetlink
+> locally there? I would like not to discourage you in your efforts to
+> help us improve documentation, which is always extremely useful for
+> everyone.
+>
+> Let me know, thanks.
 
-1. It can't get the inner vlan(cvlan) information
+Very timely of you to ask.
 
-2. geting the vlan information is based on offset on link header, There is no good way
+Just this morning I was going to get back into libnetfilter_queue documentation,
+starting with the other 2 verdict helpers.
 
-to offload the vlan match expr.
+But I ran into a conundrum with nfq_nlmsg_verdict_put_mark (the one I didn't
+use). It's a 1-liner (in src/nlmsg.c):
 
+> 56  mnl_attr_put_u32(nlh, NFQA_MARK, htonl(mark));
+
+But examples/nf-queue.c has an example to set the connmark which doesn't use
+nfq_nlmsg_verdict_put_mark()
+
+Instead it has this line:
+
+> 52  mnl_attr_put_u32(nlh, CTA_MARK, htonl(42));
+
+The trouble is, NFQA_MARK *is different from* CTA_MARK. NFQA_MARK is 3, while
+CTA_MARK is 8.
+
+At this point, I felt I did not understand the software well enough to be able
+to document it further. If you could shed some light on this apparent
+disrcepancy, it might restore my self-confidence sufficiently that I can
+continue documenting.
+
+Cheers ... Duncan.
