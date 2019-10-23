@@ -2,82 +2,75 @@ Return-Path: <SRS0=QRwA=YQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B551DCA9EB6
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Oct 2019 11:52:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BD44CA9EB9
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Oct 2019 12:16:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8C46420650
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Oct 2019 11:52:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4CBDF2086D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Oct 2019 12:16:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391148AbfJWLwH (ORCPT
+        id S2388366AbfJWMQ2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 23 Oct 2019 07:52:07 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:56004 "EHLO orbyte.nwl.cc"
+        Wed, 23 Oct 2019 08:16:28 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:56048 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732092AbfJWLwH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 23 Oct 2019 07:52:07 -0400
-Received: from localhost ([::1]:40860 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1iNFBN-0003FW-BB; Wed, 23 Oct 2019 13:52:05 +0200
+        id S1730796AbfJWMQ2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 23 Oct 2019 08:16:28 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1iNFYx-0003Tu-GY; Wed, 23 Oct 2019 14:16:27 +0200
+Date:   Wed, 23 Oct 2019 14:16:27 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] Revert "main: Fix for misleading error with negative chain priority"
-Date:   Wed, 23 Oct 2019 13:51:56 +0200
-Message-Id: <20191023115156.9507-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.23.0
+Subject: Re: [iptables PATCH] nft: Use ARRAY_SIZE() macro in nft_strerror()
+Message-ID: <20191023121627.GM26123@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20191018155114.7423-1-phil@nwl.cc>
+ <20191023112024.gd4dqe6qqv46hufe@salvia>
+ <20191023112311.qrglbzhqad4vfqvo@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191023112311.qrglbzhqad4vfqvo@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This reverts commit 9fc71bc6b602c8706d1214e0100bcd7638c257e3.
+Hi Pablo,
 
-Given that this change breaks typical commands like
-'nft list ruleset -a' while on the other hand escaping of semicolons and
-(depending on shell) curly braces is still required, decision was made
-to not go with this solution.
+On Wed, Oct 23, 2019 at 01:23:11PM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Oct 23, 2019 at 01:20:24PM +0200, Pablo Neira Ayuso wrote:
+> > On Fri, Oct 18, 2019 at 05:51:14PM +0200, Phil Sutter wrote:
+> > > Variable 'table' is an array of type struct table_struct, so this is a
+> > > classical use-case for ARRAY_SIZE() macro.
+> > > 
+> > > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > 
+> > Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> BTW, probably good to add the array check?
+> 
+> https://sourceforge.net/p/libhx/libhx/ci/master/tree/include/libHX/defs.h#l152
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- src/main.c                                           | 2 +-
- tests/shell/testcases/chains/0039negative_priority_0 | 8 --------
- 2 files changed, 1 insertion(+), 9 deletions(-)
- delete mode 100755 tests/shell/testcases/chains/0039negative_priority_0
+Copying from kernel sources, do you think that's fine?
 
-diff --git a/src/main.c b/src/main.c
-index 577850e54f68c..f77d8a820a028 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -45,7 +45,7 @@ enum opt_vals {
- 	OPT_NUMERIC_TIME	= 't',
- 	OPT_INVALID		= '?',
- };
--#define OPTSTRING	"+hvcf:iI:jvnsNaeSupypt"
-+#define OPTSTRING	"hvcf:iI:jvnsNaeSupypt"
- 
- static const struct option options[] = {
- 	{
-diff --git a/tests/shell/testcases/chains/0039negative_priority_0 b/tests/shell/testcases/chains/0039negative_priority_0
-deleted file mode 100755
-index ba17b8cc19eda..0000000000000
---- a/tests/shell/testcases/chains/0039negative_priority_0
-+++ /dev/null
-@@ -1,8 +0,0 @@
--#!/bin/bash
--
--# Test parsing of negative priority values
--
--set -e
--
--$NFT add table t
--$NFT add chain t c { type filter hook input priority -30\; }
--- 
-2.23.0
+|  #      ifndef ARRAY_SIZE
+| -#              define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
+| +#              define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:(-!!(e)); }))
+| +#              define __same_type(a, b) \
+| +                       __builtin_types_compatible_p(typeof(a), typeof(b))
+| +/*             &a[0] degrades to a pointer: a different type from an array */
+| +#              define __must_be_array(a) \
+| +                       BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
+| +#              define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x))) + __must_be_array(x)
+|  #      endif
 
+Cheers, Phil
