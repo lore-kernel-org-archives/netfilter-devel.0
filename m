@@ -6,94 +6,78 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B8EDCA9EBC
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 09:35:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4427ECA9EAF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 09:40:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5A83820684
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 09:35:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F54720684
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 09:40:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2408868AbfJXJfL (ORCPT
+        id S2390965AbfJXJks (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 24 Oct 2019 05:35:11 -0400
-Received: from correo.us.es ([193.147.175.20]:36444 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732686AbfJXJfK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Oct 2019 05:35:10 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 1751611773C
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2019 11:35:06 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 083136DA2B
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2019 11:35:06 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id F1EDEDA840; Thu, 24 Oct 2019 11:35:05 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F39A3B7FF2;
-        Thu, 24 Oct 2019 11:35:03 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 24 Oct 2019 11:35:03 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id CE4DA42EE39A;
-        Thu, 24 Oct 2019 11:35:03 +0200 (CEST)
-Date:   Thu, 24 Oct 2019 11:35:05 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, Jeremy Sowden <jeremy@azazel.net>,
-        Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft 2/4] py: add missing output flags.
-Message-ID: <20191024093505.pup5mktqrdbriwpz@salvia>
-References: <20191022205855.22507-1-jeremy@azazel.net>
- <20191022205855.22507-3-jeremy@azazel.net>
- <20191023203833.aidczbpuxokywu6i@salvia>
- <20191024092052.GP26123@orbyte.nwl.cc>
+        Thu, 24 Oct 2019 05:40:48 -0400
+Received: from m9785.mail.qiye.163.com ([220.181.97.85]:31746 "EHLO
+        m9785.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727275AbfJXJks (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 24 Oct 2019 05:40:48 -0400
+Received: from [192.168.188.14] (unknown [120.132.1.226])
+        by m9785.mail.qiye.163.com (Hmail) with ESMTPA id A4EA95C1876;
+        Thu, 24 Oct 2019 17:40:45 +0800 (CST)
+Subject: Re: [PATCH nf-next v6 0/8] netfilter: nf_tables_offload: support
+ tunnel offload
+From:   wenxu <wenxu@ucloud.cn>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+References: <1568386990-29660-1-git-send-email-wenxu@ucloud.cn>
+Message-ID: <735a49cd-ce6f-8915-fa62-c23a730db822@ucloud.cn>
+Date:   Thu, 24 Oct 2019 17:40:38 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191024092052.GP26123@orbyte.nwl.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <1568386990-29660-1-git-send-email-wenxu@ucloud.cn>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVT0pJS0tLS01LS0NKT0NZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Mjo6PSo*NDg3Dx4qOREwTQ1L
+        AzMaFDhVSlVKTkxKQkpLS09OQ0hPVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
+        SElVSlVJSU1ZV1kIAVlBSU5KSzcG
+X-HM-Tid: 0a6dfd23d03d2087kuqya4ea95c1876
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Oct 24, 2019 at 11:20:52AM +0200, Phil Sutter wrote:
-> Hi,
-> 
-> On Wed, Oct 23, 2019 at 10:38:33PM +0200, Pablo Neira Ayuso wrote:
-> > On Tue, Oct 22, 2019 at 09:58:53PM +0100, Jeremy Sowden wrote:
-> > > `terse` and `numeric_time` are missing from the `output_flags` dict.
-> > > Add them and getters and setters for them.
-> > 
-> > LGTM.
-> > 
-> > @Phil, is this fine with you? I let you decide on this.
-> 
-> I just pushed it. Could you please update Patchwork? I'm not allowed to.
-> 
-> > BTW, would it make sense at some point to remove all the getter/setter
-> > per option and use the setter/getter flags approach as in libnftables?
-> 
-> Well, from a compat standpoint we can't remove them. The benefit of
-> those setter/getter methods is the clean interface (user's don't have to
-> memorize flag names) and the semantics of returning the old value. The
-> latter comes in handy when changing flags temporarily.
+please drop this series.  NFTA_TUNNEL_KEY_RELEASE patch don't need after the encap/decap infra add in.
 
-Probably some transitioning? ie. add the generic set/get flag
-interface. Update clients of this (Eric's code) to use. Leave the old
-interfaces for a while there to make sure people have time to migrate.
-Then remove them.
+I will repost the tunnel match expr offload patches separetely
 
-Anyway, I'm fine if you prefer this more verbose interface for python,
-no issue.
+Thx!
 
-> One could change the private __{g,s}et_output_flag() methods though and
-> make them similar to {g,s}et_debug() methods which probably resemble the
-> syntax you're looking for.
-
-Hm, not sure what you mean.
+On 9/13/2019 11:03 PM, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
+>
+> This series add NFT_TUNNEL_IP/6_SRC/DST match and tunnel expr offload.
+> Also add NFTA_TUNNEL_KEY_RELEASE actions adn objref, tunnel obj offload
+>
+> This version just rebase to master for patch 7 and make sure
+> the new code doesn't go over the 80-chars per column boundary
+>
+> wenxu (8):
+>   netfilter: nft_tunnel: add nft_tunnel_mode_validate function
+>   netfilter: nft_tunnel: support NFT_TUNNEL_IP_SRC/DST match
+>   netfilter: nft_tunnel: add ipv6 check in nft_tunnel_mode_validate
+>   netfilter: nft_tunnel: support NFT_TUNNEL_IP6_SRC/DST match
+>   netfilter: nft_tunnel: support tunnel meta match offload
+>   netfilter: nft_tunnel: add NFTA_TUNNEL_KEY_RELEASE action
+>   netfilter: nft_objref: add nft_objref_type offload
+>   netfilter: nft_tunnel: support nft_tunnel_obj offload
+>
+>  include/net/netfilter/nf_tables.h         |   4 +
+>  include/net/netfilter/nf_tables_offload.h |   5 +
+>  include/uapi/linux/netfilter/nf_tables.h  |   5 +
+>  net/netfilter/nft_objref.c                |  14 +++
+>  net/netfilter/nft_tunnel.c                | 159 +++++++++++++++++++++++++++---
+>  5 files changed, 174 insertions(+), 13 deletions(-)
+>
