@@ -6,44 +6,44 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75FF8CA9EAF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF17CCA9EBD
 	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 09:15:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 566A320856
+	by mail.kernel.org (Postfix) with ESMTP id CE8BC20856
 	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 09:15:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390056AbfJXJPK (ORCPT
+        id S2389776AbfJXJPK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Thu, 24 Oct 2019 05:15:10 -0400
-Received: from correo.us.es ([193.147.175.20]:50396 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:50382 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388971AbfJXJPJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Oct 2019 05:15:09 -0400
+        id S1727900AbfJXJPK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 24 Oct 2019 05:15:10 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 799DB2EFEC4
+        by mail.us.es (Postfix) with ESMTP id 45D972EFEB1
         for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2019 11:15:05 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6AEB4A7EC2
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 36AB0B8009
         for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2019 11:15:05 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 6A0C6DA72F; Thu, 24 Oct 2019 11:15:05 +0200 (CEST)
+        id 2C36EB7FF9; Thu, 24 Oct 2019 11:15:05 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4B289DA72F
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2019 11:15:03 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B6EAE66DF
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2019 11:15:02 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 24 Oct 2019 11:15:03 +0200 (CEST)
+ Thu, 24 Oct 2019 11:15:02 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 3006142EE395
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2019 11:15:03 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 9C04F42EE395
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2019 11:15:02 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next 3/3] netfilter: nf_tables_offload: unbind if multi-device binding fails
-Date:   Thu, 24 Oct 2019 11:15:00 +0200
-Message-Id: <20191024091500.2074-3-pablo@netfilter.org>
+Subject: [PATCH nf-next 2/3] netfilter: nf_tables_offload: add nft_flow_block_offload_init()
+Date:   Thu, 24 Oct 2019 11:14:59 +0200
+Message-Id: <20191024091500.2074-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191024091500.2074-1-pablo@netfilter.org>
 References: <20191024091500.2074-1-pablo@netfilter.org>
@@ -53,57 +53,94 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nft_flow_block_chain() needs to unbind in case of error when performing
-the multi-device binding.
+This patch adds the nft_flow_block_offload_init() helper function to
+initialize the flow_block_offload object.
 
-Fixes: d54725cd11a5 ("netfilter: nf_tables: support for multiple devices per netdev hook")
-Reported-by: wenxu <wenxu@ucloud.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_offload.c | 19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+ net/netfilter/nf_tables_offload.c | 42 +++++++++++++++++++--------------------
+ 1 file changed, 21 insertions(+), 21 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index d51728affa1c..4e0625cce647 100644
+index 70f50d306799..d51728affa1c 100644
 --- a/net/netfilter/nf_tables_offload.c
 +++ b/net/netfilter/nf_tables_offload.c
-@@ -336,7 +336,7 @@ static int nft_flow_block_chain(struct nft_base_chain *basechain,
- {
- 	struct net_device *dev;
- 	struct nft_hook *hook;
--	int err;
-+	int err, i = 0;
- 
- 	list_for_each_entry(hook, &basechain->hook_list, list) {
- 		dev = hook->ops.dev;
-@@ -344,11 +344,26 @@ static int nft_flow_block_chain(struct nft_base_chain *basechain,
- 			continue;
- 
- 		err = nft_chain_offload_cmd(basechain, dev, cmd);
--		if (err < 0)
-+		if (err < 0 && cmd == FLOW_BLOCK_BIND) {
-+			if (!this_dev)
-+				goto err_flow_block;
-+
- 			return err;
-+		}
-+		i++;
- 	}
- 
- 	return 0;
-+
-+err_flow_block:
-+	list_for_each_entry(hook, &basechain->hook_list, list) {
-+		if (i-- <= 0)
-+			break;
-+
-+		dev = hook->ops.dev;
-+		nft_chain_offload_cmd(basechain, dev, FLOW_BLOCK_UNBIND);
-+	}
-+	return err;
+@@ -246,20 +246,30 @@ static int nft_block_setup(struct nft_base_chain *basechain,
+ 	return err;
  }
  
- static int nft_flow_offload_chain(struct nft_chain *chain, u8 *ppolicy,
++static void nft_flow_block_offload_init(struct flow_block_offload *bo,
++					struct net *net,
++					enum flow_block_command cmd,
++					struct nft_base_chain *basechain,
++					struct netlink_ext_ack *extack)
++{
++	memset(bo, 0, sizeof(*bo));
++	bo->net		= net;
++	bo->block	= &basechain->flow_block;
++	bo->command	= cmd;
++	bo->binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
++	bo->extack	= extack;
++	INIT_LIST_HEAD(&bo->cb_list);
++}
++
+ static int nft_block_offload_cmd(struct nft_base_chain *chain,
+ 				 struct net_device *dev,
+ 				 enum flow_block_command cmd)
+ {
+ 	struct netlink_ext_ack extack = {};
+-	struct flow_block_offload bo = {};
++	struct flow_block_offload bo;
+ 	int err;
+ 
+-	bo.net = dev_net(dev);
+-	bo.block = &chain->flow_block;
+-	bo.command = cmd;
+-	bo.binder_type = FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
+-	bo.extack = &extack;
+-	INIT_LIST_HEAD(&bo.cb_list);
++	nft_flow_block_offload_init(&bo, dev_net(dev), cmd, chain, &extack);
+ 
+ 	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_BLOCK, &bo);
+ 	if (err < 0)
+@@ -275,17 +285,12 @@ static void nft_indr_block_ing_cmd(struct net_device *dev,
+ 				   enum flow_block_command cmd)
+ {
+ 	struct netlink_ext_ack extack = {};
+-	struct flow_block_offload bo = {};
++	struct flow_block_offload bo;
+ 
+ 	if (!chain)
+ 		return;
+ 
+-	bo.net = dev_net(dev);
+-	bo.block = &chain->flow_block;
+-	bo.command = cmd;
+-	bo.binder_type = FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
+-	bo.extack = &extack;
+-	INIT_LIST_HEAD(&bo.cb_list);
++	nft_flow_block_offload_init(&bo, dev_net(dev), cmd, chain, &extack);
+ 
+ 	cb(dev, cb_priv, TC_SETUP_BLOCK, &bo);
+ 
+@@ -296,15 +301,10 @@ static int nft_indr_block_offload_cmd(struct nft_base_chain *chain,
+ 				      struct net_device *dev,
+ 				      enum flow_block_command cmd)
+ {
+-	struct flow_block_offload bo = {};
+ 	struct netlink_ext_ack extack = {};
++	struct flow_block_offload bo;
+ 
+-	bo.net = dev_net(dev);
+-	bo.block = &chain->flow_block;
+-	bo.command = cmd;
+-	bo.binder_type = FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
+-	bo.extack = &extack;
+-	INIT_LIST_HEAD(&bo.cb_list);
++	nft_flow_block_offload_init(&bo, dev_net(dev), cmd, chain, &extack);
+ 
+ 	flow_indr_block_call(dev, &bo, cmd);
+ 
 -- 
 2.11.0
 
