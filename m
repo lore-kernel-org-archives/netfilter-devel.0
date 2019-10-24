@@ -2,231 +2,103 @@ Return-Path: <SRS0=5AJI=YR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81E64CA9EBB
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 22:08:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 251F1CA9EAF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 23:52:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4D49121D71
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 22:08:42 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="eSyTsHvX"
+	by mail.kernel.org (Postfix) with ESMTP id 010C621A4C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 23:52:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730170AbfJXWIj (ORCPT
+        id S1732576AbfJXXwG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 24 Oct 2019 18:08:39 -0400
-Received: from us-smtp-1.mimecast.com ([207.211.31.81]:43804 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1730162AbfJXWIi (ORCPT
+        Thu, 24 Oct 2019 19:52:06 -0400
+Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:34207 "EHLO
+        mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727309AbfJXXwG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Oct 2019 18:08:38 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1571954917;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=Lt0ui2Zn4GJJ+6SRnh8DuJwgMxQuUYdZDUgODW613/I=;
-        b=eSyTsHvXL9xRviptswzd5Czqy/wngZnkGB9iSVOi4NKhJD7u6TOBa6N8s3ii+YsLdaqteh
-        f9wP1HRv6SFZRCGavqyZXfMFPBviAZC5NZS5ZAHmuNk13/zIdtrnJ6kOzvGXkAyd2gk4Xt
-        q9RDigNKToSMa5oLBsIjS5AfnGfZyNI=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-163-Zc6GJbPyNASsY8gcpckuSQ-1; Thu, 24 Oct 2019 18:08:31 -0400
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 48AFF47B;
-        Thu, 24 Oct 2019 22:08:29 +0000 (UTC)
-Received: from madcap2.tricolour.ca (ovpn-112-19.phx2.redhat.com [10.3.112.19])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 961B05C1B5;
-        Thu, 24 Oct 2019 22:08:17 +0000 (UTC)
-Date:   Thu, 24 Oct 2019 18:08:14 -0400
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
-        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
-        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
-        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
-        mpatel@redhat.com
-Subject: Re: [PATCH ghak90 V7 14/21] audit: contid check descendancy and
- nesting
-Message-ID: <20191024220814.pid5ql6kvyr4ianb@madcap2.tricolour.ca>
-References: <cover.1568834524.git.rgb@redhat.com>
- <16abf1b2aafeb5f1b8dae20b9a4836e54f959ca5.1568834524.git.rgb@redhat.com>
- <CAHC9VhSRmn46DcazH4Q35vOSxVoEu8PsX79aurkHkFymRoMwag@mail.gmail.com>
+        Thu, 24 Oct 2019 19:52:06 -0400
+Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
+        by mail105.syd.optusnet.com.au (Postfix) with SMTP id 9BA3B36426F
+        for <netfilter-devel@vger.kernel.org>; Fri, 25 Oct 2019 10:51:49 +1100 (AEDT)
+Received: (qmail 12635 invoked by uid 501); 24 Oct 2019 23:51:48 -0000
+Date:   Fri, 25 Oct 2019 10:51:48 +1100
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnfnetlink 1/1] src: Minimally resurrect doxygen
+ documentation
+Message-ID: <20191024235148.GA8836@dimstar.local.net>
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20191014020223.21757-1-duncan_roe@optusnet.com.au>
+ <20191014020223.21757-2-duncan_roe@optusnet.com.au>
+ <20191023111346.4xoujsy6h2j7cv6y@salvia>
+ <20191023153142.GB5848@dimstar.local.net>
+ <20191023204836.ws4rv55f2dczhq2q@salvia>
 MIME-Version: 1.0
-In-Reply-To: <CAHC9VhSRmn46DcazH4Q35vOSxVoEu8PsX79aurkHkFymRoMwag@mail.gmail.com>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
-X-MC-Unique: Zc6GJbPyNASsY8gcpckuSQ-1
-X-Mimecast-Spam-Score: 0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20191023204836.ws4rv55f2dczhq2q@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.2 cv=P6RKvmIu c=1 sm=1 tr=0
+        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
+        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=kj9zAlcOel0A:10 a=XobE76Q3jBoA:10
+        a=v6Ttdrwpusi1BPa057QA:9 a=CjuIK1q_8ugA:10
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2019-10-10 20:40, Paul Moore wrote:
-> On Wed, Sep 18, 2019 at 9:26 PM Richard Guy Briggs <rgb@redhat.com> wrote=
-:
-> > ?fixup! audit: convert to contid list to check for orch/engine ownershi=
-p
->=20
-> ?
->=20
-> > Require the target task to be a descendant of the container
-> > orchestrator/engine.
-> >
-> > You would only change the audit container ID from one set or inherited
-> > value to another if you were nesting containers.
-> >
-> > If changing the contid, the container orchestrator/engine must be a
-> > descendant and not same orchestrator as the one that set it so it is no=
-t
-> > possible to change the contid of another orchestrator's container.
->=20
-> Did you mean to say that the container orchestrator must be an
-> ancestor of the target, and the same orchestrator as the one that set
-> the target process' audit container ID?
+Hi Pablo,
 
-Not quite, the first half yes, but the second half: if it was already
-set by that orchestrator, it can't be set again.  If it is a different
-orchestrator that is a descendant of the orchestrator that set it, then
-allow the action.
+On Wed, Oct 23, 2019 at 10:48:36PM +0200, Pablo Neira Ayuso wrote:
+> On Thu, Oct 24, 2019 at 02:31:42AM +1100, Duncan Roe wrote:
+> > On Wed, Oct 23, 2019 at 01:13:46PM +0200, Pablo Neira Ayuso wrote:
+> > > On Mon, Oct 14, 2019 at 01:02:23PM +1100, Duncan Roe wrote:
+> > > > The documentation was written in the days before doxygen required groups or even
+> > > > doxygen.cfg, so create doxygen.cfg.in and introduce one \defgroup per source
+> > > > file, encompassing pretty-much the whole file.
+> > > >
+> > [...]
+> > > >
+> > >
+> > > I'm ambivalent about this, it's been up on the table for a while.
+> > >
+> > > This library is rather old, and new applications should probably
+> > > be based instead used libmnl, which is a better choice.
+> > >
+> > The thing is, the Deprecated functions in libnetfilter_queue are much better
+> > documented than the newer functions and that documentation refers to
+> > libnfnetlink functions.
+>
+> Would you help me get better the documentation for the new
+> libnetfilter_queue API? I'll be trying to address your questions
+> timely in case you decide to enroll in such endeavor.
 
-> Or maybe I'm missing something about what you are trying to do?
+OK I will take that on as a project.
+>
+> > So I think that while the deprecated functions are documented, you should really
+> > have documentation for the old library they use.
+>
+> Are you refering to libnfnetlink or libnetfilter_queue in this case?
 
-Does that help clarify it?
+libnetfilter_queue
 
-> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > ---
-> >  kernel/audit.c | 70 ++++++++++++++++++++++++++++++++++++++++++++++++++=
-+-------
-> >  1 file changed, 62 insertions(+), 8 deletions(-)
-> >
-> > diff --git a/kernel/audit.c b/kernel/audit.c
-> > index 9ce7a1ec7a92..69fe1e9af7cb 100644
-> > --- a/kernel/audit.c
-> > +++ b/kernel/audit.c
-> > @@ -2560,6 +2560,39 @@ static struct task_struct *audit_cont_owner(stru=
-ct task_struct *tsk)
-> >  }
-> >
-> >  /*
-> > + * task_is_descendant - walk up a process family tree looking for a ma=
-tch
-> > + * @parent: the process to compare against while walking up from child
-> > + * @child: the process to start from while looking upwards for parent
-> > + *
-> > + * Returns 1 if child is a descendant of parent, 0 if not.
-> > + */
-> > +static int task_is_descendant(struct task_struct *parent,
-> > +                             struct task_struct *child)
-> > +{
-> > +       int rc =3D 0;
-> > +       struct task_struct *walker =3D child;
-> > +
-> > +       if (!parent || !child)
-> > +               return 0;
-> > +
-> > +       rcu_read_lock();
-> > +       if (!thread_group_leader(parent))
-> > +               parent =3D rcu_dereference(parent->group_leader);
-> > +       while (walker->pid > 0) {
-> > +               if (!thread_group_leader(walker))
-> > +                       walker =3D rcu_dereference(walker->group_leader=
-);
-> > +               if (walker =3D=3D parent) {
-> > +                       rc =3D 1;
-> > +                       break;
-> > +               }
-> > +               walker =3D rcu_dereference(walker->real_parent);
-> > +       }
-> > +       rcu_read_unlock();
-> > +
-> > +       return rc;
-> > +}
-> > +
-> > +/*
-> >   * audit_set_contid - set current task's audit contid
-> >   * @task: target task
-> >   * @contid: contid value
-> > @@ -2587,22 +2620,43 @@ int audit_set_contid(struct task_struct *task, =
-u64 contid)
-> >         oldcontid =3D audit_get_contid(task);
-> >         read_lock(&tasklist_lock);
-> >         /* Don't allow the contid to be unset */
-> > -       if (!audit_contid_valid(contid))
-> > +       if (!audit_contid_valid(contid)) {
-> >                 rc =3D -EINVAL;
-> > +               goto unlock;
-> > +       }
-> >         /* Don't allow the contid to be set to the same value again */
-> > -       else if (contid =3D=3D oldcontid) {
-> > +       if (contid =3D=3D oldcontid) {
-> >                 rc =3D -EADDRINUSE;
-> > +               goto unlock;
-> > +       }
-> >         /* if we don't have caps, reject */
-> > -       else if (!capable(CAP_AUDIT_CONTROL))
-> > +       if (!capable(CAP_AUDIT_CONTROL)) {
-> >                 rc =3D -EPERM;
-> > -       /* if task has children or is not single-threaded, deny */
-> > -       else if (!list_empty(&task->children))
-> > +               goto unlock;
-> > +       }
-> > +       /* if task has children, deny */
-> > +       if (!list_empty(&task->children)) {
-> >                 rc =3D -EBUSY;
-> > -       else if (!(thread_group_leader(task) && thread_group_empty(task=
-)))
-> > +               goto unlock;
-> > +       }
-> > +       /* if task is not single-threaded, deny */
-> > +       if (!(thread_group_leader(task) && thread_group_empty(task))) {
-> >                 rc =3D -EALREADY;
-> > -       /* if contid is already set, deny */
-> > -       else if (audit_contid_set(task))
-> > +               goto unlock;
-> > +       }
-> > +       /* if task is not descendant, block */
-> > +       if (task =3D=3D current) {
-> > +               rc =3D -EBADSLT;
-> > +               goto unlock;
-> > +       }
-> > +       if (!task_is_descendant(current, task)) {
-> > +               rc =3D -EXDEV;
-> > +               goto unlock;
-> > +       }
-> > +       /* only allow contid setting again if nesting */
-> > +       if (audit_contid_set(task) && current =3D=3D audit_cont_owner(t=
-ask))
-> >                 rc =3D -ECHILD;
-> > +unlock:
-> >         read_unlock(&tasklist_lock);
-> >         if (!rc) {
-> >                 struct audit_cont *oldcont =3D audit_cont(task);
->=20
-> --
-> paul moore
-> www.paul-moore.com
+> If you insist on documenting libnfnetlink, I'll be fine with it, no
+> worries.
 
-- RGB
+Yes I insist. LMK which compiler warning fix you'd like (if any)
+>
+> > BTW, ldd of my app shows libnfnetlink.so although it doesn't use any deprecated
+> > functions. Is that expected?
+>
+> Yes, there is still code in the libraries that refer to libnfnetlink.
+> Replacing some of that code should be feasible via libmnl, it is a
+> task that has been in my TODO list for long time. There's always
+> something with more priority in the queue.
 
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
-
+Cheers ... Duncan.
