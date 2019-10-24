@@ -2,60 +2,59 @@ Return-Path: <SRS0=5AJI=YR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F768CA9EAF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 09:29:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B8EDCA9EBC
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 09:35:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 05E8B205F4
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 09:29:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A83820684
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 09:35:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389046AbfJXJ3I (ORCPT
+        id S2408868AbfJXJfL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 24 Oct 2019 05:29:08 -0400
-Received: from correo.us.es ([193.147.175.20]:60628 "EHLO mail.us.es"
+        Thu, 24 Oct 2019 05:35:11 -0400
+Received: from correo.us.es ([193.147.175.20]:36444 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732234AbfJXJ3I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Oct 2019 05:29:08 -0400
+        id S1732686AbfJXJfK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 24 Oct 2019 05:35:10 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DA262FB362
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2019 11:29:03 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 1751611773C
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2019 11:35:06 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CA138D190C
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2019 11:29:03 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 083136DA2B
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2019 11:35:06 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id BFA75DA4D0; Thu, 24 Oct 2019 11:29:03 +0200 (CEST)
+        id F1EDEDA840; Thu, 24 Oct 2019 11:35:05 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 71D8FCA0F2;
-        Thu, 24 Oct 2019 11:29:01 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F39A3B7FF2;
+        Thu, 24 Oct 2019 11:35:03 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 24 Oct 2019 11:29:01 +0200 (CEST)
+ Thu, 24 Oct 2019 11:35:03 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (sys.soleta.eu [212.170.55.40])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 4A81242EE38E;
-        Thu, 24 Oct 2019 11:29:01 +0200 (CEST)
-Date:   Thu, 24 Oct 2019 11:29:03 +0200
+        by entrada.int (Postfix) with ESMTPSA id CE4DA42EE39A;
+        Thu, 24 Oct 2019 11:35:03 +0200 (CEST)
+Date:   Thu, 24 Oct 2019 11:35:05 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH] nft: Use ARRAY_SIZE() macro in nft_strerror()
-Message-ID: <20191024092903.sqvoxwwuflk2h4cn@salvia>
-References: <20191018155114.7423-1-phil@nwl.cc>
- <20191023112024.gd4dqe6qqv46hufe@salvia>
- <20191023112311.qrglbzhqad4vfqvo@salvia>
- <20191023121627.GM26123@orbyte.nwl.cc>
- <20191023204149.vushra6ipmjqqd7c@salvia>
- <20191024084503.GF17858@orbyte.nwl.cc>
+To:     Phil Sutter <phil@nwl.cc>, Jeremy Sowden <jeremy@azazel.net>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft 2/4] py: add missing output flags.
+Message-ID: <20191024093505.pup5mktqrdbriwpz@salvia>
+References: <20191022205855.22507-1-jeremy@azazel.net>
+ <20191022205855.22507-3-jeremy@azazel.net>
+ <20191023203833.aidczbpuxokywu6i@salvia>
+ <20191024092052.GP26123@orbyte.nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20191024084503.GF17858@orbyte.nwl.cc>
+In-Reply-To: <20191024092052.GP26123@orbyte.nwl.cc>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -63,64 +62,38 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Oct 24, 2019 at 10:45:03AM +0200, Phil Sutter wrote:
+On Thu, Oct 24, 2019 at 11:20:52AM +0200, Phil Sutter wrote:
 > Hi,
 > 
-> On Wed, Oct 23, 2019 at 10:41:49PM +0200, Pablo Neira Ayuso wrote:
-> > On Wed, Oct 23, 2019 at 02:16:27PM +0200, Phil Sutter wrote:
-> > > Hi Pablo,
-> > > 
-> > > On Wed, Oct 23, 2019 at 01:23:11PM +0200, Pablo Neira Ayuso wrote:
-> > > > On Wed, Oct 23, 2019 at 01:20:24PM +0200, Pablo Neira Ayuso wrote:
-> > > > > On Fri, Oct 18, 2019 at 05:51:14PM +0200, Phil Sutter wrote:
-> > > > > > Variable 'table' is an array of type struct table_struct, so this is a
-> > > > > > classical use-case for ARRAY_SIZE() macro.
-> > > > > > 
-> > > > > > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > > > > 
-> > > > > Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > > > 
-> > > > BTW, probably good to add the array check?
-> > > > 
-> > > > https://sourceforge.net/p/libhx/libhx/ci/master/tree/include/libHX/defs.h#l152
-> > > 
-> > > Copying from kernel sources, do you think that's fine?
-> > > 
-> > > |  #      ifndef ARRAY_SIZE
-> > > | -#              define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
-> > > | +#              define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:(-!!(e)); }))
-> > > | +#              define __same_type(a, b) \
-> > > | +                       __builtin_types_compatible_p(typeof(a), typeof(b))
-> > > | +/*             &a[0] degrades to a pointer: a different type from an array */
-> > > | +#              define __must_be_array(a) \
-> > > | +                       BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
-> > > | +#              define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x))) + __must_be_array(x)
-> > > |  #      endif
+> On Wed, Oct 23, 2019 at 10:38:33PM +0200, Pablo Neira Ayuso wrote:
+> > On Tue, Oct 22, 2019 at 09:58:53PM +0100, Jeremy Sowden wrote:
+> > > `terse` and `numeric_time` are missing from the `output_flags` dict.
+> > > Add them and getters and setters for them.
 > > 
-> > At quick glance I would say that's fine.
+> > LGTM.
+> > 
+> > @Phil, is this fine with you? I let you decide on this.
 > 
-> While testing it, I noticed that gcc has a builtin check already:
+> I just pushed it. Could you please update Patchwork? I'm not allowed to.
 > 
-> | ../include/xtables.h:640:36: warning: division 'sizeof (const uint32_t * {aka const unsigned int *}) / sizeof (uint32_t {aka const unsigned int})' does not compute the number of array elements [-Wsizeof-pointer-div]
-> |   640 | #  define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
-> |       |                                    ^
-> | nft.c:914:18: note: in expansion of macro 'ARRAY_SIZE'
-> |   914 |  for (i = 1; i < ARRAY_SIZE(multp); i++) {
-> |       |                  ^~~~~~~~~~
-> | nft.c:906:25: note: first 'sizeof' operand was declared here
-> |   906 |  static const uint32_t *multp = mult;
-> |       |                         ^~~~~
+> > BTW, would it make sense at some point to remove all the getter/setter
+> > per option and use the setter/getter flags approach as in libnftables?
 > 
-> AFAICT, the only benefit the above brings is that it causes an error
-> instead of warning. Do you think we still need it? Maybe instead enable
-> -Werror? ;)
+> Well, from a compat standpoint we can't remove them. The benefit of
+> those setter/getter methods is the clean interface (user's don't have to
+> memorize flag names) and the semantics of returning the old value. The
+> latter comes in handy when changing flags temporarily.
 
-If gcc is already checking for this. Warning should be fine.
+Probably some transitioning? ie. add the generic set/get flag
+interface. Update clients of this (Eric's code) to use. Leave the old
+interfaces for a while there to make sure people have time to migrate.
+Then remove them.
 
-Regarding -Werror, we would at least need to keep the autogenerated C
-code by bison away from it.
+Anyway, I'm fine if you prefer this more verbose interface for python,
+no issue.
 
-IIRC I enabled this in conntrack-tools long time ago, and I started
-getting reports on it breaking compilation with new gcc versions that
-were actually spewing new warnings. That was stopping users to install
-latest, probably -Werror is too agressive?
+> One could change the private __{g,s}et_output_flag() methods though and
+> make them similar to {g,s}et_debug() methods which probably resemble the
+> syntax you're looking for.
+
+Hm, not sure what you mean.
