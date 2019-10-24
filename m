@@ -2,119 +2,179 @@ Return-Path: <SRS0=5AJI=YR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DA48C47E49
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 16:23:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D479CA9EAF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 16:37:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5CC2E20659
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 16:23:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 45BBD205C9
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 16:37:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2405586AbfJXQXf (ORCPT
+        id S2503475AbfJXQhV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 24 Oct 2019 12:23:35 -0400
-Received: from correo.us.es ([193.147.175.20]:58998 "EHLO mail.us.es"
+        Thu, 24 Oct 2019 12:37:21 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:58900 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1733261AbfJXQXe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Oct 2019 12:23:34 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AE86F1798A0
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2019 18:23:28 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9F67E66DF
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2019 18:23:28 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 942F5FB362; Thu, 24 Oct 2019 18:23:28 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4867AB7FFB;
-        Thu, 24 Oct 2019 18:23:26 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 24 Oct 2019 18:23:26 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 173E942EE396;
-        Thu, 24 Oct 2019 18:23:26 +0200 (CEST)
-Date:   Thu, 24 Oct 2019 18:23:28 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, Jeremy Sowden <jeremy@azazel.net>,
-        Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft 2/4] py: add missing output flags.
-Message-ID: <20191024162328.m5l3sgwlm4wcjyjn@salvia>
-References: <20191022205855.22507-1-jeremy@azazel.net>
- <20191022205855.22507-3-jeremy@azazel.net>
- <20191023203833.aidczbpuxokywu6i@salvia>
- <20191024092052.GP26123@orbyte.nwl.cc>
- <20191024093505.pup5mktqrdbriwpz@salvia>
- <20191024155639.GR26123@orbyte.nwl.cc>
+        id S2503471AbfJXQhV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 24 Oct 2019 12:37:21 -0400
+Received: from localhost ([::1]:43758 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1iNg6y-0005C4-Mm; Thu, 24 Oct 2019 18:37:20 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH v3 1/7] xtables-restore: Integrate restore callbacks into struct nft_xt_restore_parse
+Date:   Thu, 24 Oct 2019 18:37:06 +0200
+Message-Id: <20191024163712.22405-2-phil@nwl.cc>
+X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20191024163712.22405-1-phil@nwl.cc>
+References: <20191024163712.22405-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191024155639.GR26123@orbyte.nwl.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Oct 24, 2019 at 05:56:39PM +0200, Phil Sutter wrote:
-> Hi,
-> 
-> On Thu, Oct 24, 2019 at 11:35:05AM +0200, Pablo Neira Ayuso wrote:
-> > On Thu, Oct 24, 2019 at 11:20:52AM +0200, Phil Sutter wrote:
-> > > Hi,
-> > > 
-> > > On Wed, Oct 23, 2019 at 10:38:33PM +0200, Pablo Neira Ayuso wrote:
-> > > > On Tue, Oct 22, 2019 at 09:58:53PM +0100, Jeremy Sowden wrote:
-> > > > > `terse` and `numeric_time` are missing from the `output_flags` dict.
-> > > > > Add them and getters and setters for them.
-> > > > 
-> > > > LGTM.
-> > > > 
-> > > > @Phil, is this fine with you? I let you decide on this.
-> > > 
-> > > I just pushed it. Could you please update Patchwork? I'm not allowed to.
-> > > 
-> > > > BTW, would it make sense at some point to remove all the getter/setter
-> > > > per option and use the setter/getter flags approach as in libnftables?
-> > > 
-> > > Well, from a compat standpoint we can't remove them. The benefit of
-> > > those setter/getter methods is the clean interface (user's don't have to
-> > > memorize flag names) and the semantics of returning the old value. The
-> > > latter comes in handy when changing flags temporarily.
-> > 
-> > Probably some transitioning? ie. add the generic set/get flag
-> > interface. Update clients of this (Eric's code) to use. Leave the old
-> > interfaces for a while there to make sure people have time to migrate.
-> > Then remove them.
-> 
-> Sounds good!
-> 
-> > Anyway, I'm fine if you prefer this more verbose interface for python,
-> > no issue.
-> 
-> Main goal was to keep the bit-fiddling away from users, but a method
-> which accepts an array of flag names (or flag values) and does the
-> binary OR'ing should serve fine, too.
+There's really no point in passing those as separate parameter. While
+being at it, make them static const everywhere.
 
-Good.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables/nft-shared.h        | 18 +++++++++---------
+ iptables/xtables-restore.c   | 13 ++++++++-----
+ iptables/xtables-translate.c |  6 ++++--
+ 3 files changed, 21 insertions(+), 16 deletions(-)
 
-> > > One could change the private __{g,s}et_output_flag() methods though and
-> > > make them similar to {g,s}et_debug() methods which probably resemble the
-> > > syntax you're looking for.
-> > 
-> > Hm, not sure what you mean.
-> 
-> I was referring to get_debug() and set_debug() methods of class
-> Nftables. The getter returns an array of debug flag names, the setter
-> accepts either a single flag name/value or an array of those.
+diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
+index 8b073b18fb0d9..3ff7251f9f7ec 100644
+--- a/iptables/nft-shared.h
++++ b/iptables/nft-shared.h
+@@ -232,13 +232,6 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+ 	      struct nft_xt_cmd_parse *p, struct iptables_command_state *cs,
+ 	      struct xtables_args *args);
+ 
+-struct nft_xt_restore_parse {
+-	FILE		*in;
+-	int		testing;
+-	const char	*tablename;
+-	bool		commit;
+-};
+-
+ struct nftnl_chain_list;
+ 
+ struct nft_xt_restore_cb {
+@@ -258,9 +251,16 @@ struct nft_xt_restore_cb {
+ 	int (*abort)(struct nft_handle *h);
+ };
+ 
++struct nft_xt_restore_parse {
++	FILE				*in;
++	int				testing;
++	const char			*tablename;
++	bool				commit;
++	const struct nft_xt_restore_cb	*cb;
++};
++
+ void xtables_restore_parse(struct nft_handle *h,
+-			   const struct nft_xt_restore_parse *p,
+-			   const struct nft_xt_restore_cb *cb);
++			   const struct nft_xt_restore_parse *p);
+ 
+ void nft_check_xt_legacy(int family, bool is_ipt_save);
+ #endif
+diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
+index 8d6cb7a97ea37..341579bd8d1c3 100644
+--- a/iptables/xtables-restore.c
++++ b/iptables/xtables-restore.c
+@@ -69,10 +69,10 @@ static const struct nft_xt_restore_cb restore_cb = {
+ };
+ 
+ void xtables_restore_parse(struct nft_handle *h,
+-			   const struct nft_xt_restore_parse *p,
+-			   const struct nft_xt_restore_cb *cb)
++			   const struct nft_xt_restore_parse *p)
+ {
+ 	const struct builtin_table *curtable = NULL;
++	const struct nft_xt_restore_cb *cb = p->cb;
+ 	struct argv_store av_store = {};
+ 	char buffer[10240];
+ 	int in_table = 0;
+@@ -279,6 +279,7 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
+ 	int c;
+ 	struct nft_xt_restore_parse p = {
+ 		.commit = true,
++		.cb = &restore_cb,
+ 	};
+ 
+ 	line = 0;
+@@ -383,7 +384,7 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
+ 		exit(EXIT_FAILURE);
+ 	}
+ 
+-	xtables_restore_parse(&h, &p, &restore_cb);
++	xtables_restore_parse(&h, &p);
+ 
+ 	nft_fini(&h);
+ 	fclose(p.in);
+@@ -427,6 +428,7 @@ int xtables_eb_restore_main(int argc, char *argv[])
+ {
+ 	struct nft_xt_restore_parse p = {
+ 		.in = stdin,
++		.cb = &ebt_restore_cb,
+ 	};
+ 	bool noflush = false;
+ 	struct nft_handle h;
+@@ -448,7 +450,7 @@ int xtables_eb_restore_main(int argc, char *argv[])
+ 
+ 	nft_init_eb(&h, "ebtables-restore");
+ 	h.noflush = noflush;
+-	xtables_restore_parse(&h, &p, &ebt_restore_cb);
++	xtables_restore_parse(&h, &p);
+ 	nft_fini(&h);
+ 
+ 	return 0;
+@@ -467,11 +469,12 @@ int xtables_arp_restore_main(int argc, char *argv[])
+ {
+ 	struct nft_xt_restore_parse p = {
+ 		.in = stdin,
++		.cb = &arp_restore_cb,
+ 	};
+ 	struct nft_handle h;
+ 
+ 	nft_init_arp(&h, "arptables-restore");
+-	xtables_restore_parse(&h, &p, &arp_restore_cb);
++	xtables_restore_parse(&h, &p);
+ 	nft_fini(&h);
+ 
+ 	return 0;
+diff --git a/iptables/xtables-translate.c b/iptables/xtables-translate.c
+index 43607901fc62b..a42c60a3b64c6 100644
+--- a/iptables/xtables-translate.c
++++ b/iptables/xtables-translate.c
+@@ -498,7 +498,9 @@ static int xtables_restore_xlate_main(int family, const char *progname,
+ 		.family = family,
+ 	};
+ 	const char *file = NULL;
+-	struct nft_xt_restore_parse p = {};
++	struct nft_xt_restore_parse p = {
++		.cb = &cb_xlate,
++	};
+ 	time_t now = time(NULL);
+ 	int c;
+ 
+@@ -535,7 +537,7 @@ static int xtables_restore_xlate_main(int family, const char *progname,
+ 
+ 	printf("# Translated by %s v%s on %s",
+ 	       argv[0], PACKAGE_VERSION, ctime(&now));
+-	xtables_restore_parse(&h, &p, &cb_xlate);
++	xtables_restore_parse(&h, &p);
+ 	printf("# Completed on %s", ctime(&now));
+ 
+ 	nft_fini(&h);
+-- 
+2.23.0
 
-If that's the preferred way to do things in python, rather that using
-flags like in C, that's fine with me.
