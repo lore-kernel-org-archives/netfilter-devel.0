@@ -2,92 +2,116 @@ Return-Path: <SRS0=5AJI=YR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25B00CA9EAF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 10:01:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C905CC47E49
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 10:35:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F3999205F4
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 10:01:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F1FA2084C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 10:35:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393146AbfJXKBP (ORCPT
+        id S2407948AbfJXKfi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 24 Oct 2019 06:01:15 -0400
-Received: from correo.us.es ([193.147.175.20]:53270 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732286AbfJXKBP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Oct 2019 06:01:15 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4AB684A2BA6
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2019 12:01:10 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3A7FAB8004
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2019 12:01:10 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 2FF13B7FFB; Thu, 24 Oct 2019 12:01:10 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 446C3202B7;
-        Thu, 24 Oct 2019 12:01:08 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 24 Oct 2019 12:01:08 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 1E8E542EE38E;
-        Thu, 24 Oct 2019 12:01:08 +0200 (CEST)
-Date:   Thu, 24 Oct 2019 12:01:10 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH] nft: Use ARRAY_SIZE() macro in nft_strerror()
-Message-ID: <20191024100110.hn65z2s66ktznymw@salvia>
-References: <20191018155114.7423-1-phil@nwl.cc>
- <20191023112024.gd4dqe6qqv46hufe@salvia>
- <20191023112311.qrglbzhqad4vfqvo@salvia>
- <20191023121627.GM26123@orbyte.nwl.cc>
- <20191023204149.vushra6ipmjqqd7c@salvia>
- <20191024084503.GF17858@orbyte.nwl.cc>
- <20191024092903.sqvoxwwuflk2h4cn@salvia>
- <20191024095101.GQ26123@orbyte.nwl.cc>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191024095101.GQ26123@orbyte.nwl.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Thu, 24 Oct 2019 06:35:38 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:44986 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2407888AbfJXKfh (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 24 Oct 2019 06:35:37 -0400
+Received: from localhost.localdomain (unknown [123.59.132.129])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 7D9AE41B23;
+        Thu, 24 Oct 2019 18:35:36 +0800 (CST)
+From:   wenxu@ucloud.cn
+To:     pablo@netfilter.org, fw@strlen.de
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next 4/5] netfilter: nft_tunnel: support NFT_TUNNEL_IPV6_SRC/DST match
+Date:   Thu, 24 Oct 2019 18:35:35 +0800
+Message-Id: <1571913336-13431-5-git-send-email-wenxu@ucloud.cn>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1571913336-13431-1-git-send-email-wenxu@ucloud.cn>
+References: <1571913336-13431-1-git-send-email-wenxu@ucloud.cn>
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSUlDQkJCQkxJSE9IT09ZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6OAg6Tgw*Ezg1PR4YOUIPPwkR
+        FBFPCQFVSlVKTkxKQkpISEhNTk5DVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUlCT083Bg++
+X-HM-Tid: 0a6dfd5606d02086kuqy7d9ae41b23
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Oct 24, 2019 at 11:51:01AM +0200, Phil Sutter wrote:
-> Hey,
-> 
-> On Thu, Oct 24, 2019 at 11:29:03AM +0200, Pablo Neira Ayuso wrote:
-> [...]
-> > If gcc is already checking for this. Warning should be fine.
-> > 
-> > Regarding -Werror, we would at least need to keep the autogenerated C
-> > code by bison away from it.
-> 
-> In nftables there is libparser_la_CFLAGS which holds quite some
-> exclusions already and could be used to pass -Wno-error as well. (Maybe
-> a good idea to add this regardless of whether we set -Werror by default
-> or not.)
-> 
-> > IIRC I enabled this in conntrack-tools long time ago, and I started
-> > getting reports on it breaking compilation with new gcc versions that
-> > were actually spewing new warnings. That was stopping users to install
-> > latest, probably -Werror is too agressive?
-> 
-> Yes, I wasn't completely serious. Breaking users' builds for things they
-> may not be in control of is not the best idea. We could instead add a
-> configure option to enable strict mode, but checking for warnings is
-> something I usually do so probably not that important after all.
+From: wenxu <wenxu@ucloud.cn>
 
-Indeed. So let's leave things as is then.
+Add new two NFT_TUNNEL_IPV6_SRC/DST match in nft_tunnel
+
+Signed-off-by: wenxu <wenxu@ucloud.cn>
+---
+ include/uapi/linux/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nft_tunnel.c               | 28 ++++++++++++++++++++++++++++
+ 2 files changed, 30 insertions(+)
+
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 7f65019..584868d 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1777,6 +1777,8 @@ enum nft_tunnel_keys {
+ 	NFT_TUNNEL_ID,
+ 	NFT_TUNNEL_IPV4_SRC,
+ 	NFT_TUNNEL_IPV4_DST,
++	NFT_TUNNEL_IPV6_SRC,
++	NFT_TUNNEL_IPV6_DST,
+ 	__NFT_TUNNEL_MAX
+ };
+ #define NFT_TUNNEL_MAX	(__NFT_TUNNEL_MAX - 1)
+diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
+index 580b51b..0a3005d 100644
+--- a/net/netfilter/nft_tunnel.c
++++ b/net/netfilter/nft_tunnel.c
+@@ -96,6 +96,30 @@ static void nft_tunnel_get_eval(const struct nft_expr *expr,
+ 		else
+ 			regs->verdict.code = NFT_BREAK;
+ 		break;
++	case NFT_TUNNEL_IPV6_SRC:
++		if (!tun_info) {
++			regs->verdict.code = NFT_BREAK;
++			return;
++		}
++		if (nft_tunnel_mode_validate(priv->mode, tun_info->mode,
++					     NFT_INET_IPV6_TYPE))
++			memcpy(dest, &tun_info->key.u.ipv6.src,
++			       sizeof(struct in6_addr));
++		else
++			regs->verdict.code = NFT_BREAK;
++		break;
++	case NFT_TUNNEL_IPV6_DST:
++		if (!tun_info) {
++			regs->verdict.code = NFT_BREAK;
++			return;
++		}
++		if (nft_tunnel_mode_validate(priv->mode, tun_info->mode,
++					     NFT_INET_IPV6_TYPE))
++			memcpy(dest, &tun_info->key.u.ipv6.dst,
++			       sizeof(struct in6_addr));
++		else
++			regs->verdict.code = NFT_BREAK;
++		break;
+ 	default:
+ 		WARN_ON(1);
+ 		regs->verdict.code = NFT_BREAK;
+@@ -129,6 +153,10 @@ static int nft_tunnel_get_init(const struct nft_ctx *ctx,
+ 	case NFT_TUNNEL_IPV4_DST:
+ 		len = sizeof(u32);
+ 		break;
++	case NFT_TUNNEL_IPV6_SRC:
++	case NFT_TUNNEL_IPV6_DST:
++		len = sizeof(struct in6_addr);
++		break;
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
+-- 
+1.8.3.1
+
