@@ -2,53 +2,57 @@ Return-Path: <SRS0=O/k4=YS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37ECBCA9EBD
-	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Oct 2019 14:07:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E46ACA9EA0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Oct 2019 14:07:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0EDC020663
-	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Oct 2019 14:07:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6739520663
+	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Oct 2019 14:07:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1572012427;
-	bh=ZZjjnG3npdaGzZzxef3vjTrq7vHubzzO5lJ6IcAPVKA=;
+	s=default; t=1572012440;
+	bh=Y4a8nZRLPZyWJewIpXd7KkVvD4okkKWNtoDmdd8Yyx8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=0jDy4730LbrMJ+P9TdlxHvBYffMfHVlFoaWlMLqiqjrT7h/DpwX/5096tGNPOUEiV
-	 v5X0O1jCG2OEqFaXvw34r/+aVnRKWqk4QL3rp7zimx9SFOZOpuQptnmgKwSk7uliNL
-	 H5XmopOqlE//AoVxESDQ+JLBd7An8WyaOSWQul8s=
+	b=RN6la6QO1+llAYpa6k8e+0N2q+DbbtOlwEGyWrqUc+RBNBBCTWtF8DMrgirDAOmwv
+	 t+nKb0DdxXwgvPG1I47fhXz/kY9X4D3eHfXK5RJKoa1UwjYjG2dWg85twK3JYyE95A
+	 r7aMLTz94gGDbC8OaCguJm6GqjsOPy063TE1vUEg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2505114AbfJYNzg (ORCPT
+        id S2505071AbfJYNz3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 25 Oct 2019 09:55:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49530 "EHLO mail.kernel.org"
+        Fri, 25 Oct 2019 09:55:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49378 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2505101AbfJYNzf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 25 Oct 2019 09:55:35 -0400
+        id S2505056AbfJYNz2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 25 Oct 2019 09:55:28 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A7234222BD;
-        Fri, 25 Oct 2019 13:55:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id F233121D82;
+        Fri, 25 Oct 2019 13:55:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1572011734;
-        bh=ZZjjnG3npdaGzZzxef3vjTrq7vHubzzO5lJ6IcAPVKA=;
+        s=default; t=1572011727;
+        bh=Y4a8nZRLPZyWJewIpXd7KkVvD4okkKWNtoDmdd8Yyx8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=HNSG62Phu14zNrKY4EJOnALBH7CTO63QES+mP8l0NAXA2N92+CEWj0M8VslHDRE0T
-         DsaxTk67I4v2lMJMRXFpE8KfhI126A+yHg89JT+4o7wq9oFxy3ktn52CgGVLfMEQCP
-         /2tjF1cTebVqgDn5wq9K9/R6UHmMzst3gC1RbN/Q=
+        b=IduWuBUyf3I2mIkFgQYTow9XquYBsn4oR64N0PKdIt4tW94Xptv0xSILX9fCAoRSf
+         eFb17qpPXIM1O635buGE10cWelzdBZx8t6vzrSuVM4gbEobO8f22I1X/AYIXeFCkxk
+         /hZtOaGsGwUamMMY/7MTbw+LYIrq/tbYvEUGeG90=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
+Cc:     Eric Dumazet <edumazet@google.com>,
+        syzbot <syzkaller@googlegroups.com>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jakub Kicinski <jakub.kicinski@netronome.com>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.3 16/33] netfilter: connlabels: prefer static lock initialiser
-Date:   Fri, 25 Oct 2019 09:54:48 -0400
-Message-Id: <20191025135505.24762-16-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.3 11/33] netfilter: conntrack: avoid possible false sharing
+Date:   Fri, 25 Oct 2019 09:54:43 -0400
+Message-Id: <20191025135505.24762-11-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20191025135505.24762-1-sashal@kernel.org>
 References: <20191025135505.24762-1-sashal@kernel.org>
@@ -61,57 +65,93 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Eric Dumazet <edumazet@google.com>
 
-[ Upstream commit 105333435b4f3b21ffc325f32fae17719310db64 ]
+[ Upstream commit e37542ba111f3974dc622ae0a21c1787318de500 ]
 
-seen during boot:
-BUG: spinlock bad magic on CPU#2, swapper/0/1
- lock: nf_connlabels_lock+0x0/0x60, .magic: 00000000, .owner: <none>/-1, .owner_cpu: 0
-Call Trace:
- do_raw_spin_lock+0x14e/0x1b0
- nf_connlabels_get+0x15/0x40
- ct_init_net+0xc4/0x270
- ops_init+0x56/0x1c0
- register_pernet_operations+0x1c8/0x350
- register_pernet_subsys+0x1f/0x40
- tcf_register_action+0x7c/0x1a0
- do_one_initcall+0x13d/0x2d9
+As hinted by KCSAN, we need at least one READ_ONCE()
+to prevent a compiler optimization.
 
-Problem is that ct action init function can run before
-connlabels_init().  Lock has not been initialised yet.
+More details on :
+https://github.com/google/ktsan/wiki/READ_ONCE-and-WRITE_ONCE#it-may-improve-performance
 
-Fix it by using a static initialiser.
+sysbot report :
+BUG: KCSAN: data-race in __nf_ct_refresh_acct / __nf_ct_refresh_acct
 
-Fixes: b57dc7c13ea9 ("net/sched: Introduce action ct")
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+read to 0xffff888123eb4f08 of 4 bytes by interrupt on cpu 0:
+ __nf_ct_refresh_acct+0xd4/0x1b0 net/netfilter/nf_conntrack_core.c:1796
+ nf_ct_refresh_acct include/net/netfilter/nf_conntrack.h:201 [inline]
+ nf_conntrack_tcp_packet+0xd40/0x3390 net/netfilter/nf_conntrack_proto_tcp.c:1161
+ nf_conntrack_handle_packet net/netfilter/nf_conntrack_core.c:1633 [inline]
+ nf_conntrack_in+0x410/0xaa0 net/netfilter/nf_conntrack_core.c:1727
+ ipv4_conntrack_in+0x27/0x40 net/netfilter/nf_conntrack_proto.c:178
+ nf_hook_entry_hookfn include/linux/netfilter.h:135 [inline]
+ nf_hook_slow+0x83/0x160 net/netfilter/core.c:512
+ nf_hook include/linux/netfilter.h:260 [inline]
+ NF_HOOK include/linux/netfilter.h:303 [inline]
+ ip_rcv+0x12f/0x1a0 net/ipv4/ip_input.c:523
+ __netif_receive_skb_one_core+0xa7/0xe0 net/core/dev.c:5004
+ __netif_receive_skb+0x37/0xf0 net/core/dev.c:5118
+ netif_receive_skb_internal+0x59/0x190 net/core/dev.c:5208
+ napi_skb_finish net/core/dev.c:5671 [inline]
+ napi_gro_receive+0x28f/0x330 net/core/dev.c:5704
+ receive_buf+0x284/0x30b0 drivers/net/virtio_net.c:1061
+ virtnet_receive drivers/net/virtio_net.c:1323 [inline]
+ virtnet_poll+0x436/0x7d0 drivers/net/virtio_net.c:1428
+ napi_poll net/core/dev.c:6352 [inline]
+ net_rx_action+0x3ae/0xa50 net/core/dev.c:6418
+ __do_softirq+0x115/0x33f kernel/softirq.c:292
+
+write to 0xffff888123eb4f08 of 4 bytes by task 7191 on cpu 1:
+ __nf_ct_refresh_acct+0xfb/0x1b0 net/netfilter/nf_conntrack_core.c:1797
+ nf_ct_refresh_acct include/net/netfilter/nf_conntrack.h:201 [inline]
+ nf_conntrack_tcp_packet+0xd40/0x3390 net/netfilter/nf_conntrack_proto_tcp.c:1161
+ nf_conntrack_handle_packet net/netfilter/nf_conntrack_core.c:1633 [inline]
+ nf_conntrack_in+0x410/0xaa0 net/netfilter/nf_conntrack_core.c:1727
+ ipv4_conntrack_local+0xbe/0x130 net/netfilter/nf_conntrack_proto.c:200
+ nf_hook_entry_hookfn include/linux/netfilter.h:135 [inline]
+ nf_hook_slow+0x83/0x160 net/netfilter/core.c:512
+ nf_hook include/linux/netfilter.h:260 [inline]
+ __ip_local_out+0x1f7/0x2b0 net/ipv4/ip_output.c:114
+ ip_local_out+0x31/0x90 net/ipv4/ip_output.c:123
+ __ip_queue_xmit+0x3a8/0xa40 net/ipv4/ip_output.c:532
+ ip_queue_xmit+0x45/0x60 include/net/ip.h:236
+ __tcp_transmit_skb+0xdeb/0x1cd0 net/ipv4/tcp_output.c:1158
+ __tcp_send_ack+0x246/0x300 net/ipv4/tcp_output.c:3685
+ tcp_send_ack+0x34/0x40 net/ipv4/tcp_output.c:3691
+ tcp_cleanup_rbuf+0x130/0x360 net/ipv4/tcp.c:1575
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 1 PID: 7191 Comm: syz-fuzzer Not tainted 5.3.0+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+
+Fixes: cc16921351d8 ("netfilter: conntrack: avoid same-timeout update")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Jakub Kicinski <jakub.kicinski@netronome.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_conntrack_labels.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_labels.c b/net/netfilter/nf_conntrack_labels.c
-index 74b8113f7aebe..d1c6b2a2e7bd1 100644
---- a/net/netfilter/nf_conntrack_labels.c
-+++ b/net/netfilter/nf_conntrack_labels.c
-@@ -11,7 +11,7 @@
- #include <net/netfilter/nf_conntrack_ecache.h>
- #include <net/netfilter/nf_conntrack_labels.h>
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 81a8ef42b88d3..56b1cf82ed3aa 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1793,8 +1793,8 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
+ 	if (nf_ct_is_confirmed(ct))
+ 		extra_jiffies += nfct_time_stamp;
  
--static spinlock_t nf_connlabels_lock;
-+static __read_mostly DEFINE_SPINLOCK(nf_connlabels_lock);
- 
- static int replace_u32(u32 *address, u32 mask, u32 new)
- {
-@@ -89,7 +89,6 @@ int nf_conntrack_labels_init(void)
- {
- 	BUILD_BUG_ON(NF_CT_LABELS_MAX_SIZE / sizeof(long) >= U8_MAX);
- 
--	spin_lock_init(&nf_connlabels_lock);
- 	return nf_ct_extend_register(&labels_extend);
- }
- 
+-	if (ct->timeout != extra_jiffies)
+-		ct->timeout = extra_jiffies;
++	if (READ_ONCE(ct->timeout) != extra_jiffies)
++		WRITE_ONCE(ct->timeout, extra_jiffies);
+ acct:
+ 	if (do_acct)
+ 		nf_ct_acct_update(ct, ctinfo, skb->len);
 -- 
 2.20.1
 
