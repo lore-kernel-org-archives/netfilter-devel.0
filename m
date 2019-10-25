@@ -2,156 +2,409 @@ Return-Path: <SRS0=O/k4=YS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E46ACA9EA0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Oct 2019 14:07:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46FDECA9EA0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Oct 2019 16:37:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6739520663
-	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Oct 2019 14:07:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1572012440;
-	bh=Y4a8nZRLPZyWJewIpXd7KkVvD4okkKWNtoDmdd8Yyx8=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=RN6la6QO1+llAYpa6k8e+0N2q+DbbtOlwEGyWrqUc+RBNBBCTWtF8DMrgirDAOmwv
-	 t+nKb0DdxXwgvPG1I47fhXz/kY9X4D3eHfXK5RJKoa1UwjYjG2dWg85twK3JYyE95A
-	 r7aMLTz94gGDbC8OaCguJm6GqjsOPy063TE1vUEg=
+	by mail.kernel.org (Postfix) with ESMTP id 1A72421872
+	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Oct 2019 16:37:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2505071AbfJYNz3 (ORCPT
+        id S2633107AbfJYQho (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 25 Oct 2019 09:55:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49378 "EHLO mail.kernel.org"
+        Fri, 25 Oct 2019 12:37:44 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:33142 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2505056AbfJYNz2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 25 Oct 2019 09:55:28 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id F233121D82;
-        Fri, 25 Oct 2019 13:55:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1572011727;
-        bh=Y4a8nZRLPZyWJewIpXd7KkVvD4okkKWNtoDmdd8Yyx8=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=IduWuBUyf3I2mIkFgQYTow9XquYBsn4oR64N0PKdIt4tW94Xptv0xSILX9fCAoRSf
-         eFb17qpPXIM1O635buGE10cWelzdBZx8t6vzrSuVM4gbEobO8f22I1X/AYIXeFCkxk
-         /hZtOaGsGwUamMMY/7MTbw+LYIrq/tbYvEUGeG90=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Eric Dumazet <edumazet@google.com>,
-        syzbot <syzkaller@googlegroups.com>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jakub Kicinski <jakub.kicinski@netronome.com>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.3 11/33] netfilter: conntrack: avoid possible false sharing
-Date:   Fri, 25 Oct 2019 09:54:43 -0400
-Message-Id: <20191025135505.24762-11-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191025135505.24762-1-sashal@kernel.org>
-References: <20191025135505.24762-1-sashal@kernel.org>
+        id S2633105AbfJYQho (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 25 Oct 2019 12:37:44 -0400
+Received: from localhost ([::1]:46232 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1iO2as-0003Au-1d; Fri, 25 Oct 2019 18:37:42 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] xtables-arp: Use xtables_ipparse_multiple()
+Date:   Fri, 25 Oct 2019 18:37:33 +0200
+Message-Id: <20191025163733.28576-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.23.0
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Eric Dumazet <edumazet@google.com>
+Use the same code for parsing source and destination IP addresses as
+iptables and drop all the local functions dealing with that.
 
-[ Upstream commit e37542ba111f3974dc622ae0a21c1787318de500 ]
+While being at it, call free() for 'saddrs' and 'daddrs' unconditionally
+(like iptables does), they are NULL if not used.
 
-As hinted by KCSAN, we need at least one READ_ONCE()
-to prevent a compiler optimization.
-
-More details on :
-https://github.com/google/ktsan/wiki/READ_ONCE-and-WRITE_ONCE#it-may-improve-performance
-
-sysbot report :
-BUG: KCSAN: data-race in __nf_ct_refresh_acct / __nf_ct_refresh_acct
-
-read to 0xffff888123eb4f08 of 4 bytes by interrupt on cpu 0:
- __nf_ct_refresh_acct+0xd4/0x1b0 net/netfilter/nf_conntrack_core.c:1796
- nf_ct_refresh_acct include/net/netfilter/nf_conntrack.h:201 [inline]
- nf_conntrack_tcp_packet+0xd40/0x3390 net/netfilter/nf_conntrack_proto_tcp.c:1161
- nf_conntrack_handle_packet net/netfilter/nf_conntrack_core.c:1633 [inline]
- nf_conntrack_in+0x410/0xaa0 net/netfilter/nf_conntrack_core.c:1727
- ipv4_conntrack_in+0x27/0x40 net/netfilter/nf_conntrack_proto.c:178
- nf_hook_entry_hookfn include/linux/netfilter.h:135 [inline]
- nf_hook_slow+0x83/0x160 net/netfilter/core.c:512
- nf_hook include/linux/netfilter.h:260 [inline]
- NF_HOOK include/linux/netfilter.h:303 [inline]
- ip_rcv+0x12f/0x1a0 net/ipv4/ip_input.c:523
- __netif_receive_skb_one_core+0xa7/0xe0 net/core/dev.c:5004
- __netif_receive_skb+0x37/0xf0 net/core/dev.c:5118
- netif_receive_skb_internal+0x59/0x190 net/core/dev.c:5208
- napi_skb_finish net/core/dev.c:5671 [inline]
- napi_gro_receive+0x28f/0x330 net/core/dev.c:5704
- receive_buf+0x284/0x30b0 drivers/net/virtio_net.c:1061
- virtnet_receive drivers/net/virtio_net.c:1323 [inline]
- virtnet_poll+0x436/0x7d0 drivers/net/virtio_net.c:1428
- napi_poll net/core/dev.c:6352 [inline]
- net_rx_action+0x3ae/0xa50 net/core/dev.c:6418
- __do_softirq+0x115/0x33f kernel/softirq.c:292
-
-write to 0xffff888123eb4f08 of 4 bytes by task 7191 on cpu 1:
- __nf_ct_refresh_acct+0xfb/0x1b0 net/netfilter/nf_conntrack_core.c:1797
- nf_ct_refresh_acct include/net/netfilter/nf_conntrack.h:201 [inline]
- nf_conntrack_tcp_packet+0xd40/0x3390 net/netfilter/nf_conntrack_proto_tcp.c:1161
- nf_conntrack_handle_packet net/netfilter/nf_conntrack_core.c:1633 [inline]
- nf_conntrack_in+0x410/0xaa0 net/netfilter/nf_conntrack_core.c:1727
- ipv4_conntrack_local+0xbe/0x130 net/netfilter/nf_conntrack_proto.c:200
- nf_hook_entry_hookfn include/linux/netfilter.h:135 [inline]
- nf_hook_slow+0x83/0x160 net/netfilter/core.c:512
- nf_hook include/linux/netfilter.h:260 [inline]
- __ip_local_out+0x1f7/0x2b0 net/ipv4/ip_output.c:114
- ip_local_out+0x31/0x90 net/ipv4/ip_output.c:123
- __ip_queue_xmit+0x3a8/0xa40 net/ipv4/ip_output.c:532
- ip_queue_xmit+0x45/0x60 include/net/ip.h:236
- __tcp_transmit_skb+0xdeb/0x1cd0 net/ipv4/tcp_output.c:1158
- __tcp_send_ack+0x246/0x300 net/ipv4/tcp_output.c:3685
- tcp_send_ack+0x34/0x40 net/ipv4/tcp_output.c:3691
- tcp_cleanup_rbuf+0x130/0x360 net/ipv4/tcp.c:1575
-
-Reported by Kernel Concurrency Sanitizer on:
-CPU: 1 PID: 7191 Comm: syz-fuzzer Not tainted 5.3.0+ #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-
-Fixes: cc16921351d8 ("netfilter: conntrack: avoid same-timeout update")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Reported-by: syzbot <syzkaller@googlegroups.com>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Jakub Kicinski <jakub.kicinski@netronome.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- net/netfilter/nf_conntrack_core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ iptables/xtables-arp.c | 243 +++++------------------------------------
+ 1 file changed, 30 insertions(+), 213 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 81a8ef42b88d3..56b1cf82ed3aa 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1793,8 +1793,8 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
- 	if (nf_ct_is_confirmed(ct))
- 		extra_jiffies += nfct_time_stamp;
+diff --git a/iptables/xtables-arp.c b/iptables/xtables-arp.c
+index c2b44871c3842..2ab046c9bac5f 100644
+--- a/iptables/xtables-arp.c
++++ b/iptables/xtables-arp.c
+@@ -219,89 +219,10 @@ static int get16_and_mask(char *from, uint16_t *to, uint16_t *mask, int base)
+ 	return 0;
+ }
  
--	if (ct->timeout != extra_jiffies)
--		ct->timeout = extra_jiffies;
-+	if (READ_ONCE(ct->timeout) != extra_jiffies)
-+		WRITE_ONCE(ct->timeout, extra_jiffies);
- acct:
- 	if (do_acct)
- 		nf_ct_acct_update(ct, ctinfo, skb->len);
+-static int
+-string_to_number(const char *s, unsigned int min, unsigned int max,
+-		 unsigned int *ret)
+-{
+-	long number;
+-	char *end;
+-
+-	/* Handle hex, octal, etc. */
+-	errno = 0;
+-	number = strtol(s, &end, 0);
+-	if (*end == '\0' && end != s) {
+-		/* we parsed a number, let's see if we want this */
+-		if (errno != ERANGE && min <= number && number <= max) {
+-			*ret = number;
+-			return 0;
+-		}
+-	}
+-	return -1;
+-}
+-
+ /*********************************************/
+ /* ARPTABLES SPECIFIC NEW FUNCTIONS END HERE */
+ /*********************************************/
+ 
+-static struct in_addr *
+-dotted_to_addr(const char *dotted)
+-{
+-	static struct in_addr addr;
+-	unsigned char *addrp;
+-	char *p, *q;
+-	unsigned int onebyte;
+-	int i;
+-	char buf[20];
+-
+-	/* copy dotted string, because we need to modify it */
+-	strncpy(buf, dotted, sizeof(buf) - 1);
+-	addrp = (unsigned char *) &(addr.s_addr);
+-
+-	p = buf;
+-	for (i = 0; i < 3; i++) {
+-		if ((q = strchr(p, '.')) == NULL)
+-			return (struct in_addr *) NULL;
+-
+-		*q = '\0';
+-		if (string_to_number(p, 0, 255, &onebyte) == -1)
+-			return (struct in_addr *) NULL;
+-
+-		addrp[i] = (unsigned char) onebyte;
+-		p = q + 1;
+-	}
+-
+-	/* we've checked 3 bytes, now we check the last one */
+-	if (string_to_number(p, 0, 255, &onebyte) == -1)
+-		return (struct in_addr *) NULL;
+-
+-	addrp[3] = (unsigned char) onebyte;
+-
+-	return &addr;
+-}
+-
+-static struct in_addr *
+-network_to_addr(const char *name)
+-{
+-	struct netent *net;
+-	static struct in_addr addr;
+-
+-	if ((net = getnetbyname(name)) != NULL) {
+-		if (net->n_addrtype != AF_INET)
+-			return (struct in_addr *) NULL;
+-		addr.s_addr = htonl((unsigned long) net->n_net);
+-		return &addr;
+-	}
+-
+-	return (struct in_addr *) NULL;
+-}
+-
+-static void
+-inaddrcpy(struct in_addr *dst, struct in_addr *src)
+-{
+-	/* memcpy(dst, src, sizeof(struct in_addr)); */
+-	dst->s_addr = src->s_addr;
+-}
+-
+ static void
+ exit_tryhelp(int status)
+ {
+@@ -434,127 +355,6 @@ check_inverse(const char option[], int *invert, int *optidx, int argc)
+ 	return false;
+ }
+ 
+-static struct in_addr *
+-host_to_addr(const char *name, unsigned int *naddr)
+-{
+-	struct in_addr *addr;
+-	struct addrinfo hints = {
+-		.ai_flags	= AI_CANONNAME,
+-		.ai_family	= AF_INET,
+-		.ai_socktype	= SOCK_RAW,
+-	};;
+-	struct addrinfo *res, *p;
+-	int err;
+-	unsigned int i;
+-
+-	*naddr = 0;
+-	err = getaddrinfo(name, NULL, &hints, &res);
+-	if (err != 0)
+-		return NULL;
+-	else {
+-		for (p = res; p != NULL; p = p->ai_next)
+-			(*naddr)++;
+-		addr = xtables_calloc(*naddr, sizeof(struct in_addr));
+-		for (i = 0, p = res; p != NULL; p = p->ai_next)
+-			memcpy(&addr[i++],
+-			       &((const struct sockaddr_in *)p->ai_addr)->sin_addr,
+-			       sizeof(struct in_addr));
+-		freeaddrinfo(res);
+-		return addr;
+-	}
+-
+-	return (struct in_addr *) NULL;
+-}
+-
+-/*
+- *	All functions starting with "parse" should succeed, otherwise
+- *	the program fails.
+- *	Most routines return pointers to static data that may change
+- *	between calls to the same or other routines with a few exceptions:
+- *	"host_to_addr", "parse_hostnetwork", and "parse_hostnetworkmask"
+- *	return global static data.
+-*/
+-
+-static struct in_addr *
+-parse_hostnetwork(const char *name, unsigned int *naddrs)
+-{
+-	struct in_addr *addrp, *addrptmp;
+-
+-	if ((addrptmp = dotted_to_addr(name)) != NULL ||
+-	    (addrptmp = network_to_addr(name)) != NULL) {
+-		addrp = xtables_malloc(sizeof(struct in_addr));
+-		inaddrcpy(addrp, addrptmp);
+-		*naddrs = 1;
+-		return addrp;
+-	}
+-	if ((addrp = host_to_addr(name, naddrs)) != NULL)
+-		return addrp;
+-
+-	xtables_error(PARAMETER_PROBLEM, "host/network `%s' not found", name);
+-}
+-
+-static struct in_addr *
+-parse_mask(char *mask)
+-{
+-	static struct in_addr maskaddr;
+-	struct in_addr *addrp;
+-	unsigned int bits;
+-
+-	if (mask == NULL) {
+-		/* no mask at all defaults to 32 bits */
+-		maskaddr.s_addr = 0xFFFFFFFF;
+-		return &maskaddr;
+-	}
+-	if ((addrp = dotted_to_addr(mask)) != NULL)
+-		/* dotted_to_addr already returns a network byte order addr */
+-		return addrp;
+-	if (string_to_number(mask, 0, 32, &bits) == -1)
+-		xtables_error(PARAMETER_PROBLEM,
+-			      "invalid mask `%s' specified", mask);
+-	if (bits != 0) {
+-		maskaddr.s_addr = htonl(0xFFFFFFFF << (32 - bits));
+-		return &maskaddr;
+-	}
+-
+-	maskaddr.s_addr = 0L;
+-	return &maskaddr;
+-}
+-
+-static void
+-parse_hostnetworkmask(const char *name, struct in_addr **addrpp,
+-		      struct in_addr *maskp, unsigned int *naddrs)
+-{
+-	struct in_addr *addrp;
+-	char buf[256];
+-	char *p;
+-	int i, j, k, n;
+-
+-	strncpy(buf, name, sizeof(buf) - 1);
+-	if ((p = strrchr(buf, '/')) != NULL) {
+-		*p = '\0';
+-		addrp = parse_mask(p + 1);
+-	} else
+-		addrp = parse_mask(NULL);
+-	inaddrcpy(maskp, addrp);
+-
+-	/* if a null mask is given, the name is ignored, like in "any/0" */
+-	if (maskp->s_addr == 0L)
+-		strcpy(buf, "0.0.0.0");
+-
+-	addrp = *addrpp = parse_hostnetwork(buf, naddrs);
+-	n = *naddrs;
+-	for (i = 0, j = 0; i < n; i++) {
+-		addrp[j++].s_addr &= maskp->s_addr;
+-		for (k = 0; k < j - 1; k++) {
+-			if (addrp[k].s_addr == addrp[j - 1].s_addr) {
+-				(*naddrs)--;
+-				j--;
+-				break;
+-			}
+-		}
+-	}
+-}
+-
+ static void
+ parse_interface(const char *arg, char *vianame, unsigned char *mask)
+ {
+@@ -647,8 +447,10 @@ append_entry(struct nft_handle *h,
+ 	     int rulenum,
+ 	     unsigned int nsaddrs,
+ 	     const struct in_addr saddrs[],
++	     const struct in_addr smasks[],
+ 	     unsigned int ndaddrs,
+ 	     const struct in_addr daddrs[],
++	     const struct in_addr dmasks[],
+ 	     bool verbose, bool append)
+ {
+ 	unsigned int i, j;
+@@ -656,8 +458,10 @@ append_entry(struct nft_handle *h,
+ 
+ 	for (i = 0; i < nsaddrs; i++) {
+ 		cs->arp.arp.src.s_addr = saddrs[i].s_addr;
++		cs->arp.arp.smsk.s_addr = smasks[i].s_addr;
+ 		for (j = 0; j < ndaddrs; j++) {
+ 			cs->arp.arp.tgt.s_addr = daddrs[j].s_addr;
++			cs->arp.arp.tmsk.s_addr = dmasks[j].s_addr;
+ 			if (append) {
+ 				ret = nft_rule_append(h, chain, table, cs, NULL,
+ 						      verbose);
+@@ -677,11 +481,15 @@ replace_entry(const char *chain,
+ 	      struct iptables_command_state *cs,
+ 	      unsigned int rulenum,
+ 	      const struct in_addr *saddr,
++	      const struct in_addr *smask,
+ 	      const struct in_addr *daddr,
++	      const struct in_addr *dmask,
+ 	      bool verbose, struct nft_handle *h)
+ {
+ 	cs->arp.arp.src.s_addr = saddr->s_addr;
+ 	cs->arp.arp.tgt.s_addr = daddr->s_addr;
++	cs->arp.arp.smsk.s_addr = smask->s_addr;
++	cs->arp.arp.tmsk.s_addr = dmask->s_addr;
+ 
+ 	return nft_rule_replace(h, chain, table, cs, rulenum, verbose);
+ }
+@@ -692,8 +500,10 @@ delete_entry(const char *chain,
+ 	     struct iptables_command_state *cs,
+ 	     unsigned int nsaddrs,
+ 	     const struct in_addr saddrs[],
++	     const struct in_addr smasks[],
+ 	     unsigned int ndaddrs,
+ 	     const struct in_addr daddrs[],
++	     const struct in_addr dmasks[],
+ 	     bool verbose, struct nft_handle *h)
+ {
+ 	unsigned int i, j;
+@@ -701,8 +511,10 @@ delete_entry(const char *chain,
+ 
+ 	for (i = 0; i < nsaddrs; i++) {
+ 		cs->arp.arp.src.s_addr = saddrs[i].s_addr;
++		cs->arp.arp.smsk.s_addr = smasks[i].s_addr;
+ 		for (j = 0; j < ndaddrs; j++) {
+ 			cs->arp.arp.tgt.s_addr = daddrs[j].s_addr;
++			cs->arp.arp.tmsk.s_addr = dmasks[j].s_addr;
+ 			ret = nft_rule_delete(h, chain, table, cs, verbose);
+ 		}
+ 	}
+@@ -752,7 +564,8 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table,
+ 	};
+ 	int invert = 0;
+ 	unsigned int nsaddrs = 0, ndaddrs = 0;
+-	struct in_addr *saddrs = NULL, *daddrs = NULL;
++	struct in_addr *saddrs = NULL, *smasks = NULL;
++	struct in_addr *daddrs = NULL, *dmasks = NULL;
+ 
+ 	int c, verbose = 0;
+ 	const char *chain = NULL;
+@@ -1118,12 +931,12 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table,
+ 	}
+ 
+ 	if (shostnetworkmask)
+-		parse_hostnetworkmask(shostnetworkmask, &saddrs,
+-				      &(cs.arp.arp.smsk), &nsaddrs);
++		xtables_ipparse_multiple(shostnetworkmask, &saddrs,
++					 &smasks, &nsaddrs);
+ 
+ 	if (dhostnetworkmask)
+-		parse_hostnetworkmask(dhostnetworkmask, &daddrs,
+-				      &(cs.arp.arp.tmsk), &ndaddrs);
++		xtables_ipparse_multiple(dhostnetworkmask, &daddrs,
++					 &dmasks, &ndaddrs);
+ 
+ 	if ((nsaddrs > 1 || ndaddrs > 1) &&
+ 	    (cs.arp.arp.invflags & (ARPT_INV_SRCIP | ARPT_INV_TGTIP)))
+@@ -1162,12 +975,14 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table,
+ 	switch (command) {
+ 	case CMD_APPEND:
+ 		ret = append_entry(h, chain, *table, &cs, 0,
+-				   nsaddrs, saddrs, ndaddrs, daddrs,
++				   nsaddrs, saddrs, smasks,
++				   ndaddrs, daddrs, dmasks,
+ 				   options&OPT_VERBOSE, true);
+ 		break;
+ 	case CMD_DELETE:
+ 		ret = delete_entry(chain, *table, &cs,
+-				   nsaddrs, saddrs, ndaddrs, daddrs,
++				   nsaddrs, saddrs, smasks,
++				   ndaddrs, daddrs, dmasks,
+ 				   options&OPT_VERBOSE, h);
+ 		break;
+ 	case CMD_DELETE_NUM:
+@@ -1175,11 +990,13 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table,
+ 		break;
+ 	case CMD_REPLACE:
+ 		ret = replace_entry(chain, *table, &cs, rulenum - 1,
+-				    saddrs, daddrs, options&OPT_VERBOSE, h);
++				    saddrs, smasks, daddrs, dmasks,
++				    options&OPT_VERBOSE, h);
+ 		break;
+ 	case CMD_INSERT:
+ 		ret = append_entry(h, chain, *table, &cs, rulenum - 1,
+-				   nsaddrs, saddrs, ndaddrs, daddrs,
++				   nsaddrs, saddrs, smasks,
++				   ndaddrs, daddrs, dmasks,
+ 				   options&OPT_VERBOSE, false);
+ 		break;
+ 	case CMD_LIST:
+@@ -1228,10 +1045,10 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table,
+ 		exit_tryhelp(2);
+ 	}
+ 
+-	if (nsaddrs)
+-		free(saddrs);
+-	if (ndaddrs)
+-		free(daddrs);
++	free(saddrs);
++	free(smasks);
++	free(daddrs);
++	free(dmasks);
+ 
+ 	if (cs.target)
+ 		free(cs.target->t);
 -- 
-2.20.1
+2.23.0
 
