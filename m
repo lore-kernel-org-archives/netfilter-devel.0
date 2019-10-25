@@ -1,104 +1,82 @@
-Return-Path: <SRS0=5AJI=YR=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=O/k4=YS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.4 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 251F1CA9EAF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 23:52:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72691CA9EBD
+	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Oct 2019 04:20:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 010C621A4C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Oct 2019 23:52:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 49BDB21D71
+	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Oct 2019 04:20:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732576AbfJXXwG (ORCPT
+        id S1733263AbfJYEUE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 24 Oct 2019 19:52:06 -0400
-Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:34207 "EHLO
-        mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727309AbfJXXwG (ORCPT
+        Fri, 25 Oct 2019 00:20:04 -0400
+Received: from mail-il1-f199.google.com ([209.85.166.199]:33994 "EHLO
+        mail-il1-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727103AbfJYEUD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Oct 2019 19:52:06 -0400
-Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
-        by mail105.syd.optusnet.com.au (Postfix) with SMTP id 9BA3B36426F
-        for <netfilter-devel@vger.kernel.org>; Fri, 25 Oct 2019 10:51:49 +1100 (AEDT)
-Received: (qmail 12635 invoked by uid 501); 24 Oct 2019 23:51:48 -0000
-Date:   Fri, 25 Oct 2019 10:51:48 +1100
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnfnetlink 1/1] src: Minimally resurrect doxygen
- documentation
-Message-ID: <20191024235148.GA8836@dimstar.local.net>
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20191014020223.21757-1-duncan_roe@optusnet.com.au>
- <20191014020223.21757-2-duncan_roe@optusnet.com.au>
- <20191023111346.4xoujsy6h2j7cv6y@salvia>
- <20191023153142.GB5848@dimstar.local.net>
- <20191023204836.ws4rv55f2dczhq2q@salvia>
+        Fri, 25 Oct 2019 00:20:03 -0400
+Received: by mail-il1-f199.google.com with SMTP id s17so1147879ili.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2019 21:20:01 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
+         :from:to;
+        bh=NF2elsax11pXsnm+smX3VLKpwTuafbnzKYyInM/Zfhg=;
+        b=TjSvtl5iWgODIDExcnpmUpgYqSSms3NLjetCgMqktN33IO/CYroJ0FNvBMNt0/2rJo
+         eiwlnjXnD7NHLwOvYuOWJA09ElKTX3TVgLpctPPVXAhl/tjqJkFHcDoVHjawWM0eO6cF
+         j+Ng5ZXIqGTD0xVOSAnLwtYGdkmob8atfjBX+PdPYVNAu9It12R/TukiWgMtJX7Ppnb3
+         Bw5wEGog7TeccGvknI7uqEwJaV/94dcXQehnxgIOrMCVf3bS0THupbH7x6Ymt+4iaoWn
+         UxdVmZgZXQhVYW67LM0kZziOM+0Km7qRa7q3R9G1VuLErS27Ml62Wv7o9zvn8PrEqKx1
+         ylXw==
+X-Gm-Message-State: APjAAAWPhcVHs7mk2CeJt2t7SfTMtT3fWczYcRDWOHbVCrRINzVAIi/M
+        2ol/2kC1XedzHwNVAGzHbBkp6aK2Rds2Kwu9k5LNLRzciqYD
+X-Google-Smtp-Source: APXvYqxBLtXLb+ZNhposnuPP5R6TbEk6pDsIDIYFbKqUpk/R085DA7b4q4kzLVLphPbJ9kNcvFRhZFz7kEFExK0XH5h0eLU1wAlT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191023204836.ws4rv55f2dczhq2q@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.2 cv=P6RKvmIu c=1 sm=1 tr=0
-        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
-        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=kj9zAlcOel0A:10 a=XobE76Q3jBoA:10
-        a=v6Ttdrwpusi1BPa057QA:9 a=CjuIK1q_8ugA:10
+X-Received: by 2002:a92:ccd0:: with SMTP id u16mr1924578ilq.296.1571977201370;
+ Thu, 24 Oct 2019 21:20:01 -0700 (PDT)
+Date:   Thu, 24 Oct 2019 21:20:01 -0700
+In-Reply-To: <00000000000074bc3105958042ef@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000aecf020595b4762f@google.com>
+Subject: Re: KASAN: use-after-free Read in nf_ct_deliver_cached_events
+From:   syzbot <syzbot+c7aabc9fe93e7f3637ba@syzkaller.appspotmail.com>
+To:     coreteam@netfilter.org, davem@davemloft.net, dhowells@redhat.com,
+        fw@strlen.de, kadlec@netfilter.org, linux-afs@lists.infradead.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+syzbot has bisected this bug to:
 
-On Wed, Oct 23, 2019 at 10:48:36PM +0200, Pablo Neira Ayuso wrote:
-> On Thu, Oct 24, 2019 at 02:31:42AM +1100, Duncan Roe wrote:
-> > On Wed, Oct 23, 2019 at 01:13:46PM +0200, Pablo Neira Ayuso wrote:
-> > > On Mon, Oct 14, 2019 at 01:02:23PM +1100, Duncan Roe wrote:
-> > > > The documentation was written in the days before doxygen required groups or even
-> > > > doxygen.cfg, so create doxygen.cfg.in and introduce one \defgroup per source
-> > > > file, encompassing pretty-much the whole file.
-> > > >
-> > [...]
-> > > >
-> > >
-> > > I'm ambivalent about this, it's been up on the table for a while.
-> > >
-> > > This library is rather old, and new applications should probably
-> > > be based instead used libmnl, which is a better choice.
-> > >
-> > The thing is, the Deprecated functions in libnetfilter_queue are much better
-> > documented than the newer functions and that documentation refers to
-> > libnfnetlink functions.
->
-> Would you help me get better the documentation for the new
-> libnetfilter_queue API? I'll be trying to address your questions
-> timely in case you decide to enroll in such endeavor.
+commit 2341e0775747864b684abe8627f3d45b167f2940
+Author: David Howells <dhowells@redhat.com>
+Date:   Thu Jun 9 22:02:51 2016 +0000
 
-OK I will take that on as a project.
->
-> > So I think that while the deprecated functions are documented, you should really
-> > have documentation for the old library they use.
->
-> Are you refering to libnfnetlink or libnetfilter_queue in this case?
+     rxrpc: Simplify connect() implementation and simplify sendmsg() op
 
-libnetfilter_queue
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=12f869df600000
+start commit:   12d61c69 Add linux-next specific files for 20191024
+git tree:       linux-next
+final crash:    https://syzkaller.appspot.com/x/report.txt?x=11f869df600000
+console output: https://syzkaller.appspot.com/x/log.txt?x=16f869df600000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=afb75fd8c9fd5ed8
+dashboard link: https://syzkaller.appspot.com/bug?extid=c7aabc9fe93e7f3637ba
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=10938e18e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=147caa97600000
 
-> If you insist on documenting libnfnetlink, I'll be fine with it, no
-> worries.
+Reported-by: syzbot+c7aabc9fe93e7f3637ba@syzkaller.appspotmail.com
+Fixes: 2341e0775747 ("rxrpc: Simplify connect() implementation and simplify  
+sendmsg() op")
 
-Yes I insist. LMK which compiler warning fix you'd like (if any)
->
-> > BTW, ldd of my app shows libnfnetlink.so although it doesn't use any deprecated
-> > functions. Is that expected?
->
-> Yes, there is still code in the libraries that refer to libnfnetlink.
-> Replacing some of that code should be feasible via libmnl, it is a
-> task that has been in my TODO list for long time. There's always
-> something with more priority in the queue.
-
-Cheers ... Duncan.
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
