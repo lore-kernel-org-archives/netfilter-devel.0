@@ -2,409 +2,255 @@ Return-Path: <SRS0=O/k4=YS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46FDECA9EA0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Oct 2019 16:37:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCE1CCA9EBE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Oct 2019 19:21:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1A72421872
-	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Oct 2019 16:37:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A89FC20679
+	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Oct 2019 19:21:01 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Z4ggmgeU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2633107AbfJYQho (ORCPT
+        id S1726984AbfJYTU7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 25 Oct 2019 12:37:44 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:33142 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2633105AbfJYQho (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 25 Oct 2019 12:37:44 -0400
-Received: from localhost ([::1]:46232 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1iO2as-0003Au-1d; Fri, 25 Oct 2019 18:37:42 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] xtables-arp: Use xtables_ipparse_multiple()
-Date:   Fri, 25 Oct 2019 18:37:33 +0200
-Message-Id: <20191025163733.28576-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.23.0
+        Fri, 25 Oct 2019 15:20:59 -0400
+Received: from us-smtp-2.mimecast.com ([205.139.110.61]:43171 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726973AbfJYTU6 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 25 Oct 2019 15:20:58 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1572031257;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=b4AyKgmfE6msyrF0y4ZsMwrJUW61YLBt7GbBRKBk9yQ=;
+        b=Z4ggmgeUstdoIIEkl6OVJG2ubNEEa1nEz5Dto33Yyc+zvmaU9iU2S45QBrWb3CaBfY0Z3J
+        dmLv41M82MgVpcjvPceBEfj+Fh9yoCrDpOFfvR68GRWykPkUpjzA0VxAUrWfQllLawyQUG
+        ZBfngPgXUT74rpOZREvb5RZ8no9thPM=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-12-RryGXTfiNLSng7gCOjlTfA-1; Fri, 25 Oct 2019 15:20:50 -0400
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 4DF7480183E;
+        Fri, 25 Oct 2019 19:20:48 +0000 (UTC)
+Received: from madcap2.tricolour.ca (ovpn-112-19.phx2.redhat.com [10.3.112.19])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 8614660167;
+        Fri, 25 Oct 2019 19:20:34 +0000 (UTC)
+Date:   Fri, 25 Oct 2019 15:20:31 -0400
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Paul Moore <paul@paul-moore.com>
+Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
+        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
+        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
+        mpatel@redhat.com
+Subject: Re: [PATCH ghak90 V7 08/21] audit: add contid support for signalling
+ the audit daemon
+Message-ID: <20191025192031.ul3yjy2q57vsvier@madcap2.tricolour.ca>
+References: <cover.1568834524.git.rgb@redhat.com>
+ <0850eaa785e2ff30c8c4818fd53e9544b34ed884.1568834524.git.rgb@redhat.com>
+ <CAHC9VhQoFFaQACbV4QHG_NPUCJu1+V=x3=i-yyGjbsYq8HuPtg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAHC9VhQoFFaQACbV4QHG_NPUCJu1+V=x3=i-yyGjbsYq8HuPtg@mail.gmail.com>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+X-MC-Unique: RryGXTfiNLSng7gCOjlTfA-1
+X-Mimecast-Spam-Score: 0
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Use the same code for parsing source and destination IP addresses as
-iptables and drop all the local functions dealing with that.
+On 2019-10-10 20:39, Paul Moore wrote:
+> On Wed, Sep 18, 2019 at 9:25 PM Richard Guy Briggs <rgb@redhat.com> wrote=
+:
+> > Add audit container identifier support to the action of signalling the
+> > audit daemon.
+> >
+> > Since this would need to add an element to the audit_sig_info struct,
+> > a new record type AUDIT_SIGNAL_INFO2 was created with a new
+> > audit_sig_info2 struct.  Corresponding support is required in the
+> > userspace code to reflect the new record request and reply type.
+> > An older userspace won't break since it won't know to request this
+> > record type.
+> >
+> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> > ---
+> >  include/linux/audit.h       |  7 +++++++
+> >  include/uapi/linux/audit.h  |  1 +
+> >  kernel/audit.c              | 28 ++++++++++++++++++++++++++++
+> >  kernel/audit.h              |  1 +
+> >  security/selinux/nlmsgtab.c |  1 +
+> >  5 files changed, 38 insertions(+)
+> >
+> > diff --git a/include/linux/audit.h b/include/linux/audit.h
+> > index 0c18d8e30620..7b640c4da4ee 100644
+> > --- a/include/linux/audit.h
+> > +++ b/include/linux/audit.h
+> > @@ -23,6 +23,13 @@ struct audit_sig_info {
+> >         char            ctx[0];
+> >  };
+> >
+> > +struct audit_sig_info2 {
+> > +       uid_t           uid;
+> > +       pid_t           pid;
+> > +       u64             cid;
+> > +       char            ctx[0];
+> > +};
+> > +
+> >  struct audit_buffer;
+> >  struct audit_context;
+> >  struct inode;
+> > diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
+> > index 4ed080f28b47..693ec6e0288b 100644
+> > --- a/include/uapi/linux/audit.h
+> > +++ b/include/uapi/linux/audit.h
+> > @@ -72,6 +72,7 @@
+> >  #define AUDIT_SET_FEATURE      1018    /* Turn an audit feature on or =
+off */
+> >  #define AUDIT_GET_FEATURE      1019    /* Get which features are enabl=
+ed */
+> >  #define AUDIT_CONTAINER_OP     1020    /* Define the container id and =
+info */
+> > +#define AUDIT_SIGNAL_INFO2     1021    /* Get info auditd signal sende=
+r */
+> >
+> >  #define AUDIT_FIRST_USER_MSG   1100    /* Userspace messages mostly un=
+interesting to kernel */
+> >  #define AUDIT_USER_AVC         1107    /* We filter this differently *=
+/
+> > diff --git a/kernel/audit.c b/kernel/audit.c
+> > index adfb3e6a7f0c..df3db29f5a8a 100644
+> > --- a/kernel/audit.c
+> > +++ b/kernel/audit.c
+> > @@ -125,6 +125,7 @@ struct audit_net {
+> >  kuid_t         audit_sig_uid =3D INVALID_UID;
+> >  pid_t          audit_sig_pid =3D -1;
+> >  u32            audit_sig_sid =3D 0;
+> > +u64            audit_sig_cid =3D AUDIT_CID_UNSET;
+> >
+> >  /* Records can be lost in several ways:
+> >     0) [suppressed in audit_alloc]
+> > @@ -1094,6 +1095,7 @@ static int audit_netlink_ok(struct sk_buff *skb, =
+u16 msg_type)
+> >         case AUDIT_ADD_RULE:
+> >         case AUDIT_DEL_RULE:
+> >         case AUDIT_SIGNAL_INFO:
+> > +       case AUDIT_SIGNAL_INFO2:
+> >         case AUDIT_TTY_GET:
+> >         case AUDIT_TTY_SET:
+> >         case AUDIT_TRIM:
+> > @@ -1257,6 +1259,7 @@ static int audit_receive_msg(struct sk_buff *skb,=
+ struct nlmsghdr *nlh)
+> >         struct audit_buffer     *ab;
+> >         u16                     msg_type =3D nlh->nlmsg_type;
+> >         struct audit_sig_info   *sig_data;
+> > +       struct audit_sig_info2  *sig_data2;
+> >         char                    *ctx =3D NULL;
+> >         u32                     len;
+> >
+> > @@ -1516,6 +1519,30 @@ static int audit_receive_msg(struct sk_buff *skb=
+, struct nlmsghdr *nlh)
+> >                                  sig_data, sizeof(*sig_data) + len);
+> >                 kfree(sig_data);
+> >                 break;
+> > +       case AUDIT_SIGNAL_INFO2:
+> > +               len =3D 0;
+> > +               if (audit_sig_sid) {
+> > +                       err =3D security_secid_to_secctx(audit_sig_sid,=
+ &ctx, &len);
+> > +                       if (err)
+> > +                               return err;
+> > +               }
+> > +               sig_data2 =3D kmalloc(sizeof(*sig_data2) + len, GFP_KER=
+NEL);
+> > +               if (!sig_data2) {
+> > +                       if (audit_sig_sid)
+> > +                               security_release_secctx(ctx, len);
+> > +                       return -ENOMEM;
+> > +               }
+> > +               sig_data2->uid =3D from_kuid(&init_user_ns, audit_sig_u=
+id);
+> > +               sig_data2->pid =3D audit_sig_pid;
+> > +               if (audit_sig_sid) {
+> > +                       memcpy(sig_data2->ctx, ctx, len);
+> > +                       security_release_secctx(ctx, len);
+> > +               }
+> > +               sig_data2->cid =3D audit_sig_cid;
+> > +               audit_send_reply(skb, seq, AUDIT_SIGNAL_INFO2, 0, 0,
+> > +                                sig_data2, sizeof(*sig_data2) + len);
+> > +               kfree(sig_data2);
+> > +               break;
+> >         case AUDIT_TTY_GET: {
+> >                 struct audit_tty_status s;
+> >                 unsigned int t;
+> > @@ -2384,6 +2411,7 @@ int audit_signal_info(int sig, struct task_struct=
+ *t)
+> >                 else
+> >                         audit_sig_uid =3D uid;
+> >                 security_task_getsecid(current, &audit_sig_sid);
+> > +               audit_sig_cid =3D audit_get_contid(current);
+> >         }
+>=20
+> I've been wondering something as I've been working my way through
+> these patches and this patch seems like a good spot to discuss this
+> ... Now that we have the concept of an audit container ID "lifetime"
+> in the kernel, when do we consider the ID gone?  Is it when the last
+> process in the container exits, or is it when we generate the last
+> audit record which could possibly contain the audit container ID?
+> This patch would appear to support the former, but if we wanted the
+> latter we would need to grab a reference to the audit container ID
+> struct so it wouldn't "die" on us before we could emit the signal info
+> record.
 
-While being at it, call free() for 'saddrs' and 'daddrs' unconditionally
-(like iptables does), they are NULL if not used.
+Are you concerned with the availability of the data when the audit
+signal info record is generated, when the kernel last deals with a
+particular contid or when userspace thinks there will be no more
+references to it?
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/xtables-arp.c | 243 +++++------------------------------------
- 1 file changed, 30 insertions(+), 213 deletions(-)
+I've got a bit of a dilemma with this one...
 
-diff --git a/iptables/xtables-arp.c b/iptables/xtables-arp.c
-index c2b44871c3842..2ab046c9bac5f 100644
---- a/iptables/xtables-arp.c
-+++ b/iptables/xtables-arp.c
-@@ -219,89 +219,10 @@ static int get16_and_mask(char *from, uint16_t *to, uint16_t *mask, int base)
- 	return 0;
- }
- 
--static int
--string_to_number(const char *s, unsigned int min, unsigned int max,
--		 unsigned int *ret)
--{
--	long number;
--	char *end;
--
--	/* Handle hex, octal, etc. */
--	errno = 0;
--	number = strtol(s, &end, 0);
--	if (*end == '\0' && end != s) {
--		/* we parsed a number, let's see if we want this */
--		if (errno != ERANGE && min <= number && number <= max) {
--			*ret = number;
--			return 0;
--		}
--	}
--	return -1;
--}
--
- /*********************************************/
- /* ARPTABLES SPECIFIC NEW FUNCTIONS END HERE */
- /*********************************************/
- 
--static struct in_addr *
--dotted_to_addr(const char *dotted)
--{
--	static struct in_addr addr;
--	unsigned char *addrp;
--	char *p, *q;
--	unsigned int onebyte;
--	int i;
--	char buf[20];
--
--	/* copy dotted string, because we need to modify it */
--	strncpy(buf, dotted, sizeof(buf) - 1);
--	addrp = (unsigned char *) &(addr.s_addr);
--
--	p = buf;
--	for (i = 0; i < 3; i++) {
--		if ((q = strchr(p, '.')) == NULL)
--			return (struct in_addr *) NULL;
--
--		*q = '\0';
--		if (string_to_number(p, 0, 255, &onebyte) == -1)
--			return (struct in_addr *) NULL;
--
--		addrp[i] = (unsigned char) onebyte;
--		p = q + 1;
--	}
--
--	/* we've checked 3 bytes, now we check the last one */
--	if (string_to_number(p, 0, 255, &onebyte) == -1)
--		return (struct in_addr *) NULL;
--
--	addrp[3] = (unsigned char) onebyte;
--
--	return &addr;
--}
--
--static struct in_addr *
--network_to_addr(const char *name)
--{
--	struct netent *net;
--	static struct in_addr addr;
--
--	if ((net = getnetbyname(name)) != NULL) {
--		if (net->n_addrtype != AF_INET)
--			return (struct in_addr *) NULL;
--		addr.s_addr = htonl((unsigned long) net->n_net);
--		return &addr;
--	}
--
--	return (struct in_addr *) NULL;
--}
--
--static void
--inaddrcpy(struct in_addr *dst, struct in_addr *src)
--{
--	/* memcpy(dst, src, sizeof(struct in_addr)); */
--	dst->s_addr = src->s_addr;
--}
--
- static void
- exit_tryhelp(int status)
- {
-@@ -434,127 +355,6 @@ check_inverse(const char option[], int *invert, int *optidx, int argc)
- 	return false;
- }
- 
--static struct in_addr *
--host_to_addr(const char *name, unsigned int *naddr)
--{
--	struct in_addr *addr;
--	struct addrinfo hints = {
--		.ai_flags	= AI_CANONNAME,
--		.ai_family	= AF_INET,
--		.ai_socktype	= SOCK_RAW,
--	};;
--	struct addrinfo *res, *p;
--	int err;
--	unsigned int i;
--
--	*naddr = 0;
--	err = getaddrinfo(name, NULL, &hints, &res);
--	if (err != 0)
--		return NULL;
--	else {
--		for (p = res; p != NULL; p = p->ai_next)
--			(*naddr)++;
--		addr = xtables_calloc(*naddr, sizeof(struct in_addr));
--		for (i = 0, p = res; p != NULL; p = p->ai_next)
--			memcpy(&addr[i++],
--			       &((const struct sockaddr_in *)p->ai_addr)->sin_addr,
--			       sizeof(struct in_addr));
--		freeaddrinfo(res);
--		return addr;
--	}
--
--	return (struct in_addr *) NULL;
--}
--
--/*
-- *	All functions starting with "parse" should succeed, otherwise
-- *	the program fails.
-- *	Most routines return pointers to static data that may change
-- *	between calls to the same or other routines with a few exceptions:
-- *	"host_to_addr", "parse_hostnetwork", and "parse_hostnetworkmask"
-- *	return global static data.
--*/
--
--static struct in_addr *
--parse_hostnetwork(const char *name, unsigned int *naddrs)
--{
--	struct in_addr *addrp, *addrptmp;
--
--	if ((addrptmp = dotted_to_addr(name)) != NULL ||
--	    (addrptmp = network_to_addr(name)) != NULL) {
--		addrp = xtables_malloc(sizeof(struct in_addr));
--		inaddrcpy(addrp, addrptmp);
--		*naddrs = 1;
--		return addrp;
--	}
--	if ((addrp = host_to_addr(name, naddrs)) != NULL)
--		return addrp;
--
--	xtables_error(PARAMETER_PROBLEM, "host/network `%s' not found", name);
--}
--
--static struct in_addr *
--parse_mask(char *mask)
--{
--	static struct in_addr maskaddr;
--	struct in_addr *addrp;
--	unsigned int bits;
--
--	if (mask == NULL) {
--		/* no mask at all defaults to 32 bits */
--		maskaddr.s_addr = 0xFFFFFFFF;
--		return &maskaddr;
--	}
--	if ((addrp = dotted_to_addr(mask)) != NULL)
--		/* dotted_to_addr already returns a network byte order addr */
--		return addrp;
--	if (string_to_number(mask, 0, 32, &bits) == -1)
--		xtables_error(PARAMETER_PROBLEM,
--			      "invalid mask `%s' specified", mask);
--	if (bits != 0) {
--		maskaddr.s_addr = htonl(0xFFFFFFFF << (32 - bits));
--		return &maskaddr;
--	}
--
--	maskaddr.s_addr = 0L;
--	return &maskaddr;
--}
--
--static void
--parse_hostnetworkmask(const char *name, struct in_addr **addrpp,
--		      struct in_addr *maskp, unsigned int *naddrs)
--{
--	struct in_addr *addrp;
--	char buf[256];
--	char *p;
--	int i, j, k, n;
--
--	strncpy(buf, name, sizeof(buf) - 1);
--	if ((p = strrchr(buf, '/')) != NULL) {
--		*p = '\0';
--		addrp = parse_mask(p + 1);
--	} else
--		addrp = parse_mask(NULL);
--	inaddrcpy(maskp, addrp);
--
--	/* if a null mask is given, the name is ignored, like in "any/0" */
--	if (maskp->s_addr == 0L)
--		strcpy(buf, "0.0.0.0");
--
--	addrp = *addrpp = parse_hostnetwork(buf, naddrs);
--	n = *naddrs;
--	for (i = 0, j = 0; i < n; i++) {
--		addrp[j++].s_addr &= maskp->s_addr;
--		for (k = 0; k < j - 1; k++) {
--			if (addrp[k].s_addr == addrp[j - 1].s_addr) {
--				(*naddrs)--;
--				j--;
--				break;
--			}
--		}
--	}
--}
--
- static void
- parse_interface(const char *arg, char *vianame, unsigned char *mask)
- {
-@@ -647,8 +447,10 @@ append_entry(struct nft_handle *h,
- 	     int rulenum,
- 	     unsigned int nsaddrs,
- 	     const struct in_addr saddrs[],
-+	     const struct in_addr smasks[],
- 	     unsigned int ndaddrs,
- 	     const struct in_addr daddrs[],
-+	     const struct in_addr dmasks[],
- 	     bool verbose, bool append)
- {
- 	unsigned int i, j;
-@@ -656,8 +458,10 @@ append_entry(struct nft_handle *h,
- 
- 	for (i = 0; i < nsaddrs; i++) {
- 		cs->arp.arp.src.s_addr = saddrs[i].s_addr;
-+		cs->arp.arp.smsk.s_addr = smasks[i].s_addr;
- 		for (j = 0; j < ndaddrs; j++) {
- 			cs->arp.arp.tgt.s_addr = daddrs[j].s_addr;
-+			cs->arp.arp.tmsk.s_addr = dmasks[j].s_addr;
- 			if (append) {
- 				ret = nft_rule_append(h, chain, table, cs, NULL,
- 						      verbose);
-@@ -677,11 +481,15 @@ replace_entry(const char *chain,
- 	      struct iptables_command_state *cs,
- 	      unsigned int rulenum,
- 	      const struct in_addr *saddr,
-+	      const struct in_addr *smask,
- 	      const struct in_addr *daddr,
-+	      const struct in_addr *dmask,
- 	      bool verbose, struct nft_handle *h)
- {
- 	cs->arp.arp.src.s_addr = saddr->s_addr;
- 	cs->arp.arp.tgt.s_addr = daddr->s_addr;
-+	cs->arp.arp.smsk.s_addr = smask->s_addr;
-+	cs->arp.arp.tmsk.s_addr = dmask->s_addr;
- 
- 	return nft_rule_replace(h, chain, table, cs, rulenum, verbose);
- }
-@@ -692,8 +500,10 @@ delete_entry(const char *chain,
- 	     struct iptables_command_state *cs,
- 	     unsigned int nsaddrs,
- 	     const struct in_addr saddrs[],
-+	     const struct in_addr smasks[],
- 	     unsigned int ndaddrs,
- 	     const struct in_addr daddrs[],
-+	     const struct in_addr dmasks[],
- 	     bool verbose, struct nft_handle *h)
- {
- 	unsigned int i, j;
-@@ -701,8 +511,10 @@ delete_entry(const char *chain,
- 
- 	for (i = 0; i < nsaddrs; i++) {
- 		cs->arp.arp.src.s_addr = saddrs[i].s_addr;
-+		cs->arp.arp.smsk.s_addr = smasks[i].s_addr;
- 		for (j = 0; j < ndaddrs; j++) {
- 			cs->arp.arp.tgt.s_addr = daddrs[j].s_addr;
-+			cs->arp.arp.tmsk.s_addr = dmasks[j].s_addr;
- 			ret = nft_rule_delete(h, chain, table, cs, verbose);
- 		}
- 	}
-@@ -752,7 +564,8 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table,
- 	};
- 	int invert = 0;
- 	unsigned int nsaddrs = 0, ndaddrs = 0;
--	struct in_addr *saddrs = NULL, *daddrs = NULL;
-+	struct in_addr *saddrs = NULL, *smasks = NULL;
-+	struct in_addr *daddrs = NULL, *dmasks = NULL;
- 
- 	int c, verbose = 0;
- 	const char *chain = NULL;
-@@ -1118,12 +931,12 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table,
- 	}
- 
- 	if (shostnetworkmask)
--		parse_hostnetworkmask(shostnetworkmask, &saddrs,
--				      &(cs.arp.arp.smsk), &nsaddrs);
-+		xtables_ipparse_multiple(shostnetworkmask, &saddrs,
-+					 &smasks, &nsaddrs);
- 
- 	if (dhostnetworkmask)
--		parse_hostnetworkmask(dhostnetworkmask, &daddrs,
--				      &(cs.arp.arp.tmsk), &ndaddrs);
-+		xtables_ipparse_multiple(dhostnetworkmask, &daddrs,
-+					 &dmasks, &ndaddrs);
- 
- 	if ((nsaddrs > 1 || ndaddrs > 1) &&
- 	    (cs.arp.arp.invflags & (ARPT_INV_SRCIP | ARPT_INV_TGTIP)))
-@@ -1162,12 +975,14 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table,
- 	switch (command) {
- 	case CMD_APPEND:
- 		ret = append_entry(h, chain, *table, &cs, 0,
--				   nsaddrs, saddrs, ndaddrs, daddrs,
-+				   nsaddrs, saddrs, smasks,
-+				   ndaddrs, daddrs, dmasks,
- 				   options&OPT_VERBOSE, true);
- 		break;
- 	case CMD_DELETE:
- 		ret = delete_entry(chain, *table, &cs,
--				   nsaddrs, saddrs, ndaddrs, daddrs,
-+				   nsaddrs, saddrs, smasks,
-+				   ndaddrs, daddrs, dmasks,
- 				   options&OPT_VERBOSE, h);
- 		break;
- 	case CMD_DELETE_NUM:
-@@ -1175,11 +990,13 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table,
- 		break;
- 	case CMD_REPLACE:
- 		ret = replace_entry(chain, *table, &cs, rulenum - 1,
--				    saddrs, daddrs, options&OPT_VERBOSE, h);
-+				    saddrs, smasks, daddrs, dmasks,
-+				    options&OPT_VERBOSE, h);
- 		break;
- 	case CMD_INSERT:
- 		ret = append_entry(h, chain, *table, &cs, rulenum - 1,
--				   nsaddrs, saddrs, ndaddrs, daddrs,
-+				   nsaddrs, saddrs, smasks,
-+				   ndaddrs, daddrs, dmasks,
- 				   options&OPT_VERBOSE, false);
- 		break;
- 	case CMD_LIST:
-@@ -1228,10 +1045,10 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table,
- 		exit_tryhelp(2);
- 	}
- 
--	if (nsaddrs)
--		free(saddrs);
--	if (ndaddrs)
--		free(daddrs);
-+	free(saddrs);
-+	free(smasks);
-+	free(daddrs);
-+	free(dmasks);
- 
- 	if (cs.target)
- 		free(cs.target->t);
--- 
-2.23.0
+In fact, the latter situation you describe isn't a concern at present to
+be able to deliver the information since the value is copied into the
+audit signal global internal variables before the signalling task dies
+and the audit signal info record is created from those copied (cached)
+values when requested from userspace.
+
+So the issue raised above I don't think is a problem.  However, patch 18
+(which wasn't reviewed because it was a patch to a number of preceeding
+patches) changes the reporting approach to give a chain of nested
+contids which isn't reflected in the same level of reporting for the
+audit signal patch/mechanism.  Solving this is a bit more complex.  We
+could have the audit signal internal caching store a pointer to the
+relevant container object and bump its refcount to ensure it doesn't
+vanish until we are done with it, but the audit signal info binary
+record format already has a variable length due to the selinux context
+at the end of that struct and adding a second variable length element to
+it would make it more complicated (but not impossible) to handle.
+
+> paul moore
+
+- RGB
+
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
 
