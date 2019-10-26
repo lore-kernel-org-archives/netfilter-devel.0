@@ -4,48 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61903CA9EBC
-	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:47:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 070A4CA9EBD
+	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:47:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 406E2206DD
-	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:47:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC723206DD
+	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:47:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726464AbfJZLrs (ORCPT
+        id S1726521AbfJZLrv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 26 Oct 2019 07:47:48 -0400
-Received: from correo.us.es ([193.147.175.20]:46424 "EHLO mail.us.es"
+        Sat, 26 Oct 2019 07:47:51 -0400
+Received: from correo.us.es ([193.147.175.20]:46422 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726393AbfJZLrs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 26 Oct 2019 07:47:48 -0400
+        id S1726365AbfJZLrv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 26 Oct 2019 07:47:51 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 194A28C3C58
-        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:44 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id CF7358C3C5D
+        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:46 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0A15ADA4D0
-        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:44 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C14A1D190C
+        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:46 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 09662DA4CA; Sat, 26 Oct 2019 13:47:44 +0200 (CEST)
+        id B70B9DA8E8; Sat, 26 Oct 2019 13:47:46 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0E98FB7FFE;
-        Sat, 26 Oct 2019 13:47:42 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BDD25B7FF6;
+        Sat, 26 Oct 2019 13:47:44 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 26 Oct 2019 13:47:42 +0200 (CEST)
+ Sat, 26 Oct 2019 13:47:44 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id D153242EE395;
-        Sat, 26 Oct 2019 13:47:41 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 8E11042EE393;
+        Sat, 26 Oct 2019 13:47:44 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 09/31] ipvs: batch __ip_vs_cleanup
-Date:   Sat, 26 Oct 2019 13:47:11 +0200
-Message-Id: <20191026114733.28111-10-pablo@netfilter.org>
+Subject: [PATCH 13/31] selftests: netfilter: add ipvs tunnel test case
+Date:   Sat, 26 Oct 2019 13:47:15 +0200
+Message-Id: <20191026114733.28111-14-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191026114733.28111-1-pablo@netfilter.org>
 References: <20191026114733.28111-1-pablo@netfilter.org>
@@ -57,106 +56,70 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
 
-It's better to batch __ip_vs_cleanup to speedup ipvs
-connections dismantle.
+Test virtual server via ipip tunnel.
+
+Tested:
+# selftests: netfilter: ipvs.sh
+# Testing DR mode...
+# Testing NAT mode...
+# Testing Tunnel mode...
+# ipvs.sh: PASS
+ok 6 selftests: netfilter: ipvs.sh
 
 Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Simon Horman <horms@verge.net.au>
 ---
- include/net/ip_vs.h             |  2 +-
- net/netfilter/ipvs/ip_vs_core.c | 28 ++++++++++++++++------------
- net/netfilter/ipvs/ip_vs_ctl.c  | 12 +++++++++---
- 3 files changed, 26 insertions(+), 16 deletions(-)
+ tools/testing/selftests/netfilter/ipvs.sh | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 3759167f91f5..93e7a252993d 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -1324,7 +1324,7 @@ void ip_vs_protocol_net_cleanup(struct netns_ipvs *ipvs);
- void ip_vs_control_net_cleanup(struct netns_ipvs *ipvs);
- void ip_vs_estimator_net_cleanup(struct netns_ipvs *ipvs);
- void ip_vs_sync_net_cleanup(struct netns_ipvs *ipvs);
--void ip_vs_service_net_cleanup(struct netns_ipvs *ipvs);
-+void ip_vs_service_nets_cleanup(struct list_head *net_list);
- 
- /* IPVS application functions
-  * (from ip_vs_app.c)
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 8b80ab794a92..93cfb47823d1 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2402,18 +2402,22 @@ static int __net_init __ip_vs_init(struct net *net)
- 	return -ENOMEM;
+diff --git a/tools/testing/selftests/netfilter/ipvs.sh b/tools/testing/selftests/netfilter/ipvs.sh
+index 8b2e618d6a6a..c3b8f90c497e 100755
+--- a/tools/testing/selftests/netfilter/ipvs.sh
++++ b/tools/testing/selftests/netfilter/ipvs.sh
+@@ -168,6 +168,30 @@ test_nat() {
+ 	test_service
  }
  
--static void __net_exit __ip_vs_cleanup(struct net *net)
-+static void __net_exit __ip_vs_cleanup_batch(struct list_head *net_list)
- {
--	struct netns_ipvs *ipvs = net_ipvs(net);
--
--	ip_vs_service_net_cleanup(ipvs);	/* ip_vs_flush() with locks */
--	ip_vs_conn_net_cleanup(ipvs);
--	ip_vs_app_net_cleanup(ipvs);
--	ip_vs_protocol_net_cleanup(ipvs);
--	ip_vs_control_net_cleanup(ipvs);
--	ip_vs_estimator_net_cleanup(ipvs);
--	IP_VS_DBG(2, "ipvs netns %d released\n", ipvs->gen);
--	net->ipvs = NULL;
-+	struct netns_ipvs *ipvs;
-+	struct net *net;
++test_tun() {
++	ip netns exec ns0 ip route add ${vip_v4} via ${gip_v4} dev br0
 +
-+	ip_vs_service_nets_cleanup(net_list);	/* ip_vs_flush() with locks */
-+	list_for_each_entry(net, net_list, exit_list) {
-+		ipvs = net_ipvs(net);
-+		ip_vs_conn_net_cleanup(ipvs);
-+		ip_vs_app_net_cleanup(ipvs);
-+		ip_vs_protocol_net_cleanup(ipvs);
-+		ip_vs_control_net_cleanup(ipvs);
-+		ip_vs_estimator_net_cleanup(ipvs);
-+		IP_VS_DBG(2, "ipvs netns %d released\n", ipvs->gen);
-+		net->ipvs = NULL;
-+	}
- }
- 
- static int __net_init __ip_vs_dev_init(struct net *net)
-@@ -2442,7 +2446,7 @@ static void __net_exit __ip_vs_dev_cleanup(struct net *net)
- 
- static struct pernet_operations ipvs_core_ops = {
- 	.init = __ip_vs_init,
--	.exit = __ip_vs_cleanup,
-+	.exit_batch = __ip_vs_cleanup_batch,
- 	.id   = &ip_vs_net_id,
- 	.size = sizeof(struct netns_ipvs),
- };
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 8b48e7ce1c2c..153c77b5c4f5 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1607,14 +1607,20 @@ static int ip_vs_flush(struct netns_ipvs *ipvs, bool cleanup)
- 
- /*
-  *	Delete service by {netns} in the service table.
-- *	Called by __ip_vs_cleanup()
-+ *	Called by __ip_vs_batch_cleanup()
-  */
--void ip_vs_service_net_cleanup(struct netns_ipvs *ipvs)
-+void ip_vs_service_nets_cleanup(struct list_head *net_list)
- {
-+	struct netns_ipvs *ipvs;
-+	struct net *net;
++	ip netns exec ns1 modprobe ipip
++	ip netns exec ns1 ip link set tunl0 up
++	ip netns exec ns1 sysctl -qw net.ipv4.ip_forward=0
++	ip netns exec ns1 sysctl -qw net.ipv4.conf.all.send_redirects=0
++	ip netns exec ns1 sysctl -qw net.ipv4.conf.default.send_redirects=0
++	ip netns exec ns1 ipvsadm -A -t ${vip_v4}:${port} -s rr
++	ip netns exec ns1 ipvsadm -a -i -t ${vip_v4}:${port} -r ${rip_v4}:${port}
++	ip netns exec ns1 ip addr add ${vip_v4}/32 dev lo:1
 +
- 	EnterFunction(2);
- 	/* Check for "full" addressed entries */
- 	mutex_lock(&__ip_vs_mutex);
--	ip_vs_flush(ipvs, true);
-+	list_for_each_entry(net, net_list, exit_list) {
-+		ipvs = net_ipvs(net);
-+		ip_vs_flush(ipvs, true);
-+	}
- 	mutex_unlock(&__ip_vs_mutex);
- 	LeaveFunction(2);
++	ip netns exec ns2 modprobe ipip
++	ip netns exec ns2 ip link set tunl0 up
++	ip netns exec ns2 sysctl -qw net.ipv4.conf.all.arp_ignore=1
++	ip netns exec ns2 sysctl -qw net.ipv4.conf.all.arp_announce=2
++	ip netns exec ns2 sysctl -qw net.ipv4.conf.all.rp_filter=0
++	ip netns exec ns2 sysctl -qw net.ipv4.conf.tunl0.rp_filter=0
++	ip netns exec ns2 sysctl -qw net.ipv4.conf.veth21.rp_filter=0
++	ip netns exec ns2 ip addr add ${vip_v4}/32 dev lo:1
++
++	test_service
++}
++
+ run_tests() {
+ 	local errors=
+ 
+@@ -183,6 +207,12 @@ run_tests() {
+ 	test_nat
+ 	errors=$(( $errors + $? ))
+ 
++	echo "Testing Tunnel mode..."
++	cleanup
++	setup
++	test_tun
++	errors=$(( $errors + $? ))
++
+ 	return $errors
  }
+ 
 -- 
 2.11.0
 
