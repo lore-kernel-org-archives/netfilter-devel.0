@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AA60CA9EBC
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACBC8CA9EB9
 	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:48:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EF041206DD
-	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:48:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8C474206DD
+	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:48:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726302AbfJZLsc (ORCPT
+        id S1726449AbfJZLrs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 26 Oct 2019 07:48:32 -0400
-Received: from correo.us.es ([193.147.175.20]:46456 "EHLO mail.us.es"
+        Sat, 26 Oct 2019 07:47:48 -0400
+Received: from correo.us.es ([193.147.175.20]:46422 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726363AbfJZLrt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 26 Oct 2019 07:47:49 -0400
+        id S1726386AbfJZLrr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 26 Oct 2019 07:47:47 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B0D2B8C3C51
-        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:44 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 6C27A8C3C69
+        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:43 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A1B99B7FF6
-        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:44 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 60193DA4CA
+        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:43 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 972FAB7FFB; Sat, 26 Oct 2019 13:47:44 +0200 (CEST)
+        id 55411DA801; Sat, 26 Oct 2019 13:47:43 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A3217A8272;
-        Sat, 26 Oct 2019 13:47:42 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6CF8DB8001;
+        Sat, 26 Oct 2019 13:47:41 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 26 Oct 2019 13:47:42 +0200 (CEST)
+ Sat, 26 Oct 2019 13:47:41 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 758B942EE395;
-        Sat, 26 Oct 2019 13:47:42 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 3518542EE395;
+        Sat, 26 Oct 2019 13:47:41 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 10/31] ipvs: batch __ip_vs_dev_cleanup
-Date:   Sat, 26 Oct 2019 13:47:12 +0200
-Message-Id: <20191026114733.28111-11-pablo@netfilter.org>
+Subject: [PATCH 08/31] ipvs: no need to update skb route entry for local destination packets.
+Date:   Sat, 26 Oct 2019 13:47:10 +0200
+Message-Id: <20191026114733.28111-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191026114733.28111-1-pablo@netfilter.org>
 References: <20191026114733.28111-1-pablo@netfilter.org>
@@ -55,57 +55,54 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+From: zhang kai <zhangkaiheb@126.com>
 
-It's better to batch __ip_vs_cleanup to speedup ipvs
-devices dismantle.
+In the end of function __ip_vs_get_out_rt/__ip_vs_get_out_rt_v6,the
+'local' variable is always zero.
 
-Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+Signed-off-by: zhang kai <zhangkaiheb@126.com>
 Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Simon Horman <horms@verge.net.au>
 ---
- net/netfilter/ipvs/ip_vs_core.c | 19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ net/netfilter/ipvs/ip_vs_xmit.c | 18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 93cfb47823d1..512259f579d7 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2433,14 +2433,19 @@ static int __net_init __ip_vs_dev_init(struct net *net)
- 	return ret;
- }
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index 888d3068a492..b1e300f8881b 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -407,12 +407,9 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+ 		goto err_put;
  
--static void __net_exit __ip_vs_dev_cleanup(struct net *net)
-+static void __net_exit __ip_vs_dev_cleanup_batch(struct list_head *net_list)
- {
--	struct netns_ipvs *ipvs = net_ipvs(net);
-+	struct netns_ipvs *ipvs;
-+	struct net *net;
-+
- 	EnterFunction(2);
--	nf_unregister_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
--	ipvs->enable = 0;	/* Disable packet reception */
--	smp_wmb();
--	ip_vs_sync_net_cleanup(ipvs);
-+	list_for_each_entry(net, net_list, exit_list) {
-+		ipvs = net_ipvs(net);
-+		nf_unregister_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
-+		ipvs->enable = 0;	/* Disable packet reception */
-+		smp_wmb();
-+		ip_vs_sync_net_cleanup(ipvs);
-+	}
- 	LeaveFunction(2);
- }
+ 	skb_dst_drop(skb);
+-	if (noref) {
+-		if (!local)
+-			skb_dst_set_noref(skb, &rt->dst);
+-		else
+-			skb_dst_set(skb, dst_clone(&rt->dst));
+-	} else
++	if (noref)
++		skb_dst_set_noref(skb, &rt->dst);
++	else
+ 		skb_dst_set(skb, &rt->dst);
  
-@@ -2453,7 +2458,7 @@ static struct pernet_operations ipvs_core_ops = {
+ 	return local;
+@@ -574,12 +571,9 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+ 		goto err_put;
  
- static struct pernet_operations ipvs_core_dev_ops = {
- 	.init = __ip_vs_dev_init,
--	.exit = __ip_vs_dev_cleanup,
-+	.exit_batch = __ip_vs_dev_cleanup_batch,
- };
+ 	skb_dst_drop(skb);
+-	if (noref) {
+-		if (!local)
+-			skb_dst_set_noref(skb, &rt->dst);
+-		else
+-			skb_dst_set(skb, dst_clone(&rt->dst));
+-	} else
++	if (noref)
++		skb_dst_set_noref(skb, &rt->dst);
++	else
+ 		skb_dst_set(skb, &rt->dst);
  
- /*
+ 	return local;
 -- 
 2.11.0
 
