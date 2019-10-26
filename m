@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE00FCA9EBD
-	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:48:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66E74CA9EBD
+	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:48:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CD9F3206DD
-	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:48:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 47DA3206DD
+	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:48:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726563AbfJZLry (ORCPT
+        id S1726792AbfJZLsW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 26 Oct 2019 07:47:54 -0400
-Received: from correo.us.es ([193.147.175.20]:46444 "EHLO mail.us.es"
+        Sat, 26 Oct 2019 07:48:22 -0400
+Received: from correo.us.es ([193.147.175.20]:46410 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726483AbfJZLry (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1726217AbfJZLry (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Sat, 26 Oct 2019 07:47:54 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BB41D8C3C60
-        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:49 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id C71108C3C63
+        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:50 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A9FFAA7EFF
-        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:49 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B6BEDA7E1D
+        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:50 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 9F674A7EE7; Sat, 26 Oct 2019 13:47:49 +0200 (CEST)
+        id AB2ABA7E19; Sat, 26 Oct 2019 13:47:50 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 71002DA4CA;
-        Sat, 26 Oct 2019 13:47:47 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BCC44A7EC5;
+        Sat, 26 Oct 2019 13:47:48 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 26 Oct 2019 13:47:47 +0200 (CEST)
+ Sat, 26 Oct 2019 13:47:48 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 437DC42EE393;
-        Sat, 26 Oct 2019 13:47:47 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 8E51B42EE393;
+        Sat, 26 Oct 2019 13:47:48 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 17/31] netfilter: add and use nf_hook_slow_list()
-Date:   Sat, 26 Oct 2019 13:47:19 +0200
-Message-Id: <20191026114733.28111-18-pablo@netfilter.org>
+Subject: [PATCH 19/31] netfilter: nf_flow_table: move priority to struct nf_flowtable
+Date:   Sat, 26 Oct 2019 13:47:21 +0200
+Message-Id: <20191026114733.28111-20-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191026114733.28111-1-pablo@netfilter.org>
 References: <20191026114733.28111-1-pablo@netfilter.org>
@@ -55,119 +55,76 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+Hardware offload needs access to the priority field, store this field in
+the nf_flowtable object.
 
-At this time, NF_HOOK_LIST() macro will iterate the list and then calls
-nf_hook() for each individual skb.
-
-This makes it so the entire list is passed into the netfilter core.
-The advantage is that we only need to fetch the rule blob once per list
-instead of per-skb.
-
-NF_HOOK_LIST now only works for ipv4 and ipv6, as those are the only
-callers.
-
-v2: use skb_list_del_init() instead of list_del (Edward Cree)
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Edward Cree <ecree@solarflare.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h | 41 +++++++++++++++++++++++++++++++----------
- net/netfilter/core.c      | 20 ++++++++++++++++++++
- 2 files changed, 51 insertions(+), 10 deletions(-)
+ include/net/netfilter/nf_flow_table.h |  1 +
+ include/net/netfilter/nf_tables.h     |  2 --
+ net/netfilter/nf_tables_api.c         | 10 +++++-----
+ 3 files changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 77ebb61faf48..eb312e7ca36e 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -199,6 +199,8 @@ extern struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
- int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state,
- 		 const struct nf_hook_entries *e, unsigned int i);
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index b37a7d608134..158514281a75 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -24,6 +24,7 @@ struct nf_flowtable_type {
+ struct nf_flowtable {
+ 	struct list_head		list;
+ 	struct rhashtable		rhashtable;
++	int				priority;
+ 	const struct nf_flowtable_type	*type;
+ 	struct delayed_work		gc_work;
+ };
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 001d294edf57..d529dfb5aa64 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1155,7 +1155,6 @@ void nft_unregister_obj(struct nft_object_type *obj_type);
+  * 	@table: the table the flow table is contained in
+  *	@name: name of this flow table
+  *	@hooknum: hook number
+- *	@priority: hook priority
+  *	@ops_len: number of hooks in array
+  *	@genmask: generation mask
+  *	@use: number of references to this flow table
+@@ -1169,7 +1168,6 @@ struct nft_flowtable {
+ 	struct nft_table		*table;
+ 	char				*name;
+ 	int				hooknum;
+-	int				priority;
+ 	int				ops_len;
+ 	u32				genmask:2,
+ 					use:30;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index d481f9baca2f..bfea0d6effc5 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5706,10 +5706,10 @@ static int nf_tables_flowtable_parse_hook(const struct nft_ctx *ctx,
+ 	if (!ops)
+ 		return -ENOMEM;
  
-+void nf_hook_slow_list(struct list_head *head, struct nf_hook_state *state,
-+		       const struct nf_hook_entries *e);
- /**
-  *	nf_hook - call a netfilter hook
-  *
-@@ -311,17 +313,36 @@ NF_HOOK_LIST(uint8_t pf, unsigned int hook, struct net *net, struct sock *sk,
- 	     struct list_head *head, struct net_device *in, struct net_device *out,
- 	     int (*okfn)(struct net *, struct sock *, struct sk_buff *))
- {
--	struct sk_buff *skb, *next;
--	struct list_head sublist;
--
--	INIT_LIST_HEAD(&sublist);
--	list_for_each_entry_safe(skb, next, head, list) {
--		list_del(&skb->list);
--		if (nf_hook(pf, hook, net, sk, skb, in, out, okfn) == 1)
--			list_add_tail(&skb->list, &sublist);
-+	struct nf_hook_entries *hook_head = NULL;
-+
-+#ifdef CONFIG_JUMP_LABEL
-+	if (__builtin_constant_p(pf) &&
-+	    __builtin_constant_p(hook) &&
-+	    !static_key_false(&nf_hooks_needed[pf][hook]))
-+		return;
-+#endif
-+
-+	rcu_read_lock();
-+	switch (pf) {
-+	case NFPROTO_IPV4:
-+		hook_head = rcu_dereference(net->nf.hooks_ipv4[hook]);
-+		break;
-+	case NFPROTO_IPV6:
-+		hook_head = rcu_dereference(net->nf.hooks_ipv6[hook]);
-+		break;
-+	default:
-+		WARN_ON_ONCE(1);
-+		break;
- 	}
--	/* Put passed packets back on main list */
--	list_splice(&sublist, head);
-+
-+	if (hook_head) {
-+		struct nf_hook_state state;
-+
-+		nf_hook_state_init(&state, hook, pf, in, out, sk, net, okfn);
-+
-+		nf_hook_slow_list(head, &state, hook_head);
-+	}
-+	rcu_read_unlock();
- }
+-	flowtable->hooknum	= hooknum;
+-	flowtable->priority	= priority;
+-	flowtable->ops		= ops;
+-	flowtable->ops_len	= n;
++	flowtable->hooknum		= hooknum;
++	flowtable->data.priority	= priority;
++	flowtable->ops			= ops;
++	flowtable->ops_len		= n;
  
- /* Call setsockopt() */
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 5d5bdf450091..78f046ec506f 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -536,6 +536,26 @@ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state,
- }
- EXPORT_SYMBOL(nf_hook_slow);
+ 	for (i = 0; i < n; i++) {
+ 		flowtable->ops[i].pf		= NFPROTO_NETDEV;
+@@ -5969,7 +5969,7 @@ static int nf_tables_fill_flowtable_info(struct sk_buff *skb, struct net *net,
+ 	if (!nest)
+ 		goto nla_put_failure;
+ 	if (nla_put_be32(skb, NFTA_FLOWTABLE_HOOK_NUM, htonl(flowtable->hooknum)) ||
+-	    nla_put_be32(skb, NFTA_FLOWTABLE_HOOK_PRIORITY, htonl(flowtable->priority)))
++	    nla_put_be32(skb, NFTA_FLOWTABLE_HOOK_PRIORITY, htonl(flowtable->data.priority)))
+ 		goto nla_put_failure;
  
-+void nf_hook_slow_list(struct list_head *head, struct nf_hook_state *state,
-+		       const struct nf_hook_entries *e)
-+{
-+	struct sk_buff *skb, *next;
-+	struct list_head sublist;
-+	int ret;
-+
-+	INIT_LIST_HEAD(&sublist);
-+
-+	list_for_each_entry_safe(skb, next, head, list) {
-+		skb_list_del_init(skb);
-+		ret = nf_hook_slow(skb, state, e, 0);
-+		if (ret == 1)
-+			list_add_tail(&skb->list, &sublist);
-+	}
-+	/* Put passed packets back on main list */
-+	list_splice(&sublist, head);
-+}
-+EXPORT_SYMBOL(nf_hook_slow_list);
-+
- /* This needs to be compiled in any case to avoid dependencies between the
-  * nfnetlink_queue code and nf_conntrack.
-  */
+ 	nest_devs = nla_nest_start_noflag(skb, NFTA_FLOWTABLE_HOOK_DEVS);
 -- 
 2.11.0
 
