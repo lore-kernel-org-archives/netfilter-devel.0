@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A509CA9EBC
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E23A1CA9EBD
 	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:47:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3B6F5206DD
+	by mail.kernel.org (Postfix) with ESMTP id B9B7E206DD
 	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:47:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726377AbfJZLrq (ORCPT
+        id S1726334AbfJZLrr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 26 Oct 2019 07:47:46 -0400
-Received: from correo.us.es ([193.147.175.20]:46426 "EHLO mail.us.es"
+        Sat, 26 Oct 2019 07:47:47 -0400
+Received: from correo.us.es ([193.147.175.20]:46410 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726330AbfJZLrq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 26 Oct 2019 07:47:46 -0400
+        id S1726302AbfJZLrp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 26 Oct 2019 07:47:45 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 845B58C3C46
-        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:41 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 64F3B8C3C62
+        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:40 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 74900B8009
-        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:41 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5887AB8009
+        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:40 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 6A5EBB7FF9; Sat, 26 Oct 2019 13:47:41 +0200 (CEST)
+        id 4E2A4B8007; Sat, 26 Oct 2019 13:47:40 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 79DD1B8001;
-        Sat, 26 Oct 2019 13:47:39 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 27522B7FFB;
+        Sat, 26 Oct 2019 13:47:38 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 26 Oct 2019 13:47:39 +0200 (CEST)
+ Sat, 26 Oct 2019 13:47:38 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 4B9EB42EE395;
-        Sat, 26 Oct 2019 13:47:39 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id E7FBA42EE393;
+        Sat, 26 Oct 2019 13:47:37 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 05/31] netfilter: ipset: make ip_set_put_flags extern.
-Date:   Sat, 26 Oct 2019 13:47:07 +0200
-Message-Id: <20191026114733.28111-6-pablo@netfilter.org>
+Subject: [PATCH 03/31] netfilter: ipset: move ip_set_comment functions from ip_set.h to ip_set_core.c.
+Date:   Sat, 26 Oct 2019 13:47:05 +0200
+Message-Id: <20191026114733.28111-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191026114733.28111-1-pablo@netfilter.org>
 References: <20191026114733.28111-1-pablo@netfilter.org>
@@ -56,86 +56,182 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Jeremy Sowden <jeremy@azazel.net>
 
-ip_set_put_flags is rather large for a static inline function in a
-header-file.  Move it to ip_set_core.c and export it.
+Most of the functions are only called from within ip_set_core.c.
+
+The exception is ip_set_init_comment.  However, this is too complex to
+be a good candidate for a static inline function.  Move it to
+ip_set_core.c, change its linkage to extern and export it, leaving a
+declaration in ip_set.h.
+
+ip_set_comment_free is only used as an extension destructor, so change
+its prototype to match and drop cast.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/ipset/ip_set.h | 23 +----------------------
- net/netfilter/ipset/ip_set_core.c      | 24 ++++++++++++++++++++++++
- 2 files changed, 25 insertions(+), 22 deletions(-)
+ include/linux/netfilter/ipset/ip_set.h | 63 ++------------------------------
+ net/netfilter/ipset/ip_set_core.c      | 66 +++++++++++++++++++++++++++++++++-
+ 2 files changed, 67 insertions(+), 62 deletions(-)
 
 diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index 44f6de8a1733..4d8b1eaf7708 100644
+index 9fee4837d02c..985c9bb1ab65 100644
 --- a/include/linux/netfilter/ipset/ip_set.h
 +++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -276,28 +276,7 @@ ip_set_ext_destroy(struct ip_set *set, void *data)
- 	}
+@@ -521,67 +521,8 @@ ip_set_timeout_get(const unsigned long *timeout)
+ 	return t == 0 ? 1 : t;
  }
  
--static inline int
--ip_set_put_flags(struct sk_buff *skb, struct ip_set *set)
+-static inline char*
+-ip_set_comment_uget(struct nlattr *tb)
 -{
--	u32 cadt_flags = 0;
--
--	if (SET_WITH_TIMEOUT(set))
--		if (unlikely(nla_put_net32(skb, IPSET_ATTR_TIMEOUT,
--					   htonl(set->timeout))))
--			return -EMSGSIZE;
--	if (SET_WITH_COUNTER(set))
--		cadt_flags |= IPSET_FLAG_WITH_COUNTERS;
--	if (SET_WITH_COMMENT(set))
--		cadt_flags |= IPSET_FLAG_WITH_COMMENT;
--	if (SET_WITH_SKBINFO(set))
--		cadt_flags |= IPSET_FLAG_WITH_SKBINFO;
--	if (SET_WITH_FORCEADD(set))
--		cadt_flags |= IPSET_FLAG_WITH_FORCEADD;
--
--	if (!cadt_flags)
--		return 0;
--	return nla_put_net32(skb, IPSET_ATTR_CADT_FLAGS, htonl(cadt_flags));
+-	return nla_data(tb);
 -}
-+int ip_set_put_flags(struct sk_buff *skb, struct ip_set *set);
+-
+-/* Called from uadd only, protected by the set spinlock.
+- * The kadt functions don't use the comment extensions in any way.
+- */
+-static inline void
+-ip_set_init_comment(struct ip_set *set, struct ip_set_comment *comment,
+-		    const struct ip_set_ext *ext)
+-{
+-	struct ip_set_comment_rcu *c = rcu_dereference_protected(comment->c, 1);
+-	size_t len = ext->comment ? strlen(ext->comment) : 0;
+-
+-	if (unlikely(c)) {
+-		set->ext_size -= sizeof(*c) + strlen(c->str) + 1;
+-		kfree_rcu(c, rcu);
+-		rcu_assign_pointer(comment->c, NULL);
+-	}
+-	if (!len)
+-		return;
+-	if (unlikely(len > IPSET_MAX_COMMENT_SIZE))
+-		len = IPSET_MAX_COMMENT_SIZE;
+-	c = kmalloc(sizeof(*c) + len + 1, GFP_ATOMIC);
+-	if (unlikely(!c))
+-		return;
+-	strlcpy(c->str, ext->comment, len + 1);
+-	set->ext_size += sizeof(*c) + strlen(c->str) + 1;
+-	rcu_assign_pointer(comment->c, c);
+-}
+-
+-/* Used only when dumping a set, protected by rcu_read_lock() */
+-static inline int
+-ip_set_put_comment(struct sk_buff *skb, const struct ip_set_comment *comment)
+-{
+-	struct ip_set_comment_rcu *c = rcu_dereference(comment->c);
+-
+-	if (!c)
+-		return 0;
+-	return nla_put_string(skb, IPSET_ATTR_COMMENT, c->str);
+-}
+-
+-/* Called from uadd/udel, flush or the garbage collectors protected
+- * by the set spinlock.
+- * Called when the set is destroyed and when there can't be any user
+- * of the set data anymore.
+- */
+-static inline void
+-ip_set_comment_free(struct ip_set *set, struct ip_set_comment *comment)
+-{
+-	struct ip_set_comment_rcu *c;
+-
+-	c = rcu_dereference_protected(comment->c, 1);
+-	if (unlikely(!c))
+-		return;
+-	set->ext_size -= sizeof(*c) + strlen(c->str) + 1;
+-	kfree_rcu(c, rcu);
+-	rcu_assign_pointer(comment->c, NULL);
+-}
++void ip_set_init_comment(struct ip_set *set, struct ip_set_comment *comment,
++			 const struct ip_set_ext *ext);
  
- /* Netlink CB args */
- enum {
+ static inline void
+ ip_set_add_bytes(u64 bytes, struct ip_set_counter *counter)
 diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 30bc7df2f4cf..35cf59e4004b 100644
+index 04266295a750..73daea6d4bd5 100644
 --- a/net/netfilter/ipset/ip_set_core.c
 +++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1418,6 +1418,30 @@ static int ip_set_swap(struct net *net, struct sock *ctnl, struct sk_buff *skb,
- #define DUMP_TYPE(arg)		(((u32)(arg)) & 0x0000FFFF)
- #define DUMP_FLAGS(arg)		(((u32)(arg)) >> 16)
+@@ -325,6 +325,70 @@ ip_set_get_ipaddr6(struct nlattr *nla, union nf_inet_addr *ipaddr)
+ }
+ EXPORT_SYMBOL_GPL(ip_set_get_ipaddr6);
  
-+int
-+ip_set_put_flags(struct sk_buff *skb, struct ip_set *set)
++static char *
++ip_set_comment_uget(struct nlattr *tb)
 +{
-+	u32 cadt_flags = 0;
-+
-+	if (SET_WITH_TIMEOUT(set))
-+		if (unlikely(nla_put_net32(skb, IPSET_ATTR_TIMEOUT,
-+					   htonl(set->timeout))))
-+			return -EMSGSIZE;
-+	if (SET_WITH_COUNTER(set))
-+		cadt_flags |= IPSET_FLAG_WITH_COUNTERS;
-+	if (SET_WITH_COMMENT(set))
-+		cadt_flags |= IPSET_FLAG_WITH_COMMENT;
-+	if (SET_WITH_SKBINFO(set))
-+		cadt_flags |= IPSET_FLAG_WITH_SKBINFO;
-+	if (SET_WITH_FORCEADD(set))
-+		cadt_flags |= IPSET_FLAG_WITH_FORCEADD;
-+
-+	if (!cadt_flags)
-+		return 0;
-+	return nla_put_net32(skb, IPSET_ATTR_CADT_FLAGS, htonl(cadt_flags));
++	return nla_data(tb);
 +}
-+EXPORT_SYMBOL_GPL(ip_set_put_flags);
 +
- static int
- ip_set_dump_done(struct netlink_callback *cb)
- {
++/* Called from uadd only, protected by the set spinlock.
++ * The kadt functions don't use the comment extensions in any way.
++ */
++void
++ip_set_init_comment(struct ip_set *set, struct ip_set_comment *comment,
++		    const struct ip_set_ext *ext)
++{
++	struct ip_set_comment_rcu *c = rcu_dereference_protected(comment->c, 1);
++	size_t len = ext->comment ? strlen(ext->comment) : 0;
++
++	if (unlikely(c)) {
++		set->ext_size -= sizeof(*c) + strlen(c->str) + 1;
++		kfree_rcu(c, rcu);
++		rcu_assign_pointer(comment->c, NULL);
++	}
++	if (!len)
++		return;
++	if (unlikely(len > IPSET_MAX_COMMENT_SIZE))
++		len = IPSET_MAX_COMMENT_SIZE;
++	c = kmalloc(sizeof(*c) + len + 1, GFP_ATOMIC);
++	if (unlikely(!c))
++		return;
++	strlcpy(c->str, ext->comment, len + 1);
++	set->ext_size += sizeof(*c) + strlen(c->str) + 1;
++	rcu_assign_pointer(comment->c, c);
++}
++EXPORT_SYMBOL_GPL(ip_set_init_comment);
++
++/* Used only when dumping a set, protected by rcu_read_lock() */
++static int
++ip_set_put_comment(struct sk_buff *skb, const struct ip_set_comment *comment)
++{
++	struct ip_set_comment_rcu *c = rcu_dereference(comment->c);
++
++	if (!c)
++		return 0;
++	return nla_put_string(skb, IPSET_ATTR_COMMENT, c->str);
++}
++
++/* Called from uadd/udel, flush or the garbage collectors protected
++ * by the set spinlock.
++ * Called when the set is destroyed and when there can't be any user
++ * of the set data anymore.
++ */
++static void
++ip_set_comment_free(struct ip_set *set, void *ptr)
++{
++	struct ip_set_comment *comment = ptr;
++	struct ip_set_comment_rcu *c;
++
++	c = rcu_dereference_protected(comment->c, 1);
++	if (unlikely(!c))
++		return;
++	set->ext_size -= sizeof(*c) + strlen(c->str) + 1;
++	kfree_rcu(c, rcu);
++	rcu_assign_pointer(comment->c, NULL);
++}
++
+ typedef void (*destroyer)(struct ip_set *, void *);
+ /* ipset data extension types, in size order */
+ 
+@@ -351,7 +415,7 @@ const struct ip_set_ext_type ip_set_extensions[] = {
+ 		.flag	 = IPSET_FLAG_WITH_COMMENT,
+ 		.len	 = sizeof(struct ip_set_comment),
+ 		.align	 = __alignof__(struct ip_set_comment),
+-		.destroy = (destroyer) ip_set_comment_free,
++		.destroy = ip_set_comment_free,
+ 	},
+ };
+ EXPORT_SYMBOL_GPL(ip_set_extensions);
 -- 
 2.11.0
 
