@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E23A1CA9EBD
-	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:47:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4EC3CA9EB9
+	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:47:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B9B7E206DD
-	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:47:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 94F01206DD
+	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:47:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726334AbfJZLrr (ORCPT
+        id S1726410AbfJZLrr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sat, 26 Oct 2019 07:47:47 -0400
-Received: from correo.us.es ([193.147.175.20]:46410 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:46440 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726302AbfJZLrp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 26 Oct 2019 07:47:45 -0400
+        id S1726363AbfJZLrr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 26 Oct 2019 07:47:47 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 64F3B8C3C62
-        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:40 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id DB4FE8C3C61
+        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5887AB8009
-        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:40 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CF0A2A7EE7
+        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:42 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 4E2A4B8007; Sat, 26 Oct 2019 13:47:40 +0200 (CEST)
+        id C4426A7EE4; Sat, 26 Oct 2019 13:47:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 27522B7FFB;
-        Sat, 26 Oct 2019 13:47:38 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C550CB7FFB;
+        Sat, 26 Oct 2019 13:47:40 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 26 Oct 2019 13:47:38 +0200 (CEST)
+ Sat, 26 Oct 2019 13:47:40 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id E7FBA42EE393;
-        Sat, 26 Oct 2019 13:47:37 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 935AA42EE395;
+        Sat, 26 Oct 2019 13:47:40 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 03/31] netfilter: ipset: move ip_set_comment functions from ip_set.h to ip_set_core.c.
-Date:   Sat, 26 Oct 2019 13:47:05 +0200
-Message-Id: <20191026114733.28111-4-pablo@netfilter.org>
+Subject: [PATCH 07/31] netfilter: ipset: move ip_set_get_ip_port() to ip_set_bitmap_port.c.
+Date:   Sat, 26 Oct 2019 13:47:09 +0200
+Message-Id: <20191026114733.28111-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191026114733.28111-1-pablo@netfilter.org>
 References: <20191026114733.28111-1-pablo@netfilter.org>
@@ -56,182 +56,106 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Jeremy Sowden <jeremy@azazel.net>
 
-Most of the functions are only called from within ip_set_core.c.
-
-The exception is ip_set_init_comment.  However, this is too complex to
-be a good candidate for a static inline function.  Move it to
-ip_set_core.c, change its linkage to extern and export it, leaving a
-declaration in ip_set.h.
-
-ip_set_comment_free is only used as an extension destructor, so change
-its prototype to match and drop cast.
+ip_set_get_ip_port() is only used in ip_set_bitmap_port.c.  Move it
+there and make it static.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/ipset/ip_set.h | 63 ++------------------------------
- net/netfilter/ipset/ip_set_core.c      | 66 +++++++++++++++++++++++++++++++++-
- 2 files changed, 67 insertions(+), 62 deletions(-)
+ include/linux/netfilter/ipset/ip_set_getport.h |  3 ---
+ net/netfilter/ipset/ip_set_bitmap_port.c       | 27 +++++++++++++++++++++++++
+ net/netfilter/ipset/ip_set_getport.c           | 28 --------------------------
+ 3 files changed, 27 insertions(+), 31 deletions(-)
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index 9fee4837d02c..985c9bb1ab65 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -521,67 +521,8 @@ ip_set_timeout_get(const unsigned long *timeout)
- 	return t == 0 ? 1 : t;
+diff --git a/include/linux/netfilter/ipset/ip_set_getport.h b/include/linux/netfilter/ipset/ip_set_getport.h
+index d74cd112b88a..1ecaabd9a048 100644
+--- a/include/linux/netfilter/ipset/ip_set_getport.h
++++ b/include/linux/netfilter/ipset/ip_set_getport.h
+@@ -20,9 +20,6 @@ static inline bool ip_set_get_ip6_port(const struct sk_buff *skb, bool src,
+ }
+ #endif
+ 
+-extern bool ip_set_get_ip_port(const struct sk_buff *skb, u8 pf, bool src,
+-				__be16 *port);
+-
+ static inline bool ip_set_proto_with_ports(u8 proto)
+ {
+ 	switch (proto) {
+diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
+index 72fede25469d..23d6095cb196 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_port.c
++++ b/net/netfilter/ipset/ip_set_bitmap_port.c
+@@ -96,6 +96,33 @@ bitmap_port_do_head(struct sk_buff *skb, const struct bitmap_port *map)
+ 	       nla_put_net16(skb, IPSET_ATTR_PORT_TO, htons(map->last_port));
  }
  
--static inline char*
--ip_set_comment_uget(struct nlattr *tb)
--{
--	return nla_data(tb);
--}
--
--/* Called from uadd only, protected by the set spinlock.
-- * The kadt functions don't use the comment extensions in any way.
-- */
--static inline void
--ip_set_init_comment(struct ip_set *set, struct ip_set_comment *comment,
--		    const struct ip_set_ext *ext)
--{
--	struct ip_set_comment_rcu *c = rcu_dereference_protected(comment->c, 1);
--	size_t len = ext->comment ? strlen(ext->comment) : 0;
--
--	if (unlikely(c)) {
--		set->ext_size -= sizeof(*c) + strlen(c->str) + 1;
--		kfree_rcu(c, rcu);
--		rcu_assign_pointer(comment->c, NULL);
--	}
--	if (!len)
--		return;
--	if (unlikely(len > IPSET_MAX_COMMENT_SIZE))
--		len = IPSET_MAX_COMMENT_SIZE;
--	c = kmalloc(sizeof(*c) + len + 1, GFP_ATOMIC);
--	if (unlikely(!c))
--		return;
--	strlcpy(c->str, ext->comment, len + 1);
--	set->ext_size += sizeof(*c) + strlen(c->str) + 1;
--	rcu_assign_pointer(comment->c, c);
--}
--
--/* Used only when dumping a set, protected by rcu_read_lock() */
--static inline int
--ip_set_put_comment(struct sk_buff *skb, const struct ip_set_comment *comment)
--{
--	struct ip_set_comment_rcu *c = rcu_dereference(comment->c);
--
--	if (!c)
--		return 0;
--	return nla_put_string(skb, IPSET_ATTR_COMMENT, c->str);
--}
--
--/* Called from uadd/udel, flush or the garbage collectors protected
-- * by the set spinlock.
-- * Called when the set is destroyed and when there can't be any user
-- * of the set data anymore.
-- */
--static inline void
--ip_set_comment_free(struct ip_set *set, struct ip_set_comment *comment)
--{
--	struct ip_set_comment_rcu *c;
--
--	c = rcu_dereference_protected(comment->c, 1);
--	if (unlikely(!c))
--		return;
--	set->ext_size -= sizeof(*c) + strlen(c->str) + 1;
--	kfree_rcu(c, rcu);
--	rcu_assign_pointer(comment->c, NULL);
--}
-+void ip_set_init_comment(struct ip_set *set, struct ip_set_comment *comment,
-+			 const struct ip_set_ext *ext);
- 
- static inline void
- ip_set_add_bytes(u64 bytes, struct ip_set_counter *counter)
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 04266295a750..73daea6d4bd5 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -325,6 +325,70 @@ ip_set_get_ipaddr6(struct nlattr *nla, union nf_inet_addr *ipaddr)
- }
- EXPORT_SYMBOL_GPL(ip_set_get_ipaddr6);
- 
-+static char *
-+ip_set_comment_uget(struct nlattr *tb)
++static bool
++ip_set_get_ip_port(const struct sk_buff *skb, u8 pf, bool src, __be16 *port)
 +{
-+	return nla_data(tb);
-+}
++	bool ret;
++	u8 proto;
 +
-+/* Called from uadd only, protected by the set spinlock.
-+ * The kadt functions don't use the comment extensions in any way.
-+ */
-+void
-+ip_set_init_comment(struct ip_set *set, struct ip_set_comment *comment,
-+		    const struct ip_set_ext *ext)
-+{
-+	struct ip_set_comment_rcu *c = rcu_dereference_protected(comment->c, 1);
-+	size_t len = ext->comment ? strlen(ext->comment) : 0;
-+
-+	if (unlikely(c)) {
-+		set->ext_size -= sizeof(*c) + strlen(c->str) + 1;
-+		kfree_rcu(c, rcu);
-+		rcu_assign_pointer(comment->c, NULL);
++	switch (pf) {
++	case NFPROTO_IPV4:
++		ret = ip_set_get_ip4_port(skb, src, port, &proto);
++		break;
++	case NFPROTO_IPV6:
++		ret = ip_set_get_ip6_port(skb, src, port, &proto);
++		break;
++	default:
++		return false;
 +	}
-+	if (!len)
-+		return;
-+	if (unlikely(len > IPSET_MAX_COMMENT_SIZE))
-+		len = IPSET_MAX_COMMENT_SIZE;
-+	c = kmalloc(sizeof(*c) + len + 1, GFP_ATOMIC);
-+	if (unlikely(!c))
-+		return;
-+	strlcpy(c->str, ext->comment, len + 1);
-+	set->ext_size += sizeof(*c) + strlen(c->str) + 1;
-+	rcu_assign_pointer(comment->c, c);
-+}
-+EXPORT_SYMBOL_GPL(ip_set_init_comment);
-+
-+/* Used only when dumping a set, protected by rcu_read_lock() */
-+static int
-+ip_set_put_comment(struct sk_buff *skb, const struct ip_set_comment *comment)
-+{
-+	struct ip_set_comment_rcu *c = rcu_dereference(comment->c);
-+
-+	if (!c)
-+		return 0;
-+	return nla_put_string(skb, IPSET_ATTR_COMMENT, c->str);
++	if (!ret)
++		return ret;
++	switch (proto) {
++	case IPPROTO_TCP:
++	case IPPROTO_UDP:
++		return true;
++	default:
++		return false;
++	}
 +}
 +
-+/* Called from uadd/udel, flush or the garbage collectors protected
-+ * by the set spinlock.
-+ * Called when the set is destroyed and when there can't be any user
-+ * of the set data anymore.
-+ */
-+static void
-+ip_set_comment_free(struct ip_set *set, void *ptr)
-+{
-+	struct ip_set_comment *comment = ptr;
-+	struct ip_set_comment_rcu *c;
-+
-+	c = rcu_dereference_protected(comment->c, 1);
-+	if (unlikely(!c))
-+		return;
-+	set->ext_size -= sizeof(*c) + strlen(c->str) + 1;
-+	kfree_rcu(c, rcu);
-+	rcu_assign_pointer(comment->c, NULL);
-+}
-+
- typedef void (*destroyer)(struct ip_set *, void *);
- /* ipset data extension types, in size order */
- 
-@@ -351,7 +415,7 @@ const struct ip_set_ext_type ip_set_extensions[] = {
- 		.flag	 = IPSET_FLAG_WITH_COMMENT,
- 		.len	 = sizeof(struct ip_set_comment),
- 		.align	 = __alignof__(struct ip_set_comment),
--		.destroy = (destroyer) ip_set_comment_free,
-+		.destroy = ip_set_comment_free,
- 	},
- };
- EXPORT_SYMBOL_GPL(ip_set_extensions);
+ static int
+ bitmap_port_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		 const struct xt_action_param *par,
+diff --git a/net/netfilter/ipset/ip_set_getport.c b/net/netfilter/ipset/ip_set_getport.c
+index 2b8f959574b4..36615eb3eae1 100644
+--- a/net/netfilter/ipset/ip_set_getport.c
++++ b/net/netfilter/ipset/ip_set_getport.c
+@@ -148,31 +148,3 @@ ip_set_get_ip6_port(const struct sk_buff *skb, bool src,
+ }
+ EXPORT_SYMBOL_GPL(ip_set_get_ip6_port);
+ #endif
+-
+-bool
+-ip_set_get_ip_port(const struct sk_buff *skb, u8 pf, bool src, __be16 *port)
+-{
+-	bool ret;
+-	u8 proto;
+-
+-	switch (pf) {
+-	case NFPROTO_IPV4:
+-		ret = ip_set_get_ip4_port(skb, src, port, &proto);
+-		break;
+-	case NFPROTO_IPV6:
+-		ret = ip_set_get_ip6_port(skb, src, port, &proto);
+-		break;
+-	default:
+-		return false;
+-	}
+-	if (!ret)
+-		return ret;
+-	switch (proto) {
+-	case IPPROTO_TCP:
+-	case IPPROTO_UDP:
+-		return true;
+-	default:
+-		return false;
+-	}
+-}
+-EXPORT_SYMBOL_GPL(ip_set_get_ip_port);
 -- 
 2.11.0
 
