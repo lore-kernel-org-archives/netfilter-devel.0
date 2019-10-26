@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D2FAC47E49
-	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:47:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A509CA9EBC
+	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:47:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 73B84206DD
-	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:47:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3B6F5206DD
+	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:47:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726319AbfJZLrn (ORCPT
+        id S1726377AbfJZLrq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 26 Oct 2019 07:47:43 -0400
-Received: from correo.us.es ([193.147.175.20]:46386 "EHLO mail.us.es"
+        Sat, 26 Oct 2019 07:47:46 -0400
+Received: from correo.us.es ([193.147.175.20]:46426 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726257AbfJZLrn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 26 Oct 2019 07:47:43 -0400
+        id S1726330AbfJZLrq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 26 Oct 2019 07:47:46 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AFF2F8C3C46
-        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:38 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 845B58C3C46
+        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:41 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A2818B8007
-        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:38 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 74900B8009
+        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:41 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 981BCB8004; Sat, 26 Oct 2019 13:47:38 +0200 (CEST)
+        id 6A5EBB7FF9; Sat, 26 Oct 2019 13:47:41 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8EDD3DA72F;
-        Sat, 26 Oct 2019 13:47:36 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 79DD1B8001;
+        Sat, 26 Oct 2019 13:47:39 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 26 Oct 2019 13:47:36 +0200 (CEST)
+ Sat, 26 Oct 2019 13:47:39 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 538DB42EE393;
-        Sat, 26 Oct 2019 13:47:36 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 4B9EB42EE395;
+        Sat, 26 Oct 2019 13:47:39 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 01/31] netfilter: ipset: add a coding-style fix to ip_set_ext_destroy.
-Date:   Sat, 26 Oct 2019 13:47:03 +0200
-Message-Id: <20191026114733.28111-2-pablo@netfilter.org>
+Subject: [PATCH 05/31] netfilter: ipset: make ip_set_put_flags extern.
+Date:   Sat, 26 Oct 2019 13:47:07 +0200
+Message-Id: <20191026114733.28111-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191026114733.28111-1-pablo@netfilter.org>
 References: <20191026114733.28111-1-pablo@netfilter.org>
@@ -56,35 +56,86 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Jeremy Sowden <jeremy@azazel.net>
 
-Use a local variable to hold comment in order to align the arguments of
-ip_set_comment_free properly.
+ip_set_put_flags is rather large for a static inline function in a
+header-file.  Move it to ip_set_core.c and export it.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/ipset/ip_set.h | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ include/linux/netfilter/ipset/ip_set.h | 23 +----------------------
+ net/netfilter/ipset/ip_set_core.c      | 24 ++++++++++++++++++++++++
+ 2 files changed, 25 insertions(+), 22 deletions(-)
 
 diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index 9bc255a8461b..9fee4837d02c 100644
+index 44f6de8a1733..4d8b1eaf7708 100644
 --- a/include/linux/netfilter/ipset/ip_set.h
 +++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -269,9 +269,11 @@ ip_set_ext_destroy(struct ip_set *set, void *data)
- 	/* Check that the extension is enabled for the set and
- 	 * call it's destroy function for its extension part in data.
- 	 */
--	if (SET_WITH_COMMENT(set))
--		ip_set_extensions[IPSET_EXT_ID_COMMENT].destroy(
--			set, ext_comment(data, set));
-+	if (SET_WITH_COMMENT(set)) {
-+		struct ip_set_comment *c = ext_comment(data, set);
-+
-+		ip_set_extensions[IPSET_EXT_ID_COMMENT].destroy(set, c);
-+	}
+@@ -276,28 +276,7 @@ ip_set_ext_destroy(struct ip_set *set, void *data)
+ 	}
  }
  
- static inline int
+-static inline int
+-ip_set_put_flags(struct sk_buff *skb, struct ip_set *set)
+-{
+-	u32 cadt_flags = 0;
+-
+-	if (SET_WITH_TIMEOUT(set))
+-		if (unlikely(nla_put_net32(skb, IPSET_ATTR_TIMEOUT,
+-					   htonl(set->timeout))))
+-			return -EMSGSIZE;
+-	if (SET_WITH_COUNTER(set))
+-		cadt_flags |= IPSET_FLAG_WITH_COUNTERS;
+-	if (SET_WITH_COMMENT(set))
+-		cadt_flags |= IPSET_FLAG_WITH_COMMENT;
+-	if (SET_WITH_SKBINFO(set))
+-		cadt_flags |= IPSET_FLAG_WITH_SKBINFO;
+-	if (SET_WITH_FORCEADD(set))
+-		cadt_flags |= IPSET_FLAG_WITH_FORCEADD;
+-
+-	if (!cadt_flags)
+-		return 0;
+-	return nla_put_net32(skb, IPSET_ATTR_CADT_FLAGS, htonl(cadt_flags));
+-}
++int ip_set_put_flags(struct sk_buff *skb, struct ip_set *set);
+ 
+ /* Netlink CB args */
+ enum {
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index 30bc7df2f4cf..35cf59e4004b 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -1418,6 +1418,30 @@ static int ip_set_swap(struct net *net, struct sock *ctnl, struct sk_buff *skb,
+ #define DUMP_TYPE(arg)		(((u32)(arg)) & 0x0000FFFF)
+ #define DUMP_FLAGS(arg)		(((u32)(arg)) >> 16)
+ 
++int
++ip_set_put_flags(struct sk_buff *skb, struct ip_set *set)
++{
++	u32 cadt_flags = 0;
++
++	if (SET_WITH_TIMEOUT(set))
++		if (unlikely(nla_put_net32(skb, IPSET_ATTR_TIMEOUT,
++					   htonl(set->timeout))))
++			return -EMSGSIZE;
++	if (SET_WITH_COUNTER(set))
++		cadt_flags |= IPSET_FLAG_WITH_COUNTERS;
++	if (SET_WITH_COMMENT(set))
++		cadt_flags |= IPSET_FLAG_WITH_COMMENT;
++	if (SET_WITH_SKBINFO(set))
++		cadt_flags |= IPSET_FLAG_WITH_SKBINFO;
++	if (SET_WITH_FORCEADD(set))
++		cadt_flags |= IPSET_FLAG_WITH_FORCEADD;
++
++	if (!cadt_flags)
++		return 0;
++	return nla_put_net32(skb, IPSET_ATTR_CADT_FLAGS, htonl(cadt_flags));
++}
++EXPORT_SYMBOL_GPL(ip_set_put_flags);
++
+ static int
+ ip_set_dump_done(struct netlink_callback *cb)
+ {
 -- 
 2.11.0
 
