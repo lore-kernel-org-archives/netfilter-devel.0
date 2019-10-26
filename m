@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CDEBCA9EBD
-	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:48:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2D9BCA9EBC
+	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:48:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 684AA2070B
-	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:48:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AE70B206DD
+	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Oct 2019 11:48:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726717AbfJZLsE (ORCPT
+        id S1726722AbfJZLsG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 26 Oct 2019 07:48:04 -0400
-Received: from correo.us.es ([193.147.175.20]:46658 "EHLO mail.us.es"
+        Sat, 26 Oct 2019 07:48:06 -0400
+Received: from correo.us.es ([193.147.175.20]:46622 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726690AbfJZLsD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 26 Oct 2019 07:48:03 -0400
+        id S1726643AbfJZLsC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 26 Oct 2019 07:48:02 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E49DD8C3C68
+        by mail.us.es (Postfix) with ESMTP id 256D38C3C5D
         for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:58 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D7E6FA7E1A
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 19B97A7E9D
         for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2019 13:47:58 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id CDAFDA7E16; Sat, 26 Oct 2019 13:47:58 +0200 (CEST)
+        id 0F6E4A7E9A; Sat, 26 Oct 2019 13:47:58 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DC047A7EC0;
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 46D7DA7EC8;
         Sat, 26 Oct 2019 13:47:55 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
@@ -36,15 +36,15 @@ Received: from 192.168.1.97 (192.168.1.97)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id AD5F942EE393;
+        by entrada.int (Postfix) with ESMTPA id 1811B42EE393;
         Sat, 26 Oct 2019 13:47:55 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 30/31] netfilter: nf_tables_offload: add nft_flow_block_offload_init()
-Date:   Sat, 26 Oct 2019 13:47:32 +0200
-Message-Id: <20191026114733.28111-31-pablo@netfilter.org>
+Subject: [PATCH 29/31] netfilter: nf_tables_offload: add nft_chain_offload_cmd()
+Date:   Sat, 26 Oct 2019 13:47:31 +0200
+Message-Id: <20191026114733.28111-30-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191026114733.28111-1-pablo@netfilter.org>
 References: <20191026114733.28111-1-pablo@netfilter.org>
@@ -54,94 +54,51 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds the nft_flow_block_offload_init() helper function to
-initialize the flow_block_offload object.
+This patch adds the nft_chain_offload_cmd() helper function.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_offload.c | 42 +++++++++++++++++++--------------------
- 1 file changed, 21 insertions(+), 21 deletions(-)
+ net/netfilter/nf_tables_offload.c | 20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 70f50d306799..d51728affa1c 100644
+index beeb74f2b47d..70f50d306799 100644
 --- a/net/netfilter/nf_tables_offload.c
 +++ b/net/netfilter/nf_tables_offload.c
-@@ -246,20 +246,30 @@ static int nft_block_setup(struct nft_base_chain *basechain,
- 	return err;
- }
+@@ -316,6 +316,20 @@ static int nft_indr_block_offload_cmd(struct nft_base_chain *chain,
  
-+static void nft_flow_block_offload_init(struct flow_block_offload *bo,
-+					struct net *net,
-+					enum flow_block_command cmd,
-+					struct nft_base_chain *basechain,
-+					struct netlink_ext_ack *extack)
+ #define FLOW_SETUP_BLOCK TC_SETUP_BLOCK
+ 
++static int nft_chain_offload_cmd(struct nft_base_chain *basechain,
++				 struct net_device *dev,
++				 enum flow_block_command cmd)
 +{
-+	memset(bo, 0, sizeof(*bo));
-+	bo->net		= net;
-+	bo->block	= &basechain->flow_block;
-+	bo->command	= cmd;
-+	bo->binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
-+	bo->extack	= extack;
-+	INIT_LIST_HEAD(&bo->cb_list);
++	int err;
++
++	if (dev->netdev_ops->ndo_setup_tc)
++		err = nft_block_offload_cmd(basechain, dev, cmd);
++	else
++		err = nft_indr_block_offload_cmd(basechain, dev, cmd);
++
++	return err;
 +}
 +
- static int nft_block_offload_cmd(struct nft_base_chain *chain,
- 				 struct net_device *dev,
- 				 enum flow_block_command cmd)
- {
- 	struct netlink_ext_ack extack = {};
--	struct flow_block_offload bo = {};
-+	struct flow_block_offload bo;
- 	int err;
+ static int nft_flow_block_chain(struct nft_base_chain *basechain,
+ 				const struct net_device *this_dev,
+ 				enum flow_block_command cmd)
+@@ -329,11 +343,7 @@ static int nft_flow_block_chain(struct nft_base_chain *basechain,
+ 		if (this_dev && this_dev != dev)
+ 			continue;
  
--	bo.net = dev_net(dev);
--	bo.block = &chain->flow_block;
--	bo.command = cmd;
--	bo.binder_type = FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
--	bo.extack = &extack;
--	INIT_LIST_HEAD(&bo.cb_list);
-+	nft_flow_block_offload_init(&bo, dev_net(dev), cmd, chain, &extack);
- 
- 	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_BLOCK, &bo);
- 	if (err < 0)
-@@ -275,17 +285,12 @@ static void nft_indr_block_ing_cmd(struct net_device *dev,
- 				   enum flow_block_command cmd)
- {
- 	struct netlink_ext_ack extack = {};
--	struct flow_block_offload bo = {};
-+	struct flow_block_offload bo;
- 
- 	if (!chain)
- 		return;
- 
--	bo.net = dev_net(dev);
--	bo.block = &chain->flow_block;
--	bo.command = cmd;
--	bo.binder_type = FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
--	bo.extack = &extack;
--	INIT_LIST_HEAD(&bo.cb_list);
-+	nft_flow_block_offload_init(&bo, dev_net(dev), cmd, chain, &extack);
- 
- 	cb(dev, cb_priv, TC_SETUP_BLOCK, &bo);
- 
-@@ -296,15 +301,10 @@ static int nft_indr_block_offload_cmd(struct nft_base_chain *chain,
- 				      struct net_device *dev,
- 				      enum flow_block_command cmd)
- {
--	struct flow_block_offload bo = {};
- 	struct netlink_ext_ack extack = {};
-+	struct flow_block_offload bo;
- 
--	bo.net = dev_net(dev);
--	bo.block = &chain->flow_block;
--	bo.command = cmd;
--	bo.binder_type = FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
--	bo.extack = &extack;
--	INIT_LIST_HEAD(&bo.cb_list);
-+	nft_flow_block_offload_init(&bo, dev_net(dev), cmd, chain, &extack);
- 
- 	flow_indr_block_call(dev, &bo, cmd);
- 
+-		if (dev->netdev_ops->ndo_setup_tc)
+-			err = nft_block_offload_cmd(basechain, dev, cmd);
+-		else
+-			err = nft_indr_block_offload_cmd(basechain, dev, cmd);
+-
++		err = nft_chain_offload_cmd(basechain, dev, cmd);
+ 		if (err < 0)
+ 			return err;
+ 	}
 -- 
 2.11.0
 
