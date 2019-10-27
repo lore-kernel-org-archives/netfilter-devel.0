@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BAF37CA9EC1
-	for <netfilter-devel@archiver.kernel.org>; Sun, 27 Oct 2019 12:02:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 133D2CA9EC3
+	for <netfilter-devel@archiver.kernel.org>; Sun, 27 Oct 2019 12:02:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9C1302070B
+	by mail.kernel.org (Postfix) with ESMTP id E82162070B
 	for <netfilter-devel@archiver.kernel.org>; Sun, 27 Oct 2019 12:02:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726916AbfJ0MCp (ORCPT
+        id S1726907AbfJ0MCp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sun, 27 Oct 2019 08:02:45 -0400
-Received: from correo.us.es ([193.147.175.20]:60138 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:60148 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726713AbfJ0MCp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 27 Oct 2019 08:02:45 -0400
+        id S1726811AbfJ0MCo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 27 Oct 2019 08:02:44 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 735707FC4F
-        for <netfilter-devel@vger.kernel.org>; Sun, 27 Oct 2019 13:02:38 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 703A97FC41
+        for <netfilter-devel@vger.kernel.org>; Sun, 27 Oct 2019 13:02:39 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6283CB8007
-        for <netfilter-devel@vger.kernel.org>; Sun, 27 Oct 2019 13:02:38 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 60CF8B8007
+        for <netfilter-devel@vger.kernel.org>; Sun, 27 Oct 2019 13:02:39 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 58517B8004; Sun, 27 Oct 2019 13:02:38 +0100 (CET)
+        id 569ADDA72F; Sun, 27 Oct 2019 13:02:39 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 231B5B7FF6;
-        Sun, 27 Oct 2019 13:02:36 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5FCA8DA72F;
+        Sun, 27 Oct 2019 13:02:37 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 27 Oct 2019 13:02:36 +0100 (CET)
+ Sun, 27 Oct 2019 13:02:37 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id E664A42EE38F;
-        Sun, 27 Oct 2019 13:02:35 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 2E56C42EE38F;
+        Sun, 27 Oct 2019 13:02:37 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 3/5] ipvs: don't ignore errors in case refcounting ip_vs module fails
-Date:   Sun, 27 Oct 2019 13:02:19 +0100
-Message-Id: <20191027120221.2884-4-pablo@netfilter.org>
+Subject: [PATCH 5/5] netfilter: nft_payload: fix missing check for matching length in offloads
+Date:   Sun, 27 Oct 2019 13:02:21 +0100
+Message-Id: <20191027120221.2884-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191027120221.2884-1-pablo@netfilter.org>
 References: <20191027120221.2884-1-pablo@netfilter.org>
@@ -54,233 +54,134 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Davide Caratti <dcaratti@redhat.com>
+From: wenxu <wenxu@ucloud.cn>
 
-if the IPVS module is removed while the sync daemon is starting, there is
-a small gap where try_module_get() might fail getting the refcount inside
-ip_vs_use_count_inc(). Then, the refcounts of IPVS module are unbalanced,
-and the subsequent call to stop_sync_thread() causes the following splat:
+Payload offload rule should also check the length of the match.
+Moreover, check for unsupported link-layer fields:
 
- WARNING: CPU: 0 PID: 4013 at kernel/module.c:1146 module_put.part.44+0x15b/0x290
-  Modules linked in: ip_vs(-) nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 veth ip6table_filter ip6_tables iptable_filter binfmt_misc intel_rapl_msr intel_rapl_common crct10dif_pclmul crc32_pclmul ext4 mbcache jbd2 ghash_clmulni_intel snd_hda_codec_generic ledtrig_audio snd_hda_intel snd_intel_nhlt snd_hda_codec snd_hda_core snd_hwdep snd_seq snd_seq_device snd_pcm aesni_intel crypto_simd cryptd glue_helper joydev pcspkr snd_timer virtio_balloon snd soundcore i2c_piix4 nfsd auth_rpcgss nfs_acl lockd grace sunrpc ip_tables xfs libcrc32c ata_generic pata_acpi virtio_net net_failover virtio_blk failover virtio_console qxl drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops ata_piix ttm crc32c_intel serio_raw drm virtio_pci libata virtio_ring virtio floppy dm_mirror dm_region_hash dm_log dm_mod [last unloaded: nf_defrag_ipv6]
-  CPU: 0 PID: 4013 Comm: modprobe Tainted: G        W         5.4.0-rc1.upstream+ #741
-  Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011
-  RIP: 0010:module_put.part.44+0x15b/0x290
-  Code: 04 25 28 00 00 00 0f 85 18 01 00 00 48 83 c4 68 5b 5d 41 5c 41 5d 41 5e 41 5f c3 89 44 24 28 83 e8 01 89 c5 0f 89 57 ff ff ff <0f> 0b e9 78 ff ff ff 65 8b 1d 67 83 26 4a 89 db be 08 00 00 00 48
-  RSP: 0018:ffff888050607c78 EFLAGS: 00010297
-  RAX: 0000000000000003 RBX: ffffffffc1420590 RCX: ffffffffb5db0ef9
-  RDX: 0000000000000000 RSI: 0000000000000004 RDI: ffffffffc1420590
-  RBP: 00000000ffffffff R08: fffffbfff82840b3 R09: fffffbfff82840b3
-  R10: 0000000000000001 R11: fffffbfff82840b2 R12: 1ffff1100a0c0f90
-  R13: ffffffffc1420200 R14: ffff88804f533300 R15: ffff88804f533ca0
-  FS:  00007f8ea9720740(0000) GS:ffff888053800000(0000) knlGS:0000000000000000
-  CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-  CR2: 00007f3245abe000 CR3: 000000004c28a006 CR4: 00000000001606f0
-  Call Trace:
-   stop_sync_thread+0x3a3/0x7c0 [ip_vs]
-   ip_vs_sync_net_cleanup+0x13/0x50 [ip_vs]
-   ops_exit_list.isra.5+0x94/0x140
-   unregister_pernet_operations+0x29d/0x460
-   unregister_pernet_device+0x26/0x60
-   ip_vs_cleanup+0x11/0x38 [ip_vs]
-   __x64_sys_delete_module+0x2d5/0x400
-   do_syscall_64+0xa5/0x4e0
-   entry_SYSCALL_64_after_hwframe+0x49/0xbe
-  RIP: 0033:0x7f8ea8bf0db7
-  Code: 73 01 c3 48 8b 0d b9 80 2c 00 f7 d8 64 89 01 48 83 c8 ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 b8 b0 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 89 80 2c 00 f7 d8 64 89 01 48
-  RSP: 002b:00007ffcd38d2fe8 EFLAGS: 00000206 ORIG_RAX: 00000000000000b0
-  RAX: ffffffffffffffda RBX: 0000000002436240 RCX: 00007f8ea8bf0db7
-  RDX: 0000000000000000 RSI: 0000000000000800 RDI: 00000000024362a8
-  RBP: 0000000000000000 R08: 00007f8ea8eba060 R09: 00007f8ea8c658a0
-  R10: 00007ffcd38d2a60 R11: 0000000000000206 R12: 0000000000000000
-  R13: 0000000000000001 R14: 00000000024362a8 R15: 0000000000000000
-  irq event stamp: 4538
-  hardirqs last  enabled at (4537): [<ffffffffb6193dde>] quarantine_put+0x9e/0x170
-  hardirqs last disabled at (4538): [<ffffffffb5a0556a>] trace_hardirqs_off_thunk+0x1a/0x20
-  softirqs last  enabled at (4522): [<ffffffffb6f8ebe9>] sk_common_release+0x169/0x2d0
-  softirqs last disabled at (4520): [<ffffffffb6f8eb3e>] sk_common_release+0xbe/0x2d0
+ nft --debug=netlink add rule firewall zones vlan id 100
+ ...
+ [ payload load 2b @ link header + 0 => reg 1 ]
 
-Check the return value of ip_vs_use_count_inc() and let its caller return
-proper error. Inside do_ip_vs_set_ctl() the module is already refcounted,
-we don't need refcount/derefcount there. Finally, in register_ip_vs_app()
-and start_sync_thread(), take the module refcount earlier and ensure it's
-released in the error path.
+this loads 2byte base on ll header and offset 0.
 
-Change since v1:
- - better return values in case of failure of ip_vs_use_count_inc(),
-   thanks to Julian Anastasov
- - no need to increase/decrease the module refcount in ip_vs_set_ctl(),
-   thanks to Julian Anastasov
+This also fixes unsupported raw payload match.
 
-Signed-off-by: Davide Caratti <dcaratti@redhat.com>
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+Fixes: 92ad6325cb89 ("netfilter: nf_tables: add hardware offload support")
+Signed-off-by: wenxu <wenxu@ucloud.cn>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_app.c   | 12 ++++++++++--
- net/netfilter/ipvs/ip_vs_ctl.c   | 14 ++++----------
- net/netfilter/ipvs/ip_vs_pe.c    |  3 ++-
- net/netfilter/ipvs/ip_vs_sched.c |  3 ++-
- net/netfilter/ipvs/ip_vs_sync.c  | 13 ++++++++++---
- 5 files changed, 28 insertions(+), 17 deletions(-)
+ net/netfilter/nft_payload.c | 38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
-diff --git a/net/netfilter/ipvs/ip_vs_app.c b/net/netfilter/ipvs/ip_vs_app.c
-index 4515056ef1c2..f9b16f2b2219 100644
---- a/net/netfilter/ipvs/ip_vs_app.c
-+++ b/net/netfilter/ipvs/ip_vs_app.c
-@@ -193,21 +193,29 @@ struct ip_vs_app *register_ip_vs_app(struct netns_ipvs *ipvs, struct ip_vs_app *
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 22a80eb60222..5cb2d8908d2a 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -161,13 +161,21 @@ static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
  
- 	mutex_lock(&__ip_vs_app_mutex);
- 
-+	/* increase the module use count */
-+	if (!ip_vs_use_count_inc()) {
-+		err = -ENOENT;
-+		goto out_unlock;
-+	}
+ 	switch (priv->offset) {
+ 	case offsetof(struct ethhdr, h_source):
++		if (priv->len != ETH_ALEN)
++			return -EOPNOTSUPP;
 +
- 	list_for_each_entry(a, &ipvs->app_list, a_list) {
- 		if (!strcmp(app->name, a->name)) {
- 			err = -EEXIST;
-+			/* decrease the module use count */
-+			ip_vs_use_count_dec();
- 			goto out_unlock;
- 		}
- 	}
- 	a = kmemdup(app, sizeof(*app), GFP_KERNEL);
- 	if (!a) {
- 		err = -ENOMEM;
-+		/* decrease the module use count */
-+		ip_vs_use_count_dec();
- 		goto out_unlock;
- 	}
- 	INIT_LIST_HEAD(&a->incs_list);
- 	list_add(&a->a_list, &ipvs->app_list);
--	/* increase the module use count */
--	ip_vs_use_count_inc();
- 
- out_unlock:
- 	mutex_unlock(&__ip_vs_app_mutex);
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 8b48e7ce1c2c..c8f81dd15c83 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1275,7 +1275,8 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
- 	struct ip_vs_service *svc = NULL;
- 
- 	/* increase the module use count */
--	ip_vs_use_count_inc();
-+	if (!ip_vs_use_count_inc())
-+		return -ENOPROTOOPT;
- 
- 	/* Lookup the scheduler by 'u->sched_name' */
- 	if (strcmp(u->sched_name, "none")) {
-@@ -2435,9 +2436,6 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
- 	if (copy_from_user(arg, user, len) != 0)
- 		return -EFAULT;
- 
--	/* increase the module use count */
--	ip_vs_use_count_inc();
--
- 	/* Handle daemons since they have another lock */
- 	if (cmd == IP_VS_SO_SET_STARTDAEMON ||
- 	    cmd == IP_VS_SO_SET_STOPDAEMON) {
-@@ -2450,13 +2448,13 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
- 			ret = -EINVAL;
- 			if (strscpy(cfg.mcast_ifn, dm->mcast_ifn,
- 				    sizeof(cfg.mcast_ifn)) <= 0)
--				goto out_dec;
-+				return ret;
- 			cfg.syncid = dm->syncid;
- 			ret = start_sync_thread(ipvs, &cfg, dm->state);
- 		} else {
- 			ret = stop_sync_thread(ipvs, dm->state);
- 		}
--		goto out_dec;
-+		return ret;
- 	}
- 
- 	mutex_lock(&__ip_vs_mutex);
-@@ -2551,10 +2549,6 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
- 
-   out_unlock:
- 	mutex_unlock(&__ip_vs_mutex);
--  out_dec:
--	/* decrease the module use count */
--	ip_vs_use_count_dec();
--
- 	return ret;
- }
- 
-diff --git a/net/netfilter/ipvs/ip_vs_pe.c b/net/netfilter/ipvs/ip_vs_pe.c
-index 8e104dff7abc..166c669f0763 100644
---- a/net/netfilter/ipvs/ip_vs_pe.c
-+++ b/net/netfilter/ipvs/ip_vs_pe.c
-@@ -68,7 +68,8 @@ int register_ip_vs_pe(struct ip_vs_pe *pe)
- 	struct ip_vs_pe *tmp;
- 
- 	/* increase the module use count */
--	ip_vs_use_count_inc();
-+	if (!ip_vs_use_count_inc())
-+		return -ENOENT;
- 
- 	mutex_lock(&ip_vs_pe_mutex);
- 	/* Make sure that the pe with this name doesn't exist
-diff --git a/net/netfilter/ipvs/ip_vs_sched.c b/net/netfilter/ipvs/ip_vs_sched.c
-index 2f9d5cd5daee..d4903723be7e 100644
---- a/net/netfilter/ipvs/ip_vs_sched.c
-+++ b/net/netfilter/ipvs/ip_vs_sched.c
-@@ -179,7 +179,8 @@ int register_ip_vs_scheduler(struct ip_vs_scheduler *scheduler)
- 	}
- 
- 	/* increase the module use count */
--	ip_vs_use_count_inc();
-+	if (!ip_vs_use_count_inc())
-+		return -ENOENT;
- 
- 	mutex_lock(&ip_vs_sched_mutex);
- 
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index a4a78c4b06de..8dc892a9dc91 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -1762,6 +1762,10 @@ int start_sync_thread(struct netns_ipvs *ipvs, struct ipvs_sync_daemon_cfg *c,
- 	IP_VS_DBG(7, "Each ip_vs_sync_conn entry needs %zd bytes\n",
- 		  sizeof(struct ip_vs_sync_conn_v0));
- 
-+	/* increase the module use count */
-+	if (!ip_vs_use_count_inc())
-+		return -ENOPROTOOPT;
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_ETH_ADDRS, eth_addrs,
+ 				  src, ETH_ALEN, reg);
+ 		break;
+ 	case offsetof(struct ethhdr, h_dest):
++		if (priv->len != ETH_ALEN)
++			return -EOPNOTSUPP;
 +
- 	/* Do not hold one mutex and then to block on another */
- 	for (;;) {
- 		rtnl_lock();
-@@ -1892,9 +1896,6 @@ int start_sync_thread(struct netns_ipvs *ipvs, struct ipvs_sync_daemon_cfg *c,
- 	mutex_unlock(&ipvs->sync_mutex);
- 	rtnl_unlock();
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_ETH_ADDRS, eth_addrs,
+ 				  dst, ETH_ALEN, reg);
+ 		break;
++	default:
++		return -EOPNOTSUPP;
+ 	}
  
--	/* increase the module use count */
--	ip_vs_use_count_inc();
--
  	return 0;
+@@ -181,14 +189,23 @@ static int nft_payload_offload_ip(struct nft_offload_ctx *ctx,
  
- out:
-@@ -1924,11 +1925,17 @@ int start_sync_thread(struct netns_ipvs *ipvs, struct ipvs_sync_daemon_cfg *c,
- 		}
- 		kfree(ti);
- 	}
+ 	switch (priv->offset) {
+ 	case offsetof(struct iphdr, saddr):
++		if (priv->len != sizeof(struct in_addr))
++			return -EOPNOTSUPP;
 +
-+	/* decrease the module use count */
-+	ip_vs_use_count_dec();
- 	return result;
- 
- out_early:
- 	mutex_unlock(&ipvs->sync_mutex);
- 	rtnl_unlock();
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_IPV4_ADDRS, ipv4, src,
+ 				  sizeof(struct in_addr), reg);
+ 		break;
+ 	case offsetof(struct iphdr, daddr):
++		if (priv->len != sizeof(struct in_addr))
++			return -EOPNOTSUPP;
 +
-+	/* decrease the module use count */
-+	ip_vs_use_count_dec();
- 	return result;
- }
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_IPV4_ADDRS, ipv4, dst,
+ 				  sizeof(struct in_addr), reg);
+ 		break;
+ 	case offsetof(struct iphdr, protocol):
++		if (priv->len != sizeof(__u8))
++			return -EOPNOTSUPP;
++
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_BASIC, basic, ip_proto,
+ 				  sizeof(__u8), reg);
+ 		nft_offload_set_dependency(ctx, NFT_OFFLOAD_DEP_TRANSPORT);
+@@ -208,14 +225,23 @@ static int nft_payload_offload_ip6(struct nft_offload_ctx *ctx,
  
+ 	switch (priv->offset) {
+ 	case offsetof(struct ipv6hdr, saddr):
++		if (priv->len != sizeof(struct in6_addr))
++			return -EOPNOTSUPP;
++
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_IPV6_ADDRS, ipv6, src,
+ 				  sizeof(struct in6_addr), reg);
+ 		break;
+ 	case offsetof(struct ipv6hdr, daddr):
++		if (priv->len != sizeof(struct in6_addr))
++			return -EOPNOTSUPP;
++
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_IPV6_ADDRS, ipv6, dst,
+ 				  sizeof(struct in6_addr), reg);
+ 		break;
+ 	case offsetof(struct ipv6hdr, nexthdr):
++		if (priv->len != sizeof(__u8))
++			return -EOPNOTSUPP;
++
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_BASIC, basic, ip_proto,
+ 				  sizeof(__u8), reg);
+ 		nft_offload_set_dependency(ctx, NFT_OFFLOAD_DEP_TRANSPORT);
+@@ -255,10 +281,16 @@ static int nft_payload_offload_tcp(struct nft_offload_ctx *ctx,
+ 
+ 	switch (priv->offset) {
+ 	case offsetof(struct tcphdr, source):
++		if (priv->len != sizeof(__be16))
++			return -EOPNOTSUPP;
++
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_PORTS, tp, src,
+ 				  sizeof(__be16), reg);
+ 		break;
+ 	case offsetof(struct tcphdr, dest):
++		if (priv->len != sizeof(__be16))
++			return -EOPNOTSUPP;
++
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_PORTS, tp, dst,
+ 				  sizeof(__be16), reg);
+ 		break;
+@@ -277,10 +309,16 @@ static int nft_payload_offload_udp(struct nft_offload_ctx *ctx,
+ 
+ 	switch (priv->offset) {
+ 	case offsetof(struct udphdr, source):
++		if (priv->len != sizeof(__be16))
++			return -EOPNOTSUPP;
++
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_PORTS, tp, src,
+ 				  sizeof(__be16), reg);
+ 		break;
+ 	case offsetof(struct udphdr, dest):
++		if (priv->len != sizeof(__be16))
++			return -EOPNOTSUPP;
++
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_PORTS, tp, dst,
+ 				  sizeof(__be16), reg);
+ 		break;
 -- 
 2.11.0
 
