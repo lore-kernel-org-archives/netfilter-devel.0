@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 669DDCA9EC0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Oct 2019 14:04:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59AC3CA9EC0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Oct 2019 14:04:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4258720659
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Oct 2019 14:04:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2DCEB20659
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Oct 2019 14:04:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729026AbfJ1OEr (ORCPT
+        id S1729320AbfJ1OEv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 28 Oct 2019 10:04:47 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:39860 "EHLO orbyte.nwl.cc"
+        Mon, 28 Oct 2019 10:04:51 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:39866 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728887AbfJ1OEr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Oct 2019 10:04:47 -0400
-Received: from localhost ([::1]:52950 helo=tatos)
+        id S1729004AbfJ1OEv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 28 Oct 2019 10:04:51 -0400
+Received: from localhost ([::1]:52956 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1iP5dV-0000qx-8d; Mon, 28 Oct 2019 15:04:45 +0100
+        id 1iP5da-0000rG-Hu; Mon, 28 Oct 2019 15:04:50 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 05/10] xtables-arp: Drop generic_opt_check()
-Date:   Mon, 28 Oct 2019 15:04:26 +0100
-Message-Id: <20191028140431.13882-6-phil@nwl.cc>
+Subject: [iptables PATCH 01/10] ip6tables, xtables-arp: Drop unused struct pprot
+Date:   Mon, 28 Oct 2019 15:04:22 +0100
+Message-Id: <20191028140431.13882-2-phil@nwl.cc>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191028140431.13882-1-phil@nwl.cc>
 References: <20191028140431.13882-1-phil@nwl.cc>
@@ -39,105 +39,50 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-With all fields in commands_v_options[][] being whitespace, the function
-is effectively a noop.
+These seem like leftovers when changing code to use xtables_chain_protos
+as struct xtables_pprot is identical to struct pprot removed here.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/xtables-arp.c | 66 ------------------------------------------
- 1 file changed, 66 deletions(-)
+ iptables/ip6tables.c   | 6 ------
+ iptables/xtables-arp.c | 7 -------
+ 2 files changed, 13 deletions(-)
 
+diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
+index c160a2dd4e65b..ee463c9586862 100644
+--- a/iptables/ip6tables.c
++++ b/iptables/ip6tables.c
+@@ -175,12 +175,6 @@ static const unsigned int inverse_for_options[NUMBER_OF_OPT] =
+ #define opts ip6tables_globals.opts
+ #define prog_name ip6tables_globals.program_name
+ #define prog_vers ip6tables_globals.program_version
+-/* A few hardcoded protocols for 'all' and in case the user has no
+-   /etc/protocols */
+-struct pprot {
+-	const char *name;
+-	uint8_t num;
+-};
+ 
+ static void __attribute__((noreturn))
+ exit_tryhelp(int status)
 diff --git a/iptables/xtables-arp.c b/iptables/xtables-arp.c
-index 88a7d534da4f1..ae69baf2a9346 100644
+index 1a260e75e3808..8503f47fe2afe 100644
 --- a/iptables/xtables-arp.c
 +++ b/iptables/xtables-arp.c
-@@ -139,34 +139,6 @@ struct xtables_globals arptables_globals = {
- 	.compat_rev		= nft_compatible_revision,
+@@ -209,13 +209,6 @@ static int inverse_for_options[NUMBER_OF_OPT] =
+ /* -c */ 0,
  };
  
--/* Table of legal combinations of commands and options.  If any of the
-- * given commands make an option legal, that option is legal (applies to
-- * CMD_LIST and CMD_ZERO only).
-- * Key:
-- *  +  compulsory
-- *  x  illegal
-- *     optional
-- */
--
--static char commands_v_options[NUMBER_OF_CMD][NUMBER_OF_OPT] =
--/* Well, it's better than "Re: Linux vs FreeBSD" */
--{
--	/*     -n  -s  -d  -p  -j  -v  -x  -i  -o  -f  --line */
--/*INSERT*/    {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
--/*DELETE*/    {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
--/*DELETE_NUM*/{' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
--/*REPLACE*/   {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
--/*APPEND*/    {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
--/*LIST*/      {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
--/*FLUSH*/     {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
--/*ZERO*/      {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
--/*NEW_CHAIN*/ {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
--/*DEL_CHAIN*/ {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
--/*SET_POLICY*/{' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
--/*CHECK*/     {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
--/*RENAME*/    {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '}
+-/* A few hardcoded protocols for 'all' and in case the user has no
+-   /etc/protocols */
+-struct pprot {
+-	char *name;
+-	u_int8_t num;
 -};
 -
- static int inverse_for_options[NUMBER_OF_OPT] =
- {
- /* -n */ 0,
-@@ -395,42 +367,6 @@ exit_printhelp(void)
- 	exit(0);
- }
- 
--static void
--generic_opt_check(int command, int options)
--{
--	int i, j, legal = 0;
--
--	/* Check that commands are valid with options.  Complicated by the
--	 * fact that if an option is legal with *any* command given, it is
--	 * legal overall (ie. -z and -l).
--	 */
--	for (i = 0; i < NUMBER_OF_OPT; i++) {
--		legal = 0; /* -1 => illegal, 1 => legal, 0 => undecided. */
--
--		for (j = 0; j < NUMBER_OF_CMD; j++) {
--			if (!(command & (1<<j)))
--				continue;
--
--			if (!(options & (1<<i))) {
--				if (commands_v_options[j][i] == '+')
--					xtables_error(PARAMETER_PROBLEM,
--						      "You need to supply the `-%c' "
--						      "option for this command\n",
--						      optflags[i]);
--			} else {
--				if (commands_v_options[j][i] != 'x')
--					legal = 1;
--				else if (legal == 0)
--					legal = -1;
--			}
--		}
--		if (legal == -1)
--			xtables_error(PARAMETER_PROBLEM,
--				      "Illegal option `-%c' with this command\n",
--				      optflags[i]);
--	}
--}
--
- static char
- opt2char(int option)
- {
-@@ -1059,8 +995,6 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table,
- 		xtables_error(PARAMETER_PROBLEM, "Replacement rule does not "
- 						 "specify a unique address");
- 
--	generic_opt_check(command, options);
--
- 	if (chain && strlen(chain) > ARPT_FUNCTION_MAXNAMELEN)
- 		xtables_error(PARAMETER_PROBLEM,
- 				"chain name `%s' too long (must be under %i chars)",
+ /* Primitive headers... */
+ /* defined in netinet/in.h */
+ #if 0
 -- 
 2.23.0
 
