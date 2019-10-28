@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D158CA9EC1
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Oct 2019 14:04:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 669DDCA9EC0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Oct 2019 14:04:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E872121734
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Oct 2019 14:04:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4258720659
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Oct 2019 14:04:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728994AbfJ1OEl (ORCPT
+        id S1729026AbfJ1OEr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 28 Oct 2019 10:04:41 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:39854 "EHLO orbyte.nwl.cc"
+        Mon, 28 Oct 2019 10:04:47 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:39860 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728887AbfJ1OEl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Oct 2019 10:04:41 -0400
-Received: from localhost ([::1]:52944 helo=tatos)
+        id S1728887AbfJ1OEr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 28 Oct 2019 10:04:47 -0400
+Received: from localhost ([::1]:52950 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1iP5dP-0000qr-VX; Mon, 28 Oct 2019 15:04:40 +0100
+        id 1iP5dV-0000qx-8d; Mon, 28 Oct 2019 15:04:45 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 09/10] xtables-arp: Use xtables_parse_interface()
-Date:   Mon, 28 Oct 2019 15:04:30 +0100
-Message-Id: <20191028140431.13882-10-phil@nwl.cc>
+Subject: [iptables PATCH 05/10] xtables-arp: Drop generic_opt_check()
+Date:   Mon, 28 Oct 2019 15:04:26 +0100
+Message-Id: <20191028140431.13882-6-phil@nwl.cc>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191028140431.13882-1-phil@nwl.cc>
 References: <20191028140431.13882-1-phil@nwl.cc>
@@ -39,89 +39,105 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The local implementation differs just slightly but libxtables version
-seems more correct (no needless memsetting of mask, more relevant
-illegal character checking) so use that one.
+With all fields in commands_v_options[][] being whitespace, the function
+is effectively a noop.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/xtables-arp.c | 50 +++++-------------------------------------
- 1 file changed, 6 insertions(+), 44 deletions(-)
+ iptables/xtables-arp.c | 66 ------------------------------------------
+ 1 file changed, 66 deletions(-)
 
 diff --git a/iptables/xtables-arp.c b/iptables/xtables-arp.c
-index 11ca7f869730e..d6040e0c73f4b 100644
+index 88a7d534da4f1..ae69baf2a9346 100644
 --- a/iptables/xtables-arp.c
 +++ b/iptables/xtables-arp.c
-@@ -355,44 +355,6 @@ check_inverse(const char option[], int *invert, int *optidx, int argc)
- 	return false;
+@@ -139,34 +139,6 @@ struct xtables_globals arptables_globals = {
+ 	.compat_rev		= nft_compatible_revision,
+ };
+ 
+-/* Table of legal combinations of commands and options.  If any of the
+- * given commands make an option legal, that option is legal (applies to
+- * CMD_LIST and CMD_ZERO only).
+- * Key:
+- *  +  compulsory
+- *  x  illegal
+- *     optional
+- */
+-
+-static char commands_v_options[NUMBER_OF_CMD][NUMBER_OF_OPT] =
+-/* Well, it's better than "Re: Linux vs FreeBSD" */
+-{
+-	/*     -n  -s  -d  -p  -j  -v  -x  -i  -o  -f  --line */
+-/*INSERT*/    {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
+-/*DELETE*/    {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
+-/*DELETE_NUM*/{' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
+-/*REPLACE*/   {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
+-/*APPEND*/    {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
+-/*LIST*/      {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
+-/*FLUSH*/     {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
+-/*ZERO*/      {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
+-/*NEW_CHAIN*/ {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
+-/*DEL_CHAIN*/ {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
+-/*SET_POLICY*/{' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
+-/*CHECK*/     {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
+-/*RENAME*/    {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '}
+-};
+-
+ static int inverse_for_options[NUMBER_OF_OPT] =
+ {
+ /* -n */ 0,
+@@ -395,42 +367,6 @@ exit_printhelp(void)
+ 	exit(0);
  }
  
 -static void
--parse_interface(const char *arg, char *vianame, unsigned char *mask)
+-generic_opt_check(int command, int options)
 -{
--	int vialen = strlen(arg);
--	unsigned int i;
+-	int i, j, legal = 0;
 -
--	memset(mask, 0, IFNAMSIZ);
--	memset(vianame, 0, IFNAMSIZ);
+-	/* Check that commands are valid with options.  Complicated by the
+-	 * fact that if an option is legal with *any* command given, it is
+-	 * legal overall (ie. -z and -l).
+-	 */
+-	for (i = 0; i < NUMBER_OF_OPT; i++) {
+-		legal = 0; /* -1 => illegal, 1 => legal, 0 => undecided. */
 -
--	if (vialen + 1 > IFNAMSIZ)
--		xtables_error(PARAMETER_PROBLEM,
--			      "interface name `%s' must be shorter than IFNAMSIZ"
--			      " (%i)", arg, IFNAMSIZ-1);
+-		for (j = 0; j < NUMBER_OF_CMD; j++) {
+-			if (!(command & (1<<j)))
+-				continue;
 -
--	strcpy(vianame, arg);
--	if (vialen == 0)
--		memset(mask, 0, IFNAMSIZ);
--	else if (vianame[vialen - 1] == '+') {
--		memset(mask, 0xFF, vialen - 1);
--		memset(mask + vialen - 1, 0, IFNAMSIZ - vialen + 1);
--		/* Don't remove `+' here! -HW */
--	} else {
--		/* Include nul-terminator in match */
--		memset(mask, 0xFF, vialen + 1);
--		memset(mask + vialen + 1, 0, IFNAMSIZ - vialen - 1);
--		for (i = 0; vianame[i]; i++) {
--			if (!isalnum(vianame[i])
--			    && vianame[i] != '_'
--			    && vianame[i] != '.') {
--				printf("Warning: weird character in interface"
--				       " `%s' (No aliases, :, ! or *).\n",
--				       vianame);
--				break;
+-			if (!(options & (1<<i))) {
+-				if (commands_v_options[j][i] == '+')
+-					xtables_error(PARAMETER_PROBLEM,
+-						      "You need to supply the `-%c' "
+-						      "option for this command\n",
+-						      optflags[i]);
+-			} else {
+-				if (commands_v_options[j][i] != 'x')
+-					legal = 1;
+-				else if (legal == 0)
+-					legal = -1;
 -			}
 -		}
+-		if (legal == -1)
+-			xtables_error(PARAMETER_PROBLEM,
+-				      "Illegal option `-%c' with this command\n",
+-				      optflags[i]);
 -	}
 -}
 -
- static void
- set_option(unsigned int *options, unsigned int option, u_int16_t *invflg,
- 	   int invert)
-@@ -814,18 +776,18 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table,
- 			check_inverse(optarg, &invert, &optind, argc);
- 			set_option(&options, OPT_VIANAMEIN, &cs.arp.arp.invflags,
- 				   invert);
--			parse_interface(argv[optind-1],
--					cs.arp.arp.iniface,
--					cs.arp.arp.iniface_mask);
-+			xtables_parse_interface(argv[optind-1],
-+						cs.arp.arp.iniface,
-+						cs.arp.arp.iniface_mask);
- 			break;
+ static char
+ opt2char(int option)
+ {
+@@ -1059,8 +995,6 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table,
+ 		xtables_error(PARAMETER_PROBLEM, "Replacement rule does not "
+ 						 "specify a unique address");
  
- 		case 'o':
- 			check_inverse(optarg, &invert, &optind, argc);
- 			set_option(&options, OPT_VIANAMEOUT, &cs.arp.arp.invflags,
- 				   invert);
--			parse_interface(argv[optind-1],
--					cs.arp.arp.outiface,
--					cs.arp.arp.outiface_mask);
-+			xtables_parse_interface(argv[optind-1],
-+						cs.arp.arp.outiface,
-+						cs.arp.arp.outiface_mask);
- 			break;
- 
- 		case 'v':
+-	generic_opt_check(command, options);
+-
+ 	if (chain && strlen(chain) > ARPT_FUNCTION_MAXNAMELEN)
+ 		xtables_error(PARAMETER_PROBLEM,
+ 				"chain name `%s' too long (must be under %i chars)",
 -- 
 2.23.0
 
