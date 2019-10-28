@@ -2,60 +2,94 @@ Return-Path: <SRS0=tJiL=YV=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69846CA9EC0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Oct 2019 20:42:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98919CA9EC0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Oct 2019 22:38:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4B4DC20830
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Oct 2019 20:42:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6AEB2214E0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Oct 2019 22:38:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387864AbfJ1Ums (ORCPT
+        id S1729396AbfJ1Wiv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 28 Oct 2019 16:42:48 -0400
-Received: from shards.monkeyblade.net ([23.128.96.9]:44752 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726508AbfJ1Ums (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Oct 2019 16:42:48 -0400
-Received: from localhost (unknown [IPv6:2601:601:9f00:1e2::d71])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id 24F791484EA67;
-        Mon, 28 Oct 2019 13:42:47 -0700 (PDT)
-Date:   Mon, 28 Oct 2019 13:42:46 -0700 (PDT)
-Message-Id: <20191028.134246.2282811510705892165.davem@davemloft.net>
-To:     geert+renesas@glider.be
-Cc:     pkshih@realtek.com, kvalo@codeaurora.org,
-        johannes@sipsolutions.net, wensong@linux-vs.org,
-        horms@verge.net.au, ja@ssi.bg, pablo@netfilter.org,
-        kadlec@netfilter.org, fw@strlen.de, trivial@kernel.org,
-        netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH trivial] net: Fix various misspellings of "connect"
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20191024152323.29987-1-geert+renesas@glider.be>
-References: <20191024152323.29987-1-geert+renesas@glider.be>
-X-Mailer: Mew version 6.8 on Emacs 26.1
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Mon, 28 Oct 2019 13:42:47 -0700 (PDT)
+        Mon, 28 Oct 2019 18:38:51 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:40842 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725867AbfJ1Wiu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 28 Oct 2019 18:38:50 -0400
+Received: from localhost ([::1]:53932 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1iPDey-0005sk-KR; Mon, 28 Oct 2019 23:38:48 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [nft PATCH] mnl: Replace use of untyped nftnl data setters
+Date:   Mon, 28 Oct 2019 23:38:40 +0100
+Message-Id: <20191028223840.10288-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.23.0
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-Date: Thu, 24 Oct 2019 17:23:23 +0200
+Setting strings won't make a difference, but passing data length to
+*_set_data() functions catches accidental changes on either side.
 
-> Fix misspellings of "disconnect", "disconnecting", "connections", and
-> "disconnected".
-> 
-> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ src/mnl.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-Applied to net-next.
+diff --git a/src/mnl.c b/src/mnl.c
+index 75ab07b045aa5..5b0569f37b27e 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -695,7 +695,7 @@ int mnl_nft_table_add(struct netlink_ctx *ctx, const struct cmd *cmd,
+ 		memory_allocation_error();
+ 
+ 	nftnl_table_set_u32(nlt, NFTNL_TABLE_FAMILY, cmd->handle.family);
+-	nftnl_table_set(nlt, NFTNL_TABLE_NAME, cmd->handle.table.name);
++	nftnl_table_set_str(nlt, NFTNL_TABLE_NAME, cmd->handle.table.name);
+ 	if (cmd->table)
+ 		nftnl_table_set_u32(nlt, NFTNL_TABLE_FLAGS, cmd->table->flags);
+ 	else
+@@ -724,7 +724,8 @@ int mnl_nft_table_del(struct netlink_ctx *ctx, const struct cmd *cmd)
+ 
+ 	nftnl_table_set_u32(nlt, NFTNL_TABLE_FAMILY, cmd->handle.family);
+ 	if (cmd->handle.table.name)
+-		nftnl_table_set(nlt, NFTNL_TABLE_NAME, cmd->handle.table.name);
++		nftnl_table_set_str(nlt, NFTNL_TABLE_NAME,
++				    cmd->handle.table.name);
+ 	else if (cmd->handle.handle.id)
+ 		nftnl_table_set_u64(nlt, NFTNL_TABLE_HANDLE,
+ 				    cmd->handle.handle.id);
+@@ -1016,8 +1017,9 @@ int mnl_nft_obj_add(struct netlink_ctx *ctx, const struct cmd *cmd,
+ 		if (obj->ct_timeout.l3proto)
+ 			nftnl_obj_set_u16(nlo, NFTNL_OBJ_CT_TIMEOUT_L3PROTO,
+ 					  obj->ct_timeout.l3proto);
+-		nftnl_obj_set(nlo, NFTNL_OBJ_CT_TIMEOUT_ARRAY,
+-			      obj->ct_timeout.timeout);
++		nftnl_obj_set_data(nlo, NFTNL_OBJ_CT_TIMEOUT_ARRAY,
++				   obj->ct_timeout.timeout,
++				   sizeof(obj->ct_timeout.timeout));
+ 		break;
+ 	case NFT_OBJECT_CT_EXPECT:
+ 		if (obj->ct_expect.l3proto)
+@@ -1418,7 +1420,8 @@ int mnl_nft_flowtable_add(struct netlink_ctx *ctx, const struct cmd *cmd,
+ 		dev_array[i++] = expr->identifier;
+ 
+ 	dev_array[i] = NULL;
+-	nftnl_flowtable_set(flo, NFTNL_FLOWTABLE_DEVICES, dev_array);
++	nftnl_flowtable_set_data(flo, NFTNL_FLOWTABLE_DEVICES,
++				 dev_array, sizeof(dev_array));
+ 
+ 	netlink_dump_flowtable(flo, ctx);
+ 
+-- 
+2.23.0
+
