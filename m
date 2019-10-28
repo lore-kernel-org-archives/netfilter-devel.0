@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 138C7CA9EC0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Oct 2019 15:48:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66950CA9EC0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Oct 2019 15:48:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DA2DF20830
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Oct 2019 15:48:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 45D8620830
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Oct 2019 15:48:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729977AbfJ1Psn (ORCPT
+        id S1730314AbfJ1Pst (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 28 Oct 2019 11:48:43 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:40116 "EHLO orbyte.nwl.cc"
+        Mon, 28 Oct 2019 11:48:49 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:40122 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726097AbfJ1Psn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Oct 2019 11:48:43 -0400
-Received: from localhost ([::1]:53206 helo=tatos)
+        id S1726097AbfJ1Pss (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 28 Oct 2019 11:48:48 -0400
+Received: from localhost ([::1]:53212 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1iP7G6-00025s-Hy; Mon, 28 Oct 2019 16:48:42 +0100
+        id 1iP7GB-00026E-SJ; Mon, 28 Oct 2019 16:48:47 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH v2 09/10] xtables-arp: Use xtables_parse_interface()
-Date:   Mon, 28 Oct 2019 16:48:17 +0100
-Message-Id: <20191028154818.31257-10-phil@nwl.cc>
+Subject: [iptables PATCH v2 07/10] xtables-arp: Integrate OPT_* defines into xshared.h
+Date:   Mon, 28 Oct 2019 16:48:15 +0100
+Message-Id: <20191028154818.31257-8-phil@nwl.cc>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191028154818.31257-1-phil@nwl.cc>
 References: <20191028154818.31257-1-phil@nwl.cc>
@@ -39,89 +39,142 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The local implementation differs just slightly but libxtables version
-seems more correct (no needless memsetting of mask, more relevant
-illegal character checking) so use that one.
+These defines are internal use only, so their actual value doesn't
+matter as long as they're unique and inverse_for_options array items
+match:
+
+When negating a given option, the corresponding OPT_* value's bit is
+used as an index into inverse_for_options to retrieve the corresponding
+invflag. If zero, either negating or the option itself is not supported.
+(In practice, a lookup for unsupported option won't happen as those are
+caught by getopt_long()).
+
+Since xtables-arp's OPT_* values change, adjust the local
+inverse_for_options array accordingly.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/xtables-arp.c | 50 +++++-------------------------------------
- 1 file changed, 6 insertions(+), 44 deletions(-)
+Changes since v1:
+- Adjust inverse_for_options array size and content to changed OPT_*
+  values.
+- Add a comment to inverse_for_options array highlighting the
+  connection.
+- Extend commit message to elaborate on the necessary adjustment.
+---
+ iptables/xshared.h     |  7 +++++++
+ iptables/xtables-arp.c | 43 ++++++++++++++----------------------------
+ 2 files changed, 21 insertions(+), 29 deletions(-)
 
+diff --git a/iptables/xshared.h b/iptables/xshared.h
+index b0738b042e95a..490b19ade5106 100644
+--- a/iptables/xshared.h
++++ b/iptables/xshared.h
+@@ -29,6 +29,13 @@ enum {
+ 	OPT_VIANAMEOUT  = 1 << 8,
+ 	OPT_LINENUMBERS = 1 << 9,
+ 	OPT_COUNTERS    = 1 << 10,
++	/* below are for arptables only */
++	OPT_S_MAC	= 1 << 11,
++	OPT_D_MAC	= 1 << 12,
++	OPT_H_LENGTH	= 1 << 13,
++	OPT_OPCODE	= 1 << 14,
++	OPT_H_TYPE	= 1 << 15,
++	OPT_P_TYPE	= 1 << 16,
+ };
+ 
+ enum {
 diff --git a/iptables/xtables-arp.c b/iptables/xtables-arp.c
-index bbc1ceb6e8e38..9cfad76263d32 100644
+index 4949ddd3d486c..8339b2cb6f38c 100644
 --- a/iptables/xtables-arp.c
 +++ b/iptables/xtables-arp.c
-@@ -357,44 +357,6 @@ check_inverse(const char option[], int *invert, int *optidx, int argc)
- 	return false;
- }
+@@ -57,23 +57,6 @@ typedef char arpt_chainlabel[32];
  
--static void
--parse_interface(const char *arg, char *vianame, unsigned char *mask)
--{
--	int vialen = strlen(arg);
--	unsigned int i;
--
--	memset(mask, 0, IFNAMSIZ);
--	memset(vianame, 0, IFNAMSIZ);
--
--	if (vialen + 1 > IFNAMSIZ)
--		xtables_error(PARAMETER_PROBLEM,
--			      "interface name `%s' must be shorter than IFNAMSIZ"
--			      " (%i)", arg, IFNAMSIZ-1);
--
--	strcpy(vianame, arg);
--	if (vialen == 0)
--		memset(mask, 0, IFNAMSIZ);
--	else if (vianame[vialen - 1] == '+') {
--		memset(mask, 0xFF, vialen - 1);
--		memset(mask + vialen - 1, 0, IFNAMSIZ - vialen + 1);
--		/* Don't remove `+' here! -HW */
--	} else {
--		/* Include nul-terminator in match */
--		memset(mask, 0xFF, vialen + 1);
--		memset(mask + vialen + 1, 0, IFNAMSIZ - vialen - 1);
--		for (i = 0; vianame[i]; i++) {
--			if (!isalnum(vianame[i])
--			    && vianame[i] != '_'
--			    && vianame[i] != '.') {
--				printf("Warning: weird character in interface"
--				       " `%s' (No aliases, :, ! or *).\n",
--				       vianame);
--				break;
--			}
--		}
--	}
--}
--
- static void
- set_option(unsigned int *options, unsigned int option, u_int16_t *invflg,
- 	   int invert)
-@@ -816,18 +778,18 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table,
+ #define OPTION_OFFSET 256
+ 
+-#define OPT_NONE	0x00000U
+-#define OPT_NUMERIC	0x00001U
+-#define OPT_S_IP	0x00002U
+-#define OPT_D_IP	0x00004U
+-#define OPT_S_MAC	0x00008U
+-#define OPT_D_MAC	0x00010U
+-#define OPT_H_LENGTH	0x00020U
+-#define OPT_P_LENGTH	0x00040U
+-#define OPT_OPCODE	0x00080U
+-#define OPT_H_TYPE	0x00100U
+-#define OPT_P_TYPE	0x00200U
+-#define OPT_JUMP	0x00400U
+-#define OPT_VERBOSE	0x00800U
+-#define OPT_VIANAMEIN	0x01000U
+-#define OPT_VIANAMEOUT	0x02000U
+-#define OPT_LINENUMBERS 0x04000U
+-#define OPT_COUNTERS	0x08000U
+ #define NUMBER_OF_OPT	16
+ static const char optflags[NUMBER_OF_OPT]
+ = { 'n', 's', 'd', 2, 3, 7, 8, 4, 5, 6, 'j', 'v', 'i', 'o', '0', 'c'};
+@@ -132,24 +115,26 @@ struct xtables_globals arptables_globals = {
+ 	.compat_rev		= nft_compatible_revision,
+ };
+ 
+-static int inverse_for_options[NUMBER_OF_OPT] =
++/* index relates to bit of each OPT_* value */
++static int inverse_for_options[] =
+ {
+ /* -n */ 0,
+ /* -s */ ARPT_INV_SRCIP,
+ /* -d */ ARPT_INV_TGTIP,
+-/* 2 */ ARPT_INV_SRCDEVADDR,
+-/* 3 */ ARPT_INV_TGTDEVADDR,
+-/* -l */ ARPT_INV_ARPHLN,
+-/* 8 */ 0,
+-/* 4 */ ARPT_INV_ARPOP,
+-/* 5 */ ARPT_INV_ARPHRD,
+-/* 6 */ ARPT_INV_ARPPRO,
++/* -p */ 0,
+ /* -j */ 0,
+ /* -v */ 0,
++/* -x */ 0,
+ /* -i */ ARPT_INV_VIA_IN,
+ /* -o */ ARPT_INV_VIA_OUT,
+ /*--line*/ 0,
+ /* -c */ 0,
++/* 2 */ ARPT_INV_SRCDEVADDR,
++/* 3 */ ARPT_INV_TGTDEVADDR,
++/* -l */ ARPT_INV_ARPHLN,
++/* 4 */ ARPT_INV_ARPOP,
++/* 5 */ ARPT_INV_ARPHRD,
++/* 6 */ ARPT_INV_ARPPRO,
+ };
+ 
+ /* Primitive headers... */
+@@ -747,14 +732,14 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table,
+ 			break;
+ 		case 's':
  			check_inverse(optarg, &invert, &optind, argc);
- 			set_option(&options, OPT_VIANAMEIN, &cs.arp.arp.invflags,
+-			set_option(&options, OPT_S_IP, &cs.arp.arp.invflags,
++			set_option(&options, OPT_SOURCE, &cs.arp.arp.invflags,
  				   invert);
--			parse_interface(argv[optind-1],
--					cs.arp.arp.iniface,
--					cs.arp.arp.iniface_mask);
-+			xtables_parse_interface(argv[optind-1],
-+						cs.arp.arp.iniface,
-+						cs.arp.arp.iniface_mask);
+ 			shostnetworkmask = argv[optind-1];
  			break;
  
- 		case 'o':
+ 		case 'd':
  			check_inverse(optarg, &invert, &optind, argc);
- 			set_option(&options, OPT_VIANAMEOUT, &cs.arp.arp.invflags,
+-			set_option(&options, OPT_D_IP, &cs.arp.arp.invflags,
++			set_option(&options, OPT_DESTINATION, &cs.arp.arp.invflags,
  				   invert);
--			parse_interface(argv[optind-1],
--					cs.arp.arp.outiface,
--					cs.arp.arp.outiface_mask);
-+			xtables_parse_interface(argv[optind-1],
-+						cs.arp.arp.outiface,
-+						cs.arp.arp.outiface_mask);
+ 			dhostnetworkmask = argv[optind-1];
  			break;
+@@ -965,9 +950,9 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table,
+ 			      "nothing appropriate following !");
  
- 		case 'v':
+ 	if (command & (CMD_REPLACE | CMD_INSERT | CMD_DELETE | CMD_APPEND)) {
+-		if (!(options & OPT_D_IP))
++		if (!(options & OPT_DESTINATION))
+ 			dhostnetworkmask = "0.0.0.0/0";
+-		if (!(options & OPT_S_IP))
++		if (!(options & OPT_SOURCE))
+ 			shostnetworkmask = "0.0.0.0/0";
+ 	}
+ 
 -- 
 2.23.0
 
