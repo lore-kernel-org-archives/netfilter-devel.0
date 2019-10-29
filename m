@@ -2,67 +2,105 @@ Return-Path: <SRS0=pwfE=YW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,PDS_TONAME_EQ_TOLOCAL_SHORT,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC8B3CA9EAE
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 09:11:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24E98CA9EC4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 09:21:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9457020717
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 09:11:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E53A820873
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 09:21:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1572340909;
+	bh=mKrTfUmlDRX78JPqZRqY49HWUeLghpN6sp6EkI3pjx8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=gLQ+0xALdpnD61G32rkkqlrCNMy1kPEIDj0Bz/QmN7oZfSyMBiQ94CVRTHR+4LpJ9
+	 fxqAplQzZoPobX5kkbmCItwr68tRUcRqqSeZ8euLG1fxRPN9UP71LuLPsBO94n1AC+
+	 uEN9jDzXLn/wbPZX9c9DE+DkRl7eTXzZgXXcSBFQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731243AbfJ2JLh (ORCPT
+        id S1727752AbfJ2JVr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 29 Oct 2019 05:11:37 -0400
-Received: from correo.us.es ([193.147.175.20]:60178 "EHLO mail.us.es"
+        Tue, 29 Oct 2019 05:21:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33134 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726071AbfJ2JLh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 29 Oct 2019 05:11:37 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 2754E303D07
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Oct 2019 10:11:32 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 19143A7E1E
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Oct 2019 10:11:32 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 18564A7E19; Tue, 29 Oct 2019 10:11:32 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3C5ACDA72F;
-        Tue, 29 Oct 2019 10:11:30 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 29 Oct 2019 10:11:30 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
+        id S1727257AbfJ2JVr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 29 Oct 2019 05:21:47 -0400
+Received: from localhost (unknown [77.137.89.37])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 1084041E4805;
-        Tue, 29 Oct 2019 10:11:30 +0100 (CET)
-Date:   Tue, 29 Oct 2019 10:11:32 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     wenxu <wenxu@ucloud.cn>
-Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next] netfilter: nf_tables_offload: support offload
- iif types meta offload
-Message-ID: <20191029091132.leou3h35y2snu7gi@salvia>
-References: <1571989584-940-1-git-send-email-wenxu@ucloud.cn>
- <20191028150518.ddqjqv6aamwv4uic@salvia>
- <8718c5b3-4c42-8dc7-35ed-59d8e7df6c38@ucloud.cn>
+        by mail.kernel.org (Postfix) with ESMTPSA id D6AF920717;
+        Tue, 29 Oct 2019 09:21:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1572340906;
+        bh=mKrTfUmlDRX78JPqZRqY49HWUeLghpN6sp6EkI3pjx8=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=v7mVXLAG6ZPoJ83FJQR1OWC53S6aInMEE5A1KQdh8N0hQqVqstJNksQt0JKtkueAt
+         2aaeuRkep/Mc9jThwHl8JffOlRQE5gK6p6+jKH2Y5stl+JgSQQ/vvxr/usKwRyba7I
+         ZVrROXm/wGDdKM/p4Bi3HnYbbSIyJY4+ljRoIvSE=
+Date:   Tue, 29 Oct 2019 11:21:42 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netdev@vger.kernel.org,
+        syzbot+c54f457cad330e57e967@syzkaller.appspotmail.com,
+        syzkaller-bugs@googlegroups.com, netfilter-devel@vger.kernel.org,
+        Edward Cree <ecree@solarflare.com>
+Subject: Re: [PATCH net-next] inet: do not call sublist_rcv on empty list
+Message-ID: <20191029092142.GC5545@unreal>
+References: <0000000000003cc4980596006472@google.com>
+ <20191029004404.8563-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <8718c5b3-4c42-8dc7-35ed-59d8e7df6c38@ucloud.cn>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <20191029004404.8563-1-fw@strlen.de>
+User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Oct 29, 2019 at 04:23:56PM +0800, wenxu wrote:
-> So it is better to extend the flow_dissector_key_meta to support iiftype match?
+On Tue, Oct 29, 2019 at 01:44:04AM +0100, Florian Westphal wrote:
+> syzbot triggered struct net NULL deref in NF_HOOK_LIST:
+> RIP: 0010:NF_HOOK_LIST include/linux/netfilter.h:331 [inline]
+> RIP: 0010:ip6_sublist_rcv+0x5c9/0x930 net/ipv6/ip6_input.c:292
+>  ipv6_list_rcv+0x373/0x4b0 net/ipv6/ip6_input.c:328
+>  __netif_receive_skb_list_ptype net/core/dev.c:5274 [inline]
+>
+> Reason:
+> void ipv6_list_rcv(struct list_head *head, struct packet_type *pt,
+>                    struct net_device *orig_dev)
+> [..]
+>         list_for_each_entry_safe(skb, next, head, list) {
+> 		/* iterates list */
+>                 skb = ip6_rcv_core(skb, dev, net);
+> 		/* ip6_rcv_core drops skb -> NULL is returned */
+>                 if (skb == NULL)
+>                         continue;
+> 	[..]
+> 	}
+> 	/* sublist is empty -> curr_net is NULL */
+>         ip6_sublist_rcv(&sublist, curr_dev, curr_net);
+>
+> Before the recent change NF_HOOK_LIST did a list iteration before
+> struct net deref, i.e. it was a no-op in the empty list case.
+>
+> List iteration now happens after *net deref, causing crash.
+>
+> Follow the same pattern as the ip(v6)_list_rcv loop and add a list_empty
+> test for the final sublist dispatch too.
+>
+> Cc: Edward Cree <ecree@solarflare.com>
+> Reported-by: syzbot+c54f457cad330e57e967@syzkaller.appspotmail.com
+> Fixes: ca58fbe06c54 ("netfilter: add and use nf_hook_slow_list()")
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  net/ipv4/ip_input.c  | 3 ++-
+>  net/ipv6/ip6_input.c | 3 ++-
+>  2 files changed, 4 insertions(+), 2 deletions(-)
+>
 
-This is what the patches that I'm just about to send are doing, yes.
+It fixed my crash on boot.
+
+Thanks,
+Tested-by: Leon Romanovsky <leonro@mellanox.com>
