@@ -2,105 +2,76 @@ Return-Path: <SRS0=pwfE=YW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24E98CA9EC4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 09:21:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A002CA9EAE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 09:40:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E53A820873
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 09:21:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1572340909;
-	bh=mKrTfUmlDRX78JPqZRqY49HWUeLghpN6sp6EkI3pjx8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=gLQ+0xALdpnD61G32rkkqlrCNMy1kPEIDj0Bz/QmN7oZfSyMBiQ94CVRTHR+4LpJ9
-	 fxqAplQzZoPobX5kkbmCItwr68tRUcRqqSeZ8euLG1fxRPN9UP71LuLPsBO94n1AC+
-	 uEN9jDzXLn/wbPZX9c9DE+DkRl7eTXzZgXXcSBFQ=
+	by mail.kernel.org (Postfix) with ESMTP id 254242087E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 09:40:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727752AbfJ2JVr (ORCPT
+        id S1728648AbfJ2JkD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 29 Oct 2019 05:21:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33134 "EHLO mail.kernel.org"
+        Tue, 29 Oct 2019 05:40:03 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:41928 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727257AbfJ2JVr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 29 Oct 2019 05:21:47 -0400
-Received: from localhost (unknown [77.137.89.37])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D6AF920717;
-        Tue, 29 Oct 2019 09:21:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1572340906;
-        bh=mKrTfUmlDRX78JPqZRqY49HWUeLghpN6sp6EkI3pjx8=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=v7mVXLAG6ZPoJ83FJQR1OWC53S6aInMEE5A1KQdh8N0hQqVqstJNksQt0JKtkueAt
-         2aaeuRkep/Mc9jThwHl8JffOlRQE5gK6p6+jKH2Y5stl+JgSQQ/vvxr/usKwRyba7I
-         ZVrROXm/wGDdKM/p4Bi3HnYbbSIyJY4+ljRoIvSE=
-Date:   Tue, 29 Oct 2019 11:21:42 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org,
-        syzbot+c54f457cad330e57e967@syzkaller.appspotmail.com,
-        syzkaller-bugs@googlegroups.com, netfilter-devel@vger.kernel.org,
-        Edward Cree <ecree@solarflare.com>
-Subject: Re: [PATCH net-next] inet: do not call sublist_rcv on empty list
-Message-ID: <20191029092142.GC5545@unreal>
-References: <0000000000003cc4980596006472@google.com>
- <20191029004404.8563-1-fw@strlen.de>
+        id S1726025AbfJ2JkD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 29 Oct 2019 05:40:03 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1iPNyq-0003DC-5G; Tue, 29 Oct 2019 10:40:00 +0100
+Date:   Tue, 29 Oct 2019 10:40:00 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: libnftnl: Attribute and data length validation for objects
+Message-ID: <20191029094000.GS26123@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20191029004404.8563-1-fw@strlen.de>
-User-Agent: Mutt/1.12.1 (2019-06-15)
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Oct 29, 2019 at 01:44:04AM +0100, Florian Westphal wrote:
-> syzbot triggered struct net NULL deref in NF_HOOK_LIST:
-> RIP: 0010:NF_HOOK_LIST include/linux/netfilter.h:331 [inline]
-> RIP: 0010:ip6_sublist_rcv+0x5c9/0x930 net/ipv6/ip6_input.c:292
->  ipv6_list_rcv+0x373/0x4b0 net/ipv6/ip6_input.c:328
->  __netif_receive_skb_list_ptype net/core/dev.c:5274 [inline]
->
-> Reason:
-> void ipv6_list_rcv(struct list_head *head, struct packet_type *pt,
->                    struct net_device *orig_dev)
-> [..]
->         list_for_each_entry_safe(skb, next, head, list) {
-> 		/* iterates list */
->                 skb = ip6_rcv_core(skb, dev, net);
-> 		/* ip6_rcv_core drops skb -> NULL is returned */
->                 if (skb == NULL)
->                         continue;
-> 	[..]
-> 	}
-> 	/* sublist is empty -> curr_net is NULL */
->         ip6_sublist_rcv(&sublist, curr_dev, curr_net);
->
-> Before the recent change NF_HOOK_LIST did a list iteration before
-> struct net deref, i.e. it was a no-op in the empty list case.
->
-> List iteration now happens after *net deref, causing crash.
->
-> Follow the same pattern as the ip(v6)_list_rcv loop and add a list_empty
-> test for the final sublist dispatch too.
->
-> Cc: Edward Cree <ecree@solarflare.com>
-> Reported-by: syzbot+c54f457cad330e57e967@syzkaller.appspotmail.com
-> Fixes: ca58fbe06c54 ("netfilter: add and use nf_hook_slow_list()")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  net/ipv4/ip_input.c  | 3 ++-
->  net/ipv6/ip6_input.c | 3 ++-
->  2 files changed, 4 insertions(+), 2 deletions(-)
->
+Hi,
 
-It fixed my crash on boot.
+The plan is to deprecate all the "untyped setters" (i.e., most of
+nftnl_*_set()) since they accept a data pointer without length so no
+data length validation may happen.
 
-Thanks,
-Tested-by: Leon Romanovsky <leonro@mellanox.com>
+In the same effort, said validation should be added where missing.
+
+While working on this for objects, I noticed a potential problem with
+nftnl_obj_set():
+
+| void nftnl_obj_set(struct nftnl_obj *obj, uint16_t attr, const void *data)
+| {
+| 	nftnl_obj_set_data(obj, attr, data, nftnl_obj_validate[attr]);
+| }
+
+Callers pass some specific object's attribute to the function, e.g.
+NFTNL_OBJ_QUOTA_FLAGS. Unless I miss something, this leads to
+overstepping of nftnl_obj_validate array bounds which is defined with
+a size of NFTNL_OBJ_MAX.
+
+Anyway, when adding validation to the specific object types in
+src/obj/*.c, I broke the above function since it passes bogus data_len.
+The only way to keep this functional is to make max attr value and
+validate array accessible from src/object.c, thereby performing the
+validation for all object types in a common place.
+
+Doing so I added 'uint32_t *validate' field to struct obj_ops and
+assumed max_attr field is already what I need - which is wrong: max_attr
+holds the max NFTA_* value, not NFTNL_OBJ_* one which I need.
+
+Long story short: Should I add a new field or can I reuse max_attr which
+apparently is otherwise unused?
+
+Cheers, Phil
