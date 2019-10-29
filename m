@@ -2,100 +2,92 @@ Return-Path: <SRS0=pwfE=YW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CE5DCA9EC3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 17:10:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6780CA9EAE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 20:40:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5C3FE2067D
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 17:10:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9ABAC2087F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 20:40:15 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Wyf2O3Io"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390807AbfJ2RKR (ORCPT
+        id S1726636AbfJ2UkP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 29 Oct 2019 13:10:17 -0400
-Received: from dispatch1-us1.ppe-hosted.com ([67.231.154.164]:54832 "EHLO
-        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2390790AbfJ2RKQ (ORCPT
+        Tue, 29 Oct 2019 16:40:15 -0400
+Received: from mail-lf1-f48.google.com ([209.85.167.48]:34082 "EHLO
+        mail-lf1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725840AbfJ2UkP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 29 Oct 2019 13:10:16 -0400
-X-Virus-Scanned: Proofpoint Essentials engine
-Received: from webmail.solarflare.com (uk.solarflare.com [193.34.186.16])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mx1-us5.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id A10C6580075;
-        Tue, 29 Oct 2019 17:10:13 +0000 (UTC)
-Received: from [10.17.20.203] (10.17.20.203) by ukex01.SolarFlarecom.com
- (10.17.10.4) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Tue, 29 Oct
- 2019 17:10:09 +0000
-Subject: Re: [PATCH nf-next] netfilter: nf_tables_offload: allow ethernet
- interface type only
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        <netfilter-devel@vger.kernel.org>
-CC:     <jiri@resnulli.us>, <netdev@vger.kernel.org>
-References: <20191029104057.21894-1-pablo@netfilter.org>
-From:   Edward Cree <ecree@solarflare.com>
-Message-ID: <0a5a341a-5576-8cc5-dcf1-f9780f57fd66@solarflare.com>
-Date:   Tue, 29 Oct 2019 17:10:05 +0000
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.0
+        Tue, 29 Oct 2019 16:40:15 -0400
+Received: by mail-lf1-f48.google.com with SMTP id f5so11585603lfp.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Oct 2019 13:40:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=Dx5+JNmfFKuuzPwW0hD/ajE50QP8y6YwVy2D4hsmGSA=;
+        b=Wyf2O3Iojssz26GvQywcBT1LpkwnbmWNaHH1ljItgz9d4hiQ0i+zR2PUX7gKs0Y9/b
+         Ds9xipzpUGXba7/XgcgG605/S0oqr+/9qPP0BGXrw8AsWB/q0stkNuTatwm7/80ciQEV
+         N9B8ojnkvfnP3GCcCcDrRTtlQoBme7UqG10Ilwtxk5bG/yzPUu13E1oEeqqJCUCd5KlO
+         XBXBnFjeYW6atv1jJZMVKFvMyIB7nKSgKGu1W4aRwrd9MBp0RPwLG1Oq20RjOX1Dfzqc
+         dL5eo5RpjCQsgqFeFXD0h9Ru8tSQZbIxNEb5AL65Ujc30uQ+9BQHPQEmH3hJk0zrresP
+         KdzA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=Dx5+JNmfFKuuzPwW0hD/ajE50QP8y6YwVy2D4hsmGSA=;
+        b=fUtt9kswwzjXtCL60OAQO77oQtFiUf7MLGKdNLlEbGs3EKrIk5oWtFuCPBReHmF326
+         4g6FkxvI3p8uNy+4HeTXg64ZyDcU/3t6UysG6SCSEN1t5iRwPCFObVilMS282BPPDzc9
+         MbwUha7G2InV+6DSwpj9LJ/Y6O0L7WI0EfJg/zDwXv0AuCSFvdyJQWGPfvK7qPqd1hwD
+         YmqgyGh+0RbsAwd2vCH5t2aci9WQK1fVW5fbyg7NJY07+sfRLkTVOSEp89GZx+9cFQD0
+         QgEyUVLZ7qNDqklqDqmZQokdkq8qcdklGN31uPY4RjNtwnAkf/FyhqwJl71SIisybJ8r
+         zWsw==
+X-Gm-Message-State: APjAAAX36haP6pI5H+O64kaktVovpXAnUU9pC4959hjpp6fAXoa9obkH
+        HDukHEu+CjQYIqGkTruxV+30tZZfKxPRpFMOz5rZEvy0Z70=
+X-Google-Smtp-Source: APXvYqxkk8D8ONMPHpyVIBzDGOSTyblnmBtyClgqKbh4U8Mpdp8SuagMA1dn8Uf9OpdOvXTu+T8xmFo6ngJ8Z/XegdA=
+X-Received: by 2002:a19:9202:: with SMTP id u2mr3654080lfd.1.1572381612690;
+ Tue, 29 Oct 2019 13:40:12 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20191029104057.21894-1-pablo@netfilter.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-Originating-IP: [10.17.20.203]
-X-ClientProxiedBy: ocex03.SolarFlarecom.com (10.20.40.36) To
- ukex01.SolarFlarecom.com (10.17.10.4)
-X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1010-25008.003
-X-TM-AS-Result: No-9.950900-8.000000-10
-X-TMASE-MatchedRID: HXSqh3WYKfsbF9xF7zzuNfZvT2zYoYOwC/ExpXrHizxJK2eJhY02w1ym
-        Rv3NQjsEWOGEF3GcKHq3527awMNqBOAPeckQjI1VDdN6n3Qne5Bezmeoa8MJ89MgOgDPfBRBh80
-        vsP8cwQ77KNSlSdJEoDlEAfxuxr73z7SeYv9tPb0sYOarN8c4H8AYvJUUzMgaI0YrtQLsSUwKHk
-        UYQmViAXxs7qFZ9FbOj0IvV7jlqDiUkDPUhpX2viwgwmow2VqdfS0Ip2eEHny+qryzYw2E8LLn+
-        0Vm71Lcq7rFUcuGp/F5zdAzex5xZoq+3QlLD/dpuBhsF3hVEgwxxmVE3KOJic1O3nShL3Ap6zLW
-        QOgkIiWUTGVAhB5EbQ==
-X-TM-AS-User-Approved-Sender: Yes
-X-TM-AS-User-Blocked-Sender: No
-X-TMASE-Result: 10--9.950900-8.000000
-X-TMASE-Version: SMEX-12.5.0.1300-8.5.1010-25008.003
-X-MDID: 1572369014-JF98_rzzwt1v
+From:   Oskar Berggren <oskar.berggren@gmail.com>
+Date:   Tue, 29 Oct 2019 20:40:01 +0000
+Message-ID: <CAHOuc7MXK7nqU84y7KnoO_4DdJPL2ts33c0tDENyS3bgHhZgeg@mail.gmail.com>
+Subject: ipset make modules_install always fail unless module already loaded?
+To:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 29/10/2019 10:40, Pablo Neira Ayuso wrote:
-> Hardware offload support at this stage assumes an ethernet device in
-> place. The flow dissector provides the intermediate representation to
-> express this selector, so extend it to allow to store the interface
-> type. Flower does not uses this, so skb_flow_dissect_meta() is not
-> extended to allow to match on this new field.
->
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> @Jiri: flower ignores this when checking for the ingress device, probably
->        that should restricted there too?
->
->  include/net/flow_dissector.h | 2 ++
->  net/netfilter/nft_cmp.c      | 7 +++++++
->  net/netfilter/nft_meta.c     | 4 ++++
->  3 files changed, 13 insertions(+)
->
-> diff --git a/include/net/flow_dissector.h b/include/net/flow_dissector.h
-> index 5cd12276ae21..7d804db85442 100644
-> --- a/include/net/flow_dissector.h
-> +++ b/include/net/flow_dissector.h
-> @@ -204,9 +204,11 @@ struct flow_dissector_key_ip {
->  /**
->   * struct flow_dissector_key_meta:
->   * @ingress_ifindex: ingress ifindex
-> + * @iiftype: interface type
->   */
->  struct flow_dissector_key_meta {
->  	int ingress_ifindex;
-> +	u16 ingress_iftype;
->  };
-Comment does not match code wrt name of this new member.
+Hi,
+
+In Makefile.am there is this block:
+
+modules_install:
+if WITH_KMOD
+    ${MAKE} -C $(KBUILD_OUTPUT) M=$$PWD/kernel/net \
+            KDIR=$$PWD/kernel modules_install
+    @modinfo -b ${INSTALL_MOD_PATH} ip_set_hash_ip | ${GREP} /extra/
+>/dev/null || echo "$$DEPMOD_WARNING"
+    @lsmod | ${GREP} '^ip_set' >/dev/null && echo "$$MODULE_WARNING"
+else
+    @echo Skipping kernel modules due to --with-kmod=no
+endif
+
+I'm rusty on shell script, but it seems to me that the line with lsmod
+will print the warning
+and return exit code 0 if a matching module is loaded but if such a
+module is NOT loaded,
+grep will give exit code 1 (intended) and it will not print the
+warning (intended) but then the
+whole line will return exit code 1 cause make to stop with an error.
+If being run from another
+script it can/will stop that script from continuing.
+
+In short - make modules_install will only run successfully if an ipset
+module is already loaded. At least I seem to get this problem.
+
+/Oskar
