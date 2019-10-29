@@ -2,111 +2,67 @@ Return-Path: <SRS0=pwfE=YW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E4C1CA9EC2
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 00:54:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50501CA9EC2
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 08:24:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 71435218BA
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 00:54:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2C46C20717
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 08:24:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727441AbfJ2Ayb (ORCPT
+        id S1728872AbfJ2IYC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 28 Oct 2019 20:54:31 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:55350 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727336AbfJ2Ayb (ORCPT
+        Tue, 29 Oct 2019 04:24:02 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:51956 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728757AbfJ2IYC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Oct 2019 20:54:31 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1iPFmH-0000V8-1x; Tue, 29 Oct 2019 01:54:29 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netdev@vger.kernel.org>
-Cc:     syzbot+c54f457cad330e57e967@syzkaller.appspotmail.com,
-        syzkaller-bugs@googlegroups.com, netfilter-devel@vger.kernel.org,
-        Florian Westphal <fw@strlen.de>,
-        Edward Cree <ecree@solarflare.com>
-Subject: [PATCH net-next] inet: do not call sublist_rcv on empty list
-Date:   Tue, 29 Oct 2019 01:44:04 +0100
-Message-Id: <20191029004404.8563-1-fw@strlen.de>
-X-Mailer: git-send-email 2.23.0
-In-Reply-To: <0000000000003cc4980596006472@google.com>
-References: <0000000000003cc4980596006472@google.com>
+        Tue, 29 Oct 2019 04:24:02 -0400
+Received: from [192.168.188.14] (unknown [120.132.1.226])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 474E041BA4;
+        Tue, 29 Oct 2019 16:23:58 +0800 (CST)
+Subject: Re: [PATCH nf-next] netfilter: nf_tables_offload: support offload iif
+ types meta offload
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org
+References: <1571989584-940-1-git-send-email-wenxu@ucloud.cn>
+ <20191028150518.ddqjqv6aamwv4uic@salvia>
+From:   wenxu <wenxu@ucloud.cn>
+Message-ID: <8718c5b3-4c42-8dc7-35ed-59d8e7df6c38@ucloud.cn>
+Date:   Tue, 29 Oct 2019 16:23:56 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20191028150518.ddqjqv6aamwv4uic@salvia>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVS0xMQkJCQ0hLSU9OQkxZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6NBQ6LAw5DTgzFx0ITxcYKSwr
+        P09PFC1VSlVKTkxJSEhMT0hCQ0JJVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
+        SElVSlVJSU1ZV1kIAVlBSk5LSTcG
+X-HM-Tid: 0a6e169d4eee2086kuqy474e041ba4
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot triggered struct net NULL deref in NF_HOOK_LIST:
-RIP: 0010:NF_HOOK_LIST include/linux/netfilter.h:331 [inline]
-RIP: 0010:ip6_sublist_rcv+0x5c9/0x930 net/ipv6/ip6_input.c:292
- ipv6_list_rcv+0x373/0x4b0 net/ipv6/ip6_input.c:328
- __netif_receive_skb_list_ptype net/core/dev.c:5274 [inline]
+So it is better to extend the flow_dissector_key_meta to support iiftype match?
 
-Reason:
-void ipv6_list_rcv(struct list_head *head, struct packet_type *pt,
-                   struct net_device *orig_dev)
-[..]
-        list_for_each_entry_safe(skb, next, head, list) {
-		/* iterates list */
-                skb = ip6_rcv_core(skb, dev, net);
-		/* ip6_rcv_core drops skb -> NULL is returned */
-                if (skb == NULL)
-                        continue;
-	[..]
-	}
-	/* sublist is empty -> curr_net is NULL */
-        ip6_sublist_rcv(&sublist, curr_dev, curr_net);
 
-Before the recent change NF_HOOK_LIST did a list iteration before
-struct net deref, i.e. it was a no-op in the empty list case.
+BR
 
-List iteration now happens after *net deref, causing crash.
+wenxu
 
-Follow the same pattern as the ip(v6)_list_rcv loop and add a list_empty
-test for the final sublist dispatch too.
-
-Cc: Edward Cree <ecree@solarflare.com>
-Reported-by: syzbot+c54f457cad330e57e967@syzkaller.appspotmail.com
-Fixes: ca58fbe06c54 ("netfilter: add and use nf_hook_slow_list()")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/ipv4/ip_input.c  | 3 ++-
- net/ipv6/ip6_input.c | 3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/net/ipv4/ip_input.c b/net/ipv4/ip_input.c
-index c59a78a267c3..24a95126e698 100644
---- a/net/ipv4/ip_input.c
-+++ b/net/ipv4/ip_input.c
-@@ -611,5 +611,6 @@ void ip_list_rcv(struct list_head *head, struct packet_type *pt,
- 		list_add_tail(&skb->list, &sublist);
- 	}
- 	/* dispatch final sublist */
--	ip_sublist_rcv(&sublist, curr_dev, curr_net);
-+	if (!list_empty(&sublist))
-+		ip_sublist_rcv(&sublist, curr_dev, curr_net);
- }
-diff --git a/net/ipv6/ip6_input.c b/net/ipv6/ip6_input.c
-index 3d71c7d6102c..ef7f707d9ae3 100644
---- a/net/ipv6/ip6_input.c
-+++ b/net/ipv6/ip6_input.c
-@@ -325,7 +325,8 @@ void ipv6_list_rcv(struct list_head *head, struct packet_type *pt,
- 		list_add_tail(&skb->list, &sublist);
- 	}
- 	/* dispatch final sublist */
--	ip6_sublist_rcv(&sublist, curr_dev, curr_net);
-+	if (!list_empty(&sublist))
-+		ip6_sublist_rcv(&sublist, curr_dev, curr_net);
- }
- 
- INDIRECT_CALLABLE_DECLARE(int udpv6_rcv(struct sk_buff *));
--- 
-2.23.0
-
+On 10/28/2019 11:05 PM, Pablo Neira Ayuso wrote:
+> Please, have a look at:
+>
+> https://patchwork.ozlabs.org/patch/1185472/
+>
+> for supporting iif matching.
+>
+> Thanks.
+>
