@@ -2,67 +2,67 @@ Return-Path: <SRS0=pwfE=YW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,PDS_TONAME_EQ_TOLOCAL_SHORT,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50501CA9EC2
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 08:24:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC8B3CA9EAE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 09:11:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2C46C20717
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 08:24:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9457020717
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Oct 2019 09:11:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728872AbfJ2IYC (ORCPT
+        id S1731243AbfJ2JLh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 29 Oct 2019 04:24:02 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:51956 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728757AbfJ2IYC (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 29 Oct 2019 04:24:02 -0400
-Received: from [192.168.188.14] (unknown [120.132.1.226])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 474E041BA4;
-        Tue, 29 Oct 2019 16:23:58 +0800 (CST)
-Subject: Re: [PATCH nf-next] netfilter: nf_tables_offload: support offload iif
- types meta offload
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        Tue, 29 Oct 2019 05:11:37 -0400
+Received: from correo.us.es ([193.147.175.20]:60178 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726071AbfJ2JLh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 29 Oct 2019 05:11:37 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 2754E303D07
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Oct 2019 10:11:32 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 19143A7E1E
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Oct 2019 10:11:32 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 18564A7E19; Tue, 29 Oct 2019 10:11:32 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3C5ACDA72F;
+        Tue, 29 Oct 2019 10:11:30 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 29 Oct 2019 10:11:30 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 1084041E4805;
+        Tue, 29 Oct 2019 10:11:30 +0100 (CET)
+Date:   Tue, 29 Oct 2019 10:11:32 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     wenxu <wenxu@ucloud.cn>
 Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next] netfilter: nf_tables_offload: support offload
+ iif types meta offload
+Message-ID: <20191029091132.leou3h35y2snu7gi@salvia>
 References: <1571989584-940-1-git-send-email-wenxu@ucloud.cn>
  <20191028150518.ddqjqv6aamwv4uic@salvia>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <8718c5b3-4c42-8dc7-35ed-59d8e7df6c38@ucloud.cn>
-Date:   Tue, 29 Oct 2019 16:23:56 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.9.0
+ <8718c5b3-4c42-8dc7-35ed-59d8e7df6c38@ucloud.cn>
 MIME-Version: 1.0
-In-Reply-To: <20191028150518.ddqjqv6aamwv4uic@salvia>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVS0xMQkJCQ0hLSU9OQkxZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6NBQ6LAw5DTgzFx0ITxcYKSwr
-        P09PFC1VSlVKTkxJSEhMT0hCQ0JJVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
-        SElVSlVJSU1ZV1kIAVlBSk5LSTcG
-X-HM-Tid: 0a6e169d4eee2086kuqy474e041ba4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8718c5b3-4c42-8dc7-35ed-59d8e7df6c38@ucloud.cn>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-So it is better to extend the flow_dissector_key_meta to support iiftype match?
+On Tue, Oct 29, 2019 at 04:23:56PM +0800, wenxu wrote:
+> So it is better to extend the flow_dissector_key_meta to support iiftype match?
 
-
-BR
-
-wenxu
-
-On 10/28/2019 11:05 PM, Pablo Neira Ayuso wrote:
-> Please, have a look at:
->
-> https://patchwork.ozlabs.org/patch/1185472/
->
-> for supporting iif matching.
->
-> Thanks.
->
+This is what the patches that I'm just about to send are doing, yes.
