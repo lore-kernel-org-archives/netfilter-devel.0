@@ -2,196 +2,152 @@ Return-Path: <SRS0=SDnU=YX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8140CA9EC5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Oct 2019 21:29:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6784DC47E49
+	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Oct 2019 22:04:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BDE3620862
-	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Oct 2019 21:29:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3BD2120874
+	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Oct 2019 22:04:09 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="SNiDRvpl"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727198AbfJ3V3G (ORCPT
+        id S1727430AbfJ3WEI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 30 Oct 2019 17:29:06 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:45590 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727045AbfJ3V3G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 30 Oct 2019 17:29:06 -0400
-Received: from localhost ([::1]:58680 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1iPvWY-0002G7-Qt; Wed, 30 Oct 2019 22:29:02 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH v2] libnftables: Store top_scope in struct nft_ctx
-Date:   Wed, 30 Oct 2019 22:28:54 +0100
-Message-Id: <20191030212854.19494-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.23.0
+        Wed, 30 Oct 2019 18:04:08 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:45725 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1727161AbfJ3WEI (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 30 Oct 2019 18:04:08 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1572473046;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=IZ23M/gMQsnd17K54zQYAc0WcgVlZvNdQOyTSj0SueE=;
+        b=SNiDRvpl36/lQi73+cAgETh20xX6XJ8JlG/3IVGCqrl8Ctcz2XBUVDEQj39h1Wbflukt5X
+        Pv3ox8iWU0WNh1uJWti/11oTwSC48wz3MB5MeRgVJ+agP+/VrxQVkJE6VWMDI0nbg7ob2K
+        UKek+mNzBVZK5nF1ZBNBIUeDrxRpXf0=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-346-YodGD9WtO8qS3uIWWEjLYA-1; Wed, 30 Oct 2019 18:04:03 -0400
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 31D371005502;
+        Wed, 30 Oct 2019 22:04:00 +0000 (UTC)
+Received: from madcap2.tricolour.ca (ovpn-112-19.phx2.redhat.com [10.3.112.19])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 4FBB15C548;
+        Wed, 30 Oct 2019 22:03:22 +0000 (UTC)
+Date:   Wed, 30 Oct 2019 18:03:20 -0400
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Paul Moore <paul@paul-moore.com>
+Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
+        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
+        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
+        mpatel@redhat.com
+Subject: Re: [PATCH ghak90 V7 20/21] audit: add capcontid to set contid
+ outside init_user_ns
+Message-ID: <20191030220320.tnwkaj5gbzchcn7j@madcap2.tricolour.ca>
+References: <cover.1568834524.git.rgb@redhat.com>
+ <214163d11a75126f610bcedfad67a4d89575dc77.1568834525.git.rgb@redhat.com>
+ <20191019013904.uevmrzbmztsbhpnh@madcap2.tricolour.ca>
+ <CAHC9VhRPygA=LsHLUqv+K=ouAiPFJ6fb2_As=OT-_zB7kGc_aQ@mail.gmail.com>
+ <20191021213824.6zti5ndxu7sqs772@madcap2.tricolour.ca>
+ <CAHC9VhRdNXsY4neJpSoNyJoAVEoiEc2oW5kSscF99tjmoQAxFA@mail.gmail.com>
+ <20191021235734.mgcjotdqoe73e4ha@madcap2.tricolour.ca>
+ <CAHC9VhSiwnY-+2awxvGeO4a0NgfVkOPd8fzzBVujp=HtjskTuQ@mail.gmail.com>
+ <20191024210010.owwgc3bqbvtdsqws@madcap2.tricolour.ca>
+ <CAHC9VhRDoX9du4XbCnBtBzsNPMGOsb-TKM1CC+sCL7HP=FuTRQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAHC9VhRDoX9du4XbCnBtBzsNPMGOsb-TKM1CC+sCL7HP=FuTRQ@mail.gmail.com>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+X-MC-Unique: YodGD9WtO8qS3uIWWEjLYA-1
+X-Mimecast-Spam-Score: 0
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Allow for interactive sessions to make use of defines. Since parser is
-initialized for each line, top scope defines didn't persist although
-they are actually useful for stuff like:
+On 2019-10-30 16:27, Paul Moore wrote:
+> On Thu, Oct 24, 2019 at 5:00 PM Richard Guy Briggs <rgb@redhat.com> wrote=
+:
+> > Here's the note I had from that meeting:
+> >
+> > - Eric raised the issue that using /proc is likely to get more and more
+> >   hoary due to mount namespaces and suggested that we use a netlink
+> > audit message (or a new syscall) to set the audit container identifier
+> > and since the loginuid is a similar type of operation, that it should b=
+e
+> > migrated over to a similar mechanism to get it away from /proc.  Get
+> > could be done with a netlink audit message that triggers an audit log
+> > message to deliver the information.  I'm reluctant to further pollute
+> > the syscall space if we can find another method.  The netlink audit
+> > message makes sense since any audit-enabled service is likely to alread=
+y
+> > have an audit socket open.
+>=20
+> Thanks for the background info on the off-list meeting.  I would
+> encourage you to have discussions like this on-list in the future; if
+> that isn't possible, hosting a public call would okay-ish, but a
+> distant second.
 
-| # nft -i
-| goodports = { 22, 23, 80, 443 }
-| add rule inet t c tcp dport $goodports accept
-| add rule inet t c tcp sport $goodports accept
+I'm still trying to get Eric's attention to get him to weigh in here and
+provide a more eloquent representation of his ideas and concerns.  Some
+of it was related to CRIU(sp?) issues which we've already of which we've
+already seen similar concerns in namespace identifiers including the
+device identity to qualify it.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
-Changes since v1:
-- Add missing chunk in src/parser_bison.y. Apparently I managed to edit
-  src/parser_bison.c which works perfectly fine until one calls 'make
-  clean'.
----
- include/nftables.h                       |  2 ++
- include/parser.h                         |  4 ++--
- src/libnftables.c                        |  8 ++++++--
- src/parser_bison.y                       |  6 +++---
- tests/shell/testcases/nft-i/0001define_0 | 22 ++++++++++++++++++++++
- 5 files changed, 35 insertions(+), 7 deletions(-)
- create mode 100755 tests/shell/testcases/nft-i/0001define_0
+> At this point in time I'm not overly concerned about /proc completely
+> going away in namespaces/containers that are full featured enough to
+> host a container orchestrator.  If/when reliance on procfs becomes an
+> issue, we can look at alternate APIs, but given the importance of
+> /proc to userspace (including to audit) I suspect we are going to see
+> it persist for some time.  I would prefer to see you to drop the audit
+> container ID netlink API portions of this patchset and focus on the
+> procfs API.
 
-diff --git a/include/nftables.h b/include/nftables.h
-index 21553c6bb3a52..90d331960ef29 100644
---- a/include/nftables.h
-+++ b/include/nftables.h
-@@ -104,6 +104,7 @@ struct nft_cache {
- 
- struct mnl_socket;
- struct parser_state;
-+struct scope;
- 
- #define MAX_INCLUDE_DEPTH	16
- 
-@@ -119,6 +120,7 @@ struct nft_ctx {
- 	uint32_t		flags;
- 	struct parser_state	*state;
- 	void			*scanner;
-+	struct scope		*top_scope;
- 	void			*json_root;
- 	FILE			*f[MAX_INCLUDE_DEPTH];
- };
-diff --git a/include/parser.h b/include/parser.h
-index 39a752121a6b8..949284d9466c6 100644
---- a/include/parser.h
-+++ b/include/parser.h
-@@ -22,7 +22,6 @@ struct parser_state {
- 	struct list_head		*msgs;
- 	unsigned int			nerrs;
- 
--	struct scope			top_scope;
- 	struct scope			*scopes[SCOPE_NEST_MAX];
- 	unsigned int			scope;
- 
-@@ -32,7 +31,8 @@ struct parser_state {
- struct mnl_socket;
- 
- extern void parser_init(struct nft_ctx *nft, struct parser_state *state,
--			struct list_head *msgs, struct list_head *cmds);
-+			struct list_head *msgs, struct list_head *cmds,
-+			struct scope *top_scope);
- extern int nft_parse(struct nft_ctx *ctx, void *, struct parser_state *state);
- 
- extern void *scanner_init(struct parser_state *state);
-diff --git a/src/libnftables.c b/src/libnftables.c
-index e20372438db62..7c35e898d87ab 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -155,6 +155,8 @@ struct nft_ctx *nft_ctx_new(uint32_t flags)
- 	nft_ctx_add_include_path(ctx, DEFAULT_INCLUDE_PATH);
- 	ctx->parser_max_errors	= 10;
- 	init_list_head(&ctx->cache.list);
-+	ctx->top_scope = xzalloc(sizeof(struct scope));
-+	init_list_head(&ctx->top_scope->symbols);
- 	ctx->flags = flags;
- 	ctx->output.output_fp = stdout;
- 	ctx->output.error_fp = stderr;
-@@ -292,6 +294,8 @@ void nft_ctx_free(struct nft_ctx *ctx)
- 	iface_cache_release();
- 	cache_release(&ctx->cache);
- 	nft_ctx_clear_include_paths(ctx);
-+	scope_release(ctx->top_scope);
-+	xfree(ctx->top_scope);
- 	xfree(ctx->state);
- 	nft_exit(ctx);
- 	xfree(ctx);
-@@ -368,7 +372,7 @@ static int nft_parse_bison_buffer(struct nft_ctx *nft, const char *buf,
- {
- 	int ret;
- 
--	parser_init(nft, nft->state, msgs, cmds);
-+	parser_init(nft, nft->state, msgs, cmds, nft->top_scope);
- 	nft->scanner = scanner_init(nft->state);
- 	scanner_push_buffer(nft->scanner, &indesc_cmdline, buf);
- 
-@@ -384,7 +388,7 @@ static int nft_parse_bison_filename(struct nft_ctx *nft, const char *filename,
- {
- 	int ret;
- 
--	parser_init(nft, nft->state, msgs, cmds);
-+	parser_init(nft, nft->state, msgs, cmds, nft->top_scope);
- 	nft->scanner = scanner_init(nft->state);
- 	if (scanner_read_file(nft, filename, &internal_location) < 0)
- 		return -1;
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 7f9b1752f41d4..b73cf3bcfb209 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -42,13 +42,13 @@
- #include "parser_bison.h"
- 
- void parser_init(struct nft_ctx *nft, struct parser_state *state,
--		 struct list_head *msgs, struct list_head *cmds)
-+		 struct list_head *msgs, struct list_head *cmds,
-+		 struct scope *top_scope)
- {
- 	memset(state, 0, sizeof(*state));
--	init_list_head(&state->top_scope.symbols);
- 	state->msgs = msgs;
- 	state->cmds = cmds;
--	state->scopes[0] = scope_init(&state->top_scope, NULL);
-+	state->scopes[0] = scope_init(top_scope, NULL);
- 	init_list_head(&state->indesc_list);
- }
- 
-diff --git a/tests/shell/testcases/nft-i/0001define_0 b/tests/shell/testcases/nft-i/0001define_0
-new file mode 100755
-index 0000000000000..62e1b6dede21d
---- /dev/null
-+++ b/tests/shell/testcases/nft-i/0001define_0
-@@ -0,0 +1,22 @@
-+#!/bin/bash
-+
-+set -e
-+
-+# test if using defines in interactive nft sessions works
-+
-+$NFT -i >/dev/null <<EOF
-+add table inet t
-+add chain inet t c
-+define ports = { 22, 443 }
-+add rule inet t c tcp dport \$ports accept
-+add rule inet t c udp dport \$ports accept
-+EOF
-+
-+$NFT -i >/dev/null <<EOF
-+define port = 22
-+flush chain inet t c
-+redefine port = 443
-+delete chain inet t c
-+undefine port
-+delete table inet t
-+EOF
--- 
-2.23.0
+I've already refactored the code to put the netlink bits at the end as
+completely optional pieces for completeness so they won't get in the way
+of the real substance of this patchset.  The nesting depth and total
+number of containers checks have also been punted to the end of the
+patchset to get them out of the way of discussion.
+
+> Also, for the record, removing the audit loginuid from procfs is not
+> something to take lightly, if at all; like it or not, it's part of the
+> kernel API.
+
+Oh, I'm quite aware of how important this change is and it was discussed
+with Steve Grubb who saw the concern and value of considering such a
+disruptive change.  Removing proc support for auid/ses would be a
+long-term deprecation if accepted.
+
+Really, I should have labelled the v7 patchset as RFC since there were
+so many new and disruptive ideas presented in it.
+
+> paul moore
+> www.paul-moore.com
+
+- RGB
+
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
 
