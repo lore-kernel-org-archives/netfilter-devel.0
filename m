@@ -2,148 +2,86 @@ Return-Path: <SRS0=LKiS=YY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09835CA9ECB
-	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 14:00:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15FE6CA9ECF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 14:01:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D38272173E
-	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 14:00:08 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="T0WGQpXF"
+	by mail.kernel.org (Postfix) with ESMTP id E10E02087E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 14:01:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727910AbfJaOAE (ORCPT
+        id S1727716AbfJaOB4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 31 Oct 2019 10:00:04 -0400
-Received: from mail-lj1-f193.google.com ([209.85.208.193]:38171 "EHLO
-        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727900AbfJaOAD (ORCPT
+        Thu, 31 Oct 2019 10:01:56 -0400
+Received: from mailout1.hostsharing.net ([83.223.95.204]:59663 "EHLO
+        mailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727589AbfJaOB4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 31 Oct 2019 10:00:03 -0400
-Received: by mail-lj1-f193.google.com with SMTP id y23so6360806ljc.5
-        for <netfilter-devel@vger.kernel.org>; Thu, 31 Oct 2019 07:00:01 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=DuatfVoIRwFhp1fiwVqEQDhLv5NKcD5+eL4mURteBJw=;
-        b=T0WGQpXFDtrHJfxqFmxbHxIc4bAH6IQvZs0OTPR85eE1GuPEBycmk9QZ+dEad3gcBZ
-         111Tl8gHMDWobnSVm/oAzghXtZ67XKZeU7Iv1i1wit1eJeMjOr73oWKibGez8sYJXCg5
-         +cQOCUohhdbNghmuNdLDmn228db2gz+xBmkAIvJqZTSY4dHUXeEEkpIrb7ncIQmqboAt
-         Z/ov5p25AUY1THMKi1DviI/uX3DGy8zd/T97zX+udzdtsfjL4srz+5gXsM7b01LCQpzv
-         BX6g51anf+KwtwI58WA9i6Uh/aOtyToAeS5ZFqybf4ztcFcPzqIgUxpnTGSLbS4pEaEu
-         btAg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=DuatfVoIRwFhp1fiwVqEQDhLv5NKcD5+eL4mURteBJw=;
-        b=rqKCkSR2oUu2UmaNJa3TbHHklpfeI40sLlrumK4I0nFWS7Em4v6+AFfajscybJx3Oc
-         LaqUXWxdmauumPZD4OJ5DL1kE5hja4yGDiyx6fuJtakwvnOVK1G6G3qpeoM0HP424mTd
-         tHwQFQXgTbtWezggs0zejIR/hXImv+CGJAjlJ2qOQ/lpZU4BnwHm7I6w+clxOYFRMfL7
-         g2hXxNtHhEom4Vu2ty+78aYFqInvt8AOL1xySkIspvfUIl/jB62M5mtDPoQRIjhhK5VS
-         pkOjWsv/23Ay7vB6hTwHwpdQahiDPNcWVxUOJzdzCu9fXdjS8gohyJ46fVSkGdvkEer6
-         hfhg==
-X-Gm-Message-State: APjAAAWRJT5GoB8UbkWqVLC9WQuWsNSDhrUdDEILpLrXzObou5BUdCZk
-        tzqyg74GPQT51ZKlyvDYmHtLqXf+fqzmUE8Agh70
-X-Google-Smtp-Source: APXvYqwq2wNVb076m3Quvyq9PXqhSEvG470R+68J3/Y3Ahcr5xKs7JewCzfRlqwmRAqfj89jdi6yOS5N64nrB3PIo6A=
-X-Received: by 2002:a05:651c:1056:: with SMTP id x22mr1097948ljm.225.1572530400425;
- Thu, 31 Oct 2019 07:00:00 -0700 (PDT)
-MIME-Version: 1.0
-References: <cover.1568834524.git.rgb@redhat.com> <214163d11a75126f610bcedfad67a4d89575dc77.1568834525.git.rgb@redhat.com>
- <20191019013904.uevmrzbmztsbhpnh@madcap2.tricolour.ca> <CAHC9VhRPygA=LsHLUqv+K=ouAiPFJ6fb2_As=OT-_zB7kGc_aQ@mail.gmail.com>
- <20191021213824.6zti5ndxu7sqs772@madcap2.tricolour.ca> <CAHC9VhRdNXsY4neJpSoNyJoAVEoiEc2oW5kSscF99tjmoQAxFA@mail.gmail.com>
- <20191021235734.mgcjotdqoe73e4ha@madcap2.tricolour.ca> <CAHC9VhSiwnY-+2awxvGeO4a0NgfVkOPd8fzzBVujp=HtjskTuQ@mail.gmail.com>
- <20191024210010.owwgc3bqbvtdsqws@madcap2.tricolour.ca> <CAHC9VhRDoX9du4XbCnBtBzsNPMGOsb-TKM1CC+sCL7HP=FuTRQ@mail.gmail.com>
- <20191030220320.tnwkaj5gbzchcn7j@madcap2.tricolour.ca>
-In-Reply-To: <20191030220320.tnwkaj5gbzchcn7j@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Thu, 31 Oct 2019 09:59:48 -0400
-Message-ID: <CAHC9VhTKaBwFxEnY9vLRgtZ5ptQzF-WvwiAyVgtTNn6tt4bZqw@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V7 20/21] audit: add capcontid to set contid
- outside init_user_ns
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
-        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
-        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
-        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
-        mpatel@redhat.com
-Content-Type: text/plain; charset="UTF-8"
+        Thu, 31 Oct 2019 10:01:56 -0400
+X-Greylist: delayed 508 seconds by postgrey-1.27 at vger.kernel.org; Thu, 31 Oct 2019 10:01:54 EDT
+Received: from h08.hostsharing.net (h08.hostsharing.net [IPv6:2a01:37:1000::53df:5f1c:0])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client CN "*.hostsharing.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (not verified))
+        by mailout1.hostsharing.net (Postfix) with ESMTPS id 48833101933FD;
+        Thu, 31 Oct 2019 14:53:25 +0100 (CET)
+Received: from localhost (pd95be530.dip0.t-ipconnect.de [217.91.229.48])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+        (No client certificate requested)
+        by h08.hostsharing.net (Postfix) with ESMTPSA id EC858613C8DC;
+        Thu, 31 Oct 2019 14:53:24 +0100 (CET)
+X-Mailbox-Line: From 06a0bd4f0b94d3078e1c3762f255a089835c8863 Mon Sep 17 00:00:00 2001
+Message-Id: <06a0bd4f0b94d3078e1c3762f255a089835c8863.1572528497.git.lukas@wunner.de>
+In-Reply-To: <cover.1572528496.git.lukas@wunner.de>
+References: <cover.1572528496.git.lukas@wunner.de>
+From:   Lukas Wunner <lukas@wunner.de>
+Date:   Thu, 31 Oct 2019 14:41:03 +0100
+Subject: [PATCH nf-next,RFC 3/5] netfilter: Rename ingress hook include file
+To:     "Pablo Neira Ayuso" <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Martin Mares <mj@ucw.cz>,
+        Daniel Borkmann <daniel@iogearbox.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Oct 30, 2019 at 6:04 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2019-10-30 16:27, Paul Moore wrote:
-> > On Thu, Oct 24, 2019 at 5:00 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > Here's the note I had from that meeting:
-> > >
-> > > - Eric raised the issue that using /proc is likely to get more and more
-> > >   hoary due to mount namespaces and suggested that we use a netlink
-> > > audit message (or a new syscall) to set the audit container identifier
-> > > and since the loginuid is a similar type of operation, that it should be
-> > > migrated over to a similar mechanism to get it away from /proc.  Get
-> > > could be done with a netlink audit message that triggers an audit log
-> > > message to deliver the information.  I'm reluctant to further pollute
-> > > the syscall space if we can find another method.  The netlink audit
-> > > message makes sense since any audit-enabled service is likely to already
-> > > have an audit socket open.
-> >
-> > Thanks for the background info on the off-list meeting.  I would
-> > encourage you to have discussions like this on-list in the future; if
-> > that isn't possible, hosting a public call would okay-ish, but a
-> > distant second.
->
-> I'm still trying to get Eric's attention to get him to weigh in here and
-> provide a more eloquent representation of his ideas and concerns.  Some
-> of it was related to CRIU(sp?) issues which we've already of which we've
-> already seen similar concerns in namespace identifiers including the
-> device identity to qualify it.
+Prepare for addition of a netfilter egress hook by renaming
+<linux/netfilter_ingress.h> to <linux/netfilter_netdev.h>.
 
-Okay, let's leave this open until we hear from Eric to see if he has
-any additional information, but it's going to need to be pretty
-compelling.
+The egress hook also necessitates a refactoring of the include file,
+but that is done in a separate commit to ease reviewing.
 
-> > At this point in time I'm not overly concerned about /proc completely
-> > going away in namespaces/containers that are full featured enough to
-> > host a container orchestrator.  If/when reliance on procfs becomes an
-> > issue, we can look at alternate APIs, but given the importance of
-> > /proc to userspace (including to audit) I suspect we are going to see
-> > it persist for some time.  I would prefer to see you to drop the audit
-> > container ID netlink API portions of this patchset and focus on the
-> > procfs API.
->
-> I've already refactored the code to put the netlink bits at the end as
-> completely optional pieces for completeness so they won't get in the way
-> of the real substance of this patchset.  The nesting depth and total
-> number of containers checks have also been punted to the end of the
-> patchset to get them out of the way of discussion.
+No functional change intended.
 
-That's fine, but if we do decide to drop the netlink API after hearing
-from Eric, please drop those from the patchset.  Keeping the patchset
-small and focused should be a goal, and including rejected/dead
-patches (even at the end) doesn't help move towards that goal.
+Signed-off-by: Lukas Wunner <lukas@wunner.de>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+---
+ include/linux/{netfilter_ingress.h => netfilter_netdev.h} | 0
+ net/core/dev.c                                            | 2 +-
+ 2 files changed, 1 insertion(+), 1 deletion(-)
+ rename include/linux/{netfilter_ingress.h => netfilter_netdev.h} (100%)
 
-> > Also, for the record, removing the audit loginuid from procfs is not
-> > something to take lightly, if at all; like it or not, it's part of the
-> > kernel API.
->
-> Oh, I'm quite aware of how important this change is and it was discussed
-> with Steve Grubb who saw the concern and value of considering such a
-> disruptive change.  Removing proc support for auid/ses would be a
-> long-term deprecation if accepted.
-
-As I mentioned, that comment was more "for the record" than you in
-particular; I know we've talked a lot over the years about kernel API
-stability and I'm confident you are aware of the pitfalls there. :)
-
+diff --git a/include/linux/netfilter_ingress.h b/include/linux/netfilter_netdev.h
+similarity index 100%
+rename from include/linux/netfilter_ingress.h
+rename to include/linux/netfilter_netdev.h
+diff --git a/net/core/dev.c b/net/core/dev.c
+index e555a8656c47..c698a0fcfa02 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -135,7 +135,7 @@
+ #include <linux/if_macvlan.h>
+ #include <linux/errqueue.h>
+ #include <linux/hrtimer.h>
+-#include <linux/netfilter_ingress.h>
++#include <linux/netfilter_netdev.h>
+ #include <linux/crash_dump.h>
+ #include <linux/sctp.h>
+ #include <net/udp_tunnel.h>
 -- 
-paul moore
-www.paul-moore.com
+2.23.0
+
