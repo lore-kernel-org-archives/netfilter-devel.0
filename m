@@ -2,79 +2,106 @@ Return-Path: <SRS0=LKiS=YY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBA31CA9EC3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 11:17:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DFA0CA9EC3
+	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 11:58:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BBF0E2083E
-	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 11:17:46 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="l6NN3GZe"
+	by mail.kernel.org (Postfix) with ESMTP id 0841521734
+	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 11:58:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727348AbfJaLRq (ORCPT
+        id S1726973AbfJaLzH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 31 Oct 2019 07:17:46 -0400
-Received: from smtp-out.kfki.hu ([148.6.0.46]:48825 "EHLO smtp-out.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727074AbfJaLRq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 31 Oct 2019 07:17:46 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by smtp1.kfki.hu (Postfix) with ESMTP id 8C5563C80120;
-        Thu, 31 Oct 2019 12:17:44 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        blackhole.kfki.hu; h=mime-version:user-agent:references
-        :message-id:in-reply-to:from:from:date:date:received:received
-        :received; s=20151130; t=1572520662; x=1574335063; bh=RgMgN//q3V
-        V7JLcSZDSyEc27ad90ly+/2QF3xPSH1kQ=; b=l6NN3GZeRnBr2hSjPR+f5zgstU
-        wbC5y8NURubyYuWgQBSIKxmHaO4A8QIHcEuuGaoED30DnJJJnFoZDFZbGsl5NpD5
-        KQd3Jngr8rOHPbbepgIlSVjqm4pHXuMxu8t+iv8Y3TW2uZc26ZV0h4lzd1R9NWVG
-        hoB5QhULhjJa5vehc=
-X-Virus-Scanned: Debian amavisd-new at smtp1.kfki.hu
-Received: from smtp1.kfki.hu ([127.0.0.1])
-        by localhost (smtp1.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Thu, 31 Oct 2019 12:17:42 +0100 (CET)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
-        by smtp1.kfki.hu (Postfix) with ESMTP id 297843C800F8;
-        Thu, 31 Oct 2019 12:17:42 +0100 (CET)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 0593620267; Thu, 31 Oct 2019 12:17:41 +0100 (CET)
-Date:   Thu, 31 Oct 2019 12:17:41 +0100 (CET)
-From:   =?UTF-8?Q?Kadlecsik_J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>
-To:     Stefano Brivio <sbrivio@redhat.com>
-cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Chen Yi <yiche@redhat.com>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] ipset: Copy the right MAC address in hash:ip,mac IPv6
- sets
-In-Reply-To: <48b62bbfab1983504cde5521c35e5a6e712997ae.1570727741.git.sbrivio@redhat.com>
-Message-ID: <alpine.DEB.2.20.1910311216550.30748@blackhole.kfki.hu>
-References: <48b62bbfab1983504cde5521c35e5a6e712997ae.1570727741.git.sbrivio@redhat.com>
-User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
+        Thu, 31 Oct 2019 07:55:07 -0400
+Received: from Galois.linutronix.de ([193.142.43.55]:55282 "EHLO
+        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726940AbfJaLzG (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 31 Oct 2019 07:55:06 -0400
+Received: from [5.158.153.53] (helo=tip-bot2.lab.linutronix.de)
+        by Galois.linutronix.de with esmtpsa (TLS1.2:DHE_RSA_AES_256_CBC_SHA256:256)
+        (Exim 4.80)
+        (envelope-from <tip-bot2@linutronix.de>)
+        id 1iQ92U-0002qQ-EA; Thu, 31 Oct 2019 12:54:54 +0100
+Received: from [127.0.1.1] (localhost [IPv6:::1])
+        by tip-bot2.lab.linutronix.de (Postfix) with ESMTP id 0F2C61C0070;
+        Thu, 31 Oct 2019 12:54:54 +0100 (CET)
+Date:   Thu, 31 Oct 2019 11:54:53 -0000
+From:   "tip-bot2 for Paul E. McKenney" <tip-bot2@linutronix.de>
+Reply-to: linux-kernel@vger.kernel.org
+To:     linux-tip-commits@vger.kernel.org
+Subject: [tip: core/rcu] net/netfilter: Replace rcu_swap_protected() with
+ rcu_replace_pointer()
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        "Paul E. McKenney" <paulmck@kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+        <netdev@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>,
+        Borislav Petkov <bp@alien8.de>, linux-kernel@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Message-ID: <157252289377.29376.5021804327399438080.tip-bot2@tip-bot2>
+X-Mailer: tip-git-log-daemon
+Robot-ID: <tip-bot2.linutronix.de>
+Robot-Unsubscribe: Contact <mailto:tglx@linutronix.de> to get blacklisted from these emails
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Linutronix-Spam-Score: -1.0
+X-Linutronix-Spam-Level: -
+X-Linutronix-Spam-Status: No , -1.0 points, 5.0 required,  ALL_TRUSTED=-1,SHORTCIRCUIT=-0.0001
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Brivio,
+The following commit has been merged into the core/rcu branch of tip:
 
-On Thu, 10 Oct 2019, Stefano Brivio wrote:
+Commit-ID:     b685b534bf1586a01b32280d1da39febaf270039
+Gitweb:        https://git.kernel.org/tip/b685b534bf1586a01b32280d1da39febaf270039
+Author:        Paul E. McKenney <paulmck@kernel.org>
+AuthorDate:    Mon, 23 Sep 2019 15:53:02 -07:00
+Committer:     Paul E. McKenney <paulmck@kernel.org>
+CommitterDate: Wed, 30 Oct 2019 08:45:38 -07:00
 
-> Same as commit 1b4a75108d5b ("netfilter: ipset: Copy the right MAC
-> address in bitmap:ip,mac and hash:ip,mac sets"), another copy and paste
-> went wrong in commit 8cc4ccf58379 ("netfilter: ipset: Allow matching on
-> destination MAC address for mac and ipmac sets").
+net/netfilter: Replace rcu_swap_protected() with rcu_replace_pointer()
 
-Thanks, patch is applied in the ipset git tree.
+This commit replaces the use of rcu_swap_protected() with the more
+intuitively appealing rcu_replace_pointer() as a step towards removing
+rcu_swap_protected().
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Link: https://lore.kernel.org/lkml/CAHk-=wiAsJLw1egFEE=Z7-GGtM6wcvtyytXZA1+BHqta4gg6Hw@mail.gmail.com/
+Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
+[ paulmck: From rcu_replace() to rcu_replace_pointer() per Ingo Molnar. ]
+Signed-off-by: Paul E. McKenney <paulmck@kernel.org>
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: <netfilter-devel@vger.kernel.org>
+Cc: <coreteam@netfilter.org>
+Cc: <netdev@vger.kernel.org>
+---
+ net/netfilter/nf_tables_api.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index d481f9b..3379974 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1461,8 +1461,9 @@ static void nft_chain_stats_replace(struct nft_trans *trans)
+ 	if (!nft_trans_chain_stats(trans))
+ 		return;
+ 
+-	rcu_swap_protected(chain->stats, nft_trans_chain_stats(trans),
+-			   lockdep_commit_lock_is_held(trans->ctx.net));
++	nft_trans_chain_stats(trans) =
++		rcu_replace_pointer(chain->stats, nft_trans_chain_stats(trans),
++				    lockdep_commit_lock_is_held(trans->ctx.net));
+ 
+ 	if (!nft_trans_chain_stats(trans))
+ 		static_branch_inc(&nft_counters_enabled);
