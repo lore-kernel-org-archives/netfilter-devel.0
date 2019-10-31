@@ -2,170 +2,148 @@ Return-Path: <SRS0=LKiS=YY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13E5ACA9ECE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 13:59:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09835CA9ECB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 14:00:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E8C5B208C0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 13:59:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D38272173E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 14:00:08 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="T0WGQpXF"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727735AbfJaN7L (ORCPT
+        id S1727910AbfJaOAE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 31 Oct 2019 09:59:11 -0400
-Received: from mailout2.hostsharing.net ([83.223.78.233]:44937 "EHLO
-        mailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727567AbfJaN7K (ORCPT
+        Thu, 31 Oct 2019 10:00:04 -0400
+Received: from mail-lj1-f193.google.com ([209.85.208.193]:38171 "EHLO
+        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727900AbfJaOAD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 31 Oct 2019 09:59:10 -0400
-Received: from h08.hostsharing.net (h08.hostsharing.net [IPv6:2a01:37:1000::53df:5f1c:0])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (Client CN "*.hostsharing.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (not verified))
-        by mailout2.hostsharing.net (Postfix) with ESMTPS id 8670F10189C8E;
-        Thu, 31 Oct 2019 14:59:08 +0100 (CET)
-Received: from localhost (pd95be530.dip0.t-ipconnect.de [217.91.229.48])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
-        (No client certificate requested)
-        by h08.hostsharing.net (Postfix) with ESMTPSA id 37A36613C8DC;
-        Thu, 31 Oct 2019 14:59:08 +0100 (CET)
-X-Mailbox-Line: From 9da2050c3bce81730e58eda7888e5f8eb4a96d56 Mon Sep 17 00:00:00 2001
-Message-Id: <9da2050c3bce81730e58eda7888e5f8eb4a96d56.1572528497.git.lukas@wunner.de>
-In-Reply-To: <cover.1572528496.git.lukas@wunner.de>
-References: <cover.1572528496.git.lukas@wunner.de>
-From:   Lukas Wunner <lukas@wunner.de>
-Date:   Thu, 31 Oct 2019 14:41:04 +0100
-Subject: [PATCH nf-next,RFC 4/5] netfilter: Generalize ingress hook
-To:     "Pablo Neira Ayuso" <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Martin Mares <mj@ucw.cz>,
-        Daniel Borkmann <daniel@iogearbox.net>
+        Thu, 31 Oct 2019 10:00:03 -0400
+Received: by mail-lj1-f193.google.com with SMTP id y23so6360806ljc.5
+        for <netfilter-devel@vger.kernel.org>; Thu, 31 Oct 2019 07:00:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=DuatfVoIRwFhp1fiwVqEQDhLv5NKcD5+eL4mURteBJw=;
+        b=T0WGQpXFDtrHJfxqFmxbHxIc4bAH6IQvZs0OTPR85eE1GuPEBycmk9QZ+dEad3gcBZ
+         111Tl8gHMDWobnSVm/oAzghXtZ67XKZeU7Iv1i1wit1eJeMjOr73oWKibGez8sYJXCg5
+         +cQOCUohhdbNghmuNdLDmn228db2gz+xBmkAIvJqZTSY4dHUXeEEkpIrb7ncIQmqboAt
+         Z/ov5p25AUY1THMKi1DviI/uX3DGy8zd/T97zX+udzdtsfjL4srz+5gXsM7b01LCQpzv
+         BX6g51anf+KwtwI58WA9i6Uh/aOtyToAeS5ZFqybf4ztcFcPzqIgUxpnTGSLbS4pEaEu
+         btAg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=DuatfVoIRwFhp1fiwVqEQDhLv5NKcD5+eL4mURteBJw=;
+        b=rqKCkSR2oUu2UmaNJa3TbHHklpfeI40sLlrumK4I0nFWS7Em4v6+AFfajscybJx3Oc
+         LaqUXWxdmauumPZD4OJ5DL1kE5hja4yGDiyx6fuJtakwvnOVK1G6G3qpeoM0HP424mTd
+         tHwQFQXgTbtWezggs0zejIR/hXImv+CGJAjlJ2qOQ/lpZU4BnwHm7I6w+clxOYFRMfL7
+         g2hXxNtHhEom4Vu2ty+78aYFqInvt8AOL1xySkIspvfUIl/jB62M5mtDPoQRIjhhK5VS
+         pkOjWsv/23Ay7vB6hTwHwpdQahiDPNcWVxUOJzdzCu9fXdjS8gohyJ46fVSkGdvkEer6
+         hfhg==
+X-Gm-Message-State: APjAAAWRJT5GoB8UbkWqVLC9WQuWsNSDhrUdDEILpLrXzObou5BUdCZk
+        tzqyg74GPQT51ZKlyvDYmHtLqXf+fqzmUE8Agh70
+X-Google-Smtp-Source: APXvYqwq2wNVb076m3Quvyq9PXqhSEvG470R+68J3/Y3Ahcr5xKs7JewCzfRlqwmRAqfj89jdi6yOS5N64nrB3PIo6A=
+X-Received: by 2002:a05:651c:1056:: with SMTP id x22mr1097948ljm.225.1572530400425;
+ Thu, 31 Oct 2019 07:00:00 -0700 (PDT)
+MIME-Version: 1.0
+References: <cover.1568834524.git.rgb@redhat.com> <214163d11a75126f610bcedfad67a4d89575dc77.1568834525.git.rgb@redhat.com>
+ <20191019013904.uevmrzbmztsbhpnh@madcap2.tricolour.ca> <CAHC9VhRPygA=LsHLUqv+K=ouAiPFJ6fb2_As=OT-_zB7kGc_aQ@mail.gmail.com>
+ <20191021213824.6zti5ndxu7sqs772@madcap2.tricolour.ca> <CAHC9VhRdNXsY4neJpSoNyJoAVEoiEc2oW5kSscF99tjmoQAxFA@mail.gmail.com>
+ <20191021235734.mgcjotdqoe73e4ha@madcap2.tricolour.ca> <CAHC9VhSiwnY-+2awxvGeO4a0NgfVkOPd8fzzBVujp=HtjskTuQ@mail.gmail.com>
+ <20191024210010.owwgc3bqbvtdsqws@madcap2.tricolour.ca> <CAHC9VhRDoX9du4XbCnBtBzsNPMGOsb-TKM1CC+sCL7HP=FuTRQ@mail.gmail.com>
+ <20191030220320.tnwkaj5gbzchcn7j@madcap2.tricolour.ca>
+In-Reply-To: <20191030220320.tnwkaj5gbzchcn7j@madcap2.tricolour.ca>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Thu, 31 Oct 2019 09:59:48 -0400
+Message-ID: <CAHC9VhTKaBwFxEnY9vLRgtZ5ptQzF-WvwiAyVgtTNn6tt4bZqw@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V7 20/21] audit: add capcontid to set contid
+ outside init_user_ns
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
+        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
+        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
+        mpatel@redhat.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Prepare for addition of a netfilter egress hook by generalizing the
-ingress hook introduced by commit e687ad60af09 ("netfilter: add
-netfilter ingress hook after handle_ing() under unique static key").
+On Wed, Oct 30, 2019 at 6:04 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2019-10-30 16:27, Paul Moore wrote:
+> > On Thu, Oct 24, 2019 at 5:00 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > Here's the note I had from that meeting:
+> > >
+> > > - Eric raised the issue that using /proc is likely to get more and more
+> > >   hoary due to mount namespaces and suggested that we use a netlink
+> > > audit message (or a new syscall) to set the audit container identifier
+> > > and since the loginuid is a similar type of operation, that it should be
+> > > migrated over to a similar mechanism to get it away from /proc.  Get
+> > > could be done with a netlink audit message that triggers an audit log
+> > > message to deliver the information.  I'm reluctant to further pollute
+> > > the syscall space if we can find another method.  The netlink audit
+> > > message makes sense since any audit-enabled service is likely to already
+> > > have an audit socket open.
+> >
+> > Thanks for the background info on the off-list meeting.  I would
+> > encourage you to have discussions like this on-list in the future; if
+> > that isn't possible, hosting a public call would okay-ish, but a
+> > distant second.
+>
+> I'm still trying to get Eric's attention to get him to weigh in here and
+> provide a more eloquent representation of his ideas and concerns.  Some
+> of it was related to CRIU(sp?) issues which we've already of which we've
+> already seen similar concerns in namespace identifiers including the
+> device identity to qualify it.
 
-In particular, rename and refactor the ingress hook's static inlines
-such that they can be reused for an egress hook.
+Okay, let's leave this open until we hear from Eric to see if he has
+any additional information, but it's going to need to be pretty
+compelling.
 
-No functional change intended.
+> > At this point in time I'm not overly concerned about /proc completely
+> > going away in namespaces/containers that are full featured enough to
+> > host a container orchestrator.  If/when reliance on procfs becomes an
+> > issue, we can look at alternate APIs, but given the importance of
+> > /proc to userspace (including to audit) I suspect we are going to see
+> > it persist for some time.  I would prefer to see you to drop the audit
+> > container ID netlink API portions of this patchset and focus on the
+> > procfs API.
+>
+> I've already refactored the code to put the netlink bits at the end as
+> completely optional pieces for completeness so they won't get in the way
+> of the real substance of this patchset.  The nesting depth and total
+> number of containers checks have also been punted to the end of the
+> patchset to get them out of the way of discussion.
 
-Signed-off-by: Lukas Wunner <lukas@wunner.de>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
----
- include/linux/netfilter_netdev.h | 45 ++++++++++++++++++++++----------
- net/core/dev.c                   |  2 +-
- 2 files changed, 32 insertions(+), 15 deletions(-)
+That's fine, but if we do decide to drop the netlink API after hearing
+from Eric, please drop those from the patchset.  Keeping the patchset
+small and focused should be a goal, and including rejected/dead
+patches (even at the end) doesn't help move towards that goal.
 
-diff --git a/include/linux/netfilter_netdev.h b/include/linux/netfilter_netdev.h
-index a13774be2eb5..49e26479642e 100644
---- a/include/linux/netfilter_netdev.h
-+++ b/include/linux/netfilter_netdev.h
-@@ -1,34 +1,37 @@
- /* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _NETFILTER_INGRESS_H_
--#define _NETFILTER_INGRESS_H_
-+#ifndef _NETFILTER_NETDEV_H_
-+#define _NETFILTER_NETDEV_H_
- 
- #include <linux/netfilter.h>
- #include <linux/netdevice.h>
- 
--#ifdef CONFIG_NETFILTER_INGRESS
--static inline bool nf_hook_ingress_active(const struct sk_buff *skb)
-+#ifdef CONFIG_NETFILTER
-+static __always_inline bool nf_hook_netdev_active(enum nf_dev_hooks hooknum,
-+					  struct nf_hook_entries __rcu *hooks)
- {
- #ifdef CONFIG_JUMP_LABEL
--	if (!static_key_false(&nf_hooks_needed[NFPROTO_NETDEV][NF_NETDEV_INGRESS]))
-+	if (!static_key_false(&nf_hooks_needed[NFPROTO_NETDEV][hooknum]))
- 		return false;
- #endif
--	return rcu_access_pointer(skb->dev->nf_hooks_ingress);
-+	return rcu_access_pointer(hooks);
- }
- 
- /* caller must hold rcu_read_lock */
--static inline int nf_hook_ingress(struct sk_buff *skb)
-+static __always_inline int nf_hook_netdev(struct sk_buff *skb,
-+					  enum nf_dev_hooks hooknum,
-+					  struct nf_hook_entries __rcu *hooks)
- {
--	struct nf_hook_entries *e = rcu_dereference(skb->dev->nf_hooks_ingress);
-+	struct nf_hook_entries *e = rcu_dereference(hooks);
- 	struct nf_hook_state state;
- 	int ret;
- 
--	/* Must recheck the ingress hook head, in the event it became NULL
--	 * after the check in nf_hook_ingress_active evaluated to true.
-+	/* Must recheck the hook head, in the event it became NULL
-+	 * after the check in nf_hook_netdev_active evaluated to true.
- 	 */
- 	if (unlikely(!e))
- 		return 0;
- 
--	nf_hook_state_init(&state, NF_NETDEV_INGRESS,
-+	nf_hook_state_init(&state, hooknum,
- 			   NFPROTO_NETDEV, skb->dev, NULL, NULL,
- 			   dev_net(skb->dev), NULL);
- 	ret = nf_hook_slow(skb, &state, e, 0);
-@@ -37,10 +40,26 @@ static inline int nf_hook_ingress(struct sk_buff *skb)
- 
- 	return ret;
- }
-+#endif /* CONFIG_NETFILTER */
- 
--static inline void nf_hook_ingress_init(struct net_device *dev)
-+static inline void nf_hook_netdev_init(struct net_device *dev)
- {
-+#ifdef CONFIG_NETFILTER_INGRESS
- 	RCU_INIT_POINTER(dev->nf_hooks_ingress, NULL);
-+#endif
-+}
-+
-+#ifdef CONFIG_NETFILTER_INGRESS
-+static inline bool nf_hook_ingress_active(const struct sk_buff *skb)
-+{
-+	return nf_hook_netdev_active(NF_NETDEV_INGRESS,
-+				     skb->dev->nf_hooks_ingress);
-+}
-+
-+static inline int nf_hook_ingress(struct sk_buff *skb)
-+{
-+	return nf_hook_netdev(skb, NF_NETDEV_INGRESS,
-+			      skb->dev->nf_hooks_ingress);
- }
- #else /* CONFIG_NETFILTER_INGRESS */
- static inline int nf_hook_ingress_active(struct sk_buff *skb)
-@@ -52,7 +71,5 @@ static inline int nf_hook_ingress(struct sk_buff *skb)
- {
- 	return 0;
- }
--
--static inline void nf_hook_ingress_init(struct net_device *dev) {}
- #endif /* CONFIG_NETFILTER_INGRESS */
- #endif /* _NETFILTER_INGRESS_H_ */
-diff --git a/net/core/dev.c b/net/core/dev.c
-index c698a0fcfa02..e4976f68f2dd 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -9478,7 +9478,7 @@ struct net_device *alloc_netdev_mqs(int sizeof_priv, const char *name,
- 	if (!dev->ethtool_ops)
- 		dev->ethtool_ops = &default_ethtool_ops;
- 
--	nf_hook_ingress_init(dev);
-+	nf_hook_netdev_init(dev);
- 
- 	return dev;
- 
+> > Also, for the record, removing the audit loginuid from procfs is not
+> > something to take lightly, if at all; like it or not, it's part of the
+> > kernel API.
+>
+> Oh, I'm quite aware of how important this change is and it was discussed
+> with Steve Grubb who saw the concern and value of considering such a
+> disruptive change.  Removing proc support for auid/ses would be a
+> long-term deprecation if accepted.
+
+As I mentioned, that comment was more "for the record" than you in
+particular; I know we've talked a lot over the years about kernel API
+stability and I'm confident you are aware of the pitfalls there. :)
+
 -- 
-2.23.0
-
+paul moore
+www.paul-moore.com
