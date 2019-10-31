@@ -2,69 +2,92 @@ Return-Path: <SRS0=LKiS=YY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAA82CA9ECB
-	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 19:12:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 785DCCA9ECB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 22:40:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C31EC2080F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 19:12:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5817820873
+	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 22:40:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729316AbfJaTMV (ORCPT
+        id S1729347AbfJaWkE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 31 Oct 2019 15:12:21 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:43078 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729312AbfJaTMV (ORCPT
+        Thu, 31 Oct 2019 18:40:04 -0400
+Received: from www62.your-server.de ([213.133.104.62]:41146 "EHLO
+        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726506AbfJaWkE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 31 Oct 2019 15:12:21 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1iQFrn-0002Nq-Ol; Thu, 31 Oct 2019 20:12:19 +0100
-Date:   Thu, 31 Oct 2019 20:12:19 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Daniel Huhardeaux <tech@tootai.net>
-Cc:     Netfilter list <netfilter-devel@vger.kernel.org>
-Subject: Re: Nat redirect using map
-Message-ID: <20191031191219.GL876@breakpoint.cc>
-References: <6ea6ecb5-99c5-5519-b689-8e1291df69cc@tootai.net>
+        Thu, 31 Oct 2019 18:40:04 -0400
+Received: from sslproxy01.your-server.de ([88.198.220.130])
+        by www62.your-server.de with esmtpsa (TLSv1.2:DHE-RSA-AES256-GCM-SHA384:256)
+        (Exim 4.89_1)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1iQJ6m-0003Q3-5I; Thu, 31 Oct 2019 23:40:00 +0100
+Received: from [178.197.249.38] (helo=pc-63.home)
+        by sslproxy01.your-server.de with esmtpsa (TLSv1.2:ECDHE-RSA-AES256-GCM-SHA384:256)
+        (Exim 4.89)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1iQJ6l-0004Nw-QI; Thu, 31 Oct 2019 23:39:59 +0100
+Subject: Re: [PATCH nf-next,RFC 5/5] netfilter: Introduce egress hook
+To:     Lukas Wunner <lukas@wunner.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Martin Mares <mj@ucw.cz>
+References: <cover.1572528496.git.lukas@wunner.de>
+ <de461181e53bcec9a75a9630d0d998d555dc8bf5.1572528497.git.lukas@wunner.de>
+From:   Daniel Borkmann <daniel@iogearbox.net>
+Message-ID: <d5876ef3-bcee-e0b2-273e-e0405fe17b79@iogearbox.net>
+Date:   Thu, 31 Oct 2019 23:39:58 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6ea6ecb5-99c5-5519-b689-8e1291df69cc@tootai.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <de461181e53bcec9a75a9630d0d998d555dc8bf5.1572528497.git.lukas@wunner.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Authenticated-Sender: daniel@iogearbox.net
+X-Virus-Scanned: Clear (ClamAV 0.101.4/25619/Thu Oct 31 09:55:29 2019)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Daniel Huhardeaux <tech@tootai.net> wrote:
-> Hi,
+On 10/31/19 2:41 PM, Lukas Wunner wrote:
+> Commit e687ad60af09 ("netfilter: add netfilter ingress hook after
+> handle_ing() under unique static key") introduced the ability to
+> classify packets on ingress.
 > 
-> I have a map like this
+> Allow the same on egress.
 > 
-> map redirect_tcp {
->                 type inet_service : inet_service
->                 flags interval
->                 elements = { 12345 : 12345, 36025 : smtp }
->         }
-> 
-> and want to use nat redirect but it fail with unexpecting to, expecting EOF
-> or semicolon. Here is the rule
-> 
-> nft add rule ip nat prerouting iif eth0 tcp dport map @redirect_tcp redirect
-> to @redirect_tcp
+> The need for this arose because I had to filter egress packets which do
+> not match a specific ethertype.  The most common solution appears to be
 
-This should work:
-nft add rule ip nat prerouting iif eth0 ip protocol tcp redirect to : tcp dport map @redirect_tcp
+This seems like a /very/ weak justification for something that sits in
+critical fastpath. NAK.
 
-> Other: when using dnat for forwarding, should I take care of forward rules ?
-> 
-> Example for this kind of rule from wiki:
-> 
-> nft add rule nat prerouting iif eth0 tcp dport { 80, 443 } dnat
-> 192.168.1.120
+> to enslave the interface to a bridge and use ebtables, but that's
+> cumbersome to configure and comes with a (small) performance penalty.
+> An alternative approach is tc, but that doesn't afford equivalent
+> matching options as netfilter.
+Hmm, have you tried tc BPF on the egress hook (via sch_cls_act -> cls_bpf)?
 
-You mean auto-accept dnatted connections? Try "ct status dnat accept"
+> people have expressed a desire for egress filtering in the past:
+> 
+> https://www.spinics.net/lists/netfilter/msg50038.html
+
+Adding another hook to catch misconfigurations of NAT in postrouting ...?
+
+> https://unix.stackexchange.com/questions/512371
+
+This talks about filtering / limiting ARP packets which can be done today
+easily with existing means, including writing ARP responders sitting on tc
+ingress/egress hook.
+
+> An egress hook therefore seems like an obvious addition.
+> 
+> Signed-off-by: Lukas Wunner <lukas@wunner.de>
+> Cc: Daniel Borkmann <daniel@iogearbox.net>
