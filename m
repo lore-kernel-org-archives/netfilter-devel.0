@@ -2,75 +2,88 @@ Return-Path: <SRS0=LKiS=YY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CC40CA9ECB
-	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 13:52:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B935DCA9ECF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 13:53:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EEB092086D
-	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 13:52:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E7CC2086D
+	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 13:53:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727790AbfJaNwo (ORCPT
+        id S1727815AbfJaNxL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 31 Oct 2019 09:52:44 -0400
-Received: from correo.us.es ([193.147.175.20]:39126 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727511AbfJaNwo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 31 Oct 2019 09:52:44 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DDE0E114802
-        for <netfilter-devel@vger.kernel.org>; Thu, 31 Oct 2019 14:52:39 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CF71821FF7
-        for <netfilter-devel@vger.kernel.org>; Thu, 31 Oct 2019 14:52:39 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C4F05DA4CA; Thu, 31 Oct 2019 14:52:39 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CDBCDFB362;
-        Thu, 31 Oct 2019 14:52:37 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 31 Oct 2019 14:52:37 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
+        Thu, 31 Oct 2019 09:53:11 -0400
+Received: from mailout3.hostsharing.net ([176.9.242.54]:60621 "EHLO
+        mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727719AbfJaNxL (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 31 Oct 2019 09:53:11 -0400
+Received: from h08.hostsharing.net (h08.hostsharing.net [IPv6:2a01:37:1000::53df:5f1c:0])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client CN "*.hostsharing.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (not verified))
+        by mailout3.hostsharing.net (Postfix) with ESMTPS id D84C1101E6B11;
+        Thu, 31 Oct 2019 14:44:26 +0100 (CET)
+Received: from localhost (pd95be530.dip0.t-ipconnect.de [217.91.229.48])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id AA08F42EE38E;
-        Thu, 31 Oct 2019 14:52:37 +0100 (CET)
-Date:   Thu, 31 Oct 2019 14:52:39 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [libnftnl PATCH 2/2] Deprecate untyped data setters
-Message-ID: <20191031135239.s2dyibgrrcfffb6u@salvia>
-References: <20191030174948.12493-1-phil@nwl.cc>
- <20191030174948.12493-2-phil@nwl.cc>
- <20191031124920.4p2frkvfwgktaxqz@salvia>
- <20191031134321.GC8531@orbyte.nwl.cc>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191031134321.GC8531@orbyte.nwl.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+        by h08.hostsharing.net (Postfix) with ESMTPSA id 75857613C8DC;
+        Thu, 31 Oct 2019 14:44:26 +0100 (CET)
+X-Mailbox-Line: From ba3cc38580d4cb43aa5599524ec5e5205d6dfa77 Mon Sep 17 00:00:00 2001
+Message-Id: <ba3cc38580d4cb43aa5599524ec5e5205d6dfa77.1572528496.git.lukas@wunner.de>
+In-Reply-To: <cover.1572528496.git.lukas@wunner.de>
+References: <cover.1572528496.git.lukas@wunner.de>
+From:   Lukas Wunner <lukas@wunner.de>
+Date:   Thu, 31 Oct 2019 14:41:01 +0100
+Subject: [PATCH nf-next,RFC 1/5] netfilter: Clean up unnecessary #ifdef
+To:     "Pablo Neira Ayuso" <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Martin Mares <mj@ucw.cz>,
+        Daniel Borkmann <daniel@iogearbox.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Oct 31, 2019 at 02:43:21PM +0100, Phil Sutter wrote:
-> On Thu, Oct 31, 2019 at 01:49:20PM +0100, Pablo Neira Ayuso wrote:
-> > On Wed, Oct 30, 2019 at 06:49:48PM +0100, Phil Sutter wrote:
-> > > These functions make assumptions on size of passed data pointer and
-> > > therefore tend to hide programming mistakes. Instead either one of the
-> > > type-specific setters or the generic *_set_data() setter should be used.
-> > 
-> > Please, confirm that the existing iptables / nft codebase will not hit
-> > compilation warnings because of deprecated functions.
-> 
-> Yes, current code base does not use those functions.
+If CONFIG_NETFILTER_INGRESS is not enabled, nf_ingress() becomes a no-op
+because it solely contains an if-clause calling nf_hook_ingress_active(),
+for which an empty inline stub exists in <linux/netfilter_ingress.h>.
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+All the symbols used in the if-clause's body are still available even if
+CONFIG_NETFILTER_INGRESS is not enabled.
+
+The additional "#ifdef CONFIG_NETFILTER_INGRESS" in nf_ingress() is thus
+unnecessary, so drop it.
+
+Signed-off-by: Lukas Wunner <lukas@wunner.de>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+---
+ net/core/dev.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 74f593986524..e555a8656c47 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -5013,7 +5013,6 @@ static bool skb_pfmemalloc_protocol(struct sk_buff *skb)
+ static inline int nf_ingress(struct sk_buff *skb, struct packet_type **pt_prev,
+ 			     int *ret, struct net_device *orig_dev)
+ {
+-#ifdef CONFIG_NETFILTER_INGRESS
+ 	if (nf_hook_ingress_active(skb)) {
+ 		int ingress_retval;
+ 
+@@ -5027,7 +5026,6 @@ static inline int nf_ingress(struct sk_buff *skb, struct packet_type **pt_prev,
+ 		rcu_read_unlock();
+ 		return ingress_retval;
+ 	}
+-#endif /* CONFIG_NETFILTER_INGRESS */
+ 	return 0;
+ }
+ 
+-- 
+2.23.0
+
