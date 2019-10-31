@@ -2,83 +2,116 @@ Return-Path: <SRS0=LKiS=YY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7382CA9ECB
-	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 14:22:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45A72CA9ECB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 14:51:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 81EDA2080F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 14:22:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1871B2086D
+	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Oct 2019 14:51:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Keyt4krY"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="B25v9SZy"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727720AbfJaOWK (ORCPT
+        id S1728223AbfJaOvW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 31 Oct 2019 10:22:10 -0400
-Received: from mail-io1-f68.google.com ([209.85.166.68]:44832 "EHLO
-        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726741AbfJaOWK (ORCPT
+        Thu, 31 Oct 2019 10:51:22 -0400
+Received: from us-smtp-1.mimecast.com ([205.139.110.61]:44038 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728134AbfJaOvT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 31 Oct 2019 10:22:10 -0400
-Received: by mail-io1-f68.google.com with SMTP id w12so6885349iol.11
-        for <netfilter-devel@vger.kernel.org>; Thu, 31 Oct 2019 07:22:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=vW4ENteUBmLOap1qwOSdFQ+y6LtriChtUs/listSVIY=;
-        b=Keyt4krYEJ5gdV5K9f4Rw8CqJnol65ZcQioPnW1ScFpvx4wW1YAA81dIPbrdu7Dbzk
-         CXM+Lj49Vba4g0lto5dLK8UgVUaVBYWX/y015A3KK2iveme/4CHpqXCZPHNXJ1Ktovpx
-         96pIK1Vtn3E5arG0knwZbP8rx+nr6UwTKQd/70tAXt1Wkh7WUSQh8/otAOtS3/lxNcxb
-         tvrly2TcmuiHVead8Xy9x9pbvKyYdulNWxTxeo3MfRpOFD2Nfe1NBlvOH6BLXNq6g1Td
-         O0GqShhq8rVpM03+LsPI0USetmydqWlcKhzv+E04FJErDj0URD1AvxMELTp+nG0EPKoz
-         xxFA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=vW4ENteUBmLOap1qwOSdFQ+y6LtriChtUs/listSVIY=;
-        b=Z6lExw22xt6djQFHicAOvXvk/AwVO3oqwI/0VYceX7nuNu0NJna+z5VFE1yT6yf6RC
-         JEUZaLAQ0oiBdB7wxSDMsx3ftNbYcvGImdsAUQbnfBmx1mN8vyTWEnSqT0FIRYvRfT70
-         oAB3nVSqmijPud8YuJcZi4/EnDaGL5soQETAYtguSVX6M0lIslgDOMa8MEPpP+CwF0Lr
-         aZlenCkEwHAUOjegXFn5SBZJJ8AbCxHk2yypGtyTbABZZnqVqWmyrHCGQHY1g/966FDn
-         seLIri3VjsMpwgb68hsk5EZRiqlN3sLDTQF8ctXp7ySuqiiRMybOr1+ZjzmQCrL6GEcw
-         J6eQ==
-X-Gm-Message-State: APjAAAWFYqse0VIb91Vnku6+l2QymwtPaQxrKnpjQWMkR2DGmHSea4q0
-        VONjyAz1PQuTIY3uuaP4jBJa6JXek3m+iV47Lv4=
-X-Google-Smtp-Source: APXvYqymBvQt9vMikXRrO5YRQ19g45JiRsnaKNKDFAIFPLUH/DS8u8bx2sduYT//cdCJ6grfyGiMVGdhRt7BkFHxOgY=
-X-Received: by 2002:a6b:c701:: with SMTP id x1mr5430277iof.162.1572531729060;
- Thu, 31 Oct 2019 07:22:09 -0700 (PDT)
+        Thu, 31 Oct 2019 10:51:19 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1572533478;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=3K6sCYQs8K5ApEcQ+TEBEBei1xOeMj1fQR7m/w4Dyos=;
+        b=B25v9SZyX4U5a0z5MJs9apakt9rJXAJChTOMBkXUT+RtHVC1l4/Lr4nwU2ibghlc60leeE
+        3NdVXd93sRBBfrSqvy3s3ddTQQVleWVxzQ50cSwz5xZP8vmzayMJXBhNv7OVPcEX2R5COU
+        a4xJCRweDYWiy2CWsD0Yi9VMU2rZt9E=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-230-piStzJfuPfqkyHSzRDB-TQ-1; Thu, 31 Oct 2019 10:51:14 -0400
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 13D9E1800D6B;
+        Thu, 31 Oct 2019 14:51:13 +0000 (UTC)
+Received: from x2.localnet (ovpn-117-13.phx2.redhat.com [10.3.117.13])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 4B3E160878;
+        Thu, 31 Oct 2019 14:50:58 +0000 (UTC)
+From:   Steve Grubb <sgrubb@redhat.com>
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     Paul Moore <paul@paul-moore.com>,
+        containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        omosnace@redhat.com, dhowells@redhat.com, simo@redhat.com,
+        Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
+        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
+        mpatel@redhat.com
+Subject: Re: [PATCH ghak90 V7 20/21] audit: add capcontid to set contid outside init_user_ns
+Date:   Thu, 31 Oct 2019 10:50:57 -0400
+Message-ID: <3677995.NTHC7m0fHc@x2>
+Organization: Red Hat
+In-Reply-To: <20191030220320.tnwkaj5gbzchcn7j@madcap2.tricolour.ca>
+References: <cover.1568834524.git.rgb@redhat.com> <CAHC9VhRDoX9du4XbCnBtBzsNPMGOsb-TKM1CC+sCL7HP=FuTRQ@mail.gmail.com> <20191030220320.tnwkaj5gbzchcn7j@madcap2.tricolour.ca>
 MIME-Version: 1.0
-References: <20190926105354.8301-1-kristian.evensen@gmail.com>
- <alpine.DEB.2.20.1910022039530.21131@blackhole.kfki.hu> <CAKfDRXjgsAbTxgLwBpY+MiYWAyu4n4puJjgTOaBx0oSr+pNzrQ@mail.gmail.com>
- <alpine.DEB.2.20.1910311512440.30748@blackhole.kfki.hu>
-In-Reply-To: <alpine.DEB.2.20.1910311512440.30748@blackhole.kfki.hu>
-From:   Kristian Evensen <kristian.evensen@gmail.com>
-Date:   Thu, 31 Oct 2019 15:21:57 +0100
-Message-ID: <CAKfDRXjjYXx1XjcaMDFU2nyhb_UG248DGjpKfVDUCBmemVcHEA@mail.gmail.com>
-Subject: Re: [PATCH] ipset: Add wildcard support to net,iface
-To:     =?UTF-8?Q?Kadlecsik_J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>
-Cc:     Netfilter Development Mailing list 
-        <netfilter-devel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+X-MC-Unique: piStzJfuPfqkyHSzRDB-TQ-1
+X-Mimecast-Spam-Score: 0
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 7Bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Jozsef,
+Hello,
 
-On Thu, Oct 31, 2019 at 3:14 PM Kadlecsik J=C3=B3zsef
-<kadlec@blackhole.kfki.hu> wrote:
-> I have just applied your patch in my ipset git tree. I'm working on a new
-> release, hopefully it'll be out at the weekend. Thanks for the patience!
+TLDR;  I see a lot of benefit to switching away from procfs for setting auid & 
+sessionid.
 
-No problem and thanks a lot! Enjoy the rest of the day.
+On Wednesday, October 30, 2019 6:03:20 PM EDT Richard Guy Briggs wrote:
+> > Also, for the record, removing the audit loginuid from procfs is not
+> > something to take lightly, if at all; like it or not, it's part of the
+> > kernel API.
 
-BR,
-Kristian
+It can also be used by tools to iterate processes related to one user or 
+session. I use this in my Intrusion Prevention System which will land in 
+audit user space at some point in the future.
+
+
+> Oh, I'm quite aware of how important this change is and it was discussed
+> with Steve Grubb who saw the concern and value of considering such a
+> disruptive change.
+
+Actually, I advocated for syscall. I think the gist of Eric's idea was that /
+proc is the intersection of many nasty problems. By relying on it, you can't 
+simplify the API to reduce the complexity. Almost no program actually needs 
+access to /proc. ps does. But almost everything else is happy without it. For 
+example, when you setup chroot jails, you may have to add /dev/random or /
+dev/null, but almost never /proc. What does force you to add /proc is any 
+entry point daemon like sshd because it needs to set the loginuid. If we 
+switch away from /proc, then sshd or crond will no longer /require/ procfs to 
+be available which again simplifies the system design.
+
+
+> Removing proc support for auid/ses would be a
+> long-term deprecation if accepted.
+
+It might need to just be turned into readonly for a while. But then again, 
+perhaps auid and session should be part of /proc/<pid>/status? Maybe this can 
+be done independently and ahead of the container work so there is a migration 
+path for things that read auid or session. TBH, maybe this should have been 
+done from the beginning.
+
+-Steve
+
+
+
