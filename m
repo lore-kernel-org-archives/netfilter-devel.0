@@ -2,147 +2,100 @@ Return-Path: <SRS0=Gx1r=YZ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.1 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4628CA9ECF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Nov 2019 15:09:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73A00CA9ECF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Nov 2019 15:11:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 98ED3217D9
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Nov 2019 15:09:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 428DE21734
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Nov 2019 15:11:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="YJPHlYUq"
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=tootai.net header.i=@tootai.net header.b="ngXl0Xwi";
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=tootai.net header.i=@tootai.net header.b="oqmcWnlK"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728249AbfKAPJ4 (ORCPT
+        id S1727574AbfKAPLw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 1 Nov 2019 11:09:56 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:23628 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727650AbfKAPJz (ORCPT
+        Fri, 1 Nov 2019 11:11:52 -0400
+Received: from mail1.tootai.net ([213.239.227.108]:51650 "EHLO
+        mail1.tootai.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727326AbfKAPLw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 1 Nov 2019 11:09:55 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1572620994;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=B0+CdOYJOHUYIPhTqYhU6i7fsne7jTye1CGWyYYt7Oo=;
-        b=YJPHlYUqkXUCsoMZHDzLglvFItNEcLh2YQQCVWqBPlp3QKpyHhvypdVSC+FFJYKuZK49/2
-        54ZeRWPNF1J2PWteu7kiZI9ORayY25qmV405TUyX2t61LZ/9mTtsAIzsB/2W5t//1Cu8R0
-        i0KU6KYvYQQ1F/lqX3M82++F1KlLThc=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-338-5P0N9OwUMBiTSmPWIh5iXQ-1; Fri, 01 Nov 2019 11:09:49 -0400
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 6DC6A800D49;
-        Fri,  1 Nov 2019 15:09:46 +0000 (UTC)
-Received: from madcap2.tricolour.ca (ovpn-112-19.phx2.redhat.com [10.3.112.19])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id B445810016E8;
-        Fri,  1 Nov 2019 15:09:30 +0000 (UTC)
-Date:   Fri, 1 Nov 2019 11:09:27 -0400
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Steve Grubb <sgrubb@redhat.com>
-Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
-        containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
-Subject: Re: [PATCH ghak90 V7 20/21] audit: add capcontid to set contid
- outside init_user_ns
-Message-ID: <20191101150927.c5sf3n5ezfg2eano@madcap2.tricolour.ca>
-References: <cover.1568834524.git.rgb@redhat.com>
- <CAHC9VhRDoX9du4XbCnBtBzsNPMGOsb-TKM1CC+sCL7HP=FuTRQ@mail.gmail.com>
- <20191030220320.tnwkaj5gbzchcn7j@madcap2.tricolour.ca>
- <3677995.NTHC7m0fHc@x2>
+        Fri, 1 Nov 2019 11:11:52 -0400
+Received: from mail1.tootai.net (localhost [127.0.0.1])
+        by mail1.tootai.net (Postfix) with ESMTP id E96316027B01
+        for <netfilter-devel@vger.kernel.org>; Fri,  1 Nov 2019 16:11:50 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=tootai.net; s=mail;
+        t=1572621111; bh=YpXMDOz2zKeN1kuxSiNxO5oSMP8/ko7vDhyFD3AUqPg=;
+        h=Subject:To:References:From:Date:In-Reply-To:From;
+        b=ngXl0XwiH2Zyrj7msXJZ0n0/kj47sQ4CeQwYOWegl+NreIUahuSBK47r2y4jcpX0X
+         EBb0MWO0Inw0SbAXGDHZKumDJyZ3P1oqo+INlGfejBKFKsqO+UbRq/B0+qDDd0/6kX
+         bfNAM9ZQcHZMpCCrEQ1F/QwnhLKHmHnGK8cXgYDY=
+Received: from [192.168.10.4] (unknown [192.168.10.4])
+        by mail1.tootai.net (Postfix) with ESMTPSA id A44746008767
+        for <netfilter-devel@vger.kernel.org>; Fri,  1 Nov 2019 16:11:50 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=tootai.net; s=mail;
+        t=1572621110; bh=YpXMDOz2zKeN1kuxSiNxO5oSMP8/ko7vDhyFD3AUqPg=;
+        h=Subject:To:References:From:Date:In-Reply-To:From;
+        b=oqmcWnlKV/lF4wAxg3h6Wtsk9d+84GSMMX6WwOk1Qc1Rkyv5xXowi+WFE2ectubMb
+         PVjIqCjbffTUaJX03edl9DM5/hPNqOGl3Gj36cHuFxwdAaa2MKXGqh3+T+6yu/8ywC
+         ndE5g/9ZUF8PowvLlUo1iRsn+2wkajQhdFCAIbJc=
+Subject: Re: Nat redirect using map
+To:     Netfilter list <netfilter-devel@vger.kernel.org>
+References: <6ea6ecb5-99c5-5519-b689-8e1291df69cc@tootai.net>
+ <20191031191219.GL876@breakpoint.cc>
+From:   Daniel Huhardeaux <tech@tootai.net>
+Message-ID: <f7e300bd-2112-7e98-884b-1eb049c035f3@tootai.net>
+Date:   Fri, 1 Nov 2019 16:11:49 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
 MIME-Version: 1.0
-In-Reply-To: <3677995.NTHC7m0fHc@x2>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
-X-MC-Unique: 5P0N9OwUMBiTSmPWIh5iXQ-1
-X-Mimecast-Spam-Score: 0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+In-Reply-To: <20191031191219.GL876@breakpoint.cc>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: fr
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2019-10-31 10:50, Steve Grubb wrote:
-> Hello,
->=20
-> TLDR;  I see a lot of benefit to switching away from procfs for setting a=
-uid &=20
-> sessionid.
->=20
-> On Wednesday, October 30, 2019 6:03:20 PM EDT Richard Guy Briggs wrote:
-> > > Also, for the record, removing the audit loginuid from procfs is not
-> > > something to take lightly, if at all; like it or not, it's part of th=
-e
-> > > kernel API.
->=20
-> It can also be used by tools to iterate processes related to one user or=
-=20
-> session. I use this in my Intrusion Prevention System which will land in=
-=20
-> audit user space at some point in the future.
->=20
-> > Oh, I'm quite aware of how important this change is and it was discusse=
-d
-> > with Steve Grubb who saw the concern and value of considering such a
-> > disruptive change.
->=20
-> Actually, I advocated for syscall. I think the gist of Eric's idea was th=
-at /
-> proc is the intersection of many nasty problems. By relying on it, you ca=
-n't=20
-> simplify the API to reduce the complexity. Almost no program actually nee=
-ds=20
-> access to /proc. ps does. But almost everything else is happy without it.=
- For=20
-> example, when you setup chroot jails, you may have to add /dev/random or =
-/
-> dev/null, but almost never /proc. What does force you to add /proc is any=
-=20
-> entry point daemon like sshd because it needs to set the loginuid. If we=
-=20
-> switch away from /proc, then sshd or crond will no longer /require/ procf=
-s to=20
-> be available which again simplifies the system design.
->=20
-> > Removing proc support for auid/ses would be a
-> > long-term deprecation if accepted.
->=20
-> It might need to just be turned into readonly for a while. But then again=
-,=20
-> perhaps auid and session should be part of /proc/<pid>/status? Maybe this=
- can=20
-> be done independently and ahead of the container work so there is a migra=
-tion=20
-> path for things that read auid or session. TBH, maybe this should have be=
-en=20
-> done from the beginning.
+Le 31/10/2019 à 20:12, Florian Westphal a écrit :
+> Daniel Huhardeaux <tech@tootai.net> wrote:
+>> Hi,
+>>
+>> I have a map like this
+>>
+>> map redirect_tcp {
+>>                  type inet_service : inet_service
+>>                  flags interval
+>>                  elements = { 12345 : 12345, 36025 : smtp }
+>>          }
+>>
+>> and want to use nat redirect but it fail with unexpecting to, expecting EOF
+>> or semicolon. Here is the rule
+>>
+>> nft add rule ip nat prerouting iif eth0 tcp dport map @redirect_tcp redirect
+>> to @redirect_tcp
+> 
+> This should work:
+> nft add rule ip nat prerouting iif eth0 ip protocol tcp redirect to : tcp dport map @redirect_tcp
 
-How about making loginuid/contid/capcontid writable only via netlink but
-still provide the /proc interface for reading?  Deprecation of proc can
-be left as a decision for later.  This way sshd/crond/getty don't need
-/proc, but the info is still there for tools that want to read it.
+Yes !
 
-> -Steve
+> 
+>> Other: when using dnat for forwarding, should I take care of forward rules ?
+>>
+>> Example for this kind of rule from wiki:
+>>
+>> nft add rule nat prerouting iif eth0 tcp dport { 80, 443 } dnat
+>> 192.168.1.120
+> 
+> You mean auto-accept dnatted connections? Try "ct status dnat accept"
 
-- RGB
+Exactly what I was looking for, many thanks.
 
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
-
+Daniel
+-- 
+TOOTAi Networks
