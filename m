@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15A35CA9ED0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D65F3CA9ED1
 	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Nov 2019 16:36:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D7C9621734
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Nov 2019 16:35:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AEAE221734
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Nov 2019 16:36:00 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="qsZmUdT1"
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="LCa/1Fk5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728278AbfKAQf7 (ORCPT
+        id S1728320AbfKAQgA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 1 Nov 2019 12:35:59 -0400
-Received: from smtp-out.kfki.hu ([148.6.0.48]:52129 "EHLO smtp-out.kfki.hu"
+        Fri, 1 Nov 2019 12:36:00 -0400
+Received: from smtp-out.kfki.hu ([148.6.0.46]:36211 "EHLO smtp-out.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727600AbfKAQf7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 1 Nov 2019 12:35:59 -0400
+        id S1727488AbfKAQgA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 1 Nov 2019 12:36:00 -0400
 Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 25360CC0128;
+        by smtp1.kfki.hu (Postfix) with ESMTP id 6BF0A3C80121;
         Fri,  1 Nov 2019 17:35:57 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
         blackhole.kfki.hu; h=mime-version:references:in-reply-to
         :x-mailer:message-id:date:date:from:from:received:received
-        :received; s=20151130; t=1572626155; x=1574440556; bh=5YLHZflQRF
-        BIH1vOmoLSjie05a8iyy5aKMZ53+/WaH4=; b=qsZmUdT1muaicO+7v+TdnpOLGA
-        3muIjXkQDFTvjOGqb23AJVVhhvfBiv3C5yLrdrVcr7knMoLa2XZlBsNybAUspLwC
-        omgX/JWqk9jzvmRJxo7M1ikrVPMHHjF3AqTNe+pj0J9MaW1PAKybXapegUPePEJN
-        dd54ZALKkTnLtN8fs=
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        :received; s=20151130; t=1572626155; x=1574440556; bh=YEH5CsKKus
+        tYIfcn/ABFKV0LRjvTjxHD1YMyGfkzoLU=; b=LCa/1Fk5/AHG4iVIXVJ5tCSsrk
+        aXW/HDTKhSB+Ng1zj0+dbwBj6WZzttz90eEwU+iPCgL1fk8ibgYr01zN8wLMuf6q
+        flPwuEvOsFNE870JigoyYGXo4cTtzkfau1UiNDRV6O7BWPT7cIYwEEhIP2r5PxGg
+        2G9aCXt+tHW8gX4Qk=
+X-Virus-Scanned: Debian amavisd-new at smtp1.kfki.hu
+Received: from smtp1.kfki.hu ([127.0.0.1])
+        by localhost (smtp1.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
         with ESMTP; Fri,  1 Nov 2019 17:35:55 +0100 (CET)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 307ABCC0126;
+Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.240.2])
+        by smtp1.kfki.hu (Postfix) with ESMTP id 3C76D3C800F7;
         Fri,  1 Nov 2019 17:35:55 +0100 (CET)
 Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 17A3A20810; Fri,  1 Nov 2019 17:35:55 +0100 (CET)
+        id 2563121B3B; Fri,  1 Nov 2019 17:35:55 +0100 (CET)
 From:   Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/3] netfilter: ipset: Fix an error code in ip_set_sockfn_get()
-Date:   Fri,  1 Nov 2019 17:35:52 +0100
-Message-Id: <20191101163554.10561-2-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 2/3] netfilter: ipset: Copy the right MAC address in hash:ip,mac IPv6 sets
+Date:   Fri,  1 Nov 2019 17:35:53 +0100
+Message-Id: <20191101163554.10561-3-kadlec@blackhole.kfki.hu>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20191101163554.10561-1-kadlec@blackhole.kfki.hu>
 References: <20191101163554.10561-1-kadlec@blackhole.kfki.hu>
@@ -58,50 +58,72 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Dan Carpenter <dan.carpenter@oracle.com>
+From: Stefano Brivio <sbrivio@redhat.com>
 
-The copy_to_user() function returns the number of bytes remaining to be
-copied.  In this code, that positive return is checked at the end of the
-function and we return zero/success.  What we should do instead is
-return -EFAULT.
+Same as commit 1b4a75108d5b ("netfilter: ipset: Copy the right MAC
+address in bitmap:ip,mac and hash:ip,mac sets"), another copy and paste
+went wrong in commit 8cc4ccf58379 ("netfilter: ipset: Allow matching on
+destination MAC address for mac and ipmac sets").
 
-Fixes: a7b4f989a629 ("netfilter: ipset: IP set core support")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+When I fixed this for IPv4 in 1b4a75108d5b, I didn't realise that
+hash:ip,mac sets also support IPv6 as family, and this is covered by a
+separate function, hash_ipmac6_kadt().
+
+In hash:ip,mac sets, the first dimension is the IP address, and the
+second dimension is the MAC address: check the IPSET_DIM_TWO_SRC flag
+in flags while deciding which MAC address to copy, destination or
+source.
+
+This way, mixing source and destination matches for the two dimensions
+of ip,mac hash type works as expected, also for IPv6. With this setup:
+
+  ip netns add A
+  ip link add veth1 type veth peer name veth2 netns A
+  ip addr add 2001:db8::1/64 dev veth1
+  ip -net A addr add 2001:db8::2/64 dev veth2
+  ip link set veth1 up
+  ip -net A link set veth2 up
+
+  dst=3D$(ip netns exec A cat /sys/class/net/veth2/address)
+
+  ip netns exec A ipset create test_hash hash:ip,mac family inet6
+  ip netns exec A ipset add test_hash 2001:db8::1,${dst}
+  ip netns exec A ip6tables -A INPUT -p icmpv6 --icmpv6-type 135 -j ACCEP=
+T
+  ip netns exec A ip6tables -A INPUT -m set ! --match-set test_hash src,d=
+st -j DROP
+
+ipset now correctly matches a test packet:
+
+  # ping -c1 2001:db8::2 >/dev/null
+  # echo $?
+  0
+
+Reported-by: Chen, Yi <yiche@redhat.com>
+Fixes: 8cc4ccf58379 ("netfilter: ipset: Allow matching on destination MAC=
+ address for mac and ipmac sets")
+Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
 Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/ipset/ip_set_core.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ net/netfilter/ipset/ip_set_hash_ipmac.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_s=
-et_core.c
-index e64d5f9a89dd..e7288eab7512 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -2069,8 +2069,9 @@ ip_set_sockfn_get(struct sock *sk, int optval, void=
- __user *user, int *len)
- 		}
+diff --git a/net/netfilter/ipset/ip_set_hash_ipmac.c b/net/netfilter/ipse=
+t/ip_set_hash_ipmac.c
+index 24d8f4df4230..4ce563eb927d 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipmac.c
++++ b/net/netfilter/ipset/ip_set_hash_ipmac.c
+@@ -209,7 +209,7 @@ hash_ipmac6_kadt(struct ip_set *set, const struct sk_=
+buff *skb,
+ 	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
+ 		return -EINVAL;
 =20
- 		req_version->version =3D IPSET_PROTOCOL;
--		ret =3D copy_to_user(user, req_version,
--				   sizeof(struct ip_set_req_version));
-+		if (copy_to_user(user, req_version,
-+				 sizeof(struct ip_set_req_version)))
-+			ret =3D -EFAULT;
- 		goto done;
- 	}
- 	case IP_SET_OP_GET_BYNAME: {
-@@ -2129,7 +2130,8 @@ ip_set_sockfn_get(struct sock *sk, int optval, void=
- __user *user, int *len)
- 	}	/* end of switch(op) */
-=20
- copy:
--	ret =3D copy_to_user(user, data, copylen);
-+	if (copy_to_user(user, data, copylen))
-+		ret =3D -EFAULT;
-=20
- done:
- 	vfree(data);
+-	if (opt->flags & IPSET_DIM_ONE_SRC)
++	if (opt->flags & IPSET_DIM_TWO_SRC)
+ 		ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
+ 	else
+ 		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
 --=20
 2.20.1
 
