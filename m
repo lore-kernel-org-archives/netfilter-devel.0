@@ -7,42 +7,42 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CC31CA9EC7
-	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Nov 2019 20:59:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA4DACA9EC7
+	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Nov 2019 21:01:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 612FE214AF
-	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Nov 2019 20:59:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AEBB320862
+	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Nov 2019 21:01:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="F3Tgzoti"
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="VECb6/q9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726687AbfKBU74 (ORCPT
+        id S1726757AbfKBVBW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 2 Nov 2019 16:59:56 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:39346 "EHLO mx1.riseup.net"
+        Sat, 2 Nov 2019 17:01:22 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:40074 "EHLO mx1.riseup.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726523AbfKBU7z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 2 Nov 2019 16:59:55 -0400
-Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
+        id S1726523AbfKBVBW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 2 Nov 2019 17:01:22 -0400
+Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
         (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
         (Client CN "*.riseup.net", Issuer "Sectigo RSA Domain Validation Secure Server CA" (not verified))
-        by mx1.riseup.net (Postfix) with ESMTPS id 475BJq1r16zDrK5
-        for <netfilter-devel@vger.kernel.org>; Sat,  2 Nov 2019 13:59:55 -0700 (PDT)
+        by mx1.riseup.net (Postfix) with ESMTPS id 475BKd5864zFcD2
+        for <netfilter-devel@vger.kernel.org>; Sat,  2 Nov 2019 14:00:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1572728395; bh=pvZ9+nvI0WKaJ4Mf0nwfXqWD6j+p3X3dIwzwCRvg20M=;
+        t=1572728481; bh=WX1PUK921vAPoIQq2SYStbjSMDyOUYqxHwcpf7A4xwc=;
         h=From:To:Cc:Subject:Date:From;
-        b=F3Tgzoti4ovSxYP+vf22DGmsq/HIm9T0/YaC1ZD/3dMaCfVIIeokEtJoGMtz62bUs
-         GmVrj8BdmT4JxbtUkn7/M6Tr/WQQlVHC+zvrTTSsj8EWvrS+0S9zWpZpewSVC+EWy8
-         mgoTEvcD6xjkeIC0hHSfXQnzpLP0WkQqsa+wV4cQ=
-X-Riseup-User-ID: 0C9E7CC3AD0F9FDBCCCB520AC04D39B96297983A70A8D8011256DAA77D54AC12
+        b=VECb6/q96CTnU+fJLD7FV+X9S3NX70Z0/8E9kyCuDJdNbJLmCpTG3KWtKoSGIOeM7
+         YM1qlg0Ar2qeo6ZvvR9ab7WKC/PkLt4J2b/NNRnBWn+YXRPI8WnAMn07k873jrUngh
+         AsggV6ITuWl0P4IbRd9sce8Qo5Up8Wkv4WRxaLqM=
+X-Riseup-User-ID: 93401DAAF15783170FA5DBEAB7DA962382FD7D1EFE546612F52155CAD692623F
 Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by bell.riseup.net (Postfix) with ESMTPSA id 475BJp2ytRzJrZY;
-        Sat,  2 Nov 2019 13:59:54 -0700 (PDT)
+         by capuchin.riseup.net (Postfix) with ESMTPSA id 475BKc6Q3hz8srF;
+        Sat,  2 Nov 2019 14:00:36 -0700 (PDT)
 From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
-Subject: [PATCH nf] netfilter: nf_tables: fix unexpected EOPNOTSUPP error
-Date:   Sat,  2 Nov 2019 21:59:44 +0100
-Message-Id: <20191102205944.22253-1-ffmancera@riseup.net>
+Subject: [PATCH nft] tests: add stateful object update operation test
+Date:   Sat,  2 Nov 2019 22:00:25 +0100
+Message-Id: <20191102210024.22311-1-ffmancera@riseup.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -50,39 +50,43 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If the object type doesn't implement an update operation and the user tries to
-update it will silently ignore the update operation.
-
-Fixes: aa4095a156b5 ("netfilter: nf_tables: fix possible null-pointer dereference in object update")
 Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
 ---
- net/netfilter/nf_tables_api.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ .../optionals/update_object_handles_0         | 25 +++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+ create mode 100755 tests/shell/testcases/optionals/update_object_handles_0
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index d481f9baca2f..aa26841ad9a1 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5143,9 +5143,6 @@ static int nf_tables_updobj(const struct nft_ctx *ctx,
- 	struct nft_trans *trans;
- 	int err;
- 
--	if (!obj->ops->update)
--		return -EOPNOTSUPP;
--
- 	trans = nft_trans_alloc(ctx, NFT_MSG_NEWOBJ,
- 				sizeof(struct nft_trans_obj));
- 	if (!trans)
-@@ -6499,7 +6496,8 @@ static void nft_obj_commit_update(struct nft_trans *trans)
- 	obj = nft_trans_obj(trans);
- 	newobj = nft_trans_obj_newobj(trans);
- 
--	obj->ops->update(obj, newobj);
-+	if (obj->ops->update)
-+		obj->ops->update(obj, newobj);
- 
- 	kfree(newobj);
- }
+diff --git a/tests/shell/testcases/optionals/update_object_handles_0 b/tests/shell/testcases/optionals/update_object_handles_0
+new file mode 100755
+index 0000000..17c0c86
+--- /dev/null
++++ b/tests/shell/testcases/optionals/update_object_handles_0
+@@ -0,0 +1,25 @@
++#!/bin/bash
++
++set -e
++$NFT add table test-ip
++$NFT add counter test-ip traffic-counter
++$NFT add counter test-ip traffic-counter
++$NFT add quota test-ip traffic-quota 25 mbytes
++$NFT add quota test-ip traffic-quota 50 mbytes
++
++EXPECTED="table ip test-ip {
++	counter traffic-counter {
++		packets 0 bytes 0
++	}
++
++	quota traffic-quota {
++		50 mbytes
++	}
++}"
++
++GET="$($NFT list ruleset)"
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
 -- 
 2.20.1
 
