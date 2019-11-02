@@ -6,44 +6,44 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3732CA9EC7
-	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Nov 2019 14:28:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C1EECA9EC7
+	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Nov 2019 14:32:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9441221726
-	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Nov 2019 14:28:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56FEB20862
+	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Nov 2019 14:32:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726440AbfKBO2O (ORCPT
+        id S1726450AbfKBOcr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 2 Nov 2019 10:28:14 -0400
-Received: from correo.us.es ([193.147.175.20]:45904 "EHLO mail.us.es"
+        Sat, 2 Nov 2019 10:32:47 -0400
+Received: from correo.us.es ([193.147.175.20]:46584 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726430AbfKBO2O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 2 Nov 2019 10:28:14 -0400
+        id S1726430AbfKBOcr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 2 Nov 2019 10:32:47 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7C294172C83
-        for <netfilter-devel@vger.kernel.org>; Sat,  2 Nov 2019 15:28:08 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 84323179892
+        for <netfilter-devel@vger.kernel.org>; Sat,  2 Nov 2019 15:32:42 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6D0A64C3B4
-        for <netfilter-devel@vger.kernel.org>; Sat,  2 Nov 2019 15:28:08 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 755F8DA840
+        for <netfilter-devel@vger.kernel.org>; Sat,  2 Nov 2019 15:32:42 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 629D059B; Sat,  2 Nov 2019 15:28:08 +0100 (CET)
+        id 6B113DA801; Sat,  2 Nov 2019 15:32:42 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 53090CA0F1
-        for <netfilter-devel@vger.kernel.org>; Sat,  2 Nov 2019 15:28:06 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6F163DA3A9
+        for <netfilter-devel@vger.kernel.org>; Sat,  2 Nov 2019 15:32:40 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 02 Nov 2019 15:28:06 +0100 (CET)
+ Sat, 02 Nov 2019 15:32:40 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 373D342EE393
-        for <netfilter-devel@vger.kernel.org>; Sat,  2 Nov 2019 15:28:06 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 57BBA42EE38E
+        for <netfilter-devel@vger.kernel.org>; Sat,  2 Nov 2019 15:32:40 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next] netfilter: nf_tables_offload: pass extack to nft_flow_cls_offload_setup()
-Date:   Sat,  2 Nov 2019 15:28:05 +0100
-Message-Id: <20191102142805.25340-1-pablo@netfilter.org>
+Subject: [PATCH nf-next,v2] netfilter: nf_tables_offload: pass extack to nft_flow_cls_offload_setup()
+Date:   Sat,  2 Nov 2019 15:32:39 +0100
+Message-Id: <20191102143239.27484-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -56,11 +56,13 @@ Otherwise this leads to a stack corruption.
 Fixes: c5d275276ff4 ("netfilter: nf_tables_offload: add nft_flow_cls_offload_setup()")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
+v2: Use reference to extack to memset extack object from nft_flow_offload_unbind.
+
  net/netfilter/nf_tables_offload.c | 12 ++++++++----
  1 file changed, 8 insertions(+), 4 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 4e0625cce647..e61696615cd5 100644
+index 4e0625cce647..38dc00f7e32e 100644
 --- a/net/netfilter/nf_tables_offload.c
 +++ b/net/netfilter/nf_tables_offload.c
 @@ -159,9 +159,9 @@ static void nft_flow_cls_offload_setup(struct flow_cls_offload *cls_flow,
@@ -111,7 +113,7 @@ index 4e0625cce647..e61696615cd5 100644
  
  	chain = &basechain->chain;
  	list_for_each_entry(rule, &chain->rules, list) {
-+		memset(extack, 0, sizeof(extack));
++		memset(&extack, 0, sizeof(extack));
  		nft_flow_cls_offload_setup(&cls_flow, basechain, rule, NULL,
 -					   FLOW_CLS_DESTROY);
 +					   &extack, FLOW_CLS_DESTROY);
