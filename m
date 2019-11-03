@@ -1,92 +1,63 @@
-Return-Path: <SRS0=4Kr+=Y2=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=L7DL=Y3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA4DACA9EC7
-	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Nov 2019 21:01:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02EA9CA9EC7
+	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Nov 2019 00:10:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AEBB320862
-	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Nov 2019 21:01:22 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="VECb6/q9"
+	by mail.kernel.org (Postfix) with ESMTP id CA8FA20862
+	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Nov 2019 00:10:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726757AbfKBVBW (ORCPT
+        id S1727366AbfKCAKp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 2 Nov 2019 17:01:22 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:40074 "EHLO mx1.riseup.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726523AbfKBVBW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 2 Nov 2019 17:01:22 -0400
-Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (Client CN "*.riseup.net", Issuer "Sectigo RSA Domain Validation Secure Server CA" (not verified))
-        by mx1.riseup.net (Postfix) with ESMTPS id 475BKd5864zFcD2
-        for <netfilter-devel@vger.kernel.org>; Sat,  2 Nov 2019 14:00:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1572728481; bh=WX1PUK921vAPoIQq2SYStbjSMDyOUYqxHwcpf7A4xwc=;
-        h=From:To:Cc:Subject:Date:From;
-        b=VECb6/q96CTnU+fJLD7FV+X9S3NX70Z0/8E9kyCuDJdNbJLmCpTG3KWtKoSGIOeM7
-         YM1qlg0Ar2qeo6ZvvR9ab7WKC/PkLt4J2b/NNRnBWn+YXRPI8WnAMn07k873jrUngh
-         AsggV6ITuWl0P4IbRd9sce8Qo5Up8Wkv4WRxaLqM=
-X-Riseup-User-ID: 93401DAAF15783170FA5DBEAB7DA962382FD7D1EFE546612F52155CAD692623F
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by capuchin.riseup.net (Postfix) with ESMTPSA id 475BKc6Q3hz8srF;
-        Sat,  2 Nov 2019 14:00:36 -0700 (PDT)
-From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
-Subject: [PATCH nft] tests: add stateful object update operation test
-Date:   Sat,  2 Nov 2019 22:00:25 +0100
-Message-Id: <20191102210024.22311-1-ffmancera@riseup.net>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Sat, 2 Nov 2019 20:10:45 -0400
+Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:50403 "EHLO
+        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726689AbfKCAKp (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 2 Nov 2019 20:10:45 -0400
+Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
+        by mail104.syd.optusnet.com.au (Postfix) with SMTP id EE8B143F5A0
+        for <netfilter-devel@vger.kernel.org>; Sun,  3 Nov 2019 11:10:28 +1100 (AEDT)
+Received: (qmail 31275 invoked by uid 501); 3 Nov 2019 00:10:27 -0000
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue] src: doc: Fix spelling of CTA_LABELS in examples/nf-queue.c
+Date:   Sun,  3 Nov 2019 11:10:27 +1100
+Message-Id: <20191103001027.31233-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.14.5
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.2 cv=P6RKvmIu c=1 sm=1 tr=0
+        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
+        a=MeAgGD-zjQ4A:10 a=PO7r1zJSAAAA:8 a=JLH45OeQDlQPRsKksS0A:9
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
- .../optionals/update_object_handles_0         | 25 +++++++++++++++++++
- 1 file changed, 25 insertions(+)
- create mode 100755 tests/shell/testcases/optionals/update_object_handles_0
+ examples/nf-queue.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/tests/shell/testcases/optionals/update_object_handles_0 b/tests/shell/testcases/optionals/update_object_handles_0
-new file mode 100755
-index 0000000..17c0c86
---- /dev/null
-+++ b/tests/shell/testcases/optionals/update_object_handles_0
-@@ -0,0 +1,25 @@
-+#!/bin/bash
-+
-+set -e
-+$NFT add table test-ip
-+$NFT add counter test-ip traffic-counter
-+$NFT add counter test-ip traffic-counter
-+$NFT add quota test-ip traffic-quota 25 mbytes
-+$NFT add quota test-ip traffic-quota 50 mbytes
-+
-+EXPECTED="table ip test-ip {
-+	counter traffic-counter {
-+		packets 0 bytes 0
-+	}
-+
-+	quota traffic-quota {
-+		50 mbytes
-+	}
-+}"
-+
-+GET="$($NFT list ruleset)"
-+if [ "$EXPECTED" != "$GET" ] ; then
-+	DIFF="$(which diff)"
-+	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
-+	exit 1
-+fi
+diff --git a/examples/nf-queue.c b/examples/nf-queue.c
+index c2bc6cc..f6d254a 100644
+--- a/examples/nf-queue.c
++++ b/examples/nf-queue.c
+@@ -50,7 +50,7 @@ nfq_send_verdict(int queue_num, uint32_t id)
+ 
+ 	/* then, add the connmark attribute: */
+ 	mnl_attr_put_u32(nlh, CTA_MARK, htonl(42));
+-	/* more conntrack attributes, e.g. CTA_LABEL, could be set here */
++	/* more conntrack attributes, e.g. CTA_LABELS could be set here */
+ 
+ 	/* end conntrack section */
+ 	mnl_attr_nest_end(nlh, nest);
 -- 
-2.20.1
+2.14.5
 
