@@ -2,52 +2,56 @@ Return-Path: <SRS0=AHIo=Y5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+X-Spam-Status: No, score=-8.1 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34384C5DF60
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Nov 2019 21:31:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15BDCC5DF60
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Nov 2019 21:40:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BB7DC21A49
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Nov 2019 21:31:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C008E21882
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Nov 2019 21:40:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="pr45tRjr"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="ZjQWpm0a"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729761AbfKEVb6 (ORCPT
+        id S1729743AbfKEVk3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 Nov 2019 16:31:58 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:53166 "EHLO
+        Tue, 5 Nov 2019 16:40:29 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:53434 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729830AbfKEVb6 (ORCPT
+        with ESMTP id S1729680AbfKEVk3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 Nov 2019 16:31:58 -0500
+        Tue, 5 Nov 2019 16:40:29 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
-        :Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=nIVwQhq/x6tXK3qQRbu+YVBKHYguiIMkyE9OOsmb03E=; b=pr45tRjrcfOiMlKMJ532oq5xVc
-        z7/Zu4WlJ9SCoOPzEtgcqEgr2J7wVnb4FMeKTNW7X2G3t5QDBhbOUZD89jR+Ns5UCoLWDm9RNVnaW
-        z3mKB1SaeqYwgY395rLVT4FNDacAPY5RBLhsu4h4Ebnoi+eqlnb9JNf0gEwxmsVvkFuXrMDzY/Ylr
-        APA3BRaKVovrnzgm+FrgnRZdUemlKGMuw+tqUEuCQBizfgCiY3GKIqbZBciOvfSmnzWAE+yFjAgH9
-        0dZKmaZBxlQfFy5cohPnQb18+R36DdXd3Uqn3mbEgs2u2Yv0t99JbGZ0PNyh+ekDzm34HNiJkerJK
-        4WRy37pQ==;
-Received: from ulthar.dreamlands ([192.168.96.2])
-        by kadath.azazel.net with esmtp (Exim 4.92)
+        bh=cWMV1PlpO32zM6Ia7iWlTq54tVzYHgPxhaRuu94cdZ4=; b=ZjQWpm0aEBbKwvGSDeoOJICwuj
+        rmRV3X5Yz0BSpQJt0UZwViEn6kPNGIADVGMmYFyosVZXHx8N86HgWAn2n1wHaWc+O1vg8+i8XMRnF
+        mhcW48oWE4JHsXFwfHVatErLjxLnN15SgKJ76aRqMnUkX1dvRKPnxtLeHLzidUIYRSyL14ePhSf8I
+        5lQCGJi/x1fiBd2lcLtgHjYa6yuOkxrjm/qrMjzo8yubjXfCQQed47lEuV3iEQGNhci1iB5Y/8fhf
+        hnizW2vjZKxnKnspqSVTfYNNB2p2hN9dRNjgdrsyebokfjALIICNKcPrqlCvrDgxpSi/bPi98yk91
+        CJpRxBIA==;
+Received: from ulthar.dreamlands ([192.168.96.2] helo=azazel.net)
+        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1iS6Qc-0002Qf-4x; Tue, 05 Nov 2019 21:31:54 +0000
+        id 1iS6Yu-0002ZM-1Z; Tue, 05 Nov 2019 21:40:28 +0000
+Date:   Tue, 5 Nov 2019 21:40:26 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH] src: add `set_is_meter` helper.
-Date:   Tue,  5 Nov 2019 21:31:54 +0000
-Message-Id: <20191105213154.23929-1-jeremy@azazel.net>
-X-Mailer: git-send-email 2.24.0.rc1
+Subject: [PATCH nft] src: add `set_is_meter` helper.
+Message-ID: <20191105214026.GA24004@azazel.net>
+References: <20191105213154.23929-1-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="wac7ysb48OaltWcw"
+Content-Disposition: inline
+In-Reply-To: <20191105213154.23929-1-jeremy@azazel.net>
+User-Agent: Mutt/1.12.2 (2019-09-21)
 X-SA-Exim-Connect-IP: 192.168.96.2
 X-SA-Exim-Mail-From: jeremy@azazel.net
 X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
@@ -55,6 +59,25 @@ Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
+
+
+--wac7ysb48OaltWcw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Resending with the right subject prefix.
+
+J.
+
+--wac7ysb48OaltWcw
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline;
+	filename="0001-src-add-set_is_meter-helper.patch"
+
+From 4c3519ba46b4b9cfd24dd94246a40f4857be0e32 Mon Sep 17 00:00:00 2001
+From: Jeremy Sowden <jeremy@azazel.net>
+Date: Mon, 4 Nov 2019 09:18:07 +0000
+Subject: [PATCH nft] src: add `set_is_meter` helper.
 
 The sets constructed for meters are flagged as anonymous and dynamic.
 However, in some places there are only checks that they are dynamic,
@@ -267,3 +290,5 @@ index 000000000000..e9e0f6fb02b1
 -- 
 2.24.0.rc1
 
+
+--wac7ysb48OaltWcw--
