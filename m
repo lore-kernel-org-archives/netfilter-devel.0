@@ -2,84 +2,79 @@ Return-Path: <SRS0=uVIa=Y6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE2CBC5DF63
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Nov 2019 20:27:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04B64C5DF63
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Nov 2019 20:49:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9DF50217F5
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Nov 2019 20:27:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C80912166E
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Nov 2019 20:49:19 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QfPv8XYX"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727721AbfKFU1Z (ORCPT
+        id S1732203AbfKFUtQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 Nov 2019 15:27:25 -0500
-Received: from correo.us.es ([193.147.175.20]:49690 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727516AbfKFU1Z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Nov 2019 15:27:25 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 20C9F303D07
-        for <netfilter-devel@vger.kernel.org>; Wed,  6 Nov 2019 21:27:21 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 142DBDA7B6
-        for <netfilter-devel@vger.kernel.org>; Wed,  6 Nov 2019 21:27:21 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 09E3EB7FF2; Wed,  6 Nov 2019 21:27:21 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 26E83DA4CA;
-        Wed,  6 Nov 2019 21:27:19 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 06 Nov 2019 21:27:19 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 0422642EE38E;
-        Wed,  6 Nov 2019 21:27:18 +0100 (CET)
-Date:   Wed, 6 Nov 2019 21:27:20 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] doc: Drop incorrect requirement for nft configs
-Message-ID: <20191106202720.xzyeytcaouyoo2kg@salvia>
-References: <20191105131439.31826-1-phil@nwl.cc>
- <20191106114724.mscqhcyttwm7ydos@salvia>
- <20191106141953.GR15063@orbyte.nwl.cc>
- <20191106202557.wkde4zm4akcjas4j@salvia>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191106202557.wkde4zm4akcjas4j@salvia>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Wed, 6 Nov 2019 15:49:16 -0500
+Received: from mail-pg1-f196.google.com ([209.85.215.196]:33563 "EHLO
+        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727351AbfKFUtQ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 6 Nov 2019 15:49:16 -0500
+Received: by mail-pg1-f196.google.com with SMTP id h27so1010179pgn.0;
+        Wed, 06 Nov 2019 12:49:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references;
+        bh=8wP7W7VhRKRhnObCodIzliyafUDrJwYnPDy/mCCnQxM=;
+        b=QfPv8XYX/pGPv9G9yjRbcsVUqkLDp8CQ1dUXN0tkbuFE4kz5VdnJ0YakBPNyzCp31O
+         NVunSHZkmtTbTII5lArccXo9TYTJq7u0zVsTxdjli/t39pMyycKVsPYPZfCGSfFs8Ymh
+         DYud5/SgSnUW4+Pzvs4NHDiD+RzdW3X8l1UD2fSxIlf+Ut+nAp4nsQl0sv9gQvX/e94r
+         DCNq44uARSL+16uNtsX7lbSy7tByfbqvoqfTgVvaE87fpmF5QRqOxZC5O61mgd2aoR3S
+         bbIm2V4QVRrv/TDjLfQ300FPRkVLlkrow1KhSKoKsM9Hz/sVcBPHtYXd2naOjDvyh+xI
+         wJpQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references;
+        bh=8wP7W7VhRKRhnObCodIzliyafUDrJwYnPDy/mCCnQxM=;
+        b=eaX/6bpCrY88aL2pD9B7fwMJuXxntTQRGlSbqzKG7woC3RYXkpR+2Q3qPBkv2vFCJy
+         CbiKftgjH9BWE79ZsAnl72OnD8sEHRaKKvcpg9PWqy7qy/aEot1Bs9mnfaABO3npj4Vt
+         5U68mzaoKON362Pltvf/gf8hsxqeahUdlSe2HX34wAaUNavE8FYi9E0Xb4yfAuQsZB7O
+         QKQwNPIVL5yd5UM/9Ej2IW4Qfn0JF7ksuRv6onig8rmBcmiDGSSOZJKKv0aqMc+bNqdV
+         xvPq/UVwqShd2uA3UejOGERMJ8sUiNe9gkuA90BNf6x1fjDxgLTpyFuzvXtwUY1Ep8vZ
+         YrsA==
+X-Gm-Message-State: APjAAAVJqrR1YbICtDaN2Dchr5edCmKUqaH2FCvr156rtJLVSYz8pXF3
+        vIaRdL3IsHtOCROefviQow==
+X-Google-Smtp-Source: APXvYqz70Ek9/AUiWYKz7ykWOcnNBanfcQv/E3r+kyzdSJawus2+OO0JbenuV5DGszEdbGYfJ8N7JA==
+X-Received: by 2002:aa7:934a:: with SMTP id 10mr5672308pfn.150.1573073355348;
+        Wed, 06 Nov 2019 12:49:15 -0800 (PST)
+Received: from localhost.localdomain ([216.52.21.4])
+        by smtp.gmail.com with ESMTPSA id r13sm7191895pgh.37.2019.11.06.12.49.13
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Wed, 06 Nov 2019 12:49:14 -0800 (PST)
+From:   Praveen Chaudhary <praveen5582@gmail.com>
+X-Google-Original-From: Praveen Chaudhary <pchaudhary@linkedin.com>
+To:     pablo@netfilter.org
+Cc:     astracner@linkedin.com, davem@davemloft.net, fw@strlen.de,
+        kadlec@netfilter.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        praveen5582@gmail.com, zxu@linkedin.com
+Subject: RE: [netfilter]: Fix skb->csum calculation when netfilter manipulation for NF_NAT_MANIP_SRC\DST is done on IPV6 packet.
+Date:   Wed,  6 Nov 2019 12:48:58 -0800
+Message-Id: <1573073338-2078-1-git-send-email-pchaudhary@linkedin.com>
+X-Mailer: git-send-email 2.7.4
+In-Reply-To: <20191106093347.inrzhrlrle6g6naf@salvia>
+References: <20191106093347.inrzhrlrle6g6naf@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Nov 06, 2019 at 09:25:57PM +0100, Pablo Neira Ayuso wrote:
-> On Wed, Nov 06, 2019 at 03:19:53PM +0100, Phil Sutter wrote:
-> > On Wed, Nov 06, 2019 at 12:47:24PM +0100, Pablo Neira Ayuso wrote:
-> > > On Tue, Nov 05, 2019 at 02:14:39PM +0100, Phil Sutter wrote:
-> > > > The shebang is not needed in files to be used with --file parameter.
-> > > > 
-> > > > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > > 
-> > > Right, this is actually handled as a comment right now, not as an
-> > > indication of what binary the user would like to use.
-> > > 
-> > > It should be possible to implement the shebang for nft if you think
-> > > this is useful.
-> > 
-> > Well, it works already? If I make a config having the shebang
-> > executable, I can execute it directly. It's just not needed when passed
-> > to 'nft -f'. And in that use-case, I don't see a point in interpreting
-> > it, the user already chose which binary to use by calling it. :)
-> 
-> Indeed, forget this. Thanks.
+Thanks Pablo for review,
+Sure, I will update a.) patch subject, b.) description and c.) the full document of function.
 
-BTW, it would be good to remove this from the example files in the tree.
+I feel, the bug was exposed with e6afc8ace6dd5cef5e812f26c72579da8806f5ac i.e with introduction of udp_csum_pull_header function.
+
