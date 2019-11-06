@@ -2,48 +2,104 @@ Return-Path: <SRS0=uVIa=Y6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE3E3C5DF63
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Nov 2019 14:37:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60F58C5DF63
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Nov 2019 17:56:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BFDBB217F5
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Nov 2019 14:37:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF80C217D7
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Nov 2019 17:56:02 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=tootai.net header.i=@tootai.net header.b="sNXwe+Ag";
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=tootai.net header.i=@tootai.net header.b="sNXwe+Ag"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728525AbfKFOhi (ORCPT
+        id S1728043AbfKFR4C (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 Nov 2019 09:37:38 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:42890 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727031AbfKFOhi (ORCPT
+        Wed, 6 Nov 2019 12:56:02 -0500
+Received: from mail1.tootai.net ([213.239.227.108]:45622 "EHLO
+        mail1.tootai.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726963AbfKFR4C (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Nov 2019 09:37:38 -0500
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1iSMRD-000856-0G; Wed, 06 Nov 2019 15:37:35 +0100
-Date:   Wed, 6 Nov 2019 15:37:34 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Jeremy Sowden <jeremy@azazel.net>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH] src: add `set_is_meter` helper.
-Message-ID: <20191106143734.GO876@breakpoint.cc>
-References: <20191105213154.23929-1-jeremy@azazel.net>
+        Wed, 6 Nov 2019 12:56:02 -0500
+Received: from mail1.tootai.net (localhost [127.0.0.1])
+        by mail1.tootai.net (Postfix) with ESMTP id 90A9B6019743
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 Nov 2019 18:55:57 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=tootai.net; s=mail;
+        t=1573062957; bh=lEGKcG4G1V0B1kg6cAtaDUDxzVLYLHHEVcNGvLZ4LBk=;
+        h=To:From:Subject:Date:From;
+        b=sNXwe+AgDeg/wDIa2D4mrpocNZHrjEw7gy7Pox8caqI0JOdN7SYlhugmjNESG2Eov
+         /5f+cq2rOy4RGJQbCFbFrYI6pEyLnJjk1pkgyVC8iKh4GUaeSBybexWZRsMZ8dB9UD
+         f3VXV3Zv0XXwBnbr2WpTas6G53bqynD2RaQ2N9N0=
+Received: from [192.168.10.4] (unknown [192.168.10.4])
+        by mail1.tootai.net (Postfix) with ESMTPSA id 56ADD6000084
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 Nov 2019 18:55:57 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=tootai.net; s=mail;
+        t=1573062957; bh=lEGKcG4G1V0B1kg6cAtaDUDxzVLYLHHEVcNGvLZ4LBk=;
+        h=To:From:Subject:Date:From;
+        b=sNXwe+AgDeg/wDIa2D4mrpocNZHrjEw7gy7Pox8caqI0JOdN7SYlhugmjNESG2Eov
+         /5f+cq2rOy4RGJQbCFbFrYI6pEyLnJjk1pkgyVC8iKh4GUaeSBybexWZRsMZ8dB9UD
+         f3VXV3Zv0XXwBnbr2WpTas6G53bqynD2RaQ2N9N0=
+To:     Netfilter list <netfilter-devel@vger.kernel.org>
+From:   Daniel Huhardeaux <tech@tootai.net>
+Subject: ipv6 forward rule after prerouting - Howto
+Message-ID: <eb91d7f8-e344-c697-b2e0-ff4fb77245b2@tootai.net>
+Date:   Wed, 6 Nov 2019 18:55:56 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191105213154.23929-1-jeremy@azazel.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: fr
+Content-Transfer-Encoding: 7bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Jeremy Sowden <jeremy@azazel.net> wrote:
-> The sets constructed for meters are flagged as anonymous and dynamic.
-> However, in some places there are only checks that they are dynamic,
-> which can lead to normal sets being classified as meters.
+Hello,
 
-Applied, thanks for including a test case.
+I setup prerouting rules with maps like
+
+chain prerouting {
+    type nat hook prerouting priority 0; policy accept;
+    iif "ens3" ip6 saddr . tcp dport vmap @blacklist_tcp
+    if "ens3" ip6 saddr . udp dport vmap @blacklist_udp
+    dnat to tcp dport map @fwdtoip_tcp:tcp dport map @fwdtoport_tcp
+    dnat to udp dport map @fwdtoip_udp:udp dport map @fwdtoport_udp
+    ip6 daddr 2a01:729:16e:10::9998 redirect to :tcp dport map @redirect_tcp
+    ip6 daddr 2a01:729:16e:10::9998 redirect to :udp dport map @redirect_udp
+    ct status dnat accept
+    }
+
+Default behavior in ip6 filter forward table is to drop. This means that 
+my above rules are blocked, I see (u18srv being the machine who will 
+forward the traffic to another one):
+
+18:32:00.476524 IP6 <hostname>.41174 > u18srv.12345: Flags [S], seq 
+126955234, win 28640, options [mss 1432,sackOK,TS val 2255777795 ecr 
+0,nop,wscale 7], length 0 
+ 
+
+18:32:08.668468 IP6 <hostname>.41174 > u18srv.12345: Flags [S], seq 
+126955234, win 28640, options [mss 1432,sackOK,TS val 2255785986 ecr 
+0,nop,wscale 7], length 0
+18:32:24.796392 IP6 <hostname>.41174 > u18srv.12345: Flags [S], seq 
+126955234, win 28640, options [mss 1432,sackOK,TS val 2255802114 ecr 
+0,nop,wscale 7], length 0
+
+Now if I change my default value to accept for ip6 filter forward table, 
+all is good.
+
+Question: how can I add forward rule to filter table using the existing 
+maps which are defined in nat tables ? Other solution ?
+
+I thought that ct status dnat accept was the key to archieve my goal, 
+seems not :(
+
+Thanks for any hint
+
+-- 
+Daniel
+TOOTAi Networks
