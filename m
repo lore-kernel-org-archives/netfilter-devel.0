@@ -2,84 +2,76 @@ Return-Path: <SRS0=biDG=Y7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6030CC5DF61
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Nov 2019 11:45:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 337C8C5DF61
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Nov 2019 12:06:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2EBE7214D8
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Nov 2019 11:45:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E7B552187F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Nov 2019 12:06:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733303AbfKGLpa (ORCPT
+        id S2388137AbfKGMGK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 7 Nov 2019 06:45:30 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:35802 "EHLO orbyte.nwl.cc"
+        Thu, 7 Nov 2019 07:06:10 -0500
+Received: from correo.us.es ([193.147.175.20]:40358 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727178AbfKGLpa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 Nov 2019 06:45:30 -0500
-Received: from localhost ([::1]:48892 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1iSgED-0005fS-IZ; Thu, 07 Nov 2019 12:45:29 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        id S2388022AbfKGMGK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 7 Nov 2019 07:06:10 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 11D025E4789
+        for <netfilter-devel@vger.kernel.org>; Thu,  7 Nov 2019 13:06:05 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 03CCAD2B1E
+        for <netfilter-devel@vger.kernel.org>; Thu,  7 Nov 2019 13:06:05 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id ED81DDA3A9; Thu,  7 Nov 2019 13:06:04 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0D7C9B8001;
+        Thu,  7 Nov 2019 13:06:03 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 07 Nov 2019 13:06:03 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id DBC9D42EE38E;
+        Thu,  7 Nov 2019 13:06:02 +0100 (CET)
+Date:   Thu, 7 Nov 2019 13:06:04 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 2/2] files: Install sample scripts from files/examples
-Date:   Thu,  7 Nov 2019 12:45:16 +0100
-Message-Id: <20191107114516.9258-2-phil@nwl.cc>
-X-Mailer: git-send-email 2.24.0
-In-Reply-To: <20191107114516.9258-1-phil@nwl.cc>
+Subject: Re: [nft PATCH 2/2] files: Install sample scripts from files/examples
+Message-ID: <20191107120604.xrgrr5b24ewhtar2@salvia>
 References: <20191107114516.9258-1-phil@nwl.cc>
+ <20191107114516.9258-2-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191107114516.9258-2-phil@nwl.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Assuming these are still relevant and useful as a source of inspiration,
-install them into DATAROOTDIR/doc/nftables/examples.
+Hi,
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- configure.ac               | 1 +
- files/Makefile.am          | 1 +
- files/examples/Makefile.am | 4 ++++
- 3 files changed, 6 insertions(+)
- create mode 100644 files/examples/Makefile.am
+On Thu, Nov 07, 2019 at 12:45:16PM +0100, Phil Sutter wrote:
+> Assuming these are still relevant and useful as a source of inspiration,
+> install them into DATAROOTDIR/doc/nftables/examples.
 
-diff --git a/configure.ac b/configure.ac
-index 170b609321458..3a512e0295dc9 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -137,6 +137,7 @@ AC_CONFIG_FILES([					\
- 		include/linux/netfilter_ipv4/Makefile	\
- 		include/linux/netfilter_ipv6/Makefile	\
- 		files/Makefile				\
-+		files/examples/Makefile			\
- 		files/nftables/Makefile			\
- 		files/osf/Makefile			\
- 		doc/Makefile				\
-diff --git a/files/Makefile.am b/files/Makefile.am
-index 4f41b664e9db7..7deec15129772 100644
---- a/files/Makefile.am
-+++ b/files/Makefile.am
-@@ -1,2 +1,3 @@
- SUBDIRS =	nftables \
-+		examples \
- 		osf
-diff --git a/files/examples/Makefile.am b/files/examples/Makefile.am
-new file mode 100644
-index 0000000000000..c40e041e43578
---- /dev/null
-+++ b/files/examples/Makefile.am
-@@ -0,0 +1,4 @@
-+pkgdocdir = ${docdir}/examples
-+dist_pkgdoc_SCRIPTS = ct_helpers.nft \
-+		load_balancing.nft \
-+		sets_and_maps.nft
--- 
-2.24.0
+I think I found the intention of this update, it's something that
+Arturo made IIRC. I forgot about this. The idea with this shebang is
+to allow for this.
 
+        # ./x.nft
+
+to allow to restore a ruleset without invoking nft -f.
+
+You have to give execution permission to nft script.
