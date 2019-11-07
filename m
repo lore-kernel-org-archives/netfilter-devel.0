@@ -2,210 +2,133 @@ Return-Path: <SRS0=biDG=Y7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.1 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73DFAC5DF61
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Nov 2019 08:23:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 970C8C5DF61
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Nov 2019 09:30:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3466221882
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Nov 2019 08:23:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 013B6206C3
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Nov 2019 09:30:04 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=tootai.net header.i=@tootai.net header.b="YVek2lBo";
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=tootai.net header.i=@tootai.net header.b="YVek2lBo"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727354AbfKGIXF (ORCPT
+        id S1727610AbfKGJaD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 7 Nov 2019 03:23:05 -0500
-Received: from smtpout.hs-koblenz.de ([143.93.243.5]:58742 "EHLO
-        smtpout.hs-koblenz.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726734AbfKGIXE (ORCPT
+        Thu, 7 Nov 2019 04:30:03 -0500
+Received: from mail1.tootai.net ([213.239.227.108]:54068 "EHLO
+        mail1.tootai.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727278AbfKGJaD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 Nov 2019 03:23:04 -0500
-X-Greylist: delayed 350 seconds by postgrey-1.27 at vger.kernel.org; Thu, 07 Nov 2019 03:23:02 EST
-Received: from laptop-jmr.hs-koblenz.de (5-57-196-50.ktk-ip.de [5.57.196.50])
-        by smtpout.hs-koblenz.de (Postfix) with ESMTPSA id E349CC01B1
-        for <netfilter-devel@vger.kernel.org>; Thu,  7 Nov 2019 09:17:11 +0100 (CET)
-Date:   Thu, 7 Nov 2019 09:17:10 +0100
-From:   Jan-Martin Raemer <raemer@zit-rlp.de>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH] conntrackd UDP IPv6 destination address not usable (Bug 1378)
-Message-ID: <20191107081710.GC5020@laptop-jmr.hs-koblenz.de>
+        Thu, 7 Nov 2019 04:30:03 -0500
+Received: from mail1.tootai.net (localhost [127.0.0.1])
+        by mail1.tootai.net (Postfix) with ESMTP id 4BD6D6027A25
+        for <netfilter-devel@vger.kernel.org>; Thu,  7 Nov 2019 10:30:00 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=tootai.net; s=mail;
+        t=1573119000; bh=Z3HM63rW218CeKNjJ7qNnTHNRmz1u8Uk9Z4hCh0Rb2Y=;
+        h=Subject:To:References:From:Date:In-Reply-To:From;
+        b=YVek2lBo2WWVfTj0zmpcKRl8IRfQxqrN2U+J8QL3L+CqDIKATRqHE+XZvd4yWpSyu
+         xXj/x/5fqjuxldUMfy/f6zBG4kVUi5+zi2jlzFmpq2sR65gUEkWV2R0X4DIYh9BI40
+         99sjnJRi6hOsf8QpqtbXCYEX5dxw7Y/BeycwKF/U=
+Received: from [192.168.10.4] (unknown [192.168.10.4])
+        by mail1.tootai.net (Postfix) with ESMTPSA id 0F56F6019743
+        for <netfilter-devel@vger.kernel.org>; Thu,  7 Nov 2019 10:30:00 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=tootai.net; s=mail;
+        t=1573119000; bh=Z3HM63rW218CeKNjJ7qNnTHNRmz1u8Uk9Z4hCh0Rb2Y=;
+        h=Subject:To:References:From:Date:In-Reply-To:From;
+        b=YVek2lBo2WWVfTj0zmpcKRl8IRfQxqrN2U+J8QL3L+CqDIKATRqHE+XZvd4yWpSyu
+         xXj/x/5fqjuxldUMfy/f6zBG4kVUi5+zi2jlzFmpq2sR65gUEkWV2R0X4DIYh9BI40
+         99sjnJRi6hOsf8QpqtbXCYEX5dxw7Y/BeycwKF/U=
+Subject: Re: ipv6 forward rule after prerouting - Howto
+To:     Netfilter list <netfilter-devel@vger.kernel.org>
+References: <eb91d7f8-e344-c697-b2e0-ff4fb77245b2@tootai.net>
+ <20191106185022.GT15063@orbyte.nwl.cc>
+From:   Daniel Huhardeaux <tech@tootai.net>
+Message-ID: <6f7a8454-ceff-bd21-e18d-5bd959aa73bb@tootai.net>
+Date:   Thu, 7 Nov 2019 10:29:59 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
 MIME-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature";
-        micalg=sha-256; boundary="v9Ux+11Zm5mwPlX6"
-Content-Disposition: inline
-User-Agent: Mutt/1.8.0 (2017-02-23)
+In-Reply-To: <20191106185022.GT15063@orbyte.nwl.cc>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: fr
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Le 06/11/2019 à 19:50, Phil Sutter a écrit :
+> Hi,
+> 
+> On Wed, Nov 06, 2019 at 06:55:56PM +0100, Daniel Huhardeaux wrote:
+>> Hello,
+>>
+>> I setup prerouting rules with maps like
+>>
+>> chain prerouting {
+>>      type nat hook prerouting priority 0; policy accept;
+>>      iif "ens3" ip6 saddr . tcp dport vmap @blacklist_tcp
+>>      if "ens3" ip6 saddr . udp dport vmap @blacklist_udp
+>>      dnat to tcp dport map @fwdtoip_tcp:tcp dport map @fwdtoport_tcp
+>>      dnat to udp dport map @fwdtoip_udp:udp dport map @fwdtoport_udp
+>>      ip6 daddr 2a01:729:16e:10::9998 redirect to :tcp dport map @redirect_tcp
+>>      ip6 daddr 2a01:729:16e:10::9998 redirect to :udp dport map @redirect_udp
+>>      ct status dnat accept
+>>      }
+>>
+>> Default behavior in ip6 filter forward table is to drop. This means that
+>> my above rules are blocked, I see (u18srv being the machine who will
+>> forward the traffic to another one):
+>>
+>> 18:32:00.476524 IP6 <hostname>.41174 > u18srv.12345: Flags [S], seq
+>> 126955234, win 28640, options [mss 1432,sackOK,TS val 2255777795 ecr
+>> 0,nop,wscale 7], length 0
+>>   
+>>
+>> 18:32:08.668468 IP6 <hostname>.41174 > u18srv.12345: Flags [S], seq
+>> 126955234, win 28640, options [mss 1432,sackOK,TS val 2255785986 ecr
+>> 0,nop,wscale 7], length 0
+>> 18:32:24.796392 IP6 <hostname>.41174 > u18srv.12345: Flags [S], seq
+>> 126955234, win 28640, options [mss 1432,sackOK,TS val 2255802114 ecr
+>> 0,nop,wscale 7], length 0
+>>
+>> Now if I change my default value to accept for ip6 filter forward table,
+>> all is good.
+>>
+>> Question: how can I add forward rule to filter table using the existing
+>> maps which are defined in nat tables ? Other solution ?
+>>
+>> I thought that ct status dnat accept was the key to archieve my goal,
+>> seems not :(
+>>
+>> Thanks for any hint
+> 
+> Please be aware that 'accept' verdict will only stop the packet from
+> traversing the current chain and any later chain may still drop the
+> packet. Only 'drop' verdict is final in that sense.
 
---v9Ux+11Zm5mwPlX6
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This I understood
 
-Hi,
+> 
+> So regarding your problem, I guess you have to add the 'ct state' based
+> accept rule to forward chain to prevent the drop policy to affect the
+> packet. Your prerouting chain already has an accept policy, so explicit
+> accepting shouldn't be needed.
 
-as reported in https://bugzilla.netfilter.org/show_bug.cgi?id=3D1378,
-conntrackd refuses to start with a vaild IPv6_Destination_Address,
-reporting "inet_pton(): IPv6 unsupported" due to a forgotten handling of
-err>0 (i.e. success). This patch fixes the issue:
+I set again the default policy to drop and add the state new to the 
+existing established,related ones. It's working too.
 
-Signed-off-by: Jan-Martin Raemer <raemer@zit-rlp.de>
-diff --git a/src/read_config_yy.y b/src/read_config_yy.y
-index a4aa7f5..31109c4 100644
---- a/src/read_config_yy.y
-+++ b/src/read_config_yy.y
-@@ -467,7 +467,7 @@ udp_option : T_IPV6_DEST_ADDR T_IP
-                dlog(LOG_WARNING, "%s is not a valid IPv6 address", $2);
-                free($2);
-                break;
--       } else {
-+       } else if (err < 0) {
-                dlog(LOG_ERR, "inet_pton(): IPv6 unsupported!");
-                exit(EXIT_FAILURE);
-        }
+What I would like is to authorized state new _only_ for traffic going to 
+ip and port which are setted in maps. Feasable ?
 
-Best regards,
-Jan-Martin
+BTW, I just discover that my above redirect rules are not working, eg 
+redirect port 12345 to port 25 failed with same tcpdump output as above. 
+Any idea why ?
 
---=20
-Dr. Jan-Martin R=E4mer
-Systemtechnik
-Zentrum f=FCr Hochschul-IT Rheinland-Pfalz
-Moselwei=DFer Stra=DFe 4, 56073 Koblenz
-Telefon +49(0)261 9528-906
-raemer@zit-rlp.de
-
---v9Ux+11Zm5mwPlX6
-Content-Type: application/x-pkcs7-signature
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Transfer-Encoding: base64
-
-MIIaIwYJKoZIhvcNAQcCoIIaFDCCGhACAQExDzANBglghkgBZQMEAgEFADALBgkqhkiG9w0B
-BwGgghc2MIIFrDCCBJSgAwIBAgIHG2O60B4sPTANBgkqhkiG9w0BAQsFADCBlTELMAkGA1UE
-BhMCREUxRTBDBgNVBAoTPFZlcmVpbiB6dXIgRm9lcmRlcnVuZyBlaW5lcyBEZXV0c2NoZW4g
-Rm9yc2NodW5nc25ldHplcyBlLiBWLjEQMA4GA1UECxMHREZOLVBLSTEtMCsGA1UEAxMkREZO
-LVZlcmVpbiBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eSAyMB4XDTE2MDUyNDExMzg0MFoXDTMx
-MDIyMjIzNTk1OVowgY0xCzAJBgNVBAYTAkRFMUUwQwYDVQQKDDxWZXJlaW4genVyIEZvZXJk
-ZXJ1bmcgZWluZXMgRGV1dHNjaGVuIEZvcnNjaHVuZ3NuZXR6ZXMgZS4gVi4xEDAOBgNVBAsM
-B0RGTi1QS0kxJTAjBgNVBAMMHERGTi1WZXJlaW4gR2xvYmFsIElzc3VpbmcgQ0EwggEiMA0G
-CSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCdO3kcR94fhsvGadcQnjnX2aIw23IcBX8pX0to
-8a0Z1kzhaxuxC3+hq+B7i4vYLc5uiDoQ7lflHn8EUTbrunBtY6C+li5A4dGDTGY9HGRp5Zuk
-rXKuaDlRh3nMF9OuL11jcUs5eutCp5eQaQW/kP+kQHC9A+e/nhiIH5+ZiE0OR41IX2WZENLZ
-KkntwbktHZ8SyxXTP38eVC86rpNXp354ytVK4hrl7UF9U1/Isyr1ijCs7RcFJD+2oAsH/U0a
-mgNSoDac3iSHZeTn+seWcyQUzdDoG2ieGFmudn730Qp4PIdLsDfPU8o6OBDzy0dtjGQ9PFpF
-SrrKgHy48+enTEzNAgMBAAGjggIFMIICATASBgNVHRMBAf8ECDAGAQH/AgEBMA4GA1UdDwEB
-/wQEAwIBBjApBgNVHSAEIjAgMA0GCysGAQQBga0hgiweMA8GDSsGAQQBga0hgiwBAQQwHQYD
-VR0OBBYEFGs6mIv58lOJ2uCtsjIeCR/oqjt0MB8GA1UdIwQYMBaAFJPj2DIm2tXxSqWRSuDq
-S+KiDM/hMIGPBgNVHR8EgYcwgYQwQKA+oDyGOmh0dHA6Ly9jZHAxLnBjYS5kZm4uZGUvZ2xv
-YmFsLXJvb3QtZzItY2EvcHViL2NybC9jYWNybC5jcmwwQKA+oDyGOmh0dHA6Ly9jZHAyLnBj
-YS5kZm4uZGUvZ2xvYmFsLXJvb3QtZzItY2EvcHViL2NybC9jYWNybC5jcmwwgd0GCCsGAQUF
-BwEBBIHQMIHNMDMGCCsGAQUFBzABhidodHRwOi8vb2NzcC5wY2EuZGZuLmRlL09DU1AtU2Vy
-dmVyL09DU1AwSgYIKwYBBQUHMAKGPmh0dHA6Ly9jZHAxLnBjYS5kZm4uZGUvZ2xvYmFsLXJv
-b3QtZzItY2EvcHViL2NhY2VydC9jYWNlcnQuY3J0MEoGCCsGAQUFBzAChj5odHRwOi8vY2Rw
-Mi5wY2EuZGZuLmRlL2dsb2JhbC1yb290LWcyLWNhL3B1Yi9jYWNlcnQvY2FjZXJ0LmNydDAN
-BgkqhkiG9w0BAQsFAAOCAQEAgXhFpE6kfw5V8Amxaj54zGg1qRzzlZ4/8/jfazh3iSyNta0+
-x/KUzaAGrrrMqLGtMwi2JIZiNkx4blDw1W5gjU9SMUOXRnXwYuRuZlHBQjFnUOVJ5zkey5/K
-hkjeCBT/FUsrZpugOJ8Azv2n69F/Vy3ITF/cEBGXPpYEAlyEqCk5bJT8EJIGe57u2Ea0G7UD
-DDjZ3LCpP3EGC7IDBzPCjUhjJSU8entXbveKBTjvuKCuL/TbB9VbhBjBqbhLzmyQGoLkuT36
-d/HSHzMCv1PndvncJiVBby+mG/qkE5D6fH7ZC2Bd7L/KQaBh+xFJKdioLXUV2EoY6hbvVTQi
-GhONBjCCBRIwggP6oAMCAQICCQDjC9X4ryXZgTANBgkqhkiG9w0BAQsFADCBgjELMAkGA1UE
-BhMCREUxKzApBgNVBAoMIlQtU3lzdGVtcyBFbnRlcnByaXNlIFNlcnZpY2VzIEdtYkgxHzAd
-BgNVBAsMFlQtU3lzdGVtcyBUcnVzdCBDZW50ZXIxJTAjBgNVBAMMHFQtVGVsZVNlYyBHbG9i
-YWxSb290IENsYXNzIDIwHhcNMTYwMjIyMTMzODIyWhcNMzEwMjIyMjM1OTU5WjCBlTELMAkG
-A1UEBhMCREUxRTBDBgNVBAoTPFZlcmVpbiB6dXIgRm9lcmRlcnVuZyBlaW5lcyBEZXV0c2No
-ZW4gRm9yc2NodW5nc25ldHplcyBlLiBWLjEQMA4GA1UECxMHREZOLVBLSTEtMCsGA1UEAxMk
-REZOLVZlcmVpbiBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eSAyMIIBIjANBgkqhkiG9w0BAQEF
-AAOCAQ8AMIIBCgKCAQEAy2DX/2ahQc3S+oeXinOrmU3qZzlaoWCARxVOjJWy5c/O01dLjc74
-VmwVVXYH6kb9yANFYz5w1KtUgLEjnL43KKkJ/wVdGA/EmJk3syD2ZngXh8KdDsxKMucWna4O
-jSl5BwAgVNwVX0qW13i2NNPBdLWd6b/Ad03qvVkH4FovbDylANw1vWUNj38ybfJaaktiAe6s
-ODRZRTZJBdp4ymptW8CBaxHM0jyoi/hxGso74oDdFrRneos26k6RKT2zUVytqAy+nTTj0Q0X
-g3XEOR6wlAsS8dVpjiX0uD0rv8COwx47pb9VEKsqrheXXjPOyPP0CQfjAoYxRmsBxRAMEcdZ
-6QIDAQABo4IBdDCCAXAwDgYDVR0PAQH/BAQDAgEGMB0GA1UdDgQWBBST49gyJtrV8UqlkUrg
-6kviogzP4TAfBgNVHSMEGDAWgBS/WSA2AHmgoCJrjNXyYdK4LMuCSjASBgNVHRMBAf8ECDAG
-AQH/AgECMDMGA1UdIAQsMCowDwYNKwYBBAGBrSGCLAEBBDANBgsrBgEEAYGtIYIsHjAIBgZn
-gQwBAgIwTAYDVR0fBEUwQzBBoD+gPYY7aHR0cDovL3BraTAzMzYudGVsZXNlYy5kZS9ybC9U
-ZWxlU2VjX0dsb2JhbFJvb3RfQ2xhc3NfMi5jcmwwgYYGCCsGAQUFBwEBBHoweDAsBggrBgEF
-BQcwAYYgaHR0cDovL29jc3AwMzM2LnRlbGVzZWMuZGUvb2NzcHIwSAYIKwYBBQUHMAKGPGh0
-dHA6Ly9wa2kwMzM2LnRlbGVzZWMuZGUvY3J0L1RlbGVTZWNfR2xvYmFsUm9vdF9DbGFzc18y
-LmNlcjANBgkqhkiG9w0BAQsFAAOCAQEAhwv/PgKbZchWLdY7mpiLcU/auimqIflGLvWypA+u
-ETh5OLMOdLp2XZ7oGIKWYttMM+jd+WrfMr0sTEdgVX/ndGu0LIPYeWu2t01QC2YHte2zl63q
-7n8w5pn9IuJyTT6EW+75z5nqf9dSOS6smABEfmk7v3Xu0As7Gs3l9w8ibEeE9qVHoP3QGjR9
-rdI9d7Pu9NdN/8Po5ZJPWT6QRxBKsIVYwG9/+K7tCEKeHtTfFC5Nj7yelMPn7fYY+DxJ5yao
-pzbYLN4izYuC2Nl44lUSozuHRLYRC9UMUq9pjA8G39CiU4tXmHvP/Qck9Py9w/1KkgKXG/K3
-ts9lihqitXIZOTCCBjQwggUcoAMCAQICDB2FTaIxCz/6o56BPjANBgkqhkiG9w0BAQsFADCB
-jTELMAkGA1UEBhMCREUxRTBDBgNVBAoMPFZlcmVpbiB6dXIgRm9lcmRlcnVuZyBlaW5lcyBE
-ZXV0c2NoZW4gRm9yc2NodW5nc25ldHplcyBlLiBWLjEQMA4GA1UECwwHREZOLVBLSTElMCMG
-A1UEAwwcREZOLVZlcmVpbiBHbG9iYWwgSXNzdWluZyBDQTAeFw0xNzA3MTIwNzMwMjdaFw0y
-MDA3MTEwNzMwMjdaMIHRMQswCQYDVQQGEwJERTEYMBYGA1UECAwPUmhlaW5sYW5kLVBmYWx6
-MRAwDgYDVQQHDAdLb2JsZW56MTwwOgYDVQQKDDNIb2Noc2NodWxlIEtvYmxlbnogLSBVbml2
-ZXJzaXR5IG9mIEFwcGxpZWQgU2NpZW5jZXMxPDA6BgNVBAsMM1plbnRydW0gZnVlciBIb2No
-c2NodWwtSVQgUmhlaW5sYW5kLVBmYWx6IChaSVQtUkxQKTEaMBgGA1UEAwwRSmFuLU1hcnRp
-biBSYWVtZXIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCwwZmjESgiw5eLuxOq
-yHQzqFw47z+MXFyoWXaMiKB1wwt6b73Zbx2wORV6FfkoGXS9XCCGyaAmSS0cz+lQ6iwIEg7Q
-9Iakrouoom7lPyTnm3oS7cJWJhIFZIHtPGqJ7DowLG5BMPySF0XRAkm4layurlaUTDHUWU47
-ypVk5XOhwvaE81/ZYkywEiiutkDU4TDmbrlvIpiw3Tp0/JPGw+kI4/RzpVXAweLaddUas0ar
-lB0AwdKM2Inn+boZl/BWXB9i0U5jKah/J3XAGdzTxXWFMHiZuODSvRm67Pn52NiLJ7tpjK2P
-d4ZeLw9TeNUteG9OwhXsVaR3eUGGas9PoazVAgMBAAGjggJMMIICSDBABgNVHSAEOTA3MBEG
-DysGAQQBga0hgiwBAQQDBTARBg8rBgEEAYGtIYIsAgEEAwEwDwYNKwYBBAGBrSGCLAEBBDAJ
-BgNVHRMEAjAAMA4GA1UdDwEB/wQEAwIF4DAdBgNVHSUEFjAUBggrBgEFBQcDAgYIKwYBBQUH
-AwQwHQYDVR0OBBYEFAloiMycvKm6Hvm5GHuxJWP7AxUcMB8GA1UdIwQYMBaAFGs6mIv58lOJ
-2uCtsjIeCR/oqjt0MBwGA1UdEQQVMBOBEXJhZW1lckB6aXQtcmxwLmRlMIGNBgNVHR8EgYUw
-gYIwP6A9oDuGOWh0dHA6Ly9jZHAxLnBjYS5kZm4uZGUvZGZuLWNhLWdsb2JhbC1nMi9wdWIv
-Y3JsL2NhY3JsLmNybDA/oD2gO4Y5aHR0cDovL2NkcDIucGNhLmRmbi5kZS9kZm4tY2EtZ2xv
-YmFsLWcyL3B1Yi9jcmwvY2FjcmwuY3JsMIHbBggrBgEFBQcBAQSBzjCByzAzBggrBgEFBQcw
-AYYnaHR0cDovL29jc3AucGNhLmRmbi5kZS9PQ1NQLVNlcnZlci9PQ1NQMEkGCCsGAQUFBzAC
-hj1odHRwOi8vY2RwMS5wY2EuZGZuLmRlL2Rmbi1jYS1nbG9iYWwtZzIvcHViL2NhY2VydC9j
-YWNlcnQuY3J0MEkGCCsGAQUFBzAChj1odHRwOi8vY2RwMi5wY2EuZGZuLmRlL2Rmbi1jYS1n
-bG9iYWwtZzIvcHViL2NhY2VydC9jYWNlcnQuY3J0MA0GCSqGSIb3DQEBCwUAA4IBAQACxogT
-bxNNMQ5CnrqNbwjMhJsorsJ2JzPpspcFrxUONjlFzNhs723xNBXIHWwpUbIg68IRVX4BhO4S
-v5hanYkB4BVGiPfWvvKe6HRnBUuQ1ovVirHN90MTKti13Na47WmO5qYQtO+nHalnOAh7ssBU
-0MO3tPSICn57Qr5+AmjbKVAezHHIdi1P5mxdMDWVAg91AMQLwkh0NqBjdAONXV+qa6DFGdHW
-zHJPw6ml7TNORCuu6Y75X94tIYSmwGhuqNpVZbNOyluboq8u6Gl9AXeFwJ9QWDqXhX84QKEv
-afZMkw06B1V+J+rLQvuE2VNxIW3P5utlf6oAlRBREJIavPBoMIIGNDCCBRygAwIBAgIMHYVN
-ojELP/qjnoE+MA0GCSqGSIb3DQEBCwUAMIGNMQswCQYDVQQGEwJERTFFMEMGA1UECgw8VmVy
-ZWluIHp1ciBGb2VyZGVydW5nIGVpbmVzIERldXRzY2hlbiBGb3JzY2h1bmdzbmV0emVzIGUu
-IFYuMRAwDgYDVQQLDAdERk4tUEtJMSUwIwYDVQQDDBxERk4tVmVyZWluIEdsb2JhbCBJc3N1
-aW5nIENBMB4XDTE3MDcxMjA3MzAyN1oXDTIwMDcxMTA3MzAyN1owgdExCzAJBgNVBAYTAkRF
-MRgwFgYDVQQIDA9SaGVpbmxhbmQtUGZhbHoxEDAOBgNVBAcMB0tvYmxlbnoxPDA6BgNVBAoM
-M0hvY2hzY2h1bGUgS29ibGVueiAtIFVuaXZlcnNpdHkgb2YgQXBwbGllZCBTY2llbmNlczE8
-MDoGA1UECwwzWmVudHJ1bSBmdWVyIEhvY2hzY2h1bC1JVCBSaGVpbmxhbmQtUGZhbHogKFpJ
-VC1STFApMRowGAYDVQQDDBFKYW4tTWFydGluIFJhZW1lcjCCASIwDQYJKoZIhvcNAQEBBQAD
-ggEPADCCAQoCggEBALDBmaMRKCLDl4u7E6rIdDOoXDjvP4xcXKhZdoyIoHXDC3pvvdlvHbA5
-FXoV+SgZdL1cIIbJoCZJLRzP6VDqLAgSDtD0hqSui6iibuU/JOebehLtwlYmEgVkge08aons
-OjAsbkEw/JIXRdECSbiVrK6uVpRMMdRZTjvKlWTlc6HC9oTzX9liTLASKK62QNThMOZuuW8i
-mLDdOnT8k8bD6Qjj9HOlVcDB4tp11RqzRquUHQDB0ozYief5uhmX8FZcH2LRTmMpqH8ndcAZ
-3NPFdYUweJm44NK9Gbrs+fnY2Isnu2mMrY93hl4vD1N41S14b07CFexVpHd5QYZqz0+hrNUC
-AwEAAaOCAkwwggJIMEAGA1UdIAQ5MDcwEQYPKwYBBAGBrSGCLAEBBAMFMBEGDysGAQQBga0h
-giwCAQQDATAPBg0rBgEEAYGtIYIsAQEEMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgXgMB0G
-A1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDBDAdBgNVHQ4EFgQUCWiIzJy8qboe+bkYe7El
-Y/sDFRwwHwYDVR0jBBgwFoAUazqYi/nyU4na4K2yMh4JH+iqO3QwHAYDVR0RBBUwE4ERcmFl
-bWVyQHppdC1ybHAuZGUwgY0GA1UdHwSBhTCBgjA/oD2gO4Y5aHR0cDovL2NkcDEucGNhLmRm
-bi5kZS9kZm4tY2EtZ2xvYmFsLWcyL3B1Yi9jcmwvY2FjcmwuY3JsMD+gPaA7hjlodHRwOi8v
-Y2RwMi5wY2EuZGZuLmRlL2Rmbi1jYS1nbG9iYWwtZzIvcHViL2NybC9jYWNybC5jcmwwgdsG
-CCsGAQUFBwEBBIHOMIHLMDMGCCsGAQUFBzABhidodHRwOi8vb2NzcC5wY2EuZGZuLmRlL09D
-U1AtU2VydmVyL09DU1AwSQYIKwYBBQUHMAKGPWh0dHA6Ly9jZHAxLnBjYS5kZm4uZGUvZGZu
-LWNhLWdsb2JhbC1nMi9wdWIvY2FjZXJ0L2NhY2VydC5jcnQwSQYIKwYBBQUHMAKGPWh0dHA6
-Ly9jZHAyLnBjYS5kZm4uZGUvZGZuLWNhLWdsb2JhbC1nMi9wdWIvY2FjZXJ0L2NhY2VydC5j
-cnQwDQYJKoZIhvcNAQELBQADggEBAALGiBNvE00xDkKeuo1vCMyEmyiuwnYnM+mylwWvFQ42
-OUXM2GzvbfE0FcgdbClRsiDrwhFVfgGE7hK/mFqdiQHgFUaI99a+8p7odGcFS5DWi9WKsc33
-QxMq2LXc1rjtaY7mphC076cdqWc4CHuywFTQw7e09IgKfntCvn4CaNspUB7Mcch2LU/mbF0w
-NZUCD3UAxAvCSHQ2oGN0A41dX6proMUZ0dbMck/DqaXtM05EK67pjvlf3i0hhKbAaG6o2lVl
-s07KW5uiry7oaX0Bd4XAn1BYOpeFfzhAoS9p9kyTDToHVX4n6stC+4TZU3Ehbc/m62V/qgCV
-EFEQkhq88GgxggKxMIICrQIBATCBnjCBjTELMAkGA1UEBhMCREUxRTBDBgNVBAoMPFZlcmVp
-biB6dXIgRm9lcmRlcnVuZyBlaW5lcyBEZXV0c2NoZW4gRm9yc2NodW5nc25ldHplcyBlLiBW
-LjEQMA4GA1UECwwHREZOLVBLSTElMCMGA1UEAwwcREZOLVZlcmVpbiBHbG9iYWwgSXNzdWlu
-ZyBDQQIMHYVNojELP/qjnoE+MA0GCWCGSAFlAwQCAQUAoIHkMBgGCSqGSIb3DQEJAzELBgkq
-hkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTE5MTEwNzA4MTcwOVowLwYJKoZIhvcNAQkEMSIE
-IG63o3lVBLX5QLva7oyDuAu4Yt4YKizW1Hv1SLTyKtNeMHkGCSqGSIb3DQEJDzFsMGowCwYJ
-YIZIAWUDBAEqMAsGCWCGSAFlAwQBFjALBglghkgBZQMEAQIwCgYIKoZIhvcNAwcwDgYIKoZI
-hvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMA0GCSqG
-SIb3DQEBAQUABIIBAGUP99rFcABP43BXBE1X01RpPQEMA8nM+rYfKsqVdzwJ53/ciy1sGZRb
-Z/2LEgrZKJNDDjKnBZ5jAoSuOOkXBfbi/Bm0QdRlzISoHHPbhGTs4yyZtbFlOzbz7EsRSeK0
-x8XlxVXQjuv8q5TyRU4YfT05hTt7i1TKJ4iv4UWVpMnF9fPK8AxPE5yD+hwLzA/DfnGi9E+9
-KWrCUsdfKjveogQsyYTWX7dKaGRT5cBBMZ8YnMQbId4Sga0hk6JKNS6JvMUfKN3WuQKhi4Lc
-LfOEUDHH4zh9WB7+Ossdu+4eqKa6eqd0OEdR0+Z4s1mFusDeUBCUmF83R1QLT3Ox2ebIhVM=
-
---v9Ux+11Zm5mwPlX6--
+-- 
+Daniel
+TOOTAi Networks
