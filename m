@@ -2,79 +2,210 @@ Return-Path: <SRS0=biDG=Y7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B24D9C5DF60
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Nov 2019 05:17:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73DFAC5DF61
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Nov 2019 08:23:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8461D21882
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Nov 2019 05:17:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3466221882
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Nov 2019 08:23:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726295AbfKGFRN (ORCPT
+        id S1727354AbfKGIXF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 7 Nov 2019 00:17:13 -0500
-Received: from shards.monkeyblade.net ([23.128.96.9]:33672 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725763AbfKGFRN (ORCPT
+        Thu, 7 Nov 2019 03:23:05 -0500
+Received: from smtpout.hs-koblenz.de ([143.93.243.5]:58742 "EHLO
+        smtpout.hs-koblenz.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726734AbfKGIXE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 Nov 2019 00:17:13 -0500
-Received: from localhost (unknown [IPv6:2601:601:9f00:1e2::d71])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id EAFFD1510CDF8;
-        Wed,  6 Nov 2019 21:17:12 -0800 (PST)
-Date:   Wed, 06 Nov 2019 21:17:12 -0800 (PST)
-Message-Id: <20191106.211712.663655987109482181.davem@davemloft.net>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH 0/9] Netfilter fixes for net
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20191106111237.3183-1-pablo@netfilter.org>
-References: <20191106111237.3183-1-pablo@netfilter.org>
-X-Mailer: Mew version 6.8 on Emacs 26.1
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Wed, 06 Nov 2019 21:17:13 -0800 (PST)
+        Thu, 7 Nov 2019 03:23:04 -0500
+X-Greylist: delayed 350 seconds by postgrey-1.27 at vger.kernel.org; Thu, 07 Nov 2019 03:23:02 EST
+Received: from laptop-jmr.hs-koblenz.de (5-57-196-50.ktk-ip.de [5.57.196.50])
+        by smtpout.hs-koblenz.de (Postfix) with ESMTPSA id E349CC01B1
+        for <netfilter-devel@vger.kernel.org>; Thu,  7 Nov 2019 09:17:11 +0100 (CET)
+Date:   Thu, 7 Nov 2019 09:17:10 +0100
+From:   Jan-Martin Raemer <raemer@zit-rlp.de>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH] conntrackd UDP IPv6 destination address not usable (Bug 1378)
+Message-ID: <20191107081710.GC5020@laptop-jmr.hs-koblenz.de>
+MIME-Version: 1.0
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature";
+        micalg=sha-256; boundary="v9Ux+11Zm5mwPlX6"
+Content-Disposition: inline
+User-Agent: Mutt/1.8.0 (2017-02-23)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Wed,  6 Nov 2019 12:12:28 +0100
 
-> The following patchset contains Netfilter fixes for net:
-> 
-> 1) Missing register size validation in bitwise and cmp offloads.
-> 
-> 2) Fix error code in ip_set_sockfn_get() when copy_to_user() fails,
->    from Dan Carpenter.
-> 
-> 3) Oneliner to copy MAC address in IPv6 hash:ip,mac sets, from
->    Stefano Brivio.
-> 
-> 4) Missing policy validation in ipset with NL_VALIDATE_STRICT,
->    from Jozsef Kadlecsik.
-> 
-> 5) Fix unaligned access to private data area of nf_tables instructions,
->    from Lukas Wunner.
-> 
-> 6) Relax check for object updates, reported as a regression by
->    Eric Garver, patch from Fernando Fernandez Mancera.
-> 
-> 7) Crash on ebtables dnat extension when used from the output path.
->    From Florian Westphal.
-> 
-> 8) Fix bogus EOPNOTSUPP when updating basechain flags.
-> 
-> 9) Fix bogus EBUSY when updating a basechain that is already offloaded.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+--v9Ux+11Zm5mwPlX6
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Pulled, thanks Pablo.
+Hi,
+
+as reported in https://bugzilla.netfilter.org/show_bug.cgi?id=3D1378,
+conntrackd refuses to start with a vaild IPv6_Destination_Address,
+reporting "inet_pton(): IPv6 unsupported" due to a forgotten handling of
+err>0 (i.e. success). This patch fixes the issue:
+
+Signed-off-by: Jan-Martin Raemer <raemer@zit-rlp.de>
+diff --git a/src/read_config_yy.y b/src/read_config_yy.y
+index a4aa7f5..31109c4 100644
+--- a/src/read_config_yy.y
++++ b/src/read_config_yy.y
+@@ -467,7 +467,7 @@ udp_option : T_IPV6_DEST_ADDR T_IP
+                dlog(LOG_WARNING, "%s is not a valid IPv6 address", $2);
+                free($2);
+                break;
+-       } else {
++       } else if (err < 0) {
+                dlog(LOG_ERR, "inet_pton(): IPv6 unsupported!");
+                exit(EXIT_FAILURE);
+        }
+
+Best regards,
+Jan-Martin
+
+--=20
+Dr. Jan-Martin R=E4mer
+Systemtechnik
+Zentrum f=FCr Hochschul-IT Rheinland-Pfalz
+Moselwei=DFer Stra=DFe 4, 56073 Koblenz
+Telefon +49(0)261 9528-906
+raemer@zit-rlp.de
+
+--v9Ux+11Zm5mwPlX6
+Content-Type: application/x-pkcs7-signature
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Transfer-Encoding: base64
+
+MIIaIwYJKoZIhvcNAQcCoIIaFDCCGhACAQExDzANBglghkgBZQMEAgEFADALBgkqhkiG9w0B
+BwGgghc2MIIFrDCCBJSgAwIBAgIHG2O60B4sPTANBgkqhkiG9w0BAQsFADCBlTELMAkGA1UE
+BhMCREUxRTBDBgNVBAoTPFZlcmVpbiB6dXIgRm9lcmRlcnVuZyBlaW5lcyBEZXV0c2NoZW4g
+Rm9yc2NodW5nc25ldHplcyBlLiBWLjEQMA4GA1UECxMHREZOLVBLSTEtMCsGA1UEAxMkREZO
+LVZlcmVpbiBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eSAyMB4XDTE2MDUyNDExMzg0MFoXDTMx
+MDIyMjIzNTk1OVowgY0xCzAJBgNVBAYTAkRFMUUwQwYDVQQKDDxWZXJlaW4genVyIEZvZXJk
+ZXJ1bmcgZWluZXMgRGV1dHNjaGVuIEZvcnNjaHVuZ3NuZXR6ZXMgZS4gVi4xEDAOBgNVBAsM
+B0RGTi1QS0kxJTAjBgNVBAMMHERGTi1WZXJlaW4gR2xvYmFsIElzc3VpbmcgQ0EwggEiMA0G
+CSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCdO3kcR94fhsvGadcQnjnX2aIw23IcBX8pX0to
+8a0Z1kzhaxuxC3+hq+B7i4vYLc5uiDoQ7lflHn8EUTbrunBtY6C+li5A4dGDTGY9HGRp5Zuk
+rXKuaDlRh3nMF9OuL11jcUs5eutCp5eQaQW/kP+kQHC9A+e/nhiIH5+ZiE0OR41IX2WZENLZ
+KkntwbktHZ8SyxXTP38eVC86rpNXp354ytVK4hrl7UF9U1/Isyr1ijCs7RcFJD+2oAsH/U0a
+mgNSoDac3iSHZeTn+seWcyQUzdDoG2ieGFmudn730Qp4PIdLsDfPU8o6OBDzy0dtjGQ9PFpF
+SrrKgHy48+enTEzNAgMBAAGjggIFMIICATASBgNVHRMBAf8ECDAGAQH/AgEBMA4GA1UdDwEB
+/wQEAwIBBjApBgNVHSAEIjAgMA0GCysGAQQBga0hgiweMA8GDSsGAQQBga0hgiwBAQQwHQYD
+VR0OBBYEFGs6mIv58lOJ2uCtsjIeCR/oqjt0MB8GA1UdIwQYMBaAFJPj2DIm2tXxSqWRSuDq
+S+KiDM/hMIGPBgNVHR8EgYcwgYQwQKA+oDyGOmh0dHA6Ly9jZHAxLnBjYS5kZm4uZGUvZ2xv
+YmFsLXJvb3QtZzItY2EvcHViL2NybC9jYWNybC5jcmwwQKA+oDyGOmh0dHA6Ly9jZHAyLnBj
+YS5kZm4uZGUvZ2xvYmFsLXJvb3QtZzItY2EvcHViL2NybC9jYWNybC5jcmwwgd0GCCsGAQUF
+BwEBBIHQMIHNMDMGCCsGAQUFBzABhidodHRwOi8vb2NzcC5wY2EuZGZuLmRlL09DU1AtU2Vy
+dmVyL09DU1AwSgYIKwYBBQUHMAKGPmh0dHA6Ly9jZHAxLnBjYS5kZm4uZGUvZ2xvYmFsLXJv
+b3QtZzItY2EvcHViL2NhY2VydC9jYWNlcnQuY3J0MEoGCCsGAQUFBzAChj5odHRwOi8vY2Rw
+Mi5wY2EuZGZuLmRlL2dsb2JhbC1yb290LWcyLWNhL3B1Yi9jYWNlcnQvY2FjZXJ0LmNydDAN
+BgkqhkiG9w0BAQsFAAOCAQEAgXhFpE6kfw5V8Amxaj54zGg1qRzzlZ4/8/jfazh3iSyNta0+
+x/KUzaAGrrrMqLGtMwi2JIZiNkx4blDw1W5gjU9SMUOXRnXwYuRuZlHBQjFnUOVJ5zkey5/K
+hkjeCBT/FUsrZpugOJ8Azv2n69F/Vy3ITF/cEBGXPpYEAlyEqCk5bJT8EJIGe57u2Ea0G7UD
+DDjZ3LCpP3EGC7IDBzPCjUhjJSU8entXbveKBTjvuKCuL/TbB9VbhBjBqbhLzmyQGoLkuT36
+d/HSHzMCv1PndvncJiVBby+mG/qkE5D6fH7ZC2Bd7L/KQaBh+xFJKdioLXUV2EoY6hbvVTQi
+GhONBjCCBRIwggP6oAMCAQICCQDjC9X4ryXZgTANBgkqhkiG9w0BAQsFADCBgjELMAkGA1UE
+BhMCREUxKzApBgNVBAoMIlQtU3lzdGVtcyBFbnRlcnByaXNlIFNlcnZpY2VzIEdtYkgxHzAd
+BgNVBAsMFlQtU3lzdGVtcyBUcnVzdCBDZW50ZXIxJTAjBgNVBAMMHFQtVGVsZVNlYyBHbG9i
+YWxSb290IENsYXNzIDIwHhcNMTYwMjIyMTMzODIyWhcNMzEwMjIyMjM1OTU5WjCBlTELMAkG
+A1UEBhMCREUxRTBDBgNVBAoTPFZlcmVpbiB6dXIgRm9lcmRlcnVuZyBlaW5lcyBEZXV0c2No
+ZW4gRm9yc2NodW5nc25ldHplcyBlLiBWLjEQMA4GA1UECxMHREZOLVBLSTEtMCsGA1UEAxMk
+REZOLVZlcmVpbiBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eSAyMIIBIjANBgkqhkiG9w0BAQEF
+AAOCAQ8AMIIBCgKCAQEAy2DX/2ahQc3S+oeXinOrmU3qZzlaoWCARxVOjJWy5c/O01dLjc74
+VmwVVXYH6kb9yANFYz5w1KtUgLEjnL43KKkJ/wVdGA/EmJk3syD2ZngXh8KdDsxKMucWna4O
+jSl5BwAgVNwVX0qW13i2NNPBdLWd6b/Ad03qvVkH4FovbDylANw1vWUNj38ybfJaaktiAe6s
+ODRZRTZJBdp4ymptW8CBaxHM0jyoi/hxGso74oDdFrRneos26k6RKT2zUVytqAy+nTTj0Q0X
+g3XEOR6wlAsS8dVpjiX0uD0rv8COwx47pb9VEKsqrheXXjPOyPP0CQfjAoYxRmsBxRAMEcdZ
+6QIDAQABo4IBdDCCAXAwDgYDVR0PAQH/BAQDAgEGMB0GA1UdDgQWBBST49gyJtrV8UqlkUrg
+6kviogzP4TAfBgNVHSMEGDAWgBS/WSA2AHmgoCJrjNXyYdK4LMuCSjASBgNVHRMBAf8ECDAG
+AQH/AgECMDMGA1UdIAQsMCowDwYNKwYBBAGBrSGCLAEBBDANBgsrBgEEAYGtIYIsHjAIBgZn
+gQwBAgIwTAYDVR0fBEUwQzBBoD+gPYY7aHR0cDovL3BraTAzMzYudGVsZXNlYy5kZS9ybC9U
+ZWxlU2VjX0dsb2JhbFJvb3RfQ2xhc3NfMi5jcmwwgYYGCCsGAQUFBwEBBHoweDAsBggrBgEF
+BQcwAYYgaHR0cDovL29jc3AwMzM2LnRlbGVzZWMuZGUvb2NzcHIwSAYIKwYBBQUHMAKGPGh0
+dHA6Ly9wa2kwMzM2LnRlbGVzZWMuZGUvY3J0L1RlbGVTZWNfR2xvYmFsUm9vdF9DbGFzc18y
+LmNlcjANBgkqhkiG9w0BAQsFAAOCAQEAhwv/PgKbZchWLdY7mpiLcU/auimqIflGLvWypA+u
+ETh5OLMOdLp2XZ7oGIKWYttMM+jd+WrfMr0sTEdgVX/ndGu0LIPYeWu2t01QC2YHte2zl63q
+7n8w5pn9IuJyTT6EW+75z5nqf9dSOS6smABEfmk7v3Xu0As7Gs3l9w8ibEeE9qVHoP3QGjR9
+rdI9d7Pu9NdN/8Po5ZJPWT6QRxBKsIVYwG9/+K7tCEKeHtTfFC5Nj7yelMPn7fYY+DxJ5yao
+pzbYLN4izYuC2Nl44lUSozuHRLYRC9UMUq9pjA8G39CiU4tXmHvP/Qck9Py9w/1KkgKXG/K3
+ts9lihqitXIZOTCCBjQwggUcoAMCAQICDB2FTaIxCz/6o56BPjANBgkqhkiG9w0BAQsFADCB
+jTELMAkGA1UEBhMCREUxRTBDBgNVBAoMPFZlcmVpbiB6dXIgRm9lcmRlcnVuZyBlaW5lcyBE
+ZXV0c2NoZW4gRm9yc2NodW5nc25ldHplcyBlLiBWLjEQMA4GA1UECwwHREZOLVBLSTElMCMG
+A1UEAwwcREZOLVZlcmVpbiBHbG9iYWwgSXNzdWluZyBDQTAeFw0xNzA3MTIwNzMwMjdaFw0y
+MDA3MTEwNzMwMjdaMIHRMQswCQYDVQQGEwJERTEYMBYGA1UECAwPUmhlaW5sYW5kLVBmYWx6
+MRAwDgYDVQQHDAdLb2JsZW56MTwwOgYDVQQKDDNIb2Noc2NodWxlIEtvYmxlbnogLSBVbml2
+ZXJzaXR5IG9mIEFwcGxpZWQgU2NpZW5jZXMxPDA6BgNVBAsMM1plbnRydW0gZnVlciBIb2No
+c2NodWwtSVQgUmhlaW5sYW5kLVBmYWx6IChaSVQtUkxQKTEaMBgGA1UEAwwRSmFuLU1hcnRp
+biBSYWVtZXIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCwwZmjESgiw5eLuxOq
+yHQzqFw47z+MXFyoWXaMiKB1wwt6b73Zbx2wORV6FfkoGXS9XCCGyaAmSS0cz+lQ6iwIEg7Q
+9Iakrouoom7lPyTnm3oS7cJWJhIFZIHtPGqJ7DowLG5BMPySF0XRAkm4layurlaUTDHUWU47
+ypVk5XOhwvaE81/ZYkywEiiutkDU4TDmbrlvIpiw3Tp0/JPGw+kI4/RzpVXAweLaddUas0ar
+lB0AwdKM2Inn+boZl/BWXB9i0U5jKah/J3XAGdzTxXWFMHiZuODSvRm67Pn52NiLJ7tpjK2P
+d4ZeLw9TeNUteG9OwhXsVaR3eUGGas9PoazVAgMBAAGjggJMMIICSDBABgNVHSAEOTA3MBEG
+DysGAQQBga0hgiwBAQQDBTARBg8rBgEEAYGtIYIsAgEEAwEwDwYNKwYBBAGBrSGCLAEBBDAJ
+BgNVHRMEAjAAMA4GA1UdDwEB/wQEAwIF4DAdBgNVHSUEFjAUBggrBgEFBQcDAgYIKwYBBQUH
+AwQwHQYDVR0OBBYEFAloiMycvKm6Hvm5GHuxJWP7AxUcMB8GA1UdIwQYMBaAFGs6mIv58lOJ
+2uCtsjIeCR/oqjt0MBwGA1UdEQQVMBOBEXJhZW1lckB6aXQtcmxwLmRlMIGNBgNVHR8EgYUw
+gYIwP6A9oDuGOWh0dHA6Ly9jZHAxLnBjYS5kZm4uZGUvZGZuLWNhLWdsb2JhbC1nMi9wdWIv
+Y3JsL2NhY3JsLmNybDA/oD2gO4Y5aHR0cDovL2NkcDIucGNhLmRmbi5kZS9kZm4tY2EtZ2xv
+YmFsLWcyL3B1Yi9jcmwvY2FjcmwuY3JsMIHbBggrBgEFBQcBAQSBzjCByzAzBggrBgEFBQcw
+AYYnaHR0cDovL29jc3AucGNhLmRmbi5kZS9PQ1NQLVNlcnZlci9PQ1NQMEkGCCsGAQUFBzAC
+hj1odHRwOi8vY2RwMS5wY2EuZGZuLmRlL2Rmbi1jYS1nbG9iYWwtZzIvcHViL2NhY2VydC9j
+YWNlcnQuY3J0MEkGCCsGAQUFBzAChj1odHRwOi8vY2RwMi5wY2EuZGZuLmRlL2Rmbi1jYS1n
+bG9iYWwtZzIvcHViL2NhY2VydC9jYWNlcnQuY3J0MA0GCSqGSIb3DQEBCwUAA4IBAQACxogT
+bxNNMQ5CnrqNbwjMhJsorsJ2JzPpspcFrxUONjlFzNhs723xNBXIHWwpUbIg68IRVX4BhO4S
+v5hanYkB4BVGiPfWvvKe6HRnBUuQ1ovVirHN90MTKti13Na47WmO5qYQtO+nHalnOAh7ssBU
+0MO3tPSICn57Qr5+AmjbKVAezHHIdi1P5mxdMDWVAg91AMQLwkh0NqBjdAONXV+qa6DFGdHW
+zHJPw6ml7TNORCuu6Y75X94tIYSmwGhuqNpVZbNOyluboq8u6Gl9AXeFwJ9QWDqXhX84QKEv
+afZMkw06B1V+J+rLQvuE2VNxIW3P5utlf6oAlRBREJIavPBoMIIGNDCCBRygAwIBAgIMHYVN
+ojELP/qjnoE+MA0GCSqGSIb3DQEBCwUAMIGNMQswCQYDVQQGEwJERTFFMEMGA1UECgw8VmVy
+ZWluIHp1ciBGb2VyZGVydW5nIGVpbmVzIERldXRzY2hlbiBGb3JzY2h1bmdzbmV0emVzIGUu
+IFYuMRAwDgYDVQQLDAdERk4tUEtJMSUwIwYDVQQDDBxERk4tVmVyZWluIEdsb2JhbCBJc3N1
+aW5nIENBMB4XDTE3MDcxMjA3MzAyN1oXDTIwMDcxMTA3MzAyN1owgdExCzAJBgNVBAYTAkRF
+MRgwFgYDVQQIDA9SaGVpbmxhbmQtUGZhbHoxEDAOBgNVBAcMB0tvYmxlbnoxPDA6BgNVBAoM
+M0hvY2hzY2h1bGUgS29ibGVueiAtIFVuaXZlcnNpdHkgb2YgQXBwbGllZCBTY2llbmNlczE8
+MDoGA1UECwwzWmVudHJ1bSBmdWVyIEhvY2hzY2h1bC1JVCBSaGVpbmxhbmQtUGZhbHogKFpJ
+VC1STFApMRowGAYDVQQDDBFKYW4tTWFydGluIFJhZW1lcjCCASIwDQYJKoZIhvcNAQEBBQAD
+ggEPADCCAQoCggEBALDBmaMRKCLDl4u7E6rIdDOoXDjvP4xcXKhZdoyIoHXDC3pvvdlvHbA5
+FXoV+SgZdL1cIIbJoCZJLRzP6VDqLAgSDtD0hqSui6iibuU/JOebehLtwlYmEgVkge08aons
+OjAsbkEw/JIXRdECSbiVrK6uVpRMMdRZTjvKlWTlc6HC9oTzX9liTLASKK62QNThMOZuuW8i
+mLDdOnT8k8bD6Qjj9HOlVcDB4tp11RqzRquUHQDB0ozYief5uhmX8FZcH2LRTmMpqH8ndcAZ
+3NPFdYUweJm44NK9Gbrs+fnY2Isnu2mMrY93hl4vD1N41S14b07CFexVpHd5QYZqz0+hrNUC
+AwEAAaOCAkwwggJIMEAGA1UdIAQ5MDcwEQYPKwYBBAGBrSGCLAEBBAMFMBEGDysGAQQBga0h
+giwCAQQDATAPBg0rBgEEAYGtIYIsAQEEMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgXgMB0G
+A1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDBDAdBgNVHQ4EFgQUCWiIzJy8qboe+bkYe7El
+Y/sDFRwwHwYDVR0jBBgwFoAUazqYi/nyU4na4K2yMh4JH+iqO3QwHAYDVR0RBBUwE4ERcmFl
+bWVyQHppdC1ybHAuZGUwgY0GA1UdHwSBhTCBgjA/oD2gO4Y5aHR0cDovL2NkcDEucGNhLmRm
+bi5kZS9kZm4tY2EtZ2xvYmFsLWcyL3B1Yi9jcmwvY2FjcmwuY3JsMD+gPaA7hjlodHRwOi8v
+Y2RwMi5wY2EuZGZuLmRlL2Rmbi1jYS1nbG9iYWwtZzIvcHViL2NybC9jYWNybC5jcmwwgdsG
+CCsGAQUFBwEBBIHOMIHLMDMGCCsGAQUFBzABhidodHRwOi8vb2NzcC5wY2EuZGZuLmRlL09D
+U1AtU2VydmVyL09DU1AwSQYIKwYBBQUHMAKGPWh0dHA6Ly9jZHAxLnBjYS5kZm4uZGUvZGZu
+LWNhLWdsb2JhbC1nMi9wdWIvY2FjZXJ0L2NhY2VydC5jcnQwSQYIKwYBBQUHMAKGPWh0dHA6
+Ly9jZHAyLnBjYS5kZm4uZGUvZGZuLWNhLWdsb2JhbC1nMi9wdWIvY2FjZXJ0L2NhY2VydC5j
+cnQwDQYJKoZIhvcNAQELBQADggEBAALGiBNvE00xDkKeuo1vCMyEmyiuwnYnM+mylwWvFQ42
+OUXM2GzvbfE0FcgdbClRsiDrwhFVfgGE7hK/mFqdiQHgFUaI99a+8p7odGcFS5DWi9WKsc33
+QxMq2LXc1rjtaY7mphC076cdqWc4CHuywFTQw7e09IgKfntCvn4CaNspUB7Mcch2LU/mbF0w
+NZUCD3UAxAvCSHQ2oGN0A41dX6proMUZ0dbMck/DqaXtM05EK67pjvlf3i0hhKbAaG6o2lVl
+s07KW5uiry7oaX0Bd4XAn1BYOpeFfzhAoS9p9kyTDToHVX4n6stC+4TZU3Ehbc/m62V/qgCV
+EFEQkhq88GgxggKxMIICrQIBATCBnjCBjTELMAkGA1UEBhMCREUxRTBDBgNVBAoMPFZlcmVp
+biB6dXIgRm9lcmRlcnVuZyBlaW5lcyBEZXV0c2NoZW4gRm9yc2NodW5nc25ldHplcyBlLiBW
+LjEQMA4GA1UECwwHREZOLVBLSTElMCMGA1UEAwwcREZOLVZlcmVpbiBHbG9iYWwgSXNzdWlu
+ZyBDQQIMHYVNojELP/qjnoE+MA0GCWCGSAFlAwQCAQUAoIHkMBgGCSqGSIb3DQEJAzELBgkq
+hkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTE5MTEwNzA4MTcwOVowLwYJKoZIhvcNAQkEMSIE
+IG63o3lVBLX5QLva7oyDuAu4Yt4YKizW1Hv1SLTyKtNeMHkGCSqGSIb3DQEJDzFsMGowCwYJ
+YIZIAWUDBAEqMAsGCWCGSAFlAwQBFjALBglghkgBZQMEAQIwCgYIKoZIhvcNAwcwDgYIKoZI
+hvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMA0GCSqG
+SIb3DQEBAQUABIIBAGUP99rFcABP43BXBE1X01RpPQEMA8nM+rYfKsqVdzwJ53/ciy1sGZRb
+Z/2LEgrZKJNDDjKnBZ5jAoSuOOkXBfbi/Bm0QdRlzISoHHPbhGTs4yyZtbFlOzbz7EsRSeK0
+x8XlxVXQjuv8q5TyRU4YfT05hTt7i1TKJ4iv4UWVpMnF9fPK8AxPE5yD+hwLzA/DfnGi9E+9
+KWrCUsdfKjveogQsyYTWX7dKaGRT5cBBMZ8YnMQbId4Sga0hk6JKNS6JvMUfKN3WuQKhi4Lc
+LfOEUDHH4zh9WB7+Ossdu+4eqKa6eqd0OEdR0+Z4s1mFusDeUBCUmF83R1QLT3Ox2ebIhVM=
+
+--v9Ux+11Zm5mwPlX6--
