@@ -2,164 +2,255 @@ Return-Path: <SRS0=hCoj=ZA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3574C5DF60
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Nov 2019 12:02:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BBADFA372C
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Nov 2019 17:41:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7B35C2085B
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Nov 2019 12:02:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1573214563;
-	bh=7e2XOAxRCZkEiFfovhqWgSe7n5iO8CPSFgffFPsUjWE=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Jf86cZ3M2uRSkCG4yJGXBNHmBBLLhOiV9gLdhFCo0oZgxZWjHQ1Z4qp6WrUTxo5Cx
-	 8Q3mT/YvDSnVKh+u3+5R3/Qqg1dJNDlMYoSfiyEwtRNa8AtFTpYoF0Zr4kBXi08U9g
-	 rU/nx+vNPzBda3JbOQtrtj+2VjT5QomdBOJfKn5A=
+	by mail.kernel.org (Postfix) with ESMTP id BE8E3214DB
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Nov 2019 17:41:30 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="QypV/fGw"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390647AbfKHMCi (ORCPT
+        id S1728218AbfKHRla (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 8 Nov 2019 07:02:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57298 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390266AbfKHLnA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 8 Nov 2019 06:43:00 -0500
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2954920656;
-        Fri,  8 Nov 2019 11:42:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1573213380;
-        bh=7e2XOAxRCZkEiFfovhqWgSe7n5iO8CPSFgffFPsUjWE=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Kog+ZbiNI4ursv0kVHZzFocvBN/XrSGpqb3J6OGnHwEhJ8n1qhNmf6y1ozP0LGfqq
-         +JulJMgJXq/o95GrJnjQBEE9SR9bxbq3H/yUwnHr8wb8BogVZJrW5Np1/WXAz5YNUR
-         JObK87Yuw0YCe/jEHIlCdBPAk6gA80G6d8fvvG0s=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 203/205] netfilter: nf_tables: avoid BUG_ON usage
-Date:   Fri,  8 Nov 2019 06:37:50 -0500
-Message-Id: <20191108113752.12502-203-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191108113752.12502-1-sashal@kernel.org>
-References: <20191108113752.12502-1-sashal@kernel.org>
+        Fri, 8 Nov 2019 12:41:30 -0500
+Received: from mail-lj1-f195.google.com ([209.85.208.195]:34465 "EHLO
+        mail-lj1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726587AbfKHRla (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 8 Nov 2019 12:41:30 -0500
+Received: by mail-lj1-f195.google.com with SMTP id 139so7098086ljf.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 08 Nov 2019 09:41:28 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=2QJNYK/K5bdE2+Gkhht7sK48ftHkXUxqx+uBQkHd5Ts=;
+        b=QypV/fGwmulAvg9MruUmhTnYlDA5c5MJNSURS6J4En6OmXgJCg+YzoAsYTaRujB1z2
+         hP3WmSV5DjQioueVpPG3QmHbeJLut69f9I+1DQgPU/BD2+aGZ3ejRua7P1liI5dYyec1
+         VbTAEROuyB6wd7DALgpKJp9LL/KaJ9AMfqXycwbHkU2tANkyllLPDuAhNMhMqpaYReqf
+         jnxNC1z4Yt9DaALjdUk7R96nLeV8nV9MqdftZRgTPy97YQp3GAW3PvqRpPilOY8+Kgbs
+         IlHk8zyie1aSeWSxTd7bQdJ0hzRGPU1XmE2G6lwTktuXjEodiYlwA3s2YIRwBwdtJYVc
+         SV0Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=2QJNYK/K5bdE2+Gkhht7sK48ftHkXUxqx+uBQkHd5Ts=;
+        b=sktRR2jhwdXYejBmlGjvQLYLpMCVSSdOXRTC7Tf023OESyX6WhNcXAnX1KORKIbZY8
+         mYQ8MxEBqhMfPAHkmo/V2cEdAdNrKAi1J8glQenTWLLRPz2CUBlFGb+sQE2kfaiM0XlY
+         Fe78jwtnrJO9skG8ELIyGQFfUS5ToTsMKLsTURYGG7qNtVIbvL3nL3V5bpLHNGCSuh74
+         5XbtPhjVsxu9jNJwH/OvYSmE+RTimfdCghPGE+EYTay7QqPVk6QFqVQSvKPo17rF6pAD
+         McFRiq1c08EwLjTIX9EYx1vyxdeg9ragYFcM9QIllm7WrIun4k2P4BuGfXsG89xB2X6g
+         qVMg==
+X-Gm-Message-State: APjAAAWlPDbiyR6JxZBEC8cvKAbpzDWMiu63Hg/HK6NsgmA2XfeaLwAC
+        bhqbOaamBfRWgVa+RiJ+3irjv+jHY+7gmQCnRESO8Tw=
+X-Google-Smtp-Source: APXvYqygpkXBVo+V/0rCDrfRnTBOydni+js2TBbay/jXRxqEePu5DxdbEDyaefBi0zEpgdxZttma4OhRzmRZQpH1wy4=
+X-Received: by 2002:a2e:4703:: with SMTP id u3mr584888lja.126.1573234887049;
+ Fri, 08 Nov 2019 09:41:27 -0800 (PST)
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+References: <cover.1568834524.git.rgb@redhat.com> <0850eaa785e2ff30c8c4818fd53e9544b34ed884.1568834524.git.rgb@redhat.com>
+ <CAHC9VhQoFFaQACbV4QHG_NPUCJu1+V=x3=i-yyGjbsYq8HuPtg@mail.gmail.com> <20191025192031.ul3yjy2q57vsvier@madcap2.tricolour.ca>
+In-Reply-To: <20191025192031.ul3yjy2q57vsvier@madcap2.tricolour.ca>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Fri, 8 Nov 2019 12:41:16 -0500
+Message-ID: <CAHC9VhQTz3f9p9knMP0Rsz=zH5HTEXBb7iN7o_jr=FN9sGWp8g@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V7 08/21] audit: add contid support for signalling
+ the audit daemon
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
+        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
+        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
+        mpatel@redhat.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+On Fri, Oct 25, 2019 at 3:20 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2019-10-10 20:39, Paul Moore wrote:
+> > On Wed, Sep 18, 2019 at 9:25 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > Add audit container identifier support to the action of signalling the
+> > > audit daemon.
+> > >
+> > > Since this would need to add an element to the audit_sig_info struct,
+> > > a new record type AUDIT_SIGNAL_INFO2 was created with a new
+> > > audit_sig_info2 struct.  Corresponding support is required in the
+> > > userspace code to reflect the new record request and reply type.
+> > > An older userspace won't break since it won't know to request this
+> > > record type.
+> > >
+> > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> > > ---
+> > >  include/linux/audit.h       |  7 +++++++
+> > >  include/uapi/linux/audit.h  |  1 +
+> > >  kernel/audit.c              | 28 ++++++++++++++++++++++++++++
+> > >  kernel/audit.h              |  1 +
+> > >  security/selinux/nlmsgtab.c |  1 +
+> > >  5 files changed, 38 insertions(+)
+> > >
+> > > diff --git a/include/linux/audit.h b/include/linux/audit.h
+> > > index 0c18d8e30620..7b640c4da4ee 100644
+> > > --- a/include/linux/audit.h
+> > > +++ b/include/linux/audit.h
+> > > @@ -23,6 +23,13 @@ struct audit_sig_info {
+> > >         char            ctx[0];
+> > >  };
+> > >
+> > > +struct audit_sig_info2 {
+> > > +       uid_t           uid;
+> > > +       pid_t           pid;
+> > > +       u64             cid;
+> > > +       char            ctx[0];
+> > > +};
+> > > +
+> > >  struct audit_buffer;
+> > >  struct audit_context;
+> > >  struct inode;
+> > > diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
+> > > index 4ed080f28b47..693ec6e0288b 100644
+> > > --- a/include/uapi/linux/audit.h
+> > > +++ b/include/uapi/linux/audit.h
+> > > @@ -72,6 +72,7 @@
+> > >  #define AUDIT_SET_FEATURE      1018    /* Turn an audit feature on or off */
+> > >  #define AUDIT_GET_FEATURE      1019    /* Get which features are enabled */
+> > >  #define AUDIT_CONTAINER_OP     1020    /* Define the container id and info */
+> > > +#define AUDIT_SIGNAL_INFO2     1021    /* Get info auditd signal sender */
+> > >
+> > >  #define AUDIT_FIRST_USER_MSG   1100    /* Userspace messages mostly uninteresting to kernel */
+> > >  #define AUDIT_USER_AVC         1107    /* We filter this differently */
+> > > diff --git a/kernel/audit.c b/kernel/audit.c
+> > > index adfb3e6a7f0c..df3db29f5a8a 100644
+> > > --- a/kernel/audit.c
+> > > +++ b/kernel/audit.c
+> > > @@ -125,6 +125,7 @@ struct audit_net {
+> > >  kuid_t         audit_sig_uid = INVALID_UID;
+> > >  pid_t          audit_sig_pid = -1;
+> > >  u32            audit_sig_sid = 0;
+> > > +u64            audit_sig_cid = AUDIT_CID_UNSET;
+> > >
+> > >  /* Records can be lost in several ways:
+> > >     0) [suppressed in audit_alloc]
+> > > @@ -1094,6 +1095,7 @@ static int audit_netlink_ok(struct sk_buff *skb, u16 msg_type)
+> > >         case AUDIT_ADD_RULE:
+> > >         case AUDIT_DEL_RULE:
+> > >         case AUDIT_SIGNAL_INFO:
+> > > +       case AUDIT_SIGNAL_INFO2:
+> > >         case AUDIT_TTY_GET:
+> > >         case AUDIT_TTY_SET:
+> > >         case AUDIT_TRIM:
+> > > @@ -1257,6 +1259,7 @@ static int audit_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
+> > >         struct audit_buffer     *ab;
+> > >         u16                     msg_type = nlh->nlmsg_type;
+> > >         struct audit_sig_info   *sig_data;
+> > > +       struct audit_sig_info2  *sig_data2;
+> > >         char                    *ctx = NULL;
+> > >         u32                     len;
+> > >
+> > > @@ -1516,6 +1519,30 @@ static int audit_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
+> > >                                  sig_data, sizeof(*sig_data) + len);
+> > >                 kfree(sig_data);
+> > >                 break;
+> > > +       case AUDIT_SIGNAL_INFO2:
+> > > +               len = 0;
+> > > +               if (audit_sig_sid) {
+> > > +                       err = security_secid_to_secctx(audit_sig_sid, &ctx, &len);
+> > > +                       if (err)
+> > > +                               return err;
+> > > +               }
+> > > +               sig_data2 = kmalloc(sizeof(*sig_data2) + len, GFP_KERNEL);
+> > > +               if (!sig_data2) {
+> > > +                       if (audit_sig_sid)
+> > > +                               security_release_secctx(ctx, len);
+> > > +                       return -ENOMEM;
+> > > +               }
+> > > +               sig_data2->uid = from_kuid(&init_user_ns, audit_sig_uid);
+> > > +               sig_data2->pid = audit_sig_pid;
+> > > +               if (audit_sig_sid) {
+> > > +                       memcpy(sig_data2->ctx, ctx, len);
+> > > +                       security_release_secctx(ctx, len);
+> > > +               }
+> > > +               sig_data2->cid = audit_sig_cid;
+> > > +               audit_send_reply(skb, seq, AUDIT_SIGNAL_INFO2, 0, 0,
+> > > +                                sig_data2, sizeof(*sig_data2) + len);
+> > > +               kfree(sig_data2);
+> > > +               break;
+> > >         case AUDIT_TTY_GET: {
+> > >                 struct audit_tty_status s;
+> > >                 unsigned int t;
+> > > @@ -2384,6 +2411,7 @@ int audit_signal_info(int sig, struct task_struct *t)
+> > >                 else
+> > >                         audit_sig_uid = uid;
+> > >                 security_task_getsecid(current, &audit_sig_sid);
+> > > +               audit_sig_cid = audit_get_contid(current);
+> > >         }
+> >
+> > I've been wondering something as I've been working my way through
+> > these patches and this patch seems like a good spot to discuss this
+> > ... Now that we have the concept of an audit container ID "lifetime"
+> > in the kernel, when do we consider the ID gone?  Is it when the last
+> > process in the container exits, or is it when we generate the last
+> > audit record which could possibly contain the audit container ID?
+> > This patch would appear to support the former, but if we wanted the
+> > latter we would need to grab a reference to the audit container ID
+> > struct so it wouldn't "die" on us before we could emit the signal info
+> > record.
+>
+> Are you concerned with the availability of the data when the audit
+> signal info record is generated, when the kernel last deals with a
+> particular contid or when userspace thinks there will be no more
+> references to it?
+>
+> I've got a bit of a dilemma with this one...
+>
+> In fact, the latter situation you describe isn't a concern at present to
+> be able to deliver the information since the value is copied into the
+> audit signal global internal variables before the signalling task dies
+> and the audit signal info record is created from those copied (cached)
+> values when requested from userspace.
+>
+> So the issue raised above I don't think is a problem.  However, patch 18
+> (which wasn't reviewed because it was a patch to a number of preceeding
+> patches) changes the reporting approach to give a chain of nested
+> contids which isn't reflected in the same level of reporting for the
+> audit signal patch/mechanism.  Solving this is a bit more complex.  We
+> could have the audit signal internal caching store a pointer to the
+> relevant container object and bump its refcount to ensure it doesn't
+> vanish until we are done with it, but the audit signal info binary
+> record format already has a variable length due to the selinux context
+> at the end of that struct and adding a second variable length element to
+> it would make it more complicated (but not impossible) to handle.
 
-[ Upstream commit fa5950e498e7face21a1761f327e6c1152f778c3 ]
+[side note #1: Sorry for the delay, travel/conferences have limited my
+time and I felt we needed to focus on the larger issue of
+netlink/procfs first.  Back to the other topics ...]
 
-None of these spots really needs to crash the kernel.
-In one two cases we can jsut report error to userspace, in the other
-cases we can just use WARN_ON (and leak memory instead).
+[side note #2: I just realized that one can shorten "audit container
+ID" to ACID, I think that's going to be my favorite realization of the
+day :)]
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- net/netfilter/nf_tables_api.c | 9 ++++++---
- net/netfilter/nft_cmp.c       | 6 ++++--
- net/netfilter/nft_reject.c    | 6 ++++--
- 3 files changed, 14 insertions(+), 7 deletions(-)
+My concern wasn't really about the availability of the data, since as
+you said, it is copied into the record buffer, but rather a delay
+between when the audit container ID (ACID) disappears from the
+tracking/list db in the kernel to when it is emitted in an audit
+record from the kernel.  During this time is seems like it could be
+possible for the orchestrator to reintroduce the same ACID value and
+if someone is not taking into account the full audit history they
+could get confused (the full audit history should show the proper
+creation/destruction events in the correct order).  Ultimately I'm not
+sure it is a major issue, and fixing it is likely to be really ugly,
+but I think it would be good to add some comments in the code
+regarding what we guarantee as far as ACID lifetimes are concerned.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 24fddf0322790..289d079008ee8 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1031,7 +1031,8 @@ static int nf_tables_deltable(struct net *net, struct sock *nlsk,
- 
- static void nf_tables_table_destroy(struct nft_ctx *ctx)
- {
--	BUG_ON(ctx->table->use > 0);
-+	if (WARN_ON(ctx->table->use > 0))
-+		return;
- 
- 	rhltable_destroy(&ctx->table->chains_ht);
- 	kfree(ctx->table->name);
-@@ -1446,7 +1447,8 @@ static void nf_tables_chain_destroy(struct nft_ctx *ctx)
- {
- 	struct nft_chain *chain = ctx->chain;
- 
--	BUG_ON(chain->use > 0);
-+	if (WARN_ON(chain->use > 0))
-+		return;
- 
- 	/* no concurrent access possible anymore */
- 	nf_tables_chain_free_chain_rules(chain);
-@@ -7253,7 +7255,8 @@ int __nft_release_basechain(struct nft_ctx *ctx)
- {
- 	struct nft_rule *rule, *nr;
- 
--	BUG_ON(!nft_is_base_chain(ctx->chain));
-+	if (WARN_ON(!nft_is_base_chain(ctx->chain)))
-+		return 0;
- 
- 	nf_tables_unregister_hook(ctx->net, ctx->chain->table, ctx->chain);
- 	list_for_each_entry_safe(rule, nr, &ctx->chain->rules, list) {
-diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
-index fa90a8402845d..79d48c1d06f4d 100644
---- a/net/netfilter/nft_cmp.c
-+++ b/net/netfilter/nft_cmp.c
-@@ -79,7 +79,8 @@ static int nft_cmp_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 
- 	err = nft_data_init(NULL, &priv->data, sizeof(priv->data), &desc,
- 			    tb[NFTA_CMP_DATA]);
--	BUG_ON(err < 0);
-+	if (err < 0)
-+		return err;
- 
- 	priv->sreg = nft_parse_register(tb[NFTA_CMP_SREG]);
- 	err = nft_validate_register_load(priv->sreg, desc.len);
-@@ -129,7 +130,8 @@ static int nft_cmp_fast_init(const struct nft_ctx *ctx,
- 
- 	err = nft_data_init(NULL, &data, sizeof(data), &desc,
- 			    tb[NFTA_CMP_DATA]);
--	BUG_ON(err < 0);
-+	if (err < 0)
-+		return err;
- 
- 	priv->sreg = nft_parse_register(tb[NFTA_CMP_SREG]);
- 	err = nft_validate_register_load(priv->sreg, desc.len);
-diff --git a/net/netfilter/nft_reject.c b/net/netfilter/nft_reject.c
-index 29f5bd2377b0d..b48e58cceeb72 100644
---- a/net/netfilter/nft_reject.c
-+++ b/net/netfilter/nft_reject.c
-@@ -94,7 +94,8 @@ static u8 icmp_code_v4[NFT_REJECT_ICMPX_MAX + 1] = {
- 
- int nft_reject_icmp_code(u8 code)
- {
--	BUG_ON(code > NFT_REJECT_ICMPX_MAX);
-+	if (WARN_ON_ONCE(code > NFT_REJECT_ICMPX_MAX))
-+		return ICMP_NET_UNREACH;
- 
- 	return icmp_code_v4[code];
- }
-@@ -111,7 +112,8 @@ static u8 icmp_code_v6[NFT_REJECT_ICMPX_MAX + 1] = {
- 
- int nft_reject_icmpv6_code(u8 code)
- {
--	BUG_ON(code > NFT_REJECT_ICMPX_MAX);
-+	if (WARN_ON_ONCE(code > NFT_REJECT_ICMPX_MAX))
-+		return ICMPV6_NOROUTE;
- 
- 	return icmp_code_v6[code];
- }
 -- 
-2.20.1
-
+paul moore
+www.paul-moore.com
