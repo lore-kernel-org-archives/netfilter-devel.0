@@ -2,172 +2,189 @@ Return-Path: <SRS0=hCoj=ZA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1717FFC6196
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Nov 2019 20:36:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DB93FC6196
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Nov 2019 21:36:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EC51120674
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Nov 2019 20:36:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4B7082178F
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Nov 2019 21:36:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732214AbfKHUga (ORCPT
+        id S2387812AbfKHVf4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 8 Nov 2019 15:36:30 -0500
-Received: from mout.kundenserver.de ([217.72.192.74]:36201 "EHLO
+        Fri, 8 Nov 2019 16:35:56 -0500
+Received: from mout.kundenserver.de ([212.227.126.130]:33583 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732171AbfKHUg3 (ORCPT
+        with ESMTP id S2387700AbfKHVf4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 8 Nov 2019 15:36:29 -0500
+        Fri, 8 Nov 2019 16:35:56 -0500
 Received: from threadripper.lan ([149.172.19.189]) by mrelayeu.kundenserver.de
- (mreue107 [212.227.15.145]) with ESMTPA (Nemesis) id
- 1MEF87-1iadeR36H7-00AGgW; Fri, 08 Nov 2019 21:36:18 +0100
+ (mreue011 [212.227.15.129]) with ESMTPA (Nemesis) id
+ 1MXXdn-1iQ6AP0R4R-00YveV; Fri, 08 Nov 2019 22:33:06 +0100
 From:   Arnd Bergmann <arnd@arndb.de>
-To:     y2038@lists.linaro.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>
+To:     y2038@lists.linaro.org
 Cc:     linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
-        Eric Dumazet <edumazet@google.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH 5/8] netfilter: xt_time: use time64_t
-Date:   Fri,  8 Nov 2019 21:34:28 +0100
-Message-Id: <20191108203435.112759-6-arnd@arndb.de>
+        jdike@addtoit.com, richard@nod.at, jcmvbkbc@gmail.com,
+        stefanr@s5r6.in-berlin.de, l.stach@pengutronix.de,
+        linux+etnaviv@armlinux.org.uk, christian.gmeiner@gmail.com,
+        airlied@linux.ie, daniel@ffwll.ch, robdclark@gmail.com,
+        sean@poorly.run, valdis.kletnieks@vt.edu,
+        gregkh@linuxfoundation.org, ccaulfie@redhat.com,
+        teigland@redhat.com, hirofumi@mail.parknet.co.jp, jack@suse.com,
+        davem@davemloft.net, edumazet@google.com, pablo@netfilter.org,
+        kadlec@netfilter.org, fw@strlen.de, willemb@google.com,
+        viro@zeniv.linux.org.uk, rfontana@redhat.com, tglx@linutronix.de,
+        linux-um@lists.infradead.org,
+        linux1394-devel@lists.sourceforge.net,
+        etnaviv@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        linux-arm-msm@vger.kernel.org, freedreno@lists.freedesktop.org,
+        devel@driverdev.osuosl.org, cluster-devel@redhat.com,
+        linux-fsdevel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: [PATCH 00/16] drivers: y2038 updates
+Date:   Fri,  8 Nov 2019 22:32:38 +0100
+Message-Id: <20191108213257.3097633-1-arnd@arndb.de>
 X-Mailer: git-send-email 2.20.0
-In-Reply-To: <20191108203435.112759-1-arnd@arndb.de>
-References: <20191108203435.112759-1-arnd@arndb.de>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:LAqgtMHpuHsHVqesPbRDDOnPbG3k3aIkl2ycNWLlt4hNWDe/h94
- GNpZ9xbyyD7LXXBKIdA2s2/AdUHfbg0DIx01Kj4OMx3p5kvSqUbOebvbj/QnE7eakpz0lHv
- uN5N4Lbi3Ve2HiOXFaAex9XSmQCyebw9uVyDgEMXqAnhjjgfzDAXhsrlExb0jFUFKUWnK+D
- 4XcdXehRUk7EHSe1W5zeA==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:uTLnXhQlaoA=:6gkTKIzGkH8u4p9n9EzB5+
- lrHh5mqs0gNbpufpMED1aZFRj6EM8Vdvk21VmgHmavXEMmYc2wxSYeavDcGdpdZ7CadtsRnAO
- qsbfYORBBYZdz02Y0pFnzClpTjdJxDYOiPorKaYrirT28tLfMyelNHuTue4mitFpPQkwUJ2vp
- 1FdPn/cyPCua8wGrtCyi9289PPkzr214fg0Fv+WOBBWFYibuPoFVWzXyI83DcKdtvvPnvqIDz
- wdprTdsC/ZkfYx1s1jMPDmmohjYlPkV8FnO3K6nxce9wT/3gnfnxHFHUeiCMMJA22LZs2nOvn
- OLypew6aJxfs20P57HiMNl93gEsT/ycbJ4slABRZ7SD+vI3RGS4lWKiSvlZ4ZZmiwnhqiqFF6
- Fi/2Y9koVFyxao8U3z3LmwEw2d4k9EduaQb3mljAM4tskCgWqBzRabEsK+FQfK0VwMISD3IIW
- eKKPfoaXuB3AV6ejoIfIyfJQvB+avcI6HFn8HPjfm6LOHo9GWEk0eoUOa9jTziwzOGTcl+cD8
- gcHV80qweuOKUQszTaHIGeyW8GHBB0VgQf7EVzpkJjjJF7Cxl4bJVh8XV/7vXbWIf9M7eiW7O
- mucjrJW1Dqc/K1zHhLFKmZyuNrarpADVQ5zsZZu9VmgOrOVksy4eAIJbaKozfWtrjPhTIEmlZ
- D0+GgCVexquumqnxI1GUzSo2LH4sTJm7GUM6VZ190VgN9woJKTRGsN+7Vw1Az+NSbFtjEehCe
- ApXUQOzEXIOlfr98kuJiFJt4keBc1XueRtApEJZ9SKiLF9K6Hg4vDTcxSG9OWPjl48mdsLGTh
- jn56Ebw8x8hxA5jYZEZPKd2MMV86gz8op0dpLqRShX5Ujbjw2cpu0anrthVv58jvg5/ELj2ro
- rymaqfVxE+cCH9UVrcxg==
+X-Provags-ID: V03:K1:cC60oL5qW9T6f3VnEX4IUPUnbZtH58Z5jHTCkfEP3lSVCyJMvvf
+ nXa+3lb+MuvX4UyJFUN+jNUJOtYV6vEdBeRluSdOxKcMLTIRW/MA2X5WNg5vjL4h5VMaMqq
+ bNkxydHkOOB1gWSeiigewsSsL+Ope/gjBqLstKOktXFNHvIvAI8OyB16Bh3/KHWq5bI5gbP
+ ttyknhIOC7MVt+zSJY39Q==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:C6N/AXULkaM=:Y7JwaiMRl7Ar2O9O2mXFFn
+ XNkpKgwWM8P0qO+0Is3DdFORJejcsg4Z7H/JEbKB71PaPIxwYqUaCL54KvYWbGI4UgpeJv2VL
+ TDM5JP6XHLZEPg418lMXvJDgfjoG3Hi8z6xcm4eVCYMVOopNmDKLw8sRTvZs5Y9MehLPeuCjA
+ FJDznxm+bmmpVwkpxdVxGg/UsFc/GByVXrqgr8aIeNTyU+6QiRoIugryzBDmS8vQIcTfTmtwM
+ Xis+iVVThIPm/7TlELGn4QUpWrGuBM87bpEytZmN7iZ2Xv4Pi09GCc0fWAfdVlykCBom4fWhN
+ SzMqNyByMJJu1qqSoOmRZIb/A06TGj1hHe1DR8fSuMXOJgyyZG4W2LkZTNTrG0kWBaTiNY4qD
+ FOQ5PN5Ds9rUxxJ5jvFQEnBCHs0boCj+R1ogKQHj961SNOjz/iTK9PRAJ2Q/S9lr1OiO0Aill
+ 9n9w+FUDSA0uaCjboLcZG7ZPwbRrutTP1fW0uPjb2lcWPcBIloby7q+PHrtvR5VMW5jiv1fmf
+ hfT7ITXtJL4SPQ1ZG94BaqALxufFNPlW7b2L8+b77UeY7PzZf7Q27rY8HVKNoecjq4sWzCpXp
+ sCo16dBMR11yeGV02rWBECYG21JJTtOeHNbls/EWzI9gHEegxzRctljs0BXpmtr3fDrj8dL0R
+ TjY2ibzd1SUcPAPXUGKnTI3EjBlBn5NTJbwUJGVyl+zhLeAtQdCVVn9ZET82XUaihtFVsb6l/
+ VlZeLSfRYEOZKFWPEnJYv06Nf3Nrd84B+GWSJ7z9QIE1YkNSFvSz0y/FFznyuSImBN+NzxHxs
+ 7v0SH2wqAYB54MS6c3rahz8Oz2PuxEdQKh0LU5tG8fz8w3hUaZHnsrADS9CMXvPoTccssMd61
+ Ly+JSeRt68rTP+cnNhXA==
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The current xt_time driver suffers from the y2038 overflow on 32-bit
-architectures, when the time of day calculations break.
+These are updates to devidce drivers and file systems that for some
+reason or another were not included in the kernel in the previous
+y2038 series.
 
-Also, on both 32-bit and 64-bit architectures, there is a problem with
-info->date_start/stop, which is part of the user ABI and overflows in
-in 2106.
+I've gone through all users of time_t again to make sure the
+kernel is in a long-term maintainable state.
 
-Fix the first issue by using time64_t and explicit calls to div_u64()
-and div_u64_rem(), and document the seconds issue.
+Posting these as a series for better organization, but each change
+here is applicable standalone.
 
-The explicit 64-bit division is unfortunately slower on 32-bit
-architectures, but doing it as unsigned lets us use the optimized
-division-through-multiplication path in most configurations.  This should
-be fine, as the code already does not allow any negative time of day
-values.
+Please merge, review, ack/nack etc as you see fit. My plan is to
+include any patches that don't get a reply this time around in
+a future pull request, probably for linux-5.6.
 
-Using u32 seconds values consistently would probably also work and
-be a little more efficient, but that doesn't feel right as it would
-propagate the y2106 overflow to more place rather than fewer.
+As mentioned before, the full series of 90 patches is available at
+https://git.kernel.org/pub/scm/linux/kernel/git/arnd/playground.git/log/?h=y2038-endgame
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- net/netfilter/xt_time.c | 19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+    Arnd
 
-diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
-index 8dbb4d48f2ed..67cb98489415 100644
---- a/net/netfilter/xt_time.c
-+++ b/net/netfilter/xt_time.c
-@@ -77,12 +77,12 @@ static inline bool is_leap(unsigned int y)
-  * This is done in three separate functions so that the most expensive
-  * calculations are done last, in case a "simple match" can be found earlier.
-  */
--static inline unsigned int localtime_1(struct xtm *r, time_t time)
-+static inline unsigned int localtime_1(struct xtm *r, time64_t time)
- {
- 	unsigned int v, w;
- 
- 	/* Each day has 86400s, so finding the hour/minute is actually easy. */
--	v         = time % SECONDS_PER_DAY;
-+	div_u64_rem(time, SECONDS_PER_DAY, &v);
- 	r->second = v % 60;
- 	w         = v / 60;
- 	r->minute = w % 60;
-@@ -90,13 +90,13 @@ static inline unsigned int localtime_1(struct xtm *r, time_t time)
- 	return v;
- }
- 
--static inline void localtime_2(struct xtm *r, time_t time)
-+static inline void localtime_2(struct xtm *r, time64_t time)
- {
- 	/*
- 	 * Here comes the rest (weekday, monthday). First, divide the SSTE
- 	 * by seconds-per-day to get the number of _days_ since the epoch.
- 	 */
--	r->dse = time / 86400;
-+	r->dse = div_u64(time, SECONDS_PER_DAY);
- 
- 	/*
- 	 * 1970-01-01 (w=0) was a Thursday (4).
-@@ -105,7 +105,7 @@ static inline void localtime_2(struct xtm *r, time_t time)
- 	r->weekday = (4 + r->dse - 1) % 7 + 1;
- }
- 
--static void localtime_3(struct xtm *r, time_t time)
-+static void localtime_3(struct xtm *r, time64_t time)
- {
- 	unsigned int year, i, w = r->dse;
- 
-@@ -160,7 +160,7 @@ time_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	const struct xt_time_info *info = par->matchinfo;
- 	unsigned int packet_time;
- 	struct xtm current_time;
--	s64 stamp;
-+	time64_t stamp;
- 
- 	/*
- 	 * We need real time here, but we can neither use skb->tstamp
-@@ -173,14 +173,14 @@ time_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	 *	1. match before 13:00
- 	 *	2. match after 13:00
- 	 *
--	 * If you match against processing time (get_seconds) it
-+	 * If you match against processing time (ktime_get_real_seconds) it
- 	 * may happen that the same packet matches both rules if
- 	 * it arrived at the right moment before 13:00, so it would be
- 	 * better to check skb->tstamp and set it via __net_timestamp()
- 	 * if needed.  This however breaks outgoing packets tx timestamp,
- 	 * and causes them to get delayed forever by fq packet scheduler.
- 	 */
--	stamp = get_seconds();
-+	stamp = ktime_get_real_seconds();
- 
- 	if (info->flags & XT_TIME_LOCAL_TZ)
- 		/* Adjust for local timezone */
-@@ -193,6 +193,9 @@ time_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	 *   - 'now' is in the weekday mask
- 	 *   - 'now' is in the daytime range time_start..time_end
- 	 * (and by default, libxt_time will set these so as to match)
-+	 *
-+	 * note: info->date_start/stop are unsigned 32-bit values that
-+	 *	 can hold values beyond y2038, but not after y2106.
- 	 */
- 
- 	if (stamp < info->date_start || stamp > info->date_stop)
+Arnd Bergmann (16):
+  staging: exfat: use prandom_u32() for i_generation
+  fat: use prandom_u32() for i_generation
+  net: sock: use __kernel_old_timespec instead of timespec
+  dlm: use SO_SNDTIMEO_NEW instead of SO_SNDTIMEO_OLD
+  xtensa: ISS: avoid struct timeval
+  um: ubd: use 64-bit time_t where possible
+  acct: stop using get_seconds()
+  tsacct: add 64-bit btime field
+  netfilter: nft_meta: use 64-bit time arithmetic
+  packet: clarify timestamp overflow
+  quota: avoid time_t in v1_disk_dqblk definition
+  hostfs: pass 64-bit timestamps to/from user space
+  hfs/hfsplus: use 64-bit inode timestamps
+  drm/msm: avoid using 'timespec'
+  drm/etnaviv: use ktime_t for timeouts
+  firewire: ohci: stop using get_seconds() for BUS_TIME
+
+ arch/um/drivers/cow.h                         |  2 +-
+ arch/um/drivers/cow_user.c                    |  7 +++--
+ arch/um/drivers/ubd_kern.c                    | 10 +++----
+ arch/um/include/shared/os.h                   |  2 +-
+ arch/um/os-Linux/file.c                       |  2 +-
+ .../platforms/iss/include/platform/simcall.h  |  4 +--
+ drivers/firewire/ohci.c                       |  2 +-
+ drivers/gpu/drm/etnaviv/etnaviv_drv.c         | 19 ++++++-------
+ drivers/gpu/drm/etnaviv/etnaviv_drv.h         | 21 ++++++--------
+ drivers/gpu/drm/etnaviv/etnaviv_gem.c         |  5 ++--
+ drivers/gpu/drm/etnaviv/etnaviv_gem.h         |  2 +-
+ drivers/gpu/drm/etnaviv/etnaviv_gpu.c         |  4 +--
+ drivers/gpu/drm/etnaviv/etnaviv_gpu.h         |  4 +--
+ drivers/gpu/drm/msm/msm_drv.h                 |  3 +-
+ drivers/staging/exfat/exfat_super.c           |  4 +--
+ fs/dlm/lowcomms.c                             |  6 ++--
+ fs/fat/inode.c                                |  3 +-
+ fs/hfs/hfs_fs.h                               | 26 +++++++++++++----
+ fs/hfs/inode.c                                |  4 +--
+ fs/hfsplus/hfsplus_fs.h                       | 26 +++++++++++++----
+ fs/hfsplus/inode.c                            | 12 ++++----
+ fs/hostfs/hostfs.h                            | 22 +++++++++------
+ fs/hostfs/hostfs_kern.c                       | 15 ++++++----
+ fs/quota/quotaio_v1.h                         |  6 ++--
+ include/linux/skbuff.h                        |  7 +++--
+ include/uapi/linux/acct.h                     |  2 ++
+ include/uapi/linux/taskstats.h                |  6 +++-
+ kernel/acct.c                                 |  4 ++-
+ kernel/tsacct.c                               |  9 ++++--
+ net/compat.c                                  |  2 +-
+ net/ipv4/tcp.c                                | 28 +++++++++++--------
+ net/netfilter/nft_meta.c                      | 10 +++----
+ net/packet/af_packet.c                        | 27 +++++++++++-------
+ net/socket.c                                  |  2 +-
+ 34 files changed, 184 insertions(+), 124 deletions(-)
+
 -- 
 2.20.0
 
+Cc: jdike@addtoit.com
+Cc: richard@nod.at
+Cc: jcmvbkbc@gmail.com
+Cc: stefanr@s5r6.in-berlin.de
+Cc: l.stach@pengutronix.de
+Cc: linux+etnaviv@armlinux.org.uk
+Cc: christian.gmeiner@gmail.com
+Cc: airlied@linux.ie
+Cc: daniel@ffwll.ch
+Cc: robdclark@gmail.com
+Cc: sean@poorly.run
+Cc: valdis.kletnieks@vt.edu
+Cc: gregkh@linuxfoundation.org
+Cc: ccaulfie@redhat.com
+Cc: teigland@redhat.com
+Cc: hirofumi@mail.parknet.co.jp
+Cc: jack@suse.com
+Cc: davem@davemloft.net
+Cc: edumazet@google.com
+Cc: pablo@netfilter.org
+Cc: kadlec@netfilter.org
+Cc: fw@strlen.de
+Cc: willemb@google.com
+Cc: viro@zeniv.linux.org.uk
+Cc: rfontana@redhat.com
+Cc: tglx@linutronix.de
+Cc: linux-um@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux1394-devel@lists.sourceforge.net
+Cc: etnaviv@lists.freedesktop.org
+Cc: dri-devel@lists.freedesktop.org>
+Cc: linux-arm-msm@vger.kernel.org>
+Cc: freedreno@lists.freedesktop.org>
+Cc: devel@driverdev.osuosl.org>
+Cc: cluster-devel@redhat.com>
+Cc: linux-fsdevel@vger.kernel.org>
+Cc: netdev@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org>
+Cc: coreteam@netfilter.org>
