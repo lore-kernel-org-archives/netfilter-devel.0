@@ -2,250 +2,139 @@ Return-Path: <SRS0=hCoj=ZA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2ADF2FA372C
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Nov 2019 18:26:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF0FEFC6198
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Nov 2019 20:35:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DE90F215EA
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Nov 2019 18:26:37 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="y1K0awVa"
+	by mail.kernel.org (Postfix) with ESMTP id 8FC6E20674
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Nov 2019 20:35:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728002AbfKHS0d (ORCPT
+        id S1731106AbfKHUfY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 8 Nov 2019 13:26:33 -0500
-Received: from mail-lj1-f194.google.com ([209.85.208.194]:33388 "EHLO
-        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727065AbfKHS0c (ORCPT
+        Fri, 8 Nov 2019 15:35:24 -0500
+Received: from mout.kundenserver.de ([212.227.17.10]:51245 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727477AbfKHUfY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 8 Nov 2019 13:26:32 -0500
-Received: by mail-lj1-f194.google.com with SMTP id t5so7249521ljk.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 08 Nov 2019 10:26:30 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=yfrqk4oAZSRdxNXU7NWHV3s/qknksusoqMId/97+bh8=;
-        b=y1K0awVaPkO46sJakcQS8uKieCdS/hCTRRGdp7q5Dcku0FUI40wj7F+zld2UORzEbf
-         t8YG8QSWNop4/suFu+5p6OBsjDlLmTswYjH/3bLUmv9AcOoVfZDeOxZjGeOYnoTXA6HQ
-         J8aMPm2axVmOGDf5xSwuijEvUOv5sKpFh9JUyrH0Kqx/t6feWNf2IUF+xYaJPauhde4n
-         IuGvkCufzn9sVUy4WXyW1gLblbgYB8D+aexe4RpGSB9pg3OV5iGRR2py7xDoNKIYBlIc
-         PZTrGRMZIlhMNrWif9jD4E8iCrXApMODQRFEsPi4vx5MLLJacWWpJdjOsLxXzD9bVAd1
-         r26w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=yfrqk4oAZSRdxNXU7NWHV3s/qknksusoqMId/97+bh8=;
-        b=aIFq+nMlAUFf0UXXN3fisx2jNirJJ3Wo6Q9707TnMgr3m7tXYX4o+HF9C1rm/s+dXF
-         DezvIu/b08FO7bDEo2C89XxWeSOf/VQNj6FowwpuJFjuWUiWe5qVizi+eWFVH4QRCDeC
-         pDNyIQalz2Wi1NYmklmTqKBwn5FhLpUbIugq/iLh9EgUVK+hl3qVgxFIh9dxGvJ7TP4e
-         RBj1Be1vTRbpfFECjDtzE4nMT2dUZ2zhKltmSVK3vZvTE2dwTwKab1ia7MAoE9iKUXXR
-         uzXz5Qiv4yfWEaGa7D0XS61Ri3z7/jMD3bogfqGpuDqO5hVjnhJoycmuKYb1NasGiFqC
-         YeWw==
-X-Gm-Message-State: APjAAAUyvpbg8cq7IHD4aR9hSeSoJ78JOMi9EFQmxSf/JtFE8YojZmtd
-        08z8gtIFDHVASMcdu0+Qi+sjC4dVx8Igtom/xyqY
-X-Google-Smtp-Source: APXvYqw1CojLXlLXhi44VGUdhNOsRF4p9i8B7yLeQIjTFUXYF7RTFSwfHA6RC+gtdGcnk7X56NGlBF0xrTDt5/lxnqc=
-X-Received: by 2002:a2e:85d5:: with SMTP id h21mr7824291ljj.243.1573237589836;
- Fri, 08 Nov 2019 10:26:29 -0800 (PST)
+        Fri, 8 Nov 2019 15:35:24 -0500
+Received: from threadripper.lan ([149.172.19.189]) by mrelayeu.kundenserver.de
+ (mreue107 [212.227.15.145]) with ESMTPA (Nemesis) id
+ 1N33V5-1hlqNF3sD7-013KFA; Fri, 08 Nov 2019 21:34:45 +0100
+From:   Arnd Bergmann <arnd@arndb.de>
+To:     y2038@lists.linaro.org
+Cc:     linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Corey Minyard <minyard@acm.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        John Stultz <john.stultz@linaro.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        linuxppc-dev@lists.ozlabs.org,
+        openipmi-developer@lists.sourceforge.net,
+        linux-input@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        sparclinux@vger.kernel.org
+Subject: [PATCH 0/8] y2038: bug fixes from y2038 work
+Date:   Fri,  8 Nov 2019 21:34:23 +0100
+Message-Id: <20191108203435.112759-1-arnd@arndb.de>
+X-Mailer: git-send-email 2.20.0
 MIME-Version: 1.0
-References: <cover.1568834524.git.rgb@redhat.com> <6fb4e270bfafef3d0477a06b0365fdcc5a5305b5.1568834524.git.rgb@redhat.com>
- <CAHC9VhS2111YTQ_rbHKe6+n9coPNbcTJqf5wnBx9LYHSf69THA@mail.gmail.com> <20191025210004.jzkenjg6jrka22ak@madcap2.tricolour.ca>
-In-Reply-To: <20191025210004.jzkenjg6jrka22ak@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Fri, 8 Nov 2019 13:26:18 -0500
-Message-ID: <CAHC9VhRMJkeC7HkAMr1TwymtT7eHOB_B=_28R6zVfQQk-gW-DA@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V7 04/21] audit: convert to contid list to check
- for orch/engine ownership
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
-        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
-        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
-        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
-        mpatel@redhat.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Provags-ID: V03:K1:onYIVYfp5Mx1RrUFk0F9wq5iI+dqorjM5aBE72U93aTSbPGsiEH
+ OgqmaTzcj80pu1s1hMBgp49QlgyJ7rNubi4HQ+SNtLKHlNHw7UDpadkGCFY+GcDVw41DVye
+ FrU7tCGHXGj1wcbqKgqiBp/hv63ZhOmHxE5v1qZQbLWrHUnVlooIDiEJVfnnnRlsetqKDMj
+ 6/PfgmoNhjrn6CYi3P+AA==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:V3pT7w4OZMM=:zYEUjZknHOmFruRY3Tk/pl
+ wRrkB9EkTxkg3VX6P5V+Sz7Mzw/U9rqfhCLPbV5K7bnCIOm6PPWp9uwvkvJPRNr/xaYhNNVDL
+ HBhOO1RU2ihx43VfyjSymHoIRA4e8J6kXO0n+ff3+SvsuXV67dHzWdiJgJdF5fcHeuULLdOGM
+ wEkUwrKPcDyYR2IP5FsRgltiX/Lq+Bh0rqiRA3p94HrILlG/sn6iSj9ZvDGEfMeJ1paYNCGl7
+ K1GkrVql1wtqYBsrKBx9hibZ6cZ759vK8OskStBQQf1G8iFUeRCEmpVMUAPZ9sgkGKd4ETeFV
+ xUJ//Vddt0O+5XMv4EBvpHgRBuqY/HuHqky1CIPHSbRCEVNsobz4XM9t1mJvfH1c/MD7a+azu
+ h3okZcNpYLzCLyuML9cb16m1MQqIcXaN8ql7W7+jhj6tRhSNNWwRN3dvgapg9McTZLBmzu+KF
+ 7POpxVXIIIVfC3tCBYedhED2kopxojiTYfI2bZs6Gx9NaLdGQTabvZX5bYqIL3/SOPdU1gH6U
+ TWAYwU83i4p7DEqD90Lubci9HhuB08X+QOBaBt0IAJEEDtwNU5XLD+lSkHcnluCAUiO9Ltu3E
+ QgtdeFAFmvb6TgiVKr69oZrPobspdM0HrD76sFjegnfjPXFgCXF2exI+am2mash87OEVn3aB0
+ KQrqKLUiNdfqa64AJ9txSQpXu/7YXUnedz76RMpQ/YZ+iaZ5okFTc3k170y2RvKY1VL8oWeM4
+ T0FHUMaj1O35XhR0Cp6Rg6yqR9Top24p39TPTuI3jSJjBXQo/xRwKeAUKp7cOUUulMnWmij4c
+ iyZ7TQZCCMQhwMHmv0ImigrqmoaXKuUYkolCj7pl5gSE30zlpfyPWeHE+jdOO8CqVztGI6UO/
+ ibGTxu1AjHd9Ore1WJPg==
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Oct 25, 2019 at 5:00 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2019-10-10 20:38, Paul Moore wrote:
-> > On Wed, Sep 18, 2019 at 9:24 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > Store the audit container identifier in a refcounted kernel object that
-> > > is added to the master list of audit container identifiers.  This will
-> > > allow multiple container orchestrators/engines to work on the same
-> > > machine without danger of inadvertantly re-using an existing identifier.
-> > > It will also allow an orchestrator to inject a process into an existing
-> > > container by checking if the original container owner is the one
-> > > injecting the task.  A hash table list is used to optimize searches.
-> > >
-> > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > > ---
-> > >  include/linux/audit.h | 26 ++++++++++++++--
-> > >  kernel/audit.c        | 86 ++++++++++++++++++++++++++++++++++++++++++++++++---
-> > >  kernel/audit.h        |  8 +++++
-> > >  3 files changed, 112 insertions(+), 8 deletions(-)
-> >
-> > One general comment before we go off into the weeds on this ... I can
-> > understand why you wanted to keep this patch separate from the earlier
-> > patches, but as we get closer to having mergeable code this should get
-> > folded into the previous patches.  For example, there shouldn't be a
-> > change in audit_task_info where you change the contid field from a u64
-> > to struct pointer, it should be a struct pointer from the start.
->
-> I should have marked this patchset as RFC even though it was v7 due to a
-> lot of new ideas/code that was added with uncertainties needing comment
-> and direction.
->
-> > It's also disappointing that idr appears to only be for 32-bit ID
-> > values, if we had a 64-bit idr I think we could simplify this greatly.
->
-> Perhaps.  I do still see value in letting the orchestrator choose the
-> value.
+I've gone through the remaining uses of time_t etc and come up with a
+set of 90 patches of varying complexity and importance, to the point
+of being able to remove the old time_t/timeval/timespec from the kernel
+headers completely.
 
-Agreed.  I was just thinking out loud that it seems like much of what
-we need could be a generic library mechanism similar to, but not quite
-like, the existing idr code.
+This set includes the eight patches that I think should be merged
+right away and backported into stable kernels if possible.
 
-> > > diff --git a/include/linux/audit.h b/include/linux/audit.h
-> > > index f2e3b81f2942..e317807cdd3e 100644
-> > > --- a/include/linux/audit.h
-> > > +++ b/include/linux/audit.h
-> > > @@ -95,10 +95,18 @@ struct audit_ntp_data {
-> > >  struct audit_ntp_data {};
-> > >  #endif
-> > >
-> > > +struct audit_cont {
-> > > +       struct list_head        list;
-> > > +       u64                     id;
-> > > +       struct task_struct      *owner;
-> > > +       refcount_t              refcount;
-> > > +       struct rcu_head         rcu;
-> > > +};
-> >
-> > It seems as though in most of the code you are using "contid", any
-> > reason why didn't stick with that naming scheme here, e.g. "struct
-> > audit_contid"?
->
-> I was using contid to refer to the value itself and cont to refer to the
-> refcounted object.  I find cont a bit too terse, so I'm still thinking
-> of changing it.  Perhaps contobj?
+Please apply individual patches to the respective maintainer trees
+for either v5.4 or v5.5 as appropriate.
 
-Yes, just "cont" is a bit too ambiguous considering we have both
-integer values and structures being passed around.  Whatever you
-decide on, a common base with separate suffixes seems like a good
-idea.
+For reference, the full series of 90 patches can be found at
+https://git.kernel.org/pub/scm/linux/kernel/git/arnd/playground.git/log/?h=y2038-endgame
 
-FWIW, I still think the "audit container ID" : "ACID" thing is kinda funny ;)
+      Arnd
 
-> > > @@ -203,11 +211,15 @@ static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
-> > >
-> > >  static inline u64 audit_get_contid(struct task_struct *tsk)
-> > >  {
-> > > -       if (!tsk->audit)
-> > > +       if (!tsk->audit || !tsk->audit->cont)
-> > >                 return AUDIT_CID_UNSET;
-> > > -       return tsk->audit->contid;
-> > > +       return tsk->audit->cont->id;
-> > >  }
-> >
-> > Assuming for a moment that we implement an audit_contid_get() (see
-> > Neil's comment as well as mine below), we probably need to name this
-> > something different so we don't all lose our minds when we read this
-> > code.  On the plus side we can probably preface it with an underscore
-> > since it is a static, in which case _audit_contid_get() might be okay,
-> > but I'm open to suggestions.
->
-> I'm fine with the "_" prefix, can you point to precedent or convention?
+Arnd Bergmann (8):
+  y2038: timex: remove incorrect time_t truncation
+  timekeeping: optimize ns_to_timespec64
+  powerpc: fix vdso32 for ppc64le
+  ipmi: kill off 'timespec' usage again
+  netfilter: xt_time: use time64_t
+  lp: fix sparc64 LPSETTIMEOUT ioctl
+  ppdev: fix PPGETTIME/PPSETTIME ioctls
+  Input: input_event: fix struct padding on sparc64
 
-Generally kernel functions which are "special"/private/unsafe/etc.
-have a one, or two, underscore prefix.  If you don't want to add the
-prefix, that's fine, but please change the name as mentioned
-previously.
+ arch/powerpc/kernel/vdso32/gettimeofday.S |  2 +-
+ drivers/char/ipmi/ipmi_si_intf.c          | 40 ++++++++---------------
+ drivers/char/lp.c                         |  4 +++
+ drivers/char/ppdev.c                      | 16 ++++++---
+ drivers/input/evdev.c                     |  3 ++
+ drivers/input/misc/uinput.c               |  3 ++
+ include/uapi/linux/input.h                |  1 +
+ kernel/time/ntp.c                         |  2 +-
+ kernel/time/time.c                        | 21 +++++++-----
+ net/netfilter/xt_time.c                   | 19 ++++++-----
+ 10 files changed, 61 insertions(+), 50 deletions(-)
 
-> > > @@ -231,7 +235,9 @@ int audit_alloc(struct task_struct *tsk)
-> > >         }
-> > >         info->loginuid = audit_get_loginuid(current);
-> > >         info->sessionid = audit_get_sessionid(current);
-> > > -       info->contid = audit_get_contid(current);
-> > > +       info->cont = audit_cont(current);
-> > > +       if (info->cont)
-> > > +               refcount_inc(&info->cont->refcount);
-> >
-> > See the other comments about a "get" function, but I think we need a
-> > RCU read lock around the above, no?
->
-> The rcu read lock is to protect the list rather than the cont object
-> itself, the latter of which is protected by its refcount.
-
-What protects you from info->cont going away between when you fetch
-the pointer via audit_cont() to when you dereference it in
-refcount_inc()?
-
-> > > @@ -2397,8 +2438,43 @@ int audit_set_contid(struct task_struct *task, u64 contid)
-> > >         else if (audit_contid_set(task))
-> > >                 rc = -ECHILD;
-> > >         read_unlock(&tasklist_lock);
-> > > -       if (!rc)
-> > > -               task->audit->contid = contid;
-> > > +       if (!rc) {
-> > > +               struct audit_cont *oldcont = audit_cont(task);
-> >
-> > Previously we held the tasklist_lock to protect the audit container ID
-> > associated with the struct, should we still be holding it here?
->
-> We held the tasklist_lock to protect access to the target task's
-> child/parent/thread relationships.
-
-What protects us in the case of simultaneous calls to audit_set_contid()?
-
-> > Regardless, I worry that the lock dependencies between the
-> > tasklist_lock and the audit_contid_list_lock are going to be tricky.
-> > It might be nice to document the relationship in a comment up near
-> > where you declare audit_contid_list_lock.
->
-> I don't think there should be a conflict between the two.
->
-> The contid_list_lock doesn't care if the cont object is associated to a
-> particular task.
-
-Please document the relationship between the two, I worry we could
-easily run into lockdep problems without a clearly defined ordering.
-
-> > > +               struct audit_cont *cont = NULL;
-> > > +               struct audit_cont *newcont = NULL;
-> > > +               int h = audit_hash_contid(contid);
-> > > +
-> > > +               spin_lock(&audit_contid_list_lock);
-> > > +               list_for_each_entry_rcu(cont, &audit_contid_hash[h], list)
-> > > +                       if (cont->id == contid) {
-> > > +                               /* task injection to existing container */
-> > > +                               if (current == cont->owner) {
-> >
-> > I understand the desire to limit a given audit container ID to the
-> > orchestrator that created it, but are we certain that we can track
-> > audit container ID "ownership" via a single instance of a task_struct?
->
-> Are you suggesting that a task_struct representing a task may be
-> replaced for a specific task?  I don't believe that will ever happen.
->
-> >  What happens when the orchestrator stops/restarts/crashes?  Do we
-> > even care?
->
-> Reap all of its containers?
-
-These were genuine questions, I'm not suggesting anything in
-particular, I'm just curious about how we handle an orchestrator that
-isn't continuously running ... is this possible?  Do we care?
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Corey Minyard <minyard@acm.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Stephen Boyd <sboyd@kernel.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-kernel@vger.kernel.org
+Cc: openipmi-developer@lists.sourceforge.net
+Cc: linux-input@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org
+Cc: netdev@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
 
 -- 
-paul moore
-www.paul-moore.com
+2.20.0
+
