@@ -2,77 +2,50 @@ Return-Path: <SRS0=VjVr=ZB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E853C43331
-	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Nov 2019 11:20:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AE96C43331
+	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Nov 2019 15:10:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E8C31215EA
-	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Nov 2019 11:20:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B883215EA
+	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Nov 2019 15:10:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726448AbfKILUW (ORCPT
+        id S1726641AbfKIPKm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 9 Nov 2019 06:20:22 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:40590 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbfKILUV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 9 Nov 2019 06:20:21 -0500
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1iTOmo-0003te-Kn; Sat, 09 Nov 2019 12:20:10 +0100
-Date:   Sat, 9 Nov 2019 12:20:10 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Arnd Bergmann <arnd@arndb.de>
-Cc:     y2038@lists.linaro.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        linux-kernel@vger.kernel.org, Ander Juaristi <a@juaristi.eus>,
-        wenxu <wenxu@ucloud.cn>, Thomas Gleixner <tglx@linutronix.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH 09/16] netfilter: nft_meta: use 64-bit time arithmetic
-Message-ID: <20191109112010.GC15063@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>, Arnd Bergmann <arnd@arndb.de>,
-        y2038@lists.linaro.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        linux-kernel@vger.kernel.org, Ander Juaristi <a@juaristi.eus>,
-        wenxu <wenxu@ucloud.cn>, Thomas Gleixner <tglx@linutronix.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-References: <20191108213257.3097633-1-arnd@arndb.de>
- <20191108213257.3097633-10-arnd@arndb.de>
+        Sat, 9 Nov 2019 10:10:42 -0500
+Received: from [211.53.128.215] ([211.53.128.215]:45522 "EHLO MAIL.isd.co.kr"
+        rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726282AbfKIPKl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 9 Nov 2019 10:10:41 -0500
+Received: from 192.168.1.3 (217.217.179.17) by MAIL.isd.co.kr (10.10.10.22)
+ with Microsoft SMTP Server id 14.3.123.3; Sun, 10 Nov 2019 00:10:24 +0900
+Date:   Sat, 9 Nov 2019 16:10:24 +0100
+From:   Peter Wong <choimj@isd.co.kr>
+Reply-To: Peter Wong <peterwongpwhk@gmail.com>
+To:     <netfilter-devel@vger.kernel.org>
+Message-ID: <23877292.31275.1573312226405.JavaMail.cash@211.53.128.215>
+Subject: Investment opportunity
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191108213257.3097633-10-arnd@arndb.de>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [217.217.179.17]
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Nov 08, 2019 at 10:32:47PM +0100, Arnd Bergmann wrote:
-> On 32-bit architectures, get_seconds() returns an unsigned 32-bit
-> time value, which also matches the type used in the nft_meta
-> code. This will not overflow in year 2038 as a time_t would, but
-> it still suffers from the overflow problem later on in year 2106.
+Greetings,
 
-I wonder if the assumption that people will still use nft_meta 80 years
-from now is an optimistic or pessimistic one. :)
+Find attached email very confidential. reply for more details
 
-> Change this instance to use the time64_t type consistently
-> and avoid the deprecated get_seconds().
-> 
-> The nft_meta_weekday() calculation potentially gets a little slower
-> on 32-bit architectures, but now it has the same behavior as on
-> 64-bit architectures and does not overflow.
-> 
-> Fixes: 63d10e12b00d ("netfilter: nft_meta: support for time matching")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Thanks.
+Peter Wong
 
-Acked-by: Phil Sutter <phil@nwl.cc>
+
+
+
+----------------------------------------------------
+This email was sent by the shareware version of Postman Professional.
+
