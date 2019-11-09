@@ -1,127 +1,68 @@
-Return-Path: <SRS0=hCoj=ZA=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=VjVr=ZB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE35AFC6197
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Nov 2019 21:36:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62143C43331
+	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Nov 2019 07:57:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BEFBC214DB
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Nov 2019 21:36:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 365D721882
+	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Nov 2019 07:57:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732216AbfKHVgc (ORCPT
+        id S1726135AbfKIH5W (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 8 Nov 2019 16:36:32 -0500
-Received: from mout.kundenserver.de ([212.227.126.131]:40285 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731657AbfKHVgc (ORCPT
+        Sat, 9 Nov 2019 02:57:22 -0500
+Received: from mx139-tc.baidu.com ([61.135.168.139]:40919 "EHLO
+        tc-sys-mailedm01.tc.baidu.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725861AbfKIH5W (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 8 Nov 2019 16:36:32 -0500
-Received: from threadripper.lan ([149.172.19.189]) by mrelayeu.kundenserver.de
- (mreue011 [212.227.15.129]) with ESMTPA (Nemesis) id
- 1MHXSD-1ig8Ef1y1B-00DYFh; Fri, 08 Nov 2019 22:36:12 +0100
-From:   Arnd Bergmann <arnd@arndb.de>
-To:     y2038@lists.linaro.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>
-Cc:     linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
-        Ander Juaristi <a@juaristi.eus>, wenxu <wenxu@ucloud.cn>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org
-Subject: [PATCH 09/16] netfilter: nft_meta: use 64-bit time arithmetic
-Date:   Fri,  8 Nov 2019 22:32:47 +0100
-Message-Id: <20191108213257.3097633-10-arnd@arndb.de>
-X-Mailer: git-send-email 2.20.0
-In-Reply-To: <20191108213257.3097633-1-arnd@arndb.de>
-References: <20191108213257.3097633-1-arnd@arndb.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:8e4BtkTZhkDHnhj4em5WE6DJ2Vkq2Wh8mzdxKAtzODBb4B8f/ed
- 1DGYs7ESWLEtqmT/CcVkHt+/jTl1TdrlCbYVhmDWsfDO6ZSQ/WOUgNlu6NcnJYc1TIxaznY
- ICGDL51il9EAV1ONkEj2C3NvH/5CeXp/Ah0RZdx3J8g4pFdkn0H2eqIASfMU4ZCCfw4FYqq
- mIeUVaqKsjByJJ274lYZw==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:BXMIyk7bYig=:/XFifkUlnyQ21O7sbEHUKu
- Nd04r+p1qEyeBSJA6OQQIt0C0EEJhrJu5ULg7ArJrDLL6Sc+zGcRT2eBCMuyKOVu2pbT3y/KO
- Qjz3kLq+YSfMw05N8pByhJ5Sgk6lAhl+XHfMQJ47ws5al9fl6GCjo6LjmhfQj6KLsM+hiIxBk
- 7MdHAuoWEcT39E81h/0I9+oL89nPaFCLqPnZwTmSF/FWjpqM8nOSRaiwqQ3i4wCeLjz5qpSK/
- Xlz8ivOmvP6eDQybCUGKiusaZob3Qu5J1HT+iCkdwbkCW7VezbiowHMrx6+YAaoWZ7oGqMCjI
- WNzx2cn+FrVgdxhuePz8qk4yxVoexAwMSYFO8tqcSk2NNCPR+l98/Typ+IDnPBTB6/aYvvFTc
- FLnYlQSfhTbqhm7CRlSAD/Jn2cZr4mJFwenXeyx9jqGvK0epNm3bI4T1s8AXxUdDpZOtAmxsN
- ytctvQbk+kMS6sen/4zxK+MYwgkH4dA1S1tCPAcGk6OnxFcf5hVGCU5G3Oa8gD1SlOelgFWuh
- 3k44ZAjp5/YcrPu3k0aytdVAsWbsZGtej2QVB3mX67/nuj7nS+U6fsqXFr2WEiIFCw2B7cThx
- ZEYPdBFwbvKL8mL9h+2pzE2OpEcIW6u5gIxgnJCyNPHK5LD4DWbgvmyq65jrxITTE7ZKx3e43
- G4moguidGfoX3WGwk4MIoD2sLEVWdV0CW5uafFnB/gUYt9Glob0OWX1xCp8kE4ecBHLbTw1be
- QRiyX7UFJf7QgjYwIpVuhdzqNhLTUyjg8kL8LUDxKbM9tKn/s6AOmtXzmJCtRnnPNXq/G3bxT
- 4DDfDS0cJZl/SuY3dszyqTxUmYYoADpxh/WaDiqwS6tX5SK+eGIVmXzM1p/bDz9QrQ3o4OdXn
- +8OEInWfu8d0Wk8i3ssw==
+        Sat, 9 Nov 2019 02:57:22 -0500
+X-Greylist: delayed 412 seconds by postgrey-1.27 at vger.kernel.org; Sat, 09 Nov 2019 02:57:21 EST
+Received: from localhost (cp01-cos-dev01.cp01.baidu.com [10.92.119.46])
+        by tc-sys-mailedm01.tc.baidu.com (Postfix) with ESMTP id 59FF52040041
+        for <netfilter-devel@vger.kernel.org>; Sat,  9 Nov 2019 15:50:17 +0800 (CST)
+From:   Li RongQing <lirongqing@baidu.com>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH] netfilter: only call csum_tcpudp_magic for TCP/UDP packets
+Date:   Sat,  9 Nov 2019 15:50:17 +0800
+Message-Id: <1573285817-32651-1-git-send-email-lirongqing@baidu.com>
+X-Mailer: git-send-email 1.7.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 32-bit architectures, get_seconds() returns an unsigned 32-bit
-time value, which also matches the type used in the nft_meta
-code. This will not overflow in year 2038 as a time_t would, but
-it still suffers from the overflow problem later on in year 2106.
+csum_tcpudp_magic should not be called to compute checksum
+for non-TCP/UDP packets, like ICMP with wrong checksum
 
-Change this instance to use the time64_t type consistently
-and avoid the deprecated get_seconds().
-
-The nft_meta_weekday() calculation potentially gets a little slower
-on 32-bit architectures, but now it has the same behavior as on
-64-bit architectures and does not overflow.
-
-Fixes: 63d10e12b00d ("netfilter: nft_meta: support for time matching")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
 ---
- net/netfilter/nft_meta.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ net/netfilter/utils.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 317e3a9e8c5b..dda1e55d5801 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -33,19 +33,19 @@
- 
- static DEFINE_PER_CPU(struct rnd_state, nft_prandom_state);
- 
--static u8 nft_meta_weekday(unsigned long secs)
-+static u8 nft_meta_weekday(time64_t secs)
- {
- 	unsigned int dse;
- 	u8 wday;
- 
- 	secs -= NFT_META_SECS_PER_MINUTE * sys_tz.tz_minuteswest;
--	dse = secs / NFT_META_SECS_PER_DAY;
-+	dse = div_u64(secs, NFT_META_SECS_PER_DAY);
- 	wday = (4 + dse) % NFT_META_DAYS_PER_WEEK;
- 
- 	return wday;
- }
- 
--static u32 nft_meta_hour(unsigned long secs)
-+static u32 nft_meta_hour(time64_t secs)
- {
- 	struct tm tm;
- 
-@@ -250,10 +250,10 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 		nft_reg_store64(dest, ktime_get_real_ns());
- 		break;
- 	case NFT_META_TIME_DAY:
--		nft_reg_store8(dest, nft_meta_weekday(get_seconds()));
-+		nft_reg_store8(dest, nft_meta_weekday(ktime_get_real_seconds()));
- 		break;
- 	case NFT_META_TIME_HOUR:
--		*dest = nft_meta_hour(get_seconds());
-+		*dest = nft_meta_hour(ktime_get_real_seconds());
- 		break;
- 	default:
- 		WARN_ON(1);
+diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
+index 51b454d8fa9c..72eace52874e 100644
+--- a/net/netfilter/utils.c
++++ b/net/netfilter/utils.c
+@@ -17,9 +17,12 @@ __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
+ 	case CHECKSUM_COMPLETE:
+ 		if (hook != NF_INET_PRE_ROUTING && hook != NF_INET_LOCAL_IN)
+ 			break;
+-		if ((protocol != IPPROTO_TCP && protocol != IPPROTO_UDP &&
+-		    !csum_fold(skb->csum)) ||
+-		    !csum_tcpudp_magic(iph->saddr, iph->daddr,
++		if (protocol != IPPROTO_TCP && protocol != IPPROTO_UDP) {
++			if (!csum_fold(skb->csum)) {
++				skb->ip_summed = CHECKSUM_UNNECESSARY;
++				break;
++			}
++		} else if (!csum_tcpudp_magic(iph->saddr, iph->daddr,
+ 				       skb->len - dataoff, protocol,
+ 				       skb->csum)) {
+ 			skb->ip_summed = CHECKSUM_UNNECESSARY;
 -- 
-2.20.0
+2.16.2
 
