@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 807A9C43331
-	for <netfilter-devel@archiver.kernel.org>; Sun, 10 Nov 2019 02:58:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB448C43331
+	for <netfilter-devel@archiver.kernel.org>; Sun, 10 Nov 2019 03:07:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4FD8A21019
-	for <netfilter-devel@archiver.kernel.org>; Sun, 10 Nov 2019 02:58:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8D4F5215EA
+	for <netfilter-devel@archiver.kernel.org>; Sun, 10 Nov 2019 03:07:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1573354693;
-	bh=6A8AMzApxeD633JBTo2GcM4Q0z+6kicVCh4alMGaeGo=;
+	s=default; t=1573355252;
+	bh=Nyd3IFEncmva4CFy6JnvNMxW1suuTboYSQorV7E3X2s=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=t3T3AgqPbplL2Exyg4EGpJ9Xfbpvwd0tdJtFnY7G97AJUpWZcFeWDfQApxoTV3Vhr
-	 xfqrI7Dh47po0Ud7nNcz7GFhqUVCjw1lBbi9BkK4jJi9axrBQ9+9gX6Lf9LvhGTCih
-	 SPD2OFzwWkSna/2E8V0Cn5QF0xBKvgaBS/xrFmS4=
+	b=H1faJO/m3Yy/jcI1/B9+rf63FR0Wb4I1CEH6A33kpY3hwWtjKygmbCo1BOJzVl5YY
+	 D7jA9HzCqAuskW1Z/0dU5PX9rTigkqHdXTPLtNe6FEf6L6gsvJ89b555vcsrfsGhrQ
+	 BdYxE/L2ZgJFo2ztDENX602H/0CO2hETeOeyTv0k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728564AbfKJC5n (ORCPT
+        id S1729090AbfKJDH0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 9 Nov 2019 21:57:43 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47262 "EHLO mail.kernel.org"
+        Sat, 9 Nov 2019 22:07:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46574 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729411AbfKJC4s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 9 Nov 2019 21:56:48 -0500
+        id S1728796AbfKJCpV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 9 Nov 2019 21:45:21 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 303D82256C;
-        Sun, 10 Nov 2019 02:48:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D8A3121848;
+        Sun, 10 Nov 2019 02:45:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1573354117;
-        bh=6A8AMzApxeD633JBTo2GcM4Q0z+6kicVCh4alMGaeGo=;
+        s=default; t=1573353920;
+        bh=Nyd3IFEncmva4CFy6JnvNMxW1suuTboYSQorV7E3X2s=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=kZjaBEQ9ZgqYfScvNWKnHhnt8vYWTtTplqj3ZEDiyRBeCgOW/+YfOOZZj2qhRIRbH
-         DMnTwb0HkGa0eFdZdOQKLCa1N4++qS71jxVX7SZZvmEh2s4WQlepAjJgtMiK3j3PZx
-         r1xhOl71tXILjrUARig8yg3m+acREg8+nivlauEY=
+        b=rpy2AXs/+5belLThjZtlp8w/m0l9R5smGLWMung5o4R5IM7S/AfPJELGbkwM/VAd4
+         NW6lyr+t0Ps9Ve0sw5rNJEayKqxw36eEbWMmvzXfaJy+SIC3ZcXj/IYQ2SLxsLnIog
+         yzbxXXo6E7J5eU3WLxWkxNlJlzzP2BQ+ShTdds8Y=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Tan Hu <tan.hu@zte.com.cn>,
@@ -46,12 +46,12 @@ Cc:     Tan Hu <tan.hu@zte.com.cn>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 105/109] netfilter: masquerade: don't flush all conntracks if only one address deleted on device
-Date:   Sat,  9 Nov 2019 21:45:37 -0500
-Message-Id: <20191110024541.31567-105-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 183/191] netfilter: masquerade: don't flush all conntracks if only one address deleted on device
+Date:   Sat,  9 Nov 2019 21:40:05 -0500
+Message-Id: <20191110024013.29782-183-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191110024541.31567-1-sashal@kernel.org>
-References: <20191110024541.31567-1-sashal@kernel.org>
+In-Reply-To: <20191110024013.29782-1-sashal@kernel.org>
+References: <20191110024013.29782-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -89,10 +89,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  2 files changed, 35 insertions(+), 6 deletions(-)
 
 diff --git a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-index 0c366aad89cb4..b531fe204323d 100644
+index 4c7fcd32f8e62..41327bb990932 100644
 --- a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
 +++ b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-@@ -105,12 +105,26 @@ static int masq_device_event(struct notifier_block *this,
+@@ -104,12 +104,26 @@ static int masq_device_event(struct notifier_block *this,
  	return NOTIFY_DONE;
  }
  
@@ -120,7 +120,7 @@ index 0c366aad89cb4..b531fe204323d 100644
  
  	/* The masq_dev_notifier will catch the case of the device going
  	 * down.  So if the inetdev is dead and being destroyed we have
-@@ -120,8 +134,10 @@ static int masq_inet_event(struct notifier_block *this,
+@@ -119,8 +133,10 @@ static int masq_inet_event(struct notifier_block *this,
  	if (idev->dead)
  		return NOTIFY_DONE;
  
@@ -134,10 +134,10 @@ index 0c366aad89cb4..b531fe204323d 100644
  
  static struct notifier_block masq_dev_notifier = {
 diff --git a/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c b/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
-index 98f61fcb91088..b0f3745d1bee9 100644
+index 37b1d413c825b..0ad0da5a26002 100644
 --- a/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
 +++ b/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
-@@ -88,18 +88,30 @@ static struct notifier_block masq_dev_notifier = {
+@@ -87,18 +87,30 @@ static struct notifier_block masq_dev_notifier = {
  struct masq_dev_work {
  	struct work_struct work;
  	struct net *net;
@@ -171,7 +171,7 @@ index 98f61fcb91088..b0f3745d1bee9 100644
  
  	put_net(w->net);
  	kfree(w);
-@@ -148,6 +160,7 @@ static int masq_inet_event(struct notifier_block *this,
+@@ -147,6 +159,7 @@ static int masq_inet6_event(struct notifier_block *this,
  		INIT_WORK(&w->work, iterate_cleanup_work);
  		w->ifindex = dev->ifindex;
  		w->net = net;
