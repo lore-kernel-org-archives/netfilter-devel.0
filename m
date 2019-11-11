@@ -6,46 +6,46 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09CD9C17447
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Nov 2019 23:34:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DEB6C17441
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Nov 2019 23:34:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DCBA52196E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Nov 2019 23:34:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1DBEA21925
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Nov 2019 23:34:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727368AbfKKXet (ORCPT
+        id S1727334AbfKKXew (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 Nov 2019 18:34:49 -0500
-Received: from correo.us.es ([193.147.175.20]:43058 "EHLO mail.us.es"
+        Mon, 11 Nov 2019 18:34:52 -0500
+Received: from correo.us.es ([193.147.175.20]:43082 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727249AbfKKXes (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Nov 2019 18:34:48 -0500
+        id S1727355AbfKKXev (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 11 Nov 2019 18:34:51 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6B5D62A2BC6
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2019 00:34:44 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id D45722A2BCB
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2019 00:34:45 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5C271B8001
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2019 00:34:44 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C710CB7FFE
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2019 00:34:45 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 515B5B7FF2; Tue, 12 Nov 2019 00:34:44 +0100 (CET)
+        id BC822B7FF2; Tue, 12 Nov 2019 00:34:45 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 52387DA72F;
-        Tue, 12 Nov 2019 00:34:42 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AA971D2B1F;
+        Tue, 12 Nov 2019 00:34:43 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 12 Nov 2019 00:34:42 +0100 (CET)
+ Tue, 12 Nov 2019 00:34:43 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 141CE42EF4E0;
-        Tue, 12 Nov 2019 00:34:42 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 6BB6942EF4E0;
+        Tue, 12 Nov 2019 00:34:43 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     saeedm@mellanox.com
 Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
         netdev@vger.kernel.org
-Subject: [PATCH mlx5-next 5/7] net/mlx5: Refactor creating fast path prio chains
-Date:   Tue, 12 Nov 2019 00:34:28 +0100
-Message-Id: <20191111233430.25120-6-pablo@netfilter.org>
+Subject: [PATCH mlx5-next 7/7] net/mlx5: TC: Offload flow table rules
+Date:   Tue, 12 Nov 2019 00:34:30 +0100
+Message-Id: <20191111233430.25120-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191111233430.25120-1-pablo@netfilter.org>
 References: <20191111233430.25120-1-pablo@netfilter.org>
@@ -57,165 +57,185 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Paul Blakey <paulb@mellanox.com>
 
-Next patch will re-use this to add a new chain but in a
-different prio.
+Since both tc rules and flow table rules are of the same format,
+we can re-use tc parsing for that, and move the flow table rules
+to their steering domain - In this case, the next chain after
+max tc chain.
 
 Issue: 1929510
-Change-Id: I5489f23b4df52ffa47b5a6312815d66b3bf0b55e
+Change-Id: I68bf14d5398b91cf26cc7c7f19dab64ba8757c01
 Signed-off-by: Paul Blakey <paulb@mellanox.com>
 Reviewed-by: Mark Bloch <markb@mellanox.com>
 Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 118 +++++++++++++++-------
- 1 file changed, 82 insertions(+), 36 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_rep.c | 45 ++++++++++++++++++++++--
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c  | 28 ++++++++++++++-
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.h  |  3 +-
+ 3 files changed, 71 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index 0da932b6bae9..36bbd28086f5 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -2599,60 +2599,106 @@ static int init_rdma_rx_root_ns(struct mlx5_flow_steering *steering)
- 	steering->rdma_rx_root_ns = NULL;
- 	return err;
- }
--static int init_fdb_root_ns(struct mlx5_flow_steering *steering)
-+
-+/* FT and tc chains are stored in the same array so we can re-use the
-+ * mlx5_get_fdb_sub_ns() and tc api for FT chains.
-+ * When creating a new ns for each chain store it in the first available slot.
-+ * Assume tc chains are created and stored first and only then the FT chain.
-+ */
-+static void store_fdb_sub_ns_prio_chain(struct mlx5_flow_steering *steering,
-+					struct mlx5_flow_namespace *ns)
-+{
-+	int chain = 0;
-+
-+	while (steering->fdb_sub_ns[chain])
-+		++chain;
-+
-+	steering->fdb_sub_ns[chain] = ns;
-+}
-+
-+static int create_fdb_sub_ns_prio_chain(struct mlx5_flow_steering *steering,
-+					struct fs_prio *maj_prio)
- {
- 	struct mlx5_flow_namespace *ns;
--	struct fs_prio *maj_prio;
- 	struct fs_prio *min_prio;
-+	int prio;
-+
-+	ns = fs_create_namespace(maj_prio, MLX5_FLOW_TABLE_MISS_ACTION_DEF);
-+	if (IS_ERR(ns))
-+		return PTR_ERR(ns);
-+
-+	for (prio = 0; prio < FDB_TC_MAX_PRIO; prio++) {
-+		min_prio = fs_create_prio(ns, prio, FDB_TC_LEVELS_PER_PRIO);
-+		if (IS_ERR(min_prio))
-+			return PTR_ERR(min_prio);
-+	}
-+
-+	store_fdb_sub_ns_prio_chain(steering, ns);
-+
-+	return 0;
-+}
-+
-+static int create_fdb_chains(struct mlx5_flow_steering *steering,
-+			     int fs_prio,
-+			     int chains)
-+{
-+	struct fs_prio *maj_prio;
- 	int levels;
- 	int chain;
--	int prio;
- 	int err;
- 
--	steering->fdb_root_ns = create_root_ns(steering, FS_FT_FDB);
--	if (!steering->fdb_root_ns)
--		return -ENOMEM;
-+	levels = FDB_TC_LEVELS_PER_PRIO * FDB_TC_MAX_PRIO * chains;
-+	maj_prio = fs_create_prio_chained(&steering->fdb_root_ns->ns,
-+					  fs_prio,
-+					  levels);
-+	if (IS_ERR(maj_prio))
-+		return PTR_ERR(maj_prio);
-+
-+	for (chain = 0; chain < chains; chain++) {
-+		err = create_fdb_sub_ns_prio_chain(steering, maj_prio);
-+		if (err)
-+			return err;
-+	}
-+
-+	return 0;
-+}
- 
--	steering->fdb_sub_ns = kzalloc(sizeof(steering->fdb_sub_ns) *
--				       (FDB_TC_MAX_CHAIN + 1), GFP_KERNEL);
-+static int create_fdb_fast_path(struct mlx5_flow_steering *steering)
-+{
-+	const int total_chains = FDB_TC_MAX_CHAIN + 1;
-+	int err;
-+
-+	steering->fdb_sub_ns = kcalloc(total_chains,
-+				       sizeof(*steering->fdb_sub_ns),
-+				       GFP_KERNEL);
- 	if (!steering->fdb_sub_ns)
- 		return -ENOMEM;
- 
-+	err = create_fdb_chains(steering, FDB_FAST_PATH, FDB_TC_MAX_CHAIN + 1);
-+	if (err)
-+		return err;
-+
-+	return 0;
-+}
-+
-+static int init_fdb_root_ns(struct mlx5_flow_steering *steering)
-+{
-+	struct fs_prio *maj_prio;
-+	int err;
-+
-+	steering->fdb_root_ns = create_root_ns(steering, FS_FT_FDB);
-+	if (!steering->fdb_root_ns)
-+		return -ENOMEM;
-+
- 	maj_prio = fs_create_prio(&steering->fdb_root_ns->ns, FDB_BYPASS_PATH,
- 				  1);
- 	if (IS_ERR(maj_prio)) {
- 		err = PTR_ERR(maj_prio);
- 		goto out_err;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+index cd9bb7c7b341..c9cb037d7f79 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+@@ -1243,21 +1243,60 @@ static int mlx5e_rep_setup_tc_cb(enum tc_setup_type type, void *type_data,
  	}
--
--	levels = FDB_TC_LEVELS_PER_PRIO *
--		 FDB_TC_MAX_PRIO * (FDB_TC_MAX_CHAIN + 1);
--	maj_prio = fs_create_prio_chained(&steering->fdb_root_ns->ns,
--					  FDB_FAST_PATH,
--					  levels);
--	if (IS_ERR(maj_prio)) {
--		err = PTR_ERR(maj_prio);
-+	err = create_fdb_fast_path(steering);
-+	if (err)
- 		goto out_err;
--	}
--
--	for (chain = 0; chain <= FDB_TC_MAX_CHAIN; chain++) {
--		ns = fs_create_namespace(maj_prio, MLX5_FLOW_TABLE_MISS_ACTION_DEF);
--		if (IS_ERR(ns)) {
--			err = PTR_ERR(ns);
--			goto out_err;
--		}
--
--		for (prio = 0; prio < FDB_TC_MAX_PRIO * (chain + 1); prio++) {
--			min_prio = fs_create_prio(ns, prio,
--						  FDB_TC_LEVELS_PER_PRIO);
--			if (IS_ERR(min_prio)) {
--				err = PTR_ERR(min_prio);
--				goto out_err;
--			}
--		}
--
--		steering->fdb_sub_ns[chain] = ns;
--	}
+ }
  
- 	maj_prio = fs_create_prio(&steering->fdb_root_ns->ns, FDB_SLOW_PATH, 1);
- 	if (IS_ERR(maj_prio)) {
+-static LIST_HEAD(mlx5e_rep_block_cb_list);
++static int mlx5e_rep_setup_ft_cb(enum tc_setup_type type, void *type_data,
++				 void *cb_priv)
++{
++	struct flow_cls_offload *f = type_data;
++	struct flow_cls_offload cls_flower;
++	struct mlx5e_priv *priv = cb_priv;
++	struct mlx5_eswitch *esw;
++	unsigned long flags;
++	int err;
++
++	flags = MLX5_TC_FLAG(INGRESS) |
++		MLX5_TC_FLAG(ESW_OFFLOAD) |
++		MLX5_TC_FLAG(FT_OFFLOAD);
++	esw = priv->mdev->priv.eswitch;
+ 
++	switch (type) {
++	case TC_SETUP_CLSFLOWER:
++		if (!mlx5_eswitch_prios_supported(esw) || f->common.chain_index)
++			return -EOPNOTSUPP;
++
++		/* Re-use tc offload path by moving the ft flow to the
++		 * reserved ft chain.
++		 */
++		memcpy(&cls_flower, f, sizeof(*f));
++		cls_flower.common.chain_index = FDB_FT_CHAIN;
++		err = mlx5e_rep_setup_tc_cls_flower(priv, &cls_flower, flags);
++		memcpy(&f->stats, &cls_flower.stats, sizeof(f->stats));
++		return err;
++	default:
++		return -EOPNOTSUPP;
++	}
++}
++
++static LIST_HEAD(mlx5e_rep_block_tc_cb_list);
++static LIST_HEAD(mlx5e_rep_block_ft_cb_list);
+ static int mlx5e_rep_setup_tc(struct net_device *dev, enum tc_setup_type type,
+ 			      void *type_data)
+ {
+ 	struct mlx5e_priv *priv = netdev_priv(dev);
+ 	struct flow_block_offload *f = type_data;
+ 
++	f->unlocked_driver_cb = true;
++
+ 	switch (type) {
+ 	case TC_SETUP_BLOCK:
+-		f->unlocked_driver_cb = true;
+ 		return flow_block_cb_setup_simple(type_data,
+-						  &mlx5e_rep_block_cb_list,
++						  &mlx5e_rep_block_tc_cb_list,
+ 						  mlx5e_rep_setup_tc_cb,
+ 						  priv, priv, true);
++	case TC_SETUP_FT:
++		return flow_block_cb_setup_simple(type_data,
++						  &mlx5e_rep_block_ft_cb_list,
++						  mlx5e_rep_setup_ft_cb,
++						  priv, priv, true);
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index 0c1022cda128..3a707d788022 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -74,6 +74,7 @@ enum {
+ 	MLX5E_TC_FLOW_FLAG_INGRESS	= MLX5E_TC_FLAG_INGRESS_BIT,
+ 	MLX5E_TC_FLOW_FLAG_EGRESS	= MLX5E_TC_FLAG_EGRESS_BIT,
+ 	MLX5E_TC_FLOW_FLAG_ESWITCH	= MLX5E_TC_FLAG_ESW_OFFLOAD_BIT,
++	MLX5E_TC_FLOW_FLAG_FT		= MLX5E_TC_FLAG_FT_OFFLOAD_BIT,
+ 	MLX5E_TC_FLOW_FLAG_NIC		= MLX5E_TC_FLAG_NIC_OFFLOAD_BIT,
+ 	MLX5E_TC_FLOW_FLAG_OFFLOADED	= MLX5E_TC_FLOW_BASE,
+ 	MLX5E_TC_FLOW_FLAG_HAIRPIN	= MLX5E_TC_FLOW_BASE + 1,
+@@ -276,6 +277,11 @@ static bool mlx5e_is_eswitch_flow(struct mlx5e_tc_flow *flow)
+ 	return flow_flag_test(flow, ESWITCH);
+ }
+ 
++static bool mlx5e_is_ft_flow(struct mlx5e_tc_flow *flow)
++{
++	return flow_flag_test(flow, FT);
++}
++
+ static bool mlx5e_is_offloaded_flow(struct mlx5e_tc_flow *flow)
+ {
+ 	return flow_flag_test(flow, OFFLOADED);
+@@ -1168,7 +1174,12 @@ mlx5e_tc_add_fdb_flow(struct mlx5e_priv *priv,
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+-	if (attr->chain > max_chain) {
++	/* We check chain range only for tc flows.
++	 * For ft flows, we checked attr->chain was originally 0 and set it to
++	 * FDB_FT_CHAIN which is outside tc range.
++	 * See mlx5e_rep_setup_ft_cb().
++	 */
++	if (!mlx5e_is_ft_flow(flow) && attr->chain > max_chain) {
+ 		NL_SET_ERR_MSG(extack, "Requested chain is out of supported range");
+ 		return -EOPNOTSUPP;
+ 	}
+@@ -3217,6 +3228,7 @@ static int parse_tc_fdb_actions(struct mlx5e_priv *priv,
+ 	struct mlx5e_tc_flow_parse_attr *parse_attr = attr->parse_attr;
+ 	struct mlx5e_rep_priv *rpriv = priv->ppriv;
+ 	const struct ip_tunnel_info *info = NULL;
++	bool ft_flow = mlx5e_is_ft_flow(flow);
+ 	const struct flow_action_entry *act;
+ 	bool encap = false;
+ 	u32 action = 0;
+@@ -3261,6 +3273,14 @@ static int parse_tc_fdb_actions(struct mlx5e_priv *priv,
+ 				return -EINVAL;
+ 			}
+ 
++			if (ft_flow && out_dev == priv->netdev) {
++				/* Ignore forward to self rules generated
++				 * by adding both mlx5 devs to the flow table
++				 * block on a normal nft offload setup.
++				 */
++				return -EOPNOTSUPP;
++			}
++
+ 			if (attr->out_count >= MLX5_MAX_FLOW_FWD_VPORTS) {
+ 				NL_SET_ERR_MSG_MOD(extack,
+ 						   "can't support more output ports, can't offload forwarding");
+@@ -3385,6 +3405,10 @@ static int parse_tc_fdb_actions(struct mlx5e_priv *priv,
+ 			u32 dest_chain = act->chain_index;
+ 			u32 max_chain = mlx5_eswitch_get_chain_range(esw);
+ 
++			if (ft_flow) {
++				NL_SET_ERR_MSG_MOD(extack, "Goto action is not supported");
++				return -EOPNOTSUPP;
++			}
+ 			if (dest_chain <= attr->chain) {
+ 				NL_SET_ERR_MSG(extack, "Goto earlier chain isn't supported");
+ 				return -EOPNOTSUPP;
+@@ -3475,6 +3499,8 @@ static void get_flags(int flags, unsigned long *flow_flags)
+ 		__flow_flags |= BIT(MLX5E_TC_FLOW_FLAG_ESWITCH);
+ 	if (flags & MLX5_TC_FLAG(NIC_OFFLOAD))
+ 		__flow_flags |= BIT(MLX5E_TC_FLOW_FLAG_NIC);
++	if (flags & MLX5_TC_FLAG(FT_OFFLOAD))
++		__flow_flags |= BIT(MLX5E_TC_FLOW_FLAG_FT);
+ 
+ 	*flow_flags = __flow_flags;
+ }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.h b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.h
+index 924c6ef86a14..262cdb7b69b1 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.h
+@@ -44,7 +44,8 @@ enum {
+ 	MLX5E_TC_FLAG_EGRESS_BIT,
+ 	MLX5E_TC_FLAG_NIC_OFFLOAD_BIT,
+ 	MLX5E_TC_FLAG_ESW_OFFLOAD_BIT,
+-	MLX5E_TC_FLAG_LAST_EXPORTED_BIT = MLX5E_TC_FLAG_ESW_OFFLOAD_BIT,
++	MLX5E_TC_FLAG_FT_OFFLOAD_BIT,
++	MLX5E_TC_FLAG_LAST_EXPORTED_BIT = MLX5E_TC_FLAG_FT_OFFLOAD_BIT,
+ };
+ 
+ #define MLX5_TC_FLAG(flag) BIT(MLX5E_TC_FLAG_##flag##_BIT)
 -- 
 2.11.0
 
