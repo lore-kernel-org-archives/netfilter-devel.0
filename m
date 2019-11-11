@@ -2,149 +2,135 @@ Return-Path: <SRS0=qfGK=ZD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DAA9C43331
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Nov 2019 22:09:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAF49C17447
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Nov 2019 23:30:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 40D7F2196E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Nov 2019 22:09:40 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="S2K/uSbR"
+	by mail.kernel.org (Postfix) with ESMTP id AA7FA21655
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Nov 2019 23:30:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726991AbfKKWJj (ORCPT
+        id S1726915AbfKKXaH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 Nov 2019 17:09:39 -0500
-Received: from mail-pf1-f175.google.com ([209.85.210.175]:45427 "EHLO
-        mail-pf1-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726845AbfKKWJj (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Nov 2019 17:09:39 -0500
-Received: by mail-pf1-f175.google.com with SMTP id z4so11635644pfn.12
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 Nov 2019 14:09:37 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=rbhPb3AExeG4sabwXI0ApAFLaLSrPqiez1CSpc8pa1c=;
-        b=S2K/uSbR8Gkpa5QeCdespvlFGQoQeraurBdlNuHfWClazVQ7SC34BUU/WSqpTb+rxo
-         bc/XevxBV/JgSUEUL2a48KHmlm2HBB3HDz+IlXGuZxZ2sKU0QRNpkc0O+Epw5qK6fSu4
-         +DgPx+JmEIrRMIHYC4VQe7gNDGRpFrMkw/dU9oYWcNWnu+U8bgK0WhNxUpCjF03WkGEQ
-         dNkua6aKHCz/0RCtW2g1JU4HW1ebXCyH+s90YXTwfpfWZ97ooN6tMeZsXm5x5OaQVXz5
-         SLLD58znWEgITXNejNWQXnDJK2OgAy/riRQNaFotTsykMxFtn1cw+RDLBrqd1B4OMI6N
-         qRCw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=rbhPb3AExeG4sabwXI0ApAFLaLSrPqiez1CSpc8pa1c=;
-        b=pJlJFpscueogh6/7j1V5nwYWHEXBy1cx6VkUza5P24kdp0KcGRsawjuc/2OgIVUR5/
-         jOpbdqfRJ92W74ACMCe7Rqqm2BZbvvU3lsUaF+iEd7iLhd5im/Z/Ktk03Z3+lns6wCxW
-         9IounHfUaSpVX8pw57l3E4hr5VpnvwH5JCmkwNrj3UBdK/3tpG1WOX+gDa/8uNltv8Ks
-         R2YzbOP47jNEiBMzB8IybwXYpwdpRCpw7pXleG74OXLNmK5hGjS9zrQYAU/vcUuu35wJ
-         L5koVpztqZ9k4R0UHtj+a20TnssbdXw/toeNlCzfVuKq7+1ZyTwdRnlOViV2jle6mVG7
-         dlIQ==
-X-Gm-Message-State: APjAAAXJgDE9Aee5Mm9/ZTkgaKm3GdPS2AWCXBe4XAQqtm5inmVfGtpW
-        WBaJiW+8GpN16a7FncJHncKy7bG/
-X-Google-Smtp-Source: APXvYqzs+I4RdRDKIiABxDmkrMEcQCRTw1dPwN/QbiikM8r/Hu6ONAWuBk8IJij698HMA/Lkk4wFGQ==
-X-Received: by 2002:a63:1c05:: with SMTP id c5mr9753684pgc.398.1573510176598;
-        Mon, 11 Nov 2019 14:09:36 -0800 (PST)
-Received: from ?IPv6:2620:15c:2c1:200:55c7:81e6:c7d8:94b? ([2620:15c:2c1:200:55c7:81e6:c7d8:94b])
-        by smtp.gmail.com with ESMTPSA id s3sm374785pjn.21.2019.11.11.14.09.35
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 11 Nov 2019 14:09:35 -0800 (PST)
-Subject: Re: UAF in ip6_do_table on 4.19 kernel
-To:     stranche@codeaurora.org, fw@strlen.de,
-        netfilter-devel@vger.kernel.org
-Cc:     Subashab <subashab@codeaurora.org>
-References: <e7501cbd85e96b111f5c404200a3a330@codeaurora.org>
-From:   Eric Dumazet <eric.dumazet@gmail.com>
-Message-ID: <44a69247-87bd-905d-bd1c-e9dcb5027641@gmail.com>
-Date:   Mon, 11 Nov 2019 14:09:26 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.9.0
-MIME-Version: 1.0
-In-Reply-To: <e7501cbd85e96b111f5c404200a3a330@codeaurora.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        Mon, 11 Nov 2019 18:30:07 -0500
+Received: from correo.us.es ([193.147.175.20]:40954 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726896AbfKKXaH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 11 Nov 2019 18:30:07 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 8C0E11C4395
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2019 00:30:02 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7E98D3A22A
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2019 00:30:02 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 7411DD2B1F; Tue, 12 Nov 2019 00:30:02 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5B5A3A8E5;
+        Tue, 12 Nov 2019 00:30:00 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 12 Nov 2019 00:30:00 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id ECDB342EF4E0;
+        Tue, 12 Nov 2019 00:29:59 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, paulb@mellanox.com,
+        ozsh@mellanox.com, majd@mellanox.com, saeedm@mellanox.com
+Subject: [PATCH net-next 0/6] netfilter flowtable hardware offload
+Date:   Tue, 12 Nov 2019 00:29:50 +0100
+Message-Id: <20191111232956.24898-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi,
 
+The following patchset adds hardware offload support for the flowtable
+infrastructure [1]. This infrastructure provides a fast datapath for
+the classic Linux forwarding path that users can enable through policy,
+eg.
 
-On 11/11/19 12:49 PM, stranche@codeaurora.org wrote:
-> Hi all,
-> 
-> We recently had a crash reported to us on the 4.19 kernel where ip6_do_table() appeared to be referencing a jumpstack that had already been freed.
-> Based on the dump, it appears that the scenario was a concurrent use of iptables-restore and active data transfer. The kernel has Florian's commit
-> to wait in xt_replace_table instead of get_counters(), 80055dab5de0 ("netfilter: x_tables: make xt_replace_table wait until old rules are not used
-> anymore"), so it appears that xt_replace_table is somehow returning prematurely, allowing __do_replace() to free the table while it is still in use.
-> 
-> After reviewing the code, we had a question about the following section:
->     /* ... so wait for even xt_recseq on all cpus */
->     for_each_possible_cpu(cpu) {
->         seqcount_t *s = &per_cpu(xt_recseq, cpu);
->         u32 seq = raw_read_seqcount(s);
-> 
->         if (seq & 1) {
->             do {
->                 cond_resched();
->                 cpu_relax();
->             } while (seq == raw_read_seqcount(s));
->         }
->     }
+ table inet x {
+      flowtable f {
+               hook ingress priority 10 devices = { eth0, eth1 }
+	       flags offload
+      }
+      chain y {
+               type filter hook forward priority 0; policy accept;
+               ip protocol tcp flow offload @f
+      }
+ }
 
-The intent of this code is to check that each cpu went through a phase where the seq was even at least once.
+This example above enables the fastpath for TCP traffic between devices
+eth0 and eth1. Users can turn on the hardware offload through the
+'offload' flag from the flowtable definition. If this new flag is not
+specified, the software flowtable datapath is used.
 
-> 
-> Based on the other uses of seqcount locks, there should be a paired read_seqcount_retry() to mark the end of the read section like below:
->     for_each_possible_cpu(cpu) {
->         seqcount_t *s = &per_cpu(xt_recseq, cpu);
->         u32 seq;
-> 
->         do {
->             seq = raw_read_seqcount(s);
->             if (seq & 1) {
->                 cond_resched();
->                 cpu_relax();
->             }
->         } while (read_seqcount_retry(s, seq);
+This patchset is composed of 4 preparation patches:
 
-This would loop possibly more times, since you exit if the count is _currently_ even.
- 
-If we are unlucky this could loop for a very long time.
+#1 Move pointer to conntrack object to the flow_offload structure.
+#2 Remove useless union from the flow_offload structure.
+#3 Remove superfluous flow_offload_entry structure.
+#4 Detach routing information from the flow_offload object to leave
+   room to extend this infrastructure, eg. accelerate bridge forwarding.
 
->     }
-> 
-> These two snippets are very similar, as the original seems like it attempted to open-code this retry() helper, but there is a slight difference in
-> the smp_rmb() placement relative to the "retry" read of the sequence value.
-> Original:
->     READ_ONCE(s->sequence);
->     smp_rmb();
->     ... //check and resched
->     READ_ONCE(s->sequence);
->     smp_rmb();
->     ... //compare the two sequence values
-> 
-> Modified using read_seqcount_retry():
->     READ_ONCE(s->sequence);
->     smp_rmb();
->     ... //check and and resched
->     smp_rmb();
->     READ_ONCE(s->sequence);
->     ... //compare the two sequence values
-> 
-> Is it possible that this difference in ordering could lead to an incorrect read of the sequence in certain neurotic scenarios? Alternatively, is there
-> some other place that this jumpstack could be freed while still in use?
-> 
+And 2 patches to add the hardware offload control and data planes:
 
-4.19 has many bugs really. Please upgrade to v4.19.83
+#5 Add the netlink control plane and the interface to set up the flowtable
+   hardware offload. This includes a new NFTA_FLOWTABLE_FLAGS netlink
+   attribute to convey the optional NF_FLOWTABLE_HW_OFFLOAD flag.
+#6 Add the hardware offload datapath: This code uses the flow_offload
+   API available at net/core/flow_offload.h to represent the flow
+   through two flow_rule objects to configure an exact 5-tuple matching
+   on each direction plus the corresponding forwarding actions, that is,
+   the MAC address, NAT and checksum updates; and port redirection in
+   order to configure the hardware datapath. This patch only supports
+   for IPv4 support and statistics collection for flow aging as an initial
+   step.
 
+This patchset introduces a new flow_block callback type that needs to be
+set up to configure the flowtable hardware offload.
+
+The first client of this infrastructure follows up after this batch.
+I would like to thank Mellanox for developing the first upstream driver
+to use this infrastructure.
+
+Please, apply.
+
+[1] Documentation/networking/nf_flowtable.txt
+
+Pablo Neira Ayuso (6):
+  netfilter: nf_flow_table: move conntrack object to struct flow_offload
+  netfilter: nf_flow_table: remove union from flow_offload structure
+  netfilter: nf_flowtable: remove flow_offload_entry structure
+  netfilter: nf_flow_table: detach routing information from flow description
+  netfilter: nf_tables: add flowtable offload control plane
+  netfilter: nf_flow_table: hardware offload support
+
+ include/linux/netdevice.h                |   1 +
+ include/net/netfilter/nf_flow_table.h    |  60 ++-
+ include/uapi/linux/netfilter/nf_tables.h |   2 +
+ net/ipv4/netfilter/nf_flow_table_ipv4.c  |   2 +
+ net/ipv6/netfilter/nf_flow_table_ipv6.c  |   2 +
+ net/netfilter/Makefile                   |   3 +-
+ net/netfilter/nf_flow_table_core.c       | 173 ++++---
+ net/netfilter/nf_flow_table_inet.c       |   2 +
+ net/netfilter/nf_flow_table_offload.c    | 758 +++++++++++++++++++++++++++++++
+ net/netfilter/nf_tables_api.c            |  21 +-
+ net/netfilter/nft_flow_offload.c         |   5 +-
+ 11 files changed, 955 insertions(+), 74 deletions(-)
+ create mode 100644 net/netfilter/nf_flow_table_offload.c
+
+-- 
+2.11.0
 
