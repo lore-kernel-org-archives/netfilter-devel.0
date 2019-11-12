@@ -2,60 +2,56 @@ Return-Path: <SRS0=y7H9=ZE=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F9B5C43331
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 20:32:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8591C43331
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 21:03:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1CFD2206A3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 20:32:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 991EC20659
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 21:03:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727031AbfKLUcg (ORCPT
+        id S1726799AbfKLVDG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Nov 2019 15:32:36 -0500
-Received: from correo.us.es ([193.147.175.20]:42232 "EHLO mail.us.es"
+        Tue, 12 Nov 2019 16:03:06 -0500
+Received: from correo.us.es ([193.147.175.20]:53208 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726659AbfKLUcg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Nov 2019 15:32:36 -0500
+        id S1726376AbfKLVDG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 12 Nov 2019 16:03:06 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5A5B5E34C2
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2019 21:32:31 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 1990D11EB3A
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2019 22:03:02 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4BA024D744
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2019 21:32:31 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0B705DA4D0
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2019 22:03:02 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 40977DA4D0; Tue, 12 Nov 2019 21:32:31 +0100 (CET)
+        id 010B2DA8E8; Tue, 12 Nov 2019 22:03:02 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3411BDA72F;
-        Tue, 12 Nov 2019 21:32:29 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 200CFDA7B6;
+        Tue, 12 Nov 2019 22:03:00 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 12 Nov 2019 21:32:29 +0100 (CET)
+ Tue, 12 Nov 2019 22:03:00 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (sys.soleta.eu [212.170.55.40])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 10EDD4251480;
-        Tue, 12 Nov 2019 21:32:29 +0100 (CET)
-Date:   Tue, 12 Nov 2019 21:32:30 +0100
+        by entrada.int (Postfix) with ESMTPSA id EE1064251481;
+        Tue, 12 Nov 2019 22:02:59 +0100 (CET)
+Date:   Tue, 12 Nov 2019 22:03:01 +0100
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Saeed Mahameed <saeedm@mellanox.com>
-Cc:     "davem@davemloft.net" <davem@davemloft.net>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>
-Subject: Re: [PATCH mlx5-next 7/7] net/mlx5: TC: Offload flow table rules
-Message-ID: <20191112203230.p3lb3ivhsravctxz@salvia>
-References: <20191111233430.25120-1-pablo@netfilter.org>
- <20191111233430.25120-8-pablo@netfilter.org>
- <0ba19058c0b455fe0ef9e272e981f78a977c0b82.camel@mellanox.com>
+To:     Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH 0/1] ipset patches for nf-next
+Message-ID: <20191112210301.dtrjpnyvpkgh4uwb@salvia>
+References: <20191101163626.10649-1-kadlec@blackhole.kfki.hu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <0ba19058c0b455fe0ef9e272e981f78a977c0b82.camel@mellanox.com>
+In-Reply-To: <20191101163626.10649-1-kadlec@blackhole.kfki.hu>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -63,46 +59,13 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Saeed,
-
-On Tue, Nov 12, 2019 at 12:37:27AM +0000, Saeed Mahameed wrote:
-> On Tue, 2019-11-12 at 00:34 +0100, Pablo Neira Ayuso wrote:
-> > From: Paul Blakey <paulb@mellanox.com>
-> > 
-> > Since both tc rules and flow table rules are of the same format,
-> > we can re-use tc parsing for that, and move the flow table rules
-> > to their steering domain - In this case, the next chain after
-> > max tc chain.
-> > 
-> > Issue: 1929510
-> > Change-Id: I68bf14d5398b91cf26cc7c7f19dab64ba8757c01
-> > Signed-off-by: Paul Blakey <paulb@mellanox.com>
-> > Reviewed-by: Mark Bloch <markb@mellanox.com>
-> > Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+On Fri, Nov 01, 2019 at 05:36:25PM +0100, Jozsef Kadlecsik wrote:
+> Hi Pablo,
 > 
-> Series LGTM, 
+> Please consider applying the next patch for the nf-next tree:
 > 
-> couple of things:
->  
-> 1) Paul should have removed Issue and change-Id tags
-> I can do this myself when i apply those to my trees.
->
-> 2) patches #1..#6 can perfectly go mlx5-next,
-> already tried and i had to resolve some trivial conflicts, but all
-> good.
+> - Add wildcard support to hash:net,iface which makes possible to
+>   match interface prefixes besides complete interfaces names, from
+>   Kristian Evensen.
 
-Thanks.
-
-> 3) this patch needs to be on top of net-next, due to dependency with 
-> TC_SETUP_FT, I will resubmit it through my normal pull request
-> procedure after applying all other patches in this series to mlx5-next
-> shared branch. 
->
-> All patches will land in net-next in couple of days, i guess there is
-> no rush to have them there immediately ?
-
-No rush on my side.
-
-We have to wait for David to tell us if he is fine to apply this
-patchset into net-next, then pull from your tree the first client for
-this code in a couple of days as you suggest.
+Pulled, thanks for your patience Jozsef.
