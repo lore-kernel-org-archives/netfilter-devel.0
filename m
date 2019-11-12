@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C789BC17440
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 18:59:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13363C43331
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 19:10:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A0016214E0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 18:59:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E61BF21783
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 19:10:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727183AbfKLS7i (ORCPT
+        id S1727036AbfKLTKN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Nov 2019 13:59:38 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:48500 "EHLO orbyte.nwl.cc"
+        Tue, 12 Nov 2019 14:10:13 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:48530 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726982AbfKLS7h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Nov 2019 13:59:37 -0500
-Received: from localhost ([::1]:33358 helo=tatos)
+        id S1726981AbfKLTKN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 12 Nov 2019 14:10:13 -0500
+Received: from localhost ([::1]:33388 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1iUbO4-0006Zn-Mr; Tue, 12 Nov 2019 19:59:36 +0100
+        id 1iUbYK-0006z4-IA; Tue, 12 Nov 2019 20:10:12 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] meta: Rewrite hour_type_print()
-Date:   Tue, 12 Nov 2019 19:59:31 +0100
-Message-Id: <20191112185931.8455-1-phil@nwl.cc>
+Subject: [nft PATCH] segtree: Check ranges when deleting elements
+Date:   Tue, 12 Nov 2019 20:10:07 +0100
+Message-Id: <20191112191007.9752-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.24.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -37,90 +37,142 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-There was no point in this recursively called __hour_type_print_r() at
-all, it takes only four lines of code to split the number of seconds
-into hours, minutes and seconds.
+Make sure any intervals to delete actually exist, otherwise reject the
+command. Without this, it is possible to mess up rbtree contents:
 
-While being at it, inverse the conditional to reduce indenting for the
-largest part of the function's body. Also introduce SECONDS_PER_DAY
-macro to avoid magic numbers.
+| # nft list ruleset
+| table ip t {
+| 	set s {
+| 		type ipv4_addr
+| 		flags interval
+| 		auto-merge
+| 		elements = { 192.168.1.0-192.168.1.254, 192.168.1.255 }
+| 	}
+| }
+| # nft delete element t s '{ 192.168.1.0/24 }'
+| # nft list ruleset
+| table ip t {
+| 	set s {
+| 		type ipv4_addr
+| 		flags interval
+| 		auto-merge
+| 		elements = { 192.168.1.255-255.255.255.255 }
+| 	}
+| }
 
-Fixes: f8f32deda31df ("meta: Introduce new conditions 'time', 'day' and 'hour'")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/meta.c | 49 +++++++++++++++++++------------------------------
- 1 file changed, 19 insertions(+), 30 deletions(-)
+ src/segtree.c                                 | 41 ++++++++++++++-----
+ .../testcases/sets/0039delete_interval_0      | 17 ++++++++
+ 2 files changed, 47 insertions(+), 11 deletions(-)
+ create mode 100755 tests/shell/testcases/sets/0039delete_interval_0
 
-diff --git a/src/meta.c b/src/meta.c
-index f54b818e4e911..69a897a926869 100644
---- a/src/meta.c
-+++ b/src/meta.c
-@@ -490,46 +490,35 @@ static void day_type_print(const struct expr *expr, struct output_ctx *octx)
- 	return symbolic_constant_print(&day_type_tbl, expr, true, octx);
+diff --git a/src/segtree.c b/src/segtree.c
+index 5d6ecd4fcab1f..10c82eed5378f 100644
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -334,6 +334,13 @@ static unsigned int expr_to_intervals(const struct expr *set,
+ 	return n;
  }
  
--static void __hour_type_print_r(int hours, int minutes, int seconds, char *out, size_t buflen)
--{
--	if (minutes == 60)
--		return __hour_type_print_r(++hours, 0, seconds, out, buflen);
--	else if (minutes > 60)
--		return __hour_type_print_r((int) (minutes / 60), minutes % 60, seconds, out, buflen);
--
--	if (seconds == 60)
--		return __hour_type_print_r(hours, ++minutes, 0, out, buflen);
--	else if (seconds > 60)
--		return __hour_type_print_r(hours, (int) (seconds / 60), seconds % 60, out, buflen);
--
--	if (seconds == 0)
--		snprintf(out, buflen, "%02d:%02d", hours, minutes);
--	else
--		snprintf(out, buflen, "%02d:%02d:%02d", hours, minutes, seconds);
--}
-+#define SECONDS_PER_DAY	(60 * 60 * 24)
- 
- static void hour_type_print(const struct expr *expr, struct output_ctx *octx)
++static bool intervals_match(const struct elementary_interval *e1,
++			    const struct elementary_interval *e2)
++{
++	return mpz_cmp(e1->left, e2->left) == 0 &&
++	       mpz_cmp(e1->right, e2->right) == 0;
++}
++
+ /* This function checks for overlaps in two ways:
+  *
+  * 1) A new interval end intersects an existing interval.
+@@ -343,8 +350,7 @@ static unsigned int expr_to_intervals(const struct expr *set,
+ static bool interval_overlap(const struct elementary_interval *e1,
+ 			     const struct elementary_interval *e2)
  {
--	uint32_t seconds = mpz_get_uint32(expr->value);
-+	uint32_t seconds = mpz_get_uint32(expr->value), minutes, hours;
- 	struct tm *cur_tm;
--	char out[32];
- 	time_t ts;
+-	if (mpz_cmp(e1->left, e2->left) == 0 &&
+-	    mpz_cmp(e1->right, e2->right) == 0)
++	if (intervals_match(e1, e2))
+ 		return false;
  
--	if (!nft_output_seconds(octx)) {
--		/* Obtain current tm, so that we can add tm_gmtoff */
--		ts = time(NULL);
--		cur_tm = localtime(&ts);
-+	if (nft_output_seconds(octx)) {
-+		expr_basetype(expr)->print(expr, octx);
-+		return;
-+	}
- 
--		if (cur_tm)
--			seconds = (seconds + cur_tm->tm_gmtoff) % 86400;
-+	/* Obtain current tm, so that we can add tm_gmtoff */
-+	ts = time(NULL);
-+	cur_tm = localtime(&ts);
- 
--		__hour_type_print_r(0, 0, seconds, out, sizeof(out));
--		nft_print(octx, "\"%s\"", out);
-+	if (cur_tm)
-+		seconds = (seconds + cur_tm->tm_gmtoff) % SECONDS_PER_DAY;
- 
--		return;
--	}
-+	minutes = seconds / 60;
-+	seconds %= 60;
-+	hours = minutes / 60;
-+	minutes %= 60;
- 
--	expr_basetype(expr)->print(expr, octx);
-+	nft_print(octx, "\"%02d:%02d", hours, minutes);
-+	if (seconds)
-+		nft_print(octx, ":%02d", seconds);
-+	nft_print(octx, "\"");
+ 	return (mpz_cmp(e1->left, e2->left) >= 0 &&
+@@ -356,7 +362,7 @@ static bool interval_overlap(const struct elementary_interval *e1,
  }
  
- static struct error_record *hour_type_parse(struct parse_ctx *ctx,
+ static int set_overlap(struct list_head *msgs, const struct set *set,
+-		       struct expr *init, unsigned int keylen)
++		       struct expr *init, unsigned int keylen, bool add)
+ {
+ 	struct elementary_interval *new_intervals[init->size];
+ 	struct elementary_interval *intervals[set->init->size];
+@@ -367,15 +373,28 @@ static int set_overlap(struct list_head *msgs, const struct set *set,
+ 	m = expr_to_intervals(set->init, keylen, intervals);
+ 
+ 	for (i = 0; i < n; i++) {
+-		for (j = 0; j < m; j++) {
+-			if (!interval_overlap(new_intervals[i], intervals[j]))
+-				continue;
++		bool found = false;
+ 
++		for (j = 0; j < m; j++) {
++			if (add && interval_overlap(new_intervals[i],
++						    intervals[j])) {
++				expr_error(msgs, new_intervals[i]->expr,
++					   "interval overlaps with an existing one");
++				errno = EEXIST;
++				ret = -1;
++				goto out;
++			} else if (!add && intervals_match(new_intervals[i],
++							   intervals[j])) {
++				found = true;
++				break;
++			}
++		}
++		if (!add && !found) {
+ 			expr_error(msgs, new_intervals[i]->expr,
+-				   "interval overlaps with an existing one");
+-			errno = EEXIST;
++				   "interval not found in set");
++			errno = ENOENT;
+ 			ret = -1;
+-			goto out;
++			break;
+ 		}
+ 	}
+ out:
+@@ -399,8 +418,8 @@ static int set_to_segtree(struct list_head *msgs, struct set *set,
+ 	/* We are updating an existing set with new elements, check if the new
+ 	 * interval overlaps with any of the existing ones.
+ 	 */
+-	if (add && set->init && set->init != init) {
+-		err = set_overlap(msgs, set, init, tree->keylen);
++	if (set->init && set->init != init) {
++		err = set_overlap(msgs, set, init, tree->keylen, add);
+ 		if (err < 0)
+ 			return err;
+ 	}
+diff --git a/tests/shell/testcases/sets/0039delete_interval_0 b/tests/shell/testcases/sets/0039delete_interval_0
+new file mode 100755
+index 0000000000000..19df16ec0e588
+--- /dev/null
++++ b/tests/shell/testcases/sets/0039delete_interval_0
+@@ -0,0 +1,17 @@
++#!/bin/bash
++
++# Make sure nft allows to delete existing ranges only
++
++RULESET="
++table t {
++	set s {
++		type ipv4_addr
++		flags interval
++		elements = { 192.168.1.0-192.168.1.254, 192.168.1.255 }
++	}
++}"
++
++$NFT -f - <<< "$RULESET" || { echo "E: Can't load basic ruleset" 1>&2; exit 1; }
++
++$NFT delete element t s '{ 192.168.1.0/24 }' 2>/dev/null || exit 0
++echo "E: Deletion of non-existing range allowed" 1>&2
 -- 
 2.24.0
 
