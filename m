@@ -6,48 +6,49 @@ X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95AC2C43331
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 10:55:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79E36C43331
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 10:58:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 72AA52084E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 10:55:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 52BF42084E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 10:58:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726949AbfKLKz1 (ORCPT
+        id S1726949AbfKLK6f (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Nov 2019 05:55:27 -0500
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:45795 "EHLO
+        Tue, 12 Nov 2019 05:58:35 -0500
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:44258 "EHLO
         mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725899AbfKLKz0 (ORCPT
+        with ESMTP id S1725834AbfKLK6f (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Nov 2019 05:55:26 -0500
-Received: by mail-wr1-f67.google.com with SMTP id z10so12676205wrs.12
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2019 02:55:23 -0800 (PST)
+        Tue, 12 Nov 2019 05:58:35 -0500
+Received: by mail-wr1-f67.google.com with SMTP id f2so17951718wrs.11
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2019 02:58:33 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:to:cc:references:from:openpgp:autocrypt
          :message-id:date:user-agent:mime-version:in-reply-to
          :content-language:content-transfer-encoding;
-        bh=dvCxoVN3+NAKA3JOZ1ElYQlSyaJnphEqviOOJOzA5hw=;
-        b=ulz5fiNeg4AjM5KgpQjT3J2D3h2k2CNvuMH9nsK6dKgRsPNhEoP4D+GCBnbsaVPiTU
-         MsWNgAzvgVEpbhhYDVUOVoNJIMrZhEfHSdTKaHaVHJAsQ2W1dD3/OoxYWchbSf+OpPz1
-         kZUESDkvzQlDduA1zm1sPIDaHg2KhdlAA+r2/nVBKuhIf14xna0HQm89zPdhbP6977qd
-         BqgpjmDEB0+3RtxYTxew6RL83PXNsgZTgqRATUyNSB8J1ckdl1+A7HFP27g3ZTIQ08ph
-         or3kpJ7lphuPwUuwrGsT5s1PwPSW8SV0sv4AlPmd0HtRH8iBTOWymOompmFDO0X8ghfq
-         qNAg==
-X-Gm-Message-State: APjAAAUO4CPA31CNHjcj0LAgty09iMJj7wGXwpViqH1e8ReRS/jD5bjJ
-        0k52jdd3HfSPtlmWdsfm3N5ERXybzwI=
-X-Google-Smtp-Source: APXvYqzMDdY93cIG98qRNWZPXTvRKFYTLGRc/bTRuHIbbILwd8YNlD3Y5/2B10v8MEyPZiPReewe1g==
-X-Received: by 2002:adf:8481:: with SMTP id 1mr27483450wrg.189.1573556122783;
-        Tue, 12 Nov 2019 02:55:22 -0800 (PST)
+        bh=5ccdfoMrSJTfM6aXnQuBQqurGgHtD8WqiBOSkgklYZc=;
+        b=BSv7Jr0Io7U4xE+ydEEKmk6awSIM8qTfqGqHxREW7QefiM1p2CwVseF8KGX8hqE31n
+         rXMmAW8z+IF33MpyHYHvq4KrXeuM1bWKT0FjBZGYH8yMR3D15AOk+bJokCm9xDwKD/p9
+         9KdugNouk7qBtaP0mGzx29Xr7O5WppMvCPjUVwf5+QSB15KIqfOShxuA0BflKaMmpNo3
+         /3YsJJ/eNYc3lFu1Fk45OaXP3j0Xm4Am8gNUC0P5vStPCbXz+DomrtbA2OrtRO41i6Gq
+         +wotBtxROWzs7FQDMhLAKgRl+BiV9P104tIZx8jagEZKm8V+aY1i5ceZv4EnhKEi9U05
+         DDZw==
+X-Gm-Message-State: APjAAAUzYSUQbgSB4IIyPOpbrM+cvYJyRXWrCR9Dv3WRYgUZ1mE3O9qH
+        kYyd8+uogikj8ymWt2JJHUq0a/rGBiA=
+X-Google-Smtp-Source: APXvYqznOa5Q4xNj5gAzJjyRVTY8wrClpEyDYAPD1tqtR0PUZ3PzSnnxRBr5a9Yqr9bX98KDIBLD3A==
+X-Received: by 2002:adf:db41:: with SMTP id f1mr23852337wrj.351.1573556312931;
+        Tue, 12 Nov 2019 02:58:32 -0800 (PST)
 Received: from [192.168.1.156] ([213.194.137.137])
-        by smtp.gmail.com with ESMTPSA id n65sm4363494wmf.28.2019.11.12.02.55.21
+        by smtp.gmail.com with ESMTPSA id 65sm38682420wrs.9.2019.11.12.02.58.31
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 12 Nov 2019 02:55:21 -0800 (PST)
-Subject: Re: [conntrack-tools PATCH] Makefile.am: Use ${} instead of @...@
+        Tue, 12 Nov 2019 02:58:32 -0800 (PST)
+Subject: Re: [conntrack-tools PATCH] helpers: Fix for warning when compiling
+ against libtirpc
 To:     Phil Sutter <phil@nwl.cc>
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Jan Engelhardt <jengelh@inai.de>
-References: <20191111171921.14120-1-phil@nwl.cc>
+        netfilter-devel@vger.kernel.org, Ash Hughes <sehguh.hsa@gmail.com>
+References: <20191111172001.14319-1-phil@nwl.cc>
 From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
 Openpgp: preference=signencrypt
 Autocrypt: addr=arturo@netfilter.org; keydata=
@@ -93,12 +94,12 @@ Autocrypt: addr=arturo@netfilter.org; keydata=
  /rJNIF3K5uGoI9ikF00swEWL0yTWvv3rvD0OiVOuptrUNHPbxACHzlw4UGVqvAxSvFIoXUOd
  BzQBnObBvPcu14uTb5C19hUP4xwOsds5BlYlUdV4IJjufE71Xz56DDV8h8pV4d6UY5MlLcfk
  EXgmBmyUKrJkh/zvupp9t9Y2ioPbcMObRIEXio4=
-Message-ID: <61d72fd1-99c6-c536-4779-daccfe0767d4@netfilter.org>
-Date:   Tue, 12 Nov 2019 11:55:20 +0100
+Message-ID: <99228355-5f8e-e251-ea3a-0371729e01fd@netfilter.org>
+Date:   Tue, 12 Nov 2019 11:58:30 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.9.0
 MIME-Version: 1.0
-In-Reply-To: <20191111171921.14120-1-phil@nwl.cc>
+In-Reply-To: <20191111172001.14319-1-phil@nwl.cc>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
@@ -107,18 +108,22 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 11/11/19 6:19 PM, Phil Sutter wrote:
-> Referencing to variables using @...@ means they will be replaced by
-> configure. This is not needed and may cause problems later.
+On 11/11/19 6:20 PM, Phil Sutter wrote:
+> Fix for the following warning:
 > 
-> Suggested-by: Jan Engelhardt <jengelh@inai.de>
+> In file included from rpc.c:29:
+> /usr/include/tirpc/rpc/rpc_msg.h:214:52: warning: 'struct rpc_err' declared inside parameter list will not be visible outside of this definition or declaration
+>   214 | extern void _seterr_reply(struct rpc_msg *, struct rpc_err *);
+>       |                                                    ^~~~~~~
+> 
+> Struct rpc_err is declared in rpc/clnt.h which also declares rpc_call(),
+> therefore rename the local version.
+> 
+> Fixes: 5ededc4476f27 ("conntrackd: search for RPC headers")
 > Signed-off-by: Phil Sutter <phil@nwl.cc>
 > ---
->  Makefile.am             | 2 +-
->  src/Makefile.am         | 2 +-
->  src/helpers/Makefile.am | 4 ++--
->  3 files changed, 4 insertions(+), 4 deletions(-)
+>  src/helpers/rpc.c | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
 > 
 
 Acked-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
-
