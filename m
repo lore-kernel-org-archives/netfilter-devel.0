@@ -2,128 +2,125 @@ Return-Path: <SRS0=y7H9=ZE=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.1 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E436C17440
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 16:14:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72528C43331
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 16:50:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4C214206BB
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 16:14:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 143BD21D7F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 16:50:20 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=tootai.net header.i=@tootai.net header.b="g0YBL8Mq";
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=tootai.net header.i=@tootai.net header.b="g0YBL8Mq"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726738AbfKLQOp (ORCPT
+        id S1726738AbfKLQuT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Nov 2019 11:14:45 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:48224 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726008AbfKLQOp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Nov 2019 11:14:45 -0500
-Received: from localhost ([::1]:33080 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1iUYoU-0002Zr-5Q; Tue, 12 Nov 2019 17:14:42 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        Eric Garver <eric@garver.life>
-Subject: [nf-next PATCH] net: netfilter: Support iif matches in POSTROUTING
-Date:   Tue, 12 Nov 2019 17:14:37 +0100
-Message-Id: <20191112161437.19511-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.24.0
+        Tue, 12 Nov 2019 11:50:19 -0500
+Received: from mail1.tootai.net ([213.239.227.108]:38208 "EHLO
+        mail1.tootai.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726008AbfKLQuT (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 12 Nov 2019 11:50:19 -0500
+Received: from mail1.tootai.net (localhost [127.0.0.1])
+        by mail1.tootai.net (Postfix) with ESMTP id CBD826008753
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2019 17:50:16 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=tootai.net; s=mail;
+        t=1573577416; bh=hJoQgKG/w/ZOou4EFQTw2D+/6zO0WMND7Ar7tyPNGFc=;
+        h=Subject:To:References:From:Date:In-Reply-To:From;
+        b=g0YBL8MqzRxkNOkdvsdkO8Utx4x8BqgApLYkGun7cMfnhN0W9G35iKgmAo/gwxcDR
+         kR3tlgL5ASOhkZs4RTFKu4cTmPmC+2sq92LkSTLAqR0t0kMIMjf0Ikls6KwIQv3x0L
+         QGPnRvbNMl4SO4eYs0C/luZCmcg4hIuCIVtL1FN4=
+Received: from [192.168.10.4] (unknown [192.168.10.4])
+        by mail1.tootai.net (Postfix) with ESMTPSA id 969056008749
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2019 17:50:16 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=tootai.net; s=mail;
+        t=1573577416; bh=hJoQgKG/w/ZOou4EFQTw2D+/6zO0WMND7Ar7tyPNGFc=;
+        h=Subject:To:References:From:Date:In-Reply-To:From;
+        b=g0YBL8MqzRxkNOkdvsdkO8Utx4x8BqgApLYkGun7cMfnhN0W9G35iKgmAo/gwxcDR
+         kR3tlgL5ASOhkZs4RTFKu4cTmPmC+2sq92LkSTLAqR0t0kMIMjf0Ikls6KwIQv3x0L
+         QGPnRvbNMl4SO4eYs0C/luZCmcg4hIuCIVtL1FN4=
+Subject: Re: ipv6 forward rule after prerouting - Howto
+To:     Netfilter list <netfilter-devel@vger.kernel.org>
+References: <eb91d7f8-e344-c697-b2e0-ff4fb77245b2@tootai.net>
+ <20191106185022.GT15063@orbyte.nwl.cc>
+From:   Daniel Huhardeaux <tech@tootai.net>
+Message-ID: <af730ce4-5b94-7ee2-fba3-e658ac552965@tootai.net>
+Date:   Tue, 12 Nov 2019 17:50:15 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
 MIME-Version: 1.0
+In-Reply-To: <20191106185022.GT15063@orbyte.nwl.cc>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: fr
 Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Instead of generally passing NULL to NF_HOOK_COND() for input device,
-pass skb->dev which contains input device for routed skbs.
+Le 06/11/2019 à 19:50, Phil Sutter a écrit :
+> Hi,
+> 
+> On Wed, Nov 06, 2019 at 06:55:56PM +0100, Daniel Huhardeaux wrote:
+>> Hello,
+>>
+>> I setup prerouting rules with maps like
+>>
+>> chain prerouting {
+>>      type nat hook prerouting priority 0; policy accept;
+>>      iif "ens3" ip6 saddr . tcp dport vmap @blacklist_tcp
+>>      if "ens3" ip6 saddr . udp dport vmap @blacklist_udp
+>>      dnat to tcp dport map @fwdtoip_tcp:tcp dport map @fwdtoport_tcp
+>>      dnat to udp dport map @fwdtoip_udp:udp dport map @fwdtoport_udp
+>>      ip6 daddr 2a01:729:16e:10::9998 redirect to :tcp dport map @redirect_tcp
+>>      ip6 daddr 2a01:729:16e:10::9998 redirect to :udp dport map @redirect_udp
+>>      ct status dnat accept
+>>      }
+>>
+>> Default behavior in ip6 filter forward table is to drop. This means that
+>> my above rules are blocked, I see (u18srv being the machine who will
+>> forward the traffic to another one):
+>>
+>> 18:32:00.476524 IP6 <hostname>.41174 > u18srv.12345: Flags [S], seq
+>> 126955234, win 28640, options [mss 1432,sackOK,TS val 2255777795 ecr
+>> 0,nop,wscale 7], length 0
+>>   
+>>
+>> 18:32:08.668468 IP6 <hostname>.41174 > u18srv.12345: Flags [S], seq
+>> 126955234, win 28640, options [mss 1432,sackOK,TS val 2255785986 ecr
+>> 0,nop,wscale 7], length 0
+>> 18:32:24.796392 IP6 <hostname>.41174 > u18srv.12345: Flags [S], seq
+>> 126955234, win 28640, options [mss 1432,sackOK,TS val 2255802114 ecr
+>> 0,nop,wscale 7], length 0
+>>
+>> Now if I change my default value to accept for ip6 filter forward table,
+>> all is good.
+>>
+>> Question: how can I add forward rule to filter table using the existing
+>> maps which are defined in nat tables ? Other solution ?
+>>
+>> I thought that ct status dnat accept was the key to archieve my goal,
+>> seems not :(
+>>
+>> Thanks for any hint
+> 
+> Please be aware that 'accept' verdict will only stop the packet from
+> traversing the current chain and any later chain may still drop the
+> packet. Only 'drop' verdict is final in that sense.
+> 
+> So regarding your problem, I guess you have to add the 'ct state' based
+> accept rule to forward chain to prevent the drop policy to affect the
+> packet. Your prerouting chain already has an accept policy, so explicit
+> accepting shouldn't be needed.
 
-Note that iptables (both legacy and nft) reject rules with input
-interface match from being added to POSTROUTING chains, but nftables
-allows this.
+Finally I got it work replacing redirect with dnat like
 
-Cc: Eric Garver <eric@garver.life>
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- net/ipv4/ip_output.c    | 4 ++--
- net/ipv4/xfrm4_output.c | 2 +-
- net/ipv6/ip6_output.c   | 4 ++--
- net/ipv6/xfrm6_output.c | 2 +-
- 4 files changed, 6 insertions(+), 6 deletions(-)
+add rule ip6 nat prerouting ip6 daddr == $addripv6 ip6 nexthdr tcp dnat 
+to : tcp dport map @redirect_tcp
 
-diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
-index 3d8baaaf7086d..9d83cb320dcb7 100644
---- a/net/ipv4/ip_output.c
-+++ b/net/ipv4/ip_output.c
-@@ -422,7 +422,7 @@ int ip_mc_output(struct net *net, struct sock *sk, struct sk_buff *skb)
- 
- int ip_output(struct net *net, struct sock *sk, struct sk_buff *skb)
- {
--	struct net_device *dev = skb_dst(skb)->dev;
-+	struct net_device *dev = skb_dst(skb)->dev, *indev = skb->dev;
- 
- 	IP_UPD_PO_STATS(net, IPSTATS_MIB_OUT, skb->len);
- 
-@@ -430,7 +430,7 @@ int ip_output(struct net *net, struct sock *sk, struct sk_buff *skb)
- 	skb->protocol = htons(ETH_P_IP);
- 
- 	return NF_HOOK_COND(NFPROTO_IPV4, NF_INET_POST_ROUTING,
--			    net, sk, skb, NULL, dev,
-+			    net, sk, skb, indev, dev,
- 			    ip_finish_output,
- 			    !(IPCB(skb)->flags & IPSKB_REROUTED));
- }
-diff --git a/net/ipv4/xfrm4_output.c b/net/ipv4/xfrm4_output.c
-index ecff3fce98073..89ba7c87de5df 100644
---- a/net/ipv4/xfrm4_output.c
-+++ b/net/ipv4/xfrm4_output.c
-@@ -92,7 +92,7 @@ static int __xfrm4_output(struct net *net, struct sock *sk, struct sk_buff *skb)
- int xfrm4_output(struct net *net, struct sock *sk, struct sk_buff *skb)
- {
- 	return NF_HOOK_COND(NFPROTO_IPV4, NF_INET_POST_ROUTING,
--			    net, sk, skb, NULL, skb_dst(skb)->dev,
-+			    net, sk, skb, skb->dev, skb_dst(skb)->dev,
- 			    __xfrm4_output,
- 			    !(IPCB(skb)->flags & IPSKB_REROUTED));
- }
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index 71827b56c0063..945508a7cb0f1 100644
---- a/net/ipv6/ip6_output.c
-+++ b/net/ipv6/ip6_output.c
-@@ -160,7 +160,7 @@ static int ip6_finish_output(struct net *net, struct sock *sk, struct sk_buff *s
- 
- int ip6_output(struct net *net, struct sock *sk, struct sk_buff *skb)
- {
--	struct net_device *dev = skb_dst(skb)->dev;
-+	struct net_device *dev = skb_dst(skb)->dev, *indev = skb->dev;
- 	struct inet6_dev *idev = ip6_dst_idev(skb_dst(skb));
- 
- 	skb->protocol = htons(ETH_P_IPV6);
-@@ -173,7 +173,7 @@ int ip6_output(struct net *net, struct sock *sk, struct sk_buff *skb)
- 	}
- 
- 	return NF_HOOK_COND(NFPROTO_IPV6, NF_INET_POST_ROUTING,
--			    net, sk, skb, NULL, dev,
-+			    net, sk, skb, indev, dev,
- 			    ip6_finish_output,
- 			    !(IP6CB(skb)->flags & IP6SKB_REROUTED));
- }
-diff --git a/net/ipv6/xfrm6_output.c b/net/ipv6/xfrm6_output.c
-index eecac1b7148e5..fbe51d40bd7e9 100644
---- a/net/ipv6/xfrm6_output.c
-+++ b/net/ipv6/xfrm6_output.c
-@@ -187,7 +187,7 @@ static int __xfrm6_output(struct net *net, struct sock *sk, struct sk_buff *skb)
- int xfrm6_output(struct net *net, struct sock *sk, struct sk_buff *skb)
- {
- 	return NF_HOOK_COND(NFPROTO_IPV6, NF_INET_POST_ROUTING,
--			    net, sk, skb,  NULL, skb_dst(skb)->dev,
-+			    net, sk, skb,  skb->dev, skb_dst(skb)->dev,
- 			    __xfrm6_output,
- 			    !(IP6CB(skb)->flags & IP6SKB_REROUTED));
- }
+Thanks for your help
 -- 
-2.24.0
-
+TOOTAi Networks
