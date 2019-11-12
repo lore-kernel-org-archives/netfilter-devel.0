@@ -6,49 +6,51 @@ X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79E36C43331
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 10:58:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED9F6C43331
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 11:02:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 52BF42084E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 10:58:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C2131214E0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 11:02:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726949AbfKLK6f (ORCPT
+        id S1725944AbfKLLCl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Nov 2019 05:58:35 -0500
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:44258 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725834AbfKLK6f (ORCPT
+        Tue, 12 Nov 2019 06:02:41 -0500
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:55438 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725874AbfKLLCl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Nov 2019 05:58:35 -0500
-Received: by mail-wr1-f67.google.com with SMTP id f2so17951718wrs.11
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2019 02:58:33 -0800 (PST)
+        Tue, 12 Nov 2019 06:02:41 -0500
+Received: by mail-wm1-f65.google.com with SMTP id b11so2611942wmb.5
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2019 03:02:39 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:to:cc:references:from:openpgp:autocrypt
          :message-id:date:user-agent:mime-version:in-reply-to
          :content-language:content-transfer-encoding;
-        bh=5ccdfoMrSJTfM6aXnQuBQqurGgHtD8WqiBOSkgklYZc=;
-        b=BSv7Jr0Io7U4xE+ydEEKmk6awSIM8qTfqGqHxREW7QefiM1p2CwVseF8KGX8hqE31n
-         rXMmAW8z+IF33MpyHYHvq4KrXeuM1bWKT0FjBZGYH8yMR3D15AOk+bJokCm9xDwKD/p9
-         9KdugNouk7qBtaP0mGzx29Xr7O5WppMvCPjUVwf5+QSB15KIqfOShxuA0BflKaMmpNo3
-         /3YsJJ/eNYc3lFu1Fk45OaXP3j0Xm4Am8gNUC0P5vStPCbXz+DomrtbA2OrtRO41i6Gq
-         +wotBtxROWzs7FQDMhLAKgRl+BiV9P104tIZx8jagEZKm8V+aY1i5ceZv4EnhKEi9U05
-         DDZw==
-X-Gm-Message-State: APjAAAUzYSUQbgSB4IIyPOpbrM+cvYJyRXWrCR9Dv3WRYgUZ1mE3O9qH
-        kYyd8+uogikj8ymWt2JJHUq0a/rGBiA=
-X-Google-Smtp-Source: APXvYqznOa5Q4xNj5gAzJjyRVTY8wrClpEyDYAPD1tqtR0PUZ3PzSnnxRBr5a9Yqr9bX98KDIBLD3A==
-X-Received: by 2002:adf:db41:: with SMTP id f1mr23852337wrj.351.1573556312931;
-        Tue, 12 Nov 2019 02:58:32 -0800 (PST)
+        bh=K1Rjtd8hzYzt88L8ay6H1/TKPrpSt78Hp90wyb5r7xw=;
+        b=bWXM5NwmWs5SBsu8UVeHHw/f4VgSOnbxTQVIACgfCOMyCUQFrYFmbz4BIeFbWIDslq
+         ZKS84ee9QHLeAKQ/k2HaI1ijEGyqxfjENPUfXr8JCUosS0xZ54pbNVby+hmUCQ9YjQgJ
+         ZciByxSpdPL1j/c0H5AiToUnII20uKc601VoKwx4XCDQDH6GYd686PrMZzm5TQYjPvQy
+         3Ma6gYi2xuWIy+3N1fp5OduOARn/yk3zfsPfCEdjXMoopRyYIjBJzYhbOgQpFWD721yp
+         FQvC7SsJUWaDoGPv0fyUJuZSyj8NHEGs7ctgt/hEUfYNJdcQqkjhKHzMQB8kEeNoFI77
+         IU2w==
+X-Gm-Message-State: APjAAAUL7rToROW6k1iEqprzHPefqs5o9CdzHQYWsdvuXnTzEcTGtDD8
+        hS1YFo9lUyEesCa+VWb/55s=
+X-Google-Smtp-Source: APXvYqwXGBuMR8wwTyZadVIS+hA+pbZWhOd/uqw9EGSBE82RnhwBsQFg8nonDDehOVJ26sFQiz9R3A==
+X-Received: by 2002:a7b:c748:: with SMTP id w8mr3569846wmk.114.1573556558735;
+        Tue, 12 Nov 2019 03:02:38 -0800 (PST)
 Received: from [192.168.1.156] ([213.194.137.137])
-        by smtp.gmail.com with ESMTPSA id 65sm38682420wrs.9.2019.11.12.02.58.31
+        by smtp.gmail.com with ESMTPSA id a16sm2942245wmd.11.2019.11.12.03.02.37
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 12 Nov 2019 02:58:32 -0800 (PST)
-Subject: Re: [conntrack-tools PATCH] helpers: Fix for warning when compiling
- against libtirpc
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Ash Hughes <sehguh.hsa@gmail.com>
-References: <20191111172001.14319-1-phil@nwl.cc>
+        Tue, 12 Nov 2019 03:02:38 -0800 (PST)
+Subject: Re: [PATCH] netfilter: xtables: Add snapshot of hardidletimer target
+To:     Manoj Basapathi <manojbm@codeaurora.org>,
+        netfilter-devel@vger.kernel.org
+Cc:     subashab@quicinc.com, sharathv@qti.qualcomm.com,
+        ssaha@qti.qualcomm.com, vidulak@qti.qualcomm.com,
+        bryanh@quicinc.com, jovanar@qti.qualcomm.com,
+        manojbm@qti.qualcomm.com
+References: <20191111065617.GA29048@manojbm-linux.ap.qualcomm.com>
 From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
 Openpgp: preference=signencrypt
 Autocrypt: addr=arturo@netfilter.org; keydata=
@@ -94,12 +96,12 @@ Autocrypt: addr=arturo@netfilter.org; keydata=
  /rJNIF3K5uGoI9ikF00swEWL0yTWvv3rvD0OiVOuptrUNHPbxACHzlw4UGVqvAxSvFIoXUOd
  BzQBnObBvPcu14uTb5C19hUP4xwOsds5BlYlUdV4IJjufE71Xz56DDV8h8pV4d6UY5MlLcfk
  EXgmBmyUKrJkh/zvupp9t9Y2ioPbcMObRIEXio4=
-Message-ID: <99228355-5f8e-e251-ea3a-0371729e01fd@netfilter.org>
-Date:   Tue, 12 Nov 2019 11:58:30 +0100
+Message-ID: <4fac187b-3a13-c762-a619-d09585ecd718@netfilter.org>
+Date:   Tue, 12 Nov 2019 12:02:36 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.9.0
 MIME-Version: 1.0
-In-Reply-To: <20191111172001.14319-1-phil@nwl.cc>
+In-Reply-To: <20191111065617.GA29048@manojbm-linux.ap.qualcomm.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
@@ -108,22 +110,45 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 11/11/19 6:20 PM, Phil Sutter wrote:
-> Fix for the following warning:
+On 11/11/19 7:56 AM, Manoj Basapathi wrote:
+> This is a snapshot of hardifletimer netfilter target as of msm-4.4
+> commit 469a150b7426 ("netfilter: xtables: hardidletimer target implementation")
 > 
-> In file included from rpc.c:29:
-> /usr/include/tirpc/rpc/rpc_msg.h:214:52: warning: 'struct rpc_err' declared inside parameter list will not be visible outside of this definition or declaration
->   214 | extern void _seterr_reply(struct rpc_msg *, struct rpc_err *);
->       |                                                    ^~~~~~~
+> This patch implements a hardidletimer Xtables target that can be
+> used to identify when interfaces have been idle for a certain period
+> of time.
 > 
-> Struct rpc_err is declared in rpc/clnt.h which also declares rpc_call(),
-> therefore rename the local version.
+> Timers are identified by labels and are created when a rule is set
+> with a new label. The rules also take a timeout value (in seconds) as
+> an option. If more than one rule uses the same timer label, the timer
+> will be restarted whenever any of the rules get a hit.
 > 
-> Fixes: 5ededc4476f27 ("conntrackd: search for RPC headers")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> One entry for each timer is created in sysfs. This attribute contains
+> the timer remaining for the timer to expire. The attributes are
+> located under the xt_idletimer class:
+> 
+> /sys/class/xt_hardidletimer/timers/<label>
+> 
+> When the timer expires, the target module sends a sysfs notification
+> to the userspace, which can then decide what to do (eg. disconnect to
+> save power)
+> 
+> Compared to xt_IDLETIMER, xt_HARDIDLETIMER can send notifications when
+> CPU is in suspend too, to notify the timer expiry.
+> 
+> Change-Id: Ib2e05af7267f3c86d1967f149f7e7e782c59807e
+> Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+> Signed-off-by: Manoj Basapathi <manojbm@codeaurora.org>
 > ---
->  src/helpers/rpc.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
-> 
+>  .../uapi/linux/netfilter/xt_HARDIDLETIMER.h   |  51 +++
+>  net/netfilter/Kconfig                         |  14 +
+>  net/netfilter/Makefile                        |   1 +
+>  net/netfilter/xt_HARDIDLETIMER.c              | 381 ++++++++++++++++++
+>  net/netfilter/xt_IDLETIMER.c                  |   2 +
+>  5 files changed, 449 insertions(+)
+>  create mode 100644 include/uapi/linux/netfilter/xt_HARDIDLETIMER.h
+>  create mode 100644 net/netfilter/xt_HARDIDLETIMER.c
 
-Acked-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
+I have nothing to comment on the patch itself.
+
+But I wonder what would it take to implement this in the nf_tables framework.
