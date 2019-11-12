@@ -2,121 +2,123 @@ Return-Path: <SRS0=y7H9=ZE=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CA5DC43331
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 00:37:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95AC2C43331
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 10:55:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 39CE9206A5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 00:37:32 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="ilYzFpvI"
+	by mail.kernel.org (Postfix) with ESMTP id 72AA52084E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Nov 2019 10:55:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726910AbfKLAhc (ORCPT
+        id S1726949AbfKLKz1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 Nov 2019 19:37:32 -0500
-Received: from mail-eopbgr00067.outbound.protection.outlook.com ([40.107.0.67]:24550
-        "EHLO EUR02-AM5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726906AbfKLAhb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Nov 2019 19:37:31 -0500
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=e4Sfof5bTvEoAHYGn6kOggdYfGfl3IFfwD7tzKxGOn0Zgm37J6JqXG9naOaG65gEUev5Yecjwnkzx2H+wl1Rh27d1EETZ5DB9nqS7ul+vCAprmqKEjBipzP1gnqTVbAkQidrGAqJWeZkKTyQ0UCR9PlvN6szG6cnDAB+sM5JOcHRlZmJJAofmn1qAhHLKs1uIV3Cy1e7j3QwPLnlNvqPbAL47/OiMidTypH/VG4S9Chkap+w6dqp6/6Xw5MjuWcmVtXtuPBjThXnsi0ok2A2ks5zhwOSCkiLJr5IsnHc/1iZ7lQ4MIGoCrIQt3HAs712JHH28//0YIJzsDCQfRGIeg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=T0WD0j+MHGv2M5nwt8YEIOrY2WZLS6TEIbansldHpek=;
- b=KV7tHEoTowogiOwPrCBkWk/WJWxyiseVdDaOsnSZUueh8N1/JkxU9LJ4RQhMJue8vFWLJPExQbw/TncS4YK/bKH3AIK8hHF/4BydioScEedt1zRZAlJdk27KZx5W1FT6nLeidhNN7RmXxaTsxesR1mRJi1xBD2e4o8R1Kn90NDgH8jKt0fv58J7b/JQ3MpGMQHuNzvaIkwXHZ02DOs55hoRqnjKX/V46loBi9cy8Q1I7+REGt2adCGJV0ML5/fqipxq04GsXp6fo94bIu8JaK6Y16Ga41hUBVyUccjpTC3Fg14Kb0E8Hd4LQN/dbwRwcKYWjrxRexZuOUfpGBVbtfg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
- dkim=pass header.d=mellanox.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=T0WD0j+MHGv2M5nwt8YEIOrY2WZLS6TEIbansldHpek=;
- b=ilYzFpvIctPs8IoEVINe76Q9ITAMKVgzHWG1JI8IMAD0H+6Sq2gPb1L8GxPTdf5D2QKmJ1oyIKLIu3izHdFTsWCGGZTebriuMD2e3PJBJ4FByb6SHDVjSIue+7VQfKz2FMFwG6jR1jvYjlIGkHiZ3MvSe+bxz+PUfFW0zJ49JO4=
-Received: from VI1PR05MB5102.eurprd05.prod.outlook.com (20.177.51.151) by
- VI1PR05MB3262.eurprd05.prod.outlook.com (10.170.236.153) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2430.20; Tue, 12 Nov 2019 00:37:27 +0000
-Received: from VI1PR05MB5102.eurprd05.prod.outlook.com
- ([fe80::d41a:9a5d:5482:497e]) by VI1PR05MB5102.eurprd05.prod.outlook.com
- ([fe80::d41a:9a5d:5482:497e%5]) with mapi id 15.20.2430.027; Tue, 12 Nov 2019
- 00:37:27 +0000
-From:   Saeed Mahameed <saeedm@mellanox.com>
-To:     "pablo@netfilter.org" <pablo@netfilter.org>
-CC:     "davem@davemloft.net" <davem@davemloft.net>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>
-Subject: Re: [PATCH mlx5-next 7/7] net/mlx5: TC: Offload flow table rules
-Thread-Topic: [PATCH mlx5-next 7/7] net/mlx5: TC: Offload flow table rules
-Thread-Index: AQHVmOic6Bgf9v9mR0+8zwrSE9f8waeGsOIA
-Date:   Tue, 12 Nov 2019 00:37:27 +0000
-Message-ID: <0ba19058c0b455fe0ef9e272e981f78a977c0b82.camel@mellanox.com>
-References: <20191111233430.25120-1-pablo@netfilter.org>
-         <20191111233430.25120-8-pablo@netfilter.org>
-In-Reply-To: <20191111233430.25120-8-pablo@netfilter.org>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-user-agent: Evolution 3.32.4 (3.32.4-1.fc30) 
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=saeedm@mellanox.com; 
-x-originating-ip: [73.15.39.150]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-ht: Tenant
-x-ms-office365-filtering-correlation-id: d7724b63-a8f2-4a49-f03b-08d767087e53
-x-ms-traffictypediagnostic: VI1PR05MB3262:
-x-microsoft-antispam-prvs: <VI1PR05MB3262E7AE505CE319E7851A95BE770@VI1PR05MB3262.eurprd05.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:9508;
-x-forefront-prvs: 021975AE46
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(396003)(136003)(346002)(376002)(39860400002)(366004)(199004)(189003)(4001150100001)(2906002)(118296001)(66476007)(66446008)(14444005)(256004)(2501003)(2351001)(25786009)(66946007)(81156014)(1730700003)(81166006)(8936002)(76116006)(3846002)(6116002)(8676002)(64756008)(91956017)(66556008)(71200400001)(71190400001)(6436002)(5640700003)(229853002)(6486002)(6512007)(36756003)(58126008)(54906003)(26005)(316002)(99286004)(186003)(102836004)(6506007)(2616005)(476003)(446003)(11346002)(486006)(4326008)(6246003)(5660300002)(76176011)(6916009)(66066001)(14454004)(86362001)(7736002)(305945005)(478600001);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR05MB3262;H:VI1PR05MB5102.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
-received-spf: None (protection.outlook.com: mellanox.com does not designate
- permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: VcaqtB3BKgoT34FVpVEtYapAQ79VqYaJZrFYh2cWd2cbPYXc94gIVoElNB4wFQdsfzpI7j3T2HLjfQlWPuJO12E1LNsPY7YWIMoH0X1ZXuVMf+zyw+Zl2ryKUDvxEr+QxwoyYuhi6qcQE9EQFdeLTggY3oIFebds5rcL+pnRszEEP5N3ah1ELJK+DCgdP9g5JN9XHBIxfYtC8KimVT1HlE6B914/k2Ik/VnzbxhgvzxL3AGJrMxTDzAzcf77QstE2638ClEg3k+10AHt3oWAIhBWMVUKt7GRB0CmEph2p3noSrvLZL85bYJm8VYndnH52ZglkK1e5xSTzkwfu9jktnMo0nz9P6GFkGpcOFchb3BZIEMy2ASDwzMec+scndhD82E96FI8a7wvDB/kdexpOvFHpGbd1+mPJ7gj0s4udaMBkR9Yb27tlxmMaZw8hnhv
-x-ms-exchange-transport-forked: True
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <3BD14DA7F6ECD54CA613DA4123FDC308@eurprd05.prod.outlook.com>
-Content-Transfer-Encoding: base64
+        Tue, 12 Nov 2019 05:55:27 -0500
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:45795 "EHLO
+        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725899AbfKLKz0 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 12 Nov 2019 05:55:26 -0500
+Received: by mail-wr1-f67.google.com with SMTP id z10so12676205wrs.12
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2019 02:55:23 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:openpgp:autocrypt
+         :message-id:date:user-agent:mime-version:in-reply-to
+         :content-language:content-transfer-encoding;
+        bh=dvCxoVN3+NAKA3JOZ1ElYQlSyaJnphEqviOOJOzA5hw=;
+        b=ulz5fiNeg4AjM5KgpQjT3J2D3h2k2CNvuMH9nsK6dKgRsPNhEoP4D+GCBnbsaVPiTU
+         MsWNgAzvgVEpbhhYDVUOVoNJIMrZhEfHSdTKaHaVHJAsQ2W1dD3/OoxYWchbSf+OpPz1
+         kZUESDkvzQlDduA1zm1sPIDaHg2KhdlAA+r2/nVBKuhIf14xna0HQm89zPdhbP6977qd
+         BqgpjmDEB0+3RtxYTxew6RL83PXNsgZTgqRATUyNSB8J1ckdl1+A7HFP27g3ZTIQ08ph
+         or3kpJ7lphuPwUuwrGsT5s1PwPSW8SV0sv4AlPmd0HtRH8iBTOWymOompmFDO0X8ghfq
+         qNAg==
+X-Gm-Message-State: APjAAAUO4CPA31CNHjcj0LAgty09iMJj7wGXwpViqH1e8ReRS/jD5bjJ
+        0k52jdd3HfSPtlmWdsfm3N5ERXybzwI=
+X-Google-Smtp-Source: APXvYqzMDdY93cIG98qRNWZPXTvRKFYTLGRc/bTRuHIbbILwd8YNlD3Y5/2B10v8MEyPZiPReewe1g==
+X-Received: by 2002:adf:8481:: with SMTP id 1mr27483450wrg.189.1573556122783;
+        Tue, 12 Nov 2019 02:55:22 -0800 (PST)
+Received: from [192.168.1.156] ([213.194.137.137])
+        by smtp.gmail.com with ESMTPSA id n65sm4363494wmf.28.2019.11.12.02.55.21
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 12 Nov 2019 02:55:21 -0800 (PST)
+Subject: Re: [conntrack-tools PATCH] Makefile.am: Use ${} instead of @...@
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Jan Engelhardt <jengelh@inai.de>
+References: <20191111171921.14120-1-phil@nwl.cc>
+From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
+Openpgp: preference=signencrypt
+Autocrypt: addr=arturo@netfilter.org; keydata=
+ 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
+ EXgmBmyUKrJkh/zvupp9t9Y2ioPbcMObRIEXio4=
+Message-ID: <61d72fd1-99c6-c536-4779-daccfe0767d4@netfilter.org>
+Date:   Tue, 12 Nov 2019 11:55:20 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
 MIME-Version: 1.0
-X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: d7724b63-a8f2-4a49-f03b-08d767087e53
-X-MS-Exchange-CrossTenant-originalarrivaltime: 12 Nov 2019 00:37:27.1574
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: Inl6fYIo77cLTQwUOH71eorzw/zB3iYIWnhA57M/LWqjzWZ/hka7otbfCE2Bb/9eEwGRbYXfqmZLF/Ru5VDeEQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR05MB3262
+In-Reply-To: <20191111171921.14120-1-phil@nwl.cc>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-T24gVHVlLCAyMDE5LTExLTEyIGF0IDAwOjM0ICswMTAwLCBQYWJsbyBOZWlyYSBBeXVzbyB3cm90
-ZToNCj4gRnJvbTogUGF1bCBCbGFrZXkgPHBhdWxiQG1lbGxhbm94LmNvbT4NCj4gDQo+IFNpbmNl
-IGJvdGggdGMgcnVsZXMgYW5kIGZsb3cgdGFibGUgcnVsZXMgYXJlIG9mIHRoZSBzYW1lIGZvcm1h
-dCwNCj4gd2UgY2FuIHJlLXVzZSB0YyBwYXJzaW5nIGZvciB0aGF0LCBhbmQgbW92ZSB0aGUgZmxv
-dyB0YWJsZSBydWxlcw0KPiB0byB0aGVpciBzdGVlcmluZyBkb21haW4gLSBJbiB0aGlzIGNhc2Us
-IHRoZSBuZXh0IGNoYWluIGFmdGVyDQo+IG1heCB0YyBjaGFpbi4NCj4gDQo+IElzc3VlOiAxOTI5
-NTEwDQo+IENoYW5nZS1JZDogSTY4YmYxNGQ1Mzk4YjkxY2YyNmNjN2M3ZjE5ZGFiNjRiYTg3NTdj
-MDENCj4gU2lnbmVkLW9mZi1ieTogUGF1bCBCbGFrZXkgPHBhdWxiQG1lbGxhbm94LmNvbT4NCj4g
-UmV2aWV3ZWQtYnk6IE1hcmsgQmxvY2ggPG1hcmtiQG1lbGxhbm94LmNvbT4NCj4gQWNrZWQtYnk6
-IFBhYmxvIE5laXJhIEF5dXNvIDxwYWJsb0BuZXRmaWx0ZXIub3JnPg0KDQpTZXJpZXMgTEdUTSwg
-DQoNCmNvdXBsZSBvZiB0aGluZ3M6DQogDQoxKSBQYXVsIHNob3VsZCBoYXZlIHJlbW92ZWQgSXNz
-dWUgYW5kIGNoYW5nZS1JZCB0YWdzDQpJIGNhbiBkbyB0aGlzIG15c2VsZiB3aGVuIGkgYXBwbHkg
-dGhvc2UgdG8gbXkgdHJlZXMuDQoNCjIpIHBhdGNoZXMgIzEuLiM2IGNhbiBwZXJmZWN0bHkgZ28g
-bWx4NS1uZXh0LA0KYWxyZWFkeSB0cmllZCBhbmQgaSBoYWQgdG8gcmVzb2x2ZSBzb21lIHRyaXZp
-YWwgY29uZmxpY3RzLCBidXQgYWxsDQpnb29kLg0KDQozKSB0aGlzIHBhdGNoIG5lZWRzIHRvIGJl
-IG9uIHRvcCBvZiBuZXQtbmV4dCwgZHVlIHRvIGRlcGVuZGVuY3kgd2l0aCANClRDX1NFVFVQX0ZU
-LCBJIHdpbGwgcmVzdWJtaXQgaXQgdGhyb3VnaCBteSBub3JtYWwgcHVsbCByZXF1ZXN0DQpwcm9j
-ZWR1cmUgYWZ0ZXIgYXBwbHlpbmcgYWxsIG90aGVyIHBhdGNoZXMgaW4gdGhpcyBzZXJpZXMgdG8g
-bWx4NS1uZXh0DQpzaGFyZWQgYnJhbmNoLiANCg0KQWxsIHBhdGNoZXMgd2lsbCBsYW5kIGluIG5l
-dC1uZXh0IGluIGNvdXBsZSBvZiBkYXlzLCBpIGd1ZXNzIHRoZXJlIGlzDQpubyBydXNoIHRvIGhh
-dmUgdGhlbSB0aGVyZSBpbW1lZGlhdGVseSA/IA0KDQpUaGFua3MsDQpzYWVlZC4NCg0K
+On 11/11/19 6:19 PM, Phil Sutter wrote:
+> Referencing to variables using @...@ means they will be replaced by
+> configure. This is not needed and may cause problems later.
+> 
+> Suggested-by: Jan Engelhardt <jengelh@inai.de>
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+>  Makefile.am             | 2 +-
+>  src/Makefile.am         | 2 +-
+>  src/helpers/Makefile.am | 4 ++--
+>  3 files changed, 4 insertions(+), 4 deletions(-)
+> 
+
+Acked-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
+
