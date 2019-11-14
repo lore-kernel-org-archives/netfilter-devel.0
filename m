@@ -2,98 +2,102 @@ Return-Path: <SRS0=/b89=ZG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 416FBC432C3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Nov 2019 10:52:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5712C432C3
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Nov 2019 12:53:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 18F59206EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Nov 2019 10:52:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 88963206E1
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Nov 2019 12:53:05 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="ngfgZR38"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726369AbfKNKw0 (ORCPT
+        id S1726263AbfKNMxE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 14 Nov 2019 05:52:26 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:52470 "EHLO orbyte.nwl.cc"
+        Thu, 14 Nov 2019 07:53:04 -0500
+Received: from smtp-out.kfki.hu ([148.6.0.48]:55919 "EHLO smtp-out.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725977AbfKNKw0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 Nov 2019 05:52:26 -0500
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1iVCjh-0001mC-O1; Thu, 14 Nov 2019 11:52:25 +0100
-Date:   Thu, 14 Nov 2019 11:52:25 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] evaluate: Reject set references in mapping LHS
-Message-ID: <20191114105225.GG11663@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+        id S1726139AbfKNMxE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 14 Nov 2019 07:53:04 -0500
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.kfki.hu (Postfix) with ESMTP id C78C3CC00FF;
+        Thu, 14 Nov 2019 13:53:02 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        blackhole.kfki.hu; h=mime-version:user-agent:references
+        :message-id:in-reply-to:from:from:date:date:received:received
+        :received; s=20151130; t=1573735980; x=1575550381; bh=hDs0RBQ/Ca
+        /cZ68bLf8iEhRxcoTY9GJHPaaEfDc8RA8=; b=ngfgZR38LNFzaxlgXXOMSRqis4
+        zzklA5rdFNvqtJuW9uV+oMxefCf0sDYpvw7T4BYSTuPnsQTI1OXrqEF+yPzTSonx
+        VZPQtllAX+lsv/VxlTuzFIy0XHsdC5G5jo2HgRkoEDP/iAwM1vfDyQnJn2bHK0uX
+        G5tLpOUc9ry1Q1Bgs=
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Thu, 14 Nov 2019 13:53:00 +0100 (CET)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 7E550CC00FD;
+        Thu, 14 Nov 2019 13:53:00 +0100 (CET)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id 5A37B20FCF; Thu, 14 Nov 2019 13:53:00 +0100 (CET)
+Date:   Thu, 14 Nov 2019 13:53:00 +0100 (CET)
+From:   =?UTF-8?Q?Kadlecsik_J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>
+To:     =?UTF-8?Q?=C4=B0brahim_Ercan?= <ibrahim.metu@gmail.com>
+cc:     A L <mail@lechevalier.se>,
+        "netfilter@vger.kernel.org" <netfilter@vger.kernel.org>,
         netfilter-devel@vger.kernel.org
-References: <20191031182124.11393-1-phil@nwl.cc>
- <20191112214518.tsevqoqtm5ubov3p@salvia>
- <20191112221827.GD11663@orbyte.nwl.cc>
- <20191113101050.GE11663@orbyte.nwl.cc>
- <20191113231022.bb7hmwqvmgm4emv7@salvia>
+Subject: Re: ipset bitmap:port question
+In-Reply-To: <CAK6Qs9k7MD++kEHiZ+ZEunz7SyCNGeEqB3r2iZFTh_hZUQT6tQ@mail.gmail.com>
+Message-ID: <alpine.DEB.2.20.1911141344360.7498@blackhole.kfki.hu>
+References: <ba4fb013-93a0-3f63-0fd6-a4ee557893af@lechevalier.se> <CAK6Qs9k7MD++kEHiZ+ZEunz7SyCNGeEqB3r2iZFTh_hZUQT6tQ@mail.gmail.com>
+User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191113231022.bb7hmwqvmgm4emv7@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: multipart/mixed; BOUNDARY="110363376-1783608823-1573735980=:7498"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Nov 14, 2019 at 12:10:22AM +0100, Pablo Neira Ayuso wrote:
-> On Wed, Nov 13, 2019 at 11:10:50AM +0100, Phil Sutter wrote:
-> > On Tue, Nov 12, 2019 at 11:18:27PM +0100, Phil Sutter wrote:
-> > > On Tue, Nov 12, 2019 at 10:45:18PM +0100, Pablo Neira Ayuso wrote:
-> > > > On Thu, Oct 31, 2019 at 07:21:24PM +0100, Phil Sutter wrote:
-> > > > > This wasn't explicitly caught before causing a program abort:
-> > > > > 
-> > > > > | BUG: invalid range expression type set reference
-> > > > > | nft: expression.c:1162: range_expr_value_low: Assertion `0' failed.
-> > > > > | zsh: abort      sudo ./install/sbin/nft add rule t c meta mark set tcp dport map '{ @s : 23 }
-> > > > > 
-> > > > > With this patch in place, the error message is way more descriptive:
-> > > > > 
-> > > > > | Error: Key can't be set reference
-> > > > > | add rule t c meta mark set tcp dport map { @s : 23 }
-> > > > > |                                            ^^
-> > > > 
-> > > > I wanted to check why the parser allow for this...
-> > > 
-> > > For set elements or LHS parts of map elements, there is set_lhs_expr.
-> > > The latter may be concat_rhs_expr or multiton_rhs_expr. concat_rhs_expr
-> > > eventually resolves into primary_rhs_expr which may be symbol_expr.
-> > > 
-> > > BTW, it seems like from parser side, set references on map element's
-> > > RHS are allowed as well.
-> > > 
-> > > IMHO, parser_bison.y slowly but steadily turns into a can of worms. :(
-> > 
-> > On a second look, I start wondering whether symbol_expr was a wise
-> > choice: This thing combines variables ('$' identifier), "unidentified"
-> > strings and set references (AT identifier).
-> > 
-> > With symbol_expr being listed in both primary_expr and primary_rhs_expr,
-> > set references are allowed about anywhere - even in concatenations or
-> > any binary operation.
-> 
-> It would be probably good to restrict set references to where it makes
-> sense only. This is good for the grammar and we don't need to validate
-> all possible invalid combinations from the evaluation step.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-ACK!
+--110363376-1783608823-1573735980=:7498
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-> Would you have a look or you think it's too complicated to attack this
-> from the parser?
+Hi,
 
-It's not too complicated, but I sometimes feel like turning adjuster
-screws on a machine I don't understand. OK, given that parser_bison.y
-was initially written by Patrick, you're probably in the same situation.
-:)
+On Thu, 14 Nov 2019, =C4=B0brahim Ercan wrote:
 
-Cheers, Phil
+> I'm also wondering why port numbers are not interpreted with protocol on=
+=20
+> bitmap:port while hash kind sets are. I'd would glad to hear from a=20
+> netfilter developer.
+
+The bitmap family is the earliest and the types kept their original=20
+functionality (apart from the extensions). In the case of the hash types=20
+it was easy to add the protocol number to the port while in the bitmap=20
+case it'd be not so simple.
+
+Best regards,
+Jozsef
+
+> On Thu, Nov 14, 2019 at 4:25 AM A L <mail@lechevalier.se> wrote:
+> >
+> > Hello,
+> >
+> > I'm trying to understand if ipset "bitmap:port" should support protocol
+> > or not. Based on the name"bitmap:port" it should only store one value
+> > per row, and not tuple like "bitmap:ip,mac" does. However the examples
+> > in the manual suggests it should?
+> >
+> >  ...
+>=20
+
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
+--110363376-1783608823-1573735980=:7498--
