@@ -2,88 +2,88 @@ Return-Path: <SRS0=/b89=ZG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC470C432C3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Nov 2019 09:56:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A9E9C43141
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Nov 2019 10:47:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C34782063A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Nov 2019 09:56:36 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="m/R2Da9e"
+	by mail.kernel.org (Postfix) with ESMTP id DC9E22070E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Nov 2019 10:47:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726378AbfKNJ4f (ORCPT
+        id S1726564AbfKNKr0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 14 Nov 2019 04:56:35 -0500
-Received: from mail-io1-f54.google.com ([209.85.166.54]:45692 "EHLO
-        mail-io1-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726057AbfKNJ4f (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 Nov 2019 04:56:35 -0500
-Received: by mail-io1-f54.google.com with SMTP id v17so6075123iol.12;
-        Thu, 14 Nov 2019 01:56:34 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=Ob7fXRHXFaUbt+MZz3Cua9UHZx9YFsTGvrJNqwC5fEM=;
-        b=m/R2Da9eXjfpqA5ZZz9gOmdwzp8fxaWmbkKq1Laourv9uUKBIqlZf+fQ4dgBovIy9R
-         Kf+lKAsGkKzjqk8By6BxPGQco4i6XJ5VnGhiM8sbfFxfJdTPBHql3w6t7wpKM0AG3Eox
-         v/pULEU9HWNAdSc+7KIJGUbUjYDMQtepjkZ7+3Gfc/WkZFRzKPqiS2dXUa+zq1oi8xkU
-         +szMcHdUqdDJzkwtze4YYnISsoNdHdF+focCz3H8q2zxUQNBBMjTb3D+FGbj2uDWnHFF
-         St4mRuXT5K4xQ83WcLwYigtZV+KpNQj3FChFqauiM7FSooWcGu1Uj/GpfAUf5Jt2bbhA
-         GkAQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=Ob7fXRHXFaUbt+MZz3Cua9UHZx9YFsTGvrJNqwC5fEM=;
-        b=llrEGMqyPLboc9o0ir8u/dRannbWKJvGAxvB97GIDPsg8rVmS5SyzVOAmCONl/chmK
-         VBC2CH1UA4N1ekLGMUNWXPDWgVQP8CS/w9e6p8ARmloT9euCoCPyeeqmjkZMVqj7nYZn
-         ARpLnLlSUvg0r7RehfofSQClw8iqrULTSpiWQBfNT0SyoFJyyX700weskcSq5KOdVIN/
-         S5r3JXsyA/qT7j3phtxXZfRaGAE69BMpxZleDv3xhD5j32xfUct8jcFQO5qRSHliC5CE
-         Od4YNPSaQS0xk0nD2TBXRwnwLDMAoNk9alt8gfC2gmTFuFHAvWmc29Kvv1FdGRnVfZ10
-         eHAw==
-X-Gm-Message-State: APjAAAU5lVQXmhG8XCzc9URc8gmMCAiBOkpPL9buyWkwCaw4c86U/v+v
-        ki+Gs8CrYh1PSSfrtpE6PcinMXLhyCJugUDum8eSVw==
-X-Google-Smtp-Source: APXvYqwTpjeFtIFaTkUENUrQv5lnquDZScVBao2TFrtYo5TIDji1W9szmsuLHTId6hW6+0RJfC1TyEshWAsG+VcETAw=
-X-Received: by 2002:a05:6602:22c3:: with SMTP id e3mr7924011ioe.73.1573725394310;
- Thu, 14 Nov 2019 01:56:34 -0800 (PST)
+        Thu, 14 Nov 2019 05:47:26 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:52452 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725977AbfKNKr0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 14 Nov 2019 05:47:26 -0500
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1iVCeq-0001U6-05; Thu, 14 Nov 2019 11:47:24 +0100
+Date:   Thu, 14 Nov 2019 11:47:23 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        Eric Garver <eric@garver.life>
+Subject: Re: [nf-next PATCH] net: netfilter: Support iif matches in
+ POSTROUTING
+Message-ID: <20191114104723.GF11663@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        Eric Garver <eric@garver.life>
+References: <20191112161437.19511-1-phil@nwl.cc>
+ <20191113230842.blotm5i3ftz24rml@salvia>
 MIME-Version: 1.0
-References: <ba4fb013-93a0-3f63-0fd6-a4ee557893af@lechevalier.se>
-In-Reply-To: <ba4fb013-93a0-3f63-0fd6-a4ee557893af@lechevalier.se>
-From:   =?UTF-8?Q?=C4=B0brahim_Ercan?= <ibrahim.metu@gmail.com>
-Date:   Thu, 14 Nov 2019 12:56:22 +0300
-Message-ID: <CAK6Qs9k7MD++kEHiZ+ZEunz7SyCNGeEqB3r2iZFTh_hZUQT6tQ@mail.gmail.com>
-Subject: Re: ipset bitmap:port question
-To:     A L <mail@lechevalier.se>
-Cc:     "netfilter@vger.kernel.org" <netfilter@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191113230842.blotm5i3ftz24rml@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-I'm also wondering why port numbers are not interpreted with protocol
-on bitmap:port while hash kind sets are.
-I'd would glad to hear from a netfilter developer.
-Regards.
+On Thu, Nov 14, 2019 at 12:08:42AM +0100, Pablo Neira Ayuso wrote:
+> On Tue, Nov 12, 2019 at 05:14:37PM +0100, Phil Sutter wrote:
+> > Instead of generally passing NULL to NF_HOOK_COND() for input device,
+> > pass skb->dev which contains input device for routed skbs.
+> > 
+> > Note that iptables (both legacy and nft) reject rules with input
+> > interface match from being added to POSTROUTING chains, but nftables
+> > allows this.
+> 
+> Yes, it allows this but it will not ever match, right? So even if the
+> rule is loaded, it will be useless.
 
---
-=C4=B0brahim Ercan
+This patch changes that. What you're referring to is the NFWS discussion
+about nft_meta: In the past, iif* matches would enter error path if
+input interface was NULL, thereby aborting rule traversal (NFT_BREAK).
+That was changed in commit cb81572e8cb50 ("netfilter: nf_tables: Make
+nft_meta expression more robust") to instead just set dreg to something
+that usually doesn't match.
 
-On Thu, Nov 14, 2019 at 4:25 AM A L <mail@lechevalier.se> wrote:
->
-> Hello,
->
-> I'm trying to understand if ipset "bitmap:port" should support protocol
-> or not. Based on the name"bitmap:port" it should only store one value
-> per row, and not tuple like "bitmap:ip,mac" does. However the examples
-> in the manual suggests it should?
->
->  ...
+> Do you have a usecase in mind that would benefit from this specifically?
+
+I would like to masquerade traffic coming from a local private
+interface, like so:
+
+| nft add rule ip filter POSTROUTING iifname 'vnetbr0' masquerade
+
+A typical idiom commonly used to avoid this disallowed match is to
+masquerade anything that's not routed to the private interface:
+
+| iptables -t nat -A POSTROUTING ! -o vnetbr0 -j MASQUERADE
+
+But this rule will match more traffic than necessary, also things get a
+bit complicated when using multiple private interfaces between which
+traffic shouldn't be masqueraded.
+
+Firewalld has a special workaround, it marks packets for later:
+
+| iptables -t nat -A PREROUTING -i vnetbr0 -j MARK --set-mark 0xbeef
+| iptables -t nat -A POSTROUTING -m mark --mark 0xbeef -j MASQUERADE
+
+Cheers, Phil
