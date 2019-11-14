@@ -2,63 +2,145 @@ Return-Path: <SRS0=/b89=ZG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFF16C43141
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Nov 2019 23:14:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6C47C33C9A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Nov 2019 23:27:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9248B206F0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Nov 2019 23:14:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 990C82071B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Nov 2019 23:27:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727148AbfKNXOj (ORCPT
+        id S1727178AbfKNX1K (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 14 Nov 2019 18:14:39 -0500
-Received: from shards.monkeyblade.net ([23.128.96.9]:55620 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726956AbfKNXOj (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 Nov 2019 18:14:39 -0500
-Received: from localhost (unknown [IPv6:2601:601:9f00:1e2::3d5])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id 4179014AD0609;
-        Thu, 14 Nov 2019 15:14:39 -0800 (PST)
-Date:   Thu, 14 Nov 2019 15:14:38 -0800 (PST)
-Message-Id: <20191114.151438.1286269607812851870.davem@davemloft.net>
+        Thu, 14 Nov 2019 18:27:10 -0500
+Received: from correo.us.es ([193.147.175.20]:52976 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726912AbfKNX1J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 14 Nov 2019 18:27:09 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 2F959191908
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Nov 2019 00:27:05 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 234C1BAACC
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Nov 2019 00:27:05 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 18A91D1929; Fri, 15 Nov 2019 00:27:05 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1E16EDA4D0;
+        Fri, 15 Nov 2019 00:27:03 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 15 Nov 2019 00:27:03 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id EC8B8426CCBA;
+        Fri, 15 Nov 2019 00:27:02 +0100 (CET)
+Date:   Fri, 15 Nov 2019 00:27:04 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     wenxu@ucloud.cn
-Cc:     pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+Cc:     davem@davemloft.net, netfilter-devel@vger.kernel.org,
         netdev@vger.kernel.org
-Subject: Re: [PATCH net-next 0/4] netfilter: flow_table_offload something
- fixes
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <1573620402-10318-1-git-send-email-wenxu@ucloud.cn>
+Subject: Re: [PATCH net-next 3/4] netfilter: nf_tables: Fix check the err for
+ FLOW_BLOCK_BIND setup call
+Message-ID: <20191114232704.475ucjd6hsk4mpqd@salvia>
 References: <1573620402-10318-1-git-send-email-wenxu@ucloud.cn>
-X-Mailer: Mew version 6.8 on Emacs 26.1
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Thu, 14 Nov 2019 15:14:39 -0800 (PST)
+ <1573620402-10318-4-git-send-email-wenxu@ucloud.cn>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="il5uwdqck2k2kdz4"
+Content-Disposition: inline
+In-Reply-To: <1573620402-10318-4-git-send-email-wenxu@ucloud.cn>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu@ucloud.cn
-Date: Wed, 13 Nov 2019 12:46:38 +0800
 
+--il5uwdqck2k2kdz4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+This one is incomplete, right? I'm attaching an alternative patch.
+
+On Wed, Nov 13, 2019 at 12:46:41PM +0800, wenxu@ucloud.cn wrote:
 > From: wenxu <wenxu@ucloud.cn>
 > 
+> Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
+> Signed-off-by: wenxu <wenxu@ucloud.cn>
+> ---
+>  net/netfilter/nf_tables_api.c | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
 > 
-> wenxu (4):
->   netfilter: flow_table_offload: Fix check ndo_setup_tc when setup_block
->   netfilter: flow_table_core: remove unnecessary parameter in
->     flow_offload_fill_dir
->   netfilter: nf_tables: Fix check the err for FLOW_BLOCK_BIND setup call
->   netfilter: nf_tables_api: Fix UNBIND setup in the nft_flowtable_event
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 2dc636f..0a00812 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -5995,8 +5995,12 @@ static int nft_register_flowtable_net_hooks(struct net *net,
+>  			}
+>  		}
+>  
+> -		flowtable->data.type->setup(&flowtable->data, hook->ops.dev,
+> -					    FLOW_BLOCK_BIND);
+> +		err = flowtable->data.type->setup(&flowtable->data,
+> +						  hook->ops.dev,
+> +						  FLOW_BLOCK_BIND);
+> +		if (err < 0)
+> +			goto err_unregister_net_hooks;
+> +
+>  		err = nf_register_net_hook(net, &hook->ops);
+>  		if (err < 0)
+>  			goto err_unregister_net_hooks;
+> -- 
+> 1.8.3.1
+> 
 
-Pablo, I assume you will take these.
+--il5uwdqck2k2kdz4
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-netfilter-nf_tables-unbind-callbacks-if-flowtable-ho.patch"
 
-Thanks.
+From a6e05e56907673e21948c6ae53f45494b25fc0aa Mon Sep 17 00:00:00 2001
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Fri, 15 Nov 2019 00:22:55 +0100
+Subject: [PATCH] netfilter: nf_tables: unbind callbacks if flowtable hook
+ registration fails
+
+Undo the callback binding before unregistering the existing hooks.
+
+Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
+Reported-by: wenxu <wenxu@ucloud.cn>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 2dc636faa322..ad3882e14e82 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5998,8 +5998,12 @@ static int nft_register_flowtable_net_hooks(struct net *net,
+ 		flowtable->data.type->setup(&flowtable->data, hook->ops.dev,
+ 					    FLOW_BLOCK_BIND);
+ 		err = nf_register_net_hook(net, &hook->ops);
+-		if (err < 0)
++		if (err < 0) {
++			flowtable->data.type->setup(&flowtable->data,
++						    hook->ops.dev,
++						    FLOW_BLOCK_UNBIND);
+ 			goto err_unregister_net_hooks;
++		}
+ 
+ 		i++;
+ 	}
+-- 
+2.11.0
+
+
+--il5uwdqck2k2kdz4--
