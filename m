@@ -6,38 +6,38 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA716C432C3
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Nov 2019 12:03:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1837AC43215
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Nov 2019 12:03:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AEC232073B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Nov 2019 12:03:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F1E452073B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Nov 2019 12:03:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727364AbfKOMDg (ORCPT
+        id S1727365AbfKOMDh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 15 Nov 2019 07:03:36 -0500
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:42945 "EHLO
+        Fri, 15 Nov 2019 07:03:37 -0500
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:42921 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727329AbfKOMDg (ORCPT
+        with ESMTP id S1727257AbfKOMDh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 15 Nov 2019 07:03:36 -0500
+        Fri, 15 Nov 2019 07:03:37 -0500
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 28678416F4;
-        Fri, 15 Nov 2019 20:03:32 +0800 (CST)
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id B005C416C2;
+        Fri, 15 Nov 2019 20:03:31 +0800 (CST)
 From:   wenxu@ucloud.cn
 To:     pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next 3/4] netfilter: nf_flow_table_offload: add tunnel match offload support
-Date:   Fri, 15 Nov 2019 20:03:29 +0800
-Message-Id: <1573819410-3685-4-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH nf-next 1/4] netfilter: nf_flow_table_offload: refactor nf_flow_table_offload_setup to support indir setup
+Date:   Fri, 15 Nov 2019 20:03:27 +0800
+Message-Id: <1573819410-3685-2-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1573819410-3685-1-git-send-email-wenxu@ucloud.cn>
 References: <1573819410-3685-1-git-send-email-wenxu@ucloud.cn>
 X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVSk9LS0tLSktPQktPSkxZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6ME06Hzo5ITg#SApCSgghGk8B
-        AxEwCixVSlVKTkxIQ0pCT0pJSU5LVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQU9CSkw3Bg++
-X-HM-Tid: 0a6e6ef26ecc2086kuqy28678416f4
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PzI6EQw5MzgySAo0Mw0tGk8v
+        DhYKFCpVSlVKTkxIQ0pCT0pJS0hJVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUhOS043Bg++
+X-HM-Tid: 0a6e6ef26d122086kuqyb005c416c2
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -45,111 +45,90 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-This patch support both ipv4 and ipv6 tunnel_id, tunnel_src and
-tunnel_dst match for flowtable offload
+Refactor nf_flow_table_offload_setup to support indir setup in
+the next patch
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 ---
- net/netfilter/nf_flow_table_offload.c | 54 +++++++++++++++++++++++++++++++++--
- 1 file changed, 52 insertions(+), 2 deletions(-)
+ net/netfilter/nf_flow_table_offload.c | 54 ++++++++++++++++++++++++-----------
+ 1 file changed, 38 insertions(+), 16 deletions(-)
 
 diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 2182c55c..9b1de6a 100644
+index c54c9a6..6623f07 100644
 --- a/net/netfilter/nf_flow_table_offload.c
 +++ b/net/netfilter/nf_flow_table_offload.c
-@@ -30,6 +30,11 @@ struct nf_flow_key {
- 	union {
- 		struct flow_dissector_key_ipv4_addrs	ipv4;
- 	};
-+	struct flow_dissector_key_keyid			enc_key_id;
-+	union {
-+		struct flow_dissector_key_ipv4_addrs	enc_ipv4;
-+		struct flow_dissector_key_ipv6_addrs	enc_ipv6;
-+	};
- 	struct flow_dissector_key_tcp			tcp;
- 	struct flow_dissector_key_ports			tp;
- } __aligned(BITS_PER_LONG / 8); /* Ensure that we can do comparisons as longs. */
-@@ -49,11 +54,49 @@ struct nf_flow_rule {
- 	(__match)->dissector.offset[__type] =		\
- 		offsetof(struct nf_flow_key, __field)
+@@ -801,26 +801,31 @@ static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
+ 	return err;
+ }
  
-+static void nf_flow_rule_lwt_match(struct nf_flow_match *match,
-+				   struct ip_tunnel_info *tun_info)
+-int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
+-				struct net_device *dev,
+-				enum flow_block_command cmd)
++static void nf_flow_table_block_offload_init(struct flow_block_offload *bo,
++					     struct net *net,
++					     enum flow_block_command cmd,
++					     struct nf_flowtable *flowtable,
++					     struct netlink_ext_ack *extack)
 +{
-+	struct nf_flow_key *mask = &match->mask;
-+	struct nf_flow_key *key = &match->key;
-+	unsigned int enc_keys;
-+
-+	if (!tun_info || !(tun_info->mode & IP_TUNNEL_INFO_TX))
-+		return;
-+
-+	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_ENC_KEYID, enc_key_id);
-+	key->enc_key_id.keyid = tunnel_id_to_key32(tun_info->key.tun_id);
-+	mask->enc_key_id.keyid = 0xffffffff;
-+	enc_keys = BIT(FLOW_DISSECTOR_KEY_ENC_KEYID);
-+
-+	if (ip_tunnel_info_af(tun_info) == AF_INET) {
-+		NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_ENC_IPV4_ADDRS,
-+				  enc_ipv4);
-+		key->enc_ipv4.src = tun_info->key.u.ipv4.src;
-+		key->enc_ipv4.dst = tun_info->key.u.ipv4.dst;
-+		mask->enc_ipv4.src = 0xffffffff;
-+		mask->enc_ipv4.dst = 0xffffffff;
-+		enc_keys |= BIT(FLOW_DISSECTOR_KEY_ENC_IPV4_ADDRS);
-+	} else {
-+		memcpy(&key->enc_ipv6.src, &tun_info->key.u.ipv6.src,
-+		       sizeof(struct in6_addr));
-+		memcpy(&key->enc_ipv6.dst, &tun_info->key.u.ipv6.dst,
-+		       sizeof(struct in6_addr));
-+		memset(&key->enc_ipv6.src, 0xff, sizeof(struct in6_addr));
-+		memset(&key->enc_ipv6.dst, 0xff, sizeof(struct in6_addr));
-+		enc_keys |= BIT(FLOW_DISSECTOR_KEY_ENC_IPV6_ADDRS);
-+	}
-+
-+	match->dissector.used_keys |= enc_keys;
++	memset(bo, 0, sizeof(*bo));
++	bo->net		= net;
++	bo->block	= &flowtable->flow_block;
++	bo->command	= cmd;
++	bo->binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
++	bo->extack	= extack;
++	INIT_LIST_HEAD(&bo->cb_list);
 +}
 +
- static int nf_flow_rule_match(struct nf_flow_match *match,
--			      const struct flow_offload_tuple *tuple)
-+			      const struct flow_offload_tuple *tuple,
-+			      struct dst_entry *other_dst)
++static int nf_flow_table_offload_cmd(struct nf_flowtable *flowtable,
++				     struct net_device *dev,
++				     enum flow_block_command cmd)
  {
- 	struct nf_flow_key *mask = &match->mask;
- 	struct nf_flow_key *key = &match->key;
-+	struct ip_tunnel_info *tun_info;
+ 	struct netlink_ext_ack extack = {};
+-	struct flow_block_offload bo = {};
++	struct flow_block_offload bo;
+ 	int err;
  
- 	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_CONTROL, control);
- 	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_BASIC, basic);
-@@ -61,6 +104,11 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
- 	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_TCP, tcp);
- 	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_PORTS, tp);
+-	if (!(flowtable->flags & NF_FLOWTABLE_HW_OFFLOAD))
+-		return 0;
+-
+-	if (!dev->netdev_ops->ndo_setup_tc)
+-		return -EOPNOTSUPP;
+-
+-	bo.net		= dev_net(dev);
+-	bo.block	= &flowtable->flow_block;
+-	bo.command	= cmd;
+-	bo.binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
+-	bo.extack	= &extack;
+-	INIT_LIST_HEAD(&bo.cb_list);
++	nf_flow_table_block_offload_init(&bo, dev_net(dev), cmd, flowtable,
++					 &extack);
  
-+	if (other_dst->lwtstate) {
-+		tun_info = lwt_tun_info(other_dst->lwtstate);
-+		nf_flow_rule_lwt_match(match, tun_info);
-+	}
-+
- 	switch (tuple->l3proto) {
- 	case AF_INET:
- 		key->control.addr_type = FLOW_DISSECTOR_KEY_IPV4_ADDRS;
-@@ -468,6 +516,7 @@ int nf_flow_rule_route_ipv6(struct net *net, const struct flow_offload *flow,
- 	const struct flow_offload *flow = offload->flow;
- 	const struct flow_offload_tuple *tuple;
- 	struct nf_flow_rule *flow_rule;
-+	struct dst_entry *other_dst;
- 	int err = -ENOMEM;
- 
- 	flow_rule = kzalloc(sizeof(*flow_rule), GFP_KERNEL);
-@@ -483,7 +532,8 @@ int nf_flow_rule_route_ipv6(struct net *net, const struct flow_offload *flow,
- 	flow_rule->rule->match.key = &flow_rule->match.key;
- 
- 	tuple = &flow->tuplehash[dir].tuple;
--	err = nf_flow_rule_match(&flow_rule->match, tuple);
-+	other_dst = flow->tuplehash[!dir].tuple.dst_cache;
-+	err = nf_flow_rule_match(&flow_rule->match, tuple, other_dst);
+ 	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_BLOCK, &bo);
  	if (err < 0)
- 		goto err_flow_match;
+@@ -828,6 +833,23 @@ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
  
+ 	return nf_flow_table_block_setup(flowtable, &bo, cmd);
+ }
++
++int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
++				struct net_device *dev,
++				enum flow_block_command cmd)
++{
++	int err;
++
++	if (!(flowtable->flags & NF_FLOWTABLE_HW_OFFLOAD))
++		return 0;
++
++	if (dev->netdev_ops->ndo_setup_tc)
++		err = nf_flow_table_offload_cmd(flowtable, dev, cmd);
++	else
++		err = -EOPNOTSUPP;
++
++	return err;
++}
+ EXPORT_SYMBOL_GPL(nf_flow_table_offload_setup);
+ 
+ int nf_flow_table_offload_init(void)
 -- 
 1.8.3.1
 
