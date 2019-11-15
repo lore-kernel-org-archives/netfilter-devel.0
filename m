@@ -1,70 +1,56 @@
-Return-Path: <SRS0=/b89=ZG=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=hXfx=ZH=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11253C432C3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Nov 2019 23:34:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A1B7C432C3
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Nov 2019 09:47:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D97A420723
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Nov 2019 23:34:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0ACC720740
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Nov 2019 09:47:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726962AbfKNXeu (ORCPT
+        id S1726983AbfKOJrX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 14 Nov 2019 18:34:50 -0500
-Received: from correo.us.es ([193.147.175.20]:54502 "EHLO mail.us.es"
+        Fri, 15 Nov 2019 04:47:23 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:54722 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726767AbfKNXeu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 Nov 2019 18:34:50 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 8C08B191903
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Nov 2019 00:34:46 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7F5B3DA72F
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Nov 2019 00:34:46 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 74ECADA4CA; Fri, 15 Nov 2019 00:34:46 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 959C7DA8E8;
-        Fri, 15 Nov 2019 00:34:44 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 15 Nov 2019 00:34:44 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 6F7C6426CCBA;
-        Fri, 15 Nov 2019 00:34:44 +0100 (CET)
-Date:   Fri, 15 Nov 2019 00:34:46 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
+        id S1725829AbfKOJrX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 15 Nov 2019 04:47:23 -0500
+Received: from localhost ([::1]:39580 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1iVYCI-0008Dr-A0; Fri, 15 Nov 2019 10:47:22 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] cache: Reduce caching for get command
-Message-ID: <20191114233446.dmc4dhchgalzqzi2@salvia>
-References: <20191114150305.18704-1-phil@nwl.cc>
+Subject: [iptables PATCH 0/2] Restore rule counter zeroing
+Date:   Fri, 15 Nov 2019 10:47:23 +0100
+Message-Id: <20191115094725.19756-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.24.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191114150305.18704-1-phil@nwl.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Nov 14, 2019 at 04:03:05PM +0100, Phil Sutter wrote:
-> Introduce a function to distinguish which command object was given and
-> request only the necessary bits to have sets and their elements
-> available for 'get element' command.
-> 
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+Zeroing rule counters was broken in two ways: On one hand, cache
+optimizations went a little too far (actually I missed that rule cache
+is required for CMD_ZERO). On the other, rule replace logic was
+insufficient with regards to NFTA_RULE_COMPAT attribute (elaborate
+details in second patch).
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Phil Sutter (2):
+  nft: CMD_ZERO needs a rule cache
+  nft: Fix -Z for rules with NFTA_RULE_COMPAT
+
+ iptables/nft.c             | 41 ++++++++++++++++++++++++++++++++++++++
+ iptables/xtables-restore.c |  1 +
+ 2 files changed, 42 insertions(+)
+
+-- 
+2.24.0
 
