@@ -1,4 +1,4 @@
-Return-Path: <SRS0=YpW3=ZI=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=RLGq=ZJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -6,88 +6,69 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3988CC432C0
-	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Nov 2019 21:32:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15570C432C0
+	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Nov 2019 02:36:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 070D820730
-	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Nov 2019 21:32:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E7E1C20730
+	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Nov 2019 02:35:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727485AbfKPVc1 (ORCPT
+        id S1726168AbfKQCf7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 16 Nov 2019 16:32:27 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:58262 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727273AbfKPVc1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 16 Nov 2019 16:32:27 -0500
-Received: from localhost ([::1]:43120 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1iW5gA-0006Bl-7s; Sat, 16 Nov 2019 22:32:26 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        Sat, 16 Nov 2019 21:35:59 -0500
+Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:32877 "EHLO
+        mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725974AbfKQCf7 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 16 Nov 2019 21:35:59 -0500
+Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
+        by mail105.syd.optusnet.com.au (Postfix) with SMTP id E70E93A0D1B
+        for <netfilter-devel@vger.kernel.org>; Sun, 17 Nov 2019 13:35:42 +1100 (AEDT)
+Received: (qmail 23374 invoked by uid 501); 17 Nov 2019 02:35:40 -0000
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] tests/py: Set a fixed timezone in nft-test.py
-Date:   Sat, 16 Nov 2019 22:32:18 +0100
-Message-Id: <20191116213218.14698-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.24.0
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH libnetfilter_queue v2] src: Fix IPv4 checksum calculation in AF_BRIDGE packet buffer
+Date:   Sun, 17 Nov 2019 13:35:40 +1100
+Message-Id: <20191117023540.23332-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.14.5
+In-Reply-To: <20191116031834.13445-1-duncan_roe@optusnet.com.au>
+References: <20191116031834.13445-1-duncan_roe@optusnet.com.au>
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.2 cv=P6RKvmIu c=1 sm=1 tr=0
+        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
+        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=MeAgGD-zjQ4A:10 a=RSmzAf-M6YYA:10
+        a=PO7r1zJSAAAA:8 a=5MUvSgtflXIMSxYH55oA:9
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Payload generated for 'meta time' matches depends on host's timezone and
-DST setting. To produce constant output, set a fixed timezone in
-nft-test.py. Choose UTC-2 since most payloads are correct then, adjust
-the remaining two tests.
+Updated:
 
-Fixes: 0518ea3f70d8c ("tests: add meta time test cases")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+ src/extra/pktbuff.c: If pktb was created in family AF_BRIDGE, then pktb->len
+                      will include the bytes in the network header.
+                      So set the IPv4 length to "tail - network_header"
+                      rather than len
+
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
- tests/py/any/meta.t         | 2 +-
- tests/py/any/meta.t.payload | 2 +-
- tests/py/nft-test.py        | 1 +
- 3 files changed, 3 insertions(+), 2 deletions(-)
+v2: fix whitespace
+ src/extra/ipv4.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/tests/py/any/meta.t b/tests/py/any/meta.t
-index 86e5d258605dc..327f973f1bd5a 100644
---- a/tests/py/any/meta.t
-+++ b/tests/py/any/meta.t
-@@ -205,7 +205,7 @@ meta random eq 1;ok;meta random 1
- meta random gt 1000000;ok;meta random > 1000000
+diff --git a/src/extra/ipv4.c b/src/extra/ipv4.c
+index 0227b62..c03f23f 100644
+--- a/src/extra/ipv4.c
++++ b/src/extra/ipv4.c
+@@ -117,7 +117,7 @@ int nfq_ip_mangle(struct pkt_buff *pktb, unsigned int dataoff,
+ 		return 0;
  
- meta time "1970-05-23 21:07:14" drop;ok
--meta time 12341234 drop;ok;meta time "1970-05-23 21:07:14" drop
-+meta time 12341234 drop;ok;meta time "1970-05-23 22:07:14" drop
- meta time "2019-06-21 17:00:00" drop;ok
- meta time "2019-07-01 00:00:00" drop;ok
- meta time "2019-07-01 00:01:00" drop;ok
-diff --git a/tests/py/any/meta.t.payload b/tests/py/any/meta.t.payload
-index 402caae5cad8c..486d7aa566ea3 100644
---- a/tests/py/any/meta.t.payload
-+++ b/tests/py/any/meta.t.payload
-@@ -1050,7 +1050,7 @@ ip test-ip4 input
- # meta time "1970-05-23 21:07:14" drop
- ip meta-test input
-   [ meta load time => reg 1 ]
--  [ cmp eq reg 1 0x74a8f400 0x002bd849 ]
-+  [ cmp eq reg 1 0x43f05400 0x002bd503 ]
-   [ immediate reg 0 drop ]
+ 	/* fix IP hdr checksum information */
+-	iph->tot_len = htons(pktb->len);
++	iph->tot_len = htons(pktb->tail - pktb->network_header);
+ 	nfq_ip_set_checksum(iph);
  
- # meta time 12341234 drop
-diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
-index ce42b5ddb1cca..6edca3c6a5a2f 100755
---- a/tests/py/nft-test.py
-+++ b/tests/py/nft-test.py
-@@ -24,6 +24,7 @@ import tempfile
- 
- TESTS_PATH = os.path.dirname(os.path.abspath(__file__))
- sys.path.insert(0, os.path.join(TESTS_PATH, '../../py/'))
-+os.environ['TZ'] = 'UTC-2'
- 
- from nftables import Nftables
- 
+ 	return 1;
 -- 
-2.24.0
+2.14.5
 
