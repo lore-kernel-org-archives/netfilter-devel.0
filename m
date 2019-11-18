@@ -2,187 +2,98 @@ Return-Path: <SRS0=asLr=ZK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52A34C432C0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Nov 2019 21:50:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CAFCC432C0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Nov 2019 21:59:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 304E8222DC
-	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Nov 2019 21:50:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48FF0222A5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Nov 2019 21:59:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727092AbfKRVtb (ORCPT
+        id S1726910AbfKRV74 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 18 Nov 2019 16:49:31 -0500
-Received: from correo.us.es ([193.147.175.20]:45696 "EHLO mail.us.es"
+        Mon, 18 Nov 2019 16:59:56 -0500
+Received: from correo.us.es ([193.147.175.20]:51870 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727016AbfKRVta (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 18 Nov 2019 16:49:30 -0500
+        id S1726272AbfKRV74 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 18 Nov 2019 16:59:56 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 81B12EB48C
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Nov 2019 22:49:26 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id C1AA111847B
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Nov 2019 22:59:52 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 745C3B7FFB
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Nov 2019 22:49:26 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B31DDD1DBB
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Nov 2019 22:59:52 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 6A0A7B7FF2; Mon, 18 Nov 2019 22:49:26 +0100 (CET)
+        id A8632DA72F; Mon, 18 Nov 2019 22:59:52 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9D0AED1DBB;
-        Mon, 18 Nov 2019 22:49:21 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E10A2202AE;
+        Mon, 18 Nov 2019 22:59:48 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 18 Nov 2019 22:49:21 +0100 (CET)
+ Mon, 18 Nov 2019 22:59:48 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 6D2C442EE38F;
-        Mon, 18 Nov 2019 22:49:21 +0100 (CET)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id BC5D342EE38E;
+        Mon, 18 Nov 2019 22:59:48 +0100 (CET)
+Date:   Mon, 18 Nov 2019 22:59:50 +0100
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 01/18] netfilter: ipset: Add wildcard support to net,iface
-Date:   Mon, 18 Nov 2019 22:48:57 +0100
-Message-Id: <20191118214914.142794-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20191118214914.142794-1-pablo@netfilter.org>
-References: <20191118214914.142794-1-pablo@netfilter.org>
+To:     wenxu <wenxu@ucloud.cn>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next 0/4] netfilter: nf_flow_table_offload: support
+ tunnel match
+Message-ID: <20191118215950.5xm6om55dd3krexs@salvia>
+References: <1573819410-3685-1-git-send-email-wenxu@ucloud.cn>
+ <20191115214827.lyu35l2y3nqusplh@salvia>
+ <eb382034-7462-ef2c-4b76-518c488771f8@ucloud.cn>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <eb382034-7462-ef2c-4b76-518c488771f8@ucloud.cn>
+User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Kristian Evensen <kristian.evensen@gmail.com>
+On Sat, Nov 16, 2019 at 04:06:02PM +0800, wenxu wrote:
+> 
+> 在 2019/11/16 5:48, Pablo Neira Ayuso 写道:
+> > On Fri, Nov 15, 2019 at 08:03:26PM +0800, wenxu@ucloud.cn wrote:
+> >> From: wenxu <wenxu@ucloud.cn>
+> >>
+> >> This patch provide tunnel offload based on route lwtunnel. 
+> >> The first two patches support indr callback setup
+> >> Then add tunnel match and action offload
+> > Could you provide a configuration script for this tunnel setup?
+> >
+> > Thanks.
+> 
+> The following is a simple configure for tunnel offload forward
+> 
+> 
+> ip link add dev gre_sys type gretap key 1000
+> 
+> ip link add user1 type vrf table 1
+> 
+> ip l set dev gre1000 master user1
+> 
+> ip l set dev vf master user1
+> 
+> ip r a 10.0.0.7 dev vf table 1
+> ip r a default via 10.0.0.100 encap ip id 1000 dst 172.168.0.7 key dev gre1000 table 1 onlink
+> 
+> nft add flowtable firewall fb1 { hook ingress priority 0 \;  flags offload \; devices = { gre1000, vf } \; }
 
-The net,iface equal functions currently compares the full interface
-names. In several cases, wildcard (or prefix) matching is useful. For
-example, when converting a large iptables rule-set to make use of ipset,
-I was able to significantly reduce the number of set elements by making
-use of wildcard matching.
+Thanks for describing, but how does this work in software?
 
-Wildcard matching is enabled by adding "wildcard" when adding an element
-to a set. Internally, this causes the IPSET_FLAG_IFACE_WILDCARD-flag to
-be set.  When this flag is set, only the initial part of the interface
-name is used for comparison.
-
-Wildcard matching is done per element and not per set, as there are many
-cases where mixing wildcard and non-wildcard elements are useful. This
-means that is up to the user to handle (avoid) overlapping interface
-names.
-
-Signed-off-by: Kristian Evensen <kristian.evensen@gmail.com>
-Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
----
- include/uapi/linux/netfilter/ipset/ip_set.h |  2 ++
- net/netfilter/ipset/ip_set_hash_netiface.c  | 23 ++++++++++++++++++-----
- 2 files changed, 20 insertions(+), 5 deletions(-)
-
-diff --git a/include/uapi/linux/netfilter/ipset/ip_set.h b/include/uapi/linux/netfilter/ipset/ip_set.h
-index eea166c52c36..11a72a938eb1 100644
---- a/include/uapi/linux/netfilter/ipset/ip_set.h
-+++ b/include/uapi/linux/netfilter/ipset/ip_set.h
-@@ -205,6 +205,8 @@ enum ipset_cadt_flags {
- 	IPSET_FLAG_WITH_FORCEADD = (1 << IPSET_FLAG_BIT_WITH_FORCEADD),
- 	IPSET_FLAG_BIT_WITH_SKBINFO = 6,
- 	IPSET_FLAG_WITH_SKBINFO = (1 << IPSET_FLAG_BIT_WITH_SKBINFO),
-+	IPSET_FLAG_BIT_IFACE_WILDCARD = 7,
-+	IPSET_FLAG_IFACE_WILDCARD = (1 << IPSET_FLAG_BIT_IFACE_WILDCARD),
- 	IPSET_FLAG_CADT_MAX	= 15,
- };
- 
-diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
-index 1a04e0929738..be5e95a0d876 100644
---- a/net/netfilter/ipset/ip_set_hash_netiface.c
-+++ b/net/netfilter/ipset/ip_set_hash_netiface.c
-@@ -25,7 +25,8 @@
- /*				3    Counters support added */
- /*				4    Comments support added */
- /*				5    Forceadd support added */
--#define IPSET_TYPE_REV_MAX	6 /* skbinfo support added */
-+/*				6    skbinfo support added */
-+#define IPSET_TYPE_REV_MAX	7 /* interface wildcard support added */
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@netfilter.org>");
-@@ -57,6 +58,7 @@ struct hash_netiface4_elem {
- 	u8 cidr;
- 	u8 nomatch;
- 	u8 elem;
-+	u8 wildcard;
- 	char iface[IFNAMSIZ];
- };
- 
-@@ -71,7 +73,9 @@ hash_netiface4_data_equal(const struct hash_netiface4_elem *ip1,
- 	       ip1->cidr == ip2->cidr &&
- 	       (++*multi) &&
- 	       ip1->physdev == ip2->physdev &&
--	       strcmp(ip1->iface, ip2->iface) == 0;
-+	       (ip1->wildcard ?
-+		strncmp(ip1->iface, ip2->iface, strlen(ip1->iface)) == 0 :
-+		strcmp(ip1->iface, ip2->iface) == 0);
- }
- 
- static int
-@@ -103,7 +107,8 @@ static bool
- hash_netiface4_data_list(struct sk_buff *skb,
- 			 const struct hash_netiface4_elem *data)
- {
--	u32 flags = data->physdev ? IPSET_FLAG_PHYSDEV : 0;
-+	u32 flags = (data->physdev ? IPSET_FLAG_PHYSDEV : 0) |
-+		    (data->wildcard ? IPSET_FLAG_IFACE_WILDCARD : 0);
- 
- 	if (data->nomatch)
- 		flags |= IPSET_FLAG_NOMATCH;
-@@ -229,6 +234,8 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
- 			e.physdev = 1;
- 		if (cadt_flags & IPSET_FLAG_NOMATCH)
- 			flags |= (IPSET_FLAG_NOMATCH << 16);
-+		if (cadt_flags & IPSET_FLAG_IFACE_WILDCARD)
-+			e.wildcard = 1;
- 	}
- 	if (adt == IPSET_TEST || !tb[IPSET_ATTR_IP_TO]) {
- 		e.ip = htonl(ip & ip_set_hostmask(e.cidr));
-@@ -280,6 +287,7 @@ struct hash_netiface6_elem {
- 	u8 cidr;
- 	u8 nomatch;
- 	u8 elem;
-+	u8 wildcard;
- 	char iface[IFNAMSIZ];
- };
- 
-@@ -294,7 +302,9 @@ hash_netiface6_data_equal(const struct hash_netiface6_elem *ip1,
- 	       ip1->cidr == ip2->cidr &&
- 	       (++*multi) &&
- 	       ip1->physdev == ip2->physdev &&
--	       strcmp(ip1->iface, ip2->iface) == 0;
-+	       (ip1->wildcard ?
-+		strncmp(ip1->iface, ip2->iface, strlen(ip1->iface)) == 0 :
-+		strcmp(ip1->iface, ip2->iface) == 0);
- }
- 
- static int
-@@ -326,7 +336,8 @@ static bool
- hash_netiface6_data_list(struct sk_buff *skb,
- 			 const struct hash_netiface6_elem *data)
- {
--	u32 flags = data->physdev ? IPSET_FLAG_PHYSDEV : 0;
-+	u32 flags = (data->physdev ? IPSET_FLAG_PHYSDEV : 0) |
-+		    (data->wildcard ? IPSET_FLAG_IFACE_WILDCARD : 0);
- 
- 	if (data->nomatch)
- 		flags |= IPSET_FLAG_NOMATCH;
-@@ -440,6 +451,8 @@ hash_netiface6_uadt(struct ip_set *set, struct nlattr *tb[],
- 			e.physdev = 1;
- 		if (cadt_flags & IPSET_FLAG_NOMATCH)
- 			flags |= (IPSET_FLAG_NOMATCH << 16);
-+		if (cadt_flags & IPSET_FLAG_IFACE_WILDCARD)
-+			e.wildcard = 1;
- 	}
- 
- 	ret = adtfn(set, &e, &ext, &ext, flags);
--- 
-2.11.0
-
+I'd appreciate if you can describe a configuration in software (no
+offload) that I can use here for testing, including how you're
+generating traffic there for testing.
