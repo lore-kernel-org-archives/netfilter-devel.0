@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6B35C43141
-	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Nov 2019 21:50:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 070C9C432C0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Nov 2019 21:50:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B0E7E222DC
-	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Nov 2019 21:50:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DCE52222DC
+	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Nov 2019 21:50:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727452AbfKRVuB (ORCPT
+        id S1727139AbfKRVtd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 18 Nov 2019 16:50:01 -0500
-Received: from correo.us.es ([193.147.175.20]:45694 "EHLO mail.us.es"
+        Mon, 18 Nov 2019 16:49:33 -0500
+Received: from correo.us.es ([193.147.175.20]:45720 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727140AbfKRVte (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 18 Nov 2019 16:49:34 -0500
+        id S1726705AbfKRVtc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 18 Nov 2019 16:49:32 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3C8A9EB494
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Nov 2019 22:49:31 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id C5391EB497
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Nov 2019 22:49:28 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2D3D1A7EE6
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Nov 2019 22:49:31 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B73984C3BF
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Nov 2019 22:49:28 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 2050AA7EE4; Mon, 18 Nov 2019 22:49:31 +0100 (CET)
+        id ACF3DCE15C; Mon, 18 Nov 2019 22:49:28 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A458D202AE;
-        Mon, 18 Nov 2019 22:49:25 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DEC16DA801;
+        Mon, 18 Nov 2019 22:49:23 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 18 Nov 2019 22:49:25 +0100 (CET)
+ Mon, 18 Nov 2019 22:49:23 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 7600C42EE38F;
-        Mon, 18 Nov 2019 22:49:25 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id B0BDF42EE38F;
+        Mon, 18 Nov 2019 22:49:23 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 07/18] netfilter: xt_time: use time64_t
-Date:   Mon, 18 Nov 2019 22:49:03 +0100
-Message-Id: <20191118214914.142794-8-pablo@netfilter.org>
+Subject: [PATCH 04/18] netfilter: nf_tables: add nft_payload_rebuild_vlan_hdr()
+Date:   Mon, 18 Nov 2019 22:49:00 +0100
+Message-Id: <20191118214914.142794-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191118214914.142794-1-pablo@netfilter.org>
 References: <20191118214914.142794-1-pablo@netfilter.org>
@@ -54,114 +54,53 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
+Wrap the code to rebuild the ethernet + vlan header into a function.
 
-The current xt_time driver suffers from the y2038 overflow on 32-bit
-architectures, when the time of day calculations break.
-
-Also, on both 32-bit and 64-bit architectures, there is a problem with
-info->date_start/stop, which is part of the user ABI and overflows in
-in 2106.
-
-Fix the first issue by using time64_t and explicit calls to div_u64()
-and div_u64_rem(), and document the seconds issue.
-
-The explicit 64-bit division is unfortunately slower on 32-bit
-architectures, but doing it as unsigned lets us use the optimized
-division-through-multiplication path in most configurations.  This should
-be fine, as the code already does not allow any negative time of day
-values.
-
-Using u32 seconds values consistently would probably also work and
-be a little more efficient, but that doesn't feel right as it would
-propagate the y2106 overflow to more place rather than fewer.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Acked-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/xt_time.c | 19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ net/netfilter/nft_payload.c | 19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
-index 8dbb4d48f2ed..67cb98489415 100644
---- a/net/netfilter/xt_time.c
-+++ b/net/netfilter/xt_time.c
-@@ -77,12 +77,12 @@ static inline bool is_leap(unsigned int y)
-  * This is done in three separate functions so that the most expensive
-  * calculations are done last, in case a "simple match" can be found earlier.
-  */
--static inline unsigned int localtime_1(struct xtm *r, time_t time)
-+static inline unsigned int localtime_1(struct xtm *r, time64_t time)
- {
- 	unsigned int v, w;
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 247799801165..3db9c802ea62 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -23,6 +23,19 @@
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
  
- 	/* Each day has 86400s, so finding the hour/minute is actually easy. */
--	v         = time % SECONDS_PER_DAY;
-+	div_u64_rem(time, SECONDS_PER_DAY, &v);
- 	r->second = v % 60;
- 	w         = v / 60;
- 	r->minute = w % 60;
-@@ -90,13 +90,13 @@ static inline unsigned int localtime_1(struct xtm *r, time_t time)
- 	return v;
- }
++static bool nft_payload_rebuild_vlan_hdr(const struct sk_buff *skb, int mac_off,
++					 struct vlan_ethhdr *veth)
++{
++	if (skb_copy_bits(skb, mac_off, veth, ETH_HLEN))
++		return false;
++
++	veth->h_vlan_proto = skb->vlan_proto;
++	veth->h_vlan_TCI = htons(skb_vlan_tag_get(skb));
++	veth->h_vlan_encapsulated_proto = skb->protocol;
++
++	return true;
++}
++
+ /* add vlan header into the user buffer for if tag was removed by offloads */
+ static bool
+ nft_payload_copy_vlan(u32 *d, const struct sk_buff *skb, u8 offset, u8 len)
+@@ -35,13 +48,9 @@ nft_payload_copy_vlan(u32 *d, const struct sk_buff *skb, u8 offset, u8 len)
+ 	if (offset < VLAN_ETH_HLEN) {
+ 		u8 ethlen = len;
  
--static inline void localtime_2(struct xtm *r, time_t time)
-+static inline void localtime_2(struct xtm *r, time64_t time)
- {
- 	/*
- 	 * Here comes the rest (weekday, monthday). First, divide the SSTE
- 	 * by seconds-per-day to get the number of _days_ since the epoch.
- 	 */
--	r->dse = time / 86400;
-+	r->dse = div_u64(time, SECONDS_PER_DAY);
+-		if (skb_copy_bits(skb, mac_off, &veth, ETH_HLEN))
++		if (!nft_payload_rebuild_vlan_hdr(skb, mac_off, &veth))
+ 			return false;
  
- 	/*
- 	 * 1970-01-01 (w=0) was a Thursday (4).
-@@ -105,7 +105,7 @@ static inline void localtime_2(struct xtm *r, time_t time)
- 	r->weekday = (4 + r->dse - 1) % 7 + 1;
- }
+-		veth.h_vlan_proto = skb->vlan_proto;
+-		veth.h_vlan_TCI = htons(skb_vlan_tag_get(skb));
+-		veth.h_vlan_encapsulated_proto = skb->protocol;
+-
+ 		if (offset + len > VLAN_ETH_HLEN)
+ 			ethlen -= offset + len - VLAN_ETH_HLEN;
  
--static void localtime_3(struct xtm *r, time_t time)
-+static void localtime_3(struct xtm *r, time64_t time)
- {
- 	unsigned int year, i, w = r->dse;
- 
-@@ -160,7 +160,7 @@ time_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	const struct xt_time_info *info = par->matchinfo;
- 	unsigned int packet_time;
- 	struct xtm current_time;
--	s64 stamp;
-+	time64_t stamp;
- 
- 	/*
- 	 * We need real time here, but we can neither use skb->tstamp
-@@ -173,14 +173,14 @@ time_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	 *	1. match before 13:00
- 	 *	2. match after 13:00
- 	 *
--	 * If you match against processing time (get_seconds) it
-+	 * If you match against processing time (ktime_get_real_seconds) it
- 	 * may happen that the same packet matches both rules if
- 	 * it arrived at the right moment before 13:00, so it would be
- 	 * better to check skb->tstamp and set it via __net_timestamp()
- 	 * if needed.  This however breaks outgoing packets tx timestamp,
- 	 * and causes them to get delayed forever by fq packet scheduler.
- 	 */
--	stamp = get_seconds();
-+	stamp = ktime_get_real_seconds();
- 
- 	if (info->flags & XT_TIME_LOCAL_TZ)
- 		/* Adjust for local timezone */
-@@ -193,6 +193,9 @@ time_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	 *   - 'now' is in the weekday mask
- 	 *   - 'now' is in the daytime range time_start..time_end
- 	 * (and by default, libxt_time will set these so as to match)
-+	 *
-+	 * note: info->date_start/stop are unsigned 32-bit values that
-+	 *	 can hold values beyond y2038, but not after y2106.
- 	 */
- 
- 	if (stamp < info->date_start || stamp > info->date_stop)
 -- 
 2.11.0
 
