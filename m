@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B636C43141
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1DA7C432C0
 	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Nov 2019 21:49:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F0E60222DC
-	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Nov 2019 21:49:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C4E4A222DC
+	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Nov 2019 21:49:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727324AbfKRVtj (ORCPT
+        id S1727355AbfKRVto (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 18 Nov 2019 16:49:39 -0500
-Received: from correo.us.es ([193.147.175.20]:45696 "EHLO mail.us.es"
+        Mon, 18 Nov 2019 16:49:44 -0500
+Received: from correo.us.es ([193.147.175.20]:45756 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727237AbfKRVti (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 18 Nov 2019 16:49:38 -0500
+        id S1727264AbfKRVtj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 18 Nov 2019 16:49:39 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E20F3EBAE6
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Nov 2019 22:49:34 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 92695EBAF1
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Nov 2019 22:49:35 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D3C41B8001
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Nov 2019 22:49:34 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 85E31DA4D0
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Nov 2019 22:49:35 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C96CADA72F; Mon, 18 Nov 2019 22:49:34 +0100 (CET)
+        id 6CF8BD1911; Mon, 18 Nov 2019 22:49:35 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 16D5FFF13B;
-        Mon, 18 Nov 2019 22:49:30 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BB4EB202AE;
+        Mon, 18 Nov 2019 22:49:31 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 18 Nov 2019 22:49:30 +0100 (CET)
+ Mon, 18 Nov 2019 22:49:31 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id DE43242EE38F;
-        Mon, 18 Nov 2019 22:49:29 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 8898042EE38F;
+        Mon, 18 Nov 2019 22:49:31 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 15/18] netfilter: nf_tables_offload: release flow_rule on error from commit path
-Date:   Mon, 18 Nov 2019 22:49:11 +0100
-Message-Id: <20191118214914.142794-16-pablo@netfilter.org>
+Subject: [PATCH 18/18] netfilter: nf_tables: add nft_unregister_flowtable_hook()
+Date:   Mon, 18 Nov 2019 22:49:14 +0100
+Message-Id: <20191118214914.142794-19-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191118214914.142794-1-pablo@netfilter.org>
 References: <20191118214914.142794-1-pablo@netfilter.org>
@@ -54,62 +54,79 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If hardware offload commit path fails, release all flow_rule objects.
+Unbind flowtable callback if hook is unregistered.
 
-Fixes: c9626a2cbdb2 ("netfilter: nf_tables: add hardware offload support")
+This patch is implicitly fixing the error path of
+nf_tables_newflowtable() and nft_flowtable_event().
+
+Fixes: 8bb69f3b2918 ("netfilter: nf_tables: add flowtable offload control plane")
+Reported-by: wenxu <wenxu@ucloud.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_offload.c | 26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+ net/netfilter/nf_tables_api.c | 24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 528886bb3481..6d5f3cd7f1b7 100644
---- a/net/netfilter/nf_tables_offload.c
-+++ b/net/netfilter/nf_tables_offload.c
-@@ -422,14 +422,14 @@ int nft_flow_rule_offload_commit(struct net *net)
- 				continue;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 9340b976d85c..ff04cdc87f76 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5975,16 +5975,22 @@ nft_flowtable_type_get(struct net *net, u8 family)
+ 	return ERR_PTR(-ENOENT);
+ }
  
- 			if (trans->ctx.flags & NLM_F_REPLACE ||
--			    !(trans->ctx.flags & NLM_F_APPEND))
--				return -EOPNOTSUPP;
--
-+			    !(trans->ctx.flags & NLM_F_APPEND)) {
-+				err = -EOPNOTSUPP;
-+				break;
-+			}
- 			err = nft_flow_offload_rule(trans->ctx.chain,
- 						    nft_trans_rule(trans),
- 						    nft_trans_flow_rule(trans),
- 						    FLOW_CLS_REPLACE);
--			nft_flow_rule_destroy(nft_trans_flow_rule(trans));
++static void nft_unregister_flowtable_hook(struct net *net,
++					  struct nft_flowtable *flowtable,
++					  struct nft_hook *hook)
++{
++	nf_unregister_net_hook(net, &hook->ops);
++	flowtable->data.type->setup(&flowtable->data, hook->ops.dev,
++				    FLOW_BLOCK_UNBIND);
++}
++
+ static void nft_unregister_flowtable_net_hooks(struct net *net,
+ 					       struct nft_flowtable *flowtable)
+ {
+ 	struct nft_hook *hook;
+ 
+-	list_for_each_entry(hook, &flowtable->hook_list, list) {
+-		nf_unregister_net_hook(net, &hook->ops);
+-		flowtable->data.type->setup(&flowtable->data, hook->ops.dev,
+-					    FLOW_BLOCK_UNBIND);
+-	}
++	list_for_each_entry(hook, &flowtable->hook_list, list)
++		nft_unregister_flowtable_hook(net, flowtable, hook);
+ }
+ 
+ static int nft_register_flowtable_net_hooks(struct net *net,
+@@ -6030,9 +6036,7 @@ static int nft_register_flowtable_net_hooks(struct net *net,
+ 		if (i-- <= 0)
  			break;
- 		case NFT_MSG_DELRULE:
- 			if (!(trans->ctx.chain->flags & NFT_CHAIN_HW_OFFLOAD))
-@@ -442,7 +442,23 @@ int nft_flow_rule_offload_commit(struct net *net)
- 		}
  
- 		if (err)
--			return err;
-+			break;
-+	}
-+
-+	list_for_each_entry(trans, &net->nft.commit_list, list) {
-+		if (trans->ctx.family != NFPROTO_NETDEV)
-+			continue;
-+
-+		switch (trans->msg_type) {
-+		case NFT_MSG_NEWRULE:
-+			if (!(trans->ctx.chain->flags & NFT_CHAIN_HW_OFFLOAD))
-+				continue;
-+
-+			nft_flow_rule_destroy(nft_trans_flow_rule(trans));
-+			break;
-+		default:
-+			break;
-+		}
+-		nf_unregister_net_hook(net, &hook->ops);
+-		flowtable->data.type->setup(&flowtable->data, hook->ops.dev,
+-					    FLOW_BLOCK_UNBIND);
++		nft_unregister_flowtable_hook(net, flowtable, hook);
+ 		list_del_rcu(&hook->list);
+ 		kfree_rcu(hook, rcu);
  	}
+@@ -6139,7 +6143,7 @@ static int nf_tables_newflowtable(struct net *net, struct sock *nlsk,
+ 	return 0;
+ err5:
+ 	list_for_each_entry_safe(hook, next, &flowtable->hook_list, list) {
+-		nf_unregister_net_hook(net, &hook->ops);
++		nft_unregister_flowtable_hook(net, flowtable, hook);
+ 		list_del_rcu(&hook->list);
+ 		kfree_rcu(hook, rcu);
+ 	}
+@@ -6484,7 +6488,7 @@ static void nft_flowtable_event(unsigned long event, struct net_device *dev,
+ 		if (hook->ops.dev != dev)
+ 			continue;
  
- 	return err;
+-		nf_unregister_net_hook(dev_net(dev), &hook->ops);
++		nft_unregister_flowtable_hook(dev_net(dev), flowtable, hook);
+ 		list_del_rcu(&hook->list);
+ 		kfree_rcu(hook, rcu);
+ 		break;
 -- 
 2.11.0
 
