@@ -7,57 +7,54 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3319CC432C0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Nov 2019 01:07:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53694C432C0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Nov 2019 01:07:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0185220730
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Nov 2019 01:07:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 27DF620730
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Nov 2019 01:07:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="NsU0MQEn"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="OHsCqKqG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727200AbfKSBHa (ORCPT
+        id S1727202AbfKSBHe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 18 Nov 2019 20:07:30 -0500
-Received: from us-smtp-1.mimecast.com ([205.139.110.61]:41709 "EHLO
+        Mon, 18 Nov 2019 20:07:34 -0500
+Received: from us-smtp-2.mimecast.com ([207.211.31.81]:57371 "EHLO
         us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726962AbfKSBHa (ORCPT
+        by vger.kernel.org with ESMTP id S1726962AbfKSBHd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 18 Nov 2019 20:07:30 -0500
+        Mon, 18 Nov 2019 20:07:33 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1574125649;
+        s=mimecast20190719; t=1574125651;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=CuC4+ZngNgNW0Zh5q0mwTTZqAHz30i50o1NYtueOFcg=;
-        b=NsU0MQEnSL3MG1+VVHKFhSwdgujRR3dKusFjCeKHV/ThuGiJ1tBaHuj2/EUeewY0U0FJ7+
-        SKBwIwwd3ONa69whplPBpNNLNS/b9WmCfDhzug2c624JMxj+x7zgHwEqbpjvIyNsK0CR40
-        wU5pXRQ9Eq0JJo+C9/PUinq3Z8Pxpds=
+         content-transfer-encoding:content-transfer-encoding;
+        bh=PkRmp9dsWaTioL48z8B7QPkmRAmVp9sNMZPSrQCpMuQ=;
+        b=OHsCqKqGCaR/T0M7OONbvk7T7EebwQnBEeKpJaAX/9Xbx9VCTk7sDPI59cpnBpZWemFM3i
+        v86V4EB2x/ZeTIrOxlrtHaldNK41y0f7bjsL94tzCgXh1OjHXmDLWO3CF0/YREexwdwjNU
+        eQtX7ZUfwsCQ8Oz8aM5JUu/I89xZFkQ=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-432-D8PHff3ROGua8RIAnlGnNA-1; Mon, 18 Nov 2019 20:07:24 -0500
+ us-mta-205-xp0VN0DqM86_aNZWzIklZw-1; Mon, 18 Nov 2019 20:07:28 -0500
 Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 1F8F61804985;
-        Tue, 19 Nov 2019 01:07:23 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 03EBA8024CC;
+        Tue, 19 Nov 2019 01:07:27 +0000 (UTC)
 Received: from epycfail.redhat.com (ovpn-112-24.ams2.redhat.com [10.36.112.24])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 130C3BA45;
-        Tue, 19 Nov 2019 01:07:20 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id E54F62AF7A;
+        Tue, 19 Nov 2019 01:07:24 +0000 (UTC)
 From:   Stefano Brivio <sbrivio@redhat.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org
 Cc:     Florian Westphal <fw@strlen.de>,
         =?UTF-8?q?Kadlecsik=20J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>,
         Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>
-Subject: [PATCH nft 3/3] tests: Introduce test for set with concatenated ranges
-Date:   Tue, 19 Nov 2019 02:07:12 +0100
-Message-Id: <20191119010712.39316-4-sbrivio@redhat.com>
-In-Reply-To: <20191119010712.39316-1-sbrivio@redhat.com>
-References: <20191119010712.39316-1-sbrivio@redhat.com>
+Subject: [PATCH libnftnl] set: Add support for NFTA_SET_SUBKEY attributes
+Date:   Tue, 19 Nov 2019 02:07:23 +0100
+Message-Id: <20191119010723.39368-1-sbrivio@redhat.com>
 MIME-Version: 1.0
 X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
-X-MC-Unique: D8PHff3ROGua8RIAnlGnNA-1
+X-MC-Unique: xp0VN0DqM86_aNZWzIklZw-1
 X-Mimecast-Spam-Score: 0
 Content-Type: text/plain; charset=WINDOWS-1252
 Content-Transfer-Encoding: quoted-printable
@@ -66,190 +63,138 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This test checks that set elements can be added, deleted, that
-addition and deletion are refused when appropriate, that entries
-time out properly and they can be fetched by matching values in
-the given ranges.
+If the NFTNL_SET_SUBKEY flag is passed, send one NFTA_SET_SUBKEY
+attributes per set subkey_len attribute in the set description.
+
+Note that our internal representation, and nftables storage, for
+these attributes, is 8-bit wide, but the kernel uses 32 bits. As
+field length is expressed in bits, this is probably a good
+compromise to keep the UAPI future-proof and memory footprint to
+a minimum, for the moment being.
+
+This is the libnftnl counterpart for nftables patch:
+  src: Add support for and export NFT_SET_SUBKEY attributes
+
+and depends on the UAPI changes from patch:
+  [PATCH nf-next 1/8] netfilter: nf_tables: Support for subkeys, set with m=
+ultiple ranged fields
 
 Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
 ---
- .../testcases/sets/0038concatenated_ranges_0  | 162 ++++++++++++++++++
- 1 file changed, 162 insertions(+)
- create mode 100755 tests/shell/testcases/sets/0038concatenated_ranges_0
+I'm not updating the UAPI header copy in this series, please
+let me know if I'd better do that.
 
-diff --git a/tests/shell/testcases/sets/0038concatenated_ranges_0 b/tests/s=
-hell/testcases/sets/0038concatenated_ranges_0
-new file mode 100755
-index 00000000..7dfab83e
---- /dev/null
-+++ b/tests/shell/testcases/sets/0038concatenated_ranges_0
-@@ -0,0 +1,162 @@
-+#!/bin/sh -e
-+#
-+# 0038concatenated_ranges_0 - Add, get, list, timeout for concatenated ran=
-ges
-+#
-+# Cycle over supported data types, forming concatenations of three fields,=
- for
-+# all possible permutations, and:
-+# - add entries to set
-+# - list them
-+# - check that they can't be added again
-+# - get entries by specifying a value matching ranges for all fields
-+# - delete them
-+# - add them with 1s timeout
-+# - check that they can't be added again right away
-+# - check that they are not listed after 1s
-+# - delete them
-+# - make sure they can't deleted again
+ include/libnftnl/set.h |  1 +
+ include/set.h          |  2 ++
+ src/set.c              | 28 ++++++++++++++++++++++++++++
+ 3 files changed, 31 insertions(+)
+
+diff --git a/include/libnftnl/set.h b/include/libnftnl/set.h
+index db3fa68..0a5e02a 100644
+--- a/include/libnftnl/set.h
++++ b/include/libnftnl/set.h
+@@ -29,6 +29,7 @@ enum nftnl_set_attr {
+ =09NFTNL_SET_USERDATA,
+ =09NFTNL_SET_OBJ_TYPE,
+ =09NFTNL_SET_HANDLE,
++=09NFTNL_SET_SUBKEY,
+ =09__NFTNL_SET_MAX
+ };
+ #define NFTNL_SET_MAX (__NFTNL_SET_MAX - 1)
+diff --git a/include/set.h b/include/set.h
+index 446acd2..41d5dba 100644
+--- a/include/set.h
++++ b/include/set.h
+@@ -31,6 +31,8 @@ struct nftnl_set {
+ =09uint32_t=09=09flags;
+ =09uint32_t=09=09gc_interval;
+ =09uint64_t=09=09timeout;
 +
-+TYPES=3D"ipv4_addr ipv6_addr ether_addr inet_proto inet_service mark"
++=09uint8_t=09=09=09subkey_len[NFT_REG32_COUNT];
+ };
+=20
+ struct nftnl_set_list;
+diff --git a/src/set.c b/src/set.c
+index 78447c6..60a46d8 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -91,6 +91,7 @@ void nftnl_set_unset(struct nftnl_set *s, uint16_t attr)
+ =09case NFTNL_SET_DESC_SIZE:
+ =09case NFTNL_SET_TIMEOUT:
+ =09case NFTNL_SET_GC_INTERVAL:
++=09case NFTNL_SET_SUBKEY:
+ =09=09break;
+ =09case NFTNL_SET_USERDATA:
+ =09=09xfree(s->user.data);
+@@ -115,6 +116,7 @@ static uint32_t nftnl_set_validate[NFTNL_SET_MAX + 1] =
+=3D {
+ =09[NFTNL_SET_DESC_SIZE]=09=3D sizeof(uint32_t),
+ =09[NFTNL_SET_TIMEOUT]=09=09=3D sizeof(uint64_t),
+ =09[NFTNL_SET_GC_INTERVAL]=09=3D sizeof(uint32_t),
++=09[NFTNL_SET_SUBKEY]=09=09=3D sizeof(uint8_t) * NFT_REG32_COUNT,
+ };
+=20
+ EXPORT_SYMBOL(nftnl_set_set_data);
+@@ -190,6 +192,9 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t at=
+tr, const void *data,
+ =09=09memcpy(s->user.data, data, data_len);
+ =09=09s->user.len =3D data_len;
+ =09=09break;
++=09case NFTNL_SET_SUBKEY:
++=09=09memcpy(s->subkey_len, data, data_len);
++=09=09break;
+ =09}
+ =09s->flags |=3D (1 << attr);
+ =09return 0;
+@@ -361,6 +366,23 @@ nftnl_set_nlmsg_build_desc_payload(struct nlmsghdr *nl=
+h, struct nftnl_set *s)
+ =09mnl_attr_nest_end(nlh, nest);
+ }
+=20
++static void
++nftnl_set_nlmsg_build_subkey_payload(struct nlmsghdr *nlh, struct nftnl_se=
+t *s)
++{
++=09struct nlattr *nest;
++=09uint32_t v;
++=09uint8_t *l;
 +
-+RULESPEC_ipv4_addr=3D"ip saddr"
-+ELEMS_ipv4_addr=3D"192.0.2.1 198.51.100.0/25 203.0.113.0-203.0.113.129"
-+ADD_ipv4_addr=3D"192.0.2.252/31"
-+GET_ipv4_addr=3D"198.51.100.127 198.51.100.0/25"
-+
-+RULESPEC_ipv6_addr=3D"ip6 daddr"
-+ELEMS_ipv6_addr=3D"2001:db8:c0c:c0de::1-2001:db8:cacc::a 2001:db8::1 2001:=
-db8:dada:da::-2001:db8:dada:da:ffff:ffff:ffff:ffff"
-+ADD_ipv6_addr=3D"2001:db8::d1ca:d1ca"
-+GET_ipv6_addr=3D"2001:db8::1 2001:db8::1"
-+
-+RULESPEC_ether_addr=3D"ether saddr"
-+ELEMS_ether_addr=3D"00:0a:c1:d1:f1:ed-00:0a:c1:dd:ec:af 00:0b:0c:ca:cc:10-=
-c1:a0:c1:cc:10:00 f0:ca:cc:1a:b0:1a"
-+ADD_ether_addr=3D"00:be:1d:ed:ab:e1"
-+GET_ether_addr=3D"ac:c1:ac:c0:ce:c0 00:0b:0c:ca:cc:10-c1:a0:c1:cc:10:00"
-+
-+RULESPEC_inet_proto=3D"meta l4proto"
-+ELEMS_inet_proto=3D"tcp udp icmp"
-+ADD_inet_proto=3D"sctp"
-+GET_inet_proto=3D"udp udp"
-+
-+RULESPEC_inet_service=3D"tcp dport"
-+ELEMS_inet_service=3D"22-23 1024-32768 31337"
-+ADD_inet_service=3D"32769-65535"
-+GET_inet_service=3D"32768 1024-32768"
-+
-+RULESPEC_mark=3D"mark"
-+ELEMS_mark=3D"0x00000064-0x000000c8 0x0000006f 0x0000fffd-0x0000ffff"
-+ADD_mark=3D"0x0000002a"
-+GET_mark=3D"0x0000006f 0x0000006f"
-+
-+tmp=3D"$(mktemp)"
-+trap "rm -f ${tmp}" EXIT
-+
-+render() {
-+=09eval "echo \"$(cat ${1})\""
++=09nest =3D mnl_attr_nest_start(nlh, NFTA_SET_SUBKEY);
++=09for (l =3D s->subkey_len; l - s->subkey_len < NFT_REG32_COUNT; l++) {
++=09=09if (!*l)
++=09=09=09break;
++=09=09v =3D *l;
++=09=09mnl_attr_put_u32(nlh, NFTA_SET_SUBKEY_LEN, htonl(v));
++=09}
++=09mnl_attr_nest_end(nlh, nest);
 +}
 +
-+cat <<'EOF' > "${tmp}"
-+flush ruleset
-+
-+table inet filter {
-+=09set test {
-+=09=09type ${ta} . ${tb} . ${tc}
-+=09=09flags interval,timeout
-+=09=09elements =3D { ${a1} . ${b1} . ${c1} ,
-+=09=09=09     ${a2} . ${b2} . ${c2} ,
-+=09=09=09     ${a3} . ${b3} . ${c3} }
-+=09}
-+
-+=09chain output {
-+=09=09type filter hook output priority 0; policy accept;
-+=09=09${sa} . ${sb} . ${sc} @test counter
-+=09}
-+}
-+EOF
-+
-+for ta in ${TYPES}; do
-+=09eval a=3D\$ELEMS_${ta}
-+=09a1=3D${a%% *}; a2=3D$(expr "$a" : ".* \(.*\) .*"); a3=3D${a##* }
-+=09eval sa=3D\$RULESPEC_${ta}
-+
-+=09for tb in ${TYPES}; do
-+=09=09[ "${tb}" =3D "${ta}" ] && continue
-+=09=09if [ "${tb}" =3D "ipv6_addr" ]; then
-+=09=09=09[ "${ta}" =3D "ipv4_addr" ] && continue
-+=09=09elif [ "${tb}" =3D "ipv4_addr" ]; then
-+=09=09=09[ "${ta}" =3D "ipv6_addr" ] && continue
-+=09=09fi
-+
-+=09=09eval b=3D\$ELEMS_${tb}
-+=09=09b1=3D${b%% *}; b2=3D$(expr "$b" : ".* \(.*\) .*"); b3=3D${b##* }
-+=09=09eval sb=3D\$RULESPEC_${tb}
-+
-+=09=09for tc in ${TYPES}; do
-+=09=09=09[ "${tc}" =3D "${ta}" ] && continue
-+=09=09=09[ "${tc}" =3D "${tb}" ] && continue
-+=09=09=09if [ "${tc}" =3D "ipv6_addr" ]; then
-+=09=09=09=09[ "${ta}" =3D "ipv4_addr" ] && continue
-+=09=09=09=09[ "${tb}" =3D "ipv4_addr" ] && continue
-+=09=09=09elif [ "${tc}" =3D "ipv4_addr" ]; then
-+=09=09=09=09[ "${ta}" =3D "ipv6_addr" ] && continue
-+=09=09=09=09[ "${tb}" =3D "ipv6_addr" ] && continue
-+=09=09=09fi
-+
-+=09=09=09eval c=3D\$ELEMS_${tc}
-+=09=09=09c1=3D${c%% *}; c2=3D$(expr "$c" : ".* \(.*\) .*"); c3=3D${c##* }
-+=09=09=09eval sc=3D\$RULESPEC_${tc}
-+
-+=09=09=09render ${tmp} | ${NFT} -f -
-+
-+=09=09=09[ $(${NFT} list set inet filter test |=09=09\
-+=09=09=09   grep -c -e "${a1} . ${b1} . ${c1}"=09=09\
-+=09=09=09=09   -e "${a2} . ${b2} . ${c2}"=09=09\
-+=09=09=09=09   -e "${a3} . ${b3} . ${c3}") -eq 3 ]
-+
-+=09=09=09! ${NFT} add element inet filter test \
-+=09=09=09=09"{ ${a1} . ${b1} . ${c1} }" 2>/dev/null
-+=09=09=09! ${NFT} add element inet filter test \
-+=09=09=09=09"{ ${a2} . ${b2} . ${c2} }" 2>/dev/null
-+=09=09=09! ${NFT} add element inet filter test \
-+=09=09=09=09"{ ${a3} . ${b3} . ${c3} }" 2>/dev/null
-+
-+=09=09=09${NFT} delete element inet filter test \
-+=09=09=09=09"{ ${a1} . ${b1} . ${c1} }"
-+=09=09=09! ${NFT} delete element inet filter test \
-+=09=09=09=09"{ ${a1} . ${b1} . ${c1} }" 2>/dev/null
-+
-+=09=09=09eval add_a=3D\$ADD_${ta}
-+=09=09=09eval add_b=3D\$ADD_${tb}
-+=09=09=09eval add_c=3D\$ADD_${tc}
-+=09=09=09${NFT} add element inet filter test \
-+=09=09=09=09"{ ${add_a} . ${add_b} . ${add_c} timeout 1s}"
-+=09=09=09[ $(${NFT} list set inet filter test |=09=09\
-+=09=09=09   grep -c "${add_a} . ${add_b} . ${add_c}") -eq 1 ]
-+=09=09=09! ${NFT} add element inet filter test \
-+=09=09=09=09"{ ${add_a} . ${add_b} . ${add_c} timeout 1s}" \
-+=09=09=09=092>/dev/null
-+
-+=09=09=09eval get_a=3D\$GET_${ta}
-+=09=09=09eval get_b=3D\$GET_${tb}
-+=09=09=09eval get_c=3D\$GET_${tc}
-+=09=09=09exp_a=3D${get_a##* }; get_a=3D${get_a%% *}
-+=09=09=09exp_b=3D${get_b##* }; get_b=3D${get_b%% *}
-+=09=09=09exp_c=3D${get_c##* }; get_c=3D${get_c%% *}
-+=09=09=09[ $(${NFT} get element inet filter test =09\
-+=09=09=09   "{ ${get_a} . ${get_b} . ${get_c} }" |=09\
-+=09=09=09   grep -c "${exp_a} . ${exp_b} . ${exp_c}") -eq 1 ]
-+
-+=09=09=09sleep 1
-+=09=09=09[ $(${NFT} list set inet filter test |=09=09\
-+=09=09=09   grep -c "${add_a} . ${add_b} . ${add_c}") -eq 0 ]
-+
-+=09=09=09${NFT} delete element inet filter test \
-+=09=09=09=09"{ ${a2} . ${b2} . ${c2} }"
-+=09=09=09${NFT} delete element inet filter test \
-+=09=09=09=09"{ ${a3} . ${b3} . ${c3} }"
-+=09=09=09! ${NFT} delete element inet filter test \
-+=09=09=09=09"{ ${a2} . ${b2} . ${c2} }" 2>/dev/null
-+=09=09=09! ${NFT} delete element inet filter test \
-+=09=09=09=09"{ ${a3} . ${b3} . ${c3} }" 2>/dev/null
-+=09=09done
-+=09done
-+done
+ EXPORT_SYMBOL(nftnl_set_nlmsg_build_payload);
+ void nftnl_set_nlmsg_build_payload(struct nlmsghdr *nlh, struct nftnl_set =
+*s)
+ {
+@@ -395,6 +417,8 @@ void nftnl_set_nlmsg_build_payload(struct nlmsghdr *nlh=
+, struct nftnl_set *s)
+ =09=09mnl_attr_put_u32(nlh, NFTA_SET_GC_INTERVAL, htonl(s->gc_interval));
+ =09if (s->flags & (1 << NFTNL_SET_USERDATA))
+ =09=09mnl_attr_put(nlh, NFTA_SET_USERDATA, s->user.len, s->user.data);
++=09if (s->flags & (1 << NFTNL_SET_SUBKEY))
++=09=09nftnl_set_nlmsg_build_subkey_payload(nlh, s);
+ }
+=20
+=20
+@@ -439,6 +463,10 @@ static int nftnl_set_parse_attr_cb(const struct nlattr=
+ *attr, void *data)
+ =09=09if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
+ =09=09=09abi_breakage();
+ =09=09break;
++=09case NFTA_SET_SUBKEY:
++=09=09if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
++=09=09=09abi_breakage();
++=09=09break;
+ =09}
+=20
+ =09tb[type] =3D attr;
 --=20
 2.23.0
 
