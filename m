@@ -2,199 +2,163 @@ Return-Path: <SRS0=iRt+=ZL=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53694C432C0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Nov 2019 01:07:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D2CEC432C0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Nov 2019 06:40:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 27DF620730
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Nov 2019 01:07:34 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="OHsCqKqG"
+	by mail.kernel.org (Postfix) with ESMTP id 17D522082F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Nov 2019 06:40:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727202AbfKSBHe (ORCPT
+        id S1727106AbfKSGkM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 18 Nov 2019 20:07:34 -0500
-Received: from us-smtp-2.mimecast.com ([207.211.31.81]:57371 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726962AbfKSBHd (ORCPT
+        Tue, 19 Nov 2019 01:40:12 -0500
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:53671 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726023AbfKSGkM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 18 Nov 2019 20:07:33 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1574125651;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=PkRmp9dsWaTioL48z8B7QPkmRAmVp9sNMZPSrQCpMuQ=;
-        b=OHsCqKqGCaR/T0M7OONbvk7T7EebwQnBEeKpJaAX/9Xbx9VCTk7sDPI59cpnBpZWemFM3i
-        v86V4EB2x/ZeTIrOxlrtHaldNK41y0f7bjsL94tzCgXh1OjHXmDLWO3CF0/YREexwdwjNU
-        eQtX7ZUfwsCQ8Oz8aM5JUu/I89xZFkQ=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-205-xp0VN0DqM86_aNZWzIklZw-1; Mon, 18 Nov 2019 20:07:28 -0500
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 03EBA8024CC;
-        Tue, 19 Nov 2019 01:07:27 +0000 (UTC)
-Received: from epycfail.redhat.com (ovpn-112-24.ams2.redhat.com [10.36.112.24])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id E54F62AF7A;
-        Tue, 19 Nov 2019 01:07:24 +0000 (UTC)
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
-        =?UTF-8?q?Kadlecsik=20J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>,
-        Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>
-Subject: [PATCH libnftnl] set: Add support for NFTA_SET_SUBKEY attributes
-Date:   Tue, 19 Nov 2019 02:07:23 +0100
-Message-Id: <20191119010723.39368-1-sbrivio@redhat.com>
+        Tue, 19 Nov 2019 01:40:12 -0500
+Received: from [192.168.188.14] (unknown [120.132.1.226])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id EA69041A59;
+        Tue, 19 Nov 2019 14:40:07 +0800 (CST)
+Subject: Re: [PATCH nf-next 0/4] netfilter: nf_flow_table_offload: support
+ tunnel match
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+References: <1573819410-3685-1-git-send-email-wenxu@ucloud.cn>
+ <20191115214827.lyu35l2y3nqusplh@salvia>
+ <eb382034-7462-ef2c-4b76-518c488771f8@ucloud.cn>
+ <20191118215950.5xm6om55dd3krexs@salvia>
+From:   wenxu <wenxu@ucloud.cn>
+Message-ID: <5c5df191-732d-84d1-0d85-8d1918af7467@ucloud.cn>
+Date:   Tue, 19 Nov 2019 14:40:06 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
-X-MC-Unique: xp0VN0DqM86_aNZWzIklZw-1
-X-Mimecast-Spam-Score: 0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20191118215950.5xm6om55dd3krexs@salvia>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSUhIS0tLSk5CSU1ITUpZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6ODo6KQw5Tzg6LQkxQk0UNhwe
+        MC9PCjVVSlVKTkxPSk9OTUtDSU1KVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
+        SElVSlVJSU1ZV1kIAVlBTk9JQzcG
+X-HM-Tid: 0a6e8263c9da2086kuqyea69041a59
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If the NFTNL_SET_SUBKEY flag is passed, send one NFTA_SET_SUBKEY
-attributes per set subkey_len attribute in the set description.
 
-Note that our internal representation, and nftables storage, for
-these attributes, is 8-bit wide, but the kernel uses 32 bits. As
-field length is expressed in bits, this is probably a good
-compromise to keep the UAPI future-proof and memory footprint to
-a minimum, for the moment being.
+On 11/19/2019 5:59 AM, Pablo Neira Ayuso wrote:
+> On Sat, Nov 16, 2019 at 04:06:02PM +0800, wenxu wrote:
+>> 在 2019/11/16 5:48, Pablo Neira Ayuso 写道:
+>>> On Fri, Nov 15, 2019 at 08:03:26PM +0800, wenxu@ucloud.cn wrote:
+>>>> From: wenxu <wenxu@ucloud.cn>
+>>>>
+>>>> This patch provide tunnel offload based on route lwtunnel. 
+>>>> The first two patches support indr callback setup
+>>>> Then add tunnel match and action offload
+>>> Could you provide a configuration script for this tunnel setup?
+>>>
+>>> Thanks.
+>> The following is a simple configure for tunnel offload forward
+>>
+>>
+>> ip link add dev gre_sys type gretap key 1000
+>>
+>> ip link add user1 type vrf table 1
+>>
+>> ip l set dev gre1000 master user1
+>>
+>> ip l set dev vf master user1
+>>
+>> ip r a 10.0.0.7 dev vf table 1
+>> ip r a default via 10.0.0.100 encap ip id 1000 dst 172.168.0.7 key dev gre1000 table 1 onlink
+>>
+>> nft add flowtable firewall fb1 { hook ingress priority 0 \;  flags offload \; devices = { gre1000, vf } \; }
+> Thanks for describing, but how does this work in software?
+>
+> I'd appreciate if you can describe a configuration in software (no
+> offload) that I can use here for testing, including how you're
+> generating traffic there for testing.
 
-This is the libnftnl counterpart for nftables patch:
-  src: Add support for and export NFT_SET_SUBKEY attributes
+There is the whole test script for software only. flowtable offload is
 
-and depends on the UAPI changes from patch:
-  [PATCH nf-next 1/8] netfilter: nf_tables: Support for subkeys, set with m=
-ultiple ranged fields
+already can work with vrf.
 
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
----
-I'm not updating the UAPI header copy in this series, please
-let me know if I'd better do that.
 
- include/libnftnl/set.h |  1 +
- include/set.h          |  2 ++
- src/set.c              | 28 ++++++++++++++++++++++++++++
- 3 files changed, 31 insertions(+)
+ip netns add ns1
+ip netns add cl
+ip l add dev veth1 type veth peer name eth0 netns ns1
+ip l add dev vethc type veth peer name eth0 netns cl
+ip netns exec ns1 ifconfig eth0 10.0.0.7/24 up
+ip netns exec ns1 ip r add default via 10.0.0.1
 
-diff --git a/include/libnftnl/set.h b/include/libnftnl/set.h
-index db3fa68..0a5e02a 100644
---- a/include/libnftnl/set.h
-+++ b/include/libnftnl/set.h
-@@ -29,6 +29,7 @@ enum nftnl_set_attr {
- =09NFTNL_SET_USERDATA,
- =09NFTNL_SET_OBJ_TYPE,
- =09NFTNL_SET_HANDLE,
-+=09NFTNL_SET_SUBKEY,
- =09__NFTNL_SET_MAX
- };
- #define NFTNL_SET_MAX (__NFTNL_SET_MAX - 1)
-diff --git a/include/set.h b/include/set.h
-index 446acd2..41d5dba 100644
---- a/include/set.h
-+++ b/include/set.h
-@@ -31,6 +31,8 @@ struct nftnl_set {
- =09uint32_t=09=09flags;
- =09uint32_t=09=09gc_interval;
- =09uint64_t=09=09timeout;
-+
-+=09uint8_t=09=09=09subkey_len[NFT_REG32_COUNT];
- };
-=20
- struct nftnl_set_list;
-diff --git a/src/set.c b/src/set.c
-index 78447c6..60a46d8 100644
---- a/src/set.c
-+++ b/src/set.c
-@@ -91,6 +91,7 @@ void nftnl_set_unset(struct nftnl_set *s, uint16_t attr)
- =09case NFTNL_SET_DESC_SIZE:
- =09case NFTNL_SET_TIMEOUT:
- =09case NFTNL_SET_GC_INTERVAL:
-+=09case NFTNL_SET_SUBKEY:
- =09=09break;
- =09case NFTNL_SET_USERDATA:
- =09=09xfree(s->user.data);
-@@ -115,6 +116,7 @@ static uint32_t nftnl_set_validate[NFTNL_SET_MAX + 1] =
-=3D {
- =09[NFTNL_SET_DESC_SIZE]=09=3D sizeof(uint32_t),
- =09[NFTNL_SET_TIMEOUT]=09=09=3D sizeof(uint64_t),
- =09[NFTNL_SET_GC_INTERVAL]=09=3D sizeof(uint32_t),
-+=09[NFTNL_SET_SUBKEY]=09=09=3D sizeof(uint8_t) * NFT_REG32_COUNT,
- };
-=20
- EXPORT_SYMBOL(nftnl_set_set_data);
-@@ -190,6 +192,9 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t at=
-tr, const void *data,
- =09=09memcpy(s->user.data, data, data_len);
- =09=09s->user.len =3D data_len;
- =09=09break;
-+=09case NFTNL_SET_SUBKEY:
-+=09=09memcpy(s->subkey_len, data, data_len);
-+=09=09break;
- =09}
- =09s->flags |=3D (1 << attr);
- =09return 0;
-@@ -361,6 +366,23 @@ nftnl_set_nlmsg_build_desc_payload(struct nlmsghdr *nl=
-h, struct nftnl_set *s)
- =09mnl_attr_nest_end(nlh, nest);
- }
-=20
-+static void
-+nftnl_set_nlmsg_build_subkey_payload(struct nlmsghdr *nlh, struct nftnl_se=
-t *s)
-+{
-+=09struct nlattr *nest;
-+=09uint32_t v;
-+=09uint8_t *l;
-+
-+=09nest =3D mnl_attr_nest_start(nlh, NFTA_SET_SUBKEY);
-+=09for (l =3D s->subkey_len; l - s->subkey_len < NFT_REG32_COUNT; l++) {
-+=09=09if (!*l)
-+=09=09=09break;
-+=09=09v =3D *l;
-+=09=09mnl_attr_put_u32(nlh, NFTA_SET_SUBKEY_LEN, htonl(v));
-+=09}
-+=09mnl_attr_nest_end(nlh, nest);
-+}
-+
- EXPORT_SYMBOL(nftnl_set_nlmsg_build_payload);
- void nftnl_set_nlmsg_build_payload(struct nlmsghdr *nlh, struct nftnl_set =
-*s)
- {
-@@ -395,6 +417,8 @@ void nftnl_set_nlmsg_build_payload(struct nlmsghdr *nlh=
-, struct nftnl_set *s)
- =09=09mnl_attr_put_u32(nlh, NFTA_SET_GC_INTERVAL, htonl(s->gc_interval));
- =09if (s->flags & (1 << NFTNL_SET_USERDATA))
- =09=09mnl_attr_put(nlh, NFTA_SET_USERDATA, s->user.len, s->user.data);
-+=09if (s->flags & (1 << NFTNL_SET_SUBKEY))
-+=09=09nftnl_set_nlmsg_build_subkey_payload(nlh, s);
- }
-=20
-=20
-@@ -439,6 +463,10 @@ static int nftnl_set_parse_attr_cb(const struct nlattr=
- *attr, void *data)
- =09=09if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
- =09=09=09abi_breakage();
- =09=09break;
-+=09case NFTA_SET_SUBKEY:
-+=09=09if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
-+=09=09=09abi_breakage();
-+=09=09break;
- =09}
-=20
- =09tb[type] =3D attr;
---=20
-2.23.0
+ifconfig vethc 172.168.0.7/24 up
+ip l add dev tun1 type gretap external
 
+ip netns exec cl ifconfig eth0 172.168.0.17/24 up
+ip netns exec cl ip l add dev tun type gretap local 172.168.0.17 remote 172.168.0.7 key 1000
+ip netns exec cl ifconfig tun 10.0.1.7/24 up
+ip netns exec cl ip r add default via 10.0.1.1
+
+ip link add user1 type vrf table 1
+ip l set user1 up
+ip l set dev tun1 master user1
+ifconfig veth1 down
+ip l set dev veth1 master user1
+ifconfig veth1 10.0.0.1/24 up
+ifconfig tun1 10.0.1.1/24 up
+
+ip r r 10.0.0.7 dev veth1 table 1
+ip r r 10.0.1.7 encap ip id 1000 dst 172.168.0.17 key dev tun1 table 1
+
+nft add table firewall
+nft add chain firewall zones { type filter hook prerouting priority - 300 \; }
+nft add rule firewall zones counter ct zone set iif map { "tun1" : 1, "veth1" : 1 }
+nft add chain firewall rule-1000-ingress
+nft add rule firewall rule-1000-ingress ct zone 1 ct state established,related counter accept
+nft add rule firewall rule-1000-ingress ct zone 1 ct state invalid counter drop
+nft add rule firewall rule-1000-ingress ct zone 1 tcp dport 5001 ct state new counter accept
+nft add rule firewall rule-1000-ingress ct zone 1 ip protocol icmp ct state new counter accept
+nft add rule firewall rule-1000-ingress counter drop
+nft add chain firewall rules-all { type filter hook prerouting priority - 150 \; }
+nft add rule firewall rules-all meta iifkind "vrf" counter accept
+nft add rule firewall rules-all iif vmap { "tun1" : jump rule-1000-ingress }
+
+nft add flowtable firewall fb1 { hook ingress priority 0 \; devices = { veth1, tun1 } \; }
+nft add chain firewall ftb-all {type filter hook forward priority 0 \; policy accept \; }
+nft add rule firewall ftb-all ct zone 1 ip protocol tcp flow offload @fb1
+
+
+
+you can test it with
+
+ip netns exec ns1 exec iperf -s
+
+ip netns exec ns1 exec iperf -c 10.0.0.7 -t 100 -i 2
+
+
+cat /proc/net/nf_conntrack | grep zone=1
+ipv4     2 tcp      6 src=10.0.1.7 dst=10.0.0.7 sport=56290 dport=5001 src=10.0.0.7 dst=10.0.1.7 sport=5001 dport=56290 [OFFLOAD] mark=0 zone=1 use=3
+
+
+Ps:  there are some tricks. It is better the tun1 as "ip l add dev tun1 type gretap key 1000"
+
+but not " ip l add dev tun1 type gretap external"
+
+But the specific key id gretap when receive the packet will not push up the tun_info which will lead arp response
+
+with no tun_info
+
+I will post a patch to support this in gre.
+
+
+
+
+
+>
