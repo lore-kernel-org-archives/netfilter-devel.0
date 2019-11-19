@@ -2,163 +2,130 @@ Return-Path: <SRS0=iRt+=ZL=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D2CEC432C0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Nov 2019 06:40:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BAD5DC432C3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Nov 2019 08:10:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 17D522082F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Nov 2019 06:40:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9240A20878
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Nov 2019 08:10:37 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EbMp9hYl"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727106AbfKSGkM (ORCPT
+        id S1725936AbfKSIKg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 19 Nov 2019 01:40:12 -0500
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:53671 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726023AbfKSGkM (ORCPT
+        Tue, 19 Nov 2019 03:10:36 -0500
+Received: from mail-io1-f52.google.com ([209.85.166.52]:45857 "EHLO
+        mail-io1-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725306AbfKSIKg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 Nov 2019 01:40:12 -0500
-Received: from [192.168.188.14] (unknown [120.132.1.226])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id EA69041A59;
-        Tue, 19 Nov 2019 14:40:07 +0800 (CST)
-Subject: Re: [PATCH nf-next 0/4] netfilter: nf_flow_table_offload: support
- tunnel match
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-References: <1573819410-3685-1-git-send-email-wenxu@ucloud.cn>
- <20191115214827.lyu35l2y3nqusplh@salvia>
- <eb382034-7462-ef2c-4b76-518c488771f8@ucloud.cn>
- <20191118215950.5xm6om55dd3krexs@salvia>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <5c5df191-732d-84d1-0d85-8d1918af7467@ucloud.cn>
-Date:   Tue, 19 Nov 2019 14:40:06 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.9.0
+        Tue, 19 Nov 2019 03:10:36 -0500
+Received: by mail-io1-f52.google.com with SMTP id v17so11011554iol.12;
+        Tue, 19 Nov 2019 00:10:35 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to
+         :content-transfer-encoding;
+        bh=2oLH1Lri8f6h5RvlMJKE4Jdozlmbr5UHnMrdItBPFfc=;
+        b=EbMp9hYlDCahxFVbPT/RUXrbkTICEMmmLX7G8ttqrGi0MLaPMb5iBtSV4B/fmfWUK0
+         FTxa5SvPrA8EhUXlm9r1WPMLS6F289N3pNS0nkM6sWlIv3zQX0zLzX4HDRM7LVUZjLX5
+         iekEFzw8zzNPMMELvq3UK3HTRZPtm/6e5lSdflaGoIYvai/YtQcQD/zUg7alDuZ3Jbsl
+         JD3BNIvzS7XbaqTLVqXZVeex9CjnG6dhDo8k8AAgEJKFxuhF+fQzJturHSjaeLF+G0Bk
+         rlkNoTbFPpsts1oX6Jm766sXhWFvWbVK8AFOAv/Z/4ty250eGw7S+H1/sqLrr1PuYb4G
+         VRlQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to
+         :content-transfer-encoding;
+        bh=2oLH1Lri8f6h5RvlMJKE4Jdozlmbr5UHnMrdItBPFfc=;
+        b=n/XGEVkG5tNxS9I2QKzJGqc+1DHlEp/FRDfmf1EvhrA5Rgod0LwSThh9Q6B7xENbHa
+         VVOZmqorfJnSWeek+1AL0pXFR8NL5zqN+292v3/3Ate64F9NCz7ONhN5OFHtZJrTHx56
+         Fkipkeft/jRF2oPCDesNKOQFWA6tWCwLyQz7S/FRm2DveW2QWOJ5fFKsPHdHiRLDHsPV
+         AnKWUnnd0rMuFazNDiDZDhIimCCGo9QqaMDmDKUGpfTRpC4qvjfUyO3icx0wK6EYYAvw
+         I71TYw4gLxseasFXTelTCd5zpaiIV4N2IkIl+TyB5eVOIw11YAI10KIH8DvLdRyTw+fE
+         WAwA==
+X-Gm-Message-State: APjAAAUaB6kt2CYF255PjvZhlJZ2Nrd8Wj02zyHyhuphl/9CIWuPMmUC
+        NNtn34N0zAhlq24JXBCOmXN3BENHlBXUCObF9LfYjXwQnRo=
+X-Google-Smtp-Source: APXvYqzqKLU0edeyLnUKlEF3jcYcGmBL7nEJ/4PIZqaQ4JWHORWIB1qLX9DqpPQfVrPMYNrHfhfTL7QPTaIn7GGawYU=
+X-Received: by 2002:a6b:ed05:: with SMTP id n5mr16281734iog.278.1574151034577;
+ Tue, 19 Nov 2019 00:10:34 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20191118215950.5xm6om55dd3krexs@salvia>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSUhIS0tLSk5CSU1ITUpZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6ODo6KQw5Tzg6LQkxQk0UNhwe
-        MC9PCjVVSlVKTkxPSk9OTUtDSU1KVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
-        SElVSlVJSU1ZV1kIAVlBTk9JQzcG
-X-HM-Tid: 0a6e8263c9da2086kuqyea69041a59
+From:   =?UTF-8?Q?=C4=B0brahim_Ercan?= <ibrahim.metu@gmail.com>
+Date:   Tue, 19 Nov 2019 11:10:23 +0300
+Message-ID: <CAK6Qs9k0Z9US9u3OWhO4_DTjU1+zY5wXpARu6=cwgVOPx8jP2Q@mail.gmail.com>
+Subject: Mysql has problem with synproxy
+To:     netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi.
+We are having problem with mysql and synproxy. While other tcp apps
+working fine on same server, mysql server seems not working properly
+when we activated synproxy.
 
-On 11/19/2019 5:59 AM, Pablo Neira Ayuso wrote:
-> On Sat, Nov 16, 2019 at 04:06:02PM +0800, wenxu wrote:
->> 在 2019/11/16 5:48, Pablo Neira Ayuso 写道:
->>> On Fri, Nov 15, 2019 at 08:03:26PM +0800, wenxu@ucloud.cn wrote:
->>>> From: wenxu <wenxu@ucloud.cn>
->>>>
->>>> This patch provide tunnel offload based on route lwtunnel. 
->>>> The first two patches support indr callback setup
->>>> Then add tunnel match and action offload
->>> Could you provide a configuration script for this tunnel setup?
->>>
->>> Thanks.
->> The following is a simple configure for tunnel offload forward
->>
->>
->> ip link add dev gre_sys type gretap key 1000
->>
->> ip link add user1 type vrf table 1
->>
->> ip l set dev gre1000 master user1
->>
->> ip l set dev vf master user1
->>
->> ip r a 10.0.0.7 dev vf table 1
->> ip r a default via 10.0.0.100 encap ip id 1000 dst 172.168.0.7 key dev gre1000 table 1 onlink
->>
->> nft add flowtable firewall fb1 { hook ingress priority 0 \;  flags offload \; devices = { gre1000, vf } \; }
-> Thanks for describing, but how does this work in software?
->
-> I'd appreciate if you can describe a configuration in software (no
-> offload) that I can use here for testing, including how you're
-> generating traffic there for testing.
+This is the handshake packets while synproxy deactivated. 10.0.0.1 is
+the server.
 
-There is the whole test script for software only. flowtable offload is
+14:28:57.344688 IP 10.0.0.2.59924 > 10.0.0.1.3336: Flags [S], seq
+2738839797, win 29200, options [mss 1460,sackOK,TS val 1776041 ecr
+0,nop,wscale 7], length 0
+14:28:57.344836 IP 10.0.0.1.3336 > 10.0.0.2.59924: Flags [S.], seq
+3873797148, ack 2738839798, win 65535, options [mss 1460,nop,wscale
+6,sackOK,TS val 3220882344 ecr 1776041], length 0
+14:28:57.344961 IP 10.0.0.2.59924 > 10.0.0.1.3336: Flags [.], ack 1,
+win 229, options [nop,nop,TS val 1776041 ecr 3220882344], length 0
 
-already can work with vrf.
+Here client is able to connect without any problem. Server has wscale
+6 and mss 1460, so we added synproxy rules as below
 
+iptables -t raw -A PREROUTING -i enp12s0f0 -p tcp --syn -j CT --notrack
+iptables -t filter -A FORWARD  -i enp12s0f0 -p tcp -m state --state
+INVALID,UNTRACKED -j SYNPROXY --sack-perm --timestamp --mss 1460
+--wscale 6
+iptables -t filter -A FORWARD -i enp12s0f0 -p tcp -m state --state
+INVALID -j DROP
 
-ip netns add ns1
-ip netns add cl
-ip l add dev veth1 type veth peer name eth0 netns ns1
-ip l add dev vethc type veth peer name eth0 netns cl
-ip netns exec ns1 ifconfig eth0 10.0.0.7/24 up
-ip netns exec ns1 ip r add default via 10.0.0.1
+After synproxy activated, server send reset and reject connection.
+Here is the packets we captured between client to firewall and
+firewall to server
 
-ifconfig vethc 172.168.0.7/24 up
-ip l add dev tun1 type gretap external
+Between client and firewall
+14:28:12.343253 IP 10.0.0.2.59586 > 10.0.0.1.3336: Flags [S], seq
+1356993242, win 29200, options [mss 1460,sackOK,TS val 1731041 ecr
+0,nop,wscale 7], length 0
+14:28:12.343280 IP 10.0.0.1.3336 > 10.0.0.2.59586: Flags [S.], seq
+2278099588, ack 1356993243, win 0, options [mss 1460,sackOK,TS val
+1423321111 ecr 1731041,nop,wscale 6], length 0
+14:28:12.343439 IP 10.0.0.2.59586 > 10.0.0.1.3336: Flags [.], ack 1,
+win 229, options [nop,nop,TS val 1731042 ecr 1423321111], length 0
+14:28:12.343611 IP 10.0.0.1.3336 > 10.0.0.2.59586: Flags [.], ack 1,
+win 1023, options [nop,nop,TS val 1423321111 ecr 1731042], length 0
+14:28:12.343692 IP 10.0.0.1.3336 > 10.0.0.2.59586: Flags [R], seq
+2278099589, win 0, length 0
 
-ip netns exec cl ifconfig eth0 172.168.0.17/24 up
-ip netns exec cl ip l add dev tun type gretap local 172.168.0.17 remote 172.168.0.7 key 1000
-ip netns exec cl ifconfig tun 10.0.1.7/24 up
-ip netns exec cl ip r add default via 10.0.1.1
+Between firewall and server
+14:28:12.343459 IP 10.0.0.2.59586 > 10.0.0.1.3336: Flags [S], seq
+1356993242, win 229, options [mss 1460,sackOK,TS val 1731042 ecr
+1423321111,nop,wscale 7], length 0
+14:28:12.343583 IP 10.0.0.1.3336 > 10.0.0.2.59586: Flags [S.], seq
+1666149016, ack 1356993243, win 65535, options [mss 1460,nop,wscale
+6,sackOK,TS val 109930553 ecr 1731042], length 0
+14:28:12.343602 IP 10.0.0.2.59586 > 10.0.0.1.3336: Flags [.], ack 1,
+win 229, options [nop,nop,TS val 1731042 ecr 3091507291], length 0
+14:28:12.343686 IP 10.0.0.1.3336 > 10.0.0.2.59586: Flags [R], seq
+1666149017, win 0, length 0
 
-ip link add user1 type vrf table 1
-ip l set user1 up
-ip l set dev tun1 master user1
-ifconfig veth1 down
-ip l set dev veth1 master user1
-ifconfig veth1 10.0.0.1/24 up
-ifconfig tun1 10.0.1.1/24 up
+Here mysql runs on freebsd and since it is a real system that makes it
+harder to debug. Any idea what causes this?
 
-ip r r 10.0.0.7 dev veth1 table 1
-ip r r 10.0.1.7 encap ip id 1000 dst 172.168.0.17 key dev tun1 table 1
+Regards.
 
-nft add table firewall
-nft add chain firewall zones { type filter hook prerouting priority - 300 \; }
-nft add rule firewall zones counter ct zone set iif map { "tun1" : 1, "veth1" : 1 }
-nft add chain firewall rule-1000-ingress
-nft add rule firewall rule-1000-ingress ct zone 1 ct state established,related counter accept
-nft add rule firewall rule-1000-ingress ct zone 1 ct state invalid counter drop
-nft add rule firewall rule-1000-ingress ct zone 1 tcp dport 5001 ct state new counter accept
-nft add rule firewall rule-1000-ingress ct zone 1 ip protocol icmp ct state new counter accept
-nft add rule firewall rule-1000-ingress counter drop
-nft add chain firewall rules-all { type filter hook prerouting priority - 150 \; }
-nft add rule firewall rules-all meta iifkind "vrf" counter accept
-nft add rule firewall rules-all iif vmap { "tun1" : jump rule-1000-ingress }
-
-nft add flowtable firewall fb1 { hook ingress priority 0 \; devices = { veth1, tun1 } \; }
-nft add chain firewall ftb-all {type filter hook forward priority 0 \; policy accept \; }
-nft add rule firewall ftb-all ct zone 1 ip protocol tcp flow offload @fb1
-
-
-
-you can test it with
-
-ip netns exec ns1 exec iperf -s
-
-ip netns exec ns1 exec iperf -c 10.0.0.7 -t 100 -i 2
-
-
-cat /proc/net/nf_conntrack | grep zone=1
-ipv4     2 tcp      6 src=10.0.1.7 dst=10.0.0.7 sport=56290 dport=5001 src=10.0.0.7 dst=10.0.1.7 sport=5001 dport=56290 [OFFLOAD] mark=0 zone=1 use=3
-
-
-Ps:  there are some tricks. It is better the tun1 as "ip l add dev tun1 type gretap key 1000"
-
-but not " ip l add dev tun1 type gretap external"
-
-But the specific key id gretap when receive the packet will not push up the tun_info which will lead arp response
-
-with no tun_info
-
-I will post a patch to support this in gre.
-
-
-
-
-
->
+--
+=C4=B0brahim Ercan
