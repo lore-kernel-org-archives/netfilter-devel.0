@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E73F2C43141
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Nov 2019 22:06:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05C19C432C0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Nov 2019 22:06:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BCCD722440
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Nov 2019 22:06:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D3B5B22440
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Nov 2019 22:06:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727487AbfKSWGJ (ORCPT
+        id S1727474AbfKSWGJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Tue, 19 Nov 2019 17:06:09 -0500
-Received: from correo.us.es ([193.147.175.20]:35170 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:35158 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727465AbfKSWGI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 Nov 2019 17:06:08 -0500
+        id S1727399AbfKSWGH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 19 Nov 2019 17:06:07 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 2300B8C3C6C
-        for <netfilter-devel@vger.kernel.org>; Tue, 19 Nov 2019 23:06:04 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 90B738C3C68
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 Nov 2019 23:06:03 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 155A0A8E5
-        for <netfilter-devel@vger.kernel.org>; Tue, 19 Nov 2019 23:06:04 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8209CB8007
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 Nov 2019 23:06:03 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 0AFF6DA4CA; Tue, 19 Nov 2019 23:06:04 +0100 (CET)
+        id 770CFDA72F; Tue, 19 Nov 2019 23:06:03 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 29445FB362;
-        Tue, 19 Nov 2019 23:06:02 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8DEE8DA4CA;
+        Tue, 19 Nov 2019 23:06:01 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 19 Nov 2019 23:06:02 +0100 (CET)
+ Tue, 19 Nov 2019 23:06:01 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id E5B3142EE38E;
+        by entrada.int (Postfix) with ESMTPA id 5D17242EE38E;
         Tue, 19 Nov 2019 23:06:01 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH net-next 4/4] netfilter: nft_payload: add C-VLAN offload support
-Date:   Tue, 19 Nov 2019 23:05:55 +0100
-Message-Id: <20191119220555.17391-5-pablo@netfilter.org>
+Subject: [PATCH net-next 3/4] netfilter: nft_payload: add VLAN offload support
+Date:   Tue, 19 Nov 2019 23:05:54 +0100
+Message-Id: <20191119220555.17391-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191119220555.17391-1-pablo@netfilter.org>
 References: <20191119220555.17391-1-pablo@netfilter.org>
@@ -54,42 +54,69 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Match on h_vlan_encapsulated_proto and set up protocol dependency. Check
-for protocol dependency before accessing the tci field. Allow to match
-on the encapsulated ethertype too.
+Match on ethertype and set up protocol dependency. Check for protocol
+dependency before accessing the tci field. Allow to match on the
+encapsulated ethertype too.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_payload.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ include/net/flow_dissector.h |  9 ++++++---
+ net/netfilter/nft_payload.c  | 22 ++++++++++++++++++++++
+ 2 files changed, 28 insertions(+), 3 deletions(-)
 
+diff --git a/include/net/flow_dissector.h b/include/net/flow_dissector.h
+index 1a0727d1acfa..f06b0239c32b 100644
+--- a/include/net/flow_dissector.h
++++ b/include/net/flow_dissector.h
+@@ -48,9 +48,12 @@ struct flow_dissector_key_tags {
+ };
+ 
+ struct flow_dissector_key_vlan {
+-	u16	vlan_id:12,
+-		vlan_dei:1,
+-		vlan_priority:3;
++	union {
++		u16	vlan_id:12,
++			vlan_dei:1,
++			vlan_priority:3;
++		__be16	vlan_tci;
++	};
+ 	__be16	vlan_tpid;
+ };
+ 
 diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index f17939fbf6c3..1993af3a2979 100644
+index 0877d46b8605..f17939fbf6c3 100644
 --- a/net/netfilter/nft_payload.c
 +++ b/net/netfilter/nft_payload.c
-@@ -203,6 +203,22 @@ static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
- 
- 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_VLAN, vlan,
- 				  vlan_tpid, sizeof(__be16), reg);
+@@ -182,6 +182,28 @@ static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_ETH_ADDRS, eth_addrs,
+ 				  dst, ETH_ALEN, reg);
+ 		break;
++	case offsetof(struct ethhdr, h_proto):
++		if (priv->len != sizeof(__be16))
++			return -EOPNOTSUPP;
++
++		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_BASIC, basic,
++				  n_proto, sizeof(__be16), reg);
 +		nft_offload_set_dependency(ctx, NFT_OFFLOAD_DEP_NETWORK);
 +		break;
-+	case offsetof(struct vlan_ethhdr, h_vlan_TCI) + sizeof(struct vlan_hdr):
++	case offsetof(struct vlan_ethhdr, h_vlan_TCI):
 +		if (priv->len != sizeof(__be16))
 +			return -EOPNOTSUPP;
 +
-+		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_CVLAN, vlan,
++		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_VLAN, vlan,
 +				  vlan_tci, sizeof(__be16), reg);
 +		break;
-+	case offsetof(struct vlan_ethhdr, h_vlan_encapsulated_proto) +
-+							sizeof(struct vlan_hdr):
++	case offsetof(struct vlan_ethhdr, h_vlan_encapsulated_proto):
 +		if (priv->len != sizeof(__be16))
 +			return -EOPNOTSUPP;
 +
-+		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_CVLAN, vlan,
++		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_VLAN, vlan,
 +				  vlan_tpid, sizeof(__be16), reg);
- 		break;
++		break;
  	default:
  		return -EOPNOTSUPP;
+ 	}
 -- 
 2.11.0
 
