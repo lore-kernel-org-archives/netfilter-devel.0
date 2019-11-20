@@ -2,89 +2,91 @@ Return-Path: <SRS0=UIY/=ZM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42D8DC432C0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Nov 2019 11:24:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7420C432C0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Nov 2019 11:35:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 220A42243F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Nov 2019 11:24:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 808CE22311
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Nov 2019 11:35:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729166AbfKTLYw (ORCPT
+        id S1728017AbfKTLfg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 Nov 2019 06:24:52 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:38482 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728376AbfKTLYw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Nov 2019 06:24:52 -0500
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1iXO6K-0007TB-TY; Wed, 20 Nov 2019 12:24:48 +0100
-Date:   Wed, 20 Nov 2019 12:24:48 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Stefano Brivio <sbrivio@redhat.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        Kadlecsik =?utf-8?Q?J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>,
-        Eric Garver <eric@garver.life>
-Subject: Re: [PATCH libnftnl] set: Add support for NFTA_SET_SUBKEY attributes
-Message-ID: <20191120112448.GI8016@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Stefano Brivio <sbrivio@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        Kadlecsik =?utf-8?Q?J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>,
-        Eric Garver <eric@garver.life>
-References: <20191119010723.39368-1-sbrivio@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191119010723.39368-1-sbrivio@redhat.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        Wed, 20 Nov 2019 06:35:36 -0500
+Received: from mailout3.hostsharing.net ([176.9.242.54]:34703 "EHLO
+        mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727586AbfKTLfg (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 20 Nov 2019 06:35:36 -0500
+Received: from h08.hostsharing.net (h08.hostsharing.net [IPv6:2a01:37:1000::53df:5f1c:0])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client CN "*.hostsharing.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (not verified))
+        by mailout3.hostsharing.net (Postfix) with ESMTPS id 8A9A6101E6ABA;
+        Wed, 20 Nov 2019 12:35:34 +0100 (CET)
+Received: from localhost (pd95be530.dip0.t-ipconnect.de [217.91.229.48])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+        (No client certificate requested)
+        by h08.hostsharing.net (Postfix) with ESMTPSA id 2B95460E00CD;
+        Wed, 20 Nov 2019 12:35:34 +0100 (CET)
+X-Mailbox-Line: From 4362209712369ea47ac39b06a9fc93fc4ce3a25c Mon Sep 17 00:00:00 2001
+Message-Id: <4362209712369ea47ac39b06a9fc93fc4ce3a25c.1574247376.git.lukas@wunner.de>
+From:   Lukas Wunner <lukas@wunner.de>
+Date:   Wed, 20 Nov 2019 12:33:59 +0100
+Subject: [PATCH nf-next] netfilter: Clean up unnecessary #ifdef
+To:     "Pablo Neira Ayuso" <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Daniel Borkmann <daniel@iogearbox.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+If CONFIG_NETFILTER_INGRESS is not enabled, nf_ingress() becomes a no-op
+because it solely contains an if-clause calling nf_hook_ingress_active(),
+for which an empty inline stub exists in <linux/netfilter_ingress.h>.
 
-On Tue, Nov 19, 2019 at 02:07:23AM +0100, Stefano Brivio wrote:
-[...]
-> diff --git a/src/set.c b/src/set.c
-> index 78447c6..60a46d8 100644
-> --- a/src/set.c
-> +++ b/src/set.c
-[...]
-> @@ -361,6 +366,23 @@ nftnl_set_nlmsg_build_desc_payload(struct nlmsghdr *nlh, struct nftnl_set *s)
->  	mnl_attr_nest_end(nlh, nest);
->  }
->  
-> +static void
-> +nftnl_set_nlmsg_build_subkey_payload(struct nlmsghdr *nlh, struct nftnl_set *s)
-> +{
-> +	struct nlattr *nest;
-> +	uint32_t v;
-> +	uint8_t *l;
-> +
-> +	nest = mnl_attr_nest_start(nlh, NFTA_SET_SUBKEY);
-> +	for (l = s->subkey_len; l - s->subkey_len < NFT_REG32_COUNT; l++) {
+All the symbols used in the if-clause's body are still available even if
+CONFIG_NETFILTER_INGRESS is not enabled.
 
-While I like pointer arithmetics, too, I don't think it's much use here.
-Using good old index variable even allows to integrate the zero value
-check:
+The additional "#ifdef CONFIG_NETFILTER_INGRESS" in nf_ingress() is thus
+unnecessary, so drop it.
 
-|	for (i = 0; i < NFT_REG32_COUNT && s->subkey_len[i]; i++)
+Signed-off-by: Lukas Wunner <lukas@wunner.de>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+---
+Resending this patch without RFC tag on Pablo's request since it's just
+an uncontroversial cleanup.
 
-> +		if (!*l)
-> +			break;
-> +		v = *l;
-> +		mnl_attr_put_u32(nlh, NFTA_SET_SUBKEY_LEN, htonl(v));
+Previous submission:
+https://lore.kernel.org/netfilter-devel/ba3cc38580d4cb43aa5599524ec5e5205d6dfa77.1572528496.git.lukas@wunner.de/
 
-I guess you're copying the value here because how htonl() is declared,
-but may it change the input value non-temporarily? I mean, libnftnl is
-in control over the array so from my point of view it should be OK to
-directly pass it to htonl().
+ net/core/dev.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-Cheers, Phil
+diff --git a/net/core/dev.c b/net/core/dev.c
+index da78a433c10c..330c6d21cc1c 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -4932,7 +4932,6 @@ static bool skb_pfmemalloc_protocol(struct sk_buff *skb)
+ static inline int nf_ingress(struct sk_buff *skb, struct packet_type **pt_prev,
+ 			     int *ret, struct net_device *orig_dev)
+ {
+-#ifdef CONFIG_NETFILTER_INGRESS
+ 	if (nf_hook_ingress_active(skb)) {
+ 		int ingress_retval;
+ 
+@@ -4946,7 +4945,6 @@ static inline int nf_ingress(struct sk_buff *skb, struct packet_type **pt_prev,
+ 		rcu_read_unlock();
+ 		return ingress_retval;
+ 	}
+-#endif /* CONFIG_NETFILTER_INGRESS */
+ 	return 0;
+ }
+ 
+-- 
+2.24.0
+
