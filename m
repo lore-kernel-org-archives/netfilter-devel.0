@@ -2,101 +2,112 @@ Return-Path: <SRS0=7szD=ZN=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20B45C432C3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Nov 2019 20:56:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F90CC432C0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Nov 2019 21:01:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0004620672
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Nov 2019 20:56:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4169620672
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Nov 2019 21:01:04 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="b+fxFddQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726912AbfKUU4i (ORCPT
+        id S1726975AbfKUVBE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Nov 2019 15:56:38 -0500
-Received: from correo.us.es ([193.147.175.20]:39388 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726293AbfKUU4i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Nov 2019 15:56:38 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7A2B3FB457
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Nov 2019 21:56:33 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6D049DA8E8
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Nov 2019 21:56:33 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 5E7E4DA840; Thu, 21 Nov 2019 21:56:33 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5D9E7DA72F;
-        Thu, 21 Nov 2019 21:56:31 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 21 Nov 2019 21:56:31 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Thu, 21 Nov 2019 16:01:04 -0500
+Received: from us-smtp-2.mimecast.com ([205.139.110.61]:44902 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726293AbfKUVBD (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 21 Nov 2019 16:01:03 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1574370062;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=U/bksgIdxjzliTEaCPFlyS2N8QgJ9Vzb9KAZE7CMSRs=;
+        b=b+fxFddQqougVd8DX0Awq5c2JT8g5cGED4orhstRGb3zaFiSnANxcaclTqZlFNm/TwyJXR
+        Ysxn87+NQdOWsSGQA+qzQUThi4X6K8JjVLcgGnwNMqIj2qc5zN3nCaWkI55SubGyUf5P/a
+        /widGsM72S1S6KMay7JUOEU0EWFFdhU=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-64-DOpIxe8GN6iVHW1zc8Unng-1; Thu, 21 Nov 2019 16:00:59 -0500
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 278DB41E4800;
-        Thu, 21 Nov 2019 21:56:31 +0100 (CET)
-Date:   Thu, 21 Nov 2019 21:56:32 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 9C0BA80268A;
+        Thu, 21 Nov 2019 21:00:55 +0000 (UTC)
+Received: from localhost (ovpn-112-24.ams2.redhat.com [10.36.112.24])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id D58C26CE53;
+        Thu, 21 Nov 2019 21:00:51 +0000 (UTC)
+Date:   Thu, 21 Nov 2019 22:00:46 +0100
+From:   Stefano Brivio <sbrivio@redhat.com>
 To:     Florian Westphal <fw@strlen.de>
-Cc:     Stefano Brivio <sbrivio@redhat.com>, Phil Sutter <phil@nwl.cc>,
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org,
-        Kadlecsik =?iso-8859-1?Q?J=F3zsef?= <kadlec@blackhole.kfki.hu>,
-        Eric Garver <eric@garver.life>,
+        Kadlecsik =?UTF-8?B?SsOzenNlZg==?= <kadlec@blackhole.kfki.hu>,
+        Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>,
         Sabrina Dubroca <sd@queasysnail.net>,
         Jay Ligatti <ligatti@usf.edu>,
         Ori Rottenstreich <or@cs.technion.ac.il>,
         Kirill Kogan <kirill.kogan@gmail.com>
-Subject: Re: [PATCH nf-next 8/8] nft_set_pipapo: Introduce AVX2-based lookup
- implementation
-Message-ID: <20191121205632.l6rjueclm3z7zvgd@salvia>
+Subject: Re: [PATCH nf-next 3/8] nf_tables: Add set type for arbitrary
+ concatenation of ranges
+Message-ID: <20191121220046.0517c87d@redhat.com>
+In-Reply-To: <20191121204113.GL20235@breakpoint.cc>
 References: <cover.1574119038.git.sbrivio@redhat.com>
- <367e77e2a0097a0c1b715919b8d21f7a51a10429.1574119038.git.sbrivio@redhat.com>
- <20191120151653.GD20235@breakpoint.cc>
- <20191120160800.GN8016@orbyte.nwl.cc>
- <20191121205510.0068551b@redhat.com>
- <20191121202232.e6enl4ck7ynjekty@salvia>
- <20191121204612.GM20235@breakpoint.cc>
- <20191121205456.lsgg2srtmauum5l5@salvia>
+        <6da551247fd90666b0eca00fb4467151389bf1dc.1574119038.git.sbrivio@redhat.com>
+        <20191120150609.GB20235@breakpoint.cc>
+        <20191121205442.5eb3d113@redhat.com>
+        <20191121204113.GL20235@breakpoint.cc>
+Organization: Red Hat
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191121205456.lsgg2srtmauum5l5@salvia>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+X-MC-Unique: DOpIxe8GN6iVHW1zc8Unng-1
+X-Mimecast-Spam-Score: 0
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Nov 21, 2019 at 09:54:56PM +0100, Pablo Neira Ayuso wrote:
-> On Thu, Nov 21, 2019 at 09:46:12PM +0100, Florian Westphal wrote:
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > Probably, at some point we can start exposing knobs, but I'd rather
-> > > see a bit more discussions on how to provide a good autotuning. By
-> > > exposing all knobs, then such discussion might not ever happen?
-> > 
-> > My remarks were not aimed at exposing knobs but to provide some
-> > debugging aid.
-> > 
-> > Say e.g. there is a bug in the avx implementation that isn't present
-> > in the C version, or vice versa.  Or in rhashtable but not hashtable.
-> 
-> Ah indeed, thanks for explaining.
-> 
-> > Right now it requires some guesswork to figure out what set backend is
-> > actually used for @myset, and it might make things easier for debugging
-> > if one could query the kernel for some information wrt. what set backend
-> > is used.  I would try to avoid to expose anything that can't be ripped
-> > out again, so e.g. names or even just %pF of ->lookup() would perhaps be
-> > enough.
-> 
-> I think exposing names would be fine. Probably you can also add name
-> to operations, instead of %pF of lookup.
+On Thu, 21 Nov 2019 21:41:13 +0100
+Florian Westphal <fw@strlen.de> wrote:
 
-At second spin, %pF should be fine too. Names are fine, you pick the way.
+> Yes, exactly, we should only reject what either
+> 1. would crash kernel
+> 2. makes obviously no sense (missing or contradiction attributes).
+>=20
+> anything more than that isn't needed.
+>=20
+> > We could opt to be stricter indeed, by checking that a single netlink
+> > batch contains a corresponding number of start and end elements. This
+> > can't be done by the insert function though, we don't have enough
+> > context there. =20
+>=20
+> Yes.  If such 'single element with no end interval' can't happen or
+> won't cause any problems then no action is needed.
+
+Yeah, I don't expect that to cause any problem. I don't have a
+kselftest or nft test for it, because that would require nft to send
+invalid elements, so I only tested those two cases manually. The
+nastiest thing I could come up with was start > end, and it's now
+covered by:
+
+=09=09if (memcmp(start, end,
+=09=09=09   f->groups / NFT_PIPAPO_GROUPS_PER_BYTE) > 0)
+=09=09=09return -EINVAL;
+
+while:
+- start =3D=3D end is allowed, explicitly handled below
+- end without any previous start (somewhat) correctly maps to < 0 > to
+  end
+- start without end won't trigger any insertion
+
+--=20
+Stefano
+
