@@ -2,200 +2,403 @@ Return-Path: <SRS0=7szD=ZN=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A365C432C0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Nov 2019 17:10:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CEA34C432C3
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Nov 2019 17:36:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D6FC6206D8
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Nov 2019 17:10:31 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ca7qsYs/"
+	by mail.kernel.org (Postfix) with ESMTP id A88B42068D
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Nov 2019 17:36:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727008AbfKURKa (ORCPT
+        id S1727071AbfKURg5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Nov 2019 12:10:30 -0500
-Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:52356 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726568AbfKURKa (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Nov 2019 12:10:30 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1574356229;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=dT5TTCCVudCntCnFrqKfxhtBKT4A5lXkUNpFpzZU73A=;
-        b=ca7qsYs/P3OaXSfJLk0+I2Pd4lxnft6SBtrpG40CfMahYaiLbPjtkf27UOh0X8XRfIAsTd
-        nj7JuKrRkZcsZ/c+7/e6h52Phz0jYBZGWJKbRgF+0ufe21e8xDXrCcJkMA+d62pBVzjHCF
-        Og7K0y1uht/KTD7DhvFtStKSVqLsY/U=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-178-3KJXjrlpO2qqGs1rF4gz0Q-1; Thu, 21 Nov 2019 12:10:25 -0500
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 69A9C184CAA5;
-        Thu, 21 Nov 2019 17:10:24 +0000 (UTC)
-Received: from epycfail.redhat.com (ovpn-112-24.ams2.redhat.com [10.36.112.24])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 5025D60141;
-        Thu, 21 Nov 2019 17:10:22 +0000 (UTC)
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
-        =?UTF-8?q?Kadlecsik=20J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>,
-        Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>
-Subject: [PATCH libnftnl v2] set: Add support for NFTA_SET_SUBKEY attributes
-Date:   Thu, 21 Nov 2019 18:10:21 +0100
-Message-Id: <de1e8744507f6590886a5cb7eef98f23775ee2fa.1574354321.git.sbrivio@redhat.com>
+        Thu, 21 Nov 2019 12:36:57 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:41622 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726333AbfKURg5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 21 Nov 2019 12:36:57 -0500
+Received: from localhost ([::1]:54712 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1iXqNy-0006IM-Kh; Thu, 21 Nov 2019 18:36:54 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH v4 07/12] nft: Introduce NFT_CL_SETS cache level
+Date:   Thu, 21 Nov 2019 18:36:42 +0100
+Message-Id: <20191121173647.31488-8-phil@nwl.cc>
+X-Mailer: git-send-email 2.24.0
+In-Reply-To: <20191121173647.31488-1-phil@nwl.cc>
+References: <20191121173647.31488-1-phil@nwl.cc>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
-X-MC-Unique: 3KJXjrlpO2qqGs1rF4gz0Q-1
-X-Mimecast-Spam-Score: 0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If the NFTNL_SET_SUBKEY flag is passed, send one NFTA_SET_SUBKEY
-attribute for each subkey_len attribute in the set description.
+In order to support anonymous sets, introduce an intermediate cache
+level between NFT_CL_CHAINS and NFT_CL_RULES. Actually chains are not
+needed to fetch sets, but given that sets are only needed for rules, put
+it late to not slow down fetching chains.
 
-Note that our internal representation, and nftables storage, for
-these attributes, is 8-bit wide, but the kernel uses 32 bits. As
-field length is expressed in bits, this is probably a good
-compromise to keep the UAPI future-proof and memory footprint to
-a minimum, for the moment being.
-
-This is the libnftnl counterpart for nftables patch:
-  src: Add support for and export NFT_SET_SUBKEY attributes
-
-and it has a UAPI dependency on kernel patch:
-  [PATCH nf-next 1/8] nf_tables: Support for subkeys, set with multiple ran=
-ged fields
-
-v2:
- - fixed grammar in commit message
- - removed copy of array bytes in nftnl_set_nlmsg_build_subkey_payload(),
-   we're simply passing values to htonl() (Phil Sutter)
-
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/libnftnl/set.h |  1 +
- include/set.h          |  2 ++
- src/set.c              | 27 +++++++++++++++++++++++++++
- 3 files changed, 30 insertions(+)
+Changes since v3:
+- Whitespace fixup.
 
-diff --git a/include/libnftnl/set.h b/include/libnftnl/set.h
-index db3fa686d60a..0a5e02aaa74c 100644
---- a/include/libnftnl/set.h
-+++ b/include/libnftnl/set.h
-@@ -29,6 +29,7 @@ enum nftnl_set_attr {
- =09NFTNL_SET_USERDATA,
- =09NFTNL_SET_OBJ_TYPE,
- =09NFTNL_SET_HANDLE,
-+=09NFTNL_SET_SUBKEY,
- =09__NFTNL_SET_MAX
- };
- #define NFTNL_SET_MAX (__NFTNL_SET_MAX - 1)
-diff --git a/include/set.h b/include/set.h
-index 446acd24ca7c..41d5dba286bf 100644
---- a/include/set.h
-+++ b/include/set.h
-@@ -31,6 +31,8 @@ struct nftnl_set {
- =09uint32_t=09=09flags;
- =09uint32_t=09=09gc_interval;
- =09uint64_t=09=09timeout;
-+
-+=09uint8_t=09=09=09subkey_len[NFT_REG32_COUNT];
- };
-=20
- struct nftnl_set_list;
-diff --git a/src/set.c b/src/set.c
-index 78447c676f51..2306c10eebae 100644
---- a/src/set.c
-+++ b/src/set.c
-@@ -91,6 +91,7 @@ void nftnl_set_unset(struct nftnl_set *s, uint16_t attr)
- =09case NFTNL_SET_DESC_SIZE:
- =09case NFTNL_SET_TIMEOUT:
- =09case NFTNL_SET_GC_INTERVAL:
-+=09case NFTNL_SET_SUBKEY:
- =09=09break;
- =09case NFTNL_SET_USERDATA:
- =09=09xfree(s->user.data);
-@@ -115,6 +116,7 @@ static uint32_t nftnl_set_validate[NFTNL_SET_MAX + 1] =
-=3D {
- =09[NFTNL_SET_DESC_SIZE]=09=3D sizeof(uint32_t),
- =09[NFTNL_SET_TIMEOUT]=09=09=3D sizeof(uint64_t),
- =09[NFTNL_SET_GC_INTERVAL]=09=3D sizeof(uint32_t),
-+=09[NFTNL_SET_SUBKEY]=09=09=3D sizeof(uint8_t) * NFT_REG32_COUNT,
- };
-=20
- EXPORT_SYMBOL(nftnl_set_set_data);
-@@ -190,6 +192,9 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t at=
-tr, const void *data,
- =09=09memcpy(s->user.data, data, data_len);
- =09=09s->user.len =3D data_len;
- =09=09break;
-+=09case NFTNL_SET_SUBKEY:
-+=09=09memcpy(s->subkey_len, data, data_len);
-+=09=09break;
- =09}
- =09s->flags |=3D (1 << attr);
- =09return 0;
-@@ -361,6 +366,22 @@ nftnl_set_nlmsg_build_desc_payload(struct nlmsghdr *nl=
-h, struct nftnl_set *s)
- =09mnl_attr_nest_end(nlh, nest);
+Changes since v2:
+- Introduce NFT_CL_SETS and integrate fetch_set_cache() into
+  __nft_build_cache() instead of calling from fetch_rule_cache().
+- Extend __nft_build_cache() parameters to optionally take a set name to
+  fetch.
+- Don't fetch tables from fetch_set_cache(), cache leveling takes care
+  of that.
+
+Changes since v1:
+- Fix cache flushing: Since set fetching happens only if rules are
+  fetched, too, set list may be NULL so call nftnl_set_list_free() and
+  nftnl_set_list_foreach() conditionally.
+- Support fetching only a specific set from kernel. Make sure no
+  duplicate element fetches happen by checking set element count. (If
+  non-zero, don't fetch elements.)
+- When fetching rules for a single chain, fetch only that table's sets.
+---
+ iptables/nft-cache.c | 205 +++++++++++++++++++++++++++++++++++++++++--
+ iptables/nft-cache.h |   2 +
+ iptables/nft.h       |   2 +
+ 3 files changed, 200 insertions(+), 9 deletions(-)
+
+diff --git a/iptables/nft-cache.c b/iptables/nft-cache.c
+index c55970d074a76..7345a27e2894b 100644
+--- a/iptables/nft-cache.c
++++ b/iptables/nft-cache.c
+@@ -18,6 +18,7 @@
+ 
+ #include <libmnl/libmnl.h>
+ #include <libnftnl/gen.h>
++#include <libnftnl/set.h>
+ #include <libnftnl/table.h>
+ 
+ #include "nft.h"
+@@ -152,6 +153,157 @@ err:
+ 	return MNL_CB_OK;
  }
-=20
-+static void
-+nftnl_set_nlmsg_build_subkey_payload(struct nlmsghdr *nlh, struct nftnl_se=
-t *s)
+ 
++struct nftnl_set_list_cb_data {
++	struct nft_handle *h;
++	const struct builtin_table *t;
++};
++
++static int nftnl_set_list_cb(const struct nlmsghdr *nlh, void *data)
 +{
-+=09struct nlattr *nest;
-+=09int i;
++	struct nftnl_set_list_cb_data *d = data;
++	const struct builtin_table *t = d->t;
++	struct nftnl_set_list *list;
++	struct nft_handle *h = d->h;
++	const char *tname, *sname;
++	struct nftnl_set *s;
 +
-+=09nest =3D mnl_attr_nest_start(nlh, NFTA_SET_SUBKEY);
++	s = nftnl_set_alloc();
++	if (s == NULL)
++		return MNL_CB_OK;
 +
-+=09for (i =3D 0; i < NFT_REG32_COUNT && s->subkey_len[i]; i++) {
-+=09=09mnl_attr_put_u32(nlh, NFTA_SET_SUBKEY_LEN,
-+=09=09=09=09 htonl(s->subkey_len[i]));
-+=09}
++	if (nftnl_set_nlmsg_parse(nlh, s) < 0)
++		goto out_free;
 +
-+=09mnl_attr_nest_end(nlh, nest);
++	tname = nftnl_set_get_str(s, NFTNL_SET_TABLE);
++
++	if (!t)
++		t = nft_table_builtin_find(h, tname);
++	else if (strcmp(t->name, tname))
++		goto out_free;
++
++	if (!t)
++		goto out_free;
++
++	list = h->cache->table[t->type].sets;
++	sname = nftnl_set_get_str(s, NFTNL_SET_NAME);
++
++	if (nftnl_set_list_lookup_byname(list, sname))
++		goto out_free;
++
++	nftnl_set_list_add_tail(s, list);
++
++	return MNL_CB_OK;
++out_free:
++	nftnl_set_free(s);
++	return MNL_CB_OK;
 +}
 +
- EXPORT_SYMBOL(nftnl_set_nlmsg_build_payload);
- void nftnl_set_nlmsg_build_payload(struct nlmsghdr *nlh, struct nftnl_set =
-*s)
++static int set_elem_cb(const struct nlmsghdr *nlh, void *data)
++{
++	return nftnl_set_elems_nlmsg_parse(nlh, data) ? -1 : MNL_CB_OK;
++}
++
++static bool set_has_elements(struct nftnl_set *s)
++{
++	struct nftnl_set_elems_iter *iter;
++	bool ret = false;
++
++	iter = nftnl_set_elems_iter_create(s);
++	if (iter) {
++		ret = !!nftnl_set_elems_iter_cur(iter);
++		nftnl_set_elems_iter_destroy(iter);
++	}
++	return ret;
++}
++
++static int set_fetch_elem_cb(struct nftnl_set *s, void *data)
++{
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nft_handle *h = data;
++	struct nlmsghdr *nlh;
++
++	if (set_has_elements(s))
++		return 0;
++
++	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_GETSETELEM, h->family,
++				    NLM_F_DUMP, h->seq);
++	nftnl_set_elems_nlmsg_build_payload(nlh, s);
++
++	return mnl_talk(h, nlh, set_elem_cb, s);
++}
++
++static int fetch_set_cache(struct nft_handle *h,
++			   const struct builtin_table *t, const char *set)
++{
++	struct nftnl_set_list_cb_data d = {
++		.h = h,
++		.t = t,
++	};
++	struct nlmsghdr *nlh;
++	char buf[16536];
++	int i, ret;
++
++	if (!t) {
++		for (i = 0; i < NFT_TABLE_MAX; i++) {
++			enum nft_table_type type = h->tables[i].type;
++
++			if (!h->tables[i].name)
++				continue;
++
++			h->cache->table[type].sets = nftnl_set_list_alloc();
++			if (!h->cache->table[type].sets)
++				return -1;
++		}
++	} else if (!h->cache->table[t->type].sets) {
++		h->cache->table[t->type].sets = nftnl_set_list_alloc();
++	}
++
++	if (t && set) {
++		struct nftnl_set *s = nftnl_set_alloc();
++
++		if (!s)
++			return -1;
++
++		nlh = nftnl_set_nlmsg_build_hdr(buf, NFT_MSG_GETSET, h->family,
++						NLM_F_ACK, h->seq);
++		nftnl_set_set_str(s, NFTNL_SET_TABLE, t->name);
++		nftnl_set_set_str(s, NFTNL_SET_NAME, set);
++		nftnl_set_nlmsg_build_payload(nlh, s);
++		nftnl_set_free(s);
++	} else {
++		nlh = nftnl_set_nlmsg_build_hdr(buf, NFT_MSG_GETSET, h->family,
++						NLM_F_DUMP, h->seq);
++	}
++
++	ret = mnl_talk(h, nlh, nftnl_set_list_cb, &d);
++	if (ret < 0 && errno == EINTR) {
++		assert(nft_restart(h) >= 0);
++		return ret;
++	}
++
++	if (t && set) {
++		struct nftnl_set *s;
++
++		s = nftnl_set_list_lookup_byname(h->cache->table[t->type].sets,
++						 set);
++		set_fetch_elem_cb(s, h);
++	} else if (t) {
++		nftnl_set_list_foreach(h->cache->table[t->type].sets,
++				       set_fetch_elem_cb, h);
++	} else {
++		for (i = 0; i < NFT_TABLE_MAX; i++) {
++			enum nft_table_type type = h->tables[i].type;
++
++			if (!h->tables[i].name)
++				continue;
++
++			nftnl_set_list_foreach(h->cache->table[type].sets,
++					       set_fetch_elem_cb, h);
++		}
++	}
++	return ret;
++}
++
+ static int fetch_chain_cache(struct nft_handle *h,
+ 			     const struct builtin_table *t,
+ 			     const char *chain)
+@@ -297,7 +449,8 @@ static int fetch_rule_cache(struct nft_handle *h,
+ 
+ static void
+ __nft_build_cache(struct nft_handle *h, enum nft_cache_level level,
+-		  const struct builtin_table *t, const char *chain)
++		  const struct builtin_table *t, const char *set,
++		  const char *chain)
  {
-@@ -395,6 +416,8 @@ void nftnl_set_nlmsg_build_payload(struct nlmsghdr *nlh=
-, struct nftnl_set *s)
- =09=09mnl_attr_put_u32(nlh, NFTA_SET_GC_INTERVAL, htonl(s->gc_interval));
- =09if (s->flags & (1 << NFTNL_SET_USERDATA))
- =09=09mnl_attr_put(nlh, NFTA_SET_USERDATA, s->user.len, s->user.data);
-+=09if (s->flags & (1 << NFTNL_SET_SUBKEY))
-+=09=09nftnl_set_nlmsg_build_subkey_payload(nlh, s);
+ 	uint32_t genid_start, genid_stop;
+ 
+@@ -321,6 +474,11 @@ retry:
+ 			break;
+ 		/* fall through */
+ 	case NFT_CL_CHAINS:
++		fetch_set_cache(h, t, set);
++		if (level == NFT_CL_SETS)
++			break;
++		/* fall through */
++	case NFT_CL_SETS:
+ 		fetch_rule_cache(h, t, chain);
+ 		if (level == NFT_CL_RULES)
+ 			break;
+@@ -349,12 +507,12 @@ void nft_build_cache(struct nft_handle *h, struct nftnl_chain *c)
+ 	const char *table, *chain;
+ 
+ 	if (!c)
+-		return __nft_build_cache(h, NFT_CL_RULES, NULL, NULL);
++		return __nft_build_cache(h, NFT_CL_RULES, NULL, NULL, NULL);
+ 
+ 	table = nftnl_chain_get_str(c, NFTNL_CHAIN_TABLE);
+ 	chain = nftnl_chain_get_str(c, NFTNL_CHAIN_NAME);
+ 	t = nft_table_builtin_find(h, table);
+-	__nft_build_cache(h, NFT_CL_RULES, t, chain);
++	__nft_build_cache(h, NFT_CL_RULES, t, NULL, chain);
  }
-=20
-=20
-@@ -439,6 +462,10 @@ static int nftnl_set_parse_attr_cb(const struct nlattr=
- *attr, void *data)
- =09=09if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
- =09=09=09abi_breakage();
- =09=09break;
-+=09case NFTA_SET_SUBKEY:
-+=09=09if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
-+=09=09=09abi_breakage();
-+=09=09break;
- =09}
-=20
- =09tb[type] =3D attr;
---=20
-2.20.1
+ 
+ void nft_fake_cache(struct nft_handle *h)
+@@ -421,6 +579,14 @@ static int __flush_chain_cache(struct nftnl_chain *c, void *data)
+ 	return 0;
+ }
+ 
++static int __flush_set_cache(struct nftnl_set *s, void *data)
++{
++	nftnl_set_list_del(s);
++	nftnl_set_free(s);
++
++	return 0;
++}
++
+ static int flush_cache(struct nft_handle *h, struct nft_cache *c,
+ 		       const char *tablename)
+ {
+@@ -429,10 +595,14 @@ static int flush_cache(struct nft_handle *h, struct nft_cache *c,
+ 
+ 	if (tablename) {
+ 		table = nft_table_builtin_find(h, tablename);
+-		if (!table || !c->table[table->type].chains)
++		if (!table)
+ 			return 0;
+-		nftnl_chain_list_foreach(c->table[table->type].chains,
+-					 __flush_chain_cache, NULL);
++		if (c->table[table->type].chains)
++			nftnl_chain_list_foreach(c->table[table->type].chains,
++						 __flush_chain_cache, NULL);
++		if (c->table[table->type].sets)
++			nftnl_set_list_foreach(c->table[table->type].sets,
++					       __flush_set_cache, NULL);
+ 		return 0;
+ 	}
+ 
+@@ -445,6 +615,9 @@ static int flush_cache(struct nft_handle *h, struct nft_cache *c,
+ 
+ 		nftnl_chain_list_free(c->table[i].chains);
+ 		c->table[i].chains = NULL;
++		if (c->table[i].sets)
++			nftnl_set_list_free(c->table[i].sets);
++		c->table[i].sets = NULL;
+ 	}
+ 	nftnl_table_list_free(c->tables);
+ 	c->tables = NULL;
+@@ -469,7 +642,7 @@ void nft_rebuild_cache(struct nft_handle *h)
+ 		__nft_flush_cache(h);
+ 
+ 	h->cache_level = NFT_CL_NONE;
+-	__nft_build_cache(h, level, NULL, NULL);
++	__nft_build_cache(h, level, NULL, NULL, NULL);
+ }
+ 
+ void nft_release_cache(struct nft_handle *h)
+@@ -480,11 +653,25 @@ void nft_release_cache(struct nft_handle *h)
+ 
+ struct nftnl_table_list *nftnl_table_list_get(struct nft_handle *h)
+ {
+-	__nft_build_cache(h, NFT_CL_TABLES, NULL, NULL);
++	__nft_build_cache(h, NFT_CL_TABLES, NULL, NULL, NULL);
+ 
+ 	return h->cache->tables;
+ }
+ 
++struct nftnl_set_list *
++nft_set_list_get(struct nft_handle *h, const char *table, const char *set)
++{
++	const struct builtin_table *t;
++
++	t = nft_table_builtin_find(h, table);
++	if (!t)
++		return NULL;
++
++	__nft_build_cache(h, NFT_CL_RULES, t, set, NULL);
++
++	return h->cache->table[t->type].sets;
++}
++
+ struct nftnl_chain_list *
+ nft_chain_list_get(struct nft_handle *h, const char *table, const char *chain)
+ {
+@@ -494,7 +681,7 @@ nft_chain_list_get(struct nft_handle *h, const char *table, const char *chain)
+ 	if (!t)
+ 		return NULL;
+ 
+-	__nft_build_cache(h, NFT_CL_CHAINS, t, chain);
++	__nft_build_cache(h, NFT_CL_CHAINS, t, NULL, chain);
+ 
+ 	return h->cache->table[t->type].chains;
+ }
+diff --git a/iptables/nft-cache.h b/iptables/nft-cache.h
+index cb7a7688be37a..ed498835676e2 100644
+--- a/iptables/nft-cache.h
++++ b/iptables/nft-cache.h
+@@ -13,6 +13,8 @@ int flush_rule_cache(struct nft_handle *h, const char *table,
+ 
+ struct nftnl_chain_list *
+ nft_chain_list_get(struct nft_handle *h, const char *table, const char *chain);
++struct nftnl_set_list *
++nft_set_list_get(struct nft_handle *h, const char *table, const char *set);
+ struct nftnl_table_list *nftnl_table_list_get(struct nft_handle *h);
+ 
+ #endif /* _NFT_CACHE_H_ */
+diff --git a/iptables/nft.h b/iptables/nft.h
+index e157b525cffdc..51b5660314c0c 100644
+--- a/iptables/nft.h
++++ b/iptables/nft.h
+@@ -31,6 +31,7 @@ enum nft_cache_level {
+ 	NFT_CL_NONE,
+ 	NFT_CL_TABLES,
+ 	NFT_CL_CHAINS,
++	NFT_CL_SETS,
+ 	NFT_CL_RULES
+ };
+ 
+@@ -38,6 +39,7 @@ struct nft_cache {
+ 	struct nftnl_table_list		*tables;
+ 	struct {
+ 		struct nftnl_chain_list *chains;
++		struct nftnl_set_list	*sets;
+ 		bool			initialized;
+ 	} table[NFT_TABLE_MAX];
+ };
+-- 
+2.24.0
 
