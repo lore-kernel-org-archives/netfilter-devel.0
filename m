@@ -6,32 +6,30 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7EB5C432C3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Nov 2019 11:16:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08F95C432C0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Nov 2019 11:25:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9B08E20872
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Nov 2019 11:16:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DB29E20714
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Nov 2019 11:25:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726852AbfKULQX (ORCPT
+        id S1726293AbfKULZE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Nov 2019 06:16:23 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:40954 "EHLO orbyte.nwl.cc"
+        Thu, 21 Nov 2019 06:25:04 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:40976 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726165AbfKULQX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Nov 2019 06:16:23 -0500
-Received: from localhost ([::1]:54044 helo=tatos)
+        id S1726165AbfKULZE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 21 Nov 2019 06:25:04 -0500
+Received: from localhost ([::1]:54066 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1iXkRi-0001E8-AW; Thu, 21 Nov 2019 12:16:22 +0100
+        id 1iXka7-0001Lf-GK; Thu, 21 Nov 2019 12:25:03 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [arptables PATCH 1/3] Add .gitignore
-Date:   Thu, 21 Nov 2019 12:15:57 +0100
-Message-Id: <20191121111559.27066-2-phil@nwl.cc>
+Subject: [libnftnl PATCH] utils: Define __visible even if not supported by compiler
+Date:   Thu, 21 Nov 2019 12:24:56 +0100
+Message-Id: <20191121112456.28274-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.24.0
-In-Reply-To: <20191121111559.27066-1-phil@nwl.cc>
-References: <20191121111559.27066-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -39,25 +37,27 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Ignore temporary files, created arptables-legacy binary and any present
-tags file.
+Since __visible is now used directly, provide a fallback empty
+definition if HAVE_VISIBILITY_HIDDEN is not defined.
 
+Fixes: 7349a70634fa0 ("Deprecate untyped data setters")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- .gitignore | 4 ++++
- 1 file changed, 4 insertions(+)
- create mode 100644 .gitignore
+ include/utils.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/.gitignore b/.gitignore
-new file mode 100644
-index 0000000000000..b2ea4a177d410
---- /dev/null
-+++ b/.gitignore
-@@ -0,0 +1,4 @@
-+*.a
-+*.o
-+/arptables-legacy
-+/tags
+diff --git a/include/utils.h b/include/utils.h
+index 91fbebb1956fd..8af5a8e973fa8 100644
+--- a/include/utils.h
++++ b/include/utils.h
+@@ -12,6 +12,7 @@
+ #	define __visible	__attribute__((visibility("default")))
+ #	define EXPORT_SYMBOL(x)	typeof(x) (x) __visible;
+ #else
++#	define __visible
+ #	define EXPORT_SYMBOL
+ #endif
+ 
 -- 
 2.24.0
 
