@@ -1,113 +1,92 @@
-Return-Path: <SRS0=7szD=ZN=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=uBXc=ZO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F90CC432C0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Nov 2019 21:01:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1081FC432C3
+	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Nov 2019 06:21:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4169620672
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Nov 2019 21:01:04 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="b+fxFddQ"
+	by mail.kernel.org (Postfix) with ESMTP id D395A2070E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Nov 2019 06:21:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1574403709;
+	bh=MBxeDnP2vJ6YQSAW4kvOLr2ixbZPyUPv7eGEKXCsK1E=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=XfDgxcTpehDS4qbrAP7UCkNFLkR36Vkm5FWxZQ1ZJHWz3rzbBV9Zi/UfOkCKdSp+V
+	 eGnCx68gLXFi6CzdqUpc2IEj4TJ+YjymcMtcdJKy6Fh2Q5CoXnVnEmmc6qeVB+YgLu
+	 Dtfx4v8FrunyKLTLtuMlygZmb1AIKGQS3xMZZX4I=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726975AbfKUVBE (ORCPT
+        id S1728882AbfKVGVo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Nov 2019 16:01:04 -0500
-Received: from us-smtp-2.mimecast.com ([205.139.110.61]:44902 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726293AbfKUVBD (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Nov 2019 16:01:03 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1574370062;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=U/bksgIdxjzliTEaCPFlyS2N8QgJ9Vzb9KAZE7CMSRs=;
-        b=b+fxFddQqougVd8DX0Awq5c2JT8g5cGED4orhstRGb3zaFiSnANxcaclTqZlFNm/TwyJXR
-        Ysxn87+NQdOWsSGQA+qzQUThi4X6K8JjVLcgGnwNMqIj2qc5zN3nCaWkI55SubGyUf5P/a
-        /widGsM72S1S6KMay7JUOEU0EWFFdhU=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-64-DOpIxe8GN6iVHW1zc8Unng-1; Thu, 21 Nov 2019 16:00:59 -0500
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        Fri, 22 Nov 2019 01:21:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57766 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728442AbfKVFwN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 22 Nov 2019 00:52:13 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 9C0BA80268A;
-        Thu, 21 Nov 2019 21:00:55 +0000 (UTC)
-Received: from localhost (ovpn-112-24.ams2.redhat.com [10.36.112.24])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id D58C26CE53;
-        Thu, 21 Nov 2019 21:00:51 +0000 (UTC)
-Date:   Thu, 21 Nov 2019 22:00:46 +0100
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org,
-        Kadlecsik =?UTF-8?B?SsOzenNlZg==?= <kadlec@blackhole.kfki.hu>,
-        Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>,
-        Sabrina Dubroca <sd@queasysnail.net>,
-        Jay Ligatti <ligatti@usf.edu>,
-        Ori Rottenstreich <or@cs.technion.ac.il>,
-        Kirill Kogan <kirill.kogan@gmail.com>
-Subject: Re: [PATCH nf-next 3/8] nf_tables: Add set type for arbitrary
- concatenation of ranges
-Message-ID: <20191121220046.0517c87d@redhat.com>
-In-Reply-To: <20191121204113.GL20235@breakpoint.cc>
-References: <cover.1574119038.git.sbrivio@redhat.com>
-        <6da551247fd90666b0eca00fb4467151389bf1dc.1574119038.git.sbrivio@redhat.com>
-        <20191120150609.GB20235@breakpoint.cc>
-        <20191121205442.5eb3d113@redhat.com>
-        <20191121204113.GL20235@breakpoint.cc>
-Organization: Red Hat
+        by mail.kernel.org (Postfix) with ESMTPSA id 89E892084B;
+        Fri, 22 Nov 2019 05:52:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1574401932;
+        bh=MBxeDnP2vJ6YQSAW4kvOLr2ixbZPyUPv7eGEKXCsK1E=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=ejXSKt8lgPc8c3+6bJPLR1zllH7ErlFYereR1p0lfrqdRBG43An9XLdKqZ44JD+tl
+         rMoD3uvXsYT95LwPj3RNo40r0WzYFQjqmywq1ZKPb5d1b4Df6deF6H//pTDTiUwS7B
+         b64GM4prghzxpsEcIDMXxm+olrEg97zHMkp37C9A=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Kangjie Lu <kjlu@umn.edu>, Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 158/219] netfilter: nf_tables: fix a missing check of nla_put_failure
+Date:   Fri, 22 Nov 2019 00:48:10 -0500
+Message-Id: <20191122054911.1750-151-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20191122054911.1750-1-sashal@kernel.org>
+References: <20191122054911.1750-1-sashal@kernel.org>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
-X-MC-Unique: DOpIxe8GN6iVHW1zc8Unng-1
-X-Mimecast-Spam-Score: 0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 21 Nov 2019 21:41:13 +0100
-Florian Westphal <fw@strlen.de> wrote:
+From: Kangjie Lu <kjlu@umn.edu>
 
-> Yes, exactly, we should only reject what either
-> 1. would crash kernel
-> 2. makes obviously no sense (missing or contradiction attributes).
->=20
-> anything more than that isn't needed.
->=20
-> > We could opt to be stricter indeed, by checking that a single netlink
-> > batch contains a corresponding number of start and end elements. This
-> > can't be done by the insert function though, we don't have enough
-> > context there. =20
->=20
-> Yes.  If such 'single element with no end interval' can't happen or
-> won't cause any problems then no action is needed.
+[ Upstream commit eb8950861c1bfd3eecc8f6faad213e3bca0dc395 ]
 
-Yeah, I don't expect that to cause any problem. I don't have a
-kselftest or nft test for it, because that would require nft to send
-invalid elements, so I only tested those two cases manually. The
-nastiest thing I could come up with was start > end, and it's now
-covered by:
+If nla_nest_start() may fail. The fix checks its return value and goes
+to nla_put_failure if it fails.
 
-=09=09if (memcmp(start, end,
-=09=09=09   f->groups / NFT_PIPAPO_GROUPS_PER_BYTE) > 0)
-=09=09=09return -EINVAL;
+Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/nf_tables_api.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-while:
-- start =3D=3D end is allowed, explicitly handled below
-- end without any previous start (somewhat) correctly maps to < 0 > to
-  end
-- start without end won't trigger any insertion
-
---=20
-Stefano
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 24fddf0322790..4c1a88b7ba285 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5735,6 +5735,8 @@ static int nf_tables_fill_flowtable_info(struct sk_buff *skb, struct net *net,
+ 		goto nla_put_failure;
+ 
+ 	nest = nla_nest_start(skb, NFTA_FLOWTABLE_HOOK);
++	if (!nest)
++		goto nla_put_failure;
+ 	if (nla_put_be32(skb, NFTA_FLOWTABLE_HOOK_NUM, htonl(flowtable->hooknum)) ||
+ 	    nla_put_be32(skb, NFTA_FLOWTABLE_HOOK_PRIORITY, htonl(flowtable->priority)))
+ 		goto nla_put_failure;
+-- 
+2.20.1
 
