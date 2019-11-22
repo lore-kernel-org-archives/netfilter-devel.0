@@ -7,47 +7,48 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1081FC432C3
-	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Nov 2019 06:21:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97F17C43215
+	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Nov 2019 06:26:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D395A2070E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Nov 2019 06:21:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F62420714
+	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Nov 2019 06:26:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1574403709;
-	bh=MBxeDnP2vJ6YQSAW4kvOLr2ixbZPyUPv7eGEKXCsK1E=;
+	s=default; t=1574403989;
+	bh=jKzR5jY6Q+nmrW1yULqWSQepuzyW0D8Ht4y9wTjw5e4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=XfDgxcTpehDS4qbrAP7UCkNFLkR36Vkm5FWxZQ1ZJHWz3rzbBV9Zi/UfOkCKdSp+V
-	 eGnCx68gLXFi6CzdqUpc2IEj4TJ+YjymcMtcdJKy6Fh2Q5CoXnVnEmmc6qeVB+YgLu
-	 Dtfx4v8FrunyKLTLtuMlygZmb1AIKGQS3xMZZX4I=
+	b=lQQjNo+FDubjVSuUkfdRowxPKlYCXVUjSW0rW9KTPJImePydRNl3H3oB0sRu+UXpz
+	 w2Kdm5ZDsz2CoaJVGf/8zLCTMT8iUXpcVAG48KOxYbKLzOnrMiLxwlniivbIJL0ole
+	 vm9kn25+/z2NPgtHJk5ABoS192s2VPx6VGNf1UUc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728882AbfKVGVo (ORCPT
+        id S1728143AbfKVG0X (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 22 Nov 2019 01:21:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57766 "EHLO mail.kernel.org"
+        Fri, 22 Nov 2019 01:26:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55684 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728442AbfKVFwN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 22 Nov 2019 00:52:13 -0500
+        id S1727889AbfKVFuv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 22 Nov 2019 00:50:51 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 89E892084B;
-        Fri, 22 Nov 2019 05:52:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EBE8F2075B;
+        Fri, 22 Nov 2019 05:50:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1574401932;
-        bh=MBxeDnP2vJ6YQSAW4kvOLr2ixbZPyUPv7eGEKXCsK1E=;
+        s=default; t=1574401850;
+        bh=jKzR5jY6Q+nmrW1yULqWSQepuzyW0D8Ht4y9wTjw5e4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ejXSKt8lgPc8c3+6bJPLR1zllH7ErlFYereR1p0lfrqdRBG43An9XLdKqZ44JD+tl
-         rMoD3uvXsYT95LwPj3RNo40r0WzYFQjqmywq1ZKPb5d1b4Df6deF6H//pTDTiUwS7B
-         b64GM4prghzxpsEcIDMXxm+olrEg97zHMkp37C9A=
+        b=YcqR6vgSTEOA2kBZgcLCkqPkKlwT9wcm8gnus+T6XzIVZDFeurJfMegFqK5z2KAjK
+         UHVHMr6H0PJ4AcSSpPI+/1KO1T9vN44rJrL9cwqwYzzn2ros8og06CeQBKFQxhPK16
+         kvRhGelrc2IOi2rxoa0DmfYfmgRF5a9n1dLZ4/Ys=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Kangjie Lu <kjlu@umn.edu>, Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc:     Alin Nastac <alin.nastac@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 158/219] netfilter: nf_tables: fix a missing check of nla_put_failure
-Date:   Fri, 22 Nov 2019 00:48:10 -0500
-Message-Id: <20191122054911.1750-151-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 088/219] netfilter: nf_nat_sip: fix RTP/RTCP source port translations
+Date:   Fri, 22 Nov 2019 00:47:00 -0500
+Message-Id: <20191122054911.1750-81-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20191122054911.1750-1-sashal@kernel.org>
 References: <20191122054911.1750-1-sashal@kernel.org>
@@ -60,33 +61,107 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Kangjie Lu <kjlu@umn.edu>
+From: Alin Nastac <alin.nastac@gmail.com>
 
-[ Upstream commit eb8950861c1bfd3eecc8f6faad213e3bca0dc395 ]
+[ Upstream commit 8294059931448aa1ca112615bdffa3eab552c382 ]
 
-If nla_nest_start() may fail. The fix checks its return value and goes
-to nla_put_failure if it fails.
+Each media stream negotiation between 2 SIP peers will trigger creation
+of 4 different expectations (2 RTP and 2 RTCP):
+ - INVITE will create expectations for the media packets sent by the
+   called peer
+ - reply to the INVITE will create expectations for media packets sent
+   by the caller
 
-Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+The dport used by these expectations usually match the ones selected
+by the SIP peers, but they might get translated due to conflicts with
+another expectation. When such event occur, it is important to do
+this translation in both directions, dport translation on the receiving
+path and sport translation on the sending path.
+
+This commit fixes the sport translation when the peer requiring it is
+also the one that starts the media stream. In this scenario, first media
+stream packet is forwarded from LAN to WAN and will rely on
+nf_nat_sip_expected() to do the necessary sport translation. However, the
+expectation matched by this packet does not contain the necessary information
+for doing SNAT, this data being stored in the paired expectation created by
+the sender's SIP message (INVITE or reply to it).
+
+Signed-off-by: Alin Nastac <alin.nastac@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_tables_api.c | 2 ++
- 1 file changed, 2 insertions(+)
+ net/netfilter/nf_nat_sip.c | 39 ++++++++++++++++++++++++++++++++++----
+ 1 file changed, 35 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 24fddf0322790..4c1a88b7ba285 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5735,6 +5735,8 @@ static int nf_tables_fill_flowtable_info(struct sk_buff *skb, struct net *net,
- 		goto nla_put_failure;
+diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
+index 1f30860749817..aa1be643d7a09 100644
+--- a/net/netfilter/nf_nat_sip.c
++++ b/net/netfilter/nf_nat_sip.c
+@@ -18,6 +18,7 @@
  
- 	nest = nla_nest_start(skb, NFTA_FLOWTABLE_HOOK);
-+	if (!nest)
-+		goto nla_put_failure;
- 	if (nla_put_be32(skb, NFTA_FLOWTABLE_HOOK_NUM, htonl(flowtable->hooknum)) ||
- 	    nla_put_be32(skb, NFTA_FLOWTABLE_HOOK_PRIORITY, htonl(flowtable->priority)))
- 		goto nla_put_failure;
+ #include <net/netfilter/nf_nat.h>
+ #include <net/netfilter/nf_nat_helper.h>
++#include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack_helper.h>
+ #include <net/netfilter/nf_conntrack_expect.h>
+ #include <net/netfilter/nf_conntrack_seqadj.h>
+@@ -316,6 +317,9 @@ static void nf_nat_sip_seq_adjust(struct sk_buff *skb, unsigned int protoff,
+ static void nf_nat_sip_expected(struct nf_conn *ct,
+ 				struct nf_conntrack_expect *exp)
+ {
++	struct nf_conn_help *help = nfct_help(ct->master);
++	struct nf_conntrack_expect *pair_exp;
++	int range_set_for_snat = 0;
+ 	struct nf_nat_range2 range;
+ 
+ 	/* This must be a fresh one. */
+@@ -327,15 +331,42 @@ static void nf_nat_sip_expected(struct nf_conn *ct,
+ 	range.min_addr = range.max_addr = exp->saved_addr;
+ 	nf_nat_setup_info(ct, &range, NF_NAT_MANIP_DST);
+ 
+-	/* Change src to where master sends to, but only if the connection
+-	 * actually came from the same source. */
+-	if (nf_inet_addr_cmp(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3,
++	/* Do media streams SRC manip according with the parameters
++	 * found in the paired expectation.
++	 */
++	if (exp->class != SIP_EXPECT_SIGNALLING) {
++		spin_lock_bh(&nf_conntrack_expect_lock);
++		hlist_for_each_entry(pair_exp, &help->expectations, lnode) {
++			if (pair_exp->tuple.src.l3num == nf_ct_l3num(ct) &&
++			    pair_exp->tuple.dst.protonum == ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum &&
++			    nf_inet_addr_cmp(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3, &pair_exp->saved_addr) &&
++			    ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u.all == pair_exp->saved_proto.all) {
++				range.flags = (NF_NAT_RANGE_MAP_IPS | NF_NAT_RANGE_PROTO_SPECIFIED);
++				range.min_proto.all = range.max_proto.all = pair_exp->tuple.dst.u.all;
++				range.min_addr = range.max_addr = pair_exp->tuple.dst.u3;
++				range_set_for_snat = 1;
++				break;
++			}
++		}
++		spin_unlock_bh(&nf_conntrack_expect_lock);
++	}
++
++	/* When no paired expectation has been found, change src to
++	 * where master sends to, but only if the connection actually came
++	 * from the same source.
++	 */
++	if (!range_set_for_snat &&
++	    nf_inet_addr_cmp(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3,
+ 			     &ct->master->tuplehash[exp->dir].tuple.src.u3)) {
+ 		range.flags = NF_NAT_RANGE_MAP_IPS;
+ 		range.min_addr = range.max_addr
+ 			= ct->master->tuplehash[!exp->dir].tuple.dst.u3;
+-		nf_nat_setup_info(ct, &range, NF_NAT_MANIP_SRC);
++		range_set_for_snat = 1;
+ 	}
++
++	/* Perform SRC manip. */
++	if (range_set_for_snat)
++		nf_nat_setup_info(ct, &range, NF_NAT_MANIP_SRC);
+ }
+ 
+ static unsigned int nf_nat_sip_expect(struct sk_buff *skb, unsigned int protoff,
 -- 
 2.20.1
 
