@@ -2,119 +2,124 @@ Return-Path: <SRS0=6h+B=ZP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33530C432C3
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Nov 2019 05:17:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52D17C43215
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Nov 2019 13:19:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 12FC220672
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Nov 2019 05:17:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3497720714
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Nov 2019 13:19:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726751AbfKWFRN (ORCPT
+        id S1726686AbfKWNTR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 23 Nov 2019 00:17:13 -0500
-Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:54519 "EHLO
-        mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725768AbfKWFRN (ORCPT
+        Sat, 23 Nov 2019 08:19:17 -0500
+Received: from bmailout2.hostsharing.net ([83.223.78.240]:49227 "EHLO
+        bmailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726463AbfKWNTQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 23 Nov 2019 00:17:13 -0500
-Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
-        by mail105.syd.optusnet.com.au (Postfix) with SMTP id 7CDF73A0D7E
-        for <netfilter-devel@vger.kernel.org>; Sat, 23 Nov 2019 16:16:58 +1100 (AEDT)
-Received: (qmail 18354 invoked by uid 501); 23 Nov 2019 05:16:57 -0000
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue 1/1] src: Comment-out code not needed since Linux 3.8 in examples/nf-queue.c
-Date:   Sat, 23 Nov 2019 16:16:57 +1100
-Message-Id: <20191123051657.18308-2-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.14.5
-In-Reply-To: <20191123051657.18308-1-duncan_roe@optusnet.com.au>
-References: <20191123051657.18308-1-duncan_roe@optusnet.com.au>
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.2 cv=P6RKvmIu c=1 sm=1 tr=0
-        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
-        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=MeAgGD-zjQ4A:10 a=RSmzAf-M6YYA:10
-        a=PO7r1zJSAAAA:8 a=vifiqeo6ZM97exj4QrcA:9 a=q-lN_5IBCXnZdEYi:21
-        a=-wrLoK8nc3GZTz2h:21
+        Sat, 23 Nov 2019 08:19:16 -0500
+X-Greylist: delayed 486 seconds by postgrey-1.27 at vger.kernel.org; Sat, 23 Nov 2019 08:19:16 EST
+Received: from h08.hostsharing.net (h08.hostsharing.net [IPv6:2a01:37:1000::53df:5f1c:0])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client CN "*.hostsharing.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (not verified))
+        by bmailout2.hostsharing.net (Postfix) with ESMTPS id 6FD66280237DB;
+        Sat, 23 Nov 2019 14:11:08 +0100 (CET)
+Received: by h08.hostsharing.net (Postfix, from userid 100393)
+        id 2C22070E406; Sat, 23 Nov 2019 14:11:08 +0100 (CET)
+Date:   Sat, 23 Nov 2019 14:11:08 +0100
+From:   Lukas Wunner <lukas@wunner.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Martin Mares <mj@ucw.cz>,
+        Daniel Borkmann <daniel@iogearbox.net>
+Subject: Re: [PATCH nf-next,RFC 0/5] Netfilter egress hook
+Message-ID: <20191123131108.dlnrbutabh5i55ix@wunner.de>
+References: <cover.1572528496.git.lukas@wunner.de>
+ <20191107225149.5t4sg35b5gwuwawa@salvia>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191107225149.5t4sg35b5gwuwawa@salvia>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This makes it clear which lines are no longer required.
-It also obviates the need to document NFQNL_CFG_CMD_PF_(UN)BIND.
+On Thu, Nov 07, 2019 at 11:51:49PM +0100, Pablo Neira Ayuso wrote:
+> On Thu, Oct 31, 2019 at 02:41:00PM +0100, Lukas Wunner wrote:
+> > Introduce a netfilter egress hook to complement the existing ingress hook.
+> 
+> Would you provide some numbers on the performance impact for this new
+> hook?
 
-Add comment with sed command to re-enable commented-out code.
+For some reason the numbers are slightly better with this series.
 
-Use // comments because my sed-fu is not up to reversing a /* comment block
+Could be caused by the __always_inline in patch 4, I'd have to compare
+the disassembly to confirm this hunch.
 
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
----
- examples/nf-queue.c | 48 +++++++++++++++++++++++++-----------------------
- 1 file changed, 25 insertions(+), 23 deletions(-)
 
-diff --git a/examples/nf-queue.c b/examples/nf-queue.c
-index f6d254a..ee9e4f4 100644
---- a/examples/nf-queue.c
-+++ b/examples/nf-queue.c
-@@ -151,29 +151,31 @@ int main(int argc, char *argv[])
+* Without this patch:
+  Result: OK: 34205373(c34202809+d2564) usec, 100000000 (60byte,0frags)
+  2923517pps 1403Mb/sec (1403288160bps) errors: 0
+
+* With this patch:
+  Result: OK: 34106013(c34103172+d2841) usec, 100000000 (60byte,0frags)
+  2932034pps 1407Mb/sec (1407376320bps) errors: 0
+
+
+* Without this patch + tc egress:
+  Result: OK: 37848652(c37846140+d2511) usec, 100000000 (60byte,0frags)
+  2642102pps 1268Mb/sec (1268208960bps) errors: 0
+
+* With this patch + tc egress:
+  Result: OK: 37784817(c37782026+d2791) usec, 100000000 (60byte,0frags)
+  2646565pps 1270Mb/sec (1270351200bps) errors: 0
+
+
+* With this patch + nft egress:
+  Result: OK: 43911936(c43908932+d3003) usec, 100000000 (60byte,0frags)
+  2277285pps 1093Mb/sec (1093096800bps) errors: 0
+
+
+Tested on a bare-metal Core i7-3615QM, each measurement was performed
+twice to verify that the numbers are stable.
+
+Commands to perform a measurement:
+modprobe pktgen
+echo "add_device lo@3" > /proc/net/pktgen/kpktgend_3
+samples/pktgen/pktgen_bench_xmit_mode_queue_xmit.sh -i 'lo@3' -n 100000000
+
+Commands for testing tc egress:
+tc qdisc add dev lo clsact
+tc filter add dev lo egress protocol ip prio 1 u32 match ip dst 4.3.2.1/32
+
+Commands for testing nft egress:
+nft add table netdev t
+nft add chain netdev t co \{ type filter hook egress device lo priority 0 \; \}
+nft add rule netdev t co ip daddr 4.3.2.1/32 drop
+
+All testing was performed on the loopback interface to avoid distorting
+measurements by the packet handling in the low-level Ethernet driver.
+This required the following small patch:
+
+
+diff --git a/net/core/pktgen.c b/net/core/pktgen.c
+index bb99152..020c825 100644
+--- a/net/core/pktgen.c
++++ b/net/core/pktgen.c
+@@ -2003,8 +2003,8 @@ static int pktgen_setup_dev(const struct pktgen_net *pn,
+ 		return -ENODEV;
  	}
  
- 	/* PF_(UN)BIND is not needed with kernels 3.8 and later */
--	nlh = nfq_hdr_put(buf, NFQNL_MSG_CONFIG, 0);
--	nfq_nlmsg_cfg_put_cmd(nlh, AF_INET, NFQNL_CFG_CMD_PF_UNBIND);
--
--	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
--		perror("mnl_socket_send");
--		exit(EXIT_FAILURE);
--	}
--
--	nlh = nfq_hdr_put(buf, NFQNL_MSG_CONFIG, 0);
--	nfq_nlmsg_cfg_put_cmd(nlh, AF_INET, NFQNL_CFG_CMD_PF_BIND);
--
--	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
--		perror("mnl_socket_send");
--		exit(EXIT_FAILURE);
--	}
--
--	nlh = nfq_hdr_put(buf, NFQNL_MSG_CONFIG, queue_num);
--	nfq_nlmsg_cfg_put_cmd(nlh, AF_INET, NFQNL_CFG_CMD_BIND);
--
--	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
--		perror("mnl_socket_send");
--		exit(EXIT_FAILURE);
--	}
-+	/* Uncomment this code block if you need to cater for an older kernel */
-+	/* E.g. sed -i '156,178s+//++' examples/nf-queue.c */
-+	//nlh = nfq_hdr_put(buf, NFQNL_MSG_CONFIG, 0);
-+	//nfq_nlmsg_cfg_put_cmd(nlh, AF_INET, NFQNL_CFG_CMD_PF_UNBIND);
-+	//
-+	//if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
-+	//	perror("mnl_socket_send");
-+	//	exit(EXIT_FAILURE);
-+	//}
-+	//
-+	//nlh = nfq_hdr_put(buf, NFQNL_MSG_CONFIG, 0);
-+	//nfq_nlmsg_cfg_put_cmd(nlh, AF_INET, NFQNL_CFG_CMD_PF_BIND);
-+	//
-+	//if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
-+	//	perror("mnl_socket_send");
-+	//	exit(EXIT_FAILURE);
-+	//}
-+	//
-+	//nlh = nfq_hdr_put(buf, NFQNL_MSG_CONFIG, queue_num);
-+	//nfq_nlmsg_cfg_put_cmd(nlh, AF_INET, NFQNL_CFG_CMD_BIND);
-+	//
-+	//if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
-+	//	perror("mnl_socket_send");
-+	//	exit(EXIT_FAILURE);
-+	//}
- 
- 	nlh = nfq_hdr_put(buf, NFQNL_MSG_CONFIG, queue_num);
- 	nfq_nlmsg_cfg_put_params(nlh, NFQNL_COPY_PACKET, 0xffff);
--- 
-2.14.5
-
+-	if (odev->type != ARPHRD_ETHER) {
+-		pr_err("not an ethernet device: \"%s\"\n", ifname);
++	if (odev->type != ARPHRD_ETHER && odev->type != ARPHRD_LOOPBACK) {
++		pr_err("not an ethernet or loopback device: \"%s\"\n", ifname);
+ 		err = -EINVAL;
+ 	} else if (!netif_running(odev)) {
+ 		pr_err("device is down: \"%s\"\n", ifname);
