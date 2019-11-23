@@ -2,352 +2,317 @@ Return-Path: <SRS0=6h+B=ZP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C621C43141
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Nov 2019 18:05:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E10DC432C0
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Nov 2019 20:01:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3BEB520719
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Nov 2019 18:05:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CCECC204FD
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Nov 2019 20:01:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726910AbfKWSFP (ORCPT
+        id S1726705AbfKWUBO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 23 Nov 2019 13:05:15 -0500
-Received: from mail-il1-f200.google.com ([209.85.166.200]:51572 "EHLO
-        mail-il1-f200.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726620AbfKWSFM (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 23 Nov 2019 13:05:12 -0500
-Received: by mail-il1-f200.google.com with SMTP id x2so9515548ilk.18
-        for <netfilter-devel@vger.kernel.org>; Sat, 23 Nov 2019 10:05:10 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=m57d6pzMbnRE+E77SNnUVK48CZSyCuqXvxNHBd1sUpg=;
-        b=CnwfAM47rp0wtAzPAoIzrCu33Q7zLUeRjjO5OERfiwGqOZ0lP/vySpSpt96kgn1SsR
-         wcOmq3p9a4yLtRC3Wfisqk+EbUXeDFYmj857r3wNwt9Kohvi4If0cseW/pBdRASj6nEC
-         e5jTZdehe0Sn6trY2mmwkl5A3wuEZ4BXMCmH7fGjY39ZNAXzJCzwXrE61ov9Tj9bDtTw
-         t2fd9QR3crsX+1NL3O6dFZ0Jy5YQ8NGG4+R8Mx6YNoptjQqCGt7PgaZDVwVIRtiII1oe
-         ZKFZA0QZRshFaOb9M67jZjLdWoZOUp4JaMYEz7X/uoh+T6BfEgSXnumPewKvhpt/hR5a
-         YIzQ==
-X-Gm-Message-State: APjAAAX8hRO3oWxMe0qila0xEIRv1bHVDKOcmzzBsLlTQF01Ch5Dc6V/
-        TxQPepXBjpmU72Ze1eq2cbmA35hNcI02wlVxVDFO4JCIIIms
-X-Google-Smtp-Source: APXvYqxw5FikGezlDJ6iFZJN/0R9hWPQ1CdQy5EbMecOvSWZ2tWu+7jJQttnrNArYfRZjONWb1MUuwLB2urjqtQkb/TTFKEAufph
+        Sat, 23 Nov 2019 15:01:14 -0500
+Received: from correo.us.es ([193.147.175.20]:46890 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726620AbfKWUBO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 23 Nov 2019 15:01:14 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 36C89A1A33E
+        for <netfilter-devel@vger.kernel.org>; Sat, 23 Nov 2019 21:01:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 28687CA0F3
+        for <netfilter-devel@vger.kernel.org>; Sat, 23 Nov 2019 21:01:09 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 1CD2FD1DBB; Sat, 23 Nov 2019 21:01:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D3028DA8E8;
+        Sat, 23 Nov 2019 21:01:06 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Sat, 23 Nov 2019 21:01:06 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id A041B4301DE1;
+        Sat, 23 Nov 2019 21:01:06 +0100 (CET)
+Date:   Sat, 23 Nov 2019 21:01:08 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Stefano Brivio <sbrivio@redhat.com>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        Kadlecsik =?iso-8859-1?Q?J=F3zsef?= <kadlec@blackhole.kfki.hu>,
+        Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>
+Subject: Re: [PATCH nf-next v2 1/8] netfilter: nf_tables: Support for
+ subkeys, set with multiple ranged fields
+Message-ID: <20191123200108.j75hl4sm4zur33jt@salvia>
+References: <cover.1574428269.git.sbrivio@redhat.com>
+ <90493a6feae0ae64db378fbfc8e9f351d4b7b05d.1574428269.git.sbrivio@redhat.com>
 MIME-Version: 1.0
-X-Received: by 2002:a92:5c5d:: with SMTP id q90mr24932010ilb.22.1574532310177;
- Sat, 23 Nov 2019 10:05:10 -0800 (PST)
-Date:   Sat, 23 Nov 2019 10:05:10 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000000924780598075f4b@google.com>
-Subject: KMSAN: uninit-value in __skb_checksum_complete (4)
-From:   syzbot <syzbot+721b564cd88ebb710182@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        glider@google.com, kadlec@netfilter.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Content-Type: multipart/mixed; boundary="h6lnwf35f73iw7eb"
+Content-Disposition: inline
+In-Reply-To: <90493a6feae0ae64db378fbfc8e9f351d4b7b05d.1574428269.git.sbrivio@redhat.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
 
-syzbot found the following crash on:
+--h6lnwf35f73iw7eb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-HEAD commit:    287021d5 Revert "lib/scatterlist: kmsan: don't squash cont..
-git tree:       https://github.com/google/kmsan.git master
-console output: https://syzkaller.appspot.com/x/log.txt?x=152c638ce00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=9e324dfe9c7b0360
-dashboard link: https://syzkaller.appspot.com/bug?extid=721b564cd88ebb710182
-compiler:       clang version 9.0.0 (/home/glider/llvm/clang  
-80fee25776c2fb61e74c1ecb1a523375c2500b69)
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1423f122e00000
+Hi Stefano,
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+721b564cd88ebb710182@syzkaller.appspotmail.com
+On Fri, Nov 22, 2019 at 02:40:00PM +0100, Stefano Brivio wrote:
+[...]
+> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> index bb9b049310df..f8dbeac14898 100644
+> --- a/include/uapi/linux/netfilter/nf_tables.h
+> +++ b/include/uapi/linux/netfilter/nf_tables.h
+> @@ -48,6 +48,7 @@ enum nft_registers {
+>  
+>  #define NFT_REG_SIZE	16
+>  #define NFT_REG32_SIZE	4
+> +#define NFT_REG32_COUNT	(NFT_REG32_15 - NFT_REG32_00 + 1)
+>  
+>  /**
+>   * enum nft_verdicts - nf_tables internal verdicts
+> @@ -275,6 +276,7 @@ enum nft_rule_compat_attributes {
+>   * @NFT_SET_TIMEOUT: set uses timeouts
+>   * @NFT_SET_EVAL: set can be updated from the evaluation path
+>   * @NFT_SET_OBJECT: set contains stateful objects
+> + * @NFT_SET_SUBKEY: set uses subkeys to map intervals for multiple fields
+>   */
+>  enum nft_set_flags {
+>  	NFT_SET_ANONYMOUS		= 0x1,
+> @@ -284,6 +286,7 @@ enum nft_set_flags {
+>  	NFT_SET_TIMEOUT			= 0x10,
+>  	NFT_SET_EVAL			= 0x20,
+>  	NFT_SET_OBJECT			= 0x40,
+> +	NFT_SET_SUBKEY			= 0x80,
+>  };
+>  
+>  /**
+> @@ -309,6 +312,17 @@ enum nft_set_desc_attributes {
+>  };
+>  #define NFTA_SET_DESC_MAX	(__NFTA_SET_DESC_MAX - 1)
+>  
+> +/**
+> + * enum nft_set_subkey_attributes - subkeys for multiple ranged fields
+> + *
+> + * @NFTA_SET_SUBKEY_LEN: length of single field, in bits (NLA_U32)
+> + */
+> +enum nft_set_subkey_attributes {
 
-=====================================================
-BUG: KMSAN: uninit-value in __skb_checksum_complete+0x37b/0x530  
-net/core/skbuff.c:2851
-CPU: 0 PID: 12256 Comm: udevd Not tainted 5.4.0-rc5-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-Call Trace:
-  <IRQ>
-  __dump_stack lib/dump_stack.c:77 [inline]
-  dump_stack+0x191/0x1f0 lib/dump_stack.c:113
-  kmsan_report+0x128/0x220 mm/kmsan/kmsan_report.c:108
-  __msan_warning+0x73/0xe0 mm/kmsan/kmsan_instr.c:245
-  __skb_checksum_complete+0x37b/0x530 net/core/skbuff.c:2851
-  nf_ip_checksum+0x567/0x770 net/netfilter/utils.c:36
-  nf_nat_icmp_reply_translation+0x2ba/0x970 net/netfilter/nf_nat_proto.c:567
-  nf_nat_ipv4_fn net/netfilter/nf_nat_proto.c:626 [inline]
-  nf_nat_ipv4_local_fn+0x215/0x840 net/netfilter/nf_nat_proto.c:697
-  nf_hook_entry_hookfn include/linux/netfilter.h:135 [inline]
-  nf_hook_slow+0x18b/0x3f0 net/netfilter/core.c:512
-  nf_hook include/linux/netfilter.h:260 [inline]
-  __ip_local_out+0x69b/0x800 net/ipv4/ip_output.c:114
-  ip_local_out net/ipv4/ip_output.c:123 [inline]
-  ip_send_skb net/ipv4/ip_output.c:1558 [inline]
-  ip_push_pending_frames+0x16f/0x460 net/ipv4/ip_output.c:1578
-  icmp_push_reply+0x692/0x750 net/ipv4/icmp.c:389
-  __icmp_send+0x2313/0x3080 net/ipv4/icmp.c:738
-  ipv4_send_dest_unreach net/ipv4/route.c:1220 [inline]
-  ipv4_link_failure+0x73c/0xaf0 net/ipv4/route.c:1227
-  dst_link_failure include/net/dst.h:419 [inline]
-  arp_error_report+0x106/0x1a0 net/ipv4/arp.c:293
-  neigh_invalidate+0x359/0x8e0 net/core/neighbour.c:996
-  neigh_timer_handler+0xda4/0x1450 net/core/neighbour.c:1082
-  call_timer_fn+0x232/0x530 kernel/time/timer.c:1404
-  expire_timers kernel/time/timer.c:1449 [inline]
-  __run_timers+0xd60/0x1270 kernel/time/timer.c:1773
-  run_timer_softirq+0x2d/0x50 kernel/time/timer.c:1786
-  __do_softirq+0x4a1/0x83a kernel/softirq.c:293
-  invoke_softirq kernel/softirq.c:375 [inline]
-  irq_exit+0x230/0x280 kernel/softirq.c:416
-  exiting_irq+0xe/0x10 arch/x86/include/asm/apic.h:536
-  smp_apic_timer_interrupt+0x48/0x70 arch/x86/kernel/apic/apic.c:1139
-  apic_timer_interrupt+0x2e/0x40 arch/x86/entry/entry_64.S:837
-  </IRQ>
-RIP: 0010:kmsan_slab_alloc+0xd5/0x120 mm/kmsan/kmsan_hooks.c:92
-Code: 0a ba 01 00 00 00 e8 6a e7 ff ff 65 ff 0d 17 05 fd 7d 65 8b 05 10 05  
-fd 7d 85 c0 75 30 e8 73 6e 37 ff 4c 89 65 c8 ff 75 c8 9d <65> 48 8b 04 25  
-28 00 00 00 48 3b 45 d8 75 0d 48 83 c4 18 5b 41 5c
-RSP: 0018:ffff888104a5fb48 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
-RAX: 0000000000000000 RBX: ffff888069bbb000 RCX: 0000000000000401
-RDX: 0000000000000400 RSI: 0000000000000000 RDI: ffff888069bbb000
-RBP: ffff888104a5fb80 R08: 0000000000000002 R09: ffff888077c93000
-R10: 0000000000000004 R11: ffffffff82579470 R12: 0000000000000246
-R13: ffff88812f8068c0 R14: 0000000000000dc0 R15: ffff88812f8068c0
-  slab_alloc_node mm/slub.c:2799 [inline]
-  slab_alloc mm/slub.c:2808 [inline]
-  kmem_cache_alloc_trace+0x8b6/0xd10 mm/slub.c:2825
-  kmalloc include/linux/slab.h:556 [inline]
-  kzalloc include/linux/slab.h:690 [inline]
-  kernfs_iop_get_link+0xcb/0xc40 fs/kernfs/symlink.c:135
-  vfs_readlink+0x20d/0x6e0 fs/namei.c:4728
-  do_readlinkat+0x406/0x520 fs/stat.c:411
-  __do_sys_readlink fs/stat.c:432 [inline]
-  __se_sys_readlink+0x99/0xc0 fs/stat.c:429
-  __x64_sys_readlink+0x4a/0x70 fs/stat.c:429
-  do_syscall_64+0xb6/0x160 arch/x86/entry/common.c:291
-  entry_SYSCALL_64_after_hwframe+0x63/0xe7
-RIP: 0033:0x7faf01efa577
-Code: f0 ff ff 77 02 f3 c3 48 8b 15 bd 38 2b 00 f7 d8 64 89 02 83 c8 ff c3  
-90 90 90 90 90 90 90 90 90 90 90 90 b8 59 00 00 00 0f 05 <48> 3d 01 f0 ff  
-ff 73 01 c3 48 8b 0d 91 38 2b 00 31 d2 48 29 c2 64
-RSP: 002b:00007ffee58d72b8 EFLAGS: 00000206 ORIG_RAX: 0000000000000059
-RAX: ffffffffffffffda RBX: 00007ffee58d7af0 RCX: 00007faf01efa577
-RDX: 0000000000000400 RSI: 00007ffee58d76c0 RDI: 00007ffee58d72c0
-RBP: 0000000000000200 R08: 000000000042033b R09: 00007faf01f4ec20
-R10: 7269762f73656369 R11: 0000000000000206 R12: 00000000017c4e10
-R13: 0000000000625500 R14: 00000000017bf250 R15: 000000000000000b
+Missing NFTA_SET_SUBKEY_UNSPEC here.
 
-Uninit was stored to memory at:
-  kmsan_save_stack_with_flags mm/kmsan/kmsan.c:151 [inline]
-  kmsan_internal_chain_origin+0xbd/0x180 mm/kmsan/kmsan.c:319
-  kmsan_memcpy_memmove_metadata+0x25c/0x2e0 mm/kmsan/kmsan.c:254
-  kmsan_memcpy_metadata+0xb/0x10 mm/kmsan/kmsan.c:274
-  __msan_memcpy+0x56/0x70 mm/kmsan/kmsan_instr.c:129
-  csum_partial_copy+0xae/0x100 lib/checksum.c:174
-  skb_copy_and_csum_bits+0x214/0x10b0 net/core/skbuff.c:2738
-  icmp_glue_bits+0x16b/0x380 net/ipv4/icmp.c:352
-  __ip_append_data+0x41c3/0x52c0 net/ipv4/ip_output.c:1132
-  ip_append_data+0x324/0x480 net/ipv4/ip_output.c:1313
-  icmp_push_reply+0x210/0x750 net/ipv4/icmp.c:370
-  __icmp_send+0x2313/0x3080 net/ipv4/icmp.c:738
-  ipv4_send_dest_unreach net/ipv4/route.c:1220 [inline]
-  ipv4_link_failure+0x73c/0xaf0 net/ipv4/route.c:1227
-  dst_link_failure include/net/dst.h:419 [inline]
-  arp_error_report+0x106/0x1a0 net/ipv4/arp.c:293
-  neigh_invalidate+0x359/0x8e0 net/core/neighbour.c:996
-  neigh_timer_handler+0xda4/0x1450 net/core/neighbour.c:1082
-  call_timer_fn+0x232/0x530 kernel/time/timer.c:1404
-  expire_timers kernel/time/timer.c:1449 [inline]
-  __run_timers+0xd60/0x1270 kernel/time/timer.c:1773
-  run_timer_softirq+0x2d/0x50 kernel/time/timer.c:1786
-  __do_softirq+0x4a1/0x83a kernel/softirq.c:293
-  invoke_softirq kernel/softirq.c:375 [inline]
-  irq_exit+0x230/0x280 kernel/softirq.c:416
-  exiting_irq+0xe/0x10 arch/x86/include/asm/apic.h:536
-  smp_apic_timer_interrupt+0x48/0x70 arch/x86/kernel/apic/apic.c:1139
-  apic_timer_interrupt+0x2e/0x40 arch/x86/entry/entry_64.S:837
-  native_restore_fl arch/x86/include/asm/irqflags.h:41 [inline]
-  arch_local_irq_restore arch/x86/include/asm/irqflags.h:84 [inline]
-  kmsan_slab_alloc+0xd5/0x120 mm/kmsan/kmsan_hooks.c:92
-  slab_alloc_node mm/slub.c:2799 [inline]
-  slab_alloc mm/slub.c:2808 [inline]
-  kmem_cache_alloc_trace+0x8b6/0xd10 mm/slub.c:2825
-  kmalloc include/linux/slab.h:556 [inline]
-  kzalloc include/linux/slab.h:690 [inline]
-  kernfs_iop_get_link+0xcb/0xc40 fs/kernfs/symlink.c:135
-  vfs_readlink+0x20d/0x6e0 fs/namei.c:4728
-  do_readlinkat+0x406/0x520 fs/stat.c:411
-  __do_sys_readlink fs/stat.c:432 [inline]
-  __se_sys_readlink+0x99/0xc0 fs/stat.c:429
-  __x64_sys_readlink+0x4a/0x70 fs/stat.c:429
-  do_syscall_64+0xb6/0x160 arch/x86/entry/common.c:291
-  entry_SYSCALL_64_after_hwframe+0x63/0xe7
+Not a problem if nla_parse_nested*() is not used as in your case,
+probably good for consistency, in case there is a need for using such
+function in the future.
 
-Uninit was stored to memory at:
-  kmsan_save_stack_with_flags mm/kmsan/kmsan.c:151 [inline]
-  kmsan_internal_chain_origin+0xbd/0x180 mm/kmsan/kmsan.c:319
-  kmsan_memcpy_memmove_metadata+0x25c/0x2e0 mm/kmsan/kmsan.c:254
-  kmsan_memcpy_metadata+0xb/0x10 mm/kmsan/kmsan.c:274
-  __msan_memcpy+0x56/0x70 mm/kmsan/kmsan_instr.c:129
-  skb_put_data include/linux/skbuff.h:2217 [inline]
-  sctp_packet_pack net/sctp/output.c:470 [inline]
-  sctp_packet_transmit+0x1d9e/0x4250 net/sctp/output.c:597
-  sctp_outq_flush_transports net/sctp/outqueue.c:1146 [inline]
-  sctp_outq_flush+0x1823/0x5d80 net/sctp/outqueue.c:1194
-  sctp_outq_uncork+0xd0/0xf0 net/sctp/outqueue.c:757
-  sctp_cmd_interpreter net/sctp/sm_sideeffect.c:1781 [inline]
-  sctp_side_effects net/sctp/sm_sideeffect.c:1184 [inline]
-  sctp_do_sm+0x8fe1/0x9720 net/sctp/sm_sideeffect.c:1155
-  sctp_generate_heartbeat_event+0x3c6/0x5a0 net/sctp/sm_sideeffect.c:391
-  call_timer_fn+0x232/0x530 kernel/time/timer.c:1404
-  expire_timers kernel/time/timer.c:1449 [inline]
-  __run_timers+0xd60/0x1270 kernel/time/timer.c:1773
-  run_timer_softirq+0x2d/0x50 kernel/time/timer.c:1786
-  __do_softirq+0x4a1/0x83a kernel/softirq.c:293
-  invoke_softirq kernel/softirq.c:375 [inline]
-  irq_exit+0x230/0x280 kernel/softirq.c:416
-  exiting_irq+0xe/0x10 arch/x86/include/asm/apic.h:536
-  smp_apic_timer_interrupt+0x48/0x70 arch/x86/kernel/apic/apic.c:1139
-  apic_timer_interrupt+0x2e/0x40 arch/x86/entry/entry_64.S:837
-  __raw_spin_unlock_irq include/linux/spinlock_api_smp.h:169 [inline]
-  spin_unlock_irq include/linux/spinlock.h:388 [inline]
-  alloc_pid+0xd06/0xd50 kernel/pid.c:229
-  copy_process+0x446d/0x89f0 kernel/fork.c:2031
-  _do_fork+0x25c/0xeb0 kernel/fork.c:2368
-  __do_sys_clone kernel/fork.c:2523 [inline]
-  __se_sys_clone+0x32a/0x370 kernel/fork.c:2504
-  __x64_sys_clone+0x62/0x80 kernel/fork.c:2504
-  do_syscall_64+0xb6/0x160 arch/x86/entry/common.c:291
-  entry_SYSCALL_64_after_hwframe+0x63/0xe7
+> +	NFTA_SET_SUBKEY_LEN,
+> +	__NFTA_SET_SUBKEY_MAX
+> +};
+> +#define NFTA_SET_SUBKEY_MAX	(__NFTA_SET_SUBKEY_MAX - 1)
+> +
+>  /**
+>   * enum nft_set_attributes - nf_tables set netlink attributes
+>   *
+> @@ -327,6 +341,7 @@ enum nft_set_desc_attributes {
+>   * @NFTA_SET_USERDATA: user data (NLA_BINARY)
+>   * @NFTA_SET_OBJ_TYPE: stateful object type (NLA_U32: NFT_OBJECT_*)
+>   * @NFTA_SET_HANDLE: set handle (NLA_U64)
+> + * @NFTA_SET_SUBKEY: subkeys for multiple ranged fields (NLA_NESTED)
+>   */
+>  enum nft_set_attributes {
+>  	NFTA_SET_UNSPEC,
+> @@ -346,6 +361,7 @@ enum nft_set_attributes {
+>  	NFTA_SET_PAD,
+>  	NFTA_SET_OBJ_TYPE,
+>  	NFTA_SET_HANDLE,
+> +	NFTA_SET_SUBKEY,
 
-Uninit was stored to memory at:
-  kmsan_save_stack_with_flags mm/kmsan/kmsan.c:151 [inline]
-  kmsan_internal_chain_origin+0xbd/0x180 mm/kmsan/kmsan.c:319
-  kmsan_memcpy_memmove_metadata+0x25c/0x2e0 mm/kmsan/kmsan.c:254
-  kmsan_memcpy_metadata+0xb/0x10 mm/kmsan/kmsan.c:274
-  __msan_memcpy+0x56/0x70 mm/kmsan/kmsan_instr.c:129
-  skb_put_data include/linux/skbuff.h:2217 [inline]
-  sctp_addto_chunk net/sctp/sm_make_chunk.c:1494 [inline]
-  sctp_make_heartbeat+0x612/0x9e0 net/sctp/sm_make_chunk.c:1164
-  sctp_sf_heartbeat net/sctp/sm_statefuns.c:990 [inline]
-  sctp_sf_sendbeat_8_3+0x18d/0xb10 net/sctp/sm_statefuns.c:1034
-  sctp_do_sm+0x2b2/0x9720 net/sctp/sm_sideeffect.c:1152
-  sctp_generate_heartbeat_event+0x3c6/0x5a0 net/sctp/sm_sideeffect.c:391
-  call_timer_fn+0x232/0x530 kernel/time/timer.c:1404
-  expire_timers kernel/time/timer.c:1449 [inline]
-  __run_timers+0xd60/0x1270 kernel/time/timer.c:1773
-  run_timer_softirq+0x2d/0x50 kernel/time/timer.c:1786
-  __do_softirq+0x4a1/0x83a kernel/softirq.c:293
-  invoke_softirq kernel/softirq.c:375 [inline]
-  irq_exit+0x230/0x280 kernel/softirq.c:416
-  exiting_irq+0xe/0x10 arch/x86/include/asm/apic.h:536
-  smp_apic_timer_interrupt+0x48/0x70 arch/x86/kernel/apic/apic.c:1139
-  apic_timer_interrupt+0x2e/0x40 arch/x86/entry/entry_64.S:837
-  __raw_spin_unlock_irq include/linux/spinlock_api_smp.h:169 [inline]
-  spin_unlock_irq include/linux/spinlock.h:388 [inline]
-  alloc_pid+0xd06/0xd50 kernel/pid.c:229
-  copy_process+0x446d/0x89f0 kernel/fork.c:2031
-  _do_fork+0x25c/0xeb0 kernel/fork.c:2368
-  __do_sys_clone kernel/fork.c:2523 [inline]
-  __se_sys_clone+0x32a/0x370 kernel/fork.c:2504
-  __x64_sys_clone+0x62/0x80 kernel/fork.c:2504
-  do_syscall_64+0xb6/0x160 arch/x86/entry/common.c:291
-  entry_SYSCALL_64_after_hwframe+0x63/0xe7
+Could you use NFTA_SET_DESC instead for this? The idea is to add the
+missing front-end code to parse this new attribute and store the
+subkeys length in set->desc.klen[], hence nft_pipapo_init() can just
+use the already parsed data. I think this will simplify the code that
+I'm seeing in nft_pipapo_init() a bit since not netlink parsing will
+be required.
 
-Uninit was stored to memory at:
-  kmsan_save_stack_with_flags mm/kmsan/kmsan.c:151 [inline]
-  kmsan_internal_chain_origin+0xbd/0x180 mm/kmsan/kmsan.c:319
-  kmsan_memcpy_memmove_metadata+0x25c/0x2e0 mm/kmsan/kmsan.c:254
-  kmsan_memcpy_metadata+0xb/0x10 mm/kmsan/kmsan.c:274
-  __msan_memcpy+0x56/0x70 mm/kmsan/kmsan_instr.c:129
-  sctp_make_heartbeat+0x3e9/0x9e0 net/sctp/sm_make_chunk.c:1156
-  sctp_sf_heartbeat net/sctp/sm_statefuns.c:990 [inline]
-  sctp_sf_sendbeat_8_3+0x18d/0xb10 net/sctp/sm_statefuns.c:1034
-  sctp_do_sm+0x2b2/0x9720 net/sctp/sm_sideeffect.c:1152
-  sctp_generate_heartbeat_event+0x3c6/0x5a0 net/sctp/sm_sideeffect.c:391
-  call_timer_fn+0x232/0x530 kernel/time/timer.c:1404
-  expire_timers kernel/time/timer.c:1449 [inline]
-  __run_timers+0xd60/0x1270 kernel/time/timer.c:1773
-  run_timer_softirq+0x2d/0x50 kernel/time/timer.c:1786
-  __do_softirq+0x4a1/0x83a kernel/softirq.c:293
-  invoke_softirq kernel/softirq.c:375 [inline]
-  irq_exit+0x230/0x280 kernel/softirq.c:416
-  exiting_irq+0xe/0x10 arch/x86/include/asm/apic.h:536
-  smp_apic_timer_interrupt+0x48/0x70 arch/x86/kernel/apic/apic.c:1139
-  apic_timer_interrupt+0x2e/0x40 arch/x86/entry/entry_64.S:837
-  __raw_spin_unlock_irq include/linux/spinlock_api_smp.h:169 [inline]
-  spin_unlock_irq include/linux/spinlock.h:388 [inline]
-  alloc_pid+0xd06/0xd50 kernel/pid.c:229
-  copy_process+0x446d/0x89f0 kernel/fork.c:2031
-  _do_fork+0x25c/0xeb0 kernel/fork.c:2368
-  __do_sys_clone kernel/fork.c:2523 [inline]
-  __se_sys_clone+0x32a/0x370 kernel/fork.c:2504
-  __x64_sys_clone+0x62/0x80 kernel/fork.c:2504
-  do_syscall_64+0xb6/0x160 arch/x86/entry/common.c:291
-  entry_SYSCALL_64_after_hwframe+0x63/0xe7
+I'm attaching a sketch patch, including also the use of NFTA_LIST_ELEM:
 
-Uninit was stored to memory at:
-  kmsan_save_stack_with_flags mm/kmsan/kmsan.c:151 [inline]
-  kmsan_internal_chain_origin+0xbd/0x180 mm/kmsan/kmsan.c:319
-  kmsan_memcpy_memmove_metadata+0x25c/0x2e0 mm/kmsan/kmsan.c:254
-  kmsan_memcpy_metadata+0xb/0x10 mm/kmsan/kmsan.c:274
-  __msan_memcpy+0x56/0x70 mm/kmsan/kmsan_instr.c:129
-  sctp_transport_init net/sctp/transport.c:47 [inline]
-  sctp_transport_new+0x248/0xa00 net/sctp/transport.c:100
-  sctp_assoc_add_peer+0x5ba/0x2030 net/sctp/associola.c:611
-  sctp_process_param net/sctp/sm_make_chunk.c:2524 [inline]
-  sctp_process_init+0x162b/0x3e30 net/sctp/sm_make_chunk.c:2345
-  sctp_sf_do_5_1D_ce+0xe0f/0x30d0 net/sctp/sm_statefuns.c:767
-  sctp_do_sm+0x2b2/0x9720 net/sctp/sm_sideeffect.c:1152
-  sctp_endpoint_bh_rcv+0xda2/0x1050 net/sctp/endpointola.c:394
-  sctp_inq_push+0x300/0x420 net/sctp/inqueue.c:80
-  sctp_rcv+0x3a6d/0x54e0 net/sctp/input.c:256
-  ip_protocol_deliver_rcu+0x70f/0xbd0 net/ipv4/ip_input.c:204
-  ip_local_deliver_finish net/ipv4/ip_input.c:231 [inline]
-  NF_HOOK include/linux/netfilter.h:305 [inline]
-  ip_local_deliver+0x62a/0x7c0 net/ipv4/ip_input.c:252
-  dst_input include/net/dst.h:442 [inline]
-  ip_rcv_finish net/ipv4/ip_input.c:413 [inline]
-  NF_HOOK include/linux/netfilter.h:305 [inline]
-  ip_rcv+0x6c5/0x740 net/ipv4/ip_input.c:523
-  __netif_receive_skb_one_core net/core/dev.c:5010 [inline]
-  __netif_receive_skb net/core/dev.c:5124 [inline]
-  process_backlog+0xef5/0x1410 net/core/dev.c:5955
-  napi_poll net/core/dev.c:6392 [inline]
-  net_rx_action+0x7a6/0x1aa0 net/core/dev.c:6460
-  __do_softirq+0x4a1/0x83a kernel/softirq.c:293
-  run_ksoftirqd+0x25/0x40 kernel/softirq.c:607
-  smpboot_thread_fn+0x4a3/0x990 kernel/smpboot.c:165
-  kthread+0x4b5/0x4f0 kernel/kthread.c:256
-  ret_from_fork+0x35/0x40 arch/x86/entry/entry_64.S:355
+NFTA_SET_DESC
+  NFTA_SET_DESC_SIZE
+  NFTA_SET_DESC_SUBKEY
+     NFTA_LIST_ELEM
+       NFTA_SET_SUBKEY_LEN
+     NFTA_LIST_ELEM
+       NFTA_SET_SUBKEY_LEN
+     ...
 
-Local variable description: ----addr.i@sctp_process_init
-Variable was created at:
-  sctp_process_param net/sctp/sm_make_chunk.c:2495 [inline]
-  sctp_process_init+0x603/0x3e30 net/sctp/sm_make_chunk.c:2345
-  sctp_process_param net/sctp/sm_make_chunk.c:2495 [inline]
-  sctp_process_init+0x603/0x3e30 net/sctp/sm_make_chunk.c:2345
-=====================================================
+Just in there's a need for more fields to describe the subkey in the
+future, it's just more boilerplate code for the future extensibility.
 
+Another suggestion is to rename NFT_SET_SUBKEY to NFT_SET_CONCAT, to
+signal the kernel that userspace wants a datastructure that knows how
+to deal with concatenations. Although concatenations can be done by
+hashtable already, this flags is just interpreted by the kernel as a
+hint on what kind of datastructure would fit better for what is
+needed. The combination of the NFT_SET_INTERVAL and the NFT_SET_CONCAT
+(if you're fine with the rename, of course) is what will kick in
+pipapo to be used.
 
----
-This bug is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+Attaching sketch for the netlink control plane with the changes I've
+been describing above, compile-tested only.
 
-syzbot will keep track of this bug report. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-syzbot can test patches for this bug, for details see:
-https://goo.gl/tpsmEJ#testing-patches
+Thanks.
+
+--h6lnwf35f73iw7eb
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="subkeys.patch"
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 2b3e6a2309aa..0b105264cc4f 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -259,11 +259,15 @@ struct nft_set_iter {
+  *	@klen: key length
+  *	@dlen: data length
+  *	@size: number of set elements
++ *	@subkeylen: element subkey lengths
++ *	@num_subkeys: number of subkeys in element
+  */
+ struct nft_set_desc {
+ 	unsigned int		klen;
+ 	unsigned int		dlen;
+ 	unsigned int		size;
++	u8			subkey_len[NFT_REG32_COUNT];
++	u8			num_subkeys;
+ };
+ 
+ /**
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 79ab18b218be..d8ea2e72c960 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -48,6 +48,7 @@ enum nft_registers {
+ 
+ #define NFT_REG_SIZE	16
+ #define NFT_REG32_SIZE	4
++#define NFT_REG32_COUNT	(NFT_REG32_15 - NFT_REG32_00 + 1)
+ 
+ /**
+  * enum nft_verdicts - nf_tables internal verdicts
+@@ -298,13 +299,27 @@ enum nft_set_policies {
+ };
+ 
+ /**
++ * enum nft_set_subkey_attributes - subkeys for multiple ranged fields
++ *
++ * @NFTA_SET_SUBKEY_LEN: length of single field, in bits (NLA_U32)
++ */
++enum nft_set_subkey_attributes {
++	NFTA_SET_SUBKEY_UNSPEC,
++	NFTA_SET_SUBKEY_LEN,
++	__NFTA_SET_SUBKEY_MAX
++};
++#define NFTA_SET_SUBKEY_MAX	(__NFTA_SET_SUBKEY_MAX - 1)
++
++/**
+  * enum nft_set_desc_attributes - set element description
+  *
+  * @NFTA_SET_DESC_SIZE: number of elements in set (NLA_U32)
++ * @NFTA_SET_DESC_SUBKEYS: element subkeys in set (NLA_NESTED)
+  */
+ enum nft_set_desc_attributes {
+ 	NFTA_SET_DESC_UNSPEC,
+ 	NFTA_SET_DESC_SIZE,
++	NFTA_SET_DESC_SUBKEYS,
+ 	__NFTA_SET_DESC_MAX
+ };
+ #define NFTA_SET_DESC_MAX	(__NFTA_SET_DESC_MAX - 1)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index b5051f4dbb26..1de97ec8d73d 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3357,6 +3357,7 @@ static const struct nla_policy nft_set_policy[NFTA_SET_MAX + 1] = {
+ 
+ static const struct nla_policy nft_set_desc_policy[NFTA_SET_DESC_MAX + 1] = {
+ 	[NFTA_SET_DESC_SIZE]		= { .type = NLA_U32 },
++	[NFTA_SET_DESC_SUBKEYS]		= { .type = NLA_NESTED },
+ };
+ 
+ static int nft_ctx_init_from_setattr(struct nft_ctx *ctx, struct net *net,
+@@ -3763,6 +3764,51 @@ static int nf_tables_getset(struct net *net, struct sock *nlsk,
+ 	return err;
+ }
+ 
++static const struct nla_policy nft_subkey_policy[NFTA_SET_SUBKEY_MAX + 1] = {
++	[NFTA_SET_SUBKEY_LEN]	= { .type = NLA_U32 },
++};
++
++static int nft_set_desc_subkey_parse(const struct nlattr *attr,
++				     struct nft_set_desc *desc)
++{
++	struct nlattr *tb[NFTA_SET_SUBKEY_MAX + 1];
++	int err;
++
++	err = nla_parse_nested_deprecated(tb, NFTA_SET_SUBKEY_MAX, attr,
++					  nft_subkey_policy, NULL);
++	if (err < 0)
++		return err;
++
++	if (!tb[NFTA_SET_SUBKEY_LEN])
++		return -EINVAL;
++
++	desc->subkey_len[desc->num_subkeys++] =
++		ntohl(nla_get_be32(tb[NFTA_SET_SUBKEY_LEN]));
++
++	return 0;
++}
++
++static int nft_set_desc_subkeys(struct nft_set_desc *desc,
++				const struct nlattr *nla)
++{
++	struct nlattr *attr;
++	int rem, err;
++
++	nla_for_each_nested(attr, nla, rem) {
++		if (nla_type(attr) != NFTA_LIST_ELEM)
++			return -EINVAL;
++
++		if (desc->num_subkeys >= NFT_REG32_COUNT)
++			return -E2BIG;
++
++		err = nft_set_desc_subkey_parse(attr, desc);
++		if (err < 0)
++			return err;
++	}
++
++	return 0;
++}
++
+ static int nf_tables_set_desc_parse(struct nft_set_desc *desc,
+ 				    const struct nlattr *nla)
+ {
+@@ -3776,8 +3822,10 @@ static int nf_tables_set_desc_parse(struct nft_set_desc *desc,
+ 
+ 	if (da[NFTA_SET_DESC_SIZE] != NULL)
+ 		desc->size = ntohl(nla_get_be32(da[NFTA_SET_DESC_SIZE]));
++	if (da[NFTA_SET_DESC_SUBKEYS])
++		err = nft_set_desc_subkeys(desc, da[NFTA_SET_DESC_SUBKEYS]);
+ 
+-	return 0;
++	return err;
+ }
+ 
+ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+
+--h6lnwf35f73iw7eb--
