@@ -2,96 +2,192 @@ Return-Path: <SRS0=BgG3=ZQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC211C43215
-	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Nov 2019 19:30:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 773B3C432C0
+	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Nov 2019 21:07:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B617B20748
-	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Nov 2019 19:30:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3DBB020748
+	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Nov 2019 21:07:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726855AbfKXTaq (ORCPT
+        id S1726944AbfKXVHa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 24 Nov 2019 14:30:46 -0500
-Received: from zeniv.linux.org.uk ([195.92.253.2]:51292 "EHLO
-        ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726803AbfKXTaq (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 24 Nov 2019 14:30:46 -0500
-Received: from viro by ZenIV.linux.org.uk with local (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1iYxad-0005Jj-31; Sun, 24 Nov 2019 19:30:35 +0000
-Date:   Sun, 24 Nov 2019 19:30:35 +0000
-From:   Al Viro <viro@zeniv.linux.org.uk>
-To:     syzbot <syzbot+eaeb616d85c9a0afec7d@syzkaller.appspotmail.com>
-Cc:     cmetcalf@ezchip.com, coreteam@netfilter.org, davem@davemloft.net,
-        dvyukov@google.com, gang.chen.5i5j@gmail.com, kaber@trash.net,
-        kadlec@blackhole.kfki.hu, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        syzkaller-bugs@googlegroups.com
-Subject: Re: KASAN: use-after-free Read in blkdev_get
-Message-ID: <20191124193035.GA4203@ZenIV.linux.org.uk>
-References: <000000000000e59aab056e8873ae@google.com>
- <0000000000000beff305981c5ac6@google.com>
+        Sun, 24 Nov 2019 16:07:30 -0500
+Received: from mga04.intel.com ([192.55.52.120]:42679 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726855AbfKXVHa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 24 Nov 2019 16:07:30 -0500
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 24 Nov 2019 13:07:29 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.69,239,1571727600"; 
+   d="scan'208";a="216790846"
+Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
+  by fmsmga001.fm.intel.com with ESMTP; 24 Nov 2019 13:07:28 -0800
+Received: from kbuild by lkp-server01 with local (Exim 4.89)
+        (envelope-from <lkp@intel.com>)
+        id 1iYz6N-0000Cr-SW; Mon, 25 Nov 2019 05:07:27 +0800
+Date:   Mon, 25 Nov 2019 05:07:07 +0800
+From:   kbuild test robot <lkp@intel.com>
+To:     wenxu@ucloud.cn
+Cc:     kbuild-all@lists.01.org, pablo@netfilter.org,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next v2 3/4] netfilter: nf_flow_table_offload: add
+ tunnel match offload support
+Message-ID: <201911250455.bB2bCI2E%lkp@intel.com>
+References: <1574330056-5377-4-git-send-email-wenxu@ucloud.cn>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <0000000000000beff305981c5ac6@google.com>
-User-Agent: Mutt/1.12.1 (2019-06-15)
+In-Reply-To: <1574330056-5377-4-git-send-email-wenxu@ucloud.cn>
+X-Patchwork-Hint: ignore
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Nov 24, 2019 at 11:07:00AM -0800, syzbot wrote:
-> syzbot has bisected this bug to:
-> 
-> commit 77ef8f5177599efd0cedeb52c1950c1bd73fa5e3
-> Author: Chris Metcalf <cmetcalf@ezchip.com>
-> Date:   Mon Jan 25 20:05:34 2016 +0000
-> 
->     tile kgdb: fix bug in copy to gdb regs, and optimize memset
-> 
-> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1131bc0ee00000
-> start commit:   f5b7769e Revert "debugfs: inode: debugfs_create_dir uses m..
-> git tree:       upstream
-> final crash:    https://syzkaller.appspot.com/x/report.txt?x=1331bc0ee00000
-> console output: https://syzkaller.appspot.com/x/log.txt?x=1531bc0ee00000
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=709f8187af941e84
-> dashboard link: https://syzkaller.appspot.com/bug?extid=eaeb616d85c9a0afec7d
-> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=177f898f800000
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=147eb85f800000
-> 
-> Reported-by: syzbot+eaeb616d85c9a0afec7d@syzkaller.appspotmail.com
-> Fixes: 77ef8f517759 ("tile kgdb: fix bug in copy to gdb regs, and optimize
-> memset")
-> 
-> For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+Hi,
 
-Seriously?  How can the commit in question (limited to arch/tile/kernel/kgdb.c)
-possibly affect a bug that manages to produce a crash report with
-RSP: 0018:ffffffff82e03eb8  EFLAGS: 00000282                                    
-RAX: 0000000000000000 RBX: ffffffff82e00000 RCX: 0000000000000000               
-RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffffff81088779               
-RBP: ffffffff82e03eb8 R08: 0000000000000000 R09: 0000000000000001               
-R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000               
-R13: 0000000000000000 R14: 0000000000000000 R15: ffffffff82e00000               
-FS:  0000000000000000(0000) GS:ffff88021fc00000(0000) knlGS:0000000000000000    
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033                               
-CR2: 000000c420447ff8 CR3: 0000000213184000 CR4: 00000000001406f0               
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000               
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400               
-in it?  Unless something very odd has happened to tile, this crash has
-been observed on 64bit x86; the names of registers alone are enough
-to be certain of that.
+Thank you for the patch! Perhaps something to improve:
 
-And the binaries produced by an x86 build should not be affected by any
-changes in arch/tile; not unless something is very wrong with the build
-system.  It's not even that this commit has fixed an earlier bug that
-used to mask the one manifested here - it really should have had zero
-impact on x86 builds, period.
+[auto build test WARNING on nf-next/master]
+[also build test WARNING on next-20191122]
+[cannot apply to v5.4-rc8]
+[if your patch is applied to the wrong git tree, please drop us a note to help
+improve the system. BTW, we also suggest to use '--base' option to specify the
+base tree in git format-patch, please see https://stackoverflow.com/a/37406982]
 
-So I'm sorry, but I'm calling bullshit.  Something's quite wrong with
-the bot - either its build system or the bisection process.
+url:    https://github.com/0day-ci/linux/commits/wenxu-ucloud-cn/netfilter-nf_flow_table_offload-support-tunnel-offload/20191123-192226
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+reproduce:
+        # apt-get install sparse
+        # sparse version: v0.6.1-36-g9305d48-dirty
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__'
+
+If you fix the issue, kindly add following tag
+Reported-by: kbuild test robot <lkp@intel.com>
+
+
+sparse warnings: (new ones prefixed by >>)
+
+>> net/netfilter/nf_flow_table_offload.c:71:32: sparse: sparse: incorrect type in assignment (different base types) @@    expected restricted __be32 [usertype] keyid @@    got  [usertype] keyid @@
+>> net/netfilter/nf_flow_table_offload.c:71:32: sparse:    expected restricted __be32 [usertype] keyid
+   net/netfilter/nf_flow_table_offload.c:71:32: sparse:    got unsigned int
+   net/netfilter/nf_flow_table_offload.c:81:44: sparse: sparse: incorrect type in assignment (different base types) @@    expected restricted __be32 [usertype] src @@    got  [usertype] src @@
+   net/netfilter/nf_flow_table_offload.c:81:44: sparse:    expected restricted __be32 [usertype] src
+   net/netfilter/nf_flow_table_offload.c:81:44: sparse:    got unsigned int
+   net/netfilter/nf_flow_table_offload.c:83:44: sparse: sparse: incorrect type in assignment (different base types) @@    expected restricted __be32 [usertype] dst @@    got  [usertype] dst @@
+   net/netfilter/nf_flow_table_offload.c:83:44: sparse:    expected restricted __be32 [usertype] dst
+   net/netfilter/nf_flow_table_offload.c:83:44: sparse:    got unsigned int
+   net/netfilter/nf_flow_table_offload.c:130:32: sparse: sparse: incorrect type in assignment (different base types) @@    expected restricted __be32 [usertype] src @@    got  [usertype] src @@
+   net/netfilter/nf_flow_table_offload.c:130:32: sparse:    expected restricted __be32 [usertype] src
+   net/netfilter/nf_flow_table_offload.c:130:32: sparse:    got unsigned int
+   net/netfilter/nf_flow_table_offload.c:132:32: sparse: sparse: incorrect type in assignment (different base types) @@    expected restricted __be32 [usertype] dst @@    got  [usertype] dst @@
+   net/netfilter/nf_flow_table_offload.c:132:32: sparse:    expected restricted __be32 [usertype] dst
+   net/netfilter/nf_flow_table_offload.c:132:32: sparse:    got unsigned int
+   net/netfilter/nf_flow_table_offload.c:137:29: sparse: sparse: incorrect type in assignment (different base types) @@    expected restricted __be16 [usertype] n_proto @@    got e] n_proto @@
+   net/netfilter/nf_flow_table_offload.c:137:29: sparse:    expected restricted __be16 [usertype] n_proto
+   net/netfilter/nf_flow_table_offload.c:137:29: sparse:    got int
+   net/netfilter/nf_flow_table_offload.c:142:33: sparse: sparse: incorrect type in assignment (different base types) @@    expected restricted __be16 [usertype] flags @@    got _be16 [usertype] flags @@
+   net/netfilter/nf_flow_table_offload.c:142:33: sparse:    expected restricted __be16 [usertype] flags
+   net/netfilter/nf_flow_table_offload.c:142:33: sparse:    got restricted __be32
+   net/netfilter/nf_flow_table_offload.c:155:22: sparse: sparse: incorrect type in assignment (different base types) @@    expected restricted __be16 [usertype] src @@    got e] src @@
+   net/netfilter/nf_flow_table_offload.c:155:22: sparse:    expected restricted __be16 [usertype] src
+   net/netfilter/nf_flow_table_offload.c:155:22: sparse:    got int
+   net/netfilter/nf_flow_table_offload.c:157:22: sparse: sparse: incorrect type in assignment (different base types) @@    expected restricted __be16 [usertype] dst @@    got e] dst @@
+   net/netfilter/nf_flow_table_offload.c:157:22: sparse:    expected restricted __be16 [usertype] dst
+   net/netfilter/nf_flow_table_offload.c:157:22: sparse:    got int
+   net/netfilter/nf_flow_table_offload.c:253:20: sparse: sparse: incorrect type in initializer (different base types) @@    expected unsigned int [usertype] mask @@    got d int [usertype] mask @@
+   net/netfilter/nf_flow_table_offload.c:253:20: sparse:    expected unsigned int [usertype] mask
+   net/netfilter/nf_flow_table_offload.c:253:20: sparse:    got restricted __be32
+   net/netfilter/nf_flow_table_offload.c:280:20: sparse: sparse: incorrect type in initializer (different base types) @@    expected unsigned int [usertype] mask @@    got d int [usertype] mask @@
+   net/netfilter/nf_flow_table_offload.c:280:20: sparse:    expected unsigned int [usertype] mask
+   net/netfilter/nf_flow_table_offload.c:280:20: sparse:    got restricted __be32
+   net/netfilter/nf_flow_table_offload.c:321:20: sparse: sparse: incorrect type in initializer (different base types) @@    expected unsigned int [usertype] mask @@    got d int [usertype] mask @@
+   net/netfilter/nf_flow_table_offload.c:321:20: sparse:    expected unsigned int [usertype] mask
+   net/netfilter/nf_flow_table_offload.c:321:20: sparse:    got restricted __be32
+   net/netfilter/nf_flow_table_offload.c:346:20: sparse: sparse: incorrect type in initializer (different base types) @@    expected unsigned int [usertype] mask @@    got d int [usertype] mask @@
+   net/netfilter/nf_flow_table_offload.c:346:20: sparse:    expected unsigned int [usertype] mask
+   net/netfilter/nf_flow_table_offload.c:346:20: sparse:    got restricted __be32
+   net/netfilter/nf_flow_table_offload.c:391:20: sparse: sparse: incorrect type in initializer (different base types) @@    expected unsigned int [usertype] mask @@    got d int [usertype] mask @@
+   net/netfilter/nf_flow_table_offload.c:391:20: sparse:    expected unsigned int [usertype] mask
+   net/netfilter/nf_flow_table_offload.c:391:20: sparse:    got restricted __be32
+   net/netfilter/nf_flow_table_offload.c:418:20: sparse: sparse: incorrect type in initializer (different base types) @@    expected unsigned int [usertype] mask @@    got d int [usertype] mask @@
+   net/netfilter/nf_flow_table_offload.c:418:20: sparse:    expected unsigned int [usertype] mask
+   net/netfilter/nf_flow_table_offload.c:418:20: sparse:    got restricted __be32
+   net/netfilter/nf_flow_table_offload.c:632:24: sparse: sparse: incorrect type in initializer (different base types) @@    expected restricted __be16 [usertype] proto @@    got e] proto @@
+   net/netfilter/nf_flow_table_offload.c:632:24: sparse:    expected restricted __be16 [usertype] proto
+   net/netfilter/nf_flow_table_offload.c:632:24: sparse:    got int
+   net/netfilter/nf_flow_table_offload.c:659:24: sparse: sparse: incorrect type in initializer (different base types) @@    expected restricted __be16 [usertype] proto @@    got e] proto @@
+   net/netfilter/nf_flow_table_offload.c:659:24: sparse:    expected restricted __be16 [usertype] proto
+   net/netfilter/nf_flow_table_offload.c:659:24: sparse:    got int
+   net/netfilter/nf_flow_table_offload.c:716:24: sparse: sparse: incorrect type in initializer (different base types) @@    expected restricted __be16 [usertype] proto @@    got e] proto @@
+   net/netfilter/nf_flow_table_offload.c:716:24: sparse:    expected restricted __be16 [usertype] proto
+   net/netfilter/nf_flow_table_offload.c:716:24: sparse:    got int
+
+vim +71 net/netfilter/nf_flow_table_offload.c
+
+    53	
+    54	#define NF_FLOW_DISSECTOR(__match, __type, __field)	\
+    55		(__match)->dissector.offset[__type] =		\
+    56			offsetof(struct nf_flow_key, __field)
+    57	
+    58	static void nf_flow_rule_lwt_match(struct nf_flow_match *match,
+    59					   struct ip_tunnel_info *tun_info)
+    60	{
+    61		struct nf_flow_key *mask = &match->mask;
+    62		struct nf_flow_key *key = &match->key;
+    63		unsigned int enc_keys;
+    64	
+    65		if (!tun_info || !(tun_info->mode & IP_TUNNEL_INFO_TX))
+    66			return;
+    67	
+    68		NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_ENC_CONTROL, enc_control);
+    69		NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_ENC_KEYID, enc_key_id);
+    70		key->enc_key_id.keyid = tunnel_id_to_key32(tun_info->key.tun_id);
+  > 71		mask->enc_key_id.keyid = 0xffffffff;
+    72		enc_keys = BIT(FLOW_DISSECTOR_KEY_ENC_KEYID) |
+    73			   BIT(FLOW_DISSECTOR_KEY_ENC_CONTROL);
+    74	
+    75		if (ip_tunnel_info_af(tun_info) == AF_INET) {
+    76			NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_ENC_IPV4_ADDRS,
+    77					  enc_ipv4);
+    78			key->enc_ipv4.src = tun_info->key.u.ipv4.dst;
+    79			key->enc_ipv4.dst = tun_info->key.u.ipv4.src;
+    80			if (key->enc_ipv4.src)
+    81				mask->enc_ipv4.src = 0xffffffff;
+    82			if (key->enc_ipv4.dst)
+    83				mask->enc_ipv4.dst = 0xffffffff;
+    84			enc_keys |= BIT(FLOW_DISSECTOR_KEY_ENC_IPV4_ADDRS);
+    85			key->enc_control.addr_type = FLOW_DISSECTOR_KEY_IPV4_ADDRS;
+    86		} else {
+    87			memcpy(&key->enc_ipv6.src, &tun_info->key.u.ipv6.dst,
+    88			       sizeof(struct in6_addr));
+    89			memcpy(&key->enc_ipv6.dst, &tun_info->key.u.ipv6.src,
+    90			       sizeof(struct in6_addr));
+    91			if (memcmp(&key->enc_ipv6.src, &in6addr_any,
+    92				   sizeof(struct in6_addr)))
+    93				memset(&key->enc_ipv6.src, 0xff,
+    94				       sizeof(struct in6_addr));
+    95			if (memcmp(&key->enc_ipv6.dst, &in6addr_any,
+    96				   sizeof(struct in6_addr)))
+    97				memset(&key->enc_ipv6.dst, 0xff,
+    98				       sizeof(struct in6_addr));
+    99			enc_keys |= BIT(FLOW_DISSECTOR_KEY_ENC_IPV6_ADDRS);
+   100			key->enc_control.addr_type = FLOW_DISSECTOR_KEY_IPV6_ADDRS;
+   101		}
+   102	
+   103		match->dissector.used_keys |= enc_keys;
+   104	}
+   105	
+
+---
+0-DAY kernel test infrastructure                 Open Source Technology Center
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org Intel Corporation
