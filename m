@@ -2,70 +2,50 @@ Return-Path: <SRS0=BgG3=ZQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 445CEC432C0
-	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Nov 2019 02:33:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BFE0C432C0
+	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Nov 2019 14:45:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 196D420706
-	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Nov 2019 02:33:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 723B520748
+	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Nov 2019 14:45:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726784AbfKXCdY (ORCPT
+        id S1726907AbfKXOpv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 23 Nov 2019 21:33:24 -0500
-Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:46924 "EHLO
-        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726676AbfKXCdY (ORCPT
+        Sun, 24 Nov 2019 09:45:51 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:39226 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726798AbfKXOpv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 23 Nov 2019 21:33:24 -0500
-Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
-        by mail104.syd.optusnet.com.au (Postfix) with SMTP id BCA0C7E9126
-        for <netfilter-devel@vger.kernel.org>; Sun, 24 Nov 2019 13:33:11 +1100 (AEDT)
-Received: (qmail 18242 invoked by uid 501); 24 Nov 2019 02:33:10 -0000
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue] src: Fix test for IPv6 header
-Date:   Sun, 24 Nov 2019 13:33:10 +1100
-Message-Id: <20191124023310.18200-1-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.14.5
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.2 cv=G6BsK5s5 c=1 sm=1 tr=0
-        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
-        a=MeAgGD-zjQ4A:10 a=RSmzAf-M6YYA:10 a=PO7r1zJSAAAA:8
-        a=-9mr4hxqB4bSUj-R2EYA:9
+        Sun, 24 Nov 2019 09:45:51 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1iYt91-00083J-MF; Sun, 24 Nov 2019 15:45:47 +0100
+Date:   Sun, 24 Nov 2019 15:45:47 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Duncan Roe <duncan_roe@optusnet.com.au>
+Cc:     pablo@netfilter.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH libnetfilter_queue 1/1] src: Comment-out code not needed
+ since Linux 3.8 in examples/nf-queue.c
+Message-ID: <20191124144547.GB21689@breakpoint.cc>
+References: <20191123051657.18308-1-duncan_roe@optusnet.com.au>
+ <20191123051657.18308-2-duncan_roe@optusnet.com.au>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191123051657.18308-2-duncan_roe@optusnet.com.au>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Updated:
+Duncan Roe <duncan_roe@optusnet.com.au> wrote:
+> This makes it clear which lines are no longer required.
+> It also obviates the need to document NFQNL_CFG_CMD_PF_(UN)BIND.
 
- src/extra/ipv6.c: Only test the first 4 bits of the putative IPv6 header to be
-                   6, since all the other bits are up for grabs.
-                   (I have seen nonzero Flow Control on the local interface and
-                   RFC2474 & RFC3168 document Traffic Class use).
+Why not simply #if 0 this code?
 
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
----
- src/extra/ipv6.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/src/extra/ipv6.c b/src/extra/ipv6.c
-index af307d6..f685b3b 100644
---- a/src/extra/ipv6.c
-+++ b/src/extra/ipv6.c
-@@ -45,7 +45,7 @@ struct ip6_hdr *nfq_ip6_get_hdr(struct pkt_buff *pktb)
- 	ip6h = (struct ip6_hdr *)pktb->network_header;
- 
- 	/* Not IPv6 packet. */
--	if (ip6h->ip6_flow != 0x60)
-+	if ((*(uint8_t *)ip6h & 0xf0) != 0x60)
- 		return NULL;
- 
- 	return ip6h;
--- 
-2.14.5
-
+Or just delete it, v3.8 was released almost 7 years ago.
