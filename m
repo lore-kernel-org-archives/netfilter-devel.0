@@ -2,203 +2,102 @@ Return-Path: <SRS0=kuYc=ZR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4F72C432C3
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Nov 2019 12:20:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBF13C432C3
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Nov 2019 12:26:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8BC4020674
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Nov 2019 12:20:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C0C12082F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Nov 2019 12:26:37 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="WG8CbXjF"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727050AbfKYMU6 (ORCPT
+        id S1727141AbfKYM0h (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Nov 2019 07:20:58 -0500
-Received: from correo.us.es ([193.147.175.20]:41538 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725868AbfKYMU5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Nov 2019 07:20:57 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id F2CBCE043F
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Nov 2019 13:20:53 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2D073D190C
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Nov 2019 13:20:53 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 22BDE8E631; Mon, 25 Nov 2019 13:20:53 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DD82EA8271;
-        Mon, 25 Nov 2019 13:20:50 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 25 Nov 2019 13:20:50 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id AB39C42EF42C;
-        Mon, 25 Nov 2019 13:20:50 +0100 (CET)
-Date:   Mon, 25 Nov 2019 13:20:52 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Christian =?iso-8859-1?Q?G=F6ttsche?= <cgzones@googlemail.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nftables v2 1/2] src: add ability to set/get secmarks
- to/from connection
-Message-ID: <20191125122052.f6qtdu7i43skylcp@salvia>
-References: <20191123162240.14571-1-cgzones@googlemail.com>
- <20191125121012.semtalw5sgwm5uev@salvia>
+        Mon, 25 Nov 2019 07:26:37 -0500
+Received: from mail-eopbgr20056.outbound.protection.outlook.com ([40.107.2.56]:16670
+        "EHLO EUR02-VE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725868AbfKYM0g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 25 Nov 2019 07:26:36 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=FJ8uApGqjaPL5Ev3hbjZb0RPn1FAZ+ol0o2OfQwfztbhQwGuMujlPQI4Li/clAwMHHoUX/efsxmEVIcfhholKRI0NQ6GEzzNUKgPwaLetB3T+PMopH6fMSQaoWlNBB5AE1TwErKDDdfYh6azInUoaE+hOtWnU0r+2R5hdSy8Ok/f029RODQrSx/kLH+PYSd47rDlqpBfg4APw7CKy1c12WdNAbM3mjiATXMpcST04PwoLes4wcBRaGlYkyi0IfTfx3Ap3qy1H9xnszwtQD+eziCv/t2PH+vxfv74MuteBy8uDlCsUYTrVV+7XEgDZHgjXucEhy2UfeBSerrVpOyjBg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=bSCzd7eSjgXTWGleh72TRPFz3rDeYDS8QbfJWl4HUXY=;
+ b=I6/zP24Y1pjK9ijUFtbYhFau8ds8wviFiS06ZhlPeDgfZ/w2D40rmiBfKhusfs4OTX2pMgyYqaM9cCRPZZ2aUszddGG+FODwm4VELSRCBtHXwwN8ofFnJiUsnyFR46ZqWAFtzqOu+iwG0i4RKB/yykOaOqVz0nPvW/ZBF+1IN7+N7PFu2+W3csjaOafjbS4wMEK/GhU+U6hk1f8q+eVQPVaIKqL8BGszvZN1Dghkn+2bvY9FYyagByhENjNh8St+llYT92mcML0BIB5aItUHWNlVdQSeEemwZSDVKA8nQtdNyT5GyfuiBQPVPmxAcEiAd0lId57VkxolW5qcKmHGWA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=bSCzd7eSjgXTWGleh72TRPFz3rDeYDS8QbfJWl4HUXY=;
+ b=WG8CbXjFRNAhDEFEfNLGXLmbDnFMoVeTbxbCLMHDeTDhLY1ECV9RVHNNcCnn84UZg2y0TcM1bsUimRdCXde+oEbjHFH7x3qgmQnBAuV1rGhiJFXrXtbeXk7eYlu7Fv8d+MuFaP9DAfa0FVE/7n1yI2emONQ4od69rLjLYJsBOLU=
+Received: from AM4PR05MB3411.eurprd05.prod.outlook.com (10.171.190.30) by
+ AM4PR05MB3506.eurprd05.prod.outlook.com (10.171.186.26) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2474.19; Mon, 25 Nov 2019 12:26:32 +0000
+Received: from AM4PR05MB3411.eurprd05.prod.outlook.com
+ ([fe80::2cc0:1303:718d:2e9c]) by AM4PR05MB3411.eurprd05.prod.outlook.com
+ ([fe80::2cc0:1303:718d:2e9c%7]) with mapi id 15.20.2474.023; Mon, 25 Nov 2019
+ 12:26:32 +0000
+From:   Paul Blakey <paulb@mellanox.com>
+To:     "wenxu@ucloud.cn" <wenxu@ucloud.cn>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+CC:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: Re: [nf-next] netfilter: nf_flow_table_offload: Fix setup block as
+ TC_SETUP_FT cmd
+Thread-Topic: [nf-next] netfilter: nf_flow_table_offload: Fix setup block as
+ TC_SETUP_FT cmd
+Thread-Index: AQHVo4uRcJ89Xiy4cU6Zw7rA1V3e9A==
+Date:   Mon, 25 Nov 2019 12:26:32 +0000
+Message-ID: <655aafe1-7033-1033-39f5-f120a32193a1@mellanox.com>
+In-Reply-To: <1574224242-17972-1-git-send-email-wenxu@ucloud.cn>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-clientproxiedby: FR2P281CA0015.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:a::25) To AM4PR05MB3411.eurprd05.prod.outlook.com
+ (2603:10a6:205:b::30)
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=paulb@mellanox.com; 
+x-ms-exchange-messagesentrepresentingtype: 1
+x-originating-ip: [193.47.165.251]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-ht: Tenant
+x-ms-office365-filtering-correlation-id: a522c2df-df35-42ed-b667-08d771a2b41e
+x-ms-traffictypediagnostic: AM4PR05MB3506:
+x-microsoft-antispam-prvs: <AM4PR05MB3506E272C49B2149E5680BE6CF4A0@AM4PR05MB3506.eurprd05.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:1824;
+x-forefront-prvs: 0232B30BBC
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(346002)(366004)(39860400002)(396003)(136003)(376002)(199004)(189003)(186003)(81156014)(31696002)(52116002)(8676002)(6512007)(81166006)(6506007)(386003)(2616005)(14454004)(102836004)(305945005)(26005)(11346002)(31686004)(8936002)(3846002)(5660300002)(19618925003)(478600001)(6246003)(2501003)(25786009)(86362001)(4326008)(4270600006)(7736002)(66556008)(229853002)(66446008)(6116002)(6436002)(110136005)(316002)(66476007)(6486002)(64756008)(555874004)(66066001)(36756003)(66946007)(558084003)(2906002)(99286004)(71200400001)(71190400001)(256004);DIR:OUT;SFP:1101;SCL:1;SRVR:AM4PR05MB3506;H:AM4PR05MB3411.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
+received-spf: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: 2qjk8w7rUh0WSMu7uYrojEei/j+SuvbWWqxSnIGDACGUhx4IsmMCX2aP+7OiwPRL5Yvzq7PcbmnDBHxwLjtlpdtyoghKit3X2uoHDEBj0i3yv9USnCi26iKHoWfK1+dpga9maA10dPPlnCTIVxAV+teAeQsQUA9d6PEdSIZPdkLIZLZbXUmb3+ujbqs26DFVLPIAZoMrD5+Oe4Y+pT2yfCxFjnkJKQiwhfSXVdb6sDTimBEXCRIGPIJ2c933daAN4jd8G5o1fvHYqQ4ihfbbm/y/EoIUx3RV8rxmJu5CQsEzI964PrK93roCxKsKTYpCnyM5TrPSY7jdUnDfmwh9woMjdryHI8r1iwqnSS4MevtNog2vWMeF0BkfYlLnYkTUGAC5pIV+L1iVpKw8G0EQ9XWAxVqMMduMs9+xQrwOwjQzWCANN7QW9KiORMmy8B9J
+x-ms-exchange-transport-forked: True
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <696273F89A290E46907E7FF15D4345B7@eurprd05.prod.outlook.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20191125121012.semtalw5sgwm5uev@salvia>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: a522c2df-df35-42ed-b667-08d771a2b41e
+X-MS-Exchange-CrossTenant-originalarrivaltime: 25 Nov 2019 12:26:32.3362
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: W0WWvFa/bP3zQ7f874xj/hWVdgf9VBmAxOLNsdiXyKYRSXMIjuIZ19t0mQKLM7zxjqMvZLBICOwpPvM5nA1zFA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM4PR05MB3506
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Nov 25, 2019 at 01:10:12PM +0100, Pablo Neira Ayuso wrote:
-> Hi Christian,
-> 
-> On Sat, Nov 23, 2019 at 05:22:39PM +0100, Christian Göttsche wrote:
-> [...]
-> > v2: - incorporate changes suggested by Pablo Neira Ayuso
-> >     - invalidate setting ct secmark to a constant value, like:
-> >         ct secmark set 12
-> >       Note:
-> >       statements setting the meta secmark, like
-> >         meta secmark set 12
-> >       must accept constant values, cause the secmark object identifier
-> >       is a string
-> >         meta secmark set "icmp_client"
-> 
-> This is represented as a object reference statement from the parser.
-> 
-> It should be safe to do the same check from stmt_evaluate_meta() that
-> this patch does for stmt_evaluate_ct().
-
-Oh, now I understand what you describe, your patch looks good indeed.
-
-> >       12 is probably not a used secmark object identifier, so it will
-> >       fail:
-> >         nft add rule inet filter input meta secmark set 12
-> >         Error: Could not process rule: No such file or directory
-> >         add rule inet filter input meta secmark set 12
-> >         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> >  src/ct.c           |  2 ++
-> >  src/evaluate.c     | 24 ++++++++++++++++++++++--
-> >  src/meta.c         |  2 ++
-> >  src/parser_bison.y | 14 +++++++++++---
-> >  4 files changed, 37 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/src/ct.c b/src/ct.c
-> > index ed458e6b..9e6a8351 100644
-> > --- a/src/ct.c
-> > +++ b/src/ct.c
-> > @@ -299,6 +299,8 @@ const struct ct_template ct_templates[__NFT_CT_MAX] = {
-> >  					      BYTEORDER_BIG_ENDIAN, 128),
-> >  	[NFT_CT_DST_IP6]	= CT_TEMPLATE("ip6 daddr", &ip6addr_type,
-> >  					      BYTEORDER_BIG_ENDIAN, 128),
-> > +	[NFT_CT_SECMARK]	= CT_TEMPLATE("secmark", &integer_type,
-> > +					      BYTEORDER_HOST_ENDIAN, 32),
-> >  };
-> >  
-> >  static void ct_print(enum nft_ct_keys key, int8_t dir, uint8_t nfproto,
-> > diff --git a/src/evaluate.c b/src/evaluate.c
-> > index e54eaf1a..a865902c 100644
-> > --- a/src/evaluate.c
-> > +++ b/src/evaluate.c
-> > @@ -1784,6 +1784,18 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
-> >  					 left->dtype->desc,
-> >  					 right->dtype->desc);
-> >  
-> > +	/*
-> > +	 * Statements like 'ct secmark 12' are parsed as relational,
-> > +	 * disallow constant value on the right hand side.
-> > +	 */
-> > +	if (((left->etype == EXPR_META &&
-> > +	      left->meta.key == NFT_META_SECMARK) ||
-> > +	     (left->etype == EXPR_CT &&
-> > +	      left->ct.key == NFT_CT_SECMARK)) &&
-> > +	    right->flags & EXPR_F_CONSTANT)
-> > +		return expr_binary_error(ctx->msgs, right, left,
-> > +					 "Cannot be used with right hand side constant value");
-> > +
-> >  	switch (rel->op) {
-> >  	case OP_EQ:
-> >  	case OP_IMPLICIT:
-> > @@ -2319,11 +2331,19 @@ static int stmt_evaluate_meta(struct eval_ctx *ctx, struct stmt *stmt)
-> >  
-> >  static int stmt_evaluate_ct(struct eval_ctx *ctx, struct stmt *stmt)
-> >  {
-> > -	return stmt_evaluate_arg(ctx, stmt,
-> > +	if (stmt_evaluate_arg(ctx, stmt,
-> >  				 stmt->ct.tmpl->dtype,
-> >  				 stmt->ct.tmpl->len,
-> >  				 stmt->ct.tmpl->byteorder,
-> > -				 &stmt->ct.expr);
-> > +				 &stmt->ct.expr) < 0)
-> > +		return -1;
-> > +
-> > +	if (stmt->ct.key == NFT_CT_SECMARK &&
-> > +	    expr_is_constant(stmt->ct.expr))
-> > +		return stmt_error(ctx, stmt,
-> > +				  "ct secmark must not be set to constant value");
-> > +
-> > +	return 0;
-> >  }
-> >  
-> >  static int reject_payload_gen_dependency_tcp(struct eval_ctx *ctx,
-> > diff --git a/src/meta.c b/src/meta.c
-> > index 69a897a9..796d8e94 100644
-> > --- a/src/meta.c
-> > +++ b/src/meta.c
-> > @@ -698,6 +698,8 @@ const struct meta_template meta_templates[] = {
-> >  	[NFT_META_TIME_HOUR]	= META_TEMPLATE("hour", &hour_type,
-> >  						4 * BITS_PER_BYTE,
-> >  						BYTEORDER_HOST_ENDIAN),
-> > +	[NFT_META_SECMARK]	= META_TEMPLATE("secmark", &integer_type,
-> > +						32, BYTEORDER_HOST_ENDIAN),
-> >  };
-> >  
-> >  static bool meta_key_is_unqualified(enum nft_meta_keys key)
-> > diff --git a/src/parser_bison.y b/src/parser_bison.y
-> > index 631b7d68..707f4671 100644
-> > --- a/src/parser_bison.y
-> > +++ b/src/parser_bison.y
-> > @@ -4190,9 +4190,16 @@ meta_stmt		:	META	meta_key	SET	stmt_expr
-> >  			{
-> >  				switch ($2) {
-> >  				case NFT_META_SECMARK:
-> > -					$$ = objref_stmt_alloc(&@$);
-> > -					$$->objref.type = NFT_OBJECT_SECMARK;
-> > -					$$->objref.expr = $4;
-> > +					switch ($4->etype) {
-> > +					case EXPR_CT:
-> > +						$$ = meta_stmt_alloc(&@$, $2, $4);
-> > +						break;
-> > +					default:
-> > +						$$ = objref_stmt_alloc(&@$);
-> > +						$$->objref.type = NFT_OBJECT_SECMARK;
-> > +						$$->objref.expr = $4;
-> > +						break;
-> > +					}
-> >  					break;
-> >  				default:
-> >  					$$ = meta_stmt_alloc(&@$, $2, $4);
-> > @@ -4388,6 +4395,7 @@ ct_key			:	L3PROTOCOL	{ $$ = NFT_CT_L3PROTOCOL; }
-> >  			|	PROTO_DST	{ $$ = NFT_CT_PROTO_DST; }
-> >  			|	LABEL		{ $$ = NFT_CT_LABELS; }
-> >  			|	EVENT		{ $$ = NFT_CT_EVENTMASK; }
-> > +			|	SECMARK		{ $$ = NFT_CT_SECMARK; }
-> >  			|	ct_key_dir_optional
-> >  			;
-> >  
-> > -- 
-> > 2.24.0
-> > 
+TG9va3MgZ29vZCB0byBtZS4NCg0K
