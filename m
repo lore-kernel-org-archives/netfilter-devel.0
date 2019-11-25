@@ -2,90 +2,92 @@ Return-Path: <SRS0=kuYc=ZR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F799C432C0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Nov 2019 20:54:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36B26C432C0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Nov 2019 21:11:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C84A420678
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Nov 2019 20:54:52 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="RXci0Q+i"
+	by mail.kernel.org (Postfix) with ESMTP id 056F92071E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Nov 2019 21:11:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725924AbfKYUyw (ORCPT
+        id S1725916AbfKYVLE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Nov 2019 15:54:52 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:44678 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725882AbfKYUyw (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Nov 2019 15:54:52 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
-        :Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=BXLh07fLSAL4DQIRTRG8rvgb1t07U15jEF6btZlvGiM=; b=RXci0Q+ijZ4rp7HKU1AdF1d0au
-        zpMISNhR0CjHTUpX0NDr7IFzlGXo/2oEbea66Nmw9C661FSui8rXudEs4UI0WDYP4MY6GEgJF1nT2
-        z5RY+6yJm5PhgvHd9HXNv4GG0d6PXNXn0IY1cFFFcGb17kJdPrsEgaxBa1j6hEbXIMfhdui+0z5hH
-        bswfUu+RHCE4E+wOydwPUqjyWuk6DTqSwn4mXk14zeTQXVPurwwMNt2m69GZBOp+fFZh8RSJvefzM
-        gGADrbrPGqjh63h6kV8lRx9TYvCHvC4+eYQ7cTyGyBvyAInrz902LE7redxvLTYV+VQHzklJbIzJm
-        P353wSGA==;
-Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
-        by kadath.azazel.net with esmtp (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1iZLNj-00043I-3o; Mon, 25 Nov 2019 20:54:51 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft] doc: fix inconsistency in set statement documentation.
-Date:   Mon, 25 Nov 2019 20:54:50 +0000
-Message-Id: <20191125205450.240041-1-jeremy@azazel.net>
-X-Mailer: git-send-email 2.24.0
+        Mon, 25 Nov 2019 16:11:04 -0500
+Received: from correo.us.es ([193.147.175.20]:41160 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725882AbfKYVLE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 25 Nov 2019 16:11:04 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id D2FB4DA854
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Nov 2019 22:11:00 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C34F2DA8E8
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Nov 2019 22:11:00 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id B8EACDA7B6; Mon, 25 Nov 2019 22:11:00 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 57923B7FFE;
+        Mon, 25 Nov 2019 22:10:58 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 25 Nov 2019 22:10:58 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 318A641E4800;
+        Mon, 25 Nov 2019 22:10:58 +0100 (CET)
+Date:   Mon, 25 Nov 2019 22:10:59 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_queue 1/1] src: Comment-out code not needed
+ since Linux 3.8 in examples/nf-queue.c
+Message-ID: <20191125211059.b2k7e52cgllyk53x@salvia>
+References: <20191123051657.18308-1-duncan_roe@optusnet.com.au>
+ <20191123051657.18308-2-duncan_roe@optusnet.com.au>
+ <20191124144547.GB21689@breakpoint.cc>
+ <20191124235240.GA19638@dimstar.local.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191124235240.GA19638@dimstar.local.net>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The description of the set statement asserts that the set must have been
-created with the "dynamic" flag.  However, this is not in fact the case,
-and the assertion is contradicted by the following example, in which the
-set is created with just the "timeout" flag (which suffices to ensure
-that the kernel will create a set which can be updated).  Remove the
-assertion.
+On Mon, Nov 25, 2019 at 10:52:40AM +1100, Duncan Roe wrote:
+> Hi Floerian,
+> 
+> On Sun, Nov 24, 2019 at 03:45:47PM +0100, Florian Westphal wrote:
+> > Duncan Roe <duncan_roe@optusnet.com.au> wrote:
+> > > This makes it clear which lines are no longer required.
+> > > It also obviates the need to document NFQNL_CFG_CMD_PF_(UN)BIND.
+> >
+> > Why not simply #if 0 this code?
+> 
+> Simple reason: I think it's important to have an indicator on each commented-out
+> line that it is,in fact, commented-out.
+> >
+> > Or just delete it, v3.8 was released almost 7 years ago.
+> 
+> I could do that. But, I'm uneasy about it. There are systems around with very
+> old Linuxes - in May last year there was that Tomato Firmware non-issue and the
+> embedded environment was at 2.6!
+> 
+> Your call (or Pablo's) - I'm happy either way.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- doc/statements.txt | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+I think it's fine to remove it.
 
-diff --git a/doc/statements.txt b/doc/statements.txt
-index e17068a8a04b..847656ac7601 100644
---- a/doc/statements.txt
-+++ b/doc/statements.txt
-@@ -669,10 +669,9 @@ SET STATEMENT
- ~~~~~~~~~~~~~
- The set statement is used to dynamically add or update elements in a set from
- the packet path. The set setname must already exist in the given table and must
--have been created with the dynamic flag. Furthermore, these sets must specify
--both a maximum set size (to prevent memory exhaustion) and a timeout (so that
--number of entries in set will not grow indefinitely). The set statement can be
--used to e.g. create dynamic blacklists.
-+specify both a maximum set size (to prevent memory exhaustion) and a timeout (so
-+that number of entries in set will not grow indefinitely). The set statement can
-+be used to e.g. create dynamic blacklists.
- 
- [verse]
- {*add* | *update*} *@*'setname' *{* 'expression' [*timeout* 'timeout'] [*comment* 'string'] *}*
--- 
-2.24.0
+There will be a commit message describing this is only required by
+very old kernel, which should be good enough for people with exotic
+environments to catch up I would expect.
 
+Thanks.
