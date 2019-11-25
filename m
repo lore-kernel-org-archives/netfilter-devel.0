@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBF13C432C3
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Nov 2019 12:26:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3DB1C432C0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Nov 2019 12:28:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7C0C12082F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Nov 2019 12:26:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C803A2082F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Nov 2019 12:28:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="WG8CbXjF"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="q75ClJac"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727141AbfKYM0h (ORCPT
+        id S1727401AbfKYM2f (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Nov 2019 07:26:37 -0500
-Received: from mail-eopbgr20056.outbound.protection.outlook.com ([40.107.2.56]:16670
-        "EHLO EUR02-VE1-obe.outbound.protection.outlook.com"
+        Mon, 25 Nov 2019 07:28:35 -0500
+Received: from mail-eopbgr150053.outbound.protection.outlook.com ([40.107.15.53]:52074
+        "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725868AbfKYM0g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Nov 2019 07:26:36 -0500
+        id S1727079AbfKYM2f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 25 Nov 2019 07:28:35 -0500
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=FJ8uApGqjaPL5Ev3hbjZb0RPn1FAZ+ol0o2OfQwfztbhQwGuMujlPQI4Li/clAwMHHoUX/efsxmEVIcfhholKRI0NQ6GEzzNUKgPwaLetB3T+PMopH6fMSQaoWlNBB5AE1TwErKDDdfYh6azInUoaE+hOtWnU0r+2R5hdSy8Ok/f029RODQrSx/kLH+PYSd47rDlqpBfg4APw7CKy1c12WdNAbM3mjiATXMpcST04PwoLes4wcBRaGlYkyi0IfTfx3Ap3qy1H9xnszwtQD+eziCv/t2PH+vxfv74MuteBy8uDlCsUYTrVV+7XEgDZHgjXucEhy2UfeBSerrVpOyjBg==
+ b=cnhvrLTmIRJyJkjmkhcbrwPHjqaqs0hN0DoeCrcDcLWFTAbFeasWPYCY8VB6ZwpvIuAFBHSjDHVBC1LE5rSdCro+ObDIz2A+VObUbBkpfIqIZPex5hbu9KOjQpgNKjsINUniiM8o8Ngu9ZZTQCIDYNSHXiddf4tiHtJk273/BYOxSyl6XmoO3uC3PzuwnADcTRFFmV3SD3WNqO+u9RwsaB9dDzLIe135ePlLrcwkQzBXMc01bXtbPm/AUf4yLKMenk5csQ/cKWFBwPSwxCi5Vcuu32NyHQx64jGulJ1P2wIlG/K/BFVy3cqsc519ba5zV6X1Uj7BbYRXYlfBdlJxWg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
  bh=bSCzd7eSjgXTWGleh72TRPFz3rDeYDS8QbfJWl4HUXY=;
- b=I6/zP24Y1pjK9ijUFtbYhFau8ds8wviFiS06ZhlPeDgfZ/w2D40rmiBfKhusfs4OTX2pMgyYqaM9cCRPZZ2aUszddGG+FODwm4VELSRCBtHXwwN8ofFnJiUsnyFR46ZqWAFtzqOu+iwG0i4RKB/yykOaOqVz0nPvW/ZBF+1IN7+N7PFu2+W3csjaOafjbS4wMEK/GhU+U6hk1f8q+eVQPVaIKqL8BGszvZN1Dghkn+2bvY9FYyagByhENjNh8St+llYT92mcML0BIB5aItUHWNlVdQSeEemwZSDVKA8nQtdNyT5GyfuiBQPVPmxAcEiAd0lId57VkxolW5qcKmHGWA==
+ b=LyjDZ8mqQ6XetnDUz/X3LoH5W7dSUmwkiHRY4U6zBhyAIydyUCkqnQ6TtGO0WXnfD/5QHupL3xzascGiTxtPSRamXLVUqBCiyhga4xEcVuO9bSKh+nKSKPVz/Ml7Xc7UQK2nAJMMRshP/9HC1qpH3tsAQeKOeiHcbup2kQoTBQDZ6en1bGfezpxTh7paeaFQKoGT9vcX9BenpyuCTyAJ/URGQWMeIpht0YTtIdz1oKR99JsgBJb5m/ojxQ57eqZvaci/KQqZD86g2IWvzc/wgUnJJiTHdk+oWvaGIBwZ4SWD6PHDs4LQLwNwp8YPCjuLoEPBFFm8NB9/LnXtquc1/A==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
  dkim=pass header.d=mellanox.com; arc=none
@@ -36,65 +36,64 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
  bh=bSCzd7eSjgXTWGleh72TRPFz3rDeYDS8QbfJWl4HUXY=;
- b=WG8CbXjFRNAhDEFEfNLGXLmbDnFMoVeTbxbCLMHDeTDhLY1ECV9RVHNNcCnn84UZg2y0TcM1bsUimRdCXde+oEbjHFH7x3qgmQnBAuV1rGhiJFXrXtbeXk7eYlu7Fv8d+MuFaP9DAfa0FVE/7n1yI2emONQ4od69rLjLYJsBOLU=
+ b=q75ClJacQG6TZ4LJSzo0nTp80/H8/AyocU6Ne8N1ntQSk4gVwTa36kDK5Mc0J8l1N5d5Wl7x+o5G9xbu09UEq2ghxyrkvEd4Z0pP5jf9kh/ek523lZ0HKwwmrWQVYFHmNDKDVLR9dm9E/LFGBzR7VQF2pbo7haDuZ93MXg293H4=
 Received: from AM4PR05MB3411.eurprd05.prod.outlook.com (10.171.190.30) by
- AM4PR05MB3506.eurprd05.prod.outlook.com (10.171.186.26) with Microsoft SMTP
+ AM4PR05MB3362.eurprd05.prod.outlook.com (10.171.187.23) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2474.19; Mon, 25 Nov 2019 12:26:32 +0000
+ 15.20.2474.17; Mon, 25 Nov 2019 12:28:31 +0000
 Received: from AM4PR05MB3411.eurprd05.prod.outlook.com
  ([fe80::2cc0:1303:718d:2e9c]) by AM4PR05MB3411.eurprd05.prod.outlook.com
  ([fe80::2cc0:1303:718d:2e9c%7]) with mapi id 15.20.2474.023; Mon, 25 Nov 2019
- 12:26:32 +0000
+ 12:28:31 +0000
 From:   Paul Blakey <paulb@mellanox.com>
 To:     "wenxu@ucloud.cn" <wenxu@ucloud.cn>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
+        "pablo@netfilter.org" <pablo@netfilter.org>
 CC:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Re: [nf-next] netfilter: nf_flow_table_offload: Fix setup block as
- TC_SETUP_FT cmd
-Thread-Topic: [nf-next] netfilter: nf_flow_table_offload: Fix setup block as
- TC_SETUP_FT cmd
-Thread-Index: AQHVo4uRcJ89Xiy4cU6Zw7rA1V3e9A==
-Date:   Mon, 25 Nov 2019 12:26:32 +0000
-Message-ID: <655aafe1-7033-1033-39f5-f120a32193a1@mellanox.com>
-In-Reply-To: <1574224242-17972-1-git-send-email-wenxu@ucloud.cn>
+Subject: Re: [nf-next] netfilter: nf_flow_table_offload: Fix block_cb
+ tc_setup_type as TC_SETUP_CLSFLOWER
+Thread-Topic: [nf-next] netfilter: nf_flow_table_offload: Fix block_cb
+ tc_setup_type as TC_SETUP_CLSFLOWER
+Thread-Index: AQHVo4vY9m8d7Ke4TUCRK4NQuV0k3Q==
+Date:   Mon, 25 Nov 2019 12:28:31 +0000
+Message-ID: <bdb9a102-eb2f-d6e8-d6f5-6a4bb0dafbd0@mellanox.com>
+In-Reply-To: <1574226742-18328-1-git-send-email-wenxu@ucloud.cn>
 Accept-Language: en-US
 Content-Language: en-US
 X-MS-Has-Attach: 
 X-MS-TNEF-Correlator: 
-x-clientproxiedby: FR2P281CA0015.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:a::25) To AM4PR05MB3411.eurprd05.prod.outlook.com
- (2603:10a6:205:b::30)
+x-clientproxiedby: FRYP281CA0005.DEUP281.PROD.OUTLOOK.COM (2603:10a6:d10::15)
+ To AM4PR05MB3411.eurprd05.prod.outlook.com (2603:10a6:205:b::30)
 authentication-results: spf=none (sender IP is )
  smtp.mailfrom=paulb@mellanox.com; 
 x-ms-exchange-messagesentrepresentingtype: 1
 x-originating-ip: [193.47.165.251]
 x-ms-publictraffictype: Email
 x-ms-office365-filtering-ht: Tenant
-x-ms-office365-filtering-correlation-id: a522c2df-df35-42ed-b667-08d771a2b41e
-x-ms-traffictypediagnostic: AM4PR05MB3506:
-x-microsoft-antispam-prvs: <AM4PR05MB3506E272C49B2149E5680BE6CF4A0@AM4PR05MB3506.eurprd05.prod.outlook.com>
+x-ms-office365-filtering-correlation-id: 046c3ef3-973c-4e94-d2f4-08d771a2fb18
+x-ms-traffictypediagnostic: AM4PR05MB3362:
+x-microsoft-antispam-prvs: <AM4PR05MB33627EA42170F050943E2330CF4A0@AM4PR05MB3362.eurprd05.prod.outlook.com>
 x-ms-oob-tlc-oobclassifiers: OLM:1824;
 x-forefront-prvs: 0232B30BBC
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(346002)(366004)(39860400002)(396003)(136003)(376002)(199004)(189003)(186003)(81156014)(31696002)(52116002)(8676002)(6512007)(81166006)(6506007)(386003)(2616005)(14454004)(102836004)(305945005)(26005)(11346002)(31686004)(8936002)(3846002)(5660300002)(19618925003)(478600001)(6246003)(2501003)(25786009)(86362001)(4326008)(4270600006)(7736002)(66556008)(229853002)(66446008)(6116002)(6436002)(110136005)(316002)(66476007)(6486002)(64756008)(555874004)(66066001)(36756003)(66946007)(558084003)(2906002)(99286004)(71200400001)(71190400001)(256004);DIR:OUT;SFP:1101;SCL:1;SRVR:AM4PR05MB3506;H:AM4PR05MB3411.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(396003)(136003)(366004)(376002)(346002)(39860400002)(189003)(199004)(6512007)(25786009)(6246003)(4326008)(71190400001)(71200400001)(19618925003)(6116002)(3846002)(26005)(186003)(36756003)(2616005)(6436002)(6486002)(4270600006)(66066001)(11346002)(81166006)(8676002)(81156014)(66446008)(64756008)(66556008)(66476007)(66946007)(256004)(8936002)(2501003)(31686004)(478600001)(14454004)(555874004)(229853002)(2906002)(102836004)(31696002)(305945005)(7736002)(99286004)(52116002)(6506007)(558084003)(316002)(86362001)(386003)(5660300002)(110136005);DIR:OUT;SFP:1101;SCL:1;SRVR:AM4PR05MB3362;H:AM4PR05MB3411.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
 received-spf: None (protection.outlook.com: mellanox.com does not designate
  permitted sender hosts)
 x-ms-exchange-senderadcheck: 1
 x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: 2qjk8w7rUh0WSMu7uYrojEei/j+SuvbWWqxSnIGDACGUhx4IsmMCX2aP+7OiwPRL5Yvzq7PcbmnDBHxwLjtlpdtyoghKit3X2uoHDEBj0i3yv9USnCi26iKHoWfK1+dpga9maA10dPPlnCTIVxAV+teAeQsQUA9d6PEdSIZPdkLIZLZbXUmb3+ujbqs26DFVLPIAZoMrD5+Oe4Y+pT2yfCxFjnkJKQiwhfSXVdb6sDTimBEXCRIGPIJ2c933daAN4jd8G5o1fvHYqQ4ihfbbm/y/EoIUx3RV8rxmJu5CQsEzI964PrK93roCxKsKTYpCnyM5TrPSY7jdUnDfmwh9woMjdryHI8r1iwqnSS4MevtNog2vWMeF0BkfYlLnYkTUGAC5pIV+L1iVpKw8G0EQ9XWAxVqMMduMs9+xQrwOwjQzWCANN7QW9KiORMmy8B9J
+x-microsoft-antispam-message-info: kclTjuF3eapjtqtv76XcCMdt8kTztH6qfjwiY71o3NYZPbe54PIMZfEHRfl/g4VsNEL2f3bkyDl9ynNC48yblrIFfrrSDfWuROok+33C9i6MM6rRnLM/gCk3hMpeJShn53F6GYk1uVswNjIpanzMA6FLIhEueI2kT7xGiZpiqhTXvXDFE/KxudwQgGIN9Am81yoOrmT4fGY5dgbqm36a3bDLAsUQ6JTzwCLpVaiyxvnMfEMSLSIbs4Tgbzppm7NuFCGjukw5uLfOzckun+deicZssOtt7YA9s/85KsgvGIyrGrJBH4NZ+lBWQJvwhI+aV/IbucXCHiMP0NkilnXNn0t7OggxFYVduEB5/nCuxjfBq82mucp2D1oKFe2WueA9xLlAWhGt5+I+s+VbF+PDUcaotkfSxXILjqPwjdd/WIlVlI0yTPGxgpsgGG+gdy5f
 x-ms-exchange-transport-forked: True
 Content-Type: text/plain; charset="utf-8"
-Content-ID: <696273F89A290E46907E7FF15D4345B7@eurprd05.prod.outlook.com>
+Content-ID: <68640BF8165CD142B12EFE2A1A2BB729@eurprd05.prod.outlook.com>
 Content-Transfer-Encoding: base64
 MIME-Version: 1.0
 X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: a522c2df-df35-42ed-b667-08d771a2b41e
-X-MS-Exchange-CrossTenant-originalarrivaltime: 25 Nov 2019 12:26:32.3362
+X-MS-Exchange-CrossTenant-Network-Message-Id: 046c3ef3-973c-4e94-d2f4-08d771a2fb18
+X-MS-Exchange-CrossTenant-originalarrivaltime: 25 Nov 2019 12:28:31.2480
  (UTC)
 X-MS-Exchange-CrossTenant-fromentityheader: Hosted
 X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
 X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: W0WWvFa/bP3zQ7f874xj/hWVdgf9VBmAxOLNsdiXyKYRSXMIjuIZ19t0mQKLM7zxjqMvZLBICOwpPvM5nA1zFA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM4PR05MB3506
+X-MS-Exchange-CrossTenant-userprincipalname: 1R14i0W9rpApyT7p5g4MkdYRQEcMuTKeJJK48Hk6xMEvnO91fieL4DkWJ3Dxd4JfbT3Yp6KDHfCFCVrPejlWig==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM4PR05MB3362
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
