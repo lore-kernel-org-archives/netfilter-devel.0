@@ -2,110 +2,63 @@ Return-Path: <SRS0=M/8g=ZS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82DB3C432C0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Nov 2019 11:06:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CFD3C432C0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Nov 2019 12:09:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 65B572071E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Nov 2019 11:06:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0CA6520659
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Nov 2019 12:09:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727895AbfKZLGQ (ORCPT
+        id S1728224AbfKZMJK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 Nov 2019 06:06:16 -0500
-Received: from mail-ot1-f66.google.com ([209.85.210.66]:41697 "EHLO
-        mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726099AbfKZLGQ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Nov 2019 06:06:16 -0500
-Received: by mail-ot1-f66.google.com with SMTP id r27so944822otc.8;
-        Tue, 26 Nov 2019 03:06:15 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=sDv2IDGJv0mFar0t3+yMbplV7bT/52S6zXtfv3V8JGI=;
-        b=rKTSQa/ZFmaONGOW2cPBQUgmf6sjOD5r1OzNGS96qRHsTsUuDNtT34Q9voflpE/3Py
-         LZuy/huLNopriEyucAtN+gcwtasCC17bPBlu/r5XRsZ7cbXTXFcGiF4Ix0YNLeGRozBK
-         Ikrz569DQQqpH6oQfH9ENPQgzaPjrY5iw5JxU8vGJee2huDmWYp8EzF979tApYk/5xnq
-         XN29rKrkDNxSzdzj+Pw+RpI3OQs/wdLv9L9XbICmfd/neIg3i49814YSG0t28JyQUdCG
-         wtNAuVQevB1G21Vu5h+V8x8bJnGSIVZKg91y7q2ozkGg+J5OzKLprUMOinAxo9jmli67
-         5ATw==
-X-Gm-Message-State: APjAAAWEDKz0XaHiTrrJY5iYoTmQA0+5EXAgbt5DPXiVNCtsTiOPCXit
-        WhAG9jSkGzn2uGnm1kcXJ20aEX1MJZibmrBxpZQ=
-X-Google-Smtp-Source: APXvYqzVwTZwufgkEpLOPkgZBChJ+oyz3T07Gt9Es1AGLSJgdDI2N6gJx2zkS7FsJn1inn0vK0U1K9OsI9cugtJsiTQ=
-X-Received: by 2002:a05:6830:2363:: with SMTP id r3mr1979742oth.39.1574766374983;
- Tue, 26 Nov 2019 03:06:14 -0800 (PST)
+        Tue, 26 Nov 2019 07:09:10 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:36160 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727488AbfKZMJK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 26 Nov 2019 07:09:10 -0500
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1iZZeW-0001He-KB; Tue, 26 Nov 2019 13:09:08 +0100
+Date:   Tue, 26 Nov 2019 13:09:08 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 2/2] segtree: restore automerge
+Message-ID: <20191126120908.GC8016@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20191126103422.29501-1-pablo@netfilter.org>
+ <20191126103422.29501-2-pablo@netfilter.org>
 MIME-Version: 1.0
-References: <20191121183404.6e183d06@canb.auug.org.au>
-In-Reply-To: <20191121183404.6e183d06@canb.auug.org.au>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Tue, 26 Nov 2019 12:06:03 +0100
-Message-ID: <CAMuHMdX8QyGkpPXfwS0EJhC6hR+gpYfvdpGWqdb=bSwJGmF7Ew@mail.gmail.com>
-Subject: nf_flow on big-endian (was: Re: linux-next: build warning after merge
- of the net-next tree)
-To:     Stephen Rothwell <sfr@canb.auug.org.au>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     David Miller <davem@davemloft.net>,
-        Networking <netdev@vger.kernel.org>,
-        Linux Next Mailing List <linux-next@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        Jiri Pirko <jiri@mellanox.com>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191126103422.29501-2-pablo@netfilter.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Nov 21, 2019 at 8:36 AM Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> After merging the net-next tree, today's linux-next build (powerpc
-> allyesconfig) produced this warning:
->
-> net/netfilter/nf_flow_table_offload.c: In function 'nf_flow_rule_match':
-> net/netfilter/nf_flow_table_offload.c:80:21: warning: unsigned conversion from 'int' to '__be16' {aka 'short unsigned int'} changes value from '327680' to '0' [-Woverflow]
->    80 |   mask->tcp.flags = TCP_FLAG_RST | TCP_FLAG_FIN;
->       |                     ^~~~~~~~~~~~
->
-> Introduced by commit
->
->   c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
+Hi Pablo,
 
-This is now upstream, and must be completely broken on big-endian
-platforms.
+On Tue, Nov 26, 2019 at 11:34:22AM +0100, Pablo Neira Ayuso wrote:
+> Always close interval in non-anonymous sets unless the auto-merge
+> feature is set on.
+> 
+> Fixes: a4ec05381261 ("segtree: always close interval in non-anonymous sets")
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> Hi Phil,
+> 
+> this patch also supersedes https://patchwork.ozlabs.org/patch/1198896/.
 
-The other user of the flags field looks buggy, too
-(net/core/flow_dissector.c:__skb_flow_dissect_tcp()[*]):
+I fear this doesn't fix the problem at hand. With your two patches
+applied, tests/shell/testcases/sets/0039delete_interval_0 still fails
+for me. Your revert removes executable bit from that script, maybe
+that's why you didn't notice?
 
-     key_tcp->flags = (*(__be16 *) &tcp_flag_word(th) & htons(0x0FFF));
-
-Disclaimer: I'm not familiar with the code or protocol, so below are just
-my gut feelings.
-
-     struct flow_dissector_key_tcp {
-            __be16 flags;
-    };
-
-Does this have to be __be16, i.e. does it go over the wire?
-If not, this should probably be __u16, and set using
-"be32_to_cpu(flags) >> 16"?
-If yes, "cpu_to_be16(be32_to_cpu(flags) >> 16)"?
-(Ugh, needs convenience macros)
-
-[*] ac4bb5de27010e41 ("net: flow_dissector: add support for dissection
-of tcp flags")
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Cheers, Phil
