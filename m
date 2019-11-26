@@ -2,64 +2,81 @@ Return-Path: <SRS0=M/8g=ZS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50B11C432C0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Nov 2019 15:51:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BEFBBC432C0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Nov 2019 18:37:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 301352073F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Nov 2019 15:51:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E2112071E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Nov 2019 18:37:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728091AbfKZPvb (ORCPT
+        id S1726101AbfKZShS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 Nov 2019 10:51:31 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:36544 "EHLO orbyte.nwl.cc"
+        Tue, 26 Nov 2019 13:37:18 -0500
+Received: from correo.us.es ([193.147.175.20]:34916 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728049AbfKZPvb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Nov 2019 10:51:31 -0500
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1iZd7d-0003Tn-KN; Tue, 26 Nov 2019 16:51:25 +0100
-Date:   Tue, 26 Nov 2019 16:51:25 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     "Serguei Bezverkhi (sbezverk)" <sbezverk@cisco.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Re: Operation not supported when adding jump command
-Message-ID: <20191126155125.GD8016@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        "Serguei Bezverkhi (sbezverk)" <sbezverk@cisco.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-References: <5248B312-60A9-48A7-B4CF-E00D1BDF1CD2@cisco.com>
- <20191126122110.GD795@breakpoint.cc>
- <3DBD9E39-A0DF-4A69-93CC-4344617BDB2F@cisco.com>
- <20191126153850.pblaoj4xklfz5jgv@salvia>
- <427E92A6-2FFA-47CF-BF3B-C08961C978C9@cisco.com>
+        id S1725970AbfKZShS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 26 Nov 2019 13:37:18 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id F002E5E4781
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Nov 2019 19:37:13 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E05BDD190C
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Nov 2019 19:37:13 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id D5CFEDA3A9; Tue, 26 Nov 2019 19:37:13 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 81838DA7B6;
+        Tue, 26 Nov 2019 19:37:11 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 26 Nov 2019 19:37:11 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 5C46642EE38E;
+        Tue, 26 Nov 2019 19:37:11 +0100 (CET)
+Date:   Tue, 26 Nov 2019 19:37:12 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 2/2] segtree: restore automerge
+Message-ID: <20191126183712.wgyravjgmzlgy2ji@salvia>
+References: <20191126103422.29501-1-pablo@netfilter.org>
+ <20191126103422.29501-2-pablo@netfilter.org>
+ <20191126120908.GC8016@orbyte.nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <427E92A6-2FFA-47CF-BF3B-C08961C978C9@cisco.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20191126120908.GC8016@orbyte.nwl.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Serguei,
+On Tue, Nov 26, 2019 at 01:09:08PM +0100, Phil Sutter wrote:
+> Hi Pablo,
+> 
+> On Tue, Nov 26, 2019 at 11:34:22AM +0100, Pablo Neira Ayuso wrote:
+> > Always close interval in non-anonymous sets unless the auto-merge
+> > feature is set on.
+> > 
+> > Fixes: a4ec05381261 ("segtree: always close interval in non-anonymous sets")
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > ---
+> > Hi Phil,
+> > 
+> > this patch also supersedes https://patchwork.ozlabs.org/patch/1198896/.
+> 
+> I fear this doesn't fix the problem at hand. With your two patches
+> applied, tests/shell/testcases/sets/0039delete_interval_0 still fails
+> for me. Your revert removes executable bit from that script, maybe
+> that's why you didn't notice?
 
-On Tue, Nov 26, 2019 at 03:47:49PM +0000, Serguei Bezverkhi (sbezverk) wrote:
-> I totally get it that it is not possible in theory, but the matter of fact is in kubernetes somehow it works, maybe in some cases this check is not enforced, I do not know. If you are interested to investigate it further, please let me know as I said I have a cluster with these 2 rules configured.
-
-In another case I noticed that user-defined chains are a way to
-circumvent these types of functional restrictions. If that's good or bad
-is up to you to decide. ;)
-
-Regarding the desired functionality, I guess you're wandering the
-sinkhole-filled plains of undefined behaviour.
-
-Cheers, Phil
+Indeed. Scratch this.
