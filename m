@@ -2,120 +2,68 @@ Return-Path: <SRS0=TrSD=ZT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24147C432C0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Nov 2019 11:57:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A2A3C432C0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Nov 2019 12:59:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 02AFB2053B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Nov 2019 11:57:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 34DBB2070B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Nov 2019 12:59:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726514AbfK0L5Y (ORCPT
+        id S1726593AbfK0M7q (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Nov 2019 06:57:24 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:38588 "EHLO orbyte.nwl.cc"
+        Wed, 27 Nov 2019 07:59:46 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:38700 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726496AbfK0L5Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Nov 2019 06:57:24 -0500
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1iZvwc-0007by-5w; Wed, 27 Nov 2019 12:57:18 +0100
-Date:   Wed, 27 Nov 2019 12:57:18 +0100
+        id S1726514AbfK0M7p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 27 Nov 2019 07:59:45 -0500
+Received: from localhost ([::1]:51788 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1iZwv1-0008AU-Uu; Wed, 27 Nov 2019 13:59:43 +0100
 From:   Phil Sutter <phil@nwl.cc>
-To:     Arturo Borrero Gonzalez <arturo@netfilter.org>
-Cc:     "Serguei Bezverkhi (sbezverk)" <sbezverk@cisco.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        Laura Garcia <nevola@gmail.com>
-Subject: Re: Operation not supported when adding jump command
-Message-ID: <20191127115718.GI8016@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Arturo Borrero Gonzalez <arturo@netfilter.org>,
-        "Serguei Bezverkhi (sbezverk)" <sbezverk@cisco.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        Laura Garcia <nevola@gmail.com>
-References: <5248B312-60A9-48A7-B4CF-E00D1BDF1CD2@cisco.com>
- <20191126122110.GD795@breakpoint.cc>
- <3DBD9E39-A0DF-4A69-93CC-4344617BDB2F@cisco.com>
- <20191126153850.pblaoj4xklfz5jgv@salvia>
- <427E92A6-2FFA-47CF-BF3B-C08961C978C9@cisco.com>
- <20191126155125.GD8016@orbyte.nwl.cc>
- <0A92D5EA-B158-4C7A-B85C-1692AE7C828B@cisco.com>
- <20191126192752.GE8016@orbyte.nwl.cc>
- <AC4B6BFD-30FA-4A62-AD3C-3EB37029EC1B@cisco.com>
- <3a457e5b-be8f-e99d-fb0d-4826a15a4a55@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: [nft PATCH] nft.8: Fix nat family spec position
+Date:   Wed, 27 Nov 2019 13:59:36 +0100
+Message-Id: <20191127125936.23007-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.24.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3a457e5b-be8f-e99d-fb0d-4826a15a4a55@netfilter.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Arturo,
+In inet family nat statements, ip/ip6 keyword must come before 'to'
+keyword, not after.
 
-On Wed, Nov 27, 2019 at 11:11:32AM +0100, Arturo Borrero Gonzalez wrote:
-> On 11/26/19 10:20 PM, Serguei Bezverkhi (sbezverk) wrote:
-> >     On Tue, Nov 26, 2019 at 06:47:09PM +0000, Serguei Bezverkhi (sbezverk) wrote:
-> >     > Ok, I guess I will work around by using input and output chain types, even though it will raise some brows in k8s networking community.
-> >     > 
-> 
-> @Sergei, thanks for reaching out about this topic.
-> 
-> I'm using k8s a lot lately and would be interested in knowing more about what
-> you are trying to do with kubernetes and nftables.
-> 
-> In any case, if the somebody in kubernetes is planning to introduce nft for
-> kube-proxy or other component, I would suggest the generated ruleset is
-> validated here to really benefit from nftables. Is this what you are doing, right?
-> 
-> Recently I had the chance to attend a talk by @Laura (in CC) about the iptables
-> ruleset generated by docker and kube-proxy. Such rulesets are the opposite of
-> something meant to scale and perform well. Then people compare such rulesets
-> with other networking setups... and unfair compare.
-> 
-> Worth mentioning at this point this PoC too:
-> 
-> https://github.com/zevenet/kube-nftlb
-> 
-> Trying to mimic 1:1 what iptables was doing is a mistake from my point of view.
-> I believe you are aware of this already :-)
-> 
-> >     
-> >     Keeping both target address and port in a single map for *NAT statements
-> >     is not possible AFAIK.
-> 
-> @Phil, I think it is possible! examples in the wiki:
-> 
-> https://wiki.nftables.org/wiki-nftables/index.php/Multiple_NATs_using_nftables_maps
-> 
-> It would be something like:
-> 
-> % nft add rule nat prerouting dnat \
->       tcp dport map { 1000 : 1.1.1.1, 2000 : 2.2.2.2, 3000 : 3.3.3.3} \
->       : tcp dport map { 1000 : 1234, 2000 : 2345, 3000 : 3456 }
+Fixes: fbe27464dee45 ("src: add nat support for the inet family")
+Cc: Florian Westphal <fw@strlen.de>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ doc/statements.txt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Ah, thanks! Using two maps didn't come to mind.
+diff --git a/doc/statements.txt b/doc/statements.txt
+index e17068a8a04be..07bf09c5e4395 100644
+--- a/doc/statements.txt
++++ b/doc/statements.txt
+@@ -324,10 +324,10 @@ NAT STATEMENTS
+ ____
+ *snat to* 'address' [*:*'port'] ['PRF_FLAGS']
+ *snat to* 'address' *-* 'address' [*:*'port' *-* 'port'] ['PRF_FLAGS']
+-*snat to* { *ip* | *ip6* } 'address' *-* 'address' [*:*'port' *-* 'port'] ['PR_FLAGS']
++*snat* { *ip* | *ip6* } *to* 'address' *-* 'address' [*:*'port' *-* 'port'] ['PR_FLAGS']
+ *dnat to* 'address' [*:*'port'] ['PRF_FLAGS']
+ *dnat to* 'address' [*:*'port' *-* 'port'] ['PR_FLAGS']
+-*dnat to* { *ip* | *ip6* } 'address' [*:*'port' *-* 'port'] ['PR_FLAGS']
++*dnat* { *ip* | *ip6* } *to* 'address' [*:*'port' *-* 'port'] ['PR_FLAGS']
+ *masquerade to* [*:*'port'] ['PRF_FLAGS']
+ *masquerade to* [*:*'port' *-* 'port'] ['PRF_FLAGS']
+ *redirect to* [*:*'port'] ['PRF_FLAGS']
+-- 
+2.24.0
 
-> >     If I'm not mistaken, you might be able to hook up a vmap together with
-> >     the numgen expression above like so:
-> >     
-> >     | numgen random mod 0x2 vmap { \
-> >     |	0x0: jump KUBE-SEP-FS3FUULGZPVD4VYB, \
-> >     |	0x1: jump KUBE-SEP-MMFZROQSLQ3DKOQA }
-> >     
-> >     Pure speculation, though. :)
-> >     
-> 
-> This works indeed. Just added the example to the wiki:
-> 
-> https://wiki.nftables.org/wiki-nftables/index.php/Load_balancing#Round_Robin
-
-Thanks, Phil
