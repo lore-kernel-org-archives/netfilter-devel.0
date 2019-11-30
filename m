@@ -2,101 +2,140 @@ Return-Path: <SRS0=76Lg=ZW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_IN_DEF_DKIM_WL autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10D14C432C0
-	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Nov 2019 15:24:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40E5DC43215
+	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Nov 2019 15:53:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CC53A2072C
-	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Nov 2019 15:24:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 15B672082E
+	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Nov 2019 15:53:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="VoTt6mpR"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="h9Xa8Eyc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726659AbfK3PYb (ORCPT
+        id S1727103AbfK3Px0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 30 Nov 2019 10:24:31 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:48580 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726385AbfK3PYb (ORCPT
+        Sat, 30 Nov 2019 10:53:26 -0500
+Received: from mail-qt1-f193.google.com ([209.85.160.193]:36607 "EHLO
+        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726497AbfK3Px0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 30 Nov 2019 10:24:31 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=ojHFy0uTyH7l0SgddZvOW8AVEObV9eRETe/THcyxOjU=; b=VoTt6mpRgIj7QZmI9/KWGx7vpv
-        eWq1ei0wzNBk0ENiRBTJSNtuIOxjIjYHaHAxO0JkMteLcCCs1D6GTZi6pyHaNgLk8SdRTRqrRFg9+
-        zyEZubX0G9rh23LickzhpWfaUK77GgiLxTG5OI0G4C6hS6YFFuSVhgDTwBlq38K/dkK3X1mXNqnFT
-        ci3yevS1E7vSuThW2CrTwt+rtD5FRZ80/QzylIdJHypHlpfSXgJh5pTyqT1Gk26L9CFaF6Jh0yEWN
-        pW5EpAwfsKbyjwhXKaox3rGuzSXZtvYowbOhi55zLa/kTompllQ7OrT/eL6cbOUS325hMZdmcpqFf
-        5iD+iyqg==;
-Received: from celephais.dreamlands ([192.168.96.3] helo=azazel.net)
-        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1ib4bj-0007s1-HH; Sat, 30 Nov 2019 15:24:27 +0000
-Date:   Sat, 30 Nov 2019 15:24:36 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     "Thomas B. Clark" <kernel@clark.bz>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: geoip doesn't work with ipv6
-Message-ID: <20191130152436.GA133447@azazel.net>
-References: <3971b408-51e6-d90e-f291-7a43e46e84c1@ferree-clark.org>
+        Sat, 30 Nov 2019 10:53:26 -0500
+Received: by mail-qt1-f193.google.com with SMTP id y10so36038074qto.3
+        for <netfilter-devel@vger.kernel.org>; Sat, 30 Nov 2019 07:53:24 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
+        bh=jdRfuJtU8uqmsqgyTo2pn3PG7sCQI4AYvfljBHLyej8=;
+        b=h9Xa8Eyclllyo//fAfdA6VQ/NNyTP9f+uLFtD4bmksqFDq4S1bbFxwzDeEJttovLA+
+         mnwtZFGkAVHm2+wV2IzyZoYpsKsJ2mGHYOGv/vz+DTZx2bwuZsa1brlObLw2VA+4ZGN6
+         Nw9LyJRgKaSgaDal3R88V8Juyb61wmzvdJFLNs4LxfF7Zx10YTWNLoSBEOFLPEZwbjtM
+         htYm2/jz6i4wavsnGNSvO3yVXMGN0MBqufBY3UhFTkEhs20UhTH4m4c5ljTqY/e6b63v
+         /i5m96jPlK/2c5m63NicterXuUVD9gx3YQMVkaWwLLAtjOLkyi5NgBTXzvjoFEiz2GNl
+         tmXg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to;
+        bh=jdRfuJtU8uqmsqgyTo2pn3PG7sCQI4AYvfljBHLyej8=;
+        b=EKryiZ3/apoMsDcV3Cz8mETSloXeeB3jyEGiEeoB8z2+dGKIkEkwwKx9L6SwMSZzvR
+         d/Di1I5Yqu3b7tHFH4jb7D25yZvmg9Vojmo4PBPsdxVnUqEKcYhij0LMZoYnkoJuHcPv
+         3tiKTG5omKlgmdok8wdyFmnbudcwO2Il1Jg4eyMskUjW+09e8DdIza4ZDXRAkCoHW9Ib
+         EqFdoXCXNFiyQ0jg3Se2VWE7yYNRcZy57bhCvcXWJYBiPAXYMnZDwK7jBBum85/+TxGR
+         zeRQiLXv0oML8OkoWSr8HE7IfUChap/jBzb09HwDzwJ9bpZEsdoJ2XoJvESSuO4QwwY6
+         ShiA==
+X-Gm-Message-State: APjAAAW54V7RYFfptwUmh9hfwAZajKJZOYvPu4z3VrOExMFDLoXCCgHr
+        k/pV9fgTtwFdDe895E9KWaHqxPgBY4lcyjfbXBWSOA==
+X-Google-Smtp-Source: APXvYqwd50hiQXx0poflgh573lP3ofw793nvHMJ0u0cS4TDPRH9X6wxqaksQSt8m/TXYBMG15l5vLxsJFaq5/XgjMew=
+X-Received: by 2002:ac8:3905:: with SMTP id s5mr40808406qtb.158.1575129203287;
+ Sat, 30 Nov 2019 07:53:23 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="UugvWAfsgieZRqgk"
-Content-Disposition: inline
-In-Reply-To: <3971b408-51e6-d90e-f291-7a43e46e84c1@ferree-clark.org>
-User-Agent: Mutt/1.12.2 (2019-09-21)
-X-SA-Exim-Connect-IP: 192.168.96.3
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+References: <000000000000e59aab056e8873ae@google.com> <0000000000000beff305981c5ac6@google.com>
+ <20191124193035.GA4203@ZenIV.linux.org.uk> <20191130110645.GA4405@dimstar.local.net>
+In-Reply-To: <20191130110645.GA4405@dimstar.local.net>
+From:   Dmitry Vyukov <dvyukov@google.com>
+Date:   Sat, 30 Nov 2019 16:53:12 +0100
+Message-ID: <CACT4Y+bg7bZOSg0P9VXq8yG2odAJMg6b6N2fXxbamOmKiz3ohw@mail.gmail.com>
+Subject: Re: KASAN: use-after-free Read in blkdev_get
+To:     Al Viro <viro@zeniv.linux.org.uk>,
+        Chris Metcalf <cmetcalf@ezchip.com>, coreteam@netfilter.org,
+        David Miller <davem@davemloft.net>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Chen Gang <gang.chen.5i5j@gmail.com>,
+        Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        syzkaller-bugs <syzkaller-bugs@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
---UugvWAfsgieZRqgk
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On 2019-08-11, at 05:52:16 -0700, Thomas B. Clark wrote:
-> I have tried exhaustively to get xt_geoip to match ipv6 addresses, and
-> it doesn't.
+On Sat, Nov 30, 2019 at 12:06 PM Duncan Roe <duncan_roe@optusnet.com.au> wrote:
+> > > syzbot has bisected this bug to:
+> > >
+> > > commit 77ef8f5177599efd0cedeb52c1950c1bd73fa5e3
+> > > Author: Chris Metcalf <cmetcalf@ezchip.com>
+> > > Date:   Mon Jan 25 20:05:34 2016 +0000
+> > >
+> > >     tile kgdb: fix bug in copy to gdb regs, and optimize memset
+> > >
+> > > bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1131bc0ee00000
+> > > start commit:   f5b7769e Revert "debugfs: inode: debugfs_create_dir uses m..
+> > > git tree:       upstream
+> > > final crash:    https://syzkaller.appspot.com/x/report.txt?x=1331bc0ee00000
+> > > console output: https://syzkaller.appspot.com/x/log.txt?x=1531bc0ee00000
+> > > kernel config:  https://syzkaller.appspot.com/x/.config?x=709f8187af941e84
+> > > dashboard link: https://syzkaller.appspot.com/bug?extid=eaeb616d85c9a0afec7d
+> > > syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=177f898f800000
+> > > C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=147eb85f800000
+> > >
+> > > Reported-by: syzbot+eaeb616d85c9a0afec7d@syzkaller.appspotmail.com
+> > > Fixes: 77ef8f517759 ("tile kgdb: fix bug in copy to gdb regs, and optimize
+> > > memset")
+> > >
+> > > For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+> >
+> > Seriously?  How can the commit in question (limited to arch/tile/kernel/kgdb.c)
+> > possibly affect a bug that manages to produce a crash report with
+> > RSP: 0018:ffffffff82e03eb8  EFLAGS: 00000282
+> > RAX: 0000000000000000 RBX: ffffffff82e00000 RCX: 0000000000000000
+> > RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffffff81088779
+> > RBP: ffffffff82e03eb8 R08: 0000000000000000 R09: 0000000000000001
+> > R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+> > R13: 0000000000000000 R14: 0000000000000000 R15: ffffffff82e00000
+> > FS:  0000000000000000(0000) GS:ffff88021fc00000(0000) knlGS:0000000000000000
+> > CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> > CR2: 000000c420447ff8 CR3: 0000000213184000 CR4: 00000000001406f0
+> > DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> > DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+> > in it?  Unless something very odd has happened to tile, this crash has
+> > been observed on 64bit x86; the names of registers alone are enough
+> > to be certain of that.
+> >
+> > And the binaries produced by an x86 build should not be affected by any
+> > changes in arch/tile; not unless something is very wrong with the build
+> > system.  It's not even that this commit has fixed an earlier bug that
+> > used to mask the one manifested here - it really should have had zero
+> > impact on x86 builds, period.
+> >
+> > So I'm sorry, but I'm calling bullshit.  Something's quite wrong with
+> > the bot - either its build system or the bisection process.
 >
-> I believe my configuration is correct, and that the geoip databases
-> are set up correctly.=C2=A0 Matching correctly works on ipv4 with an
-> equivalent iptables.
+> The acid test would be: does reverting that commit make the problem go away?
+>
+> See, for example, https://bugzilla.kernel.org/show_bug.cgi?id=203935
+>
+> Cheers ... Duncan.
 
-There is an endianness mismatch between the ranges in the GeoIP DB and
-the addresses when they are compared by xt_geoip.  I will submit a fix.
-
-J.
-
---UugvWAfsgieZRqgk
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEZ8d+2N/NBLDbUxIF0Z7UzfnX9sMFAl3iia0ACgkQ0Z7UzfnX
-9sMwjg//Q8iXtFOhRINysWZIxgZwIK+lbtwI9dNbg/WnLW8i3tn1W35OEbevsWmq
-/kdhIMiei7NyDdlSzuD47g6bOtRoiqtdOKAxuM6W4rTnLoklrler8E6F3npc8mlY
-ZvO33yMyPcPqpFjutmYXfyqK/XWrNDgtWkGcCbcoEoy18r9Ka2By//bnwu3V+tGJ
-hetw6DlQZY+pKbj3g+/Fa+N5fEF0/IsAUntIDRxOlb+rjf+hUAqUgET83e/39479
-ViZOkgQW4y4IZs++y/tBeg2XeFnoBWH+7Uh99pU1Y5QGhs5NV7UVfCWSxS3Vf1AB
-Uyrt5OS8z8jWWSSY/bWCVQ9STqk7rxuF/okL4lR7hJ79WL6TUZaK49AUbA/ogFVY
-7SvMfuLnt5AYhmB9i963db+ZgahxK9Yk0ZFvBBuduz7iGLLdbVzOE10XLVCtMEj+
-Gq1TXj/PEDcHgGfGN73FUziktyG7Fs0OxOun8ZJBBuALeX7HYIRpA+ZclMTDXSfJ
-d1+cZ8Z6LCW/9PZYjrxxFhCjhwdBh+qAyyd6tfmEaOe5/RPOdGir8WWst2+aH4tg
-AWBaXgK4MJVm/9p/Eykt2Kc3j53J5DvnluxEDJIYq2UpTzodjsXZ/UFVNfW7DXVS
-tfHqQso4h60W2v+Mdefm/AgsbHIbPsJJIK62IzawbjzG2r1WvXo=
-=lqFb
------END PGP SIGNATURE-----
-
---UugvWAfsgieZRqgk--
+This is done as part of any bisection by definition, right? The test
+was done on the previous commit (effectively this one reverted) and no
+crash was observed. Otherwise bisection would have been pointed to a
+different commit.
