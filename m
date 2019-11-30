@@ -2,25 +2,24 @@ Return-Path: <SRS0=76Lg=ZW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89661C43215
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C1ABC432C0
 	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Nov 2019 17:58:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5895A2082E
+	by mail.kernel.org (Postfix) with ESMTP id 2D3C52075C
 	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Nov 2019 17:58:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="Fp+2IskN"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="JKT97m7M"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727197AbfK3R6t (ORCPT
+        id S1727201AbfK3R6t (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sat, 30 Nov 2019 12:58:49 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:54246 "EHLO
+Received: from kadath.azazel.net ([81.187.231.250]:54252 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726946AbfK3R6s (ORCPT
+        with ESMTP id S1727101AbfK3R6s (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sat, 30 Nov 2019 12:58:48 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
@@ -29,27 +28,26 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=FQTskD11BXu3Iey6eJM0Z5A7Uj/U1A9ELCxxZ7p5teU=; b=Fp+2IskNqwmffXBLSfCUQ4dwsP
-        xrSU3IcAtNwNBVeAe2QssdYCS9rzb9qVE0z7rZPoWCypTrJ4+DaX0jVLv2yVu0/ubwTiQ3ywbfZLJ
-        tihDK0qSuh2nMsNhzcuwuJXM2RJyEIOcXbhDsmyQ2X0kv4b4DSLvstAwaYDylck75AJc0Ek2V8aqq
-        YqEScB2thVer/TZ2jibgr9Gc0Pij2BlUQCWw3jdjLjcjxJaNPv7p4Hx4rL0auBNTV5+pHqALVxiJM
-        mxbINfUxJPSFoKTAgpAkrAhUeRHEKH2tWIb7SVbf9Z9qRkV/44QOCTuei3LtJecmJAqRlJi4Blmg+
-        v6HT/5ow==;
+        bh=EfsxDPU1ZjmVmoJmG3gpJVLLX8CmNaimpeodxYRAe68=; b=JKT97m7Ml4BsFX03r4JR9lT9Jd
+        xSNzKMD1GBavUQiq4TJEz5HhNDc+dcFRgUtCeLtEAg2jhK8kzQa+9UTrIPcUiSAE38M2TPalrgpmH
+        sX+BeYW86tRqM7rzkW/AHf+9bUKQFVqp+m12+m6SLTUeEcox5ah5KqWu2f8V5k8O7VQnGBvsNLvpG
+        o/uhPwyPmclrpgDN1yO874qh58O7CGWbOcnxPZnnD8GH5+2l5iXCYIJTDzVU0yR1GiWArBQdP0enr
+        BlX7TmAUvf5z/M0DTPNBlYv/5XTp6513c/luhEpxKtC/WwWX7L/dJD3S+DpBI8HFXCMX1fqaK+97W
+        meTe9yhw==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1ib714-0002eP-AX; Sat, 30 Nov 2019 17:58:46 +0000
+        id 1ib714-0002eP-01; Sat, 30 Nov 2019 17:58:46 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Jan Engelhardt <jengelh@inai.de>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
         "Thomas B . Clark" <kernel@clark.bz>
-Subject: [PATCH xtables-addons v2 2/3] xt_geoip: white-space fixes.
-Date:   Sat, 30 Nov 2019 17:58:44 +0000
-Message-Id: <20191130175845.369240-3-jeremy@azazel.net>
+Subject: [PATCH xtables-addons v2 0/3] xt_geoip: ipv6 fixes
+Date:   Sat, 30 Nov 2019 17:58:42 +0000
+Message-Id: <20191130175845.369240-1-jeremy@azazel.net>
 X-Mailer: git-send-email 2.24.0
-In-Reply-To: <20191130175845.369240-1-jeremy@azazel.net>
+In-Reply-To: <3971b408-51e6-d90e-f291-7a43e46e84c1@ferree-clark.org>
 References: <3971b408-51e6-d90e-f291-7a43e46e84c1@ferree-clark.org>
- <20191130175845.369240-1-jeremy@azazel.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
@@ -60,44 +58,23 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Fix the indentation of some xt_geoip module function parameters.
+Thomas Clark reported that geoip matching didn't work for ipv6.  This
+series fixes that and a couple of other minor issues.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- extensions/xt_geoip.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Since v1:
 
-diff --git a/extensions/xt_geoip.c b/extensions/xt_geoip.c
-index 27e60a4643b7..d64d951f19a9 100644
---- a/extensions/xt_geoip.c
-+++ b/extensions/xt_geoip.c
-@@ -140,7 +140,7 @@ static void geoip_try_remove_node(struct geoip_country_kernel *p)
- }
- 
- static struct geoip_country_kernel *find_node(unsigned short cc,
--    enum geoip_proto proto)
-+					      enum geoip_proto proto)
- {
- 	struct geoip_country_kernel *p;
- 	spin_lock(&geoip_lock);
-@@ -172,7 +172,7 @@ ipv6_cmp(const struct in6_addr *p, const struct in6_addr *q)
- }
- 
- static bool geoip_bsearch6(const struct geoip_subnet6 *range,
--    const struct in6_addr *addr, int lo, int hi)
-+			   const struct in6_addr *addr, int lo, int hi)
- {
- 	int mid;
- 
-@@ -227,7 +227,7 @@ xt_geoip_mt6(const struct sk_buff *skb, struct xt_action_param *par)
- }
- 
- static bool geoip_bsearch4(const struct geoip_subnet4 *range,
--    uint32_t addr, int lo, int hi)
-+			   uint32_t addr, int lo, int hi)
- {
- 	int mid;
- 
+  * fixed the commit-message in patch 03.
+
+Jeremy Sowden (3):
+  configure: update max. supported kernel version.
+  xt_geoip: white-space fixes.
+  xt_geoip: fix in6_addr little-endian byte-swapping.
+
+ configure.ac             |  2 +-
+ extensions/libxt_geoip.c | 28 ++++++++--------------------
+ extensions/xt_geoip.c    |  6 +++---
+ 3 files changed, 12 insertions(+), 24 deletions(-)
+
 -- 
 2.24.0
 
