@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9D7AC432C0
-	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Nov 2019 17:58:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0471CC43215
+	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Nov 2019 17:58:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9CDE22075C
+	by mail.kernel.org (Postfix) with ESMTP id C88292082E
 	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Nov 2019 17:58:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="MewwE8to"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="KhTwWekZ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727179AbfK3R6t (ORCPT
+        id S1727207AbfK3R6t (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sat, 30 Nov 2019 12:58:49 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:54250 "EHLO
+Received: from kadath.azazel.net ([81.187.231.250]:54248 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727103AbfK3R6s (ORCPT
+        with ESMTP id S1727108AbfK3R6s (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sat, 30 Nov 2019 12:58:48 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
@@ -29,23 +29,23 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=ylnKBALoIxWuzTItp1jGWu88hInloAG0UTJpbkEVG4o=; b=MewwE8toFhiN2d8mK53PFgKiiq
-        8lTOQTOP8sf6RFKkxfEbVEJc3/ktoTFPB4VELo/nUvwLWMurmqe5hv9hoVcOHnz1vMtfXGKHIJqJp
-        XU00LCcxuxsb3n1GkpafJ/E+Z7MKD3jEO8t6CODSpuUTcAAEYsVKDC5OEY5R6EyLFcAbfmJsJE7LZ
-        1n9JaZ9cPDFy1L4EbJnkzXBG69bLD6P19LsAhFa3ezP2MtDce+ScKRqnEIvkgNAOMystpmMJkq8X+
-        SzNasePwswxNdUF0OpgcllZmibdqVRfWyQYsWwDe4g8Svr+996ppZUYItyKL5yQqvfCe5JVSmXNlx
-        1pb1l2UQ==;
+        bh=7f0ELXwjzHTS/0m5kCDxt1lzGsPXizWkpXYvIa9PfS8=; b=KhTwWekZeyE8I72TigSqP0rzTd
+        xUbFNlbsVc1IIfz7HRMs4eVb5YodA0LlLcFRig3b7pA3l7qPxOFKTwVC/5b29EwRJT/3uD1P2hfJd
+        ciKw5olbad4Q0dR0XHVPEFzXOf7Idu8KXfbxwurwyL9VmWn5N3tyVPdcU4ikJfwbPVOpw25IrjChs
+        BFtlR/OD3uHuZIW/88ASd1YQEkRlt3si2rDYtBHEW9FTs6EitK/8mdaI3BCDozdVSO/KIAAeOF4Qj
+        NZwicw6VDyu89Q2MoFqUshxgxKaYM3noMvgL7QFYP/H+sgK+6Q6soPtrxvZuJhjx53i+gJxqAm/tu
+        rh6R7zrA==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1ib714-0002eP-FW; Sat, 30 Nov 2019 17:58:46 +0000
+        id 1ib714-0002eP-57; Sat, 30 Nov 2019 17:58:46 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Jan Engelhardt <jengelh@inai.de>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
         "Thomas B . Clark" <kernel@clark.bz>
-Subject: [PATCH xtables-addons v2 3/3] xt_geoip: fix in6_addr little-endian byte-swapping.
-Date:   Sat, 30 Nov 2019 17:58:45 +0000
-Message-Id: <20191130175845.369240-4-jeremy@azazel.net>
+Subject: [PATCH xtables-addons v2 1/3] configure: update max. supported kernel version.
+Date:   Sat, 30 Nov 2019 17:58:43 +0000
+Message-Id: <20191130175845.369240-2-jeremy@azazel.net>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191130175845.369240-1-jeremy@azazel.net>
 References: <3971b408-51e6-d90e-f291-7a43e46e84c1@ferree-clark.org>
@@ -60,86 +60,26 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The Perl script that builds the GeoIP DB's uses inet_pton(3) to convert
-the addresses to network byte-order.  This swaps 32-bit segments and
-converts:
+The maximum supported version is reported as 5.3.  Bump to 5.4.
 
-  1234:5678::90ab:cdef
-
-to:
-
-  8765:4321::fedc:ba09
-
-The kernel module compares the addresses in packets with the ranges from
-the DB in host byte-order using binary search.  It uses 32-bit swaps
-when converting the addresses.
-
-libxt_geoip, however, which the module uses to load the ranges from the
-DB and convert them from NBO to HBO, uses 16-bit swaps to do so, and
-this means that:
-
-  1234:5678::90ab:cdef
-
-becomes:
-
-  4321:8765::ba09:fedc
-
-Obviously, this is inconsistent with the kernel-module and DB build-
-script and breaks the binary search.
-
-Fixes: b91dbd03c717 ("geoip: store database in network byte order")
-Reported-by: "Thomas B. Clark" <kernel@clark.bz>
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- extensions/libxt_geoip.c | 28 ++++++++--------------------
- 1 file changed, 8 insertions(+), 20 deletions(-)
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/extensions/libxt_geoip.c b/extensions/libxt_geoip.c
-index 116f5f86eb01..5b8697dc6161 100644
---- a/extensions/libxt_geoip.c
-+++ b/extensions/libxt_geoip.c
-@@ -50,26 +50,6 @@ static struct option geoip_opts[] = {
- };
- 
- #if __BYTE_ORDER == __LITTLE_ENDIAN
--static void geoip_swap_le16(uint16_t *buf)
--{
--	unsigned char *p = (void *)buf;
--	uint16_t n= p[0] + (p[1] << 8);
--	p[0] = (n >> 8) & 0xff;
--	p[1] = n & 0xff;
--}
--
--static void geoip_swap_in6(struct in6_addr *in6)
--{
--	geoip_swap_le16(&in6->s6_addr16[0]);
--	geoip_swap_le16(&in6->s6_addr16[1]);
--	geoip_swap_le16(&in6->s6_addr16[2]);
--	geoip_swap_le16(&in6->s6_addr16[3]);
--	geoip_swap_le16(&in6->s6_addr16[4]);
--	geoip_swap_le16(&in6->s6_addr16[5]);
--	geoip_swap_le16(&in6->s6_addr16[6]);
--	geoip_swap_le16(&in6->s6_addr16[7]);
--}
--
- static void geoip_swap_le32(uint32_t *buf)
- {
- 	unsigned char *p = (void *)buf;
-@@ -79,6 +59,14 @@ static void geoip_swap_le32(uint32_t *buf)
- 	p[2] = (n >> 8) & 0xff;
- 	p[3] = n & 0xff;
- }
-+
-+static void geoip_swap_in6(struct in6_addr *in6)
-+{
-+	geoip_swap_le32(&in6->s6_addr32[0]);
-+	geoip_swap_le32(&in6->s6_addr32[1]);
-+	geoip_swap_le32(&in6->s6_addr32[2]);
-+	geoip_swap_le32(&in6->s6_addr32[3]);
-+}
- #endif
- 
- static void *
+diff --git a/configure.ac b/configure.ac
+index eccb09bf44b4..103cf07d6f9a 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -57,7 +57,7 @@ if test -n "$kbuilddir"; then
+ 		echo "WARNING: Version detection did not succeed. Continue at own luck.";
+ 	else
+ 		echo "$kmajor.$kminor.$kmicro.$kstable in $kbuilddir";
+-		if test "$kmajor" -gt 5 -o "$kmajor" -eq 5 -a "$kminor" -gt 3; then
++		if test "$kmajor" -gt 5 -o "$kmajor" -eq 5 -a "$kminor" -gt 4; then
+ 			echo "WARNING: That kernel version is not officially supported yet. Continue at own luck.";
+ 		elif test "$kmajor" -eq 5 -a "$kminor" -ge 0; then
+ 			:
 -- 
 2.24.0
 
