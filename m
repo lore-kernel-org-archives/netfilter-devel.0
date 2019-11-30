@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0581DC432C0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31454C43215
 	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Nov 2019 17:02:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C52192073C
+	by mail.kernel.org (Postfix) with ESMTP id F0B462082E
 	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Nov 2019 17:02:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="hso/WDSK"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="ZW2TcvKT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727103AbfK3RCV (ORCPT
+        id S1727108AbfK3RCV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sat, 30 Nov 2019 12:02:21 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:52156 "EHLO
+Received: from kadath.azazel.net ([81.187.231.250]:52158 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726981AbfK3RCV (ORCPT
+        with ESMTP id S1727012AbfK3RCV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sat, 30 Nov 2019 12:02:21 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
@@ -29,23 +29,23 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=7f0ELXwjzHTS/0m5kCDxt1lzGsPXizWkpXYvIa9PfS8=; b=hso/WDSKAMVBBAteA+h1KQsm/d
-        DooE92WqcimOTo+EZK+znSECBn2hdbahT22ebRxildaL4NPV57hiUWzfowpEzlcdrqszwQSIdmQlt
-        YNGzqOOVIubHxfRB3FYPHMvgO061JDkImVAlYwXYKcTbI6EdnxEQblpIdbfHWVHmMy3un0DMxbdnm
-        p/oqHIXvKKrgurS0zjPGrM1N/YWNMotpUbHhQzkPn0CgCeqDlW+znKAJ5H5CjxKn5oC3S5y8MK322
-        SwT1aHBukwJJiu+qOkXB7Mb7ZiWo9VywQk5kIwccM1eAAGgvCIA+q39CfKrQklJungfD/Pmd2UqRV
-        DgYU9n0w==;
+        bh=7f0ELXwjzHTS/0m5kCDxt1lzGsPXizWkpXYvIa9PfS8=; b=ZW2TcvKTi2vlRUhelF/55tgexa
+        tQ2dsx9SY88LQ4db0ad+dMsBhCxiJm/Trj2/V7q9+QTMwxilm11jRF+RqwQ3/90d+f4P/5V/HKCPW
+        jl/bG9iK6Acns2X4Z8gSAZA5BDdm45TMa/W214w28YgMfMIyKmL3sTU9kIDk0tJN8/v2blJ6pCje0
+        McfcPnF1BD615rtO78AGklz/DIjrh71JSrezRlbopYIOA3CMHvXrRnRNCZemzyuUycyth0JElGV8k
+        J9oB1BTFeqNoV0URPcRUqIehPDMn/PCrx6qovYECwX54s/7FQtuIA/7/geNmWEnOhs0ShlJfbW5TW
+        G8Yq3Tbg==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1ib68S-0001qd-1R; Sat, 30 Nov 2019 17:02:20 +0000
+        id 1ib68S-0001qd-6I; Sat, 30 Nov 2019 17:02:20 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Jan Engelhardt <jengelh@inai.de>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
         "Thomas B . Clark" <kernel@clark.bz>
-Subject: [PATCH xtables-addons 1/3] configure: Fix max. supported kernel version.
-Date:   Sat, 30 Nov 2019 17:02:16 +0000
-Message-Id: <20191130170219.368867-2-jeremy@azazel.net>
+Subject: [PATCH xtables-addons 1/3] configure: update max. supported kernel version.
+Date:   Sat, 30 Nov 2019 17:02:17 +0000
+Message-Id: <20191130170219.368867-3-jeremy@azazel.net>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191130170219.368867-1-jeremy@azazel.net>
 References: <3971b408-51e6-d90e-f291-7a43e46e84c1@ferree-clark.org>
