@@ -2,85 +2,121 @@ Return-Path: <SRS0=20nZ=ZY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96121C432C0
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 19:05:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91767C432C0
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 19:27:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5F768217F9
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 19:05:12 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=tanaza-com.20150623.gappssmtp.com header.i=@tanaza-com.20150623.gappssmtp.com header.b="sonkycj1"
+	by mail.kernel.org (Postfix) with ESMTP id 6D06520833
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 19:27:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728029AbfLBTFM (ORCPT
+        id S1728065AbfLBT1W (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Dec 2019 14:05:12 -0500
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:37902 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727730AbfLBTFM (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Dec 2019 14:05:12 -0500
-Received: by mail-wm1-f68.google.com with SMTP id p17so644749wmi.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 02 Dec 2019 11:05:10 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=tanaza-com.20150623.gappssmtp.com; s=20150623;
-        h=references:user-agent:from:to:cc:subject:message-id:in-reply-to
-         :date:mime-version;
-        bh=cpDuQ+8S1NqmWh2GgkrifCfeM8SlTPIIbhI2n6BWOvs=;
-        b=sonkycj1mFy8Md475zDtj1AcFk5pt6Lup/DZrpQiH9Mku7PBXg96UbiXN7bNn3Q6gu
-         LvdWF/DqMoCYIoLf1KYLQh5fE426TWIrDjM8ItYYFYHzaP0iaRQwRES1ZA3KRxOhGpRP
-         UiEYYPcYklySl06jvrC9Y6BhpQM3IX+KEqNUfJwBKTAiuqk2WwL3LBEASEM2tLQnJCjR
-         p4Km4TTqKack3gX3zFL5efSJmCQHtO6rHK9fm8ZXmmjsfZ1MBuRrNKPROyjfzs+xBrRF
-         WRaOGLWo7r1qu8/CYAKzaY0E6HlX8/1Th6zpmZfxp9zpvBDDlO+gtzu/fhlNiLVFy/Uy
-         oRpQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:references:user-agent:from:to:cc:subject
-         :message-id:in-reply-to:date:mime-version;
-        bh=cpDuQ+8S1NqmWh2GgkrifCfeM8SlTPIIbhI2n6BWOvs=;
-        b=c+PwS+TCb8zuBbvNFmfH6Ly8+AUHSgkY6ulmtI3BOShzRvCZAMfWumR6cBvaFvdkph
-         hNwH9G7tejsL2xUi0Dmop7Q0E+/t1bFc79FP5ElDpCNcvik+76zkkG4T13v96juWsSzX
-         XELIUVu2bgQ6tadR39+grFVfgx8rPtYhHET6pLRXOj0Oc7xnl2oDR9TRD8Fkks0+gZwO
-         vwMkX5+UTD6xgynNLKtcRRaY6BeTnKgEHfsHoWpACfQ0gf/Yv41GPHLZVqsxayvZokbJ
-         woueHL35fVAwjBvdmxkbaqVsUyYElrIcQsqOZDDHhs1MLeYpiNVR+V7qkTN99cMY5L5L
-         D44w==
-X-Gm-Message-State: APjAAAXjD2ys1HPyZm1/P0PmeCNrICAHUTufM8zfkT454AV8WgrlYGoA
-        UAAWC7jzpyCmWPaAllFkiX0yQw==
-X-Google-Smtp-Source: APXvYqzXJDiESvArk5u/jax/qwNnw5RQ+BTZyzJ0XCZtnxIJWw8vPfN7p/aPNd9ERrjj1W1VOi5jTg==
-X-Received: by 2002:a1c:3d87:: with SMTP id k129mr31825358wma.26.1575313509766;
-        Mon, 02 Dec 2019 11:05:09 -0800 (PST)
-Received: from sancho ([37.162.99.119])
-        by smtp.gmail.com with ESMTPSA id c2sm378380wrp.46.2019.12.02.11.04.57
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 02 Dec 2019 11:05:01 -0800 (PST)
-References: <20191202185430.31367-1-marco.oliverio@tanaza.com>
-User-agent: mu4e 1.2.0; emacs 26.3
-From:   Marco Oliverio <marco.oliverio@tanaza.com>
-To:     Marco Oliverio <marco.oliverio@tanaza.com>
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        fw@strlen.de, rocco.folino@tanaza.com
-Subject: Re: [PATCH nf] netfilter: nf_queue: enqueue skbs with NULL dst
-Message-ID: <87r21mv9aj.fsf@tanaza.com>
-In-reply-to: <20191202185430.31367-1-marco.oliverio@tanaza.com>
-Date:   Mon, 02 Dec 2019 20:04:37 +0100
+        Mon, 2 Dec 2019 14:27:22 -0500
+Received: from correo.us.es ([193.147.175.20]:40002 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727686AbfLBT1V (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 2 Dec 2019 14:27:21 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 7170FB6B8D
+        for <netfilter-devel@vger.kernel.org>; Mon,  2 Dec 2019 20:27:18 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6147DDA737
+        for <netfilter-devel@vger.kernel.org>; Mon,  2 Dec 2019 20:27:18 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 633C2DA80C; Mon,  2 Dec 2019 20:27:12 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3FAA9DA808;
+        Mon,  2 Dec 2019 20:27:10 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 02 Dec 2019 20:27:10 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 1B7134265A5A;
+        Mon,  2 Dec 2019 20:27:10 +0100 (CET)
+Date:   Mon, 2 Dec 2019 20:27:11 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org,
+        Brett Mastbergen <bmastbergen@untangle.com>
+Subject: Re: [nft PATCH v3] src: Support maps as left side expressions
+Message-ID: <20191202192711.uv6ercspf6ibsvue@salvia>
+References: <20191130135321.5188-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191130135321.5188-1-phil@nwl.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Sat, Nov 30, 2019 at 02:53:21PM +0100, Phil Sutter wrote:
+> From: Brett Mastbergen <bmastbergen@untangle.com>
+> 
+> This change allows map expressions on the left side of comparisons:
+> 
+> nft add rule foo bar ip saddr map @map_a == 22 counter
+> 
+> It also allows map expressions as the left side expression of other
+> map expressions:
+> 
+> nft add rule foo bar ip saddr map @map_a map @map_b == 22 counter
+> 
+> To accomplish this, some additional context needs to be set during
+> evaluation and delinearization.  A tweak is also make to the parser
+> logic to allow map expressions as the left hand expression to other
+> map expressions.
+> 
+> By allowing maps as left side comparison expressions one can map
+> information in the packet to some arbitrary piece of data and use
+> the equality (or inequality) to make some decision about the traffic,
+> unlike today where the result of a map lookup is only usable as the
+> right side of a statement (like dnat or snat) that actually uses the
+> value as input.
+> 
+> Signed-off-by: Brett Mastbergen <bmastbergen@untangle.com>
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+> v2: Add testcases
+> v3: Support maps on vmap LHS
+> 
+> Pablo, Brett,
+> 
+> Reading the discussion about pending v2 of this patch I gave it a try
+> and extending functionality to verdict maps was easy and
+> straightforward, so I just went ahead and extended the code accordingly.
 
-Marco Oliverio writes:
+Nice, thanks a lot for following up on this.
 
-> Bridge packets that are forwarded have skb->dst == NULL and get
-> dropped by the check introduced by
-> ...
+There is still one more case we have to cover and we go:
 
-ops. sorry for the multiple emails, made a mess :-)
+$ sudo nft add rule x z ip saddr map { 1.1.1.1 : 22 } vmap { 22 : accept }
+Error: No symbol type information
+add rule x z ip saddr map { 1.1.1.1 : 22 } vmap { 22 : accept }
+                                      ^^
 
-Refer to this thread.
+The existing syntax does not give us a chance to specify the right
+hand side datatype. For named sets, this is fine because the set
+reference implicit gives us the datatype. This information is not
+available on implicit sets.
 
-M
+I think we have to update the syntax to include this information. For
+the named set case, this will allow us to validate that actually the
+specified selector and the set datatype are matching. For the implicit
+sets, this will give us the datatype for the right hand side.
+
+Otherwise, I'm afraid we will have to deal with variable length
+integer, which will make things more complicated. At this stage, I
+would start with strict typing, later on we can probably relax this in
+the future as we find a way to reasonable infer information. This
+means that a more verbose syntax, but I think that is fine.
