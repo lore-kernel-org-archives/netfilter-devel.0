@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E723C432C0
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 22:24:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD382C432C3
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 22:24:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6E4EF2073C
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 22:24:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 88B402073C
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 22:24:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725941AbfLBWYM (ORCPT
+        id S1725957AbfLBWYR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Dec 2019 17:24:12 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:54600 "EHLO orbyte.nwl.cc"
+        Mon, 2 Dec 2019 17:24:17 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:54606 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725834AbfLBWYM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Dec 2019 17:24:12 -0500
-Received: from localhost ([::1]:39458 helo=tatos)
+        id S1725834AbfLBWYR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 2 Dec 2019 17:24:17 -0500
+Received: from localhost ([::1]:39464 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1ibu70-0000DY-9L; Mon, 02 Dec 2019 23:24:10 +0100
+        id 1ibu75-0000Dw-Ln; Mon, 02 Dec 2019 23:24:15 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [libnftnl PATCH 3/4] flowtable: Correctly check realloc() call
-Date:   Mon,  2 Dec 2019 23:24:00 +0100
-Message-Id: <20191202222401.867-4-phil@nwl.cc>
+Subject: [libnftnl PATCH 4/4] chain: Correctly check realloc() call
+Date:   Mon,  2 Dec 2019 23:24:01 +0100
+Message-Id: <20191202222401.867-5-phil@nwl.cc>
 X-Mailer: git-send-email 2.24.0
 In-Reply-To: <20191202222401.867-1-phil@nwl.cc>
 References: <20191202222401.867-1-phil@nwl.cc>
@@ -44,26 +44,26 @@ untouchted and therefore still has to be freed. Unconditionally
 overwriting the old pointer is therefore a bad idea, use a temporary
 variable instead.
 
-Fixes: 7f99639dd9217 ("flowtable: device array dynamic allocation")
+Fixes: e3ac19b5ec162 ("chain: multi-device support")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/flowtable.c | 11 +++++------
+ src/chain.c | 11 +++++------
  1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/src/flowtable.c b/src/flowtable.c
-index db319434b51c0..9ba3b6d9a3404 100644
---- a/src/flowtable.c
-+++ b/src/flowtable.c
-@@ -388,7 +388,7 @@ static int nftnl_flowtable_parse_hook_cb(const struct nlattr *attr, void *data)
- static int nftnl_flowtable_parse_devs(struct nlattr *nest,
- 				      struct nftnl_flowtable *c)
+diff --git a/src/chain.c b/src/chain.c
+index 9cc8735a4936f..b9a16fc9b42df 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -605,7 +605,7 @@ static int nftnl_chain_parse_hook_cb(const struct nlattr *attr, void *data)
+ 
+ static int nftnl_chain_parse_devs(struct nlattr *nest, struct nftnl_chain *c)
  {
 -	const char **dev_array;
 +	const char **dev_array, **tmp;
  	int len = 0, size = 8;
  	struct nlattr *attr;
  
-@@ -401,14 +401,13 @@ static int nftnl_flowtable_parse_devs(struct nlattr *nest,
+@@ -618,14 +618,13 @@ static int nftnl_chain_parse_devs(struct nlattr *nest, struct nftnl_chain *c)
  			goto err;
  		dev_array[len++] = strdup(mnl_attr_get_str(attr));
  		if (len >= size) {
