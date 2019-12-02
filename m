@@ -2,68 +2,129 @@ Return-Path: <SRS0=20nZ=ZY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3893C432C0
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 10:26:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44D6FC432C0
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 12:35:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AD3A72070B
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 10:26:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1B04E2073C
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 12:35:00 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=tanaza-com.20150623.gappssmtp.com header.i=@tanaza-com.20150623.gappssmtp.com header.b="h//gGqry"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726469AbfLBK0h (ORCPT
+        id S1727440AbfLBMe7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Dec 2019 05:26:37 -0500
-Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:36457 "EHLO
-        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726330AbfLBK0h (ORCPT
+        Mon, 2 Dec 2019 07:34:59 -0500
+Received: from mail-wm1-f68.google.com ([209.85.128.68]:54322 "EHLO
+        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727431AbfLBMe7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Dec 2019 05:26:37 -0500
-Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
-        by mail104.syd.optusnet.com.au (Postfix) with SMTP id E10307EB207
-        for <netfilter-devel@vger.kernel.org>; Mon,  2 Dec 2019 21:26:24 +1100 (AEDT)
-Received: (qmail 11622 invoked by uid 501); 2 Dec 2019 10:26:23 -0000
-Date:   Mon, 2 Dec 2019 21:26:23 +1100
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Documentation question (verdicts)
-Message-ID: <20191202102623.GA775@dimstar.local.net>
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
+        Mon, 2 Dec 2019 07:34:59 -0500
+Received: by mail-wm1-f68.google.com with SMTP id b11so21586605wmj.4
+        for <netfilter-devel@vger.kernel.org>; Mon, 02 Dec 2019 04:34:57 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=tanaza-com.20150623.gappssmtp.com; s=20150623;
+        h=user-agent:from:to:cc:subject:date:message-id:mime-version;
+        bh=si4Qt/WqY+cuoLWiKhaIj+u/k3AZYYwbUnJI7p4ynE8=;
+        b=h//gGqry2mEd1I2IzUX4xqvElIANo6yfvbrfVkZ+o3t5nCk+YcsaniWTXAmzCXDDox
+         0xJVw4OlxGye+W/YMlUEKOop/d25P8mOHHvjU4/e1JivaroqDWwfVZU+Dv5S1QkliPSF
+         xZAOE10HP8SgX4AJo7zMEkTfg1QS9ZexuPItvsGlDZr7ESD/RipsxYBwQydlYaXz98cp
+         2KjQdGzHZv9WNhBdXYR6ATVXBqLuItVewkS46f0EmZC+1svzX9530l2o+dqADL7EgO2x
+         TBip8t+q1UvC8z1dhr0y+q6tDrQ8caFhEV/xibW1BwY4kWHTgr0Y25MtWoRkZ+ZxA8FN
+         C1Yg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:user-agent:from:to:cc:subject:date:message-id
+         :mime-version;
+        bh=si4Qt/WqY+cuoLWiKhaIj+u/k3AZYYwbUnJI7p4ynE8=;
+        b=KMHY9otIDiAwBkjEP4feoqcDaNqhATceiP//h+jcgR6dT7hd/SDjEzEb5Aw8aUSsFD
+         clES82DBdgTQCU4atow6vDiHQ/ktHfOD4Yt1/MiNCoZ63fyWBhN5KNg0WN+GctAJcXc6
+         EJWvPPfWyKaTBRnNGTmwLsOibV2X+13rO8EA78obqkDOxmuEhyrYnBI/7nwEcVSntSwg
+         2gn2C4Qpv25G8Yq0eo1qIzsUSNEgqL+5D89QzXs1sps6Od419XoXWA/SVVoxLHGli9T7
+         A6i+7Y5QsNjxnf4vlwosNPjCzhBjO5UVdKJxHSOmU7+7XBty+N/dDwOp3dVqAE/+JUvt
+         dQXw==
+X-Gm-Message-State: APjAAAUFLkwxH9WeJYl/s/S2f4yAGrQzx667uZsQSKfeWRo8L1GrbHqf
+        SX3QsL3KJJGWmNqrUJohwxxihAOxqmFAcQ==
+X-Google-Smtp-Source: APXvYqzHOiRsu2vcc7QO823R5r7yPixuu25GtLEeWyv+t2re3G8D4cT9nrYe6fc+Q3IAs9tale45gQ==
+X-Received: by 2002:a1c:f415:: with SMTP id z21mr28329341wma.140.1575290096457;
+        Mon, 02 Dec 2019 04:34:56 -0800 (PST)
+Received: from sancho ([160.97.163.130])
+        by smtp.gmail.com with ESMTPSA id a186sm12601970wmd.41.2019.12.02.04.34.55
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 02 Dec 2019 04:34:55 -0800 (PST)
+User-agent: mu4e 1.2.0; emacs 26.3
+From:   Marco Oliverio <marco.oliverio@tanaza.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Marco Oliverio <marco.oliverio@tanaza.com>,
+        Rocco Folino <notifications@github.com>,
+        Florian Westphal <fw@strlen.de>,
+        netdev <netdev@vger.kernel.org>
+Subject: forwarded bridged packets enqueuing is broken
+Date:   Mon, 02 Dec 2019 13:34:54 +0100
+Message-ID: <87pnh6lxch.fsf@tanaza.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.3 cv=X6os11be c=1 sm=1 tr=0
-        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
-        a=kj9zAlcOel0A:10 a=pxVhFHJ0LMsA:10 a=RSmzAf-M6YYA:10 a=uRtfhzloAAAA:20
-        a=fAsc-QAdzdYm7jV0R9AA:9 a=CjuIK1q_8ugA:10 a=ubDO4clxTgye4MFiUn6k:22
-        a=Z5ABNNGmrOfJ6cZ5bIyy:22 a=jd6J4Gguk5HxikPWLKER:22
+Content-Type: text/plain
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
 
-Queue handling [DEPRECATED] in libnetfilter_queue.c documents these 3:
+Hi,
 
-> 278  *   - NF_ACCEPT the packet passes, continue iterations
-> 281  *   - NF_REPEAT iterate the same cycle once more
-> 282  *   - NF_STOP accept, but don't continue iterations
+We cannot enqueue userspace bridged forwarded packets (neither in the
+forward chain nor in the postrouting one):
 
-In my tests, NF_REPEAT works as documented - the input hook presents the packet
-a second time. But, contrary to the above, the packet does not show again
-after NF_ACCEPT.
+nft add table bridge t
+nft add chain bridge t forward {type filter hook forward priority 0\;}
+nft add rule bridge t forward queue
 
-Is that expected behaviour nowadays?
+packets from machines other than localhost aren't enqueued at all.
 
-And if so, does that make NF_STOP redundant?
+(this is also true for the postrouting chain).
 
-BTW if you'd like to try it, my test program nfq6 is a subdirectory at
-https://github.com/duncan-roe/nfq (nfq itself is an ad blocker).
+We think the root of the problem is the check introduced by
+b60a77386b1d4868f72f6353d35dabe5fbe981f2 (net: make skb_dst_force
+return true when dst is refcounted):
 
-Cheers ... Duncan.
+modified   net/netfilter/nf_queue.c
+@@ -174,6 +174,11 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
+ 		goto err;
+ 	}
+ 
++	if (!skb_dst_force(skb) && state->hook != NF_INET_PRE_ROUTING) {
++		status = -ENETDOWN;
++		goto err;
++	}
++
+
+AFAIU forwarded bridge packets have a null dst entry in the first
+place, as they don't enter the ip stack, so skb_dst_force() returns
+false. The very same commit suggested to check skb_dst() before
+skb_dst_force(), doing that indeed fix the issue for us:
+
+modified   net/netfilter/nf_queue.c
+@@ -174,7 +174,7 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
+ 		goto err;
+ 	}
+ 
+-	if (!skb_dst_force(skb) && state->hook != NF_INET_PRE_ROUTING) {
++	if (skb_dst(skb) && !skb_dst_force(skb)) {
+ 		status = -ENETDOWN;
+ 		goto err;
+ 	}
+
+This assumes that we shouldn't enqueue the packet if skb_dst_force()
+sets not-NULL skb->dst to NULL, but it is safe to do that if skb->dst
+was NULL in the first place. It should also cover che PRE_ROUTING hook
+case. Is this assumption correct? Are there any side effects we're
+missing?
+
+If it is correct and it helps we can send a patch on top of the
+netfilter tree.
+
+Greetins
+Marco
+
