@@ -6,73 +6,66 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C14FC432C0
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 17:16:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75104C432C0
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 17:33:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1E29920672
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 17:16:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5496B20848
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 17:33:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727646AbfLBRQQ (ORCPT
+        id S1727843AbfLBRdP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Dec 2019 12:16:16 -0500
-Received: from correo.us.es ([193.147.175.20]:46234 "EHLO mail.us.es"
+        Mon, 2 Dec 2019 12:33:15 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:54118 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727553AbfLBRQQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Dec 2019 12:16:16 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6D330E34D4
-        for <netfilter-devel@vger.kernel.org>; Mon,  2 Dec 2019 18:16:13 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6003FDA738
-        for <netfilter-devel@vger.kernel.org>; Mon,  2 Dec 2019 18:16:13 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 55623DA70C; Mon,  2 Dec 2019 18:16:13 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2EF65DA70C;
-        Mon,  2 Dec 2019 18:16:11 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 02 Dec 2019 18:16:11 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 01E534265A5A;
-        Mon,  2 Dec 2019 18:16:10 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     phil@nwl.cc
-Subject: [PATCH iptables] build: bump dependency on libnftnl
-Date:   Mon,  2 Dec 2019 18:16:09 +0100
-Message-Id: <20191202171609.549982-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        id S1727815AbfLBRdP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 2 Dec 2019 12:33:15 -0500
+Received: from localhost ([::1]:38976 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1ibpZR-0005fE-J7; Mon, 02 Dec 2019 18:33:13 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [libnftnl PATCH] tests: flowtable: Don't check NFTNL_FLOWTABLE_SIZE
+Date:   Mon,  2 Dec 2019 18:33:05 +0100
+Message-Id: <20191202173305.29737-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.24.0
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nftnl_set_list_lookup_byname() libnftnl requires 1.1.5.
+Marshalling code around that attribute has been dropped by commit
+d1c4b98c733a5 ("flowtable: remove NFTA_FLOWTABLE_SIZE") so it's value is
+lost during the test.
 
-Reported-by: Phil Sutter <phil@nwl.cc>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Assuming that NFTNL_FLOWTABLE_SIZE will receive kernel support at a
+later point, leave the test code in place but just comment it out.
+
+Fixes: d1c4b98c733a5 ("flowtable: remove NFTA_FLOWTABLE_SIZE")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- configure.ac | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tests/nft-flowtable-test.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/configure.ac b/configure.ac
-index cab77a489dfd..27e90703c9ad 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -131,7 +131,7 @@ if test "x$enable_nftables" = "xyes"; then
- 		exit 1
- 	fi
- 
--	PKG_CHECK_MODULES([libnftnl], [libnftnl >= 1.1.3], [nftables=1], [nftables=0])
-+	PKG_CHECK_MODULES([libnftnl], [libnftnl >= 1.1.5], [nftables=1], [nftables=0])
- 
- 	if test "$nftables" = 0;
- 	then
+diff --git a/tests/nft-flowtable-test.c b/tests/nft-flowtable-test.c
+index 3edb00ddf3196..8ab8d4c5347a4 100644
+--- a/tests/nft-flowtable-test.c
++++ b/tests/nft-flowtable-test.c
+@@ -33,9 +33,11 @@ static void cmp_nftnl_flowtable(struct nftnl_flowtable *a, struct nftnl_flowtabl
+ 	if (nftnl_flowtable_get_u32(a, NFTNL_FLOWTABLE_USE) !=
+ 	    nftnl_flowtable_get_u32(b, NFTNL_FLOWTABLE_USE))
+ 		print_err("Flowtable use mismatches");
++#if 0
+ 	if (nftnl_flowtable_get_u32(a, NFTNL_FLOWTABLE_SIZE) !=
+ 	    nftnl_flowtable_get_u32(b, NFTNL_FLOWTABLE_SIZE))
+ 		print_err("Flowtable size mismatches");
++#endif
+ 	if (nftnl_flowtable_get_u32(a, NFTNL_FLOWTABLE_FLAGS) !=
+ 	    nftnl_flowtable_get_u32(b, NFTNL_FLOWTABLE_FLAGS))
+ 		print_err("Flowtable flags mismatches");
 -- 
-2.11.0
+2.24.0
 
