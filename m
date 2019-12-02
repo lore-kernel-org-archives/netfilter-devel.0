@@ -2,129 +2,88 @@ Return-Path: <SRS0=20nZ=ZY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44D6FC432C0
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 12:35:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64E37C432C0
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 13:14:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1B04E2073C
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 12:35:00 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=tanaza-com.20150623.gappssmtp.com header.i=@tanaza-com.20150623.gappssmtp.com header.b="h//gGqry"
+	by mail.kernel.org (Postfix) with ESMTP id 3614420674
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 13:14:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727440AbfLBMe7 (ORCPT
+        id S1727501AbfLBNOP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Dec 2019 07:34:59 -0500
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:54322 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727431AbfLBMe7 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Dec 2019 07:34:59 -0500
-Received: by mail-wm1-f68.google.com with SMTP id b11so21586605wmj.4
-        for <netfilter-devel@vger.kernel.org>; Mon, 02 Dec 2019 04:34:57 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=tanaza-com.20150623.gappssmtp.com; s=20150623;
-        h=user-agent:from:to:cc:subject:date:message-id:mime-version;
-        bh=si4Qt/WqY+cuoLWiKhaIj+u/k3AZYYwbUnJI7p4ynE8=;
-        b=h//gGqry2mEd1I2IzUX4xqvElIANo6yfvbrfVkZ+o3t5nCk+YcsaniWTXAmzCXDDox
-         0xJVw4OlxGye+W/YMlUEKOop/d25P8mOHHvjU4/e1JivaroqDWwfVZU+Dv5S1QkliPSF
-         xZAOE10HP8SgX4AJo7zMEkTfg1QS9ZexuPItvsGlDZr7ESD/RipsxYBwQydlYaXz98cp
-         2KjQdGzHZv9WNhBdXYR6ATVXBqLuItVewkS46f0EmZC+1svzX9530l2o+dqADL7EgO2x
-         TBip8t+q1UvC8z1dhr0y+q6tDrQ8caFhEV/xibW1BwY4kWHTgr0Y25MtWoRkZ+ZxA8FN
-         C1Yg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:user-agent:from:to:cc:subject:date:message-id
-         :mime-version;
-        bh=si4Qt/WqY+cuoLWiKhaIj+u/k3AZYYwbUnJI7p4ynE8=;
-        b=KMHY9otIDiAwBkjEP4feoqcDaNqhATceiP//h+jcgR6dT7hd/SDjEzEb5Aw8aUSsFD
-         clES82DBdgTQCU4atow6vDiHQ/ktHfOD4Yt1/MiNCoZ63fyWBhN5KNg0WN+GctAJcXc6
-         EJWvPPfWyKaTBRnNGTmwLsOibV2X+13rO8EA78obqkDOxmuEhyrYnBI/7nwEcVSntSwg
-         2gn2C4Qpv25G8Yq0eo1qIzsUSNEgqL+5D89QzXs1sps6Od419XoXWA/SVVoxLHGli9T7
-         A6i+7Y5QsNjxnf4vlwosNPjCzhBjO5UVdKJxHSOmU7+7XBty+N/dDwOp3dVqAE/+JUvt
-         dQXw==
-X-Gm-Message-State: APjAAAUFLkwxH9WeJYl/s/S2f4yAGrQzx667uZsQSKfeWRo8L1GrbHqf
-        SX3QsL3KJJGWmNqrUJohwxxihAOxqmFAcQ==
-X-Google-Smtp-Source: APXvYqzHOiRsu2vcc7QO823R5r7yPixuu25GtLEeWyv+t2re3G8D4cT9nrYe6fc+Q3IAs9tale45gQ==
-X-Received: by 2002:a1c:f415:: with SMTP id z21mr28329341wma.140.1575290096457;
-        Mon, 02 Dec 2019 04:34:56 -0800 (PST)
-Received: from sancho ([160.97.163.130])
-        by smtp.gmail.com with ESMTPSA id a186sm12601970wmd.41.2019.12.02.04.34.55
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 02 Dec 2019 04:34:55 -0800 (PST)
-User-agent: mu4e 1.2.0; emacs 26.3
-From:   Marco Oliverio <marco.oliverio@tanaza.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Marco Oliverio <marco.oliverio@tanaza.com>,
-        Rocco Folino <notifications@github.com>,
-        Florian Westphal <fw@strlen.de>,
-        netdev <netdev@vger.kernel.org>
-Subject: forwarded bridged packets enqueuing is broken
-Date:   Mon, 02 Dec 2019 13:34:54 +0100
-Message-ID: <87pnh6lxch.fsf@tanaza.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Mon, 2 Dec 2019 08:14:15 -0500
+Received: from correo.us.es ([193.147.175.20]:49316 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727398AbfLBNOO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 2 Dec 2019 08:14:14 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 77DE5A1A341
+        for <netfilter-devel@vger.kernel.org>; Mon,  2 Dec 2019 14:14:11 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 68174DA703
+        for <netfilter-devel@vger.kernel.org>; Mon,  2 Dec 2019 14:14:11 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 5D754DA70D; Mon,  2 Dec 2019 14:14:11 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 471EADA703;
+        Mon,  2 Dec 2019 14:14:09 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 02 Dec 2019 14:14:09 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 15FC542EE38E;
+        Mon,  2 Dec 2019 14:14:09 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     sbrivio@redhat.com
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH,nf-next RFC 0/2] add NFTA_SET_ELEM_KEY_END
+Date:   Mon,  2 Dec 2019 14:14:05 +0100
+Message-Id: <20191202131407.500999-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi Stefano,
 
-Hi,
+This patchset extends the netlink API to allow to express an interval
+with one single element.
 
-We cannot enqueue userspace bridged forwarded packets (neither in the
-forward chain nor in the postrouting one):
+This simplifies this interface since userspace does not need to send two
+independent elements anymore, one of the including the
+NFT_SET_ELEM_INTERVAL_END flag.
 
-nft add table bridge t
-nft add chain bridge t forward {type filter hook forward priority 0\;}
-nft add rule bridge t forward queue
+The idea is to use the _DESC to specify that userspace speaks the kernel
+that new API representation. In your case, the new description attribute
+that tells that this set contains interval + concatenation implicitly
+tells the kernel that userspace supports for this new API.
 
-packets from machines other than localhost aren't enqueued at all.
+If you're fine with this, I can scratch a bit of time to finish the
+libnftnl part. The nft code will need a small update too. You will not
+need to use the nft_set_pipapo object as scratchpad area anymore.
 
-(this is also true for the postrouting chain).
+Compile-tested only.
 
-We think the root of the problem is the check introduced by
-b60a77386b1d4868f72f6353d35dabe5fbe981f2 (net: make skb_dst_force
-return true when dst is refcounted):
+Let me know, thanks.
 
-modified   net/netfilter/nf_queue.c
-@@ -174,6 +174,11 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 		goto err;
- 	}
- 
-+	if (!skb_dst_force(skb) && state->hook != NF_INET_PRE_ROUTING) {
-+		status = -ENETDOWN;
-+		goto err;
-+	}
-+
+Pablo Neira Ayuso (2):
+  netfilter: nf_tables: add nft_setelem_parse_key()
+  netfilter: nf_tables: add NFTA_SET_ELEM_KEY_END attribute
 
-AFAIU forwarded bridge packets have a null dst entry in the first
-place, as they don't enter the ip stack, so skb_dst_force() returns
-false. The very same commit suggested to check skb_dst() before
-skb_dst_force(), doing that indeed fix the issue for us:
+ include/net/netfilter/nf_tables.h        |  14 +++-
+ include/uapi/linux/netfilter/nf_tables.h |   2 +
+ net/netfilter/nf_tables_api.c            | 134 +++++++++++++++++++++----------
+ net/netfilter/nft_dynset.c               |   2 +-
+ 4 files changed, 106 insertions(+), 46 deletions(-)
 
-modified   net/netfilter/nf_queue.c
-@@ -174,7 +174,7 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 		goto err;
- 	}
- 
--	if (!skb_dst_force(skb) && state->hook != NF_INET_PRE_ROUTING) {
-+	if (skb_dst(skb) && !skb_dst_force(skb)) {
- 		status = -ENETDOWN;
- 		goto err;
- 	}
-
-This assumes that we shouldn't enqueue the packet if skb_dst_force()
-sets not-NULL skb->dst to NULL, but it is safe to do that if skb->dst
-was NULL in the first place. It should also cover che PRE_ROUTING hook
-case. Is this assumption correct? Are there any side effects we're
-missing?
-
-If it is correct and it helps we can send a patch on top of the
-netfilter tree.
-
-Greetins
-Marco
+--
+2.11.0
 
