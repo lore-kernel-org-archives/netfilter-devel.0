@@ -2,97 +2,163 @@ Return-Path: <SRS0=20nZ=ZY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26D74C33CA0
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 09:25:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3164CC432C3
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 09:32:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0121C20833
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 09:25:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 07AFC2070B
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Dec 2019 09:32:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727415AbfLBJZR (ORCPT
+        id S1727318AbfLBJcQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Dec 2019 04:25:17 -0500
-Received: from correo.us.es ([193.147.175.20]:39612 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726516AbfLBJZJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Dec 2019 04:25:09 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 59A2581A16
-        for <netfilter-devel@vger.kernel.org>; Mon,  2 Dec 2019 10:25:06 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 49523DA710
-        for <netfilter-devel@vger.kernel.org>; Mon,  2 Dec 2019 10:25:06 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 3F183DA70D; Mon,  2 Dec 2019 10:25:06 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 637F9DA738;
-        Mon,  2 Dec 2019 10:25:02 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 02 Dec 2019 10:25:02 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 38B894265A5A;
-        Mon,  2 Dec 2019 10:25:02 +0100 (CET)
-Date:   Mon, 2 Dec 2019 10:25:03 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     wenxu@ucloud.cn
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: nf_tables_offload: Fix check the
- NETDEV_UNREGISTER in netdev event
-Message-ID: <20191202092503.tlb2rhepqrxiskbf@salvia>
-References: <1573618867-9755-1-git-send-email-wenxu@ucloud.cn>
- <20191202092310.iu36uv66qyahsrou@salvia>
+        Mon, 2 Dec 2019 04:32:16 -0500
+Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:49023 "EHLO
+        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726254AbfLBJcP (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 2 Dec 2019 04:32:15 -0500
+Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
+        by mail104.syd.optusnet.com.au (Postfix) with SMTP id D35F943EE1D
+        for <netfilter-devel@vger.kernel.org>; Mon,  2 Dec 2019 20:32:01 +1100 (AEDT)
+Received: (qmail 27087 invoked by uid 501); 2 Dec 2019 09:31:59 -0000
+Date:   Mon, 2 Dec 2019 20:31:59 +1100
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     Dmitry Vyukov <dvyukov@google.com>
+Cc:     Al Viro <viro@zeniv.linux.org.uk>,
+        Chris Metcalf <cmetcalf@ezchip.com>, coreteam@netfilter.org,
+        David Miller <davem@davemloft.net>,
+        Chen Gang <gang.chen.5i5j@gmail.com>,
+        Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        syzkaller-bugs <syzkaller-bugs@googlegroups.com>
+Subject: Re: KASAN: use-after-free Read in blkdev_get
+Message-ID: <20191202093159.GA3185@dimstar.local.net>
+Mail-Followup-To: Dmitry Vyukov <dvyukov@google.com>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Chris Metcalf <cmetcalf@ezchip.com>, coreteam@netfilter.org,
+        David Miller <davem@davemloft.net>,
+        Chen Gang <gang.chen.5i5j@gmail.com>,
+        Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        syzkaller-bugs <syzkaller-bugs@googlegroups.com>
+References: <000000000000e59aab056e8873ae@google.com>
+ <0000000000000beff305981c5ac6@google.com>
+ <20191124193035.GA4203@ZenIV.linux.org.uk>
+ <20191130110645.GA4405@dimstar.local.net>
+ <CACT4Y+bg7bZOSg0P9VXq8yG2odAJMg6b6N2fXxbamOmKiz3ohw@mail.gmail.com>
+ <20191201000439.GA15496@dimstar.local.net>
+ <CACT4Y+YhYaEC2of_6bZ6aZxX_kc3+4Li=MZU-MB1RcNr6Z7iww@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20191202092310.iu36uv66qyahsrou@salvia>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <CACT4Y+YhYaEC2of_6bZ6aZxX_kc3+4Li=MZU-MB1RcNr6Z7iww@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.3 cv=W5xGqiek c=1 sm=1 tr=0
+        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
+        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=kj9zAlcOel0A:10 a=pxVhFHJ0LMsA:10
+        a=RSmzAf-M6YYA:10 a=PO7r1zJSAAAA:8 a=7QvuB2UPAAAA:8 a=edf1wS77AAAA:8
+        a=hSkVLCK3AAAA:8 a=mzoz-TVAAAAA:20 a=VwQbUJbxAAAA:8 a=kGbAZRCgAAAA:20
+        a=RZrVL_RPe_AL--TquSQA:9 a=CjuIK1q_8ugA:10 a=vVHabExCe68A:10
+        a=PyAPxfarwdVEPLbpdMBu:22 a=DcSpbTIhAlouE1Uv7lRv:22
+        a=cQPPKAXgyycSBL8etih5:22 a=AjGcO6oz07-iQ99wixmX:22
+        a=pHzHmUro8NiASowvMSCR:22 a=Ew2E2A-JSTLzCXPT_086:22
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Dec 02, 2019 at 10:23:10AM +0100, Pablo Neira Ayuso wrote:
-> On Wed, Nov 13, 2019 at 12:21:07PM +0800, wenxu@ucloud.cn wrote:
-> > From: wenxu <wenxu@ucloud.cn>
-> > 
-> > It should check the NETDEV_UNREGISTER in  nft_offload_netdev_event
-> > 
-> > Fixes: 06d392cbe3db ("netfilter: nf_tables_offload: remove rules when the device unregisters")
-> > Signed-off-by: wenxu <wenxu@ucloud.cn>
-> > ---
-> >  net/netfilter/nf_tables_offload.c | 3 +++
-> >  1 file changed, 3 insertions(+)
-> > 
-> > diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-> > index e25dab8..b002832 100644
-> > --- a/net/netfilter/nf_tables_offload.c
-> > +++ b/net/netfilter/nf_tables_offload.c
-> > @@ -446,6 +446,9 @@ static int nft_offload_netdev_event(struct notifier_block *this,
-> >  	struct net *net = dev_net(dev);
-> >  	struct nft_chain *chain;
-> >  
-> > +	if (event != NETDEV_UNREGISTER)
-> > +		return 0;
-> 
-> Actually I cannot apply this.
-> 
->         if (event != NETDEV_UNREGISTER &&
->             event != NETDEV_CHANGENAME)
->                 return NOTIFY_DONE;
-> 
-> You also have to check for change name and use NOTIFY_DONE as return
-> value instead. Sorry.
+On Mon, Dec 02, 2019 at 07:47:11AM +0100, Dmitry Vyukov wrote:
+> On Sun, Dec 1, 2019 at 1:04 AM Duncan Roe <duncan_roe@optusnet.com.au> wrote:
+> >
+> > On Sat, Nov 30, 2019 at 04:53:12PM +0100, Dmitry Vyukov wrote:
+> > > On Sat, Nov 30, 2019 at 12:06 PM Duncan Roe <duncan_roe@optusnet.com.au> wrote:
+> > > > > > syzbot has bisected this bug to:
+> > > > > >
+> > > > > > commit 77ef8f5177599efd0cedeb52c1950c1bd73fa5e3
+> > > > > > Author: Chris Metcalf <cmetcalf@ezchip.com>
+> > > > > > Date:   Mon Jan 25 20:05:34 2016 +0000
+> > > > > >
+> > > > > >     tile kgdb: fix bug in copy to gdb regs, and optimize memset
+> > > > > >
+> > > > > > bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1131bc0ee00000
+> > > > > > start commit:   f5b7769e Revert "debugfs: inode: debugfs_create_dir uses m..
+> > > > > > git tree:       upstream
+> > > > > > final crash:    https://syzkaller.appspot.com/x/report.txt?x=1331bc0ee00000
+> > > > > > console output: https://syzkaller.appspot.com/x/log.txt?x=1531bc0ee00000
+> > > > > > kernel config:  https://syzkaller.appspot.com/x/.config?x=709f8187af941e84
+> > > > > > dashboard link: https://syzkaller.appspot.com/bug?extid=eaeb616d85c9a0afec7d
+> > > > > > syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=177f898f800000
+> > > > > > C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=147eb85f800000
+> > > > > >
+> > > > > > Reported-by: syzbot+eaeb616d85c9a0afec7d@syzkaller.appspotmail.com
+> > > > > > Fixes: 77ef8f517759 ("tile kgdb: fix bug in copy to gdb regs, and optimize
+> > > > > > memset")
+> > > > > >
+> > > > > > For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+> > > > >
+> > > > > Seriously?  How can the commit in question (limited to arch/tile/kernel/kgdb.c)
+> > > > > possibly affect a bug that manages to produce a crash report with
+> > > > > RSP: 0018:ffffffff82e03eb8  EFLAGS: 00000282
+> > > > > RAX: 0000000000000000 RBX: ffffffff82e00000 RCX: 0000000000000000
+> > > > > RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffffff81088779
+> > > > > RBP: ffffffff82e03eb8 R08: 0000000000000000 R09: 0000000000000001
+> > > > > R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+> > > > > R13: 0000000000000000 R14: 0000000000000000 R15: ffffffff82e00000
+> > > > > FS:  0000000000000000(0000) GS:ffff88021fc00000(0000) knlGS:0000000000000000
+> > > > > CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> > > > > CR2: 000000c420447ff8 CR3: 0000000213184000 CR4: 00000000001406f0
+> > > > > DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> > > > > DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+> > > > > in it?  Unless something very odd has happened to tile, this crash has
+> > > > > been observed on 64bit x86; the names of registers alone are enough
+> > > > > to be certain of that.
+> > > > >
+> > > > > And the binaries produced by an x86 build should not be affected by any
+> > > > > changes in arch/tile; not unless something is very wrong with the build
+> > > > > system.  It's not even that this commit has fixed an earlier bug that
+> > > > > used to mask the one manifested here - it really should have had zero
+> > > > > impact on x86 builds, period.
+> > > > >
+> > > > > So I'm sorry, but I'm calling bullshit.  Something's quite wrong with
+> > > > > the bot - either its build system or the bisection process.
+> > > >
+> > > > The acid test would be: does reverting that commit make the problem go away?
+> > > >
+> > > > See, for example, https://bugzilla.kernel.org/show_bug.cgi?id=203935
+> > > >
+> > > > Cheers ... Duncan.
+> > >
+> > > This is done as part of any bisection by definition, right? The test
+> > > was done on the previous commit (effectively this one reverted) and no
+> > > crash was observed. Otherwise bisection would have been pointed to a
+> > > different commit.
+> > >
+> > Agree that's what bisecting does. What I had in mind was to make a patch to
+> > remove the identified commit, and apply that to the most recent revision
+> > possible. Then see if that makes the problem go away.
+>
+> I wonder in what percent of cases:
+> 1. It gives signal different from reverting the commit in place.
+> 2. The revert can be cleanly applied to head.
+> 3. The revert does not introduce other bugs.
+>
+> For this to be worth doing, all these 3 should be reasonably high. I
+> can imagine 3 may be high (?), but I am not sure about 1 and 2.
 
-It's only NOTIFY_DONE that is missing.
-
-I'll mangle this patch and apply, no need to send a new version.
+The whole arch/tile directory no longer exists, so the patch cannot be applied.
+If I had realised that earlier, I would not have posted at all.
+Sorry for the noise.
