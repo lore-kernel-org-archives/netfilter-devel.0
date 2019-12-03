@@ -6,123 +6,126 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE641C432C0
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Dec 2019 11:03:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C02FCC432C3
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Dec 2019 13:28:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ABF5720661
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Dec 2019 11:03:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A1A402073B
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Dec 2019 13:28:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725838AbfLCLDX (ORCPT
+        id S1726086AbfLCN2Z (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 Dec 2019 06:03:23 -0500
-Received: from correo.us.es ([193.147.175.20]:35548 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725773AbfLCLDX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 Dec 2019 06:03:23 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 58B79DA3E3
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 Dec 2019 12:02:56 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 47967DA781
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 Dec 2019 12:02:56 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 3D58CDA720; Tue,  3 Dec 2019 12:02:56 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1309ADA70C;
-        Tue,  3 Dec 2019 12:02:54 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 03 Dec 2019 12:02:54 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (barqueta.lsi.us.es [150.214.188.150])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 026934265A5A;
-        Tue,  3 Dec 2019 12:02:53 +0100 (CET)
-Date:   Tue, 3 Dec 2019 12:02:54 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Stefano Brivio <sbrivio@redhat.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH,nf-next RFC 0/2] add NFTA_SET_ELEM_KEY_END
-Message-ID: <20191203110254.maczg7zs4wrcg6th@salvia>
-References: <20191202131407.500999-1-pablo@netfilter.org>
- <20191202171952.2e577345@elisabeth>
+        Tue, 3 Dec 2019 08:28:25 -0500
+Received: from mail-wm1-f54.google.com ([209.85.128.54]:38846 "EHLO
+        mail-wm1-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726074AbfLCN2Z (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 3 Dec 2019 08:28:25 -0500
+Received: by mail-wm1-f54.google.com with SMTP id p17so3451512wmi.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 03 Dec 2019 05:28:23 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:references:cc:from:openpgp:autocrypt
+         :message-id:date:user-agent:mime-version:in-reply-to
+         :content-language:content-transfer-encoding;
+        bh=vaFPj4UrbusYWastuZwmYtgnEdr9a8WZIPo7PK9HkUc=;
+        b=g/Gp7WN/l+EUtZCysd/ke8Xizu9Pngw+MVk9u7F1sAinRZIibiuBzLz213+pvmgn41
+         HnzE3xRHXj6YhKdZzwqYm1XBO74r/p83RCqsDwLLhiuXpao136hMHlUje6D52EIFO3OD
+         oKOJcriCw+Lt6PkbscOlCRizCZlZZWzC52aXIFtFl6TW6F/BESoQtemUcAiJJ3MpL/4U
+         tZVsebSCuYtMxgrdBBEELfxJq7CKgTGvnHVnglSI4+UKYTH9zcBREK8pXvS+fC2+heOY
+         fXYLGotG+db/o6HU0coCyZjSypV+s7hXKelM8zVzaKiK/x3x1+FRUGtSWHEogd1xa6MK
+         0UuA==
+X-Gm-Message-State: APjAAAV8l1IJz6eceGL6OBsWklq5SZtwBXo9+U4HJtrxZfcC6FEonYaR
+        pZX1OGyiFgMqoZ5D494DVUcdhjSM
+X-Google-Smtp-Source: APXvYqzrwB9K1BKW3qjBV0gqYB1Eo21gnhhBCV7cVUDOzzAMdDGYMuqRwAotk1f1NRyH0n0l+lOYrA==
+X-Received: by 2002:a1c:9903:: with SMTP id b3mr9936984wme.139.1575379702571;
+        Tue, 03 Dec 2019 05:28:22 -0800 (PST)
+Received: from [172.17.4.233] ([195.76.196.161])
+        by smtp.gmail.com with ESMTPSA id z64sm3225441wmg.30.2019.12.03.05.28.21
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 03 Dec 2019 05:28:21 -0800 (PST)
+Subject: Re: [ANNOUNCE] iptables 1.8.4 release
+To:     Phil Sutter <phil@netfilter.org>
+References: <20191202170121.GB10243@orbyte.nwl.cc>
+Cc:     netfilter-devel <netfilter-devel@vger.kernel.org>
+From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
+Openpgp: preference=signencrypt
+Autocrypt: addr=arturo@netfilter.org; keydata=
+ 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
+ EXgmBmyUKrJkh/zvupp9t9Y2ioPbcMObRIEXio4=
+Message-ID: <902f6259-1886-b672-f53d-436b2250181c@netfilter.org>
+Date:   Tue, 3 Dec 2019 14:28:19 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191202171952.2e577345@elisabeth>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <20191202170121.GB10243@orbyte.nwl.cc>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Stefano,
-
-On Mon, Dec 02, 2019 at 05:19:52PM +0100, Stefano Brivio wrote:
-[...]
-> On Mon,  2 Dec 2019 14:14:05 +0100
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-[...]
-> > This patchset extends the netlink API to allow to express an interval
-> > with one single element.
-> > 
-> > This simplifies this interface since userspace does not need to send two
-> > independent elements anymore, one of the including the
-> > NFT_SET_ELEM_INTERVAL_END flag.
-> > 
-> > The idea is to use the _DESC to specify that userspace speaks the kernel
-> > that new API representation. In your case, the new description attribute
-> > that tells that this set contains interval + concatenation implicitly
-> > tells the kernel that userspace supports for this new API.
+On 12/2/19 6:01 PM, Phil Sutter wrote:
+> Hi!
 > 
-> Thanks! I just had a quick look, I think the new set implementation
-> would indeed look more elegant this way. As to design choices, I'm
-> afraid I'm not familiar enough with the big picture to comment on the
-> general idea, but my uninformed opinion agrees with this approach. :)
+> The Netfilter project proudly presents:
 > 
-> For what it's worth, I'd review this in deeper detail next.
-
-Thanks.
-
-> > If you're fine with this, I can scratch a bit of time to finish the
-> > libnftnl part. The nft code will need a small update too. You will not
-> > need to use the nft_set_pipapo object as scratchpad area anymore.
+> iptables 1.8.4
 > 
-> On my side, I'm almost done with nft/libnftnl/kernel changes for the
-> NFT_SET_DESC_CONCAT thing. How should we proceed? Do you want me to
-> share those patches so that you can add this bit on top, or should this
-> come first, or in a separate series?
-
-My suggestion is that you can take them and place them at the
-beginning of your batch since it will be the first client for this new
-netlink attribute, you will have to adapt pipapo to use the new
-key_end value too.
-
-> I could also just share the new nft/libnftnl patches (I should have them
-> ready between today and tomorrow), and proceed adapting the kernel part
-> according to your changes.
-
-I still have to send you the libnftnl part for this.
-
-> Related question: to avoid copying data around, I'm now dynamically
-> allocating a struct nft_data_desc in nf_tables_newset() with a
-> reference from struct nft_set: desc->dlen, desc->klen, desc->size would
-> all live there, together with the "subkey" stuff.
+> This release contains the following fixes and enhancements:
 > 
-> Is it a bad idea? I can undo it easily, I just don't know if there's a
-> specific reason why those fields are repeated in struct nft_set.
+> libiptc:
+>  - Generic libiptc.so shared object is no longer built, likely all users
+>    link to libip4tc.so or libip6tc.so directly.
+> 
 
-Not sure I understand, probably some code sketch? From your words it
-does not look like a major issue though, but let me know.
+There are many users of libiptc.h, i.e:
 
-BTW, there is also one more pending issue: I can see there is a clone
-point in nft_set_pipapo, you mentioned some problems to make things
-fit in into the transaction infrastructure. Could you describe how you
-integrate with it? Probably there is a chance to extend the front-end
-API too to make it easier for pipapo.
+#include <libiptc/libiptc.h>
 
-Thanks.
+What is the best way to do that now?
+
+Some Debian users:
+
+ https://codesearch.debian.net/search?q=libiptc.h&perpkg=1
