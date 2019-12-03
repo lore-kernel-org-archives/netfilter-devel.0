@@ -2,285 +2,149 @@ Return-Path: <SRS0=edwS=ZZ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-8.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21C17C432C3
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Dec 2019 16:07:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EECEEC432C3
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Dec 2019 17:01:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E24672053B
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Dec 2019 16:07:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C5B3D2068E
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Dec 2019 17:01:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=darbyshire-bryant.me.uk header.i=@darbyshire-bryant.me.uk header.b="QHZUzdV7"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bY77NiQk"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726395AbfLCQHz (ORCPT
+        id S1726819AbfLCRBT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 Dec 2019 11:07:55 -0500
-Received: from mail-wm1-f67.google.com ([209.85.128.67]:38536 "EHLO
-        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726098AbfLCQHz (ORCPT
+        Tue, 3 Dec 2019 12:01:19 -0500
+Received: from mail-qv1-f68.google.com ([209.85.219.68]:42363 "EHLO
+        mail-qv1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726534AbfLCRBT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 Dec 2019 11:07:55 -0500
-Received: by mail-wm1-f67.google.com with SMTP id p17so4115928wmi.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 03 Dec 2019 08:07:53 -0800 (PST)
+        Tue, 3 Dec 2019 12:01:19 -0500
+Received: by mail-qv1-f68.google.com with SMTP id q19so1808058qvy.9;
+        Tue, 03 Dec 2019 09:01:19 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=darbyshire-bryant.me.uk; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=FUE83SVWT74e+XuiA1hPEA44Hl/NhBaIjA2wjyvMJpk=;
-        b=QHZUzdV7y4hoNccV4BLu+5zRq4j/ZRc2negNlyE7S9AiaPm2wXxqyYztc8xK7DZEfS
-         yvRlboTpMVDLof2SNOPomQgHoDAxpFkOYW+5NglSR5ajojKIK42S1TRA3Trze8iIAP31
-         ISJR988tcdsvbGC/CrQSGPs8ru1B0TnVGgq78=
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=10sAMBZMUjFRsxR8aABeO1fVDktZCwcXIz8Qs0BHrSI=;
+        b=bY77NiQkC69ov7j7OMLKkUXv6HhSowFkfYiDrdT5MFbfThUXtqBo0fzqZq+McugIVR
+         Q2QfuUadPMWiGjz4Vdu+S8qoCsTOkSExFSHJD7xV3SM/IjGKWQV+9ckB97Ev33USoYkM
+         TzkTtdEZWGzt/TbReefLvdSPrMonuXVK5cYQgJHIZCA+LuEoBJo2iQM2Z4b24hYZSvgb
+         7ByROBx5EPuzD3EhiuwVqB3DMS5MB5E0a09Sv8ImxbvrKW6W68Cvr8By+qApje890sKN
+         8RBrvnIkZNH3iY+i4bocTfPL4JdCR6qQJX6DJSHNmAOpm3OhVjdhVTkXonnaLRnFnRO0
+         AFjQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=FUE83SVWT74e+XuiA1hPEA44Hl/NhBaIjA2wjyvMJpk=;
-        b=pRnzz6NWAPrV9vSUSv9LI+kSyN7POipp4xRtBdJidhHYpdzjbLTOlgl3V8+Q/rQAgA
-         oFsPPflSmw9x+eZkNeyuTURoIpFL8ab402UgLxlKYYVtitrZj07z9lj0wTrpVIjjsPFf
-         yam5LZAU0LHlapBENh8ifD1KMA9aEvJ7Tz8WYr6wkEHn8oL26MAXuPDDurDamT58nibg
-         Ri/yAXTgjsXvLkkES8mXlTqrtlW3FJ25j37HSiYbBaLEAZp41Ue3Msm2Z/CbhpfqNIrU
-         Ic/sTST8uveuuu5yQzRl7/3u7t3CsHLd+/AJ3/CTB8wJwmAbU5JCkgKexxh2YRgnwLvt
-         FB3A==
-X-Gm-Message-State: APjAAAVI1Q3NoBRH0h/EgazXpaYSFFmQHbTqXlkLd3GMmAJJmnkMFjSW
-        Fge77YtAfZt5aEKNk0o4+IQtDQAZ031aAQ==
-X-Google-Smtp-Source: APXvYqy4ezRlpWBCdFDKjzFa3dzWlaZOyL9ZN2Yj5l8F5fby2HHNLaLV+UsUue/tMqEFLbOByxvaWw==
-X-Received: by 2002:a7b:c955:: with SMTP id i21mr22800243wml.172.1575389272292;
-        Tue, 03 Dec 2019 08:07:52 -0800 (PST)
-Received: from Kevins-MBP.lan.darbyshire-bryant.me.uk ([2a02:c7f:1243:8e00::dc83])
-        by smtp.gmail.com with ESMTPSA id r6sm4160607wrq.92.2019.12.03.08.07.51
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 03 Dec 2019 08:07:51 -0800 (PST)
-From:   Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
-Subject: [PATCH 1/1] netfilter: connmark: introduce set-dscpmark
-Date:   Tue,  3 Dec 2019 16:06:53 +0000
-Message-Id: <20191203160652.44396-2-ldir@darbyshire-bryant.me.uk>
-X-Mailer: git-send-email 2.21.0 (Apple Git-122.2)
-In-Reply-To: <20191203160652.44396-1-ldir@darbyshire-bryant.me.uk>
-References: <20191203160652.44396-1-ldir@darbyshire-bryant.me.uk>
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=10sAMBZMUjFRsxR8aABeO1fVDktZCwcXIz8Qs0BHrSI=;
+        b=UG4xotlAx0b0MmIEXJZx/4RlpGzzw5lOeGnMJWrBcMVMZXLLg6JQDXt/cTGvt3lEKE
+         m+UwuAYiEUcGsyOyGd33yTFIQvanKpf3+3I9QuUCsczehqFyP4IRkY8WAyvTFX41cPl5
+         vtbBy5TDWbK4n+IbF5xWV1RRzUprltSUJeZoq7Y3tayHMcDi8ZZh5n3zgV9IaT0rvZMI
+         vyWW7yiae/tH0jvg/ZchGT5R6efGKgqAhwOuPYaNuPEp8bPXGv97UacsY08p8r3HkmK0
+         E5EFyACdDeTp3SJ8wGaskIaRqSrbQvWAlQLgGyPHyWgVxj8kA3qHW5TXHaCSmqt24d6S
+         /5Ag==
+X-Gm-Message-State: APjAAAXmMitp/LwpOJ4+a9buUWmO2tn/i1i3lNcpCtpV8q+mAcUeOrKL
+        Y0UK6yJ/juAohls29GcKcvE+jXPvOk3B7w==
+X-Google-Smtp-Source: APXvYqzU6RtFIOwEITHm1Sqpx6zVqf5CvLcV04Vc9oAuR1Wi3o/5oFzruFpcsdbB9tUU46vP3NflIA==
+X-Received: by 2002:a05:6214:429:: with SMTP id a9mr6176316qvy.200.1575392478385;
+        Tue, 03 Dec 2019 09:01:18 -0800 (PST)
+Received: from localhost.localdomain ([177.220.176.179])
+        by smtp.gmail.com with ESMTPSA id c184sm2066760qke.118.2019.12.03.09.01.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 03 Dec 2019 09:01:17 -0800 (PST)
+Received: by localhost.localdomain (Postfix, from userid 1000)
+        id 6038EC3B9B; Tue,  3 Dec 2019 14:01:14 -0300 (-03)
+Date:   Tue, 3 Dec 2019 14:01:14 -0300
+From:   Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+To:     Laura Abbott <labbott@redhat.com>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Kees Cook <keescook@chromium.org>
+Subject: Re: [PATCH] netfilter: nf_flow_table_offload: Correct memcpy size
+ for flow_overload_mangle
+Message-ID: <20191203170114.GB377782@localhost.localdomain>
+References: <20191203160345.24743-1-labbott@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191203160345.24743-1-labbott@redhat.com>
+User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-set-dscpmark is a method of storing the DSCP of an ip packet into
-conntrack mark.  In combination with a suitable tc filter action
-(act_ctinfo) DSCP values are able to be stored in the mark on egress and
-restored on ingress across links that otherwise alter or bleach DSCP.
+On Tue, Dec 03, 2019 at 11:03:45AM -0500, Laura Abbott wrote:
+> The sizes for memcpy in flow_offload_mangle don't match
+> the source variables, leading to overflow errors on some
+> build configurations:
+> 
+> In function 'memcpy',
+>     inlined from 'flow_offload_mangle' at net/netfilter/nf_flow_table_offload.c:112:2,
+>     inlined from 'flow_offload_port_dnat' at net/netfilter/nf_flow_table_offload.c:373:2,
+>     inlined from 'nf_flow_rule_route_ipv4' at net/netfilter/nf_flow_table_offload.c:424:3:
+> ./include/linux/string.h:376:4: error: call to '__read_overflow2' declared with attribute error: detected read beyond size of object passed as 2nd parameter
+>   376 |    __read_overflow2();
+>       |    ^~~~~~~~~~~~~~~~~~
+> make[2]: *** [scripts/Makefile.build:266: net/netfilter/nf_flow_table_offload.o] Error 1
+> 
+> Fix this by using the corresponding type.
+> 
+> Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
+> Signed-off-by: Laura Abbott <labbott@redhat.com>
+> ---
+> Seen on a Fedora powerpc little endian build with -O3 but it looks like
+> it is correctly catching an error with doing a memcpy outside the source
+> variable.
 
-This is useful for qdiscs such as CAKE which are able to shape according
-to policies based on DSCP.
+Hi,
 
-Ingress classification is traditionally a challenging task since
-iptables rules haven't yet run and tc filter/eBPF programs are pre-NAT
-lookups, hence are unable to see internal IPv4 addresses as used on the
-typical home masquerading gateway.
+It is right but the fix is not. In that call trace:
 
-x_tables CONNMARK set-dscpmark target solves the problem of storing the
-DSCP to the conntrack mark in a way suitable for the new act_ctinfo tc
-action to restore.
+flow_offload_port_dnat() {
+...
+        u32 mask = ~htonl(0xffff);
+        __be16 port;
+...
+        flow_offload_mangle(entry, flow_offload_l4proto(flow), offset,
+	                            (u8 *)&port, (u8 *)&mask);
+}
 
-The set-dscpmark option accepts 2 parameters, a 32bit 'dscpmask' and a
-32bit 'statemask'.  The dscp mask must be 6 contiguous bits and
-represents the area where the DSCP will be stored in the connmark.  The
-state mask is a minimum 1 bit length mask that must not overlap with the
-dscpmask.  It represents a flag which is set when the DSCP has been
-stored in the conntrack mark. This is useful to implement a 'one shot'
-iptables based classification where the 'complicated' iptables rules are
-only run once to classify the connection on initial (egress) packet and
-subsequent packets are all marked/restored with the same DSCP.  A state
-mask of zero disables the setting of a status bit/s.
+port should have a 32b storage as well, and aligned with the mask.
 
-example syntax with a suitably modified iptables user space application:
+> ---
+>  net/netfilter/nf_flow_table_offload.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+> index c54c9a6cc981..526f894d0bdb 100644
+> --- a/net/netfilter/nf_flow_table_offload.c
+> +++ b/net/netfilter/nf_flow_table_offload.c
+> @@ -108,8 +108,8 @@ static void flow_offload_mangle(struct flow_action_entry *entry,
+>  	entry->id = FLOW_ACTION_MANGLE;
+>  	entry->mangle.htype = htype;
+>  	entry->mangle.offset = offset;
+> -	memcpy(&entry->mangle.mask, mask, sizeof(u32));
+> -	memcpy(&entry->mangle.val, value, sizeof(u32));
+                                   ^^^^^         ^^^ which is &port in the call above
+> +	memcpy(&entry->mangle.mask, mask, sizeof(u8));
+> +	memcpy(&entry->mangle.val, value, sizeof(u8));
 
-iptables -A QOS_MARK_eth0 -t mangle -j CONNMARK --set-dscpmark 0xfc000000/0x01000000
+This fix would cause it to copy only the first byte, which is not the
+intention.
 
-Would store the DSCP in the top 6 bits of the 32bit mark field, and use
-the LSB of the top byte as the 'DSCP has been stored' marker.
-
-|----0xFC----conntrack mark----000000---|
-| Bits 31-26 | bit 25 | bit24 |~~~ Bit 0|
-| DSCP       | unused | flag  |unused   |
-|-----------------------0x01---000000---|
-      ^                   ^
-      |                   |
-      ---|             Conditional flag
-         |             set this when dscp
-|-ip diffserv-|        stored in mark
-| 6 bits      |
-|-------------|
-
-an identically configured tc action to restore looks like:
-
-tc filter show dev eth0 ingress
-filter parent ffff: protocol all pref 10 u32 chain 0
-filter parent ffff: protocol all pref 10 u32 chain 0 fh 800: ht divisor 1
-filter parent ffff: protocol all pref 10 u32 chain 0 fh 800::800 order 2048 key ht 800 bkt 0 flowid 1: not_in_hw
-  match 00000000/00000000 at 0
-	action order 1: ctinfo zone 0 pipe
-	 index 2 ref 1 bind 1 dscp 0xfc000000/0x1000000
-
-	action order 2: mirred (Egress Redirect to device ifb4eth0) stolen
-	index 1 ref 1 bind 1
-
-|----0xFC----conntrack mark----000000---|
-| Bits 31-26 | bit 25 | bit24 |~~~ Bit 0|
-| DSCP       | unused | flag  |unused   |
-|-----------------------0x01---000000---|
-      |                   |
-      |                   |
-      ---|             Conditional flag
-         v             only restore if set
-|-ip diffserv-|
-| 6 bits      |
-|-------------|
-
-Signed-off-by: Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
----
- include/uapi/linux/netfilter/xt_connmark.h | 10 ++++
- net/netfilter/xt_connmark.c                | 57 ++++++++++++++++++----
- 2 files changed, 58 insertions(+), 9 deletions(-)
-
-diff --git a/include/uapi/linux/netfilter/xt_connmark.h b/include/uapi/linux/netfilter/xt_connmark.h
-index 1aa5c955ee1e..a1585e7ecbe1 100644
---- a/include/uapi/linux/netfilter/xt_connmark.h
-+++ b/include/uapi/linux/netfilter/xt_connmark.h
-@@ -19,6 +19,11 @@ enum {
- 	XT_CONNMARK_RESTORE
- };
- 
-+enum {
-+	XT_CONNMARK_VALUE = BIT(0),
-+	XT_CONNMARK_DSCP = BIT(1)
-+};
-+
- enum {
- 	D_SHIFT_LEFT = 0,
- 	D_SHIFT_RIGHT,
-@@ -34,6 +39,11 @@ struct xt_connmark_tginfo2 {
- 	__u8 shift_dir, shift_bits, mode;
- };
- 
-+struct xt_connmark_tginfo3 {
-+	__u32 ctmark, ctmask, nfmask;
-+	__u8 shift_dir, shift_bits, mode, func;
-+};
-+
- struct xt_connmark_mtinfo1 {
- 	__u32 mark, mask;
- 	__u8 invert;
-diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
-index eec2f3a88d73..188fd2495121 100644
---- a/net/netfilter/xt_connmark.c
-+++ b/net/netfilter/xt_connmark.c
-@@ -24,12 +24,13 @@ MODULE_ALIAS("ipt_connmark");
- MODULE_ALIAS("ip6t_connmark");
- 
- static unsigned int
--connmark_tg_shift(struct sk_buff *skb, const struct xt_connmark_tginfo2 *info)
-+connmark_tg_shift(struct sk_buff *skb, const struct xt_connmark_tginfo3 *info)
- {
- 	enum ip_conntrack_info ctinfo;
- 	u_int32_t new_targetmark;
- 	struct nf_conn *ct;
- 	u_int32_t newmark;
-+	u_int8_t dscp;
- 
- 	ct = nf_ct_get(skb, &ctinfo);
- 	if (ct == NULL)
-@@ -37,12 +38,24 @@ connmark_tg_shift(struct sk_buff *skb, const struct xt_connmark_tginfo2 *info)
- 
- 	switch (info->mode) {
- 	case XT_CONNMARK_SET:
--		newmark = (ct->mark & ~info->ctmask) ^ info->ctmark;
--		if (info->shift_dir == D_SHIFT_RIGHT)
--			newmark >>= info->shift_bits;
--		else
--			newmark <<= info->shift_bits;
--
-+		newmark = ct->mark;
-+		if (info->func & XT_CONNMARK_VALUE) {
-+			newmark = (newmark & ~info->ctmask) ^ info->ctmark;
-+			if (info->shift_dir == D_SHIFT_RIGHT)
-+				newmark >>= info->shift_bits;
-+			else
-+				newmark <<= info->shift_bits;
-+		} else if (info->func & XT_CONNMARK_DSCP) {
-+			if (skb->protocol == htons(ETH_P_IP))
-+				dscp = ipv4_get_dsfield(ip_hdr(skb)) >> 2;
-+			else if (skb->protocol == htons(ETH_P_IPV6))
-+				dscp = ipv6_get_dsfield(ipv6_hdr(skb)) >> 2;
-+			else	/* protocol doesn't have diffserv */
-+				break;
-+
-+			newmark = (newmark & ~info->ctmark) |
-+				  (info->ctmask | (dscp << info->shift_bits));
-+		}
- 		if (ct->mark != newmark) {
- 			ct->mark = newmark;
- 			nf_conntrack_event_cache(IPCT_MARK, ct);
-@@ -81,20 +94,36 @@ static unsigned int
- connmark_tg(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct xt_connmark_tginfo1 *info = par->targinfo;
--	const struct xt_connmark_tginfo2 info2 = {
-+	const struct xt_connmark_tginfo3 info3 = {
- 		.ctmark	= info->ctmark,
- 		.ctmask	= info->ctmask,
- 		.nfmask	= info->nfmask,
- 		.mode	= info->mode,
-+		.func	= XT_CONNMARK_VALUE
- 	};
- 
--	return connmark_tg_shift(skb, &info2);
-+	return connmark_tg_shift(skb, &info3);
- }
- 
- static unsigned int
- connmark_tg_v2(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct xt_connmark_tginfo2 *info = par->targinfo;
-+	const struct xt_connmark_tginfo3 info3 = {
-+		.ctmark	= info->ctmark,
-+		.ctmask	= info->ctmask,
-+		.nfmask	= info->nfmask,
-+		.mode	= info->mode,
-+		.func	= XT_CONNMARK_VALUE
-+	};
-+
-+	return connmark_tg_shift(skb, &info3);
-+}
-+
-+static unsigned int
-+connmark_tg_v3(struct sk_buff *skb, const struct xt_action_param *par)
-+{
-+	const struct xt_connmark_tginfo3 *info = par->targinfo;
- 
- 	return connmark_tg_shift(skb, info);
- }
-@@ -165,6 +194,16 @@ static struct xt_target connmark_tg_reg[] __read_mostly = {
- 		.targetsize     = sizeof(struct xt_connmark_tginfo2),
- 		.destroy        = connmark_tg_destroy,
- 		.me             = THIS_MODULE,
-+	},
-+	{
-+		.name           = "CONNMARK",
-+		.revision       = 3,
-+		.family         = NFPROTO_UNSPEC,
-+		.checkentry     = connmark_tg_check,
-+		.target         = connmark_tg_v3,
-+		.targetsize     = sizeof(struct xt_connmark_tginfo3),
-+		.destroy        = connmark_tg_destroy,
-+		.me             = THIS_MODULE,
- 	}
- };
- 
--- 
-2.21.0 (Apple Git-122.2)
-
+>  }
+>  
+>  static inline struct flow_action_entry *
+> -- 
+> 2.21.0
+> 
