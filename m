@@ -2,178 +2,231 @@ Return-Path: <SRS0=LaOm=Z3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 946F2C43603
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Dec 2019 09:46:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BCFCC43603
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Dec 2019 09:56:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4A44F2464D
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Dec 2019 09:46:44 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=darbyshire-bryant.me.uk header.i=@darbyshire-bryant.me.uk header.b="uEv7fQB0"
+	by mail.kernel.org (Postfix) with ESMTP id 1C7182464D
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Dec 2019 09:56:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726177AbfLEJqo (ORCPT
+        id S1728629AbfLEJ4g (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Dec 2019 04:46:44 -0500
-Received: from mail-eopbgr00055.outbound.protection.outlook.com ([40.107.0.55]:55714
-        "EHLO EUR02-AM5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728604AbfLEJqn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Dec 2019 04:46:43 -0500
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=MOiZUOiqQF4FRrqZrXYdA8scWCtqISy30mfvx6JQBU+VMdfnsZZBv0D/yQDfTLnkHAA4gCWiU/twXOnXvvSS14kWKhUE00J/5rZm5QKz7sAdFVaxd0aMT4gRgyD4/XDD2iA/SfzrojWVT7dSLtItfnoDUciv949qWY3CdHPloalKCPqztfQpi/6tVGo3qo5qhqqJZgA1AlpCePWZPJZtn+jvNaDAWR9Y77D/K+m+QRjCrdmpLFGT5IJYCnbjhEF5D8+aMXp0lvsBV0xSEwGgWpeEe7g+oPcJm3db34U5+lXE4D2xFsjfU6RihNy/u603tjLI8RS+hz2pe/hcyhrAmg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=aCCcKSYwPDEQiaQ3ikSSIwnDavIriUZfdod0i7bEdg0=;
- b=jq5dukoONKuUhjJ6cbJj0Lu93gNi8puTe4J3+d8vyMvniokxRq47c0f1suz1T68RqJkFMLMVEv36BWllztgL82MhHQ4S8pvnOXwDoQoeOO5juOCkD3Eu0Dg0sK0plXGJinmvq61RdCcPD5tMwyGUUCb3nSiRmx3BBYJwN9xBLTRH5GlkO8k/T89J5MXlEra5oB2kUkgYNbBH71++0hMm7rWSA1pARUbpz7p8Ai9tEH4rZX5Qh8TBmw7BApVGr9m4DaLppluhTtROCHVsWqe9RgXGCWdgd19n+f//YY7ykqU5r8iq5LKpShfoYIvgTYalMBPGH0iD3rSO2fcCkeRSUw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=darbyshire-bryant.me.uk; dmarc=pass action=none
- header.from=darbyshire-bryant.me.uk; dkim=pass
- header.d=darbyshire-bryant.me.uk; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=darbyshire-bryant.me.uk; s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=aCCcKSYwPDEQiaQ3ikSSIwnDavIriUZfdod0i7bEdg0=;
- b=uEv7fQB0Vouy18ICNLoZSsLxYkmI/dTllaRtVPsrlkQCsde3eZX1jO9YNthlyUf8hZuk5oBDicy8ZHN95IcmOvq15iKdtuU4po+so/f0F0N/fWXzX3cyFKtUF19lH+ACZx0CLtSrbrg/KPfm0TrMFzro5P/jqAJFAeHXwb7NBLI=
-Received: from VI1PR0302MB2750.eurprd03.prod.outlook.com (10.171.106.21) by
- VI1PR0302MB3263.eurprd03.prod.outlook.com (52.134.15.29) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2495.19; Thu, 5 Dec 2019 09:46:39 +0000
-Received: from VI1PR0302MB2750.eurprd03.prod.outlook.com
- ([fe80::7585:5ab6:a348:de46]) by VI1PR0302MB2750.eurprd03.prod.outlook.com
- ([fe80::7585:5ab6:a348:de46%7]) with mapi id 15.20.2516.014; Thu, 5 Dec 2019
- 09:46:38 +0000
-From:   Kevin 'ldir' Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
-To:     Jeremy Sowden <jeremy@azazel.net>
-CC:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH 0/1] netfilter: connmark: introduce set-dscpmark
-Thread-Topic: [PATCH 0/1] netfilter: connmark: introduce set-dscpmark
-Thread-Index: AQHVqfPPM5lmJGUCOkWeTCiCbHiFfKerP/2AgAAN4gA=
-Date:   Thu, 5 Dec 2019 09:46:38 +0000
-Message-ID: <DA14999D-D2D2-42C5-91BC-E3A8A7D0AA46@darbyshire-bryant.me.uk>
-References: <20190324142314.92539-1-ldir@darbyshire-bryant.me.uk>
- <20191203160652.44396-1-ldir@darbyshire-bryant.me.uk>
- <20191205085657.GF133447@azazel.net>
-In-Reply-To: <20191205085657.GF133447@azazel.net>
-Accept-Language: en-GB, en-US
-Content-Language: en-US
-X-MS-Has-Attach: yes
-X-MS-TNEF-Correlator: 
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=ldir@darbyshire-bryant.me.uk; 
-x-ms-exchange-messagesentrepresentingtype: 1
-x-originating-ip: [2a02:c7f:1243:8e00::dc83]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 96da1f83-49ca-4bf7-feee-08d779680685
-x-ms-traffictypediagnostic: VI1PR0302MB3263:
-x-microsoft-antispam-prvs: <VI1PR0302MB326371E8B6E0FDF34A3D31CAC95C0@VI1PR0302MB3263.eurprd03.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:7219;
-x-forefront-prvs: 02426D11FE
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(346002)(136003)(376002)(39830400003)(366004)(396003)(189003)(199004)(99286004)(6916009)(66556008)(14454004)(36756003)(33656002)(2906002)(25786009)(66446008)(6512007)(64756008)(66476007)(76116006)(5660300002)(8936002)(66616009)(102836004)(2616005)(229853002)(316002)(8676002)(81156014)(91956017)(81166006)(186003)(71200400001)(6506007)(4326008)(305945005)(508600001)(54906003)(6486002)(53546011)(76176011)(86362001)(66946007)(71190400001)(11346002);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR0302MB3263;H:VI1PR0302MB2750.eurprd03.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
-received-spf: None (protection.outlook.com: darbyshire-bryant.me.uk does not
- designate permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: yYb1m40cI6It3mC15Xp5ShJFuqeh47okcEFBN8gWHQKRSiX/78MoFFHA29/2nAjyTr46FsRMaHmyKrpE8mbaITLZaWFpsSR1nE/G2oFcCTnBwgKcWb7EzTO/4PD6WHcyNZEnDb4djpLPHjPGyBR2TXTxPxXuCnjWtiFZ7wLOrw9OxPlWS4RZb4QmbA3f+nRJf50n0LNPZSvJvfgLcCOlu/2pHMcZ5U5Su7joihEcHGAVazh5yMLHOcOxr8qGoMuFKd3RtxIPxttEKwAKQwDjZoe38YpziX6EUYWWICMS87ZcQgrG+ed3GfI/BvGJe0RD6yD7QyyflwnEZ5qWmrgzybuxAbiwsYEWILFyKLYMoFSWW+tmbdqiyVZWHYNj7Inu58yGpMrI7ueGPrTDZJogNckmYuhCJVrmBVdfnK3E0bHObF2No0P5yTZf2k7VZHSC
-x-ms-exchange-transport-forked: True
-Content-Type: multipart/signed;
-        boundary="Apple-Mail=_7B69CD29-CE6F-44B6-9F36-7440A47ACE4C";
-        protocol="application/pgp-signature";
-        micalg=pgp-sha256
+        Thu, 5 Dec 2019 04:56:36 -0500
+Received: from marjorie02.plutex.de ([91.202.40.203]:55782 "EHLO
+        marjorie01.plutex.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1729017AbfLEJ4g (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 5 Dec 2019 04:56:36 -0500
+X-Greylist: delayed 597 seconds by postgrey-1.27 at vger.kernel.org; Thu, 05 Dec 2019 04:56:34 EST
+Received: from smtprelay02.isp.plutex.de (smtprelay02.isp.plutex.de [91.202.40.194])
+        by marjorie01.plutex.de (Postfix) with ESMTPS id 50DB8602C3
+        for <netfilter-devel@vger.kernel.org>; Thu,  5 Dec 2019 10:46:36 +0100 (CET)
+Received: from mail01.plutex.de (mail01.plutex.de [91.202.40.205])
+        by smtprelay02.isp.plutex.de (Postfix) with ESMTP id 318A480085
+        for <netfilter-devel@vger.kernel.org>; Thu,  5 Dec 2019 10:46:34 +0100 (CET)
+Received: from [10.254.49.83] (unknown [10.254.49.83])
+        by mail01.plutex.de (Postfix) with ESMTPSA id 22769CC877C
+        for <netfilter-devel@vger.kernel.org>; Thu,  5 Dec 2019 10:46:34 +0100 (CET)
+From:   Jan-Philipp Litza <jpl@plutex.de>
+Subject: [PATCH] nftables: Bump dependency on libnftnl to 1.1.5
+To:     netfilter-devel@vger.kernel.org
+Autocrypt: addr=jpl@plutex.de; prefer-encrypt=mutual; keydata=
+ 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
+Organization: PLUTEX GmbH
+Message-ID: <34285bec-d708-d115-dd8c-207aa4a5f718@plutex.de>
+Date:   Thu, 5 Dec 2019 10:46:34 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.2.1
 MIME-Version: 1.0
-X-OriginatorOrg: darbyshire-bryant.me.uk
-X-MS-Exchange-CrossTenant-Network-Message-Id: 96da1f83-49ca-4bf7-feee-08d779680685
-X-MS-Exchange-CrossTenant-originalarrivaltime: 05 Dec 2019 09:46:38.7729
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 9151708b-c553-406f-8e56-694f435154a4
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: XYDzOZpTHM7EROOLIOFkZsVSnVX4Yr7boPhKMPbyqEjyNXxHyXCokNtAQhM9JZpOLBv8r3e6hbZs0nxFQ+tH3VZ78QouT/EDHl2uqMyymLI=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR0302MB3263
+Content-Type: text/plain; charset=utf-8
+Content-Language: de-DE
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
---Apple-Mail=_7B69CD29-CE6F-44B6-9F36-7440A47ACE4C
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=utf-8
+The multidevice support was introduced in libnftnl commit e3ac19b5ec162,
+which is first included in version 1.1.5
 
+With version 1.1.4, compile errors like the following occur:
 
+netlink.c:423:38: error: 'NFTNL_CHAIN_DEVICES' undeclared (first use in
+this function); did you mean 'NFTNL_CHAIN_DEV'?
 
-> On 5 Dec 2019, at 08:56, Jeremy Sowden <jeremy@azazel.net> wrote:
->=20
-> On 2019-12-03, at 16:06:52 +0000, Kevin Darbyshire-Bryant wrote:
->> Greetings.  The following patch is similar to one I submitted as an
->> RFC quite a while back (April).  Since then I've realised that the
->> option should have been in the 'set mark' family as opposed to 'save
->> mark' because 'set' is about setting the ct mark directly, whereas
->> 'save' is about copying a packet's mark to the ct mark.
->>=20
->> Similarly I've been made aware of the revision infrastructure and now
->> that I understand that a little more have made use of it for this
->> change.  Hopefully this addresses one of Pablo's concerns.
->>=20
->> I've not been able to address the 'I'd like an nftables version'.
->> Quite simply it is beyond my knowledge and ability.  I am willing to
->> contribute financially if someone wishes to step up to the nftables
->> plate...yes I'd like to see the functionality implemented *that* =
-much.
->=20
-> I'll do it (no financial contribution required :)). There is one thing =
-I
-> want to find out before I get started.
+Fixes: 3fdc7541fba07 ("src: add multidevice support for netdev chain")
+Signed-off-by: Jan-Philipp Litza <janphilipp@litza.de>
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Hi Jeremy,
+diff --git a/configure.ac b/configure.ac
+index 5ed3f18a..c487029a 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -57,7 +57,7 @@ AS_IF([test "x$enable_man_doc" = "xyes"], [
+ ])
 
-You=E2=80=99ll permit me to make a donation in appreciation of your =
-efforts though?
+ PKG_CHECK_MODULES([LIBMNL], [libmnl >= 1.0.3])
+-PKG_CHECK_MODULES([LIBNFTNL], [libnftnl >= 1.1.4])
++PKG_CHECK_MODULES([LIBNFTNL], [libnftnl >= 1.1.5])
 
-I=E2=80=99m not totally convinced that what I=E2=80=99ve submitted for =
-x_tables is the
-=E2=80=98perfect=E2=80=99 way of implementing the function so it=E2=80=99s=
- a plea for guidance as
-much as anything :-)
+ AC_ARG_WITH([mini-gmp], [AS_HELP_STRING([--with-mini-gmp],
+             [Use builtin mini-gmp (for embedded builds)])],
 
-> Pablo, comparing the x_tables and nftables connmark implementations I
-> see that nftables doesn't support all the bit-twiddling that x_tables
-> does.  Why is this?  Was it not wanted or has it just not been imple-
-> mented?
->=20
-> J.
+-- 
+Jan-Philipp Litza
+PLUTEX GmbH
+Hermann-Ritter-Str. 108
+28197 Bremen
 
-Thanks,
+Hotline: 0800 100 400 800
+Telefon: 0800 100 400 821
+Telefax: 0800 100 400 888
+E-Mail: support@plutex.de
+Internet: http://www.plutex.de
 
-Kevin
-
---Apple-Mail=_7B69CD29-CE6F-44B6-9F36-7440A47ACE4C
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEASyssijGxT6XdZEjs6I4m53iM0oFAl3o0f4ACgkQs6I4m53i
-M0oHeRAAmrhEQhsMqnUESwhw7HNBDxz537UYqNbNGV0m3EK6/+gcVpsCrVZ9T9Lr
-QnawIETdnApJM72OdVM5LyRNA0Y4dEdj9sLrewtDVIhSCM8AOSzk4hWoMXIArsfn
-PmshrYm+drqhJ6E/xFb9N7imEaisEPrP4VgXEPtlJFdyfREm83ZwpS1uBlC4a3iK
-lZmvsQnGg87T2VEeOgepvEJdqUhfsCnd4kGAfBc+dI3Q/SrPFt5LNgy5+yOvYgoo
-weRgs+I8JDFgLOdx56Juh+MLcgXEIfZtWfYf/Gi6nPwD6G1DYJVp+ZQfVY2k5Hvd
-LssAqb2kPWz+0BBJjJWNqO8znqFQgqT540ryYR0F8r7xgdksXhB+kS/H1/oYALBy
-1gfTduFVrX+8eJjW6LQNNlo5OQB+rdJiH9cX2OfUwbUnsNNmPw/C7OUkgeLw3xMh
-c7DZsj2acZpBBrPrk4pJ0PH5Rg9F5lc/bQ4q/FUxJNP7DXITasKzIcZdJK3HD+IL
-whDcHxwtgsWeY5+8CTBTq7EqOZQmM0Q9/QzNyeblixDtN3t1n7ZHLIfqzUbIuI0F
-dn6RqM+V+mSpogo2PJz7BmzarUUY4A9ja/X4TQGm3pmDxHoYoyN7uyuyzOAeBQi7
-zk/6pLkmCscHo1qjcFMyzDJpfw/XpOOuj9nQjoL88nkE14IXbf0=
-=sn2V
------END PGP SIGNATURE-----
-
---Apple-Mail=_7B69CD29-CE6F-44B6-9F36-7440A47ACE4C--
+USt-IdNr.: DE 815030856
+Handelsregister: Amtsgericht Bremen, HRB 25144
+Geschäftsführer: Torben Belz, Hendrik Lilienthal
