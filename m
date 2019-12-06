@@ -2,83 +2,131 @@ Return-Path: <SRS0=ut36=Z4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49A75C43603
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Dec 2019 16:34:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DC6CC43603
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Dec 2019 19:23:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2A7DA2464E
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Dec 2019 16:34:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3A315206DF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Dec 2019 19:23:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726743AbfLFQeC (ORCPT
+        id S1726325AbfLFTXh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 6 Dec 2019 11:34:02 -0500
-Received: from mail-il1-f198.google.com ([209.85.166.198]:52134 "EHLO
-        mail-il1-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726720AbfLFQeB (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 Dec 2019 11:34:01 -0500
-Received: by mail-il1-f198.google.com with SMTP id x2so5595743ilk.18
-        for <netfilter-devel@vger.kernel.org>; Fri, 06 Dec 2019 08:34:01 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=eN4yK+b1Bwvylv7Nm0VpeOFgnJkXHsh0eveEUiwrQH8=;
-        b=UnIxmFNdrT0F0tM82mS3RtJYlJHzyYVZnuGShWqsnOiZ9f+9b/94S5UX3k6/QDSrSY
-         rRkayLuBr7NTdfQaNZ96xCCs0gMSs4vDCXqCYudDe4XtbG0d9viBpHck/e8Y8U1iJP8s
-         Felm8vSaUK0YBtIjGErbUsPcR6EkLNiLbBU8OYruNX2h9LqCSBfkS7RA5xmNrcvCsHF5
-         /jstzGpFqCCQwO1cgLPZMhUEtmHIKL378R/b9qEhqfywbgfSUo9OAXv05VSYG/6oGTro
-         Rc08DWU9KRD7UBTRMfU4POIy5buAJmfa06+7bhc2WDGhLkb9kgTt6t49FKI4bt03QKca
-         Envw==
-X-Gm-Message-State: APjAAAX3XYihSFLiNTZrKW4D5y/J1acPXyq+AATY8BKF03pvI5YrRHYv
-        tFg1xkaItBFu1IyWrJ/SDXnYWN+pz8+fRYvn2mhmxvYTpKYU
-X-Google-Smtp-Source: APXvYqzZYpNyvisihbt8EN3KnLhQ+QrZm3JeQEpbdA8h9nBmjE1AdDXOmVmenOawWmDOfOfWECCiqsoRsetDdfRKflEyZvm4mUC+
-MIME-Version: 1.0
-X-Received: by 2002:a92:4891:: with SMTP id j17mr14417440ilg.33.1575650041118;
- Fri, 06 Dec 2019 08:34:01 -0800 (PST)
-Date:   Fri, 06 Dec 2019 08:34:01 -0800
-In-Reply-To: <000000000000e1d639059908223b@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000fdd04105990b9c93@google.com>
-Subject: Re: KASAN: use-after-free Read in soft_cursor
-From:   syzbot <syzbot+cf43fb300aa142fb024b@syzkaller.appspotmail.com>
-To:     b.zolnierkie@samsung.com, coreteam@netfilter.org,
-        davem@davemloft.net, dri-devel@lists.freedesktop.org,
-        gwshan@linux.vnet.ibm.com, kaber@trash.net,
-        kadlec@blackhole.kfki.hu, linux-fbdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, mpe@ellerman.id.au,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, ruscur@russell.cc, stewart@linux.vnet.ibm.com,
-        syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+        Fri, 6 Dec 2019 14:23:37 -0500
+Received: from correo.us.es ([193.147.175.20]:36228 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726317AbfLFTXg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 6 Dec 2019 14:23:36 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 230A0E34CF
+        for <netfilter-devel@vger.kernel.org>; Fri,  6 Dec 2019 20:23:33 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 14D42DA709
+        for <netfilter-devel@vger.kernel.org>; Fri,  6 Dec 2019 20:23:33 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 09F32DA705; Fri,  6 Dec 2019 20:23:33 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E27FBDA709;
+        Fri,  6 Dec 2019 20:23:30 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 06 Dec 2019 20:23:30 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id BCD7941E4800;
+        Fri,  6 Dec 2019 20:23:30 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     phil@nwl.cc
+Subject: [PATCH nf,v2] netfilter: nft_set_rbtree: bogus lookup/get on consecutive elements in named sets
+Date:   Fri,  6 Dec 2019 20:23:29 +0100
+Message-Id: <20191206192329.145662-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has bisected this bug to:
+The existing rbtree implementation might store consecutive elements
+where the closing element and the opening element might overlap, eg.
 
-commit 2de50e9674fc4ca3c6174b04477f69eb26b4ee31
-Author: Russell Currey <ruscur@russell.cc>
-Date:   Mon Feb 8 04:08:20 2016 +0000
+	[ a, a+1) [ a+1, a+2)
 
-     powerpc/powernv: Remove support for p5ioc2
+This patch removes the optimization for non-anonymous sets in the exact
+matching case, where it is assumed to stop searching in case that the
+closing element is found. Instead, invalidate candidate interval and
+keep looking further in the tree.
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1512d1bce00000
-start commit:   b0d4beaa Merge branch 'next.autofs' of git://git.kernel.or..
-git tree:       upstream
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=1712d1bce00000
-console output: https://syzkaller.appspot.com/x/log.txt?x=1312d1bce00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=f07a23020fd7d21a
-dashboard link: https://syzkaller.appspot.com/bug?extid=cf43fb300aa142fb024b
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1745a90ee00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1361042ae00000
+This patch fixes the lookup and get operations.
 
-Reported-by: syzbot+cf43fb300aa142fb024b@syzkaller.appspotmail.com
-Fixes: 2de50e9674fc ("powerpc/powernv: Remove support for p5ioc2")
+Fixes: e701001e7cbe ("netfilter: nft_rbtree: allow adjacent intervals with dynamic updates")
+Fixes: ba0e4d9917b4 ("netfilter: nf_tables: get set elements via netlink")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: missing closing bracket on _get() reported by Phil Sutter.
 
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+ net/netfilter/nft_set_rbtree.c | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
+
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 57123259452f..170abe613231 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -74,8 +74,13 @@ static bool __nft_rbtree_lookup(const struct net *net, const struct nft_set *set
+ 				parent = rcu_dereference_raw(parent->rb_left);
+ 				continue;
+ 			}
+-			if (nft_rbtree_interval_end(rbe))
+-				goto out;
++			if (nft_rbtree_interval_end(rbe)) {
++				if (set->flags & NFT_SET_ANONYMOUS)
++					return false;
++				parent = rcu_dereference_raw(parent->rb_left);
++				interval = NULL;
++				continue;
++			}
+ 
+ 			*ext = &rbe->ext;
+ 			return true;
+@@ -88,7 +93,7 @@ static bool __nft_rbtree_lookup(const struct net *net, const struct nft_set *set
+ 		*ext = &interval->ext;
+ 		return true;
+ 	}
+-out:
++
+ 	return false;
+ }
+ 
+@@ -139,8 +144,10 @@ static bool __nft_rbtree_get(const struct net *net, const struct nft_set *set,
+ 			if (flags & NFT_SET_ELEM_INTERVAL_END)
+ 				interval = rbe;
+ 		} else {
+-			if (!nft_set_elem_active(&rbe->ext, genmask))
++			if (!nft_set_elem_active(&rbe->ext, genmask)) {
+ 				parent = rcu_dereference_raw(parent->rb_left);
++				continue;
++			}
+ 
+ 			if (!nft_set_ext_exists(&rbe->ext, NFT_SET_EXT_FLAGS) ||
+ 			    (*nft_set_ext_flags(&rbe->ext) & NFT_SET_ELEM_INTERVAL_END) ==
+@@ -148,7 +155,11 @@ static bool __nft_rbtree_get(const struct net *net, const struct nft_set *set,
+ 				*elem = rbe;
+ 				return true;
+ 			}
+-			return false;
++
++			if (nft_rbtree_interval_end(rbe))
++				interval = NULL;
++
++			parent = rcu_dereference_raw(parent->rb_left);
+ 		}
+ 	}
+ 
+-- 
+2.11.0
+
