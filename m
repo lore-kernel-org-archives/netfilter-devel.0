@@ -2,66 +2,67 @@ Return-Path: <SRS0=byYJ=Z5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95F1CC43603
-	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Dec 2019 16:41:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41C43C43603
+	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Dec 2019 17:38:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 75FA624677
-	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Dec 2019 16:41:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1137E2176D
+	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Dec 2019 17:38:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726474AbfLGQlR (ORCPT
+        id S1726479AbfLGRiL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 7 Dec 2019 11:41:17 -0500
-Received: from correo.us.es ([193.147.175.20]:40886 "EHLO mail.us.es"
+        Sat, 7 Dec 2019 12:38:11 -0500
+Received: from correo.us.es ([193.147.175.20]:57138 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726455AbfLGQlR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 7 Dec 2019 11:41:17 -0500
+        id S1726469AbfLGRiL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 7 Dec 2019 12:38:11 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6FFBDDA852
-        for <netfilter-devel@vger.kernel.org>; Sat,  7 Dec 2019 17:41:13 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 0D428BAF0F
+        for <netfilter-devel@vger.kernel.org>; Sat,  7 Dec 2019 18:38:08 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6180CDA705
-        for <netfilter-devel@vger.kernel.org>; Sat,  7 Dec 2019 17:41:13 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F2796DA713
+        for <netfilter-devel@vger.kernel.org>; Sat,  7 Dec 2019 18:38:07 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 54D62DA707; Sat,  7 Dec 2019 17:41:13 +0100 (CET)
+        id E7F9BDA70A; Sat,  7 Dec 2019 18:38:07 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1264CDA705;
-        Sat,  7 Dec 2019 17:41:11 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8C9D1DA70B;
+        Sat,  7 Dec 2019 18:38:05 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 07 Dec 2019 17:41:11 +0100 (CET)
+ Sat, 07 Dec 2019 18:38:05 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (sys.soleta.eu [212.170.55.40])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id A16F04265A5A;
-        Sat,  7 Dec 2019 17:41:10 +0100 (CET)
-Date:   Sat, 7 Dec 2019 17:41:11 +0100
+        by entrada.int (Postfix) with ESMTPSA id 20E9141E4800;
+        Sat,  7 Dec 2019 18:38:05 +0100 (CET)
+Date:   Sat, 7 Dec 2019 18:38:05 +0100
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Geert Uytterhoeven <geert@linux-m68k.org>
-Cc:     Stephen Rothwell <sfr@canb.auug.org.au>,
-        David Miller <davem@davemloft.net>,
-        Networking <netdev@vger.kernel.org>,
-        Linux Next Mailing List <linux-next@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        Jiri Pirko <jiri@mellanox.com>,
+To:     Justin Forbes <jmforbes@linuxtx.org>
+Cc:     Laura Abbott <labbott@redhat.com>,
+        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Subject: Re: nf_flow on big-endian (was: Re: linux-next: build warning after
- merge of the net-next tree)
-Message-ID: <20191207164111.fpnpoipaiadaxyde@salvia>
-References: <20191121183404.6e183d06@canb.auug.org.au>
- <CAMuHMdX8QyGkpPXfwS0EJhC6hR+gpYfvdpGWqdb=bSwJGmF7Ew@mail.gmail.com>
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        Kees Cook <keescook@chromium.org>
+Subject: Re: [PATCH] netfilter: nf_flow_table_offload: Correct memcpy size
+ for flow_overload_mangle
+Message-ID: <20191207173805.jvunyfnijgefn3z5@salvia>
+References: <20191203160345.24743-1-labbott@redhat.com>
+ <20191203170114.GB377782@localhost.localdomain>
+ <9bc4b04b-a3cc-4e58-4c73-1d77b7ed05da@redhat.com>
+ <CAFxkdAraVz6mbQ3OFRGF3DmfWMDNzuXd+HJ14ypex6bMm-oCGw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="wbq7vzsidly2hz2h"
+Content-Type: multipart/mixed; boundary="xqstvcc2mbtblrb2"
 Content-Disposition: inline
-In-Reply-To: <CAMuHMdX8QyGkpPXfwS0EJhC6hR+gpYfvdpGWqdb=bSwJGmF7Ew@mail.gmail.com>
+In-Reply-To: <CAFxkdAraVz6mbQ3OFRGF3DmfWMDNzuXd+HJ14ypex6bMm-oCGw@mail.gmail.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -70,110 +71,149 @@ List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
---wbq7vzsidly2hz2h
+--xqstvcc2mbtblrb2
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-Hi Geert,
+On Fri, Dec 06, 2019 at 04:58:30PM -0600, Justin Forbes wrote:
+> On Tue, Dec 3, 2019 at 2:50 PM Laura Abbott <labbott@redhat.com> wrote:
+> >
+> > On 12/3/19 12:01 PM, Marcelo Ricardo Leitner wrote:
+> > > On Tue, Dec 03, 2019 at 11:03:45AM -0500, Laura Abbott wrote:
+> > >> The sizes for memcpy in flow_offload_mangle don't match
+> > >> the source variables, leading to overflow errors on some
+> > >> build configurations:
+> > >>
+> > >> In function 'memcpy',
+> > >>      inlined from 'flow_offload_mangle' at net/netfilter/nf_flow_table_offload.c:112:2,
+> > >>      inlined from 'flow_offload_port_dnat' at net/netfilter/nf_flow_table_offload.c:373:2,
+> > >>      inlined from 'nf_flow_rule_route_ipv4' at net/netfilter/nf_flow_table_offload.c:424:3:
+> > >> ./include/linux/string.h:376:4: error: call to '__read_overflow2' declared with attribute error: detected read beyond size of object passed as 2nd parameter
+> > >>    376 |    __read_overflow2();
+> > >>        |    ^~~~~~~~~~~~~~~~~~
+> > >> make[2]: *** [scripts/Makefile.build:266: net/netfilter/nf_flow_table_offload.o] Error 1
+> > >>
+> > >> Fix this by using the corresponding type.
+> > >>
+> > >> Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
+> > >> Signed-off-by: Laura Abbott <labbott@redhat.com>
+> > >> ---
+> > >> Seen on a Fedora powerpc little endian build with -O3 but it looks like
+> > >> it is correctly catching an error with doing a memcpy outside the source
+> > >> variable.
+> > >
+> > > Hi,
+> > >
+> > > It is right but the fix is not. In that call trace:
+> > >
+> > > flow_offload_port_dnat() {
+> > > ...
+> > >          u32 mask = ~htonl(0xffff);
+> > >          __be16 port;
+> > > ...
+> > >          flow_offload_mangle(entry, flow_offload_l4proto(flow), offset,
+> > >                                   (u8 *)&port, (u8 *)&mask);
+> > > }
+> > >
+> > > port should have a 32b storage as well, and aligned with the mask.
+> > >
+> > >> ---
+> > >>   net/netfilter/nf_flow_table_offload.c | 4 ++--
+> > >>   1 file changed, 2 insertions(+), 2 deletions(-)
+> > >>
+> > >> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+> > >> index c54c9a6cc981..526f894d0bdb 100644
+> > >> --- a/net/netfilter/nf_flow_table_offload.c
+> > >> +++ b/net/netfilter/nf_flow_table_offload.c
+> > >> @@ -108,8 +108,8 @@ static void flow_offload_mangle(struct flow_action_entry *entry,
+> > >>      entry->id = FLOW_ACTION_MANGLE;
+> > >>      entry->mangle.htype = htype;
+> > >>      entry->mangle.offset = offset;
+> > >> -    memcpy(&entry->mangle.mask, mask, sizeof(u32));
+> > >> -    memcpy(&entry->mangle.val, value, sizeof(u32));
+> > >                                     ^^^^^         ^^^ which is &port in the call above
+> > >> +    memcpy(&entry->mangle.mask, mask, sizeof(u8));
+> > >> +    memcpy(&entry->mangle.val, value, sizeof(u8));
+> > >
+> > > This fix would cause it to copy only the first byte, which is not the
+> > > intention.
+> > >
+> >
+> > Thanks for the review. I took another look at fixing this and I
+> > think it might be better for the maintainer or someone who is more
+> > familiar with the code to fix this. I ended up down a rabbit
+> > hole trying to get the types to work and I wasn't confident about
+> > the casting.
+> 
+> Any update on this? It is definitely a problem on PPC LE.
 
-On Tue, Nov 26, 2019 at 12:06:03PM +0100, Geert Uytterhoeven wrote:
-> On Thu, Nov 21, 2019 at 8:36 AM Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> > After merging the net-next tree, today's linux-next build (powerpc
-> > allyesconfig) produced this warning:
-> >
-> > net/netfilter/nf_flow_table_offload.c: In function 'nf_flow_rule_match':
-> > net/netfilter/nf_flow_table_offload.c:80:21: warning: unsigned conversion from 'int' to '__be16' {aka 'short unsigned int'} changes value from '327680' to '0' [-Woverflow]
-> >    80 |   mask->tcp.flags = TCP_FLAG_RST | TCP_FLAG_FIN;
-> >       |                     ^~~~~~~~~~~~
-> >
-> > Introduced by commit
-> >
-> >   c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
-> 
-> This is now upstream, and must be completely broken on big-endian
-> platforms.
-> 
-> The other user of the flags field looks buggy, too
-> (net/core/flow_dissector.c:__skb_flow_dissect_tcp()[*]):
-> 
->      key_tcp->flags = (*(__be16 *) &tcp_flag_word(th) & htons(0x0FFF));
-> 
-> Disclaimer: I'm not familiar with the code or protocol, so below are just
-> my gut feelings.
-> 
->      struct flow_dissector_key_tcp {
->             __be16 flags;
->     };
-> 
-> Does this have to be __be16, i.e. does it go over the wire?
-> If not, this should probably be __u16, and set using
-> "be32_to_cpu(flags) >> 16"?
-> If yes, "cpu_to_be16(be32_to_cpu(flags) >> 16)"?
-> (Ugh, needs convenience macros)
-> 
-> [*] ac4bb5de27010e41 ("net: flow_dissector: add support for dissection
-> of tcp flags")
-
-I'm attaching a tentative patch, please let me know this is fixing up
-this issue there.
+I'm attaching a tentative patch to address this problem.
 
 Thanks.
 
---wbq7vzsidly2hz2h
+--xqstvcc2mbtblrb2
 Content-Type: text/x-diff; charset=us-ascii
 Content-Disposition: attachment; filename="x.patch"
 
-diff --git a/include/net/flow_dissector.h b/include/net/flow_dissector.h
-index b8c20e9f343e..30ad4e07ff52 100644
---- a/include/net/flow_dissector.h
-+++ b/include/net/flow_dissector.h
-@@ -189,10 +189,17 @@ struct flow_dissector_key_eth_addrs {
- 
- /**
-  * struct flow_dissector_key_tcp:
-- * @flags: flags
-+ * @flags: TCP flags (16-bit, including the initial Data offset field bits)
-+ * @word: Data offset + reserved bits + TCP flags + window
-  */
- struct flow_dissector_key_tcp {
--	__be16 flags;
-+	union {
-+		struct {
-+			__be16 flags;
-+			__be16 __pad;
-+		};
-+		__be32	flag_word;
-+	};
- };
- 
- /**
-diff --git a/net/core/flow_dissector.c b/net/core/flow_dissector.c
-index ca871657a4c4..83af4633f306 100644
---- a/net/core/flow_dissector.c
-+++ b/net/core/flow_dissector.c
-@@ -756,7 +756,7 @@ __skb_flow_dissect_tcp(const struct sk_buff *skb,
- 	key_tcp = skb_flow_dissector_target(flow_dissector,
- 					    FLOW_DISSECTOR_KEY_TCP,
- 					    target_container);
--	key_tcp->flags = (*(__be16 *) &tcp_flag_word(th) & htons(0x0FFF));
-+	key_tcp->flag_word = tcp_flag_word(th);
- }
- 
- static void
 diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index c94ebad78c5c..30205d57226d 100644
+index 30205d57226d..cfa5602f54f5 100644
 --- a/net/netfilter/nf_flow_table_offload.c
 +++ b/net/netfilter/nf_flow_table_offload.c
-@@ -87,8 +87,8 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
+@@ -336,23 +336,22 @@ static void flow_offload_port_snat(struct net *net,
+ 				   struct nf_flow_rule *flow_rule)
+ {
+ 	struct flow_action_entry *entry = flow_action_entry_next(flow_rule);
+-	u32 mask = ~htonl(0xffff0000);
+-	__be16 port;
++	u32 mask = ~htonl(0xffff0000), port;
+ 	u32 offset;
  
- 	switch (tuple->l4proto) {
- 	case IPPROTO_TCP:
--		key->tcp.flags = 0;
--		mask->tcp.flags = TCP_FLAG_RST | TCP_FLAG_FIN;
-+		key->tcp.flag_word = 0;
-+		mask->tcp.flag_word = TCP_FLAG_RST | TCP_FLAG_FIN;
- 		match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_TCP);
+ 	switch (dir) {
+ 	case FLOW_OFFLOAD_DIR_ORIGINAL:
+-		port = flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst_port;
++		port = ntohs(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst_port);
+ 		offset = 0; /* offsetof(struct tcphdr, source); */
  		break;
- 	case IPPROTO_UDP:
+ 	case FLOW_OFFLOAD_DIR_REPLY:
+-		port = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.src_port;
++		port = ntohs(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.src_port);
+ 		offset = 0; /* offsetof(struct tcphdr, dest); */
+ 		break;
+ 	default:
+ 		return;
+ 	}
+-
++	port = htonl(port << 16);
+ 	flow_offload_mangle(entry, flow_offload_l4proto(flow), offset,
+ 			    (u8 *)&port, (u8 *)&mask);
+ }
+@@ -363,23 +362,22 @@ static void flow_offload_port_dnat(struct net *net,
+ 				   struct nf_flow_rule *flow_rule)
+ {
+ 	struct flow_action_entry *entry = flow_action_entry_next(flow_rule);
+-	u32 mask = ~htonl(0xffff);
+-	__be16 port;
++	u32 mask = ~htonl(0xffff), port;
+ 	u32 offset;
+ 
+ 	switch (dir) {
+ 	case FLOW_OFFLOAD_DIR_ORIGINAL:
+-		port = flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst_port;
++		port = ntohs(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst_port);
+ 		offset = 0; /* offsetof(struct tcphdr, source); */
+ 		break;
+ 	case FLOW_OFFLOAD_DIR_REPLY:
+-		port = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.src_port;
++		port = ntohs(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.src_port);
+ 		offset = 0; /* offsetof(struct tcphdr, dest); */
+ 		break;
+ 	default:
+ 		return;
+ 	}
+-
++	port = htonl(port);
+ 	flow_offload_mangle(entry, flow_offload_l4proto(flow), offset,
+ 			    (u8 *)&port, (u8 *)&mask);
+ }
 
---wbq7vzsidly2hz2h--
+--xqstvcc2mbtblrb2--
