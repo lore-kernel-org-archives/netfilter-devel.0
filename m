@@ -2,176 +2,254 @@ Return-Path: <SRS0=byYJ=Z5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT,
-	USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15A6FC3F68F
-	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Dec 2019 22:44:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5091DC43603
+	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Dec 2019 22:51:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DFC8E24677
-	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Dec 2019 22:44:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1786C21835
+	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Dec 2019 22:51:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="k+RiGDbr"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="LYaHp5hm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726480AbfLGWnn (ORCPT
+        id S1726427AbfLGWv4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 7 Dec 2019 17:43:43 -0500
-Received: from mail-pg1-f201.google.com ([209.85.215.201]:55564 "EHLO
-        mail-pg1-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726415AbfLGWnn (ORCPT
+        Sat, 7 Dec 2019 17:51:56 -0500
+Received: from us-smtp-1.mimecast.com ([207.211.31.81]:52845 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726415AbfLGWv4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 7 Dec 2019 17:43:43 -0500
-Received: by mail-pg1-f201.google.com with SMTP id v30so6009603pga.22
-        for <netfilter-devel@vger.kernel.org>; Sat, 07 Dec 2019 14:43:42 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=date:message-id:mime-version:subject:from:to:cc;
-        bh=0JnHAKjpCnoBkVKM1WOylaTi0fyRoTvLK1Dji++R99g=;
-        b=k+RiGDbripln+WNqXmqY3WYOI6HID+a9h+lOakjUivuYxvklPpQVsgtKdvqKH5uI1g
-         hgbEf99gTYKMVPBIn7fL8gacHUaMRNaH2PftIrF6meE7i7ICuU4QKuagMNnNqNbBOooZ
-         QymJWu5su9wn35fGbMAdKLQqc+pGqR4Vq8JphuRXhBkfIcYbjdMDI0quqVTsFrt6eX+3
-         hTEX2t333M5seEgX0G/Ow+lbbmwL+GUkAo8Odc28Pbo5/j80cXMaXlfqi5mftwh6uAfd
-         njPpH8MCOHA03trSBytWQGoDo7rF+arLdIPA8ArJOnMySHK8wS41XodAovBsOGHydBcb
-         emLQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:message-id:mime-version:subject:from:to:cc;
-        bh=0JnHAKjpCnoBkVKM1WOylaTi0fyRoTvLK1Dji++R99g=;
-        b=BP7XyXqJsvjuFkxL6mfhw+BmAGoS9TAomaPTgCVntt0cO3xDZkn6zriEtTpnQ/DEmu
-         YOGmc4wTSgzOGjzq1WHSPXrDbCujgTBROv1T39XxkDDJJGE66lF/7s/ZcCgfUjADYI8y
-         PpOEaIDwSsVqHQkTHp9B5wS4jY3t15GuhBGvCkMdusbAhj5Y4OK6ZPsftd19+nLPL2ae
-         PV2LiNQKHbo75ma4zmNMI9Bf4J3+V35wKeWTswA6jW7rA922u+0TWBIi0jNQAPSHav1J
-         sfJ/4VrsQ1hT9aa9ue5dBEuDJwfnpy/FQt3GgkmITOsbjbca/l6UHamWh2ouKS4cEHKD
-         PKPA==
-X-Gm-Message-State: APjAAAUKxCZfIAC2kCSC27jx9fhOOXTIvggcO65rAccaxbkzU0wyIeZ2
-        fLMrVr6v7/maF9J235GnR/sTW3xTIgZM7g==
-X-Google-Smtp-Source: APXvYqzFEIBSKcSIa97bFhAZq7gBMS5/UqabrLI5F6MLCSgOPu1drXOTrOHJ1SvnoBkgSeU2CItrxUIlVPcjGw==
-X-Received: by 2002:a63:215d:: with SMTP id s29mr10197277pgm.200.1575758622354;
- Sat, 07 Dec 2019 14:43:42 -0800 (PST)
-Date:   Sat,  7 Dec 2019 14:43:39 -0800
-Message-Id: <20191207224339.91704-1-edumazet@google.com>
-Mime-Version: 1.0
-X-Mailer: git-send-email 2.24.0.393.g34dc348eaf-goog
-Subject: [PATCH netfilter] netfilter: bridge: make sure to pull arp header in br_nf_forward_arp()
-From:   Eric Dumazet <edumazet@google.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Eric Dumazet <eric.dumazet@gmail.com>,
-        syzbot <syzkaller@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+        Sat, 7 Dec 2019 17:51:56 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1575759114;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=cUoqabyPTcKxXfdxWy0jDzLGbGHivMM7pVGebaWlEtQ=;
+        b=LYaHp5hm/eAR4kp+huzFncYEz6ji8Vz3qUNTqwJ7XYMnwTcxCxqDHUVIt4cjdgX4857IPN
+        x0iE7fXS5o5FDVClIXE5WNm5+EE9T63puu3dWh+b21R3N4MdYR7djYf6kfQW29xbFEzHre
+        idceOXzWB5Ll/VT4rnV2+AoiIITu30Q=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-133-wImlMClvMamKE_k1nz6djg-1; Sat, 07 Dec 2019 17:51:53 -0500
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 808011005512;
+        Sat,  7 Dec 2019 22:51:52 +0000 (UTC)
+Received: from elisabeth (ovpn-200-27.brq.redhat.com [10.40.200.27])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 2ED08A4B8F;
+        Sat,  7 Dec 2019 22:51:50 +0000 (UTC)
+Date:   Sat, 7 Dec 2019 23:51:38 +0100
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH,nf-next RFC 1/2] netfilter: nf_tables: add
+ nft_setelem_parse_key()
+Message-ID: <20191207235138.393d306c@elisabeth>
+In-Reply-To: <20191206194517.gg6e34uekje647sn@salvia>
+References: <20191202131407.500999-1-pablo@netfilter.org>
+ <20191202131407.500999-2-pablo@netfilter.org>
+ <20191205234350.3dd81c1c@elisabeth>
+ <20191206194517.gg6e34uekje647sn@salvia>
+Organization: Red Hat
+MIME-Version: 1.0
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+X-MC-Unique: wImlMClvMamKE_k1nz6djg-1
+X-Mimecast-Spam-Score: 0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot is kind enough to remind us we need to call skb_may_pull()
+On Fri, 6 Dec 2019 20:45:17 +0100
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-BUG: KMSAN: uninit-value in br_nf_forward_arp+0xe61/0x1230 net/bridge/br_netfilter_hooks.c:665
-CPU: 1 PID: 11631 Comm: syz-executor.1 Not tainted 5.4.0-rc8-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-Call Trace:
- <IRQ>
- __dump_stack lib/dump_stack.c:77 [inline]
- dump_stack+0x1c9/0x220 lib/dump_stack.c:118
- kmsan_report+0x128/0x220 mm/kmsan/kmsan_report.c:108
- __msan_warning+0x64/0xc0 mm/kmsan/kmsan_instr.c:245
- br_nf_forward_arp+0xe61/0x1230 net/bridge/br_netfilter_hooks.c:665
- nf_hook_entry_hookfn include/linux/netfilter.h:135 [inline]
- nf_hook_slow+0x18b/0x3f0 net/netfilter/core.c:512
- nf_hook include/linux/netfilter.h:260 [inline]
- NF_HOOK include/linux/netfilter.h:303 [inline]
- __br_forward+0x78f/0xe30 net/bridge/br_forward.c:109
- br_flood+0xef0/0xfe0 net/bridge/br_forward.c:234
- br_handle_frame_finish+0x1a77/0x1c20 net/bridge/br_input.c:162
- nf_hook_bridge_pre net/bridge/br_input.c:245 [inline]
- br_handle_frame+0xfb6/0x1eb0 net/bridge/br_input.c:348
- __netif_receive_skb_core+0x20b9/0x51a0 net/core/dev.c:4830
- __netif_receive_skb_one_core net/core/dev.c:4927 [inline]
- __netif_receive_skb net/core/dev.c:5043 [inline]
- process_backlog+0x610/0x13c0 net/core/dev.c:5874
- napi_poll net/core/dev.c:6311 [inline]
- net_rx_action+0x7a6/0x1aa0 net/core/dev.c:6379
- __do_softirq+0x4a1/0x83a kernel/softirq.c:293
- do_softirq_own_stack+0x49/0x80 arch/x86/entry/entry_64.S:1091
- </IRQ>
- do_softirq kernel/softirq.c:338 [inline]
- __local_bh_enable_ip+0x184/0x1d0 kernel/softirq.c:190
- local_bh_enable+0x36/0x40 include/linux/bottom_half.h:32
- rcu_read_unlock_bh include/linux/rcupdate.h:688 [inline]
- __dev_queue_xmit+0x38e8/0x4200 net/core/dev.c:3819
- dev_queue_xmit+0x4b/0x60 net/core/dev.c:3825
- packet_snd net/packet/af_packet.c:2959 [inline]
- packet_sendmsg+0x8234/0x9100 net/packet/af_packet.c:2984
- sock_sendmsg_nosec net/socket.c:637 [inline]
- sock_sendmsg net/socket.c:657 [inline]
- __sys_sendto+0xc44/0xc70 net/socket.c:1952
- __do_sys_sendto net/socket.c:1964 [inline]
- __se_sys_sendto+0x107/0x130 net/socket.c:1960
- __x64_sys_sendto+0x6e/0x90 net/socket.c:1960
- do_syscall_64+0xb6/0x160 arch/x86/entry/common.c:291
- entry_SYSCALL_64_after_hwframe+0x44/0xa9
-RIP: 0033:0x45a679
-Code: ad b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007f0a3c9e5c78 EFLAGS: 00000246 ORIG_RAX: 000000000000002c
-RAX: ffffffffffffffda RBX: 0000000000000006 RCX: 000000000045a679
-RDX: 000000000000000e RSI: 0000000020000200 RDI: 0000000000000003
-RBP: 000000000075bf20 R08: 00000000200000c0 R09: 0000000000000014
-R10: 0000000000000000 R11: 0000000000000246 R12: 00007f0a3c9e66d4
-R13: 00000000004c8ec1 R14: 00000000004dfe28 R15: 00000000ffffffff
+> On Thu, Dec 05, 2019 at 11:43:50PM +0100, Stefano Brivio wrote:
+> > Hi Pablo,
+> > 
+> > Just two nits:
+> > 
+> > On Mon,  2 Dec 2019 14:14:06 +0100
+> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> >   
+> > > Add helper function to parse the set element key netlink attribute.
+> > > 
+> > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > > ---
+> > >  net/netfilter/nf_tables_api.c | 56 ++++++++++++++++++++++++-------------------
+> > >  1 file changed, 32 insertions(+), 24 deletions(-)
+> > > 
+> > > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> > > index 0db2784fee9a..13e291fac26f 100644
+> > > --- a/net/netfilter/nf_tables_api.c
+> > > +++ b/net/netfilter/nf_tables_api.c
+> > > @@ -4490,11 +4490,31 @@ static int nft_setelem_parse_flags(const struct nft_set *set,
+> > >  	return 0;
+> > >  }
+> > >  
+> > > +static int nft_setelem_parse_key(struct nft_ctx *ctx, struct nft_set *set,
+> > > +				 struct nft_data *key, struct nlattr *attr)
+> > > +{
+> > > +	struct nft_data_desc desc;
+> > > +	int err;
+> > > +
+> > > +	err = nft_data_init(ctx, key, sizeof(*key), &desc, attr);
+> > > +	if (err < 0)
+> > > +		goto err1;
+> > > +
+> > > +	err = -EINVAL;
+> > > +	if (desc.type != NFT_DATA_VALUE || desc.len != set->klen)
+> > > +		goto err2;
+> > > +
+> > > +	return 0;
+> > > +err2:
+> > > +	nft_data_release(key, desc.type);
+> > > +err1:
+> > > +	return err;
+> > > +}
+> > > +
+> > >  static int nft_get_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+> > >  			    const struct nlattr *attr)
+> > >  {
+> > >  	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
+> > > -	struct nft_data_desc desc;
+> > >  	struct nft_set_elem elem;
+> > >  	struct sk_buff *skb;
+> > >  	uint32_t flags = 0;
+> > > @@ -4513,15 +4533,11 @@ static int nft_get_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+> > >  	if (err < 0)
+> > >  		return err;
+> > >  
+> > > -	err = nft_data_init(ctx, &elem.key.val, sizeof(elem.key), &desc,
+> > > -			    nla[NFTA_SET_ELEM_KEY]);
+> > > +	err = nft_setelem_parse_key(ctx, set, &elem.key.val,
+> > > +				    nla[NFTA_SET_ELEM_KEY]);
+> > >  	if (err < 0)
+> > >  		return err;
+> > >  
+> > > -	err = -EINVAL;
+> > > -	if (desc.type != NFT_DATA_VALUE || desc.len != set->klen)
+> > > -		return err;
+> > > -
+> > >  	priv = set->ops->get(ctx->net, set, &elem, flags);
+> > >  	if (IS_ERR(priv))
+> > >  		return PTR_ERR(priv);
+> > > @@ -4720,13 +4736,13 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+> > >  {
+> > >  	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
+> > >  	u8 genmask = nft_genmask_next(ctx->net);
+> > > -	struct nft_data_desc d1, d2;
+> > >  	struct nft_set_ext_tmpl tmpl;
+> > >  	struct nft_set_ext *ext, *ext2;
+> > >  	struct nft_set_elem elem;
+> > >  	struct nft_set_binding *binding;
+> > >  	struct nft_object *obj = NULL;
+> > >  	struct nft_userdata *udata;
+> > > +	struct nft_data_desc d2;  
+> > 
+> > At this point, this could simply be desc, or data_desc.
+> >   
+> > >  	struct nft_data data;
+> > >  	enum nft_registers dreg;
+> > >  	struct nft_trans *trans;
+> > > @@ -4792,15 +4808,12 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+> > >  			return err;
+> > >  	}
+> > >  
+> > > -	err = nft_data_init(ctx, &elem.key.val, sizeof(elem.key), &d1,
+> > > -			    nla[NFTA_SET_ELEM_KEY]);
+> > > +	err = nft_setelem_parse_key(ctx, set, &elem.key.val,
+> > > +				    nla[NFTA_SET_ELEM_KEY]);
+> > >  	if (err < 0)
+> > >  		goto err1;
+> > > -	err = -EINVAL;
+> > > -	if (d1.type != NFT_DATA_VALUE || d1.len != set->klen)
+> > > -		goto err2;
+> > >  
+> > > -	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, d1.len);
+> > > +	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, set->klen);
+> > >  	if (timeout > 0) {
+> > >  		nft_set_ext_add(&tmpl, NFT_SET_EXT_EXPIRATION);
+> > >  		if (timeout != set->timeout)
+> > > @@ -4942,7 +4955,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+> > >  	if (nla[NFTA_SET_ELEM_DATA] != NULL)
+> > >  		nft_data_release(&data, d2.type);
+> > >  err2:
+> > > -	nft_data_release(&elem.key.val, d1.type);
+> > > +	nft_data_release(&elem.key.val, NFT_DATA_VALUE);
+> > >  err1:
+> > >  	return err;
+> > >  }
+> > > @@ -5038,7 +5051,6 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
+> > >  {
+> > >  	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
+> > >  	struct nft_set_ext_tmpl tmpl;
+> > > -	struct nft_data_desc desc;
+> > >  	struct nft_set_elem elem;
+> > >  	struct nft_set_ext *ext;
+> > >  	struct nft_trans *trans;
+> > > @@ -5063,16 +5075,12 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
+> > >  	if (flags != 0)
+> > >  		nft_set_ext_add(&tmpl, NFT_SET_EXT_FLAGS);
+> > >  
+> > > -	err = nft_data_init(ctx, &elem.key.val, sizeof(elem.key), &desc,
+> > > -			    nla[NFTA_SET_ELEM_KEY]);
+> > > +	err = nft_setelem_parse_key(ctx, set, &elem.key.val,
+> > > +				    nla[NFTA_SET_ELEM_KEY]);
+> > >  	if (err < 0)
+> > >  		goto err1;
+> > >  
+> > > -	err = -EINVAL;
+> > > -	if (desc.type != NFT_DATA_VALUE || desc.len != set->klen)
+> > > -		goto err2;
+> > > -
+> > > -	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, desc.len);
+> > > +	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, set->klen);
+> > >  
+> > >  	err = -ENOMEM;
+> > >  	elem.priv = nft_set_elem_init(set, &tmpl, elem.key.val.data, NULL, 0,
+> > > @@ -5109,7 +5117,7 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
+> > >  err3:
+> > >  	kfree(elem.priv);
+> > >  err2:
+> > > -	nft_data_release(&elem.key.val, desc.type);
+> > > +	nft_data_release(&elem.key.val, NFT_DATA_VALUE);  
+> > 
+> > I'm not sure if this can actually happen, but in
+> > nft_setelem_parse_key() you are checking that the type is
+> > NFT_DATA_VALUE, and returning error if it's not.  
+> 
+> Exactly.
+> 
+> > If the type is not NFT_DATA_VALUE, I guess we shouldn't pass
+> > NFT_DATA_VALUE to nft_data_release() here.  
+> 
+> The new nft_setelem_parse_key() function makes sure that the key is
+> NFT_DATA_VALUE, otherwise bails out and calls nft_data_release() with
+> desc.type.
+> 
+> Then, moving forward in nft_add_set_elem() after the
+> nft_setelem_parse_key(), if an error occurs, nft_data_release() can be
+> called with NFT_DATA_VALUE, because that was already validated by
+> nft_setelem_parse_key().
+> 
+> > Maybe nft_setelem_parse_key() could clean up after itself on error.  
+> 
+> It's doing so already, right? See err2: label.
 
-Uninit was created at:
- kmsan_save_stack_with_flags mm/kmsan/kmsan.c:149 [inline]
- kmsan_internal_poison_shadow+0x5c/0x110 mm/kmsan/kmsan.c:132
- kmsan_slab_alloc+0x97/0x100 mm/kmsan/kmsan_hooks.c:86
- slab_alloc_node mm/slub.c:2773 [inline]
- __kmalloc_node_track_caller+0xe27/0x11a0 mm/slub.c:4381
- __kmalloc_reserve net/core/skbuff.c:141 [inline]
- __alloc_skb+0x306/0xa10 net/core/skbuff.c:209
- alloc_skb include/linux/skbuff.h:1049 [inline]
- alloc_skb_with_frags+0x18c/0xa80 net/core/skbuff.c:5662
- sock_alloc_send_pskb+0xafd/0x10a0 net/core/sock.c:2244
- packet_alloc_skb net/packet/af_packet.c:2807 [inline]
- packet_snd net/packet/af_packet.c:2902 [inline]
- packet_sendmsg+0x63a6/0x9100 net/packet/af_packet.c:2984
- sock_sendmsg_nosec net/socket.c:637 [inline]
- sock_sendmsg net/socket.c:657 [inline]
- __sys_sendto+0xc44/0xc70 net/socket.c:1952
- __do_sys_sendto net/socket.c:1964 [inline]
- __se_sys_sendto+0x107/0x130 net/socket.c:1960
- __x64_sys_sendto+0x6e/0x90 net/socket.c:1960
- do_syscall_64+0xb6/0x160 arch/x86/entry/common.c:291
- entry_SYSCALL_64_after_hwframe+0x44/0xa9
+Right you are, my bad, I mixed up err2: and err1: in nft_set_delelem()
+and then forgot about err2: in nft_setelem_parse_key().
 
-Fixes: c4e70a87d975 ("netfilter: bridge: rename br_netfilter.c to br_netfilter_hooks.c")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Reported-by: syzbot <syzkaller@googlegroups.com>
----
+Well, on the other hand, 'return err;" and 'goto fail_elem;" would have
+been easier to follow, but maybe it's just my taste. :)
 
-Note: Fixes: tag does not point to real bug origin, but is old enough
-     to cover all stable versions.
-
- net/bridge/br_netfilter_hooks.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index af7800103e51e5aee724ff314697d17ec583aeba..59980ecfc9623fd0edcd8f3c4375dc5b68cb704b 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -662,6 +662,9 @@ static unsigned int br_nf_forward_arp(void *priv,
- 		nf_bridge_pull_encap_header(skb);
- 	}
- 
-+	if (unlikely(!pskb_may_pull(skb, sizeof(struct arphdr))))
-+		return NF_DROP;
-+
- 	if (arp_hdr(skb)->ar_pln != 4) {
- 		if (is_vlan_arp(skb, state->net))
- 			nf_bridge_push_encap_header(skb);
 -- 
-2.24.0.393.g34dc348eaf-goog
+Stefano
 
