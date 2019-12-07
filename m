@@ -2,114 +2,90 @@ Return-Path: <SRS0=byYJ=Z5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_IN_DEF_DKIM_WL
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E3FAC43603
-	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Dec 2019 07:23:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3727C43603
+	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Dec 2019 11:03:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 03C5321835
-	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Dec 2019 07:23:13 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="TSgkeFFj"
+	by mail.kernel.org (Postfix) with ESMTP id 7D3AC21835
+	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Dec 2019 11:03:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726528AbfLGHXI (ORCPT
+        id S1726397AbfLGLDK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 7 Dec 2019 02:23:08 -0500
-Received: from mail-qt1-f194.google.com ([209.85.160.194]:33685 "EHLO
-        mail-qt1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725869AbfLGHXH (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 7 Dec 2019 02:23:07 -0500
-Received: by mail-qt1-f194.google.com with SMTP id d5so9649733qto.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 06 Dec 2019 23:23:07 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=WKRU5pSG2PRY1i50C6ckRyYjlPu0mkUgyvtTtKKNwF4=;
-        b=TSgkeFFjw9IXx/DReyCPlEeIMmu0k9IyhNUDT03zvwWvvnOt4VzeW6knY8j/T4K5zc
-         JMzRL2mIa03FbkvOn3Wq+DnFMm1HZiqVi23oZL63A1ZKFBqOZ942cxk6h3ZDSTnP+6mb
-         tJx2BEfefiTerW4vzKLvOLGzyU6N27A0nDi0mFMcMM5BJwmnGDf7DdbI1yg1NozpJxft
-         Ven48GSQ08+cKs07SJsnB7OVl7W6S0QJhBBgsgZKtiqKZfNnd6W9v0Rf/3Y9s/dEDHRC
-         khXrqNPdvJnIgOAV8r8/cTFE+mCQ/KGb4nkhTKqU3htoekizxTxrYC5GouMtlWrdWiPg
-         5YrA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=WKRU5pSG2PRY1i50C6ckRyYjlPu0mkUgyvtTtKKNwF4=;
-        b=C3vmrO2wKRGF07ICJQbPlEYbbTsQkpmN4zzpSeGyl5p4Ewo3UvvGyJzEzQ3qrGUWWO
-         0FPx8wtJRp+QSvjxUVkv/G8EL+fuw/dYWIRQiBTtQRJWJPqCNbOljMsy+Nn3oTxbq637
-         19/vCYHDgCVDhpOiPdONhuu5dqqjvn1dt/YBbflTkEp0oAcczu81O4cR3vf129uWcSec
-         a1YDczrP04//HT7sI++Kb7n4WUmbJTlZta1oGRr39ibdi2+3ofTe77G45k1A25K4Lmmd
-         qP+9rs+pIoawWhAPRUB3WCj33hlxlIk+hPg0CAb8lc+Z2jZzVfQ5o3B/TrQ1JnonXa4A
-         DCEw==
-X-Gm-Message-State: APjAAAX5HDN9rw/HH0kDyfcLuM529Q7pD2PI2ECQ1wx4KQiXYDO5FLFt
-        Lmt6BERmDvLzklB8hTyFVDoLwzm9smv380BLg1+9kA==
-X-Google-Smtp-Source: APXvYqzADYcdsyMtAGfTGhS9VBKWgLIVQ8HeiaaMSQTOXcfnjmm1OYt8/HHEC3dw5lwpNOgSzkdKcfJ7rQeL88sn7Ro=
-X-Received: by 2002:ac8:3905:: with SMTP id s5mr16470924qtb.158.1575703386571;
- Fri, 06 Dec 2019 23:23:06 -0800 (PST)
-MIME-Version: 1.0
-References: <000000000000e1d639059908223b@google.com> <000000000000fdd04105990b9c93@google.com>
-In-Reply-To: <000000000000fdd04105990b9c93@google.com>
-From:   Dmitry Vyukov <dvyukov@google.com>
-Date:   Sat, 7 Dec 2019 08:22:55 +0100
-Message-ID: <CACT4Y+ahbULUDLhmNxqEffU1BbAiMuZ7Da6DurdX4XwUftROmg@mail.gmail.com>
-Subject: Re: KASAN: use-after-free Read in soft_cursor
-To:     syzbot <syzbot+cf43fb300aa142fb024b@syzkaller.appspotmail.com>
-Cc:     Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        coreteam@netfilter.org, David Miller <davem@davemloft.net>,
-        DRI <dri-devel@lists.freedesktop.org>, gwshan@linux.vnet.ibm.com,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        netdev <netdev@vger.kernel.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
+        Sat, 7 Dec 2019 06:03:10 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:37178 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726289AbfLGLDK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 7 Dec 2019 06:03:10 -0500
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1idXrf-0001Pz-UM; Sat, 07 Dec 2019 12:03:07 +0100
+Date:   Sat, 7 Dec 2019 12:03:07 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nft_set_rbtree: bogus lookup/get on
+ consecutive elements in named sets
+Message-ID: <20191207110307.GK14469@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Russell Currey <ruscur@russell.cc>, stewart@linux.vnet.ibm.com,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+        netfilter-devel@vger.kernel.org
+References: <20191205180706.134232-1-pablo@netfilter.org>
+ <20191205220408.GG14469@orbyte.nwl.cc>
+ <20191206192647.h3htnpq3b4qmlphs@salvia>
+ <20191206193938.7jceb5dvi2zwkm2g@salvia>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191206193938.7jceb5dvi2zwkm2g@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Dec 6, 2019 at 5:34 PM syzbot
-<syzbot+cf43fb300aa142fb024b@syzkaller.appspotmail.com> wrote:
->
-> syzbot has bisected this bug to:
->
-> commit 2de50e9674fc4ca3c6174b04477f69eb26b4ee31
-> Author: Russell Currey <ruscur@russell.cc>
-> Date:   Mon Feb 8 04:08:20 2016 +0000
->
->      powerpc/powernv: Remove support for p5ioc2
+Hi Pablo,
 
-Another weird one, I must be missing something obvious about how git
-bisect works... I keep adding these to:
-https://github.com/google/syzkaller/issues/1527
+On Fri, Dec 06, 2019 at 08:39:38PM +0100, Pablo Neira Ayuso wrote:
+> On Fri, Dec 06, 2019 at 08:26:47PM +0100, Pablo Neira Ayuso wrote:
+> > On Thu, Dec 05, 2019 at 11:04:08PM +0100, Phil Sutter wrote:
+> > > Hi Pablo,
+> > > 
+> > > On Thu, Dec 05, 2019 at 07:07:06PM +0100, Pablo Neira Ayuso wrote:
+> > > > The existing rbtree implementation might store consecutive elements
+> > > > where the closing element and the opening element might overlap, eg.
+> > > > 
+> > > > 	[ a, a+1) [ a+1, a+2)
+> > > > 
+> > > > This patch removes the optimization for non-anonymous sets in the exact
+> > > > matching case, where it is assumed to stop searching in case that the
+> > > > closing element is found. Instead, invalidate candidate interval and
+> > > > keep looking further in the tree.
+> > > > 
+> > > > This patch fixes the lookup and get operations.
+> > > 
+> > > I didn't get what the actual problem is?
+> > 
+> > The lookup/get results false, while there is an element in the rbtree.
+> > Moreover, the get operation returns true as if a+2 would be in the
+> > tree. This happens with named sets after several set updates, I could
+> > reproduce the issue with several elements mixed with insertion and
+> > deletions in one batch.
+> 
+> To extend the problem description: The issue is that the existing
+> lookup optimization (that only works for the anonymous sets) might not
+> reach the opening [ a+1, ... element if the closing ... , a+1) is
+> found in first place when walking over the rbtree. Hence, walking the
+> full tree in that case is needed.
 
-> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1512d1bce00000
-> start commit:   b0d4beaa Merge branch 'next.autofs' of git://git.kernel.or..
-> git tree:       upstream
-> final crash:    https://syzkaller.appspot.com/x/report.txt?x=1712d1bce00000
-> console output: https://syzkaller.appspot.com/x/log.txt?x=1312d1bce00000
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=f07a23020fd7d21a
-> dashboard link: https://syzkaller.appspot.com/bug?extid=cf43fb300aa142fb024b
-> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1745a90ee00000
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1361042ae00000
->
-> Reported-by: syzbot+cf43fb300aa142fb024b@syzkaller.appspotmail.com
-> Fixes: 2de50e9674fc ("powerpc/powernv: Remove support for p5ioc2")
->
-> For information about bisection process see: https://goo.gl/tpsmEJ#bisection
->
-> --
-> You received this message because you are subscribed to the Google Groups "syzkaller-bugs" group.
-> To unsubscribe from this group and stop receiving emails from it, send an email to syzkaller-bugs+unsubscribe@googlegroups.com.
-> To view this discussion on the web visit https://groups.google.com/d/msgid/syzkaller-bugs/000000000000fdd04105990b9c93%40google.com.
+Ah! Thanks a lot for your elaborations. It was really hard to grasp what
+all this is about from the initial commit message. :)
+
+Sometimes I wonder if we should do more set optimizations under the hood
+when adding elements. Right now, we don't touch existing ones although
+it would make sense. And we could be more intelligent for example if a
+set contains 20-30 and a user adds 25-35.
+
+Cheers, Phil
