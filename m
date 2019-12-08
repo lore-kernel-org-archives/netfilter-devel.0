@@ -2,99 +2,181 @@ Return-Path: <SRS0=ZPzN=Z6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A706AC43603
-	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Dec 2019 09:27:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44D64C43603
+	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Dec 2019 10:33:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6E8C520637
-	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Dec 2019 09:27:01 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jbH52F/q"
+	by mail.kernel.org (Postfix) with ESMTP id 16F8D20663
+	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Dec 2019 10:33:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726044AbfLHJ1B (ORCPT
+        id S1726421AbfLHKd0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 8 Dec 2019 04:27:01 -0500
-Received: from mail-lf1-f66.google.com ([209.85.167.66]:35578 "EHLO
-        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725832AbfLHJ1A (ORCPT
+        Sun, 8 Dec 2019 05:33:26 -0500
+Received: from mail-oi1-f196.google.com ([209.85.167.196]:43356 "EHLO
+        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726044AbfLHKd0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 8 Dec 2019 04:27:00 -0500
-Received: by mail-lf1-f66.google.com with SMTP id 15so8441019lfr.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 08 Dec 2019 01:26:59 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=q+6Qbrb69LfyvJ7usaj+313XMR1Ak9GsMBLkaSYfQGU=;
-        b=jbH52F/qvM+dbY2CU7OrMyE8drs1xTonU1xojC/bzeSUEuYLeB2Hlwxb3zms9wy8f0
-         LzJqHsRG3B/iPqVMfIvR9S9JOCEbh1z2vieQ8i6FtRtykVO/LwFrNa3tufXZCGrwI3hs
-         SVuvwThmiMSinWeWmEPSEYq+A6HFw6TBUosmwhZfpe6kmSM4SlTvR37yFoDZj6Gx4iJR
-         skHpDAqoG1gWIoGy4NkLA+ZkDlf87MnVSS8SDO9q1SSHugfkoCaucgM9pDYSSPwyRd8U
-         GCy9j0Yx1Yla2LIJWSr4Wh5ElIogdAxDzsjPHrSwfvUDJgI/WtOTE4aM14hyw5ZA48dl
-         hmvQ==
+        Sun, 8 Dec 2019 05:33:26 -0500
+Received: by mail-oi1-f196.google.com with SMTP id x14so3796033oic.10;
+        Sun, 08 Dec 2019 02:33:25 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=q+6Qbrb69LfyvJ7usaj+313XMR1Ak9GsMBLkaSYfQGU=;
-        b=HtEhMuB71xgVd1IsvnI5bc6YWZgdCPZM4Use0I0/Qw6KtVNFxjsI4WM5xUtRFJGqaD
-         WhRIBCJqXCkYKp2FNmP+IZkkSDgyJK1kLtSYYYJ9+nyJeWN2a+MArZezMClHeePN4kO4
-         3cF9LGuhiLdb83ThNzSE1NMR80t6WabodcNIxF3X/LeBXx8UrpkYE2AJGNCHTP9lcFKc
-         1f6bgYOaTbgKcw6EtKatdGAuNLWbZFdZkPD6LZSq/bZk4heIrcgLFgpSdiuAX4M95JEU
-         4v1ag5QO8LsVecB6Qc+RNz9f790A9w839aM9el9/fxpFE5I1oi0m+pCSr9qNmag3k0XL
-         kTmw==
-X-Gm-Message-State: APjAAAU5gTHp97DIXVbHBRpb8SbuD9ymwcChvl4osJkTKBOgA5AZPlUU
-        LOcAFXOWbYWDo40GRKwBn/lNY41Z
-X-Google-Smtp-Source: APXvYqzlYxIHOM3tfyfO2QEmPz02qoBmGe5BML8luTPpvur+xAFAJbaFeKZR3WBc7cStO97K+dM6Rw==
-X-Received: by 2002:a19:c80a:: with SMTP id y10mr688531lff.177.1575797218897;
-        Sun, 08 Dec 2019 01:26:58 -0800 (PST)
-Received: from walnut.lan (balticom-231-46.balticom.lv. [83.99.231.46])
-        by smtp.gmail.com with ESMTPSA id r23sm788037ljk.53.2019.12.08.01.26.58
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 08 Dec 2019 01:26:58 -0800 (PST)
-From:   nl6720 <nl6720@gmail.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     nl6720 <nl6720@gmail.com>
-Subject: [PATCH nftables] doc: Remove repeated paragraph and fix typo
-Date:   Sun,  8 Dec 2019 11:25:58 +0200
-Message-Id: <20191208092557.14536-1-nl6720@gmail.com>
-X-Mailer: git-send-email 2.24.0
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=m/XMm08gR2sjLP1gEIf1XClkapbPvq6gpn+AbMcpJ+I=;
+        b=Um+/KhIzVFAq2vKsJqrvV6jYnzMvw1U5d6TWczosi7KTPjD3cLnwbO7cf6zqVsFyBj
+         6aaSsK5Oi99Jx3z1+f7HixOFVUJfB5Wv03tm77I8kQGq2dvpE9zn4KT7W+Ofp0eU6MSA
+         swMkpsM+ZF0imXs+bxZYNYCN3uUa3hDrc0GrV18HSGKDGZL4b4tt/x8/ZV7s1JHmfnP6
+         8uNn9Ug2Mcurz2v2VX85DGLn4F57vC8f1V4YoBletw86pU3RN/PP4KXb1BPbvHuM5H8Y
+         GkNTmTFql42a+PFQwftuJDReOTJGncNnerXtXOMANRXnZK4hOukCdNAn8qkgomHWvw+p
+         cxhQ==
+X-Gm-Message-State: APjAAAUDAADFuiUgJDVathLWDubGdgZbxFmiNwWUrn++sHFDXjGFaXzX
+        p5tvu/4YuBS8FnyB1tzJd7dXVxk6J4gB3iP0LuadWQ==
+X-Google-Smtp-Source: APXvYqzR+hkxfTMnBIXwpZthVNtnPoiXTgABDZEwTSOdgQLsq0VFrYM2rl+gRViiuFCnkPpvfsMTLkjNg3VOIvqJH6o=
+X-Received: by 2002:aca:4e87:: with SMTP id c129mr19360701oib.153.1575801205174;
+ Sun, 08 Dec 2019 02:33:25 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20191121183404.6e183d06@canb.auug.org.au> <CAMuHMdX8QyGkpPXfwS0EJhC6hR+gpYfvdpGWqdb=bSwJGmF7Ew@mail.gmail.com>
+ <20191207164111.fpnpoipaiadaxyde@salvia>
+In-Reply-To: <20191207164111.fpnpoipaiadaxyde@salvia>
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+Date:   Sun, 8 Dec 2019 11:33:13 +0100
+Message-ID: <CAMuHMdV4_rva3LqTNaGfciFeJZFDhfuOG2z55XwY_+2-0n5PTg@mail.gmail.com>
+Subject: Re: nf_flow on big-endian (was: Re: linux-next: build warning after
+ merge of the net-next tree)
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Stephen Rothwell <sfr@canb.auug.org.au>,
+        David Miller <davem@davemloft.net>,
+        Networking <netdev@vger.kernel.org>,
+        Linux Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        Jiri Pirko <jiri@mellanox.com>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: nl6720 <nl6720@gmail.com>
----
- doc/primary-expression.txt | 8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+Hi Pablo,
 
-diff --git a/doc/primary-expression.txt b/doc/primary-expression.txt
-index 5473d598..16324286 100644
---- a/doc/primary-expression.txt
-+++ b/doc/primary-expression.txt
-@@ -305,13 +305,7 @@ If no route was found for the source address/input interface combination, the ou
- In case the input interface is specified as part of the input key, the output interface index is always the same as the input interface index or zero.
- If only 'saddr oif' is given, then oif can be any interface index or zero.
- 
--In this example, 'saddr . iif' lookups up routing information based on the source address and the input interface.
--oif picks the output interface index from the routing information.
--If no route was found for the source address/input interface combination, the output interface index is zero.
--In case the input interface is specified as part of the input key, the output interface index is always the same as the input interface index or zero.
--If only 'saddr oif' is given, then oif can be any interface index or zero.
--
--# drop packets to address not configured on ininterface
-+# drop packets to address not configured on interface
- filter prerouting fib daddr . iif type != { local, broadcast, multicast } drop
- 
- # perform lookup in a specific 'blackhole' table (0xdead, needs ip appropriate ip rule)
--- 
-2.24.0
+On Sat, Dec 7, 2019 at 5:41 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Tue, Nov 26, 2019 at 12:06:03PM +0100, Geert Uytterhoeven wrote:
+> > On Thu, Nov 21, 2019 at 8:36 AM Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+> > > After merging the net-next tree, today's linux-next build (powerpc
+> > > allyesconfig) produced this warning:
+> > >
+> > > net/netfilter/nf_flow_table_offload.c: In function 'nf_flow_rule_match':
+> > > net/netfilter/nf_flow_table_offload.c:80:21: warning: unsigned conversion from 'int' to '__be16' {aka 'short unsigned int'} changes value from '327680' to '0' [-Woverflow]
+> > >    80 |   mask->tcp.flags = TCP_FLAG_RST | TCP_FLAG_FIN;
+> > >       |                     ^~~~~~~~~~~~
+> > >
+> > > Introduced by commit
+> > >
+> > >   c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
+> >
+> > This is now upstream, and must be completely broken on big-endian
+> > platforms.
+> >
+> > The other user of the flags field looks buggy, too
+> > (net/core/flow_dissector.c:__skb_flow_dissect_tcp()[*]):
+> >
+> >      key_tcp->flags = (*(__be16 *) &tcp_flag_word(th) & htons(0x0FFF));
+> >
+> > Disclaimer: I'm not familiar with the code or protocol, so below are just
+> > my gut feelings.
+> >
+> >      struct flow_dissector_key_tcp {
+> >             __be16 flags;
+> >     };
+> >
+> > Does this have to be __be16, i.e. does it go over the wire?
+> > If not, this should probably be __u16, and set using
+> > "be32_to_cpu(flags) >> 16"?
+> > If yes, "cpu_to_be16(be32_to_cpu(flags) >> 16)"?
+> > (Ugh, needs convenience macros)
+> >
+> > [*] ac4bb5de27010e41 ("net: flow_dissector: add support for dissection
+> > of tcp flags")
+>
+> I'm attaching a tentative patch, please let me know this is fixing up
+> this issue there.
 
+Thanks, this looks good to me, and fixes the build warning.
+For this localized change (not for the global interaction), with the nits
+below fixed:
+Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
+
+> --- a/include/net/flow_dissector.h
+> +++ b/include/net/flow_dissector.h
+> @@ -189,10 +189,17 @@ struct flow_dissector_key_eth_addrs {
+>
+>  /**
+>   * struct flow_dissector_key_tcp:
+> - * @flags: flags
+> + * @flags: TCP flags (16-bit, including the initial Data offset field bits)
+
+@pad?
+
+> + * @word: Data offset + reserved bits + TCP flags + window
+
+flag_word
+
+>   */
+>  struct flow_dissector_key_tcp {
+> -     __be16 flags;
+> +     union {
+> +             struct {
+> +                     __be16 flags;
+> +                     __be16 __pad;
+> +             };
+> +             __be32  flag_word;
+> +     };
+>  };
+>
+>  /**
+> diff --git a/net/core/flow_dissector.c b/net/core/flow_dissector.c
+> index ca871657a4c4..83af4633f306 100644
+> --- a/net/core/flow_dissector.c
+> +++ b/net/core/flow_dissector.c
+> @@ -756,7 +756,7 @@ __skb_flow_dissect_tcp(const struct sk_buff *skb,
+>       key_tcp = skb_flow_dissector_target(flow_dissector,
+>                                           FLOW_DISSECTOR_KEY_TCP,
+>                                           target_container);
+> -     key_tcp->flags = (*(__be16 *) &tcp_flag_word(th) & htons(0x0FFF));
+> +     key_tcp->flag_word = tcp_flag_word(th);
+>  }
+>
+>  static void
+> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+> index c94ebad78c5c..30205d57226d 100644
+> --- a/net/netfilter/nf_flow_table_offload.c
+> +++ b/net/netfilter/nf_flow_table_offload.c
+> @@ -87,8 +87,8 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
+>
+>       switch (tuple->l4proto) {
+>       case IPPROTO_TCP:
+> -             key->tcp.flags = 0;
+> -             mask->tcp.flags = TCP_FLAG_RST | TCP_FLAG_FIN;
+> +             key->tcp.flag_word = 0;
+> +             mask->tcp.flag_word = TCP_FLAG_RST | TCP_FLAG_FIN;
+>               match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_TCP);
+>               break;
+>       case IPPROTO_UDP:
+
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
