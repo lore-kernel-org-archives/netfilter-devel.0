@@ -2,171 +2,126 @@ Return-Path: <SRS0=ntVu=Z7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3170FC2D0CA
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 19:26:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8ECBC00454
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 19:26:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0A94E20726
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 19:26:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B5B2320726
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 19:26:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726678AbfLIT0s (ORCPT
+        id S1726826AbfLIT0u (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 Dec 2019 14:26:48 -0500
-Received: from correo.us.es ([193.147.175.20]:58442 "EHLO mail.us.es"
+        Mon, 9 Dec 2019 14:26:50 -0500
+Received: from correo.us.es ([193.147.175.20]:58454 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726483AbfLIT0s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Dec 2019 14:26:48 -0500
+        id S1726589AbfLIT0t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 9 Dec 2019 14:26:49 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A92B9120841
-        for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2019 20:26:45 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 702DF12084B
+        for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2019 20:26:46 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 99E09DA702
-        for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2019 20:26:45 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 63EEEDA70E
+        for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2019 20:26:46 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 8F79FDA701; Mon,  9 Dec 2019 20:26:45 +0100 (CET)
+        id 598CCDA70C; Mon,  9 Dec 2019 20:26:46 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6435ADA702;
-        Mon,  9 Dec 2019 20:26:43 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4BB82DA707;
+        Mon,  9 Dec 2019 20:26:44 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 09 Dec 2019 20:26:43 +0100 (CET)
+ Mon, 09 Dec 2019 20:26:44 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 341364265A5A;
-        Mon,  9 Dec 2019 20:26:43 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 1BFF54265A5A;
+        Mon,  9 Dec 2019 20:26:44 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 00/17] Netfilter fixes for net
-Date:   Mon,  9 Dec 2019 20:26:21 +0100
-Message-Id: <20191209192638.71184-1-pablo@netfilter.org>
+Subject: [PATCH 01/17] netfilter: ctnetlink: netns exit must wait for callbacks
+Date:   Mon,  9 Dec 2019 20:26:22 +0100
+Message-Id: <20191209192638.71184-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20191209192638.71184-1-pablo@netfilter.org>
+References: <20191209192638.71184-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+From: Florian Westphal <fw@strlen.de>
 
-The following patchset contains Netfilter fixes for net:
+Curtis Taylor and Jon Maxwell reported and debugged a crash on 3.10
+based kernel.
 
-1) Wait for rcu grace period after releasing netns in ctnetlink,
-   from Florian Westphal.
+Crash occurs in ctnetlink_conntrack_events because net->nfnl socket is
+NULL.  The nfnl socket was set to NULL by netns destruction running on
+another cpu.
 
-2) Incorrect command type in flowtable offload ndo invocation,
-   from wenxu.
+The exiting network namespace calls the relevant destructors in the
+following order:
 
-3) Incorrect callback type in flowtable offload flow tuple
-   updates, also from wenxu.
+1. ctnetlink_net_exit_batch
 
-4) Fix compile warning on flowtable offload infrastructure due to
-   possible reference to uninitialized variable, from Nathan Chancellor.
+This nulls out the event callback pointer in struct netns.
 
-5) Do not inline nf_ct_resolve_clash(), this is called from slow
-   path / stress situations. From Florian Westphal.
+2. nfnetlink_net_exit_batch
 
-6) Missing IPv6 flow selector description in flowtable offload.
+This nulls net->nfnl socket and frees it.
 
-7) Missing check for NETDEV_UNREGISTER in nf_tables offload
-   infrastructure, from wenxu.
+3. nf_conntrack_cleanup_net_list
 
-8) Update NAT selftest to use randomized netns names, from
-   Florian Westphal.
+This removes all remaining conntrack entries.
 
-9) Restore nfqueue bridge support, from Marco Oliverio.
+This is order is correct. The only explanation for the crash so ar is:
 
-10) Compilation warning in SCTP_CHUNKMAP_*() on xt_sctp header.
-    From Phil Sutter.
+cpu1: conntrack is dying, eviction occurs:
+ -> nf_ct_delete()
+   -> nf_conntrack_event_report \
+     -> nf_conntrack_eventmask_report
+       -> notify->fcn() (== ctnetlink_conntrack_events).
 
-11) Fix bogus lookup/get match for non-anonymous rbtree sets.
+cpu1: a. fetches rcu protected pointer to obtain ctnetlink event callback.
+      b. gets interrupted.
+ cpu2: runs netns exit handlers:
+     a runs ctnetlink destructor, event cb pointer set to NULL.
+     b runs nfnetlink destructor, nfnl socket is closed and set to NULL.
+cpu1: c. resumes and trips over NULL net->nfnl.
 
-12) Missing netlink validation for NFT_SET_ELEM_INTERVAL_END
-    elements.
+Problem appears to be that ctnetlink_net_exit_batch only prevents future
+callers of nf_conntrack_eventmask_report() from obtaining the callback.
+It doesn't wait of other cpus that might have already obtained the
+callbacks address.
 
-13) Missing netlink validation for NFT_DATA_VALUE after
-    nft_data_init().
+I don't see anything in upstream kernels that would prevent similar
+crash: We need to wait for all cpus to have exited the event callback.
 
-14) If rule specifies no actions, offload infrastructure returns
-    EOPNOTSUPP.
+Fixes: 9592a5c01e79dbc59eb56fa ("netfilter: ctnetlink: netns support")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_netlink.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-15) Module refcount leak in object updates.
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index d8d33ef52ce0..6a1c8f1f6171 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -3626,6 +3626,9 @@ static void __net_exit ctnetlink_net_exit_batch(struct list_head *net_exit_list)
+ 
+ 	list_for_each_entry(net, net_exit_list, exit_list)
+ 		ctnetlink_net_exit(net);
++
++	/* wait for other cpus until they are done with ctnl_notifiers */
++	synchronize_rcu();
+ }
+ 
+ static struct pernet_operations ctnetlink_net_ops = {
+-- 
+2.11.0
 
-16) Missing sanitization for ARP traffic from br_netfilter, from
-    Eric Dumazet.
-
-17) Compilation breakage on big-endian due to incorrect memcpy()
-    size in the flowtable offload infrastructure.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 61183b056b49e2937ff92a1424291ba36a6f6d05:
-
-  net: macb: add missed tasklet_kill (2019-11-28 23:05:28 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to 7acd9378dc65296b2531758aa62ee9bcf55b371c:
-
-  netfilter: nf_flow_table_offload: Correct memcpy size for flow_overload_mangle() (2019-12-09 20:07:59 +0100)
-
-----------------------------------------------------------------
-Eric Dumazet (1):
-      netfilter: bridge: make sure to pull arp header in br_nf_forward_arp()
-
-Florian Westphal (3):
-      netfilter: ctnetlink: netns exit must wait for callbacks
-      netfilter: conntrack: tell compiler to not inline nf_ct_resolve_clash
-      selftests: netfilter: use randomized netns names
-
-Marco Oliverio (1):
-      netfilter: nf_queue: enqueue skbs with NULL dst
-
-Nathan Chancellor (1):
-      netfilter: nf_flow_table_offload: Don't use offset uninitialized in flow_offload_port_{d,s}nat
-
-Pablo Neira Ayuso (7):
-      netfilter: nf_flow_table_offload: add IPv6 match description
-      netfilter: nft_set_rbtree: bogus lookup/get on consecutive elements in named sets
-      netfilter: nf_tables: validate NFT_SET_ELEM_INTERVAL_END
-      netfilter: nf_tables: validate NFT_DATA_VALUE after nft_data_init()
-      netfilter: nf_tables: skip module reference count bump on object updates
-      netfilter: nf_tables_offload: return EOPNOTSUPP if rule specifies no actions
-      netfilter: nf_flow_table_offload: Correct memcpy size for flow_overload_mangle()
-
-Phil Sutter (1):
-      netfilter: uapi: Avoid undefined left-shift in xt_sctp.h
-
-wenxu (3):
-      netfilter: nf_flow_table_offload: Fix block setup as TC_SETUP_FT cmd
-      netfilter: nf_flow_table_offload: Fix block_cb tc_setup_type as TC_SETUP_CLSFLOWER
-      netfilter: nf_tables_offload: Check for the NETDEV_UNREGISTER event
-
- include/uapi/linux/netfilter/xt_sctp.h       |   6 +-
- net/bridge/br_netfilter_hooks.c              |   3 +
- net/netfilter/nf_conntrack_core.c            |   7 +-
- net/netfilter/nf_conntrack_netlink.c         |   3 +
- net/netfilter/nf_flow_table_offload.c        |  83 ++++---
- net/netfilter/nf_queue.c                     |   2 +-
- net/netfilter/nf_tables_api.c                |  18 +-
- net/netfilter/nf_tables_offload.c            |   6 +
- net/netfilter/nft_bitwise.c                  |   4 +-
- net/netfilter/nft_cmp.c                      |   6 +
- net/netfilter/nft_range.c                    |  10 +
- net/netfilter/nft_set_rbtree.c               |  21 +-
- tools/testing/selftests/netfilter/nft_nat.sh | 332 ++++++++++++++-------------
- 13 files changed, 288 insertions(+), 213 deletions(-)
