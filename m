@@ -1,77 +1,63 @@
 Return-Path: <SRS0=ntVu=Z7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Level: *
+X-Spam-Status: No, score=2.0 required=3.0 tests=BODY_SINGLE_WORD,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,PDS_TONAME_EQ_TOLOCAL_SHORT,
+	PDS_TONAME_EQ_TOLOCAL_VSHORT,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAB7CC2D0C0
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 00:05:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E645C43603
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 11:47:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A0B1C206D5
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 00:05:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6CD5420726
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 11:47:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726653AbfLIAFV (ORCPT
+        id S1727326AbfLILrf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 8 Dec 2019 19:05:21 -0500
-Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:41487 "EHLO
-        mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726422AbfLIAFV (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 8 Dec 2019 19:05:21 -0500
-Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
-        by mail105.syd.optusnet.com.au (Postfix) with SMTP id C859D3A1E28
-        for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2019 11:05:06 +1100 (AEDT)
-Received: (qmail 14896 invoked by uid 501); 9 Dec 2019 00:05:06 -0000
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     pablo@netfilter.org
+        Mon, 9 Dec 2019 06:47:35 -0500
+Received: from correo.us.es ([193.147.175.20]:53990 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727163AbfLILre (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 9 Dec 2019 06:47:34 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 892E54DE743
+        for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2019 12:47:31 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7D8CEDA70A
+        for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2019 12:47:31 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 73494DA709; Mon,  9 Dec 2019 12:47:31 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 89B65DA703;
+        Mon,  9 Dec 2019 12:47:29 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 09 Dec 2019 12:47:29 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 5B7FB4265A5A;
+        Mon,  9 Dec 2019 12:47:29 +0100 (CET)
+Date:   Mon, 9 Dec 2019 12:47:29 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     nl6720 <nl6720@gmail.com>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue 1/2] src: doc: Update sample code to agree with documentation
-Date:   Mon,  9 Dec 2019 11:05:05 +1100
-Message-Id: <20191209000506.14854-1-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.14.5
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.3 cv=LYdCFQXi c=1 sm=1 tr=0
-        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
-        a=pxVhFHJ0LMsA:10 a=RSmzAf-M6YYA:10 a=PO7r1zJSAAAA:8
-        a=-LNT-4Upm2ibfe7E0_oA:9 a=IDKqgSdm1Z70hi2K:21 a=ZwjD4sJjuNA619Pe:21
+Subject: Re: [PATCH nftables] doc: Remove repeated paragraph and fix typo
+Message-ID: <20191209114729.mihvodx2kvjpt2ve@salvia>
+References: <20191208092557.14536-1-nl6720@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191208092557.14536-1-nl6720@gmail.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Updated:
-
- src/nlmsg.c: Update nfq_nlmsg_verdict_put_pkt() sample code to use pktb_len()
-              as recommended in src/extra/pktbuff.c, pktb_len() doco
-
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
----
- src/nlmsg.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/src/nlmsg.c b/src/nlmsg.c
-index c40a9e4..c950110 100644
---- a/src/nlmsg.c
-+++ b/src/nlmsg.c
-@@ -90,14 +90,13 @@ EXPORT_SYMBOL
- 	pktb = pktb_alloc(AF_INET, payload, plen, 255);
- 	// (decide that this packet needs mangling)
- 	nfq_udp_mangle_ipv4(pktb, match_offset, match_len, rep_data, rep_len);
--	// Update IP Datagram length
--	plen += rep_len - match_len;
-+	// nfq_udp_mangle_ipv4 updates packet length, no need to track locally
- 
- 	// Eventually nfq_send_verdict (line 39) gets called
- 	// The received packet may or may not have been modified.
- 	// Add this code before nfq_nlmsg_verdict_put call:
- 	if (pktb_mangled(pktb))
--		nfq_nlmsg_verdict_put_pkt(nlh, pktb_data(pktb), plen);
-+		nfq_nlmsg_verdict_put_pkt(nlh, pktb_data(pktb), pktb_len(pktb));
- \endverbatim
-  */
- void nfq_nlmsg_verdict_put_pkt(struct nlmsghdr *nlh, const void *pkt,
--- 
-2.14.5
-
+Applied.
