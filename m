@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C118BC43603
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 19:27:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B7B2C04E30
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 19:27:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9B050205ED
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 19:27:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37F53206E0
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 19:27:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727035AbfLIT1Y (ORCPT
+        id S1726988AbfLIT0z (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 Dec 2019 14:27:24 -0500
-Received: from correo.us.es ([193.147.175.20]:58512 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726926AbfLIT0z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 9 Dec 2019 14:26:55 -0500
+Received: from correo.us.es ([193.147.175.20]:58470 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726769AbfLIT0u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 9 Dec 2019 14:26:50 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BD511120847
-        for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2019 20:26:52 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id D090D120848
+        for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2019 20:26:47 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AFA06DA715
-        for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2019 20:26:52 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C40CFDA70F
+        for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2019 20:26:47 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id AF062DA705; Mon,  9 Dec 2019 20:26:52 +0100 (CET)
+        id B9BD9DA701; Mon,  9 Dec 2019 20:26:47 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AE596DA70B;
-        Mon,  9 Dec 2019 20:26:50 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B759FDA701;
+        Mon,  9 Dec 2019 20:26:45 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 09 Dec 2019 20:26:50 +0100 (CET)
+ Mon, 09 Dec 2019 20:26:45 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 747A44265A5A;
-        Mon,  9 Dec 2019 20:26:50 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 4DDA64265A5A;
+        Mon,  9 Dec 2019 20:26:45 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 10/17] netfilter: uapi: Avoid undefined left-shift in xt_sctp.h
-Date:   Mon,  9 Dec 2019 20:26:31 +0100
-Message-Id: <20191209192638.71184-11-pablo@netfilter.org>
+Subject: [PATCH 03/17] netfilter: nf_flow_table_offload: Fix block_cb tc_setup_type as TC_SETUP_CLSFLOWER
+Date:   Mon,  9 Dec 2019 20:26:24 +0100
+Message-Id: <20191209192638.71184-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191209192638.71184-1-pablo@netfilter.org>
 References: <20191209192638.71184-1-pablo@netfilter.org>
@@ -54,45 +54,49 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Phil Sutter <phil@nwl.cc>
+From: wenxu <wenxu@ucloud.cn>
 
-With 'bytes(__u32)' being 32, a left-shift of 31 may happen which is
-undefined for the signed 32-bit value 1. Avoid this by declaring 1 as
-unsigned.
+Add/del/stats flows through block_cb call must set the tc_setup_type as
+TC_SETUP_CLSFLOWER.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
+Signed-off-by: wenxu <wenxu@ucloud.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/xt_sctp.h | 6 +++---
+ net/netfilter/nf_flow_table_offload.c | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/xt_sctp.h b/include/uapi/linux/netfilter/xt_sctp.h
-index 4bc6d1a08781..b4d804a9fccb 100644
---- a/include/uapi/linux/netfilter/xt_sctp.h
-+++ b/include/uapi/linux/netfilter/xt_sctp.h
-@@ -41,19 +41,19 @@ struct xt_sctp_info {
- #define SCTP_CHUNKMAP_SET(chunkmap, type) 		\
- 	do { 						\
- 		(chunkmap)[type / bytes(__u32)] |= 	\
--			1 << (type % bytes(__u32));	\
-+			1u << (type % bytes(__u32));	\
- 	} while (0)
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 6067268ab9bc..b3ad285e057d 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -574,7 +574,7 @@ static int flow_offload_tuple_add(struct flow_offload_work *offload,
+ 	cls_flow.rule = flow_rule->rule;
  
- #define SCTP_CHUNKMAP_CLEAR(chunkmap, type)		 	\
- 	do {							\
- 		(chunkmap)[type / bytes(__u32)] &= 		\
--			~(1 << (type % bytes(__u32)));	\
-+			~(1u << (type % bytes(__u32)));	\
- 	} while (0)
+ 	list_for_each_entry(block_cb, &flowtable->flow_block.cb_list, list) {
+-		err = block_cb->cb(TC_SETUP_FT, &cls_flow,
++		err = block_cb->cb(TC_SETUP_CLSFLOWER, &cls_flow,
+ 				   block_cb->cb_priv);
+ 		if (err < 0)
+ 			continue;
+@@ -599,7 +599,7 @@ static void flow_offload_tuple_del(struct flow_offload_work *offload,
+ 			     &offload->flow->tuplehash[dir].tuple, &extack);
  
- #define SCTP_CHUNKMAP_IS_SET(chunkmap, type) 			\
- ({								\
- 	((chunkmap)[type / bytes (__u32)] & 		\
--		(1 << (type % bytes (__u32)))) ? 1: 0;	\
-+		(1u << (type % bytes (__u32)))) ? 1: 0;	\
- })
+ 	list_for_each_entry(block_cb, &flowtable->flow_block.cb_list, list)
+-		block_cb->cb(TC_SETUP_FT, &cls_flow, block_cb->cb_priv);
++		block_cb->cb(TC_SETUP_CLSFLOWER, &cls_flow, block_cb->cb_priv);
  
- #define SCTP_CHUNKMAP_RESET(chunkmap) \
+ 	offload->flow->flags |= FLOW_OFFLOAD_HW_DEAD;
+ }
+@@ -656,7 +656,7 @@ static void flow_offload_tuple_stats(struct flow_offload_work *offload,
+ 			     &offload->flow->tuplehash[dir].tuple, &extack);
+ 
+ 	list_for_each_entry(block_cb, &flowtable->flow_block.cb_list, list)
+-		block_cb->cb(TC_SETUP_FT, &cls_flow, block_cb->cb_priv);
++		block_cb->cb(TC_SETUP_CLSFLOWER, &cls_flow, block_cb->cb_priv);
+ 	memcpy(stats, &cls_flow.stats, sizeof(*stats));
+ }
+ 
 -- 
 2.11.0
 
