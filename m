@@ -2,82 +2,122 @@ Return-Path: <SRS0=ntVu=Z7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 256C3C00454
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 19:27:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 261A3C43603
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 20:03:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EC302205ED
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 19:27:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E24802073D
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 20:03:22 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="HITeT3Yy"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726917AbfLIT1o (ORCPT
+        id S1726502AbfLIUDW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 Dec 2019 14:27:44 -0500
-Received: from correo.us.es ([193.147.175.20]:58464 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726538AbfLIT0u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Dec 2019 14:26:50 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0B32C12083C
-        for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2019 20:26:47 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F1432DA70C
-        for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2019 20:26:46 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id E5EEADA707; Mon,  9 Dec 2019 20:26:46 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EADBDDA709;
-        Mon,  9 Dec 2019 20:26:44 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 09 Dec 2019 20:26:44 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id B25974265A5A;
-        Mon,  9 Dec 2019 20:26:44 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 02/17] netfilter: nf_flow_table_offload: Fix block setup as TC_SETUP_FT cmd
-Date:   Mon,  9 Dec 2019 20:26:23 +0100
-Message-Id: <20191209192638.71184-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20191209192638.71184-1-pablo@netfilter.org>
-References: <20191209192638.71184-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Mon, 9 Dec 2019 15:03:22 -0500
+Received: from mail-qk1-f195.google.com ([209.85.222.195]:45304 "EHLO
+        mail-qk1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726354AbfLIUDW (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 9 Dec 2019 15:03:22 -0500
+Received: by mail-qk1-f195.google.com with SMTP id x1so14198100qkl.12
+        for <netfilter-devel@vger.kernel.org>; Mon, 09 Dec 2019 12:03:21 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=netronome-com.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=GDUYUeBUbCRk5D6c/V5R/L+ljtI8qLNEf77mvyj/88c=;
+        b=HITeT3Yy7URqczK7aKeGgL2+2uK4OmeOWTuQCmoVEv9f7YGigdozAHsdgsgv/XW54y
+         W9bvk4mT1ub8Y3GFzLKmr7Daq/zDRggB98gvWubNe8lWR8JJBTM4g6pFLMrP3+nrm/NF
+         X95IsUy8F0mtcCIJRkmMnHkiOll/mO35vcUGl8vWDgceNiNUmdVE63MgkGmz6zEpi8m8
+         8VjAojj+l2kv5nMfxFQSc9Ox+RKuzdLXE8KsErS1sYJZdTEELsql0GC8nKc1Nd96WfqE
+         +71OisRabQOTOtsb2gxx2DyzuKx2m0i9kMHV0zfHGhQxTKxTwWdXXvleWy/MdjUx21lW
+         7WZA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=GDUYUeBUbCRk5D6c/V5R/L+ljtI8qLNEf77mvyj/88c=;
+        b=aKcxx5bFojtEFWAJGPySfce0oLB+YFimu+BrKaC0A5ztWdB29F2rW+sJZVha0broO8
+         cEI0NOL334vGUeglNo9/ZH7LOZo40Unr3Lh3rx04VhTFaDPmcuSErAPde0Qps4h+rycf
+         Mq5xYbMUoiWmZXT+4uYimY2uK2wctwubCkVI3htIJUj76l9UHNZGCcbhkTLNx8ZerjxS
+         JH4XBQzD5sj1Q4u0LtAoF3N02c27013TBy5VC4RF7/7Vs8stLXWpnYoSKARVeOpHeLAb
+         mmbowcF8F0tBrCWDVP4fGNFZi43wT6nmLCDt6spGd/cbBIvK23q5K+gUtyMbDF0TeHwn
+         RCOQ==
+X-Gm-Message-State: APjAAAUrv5Blm+HfZQFX5EKFo5/0raZUsHGbsVL4zkW1VhJwDURVjXE8
+        mi+K86Yu3rEOzBPDo+7F9kLR3Q==
+X-Google-Smtp-Source: APXvYqxUdfacWJJq3CkJ5nuf6con2/1CclwH5aUJ2zuvDPb4Tye09yHCPNqViUdNW+6fRMhQhgOChg==
+X-Received: by 2002:a37:6294:: with SMTP id w142mr1594816qkb.284.1575921801371;
+        Mon, 09 Dec 2019 12:03:21 -0800 (PST)
+Received: from netronome.com (209-213-91-242.bos.ma.meganet.net. [209.213.91.242])
+        by smtp.gmail.com with ESMTPSA id z4sm175279qkz.62.2019.12.09.12.03.19
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 09 Dec 2019 12:03:20 -0800 (PST)
+Date:   Mon, 9 Dec 2019 15:03:19 -0500
+From:   Simon Horman <simon.horman@netronome.com>
+To:     Xin Long <lucien.xin@gmail.com>
+Cc:     network dev <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next 1/7] netfilter: nft_tunnel: parse ERSPAN_VERSION
+ attr as u8
+Message-ID: <20191209200317.GA10466@netronome.com>
+References: <cover.1575779993.git.lucien.xin@gmail.com>
+ <981718e8e2ca5cd34d1153f54eae06ab2f087c07.1575779993.git.lucien.xin@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <981718e8e2ca5cd34d1153f54eae06ab2f087c07.1575779993.git.lucien.xin@gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+Hi Xin,
 
-Set up block through TC_SETUP_FT command.
+On Sun, Dec 08, 2019 at 12:41:31PM +0800, Xin Long wrote:
+> To keep consistent with ipgre_policy, it's better to parse
+> ERSPAN_VERSION attr as u8, as it does in act_tunnel_key,
+> cls_flower and ip_tunnel_core.
+> 
+> Signed-off-by: Xin Long <lucien.xin@gmail.com>
+> ---
+>  net/netfilter/nft_tunnel.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
+> index 3d4c2ae..f76cd7d 100644
+> --- a/net/netfilter/nft_tunnel.c
+> +++ b/net/netfilter/nft_tunnel.c
+> @@ -248,8 +248,9 @@ static int nft_tunnel_obj_vxlan_init(const struct nlattr *attr,
+>  }
+>  
+>  static const struct nla_policy nft_tunnel_opts_erspan_policy[NFTA_TUNNEL_KEY_ERSPAN_MAX + 1] = {
+> +	[NFTA_TUNNEL_KEY_ERSPAN_VERSION]	= { .type = NLA_U8 },
+>  	[NFTA_TUNNEL_KEY_ERSPAN_V1_INDEX]	= { .type = NLA_U32 },
+> -	[NFTA_TUNNEL_KEY_ERSPAN_V2_DIR]	= { .type = NLA_U8 },
+> +	[NFTA_TUNNEL_KEY_ERSPAN_V2_DIR]		= { .type = NLA_U8 },
+>  	[NFTA_TUNNEL_KEY_ERSPAN_V2_HWID]	= { .type = NLA_U8 },
+>  };
+>  
+> @@ -266,7 +267,7 @@ static int nft_tunnel_obj_erspan_init(const struct nlattr *attr,
+>  	if (err < 0)
+>  		return err;
+>  
+> -	version = ntohl(nla_get_be32(tb[NFTA_TUNNEL_KEY_ERSPAN_VERSION]));
+> +	version = nla_get_u8(tb[NFTA_TUNNEL_KEY_ERSPAN_VERSION]);
 
-Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
-Signed-off-by: wenxu <wenxu@ucloud.cn>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_flow_table_offload.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I have concerns about this change and backwards-compatibility with existing
+users of this UAPI. Likewise, with other changes to the encoding of existing
+attributes elsewhere in this series.
 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index c54c9a6cc981..6067268ab9bc 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -822,7 +822,7 @@ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
- 	bo.extack	= &extack;
- 	INIT_LIST_HEAD(&bo.cb_list);
- 
--	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_BLOCK, &bo);
-+	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_FT, &bo);
- 	if (err < 0)
- 		return err;
- 
--- 
-2.11.0
-
+>  	switch (version) {
+>  	case ERSPAN_VERSION:
+>  		if (!tb[NFTA_TUNNEL_KEY_ERSPAN_V1_INDEX])
+> -- 
+> 2.1.0
+> 
