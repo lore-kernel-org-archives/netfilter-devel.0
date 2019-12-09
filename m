@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B7B2C04E30
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 19:27:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA827C04E30
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 19:27:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 37F53206E0
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 19:27:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C894205ED
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Dec 2019 19:27:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726988AbfLIT0z (ORCPT
+        id S1726971AbfLIT0y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 Dec 2019 14:26:55 -0500
-Received: from correo.us.es ([193.147.175.20]:58470 "EHLO mail.us.es"
+        Mon, 9 Dec 2019 14:26:54 -0500
+Received: from correo.us.es ([193.147.175.20]:58482 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726769AbfLIT0u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Dec 2019 14:26:50 -0500
+        id S1726584AbfLIT0v (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 9 Dec 2019 14:26:51 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D090D120848
-        for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2019 20:26:47 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 13CF6120854
+        for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2019 20:26:49 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C40CFDA70F
-        for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2019 20:26:47 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 056F2DA711
+        for <netfilter-devel@vger.kernel.org>; Mon,  9 Dec 2019 20:26:49 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B9BD9DA701; Mon,  9 Dec 2019 20:26:47 +0100 (CET)
+        id EF403DA70F; Mon,  9 Dec 2019 20:26:48 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B759FDA701;
-        Mon,  9 Dec 2019 20:26:45 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F3A09DA710;
+        Mon,  9 Dec 2019 20:26:46 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 09 Dec 2019 20:26:45 +0100 (CET)
+ Mon, 09 Dec 2019 20:26:46 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 4DDA64265A5A;
-        Mon,  9 Dec 2019 20:26:45 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id B7C7A41E4800;
+        Mon,  9 Dec 2019 20:26:46 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 03/17] netfilter: nf_flow_table_offload: Fix block_cb tc_setup_type as TC_SETUP_CLSFLOWER
-Date:   Mon,  9 Dec 2019 20:26:24 +0100
-Message-Id: <20191209192638.71184-4-pablo@netfilter.org>
+Subject: [PATCH 05/17] netfilter: conntrack: tell compiler to not inline nf_ct_resolve_clash
+Date:   Mon,  9 Dec 2019 20:26:26 +0100
+Message-Id: <20191209192638.71184-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191209192638.71184-1-pablo@netfilter.org>
 References: <20191209192638.71184-1-pablo@netfilter.org>
@@ -54,49 +54,37 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+From: Florian Westphal <fw@strlen.de>
 
-Add/del/stats flows through block_cb call must set the tc_setup_type as
-TC_SETUP_CLSFLOWER.
+At this time compiler inlines it, but this code will not be executed
+under normal conditions.
 
-Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
-Signed-off-by: wenxu <wenxu@ucloud.cn>
+Also, no inlining allows to use "nf_ct_resolve_clash%return" perf probe.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_offload.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 6067268ab9bc..b3ad285e057d 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -574,7 +574,7 @@ static int flow_offload_tuple_add(struct flow_offload_work *offload,
- 	cls_flow.rule = flow_rule->rule;
- 
- 	list_for_each_entry(block_cb, &flowtable->flow_block.cb_list, list) {
--		err = block_cb->cb(TC_SETUP_FT, &cls_flow,
-+		err = block_cb->cb(TC_SETUP_CLSFLOWER, &cls_flow,
- 				   block_cb->cb_priv);
- 		if (err < 0)
- 			continue;
-@@ -599,7 +599,7 @@ static void flow_offload_tuple_del(struct flow_offload_work *offload,
- 			     &offload->flow->tuplehash[dir].tuple, &extack);
- 
- 	list_for_each_entry(block_cb, &flowtable->flow_block.cb_list, list)
--		block_cb->cb(TC_SETUP_FT, &cls_flow, block_cb->cb_priv);
-+		block_cb->cb(TC_SETUP_CLSFLOWER, &cls_flow, block_cb->cb_priv);
- 
- 	offload->flow->flags |= FLOW_OFFLOAD_HW_DEAD;
- }
-@@ -656,7 +656,7 @@ static void flow_offload_tuple_stats(struct flow_offload_work *offload,
- 			     &offload->flow->tuplehash[dir].tuple, &extack);
- 
- 	list_for_each_entry(block_cb, &flowtable->flow_block.cb_list, list)
--		block_cb->cb(TC_SETUP_FT, &cls_flow, block_cb->cb_priv);
-+		block_cb->cb(TC_SETUP_CLSFLOWER, &cls_flow, block_cb->cb_priv);
- 	memcpy(stats, &cls_flow.stats, sizeof(*stats));
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 0af1898af2b8..f475fec84536 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -895,9 +895,10 @@ static void nf_ct_acct_merge(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
  }
  
+ /* Resolve race on insertion if this protocol allows this. */
+-static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
+-			       enum ip_conntrack_info ctinfo,
+-			       struct nf_conntrack_tuple_hash *h)
++static __cold noinline int
++nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
++		    enum ip_conntrack_info ctinfo,
++		    struct nf_conntrack_tuple_hash *h)
+ {
+ 	/* This is the conntrack entry already in hashes that won race. */
+ 	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
 -- 
 2.11.0
 
