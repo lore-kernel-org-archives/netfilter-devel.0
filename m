@@ -2,132 +2,95 @@ Return-Path: <SRS0=RCn+=2A=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FD2AC43603
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Dec 2019 07:26:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DD71C43603
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Dec 2019 11:00:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0F52C206D5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Dec 2019 07:26:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1905B20663
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Dec 2019 11:00:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727325AbfLJH0f (ORCPT
+        id S1727128AbfLJLAu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 10 Dec 2019 02:26:35 -0500
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:36299 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727137AbfLJH0f (ORCPT
+        Tue, 10 Dec 2019 06:00:50 -0500
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:37968 "EHLO
+        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727039AbfLJLAu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 Dec 2019 02:26:35 -0500
-Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id C0851416F3;
-        Tue, 10 Dec 2019 15:26:26 +0800 (CST)
-From:   wenxu@ucloud.cn
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next v3 4/4] netfilter: nf_flow_table_offload: add tunnel encap/decap action offload support
-Date:   Tue, 10 Dec 2019 15:26:25 +0800
-Message-Id: <1575962785-14812-5-git-send-email-wenxu@ucloud.cn>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1575962785-14812-1-git-send-email-wenxu@ucloud.cn>
-References: <1575962785-14812-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVS0NJS0tLS0pMSk1NSk9ZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MC46KDo6HDgzSElNSBwYMAoY
-        CBoKC0NVSlVKTkxOQk1JTENNQ0xDVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUhOTks3Bg++
-X-HM-Tid: 0a6eeeb3bbed2086kuqyc0851416f3
+        Tue, 10 Dec 2019 06:00:50 -0500
+Received: by mail-wr1-f67.google.com with SMTP id y17so19516921wrh.5
+        for <netfilter-devel@vger.kernel.org>; Tue, 10 Dec 2019 03:00:48 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:from:to:cc:date:message-id:user-agent
+         :mime-version:content-transfer-encoding;
+        bh=5bmrwKXupxytirc7k+S5eJwkTlGagR3Za65bLOXDe9k=;
+        b=TqKBUdqxR8UTM8gwOeIHnTiEQdyp8mbtqS/0Q024uxV1DDIwMAcsphcxCEYqwq95ws
+         56DYsg9oxbZtzOdnLIPN+coaAFSKwu84HDcj+UZcgfRI94uxUbWlsnjmuRRmqCez5DDj
+         Gm6poAn6cEYGJ03q9E8mghYsFBPIzJBjpvhDjNLP/zoM3wj06ejZAd8kCaI03LpmXCGq
+         K9tU6pICY08hIeupK7LWP8QjphQ+y9xj/GPOs08XcbTCLfFZVcQ3w77ZAZ7tCr9sSVkb
+         rFZXYnKbLxGgd9XTCQvExRJwMMTwG5aazW8go8yFRdyaHz/FwW9Zf3Phug5UU9QgYW0E
+         l2QA==
+X-Gm-Message-State: APjAAAVAXFb4nRCMc+e0g8sFFvdPMW3qkv5+Edv0GRETsH03kP+XuRw7
+        mUmhz0swQ0S2wlJgl6u16B6G392u
+X-Google-Smtp-Source: APXvYqx8iE5xYfSVA1ZzGmFYL/KqsCVwhDFM7ehKndMdmwq/d17boFc32ijI6wKAh+R+mPIljNBCCA==
+X-Received: by 2002:adf:9b83:: with SMTP id d3mr2529473wrc.54.1575975647764;
+        Tue, 10 Dec 2019 03:00:47 -0800 (PST)
+Received: from localhost ([213.194.138.68])
+        by smtp.gmail.com with ESMTPSA id a84sm2656957wme.44.2019.12.10.03.00.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 10 Dec 2019 03:00:47 -0800 (PST)
+Subject: [nft PATCH] py: load the SONAME-versioned shared object
+From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     biebl@debian.org, phil@nwl.cc, eric@garver.life
+Date:   Tue, 10 Dec 2019 12:00:45 +0100
+Message-ID: <157597564558.35612.1732679016499221966.stgit@endurance>
+User-Agent: StGit/0.19
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+Instruct the python module to load the SONAME versioned shared object.
 
-This patch add tunnel encap decap action offload in the flowtable
-offload.
+Normal end-user systems may only have available libnftables.so.1.0.0 and not
+libnftables.so which is usually only present in developer systems.
 
-Signed-off-by: wenxu <wenxu@ucloud.cn>
+In Debian systems, for example:
+
+ % dpkg -L libnftables1 | grep so.1
+ /usr/lib/x86_64-linux-gnu/libnftables.so.1.0.0
+ /usr/lib/x86_64-linux-gnu/libnftables.so.1
+
+ % dpkg -L libnftables-dev | grep so
+ /usr/lib/x86_64-linux-gnu/libnftables.so
+
+The "1" is not a magic number, is the SONAME of libnftables in the current
+version, as stated in Make_global.am.
+
+Reported-by: Michael Biebl <biebl@debian.org>
+Signed-off-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
 ---
-v2: make decap/encap action before redirect action
-v3: no change
+ py/nftables.py |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- net/netfilter/nf_flow_table_offload.c | 47 +++++++++++++++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
-
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 840fc69..17d2ac0 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -476,6 +476,45 @@ static void flow_offload_redirect(const struct flow_offload *flow,
- 	dev_hold(rt->dst.dev);
- }
+diff --git a/py/nftables.py b/py/nftables.py
+index 48eb54fe..2a0a1e89 100644
+--- a/py/nftables.py
++++ b/py/nftables.py
+@@ -64,7 +64,7 @@ class Nftables:
  
-+static void flow_offload_encap_tunnel(const struct flow_offload *flow,
-+				      enum flow_offload_tuple_dir dir,
-+				      struct nf_flow_rule *flow_rule)
-+{
-+	struct flow_action_entry *entry;
-+	struct dst_entry *dst;
-+
-+	dst = flow->tuplehash[dir].tuple.dst_cache;
-+	if (dst->lwtstate) {
-+		struct ip_tunnel_info *tun_info;
-+
-+		tun_info = lwt_tun_info(dst->lwtstate);
-+		if (tun_info && (tun_info->mode & IP_TUNNEL_INFO_TX)) {
-+			entry = flow_action_entry_next(flow_rule);
-+			entry->id = FLOW_ACTION_TUNNEL_ENCAP;
-+			entry->tunnel = tun_info;
-+		}
-+	}
-+}
-+
-+static void flow_offload_decap_tunnel(const struct flow_offload *flow,
-+				      enum flow_offload_tuple_dir dir,
-+				      struct nf_flow_rule *flow_rule)
-+{
-+	struct flow_action_entry *entry;
-+	struct dst_entry *dst;
-+
-+	dst = flow->tuplehash[!dir].tuple.dst_cache;
-+	if (dst->lwtstate) {
-+		struct ip_tunnel_info *tun_info;
-+
-+		tun_info = lwt_tun_info(dst->lwtstate);
-+		if (tun_info && (tun_info->mode & IP_TUNNEL_INFO_TX)) {
-+			entry = flow_action_entry_next(flow_rule);
-+			entry->id = FLOW_ACTION_TUNNEL_DECAP;
-+		}
-+	}
-+}
-+
- int nf_flow_rule_route_ipv4(struct net *net, const struct flow_offload *flow,
- 			    enum flow_offload_tuple_dir dir,
- 			    struct nf_flow_rule *flow_rule)
-@@ -496,6 +535,10 @@ int nf_flow_rule_route_ipv4(struct net *net, const struct flow_offload *flow,
- 	    flow->flags & FLOW_OFFLOAD_DNAT)
- 		flow_offload_ipv4_checksum(net, flow, flow_rule);
+     validator = None
  
-+	flow_offload_decap_tunnel(flow, dir, flow_rule);
-+
-+	flow_offload_encap_tunnel(flow, dir, flow_rule);
-+
- 	flow_offload_redirect(flow, dir, flow_rule);
+-    def __init__(self, sofile="libnftables.so"):
++    def __init__(self, sofile="libnftables.so.1"):
+         """Instantiate a new Nftables class object.
  
- 	return 0;
-@@ -519,6 +562,10 @@ int nf_flow_rule_route_ipv6(struct net *net, const struct flow_offload *flow,
- 		flow_offload_port_dnat(net, flow, dir, flow_rule);
- 	}
- 
-+	flow_offload_decap_tunnel(flow, dir, flow_rule);
-+
-+	flow_offload_encap_tunnel(flow, dir, flow_rule);
-+
- 	flow_offload_redirect(flow, dir, flow_rule);
- 
- 	return 0;
--- 
-1.8.3.1
+         Accepts a shared object file to open, by default standard search path
 
