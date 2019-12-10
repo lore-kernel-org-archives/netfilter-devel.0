@@ -2,124 +2,135 @@ Return-Path: <SRS0=RCn+=2A=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A84CC3F68F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Dec 2019 04:04:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9A84C43603
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Dec 2019 07:26:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D25FE205C9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Dec 2019 04:04:51 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="sHuiMeYx"
+	by mail.kernel.org (Postfix) with ESMTP id B408B206D5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Dec 2019 07:26:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726777AbfLJEEu (ORCPT
+        id S1727299AbfLJH02 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 Dec 2019 23:04:50 -0500
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:38259 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726619AbfLJEEu (ORCPT
+        Tue, 10 Dec 2019 02:26:28 -0500
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:36221 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727119AbfLJH02 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Dec 2019 23:04:50 -0500
-Received: by mail-wr1-f65.google.com with SMTP id y17so18419273wrh.5;
-        Mon, 09 Dec 2019 20:04:48 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=DDrjvXdE6ph10LD4+5fidaxj4ypwlOJmA/tlMqkSe4I=;
-        b=sHuiMeYxX+KVKwt2xc13hNWoLbpp4/5svsCu+mt/cgOPDOuw7sDkCN5gdLaL1BSChv
-         DBTnqkjEbAaq7aPuZ4U/At4ccM8Z4IvBLXlg7xHfws2FMliFwAm4JbuXV9S43ADIVICT
-         2iwfkNV+jyiiQAZhvLhzZxaZ/N0D4cRNHuivT00fO/VZlGaKZuU8oB978DnPX2vIwHpO
-         mAwUtJDyQHh5nTML7pB46SAoi0gCtDzQWfOAYHRE6m16N5aWc7qT78RLwuMersQ3BSnF
-         OS8urJlGk2+e1KqVU1IjwqnrE3DkNIGECpT7RdO4H0lcUJYAa8rsFRFVYk/6qORSn50s
-         9How==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=DDrjvXdE6ph10LD4+5fidaxj4ypwlOJmA/tlMqkSe4I=;
-        b=i0AWTSlLpKK5KABFrjTBvVQu0vkzqvL+bSfA7Lalyl97Peqzf0C/Gc6J2iGW5JhCVU
-         iHw3VZNWVeI41HULAHvkazoiiL5u3Loig1ZlQLtjuAqMD7QEAXKvetUj3EsY8cGmpLhp
-         bKD63+XNtLKeyqPEjpQvjoutE9XYIgMbTy54Cjh7lU7xgM0IBsPlJH3+QRuLyim9iqJO
-         ggif9fplmhVuVAKruc3bcm09fxPfracFRewaCNNYDo4OLLdcofApznfLBNYKXHd2+y8e
-         dRG0sKF1BTETVM1SGPqUquoR/D3z4u5Q5PNWYLMi/oU+aC6HMbb/V10nrOAskhGliug0
-         OWTA==
-X-Gm-Message-State: APjAAAVzdcUPJMHZdB8Xa89a+ZcTUzgIg5J3ZlsOKbK/fU4pO5l53oD4
-        ozW6xmwE0KVcb7FDuUNDty9hEEgzeCb6uFA3FLIyG9pF
-X-Google-Smtp-Source: APXvYqyV33a0QOBHTJjJor71DbcciQlpzcHeZ2RFwW8HrrMF08aJ2InfzFbP/kGmpyKUxHoFJ2pEziHEC58TzMUFQGQ=
-X-Received: by 2002:adf:cf12:: with SMTP id o18mr454530wrj.361.1575950687690;
- Mon, 09 Dec 2019 20:04:47 -0800 (PST)
-MIME-Version: 1.0
-References: <cover.1575779993.git.lucien.xin@gmail.com> <981718e8e2ca5cd34d1153f54eae06ab2f087c07.1575779993.git.lucien.xin@gmail.com>
- <20191209200317.GA10466@netronome.com>
-In-Reply-To: <20191209200317.GA10466@netronome.com>
-From:   Xin Long <lucien.xin@gmail.com>
-Date:   Tue, 10 Dec 2019 12:05:15 +0800
-Message-ID: <CADvbK_fJjN0MsYpmoJ+WD=rRNYub96+nHsv3EozHTj5MG2d1ag@mail.gmail.com>
-Subject: Re: [PATCH nf-next 1/7] netfilter: nft_tunnel: parse ERSPAN_VERSION
- attr as u8
-To:     Simon Horman <simon.horman@netronome.com>
-Cc:     network dev <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, davem <davem@davemloft.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Content-Type: text/plain; charset="UTF-8"
+        Tue, 10 Dec 2019 02:26:28 -0500
+Received: from localhost.localdomain (unknown [123.59.132.129])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 0DEFA41A6B;
+        Tue, 10 Dec 2019 15:26:26 +0800 (CST)
+From:   wenxu@ucloud.cn
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next v3 1/4] netfilter: nf_flow_table_offload: refactor nf_flow_table_offload_setup to support indir setup
+Date:   Tue, 10 Dec 2019 15:26:22 +0800
+Message-Id: <1575962785-14812-2-git-send-email-wenxu@ucloud.cn>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1575962785-14812-1-git-send-email-wenxu@ucloud.cn>
+References: <1575962785-14812-1-git-send-email-wenxu@ucloud.cn>
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSkhNQkJCQk1PTEpPS05ZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PSI6Qjo5Tzg1H0kVSBE5MA0c
+        Ew4KCQ9VSlVKTkxOQk1JTENNTklMVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUhOSEo3Bg++
+X-HM-Tid: 0a6eeeb3b9342086kuqy0defa41a6b
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Dec 10, 2019 at 4:03 AM Simon Horman <simon.horman@netronome.com> wrote:
->
-> Hi Xin,
->
-> On Sun, Dec 08, 2019 at 12:41:31PM +0800, Xin Long wrote:
-> > To keep consistent with ipgre_policy, it's better to parse
-> > ERSPAN_VERSION attr as u8, as it does in act_tunnel_key,
-> > cls_flower and ip_tunnel_core.
-> >
-> > Signed-off-by: Xin Long <lucien.xin@gmail.com>
-> > ---
-> >  net/netfilter/nft_tunnel.c | 5 +++--
-> >  1 file changed, 3 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
-> > index 3d4c2ae..f76cd7d 100644
-> > --- a/net/netfilter/nft_tunnel.c
-> > +++ b/net/netfilter/nft_tunnel.c
-> > @@ -248,8 +248,9 @@ static int nft_tunnel_obj_vxlan_init(const struct nlattr *attr,
-> >  }
-> >
-> >  static const struct nla_policy nft_tunnel_opts_erspan_policy[NFTA_TUNNEL_KEY_ERSPAN_MAX + 1] = {
-> > +     [NFTA_TUNNEL_KEY_ERSPAN_VERSION]        = { .type = NLA_U8 },
-> >       [NFTA_TUNNEL_KEY_ERSPAN_V1_INDEX]       = { .type = NLA_U32 },
-> > -     [NFTA_TUNNEL_KEY_ERSPAN_V2_DIR] = { .type = NLA_U8 },
-> > +     [NFTA_TUNNEL_KEY_ERSPAN_V2_DIR]         = { .type = NLA_U8 },
-> >       [NFTA_TUNNEL_KEY_ERSPAN_V2_HWID]        = { .type = NLA_U8 },
-> >  };
-> >
-> > @@ -266,7 +267,7 @@ static int nft_tunnel_obj_erspan_init(const struct nlattr *attr,
-> >       if (err < 0)
-> >               return err;
-> >
-> > -     version = ntohl(nla_get_be32(tb[NFTA_TUNNEL_KEY_ERSPAN_VERSION]));
-> > +     version = nla_get_u8(tb[NFTA_TUNNEL_KEY_ERSPAN_VERSION]);
->
-> I have concerns about this change and backwards-compatibility with existing
-> users of this UAPI. Likewise, with other changes to the encoding of existing
-> attributes elsewhere in this series.
-userspace(nftables/libnftnl) is not ready for nft_tunnel, I don't
-think there will be
-any backwards-compatibility issue.
+From: wenxu <wenxu@ucloud.cn>
 
-Pablo?
+Refactor nf_flow_table_offload_setup to support indir setup in
+the next patch
 
->
-> >       switch (version) {
-> >       case ERSPAN_VERSION:
-> >               if (!tb[NFTA_TUNNEL_KEY_ERSPAN_V1_INDEX])
-> > --
-> > 2.1.0
-> >
+Signed-off-by: wenxu <wenxu@ucloud.cn>
+---
+v3: no change
+
+ net/netfilter/nf_flow_table_offload.c | 54 ++++++++++++++++++++++++-----------
+ 1 file changed, 38 insertions(+), 16 deletions(-)
+
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index de7a0d1..89eb1a5 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -808,26 +808,31 @@ static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
+ 	return err;
+ }
+ 
+-int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
+-				struct net_device *dev,
+-				enum flow_block_command cmd)
++static void nf_flow_table_block_offload_init(struct flow_block_offload *bo,
++					     struct net *net,
++					     enum flow_block_command cmd,
++					     struct nf_flowtable *flowtable,
++					     struct netlink_ext_ack *extack)
++{
++	memset(bo, 0, sizeof(*bo));
++	bo->net		= net;
++	bo->block	= &flowtable->flow_block;
++	bo->command	= cmd;
++	bo->binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
++	bo->extack	= extack;
++	INIT_LIST_HEAD(&bo->cb_list);
++}
++
++static int nf_flow_table_offload_cmd(struct nf_flowtable *flowtable,
++				     struct net_device *dev,
++				     enum flow_block_command cmd)
+ {
+ 	struct netlink_ext_ack extack = {};
+-	struct flow_block_offload bo = {};
++	struct flow_block_offload bo;
+ 	int err;
+ 
+-	if (!(flowtable->flags & NF_FLOWTABLE_HW_OFFLOAD))
+-		return 0;
+-
+-	if (!dev->netdev_ops->ndo_setup_tc)
+-		return -EOPNOTSUPP;
+-
+-	bo.net		= dev_net(dev);
+-	bo.block	= &flowtable->flow_block;
+-	bo.command	= cmd;
+-	bo.binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
+-	bo.extack	= &extack;
+-	INIT_LIST_HEAD(&bo.cb_list);
++	nf_flow_table_block_offload_init(&bo, dev_net(dev), cmd, flowtable,
++					 &extack);
+ 
+ 	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_FT, &bo);
+ 	if (err < 0)
+@@ -835,6 +840,23 @@ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
+ 
+ 	return nf_flow_table_block_setup(flowtable, &bo, cmd);
+ }
++
++int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
++				struct net_device *dev,
++				enum flow_block_command cmd)
++{
++	int err;
++
++	if (!(flowtable->flags & NF_FLOWTABLE_HW_OFFLOAD))
++		return 0;
++
++	if (dev->netdev_ops->ndo_setup_tc)
++		err = nf_flow_table_offload_cmd(flowtable, dev, cmd);
++	else
++		err = -EOPNOTSUPP;
++
++	return err;
++}
+ EXPORT_SYMBOL_GPL(nf_flow_table_offload_setup);
+ 
+ int nf_flow_table_offload_init(void)
+-- 
+1.8.3.1
+
