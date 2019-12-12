@@ -1,165 +1,127 @@
-Return-Path: <SRS0=EbRH=2B=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=xvfr=2C=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EF52C2D0C6
-	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Dec 2019 22:37:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87D91C2D0C6
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Dec 2019 03:01:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7EA532077B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Dec 2019 22:37:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5DB822464B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Dec 2019 03:01:48 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SMw+DBEE"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726589AbfLKWhi (ORCPT
+        id S1726647AbfLLDBq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 11 Dec 2019 17:37:38 -0500
-Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:32910 "EHLO
-        mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726487AbfLKWhi (ORCPT
+        Wed, 11 Dec 2019 22:01:46 -0500
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:35470 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726638AbfLLDBp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 11 Dec 2019 17:37:38 -0500
-Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
-        by mail105.syd.optusnet.com.au (Postfix) with SMTP id 714C13A3024
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Dec 2019 09:37:20 +1100 (AEDT)
-Received: (qmail 30116 invoked by uid 501); 11 Dec 2019 22:37:19 -0000
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue 2/2] src: doc: Eliminate doxygen warnings from udp.c
-Date:   Thu, 12 Dec 2019 09:37:19 +1100
-Message-Id: <20191211223719.30070-2-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.14.5
-In-Reply-To: <20191211223719.30070-1-duncan_roe@optusnet.com.au>
-References: <20191211223719.30070-1-duncan_roe@optusnet.com.au>
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.3 cv=LYdCFQXi c=1 sm=1 tr=0
-        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
-        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=pxVhFHJ0LMsA:10 a=RSmzAf-M6YYA:10
-        a=PO7r1zJSAAAA:8 a=QQoG7Y54ag0NdHCkiRkA:9 a=tucDlVSJ5OocSiML:21
-        a=xQZlZJP5yxJM1niR:21 a=XStyNKNTBhcjMNURsHPe:22
+        Wed, 11 Dec 2019 22:01:45 -0500
+Received: by mail-wr1-f65.google.com with SMTP id g17so1028717wro.2;
+        Wed, 11 Dec 2019 19:01:44 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=zLk62ztlgIJAvsjlJDdcf8Bf8DhVZYKsZxBJcGQt0b0=;
+        b=SMw+DBEEqNnmWuPG8olNP+jO6Dxr3jBIuuYkTp/noXeKwZDYhXD7eeukh25kTRYo+1
+         Ff+FFnOs0FILQc4rfav5BSPpQ8c8W7+ooYsKhTWRoq62cUZfC+cPbho0SoBcnEuYl5J9
+         Z0KcDXtFAUrI7InF2jGnwtUsR6TPAoA6cEm0lRnn+cofn41lHhOmqPuOO/KLb4TVKcNn
+         eMdjp54uZcIbcktKISgboIJ48Rr4DNp1iM2wzUDadRqHqr/HdQp1OYeIBzmB4fwHYGtL
+         fUf0uV7NBDxbN+7Sg3mnDMPJ+UmoKKbzcB/8f15i/o0LD0aq8BL4tLNEyP+6eKEONBUR
+         O0pg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=zLk62ztlgIJAvsjlJDdcf8Bf8DhVZYKsZxBJcGQt0b0=;
+        b=g1altYg6Afw1JMonJVSFVChjOQgoVaLqblTv7mgcwNMJA7qaQ5PgSRyulUhqMhSQxN
+         +VeK1+N+b0zMlI0rlpYhcMJAlNOv32ffRo/5HsrJBuZ4BItRleJaiZKV6pKilimnVYgU
+         YAsvvX/r8jo5whUqdf8ytvJpY++ayyrpYC4Wm1Bf6cJtoalpQGOKDMc1b/lN35IJSoLU
+         AMIrBs6NbXW3oPPn3hTbgFR6va1CUel261oDgITXrjIxVDj6egs8oq/NoWT9D5bNFIVR
+         m1GZAuDHdaQlkj3ezItDkQWRnEWQnqzk+uGRoEP5fQ4F7dGULbS1JcNfNT6iN+Ei8lmT
+         kIFg==
+X-Gm-Message-State: APjAAAW1zDCoFidaoWdx1k7ZvIDHrmqHCaJwGMcYhshmHRp6vq11NfF6
+        aHv0CbIogwCE7IfkQwKaaHdqc+J9i2/xcLvq6lPjLNSC
+X-Google-Smtp-Source: APXvYqwB8jjyBy+3Jfi761+iN29O3hCLik++EAZkDC9IiuM/dzBpR5aJl6/EaDgiPUc34+w2KsctYhOuqPmJggW1EQk=
+X-Received: by 2002:adf:cf12:: with SMTP id o18mr3364061wrj.361.1576119703162;
+ Wed, 11 Dec 2019 19:01:43 -0800 (PST)
+MIME-Version: 1.0
+References: <cover.1575779993.git.lucien.xin@gmail.com>
+In-Reply-To: <cover.1575779993.git.lucien.xin@gmail.com>
+From:   Xin Long <lucien.xin@gmail.com>
+Date:   Thu, 12 Dec 2019 11:02:19 +0800
+Message-ID: <CADvbK_e25HuWG98OYCWsmWMB6cyRDSM6SovNYKa8ySZyJPchkA@mail.gmail.com>
+Subject: Re: [PATCH nf-next 0/7] netfilter: nft_tunnel: reinforce key opts support
+To:     network dev <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org
+Cc:     davem <davem@davemloft.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Updated:
+On Sun, Dec 8, 2019 at 12:41 PM Xin Long <lucien.xin@gmail.com> wrote:
+>
+> This patchset improves quite a few places to make vxlan/erspan
+> opts in nft_tunnel work with userspace nftables/libnftnl, and
+> also keep consistent with the support for vxlan/erspan opts in
+> act_tunnel_key, cls_flower and ip_tunnel_core.
+>
+> Meanwhile, add support for geneve opts in nft_tunnel. One patch
+> for nftables and one for libnftnl will be posted here for the
+> testing. With them, nft_tunnel can be set and used by:
+>
+>   # nft add table ip filter
+>   # nft add chain ip filter input { type filter hook input priority 0 \; }
+>   # nft add tunnel filter vxlan_01 { type vxlan\; id 2\; \
+>     ip saddr 192.168.1.1\; ip daddr 192.168.1.2\; \
+>     sport 9000\; dport 9001\; dscp 1234\; ttl 64\; flags 1\; \
+>     opts \"ffff\"\; }
+>   # nft add tunnel filter erspan_01 { type erspan\; id 2\; \
+>     ip saddr 192.168.1.1\; ip daddr 192.168.1.2\; \
+>     sport 9000\; dport 9001\; dscp 1234\; ttl 64\; flags 1\; \
+>     opts \"1:1:0:0\"\; }
+>   # nft add tunnel filter erspan_02 { type erspan\; id 2\; \
+>     ip saddr 192.168.1.1\; ip daddr 192.168.1.2\; \
+>     sport 9000\; dport 9001\; dscp 1234\; ttl 64\; flags 1\; \
+>     opts \"2:0:1:1\"\; }
+>   # nft add tunnel filter geneve_01 { type geneve\; id 2\; \
+>     ip saddr 192.168.1.1\; ip daddr 192.168.1.2\; \
+>     sport 9000\; dport 9001\; dscp 1234\; ttl 64\; flags 1\; \
+>     opts \"1:1:1212121234567890\"\; }
+>   # nft add tunnel filter geneve_02 { type geneve\; id 2\; \
+>     ip saddr 192.168.1.1\; ip daddr 192.168.1.2\; \
+>     sport 9000\; dport 9001\; dscp 1234\; ttl 64\; flags 1\; \
+>     opts \"1:1:34567890,2:2:12121212,3:3:1212121234567890\"\; }
+>   # nft list tunnels table filter
+>   # nft add rule filter input ip protocol udp tunnel name geneve_02
+>   # nft add rule filter input meta l4proto udp tunnel id 2 drop
+>   # nft add rule filter input meta l4proto udp tunnel path 0 drop
+>   # nft list chain filter input -a
 
- src/extra/udp.c: - Make it clear that packet buffer is the user-space one
-                  - Use \returns for all return values
-                  - Make function names in doc agree with prototypes
-                  - Make number and names of params in doc agree with prototypes
-                  - Divide functions into a hierarchy:
-                     top-level: Functions all programs that modify data will use
-                                (nfq_udp_snprintf is optional)
-                     2nd-level: Rarely-used (except internally) functions
-                  - Add see-also snprintf
+Hi, Pablo
+as you commented on other patches, I will post v2 and
+>
+> Xin Long (7):
+>   netfilter: nft_tunnel: parse ERSPAN_VERSION attr as u8
+>   netfilter: nft_tunnel: parse VXLAN_GBP attr as u32 in nft_tunnel
+drop these two patches
+>   netfilter: nft_tunnel: no need to call htons() when dumping ports
+move this one to nf.git
+>   netfilter: nft_tunnel: also dump ERSPAN_VERSION
+>   netfilter: nft_tunnel: also dump OPTS_ERSPAN/VXLAN
+>   netfilter: nft_tunnel: add the missing nla_nest_cancel()
+adjust these three for nf-next.git
+>   netfilter: nft_tunnel: add support for geneve opts
+will you also check this one before my posting v2?
 
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
----
- src/extra/udp.c | 50 ++++++++++++++++++++++++++++++--------------------
- 1 file changed, 30 insertions(+), 20 deletions(-)
-
-diff --git a/src/extra/udp.c b/src/extra/udp.c
-index eb301f2..da03be8 100644
---- a/src/extra/udp.c
-+++ b/src/extra/udp.c
-@@ -31,10 +31,9 @@
- 
- /**
-  * nfq_udp_get_hdr - get the UDP header.
-- * \param pktb: Pointer to network packet buffer
-+ * \param pktb: Pointer to userspace network packet buffer
-  *
-- * This function returns NULL if invalid UDP header is found. On success,
-- * it returns the UDP header.
-+ * \returns Pointer to the UDP header, or NULL if no valid UDP header is found.
-  */
- EXPORT_SYMBOL
- struct udphdr *nfq_udp_get_hdr(struct pkt_buff *pktb)
-@@ -52,7 +51,8 @@ struct udphdr *nfq_udp_get_hdr(struct pkt_buff *pktb)
- /**
-  * nfq_udp_get_payload - get the UDP packet payload.
-  * \param udph: Pointer to UDP header
-- * \param pktb: Pointer to network packet buffer
-+ * \param pktb: Pointer to userspace network packet buffer
-+ * \returns Pointer to the UDP payload, or NULL if malformed UDP packet.
-  */
- EXPORT_SYMBOL
- void *nfq_udp_get_payload(struct udphdr *udph, struct pkt_buff *pktb)
-@@ -73,7 +73,8 @@ void *nfq_udp_get_payload(struct udphdr *udph, struct pkt_buff *pktb)
- /**
-  * nfq_udp_get_payload_len - get the udp packet payload.
-  * \param udph: Pointer to UDP header
-- * \param pktb: Pointer to network packet buffer
-+ * \param pktb: Pointer to userspace network packet buffer
-+ * \returns Length of UDP payload (user data)
-  */
- EXPORT_SYMBOL
- unsigned int nfq_udp_get_payload_len(struct udphdr *udph, struct pkt_buff *pktb)
-@@ -82,14 +83,22 @@ unsigned int nfq_udp_get_payload_len(struct udphdr *udph, struct pkt_buff *pktb)
- }
- 
- /**
-- * nfq_udp_set_checksum_ipv4 - computes a IPv4/TCP packet's segment
-- * \param iphdrp: pointer to the ip header
-- * \param ippayload: payload of the ip packet
-+ * \defgroup internals Internal functions
-  *
-- * \returns the checksum of the udp segment.
-+ * Most user-space programs will never need these.
-  *
-- * \see nfq_pkt_compute_ip_checksum
-- * \see nfq_pkt_compute_udp_checksum
-+ * @{
-+ */
-+
-+/**
-+ * nfq_udp_compute_checksum_ipv4 - sets up the UDP checksum in a UDP/IPv4 packet
-+ * \param udph: pointer to the UDP header
-+ * \param iph: pointer to the IPv4 header
-+ * \note
-+ * nfq_udp_mangle_ipv4() invokes this function.
-+ * As long as developers always use __nfq_udp_mangle_ipv4__ when changing the
-+ * content of a UDP message, there is no need to call
-+ * __nfq_udp_compute_checksum_ipv4__.
-  */
- EXPORT_SYMBOL
- void nfq_udp_compute_checksum_ipv4(struct udphdr *udph, struct iphdr *iph)
-@@ -100,14 +109,13 @@ void nfq_udp_compute_checksum_ipv4(struct udphdr *udph, struct iphdr *iph)
- }
- 
- /**
-- * nfq_udp_set_checksum_ipv6 - computes a IPv6/TCP packet's segment
-- * \param iphdrp: pointer to the ip header
-- * \param ippayload: payload of the ip packet
-- *
-- * \returns the checksum of the udp segment.
-- *
-- * \see nfq_pkt_compute_ip_checksum
-- * \see nfq_pkt_compute_udp_checksum
-+ * @}
-+ */
-+
-+/**
-+ * nfq_udp_compute_checksum_ipv6 - sets up the UDP checksum in a UDP/IPv6 packet
-+ * \param udph: pointer to the UDP header
-+ * \param ip6h: pointer to the IPv6 header
-  */
- EXPORT_SYMBOL
- void nfq_udp_compute_checksum_ipv6(struct udphdr *udph, struct ip6_hdr *ip6h)
-@@ -156,7 +164,9 @@ int nfq_udp_mangle_ipv4(struct pkt_buff *pkt,
-  * readable way
-  * \param buf: pointer to buffer that is used to print the object
-  * \param size: size of the buffer (or remaining room in it).
-- * \param udp: pointer to a valid udp header.
-+ * \param udph: pointer to a valid udp header.
-+ * \returns The number of characters notionally written (excluding trailing NUL)
-+ * \sa __snprintf__(3)
-  *
-  */
- EXPORT_SYMBOL
--- 
-2.14.5
-
+Thanks.
