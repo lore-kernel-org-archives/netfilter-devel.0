@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 698C9C751C1
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Dec 2019 20:38:55 +0000 (UTC)
-Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A829124728
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00808C341D4
 	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Dec 2019 20:38:54 +0000 (UTC)
+Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
+	by mail.kernel.org (Postfix) with ESMTP id 3F9FC246B1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Dec 2019 20:38:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728179AbfLMQEF (ORCPT
+        id S1728159AbfLMQD5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Dec 2019 11:04:05 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:40350 "EHLO
+        Fri, 13 Dec 2019 11:03:57 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:40334 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728177AbfLMQEF (ORCPT
+        by vger.kernel.org with ESMTP id S1728142AbfLMQD4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Dec 2019 11:04:05 -0500
+        Fri, 13 Dec 2019 11:03:56 -0500
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1ifnQB-0004Dh-2j; Fri, 13 Dec 2019 17:04:03 +0100
+        id 1ifnQ3-0004Cy-Ah; Fri, 13 Dec 2019 17:03:55 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft v2 07/11] mnl: round up the map data size too
-Date:   Fri, 13 Dec 2019 17:03:41 +0100
-Message-Id: <20191213160345.30057-8-fw@strlen.de>
+Subject: [PATCH nft v2 02/11] libnftnl: split nft_ctx_new/free
+Date:   Fri, 13 Dec 2019 17:03:36 +0100
+Message-Id: <20191213160345.30057-3-fw@strlen.de>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191213160345.30057-1-fw@strlen.de>
 References: <20191213160345.30057-1-fw@strlen.de>
@@ -39,30 +39,109 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Same as key: if the size isn't divisible by BITS_PER_BYTE, we need to
-round up, not down.
-
-Without this, you can't store vlan ids in a map, as they are truncated
-to 8 bit.
+a followup patch doesn't need e.g. symbol files to be loaded,
+so split those functions to create a helper that can be used
+internally by nft to create a more minimal nft context.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/mnl.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/nftables.h |  3 +++
+ src/libnftables.c  | 33 ++++++++++++++++++++++++---------
+ 2 files changed, 27 insertions(+), 9 deletions(-)
 
-diff --git a/src/mnl.c b/src/mnl.c
-index 75113c74c224..bcf633002f15 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -870,7 +870,7 @@ int mnl_nft_set_add(struct netlink_ctx *ctx, const struct cmd *cmd,
- 		nftnl_set_set_u32(nls, NFTNL_SET_DATA_TYPE,
- 				  dtype_map_to_kernel(set->data->dtype));
- 		nftnl_set_set_u32(nls, NFTNL_SET_DATA_LEN,
--				  set->data->len / BITS_PER_BYTE);
-+				  div_round_up(set->data->len, BITS_PER_BYTE));
+diff --git a/include/nftables.h b/include/nftables.h
+index 90d331960ef2..503adf0ca1cc 100644
+--- a/include/nftables.h
++++ b/include/nftables.h
+@@ -213,6 +213,9 @@ int nft_print(struct output_ctx *octx, const char *fmt, ...)
+ int nft_gmp_print(struct output_ctx *octx, const char *fmt, ...)
+ 	__attribute__((format(printf, 2, 0)));
+ 
++struct nft_ctx *__nft_ctx_new(void);
++void __nft_ctx_free(struct nft_ctx *ctx);
++
+ #define __NFT_OUTPUT_NOTSUPP	UINT_MAX
+ 
+ #endif /* NFTABLES_NFTABLES_H */
+diff --git a/src/libnftables.c b/src/libnftables.c
+index cd2fcf2fd522..3c0d3a18ffe5 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -134,8 +134,7 @@ static void nft_ctx_netlink_init(struct nft_ctx *ctx)
+ 	ctx->nf_sock = nft_mnl_socket_open();
+ }
+ 
+-EXPORT_SYMBOL(nft_ctx_new);
+-struct nft_ctx *nft_ctx_new(uint32_t flags)
++struct nft_ctx *__nft_ctx_new(void)
+ {
+ 	static bool init_once;
+ 	struct nft_ctx *ctx;
+@@ -149,17 +148,27 @@ struct nft_ctx *nft_ctx_new(uint32_t flags)
  	}
- 	if (set_is_objmap(set->flags))
- 		nftnl_set_set_u32(nls, NFTNL_SET_OBJ_TYPE, set->objtype);
+ 
+ 	ctx = xzalloc(sizeof(struct nft_ctx));
+-	nft_init(ctx);
+ 
+ 	ctx->state = xzalloc(sizeof(struct parser_state));
+ 	nft_ctx_add_include_path(ctx, DEFAULT_INCLUDE_PATH);
+-	ctx->parser_max_errors	= 10;
+ 	init_list_head(&ctx->cache.list);
+ 	ctx->top_scope = scope_alloc();
+-	ctx->flags = flags;
+ 	ctx->output.output_fp = stdout;
+ 	ctx->output.error_fp = stderr;
+ 
++	return ctx;
++}
++
++EXPORT_SYMBOL(nft_ctx_new);
++struct nft_ctx *nft_ctx_new(uint32_t flags)
++{
++	struct nft_ctx *ctx = __nft_ctx_new();
++
++	nft_init(ctx);
++
++	ctx->parser_max_errors = 10;
++	ctx->flags = flags;
++
+ 	if (flags == NFT_CTX_DEFAULT)
+ 		nft_ctx_netlink_init(ctx);
+ 
+@@ -282,23 +291,29 @@ const char *nft_ctx_get_error_buffer(struct nft_ctx *ctx)
+ 	return get_cookie_buffer(&ctx->output.error_cookie);
+ }
+ 
+-EXPORT_SYMBOL(nft_ctx_free);
+-void nft_ctx_free(struct nft_ctx *ctx)
++void __nft_ctx_free(struct nft_ctx *ctx)
+ {
+ 	if (ctx->nf_sock)
+ 		mnl_socket_close(ctx->nf_sock);
+ 
+ 	exit_cookie(&ctx->output.output_cookie);
+ 	exit_cookie(&ctx->output.error_cookie);
+-	iface_cache_release();
+ 	cache_release(&ctx->cache);
+ 	nft_ctx_clear_include_paths(ctx);
+ 	scope_free(ctx->top_scope);
+ 	xfree(ctx->state);
+-	nft_exit(ctx);
++
+ 	xfree(ctx);
+ }
+ 
++EXPORT_SYMBOL(nft_ctx_free);
++void nft_ctx_free(struct nft_ctx *ctx)
++{
++	nft_exit(ctx);
++	__nft_ctx_free(ctx);
++	iface_cache_release();
++}
++
+ EXPORT_SYMBOL(nft_ctx_set_output);
+ FILE *nft_ctx_set_output(struct nft_ctx *ctx, FILE *fp)
+ {
 -- 
 2.23.0
 
