@@ -2,136 +2,283 @@ Return-Path: <SRS0=a9hH=2D=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41BF3C2D0BF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Dec 2019 09:30:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25A5CC2D0C9
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Dec 2019 10:32:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 195752077B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Dec 2019 09:30:32 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="vXhTJSwE"
+	by mail.kernel.org (Postfix) with ESMTP id E6539206DA
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Dec 2019 10:32:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726718AbfLMJab (ORCPT
+        id S1725890AbfLMKc6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Dec 2019 04:30:31 -0500
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:39658 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725890AbfLMJaa (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Dec 2019 04:30:30 -0500
-Received: by mail-wm1-f65.google.com with SMTP id d5so5770988wmb.4
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Dec 2019 01:30:28 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=netronome-com.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=jZdCFyi3P0PE/gTzwArDJAX7Y5Yjkz7bthFAd9kSL8E=;
-        b=vXhTJSwEs2tEqcb/W1Gixt5T1TWJyLh9ofXEc/v02oErGrluI4oixv9bY0AJ4TMlvq
-         G0QeZqQQPyGHijsjDq63NRpzjQ+xgx2VzF4lwbhvzy6bK4y6Qh5/k1uTd5HjDx9pzn54
-         0xDOtRV2Zdp8KEyIUXEOE3FGltLDsw4KJHojM28+gFt0mSUDfocWAldtbo8KJMAmjWVC
-         h/LBCyT4R02G9C4cWL62vmZM80OOeDW+VlMJjVjDxBLF/d0CZaHpGvokUY8sFDwFmB7t
-         eYcr5agT2xxCPCxDGN6ODzdCSR8/cni4r9gkLDNv86MiYRZ2YPMB+ZLoi0+z7Fx2qQNu
-         nMSw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=jZdCFyi3P0PE/gTzwArDJAX7Y5Yjkz7bthFAd9kSL8E=;
-        b=oZeFooZ0DQIQwOESGRgivoXM3hEYPzCmNC5E1eOFb/WdDV3Kh75tVztcaBhQvGhLEL
-         xjjC7Br+Pu0oDRpbIj6D0IMrlA74vU74oxUtONd+Y+WnEdJvnQzoz7fXpt2s7p+TJylJ
-         ZHBkfR4CRHUTWWGprZs3+WrGZwqPaz+7jzZDAsZekmLXjfjr6h1SvSW/jEV7pqd71mSF
-         H3gEqzg0+wlsTJ3JntBMbWQAungc+lR48kB7Vdq+kSd3TmTZbMe1F3GImJV16Y9bVuPX
-         MakTb5LQ5lPc5BvDPEMuxefR9Y2fw96CEJDIqs1pxXEegLU3AqAZzyqbxT4ig1okmjLz
-         VYuA==
-X-Gm-Message-State: APjAAAXIOv04uLJNX1RzfBHsIhLZeKyr/Jxs/4GXXWT9DiNedx7u6H0p
-        kfYAvQqeZES0wjSwHayUECpYIg==
-X-Google-Smtp-Source: APXvYqxtTiPkSq43+iaH2FYGWbq7cKMj7CBY86RoUBako+Un9sDcQ15tBHAMmrgcHuJO0XjYun9iog==
-X-Received: by 2002:a1c:740b:: with SMTP id p11mr12928629wmc.78.1576229427548;
-        Fri, 13 Dec 2019 01:30:27 -0800 (PST)
-Received: from netronome.com ([2001:982:756:703:d63d:7eff:fe99:ac9d])
-        by smtp.gmail.com with ESMTPSA id x6sm9805907wmi.44.2019.12.13.01.30.27
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 13 Dec 2019 01:30:27 -0800 (PST)
-Date:   Fri, 13 Dec 2019 10:30:26 +0100
-From:   Simon Horman <simon.horman@netronome.com>
-To:     Xin Long <lucien.xin@gmail.com>
-Cc:     network dev <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, davem <davem@davemloft.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 1/7] netfilter: nft_tunnel: parse ERSPAN_VERSION
- attr as u8
-Message-ID: <20191213093026.GA27379@netronome.com>
-References: <cover.1575779993.git.lucien.xin@gmail.com>
- <981718e8e2ca5cd34d1153f54eae06ab2f087c07.1575779993.git.lucien.xin@gmail.com>
- <20191209200317.GA10466@netronome.com>
- <CADvbK_fJjN0MsYpmoJ+WD=rRNYub96+nHsv3EozHTj5MG2d1ag@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CADvbK_fJjN0MsYpmoJ+WD=rRNYub96+nHsv3EozHTj5MG2d1ag@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        Fri, 13 Dec 2019 05:32:58 -0500
+Received: from correo.us.es ([193.147.175.20]:39196 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725747AbfLMKc6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 13 Dec 2019 05:32:58 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 80BB3DA88C
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Dec 2019 11:32:53 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7193FDA70D
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Dec 2019 11:32:53 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 4E321DA70C; Fri, 13 Dec 2019 11:32:53 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 81E1DDA711;
+        Fri, 13 Dec 2019 11:32:49 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 13 Dec 2019 11:32:49 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 631C64265A5A;
+        Fri, 13 Dec 2019 11:32:49 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     phil@nwl.cc
+Subject: [PATCH nft] main: enforce options before commands
+Date:   Fri, 13 Dec 2019 11:32:46 +0100
+Message-Id: <20191213103246.260989-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Dec 10, 2019 at 12:05:15PM +0800, Xin Long wrote:
-> On Tue, Dec 10, 2019 at 4:03 AM Simon Horman <simon.horman@netronome.com> wrote:
-> >
-> > Hi Xin,
-> >
-> > On Sun, Dec 08, 2019 at 12:41:31PM +0800, Xin Long wrote:
-> > > To keep consistent with ipgre_policy, it's better to parse
-> > > ERSPAN_VERSION attr as u8, as it does in act_tunnel_key,
-> > > cls_flower and ip_tunnel_core.
-> > >
-> > > Signed-off-by: Xin Long <lucien.xin@gmail.com>
-> > > ---
-> > >  net/netfilter/nft_tunnel.c | 5 +++--
-> > >  1 file changed, 3 insertions(+), 2 deletions(-)
-> > >
-> > > diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
-> > > index 3d4c2ae..f76cd7d 100644
-> > > --- a/net/netfilter/nft_tunnel.c
-> > > +++ b/net/netfilter/nft_tunnel.c
-> > > @@ -248,8 +248,9 @@ static int nft_tunnel_obj_vxlan_init(const struct nlattr *attr,
-> > >  }
-> > >
-> > >  static const struct nla_policy nft_tunnel_opts_erspan_policy[NFTA_TUNNEL_KEY_ERSPAN_MAX + 1] = {
-> > > +     [NFTA_TUNNEL_KEY_ERSPAN_VERSION]        = { .type = NLA_U8 },
-> > >       [NFTA_TUNNEL_KEY_ERSPAN_V1_INDEX]       = { .type = NLA_U32 },
-> > > -     [NFTA_TUNNEL_KEY_ERSPAN_V2_DIR] = { .type = NLA_U8 },
-> > > +     [NFTA_TUNNEL_KEY_ERSPAN_V2_DIR]         = { .type = NLA_U8 },
-> > >       [NFTA_TUNNEL_KEY_ERSPAN_V2_HWID]        = { .type = NLA_U8 },
-> > >  };
-> > >
-> > > @@ -266,7 +267,7 @@ static int nft_tunnel_obj_erspan_init(const struct nlattr *attr,
-> > >       if (err < 0)
-> > >               return err;
-> > >
-> > > -     version = ntohl(nla_get_be32(tb[NFTA_TUNNEL_KEY_ERSPAN_VERSION]));
-> > > +     version = nla_get_u8(tb[NFTA_TUNNEL_KEY_ERSPAN_VERSION]);
-> >
-> > I have concerns about this change and backwards-compatibility with existing
-> > users of this UAPI. Likewise, with other changes to the encoding of existing
-> > attributes elsewhere in this series.
-> userspace(nftables/libnftnl) is not ready for nft_tunnel, I don't
-> think there will be
-> any backwards-compatibility issue.
-> 
-> Pablo?
+This patch turns on POSIXLY_CORRECT on the getopt parser to enforce
+options before commands. Users get a hint in such a case:
 
-Thanks, I'm happy to defer to Pablo on this question.
+ # nft list ruleset -a
+ Error: syntax error, options must be specified before commands
+ nft list ruleset -a
+    ^             ~~
 
-> 
-> >
-> > >       switch (version) {
-> > >       case ERSPAN_VERSION:
-> > >               if (!tb[NFTA_TUNNEL_KEY_ERSPAN_V1_INDEX])
-> > > --
-> > > 2.1.0
-> > >
+This patch recovers 9fc71bc6b602 ("main: Fix for misleading error with
+negative chain priority").
+
+Tests have been updated.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/main.c                                         | 46 +++++++++++++++++++++-
+ tests/shell/testcases/cache/0001_cache_handling_0  |  2 +-
+ tests/shell/testcases/chains/0016delete_handle_0   |  4 +-
+ .../shell/testcases/chains/0039negative_priority_0 |  8 ++++
+ .../shell/testcases/flowtable/0010delete_handle_0  |  2 +-
+ .../shell/testcases/maps/0008interval_map_delete_0 |  2 +-
+ tests/shell/testcases/optionals/comments_0         |  2 +-
+ tests/shell/testcases/optionals/comments_handles_0 |  2 +-
+ .../testcases/optionals/delete_object_handles_0    |  4 +-
+ tests/shell/testcases/optionals/handles_0          |  2 +-
+ tests/shell/testcases/sets/0028delete_handle_0     |  2 +-
+ 11 files changed, 64 insertions(+), 12 deletions(-)
+ create mode 100755 tests/shell/testcases/chains/0039negative_priority_0
+
+diff --git a/src/main.c b/src/main.c
+index fde8b15c5870..74199f93fa66 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -46,7 +46,7 @@ enum opt_vals {
+ 	OPT_TERSE		= 't',
+ 	OPT_INVALID		= '?',
+ };
+-#define OPTSTRING	"hvcf:iI:jvnsNaeSupypTt"
++#define OPTSTRING	"+hvcf:iI:jvnsNaeSupypTt"
+ 
+ static const struct option options[] = {
+ 	{
+@@ -202,6 +202,47 @@ static const struct {
+ 	},
+ };
+ 
++static void nft_options_error(int argc, char * const argv[], int pos)
++{
++	int i;
++
++	fprintf(stderr, "Error: syntax error, options must be specified before commands\n");
++	for (i = 0; i < argc; i++)
++		fprintf(stderr, "%s ", argv[i]);
++	printf("\n%4c%*s\n", '^', pos - 2, "~~");
++}
++
++static bool nft_options_check(int argc, char * const argv[])
++{
++	bool skip = false, nonoption = false;
++	int pos = 0, i;
++
++	for (i = 1; i < argc; i++) {
++		pos += strlen(argv[i - 1]) + 1;
++		if (argv[i][0] == '{') {
++			break;
++		} else if (skip) {
++			skip = false;
++			continue;
++		} else if (argv[i][0] == '-') {
++			if (nonoption) {
++				nft_options_error(argc, argv, pos);
++				return false;
++			} else if (argv[i][1] == 'I' ||
++				   argv[i][1] == 'f' ||
++				   !strcmp(argv[i], "--includepath") ||
++				   !strcmp(argv[i], "--file")) {
++				skip = true;
++				continue;
++			}
++		} else if (argv[i][0] != '-') {
++			nonoption = true;
++		}
++	}
++
++	return true;
++}
++
+ int main(int argc, char * const *argv)
+ {
+ 	char *buf = NULL, *filename = NULL;
+@@ -211,6 +252,9 @@ int main(int argc, char * const *argv)
+ 	unsigned int len;
+ 	int i, val, rc;
+ 
++	if (!nft_options_check(argc, argv))
++		exit(EXIT_FAILURE);
++
+ 	nft = nft_ctx_new(NFT_CTX_DEFAULT);
+ 
+ 	while (1) {
+diff --git a/tests/shell/testcases/cache/0001_cache_handling_0 b/tests/shell/testcases/cache/0001_cache_handling_0
+index 431aada59234..0a6844045b15 100755
+--- a/tests/shell/testcases/cache/0001_cache_handling_0
++++ b/tests/shell/testcases/cache/0001_cache_handling_0
+@@ -20,7 +20,7 @@ TMP=$(mktemp)
+ echo "$RULESET" >> "$TMP"
+ $NFT "flush ruleset;include \"$TMP\""
+ rm -f "$TMP"
+-rule_handle=$($NFT list ruleset -a | awk '/saddr/{print $NF}')
++rule_handle=$($NFT -a list ruleset | awk '/saddr/{print $NF}')
+ $NFT delete rule inet test test handle $rule_handle
+ $NFT delete set inet test test
+ $NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/chains/0016delete_handle_0 b/tests/shell/testcases/chains/0016delete_handle_0
+index 4633d771c619..8fd1ad864672 100755
+--- a/tests/shell/testcases/chains/0016delete_handle_0
++++ b/tests/shell/testcases/chains/0016delete_handle_0
+@@ -10,8 +10,8 @@ $NFT add chain ip6 test-ip6 x
+ $NFT add chain ip6 test-ip6 y
+ $NFT add chain ip6 test-ip6 z
+ 
+-chain_y_handle=$($NFT list ruleset -a | awk -v n=1 '/chain y/ && !--n {print $NF; exit}');
+-chain_z_handle=$($NFT list ruleset -a | awk -v n=2 '/chain z/ && !--n {print $NF; exit}');
++chain_y_handle=$($NFT -a list ruleset | awk -v n=1 '/chain y/ && !--n {print $NF; exit}');
++chain_z_handle=$($NFT -a list ruleset | awk -v n=2 '/chain z/ && !--n {print $NF; exit}');
+ 
+ $NFT delete chain test-ip handle $chain_y_handle
+ $NFT delete chain ip6 test-ip6 handle $chain_z_handle
+diff --git a/tests/shell/testcases/chains/0039negative_priority_0 b/tests/shell/testcases/chains/0039negative_priority_0
+new file mode 100755
+index 000000000000..ba17b8cc19ed
+--- /dev/null
++++ b/tests/shell/testcases/chains/0039negative_priority_0
+@@ -0,0 +1,8 @@
++#!/bin/bash
++
++# Test parsing of negative priority values
++
++set -e
++
++$NFT add table t
++$NFT add chain t c { type filter hook input priority -30\; }
+diff --git a/tests/shell/testcases/flowtable/0010delete_handle_0 b/tests/shell/testcases/flowtable/0010delete_handle_0
+index 303967ddb44a..985d4a3ad6ce 100755
+--- a/tests/shell/testcases/flowtable/0010delete_handle_0
++++ b/tests/shell/testcases/flowtable/0010delete_handle_0
+@@ -7,7 +7,7 @@ set -e
+ $NFT add table inet t
+ $NFT add flowtable inet t f { hook ingress priority filter\; devices = { lo }\; }
+ 
+-FH=$($NFT list ruleset -a | awk '/flowtable f/ { print $NF }')
++FH=$($NFT -a list ruleset | awk '/flowtable f/ { print $NF }')
+ 
+ $NFT delete flowtable inet t handle $FH
+ 
+diff --git a/tests/shell/testcases/maps/0008interval_map_delete_0 b/tests/shell/testcases/maps/0008interval_map_delete_0
+index a43fd28019f7..7da6eb38ddf7 100755
+--- a/tests/shell/testcases/maps/0008interval_map_delete_0
++++ b/tests/shell/testcases/maps/0008interval_map_delete_0
+@@ -24,7 +24,7 @@ $NFT delete element filter m { 127.0.0.3 }
+ $NFT add element filter m { 127.0.0.3 : 0x3 }
+ $NFT add element filter m { 127.0.0.2 : 0x2 }
+ 
+-GET=$($NFT list ruleset -s)
++GET=$($NFT -s list ruleset)
+ if [ "$EXPECTED" != "$GET" ] ; then
+ 	DIFF="$(which diff)"
+ 	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
+diff --git a/tests/shell/testcases/optionals/comments_0 b/tests/shell/testcases/optionals/comments_0
+index 29b850624635..ab859365a570 100755
+--- a/tests/shell/testcases/optionals/comments_0
++++ b/tests/shell/testcases/optionals/comments_0
+@@ -5,4 +5,4 @@
+ $NFT add table test
+ $NFT add chain test test
+ $NFT add rule test test tcp dport 22 counter accept comment test_comment
+-$NFT list table test -a | grep 'accept comment \"test_comment\"' >/dev/null
++$NFT -a list table test | grep 'accept comment \"test_comment\"' >/dev/null
+diff --git a/tests/shell/testcases/optionals/comments_handles_0 b/tests/shell/testcases/optionals/comments_handles_0
+index 30539bf0d760..a01df1df50f4 100755
+--- a/tests/shell/testcases/optionals/comments_handles_0
++++ b/tests/shell/testcases/optionals/comments_handles_0
+@@ -6,5 +6,5 @@ $NFT add table test
+ $NFT add chain test test
+ $NFT add rule test test tcp dport 22 counter accept comment test_comment
+ set -e
+-$NFT list table test -a | grep 'accept comment \"test_comment\" # handle '[[:digit:]]$ >/dev/null
++$NFT -a list table test | grep 'accept comment \"test_comment\" # handle '[[:digit:]]$ >/dev/null
+ $NFT list table test | grep 'accept comment \"test_comment\"' | grep -v '# handle '[[:digit:]]$ >/dev/null
+diff --git a/tests/shell/testcases/optionals/delete_object_handles_0 b/tests/shell/testcases/optionals/delete_object_handles_0
+index d5d96547ee14..a2ae4228d6fa 100755
+--- a/tests/shell/testcases/optionals/delete_object_handles_0
++++ b/tests/shell/testcases/optionals/delete_object_handles_0
+@@ -10,8 +10,8 @@ $NFT add quota ip6 test-ip6 http-quota over 25 mbytes
+ $NFT add counter ip6 test-ip6 http-traffic
+ $NFT add quota ip6 test-ip6 ssh-quota 10 mbytes
+ 
+-counter_handle=$($NFT list ruleset -a | awk '/https-traffic/{print $NF}')
+-quota_handle=$($NFT list ruleset -a | awk '/ssh-quota/{print $NF}')
++counter_handle=$($NFT -a list ruleset | awk '/https-traffic/{print $NF}')
++quota_handle=$($NFT -a list ruleset | awk '/ssh-quota/{print $NF}')
+ $NFT delete counter test-ip handle $counter_handle
+ $NFT delete quota ip6 test-ip6 handle $quota_handle
+ 
+diff --git a/tests/shell/testcases/optionals/handles_0 b/tests/shell/testcases/optionals/handles_0
+index 7c6a437cf12b..80f3c5b226e6 100755
+--- a/tests/shell/testcases/optionals/handles_0
++++ b/tests/shell/testcases/optionals/handles_0
+@@ -5,4 +5,4 @@
+ $NFT add table test
+ $NFT add chain test test
+ $NFT add rule test test tcp dport 22 counter accept
+-$NFT list table test -a | grep 'accept # handle '[[:digit:]]$ >/dev/null
++$NFT -a list table test | grep 'accept # handle '[[:digit:]]$ >/dev/null
+diff --git a/tests/shell/testcases/sets/0028delete_handle_0 b/tests/shell/testcases/sets/0028delete_handle_0
+index 4e8b3228f605..5ad17c223db2 100755
+--- a/tests/shell/testcases/sets/0028delete_handle_0
++++ b/tests/shell/testcases/sets/0028delete_handle_0
+@@ -7,7 +7,7 @@ $NFT add set test-ip y { type inet_service \; timeout 3h45s \;}
+ $NFT add set test-ip z { type ipv4_addr\; flags constant , interval\;}
+ $NFT add set test-ip c {type ipv4_addr \; flags timeout \; elements={192.168.1.1 timeout 10s, 192.168.1.2 timeout 30s} \;}
+ 
+-set_handle=$($NFT list ruleset -a | awk '/set c/{print $NF}')
++set_handle=$($NFT -a list ruleset | awk '/set c/{print $NF}')
+ $NFT delete set test-ip handle $set_handle
+ 
+ EXPECTED="table ip test-ip {
+-- 
+2.11.0
+
