@@ -2,71 +2,86 @@ Return-Path: <SRS0=a9hH=2D=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B17FDC43603
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Dec 2019 00:58:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 285F5C2D0C9
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Dec 2019 08:53:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8CA782073D
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Dec 2019 00:58:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E924622527
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Dec 2019 08:53:20 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FYkW1Eel"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731158AbfLMA6W (ORCPT
+        id S1726767AbfLMIxT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 12 Dec 2019 19:58:22 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:37682 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727766AbfLMA6W (ORCPT
+        Fri, 13 Dec 2019 03:53:19 -0500
+Received: from mail-pj1-f66.google.com ([209.85.216.66]:33878 "EHLO
+        mail-pj1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725945AbfLMIxS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Dec 2019 19:58:22 -0500
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1ifZHg-0008Pl-Dn; Fri, 13 Dec 2019 01:58:20 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: conntrack: remove two export symbols
-Date:   Fri, 13 Dec 2019 01:58:15 +0100
-Message-Id: <20191213005815.9244-1-fw@strlen.de>
-X-Mailer: git-send-email 2.23.0
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Fri, 13 Dec 2019 03:53:18 -0500
+Received: by mail-pj1-f66.google.com with SMTP id j11so927119pjs.1;
+        Fri, 13 Dec 2019 00:53:18 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=5oY1rqk+s+7aBLz/dZvUHs7HYCiQ4df/073CxfwEJWw=;
+        b=FYkW1EelULsxFhSYPgkyEZmE1OY/idDcWxrT/GnV35Ln+egQzRnQgNwS9XbgIqpYXs
+         ofQsc+ecmN1Ayvn24hXdA+Amw4rHw4L5OzRrrPeBIyUBYjeg3Ai/04xKfsuqczXCMmSv
+         0AlBSsf1n2QWmG0YI6yeytYDf9x7n0u9yMyidkJXQjTX3xCFyPVH5AQHPIYdPcr7FE3Y
+         bxVeFbYbcblkxkuOfOb/BfAuudtym9rG3WEEaSg3W5YkMTOXAtFEHJkIFrgbZi6bPPW2
+         dQ00r5YGUaDz6bzBegDVuMpzAskT/+0jF+t0hRsh+aIj0CIVaq5C4vvFrjkb4APIAPrt
+         LjAQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=5oY1rqk+s+7aBLz/dZvUHs7HYCiQ4df/073CxfwEJWw=;
+        b=cM9MyG5scuQx7X2+Czk7mI6u2HrWXGfsDsZRddgLoPxXTGjj14nUVin+Hf29xieauk
+         JKk0moBZKQPy9Q5ETXoqKQeXk2Uf1ma4YfXcvSh4yR1/Y22KMlQcqCMgFdSpaYeNmEKU
+         +cD4NH38Hbts2t5m7Pf+Il4jZJPnVKGDQeeiX4s3a4b50bxFit39T61j3lUmlFUOUOOZ
+         lhvPn9P4M9LRCssFnnqDXtH9sfpbN/XgPEe/Br+JghYrx5LCf7y1SePMBf/5ODVRTnWB
+         m441JVtqZ2GIcbaaT/4rezJZT0guPBkQksGLgJn7UHmb7wjIopNd5H+Gcce4YFUoGHzF
+         XGag==
+X-Gm-Message-State: APjAAAXYcmOfUsO4SQadySsTpx1VxTUbBjWyUyvVV8S2LR9hDTte99DU
+        8nxomrYJxIH8AoJfL9AxJGf8DyK9
+X-Google-Smtp-Source: APXvYqzkYHS24F1L3QIce2xHnRyrdVX5+gYQNkza1eMkBHejdjinzx7P8P3wlNhTdKuzZRSR/lVTWg==
+X-Received: by 2002:a17:902:b788:: with SMTP id e8mr15082896pls.1.1576227197796;
+        Fri, 13 Dec 2019 00:53:17 -0800 (PST)
+Received: from localhost ([209.132.188.80])
+        by smtp.gmail.com with ESMTPSA id q22sm10516829pfg.170.2019.12.13.00.53.16
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 13 Dec 2019 00:53:17 -0800 (PST)
+From:   Xin Long <lucien.xin@gmail.com>
+To:     network dev <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCHv2 nf-next 0/5] netfilter: nft_tunnel: a bunch of fixes and improvements
+Date:   Fri, 13 Dec 2019 16:53:04 +0800
+Message-Id: <cover.1576226965.git.lucien.xin@gmail.com>
+X-Mailer: git-send-email 2.1.0
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_conntrack_core.c   | 1 -
- net/netfilter/nf_conntrack_extend.c | 1 -
- 2 files changed, 2 deletions(-)
+This patchset adds some fixes and improvements for nft_tunnel.
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 0af1898af2b8..983a9481e8f8 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2333,7 +2333,6 @@ int nf_conntrack_set_hashsize(const char *val, const struct kernel_param *kp)
- 
- 	return nf_conntrack_hash_resize(hashsize);
- }
--EXPORT_SYMBOL_GPL(nf_conntrack_set_hashsize);
- 
- static __always_inline unsigned int total_extension_size(void)
- {
-diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
-index c24e5b64b00c..3dbe2329c3f1 100644
---- a/net/netfilter/nf_conntrack_extend.c
-+++ b/net/netfilter/nf_conntrack_extend.c
-@@ -37,7 +37,6 @@ void nf_ct_ext_destroy(struct nf_conn *ct)
- 
- 	kfree(ct->ext);
- }
--EXPORT_SYMBOL(nf_ct_ext_destroy);
- 
- void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
- {
+Note the patch for adding support for geneve opts in nft_tunnel
+will be posted in another patch after this one.
+
+Xin Long (5):
+  netfilter: nft_tunnel: no need to call htons() when dumping ports
+  netfilter: nft_tunnel: add the missing ERSPAN_VERSION nla_policy
+  netfilter: nft_tunnel: also dump ERSPAN_VERSION
+  netfilter: nft_tunnel: also dump OPTS_ERSPAN/VXLAN
+  netfilter: nft_tunnel: add the missing nla_nest_cancel()
+
+ net/netfilter/nft_tunnel.c | 52 ++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 39 insertions(+), 13 deletions(-)
+
 -- 
-2.23.0
+2.1.0
 
