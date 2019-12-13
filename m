@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FEB4C341D3
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Dec 2019 20:38:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 312A0C341D6
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Dec 2019 20:38:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CEC6D246B1
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Dec 2019 20:38:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D5B9246B1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Dec 2019 20:38:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728152AbfLMQD4 (ORCPT
+        id S1728162AbfLMQD7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Dec 2019 11:03:56 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:40332 "EHLO
+        Fri, 13 Dec 2019 11:03:59 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:40340 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728129AbfLMQD4 (ORCPT
+        by vger.kernel.org with ESMTP id S1728142AbfLMQD6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Dec 2019 11:03:56 -0500
+        Fri, 13 Dec 2019 11:03:58 -0500
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1ifnQ2-0004Cr-67; Fri, 13 Dec 2019 17:03:54 +0100
+        id 1ifnQ5-0004DD-Jw; Fri, 13 Dec 2019 17:03:57 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft v2 01/11] parser: add a helper for concat expression handling
-Date:   Fri, 13 Dec 2019 17:03:35 +0100
-Message-Id: <20191213160345.30057-2-fw@strlen.de>
+Subject: [PATCH nft v2 04/11] src: parser: add syntax to provide size of variable-sized data types
+Date:   Fri, 13 Dec 2019 17:03:38 +0100
+Message-Id: <20191213160345.30057-5-fw@strlen.de>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191213160345.30057-1-fw@strlen.de>
 References: <20191213160345.30057-1-fw@strlen.de>
@@ -39,150 +39,92 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Cull the repeated copy&paste snippets and add/use a helper for this.
+This allows creation of sets with string and integer types by
+providing the datatype width using a comma, e.g.
+
+"type string, 64" or "integer, 32".
+
+This is mainly intended as a fallback for the upcoming "typeof"
+keyword -- if we can't make sense of the kernel provided type
+(or its missing entirely), we can then fallback to this format.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/parser_bison.y | 99 ++++++++++++++++++++--------------------------
- 1 file changed, 43 insertions(+), 56 deletions(-)
+ src/parser_bison.y | 18 ++++++++++++++++++
+ src/rule.c         | 24 +++++++++++++++++++-----
+ 2 files changed, 37 insertions(+), 5 deletions(-)
 
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 707f46716ed3..0fd9b94c5b2f 100644
+index 6d17539fa57e..c6cad19f52fb 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -102,6 +102,25 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+@@ -1891,6 +1891,24 @@ data_type_atom_expr	:	type_identifier
+ 				$$ = constant_expr_alloc(&@1, &time_type, time_type.byteorder,
+ 							 time_type.size, NULL);
+ 			}
++			|	type_identifier	COMMA	NUM
++			{
++				const struct datatype *dtype = datatype_lookup_byname($1);
++				if (dtype == NULL) {
++					erec_queue(error(&@1, "unknown datatype %s", $1),
++						   state->msgs);
++					YYERROR;
++				}
++
++				if (dtype->size) {
++					erec_queue(error(&@1, "Datatype %s has a fixed type", $1),
++						   state->msgs);
++					YYERROR;
++				}
++				$$ = constant_expr_alloc(&@1, dtype, dtype->byteorder,
++							 $3, NULL);
++				xfree($1);
++			}
+ 			;
+ 
+ data_type_expr		:	data_type_atom_expr
+diff --git a/src/rule.c b/src/rule.c
+index f8cd4a73054b..a94860865f31 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -438,6 +438,16 @@ const char *set_policy2str(uint32_t policy)
  	}
  }
  
-+static struct expr *handle_concat_expr(const struct location *loc,
-+					 struct expr *expr,
-+					 struct expr *expr_l, struct expr *expr_r,
-+					 struct location loc_rhs[3])
++static void set_print_key(const struct expr *expr, struct output_ctx *octx)
 +{
-+	if (expr->etype != EXPR_CONCAT) {
-+		expr = concat_expr_alloc(loc);
-+		compound_expr_add(expr, expr_l);
-+	} else {
-+		location_update(&expr_r->location, loc_rhs, 2);
++	const struct datatype *dtype = expr->dtype;
 +
-+		expr = expr_l;
-+		expr->location = *loc;
-+	}
-+
-+	compound_expr_add(expr, expr_r);
-+	return expr;
++	if (dtype->size || dtype->type == TYPE_VERDICT)
++		nft_print(octx, "%s", dtype->name);
++	else
++		nft_print(octx, "%s,%d", dtype->name, expr->len);
 +}
 +
- #define YYLLOC_DEFAULT(Current, Rhs, N)	location_update(&Current, Rhs, N)
- 
- #define symbol_value(loc, str) \
-@@ -1878,20 +1897,12 @@ data_type_atom_expr	:	type_identifier
- data_type_expr		:	data_type_atom_expr
- 			|	data_type_expr	DOT	data_type_atom_expr
- 			{
--				if ($1->etype != EXPR_CONCAT) {
--					$$ = concat_expr_alloc(&@$);
--					compound_expr_add($$, $1);
--				} else {
--					struct location rhs[] = {
--						[1]	= @2,
--						[2]	= @3,
--					};
--					location_update(&$3->location, rhs, 2);
--
--					$$ = $1;
--					$$->location = @$;
--				}
--				compound_expr_add($$, $3);
-+				struct location rhs[] = {
-+					[1]	= @2,
-+					[2]	= @3,
-+				};
+ static void set_print_declaration(const struct set *set,
+ 				  struct print_fmt_options *opts,
+ 				  struct output_ctx *octx)
+@@ -466,12 +476,16 @@ static void set_print_declaration(const struct set *set,
+ 	if (nft_output_handle(octx))
+ 		nft_print(octx, " # handle %" PRIu64, set->handle.handle.id);
+ 	nft_print(octx, "%s", opts->nl);
+-	nft_print(octx, "%s%stype %s",
+-		  opts->tab, opts->tab, set->key->dtype->name);
+-	if (set_is_datamap(set->flags))
+-		nft_print(octx, " : %s", set->data->dtype->name);
+-	else if (set_is_objmap(set->flags))
++	nft_print(octx, "%s%stype ",
++		  opts->tab, opts->tab);
++	set_print_key(set->key, octx);
 +
-+				$$ = handle_concat_expr(&@$, $$, $1, $3, rhs);
- 			}
- 			;
++	if (set_is_datamap(set->flags)) {
++		nft_print(octx, " : ");
++		set_print_key(set->data, octx);
++	} else if (set_is_objmap(set->flags)) {
+ 		nft_print(octx, " : %s", obj_type_name(set->objtype));
++	}
  
-@@ -2992,20 +3003,12 @@ basic_stmt_expr		:	inclusive_or_stmt_expr
- concat_stmt_expr	:	basic_stmt_expr
- 			|	concat_stmt_expr	DOT	primary_stmt_expr
- 			{
--				if ($$->etype != EXPR_CONCAT) {
--					$$ = concat_expr_alloc(&@$);
--					compound_expr_add($$, $1);
--				} else {
--					struct location rhs[] = {
--						[1]	= @2,
--						[2]	= @3,
--					};
--					location_update(&$3->location, rhs, 2);
--
--					$$ = $1;
--					$$->location = @$;
--				}
--				compound_expr_add($$, $3);
-+				struct location rhs[] = {
-+					[1]	= @2,
-+					[2]	= @3,
-+				};
-+
-+				$$ = handle_concat_expr(&@$, $$, $1, $3, rhs);
- 			}
- 			;
- 
-@@ -3525,20 +3528,12 @@ basic_expr		:	inclusive_or_expr
- concat_expr		:	basic_expr
- 			|	concat_expr		DOT		basic_expr
- 			{
--				if ($$->etype != EXPR_CONCAT) {
--					$$ = concat_expr_alloc(&@$);
--					compound_expr_add($$, $1);
--				} else {
--					struct location rhs[] = {
--						[1]	= @2,
--						[2]	= @3,
--					};
--					location_update(&$3->location, rhs, 2);
--
--					$$ = $1;
--					$$->location = @$;
--				}
--				compound_expr_add($$, $3);
-+				struct location rhs[] = {
-+					[1]	= @2,
-+					[2]	= @3,
-+				};
-+
-+				$$ = handle_concat_expr(&@$, $$, $1, $3, rhs);
- 			}
- 			;
- 
-@@ -3946,20 +3941,12 @@ basic_rhs_expr		:	inclusive_or_rhs_expr
- concat_rhs_expr		:	basic_rhs_expr
- 			|	concat_rhs_expr	DOT	basic_rhs_expr
- 			{
--				if ($$->etype != EXPR_CONCAT) {
--					$$ = concat_expr_alloc(&@$);
--					compound_expr_add($$, $1);
--				} else {
--					struct location rhs[] = {
--						[1]	= @2,
--						[2]	= @3,
--					};
--					location_update(&$3->location, rhs, 2);
--
--					$$ = $1;
--					$$->location = @$;
--				}
--				compound_expr_add($$, $3);
-+				struct location rhs[] = {
-+					[1]	= @2,
-+					[2]	= @3,
-+				};
-+
-+				$$ = handle_concat_expr(&@$, $$, $1, $3, rhs);
- 			}
- 			;
+ 	nft_print(octx, "%s", opts->stmt_separator);
  
 -- 
 2.23.0
