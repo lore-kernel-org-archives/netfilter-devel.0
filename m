@@ -2,33 +2,36 @@ Return-Path: <SRS0=a9hH=2D=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2991AC341CE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FEB4C341D3
 	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Dec 2019 20:38:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 68BA7246B1
+	by mail.kernel.org (Postfix) with ESMTP id CEC6D246B1
 	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Dec 2019 20:38:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728128AbfLMQDw (ORCPT
+        id S1728152AbfLMQD4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Dec 2019 11:03:52 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:40330 "EHLO
+        Fri, 13 Dec 2019 11:03:56 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:40332 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727932AbfLMQDv (ORCPT
+        by vger.kernel.org with ESMTP id S1728129AbfLMQD4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Dec 2019 11:03:51 -0500
+        Fri, 13 Dec 2019 11:03:56 -0500
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1ifnPy-0004Cj-0j; Fri, 13 Dec 2019 17:03:50 +0100
+        id 1ifnQ2-0004Cr-67; Fri, 13 Dec 2019 17:03:54 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft v2 00/10] add typeof keyword
-Date:   Fri, 13 Dec 2019 17:03:34 +0100
-Message-Id: <20191213160345.30057-1-fw@strlen.de>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft v2 01/11] parser: add a helper for concat expression handling
+Date:   Fri, 13 Dec 2019 17:03:35 +0100
+Message-Id: <20191213160345.30057-2-fw@strlen.de>
 X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20191213160345.30057-1-fw@strlen.de>
+References: <20191213160345.30057-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -36,56 +39,151 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch series adds the typeof keyword.
+Cull the repeated copy&paste snippets and add/use a helper for this.
 
-The only dependency is a small change to libnftnl to add two new
-UDATA_SET_TYPEOF enum values.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/parser_bison.y | 99 ++++++++++++++++++++--------------------------
+ 1 file changed, 43 insertions(+), 56 deletions(-)
 
-named set can be configured as follows:
-
-set os {
-   typeof osf name
-   elements = { "Linux", "Windows" }
-}
-
-or
-
-nft add set ip filter allowed "{ typeof ip daddr  . tcp dport; }"
-
-... which is the same as the "old" 'type ipv4_addr . inet_service".
-
-The type is stored in the kernel via the udata set infrastructure,
-on listing -- if a udata type is present -- nft will validate that this
-type matches the set key length.
-
-Note that while 'typeof' can be used with concatenations, they
-only work as aliases for known types -- its currently not possible
-to use integer/string types via the 'typeof' keyword.
-
-Doing so requires a bit more work to dissect the correct key
-geometry on netlink dumps, we can also not fallback in this case,
-i.e. if the typeof udata is not there/invalid, we would be
-unable to reconstruct the needed subkey size information.
-
-Florian Westphal (10):
-      parser: add a helper for concat expression handling
-      libnftnl: split nft_ctx_new/free
-      src: store expr, not dtype to track data in sets
-      src: parser: add syntax to provide size of variable-sized data types
-      src: add "typeof" print support
-      mnl: round up the map data size too
-      src: netlink: remove assertion
-      evaluate: print a hint about 'type,width' syntax on 0 keylen
-      doc: mention 'typeof' as alternative to 'type' keyword
-      tests: add typeof test cases
-
-Pablo Neira Ayuso (1):
-      parser: add typeof keyword for declarations
-
- 23 files changed, 582 insertions(+), 154 deletions(-)
- create mode 100644 tests/shell/testcases/maps/dumps/typeof_maps_0.nft
- create mode 100755 tests/shell/testcases/maps/typeof_maps_0
- create mode 100644 tests/shell/testcases/sets/dumps/typeof_sets_0.nft
- create mode 100755 tests/shell/testcases/sets/typeof_sets_0
-
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 707f46716ed3..0fd9b94c5b2f 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -102,6 +102,25 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ 	}
+ }
+ 
++static struct expr *handle_concat_expr(const struct location *loc,
++					 struct expr *expr,
++					 struct expr *expr_l, struct expr *expr_r,
++					 struct location loc_rhs[3])
++{
++	if (expr->etype != EXPR_CONCAT) {
++		expr = concat_expr_alloc(loc);
++		compound_expr_add(expr, expr_l);
++	} else {
++		location_update(&expr_r->location, loc_rhs, 2);
++
++		expr = expr_l;
++		expr->location = *loc;
++	}
++
++	compound_expr_add(expr, expr_r);
++	return expr;
++}
++
+ #define YYLLOC_DEFAULT(Current, Rhs, N)	location_update(&Current, Rhs, N)
+ 
+ #define symbol_value(loc, str) \
+@@ -1878,20 +1897,12 @@ data_type_atom_expr	:	type_identifier
+ data_type_expr		:	data_type_atom_expr
+ 			|	data_type_expr	DOT	data_type_atom_expr
+ 			{
+-				if ($1->etype != EXPR_CONCAT) {
+-					$$ = concat_expr_alloc(&@$);
+-					compound_expr_add($$, $1);
+-				} else {
+-					struct location rhs[] = {
+-						[1]	= @2,
+-						[2]	= @3,
+-					};
+-					location_update(&$3->location, rhs, 2);
+-
+-					$$ = $1;
+-					$$->location = @$;
+-				}
+-				compound_expr_add($$, $3);
++				struct location rhs[] = {
++					[1]	= @2,
++					[2]	= @3,
++				};
++
++				$$ = handle_concat_expr(&@$, $$, $1, $3, rhs);
+ 			}
+ 			;
+ 
+@@ -2992,20 +3003,12 @@ basic_stmt_expr		:	inclusive_or_stmt_expr
+ concat_stmt_expr	:	basic_stmt_expr
+ 			|	concat_stmt_expr	DOT	primary_stmt_expr
+ 			{
+-				if ($$->etype != EXPR_CONCAT) {
+-					$$ = concat_expr_alloc(&@$);
+-					compound_expr_add($$, $1);
+-				} else {
+-					struct location rhs[] = {
+-						[1]	= @2,
+-						[2]	= @3,
+-					};
+-					location_update(&$3->location, rhs, 2);
+-
+-					$$ = $1;
+-					$$->location = @$;
+-				}
+-				compound_expr_add($$, $3);
++				struct location rhs[] = {
++					[1]	= @2,
++					[2]	= @3,
++				};
++
++				$$ = handle_concat_expr(&@$, $$, $1, $3, rhs);
+ 			}
+ 			;
+ 
+@@ -3525,20 +3528,12 @@ basic_expr		:	inclusive_or_expr
+ concat_expr		:	basic_expr
+ 			|	concat_expr		DOT		basic_expr
+ 			{
+-				if ($$->etype != EXPR_CONCAT) {
+-					$$ = concat_expr_alloc(&@$);
+-					compound_expr_add($$, $1);
+-				} else {
+-					struct location rhs[] = {
+-						[1]	= @2,
+-						[2]	= @3,
+-					};
+-					location_update(&$3->location, rhs, 2);
+-
+-					$$ = $1;
+-					$$->location = @$;
+-				}
+-				compound_expr_add($$, $3);
++				struct location rhs[] = {
++					[1]	= @2,
++					[2]	= @3,
++				};
++
++				$$ = handle_concat_expr(&@$, $$, $1, $3, rhs);
+ 			}
+ 			;
+ 
+@@ -3946,20 +3941,12 @@ basic_rhs_expr		:	inclusive_or_rhs_expr
+ concat_rhs_expr		:	basic_rhs_expr
+ 			|	concat_rhs_expr	DOT	basic_rhs_expr
+ 			{
+-				if ($$->etype != EXPR_CONCAT) {
+-					$$ = concat_expr_alloc(&@$);
+-					compound_expr_add($$, $1);
+-				} else {
+-					struct location rhs[] = {
+-						[1]	= @2,
+-						[2]	= @3,
+-					};
+-					location_update(&$3->location, rhs, 2);
+-
+-					$$ = $1;
+-					$$->location = @$;
+-				}
+-				compound_expr_add($$, $3);
++				struct location rhs[] = {
++					[1]	= @2,
++					[2]	= @3,
++				};
++
++				$$ = handle_concat_expr(&@$, $$, $1, $3, rhs);
+ 			}
+ 			;
+ 
+-- 
+2.23.0
 
