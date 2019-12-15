@@ -2,173 +2,84 @@ Return-Path: <SRS0=q6zd=2F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBB5FC47409
-	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Dec 2019 02:49:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 397BFC43603
+	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Dec 2019 06:31:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CD398207FD
-	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Dec 2019 02:49:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 12BCD206CB
+	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Dec 2019 06:31:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727030AbfLOCto (ORCPT
+        id S1726199AbfLOGbF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 14 Dec 2019 21:49:44 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:45048 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726865AbfLOCto (ORCPT
+        Sun, 15 Dec 2019 01:31:05 -0500
+Received: from mail-io1-f72.google.com ([209.85.166.72]:55862 "EHLO
+        mail-io1-f72.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725788AbfLOGbD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 14 Dec 2019 21:49:44 -0500
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1igJyX-0003uy-94; Sun, 15 Dec 2019 03:49:41 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        syzbot+f68108fed972453a0ad4@syzkaller.appspotmail.com,
-        syzkaller-bugs@googlegroups.com, Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: ebtables: compat: reject all padding in matches/watchers
-Date:   Sun, 15 Dec 2019 03:49:25 +0100
-Message-Id: <20191215024925.10872-1-fw@strlen.de>
-X-Mailer: git-send-email 2.23.0
-In-Reply-To: <000000000000cd9e600599b051e5@google.com>
-References: <000000000000cd9e600599b051e5@google.com>
+        Sun, 15 Dec 2019 01:31:03 -0500
+Received: by mail-io1-f72.google.com with SMTP id z21so3232086iob.22
+        for <netfilter-devel@vger.kernel.org>; Sat, 14 Dec 2019 22:31:01 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
+         :from:to;
+        bh=uPjooTBgtNtcDU16+HUh9j8DUTREFvIUsjeh8i5zb8c=;
+        b=c5vsbdxRSYttjI0Hl8o6zkhwGM6j1e57tKv1p1MbZ6hExg8ThOaqMyafJjmig/L/jU
+         YCi6bWRg7Fqjd2gsWkHBTi5aNroKJJoALB9btNSZk7sSJ/BqmHxTbOJVEjnI33ucNQ7j
+         /jZB6+AUPQP7wCrn95PAS8pEz1+jrcxYabn4o5ieb6HcPYf2z+Lq2W9TPMhJyRER0Vv/
+         749w0WkdwEovRtg1BYwHZvrnnYbaZc8dRnufmJOfXdbD+BttCNb7frzcZcSnZx5CxSCN
+         zP9xxPnxeb+vg9r1v0GljgnMif39Nhm88LpAPqIlyDuJPUze/rlqXKsZsJM9qu4lF3Mx
+         N+rw==
+X-Gm-Message-State: APjAAAW8rX3/cZi5fKb36XCJju/vBihqzrbExfrr2M1i8LV2oE3UL2PL
+        LR6xzIZUVu6VwMB8Gqdz7V477E4Ru8dvyVAqCsGHFZTMqZJ5
+X-Google-Smtp-Source: APXvYqww0KZklP/HZPASxOh1ECBAek11I/mQkvDmtxWf0F+hizPdRYifxpJhSeQt7ZuoAXuoj1TH6U4YiqD2qQs428uaZ4+Q3wAV
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a6b:16c5:: with SMTP id 188mr13807757iow.195.1576391461017;
+ Sat, 14 Dec 2019 22:31:01 -0800 (PST)
+Date:   Sat, 14 Dec 2019 22:31:01 -0800
+In-Reply-To: <000000000000cd9e600599b051e5@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000000f9d220599b83d18@google.com>
+Subject: Re: KASAN: vmalloc-out-of-bounds Read in compat_copy_entries
+From:   syzbot <syzbot+f68108fed972453a0ad4@syzkaller.appspotmail.com>
+To:     akpm@linux-foundation.org, aryabinin@virtuozzo.com,
+        bridge@lists.linux-foundation.org, coreteam@netfilter.org,
+        davem@davemloft.net, dja@axtens.net, dvyukov@google.com,
+        fw@strlen.de, kadlec@netfilter.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        nikolay@cumulusnetworks.com, pablo@netfilter.org,
+        roopa@cumulusnetworks.com, syzkaller-bugs@googlegroups.com,
+        torvalds@linux-foundation.org
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot reported following splat:
+syzbot has bisected this bug to:
 
-BUG: KASAN: vmalloc-out-of-bounds in size_entry_mwt net/bridge/netfilter/ebtables.c:2063 [inline]
-BUG: KASAN: vmalloc-out-of-bounds in compat_copy_entries+0x128b/0x1380 net/bridge/netfilter/ebtables.c:2155
-Read of size 4 at addr ffffc900004461f4 by task syz-executor267/7937
+commit 0609ae011deb41c9629b7f5fd626dfa1ac9d16b0
+Author: Daniel Axtens <dja@axtens.net>
+Date:   Sun Dec 1 01:55:00 2019 +0000
 
-CPU: 1 PID: 7937 Comm: syz-executor267 Not tainted 5.5.0-rc1-syzkaller #0
- size_entry_mwt net/bridge/netfilter/ebtables.c:2063 [inline]
- compat_copy_entries+0x128b/0x1380 net/bridge/netfilter/ebtables.c:2155
- compat_do_replace+0x344/0x720 net/bridge/netfilter/ebtables.c:2249
- compat_do_ebt_set_ctl+0x22f/0x27e net/bridge/netfilter/ebtables.c:2333
- [..]
+     x86/kasan: support KASAN_VMALLOC
 
-Because padding isn't considered during computation of ->buf_user_offset,
-"total" is decremented by fewer bytes than it should.
-
-Therefore, the first part of
-
-if (*total < sizeof(*entry) || entry->next_offset < sizeof(*entry))
-
-will pass, -- it should not have.  This causes oob access:
-entry->next_offset is past the vmalloced size.
-
-Reject padding and check that computed user offset (sum of ebt_entry
-structure plus all individual matches/watchers/targets) is same
-value that userspace gave us as the offset of the next entry.
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=166d43dee00000
+start commit:   e31736d9 Merge tag 'nios2-v5.5-rc2' of git://git.kernel.or..
+git tree:       upstream
+final crash:    https://syzkaller.appspot.com/x/report.txt?x=156d43dee00000
+console output: https://syzkaller.appspot.com/x/log.txt?x=116d43dee00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=79f79de2a27d3e3d
+dashboard link: https://syzkaller.appspot.com/bug?extid=f68108fed972453a0ad4
+userspace arch: i386
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=16bc5946e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=17302361e00000
 
 Reported-by: syzbot+f68108fed972453a0ad4@syzkaller.appspotmail.com
-Fixes: 81e675c227ec ("netfilter: ebtables: add CONFIG_COMPAT support")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/bridge/netfilter/ebtables.c | 33 ++++++++++++++++-----------------
- 1 file changed, 16 insertions(+), 17 deletions(-)
+Fixes: 0609ae011deb ("x86/kasan: support KASAN_VMALLOC")
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 4096d8a74a2b..e1256e03a9a8 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -1867,7 +1867,7 @@ static int ebt_buf_count(struct ebt_entries_buf_state *state, unsigned int sz)
- }
- 
- static int ebt_buf_add(struct ebt_entries_buf_state *state,
--		       void *data, unsigned int sz)
-+		       const void *data, unsigned int sz)
- {
- 	if (state->buf_kern_start == NULL)
- 		goto count_only;
-@@ -1901,7 +1901,7 @@ enum compat_mwt {
- 	EBT_COMPAT_TARGET,
- };
- 
--static int compat_mtw_from_user(struct compat_ebt_entry_mwt *mwt,
-+static int compat_mtw_from_user(const struct compat_ebt_entry_mwt *mwt,
- 				enum compat_mwt compat_mwt,
- 				struct ebt_entries_buf_state *state,
- 				const unsigned char *base)
-@@ -1979,22 +1979,23 @@ static int compat_mtw_from_user(struct compat_ebt_entry_mwt *mwt,
- /* return size of all matches, watchers or target, including necessary
-  * alignment and padding.
-  */
--static int ebt_size_mwt(struct compat_ebt_entry_mwt *match32,
-+static int ebt_size_mwt(const struct compat_ebt_entry_mwt *match32,
- 			unsigned int size_left, enum compat_mwt type,
- 			struct ebt_entries_buf_state *state, const void *base)
- {
-+	const char *buf = (const char *)match32;
- 	int growth = 0;
--	char *buf;
- 
- 	if (size_left == 0)
- 		return 0;
- 
--	buf = (char *) match32;
--
--	while (size_left >= sizeof(*match32)) {
-+	do {
- 		struct ebt_entry_match *match_kern;
- 		int ret;
- 
-+		if (size_left < sizeof(*match32))
-+			return -EINVAL;
-+
- 		match_kern = (struct ebt_entry_match *) state->buf_kern_start;
- 		if (match_kern) {
- 			char *tmp;
-@@ -2031,22 +2032,18 @@ static int ebt_size_mwt(struct compat_ebt_entry_mwt *match32,
- 		if (match_kern)
- 			match_kern->match_size = ret;
- 
--		/* rule should have no remaining data after target */
--		if (type == EBT_COMPAT_TARGET && size_left)
--			return -EINVAL;
--
- 		match32 = (struct compat_ebt_entry_mwt *) buf;
--	}
-+	} while (size_left);
- 
- 	return growth;
- }
- 
- /* called for all ebt_entry structures. */
--static int size_entry_mwt(struct ebt_entry *entry, const unsigned char *base,
-+static int size_entry_mwt(const struct ebt_entry *entry, const unsigned char *base,
- 			  unsigned int *total,
- 			  struct ebt_entries_buf_state *state)
- {
--	unsigned int i, j, startoff, new_offset = 0;
-+	unsigned int i, j, startoff, next_expected_off, new_offset = 0;
- 	/* stores match/watchers/targets & offset of next struct ebt_entry: */
- 	unsigned int offsets[4];
- 	unsigned int *offsets_update = NULL;
-@@ -2132,11 +2129,13 @@ static int size_entry_mwt(struct ebt_entry *entry, const unsigned char *base,
- 			return ret;
- 	}
- 
--	startoff = state->buf_user_offset - startoff;
-+	next_expected_off = state->buf_user_offset - startoff;
-+	if (next_expected_off != entry->next_offset)
-+		return -EINVAL;
- 
--	if (WARN_ON(*total < startoff))
-+	if (*total < entry->next_offset)
- 		return -EINVAL;
--	*total -= startoff;
-+	*total -= entry->next_offset;
- 	return 0;
- }
- 
--- 
-2.23.0
-
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
