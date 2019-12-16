@@ -1,80 +1,87 @@
-Return-Path: <SRS0=q6zd=2F=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=8ADT=2G=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16875C43603
-	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Dec 2019 17:47:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A22DC2D0C0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Dec 2019 12:42:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DF0762467A
-	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Dec 2019 17:47:57 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="omVX78D4"
+	by mail.kernel.org (Postfix) with ESMTP id F16D020726
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Dec 2019 12:42:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726267AbfLORr5 (ORCPT
+        id S1727634AbfLPMmb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 15 Dec 2019 12:47:57 -0500
-Received: from mail-il1-f181.google.com ([209.85.166.181]:33309 "EHLO
-        mail-il1-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726148AbfLORr5 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 15 Dec 2019 12:47:57 -0500
-Received: by mail-il1-f181.google.com with SMTP id r81so3606408ilk.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 Dec 2019 09:47:56 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=ae4zkCBSmHgdofdd/A+PTU4781xyZaqC3ZAUxHlTrLc=;
-        b=omVX78D4e29UqwXNpr+6PhaudpWOfhaq6fqwbiPTuqb4+2i4NFyTRCFVgdeWFoRSxs
-         ZLcP74NPQ2ulUbW+WGv9qnepp9HCMJKNJNc51Rf6dNKbSGhH4GqNFuLadnEifpaNBGx/
-         P5WunlPSI0BxtwLLWLPqX5/krRtsV64fJx4D3HT0UTm+1Wi2R4AWAiiruDKefsccF/Sy
-         DqKzQ79bZJ9jSLfuSjPI6IztgDzLiOA6OczkkF0UuMDvHMe9ceMTSPXsYK8C4xOuf5wY
-         UH/uShj3JOsxXmKEsPXcXDw1pjKcFdaOXawfO2yuHdkFXfVAfqGx53Idn433J0AjfFOL
-         oOxQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=ae4zkCBSmHgdofdd/A+PTU4781xyZaqC3ZAUxHlTrLc=;
-        b=i5K548COO1JjjYVS15+E9lnwv0uwWL8woXnn3Z6fp/1X3nrKvQDUUhxlkhANvxwo3c
-         K7AL63mLR1bbEyH21yiZPBLH2gtmDXFgQ+Fde08FybxS2YmZdT90UUqpenwoAyEUc7w8
-         uo099E0DsA65gZKzUoIuFntB81/M0veGuKqpY93GcdlirrVvL10F8+e/IY2+iC2Y0VTW
-         ninQVZiSRKwqBcFci+8ULVKbc2MB8vRpRgg8ara+mvIwrccU7bi27T3zj1cGoWL+HjBI
-         aiPzixDG2FWgjzaqsNiaFIFfRHgZPL+jcfF0XxCkKNRqa3u/uFHNU9spVbXmz8iDBOKG
-         jzhA==
-X-Gm-Message-State: APjAAAXT/SdUoQJhPxbI9fwDuKSnoFt1Dtueo5uJNRRvjxL7gWcWIGXt
-        V9KVK/B+ZhnB+7TWcktacEt+1eE/5QmFYoCDyU+kNBpP
-X-Google-Smtp-Source: APXvYqxuL9S6lks6iyw8mx/ibBeczJHLPB8+lKH7dvqw8IoWwAYcBds78HYQrA0giIFv4XsC+PHjPaGYXtTE6xnd7hM=
-X-Received: by 2002:a92:1648:: with SMTP id r69mr9494493ill.43.1576432076120;
- Sun, 15 Dec 2019 09:47:56 -0800 (PST)
-MIME-Version: 1.0
-From:   Jaswanth Bommidi <jassu.bommidi@gmail.com>
-Date:   Sun, 15 Dec 2019 23:18:35 +0530
-Message-ID: <CAKtsLfdDsuyGsA4TqF5Eokudq-grxxPCWcgrL0cbrg9VWf+P0w@mail.gmail.com>
-Subject: Introduction to Community
+        Mon, 16 Dec 2019 07:42:31 -0500
+Received: from correo.us.es ([193.147.175.20]:32846 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727569AbfLPMmb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 16 Dec 2019 07:42:31 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id A6839E2C6C
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Dec 2019 13:42:27 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 97AC4DA715
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Dec 2019 13:42:27 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 8D806DA714; Mon, 16 Dec 2019 13:42:27 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5CB8DDA70C;
+        Mon, 16 Dec 2019 13:42:25 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 16 Dec 2019 13:42:25 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 2672042EF42C;
+        Mon, 16 Dec 2019 13:42:25 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Cc:     fw@strlen.de
+Subject: [PATCH nft 0/3] typeof incremental enhancements
+Date:   Mon, 16 Dec 2019 13:42:19 +0100
+Message-Id: <20191216124222.356618-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Everyone,
+Hi Florian,
 
-I am Jaswanth Bommidi from Kerala, India. I am currently pursuing my
-B.Tech Degree in Computer Science from Amrita University. I am into
-the field of Network Security & Forensics for the past one and a half
-years. I am also a member of Team bi0s(bi0s.in), an Academic CTF team
-from India. I found the nftables project really interesting, and I am
-looking forward to join the community and contribute to the project.
+This patchset removes the need to self invoke the parser and the
+evaluation to fetch the datatype. Instead, the expression type and
+the expression description are stored into the userdata area.
 
---
-Thanks & Regards,
-Jaswanth B
-CS-Undergrad, Amritapuri
-Team bi0s
-LinkedIn (https://www.linkedin.com/in/jaswanth-bommidi-28b835178/) |
-Twitter (https://twitter.com/_f41c0n)
+This patch only supports for the payload expression, but it should be
+relatively easy to extend it to support for other existing expressions
+types.
+
+This patch could be squashed into 06/11 src: add "typeof" print support
+of your patch series, which is actually not just adding support for
+printing but also for building the userdata.
+
+Thanks.
+
+Pablo Neira Ayuso (3):
+  proto: add proto_desc_id enumeration
+  expr: add expr_ops_by_type()
+  expr: add parse and build userdata interface
+
+ include/expression.h |   5 +++
+ include/proto.h      |  27 +++++++++++++
+ src/expression.c     |  12 ++++++
+ src/mnl.c            |  28 +++++---------
+ src/netlink.c        | 105 +++++++++++++++++----------------------------------
+ src/payload.c        |  80 +++++++++++++++++++++++++++++++++++++++
+ src/proto.c          |  46 ++++++++++++++++++++++
+ 7 files changed, 214 insertions(+), 89 deletions(-)
+
+-- 
+2.11.0
+
