@@ -2,159 +2,127 @@ Return-Path: <SRS0=i/iJ=2H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-13.8 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E315EC43603
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 10:42:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85808C43603
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 11:27:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BD0D32072D
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 10:42:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 62D02207FF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 11:27:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727202AbfLQKm5 (ORCPT
+        id S1726655AbfLQL1U (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Dec 2019 05:42:57 -0500
-Received: from correo.us.es ([193.147.175.20]:45378 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725940AbfLQKm5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Dec 2019 05:42:57 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 07DF7100793
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Dec 2019 11:42:54 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E9F3EDA70B
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Dec 2019 11:42:53 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DEEB3DA707; Tue, 17 Dec 2019 11:42:53 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B325BDA702;
-        Tue, 17 Dec 2019 11:42:51 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 17 Dec 2019 11:42:51 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [31.4.199.94])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 793594265A5A;
-        Tue, 17 Dec 2019 11:42:51 +0100 (CET)
-Date:   Tue, 17 Dec 2019 11:42:51 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
-        fw@strlen.de
-Subject: Re: [PATCH nft,RFC] main: remove need to escape quotes
-Message-ID: <20191217103509.nj4wsu7y2wyjpdyp@salvia>
-References: <20191216214157.551511-1-pablo@netfilter.org>
- <20191217004257.GI14465@orbyte.nwl.cc>
+        Tue, 17 Dec 2019 06:27:20 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:57314 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726275AbfLQL1T (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Dec 2019 06:27:19 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1ihB0Y-0006jr-1M; Tue, 17 Dec 2019 12:27:18 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Subject: [PATCH nft v3 00/10] add typeof keyword
+Date:   Tue, 17 Dec 2019 12:27:03 +0100
+Message-Id: <20191217112713.6017-1-fw@strlen.de>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191217004257.GI14465@orbyte.nwl.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Dec 17, 2019 at 01:42:57AM +0100, Phil Sutter wrote:
-> Hi Pablo,
-> 
-> On Mon, Dec 16, 2019 at 10:41:57PM +0100, Pablo Neira Ayuso wrote:
-> > If argv[i] contains spaces, then restore the quotes on this string.
-> > 
-> > There is one exception though: in case that argc == 2, then assume the
-> > whole input is coming as a quoted string, eg. nft "add rule x ...;add ..."
-> > 
-> > This patch is adjusting a one test that uses quotes to skip escaping one
-> > semicolon from bash. Two more tests do not need them.
-> 
-> I appreciate your efforts at making my BUGS note obsolete. :)
-> In this case though, I wonder if this really fixes something:
+This patch series adds the typeof keyword.
 
-nft add rule x y log prefix "test: "
+This depends on Pablos extensions to libnftnls udata parsing facilities.
 
-instead of
+named set can be configured as follows:
 
-nft add rule x y log prefix \"test: \"
+set os {
+   typeof osf name
+   elements = { "Linux", "Windows" }
+}
 
-> I use quotes in only two cases:
-> 
-> A) When forced by the parser, e.g. with interface names.
+The type is stored in the kernel via the udata infrastructure.
+On listing -- if a udata type is present -- nft will validate that this
+type matches the set key length and, if so, will print back the 'typeof'
+information.
 
-Interface names have no spaces, so this patch fixes nothing there indeed.
+Note that while 'typeof' can be used with concatenations, they
+only work as aliases for known types -- its currently not possible
+to use integer/string types via the 'typeof' keyword (its rejected
+at evaluation stage due to 0-length sub expression types).
 
-> B) To escape the curly braces (and any semi-colons inside) in chain or
->    set definitions.
-> 
-> Unless I miss something, case (A) will still need escaped quotes since
-> interface names usually don't contain whitespace. In case (B), your
-> patch would typically bite me as I merely quote the braces, like so:
-> 
-> | # nft add chain inet t c '{ type filter hook input priority filter; policy drop; }'
+Doing so requires a bit more work to dissect the correct key
+geometry on netlink dumps.
 
-You do this trick not to escape three times, ie.
+In case typeof udata is not there/invalid, the normal 'type' syntax
+is used.
 
-| #nft add chain inet t c \{ type filter hook input priority filter; policy drop\; \}
+This patch set isn't complete -- the test cases will not work
+yet because 'meta' and 'osf' lack the udata parse/buil callbacks.
 
-Your trick works fine right now because the argv list is not honored
-by the main function, your quotes to avoid escaping the values will
-result in:
+This is caught at the parsing stage.
 
-argv[0] = nft
-argv[1] = add
-argv[2] = chain
-argv[3] = inet
-argv[4] = t
-argv[5] = c
-argv[6] = { type filter hook input priority filter; policy drop; }
+The following changes since commit ddbe652bf0f4ed300bae9497250130d68e4cbf5b:
 
-This is not a problem because main translates this into a plain buffer
-to feed the bison parser for the command line mode.
+  py: load the SONAME-versioned shared object (2019-12-10 19:07:16 +0100)
 
-With my patch, this will still work:
+are available in the Git repository at:
 
-| # nft 'add chain inet t c { type filter hook input priority filter; policy drop; }'
+  git://git.breakpoint.cc/fw/nftables.git typeof_rework_09
 
-So you can still use quotes to avoid escaping, but quotes are
-restricted to the whole command OR to use them to really quote a
-string.
+for you to fetch changes up to 02485d775dea55a067c6dbea0826ab3fc9ff7398:
 
-So I'm debating if it's worth providing a simple and consistent model
-we can document on how to use quotes in nft from the command line, in
-this patch:
+  tests: add typeof test cases (2019-12-17 12:19:51 +0100)
 
-1) You can quote the whole command to avoid escape characters that
-   have special semantics in your shell, eg. { and ; in zsh. Or ; in bash.
+----------------------------------------------------------------
+Florian Westphal (7):
+      parser: add a helper for concat expression handling
+      src: store expr, not dtype to track data in sets
+      src: add "typeof" build/parse/print support
+      mnl: round up the map data size too
+      evaluate: print a hint about 'typeof' syntax on 0 keylen
+      doc: mention 'typeof' as alternative to 'type' keyword
+      tests: add typeof test cases
 
-2) You do not need to escape quotes anymore as in the example above
-   for log prefix.
+Pablo Neira Ayuso (3):
+      proto: add proto_desc_id enumeration
+      expr: add expr_ops_by_type()
+      parser: add typeof keyword for declarations
 
-Otherwise, we are allowing for quotes basically anywhere.
+ doc/nft.txt                                        |  12 +-
+ include/datatype.h                                 |   1 -
+ include/expression.h                               |   5 +
+ include/netlink.h                                  |   1 -
+ include/proto.h                                    |  27 ++++
+ include/rule.h                                     |   7 +-
+ src/datatype.c                                     |   5 -
+ src/evaluate.c                                     |  81 +++++++----
+ src/expression.c                                   |  14 +-
+ src/json.c                                         |   4 +-
+ src/mnl.c                                          |  30 ++++-
+ src/monitor.c                                      |   2 +-
+ src/netlink.c                                      | 149 +++++++++++++++++----
+ src/parser_bison.y                                 | 148 +++++++++++---------
+ src/parser_json.c                                  |   8 +-
+ src/payload.c                                      |  75 +++++++++++
+ src/proto.c                                        |  46 +++++++
+ src/rule.c                                         |  48 +++++--
+ src/scanner.l                                      |   1 +
+ src/segtree.c                                      |   8 +-
+ tests/shell/testcases/maps/dumps/typeof_maps_0.nft |  16 +++
+ tests/shell/testcases/maps/typeof_maps_0           |  27 ++++
+ tests/shell/testcases/sets/dumps/typeof_sets_0.nft |  19 +++
+ tests/shell/testcases/sets/typeof_sets_0           |  29 ++++
+ 24 files changed, 621 insertions(+), 142 deletions(-)
+ create mode 100644 tests/shell/testcases/maps/dumps/typeof_maps_0.nft
+ create mode 100755 tests/shell/testcases/maps/typeof_maps_0
+ create mode 100644 tests/shell/testcases/sets/dumps/typeof_sets_0.nft
+ create mode 100755 tests/shell/testcases/sets/typeof_sets_0
 
-If in the future, we decide to stop using bison for whatever reason
-and we rely on argc and argv, this might make things harder for a new
-parser. Not telling I have an incentive to replace the parser right
-now though.
-
-> Of course that's a matter of muscle memory, but IIUC, your fix won't
-> work if one wants to pass flags in addition to a quoted command. Or does
-> getopt mangle argc?
-
-argc is left untouch, it would need to pass it as a pointer to
-getopt_long() to update it. Not related, but getopt mangles argv,
-because it reorders options, it is placing them right before the
-non-options, so optind points to the beginning of what main passes to
-the bison parser. Well actually mangling will not happen anymore if
-the patch to enforce options before command is applied (looks like
-feedback on the mailing list points to that direction).
-
-Probably not worth the effort and we should start promoting people to
-use the interactive interface for `nft -i'. If autocompletion is
-supported there, then there would be a real incentive for users to
-pick `nft -i'.
-
-Thanks.
