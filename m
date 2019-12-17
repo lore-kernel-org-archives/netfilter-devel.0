@@ -6,163 +6,75 @@ X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B152C43603
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 12:04:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D19DC43603
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 12:29:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7840F207FF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 12:04:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F44320716
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 12:29:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726690AbfLQMEr (ORCPT
+        id S1727807AbfLQM33 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Dec 2019 07:04:47 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:60700 "EHLO orbyte.nwl.cc"
+        Tue, 17 Dec 2019 07:29:29 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:60748 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726383AbfLQMEr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Dec 2019 07:04:47 -0500
+        id S1727427AbfLQM32 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Dec 2019 07:29:28 -0500
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
         (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1ihBan-0001US-KF; Tue, 17 Dec 2019 13:04:45 +0100
-Date:   Tue, 17 Dec 2019 13:04:45 +0100
+        id 1ihByf-0001mE-QF; Tue, 17 Dec 2019 13:29:25 +0100
+Date:   Tue, 17 Dec 2019 13:29:25 +0100
 From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de
-Subject: Re: [PATCH nft,RFC] main: remove need to escape quotes
-Message-ID: <20191217120445.GA8553@orbyte.nwl.cc>
+To:     "Serguei Bezverkhi (sbezverk)" <sbezverk@cisco.com>
+Cc:     Arturo Borrero Gonzalez <arturo@netfilter.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: Re: Numen with reference to vmap
+Message-ID: <20191217122925.GD8553@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, fw@strlen.de
-References: <20191216214157.551511-1-pablo@netfilter.org>
- <20191217004257.GI14465@orbyte.nwl.cc>
- <20191217103509.nj4wsu7y2wyjpdyp@salvia>
+        "Serguei Bezverkhi (sbezverk)" <sbezverk@cisco.com>,
+        Arturo Borrero Gonzalez <arturo@netfilter.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+References: <EC8889A1-27E2-4DC9-B752-514689982085@cisco.com>
+ <20191204101819.GN8016@orbyte.nwl.cc>
+ <AFC93A41-C4DD-4336-9A62-6B9C6817D198@cisco.com>
+ <20191204151738.GR14469@orbyte.nwl.cc>
+ <5337E60B-E81D-46ED-912F-196E23C76701@cisco.com>
+ <20191204155619.GU14469@orbyte.nwl.cc>
+ <624cc1ac-126e-8ad3-3faa-f7869f7d2d5b@netfilter.org>
+ <20191204223215.GX14469@orbyte.nwl.cc>
+ <98A8233C-1A83-44A1-A122-6F80212D618F@cisco.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20191217103509.nj4wsu7y2wyjpdyp@salvia>
+In-Reply-To: <98A8233C-1A83-44A1-A122-6F80212D618F@cisco.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Hi Serguei,
 
-On Tue, Dec 17, 2019 at 11:42:51AM +0100, Pablo Neira Ayuso wrote:
-> On Tue, Dec 17, 2019 at 01:42:57AM +0100, Phil Sutter wrote:
-> > Hi Pablo,
-> > 
-> > On Mon, Dec 16, 2019 at 10:41:57PM +0100, Pablo Neira Ayuso wrote:
-> > > If argv[i] contains spaces, then restore the quotes on this string.
-> > > 
-> > > There is one exception though: in case that argc == 2, then assume the
-> > > whole input is coming as a quoted string, eg. nft "add rule x ...;add ..."
-> > > 
-> > > This patch is adjusting a one test that uses quotes to skip escaping one
-> > > semicolon from bash. Two more tests do not need them.
-> > 
-> > I appreciate your efforts at making my BUGS note obsolete. :)
-> > In this case though, I wonder if this really fixes something:
-> 
-> nft add rule x y log prefix "test: "
-> 
-> instead of
-> 
-> nft add rule x y log prefix \"test: \"
-> 
-> > I use quotes in only two cases:
-> > 
-> > A) When forced by the parser, e.g. with interface names.
-> 
-> Interface names have no spaces, so this patch fixes nothing there indeed.
+On Tue, Dec 17, 2019 at 12:51:07AM +0000, Serguei Bezverkhi (sbezverk) wrote:
+> In this google doc, see link: https://docs.google.com/document/d/128gllbr_o-40pD2i0D14zMNdtCwRYR7YM49T4L2Eyac/edit?usp=sharing
 
-Ah, sorry - I mixed that up. There are spots though where quotes are
-mandatory, namely in include statement and for ct helper types. The
-latter is relevant on cmdline and quotes not being restored there is at
-least inconsistent.
+I avoid Google-Doc as far as possible. ;)
 
-Also, we had a longer discussion at NFWS about enforcing quotes for
-strings on input (or at least quoting them all on output) to fix for
-cases where a recognized keyword was chosen for a name by accident.
+> There is a question about possible optimizations. I was wondering if you could comment/reply. Also I got one more question about updates of a set. Let's say there is a set with 10k entries, how costly would be the update of such set.
 
-> > B) To escape the curly braces (and any semi-colons inside) in chain or
-> >    set definitions.
-> > 
-> > Unless I miss something, case (A) will still need escaped quotes since
-> > interface names usually don't contain whitespace. In case (B), your
-> > patch would typically bite me as I merely quote the braces, like so:
-> > 
-> > | # nft add chain inet t c '{ type filter hook input priority filter; policy drop; }'
-> 
-> You do this trick not to escape three times, ie.
-> 
-> | #nft add chain inet t c \{ type filter hook input priority filter; policy drop\; \}
-> 
-> Your trick works fine right now because the argv list is not honored
-> by the main function, your quotes to avoid escaping the values will
-> result in:
-> 
-> argv[0] = nft
-> argv[1] = add
-> argv[2] = chain
-> argv[3] = inet
-> argv[4] = t
-> argv[5] = c
-> argv[6] = { type filter hook input priority filter; policy drop; }
-> 
-> This is not a problem because main translates this into a plain buffer
-> to feed the bison parser for the command line mode.
-> 
-> With my patch, this will still work:
-> 
-> | # nft 'add chain inet t c { type filter hook input priority filter; policy drop; }'
-> 
-> So you can still use quotes to avoid escaping, but quotes are
-> restricted to the whole command OR to use them to really quote a
-> string.
-> 
-> So I'm debating if it's worth providing a simple and consistent model
-> we can document on how to use quotes in nft from the command line, in
-> this patch:
-> 
-> 1) You can quote the whole command to avoid escape characters that
->    have special semantics in your shell, eg. { and ; in zsh. Or ; in bash.
-> 
-> 2) You do not need to escape quotes anymore as in the example above
->    for log prefix.
-> 
-> Otherwise, we are allowing for quotes basically anywhere.
-> 
-> If in the future, we decide to stop using bison for whatever reason
-> and we rely on argc and argv, this might make things harder for a new
-> parser. Not telling I have an incentive to replace the parser right
-> now though.
-> 
-> > Of course that's a matter of muscle memory, but IIUC, your fix won't
-> > work if one wants to pass flags in addition to a quoted command. Or does
-> > getopt mangle argc?
-> 
-> argc is left untouch, it would need to pass it as a pointer to
-> getopt_long() to update it. Not related, but getopt mangles argv,
-> because it reorders options, it is placing them right before the
-> non-options, so optind points to the beginning of what main passes to
-> the bison parser. Well actually mangling will not happen anymore if
-> the patch to enforce options before command is applied (looks like
-> feedback on the mailing list points to that direction).
+Regarding Rob's question: With iptables, for N balanced servers there
+are N rules. With equal probabilities a package traverses N/2 rules on
+average (unless I'm mistaken). With nftables, there's a single rule
+which triggers the map lookup. In kernel, that's a lookup in rhashtable
+and therefore performs quite well.
 
-So this means that neither:
+Another aspect to Rob's question is jitter: With iptables solution, a
+packet may traverse all N rules before it is dispatched. The nftables
+map lookup will happen in almost constant time.
 
-| # nft -a 'add rule t c accept'
-
-nor:
-
-| # nft '-a add rule t c accept'
-
-will work, right?
-
-> Probably not worth the effort and we should start promoting people to
-> use the interactive interface for `nft -i'. If autocompletion is
-> supported there, then there would be a real incentive for users to
-> pick `nft -i'.
-
-ACK.
+I can't give you performance numbers, but it should be easy to measure.
+Given that you won't need set content for insert or delete operations
+while iptables fetches the whole table for each rule insert or delete
+command, I guess you can imagine how the numbers will look like. But
+feel free to verify, it's fun! :)
 
 Cheers, Phil
