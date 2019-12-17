@@ -2,69 +2,76 @@ Return-Path: <SRS0=i/iJ=2H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10075C2D0CD
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 21:59:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84C2FC43603
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 23:59:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D928A20733
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 21:59:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 595EE20729
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 23:59:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726510AbfLQV7G (ORCPT
+        id S1726141AbfLQX7d (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Dec 2019 16:59:06 -0500
-Received: from correo.us.es ([193.147.175.20]:42022 "EHLO mail.us.es"
+        Tue, 17 Dec 2019 18:59:33 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:33640 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726143AbfLQV7F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Dec 2019 16:59:05 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 225D21176CF
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Dec 2019 22:59:03 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 15EABDA70B
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Dec 2019 22:59:03 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 0AA3CDA70A; Tue, 17 Dec 2019 22:59:03 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0C35CDA707;
-        Tue, 17 Dec 2019 22:59:01 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 17 Dec 2019 22:59:01 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id E1D474265A5A;
-        Tue, 17 Dec 2019 22:59:00 +0100 (CET)
-Date:   Tue, 17 Dec 2019 22:59:01 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Lukas Wunner <lukas@wunner.de>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Daniel Borkmann <daniel@iogearbox.net>
-Subject: Re: [PATCH nf-next] netfilter: Document ingress hook
-Message-ID: <20191217215901.aecmpxg3cb2xlc6z@salvia>
-References: <348a3eb1c4348391e1836d858f24bd118934703f.1574247360.git.lukas@wunner.de>
+        id S1725940AbfLQX7d (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Dec 2019 18:59:33 -0500
+Received: from localhost ([::1]:46728 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1ihMkU-0002lL-Mh; Wed, 18 Dec 2019 00:59:30 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org,
+        =?UTF-8?q?M=C3=A1t=C3=A9=20Eckl?= <ecklm94@gmail.com>
+Subject: [nf PATCH] netfilter: nft_tproxy: Fix port selector on Big Endian
+Date:   Wed, 18 Dec 2019 00:59:29 +0100
+Message-Id: <20191217235929.32555-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <348a3eb1c4348391e1836d858f24bd118934703f.1574247360.git.lukas@wunner.de>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Nov 20, 2019 at 12:33:59PM +0100, Lukas Wunner wrote:
-> Amend kerneldoc of struct net_device to fix a "make htmldocs" warning:
-> 
-> include/linux/netdevice.h:2045: warning: Function parameter or member 'nf_hooks_ingress' not described in 'net_device'
+On Big Endian architectures, u16 port value was extracted from the wrong
+parts of u32 sreg_port, just like commit 10596608c4d62 ("netfilter:
+nf_tables: fix mismatch in big-endian system") describes.
 
-Also applied, thanks.
+Fixes: 4ed8eb6570a49 ("netfilter: nf_tables: Add native tproxy support")
+Cc: Máté Eckl <ecklm94@gmail.com>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ net/netfilter/nft_tproxy.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nft_tproxy.c b/net/netfilter/nft_tproxy.c
+index f92a82c738808..95980154ef02c 100644
+--- a/net/netfilter/nft_tproxy.c
++++ b/net/netfilter/nft_tproxy.c
+@@ -50,7 +50,7 @@ static void nft_tproxy_eval_v4(const struct nft_expr *expr,
+ 	taddr = nf_tproxy_laddr4(skb, taddr, iph->daddr);
+ 
+ 	if (priv->sreg_port)
+-		tport = regs->data[priv->sreg_port];
++		tport = nft_reg_load16(&regs->data[priv->sreg_port]);
+ 	if (!tport)
+ 		tport = hp->dest;
+ 
+@@ -117,7 +117,7 @@ static void nft_tproxy_eval_v6(const struct nft_expr *expr,
+ 	taddr = *nf_tproxy_laddr6(skb, &taddr, &iph->daddr);
+ 
+ 	if (priv->sreg_port)
+-		tport = regs->data[priv->sreg_port];
++		tport = nft_reg_load16(&regs->data[priv->sreg_port]);
+ 	if (!tport)
+ 		tport = hp->dest;
+ 
+-- 
+2.24.1
+
