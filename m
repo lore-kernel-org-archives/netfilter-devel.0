@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DB76C2D0BF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 17:17:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6753EC43603
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 17:17:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6E19921582
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 17:17:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 473BE21582
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 17:17:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727101AbfLQRRL (ORCPT
+        id S1727191AbfLQRRM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Dec 2019 12:17:11 -0500
-Received: from correo.us.es ([193.147.175.20]:37926 "EHLO mail.us.es"
+        Tue, 17 Dec 2019 12:17:12 -0500
+Received: from correo.us.es ([193.147.175.20]:37936 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726948AbfLQRRL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1726856AbfLQRRL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 17 Dec 2019 12:17:11 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5331C1C4441
+        by mail.us.es (Postfix) with ESMTP id D4D561C4459
         for <netfilter-devel@vger.kernel.org>; Tue, 17 Dec 2019 18:17:08 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 442D1DA713
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C6C7DDA712
         for <netfilter-devel@vger.kernel.org>; Tue, 17 Dec 2019 18:17:08 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 39A4DDA712; Tue, 17 Dec 2019 18:17:08 +0100 (CET)
+        id BC815DA711; Tue, 17 Dec 2019 18:17:08 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 32835DA70A;
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BE661DA710;
         Tue, 17 Dec 2019 18:17:06 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
@@ -36,15 +36,15 @@ Received: from 192.168.1.97 (192.168.1.97)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 180B042EF42A;
+        by entrada.int (Postfix) with ESMTPA id A3D3E4265A5A;
         Tue, 17 Dec 2019 18:17:06 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     fw@strlen.de
-Subject: [PATCH nft 02/11] exthdr: add exthdr_desc_id enum and use it
-Date:   Tue, 17 Dec 2019 18:16:53 +0100
-Message-Id: <20191217171702.31493-3-pablo@netfilter.org>
+Subject: [PATCH nft 04/11] socket: add parse and build userdata interface
+Date:   Tue, 17 Dec 2019 18:16:55 +0100
+Message-Id: <20191217171702.31493-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191217171702.31493-1-pablo@netfilter.org>
 References: <20191217171702.31493-1-pablo@netfilter.org>
@@ -54,142 +54,95 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This allows to identify the exthdr protocol from the userdata area.
+Add support for meta userdata area.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/exthdr.h | 15 +++++++++++++++
- src/exthdr.c     | 28 ++++++++++++++++++++++++++++
- 2 files changed, 43 insertions(+)
+ src/expression.c |  1 +
+ src/socket.c     | 51 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 52 insertions(+)
 
-diff --git a/include/exthdr.h b/include/exthdr.h
-index 3959a65c7713..c9a3c211b8c4 100644
---- a/include/exthdr.h
-+++ b/include/exthdr.h
-@@ -5,6 +5,20 @@
- #include <tcpopt.h>
- #include <ipopt.h>
+diff --git a/src/expression.c b/src/expression.c
+index 847c88ee82c5..191bc2be104b 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -1229,6 +1229,7 @@ const struct expr_ops *expr_ops_by_type(enum expr_types etype)
+ 	case EXPR_PAYLOAD: return &payload_expr_ops;
+ 	case EXPR_EXTHDR: return &exthdr_expr_ops;
+ 	case EXPR_META: return &meta_expr_ops;
++	case EXPR_SOCKET: return &socket_expr_ops;
+ 	default:
+ 		break;
+ 	}
+diff --git a/src/socket.c b/src/socket.c
+index e10b32267762..d78a163a21fa 100644
+--- a/src/socket.c
++++ b/src/socket.c
+@@ -43,6 +43,55 @@ static void socket_expr_clone(struct expr *new, const struct expr *expr)
+ 	new->socket.key = expr->socket.key;
+ }
  
-+enum exthdr_desc_id {
-+	EXTHDR_DESC_UNKNOWN	= 0,
-+	EXTHDR_DESC_HBH,
-+	EXTHDR_DESC_RT,
-+	EXTHDR_DESC_RT0,
-+	EXTHDR_DESC_RT2,
-+	EXTHDR_DESC_SRH,
-+	EXTHDR_DESC_FRAG,
-+	EXTHDR_DESC_DST,
-+	EXTHDR_DESC_MH,
-+	__EXTHDR_DESC_MAX
-+};
-+#define EXTHDR_DESC_MAX	(__EXTHDR_DESC_MAX - 1)
++#define NFTNL_UDATA_SOCKET_KEY 0
++#define NFTNL_UDATA_SOCKET_MAX 1
 +
- /**
-  * struct exthdr_desc - extension header description
-  *
-@@ -14,6 +28,7 @@
-  */
- struct exthdr_desc {
- 	const char			*name;
-+	enum exthdr_desc_id		id;
- 	uint8_t				type;
- 	int				proto_key;
- 	struct proto_hdr_template	templates[10];
-diff --git a/src/exthdr.c b/src/exthdr.c
-index e1ec6f3dd52b..925b52329003 100644
---- a/src/exthdr.c
-+++ b/src/exthdr.c
-@@ -23,6 +23,26 @@
- #include <expression.h>
- #include <statement.h>
- 
-+static const struct exthdr_desc *exthdr_definitions[PROTO_DESC_MAX + 1] = {
-+	[EXTHDR_DESC_HBH]	= &exthdr_hbh,
-+	[EXTHDR_DESC_RT]	= &exthdr_rt,
-+	[EXTHDR_DESC_RT0]	= &exthdr_rt0,
-+	[EXTHDR_DESC_RT2]	= &exthdr_rt2,
-+	[EXTHDR_DESC_SRH]	= &exthdr_rt4,
-+	[EXTHDR_DESC_FRAG]	= &exthdr_frag,
-+	[EXTHDR_DESC_DST]	= &exthdr_dst,
-+	[EXTHDR_DESC_MH]	= &exthdr_mh,
-+};
-+
-+static const struct exthdr_desc *exthdr_find_desc(enum exthdr_desc_id desc_id)
++static int socket_expr_build_udata(struct nftnl_udata_buf *udbuf,
++				 const struct expr *expr)
 +{
-+	if (desc_id >= EXTHDR_DESC_UNKNOWN &&
-+	    desc_id <= EXTHDR_DESC_MAX)
-+		return exthdr_definitions[desc_id];
++	nftnl_udata_put_u32(udbuf, NFTNL_UDATA_SOCKET_KEY, expr->socket.key);
 +
-+	return NULL;
++	return 0;
 +}
 +
- static void exthdr_expr_print(const struct expr *expr, struct output_ctx *octx)
- {
- 	if (expr->exthdr.op == NFT_EXTHDR_OP_TCPOPT) {
-@@ -281,6 +301,7 @@ bool exthdr_find_template(struct expr *expr, const struct expr *mask, unsigned i
++static int socket_parse_udata(const struct nftnl_udata *attr, void *data)
++{
++	const struct nftnl_udata **ud = data;
++	uint8_t type = nftnl_udata_type(attr);
++	uint8_t len = nftnl_udata_len(attr);
++
++	switch (type) {
++	case NFTNL_UDATA_SOCKET_KEY:
++		if (len != sizeof(uint32_t))
++			return -1;
++		break;
++	default:
++		return 0;
++	}
++
++	ud[type] = attr;
++	return 0;
++}
++
++static struct expr *socket_expr_parse_udata(const struct nftnl_udata *attr)
++{
++	const struct nftnl_udata *ud[NFTNL_UDATA_SOCKET_MAX + 1] = {};
++	uint32_t key;
++	int err;
++
++	err = nftnl_udata_parse(nftnl_udata_get(attr), nftnl_udata_len(attr),
++				socket_parse_udata, ud);
++	if (err < 0)
++		return NULL;
++
++	if (!ud[NFTNL_UDATA_SOCKET_KEY])
++		return NULL;
++
++	key = nftnl_udata_get_u32(ud[NFTNL_UDATA_SOCKET_KEY]);
++
++	return socket_expr_alloc(&internal_location, key);
++}
++
+ const struct expr_ops socket_expr_ops = {
+ 	.type		= EXPR_SOCKET,
+ 	.name		= "socket",
+@@ -50,6 +99,8 @@ const struct expr_ops socket_expr_ops = {
+ 	.json		= socket_expr_json,
+ 	.cmp		= socket_expr_cmp,
+ 	.clone		= socket_expr_clone,
++	.build_udata	= socket_expr_build_udata,
++	.parse_udata	= socket_expr_parse_udata,
+ };
  
- const struct exthdr_desc exthdr_hbh = {
- 	.name		= "hbh",
-+	.id		= EXTHDR_DESC_HBH,
- 	.type		= IPPROTO_HOPOPTS,
- 	.templates	= {
- 		[HBHHDR_NEXTHDR]	= HBH_FIELD("nexthdr", ip6h_nxt, &inet_protocol_type),
-@@ -294,6 +315,7 @@ const struct exthdr_desc exthdr_hbh = {
- 
- const struct exthdr_desc exthdr_rt2 = {
- 	.name           = "rt2",
-+	.id		= EXTHDR_DESC_RT2,
- 	.type           = IPPROTO_ROUTING,
- 	.proto_key	= 2,
- 	.templates	= {
-@@ -307,6 +329,7 @@ const struct exthdr_desc exthdr_rt2 = {
- 
- const struct exthdr_desc exthdr_rt0 = {
- 	.name           = "rt0",
-+	.id		= EXTHDR_DESC_RT0,
- 	.type           = IPPROTO_ROUTING,
- 	.proto_key      = 0,
- 	.templates	= {
-@@ -322,6 +345,7 @@ const struct exthdr_desc exthdr_rt0 = {
- 
- const struct exthdr_desc exthdr_rt4 = {
- 	.name		= "srh",
-+	.id		= EXTHDR_DESC_SRH,
- 	.type		= IPPROTO_ROUTING,
- 	.proto_key	= 4,
- 	.templates      = {
-@@ -340,6 +364,7 @@ const struct exthdr_desc exthdr_rt4 = {
- 
- const struct exthdr_desc exthdr_rt = {
- 	.name		= "rt",
-+	.id		= EXTHDR_DESC_RT,
- 	.type		= IPPROTO_ROUTING,
- 	.proto_key      = -1,
- #if 0
-@@ -366,6 +391,7 @@ const struct exthdr_desc exthdr_rt = {
- 
- const struct exthdr_desc exthdr_frag = {
- 	.name		= "frag",
-+	.id		= EXTHDR_DESC_FRAG,
- 	.type		= IPPROTO_FRAGMENT,
- 	.templates	= {
- 		[FRAGHDR_NEXTHDR]	= FRAG_FIELD("nexthdr", ip6f_nxt, &inet_protocol_type),
-@@ -392,6 +418,7 @@ const struct exthdr_desc exthdr_frag = {
- 
- const struct exthdr_desc exthdr_dst = {
- 	.name		= "dst",
-+	.id		= EXTHDR_DESC_DST,
- 	.type		= IPPROTO_DSTOPTS,
- 	.templates	= {
- 		[DSTHDR_NEXTHDR]	= DST_FIELD("nexthdr", ip6d_nxt, &inet_protocol_type),
-@@ -438,6 +465,7 @@ const struct datatype mh_type_type = {
- 
- const struct exthdr_desc exthdr_mh = {
- 	.name		= "mh",
-+	.id		= EXTHDR_DESC_MH,
- 	.type		= IPPROTO_MH,
- 	.templates	= {
- 		[MHHDR_NEXTHDR]		= MH_FIELD("nexthdr", ip6mh_proto, &inet_protocol_type),
+ struct expr *socket_expr_alloc(const struct location *loc, enum nft_socket_keys key)
 -- 
 2.11.0
 
