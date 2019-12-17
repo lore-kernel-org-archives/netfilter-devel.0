@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2516C2D0CD
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E40B2C47409
 	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 17:17:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9E5E721582
+	by mail.kernel.org (Postfix) with ESMTP id BF08E24655
 	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 17:17:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727310AbfLQRRO (ORCPT
+        id S1727335AbfLQRRP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Dec 2019 12:17:14 -0500
-Received: from correo.us.es ([193.147.175.20]:37970 "EHLO mail.us.es"
+        Tue, 17 Dec 2019 12:17:15 -0500
+Received: from correo.us.es ([193.147.175.20]:37964 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727170AbfLQRRN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1727162AbfLQRRN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 17 Dec 2019 12:17:13 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3AFDF1F0D0C
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Dec 2019 18:17:10 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id E6BBA1F0D0A
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Dec 2019 18:17:09 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2C3A6DA709
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Dec 2019 18:17:10 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D8582DA707
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Dec 2019 18:17:09 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 22038DA705; Tue, 17 Dec 2019 18:17:10 +0100 (CET)
+        id CE0A2DA703; Tue, 17 Dec 2019 18:17:09 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0F5EADA701;
-        Tue, 17 Dec 2019 18:17:08 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C5BBDDA709;
+        Tue, 17 Dec 2019 18:17:07 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 17 Dec 2019 18:17:08 +0100 (CET)
+ Tue, 17 Dec 2019 18:17:07 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id EA38F4265A5A;
+        by entrada.int (Postfix) with ESMTPA id AA4064265A5A;
         Tue, 17 Dec 2019 18:17:07 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     fw@strlen.de
-Subject: [PATCH nft 09/11] rt: add parse and build userdata interface
-Date:   Tue, 17 Dec 2019 18:17:00 +0100
-Message-Id: <20191217171702.31493-10-pablo@netfilter.org>
+Subject: [PATCH nft 08/11] hash: add parse and build userdata interface
+Date:   Tue, 17 Dec 2019 18:16:59 +0100
+Message-Id: <20191217171702.31493-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191217171702.31493-1-pablo@netfilter.org>
 References: <20191217171702.31493-1-pablo@netfilter.org>
@@ -59,48 +59,60 @@ Add support for meta userdata area.
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
  src/expression.c |  1 +
- src/rt.c         | 51 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 52 insertions(+)
+ src/hash.c       | 72 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 73 insertions(+)
 
 diff --git a/src/expression.c b/src/expression.c
-index 7cca342b2f1a..386309b5ca27 100644
+index 1791454ea466..7cca342b2f1a 100644
 --- a/src/expression.c
 +++ b/src/expression.c
-@@ -1234,6 +1234,7 @@ const struct expr_ops *expr_ops_by_type(enum expr_types etype)
+@@ -1233,6 +1233,7 @@ const struct expr_ops *expr_ops_by_type(enum expr_types etype)
+ 	case EXPR_OSF: return &osf_expr_ops;
  	case EXPR_CT: return &ct_expr_ops;
  	case EXPR_NUMGEN: return &numgen_expr_ops;
- 	case EXPR_HASH: return &hash_expr_ops;
-+	case EXPR_RT: return &rt_expr_ops;
++	case EXPR_HASH: return &hash_expr_ops;
  	default:
  		break;
  	}
-diff --git a/src/rt.c b/src/rt.c
-index b19c44d6eefe..d7aa5edd93a3 100644
---- a/src/rt.c
-+++ b/src/rt.c
-@@ -114,6 +114,55 @@ static void rt_expr_clone(struct expr *new, const struct expr *expr)
- 	new->rt.key = expr->rt.key;
+diff --git a/src/hash.c b/src/hash.c
+index 08e09099024e..42c504073ae8 100644
+--- a/src/hash.c
++++ b/src/hash.c
+@@ -61,6 +61,76 @@ static void hash_expr_destroy(struct expr *expr)
+ 	expr_free(expr->hash.expr);
  }
  
-+#define NFTNL_UDATA_RT_KEY 0
-+#define NFTNL_UDATA_RT_MAX 1
++#define NFTNL_UDATA_HASH_TYPE 0
++#define NFTNL_UDATA_HASH_OFFSET 1
++#define NFTNL_UDATA_HASH_MOD 2
++#define NFTNL_UDATA_HASH_SEED 3
++#define NFTNL_UDATA_HASH_SEED_SET 4
++#define NFTNL_UDATA_HASH_MAX 5
 +
-+static int rt_expr_build_udata(struct nftnl_udata_buf *udbuf,
++static int hash_expr_build_udata(struct nftnl_udata_buf *udbuf,
 +				 const struct expr *expr)
 +{
-+	nftnl_udata_put_u32(udbuf, NFTNL_UDATA_RT_KEY, expr->rt.key);
++	nftnl_udata_put_u32(udbuf, NFTNL_UDATA_HASH_TYPE, expr->hash.type);
++	nftnl_udata_put_u32(udbuf, NFTNL_UDATA_HASH_OFFSET, expr->hash.offset);
++	nftnl_udata_put_u32(udbuf, NFTNL_UDATA_HASH_MOD, expr->hash.mod);
++	nftnl_udata_put_u32(udbuf, NFTNL_UDATA_HASH_SEED, expr->hash.seed);
++	nftnl_udata_put_u32(udbuf, NFTNL_UDATA_HASH_SEED_SET, expr->hash.seed_set);
 +
 +	return 0;
 +}
 +
-+static int rt_parse_udata(const struct nftnl_udata *attr, void *data)
++static int hash_parse_udata(const struct nftnl_udata *attr, void *data)
 +{
 +	const struct nftnl_udata **ud = data;
 +	uint8_t type = nftnl_udata_type(attr);
 +	uint8_t len = nftnl_udata_len(attr);
 +
 +	switch (type) {
-+	case NFTNL_UDATA_RT_KEY:
++	case NFTNL_UDATA_HASH_TYPE:
++	case NFTNL_UDATA_HASH_OFFSET:
++	case NFTNL_UDATA_HASH_SEED:
++	case NFTNL_UDATA_HASH_SEED_SET:
++	case NFTNL_UDATA_HASH_MOD:
 +		if (len != sizeof(uint32_t))
 +			return -1;
 +		break;
@@ -112,37 +124,46 @@ index b19c44d6eefe..d7aa5edd93a3 100644
 +	return 0;
 +}
 +
-+static struct expr *rt_expr_parse_udata(const struct nftnl_udata *attr)
++static struct expr *hash_expr_parse_udata(const struct nftnl_udata *attr)
 +{
-+	const struct nftnl_udata *ud[NFTNL_UDATA_RT_MAX + 1] = {};
-+	uint32_t key;
++	const struct nftnl_udata *ud[NFTNL_UDATA_HASH_MAX + 1] = {};
++	uint32_t type, seed, seed_set, mod, offset;
 +	int err;
 +
 +	err = nftnl_udata_parse(nftnl_udata_get(attr), nftnl_udata_len(attr),
-+				rt_parse_udata, ud);
++				hash_parse_udata, ud);
 +	if (err < 0)
 +		return NULL;
 +
-+	if (!ud[NFTNL_UDATA_RT_KEY])
++	if (!ud[NFTNL_UDATA_HASH_TYPE] ||
++	    !ud[NFTNL_UDATA_HASH_OFFSET] ||
++	    !ud[NFTNL_UDATA_HASH_SEED] ||
++	    !ud[NFTNL_UDATA_HASH_MOD] ||
++	    !ud[NFTNL_UDATA_HASH_SEED_SET])
 +		return NULL;
 +
-+	key = nftnl_udata_get_u32(ud[NFTNL_UDATA_RT_KEY]);
++	type = nftnl_udata_get_u32(ud[NFTNL_UDATA_HASH_TYPE]);
++	offset = nftnl_udata_get_u32(ud[NFTNL_UDATA_HASH_OFFSET]);
++	seed = nftnl_udata_get_u32(ud[NFTNL_UDATA_HASH_SEED]);
++	seed_set = nftnl_udata_get_u32(ud[NFTNL_UDATA_HASH_SEED_SET]);
++	mod = nftnl_udata_get_u32(ud[NFTNL_UDATA_HASH_MOD]);
 +
-+	return rt_expr_alloc(&internal_location, key, false);
++	return hash_expr_alloc(&internal_location, mod, seed_set, seed,
++			       offset, type);
 +}
 +
- const struct expr_ops rt_expr_ops = {
- 	.type		= EXPR_RT,
- 	.name		= "rt",
-@@ -121,6 +170,8 @@ const struct expr_ops rt_expr_ops = {
- 	.json		= rt_expr_json,
- 	.cmp		= rt_expr_cmp,
- 	.clone		= rt_expr_clone,
-+	.parse_udata	= rt_expr_parse_udata,
-+	.build_udata	= rt_expr_build_udata,
+ const struct expr_ops hash_expr_ops = {
+ 	.type		= EXPR_HASH,
+ 	.name		= "hash",
+@@ -69,6 +139,8 @@ const struct expr_ops hash_expr_ops = {
+ 	.cmp		= hash_expr_cmp,
+ 	.clone		= hash_expr_clone,
+ 	.destroy	= hash_expr_destroy,
++	.parse_udata	= hash_expr_parse_udata,
++	.build_udata	= hash_expr_build_udata,
  };
  
- struct expr *rt_expr_alloc(const struct location *loc, enum nft_rt_keys key,
+ struct expr *hash_expr_alloc(const struct location *loc,
 -- 
 2.11.0
 
