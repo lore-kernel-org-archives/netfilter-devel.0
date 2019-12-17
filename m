@@ -2,152 +2,186 @@ Return-Path: <SRS0=i/iJ=2H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 722CCC43603
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 17:17:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ACEBC2D0CD
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 18:46:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4D2D324655
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 17:17:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 10DFC20733
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 18:46:10 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ORRPrdl6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727346AbfLQRRQ (ORCPT
+        id S1727836AbfLQSqH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Dec 2019 12:17:16 -0500
-Received: from correo.us.es ([193.147.175.20]:37952 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727070AbfLQRRN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Dec 2019 12:17:13 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 66A481F0CF9
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Dec 2019 18:17:09 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 59A0DDA70E
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Dec 2019 18:17:09 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 4F4A1DA70D; Tue, 17 Dec 2019 18:17:09 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4889ADA707;
-        Tue, 17 Dec 2019 18:17:07 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 17 Dec 2019 18:17:07 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 2F8044265A5A;
-        Tue, 17 Dec 2019 18:17:07 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de
-Subject: [PATCH nft 06/11] ct: add parse and build userdata interface
-Date:   Tue, 17 Dec 2019 18:16:57 +0100
-Message-Id: <20191217171702.31493-7-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20191217171702.31493-1-pablo@netfilter.org>
-References: <20191217171702.31493-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Tue, 17 Dec 2019 13:46:07 -0500
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:34516 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726731AbfLQSqE (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Dec 2019 13:46:04 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1576608362;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=H79yMoU9qnqTpnGyCiPFGRjbb3Bng6e8cO8SsBozoBg=;
+        b=ORRPrdl6DhPSA4NWthxOX9hqd67oUTeq04ShPrqiiczr/aR6U8RZdEoMY5tktaci82KeG0
+        QsVVpAt2BFt84VUN9zD5pMKsfs4i4Vm4HkQixk89i1OOfIWUR0B1lmQ6O9UVdrJOurEuzy
+        qH2x6nog61zs0/ONewcwucFpoW16Jbs=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-48-SVmOSpCgMTGqhS9dZj20XA-1; Tue, 17 Dec 2019 13:46:00 -0500
+X-MC-Unique: SVmOSpCgMTGqhS9dZj20XA-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 3F0B81800D42;
+        Tue, 17 Dec 2019 18:45:57 +0000 (UTC)
+Received: from madcap2.tricolour.ca (ovpn-112-28.phx2.redhat.com [10.3.112.28])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 27F125C1C3;
+        Tue, 17 Dec 2019 18:45:43 +0000 (UTC)
+Date:   Tue, 17 Dec 2019 13:45:41 -0500
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Paul Moore <paul@paul-moore.com>
+Cc:     Neil Horman <nhorman@tuxdriver.com>,
+        containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
+        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
+        Dan Walsh <dwalsh@redhat.com>, mpatel@redhat.com
+Subject: Re: [PATCH ghak90 V7 06/21] audit: contid limit of 32k imposed to
+ avoid DoS
+Message-ID: <20191217184541.tagssqt4zujbanf6@madcap2.tricolour.ca>
+References: <cover.1568834524.git.rgb@redhat.com>
+ <230e91cd3e50a3d8015daac135c24c4c58cf0a21.1568834524.git.rgb@redhat.com>
+ <20190927125142.GA25764@hmswarspite.think-freely.org>
+ <CAHC9VhRbSUCB0OZorC4+y+5uJDR5uMXdRn2LOTYGu2gcFJSrcA@mail.gmail.com>
+ <20191024212335.y4ou7g4tsxnotvnk@madcap2.tricolour.ca>
+ <CAHC9VhTrKVQNvTPoX5xdx-TUX_ukpMv2tNFFqLa2Njs17GuQMg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHC9VhTrKVQNvTPoX5xdx-TUX_ukpMv2tNFFqLa2Njs17GuQMg@mail.gmail.com>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add support for meta userdata area.
+On 2019-11-08 12:49, Paul Moore wrote:
+> On Thu, Oct 24, 2019 at 5:23 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > On 2019-10-10 20:38, Paul Moore wrote:
+> > > On Fri, Sep 27, 2019 at 8:52 AM Neil Horman <nhorman@tuxdriver.com> wrote:
+> > > > On Wed, Sep 18, 2019 at 09:22:23PM -0400, Richard Guy Briggs wrote:
+> > > > > Set an arbitrary limit on the number of audit container identifiers to
+> > > > > limit abuse.
+> > > > >
+> > > > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> > > > > ---
+> > > > >  kernel/audit.c | 8 ++++++++
+> > > > >  kernel/audit.h | 4 ++++
+> > > > >  2 files changed, 12 insertions(+)
+> > > > >
+> > > > > diff --git a/kernel/audit.c b/kernel/audit.c
+> > > > > index 53d13d638c63..329916534dd2 100644
+> > > > > --- a/kernel/audit.c
+> > > > > +++ b/kernel/audit.c
+> > >
+> > > ...
+> > >
+> > > > > @@ -2465,6 +2472,7 @@ int audit_set_contid(struct task_struct *task, u64 contid)
+> > > > >                               newcont->owner = current;
+> > > > >                               refcount_set(&newcont->refcount, 1);
+> > > > >                               list_add_rcu(&newcont->list, &audit_contid_hash[h]);
+> > > > > +                             audit_contid_count++;
+> > > > >                       } else {
+> > > > >                               rc = -ENOMEM;
+> > > > >                               goto conterror;
+> > > > > diff --git a/kernel/audit.h b/kernel/audit.h
+> > > > > index 162de8366b32..543f1334ba47 100644
+> > > > > --- a/kernel/audit.h
+> > > > > +++ b/kernel/audit.h
+> > > > > @@ -219,6 +219,10 @@ static inline int audit_hash_contid(u64 contid)
+> > > > >       return (contid & (AUDIT_CONTID_BUCKETS-1));
+> > > > >  }
+> > > > >
+> > > > > +extern int audit_contid_count;
+> > > > > +
+> > > > > +#define AUDIT_CONTID_COUNT   1 << 16
+> > > > > +
+> > > >
+> > > > Just to ask the question, since it wasn't clear in the changelog, what
+> > > > abuse are you avoiding here?  Ostensibly you should be able to create as
+> > > > many container ids as you have space for, and the simple creation of
+> > > > container ids doesn't seem like the resource strain I would be concerned
+> > > > about here, given that an orchestrator can still create as many
+> > > > containers as the system will otherwise allow, which will consume
+> > > > significantly more ram/disk/etc.
+> > >
+> > > I've got a similar question.  Up to this point in the patchset, there
+> > > is a potential issue of hash bucket chain lengths and traversing them
+> > > with a spinlock held, but it seems like we shouldn't be putting an
+> > > arbitrary limit on audit container IDs unless we have a good reason
+> > > for it.  If for some reason we do want to enforce a limit, it should
+> > > probably be a tunable value like a sysctl, or similar.
+> >
+> > Can you separate and clarify the concerns here?
+> 
+> "Why are you doing this?" is about as simple as I can pose the question.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/ct.c         | 56 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- src/expression.c |  1 +
- 2 files changed, 57 insertions(+)
+It was more of a concern for total system resources, primarily memory,
+but this is self-limiting and an arbitrary concern.
 
-diff --git a/src/ct.c b/src/ct.c
-index 9e6a8351ffb2..db1dabd319e9 100644
---- a/src/ct.c
-+++ b/src/ct.c
-@@ -367,6 +367,60 @@ static void ct_expr_pctx_update(struct proto_ctx *ctx, const struct expr *expr)
- 	proto_ctx_update(ctx, left->ct.base + 1, &expr->location, desc);
- }
- 
-+#define NFTNL_UDATA_CT_KEY 0
-+#define NFTNL_UDATA_CT_DIR 1
-+#define NFTNL_UDATA_CT_MAX 2
-+
-+static int ct_expr_build_udata(struct nftnl_udata_buf *udbuf,
-+			       const struct expr *expr)
-+{
-+	nftnl_udata_put_u32(udbuf, NFTNL_UDATA_CT_KEY, expr->ct.key);
-+	nftnl_udata_put_u32(udbuf, NFTNL_UDATA_CT_DIR, expr->ct.direction);
-+
-+	return 0;
-+}
-+
-+static int ct_parse_udata(const struct nftnl_udata *attr, void *data)
-+{
-+	const struct nftnl_udata **ud = data;
-+	uint8_t type = nftnl_udata_type(attr);
-+	uint8_t len = nftnl_udata_len(attr);
-+
-+	switch (type) {
-+	case NFTNL_UDATA_CT_KEY:
-+	case NFTNL_UDATA_CT_DIR:
-+		if (len != sizeof(uint32_t))
-+			return -1;
-+		break;
-+	default:
-+		return 0;
-+	}
-+
-+	ud[type] = attr;
-+	return 0;
-+}
-+
-+static struct expr *ct_expr_parse_udata(const struct nftnl_udata *attr)
-+{
-+	const struct nftnl_udata *ud[NFTNL_UDATA_CT_MAX + 1] = {};
-+	uint32_t key, dir;
-+	int err;
-+
-+	err = nftnl_udata_parse(nftnl_udata_get(attr), nftnl_udata_len(attr),
-+				ct_parse_udata, ud);
-+	if (err < 0)
-+		return NULL;
-+
-+	if (!ud[NFTNL_UDATA_CT_KEY] ||
-+	    !ud[NFTNL_UDATA_CT_DIR])
-+		return NULL;
-+
-+	key = nftnl_udata_get_u32(ud[NFTNL_UDATA_CT_KEY]);
-+	dir = nftnl_udata_get_u32(ud[NFTNL_UDATA_CT_DIR]);
-+
-+	return ct_expr_alloc(&internal_location, key, dir);
-+}
-+
- const struct expr_ops ct_expr_ops = {
- 	.type		= EXPR_CT,
- 	.name		= "ct",
-@@ -375,6 +429,8 @@ const struct expr_ops ct_expr_ops = {
- 	.cmp		= ct_expr_cmp,
- 	.clone		= ct_expr_clone,
- 	.pctx_update	= ct_expr_pctx_update,
-+	.parse_udata	= ct_expr_parse_udata,
-+	.build_udata	= ct_expr_build_udata,
- };
- 
- struct expr *ct_expr_alloc(const struct location *loc, enum nft_ct_keys key,
-diff --git a/src/expression.c b/src/expression.c
-index 7d198222c90b..14bf329e25c3 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -1231,6 +1231,7 @@ const struct expr_ops *expr_ops_by_type(enum expr_types etype)
- 	case EXPR_META: return &meta_expr_ops;
- 	case EXPR_SOCKET: return &socket_expr_ops;
- 	case EXPR_OSF: return &osf_expr_ops;
-+	case EXPR_CT: return &ct_expr_ops;
- 	default:
- 		break;
- 	}
--- 
-2.11.0
+The other limit of depth of nesting has different concerns that arise
+depending on how reporting is done.
+
+> > I plan to move this patch to the end of the patchset and make it
+> > optional, possibly adding a tuning mechanism.  Like the migration from
+> > /proc to netlink for loginuid/sessionid/contid/capcontid, this was Eric
+> > Biederman's concern and suggested mitigation.
+> 
+> Okay, let's just drop it.  I *really* don't like this approach of
+> tossing questionable stuff at the end of the patchset; I get why you
+> are doing it, but I think we really need to focus on keeping this
+> changeset small.  If the number of ACIDs (heh) become unwieldy the
+> right solution is to improve the algorithms/structures, if we can't do
+> that for some reason, *then* we can fall back to a limiting knob in a
+> latter release.
+
+Ok, I've dropped it.  There are mitigations in place for large numbers
+of contids and it can be limited later without breaking anything.
+
+> > As for the first issue of the bucket chain length traversal while
+> > holding the list spin-lock, would you prefer to use the rcu lock to
+> > traverse the list and then only hold the spin-lock when modifying the
+> > list, and possibly even make the spin-lock more fine-grained per list?
+> 
+> Until we have a better idea of how this is going to be used, I think
+> it's okay for now.  It's also internal to the kernel so we can change
+> it at any time.  My comments about the locking/structs was only to try
+> and think of some reason why one might want to limit the number of
+> ACIDs since neither you or Eric provided any reasoning that I could
+> see.
+
+I've switched to using an rcu read lock on the list traversal and
+spin-lock on list update.
+
+> paul moore
+
+- RGB
+
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
 
