@@ -2,174 +2,167 @@ Return-Path: <SRS0=i/iJ=2H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87FFCC2D0CD
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 11:28:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B152C43603
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 12:04:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 64F502082E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 11:28:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7840F207FF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Dec 2019 12:04:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727608AbfLQL2E (ORCPT
+        id S1726690AbfLQMEr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Dec 2019 06:28:04 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:57366 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727202AbfLQL2E (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Dec 2019 06:28:04 -0500
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1ihB1G-0006mr-Bm; Tue, 17 Dec 2019 12:28:02 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft v3 10/10] tests: add typeof test cases
-Date:   Tue, 17 Dec 2019 12:27:13 +0100
-Message-Id: <20191217112713.6017-11-fw@strlen.de>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20191217112713.6017-1-fw@strlen.de>
-References: <20191217112713.6017-1-fw@strlen.de>
+        Tue, 17 Dec 2019 07:04:47 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:60700 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726383AbfLQMEr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Dec 2019 07:04:47 -0500
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1ihBan-0001US-KF; Tue, 17 Dec 2019 13:04:45 +0100
+Date:   Tue, 17 Dec 2019 13:04:45 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de
+Subject: Re: [PATCH nft,RFC] main: remove need to escape quotes
+Message-ID: <20191217120445.GA8553@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, fw@strlen.de
+References: <20191216214157.551511-1-pablo@netfilter.org>
+ <20191217004257.GI14465@orbyte.nwl.cc>
+ <20191217103509.nj4wsu7y2wyjpdyp@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191217103509.nj4wsu7y2wyjpdyp@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add sets using unspecific string/integer types, one with
-osf name, other with vlan id.  Neither type can be used directly,
-as they lack the type size information.
+Hi,
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- .../testcases/maps/dumps/typeof_maps_0.nft    | 16 ++++++++++
- tests/shell/testcases/maps/typeof_maps_0      | 27 +++++++++++++++++
- .../testcases/sets/dumps/typeof_sets_0.nft    | 19 ++++++++++++
- tests/shell/testcases/sets/typeof_sets_0      | 29 +++++++++++++++++++
- 4 files changed, 91 insertions(+)
- create mode 100644 tests/shell/testcases/maps/dumps/typeof_maps_0.nft
- create mode 100755 tests/shell/testcases/maps/typeof_maps_0
- create mode 100644 tests/shell/testcases/sets/dumps/typeof_sets_0.nft
- create mode 100755 tests/shell/testcases/sets/typeof_sets_0
+On Tue, Dec 17, 2019 at 11:42:51AM +0100, Pablo Neira Ayuso wrote:
+> On Tue, Dec 17, 2019 at 01:42:57AM +0100, Phil Sutter wrote:
+> > Hi Pablo,
+> > 
+> > On Mon, Dec 16, 2019 at 10:41:57PM +0100, Pablo Neira Ayuso wrote:
+> > > If argv[i] contains spaces, then restore the quotes on this string.
+> > > 
+> > > There is one exception though: in case that argc == 2, then assume the
+> > > whole input is coming as a quoted string, eg. nft "add rule x ...;add ..."
+> > > 
+> > > This patch is adjusting a one test that uses quotes to skip escaping one
+> > > semicolon from bash. Two more tests do not need them.
+> > 
+> > I appreciate your efforts at making my BUGS note obsolete. :)
+> > In this case though, I wonder if this really fixes something:
+> 
+> nft add rule x y log prefix "test: "
+> 
+> instead of
+> 
+> nft add rule x y log prefix \"test: \"
+> 
+> > I use quotes in only two cases:
+> > 
+> > A) When forced by the parser, e.g. with interface names.
+> 
+> Interface names have no spaces, so this patch fixes nothing there indeed.
 
-diff --git a/tests/shell/testcases/maps/dumps/typeof_maps_0.nft b/tests/shell/testcases/maps/dumps/typeof_maps_0.nft
-new file mode 100644
-index 000000000000..833b834e3162
---- /dev/null
-+++ b/tests/shell/testcases/maps/dumps/typeof_maps_0.nft
-@@ -0,0 +1,16 @@
-+table inet t {
-+	map m1 {
-+		typeof osf name : ct mark
-+		elements = { "Linux" : 0x00000001 }
-+	}
-+
-+	map m2 {
-+		typeof vlan id : mark
-+		elements = { 1 : 0x00000001 }
-+	}
-+
-+	chain c {
-+		ct mark set osf name map @m1
-+		ct mark set osf name map @m2
-+	}
-+}
-diff --git a/tests/shell/testcases/maps/typeof_maps_0 b/tests/shell/testcases/maps/typeof_maps_0
-new file mode 100755
-index 000000000000..14bf5811ac3f
---- /dev/null
-+++ b/tests/shell/testcases/maps/typeof_maps_0
-@@ -0,0 +1,27 @@
-+#!/bin/bash
-+
-+# support for strings and integers in named maps.
-+# without typeof, this is 'type string' and 'type integer',
-+# but neither could be used because it lacks size information.
-+
-+EXPECTED="table inet t {
-+	map m1 {
-+		typeof osf name : ct mark
-+		elements = { "Linux" : 0x00000001 }
-+	}
-+
-+	map m2 {
-+		typeof vlan id : mark
-+		elements = { 1 : 0x1,
-+			     4095 : 0x4095 }
-+	}
-+
-+	chain c {
-+		ct mark set ip daddr map @m1
-+		ether type vlan meta mark set vlan id map @m2
-+	}
-+}"
-+
-+set -e
-+$NFT -f - <<< $EXPECTED
-+
-diff --git a/tests/shell/testcases/sets/dumps/typeof_sets_0.nft b/tests/shell/testcases/sets/dumps/typeof_sets_0.nft
-new file mode 100644
-index 000000000000..44e11202d299
---- /dev/null
-+++ b/tests/shell/testcases/sets/dumps/typeof_sets_0.nft
-@@ -0,0 +1,19 @@
-+table inet t {
-+	set s1 {
-+		typeof osf name
-+		elements = { "Linux" }
-+	}
-+
-+	set s2 {
-+		typeof vlan id
-+		elements = { 2, 3, 103 }
-+	}
-+
-+	chain c1 {
-+		osf name @s1 accept
-+	}
-+
-+	chain c2 {
-+		vlan id @s2 accept
-+	}
-+}
-diff --git a/tests/shell/testcases/sets/typeof_sets_0 b/tests/shell/testcases/sets/typeof_sets_0
-new file mode 100755
-index 000000000000..2a8b21c725c6
---- /dev/null
-+++ b/tests/shell/testcases/sets/typeof_sets_0
-@@ -0,0 +1,29 @@
-+#!/bin/bash
-+
-+# support for strings/typeof in named sets.
-+# s1 and s2 are identical, they just use different
-+# ways for declaration.
-+
-+EXPECTED="table inet t {
-+	set s1 {
-+		typeof osf name
-+		elements = { \"Linux\" }
-+	}
-+
-+	set s2 {
-+		typeof vlan id
-+		elements = { 2, 3, 103 }
-+	}
-+
-+	chain c1 {
-+		osf name @s1 accept
-+	}
-+
-+	chain c2 {
-+		ether type vlan vlan id @s2 accept
-+	}
-+}"
-+
-+set -e
-+$NFT -f - <<< $EXPECTED
-+
--- 
-2.24.1
+Ah, sorry - I mixed that up. There are spots though where quotes are
+mandatory, namely in include statement and for ct helper types. The
+latter is relevant on cmdline and quotes not being restored there is at
+least inconsistent.
 
+Also, we had a longer discussion at NFWS about enforcing quotes for
+strings on input (or at least quoting them all on output) to fix for
+cases where a recognized keyword was chosen for a name by accident.
+
+> > B) To escape the curly braces (and any semi-colons inside) in chain or
+> >    set definitions.
+> > 
+> > Unless I miss something, case (A) will still need escaped quotes since
+> > interface names usually don't contain whitespace. In case (B), your
+> > patch would typically bite me as I merely quote the braces, like so:
+> > 
+> > | # nft add chain inet t c '{ type filter hook input priority filter; policy drop; }'
+> 
+> You do this trick not to escape three times, ie.
+> 
+> | #nft add chain inet t c \{ type filter hook input priority filter; policy drop\; \}
+> 
+> Your trick works fine right now because the argv list is not honored
+> by the main function, your quotes to avoid escaping the values will
+> result in:
+> 
+> argv[0] = nft
+> argv[1] = add
+> argv[2] = chain
+> argv[3] = inet
+> argv[4] = t
+> argv[5] = c
+> argv[6] = { type filter hook input priority filter; policy drop; }
+> 
+> This is not a problem because main translates this into a plain buffer
+> to feed the bison parser for the command line mode.
+> 
+> With my patch, this will still work:
+> 
+> | # nft 'add chain inet t c { type filter hook input priority filter; policy drop; }'
+> 
+> So you can still use quotes to avoid escaping, but quotes are
+> restricted to the whole command OR to use them to really quote a
+> string.
+> 
+> So I'm debating if it's worth providing a simple and consistent model
+> we can document on how to use quotes in nft from the command line, in
+> this patch:
+> 
+> 1) You can quote the whole command to avoid escape characters that
+>    have special semantics in your shell, eg. { and ; in zsh. Or ; in bash.
+> 
+> 2) You do not need to escape quotes anymore as in the example above
+>    for log prefix.
+> 
+> Otherwise, we are allowing for quotes basically anywhere.
+> 
+> If in the future, we decide to stop using bison for whatever reason
+> and we rely on argc and argv, this might make things harder for a new
+> parser. Not telling I have an incentive to replace the parser right
+> now though.
+> 
+> > Of course that's a matter of muscle memory, but IIUC, your fix won't
+> > work if one wants to pass flags in addition to a quoted command. Or does
+> > getopt mangle argc?
+> 
+> argc is left untouch, it would need to pass it as a pointer to
+> getopt_long() to update it. Not related, but getopt mangles argv,
+> because it reorders options, it is placing them right before the
+> non-options, so optind points to the beginning of what main passes to
+> the bison parser. Well actually mangling will not happen anymore if
+> the patch to enforce options before command is applied (looks like
+> feedback on the mailing list points to that direction).
+
+So this means that neither:
+
+| # nft -a 'add rule t c accept'
+
+nor:
+
+| # nft '-a add rule t c accept'
+
+will work, right?
+
+> Probably not worth the effort and we should start promoting people to
+> use the interactive interface for `nft -i'. If autocompletion is
+> supported there, then there would be a real incentive for users to
+> pick `nft -i'.
+
+ACK.
+
+Cheers, Phil
