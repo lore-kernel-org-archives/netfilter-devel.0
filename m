@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C838C43603
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Dec 2019 11:05:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D74EC43603
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Dec 2019 11:05:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1D7DC21D7D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Dec 2019 11:05:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B6A321D7D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Dec 2019 11:05:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726817AbfLRLFr (ORCPT
+        id S1726824AbfLRLFu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Dec 2019 06:05:47 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:35982 "EHLO
+        Wed, 18 Dec 2019 06:05:50 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:35986 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726591AbfLRLFq (ORCPT
+        by vger.kernel.org with ESMTP id S1726591AbfLRLFu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Dec 2019 06:05:46 -0500
+        Wed, 18 Dec 2019 06:05:50 -0500
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1ihX9E-00077p-Rt; Wed, 18 Dec 2019 12:05:45 +0100
+        id 1ihX9J-000782-7l; Wed, 18 Dec 2019 12:05:49 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 4/9] netfilter: nft_meta: move cgroup handling to helper
-Date:   Wed, 18 Dec 2019 12:05:16 +0100
-Message-Id: <20191218110521.14048-5-fw@strlen.de>
+Subject: [PATCH nf-next 5/9] netfilter: nft_meta: move interface kind handling to helper
+Date:   Wed, 18 Dec 2019 12:05:17 +0100
+Message-Id: <20191218110521.14048-6-fw@strlen.de>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20191218110521.14048-1-fw@strlen.de>
 References: <20191218110521.14048-1-fw@strlen.de>
@@ -39,59 +39,65 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Reduce size of main eval function.
+checkpatch complains about == NULL checks in original code,
+so use !in instead.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_meta.c | 20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ net/netfilter/nft_meta.c | 31 +++++++++++++++++++++++++------
+ 1 file changed, 25 insertions(+), 6 deletions(-)
 
 diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 1b32440ec2e6..3fca1c3ec361 100644
+index 3fca1c3ec361..2f7cc64b0c15 100644
 --- a/net/netfilter/nft_meta.c
 +++ b/net/netfilter/nft_meta.c
-@@ -161,6 +161,20 @@ nft_meta_get_eval_skugid(enum nft_meta_keys key,
- 	return true;
+@@ -175,6 +175,30 @@ nft_meta_get_eval_cgroup(u32 *dest, const struct nft_pktinfo *pkt)
  }
+ #endif
  
-+#ifdef CONFIG_CGROUP_NET_CLASSID
-+static noinline bool
-+nft_meta_get_eval_cgroup(u32 *dest, const struct nft_pktinfo *pkt)
++static noinline bool nft_meta_get_eval_kind(enum nft_meta_keys key,
++					    u32 *dest,
++					    const struct nft_pktinfo *pkt)
 +{
-+	struct sock *sk = skb_to_full_sk(pkt->skb);
++	const struct net_device *in = nft_in(pkt), *out = nft_out(pkt);
 +
-+	if (!sk || !sk_fullsock(sk) || !net_eq(nft_net(pkt), sock_net(sk)))
++	switch (key) {
++	case NFT_META_IIFKIND:
++		if (!in || !in->rtnl_link_ops)
++			return false;
++		strncpy((char *)dest, in->rtnl_link_ops->kind, IFNAMSIZ);
++		break;
++	case NFT_META_OIFKIND:
++		if (!out || !out->rtnl_link_ops)
++			return false;
++		strncpy((char *)dest, out->rtnl_link_ops->kind, IFNAMSIZ);
++		break;
++	default:
 +		return false;
++	}
 +
-+	*dest = sock_cgroup_classid(&sk->sk_cgrp_data);
 +	return true;
 +}
-+#endif
 +
  void nft_meta_get_eval(const struct nft_expr *expr,
  		       struct nft_regs *regs,
  		       const struct nft_pktinfo *pkt)
-@@ -168,7 +182,6 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 	const struct nft_meta *priv = nft_expr_priv(expr);
- 	const struct sk_buff *skb = pkt->skb;
- 	const struct net_device *in = nft_in(pkt), *out = nft_out(pkt);
--	struct sock *sk;
- 	u32 *dest = &regs->data[priv->dreg];
- 
- 	switch (priv->key) {
-@@ -258,11 +271,8 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 		break;
- #ifdef CONFIG_CGROUP_NET_CLASSID
- 	case NFT_META_CGROUP:
--		sk = skb_to_full_sk(skb);
--		if (!sk || !sk_fullsock(sk) ||
--		    !net_eq(nft_net(pkt), sock_net(sk)))
-+		if (!nft_meta_get_eval_cgroup(dest, pkt))
- 			goto err;
--		*dest = sock_cgroup_classid(&sk->sk_cgrp_data);
+@@ -286,14 +310,9 @@ void nft_meta_get_eval(const struct nft_expr *expr,
  		break;
  #endif
- 	case NFT_META_PRANDOM: {
+ 	case NFT_META_IIFKIND:
+-		if (in == NULL || in->rtnl_link_ops == NULL)
+-			goto err;
+-		strncpy((char *)dest, in->rtnl_link_ops->kind, IFNAMSIZ);
+-		break;
+ 	case NFT_META_OIFKIND:
+-		if (out == NULL || out->rtnl_link_ops == NULL)
++		if (!nft_meta_get_eval_kind(priv->key, dest, pkt))
+ 			goto err;
+-		strncpy((char *)dest, out->rtnl_link_ops->kind, IFNAMSIZ);
+ 		break;
+ 	case NFT_META_TIME_NS:
+ 	case NFT_META_TIME_DAY:
 -- 
 2.24.1
 
