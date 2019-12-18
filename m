@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78CBDC43603
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Dec 2019 11:05:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C566DC2D0CD
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Dec 2019 11:05:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4CECE2176D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Dec 2019 11:05:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A6A7221D7D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Dec 2019 11:05:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726705AbfLRLFe (ORCPT
+        id S1726799AbfLRLFj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Dec 2019 06:05:34 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:35972 "EHLO
+        Wed, 18 Dec 2019 06:05:39 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:35976 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726674AbfLRLFe (ORCPT
+        by vger.kernel.org with ESMTP id S1726674AbfLRLFi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Dec 2019 06:05:34 -0500
+        Wed, 18 Dec 2019 06:05:38 -0500
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1ihX92-00077L-A5; Wed, 18 Dec 2019 12:05:32 +0100
+        id 1ihX96-00077W-Fe; Wed, 18 Dec 2019 12:05:36 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 1/9] netfilter: nft_meta: move time handling to helper
-Date:   Wed, 18 Dec 2019 12:05:13 +0100
-Message-Id: <20191218110521.14048-2-fw@strlen.de>
+Subject: [PATCH nf-next 2/9] netfilter: nft_meta: move pkttype handling to helper
+Date:   Wed, 18 Dec 2019 12:05:14 +0100
+Message-Id: <20191218110521.14048-3-fw@strlen.de>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20191218110521.14048-1-fw@strlen.de>
 References: <20191218110521.14048-1-fw@strlen.de>
@@ -39,69 +39,123 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-reduce size of the (large) meta evaluation function.
+When pkttype is loopback, nft_meta performs guesswork to detect
+broad/multicast packets. Place this in a helper, this is hardly a hot path.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_meta.c | 28 ++++++++++++++++++++++------
- 1 file changed, 22 insertions(+), 6 deletions(-)
+ net/netfilter/nft_meta.c | 90 +++++++++++++++++++++++-----------------
+ 1 file changed, 51 insertions(+), 39 deletions(-)
 
 diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 9740b554fdb3..ba74f3ee7264 100644
+index ba74f3ee7264..fe49b27dfa87 100644
 --- a/net/netfilter/nft_meta.c
 +++ b/net/netfilter/nft_meta.c
-@@ -33,8 +33,9 @@
- 
- static DEFINE_PER_CPU(struct rnd_state, nft_prandom_state);
- 
--static u8 nft_meta_weekday(time64_t secs)
-+static u8 nft_meta_weekday(void)
- {
-+	time64_t secs = ktime_get_real_seconds();
- 	unsigned int dse;
- 	u8 wday;
- 
-@@ -56,6 +57,25 @@ static u32 nft_meta_hour(time64_t secs)
- 		+ tm.tm_sec;
+@@ -76,6 +76,56 @@ nft_meta_get_eval_time(enum nft_meta_keys key,
+ 	}
  }
  
-+static noinline_for_stack void
-+nft_meta_get_eval_time(enum nft_meta_keys key,
-+		       u32 *dest)
++static noinline bool
++nft_meta_get_eval_pkttype_lo(const struct nft_pktinfo *pkt,
++			     u32 *dest)
 +{
-+	switch (key) {
-+	case NFT_META_TIME_NS:
-+		nft_reg_store64(dest, ktime_get_real_ns());
++	const struct sk_buff *skb = pkt->skb;
++
++	switch (nft_pf(pkt)) {
++	case NFPROTO_IPV4:
++		if (ipv4_is_multicast(ip_hdr(skb)->daddr))
++			nft_reg_store8(dest, PACKET_MULTICAST);
++		else
++			nft_reg_store8(dest, PACKET_BROADCAST);
 +		break;
-+	case NFT_META_TIME_DAY:
-+		nft_reg_store8(dest, nft_meta_weekday());
++	case NFPROTO_IPV6:
++		nft_reg_store8(dest, PACKET_MULTICAST);
 +		break;
-+	case NFT_META_TIME_HOUR:
-+		*dest = nft_meta_hour(ktime_get_real_seconds());
++	case NFPROTO_NETDEV:
++		switch (skb->protocol) {
++		case htons(ETH_P_IP): {
++			int noff = skb_network_offset(skb);
++			struct iphdr *iph, _iph;
++
++			iph = skb_header_pointer(skb, noff,
++						 sizeof(_iph), &_iph);
++			if (!iph)
++				return false;
++
++			if (ipv4_is_multicast(iph->daddr))
++				nft_reg_store8(dest, PACKET_MULTICAST);
++			else
++				nft_reg_store8(dest, PACKET_BROADCAST);
++
++			break;
++		}
++		case htons(ETH_P_IPV6):
++			nft_reg_store8(dest, PACKET_MULTICAST);
++			break;
++		default:
++			WARN_ON_ONCE(1);
++			return false;
++		}
 +		break;
 +	default:
-+		break;
++		WARN_ON_ONCE(1);
++		return false;
 +	}
++
++	return true;
 +}
 +
  void nft_meta_get_eval(const struct nft_expr *expr,
  		       struct nft_regs *regs,
  		       const struct nft_pktinfo *pkt)
-@@ -247,13 +267,9 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 		strncpy((char *)dest, out->rtnl_link_ops->kind, IFNAMSIZ);
+@@ -183,46 +233,8 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 			break;
+ 		}
+ 
+-		switch (nft_pf(pkt)) {
+-		case NFPROTO_IPV4:
+-			if (ipv4_is_multicast(ip_hdr(skb)->daddr))
+-				nft_reg_store8(dest, PACKET_MULTICAST);
+-			else
+-				nft_reg_store8(dest, PACKET_BROADCAST);
+-			break;
+-		case NFPROTO_IPV6:
+-			nft_reg_store8(dest, PACKET_MULTICAST);
+-			break;
+-		case NFPROTO_NETDEV:
+-			switch (skb->protocol) {
+-			case htons(ETH_P_IP): {
+-				int noff = skb_network_offset(skb);
+-				struct iphdr *iph, _iph;
+-
+-				iph = skb_header_pointer(skb, noff,
+-							 sizeof(_iph), &_iph);
+-				if (!iph)
+-					goto err;
+-
+-				if (ipv4_is_multicast(iph->daddr))
+-					nft_reg_store8(dest, PACKET_MULTICAST);
+-				else
+-					nft_reg_store8(dest, PACKET_BROADCAST);
+-
+-				break;
+-			}
+-			case htons(ETH_P_IPV6):
+-				nft_reg_store8(dest, PACKET_MULTICAST);
+-				break;
+-			default:
+-				WARN_ON_ONCE(1);
+-				goto err;
+-			}
+-			break;
+-		default:
+-			WARN_ON_ONCE(1);
++		if (!nft_meta_get_eval_pkttype_lo(pkt, dest))
+ 			goto err;
+-		}
  		break;
- 	case NFT_META_TIME_NS:
--		nft_reg_store64(dest, ktime_get_real_ns());
--		break;
- 	case NFT_META_TIME_DAY:
--		nft_reg_store8(dest, nft_meta_weekday(ktime_get_real_seconds()));
--		break;
- 	case NFT_META_TIME_HOUR:
--		*dest = nft_meta_hour(ktime_get_real_seconds());
-+		nft_meta_get_eval_time(priv->key, dest);
- 		break;
- 	default:
- 		WARN_ON(1);
+ 	case NFT_META_CPU:
+ 		*dest = raw_smp_processor_id();
 -- 
 2.24.1
 
