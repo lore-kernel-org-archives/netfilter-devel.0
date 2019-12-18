@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C566DC2D0CD
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Dec 2019 11:05:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D633BC43603
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Dec 2019 11:05:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A6A7221D7D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Dec 2019 11:05:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AB5BA227BF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Dec 2019 11:05:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726799AbfLRLFj (ORCPT
+        id S1726764AbfLRLFm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Dec 2019 06:05:39 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:35976 "EHLO
+        Wed, 18 Dec 2019 06:05:42 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:35980 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726674AbfLRLFi (ORCPT
+        by vger.kernel.org with ESMTP id S1726674AbfLRLFm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Dec 2019 06:05:38 -0500
+        Wed, 18 Dec 2019 06:05:42 -0500
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1ihX96-00077W-Fe; Wed, 18 Dec 2019 12:05:36 +0100
+        id 1ihX9A-00077i-Kv; Wed, 18 Dec 2019 12:05:40 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 2/9] netfilter: nft_meta: move pkttype handling to helper
-Date:   Wed, 18 Dec 2019 12:05:14 +0100
-Message-Id: <20191218110521.14048-3-fw@strlen.de>
+Subject: [PATCH nf-next 3/9] netfilter: nft_meta: move sk uid/git handling to helper
+Date:   Wed, 18 Dec 2019 12:05:15 +0100
+Message-Id: <20191218110521.14048-4-fw@strlen.de>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20191218110521.14048-1-fw@strlen.de>
 References: <20191218110521.14048-1-fw@strlen.de>
@@ -39,123 +39,99 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When pkttype is loopback, nft_meta performs guesswork to detect
-broad/multicast packets. Place this in a helper, this is hardly a hot path.
+Not a hot path.  Also, both have copy&paste case statements,
+so use a common helper for both.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_meta.c | 90 +++++++++++++++++++++++-----------------
- 1 file changed, 51 insertions(+), 39 deletions(-)
+ net/netfilter/nft_meta.c | 65 ++++++++++++++++++++++------------------
+ 1 file changed, 36 insertions(+), 29 deletions(-)
 
 diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index ba74f3ee7264..fe49b27dfa87 100644
+index fe49b27dfa87..1b32440ec2e6 100644
 --- a/net/netfilter/nft_meta.c
 +++ b/net/netfilter/nft_meta.c
-@@ -76,6 +76,56 @@ nft_meta_get_eval_time(enum nft_meta_keys key,
- 	}
+@@ -126,6 +126,41 @@ nft_meta_get_eval_pkttype_lo(const struct nft_pktinfo *pkt,
+ 	return true;
  }
  
 +static noinline bool
-+nft_meta_get_eval_pkttype_lo(const struct nft_pktinfo *pkt,
-+			     u32 *dest)
++nft_meta_get_eval_skugid(enum nft_meta_keys key,
++			 u32 *dest,
++			 const struct nft_pktinfo *pkt)
 +{
-+	const struct sk_buff *skb = pkt->skb;
++	struct sock *sk = skb_to_full_sk(pkt->skb);
++	struct socket *sock;
 +
-+	switch (nft_pf(pkt)) {
-+	case NFPROTO_IPV4:
-+		if (ipv4_is_multicast(ip_hdr(skb)->daddr))
-+			nft_reg_store8(dest, PACKET_MULTICAST);
-+		else
-+			nft_reg_store8(dest, PACKET_BROADCAST);
-+		break;
-+	case NFPROTO_IPV6:
-+		nft_reg_store8(dest, PACKET_MULTICAST);
-+		break;
-+	case NFPROTO_NETDEV:
-+		switch (skb->protocol) {
-+		case htons(ETH_P_IP): {
-+			int noff = skb_network_offset(skb);
-+			struct iphdr *iph, _iph;
++	if (!sk || !sk_fullsock(sk) || !net_eq(nft_net(pkt), sock_net(sk)))
++		return false;
 +
-+			iph = skb_header_pointer(skb, noff,
-+						 sizeof(_iph), &_iph);
-+			if (!iph)
-+				return false;
-+
-+			if (ipv4_is_multicast(iph->daddr))
-+				nft_reg_store8(dest, PACKET_MULTICAST);
-+			else
-+				nft_reg_store8(dest, PACKET_BROADCAST);
-+
-+			break;
-+		}
-+		case htons(ETH_P_IPV6):
-+			nft_reg_store8(dest, PACKET_MULTICAST);
-+			break;
-+		default:
-+			WARN_ON_ONCE(1);
-+			return false;
-+		}
-+		break;
-+	default:
-+		WARN_ON_ONCE(1);
++	read_lock_bh(&sk->sk_callback_lock);
++	sock = sk->sk_socket;
++	if (!sock || !sock->file) {
++		read_unlock_bh(&sk->sk_callback_lock);
 +		return false;
 +	}
 +
++	switch (key) {
++	case NFT_META_SKUID:
++		*dest = from_kuid_munged(&init_user_ns,
++					 sock->file->f_cred->fsuid);
++		break;
++	case NFT_META_SKGID:
++		*dest =	from_kgid_munged(&init_user_ns,
++					 sock->file->f_cred->fsgid);
++		break;
++	default:
++		break;
++	}
++
++	read_unlock_bh(&sk->sk_callback_lock);
 +	return true;
 +}
 +
  void nft_meta_get_eval(const struct nft_expr *expr,
  		       struct nft_regs *regs,
  		       const struct nft_pktinfo *pkt)
-@@ -183,46 +233,8 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 			break;
- 		}
- 
--		switch (nft_pf(pkt)) {
--		case NFPROTO_IPV4:
--			if (ipv4_is_multicast(ip_hdr(skb)->daddr))
--				nft_reg_store8(dest, PACKET_MULTICAST);
--			else
--				nft_reg_store8(dest, PACKET_BROADCAST);
--			break;
--		case NFPROTO_IPV6:
--			nft_reg_store8(dest, PACKET_MULTICAST);
--			break;
--		case NFPROTO_NETDEV:
--			switch (skb->protocol) {
--			case htons(ETH_P_IP): {
--				int noff = skb_network_offset(skb);
--				struct iphdr *iph, _iph;
--
--				iph = skb_header_pointer(skb, noff,
--							 sizeof(_iph), &_iph);
--				if (!iph)
--					goto err;
--
--				if (ipv4_is_multicast(iph->daddr))
--					nft_reg_store8(dest, PACKET_MULTICAST);
--				else
--					nft_reg_store8(dest, PACKET_BROADCAST);
--
--				break;
--			}
--			case htons(ETH_P_IPV6):
--				nft_reg_store8(dest, PACKET_MULTICAST);
--				break;
--			default:
--				WARN_ON_ONCE(1);
--				goto err;
--			}
--			break;
--		default:
--			WARN_ON_ONCE(1);
-+		if (!nft_meta_get_eval_pkttype_lo(pkt, dest))
- 			goto err;
--		}
+@@ -180,37 +215,9 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 		nft_reg_store16(dest, out->type);
  		break;
- 	case NFT_META_CPU:
- 		*dest = raw_smp_processor_id();
+ 	case NFT_META_SKUID:
+-		sk = skb_to_full_sk(skb);
+-		if (!sk || !sk_fullsock(sk) ||
+-		    !net_eq(nft_net(pkt), sock_net(sk)))
+-			goto err;
+-
+-		read_lock_bh(&sk->sk_callback_lock);
+-		if (sk->sk_socket == NULL ||
+-		    sk->sk_socket->file == NULL) {
+-			read_unlock_bh(&sk->sk_callback_lock);
+-			goto err;
+-		}
+-
+-		*dest =	from_kuid_munged(&init_user_ns,
+-				sk->sk_socket->file->f_cred->fsuid);
+-		read_unlock_bh(&sk->sk_callback_lock);
+-		break;
+ 	case NFT_META_SKGID:
+-		sk = skb_to_full_sk(skb);
+-		if (!sk || !sk_fullsock(sk) ||
+-		    !net_eq(nft_net(pkt), sock_net(sk)))
++		if (!nft_meta_get_eval_skugid(priv->key, dest, pkt))
+ 			goto err;
+-
+-		read_lock_bh(&sk->sk_callback_lock);
+-		if (sk->sk_socket == NULL ||
+-		    sk->sk_socket->file == NULL) {
+-			read_unlock_bh(&sk->sk_callback_lock);
+-			goto err;
+-		}
+-		*dest =	from_kgid_munged(&init_user_ns,
+-				 sk->sk_socket->file->f_cred->fsgid);
+-		read_unlock_bh(&sk->sk_callback_lock);
+ 		break;
+ #ifdef CONFIG_IP_ROUTE_CLASSID
+ 	case NFT_META_RTCLASSID: {
 -- 
 2.24.1
 
