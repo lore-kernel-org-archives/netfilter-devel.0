@@ -2,153 +2,89 @@ Return-Path: <SRS0=pcvh=2J=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B309EC43603
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Dec 2019 10:59:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C682C43603
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Dec 2019 12:47:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8F12924676
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Dec 2019 10:59:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35FE1206D7
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Dec 2019 12:47:31 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YpdOnAJr"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726734AbfLSK73 (ORCPT
+        id S1726778AbfLSMrb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Dec 2019 05:59:29 -0500
-Received: from correo.us.es ([193.147.175.20]:35016 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726696AbfLSK73 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Dec 2019 05:59:29 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D15CE1022A3
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Dec 2019 11:59:25 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C3230DA70A
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Dec 2019 11:59:25 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B8DCCDA70F; Thu, 19 Dec 2019 11:59:25 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A603BDA70A
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Dec 2019 11:59:23 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 19 Dec 2019 11:59:23 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 92FF042EF42B
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Dec 2019 11:59:23 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next] netfilter: flowtable: clean up entries on NETDEV_UNREGISTER
-Date:   Thu, 19 Dec 2019 11:59:21 +0100
-Message-Id: <20191219105921.344674-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Thu, 19 Dec 2019 07:47:31 -0500
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:38117 "EHLO
+        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726695AbfLSMra (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 19 Dec 2019 07:47:30 -0500
+Received: by mail-wr1-f67.google.com with SMTP id y17so5872341wrh.5
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Dec 2019 04:47:29 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to;
+        bh=6wZq5nnbOfk11Id/MzBoP0SxCOrgHDjvq1n4q4zQSpw=;
+        b=YpdOnAJr3a/hAgd3afg2pDkAsOejHFWtwVg3EOWrMO5yhuG7nqarVdcEsu2zwE3KP2
+         khdLn6mwK2+8JYnkQd8aku4W3uUNX/c1XRAC//P+OcjetwuJ0IVFUdHG/9OiI5xLaLPs
+         fs/tQ6tcYDheic8099o5CVCAY7M7FvJcJ2pQqBLsFDypklhFpEUzaYel64RKaHAq8wFT
+         u94GEMxIQDR2CQI9z3meWYHPLl/4/gNgATWuTjw7F2zZxZa1S712y44DfKmoQMagR0ac
+         SjEee0tgniA8YwCLojmA+OlaMuEz7utaAowBvHeG4URQm5wZunHx0NmI9k2iToI8SqSW
+         21+w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to;
+        bh=6wZq5nnbOfk11Id/MzBoP0SxCOrgHDjvq1n4q4zQSpw=;
+        b=Xt2YI6UGl+FJItLgBAfDAKKotllchia8ES5AtNZKv171PWqAFO5lt/x+jFsQlTz4Hg
+         nCXM2MxxTQN9+0CUYDMpNeoQGa07JYQn2kA6WX9wyuApS/60uKmlw7WwZiBsSTukPLCS
+         CnRyV78THn6nHvQqljguqFOE4fpQgicLLe9u2fE82jJ9kTv/VNUwqvCnXfiYIyFE9/6h
+         wsI14ncIbF5O02f1BxZGNn871vYfbbok+u8FMMLWMt+hFdRZ7FpYBaKscRrvkNjNtThO
+         K74lUNe/7jwthUaWd9jvGakhPt1RUhFTX590E0bmz9htVOe058H9vt6XknRDw7+fQ1Sk
+         gsbw==
+X-Gm-Message-State: APjAAAUnS6RujZWo1djvzhfAAmj3HIepP2L1gOjfKQizdVMpqmVBCWms
+        vU3KpLG+Iocr54fCAPjN0Tw=
+X-Google-Smtp-Source: APXvYqzkRSIHPekhXxLR03KpJR/V7nzCEPE+GjB3kFC2/QRPzUIONvjKQyN8xWe1E52rGg55LyaSFA==
+X-Received: by 2002:a5d:4b47:: with SMTP id w7mr9697737wrs.276.1576759648568;
+        Thu, 19 Dec 2019 04:47:28 -0800 (PST)
+Received: from sch.bme.hu ([193.205.210.82])
+        by smtp.gmail.com with ESMTPSA id o129sm6302062wmb.1.2019.12.19.04.47.27
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 19 Dec 2019 04:47:28 -0800 (PST)
+Date:   Thu, 19 Dec 2019 13:47:26 +0100
+From:   =?utf-8?B?TcOhdMOp?= Eckl <ecklm94@gmail.com>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [nf PATCH] netfilter: nft_tproxy: Fix port selector on Big Endian
+Message-ID: <20191219124726.ez4kfrn4ny56q4o4@sch.bme.hu>
+References: <20191217235929.32555-1-phil@nwl.cc>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20191217235929.32555-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Call nf_flow_table_iterate_cleanup() to remove flowtable entries that
-belong to the net_device that is being unregistered.
+On Wed, Dec 18, 2019 at 12:59:29AM +0100, Phil Sutter wrote:
+> On Big Endian architectures, u16 port value was extracted from the wrong
+> parts of u32 sreg_port, just like commit 10596608c4d62 ("netfilter:
+> nf_tables: fix mismatch in big-endian system") describes.
+> 
+> Fixes: 4ed8eb6570a49 ("netfilter: nf_tables: Add native tproxy support")
+> Cc: Máté Eckl <ecklm94@gmail.com>
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_flow_table.h   | 4 ++++
- net/ipv4/netfilter/nf_flow_table_ipv4.c | 1 +
- net/ipv6/netfilter/nf_flow_table_ipv6.c | 1 +
- net/netfilter/nf_flow_table_core.c      | 4 ++--
- net/netfilter/nf_flow_table_inet.c      | 1 +
- net/netfilter/nf_tables_api.c           | 1 +
- 6 files changed, 10 insertions(+), 2 deletions(-)
+Acked-by: Máté Eckl <ecklm94@gmail.com>
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index f0897b3c97fb..43943567dc2e 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -27,6 +27,8 @@ struct nf_flowtable_type {
- 						  const struct flow_offload *flow,
- 						  enum flow_offload_tuple_dir dir,
- 						  struct nf_flow_rule *flow_rule);
-+	void				(*cleanup)(struct nf_flowtable *ft,
-+						   struct net_device *dev);
- 	void				(*free)(struct nf_flowtable *ft);
- 	nf_hookfn			*hook;
- 	struct module			*owner;
-@@ -122,6 +124,8 @@ int flow_offload_route_init(struct flow_offload *flow,
- int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow);
- struct flow_offload_tuple_rhash *flow_offload_lookup(struct nf_flowtable *flow_table,
- 						     struct flow_offload_tuple *tuple);
-+void nf_flow_table_iterate_cleanup(struct nf_flowtable *flowtable,
-+				   struct net_device *dev);
- void nf_flow_table_cleanup(struct net_device *dev);
- 
- int nf_flow_table_init(struct nf_flowtable *flow_table);
-diff --git a/net/ipv4/netfilter/nf_flow_table_ipv4.c b/net/ipv4/netfilter/nf_flow_table_ipv4.c
-index e32e41b99f0f..6f20f8034eb3 100644
---- a/net/ipv4/netfilter/nf_flow_table_ipv4.c
-+++ b/net/ipv4/netfilter/nf_flow_table_ipv4.c
-@@ -11,6 +11,7 @@ static struct nf_flowtable_type flowtable_ipv4 = {
- 	.init		= nf_flow_table_init,
- 	.setup		= nf_flow_table_offload_setup,
- 	.action		= nf_flow_rule_route_ipv4,
-+	.cleanup	= nf_flow_table_iterate_cleanup,
- 	.free		= nf_flow_table_free,
- 	.hook		= nf_flow_offload_ip_hook,
- 	.owner		= THIS_MODULE,
-diff --git a/net/ipv6/netfilter/nf_flow_table_ipv6.c b/net/ipv6/netfilter/nf_flow_table_ipv6.c
-index a8566ee12e83..ed93b0a6d11a 100644
---- a/net/ipv6/netfilter/nf_flow_table_ipv6.c
-+++ b/net/ipv6/netfilter/nf_flow_table_ipv6.c
-@@ -12,6 +12,7 @@ static struct nf_flowtable_type flowtable_ipv6 = {
- 	.init		= nf_flow_table_init,
- 	.setup		= nf_flow_table_offload_setup,
- 	.action		= nf_flow_rule_route_ipv6,
-+	.cleanup	= nf_flow_table_iterate_cleanup,
- 	.free		= nf_flow_table_free,
- 	.hook		= nf_flow_offload_ipv6_hook,
- 	.owner		= THIS_MODULE,
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 9889d52eda82..9a7421e2b039 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -532,8 +532,8 @@ static void nf_flow_table_do_cleanup(struct flow_offload *flow, void *data)
- 		flow_offload_dead(flow);
- }
- 
--static void nf_flow_table_iterate_cleanup(struct nf_flowtable *flowtable,
--					  struct net_device *dev)
-+void nf_flow_table_iterate_cleanup(struct nf_flowtable *flowtable,
-+				   struct net_device *dev)
- {
- 	nf_flow_table_offload_flush(flowtable);
- 	nf_flow_table_iterate(flowtable, nf_flow_table_do_cleanup, dev);
-diff --git a/net/netfilter/nf_flow_table_inet.c b/net/netfilter/nf_flow_table_inet.c
-index 88bedf1ff1ae..487541cd2d09 100644
---- a/net/netfilter/nf_flow_table_inet.c
-+++ b/net/netfilter/nf_flow_table_inet.c
-@@ -49,6 +49,7 @@ static struct nf_flowtable_type flowtable_inet = {
- 	.init		= nf_flow_table_init,
- 	.setup		= nf_flow_table_offload_setup,
- 	.action		= nf_flow_rule_route_inet,
-+	.cleanup	= nf_flow_table_iterate_cleanup,
- 	.free		= nf_flow_table_free,
- 	.hook		= nf_flow_offload_inet_hook,
- 	.owner		= THIS_MODULE,
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 062b73a83af0..f339bd9376b6 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -6490,6 +6490,7 @@ static void nft_flowtable_event(unsigned long event, struct net_device *dev,
- 			continue;
- 
- 		nft_unregister_flowtable_hook(dev_net(dev), flowtable, hook);
-+		flowtable->data.type->cleanup(&flowtable->data, dev);
- 		list_del_rcu(&hook->list);
- 		kfree_rcu(hook, rcu);
- 		break;
--- 
-2.11.0
-
+Thanks for the fix! This was out of my sight.
