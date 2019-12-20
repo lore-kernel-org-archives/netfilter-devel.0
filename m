@@ -6,57 +6,53 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9BECC43603
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Dec 2019 01:11:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29FD9C2D0C1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Dec 2019 01:11:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B62482465E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Dec 2019 01:11:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A5732465E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Dec 2019 01:11:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727151AbfLTBL3 (ORCPT
+        id S1727239AbfLTBL6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Dec 2019 20:11:29 -0500
-Received: from correo.us.es ([193.147.175.20]:48108 "EHLO mail.us.es"
+        Thu, 19 Dec 2019 20:11:58 -0500
+Received: from correo.us.es ([193.147.175.20]:48188 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727089AbfLTBL3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Dec 2019 20:11:29 -0500
+        id S1726992AbfLTBL5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 19 Dec 2019 20:11:57 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CD63DF25AA
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Dec 2019 02:11:26 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 493E2F25A0
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Dec 2019 02:11:55 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C0ECEDA70A
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Dec 2019 02:11:26 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3BE09DA702
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Dec 2019 02:11:55 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B47E9DA70C; Fri, 20 Dec 2019 02:11:26 +0100 (CET)
+        id 3186DDA701; Fri, 20 Dec 2019 02:11:55 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 93F60DA70A;
-        Fri, 20 Dec 2019 02:11:24 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2AE2DDA702;
+        Fri, 20 Dec 2019 02:11:53 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 20 Dec 2019 02:11:24 +0100 (CET)
+ Fri, 20 Dec 2019 02:11:53 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (sys.soleta.eu [212.170.55.40])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 76C9A4265A5A;
-        Fri, 20 Dec 2019 02:11:24 +0100 (CET)
-Date:   Fri, 20 Dec 2019 02:11:24 +0100
+        by entrada.int (Postfix) with ESMTPSA id 048ED4265A5A;
+        Fri, 20 Dec 2019 02:11:52 +0100 (CET)
+Date:   Fri, 20 Dec 2019 02:11:53 +0100
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org,
-        syzbot+f68108fed972453a0ad4@syzkaller.appspotmail.com,
-        syzkaller-bugs@googlegroups.com
-Subject: Re: [PATCH nf] netfilter: ebtables: compat: reject all padding in
- matches/watchers
-Message-ID: <20191220011124.addyezhijttukqw5@salvia>
-References: <000000000000cd9e600599b051e5@google.com>
- <20191215024925.10872-1-fw@strlen.de>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org,
+        =?iso-8859-1?Q?M=E1t=E9?= Eckl <ecklm94@gmail.com>
+Subject: Re: [nf PATCH] netfilter: nft_tproxy: Fix port selector on Big Endian
+Message-ID: <20191220011153.h74t7svtrn5fnav2@salvia>
+References: <20191217235929.32555-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20191215024925.10872-1-fw@strlen.de>
+In-Reply-To: <20191217235929.32555-1-phil@nwl.cc>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -64,32 +60,9 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Dec 15, 2019 at 03:49:25AM +0100, Florian Westphal wrote:
-> syzbot reported following splat:
-> 
-> BUG: KASAN: vmalloc-out-of-bounds in size_entry_mwt net/bridge/netfilter/ebtables.c:2063 [inline]
-> BUG: KASAN: vmalloc-out-of-bounds in compat_copy_entries+0x128b/0x1380 net/bridge/netfilter/ebtables.c:2155
-> Read of size 4 at addr ffffc900004461f4 by task syz-executor267/7937
-> 
-> CPU: 1 PID: 7937 Comm: syz-executor267 Not tainted 5.5.0-rc1-syzkaller #0
->  size_entry_mwt net/bridge/netfilter/ebtables.c:2063 [inline]
->  compat_copy_entries+0x128b/0x1380 net/bridge/netfilter/ebtables.c:2155
->  compat_do_replace+0x344/0x720 net/bridge/netfilter/ebtables.c:2249
->  compat_do_ebt_set_ctl+0x22f/0x27e net/bridge/netfilter/ebtables.c:2333
->  [..]
-> 
-> Because padding isn't considered during computation of ->buf_user_offset,
-> "total" is decremented by fewer bytes than it should.
-> 
-> Therefore, the first part of
-> 
-> if (*total < sizeof(*entry) || entry->next_offset < sizeof(*entry))
-> 
-> will pass, -- it should not have.  This causes oob access:
-> entry->next_offset is past the vmalloced size.
-> 
-> Reject padding and check that computed user offset (sum of ebt_entry
-> structure plus all individual matches/watchers/targets) is same
-> value that userspace gave us as the offset of the next entry.
+On Wed, Dec 18, 2019 at 12:59:29AM +0100, Phil Sutter wrote:
+> On Big Endian architectures, u16 port value was extracted from the wrong
+> parts of u32 sreg_port, just like commit 10596608c4d62 ("netfilter:
+> nf_tables: fix mismatch in big-endian system") describes.
 
 Applied, thanks.
