@@ -6,53 +6,57 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5ABA5C43603
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Dec 2019 01:11:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9BECC43603
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Dec 2019 01:11:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 14D462465E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Dec 2019 01:11:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B62482465E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Dec 2019 01:11:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727145AbfLTBLK (ORCPT
+        id S1727151AbfLTBL3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Dec 2019 20:11:10 -0500
-Received: from correo.us.es ([193.147.175.20]:48020 "EHLO mail.us.es"
+        Thu, 19 Dec 2019 20:11:29 -0500
+Received: from correo.us.es ([193.147.175.20]:48108 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727006AbfLTBLK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Dec 2019 20:11:10 -0500
+        id S1727089AbfLTBL3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 19 Dec 2019 20:11:29 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0F78BF25A9
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Dec 2019 02:11:08 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id CD63DF25AA
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Dec 2019 02:11:26 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 023CBDA70A
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Dec 2019 02:11:08 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C0ECEDA70A
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Dec 2019 02:11:26 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id EC1F3DA705; Fri, 20 Dec 2019 02:11:07 +0100 (CET)
+        id B47E9DA70C; Fri, 20 Dec 2019 02:11:26 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E09BFDA705;
-        Fri, 20 Dec 2019 02:11:05 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 93F60DA70A;
+        Fri, 20 Dec 2019 02:11:24 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 20 Dec 2019 02:11:05 +0100 (CET)
+ Fri, 20 Dec 2019 02:11:24 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (sys.soleta.eu [212.170.55.40])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id BA4424265A5A;
-        Fri, 20 Dec 2019 02:11:05 +0100 (CET)
-Date:   Fri, 20 Dec 2019 02:11:06 +0100
+        by entrada.int (Postfix) with ESMTPSA id 76C9A4265A5A;
+        Fri, 20 Dec 2019 02:11:24 +0100 (CET)
+Date:   Fri, 20 Dec 2019 02:11:24 +0100
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] selftests: netfilter: extend flowtable test script
- with dnat rule
-Message-ID: <20191220011106.l6uqaesgxlxlicsm@salvia>
-References: <20191213001958.31472-1-fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org,
+        syzbot+f68108fed972453a0ad4@syzkaller.appspotmail.com,
+        syzkaller-bugs@googlegroups.com
+Subject: Re: [PATCH nf] netfilter: ebtables: compat: reject all padding in
+ matches/watchers
+Message-ID: <20191220011124.addyezhijttukqw5@salvia>
+References: <000000000000cd9e600599b051e5@google.com>
+ <20191215024925.10872-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20191213001958.31472-1-fw@strlen.de>
+In-Reply-To: <20191215024925.10872-1-fw@strlen.de>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -60,10 +64,32 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Dec 13, 2019 at 01:19:58AM +0100, Florian Westphal wrote:
-> NAT test currently covers snat (masquerade) only.
+On Sun, Dec 15, 2019 at 03:49:25AM +0100, Florian Westphal wrote:
+> syzbot reported following splat:
 > 
-> Also add a dnat rule and then check that a connecting to the
-> to-be-dnated address will work.
+> BUG: KASAN: vmalloc-out-of-bounds in size_entry_mwt net/bridge/netfilter/ebtables.c:2063 [inline]
+> BUG: KASAN: vmalloc-out-of-bounds in compat_copy_entries+0x128b/0x1380 net/bridge/netfilter/ebtables.c:2155
+> Read of size 4 at addr ffffc900004461f4 by task syz-executor267/7937
+> 
+> CPU: 1 PID: 7937 Comm: syz-executor267 Not tainted 5.5.0-rc1-syzkaller #0
+>  size_entry_mwt net/bridge/netfilter/ebtables.c:2063 [inline]
+>  compat_copy_entries+0x128b/0x1380 net/bridge/netfilter/ebtables.c:2155
+>  compat_do_replace+0x344/0x720 net/bridge/netfilter/ebtables.c:2249
+>  compat_do_ebt_set_ctl+0x22f/0x27e net/bridge/netfilter/ebtables.c:2333
+>  [..]
+> 
+> Because padding isn't considered during computation of ->buf_user_offset,
+> "total" is decremented by fewer bytes than it should.
+> 
+> Therefore, the first part of
+> 
+> if (*total < sizeof(*entry) || entry->next_offset < sizeof(*entry))
+> 
+> will pass, -- it should not have.  This causes oob access:
+> entry->next_offset is past the vmalloced size.
+> 
+> Reject padding and check that computed user offset (sum of ebt_entry
+> structure plus all individual matches/watchers/targets) is same
+> value that userspace gave us as the offset of the next entry.
 
 Applied, thanks.
