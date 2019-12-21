@@ -1,81 +1,97 @@
-Return-Path: <SRS0=tkBW=2K=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=T0sz=2L=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9411C43603
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Dec 2019 19:54:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A886FC2D0C0
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Dec 2019 10:44:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7B07E2072B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Dec 2019 19:54:52 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="b4hJmDmp"
+	by mail.kernel.org (Postfix) with ESMTP id 80BDE21655
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Dec 2019 10:44:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727411AbfLTTyw (ORCPT
+        id S1726533AbfLUKoD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Dec 2019 14:54:52 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:53318 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727394AbfLTTyw (ORCPT
+        Sat, 21 Dec 2019 05:44:03 -0500
+Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:49597 "EHLO
+        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726323AbfLUKoC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Dec 2019 14:54:52 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
-        :To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=a8PmRGoKxkOMZHsDOkXnwhqJlNzq+x+cizRtBOPSg70=; b=b4hJmDmpJT+/8ErWe3Erdy3coi
-        4RWrEcy4AWDoIsjldSA7lG6s2Z/0swcaD8wCdet9OMm5smBO3WPmYraRz4OiNxGVPVlPZORbiuibB
-        Faen7LDXMZFFcS17FRLr9hP0GDYZff18GUACkoDb17SC/sD7oh0LsqXL+F/5rnpV76HeHOW2XmXKC
-        LBsHsiMf/XIdTsOBxPmMut88KCwLeIYVdiDIlxmZzbR+p/KpUIzNse/c/CeuKzmKalueB8+tgk5FE
-        Uaky1u6vVr5VEeNJxGiPkYCshpABeHFIyXfn8wS4IB1mAKPe+TV34QRNjI2D8guF5EYwn+iyArWnA
-        A2LriI5w==;
-Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
-        by kadath.azazel.net with esmtp (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1iiOMM-00080h-GT
-        for netfilter-devel@vger.kernel.org; Fri, 20 Dec 2019 19:54:50 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH iptables] extensions: AUDIT: fix man-page typo.
-Date:   Fri, 20 Dec 2019 19:54:50 +0000
-Message-Id: <20191220195450.1743476-1-jeremy@azazel.net>
-X-Mailer: git-send-email 2.24.0
+        Sat, 21 Dec 2019 05:44:02 -0500
+Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
+        by mail104.syd.optusnet.com.au (Postfix) with SMTP id A111143F997
+        for <netfilter-devel@vger.kernel.org>; Sat, 21 Dec 2019 21:43:47 +1100 (AEDT)
+Received: (qmail 17877 invoked by uid 501); 21 Dec 2019 10:43:45 -0000
+Date:   Sat, 21 Dec 2019 21:43:45 +1100
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: Documentation question
+Message-ID: <20191221104345.GA10475@dimstar.local.net>
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20191215020220.GA10616@dimstar.local.net>
+ <20191220002953.gv25rcn7kvv43zk4@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191220002953.gv25rcn7kvv43zk4@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.3 cv=X6os11be c=1 sm=1 tr=0
+        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
+        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=kj9zAlcOel0A:10 a=pxVhFHJ0LMsA:10
+        a=RSmzAf-M6YYA:10 a=RfsCFiYAUiaG-KS9dkgA:9 a=CjuIK1q_8ugA:10
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-A recent commit fixed uses of "allows to" in man-pages.  There was one
-instance where the "to" was removed but the "allows" was left behind.
-Remove that as well.
+On Fri, Dec 20, 2019 at 01:29:53AM +0100, Pablo Neira Ayuso wrote:
+> On Sun, Dec 15, 2019 at 01:02:20PM +1100, Duncan Roe wrote:
+> > Hi Pablo,
+> >
+> > In pktbuff.c, the doc for pktb_mangle states that "It is appropriate to use
+> > pktb_mangle to change the MAC header".
+> >
+> > This is not true. pktb_mangle always mangles from the network header onwards.
+> >
+> > I can either:
+> >
+> > Whithdraw the offending doc items
+> >
+> > OR:
+> >
+> > Adjust pktb_mangle to make the doc correct. This involves changing pktb_mangle,
+> > nfq_ip_mangle and (soon) nfq_ip6_mangle. The changes would be a no-op for
+> > AF_INET and AF_INET6 packet buffers.
+> >
+> > What do you think?
+>
+> You could fix it through signed int dataoff. So the users could
+> specify a negative offset to mangle the MAC address.
+>
+> This function was made to update layer 7 payload information to
+> implement the helpers. So dataoff usually contains the transport
+> header size.
+>
+> Let me know, thanks.
+>
+-ve offsets? There has to be a better way.
 
-Fixes: 3b9b515618c6 ("iptables: cleanup "allows to" usage")
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- extensions/libxt_AUDIT.man | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+When I added documentation for pktb_mangle, I assumed it mangled from
+pktb->data, rather than checking the source.
 
-diff --git a/extensions/libxt_AUDIT.man b/extensions/libxt_AUDIT.man
-index 57cce8c40e0a..8c513d227b88 100644
---- a/extensions/libxt_AUDIT.man
-+++ b/extensions/libxt_AUDIT.man
-@@ -1,4 +1,4 @@
--This target allows creates audit records for packets hitting the target.
-+This target creates audit records for packets hitting the target.
- It can be used to record accepted, dropped, and rejected packets. See
- auditd(8) for additional details.
- .TP
--- 
-2.24.0
+That is the function I documented, and I think we need a function like that.
 
+Rather than change the behaviour of pktb_mangle when a MAC header is present, I
+propose a new function pktb_mangle2 which mangles from pktb->data onwards.
+
+pktb_mangle would call this new function, with dataoff incremented by
+pktb->network_header - pktb->data (only nonzero for AF_BRIDGE)
+
+Ok?
+
+Cheers ... Duncan.
