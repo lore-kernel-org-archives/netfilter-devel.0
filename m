@@ -2,102 +2,97 @@ Return-Path: <SRS0=SsnH=2M=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1BCEC2D0C3
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Dec 2019 02:24:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5872C2D0C1
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Dec 2019 03:36:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C2121206D3
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Dec 2019 02:24:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 84DA62070A
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Dec 2019 03:36:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726318AbfLVCYE (ORCPT
+        id S1726564AbfLVDgQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 21 Dec 2019 21:24:04 -0500
-Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:46539 "EHLO
+        Sat, 21 Dec 2019 22:36:16 -0500
+Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:39410 "EHLO
         mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726131AbfLVCYE (ORCPT
+        by vger.kernel.org with ESMTP id S1726318AbfLVDgQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 21 Dec 2019 21:24:04 -0500
+        Sat, 21 Dec 2019 22:36:16 -0500
 Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
-        by mail105.syd.optusnet.com.au (Postfix) with SMTP id 6D8943A1746
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Dec 2019 13:23:51 +1100 (AEDT)
-Received: (qmail 16312 invoked by uid 501); 22 Dec 2019 02:23:51 -0000
-Date:   Sun, 22 Dec 2019 13:23:51 +1100
+        by mail105.syd.optusnet.com.au (Postfix) with SMTP id 6B36F3A14D1
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Dec 2019 14:36:02 +1100 (AEDT)
+Received: (qmail 2005 invoked by uid 501); 22 Dec 2019 03:36:01 -0000
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: Documentation question
-Message-ID: <20191222022351.GB1804@dimstar.local.net>
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20191215020220.GA10616@dimstar.local.net>
- <20191220002953.gv25rcn7kvv43zk4@salvia>
- <20191221104345.GA10475@dimstar.local.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191221104345.GA10475@dimstar.local.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue] src: pktb_mangle has signed offset arg so can mangle MAC header with -ve one
+Date:   Sun, 22 Dec 2019 14:36:01 +1100
+Message-Id: <20191222033601.1961-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.14.5
+In-Reply-To: <20191220002953.gv25rcn7kvv43zk4@salvia>
+References: <20191220002953.gv25rcn7kvv43zk4@salvia>
 X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.3 cv=X6os11be c=1 sm=1 tr=0
+X-Optus-CM-Analysis: v=2.3 cv=LYdCFQXi c=1 sm=1 tr=0
         a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
-        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=kj9zAlcOel0A:10 a=pxVhFHJ0LMsA:10
-        a=RSmzAf-M6YYA:10 a=ZhCHxgLN90Xc5NeUzKoA:9 a=CjuIK1q_8ugA:10
+        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=pxVhFHJ0LMsA:10 a=RSmzAf-M6YYA:10
+        a=PO7r1zJSAAAA:8 a=wYwTXCFs3VUMfrEGBRkA:9 a=oHMS247rCS5qQ-Nj:21
+        a=Ozg_w4j7DFa6LYUE:21
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Dec 21, 2019 at 09:43:45PM +1100, Duncan Roe wrote:
-> On Fri, Dec 20, 2019 at 01:29:53AM +0100, Pablo Neira Ayuso wrote:
-> > On Sun, Dec 15, 2019 at 01:02:20PM +1100, Duncan Roe wrote:
-> > > Hi Pablo,
-> > >
-> > > In pktbuff.c, the doc for pktb_mangle states that "It is appropriate to use
-> > > pktb_mangle to change the MAC header".
-> > >
-> > > This is not true. pktb_mangle always mangles from the network header onwards.
-> > >
-> > > I can either:
-> > >
-> > > Whithdraw the offending doc items
-> > >
-> > > OR:
-> > >
-> > > Adjust pktb_mangle to make the doc correct. This involves changing pktb_mangle,
-> > > nfq_ip_mangle and (soon) nfq_ip6_mangle. The changes would be a no-op for
-> > > AF_INET and AF_INET6 packet buffers.
-> > >
-> > > What do you think?
-> >
-> > You could fix it through signed int dataoff. So the users could
-> > specify a negative offset to mangle the MAC address.
-> >
-> > This function was made to update layer 7 payload information to
-> > implement the helpers. So dataoff usually contains the transport
-> > header size.
-> >
-> > Let me know, thanks.
-> >
-> -ve offsets? There has to be a better way.
->
-> When I added documentation for pktb_mangle, I assumed it mangled from
-> pktb->data, rather than checking the source.
->
-> That is the function I documented, and I think we need a function like that.
->
-> Rather than change the behaviour of pktb_mangle when a MAC header is present, I
-> propose a new function pktb_mangle2 which mangles from pktb->data onwards.
->
-> pktb_mangle would call this new function, with dataoff incremented by
-> pktb->network_header - pktb->data (only nonzero for AF_BRIDGE)
->
-> Ok?
->
-> Cheers ... Duncan.
->
-On second thoughts, I'll just do the signed offset thing and have done with it.
-Hope you can accept it quickly: I'll base it on master so you can apply it
-before considering the pktb_usebuf() patch.
+- Update prototype
+- Update doxygen documentation
+- Update declaration
+
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+---
+ include/libnetfilter_queue/pktbuff.h | 2 +-
+ src/extra/pktbuff.c                  | 8 +++++---
+ 2 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/include/libnetfilter_queue/pktbuff.h b/include/libnetfilter_queue/pktbuff.h
+index b15ee1e..5bcc3e5 100644
+--- a/include/libnetfilter_queue/pktbuff.h
++++ b/include/libnetfilter_queue/pktbuff.h
+@@ -19,7 +19,7 @@ uint8_t *pktb_mac_header(struct pkt_buff *pktb);
+ uint8_t *pktb_network_header(struct pkt_buff *pktb);
+ uint8_t *pktb_transport_header(struct pkt_buff *pktb);
+ 
+-int pktb_mangle(struct pkt_buff *pkt, unsigned int dataoff, unsigned int match_offset, unsigned int match_len, const char *rep_buffer, unsigned int rep_len);
++int pktb_mangle(struct pkt_buff *pkt, int dataoff, unsigned int match_offset, unsigned int match_len, const char *rep_buffer, unsigned int rep_len);
+ 
+ bool pktb_mangled(const struct pkt_buff *pktb);
+ 
+diff --git a/src/extra/pktbuff.c b/src/extra/pktbuff.c
+index c4f3da3..6250fbf 100644
+--- a/src/extra/pktbuff.c
++++ b/src/extra/pktbuff.c
+@@ -299,8 +299,10 @@ static int enlarge_pkt(struct pkt_buff *pkt, unsigned int extra)
+ /**
+  * pktb_mangle - adjust contents of a packet
+  * \param pktb Pointer to userspace packet buffer
+- * \param dataoff Offset to layer 4 header. Specify zero to access layer 3 (IP)
+- * header (layer 2 for family \b AF_BRIDGE)
++ * \param dataoff Supplementary offset, usually offset from layer 3 (IP) header
++ * to the layer 4 (TCP or UDP) header. Specify zero to access the layer 3
++ * header. If \b pktb was created in family \b AF_BRIDGE, specify
++ * \b -ETH_HLEN (a negative offset) to access the layer 2 (MAC) header.
+  * \param match_offset Further offset to content that you want to mangle
+  * \param match_len Length of the existing content you want to mangle
+  * \param rep_buffer Pointer to data you want to use to replace current content
+@@ -316,7 +318,7 @@ static int enlarge_pkt(struct pkt_buff *pkt, unsigned int extra)
+  */
+ EXPORT_SYMBOL
+ int pktb_mangle(struct pkt_buff *pktb,
+-		unsigned int dataoff,
++		int dataoff,
+ 		unsigned int match_offset,
+ 		unsigned int match_len,
+ 		const char *rep_buffer,
+-- 
+2.14.5
+
