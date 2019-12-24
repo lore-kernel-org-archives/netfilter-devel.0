@@ -2,89 +2,99 @@ Return-Path: <SRS0=zFhn=2O=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
-	DKIM_SIGNED,DKIM_VALID,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFFF3C2D0CF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Dec 2019 12:12:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70B9BC2D0C3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Dec 2019 23:12:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B691820731
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Dec 2019 12:12:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20B6C206D3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Dec 2019 23:12:14 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="GGe5+9Dq"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="p+1xodUf"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726873AbfLXMMm (ORCPT
+        id S1726271AbfLXXMN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Dec 2019 07:12:42 -0500
-Received: from m12-17.163.com ([220.181.12.17]:36930 "EHLO m12-17.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726352AbfLXMMl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Dec 2019 07:12:41 -0500
-X-Greylist: delayed 938 seconds by postgrey-1.27 at vger.kernel.org; Tue, 24 Dec 2019 07:12:39 EST
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-        s=s110527; h=From:Subject:Date:Message-Id; bh=2PfFdn+GcUUgz9kOGP
-        vjod/qqNrrabIvrEJCD+uVTXM=; b=GGe5+9Dq18bbXMxDrS1I0EXYN00rVR5tkY
-        /ndRddEm30EXVr701RuxrHti/dJBFTWsSGqPH5w1X/NkYeKXRAy2/+1EUu/QVHpc
-        o/WKkDeJgOCqsSnw+fAmXCzDOWPukCwi78Ls78A3R4pu2aCKR1Awq3TSpkE4R9rZ
-        KM5Dywo/s=
-Received: from localhost (unknown [106.37.187.139])
-        by smtp13 (Coremail) with SMTP id EcCowACXtPj2_AFecBFYag--.27430S3;
-        Tue, 24 Dec 2019 19:56:38 +0800 (CST)
-From:   Geliang Tang <geliangtang@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>
-Cc:     Geliang Tang <geliangtang@gmail.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] netfilter: xt_LOG: remove unused headers
-Date:   Tue, 24 Dec 2019 19:56:37 +0800
-Message-Id: <00755cb479aeafbc88c4f8b92e99ca9ada4b9af0.1577188409.git.geliangtang@gmail.com>
-X-Mailer: git-send-email 2.17.1
-X-CM-TRANSID: EcCowACXtPj2_AFecBFYag--.27430S3
-X-Coremail-Antispam: 1Uf129KBjvdXoWrKryDGw1kKr4xZr4xGFyUWrg_yoW3Wwb_Ca
-        s29r48G3WDXr17Aw1xJFs7A345K34xJFn3WrySva15ta1DJw40g397Xr1Yvr45Wwn8CryU
-        Z3WkG34xW345WjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-        9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IU8SeHDUUUUU==
-X-Originating-IP: [106.37.187.139]
-X-CM-SenderInfo: 5jhoxtpqjwt0rj6rljoofrz/1tbiGRaVmVyPWWvBWgAAs5
+        Tue, 24 Dec 2019 18:12:13 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:49684 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726224AbfLXXMN (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 24 Dec 2019 18:12:13 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=h+d8xRCBqMM0iBHFiL2cxqYadKH4RA21/v4sJMnhMVM=; b=p+1xodUf6sLbEPYyWvqB5VvzqG
+        yi9bhGxGtFDq37/L5I4+Hy0Qog/GLzgza5QGE7ngul08WGDTZDN+CVNLROc5/aqFux6i+g77nKIR7
+        I2oP0seIlImaW6pl3G0hbv3ZZ2PrAmmYE1OhwDdzpXy/vvT18pe4A4Uzmi3WqP9EA/l4768Hah9T5
+        xKueeRFhQxLxDbcGBtZ1ZY3rj4hHzV9hDpkMLI+SUeKyO/9Dw731tILCtbuHf/biXezTv+a+MStdw
+        +16HWU2M8+6bfcH6is6sRjxq976UtFVQd/INBGGMztRMReRWDKJCCISWd2/Ejo1wHTbB7Ylz8L2z8
+        U4FfUN5g==;
+Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
+        by kadath.azazel.net with esmtp (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1ijtLX-00025L-Fa
+        for netfilter-devel@vger.kernel.org; Tue, 24 Dec 2019 23:12:11 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH nftables] evaluate: remove expr_set_context call.
+Date:   Tue, 24 Dec 2019 23:12:11 +0000
+Message-Id: <20191224231211.1972101-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.24.0
+In-Reply-To: <20191220190215.1743199-1-jeremy@azazel.net>
+References: <20191220190215.1743199-1-jeremy@azazel.net>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Some headers are not used so remove them.
+expr_evaluate_binop calls expr_set_context for shift expressions to set
+the context data-type to `integer`.  This doesn't seem to serve a
+purpose, and its only effect is to clobber the byte-order of the
+context, resulting in unexpected conversions to NBO.  For example:
 
-Signed-off-by: Geliang Tang <geliangtang@gmail.com>
+  $ sudo nft flush ruleset
+  $ sudo nft add table t
+  $ sudo nft add chain t c '{ type filter hook output priority mangle; }'
+  $ sudo nft add rule t c oif lo tcp dport ssh ct mark set '0x10 | 0xe'
+  $ sudo nft add rule t c oif lo tcp dport ssh ct mark set '0xf << 1'
+  $ sudo nft list table t
+  table ip t {
+          chain c {
+                  type filter hook output priority mangle; policy accept;
+                  oif "lo" tcp dport 22 ct mark set 0x0000001e
+                  oif "lo" tcp dport 22 ct mark set 0x1e000000
+          }
+  }
+
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- net/netfilter/xt_LOG.c | 8 --------
- 1 file changed, 8 deletions(-)
+ src/evaluate.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/net/netfilter/xt_LOG.c b/net/netfilter/xt_LOG.c
-index a1e79b517c01..f5086a6b700a 100644
---- a/net/netfilter/xt_LOG.c
-+++ b/net/netfilter/xt_LOG.c
-@@ -9,15 +9,7 @@
+diff --git a/src/evaluate.c b/src/evaluate.c
+index a865902c0fc7..0feb7d484405 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1144,8 +1144,6 @@ static int expr_evaluate_binop(struct eval_ctx *ctx, struct expr **expr)
+ 		return -1;
+ 	left = op->left;
  
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- #include <linux/module.h>
--#include <linux/spinlock.h>
- #include <linux/skbuff.h>
--#include <linux/if_arp.h>
--#include <linux/ip.h>
--#include <net/ipv6.h>
--#include <net/icmp.h>
--#include <net/udp.h>
--#include <net/tcp.h>
--#include <net/route.h>
- 
- #include <linux/netfilter.h>
- #include <linux/netfilter/x_tables.h>
+-	if (op->op == OP_LSHIFT || op->op == OP_RSHIFT)
+-		expr_set_context(&ctx->ectx, &integer_type, ctx->ectx.len);
+ 	if (expr_evaluate(ctx, &op->right) < 0)
+ 		return -1;
+ 	right = op->right;
 -- 
-2.17.1
-
+2.24.0
 
