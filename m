@@ -2,78 +2,138 @@ Return-Path: <SRS0=NQ4I=2P=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60BF6C2D0C8
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Dec 2019 18:26:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CFCD8C2D0C8
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Dec 2019 23:18:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 371B32072A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Dec 2019 18:26:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9FA0B2075B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Dec 2019 23:18:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726399AbfLYS00 (ORCPT
+        id S1726704AbfLYXSc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 25 Dec 2019 13:26:26 -0500
-Received: from rain.florz.de ([185.139.32.146]:42341 "EHLO rain.florz.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726353AbfLYS0Z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Dec 2019 13:26:25 -0500
-Received: from [2a07:12c0:1c00:43::121] (port=58614 helo=florz.florz.de)
-        by rain.florz.de with esmtpsa (TLSv1.2:DHE-RSA-AES256-SHA256:256)
-        (Exim 4.92)
-        (envelope-from <florz@florz.de>)
-        id 1ikBMU-0005EE-EK; Wed, 25 Dec 2019 19:26:22 +0100
-Received: from florz by florz.florz.de with local (Exim 4.89)
-        (envelope-from <florz@florz.de>)
-        id 1ikBMR-0005P1-6v; Wed, 25 Dec 2019 19:26:19 +0100
-Date:   Wed, 25 Dec 2019 19:26:19 +0100
-From:   Florian Zumbiehl <florz@florz.de>
-To:     Florian Westphal <fw@strlen.de>
+        Wed, 25 Dec 2019 18:18:32 -0500
+Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:53973 "EHLO
+        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726489AbfLYXSb (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 25 Dec 2019 18:18:31 -0500
+Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
+        by mail104.syd.optusnet.com.au (Postfix) with SMTP id C1B6B43FCFC
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Dec 2019 10:18:16 +1100 (AEDT)
+Received: (qmail 30009 invoked by uid 501); 25 Dec 2019 23:18:15 -0000
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [nftables] bug: rejects single-element intervals as supposedly
- empty
-Message-ID: <20191225182619.sci3ifx4yr6d4mhd@florz.florz.de>
-Mail-Followup-To: netfilter-devel@vger.kernel.org, florz@florz.de
-References: <20191225154106.x6mmx3m6hi7ksrao@florz.florz.de>
- <20191225175023.GG795@breakpoint.cc>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191225175023.GG795@breakpoint.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
+Subject: [PATCH libnetfilter_queue] src: doc: Eliminate doxygen warnings from libnetfilter_queue.c
+Date:   Thu, 26 Dec 2019 10:18:15 +1100
+Message-Id: <20191225231815.29967-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.14.5
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.3 cv=LYdCFQXi c=1 sm=1 tr=0
+        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
+        a=pxVhFHJ0LMsA:10 a=RSmzAf-M6YYA:10 a=PO7r1zJSAAAA:8
+        a=rodX5-eLMr3gAVNZdKQA:9 a=uopIpIcpaHI6gYBe:21 a=easaShgky_icMfZf:21
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+- Change items of the form #<word> to "\b <word>".
+  (#<word> is rather obscurely documented to be a reference to a documented
+           entity)
+- Re-work text wrapping in above change to keep lines within 80cc
+- Add 2 missing \param directives
 
-> > | # nft add rule foo bar udp dport 1-1
-> > | Error: Range has zero or negative size
-> > | add rule foo bar udp dport 1-1
-> 
-> I'd guess this is intentional and nft assumes user
-> meant something else such as 1-2 or 1-11.
+12 warnings fixed
 
-Well, I would hope it is not intentional to claim that a one-element set
-has zero or fewer elements!?
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+---
+ src/libnetfilter_queue.c | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-> We could autotranslate this to "dport 1" but I'm not sure its right.
+diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
+index 3f70ba2..3cf9653 100644
+--- a/src/libnetfilter_queue.c
++++ b/src/libnetfilter_queue.c
+@@ -513,10 +513,10 @@ int nfq_unbind_pf(struct nfq_handle *h, uint16_t pf)
+  * \return a nfq_q_handle pointing to the newly created queue
+  *
+  * Creates a new queue handle, and returns it.  The new queue is identified by
+- * #num, and the callback specified by #cb will be called for each enqueued
+- * packet.  The #data argument will be passed unchanged to the callback.  If
+- * a queue entry with id #num already exists, this function will return failure
+- * and the existing entry is unchanged.
++ * \b num, and the callback specified by \b cb will be called for each enqueued
++ * packet.  The \b data argument will be passed unchanged to the callback.  If
++ * a queue entry with id \b num already exists,
++ * this function will return failure and the existing entry is unchanged.
+  *
+  * The nfq_callback type is defined in libnetfilter_queue.h as:
+  * \verbatim
+@@ -651,7 +651,7 @@ int nfq_set_mode(struct nfq_q_handle *qh, uint8_t mode, uint32_t range)
+  * nfq_set_queue_flags - set flags (options) for the kernel queue
+  * \param qh Netfilter queue handle obtained by call to nfq_create_queue().
+  * \param mask specifies which flag bits to modify
+- * \param flag bitmask of flags
++ * \param flags bitmask of flags
+  *
+  * Existing flags, that you may want to combine, are:
+  *
+@@ -834,7 +834,7 @@ static int __set_verdict(struct nfq_q_handle *qh, uint32_t id,
+  * \param qh Netfilter queue handle obtained by call to nfq_create_queue().
+  * \param id	ID assigned to packet by netfilter.
+  * \param verdict verdict to return to netfilter (NF_ACCEPT, NF_DROP)
+- * \param data_len number of bytes of data pointed to by #buf
++ * \param data_len number of bytes of data pointed to by \b buf
+  * \param buf the buffer that contains the packet data
+  *
+  * Can be obtained by:
+@@ -867,7 +867,7 @@ int nfq_set_verdict(struct nfq_q_handle *qh, uint32_t id,
+  * \param id	ID assigned to packet by netfilter.
+  * \param verdict verdict to return to netfilter (NF_ACCEPT, NF_DROP)
+  * \param mark mark to put on packet
+- * \param data_len number of bytes of data pointed to by #buf
++ * \param data_len number of bytes of data pointed to by \b buf
+  * \param buf the buffer that contains the packet data
+  */
+ EXPORT_SYMBOL
+@@ -886,7 +886,7 @@ int nfq_set_verdict2(struct nfq_q_handle *qh, uint32_t id,
+  * \param verdict verdict to return to netfilter (NF_ACCEPT, NF_DROP)
+  *
+  * Unlike nfq_set_verdict, the verdict is applied to all queued packets
+- * whose packet id is smaller or equal to #id.
++ * whose packet id is smaller or equal to \b id.
+  *
+  * batch support was added in Linux 3.1.
+  * These functions will fail silently on older kernels.
+@@ -920,7 +920,7 @@ int nfq_set_verdict_batch2(struct nfq_q_handle *qh, uint32_t id,
+  * \param id	ID assigned to packet by netfilter.
+  * \param verdict verdict to return to netfilter (NF_ACCEPT, NF_DROP)
+  * \param mark the mark to put on the packet, in network byte order.
+- * \param data_len number of bytes of data pointed to by #buf
++ * \param data_len number of bytes of data pointed to by \b buf
+  * \param buf the buffer that contains the packet data
+  *
+  * \return -1 on error; >= 0 otherwise.
+@@ -1213,6 +1213,7 @@ struct nfqnl_msg_packet_hw *nfq_get_packet_hw(struct nfq_data *nfad)
+ /**
+  * nfq_get_uid - get the UID of the user the packet belongs to
+  * \param nfad Netlink packet data handle passed to callback function
++ * \param uid Set to UID on return
+  *
+  * \warning If the NFQA_CFG_F_GSO flag is not set, then fragmented packets
+  * may be pushed into the queue. In this case, only one fragment will have the
+@@ -1233,6 +1234,7 @@ int nfq_get_uid(struct nfq_data *nfad, uint32_t *uid)
+ /**
+  * nfq_get_gid - get the GID of the user the packet belongs to
+  * \param nfad Netlink packet data handle passed to callback function
++ * \param gid Set to GID on return
+  *
+  * \warning If the NFQA_CFG_F_GSO flag is not set, then fragmented packets
+  * may be pushed into the queue. In this case, only one fragment will have the
+-- 
+2.14.5
 
-Well, I don't know enough about the internals to know whether "translation"
-is the right thing to do, but I would think the intended meaning (i.e.,
-match port 1) is obvious, so that is what should happen?
-
-Second-guessing the user on input that would seem obviously valid and
-well-defined based on the documentation certainly doesn't seem like a good
-idea to me. Just because there is a possibly more efficient way to encode
-the same rule doesn't seem like a good reason to reject this encoding, as
-that just complicates everything, and especially any code interfacing with
-this, as you then have to special-case all those cases instead of just
-generating a universal format that can represent all possible cases.
-
-Also, nft accepts 1.2.3.4/32 just fine, or 1.2.3.0-1.2.3.255, which both
-could be encoded more efficiently as well.
-
-Regards, Florian
