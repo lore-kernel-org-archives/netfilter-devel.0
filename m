@@ -6,38 +6,38 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26C5BC2D0DC
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Dec 2019 09:48:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3817C2D0DB
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Dec 2019 09:48:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 07AAA2073B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Dec 2019 09:48:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B59B720722
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Dec 2019 09:48:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726890AbfLYJsh (ORCPT
+        id S1726469AbfLYJs3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 25 Dec 2019 04:48:37 -0500
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:26274 "EHLO
+        Wed, 25 Dec 2019 04:48:29 -0500
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:26272 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726352AbfLYJsa (ORCPT
+        with ESMTP id S1726307AbfLYJs2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Dec 2019 04:48:30 -0500
+        Wed, 25 Dec 2019 04:48:28 -0500
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 80E554198B;
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 550E641A6B;
         Wed, 25 Dec 2019 17:48:24 +0800 (CST)
 From:   wenxu@ucloud.cn
 To:     pablo@netfilter.org, paulb@mellanox.com, netdev@vger.kernel.org
 Cc:     netfilter-devel@vger.kernel.org, jiri@mellanox.com
-Subject: [PATCH net-next 2/5] netfilter: nf_flow_table_offload: refactor nf_flow_table_offload_setup to support indir setup
-Date:   Wed, 25 Dec 2019 17:48:20 +0800
-Message-Id: <1577267303-24780-3-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH net-next 1/5] flow_offload: add TC_SETP_FT type in flow_indr_block_call
+Date:   Wed, 25 Dec 2019 17:48:19 +0800
+Message-Id: <1577267303-24780-2-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1577267303-24780-1-git-send-email-wenxu@ucloud.cn>
 References: <1577267303-24780-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSUlOQkJCQk5KSE1JTUpZV1koWU
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSkJOQkJCQkxCQkxJQ09ZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6OAg6UQw*Ezg9KUIPMBUVMhQD
-        MwwKCzpVSlVKTkxMSU1MSEtOSkNKVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUhNT0k3Bg++
-X-HM-Tid: 0a6f3c75186b2086kuqy80e554198b
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6OEk6Sjo6Szg6MUISTxcJMgsu
+        QwNPFBJVSlVKTkxMSU1MSEtPTktKVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUhNT0g3Bg++
+X-HM-Tid: 0a6f3c7517e22086kuqy550e641a6b
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -45,90 +45,80 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-Refactor nf_flow_table_offload_setup to support indir setup in
-the next patch
+Add TC_SETP_FT type in flow_indr_block_call for supporting indr block call
+in nf_flow_table_offload
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 ---
- net/netfilter/nf_flow_table_offload.c | 54 ++++++++++++++++++++++++-----------
- 1 file changed, 38 insertions(+), 16 deletions(-)
+ include/net/flow_offload.h        | 3 ++-
+ net/core/flow_offload.c           | 6 +++---
+ net/netfilter/nf_tables_offload.c | 2 +-
+ net/sched/cls_api.c               | 2 +-
+ 4 files changed, 7 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index de7a0d1..89eb1a5 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -808,26 +808,31 @@ static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
- 	return err;
- }
+diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
+index c6f7bd2..5cf9396 100644
+--- a/include/net/flow_offload.h
++++ b/include/net/flow_offload.h
+@@ -410,6 +410,7 @@ void flow_indr_block_cb_unregister(struct net_device *dev,
  
--int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
--				struct net_device *dev,
--				enum flow_block_command cmd)
-+static void nf_flow_table_block_offload_init(struct flow_block_offload *bo,
-+					     struct net *net,
-+					     enum flow_block_command cmd,
-+					     struct nf_flowtable *flowtable,
-+					     struct netlink_ext_ack *extack)
-+{
-+	memset(bo, 0, sizeof(*bo));
-+	bo->net		= net;
-+	bo->block	= &flowtable->flow_block;
-+	bo->command	= cmd;
-+	bo->binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
-+	bo->extack	= extack;
-+	INIT_LIST_HEAD(&bo->cb_list);
-+}
-+
-+static int nf_flow_table_offload_cmd(struct nf_flowtable *flowtable,
-+				     struct net_device *dev,
-+				     enum flow_block_command cmd)
+ void flow_indr_block_call(struct net_device *dev,
+ 			  struct flow_block_offload *bo,
+-			  enum flow_block_command command);
++			  enum flow_block_command command,
++			  enum tc_setup_type type);
+ 
+ #endif /* _NET_FLOW_OFFLOAD_H */
+diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
+index 45b6a59..c0d9223 100644
+--- a/net/core/flow_offload.c
++++ b/net/core/flow_offload.c
+@@ -483,7 +483,8 @@ void flow_indr_block_cb_unregister(struct net_device *dev,
+ 
+ void flow_indr_block_call(struct net_device *dev,
+ 			  struct flow_block_offload *bo,
+-			  enum flow_block_command command)
++			  enum flow_block_command command,
++			  enum tc_setup_type type)
  {
- 	struct netlink_ext_ack extack = {};
--	struct flow_block_offload bo = {};
-+	struct flow_block_offload bo;
- 	int err;
+ 	struct flow_indr_block_cb *indr_block_cb;
+ 	struct flow_indr_block_dev *indr_dev;
+@@ -493,8 +494,7 @@ void flow_indr_block_call(struct net_device *dev,
+ 		return;
  
--	if (!(flowtable->flags & NF_FLOWTABLE_HW_OFFLOAD))
--		return 0;
--
--	if (!dev->netdev_ops->ndo_setup_tc)
--		return -EOPNOTSUPP;
--
--	bo.net		= dev_net(dev);
--	bo.block	= &flowtable->flow_block;
--	bo.command	= cmd;
--	bo.binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
--	bo.extack	= &extack;
--	INIT_LIST_HEAD(&bo.cb_list);
-+	nf_flow_table_block_offload_init(&bo, dev_net(dev), cmd, flowtable,
-+					 &extack);
- 
- 	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_FT, &bo);
- 	if (err < 0)
-@@ -835,6 +840,23 @@ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
- 
- 	return nf_flow_table_block_setup(flowtable, &bo, cmd);
+ 	list_for_each_entry(indr_block_cb, &indr_dev->cb_list, list)
+-		indr_block_cb->cb(dev, indr_block_cb->cb_priv, TC_SETUP_BLOCK,
+-				  bo);
++		indr_block_cb->cb(dev, indr_block_cb->cb_priv, type, bo);
  }
-+
-+int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
-+				struct net_device *dev,
-+				enum flow_block_command cmd)
-+{
-+	int err;
-+
-+	if (!(flowtable->flags & NF_FLOWTABLE_HW_OFFLOAD))
-+		return 0;
-+
-+	if (dev->netdev_ops->ndo_setup_tc)
-+		err = nf_flow_table_offload_cmd(flowtable, dev, cmd);
-+	else
-+		err = -EOPNOTSUPP;
-+
-+	return err;
-+}
- EXPORT_SYMBOL_GPL(nf_flow_table_offload_setup);
+ EXPORT_SYMBOL_GPL(flow_indr_block_call);
  
- int nf_flow_table_offload_init(void)
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index a9ea29a..a9e71b4 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -313,7 +313,7 @@ static int nft_indr_block_offload_cmd(struct nft_base_chain *chain,
+ 
+ 	nft_flow_block_offload_init(&bo, dev_net(dev), cmd, chain, &extack);
+ 
+-	flow_indr_block_call(dev, &bo, cmd);
++	flow_indr_block_call(dev, &bo, cmd, TC_SETUP_BLOCK);
+ 
+ 	if (list_empty(&bo.cb_list))
+ 		return -EOPNOTSUPP;
+diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
+index 6a0eaca..113be4d 100644
+--- a/net/sched/cls_api.c
++++ b/net/sched/cls_api.c
+@@ -714,7 +714,7 @@ static void tc_indr_block_call(struct tcf_block *block,
+ 	};
+ 	INIT_LIST_HEAD(&bo.cb_list);
+ 
+-	flow_indr_block_call(dev, &bo, command);
++	flow_indr_block_call(dev, &bo, command, TC_SETUP_BLOCK);
+ 	tcf_block_setup(block, &bo);
+ }
+ 
 -- 
 1.8.3.1
 
