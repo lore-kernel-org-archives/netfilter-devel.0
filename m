@@ -1,98 +1,107 @@
-Return-Path: <SRS0=zFhn=2O=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=NQ4I=2P=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BFAEC2D0C3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Dec 2019 23:16:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D010C2D0DA
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Dec 2019 09:48:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F24D9206D3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Dec 2019 23:16:07 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="C8RpBULe"
+	by mail.kernel.org (Postfix) with ESMTP id 0D5FC20722
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Dec 2019 09:48:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726388AbfLXXQH (ORCPT
+        id S1726627AbfLYJsa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Dec 2019 18:16:07 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:49822 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726259AbfLXXQH (ORCPT
+        Wed, 25 Dec 2019 04:48:30 -0500
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:26273 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726106AbfLYJs3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Dec 2019 18:16:07 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=d7sMv1jpcvZW3fBBCG0aOjGOY9H8YsQPaZRtWO4yfmQ=; b=C8RpBULeu39DS7COhhpbrvvMo+
-        51yyfotWqW7m/moTjmZmULbu7Is2cXrUynH9fuTzNzoZf0OzWR1blhXikdP0lDYxkfw9tvS3S7AOk
-        ZORzA+2RsaYA2R82246AjP9C9s0ueJ/tR2QQzX0DZh+1Mtb0yGmfZl/4caFo2KMn8NWY/sWbTKtdX
-        CuInEJ9V3vQIWYgctSjF8GY2PKtZ0GzGwMUMUQcx8c9bsQ9MQfpQ4CMGdUGHTpGExfBI+YOqG1vpZ
-        S0oifEtDXo5ZXsYPjg1TgdgsL0CKLwcN2tB8hakhIjcishPpoutYRkJ23hTgMetyU3/Rbfk9uxBC5
-        knl2r7bg==;
-Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=azazel.net)
-        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1ijtPK-00028i-8P
-        for netfilter-devel@vger.kernel.org; Tue, 24 Dec 2019 23:16:06 +0000
-Date:   Tue, 24 Dec 2019 23:16:05 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nftables] evaluate: remove expr_set_context call.
-Message-ID: <20191224231605.GA1798750@azazel.net>
-References: <20191220190215.1743199-1-jeremy@azazel.net>
- <20191224231211.1972101-1-jeremy@azazel.net>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="nFreZHaLTZJo0R7j"
-Content-Disposition: inline
-In-Reply-To: <20191224231211.1972101-1-jeremy@azazel.net>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+        Wed, 25 Dec 2019 04:48:29 -0500
+Received: from localhost.localdomain (unknown [123.59.132.129])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 27F4841AF8;
+        Wed, 25 Dec 2019 17:48:24 +0800 (CST)
+From:   wenxu@ucloud.cn
+To:     pablo@netfilter.org, paulb@mellanox.com, netdev@vger.kernel.org
+Cc:     netfilter-devel@vger.kernel.org, jiri@mellanox.com
+Subject: [PATCH net-next 0/5] netfilter: add indr block setup in nf_flow_table_offload
+Date:   Wed, 25 Dec 2019 17:48:18 +0800
+Message-Id: <1577267303-24780-1-git-send-email-wenxu@ucloud.cn>
+X-Mailer: git-send-email 1.8.3.1
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZSVVJQ0lCQkJCQklITEtNSllXWShZQU
+        lCN1dZLVlBSVdZCQ4XHghZQVk1NCk2OjckKS43PlkG
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PjI6CAw6EDg1C0JOMBc2MhEc
+        IUoaCi9VSlVKTkxMSU1MSEtPSElKVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUhOQkM3Bg++
+X-HM-Tid: 0a6f3c7516fb2086kuqy27f4841af8
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+From: wenxu <wenxu@ucloud.cn>
 
---nFreZHaLTZJo0R7j
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This patch provide tunnel offload in nf_flow_table_offload based on
+route lwtunnel. 
+The first patch add TC_SETP_FT type in flow_indr_block_call.
+The next two patches add support indr callback setup in flowtable offload.
+The last two patches add tunnel match and action offload.
 
-On 2019-12-24, at 23:12:11 +0000, Jeremy Sowden wrote:
-> expr_evaluate_binop calls expr_set_context for shift expressions to
-> set the context data-type to `integer`.  This doesn't seem to serve a
-> purpose, and its only effect is to clobber the byte-order of the
-> context, resulting in unexpected conversions to NBO.  For example:
+Test with mlx driver as following:
 
-Whoops.  Sent v1 again, instead of v2.  Let's try that again.
+ip link add user1 type vrf table 1
+ip l set user1 up 
+ip l set dev mlx_pf0vf0 down
+ip l set dev mlx_pf0vf0 master user1
+ifconfig mlx_pf0vf0 10.0.0.1/24 up
 
-J.
+ifconfig mlx_p0 172.168.152.75/24 up
 
---nFreZHaLTZJo0R7j
-Content-Type: application/pgp-signature; name="signature.asc"
+ip l add dev tun1 type gretap key 1000
+ip l set dev tun1 master user1
+ifconfig tun1 10.0.1.1/24 up
 
------BEGIN PGP SIGNATURE-----
+ip r r 10.0.1.241 encap ip id 1000 dst 172.168.152.241 key dev tun1 table 1
 
-iQIzBAABCgAdFiEEZ8d+2N/NBLDbUxIF0Z7UzfnX9sMFAl4CnBYACgkQ0Z7UzfnX
-9sNhRg/9EXWvzSBs7mFqFwpZt9190M+fzpXsrCEEydA97D4MNWWBeJdbu+fHz3un
-HSzu/yqPdY6PqY8ho+K6Jv+TdD0ikL7ZJuDqFQf1rbJ0LDcYK+yj6RJ+D0feNvXl
-7zzogDE5RTws083PU/jO6T66+B6yq4JoIugwRbVBlZSjAcdhp55qXy/5c0krlFT8
-9wQf9hNaOJ8AthrTNVJL2RyjoycNVu5lqo+PA6Tktm9pyVumsqrE1aQfXBOvRCVR
-dct2n+Zm8YxMSpY9d9ApSTtT12uxzjDZQ0h5+maxQ7aylUkycYGaxQaouhmOkRHR
-ZDXoMv1OvHmqXzpVNafQAGD1+/5WWqRMD/J0kGNL/tZ2l7DIQEG7w4DSAp6LNDZz
-XnsBLvr9I4wwE+KzKlkUmRAYLBko15kjTei1NB7y67ugQKAF/KciJ7pjTodDslLG
-5EFxOTa9IG1gzAQb4b2C1D03kTCNzd9qQBoUZIotVnHFvAk4m7fs1WviUYuXuJdY
-QyMOX0/Ud53BRZBudfALTfQBhXfMTLeapRtPCext9VHbVk/Vccucu+1KDww/gZDx
-hs61wb9MV5oF4S+xvgIMZoUgACY8RlTMv6Ekx40tcJ+4D+dRcIF6umZRMuMnDDEg
-Uawi3ygB7ZNSh/V6I3e9Q8xNvZ0Ccr9whTrruKvBE3CbkYG38Ns=
-=ojGG
------END PGP SIGNATURE-----
+nft add table firewall
+nft add chain firewall zones { type filter hook prerouting priority - 300 \; }
+nft add rule firewall zones counter ct zone set iif map { "tun1" : 1, "mlx_pf0vf0" : 1 }
+nft add chain firewall rule-1000-ingress
+nft add rule firewall rule-1000-ingress ct zone 1 ct state established,related counter accept
+nft add rule firewall rule-1000-ingress ct zone 1 ct state invalid counter drop
+nft add rule firewall rule-1000-ingress ct zone 1 tcp dport 5001 ct state new counter accept
+nft add rule firewall rule-1000-ingress ct zone 1 udp dport 5001 ct state new counter accept
+nft add rule firewall rule-1000-ingress ct zone 1 tcp dport 22 ct state new counter accept
+nft add rule firewall rule-1000-ingress ct zone 1 ip protocol icmp ct state new counter accept
+nft add rule firewall rule-1000-ingress counter drop
+nft add chain firewall rules-all { type filter hook prerouting priority - 150 \; }
+nft add rule firewall rules-all meta iifkind "vrf" counter accept
+nft add rule firewall rules-all iif vmap { "tun1" : jump rule-1000-ingress }
 
---nFreZHaLTZJo0R7j--
+nft add flowtable firewall fb1 { hook ingress priority 2 \; devices = { tun1, mlx_pf0vf0 } \; }
+nft add chain firewall ftb-all {type filter hook forward priority 0 \; policy accept \; }
+nft add rule firewall ftb-all ct zone 1 ip protocol tcp flow offload @fb1
+nft add rule firewall ftb-all ct zone 1 ip protocol udp flow offload @fb1
+
+
+wenxu (5):
+  flow_offload: add TC_SETP_FT type in flow_indr_block_call
+  netfilter: nf_flow_table_offload: refactor nf_flow_table_offload_setup
+    to support indir setup
+  netfilter: nf_flow_table_offload: add indr block setup support
+  netfilter: nf_flow_table_offload: add tunnel match offload support
+  netfilter: nf_flow_table_offload: add tunnel encap/decap action
+    offload support
+
+ include/net/flow_offload.h            |   3 +-
+ net/core/flow_offload.c               |   6 +-
+ net/netfilter/nf_flow_table_offload.c | 253 +++++++++++++++++++++++++++++++---
+ net/netfilter/nf_tables_offload.c     |   2 +-
+ net/sched/cls_api.c                   |   2 +-
+ 5 files changed, 243 insertions(+), 23 deletions(-)
+
+-- 
+1.8.3.1
+
