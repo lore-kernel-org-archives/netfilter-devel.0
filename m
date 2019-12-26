@@ -2,93 +2,91 @@ Return-Path: <SRS0=nsnV=2Q=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19A34C2D0C8
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Dec 2019 00:09:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5F06C2D0C8
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Dec 2019 03:05:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D4B502072A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Dec 2019 00:09:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 85C0F207FF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Dec 2019 03:05:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="d7fvc0n9"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lmFcDDBZ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726885AbfLZAJg (ORCPT
+        id S1726995AbfLZDFr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 25 Dec 2019 19:09:36 -0500
-Received: from mail-pj1-f67.google.com ([209.85.216.67]:34973 "EHLO
-        mail-pj1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726879AbfLZAJg (ORCPT
+        Wed, 25 Dec 2019 22:05:47 -0500
+Received: from mail-ed1-f48.google.com ([209.85.208.48]:36205 "EHLO
+        mail-ed1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726903AbfLZDFr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Dec 2019 19:09:36 -0500
-Received: by mail-pj1-f67.google.com with SMTP id s7so2758070pjc.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Dec 2019 16:09:35 -0800 (PST)
+        Wed, 25 Dec 2019 22:05:47 -0500
+Received: by mail-ed1-f48.google.com with SMTP id j17so21468108edp.3;
+        Wed, 25 Dec 2019 19:05:45 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=Idwj9WaOsMr0qt00v45BLnXheQ8/XujWHBiNNm2CBV4=;
-        b=d7fvc0n9PX/T5khhw+Veyi45h5jmo3S6c6USrOzEHQCY788bPkaW/ZsJlamn877BBN
-         01lgaKGemI79HqrZIVhGrO/nTumV7jFJrK6+bhzUuTfRQy1PdENbTvfD2D7Ism7Tz9ic
-         IJ4kzLbXX1W3VhrRhKhnvauS/CdfgMMSNnB+c0hLjnY52GintbL2trontfyQXz7J+nRp
-         VAFvNPh6NtmlcaZSrOm8b/nTODk/UrsFUJ51jGewkHyRWjReIP2ZRcqx4/+e9M+j5IcU
-         VStyIwbjZC1h0A6OuPPtgP15+0+oz+SKHBCe7SzLR2JBVUxNmkTmkjGtQH8ycV3dJVrn
-         qWMg==
+        h=mime-version:from:date:message-id:subject:to:cc;
+        bh=j6vQieOj30ZsdktwZCgehiukeP99fsS6BnJ4QLRdT5s=;
+        b=lmFcDDBZT9QZOp9sA93YVsAjP6ByKbEMqKSJ1AUQPtt2nJe9tLfM1ynFAmF/bxUiaa
+         7N9iu1y4BuNAeq3dzCYlwhCqQEs7g+7Nx15yf3OiYHcjUcUkDxoeiR4AAqCQ0dFrhwm4
+         5eWDLliiysD44hWtiPLHL2nH59LtB5EuJBtqEENRWWW74SemaGzRTf6cjPJMTT56LQWB
+         epFxnWtFDTn+VhnNgnA66GwIevr0by9LcSHqhz7OdghWfqTW+OUXHSb6IYd1uiIRUyHR
+         m8BBwjzTfMRfuqaNhG9Wn+CxMStsn/sfcloHZJ6yqGT8J0ajKUqKbcfP9MRezkryjoas
+         kt9A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=Idwj9WaOsMr0qt00v45BLnXheQ8/XujWHBiNNm2CBV4=;
-        b=b3a+0aTvLfbsojJkXXGpSEfH4FfbiZcQtMjk63X5vwLrqAIbhqu0iquTrgTf019TfI
-         hcfsSFWVXWn3oH1npnwxCnOtK6ZXlm8T2x20EyeEzF/mZaQYYtYTTSa4t6fBQ9SOtJPz
-         mHy/r5yXBw5kmJ12jlBxqiCrfC59TognQUFoKrkYKCgS/OBsNy4y+1tqA/XFV199osbw
-         /1LKfbLi5qzQIhriV6I6U2Fyi1+SWun9oVOLZDNNRdRPu9qEaNjCPJ0E8Vs4Xv4w3OVZ
-         iSMPQ2BzI4PIxXmd7yBTW8U6k8iYkQN1uJN3/ptRHkbD3zgzSAK+fzR7Mah+4p0gqljR
-         zOcw==
-X-Gm-Message-State: APjAAAU9q/m53jYRUhEnL2PtNWxbTb2p9lszA3DBbK4sPFE6+PFlR7fE
-        bY3zgWn6tEwAWebg8OaJTRDNQY4t2Ak=
-X-Google-Smtp-Source: APXvYqwvcq5JIObS3tYYLrHUp5wWNOf/iE9LZ75mT2LQTLBev35E/OO+BWEHS9SVorduHVpw1chGNg==
-X-Received: by 2002:a17:90a:8a0c:: with SMTP id w12mr15788534pjn.61.1577318975145;
-        Wed, 25 Dec 2019 16:09:35 -0800 (PST)
-Received: from f3.synalogic.ca (ag061063.dynamic.ppp.asahi-net.or.jp. [157.107.61.63])
-        by smtp.gmail.com with ESMTPSA id u1sm33001711pfn.133.2019.12.25.16.09.33
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 25 Dec 2019 16:09:33 -0800 (PST)
-From:   Benjamin Poirier <benjamin.poirier@gmail.com>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH] doc: Fix typo in IGMP section
-Date:   Thu, 26 Dec 2019 09:08:37 +0900
-Message-Id: <20191226000837.56274-1-benjamin.poirier@gmail.com>
-X-Mailer: git-send-email 2.24.1
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
+        bh=j6vQieOj30ZsdktwZCgehiukeP99fsS6BnJ4QLRdT5s=;
+        b=MQPcrehFucx2NpJEx6yDvhuXCesdUpUghrFoflq+LEyTP3GUNWJ7/+UUFFwCraKy6V
+         anXExRPCIV85+VaQZ9q7VUVKSFhUxkwtiqK168RL7b7kK5l7tcFmcUEdHE9zi71kdqlj
+         pcD+iAMlj2L53VWjZZ3KhNifEPSSs2sce13G2Sd3hz3RDVg6MkSmLaozYRlC8RJnBS+9
+         8LhHVk/eNbpBABHrD6EITvhl8YJn2DRwdjsMTNdNTbVJBdBb4ohB4l84CTF8fe57WOIO
+         G90g8TtWLaDrkNIH+ErLyhlB7j57QYuhtTe9w3GrFFsWFt99MwI+i/QL69GjChiD3gfu
+         KdHw==
+X-Gm-Message-State: APjAAAXM/Rsb3bCOhHzPdQEIH0499mDdxXmJ1s5ISIDEymz/TS3o6ZK+
+        X/CwvB2M+cqASLaxOwJZyvMESSfHja94c214OoELMdAa
+X-Google-Smtp-Source: APXvYqzfeBmJTMtTo2bhjqYTQNVJkyHtjKv+40FLlUSBzkb89e7aHaPs7yXzVRD+lvXcVxlyXAwTZWkLQk9/PmSIulY=
+X-Received: by 2002:a17:906:4dc1:: with SMTP id f1mr47065348ejw.105.1577329544573;
+ Wed, 25 Dec 2019 19:05:44 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From:   Tom Yan <tom.ty89@gmail.com>
+Date:   Thu, 26 Dec 2019 11:05:33 +0800
+Message-ID: <CAGnHSEkvf0zieVJtPyneZ6PfnzeANmfFxTb=0JpgVb1FXVk0-w@mail.gmail.com>
+Subject: Weird/High CPU usage caused by LOG target
+To:     netfilter-devel@vger.kernel.org
+Cc:     netfilter@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Benjamin Poirier <benjamin.poirier@gmail.com>
----
- doc/payload-expression.txt | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi all,
 
-diff --git a/doc/payload-expression.txt b/doc/payload-expression.txt
-index dba42fd5..4bbf8d05 100644
---- a/doc/payload-expression.txt
-+++ b/doc/payload-expression.txt
-@@ -184,7 +184,7 @@ igmp_type
- IGMP maximum response time field |
- integer (8 bit)
- |checksum|
--ICMP checksum field |
-+IGMP checksum field |
- integer (16 bit)
- |group|
- Group address|
--- 
-2.24.1
+So I was trying to log all traffics in the FORWARD chain with the LOG
+target in iptables (while I say all, it's just some VPN server/client
+that is used by only me, and the tests were just opening some
+website).
 
+I notice that the logging causes high CPU usage (so it goes up only
+when there are traffics). In (h)top, the usage shows up as openvpn's
+if the forwarding involves their tuns. Say I am forwarding from one
+tun to another, each of the openvpn instance will max out one core on
+my raspberry pi 3 b+. (And that actually slows the whole system down,
+like ssh/bash responsiveness, and stalls the traffic flow.) If I do
+not log, or log with the NFLOG target instead, their CPU usage will be
+less than 1%.
+
+Interestingly, the problem seems to be way less obvious if I am using
+it on higher end devices (like my Haswell PC, or even a raspberry pi
+4). There are still "spikes" as well, but it won't make me "notice"
+the problem, at least not when I am just doing some trivial web
+browsing.
+
+Let me know how I can further help debugging, if any of you are
+interested in fixing this.
+
+Regards,
+Tom
