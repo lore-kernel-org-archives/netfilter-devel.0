@@ -1,88 +1,183 @@
-Return-Path: <SRS0=nsnV=2Q=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=2e0L=2R=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDCD0C2D0C0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Dec 2019 22:29:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 353CFC2D0DB
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Dec 2019 00:34:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9C6D7206CB
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Dec 2019 22:29:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13EBF20838
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Dec 2019 00:34:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727033AbfLZW3k (ORCPT
+        id S1726550AbfL0AdU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 26 Dec 2019 17:29:40 -0500
-Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:56727 "EHLO
-        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727028AbfLZW3j (ORCPT
+        Thu, 26 Dec 2019 19:33:20 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:35180 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726193AbfL0AdU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Dec 2019 17:29:39 -0500
-Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
-        by mail104.syd.optusnet.com.au (Postfix) with SMTP id A2E907EACD5
-        for <netfilter-devel@vger.kernel.org>; Fri, 27 Dec 2019 09:29:24 +1100 (AEDT)
-Received: (qmail 5185 invoked by uid 501); 26 Dec 2019 22:29:23 -0000
-Date:   Fri, 27 Dec 2019 09:29:23 +1100
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     Tom Yan <tom.ty89@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-Subject: Re: Weird/High CPU usage caused by LOG target
-Message-ID: <20191226222923.GA32765@dimstar.local.net>
-Mail-Followup-To: Tom Yan <tom.ty89@gmail.com>,
-        netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-References: <CAGnHSEkvf0zieVJtPyneZ6PfnzeANmfFxTb=0JpgVb1FXVk0-w@mail.gmail.com>
+        Thu, 26 Dec 2019 19:33:20 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1ikdZ7-0007YP-Up; Fri, 27 Dec 2019 01:33:18 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     syzbot+d7358a458d8a81aee898@syzkaller.appspotmail.com,
+        syzkaller-bugs@googlegroups.com, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: arp_tables: init netns pointer in xt_tgchk_param struct
+Date:   Fri, 27 Dec 2019 01:33:10 +0100
+Message-Id: <20191227003310.16061-1-fw@strlen.de>
+X-Mailer: git-send-email 2.24.1
+In-Reply-To: <00000000000057fd27059aa1dfca@google.com>
+References: <00000000000057fd27059aa1dfca@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAGnHSEkvf0zieVJtPyneZ6PfnzeANmfFxTb=0JpgVb1FXVk0-w@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.3 cv=X6os11be c=1 sm=1 tr=0
-        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
-        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=kj9zAlcOel0A:10 a=pxVhFHJ0LMsA:10
-        a=RSmzAf-M6YYA:10 a=YN2swqTt7GDZSc3HkucA:9 a=CjuIK1q_8ugA:10
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Dec 26, 2019 at 11:05:33AM +0800, Tom Yan wrote:
-> Hi all,
->
-> So I was trying to log all traffics in the FORWARD chain with the LOG
-> target in iptables (while I say all, it's just some VPN server/client
-> that is used by only me, and the tests were just opening some
-> website).
->
-> I notice that the logging causes high CPU usage (so it goes up only
-> when there are traffics). In (h)top, the usage shows up as openvpn's
-> if the forwarding involves their tuns. Say I am forwarding from one
-> tun to another, each of the openvpn instance will max out one core on
-> my raspberry pi 3 b+. (And that actually slows the whole system down,
-> like ssh/bash responsiveness, and stalls the traffic flow.) If I do
-> not log, or log with the NFLOG target instead, their CPU usage will be
-> less than 1%.
->
-> Interestingly, the problem seems to be way less obvious if I am using
-> it on higher end devices (like my Haswell PC, or even a raspberry pi
-> 4). There are still "spikes" as well, but it won't make me "notice"
-> the problem, at least not when I am just doing some trivial web
-> browsing.
->
-> Let me know how I can further help debugging, if any of you are
-> interested in fixing this.
->
-> Regards,
-> Tom
->
-Hi Tom,
+We get crash when the targets checkentry function tries to make
+use of the network namespace pointer for arptables.
 
-Just in case you missed it, be sure that your logger is configured not to sync
-the file system after every logging. That is the default action btw.
+When the net pointer got added back in 2010, only ip/ip6/ebtables were
+changed to initialize it, so arptables has this set to NULL.
 
-I have used large-volume logging in the past and never encountered a CPU problem
-(but had to run logrotate every minute to avoid filling the disk).
+This isn't a problem for normal arptables because no existing
+arptables target has a checkentry function that makes use of par->net.
 
-Cheers ... Duncan.
+However, direct users of the setsockopt interface can provide any
+target they want as long as its registered for ARP or UNPSEC protocols.
+
+syzkaller managed to send a semi-valid arptables rule for RATEEST target
+which is enough to trigger NULL deref:
+
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+RIP: xt_rateest_tg_checkentry+0x11d/0xb40 net/netfilter/xt_RATEEST.c:109
+[..]
+ xt_check_target+0x283/0x690 net/netfilter/x_tables.c:1019
+ check_target net/ipv4/netfilter/arp_tables.c:399 [inline]
+ find_check_entry net/ipv4/netfilter/arp_tables.c:422 [inline]
+ translate_table+0x1005/0x1d70 net/ipv4/netfilter/arp_tables.c:572
+ do_replace net/ipv4/netfilter/arp_tables.c:977 [inline]
+ do_arpt_set_ctl+0x310/0x640 net/ipv4/netfilter/arp_tables.c:1456
+
+Fixes: add67461240c1d ("netfilter: add struct net * to target parameters")
+Reported-by: syzbot+d7358a458d8a81aee898@syzkaller.appspotmail.com
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/ipv4/netfilter/arp_tables.c | 27 ++++++++++++++++-----------
+ 1 file changed, 16 insertions(+), 11 deletions(-)
+
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 214154b47d56..069f72edb264 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -384,10 +384,11 @@ next:		;
+ 	return 1;
+ }
+ 
+-static inline int check_target(struct arpt_entry *e, const char *name)
++static int check_target(struct arpt_entry *e, struct net *net, const char *name)
+ {
+ 	struct xt_entry_target *t = arpt_get_target(e);
+ 	struct xt_tgchk_param par = {
++		.net       = net,
+ 		.table     = name,
+ 		.entryinfo = e,
+ 		.target    = t->u.kernel.target,
+@@ -399,8 +400,9 @@ static inline int check_target(struct arpt_entry *e, const char *name)
+ 	return xt_check_target(&par, t->u.target_size - sizeof(*t), 0, false);
+ }
+ 
+-static inline int
+-find_check_entry(struct arpt_entry *e, const char *name, unsigned int size,
++static int
++find_check_entry(struct arpt_entry *e, struct net *net, const char *name,
++		 unsigned int size,
+ 		 struct xt_percpu_counter_alloc_state *alloc_state)
+ {
+ 	struct xt_entry_target *t;
+@@ -419,7 +421,7 @@ find_check_entry(struct arpt_entry *e, const char *name, unsigned int size,
+ 	}
+ 	t->u.kernel.target = target;
+ 
+-	ret = check_target(e, name);
++	ret = check_target(e, net, name);
+ 	if (ret)
+ 		goto err;
+ 	return 0;
+@@ -512,7 +514,9 @@ static inline void cleanup_entry(struct arpt_entry *e)
+ /* Checks and translates the user-supplied table segment (held in
+  * newinfo).
+  */
+-static int translate_table(struct xt_table_info *newinfo, void *entry0,
++static int translate_table(struct net *net,
++			   struct xt_table_info *newinfo,
++			   void *entry0,
+ 			   const struct arpt_replace *repl)
+ {
+ 	struct xt_percpu_counter_alloc_state alloc_state = { 0 };
+@@ -569,7 +573,7 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
+ 	/* Finally, each sanity check must pass */
+ 	i = 0;
+ 	xt_entry_foreach(iter, entry0, newinfo->size) {
+-		ret = find_check_entry(iter, repl->name, repl->size,
++		ret = find_check_entry(iter, net, repl->name, repl->size,
+ 				       &alloc_state);
+ 		if (ret != 0)
+ 			break;
+@@ -974,7 +978,7 @@ static int do_replace(struct net *net, const void __user *user,
+ 		goto free_newinfo;
+ 	}
+ 
+-	ret = translate_table(newinfo, loc_cpu_entry, &tmp);
++	ret = translate_table(net, newinfo, loc_cpu_entry, &tmp);
+ 	if (ret != 0)
+ 		goto free_newinfo;
+ 
+@@ -1149,7 +1153,8 @@ compat_copy_entry_from_user(struct compat_arpt_entry *e, void **dstptr,
+ 	}
+ }
+ 
+-static int translate_compat_table(struct xt_table_info **pinfo,
++static int translate_compat_table(struct net *net,
++				  struct xt_table_info **pinfo,
+ 				  void **pentry0,
+ 				  const struct compat_arpt_replace *compatr)
+ {
+@@ -1217,7 +1222,7 @@ static int translate_compat_table(struct xt_table_info **pinfo,
+ 	repl.num_counters = 0;
+ 	repl.counters = NULL;
+ 	repl.size = newinfo->size;
+-	ret = translate_table(newinfo, entry1, &repl);
++	ret = translate_table(net, newinfo, entry1, &repl);
+ 	if (ret)
+ 		goto free_newinfo;
+ 
+@@ -1270,7 +1275,7 @@ static int compat_do_replace(struct net *net, void __user *user,
+ 		goto free_newinfo;
+ 	}
+ 
+-	ret = translate_compat_table(&newinfo, &loc_cpu_entry, &tmp);
++	ret = translate_compat_table(net, &newinfo, &loc_cpu_entry, &tmp);
+ 	if (ret != 0)
+ 		goto free_newinfo;
+ 
+@@ -1546,7 +1551,7 @@ int arpt_register_table(struct net *net,
+ 	loc_cpu_entry = newinfo->entries;
+ 	memcpy(loc_cpu_entry, repl->entries, repl->size);
+ 
+-	ret = translate_table(newinfo, loc_cpu_entry, repl);
++	ret = translate_table(net, newinfo, loc_cpu_entry, repl);
+ 	if (ret != 0)
+ 		goto out_free;
+ 
+-- 
+2.24.1
+
