@@ -2,111 +2,173 @@ Return-Path: <SRS0=2e0L=2R=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48E63C2D0C6
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Dec 2019 04:18:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77927C2D0CE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Dec 2019 17:49:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1A1E820882
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Dec 2019 04:18:08 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rU+dNtJg"
+	by mail.kernel.org (Postfix) with ESMTP id 556B520CC7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Dec 2019 17:49:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1577468996;
+	bh=61QqtsM7heF3ZrrF9P/X7IR582ifXhr/shcSYIh1waI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=fyPhwmLEE4kyBilqr7ZF292luTy9XBp2qC+rv8XL5l67RB4FF4tPaYPFr8ZlXOIzR
+	 u34U4CHTIr1GN4lFcVL0uEyvy1P+vEUI10F7bJV8E+Ozij3W0pp7foxC4WSVcqIC/H
+	 XvTrvaIbZpT0tW2HXda7BNCEzDcDe+jnkFOpxGFs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727114AbfL0ESE (ORCPT
+        id S1728433AbfL0RoX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 26 Dec 2019 23:18:04 -0500
-Received: from mail-ot1-f66.google.com ([209.85.210.66]:39499 "EHLO
-        mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727021AbfL0ESE (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Dec 2019 23:18:04 -0500
-Received: by mail-ot1-f66.google.com with SMTP id 77so34763787oty.6;
-        Thu, 26 Dec 2019 20:18:03 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=DfKg9SPkUvfybKMjL5YOx3Xk7Ze33G0ys6ahY8byY+s=;
-        b=rU+dNtJgARXnqPDmeFamfL2PeBiWwNJdd1b1/9gD5lxlIpbk3wM1M8i2DGLSpdyAn5
-         09hP+DZJH+kGodPhEGBuSTlLv8nrOITA69yGJ4u/7iAn8i4h00j53Fh2CF/tSVx6n/kv
-         PbRvsXxDcuWi7+t2OHet8bnC8E43P45XWHBMjGDBsXEPtlxColbJbmIJ7pYgmdrTSwGg
-         RAXLRy+b6d2Wnd2X45tYyGtLfho/PPSrdapJiCGwt/Q7eJfTCEbFIe+OL4DtHQxI/HzE
-         Lbtmi3nEDX01sZidPSyAap9LdXkfn6nguD5804uz5q8UJoYbAAQ0vvczr9tqyUMSssjr
-         b8DA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=DfKg9SPkUvfybKMjL5YOx3Xk7Ze33G0ys6ahY8byY+s=;
-        b=NrKK/X7IyhizCpsWXFgjvxPbGtIxdSOsnU6RCwznoDl5iUBghLHfpelnYoSMRk+Tap
-         vEwW7rS/CO1qVdUm9gHc3QrPJps4tw4VlvOOVxmdJMaiamksHueAGCW0Tj7KWQbeMPON
-         2xHk8orw1rE1ACqbA0BIFCXZ6VFpVgb0m+2boJsi5q2WkgG78E7NhLNZa4qQk+uErfIi
-         +Tr5S/RfS6SqwSCjNrmCgJ0iMJb3XZiMH09nb8pN0Ci9mCqF7rwqImwL9aTtba6g/xdT
-         dKR5cvwi7YMUk1gc2Z8zSIvPTetC+uA8A4j+kyIcE7V36RPwybc5/RSK088JmMgJx7kd
-         FH0Q==
-X-Gm-Message-State: APjAAAXULDk7XDgW+zwDLjSfHk7UrBkX04wPPPTJ3r/qBY3iB4W3txwm
-        2IinTEq62Nf1pF/EkDNzRYvdJNvWocH9EPSzG1+vbd4S
-X-Google-Smtp-Source: APXvYqzAOBWIHURe65cgyn+zIKkk1chLEZEJcKMdb9lioX2df362DLpSsRG620wwmEa5h58dQU+VlMASJZLGZe1hNl8=
-X-Received: by 2002:a9d:53c4:: with SMTP id i4mr42873422oth.48.1577420283259;
- Thu, 26 Dec 2019 20:18:03 -0800 (PST)
+        Fri, 27 Dec 2019 12:44:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42380 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727811AbfL0RoV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 27 Dec 2019 12:44:21 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id E841321744;
+        Fri, 27 Dec 2019 17:44:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1577468661;
+        bh=61QqtsM7heF3ZrrF9P/X7IR582ifXhr/shcSYIh1waI=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=Jx0qRi+C3d9E4g3rj3RUwW6lLxOkjmWGp1sAGP/75W2nZpZnqnOvTCnuqfVSlS5y9
+         OJcZBuaXB0v3VzpI9eqbJF2O2WJuPcrGH1Ioyl5jOA3fjq8ex9G9jY/Hg1G3802OpK
+         C9jcNadAOVULrjMH+bo6vgzBLLImqFm1tVyVzBr8=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Eric Dumazet <edumazet@google.com>,
+        syzbot <syzkaller@googlegroups.com>,
+        Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        bridge@lists.linux-foundation.org, netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 22/84] netfilter: bridge: make sure to pull arp header in br_nf_forward_arp()
+Date:   Fri, 27 Dec 2019 12:42:50 -0500
+Message-Id: <20191227174352.6264-22-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20191227174352.6264-1-sashal@kernel.org>
+References: <20191227174352.6264-1-sashal@kernel.org>
 MIME-Version: 1.0
-References: <00000000000057fd27059aa1dfca@google.com> <20191227003310.16061-1-fw@strlen.de>
-In-Reply-To: <20191227003310.16061-1-fw@strlen.de>
-From:   Cong Wang <xiyou.wangcong@gmail.com>
-Date:   Thu, 26 Dec 2019 20:17:52 -0800
-Message-ID: <CAM_iQpW5stB_BshUJr0O3uDyaxDcqN-13ZqRr7dcmcJcBp-Tfg@mail.gmail.com>
-Subject: Re: [PATCH nf] netfilter: arp_tables: init netns pointer in
- xt_tgchk_param struct
-To:     Florian Westphal <fw@strlen.de>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>,
-        syzbot+d7358a458d8a81aee898@syzkaller.appspotmail.com,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Dec 26, 2019 at 4:37 PM Florian Westphal <fw@strlen.de> wrote:
->
-> We get crash when the targets checkentry function tries to make
-> use of the network namespace pointer for arptables.
->
-> When the net pointer got added back in 2010, only ip/ip6/ebtables were
-> changed to initialize it, so arptables has this set to NULL.
->
-> This isn't a problem for normal arptables because no existing
-> arptables target has a checkentry function that makes use of par->net.
->
-> However, direct users of the setsockopt interface can provide any
-> target they want as long as its registered for ARP or UNPSEC protocols.
->
-> syzkaller managed to send a semi-valid arptables rule for RATEEST target
-> which is enough to trigger NULL deref:
->
-> kasan: GPF could be caused by NULL-ptr deref or user memory access
-> general protection fault: 0000 [#1] PREEMPT SMP KASAN
-> RIP: xt_rateest_tg_checkentry+0x11d/0xb40 net/netfilter/xt_RATEEST.c:109
-> [..]
->  xt_check_target+0x283/0x690 net/netfilter/x_tables.c:1019
->  check_target net/ipv4/netfilter/arp_tables.c:399 [inline]
->  find_check_entry net/ipv4/netfilter/arp_tables.c:422 [inline]
->  translate_table+0x1005/0x1d70 net/ipv4/netfilter/arp_tables.c:572
->  do_replace net/ipv4/netfilter/arp_tables.c:977 [inline]
->  do_arpt_set_ctl+0x310/0x640 net/ipv4/netfilter/arp_tables.c:1456
->
-> Fixes: add67461240c1d ("netfilter: add struct net * to target parameters")
-> Reported-by: syzbot+d7358a458d8a81aee898@syzkaller.appspotmail.com
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+From: Eric Dumazet <edumazet@google.com>
 
-I was about to send out a same patch.
+[ Upstream commit 5604285839aaedfb23ebe297799c6e558939334d ]
 
-So:
-Acked-by: Cong Wang <xiyou.wangcong@gmail.com>
+syzbot is kind enough to remind us we need to call skb_may_pull()
 
-Thanks.
+BUG: KMSAN: uninit-value in br_nf_forward_arp+0xe61/0x1230 net/bridge/br_netfilter_hooks.c:665
+CPU: 1 PID: 11631 Comm: syz-executor.1 Not tainted 5.4.0-rc8-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x220 lib/dump_stack.c:118
+ kmsan_report+0x128/0x220 mm/kmsan/kmsan_report.c:108
+ __msan_warning+0x64/0xc0 mm/kmsan/kmsan_instr.c:245
+ br_nf_forward_arp+0xe61/0x1230 net/bridge/br_netfilter_hooks.c:665
+ nf_hook_entry_hookfn include/linux/netfilter.h:135 [inline]
+ nf_hook_slow+0x18b/0x3f0 net/netfilter/core.c:512
+ nf_hook include/linux/netfilter.h:260 [inline]
+ NF_HOOK include/linux/netfilter.h:303 [inline]
+ __br_forward+0x78f/0xe30 net/bridge/br_forward.c:109
+ br_flood+0xef0/0xfe0 net/bridge/br_forward.c:234
+ br_handle_frame_finish+0x1a77/0x1c20 net/bridge/br_input.c:162
+ nf_hook_bridge_pre net/bridge/br_input.c:245 [inline]
+ br_handle_frame+0xfb6/0x1eb0 net/bridge/br_input.c:348
+ __netif_receive_skb_core+0x20b9/0x51a0 net/core/dev.c:4830
+ __netif_receive_skb_one_core net/core/dev.c:4927 [inline]
+ __netif_receive_skb net/core/dev.c:5043 [inline]
+ process_backlog+0x610/0x13c0 net/core/dev.c:5874
+ napi_poll net/core/dev.c:6311 [inline]
+ net_rx_action+0x7a6/0x1aa0 net/core/dev.c:6379
+ __do_softirq+0x4a1/0x83a kernel/softirq.c:293
+ do_softirq_own_stack+0x49/0x80 arch/x86/entry/entry_64.S:1091
+ </IRQ>
+ do_softirq kernel/softirq.c:338 [inline]
+ __local_bh_enable_ip+0x184/0x1d0 kernel/softirq.c:190
+ local_bh_enable+0x36/0x40 include/linux/bottom_half.h:32
+ rcu_read_unlock_bh include/linux/rcupdate.h:688 [inline]
+ __dev_queue_xmit+0x38e8/0x4200 net/core/dev.c:3819
+ dev_queue_xmit+0x4b/0x60 net/core/dev.c:3825
+ packet_snd net/packet/af_packet.c:2959 [inline]
+ packet_sendmsg+0x8234/0x9100 net/packet/af_packet.c:2984
+ sock_sendmsg_nosec net/socket.c:637 [inline]
+ sock_sendmsg net/socket.c:657 [inline]
+ __sys_sendto+0xc44/0xc70 net/socket.c:1952
+ __do_sys_sendto net/socket.c:1964 [inline]
+ __se_sys_sendto+0x107/0x130 net/socket.c:1960
+ __x64_sys_sendto+0x6e/0x90 net/socket.c:1960
+ do_syscall_64+0xb6/0x160 arch/x86/entry/common.c:291
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x45a679
+Code: ad b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f0a3c9e5c78 EFLAGS: 00000246 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 0000000000000006 RCX: 000000000045a679
+RDX: 000000000000000e RSI: 0000000020000200 RDI: 0000000000000003
+RBP: 000000000075bf20 R08: 00000000200000c0 R09: 0000000000000014
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f0a3c9e66d4
+R13: 00000000004c8ec1 R14: 00000000004dfe28 R15: 00000000ffffffff
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:149 [inline]
+ kmsan_internal_poison_shadow+0x5c/0x110 mm/kmsan/kmsan.c:132
+ kmsan_slab_alloc+0x97/0x100 mm/kmsan/kmsan_hooks.c:86
+ slab_alloc_node mm/slub.c:2773 [inline]
+ __kmalloc_node_track_caller+0xe27/0x11a0 mm/slub.c:4381
+ __kmalloc_reserve net/core/skbuff.c:141 [inline]
+ __alloc_skb+0x306/0xa10 net/core/skbuff.c:209
+ alloc_skb include/linux/skbuff.h:1049 [inline]
+ alloc_skb_with_frags+0x18c/0xa80 net/core/skbuff.c:5662
+ sock_alloc_send_pskb+0xafd/0x10a0 net/core/sock.c:2244
+ packet_alloc_skb net/packet/af_packet.c:2807 [inline]
+ packet_snd net/packet/af_packet.c:2902 [inline]
+ packet_sendmsg+0x63a6/0x9100 net/packet/af_packet.c:2984
+ sock_sendmsg_nosec net/socket.c:637 [inline]
+ sock_sendmsg net/socket.c:657 [inline]
+ __sys_sendto+0xc44/0xc70 net/socket.c:1952
+ __do_sys_sendto net/socket.c:1964 [inline]
+ __se_sys_sendto+0x107/0x130 net/socket.c:1960
+ __x64_sys_sendto+0x6e/0x90 net/socket.c:1960
+ do_syscall_64+0xb6/0x160 arch/x86/entry/common.c:291
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Fixes: c4e70a87d975 ("netfilter: bridge: rename br_netfilter.c to br_netfilter_hooks.c")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Reviewed-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/bridge/br_netfilter_hooks.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 212c184c1eee..ccab290c14d4 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -646,6 +646,9 @@ static unsigned int br_nf_forward_arp(void *priv,
+ 		nf_bridge_pull_encap_header(skb);
+ 	}
+ 
++	if (unlikely(!pskb_may_pull(skb, sizeof(struct arphdr))))
++		return NF_DROP;
++
+ 	if (arp_hdr(skb)->ar_pln != 4) {
+ 		if (IS_VLAN_ARP(skb))
+ 			nf_bridge_push_encap_header(skb);
+-- 
+2.20.1
+
