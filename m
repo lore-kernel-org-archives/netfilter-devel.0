@@ -7,47 +7,46 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF944C2D0C6
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Dec 2019 17:57:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19126C2D0DA
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Dec 2019 17:57:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 952BA20CC7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Dec 2019 17:57:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E16B820CC7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Dec 2019 17:57:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1577469475;
-	bh=ROlknTGA/2BYqN4mekQwMRs65sDEbN41Qs3dZ6Eh23w=;
+	s=default; t=1577469477;
+	bh=J0cPKhFxQCuZu+uLL9G/eNDy4tjEa8vlQ6PtGjaXh5k=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=NiUawmE4Yr0yZJwyX1wgFDenagfX2wf872d4irsw6EDl93uKCrBHI4gOWBXDuQuw+
-	 nL8aH64kXASoiwD7Yet92TETHuyPEG3QclPXLcUgEjHKRaCxK3Ttu3ACh7MmNQEC9v
-	 LRmF8wmPsRq8z7N5AqseCuyt9vOkHbkuSLHKV2Y0=
+	b=lfhgP2S2A0PQNF0duwv1gmTiwqpyzTSsCK1FW7fo4GZi4OQv/SN+02ZmoDgL/suhd
+	 NDSRV/QgGHpc1Swlu0noFZy/vP4t+tcCdTeL9e91axmWZW85lE8kHZQpIlFTMABnmP
+	 I2D/7p1tPpIlkJojHJjg7MASnnJihm5NEUBlDzPY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727650AbfL0R5u (ORCPT
+        id S1727539AbfL0Rlk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 27 Dec 2019 12:57:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38038 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727538AbfL0Rlk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 27 Dec 2019 12:41:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37964 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727528AbfL0Rli (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 27 Dec 2019 12:41:38 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 52F4F227BF;
-        Fri, 27 Dec 2019 17:41:39 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E1017222C2;
+        Fri, 27 Dec 2019 17:41:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1577468500;
-        bh=ROlknTGA/2BYqN4mekQwMRs65sDEbN41Qs3dZ6Eh23w=;
+        s=default; t=1577468497;
+        bh=J0cPKhFxQCuZu+uLL9G/eNDy4tjEa8vlQ6PtGjaXh5k=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=smoZQx/iMuXbMSdNlw0kql4c7GB7QgI6me66ZwvSivErb4dAwyZ5Mnll3MPeUPYjP
-         fSnVwjOHhU6sa2GxxNUU84MrihqRFne+DASlVUq1z0hg+R7BRWgy08PGSs8K4eqdkU
-         eMyAG9prYiTdefBkfz/yE0Od4QI2TjqyWRV54Xe8=
+        b=riuEwbA+La0oSejcZQfZ8yWQO1PIIfkUWNebBQsf5fNP7pfmseA117B45jFDv6vhy
+         +zJ2P2OKfFzBXEIqdcTCRxv7nvLU+Qhmf0whfeoJw5vFw6KDBEY2urV/XhUU0rsotC
+         tpZYmVUPs7GcoHrbehIc8hhmY/71aF03FX8ZBAwQ=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc:     Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 034/187] netfilter: nf_tables: validate NFT_SET_ELEM_INTERVAL_END
-Date:   Fri, 27 Dec 2019 12:38:22 -0500
-Message-Id: <20191227174055.4923-34-sashal@kernel.org>
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: [PATCH AUTOSEL 5.4 032/187] netfilter: uapi: Avoid undefined left-shift in xt_sctp.h
+Date:   Fri, 27 Dec 2019 12:38:20 -0500
+Message-Id: <20191227174055.4923-32-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20191227174055.4923-1-sashal@kernel.org>
 References: <20191227174055.4923-1-sashal@kernel.org>
@@ -60,48 +59,48 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Phil Sutter <phil@nwl.cc>
 
-[ Upstream commit bffc124b6fe37d0ae9b428d104efb426403bb5c9 ]
+[ Upstream commit 164166558aacea01b99c8c8ffb710d930405ba69 ]
 
-Only NFTA_SET_ELEM_KEY and NFTA_SET_ELEM_FLAGS make sense for elements
-whose NFT_SET_ELEM_INTERVAL_END flag is set on.
+With 'bytes(__u32)' being 32, a left-shift of 31 may happen which is
+undefined for the signed 32-bit value 1. Avoid this by declaring 1 as
+unsigned.
 
-Fixes: 96518518cc41 ("netfilter: add nftables")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_tables_api.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ include/uapi/linux/netfilter/xt_sctp.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 712a428509ad..7120eba71ac5 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4489,14 +4489,20 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 		if (nla[NFTA_SET_ELEM_DATA] == NULL &&
- 		    !(flags & NFT_SET_ELEM_INTERVAL_END))
- 			return -EINVAL;
--		if (nla[NFTA_SET_ELEM_DATA] != NULL &&
--		    flags & NFT_SET_ELEM_INTERVAL_END)
--			return -EINVAL;
- 	} else {
- 		if (nla[NFTA_SET_ELEM_DATA] != NULL)
- 			return -EINVAL;
- 	}
+diff --git a/include/uapi/linux/netfilter/xt_sctp.h b/include/uapi/linux/netfilter/xt_sctp.h
+index 4bc6d1a08781..b4d804a9fccb 100644
+--- a/include/uapi/linux/netfilter/xt_sctp.h
++++ b/include/uapi/linux/netfilter/xt_sctp.h
+@@ -41,19 +41,19 @@ struct xt_sctp_info {
+ #define SCTP_CHUNKMAP_SET(chunkmap, type) 		\
+ 	do { 						\
+ 		(chunkmap)[type / bytes(__u32)] |= 	\
+-			1 << (type % bytes(__u32));	\
++			1u << (type % bytes(__u32));	\
+ 	} while (0)
  
-+	if ((flags & NFT_SET_ELEM_INTERVAL_END) &&
-+	     (nla[NFTA_SET_ELEM_DATA] ||
-+	      nla[NFTA_SET_ELEM_OBJREF] ||
-+	      nla[NFTA_SET_ELEM_TIMEOUT] ||
-+	      nla[NFTA_SET_ELEM_EXPIRATION] ||
-+	      nla[NFTA_SET_ELEM_USERDATA] ||
-+	      nla[NFTA_SET_ELEM_EXPR]))
-+		return -EINVAL;
-+
- 	timeout = 0;
- 	if (nla[NFTA_SET_ELEM_TIMEOUT] != NULL) {
- 		if (!(set->flags & NFT_SET_TIMEOUT))
+ #define SCTP_CHUNKMAP_CLEAR(chunkmap, type)		 	\
+ 	do {							\
+ 		(chunkmap)[type / bytes(__u32)] &= 		\
+-			~(1 << (type % bytes(__u32)));	\
++			~(1u << (type % bytes(__u32)));	\
+ 	} while (0)
+ 
+ #define SCTP_CHUNKMAP_IS_SET(chunkmap, type) 			\
+ ({								\
+ 	((chunkmap)[type / bytes (__u32)] & 		\
+-		(1 << (type % bytes (__u32)))) ? 1: 0;	\
++		(1u << (type % bytes (__u32)))) ? 1: 0;	\
+ })
+ 
+ #define SCTP_CHUNKMAP_RESET(chunkmap) \
 -- 
 2.20.1
 
