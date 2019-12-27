@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B588C2D0C6
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Dec 2019 17:57:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4F13C2D0C6
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Dec 2019 17:57:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 17F14206CB
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Dec 2019 17:57:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 912B9206CB
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Dec 2019 17:57:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1577469464;
-	bh=gFZNpGJApJIvKCCoZj4wHFDnvyaGOvkhUJkx1IjrRt4=;
+	s=default; t=1577469469;
+	bh=FI2zumC+h06Z1xumFA3Cq4/NFMfxrB4/U/qNtkyGovA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=rp87CVZWTvjWQMHdmT5bNZPwDNlP9YAeTn8C84mwj/+X8ew+54vpVAmj83Sv5NYLS
-	 eHRlE0/Inrkv+zXsZtU+3M1HJI5f/pWw+GH6ikDQ+5QOIqDigroCLx876B2WvnJYU9
-	 yMEwoAHw/8ak0C4PottKI6+wET2CcfgU+fKNHWRc=
+	b=vrIg6AmXElpd5pM4Jr1WqnNzniWaRk7YVRzuG0IE7rUE3s9jjd3tRO2SuErXk6G2I
+	 U14vWqde7E16a0dcO/amkHCnN8ikrnIs/eQkMEYS5BWSJVQYtyFOehP0w70GWH/eXJ
+	 Th5yZFO+GQBH+DRoBpBJx5GVEfnstRMqSszpEDI8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728061AbfL0R5f (ORCPT
+        id S1727556AbfL0Rll (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 27 Dec 2019 12:57:35 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38090 "EHLO mail.kernel.org"
+        Fri, 27 Dec 2019 12:41:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38008 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727553AbfL0Rlm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 27 Dec 2019 12:41:42 -0500
+        id S1727533AbfL0Rlj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 27 Dec 2019 12:41:39 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8F193222C2;
-        Fri, 27 Dec 2019 17:41:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 209E321D7E;
+        Fri, 27 Dec 2019 17:41:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1577468501;
-        bh=gFZNpGJApJIvKCCoZj4wHFDnvyaGOvkhUJkx1IjrRt4=;
+        s=default; t=1577468498;
+        bh=FI2zumC+h06Z1xumFA3Cq4/NFMfxrB4/U/qNtkyGovA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=zJUMmp47gwYISELMjrfUF2F02bPiH2vjO22AVMO+/6UsTqkU+B0luOsJzEzHL3JO7
-         OXkNcfZbxgTWHnd4s6M1bLEI0A1S2paSi2gL+kQwdaRvmBLXQsCRIrnpfKxVXTwYs2
-         6Z+sUB8MopJauFM9PWthJORqOsgLvpqEiwHDYFCQ=
+        b=nke2pLSa4cJ87CA4v4WfYfS73rBldD9czoQEqeq3JdmpKctZb1W6dowhXx3rqooKv
+         5ZM8S2Ct9NQ02JfvNr0qobdjhJEf7ih/ZgmXWLGs1ioG4Rp1loBeRkk+Z/WKNxF8Nl
+         QHwizTiTNpM+mCmyrwgeKSPrSo/42+wyHlkwmWtE=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 035/187] netfilter: nf_tables: validate NFT_DATA_VALUE after nft_data_init()
-Date:   Fri, 27 Dec 2019 12:38:23 -0500
-Message-Id: <20191227174055.4923-35-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 033/187] netfilter: nft_set_rbtree: bogus lookup/get on consecutive elements in named sets
+Date:   Fri, 27 Dec 2019 12:38:21 -0500
+Message-Id: <20191227174055.4923-33-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20191227174055.4923-1-sashal@kernel.org>
 References: <20191227174055.4923-1-sashal@kernel.org>
@@ -62,105 +62,91 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[ Upstream commit 0d2c96af797ba149e559c5875c0151384ab6dd14 ]
+[ Upstream commit db3b665dd77b34e34df00e17d7b299c98fcfb2c5 ]
 
-Userspace might bogusly sent NFT_DATA_VERDICT in several netlink
-attributes that assume NFT_DATA_VALUE. Moreover, make sure that error
-path invokes nft_data_release() to decrement the reference count on the
-chain object.
+The existing rbtree implementation might store consecutive elements
+where the closing element and the opening element might overlap, eg.
 
-Fixes: 96518518cc41 ("netfilter: add nftables")
-Fixes: 0f3cd9b36977 ("netfilter: nf_tables: add range expression")
+	[ a, a+1) [ a+1, a+2)
+
+This patch removes the optimization for non-anonymous sets in the exact
+matching case, where it is assumed to stop searching in case that the
+closing element is found. Instead, invalidate candidate interval and
+keep looking further in the tree.
+
+The lookup/get operation might return false, while there is an element
+in the rbtree. Moreover, the get operation returns true as if a+2 would
+be in the tree. This happens with named sets after several set updates.
+
+The existing lookup optimization (that only works for the anonymous
+sets) might not reach the opening [ a+1,... element if the closing
+...,a+1) is found in first place when walking over the rbtree. Hence,
+walking the full tree in that case is needed.
+
+This patch fixes the lookup and get operations.
+
+Fixes: e701001e7cbe ("netfilter: nft_rbtree: allow adjacent intervals with dynamic updates")
+Fixes: ba0e4d9917b4 ("netfilter: nf_tables: get set elements via netlink")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_tables_api.c |  4 +++-
- net/netfilter/nft_bitwise.c   |  4 ++--
- net/netfilter/nft_cmp.c       |  6 ++++++
- net/netfilter/nft_range.c     | 10 ++++++++++
- 4 files changed, 21 insertions(+), 3 deletions(-)
+ net/netfilter/nft_set_rbtree.c | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 7120eba71ac5..4c03c14e46bc 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4252,8 +4252,10 @@ static int nft_get_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 		return err;
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 57123259452f..a9f804f7a04a 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -74,8 +74,13 @@ static bool __nft_rbtree_lookup(const struct net *net, const struct nft_set *set
+ 				parent = rcu_dereference_raw(parent->rb_left);
+ 				continue;
+ 			}
+-			if (nft_rbtree_interval_end(rbe))
+-				goto out;
++			if (nft_rbtree_interval_end(rbe)) {
++				if (nft_set_is_anonymous(set))
++					return false;
++				parent = rcu_dereference_raw(parent->rb_left);
++				interval = NULL;
++				continue;
++			}
  
- 	err = -EINVAL;
--	if (desc.type != NFT_DATA_VALUE || desc.len != set->klen)
-+	if (desc.type != NFT_DATA_VALUE || desc.len != set->klen) {
-+		nft_data_release(&elem.key.val, desc.type);
- 		return err;
-+	}
- 
- 	priv = set->ops->get(ctx->net, set, &elem, flags);
- 	if (IS_ERR(priv))
-diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
-index 02afa752dd2e..10e9d50e4e19 100644
---- a/net/netfilter/nft_bitwise.c
-+++ b/net/netfilter/nft_bitwise.c
-@@ -80,7 +80,7 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
- 			    tb[NFTA_BITWISE_MASK]);
- 	if (err < 0)
- 		return err;
--	if (d1.len != priv->len) {
-+	if (d1.type != NFT_DATA_VALUE || d1.len != priv->len) {
- 		err = -EINVAL;
- 		goto err1;
+ 			*ext = &rbe->ext;
+ 			return true;
+@@ -88,7 +93,7 @@ static bool __nft_rbtree_lookup(const struct net *net, const struct nft_set *set
+ 		*ext = &interval->ext;
+ 		return true;
  	}
-@@ -89,7 +89,7 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
- 			    tb[NFTA_BITWISE_XOR]);
- 	if (err < 0)
- 		goto err1;
--	if (d2.len != priv->len) {
-+	if (d2.type != NFT_DATA_VALUE || d2.len != priv->len) {
- 		err = -EINVAL;
- 		goto err2;
+-out:
++
+ 	return false;
+ }
+ 
+@@ -139,8 +144,10 @@ static bool __nft_rbtree_get(const struct net *net, const struct nft_set *set,
+ 			if (flags & NFT_SET_ELEM_INTERVAL_END)
+ 				interval = rbe;
+ 		} else {
+-			if (!nft_set_elem_active(&rbe->ext, genmask))
++			if (!nft_set_elem_active(&rbe->ext, genmask)) {
+ 				parent = rcu_dereference_raw(parent->rb_left);
++				continue;
++			}
+ 
+ 			if (!nft_set_ext_exists(&rbe->ext, NFT_SET_EXT_FLAGS) ||
+ 			    (*nft_set_ext_flags(&rbe->ext) & NFT_SET_ELEM_INTERVAL_END) ==
+@@ -148,7 +155,11 @@ static bool __nft_rbtree_get(const struct net *net, const struct nft_set *set,
+ 				*elem = rbe;
+ 				return true;
+ 			}
+-			return false;
++
++			if (nft_rbtree_interval_end(rbe))
++				interval = NULL;
++
++			parent = rcu_dereference_raw(parent->rb_left);
+ 		}
  	}
-diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
-index 0744b2bb46da..ae730dba60c8 100644
---- a/net/netfilter/nft_cmp.c
-+++ b/net/netfilter/nft_cmp.c
-@@ -80,6 +80,12 @@ static int nft_cmp_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	if (err < 0)
- 		return err;
  
-+	if (desc.type != NFT_DATA_VALUE) {
-+		err = -EINVAL;
-+		nft_data_release(&priv->data, desc.type);
-+		return err;
-+	}
-+
- 	priv->sreg = nft_parse_register(tb[NFTA_CMP_SREG]);
- 	err = nft_validate_register_load(priv->sreg, desc.len);
- 	if (err < 0)
-diff --git a/net/netfilter/nft_range.c b/net/netfilter/nft_range.c
-index 4701fa8a45e7..89efcc5a533d 100644
---- a/net/netfilter/nft_range.c
-+++ b/net/netfilter/nft_range.c
-@@ -66,11 +66,21 @@ static int nft_range_init(const struct nft_ctx *ctx, const struct nft_expr *expr
- 	if (err < 0)
- 		return err;
- 
-+	if (desc_from.type != NFT_DATA_VALUE) {
-+		err = -EINVAL;
-+		goto err1;
-+	}
-+
- 	err = nft_data_init(NULL, &priv->data_to, sizeof(priv->data_to),
- 			    &desc_to, tb[NFTA_RANGE_TO_DATA]);
- 	if (err < 0)
- 		goto err1;
- 
-+	if (desc_to.type != NFT_DATA_VALUE) {
-+		err = -EINVAL;
-+		goto err2;
-+	}
-+
- 	if (desc_from.len != desc_to.len) {
- 		err = -EINVAL;
- 		goto err2;
 -- 
 2.20.1
 
