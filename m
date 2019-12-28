@@ -2,83 +2,89 @@ Return-Path: <SRS0=8lzl=2S=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C37A6C2D0C6
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Dec 2019 09:06:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B334C2D0CE
+	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Dec 2019 10:32:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A078720748
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Dec 2019 09:06:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A9BA20748
+	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Dec 2019 10:32:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726362AbfL1JGC (ORCPT
+        id S1726307AbfL1Kca (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 28 Dec 2019 04:06:02 -0500
-Received: from mail-io1-f72.google.com ([209.85.166.72]:53697 "EHLO
-        mail-io1-f72.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726085AbfL1JGC (ORCPT
+        Sat, 28 Dec 2019 05:32:30 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:39106 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725957AbfL1Kc3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 28 Dec 2019 04:06:02 -0500
-Received: by mail-io1-f72.google.com with SMTP id m5so13184006iol.20
-        for <netfilter-devel@vger.kernel.org>; Sat, 28 Dec 2019 01:06:02 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=WfGb9lGFdGhSi8hZEfWk/M3G0IsGwYCNAdgm6CjQ7QI=;
-        b=rRbETUTwcGZYwsnMw4uhZ0WxUrx+rkrSTpR5FDqawR/ioVt74fxbd0HbK2B6fzP7G9
-         NAn8yEG09SY1BPhD50qBParcWdgvMQ535+QSAKEaiLMTWV462gSXjEitgqhwbOBU5HlO
-         Ip1LNG+DwnmZ4EuXhetLStp4zWFJW1QvRPVptpyM8zNfAUu2d73Qxs/xKhz3Pu8a2yPN
-         7zjTiYyMPY1XpoV6ykEunXR699vX2tf7c9SwnSD2Zn23uRtqv9u0gZKSDOAMt44YOQqf
-         cpYfBb1H92dJJufHB4drwLlvb3EDoM3traOTqBmoQWlRoY4NuOJiOgZKj5pb7xsBhu+u
-         NYYA==
-X-Gm-Message-State: APjAAAX+WE7bkVzinW2Dcj5YpaE0AhEbIliXCCa4lh+WXCJBuT8MPi7b
-        pEbzLB8flx1QDnJZ7owIKg838VVlpBQ1AnI7mX7rqwkGy6Xp
-X-Google-Smtp-Source: APXvYqyJDTFrNl+ZpW3oGkoUn5Ny0lVdEe36WgM5iN4TzGysRfB97r5Zok5DVtIDafRKxTRvqHwhuE0e1QpHyIt/5WWgjBGqL612
-MIME-Version: 1.0
-X-Received: by 2002:a6b:f404:: with SMTP id i4mr37323657iog.252.1577523961683;
- Sat, 28 Dec 2019 01:06:01 -0800 (PST)
-Date:   Sat, 28 Dec 2019 01:06:01 -0800
-In-Reply-To: <0000000000004718ff059abd88ef@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000005c669c059abfebe7@google.com>
-Subject: Re: general protection fault in nf_ct_netns_do_get
-From:   syzbot <syzbot+19616eedf6fd8e241e50@syzkaller.appspotmail.com>
-To:     a@unstable.cc, b.a.t.m.a.n@lists.open-mesh.org,
-        coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        hpa@zytor.com, kadlec@netfilter.org, linux-kernel@vger.kernel.org,
-        linux@roeck-us.net, mareklindner@neomailbox.ch, mingo@redhat.com,
+        Sat, 28 Dec 2019 05:32:29 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1il9OR-0006pv-5Q; Sat, 28 Dec 2019 11:32:23 +0100
+Date:   Sat, 28 Dec 2019 11:32:23 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     syzbot <syzbot+19616eedf6fd8e241e50@syzkaller.appspotmail.com>
+Cc:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        kadlec@netfilter.org, linux-kernel@vger.kernel.org,
         netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, sw@simonwunderlich.de,
-        syzkaller-bugs@googlegroups.com, tglx@linutronix.de,
-        torvalds@linux-foundation.org, x86@kernel.org
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
+Subject: Re: general protection fault in nf_ct_netns_do_get
+Message-ID: <20191228103223.GH795@breakpoint.cc>
+References: <0000000000004718ff059abd88ef@google.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <0000000000004718ff059abd88ef@google.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has bisected this bug to:
+syzbot <syzbot+19616eedf6fd8e241e50@syzkaller.appspotmail.com> wrote:
+> Hello,
+> 
+> syzbot found the following crash on:
+> 
+> HEAD commit:    46cf053e Linux 5.5-rc3
+> git tree:       upstream
+> console output: https://syzkaller.appspot.com/x/log.txt?x=14188971e00000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=ed9d672709340e35
+> dashboard link: https://syzkaller.appspot.com/bug?extid=19616eedf6fd8e241e50
+> compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14a47ab9e00000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=170f2485e00000
+> 
+> IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> Reported-by: syzbot+19616eedf6fd8e241e50@syzkaller.appspotmail.com
+> 
+> kasan: CONFIG_KASAN_INLINE enabled
+> kasan: GPF could be caused by NULL-ptr deref or user memory access
+> general protection fault: 0000 [#1] PREEMPT SMP KASAN
+> CPU: 0 PID: 9171 Comm: syz-executor797 Not tainted 5.5.0-rc3-syzkaller #0
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
+> Google 01/01/2011
+> RIP: 0010:__read_once_size include/linux/compiler.h:199 [inline]
+> RIP: 0010:net_generic include/net/netns/generic.h:45 [inline]
+> RIP: 0010:nf_ct_netns_do_get+0xd2/0x7e0
+> net/netfilter/nf_conntrack_proto.c:449
+> Code: 22 22 fb 45 84 f6 0f 84 5c 03 00 00 e8 07 21 22 fb 49 8d bc 24 68 13
+> 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85
+> 9f 06 00 00 4d 8b b4 24 68 13 00 00 e8 47 59 0e
+> RSP: 0018:ffffc90001f177a8 EFLAGS: 00010202
+> RAX: dffffc0000000000 RBX: 0000000000000003 RCX: ffffffff86531056
+> RDX: 000000000000026d RSI: ffffffff86530ce9 RDI: 0000000000001368
+> RBP: ffffc90001f177e8 R08: ffff88808fd96200 R09: ffffed1015d0703d
+> R10: ffffed1015d0703c R11: ffff8880ae8381e3 R12: 0000000000000000
+> R13: 000000000000002a R14: 0000000000000001 R15: 0000000000000003
+> FS:  00000000009fd880(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 00000000200008a0 CR3: 0000000093cc3000 CR4: 00000000001406f0
+> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+> Call Trace:
+>  nf_ct_netns_get+0x41/0x150 net/netfilter/nf_conntrack_proto.c:601
 
-commit 0a957467c5fd46142bc9c52758ffc552d4c5e2f7
-Author: Guenter Roeck <linux@roeck-us.net>
-Date:   Wed Aug 15 20:22:27 2018 +0000
-
-     x86: i8259: Add missing include file
-
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1579e751e00000
-start commit:   46cf053e Linux 5.5-rc3
-git tree:       upstream
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=1779e751e00000
-console output: https://syzkaller.appspot.com/x/log.txt?x=1379e751e00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=ed9d672709340e35
-dashboard link: https://syzkaller.appspot.com/bug?extid=19616eedf6fd8e241e50
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14a47ab9e00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=170f2485e00000
-
-Reported-by: syzbot+19616eedf6fd8e241e50@syzkaller.appspotmail.com
-Fixes: 0a957467c5fd ("x86: i8259: Add missing include file")
-
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+#syz-dup: general protection fault in xt_rateest_tg_checkentry
