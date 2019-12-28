@@ -1,137 +1,87 @@
-Return-Path: <SRS0=2e0L=2R=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=8lzl=2S=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A43C2C2D0CE
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Dec 2019 18:20:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1429C2D0C3
+	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Dec 2019 01:24:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7FC8320722
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Dec 2019 18:20:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1577470805;
-	bh=QzVwGmtn7+kmEbUT2RUbe9FAnE8w1dD4jj/1TlZ5qE0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ioasTqEr/YOWzuFdohyBPZ8bAm9h6WdJxg/FA80xFyfYnwXJnb6ul/94rNPIutW7U
-	 d2RKhENOCLFzrpFsqOOYWT70GLSA2W5eG3b8VP2OKrodpgYVDS8wMYL0IhGXjeeLUZ
-	 QodGmAXkcB8HFijF6yqbtVS+AKRhZdk1INzQNVX8=
+	by mail.kernel.org (Postfix) with ESMTP id A0E39207E0
+	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Dec 2019 01:24:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727705AbfL0ST6 (ORCPT
+        id S1726220AbfL1BYL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 27 Dec 2019 13:19:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38900 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727162AbfL0SOl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 27 Dec 2019 13:14:41 -0500
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7BA3B2173E;
-        Fri, 27 Dec 2019 18:14:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1577470480;
-        bh=QzVwGmtn7+kmEbUT2RUbe9FAnE8w1dD4jj/1TlZ5qE0=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=VV4bBcDxX6R2E8kmEPpnZ5/3BFl9A7gICgqNR224vbnryIFKV6XRru1xdTcYrnQmp
-         eYck9btCcH13cG6xIJ/qvwKNH04Tv4pqUPyKYSgvD9Pi8ROn1k9jQy7zEx3QMeZsgV
-         ZtLAyOjD82aNbwjwBdfYMmmtEi6JDn8fE2EW8r6k=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 03/38] netfilter: ctnetlink: netns exit must wait for callbacks
-Date:   Fri, 27 Dec 2019 13:14:00 -0500
-Message-Id: <20191227181435.7644-3-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191227181435.7644-1-sashal@kernel.org>
-References: <20191227181435.7644-1-sashal@kernel.org>
-MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+        Fri, 27 Dec 2019 20:24:11 -0500
+Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:55485 "EHLO
+        mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726189AbfL1BYL (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 27 Dec 2019 20:24:11 -0500
+Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
+        by mail105.syd.optusnet.com.au (Postfix) with SMTP id AF99C3A2FBE
+        for <netfilter-devel@vger.kernel.org>; Sat, 28 Dec 2019 12:23:58 +1100 (AEDT)
+Received: (qmail 2526 invoked by uid 501); 28 Dec 2019 01:23:57 -0000
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue 2/2] src: doc: tcp.c: fix remaining doxygen warnings
+Date:   Sat, 28 Dec 2019 12:23:57 +1100
+Message-Id: <20191228012357.2474-3-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.14.5
+In-Reply-To: <20191228012357.2474-1-duncan_roe@optusnet.com.au>
+References: <20191228012357.2474-1-duncan_roe@optusnet.com.au>
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.3 cv=W5xGqiek c=1 sm=1 tr=0
+        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
+        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=pxVhFHJ0LMsA:10 a=RSmzAf-M6YYA:10
+        a=PO7r1zJSAAAA:8 a=EW8Owy90DVCjsj2gOxYA:9
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
-
-[ Upstream commit 18a110b022a5c02e7dc9f6109d0bd93e58ac6ebb ]
-
-Curtis Taylor and Jon Maxwell reported and debugged a crash on 3.10
-based kernel.
-
-Crash occurs in ctnetlink_conntrack_events because net->nfnl socket is
-NULL.  The nfnl socket was set to NULL by netns destruction running on
-another cpu.
-
-The exiting network namespace calls the relevant destructors in the
-following order:
-
-1. ctnetlink_net_exit_batch
-
-This nulls out the event callback pointer in struct netns.
-
-2. nfnetlink_net_exit_batch
-
-This nulls net->nfnl socket and frees it.
-
-3. nf_conntrack_cleanup_net_list
-
-This removes all remaining conntrack entries.
-
-This is order is correct. The only explanation for the crash so ar is:
-
-cpu1: conntrack is dying, eviction occurs:
- -> nf_ct_delete()
-   -> nf_conntrack_event_report \
-     -> nf_conntrack_eventmask_report
-       -> notify->fcn() (== ctnetlink_conntrack_events).
-
-cpu1: a. fetches rcu protected pointer to obtain ctnetlink event callback.
-      b. gets interrupted.
- cpu2: runs netns exit handlers:
-     a runs ctnetlink destructor, event cb pointer set to NULL.
-     b runs nfnetlink destructor, nfnl socket is closed and set to NULL.
-cpu1: c. resumes and trips over NULL net->nfnl.
-
-Problem appears to be that ctnetlink_net_exit_batch only prevents future
-callers of nf_conntrack_eventmask_report() from obtaining the callback.
-It doesn't wait of other cpus that might have already obtained the
-callbacks address.
-
-I don't see anything in upstream kernels that would prevent similar
-crash: We need to wait for all cpus to have exited the event callback.
-
-Fixes: 9592a5c01e79dbc59eb56fa ("netfilter: ctnetlink: netns support")
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
- net/netfilter/nf_conntrack_netlink.c | 3 +++
- 1 file changed, 3 insertions(+)
+ src/extra/tcp.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index deea281ab169..5e28702c801f 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -3388,6 +3388,9 @@ static void __net_exit ctnetlink_net_exit_batch(struct list_head *net_exit_list)
- 
- 	list_for_each_entry(net, net_exit_list, exit_list)
- 		ctnetlink_net_exit(net);
-+
-+	/* wait for other cpus until they are done with ctnl_notifiers */
-+	synchronize_rcu();
+diff --git a/src/extra/tcp.c b/src/extra/tcp.c
+index 2296bef..0f83500 100644
+--- a/src/extra/tcp.c
++++ b/src/extra/tcp.c
+@@ -87,7 +87,7 @@ unsigned int nfq_tcp_get_payload_len(struct tcphdr *tcph, struct pkt_buff *pktb)
  }
  
- static struct pernet_operations ctnetlink_net_ops = {
+ /**
+- * nfq_tcp_set_checksum_ipv4 - computes IPv4/TCP packet checksum
++ * nfq_tcp_compute_checksum_ipv4 - computes IPv4/TCP packet checksum
+  * \param tcph: pointer to the TCP header
+  * \param iph: pointer to the IPv4 header
+  */
+@@ -100,9 +100,9 @@ void nfq_tcp_compute_checksum_ipv4(struct tcphdr *tcph, struct iphdr *iph)
+ }
+ 
+ /**
+- * nfq_tcp_set_checksum_ipv6 - computes IPv6/TCP packet checksum
++ * nfq_tcp_compute_checksum_ipv6 - computes IPv6/TCP packet checksum
+  * \param tcph: pointer to the TCP header
+- * \param iph: pointer to the IPv6 header
++ * \param ip6h: pointer to the IPv6 header
+  */
+ EXPORT_SYMBOL
+ void nfq_tcp_compute_checksum_ipv6(struct tcphdr *tcph, struct ip6_hdr *ip6h)
+@@ -129,7 +129,7 @@ union tcp_word_hdr {
+  * readable way
+  * \param buf: pointer to buffer that is used to print the object
+  * \param size: size of the buffer (or remaining room in it).
+- * \param tcp: pointer to a valid tcp header.
++ * \param tcph: pointer to a valid tcp header.
+  *
+  */
+ EXPORT_SYMBOL
 -- 
-2.20.1
+2.14.5
 
