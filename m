@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9315C2D0C2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 11:22:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D3E4C2D0C2
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 11:22:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A9DD1206E4
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 11:22:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D975206E4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 11:22:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727521AbfL3LWL (ORCPT
+        id S1727477AbfL3LWI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Dec 2019 06:22:11 -0500
+        Mon, 30 Dec 2019 06:22:08 -0500
 Received: from correo.us.es ([193.147.175.20]:59444 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727488AbfL3LWK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Dec 2019 06:22:10 -0500
+        id S1727487AbfL3LWH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 30 Dec 2019 06:22:07 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3F8824DE724
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 12:22:08 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 14DF94DE743
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 12:22:05 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3088DDA702
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 12:22:08 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F2B42DA723
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 12:22:04 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 249DFDA713; Mon, 30 Dec 2019 12:22:08 +0100 (CET)
+        id E79F0DA718; Mon, 30 Dec 2019 12:22:04 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D6D37DA705;
-        Mon, 30 Dec 2019 12:22:05 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D1788DA70E;
+        Mon, 30 Dec 2019 12:22:02 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 30 Dec 2019 12:22:05 +0100 (CET)
+ Mon, 30 Dec 2019 12:22:02 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [185.124.28.61])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 5B9E941E4800;
-        Mon, 30 Dec 2019 12:22:05 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 42E4B41E4800;
+        Mon, 30 Dec 2019 12:22:02 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 17/17] netfilter: nft_meta: add support for slave device ifindex matching
-Date:   Mon, 30 Dec 2019 12:21:43 +0100
-Message-Id: <20191230112143.121708-18-pablo@netfilter.org>
+Subject: [PATCH 14/17] netfilter: nft_meta: move all interface related keys to helper
+Date:   Mon, 30 Dec 2019 12:21:40 +0100
+Message-Id: <20191230112143.121708-15-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191230112143.121708-1-pablo@netfilter.org>
 References: <20191230112143.121708-1-pablo@netfilter.org>
@@ -56,178 +56,146 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Allow to match on vrf slave ifindex or name.
+Reduces repetiveness and reduces size of meta eval function.
 
-In case there was no slave interface involved, store 0 in the
-destination register just like existing iif/oif matching.
-
-sdif(name) is restricted to the ipv4/ipv6 input and forward hooks,
-as it depends on ip(6) stack parsing/storing info in skb->cb[].
-
-Cc: Martin Willi <martin@strongswan.org>
-Cc: David Ahern <dsahern@kernel.org>
-Cc: Shrijeet Mukherjee <shrijeet@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nf_tables.h |  4 ++
- net/netfilter/nft_meta.c                 | 76 +++++++++++++++++++++++++++++---
- 2 files changed, 73 insertions(+), 7 deletions(-)
+ net/netfilter/nft_meta.c | 95 +++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 70 insertions(+), 25 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index bb9b049310df..e237ecbdcd8a 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -805,6 +805,8 @@ enum nft_exthdr_attributes {
-  * @NFT_META_TIME_NS: time since epoch (in nanoseconds)
-  * @NFT_META_TIME_DAY: day of week (from 0 = Sunday to 6 = Saturday)
-  * @NFT_META_TIME_HOUR: hour of day (in seconds)
-+ * @NFT_META_SDIF: slave device interface index
-+ * @NFT_META_SDIFNAME: slave device interface name
-  */
- enum nft_meta_keys {
- 	NFT_META_LEN,
-@@ -840,6 +842,8 @@ enum nft_meta_keys {
- 	NFT_META_TIME_NS,
- 	NFT_META_TIME_DAY,
- 	NFT_META_TIME_HOUR,
-+	NFT_META_SDIF,
-+	NFT_META_SDIFNAME,
- };
- 
- /**
 diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index fb1a571db924..951b6e87ed5d 100644
+index 2f7cc64b0c15..022f1473ddd1 100644
 --- a/net/netfilter/nft_meta.c
 +++ b/net/netfilter/nft_meta.c
-@@ -17,6 +17,7 @@
- #include <linux/smp.h>
- #include <linux/static_key.h>
- #include <net/dst.h>
-+#include <net/ip.h>
- #include <net/sock.h>
- #include <net/tcp_states.h> /* for TCP_TIME_WAIT */
- #include <net/netfilter/nf_tables.h>
-@@ -287,6 +288,28 @@ nft_meta_get_eval_rtclassid(const struct sk_buff *skb, u32 *dest)
+@@ -199,13 +199,79 @@ static noinline bool nft_meta_get_eval_kind(enum nft_meta_keys key,
+ 	return true;
  }
- #endif
  
-+static noinline u32 nft_meta_get_eval_sdif(const struct nft_pktinfo *pkt)
++static void nft_meta_store_ifindex(u32 *dest, const struct net_device *dev)
 +{
-+	switch (nft_pf(pkt)) {
-+	case NFPROTO_IPV4:
-+		return inet_sdif(pkt->skb);
-+	case NFPROTO_IPV6:
-+		return inet6_sdif(pkt->skb);
-+	}
-+
-+	return 0;
++	*dest = dev ? dev->ifindex : 0;
 +}
 +
-+static noinline void
-+nft_meta_get_eval_sdifname(u32 *dest, const struct nft_pktinfo *pkt)
++static void nft_meta_store_ifname(u32 *dest, const struct net_device *dev)
 +{
-+	u32 sdif = nft_meta_get_eval_sdif(pkt);
-+	const struct net_device *dev;
++	strncpy((char *)dest, dev ? dev->name : "", IFNAMSIZ);
++}
 +
-+	dev = sdif ? dev_get_by_index_rcu(nft_net(pkt), sdif) : NULL;
-+	nft_meta_store_ifname(dest, dev);
++static bool nft_meta_store_iftype(u32 *dest, const struct net_device *dev)
++{
++	if (!dev)
++		return false;
++
++	nft_reg_store16(dest, dev->type);
++	return true;
++}
++
++static bool nft_meta_store_ifgroup(u32 *dest, const struct net_device *dev)
++{
++	if (!dev)
++		return false;
++
++	*dest = dev->group;
++	return true;
++}
++
++static bool nft_meta_get_eval_ifname(enum nft_meta_keys key, u32 *dest,
++				     const struct nft_pktinfo *pkt)
++{
++	switch (key) {
++	case NFT_META_IIFNAME:
++		nft_meta_store_ifname(dest, nft_in(pkt));
++		break;
++	case NFT_META_OIFNAME:
++		nft_meta_store_ifname(dest, nft_out(pkt));
++		break;
++	case NFT_META_IIF:
++		nft_meta_store_ifindex(dest, nft_in(pkt));
++		break;
++	case NFT_META_OIF:
++		nft_meta_store_ifindex(dest, nft_out(pkt));
++		break;
++	case NFT_META_IIFTYPE:
++		if (!nft_meta_store_iftype(dest, nft_in(pkt)))
++			return false;
++		break;
++	case NFT_META_OIFTYPE:
++		if (!nft_meta_store_iftype(dest, nft_out(pkt)))
++			return false;
++		break;
++	case NFT_META_IIFGROUP:
++		if (!nft_meta_store_ifgroup(dest, nft_out(pkt)))
++			return false;
++		break;
++	case NFT_META_OIFGROUP:
++		if (!nft_meta_store_ifgroup(dest, nft_out(pkt)))
++			return false;
++		break;
++	default:
++		return false;
++	}
++
++	return true;
 +}
 +
  void nft_meta_get_eval(const struct nft_expr *expr,
  		       struct nft_regs *regs,
  		       const struct nft_pktinfo *pkt)
-@@ -379,6 +402,12 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 	case NFT_META_TIME_HOUR:
- 		nft_meta_get_eval_time(priv->key, dest);
+ {
+ 	const struct nft_meta *priv = nft_expr_priv(expr);
+ 	const struct sk_buff *skb = pkt->skb;
+-	const struct net_device *in = nft_in(pkt), *out = nft_out(pkt);
+ 	u32 *dest = &regs->data[priv->dreg];
+ 
+ 	switch (priv->key) {
+@@ -230,26 +296,15 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 		*dest = skb->mark;
  		break;
-+	case NFT_META_SDIF:
-+		*dest = nft_meta_get_eval_sdif(pkt);
-+		break;
-+	case NFT_META_SDIFNAME:
-+		nft_meta_get_eval_sdifname(dest, pkt);
-+		break;
- 	default:
- 		WARN_ON(1);
- 		goto err;
-@@ -459,6 +488,7 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
- 	case NFT_META_MARK:
  	case NFT_META_IIF:
+-		*dest = in ? in->ifindex : 0;
+-		break;
  	case NFT_META_OIF:
-+	case NFT_META_SDIF:
+-		*dest = out ? out->ifindex : 0;
+-		break;
+ 	case NFT_META_IIFNAME:
+-		strncpy((char *)dest, in ? in->name : "", IFNAMSIZ);
+-		break;
+ 	case NFT_META_OIFNAME:
+-		strncpy((char *)dest, out ? out->name : "", IFNAMSIZ);
+-		break;
+ 	case NFT_META_IIFTYPE:
+-		if (in == NULL)
+-			goto err;
+-		nft_reg_store16(dest, in->type);
+-		break;
+ 	case NFT_META_OIFTYPE:
+-		if (out == NULL)
++	case NFT_META_IIFGROUP:
++	case NFT_META_OIFGROUP:
++		if (!nft_meta_get_eval_ifname(priv->key, dest, pkt))
+ 			goto err;
+-		nft_reg_store16(dest, out->type);
+ 		break;
  	case NFT_META_SKUID:
  	case NFT_META_SKGID:
- #ifdef CONFIG_IP_ROUTE_CLASSID
-@@ -480,6 +510,7 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
- 	case NFT_META_OIFNAME:
- 	case NFT_META_IIFKIND:
- 	case NFT_META_OIFKIND:
-+	case NFT_META_SDIFNAME:
- 		len = IFNAMSIZ;
+@@ -283,16 +338,6 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 	case NFT_META_CPU:
+ 		*dest = raw_smp_processor_id();
  		break;
- 	case NFT_META_PRANDOM:
-@@ -510,16 +541,28 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
- }
- EXPORT_SYMBOL_GPL(nft_meta_get_init);
- 
--static int nft_meta_get_validate(const struct nft_ctx *ctx,
--				 const struct nft_expr *expr,
--				 const struct nft_data **data)
-+static int nft_meta_get_validate_sdif(const struct nft_ctx *ctx)
- {
--#ifdef CONFIG_XFRM
--	const struct nft_meta *priv = nft_expr_priv(expr);
- 	unsigned int hooks;
- 
--	if (priv->key != NFT_META_SECPATH)
--		return 0;
-+	switch (ctx->family) {
-+	case NFPROTO_IPV4:
-+	case NFPROTO_IPV6:
-+	case NFPROTO_INET:
-+		hooks = (1 << NF_INET_LOCAL_IN) |
-+			(1 << NF_INET_FORWARD);
-+		break;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+
-+	return nft_chain_validate_hooks(ctx->chain, hooks);
-+}
-+
-+static int nft_meta_get_validate_xfrm(const struct nft_ctx *ctx)
-+{
-+#ifdef CONFIG_XFRM
-+	unsigned int hooks;
- 
- 	switch (ctx->family) {
- 	case NFPROTO_NETDEV:
-@@ -542,6 +585,25 @@ static int nft_meta_get_validate(const struct nft_ctx *ctx,
- #endif
- }
- 
-+static int nft_meta_get_validate(const struct nft_ctx *ctx,
-+				 const struct nft_expr *expr,
-+				 const struct nft_data **data)
-+{
-+	const struct nft_meta *priv = nft_expr_priv(expr);
-+
-+	switch (priv->key) {
-+	case NFT_META_SECPATH:
-+		return nft_meta_get_validate_xfrm(ctx);
-+	case NFT_META_SDIF:
-+	case NFT_META_SDIFNAME:
-+		return nft_meta_get_validate_sdif(ctx);
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
- int nft_meta_set_validate(const struct nft_ctx *ctx,
- 			  const struct nft_expr *expr,
- 			  const struct nft_data **data)
+-	case NFT_META_IIFGROUP:
+-		if (in == NULL)
+-			goto err;
+-		*dest = in->group;
+-		break;
+-	case NFT_META_OIFGROUP:
+-		if (out == NULL)
+-			goto err;
+-		*dest = out->group;
+-		break;
+ #ifdef CONFIG_CGROUP_NET_CLASSID
+ 	case NFT_META_CGROUP:
+ 		if (!nft_meta_get_eval_cgroup(dest, pkt))
 -- 
 2.11.0
 
