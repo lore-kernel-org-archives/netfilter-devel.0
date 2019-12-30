@@ -2,72 +2,75 @@ Return-Path: <SRS0=r9U9=2U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,PDS_TONAME_EQ_TOLOCAL_SHORT,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFC93C2D0CE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 13:27:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 174CAC2D0C3
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 20:02:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 90488206DB
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 13:27:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D3DB020718
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 20:02:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727482AbfL3N1q (ORCPT
+        id S1727686AbfL3UCw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Dec 2019 08:27:46 -0500
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:35048 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727397AbfL3N1q (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Dec 2019 08:27:46 -0500
-Received: from [192.168.1.8] (unknown [116.226.202.48])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 21757418E9;
-        Mon, 30 Dec 2019 21:27:38 +0800 (CST)
-Subject: Re: [PATCH nf v3 0/3] netfilter: nf_flow_table_offload: something
- fixes
-From:   wenxu <wenxu@ucloud.cn>
-To:     pablo@netfilter.org
+        Mon, 30 Dec 2019 15:02:52 -0500
+Received: from correo.us.es ([193.147.175.20]:41446 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727667AbfL3UCw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 30 Dec 2019 15:02:52 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id B80B911EB29
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 21:02:49 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A9BEDDA710
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 21:02:49 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 9F327DA705; Mon, 30 Dec 2019 21:02:49 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AC3B5DA705;
+        Mon, 30 Dec 2019 21:02:47 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 30 Dec 2019 21:02:47 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [185.124.28.61])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 6221142EE38E;
+        Mon, 30 Dec 2019 21:02:47 +0100 (CET)
+Date:   Mon, 30 Dec 2019 21:02:45 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     wenxu <wenxu@ucloud.cn>
 Cc:     netfilter-devel@vger.kernel.org
-References: <1576815278-1283-1-git-send-email-wenxu@ucloud.cn>
-Message-ID: <515b1bd5-eb59-559d-039e-c354e523042b@ucloud.cn>
-Date:   Mon, 30 Dec 2019 21:27:07 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.3.0
+Subject: Re: [PATCH nf] netfilter: nft_flow_offload: fix unnecessary use
+ counter decrease in destory
+Message-ID: <20191230200245.wr3tknzvduzecvaw@salvia>
+References: <1576832926-4268-1-git-send-email-wenxu@ucloud.cn>
+ <c9e07a82-ea38-d0bc-3ffa-cb0b5bc7ff95@ucloud.cn>
 MIME-Version: 1.0
-In-Reply-To: <1576815278-1283-1-git-send-email-wenxu@ucloud.cn>
-Content-Type: text/plain; charset=gbk; format=flowed
-Content-Transfer-Encoding: 8bit
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVT0hLS0tLSEtOSkxOTENZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MxQ6NTo*KDg9LDlLPBUqDjxI
-        Di5PCRVVSlVKTkxMTEpJT05DT0hLVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpKTVVJ
-        SU1VSUtJVU9DWVdZCAFZQUpNSEs3Bg++
-X-HM-Tid: 0a6f56fd9a682086kuqy21757418e9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <c9e07a82-ea38-d0bc-3ffa-cb0b5bc7ff95@ucloud.cn>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi pablo,
+On Mon, Dec 30, 2019 at 09:25:36PM +0800, wenxu wrote:
+> Hi pablo,
+> 
+> How about this patch?
 
+This test still fails after a second run with this patch:
 
-Any idea for this series?
+./run-tests.sh testcases/flowtable/0009deleteafterflush_0
+I: using nft binary ./../../src/nft
 
-
-BR
-
-wenxu
-
-ÔÚ 2019/12/20 12:14, wenxu@ucloud.cn Ð´µÀ:
-> From: wenxu <wenxu@ucloud.cn>
->
-> This version just modify the description of  patch 1 and 3
->
-> wenxu (3):
->    netfilter: nf_flow_table_offload: fix incorrect ethernet dst address
->    netfilter: nf_flow_table_offload: check the status of dst_neigh
->    netfilter: nf_flow_table_offload: fix the nat port mangle.
->
->   net/netfilter/nf_flow_table_offload.c | 46 ++++++++++++++++++++++++++---------
->   1 file changed, 34 insertions(+), 12 deletions(-)
->
+W: [FAILED]     testcases/flowtable/0009deleteafterflush_0: got 1
+Error: Could not process rule: Device or resource busy
+delete flowtable x f
