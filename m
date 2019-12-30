@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B018EC2D0C2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 11:22:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4870CC47409
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 11:22:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 91549206E4
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 11:22:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2A9E62071E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 11:22:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727496AbfL3LWG (ORCPT
+        id S1727516AbfL3LWJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Dec 2019 06:22:06 -0500
+        Mon, 30 Dec 2019 06:22:09 -0500
 Received: from correo.us.es ([193.147.175.20]:59224 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727479AbfL3LWF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Dec 2019 06:22:05 -0500
+        id S1727459AbfL3LWI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 30 Dec 2019 06:22:08 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EFB324DE72B
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 12:22:03 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id EF5744DE735
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 12:22:06 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E2194DA717
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 12:22:03 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E3103DA71A
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 12:22:06 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D7626DA714; Mon, 30 Dec 2019 12:22:03 +0100 (CET)
+        id D87D2DA713; Mon, 30 Dec 2019 12:22:06 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C61F5DA70F;
-        Mon, 30 Dec 2019 12:22:01 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D8879DA713;
+        Mon, 30 Dec 2019 12:22:04 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 30 Dec 2019 12:22:01 +0100 (CET)
+ Mon, 30 Dec 2019 12:22:04 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [185.124.28.61])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 3E3EF41E4803;
-        Mon, 30 Dec 2019 12:22:01 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 573FF41E4800;
+        Mon, 30 Dec 2019 12:22:04 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 13/17] netfilter: nft_meta: move interface kind handling to helper
-Date:   Mon, 30 Dec 2019 12:21:39 +0100
-Message-Id: <20191230112143.121708-14-pablo@netfilter.org>
+Subject: [PATCH 16/17] netfilter: nft_meta: place rtclassid handling in a helper
+Date:   Mon, 30 Dec 2019 12:21:42 +0100
+Message-Id: <20191230112143.121708-17-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191230112143.121708-1-pablo@netfilter.org>
 References: <20191230112143.121708-1-pablo@netfilter.org>
@@ -56,66 +56,57 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-checkpatch complains about == NULL checks in original code,
-so use !in instead.
+skb_dst is an inline helper with a WARN_ON(), so this is a bit more code
+than it looks like.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_meta.c | 31 +++++++++++++++++++++++++------
- 1 file changed, 25 insertions(+), 6 deletions(-)
+ net/netfilter/nft_meta.c | 22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
 
 diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 3fca1c3ec361..2f7cc64b0c15 100644
+index ac6fc95387dc..fb1a571db924 100644
 --- a/net/netfilter/nft_meta.c
 +++ b/net/netfilter/nft_meta.c
-@@ -175,6 +175,30 @@ nft_meta_get_eval_cgroup(u32 *dest, const struct nft_pktinfo *pkt)
+@@ -273,6 +273,20 @@ static noinline u32 nft_prandom_u32(void)
+ 	return prandom_u32_state(state);
  }
- #endif
  
-+static noinline bool nft_meta_get_eval_kind(enum nft_meta_keys key,
-+					    u32 *dest,
-+					    const struct nft_pktinfo *pkt)
++#ifdef CONFIG_IP_ROUTE_CLASSID
++static noinline bool
++nft_meta_get_eval_rtclassid(const struct sk_buff *skb, u32 *dest)
 +{
-+	const struct net_device *in = nft_in(pkt), *out = nft_out(pkt);
++	const struct dst_entry *dst = skb_dst(skb);
 +
-+	switch (key) {
-+	case NFT_META_IIFKIND:
-+		if (!in || !in->rtnl_link_ops)
-+			return false;
-+		strncpy((char *)dest, in->rtnl_link_ops->kind, IFNAMSIZ);
-+		break;
-+	case NFT_META_OIFKIND:
-+		if (!out || !out->rtnl_link_ops)
-+			return false;
-+		strncpy((char *)dest, out->rtnl_link_ops->kind, IFNAMSIZ);
-+		break;
-+	default:
++	if (!dst)
 +		return false;
-+	}
 +
++	*dest = dst->tclassid;
 +	return true;
 +}
++#endif
 +
  void nft_meta_get_eval(const struct nft_expr *expr,
  		       struct nft_regs *regs,
  		       const struct nft_pktinfo *pkt)
-@@ -286,14 +310,9 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 		break;
- #endif
- 	case NFT_META_IIFKIND:
--		if (in == NULL || in->rtnl_link_ops == NULL)
--			goto err;
--		strncpy((char *)dest, in->rtnl_link_ops->kind, IFNAMSIZ);
--		break;
- 	case NFT_META_OIFKIND:
--		if (out == NULL || out->rtnl_link_ops == NULL)
-+		if (!nft_meta_get_eval_kind(priv->key, dest, pkt))
+@@ -319,14 +333,10 @@ void nft_meta_get_eval(const struct nft_expr *expr,
  			goto err;
--		strncpy((char *)dest, out->rtnl_link_ops->kind, IFNAMSIZ);
  		break;
- 	case NFT_META_TIME_NS:
- 	case NFT_META_TIME_DAY:
+ #ifdef CONFIG_IP_ROUTE_CLASSID
+-	case NFT_META_RTCLASSID: {
+-		const struct dst_entry *dst = skb_dst(skb);
+-
+-		if (dst == NULL)
++	case NFT_META_RTCLASSID:
++		if (!nft_meta_get_eval_rtclassid(skb, dest))
+ 			goto err;
+-		*dest = dst->tclassid;
+ 		break;
+-	}
+ #endif
+ #ifdef CONFIG_NETWORK_SECMARK
+ 	case NFT_META_SECMARK:
 -- 
 2.11.0
 
