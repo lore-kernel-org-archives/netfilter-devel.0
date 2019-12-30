@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3BDCC2D0D3
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 11:22:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45569C2D0CE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 11:22:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CA5E8206E4
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 11:22:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 26670206E4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 11:22:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727526AbfL3LWR (ORCPT
+        id S1727531AbfL3LWU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Dec 2019 06:22:17 -0500
-Received: from correo.us.es ([193.147.175.20]:59262 "EHLO mail.us.es"
+        Mon, 30 Dec 2019 06:22:20 -0500
+Received: from correo.us.es ([193.147.175.20]:59260 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727492AbfL3LWH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Dec 2019 06:22:07 -0500
+        id S1727478AbfL3LWF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 30 Dec 2019 06:22:05 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 00AE44DE72A
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 12:22:06 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 911884DE724
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 12:22:03 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E8323DA723
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 12:22:05 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 83241DA717
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 12:22:03 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DD02CDA716; Mon, 30 Dec 2019 12:22:05 +0100 (CET)
+        id 82A35DA709; Mon, 30 Dec 2019 12:22:03 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D8580DA715;
-        Mon, 30 Dec 2019 12:22:03 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BB83FDA737;
+        Mon, 30 Dec 2019 12:22:00 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 30 Dec 2019 12:22:03 +0100 (CET)
+ Mon, 30 Dec 2019 12:22:00 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [185.124.28.61])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 4F92841E4800;
-        Mon, 30 Dec 2019 12:22:03 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 3BFA441E4800;
+        Mon, 30 Dec 2019 12:22:00 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 15/17] netfilter: nft_meta: place prandom handling in a helper
-Date:   Mon, 30 Dec 2019 12:21:41 +0100
-Message-Id: <20191230112143.121708-16-pablo@netfilter.org>
+Subject: [PATCH 12/17] netfilter: nft_meta: move cgroup handling to helper
+Date:   Mon, 30 Dec 2019 12:21:38 +0100
+Message-Id: <20191230112143.121708-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191230112143.121708-1-pablo@netfilter.org>
 References: <20191230112143.121708-1-pablo@netfilter.org>
@@ -56,47 +56,60 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Move this out of the main eval loop, the numgen expression
-provides a better alternative to meta random.
+Reduce size of main eval function.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_meta.c | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ net/netfilter/nft_meta.c | 20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
 diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 022f1473ddd1..ac6fc95387dc 100644
+index 1b32440ec2e6..3fca1c3ec361 100644
 --- a/net/netfilter/nft_meta.c
 +++ b/net/netfilter/nft_meta.c
-@@ -266,6 +266,13 @@ static bool nft_meta_get_eval_ifname(enum nft_meta_keys key, u32 *dest,
+@@ -161,6 +161,20 @@ nft_meta_get_eval_skugid(enum nft_meta_keys key,
  	return true;
  }
  
-+static noinline u32 nft_prandom_u32(void)
++#ifdef CONFIG_CGROUP_NET_CLASSID
++static noinline bool
++nft_meta_get_eval_cgroup(u32 *dest, const struct nft_pktinfo *pkt)
 +{
-+	struct rnd_state *state = this_cpu_ptr(&nft_prandom_state);
++	struct sock *sk = skb_to_full_sk(pkt->skb);
 +
-+	return prandom_u32_state(state);
++	if (!sk || !sk_fullsock(sk) || !net_eq(nft_net(pkt), sock_net(sk)))
++		return false;
++
++	*dest = sock_cgroup_classid(&sk->sk_cgrp_data);
++	return true;
 +}
++#endif
 +
  void nft_meta_get_eval(const struct nft_expr *expr,
  		       struct nft_regs *regs,
  		       const struct nft_pktinfo *pkt)
-@@ -344,11 +351,9 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+@@ -168,7 +182,6 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 	const struct nft_meta *priv = nft_expr_priv(expr);
+ 	const struct sk_buff *skb = pkt->skb;
+ 	const struct net_device *in = nft_in(pkt), *out = nft_out(pkt);
+-	struct sock *sk;
+ 	u32 *dest = &regs->data[priv->dreg];
+ 
+ 	switch (priv->key) {
+@@ -258,11 +271,8 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 		break;
+ #ifdef CONFIG_CGROUP_NET_CLASSID
+ 	case NFT_META_CGROUP:
+-		sk = skb_to_full_sk(skb);
+-		if (!sk || !sk_fullsock(sk) ||
+-		    !net_eq(nft_net(pkt), sock_net(sk)))
++		if (!nft_meta_get_eval_cgroup(dest, pkt))
  			goto err;
+-		*dest = sock_cgroup_classid(&sk->sk_cgrp_data);
  		break;
  #endif
--	case NFT_META_PRANDOM: {
--		struct rnd_state *state = this_cpu_ptr(&nft_prandom_state);
--		*dest = prandom_u32_state(state);
-+	case NFT_META_PRANDOM:
-+		*dest = nft_prandom_u32();
- 		break;
--	}
- #ifdef CONFIG_XFRM
- 	case NFT_META_SECPATH:
- 		nft_reg_store8(dest, secpath_exists(skb));
+ 	case NFT_META_PRANDOM: {
 -- 
 2.11.0
 
