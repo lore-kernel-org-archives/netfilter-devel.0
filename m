@@ -1,103 +1,97 @@
-Return-Path: <SRS0=8lzl=2S=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=r9U9=2U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E646CC2D0D1
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Dec 2019 11:20:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 244D1C2D0D1
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 08:50:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C78D720748
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Dec 2019 11:20:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E18192072E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 08:50:58 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TnoaI8gc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726377AbfL1LT6 (ORCPT
+        id S1727247AbfL3Iu6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 28 Dec 2019 06:19:58 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:39180 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726220AbfL1LT6 (ORCPT
+        Mon, 30 Dec 2019 03:50:58 -0500
+Received: from mail-io1-f50.google.com ([209.85.166.50]:43491 "EHLO
+        mail-io1-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727162AbfL3Iu6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 28 Dec 2019 06:19:58 -0500
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1ilA8M-00073P-9l; Sat, 28 Dec 2019 12:19:50 +0100
-Date:   Sat, 28 Dec 2019 12:19:50 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Hillf Danton <hdanton@sina.com>
-Cc:     syzbot <syzbot+19616eedf6fd8e241e50@syzkaller.appspotmail.com>,
-        coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@netfilter.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
-Subject: Re: general protection fault in nf_ct_netns_do_get
-Message-ID: <20191228111950.GJ795@breakpoint.cc>
-References: <20191228110316.4400-1-hdanton@sina.com>
+        Mon, 30 Dec 2019 03:50:58 -0500
+Received: by mail-io1-f50.google.com with SMTP id n21so29278367ioo.10
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 00:50:57 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=OT6a5Pch4kpMLj64XwWFi7oE8Kijsix1HaCNaD7iap8=;
+        b=TnoaI8gc/IkqyWl+/bur1QgUq9O+kTeHCqcGu0eVN7KilID6AtgaRbuqK5u14Tzgmu
+         mpH9DauI1jq2va7OOg0c1132gLG0J1UV+hbwxsBNSThVhCwtrclmd+8/VqmFQs1QrLH1
+         toizh/DokrpsjGxPGJ3hdGcbQqqNzRi7KNSDfSf5DJstvLbCVbf6ASIMiEPdyGtTPdH8
+         O91f2q+mrKH6l9J6CdLuD4IAMaIoMd/UW3IeiIhOkZVPb0Ds9UMNS3fPoFfFg9FL3b6/
+         0/TICkbAxFxUTuGZPG8iXGUt/UiWSTiXTfPP6ig/xJCmNvFEnFX7C/xWtrZkCYFbTsqW
+         hWEg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=OT6a5Pch4kpMLj64XwWFi7oE8Kijsix1HaCNaD7iap8=;
+        b=rW4en+LnDG3wVNgndcCIms/W3c4EQ91p09C462vTNVi5G03/cL6XPkpMHFBhA8O4Ek
+         pnWRg35YLtDXHqeSQWqvwwfnEDRhof5WBCMJY8dpbrEHXu+FxMjBhLkG7T6BWdzGa7kK
+         zstlpCwKUT/4+FsIZyhhTtQNL4aIyAxxvdW8dnrlQpBeYscnHkELfV0W/RNwfPLnGF8o
+         gFSmBLj1kxvX0E3zYUNRVMBak3UsflBq2jVKEVW/hHLsjLlrKMSto4UeutlgmM1zD4je
+         LF+pDD2N8ilwDTut2ZzZ/YNmtSBGyp0zu/a+XmHhE1ZKAnfeUhvBbD2phl3azSId2aeT
+         GTgA==
+X-Gm-Message-State: APjAAAWekh1T+REiVyI60ZpAeQfuMv80LdN4GIHqcif/iSguY8yfi7IY
+        iAN5DYULF21tnRscfcQN8FPZHrLDHeatqJ6hu7FpqA==
+X-Google-Smtp-Source: APXvYqyB+6gq4iyvWj/pzjikjFGO7E+/+4hQCADHyZHjEGDfFHOGeKWLehJc+X4rnED+dhVgLxe84v24mExOJrzJtBs=
+X-Received: by 2002:a5d:8782:: with SMTP id f2mr34761235ion.53.1577695857259;
+ Mon, 30 Dec 2019 00:50:57 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191228110316.4400-1-hdanton@sina.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Received: by 2002:ac0:aafc:0:0:0:0:0 with HTTP; Mon, 30 Dec 2019 00:50:56
+ -0800 (PST)
+From:   JH <jupiter.hce@gmail.com>
+Date:   Mon, 30 Dec 2019 19:50:56 +1100
+Message-ID: <CAA=hcWTJWi3wcWez-adCE4NvzVbbeWSpwSNCz9cebnSDnGPtcQ@mail.gmail.com>
+Subject: Calling mnl_socket_sendto caused error of netlink attribute type 1
+ has an invalid length
+To:     netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hillf Danton <hdanton@sina.com> wrote:
-> > RIP: 0010:__read_once_size include/linux/compiler.h:199 [inline]
-> > RIP: 0010:net_generic include/net/netns/generic.h:45 [inline]
-> > RIP: 0010:nf_ct_netns_do_get+0xd2/0x7e0  
-> > net/netfilter/nf_conntrack_proto.c:449
-> > Code: 22 22 fb 45 84 f6 0f 84 5c 03 00 00 e8 07 21 22 fb 49 8d bc 24 68 13  
-> > 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f  
-> > 85 9f 06 00 00 4d 8b b4 24 68 13 00 00 e8 47 59 0e
-> > RSP: 0018:ffffc90001f177a8 EFLAGS: 00010202
-> > RAX: dffffc0000000000 RBX: 0000000000000003 RCX: ffffffff86531056
-> > RDX: 000000000000026d RSI: ffffffff86530ce9 RDI: 0000000000001368
-> > RBP: ffffc90001f177e8 R08: ffff88808fd96200 R09: ffffed1015d0703d
-> > R10: ffffed1015d0703c R11: ffff8880ae8381e3 R12: 0000000000000000
-> > R13: 000000000000002a R14: 0000000000000001 R15: 0000000000000003
-> > FS:  00000000009fd880(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
-> > CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > CR2: 00000000200008a0 CR3: 0000000093cc3000 CR4: 00000000001406f0
-> > DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> > DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-> > Call Trace:
-> >   nf_ct_netns_get+0x41/0x150 net/netfilter/nf_conntrack_proto.c:601
-> >   connmark_tg_check+0x61/0xe0 net/netfilter/xt_connmark.c:106
-> >   xt_check_target+0x283/0x690 net/netfilter/x_tables.c:1019
-> >   check_target net/ipv4/netfilter/arp_tables.c:399 [inline]
-> >   find_check_entry net/ipv4/netfilter/arp_tables.c:422 [inline]
-> >   translate_table+0x1005/0x1d70 net/ipv4/netfilter/arp_tables.c:572
-> >   do_replace net/ipv4/netfilter/arp_tables.c:977 [inline]
-> >   do_arpt_set_ctl+0x310/0x640 net/ipv4/netfilter/arp_tables.c:1456
-> >   nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
-> >   nf_setsockopt+0x77/0xd0 net/netfilter/nf_sockopt.c:115
-> >   ip_setsockopt net/ipv4/ip_sockglue.c:1260 [inline]
-> >   ip_setsockopt+0xdf/0x100 net/ipv4/ip_sockglue.c:1240
-> >   udp_setsockopt+0x68/0xb0 net/ipv4/udp.c:2639
-> >   sock_common_setsockopt+0x94/0xd0 net/core/sock.c:3149
-> >   __sys_setsockopt+0x261/0x4c0 net/socket.c:2117
-> >   __do_sys_setsockopt net/socket.c:2133 [inline]
-> >   __se_sys_setsockopt net/socket.c:2130 [inline]
-> >   __x64_sys_setsockopt+0xbe/0x150 net/socket.c:2130
-> >   do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
-> >   entry_SYSCALL_64_after_hwframe+0x49/0xbe
-> 
-> 
-> Get net namespace unless @net is invalid.
-> 
-> --- a/net/netfilter/nf_conntrack_proto.c
-> +++ b/net/netfilter/nf_conntrack_proto.c
-> @@ -582,6 +582,9 @@ int nf_ct_netns_get(struct net *net, u8
->  {
->  	int err;
->  
-> +	if (!net)
-> +		return -EINVAL;
-> +
+Hi,
 
-We should not have a NULL netns pointer to begin with, see:
+I have following error of attribute type 1 has an invalid length when
+calling following mnl_socket_sendto(channel->mnlSocket, nlh,
+nlh->nlmsg_len), I cannot see what was wrong about it, the
+nlh->nlmsg_len = 40 which is from libnml, is that wrong? Please advise
+how to fix it.
 
-http://patchwork.ozlabs.org/patch/1215593/
+[ 3240.939609] netlink: 'wifi_signal': attribute type 1 has an invalid
+length. I have a WiFi function using nml API:
+
+typedef struct {
+        struct mnl_socket *mnlSocket;
+        char buf[BUFFER_SIZE];
+        uint16_t channelId;
+        uint32_t interfaceIndex;
+        uint32_t sequence;
+        void *context;
+} __attribute__ ((packed)) Netlink80211Channel_t;
+
+void WiFiScan::Send80211Message(struct nlmsghdr *nlh,
+Netlink80211Channel_t *channel) {
+    if (mnl_socket_sendto(channel->mnlSocket, nlh, nlh->nlmsg_len) < 0) {
+         std::cout << "Failed to send socket" << std::endl;
+    }
+}
+
+Thank you.
+
+- jh
