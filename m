@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 063AAC2D0C2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 11:22:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A513AC2D0C2
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 11:22:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DC38D206E4
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 11:22:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 86CE7206E4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Dec 2019 11:22:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727450AbfL3LWB (ORCPT
+        id S1727474AbfL3LWE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Dec 2019 06:22:01 -0500
-Received: from correo.us.es ([193.147.175.20]:59302 "EHLO mail.us.es"
+        Mon, 30 Dec 2019 06:22:04 -0500
+Received: from correo.us.es ([193.147.175.20]:59316 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727442AbfL3LWA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Dec 2019 06:22:00 -0500
+        id S1727460AbfL3LWD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 30 Dec 2019 06:22:03 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DD70E4DE73F
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 12:21:57 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 08B3E4DE747
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 12:22:02 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CB6B2DA714
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 12:21:57 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EC468DA710
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Dec 2019 12:22:01 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C1394DA703; Mon, 30 Dec 2019 12:21:57 +0100 (CET)
+        id DA5A6DA720; Mon, 30 Dec 2019 12:22:01 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B29E6DA70F;
-        Mon, 30 Dec 2019 12:21:55 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C5930DA78D;
+        Mon, 30 Dec 2019 12:21:59 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 30 Dec 2019 12:21:55 +0100 (CET)
+ Mon, 30 Dec 2019 12:21:59 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [185.124.28.61])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 36B0F41E4800;
-        Mon, 30 Dec 2019 12:21:55 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 43A7241E4800;
+        Mon, 30 Dec 2019 12:21:59 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 07/17] netfilter: nft_tunnel: add the missing nla_nest_cancel()
-Date:   Mon, 30 Dec 2019 12:21:33 +0100
-Message-Id: <20191230112143.121708-8-pablo@netfilter.org>
+Subject: [PATCH 11/17] netfilter: nft_meta: move sk uid/git handling to helper
+Date:   Mon, 30 Dec 2019 12:21:37 +0100
+Message-Id: <20191230112143.121708-12-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191230112143.121708-1-pablo@netfilter.org>
 References: <20191230112143.121708-1-pablo@netfilter.org>
@@ -54,108 +54,102 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Xin Long <lucien.xin@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-When nla_put_xxx() fails under nla_nest_start_noflag(),
-nla_nest_cancel() should be called, so that the skb can
-be trimmed properly.
+Not a hot path.  Also, both have copy&paste case statements,
+so use a common helper for both.
 
-Signed-off-by: Xin Long <lucien.xin@gmail.com>
-Reviewed-by: Simon Horman <simon.horman@netronome.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_tunnel.c | 38 ++++++++++++++++++++++++++------------
- 1 file changed, 26 insertions(+), 12 deletions(-)
+ net/netfilter/nft_meta.c | 65 +++++++++++++++++++++++++++---------------------
+ 1 file changed, 36 insertions(+), 29 deletions(-)
 
-diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
-index eb1740236526..23cd163689d5 100644
---- a/net/netfilter/nft_tunnel.c
-+++ b/net/netfilter/nft_tunnel.c
-@@ -443,10 +443,15 @@ static int nft_tunnel_ip_dump(struct sk_buff *skb, struct ip_tunnel_info *info)
- 		if (!nest)
- 			return -1;
- 
--		if (nla_put_in6_addr(skb, NFTA_TUNNEL_KEY_IP6_SRC, &info->key.u.ipv6.src) < 0 ||
--		    nla_put_in6_addr(skb, NFTA_TUNNEL_KEY_IP6_DST, &info->key.u.ipv6.dst) < 0 ||
--		    nla_put_be32(skb, NFTA_TUNNEL_KEY_IP6_FLOWLABEL, info->key.label))
-+		if (nla_put_in6_addr(skb, NFTA_TUNNEL_KEY_IP6_SRC,
-+				     &info->key.u.ipv6.src) < 0 ||
-+		    nla_put_in6_addr(skb, NFTA_TUNNEL_KEY_IP6_DST,
-+				     &info->key.u.ipv6.dst) < 0 ||
-+		    nla_put_be32(skb, NFTA_TUNNEL_KEY_IP6_FLOWLABEL,
-+				 info->key.label)) {
-+			nla_nest_cancel(skb, nest);
- 			return -1;
-+		}
- 
- 		nla_nest_end(skb, nest);
- 	} else {
-@@ -454,9 +459,13 @@ static int nft_tunnel_ip_dump(struct sk_buff *skb, struct ip_tunnel_info *info)
- 		if (!nest)
- 			return -1;
- 
--		if (nla_put_in_addr(skb, NFTA_TUNNEL_KEY_IP_SRC, info->key.u.ipv4.src) < 0 ||
--		    nla_put_in_addr(skb, NFTA_TUNNEL_KEY_IP_DST, info->key.u.ipv4.dst) < 0)
-+		if (nla_put_in_addr(skb, NFTA_TUNNEL_KEY_IP_SRC,
-+				    info->key.u.ipv4.src) < 0 ||
-+		    nla_put_in_addr(skb, NFTA_TUNNEL_KEY_IP_DST,
-+				    info->key.u.ipv4.dst) < 0) {
-+			nla_nest_cancel(skb, nest);
- 			return -1;
-+		}
- 
- 		nla_nest_end(skb, nest);
- 	}
-@@ -477,37 +486,42 @@ static int nft_tunnel_opts_dump(struct sk_buff *skb,
- 	if (opts->flags & TUNNEL_VXLAN_OPT) {
- 		inner = nla_nest_start_noflag(skb, NFTA_TUNNEL_KEY_OPTS_VXLAN);
- 		if (!inner)
--			return -1;
-+			goto failure;
- 		if (nla_put_be32(skb, NFTA_TUNNEL_KEY_VXLAN_GBP,
- 				 htonl(opts->u.vxlan.gbp)))
--			return -1;
-+			goto inner_failure;
- 		nla_nest_end(skb, inner);
- 	} else if (opts->flags & TUNNEL_ERSPAN_OPT) {
- 		inner = nla_nest_start_noflag(skb, NFTA_TUNNEL_KEY_OPTS_ERSPAN);
- 		if (!inner)
--			return -1;
-+			goto failure;
- 		if (nla_put_be32(skb, NFTA_TUNNEL_KEY_ERSPAN_VERSION,
- 				 htonl(opts->u.erspan.version)))
--			return -1;
-+			goto inner_failure;
- 		switch (opts->u.erspan.version) {
- 		case ERSPAN_VERSION:
- 			if (nla_put_be32(skb, NFTA_TUNNEL_KEY_ERSPAN_V1_INDEX,
- 					 opts->u.erspan.u.index))
--				return -1;
-+				goto inner_failure;
- 			break;
- 		case ERSPAN_VERSION2:
- 			if (nla_put_u8(skb, NFTA_TUNNEL_KEY_ERSPAN_V2_HWID,
- 				       get_hwid(&opts->u.erspan.u.md2)) ||
- 			    nla_put_u8(skb, NFTA_TUNNEL_KEY_ERSPAN_V2_DIR,
- 				       opts->u.erspan.u.md2.dir))
--				return -1;
-+				goto inner_failure;
- 			break;
- 		}
- 		nla_nest_end(skb, inner);
- 	}
- 	nla_nest_end(skb, nest);
--
- 	return 0;
-+
-+inner_failure:
-+	nla_nest_cancel(skb, inner);
-+failure:
-+	nla_nest_cancel(skb, nest);
-+	return -1;
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index fe49b27dfa87..1b32440ec2e6 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -126,6 +126,41 @@ nft_meta_get_eval_pkttype_lo(const struct nft_pktinfo *pkt,
+ 	return true;
  }
  
- static int nft_tunnel_ports_dump(struct sk_buff *skb,
++static noinline bool
++nft_meta_get_eval_skugid(enum nft_meta_keys key,
++			 u32 *dest,
++			 const struct nft_pktinfo *pkt)
++{
++	struct sock *sk = skb_to_full_sk(pkt->skb);
++	struct socket *sock;
++
++	if (!sk || !sk_fullsock(sk) || !net_eq(nft_net(pkt), sock_net(sk)))
++		return false;
++
++	read_lock_bh(&sk->sk_callback_lock);
++	sock = sk->sk_socket;
++	if (!sock || !sock->file) {
++		read_unlock_bh(&sk->sk_callback_lock);
++		return false;
++	}
++
++	switch (key) {
++	case NFT_META_SKUID:
++		*dest = from_kuid_munged(&init_user_ns,
++					 sock->file->f_cred->fsuid);
++		break;
++	case NFT_META_SKGID:
++		*dest =	from_kgid_munged(&init_user_ns,
++					 sock->file->f_cred->fsgid);
++		break;
++	default:
++		break;
++	}
++
++	read_unlock_bh(&sk->sk_callback_lock);
++	return true;
++}
++
+ void nft_meta_get_eval(const struct nft_expr *expr,
+ 		       struct nft_regs *regs,
+ 		       const struct nft_pktinfo *pkt)
+@@ -180,37 +215,9 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 		nft_reg_store16(dest, out->type);
+ 		break;
+ 	case NFT_META_SKUID:
+-		sk = skb_to_full_sk(skb);
+-		if (!sk || !sk_fullsock(sk) ||
+-		    !net_eq(nft_net(pkt), sock_net(sk)))
+-			goto err;
+-
+-		read_lock_bh(&sk->sk_callback_lock);
+-		if (sk->sk_socket == NULL ||
+-		    sk->sk_socket->file == NULL) {
+-			read_unlock_bh(&sk->sk_callback_lock);
+-			goto err;
+-		}
+-
+-		*dest =	from_kuid_munged(&init_user_ns,
+-				sk->sk_socket->file->f_cred->fsuid);
+-		read_unlock_bh(&sk->sk_callback_lock);
+-		break;
+ 	case NFT_META_SKGID:
+-		sk = skb_to_full_sk(skb);
+-		if (!sk || !sk_fullsock(sk) ||
+-		    !net_eq(nft_net(pkt), sock_net(sk)))
++		if (!nft_meta_get_eval_skugid(priv->key, dest, pkt))
+ 			goto err;
+-
+-		read_lock_bh(&sk->sk_callback_lock);
+-		if (sk->sk_socket == NULL ||
+-		    sk->sk_socket->file == NULL) {
+-			read_unlock_bh(&sk->sk_callback_lock);
+-			goto err;
+-		}
+-		*dest =	from_kgid_munged(&init_user_ns,
+-				 sk->sk_socket->file->f_cred->fsgid);
+-		read_unlock_bh(&sk->sk_callback_lock);
+ 		break;
+ #ifdef CONFIG_IP_ROUTE_CLASSID
+ 	case NFT_META_RTCLASSID: {
 -- 
 2.11.0
 
