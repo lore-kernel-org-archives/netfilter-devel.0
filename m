@@ -2,162 +2,196 @@ Return-Path: <SRS0=FFQ3=2V=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CEACC2D0C8
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Dec 2019 05:12:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1321C2D0C2
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Dec 2019 11:03:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 42FE2206DA
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Dec 2019 05:12:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD7B6206D9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Dec 2019 11:03:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725554AbfLaFMu (ORCPT
+        id S1727064AbfLaLDW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 31 Dec 2019 00:12:50 -0500
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:10923 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725468AbfLaFMu (ORCPT
+        Tue, 31 Dec 2019 06:03:22 -0500
+Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:52381 "EHLO
+        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726654AbfLaLDW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 31 Dec 2019 00:12:50 -0500
-Received: from [192.168.188.14] (unknown [120.132.1.226])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 69C074118D;
-        Tue, 31 Dec 2019 13:12:45 +0800 (CST)
-Subject: Re: [PATCH nf] netfilter: nft_flow_offload: fix unnecessary use
- counter decrease in destory
-From:   wenxu <wenxu@ucloud.cn>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        Tue, 31 Dec 2019 06:03:22 -0500
+Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
+        by mail104.syd.optusnet.com.au (Postfix) with SMTP id 6C1017E8115
+        for <netfilter-devel@vger.kernel.org>; Tue, 31 Dec 2019 22:03:08 +1100 (AEDT)
+Received: (qmail 29007 invoked by uid 501); 31 Dec 2019 11:03:07 -0000
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org
-References: <1576832926-4268-1-git-send-email-wenxu@ucloud.cn>
- <c9e07a82-ea38-d0bc-3ffa-cb0b5bc7ff95@ucloud.cn>
- <20191230200245.wr3tknzvduzecvaw@salvia>
- <71d4dbd8-e7a7-82f1-d246-e61129de00b1@ucloud.cn>
-Message-ID: <859038ff-dd2d-d2f7-224c-d9d2ca6849ea@ucloud.cn>
-Date:   Tue, 31 Dec 2019 13:12:42 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.9.0
-MIME-Version: 1.0
-In-Reply-To: <71d4dbd8-e7a7-82f1-d246-e61129de00b1@ucloud.cn>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSkhOS0tLSktCTUxJTk5ZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MBg6Sxw5ATg0NDk0Tj4MDxYp
-        OiIaCgNVSlVKTkxMTE1CSk1OTU1OVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
-        SElVSlVJSU1ZV1kIAVlBT0hKTDcG
-X-HM-Tid: 0a6f5a5ee2b62086kuqy69c074118d
+Subject: [PATCH libnetfilter_queue] src: Always use pktb as formal arg of type struct pkt_buff
+Date:   Tue, 31 Dec 2019 22:03:07 +1100
+Message-Id: <20191231110307.28963-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.14.5
+In-Reply-To: <20191230115321.oganzk6xmfsylcmz@salvia>
+References: <20191230115321.oganzk6xmfsylcmz@salvia>
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.3 cv=W5xGqiek c=1 sm=1 tr=0
+        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
+        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=pxVhFHJ0LMsA:10 a=RSmzAf-M6YYA:10
+        a=PO7r1zJSAAAA:8 a=KPYt1rvk0rywP6UJibYA:9 a=kmFg7kd5F6rJCuYC:21
+        a=Njw_gCYqBYjMmGJF:21
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+All remaining instances of pkt refer to something other than a pkt_buff.
 
+In the prototype for nfq_nlmsg_parse, pkt is changed to attr.
 
-I found this testcase already contain the rules.
+Inconsistent whitespace in headers has been left for another day.
 
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+---
+ include/libnetfilter_queue/libnetfilter_queue.h      |  2 +-
+ include/libnetfilter_queue/libnetfilter_queue_ipv4.h |  2 +-
+ include/libnetfilter_queue/libnetfilter_queue_tcp.h  |  4 ++--
+ include/libnetfilter_queue/libnetfilter_queue_udp.h  |  2 +-
+ include/libnetfilter_queue/pktbuff.h                 |  2 +-
+ src/extra/pktbuff.c                                  | 14 +++++++-------
+ src/extra/tcp.c                                      |  8 ++++----
+ 7 files changed, 17 insertions(+), 17 deletions(-)
 
-I can reproduce it with your nf branch. 
+diff --git a/include/libnetfilter_queue/libnetfilter_queue.h b/include/libnetfilter_queue/libnetfilter_queue.h
+index 2e38411..092c57d 100644
+--- a/include/libnetfilter_queue/libnetfilter_queue.h
++++ b/include/libnetfilter_queue/libnetfilter_queue.h
+@@ -148,7 +148,7 @@ void nfq_nlmsg_verdict_put(struct nlmsghdr *nlh, int id, int verdict);
+ void nfq_nlmsg_verdict_put_mark(struct nlmsghdr *nlh, uint32_t mark);
+ void nfq_nlmsg_verdict_put_pkt(struct nlmsghdr *nlh, const void *pkt, uint32_t pktlen);
+ 
+-int nfq_nlmsg_parse(const struct nlmsghdr *nlh, struct nlattr **pkt);
++int nfq_nlmsg_parse(const struct nlmsghdr *nlh, struct nlattr **attr);
+ 
+ #ifdef __cplusplus
+ } /* extern "C" */
+diff --git a/include/libnetfilter_queue/libnetfilter_queue_ipv4.h b/include/libnetfilter_queue/libnetfilter_queue_ipv4.h
+index e707f1f..17be93e 100644
+--- a/include/libnetfilter_queue/libnetfilter_queue_ipv4.h
++++ b/include/libnetfilter_queue/libnetfilter_queue_ipv4.h
+@@ -7,7 +7,7 @@ struct iphdr;
+ struct iphdr *nfq_ip_get_hdr(struct pkt_buff *pktb);
+ int nfq_ip_set_transport_header(struct pkt_buff *pktb, struct iphdr *iph);
+ void nfq_ip_set_checksum(struct iphdr *iph);
+-int nfq_ip_mangle(struct pkt_buff *pkt, unsigned int dataoff, unsigned int match_offset, unsigned int match_len, const char *rep_buffer, unsigned int rep_len);
++int nfq_ip_mangle(struct pkt_buff *pktb, unsigned int dataoff, unsigned int match_offset, unsigned int match_len, const char *rep_buffer, unsigned int rep_len);
+ int nfq_ip_snprintf(char *buf, size_t size, const struct iphdr *iph);
+ 
+ #endif
+diff --git a/include/libnetfilter_queue/libnetfilter_queue_tcp.h b/include/libnetfilter_queue/libnetfilter_queue_tcp.h
+index 997d997..e1b9690 100644
+--- a/include/libnetfilter_queue/libnetfilter_queue_tcp.h
++++ b/include/libnetfilter_queue/libnetfilter_queue_tcp.h
+@@ -13,8 +13,8 @@ struct ip6_hdr;
+ void nfq_tcp_compute_checksum_ipv4(struct tcphdr *tcph, struct iphdr *iph);
+ void nfq_tcp_compute_checksum_ipv6(struct tcphdr *tcph, struct ip6_hdr *ip6h);
+ 
+-int nfq_tcp_mangle_ipv4(struct pkt_buff *pkt, unsigned int match_offset, unsigned int match_len, const char *rep_buffer, unsigned int rep_len);
+-int nfq_tcp_mangle_ipv6(struct pkt_buff *pkt, unsigned int match_offset, unsigned int match_len, const char *rep_buffer, unsigned int rep_len);
++int nfq_tcp_mangle_ipv4(struct pkt_buff *pktb, unsigned int match_offset, unsigned int match_len, const char *rep_buffer, unsigned int rep_len);
++int nfq_tcp_mangle_ipv6(struct pkt_buff *pktb, unsigned int match_offset, unsigned int match_len, const char *rep_buffer, unsigned int rep_len);
+ 
+ int nfq_tcp_snprintf(char *buf, size_t size, const struct tcphdr *tcp);
+ 
+diff --git a/include/libnetfilter_queue/libnetfilter_queue_udp.h b/include/libnetfilter_queue/libnetfilter_queue_udp.h
+index f9fd609..9d594f2 100644
+--- a/include/libnetfilter_queue/libnetfilter_queue_udp.h
++++ b/include/libnetfilter_queue/libnetfilter_queue_udp.h
+@@ -10,7 +10,7 @@ unsigned int nfq_udp_get_payload_len(struct udphdr *udph, struct pkt_buff *pktb)
+ void nfq_udp_compute_checksum_ipv4(struct udphdr *udph, struct iphdr *iph);
+ void nfq_udp_compute_checksum_ipv6(struct udphdr *udph, struct ip6_hdr *ip6h);
+ 
+-int nfq_udp_mangle_ipv4(struct pkt_buff *pkt, unsigned int match_offset, unsigned int match_len, const char *rep_buffer, unsigned int rep_len);
++int nfq_udp_mangle_ipv4(struct pkt_buff *pktb, unsigned int match_offset, unsigned int match_len, const char *rep_buffer, unsigned int rep_len);
+ int nfq_udp_mangle_ipv6(struct pkt_buff *pktb, unsigned int match_offset, unsigned int match_len, const char *rep_buffer, unsigned int rep_len);
+ 
+ int nfq_udp_snprintf(char *buf, size_t size, const struct udphdr *udp);
+diff --git a/include/libnetfilter_queue/pktbuff.h b/include/libnetfilter_queue/pktbuff.h
+index 5bcc3e5..42bc153 100644
+--- a/include/libnetfilter_queue/pktbuff.h
++++ b/include/libnetfilter_queue/pktbuff.h
+@@ -19,7 +19,7 @@ uint8_t *pktb_mac_header(struct pkt_buff *pktb);
+ uint8_t *pktb_network_header(struct pkt_buff *pktb);
+ uint8_t *pktb_transport_header(struct pkt_buff *pktb);
+ 
+-int pktb_mangle(struct pkt_buff *pkt, int dataoff, unsigned int match_offset, unsigned int match_len, const char *rep_buffer, unsigned int rep_len);
++int pktb_mangle(struct pkt_buff *pktb, int dataoff, unsigned int match_offset, unsigned int match_len, const char *rep_buffer, unsigned int rep_len);
+ 
+ bool pktb_mangled(const struct pkt_buff *pktb);
+ 
+diff --git a/src/extra/pktbuff.c b/src/extra/pktbuff.c
+index 6250fbf..37f6bc0 100644
+--- a/src/extra/pktbuff.c
++++ b/src/extra/pktbuff.c
+@@ -271,26 +271,26 @@ uint8_t *pktb_transport_header(struct pkt_buff *pktb)
+  * @}
+  */
+ 
+-static int pktb_expand_tail(struct pkt_buff *pkt, int extra)
++static int pktb_expand_tail(struct pkt_buff *pktb, int extra)
+ {
+ 	/* No room in packet, cannot mangle it. We don't support dynamic
+ 	 * reallocation. Instead, increase the size of the extra room in
+ 	 * the tail in pktb_alloc.
+ 	 */
+-	if (pkt->len + extra > pkt->data_len)
++	if (pktb->len + extra > pktb->data_len)
+ 		return 0;
+ 
+-	pkt->len += extra;
+-	pkt->tail = pkt->tail + extra;
++	pktb->len += extra;
++	pktb->tail = pktb->tail + extra;
+ 	return 1;
+ }
+ 
+-static int enlarge_pkt(struct pkt_buff *pkt, unsigned int extra)
++static int enlarge_pkt(struct pkt_buff *pktb, unsigned int extra)
+ {
+-	if (pkt->len + extra > 65535)
++	if (pktb->len + extra > 65535)
+ 		return 0;
+ 
+-	if (!pktb_expand_tail(pkt, extra - pktb_tailroom(pkt)))
++	if (!pktb_expand_tail(pktb, extra - pktb_tailroom(pktb)))
+ 		return 0;
+ 
+ 	return 1;
+diff --git a/src/extra/tcp.c b/src/extra/tcp.c
+index 64ab85f..0f83500 100644
+--- a/src/extra/tcp.c
++++ b/src/extra/tcp.c
+@@ -188,17 +188,17 @@ int nfq_tcp_snprintf(char *buf, size_t size, const struct tcphdr *tcph)
+  * \note This function recalculates the IPv4 and TCP checksums for you.
+  */
+ EXPORT_SYMBOL
+-int nfq_tcp_mangle_ipv4(struct pkt_buff *pkt,
++int nfq_tcp_mangle_ipv4(struct pkt_buff *pktb,
+ 			unsigned int match_offset, unsigned int match_len,
+ 			const char *rep_buffer, unsigned int rep_len)
+ {
+ 	struct iphdr *iph;
+ 	struct tcphdr *tcph;
+ 
+-	iph = (struct iphdr *)pkt->network_header;
+-	tcph = (struct tcphdr *)(pkt->network_header + iph->ihl*4);
++	iph = (struct iphdr *)pktb->network_header;
++	tcph = (struct tcphdr *)(pktb->network_header + iph->ihl*4);
+ 
+-	if (!nfq_ip_mangle(pkt, iph->ihl*4 + tcph->doff*4,
++	if (!nfq_ip_mangle(pktb, iph->ihl*4 + tcph->doff*4,
+ 				match_offset, match_len, rep_buffer, rep_len))
+ 		return 0;
+ 
+-- 
+2.14.5
 
-# uname -r
-5.5.0-rc2+
-
-
-# cat testcases/flowtable/0009deleteafterflush_0:
-
-#!/bin/bash
-
-set -e
-
-$NFT add table x
-$NFT add chain x y
-$NFT add flowtable x f { hook ingress priority 0\; devices = { lo }\;}
-$NFT add rule x y flow add @f
-$NFT flush chain x y
-sleep 1
-$NFT delete flowtable x f
-
-
-It is not easy to reproduce it without the sleep 1 between flush chain and delete the flowtable.
-
-The flowtable delete maybe early than rule destroy because the operation is the flush chain
-
-but not delete rule directly .
-
-
-Without my patch:
-
-# ./run-tests.sh testcases/flowtable/0009deleteafterflush_0
-I: using nft binary ./../../src/nft
-
-W: [FAILED]    testcases/flowtable/0009deleteafterflush_0: got 1
-Error: Could not process rule: Device or resource busy
-delete flowtable x f
-^^^^^^^^^^^^^^^^^^^^^
-
-I: results: [OK] 0 [FAILED] 1 [TOTAL] 1
-
-
-Add with my fixes patch: I run this 50 times all result is OK
-
-# ./run-tests.sh testcases/flowtable/0009deleteafterflush_0
-I: using nft binary ./../../src/nft
-
-I: [OK]        testcases/flowtable/0009deleteafterflush_0
-
-I: results: [OK] 1 [FAILED] 0 [TOTAL] 1
-
-
-So which branch did you test with this patch?
-
-
-BR
-
-wenxu
-
-On 12/31/2019 8:45 AM, wenxu wrote:
->
-> 在 2019/12/31 4:02, Pablo Neira Ayuso 写道:
->> On Mon, Dec 30, 2019 at 09:25:36PM +0800, wenxu wrote:
->>> Hi pablo,
->>>
->>> How about this patch?
->> This test still fails after a second run with this patch:
->>
->> ./run-tests.sh testcases/flowtable/0009deleteafterflush_0
->> I: using nft binary ./../../src/nft
->>
->> W: [FAILED]     testcases/flowtable/0009deleteafterflush_0: got 1
->> Error: Could not process rule: Device or resource busy
->> delete flowtable x f
->
-> Hi pablo,
->
->
-> I did the same test for testcase 0009deleteafterflush_0, It is okay even there is no this patch in my tree.
->
-> ++ which nft
-> + NFT=/usr/sbin/nft
-> + /usr/sbin/nft add table x
-> + /usr/sbin/nft add chain x y
-> + /usr/sbin/nft add flowtable x f '{' hook ingress priority '0;' devices = '{' lo '};}'
-> + /usr/sbin/nft add rule x y flow add @f
-> + /usr/sbin/nft flush chain x y
->
-> + /usr/sbin/nft delete flowtable x f
->
->
-> This patch fix the problem that there are nft_flow_offload rules,  when flush the rules or chain which will lead the use counter double decrease and overflow.
->
-> nft add rule firewall ftb-all ct zone 1 ip protocol tcp flow offload @f
-> nft add rule firewall ftb-all ct zone 1 ip protocol udp flow offload @f
->
-> This testcase does not have any nft_flow_offload rules. So this testcase don't cover the problem I want to fixes.
->
->
-> Ps:
->
->  I test the nf-next tree, this testcase have the problem, I think it should be another new problem. I will check it.
->
->
