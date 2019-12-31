@@ -6,93 +6,96 @@ X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FF44C2D0C3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Dec 2019 00:33:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E176C2D0C3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Dec 2019 00:46:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1BA3B206CB
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Dec 2019 00:33:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D7EB4206CB
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Dec 2019 00:46:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727788AbfLaAdO (ORCPT
+        id S1727797AbfLaAqC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Dec 2019 19:33:14 -0500
-Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:50633 "EHLO
-        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727773AbfLaAdO (ORCPT
+        Mon, 30 Dec 2019 19:46:02 -0500
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:48016 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727766AbfLaAqC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Dec 2019 19:33:14 -0500
-Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
-        by mail104.syd.optusnet.com.au (Postfix) with SMTP id 813B57EA686
-        for <netfilter-devel@vger.kernel.org>; Tue, 31 Dec 2019 11:33:00 +1100 (AEDT)
-Received: (qmail 5608 invoked by uid 501); 31 Dec 2019 00:32:59 -0000
-Date:   Tue, 31 Dec 2019 11:32:59 +1100
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     JH <jupiter.hce@gmail.com>
-Cc:     netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: Calling mnl_socket_sendto caused error of netlink attribute type
- 1 has an invalid length
-Message-ID: <20191231003259.GA1179@dimstar.local.net>
-Mail-Followup-To: JH <jupiter.hce@gmail.com>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-References: <CAA=hcWTJWi3wcWez-adCE4NvzVbbeWSpwSNCz9cebnSDnGPtcQ@mail.gmail.com>
+        Mon, 30 Dec 2019 19:46:02 -0500
+Received: from [192.168.1.4] (unknown [116.226.205.178])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 4D578415FF;
+        Tue, 31 Dec 2019 08:45:58 +0800 (CST)
+Subject: Re: [PATCH nf] netfilter: nft_flow_offload: fix unnecessary use
+ counter decrease in destory
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+References: <1576832926-4268-1-git-send-email-wenxu@ucloud.cn>
+ <c9e07a82-ea38-d0bc-3ffa-cb0b5bc7ff95@ucloud.cn>
+ <20191230200245.wr3tknzvduzecvaw@salvia>
+From:   wenxu <wenxu@ucloud.cn>
+Message-ID: <71d4dbd8-e7a7-82f1-d246-e61129de00b1@ucloud.cn>
+Date:   Tue, 31 Dec 2019 08:45:27 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.3.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAA=hcWTJWi3wcWez-adCE4NvzVbbeWSpwSNCz9cebnSDnGPtcQ@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.3 cv=X6os11be c=1 sm=1 tr=0
-        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
-        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=kj9zAlcOel0A:10 a=pxVhFHJ0LMsA:10
-        a=RSmzAf-M6YYA:10 a=Y-OdJuiKx8yq0HztuukA:9 a=eA_Q5PU-Xkyl361y:21
-        a=GZTTdauqWr3f-Rvg:21 a=CjuIK1q_8ugA:10
+In-Reply-To: <20191230200245.wr3tknzvduzecvaw@salvia>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVTExCS0tLSk1IS0xDSEpZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Ngw6Ljo*KDg5SzkuIhMxPj0s
+        HSIwFDVVSlVKTkxMTE5ISk5DQklIVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpKTVVJ
+        SU1VSUtOVUpMQ1lXWQgBWUFJTExONwY+
+X-HM-Tid: 0a6f596aa3832086kuqy4d578415ff
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Dec 30, 2019 at 07:50:56PM +1100, JH wrote:
-> Hi,
->
-> I have following error of attribute type 1 has an invalid length when
-> calling following mnl_socket_sendto(channel->mnlSocket, nlh,
-> nlh->nlmsg_len), I cannot see what was wrong about it, the
-> nlh->nlmsg_len = 40 which is from libnml, is that wrong? Please advise
-> how to fix it.
->
-> [ 3240.939609] netlink: 'wifi_signal': attribute type 1 has an invalid
-> length. I have a WiFi function using nml API:
->
-> typedef struct {
->         struct mnl_socket *mnlSocket;
->         char buf[BUFFER_SIZE];
->         uint16_t channelId;
->         uint32_t interfaceIndex;
->         uint32_t sequence;
->         void *context;
-> } __attribute__ ((packed)) Netlink80211Channel_t;
->
-> void WiFiScan::Send80211Message(struct nlmsghdr *nlh,
-> Netlink80211Channel_t *channel) {
->     if (mnl_socket_sendto(channel->mnlSocket, nlh, nlh->nlmsg_len) < 0) {
->          std::cout << "Failed to send socket" << std::endl;
->     }
-> }
->
-> Thank you.
->
-> - jh
->
-The kernel is complaining about the content of the message, rather than the
-length. The message you send should consist of a header followed by a series of
-attributes. Attributes are of the form <type> <length> <data>. <type> is always
-uint8_t. The kernel has seen the an attribute of type 1 (NLA_U8) but the
-following lenth byte was not 1 as it should have been. Quite possibly the
-message is garbage.
 
-The error message you see is output by function validate_nla() in file
-lib/nlattr.c at line 178.
+在 2019/12/31 4:02, Pablo Neira Ayuso 写道:
+> On Mon, Dec 30, 2019 at 09:25:36PM +0800, wenxu wrote:
+>> Hi pablo,
+>>
+>> How about this patch?
+> This test still fails after a second run with this patch:
+>
+> ./run-tests.sh testcases/flowtable/0009deleteafterflush_0
+> I: using nft binary ./../../src/nft
+>
+> W: [FAILED]     testcases/flowtable/0009deleteafterflush_0: got 1
+> Error: Could not process rule: Device or resource busy
+> delete flowtable x f
 
-To get a more helpful answer, you would need to post a lot more code. Is it on
-gitbub?
+Hi pablo,
 
-Cheers ... Duncan.
+
+I did the same test for testcase 0009deleteafterflush_0, It is okay even 
+there is no this patch in my tree.
+
+++ which nft
++ NFT=/usr/sbin/nft
++ /usr/sbin/nft add table x
++ /usr/sbin/nft add chain x y
++ /usr/sbin/nft add flowtable x f '{' hook ingress priority '0;' devices 
+= '{' lo '};}'
++ /usr/sbin/nft add rule x y flow add @f
++ /usr/sbin/nft flush chain x y
+
++ /usr/sbin/nft delete flowtable x f
+
+
+This patch fix the problem that there are nft_flow_offload rules,  when 
+flush the rules or chain which will lead the use counter double decrease 
+and overflow.
+
+nft add rule firewall ftb-all ct zone 1 ip protocol tcp flow offload @f
+nft add rule firewall ftb-all ct zone 1 ip protocol udp flow offload @f
+
+This testcase does not have any nft_flow_offload rules. So this testcase 
+don't cover the problem I want to fixes.
+
+
+Ps:
+
+  I test the nf-next tree, this testcase have the problem, I think it 
+should be another new problem. I will check it.
+
