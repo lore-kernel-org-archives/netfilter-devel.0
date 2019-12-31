@@ -7,43 +7,43 @@ X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AD5AC3F68F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Dec 2019 19:51:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83E85C2D0DC
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Dec 2019 19:51:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1A64B206E0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Dec 2019 19:51:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 58EA9206DA
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Dec 2019 19:51:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="NOyl7Pju"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="H4BgyIGa"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727503AbfLaTvc (ORCPT
+        id S1727575AbfLaTvq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 31 Dec 2019 14:51:32 -0500
-Received: from us-smtp-1.mimecast.com ([205.139.110.61]:36955 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727450AbfLaTvT (ORCPT
+        Tue, 31 Dec 2019 14:51:46 -0500
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:35489 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1727508AbfLaTvp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 31 Dec 2019 14:51:19 -0500
+        Tue, 31 Dec 2019 14:51:45 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1577821878;
+        s=mimecast20190719; t=1577821903;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:in-reply-to:in-reply-to:in-reply-to:
          references:references:references;
-        bh=gaH4dd8Z+XL1O+VprrUW8qEQbUr1BMF6sh27hxR0C7U=;
-        b=NOyl7PjuSZAAF0xemPN6iS6/r6ZSyyx/t42Ks9sMai1VgARqqU17lZVsx8KEyVAlaNtpnk
-        fHU63eRU01kimsXdKfIbOXpCL/GTjruI/y6ELw0tpG/wpa68xqE8JVwO0aSXfaG5XHIbRI
-        t59gnHHqFDrMYqpvi8dG7g7s4tEYlGI=
+        bh=QjRuXgfgPFrQtKbkS2TEeW3Hxk8pRX+LdfMXGhlsc7k=;
+        b=H4BgyIGasU7IigFXlz5TD32Bo9yCTovD4Sq9xBPkdhyZctKzDNoRZcD880CycNTo3eD2Xk
+        9fDpgeaH+SwdT7COVYCFV3zNgsib6yLyc004lpcQsW+7fKKK3G+LdAqz0kLnHxLxayoGme
+        2h967Ikobm+r2lHqcS5xquGMhXq2tZ0=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-300-yrJK3mD1OvezzYVY8b7Lqw-1; Tue, 31 Dec 2019 14:51:16 -0500
-X-MC-Unique: yrJK3mD1OvezzYVY8b7Lqw-1
+ us-mta-240-hsGloqUmPtKIbjX6hykI9A-1; Tue, 31 Dec 2019 14:51:42 -0500
+X-MC-Unique: hsGloqUmPtKIbjX6hykI9A-1
 Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 32AF510054E3;
-        Tue, 31 Dec 2019 19:51:13 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 2F2E918031D5;
+        Tue, 31 Dec 2019 19:51:40 +0000 (UTC)
 Received: from madcap2.tricolour.ca (ovpn-112-15.phx2.redhat.com [10.3.112.15])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id A15B18208E;
-        Tue, 31 Dec 2019 19:51:08 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 9D66167673;
+        Tue, 31 Dec 2019 19:51:35 +0000 (UTC)
 From:   Richard Guy Briggs <rgb@redhat.com>
 To:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
         Linux-Audit Mailing List <linux-audit@redhat.com>,
@@ -54,9 +54,9 @@ Cc:     Paul Moore <paul@paul-moore.com>, sgrubb@redhat.com,
         eparis@parisplace.org, serge@hallyn.com, ebiederm@xmission.com,
         nhorman@tuxdriver.com, dwalsh@redhat.com, mpatel@redhat.com,
         Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH ghak90 V8 12/16] audit: contid check descendancy and nesting
-Date:   Tue, 31 Dec 2019 14:48:25 -0500
-Message-Id: <cfbb80a08fc770dd0dcf6dac6ff307a80d877c3f.1577736799.git.rgb@redhat.com>
+Subject: [PATCH ghak90 V8 16/16] audit: add capcontid to set contid outside init_user_ns
+Date:   Tue, 31 Dec 2019 14:48:29 -0500
+Message-Id: <5941671b6b6b5de28ab2cc80e72f288cf83291d5.1577736799.git.rgb@redhat.com>
 In-Reply-To: <cover.1577736799.git.rgb@redhat.com>
 References: <cover.1577736799.git.rgb@redhat.com>
 In-Reply-To: <cover.1577736799.git.rgb@redhat.com>
@@ -67,197 +67,201 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Require the target task to be a descendant of the container
-orchestrator/engine.
+Provide a mechanism similar to CAP_AUDIT_CONTROL to explicitly give a
+process in a non-init user namespace the capability to set audit
+container identifiers.
 
-You would only change the audit container ID from one set or inherited
-value to another if you were nesting containers.
+Provide /proc/$PID/audit_capcontid interface to capcontid.
+Valid values are: 1==enabled, 0==disabled
 
-If changing the contid, the container orchestrator/engine must be a
-descendant and not same orchestrator as the one that set it so it is not
-possible to change the contid of another orchestrator's container.
-
-Since the task_is_descendant() function is used in YAMA and in audit,
-remove the duplication and pull the function into kernel/core/sched.c
+Report this action in message type AUDIT_SET_CAPCONTID 1022 with fields
+opid= capcontid= old-capcontid=
 
 Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 ---
- include/linux/sched.h    |  3 +++
- kernel/audit.c           | 44 ++++++++++++++++++++++++++++++++++++--------
- kernel/sched/core.c      | 33 +++++++++++++++++++++++++++++++++
- security/yama/yama_lsm.c | 33 ---------------------------------
- 4 files changed, 72 insertions(+), 41 deletions(-)
+ fs/proc/base.c             | 55 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/audit.h      | 14 ++++++++++++
+ include/uapi/linux/audit.h |  1 +
+ kernel/audit.c             | 35 +++++++++++++++++++++++++++++
+ 4 files changed, 105 insertions(+)
 
-diff --git a/include/linux/sched.h b/include/linux/sched.h
-index aebe24192b23..009d2cb2e2bf 100644
---- a/include/linux/sched.h
-+++ b/include/linux/sched.h
-@@ -2006,4 +2006,7 @@ static inline void rseq_syscall(struct pt_regs *regs)
- 
- const struct cpumask *sched_trace_rd_span(struct root_domain *rd);
- 
-+extern int task_is_descendant(struct task_struct *parent,
-+			      struct task_struct *child);
+diff --git a/fs/proc/base.c b/fs/proc/base.c
+index 26091800180c..283ef8e006e7 100644
+--- a/fs/proc/base.c
++++ b/fs/proc/base.c
+@@ -1360,6 +1360,59 @@ static ssize_t proc_contid_write(struct file *file, const char __user *buf,
+ 	.write		= proc_contid_write,
+ 	.llseek		= generic_file_llseek,
+ };
 +
++static ssize_t proc_capcontid_read(struct file *file, char __user *buf,
++				  size_t count, loff_t *ppos)
++{
++	struct inode *inode = file_inode(file);
++	struct task_struct *task = get_proc_task(inode);
++	ssize_t length;
++	char tmpbuf[TMPBUFLEN];
++
++	if (!task)
++		return -ESRCH;
++	/* if we don't have caps, reject */
++	if (!capable(CAP_AUDIT_CONTROL) && !audit_get_capcontid(current))
++		return -EPERM;
++	length = scnprintf(tmpbuf, TMPBUFLEN, "%u", audit_get_capcontid(task));
++	put_task_struct(task);
++	return simple_read_from_buffer(buf, count, ppos, tmpbuf, length);
++}
++
++static ssize_t proc_capcontid_write(struct file *file, const char __user *buf,
++				   size_t count, loff_t *ppos)
++{
++	struct inode *inode = file_inode(file);
++	u32 capcontid;
++	int rv;
++	struct task_struct *task = get_proc_task(inode);
++
++	if (!task)
++		return -ESRCH;
++	if (*ppos != 0) {
++		/* No partial writes. */
++		put_task_struct(task);
++		return -EINVAL;
++	}
++
++	rv = kstrtou32_from_user(buf, count, 10, &capcontid);
++	if (rv < 0) {
++		put_task_struct(task);
++		return rv;
++	}
++
++	rv = audit_set_capcontid(task, capcontid);
++	put_task_struct(task);
++	if (rv < 0)
++		return rv;
++	return count;
++}
++
++static const struct file_operations proc_capcontid_operations = {
++	.read		= proc_capcontid_read,
++	.write		= proc_capcontid_write,
++	.llseek		= generic_file_llseek,
++};
  #endif
-diff --git a/kernel/audit.c b/kernel/audit.c
-index f7a8d3288ca0..ef8e07524c46 100644
---- a/kernel/audit.c
-+++ b/kernel/audit.c
-@@ -2575,6 +2575,13 @@ int audit_signal_info(int sig, struct task_struct *t)
- 	return audit_signal_info_syscall(t);
+ 
+ #ifdef CONFIG_FAULT_INJECTION
+@@ -3121,6 +3174,7 @@ static int proc_stack_depth(struct seq_file *m, struct pid_namespace *ns,
+ 	REG("loginuid",   S_IWUSR|S_IRUGO, proc_loginuid_operations),
+ 	REG("sessionid",  S_IRUGO, proc_sessionid_operations),
+ 	REG("audit_containerid", S_IWUSR|S_IRUSR, proc_contid_operations),
++	REG("audit_capcontainerid", S_IWUSR|S_IRUSR|S_IRUSR, proc_capcontid_operations),
+ #endif
+ #ifdef CONFIG_FAULT_INJECTION
+ 	REG("make-it-fail", S_IRUGO|S_IWUSR, proc_fault_inject_operations),
+@@ -3522,6 +3576,7 @@ static int proc_tid_comm_permission(struct inode *inode, int mask)
+ 	REG("loginuid",  S_IWUSR|S_IRUGO, proc_loginuid_operations),
+ 	REG("sessionid",  S_IRUGO, proc_sessionid_operations),
+ 	REG("audit_containerid", S_IWUSR|S_IRUSR, proc_contid_operations),
++	REG("audit_capcontainerid", S_IWUSR|S_IRUSR|S_IRUSR, proc_capcontid_operations),
+ #endif
+ #ifdef CONFIG_FAULT_INJECTION
+ 	REG("make-it-fail", S_IRUGO|S_IWUSR, proc_fault_inject_operations),
+diff --git a/include/linux/audit.h b/include/linux/audit.h
+index 28b9c7cd86a6..62c453306c2a 100644
+--- a/include/linux/audit.h
++++ b/include/linux/audit.h
+@@ -116,6 +116,7 @@ struct audit_task_info {
+ 	kuid_t			loginuid;
+ 	unsigned int		sessionid;
+ 	struct audit_contobj	*cont;
++	u32			capcontid;
+ #ifdef CONFIG_AUDITSYSCALL
+ 	struct audit_context	*ctx;
+ #endif
+@@ -224,6 +225,14 @@ static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
+ 	return tsk->audit->sessionid;
  }
  
-+static bool audit_contid_isowner(struct task_struct *tsk)
++static inline u32 audit_get_capcontid(struct task_struct *tsk)
 +{
-+	if (tsk->audit && tsk->audit->cont)
-+		return current == tsk->audit->cont->owner;
-+	return false;
++	if (!tsk->audit)
++		return 0;
++	return tsk->audit->capcontid;
++}
++
++extern int audit_set_capcontid(struct task_struct *tsk, u32 enable);
+ extern int audit_set_contid(struct task_struct *tsk, u64 contid);
+ 
+ static inline u64 audit_get_contid(struct task_struct *tsk)
+@@ -305,6 +314,11 @@ static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
+ 	return AUDIT_SID_UNSET;
+ }
+ 
++static inline u32 audit_get_capcontid(struct task_struct *tsk)
++{
++	return 0;
++}
++
+ static inline u64 audit_get_contid(struct task_struct *tsk)
+ {
+ 	return AUDIT_CID_UNSET;
+diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
+index 2844d78cd7af..01251e6dcec0 100644
+--- a/include/uapi/linux/audit.h
++++ b/include/uapi/linux/audit.h
+@@ -73,6 +73,7 @@
+ #define AUDIT_GET_FEATURE	1019	/* Get which features are enabled */
+ #define AUDIT_CONTAINER_OP	1020	/* Define the container id and info */
+ #define AUDIT_SIGNAL_INFO2	1021	/* Get info auditd signal sender */
++#define AUDIT_SET_CAPCONTID	1022	/* Set cap_contid of a task */
+ 
+ #define AUDIT_FIRST_USER_MSG	1100	/* Userspace messages mostly uninteresting to kernel */
+ #define AUDIT_USER_AVC		1107	/* We filter this differently */
+diff --git a/kernel/audit.c b/kernel/audit.c
+index 1287f0b63757..1c22dd084ae8 100644
+--- a/kernel/audit.c
++++ b/kernel/audit.c
+@@ -2698,6 +2698,41 @@ static bool audit_contid_isowner(struct task_struct *tsk)
+ 	return false;
+ }
+ 
++int audit_set_capcontid(struct task_struct *task, u32 enable)
++{
++	u32 oldcapcontid;
++	int rc = 0;
++	struct audit_buffer *ab;
++
++	if (!task->audit)
++		return -ENOPROTOOPT;
++	oldcapcontid = audit_get_capcontid(task);
++	/* if task is not descendant, block */
++	if (task == current)
++		rc = -EBADSLT;
++	else if (!task_is_descendant(current, task))
++		rc = -EXDEV;
++	else if (current_user_ns() == &init_user_ns) {
++		if (!capable(CAP_AUDIT_CONTROL) && !audit_get_capcontid(current))
++			rc = -EPERM;
++	}
++	if (!rc)
++		task->audit->capcontid = enable;
++
++	if (!audit_enabled)
++		return rc;
++
++	ab = audit_log_start(audit_context(), GFP_KERNEL, AUDIT_SET_CAPCONTID);
++	if (!ab)
++		return rc;
++
++	audit_log_format(ab,
++			 "opid=%d capcontid=%u old-capcontid=%u",
++			 task_tgid_nr(task), enable, oldcapcontid);
++	audit_log_end(ab);
++	return rc;
 +}
 +
  /*
   * audit_set_contid - set current task's audit contid
   * @task: target task
-@@ -2603,22 +2610,43 @@ int audit_set_contid(struct task_struct *task, u64 contid)
- 	oldcontid = audit_get_contid(task);
- 	read_lock(&tasklist_lock);
- 	/* Don't allow the contid to be unset */
--	if (!audit_contid_valid(contid))
-+	if (!audit_contid_valid(contid)) {
- 		rc = -EINVAL;
-+		goto unlock;
-+	}
- 	/* Don't allow the contid to be set to the same value again */
--	else if (contid == oldcontid) {
-+	if (contid == oldcontid) {
- 		rc = -EADDRINUSE;
-+		goto unlock;
-+	}
- 	/* if we don't have caps, reject */
--	else if (!capable(CAP_AUDIT_CONTROL))
-+	if (!capable(CAP_AUDIT_CONTROL)) {
- 		rc = -EPERM;
--	/* if task has children or is not single-threaded, deny */
--	else if (!list_empty(&task->children))
-+		goto unlock;
-+	}
-+	/* if task has children, deny */
-+	if (!list_empty(&task->children)) {
- 		rc = -EBUSY;
--	else if (!(thread_group_leader(task) && thread_group_empty(task)))
-+		goto unlock;
-+	}
-+	/* if task is not single-threaded, deny */
-+	if (!(thread_group_leader(task) && thread_group_empty(task))) {
- 		rc = -EALREADY;
--	/* if contid is already set, deny */
--	else if (audit_contid_set(task))
-+		goto unlock;
-+	}
-+	/* if task is not descendant, block */
-+	if (task == current) {
-+		rc = -EBADSLT;
-+		goto unlock;
-+	}
-+	if (!task_is_descendant(current, task)) {
-+		rc = -EXDEV;
-+		goto unlock;
-+	}
-+	/* only allow contid setting again if nesting */
-+	if (audit_contid_set(task) && audit_contid_isowner(task))
- 		rc = -ECHILD;
-+unlock:
- 	read_unlock(&tasklist_lock);
- 	if (!rc) {
- 		struct audit_contobj *oldcont = _audit_contobj(task);
-diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 90e4b00ace89..7d8145285eb9 100644
---- a/kernel/sched/core.c
-+++ b/kernel/sched/core.c
-@@ -7916,6 +7916,39 @@ void dump_cpu_task(int cpu)
- }
- 
- /*
-+ * task_is_descendant - walk up a process family tree looking for a match
-+ * @parent: the process to compare against while walking up from child
-+ * @child: the process to start from while looking upwards for parent
-+ *
-+ * Returns 1 if child is a descendant of parent, 0 if not.
-+ */
-+int task_is_descendant(struct task_struct *parent,
-+			      struct task_struct *child)
-+{
-+	int rc = 0;
-+	struct task_struct *walker = child;
-+
-+	if (!parent || !child)
-+		return 0;
-+
-+	rcu_read_lock();
-+	if (!thread_group_leader(parent))
-+		parent = rcu_dereference(parent->group_leader);
-+	while (walker->pid > 0) {
-+		if (!thread_group_leader(walker))
-+			walker = rcu_dereference(walker->group_leader);
-+		if (walker == parent) {
-+			rc = 1;
-+			break;
-+		}
-+		walker = rcu_dereference(walker->real_parent);
-+	}
-+	rcu_read_unlock();
-+
-+	return rc;
-+}
-+
-+/*
-  * Nice levels are multiplicative, with a gentle 10% change for every
-  * nice level changed. I.e. when a CPU-bound task goes from nice 0 to
-  * nice 1, it will get ~10% less CPU time than another CPU-bound task
-diff --git a/security/yama/yama_lsm.c b/security/yama/yama_lsm.c
-index 94dc346370b1..25eae205eae8 100644
---- a/security/yama/yama_lsm.c
-+++ b/security/yama/yama_lsm.c
-@@ -263,39 +263,6 @@ static int yama_task_prctl(int option, unsigned long arg2, unsigned long arg3,
- }
- 
- /**
-- * task_is_descendant - walk up a process family tree looking for a match
-- * @parent: the process to compare against while walking up from child
-- * @child: the process to start from while looking upwards for parent
-- *
-- * Returns 1 if child is a descendant of parent, 0 if not.
-- */
--static int task_is_descendant(struct task_struct *parent,
--			      struct task_struct *child)
--{
--	int rc = 0;
--	struct task_struct *walker = child;
--
--	if (!parent || !child)
--		return 0;
--
--	rcu_read_lock();
--	if (!thread_group_leader(parent))
--		parent = rcu_dereference(parent->group_leader);
--	while (walker->pid > 0) {
--		if (!thread_group_leader(walker))
--			walker = rcu_dereference(walker->group_leader);
--		if (walker == parent) {
--			rc = 1;
--			break;
--		}
--		walker = rcu_dereference(walker->real_parent);
--	}
--	rcu_read_unlock();
--
--	return rc;
--}
--
--/**
-  * ptracer_exception_found - tracer registered as exception for this tracee
-  * @tracer: the task_struct of the process attempting ptrace
-  * @tracee: the task_struct of the process to be ptraced
 -- 
 1.8.3.1
 
