@@ -2,133 +2,129 @@ Return-Path: <SRS0=nkBT=2X=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67AD6C32767
-	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Jan 2020 03:32:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66F8BC2D0DD
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Jan 2020 07:59:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 41DA020848
-	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Jan 2020 03:32:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3402120866
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Jan 2020 07:59:20 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="sU6J0iuL"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727597AbgABDc1 (ORCPT
+        id S1727722AbgABH7U (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 Jan 2020 22:32:27 -0500
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:13564 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727525AbgABDc1 (ORCPT
+        Thu, 2 Jan 2020 02:59:20 -0500
+Received: from mail-io1-f43.google.com ([209.85.166.43]:32779 "EHLO
+        mail-io1-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727683AbgABH7T (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Jan 2020 22:32:27 -0500
-Received: from [192.168.188.14] (unknown [120.132.1.226])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 2F2A64174D;
-        Thu,  2 Jan 2020 11:32:22 +0800 (CST)
-Subject: Re: [PATCH nf-next v3 0/4] netfilter: nf_flow_table_offload: support
- tunnel offload
-From:   wenxu <wenxu@ucloud.cn>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org
-References: <1575962785-14812-1-git-send-email-wenxu@ucloud.cn>
-Message-ID: <3f917f29-dc39-6649-ef5b-0531d00e0534@ucloud.cn>
-Date:   Thu, 2 Jan 2020 11:32:20 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.9.0
+        Thu, 2 Jan 2020 02:59:19 -0500
+Received: by mail-io1-f43.google.com with SMTP id z8so37540638ioh.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Jan 2020 23:59:19 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:in-reply-to:references:from:date:message-id:subject:to;
+        bh=zXMuqrvbhbxwRTvY95+4b7nlNH7cvYlKrUWsZhjSUuI=;
+        b=sU6J0iuLyI5z6K/J66tw1xinRrhYmnsUC9V+lToSHwJ85MpNfFyMtxY/tlXGC2xVbm
+         K3r+m/BGDrD4DbGk19MnI1eBA82EjaxZq4VxxoYzKh+pZVEPD6xiZmZwxxnqmIU2XONp
+         h91dFnAoiNBvxy7+nysxY3pnL0EBEb4Sh+axkNr0GaJj4frVnLxaIhZJlBccoUwGNzj/
+         gWmH69BkXc19byaafINpp6aNe9DS1dKLkJlNrv4WCrOj+9Bp5sm5MdJvQ+OjcL/jCjHY
+         HNmlOvLM7jQAEj/Sxth9EqBZm1lxnJDxDn1IEMZRqFGgUNsww6vRJf6HdcU3qwlV9BZb
+         2ANg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:in-reply-to:references:from:date
+         :message-id:subject:to;
+        bh=zXMuqrvbhbxwRTvY95+4b7nlNH7cvYlKrUWsZhjSUuI=;
+        b=NdWf4eqsIdhRH8XjOGH0lVCCUtrAY51sJ1LvCXJ0F4x1k1yRRoh7LNAiSzOJ5J+B/u
+         YCuKa0/seA/8yUprEVFHI1HB9VpfRIr7pT5f+YyipqBrxOh+hm4ccbFOmTWEXwUv2r7Z
+         4R6pcr40Dl/r8qO+R7g5OeD9mR0G5NQ+Wbecw0HKDSQytUL7ZpPJlNsqUmrxqOOs6XT9
+         ppvDI4m30jmrvN2IMNqun+s2ZkwbcrV2EAjW3Vb1p5GLedDMxs+mCm/uwgeHAYlR4rWD
+         zN2YiXb2hTb/Gn8IMJBUvR1fSTKmKacOsE9ZKBgZIOzmR1vxHZvMnhuKGC7Xo5aMmWbe
+         TtyQ==
+X-Gm-Message-State: APjAAAUmGKUUDIE0+9OIxg/GlH+7dyXUiTZLVF2K0pSMNpb2K2/eGulG
+        2zLfhPkWxleyhdpIB1DVpTjFNvMDmMa/LtatAYQ=
+X-Google-Smtp-Source: APXvYqxIcHUMIDXlwuLnmkdyKdARHQUiFHRKgDpwmqW0et9Ba/vjQpQynb1SBbBTeWgFIpKMahOPCHHUSfj0bHxxNqw=
+X-Received: by 2002:a02:cd31:: with SMTP id h17mr60656172jaq.94.1577951958895;
+ Wed, 01 Jan 2020 23:59:18 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <1575962785-14812-1-git-send-email-wenxu@ucloud.cn>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSENCS0tLSUJNTkJJTEpZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PSo6FRw4TDgyEjhKLRhPCzVK
-        OBEwFB9VSlVKTkxMQkhOQk9ISEhDVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
-        SElVSlVJSU1ZV1kIAVlBT0JOQzcG
-X-HM-Tid: 0a6f644fb6512086kuqy2f2a64174d
+Received: by 2002:ac0:aafc:0:0:0:0:0 with HTTP; Wed, 1 Jan 2020 23:59:18 -0800 (PST)
+In-Reply-To: <20191231003259.GA1179@dimstar.local.net>
+References: <CAA=hcWTJWi3wcWez-adCE4NvzVbbeWSpwSNCz9cebnSDnGPtcQ@mail.gmail.com>
+ <20191231003259.GA1179@dimstar.local.net>
+From:   JH <jupiter.hce@gmail.com>
+Date:   Thu, 2 Jan 2020 18:59:18 +1100
+Message-ID: <CAA=hcWRrCDHqu_vGVds==9Rzve_LUxJ0XRcB=k1fmZr9w-DoOg@mail.gmail.com>
+Subject: Re: Calling mnl_socket_sendto caused error of netlink attribute type
+ 1 has an invalid length
+To:     JH <jupiter.hce@gmail.com>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+Thanks Duncan, you are right, it was the wrong type and fixed.
 
+Thank you and appreciate your helps.
 
-do you have any suggestion about this series?
+Cheers.
 
-All the  following dependency patches is in the nf-next tree now.
+- jh
 
-netfilter: nf_flow_table_offload: Fix block setup as TC_SETUP_FT cmd
-netfilter: nf_flow_table_offload: Fix block_cb tc_setup_type as TC_SETUP_CLSFLOWER
-netfilter: nf_flow_table_offload: Don't use offset uninitialized in flow_offload_port_{d,s}nat
-netfilter: nf_flow_table_offload: add IPv6 match description
-netfilter: nf_flow_table_offload: Correct memcpy size for flow_overload_mangle()
-
-If you feel it's okay, please apply this series. We need the conntrack offload based on tunnel.
-And the mlx5e driver patches also depends on this series. I had already test this serires with
-mlx5e driver. Thanks!
-
-BR
-wenxu
-
-On 12/10/2019 3:26 PM, wenxu@ucloud.cn wrote:
-> From: wenxu <wenxu@ucloud.cn>
+On 12/31/19, Duncan Roe <duncan_roe@optusnet.com.au> wrote:
+> On Mon, Dec 30, 2019 at 07:50:56PM +1100, JH wrote:
+>> Hi,
+>>
+>> I have following error of attribute type 1 has an invalid length when
+>> calling following mnl_socket_sendto(channel->mnlSocket, nlh,
+>> nlh->nlmsg_len), I cannot see what was wrong about it, the
+>> nlh->nlmsg_len = 40 which is from libnml, is that wrong? Please advise
+>> how to fix it.
+>>
+>> [ 3240.939609] netlink: 'wifi_signal': attribute type 1 has an invalid
+>> length. I have a WiFi function using nml API:
+>>
+>> typedef struct {
+>>         struct mnl_socket *mnlSocket;
+>>         char buf[BUFFER_SIZE];
+>>         uint16_t channelId;
+>>         uint32_t interfaceIndex;
+>>         uint32_t sequence;
+>>         void *context;
+>> } __attribute__ ((packed)) Netlink80211Channel_t;
+>>
+>> void WiFiScan::Send80211Message(struct nlmsghdr *nlh,
+>> Netlink80211Channel_t *channel) {
+>>     if (mnl_socket_sendto(channel->mnlSocket, nlh, nlh->nlmsg_len) < 0) {
+>>          std::cout << "Failed to send socket" << std::endl;
+>>     }
+>> }
+>>
+>> Thank you.
+>>
+>> - jh
+>>
+> The kernel is complaining about the content of the message, rather than the
+> length. The message you send should consist of a header followed by a series
+> of
+> attributes. Attributes are of the form <type> <length> <data>. <type> is
+> always
+> uint8_t. The kernel has seen the an attribute of type 1 (NLA_U8) but the
+> following lenth byte was not 1 as it should have been. Quite possibly the
+> message is garbage.
 >
-> This patch provide tunnel offload based on route lwtunnel. 
-> The first two patches support indr callback setup
-> Then add tunnel match and action offload
+> The error message you see is output by function validate_nla() in file
+> lib/nlattr.c at line 178.
 >
-> Test with mlx driver as following:
+> To get a more helpful answer, you would need to post a lot more code. Is it
+> on
+> gitbub?
 >
-> ip link add user1 type vrf table 1
-> ip l set user1 up 
-> ip l set dev mlx_pf0vf0 down
-> ip l set dev mlx_pf0vf0 master user1
-> ifconfig mlx_pf0vf0 10.0.0.1/24 up
->
-> ifconfig mlx_p0 172.168.152.75/24 up
->
-> ip l add dev tun1 type gretap key 1000
-> ip l set dev tun1 master user1
-> ifconfig tun1 10.0.1.1/24 up
->
-> ip r r 10.0.1.241 encap ip id 1000 dst 172.168.152.241 key dev tun1 table 1
->
-> nft add table firewall
-> nft add chain firewall zones { type filter hook prerouting priority - 300 \; }
-> nft add rule firewall zones counter ct zone set iif map { "tun1" : 1, "mlx_pf0vf0" : 1 }
-> nft add chain firewall rule-1000-ingress
-> nft add rule firewall rule-1000-ingress ct zone 1 ct state established,related counter accept
-> nft add rule firewall rule-1000-ingress ct zone 1 ct state invalid counter drop
-> nft add rule firewall rule-1000-ingress ct zone 1 tcp dport 5001 ct state new counter accept
-> nft add rule firewall rule-1000-ingress ct zone 1 udp dport 5001 ct state new counter accept
-> nft add rule firewall rule-1000-ingress ct zone 1 tcp dport 22 ct state new counter accept
-> nft add rule firewall rule-1000-ingress ct zone 1 ip protocol icmp ct state new counter accept
-> nft add rule firewall rule-1000-ingress counter drop
-> nft add chain firewall rules-all { type filter hook prerouting priority - 150 \; }
-> nft add rule firewall rules-all meta iifkind "vrf" counter accept
-> nft add rule firewall rules-all iif vmap { "tun1" : jump rule-1000-ingress }
->
-> nft add flowtable firewall fb1 { hook ingress priority 2 \; devices = { tun1, mlx_pf0vf0 } \; }
-> nft add chain firewall ftb-all {type filter hook forward priority 0 \; policy accept \; }
-> nft add rule firewall ftb-all ct zone 1 ip protocol tcp flow offload @fb1
-> nft add rule firewall ftb-all ct zone 1 ip protocol udp flow offload @fb1
->
-> This version rebase on the following upstream fixes:
->
-> netfilter: nf_flow_table_offload: Fix block setup as TC_SETUP_FT cmd
-> netfilter: nf_flow_table_offload: Fix block_cb tc_setup_type as TC_SETUP_CLSFLOWER
-> netfilter: nf_flow_table_offload: Don't use offset uninitialized in flow_offload_port_{d,s}nat
-> netfilter: nf_flow_table_offload: add IPv6 match description
-> netfilter: nf_flow_table_offload: Correct memcpy size for flow_overload_mangle()
->
->
-> wenxu (4):
->   netfilter: nf_flow_table_offload: refactor nf_flow_table_offload_setup
->     to support indir setup
->   netfilter: nf_flow_table_offload: add indr block setup support
->   netfilter: nf_flow_table_offload: add tunnel match offload support
->   netfilter: nf_flow_table_offload: add tunnel encap/decap action
->     offload support
->
->  net/netfilter/nf_flow_table_offload.c | 253 +++++++++++++++++++++++++++++++---
->  1 file changed, 236 insertions(+), 17 deletions(-)
+> Cheers ... Duncan.
 >
