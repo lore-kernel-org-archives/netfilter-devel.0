@@ -6,45 +6,44 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C94B0C2D0C2
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jan 2020 17:04:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88EBAC2D0C2
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jan 2020 17:10:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A577C206DB
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jan 2020 17:04:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 65F5A20866
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jan 2020 17:10:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728074AbgACREL (ORCPT
+        id S1728040AbgACRKM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Jan 2020 12:04:11 -0500
-Received: from correo.us.es ([193.147.175.20]:45100 "EHLO mail.us.es"
+        Fri, 3 Jan 2020 12:10:12 -0500
+Received: from correo.us.es ([193.147.175.20]:46668 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728035AbgACREL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Jan 2020 12:04:11 -0500
+        id S1727952AbgACRKM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 3 Jan 2020 12:10:12 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9C4031E2C66
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 Jan 2020 18:04:07 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id DEE5A1E2C60
+        for <netfilter-devel@vger.kernel.org>; Fri,  3 Jan 2020 18:10:09 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8DEACDA713
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 Jan 2020 18:04:07 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CFD62DA705
+        for <netfilter-devel@vger.kernel.org>; Fri,  3 Jan 2020 18:10:09 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 838C1DA703; Fri,  3 Jan 2020 18:04:07 +0100 (CET)
+        id BDAB3DA712; Fri,  3 Jan 2020 18:10:09 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DA752DA703;
-        Fri,  3 Jan 2020 18:04:04 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 68B63DA70E
+        for <netfilter-devel@vger.kernel.org>; Fri,  3 Jan 2020 18:10:07 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 03 Jan 2020 18:04:04 +0100 (CET)
+ Fri, 03 Jan 2020 18:10:07 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id C2B7E426CCB9;
-        Fri,  3 Jan 2020 18:04:04 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 46E9E426CCB9
+        for <netfilter-devel@vger.kernel.org>; Fri,  3 Jan 2020 18:10:07 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     wenxu@ucloud.cn
-Subject: [PATCH nf] netfilter: nf_tables: unbind callbacks from flowtable destroy path
-Date:   Fri,  3 Jan 2020 18:04:02 +0100
-Message-Id: <20200103170402.31306-1-pablo@netfilter.org>
+Subject: [PATCH nf] netfilter: flowtable: add nf_flowtable_time_stamp
+Date:   Fri,  3 Jan 2020 18:10:04 +0100
+Message-Id: <20200103171004.31649-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -52,73 +51,93 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Callback unbinding needs to be done after nf_flow_table_free(),
-otherwise entries are not removed from the hardware.
+This patch adds nf_flowtable_time_stamp and updates the existing code to
+use it.
 
-Update nft_unregister_flowtable_net_hooks() to call
-nf_unregister_net_hook() instead since the commit/abort paths do not
-deal with the callback unbinding anymore.
+This patch is also implicitly fixing up hardware statistic fetching via
+nf_flow_offload_stats() where casting to u32 is missing.
 
-Add a comment to nft_flowtable_event() to clarify that
-flow_offload_netdev_event() already removes the entries before the
-callback unbinding.
-
-Fixes: 8bb69f3b2918 ("netfilter: nf_tables: add flowtable offload control plane")
-Fixes ff4bf2f42a40 ("netfilter: nf_tables: add nft_unregister_flowtable_hook()")
+Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-Follows up after:
-https://patchwork.ozlabs.org/patch/1213936/
-https://patchwork.ozlabs.org/patch/1213406/
+ include/net/netfilter/nf_flow_table.h | 1 +
+ net/netfilter/nf_flow_table_core.c    | 4 ++--
+ net/netfilter/nf_flow_table_ip.c      | 4 ++--
+ net/netfilter/nf_flow_table_offload.c | 4 ++--
+ 4 files changed, 7 insertions(+), 6 deletions(-)
 
- net/netfilter/nf_tables_api.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 273f3838318b..43f05b3acd60 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5984,6 +5984,7 @@ nft_flowtable_type_get(struct net *net, u8 family)
- 	return ERR_PTR(-ENOENT);
- }
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index f0897b3c97fb..0b4e2d1396ce 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -106,6 +106,7 @@ struct flow_offload {
+ };
  
-+/* Only called from error and netdev event paths. */
- static void nft_unregister_flowtable_hook(struct net *net,
- 					  struct nft_flowtable *flowtable,
- 					  struct nft_hook *hook)
-@@ -5999,7 +6000,7 @@ static void nft_unregister_flowtable_net_hooks(struct net *net,
- 	struct nft_hook *hook;
+ #define NF_FLOW_TIMEOUT (30 * HZ)
++#define nf_flowtable_time_stamp	(u32)jiffies
  
- 	list_for_each_entry(hook, &flowtable->hook_list, list)
--		nft_unregister_flowtable_hook(net, flowtable, hook);
-+		nf_unregister_net_hook(net, &hook->ops);
- }
+ struct nf_flow_route {
+ 	struct {
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 9889d52eda82..df354ac61f72 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -136,7 +136,7 @@ static void flow_offload_fixup_tcp(struct ip_ct_tcp *tcp)
  
- static int nft_register_flowtable_net_hooks(struct net *net,
-@@ -6448,12 +6449,14 @@ static void nf_tables_flowtable_destroy(struct nft_flowtable *flowtable)
+ static inline __s32 nf_flow_timeout_delta(unsigned int timeout)
  {
- 	struct nft_hook *hook, *next;
- 
-+	flowtable->data.type->free(&flowtable->data);
- 	list_for_each_entry_safe(hook, next, &flowtable->hook_list, list) {
-+		flowtable->data.type->setup(&flowtable->data, hook->ops.dev,
-+					    FLOW_BLOCK_UNBIND);
- 		list_del_rcu(&hook->list);
- 		kfree(hook);
- 	}
- 	kfree(flowtable->name);
--	flowtable->data.type->free(&flowtable->data);
- 	module_put(flowtable->data.type->owner);
- 	kfree(flowtable);
+-	return (__s32)(timeout - (u32)jiffies);
++	return (__s32)(timeout - nf_flowtable_time_stamp);
  }
-@@ -6497,6 +6500,7 @@ static void nft_flowtable_event(unsigned long event, struct net_device *dev,
- 		if (hook->ops.dev != dev)
- 			continue;
  
-+		/* flow_offload_netdev_event() cleans up entries for us. */
- 		nft_unregister_flowtable_hook(dev_net(dev), flowtable, hook);
- 		list_del_rcu(&hook->list);
- 		kfree_rcu(hook, rcu);
+ static void flow_offload_fixup_ct_timeout(struct nf_conn *ct)
+@@ -232,7 +232,7 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
+ {
+ 	int err;
+ 
+-	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
++	flow->timeout = nf_flowtable_time_stamp + NF_FLOW_TIMEOUT;
+ 
+ 	err = rhashtable_insert_fast(&flow_table->rhashtable,
+ 				     &flow->tuplehash[0].node,
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index b9e7dd6e60ce..7ea2ddc2aa93 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -280,7 +280,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 	if (nf_flow_nat_ip(flow, skb, thoff, dir) < 0)
+ 		return NF_DROP;
+ 
+-	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
++	flow->timeout = nf_flowtable_time_stamp + NF_FLOW_TIMEOUT;
+ 	iph = ip_hdr(skb);
+ 	ip_decrease_ttl(iph);
+ 	skb->tstamp = 0;
+@@ -509,7 +509,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 	if (nf_flow_nat_ipv6(flow, skb, dir) < 0)
+ 		return NF_DROP;
+ 
+-	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
++	flow->timeout = nf_flowtable_time_stamp + NF_FLOW_TIMEOUT;
+ 	ip6h = ipv6_hdr(skb);
+ 	ip6h->hop_limit--;
+ 	skb->tstamp = 0;
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 0d72e5ccb47b..eb48224bfa76 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -759,9 +759,9 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
+ 			   struct flow_offload *flow)
+ {
+ 	struct flow_offload_work *offload;
+-	s64 delta;
++	s32 delta;
+ 
+-	delta = flow->timeout - jiffies;
++	delta = flow->timeout - nf_flowtable_time_stamp;
+ 	if ((delta >= (9 * NF_FLOW_TIMEOUT) / 10) ||
+ 	    flow->flags & FLOW_OFFLOAD_HW_DYING)
+ 		return;
 -- 
 2.11.0
 
