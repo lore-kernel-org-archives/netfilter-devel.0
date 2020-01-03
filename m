@@ -2,62 +2,94 @@ Return-Path: <SRS0=aqP0=2Y=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 407DDC2D0C2
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jan 2020 17:57:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6470FC2D0C2
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jan 2020 18:09:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 11BA4215A4
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jan 2020 17:57:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 297642085B
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jan 2020 18:09:31 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LsC/46BG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728150AbgACR5D (ORCPT
+        id S1728225AbgACSJa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Jan 2020 12:57:03 -0500
-Received: from correo.us.es ([193.147.175.20]:56688 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728110AbgACR5D (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Jan 2020 12:57:03 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9CE1A1E8B25
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 Jan 2020 18:57:01 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 90220DA709
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 Jan 2020 18:57:01 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 85EF3DA707; Fri,  3 Jan 2020 18:57:01 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 98148DA702;
-        Fri,  3 Jan 2020 18:56:59 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 03 Jan 2020 18:56:59 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 73119426CCB9;
-        Fri,  3 Jan 2020 18:56:59 +0100 (CET)
-Date:   Fri, 3 Jan 2020 18:56:59 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     wenxu@ucloud.cn
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf v3 0/3] netfilter: nf_flow_table_offload: something
- fixes
-Message-ID: <20200103175659.4cgp4mbb7jc3mefy@salvia>
-References: <1576815278-1283-1-git-send-email-wenxu@ucloud.cn>
+        Fri, 3 Jan 2020 13:09:30 -0500
+Received: from mail-io1-f67.google.com ([209.85.166.67]:43853 "EHLO
+        mail-io1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728201AbgACSJa (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 3 Jan 2020 13:09:30 -0500
+Received: by mail-io1-f67.google.com with SMTP id n21so40544544ioo.10
+        for <netfilter-devel@vger.kernel.org>; Fri, 03 Jan 2020 10:09:30 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=TUC5xVgfnnl70DfFwx5tW6a3R2gIX2Rz5WybyXMhdQM=;
+        b=LsC/46BGYKiQBLReiHP0nOsCDKcd7+B7HKvIltSLN5bNZzdfwWU3GI3NbfLFbB1C3R
+         Afjq0zLdw8MnHrsRQPr5mRQraNg0hjdUMQ/gxyEwjK2heCjuIvdbjmhSGHn7lpCWOuVX
+         JGbKFThyFHKeCEIYrgcEOI+x2QMd5CX+K0rE9NXF5ZHQwWPVnladgPZDqA9BwrHvtsJV
+         8v+CZ7TQR8ltQo+ntmdOcdCxdiXx291LDfeQHkqc4H5/2SEGvdx1aLWztTs/Sy78fyPH
+         EK8yGw6uLCfv6SamqNOfTRFiA9R9tdte6lIInLyV/SSWURM5ryA9OjNn8YLCpPakHbJx
+         p+Gw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=TUC5xVgfnnl70DfFwx5tW6a3R2gIX2Rz5WybyXMhdQM=;
+        b=rQeldp/LRjM6laXuE/NVkXVBZ9zM49w1Xgysh4otcftWWqQuRxi+QSonvRHmWfW1wp
+         dW0cbAupFAtKH0LxbGIC/WCx9ZtpfwEFka5fIae93VWWha3yVQBvwworNdjnCItAVXN4
+         oVwLoVxbruQKAy8vt0+g41zgcZyUEG0MRzhI2j6LZ/Kao74nbtnm10z+6mBxAjEaCFpc
+         +YHlJTu7OlvPwwpR8hILEuvUnqXGQAMmi2XgSFZQ/GI3tBRD5CraKR+NVLtRpmwmJOQi
+         Zu++vrg/03n4dtRh6VIFGFHDliqOB2urrsue7en5TVDyQtsQqBQHerwIIq39rcfDLZM3
+         GH6w==
+X-Gm-Message-State: APjAAAX/lqYZdbGtsi6n9HtOoesoQ0TcY7uPxWAwVndSIF6BKng+1WBZ
+        5K3cawZ4thuwbBVSoJoiCYPVMci6p8r0YnzuFUynFFef
+X-Google-Smtp-Source: APXvYqymT56RBUKYdnJgrqim94H0La3d5iWtCe0DWZz8SYXtzGv7Cs0UkUoAIey2c82EmZ47lW8cIL2UsNFALgbnMo8=
+X-Received: by 2002:a5e:8813:: with SMTP id l19mr62157357ioj.261.1578074969887;
+ Fri, 03 Jan 2020 10:09:29 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1576815278-1283-1-git-send-email-wenxu@ucloud.cn>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+From:   Alberto Leiva <ydahhrk@gmail.com>
+Date:   Fri, 3 Jan 2020 12:09:19 -0600
+Message-ID: <CAA0dE=UFhDmAnoOQpR33S59dP_v3UVrkX29YMJyqOYc3YF1FPA@mail.gmail.com>
+Subject: Adding NAT64 to Netfilter
+To:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Series applied.
+Hello
+
+I've been working on Jool, an open source IP/ICMP translator for a
+while ([0]). It currently implements SIIT, NAT64 and (if everything
+goes according to plan) will later this year also support MAP-T. It
+currently works both as a Netfilter module (hooking itself to
+PREROUTING) or as an xtables target, and I'm soon going to start
+integrating it into nftables.
+
+Actually, it's the same software once advertised by this guy: [1]
+
+Several people have approached me over the years expressing their
+desire to have it integrated into the kernel by default. The intent of
+this mail is to query whether a merge of Jool into the Netfilter
+project woud be well-received. Of course, I'm willing to make
+adjustments if needed.
+
+Here are some justifications that have been listed to me. For the sake
+of credit, these are all stolen from [2]:
+
+1. IPv6 is getting significantly more exposure
+2. NAT64 is getting more required / will be a default thing to do,
+along with MAP-E/T
+3. OpenBSD already has the functionality in pf
+4. Enabling it upstream can potentially help IPv6 migration world wide
+
+Thoughts?
+
+[0] https://jool.mx
+[1] https://marc.info/?l=netfilter-devel&m=136271576812278&w=2
+[2] https://github.com/NICMx/Jool/issues/273#issuecomment-568721875
