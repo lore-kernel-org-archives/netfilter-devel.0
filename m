@@ -2,384 +2,111 @@ Return-Path: <SRS0=aqP0=2Y=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D351AC2D0C2
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jan 2020 19:36:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCFEFC00523
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jan 2020 21:31:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9959820866
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jan 2020 19:36:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7DB9D21835
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jan 2020 21:31:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BGyfMLgd"
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="p6Z1uHiO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728603AbgACTgr (ORCPT
+        id S1728627AbgACVbr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Jan 2020 14:36:47 -0500
-Received: from mail-yb1-f195.google.com ([209.85.219.195]:44363 "EHLO
-        mail-yb1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728519AbgACTgr (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Jan 2020 14:36:47 -0500
-Received: by mail-yb1-f195.google.com with SMTP id f136so15922347ybg.11
-        for <netfilter-devel@vger.kernel.org>; Fri, 03 Jan 2020 11:36:46 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=zgWr+nxyJZbH90FsyYvZb980JEWi+ZyhdefWazFQmNM=;
-        b=BGyfMLgdx0xg6EInoHE/ShjQYTHVZjSZV+3pWxdS65yZktxtaeGF1hEuJtIWIPAWMV
-         QV8U190xZ97OPxiiqA2cD0Fpt2LwL5OMmhtygTDqzonAfs6tLo/tb//J+TIg9sZCCh5Y
-         aXEcD6eWIaDG2U4IEgcL8NC2dsupH1E5P89lyhInWMf7AW2W9NHkjiM2pnbWhLZJLScO
-         8xJll+ftEnRNyggFDtZyKFKuWscV+bOAiSQqDIPLZWqVvM205GZMXSwN9FOmku1cVyvr
-         bdyKT5MTgXLecjlhrBp8oDWnYIm739i09w4t/BT+o1GJ9V4c5mGGZKyezPQ4FrJw69Ic
-         Kt3w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=zgWr+nxyJZbH90FsyYvZb980JEWi+ZyhdefWazFQmNM=;
-        b=HiF7I9uKbXB/LGHEtZTKGTT7OoDRO35CDCX4D3QlrRfKWsJ+t8GP1MGDtAWaPxOUqp
-         sQUDAoYTshZ58bUdJ47pfcM9CvfmxjwvUHts+n+wLeik3aaLm+kQZAciMjL/itqx4tCy
-         ZoMo16Bfkw4FgJbIknNAhGrE0kpMHJggmozry/fWwk8SIxfujAicEY+fFcxhrsI00ToT
-         sUHQYTlkmMgtbyLiVVv4drF7Rf2X2H49xnjVn+aLDnT7L6YoB5membWcq9XttW3Rr86O
-         3fx/4HLc1H3px9wbG8/RFBCz9W1ktxcsXO8nlpOBX5AaOsoYzycD+afWbmtWGRukMu3j
-         g+Kg==
-X-Gm-Message-State: APjAAAV+pjg0poNorT3BTnC6hnf+jIYkQXDfhpS2YiF8wA7i5zwBI+ru
-        9wjDPo3ZGIwdKhxAyJFc0GNZ7twEhEA=
-X-Google-Smtp-Source: APXvYqxw6LwpSsM6QkWeyHJptoVcDUPtxRPa9g06+KFA4H+QOswZSZgsXtA6serFnTpQzWecSD/W7Q==
-X-Received: by 2002:a5b:d4f:: with SMTP id f15mr66368591ybr.134.1578080205772;
-        Fri, 03 Jan 2020 11:36:45 -0800 (PST)
-Received: from osboxes.zebraskunk.int (cpe-74-137-94-90.kya.res.rr.com. [74.137.94.90])
-        by smtp.gmail.com with ESMTPSA id 207sm23703236ywq.100.2020.01.03.11.36.44
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 03 Jan 2020 11:36:45 -0800 (PST)
-From:   Brett Mastbergen <brett.mastbergen@gmail.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Brett Mastbergen <bmastbergen@untangle.com>
-Subject: [PATCH libnftnl] include: Remove buffer.h
-Date:   Fri,  3 Jan 2020 14:36:40 -0500
-Message-Id: <20200103193640.8257-1-brett.mastbergen@gmail.com>
-X-Mailer: git-send-email 2.11.0
+        Fri, 3 Jan 2020 16:31:47 -0500
+Received: from mx1.riseup.net ([198.252.153.129]:41106 "EHLO mx1.riseup.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728549AbgACVbq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 3 Jan 2020 16:31:46 -0500
+Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "Sectigo RSA Domain Validation Secure Server CA" (not verified))
+        by mx1.riseup.net (Postfix) with ESMTPS id 47qJ4x73KvzFcZW;
+        Fri,  3 Jan 2020 13:31:45 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1578087106; bh=02xsvHNcLTUgI9oFbmbwzqDeOvlwoP2Z0tmE3G9vyPQ=;
+        h=To:Cc:References:From:Subject:Date:In-Reply-To:From;
+        b=p6Z1uHiOSUb8yWpMZTNIl/5WRmLf0EBopQW7mx+YMpP1Bsc7QtY2CmyHZbdROUBie
+         tASj04BOXyo66kGj+KLlD3zrdlwSmwuXkySeNKG6isjABPreW58X4tx7+KTgY3j1tv
+         bOdc8Y4M75vmMhevk940Ae2h3PIPLQtjZ43MTr0U=
+X-Riseup-User-ID: D7CCE615DF1AB57F89E6E2CAE0CED7BE5DBE076942B74563A1D8144CD9EA3A51
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by capuchin.riseup.net (Postfix) with ESMTPSA id 47qJ4x16nVz8tJC;
+        Fri,  3 Jan 2020 13:31:44 -0800 (PST)
+To:     Arturo Borrero Gonzalez <arturo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+References: <cover.1577738918.git.guigom@riseup.net>
+ <d1b18191-7f44-1625-97d9-6d8adcf0654b@netfilter.org>
+From:   "Jose M. Guisado" <guigom@riseup.net>
+Autocrypt: addr=guigom@riseup.net; keydata=
+ mQENBFvZsBUBCACwz0EO8bYf6CLL3445nBrt+EPX+pDgGpEh1vFG71UwLCc0Q52SsNJDOML8
+ EwnlMjCJS8jofSarvLZ/GbV6yABfw1BlYy+EzfDV7q/jPWioN1OzrfKaGo7M0eOmCM1RrePD
+ EBqd7u5vKbpK9K2jSR4ZLCkoUho/HFSj7Ef1PRbuKQbVoGkEOsLQlHebWnK0iaAsUiGnvgVi
+ 9O5ydijBIs1K/W0kvx9y50R6ZsbwzenljLkyo7nBZEBx+M+5g/O8Gi8jDc3p9z5VZBFkDaez
+ AigMeCMF9ajzaU9ir26LL6HuBrCJyiKCx4wecMr+9izVJK55lsnnOAwerv3dvq7G25pTABEB
+ AAG0JEpvc8OpIE0uIEd1aXNhZG8gPGd1aWdvbUByaXNldXAubmV0PokBVwQTAQgAQQIbAwUL
+ CQgHAgYVCgkICwIEFgIDAQIeAQIXgAIZARYhBORobWbTHQlsWyQKpCSafhl6luu5BQJeD3XU
+ BQkEFvk/AAoJECSafhl6luu5hQ0IAKaHPO3+7ce097MWCjKkNxHd/pBimYx+YD7GF3r/dZ59
+ 7LKBQcPIxJriubL6zM0Qc8su8v5pL42N+5GdcppbkPPw2IMhF3M0A1pk249fxo1udE1a/Z+Y
+ o25hNdVYjngsNraqHe2Om6u89KON5mBW194+RCxWzhhjQcG6JEONJ4ONVPbn/1mvK0Rex2sO
+ o7S5IwX7YXxpFsRgX6SewqFr/N3EJ7J5UrD9+SH6z8AsvTIKEBdKtrOaIdKO66flRXrG/Cyq
+ 2hZtMaCW8PVZJL6m2701PjDGeJeJ1oGHaVQbn23JRsx9KRPLAkGbGa1GiE349BFI/aon1/+x
+ lJG84SxbkKS5AQ0EW9mwFQEIALWeJTGQVwIPxMVEChhWl5RTnSiQNAheWt4rg+i5QTp5o1Xn
+ M4I5VKceEwoUnxp5CxAtLzTQIyBar7+K6GLorCgxstDoimzcqsC25CmHCEHV+sgDGUQeOUpB
+ oYD2Qiv2OC0V/EPpN4jfzZdA5IXSMq/ERAuI3EwZ3ig0deEI7f+w/cMqW02OLJKV77j4ZVas
+ iYgQgh8zsgWsn7nRqIPJl/Eqc7Mh25uTEdQsolfZE2QnPq9koCsiDHlsxjiZUOrCCj+7yb5k
+ FAHagkkL7torBwyVQfbHHRW854HbZLtfc6Yntp9MPd9UMjYsphQXaCl2/8aQo6kqkWP/XboG
+ J+ihLlcAEQEAAYkBPAQYAQgAJgIbDBYhBORobWbTHQlsWyQKpCSafhl6luu5BQJeD3aMBQkE
+ Fvn3AAoJECSafhl6luu5rIAH/j+R+SwRtTwa9BALuTKq3JwJxIvd5IYi5ymh5x6Qgkc6vuu4
+ hnLjOvMcYEC65+jEeJizjZrKBmQmvOx5TvCTjJWws75luLEAl2gnyPZP+Sc18d9PJeBsWLXQ
+ psN/otNzhtB2rRpOzSyMPK7VHEAbUk80sIY80uyTEkMefBkoe43Rw5IKJZ1IYykITj6C6LHp
+ N894e1s6MkjDLRZ8OJ1HNqP2Ew1sp9QuO9mAQcgBQHdGelEsha3ePUkhGdWHkQrolZC2G0yG
+ ANIb809yJG+8M216U2yt6FhtDqJzYIfIdxd8/i/cC7HJT5be+UD3fOWlv8lHwfuvRAhrhUfO
+ seoA1UI=
+Subject: Re: [PATCH nftables geoip 0/1] contrib: geoip: add geoip python
+ script
+Message-ID: <57a336c2-0d68-81a6-7c2e-052d4c2d148e@riseup.net>
+Date:   Fri, 3 Jan 2020 22:31:42 +0100
+MIME-Version: 1.0
+In-Reply-To: <d1b18191-7f44-1625-97d9-6d8adcf0654b@netfilter.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Brett Mastbergen <bmastbergen@untangle.com>
+Hi Arturo! Thanks for the feedback,
 
-Almost everything in this header is unused.  The command defines
-used in utils.c don't seem to be justified and have just been
-replaced by their strings
+On 3/1/20 10:46, Arturo Borrero Gonzalez wrote:
+> On 12/30/19 10:19 PM, Jose M. Guisado Gomez wrote:
+>> This patch adds a python script which generates .nft files that
+>> contains mappings between the IP address and its geolocation.
+>>
+> 
+> Thanks for the patch!
+> 
+> I have some concerns about including this in the main nftables repository tree.
+> My experience dealing with them in other repos (iptables, ebtables, etc) is that
+> they tend to go ignored from the maintenance point of view, being a burden at
+> the end.> Please don't get me wrong, I find this script very useful for many use
+cases.
+> I'm just wondering about the right place for storage. Perhaps a more convenient
+> approach could be to have an additional repo somewhere to hold this kind of
+> contributions.
+I understand, those concerns seem reasonable.
 
-Signed-off-by: Brett Mastbergen <bmastbergen@untangle.com>
----
- include/Makefile.am |   1 -
- include/buffer.h    | 109 ----------------------------------------------------
- include/internal.h  |   1 -
- src/chain.c         |   1 -
- src/common.c        |   1 -
- src/expr/dup.c      |   1 -
- src/expr/dynset.c   |   1 -
- src/expr/fwd.c      |   1 -
- src/flowtable.c     |   1 -
- src/object.c        |   1 -
- src/rule.c          |   1 -
- src/table.c         |   1 -
- src/utils.c         |  20 +++++-----
- 13 files changed, 10 insertions(+), 130 deletions(-)
- delete mode 100644 include/buffer.h
+If a place is to be decided to have the script I wouldn't mind having
+the script in a repository on Github or some other platform in the mean
+time. And build on feedback as soon as there is some.
 
-diff --git a/include/Makefile.am b/include/Makefile.am
-index b31aa10..738f807 100644
---- a/include/Makefile.am
-+++ b/include/Makefile.am
-@@ -2,7 +2,6 @@ SUBDIRS = libnftnl linux
- 
- noinst_HEADERS = internal.h	\
- 		 linux_list.h	\
--		 buffer.h	\
- 		 data_reg.h	\
- 		 expr_ops.h	\
- 		 obj.h		\
-diff --git a/include/buffer.h b/include/buffer.h
-deleted file mode 100644
-index f6626a6..0000000
---- a/include/buffer.h
-+++ /dev/null
-@@ -1,109 +0,0 @@
--#ifndef _NFTNL_BUFFER_H_
--#define _NFTNL_BUFFER_H_
--
--#include <stdint.h>
--#include <stdbool.h>
--
--struct nftnl_expr;
--
--struct nftnl_buf {
--	char		*buf;
--	size_t		size;
--	size_t		len;
--	uint32_t	off;
--	bool		fail;
--};
--
--#define NFTNL_BUF_INIT(__b, __buf, __len)			\
--	struct nftnl_buf __b = {				\
--		.buf	= __buf,			\
--		.len	= __len,			\
--	};
--
--int nftnl_buf_update(struct nftnl_buf *b, int ret);
--int nftnl_buf_done(struct nftnl_buf *b);
--
--union nftnl_data_reg;
--
--int nftnl_buf_open(struct nftnl_buf *b, int type, const char *tag);
--int nftnl_buf_close(struct nftnl_buf *b, int type, const char *tag);
--
--int nftnl_buf_open_array(struct nftnl_buf *b, int type, const char *tag);
--int nftnl_buf_close_array(struct nftnl_buf *b, int type, const char *tag);
--
--int nftnl_buf_u32(struct nftnl_buf *b, int type, uint32_t value, const char *tag);
--int nftnl_buf_s32(struct nftnl_buf *b, int type, uint32_t value, const char *tag);
--int nftnl_buf_u64(struct nftnl_buf *b, int type, uint64_t value, const char *tag);
--int nftnl_buf_str(struct nftnl_buf *b, int type, const char *str, const char *tag);
--int nftnl_buf_reg(struct nftnl_buf *b, int type, union nftnl_data_reg *reg,
--		int reg_type, const char *tag);
--int nftnl_buf_expr_open(struct nftnl_buf *b, int type);
--int nftnl_buf_expr_close(struct nftnl_buf *b, int type);
--int nftnl_buf_expr(struct nftnl_buf *b, int type, uint32_t flags,
--		   struct nftnl_expr *expr);
--
--#define BASE			"base"
--#define BYTES			"bytes"
--#define BURST			"burst"
--#define CHAIN			"chain"
--#define CODE			"code"
--#define COMPAT_FLAGS		"compat_flags"
--#define COMPAT_PROTO		"compat_proto"
--#define CONSUMED		"consumed"
--#define COUNT			"count"
--#define DATA			"data"
--#define DEVICE			"device"
--#define DIR			"dir"
--#define DREG			"dreg"
--#define EXTHDR_TYPE		"exthdr_type"
--#define FAMILY			"family"
--#define FLAGS			"flags"
--#define GROUP			"group"
--#define HANDLE			"handle"
--#define HOOKNUM			"hooknum"
--#define KEY			"key"
--#define LEN			"len"
--#define LEVEL			"level"
--#define MASK			"mask"
--#define NAT_TYPE		"nat_type"
--#define NAME			"name"
--#define NUM			"num"
--#define OFFSET			"offset"
--#define OP			"op"
--#define PACKETS			"packets"
--#define PKTS			"pkts"
--#define POLICY			"policy"
--#define POSITION		"position"
--#define PREFIX			"prefix"
--#define PRIO			"prio"
--#define QTHRESH			"qthreshold"
--#define RATE			"rate"
--#define RULE			"rule"
--#define SET			"set"
--#define SET_NAME		"set_name"
--#define SIZE			"size"
--#define SNAPLEN			"snaplen"
--#define SREG_ADDR_MAX		"sreg_addr_max"
--#define SREG_ADDR_MIN		"sreg_addr_min"
--#define SREG_PROTO_MAX		"sreg_proto_max"
--#define SREG_PROTO_MIN		"sreg_proto_min"
--#define SREG_KEY		"sreg_key"
--#define SREG_DATA		"sreg_data"
--#define SREG_QNUM		"sreg_qnum"
--#define SREG			"sreg"
--#define TABLE			"table"
--#define TOTAL			"total"
--#define TYPE			"type"
--#define UNIT			"unit"
--#define USE			"use"
--#define XOR			"xor"
--#define ADD			"add"
--#define INSERT			"insert"
--#define DELETE			"delete"
--#define REPLACE			"replace"
--#define FLUSH			"flush"
--#define MODULUS			"modulus"
--#define SEED			"seed"
--#define ID			"id"
--
--#endif
-diff --git a/include/internal.h b/include/internal.h
-index a61b725..1f96731 100644
---- a/include/internal.h
-+++ b/include/internal.h
-@@ -11,7 +11,6 @@
- #include "set_elem.h"
- #include "expr.h"
- #include "expr_ops.h"
--#include "buffer.h"
- #include "rule.h"
- 
- #endif /* _LIBNFTNL_INTERNAL_H_ */
-diff --git a/src/chain.c b/src/chain.c
-index b9a16fc..b4066e4 100644
---- a/src/chain.c
-+++ b/src/chain.c
-@@ -28,7 +28,6 @@
- 
- #include <libnftnl/chain.h>
- #include <libnftnl/rule.h>
--#include <buffer.h>
- 
- struct nftnl_chain {
- 	struct list_head head;
-diff --git a/src/common.c b/src/common.c
-index feb13b2..2d83c12 100644
---- a/src/common.c
-+++ b/src/common.c
-@@ -17,7 +17,6 @@
- #include <libmnl/libmnl.h>
- #include <libnftnl/common.h>
- #include <libnftnl/set.h>
--#include <buffer.h>
- 
- #include <errno.h>
- #include "internal.h"
-diff --git a/src/expr/dup.c b/src/expr/dup.c
-index 2bb35e5..ac39839 100644
---- a/src/expr/dup.c
-+++ b/src/expr/dup.c
-@@ -19,7 +19,6 @@
- #include <libnftnl/rule.h>
- #include "expr_ops.h"
- #include "data_reg.h"
--#include <buffer.h>
- 
- struct nftnl_expr_dup {
- 	enum nft_registers	sreg_addr;
-diff --git a/src/expr/dynset.c b/src/expr/dynset.c
-index 4870923..b2d8edc 100644
---- a/src/expr/dynset.c
-+++ b/src/expr/dynset.c
-@@ -20,7 +20,6 @@
- #include <libnftnl/expr.h>
- #include "data_reg.h"
- #include "expr_ops.h"
--#include <buffer.h>
- 
- struct nftnl_expr_dynset {
- 	enum nft_registers	sreg_key;
-diff --git a/src/expr/fwd.c b/src/expr/fwd.c
-index cff8235..2ec63c1 100644
---- a/src/expr/fwd.c
-+++ b/src/expr/fwd.c
-@@ -19,7 +19,6 @@
- #include <libnftnl/rule.h>
- #include "expr_ops.h"
- #include "data_reg.h"
--#include <buffer.h>
- 
- struct nftnl_expr_fwd {
- 	enum nft_registers	sreg_dev;
-diff --git a/src/flowtable.c b/src/flowtable.c
-index 9ba3b6d..1e235d0 100644
---- a/src/flowtable.c
-+++ b/src/flowtable.c
-@@ -17,7 +17,6 @@
- #include <linux/netfilter_arp.h>
- 
- #include <libnftnl/flowtable.h>
--#include <buffer.h>
- 
- struct nftnl_flowtable {
- 	struct list_head	head;
-diff --git a/src/object.c b/src/object.c
-index c876add..4f58272 100644
---- a/src/object.c
-+++ b/src/object.c
-@@ -22,7 +22,6 @@
- #include <linux/netfilter/nf_tables.h>
- 
- #include <libnftnl/object.h>
--#include <buffer.h>
- #include "obj.h"
- 
- static struct obj_ops *obj_ops[__NFT_OBJECT_MAX] = {
-diff --git a/src/rule.c b/src/rule.c
-index 252410b..8d7e068 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -20,7 +20,6 @@
- #include <errno.h>
- #include <inttypes.h>
- #include <ctype.h>
--#include <buffer.h>
- 
- #include <libmnl/libmnl.h>
- #include <linux/netfilter/nfnetlink.h>
-diff --git a/src/table.c b/src/table.c
-index adcfafe..94d522b 100644
---- a/src/table.c
-+++ b/src/table.c
-@@ -24,7 +24,6 @@
- #include <linux/netfilter/nf_tables.h>
- 
- #include <libnftnl/table.h>
--#include <buffer.h>
- 
- struct nftnl_table {
- 	struct list_head head;
-diff --git a/src/utils.c b/src/utils.c
-index f641bf9..3617837 100644
---- a/src/utils.c
-+++ b/src/utils.c
-@@ -242,11 +242,11 @@ enum nftnl_cmd_type nftnl_flag2cmd(uint32_t flags)
- }
- 
- static const char *cmd2tag[NFTNL_CMD_MAX] = {
--	[NFTNL_CMD_ADD]			= ADD,
--	[NFTNL_CMD_INSERT]		= INSERT,
--	[NFTNL_CMD_DELETE]		= DELETE,
--	[NFTNL_CMD_REPLACE]		= REPLACE,
--	[NFTNL_CMD_FLUSH]			= FLUSH,
-+	[NFTNL_CMD_ADD]			= "add",
-+	[NFTNL_CMD_INSERT]		= "insert",
-+	[NFTNL_CMD_DELETE]		= "delete",
-+	[NFTNL_CMD_REPLACE]		= "replace",
-+	[NFTNL_CMD_FLUSH]			= "flush",
- };
- 
- const char *nftnl_cmd2tag(enum nftnl_cmd_type cmd)
-@@ -259,15 +259,15 @@ const char *nftnl_cmd2tag(enum nftnl_cmd_type cmd)
- 
- uint32_t nftnl_str2cmd(const char *cmd)
- {
--	if (strcmp(cmd, ADD) == 0)
-+	if (strcmp(cmd, "add") == 0)
- 		return NFTNL_CMD_ADD;
--	else if (strcmp(cmd, INSERT) == 0)
-+	else if (strcmp(cmd, "insert") == 0)
- 		return NFTNL_CMD_INSERT;
--	else if (strcmp(cmd, DELETE) == 0)
-+	else if (strcmp(cmd, "delete") == 0)
- 		return NFTNL_CMD_DELETE;
--	else if (strcmp(cmd, REPLACE) == 0)
-+	else if (strcmp(cmd, "replace") == 0)
- 		return NFTNL_CMD_REPLACE;
--	else if (strcmp(cmd, FLUSH) == 0)
-+	else if (strcmp(cmd, "flush") == 0)
- 		return NFTNL_CMD_FLUSH;
- 
- 	return NFTNL_CMD_UNSPEC;
--- 
-2.11.0
+PS. Main purpose of the script is to provide some starting geoip
+solution to nftables *which does not depend on MaxMind's geolite*
+(there's been a policy update requiring signing up to download and
+accepting a new EULA, breaking xt_geoip_dl for example).
 
