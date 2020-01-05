@@ -6,44 +6,44 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97BAEC33C8C
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Jan 2020 21:38:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83E86C3F68F
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Jan 2020 21:59:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6228020848
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Jan 2020 21:38:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 57C04217F4
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Jan 2020 21:59:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726856AbgAEViz (ORCPT
+        id S1726921AbgAEV7p (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 5 Jan 2020 16:38:55 -0500
-Received: from correo.us.es ([193.147.175.20]:36436 "EHLO mail.us.es"
+        Sun, 5 Jan 2020 16:59:45 -0500
+Received: from correo.us.es ([193.147.175.20]:39994 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726851AbgAEViz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 5 Jan 2020 16:38:55 -0500
+        id S1726851AbgAEV7p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 5 Jan 2020 16:59:45 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EAE0A120827
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Jan 2020 22:38:52 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 1DE10DA718
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Jan 2020 22:59:43 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DCCC8DA702
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Jan 2020 22:38:52 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0EC00DA707
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Jan 2020 22:59:43 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D24EFDA701; Sun,  5 Jan 2020 22:38:52 +0100 (CET)
+        id 042FBDA70E; Sun,  5 Jan 2020 22:59:43 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C82D8DA702
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Jan 2020 22:38:50 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A6FCBDA707
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Jan 2020 22:59:40 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 05 Jan 2020 22:38:50 +0100 (CET)
+ Sun, 05 Jan 2020 22:59:40 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id ADB4441E4801
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Jan 2020 22:38:50 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 9354A41E4800
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Jan 2020 22:59:40 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH] netfilter: flowtable: fetch stats only if flow is still alive
-Date:   Sun,  5 Jan 2020 22:38:48 +0100
-Message-Id: <20200105213848.265409-1-pablo@netfilter.org>
+Subject: [PATCH nf,v2] netfilter: flowtable: fetch stats only if flow is still alive
+Date:   Sun,  5 Jan 2020 22:59:37 +0100
+Message-Id: <20200105215938.276229-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -52,12 +52,17 @@ List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Do not fetch statistics if flow has expired since it might not in
-hardware anymore.
+hardware anymore. After this update, remove the FLOW_OFFLOAD_HW_DYING
+check from nf_flow_offload_stats() since this flag is never set on.
 
+Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_core.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+v2: remove dead code after this update in nf_flow_offload_stats().
+
+ net/netfilter/nf_flow_table_core.c    | 5 ++---
+ net/netfilter/nf_flow_table_offload.c | 3 +--
+ 2 files changed, 3 insertions(+), 5 deletions(-)
 
 diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
 index e33a73cb1f42..9e6de2bbeccb 100644
@@ -82,6 +87,20 @@ index e33a73cb1f42..9e6de2bbeccb 100644
  	}
  }
  
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index d06969af1085..4d1e81e2880f 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -784,8 +784,7 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
+ 	__s32 delta;
+ 
+ 	delta = nf_flow_timeout_delta(flow->timeout);
+-	if ((delta >= (9 * NF_FLOW_TIMEOUT) / 10) ||
+-	    flow->flags & FLOW_OFFLOAD_HW_DYING)
++	if ((delta >= (9 * NF_FLOW_TIMEOUT) / 10))
+ 		return;
+ 
+ 	offload = kzalloc(sizeof(struct flow_offload_work), GFP_ATOMIC);
 -- 
 2.11.0
 
