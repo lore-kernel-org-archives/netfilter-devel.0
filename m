@@ -6,65 +6,57 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E79F8C00523
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Jan 2020 09:28:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3003EC33C9A
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Jan 2020 14:57:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BA02821582
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Jan 2020 09:28:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 061BD20866
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Jan 2020 14:57:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725881AbgAEJ2n (ORCPT
+        id S1726333AbgAEO5Z (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 5 Jan 2020 04:28:43 -0500
-Received: from correo.us.es ([193.147.175.20]:48442 "EHLO mail.us.es"
+        Sun, 5 Jan 2020 09:57:25 -0500
+Received: from rain.florz.de ([185.139.32.146]:56931 "EHLO rain.florz.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725535AbgAEJ2n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 5 Jan 2020 04:28:43 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 56138EFC8F
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Jan 2020 10:28:40 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 48578DA707
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Jan 2020 10:28:40 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 3D9E8DA702; Sun,  5 Jan 2020 10:28:40 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2F211DA709;
-        Sun,  5 Jan 2020 10:28:38 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 05 Jan 2020 10:28:38 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 117874251481;
-        Sun,  5 Jan 2020 10:28:38 +0100 (CET)
-Date:   Sun, 5 Jan 2020 10:28:37 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Brett Mastbergen <brett.mastbergen@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org,
-        Brett Mastbergen <bmastbergen@untangle.com>
-Subject: Re: [PATCH libnftnl] include: Remove buffer.h
-Message-ID: <20200105092837.77iwcllr6rr7b5nb@salvia>
-References: <20200103193640.8257-1-brett.mastbergen@gmail.com>
+        id S1726293AbgAEO5Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 5 Jan 2020 09:57:24 -0500
+Received: from [2a07:12c0:1c00:43::121] (port=59756 helo=florz.florz.de)
+        by rain.florz.de with esmtpsa (TLSv1.2:DHE-RSA-AES256-SHA256:256)
+        (Exim 4.92)
+        (envelope-from <florz@florz.de>)
+        id 1io7LE-0005XA-Vf
+        for netfilter-devel@vger.kernel.org; Sun, 05 Jan 2020 15:57:21 +0100
+Received: from florz by florz.florz.de with local (Exim 4.92)
+        (envelope-from <florz@florz.de>)
+        id 1io7LB-0006vD-Jp
+        for netfilter-devel@vger.kernel.org; Sun, 05 Jan 2020 15:57:17 +0100
+Date:   Sun, 5 Jan 2020 15:57:17 +0100
+From:   Florian Zumbiehl <florz@florz.de>
+To:     netfilter-devel@vger.kernel.org
+Subject: [nftables] bug: rejects empty set literals
+Message-ID: <20200105145717.GG3854@florz.florz.de>
+Mail-Followup-To: netfilter-devel@vger.kernel.org, florz@florz.de
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200103193640.8257-1-brett.mastbergen@gmail.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jan 03, 2020 at 02:36:40PM -0500, Brett Mastbergen wrote:
-> From: Brett Mastbergen <bmastbergen@untangle.com>
-> 
-> Almost everything in this header is unused.  The command defines
-> used in utils.c don't seem to be justified and have just been
-> replaced by their strings
+Hi,
 
-Applied, thanks.
+I guess I found another bug:
+
+| # nft 'table ip t { chain c { ip saddr { }; }; }'
+| Error: syntax error, unexpected '}'
+| table ip t { chain c { ip saddr { }; }; }
+|                                   ^
+
+Now, this does match what the documentation says (you have to have at least
+one item in a set literal), but I would think that that also should count
+as a bug, as (a) it isn't exactly useful to have arbitrary exceptions on
+what (set) values can be specified and (b) nftables handles empty sets just
+fine, it's just the input syntax that is complicated.
+
+Regards, Florian
