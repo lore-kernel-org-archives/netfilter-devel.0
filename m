@@ -6,146 +6,107 @@ X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3744CC32771
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jan 2020 09:16:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48D36C32771
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jan 2020 09:28:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0F0EC207FD
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jan 2020 09:16:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 24EA32072C
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jan 2020 09:28:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726199AbgAFJQO (ORCPT
+        id S1726180AbgAFJ2q (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Jan 2020 04:16:14 -0500
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:60395 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725996AbgAFJQO (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Jan 2020 04:16:14 -0500
-Received: from [192.168.188.14] (unknown [120.132.1.226])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id B60F34191D;
-        Mon,  6 Jan 2020 17:16:09 +0800 (CST)
-Subject: Re: [PATCH nf,v3] netfilter: flowtable: add nf_flowtable_time_stamp
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20200106090639.279982-1-pablo@netfilter.org>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <68c9cfab-ed14-43d2-aa43-d09a60ff393b@ucloud.cn>
-Date:   Mon, 6 Jan 2020 17:16:07 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.9.1
+        Mon, 6 Jan 2020 04:28:46 -0500
+Received: from correo.us.es ([193.147.175.20]:51868 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726155AbgAFJ2q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Jan 2020 04:28:46 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id AC0D1EB903
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Jan 2020 10:28:44 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9DC1ADA70E
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Jan 2020 10:28:44 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 937A7DA702; Mon,  6 Jan 2020 10:28:44 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6A2ACDA702;
+        Mon,  6 Jan 2020 10:28:42 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 06 Jan 2020 10:28:42 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 4D69C424EECB;
+        Mon,  6 Jan 2020 10:28:42 +0100 (CET)
+Date:   Mon, 6 Jan 2020 10:28:42 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft v2] evaluate: fix expr_set_context call for shift
+ binops.
+Message-ID: <20200106092842.tp2pxubgmfcptthq@salvia>
+References: <20191220190215.1743199-1-jeremy@azazel.net>
+ <20191224231428.1972155-1-jeremy@azazel.net>
 MIME-Version: 1.0
-In-Reply-To: <20200106090639.279982-1-pablo@netfilter.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVT0pJS0tLS01LS0NKT0NZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Pzo6LTo6NTg5Qz8DFC0*GjQh
-        Ak0wChVVSlVKTkxDSEtJSk1CQkxMVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
-        SElVSlVJSU1ZV1kIAVlBTktISzcG
-X-HM-Tid: 0a6f7a23e2cc2086kuqyb60f34191d
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191224231428.1972155-1-jeremy@azazel.net>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Acked-by: wenxu <wenxu@ucloud.cn>
+Hi Jeremy,
 
-On 1/6/2020 5:06 PM, Pablo Neira Ayuso wrote:
-> This patch adds nf_flowtable_time_stamp and updates the existing code to
-> use it.
->
-> This patch is also implicitly fixing up hardware statistic fetching via
-> nf_flow_offload_stats() where casting to u32 is missing. Use
-> nf_flow_timeout_delta() to fix this.
->
-> Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+On Tue, Dec 24, 2019 at 11:14:28PM +0000, Jeremy Sowden wrote:
+> expr_evaluate_binop calls expr_set_context for shift expressions to set
+> the context data-type to `integer`.  This clobbers the byte-order of the
+> context, resulting in unexpected conversions to NBO.  For example:
+> 
+>   $ sudo nft flush ruleset
+>   $ sudo nft add table t
+>   $ sudo nft add chain t c '{ type filter hook output priority mangle; }'
+>   $ sudo nft add rule t c oif lo tcp dport ssh ct mark set '0x10 | 0xe'
+>   $ sudo nft add rule t c oif lo tcp dport ssh ct mark set '0xf << 1'
+>   $ sudo nft list table t
+>   table ip t {
+>           chain c {
+>                   type filter hook output priority mangle; policy accept;
+>                   oif "lo" tcp dport 22 ct mark set 0x0000001e
+>                   oif "lo" tcp dport 22 ct mark set 0x1e000000
+>           }
+>   }
+> 
+> Replace it with a call to __expr_set_context in order to preserve host
+> endianness.
+> 
+> Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 > ---
-> v3: update nf_flow_timeout_delta() to use nf_flowtable_time_stamp - wenxu.
->
->  include/net/netfilter/nf_flow_table.h | 6 ++++++
->  net/netfilter/nf_flow_table_core.c    | 7 +------
->  net/netfilter/nf_flow_table_ip.c      | 4 ++--
->  net/netfilter/nf_flow_table_offload.c | 4 ++--
->  4 files changed, 11 insertions(+), 10 deletions(-)
->
-> diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-> index f0897b3c97fb..415b8f49d150 100644
-> --- a/include/net/netfilter/nf_flow_table.h
-> +++ b/include/net/netfilter/nf_flow_table.h
-> @@ -106,6 +106,12 @@ struct flow_offload {
->  };
+>  src/evaluate.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> Change-log:
+> 
+>   In v1, I just dropped the expr_set_context call; however, it is needed
+>   to ensure that the right operand has integer type.  Instead, I now
+>   change it to __expr_set_context in order to ensure that the byte-order
+>   is correct.
+> 
+> diff --git a/src/evaluate.c b/src/evaluate.c
+> index a865902c0fc7..43637e1cf6c8 100644
+> --- a/src/evaluate.c
+> +++ b/src/evaluate.c
+> @@ -1145,7 +1145,8 @@ static int expr_evaluate_binop(struct eval_ctx *ctx, struct expr **expr)
+>  	left = op->left;
 >  
->  #define NF_FLOW_TIMEOUT (30 * HZ)
-> +#define nf_flowtable_time_stamp	(u32)jiffies
-> +
-> +static inline __s32 nf_flow_timeout_delta(unsigned int timeout)
-> +{
-> +	return (__s32)(timeout - nf_flowtable_time_stamp);
-> +}
->  
->  struct nf_flow_route {
->  	struct {
-> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-> index 9889d52eda82..e33a73cb1f42 100644
-> --- a/net/netfilter/nf_flow_table_core.c
-> +++ b/net/netfilter/nf_flow_table_core.c
-> @@ -134,11 +134,6 @@ static void flow_offload_fixup_tcp(struct ip_ct_tcp *tcp)
->  #define NF_FLOWTABLE_TCP_PICKUP_TIMEOUT	(120 * HZ)
->  #define NF_FLOWTABLE_UDP_PICKUP_TIMEOUT	(30 * HZ)
->  
-> -static inline __s32 nf_flow_timeout_delta(unsigned int timeout)
-> -{
-> -	return (__s32)(timeout - (u32)jiffies);
-> -}
-> -
->  static void flow_offload_fixup_ct_timeout(struct nf_conn *ct)
->  {
->  	const struct nf_conntrack_l4proto *l4proto;
-> @@ -232,7 +227,7 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
->  {
->  	int err;
->  
-> -	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
-> +	flow->timeout = nf_flowtable_time_stamp + NF_FLOW_TIMEOUT;
->  
->  	err = rhashtable_insert_fast(&flow_table->rhashtable,
->  				     &flow->tuplehash[0].node,
-> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-> index b9e7dd6e60ce..7ea2ddc2aa93 100644
-> --- a/net/netfilter/nf_flow_table_ip.c
-> +++ b/net/netfilter/nf_flow_table_ip.c
-> @@ -280,7 +280,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
->  	if (nf_flow_nat_ip(flow, skb, thoff, dir) < 0)
->  		return NF_DROP;
->  
-> -	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
-> +	flow->timeout = nf_flowtable_time_stamp + NF_FLOW_TIMEOUT;
->  	iph = ip_hdr(skb);
->  	ip_decrease_ttl(iph);
->  	skb->tstamp = 0;
-> @@ -509,7 +509,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
->  	if (nf_flow_nat_ipv6(flow, skb, dir) < 0)
->  		return NF_DROP;
->  
-> -	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
-> +	flow->timeout = nf_flowtable_time_stamp + NF_FLOW_TIMEOUT;
->  	ip6h = ipv6_hdr(skb);
->  	ip6h->hop_limit--;
->  	skb->tstamp = 0;
-> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-> index 6c162c954c4f..d06969af1085 100644
-> --- a/net/netfilter/nf_flow_table_offload.c
-> +++ b/net/netfilter/nf_flow_table_offload.c
-> @@ -781,9 +781,9 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
->  			   struct flow_offload *flow)
->  {
->  	struct flow_offload_work *offload;
-> -	s64 delta;
-> +	__s32 delta;
->  
-> -	delta = flow->timeout - jiffies;
-> +	delta = nf_flow_timeout_delta(flow->timeout);
->  	if ((delta >= (9 * NF_FLOW_TIMEOUT) / 10) ||
->  	    flow->flags & FLOW_OFFLOAD_HW_DYING)
->  		return;
+>  	if (op->op == OP_LSHIFT || op->op == OP_RSHIFT)
+> -		expr_set_context(&ctx->ectx, &integer_type, ctx->ectx.len);
+> +		__expr_set_context(&ctx->ectx, &integer_type,
+> +				   BYTEORDER_HOST_ENDIAN, ctx->ectx.len, 0);
+
+tests/py spews a few warnings after this patch.
