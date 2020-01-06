@@ -6,99 +6,146 @@ X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56D44C32767
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jan 2020 03:25:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49971C32767
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jan 2020 03:40:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 350932072C
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jan 2020 03:25:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2555020801
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jan 2020 03:40:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727395AbgAFDZl (ORCPT
+        id S1727423AbgAFDkP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 5 Jan 2020 22:25:41 -0500
-Received: from m9785.mail.qiye.163.com ([220.181.97.85]:45413 "EHLO
-        m9785.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727307AbgAFDZl (ORCPT
+        Sun, 5 Jan 2020 22:40:15 -0500
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:8976 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727307AbgAFDkP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 5 Jan 2020 22:25:41 -0500
+        Sun, 5 Jan 2020 22:40:15 -0500
 Received: from [192.168.188.14] (unknown [120.132.1.226])
-        by m9785.mail.qiye.163.com (Hmail) with ESMTPA id 3CA165C1946;
-        Mon,  6 Jan 2020 11:25:38 +0800 (CST)
-Subject: Re: [PATCH nf,v2] netfilter: flowtable: fetch stats only if flow is
- still alive
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 062F5417CD;
+        Mon,  6 Jan 2020 11:40:07 +0800 (CST)
+Subject: Re: [PATCH nf,v2] netfilter: flowtable: add nf_flowtable_time_stamp
 To:     Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org
-References: <20200105215938.276229-1-pablo@netfilter.org>
+References: <20200105191042.147509-1-pablo@netfilter.org>
 From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <e5428176-3814-00c9-4621-be18027d8afe@ucloud.cn>
-Date:   Mon, 6 Jan 2020 11:25:35 +0800
+Message-ID: <455b8eea-59db-8f15-4c68-1dc258640cde@ucloud.cn>
+Date:   Mon, 6 Jan 2020 11:40:05 +0800
 User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
  Thunderbird/60.9.1
 MIME-Version: 1.0
-In-Reply-To: <20200105215938.276229-1-pablo@netfilter.org>
+In-Reply-To: <20200105191042.147509-1-pablo@netfilter.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Content-Language: en-US
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSEJKS0tLSk5KTUhPSUlZV1koWU
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSENNS0tLSk5NT0tJTkJZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Mwg6Pjo5PDg0LD8pFwFDLBxM
-        PgswC0NVSlVKTkxDSUNKSkhDSENPVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
-        SElVSlVJSU1ZV1kIAVlBSEhKSzcG
-X-HM-Tid: 0a6f78e2f8972087kuqy3ca165c1946
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6NTo6Txw*KzgyOD9IVkk*NTYP
+        SDlPCRRVSlVKTkxDSUNJS0tDSEpCVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
+        SElVSlVJSU1ZV1kIAVlBTktKSjcG
+X-HM-Tid: 0a6f78f03e242086kuqy062f5417cd
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Acked-by: wenxu <wenxu@ucloud.cn>
 
-On 1/6/2020 5:59 AM, Pablo Neira Ayuso wrote:
-> Do not fetch statistics if flow has expired since it might not in
-> hardware anymore. After this update, remove the FLOW_OFFLOAD_HW_DYING
-> check from nf_flow_offload_stats() since this flag is never set on.
+On 1/6/2020 3:10 AM, Pablo Neira Ayuso wrote:
+> This patch adds nf_flowtable_time_stamp and updates the existing code to
+> use it.
+>
+> This patch is also implicitly fixing up hardware statistic fetching via
+> nf_flow_offload_stats() where casting to u32 is missing. Use
+> nf_flow_timeout_delta() to fix this.
 >
 > Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
 > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 > ---
-> v2: remove dead code after this update in nf_flow_offload_stats().
+> v2: use nf_flow_timeout_delta()
 >
->  net/netfilter/nf_flow_table_core.c    | 5 ++---
->  net/netfilter/nf_flow_table_offload.c | 3 +--
->  2 files changed, 3 insertions(+), 5 deletions(-)
+>  include/net/netfilter/nf_flow_table.h | 6 ++++++
+>  net/netfilter/nf_flow_table_core.c    | 7 +------
+>  net/netfilter/nf_flow_table_ip.c      | 4 ++--
+>  net/netfilter/nf_flow_table_offload.c | 4 ++--
+>  4 files changed, 11 insertions(+), 10 deletions(-)
 >
+> diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+> index f0897b3c97fb..03cc74bb2598 100644
+> --- a/include/net/netfilter/nf_flow_table.h
+> +++ b/include/net/netfilter/nf_flow_table.h
+> @@ -106,6 +106,12 @@ struct flow_offload {
+>  };
+>  
+>  #define NF_FLOW_TIMEOUT (30 * HZ)
+> +#define nf_flowtable_time_stamp	(u32)jiffies
+> +
+> +static inline __s32 nf_flow_timeout_delta(unsigned int timeout)
+> +{
+> +	return (__s32)(timeout - (u32)jiffies);
+Maybe this also can replace (u32)jiffies to nf_flowtable_time_stamp.
+> +}
+>  
+>  struct nf_flow_route {
+>  	struct {
 > diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-> index e33a73cb1f42..9e6de2bbeccb 100644
+> index 9889d52eda82..e33a73cb1f42 100644
 > --- a/net/netfilter/nf_flow_table_core.c
 > +++ b/net/netfilter/nf_flow_table_core.c
-> @@ -348,9 +348,6 @@ static void nf_flow_offload_gc_step(struct flow_offload *flow, void *data)
->  {
->  	struct nf_flowtable *flow_table = data;
+> @@ -134,11 +134,6 @@ static void flow_offload_fixup_tcp(struct ip_ct_tcp *tcp)
+>  #define NF_FLOWTABLE_TCP_PICKUP_TIMEOUT	(120 * HZ)
+>  #define NF_FLOWTABLE_UDP_PICKUP_TIMEOUT	(30 * HZ)
 >  
-> -	if (flow->flags & FLOW_OFFLOAD_HW)
-> -		nf_flow_offload_stats(flow_table, flow);
+> -static inline __s32 nf_flow_timeout_delta(unsigned int timeout)
+> -{
+> -	return (__s32)(timeout - (u32)jiffies);
+> -}
 > -
->  	if (nf_flow_has_expired(flow) || nf_ct_is_dying(flow->ct) ||
->  	    (flow->flags & (FLOW_OFFLOAD_DYING | FLOW_OFFLOAD_TEARDOWN))) {
->  		if (flow->flags & FLOW_OFFLOAD_HW) {
-> @@ -361,6 +358,8 @@ static void nf_flow_offload_gc_step(struct flow_offload *flow, void *data)
->  		} else {
->  			flow_offload_del(flow_table, flow);
->  		}
-> +	} else if (flow->flags & FLOW_OFFLOAD_HW) {
-> +		nf_flow_offload_stats(flow_table, flow);
->  	}
->  }
+>  static void flow_offload_fixup_ct_timeout(struct nf_conn *ct)
+>  {
+>  	const struct nf_conntrack_l4proto *l4proto;
+> @@ -232,7 +227,7 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
+>  {
+>  	int err;
 >  
+> -	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
+> +	flow->timeout = nf_flowtable_time_stamp + NF_FLOW_TIMEOUT;
+>  
+>  	err = rhashtable_insert_fast(&flow_table->rhashtable,
+>  				     &flow->tuplehash[0].node,
+> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+> index b9e7dd6e60ce..7ea2ddc2aa93 100644
+> --- a/net/netfilter/nf_flow_table_ip.c
+> +++ b/net/netfilter/nf_flow_table_ip.c
+> @@ -280,7 +280,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+>  	if (nf_flow_nat_ip(flow, skb, thoff, dir) < 0)
+>  		return NF_DROP;
+>  
+> -	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
+> +	flow->timeout = nf_flowtable_time_stamp + NF_FLOW_TIMEOUT;
+>  	iph = ip_hdr(skb);
+>  	ip_decrease_ttl(iph);
+>  	skb->tstamp = 0;
+> @@ -509,7 +509,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+>  	if (nf_flow_nat_ipv6(flow, skb, dir) < 0)
+>  		return NF_DROP;
+>  
+> -	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
+> +	flow->timeout = nf_flowtable_time_stamp + NF_FLOW_TIMEOUT;
+>  	ip6h = ipv6_hdr(skb);
+>  	ip6h->hop_limit--;
+>  	skb->tstamp = 0;
 > diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-> index d06969af1085..4d1e81e2880f 100644
+> index 6c162c954c4f..d06969af1085 100644
 > --- a/net/netfilter/nf_flow_table_offload.c
 > +++ b/net/netfilter/nf_flow_table_offload.c
-> @@ -784,8 +784,7 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
->  	__s32 delta;
+> @@ -781,9 +781,9 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
+>  			   struct flow_offload *flow)
+>  {
+>  	struct flow_offload_work *offload;
+> -	s64 delta;
+> +	__s32 delta;
 >  
->  	delta = nf_flow_timeout_delta(flow->timeout);
-> -	if ((delta >= (9 * NF_FLOW_TIMEOUT) / 10) ||
-> -	    flow->flags & FLOW_OFFLOAD_HW_DYING)
-> +	if ((delta >= (9 * NF_FLOW_TIMEOUT) / 10))
+> -	delta = flow->timeout - jiffies;
+> +	delta = nf_flow_timeout_delta(flow->timeout);
+>  	if ((delta >= (9 * NF_FLOW_TIMEOUT) / 10) ||
+>  	    flow->flags & FLOW_OFFLOAD_HW_DYING)
 >  		return;
->  
->  	offload = kzalloc(sizeof(struct flow_offload_work), GFP_ATOMIC);
