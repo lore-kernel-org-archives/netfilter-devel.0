@@ -2,93 +2,113 @@ Return-Path: <SRS0=Xvwf=23=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A2B2C33C9B
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jan 2020 22:34:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BACCDC33C8C
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jan 2020 22:35:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 012912080A
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jan 2020 22:34:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 90AD42080A
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jan 2020 22:35:12 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="cux2vGQM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726895AbgAFWe2 (ORCPT
+        id S1727224AbgAFWfM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Jan 2020 17:34:28 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:38382 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726721AbgAFWe2 (ORCPT
+        Mon, 6 Jan 2020 17:35:12 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:36338 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726721AbgAFWfM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Jan 2020 17:34:28 -0500
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1ioax7-0007Wf-FD; Mon, 06 Jan 2020 23:34:25 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     syzkaller-bugs@googlegroups.com, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        syzbot+46a4ad33f345d1dd346e@syzkaller.appspotmail.com
-Subject: [PATCH nf] netfilter: conntrack: dccp, sctp: handle null timeout argument
-Date:   Mon,  6 Jan 2020 23:34:17 +0100
-Message-Id: <20200106223417.18279-1-fw@strlen.de>
+        Mon, 6 Jan 2020 17:35:12 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=IMnRIMGTBMNlnmBljDoEE3yUx1DEMRdpt6Z8UUWnlB0=; b=cux2vGQMwvmuKW2hYz9cS4Q5tL
+        SHmLdO0rUpiAJkht6GMwhSql72XgnPgqeeIeCNuRHKcAi3DuwFd2MzoZgKUlC9xMYjIn3xAflv2E+
+        nEvnKb+qms19UL5T7UaT0H3zcYJjwZ4jnM6hrzR4JF2sLslmkVECWC/v02nVeJwCzfaYLN7qGyW4W
+        RaQsiSDoPNvKw51I95hyYGXHlEiISsci84NuDE5MJhxUyeLI0vucrMwixlJ95oWLZH6i/EpmwtU4g
+        nttC+e/yGoUmoH4P5CTC3SbsEBwFS5qsmTayKxQL9bU5ypkphN5K5BRNtsi3XYHdMtKdKAWo3PVGV
+        wv2mFnOg==;
+Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
+        by kadath.azazel.net with esmtp (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1ioaxq-0005uC-RN; Mon, 06 Jan 2020 22:35:10 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH nft v3] evaluate: fix expr_set_context call for shift binops.
+Date:   Mon,  6 Jan 2020 22:35:10 +0000
+Message-Id: <20200106223510.496948-1-jeremy@azazel.net>
 X-Mailer: git-send-email 2.24.1
-In-Reply-To: <0000000000009cd5e0059b7eb836@google.com>
-References: <0000000000009cd5e0059b7eb836@google.com>
+In-Reply-To: <20200106092842.tp2pxubgmfcptthq@salvia>
+References: <20200106092842.tp2pxubgmfcptthq@salvia>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The timeout pointer can be NULL which means we should modify the
-per-nets timeout instead.
+expr_evaluate_binop calls expr_set_context for shift expressions to set
+the context data-type to `integer`.  This clobbers the byte-order of the
+context, resulting in unexpected conversions to NBO.  For example:
 
-All do this, except sctp and dccp which instead give:
+  $ sudo nft flush ruleset
+  $ sudo nft add table t
+  $ sudo nft add chain t c '{ type filter hook output priority mangle; }'
+  $ sudo nft add rule t c oif lo tcp dport ssh ct mark set '0x10 | 0xe'
+  $ sudo nft add rule t c oif lo tcp dport ssh ct mark set '0xf << 1'
+  $ sudo nft list table t
+  table ip t {
+          chain c {
+                  type filter hook output priority mangle; policy accept;
+                  oif "lo" tcp dport 22 ct mark set 0x0000001e
+                  oif "lo" tcp dport 22 ct mark set 0x1e000000
+          }
+  }
 
-general protection fault: 0000 [#1] PREEMPT SMP KASAN
-net/netfilter/nf_conntrack_proto_dccp.c:682
- ctnl_timeout_parse_policy+0x150/0x1d0 net/netfilter/nfnetlink_cttimeout.c:67
- cttimeout_default_set+0x150/0x1c0 net/netfilter/nfnetlink_cttimeout.c:368
- nfnetlink_rcv_msg+0xcf2/0xfb0 net/netfilter/nfnetlink.c:229
- netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
+Replace it with a call to __expr_set_context and set the byteorder to
+that of the left operand since this is the value being shifted.
 
-Reported-by: syzbot+46a4ad33f345d1dd346e@syzkaller.appspotmail.com
-Fixes: c779e849608a8 ("netfilter: conntrack: remove get_timeout() indirection")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- net/netfilter/nf_conntrack_proto_dccp.c | 3 +++
- net/netfilter/nf_conntrack_proto_sctp.c | 3 +++
- 2 files changed, 6 insertions(+)
+ src/evaluate.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index b6b14db3955b..b3f4a334f9d7 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -677,6 +677,9 @@ static int dccp_timeout_nlattr_to_obj(struct nlattr *tb[],
- 	unsigned int *timeouts = data;
- 	int i;
+Since v2:
+
+  * set the byte-order to that of the left operand, rather than hard-
+    coding it as host-endian.
+
+Since v1:
+
+  * replace expr_set_context with __expr_set_context (and explicity set
+    the byte-order) instead of removing it altogether in order to ensure
+    that the right operand has integer type.
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 817b23220bb9..34e4473e4c9a 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1145,7 +1145,8 @@ static int expr_evaluate_binop(struct eval_ctx *ctx, struct expr **expr)
+ 	left = op->left;
  
-+	if (!timeouts)
-+		 timeouts = dn->dccp_timeout;
-+
- 	/* set default DCCP timeouts. */
- 	for (i=0; i<CT_DCCP_MAX; i++)
- 		timeouts[i] = dn->dccp_timeout[i];
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index fce3d93f1541..0399ae8f1188 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -594,6 +594,9 @@ static int sctp_timeout_nlattr_to_obj(struct nlattr *tb[],
- 	struct nf_sctp_net *sn = nf_sctp_pernet(net);
- 	int i;
- 
-+	if (!timeouts)
-+		timeouts = sn->timeouts;
-+
- 	/* set default SCTP timeouts. */
- 	for (i=0; i<SCTP_CONNTRACK_MAX; i++)
- 		timeouts[i] = sn->timeouts[i];
+ 	if (op->op == OP_LSHIFT || op->op == OP_RSHIFT)
+-		expr_set_context(&ctx->ectx, &integer_type, ctx->ectx.len);
++		__expr_set_context(&ctx->ectx, &integer_type,
++				   left->byteorder, ctx->ectx.len, 0);
+ 	if (expr_evaluate(ctx, &op->right) < 0)
+ 		return -1;
+ 	right = op->right;
 -- 
 2.24.1
 
