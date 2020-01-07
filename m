@@ -2,81 +2,99 @@ Return-Path: <SRS0=BUQT=24=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5CDFC32771
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Jan 2020 01:28:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4FAFC33C99
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Jan 2020 09:10:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7FF8120715
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Jan 2020 01:28:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 73DE72073D
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Jan 2020 09:10:35 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=wifirst-fr.20150623.gappssmtp.com header.i=@wifirst-fr.20150623.gappssmtp.com header.b="F8PEWauG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727354AbgAGB2C (ORCPT
+        id S1726492AbgAGJKf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Jan 2020 20:28:02 -0500
-Received: from mail-io1-f71.google.com ([209.85.166.71]:53365 "EHLO
-        mail-io1-f71.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727295AbgAGB2B (ORCPT
+        Tue, 7 Jan 2020 04:10:35 -0500
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:40361 "EHLO
+        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726327AbgAGJKe (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Jan 2020 20:28:01 -0500
-Received: by mail-io1-f71.google.com with SMTP id m5so25434887iol.20
-        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jan 2020 17:28:01 -0800 (PST)
+        Tue, 7 Jan 2020 04:10:34 -0500
+Received: by mail-wm1-f66.google.com with SMTP id t14so18460880wmi.5
+        for <netfilter-devel@vger.kernel.org>; Tue, 07 Jan 2020 01:10:33 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=wifirst-fr.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=Y31vqBK9dm3yHjyNsj7HAaXf/DHwBlhDpY/H2R5Er14=;
+        b=F8PEWauGp8iv2FDyrmpmmLYATEsDhjKPAYedOMNK7fZ7Xgp37QRqkXw0Ql1f1Ujd6f
+         2TgN8ccIMGMZXhjQpUafEgj+cvEoKHk1rtSwaYY7U//YSIPMqv9dHXFDaKT6eNkSOvlw
+         7z0+xq2EBThfCMkeTJ5aqVhNCUQMQ+dwx/ee9ISeDdZe62DEEGE4Kso/WLsWFA2i7NKj
+         LsmFRHiERnkbsXaU3K/+koDvoWtLBmWl0klChdURiU2pznzXSXTNtTs4PZlSib+6ZbXG
+         xJ2xjHHz3DWnlfGXq+Tb8k5G+NAgr5MYJ86i/Ov5SnbQz2SVPJvjNkKBS2MOR9sGN/r6
+         W97w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=75DRJK5klYoLUbzgyGRVpTRFYRrPHK+zNd4vNtL85ZQ=;
-        b=ktHX2aMZlBUdFi6URUnxymtPY/KDwk8zcx4WbyutU8RbHzGRo0+oKs1p0p5ndA70kg
-         2ZROUth2K0WHEHV8w5gZ038plFyuAd4rP+Lpj/bKgDaQO8DcSq7HsvRdMDkTVIXbnnNM
-         x5vQj6QIGJzswIGsGwQ6EVoHvzWTYkIGQls/N0KQLQ+i7lNxG/P7hpz6I1L3SuAZzuU5
-         JuFnwzM6iJrPqQxYE+maZPjXTejwuVdvFKtqLojFM8PYluP76hn6P4TkI5nTRMAq2qOe
-         q9QDwCz+dA+Uh7lwh4R8+4gdRqqiRyvMtPv/fgsWeE1i9KrPhY3aohuRLP/eZVWceybL
-         UpCg==
-X-Gm-Message-State: APjAAAVmjc+Y/2/G+zjMdStskokTRGkYgtEVR3ULapzsVPJE/Ou1wVub
-        NCMFtN0y69faRVQC4cSiqPwN128eZEBCxaXlAmBvko89BlbZ
-X-Google-Smtp-Source: APXvYqze6nKMW0nX6ASAFlo5hVUFSK6rrj7ZAUCJAj0dZPg3taWf89Wj800pPzrot4VgciXRshJGrcRY8N62dRXGw0WFccatqMpz
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=Y31vqBK9dm3yHjyNsj7HAaXf/DHwBlhDpY/H2R5Er14=;
+        b=RnCwFt5zELFRDGali0A0H9Y2z4Yy891+QZYZlkc47CRId/7UMs7UttaXlz0xjEeK/3
+         deRIGk0NG4+dXH+7VPQYg1XwXLfhy02ptsFT95CoAMLOQoRQsEqtcASvhiGmFJ6+pul0
+         cmTaMfteUatbrSfCt4i2CPot0spFj85yq0iJ9Qlt/EY7gNVXFhhUMz0pHqcTmFxODIZh
+         OMUKhSnRgoXJTbi0UxV2Pex+CMumrsDPqji0+RulPejLMppLCbKwhswWSa2b6Ue5a/LC
+         WDjPJ+nzMt9bW5oLksEWcqazsrdTWbl1SbuTKVs8dT3slnS1OF7MM1kWBjxFxB7ClYVo
+         Vf4g==
+X-Gm-Message-State: APjAAAVIhDUUKb7vHHiIQlEfUxRyDkvw+vBTDhuh2Jlh2SAUjCKEkw57
+        twaBbEp3hXFUv3liSxZOhP/fzyX0KujcGg==
+X-Google-Smtp-Source: APXvYqw7DOrfU+HWDamld7COdzrxxBwqfqQDubnwXnOCxPi85PXxLCxwL3ajwJ8uXit9LOSGp/cy+Q==
+X-Received: by 2002:a1c:9849:: with SMTP id a70mr36686331wme.76.1578388232353;
+        Tue, 07 Jan 2020 01:10:32 -0800 (PST)
+Received: from localhost (wifirst-46-193-244.20.cust.wifirst.net. [46.193.244.20])
+        by smtp.gmail.com with ESMTPSA id r5sm74621874wrt.43.2020.01.07.01.10.31
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 07 Jan 2020 01:10:31 -0800 (PST)
+Date:   Tue, 7 Jan 2020 10:10:26 +0100
+From:   Romain Bellan <romain.bellan@wifirst.fr>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org,
+        Florent Fourcot <florent.fourcot@wifirst.fr>
+Subject: Re: [PATCH nf-next] netfilter: ctnetlink: add kernel side filtering
+ for dump
+Message-ID: <20200107091026.GH15271@wiboss>
+References: <20191219103638.20454-1-romain.bellan@wifirst.fr>
+ <20191230121253.laf2ttcfpjgbfowt@salvia>
 MIME-Version: 1.0
-X-Received: by 2002:a92:d151:: with SMTP id t17mr73212526ilg.175.1578360481266;
- Mon, 06 Jan 2020 17:28:01 -0800 (PST)
-Date:   Mon, 06 Jan 2020 17:28:01 -0800
-In-Reply-To: <0000000000009cd5e0059b7eb836@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000d04359059b82afd9@google.com>
-Subject: Re: general protection fault in dccp_timeout_nlattr_to_obj
-From:   syzbot <syzbot+46a4ad33f345d1dd346e@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@blackhole.kfki.hu, kadlec@netfilter.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191230121253.laf2ttcfpjgbfowt@salvia>
+X-Operating-System: Linux, kernel 5.2.0-3-amd64
+X-Message-Flag: WARNING!! Outlook sucks
+X-Bibiche-Flag: Coucou =?iso-8859-1?Q?=E0_toute?= =?iso-8859-1?Q?s?= les
+ biches !
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has bisected this bug to:
+Hi Pablo,
 
-commit dd2934a95701576203b2f61e8ded4e4a2f9183ea
-Author: Florian Westphal <fw@strlen.de>
-Date:   Mon Sep 17 10:02:54 2018 +0000
+> I did not yet have a look at this in detail, will do asap.
+> 
+> However, I would like to know if you would plan to submit userspace
+> patches for libnetfilter_conntrack for this. Main problem here is
+> backward compatibility (old conntrack tool and new kernel).
 
-     netfilter: conntrack: remove l3->l4 mapping information
+Currently I wrote a patch for the pyroute2 python library (to control netlink using Python) whith checks of kernel version for using filtering in kernel or userspace.
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=10957485e00000
-start commit:   d89091a4 macb: Don't unregister clks unconditionally
-git tree:       net
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=12957485e00000
-console output: https://syzkaller.appspot.com/x/log.txt?x=14957485e00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=f2f3ef188b7e16cf
-dashboard link: https://syzkaller.appspot.com/bug?extid=46a4ad33f345d1dd346e
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=12ff2869e00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=16693751e00000
+I would like to submit a patch for the libnetfilter_conntrack if you think that it is useful, but i didn't have a look on it yet.
 
-Reported-by: syzbot+46a4ad33f345d1dd346e@syzkaller.appspotmail.com
-Fixes: dd2934a95701 ("netfilter: conntrack: remove l3->l4 mapping  
-information")
+About compatibility, currently the only way is to check with the kernel version, but I can add something like NLM_F_DUMP_FILTERED in the netlink reply. What would be the best way for you?
 
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+Best regards,
+
+-- 
+
+BELLAN Romain
