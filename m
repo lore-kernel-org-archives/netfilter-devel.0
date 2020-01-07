@@ -1,114 +1,136 @@
-Return-Path: <SRS0=Xvwf=23=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=BUQT=24=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BACCDC33C8C
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jan 2020 22:35:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CC03C32771
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Jan 2020 00:34:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 90AD42080A
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jan 2020 22:35:12 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="cux2vGQM"
+	by mail.kernel.org (Postfix) with ESMTP id 47AF02072A
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Jan 2020 00:34:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727224AbgAFWfM (ORCPT
+        id S1727268AbgAGAeN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Jan 2020 17:35:12 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:36338 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726721AbgAFWfM (ORCPT
+        Mon, 6 Jan 2020 19:34:13 -0500
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:41613 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727228AbgAGAeN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Jan 2020 17:35:12 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=IMnRIMGTBMNlnmBljDoEE3yUx1DEMRdpt6Z8UUWnlB0=; b=cux2vGQMwvmuKW2hYz9cS4Q5tL
-        SHmLdO0rUpiAJkht6GMwhSql72XgnPgqeeIeCNuRHKcAi3DuwFd2MzoZgKUlC9xMYjIn3xAflv2E+
-        nEvnKb+qms19UL5T7UaT0H3zcYJjwZ4jnM6hrzR4JF2sLslmkVECWC/v02nVeJwCzfaYLN7qGyW4W
-        RaQsiSDoPNvKw51I95hyYGXHlEiISsci84NuDE5MJhxUyeLI0vucrMwixlJ95oWLZH6i/EpmwtU4g
-        nttC+e/yGoUmoH4P5CTC3SbsEBwFS5qsmTayKxQL9bU5ypkphN5K5BRNtsi3XYHdMtKdKAWo3PVGV
-        wv2mFnOg==;
-Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
-        by kadath.azazel.net with esmtp (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1ioaxq-0005uC-RN; Mon, 06 Jan 2020 22:35:10 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft v3] evaluate: fix expr_set_context call for shift binops.
-Date:   Mon,  6 Jan 2020 22:35:10 +0000
-Message-Id: <20200106223510.496948-1-jeremy@azazel.net>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200106092842.tp2pxubgmfcptthq@salvia>
-References: <20200106092842.tp2pxubgmfcptthq@salvia>
+        Mon, 6 Jan 2020 19:34:13 -0500
+Received: from [192.168.1.7] (unknown [101.86.134.13])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id D77EC415F5;
+        Tue,  7 Jan 2020 08:34:10 +0800 (CST)
+Subject: Re: [PATCH nf-next] netfilter: flowtable: refresh flow if hardware
+ offload fails
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20200106120337.13626-1-pablo@netfilter.org>
+From:   wenxu <wenxu@ucloud.cn>
+Message-ID: <fbdafa04-ee1e-6430-db99-52d41b70e8da@ucloud.cn>
+Date:   Tue, 7 Jan 2020 08:33:38 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.3.1
 MIME-Version: 1.0
+In-Reply-To: <20200106120337.13626-1-pablo@netfilter.org>
+Content-Type: text/plain; charset=gbk; format=flowed
 Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVTUhJQkJCQ0JMS0tISkxZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6NxA6Dgw6DDg6PD9ITh8*UUJJ
+        LRFPCgJVSlVKTkxDSE5MSU5KS09JVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpLSlVD
+        TVVKSE9VSkhZV1kIAVlBT0hCTjcG
+X-HM-Tid: 0a6f7d6c5b832086kuqyd77ec415f5
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-expr_evaluate_binop calls expr_set_context for shift expressions to set
-the context data-type to `integer`.  This clobbers the byte-order of the
-context, resulting in unexpected conversions to NBO.  For example:
 
-  $ sudo nft flush ruleset
-  $ sudo nft add table t
-  $ sudo nft add chain t c '{ type filter hook output priority mangle; }'
-  $ sudo nft add rule t c oif lo tcp dport ssh ct mark set '0x10 | 0xe'
-  $ sudo nft add rule t c oif lo tcp dport ssh ct mark set '0xf << 1'
-  $ sudo nft list table t
-  table ip t {
-          chain c {
-                  type filter hook output priority mangle; policy accept;
-                  oif "lo" tcp dport 22 ct mark set 0x0000001e
-                  oif "lo" tcp dport 22 ct mark set 0x1e000000
-          }
-  }
+ÔÚ 2020/1/6 20:03, Pablo Neira Ayuso Ð´µÀ:
+> If nf_flow_offload_add() fails to add the flow to hardware, then the
+> NF_FLOW_HW flag bit is unset and the flow remains in the flowtable
+> software path.
+>
+> If flowtable hardware offload is enabled, this patch enqueues a new
+> request to offload this flow to hardware.
+>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>   net/netfilter/nf_flow_table_core.c    |  4 +++-
+>   net/netfilter/nf_flow_table_ip.c      | 10 ++++++++++
+>   net/netfilter/nf_flow_table_offload.c |  3 +--
+>   3 files changed, 14 insertions(+), 3 deletions(-)
+>
+> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+> index 9f134f44d139..388e87b06a00 100644
+> --- a/net/netfilter/nf_flow_table_core.c
+> +++ b/net/netfilter/nf_flow_table_core.c
+> @@ -243,8 +243,10 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
+>   		return err;
+>   	}
+>   
+> -	if (flow_table->flags & NF_FLOWTABLE_HW_OFFLOAD)
+> +	if (flow_table->flags & NF_FLOWTABLE_HW_OFFLOAD) {
+> +		__set_bit(NF_FLOW_HW, &flow->flags);
+>   		nf_flow_offload_add(flow_table, flow);
+> +	}
+>   
+>   	return 0;
+>   }
+> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+> index f4ccb5f5008b..6e0a5bacfe2e 100644
+> --- a/net/netfilter/nf_flow_table_ip.c
+> +++ b/net/netfilter/nf_flow_table_ip.c
+> @@ -259,6 +259,11 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+>   
+>   	dir = tuplehash->tuple.dir;
+>   	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
+> +
+> +	if (unlikely((flow_table->flags & NF_FLOWTABLE_HW_OFFLOAD) &&
+> +		     !test_and_set_bit(NF_FLOW_HW, &flow->flags)))
+> +		nf_flow_offload_add(flow_table, flow);
+> +
 
-Replace it with a call to __expr_set_context and set the byteorder to
-that of the left operand since this is the value being shifted.
+Maybe put the refresh operation ather the nf_flow_state_check to aviod
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- src/evaluate.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+the RST/FIN packets do the this?
 
-Since v2:
-
-  * set the byte-order to that of the left operand, rather than hard-
-    coding it as host-endian.
-
-Since v1:
-
-  * replace expr_set_context with __expr_set_context (and explicity set
-    the byte-order) instead of removing it altogether in order to ensure
-    that the right operand has integer type.
-
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 817b23220bb9..34e4473e4c9a 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1145,7 +1145,8 @@ static int expr_evaluate_binop(struct eval_ctx *ctx, struct expr **expr)
- 	left = op->left;
- 
- 	if (op->op == OP_LSHIFT || op->op == OP_RSHIFT)
--		expr_set_context(&ctx->ectx, &integer_type, ctx->ectx.len);
-+		__expr_set_context(&ctx->ectx, &integer_type,
-+				   left->byteorder, ctx->ectx.len, 0);
- 	if (expr_evaluate(ctx, &op->right) < 0)
- 		return -1;
- 	right = op->right;
--- 
-2.24.1
-
+>   	rt = (struct rtable *)flow->tuplehash[dir].tuple.dst_cache;
+>   	outdev = rt->dst.dev;
+>   
+> @@ -488,6 +493,11 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+>   
+>   	dir = tuplehash->tuple.dir;
+>   	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
+> +
+> +	if (unlikely((flow_table->flags & NF_FLOWTABLE_HW_OFFLOAD) &&
+> +		     !test_and_set_bit(NF_FLOW_HW, &flow->flags)))
+> +		nf_flow_offload_add(flow_table, flow);
+> +
+>   	rt = (struct rt6_info *)flow->tuplehash[dir].tuple.dst_cache;
+>   	outdev = rt->dst.dev;
+>   
+> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+> index 8a1fe391666e..e7b766b3f731 100644
+> --- a/net/netfilter/nf_flow_table_offload.c
+> +++ b/net/netfilter/nf_flow_table_offload.c
+> @@ -723,7 +723,7 @@ static void flow_offload_work_handler(struct work_struct *work)
+>   		case FLOW_CLS_REPLACE:
+>   			ret = flow_offload_work_add(offload);
+>   			if (ret < 0)
+> -				__clear_bit(NF_FLOW_HW, &offload->flow->flags);
+> +				clear_bit(NF_FLOW_HW, &offload->flow->flags);
+>   			break;
+>   		case FLOW_CLS_DESTROY:
+>   			flow_offload_work_del(offload);
+> @@ -776,7 +776,6 @@ void nf_flow_offload_add(struct nf_flowtable *flowtable,
+>   	if (!offload)
+>   		return;
+>   
+> -	__set_bit(NF_FLOW_HW, &flow->flags);
+>   	flow_offload_queue_work(offload);
+>   }
+>   
