@@ -2,199 +2,78 @@ Return-Path: <SRS0=uN83=25=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B969C47409
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 23:17:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44746C33CA2
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 23:22:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7B1D3206DB
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 23:17:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 199762053B
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 23:22:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727455AbgAHXRX (ORCPT
+        id S1727282AbgAHXW5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Jan 2020 18:17:23 -0500
-Received: from correo.us.es ([193.147.175.20]:43146 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726721AbgAHXRX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Jan 2020 18:17:23 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0586CFF9A3
-        for <netfilter-devel@vger.kernel.org>; Thu,  9 Jan 2020 00:17:21 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EBAE3DA715
-        for <netfilter-devel@vger.kernel.org>; Thu,  9 Jan 2020 00:17:20 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id E11AFDA701; Thu,  9 Jan 2020 00:17:20 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id ACE9ADA701;
-        Thu,  9 Jan 2020 00:17:18 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 09 Jan 2020 00:17:18 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 86526426CCB9;
-        Thu,  9 Jan 2020 00:17:18 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 1/9] netfilter: arp_tables: init netns pointer in xt_tgchk_param struct
-Date:   Thu,  9 Jan 2020 00:17:05 +0100
-Message-Id: <20200108231713.100458-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
+        Wed, 8 Jan 2020 18:22:57 -0500
+Received: from shards.monkeyblade.net ([23.128.96.9]:49446 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726548AbgAHXW5 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Jan 2020 18:22:57 -0500
+Received: from localhost (unknown [IPv6:2601:601:9f00:1c3::3d5])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id D111D158823CA;
+        Wed,  8 Jan 2020 15:22:56 -0800 (PST)
+Date:   Wed, 08 Jan 2020 15:22:56 -0800 (PST)
+Message-Id: <20200108.152256.61418150289376346.davem@davemloft.net>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH 0/9] Netfilter fixes for net
+From:   David Miller <davem@davemloft.net>
 In-Reply-To: <20200108231713.100458-1-pablo@netfilter.org>
 References: <20200108231713.100458-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-Mailer: Mew version 6.8 on Emacs 26.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Wed, 08 Jan 2020 15:22:57 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Thu,  9 Jan 2020 00:17:04 +0100
 
-We get crash when the targets checkentry function tries to make
-use of the network namespace pointer for arptables.
+> The following patchset contains Netfilter fixes for net:
+> 
+> 1) Missing netns context in arp_tables, from Florian Westphal.
+> 
+> 2) Underflow in flowtable reference counter, from wenxu.
+> 
+> 3) Fix incorrect ethernet destination address in flowtable offload,
+>    from wenxu.
+> 
+> 4) Check for status of neighbour entry, from wenxu.
+> 
+> 5) Fix NAT port mangling, from wenxu.
+> 
+> 6) Unbind callbacks from destroy path to cleanup hardware properly
+>    on flowtable removal.
+> 
+> 7) Fix missing casting statistics timestamp, add nf_flowtable_time_stamp
+>    and use it.
+> 
+> 8) NULL pointer exception when timeout argument is null in conntrack
+>    dccp and sctp protocol helpers, from Florian Westphal.
+> 
+> 9) Possible nul-dereference in ipset with IPSET_ATTR_LINENO, also from
+>    Florian.
+> 
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-When the net pointer got added back in 2010, only ip/ip6/ebtables were
-changed to initialize it, so arptables has this set to NULL.
-
-This isn't a problem for normal arptables because no existing
-arptables target has a checkentry function that makes use of par->net.
-
-However, direct users of the setsockopt interface can provide any
-target they want as long as its registered for ARP or UNPSEC protocols.
-
-syzkaller managed to send a semi-valid arptables rule for RATEEST target
-which is enough to trigger NULL deref:
-
-kasan: GPF could be caused by NULL-ptr deref or user memory access
-general protection fault: 0000 [#1] PREEMPT SMP KASAN
-RIP: xt_rateest_tg_checkentry+0x11d/0xb40 net/netfilter/xt_RATEEST.c:109
-[..]
- xt_check_target+0x283/0x690 net/netfilter/x_tables.c:1019
- check_target net/ipv4/netfilter/arp_tables.c:399 [inline]
- find_check_entry net/ipv4/netfilter/arp_tables.c:422 [inline]
- translate_table+0x1005/0x1d70 net/ipv4/netfilter/arp_tables.c:572
- do_replace net/ipv4/netfilter/arp_tables.c:977 [inline]
- do_arpt_set_ctl+0x310/0x640 net/ipv4/netfilter/arp_tables.c:1456
-
-Fixes: add67461240c1d ("netfilter: add struct net * to target parameters")
-Reported-by: syzbot+d7358a458d8a81aee898@syzkaller.appspotmail.com
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Cong Wang <xiyou.wangcong@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/netfilter/arp_tables.c | 27 ++++++++++++++++-----------
- 1 file changed, 16 insertions(+), 11 deletions(-)
-
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 214154b47d56..069f72edb264 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -384,10 +384,11 @@ next:		;
- 	return 1;
- }
- 
--static inline int check_target(struct arpt_entry *e, const char *name)
-+static int check_target(struct arpt_entry *e, struct net *net, const char *name)
- {
- 	struct xt_entry_target *t = arpt_get_target(e);
- 	struct xt_tgchk_param par = {
-+		.net       = net,
- 		.table     = name,
- 		.entryinfo = e,
- 		.target    = t->u.kernel.target,
-@@ -399,8 +400,9 @@ static inline int check_target(struct arpt_entry *e, const char *name)
- 	return xt_check_target(&par, t->u.target_size - sizeof(*t), 0, false);
- }
- 
--static inline int
--find_check_entry(struct arpt_entry *e, const char *name, unsigned int size,
-+static int
-+find_check_entry(struct arpt_entry *e, struct net *net, const char *name,
-+		 unsigned int size,
- 		 struct xt_percpu_counter_alloc_state *alloc_state)
- {
- 	struct xt_entry_target *t;
-@@ -419,7 +421,7 @@ find_check_entry(struct arpt_entry *e, const char *name, unsigned int size,
- 	}
- 	t->u.kernel.target = target;
- 
--	ret = check_target(e, name);
-+	ret = check_target(e, net, name);
- 	if (ret)
- 		goto err;
- 	return 0;
-@@ -512,7 +514,9 @@ static inline void cleanup_entry(struct arpt_entry *e)
- /* Checks and translates the user-supplied table segment (held in
-  * newinfo).
-  */
--static int translate_table(struct xt_table_info *newinfo, void *entry0,
-+static int translate_table(struct net *net,
-+			   struct xt_table_info *newinfo,
-+			   void *entry0,
- 			   const struct arpt_replace *repl)
- {
- 	struct xt_percpu_counter_alloc_state alloc_state = { 0 };
-@@ -569,7 +573,7 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
- 	/* Finally, each sanity check must pass */
- 	i = 0;
- 	xt_entry_foreach(iter, entry0, newinfo->size) {
--		ret = find_check_entry(iter, repl->name, repl->size,
-+		ret = find_check_entry(iter, net, repl->name, repl->size,
- 				       &alloc_state);
- 		if (ret != 0)
- 			break;
-@@ -974,7 +978,7 @@ static int do_replace(struct net *net, const void __user *user,
- 		goto free_newinfo;
- 	}
- 
--	ret = translate_table(newinfo, loc_cpu_entry, &tmp);
-+	ret = translate_table(net, newinfo, loc_cpu_entry, &tmp);
- 	if (ret != 0)
- 		goto free_newinfo;
- 
-@@ -1149,7 +1153,8 @@ compat_copy_entry_from_user(struct compat_arpt_entry *e, void **dstptr,
- 	}
- }
- 
--static int translate_compat_table(struct xt_table_info **pinfo,
-+static int translate_compat_table(struct net *net,
-+				  struct xt_table_info **pinfo,
- 				  void **pentry0,
- 				  const struct compat_arpt_replace *compatr)
- {
-@@ -1217,7 +1222,7 @@ static int translate_compat_table(struct xt_table_info **pinfo,
- 	repl.num_counters = 0;
- 	repl.counters = NULL;
- 	repl.size = newinfo->size;
--	ret = translate_table(newinfo, entry1, &repl);
-+	ret = translate_table(net, newinfo, entry1, &repl);
- 	if (ret)
- 		goto free_newinfo;
- 
-@@ -1270,7 +1275,7 @@ static int compat_do_replace(struct net *net, void __user *user,
- 		goto free_newinfo;
- 	}
- 
--	ret = translate_compat_table(&newinfo, &loc_cpu_entry, &tmp);
-+	ret = translate_compat_table(net, &newinfo, &loc_cpu_entry, &tmp);
- 	if (ret != 0)
- 		goto free_newinfo;
- 
-@@ -1546,7 +1551,7 @@ int arpt_register_table(struct net *net,
- 	loc_cpu_entry = newinfo->entries;
- 	memcpy(loc_cpu_entry, repl->entries, repl->size);
- 
--	ret = translate_table(newinfo, loc_cpu_entry, repl);
-+	ret = translate_table(net, newinfo, loc_cpu_entry, repl);
- 	if (ret != 0)
- 		goto out_free;
- 
--- 
-2.11.0
-
+Pulled, thanks Pablo.
