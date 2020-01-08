@@ -2,225 +2,128 @@ Return-Path: <SRS0=uN83=25=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9B62C282DD
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 22:53:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0659C33CA1
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 23:17:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A3AB0206DA
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 22:53:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A103A20692
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 23:17:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727549AbgAHWx2 (ORCPT
+        id S1727205AbgAHXRW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Jan 2020 17:53:28 -0500
-Received: from correo.us.es ([193.147.175.20]:34740 "EHLO mail.us.es"
+        Wed, 8 Jan 2020 18:17:22 -0500
+Received: from correo.us.es ([193.147.175.20]:43138 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727527AbgAHWx2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Jan 2020 17:53:28 -0500
+        id S1726548AbgAHXRV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Jan 2020 18:17:21 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 46AFDF2E08
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jan 2020 23:53:26 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 49965FF9A1
+        for <netfilter-devel@vger.kernel.org>; Thu,  9 Jan 2020 00:17:18 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 396E9DA70F
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jan 2020 23:53:26 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3DA02DA70E
+        for <netfilter-devel@vger.kernel.org>; Thu,  9 Jan 2020 00:17:18 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 2E881DA70E; Wed,  8 Jan 2020 23:53:26 +0100 (CET)
+        id 3310EDA707; Thu,  9 Jan 2020 00:17:18 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 05A10DA703;
-        Wed,  8 Jan 2020 23:53:24 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 31F01DA701;
+        Thu,  9 Jan 2020 00:17:16 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 08 Jan 2020 23:53:24 +0100 (CET)
+ Thu, 09 Jan 2020 00:17:16 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id DC209426CCB9;
-        Wed,  8 Jan 2020 23:53:23 +0100 (CET)
-Date:   Wed, 8 Jan 2020 23:53:23 +0100
+Received: from salvia.here (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 0DCCF426CCB9;
+        Thu,  9 Jan 2020 00:17:16 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Duncan Roe <duncan_roe@optusnet.com.au>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libnetfilter_queue v2 0/1] New pktb_make() function
-Message-ID: <20200108225323.io724vuxuzsydjzs@salvia>
-References: <20191210112634.11511-1-duncan_roe@optusnet.com.au>
- <20200106031714.12390-1-duncan_roe@optusnet.com.au>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="nma7o2wmlct6tguq"
-Content-Disposition: inline
-In-Reply-To: <20200106031714.12390-1-duncan_roe@optusnet.com.au>
-User-Agent: NeoMutt/20170113 (1.7.2)
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org
+Subject: [PATCH 0/9] Netfilter fixes for net
+Date:   Thu,  9 Jan 2020 00:17:04 +0100
+Message-Id: <20200108231713.100458-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi,
 
---nma7o2wmlct6tguq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The following patchset contains Netfilter fixes for net:
 
-On Mon, Jan 06, 2020 at 02:17:13PM +1100, Duncan Roe wrote:
-> This patch offers a faster alternative / replacement function to pktb_alloc().
-> 
-> pktb_make() is a copy of the first part of pktb_alloc() modified to use a
-> supplied buffer rather than calloc() one. It then calls the second part of
-> pktb_alloc() which is modified to be a static function.
-> 
-> Can't think of a use case where one would choose to use pktb_alloc over
-> pktb_make.
-> In a furure documentation update, might relegate pktb_alloc and pktb_free to
-> "other functions".
+1) Missing netns context in arp_tables, from Florian Westphal.
 
-This is very useful.
+2) Underflow in flowtable reference counter, from wenxu.
 
-Would you explore something looking similar to what I'm attaching?
+3) Fix incorrect ethernet destination address in flowtable offload,
+   from wenxu.
 
-Warning: Compile tested only :-)
+4) Check for status of neighbour entry, from wenxu.
+
+5) Fix NAT port mangling, from wenxu.
+
+6) Unbind callbacks from destroy path to cleanup hardware properly
+   on flowtable removal.
+
+7) Fix missing casting statistics timestamp, add nf_flowtable_time_stamp
+   and use it.
+
+8) NULL pointer exception when timeout argument is null in conntrack
+   dccp and sctp protocol helpers, from Florian Westphal.
+
+9) Possible nul-dereference in ipset with IPSET_ATTR_LINENO, also from
+   Florian.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
 Thanks.
 
---nma7o2wmlct6tguq
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="x.patch"
+----------------------------------------------------------------
 
-diff --git a/src/extra/pktbuff.c b/src/extra/pktbuff.c
-index 6250fbf3ac8b..985bb48ac986 100644
---- a/src/extra/pktbuff.c
-+++ b/src/extra/pktbuff.c
-@@ -29,6 +29,58 @@
-  * @{
-  */
- 
-+static struct pkt_buff *__pktb_alloc(int family, void *data, size_t len,
-+				     size_t extra)
-+{
-+	struct pkt_buff *pktb;
-+
-+	pktb = calloc(1, sizeof(struct pkt_buff) + len + extra);
-+	if (pktb == NULL)
-+		return NULL;
-+
-+	return pktb;
-+}
-+
-+static int pktb_setup_family(struct pkt_buff *pktb, int family)
-+{
-+	switch(family) {
-+	case AF_INET:
-+	case AF_INET6:
-+		pktb->network_header = pktb->data;
-+		break;
-+	case AF_BRIDGE: {
-+		struct ethhdr *ethhdr = (struct ethhdr *)pktb->data;
-+
-+		pktb->mac_header = pktb->data;
-+
-+		switch(ethhdr->h_proto) {
-+		case ETH_P_IP:
-+		case ETH_P_IPV6:
-+			pktb->network_header = pktb->data + ETH_HLEN;
-+			break;
-+		default:
-+			/* This protocol is unsupported. */
-+			errno = EPROTONOSUPPORT;
-+			return -1;
-+		}
-+		break;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static void pktb_setup_metadata(struct pkt_buff *pktb, void *pkt_data,
-+				size_t len, size_t extra)
-+{
-+	pktb->len = len;
-+	pktb->data_len = len + extra;
-+
-+	pktb->head = pkt_data;
-+	pktb->data = pkt_data;
-+	pktb->tail = pktb->head + len;
-+}
-+
- /**
-  * pktb_alloc - allocate a new packet buffer
-  * \param family Indicate what family. Currently supported families are
-@@ -54,45 +106,41 @@ struct pkt_buff *pktb_alloc(int family, void *data, size_t len, size_t extra)
- 	struct pkt_buff *pktb;
- 	void *pkt_data;
- 
--	pktb = calloc(1, sizeof(struct pkt_buff) + len + extra);
--	if (pktb == NULL)
-+	pktb = __pktb_alloc(family, data, len, extra);
-+	if (!pktb)
- 		return NULL;
- 
- 	/* Better make sure alignment is correct. */
- 	pkt_data = (uint8_t *)pktb + sizeof(struct pkt_buff);
- 	memcpy(pkt_data, data, len);
- 
--	pktb->len = len;
--	pktb->data_len = len + extra;
-+	pktb_setup_metadata(pktb, pkt_data, len, extra);
- 
--	pktb->head = pkt_data;
--	pktb->data = pkt_data;
--	pktb->tail = pktb->head + len;
-+	if (pktb_setup_family(pktb, family) < 0) {
-+		free(pktb);
-+		return NULL;
-+	}
- 
--	switch(family) {
--	case AF_INET:
--	case AF_INET6:
--		pktb->network_header = pktb->data;
--		break;
--	case AF_BRIDGE: {
--		struct ethhdr *ethhdr = (struct ethhdr *)pktb->data;
-+	return pktb;
-+}
- 
--		pktb->mac_header = pktb->data;
-+EXPORT_SYMBOL
-+struct pkt_buff *pktb_alloc_data(int family, void *data, size_t len)
-+{
-+	struct pkt_buff *pktb;
- 
--		switch(ethhdr->h_proto) {
--		case ETH_P_IP:
--		case ETH_P_IPV6:
--			pktb->network_header = pktb->data + ETH_HLEN;
--			break;
--		default:
--			/* This protocol is unsupported. */
--			errno = EPROTONOSUPPORT;
--			free(pktb);
--			return NULL;
--		}
--		break;
--	}
-+	pktb = __pktb_alloc(family, data, 0, 0);
-+	if (!pktb)
-+		return NULL;
-+
-+	pktb->data = data;
-+	pktb_setup_metadata(pktb, data, len, 0);
-+
-+	if (pktb_setup_family(pktb, family) < 0) {
-+		free(pktb);
-+		return NULL;
- 	}
-+
- 	return pktb;
- }
- 
+The following changes since commit bd6f48546b9cb7a785344fc78058c420923d7ed8:
 
---nma7o2wmlct6tguq--
+  net: stmmac: dwmac-meson8b: Fix the RGMII TX delay on Meson8b/8m2 SoCs (2019-12-27 16:37:07 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to 22dad713b8a5ff488e07b821195270672f486eb2:
+
+  netfilter: ipset: avoid null deref when IPSET_ATTR_LINENO is present (2020-01-08 23:31:46 +0100)
+
+----------------------------------------------------------------
+Florian Westphal (3):
+      netfilter: arp_tables: init netns pointer in xt_tgchk_param struct
+      netfilter: conntrack: dccp, sctp: handle null timeout argument
+      netfilter: ipset: avoid null deref when IPSET_ATTR_LINENO is present
+
+Pablo Neira Ayuso (2):
+      netfilter: nf_tables: unbind callbacks from flowtable destroy path
+      netfilter: flowtable: add nf_flowtable_time_stamp
+
+wenxu (4):
+      netfilter: nft_flow_offload: fix underflow in flowtable reference counter
+      netfilter: nf_flow_table_offload: fix incorrect ethernet dst address
+      netfilter: nf_flow_table_offload: check the status of dst_neigh
+      netfilter: nf_flow_table_offload: fix the nat port mangle.
+
+ include/net/netfilter/nf_flow_table.h   |  6 ++++
+ net/ipv4/netfilter/arp_tables.c         | 27 ++++++++++--------
+ net/netfilter/ipset/ip_set_core.c       |  3 +-
+ net/netfilter/nf_conntrack_proto_dccp.c |  3 ++
+ net/netfilter/nf_conntrack_proto_sctp.c |  3 ++
+ net/netfilter/nf_flow_table_core.c      |  7 +----
+ net/netfilter/nf_flow_table_ip.c        |  4 +--
+ net/netfilter/nf_flow_table_offload.c   | 50 ++++++++++++++++++++++++---------
+ net/netfilter/nf_tables_api.c           |  8 ++++--
+ net/netfilter/nft_flow_offload.c        |  3 --
+ 10 files changed, 75 insertions(+), 39 deletions(-)
