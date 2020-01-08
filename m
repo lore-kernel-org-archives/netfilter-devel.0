@@ -2,94 +2,134 @@ Return-Path: <SRS0=uN83=25=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 131ECC33C9B
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 10:00:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0D0BC33C9B
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 10:11:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DFBBB2070E
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 10:00:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 87BE52073A
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 10:11:38 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="EW1MNqnH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726922AbgAHKAG (ORCPT
+        id S1727226AbgAHKLh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Jan 2020 05:00:06 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:47352 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726281AbgAHKAF (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Jan 2020 05:00:05 -0500
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1ip88B-0002Sh-Ht; Wed, 08 Jan 2020 11:00:03 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     netfilter-devel@vger.kernel.org
-Cc:     netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com,
-        Florian Westphal <fw@strlen.de>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Wed, 8 Jan 2020 05:11:37 -0500
+Received: from smtp-out.kfki.hu ([148.6.0.46]:57567 "EHLO smtp-out.kfki.hu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726368AbgAHKLh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Jan 2020 05:11:37 -0500
+X-Greylist: delayed 372 seconds by postgrey-1.27 at vger.kernel.org; Wed, 08 Jan 2020 05:11:35 EST
+Received: from localhost (localhost [127.0.0.1])
+        by smtp1.kfki.hu (Postfix) with ESMTP id 63C883C8014A;
+        Wed,  8 Jan 2020 11:05:22 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        blackhole.kfki.hu; h=mime-version:user-agent:references
+        :message-id:in-reply-to:from:from:date:date:received:received
+        :received; s=20151130; t=1578477920; x=1580292321; bh=z01xoCok9/
+        SA9zQmk6rkuuNWBedGHt+kVfPLPyII/qQ=; b=EW1MNqnHLMHFSHgk2DlR9sAOxp
+        U0b0cGnzUP1AOnHihBquvghg3Mq2WpHGWv8P8eCj+4rk0lYDEuYbjHeIl28w9/ck
+        KjdGjiPv6A3TgUykrLM5XHf1iKGXn2EHdmfxHejhQKN7mtX4wI6+iceuOVFZr08H
+        /5e8BqRNkgwwkqfsw=
+X-Virus-Scanned: Debian amavisd-new at smtp1.kfki.hu
+Received: from smtp1.kfki.hu ([127.0.0.1])
+        by localhost (smtp1.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Wed,  8 Jan 2020 11:05:20 +0100 (CET)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
+        by smtp1.kfki.hu (Postfix) with ESMTP id E164F3C80144;
+        Wed,  8 Jan 2020 11:05:19 +0100 (CET)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id BBFA120F00; Wed,  8 Jan 2020 11:05:19 +0100 (CET)
+Date:   Wed, 8 Jan 2020 11:05:19 +0100 (CET)
+From:   =?UTF-8?Q?Kadlecsik_J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>
+To:     Florian Westphal <fw@strlen.de>
+cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        syzkaller-bugs@googlegroups.com,
         syzbot+34bd2369d38707f3f4a7@syzkaller.appspotmail.com
-Subject: [PATCH nf] netfilter: ipset: avoid null deref when IPSET_ATTR_LINENO is present
-Date:   Wed,  8 Jan 2020 10:59:38 +0100
-Message-Id: <20200108095938.3704-1-fw@strlen.de>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <000000000000a347ef059b8ee979@google.com>
-References: <000000000000a347ef059b8ee979@google.com>
+Subject: Re: [PATCH nf] netfilter: ipset: avoid null deref when IPSET_ATTR_LINENO
+ is present
+In-Reply-To: <20200108095938.3704-1-fw@strlen.de>
+Message-ID: <alpine.DEB.2.20.2001081102010.27242@blackhole.kfki.hu>
+References: <000000000000a347ef059b8ee979@google.com> <20200108095938.3704-1-fw@strlen.de>
+User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The set uadt functions assume lineno is never NULL, but it is in
-case of ip_set_utest().
+On Wed, 8 Jan 2020, Florian Westphal wrote:
 
-syzkaller managed to generate a netlink message that calls this with
-LINENO attr present:
+> The set uadt functions assume lineno is never NULL, but it is in
+> case of ip_set_utest().
+> 
+> syzkaller managed to generate a netlink message that calls this with
+> LINENO attr present:
+> 
+> general protection fault: 0000 [#1] PREEMPT SMP KASAN
+> RIP: 0010:hash_mac4_uadt+0x1bc/0x470 net/netfilter/ipset/ip_set_hash_mac.c:104
+> Call Trace:
+>  ip_set_utest+0x55b/0x890 net/netfilter/ipset/ip_set_core.c:1867
+>  nfnetlink_rcv_msg+0xcf2/0xfb0 net/netfilter/nfnetlink.c:229
+>  netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
+>  nfnetlink_rcv+0x1ba/0x460 net/netfilter/nfnetlink.c:563
+> 
+> pass a dummy lineno storage, its easier than patching all set
+> implementations.
 
-general protection fault: 0000 [#1] PREEMPT SMP KASAN
-RIP: 0010:hash_mac4_uadt+0x1bc/0x470 net/netfilter/ipset/ip_set_hash_mac.c:104
-Call Trace:
- ip_set_utest+0x55b/0x890 net/netfilter/ipset/ip_set_core.c:1867
- nfnetlink_rcv_msg+0xcf2/0xfb0 net/netfilter/nfnetlink.c:229
- netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
- nfnetlink_rcv+0x1ba/0x460 net/netfilter/nfnetlink.c:563
-
-pass a dummy lineno storage, its easier than patching all set
-implementations.
-
-This seems to be a day-0 bug.
-
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Reported-by: syzbot+34bd2369d38707f3f4a7@syzkaller.appspotmail.com
-Fixes: a7b4f989a6294 ("netfilter: ipset: IP set core support")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/ipset/ip_set_core.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 169e0a04f814..cf895bc80871 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1848,6 +1848,7 @@ static int ip_set_utest(struct net *net, struct sock *ctnl, struct sk_buff *skb,
- 	struct ip_set *set;
- 	struct nlattr *tb[IPSET_ATTR_ADT_MAX + 1] = {};
- 	int ret = 0;
-+	u32 lineno;
+I have just written the same patch... you were faster.
  
- 	if (unlikely(protocol_min_failed(attr) ||
- 		     !attr[IPSET_ATTR_SETNAME] ||
-@@ -1864,7 +1865,7 @@ static int ip_set_utest(struct net *net, struct sock *ctnl, struct sk_buff *skb,
- 		return -IPSET_ERR_PROTOCOL;
- 
- 	rcu_read_lock_bh();
--	ret = set->variant->uadt(set, tb, IPSET_TEST, NULL, 0, 0);
-+	ret = set->variant->uadt(set, tb, IPSET_TEST, &lineno, 0, 0);
- 	rcu_read_unlock_bh();
- 	/* Userspace can't trigger element to be re-added */
- 	if (ret == -EAGAIN)
--- 
-2.24.1
+> This seems to be a day-0 bug.
 
+Yes, alas. One could extend the check of attributes in ip_set_utest() to 
+bail out with protocol error if attr[IPSET_ATTR_LINENO] is present.
+ 
+> Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+
+Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+
+Best regards,
+Jozsef
+
+> Reported-by: syzbot+34bd2369d38707f3f4a7@syzkaller.appspotmail.com
+> Fixes: a7b4f989a6294 ("netfilter: ipset: IP set core support")
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  net/netfilter/ipset/ip_set_core.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> index 169e0a04f814..cf895bc80871 100644
+> --- a/net/netfilter/ipset/ip_set_core.c
+> +++ b/net/netfilter/ipset/ip_set_core.c
+> @@ -1848,6 +1848,7 @@ static int ip_set_utest(struct net *net, struct sock *ctnl, struct sk_buff *skb,
+>  	struct ip_set *set;
+>  	struct nlattr *tb[IPSET_ATTR_ADT_MAX + 1] = {};
+>  	int ret = 0;
+> +	u32 lineno;
+>  
+>  	if (unlikely(protocol_min_failed(attr) ||
+>  		     !attr[IPSET_ATTR_SETNAME] ||
+> @@ -1864,7 +1865,7 @@ static int ip_set_utest(struct net *net, struct sock *ctnl, struct sk_buff *skb,
+>  		return -IPSET_ERR_PROTOCOL;
+>  
+>  	rcu_read_lock_bh();
+> -	ret = set->variant->uadt(set, tb, IPSET_TEST, NULL, 0, 0);
+> +	ret = set->variant->uadt(set, tb, IPSET_TEST, &lineno, 0, 0);
+>  	rcu_read_unlock_bh();
+>  	/* Userspace can't trigger element to be re-added */
+>  	if (ret == -EAGAIN)
+> -- 
+> 2.24.1
+> 
+> 
+
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
