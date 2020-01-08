@@ -2,83 +2,78 @@ Return-Path: <SRS0=uN83=25=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01628C33CA2
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 16:53:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C805C33CA2
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 22:32:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CCD9020692
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 16:53:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0245A20705
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 22:32:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729464AbgAHQxB (ORCPT
+        id S1727152AbgAHWcU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Jan 2020 11:53:01 -0500
-Received: from mail-il1-f198.google.com ([209.85.166.198]:56006 "EHLO
-        mail-il1-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727606AbgAHQxB (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Jan 2020 11:53:01 -0500
-Received: by mail-il1-f198.google.com with SMTP id p8so2510135ilp.22
-        for <netfilter-devel@vger.kernel.org>; Wed, 08 Jan 2020 08:53:01 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=QolCxUn5s/4K7GKyA5X2xLHSsYz24NpJzFUvvR3OMz0=;
-        b=rzmMf+XWrzlggKUoahVs+JxSr6CoVmVEd1btuBsaGumy46K9C/vlRx7BbbI/qhoIIJ
-         PUQyTT3X0zLzY6JdYTKPSs4d5JcFW23PkU8GaHu4bRNKRWAdi6t5PA18919wEqITMKV9
-         YsU3A8yB4sdlY/5QvFDUvOR7o6/LpLM8rKKZwm7JLobGvn+UDKfgLHnkyqB7Rlcwo0gA
-         xxj2cobxpjWYaNL6TXeXFvbs0qQIIk6DJYByujWT+MIHFGUImjh9Tg7rNU4Snnj4+pEw
-         +46Xb+NakD0JaeemyGr/jokHOlV6M2zLGSd1p3luMZBX4ElibCGdXGdadojLd08mu6VV
-         zG/A==
-X-Gm-Message-State: APjAAAVC69cf9ttqq2ICAl+/lYVZM80Dc1ijr3gUv8EHuQp54rJzd8Xv
-        LGOjYRPaCoSJePYZ1T5RUX0fh/9UywggSZq6otIcmvtNfM6U
-X-Google-Smtp-Source: APXvYqw7GKpl01VnwgT3uyXH2jOmkGxwN/KTGFcWtwBlYHLJt+Fn1jSB1cHbmeA3E1QqBW3DFyLuj5USskG7K+2UGNRRJRO1ZW6V
+        Wed, 8 Jan 2020 17:32:20 -0500
+Received: from correo.us.es ([193.147.175.20]:55666 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726548AbgAHWcU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Jan 2020 17:32:20 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id E8F2EC5155
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jan 2020 23:32:16 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DD4BFDA705
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jan 2020 23:32:16 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id C01A7DA711; Wed,  8 Jan 2020 23:32:16 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A888ADA705;
+        Wed,  8 Jan 2020 23:32:14 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 08 Jan 2020 23:32:14 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 89BBF426CCB9;
+        Wed,  8 Jan 2020 23:32:14 +0100 (CET)
+Date:   Wed, 8 Jan 2020 23:32:14 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org, syzkaller-bugs@googlegroups.com,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        syzbot+46a4ad33f345d1dd346e@syzkaller.appspotmail.com
+Subject: Re: [PATCH nf] netfilter: conntrack: dccp, sctp: handle null timeout
+ argument
+Message-ID: <20200108223214.3niyo2o2sr2zf3fg@salvia>
+References: <0000000000009cd5e0059b7eb836@google.com>
+ <20200106223417.18279-1-fw@strlen.de>
 MIME-Version: 1.0
-X-Received: by 2002:a02:2446:: with SMTP id q6mr4800559jae.78.1578502380699;
- Wed, 08 Jan 2020 08:53:00 -0800 (PST)
-Date:   Wed, 08 Jan 2020 08:53:00 -0800
-In-Reply-To: <000000000000a347ef059b8ee979@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000adcc3c059ba3b9e9@google.com>
-Subject: Re: general protection fault in hash_ipportnet4_uadt
-From:   syzbot <syzbot+34bd2369d38707f3f4a7@syzkaller.appspotmail.com>
-To:     allison@lohutok.net, coreteam@netfilter.org, davem@davemloft.net,
-        fw@strlen.de, gregkh@linuxfoundation.org, info@metux.net,
-        jengelh@inai.de, jeremy@azazel.net, kadlec@blackhole.kfki.hu,
-        kadlec@netfilter.org, kstewart@linuxfoundation.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        syzkaller-bugs@googlegroups.com, tglx@linutronix.de
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200106223417.18279-1-fw@strlen.de>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has bisected this bug to:
+On Mon, Jan 06, 2020 at 11:34:17PM +0100, Florian Westphal wrote:
+> The timeout pointer can be NULL which means we should modify the
+> per-nets timeout instead.
+> 
+> All do this, except sctp and dccp which instead give:
+> 
+> general protection fault: 0000 [#1] PREEMPT SMP KASAN
+> net/netfilter/nf_conntrack_proto_dccp.c:682
+>  ctnl_timeout_parse_policy+0x150/0x1d0 net/netfilter/nfnetlink_cttimeout.c:67
+>  cttimeout_default_set+0x150/0x1c0 net/netfilter/nfnetlink_cttimeout.c:368
+>  nfnetlink_rcv_msg+0xcf2/0xfb0 net/netfilter/nfnetlink.c:229
+>  netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
 
-commit 23c42a403a9cfdbad6004a556c927be7dd61a8ee
-Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Date:   Sat Oct 27 13:07:40 2018 +0000
-
-     netfilter: ipset: Introduction of new commands and protocol version 7
-
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=13a9d115e00000
-start commit:   ae608821 Merge tag 'trace-v5.5-rc5' of git://git.kernel.or..
-git tree:       upstream
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=1069d115e00000
-console output: https://syzkaller.appspot.com/x/log.txt?x=17a9d115e00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=18698c0c240ba616
-dashboard link: https://syzkaller.appspot.com/bug?extid=34bd2369d38707f3f4a7
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=118d6971e00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=11b47c9ee00000
-
-Reported-by: syzbot+34bd2369d38707f3f4a7@syzkaller.appspotmail.com
-Fixes: 23c42a403a9c ("netfilter: ipset: Introduction of new commands and  
-protocol version 7")
-
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+Applied, thanks Florian.
