@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D36FC33CA2
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 13:45:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1F9BC282DD
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 13:45:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0A2AE206DB
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 13:45:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A8350206DB
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 13:45:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728391AbgAHNpW (ORCPT
+        id S1727158AbgAHNp1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Jan 2020 08:45:22 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:48548 "EHLO
+        Wed, 8 Jan 2020 08:45:27 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:48550 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726186AbgAHNpW (ORCPT
+        by vger.kernel.org with ESMTP id S1726186AbgAHNp1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Jan 2020 08:45:22 -0500
+        Wed, 8 Jan 2020 08:45:27 -0500
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1ipBeC-0003r7-ML; Wed, 08 Jan 2020 14:45:20 +0100
+        id 1ipBeG-0003rE-Ud; Wed, 08 Jan 2020 14:45:24 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [RFC nf-next 3/4] netfilter: conntrack: split resolve_clash function
-Date:   Wed,  8 Jan 2020 14:44:59 +0100
-Message-Id: <20200108134500.31727-4-fw@strlen.de>
+Subject: [RFC nf-next 4/4] netfilter: conntrack: allow insertion of duplicate/clashing entries
+Date:   Wed,  8 Jan 2020 14:45:00 +0100
+Message-Id: <20200108134500.31727-5-fw@strlen.de>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200108134500.31727-1-fw@strlen.de>
 References: <20200108134500.31727-1-fw@strlen.de>
@@ -39,124 +39,205 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Followup patch will need a helper function with the 'clashing entries
-refer to the identical tuple in both directions' resolution logic.
+This patch further relaxes the need to drop an skb due to a clash with
+an existing conntrack entry.
 
-This patch will add another resolve_clash helper where loser_ct must
-not be added to the dying list because it will be inserted into the
-table.
+Current clash resolution handles the case where the clash occurs
+between two identical entries (distinct nf_conn objects with same
+tuples).
 
-Therefore this also moves the stat counters and dying-list insertion
-of the losing ct.
+Also allow this collision type:
+         Original                   Reply
+10.2.3.4:42 -> 10.8.8.8:53      10.2.3.4:42 <- 10.0.0.6:5353
+10.2.3.4:42 -> 10.8.8.8:53      10.2.3.4:42 <- 10.0.0.7:5353
+
+This frequently happens with DNS resolvers that send A and AAAA queries
+back-to-back when NAT rules are present that cause packets to get
+different DNAT transformations applied, for example:
+
+-m statistics --mode random ... -j DNAT --dnat-to 10.0.0.6:5353
+-m statistics --mode random ... -j DNAT --dnat-to 10.0.0.7:5353
+
+In this case the A or AAAA query is dropped which incurs a costly
+delay during name resolution.
+
+This change makes it so that when the 2nd colliding packet is received,
+we insert the colliding conntrack anyway, provided the reply direction
+is still unique.
+
+The original direction gets inserted after the 'existing' entry, i.e.
+it will only be found in the reply case.
+
+Example:
+
+CPU A:						CPU B:
+1.  10.2.3.4:42 -> 10.8.8.8:53 (A)
+2.                                              10.2.3.4:42 -> 10.8.8.8:53 (AAAA)
+3.  Apply DNAT, reply changed to 10.0.0.6
+4.                                              10.2.3.4:42 -> 10.8.8.8:53 (AAAA)
+5.                                              Apply DNAT, reply changed to 10.0.0.7
+6. confirm/commit to conntrack table, no collisions
+7.                                              commit clashing entry
+
+Reply comes in:
+
+10.2.3.4:42 <- 10.0.0.6:5353 (A)
+ -> Finds a conntrack, DNAT is reversed & packet forwarded to 10.2.3.4:42
+10.2.3.4:42 <- 10.0.0.7:5353 (AAAA)
+ -> Finds a conntrack, DNAT is reversed & packet forwarded to 10.2.3.4:42
+
+In case of a retransmit from ORIGINAL dir, all further packets will get
+the DNAT transformation to 10.0.0.6.
+
+Also, the clashing entry will get a fixed timeout, we want to expire it
+early of possible.
+
+Example entries:
+udp 29 src=192.168.7.10 dst=10.8.8.8 sport=7843 dport=53 src=127.0.0.1 dst=192.168.7.10 sport=1053 dport=7843 [ASSURED] use=1
+udp  2 src=192.168.7.10 dst=10.8.8.8 sport=7843 dport=53 src=127.0.0.1 dst=192.168.7.10 sport=1054 dport=7843 [ASSURED] use=1
+
+The 2nd entry has a fixed timeout and will always expire, even if it
+continues to receive data.
+
+I tried to come up with other solutions but this is the only one that
+doesn't involve changes to the ruleset (the other solution is to make
+sure that all packets from same origin get the same NAT transformation
+e.g. via "-m cluster" instead of "-m statistics".
+
+nft has the 'jhash' expression which can be used instead of 'numgen'.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_conntrack_core.c | 58 ++++++++++++++++++++++---------
- 1 file changed, 41 insertions(+), 17 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 87 ++++++++++++++++++++++++++++++-
+ 1 file changed, 85 insertions(+), 2 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 63ded7873141..2987b2d72b6b 100644
+index 2987b2d72b6b..97c00fdc7ecf 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -907,6 +907,39 @@ static void __nf_conntrack_insert_prepare(struct nf_conn *ct)
- 		tstamp->start = ktime_get_real_ns();
+@@ -940,11 +940,82 @@ static int __nf_ct_resolve_clash(struct sk_buff *skb,
+ 	return NF_DROP;
  }
  
-+static int __nf_ct_resolve_clash(struct sk_buff *skb,
-+				 struct nf_conntrack_tuple_hash *h)
++/**
++ * nf_ct_resolve_clash_harder - attempt to insert clashing conntrack entry
++ *
++ * @skb: skb that causes the collision
++ * @hash: hash slot for original direction
++ * @hash_reply: hash slot for reply direction
++ *
++ * Called when origin or reply direction had a clash.
++ * The skb can be handled without packet drop provided the
++ * reply direction has no clash or the clashing and existing entries
++ * have the same tuples in both directions.
++ *
++ * Caller must hold conntrack table locks for both slots to prevent
++ * concurrent updates.
++ *
++ * Returns NF_DROP if the clash could not be handled.
++ */
++static int nf_ct_resolve_clash_harder(struct sk_buff *skb,
++				      u32 hash, u32 reply_hash)
 +{
-+	/* This is the conntrack entry already in hashes that won race. */
-+	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
-+	enum ip_conntrack_info ctinfo;
-+	struct nf_conn *loser_ct;
++	struct nf_conn *loser_ct = (struct nf_conn *)skb_nfct(skb);
++	const struct nf_conntrack_zone *zone;
++	struct nf_conntrack_tuple_hash *h;
++	struct hlist_nulls_node *n;
++	unsigned int len;
++	struct net *net;
 +
-+	loser_ct = nf_ct_get(skb, &ctinfo);
++	zone = nf_ct_zone(loser_ct);
++	net = nf_ct_net(loser_ct);
 +
-+	if (nf_ct_is_dying(ct))
-+		return NF_DROP;
-+
-+	if (!atomic_inc_not_zero(&ct->ct_general.use))
-+		return NF_DROP;
-+
-+	if (((ct->status & IPS_NAT_DONE_MASK) == 0) ||
-+	    nf_ct_match(ct, loser_ct)) {
-+		struct net *net = nf_ct_net(ct);
-+
-+		nf_ct_acct_merge(ct, ctinfo, loser_ct);
-+		nf_ct_add_to_dying_list(loser_ct);
-+		nf_conntrack_put(&loser_ct->ct_general);
-+		nf_ct_set(skb, ct, ctinfo);
-+
-+		NF_CT_STAT_INC(net, insert_failed);
-+		return NF_ACCEPT;
++	/* Reply direction must never result in a clash, unless both origin
++	 * and reply tuples are identical.
++	 */
++	hlist_nulls_for_each_entry(h, n, &nf_conntrack_hash[reply_hash], hnnode) {
++		if (nf_ct_key_equal(h,
++				    &loser_ct->tuplehash[IP_CT_DIR_REPLY].tuple,
++				    zone, net)) {
++			/* Clash in reply direction: OK if origin is same too. */
++			return __nf_ct_resolve_clash(skb, h);
++		}
 +	}
 +
-+	nf_ct_put(ct);
-+	return NF_DROP;
++	/* No clash in reply, so its clashing in original direction
++	 * (else, this function would not have been called).
++	 *
++	 * Also check hash chain length before we allow insertion.
++	 */
++	len = 0;
++	hlist_nulls_for_each_entry(h, n, &nf_conntrack_hash[hash], hnnode) {
++		if (len++ > 8u)
++			return NF_DROP;
++	}
++
++	/* We want the clashing entry to go away soon */
++	loser_ct->timeout = nfct_time_stamp + HZ * 3u;
++	loser_ct->status |= IPS_FIXED_TIMEOUT;
++
++	__nf_conntrack_insert_prepare(loser_ct);
++	/* ... use add_tail_rcu for ORIGINAL dir: we want lookups
++	 * to find the entry already in table, not loser_ct.
++	 */
++	hlist_nulls_add_tail_rcu(&loser_ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
++				 &nf_conntrack_hash[hash]);
++
++	hlist_nulls_add_head_rcu(&loser_ct->tuplehash[IP_CT_DIR_REPLY].hnnode,
++				 &nf_conntrack_hash[reply_hash]);
++	return NF_ACCEPT;
 +}
 +
  /**
   * nf_ct_resolve_clash - attempt to handle clash without packet drop
   *
-@@ -941,31 +974,23 @@ nf_ct_resolve_clash(struct sk_buff *skb, struct nf_conntrack_tuple_hash *h)
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_conn *loser_ct;
- 	struct net *net;
-+	int ret;
+  * @skb: skb that causes the clash
+  * @h: tuplehash of the clashing entry already in table
++ * @hash: hash slot for original direction
++ * @hash_reply: hash slot for reply direction
+  *
+  * A conntrack entry can be inserted to the connection tracking table
+  * if there is no existing entry with an identical tuple.
+@@ -963,10 +1034,18 @@ static int __nf_ct_resolve_clash(struct sk_buff *skb,
+  * exactly the same, only the to-be-confirmed conntrack entry is discarded
+  * and @skb is associated with the conntrack entry already in the table.
+  *
++ * Failing that, the new, unconfirmed conntrack is still added to the table
++ * provided that the collision only occurs in the ORIGINAL direction.
++ * The new entry will be added after the existing one in the hash list,
++ * so packets in the ORIGINAL direction will continue to match the existing
++ * entry.  The new entry will also have a fixed timeout so it expires --
++ * due to the collision, it will not see bidirectional traffic.
++ *
+  * Returns NF_DROP if the clash could not be resolved.
+  */
+ static __cold noinline int
+-nf_ct_resolve_clash(struct sk_buff *skb, struct nf_conntrack_tuple_hash *h)
++nf_ct_resolve_clash(struct sk_buff *skb, struct nf_conntrack_tuple_hash *h,
++		    u32 hash, u32 reply_hash)
+ {
+ 	/* This is the conntrack entry already in hashes that won race. */
+ 	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
+@@ -987,6 +1066,10 @@ nf_ct_resolve_clash(struct sk_buff *skb, struct nf_conntrack_tuple_hash *h)
+ 	if (ret == NF_ACCEPT)
+ 		return ret;
  
- 	loser_ct = nf_ct_get(skb, &ctinfo);
-+	net = nf_ct_net(loser_ct);
- 
- 	l4proto = nf_ct_l4proto_find(nf_ct_protonum(ct));
- 	if (!l4proto->allow_clash)
- 		goto drop;
- 
--	if (nf_ct_is_dying(ct))
--		goto drop;
--
--	if (!atomic_inc_not_zero(&ct->ct_general.use))
--		goto drop;
--
--	if (((ct->status & IPS_NAT_DONE_MASK) == 0) ||
--	    nf_ct_match(ct, loser_ct)) {
--		nf_ct_acct_merge(ct, ctinfo, loser_ct);
--		nf_conntrack_put(&loser_ct->ct_general);
--		nf_ct_set(skb, ct, ctinfo);
--		return NF_ACCEPT;
--	}
-+	ret = __nf_ct_resolve_clash(skb, h);
++	ret = nf_ct_resolve_clash_harder(skb, hash, reply_hash);
 +	if (ret == NF_ACCEPT)
 +		return ret;
- 
--	nf_ct_put(ct);
++
  drop:
--	net = nf_ct_net(loser_ct);
-+	nf_ct_add_to_dying_list(loser_ct);
+ 	nf_ct_add_to_dying_list(loser_ct);
  	NF_CT_STAT_INC(net, drop);
-+	NF_CT_STAT_INC(net, insert_failed);
- 	return NF_DROP;
- }
- 
-@@ -1034,6 +1059,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 
- 	if (unlikely(nf_ct_is_dying(ct))) {
- 		nf_ct_add_to_dying_list(ct);
-+		NF_CT_STAT_INC(net, insert_failed);
- 		goto dying;
- 	}
- 
-@@ -1075,11 +1101,9 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+@@ -1101,7 +1184,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
  	return NF_ACCEPT;
  
  out:
--	nf_ct_add_to_dying_list(ct);
- 	ret = nf_ct_resolve_clash(skb, h);
+-	ret = nf_ct_resolve_clash(skb, h);
++	ret = nf_ct_resolve_clash(skb, h, hash, reply_hash);
  dying:
  	nf_conntrack_double_unlock(hash, reply_hash);
--	NF_CT_STAT_INC(net, insert_failed);
  	local_bh_enable();
- 	return ret;
- }
 -- 
 2.24.1
 
