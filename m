@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE21AC282DD
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 13:45:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5822C33CA2
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 13:45:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C9967206DB
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 13:45:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 960E120720
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jan 2020 13:45:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728123AbgAHNpO (ORCPT
+        id S1728390AbgAHNpS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Jan 2020 08:45:14 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:48540 "EHLO
+        Wed, 8 Jan 2020 08:45:18 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:48546 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727924AbgAHNpO (ORCPT
+        by vger.kernel.org with ESMTP id S1726587AbgAHNpR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Jan 2020 08:45:14 -0500
+        Wed, 8 Jan 2020 08:45:17 -0500
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1ipBe4-0003qj-AB; Wed, 08 Jan 2020 14:45:12 +0100
+        id 1ipBe8-0003qw-GC; Wed, 08 Jan 2020 14:45:16 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [RFC nf-next 1/4] netfilter: conntrack: remove two args from resolve_clash
-Date:   Wed,  8 Jan 2020 14:44:57 +0100
-Message-Id: <20200108134500.31727-2-fw@strlen.de>
+Subject: [RFC nf-next 2/4] netfilter: conntrack: place confirm-bit setting in a helper
+Date:   Wed,  8 Jan 2020 14:44:58 +0100
+Message-Id: <20200108134500.31727-3-fw@strlen.de>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200108134500.31727-1-fw@strlen.de>
 References: <20200108134500.31727-1-fw@strlen.de>
@@ -39,115 +39,60 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-ctinfo is whats taken from the skb, i.e.
-ct = nf_ct_get(skb, &ctinfo).
-
-We do not pass 'ct' and instead re-fetch it from the skb.
-Just do the same for both netns and ctinfo.
-
-Also add a comment on what clash resolution is supposed to do.
-While at it, one indent level can be removed.
+... so it can be re-used from clash resolution in followup patch.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_conntrack_core.c | 69 +++++++++++++++++++++++--------
- 1 file changed, 51 insertions(+), 18 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index f4c4b467c87e..c2be039c40f0 100644
+index c2be039c40f0..63ded7873141 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -894,31 +894,64 @@ static void nf_ct_acct_merge(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
+@@ -894,6 +894,19 @@ static void nf_ct_acct_merge(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
  	}
  }
  
--/* Resolve race on insertion if this protocol allows this. */
-+/**
-+ * nf_ct_resolve_clash - attempt to handle clash without packet drop
-+ *
-+ * @skb: skb that causes the clash
-+ * @h: tuplehash of the clashing entry already in table
-+ *
-+ * A conntrack entry can be inserted to the connection tracking table
-+ * if there is no existing entry with an identical tuple.
-+ *
-+ * If there is one, @skb (and the assocated, unconfirmed conntrack) has
-+ * to be dropped.  In case @skb is retransmitted, next conntrack lookup
-+ * will find the already-existing entry.
-+ *
-+ * The major problem with such packet drop is the extra delay added by
-+ * the packet loss -- it will take some time for a retransmit to occur
-+ * (or the sender to time out when waiting for a reply).
-+ *
-+ * This function attempts to handle the situation without packet drop.
-+ *
-+ * If @skb has no NAT transformation or if the colliding entries are
-+ * exactly the same, only the to-be-confirmed conntrack entry is discarded
-+ * and @skb is associated with the conntrack entry already in the table.
-+ *
-+ * Returns NF_DROP if the clash could not be resolved.
-+ */
- static __cold noinline int
--nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
--		    enum ip_conntrack_info ctinfo,
--		    struct nf_conntrack_tuple_hash *h)
-+nf_ct_resolve_clash(struct sk_buff *skb, struct nf_conntrack_tuple_hash *h)
- {
- 	/* This is the conntrack entry already in hashes that won race. */
- 	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
- 	const struct nf_conntrack_l4proto *l4proto;
--	enum ip_conntrack_info oldinfo;
--	struct nf_conn *loser_ct = nf_ct_get(skb, &oldinfo);
-+	enum ip_conntrack_info ctinfo;
-+	struct nf_conn *loser_ct;
-+	struct net *net;
++static void __nf_conntrack_insert_prepare(struct nf_conn *ct)
++{
++	struct nf_conn_tstamp *tstamp;
 +
-+	loser_ct = nf_ct_get(skb, &ctinfo);
++	atomic_inc(&ct->ct_general.use);
++	ct->status |= IPS_CONFIRMED;
++
++	/* set conntrack timestamp, if enabled. */
++	tstamp = nf_conn_tstamp_find(ct);
++	if (tstamp)
++		tstamp->start = ktime_get_real_ns();
++}
++
+ /**
+  * nf_ct_resolve_clash - attempt to handle clash without packet drop
+  *
+@@ -965,7 +978,6 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 	struct nf_conntrack_tuple_hash *h;
+ 	struct nf_conn *ct;
+ 	struct nf_conn_help *help;
+-	struct nf_conn_tstamp *tstamp;
+ 	struct hlist_nulls_node *n;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct net *net;
+@@ -1042,13 +1054,8 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 	   setting time, otherwise we'd get timer wrap in
+ 	   weird delay cases. */
+ 	ct->timeout += nfct_time_stamp;
+-	atomic_inc(&ct->ct_general.use);
+-	ct->status |= IPS_CONFIRMED;
  
- 	l4proto = nf_ct_l4proto_find(nf_ct_protonum(ct));
--	if (l4proto->allow_clash &&
--	    !nf_ct_is_dying(ct) &&
--	    atomic_inc_not_zero(&ct->ct_general.use)) {
--		if (((ct->status & IPS_NAT_DONE_MASK) == 0) ||
--		    nf_ct_match(ct, loser_ct)) {
--			nf_ct_acct_merge(ct, ctinfo, loser_ct);
--			nf_conntrack_put(&loser_ct->ct_general);
--			nf_ct_set(skb, ct, oldinfo);
--			return NF_ACCEPT;
--		}
--		nf_ct_put(ct);
-+	if (!l4proto->allow_clash)
-+		goto drop;
-+
-+	if (nf_ct_is_dying(ct))
-+		goto drop;
-+
-+	if (!atomic_inc_not_zero(&ct->ct_general.use))
-+		goto drop;
-+
-+	if (((ct->status & IPS_NAT_DONE_MASK) == 0) ||
-+	    nf_ct_match(ct, loser_ct)) {
-+		nf_ct_acct_merge(ct, ctinfo, loser_ct);
-+		nf_conntrack_put(&loser_ct->ct_general);
-+		nf_ct_set(skb, ct, ctinfo);
-+		return NF_ACCEPT;
- 	}
-+
-+	nf_ct_put(ct);
-+drop:
-+	net = nf_ct_net(loser_ct);
- 	NF_CT_STAT_INC(net, drop);
- 	return NF_DROP;
- }
-@@ -1036,7 +1069,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+-	/* set conntrack timestamp, if enabled. */
+-	tstamp = nf_conn_tstamp_find(ct);
+-	if (tstamp)
+-		tstamp->start = ktime_get_real_ns();
++	__nf_conntrack_insert_prepare(ct);
  
- out:
- 	nf_ct_add_to_dying_list(ct);
--	ret = nf_ct_resolve_clash(net, skb, ctinfo, h);
-+	ret = nf_ct_resolve_clash(skb, h);
- dying:
- 	nf_conntrack_double_unlock(hash, reply_hash);
- 	NF_CT_STAT_INC(net, insert_failed);
+ 	/* Since the lookup is lockless, hash insertion must be done after
+ 	 * starting the timer and setting the CONFIRMED bit. The RCU barriers
 -- 
 2.24.1
 
