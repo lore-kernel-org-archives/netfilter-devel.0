@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54842C33CA4
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jan 2020 12:33:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C129C33CA5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jan 2020 12:33:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2A81B2077C
+	by mail.kernel.org (Postfix) with ESMTP id CDA4220721
 	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jan 2020 12:33:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="suPzMZjE"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="ldkPFqNu"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728194AbgAJMdO (ORCPT
+        id S1728192AbgAJMdO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Fri, 10 Jan 2020 07:33:14 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:39618 "EHLO
+Received: from kadath.azazel.net ([81.187.231.250]:39616 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728151AbgAJMdO (ORCPT
+        with ESMTP id S1728146AbgAJMdO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 10 Jan 2020 07:33:14 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
@@ -29,22 +29,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=SWH2fsNHdgS1g123EuVLW1bcyZaGJmRYynG26l5tOK8=; b=suPzMZjENa8lumwdhAS4N/i3e1
-        zSUXkcIpkWIh1I69JB1gcw+P5QP6Ju3bDHxrK6/TMyfUq/X/Tg5z5jQ93DqWZ9fts3oGaQ7fJfakE
-        ywOuUTTK7ve5v9JMjUHvk6SkZGjy7UYRGXemN+pMdVfRz14fpRnlAfjLgRDUSeowQlknDvrB0O3b1
-        2AKF9rP+euqvBgHwi/TLqZqWeRaaC2pmDx11znfyP0sCvug9vnPrKICJI2Oqr0ActwzOHRq/VBFkS
-        ZcU1sVFN5M2Q2nlw+rCxPIH8r+wmMBFYpvbke1Th+IQ/0rpnvzsMfrDCGcy7HPJs+XTeAt9W3xdZo
-        WNTMV/8Q==;
+        bh=UQY06JH4aBEgG6zv15PB3e7+5O8KmjXZauT/V4ts2+4=; b=ldkPFqNuhBNJrVvIo44DI+XsOx
+        7GMJ7ewtIPQukaOXzt8B8uLAp8i7pRVomcBZ5hdFF8lB6WzkFPtyDar54gx8x8XmH9la3uFU+Ojjy
+        kI1EimFk5vl7c294ZdrbFu+mALhKbddLwCuNeOwD8DJmN6gZfsO4JUl3oF1SCoRkXPgluCwMWXdhV
+        cH8UYMTxlcSWWe+pNW90T/8aeRwbS6Mzu0dRD8OEchEl9G7X1hfhBiStcSZsOz6DM+iVZk86Z9LHs
+        eR7VxAlmU74f3Q8u9YBYGy5WRBHCOvvOMKTlKBwxC6kYZjI2TVhjoT/GuoZf1waZBXlC0ZLVxlD0n
+        /VdNq47Q==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1iptTV-0003by-6S
+        id 1iptTV-0003by-0n
         for netfilter-devel@vger.kernel.org; Fri, 10 Jan 2020 12:33:13 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf-next 2/3] netfilter: bitwise: replace gotos with returns.
-Date:   Fri, 10 Jan 2020 12:33:11 +0000
-Message-Id: <20200110123312.106438-3-jeremy@azazel.net>
+Subject: [PATCH nf-next 1/3] netfilter: nf_tables: white-space fixes.
+Date:   Fri, 10 Jan 2020 12:33:10 +0000
+Message-Id: <20200110123312.106438-2-jeremy@azazel.net>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200110123312.106438-1-jeremy@azazel.net>
 References: <20200110123312.106438-1-jeremy@azazel.net>
@@ -58,50 +58,42 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When dumping a bitwise expression, if any of the puts fails, we use goto
-to jump to a label.  However, no clean-up is required and the only
-statement at the label is a return.  Drop the goto's and return
-immediately instead.
+Indentation fixes for the parameters of a couple of nft set functions.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- net/netfilter/nft_bitwise.c | 13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ net/netfilter/nft_set_bitmap.c | 4 ++--
+ net/netfilter/nft_set_hash.c   | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
-index 10e9d50e4e19..d7724250be1f 100644
---- a/net/netfilter/nft_bitwise.c
-+++ b/net/netfilter/nft_bitwise.c
-@@ -107,24 +107,21 @@ static int nft_bitwise_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	const struct nft_bitwise *priv = nft_expr_priv(expr);
- 
- 	if (nft_dump_register(skb, NFTA_BITWISE_SREG, priv->sreg))
--		goto nla_put_failure;
-+		return -1;
- 	if (nft_dump_register(skb, NFTA_BITWISE_DREG, priv->dreg))
--		goto nla_put_failure;
-+		return -1;
- 	if (nla_put_be32(skb, NFTA_BITWISE_LEN, htonl(priv->len)))
--		goto nla_put_failure;
-+		return -1;
- 
- 	if (nft_data_dump(skb, NFTA_BITWISE_MASK, &priv->mask,
- 			  NFT_DATA_VALUE, priv->len) < 0)
--		goto nla_put_failure;
-+		return -1;
- 
- 	if (nft_data_dump(skb, NFTA_BITWISE_XOR, &priv->xor,
- 			  NFT_DATA_VALUE, priv->len) < 0)
--		goto nla_put_failure;
-+		return -1;
- 
- 	return 0;
--
--nla_put_failure:
--	return -1;
+diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
+index 087a056e34d1..87e8d9ba0c9b 100644
+--- a/net/netfilter/nft_set_bitmap.c
++++ b/net/netfilter/nft_set_bitmap.c
+@@ -259,8 +259,8 @@ static u64 nft_bitmap_privsize(const struct nlattr * const nla[],
  }
  
- static struct nft_data zero;
+ static int nft_bitmap_init(const struct nft_set *set,
+-			 const struct nft_set_desc *desc,
+-			 const struct nlattr * const nla[])
++			   const struct nft_set_desc *desc,
++			   const struct nlattr * const nla[])
+ {
+ 	struct nft_bitmap *priv = nft_set_priv(set);
+ 
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index b331a3c9a3a8..d350a7cd3af0 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -645,7 +645,7 @@ static bool nft_hash_estimate(const struct nft_set_desc *desc, u32 features,
+ }
+ 
+ static bool nft_hash_fast_estimate(const struct nft_set_desc *desc, u32 features,
+-			      struct nft_set_estimate *est)
++				   struct nft_set_estimate *est)
+ {
+ 	if (!desc->size)
+ 		return false;
 -- 
 2.24.1
 
