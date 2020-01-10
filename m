@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4958BC33CA2
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jan 2020 11:11:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE9ABC33CA2
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jan 2020 11:11:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2516020721
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jan 2020 11:11:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9A3DD20721
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jan 2020 11:11:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727707AbgAJLLU (ORCPT
+        id S1727710AbgAJLLZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 10 Jan 2020 06:11:20 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:34980 "EHLO orbyte.nwl.cc"
+        Fri, 10 Jan 2020 06:11:25 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:34986 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727689AbgAJLLT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 10 Jan 2020 06:11:19 -0500
-Received: from localhost ([::1]:48070 helo=tatos)
+        id S1727689AbgAJLLZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 10 Jan 2020 06:11:25 -0500
+Received: from localhost ([::1]:48076 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1ipsCE-0002kG-52; Fri, 10 Jan 2020 12:11:18 +0100
+        id 1ipsCJ-0002kb-Fe; Fri, 10 Jan 2020 12:11:23 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 2/3] monitor: Fix for use after free when printing map elements
-Date:   Fri, 10 Jan 2020 12:11:13 +0100
-Message-Id: <20200110111114.23952-3-phil@nwl.cc>
+Subject: [nft PATCH 3/3] tests: monitor: Support running individual test cases
+Date:   Fri, 10 Jan 2020 12:11:14 +0100
+Message-Id: <20200110111114.23952-4-phil@nwl.cc>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200110111114.23952-1-phil@nwl.cc>
 References: <20200110111114.23952-1-phil@nwl.cc>
@@ -39,29 +39,52 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When populating the dummy set, 'data' field must be cloned just like
-'key' field.
+Recognize testcase paths on command line and limit testing on those
+only.
 
-Fixes: 343a51702656a ("src: store expr, not dtype to track data in sets")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/monitor.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ tests/monitor/run-tests.sh | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/src/monitor.c b/src/monitor.c
-index 84505eb914bf6..53a8bcd4641d1 100644
---- a/src/monitor.c
-+++ b/src/monitor.c
-@@ -401,7 +401,8 @@ static int netlink_events_setelem_cb(const struct nlmsghdr *nlh, int type,
- 	 */
- 	dummyset = set_alloc(monh->loc);
- 	dummyset->key = expr_clone(set->key);
--	dummyset->data = set->data;
-+	if (set->data)
-+		dummyset->data = expr_clone(set->data);
- 	dummyset->flags = set->flags;
- 	dummyset->init = set_expr_alloc(monh->loc, set);
+diff --git a/tests/monitor/run-tests.sh b/tests/monitor/run-tests.sh
+index 0478cf60c0dfe..efacdaaab952b 100755
+--- a/tests/monitor/run-tests.sh
++++ b/tests/monitor/run-tests.sh
+@@ -108,6 +108,7 @@ echo_run_test() {
+ 	touch $output_file
+ }
  
++testcases=""
+ while [ -n "$1" ]; do
+ 	case "$1" in
+ 	-d|--debug)
+@@ -118,11 +119,15 @@ while [ -n "$1" ]; do
+ 		test_json=true
+ 		shift
+ 		;;
++	testcases/*.t)
++		testcases+=" $1"
++		shift
++		;;
+ 	*)
+ 		echo "unknown option '$1'"
+ 		;&
+ 	-h|--help)
+-		echo "Usage: $(basename $0) [-j|--json] [-d|--debug]"
++		echo "Usage: $(basename $0) [-j|--json] [-d|--debug] [testcase ...]"
+ 		exit 1
+ 		;;
+ 	esac
+@@ -138,7 +143,7 @@ for variant in $variants; do
+ 	run_test=${variant}_run_test
+ 	output_append=${variant}_output_append
+ 
+-	for testcase in testcases/*.t; do
++	for testcase in ${testcases:-testcases/*.t}; do
+ 		echo "$variant: running tests from file $(basename $testcase)"
+ 		# files are like this:
+ 		#
 -- 
 2.24.1
 
