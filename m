@@ -3,67 +3,64 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FBDEC33CA4
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jan 2020 12:53:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9CD1C33CA2
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jan 2020 13:07:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3F6382072A
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jan 2020 12:53:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8693B2072E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jan 2020 13:07:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727257AbgAJMxN (ORCPT
+        id S1727456AbgAJNH1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 10 Jan 2020 07:53:13 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:35176 "EHLO orbyte.nwl.cc"
+        Fri, 10 Jan 2020 08:07:27 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:35206 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727174AbgAJMxN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 10 Jan 2020 07:53:13 -0500
+        id S1727301AbgAJNH1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 10 Jan 2020 08:07:27 -0500
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
         (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1iptmp-0004Ri-2f; Fri, 10 Jan 2020 13:53:11 +0100
-Date:   Fri, 10 Jan 2020 13:53:11 +0100
+        id 1ipu0b-0004kd-EV; Fri, 10 Jan 2020 14:07:25 +0100
+Date:   Fri, 10 Jan 2020 14:07:25 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 1/3] libnftables: add nft_ctx_set_netns()
-Message-ID: <20200110125311.GP20229@orbyte.nwl.cc>
+Subject: Re: [PATCH nft] evaluate: better error notice when interval flag is
+ not set on
+Message-ID: <20200110130725.GQ20229@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org
-References: <20200109172115.229723-1-pablo@netfilter.org>
- <20200109172115.229723-2-pablo@netfilter.org>
+References: <20200110105546.241847-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200109172115.229723-2-pablo@netfilter.org>
+In-Reply-To: <20200110105546.241847-1-pablo@netfilter.org>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+On Fri, Jan 10, 2020 at 11:55:46AM +0100, Pablo Neira Ayuso wrote:
+> Users get confused with the existing error notice, let's try a different one:
+> 
+>  # nft add element x y { 1.1.1.0/24 }
+>  Error: You must add 'flags interval' to your set declaration if you want to add prefix elements
+>  add element x y { 1.1.1.0/24 }
+>                    ^^^^^^^^^^
 
-On Thu, Jan 09, 2020 at 06:21:13PM +0100, Pablo Neira Ayuso wrote:
-[...]
-> diff --git a/include/nftables/libnftables.h b/include/nftables/libnftables.h
-> index 765b20dd71ee..887628959ac6 100644
-> --- a/include/nftables/libnftables.h
-> +++ b/include/nftables/libnftables.h
-> @@ -34,10 +34,13 @@ enum nft_debug_level {
->   * Possible flags to pass to nft_ctx_new()
->   */
->  #define NFT_CTX_DEFAULT		0
-> +#define NFT_CTX_NETNS		1
+Not sure why "missing inverval flag on declaration" is more confusing
+than "you must add 'flags interval' to ...", but maybe I'm just too much
+into the topic to notice the difference. :)
 
-What is this needed for?
+> Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1395
 
->  struct nft_ctx *nft_ctx_new(uint32_t flags);
->  void nft_ctx_free(struct nft_ctx *ctx);
->  
-> +int nft_ctx_set_netns(struct nft_ctx *ctx, const char *netns);
+Unrelated? Did you pick the wrong ticket ID?
 
-Is there a way to select init ns again?
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Thanks, Phil
+Except for nfbz link:
+
+Acked-by: Phil Sutter <phil@nwl.cc>
