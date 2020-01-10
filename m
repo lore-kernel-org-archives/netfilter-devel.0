@@ -6,84 +6,89 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0477C33CA2
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jan 2020 10:55:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A5EFC33CA2
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jan 2020 11:11:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7D72220838
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jan 2020 10:55:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6AA4220721
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Jan 2020 11:11:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727571AbgAJKzy (ORCPT
+        id S1727698AbgAJLLP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 10 Jan 2020 05:55:54 -0500
-Received: from correo.us.es ([193.147.175.20]:38614 "EHLO mail.us.es"
+        Fri, 10 Jan 2020 06:11:15 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:34974 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727607AbgAJKzy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 10 Jan 2020 05:55:54 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 117369A924
-        for <netfilter-devel@vger.kernel.org>; Fri, 10 Jan 2020 11:55:51 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 03027DA709
-        for <netfilter-devel@vger.kernel.org>; Fri, 10 Jan 2020 11:55:51 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id EC4F5DA716; Fri, 10 Jan 2020 11:55:50 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8CDD3DA709
-        for <netfilter-devel@vger.kernel.org>; Fri, 10 Jan 2020 11:55:48 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 10 Jan 2020 11:55:48 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 71A9C42EE38F
-        for <netfilter-devel@vger.kernel.org>; Fri, 10 Jan 2020 11:55:48 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] evaluate: better error notice when interval flag is not set on
-Date:   Fri, 10 Jan 2020 11:55:46 +0100
-Message-Id: <20200110105546.241847-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        id S1727689AbgAJLLP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 10 Jan 2020 06:11:15 -0500
+Received: from localhost ([::1]:48064 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1ipsC8-0002jp-Rr; Fri, 10 Jan 2020 12:11:12 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [nft PATCH 1/3] monitor: Do not decompose non-anonymous sets
+Date:   Fri, 10 Jan 2020 12:11:12 +0100
+Message-Id: <20200110111114.23952-2-phil@nwl.cc>
+X-Mailer: git-send-email 2.24.1
+In-Reply-To: <20200110111114.23952-1-phil@nwl.cc>
+References: <20200110111114.23952-1-phil@nwl.cc>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Users get confused with the existing error notice, let's try a different one:
+They have been decomposed already, trying to do that again causes a
+segfault. This is a similar fix as in commit 8ecb885589591 ("src:
+restore --echo with anonymous sets").
 
- # nft add element x y { 1.1.1.0/24 }
- Error: You must add 'flags interval' to your set declaration if you want to add prefix elements
- add element x y { 1.1.1.0/24 }
-                   ^^^^^^^^^^
-
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1395
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/evaluate.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ src/monitor.c                          |  2 +-
+ tests/monitor/testcases/set-interval.t | 20 ++++++++++++++++++++
+ 2 files changed, 21 insertions(+), 1 deletion(-)
+ create mode 100644 tests/monitor/testcases/set-interval.t
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 34e4473e4c9a..e7881543d2de 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1299,13 +1299,10 @@ static int expr_evaluate_set_elem(struct eval_ctx *ctx, struct expr **expr)
- 	    !(ctx->set->flags & (NFT_SET_ANONYMOUS | NFT_SET_INTERVAL))) {
- 		switch (elem->key->etype) {
- 		case EXPR_PREFIX:
--			return expr_error(ctx->msgs, elem,
--					  "Set member cannot be prefix, "
--					  "missing interval flag on declaration");
- 		case EXPR_RANGE:
- 			return expr_error(ctx->msgs, elem,
--					  "Set member cannot be range, "
--					  "missing interval flag on declaration");
-+					  "You must add 'flags interval' to your %s declaration if you want to add %s elements",
-+					  set_is_map(ctx->set->flags) ? "map" : "set", expr_name(elem->key));
- 		default:
- 			break;
- 		}
+diff --git a/src/monitor.c b/src/monitor.c
+index d586cfa34a979..84505eb914bf6 100644
+--- a/src/monitor.c
++++ b/src/monitor.c
+@@ -500,7 +500,7 @@ static int netlink_events_obj_cb(const struct nlmsghdr *nlh, int type,
+ 
+ static void rule_map_decompose_cb(struct set *s, void *data)
+ {
+-	if (s->flags & NFT_SET_INTERVAL)
++	if (s->flags & (NFT_SET_INTERVAL & NFT_SET_ANONYMOUS))
+ 		interval_map_decompose(s->init);
+ }
+ 
+diff --git a/tests/monitor/testcases/set-interval.t b/tests/monitor/testcases/set-interval.t
+new file mode 100644
+index 0000000000000..59930c58243d8
+--- /dev/null
++++ b/tests/monitor/testcases/set-interval.t
+@@ -0,0 +1,20 @@
++# setup first
++I add table ip t
++I add chain ip t c
++O -
++J {"add": {"table": {"family": "ip", "name": "t", "handle": 0}}}
++J {"add": {"chain": {"family": "ip", "table": "t", "name": "c", "handle": 0}}}
++
++# add set with elements, monitor output expectedly differs
++I add set ip t s { type inet_service; flags interval; elements = { 20, 30-40 }; }
++O add set ip t s { type inet_service; flags interval; }
++O add element ip t s { 20 }
++O add element ip t s { 30-40 }
++J {"add": {"set": {"family": "ip", "name": "s", "table": "t", "type": "inet_service", "handle": 0, "flags": ["interval"]}}}
++J {"add": {"element": {"family": "ip", "table": "t", "name": "s", "elem": {"set": [20]}}}}
++J {"add": {"element": {"family": "ip", "table": "t", "name": "s", "elem": {"set": [{"range": [30, 40]}]}}}}
++
++# this would crash nft
++I add rule ip t c tcp dport @s
++O -
++J {"add": {"rule": {"family": "ip", "table": "t", "chain": "c", "handle": 0, "expr": [{"match": {"op": "==", "left": {"payload": {"protocol": "tcp", "field": "dport"}}, "right": "@s"}}]}}}
 -- 
-2.11.0
+2.24.1
 
