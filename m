@@ -2,87 +2,159 @@ Return-Path: <SRS0=YRd2=3A=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 932BDC282DD
-	for <netfilter-devel@archiver.kernel.org>; Sat, 11 Jan 2020 21:34:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21BECC3F68F
+	for <netfilter-devel@archiver.kernel.org>; Sat, 11 Jan 2020 22:35:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 676E920842
-	for <netfilter-devel@archiver.kernel.org>; Sat, 11 Jan 2020 21:34:25 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="T0ziqqbX"
+	by mail.kernel.org (Postfix) with ESMTP id 0044020866
+	for <netfilter-devel@archiver.kernel.org>; Sat, 11 Jan 2020 22:35:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731521AbgAKVeV (ORCPT
+        id S1731496AbgAKWUH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 11 Jan 2020 16:34:21 -0500
-Received: from mail-ot1-f66.google.com ([209.85.210.66]:42838 "EHLO
-        mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731454AbgAKVeV (ORCPT
+        Sat, 11 Jan 2020 17:20:07 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:38680 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1731486AbgAKWUG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 11 Jan 2020 16:34:21 -0500
-Received: by mail-ot1-f66.google.com with SMTP id 66so5489329otd.9;
-        Sat, 11 Jan 2020 13:34:20 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=sb6sLp8tTZmL45LLevwIiTHPVG1Ee1MFPZQXhwxy/xI=;
-        b=T0ziqqbX0CbPYlZWnlapZ9Cb0XddRNoItae/6DLLwGgbDJkqxCKUOg285BJIYm919r
-         1s1zgDJEBqTeFVBucYCKsbHYHWxaIMhRktsFuQ0FcB1aVLEb3H+kjwQoGombTVKnBQgI
-         1MkpMdywmsbjtECj5o1y8RWSA/7Y4RJT939p484SRsK3WFJjIhEsk9BRyEa31djoCZMS
-         UTLQDRey9fagV5RhA0Mx313TKU0wkFgm+sobXI8IQgJBF5AhRbjJuP7yCW688qnRbsBy
-         Oi5cfW6x8YutoPiuVM+R7Gl7LMjfs6YMveFbH4upjSJ1Z3AJshxvSIkoE1a0191UZBFN
-         hKBQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=sb6sLp8tTZmL45LLevwIiTHPVG1Ee1MFPZQXhwxy/xI=;
-        b=EqXoX8Cmwj33nbAcsUHgsVxKqIcXEKlZZnFJfH0VFIhQEng7lHCjR2uFieu33Kfwxf
-         F5axL1kBFGqexnzAHO7Ubn5PS+SvCJrXLiPMf+HjLW52MPhm3FVvQ2XPD2p7UsR55Exr
-         4Mxt7zI2R7gw8LqQvKTMpw+wtepA/ufuC0u1w2vyFkhHgSjft6is6Nlxfk/vs2YJiv7w
-         SY1OIWLSSvtc1FM/1uq6sSIUWzZOPkuTFFJx6+vexwLPR7wT8RbtwWtYdODRruqPc+jX
-         r8X3Hz+oajdkyFKI6J0gQUtxHhqjLD+Taa4+kivgXw66erT7n8Ty1y3Ma7Qyi/hY8u2n
-         HliQ==
-X-Gm-Message-State: APjAAAXKTz4gaPiFF4lzL64Slx/sM1i3rJfQjQRU1+qq8qzGzStLfz+d
-        FpxH4KX41R+nYNmWAM1qq+JW6eeSv+/2dQRHXS4=
-X-Google-Smtp-Source: APXvYqwbei5a+C3nFp5SXBnSnskwCBcpZwpfz2aaKzl2fQeyNxBx/Yyg1MieSMF7kBDLyANYObtfhT/Q+/4stW2mWlY=
-X-Received: by 2002:a9d:da2:: with SMTP id 31mr7647879ots.319.1578778460547;
- Sat, 11 Jan 2020 13:34:20 -0800 (PST)
+        Sat, 11 Jan 2020 17:20:06 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1iqP6y-0004fv-H5; Sat, 11 Jan 2020 23:20:04 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     netfilter-devel@vger.kernel.org
+Cc:     netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com,
+        Florian Westphal <fw@strlen.de>,
+        syzbot+91bdd8eece0f6629ec8b@syzkaller.appspotmail.com
+Subject: [PATCH nf] netfilter: arp_tables: init netns pointer in xt_tgdtor_param struct
+Date:   Sat, 11 Jan 2020 23:19:53 +0100
+Message-Id: <20200111221953.17759-1-fw@strlen.de>
+X-Mailer: git-send-email 2.24.1
+In-Reply-To: <000000000000af1c5b059be111e5@google.com>
+References: <000000000000af1c5b059be111e5@google.com>
 MIME-Version: 1.0
-References: <000000000000af1c5b059be111e5@google.com> <CAM_iQpVHAKqA51tm5LjbOZnUd6Zdb9MsRyAoCsYt0acXDQA=gw@mail.gmail.com>
- <20200111211349.GG795@breakpoint.cc>
-In-Reply-To: <20200111211349.GG795@breakpoint.cc>
-From:   Cong Wang <xiyou.wangcong@gmail.com>
-Date:   Sat, 11 Jan 2020 13:34:09 -0800
-Message-ID: <CAM_iQpUux2f9uXLkpg-gcXjrq3F0H-1v7_r=zbOQK8FoNS6JPQ@mail.gmail.com>
-Subject: Re: general protection fault in xt_rateest_put
-To:     Florian Westphal <fw@strlen.de>
-Cc:     syzbot <syzbot+91bdd8eece0f6629ec8b@syzkaller.appspotmail.com>,
-        coreteam@netfilter.org, David Miller <davem@davemloft.net>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Jan 11, 2020 at 1:13 PM Florian Westphal <fw@strlen.de> wrote:
-> The fix is incomplete,  net/ipv4/netfilter/arp_tables.c:cleanup_entry()
-> doesn't init *net either.
->
-> Are you working on a fix already?
->
-> Otherwise I can handle this.
+An earlier commit (1b789577f655060d98d20e,
+"netfilter: arp_tables: init netns pointer in xt_tgchk_param struct"
+fixed missing net initialization for arptables, but turns out it was
+incomplete.  We can get a very similar struct net NULL deref during
+error unwinding:
 
-I am not. Please go ahead.
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+RIP: 0010:xt_rateest_put+0xa1/0x440 net/netfilter/xt_RATEEST.c:77
+ xt_rateest_tg_destroy+0x72/0xa0 net/netfilter/xt_RATEEST.c:175
+ cleanup_entry net/ipv4/netfilter/arp_tables.c:509 [inline]
+ translate_table+0x11f4/0x1d80 net/ipv4/netfilter/arp_tables.c:587
+ do_replace net/ipv4/netfilter/arp_tables.c:981 [inline]
+ do_arpt_set_ctl+0x317/0x650 net/ipv4/netfilter/arp_tables.c:1461
 
-Thanks!
+Also init the netns pointer in xt_tgdtor_param struct.
+
+Fixes: add67461240c1d ("netfilter: add struct net * to target parameters")
+Reported-by: syzbot+91bdd8eece0f6629ec8b@syzkaller.appspotmail.com
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/ipv4/netfilter/arp_tables.c | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
+
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 069f72edb264..f1f78a742b36 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -496,12 +496,13 @@ static inline int check_entry_size_and_hooks(struct arpt_entry *e,
+ 	return 0;
+ }
+ 
+-static inline void cleanup_entry(struct arpt_entry *e)
++static void cleanup_entry(struct arpt_entry *e, struct net *net)
+ {
+ 	struct xt_tgdtor_param par;
+ 	struct xt_entry_target *t;
+ 
+ 	t = arpt_get_target(e);
++	par.net      = net;
+ 	par.target   = t->u.kernel.target;
+ 	par.targinfo = t->data;
+ 	par.family   = NFPROTO_ARP;
+@@ -584,7 +585,7 @@ static int translate_table(struct net *net,
+ 		xt_entry_foreach(iter, entry0, newinfo->size) {
+ 			if (i-- == 0)
+ 				break;
+-			cleanup_entry(iter);
++			cleanup_entry(iter, net);
+ 		}
+ 		return ret;
+ 	}
+@@ -927,7 +928,7 @@ static int __do_replace(struct net *net, const char *name,
+ 	/* Decrease module usage counts and free resource */
+ 	loc_cpu_old_entry = oldinfo->entries;
+ 	xt_entry_foreach(iter, loc_cpu_old_entry, oldinfo->size)
+-		cleanup_entry(iter);
++		cleanup_entry(iter, net);
+ 
+ 	xt_free_table_info(oldinfo);
+ 	if (copy_to_user(counters_ptr, counters,
+@@ -990,7 +991,7 @@ static int do_replace(struct net *net, const void __user *user,
+ 
+  free_newinfo_untrans:
+ 	xt_entry_foreach(iter, loc_cpu_entry, newinfo->size)
+-		cleanup_entry(iter);
++		cleanup_entry(iter, net);
+  free_newinfo:
+ 	xt_free_table_info(newinfo);
+ 	return ret;
+@@ -1287,7 +1288,7 @@ static int compat_do_replace(struct net *net, void __user *user,
+ 
+  free_newinfo_untrans:
+ 	xt_entry_foreach(iter, loc_cpu_entry, newinfo->size)
+-		cleanup_entry(iter);
++		cleanup_entry(iter, net);
+  free_newinfo:
+ 	xt_free_table_info(newinfo);
+ 	return ret;
+@@ -1514,7 +1515,7 @@ static int do_arpt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len
+ 	return ret;
+ }
+ 
+-static void __arpt_unregister_table(struct xt_table *table)
++static void __arpt_unregister_table(struct net *net, struct xt_table *table)
+ {
+ 	struct xt_table_info *private;
+ 	void *loc_cpu_entry;
+@@ -1526,7 +1527,7 @@ static void __arpt_unregister_table(struct xt_table *table)
+ 	/* Decrease module usage counts and free resources */
+ 	loc_cpu_entry = private->entries;
+ 	xt_entry_foreach(iter, loc_cpu_entry, private->size)
+-		cleanup_entry(iter);
++		cleanup_entry(iter, net);
+ 	if (private->number > private->initial_entries)
+ 		module_put(table_owner);
+ 	xt_free_table_info(private);
+@@ -1566,7 +1567,7 @@ int arpt_register_table(struct net *net,
+ 
+ 	ret = nf_register_net_hooks(net, ops, hweight32(table->valid_hooks));
+ 	if (ret != 0) {
+-		__arpt_unregister_table(new_table);
++		__arpt_unregister_table(net, new_table);
+ 		*res = NULL;
+ 	}
+ 
+@@ -1581,7 +1582,7 @@ void arpt_unregister_table(struct net *net, struct xt_table *table,
+ 			   const struct nf_hook_ops *ops)
+ {
+ 	nf_unregister_net_hooks(net, ops, hweight32(table->valid_hooks));
+-	__arpt_unregister_table(table);
++	__arpt_unregister_table(net, table);
+ }
+ 
+ /* The built-in targets: standard (NULL) and error. */
+-- 
+2.24.1
+
