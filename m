@@ -2,178 +2,311 @@ Return-Path: <SRS0=xASF=3C=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A8E9C33CB1
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Jan 2020 19:34:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D3C3C33CA9
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Jan 2020 21:59:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 70CBC2187F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Jan 2020 19:34:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A20A21569
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Jan 2020 21:59:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728766AbgAMTeO (ORCPT
+        id S1728836AbgAMV7c (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 13 Jan 2020 14:34:14 -0500
-Received: from mail-io1-f71.google.com ([209.85.166.71]:53595 "EHLO
-        mail-io1-f71.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728767AbgAMTeM (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Jan 2020 14:34:12 -0500
-Received: by mail-io1-f71.google.com with SMTP id m5so6460060iol.20
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Jan 2020 11:34:11 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=iKgXkUUifDTHe1wYti7XokONx9JjbAC539M6HstQB/k=;
-        b=LsywvDxUOpOreFp4aTnx92f0Bpm6CH1ymONbVMjD1SMntf7XYdZqxUIdG1DcNcPyzN
-         5pBuK64AmXVA9agQ7oEpBw0NeBnBK8wT1lJf/5JRL9tPG2X4CcyEEdu+9HEbfBEWzA9J
-         B96A6nQ4NycAKclwpY1dn7O2ZxIDyA6+uLcLJsL7rnfGGHj/ggRqo7idBTNc52fUdrm8
-         zgOO3cyg48jZGRk22H/Lz2Eiq7Qz1Bf1Qazis3VrYwMQ5Vr3e7qPPC1Fo+Pxv64Mw+C2
-         Hju6x22NCTQEdRCyGMzlwghLFKSW1JikU1R0PmD8OIDw6efUwzq5WHBdhvlUo+xMfxt3
-         y1qw==
-X-Gm-Message-State: APjAAAUnNlFjTb/Q4rQzgZTnaxWwrfyJTrVVVF1CNLHwEeg/SW3oAuo2
-        PA6F7js26EJ3ugdbEbczqevafsxtA1umwSAwSWieipMGlHfd
-X-Google-Smtp-Source: APXvYqzaNcVpE7dne1l1ihiEgfr6Zy2LxQzVYEVdovLQ5xW8OKaJwY513n5SHhDdl21ILG0FBwo9bbP7vlQ9sXE0LfOo+H5i3o5w
+        Mon, 13 Jan 2020 16:59:32 -0500
+Received: from correo.us.es ([193.147.175.20]:49906 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728733AbgAMV7c (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 13 Jan 2020 16:59:32 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id E4DA1E8E8A
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Jan 2020 22:59:28 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D43C3DA714
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Jan 2020 22:59:28 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id C9E1ADA703; Mon, 13 Jan 2020 22:59:28 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 856E6DA703;
+        Mon, 13 Jan 2020 22:59:26 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 13 Jan 2020 22:59:26 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 6796D42EF52A;
+        Mon, 13 Jan 2020 22:59:26 +0100 (CET)
+Date:   Mon, 13 Jan 2020 22:59:25 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nf-next 3/3] netfilter: bitwise: add support for shifts.
+Message-ID: <20200113215925.uh5ir5ntcrtuh7qq@salvia>
+References: <20200110123312.106438-1-jeremy@azazel.net>
+ <20200110123312.106438-4-jeremy@azazel.net>
 MIME-Version: 1.0
-X-Received: by 2002:a6b:6e06:: with SMTP id d6mr13077449ioh.95.1578944051034;
- Mon, 13 Jan 2020 11:34:11 -0800 (PST)
-Date:   Mon, 13 Jan 2020 11:34:11 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <00000000000048427b059c0a8f9d@google.com>
-Subject: WARNING: locking bug in finish_task_switch
-From:   syzbot <syzbot+edec84a8b77e5a0cae31@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net,
-        johan.hedberg@gmail.com, kaber@trash.net, kadlec@blackhole.kfki.hu,
-        kernel@stlinux.com, linux-arm-kernel@lists.infradead.org,
-        linux-bluetooth@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, marcel@holtmann.org,
-        mchehab@kernel.org, mchehab@s-opensource.com,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, patrice.chotard@st.com,
-        peter.griffin@linaro.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200110123312.106438-4-jeremy@azazel.net>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+Hi Jeremy,
 
-syzbot found the following crash on:
+On Fri, Jan 10, 2020 at 12:33:12PM +0000, Jeremy Sowden wrote:
+> Currently nft_bitwise only supports boolean operations: NOT, AND, OR and
+> XOR.  Extend it to do shifts as well.
+> 
+> Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+> ---
+>  include/uapi/linux/netfilter/nf_tables.h |  9 ++-
+>  net/netfilter/nft_bitwise.c              | 84 ++++++++++++++++++++++--
+>  2 files changed, 86 insertions(+), 7 deletions(-)
+> 
+> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> index dd4611767933..8f244ada0ad3 100644
+> --- a/include/uapi/linux/netfilter/nf_tables.h
+> +++ b/include/uapi/linux/netfilter/nf_tables.h
+> @@ -492,12 +492,15 @@ enum nft_immediate_attributes {
+>   * @NFTA_BITWISE_LEN: length of operands (NLA_U32)
+>   * @NFTA_BITWISE_MASK: mask value (NLA_NESTED: nft_data_attributes)
+>   * @NFTA_BITWISE_XOR: xor value (NLA_NESTED: nft_data_attributes)
+> + * @NFTA_BITWISE_LSHIFT: left shift value (NLA_U32)
+> + * @NFTA_BITWISE_RSHIFT: right shift value (NLA_U32)
 
-HEAD commit:    6c09d7db Add linux-next specific files for 20200110
-git tree:       linux-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=150b6a9ee00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=7dc7ab9739654fbe
-dashboard link: https://syzkaller.appspot.com/bug?extid=edec84a8b77e5a0cae31
-compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=16d005e1e00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1527b6aee00000
+I'd suggest you add:
 
-The bug was bisected to:
+NFTA_BITWISE_OP
 
-commit 7152c88e556bcbee525689063c260cd296f295a8
-Author: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Date:   Tue Oct 18 19:44:11 2016 +0000
+possible values are:
 
-     [media] c8sectpfe: don't break long lines
+NFT_BITWISE_XOR (or _BOOL, you pick the more appropriate name for me)
+NFT_BITWISE_RSHIFT
+NFT_BITWISE_LSHIFT
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=10930c21e00000
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=12930c21e00000
-console output: https://syzkaller.appspot.com/x/log.txt?x=14930c21e00000
+You can introduce the NFTA_BITWISE_OP attribute in a initial
+preparation patch.
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+edec84a8b77e5a0cae31@syzkaller.appspotmail.com
-Fixes: 7152c88e556b ("[media] c8sectpfe: don't break long lines")
+If NFTA_BITWISE_OP is not specified, then default to NFT_BITWISE_XOR
+to ensure backward compatibility with old userspace tooling.
 
-------------[ cut here ]------------
-DEBUG_LOCKS_WARN_ON(1)
-WARNING: CPU: 1 PID: 9970 at kernel/locking/lockdep.c:167 hlock_class  
-kernel/locking/lockdep.c:167 [inline]
-WARNING: CPU: 1 PID: 9970 at kernel/locking/lockdep.c:167 hlock_class  
-kernel/locking/lockdep.c:156 [inline]
-WARNING: CPU: 1 PID: 9970 at kernel/locking/lockdep.c:167  
-__lock_acquire+0x21dd/0x4a00 kernel/locking/lockdep.c:3950
-Kernel panic - not syncing: panic_on_warn set ...
-CPU: 1 PID: 9970 Comm: syz-executor719 Not tainted  
-5.5.0-rc5-next-20200110-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-Call Trace:
-  __dump_stack lib/dump_stack.c:77 [inline]
-  dump_stack+0x197/0x210 lib/dump_stack.c:118
-  panic+0x2e3/0x75c kernel/panic.c:221
-  __warn.cold+0x2f/0x3e kernel/panic.c:582
-  report_bug+0x289/0x300 lib/bug.c:195
-  fixup_bug arch/x86/kernel/traps.c:176 [inline]
-  fixup_bug arch/x86/kernel/traps.c:171 [inline]
-  do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:269
-  do_invalid_op+0x37/0x50 arch/x86/kernel/traps.c:288
-  invalid_op+0x23/0x30 arch/x86/entry/entry_64.S:1027
-RIP: 0010:hlock_class kernel/locking/lockdep.c:167 [inline]
-RIP: 0010:hlock_class kernel/locking/lockdep.c:156 [inline]
-RIP: 0010:__lock_acquire+0x21dd/0x4a00 kernel/locking/lockdep.c:3950
-Code: 05 98 39 4a 09 85 c0 75 a0 48 c7 c6 e0 91 4b 88 48 c7 c7 20 92 4b 88  
-4c 89 9d 30 ff ff ff 4c 89 95 70 ff ff ff e8 b2 ff ea ff <0f> 0b 31 db 4c  
-8b 95 70 ff ff ff 4c 8b 9d 30 ff ff ff e9 22 f8 ff
-RSP: 0018:ffffc90002d87738 EFLAGS: 00010086
-RAX: 0000000000000000 RBX: 00000000000005e3 RCX: 0000000000000000
-RDX: 0000000040000000 RSI: ffffffff815e8546 RDI: fffff520005b0ed9
-RBP: ffffc90002d87850 R08: ffff8880903f8380 R09: fffffbfff13748ed
-R10: fffffbfff13748ec R11: ffffffff89ba4763 R12: 000000009ecb23e7
-R13: ffffffff8aa50270 R14: ffff8880903f8c48 R15: 0000000000000000
-  lock_acquire+0x190/0x410 kernel/locking/lockdep.c:4484
-  finish_lock_switch kernel/sched/core.c:3123 [inline]
-  finish_task_switch+0x13f/0x750 kernel/sched/core.c:3224
-  context_switch kernel/sched/core.c:3388 [inline]
-  __schedule+0x93c/0x1f90 kernel/sched/core.c:4081
-  preempt_schedule_irq+0xb5/0x160 kernel/sched/core.c:4338
-  retint_kernel+0x1b/0x2b
-RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:752  
-[inline]
-RIP: 0010:lock_acquire+0x20b/0x410 kernel/locking/lockdep.c:4487
-Code: 9c 08 00 00 00 00 00 00 48 c1 e8 03 80 3c 10 00 0f 85 d3 01 00 00 48  
-83 3d a9 a4 58 08 00 0f 84 53 01 00 00 48 8b 7d c8 57 9d <0f> 1f 44 00 00  
-48 8d 65 d8 5b 41 5c 41 5d 41 5e 41 5f 5d c3 65 8b
-RSP: 0018:ffffc90002d87ae0 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff13
-RAX: 1ffffffff13675eb RBX: ffff8880903f8380 RCX: ffffffff815ad05a
-RDX: dffffc0000000000 RSI: 0000000000000004 RDI: 0000000000000286
-RBP: ffffc90002d87b28 R08: 0000000000000004 R09: fffffbfff1708c51
-R10: fffffbfff1708c50 R11: ffff8880903f8380 R12: ffff888094a93d28
-R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
-  flush_workqueue+0x126/0x14c0 kernel/workqueue.c:2775
-  hci_dev_open+0xe0/0x280 net/bluetooth/hci_core.c:1626
-  hci_sock_bind+0x4bf/0x12d0 net/bluetooth/hci_sock.c:1189
-  __sys_bind+0x239/0x290 net/socket.c:1662
-  __do_sys_bind net/socket.c:1673 [inline]
-  __se_sys_bind net/socket.c:1671 [inline]
-  __x64_sys_bind+0x73/0xb0 net/socket.c:1671
-  do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x4483b9
-Code: e8 9c e6 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7  
-48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
-ff 0f 83 3b 05 fc ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007fb43a523d88 EFLAGS: 00000246 ORIG_RAX: 0000000000000031
-RAX: ffffffffffffffda RBX: 00000000006e4a18 RCX: 00000000004483b9
-RDX: 0000000000000006 RSI: 00000000200007c0 RDI: 0000000000000004
-RBP: 00000000006e4a10 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006e4a1c
-R13: 00007ffc78f07a4f R14: 00007fb43a5249c0 R15: 20c49ba5e353f7cf
-Shutting down cpus with NMI
-Kernel Offset: disabled
-Rebooting in 86400 seconds..
+>   *
+> - * The bitwise expression performs the following operation:
+> + * The bitwise expression supports boolean and shift operations.  It implements
+> + * the boolean operations by performing the following operation:
+>   *
+>   * dreg = (sreg & mask) ^ xor
+>   *
+> - * which allow to express all bitwise operations:
+> + * with these mask and xor values:
+>   *
+>   * 		mask	xor
+>   * NOT:		1	1
+> @@ -512,6 +515,8 @@ enum nft_bitwise_attributes {
+>  	NFTA_BITWISE_LEN,
+>  	NFTA_BITWISE_MASK,
+>  	NFTA_BITWISE_XOR,
+> +	NFTA_BITWISE_LSHIFT,
+> +	NFTA_BITWISE_RSHIFT,
 
+On top of NFTA_BITWISE_OP.
 
----
-This bug is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+I'd suggest you add NFTA_BITWISE_DATA instead of NFTA_BITWISE_{R,L}SHIFT.
 
-syzbot will keep track of this bug report. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
-syzbot can test patches for this bug, for details see:
-https://goo.gl/tpsmEJ#testing-patches
+>  	__NFTA_BITWISE_MAX
+>  };
+>  #define NFTA_BITWISE_MAX	(__NFTA_BITWISE_MAX - 1)
+> diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
+> index d7724250be1f..e4db77057b0e 100644
+> --- a/net/netfilter/nft_bitwise.c
+> +++ b/net/netfilter/nft_bitwise.c
+> @@ -15,12 +15,20 @@
+>  #include <net/netfilter/nf_tables.h>
+>  #include <net/netfilter/nf_tables_offload.h>
+>  
+> +enum nft_bitwise_ops {
+> +	OP_BOOL,
+> +	OP_LSHIFT,
+> +	OP_RSHIFT,
+> +};
+> +
+>  struct nft_bitwise {
+>  	enum nft_registers	sreg:8;
+>  	enum nft_registers	dreg:8;
+> +	enum nft_bitwise_ops	op:8;
+>  	u8			len;
+>  	struct nft_data		mask;
+>  	struct nft_data		xor;
+> +	u8			shift;
+>  };
+>  
+>  void nft_bitwise_eval(const struct nft_expr *expr,
+> @@ -31,6 +39,26 @@ void nft_bitwise_eval(const struct nft_expr *expr,
+>  	u32 *dst = &regs->data[priv->dreg];
+>  	unsigned int i;
+>  
+> +	if (priv->op == OP_LSHIFT) {
+
+I'd suggest you turn this into something like:
+
+        switch (priv->op) {
+        case NFT_BITWISE_RSHIFT:
+                nft_bitwise_rshift(...);
+                break;
+        case NFT_BITWISE_LSHIFT:
+                nft_bitwise_lshift(...);
+                break;
+        case ...
+        }
+
+so these code below is store in a function.
+
+> +		u32 carry = 0;
+> +
+> +		for (i = DIV_ROUND_UP(priv->len, sizeof(u32)); i > 0; i--) {
+> +			dst[i - 1] = (src[i - 1] << priv->shift) | carry;
+> +			carry = src[i - 1] >> (32 - priv->shift);
+> +		}
+> +		return;
+> +	}
+> +
+> +	if (priv->op == OP_RSHIFT) {
+> +		u32 carry = 0;
+> +
+> +		for (i = 0; i < DIV_ROUND_UP(priv->len, sizeof(u32)); i++) {
+> +			dst[i] = carry | (src[i] >> priv->shift);
+> +			carry = src[i] << (32 - priv->shift);
+> +		}
+> +		return;
+> +	}
+> +
+>  	for (i = 0; i < DIV_ROUND_UP(priv->len, 4); i++)
+>  		dst[i] = (src[i] & priv->mask.data[i]) ^ priv->xor.data[i];
+
+Probably an initial preparation patch to move this code to a function
+would be fine.
+
+>  }
+> @@ -41,6 +69,8 @@ static const struct nla_policy nft_bitwise_policy[NFTA_BITWISE_MAX + 1] = {
+>  	[NFTA_BITWISE_LEN]	= { .type = NLA_U32 },
+>  	[NFTA_BITWISE_MASK]	= { .type = NLA_NESTED },
+>  	[NFTA_BITWISE_XOR]	= { .type = NLA_NESTED },
+> +	[NFTA_BITWISE_LSHIFT]	= { .type = NLA_U32 },
+> +	[NFTA_BITWISE_RSHIFT]	= { .type = NLA_U32 },
+>  };
+>  
+>  static int nft_bitwise_init(const struct nft_ctx *ctx,
+> @@ -52,11 +82,9 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
+>  	u32 len;
+>  	int err;
+>  
+> -	if (tb[NFTA_BITWISE_SREG] == NULL ||
+> -	    tb[NFTA_BITWISE_DREG] == NULL ||
+> -	    tb[NFTA_BITWISE_LEN] == NULL ||
+> -	    tb[NFTA_BITWISE_MASK] == NULL ||
+> -	    tb[NFTA_BITWISE_XOR] == NULL)
+> +	if (!tb[NFTA_BITWISE_SREG] ||
+> +	    !tb[NFTA_BITWISE_DREG] ||
+> +	    !tb[NFTA_BITWISE_LEN])
+>  		return -EINVAL;
+>  
+>  	err = nft_parse_u32_check(tb[NFTA_BITWISE_LEN], U8_MAX, &len);
+> @@ -76,6 +104,36 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
+>  	if (err < 0)
+>  		return err;
+>  
+> +	if (tb[NFTA_BITWISE_LSHIFT]) {
+> +		u32 shift;
+> +
+> +		err = nft_parse_u32_check(tb[NFTA_BITWISE_LSHIFT], U8_MAX,
+> +					  &shift);
+> +		if (err < 0)
+> +			return err;
+> +
+> +		priv->shift = shift;
+> +		priv->op = OP_LSHIFT;
+> +		return 0;
+> +	}
+> +
+> +	if (tb[NFTA_BITWISE_RSHIFT]) {
+> +		u32 shift;
+> +
+> +		err = nft_parse_u32_check(tb[NFTA_BITWISE_RSHIFT], U8_MAX,
+> +					  &shift);
+> +		if (err < 0)
+> +			return err;
+> +
+> +		priv->shift = shift;
+> +		priv->op = OP_RSHIFT;
+> +		return 0;
+> +	}
+
+I would like to see that the netlink interface really bails out for
+combinations this does not support. That will make it easier later on
+to extend it from userspace.
+
+Therefore, something like:
+
+        switch (priv->op) {
+        case NFT_BITWISE_RSHIFT:
+        case NFT_BITWISE_LSHIFT:
+                if (!tb[NFTA_BITWISE_SHIFT])
+                        return -EINVAL;
+
+                if (tb[NFTA_BITWISE_MASK] ||
+                    tb[NFTA_BITWISE_XOR])
+                        return -EINVAL;
+
+                break;
+        case NFT_BITWISE_BOOL:
+                if (!tb[NFTA_BITWISE_MASK] ||
+                    !tb[NFTA_BITWISE_XOR])
+                        return -EINVAL;
+
+                if (tb[NFTA_BITWISE_SHIFT)
+                        return -EINVAL;
+                break;
+
+> +	if (!tb[NFTA_BITWISE_MASK] ||
+> +	    !tb[NFTA_BITWISE_XOR])
+> +		return -EINVAL;
+> +
+>  	err = nft_data_init(NULL, &priv->mask, sizeof(priv->mask), &d1,
+>  			    tb[NFTA_BITWISE_MASK]);
+>  	if (err < 0)
+> @@ -94,6 +152,7 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
+>  		goto err2;
+>  	}
+>  
+> +	priv->op = OP_BOOL;
+>  	return 0;
+>  err2:
+>  	nft_data_release(&priv->xor, d2.type);
+> @@ -113,6 +172,18 @@ static int nft_bitwise_dump(struct sk_buff *skb, const struct nft_expr *expr)
+>  	if (nla_put_be32(skb, NFTA_BITWISE_LEN, htonl(priv->len)))
+>  		return -1;
+>  
+> +	if (priv->op == OP_LSHIFT) {
+> +		if (nla_put_be32(skb, NFTA_BITWISE_LSHIFT, htonl(priv->shift)))
+> +			return -1;
+> +		return 0;
+> +	}
+> +
+> +	if (priv->op == OP_RSHIFT) {
+> +		if (nla_put_be32(skb, NFTA_BITWISE_RSHIFT, htonl(priv->shift)))
+> +			return -1;
+> +		return 0;
+> +	}
+
+With one single NFTA_BITWISE_SHIFT, this will be consolidated.
+
+Thanks for working on this.
