@@ -1,78 +1,129 @@
-Return-Path: <SRS0=xASF=3C=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=kgPV=3D=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5AC7C33CA9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Jan 2020 23:53:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51926C33CA9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 05:45:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C03CA206E5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Jan 2020 23:53:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 25ECF2075B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 05:45:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729146AbgAMXxN (ORCPT
+        id S1725854AbgANFpP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 13 Jan 2020 18:53:13 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:46968 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728802AbgAMXxN (ORCPT
+        Tue, 14 Jan 2020 00:45:15 -0500
+Received: from m9785.mail.qiye.163.com ([220.181.97.85]:53014 "EHLO
+        m9785.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725819AbgANFpP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Jan 2020 18:53:13 -0500
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1ir9W9-00011t-FS; Tue, 14 Jan 2020 00:53:09 +0100
-Date:   Tue, 14 Jan 2020 00:53:09 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [RFC nf-next 0/4] netfilter: conntrack: allow insertion of
- clashing entries
-Message-ID: <20200113235309.GM795@breakpoint.cc>
-References: <20200108134500.31727-1-fw@strlen.de>
+        Tue, 14 Jan 2020 00:45:15 -0500
+Received: from [192.168.188.14] (unknown [120.132.1.226])
+        by m9785.mail.qiye.163.com (Hmail) with ESMTPA id 1AFA55C19C5;
+        Tue, 14 Jan 2020 13:45:09 +0800 (CST)
+Subject: Re: [PATCH nf-next 9/9] netfilter: flowtable: add
+ nf_flow_table_offload_cmd()
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20200113181554.52612-1-pablo@netfilter.org>
+ <20200113181554.52612-9-pablo@netfilter.org>
+From:   wenxu <wenxu@ucloud.cn>
+Message-ID: <30705b0a-11ad-cd80-ffa6-f855b2e3c174@ucloud.cn>
+Date:   Tue, 14 Jan 2020 13:45:05 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200108134500.31727-1-fw@strlen.de>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20200113181554.52612-9-pablo@netfilter.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSkhNQkJCQk1PTEpPS05ZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MT46Qzo6Szg5GjIsET8pPE4j
+        Qk0wCh1VSlVKTkxDQkNLTEtCTkxNVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
+        SElVSlVJSU1ZV1kIAVlBSExNSjcG
+X-HM-Tid: 0a6fa29593392087kuqy1afa55c19c5
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Florian Westphal <fw@strlen.de> wrote:
-> This entire series isn't nice but so far I did not find a better
-> solution.
 
-I did consider getting rid of the unconfirmed list, but this is also
-problematic.
+On 1/14/2020 2:15 AM, Pablo Neira Ayuso wrote:
+> Split nf_flow_table_offload_setup() in two functions to make it more
+> maintainable.
+>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  net/netfilter/nf_flow_table_offload.c | 38 +++++++++++++++++++++++++----------
+>  1 file changed, 27 insertions(+), 11 deletions(-)
+>
+> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+> index a08756dc96e4..cb10d903cc47 100644
+> --- a/net/netfilter/nf_flow_table_offload.c
+> +++ b/net/netfilter/nf_flow_table_offload.c
+> @@ -838,12 +838,12 @@ static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
+>  	return err;
+>  }
+>  
+> -int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
+> -				struct net_device *dev,
+> -				enum flow_block_command cmd)
+> +static int nf_flow_table_offload_cmd(struct flow_block_offload *bo,
+> +				     struct nf_flowtable *flowtable,
+> +				     struct net_device *dev,
+> +				     enum flow_block_command cmd,
+> +				     struct netlink_ext_ack *extack)
+>  {
+> -	struct netlink_ext_ack extack = {};
+> -	struct flow_block_offload bo = {};
+>  	int err;
+>  
+>  	if (!nf_flowtable_hw_offload(flowtable))
+> @@ -852,17 +852,33 @@ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
+>  	if (!dev->netdev_ops->ndo_setup_tc)
+>  		return -EOPNOTSUPP;
+>  
+> -	bo.net		= dev_net(dev);
+> -	bo.block	= &flowtable->flow_block;
+> -	bo.command	= cmd;
+> -	bo.binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
+> -	bo.extack	= &extack;
+> -	INIT_LIST_HEAD(&bo.cb_list);
+> +	memset(bo, 0, sizeof(*bo));
+> +	bo->net		= dev_net(dev);
+> +	bo->block	= &flowtable->flow_block;
+> +	bo->command	= cmd;
+> +	bo->binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
+> +	bo->extack	= extack;
+> +	INIT_LIST_HEAD(&bo->cb_list);
+>  
+>  	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_FT, &bo);
 
-At allocation time we do not know what kind of NAT transformations
-will be applied by the ruleset, i.e. we'd need another locking step to
-move the entries to the right location in the hash table.
+This callback should be :
 
-Same if the skb is dropped: we need to lock the conntrack table again to
-delete the newly added entry -- this isn't needed right now because the
-conntrack is only on the percpu unconfirmed list in this case.
+                err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_FT,  bo);
 
-This is also a problem because of conntrack events, we would have to
-seperate insertion and notification, else we'd flood userspace for every
-conntrack we create in case of a packet drop flood.
-
-Other solutions are:
-1. use a ruleset that assigns the same nat mapping for both A and AAAA
-   requests, or,
-2. steer all packets that might have this problem (i.e. udp dport 53) to
-    the same cpu core.
-
-Yet another solution would be a variation of this patch set:
-
-1. Only add the reply direction to the table (i.e. conntrack -L won't show
-   the duplicated entry).
-2. Add a new conntrack flag for the duplicate that guarantees the
-   conntrack is removed immediately when first reply packet comes in.
-   This would also have the effect that the conntrack can never be
-   assured, i.e. the "hidden duplicates" are always early-dropable if
-   conntrack table gets full.
-3. change event code to never report such duplicates to userspace.
+>  	if (err < 0)
+>  		return err;
+>  
+> +	return 0;
+> +}
+> +
+> +int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
+> +				struct net_device *dev,
+> +				enum flow_block_command cmd)
+> +{
+> +	struct netlink_ext_ack extack = {};
+> +	struct flow_block_offload bo;
+> +	int err;
+> +
+> +	err = nf_flow_table_offload_cmd(&bo, flowtable, dev, cmd, &extack);
+> +	if (err < 0)
+> +		return err;
+> +
+>  	return nf_flow_table_block_setup(flowtable, &bo, cmd);
+>  }
+>  EXPORT_SYMBOL_GPL(nf_flow_table_offload_setup);
