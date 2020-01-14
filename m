@@ -2,139 +2,119 @@ Return-Path: <SRS0=kgPV=3D=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56B3FC33CA9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 05:58:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99014C33CAE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 07:26:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 299D82072B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 05:58:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E576222C4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 07:26:22 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="urYHp5Wg"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725994AbgANF6e (ORCPT
+        id S1729449AbgANH0U (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 Jan 2020 00:58:34 -0500
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:60441 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725854AbgANF6e (ORCPT
+        Tue, 14 Jan 2020 02:26:20 -0500
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:36136 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729251AbgANH0T (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Jan 2020 00:58:34 -0500
-Received: from [192.168.188.14] (unknown [120.132.1.226])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 65008418E0;
-        Tue, 14 Jan 2020 13:58:29 +0800 (CST)
-Subject: Re: [PATCH nf-next 8/9] netfilter: flowtable: add
- flow_offload_tuple() helper
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20200113181554.52612-1-pablo@netfilter.org>
- <20200113181554.52612-8-pablo@netfilter.org>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <b7313b85-3c93-fba5-ea8f-47cdd5d7e4f7@ucloud.cn>
-Date:   Tue, 14 Jan 2020 13:58:26 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.9.1
+        Tue, 14 Jan 2020 02:26:19 -0500
+Received: by mail-wm1-f67.google.com with SMTP id p17so12462301wma.1;
+        Mon, 13 Jan 2020 23:26:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=jiCYJM3p9g7mHv0l5QKjZySrGo0xYWEW7P1c+G0gG1c=;
+        b=urYHp5WgdiyJ2FzUrZ/THbwnHqQb0dyutWCLTmLe4JGZPuzC1dX24dm19mpDIuE5NS
+         rJxRUh5a+BrMBk7NcuOAymQmWxifFDDdaMy7XZIQjnZuevBhszaFWU1YyCzXu8AwsUL9
+         tkpn8hChejNFAHUzqsomQ/JGTZFP7LTVPiM6b6s+lsGzKxSXrqOQIQaxJDMtXKz9ve3v
+         rYrpBzunWTWIsb67/8E7E88YQLEeMAGph6oKpdOx+kA06RgmNsaqgcixJCf4hKG7AxMW
+         TdEabt/0QSxM5ztEwQ97b33Po0K3hVCoC3/SpYg/zRp21Z8QcWMT08TB+x5O1C59L/g0
+         1BMA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=jiCYJM3p9g7mHv0l5QKjZySrGo0xYWEW7P1c+G0gG1c=;
+        b=XLyfq1UWIbu2lYqpwH/gX93xx1ArHm6yjaOWyQ8Xqr0pPNgn49Uyw0FmsQrvWcnA8M
+         tlmIVDIWpMiHySCvluHE88CMatqqgm3y3N4XXlDa20pys078d84q4lBwr47fwNHZLIDG
+         Wx1mu5V7wrW0f9sEzzcrvU0jZZjY9V822BcG1Q78N9nBE1IVm3Zd4Ow5a9i9HIbcGhcy
+         z4Xw+/HBpmzH9mT1FxSXvhr/FBn9WyHdIYffzZvkJr1vaQaYHOhrwEzIsvT7zZzc0Oku
+         0wQaQ5udSBG4oplOxYFMYLErTecP8VTM3O2atvF1btgSXrp5Gqao39jnNTo/8tlWEzr2
+         Gliw==
+X-Gm-Message-State: APjAAAVbNxWs4mC+Sprnr6+sDlN044124OJzKjirifkeLwAUr3JZ3DBB
+        rETCBrPwKQIa/titXx35v2gDFXYAVzk=
+X-Google-Smtp-Source: APXvYqzWOIZiK56I9jxXqr/hFmvMYuAe8Tix/5WvctTLmTQUntV+dzrWxzBlZTItUj0mvuKBXlKLGw==
+X-Received: by 2002:a7b:c1c7:: with SMTP id a7mr23865170wmj.168.1578986776918;
+        Mon, 13 Jan 2020 23:26:16 -0800 (PST)
+Received: from localhost.localdomain (bzq-82-81-225-244.cablep.bezeqint.net. [82.81.225.244])
+        by smtp.gmail.com with ESMTPSA id n10sm18247510wrt.14.2020.01.13.23.26.14
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 13 Jan 2020 23:26:15 -0800 (PST)
+From:   Eyal Birger <eyal.birger@gmail.com>
+To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org
+Cc:     Eyal Birger <eyal.birger@gmail.com>,
+        Shmulik Ladkani <shmulik.ladkani@gmail.com>
+Subject: [NET] netfilter: nat: fix ICMP header corruption on ICMP errors
+Date:   Tue, 14 Jan 2020 09:25:48 +0200
+Message-Id: <20200114072548.23426-1-eyal.birger@gmail.com>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-In-Reply-To: <20200113181554.52612-8-pablo@netfilter.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSkhKQkJCQk1CT0NJT0lZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6ND46Qyo*FTg0FjJMPzIMHlE8
-        HwEKFB9VSlVKTkxDQkNKTktCTU9LVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
-        SElVSlVJSU1ZV1kIAVlBT0xJTzcG
-X-HM-Tid: 0a6fa2a1c96c2086kuqy65008418e0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Commit 8303b7e8f018 ("netfilter: nat: fix spurious connection timeouts")
+made nf_nat_icmp_reply_translation() use icmp_manip_pkt() as the l4
+manipulation function for the outer packet on ICMP errors.
 
-On 1/14/2020 2:15 AM, Pablo Neira Ayuso wrote:
-> Consolidate code to configure the flow_cls_offload structure into one
-> helper function.
->
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  net/netfilter/nf_flow_table_offload.c | 47 ++++++++++++++++++-----------------
->  1 file changed, 24 insertions(+), 23 deletions(-)
->
-> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-> index 77b129f196c6..a08756dc96e4 100644
-> --- a/net/netfilter/nf_flow_table_offload.c
-> +++ b/net/netfilter/nf_flow_table_offload.c
-> @@ -592,23 +592,25 @@ static void nf_flow_offload_init(struct flow_cls_offload *cls_flow,
->  	cls_flow->cookie = (unsigned long)tuple;
->  }
->  
-> -static int flow_offload_tuple_add(struct flow_offload_work *offload,
-> -				  struct nf_flow_rule *flow_rule,
-> -				  enum flow_offload_tuple_dir dir)
-> +static int flow_offload_tuple(struct nf_flowtable *flowtable,
-> +			      struct flow_offload *flow,
-> +			      struct nf_flow_rule *flow_rule,
-> +			      enum flow_offload_tuple_dir dir,
-> +			      int priority, int cmd,
-> +			      struct list_head *block_cb_list)
->  {
-> -	struct nf_flowtable *flowtable = offload->flowtable;
->  	struct flow_cls_offload cls_flow = {};
->  	struct flow_block_cb *block_cb;
->  	struct netlink_ext_ack extack;
->  	__be16 proto = ETH_P_ALL;
->  	int err, i = 0;
->  
-> -	nf_flow_offload_init(&cls_flow, proto, offload->priority,
-> -			     FLOW_CLS_REPLACE,
-> -			     &offload->flow->tuplehash[dir].tuple, &extack);
-> -	cls_flow.rule = flow_rule->rule;
-> +	nf_flow_offload_init(&cls_flow, proto, priority, cmd,
-> +			     &flow->tuplehash[dir].tuple, &extack);
-> +	if (cmd == FLOW_CLS_REPLACE)
-> +		cls_flow.rule = flow_rule->rule;
->  
-> -	list_for_each_entry(block_cb, &flowtable->flow_block.cb_list, list) {
-> +	list_for_each_entry(block_cb, block_cb_list, list) {
->  		err = block_cb->cb(TC_SETUP_CLSFLOWER, &cls_flow,
->  				   block_cb->cb_priv);
->  		if (err < 0)
-> @@ -619,24 +621,23 @@ static int flow_offload_tuple_add(struct flow_offload_work *offload,
->  
->  	return i;
->  }
-> +EXPORT_SYMBOL_GPL(flow_offload_tuple);
-flow_offload_tuple is a static EXPORT_SYMBOL_GPL?
-> +
-> +static int flow_offload_tuple_add(struct flow_offload_work *offload,
-> +				  struct nf_flow_rule *flow_rule,
-> +				  enum flow_offload_tuple_dir dir)
-> +{
-> +	return flow_offload_tuple(offload->flowtable, offload->flow, flow_rule,
-> +				  dir, offload->priority, FLOW_CLS_REPLACE,
-> +				  &offload->flowtable->flow_block.cb_list);
-> +}
->  
->  static void flow_offload_tuple_del(struct flow_offload_work *offload,
->  				   enum flow_offload_tuple_dir dir)
->  {
-> -	struct nf_flowtable *flowtable = offload->flowtable;
-> -	struct flow_cls_offload cls_flow = {};
-> -	struct flow_block_cb *block_cb;
-> -	struct netlink_ext_ack extack;
-> -	__be16 proto = ETH_P_ALL;
-> -
-> -	nf_flow_offload_init(&cls_flow, proto, offload->priority,
-> -			     FLOW_CLS_DESTROY,
-> -			     &offload->flow->tuplehash[dir].tuple, &extack);
-> -
-> -	list_for_each_entry(block_cb, &flowtable->flow_block.cb_list, list)
-> -		block_cb->cb(TC_SETUP_CLSFLOWER, &cls_flow, block_cb->cb_priv);
-> -
-> -	set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
-> +	flow_offload_tuple(offload->flowtable, offload->flow, NULL,
-> +			   dir, offload->priority, FLOW_CLS_DESTROY,
-> +			   &offload->flowtable->flow_block.cb_list);
->  }
->  
->  static int flow_offload_rule_add(struct flow_offload_work *offload,
+However, icmp_manip_pkt() assumes the packet is an ICMP echo packet
+and therefore that the ICMP header's 'un' field is an ICMP echo id.
+
+This is not correct for ICMP error packets, and leads to bogus bytes
+being written the ICMP header, which can be wrongfully regarded as
+'length' bytes by RFC 4884 compliant receivers.
+
+Fix by assigning the 'id' field only for ICMP echo packets similar
+to the treatment in ICMPv6.
+
+Reported-by: Shmulik Ladkani <shmulik.ladkani@gmail.com>
+Fixes: 8303b7e8f018 ("netfilter: nat: fix spurious connection timeouts")
+Signed-off-by: Eyal Birger <eyal.birger@gmail.com>
+---
+ net/netfilter/nf_nat_proto.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
+index 0a59c14b5177..92ef91c120f4 100644
+--- a/net/netfilter/nf_nat_proto.c
++++ b/net/netfilter/nf_nat_proto.c
+@@ -233,9 +233,12 @@ icmp_manip_pkt(struct sk_buff *skb,
+ 		return false;
+ 
+ 	hdr = (struct icmphdr *)(skb->data + hdroff);
+-	inet_proto_csum_replace2(&hdr->checksum, skb,
+-				 hdr->un.echo.id, tuple->src.u.icmp.id, false);
+-	hdr->un.echo.id = tuple->src.u.icmp.id;
++	if (hdr->type == ICMP_ECHO || hdr->type == ICMP_ECHOREPLY) {
++		inet_proto_csum_replace2(&hdr->checksum, skb,
++					 hdr->un.echo.id, tuple->src.u.icmp.id,
++					 false);
++		hdr->un.echo.id = tuple->src.u.icmp.id;
++	}
+ 	return true;
+ }
+ 
+-- 
+2.20.1
+
