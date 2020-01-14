@@ -2,129 +2,98 @@ Return-Path: <SRS0=kgPV=3D=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E8E4C33C9E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 21:15:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3BACC33C9E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 21:29:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E783D24658
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 21:15:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 884F824656
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 21:29:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="ZqXyHlfP"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="oNTSaPu0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728765AbgANVPE (ORCPT
+        id S1728808AbgANV3C (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 Jan 2020 16:15:04 -0500
-Received: from smtp-out.kfki.hu ([148.6.0.46]:49463 "EHLO smtp-out.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727285AbgANVPE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Jan 2020 16:15:04 -0500
-Received: from localhost (localhost [127.0.0.1])
-        by smtp1.kfki.hu (Postfix) with ESMTP id 74BF53C80127;
-        Tue, 14 Jan 2020 22:15:01 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        blackhole.kfki.hu; h=mime-version:user-agent:references
-        :message-id:in-reply-to:from:from:date:date:received:received
-        :received; s=20151130; t=1579036499; x=1580850900; bh=T3rnTV9WMb
-        vW0zsYdqIpMfaaooTJQP0Ze2DVyLvu1fQ=; b=ZqXyHlfP5w/zIakAL2CrAqRr0H
-        FlV5upiQBt+bkyuS62qxdZlqzmMQXuudsdPB7OOmJbLWQav8vciMTBYG5bBQj1sX
-        2H2V53Ek5yVOZe7X3cIGXUkl7S16G5Td+xOZAOcOoOOSDzQB40ywRONcuU5GBabk
-        +/oF2iHKH0RSwpk6A=
-X-Virus-Scanned: Debian amavisd-new at smtp1.kfki.hu
-Received: from smtp1.kfki.hu ([127.0.0.1])
-        by localhost (smtp1.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Tue, 14 Jan 2020 22:14:59 +0100 (CET)
-Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.240.2])
-        by smtp1.kfki.hu (Postfix) with ESMTP id A76F73C80123;
-        Tue, 14 Jan 2020 22:14:58 +0100 (CET)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 91424222A3; Tue, 14 Jan 2020 22:14:58 +0100 (CET)
-Date:   Tue, 14 Jan 2020 22:14:58 +0100 (CET)
-From:   =?UTF-8?Q?Kadlecsik_J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>
-To:     Florian Westphal <fw@strlen.de>
-cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [RFC nf-next 0/4] netfilter: conntrack: allow insertion of
- clashing entries
-In-Reply-To: <20200113235309.GM795@breakpoint.cc>
-Message-ID: <alpine.DEB.2.20.2001142031060.17014@blackhole.kfki.hu>
-References: <20200108134500.31727-1-fw@strlen.de> <20200113235309.GM795@breakpoint.cc>
-User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
+        Tue, 14 Jan 2020 16:29:02 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:55004 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728757AbgANV3C (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 14 Jan 2020 16:29:02 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=UQY06JH4aBEgG6zv15PB3e7+5O8KmjXZauT/V4ts2+4=; b=oNTSaPu0rIndSQDxPgXaTZ3Jk/
+        2JxWA9zCBkDUCH2vsQ1rIm1lM3NaJ+iDi3X/gTOZn9AwskAveCb3bx55mJw4pW5+WYosTp2HVY9Mj
+        YWHVhfzJq1RFyNo3sebqkPsADxZ0fXWA91BB9TW7ZLvVoqqMXDV2n5ITujfEUWIOle0C1y9mPtIP6
+        5FIHjK+dZrgefvXqLmaugUcWwr1emqAdZGrTUz14XNf156j9mhRtyamokp5nW6TLArNpBtP89RZEA
+        VqfyrEoEZ3aZlGQqi5IeCwHJ56MHnXDc17TgG0IHROBuafigv3DihdUhAjmM6X/HeM8B+vF3SUMZh
+        ZecJxR6w==;
+Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
+        by kadath.azazel.net with esmtp (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1irTkC-0001CO-Lo; Tue, 14 Jan 2020 21:29:00 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH nf-next 1/3] netfilter: nf_tables: white-space fixes.
+Date:   Tue, 14 Jan 2020 21:28:58 +0000
+Message-Id: <20200114212900.134015-2-jeremy@azazel.net>
+X-Mailer: git-send-email 2.24.1
+In-Reply-To: <20200114212900.134015-1-jeremy@azazel.net>
+References: <20200114212900.134015-1-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Florian,
+Indentation fixes for the parameters of a couple of nft set functions.
 
-On Tue, 14 Jan 2020, Florian Westphal wrote:
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ net/netfilter/nft_set_bitmap.c | 4 ++--
+ net/netfilter/nft_set_hash.c   | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-> Florian Westphal <fw@strlen.de> wrote:
-> > This entire series isn't nice but so far I did not find a better
-> > solution.
-> 
-> I did consider getting rid of the unconfirmed list, but this is also
-> problematic.
-> 
-> At allocation time we do not know what kind of NAT transformations
-> will be applied by the ruleset, i.e. we'd need another locking step to
-> move the entries to the right location in the hash table.
-> 
-> Same if the skb is dropped: we need to lock the conntrack table again to
-> delete the newly added entry -- this isn't needed right now because the
-> conntrack is only on the percpu unconfirmed list in this case.
-> 
-> This is also a problem because of conntrack events, we would have to
-> seperate insertion and notification, else we'd flood userspace for every
-> conntrack we create in case of a packet drop flood.
-> 
-> Other solutions are:
-> 1. use a ruleset that assigns the same nat mapping for both A and AAAA
->    requests, or,
-> 2. steer all packets that might have this problem (i.e. udp dport 53) to
->     the same cpu core.
-> 
-> Yet another solution would be a variation of this patch set:
-> 
-> 1. Only add the reply direction to the table (i.e. conntrack -L won't show
->    the duplicated entry).
-> 2. Add a new conntrack flag for the duplicate that guarantees the
->    conntrack is removed immediately when first reply packet comes in.
->    This would also have the effect that the conntrack can never be
->    assured, i.e. the "hidden duplicates" are always early-dropable if
->    conntrack table gets full.
-> 3. change event code to never report such duplicates to userspace.
+diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
+index 087a056e34d1..87e8d9ba0c9b 100644
+--- a/net/netfilter/nft_set_bitmap.c
++++ b/net/netfilter/nft_set_bitmap.c
+@@ -259,8 +259,8 @@ static u64 nft_bitmap_privsize(const struct nlattr * const nla[],
+ }
+ 
+ static int nft_bitmap_init(const struct nft_set *set,
+-			 const struct nft_set_desc *desc,
+-			 const struct nlattr * const nla[])
++			   const struct nft_set_desc *desc,
++			   const struct nlattr * const nla[])
+ {
+ 	struct nft_bitmap *priv = nft_set_priv(set);
+ 
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index b331a3c9a3a8..d350a7cd3af0 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -645,7 +645,7 @@ static bool nft_hash_estimate(const struct nft_set_desc *desc, u32 features,
+ }
+ 
+ static bool nft_hash_fast_estimate(const struct nft_set_desc *desc, u32 features,
+-			      struct nft_set_estimate *est)
++				   struct nft_set_estimate *est)
+ {
+ 	if (!desc->size)
+ 		return false;
+-- 
+2.24.1
 
-Somehow my general feeling is that all proposed fixes in conntrack could 
-in some cases break other non single-request - single-response UDP 
-applications.
-
-Reading about the kubernetes issue as far as I see
-
-a. When the pods run glibc based systems, the issue could easily be
-   fixed by configuring the real DNS server IP addresses in the pods
-   resolv.conf files with "options single-request single-request-reopen" 
-   enabled. 
-b. When the pods run musl based systems, there's no such a solution
-   because the main musl developer refused to implement the required
-   RES_SNGLKUP and RES_SNGLKUPREOP options in musl.
-
-However, I think there's a general already available solution in iptables: 
-force the same DNAT mapping for the packets of the same socket by the 
-HMARK target. Something like this:
-
--t raw -p udp --dport 53 -j HMARK --hmark-tuple src,sport \
-	--hmark-mod 1 --hmark-offset 10 --hmark-rnd 0xdeafbeef
--t nat -p udp --dport 53 -m state --state NEW -m mark --mark 10 -j DNAT ..
--t nat -p udp --dport 53 -m state --state NEW -m mark --mark 11 -j DNAT ..
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
