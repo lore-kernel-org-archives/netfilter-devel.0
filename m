@@ -6,123 +6,96 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49920C33CB3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 09:32:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A001AC33CB1
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 10:00:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2A876207FF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 09:32:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 72766207E0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 10:00:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727285AbgANJc1 (ORCPT
+        id S1727556AbgANKAm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 Jan 2020 04:32:27 -0500
-Received: from correo.us.es ([193.147.175.20]:43012 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726044AbgANJc1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Jan 2020 04:32:27 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6ACBD12C1EC
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Jan 2020 10:32:25 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5A71BDA713
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Jan 2020 10:32:25 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 4F930DA720; Tue, 14 Jan 2020 10:32:25 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1B546DA716
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Jan 2020 10:32:23 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 14 Jan 2020 10:32:23 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 051A842EF532
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Jan 2020 10:32:22 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v2 9/9] netfilter: flowtable: add nf_flow_table_offload_cmd()
-Date:   Tue, 14 Jan 2020 10:32:18 +0100
-Message-Id: <20200114093218.218095-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20200114093218.218095-1-pablo@netfilter.org>
-References: <20200114093218.218095-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Tue, 14 Jan 2020 05:00:42 -0500
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:56971 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725820AbgANKAm (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 14 Jan 2020 05:00:42 -0500
+Received: from localhost.localdomain (unknown [123.59.132.129])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 99A9B40F54;
+        Tue, 14 Jan 2020 18:00:40 +0800 (CST)
+From:   wenxu@ucloud.cn
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next v4 1/4] netfilter: flowtable: add nf_flow_table_block_offload_init()
+Date:   Tue, 14 Jan 2020 18:00:37 +0800
+Message-Id: <1578996040-6413-2-git-send-email-wenxu@ucloud.cn>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1578996040-6413-1-git-send-email-wenxu@ucloud.cn>
+References: <1578996040-6413-1-git-send-email-wenxu@ucloud.cn>
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSkJCS0tLS0tLQk5ITUxZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6P006MSo5Fzg#AjI*SzcqGAMa
+        PjkaCUNVSlVKTkxDQkJNS09LTUNLVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUlNSU83Bg++
+X-HM-Tid: 0a6fa37f83c12086kuqy99a9b40f54
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Split nf_flow_table_offload_setup() in two functions to make it more
-maintainable.
+From: wenxu <wenxu@ucloud.cn>
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Add nf_flow_table_block_offload_init prepare for the indr block
+offload patch
+
+Signed-off-by: wenxu <wenxu@ucloud.cn>
 ---
-v2: Fix incorrect dereference to flow_block_offload structure - wenxu.
-
- net/netfilter/nf_flow_table_offload.c | 40 ++++++++++++++++++++++++-----------
- 1 file changed, 28 insertions(+), 12 deletions(-)
+ net/netfilter/nf_flow_table_offload.c | 25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
 diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index ea840f82e1f9..865ec5c83d5b 100644
+index 865ec5c..e869238 100644
 --- a/net/netfilter/nf_flow_table_offload.c
 +++ b/net/netfilter/nf_flow_table_offload.c
-@@ -837,12 +837,12 @@ static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
+@@ -837,6 +837,21 @@ static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
  	return err;
  }
  
--int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
--				struct net_device *dev,
--				enum flow_block_command cmd)
-+static int nf_flow_table_offload_cmd(struct flow_block_offload *bo,
-+				     struct nf_flowtable *flowtable,
-+				     struct net_device *dev,
-+				     enum flow_block_command cmd,
-+				     struct netlink_ext_ack *extack)
- {
--	struct netlink_ext_ack extack = {};
--	struct flow_block_offload bo = {};
- 	int err;
- 
- 	if (!nf_flowtable_hw_offload(flowtable))
-@@ -851,14 +851,30 @@ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
- 	if (!dev->netdev_ops->ndo_setup_tc)
- 		return -EOPNOTSUPP;
- 
--	bo.net		= dev_net(dev);
--	bo.block	= &flowtable->flow_block;
--	bo.command	= cmd;
--	bo.binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
--	bo.extack	= &extack;
--	INIT_LIST_HEAD(&bo.cb_list);
++static void nf_flow_table_block_offload_init(struct flow_block_offload *bo,
++					     struct net *net,
++					     enum flow_block_command cmd,
++					     struct nf_flowtable *flowtable,
++					     struct netlink_ext_ack *extack)
++{
 +	memset(bo, 0, sizeof(*bo));
-+	bo->net		= dev_net(dev);
++	bo->net		= net;
 +	bo->block	= &flowtable->flow_block;
 +	bo->command	= cmd;
 +	bo->binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
 +	bo->extack	= extack;
 +	INIT_LIST_HEAD(&bo->cb_list);
-+
-+	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_FT, bo);
-+	if (err < 0)
-+		return err;
-+
-+	return 0;
 +}
 +
-+int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
-+				struct net_device *dev,
-+				enum flow_block_command cmd)
-+{
-+	struct netlink_ext_ack extack = {};
-+	struct flow_block_offload bo;
-+	int err;
+ static int nf_flow_table_offload_cmd(struct flow_block_offload *bo,
+ 				     struct nf_flowtable *flowtable,
+ 				     struct net_device *dev,
+@@ -851,14 +866,8 @@ static int nf_flow_table_offload_cmd(struct flow_block_offload *bo,
+ 	if (!dev->netdev_ops->ndo_setup_tc)
+ 		return -EOPNOTSUPP;
  
--	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_FT, &bo);
-+	err = nf_flow_table_offload_cmd(&bo, flowtable, dev, cmd, &extack);
+-	memset(bo, 0, sizeof(*bo));
+-	bo->net		= dev_net(dev);
+-	bo->block	= &flowtable->flow_block;
+-	bo->command	= cmd;
+-	bo->binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
+-	bo->extack	= extack;
+-	INIT_LIST_HEAD(&bo->cb_list);
+-
++	nf_flow_table_block_offload_init(bo, dev_net(dev), cmd, flowtable,
++					 extack);
+ 	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_FT, bo);
  	if (err < 0)
  		return err;
- 
 -- 
-2.11.0
+1.8.3.1
 
