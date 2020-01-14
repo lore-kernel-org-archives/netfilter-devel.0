@@ -2,101 +2,129 @@ Return-Path: <SRS0=kgPV=3D=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE207C33C9E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 17:04:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E8E4C33C9E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 21:15:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C66872465A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 17:04:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E783D24658
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 21:15:04 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="ZqXyHlfP"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728558AbgANREM (ORCPT
+        id S1728765AbgANVPE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 Jan 2020 12:04:12 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:45684 "EHLO orbyte.nwl.cc"
+        Tue, 14 Jan 2020 16:15:04 -0500
+Received: from smtp-out.kfki.hu ([148.6.0.46]:49463 "EHLO smtp-out.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726053AbgANREM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Jan 2020 12:04:12 -0500
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1irPbv-0001tq-5W; Tue, 14 Jan 2020 18:04:11 +0100
-Date:   Tue, 14 Jan 2020 18:04:11 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nft 1/3] libnftables: add nft_ctx_set_netns()
-Message-ID: <20200114170411.GA19873@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-References: <20200109172115.229723-1-pablo@netfilter.org>
- <20200109172115.229723-2-pablo@netfilter.org>
- <20200110125311.GP20229@orbyte.nwl.cc>
- <20200112102802.7bvwieqaza3zdbza@salvia>
- <20200112104027.ijjcv34glvnkhnvc@salvia>
- <20200114102516.GD20229@orbyte.nwl.cc>
- <20200114103835.toksgmp6krbmh4ei@salvia>
+        id S1727285AbgANVPE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 14 Jan 2020 16:15:04 -0500
+Received: from localhost (localhost [127.0.0.1])
+        by smtp1.kfki.hu (Postfix) with ESMTP id 74BF53C80127;
+        Tue, 14 Jan 2020 22:15:01 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        blackhole.kfki.hu; h=mime-version:user-agent:references
+        :message-id:in-reply-to:from:from:date:date:received:received
+        :received; s=20151130; t=1579036499; x=1580850900; bh=T3rnTV9WMb
+        vW0zsYdqIpMfaaooTJQP0Ze2DVyLvu1fQ=; b=ZqXyHlfP5w/zIakAL2CrAqRr0H
+        FlV5upiQBt+bkyuS62qxdZlqzmMQXuudsdPB7OOmJbLWQav8vciMTBYG5bBQj1sX
+        2H2V53Ek5yVOZe7X3cIGXUkl7S16G5Td+xOZAOcOoOOSDzQB40ywRONcuU5GBabk
+        +/oF2iHKH0RSwpk6A=
+X-Virus-Scanned: Debian amavisd-new at smtp1.kfki.hu
+Received: from smtp1.kfki.hu ([127.0.0.1])
+        by localhost (smtp1.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Tue, 14 Jan 2020 22:14:59 +0100 (CET)
+Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.240.2])
+        by smtp1.kfki.hu (Postfix) with ESMTP id A76F73C80123;
+        Tue, 14 Jan 2020 22:14:58 +0100 (CET)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id 91424222A3; Tue, 14 Jan 2020 22:14:58 +0100 (CET)
+Date:   Tue, 14 Jan 2020 22:14:58 +0100 (CET)
+From:   =?UTF-8?Q?Kadlecsik_J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>
+To:     Florian Westphal <fw@strlen.de>
+cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [RFC nf-next 0/4] netfilter: conntrack: allow insertion of
+ clashing entries
+In-Reply-To: <20200113235309.GM795@breakpoint.cc>
+Message-ID: <alpine.DEB.2.20.2001142031060.17014@blackhole.kfki.hu>
+References: <20200108134500.31727-1-fw@strlen.de> <20200113235309.GM795@breakpoint.cc>
+User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200114103835.toksgmp6krbmh4ei@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+Hi Florian,
 
-On Tue, Jan 14, 2020 at 11:38:35AM +0100, Pablo Neira Ayuso wrote:
-> On Tue, Jan 14, 2020 at 11:25:16AM +0100, Phil Sutter wrote:
-> > On Sun, Jan 12, 2020 at 11:40:27AM +0100, Pablo Neira Ayuso wrote:
-> > > On Sun, Jan 12, 2020 at 11:28:02AM +0100, Pablo Neira Ayuso wrote:
-> > > > On Fri, Jan 10, 2020 at 01:53:11PM +0100, Phil Sutter wrote:
-> > > > > On Thu, Jan 09, 2020 at 06:21:13PM +0100, Pablo Neira Ayuso wrote:
-[...]
-> > > > > >  struct nft_ctx *nft_ctx_new(uint32_t flags);
-> > > > > >  void nft_ctx_free(struct nft_ctx *ctx);
-> > > > > >  
-> > > > > > +int nft_ctx_set_netns(struct nft_ctx *ctx, const char *netns);
-> > > > > 
-> > > > > Is there a way to select init ns again?
-> > > > 
-> > > > AFAIK, setns() does not let you go back to init ns once set.
+On Tue, 14 Jan 2020, Florian Westphal wrote:
 
-FWIW, I found interesting Python code[1] dealing with that. The logic is
-to open /proc/$$/ns/net before switching netns and storing the fd for
-later. To exit the netns again, it is passed to setns() and then closed.
-Note that the code there is much simpler and doesn't deal with mounts or
-non-existing entries in /var/run/netns/. Maybe libnftables doesn't need
-to either and it is OK to just bail if given netns doesn't exist?
-
-> > I noticed something I find worse, namely that libnftables as a library
-> > changes the application's netns. Anything it does after changing the
-> > context's netns applies to that netns only, no matter if it's creating a
-> > new nft context with NFT_CtX_DEFAULT flag or call iproute via system().
-> > 
-> > If we can't find a way to exit the netns again, one can safely assume
-> > that we are trapping a user's application in a netns with this feature.
+> Florian Westphal <fw@strlen.de> wrote:
+> > This entire series isn't nice but so far I did not find a better
+> > solution.
 > 
-> IIRC, you can fork(), then let the child enter the netns while parent
-> remain in the original netns.
-
-Yes, that's also the only way to operate in multiple netns in parallel.
-
-> > Maybe we should restrict per-netns operation to nft utility and perform
-> > the netns switch there? Maybe we could provide a "switch_netns()"
-> > routine in libnftables which is not bound to nft context so users may
-> > use it in their application?
+> I did consider getting rid of the unconfirmed list, but this is also
+> problematic.
 > 
-> That's another possibility, yes. In that case, there is no need for
-> NFT_CTX_NETNS, which is just there to skip the socket initialization.
+> At allocation time we do not know what kind of NAT transformations
+> will be applied by the ruleset, i.e. we'd need another locking step to
+> move the entries to the right location in the hash table.
+> 
+> Same if the skb is dropped: we need to lock the conntrack table again to
+> delete the newly added entry -- this isn't needed right now because the
+> conntrack is only on the percpu unconfirmed list in this case.
+> 
+> This is also a problem because of conntrack events, we would have to
+> seperate insertion and notification, else we'd flood userspace for every
+> conntrack we create in case of a packet drop flood.
+> 
+> Other solutions are:
+> 1. use a ruleset that assigns the same nat mapping for both A and AAAA
+>    requests, or,
+> 2. steer all packets that might have this problem (i.e. udp dport 53) to
+>     the same cpu core.
+> 
+> Yet another solution would be a variation of this patch set:
+> 
+> 1. Only add the reply direction to the table (i.e. conntrack -L won't show
+>    the duplicated entry).
+> 2. Add a new conntrack flag for the duplicate that guarantees the
+>    conntrack is removed immediately when first reply packet comes in.
+>    This would also have the effect that the conntrack can never be
+>    assured, i.e. the "hidden duplicates" are always early-dropable if
+>    conntrack table gets full.
+> 3. change event code to never report such duplicates to userspace.
 
-I just think that a routine which affects things outside of nft scope
-shouldn't be tied as closely with nft context.
+Somehow my general feeling is that all proposed fixes in conntrack could 
+in some cases break other non single-request - single-response UDP 
+applications.
 
-Cheers, Phil
+Reading about the kubernetes issue as far as I see
 
-[1] https://github.com/larsks/python-netns/blob/master/netns.py
+a. When the pods run glibc based systems, the issue could easily be
+   fixed by configuring the real DNS server IP addresses in the pods
+   resolv.conf files with "options single-request single-request-reopen" 
+   enabled. 
+b. When the pods run musl based systems, there's no such a solution
+   because the main musl developer refused to implement the required
+   RES_SNGLKUP and RES_SNGLKUPREOP options in musl.
+
+However, I think there's a general already available solution in iptables: 
+force the same DNAT mapping for the packets of the same socket by the 
+HMARK target. Something like this:
+
+-t raw -p udp --dport 53 -j HMARK --hmark-tuple src,sport \
+	--hmark-mod 1 --hmark-offset 10 --hmark-rnd 0xdeafbeef
+-t nat -p udp --dport 53 -m state --state NEW -m mark --mark 10 -j DNAT ..
+-t nat -p udp --dport 53 -m state --state NEW -m mark --mark 11 -j DNAT ..
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
