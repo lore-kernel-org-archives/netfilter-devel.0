@@ -6,136 +6,123 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90F80C33CB1
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 09:32:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49920C33CB3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 09:32:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6DC03207FF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 09:32:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2A876207FF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jan 2020 09:32:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726452AbgANJc1 (ORCPT
+        id S1727285AbgANJc1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Tue, 14 Jan 2020 04:32:27 -0500
-Received: from correo.us.es ([193.147.175.20]:43000 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:43012 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725820AbgANJc1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1726044AbgANJc1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 14 Jan 2020 04:32:27 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 305C612C1E8
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Jan 2020 10:32:24 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 6ACBD12C1EC
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Jan 2020 10:32:25 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 21CA7DA714
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Jan 2020 10:32:24 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5A71BDA713
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Jan 2020 10:32:25 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 1775BDA70E; Tue, 14 Jan 2020 10:32:24 +0100 (CET)
+        id 4F930DA720; Tue, 14 Jan 2020 10:32:25 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E2BCBDA714
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Jan 2020 10:32:21 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1B546DA716
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Jan 2020 10:32:23 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 14 Jan 2020 10:32:21 +0100 (CET)
+ Tue, 14 Jan 2020 10:32:23 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id CD06942EF535
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Jan 2020 10:32:21 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 051A842EF532
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Jan 2020 10:32:22 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v2 8/9] netfilter: flowtable: add flow_offload_tuple() helper
-Date:   Tue, 14 Jan 2020 10:32:17 +0100
-Message-Id: <20200114093218.218095-1-pablo@netfilter.org>
+Subject: [PATCH nf-next,v2 9/9] netfilter: flowtable: add nf_flow_table_offload_cmd()
+Date:   Tue, 14 Jan 2020 10:32:18 +0100
+Message-Id: <20200114093218.218095-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20200114093218.218095-1-pablo@netfilter.org>
+References: <20200114093218.218095-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Consolidate code to configure the flow_cls_offload structure into one
-helper function.
+Split nf_flow_table_offload_setup() in two functions to make it more
+maintainable.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: remove EXPORT_SYMBOL() - wenxu.
+v2: Fix incorrect dereference to flow_block_offload structure - wenxu.
 
- net/netfilter/nf_flow_table_offload.c | 46 +++++++++++++++++------------------
- 1 file changed, 23 insertions(+), 23 deletions(-)
+ net/netfilter/nf_flow_table_offload.c | 40 ++++++++++++++++++++++++-----------
+ 1 file changed, 28 insertions(+), 12 deletions(-)
 
 diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 77b129f196c6..ea840f82e1f9 100644
+index ea840f82e1f9..865ec5c83d5b 100644
 --- a/net/netfilter/nf_flow_table_offload.c
 +++ b/net/netfilter/nf_flow_table_offload.c
-@@ -592,23 +592,25 @@ static void nf_flow_offload_init(struct flow_cls_offload *cls_flow,
- 	cls_flow->cookie = (unsigned long)tuple;
+@@ -837,12 +837,12 @@ static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
+ 	return err;
  }
  
--static int flow_offload_tuple_add(struct flow_offload_work *offload,
--				  struct nf_flow_rule *flow_rule,
--				  enum flow_offload_tuple_dir dir)
-+static int flow_offload_tuple(struct nf_flowtable *flowtable,
-+			      struct flow_offload *flow,
-+			      struct nf_flow_rule *flow_rule,
-+			      enum flow_offload_tuple_dir dir,
-+			      int priority, int cmd,
-+			      struct list_head *block_cb_list)
+-int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
+-				struct net_device *dev,
+-				enum flow_block_command cmd)
++static int nf_flow_table_offload_cmd(struct flow_block_offload *bo,
++				     struct nf_flowtable *flowtable,
++				     struct net_device *dev,
++				     enum flow_block_command cmd,
++				     struct netlink_ext_ack *extack)
  {
--	struct nf_flowtable *flowtable = offload->flowtable;
- 	struct flow_cls_offload cls_flow = {};
- 	struct flow_block_cb *block_cb;
- 	struct netlink_ext_ack extack;
- 	__be16 proto = ETH_P_ALL;
- 	int err, i = 0;
+-	struct netlink_ext_ack extack = {};
+-	struct flow_block_offload bo = {};
+ 	int err;
  
--	nf_flow_offload_init(&cls_flow, proto, offload->priority,
--			     FLOW_CLS_REPLACE,
--			     &offload->flow->tuplehash[dir].tuple, &extack);
--	cls_flow.rule = flow_rule->rule;
-+	nf_flow_offload_init(&cls_flow, proto, priority, cmd,
-+			     &flow->tuplehash[dir].tuple, &extack);
-+	if (cmd == FLOW_CLS_REPLACE)
-+		cls_flow.rule = flow_rule->rule;
+ 	if (!nf_flowtable_hw_offload(flowtable))
+@@ -851,14 +851,30 @@ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
+ 	if (!dev->netdev_ops->ndo_setup_tc)
+ 		return -EOPNOTSUPP;
  
--	list_for_each_entry(block_cb, &flowtable->flow_block.cb_list, list) {
-+	list_for_each_entry(block_cb, block_cb_list, list) {
- 		err = block_cb->cb(TC_SETUP_CLSFLOWER, &cls_flow,
- 				   block_cb->cb_priv);
- 		if (err < 0)
-@@ -620,23 +622,21 @@ static int flow_offload_tuple_add(struct flow_offload_work *offload,
- 	return i;
- }
- 
-+static int flow_offload_tuple_add(struct flow_offload_work *offload,
-+				  struct nf_flow_rule *flow_rule,
-+				  enum flow_offload_tuple_dir dir)
-+{
-+	return flow_offload_tuple(offload->flowtable, offload->flow, flow_rule,
-+				  dir, offload->priority, FLOW_CLS_REPLACE,
-+				  &offload->flowtable->flow_block.cb_list);
+-	bo.net		= dev_net(dev);
+-	bo.block	= &flowtable->flow_block;
+-	bo.command	= cmd;
+-	bo.binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
+-	bo.extack	= &extack;
+-	INIT_LIST_HEAD(&bo.cb_list);
++	memset(bo, 0, sizeof(*bo));
++	bo->net		= dev_net(dev);
++	bo->block	= &flowtable->flow_block;
++	bo->command	= cmd;
++	bo->binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
++	bo->extack	= extack;
++	INIT_LIST_HEAD(&bo->cb_list);
++
++	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_FT, bo);
++	if (err < 0)
++		return err;
++
++	return 0;
 +}
 +
- static void flow_offload_tuple_del(struct flow_offload_work *offload,
- 				   enum flow_offload_tuple_dir dir)
- {
--	struct nf_flowtable *flowtable = offload->flowtable;
--	struct flow_cls_offload cls_flow = {};
--	struct flow_block_cb *block_cb;
--	struct netlink_ext_ack extack;
--	__be16 proto = ETH_P_ALL;
--
--	nf_flow_offload_init(&cls_flow, proto, offload->priority,
--			     FLOW_CLS_DESTROY,
--			     &offload->flow->tuplehash[dir].tuple, &extack);
--
--	list_for_each_entry(block_cb, &flowtable->flow_block.cb_list, list)
--		block_cb->cb(TC_SETUP_CLSFLOWER, &cls_flow, block_cb->cb_priv);
--
--	set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
-+	flow_offload_tuple(offload->flowtable, offload->flow, NULL,
-+			   dir, offload->priority, FLOW_CLS_DESTROY,
-+			   &offload->flowtable->flow_block.cb_list);
- }
++int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
++				struct net_device *dev,
++				enum flow_block_command cmd)
++{
++	struct netlink_ext_ack extack = {};
++	struct flow_block_offload bo;
++	int err;
  
- static int flow_offload_rule_add(struct flow_offload_work *offload,
+-	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_FT, &bo);
++	err = nf_flow_table_offload_cmd(&bo, flowtable, dev, cmd, &extack);
+ 	if (err < 0)
+ 		return err;
+ 
 -- 
 2.11.0
 
