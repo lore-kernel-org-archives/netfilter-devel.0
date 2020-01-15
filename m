@@ -2,105 +2,111 @@ Return-Path: <SRS0=+R7G=3E=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FAE0C33CB1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Jan 2020 07:58:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 409DEC33CB1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Jan 2020 09:29:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4A3BA214AF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Jan 2020 07:58:06 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="sljkh+Vx"
+	by mail.kernel.org (Postfix) with ESMTP id 1E5ED207FF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Jan 2020 09:29:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728981AbgAOH6G (ORCPT
+        id S1729372AbgAOJ3M (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 Jan 2020 02:58:06 -0500
-Received: from smtp-out.kfki.hu ([148.6.0.45]:44385 "EHLO smtp-out.kfki.hu"
+        Wed, 15 Jan 2020 04:29:12 -0500
+Received: from correo.us.es ([193.147.175.20]:48952 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728932AbgAOH6F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Jan 2020 02:58:05 -0500
-Received: from localhost (localhost [127.0.0.1])
-        by smtp0.kfki.hu (Postfix) with ESMTP id 2F61F67400F6;
-        Wed, 15 Jan 2020 08:58:04 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        blackhole.kfki.hu; h=mime-version:user-agent:references
-        :message-id:in-reply-to:from:from:date:date:received:received
-        :received; s=20151130; t=1579075081; x=1580889482; bh=YubHS8eMHx
-        etMK2ALaYfcbCTvcLF4NdRq2nd44EM2vQ=; b=sljkh+VxifQqRZSJhe8uJNuxy2
-        376fSd+brrgSWFZSazHc6RyHNoMOmXcvleKPyvYxLBUPOHIpiskXNLnsysD93oro
-        H55y8eRzZ7xsUPTylPz7d730snEGQa48N2ebDtaip+Yo/it+pBlDVDRaEy42XMgo
-        bHPpEwaVtzTYXsWnk=
-X-Virus-Scanned: Debian amavisd-new at smtp0.kfki.hu
-Received: from smtp0.kfki.hu ([127.0.0.1])
-        by localhost (smtp0.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Wed, 15 Jan 2020 08:58:01 +0100 (CET)
-Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.240.2])
-        by smtp0.kfki.hu (Postfix) with ESMTP id D09AA67400F8;
-        Wed, 15 Jan 2020 08:58:01 +0100 (CET)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 9A8A320C5E; Wed, 15 Jan 2020 08:58:01 +0100 (CET)
-Date:   Wed, 15 Jan 2020 08:58:01 +0100 (CET)
-From:   =?UTF-8?Q?Kadlecsik_J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>
-To:     Florian Westphal <fw@strlen.de>
-cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [RFC nf-next 0/4] netfilter: conntrack: allow insertion of
- clashing entries
-In-Reply-To: <20200114222127.GP795@breakpoint.cc>
-Message-ID: <alpine.DEB.2.20.2001150848360.19314@blackhole.kfki.hu>
-References: <20200108134500.31727-1-fw@strlen.de> <20200113235309.GM795@breakpoint.cc> <alpine.DEB.2.20.2001142031060.17014@blackhole.kfki.hu> <20200114222127.GP795@breakpoint.cc>
-User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
+        id S1729143AbgAOJ3M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 15 Jan 2020 04:29:12 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id C4E6BFF9A5
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Jan 2020 10:29:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B5653DA716
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Jan 2020 10:29:09 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id B49D9DA712; Wed, 15 Jan 2020 10:29:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B1D66DA709;
+        Wed, 15 Jan 2020 10:29:07 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 15 Jan 2020 10:29:07 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 971A742EF42A;
+        Wed, 15 Jan 2020 10:29:07 +0100 (CET)
+Date:   Wed, 15 Jan 2020 10:29:07 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nf-next v2 09/10] netfilter: bitwise: add
+ NFTA_BITWISE_DATA attribute.
+Message-ID: <20200115092907.subrj56hcjgtywze@salvia>
+References: <20200114212918.134062-1-jeremy@azazel.net>
+ <20200114212918.134062-10-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; BOUNDARY="110363376-1641646667-1579075081=:19314"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200114212918.134062-10-jeremy@azazel.net>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Tue, Jan 14, 2020 at 09:29:17PM +0000, Jeremy Sowden wrote:
+> Add a new bitwise netlink attribute that will be used by shift
+> operations to store the size of the shift.  It is not used by boolean
+> operations.
+> 
+> Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+> ---
+>  include/uapi/linux/netfilter/nf_tables.h | 2 ++
+>  net/netfilter/nft_bitwise.c              | 5 +++++
+>  2 files changed, 7 insertions(+)
+> 
+> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> index cfda75725455..7cb85fd0d38e 100644
+> --- a/include/uapi/linux/netfilter/nf_tables.h
+> +++ b/include/uapi/linux/netfilter/nf_tables.h
+> @@ -503,6 +503,7 @@ enum nft_bitwise_ops {
+>   * @NFTA_BITWISE_MASK: mask value (NLA_NESTED: nft_data_attributes)
+>   * @NFTA_BITWISE_XOR: xor value (NLA_NESTED: nft_data_attributes)
+>   * @NFTA_BITWISE_OP: type of operation (NLA_U32: nft_bitwise_ops)
+> + * @NFTA_BITWISE_DATA: argument for non-boolean operations (NLA_U32)
+>   *
+>   * The bitwise expression performs the following operation:
+>   *
+> @@ -524,6 +525,7 @@ enum nft_bitwise_attributes {
+>  	NFTA_BITWISE_MASK,
+>  	NFTA_BITWISE_XOR,
+>  	NFTA_BITWISE_OP,
+> +	NFTA_BITWISE_DATA,
+>  	__NFTA_BITWISE_MAX
+>  };
+>  #define NFTA_BITWISE_MAX	(__NFTA_BITWISE_MAX - 1)
+> diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
+> index 1d9079ba2102..72abaa83a8ca 100644
+> --- a/net/netfilter/nft_bitwise.c
+> +++ b/net/netfilter/nft_bitwise.c
+> @@ -22,6 +22,7 @@ struct nft_bitwise {
+>  	u8			len;
+>  	struct nft_data		mask;
+>  	struct nft_data		xor;
+> +	u32			data;
 
---110363376-1641646667-1579075081=:19314
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Could you make this struct nft_data?
 
-On Tue, 14 Jan 2020, Florian Westphal wrote:
-
-> Kadlecsik J=C3=B3zsef <kadlec@blackhole.kfki.hu> wrote:
-> > However, I think there's a general already available solution in iptabl=
-es:=20
-> > force the same DNAT mapping for the packets of the same socket by the=
-=20
-> > HMARK target. Something like this:
-> >=20
-> > -t raw -p udp --dport 53 -j HMARK --hmark-tuple src,sport \
-> > =09--hmark-mod 1 --hmark-offset 10 --hmark-rnd 0xdeafbeef
-> > -t nat -p udp --dport 53 -m state --state NEW -m mark --mark 10 -j DNAT=
- ..
-> > -t nat -p udp --dport 53 -m state --state NEW -m mark --mark 11 -j DNAT=
- ..
->=20
-> Yes, HMARK and -m cluster both work, nft has jhash expression.
-> So we already have alternatives to provide consistent nat mappings.
->=20
-> I doubt that kubernetes will change their rulesets, however.
-
-That'd be sad - those rules are surely not carved in stone...
-
-[By the way, I'd go even further and leave out DNAT completely: put the=20
-real nameservers into resolv.conf and be done with it. musl connects them=
-=20
-parallel anyway and glibc supports the rotate options for ages. What else=
-=20
-would remain for DNAT? "Hide" the real IP addresses of the name servers?=20
-That's just pointless.]
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
---110363376-1641646667-1579075081=:19314--
+We can extend later on nft_bitwise to more operations. I was
+considering to (ab)use bitwise to implement increment and decrement. I
+think u32 should be enough in most cases, but I'd prefer to stick to
+one 128 bit word in this case. For shift this is obviously too much,
+but this would be leaving room for new operations requiring something
+larger than u32.
