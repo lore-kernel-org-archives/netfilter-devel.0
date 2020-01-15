@@ -2,55 +2,56 @@ Return-Path: <SRS0=+R7G=3E=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E26DAC32771
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Jan 2020 20:27:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9561DC32771
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Jan 2020 20:48:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B5D1C2084D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Jan 2020 20:27:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6600F2081E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Jan 2020 20:48:01 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="u7oJ0Ux1"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="eLHEgnq1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729106AbgAOU1k (ORCPT
+        id S1729375AbgAOUsB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 Jan 2020 15:27:40 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:54194 "EHLO
+        Wed, 15 Jan 2020 15:48:01 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:55006 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726018AbgAOU1k (ORCPT
+        with ESMTP id S1729263AbgAOUsA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Jan 2020 15:27:40 -0500
+        Wed, 15 Jan 2020 15:48:00 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=cx9O5Ir1QJzOaGxwRJvHQB3NbcgpD2JGlrpdqyh+Tz0=; b=u7oJ0Ux1jDRn0Ed8aj9DOf9LX2
-        U1CR0LaaMKAVPtZV7ZkKqwaUqU9E5Mj5QbwbOJ5t1rJN6OzWeFq3Q5XyIGQhRYSPec98L04Pp2eFB
-        MmtfA5PwNiLLatvqwxo9yvFFohyc9Sps6k0sK/xY4+ZPzbLPNIpIfIc6l0LpRqHy8muMa/dBy8XEd
-        hS+tzwb4yhTwKWMHb6nV3h8WOM6TA319FFcUpT50crybYaSvs72ycD1SMvtjfpBc/pzRFIZGXFSod
-        n91JZCXtIHVT3EGB7oSYfZApXzvFBmcR/9sEcr5C28lQNXu2abAFyMLu9z5WiYFA0BSaJcJVJmOl6
-        JqOOVnCg==;
-Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
-        by kadath.azazel.net with esmtp (Exim 4.92)
+        bh=sHLzRYdkmwsveeGaOdwJIRx4m+CnLjCMpxSMi3iJgBg=; b=eLHEgnq1IFcd0SAs5tM6NCNWYd
+        lOmSnWsUPYku3v8FkZg41VkbvMrvSI5fFaSH7MJA9fFR6/TDVxoqzHRpFQmNqY7g3yFutIpUT0PAo
+        mQQZn9gbbfNEtklwofqqPB2Jri1fkosZIqFfEfTTa/2Ctvangq9PUDXgvSLJ1msmgq5LfhbrgrVZ8
+        Wf385lgc6LQP07ZDLmWdw5rHVaWno1q7R5kFb3ADhmxo4uAwC+m+GLTOFNcP1zgjcsrlptLgYo11m
+        Xl25hDFTs+ZYkD6JFQZpTJxSyzvzRCyXkCdLdPszj34b9o5QilKh5IyGSPfAbEA9NJBdg7K5fpPuz
+        rcOSY/WQ==;
+Received: from celephais.dreamlands ([192.168.96.3] helo=azazel.net)
+        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1irovP-00054b-3P; Wed, 15 Jan 2020 20:05:59 +0000
+        id 1irpa3-0006LG-Rv; Wed, 15 Jan 2020 20:47:59 +0000
+Date:   Wed, 15 Jan 2020 20:48:00 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf-next v3 10/10] netfilter: bitwise: add support for shifts.
-Date:   Wed, 15 Jan 2020 20:05:57 +0000
-Message-Id: <20200115200557.26202-11-jeremy@azazel.net>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200115200557.26202-1-jeremy@azazel.net>
+Subject: Re: [PATCH nf-next v3 00/10] netfilter: nft_bitwise: shift support
+Message-ID: <20200115204800.GF999973@azazel.net>
 References: <20200115200557.26202-1-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="X3gaHHMYHkYqP6yf"
+Content-Disposition: inline
+In-Reply-To: <20200115200557.26202-1-jeremy@azazel.net>
+X-SA-Exim-Connect-IP: 192.168.96.3
 X-SA-Exim-Mail-From: jeremy@azazel.net
 X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -58,176 +59,76 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hitherto nft_bitwise has only supported boolean operations: NOT, AND, OR
-and XOR.  Extend it to do shifts as well.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- include/uapi/linux/netfilter/nf_tables.h |  9 ++-
- net/netfilter/nft_bitwise.c              | 75 ++++++++++++++++++++++++
- 2 files changed, 82 insertions(+), 2 deletions(-)
+--X3gaHHMYHkYqP6yf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 0277ebe30c5c..59455e7fec93 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -489,9 +489,13 @@ enum nft_immediate_attributes {
-  *
-  * @NFT_BITWISE_BOOL: mask-and-xor operation used to implement NOT, AND, OR and
-  *                    XOR boolean operations
-+ * @NFT_BITWISE_LSHIFT: left-shift operation
-+ * @NFT_BITWISE_RSHIFT: right-shift operation
-  */
- enum nft_bitwise_ops {
- 	NFT_BITWISE_BOOL,
-+	NFT_BITWISE_LSHIFT,
-+	NFT_BITWISE_RSHIFT,
- };
- 
- /**
-@@ -506,11 +510,12 @@ enum nft_bitwise_ops {
-  * @NFTA_BITWISE_DATA: argument for non-boolean operations
-  *                     (NLA_NESTED: nft_data_attributes)
-  *
-- * The bitwise expression performs the following operation:
-+ * The bitwise expression supports boolean and shift operations.  It implements
-+ * the boolean operations by performing the following operation:
-  *
-  * dreg = (sreg & mask) ^ xor
-  *
-- * which allow to express all bitwise operations:
-+ * with these mask and xor values:
-  *
-  * 		mask	xor
-  * NOT:		1	1
-diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
-index ba1c0cd332c4..7db8e1c42ac9 100644
---- a/net/netfilter/nft_bitwise.c
-+++ b/net/netfilter/nft_bitwise.c
-@@ -34,6 +34,32 @@ static void nft_bitwise_eval_bool(u32 *dst, const u32 *src,
- 		dst[i] = (src[i] & priv->mask.data[i]) ^ priv->xor.data[i];
- }
- 
-+static void nft_bitwise_eval_lshift(u32 *dst, const u32 *src,
-+				    const struct nft_bitwise *priv)
-+{
-+	u32 shift = priv->data.data[0];
-+	unsigned int i;
-+	u32 carry = 0;
-+
-+	for (i = DIV_ROUND_UP(priv->len, sizeof(u32)); i > 0; i--) {
-+		dst[i - 1] = (src[i - 1] << shift) | carry;
-+		carry = src[i - 1] >> (BITS_PER_TYPE(u32) - shift);
-+	}
-+}
-+
-+static void nft_bitwise_eval_rshift(u32 *dst, const u32 *src,
-+				    const struct nft_bitwise *priv)
-+{
-+	u32 shift = priv->data.data[0];
-+	unsigned int i;
-+	u32 carry = 0;
-+
-+	for (i = 0; i < DIV_ROUND_UP(priv->len, sizeof(u32)); i++) {
-+		dst[i] = carry | (src[i] >> shift);
-+		carry = src[i] << (BITS_PER_TYPE(u32) - shift);
-+	}
-+}
-+
- void nft_bitwise_eval(const struct nft_expr *expr,
- 		      struct nft_regs *regs, const struct nft_pktinfo *pkt)
- {
-@@ -45,6 +71,12 @@ void nft_bitwise_eval(const struct nft_expr *expr,
- 	case NFT_BITWISE_BOOL:
- 		nft_bitwise_eval_bool(dst, src, priv);
- 		break;
-+	case NFT_BITWISE_LSHIFT:
-+		nft_bitwise_eval_lshift(dst, src, priv);
-+		break;
-+	case NFT_BITWISE_RSHIFT:
-+		nft_bitwise_eval_rshift(dst, src, priv);
-+		break;
- 	}
- }
- 
-@@ -97,6 +129,32 @@ static int nft_bitwise_init_bool(struct nft_bitwise *priv,
- 	return err;
- }
- 
-+static int nft_bitwise_init_shift(struct nft_bitwise *priv,
-+				  const struct nlattr *const tb[])
-+{
-+	struct nft_data_desc d;
-+	int err;
-+
-+	if (tb[NFTA_BITWISE_MASK] ||
-+	    tb[NFTA_BITWISE_XOR])
-+		return -EINVAL;
-+
-+	if (!tb[NFTA_BITWISE_DATA])
-+		return -EINVAL;
-+
-+	err = nft_data_init(NULL, &priv->data, sizeof(priv->data), &d,
-+			    tb[NFTA_BITWISE_DATA]);
-+	if (err < 0)
-+		return err;
-+	if (d.type != NFT_DATA_VALUE || d.len != sizeof(u32) ||
-+	    priv->data.data[0] >= BITS_PER_TYPE(u32)) {
-+		nft_data_release(&priv->data, d.type);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
- static int nft_bitwise_init(const struct nft_ctx *ctx,
- 			    const struct nft_expr *expr,
- 			    const struct nlattr * const tb[])
-@@ -131,6 +189,8 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
- 		priv->op = ntohl(nla_get_be32(tb[NFTA_BITWISE_OP]));
- 		switch (priv->op) {
- 		case NFT_BITWISE_BOOL:
-+		case NFT_BITWISE_LSHIFT:
-+		case NFT_BITWISE_RSHIFT:
- 			break;
- 		default:
- 			return -EINVAL;
-@@ -142,6 +202,9 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
- 	switch(priv->op) {
- 	case NFT_BITWISE_BOOL:
- 		return nft_bitwise_init_bool(priv, tb);
-+	case NFT_BITWISE_LSHIFT:
-+	case NFT_BITWISE_RSHIFT:
-+		return nft_bitwise_init_shift(priv, tb);
- 	}
- 
- 	return -EINVAL;
-@@ -161,6 +224,15 @@ static int nft_bitwise_dump_bool(struct sk_buff *skb,
- 	return 0;
- }
- 
-+static int nft_bitwise_dump_shift(struct sk_buff *skb,
-+				  const struct nft_bitwise *priv)
-+{
-+	if (nft_data_dump(skb, NFTA_BITWISE_DATA, &priv->data,
-+			  NFT_DATA_VALUE, sizeof(u32)) < 0)
-+		return -1;
-+	return 0;
-+}
-+
- static int nft_bitwise_dump(struct sk_buff *skb, const struct nft_expr *expr)
- {
- 	const struct nft_bitwise *priv = nft_expr_priv(expr);
-@@ -177,6 +249,9 @@ static int nft_bitwise_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	switch (priv->op) {
- 	case NFT_BITWISE_BOOL:
- 		return nft_bitwise_dump_bool(skb, priv);
-+	case NFT_BITWISE_LSHIFT:
-+	case NFT_BITWISE_RSHIFT:
-+		return nft_bitwise_dump_shift(skb, priv);
- 	}
- 
- 	return -1;
--- 
-2.24.1
+On 2020-01-15, at 20:05:47 +0000, Jeremy Sowden wrote:
+> The connmark xtables extension supports bit-shifts.  Add support for
+> shifts to nft_bitwise in order to allow nftables to do likewise, e.g.:
+>
+>   nft add rule t c oif lo ct mark set meta mark << 8 | 0xab
+>   nft add rule t c iif lo meta mark & 0xff 0xab ct mark set meta mark >> 8
+>
+> Changes since v2:
+>
+>   * convert NFTA_BITWISE_DATA from u32 to nft_data;
 
+There's a bug in the nft_data stuff.  Will fix and resend.
+
+>   * add check that shift value is not too large;
+>   * use BITS_PER_TYPE to get the size of u32, rather than hard-coding it
+>     when evaluating shifts.
+>
+> Changes since v1:
+>
+>   * more white-space fixes;
+>   * move bitwise op enum to UAPI;
+>   * add NFTA_BITWISE_OP and NFTA_BITWISE_DATA;
+>   * remove NFTA_BITWISE_LSHIFT and NFTA_BITWISE_RSHIFT;
+>   * add helpers for initializaing, evaluating and dumping different
+>     types of operation.
+>
+> Jeremy Sowden (10):
+>   netfilter: nf_tables: white-space fixes.
+>   netfilter: bitwise: remove NULL comparisons from attribute checks.
+>   netfilter: bitwise: replace gotos with returns.
+>   netfilter: bitwise: add NFTA_BITWISE_OP netlink attribute.
+>   netfilter: bitwise: add helper for initializing boolean operations.
+>   netfilter: bitwise: add helper for evaluating boolean operations.
+>   netfilter: bitwise: add helper for dumping boolean operations.
+>   netfilter: bitwise: only offload boolean operations.
+>   netfilter: bitwise: add NFTA_BITWISE_DATA attribute.
+>   netfilter: bitwise: add support for shifts.
+>
+>  include/uapi/linux/netfilter/nf_tables.h |  24 ++-
+>  net/netfilter/nft_bitwise.c              | 217 ++++++++++++++++++-----
+>  net/netfilter/nft_set_bitmap.c           |   4 +-
+>  net/netfilter/nft_set_hash.c             |   2 +-
+>  4 files changed, 200 insertions(+), 47 deletions(-)
+>
+> --
+> 2.24.1
+>
+>
+
+--X3gaHHMYHkYqP6yf
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAABCgAdFiEEd/6/sDFjb+OCRmRMonv1GCHZ79cFAl4fenkACgkQonv1GCHZ
+79dPDgv+JGyruicjTGs78+0ig49m8fvRMiUBsWCh0x/5/0Ibv/Mdy8reuUloFZCW
+gntwBj+ZbtJGz3jfuSp5SnHKfTTbGn4p6A7eRzt7V3ibZOrxVv1bbK28p6cJvHpK
+71T+wffHA4L2Qaj/EURhtBSPjVedPpz6Wr4xQ8K0d4ybXRInnFYl/1Yphty2yDn7
+zOQ8OmIK17LTsxDPtyPfSGQpyXuNa7oJ9jv46BrN02BUtYU8vByWRdKI09607taF
+jsI+B0Qguh0d06PQ6KHQUUALiAw+R+Ks2vWaWN7SHYy7VMnahkoqhYfHzwQlE6h0
+yh5GbzDfGmNaBBQimyiZnuKWYTeu3n3dhzWGq9kA2xWGpvY1CpCDrzehUp/a9ivc
+jrjBBLztVT9XnwNh9IRZVy+1lOHULRi0e0pDw6TbhQnWG9x74nr+mEDuRObg4Zh+
+xv/nfLeETBi7pfyp9ZP4LYEQJghGZjtUJEAxuh3UNmNF4G3caxojdwHpsNnTkfAx
+YEAisRBp
+=hRP+
+-----END PGP SIGNATURE-----
+
+--X3gaHHMYHkYqP6yf--
