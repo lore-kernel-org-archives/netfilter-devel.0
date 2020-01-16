@@ -2,106 +2,81 @@ Return-Path: <SRS0=22nV=3F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A151FC33CB3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 11:03:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CD94C33CB6
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 11:19:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7D83120730
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 11:03:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2CBA52073A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 11:19:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726084AbgAPLDJ (ORCPT
+        id S1726474AbgAPLTW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jan 2020 06:03:09 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:33928 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725800AbgAPLDI (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Jan 2020 06:03:08 -0500
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1is2va-0004LU-In; Thu, 16 Jan 2020 12:03:06 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     syzkaller-bugs@googlegroups.com, <netdev@vger.kernel.org>,
-        Florian Westphal <fw@strlen.de>,
-        syzbot+37a6804945a3a13b1572@syzkaller.appspotmail.com
-Subject: [PATCH nf] netfilter: nf_tables: fix flowtable list del corruption
-Date:   Thu, 16 Jan 2020 12:03:01 +0100
-Message-Id: <20200116110301.4875-1-fw@strlen.de>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <000000000000b3599c059c36db0d@google.com>
-References: <000000000000b3599c059c36db0d@google.com>
+        Thu, 16 Jan 2020 06:19:22 -0500
+Received: from correo.us.es ([193.147.175.20]:55530 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726084AbgAPLTW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Jan 2020 06:19:22 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id AEBF518FD83
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jan 2020 12:19:18 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9F04BDA714
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jan 2020 12:19:18 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 94B3EDA701; Thu, 16 Jan 2020 12:19:18 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 75AE6DA703;
+        Thu, 16 Jan 2020 12:19:16 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 16 Jan 2020 12:19:16 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 5A23F42EE38E;
+        Thu, 16 Jan 2020 12:19:16 +0100 (CET)
+Date:   Thu, 16 Jan 2020 12:19:15 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [RFC nf-next 0/4] netfilter: conntrack: allow insertion of
+ clashing entries
+Message-ID: <20200116111915.d7ddcc2lavocvzrq@salvia>
+References: <20200108134500.31727-1-fw@strlen.de>
+ <20200113235309.GM795@breakpoint.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200113235309.GM795@breakpoint.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot reported following crash:
+On Tue, Jan 14, 2020 at 12:53:09AM +0100, Florian Westphal wrote:
+> Florian Westphal <fw@strlen.de> wrote:
+> > This entire series isn't nice but so far I did not find a better
+> > solution.
+> 
+> I did consider getting rid of the unconfirmed list, but this is also
+> problematic.
 
-  list_del corruption, ffff88808c9bb000->prev is LIST_POISON2 (dead000000000122)
-  [..]
-  Call Trace:
-   __list_del_entry include/linux/list.h:131 [inline]
-   list_del_rcu include/linux/rculist.h:148 [inline]
-   nf_tables_commit+0x1068/0x3b30 net/netfilter/nf_tables_api.c:7183
-   [..]
+Another proposal:
 
-The commit transaction list has:
+I think the percpu unconfirmed list should become a hashtable.
 
-NFT_MSG_NEWTABLE
-NFT_MSG_NEWFLOWTABLE
-NFT_MSG_DELFLOWTABLE
-NFT_MSG_DELTABLE
+From resolve_normal_ct(), if __nf_conntrack_find_get() returns NULL,
+this can fall back to make a rcu lookless lookup on the unconfirmed
+hashtable.
 
-A missing generation check during DELTABLE processing causes it to queue
-the DELFLOWTABLE operation a second time, so we corrupt the list here:
-
-  case NFT_MSG_DELFLOWTABLE:
-     list_del_rcu(&nft_trans_flowtable(trans)->list);
-     nf_tables_flowtable_notify(&trans->ctx,
-
-because we have two different DELFLOWTABLE transactions for the same
-flowtable.  We then call list_del_rcu() twice for the same flowtable->list.
-
-The object handling seems to suffer from the same bug so add a generation
-check too and only queue delete transactions for flowtables/objects that
-are still active in the next generation.
-
-Reported-by: syzbot+37a6804945a3a13b1572@syzkaller.appspotmail.com
-Fixes: 3b49e2e94e6eb ("netfilter: nf_tables: add flow table netlink frontend")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_tables_api.c | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 5a1a6632e3a6..9ba1747686ed 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1047,12 +1047,18 @@ static int nft_flush_table(struct nft_ctx *ctx)
- 	}
- 
- 	list_for_each_entry_safe(flowtable, nft, &ctx->table->flowtables, list) {
-+		if (!nft_is_active_next(ctx->net, flowtable))
-+			continue;
-+
- 		err = nft_delflowtable(ctx, flowtable);
- 		if (err < 0)
- 			goto out;
- 	}
- 
- 	list_for_each_entry_safe(obj, ne, &ctx->table->objects, list) {
-+		if (!nft_is_active_next(ctx->net, obj))
-+			continue;
-+
- 		err = nft_delobj(ctx, obj);
- 		if (err < 0)
- 			goto out;
--- 
-2.24.1
-
+From nf_nat_inet_fn(), grab a nat spinlock only if the conntrack is
+unconfirmed (slow path) to make sure that the packet winning race to
+enter nf_nat_inet_fn() takes the time to set up NAT properly.
