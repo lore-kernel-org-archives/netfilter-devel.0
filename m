@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FC3BC33CB6
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:16:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04501C47409
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:16:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 718C72077B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:16:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CA77A2077B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:16:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579202179;
-	bh=Qo96X3SSaZ1LtA/89TScd5NsivCR6oe1aoBgbuVYLwE=;
+	s=default; t=1579202211;
+	bh=N19053XbNoSi+CqfIZwUBqiWoKNj/vKaB4JSfsdBJx8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=NG+DF5XHQRo1w00SX/96Kku9ZvhaBGjC87/0QYCO4GSgjZY+1VR9sp4RoK/QHxBy1
-	 lK9yQgRZmxmI6dzkwBFtTLa1rLNNdH3rz/LC4LdQCGPKXCgXJysuXRwC6j37r0k4CE
-	 rdZ3/97INOfLlmyK3v0dumnG6ifLrYE6b9QJYPTM=
+	b=FmLjwx7Zo1NtOVorCXWSYK2g9mLDarQF45beC4+kHhIYihWu8MM8HhzunOKdO8qhk
+	 cGPkyGCWZBF47O7Ay426k7N+OW92XvbK2qjp+ffdIGvtAjj9xxYDPqeyAlFGeC4aQ7
+	 bPeEBakwJlRg9l58uLtN7f/hxiNjTAeQ8fthEE9w=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389156AbgAPTQI (ORCPT
+        id S2437601AbgAPTQp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jan 2020 14:16:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41440 "EHLO mail.kernel.org"
+        Thu, 16 Jan 2020 14:16:45 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41252 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732777AbgAPQzr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Jan 2020 11:55:47 -0500
+        id S1733091AbgAPQzl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Jan 2020 11:55:41 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 59C9A20730;
-        Thu, 16 Jan 2020 16:55:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5766B2192A;
+        Thu, 16 Jan 2020 16:55:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579193747;
-        bh=Qo96X3SSaZ1LtA/89TScd5NsivCR6oe1aoBgbuVYLwE=;
+        s=default; t=1579193741;
+        bh=N19053XbNoSi+CqfIZwUBqiWoKNj/vKaB4JSfsdBJx8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=WZ8aqI+JQGXYSBnkABvzKBeNjPYe4jev6RF2ur+os0DP3aYBsfzUvTW9ejpKT5Efj
-         oPNl6v4zcwds0S0QC7shqqoKW7ZtXWrTpkpheQTFQuSe/vpEvb4GugwpNy4fU7aN+2
-         lYOapDeACY6qEehP3Cb3rzEHVMSd8E0YxFLDC2oE=
+        b=Q24qCQdycETW9wiHdq7ZIkq815zzlIMZH52ENiuknEkjYlsZbZxmHwCU7ZfEJrdqM
+         Akum96XbZQknjQ7YjPHxvjTx5CS5hi6zdOAsIGrhHKsF6yrqDZZmEbsfJ+Qa+LmjLz
+         h4fKWbIPYTe+K8LRmttZK+5NfLzkzO2cncUxTUro=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Taehee Yoo <ap420073@gmail.com>,
+Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 037/671] netfilter: nf_flow_table: do not remove offload when other netns's interface is down
-Date:   Thu, 16 Jan 2020 11:44:28 -0500
-Message-Id: <20200116165502.8838-37-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 032/671] netfilter: nft_osf: usage from output path is not valid
+Date:   Thu, 16 Jan 2020 11:44:23 -0500
+Message-Id: <20200116165502.8838-32-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200116165502.8838-1-sashal@kernel.org>
 References: <20200116165502.8838-1-sashal@kernel.org>
@@ -61,51 +61,49 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Fernando Fernandez Mancera <ffmancera@riseup.net>
 
-[ Upstream commit a3fb3698cadf27dc142b24394c401625e14d80d0 ]
+[ Upstream commit 4a3e71b7b7dbaf3562be9d508260935aa13cb48b ]
 
-When interface is down, offload cleanup function(nf_flow_table_do_cleanup)
-is called and that checks whether interface index of offload and
-index of link down interface is same. but only interface index checking
-is not enough because flowtable is not pernet list.
-So that, if other netns's interface that has index is same with offload
-is down, that offload will be removed.
-This patch adds netns checking code to the offload cleanup routine.
+The nft_osf extension, like xt_osf, is not supported from the output
+path.
 
-Fixes: 59c466dd68e7 ("netfilter: nf_flow_table: add a new flow state for tearing down offloading")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Fixes: b96af92d6eaf ("netfilter: nf_tables: implement Passive OS fingerprint module in nft_osf")
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_flow_table_core.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ net/netfilter/nft_osf.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 70bd730ca059..890799c16aa4 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -491,14 +491,17 @@ EXPORT_SYMBOL_GPL(nf_flow_table_init);
- static void nf_flow_table_do_cleanup(struct flow_offload *flow, void *data)
- {
- 	struct net_device *dev = data;
-+	struct flow_offload_entry *e;
-+
-+	e = container_of(flow, struct flow_offload_entry, flow);
- 
- 	if (!dev) {
- 		flow_offload_teardown(flow);
- 		return;
- 	}
--
--	if (flow->tuplehash[0].tuple.iifidx == dev->ifindex ||
--	    flow->tuplehash[1].tuple.iifidx == dev->ifindex)
-+	if (net_eq(nf_ct_net(e->ct), dev_net(dev)) &&
-+	    (flow->tuplehash[0].tuple.iifidx == dev->ifindex ||
-+	     flow->tuplehash[1].tuple.iifidx == dev->ifindex))
- 		flow_offload_dead(flow);
+diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
+index a35fb59ace73..df4e3e0412ed 100644
+--- a/net/netfilter/nft_osf.c
++++ b/net/netfilter/nft_osf.c
+@@ -69,6 +69,15 @@ static int nft_osf_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 	return -1;
  }
  
++static int nft_osf_validate(const struct nft_ctx *ctx,
++			    const struct nft_expr *expr,
++			    const struct nft_data **data)
++{
++	return nft_chain_validate_hooks(ctx->chain, (1 << NF_INET_LOCAL_IN) |
++						    (1 << NF_INET_PRE_ROUTING) |
++						    (1 << NF_INET_FORWARD));
++}
++
+ static struct nft_expr_type nft_osf_type;
+ static const struct nft_expr_ops nft_osf_op = {
+ 	.eval		= nft_osf_eval,
+@@ -76,6 +85,7 @@ static const struct nft_expr_ops nft_osf_op = {
+ 	.init		= nft_osf_init,
+ 	.dump		= nft_osf_dump,
+ 	.type		= &nft_osf_type,
++	.validate	= nft_osf_validate,
+ };
+ 
+ static struct nft_expr_type nft_osf_type __read_mostly = {
 -- 
 2.20.1
 
