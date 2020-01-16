@@ -4,52 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 643A6C3F68F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 18:56:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3BB1C33CAF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 18:59:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 373D32465A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 18:56:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B63AF20663
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 18:59:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579200997;
-	bh=FyBl76UQeAz82dh9GowjxKLn307tVpqGB2q7gUGV/V8=;
+	s=default; t=1579201175;
+	bh=G7YqXyQm0ar1eD+NyLytqEqQFhGJI9U3ct2YhRdk67A=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=d+cHeMQWakGZJ8yQfpUm8n/ZCSzqGnjVyvJSF0FAoIhFtObzR/cDtKwA7qjiDEDzr
-	 b7MTXWfrMQFosF1WcdJYvLIbzZRYK6F81snYNH02kR19eh6s6iAN8SNPNXE24uC9+M
-	 MzF0WEQVsBWM/WsdyiLqh6FsNs5/7nCUXEBqGXYw=
+	b=lZywD6EtgBc6oMSlUNA7illQd0yy+D4AU+J6MtyMnSYQp1Axk54tNcicjhhLznkDz
+	 KGcSUD3PYnR3UcjNcIdwN4uhiErzDZndGQpJmFjIrsky6YJuEiXs3jvaGJevE1aDi8
+	 QlH5ZCCVxNg2NefZ0rsCg2o5hOr6SMn4D0bsRCrk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389127AbgAPRHR (ORCPT
+        id S2404333AbgAPS7f (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jan 2020 12:07:17 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38792 "EHLO mail.kernel.org"
+        Thu, 16 Jan 2020 13:59:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36892 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389119AbgAPRHP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:07:15 -0500
+        id S2388948AbgAPRGd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:06:33 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3766021582;
-        Thu, 16 Jan 2020 17:07:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 29629205F4;
+        Thu, 16 Jan 2020 17:06:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579194434;
-        bh=FyBl76UQeAz82dh9GowjxKLn307tVpqGB2q7gUGV/V8=;
+        s=default; t=1579194393;
+        bh=G7YqXyQm0ar1eD+NyLytqEqQFhGJI9U3ct2YhRdk67A=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=GjUaKCH/h3m/sQYDgR+rPSJNxEhwsug5b4BVQA4LdmFof7/wgqa6GqdrsW2q4/+ry
-         DQh9psbfAgO4WWujpb4hX2IPf/oqvw5xC7IMhcCWGB9F9cqjC4itCGakgsY4f5Xya+
-         I2P+67swvzDYgMD12YdeS0ev0fXi5IBPUP42X25U=
+        b=mlOxgtOQchq6Ck5In4Yq9t/ZEW406OCOCtdol7+eBqG6cWb7qTAuZhNqm8ZNtzEh3
+         D5N5mr2TeGjw20RLW/jv/HxYNoA0/s0ROc55wuzAAUJW++IV4u3K+g695w4sbSlQvz
+         OhIlt+le8ajGoDjrRipWCNwfd7aGpKG/NLytLIJw=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
-        Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        bridge@lists.linux-foundation.org, netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 349/671] netfilter: ebtables: CONFIG_COMPAT: reject trailing data after last rule
-Date:   Thu, 16 Jan 2020 11:59:47 -0500
-Message-Id: <20200116170509.12787-86-sashal@kernel.org>
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 320/671] netfilter: nft_flow_offload: add entry to flowtable after confirmation
+Date:   Thu, 16 Jan 2020 11:59:18 -0500
+Message-Id: <20200116170509.12787-57-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200116170509.12787-1-sashal@kernel.org>
 References: <20200116170509.12787-1-sashal@kernel.org>
@@ -62,41 +60,42 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[ Upstream commit 680f6af5337c98d116e4f127cea7845339dba8da ]
+[ Upstream commit 270a8a297f42ecff82060aaa53118361f09c1f7d ]
 
-If userspace provides a rule blob with trailing data after last target,
-we trigger a splat, then convert ruleset to 64bit format (with trailing
-data), then pass that to do_replace_finish() which then returns -EINVAL.
+This is fixing flow offload for UDP traffic where packets only follow
+one single direction.
 
-Erroring out right away avoids the splat plus unneeded translation and
-error unwind.
+The flow_offload_fixup_tcp() mechanism works fine in case that the
+offloaded entry remains in SYN_RECV state, given sequence tracking is
+reset and that conntrack handles syn+ack packets as a retransmission, ie.
 
-Fixes: 81e675c227ec ("netfilter: ebtables: add CONFIG_COMPAT support")
-Reported-by: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+	sES + synack => sIG
+
+for reply traffic.
+
+Fixes: a3c90f7a2323 ("netfilter: nf_tables: flow offload expression")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/bridge/netfilter/ebtables.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ net/netfilter/nft_flow_offload.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 785e19afd6aa..f59230e4fc29 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -2165,7 +2165,9 @@ static int compat_copy_entries(unsigned char *data, unsigned int size_user,
- 	if (ret < 0)
- 		return ret;
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index 1ef8cb789c41..166edea0e452 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -103,8 +103,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 	    ct->status & IPS_SEQ_ADJUST)
+ 		goto out;
  
--	WARN_ON(size_remaining);
-+	if (size_remaining)
-+		return -EINVAL;
-+
- 	return state->buf_kern_offset;
- }
+-	if (ctinfo == IP_CT_NEW ||
+-	    ctinfo == IP_CT_RELATED)
++	if (!nf_ct_is_confirmed(ct))
+ 		goto out;
  
+ 	if (test_and_set_bit(IPS_OFFLOAD_BIT, &ct->status))
 -- 
 2.20.1
 
