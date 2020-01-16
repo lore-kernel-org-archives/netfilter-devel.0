@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 447F4C33CB6
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:51:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CB4CC33CAF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:51:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1CA382072B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:51:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DF4AF2072B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:51:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730782AbgAPTvM (ORCPT
+        id S1731690AbgAPTvK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jan 2020 14:51:12 -0500
-Received: from correo.us.es ([193.147.175.20]:56046 "EHLO mail.us.es"
+        Thu, 16 Jan 2020 14:51:10 -0500
+Received: from correo.us.es ([193.147.175.20]:56040 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730900AbgAPTuy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Jan 2020 14:50:54 -0500
+        id S1730778AbgAPTuz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Jan 2020 14:50:55 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 213AC807EC
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jan 2020 20:50:54 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 0BE6B807E7
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jan 2020 20:50:53 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 14D2ADA71A
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jan 2020 20:50:54 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F36B8DA721
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jan 2020 20:50:52 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 084DDDA703; Thu, 16 Jan 2020 20:50:54 +0100 (CET)
+        id E914FDA714; Thu, 16 Jan 2020 20:50:52 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 08425DA703;
-        Thu, 16 Jan 2020 20:50:52 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C522CDA721;
+        Thu, 16 Jan 2020 20:50:50 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 16 Jan 2020 20:50:52 +0100 (CET)
+ Thu, 16 Jan 2020 20:50:50 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id D362F42EF9E1;
-        Thu, 16 Jan 2020 20:50:51 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 9E76842EF9E1;
+        Thu, 16 Jan 2020 20:50:50 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 5/9] netfilter: nft_tunnel: ERSPAN_VERSION must not be null
-Date:   Thu, 16 Jan 2020 20:50:40 +0100
-Message-Id: <20200116195044.326614-6-pablo@netfilter.org>
+Subject: [PATCH 3/9] netfilter: nf_tables: store transaction list locally while requesting module
+Date:   Thu, 16 Jan 2020 20:50:38 +0100
+Message-Id: <20200116195044.326614-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200116195044.326614-1-pablo@netfilter.org>
 References: <20200116195044.326614-1-pablo@netfilter.org>
@@ -54,29 +54,95 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+This patch fixes a WARN_ON in nft_set_destroy() due to missing
+set reference count drop from the preparation phase. This is triggered
+by the module autoload path. Do not exercise the abort path from
+nft_request_module() while preparation phase cleaning up is still
+pending.
 
-Fixes: af308b94a2a4a5 ("netfilter: nf_tables: add tunnel support")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+ WARNING: CPU: 3 PID: 3456 at net/netfilter/nf_tables_api.c:3740 nft_set_destroy+0x45/0x50 [nf_tables]
+ [...]
+ CPU: 3 PID: 3456 Comm: nft Not tainted 5.4.6-arch3-1 #1
+ RIP: 0010:nft_set_destroy+0x45/0x50 [nf_tables]
+ Code: e8 30 eb 83 c6 48 8b 85 80 00 00 00 48 8b b8 90 00 00 00 e8 dd 6b d7 c5 48 8b 7d 30 e8 24 dd eb c5 48 89 ef 5d e9 6b c6 e5 c5 <0f> 0b c3 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 8b 7f 10 e9 52
+ RSP: 0018:ffffac4f43e53700 EFLAGS: 00010202
+ RAX: 0000000000000001 RBX: ffff99d63a154d80 RCX: 0000000001f88e03
+ RDX: 0000000001f88c03 RSI: ffff99d6560ef0c0 RDI: ffff99d63a101200
+ RBP: ffff99d617721de0 R08: 0000000000000000 R09: 0000000000000318
+ R10: 00000000f0000000 R11: 0000000000000001 R12: ffffffff880fabf0
+ R13: dead000000000122 R14: dead000000000100 R15: ffff99d63a154d80
+ FS:  00007ff3dbd5b740(0000) GS:ffff99d6560c0000(0000) knlGS:0000000000000000
+ CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ CR2: 00001cb5de6a9000 CR3: 000000016eb6a004 CR4: 00000000001606e0
+ Call Trace:
+  __nf_tables_abort+0x3e3/0x6d0 [nf_tables]
+  nft_request_module+0x6f/0x110 [nf_tables]
+  nft_expr_type_request_module+0x28/0x50 [nf_tables]
+  nf_tables_expr_parse+0x198/0x1f0 [nf_tables]
+  nft_expr_init+0x3b/0xf0 [nf_tables]
+  nft_dynset_init+0x1e2/0x410 [nf_tables]
+  nf_tables_newrule+0x30a/0x930 [nf_tables]
+  nfnetlink_rcv_batch+0x2a0/0x640 [nfnetlink]
+  nfnetlink_rcv+0x125/0x171 [nfnetlink]
+  netlink_unicast+0x179/0x210
+  netlink_sendmsg+0x208/0x3d0
+  sock_sendmsg+0x5e/0x60
+  ____sys_sendmsg+0x21b/0x290
+
+Update comment on the code to describe the new behaviour.
+
+Reported-by: Marco Oliverio <marco.oliverio@tanaza.com>
+Fixes: 452238e8d5ff ("netfilter: nf_tables: add and use helper for module autoload")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_tunnel.c | 3 +++
- 1 file changed, 3 insertions(+)
+ net/netfilter/nf_tables_api.c | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
-index d89c7c553030..5284fcf16be7 100644
---- a/net/netfilter/nft_tunnel.c
-+++ b/net/netfilter/nft_tunnel.c
-@@ -266,6 +266,9 @@ static int nft_tunnel_obj_erspan_init(const struct nlattr *attr,
- 	if (err < 0)
- 		return err;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 43f05b3acd60..168765d1d1c2 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -564,23 +564,21 @@ __nf_tables_chain_type_lookup(const struct nlattr *nla, u8 family)
+ }
  
-+	if (!tb[NFTA_TUNNEL_KEY_ERSPAN_VERSION])
-+		 return -EINVAL;
+ /*
+- * Loading a module requires dropping mutex that guards the
+- * transaction.
+- * We first need to abort any pending transactions as once
+- * mutex is unlocked a different client could start a new
+- * transaction.  It must not see any 'future generation'
+- * changes * as these changes will never happen.
++ * Loading a module requires dropping mutex that guards the transaction.
++ * A different client might race to start a new transaction meanwhile. Zap the
++ * list of pending transaction and then restore it once the mutex is grabbed
++ * again. Users of this function return EAGAIN which implicitly triggers the
++ * transaction abort path to clean up the list of pending transactions.
+  */
+ #ifdef CONFIG_MODULES
+-static int __nf_tables_abort(struct net *net);
+-
+ static void nft_request_module(struct net *net, const char *fmt, ...)
+ {
+ 	char module_name[MODULE_NAME_LEN];
++	LIST_HEAD(commit_list);
+ 	va_list args;
+ 	int ret;
+ 
+-	__nf_tables_abort(net);
++	list_splice_init(&net->nft.commit_list, &commit_list);
+ 
+ 	va_start(args, fmt);
+ 	ret = vsnprintf(module_name, MODULE_NAME_LEN, fmt, args);
+@@ -591,6 +589,9 @@ static void nft_request_module(struct net *net, const char *fmt, ...)
+ 	mutex_unlock(&net->nft.commit_mutex);
+ 	request_module("%s", module_name);
+ 	mutex_lock(&net->nft.commit_mutex);
 +
- 	version = ntohl(nla_get_be32(tb[NFTA_TUNNEL_KEY_ERSPAN_VERSION]));
- 	switch (version) {
- 	case ERSPAN_VERSION:
++	WARN_ON_ONCE(!list_empty(&net->nft.commit_list));
++	list_splice(&commit_list, &net->nft.commit_list);
+ }
+ #endif
+ 
 -- 
 2.11.0
 
