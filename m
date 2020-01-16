@@ -2,81 +2,68 @@ Return-Path: <SRS0=22nV=3F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F800C33CB1
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 06:03:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88BDCC3F68F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 07:44:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1077020748
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 06:03:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 680442075B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 07:44:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728899AbgAPGDB (ORCPT
+        id S1726903AbgAPHoT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jan 2020 01:03:01 -0500
-Received: from mail-io1-f70.google.com ([209.85.166.70]:55147 "EHLO
-        mail-io1-f70.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726366AbgAPGDB (ORCPT
+        Thu, 16 Jan 2020 02:44:19 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:33046 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726883AbgAPHoT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Jan 2020 01:03:01 -0500
-Received: by mail-io1-f70.google.com with SMTP id u6so12023344iog.21
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Jan 2020 22:03:01 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=l8bygRXo9H61q/xTgsjVCR2mIDWLRv2gXicQnyi0I1Y=;
-        b=JrE9nLK7CSvUBje6MVJXUQpGr46R563VhQCjOYR90ptWhAlYhIgZY4DpIcyH6J9WiZ
-         5dqULoHbc068Uxu1sru5nHSxt5PaST4kwSk89t2jqCzC5mxu830BBKrPwFLUZdwSNFRF
-         aSBL9gRQ2L5Nb5tJKM173uI4HxwnwZ340kNM+gxM6VttYo8x/ju1U/CS9I3Cy+nGJPF+
-         ifUWMuDMDc66rSdbaFgilo2G1nyL/HbTl1rVRENUkn2HSI0QrhuzRC5ObVgOMaScUs/p
-         vXwdcolsIFF6eiOuoBWibt4R4svPDS/lQ30DomZZskP/xMiNaDdoTCYwmdY5wstZONiH
-         DXyg==
-X-Gm-Message-State: APjAAAWaUDvNydExh0LaFnpi0ufy20Ha2QLMJplosWkdhKy5lpA8NnrH
-        HKfxJhUkB0tRn7SCCA0UwxKSfe/u4mIvysq6pBaBkLMZLB2k
-X-Google-Smtp-Source: APXvYqyE5UypONJc+dmBaDsn10ba1W1VIkt9suVws575jhjE72sLjeZaHsFFX7HXfIFYuVXUR87AMCJI8zBfRLZmt8GGKLBO81wQ
+        Thu, 16 Jan 2020 02:44:19 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1irzpA-0003GY-6p; Thu, 16 Jan 2020 08:44:16 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com,
+        Florian Westphal <fw@strlen.de>,
+        syzbot+76d0b80493ac881ff77b@syzkaller.appspotmail.com
+Subject: [PATCH nf] netfilter: nft_tunnel: fix null-attribute check
+Date:   Thu, 16 Jan 2020 08:44:11 +0100
+Message-Id: <20200116074411.19511-1-fw@strlen.de>
+X-Mailer: git-send-email 2.24.1
+In-Reply-To: <000000000000b62bda059c36db7c@google.com>
+References: <000000000000b62bda059c36db7c@google.com>
 MIME-Version: 1.0
-X-Received: by 2002:a92:d8d0:: with SMTP id l16mr2094256ilo.43.1579154580939;
- Wed, 15 Jan 2020 22:03:00 -0800 (PST)
-Date:   Wed, 15 Jan 2020 22:03:00 -0800
-In-Reply-To: <000000000000bc757e059c36db18@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000d7aad9059c3b93b7@google.com>
-Subject: Re: BUG: corrupted list in nft_obj_del
-From:   syzbot <syzbot+6ca99af7e70e298bd09d@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@blackhole.kfki.hu, kadlec@netfilter.org,
-        kuznet@ms2.inr.ac.ru, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, syzkaller-bugs@googlegroups.com,
-        yoshfuji@linux-ipv6.org
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has bisected this bug to:
+else we get null deref when one of the attributes is missing, both
+must be non-null.
 
-commit 20651cefd25ffa77a15cab5853b175a6dc975ec2
-Author: Florian Westphal <fw@strlen.de>
-Date:   Tue Jan 9 13:30:48 2018 +0000
+Reported-by: syzbot+76d0b80493ac881ff77b@syzkaller.appspotmail.com
+Fixes: aaecfdb5c5dd8ba ("netfilter: nf_tables: match on tunnel metadata")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nft_tunnel.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-     netfilter: x_tables: unbreak module auto loading
+diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
+index 3d4c2ae605a8..d89c7c553030 100644
+--- a/net/netfilter/nft_tunnel.c
++++ b/net/netfilter/nft_tunnel.c
+@@ -76,7 +76,7 @@ static int nft_tunnel_get_init(const struct nft_ctx *ctx,
+ 	struct nft_tunnel *priv = nft_expr_priv(expr);
+ 	u32 len;
+ 
+-	if (!tb[NFTA_TUNNEL_KEY] &&
++	if (!tb[NFTA_TUNNEL_KEY] ||
+ 	    !tb[NFTA_TUNNEL_DREG])
+ 		return -EINVAL;
+ 
+-- 
+2.24.1
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1073a33ee00000
-start commit:   8b792f84 Merge branch 'mlxsw-Various-fixes'
-git tree:       net
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=1273a33ee00000
-console output: https://syzkaller.appspot.com/x/log.txt?x=1473a33ee00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=7e89bd00623fe71e
-dashboard link: https://syzkaller.appspot.com/bug?extid=6ca99af7e70e298bd09d
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=168b95e1e00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=10f29b3ee00000
-
-Reported-by: syzbot+6ca99af7e70e298bd09d@syzkaller.appspotmail.com
-Fixes: 20651cefd25f ("netfilter: x_tables: unbreak module auto loading")
-
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
