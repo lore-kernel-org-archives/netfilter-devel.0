@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3D56C33CAF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:50:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FF44C33CAF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:51:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 77B4A2072B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:50:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 30DFF2072B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:51:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731092AbgAPTu5 (ORCPT
+        id S1731519AbgAPTvD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jan 2020 14:50:57 -0500
-Received: from correo.us.es ([193.147.175.20]:56060 "EHLO mail.us.es"
+        Thu, 16 Jan 2020 14:51:03 -0500
+Received: from correo.us.es ([193.147.175.20]:56046 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730951AbgAPTu4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1730959AbgAPTu4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 16 Jan 2020 14:50:56 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 18A20807F5
+        by mail.us.es (Postfix) with ESMTP id 9BAE9807EA
         for <netfilter-devel@vger.kernel.org>; Thu, 16 Jan 2020 20:50:55 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0A581DA715
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 83D85DA718
         for <netfilter-devel@vger.kernel.org>; Thu, 16 Jan 2020 20:50:55 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id F3FB7DA713; Thu, 16 Jan 2020 20:50:54 +0100 (CET)
+        id 791B3DA713; Thu, 16 Jan 2020 20:50:55 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 05CA0DA710;
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6F4D4DA701;
         Thu, 16 Jan 2020 20:50:53 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
@@ -36,15 +36,15 @@ Received: from 192.168.1.97 (192.168.1.97)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id D13E842EF9E1;
-        Thu, 16 Jan 2020 20:50:52 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 4D1BE42EF9E1;
+        Thu, 16 Jan 2020 20:50:53 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 7/9] netfilter: nf_tables: fix memory leak in nf_tables_parse_netdev_hooks()
-Date:   Thu, 16 Jan 2020 20:50:42 +0100
-Message-Id: <20200116195044.326614-8-pablo@netfilter.org>
+Subject: [PATCH 8/9] netfilter: nf_tables: fix flowtable list del corruption
+Date:   Thu, 16 Jan 2020 20:50:43 +0100
+Message-Id: <20200116195044.326614-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200116195044.326614-1-pablo@netfilter.org>
 References: <20200116195044.326614-1-pablo@netfilter.org>
@@ -54,32 +54,70 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Dan Carpenter <dan.carpenter@oracle.com>
+From: Florian Westphal <fw@strlen.de>
 
-Syzbot detected a leak in nf_tables_parse_netdev_hooks().  If the hook
-already exists, then the error handling doesn't free the newest "hook".
+syzbot reported following crash:
 
-Reported-by: syzbot+f9d4095107fc8749c69c@syzkaller.appspotmail.com
-Fixes: b75a3e8371bc ("netfilter: nf_tables: allow netdevice to be used only once per flowtable")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Reviewed-by: Florian Westphal <fw@strlen.de>
+  list_del corruption, ffff88808c9bb000->prev is LIST_POISON2 (dead000000000122)
+  [..]
+  Call Trace:
+   __list_del_entry include/linux/list.h:131 [inline]
+   list_del_rcu include/linux/rculist.h:148 [inline]
+   nf_tables_commit+0x1068/0x3b30 net/netfilter/nf_tables_api.c:7183
+   [..]
+
+The commit transaction list has:
+
+NFT_MSG_NEWTABLE
+NFT_MSG_NEWFLOWTABLE
+NFT_MSG_DELFLOWTABLE
+NFT_MSG_DELTABLE
+
+A missing generation check during DELTABLE processing causes it to queue
+the DELFLOWTABLE operation a second time, so we corrupt the list here:
+
+  case NFT_MSG_DELFLOWTABLE:
+     list_del_rcu(&nft_trans_flowtable(trans)->list);
+     nf_tables_flowtable_notify(&trans->ctx,
+
+because we have two different DELFLOWTABLE transactions for the same
+flowtable.  We then call list_del_rcu() twice for the same flowtable->list.
+
+The object handling seems to suffer from the same bug so add a generation
+check too and only queue delete transactions for flowtables/objects that
+are still active in the next generation.
+
+Reported-by: syzbot+37a6804945a3a13b1572@syzkaller.appspotmail.com
+Fixes: 3b49e2e94e6eb ("netfilter: nf_tables: add flow table netlink frontend")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/nf_tables_api.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index b3692458d428..896a6e8aff91 100644
+index 896a6e8aff91..65f51a2e9c2a 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1680,6 +1680,7 @@ static int nf_tables_parse_netdev_hooks(struct net *net,
- 			goto err_hook;
- 		}
- 		if (nft_hook_list_find(hook_list, hook)) {
-+			kfree(hook);
- 			err = -EEXIST;
- 			goto err_hook;
- 		}
+@@ -1048,12 +1048,18 @@ static int nft_flush_table(struct nft_ctx *ctx)
+ 	}
+ 
+ 	list_for_each_entry_safe(flowtable, nft, &ctx->table->flowtables, list) {
++		if (!nft_is_active_next(ctx->net, flowtable))
++			continue;
++
+ 		err = nft_delflowtable(ctx, flowtable);
+ 		if (err < 0)
+ 			goto out;
+ 	}
+ 
+ 	list_for_each_entry_safe(obj, ne, &ctx->table->objects, list) {
++		if (!nft_is_active_next(ctx->net, obj))
++			continue;
++
+ 		err = nft_delobj(ctx, obj);
+ 		if (err < 0)
+ 			goto out;
 -- 
 2.11.0
 
