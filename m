@@ -2,85 +2,90 @@ Return-Path: <SRS0=22nV=3F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37989C33CB6
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:59:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECE29C33CB6
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 21:11:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0FCBA2072B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:59:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C066E20728
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 21:11:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733186AbgAPT7o (ORCPT
+        id S2388558AbgAPVLR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jan 2020 14:59:44 -0500
-Received: from correo.us.es ([193.147.175.20]:58336 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729271AbgAPT7n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Jan 2020 14:59:43 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6DD3A807E4
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jan 2020 20:59:42 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5FFDFDA718
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jan 2020 20:59:42 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 5582BDA714; Thu, 16 Jan 2020 20:59:42 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5E3A9DA709;
-        Thu, 16 Jan 2020 20:59:40 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 16 Jan 2020 20:59:40 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 3F58F42EF9E0;
-        Thu, 16 Jan 2020 20:59:40 +0100 (CET)
-Date:   Thu, 16 Jan 2020 20:59:39 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Martin Willi <martin@strongswan.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org, David Ahern <dsahern@gmail.com>
-Subject: Re: [PATCH netfilter/iptables] Add new slavedev match extension
-Message-ID: <20200116195939.5ordyhfwfspspafa@salvia>
-References: <20191217135616.25751-1-martin@strongswan.org>
- <83ada82dbc93439d794c2407e3c91dd1b69bcbaa.camel@strongswan.org>
+        Thu, 16 Jan 2020 16:11:17 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:42270 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726527AbgAPVLQ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Jan 2020 16:11:16 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1isCQ6-0002vB-4A; Thu, 16 Jan 2020 22:11:14 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     <netdev@vger.kernel.org>, syzkaller-bugs@googlegroups.com,
+        Florian Westphal <fw@strlen.de>,
+        syzbot+156a04714799b1d480bc@syzkaller.appspotmail.com
+Subject: [PATCH nf] netfilter: nf_tables: check for valid chain type pointer before dereference
+Date:   Thu, 16 Jan 2020 22:11:09 +0100
+Message-Id: <20200116211109.9119-1-fw@strlen.de>
+X-Mailer: git-send-email 2.24.1
+In-Reply-To: <00000000000074ed27059c33dedc@google.com>
+References: <00000000000074ed27059c33dedc@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <83ada82dbc93439d794c2407e3c91dd1b69bcbaa.camel@strongswan.org>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Marti,
+Its possible to create tables in a family that isn't supported/known.
+Then, when adding a base chain, the table pointer can be NULL.
 
-On Fri, Jan 10, 2020 at 05:34:12PM +0100, Martin Willi wrote:
-> Pablo,
-> 
-> > This patchset introduces a new Netfilter match extension to match
-> > input interfaces that are associated to a layer 3 master device. The
-> > first patch adds the new match to the kernel, the other provides an
-> > extension to userspace iptables to make use of the new match.
-> 
-> These patches have been marked as superseded in patchworks, likely due
-> to Florian's nftables version that has been merged.
-> 
-> While I very much appreciate the addition of VRF interface matching to
-> nftables, some users still depend on plain iptables for filtering. So I
-> guess there is some value in these patches for those users to extend
-> their filtering with VRF support.
+This gets us a NULL ptr dereference in nf_tables_addchain().
 
-A single xt_slavedev module only for this is too much overhead, if you
-find an existing extension (via revision infrastructure) where you can
-make this fit in, I would consider this.
+Fixes: baae3e62f31618 ("netfilter: nf_tables: fix chain type module reference handling")
+Reported-by: syzbot+156a04714799b1d480bc@syzkaller.appspotmail.com
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_tables_api.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Thanks.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 65f51a2e9c2a..e8976128cdb1 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -953,6 +953,9 @@ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
+ 	struct nft_ctx ctx;
+ 	int err;
+ 
++	if (family >= NFPROTO_NUMPROTO)
++		return -EAFNOSUPPORT;
++
+ 	lockdep_assert_held(&net->nft.commit_mutex);
+ 	attr = nla[NFTA_TABLE_NAME];
+ 	table = nft_table_lookup(net, attr, family, genmask);
+@@ -1765,6 +1768,9 @@ static int nft_chain_parse_hook(struct net *net,
+ 	    ha[NFTA_HOOK_PRIORITY] == NULL)
+ 		return -EINVAL;
+ 
++	if (family >= NFPROTO_NUMPROTO)
++		return -EAFNOSUPPORT;
++
+ 	hook->num = ntohl(nla_get_be32(ha[NFTA_HOOK_HOOKNUM]));
+ 	hook->priority = ntohl(nla_get_be32(ha[NFTA_HOOK_PRIORITY]));
+ 
+@@ -1774,6 +1780,8 @@ static int nft_chain_parse_hook(struct net *net,
+ 						   family, autoload);
+ 		if (IS_ERR(type))
+ 			return PTR_ERR(type);
++	} else if (!type) {
++		return -EOPNOTSUPP;
+ 	}
+ 	if (hook->num > NF_MAX_HOOKS || !(type->hook_mask & (1 << hook->num)))
+ 		return -EOPNOTSUPP;
+-- 
+2.24.1
+
