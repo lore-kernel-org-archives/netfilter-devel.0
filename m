@@ -2,140 +2,112 @@ Return-Path: <SRS0=22nV=3F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F5D4C33CB3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 00:25:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3E59C32771
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 01:41:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 75BF22467A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 00:25:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B98BF20723
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 01:41:05 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=campus-fct-unl-pt.20150623.gappssmtp.com header.i=@campus-fct-unl-pt.20150623.gappssmtp.com header.b="FrV2uUdn"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729110AbgAPAZe (ORCPT
+        id S1730200AbgAPBlE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 Jan 2020 19:25:34 -0500
-Received: from mail-il1-f197.google.com ([209.85.166.197]:47985 "EHLO
-        mail-il1-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729548AbgAPAZN (ORCPT
+        Wed, 15 Jan 2020 20:41:04 -0500
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:55932 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729615AbgAPBlD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Jan 2020 19:25:13 -0500
-Received: by mail-il1-f197.google.com with SMTP id x69so14667201ill.14
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Jan 2020 16:25:12 -0800 (PST)
+        Wed, 15 Jan 2020 20:41:03 -0500
+Received: by mail-wm1-f67.google.com with SMTP id q9so2035947wmj.5
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Jan 2020 17:41:02 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=campus-fct-unl-pt.20150623.gappssmtp.com; s=20150623;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=cxhNaw9OI1Bjzxn9H+oX0YGLRWBp01fxMWK+FbrFUwA=;
+        b=FrV2uUdnjjR655s08WnBoN9uHFZ4F9JY4y7X373qm/2a59whiIiqHGeBde26/UeuRN
+         5Kn42nt8fPmPA3juRz3lTn7E6cINK52EOhHcXE6rJ637fThiYw7OY53BKnANSyV23xzm
+         kdzNbZCO27BtJNfVHwZYGPHWluMdH6rrGdJ2Xn3djDnGOcVui69R37VhZmGBwzytpEq6
+         Cz7bFLLG6CeB6fZQvc6bP6jtnMN5EJ3PRqVaXZUBFs3YuLQyjhQ2fmTs0QbxBY/GzH36
+         9KcKvtRP2ix9IK6gH4SOQOB+7nPy5fIb6eaomR7jBUHbdeSpDoVle8qKJ4MAlJKYZF+C
+         K96Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:message-id:subject:from:to
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=Ab1r6b4tcDiXlZBFnzKAGoyJdu+nyAh2XbS0gnKC+m4=;
-        b=fxN7Jtf9JUfu0rf+0e23mY4lDhuT5AIWOSq8qc3Wk4eFEMvhK6FeHweBQoJDQGIlgr
-         64aEZIc1tdhttIWT+eioc10u4WTs7cO3twnGvHtuZWemiyFOkWzfy/paR6bpYLkVz+Bi
-         Q5fy925+3hN0tBFZDEz5Vw3/inqAumb4FmswfGZGVM7TtH9ojpszvQt1vCNmZk8/XQZ7
-         2jw97lqLXe1GBLbdW4ogY9ve1CLE3LDsrO8RV7SKBVwtao38YyNVvT4ZROo2D/Zexuzc
-         S92CrtAlEKPEMXfagoKU6xtISet479GzvkQWhNmsG2JZLYI/u2ZKiAoFneIYmyfyZeXh
-         oRQQ==
-X-Gm-Message-State: APjAAAU9ZN7+/1q0KiQcUBFvA7FUrdjdPSrHCtKpLHis5wsMJRangzgn
-        mV7UJ3jhEeyxp8w/tgZRtxH9b6e453u0yyrd6MZdw7L50PV3
-X-Google-Smtp-Source: APXvYqz9bIgDmI86mTc0grgfVd/ZCnHFg6fPGkWecnJdkWfuufd4M/R3UhI1t030fUt1Rc6v0qdLMQodeEUMWqBMC4eREqZt44QP
+        bh=cxhNaw9OI1Bjzxn9H+oX0YGLRWBp01fxMWK+FbrFUwA=;
+        b=FiD4KcPPn1HUsgXrAIEA7kE2Zbk+dpPoUy4Mdj5/U0YfHAQU6VXIJR3Sd1MXZrQuUw
+         ue3qY2viF1x1FATF12PchPLZ6IohLOHn61sVcjuYOM+WiSB1nmW6KTmsAHhTylxNIDQ2
+         acwOuDXzYHbAHDMSROoXSipyYVWz4wCazmt4tE136+l+qrot1T6RLsBksS5PAjn4V9fK
+         iymj0Fe6WwA20L2LuCw0luflsbDI9E5W6ftWbQdcFKEL2wzU/932+CUCEbIeUTZF8I7w
+         PqiWr7hxQUbXYgkQi2mpd647heZWeL5WxIB9qyKLDmdX2PxUO+Oa1X6rywOc1mijyXOC
+         cdkQ==
+X-Gm-Message-State: APjAAAXA0whn0V2UqhzXgvdmriyApmjItmN4bcQ5ojFIp7uQsfHRahwZ
+        GCOEjMwypEoSEse7W05Oe7P9FTiHYKw=
+X-Google-Smtp-Source: APXvYqzUjTJucKnz0zNNywrSoDeXBjvoSI1R97ncOVNusNPrNBUaS3+lc4/gmDPOx6lGlod8ldIsDA==
+X-Received: by 2002:a1c:5a0a:: with SMTP id o10mr3115821wmb.114.1579138861269;
+        Wed, 15 Jan 2020 17:41:01 -0800 (PST)
+Received: from penguin-box.pdoc.di.fct.unl.pt ([217.129.34.12])
+        by smtp.gmail.com with ESMTPSA id y22sm2196212wma.35.2020.01.15.17.41.00
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 15 Jan 2020 17:41:00 -0800 (PST)
+From:   aa.santos@campus.fct.unl.pt
+To:     netfilter-devel@vger.kernel.org
+Cc:     =?UTF-8?q?=C3=81lvaro=20Santos?= <aa.santos@campus.fct.unl.pt>
+Subject: [PATCH] Fixed some man pages typos ('This modules' -> 'This module')
+Date:   Thu, 16 Jan 2020 01:40:57 +0000
+Message-Id: <20200116014057.25897-1-aa.santos@campus.fct.unl.pt>
+X-Mailer: git-send-email 2.17.1
 MIME-Version: 1.0
-X-Received: by 2002:a02:b808:: with SMTP id o8mr27357555jam.104.1579134312116;
- Wed, 15 Jan 2020 16:25:12 -0800 (PST)
-Date:   Wed, 15 Jan 2020 16:25:12 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000b9fc96059c36db9e@google.com>
-Subject: WARNING in nft_request_module
-From:   syzbot <syzbot+0e63ae76d117ae1c3a01@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@netfilter.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-SGVsbG8sDQoNCnN5emJvdCBmb3VuZCB0aGUgZm9sbG93aW5nIGNyYXNoIG9uOg0KDQpIRUFEIGNv
-bW1pdDogICAgNTFkNjk4MTcgTWVyZ2UgdGFnICdwbGF0Zm9ybS1kcml2ZXJzLXg4Ni12NS41LTMn
-IG9mIGdpdDovLy4uDQpnaXQgdHJlZTogICAgICAgdXBzdHJlYW0NCmNvbnNvbGUgb3V0cHV0OiBo
-dHRwczovL3N5emthbGxlci5hcHBzcG90LmNvbS94L2xvZy50eHQ/eD0xNzY0NWMzNWUwMDAwMA0K
-a2VybmVsIGNvbmZpZzogIGh0dHBzOi8vc3l6a2FsbGVyLmFwcHNwb3QuY29tL3gvLmNvbmZpZz94
-PWNmYmI4ZmEzM2Y0OWY5ZjMNCmRhc2hib2FyZCBsaW5rOiBodHRwczovL3N5emthbGxlci5hcHBz
-cG90LmNvbS9idWc/ZXh0aWQ9MGU2M2FlNzZkMTE3YWUxYzNhMDENCmNvbXBpbGVyOiAgICAgICBj
-bGFuZyB2ZXJzaW9uIDEwLjAuMCAoaHR0cHM6Ly9naXRodWIuY29tL2xsdm0vbGx2bS1wcm9qZWN0
-LyAgDQpjMjQ0MzE1NWEwZmIyNDVjOGYxN2YyYzFjNzJiNmVhMzkxZTg2ZTgxKQ0Kc3l6IHJlcHJv
-OiAgICAgIGh0dHBzOi8vc3l6a2FsbGVyLmFwcHNwb3QuY29tL3gvcmVwcm8uc3l6P3g9MTExMjM0
-MjFlMDAwMDANCkMgcmVwcm9kdWNlcjogICBodHRwczovL3N5emthbGxlci5hcHBzcG90LmNvbS94
-L3JlcHJvLmM/eD0xNWI4NzNmZWUwMDAwMA0KDQpJTVBPUlRBTlQ6IGlmIHlvdSBmaXggdGhlIGJ1
-ZywgcGxlYXNlIGFkZCB0aGUgZm9sbG93aW5nIHRhZyB0byB0aGUgY29tbWl0Og0KUmVwb3J0ZWQt
-Ynk6IHN5emJvdCswZTYzYWU3NmQxMTdhZTFjM2EwMUBzeXprYWxsZXIuYXBwc3BvdG1haWwuY29t
-DQoNCm5ldGxpbms6IDc2MCBieXRlcyBsZWZ0b3ZlciBhZnRlciBwYXJzaW5nIGF0dHJpYnV0ZXMg
-aW4gcHJvY2VzcyAgDQpgc3l6LWV4ZWN1dG9yMzMyJy4NCi0tLS0tLS0tLS0tLVsgY3V0IGhlcmUg
-XS0tLS0tLS0tLS0tLQ0KdHJ1bmNhdGVkOiAnbmZ0LWV4cHItMC3vv73vv73vv71MTU1S77+9fu+/
-vR7vv70q77+9e3/vv73vv73vv71G77+977+9F++/ve+/vQsLRGPvv70G77+9SO+/vWMWKBbvv73v
-v70/Vhzvv70nIChsZW4gIA0KMjA5KQ0KV0FSTklORzogQ1BVOiAxIFBJRDogODYyMSBhdCBuZXQv
-bmV0ZmlsdGVyL25mX3RhYmxlc19hcGkuYzo1ODggIA0KbmZ0X3JlcXVlc3RfbW9kdWxlKzB4MTAz
-LzB4MTEwIG5ldC9uZXRmaWx0ZXIvbmZfdGFibGVzX2FwaS5jOjU4OA0KS2VybmVsIHBhbmljIC0g
-bm90IHN5bmNpbmc6IHBhbmljX29uX3dhcm4gc2V0IC4uLg0KQ1BVOiAxIFBJRDogODYyMSBDb21t
-OiBzeXotZXhlY3V0b3IzMzIgTm90IHRhaW50ZWQgNS41LjAtcmM2LXN5emthbGxlciAjMA0KSGFy
-ZHdhcmUgbmFtZTogR29vZ2xlIEdvb2dsZSBDb21wdXRlIEVuZ2luZS9Hb29nbGUgQ29tcHV0ZSBF
-bmdpbmUsIEJJT1MgIA0KR29vZ2xlIDAxLzAxLzIwMTENCkNhbGwgVHJhY2U6DQogIF9fZHVtcF9z
-dGFjayBsaWIvZHVtcF9zdGFjay5jOjc3IFtpbmxpbmVdDQogIGR1bXBfc3RhY2srMHgxZmIvMHgz
-MTggbGliL2R1bXBfc3RhY2suYzoxMTgNCiAgcGFuaWMrMHgyNjQvMHg3YTkga2VybmVsL3Bhbmlj
-LmM6MjIxDQogIF9fd2FybisweDIwOS8weDIxMCBrZXJuZWwvcGFuaWMuYzo1ODINCiAgcmVwb3J0
-X2J1ZysweDFiNi8weDJmMCBsaWIvYnVnLmM6MTk1DQogIGZpeHVwX2J1ZyBhcmNoL3g4Ni9rZXJu
-ZWwvdHJhcHMuYzoxNzQgW2lubGluZV0NCiAgZG9fZXJyb3JfdHJhcCsweGRhLzB4NDQwIGFyY2gv
-eDg2L2tlcm5lbC90cmFwcy5jOjI2Nw0KICBkb19pbnZhbGlkX29wKzB4MzYvMHg0MCBhcmNoL3g4
-Ni9rZXJuZWwvdHJhcHMuYzoyODYNCiAgaW52YWxpZF9vcCsweDIzLzB4MzAgYXJjaC94ODYvZW50
-cnkvZW50cnlfNjQuUzoxMDI3DQpSSVA6IDAwMTA6bmZ0X3JlcXVlc3RfbW9kdWxlKzB4MTAzLzB4
-MTEwIG5ldC9uZXRmaWx0ZXIvbmZfdGFibGVzX2FwaS5jOjU4OA0KQ29kZTogODggMDAgMDAgMDAg
-NzUgMjggNDggOGQgNjUgZjAgNWIgNDEgNWUgNWQgYzMgZTggYTMgM2IgZTAgZmEgNDggOGQgNzQg
-IA0KMjQgNTAgNDggYzcgYzcgZTAgYmEgZTIgODggNDQgODkgZjIgMzEgYzAgZTggYWQgNDcgYjIg
-ZmEgPDBmPiAwYiBlYiBjNSBlOCAgDQo0NCA0OCBiMiBmYSAwZiAxZiA0MCAwMCA1NSA0OCA4OSBl
-NSA0MSA1NyA0MSA1NiA0MQ0KUlNQOiAwMDE4OmZmZmZjOTAwMDFlYTc1YjAgRUZMQUdTOiAwMDAx
-MDI0Ng0KUkFYOiBhMGM3NGM1NDg2YTI0OTAwIFJCWDogZmZmZmZmZmY4OTM1MzcwMCBSQ1g6IGZm
-ZmY4ODgwOGYwNmMxYzANClJEWDogMDAwMDAwMDAwMDAwMDAwMCBSU0k6IDAwMDAwMDAwMDAwMDAw
-MDggUkRJOiAwMDAwMDAwMDAwMDAwMjgyDQpSQlA6IGZmZmZjOTAwMDFlYTc2NTAgUjA4OiBmZmZm
-ODg4MDhmMDZjYTE4IFIwOTogZmZmZmZiZmZmMTNjZDEzMg0KUjEwOiBmZmZmZmJmZmYxM2NkMTMy
-IFIxMTogMDAwMDAwMDAwMDAwMDAwMCBSMTI6IGRmZmZmYzAwMDAwMDAwMDANClIxMzogZmZmZjg4
-ODBhM2Y4ZjE2OCBSMTQ6IDAwMDAwMDAwMDAwMDAwZDEgUjE1OiBmZmZmZmZmZjg5MzZkMWYwDQog
-IG5mdF9leHByX3R5cGVfcmVxdWVzdF9tb2R1bGUgbmV0L25ldGZpbHRlci9uZl90YWJsZXNfYXBp
-LmM6MjMyMCBbaW5saW5lXQ0KICBuZnRfZXhwcl90eXBlX2dldCBuZXQvbmV0ZmlsdGVyL25mX3Rh
-Ymxlc19hcGkuYzoyMzQ1IFtpbmxpbmVdDQogIG5mX3RhYmxlc19leHByX3BhcnNlKzB4MzA4LzB4
-OWUwIG5ldC9uZXRmaWx0ZXIvbmZfdGFibGVzX2FwaS5jOjI0MjANCiAgbmZfdGFibGVzX25ld3J1
-bGUrMHhlZmIvMHgyZDkwIG5ldC9uZXRmaWx0ZXIvbmZfdGFibGVzX2FwaS5jOjMwMzcNCiAgbmZu
-ZXRsaW5rX3Jjdl9iYXRjaCBuZXQvbmV0ZmlsdGVyL25mbmV0bGluay5jOjQzMyBbaW5saW5lXQ0K
-ICBuZm5ldGxpbmtfcmN2X3NrYl9iYXRjaCBuZXQvbmV0ZmlsdGVyL25mbmV0bGluay5jOjU0MyBb
-aW5saW5lXQ0KICBuZm5ldGxpbmtfcmN2KzB4ZWNmLzB4MWU1MCBuZXQvbmV0ZmlsdGVyL25mbmV0
-bGluay5jOjU2MQ0KICBuZXRsaW5rX3VuaWNhc3Rfa2VybmVsIG5ldC9uZXRsaW5rL2FmX25ldGxp
-bmsuYzoxMzAyIFtpbmxpbmVdDQogIG5ldGxpbmtfdW5pY2FzdCsweDc2Ny8weDkyMCBuZXQvbmV0
-bGluay9hZl9uZXRsaW5rLmM6MTMyOA0KICBuZXRsaW5rX3NlbmRtc2crMHhhMmMvMHhkNTAgbmV0
-L25ldGxpbmsvYWZfbmV0bGluay5jOjE5MTcNCiAgc29ja19zZW5kbXNnX25vc2VjIG5ldC9zb2Nr
-ZXQuYzo2MzkgW2lubGluZV0NCiAgc29ja19zZW5kbXNnIG5ldC9zb2NrZXQuYzo2NTkgW2lubGlu
-ZV0NCiAgX19fX3N5c19zZW5kbXNnKzB4NGY3LzB4N2YwIG5ldC9zb2NrZXQuYzoyMzMwDQogIF9f
-X3N5c19zZW5kbXNnIG5ldC9zb2NrZXQuYzoyMzg0IFtpbmxpbmVdDQogIF9fc3lzX3NlbmRtc2cr
-MHgxZWQvMHgyOTAgbmV0L3NvY2tldC5jOjI0MTcNCiAgX19kb19zeXNfc2VuZG1zZyBuZXQvc29j
-a2V0LmM6MjQyNiBbaW5saW5lXQ0KICBfX3NlX3N5c19zZW5kbXNnIG5ldC9zb2NrZXQuYzoyNDI0
-IFtpbmxpbmVdDQogIF9feDY0X3N5c19zZW5kbXNnKzB4N2YvMHg5MCBuZXQvc29ja2V0LmM6MjQy
-NA0KICBkb19zeXNjYWxsXzY0KzB4ZjcvMHgxYzAgYXJjaC94ODYvZW50cnkvY29tbW9uLmM6Mjk0
-DQogIGVudHJ5X1NZU0NBTExfNjRfYWZ0ZXJfaHdmcmFtZSsweDQ5LzB4YmUNClJJUDogMDAzMzow
-eDQ0MDYxOQ0KQ29kZTogMTggODkgZDAgYzMgNjYgMmUgMGYgMWYgODQgMDAgMDAgMDAgMDAgMDAg
-MGYgMWYgMDAgNDggODkgZjggNDggODkgZjcgIA0KNDggODkgZDYgNDggODkgY2EgNGQgODkgYzIg
-NGQgODkgYzggNGMgOGIgNGMgMjQgMDggMGYgMDUgPDQ4PiAzZCAwMSBmMCBmZiAgDQpmZiAwZiA4
-MyBmYiAxMyBmYyBmZiBjMyA2NiAyZSAwZiAxZiA4NCAwMCAwMCAwMCAwMA0KUlNQOiAwMDJiOjAw
-MDA3ZmZlY2E5NTE0NzggRUZMQUdTOiAwMDAwMDI0NiBPUklHX1JBWDogMDAwMDAwMDAwMDAwMDAy
-ZQ0KUkFYOiBmZmZmZmZmZmZmZmZmZmRhIFJCWDogMDAwMDAwMDAwMDQwMDJjOCBSQ1g6IDAwMDAw
-MDAwMDA0NDA2MTkNClJEWDogMDAwMDAwMDAwMDAwMDAwMCBSU0k6IDAwMDAwMDAwMjAwMDAyNDAg
-UkRJOiAwMDAwMDAwMDAwMDAwMDA1DQpSQlA6IDAwMDAwMDAwMDA2Y2IwMTggUjA4OiAwMDAwMDAw
-MDAwNDAwMmM4IFIwOTogMDAwMDAwMDAwMDQwMDJjOA0KUjEwOiAwMDAwMDAwMDAwNDAwMmM4IFIx
-MTogMDAwMDAwMDAwMDAwMDI0NiBSMTI6IDAwMDAwMDAwMDA0MDFlYTANClIxMzogMDAwMDAwMDAw
-MDQwMWYzMCBSMTQ6IDAwMDAwMDAwMDAwMDAwMDAgUjE1OiAwMDAwMDAwMDAwMDAwMDAwDQpLZXJu
-ZWwgT2Zmc2V0OiBkaXNhYmxlZA0KUmVib290aW5nIGluIDg2NDAwIHNlY29uZHMuLg0KDQoNCi0t
-LQ0KVGhpcyBidWcgaXMgZ2VuZXJhdGVkIGJ5IGEgYm90LiBJdCBtYXkgY29udGFpbiBlcnJvcnMu
-DQpTZWUgaHR0cHM6Ly9nb28uZ2wvdHBzbUVKIGZvciBtb3JlIGluZm9ybWF0aW9uIGFib3V0IHN5
-emJvdC4NCnN5emJvdCBlbmdpbmVlcnMgY2FuIGJlIHJlYWNoZWQgYXQgc3l6a2FsbGVyQGdvb2ds
-ZWdyb3Vwcy5jb20uDQoNCnN5emJvdCB3aWxsIGtlZXAgdHJhY2sgb2YgdGhpcyBidWcgcmVwb3J0
-LiBTZWU6DQpodHRwczovL2dvby5nbC90cHNtRUojc3RhdHVzIGZvciBob3cgdG8gY29tbXVuaWNh
-dGUgd2l0aCBzeXpib3QuDQpzeXpib3QgY2FuIHRlc3QgcGF0Y2hlcyBmb3IgdGhpcyBidWcsIGZv
-ciBkZXRhaWxzIHNlZToNCmh0dHBzOi8vZ29vLmdsL3Rwc21FSiN0ZXN0aW5nLXBhdGNoZXMNCg==
+From: Álvaro Santos <aa.santos@campus.fct.unl.pt>
+
+---
+ extensions/libxt_osf.man    | 2 +-
+ extensions/libxt_policy.man | 2 +-
+ extensions/libxt_string.man | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/extensions/libxt_osf.man b/extensions/libxt_osf.man
+index ecb6ee5f..41103f29 100644
+--- a/extensions/libxt_osf.man
++++ b/extensions/libxt_osf.man
+@@ -1,4 +1,4 @@
+-The osf module does passive operating system fingerprinting. This modules
++The osf module does passive operating system fingerprinting. This module
+ compares some data (Window Size, MSS, options and their order, TTL, DF,
+ and others) from packets with the SYN bit set. 
+ .TP
+diff --git a/extensions/libxt_policy.man b/extensions/libxt_policy.man
+index 1b834fa0..12c01b43 100644
+--- a/extensions/libxt_policy.man
++++ b/extensions/libxt_policy.man
+@@ -1,4 +1,4 @@
+-This modules matches the policy used by IPsec for handling a packet.
++This module matches the policy used by IPsec for handling a packet.
+ .TP
+ \fB\-\-dir\fP {\fBin\fP|\fBout\fP}
+ Used to select whether to match the policy used for decapsulation or the
+diff --git a/extensions/libxt_string.man b/extensions/libxt_string.man
+index 54c03a3a..5f1a993c 100644
+--- a/extensions/libxt_string.man
++++ b/extensions/libxt_string.man
+@@ -1,4 +1,4 @@
+-This modules matches a given string by using some pattern matching strategy. It requires a linux kernel >= 2.6.14.
++This module matches a given string by using some pattern matching strategy. It requires a linux kernel >= 2.6.14.
+ .TP
+ \fB\-\-algo\fP {\fBbm\fP|\fBkmp\fP}
+ Select the pattern matching strategy. (bm = Boyer-Moore, kmp = Knuth-Pratt-Morris)
+-- 
+2.17.1
+
