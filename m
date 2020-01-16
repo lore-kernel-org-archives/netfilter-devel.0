@@ -2,125 +2,127 @@ Return-Path: <SRS0=22nV=3F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-13.8 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C995C33CB7
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:22:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42160C33CAF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:50:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5F4112073A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:22:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579202535;
-	bh=eNmW3pak0Drwu2Uzw7tfRv/DSDXFQ0oyshwD7EuwO7Y=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=TQGag5YHh9OtUdjTWCBmdcASWhIlyryQA2iom+0tpfWK5N0ivIQlzUi9hAblw5dQn
-	 3jFNzFtKC/RatNHpjr7eFJdTHK2NLZ17iNJDZugKn/jYVllSNN9VsHTkCeZEaRNl/N
-	 HD6n0QSwcvfKZ/eeUk8kooop+454hQoCeuAA0CqM=
+	by mail.kernel.org (Postfix) with ESMTP id 202E620730
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:50:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731011AbgAPQxb (ORCPT
+        id S1730627AbgAPTux (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jan 2020 11:53:31 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37370 "EHLO mail.kernel.org"
+        Thu, 16 Jan 2020 14:50:53 -0500
+Received: from correo.us.es ([193.147.175.20]:56004 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730990AbgAPQxb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Jan 2020 11:53:31 -0500
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 830772081E;
-        Thu, 16 Jan 2020 16:53:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579193610;
-        bh=eNmW3pak0Drwu2Uzw7tfRv/DSDXFQ0oyshwD7EuwO7Y=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=a0xvzTnptSsvsGF31fqsHPknl3opuXHH4epehEz3UmVfJt5snPfCca0uSsH3XCkHP
-         VhOIhqTi9qlSGETbXLVOxuoJIg2eJa6Fkf69eWzaZKtTB3rNBHIMI6LJ/zEV3f569f
-         NoEOFeYWx8EPeIYi8Aoa08GdWoWYT3CIJBdtJWkA=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 148/205] netfilter: nf_tables_offload: release flow_rule on error from commit path
-Date:   Thu, 16 Jan 2020 11:42:03 -0500
-Message-Id: <20200116164300.6705-148-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200116164300.6705-1-sashal@kernel.org>
-References: <20200116164300.6705-1-sashal@kernel.org>
-MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+        id S1729148AbgAPTux (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Jan 2020 14:50:53 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 133A3DA72B
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jan 2020 20:50:51 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0449BDA714
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jan 2020 20:50:51 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id EDA52DA703; Thu, 16 Jan 2020 20:50:50 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 997BDDA714;
+        Thu, 16 Jan 2020 20:50:48 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 16 Jan 2020 20:50:48 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 7A11E42EF9E1;
+        Thu, 16 Jan 2020 20:50:48 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org
+Subject: [PATCH 0/9] Netfilter updates for net
+Date:   Thu, 16 Jan 2020 20:50:35 +0100
+Message-Id: <20200116195044.326614-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Hello,
 
-[ Upstream commit 23403cd8898dbc9808d3eb2f63bc1db8a340b751 ]
+The following patchset contains Netfilter fixes for net:
 
-If hardware offload commit path fails, release all flow_rule objects.
+1) Fix use-after-free in ipset bitmap destroy path, from Cong Wang.
 
-Fixes: c9626a2cbdb2 ("netfilter: nf_tables: add hardware offload support")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- net/netfilter/nf_tables_offload.c | 26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+2) Missing init netns in entry cleanup path of arp_tables,
+   from Florian Westphal.
 
-diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index e743f811245f..96a64e7594a5 100644
---- a/net/netfilter/nf_tables_offload.c
-+++ b/net/netfilter/nf_tables_offload.c
-@@ -358,14 +358,14 @@ int nft_flow_rule_offload_commit(struct net *net)
- 				continue;
- 
- 			if (trans->ctx.flags & NLM_F_REPLACE ||
--			    !(trans->ctx.flags & NLM_F_APPEND))
--				return -EOPNOTSUPP;
--
-+			    !(trans->ctx.flags & NLM_F_APPEND)) {
-+				err = -EOPNOTSUPP;
-+				break;
-+			}
- 			err = nft_flow_offload_rule(trans->ctx.chain,
- 						    nft_trans_rule(trans),
- 						    nft_trans_flow_rule(trans),
- 						    FLOW_CLS_REPLACE);
--			nft_flow_rule_destroy(nft_trans_flow_rule(trans));
- 			break;
- 		case NFT_MSG_DELRULE:
- 			if (!(trans->ctx.chain->flags & NFT_CHAIN_HW_OFFLOAD))
-@@ -379,7 +379,23 @@ int nft_flow_rule_offload_commit(struct net *net)
- 		}
- 
- 		if (err)
--			return err;
-+			break;
-+	}
-+
-+	list_for_each_entry(trans, &net->nft.commit_list, list) {
-+		if (trans->ctx.family != NFPROTO_NETDEV)
-+			continue;
-+
-+		switch (trans->msg_type) {
-+		case NFT_MSG_NEWRULE:
-+			if (!(trans->ctx.chain->flags & NFT_CHAIN_HW_OFFLOAD))
-+				continue;
-+
-+			nft_flow_rule_destroy(nft_trans_flow_rule(trans));
-+			break;
-+		default:
-+			break;
-+		}
- 	}
- 
- 	return err;
--- 
-2.20.1
+3) Fix WARN_ON in set destroy path due to missing cleanup on
+   transaction error.
 
+4) Incorrect netlink sanity check in tunnel, from Florian Westphal.
+
+5) Missing sanity check for erspan version netlink attribute, also
+   from Florian.
+
+6) Remove WARN in nft_request_module() that can be triggered from
+   userspace, from Florian Westphal.
+
+7) Memleak in NFTA_HOOK_DEVS netlink parser, from Dan Carpenter.
+
+8) List poison from commit path for flowtables that are added and
+   deleted in the same batch, from Florian Westphal.
+
+9) Fix NAT ICMP packet corruption, from Eyal Birger.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thank you.
+
+----------------------------------------------------------------
+
+The following changes since commit c9f53049d4a842db6bcd76f597759a0ef5f65c86:
+
+  MAINTAINERS: update my email address (2020-01-11 14:33:39 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to 61177e911dad660df86a4553eb01c95ece2f6a82:
+
+  netfilter: nat: fix ICMP header corruption on ICMP errors (2020-01-16 15:08:25 +0100)
+
+----------------------------------------------------------------
+Cong Wang (1):
+      netfilter: fix a use-after-free in mtype_destroy()
+
+Dan Carpenter (1):
+      netfilter: nf_tables: fix memory leak in nf_tables_parse_netdev_hooks()
+
+Eyal Birger (1):
+      netfilter: nat: fix ICMP header corruption on ICMP errors
+
+Florian Westphal (5):
+      netfilter: arp_tables: init netns pointer in xt_tgdtor_param struct
+      netfilter: nft_tunnel: fix null-attribute check
+      netfilter: nft_tunnel: ERSPAN_VERSION must not be null
+      netfilter: nf_tables: remove WARN and add NLA_STRING upper limits
+      netfilter: nf_tables: fix flowtable list del corruption
+
+Pablo Neira Ayuso (1):
+      netfilter: nf_tables: store transaction list locally while requesting module
+
+ net/ipv4/netfilter/arp_tables.c         | 19 ++++++++--------
+ net/netfilter/ipset/ip_set_bitmap_gen.h |  2 +-
+ net/netfilter/nf_nat_proto.c            | 13 +++++++++++
+ net/netfilter/nf_tables_api.c           | 39 ++++++++++++++++++++++-----------
+ net/netfilter/nft_tunnel.c              |  5 ++++-
+ 5 files changed, 54 insertions(+), 24 deletions(-)
