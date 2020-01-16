@@ -2,129 +2,128 @@ Return-Path: <SRS0=22nV=3F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95B15C33CB3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:04:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F8EBC33CB6
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:07:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6E23F206D7
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:04:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579201473;
-	bh=k71BLNRsuMPAi9MvMKInQupc8ZQztfy/jtY4owY8UIU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ZAd1hNa7T1weo1W02b0LQlvfoygRkDQjHHf65rsNSjVGERGi6ZMdLtBLrC7C3r+K6
-	 jAbNxkE3d80ZpI9NWR+zdag/4H9E3DrpoOmUelQ9Dns0z+F3luVeV9dLtW0HyqwRzc
-	 tnvomY2Cj0nerOYNc1rQWUw0SAxtqXjHq7nvLIpA=
+	by mail.kernel.org (Postfix) with ESMTP id 383C62072E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:07:45 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="sq6rBxCB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388756AbgAPTEb (ORCPT
+        id S2437319AbgAPTHk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jan 2020 14:04:31 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54802 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388317AbgAPRCR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:02:17 -0500
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1606321582;
-        Thu, 16 Jan 2020 17:02:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579194137;
-        bh=k71BLNRsuMPAi9MvMKInQupc8ZQztfy/jtY4owY8UIU=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qA1ZDd651Z6gqDFfwL3kdwfG52muYXDvLOeflrJEJea+VDYJK47GK/wlRyUU28pRA
-         2SNVJNHFEjX7vd4I9of0SlfUq+XMVIb5s1J3ZiK5221dTHwX5vx8vWdxg5P+wfbw5m
-         RxunkcOCalr+v5tc/7WpVNtoU+0hD8owOZIlk/gs=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 225/671] netfilter: nft_set_hash: fix lookups with fixed size hash on big endian
-Date:   Thu, 16 Jan 2020 11:52:14 -0500
-Message-Id: <20200116165940.10720-108-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200116165940.10720-1-sashal@kernel.org>
-References: <20200116165940.10720-1-sashal@kernel.org>
+        Thu, 16 Jan 2020 14:07:40 -0500
+Received: from mail-lf1-f66.google.com ([209.85.167.66]:36834 "EHLO
+        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2406213AbgAPTHk (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Jan 2020 14:07:40 -0500
+Received: by mail-lf1-f66.google.com with SMTP id n12so16401514lfe.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jan 2020 11:07:38 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=EmuC4PVZIAqszrVr1XV69xZ8ppUgqhM55b6dhWz3+uk=;
+        b=sq6rBxCBy/CCxrwdHmaue9zJzhbHLCVFuzGNGljHenlF/JLCURJo0cW7HCcIzob853
+         ad8iNOfF7LvsNp4yActpwaksvIR5rR1SdBfmQKDabEl3I/66emZXHFCqfHyOU+Udbi20
+         0tAWoeLngfq3NMIbyFzU+Ex99sYkrcGxIllnCdE+f2SBzpq4080pQlPAJlMoyjZpzPhZ
+         DGGoDvZ48oTt7anYYS1ei29KQbqdWUs3CASJU/SV9rM2iPjwRMmumUYKC1mkFyvnaEte
+         mMCLHi9tI/s+qcIUCXU5476/G0zj8H79xmCp+F5wrCflAzrvYOq2DBF6Ip3cme3OPkbD
+         /K0A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=EmuC4PVZIAqszrVr1XV69xZ8ppUgqhM55b6dhWz3+uk=;
+        b=EZ8DGoS8pEc3cQjAoppKk6jSbig9UH21WJ/wuOxSSXwO34GULAHRUbxz3EEvDFAyz2
+         A9R0KP01sii6yyAV3gQUpX+cek8bxrvJJGn6zdO6KGB3oOTo3+dcBlyRmkPFHH17iov3
+         8xuSnCQSp5HnyeH3MzwbX++mxfnb5SV2aXVUekSQZqQ+hfXoYJwVTjoC2GGxpmWIAnGZ
+         0DGX3o7D/0OAFlJmlQxDDsFOMRVY0wZI1/cUyKrqh9XyzIssEPZc+AUiKfizxh3wQ6D4
+         Wd/Rg/Z8XLYjxxj1wuk76PLM2vndtmE6KMEvGUhZQWXIioNBAIGXK4UdPVzPJSXRQZ3G
+         hWhw==
+X-Gm-Message-State: APjAAAUk6NNNr29s2X6wQhBbZ8J/AIwZRbdkHDKOQrTERB3w6LtePpu3
+        Up88/QhEGPqYoLcQsmEQmqKal9OcOlIYArYiwAus
+X-Google-Smtp-Source: APXvYqyjq8pmunQfve4JqN7h2RHW+MxQZLns1p+JMhm7APFS43fUdBdBp+Ertu9yeaZgxNoNEEToXqGpX1HrNrUdodI=
+X-Received: by 2002:a2e:870b:: with SMTP id m11mr3237458lji.93.1579201657915;
+ Thu, 16 Jan 2020 11:07:37 -0800 (PST)
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+References: <cover.1577830902.git.rgb@redhat.com> <20200116150518.gfmzixoqagmk77rw@salvia>
+In-Reply-To: <20200116150518.gfmzixoqagmk77rw@salvia>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Thu, 16 Jan 2020 14:07:27 -0500
+Message-ID: <CAHC9VhSowSdhwaGNVfj-Paj7=38z1D-p+=EDQNUAwNJpO_tyXg@mail.gmail.com>
+Subject: Re: [PATCH ghak25 v2 0/9] Address NETFILTER_CFG issues
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Richard Guy Briggs <rgb@redhat.com>,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, sgrubb@redhat.com,
+        omosnace@redhat.com, fw@strlen.de, twoerner@redhat.com,
+        Eric Paris <eparis@parisplace.org>, ebiederm@xmission.com,
+        tgraf@infradead.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+On Thu, Jan 16, 2020 at 10:05 AM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Mon, Jan 06, 2020 at 01:54:01PM -0500, Richard Guy Briggs wrote:
+> > There were questions about the presence and cause of unsolicited syscall events
+> > in the logs containing NETFILTER_CFG records and sometimes unaccompanied
+> > NETFILTER_CFG records.
+> >
+> > During testing at least the following list of events trigger NETFILTER_CFG
+> > records and the syscalls related (There may be more events that will trigger
+> > this message type.):
+> >       init_module, finit_module: modprobe
+> >       setsockopt: iptables-restore, ip6tables-restore, ebtables-restore
+> >       unshare: (h?)ostnamed
+> >       clone: libvirtd
+> >
+> > The syscall events unsolicited by any audit rule were found to be caused by a
+> > missing !audit_dummy_context() check before creating a NETFILTER_CFG
+> > record and issuing the record immediately rather than saving the
+> > information to create the record at syscall exit.
+> > Check !audit_dummy_context() before creating the NETFILTER_CFG record.
+> >
+> > The vast majority of unaccompanied records are caused by the fedora default
+> > rule: "-a never,task" and the occasional early startup one is I believe caused
+> > by the iptables filter table module hard linked into the kernel rather than a
+> > loadable module. The !audit_dummy_context() check above should avoid them.
+> >
+> > A couple of other factors should help eliminate unaccompanied records
+> > which include commit cb74ed278f80 ("audit: always enable syscall
+> > auditing when supported and audit is enabled") which makes sure that
+> > when audit is enabled, so automatically is syscall auditing, and ghak66
+> > which addressed initializing audit before PID 1.
+> >
+> > Ebtables module initialization to register tables doesn't generate records
+> > because it was never hooked in to audit.  Recommend adding audit hooks to log
+> > this.
+> >
+> > Table unregistration was never logged, which is now covered.
+> >
+> > Seemingly duplicate records are not actually exact duplicates that are caused
+> > by netfilter table initialization in different network namespaces from the same
+> > syscall.  Recommend adding the network namespace ID (proc inode and dev)
+> > to the record to make this obvious (address later with ghak79 after nsid
+> > patches).
+> >
+> > See: https://github.com/linux-audit/audit-kernel/issues/25
+> > See: https://github.com/linux-audit/audit-kernel/issues/35
+> > See: https://github.com/linux-audit/audit-kernel/issues/43
+> > See: https://github.com/linux-audit/audit-kernel/issues/44
+>
+> What tree is this batch targeted to?
 
-[ Upstream commit 3b02b0adc242a72b5e46019b6a9e4f84823592f6 ]
+I believe Richard was targeting this for the audit tree.
 
-Call jhash_1word() for the 4-bytes key case from the insertion and
-deactivation path, otherwise big endian arch set lookups fail.
-
-Fixes: 446a8268b7f5 ("netfilter: nft_set_hash: add lookup variant for fixed size hashtable")
-Reported-by: Florian Westphal <fw@strlen.de>
-Tested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- net/netfilter/nft_set_hash.c | 23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 015124e649cb..8dde4bfe8b8a 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -488,6 +488,23 @@ static bool nft_hash_lookup_fast(const struct net *net,
- 	return false;
- }
- 
-+static u32 nft_jhash(const struct nft_set *set, const struct nft_hash *priv,
-+		     const struct nft_set_ext *ext)
-+{
-+	const struct nft_data *key = nft_set_ext_key(ext);
-+	u32 hash, k1;
-+
-+	if (set->klen == 4) {
-+		k1 = *(u32 *)key;
-+		hash = jhash_1word(k1, priv->seed);
-+	} else {
-+		hash = jhash(key, set->klen, priv->seed);
-+	}
-+	hash = reciprocal_scale(hash, priv->buckets);
-+
-+	return hash;
-+}
-+
- static int nft_hash_insert(const struct net *net, const struct nft_set *set,
- 			   const struct nft_set_elem *elem,
- 			   struct nft_set_ext **ext)
-@@ -497,8 +514,7 @@ static int nft_hash_insert(const struct net *net, const struct nft_set *set,
- 	u8 genmask = nft_genmask_next(net);
- 	u32 hash;
- 
--	hash = jhash(nft_set_ext_key(&this->ext), set->klen, priv->seed);
--	hash = reciprocal_scale(hash, priv->buckets);
-+	hash = nft_jhash(set, priv, &this->ext);
- 	hlist_for_each_entry(he, &priv->table[hash], node) {
- 		if (!memcmp(nft_set_ext_key(&this->ext),
- 			    nft_set_ext_key(&he->ext), set->klen) &&
-@@ -537,8 +553,7 @@ static void *nft_hash_deactivate(const struct net *net,
- 	u8 genmask = nft_genmask_next(net);
- 	u32 hash;
- 
--	hash = jhash(nft_set_ext_key(&this->ext), set->klen, priv->seed);
--	hash = reciprocal_scale(hash, priv->buckets);
-+	hash = nft_jhash(set, priv, &this->ext);
- 	hlist_for_each_entry(he, &priv->table[hash], node) {
- 		if (!memcmp(nft_set_ext_key(&this->ext), &elem->key.val,
- 			    set->klen) &&
 -- 
-2.20.1
-
+paul moore
+www.paul-moore.com
