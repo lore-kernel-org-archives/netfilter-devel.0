@@ -2,48 +2,48 @@ Return-Path: <SRS0=22nV=3F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D617EC33CB3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 00:25:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A56EC32771
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 00:25:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ADAAC24671
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 00:25:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F1B824671
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 00:25:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730979AbgAPAZN (ORCPT
+        id S1729066AbgAPAZT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 Jan 2020 19:25:13 -0500
-Received: from mail-il1-f200.google.com ([209.85.166.200]:47988 "EHLO
+        Wed, 15 Jan 2020 19:25:19 -0500
+Received: from mail-il1-f200.google.com ([209.85.166.200]:37567 "EHLO
         mail-il1-f200.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730224AbgAPAZN (ORCPT
+        with ESMTP id S1729798AbgAPAZN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 15 Jan 2020 19:25:13 -0500
-Received: by mail-il1-f200.google.com with SMTP id x69so14667207ill.14
+Received: by mail-il1-f200.google.com with SMTP id l13so14769067ilj.4
         for <netfilter-devel@vger.kernel.org>; Wed, 15 Jan 2020 16:25:12 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=5Q0/s70I04zkYXmwGyibITI228DfglQLra6W2tkH+R4=;
-        b=tHrLVG6qjTP1A2ISudikItpwqXyoLVvNo6vNm3VrWjK0Gi04oE1j1vl10ML1nutoy0
-         ZwjpZKatMcogQM8rVI7UlsdeGOEr8/PchH9iLlwjUTbd7wyB6tb8fuw1tGVKcR5GlgF0
-         eDzOwClq3sJroS6mMYY6hZvWUSFCR/SciwClgb+7Lki1gRFaiusOey4/OnboWwATuVFk
-         SmbpnR1vYm7+TGFc9ZJLRcav5u9V0FZsl4kozdVJRJbQNePEmdm9f4D/2eBNrakLgbJ7
-         L2qh52p6stY9HWEXQOWdwQ4OB6WmaT2cYR2FTcl42K2r3ZDhUo/1S7wcV+w4LbUwoSPG
-         Fm+A==
-X-Gm-Message-State: APjAAAW1TV0BChzG0Tlwo0PgMby4GUbiVzONhNKdmaUNupbLmG1BrMNl
-        YmSlqD2OE+IejNIT0mLcYY5WMRh0wCoxRhvoU1B+AMjsvGii
-X-Google-Smtp-Source: APXvYqx32xVicDGczPj5NgHpnTvtiGY3C0Z7tUd5DYmqSfMs6r4DbtcZAzA3KPW6BgcJDHTDYRMzlJuhjLjQi7kAMGjaRzj46dU2
+        bh=uDCxE99L3Kizm601ZuyoSXKPaaY+XRBi2dhlbBvZTI8=;
+        b=odK4yhuQW7pkuMPFseeZ9dsbwoxbUgxewB9rau6XkJ6HsqlJy5j77W17AxDfXwd8+F
+         m3AInetxoHJtNZwfkMEpiEG9lkgDqucM3urkqzWLHakJ0NCKDjDnu6Aiyq9R392xhdAc
+         ftwA00NAQWKFN7ydDBCPEnWQHIDApEnVer38nVfnlk7619DxPuPU71xr+iod/k10sLyf
+         MMbNkUtTZc5jgrwzO4X+FJEGRmKURNNEyDhNN9xTrUBxQvtAD1xsa8St9t+7CEQVYfp8
+         Wzzp6sqY4h2gf1KvQL+XbrCeiyAmfMIhfO3oKoQ+EYlsfWWvyfJtZNcMhgXr9yIS/Il9
+         c9OQ==
+X-Gm-Message-State: APjAAAWIZRaVlWE1iLPDMonHfHIpZ+j1KAZVGgOlq86iyYiB1Y+pwY8N
+        SLue8Mo6E4JOBzj3mpEgFBvqYsFn2HkZjWhPrkzIys+j3GTw
+X-Google-Smtp-Source: APXvYqyRs+uDLZoCJFvdLkUo+lNWTa3pvZ3ERP/W5BX4qMyuSeYDj5BjWEtPFLIBSsNpRXufqbGVIIq1wpFry6OutBe3TDMByBGb
 MIME-Version: 1.0
-X-Received: by 2002:a6b:c884:: with SMTP id y126mr486954iof.246.1579134312279;
- Wed, 15 Jan 2020 16:25:12 -0800 (PST)
-Date:   Wed, 15 Jan 2020 16:25:12 -0800
+X-Received: by 2002:a5e:c014:: with SMTP id u20mr24376530iol.43.1579134311865;
+ Wed, 15 Jan 2020 16:25:11 -0800 (PST)
+Date:   Wed, 15 Jan 2020 16:25:11 -0800
 X-Google-Appengine-App-Id: s~syzkaller
 X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000bc757e059c36db18@google.com>
-Subject: BUG: corrupted list in nft_obj_del
-From:   syzbot <syzbot+6ca99af7e70e298bd09d@syzkaller.appspotmail.com>
+Message-ID: <000000000000b62bda059c36db7c@google.com>
+Subject: general protection fault in nft_tunnel_get_init
+From:   syzbot <syzbot+76d0b80493ac881ff77b@syzkaller.appspotmail.com>
 To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
         kadlec@netfilter.org, linux-kernel@vger.kernel.org,
         netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
@@ -58,47 +58,44 @@ Hello,
 
 syzbot found the following crash on:
 
-HEAD commit:    8b792f84 Merge branch 'mlxsw-Various-fixes'
-git tree:       net
-console output: https://syzkaller.appspot.com/x/log.txt?x=1766b349e00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=7e89bd00623fe71e
-dashboard link: https://syzkaller.appspot.com/bug?extid=6ca99af7e70e298bd09d
+HEAD commit:    51d69817 Merge tag 'platform-drivers-x86-v5.5-3' of git://..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=1703533ee00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=d9290aeb7e6cf1c4
+dashboard link: https://syzkaller.appspot.com/bug?extid=76d0b80493ac881ff77b
 compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=168b95e1e00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=10f29b3ee00000
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=166f4bfee00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=159c4371e00000
 
 IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+6ca99af7e70e298bd09d@syzkaller.appspotmail.com
+Reported-by: syzbot+76d0b80493ac881ff77b@syzkaller.appspotmail.com
 
-list_del corruption, ffff8880a46b1500->prev is LIST_POISON2  
-(dead000000000122)
-------------[ cut here ]------------
-kernel BUG at lib/list_debug.c:48!
-invalid opcode: 0000 [#1] PREEMPT SMP KASAN
-CPU: 1 PID: 9787 Comm: syz-executor290 Not tainted 5.5.0-rc5-syzkaller #0
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 9557 Comm: syz-executor096 Not tainted 5.5.0-rc6-syzkaller #0
 Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
 Google 01/01/2011
-RIP: 0010:__list_del_entry_valid.cold+0x37/0x4f lib/list_debug.c:48
-Code: be fd 0f 0b 4c 89 ea 4c 89 f6 48 c7 c7 a0 65 71 88 e8 a0 bb be fd 0f  
-0b 4c 89 e2 4c 89 f6 48 c7 c7 00 66 71 88 e8 8c bb be fd <0f> 0b 4c 89 f6  
-48 c7 c7 c0 66 71 88 e8 7b bb be fd 0f 0b cc cc cc
-RSP: 0018:ffffc900020e7338 EFLAGS: 00010286
-RAX: 000000000000004e RBX: ffff8880a46b1500 RCX: 0000000000000000
-RDX: 0000000000000000 RSI: ffffffff815e53a6 RDI: fffff5200041ce59
-RBP: ffffc900020e7350 R08: 000000000000004e R09: ffffed1015d26621
-R10: ffffed1015d26620 R11: ffff8880ae933107 R12: dead000000000122
-R13: ffff88809e9c3970 R14: ffff8880a46b1500 R15: ffff8880a46b1508
-FS:  0000000000837880(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
+RIP: 0010:nla_get_be32 include/net/netlink.h:1483 [inline]
+RIP: 0010:nft_tunnel_get_init+0x65/0x2b0 net/netfilter/nft_tunnel.c:83
+Code: 02 00 00 4c 8b 6b 08 4d 85 ed 0f 84 ba 01 00 00 e8 a0 8d 08 fb 49 8d  
+7d 04 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <0f> b6 14 02 48  
+89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 df
+RSP: 0018:ffffc90002127398 EFLAGS: 00010247
+RAX: dffffc0000000000 RBX: ffff88808b620008 RCX: ffffffff866720af
+RDX: 0000000000000000 RSI: ffffffff866c67e0 RDI: 0000000000000004
+RBP: ffffc900021273c8 R08: ffff88809f4424c0 R09: ffffed1015d2703d
+R10: ffffed1015d2703c R11: ffff8880ae9381e3 R12: ffff88809824ac18
+R13: 0000000000000000 R14: 0000000000000000 R15: ffffc90002127498
+FS:  00000000011dc880(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
 CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000020000280 CR3: 000000008f0b6000 CR4: 00000000001406e0
+CR2: 00000000200009c6 CR3: 00000000a8486000 CR4: 00000000001406e0
 DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
 DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
 Call Trace:
-  __list_del_entry include/linux/list.h:131 [inline]
-  list_del_rcu include/linux/rculist.h:148 [inline]
-  nft_obj_del+0xcb/0x1f0 net/netfilter/nf_tables_api.c:6970
-  nf_tables_commit+0x1339/0x3b30 net/netfilter/nf_tables_api.c:7171
-  nfnetlink_rcv_batch+0xc78/0x17a0 net/netfilter/nfnetlink.c:485
+  nf_tables_newexpr net/netfilter/nf_tables_api.c:2466 [inline]
+  nf_tables_newrule+0xd96/0x2400 net/netfilter/nf_tables_api.c:3074
+  nfnetlink_rcv_batch+0xf42/0x17a0 net/netfilter/nfnetlink.c:433
   nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:543 [inline]
   nfnetlink_rcv+0x3e7/0x460 net/netfilter/nfnetlink.c:561
   netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
@@ -114,31 +111,32 @@ Call Trace:
   __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2424
   do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
   entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x4406a9
+RIP: 0033:0x4407b9
 Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7  
 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
 ff 0f 83 fb 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007fff37625bc8 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
-RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 00000000004406a9
-RDX: 0000000000042000 RSI: 0000000020000140 RDI: 0000000000000004
+RSP: 002b:00007ffe11777578 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 00000000004407b9
+RDX: 0000000000000000 RSI: 0000000020000240 RDI: 0000000000000004
 RBP: 00000000006ca018 R08: 0000000000000001 R09: 00000000004002c8
-R10: 0000000000000009 R11: 0000000000000246 R12: 0000000000401f30
-R13: 0000000000401fc0 R14: 0000000000000000 R15: 0000000000000000
+R10: 0000000000000011 R11: 0000000000000246 R12: 0000000000402040
+R13: 00000000004020d0 R14: 0000000000000000 R15: 0000000000000000
 Modules linked in:
----[ end trace 7b3c7a3aadb229c5 ]---
-RIP: 0010:__list_del_entry_valid.cold+0x37/0x4f lib/list_debug.c:48
-Code: be fd 0f 0b 4c 89 ea 4c 89 f6 48 c7 c7 a0 65 71 88 e8 a0 bb be fd 0f  
-0b 4c 89 e2 4c 89 f6 48 c7 c7 00 66 71 88 e8 8c bb be fd <0f> 0b 4c 89 f6  
-48 c7 c7 c0 66 71 88 e8 7b bb be fd 0f 0b cc cc cc
-RSP: 0018:ffffc900020e7338 EFLAGS: 00010286
-RAX: 000000000000004e RBX: ffff8880a46b1500 RCX: 0000000000000000
-RDX: 0000000000000000 RSI: ffffffff815e53a6 RDI: fffff5200041ce59
-RBP: ffffc900020e7350 R08: 000000000000004e R09: ffffed1015d26621
-R10: ffffed1015d26620 R11: ffff8880ae933107 R12: dead000000000122
-R13: ffff88809e9c3970 R14: ffff8880a46b1500 R15: ffff8880a46b1508
-FS:  0000000000837880(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
+---[ end trace e202d5958993ae18 ]---
+RIP: 0010:nla_get_be32 include/net/netlink.h:1483 [inline]
+RIP: 0010:nft_tunnel_get_init+0x65/0x2b0 net/netfilter/nft_tunnel.c:83
+Code: 02 00 00 4c 8b 6b 08 4d 85 ed 0f 84 ba 01 00 00 e8 a0 8d 08 fb 49 8d  
+7d 04 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <0f> b6 14 02 48  
+89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 df
+RSP: 0018:ffffc90002127398 EFLAGS: 00010247
+RAX: dffffc0000000000 RBX: ffff88808b620008 RCX: ffffffff866720af
+RDX: 0000000000000000 RSI: ffffffff866c67e0 RDI: 0000000000000004
+RBP: ffffc900021273c8 R08: ffff88809f4424c0 R09: ffffed1015d2703d
+R10: ffffed1015d2703c R11: ffff8880ae9381e3 R12: ffff88809824ac18
+R13: 0000000000000000 R14: 0000000000000000 R15: ffffc90002127498
+FS:  00000000011dc880(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
 CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000020000280 CR3: 000000008f0b6000 CR4: 00000000001406e0
+CR2: 00000000200009c6 CR3: 00000000a8486000 CR4: 00000000001406e0
 DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
 DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
 
