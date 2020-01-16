@@ -2,81 +2,106 @@ Return-Path: <SRS0=22nV=3F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBE2EC33CB1
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 10:49:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A151FC33CB3
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 11:03:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A20DC2077B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 10:49:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7D83120730
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 11:03:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726552AbgAPKtC (ORCPT
+        id S1726084AbgAPLDJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jan 2020 05:49:02 -0500
-Received: from mail-il1-f197.google.com ([209.85.166.197]:39926 "EHLO
-        mail-il1-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726410AbgAPKtC (ORCPT
+        Thu, 16 Jan 2020 06:03:09 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:33928 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725800AbgAPLDI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Jan 2020 05:49:02 -0500
-Received: by mail-il1-f197.google.com with SMTP id n6so15814798ile.6
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jan 2020 02:49:01 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=vXf7A0NOmOYnzFvw+i/lGTeJq016329/QakV55aUcG0=;
-        b=DFysd84fpoOwRkcZtOBuvyBqEnZ6GXjACWmNLmvh9t0njO2UUneWc26TfycXrqqvir
-         FAGb79D2BuDQQ6EcAIULJ/ROE2dFzFl2GJq6SZ2SFYRghwUJwMe9akz5wXPuhOTRQfFP
-         MOcrukyD2y7ohoryj3pZyMEWTXRbNW1a6FPN32YZ6C9MDrdN7PkPwuk4aQgQCCMaePND
-         m8BPr62mUaCjSoPLf07I3K/kT2Bdw4I83KWRn5GrqA9hIqJPIPFzT5qZ94PvGklfwFTI
-         8ArA/d/1UPoMQEKuTTmkBax9jtQgg+baKcj+G2B9HxvhiNBGDC6Zfqb6CnZUqO+rZAwA
-         FUkA==
-X-Gm-Message-State: APjAAAUPI7esAemWGkirGky7XyVm9fnFiTy1KQnVnb0F5RlzEis7mGE0
-        16rUTcz7c36z553sICxRg4hscWCg6gBpARSRJSXkIDHVNeRi
-X-Google-Smtp-Source: APXvYqxopJ/jpk1yIg/I62PmVhs8FXVnSYmF1TfUZ9VNvmnmuoElsGzQesNp8GprKQ9VNUmhiQEqsoJLXz2GyBosz3vGAuYabDoY
+        Thu, 16 Jan 2020 06:03:08 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1is2va-0004LU-In; Thu, 16 Jan 2020 12:03:06 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     syzkaller-bugs@googlegroups.com, <netdev@vger.kernel.org>,
+        Florian Westphal <fw@strlen.de>,
+        syzbot+37a6804945a3a13b1572@syzkaller.appspotmail.com
+Subject: [PATCH nf] netfilter: nf_tables: fix flowtable list del corruption
+Date:   Thu, 16 Jan 2020 12:03:01 +0100
+Message-Id: <20200116110301.4875-1-fw@strlen.de>
+X-Mailer: git-send-email 2.24.1
+In-Reply-To: <000000000000b3599c059c36db0d@google.com>
+References: <000000000000b3599c059c36db0d@google.com>
 MIME-Version: 1.0
-X-Received: by 2002:a92:3cd4:: with SMTP id j81mr3015923ilf.77.1579171741688;
- Thu, 16 Jan 2020 02:49:01 -0800 (PST)
-Date:   Thu, 16 Jan 2020 02:49:01 -0800
-In-Reply-To: <000000000000b9fc96059c36db9e@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000b3ea0f059c3f9203@google.com>
-Subject: Re: WARNING in nft_request_module
-From:   syzbot <syzbot+0e63ae76d117ae1c3a01@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@blackhole.kfki.hu, kadlec@netfilter.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has bisected this bug to:
+syzbot reported following crash:
 
-commit 452238e8d5ffd8b77f92387519513839d4ca7379
-Author: Florian Westphal <fw@strlen.de>
-Date:   Wed Jul 11 11:45:10 2018 +0000
+  list_del corruption, ffff88808c9bb000->prev is LIST_POISON2 (dead000000000122)
+  [..]
+  Call Trace:
+   __list_del_entry include/linux/list.h:131 [inline]
+   list_del_rcu include/linux/rculist.h:148 [inline]
+   nf_tables_commit+0x1068/0x3b30 net/netfilter/nf_tables_api.c:7183
+   [..]
 
-     netfilter: nf_tables: add and use helper for module autoload
+The commit transaction list has:
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=17bb83e1e00000
-start commit:   51d69817 Merge tag 'platform-drivers-x86-v5.5-3' of git://..
-git tree:       upstream
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=147b83e1e00000
-console output: https://syzkaller.appspot.com/x/log.txt?x=107b83e1e00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=d9290aeb7e6cf1c4
-dashboard link: https://syzkaller.appspot.com/bug?extid=0e63ae76d117ae1c3a01
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=16b14421e00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=138473fee00000
+NFT_MSG_NEWTABLE
+NFT_MSG_NEWFLOWTABLE
+NFT_MSG_DELFLOWTABLE
+NFT_MSG_DELTABLE
 
-Reported-by: syzbot+0e63ae76d117ae1c3a01@syzkaller.appspotmail.com
-Fixes: 452238e8d5ff ("netfilter: nf_tables: add and use helper for module  
-autoload")
+A missing generation check during DELTABLE processing causes it to queue
+the DELFLOWTABLE operation a second time, so we corrupt the list here:
 
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+  case NFT_MSG_DELFLOWTABLE:
+     list_del_rcu(&nft_trans_flowtable(trans)->list);
+     nf_tables_flowtable_notify(&trans->ctx,
+
+because we have two different DELFLOWTABLE transactions for the same
+flowtable.  We then call list_del_rcu() twice for the same flowtable->list.
+
+The object handling seems to suffer from the same bug so add a generation
+check too and only queue delete transactions for flowtables/objects that
+are still active in the next generation.
+
+Reported-by: syzbot+37a6804945a3a13b1572@syzkaller.appspotmail.com
+Fixes: 3b49e2e94e6eb ("netfilter: nf_tables: add flow table netlink frontend")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_tables_api.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 5a1a6632e3a6..9ba1747686ed 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1047,12 +1047,18 @@ static int nft_flush_table(struct nft_ctx *ctx)
+ 	}
+ 
+ 	list_for_each_entry_safe(flowtable, nft, &ctx->table->flowtables, list) {
++		if (!nft_is_active_next(ctx->net, flowtable))
++			continue;
++
+ 		err = nft_delflowtable(ctx, flowtable);
+ 		if (err < 0)
+ 			goto out;
+ 	}
+ 
+ 	list_for_each_entry_safe(obj, ne, &ctx->table->objects, list) {
++		if (!nft_is_active_next(ctx->net, obj))
++			continue;
++
+ 		err = nft_delobj(ctx, obj);
+ 		if (err < 0)
+ 			goto out;
+-- 
+2.24.1
+
