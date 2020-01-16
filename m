@@ -4,53 +4,54 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3BB1C33CAF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 18:59:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AA7BC33CAF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:04:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B63AF20663
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 18:59:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EC74C206D7
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:04:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579201175;
-	bh=G7YqXyQm0ar1eD+NyLytqEqQFhGJI9U3ct2YhRdk67A=;
+	s=default; t=1579201468;
+	bh=Vu2GNXNXW2Lq/MQh8E+8TwQcdIpv8XQTS4u624FWLZc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=lZywD6EtgBc6oMSlUNA7illQd0yy+D4AU+J6MtyMnSYQp1Axk54tNcicjhhLznkDz
-	 KGcSUD3PYnR3UcjNcIdwN4uhiErzDZndGQpJmFjIrsky6YJuEiXs3jvaGJevE1aDi8
-	 QlH5ZCCVxNg2NefZ0rsCg2o5hOr6SMn4D0bsRCrk=
+	b=eTbqIfaCc1YFODE77kOYq1Zz0DOzk/irjBS1LZhy2DSFhd8Ux+nuSwlqNzrT+Ygly
+	 P1vx+PYiVzTGDGBcJWPVRx1LPVPKXqAvyDuxj3JCBCNJb039/08Bi3/NYVRT1CGueo
+	 BBcWBf7eWt6zqC8bXQ+4LLPkeiDUOYdyqKVaFiHs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404333AbgAPS7f (ORCPT
+        id S2388330AbgAPRCT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jan 2020 13:59:35 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36892 "EHLO mail.kernel.org"
+        Thu, 16 Jan 2020 12:02:19 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54840 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388948AbgAPRGd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:06:33 -0500
+        id S2387586AbgAPRCT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:02:19 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 29629205F4;
-        Thu, 16 Jan 2020 17:06:32 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 58602207FF;
+        Thu, 16 Jan 2020 17:02:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579194393;
-        bh=G7YqXyQm0ar1eD+NyLytqEqQFhGJI9U3ct2YhRdk67A=;
+        s=default; t=1579194138;
+        bh=Vu2GNXNXW2Lq/MQh8E+8TwQcdIpv8XQTS4u624FWLZc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=mlOxgtOQchq6Ck5In4Yq9t/ZEW406OCOCtdol7+eBqG6cWb7qTAuZhNqm8ZNtzEh3
-         D5N5mr2TeGjw20RLW/jv/HxYNoA0/s0ROc55wuzAAUJW++IV4u3K+g695w4sbSlQvz
-         OhIlt+le8ajGoDjrRipWCNwfd7aGpKG/NLytLIJw=
+        b=FxBSnMVbvfzR5aZU1SCkSeKgHAXr3o858HbgnA9z7RXBur/p5TPGlAklUqoj2aZni
+         xA4qZGpX+DSJQHyIzJ3Q83Q1IBUTASqib4tLb1aWuYvMwzOEDmr8aqqaQ3LDHrWfWY
+         uknYH1I3kzcw4YZzUkyKaNTL5RGc845aZ+Dsvj1Y=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 320/671] netfilter: nft_flow_offload: add entry to flowtable after confirmation
-Date:   Thu, 16 Jan 2020 11:59:18 -0500
-Message-Id: <20200116170509.12787-57-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 226/671] netfilter: nft_set_hash: bogus element self comparison from deactivation path
+Date:   Thu, 16 Jan 2020 11:52:15 -0500
+Message-Id: <20200116165940.10720-109-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200116170509.12787-1-sashal@kernel.org>
-References: <20200116170509.12787-1-sashal@kernel.org>
+In-Reply-To: <20200116165940.10720-1-sashal@kernel.org>
+References: <20200116165940.10720-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -62,40 +63,33 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[ Upstream commit 270a8a297f42ecff82060aaa53118361f09c1f7d ]
+[ Upstream commit a01cbae57ec29b161d42ee1caa4ffffda5d519c2 ]
 
-This is fixing flow offload for UDP traffic where packets only follow
-one single direction.
+Use the element from the loop iteration, not the same element we want to
+deactivate otherwise this branch always evaluates true.
 
-The flow_offload_fixup_tcp() mechanism works fine in case that the
-offloaded entry remains in SYN_RECV state, given sequence tracking is
-reset and that conntrack handles syn+ack packets as a retransmission, ie.
-
-	sES + synack => sIG
-
-for reply traffic.
-
-Fixes: a3c90f7a2323 ("netfilter: nf_tables: flow offload expression")
+Fixes: 6c03ae210ce3 ("netfilter: nft_set_hash: add non-resizable hashtable implementation")
+Reported-by: Florian Westphal <fw@strlen.de>
+Tested-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nft_flow_offload.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ net/netfilter/nft_set_hash.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 1ef8cb789c41..166edea0e452 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -103,8 +103,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- 	    ct->status & IPS_SEQ_ADJUST)
- 		goto out;
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index 8dde4bfe8b8a..05118e03c3e4 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -555,7 +555,7 @@ static void *nft_hash_deactivate(const struct net *net,
  
--	if (ctinfo == IP_CT_NEW ||
--	    ctinfo == IP_CT_RELATED)
-+	if (!nf_ct_is_confirmed(ct))
- 		goto out;
- 
- 	if (test_and_set_bit(IPS_OFFLOAD_BIT, &ct->status))
+ 	hash = nft_jhash(set, priv, &this->ext);
+ 	hlist_for_each_entry(he, &priv->table[hash], node) {
+-		if (!memcmp(nft_set_ext_key(&this->ext), &elem->key.val,
++		if (!memcmp(nft_set_ext_key(&he->ext), &elem->key.val,
+ 			    set->klen) &&
+ 		    nft_set_elem_active(&he->ext, genmask)) {
+ 			nft_set_elem_change_active(net, set, &he->ext);
 -- 
 2.20.1
 
