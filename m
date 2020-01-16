@@ -2,154 +2,112 @@ Return-Path: <SRS0=22nV=3F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99209C33CB1
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 08:51:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97EDBC33CB1
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 10:10:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6BEAA2077B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 08:51:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6AB05206B7
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 10:10:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="TA13/sJK"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="seDASBRY"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731461AbgAPIvg (ORCPT
+        id S1729508AbgAPKKx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jan 2020 03:51:36 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:54734 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731453AbgAPIvg (ORCPT
+        Thu, 16 Jan 2020 05:10:53 -0500
+Received: from aserp2120.oracle.com ([141.146.126.78]:56700 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726230AbgAPKKw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Jan 2020 03:51:36 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=e4HEE8R+8nl/wzoOkJeHrPqet1xLxMkrhs30dggb2hg=; b=TA13/sJKej5xleI135b5/de2i5
-        /VQQHhw8vXDxz0Kb0hxmZtaARPylZVJHCTzYZzMl5YHklzf8mmXElmb3OZbNrleJk+GZZmdwFaEg9
-        7l38zzemFkhn/LR+UYJgmgNUnqDhVcoeJORJpYJdK+jpZ2vrxq6+EYtoYiGGbf70rwNDAfAJDTFcV
-        ZXnkb0inTQ31SsXn3L8fLSAiLSKMv+Euwg+YKqSs0oEpU1Jp/MSJq2XnS8xdcWAXD4vt8aa2MUmya
-        h1WuJ2H3PXkxGtweFYwwSirxEIs2HrMWl1HvSm5OG2VMcPkYC/wr7dLedd8WgGfZ8chxglJwvTBk/
-        VD24WKwA==;
-Received: from celephais.dreamlands ([192.168.96.3] helo=azazel.net)
-        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1is0sH-0007ty-5E; Thu, 16 Jan 2020 08:51:33 +0000
-Date:   Thu, 16 Jan 2020 08:51:33 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
+        Thu, 16 Jan 2020 05:10:52 -0500
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+        by aserp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00GA8GWi195989;
+        Thu, 16 Jan 2020 10:10:30 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : mime-version : content-type : in-reply-to;
+ s=corp-2019-08-05; bh=A48lvgff9f3FP8xzoanAxkYJs0lSCvmWa9yCU5f4Fjs=;
+ b=seDASBRYWM7MlRD52mCb7moMHJGxZrBsIsKKeBL0lQT9gHjCKeE3mc9Xsap1Dp+8D79n
+ cUP+yCvKUvaywajG0Xsh8Ct1MGhokg5fF2Bxx/4HN3XD882WPti0G2l5NBvK7hB0woSx
+ CcTWBdwQN5Mui/fceh9m+SjkXxk9HhOZr/7ypdFvLrtsLMhdAb+9nYxqYzLi0jP83QLJ
+ rFNbl82bD7y73/R9IPju1BosXPUJPzYUaOUcjOw2jwxzxl2nHd6/F0tHB3aLjQzL/yVm
+ WZjqvtil/jUNZ+lUN4OED+KZjxEnzGM+AuthovzX4GMQuoqU14L8sUIPQKNtp9Dq39Iv yQ== 
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+        by aserp2120.oracle.com with ESMTP id 2xf73u1gbt-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 16 Jan 2020 10:10:30 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+        by aserp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00GAAJOu103796;
+        Thu, 16 Jan 2020 10:10:29 GMT
+Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
+        by aserp3020.oracle.com with ESMTP id 2xj1aumcj1-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 16 Jan 2020 10:10:29 +0000
+Received: from abhmp0005.oracle.com (abhmp0005.oracle.com [141.146.116.11])
+        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 00GA9fgl006723;
+        Thu, 16 Jan 2020 10:09:42 GMT
+Received: from kili.mountain (/129.205.23.165)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Thu, 16 Jan 2020 02:09:40 -0800
+Date:   Thu, 16 Jan 2020 13:09:31 +0300
+From:   Dan Carpenter <dan.carpenter@oracle.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nf-next v4 00/10] netfilter: nft_bitwise: shift support
-Message-ID: <20200116085133.GG999973@azazel.net>
-References: <20200115213216.77493-1-jeremy@azazel.net>
+Cc:     coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        syzkaller-bugs@googlegroups.com,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        syzbot <syzbot+f9d4095107fc8749c69c@syzkaller.appspotmail.com>
+Subject: [PATCH] netfilter: nf_tables: fix memory leak in
+ nf_tables_parse_netdev_hooks()
+Message-ID: <20200116100931.ot2ef4jvsw4ldye2@kili.mountain>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="aPdhxNJGSeOG9wFI"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200115213216.77493-1-jeremy@azazel.net>
-X-SA-Exim-Connect-IP: 192.168.96.3
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+In-Reply-To: <000000000000ffbba3059c3b5352@google.com>
+X-Mailer: git-send-email haha only kidding
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9501 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=2 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1911140001 definitions=main-2001160086
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9501 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=2 phishscore=0 bulkscore=0 spamscore=0 clxscore=1011
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1911140001
+ definitions=main-2001160086
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Syzbot detected a leak in nf_tables_parse_netdev_hooks().  If the hook
+already exists, then the error handling doesn't free the newest "hook".
 
---aPdhxNJGSeOG9wFI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Reported-by: syzbot+f9d4095107fc8749c69c@syzkaller.appspotmail.com
+Fixes: b75a3e8371bc ("netfilter: nf_tables: allow netdevice to be used only once per flowtable")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+ net/netfilter/nf_tables_api.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-On 2020-01-15, at 21:32:06 +0000, Jeremy Sowden wrote:
-> The connmark xtables extension supports bit-shifts.  Add support for
-> shifts to nft_bitwise in order to allow nftables to do likewise, e.g.:
->
->   nft add rule t c oif lo ct mark set meta mark << 8 | 0xab
->   nft add rule t c iif lo meta mark & 0xff 0xab ct mark set meta mark >> 8
->
-> Changes since v3:
->
->   * the length of shift values sent by nft may be less than sizeof(u32).
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 273f3838318b..7728e9fd5de4 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1676,6 +1676,7 @@ static int nf_tables_parse_netdev_hooks(struct net *net,
+ 			goto err_hook;
+ 		}
+ 		if (nft_hook_list_find(hook_list, hook)) {
++			kfree(hook);
+ 			err = -EEXIST;
+ 			goto err_hook;
+ 		}
+-- 
+2.11.0
 
-Actually, having thought about this some more, I believe I had it right
-in v3.  The difference between v3 and v4 is this:
-
-  @@ -146,7 +146,7 @@ static int nft_bitwise_init_shift(struct nft_bitwise *priv,
-                              tb[NFTA_BITWISE_DATA]);
-          if (err < 0)
-                  return err;
-  -       if (d.type != NFT_DATA_VALUE || d.len != sizeof(u32) ||
-  +       if (d.type != NFT_DATA_VALUE || d.len > sizeof(u32) ||
-              priv->data.data[0] >= BITS_PER_TYPE(u32)) {
-                  nft_data_release(&priv->data, d.type);
-                  return -EINVAL;
-
-However, I now think the problem is in userspace and nft should always
-send four bytes.  If it sends fewer, it makes it more complicated to get
-the endianness right.
-
-Unless you think there are other changes needed that will required a v5,
-shall we just ignore v4 and stick with v3?
-
-> Changes since v2:
->
->   * convert NFTA_BITWISE_DATA from u32 to nft_data;
->   * add check that shift value is not too large;
->   * use BITS_PER_TYPE to get the size of u32, rather than hard-coding it
->     when evaluating shifts.
->
-> Changes since v1:
->
->   * more white-space fixes;
->   * move bitwise op enum to UAPI;
->   * add NFTA_BITWISE_OP and NFTA_BITWISE_DATA;
->   * remove NFTA_BITWISE_LSHIFT and NFTA_BITWISE_RSHIFT;
->   * add helpers for initializaing, evaluating and dumping different
->     types of operation.
->
-> Jeremy Sowden (10):
->   netfilter: nf_tables: white-space fixes.
->   netfilter: bitwise: remove NULL comparisons from attribute checks.
->   netfilter: bitwise: replace gotos with returns.
->   netfilter: bitwise: add NFTA_BITWISE_OP attribute.
->   netfilter: bitwise: add helper for initializing boolean operations.
->   netfilter: bitwise: add helper for evaluating boolean operations.
->   netfilter: bitwise: add helper for dumping boolean operations.
->   netfilter: bitwise: only offload boolean operations.
->   netfilter: bitwise: add NFTA_BITWISE_DATA attribute.
->   netfilter: bitwise: add support for shifts.
->
->  include/uapi/linux/netfilter/nf_tables.h |  24 ++-
->  net/netfilter/nft_bitwise.c              | 217 ++++++++++++++++++-----
->  net/netfilter/nft_set_bitmap.c           |   4 +-
->  net/netfilter/nft_set_hash.c             |   2 +-
->  4 files changed, 200 insertions(+), 47 deletions(-)
->
-> --
-> 2.24.1
-
-J.
-
---aPdhxNJGSeOG9wFI
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQGzBAABCgAdFiEEd/6/sDFjb+OCRmRMonv1GCHZ79cFAl4gJAUACgkQonv1GCHZ
-79dD9Av+ODipcdiRyz4zbtzge3qpV6Q74cFZwqg/hi+bONes631Xe9VjYFEcaHbm
-RHSC94GIrol/9+y4YBMcxBBJMyabVMozqYSo8PZ08FJxRTVqB6Sknj4l6y1tNQQY
-SNmuKD9C72VXBdc+PheArrmnsswCH97smw71vRuRPdwgFaC/GVP8FEyaJcT6mt3B
-mqDxwhayXqfBdhgpAFHAB6wkRrgfX7lJ8yps1xc0HDkHhM6KIj9jX607SyJXNkIi
-rt/ClSaC9S4XQ4P1pXq3DplrNoXS0Cot9t05gJDXqczvqG/LhdQo+9GOGsU0JpkS
-U7VWx3bfY1ecbN3XD0HguJ40Uhl6EQH4f0uCVJXmAp5i2KP2/HSP4eXyZvCDo0iC
-ncmn6lUlJjxCp9zbksNmQus3cAArpn5YqyzkQxjb+Pn7VxaH+qeqnpK8hKrj7S3p
-fgAUs2dKeriz6z9y1i0Aml+gMBbgCkXi76qqDNyOi0zNWMhFSB7snX/H/FJM7nG/
-W/RTJwb9
-=Gpsx
------END PGP SIGNATURE-----
-
---aPdhxNJGSeOG9wFI--
