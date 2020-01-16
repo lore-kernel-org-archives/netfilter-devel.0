@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AA7BC33CAF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:04:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95B15C33CB3
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:04:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EC74C206D7
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:04:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E23F206D7
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:04:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579201468;
-	bh=Vu2GNXNXW2Lq/MQh8E+8TwQcdIpv8XQTS4u624FWLZc=;
+	s=default; t=1579201473;
+	bh=k71BLNRsuMPAi9MvMKInQupc8ZQztfy/jtY4owY8UIU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=eTbqIfaCc1YFODE77kOYq1Zz0DOzk/irjBS1LZhy2DSFhd8Ux+nuSwlqNzrT+Ygly
-	 P1vx+PYiVzTGDGBcJWPVRx1LPVPKXqAvyDuxj3JCBCNJb039/08Bi3/NYVRT1CGueo
-	 BBcWBf7eWt6zqC8bXQ+4LLPkeiDUOYdyqKVaFiHs=
+	b=ZAd1hNa7T1weo1W02b0LQlvfoygRkDQjHHf65rsNSjVGERGi6ZMdLtBLrC7C3r+K6
+	 jAbNxkE3d80ZpI9NWR+zdag/4H9E3DrpoOmUelQ9Dns0z+F3luVeV9dLtW0HyqwRzc
+	 tnvomY2Cj0nerOYNc1rQWUw0SAxtqXjHq7nvLIpA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388330AbgAPRCT (ORCPT
+        id S2388756AbgAPTEb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jan 2020 12:02:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54840 "EHLO mail.kernel.org"
+        Thu, 16 Jan 2020 14:04:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54802 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387586AbgAPRCT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Jan 2020 12:02:19 -0500
+        id S2388317AbgAPRCR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Jan 2020 12:02:17 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 58602207FF;
-        Thu, 16 Jan 2020 17:02:17 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1606321582;
+        Thu, 16 Jan 2020 17:02:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579194138;
-        bh=Vu2GNXNXW2Lq/MQh8E+8TwQcdIpv8XQTS4u624FWLZc=;
+        s=default; t=1579194137;
+        bh=k71BLNRsuMPAi9MvMKInQupc8ZQztfy/jtY4owY8UIU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=FxBSnMVbvfzR5aZU1SCkSeKgHAXr3o858HbgnA9z7RXBur/p5TPGlAklUqoj2aZni
-         xA4qZGpX+DSJQHyIzJ3Q83Q1IBUTASqib4tLb1aWuYvMwzOEDmr8aqqaQ3LDHrWfWY
-         uknYH1I3kzcw4YZzUkyKaNTL5RGc845aZ+Dsvj1Y=
+        b=qA1ZDd651Z6gqDFfwL3kdwfG52muYXDvLOeflrJEJea+VDYJK47GK/wlRyUU28pRA
+         2SNVJNHFEjX7vd4I9of0SlfUq+XMVIb5s1J3ZiK5221dTHwX5vx8vWdxg5P+wfbw5m
+         RxunkcOCalr+v5tc/7WpVNtoU+0hD8owOZIlk/gs=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
@@ -46,9 +46,9 @@ Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 226/671] netfilter: nft_set_hash: bogus element self comparison from deactivation path
-Date:   Thu, 16 Jan 2020 11:52:15 -0500
-Message-Id: <20200116165940.10720-109-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 225/671] netfilter: nft_set_hash: fix lookups with fixed size hash on big endian
+Date:   Thu, 16 Jan 2020 11:52:14 -0500
+Message-Id: <20200116165940.10720-108-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200116165940.10720-1-sashal@kernel.org>
 References: <20200116165940.10720-1-sashal@kernel.org>
@@ -63,33 +63,68 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[ Upstream commit a01cbae57ec29b161d42ee1caa4ffffda5d519c2 ]
+[ Upstream commit 3b02b0adc242a72b5e46019b6a9e4f84823592f6 ]
 
-Use the element from the loop iteration, not the same element we want to
-deactivate otherwise this branch always evaluates true.
+Call jhash_1word() for the 4-bytes key case from the insertion and
+deactivation path, otherwise big endian arch set lookups fail.
 
-Fixes: 6c03ae210ce3 ("netfilter: nft_set_hash: add non-resizable hashtable implementation")
+Fixes: 446a8268b7f5 ("netfilter: nft_set_hash: add lookup variant for fixed size hashtable")
 Reported-by: Florian Westphal <fw@strlen.de>
 Tested-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nft_set_hash.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nft_set_hash.c | 23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
 
 diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 8dde4bfe8b8a..05118e03c3e4 100644
+index 015124e649cb..8dde4bfe8b8a 100644
 --- a/net/netfilter/nft_set_hash.c
 +++ b/net/netfilter/nft_set_hash.c
-@@ -555,7 +555,7 @@ static void *nft_hash_deactivate(const struct net *net,
+@@ -488,6 +488,23 @@ static bool nft_hash_lookup_fast(const struct net *net,
+ 	return false;
+ }
  
- 	hash = nft_jhash(set, priv, &this->ext);
++static u32 nft_jhash(const struct nft_set *set, const struct nft_hash *priv,
++		     const struct nft_set_ext *ext)
++{
++	const struct nft_data *key = nft_set_ext_key(ext);
++	u32 hash, k1;
++
++	if (set->klen == 4) {
++		k1 = *(u32 *)key;
++		hash = jhash_1word(k1, priv->seed);
++	} else {
++		hash = jhash(key, set->klen, priv->seed);
++	}
++	hash = reciprocal_scale(hash, priv->buckets);
++
++	return hash;
++}
++
+ static int nft_hash_insert(const struct net *net, const struct nft_set *set,
+ 			   const struct nft_set_elem *elem,
+ 			   struct nft_set_ext **ext)
+@@ -497,8 +514,7 @@ static int nft_hash_insert(const struct net *net, const struct nft_set *set,
+ 	u8 genmask = nft_genmask_next(net);
+ 	u32 hash;
+ 
+-	hash = jhash(nft_set_ext_key(&this->ext), set->klen, priv->seed);
+-	hash = reciprocal_scale(hash, priv->buckets);
++	hash = nft_jhash(set, priv, &this->ext);
  	hlist_for_each_entry(he, &priv->table[hash], node) {
--		if (!memcmp(nft_set_ext_key(&this->ext), &elem->key.val,
-+		if (!memcmp(nft_set_ext_key(&he->ext), &elem->key.val,
+ 		if (!memcmp(nft_set_ext_key(&this->ext),
+ 			    nft_set_ext_key(&he->ext), set->klen) &&
+@@ -537,8 +553,7 @@ static void *nft_hash_deactivate(const struct net *net,
+ 	u8 genmask = nft_genmask_next(net);
+ 	u32 hash;
+ 
+-	hash = jhash(nft_set_ext_key(&this->ext), set->klen, priv->seed);
+-	hash = reciprocal_scale(hash, priv->buckets);
++	hash = nft_jhash(set, priv, &this->ext);
+ 	hlist_for_each_entry(he, &priv->table[hash], node) {
+ 		if (!memcmp(nft_set_ext_key(&this->ext), &elem->key.val,
  			    set->klen) &&
- 		    nft_set_elem_active(&he->ext, genmask)) {
- 			nft_set_elem_change_active(net, set, &he->ext);
 -- 
 2.20.1
 
