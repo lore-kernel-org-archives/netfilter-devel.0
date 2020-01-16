@@ -6,80 +6,60 @@ X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05C56C33CB1
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 14:51:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68EB3C33CB1
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 14:53:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D7DAB20730
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 14:51:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48AC820748
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 14:53:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726566AbgAPOvn (ORCPT
+        id S1726982AbgAPOxK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jan 2020 09:51:43 -0500
-Received: from correo.us.es ([193.147.175.20]:55516 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726369AbgAPOvn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Jan 2020 09:51:43 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 084A04FFE02
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jan 2020 15:51:42 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EDE26DA707
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jan 2020 15:51:41 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id E3752DA711; Thu, 16 Jan 2020 15:51:41 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id ED8A5DA707;
-        Thu, 16 Jan 2020 15:51:39 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 16 Jan 2020 15:51:39 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id D07D242EF9E1;
-        Thu, 16 Jan 2020 15:51:39 +0100 (CET)
-Date:   Thu, 16 Jan 2020 15:51:39 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jeremy Sowden <jeremy@azazel.net>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nf-next] netfilter: nft_bitwise: correct uapi header
- comment.
-Message-ID: <20200116145139.j6q64x2un5h4ambs@salvia>
-References: <20200101134132.169496-1-jeremy@azazel.net>
+        Thu, 16 Jan 2020 09:53:10 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:35436 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726371AbgAPOxK (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Jan 2020 09:53:10 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1is6WA-000628-Ub; Thu, 16 Jan 2020 15:53:06 +0100
+Date:   Thu, 16 Jan 2020 15:53:06 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     syzbot <syzbot+6ca99af7e70e298bd09d@syzkaller.appspotmail.com>
+Cc:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        kadlec@netfilter.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
+Subject: Re: BUG: corrupted list in nft_obj_del
+Message-ID: <20200116145306.GS795@breakpoint.cc>
+References: <000000000000bc757e059c36db18@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200101134132.169496-1-jeremy@azazel.net>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <000000000000bc757e059c36db18@google.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jan 01, 2020 at 01:41:32PM +0000, Jeremy Sowden wrote:
-> The comment documenting how bitwise expressions work includes a table
-> which summarizes the mask and xor arguments combined to express the
-> supported boolean operations.  However, the row for OR:
+syzbot <syzbot+6ca99af7e70e298bd09d@syzkaller.appspotmail.com> wrote:
+> Hello,
 > 
->  mask    xor
->  0       x
+> syzbot found the following crash on:
 > 
-> is incorrect.
+> HEAD commit:    8b792f84 Merge branch 'mlxsw-Various-fixes'
+> git tree:       net
+> console output: https://syzkaller.appspot.com/x/log.txt?x=1766b349e00000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=7e89bd00623fe71e
+> dashboard link: https://syzkaller.appspot.com/bug?extid=6ca99af7e70e298bd09d
+> compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=168b95e1e00000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=10f29b3ee00000
 > 
->   dreg = (sreg & 0) ^ x
+> IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> Reported-by: syzbot+6ca99af7e70e298bd09d@syzkaller.appspotmail.com
 > 
-> is not equivalent to:
-> 
->   dreg = sreg | x
-> 
-> What the code actually does is:
-> 
->   dreg = (sreg & ~x) ^ x
-> 
-> Update the documentation to match.
+> list_del corruption, ffff8880a46b1500->prev is LIST_POISON2
 
-Applied, thanks.
+#syz fix: netfilter: nf_tables: fix flowtable list del corruption
