@@ -7,51 +7,50 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04501C47409
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:16:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C995C33CB7
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:22:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CA77A2077B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:16:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5F4112073A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 19:22:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579202211;
-	bh=N19053XbNoSi+CqfIZwUBqiWoKNj/vKaB4JSfsdBJx8=;
+	s=default; t=1579202535;
+	bh=eNmW3pak0Drwu2Uzw7tfRv/DSDXFQ0oyshwD7EuwO7Y=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=FmLjwx7Zo1NtOVorCXWSYK2g9mLDarQF45beC4+kHhIYihWu8MM8HhzunOKdO8qhk
-	 cGPkyGCWZBF47O7Ay426k7N+OW92XvbK2qjp+ffdIGvtAjj9xxYDPqeyAlFGeC4aQ7
-	 bPeEBakwJlRg9l58uLtN7f/hxiNjTAeQ8fthEE9w=
+	b=TQGag5YHh9OtUdjTWCBmdcASWhIlyryQA2iom+0tpfWK5N0ivIQlzUi9hAblw5dQn
+	 3jFNzFtKC/RatNHpjr7eFJdTHK2NLZ17iNJDZugKn/jYVllSNN9VsHTkCeZEaRNl/N
+	 HD6n0QSwcvfKZ/eeUk8kooop+454hQoCeuAA0CqM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2437601AbgAPTQp (ORCPT
+        id S1731011AbgAPQxb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Jan 2020 14:16:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41252 "EHLO mail.kernel.org"
+        Thu, 16 Jan 2020 11:53:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37370 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1733091AbgAPQzl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Jan 2020 11:55:41 -0500
+        id S1730990AbgAPQxb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Jan 2020 11:53:31 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5766B2192A;
-        Thu, 16 Jan 2020 16:55:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 830772081E;
+        Thu, 16 Jan 2020 16:53:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579193741;
-        bh=N19053XbNoSi+CqfIZwUBqiWoKNj/vKaB4JSfsdBJx8=;
+        s=default; t=1579193610;
+        bh=eNmW3pak0Drwu2Uzw7tfRv/DSDXFQ0oyshwD7EuwO7Y=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Q24qCQdycETW9wiHdq7ZIkq815zzlIMZH52ENiuknEkjYlsZbZxmHwCU7ZfEJrdqM
-         Akum96XbZQknjQ7YjPHxvjTx5CS5hi6zdOAsIGrhHKsF6yrqDZZmEbsfJ+Qa+LmjLz
-         h4fKWbIPYTe+K8LRmttZK+5NfLzkzO2cncUxTUro=
+        b=a0xvzTnptSsvsGF31fqsHPknl3opuXHH4epehEz3UmVfJt5snPfCca0uSsH3XCkHP
+         VhOIhqTi9qlSGETbXLVOxuoJIg2eJa6Fkf69eWzaZKtTB3rNBHIMI6LJ/zEV3f569f
+         NoEOFeYWx8EPeIYi8Aoa08GdWoWYT3CIJBdtJWkA=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 032/671] netfilter: nft_osf: usage from output path is not valid
-Date:   Thu, 16 Jan 2020 11:44:23 -0500
-Message-Id: <20200116165502.8838-32-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 148/205] netfilter: nf_tables_offload: release flow_rule on error from commit path
+Date:   Thu, 16 Jan 2020 11:42:03 -0500
+Message-Id: <20200116164300.6705-148-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200116165502.8838-1-sashal@kernel.org>
-References: <20200116165502.8838-1-sashal@kernel.org>
+In-Reply-To: <20200116164300.6705-1-sashal@kernel.org>
+References: <20200116164300.6705-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -61,49 +60,67 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Fernando Fernandez Mancera <ffmancera@riseup.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[ Upstream commit 4a3e71b7b7dbaf3562be9d508260935aa13cb48b ]
+[ Upstream commit 23403cd8898dbc9808d3eb2f63bc1db8a340b751 ]
 
-The nft_osf extension, like xt_osf, is not supported from the output
-path.
+If hardware offload commit path fails, release all flow_rule objects.
 
-Fixes: b96af92d6eaf ("netfilter: nf_tables: implement Passive OS fingerprint module in nft_osf")
-Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+Fixes: c9626a2cbdb2 ("netfilter: nf_tables: add hardware offload support")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nft_osf.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ net/netfilter/nf_tables_offload.c | 26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
-index a35fb59ace73..df4e3e0412ed 100644
---- a/net/netfilter/nft_osf.c
-+++ b/net/netfilter/nft_osf.c
-@@ -69,6 +69,15 @@ static int nft_osf_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	return -1;
- }
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index e743f811245f..96a64e7594a5 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -358,14 +358,14 @@ int nft_flow_rule_offload_commit(struct net *net)
+ 				continue;
  
-+static int nft_osf_validate(const struct nft_ctx *ctx,
-+			    const struct nft_expr *expr,
-+			    const struct nft_data **data)
-+{
-+	return nft_chain_validate_hooks(ctx->chain, (1 << NF_INET_LOCAL_IN) |
-+						    (1 << NF_INET_PRE_ROUTING) |
-+						    (1 << NF_INET_FORWARD));
-+}
+ 			if (trans->ctx.flags & NLM_F_REPLACE ||
+-			    !(trans->ctx.flags & NLM_F_APPEND))
+-				return -EOPNOTSUPP;
+-
++			    !(trans->ctx.flags & NLM_F_APPEND)) {
++				err = -EOPNOTSUPP;
++				break;
++			}
+ 			err = nft_flow_offload_rule(trans->ctx.chain,
+ 						    nft_trans_rule(trans),
+ 						    nft_trans_flow_rule(trans),
+ 						    FLOW_CLS_REPLACE);
+-			nft_flow_rule_destroy(nft_trans_flow_rule(trans));
+ 			break;
+ 		case NFT_MSG_DELRULE:
+ 			if (!(trans->ctx.chain->flags & NFT_CHAIN_HW_OFFLOAD))
+@@ -379,7 +379,23 @@ int nft_flow_rule_offload_commit(struct net *net)
+ 		}
+ 
+ 		if (err)
+-			return err;
++			break;
++	}
 +
- static struct nft_expr_type nft_osf_type;
- static const struct nft_expr_ops nft_osf_op = {
- 	.eval		= nft_osf_eval,
-@@ -76,6 +85,7 @@ static const struct nft_expr_ops nft_osf_op = {
- 	.init		= nft_osf_init,
- 	.dump		= nft_osf_dump,
- 	.type		= &nft_osf_type,
-+	.validate	= nft_osf_validate,
- };
++	list_for_each_entry(trans, &net->nft.commit_list, list) {
++		if (trans->ctx.family != NFPROTO_NETDEV)
++			continue;
++
++		switch (trans->msg_type) {
++		case NFT_MSG_NEWRULE:
++			if (!(trans->ctx.chain->flags & NFT_CHAIN_HW_OFFLOAD))
++				continue;
++
++			nft_flow_rule_destroy(nft_trans_flow_rule(trans));
++			break;
++		default:
++			break;
++		}
+ 	}
  
- static struct nft_expr_type nft_osf_type __read_mostly = {
+ 	return err;
 -- 
 2.20.1
 
