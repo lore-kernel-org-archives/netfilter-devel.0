@@ -2,112 +2,128 @@ Return-Path: <SRS0=22nV=3F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3E59C32771
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 01:41:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B07CC33CB6
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 05:45:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B98BF20723
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 01:41:05 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=campus-fct-unl-pt.20150623.gappssmtp.com header.i=@campus-fct-unl-pt.20150623.gappssmtp.com header.b="FrV2uUdn"
+	by mail.kernel.org (Postfix) with ESMTP id 6ACBC2077B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jan 2020 05:45:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730200AbgAPBlE (ORCPT
+        id S1726920AbgAPFpM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 Jan 2020 20:41:04 -0500
-Received: from mail-wm1-f67.google.com ([209.85.128.67]:55932 "EHLO
-        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729615AbgAPBlD (ORCPT
+        Thu, 16 Jan 2020 00:45:12 -0500
+Received: from mail-il1-f199.google.com ([209.85.166.199]:56529 "EHLO
+        mail-il1-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726366AbgAPFpK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Jan 2020 20:41:03 -0500
-Received: by mail-wm1-f67.google.com with SMTP id q9so2035947wmj.5
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Jan 2020 17:41:02 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=campus-fct-unl-pt.20150623.gappssmtp.com; s=20150623;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=cxhNaw9OI1Bjzxn9H+oX0YGLRWBp01fxMWK+FbrFUwA=;
-        b=FrV2uUdnjjR655s08WnBoN9uHFZ4F9JY4y7X373qm/2a59whiIiqHGeBde26/UeuRN
-         5Kn42nt8fPmPA3juRz3lTn7E6cINK52EOhHcXE6rJ637fThiYw7OY53BKnANSyV23xzm
-         kdzNbZCO27BtJNfVHwZYGPHWluMdH6rrGdJ2Xn3djDnGOcVui69R37VhZmGBwzytpEq6
-         Cz7bFLLG6CeB6fZQvc6bP6jtnMN5EJ3PRqVaXZUBFs3YuLQyjhQ2fmTs0QbxBY/GzH36
-         9KcKvtRP2ix9IK6gH4SOQOB+7nPy5fIb6eaomR7jBUHbdeSpDoVle8qKJ4MAlJKYZF+C
-         K96Q==
+        Thu, 16 Jan 2020 00:45:10 -0500
+Received: by mail-il1-f199.google.com with SMTP id i68so15181846ill.23
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Jan 2020 21:45:10 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=cxhNaw9OI1Bjzxn9H+oX0YGLRWBp01fxMWK+FbrFUwA=;
-        b=FiD4KcPPn1HUsgXrAIEA7kE2Zbk+dpPoUy4Mdj5/U0YfHAQU6VXIJR3Sd1MXZrQuUw
-         ue3qY2viF1x1FATF12PchPLZ6IohLOHn61sVcjuYOM+WiSB1nmW6KTmsAHhTylxNIDQ2
-         acwOuDXzYHbAHDMSROoXSipyYVWz4wCazmt4tE136+l+qrot1T6RLsBksS5PAjn4V9fK
-         iymj0Fe6WwA20L2LuCw0luflsbDI9E5W6ftWbQdcFKEL2wzU/932+CUCEbIeUTZF8I7w
-         PqiWr7hxQUbXYgkQi2mpd647heZWeL5WxIB9qyKLDmdX2PxUO+Oa1X6rywOc1mijyXOC
-         cdkQ==
-X-Gm-Message-State: APjAAAXA0whn0V2UqhzXgvdmriyApmjItmN4bcQ5ojFIp7uQsfHRahwZ
-        GCOEjMwypEoSEse7W05Oe7P9FTiHYKw=
-X-Google-Smtp-Source: APXvYqzUjTJucKnz0zNNywrSoDeXBjvoSI1R97ncOVNusNPrNBUaS3+lc4/gmDPOx6lGlod8ldIsDA==
-X-Received: by 2002:a1c:5a0a:: with SMTP id o10mr3115821wmb.114.1579138861269;
-        Wed, 15 Jan 2020 17:41:01 -0800 (PST)
-Received: from penguin-box.pdoc.di.fct.unl.pt ([217.129.34.12])
-        by smtp.gmail.com with ESMTPSA id y22sm2196212wma.35.2020.01.15.17.41.00
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 15 Jan 2020 17:41:00 -0800 (PST)
-From:   aa.santos@campus.fct.unl.pt
-To:     netfilter-devel@vger.kernel.org
-Cc:     =?UTF-8?q?=C3=81lvaro=20Santos?= <aa.santos@campus.fct.unl.pt>
-Subject: [PATCH] Fixed some man pages typos ('This modules' -> 'This module')
-Date:   Thu, 16 Jan 2020 01:40:57 +0000
-Message-Id: <20200116014057.25897-1-aa.santos@campus.fct.unl.pt>
-X-Mailer: git-send-email 2.17.1
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=nUWpGQHDm6wJiD+qGbWs1eyfWOotGc7QheWrkXQpqSQ=;
+        b=bFYJsy8JbLvgBabCIG8a4fQXn/o2w7yZ9rCcVeHqu8dy9yngh5F3SJBnHZIDRxFItW
+         KZnAkuuRtzo0JaLm1ZvwI2+gegz7Q7H96mMYvTNctZJCQ8sBcZNodgQnu81T09ad8l/x
+         JAuam0aFF0NyQCuoyKzgfmQvs2bliSnPu0qFoHjQHAF5BqmQu331+2+KMhOE1dWw1V68
+         uNHUAgzFowacivtCdbVnadrpPlrIIopBT3kE6o3ol6fvXJAwgKr+IcdQ6yFspMXITrcM
+         R6TQArbsJNVpevkEEg10C+w18PRFBgPk0HSofCbGYNGPv54CLwfGI92ScVJNDd8uVNpi
+         eklg==
+X-Gm-Message-State: APjAAAVpmY6I50AW4Q4x5IQgesJ7giDenJdhwz9LVLKrivrKzOlRCZps
+        6ZwUKmsBS0HbQtvZYJ9EAfslet+UFwNOJh10pNv8ebpIiSj+
+X-Google-Smtp-Source: APXvYqznDF+aM84QyTizrFIO8KZi8H/MFev1nBzqXonXTHvbm2J4DzLdm1SGD2N9D+X+vxWOXkMpmQTCf0sxOzC8QpNV9zylYUar
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a5e:8516:: with SMTP id i22mr25910766ioj.130.1579153509823;
+ Wed, 15 Jan 2020 21:45:09 -0800 (PST)
+Date:   Wed, 15 Jan 2020 21:45:09 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000ffbba3059c3b5352@google.com>
+Subject: memory leak in nf_tables_parse_netdev_hooks
+From:   syzbot <syzbot+f9d4095107fc8749c69c@syzkaller.appspotmail.com>
+To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        kadlec@netfilter.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Álvaro Santos <aa.santos@campus.fct.unl.pt>
+Hello,
+
+syzbot found the following crash on:
+
+HEAD commit:    51d69817 Merge tag 'platform-drivers-x86-v5.5-3' of git://..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=10e32659e00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=a0eee3ce463efd
+dashboard link: https://syzkaller.appspot.com/bug?extid=f9d4095107fc8749c69c
+compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=16fae421e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=10e41c76e00000
+
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+f9d4095107fc8749c69c@syzkaller.appspotmail.com
+
+executing program
+BUG: memory leak
+unreferenced object 0xffff8881292d4580 (size 96):
+   comm "syz-executor052", pid 7129, jiffies 4294942632 (age 13.530s)
+   hex dump (first 32 bytes):
+     40 d2 15 1c 81 88 ff ff 40 d2 15 1c 81 88 ff ff  @.......@.......
+     60 53 c3 82 ff ff ff ff 00 a0 2c 2a 81 88 ff ff  `S........,*....
+   backtrace:
+     [<0000000059912bf5>] kmemleak_alloc_recursive  
+include/linux/kmemleak.h:43 [inline]
+     [<0000000059912bf5>] slab_post_alloc_hook mm/slab.h:586 [inline]
+     [<0000000059912bf5>] slab_alloc mm/slab.c:3320 [inline]
+     [<0000000059912bf5>] kmem_cache_alloc_trace+0x145/0x2c0 mm/slab.c:3549
+     [<00000000ab9f7d85>] kmalloc include/linux/slab.h:556 [inline]
+     [<00000000ab9f7d85>] nft_netdev_hook_alloc+0x3f/0xd0  
+net/netfilter/nf_tables_api.c:1624
+     [<0000000074e6bb65>] nf_tables_parse_netdev_hooks+0xac/0x230  
+net/netfilter/nf_tables_api.c:1673
+     [<00000000cd387efd>] nf_tables_flowtable_parse_hook  
+net/netfilter/nf_tables_api.c:5936 [inline]
+     [<00000000cd387efd>] nf_tables_newflowtable+0x41e/0x930  
+net/netfilter/nf_tables_api.c:6137
+     [<00000000526e3994>] nfnetlink_rcv_batch+0x662/0x8c0  
+net/netfilter/nfnetlink.c:433
+     [<000000006c5402bf>] nfnetlink_rcv_skb_batch  
+net/netfilter/nfnetlink.c:543 [inline]
+     [<000000006c5402bf>] nfnetlink_rcv+0x189/0x1c0  
+net/netfilter/nfnetlink.c:561
+     [<00000000b752f9f7>] netlink_unicast_kernel  
+net/netlink/af_netlink.c:1302 [inline]
+     [<00000000b752f9f7>] netlink_unicast+0x223/0x310  
+net/netlink/af_netlink.c:1328
+     [<00000000a0e23793>] netlink_sendmsg+0x2c0/0x570  
+net/netlink/af_netlink.c:1917
+     [<000000006e0aea94>] sock_sendmsg_nosec net/socket.c:639 [inline]
+     [<000000006e0aea94>] sock_sendmsg+0x54/0x70 net/socket.c:659
+     [<00000000a60c26dd>] ____sys_sendmsg+0x2d0/0x300 net/socket.c:2330
+     [<00000000d412f616>] ___sys_sendmsg+0x8a/0xd0 net/socket.c:2384
+     [<000000001179a6b0>] __sys_sendmsg+0x80/0xf0 net/socket.c:2417
+     [<000000004a6699d1>] __do_sys_sendmsg net/socket.c:2426 [inline]
+     [<000000004a6699d1>] __se_sys_sendmsg net/socket.c:2424 [inline]
+     [<000000004a6699d1>] __x64_sys_sendmsg+0x23/0x30 net/socket.c:2424
+     [<00000000a05aa7d1>] do_syscall_64+0x73/0x220  
+arch/x86/entry/common.c:294
+     [<00000000bad17b52>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+
 
 ---
- extensions/libxt_osf.man    | 2 +-
- extensions/libxt_policy.man | 2 +-
- extensions/libxt_string.man | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/extensions/libxt_osf.man b/extensions/libxt_osf.man
-index ecb6ee5f..41103f29 100644
---- a/extensions/libxt_osf.man
-+++ b/extensions/libxt_osf.man
-@@ -1,4 +1,4 @@
--The osf module does passive operating system fingerprinting. This modules
-+The osf module does passive operating system fingerprinting. This module
- compares some data (Window Size, MSS, options and their order, TTL, DF,
- and others) from packets with the SYN bit set. 
- .TP
-diff --git a/extensions/libxt_policy.man b/extensions/libxt_policy.man
-index 1b834fa0..12c01b43 100644
---- a/extensions/libxt_policy.man
-+++ b/extensions/libxt_policy.man
-@@ -1,4 +1,4 @@
--This modules matches the policy used by IPsec for handling a packet.
-+This module matches the policy used by IPsec for handling a packet.
- .TP
- \fB\-\-dir\fP {\fBin\fP|\fBout\fP}
- Used to select whether to match the policy used for decapsulation or the
-diff --git a/extensions/libxt_string.man b/extensions/libxt_string.man
-index 54c03a3a..5f1a993c 100644
---- a/extensions/libxt_string.man
-+++ b/extensions/libxt_string.man
-@@ -1,4 +1,4 @@
--This modules matches a given string by using some pattern matching strategy. It requires a linux kernel >= 2.6.14.
-+This module matches a given string by using some pattern matching strategy. It requires a linux kernel >= 2.6.14.
- .TP
- \fB\-\-algo\fP {\fBbm\fP|\fBkmp\fP}
- Select the pattern matching strategy. (bm = Boyer-Moore, kmp = Knuth-Pratt-Morris)
--- 
-2.17.1
-
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+syzbot can test patches for this bug, for details see:
+https://goo.gl/tpsmEJ#testing-patches
