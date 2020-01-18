@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FB95C32771
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 20:14:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4565AC33CB6
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 20:14:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5B44D24683
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 20:14:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 23D0024683
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 20:14:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729021AbgARUOg (ORCPT
+        id S1729027AbgARUOh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 18 Jan 2020 15:14:36 -0500
-Received: from correo.us.es ([193.147.175.20]:48476 "EHLO mail.us.es"
+        Sat, 18 Jan 2020 15:14:37 -0500
+Received: from correo.us.es ([193.147.175.20]:48418 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728901AbgARUOe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 18 Jan 2020 15:14:34 -0500
+        id S1728998AbgARUOg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 18 Jan 2020 15:14:36 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7D7552EFEA8
-        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 21:14:33 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 1209E2EFEAE
+        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 21:14:35 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6DE77DA710
-        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 21:14:33 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 046ABDA711
+        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 21:14:35 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 63889DA707; Sat, 18 Jan 2020 21:14:33 +0100 (CET)
+        id EE3C3DA70F; Sat, 18 Jan 2020 21:14:34 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6BC5CDA701;
-        Sat, 18 Jan 2020 21:14:31 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E81A8DA703;
+        Sat, 18 Jan 2020 21:14:32 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 18 Jan 2020 21:14:31 +0100 (CET)
+ Sat, 18 Jan 2020 21:14:32 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 4624941E4800;
-        Sat, 18 Jan 2020 21:14:31 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id C1E8141E4800;
+        Sat, 18 Jan 2020 21:14:32 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 17/21] netfilter: bitwise: add helper for evaluating boolean operations.
-Date:   Sat, 18 Jan 2020 21:14:13 +0100
-Message-Id: <20200118201417.334111-18-pablo@netfilter.org>
+Subject: [PATCH 20/21] netfilter: bitwise: add NFTA_BITWISE_DATA attribute.
+Date:   Sat, 18 Jan 2020 21:14:16 +0100
+Message-Id: <20200118201417.334111-21-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200118201417.334111-1-pablo@netfilter.org>
 References: <20200118201417.334111-1-pablo@netfilter.org>
@@ -56,51 +56,68 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Jeremy Sowden <jeremy@azazel.net>
 
-Split the code specific to evaluating bitwise boolean operations out
-into a separate function.  Similar functions will be added later for
-shift operations.
+Add a new bitwise netlink attribute that will be used by shift
+operations to store the size of the shift.  It is not used by boolean
+operations.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_bitwise.c | 17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h | 3 +++
+ net/netfilter/nft_bitwise.c              | 5 +++++
+ 2 files changed, 8 insertions(+)
 
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 0cddf357281f..8bef0620bc4f 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -503,6 +503,8 @@ enum nft_bitwise_ops {
+  * @NFTA_BITWISE_MASK: mask value (NLA_NESTED: nft_data_attributes)
+  * @NFTA_BITWISE_XOR: xor value (NLA_NESTED: nft_data_attributes)
+  * @NFTA_BITWISE_OP: type of operation (NLA_U32: nft_bitwise_ops)
++ * @NFTA_BITWISE_DATA: argument for non-boolean operations
++ *                     (NLA_NESTED: nft_data_attributes)
+  *
+  * The bitwise expression performs the following operation:
+  *
+@@ -524,6 +526,7 @@ enum nft_bitwise_attributes {
+ 	NFTA_BITWISE_MASK,
+ 	NFTA_BITWISE_XOR,
+ 	NFTA_BITWISE_OP,
++	NFTA_BITWISE_DATA,
+ 	__NFTA_BITWISE_MAX
+ };
+ #define NFTA_BITWISE_MAX	(__NFTA_BITWISE_MAX - 1)
 diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
-index d0cc5f753e52..88a91c63f213 100644
+index b4619d9989ea..744008a527fb 100644
 --- a/net/netfilter/nft_bitwise.c
 +++ b/net/netfilter/nft_bitwise.c
-@@ -24,16 +24,27 @@ struct nft_bitwise {
+@@ -22,6 +22,7 @@ struct nft_bitwise {
+ 	u8			len;
+ 	struct nft_data		mask;
  	struct nft_data		xor;
++	struct nft_data		data;
  };
  
-+static void nft_bitwise_eval_bool(u32 *dst, const u32 *src,
-+				  const struct nft_bitwise *priv)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < DIV_ROUND_UP(priv->len, 4); i++)
-+		dst[i] = (src[i] & priv->mask.data[i]) ^ priv->xor.data[i];
-+}
-+
- void nft_bitwise_eval(const struct nft_expr *expr,
- 		      struct nft_regs *regs, const struct nft_pktinfo *pkt)
- {
- 	const struct nft_bitwise *priv = nft_expr_priv(expr);
- 	const u32 *src = &regs->data[priv->sreg];
- 	u32 *dst = &regs->data[priv->dreg];
--	unsigned int i;
+ static void nft_bitwise_eval_bool(u32 *dst, const u32 *src,
+@@ -54,6 +55,7 @@ static const struct nla_policy nft_bitwise_policy[NFTA_BITWISE_MAX + 1] = {
+ 	[NFTA_BITWISE_MASK]	= { .type = NLA_NESTED },
+ 	[NFTA_BITWISE_XOR]	= { .type = NLA_NESTED },
+ 	[NFTA_BITWISE_OP]	= { .type = NLA_U32 },
++	[NFTA_BITWISE_DATA]	= { .type = NLA_NESTED },
+ };
  
--	for (i = 0; i < DIV_ROUND_UP(priv->len, 4); i++)
--		dst[i] = (src[i] & priv->mask.data[i]) ^ priv->xor.data[i];
-+	switch (priv->op) {
-+	case NFT_BITWISE_BOOL:
-+		nft_bitwise_eval_bool(dst, src, priv);
-+		break;
-+	}
- }
+ static int nft_bitwise_init_bool(struct nft_bitwise *priv,
+@@ -62,6 +64,9 @@ static int nft_bitwise_init_bool(struct nft_bitwise *priv,
+ 	struct nft_data_desc d1, d2;
+ 	int err;
  
- static const struct nla_policy nft_bitwise_policy[NFTA_BITWISE_MAX + 1] = {
++	if (tb[NFTA_BITWISE_DATA])
++		return -EINVAL;
++
+ 	if (!tb[NFTA_BITWISE_MASK] ||
+ 	    !tb[NFTA_BITWISE_XOR])
+ 		return -EINVAL;
 -- 
 2.11.0
 
