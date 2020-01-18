@@ -2,115 +2,68 @@ Return-Path: <SRS0=S009=3H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A53BC33CB1
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 08:58:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36A17C33CB1
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 10:29:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D4E7B24683
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 08:58:03 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="OmNwj5Ii"
+	by mail.kernel.org (Postfix) with ESMTP id 0E2762467C
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 10:29:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726602AbgARI6D (ORCPT
+        id S1726950AbgARK3N (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 18 Jan 2020 03:58:03 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:55264 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726543AbgARI6D (ORCPT
+        Sat, 18 Jan 2020 05:29:13 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:49496 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726831AbgARK3N (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 18 Jan 2020 03:58:03 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=zqj4Hqt+QQykLjVn8CC4eROln+rCrurKSa/jlermQbU=; b=OmNwj5IirRdMEwbFeZZkzEeYmt
-        16HNsrjn2xPydExeb0n8V/O/eysi51Ic/t5CX69qm33+4t5n2/B7oIuCJdIPaVrROioLabpW4vJF9
-        vKN9MeDaaTBQYfkeXdWGCBfHPgw3Um58nmQoFDOePCdvgIvZu7Z9CwnC0gwhL7D29u5S79t9H23if
-        SI2H/AIwOADYHnBHBQUp/mMf6JRMSHqTtXoH4FastAzEY0Mrj9yxujcmeCJjHTjRNHBT5Dbrdat2j
-        HQoTKh8+qHDGauFWnKU/60LyQMBQPD/WzRAM9oSsge/FOHzG3qRPybL4eDqQEH+ScZJ1U3BsXSJ6/
-        7hRNBjwQ==;
-Received: from celephais.dreamlands ([192.168.96.3] helo=azazel.net)
-        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1isjvd-0007x5-J2
-        for netfilter-devel@vger.kernel.org; Sat, 18 Jan 2020 08:58:01 +0000
-Date:   Sat, 18 Jan 2020 08:58:00 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnftnl v2 0/6] bitwise shift support
-Message-ID: <20200118085800.GA1416073@azazel.net>
-References: <20200117205808.172194-1-jeremy@azazel.net>
+        Sat, 18 Jan 2020 05:29:13 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1islLr-0005gF-D9; Sat, 18 Jan 2020 11:29:11 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     netfilter-devel@vger.kernel.org
+Cc:     syzkaller-bugs@googlegroups.com, Florian Westphal <fw@strlen.de>,
+        syzbot+cf23983d697c26c34f60@syzkaller.appspotmail.com
+Subject: [PATCH nf] netfilter: nft_osf: add missing check for DREG attribute
+Date:   Sat, 18 Jan 2020 11:27:25 +0100
+Message-Id: <20200118102725.30600-1-fw@strlen.de>
+X-Mailer: git-send-email 2.24.1
+In-Reply-To: <000000000000d740e5059c65cbd0@google.com>
+References: <000000000000d740e5059c65cbd0@google.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="a8Wt8u1KmwUX3Y2C"
-Content-Disposition: inline
-In-Reply-To: <20200117205808.172194-1-jeremy@azazel.net>
-X-SA-Exim-Connect-IP: 192.168.96.3
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+syzbot reports just another NULL deref crash because of missing test
+for presence of the attribute.
 
---a8Wt8u1KmwUX3Y2C
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Reported-by: syzbot+cf23983d697c26c34f60@syzkaller.appspotmail.com
+Fixes:  b96af92d6eaf9fadd ("netfilter: nf_tables: implement Passive OS fingerprint module in nft_osf")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nft_osf.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-On 2020-01-17, at 20:58:02 +0000, Jeremy Sowden wrote:
-> The kernel supports bitwise shift operations.  This patch-set adds the
-> support to libnftnl.  There are couple of preliminary housekeeping
-> patches.
+diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
+index f54d6ae15bb1..b42247aa48a9 100644
+--- a/net/netfilter/nft_osf.c
++++ b/net/netfilter/nft_osf.c
+@@ -61,6 +61,9 @@ static int nft_osf_init(const struct nft_ctx *ctx,
+ 	int err;
+ 	u8 ttl;
+ 
++	if (!tb[NFTA_OSF_DREG])
++		return -EINVAL;
++
+ 	if (tb[NFTA_OSF_TTL]) {
+ 		ttl = nla_get_u8(tb[NFTA_OSF_TTL]);
+ 		if (ttl > 2)
+-- 
+2.24.1
 
-Changes since v1:
-
-  * updated to match the final kernel API;
-  * split the single patch that implemented the new shift expressions
-    into several smaller ones.
-
-> Jeremy Sowden (6):
->   Update gitignore.
->   bitwise: fix some incorrect indentation.
->   bitwise: add helper to print boolean expressions.
->   include: update nf_tables.h.
->   bitwise: add support for new netlink attributes.
->   bitwise: add support for left- and right-shifts.
->
->  .gitignore                          |   9 ++
->  include/libnftnl/expr.h             |   2 +
->  include/linux/netfilter/nf_tables.h |  24 +++-
->  src/expr/bitwise.c                  |  93 +++++++++++--
->  tests/nft-expr_bitwise-test.c       | 204 +++++++++++++++++++++++++---
->  5 files changed, 304 insertions(+), 28 deletions(-)
->
-> --
-> 2.24.1
->
->
-
---a8Wt8u1KmwUX3Y2C
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQGzBAABCgAdFiEEd/6/sDFjb+OCRmRMonv1GCHZ79cFAl4iyIsACgkQonv1GCHZ
-79eCLAv+Oxagte3e4s9Qj8mhVHQe1BQskiu99hLme6OrE1wPYIsOkYXDf3d5v77o
-PR5Hc8cQJ5NzRW8XDKPcY98uqEeFMTrWxZahbzD9tEcxwgg7C7Rv5+U1IXVSLpGN
-emeGzHeH8CQ1fZvD5u5EjYbToZjMVOG2DEi+W8xJ3uw5NyXEt44YKtWDigX8/Vk/
-Fydvz7Wrku+c0KleR2OLaPk206ee/9mZfZNYEJU+HskN+TDuIu3dQid3XlvWEnsg
-w8Z0nSuCXtsuGrb1Po57TkKHN1Nr/XwdUgs3IqLpfrcKfnKRPkEfhIHKl1CpjnF+
-jn53Ur5FCTyIYo0wweSzg+O9A3Z/fTv/T6jNkW5I6U4c7kZufhf9QxPsMUtY4H2g
-uBCUqXaSzwYGUmrvlRTjcvG6bFtx2O1T5nYI9ZKa4QjPkSW2CWvCJDSngvLXbZkO
-dfU7l8KR/FQstuI4XaDYE7uTPXIuPZu//TEgeC5uHLP7MCKnI0BH2JOvtZkbJODk
-aaHibteG
-=366V
------END PGP SIGNATURE-----
-
---a8Wt8u1KmwUX3Y2C--
