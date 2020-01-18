@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3766DC33CB6
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 21:23:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C02CEC33CB7
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 21:23:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0125B24683
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 21:23:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8C18E24683
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 21:23:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="EwY3ME8g"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="IaI8m1Lq"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727113AbgARVXV (ORCPT
+        id S1727104AbgARVXU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 18 Jan 2020 16:23:21 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:55192 "EHLO
+        Sat, 18 Jan 2020 16:23:20 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:55186 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727083AbgARVXV (ORCPT
+        with ESMTP id S1727051AbgARVXU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 18 Jan 2020 16:23:21 -0500
+        Sat, 18 Jan 2020 16:23:20 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
          s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=P8twnjR945anPShsIuTsyYo9nyaxdwzvOWiJZmyWD7k=; b=EwY3ME8gVQagvFDCuvU+/onHIH
-        AJZUb0vz/0RyVJumMlIzjHXDSz52Nu5xMHGn2X7FU1HuaCNTCL4SPy6rhMYorUTbRdYWwnNPFy6TJ
-        5fjrE3UUmPFVChZynbTLW3MisubmOBkDndWi/AshUuzOx6HkTdx+tLPYAzFztdwniOu+GKpnxcOZA
-        SmQA8rHmRjCZsHnncpLIROCOYT9kBLWInkugtAF8FhXRUJyo/RvKllfWaupJX0y7e/XI3ZTa084tY
-        Tspcep+NsxGoQNt1FoD8qUvSn/MwtHxRONTYEGOrHBJMrbVUzudpVxssJM+WMEKD8uW3M95Fn1vm7
-        Y6vuCwJw==;
+        bh=4UgfGNOvAnEkVa1oYgfDMZ+bKSypTjVKKOInNkEErvs=; b=IaI8m1LqxKjevw3KMU9g5pTlyj
+        CKFVmkwDOA9GrHH4X/3mFeKx7lLxrVLWInu8UGn/m3nzsU4VtZK8QkJRUnfZnX0/IY5wDNXmR5erO
+        kRZhyVX2c9ZXZ2lz6e59kU7FgqalML/8EkX1k3Xaw+sDIGQzyzeIemyWkfhLQm7Fka4qsmFEG/Dcy
+        QCTMyhQxL6NRZlkXUg/w5sbXwE1HLe1X5JdwPBKWOrD6rGT4rBn6KD66/EUvk+b3M2xiwuWb/rv9s
+        vFia0fj8LMrctIsBVaJ6BJ0s9BSt9uDaGbRH8nt5zb8m/E5bTbB0jIApu74war5GlcR610I8N5noS
+        fVUuXs+Q==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1isvYt-0006Ji-Uo
-        for netfilter-devel@vger.kernel.org; Sat, 18 Jan 2020 21:23:20 +0000
+        id 1isvYt-0006Ji-I0
+        for netfilter-devel@vger.kernel.org; Sat, 18 Jan 2020 21:23:19 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft v2 6/9] evaluate: change shift byte-order to host-endian.
-Date:   Sat, 18 Jan 2020 21:23:16 +0000
-Message-Id: <20200118212319.253112-7-jeremy@azazel.net>
+Subject: [PATCH nft v2 3/9] netlink_delinearize: fix typo.
+Date:   Sat, 18 Jan 2020 21:23:13 +0000
+Message-Id: <20200118212319.253112-4-jeremy@azazel.net>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200118212319.253112-1-jeremy@azazel.net>
 References: <20200118212319.253112-1-jeremy@azazel.net>
@@ -58,28 +58,26 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The byte-order of the righthand operands of the right-shifts generated
-for payload and exthdr expressions is big-endian.  However, all right
-shift operands should be host-endian.
+s/Of/If/ in comment describing function.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- src/evaluate.c | 2 +-
+ src/netlink_delinearize.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 09dd493f0757..658f3d77990d 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -487,7 +487,7 @@ static void expr_evaluate_bits(struct eval_ctx *ctx, struct expr **exprp)
- 	if (shift) {
- 		off = constant_expr_alloc(&expr->location,
- 					  expr_basetype(expr),
--					  BYTEORDER_BIG_ENDIAN,
-+					  BYTEORDER_HOST_ENDIAN,
- 					  sizeof(shift), &shift);
- 
- 		lshift = binop_expr_alloc(&expr->location, OP_RSHIFT, and, off);
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 387e4b046c6b..8b9b5c808384 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -2352,7 +2352,7 @@ static void stmt_payload_binop_pp(struct rule_pp_ctx *ctx, struct expr *binop)
+  * the original payload expression because it has an odd size or
+  * a non-byte divisible offset/length.
+  *
+- * Of that was the case, the 'value' expression is not a value but
++ * If that was the case, the 'value' expression is not a value but
+  * a binop expression with a munged payload expression on the left
+  * and a mask to clear the real payload offset/length.
+  *
 -- 
 2.24.1
 
