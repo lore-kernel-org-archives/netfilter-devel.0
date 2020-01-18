@@ -2,121 +2,82 @@ Return-Path: <SRS0=S009=3H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B41A0C33CB8
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 21:23:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F655C32771
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 22:30:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 83AAA246A2
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 21:23:25 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="FChGYSLv"
+	by mail.kernel.org (Postfix) with ESMTP id 5DEC9246A8
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 22:30:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727131AbgARVXY (ORCPT
+        id S1727083AbgARWaB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 18 Jan 2020 16:23:24 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:55184 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726933AbgARVXU (ORCPT
+        Sat, 18 Jan 2020 17:30:01 -0500
+Received: from mail-io1-f72.google.com ([209.85.166.72]:55965 "EHLO
+        mail-io1-f72.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726997AbgARWaB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 18 Jan 2020 16:23:20 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=PhJ8agEA+dj0IXAsvFn58gVyGRub+IHVzqrCJIayziY=; b=FChGYSLvYlbBO+8O/sTYA1N0hc
-        w0UghUh5PWGJVryjx2Z3FOObkRch3td+u2qV35JM6/MEd9v82qz5YJ77Dnii4ub+UmUwrTd/GsmZc
-        vTNckzLwYW4D/iFjf1T4ibxTgFiyCSUmdUcXq5YpXA5cOf92hIRIzVbxZHEypwE9T0yqywJB11k6/
-        Onl1qU4ekac7Ca5v+oWqeczz+RPFGb/RIUJcESBkW2BbMCwIh8P9gzuhhb/BFnzVk3wJkGCx1VhPc
-        fCMrVCDD1bl+JSooYhDnqoOTKgrc2E4bouJs0jKigrlKSZ42gUt0jiVCwsIVM4gmHgSKHsUm7g1Wa
-        3ymozW3Q==;
-Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
-        by kadath.azazel.net with esmtp (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1isvYt-0006Ji-Ds
-        for netfilter-devel@vger.kernel.org; Sat, 18 Jan 2020 21:23:19 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft v2 2/9] src: white-space fixes.
-Date:   Sat, 18 Jan 2020 21:23:12 +0000
-Message-Id: <20200118212319.253112-3-jeremy@azazel.net>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200118212319.253112-1-jeremy@azazel.net>
-References: <20200118212319.253112-1-jeremy@azazel.net>
+        Sat, 18 Jan 2020 17:30:01 -0500
+Received: by mail-io1-f72.google.com with SMTP id z21so17480805iob.22
+        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 14:30:01 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
+         :from:to;
+        bh=yYySPTzXjesI6rMbrrYCnEOoWQeyP6zwNDoBKllcD6s=;
+        b=f9yWFqnMjhaKvVOCLt9OtubYxQgvAAgES4/5EcgSN4x0WQvPh6LCVk1Tmw0nTUfQw0
+         xn9D2IltoaQCeClwLeBTzb4LIAc7pecXRazF7HZdVCDb/KcYd18t3pJ+hyiAJlIgJGWU
+         p5IpGSdD8admrRZJeM9rRgcImdR7d2s2doAiwMGaOdyr2Lj8S9VGIoRg0f23ktP1+YDH
+         zaaSgAeb36eKoteITJy0TjXJ1IWYsTHzF6yS0w2odlIvnfVRRvHLU4URw6oS1uytuWtw
+         lLUcFMuJoeEIMtQvvNyMKhb2HQcxPui2TQzQW8GcdT7qO4r19fe6SsWNSx3YO59X2IAD
+         asOA==
+X-Gm-Message-State: APjAAAWz6UzV4l0qSxoFVL1sJIGWXU30urW/B+6e4hYhzX0mwev3eBvv
+        2ZhgkI9TGsPEKM60hr98uTE4Yq3Ze+qg9KrNGMlGYBDZnfuM
+X-Google-Smtp-Source: APXvYqx1pd31epsuW/G1/6eX4XtJtvHwMaQ8qI1MCUim2ZtcFsWE4ZOYVf2vl7dBgVGnmVgzwNIdSp63LSgF0NEjWlUwyEVcpUX/
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+X-Received: by 2002:a6b:d214:: with SMTP id q20mr29420477iob.298.1579386600669;
+ Sat, 18 Jan 2020 14:30:00 -0800 (PST)
+Date:   Sat, 18 Jan 2020 14:30:00 -0800
+In-Reply-To: <0000000000006de432059c6cabb1@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000004bc94b059c71994f@google.com>
+Subject: Re: KASAN: slab-out-of-bounds Read in bitmap_port_gc
+From:   syzbot <syzbot+53cdd0ec0bbabd53370a@syzkaller.appspotmail.com>
+To:     arvid.brodin@alten.se, coreteam@netfilter.org, davem@davemloft.net,
+        fw@strlen.de, gregkh@linuxfoundation.org, jeremy@azazel.net,
+        kadlec@netfilter.org, kstewart@linuxfoundation.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com, tglx@linutronix.de,
+        xiyou.wangcong@gmail.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Remove some trailing white-space and fix some indentation.
+syzbot has bisected this bug to:
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- src/evaluate.c            | 11 +++++------
- src/netlink_delinearize.c |  2 +-
- src/netlink_linearize.c   |  2 +-
- 3 files changed, 7 insertions(+), 8 deletions(-)
+commit b9a1e627405d68d475a3c1f35e685ccfb5bbe668
+Author: Cong Wang <xiyou.wangcong@gmail.com>
+Date:   Thu Jul 4 00:21:13 2019 +0000
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index e7881543d2de..09dd493f0757 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -2340,14 +2340,13 @@ static int stmt_evaluate_meta(struct eval_ctx *ctx, struct stmt *stmt)
- static int stmt_evaluate_ct(struct eval_ctx *ctx, struct stmt *stmt)
- {
- 	if (stmt_evaluate_arg(ctx, stmt,
--				 stmt->ct.tmpl->dtype,
--				 stmt->ct.tmpl->len,
--				 stmt->ct.tmpl->byteorder,
--				 &stmt->ct.expr) < 0)
-+			      stmt->ct.tmpl->dtype,
-+			      stmt->ct.tmpl->len,
-+			      stmt->ct.tmpl->byteorder,
-+			      &stmt->ct.expr) < 0)
- 		return -1;
- 
--	if (stmt->ct.key == NFT_CT_SECMARK &&
--	    expr_is_constant(stmt->ct.expr))
-+	if (stmt->ct.key == NFT_CT_SECMARK && expr_is_constant(stmt->ct.expr))
- 		return stmt_error(ctx, stmt,
- 				  "ct secmark must not be set to constant value");
- 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 154353b8161a..387e4b046c6b 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -171,7 +171,7 @@ static void netlink_parse_immediate(struct netlink_parse_ctx *ctx,
- 	struct expr *expr;
- 
- 	if (nftnl_expr_is_set(nle, NFTNL_EXPR_IMM_VERDICT)) {
--		nld.verdict = nftnl_expr_get_u32(nle, NFTNL_EXPR_IMM_VERDICT); 
-+		nld.verdict = nftnl_expr_get_u32(nle, NFTNL_EXPR_IMM_VERDICT);
- 		if  (nftnl_expr_is_set(nle, NFTNL_EXPR_IMM_CHAIN)) {
- 			nld.chain = nftnl_expr_get(nle, NFTNL_EXPR_IMM_CHAIN,
- 						   &nld.len);
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 498326d0087a..d5e177d5e75c 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -1243,7 +1243,7 @@ static void netlink_gen_queue_stmt(struct netlink_linearize_ctx *ctx,
- }
- 
- static void netlink_gen_ct_stmt(struct netlink_linearize_ctx *ctx,
--				  const struct stmt *stmt)
-+				const struct stmt *stmt)
- {
- 	struct nftnl_expr *nle;
- 	enum nft_registers sreg;
--- 
-2.24.1
+    hsr: implement dellink to clean up resources
 
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=170438d6e00000
+start commit:   25e73aad Merge tag 'io_uring-5.5-2020-01-16' of git://git...
+git tree:       upstream
+final crash:    https://syzkaller.appspot.com/x/report.txt?x=148438d6e00000
+console output: https://syzkaller.appspot.com/x/log.txt?x=108438d6e00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=d9290aeb7e6cf1c4
+dashboard link: https://syzkaller.appspot.com/bug?extid=53cdd0ec0bbabd53370a
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=17eb74c9e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14db11d1e00000
+
+Reported-by: syzbot+53cdd0ec0bbabd53370a@syzkaller.appspotmail.com
+Fixes: b9a1e627405d ("hsr: implement dellink to clean up resources")
+
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
