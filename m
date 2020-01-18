@@ -2,84 +2,115 @@ Return-Path: <SRS0=S009=3H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD7B6C33CB1
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 08:36:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A53BC33CB1
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 08:58:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 922F42467C
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 08:36:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D4E7B24683
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 08:58:03 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="OmNwj5Ii"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726628AbgARIgC (ORCPT
+        id S1726602AbgARI6D (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 18 Jan 2020 03:36:02 -0500
-Received: from mail-io1-f69.google.com ([209.85.166.69]:54972 "EHLO
-        mail-io1-f69.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726543AbgARIgC (ORCPT
+        Sat, 18 Jan 2020 03:58:03 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:55264 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726543AbgARI6D (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 18 Jan 2020 03:36:02 -0500
-Received: by mail-io1-f69.google.com with SMTP id u6so16703729iog.21
-        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 00:36:02 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=f6arYuzOgRiNLirbokwAadEyI3EtpDczyp+p4b7vfMk=;
-        b=RkLd6ybo2F7HK/c47fmQ+tAinTUObUxKYKWotII9VKDfp0c1eaTGOaQ+nf9HrwW+ih
-         l1PtntGjoK4yGqKX3qu1OqWU+raUc4AWQudm8uJJ0KBQfJ+DKI4uyPvJ5hkbqHJx1bAb
-         7gQ/eGjZCvQAWwZykfiIeXzVBQldhNsCKFeZhmc42rneQsXyVp730z9Zgg9upglgHo9K
-         SHG0V5DMGkfUsFupH9NKloQBdt6ibAWz55IHsHfabQR0r1BM5ULq9jQlKvrthEjXnJAw
-         QkGLGGuwdOog9zDNRNNozCYkF2QJLlweLXGO8IY6BvY7+Nz3sUS+bSzZLRP23b+WPGN5
-         jhGw==
-X-Gm-Message-State: APjAAAVChzYoN0oMWoGiy2woZHuPkBZ8L9ESZ3BfC6S+o1x5YOjrCKoV
-        58sbIAZ6YVmAXdkZe7wZhux3BrPK5i4U9RDHD0DHh0nS5vS4
-X-Google-Smtp-Source: APXvYqxpKnt5Q1gviMC5prN5JTg6U+mpzrK7koY1nSdpvBADtfR8n77cXbnKp9w6a0f/yM6V1iVvJQS62W2YH/DmuX9np5aG08ox
+        Sat, 18 Jan 2020 03:58:03 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=zqj4Hqt+QQykLjVn8CC4eROln+rCrurKSa/jlermQbU=; b=OmNwj5IirRdMEwbFeZZkzEeYmt
+        16HNsrjn2xPydExeb0n8V/O/eysi51Ic/t5CX69qm33+4t5n2/B7oIuCJdIPaVrROioLabpW4vJF9
+        vKN9MeDaaTBQYfkeXdWGCBfHPgw3Um58nmQoFDOePCdvgIvZu7Z9CwnC0gwhL7D29u5S79t9H23if
+        SI2H/AIwOADYHnBHBQUp/mMf6JRMSHqTtXoH4FastAzEY0Mrj9yxujcmeCJjHTjRNHBT5Dbrdat2j
+        HQoTKh8+qHDGauFWnKU/60LyQMBQPD/WzRAM9oSsge/FOHzG3qRPybL4eDqQEH+ScZJ1U3BsXSJ6/
+        7hRNBjwQ==;
+Received: from celephais.dreamlands ([192.168.96.3] helo=azazel.net)
+        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1isjvd-0007x5-J2
+        for netfilter-devel@vger.kernel.org; Sat, 18 Jan 2020 08:58:01 +0000
+Date:   Sat, 18 Jan 2020 08:58:00 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnftnl v2 0/6] bitwise shift support
+Message-ID: <20200118085800.GA1416073@azazel.net>
+References: <20200117205808.172194-1-jeremy@azazel.net>
 MIME-Version: 1.0
-X-Received: by 2002:a6b:7201:: with SMTP id n1mr29961612ioc.37.1579336561855;
- Sat, 18 Jan 2020 00:36:01 -0800 (PST)
-Date:   Sat, 18 Jan 2020 00:36:01 -0800
-In-Reply-To: <000000000000b9c312059c656759@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000c01359059c65f22e@google.com>
-Subject: Re: KASAN: slab-out-of-bounds Read in bitmap_ipmac_list
-From:   syzbot <syzbot+190d63957b22ef673ea5@syzkaller.appspotmail.com>
-To:     arvid.brodin@alten.se, coreteam@netfilter.org, davem@davemloft.net,
-        florent.fourcot@wifirst.fr, fw@strlen.de,
-        jakub.kicinski@netronome.com, jeremy@azazel.net,
-        johannes.berg@intel.com, john.hurley@netronome.com,
-        kadlec@netfilter.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, simon.horman@netronome.com,
-        syzkaller-bugs@googlegroups.com, willemb@google.com,
-        xiyou.wangcong@gmail.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="a8Wt8u1KmwUX3Y2C"
+Content-Disposition: inline
+In-Reply-To: <20200117205808.172194-1-jeremy@azazel.net>
+X-SA-Exim-Connect-IP: 192.168.96.3
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has bisected this bug to:
 
-commit ed246cee09b9865145a2e1e34f63ec0e31dd83a5
-Author: John Hurley <john.hurley@netronome.com>
-Date:   Sun Jul 7 14:01:55 2019 +0000
+--a8Wt8u1KmwUX3Y2C
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-    net: core: move pop MPLS functionality from OvS to core helper
+On 2020-01-17, at 20:58:02 +0000, Jeremy Sowden wrote:
+> The kernel supports bitwise shift operations.  This patch-set adds the
+> support to libnftnl.  There are couple of preliminary housekeeping
+> patches.
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=127260f1e00000
-start commit:   ab7541c3 Merge tag 'fuse-fixes-5.5-rc7' of git://git.kerne..
-git tree:       upstream
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=117260f1e00000
-console output: https://syzkaller.appspot.com/x/log.txt?x=167260f1e00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=d9290aeb7e6cf1c4
-dashboard link: https://syzkaller.appspot.com/bug?extid=190d63957b22ef673ea5
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15fe12a5e00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1138dfaee00000
+Changes since v1:
 
-Reported-by: syzbot+190d63957b22ef673ea5@syzkaller.appspotmail.com
-Fixes: ed246cee09b9 ("net: core: move pop MPLS functionality from OvS to core helper")
+  * updated to match the final kernel API;
+  * split the single patch that implemented the new shift expressions
+    into several smaller ones.
 
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+> Jeremy Sowden (6):
+>   Update gitignore.
+>   bitwise: fix some incorrect indentation.
+>   bitwise: add helper to print boolean expressions.
+>   include: update nf_tables.h.
+>   bitwise: add support for new netlink attributes.
+>   bitwise: add support for left- and right-shifts.
+>
+>  .gitignore                          |   9 ++
+>  include/libnftnl/expr.h             |   2 +
+>  include/linux/netfilter/nf_tables.h |  24 +++-
+>  src/expr/bitwise.c                  |  93 +++++++++++--
+>  tests/nft-expr_bitwise-test.c       | 204 +++++++++++++++++++++++++---
+>  5 files changed, 304 insertions(+), 28 deletions(-)
+>
+> --
+> 2.24.1
+>
+>
+
+--a8Wt8u1KmwUX3Y2C
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAABCgAdFiEEd/6/sDFjb+OCRmRMonv1GCHZ79cFAl4iyIsACgkQonv1GCHZ
+79eCLAv+Oxagte3e4s9Qj8mhVHQe1BQskiu99hLme6OrE1wPYIsOkYXDf3d5v77o
+PR5Hc8cQJ5NzRW8XDKPcY98uqEeFMTrWxZahbzD9tEcxwgg7C7Rv5+U1IXVSLpGN
+emeGzHeH8CQ1fZvD5u5EjYbToZjMVOG2DEi+W8xJ3uw5NyXEt44YKtWDigX8/Vk/
+Fydvz7Wrku+c0KleR2OLaPk206ee/9mZfZNYEJU+HskN+TDuIu3dQid3XlvWEnsg
+w8Z0nSuCXtsuGrb1Po57TkKHN1Nr/XwdUgs3IqLpfrcKfnKRPkEfhIHKl1CpjnF+
+jn53Ur5FCTyIYo0wweSzg+O9A3Z/fTv/T6jNkW5I6U4c7kZufhf9QxPsMUtY4H2g
+uBCUqXaSzwYGUmrvlRTjcvG6bFtx2O1T5nYI9ZKa4QjPkSW2CWvCJDSngvLXbZkO
+dfU7l8KR/FQstuI4XaDYE7uTPXIuPZu//TEgeC5uHLP7MCKnI0BH2JOvtZkbJODk
+aaHibteG
+=366V
+-----END PGP SIGNATURE-----
+
+--a8Wt8u1KmwUX3Y2C--
