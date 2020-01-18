@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C02CEC33CB7
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 21:23:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2A8FC33CB7
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 21:23:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8C18E24683
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 21:23:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B9335246A2
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 21:23:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="IaI8m1Lq"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="nTWJfVvh"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727104AbgARVXU (ORCPT
+        id S1727107AbgARVXV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 18 Jan 2020 16:23:20 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:55186 "EHLO
+        Sat, 18 Jan 2020 16:23:21 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:55188 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727051AbgARVXU (ORCPT
+        with ESMTP id S1727056AbgARVXU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sat, 18 Jan 2020 16:23:20 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
@@ -29,22 +29,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=4UgfGNOvAnEkVa1oYgfDMZ+bKSypTjVKKOInNkEErvs=; b=IaI8m1LqxKjevw3KMU9g5pTlyj
-        CKFVmkwDOA9GrHH4X/3mFeKx7lLxrVLWInu8UGn/m3nzsU4VtZK8QkJRUnfZnX0/IY5wDNXmR5erO
-        kRZhyVX2c9ZXZ2lz6e59kU7FgqalML/8EkX1k3Xaw+sDIGQzyzeIemyWkfhLQm7Fka4qsmFEG/Dcy
-        QCTMyhQxL6NRZlkXUg/w5sbXwE1HLe1X5JdwPBKWOrD6rGT4rBn6KD66/EUvk+b3M2xiwuWb/rv9s
-        vFia0fj8LMrctIsBVaJ6BJ0s9BSt9uDaGbRH8nt5zb8m/E5bTbB0jIApu74war5GlcR610I8N5noS
-        fVUuXs+Q==;
+        bh=/3T9m6QEVfVUD/+aCjgdUGEDP5YZEMp2PxMcG7lIs9w=; b=nTWJfVvhxQ+3O2fIO3YBQ54y+k
+        OVhPn1YgdnEj2SjO2i0GwO2tOxisKbcJK3RxpSJfX0SC58e3IXFmUceF0VpeQ43PjXQ6eMogfYJ1d
+        I3y8AoMJmSyEI/YHa0MAZCJF2zCFdjC/VfZax0W/KjXTtOAvwxR//aWUQ4EJ8XF4uZnxPzT8lBVR8
+        falACkaqCnMtJhoWdemv74izYhqxXxTrgYilXH47kfpxz+YwI90CnYTlOjSMJQoUUmTsCqlWpRDZu
+        37FxYCqrUslwZA4/pxCH9x0fqZW+lW89VsicPrtq1cexMYbe8rCZdsVsdZ/4EXpEq+pg8VvmQ1l/M
+        SM87/3AA==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1isvYt-0006Ji-I0
+        id 1isvYt-0006Ji-M5
         for netfilter-devel@vger.kernel.org; Sat, 18 Jan 2020 21:23:19 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft v2 3/9] netlink_delinearize: fix typo.
-Date:   Sat, 18 Jan 2020 21:23:13 +0000
-Message-Id: <20200118212319.253112-4-jeremy@azazel.net>
+Subject: [PATCH nft v2 4/9] netlink_delinearize: remove commented out pr_debug statement.
+Date:   Sat, 18 Jan 2020 21:23:14 +0000
+Message-Id: <20200118212319.253112-5-jeremy@azazel.net>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200118212319.253112-1-jeremy@azazel.net>
 References: <20200118212319.253112-1-jeremy@azazel.net>
@@ -58,26 +58,26 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-s/Of/If/ in comment describing function.
+The statement doesn't compile, so remove it.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- src/netlink_delinearize.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ src/netlink_delinearize.c | 2 --
+ 1 file changed, 2 deletions(-)
 
 diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 387e4b046c6b..8b9b5c808384 100644
+index 8b9b5c808384..8f2a5dfacd3e 100644
 --- a/src/netlink_delinearize.c
 +++ b/src/netlink_delinearize.c
-@@ -2352,7 +2352,7 @@ static void stmt_payload_binop_pp(struct rule_pp_ctx *ctx, struct expr *binop)
-  * the original payload expression because it has an odd size or
-  * a non-byte divisible offset/length.
-  *
-- * Of that was the case, the 'value' expression is not a value but
-+ * If that was the case, the 'value' expression is not a value but
-  * a binop expression with a munged payload expression on the left
-  * and a mask to clear the real payload offset/length.
-  *
+@@ -2047,8 +2047,6 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
+ {
+ 	struct expr *expr = *exprp, *i;
+ 
+-	//pr_debug("%s len %u\n", expr->ops->name, expr->len);
+-
+ 	switch (expr->etype) {
+ 	case EXPR_MAP:
+ 		switch (expr->map->etype) {
 -- 
 2.24.1
 
