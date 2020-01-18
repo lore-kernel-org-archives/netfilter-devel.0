@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 195E4C33CB7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFC37C3F68F
 	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 20:15:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ED24B24683
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 20:14:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CEBA024683
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 20:15:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729145AbgARUO6 (ORCPT
+        id S1729138AbgARUO6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sat, 18 Jan 2020 15:14:58 -0500
-Received: from correo.us.es ([193.147.175.20]:48426 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:48430 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728708AbgARUOa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 18 Jan 2020 15:14:30 -0500
+        id S1728811AbgARUOb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 18 Jan 2020 15:14:31 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4DBED2EFEAE
-        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 21:14:29 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id DE7982EFEAF
+        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 21:14:30 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3E85BDA718
-        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 21:14:29 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CE122DA715
+        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 21:14:30 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 33360DA714; Sat, 18 Jan 2020 21:14:29 +0100 (CET)
+        id C3B15DA710; Sat, 18 Jan 2020 21:14:30 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 30CEADA701;
-        Sat, 18 Jan 2020 21:14:27 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C51DBDA710;
+        Sat, 18 Jan 2020 21:14:28 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 18 Jan 2020 21:14:27 +0100 (CET)
+ Sat, 18 Jan 2020 21:14:28 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 0BB7641E4800;
-        Sat, 18 Jan 2020 21:14:27 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 9F04D41E4801;
+        Sat, 18 Jan 2020 21:14:28 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 09/21] netfilter: hashlimit: do not use indirect calls during gc
-Date:   Sat, 18 Jan 2020 21:14:05 +0100
-Message-Id: <20200118201417.334111-10-pablo@netfilter.org>
+Subject: [PATCH 12/21] netfilter: nf_tables: white-space fixes.
+Date:   Sat, 18 Jan 2020 21:14:08 +0100
+Message-Id: <20200118201417.334111-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200118201417.334111-1-pablo@netfilter.org>
 References: <20200118201417.334111-1-pablo@netfilter.org>
@@ -54,71 +54,61 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Jeremy Sowden <jeremy@azazel.net>
 
-no need, just use a simple boolean to indicate we want to reap all
-entries.
+Indentation fixes for the parameters of a few nft functions.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_hashlimit.c | 22 ++++------------------
- 1 file changed, 4 insertions(+), 18 deletions(-)
+ net/netfilter/nft_bitwise.c    | 4 ++--
+ net/netfilter/nft_set_bitmap.c | 4 ++--
+ net/netfilter/nft_set_hash.c   | 2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index ced3fc8fad7c..bccd47cd7190 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -357,21 +357,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
- 	return 0;
+diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
+index 10e9d50e4e19..e8ca1ec105f8 100644
+--- a/net/netfilter/nft_bitwise.c
++++ b/net/netfilter/nft_bitwise.c
+@@ -130,8 +130,8 @@ static int nft_bitwise_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ static struct nft_data zero;
+ 
+ static int nft_bitwise_offload(struct nft_offload_ctx *ctx,
+-                               struct nft_flow_rule *flow,
+-                               const struct nft_expr *expr)
++			       struct nft_flow_rule *flow,
++			       const struct nft_expr *expr)
+ {
+ 	const struct nft_bitwise *priv = nft_expr_priv(expr);
+ 	struct nft_offload_reg *reg = &ctx->regs[priv->dreg];
+diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
+index 087a056e34d1..87e8d9ba0c9b 100644
+--- a/net/netfilter/nft_set_bitmap.c
++++ b/net/netfilter/nft_set_bitmap.c
+@@ -259,8 +259,8 @@ static u64 nft_bitmap_privsize(const struct nlattr * const nla[],
  }
  
--static bool select_all(const struct xt_hashlimit_htable *ht,
--		       const struct dsthash_ent *he)
--{
--	return true;
--}
--
--static bool select_gc(const struct xt_hashlimit_htable *ht,
--		      const struct dsthash_ent *he)
--{
--	return time_after_eq(jiffies, he->expires);
--}
--
--static void htable_selective_cleanup(struct xt_hashlimit_htable *ht,
--			bool (*select)(const struct xt_hashlimit_htable *ht,
--				      const struct dsthash_ent *he))
-+static void htable_selective_cleanup(struct xt_hashlimit_htable *ht, bool select_all)
+ static int nft_bitmap_init(const struct nft_set *set,
+-			 const struct nft_set_desc *desc,
+-			 const struct nlattr * const nla[])
++			   const struct nft_set_desc *desc,
++			   const struct nlattr * const nla[])
  {
- 	unsigned int i;
+ 	struct nft_bitmap *priv = nft_set_priv(set);
  
-@@ -381,7 +367,7 @@ static void htable_selective_cleanup(struct xt_hashlimit_htable *ht,
- 
- 		spin_lock_bh(&ht->lock);
- 		hlist_for_each_entry_safe(dh, n, &ht->hash[i], node) {
--			if ((*select)(ht, dh))
-+			if (time_after_eq(jiffies, dh->expires) || select_all)
- 				dsthash_free(ht, dh);
- 		}
- 		spin_unlock_bh(&ht->lock);
-@@ -395,7 +381,7 @@ static void htable_gc(struct work_struct *work)
- 
- 	ht = container_of(work, struct xt_hashlimit_htable, gc_work.work);
- 
--	htable_selective_cleanup(ht, select_gc);
-+	htable_selective_cleanup(ht, false);
- 
- 	queue_delayed_work(system_power_efficient_wq,
- 			   &ht->gc_work, msecs_to_jiffies(ht->cfg.gc_interval));
-@@ -419,7 +405,7 @@ static void htable_destroy(struct xt_hashlimit_htable *hinfo)
- {
- 	cancel_delayed_work_sync(&hinfo->gc_work);
- 	htable_remove_proc_entry(hinfo);
--	htable_selective_cleanup(hinfo, select_all);
-+	htable_selective_cleanup(hinfo, true);
- 	kfree(hinfo->name);
- 	vfree(hinfo);
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index b331a3c9a3a8..d350a7cd3af0 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -645,7 +645,7 @@ static bool nft_hash_estimate(const struct nft_set_desc *desc, u32 features,
  }
+ 
+ static bool nft_hash_fast_estimate(const struct nft_set_desc *desc, u32 features,
+-			      struct nft_set_estimate *est)
++				   struct nft_set_estimate *est)
+ {
+ 	if (!desc->size)
+ 		return false;
 -- 
 2.11.0
 
