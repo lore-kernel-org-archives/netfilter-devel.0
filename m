@@ -2,77 +2,104 @@ Return-Path: <SRS0=S009=3H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 039BFC33CB7
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 18:39:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84ED4C33CB7
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 19:40:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C64B82176D
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 18:39:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 59B78206ED
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 19:40:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="R0qhw5cK"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bUmc39D1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726658AbgARSjV (ORCPT
+        id S1727012AbgARTks (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 18 Jan 2020 13:39:21 -0500
-Received: from mail-oi1-f194.google.com ([209.85.167.194]:34038 "EHLO
-        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726490AbgARSjV (ORCPT
+        Sat, 18 Jan 2020 14:40:48 -0500
+Received: from mail-pj1-f66.google.com ([209.85.216.66]:50241 "EHLO
+        mail-pj1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726806AbgARTks (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 18 Jan 2020 13:39:21 -0500
-Received: by mail-oi1-f194.google.com with SMTP id l136so25220318oig.1;
-        Sat, 18 Jan 2020 10:39:20 -0800 (PST)
+        Sat, 18 Jan 2020 14:40:48 -0500
+Received: by mail-pj1-f66.google.com with SMTP id r67so4759380pjb.0;
+        Sat, 18 Jan 2020 11:40:48 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Zj5eFaZ3ZgnaYL2yLmVNHklssUHzuH7vw7dXpd3eIZE=;
-        b=R0qhw5cKWZAbJnu/kSC0bnjICJYaLebPQ5HaC+1rgSxU9x5qRYEM4o3VU8lQIkmmVp
-         rKghr+Hv1vX7ZRRpnkUBxiRFETZKxfsHoOPmNpKbn/CG/QbsLQH0huQFWvrdiC2trydi
-         SIHNTyrT8Ml1nvk885WEozMOqz9RjU8UhBrbRuE+VNJ86M+WlfCI8NFZR8qEbkG1uWJe
-         VR3vqkcyr3/wngBaKnaZxzUBD5CNOqEBh1p5PG1mTUNlgWiTb1CoTVMNxUN7Z6pLJMhD
-         9yjDJ9aOKHCfsXm7ljbygx4ddmo2G9nzeCIu9Qa0NtvYgW09+rDUdOd0MpQDS21NffvW
-         FWiA==
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=4H4HbfW7yJ3n9TBlIjK7pz+6ROcxTyetxM4lTNEqrxg=;
+        b=bUmc39D1cy+6nCuC82fWL20b8Ly9Vs/w/jHjtx9Rqs9iDfZbNFy6MYv3+tVha1Bdg9
+         s4ME8QHl0D4NFF4xg7KPHDodIzlazyqQ2PLX5BiWuImQ5NGsJseRW/1o3n6QAAOmWUQ2
+         coBYactcZO+Lw0QWZso/Jk6vgJ2wUZuYPQL0JidaRIe7HwAKF5h1L9lL3OTiM0SQoP+V
+         9PgCFVw234rph8epCB/diAGAKjZ5wYeLvdEB+Ss8Th/B/qQxXQcQyAcqgo/F7c/oHNnb
+         /5RdRBS9iqocDNZgzCxmuv0bZqwopAyoADtwukWOb34KnjqGSzRmbRbksVI52bGBCyob
+         s1nw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Zj5eFaZ3ZgnaYL2yLmVNHklssUHzuH7vw7dXpd3eIZE=;
-        b=eWuX1IKnry3dD4YWTL/RPwOQDTYSXLDUHpCgx9vAg82wfl2oBBxmimbjIPllSrdTIs
-         RDPJFJZ/xLTxdAWIrUhnf92HCl6TKlbA9Q0Usn4rR5eE/M8cQf5yOr8OKt0X7LCIt/mr
-         eM9p/8oJDSejpwUeEoRk7segzKhjtuOWEtRWzwWH1BOdaGwUHPDbHMxWufZ590odyTl6
-         py1zM0JxM5l+zNwRPwR9ZMQc+/4lS3/ab1r9532lXL7VxqllVHhYg1H0BGElAHvJklJn
-         l0czkXjPdbfMkCmdhVH81BkF8A9mbDjih6se+ex1mHmlNIL6l7+y8dvZlfYLixaylxvU
-         828A==
-X-Gm-Message-State: APjAAAX+k66+el+QwMYkUpo0lkEoYRR+7GpVLCy/0/X5xRXEaPvnC4n1
-        N2DROHsGEGxf5jUIeBZL1Ru2mBAsXL5zm2A+JHw=
-X-Google-Smtp-Source: APXvYqyQ24vVuAFZMniXzT83d3ez3LwtzFKUEn5mINQTZRMOcZrzHmpTm8sc37NmSXHou3Bu1JYU+W+I5pM6I9dnVuM=
-X-Received: by 2002:aca:1e11:: with SMTP id m17mr7967028oic.5.1579372760498;
- Sat, 18 Jan 2020 10:39:20 -0800 (PST)
-MIME-Version: 1.0
-References: <00000000000075aa7d059c6cab3c@google.com>
-In-Reply-To: <00000000000075aa7d059c6cab3c@google.com>
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=4H4HbfW7yJ3n9TBlIjK7pz+6ROcxTyetxM4lTNEqrxg=;
+        b=jbJqEZuCgQdGzLLuPGMWI2kvNTk50WzkJ2BF7yNTqt70eFxODNY2KuGtTv/HbZdGqH
+         GKg871MHlancq4ZXp9CnVemWkTmU35LXlZywbHbL7soMiaDEtfbGmwWiGWygTfg3P6z9
+         EPsYsYLXMdTuoR1NlSFEOaFxzT88kBjNBgnWWR12qg7uJu8MqJr41DwHxoANP3KeZUPG
+         k+D2/t4/x65bP3KaN7G7JNJNRdPy3RRuUKnVLL1y3TSZCsUNGRQQ0j/WnSsakkXlMp6g
+         x3SNVf+iN8/F6j5N9jle+aOiIJo82W1BBeRazMKioFmjNUw1d2vVsGvjdE6T9ThvML3J
+         vmxg==
+X-Gm-Message-State: APjAAAXRj6bSoLbiEtq4atL06KK/o03TJlg0ZKaA1/TPDZZcq/NXJ2LK
+        g1hkrtDwUen/GhL/0TvOFcswJG9Zf0U=
+X-Google-Smtp-Source: APXvYqytTXFq8b5SIScqT5hewEh+kx9A5pun6Qb7GL2K8LoNayQjoc7vpIzGkc43tAODIzj7egwwiA==
+X-Received: by 2002:a17:902:122:: with SMTP id 31mr6226016plb.183.1579376447557;
+        Sat, 18 Jan 2020 11:40:47 -0800 (PST)
+Received: from tw-172-25-31-76.office.twttr.net ([8.25.197.24])
+        by smtp.gmail.com with ESMTPSA id k3sm32864154pgc.3.2020.01.18.11.40.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 18 Jan 2020 11:40:46 -0800 (PST)
 From:   Cong Wang <xiyou.wangcong@gmail.com>
-Date:   Sat, 18 Jan 2020 10:39:09 -0800
-Message-ID: <CAM_iQpX-CHUb7UVnADxk1J6ZQtx4-F6CiT+hbWw09=27pc1daA@mail.gmail.com>
-Subject: Re: KASAN: use-after-free Read in bitmap_port_destroy
-To:     syzbot <syzbot+8ccfc03b082d0ab9b84b@syzkaller.appspotmail.com>
-Cc:     coreteam@netfilter.org, David Miller <davem@davemloft.net>,
-        florent.fourcot@wifirst.fr, Florian Westphal <fw@strlen.de>,
-        jeremy@azazel.net, Johannes Berg <johannes.berg@intel.com>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
+To:     netdev@vger.kernel.org
+Cc:     netfilter-devel@vger.kernel.org,
+        Cong Wang <xiyou.wangcong@gmail.com>,
+        syzbot+cf23983d697c26c34f60@syzkaller.appspotmail.com,
+        Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+        Fernando Fernandez Mancera <ffmancera@riseup.net>
+Subject: [Patch nf] netfilter: nft_osf: NFTA_OSF_DREG must not be null
+Date:   Sat, 18 Jan 2020 11:40:15 -0800
+Message-Id: <20200118194015.14988-1-xiyou.wangcong@gmail.com>
+X-Mailer: git-send-email 2.21.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-#syz fix: netfilter: fix a use-after-free in mtype_destroy()
+Fixes: b96af92d6eaf ("netfilter: nf_tables: implement Passive OS fingerprint module in nft_osf")
+Reported-by: syzbot+cf23983d697c26c34f60@syzkaller.appspotmail.com
+Cc: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Fernando Fernandez Mancera <ffmancera@riseup.net>
+Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+---
+ net/netfilter/nft_osf.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
+index f54d6ae15bb1..b42247aa48a9 100644
+--- a/net/netfilter/nft_osf.c
++++ b/net/netfilter/nft_osf.c
+@@ -61,6 +61,9 @@ static int nft_osf_init(const struct nft_ctx *ctx,
+ 	int err;
+ 	u8 ttl;
+ 
++	if (!tb[NFTA_OSF_DREG])
++		return -EINVAL;
++
+ 	if (tb[NFTA_OSF_TTL]) {
+ 		ttl = nla_get_u8(tb[NFTA_OSF_TTL]);
+ 		if (ttl > 2)
+-- 
+2.21.1
+
