@@ -2,82 +2,114 @@ Return-Path: <SRS0=S009=3H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F655C32771
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 22:30:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6DEDC3F68F
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 23:34:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5DEC9246A8
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 22:30:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7910246AE
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 23:34:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727083AbgARWaB (ORCPT
+        id S1727029AbgARX2q (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 18 Jan 2020 17:30:01 -0500
-Received: from mail-io1-f72.google.com ([209.85.166.72]:55965 "EHLO
-        mail-io1-f72.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726997AbgARWaB (ORCPT
+        Sat, 18 Jan 2020 18:28:46 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:50764 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727012AbgARX2p (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 18 Jan 2020 17:30:01 -0500
-Received: by mail-io1-f72.google.com with SMTP id z21so17480805iob.22
-        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 14:30:01 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=yYySPTzXjesI6rMbrrYCnEOoWQeyP6zwNDoBKllcD6s=;
-        b=f9yWFqnMjhaKvVOCLt9OtubYxQgvAAgES4/5EcgSN4x0WQvPh6LCVk1Tmw0nTUfQw0
-         xn9D2IltoaQCeClwLeBTzb4LIAc7pecXRazF7HZdVCDb/KcYd18t3pJ+hyiAJlIgJGWU
-         p5IpGSdD8admrRZJeM9rRgcImdR7d2s2doAiwMGaOdyr2Lj8S9VGIoRg0f23ktP1+YDH
-         zaaSgAeb36eKoteITJy0TjXJ1IWYsTHzF6yS0w2odlIvnfVRRvHLU4URw6oS1uytuWtw
-         lLUcFMuJoeEIMtQvvNyMKhb2HQcxPui2TQzQW8GcdT7qO4r19fe6SsWNSx3YO59X2IAD
-         asOA==
-X-Gm-Message-State: APjAAAWz6UzV4l0qSxoFVL1sJIGWXU30urW/B+6e4hYhzX0mwev3eBvv
-        2ZhgkI9TGsPEKM60hr98uTE4Yq3Ze+qg9KrNGMlGYBDZnfuM
-X-Google-Smtp-Source: APXvYqx1pd31epsuW/G1/6eX4XtJtvHwMaQ8qI1MCUim2ZtcFsWE4ZOYVf2vl7dBgVGnmVgzwNIdSp63LSgF0NEjWlUwyEVcpUX/
+        Sat, 18 Jan 2020 18:28:45 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1isxWE-0000DE-7U; Sun, 19 Jan 2020 00:28:42 +0100
+Date:   Sun, 19 Jan 2020 00:28:42 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com,
+        syzbot+156a04714799b1d480bc@syzkaller.appspotmail.com
+Subject: Re: [PATCH nf] netfilter: nf_tables: check for valid chain type
+ pointer before dereference
+Message-ID: <20200118232842.GZ795@breakpoint.cc>
+References: <00000000000074ed27059c33dedc@google.com>
+ <20200116211109.9119-1-fw@strlen.de>
+ <20200118203057.6stoe6axtyoxfcxz@salvia>
 MIME-Version: 1.0
-X-Received: by 2002:a6b:d214:: with SMTP id q20mr29420477iob.298.1579386600669;
- Sat, 18 Jan 2020 14:30:00 -0800 (PST)
-Date:   Sat, 18 Jan 2020 14:30:00 -0800
-In-Reply-To: <0000000000006de432059c6cabb1@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000004bc94b059c71994f@google.com>
-Subject: Re: KASAN: slab-out-of-bounds Read in bitmap_port_gc
-From:   syzbot <syzbot+53cdd0ec0bbabd53370a@syzkaller.appspotmail.com>
-To:     arvid.brodin@alten.se, coreteam@netfilter.org, davem@davemloft.net,
-        fw@strlen.de, gregkh@linuxfoundation.org, jeremy@azazel.net,
-        kadlec@netfilter.org, kstewart@linuxfoundation.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        syzkaller-bugs@googlegroups.com, tglx@linutronix.de,
-        xiyou.wangcong@gmail.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200118203057.6stoe6axtyoxfcxz@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has bisected this bug to:
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Thu, Jan 16, 2020 at 10:11:09PM +0100, Florian Westphal wrote:
+> > Its possible to create tables in a family that isn't supported/known.
+> > Then, when adding a base chain, the table pointer can be NULL.
+> > 
+> > This gets us a NULL ptr dereference in nf_tables_addchain().
+> > 
+> > Fixes: baae3e62f31618 ("netfilter: nf_tables: fix chain type module reference handling")
+> > Reported-by: syzbot+156a04714799b1d480bc@syzkaller.appspotmail.com
+> > Signed-off-by: Florian Westphal <fw@strlen.de>
+> > ---
+> >  net/netfilter/nf_tables_api.c | 8 ++++++++
+> >  1 file changed, 8 insertions(+)
+> > 
+> > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> > index 65f51a2e9c2a..e8976128cdb1 100644
+> > --- a/net/netfilter/nf_tables_api.c
+> > +++ b/net/netfilter/nf_tables_api.c
+> > @@ -953,6 +953,9 @@ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
+> >  	struct nft_ctx ctx;
+> >  	int err;
+> >  
+> > +	if (family >= NFPROTO_NUMPROTO)
+> > +		return -EAFNOSUPPORT;
+> > +
+> >  	lockdep_assert_held(&net->nft.commit_mutex);
+> >  	attr = nla[NFTA_TABLE_NAME];
+> >  	table = nft_table_lookup(net, attr, family, genmask);
+> > @@ -1765,6 +1768,9 @@ static int nft_chain_parse_hook(struct net *net,
+> >  	    ha[NFTA_HOOK_PRIORITY] == NULL)
+> >  		return -EINVAL;
+> >  
+> > +	if (family >= NFPROTO_NUMPROTO)
+> > +		return -EAFNOSUPPORT;
+> > +
+> >  	hook->num = ntohl(nla_get_be32(ha[NFTA_HOOK_HOOKNUM]));
+> >  	hook->priority = ntohl(nla_get_be32(ha[NFTA_HOOK_PRIORITY]));
+> >  
+> > @@ -1774,6 +1780,8 @@ static int nft_chain_parse_hook(struct net *net,
+> >  						   family, autoload);
+> >  		if (IS_ERR(type))
+> >  			return PTR_ERR(type);
+> > +	} else if (!type) {
+> > +		return -EOPNOTSUPP;
+> 
+> I think this check should be enough.
+> 
+> I mean, NFPROTO_NUMPROTO still allows for creating tables for families
+> that don't exist (<= NFPROTO_NUMPROTO) and why bother on creating such
+> table. As long as such table does not crash the kernel, I think it's
+> fine. No changes can be attached anymore anyway.
 
-commit b9a1e627405d68d475a3c1f35e685ccfb5bbe668
-Author: Cong Wang <xiyou.wangcong@gmail.com>
-Date:   Thu Jul 4 00:21:13 2019 +0000
+I had a previous (not-sent) version that added a stronger validation
+of nfproto during table creation but I ditched it because it got ugly
+due to ifdefs.
 
-    hsr: implement dellink to clean up resources
+As you alrady point out, creating "bogus" family tables is fine,
+base chain registration will fail later on from netfilter core.
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=170438d6e00000
-start commit:   25e73aad Merge tag 'io_uring-5.5-2020-01-16' of git://git...
-git tree:       upstream
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=148438d6e00000
-console output: https://syzkaller.appspot.com/x/log.txt?x=108438d6e00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=d9290aeb7e6cf1c4
-dashboard link: https://syzkaller.appspot.com/bug?extid=53cdd0ec0bbabd53370a
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=17eb74c9e00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14db11d1e00000
+The NFPROTO_NUMPROTO range check is needed, we use it as index
+to table[] in nft_chain_parse_hook().
 
-Reported-by: syzbot+53cdd0ec0bbabd53370a@syzkaller.appspotmail.com
-Fixes: b9a1e627405d ("hsr: implement dellink to clean up resources")
+> Otherwise, if a helper function to check for the families that are
+> really supported could be another alternative. But not sure it is
+> worth?
 
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+It did not look nice so I did not go for it in the end, but I think
+doing a simple range check doesn't hurt.
