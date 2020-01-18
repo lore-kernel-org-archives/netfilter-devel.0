@@ -2,85 +2,105 @@ Return-Path: <SRS0=S009=3H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5A38C33CB1
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 11:21:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D153C33CB1
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 12:10:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AAE9A24690
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 11:21:37 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="qoBE0IZR"
+	by mail.kernel.org (Postfix) with ESMTP id ED31B24656
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 12:10:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727079AbgARLVh (ORCPT
+        id S1727143AbgARMKy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 18 Jan 2020 06:21:37 -0500
-Received: from mx1.riseup.net ([198.252.153.129]:44076 "EHLO mx1.riseup.net"
+        Sat, 18 Jan 2020 07:10:54 -0500
+Received: from mx2.suse.de ([195.135.220.15]:37886 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727068AbgARLVh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 18 Jan 2020 06:21:37 -0500
-Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (Client CN "*.riseup.net", Issuer "Sectigo RSA Domain Validation Secure Server CA" (not verified))
-        by mx1.riseup.net (Postfix) with ESMTPS id 480Fqf14pfzFdXZ;
-        Sat, 18 Jan 2020 03:21:18 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1579346496; bh=QJEPdK/YGcCfMbPE9IMD5dGTX50/fYxJzN9rjYnYwEU=;
-        h=Date:In-Reply-To:References:Subject:To:CC:From:From;
-        b=qoBE0IZRM4WsV3VmjjYojC+CmZamMuh+jheTBC1QSuAnJrHKxLw1WJ4htryS2i9Wc
-         1GpnzdoMBsFm6eukIS+UHzVkYYzbOYEkzFxE5JUcYNsYxK50gtNCsNSzIIN3AIQWBC
-         mhTIUPFltfmDTzmRdpVvsm+imryBw//8JVWZY52s=
-X-Riseup-User-ID: 5049827D8377340B9CA21926B3C15D3EEBCDE3A21467627784C82250557A7ED0
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by capuchin.riseup.net (Postfix) with ESMTPSA id 480Fqd1VR3z8w8Q;
-        Sat, 18 Jan 2020 03:21:17 -0800 (PST)
-Date:   Sat, 18 Jan 2020 12:21:06 +0100
-In-Reply-To: <20200118102725.30600-1-fw@strlen.de>
-References: <000000000000d740e5059c65cbd0@google.com> <20200118102725.30600-1-fw@strlen.de>
+        id S1727118AbgARMKy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 18 Jan 2020 07:10:54 -0500
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+        by mx2.suse.de (Postfix) with ESMTP id AF8DEB2E3;
+        Sat, 18 Jan 2020 12:10:52 +0000 (UTC)
+Received: by incl.suse.cz (Postfix, from userid 1000)
+        id 9E1751E435; Sat, 18 Jan 2020 13:10:50 +0100 (CET)
+Date:   Sat, 18 Jan 2020 13:10:50 +0100
+From:   Jiri Wiesner <jwiesner@suse.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Michal Kubecek <mkubecek@suse.cz>
+Subject: [PATCH nf] netfilter: conntrack: sctp: use distinct states for new
+ SCTP connections
+Message-ID: <20200118121050.GA22909@incl>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Subject: Re: [PATCH nf] netfilter: nft_osf: add missing check for DREG attribute
-To:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-CC:     syzkaller-bugs@googlegroups.com,
-        syzbot+cf23983d697c26c34f60@syzkaller.appspotmail.com
-From:   =?ISO-8859-1?Q?Fernando_Fern=E1ndez_Mancera?= 
-        <ffmancera@riseup.net>
-Message-ID: <284AF1FF-D477-4CD2-B5BE-15FD40B103E1@riseup.net>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-El 18 de enero de 2020 11:27:25 CET, Florian Westphal <fw@strlen=2Ede> escr=
-ibi=C3=B3:
->syzbot reports just another NULL deref crash because of missing test
->for presence of the attribute=2E
->
->Reported-by: syzbot+cf23983d697c26c34f60@syzkaller=2Eappspotmail=2Ecom
->Fixes:  b96af92d6eaf9fadd ("netfilter: nf_tables: implement Passive OS
->fingerprint module in nft_osf")
->Signed-off-by: Florian Westphal <fw@strlen=2Ede>
->---
-> net/netfilter/nft_osf=2Ec | 3 +++
-> 1 file changed, 3 insertions(+)
->
->diff --git a/net/netfilter/nft_osf=2Ec b/net/netfilter/nft_osf=2Ec
->index f54d6ae15bb1=2E=2Eb42247aa48a9 100644
->--- a/net/netfilter/nft_osf=2Ec
->+++ b/net/netfilter/nft_osf=2Ec
->@@ -61,6 +61,9 @@ static int nft_osf_init(const struct nft_ctx *ctx,
-> 	int err;
-> 	u8 ttl;
->=20
->+	if (!tb[NFTA_OSF_DREG])
->+		return -EINVAL;
->+
-> 	if (tb[NFTA_OSF_TTL]) {
-> 		ttl =3D nla_get_u8(tb[NFTA_OSF_TTL]);
-> 		if (ttl > 2)
+The netlink notifications triggered by the INIT and INIT_ACK chunks
+for a tracked SCTP association do not include protocol information
+for the corresponding connection - SCTP state and verification tags
+for the original and reply direction are missing. Since the connection
+tracking implementation allows user space programs to receive
+notifications about a connection and then create a new connection
+based on the values received in a notification, it makes sense that
+INIT and INIT_ACK notifications should contain the SCTP state
+and verification tags available at the time when a notification
+is sent. The missing verification tags cause a newly created
+netfilter connection to fail to verify the tags of SCTP packets
+when this connection has been created from the values previously
+received in an INIT or INIT_ACK notification.
 
-Oops=2E Sorry about that=2E Thanks Florian!
+A PROTOINFO event is cached in sctp_packet() when the state
+of a connection changes. The CLOSED and COOKIE_WAIT state will
+be used for connections that have seen an INIT and INIT_ACK chunk,
+respectively. The distinct states will cause a connection state
+change in sctp_packet().
+
+Signed-off-by: Jiri Wiesner <jwiesner@suse.com>
+---
+ net/netfilter/nf_conntrack_proto_sctp.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index 0399ae8f1188..4f897b14b606 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -114,7 +114,7 @@ static const u8 sctp_conntracks[2][11][SCTP_CONNTRACK_MAX] = {
+ 	{
+ /*	ORIGINAL	*/
+ /*                  sNO, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS, sHA */
+-/* init         */ {sCW, sCW, sCW, sCE, sES, sSS, sSR, sSA, sCW, sHA},
++/* init         */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCW, sHA},
+ /* init_ack     */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCL, sHA},
+ /* abort        */ {sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL},
+ /* shutdown     */ {sCL, sCL, sCW, sCE, sSS, sSS, sSR, sSA, sCL, sSS},
+@@ -130,7 +130,7 @@ static const u8 sctp_conntracks[2][11][SCTP_CONNTRACK_MAX] = {
+ /*	REPLY	*/
+ /*                  sNO, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS, sHA */
+ /* init         */ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sSA, sIV, sHA},/* INIT in sCL Big TODO */
+-/* init_ack     */ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sSA, sIV, sHA},
++/* init_ack     */ {sIV, sCW, sCW, sCE, sES, sSS, sSR, sSA, sIV, sHA},
+ /* abort        */ {sIV, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sIV, sCL},
+ /* shutdown     */ {sIV, sCL, sCW, sCE, sSR, sSS, sSR, sSA, sIV, sSR},
+ /* shutdown_ack */ {sIV, sCL, sCW, sCE, sES, sSA, sSA, sSA, sIV, sHA},
+@@ -316,7 +316,7 @@ sctp_new(struct nf_conn *ct, const struct sk_buff *skb,
+ 			ct->proto.sctp.vtag[IP_CT_DIR_REPLY] = sh->vtag;
+ 		}
+ 
+-		ct->proto.sctp.state = new_state;
++		ct->proto.sctp.state = SCTP_CONNTRACK_NONE;
+ 	}
+ 
+ 	return true;
+-- 
+2.16.4
+
