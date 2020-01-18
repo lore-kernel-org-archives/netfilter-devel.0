@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78304C32771
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 20:14:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F170C32771
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 20:14:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 572C624683
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 20:14:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7270624683
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 20:14:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729096AbgARUOu (ORCPT
+        id S1729133AbgARUOz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 18 Jan 2020 15:14:50 -0500
-Received: from correo.us.es ([193.147.175.20]:48414 "EHLO mail.us.es"
+        Sat, 18 Jan 2020 15:14:55 -0500
+Received: from correo.us.es ([193.147.175.20]:48464 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728803AbgARUOc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1726809AbgARUOc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Sat, 18 Jan 2020 15:14:32 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B2DE22EFEB6
-        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 21:14:30 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 66E042EFEB8
+        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 21:14:31 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A5C75DA702
-        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 21:14:30 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 592A3DA710
+        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 21:14:31 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 9A1DEDA705; Sat, 18 Jan 2020 21:14:30 +0100 (CET)
+        id 4E931DA70E; Sat, 18 Jan 2020 21:14:31 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 45729DA705;
-        Sat, 18 Jan 2020 21:14:28 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 587F0DA701;
+        Sat, 18 Jan 2020 21:14:29 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 18 Jan 2020 21:14:28 +0100 (CET)
+ Sat, 18 Jan 2020 21:14:29 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 1F76A41E4800;
-        Sat, 18 Jan 2020 21:14:28 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 2905741E4800;
+        Sat, 18 Jan 2020 21:14:29 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 11/21] netfilter: flowtable: add nf_flow_table_offload_cmd()
-Date:   Sat, 18 Jan 2020 21:14:07 +0100
-Message-Id: <20200118201417.334111-12-pablo@netfilter.org>
+Subject: [PATCH 13/21] netfilter: bitwise: remove NULL comparisons from attribute checks.
+Date:   Sat, 18 Jan 2020 21:14:09 +0100
+Message-Id: <20200118201417.334111-14-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200118201417.334111-1-pablo@netfilter.org>
 References: <20200118201417.334111-1-pablo@netfilter.org>
@@ -54,74 +54,39 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Split nf_flow_table_offload_setup() in two functions to make it more
-maintainable.
+From: Jeremy Sowden <jeremy@azazel.net>
 
+In later patches, we will be adding more checks.  In order to be
+consistent and prevent complaints from checkpatch.pl, replace the
+existing comparisons with NULL with logical NOT operators.
+
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_offload.c | 40 ++++++++++++++++++++++++-----------
- 1 file changed, 28 insertions(+), 12 deletions(-)
+ net/netfilter/nft_bitwise.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 3cd8dc8714e3..c8b70ffeef0c 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -838,12 +838,12 @@ static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
- 	return err;
- }
- 
--int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
--				struct net_device *dev,
--				enum flow_block_command cmd)
-+static int nf_flow_table_offload_cmd(struct flow_block_offload *bo,
-+				     struct nf_flowtable *flowtable,
-+				     struct net_device *dev,
-+				     enum flow_block_command cmd,
-+				     struct netlink_ext_ack *extack)
- {
--	struct netlink_ext_ack extack = {};
--	struct flow_block_offload bo = {};
+diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
+index e8ca1ec105f8..85605fb1e360 100644
+--- a/net/netfilter/nft_bitwise.c
++++ b/net/netfilter/nft_bitwise.c
+@@ -52,11 +52,11 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
+ 	u32 len;
  	int err;
  
- 	if (!nf_flowtable_hw_offload(flowtable))
-@@ -852,14 +852,30 @@ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
- 	if (!dev->netdev_ops->ndo_setup_tc)
- 		return -EOPNOTSUPP;
+-	if (tb[NFTA_BITWISE_SREG] == NULL ||
+-	    tb[NFTA_BITWISE_DREG] == NULL ||
+-	    tb[NFTA_BITWISE_LEN] == NULL ||
+-	    tb[NFTA_BITWISE_MASK] == NULL ||
+-	    tb[NFTA_BITWISE_XOR] == NULL)
++	if (!tb[NFTA_BITWISE_SREG] ||
++	    !tb[NFTA_BITWISE_DREG] ||
++	    !tb[NFTA_BITWISE_LEN]  ||
++	    !tb[NFTA_BITWISE_MASK] ||
++	    !tb[NFTA_BITWISE_XOR])
+ 		return -EINVAL;
  
--	bo.net		= dev_net(dev);
--	bo.block	= &flowtable->flow_block;
--	bo.command	= cmd;
--	bo.binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
--	bo.extack	= &extack;
--	INIT_LIST_HEAD(&bo.cb_list);
-+	memset(bo, 0, sizeof(*bo));
-+	bo->net		= dev_net(dev);
-+	bo->block	= &flowtable->flow_block;
-+	bo->command	= cmd;
-+	bo->binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
-+	bo->extack	= extack;
-+	INIT_LIST_HEAD(&bo->cb_list);
-+
-+	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_FT, bo);
-+	if (err < 0)
-+		return err;
-+
-+	return 0;
-+}
-+
-+int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
-+				struct net_device *dev,
-+				enum flow_block_command cmd)
-+{
-+	struct netlink_ext_ack extack = {};
-+	struct flow_block_offload bo;
-+	int err;
- 
--	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_FT, &bo);
-+	err = nf_flow_table_offload_cmd(&bo, flowtable, dev, cmd, &extack);
- 	if (err < 0)
- 		return err;
- 
+ 	err = nft_parse_u32_check(tb[NFTA_BITWISE_LEN], U8_MAX, &len);
 -- 
 2.11.0
 
