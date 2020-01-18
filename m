@@ -2,82 +2,95 @@ Return-Path: <SRS0=S009=3H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD390C32771
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 20:44:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C40FC3F68F
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 21:23:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 89E5D24683
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 20:44:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 616C5246A2
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 21:23:21 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="bRFeyb2j"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727031AbgARUoC (ORCPT
+        id S1727061AbgARVXU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 18 Jan 2020 15:44:02 -0500
-Received: from correo.us.es ([193.147.175.20]:55786 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726933AbgARUoB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 18 Jan 2020 15:44:01 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6E1D039626C
-        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 21:44:00 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 60BDEDA712
-        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 21:44:00 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 5656DDA70F; Sat, 18 Jan 2020 21:44:00 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6DD00DA715;
-        Sat, 18 Jan 2020 21:43:58 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 18 Jan 2020 21:43:58 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 50ACD41E4800;
-        Sat, 18 Jan 2020 21:43:58 +0100 (CET)
-Date:   Sat, 18 Jan 2020 21:43:57 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Duncan Roe <duncan_roe@optusnet.com.au>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libnetfilter_queue] src: Simplify struct pkt_buff: remove
- tail
-Message-ID: <20200118204357.dg5b7qo5aqbesg4s@salvia>
-References: <20200117113203.17313-1-duncan_roe@optusnet.com.au>
- <20200117140955.23823-1-duncan_roe@optusnet.com.au>
+        Sat, 18 Jan 2020 16:23:20 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:55180 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726910AbgARVXU (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 18 Jan 2020 16:23:20 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
+        :To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=WJZGwLfA7HsnKcU6qR9EmcXVYGR4f47Lmpv6pxf32SQ=; b=bRFeyb2jepOosgOeXNlp3oDQod
+        Fh5WUYiMlGnhfTj531ilFR8GLCFP4Jq7OK1y/hDYg9M7dzQ2GUE6K4rY90DsxyAXwiAq7yORljrgb
+        siiddxDKLfoWSdzrpmSxNvxuxSGZk5KWyja9CPJSIXQR56Qo71hx6x0tWmZFqhcn8hpI6oHtBeI7L
+        ebgtjP+HJJPFMcIfLwo09I4UrtnxhP5cPMM0c80+CN535MnWJ+ZRSPqSPLuOhcb55+g/BVGPxDT0f
+        +OrjX7VWIZNDexjRzJY3p3Olpdv0bDJ1xsdP7sh8JgxJgFYnBKVVw7YzcyjDZ/3GytCVz5w1Ob3na
+        IL5nQMyA==;
+Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
+        by kadath.azazel.net with esmtp (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1isvYt-0006Ji-4h
+        for netfilter-devel@vger.kernel.org; Sat, 18 Jan 2020 21:23:19 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH nft v2 0/9] bitwise shift support
+Date:   Sat, 18 Jan 2020 21:23:10 +0000
+Message-Id: <20200118212319.253112-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200117140955.23823-1-duncan_roe@optusnet.com.au>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Jan 18, 2020 at 01:09:55AM +1100, Duncan Roe wrote:
-[...]
-> diff --git a/src/internal.h b/src/internal.h
-> index 0cfa425..dafb33a 100644
-> --- a/src/internal.h
-> +++ b/src/internal.h
-> @@ -9,6 +9,7 @@
->  #else
->  #	define EXPORT_SYMBOL
->  #endif
-> +#define PKTB_TAIL (pktb->data + pktb->len)
+The kernel supports bitwise shift operations.  This patch-set adds the
+support to nft.  There are a few preliminary housekeeping patches.
 
-Instead of a macro, I'd suggest you add (something like):
+Changes since v1:
 
-static inline uint8_t *pktb_tail(struct pktbuff *pktb)
-{
-        return pktb->data + pktb->len;
-}
+ * update to the final kernel and libnftnl API's;
+ * update nf_tables.h in a separate patch;
+ * change byte-order of payload shifts generated by expr_evaluate_bits.
 
-Thanks.
+Jeremy Sowden (9):
+  Update gitignore.
+  src: white-space fixes.
+  netlink_delinearize: fix typo.
+  netlink_delinearize: remove commented out pr_debug statement.
+  parser: add parenthesized statement expressions.
+  evaluate: change shift byte-order to host-endian.
+  include: update nf_tables.h.
+  netlink: add support for handling shift expressions.
+  tests: shell: add bit-shift tests.
+
+ .gitignore                                    |  9 +++
+ include/linux/netfilter/nf_tables.h           | 28 ++++++-
+ src/evaluate.c                                | 13 ++-
+ src/netlink_delinearize.c                     | 81 +++++++++++++++----
+ src/netlink_linearize.c                       | 55 ++++++++++++-
+ src/parser_bison.y                            | 25 +++---
+ tests/shell/testcases/chains/0040mark_shift_0 | 11 +++
+ tests/shell/testcases/chains/0040mark_shift_1 | 11 +++
+ .../chains/dumps/0040mark_shift_0.nft         |  6 ++
+ .../chains/dumps/0040mark_shift_1.nft         |  6 ++
+ 10 files changed, 204 insertions(+), 41 deletions(-)
+ create mode 100755 tests/shell/testcases/chains/0040mark_shift_0
+ create mode 100755 tests/shell/testcases/chains/0040mark_shift_1
+ create mode 100644 tests/shell/testcases/chains/dumps/0040mark_shift_0.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0040mark_shift_1.nft
+
+-- 
+2.24.1
+
