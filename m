@@ -1,384 +1,136 @@
-Return-Path: <SRS0=kPFe=3G=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=S009=3H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.4 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A16BC33C9E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jan 2020 20:58:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EFBAC33CB1
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 07:47:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DC5072072B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jan 2020 20:58:13 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="Akq7t6on"
+	by mail.kernel.org (Postfix) with ESMTP id 7E83E2468A
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 07:47:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729835AbgAQU6N (ORCPT
+        id S1726590AbgARHrM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Jan 2020 15:58:13 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:55996 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729829AbgAQU6M (ORCPT
+        Sat, 18 Jan 2020 02:47:12 -0500
+Received: from mail-io1-f69.google.com ([209.85.166.69]:52583 "EHLO
+        mail-io1-f69.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726359AbgARHrM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Jan 2020 15:58:12 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=stR93YSQdc+o5akzSDxR08zrblLN4j3ZzlU6lKKXGao=; b=Akq7t6onCEISTY9uKE6xx5lfXB
-        NmmxOWpM14SpDWzPKUW9kh9gWfscxMov45IGnmt+iPshSW/pkOaFs4X8FWxa5bPHQ1bKVCu9fygxd
-        laXhidRI5jYJeh40bCR+dwRSBZT3lXDOrxzVIOEvrQWBm1f9A4WiOngWCy07JrriQxAzNkuADGZxD
-        fcVgqR77Kr5IWqB0t8LOeWdJdLpeM+5E2Z2voZt+d+t9aQAt40uVRaD80TedO3Ya8JlRP+sRvXP2t
-        OPQOowJU0lwuKBEIvpLN4lzs4dfIEOCh3e+WmmvYuQ/+6gqQpaDyVt27KjW+RuZIhAQBwvTadH8k3
-        wG5H2+xg==;
-Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
-        by kadath.azazel.net with esmtp (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1isYh0-0004I2-Qs
-        for netfilter-devel@vger.kernel.org; Fri, 17 Jan 2020 20:58:11 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH libnftnl v2 6/6] bitwise: add support for left- and right-shifts.
-Date:   Fri, 17 Jan 2020 20:58:08 +0000
-Message-Id: <20200117205808.172194-7-jeremy@azazel.net>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200117205808.172194-1-jeremy@azazel.net>
-References: <20200117205808.172194-1-jeremy@azazel.net>
+        Sat, 18 Jan 2020 02:47:12 -0500
+Received: by mail-io1-f69.google.com with SMTP id d10so16697742iod.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Jan 2020 23:47:11 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=rACzx1KS5lzpKZSs02VIS9cY8o5PBuG1ezgSd659A74=;
+        b=SmXC5tzpeQFIlvLFK23NgnNip5Emb7NuvqXNv16GIRi89vN6Eaf89jsUKgH7YMSBmu
+         WxN8eNjzLa1y/G8yk8z2GlvqLav3stT+TZbE7BX0kn+mMVEvXtrTCqHhIrVU5AILlA8F
+         uPaeZhLdZKQRdgsPPYlkT9xulNW3vLZJRL5tCGOInMbC8SP39M7qSIkRdTFOGDFkjWxy
+         PxJuU0C88cGDZhr6iB79kEgKAJ2S1U9b3e7FmqN79ShhlXX4s4Y+gl07/xu8ftTFtgwt
+         QIv2OKn2obM4J5P1ITi9+3ojspYRlQC5ZtpX/NQqifR9aWZjfDLgrjoH2J1omVhdxUWH
+         fBSQ==
+X-Gm-Message-State: APjAAAWtAocOA/1MEPTjG4fvjGsZAjrCq8WhDiaxmL3xIl2zbtwm2J7W
+        cuCwKS/3QlnHBBHDo2kUa7D2vNh8FJMYh6fI7N/p6BuENu5g
+X-Google-Smtp-Source: APXvYqzvQXzrhIK9hc/iUMcXsD8cK73nG9tFAbAt9xFxmyGlNX5o0/+hcRCBgDlrSkcc5Y8oho7Xoo4Oh6BT0uJTL9sgL4192ERQ
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+X-Received: by 2002:a92:8307:: with SMTP id f7mr2198310ild.73.1579333631387;
+ Fri, 17 Jan 2020 23:47:11 -0800 (PST)
+Date:   Fri, 17 Jan 2020 23:47:11 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <00000000000014b040059c654481@google.com>
+Subject: WARNING in nf_tables_table_destroy
+From:   syzbot <syzbot+2a3b1b28cad90c608e20@syzkaller.appspotmail.com>
+To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        kadlec@netfilter.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The kernel supports bitwise shifts.  Add support to libnftnl.
+Hello,
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+syzbot found the following crash on:
+
+HEAD commit:    5a9ef194 net: systemport: Fixed queue mapping in internal ..
+git tree:       net
+console output: https://syzkaller.appspot.com/x/log.txt?x=1549ccc9e00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=7e89bd00623fe71e
+dashboard link: https://syzkaller.appspot.com/bug?extid=2a3b1b28cad90c608e20
+compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15338966e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1667d8d6e00000
+
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+2a3b1b28cad90c608e20@syzkaller.appspotmail.com
+
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 9693 at net/netfilter/nf_tables_api.c:1155 nf_tables_table_destroy.isra.0+0x100/0x150 net/netfilter/nf_tables_api.c:1155
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 1 PID: 9693 Comm: syz-executor142 Not tainted 5.5.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ panic+0x2e3/0x75c kernel/panic.c:221
+ __warn.cold+0x2f/0x3e kernel/panic.c:582
+ report_bug+0x289/0x300 lib/bug.c:195
+ fixup_bug arch/x86/kernel/traps.c:174 [inline]
+ fixup_bug arch/x86/kernel/traps.c:169 [inline]
+ do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:267
+ do_invalid_op+0x37/0x50 arch/x86/kernel/traps.c:286
+ invalid_op+0x23/0x30 arch/x86/entry/entry_64.S:1027
+RIP: 0010:nf_tables_table_destroy.isra.0+0x100/0x150 net/netfilter/nf_tables_api.c:1155
+Code: 00 00 00 00 fc ff df 48 c1 ea 03 80 3c 02 00 75 52 48 8b 3b e8 b1 8c 4d fb e8 9c 1c 10 fb 5b 41 5c 41 5d 5d c3 e8 90 1c 10 fb <0f> 0b e8 89 1c 10 fb 5b 41 5c 41 5d 5d c3 e8 dd db 4d fb e9 40 ff
+RSP: 0018:ffffc900022b7478 EFLAGS: 00010293
+RAX: ffff8880a936a580 RBX: ffff8880a2c9e1a0 RCX: ffffffff8664d86a
+RDX: 0000000000000000 RSI: ffffffff8664d900 RDI: 0000000000000005
+RBP: ffffc900022b7490 R08: ffff8880a936a580 R09: ffffc900022b73c0
+R10: fffffbfff165e7b2 R11: ffffffff8b2f3d97 R12: ffff8880a729f400
+R13: 0000000000000001 R14: 0000000000000000 R15: ffff8880a72f7380
+ nf_tables_abort_release net/netfilter/nf_tables_api.c:7216 [inline]
+ __nf_tables_abort+0x1bad/0x2a50 net/netfilter/nf_tables_api.c:7360
+ nf_tables_abort+0x17/0x30 net/netfilter/nf_tables_api.c:7373
+ nfnetlink_rcv_batch+0xa5d/0x17a0 net/netfilter/nfnetlink.c:494
+ nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:543 [inline]
+ nfnetlink_rcv+0x3e7/0x460 net/netfilter/nfnetlink.c:561
+ netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
+ netlink_unicast+0x58c/0x7d0 net/netlink/af_netlink.c:1328
+ netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:639 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:659
+ ____sys_sendmsg+0x753/0x880 net/socket.c:2330
+ ___sys_sendmsg+0x100/0x170 net/socket.c:2384
+ __sys_sendmsg+0x105/0x1d0 net/socket.c:2417
+ __do_sys_sendmsg net/socket.c:2426 [inline]
+ __se_sys_sendmsg net/socket.c:2424 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2424
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x446c39
+Code: e8 8c e7 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 fb 07 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f39f091ad98 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000006dbc28 RCX: 0000000000446c39
+RDX: 0000000000000000 RSI: 0000000020000280 RDI: 0000000000000004
+RBP: 00000000006dbc20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dbc2c
+R13: 00000000200002c0 R14: 00000000004aec20 R15: 0000000000000000
+Kernel Offset: disabled
+Rebooting in 86400 seconds..
+
+
 ---
- src/expr/bitwise.c            |  22 ++++
- tests/nft-expr_bitwise-test.c | 202 +++++++++++++++++++++++++++++++---
- 2 files changed, 206 insertions(+), 18 deletions(-)
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/src/expr/bitwise.c b/src/expr/bitwise.c
-index 6ea39fbbe2ee..9ea2f662b3e6 100644
---- a/src/expr/bitwise.c
-+++ b/src/expr/bitwise.c
-@@ -233,6 +233,25 @@ nftnl_expr_bitwise_snprintf_bool(char *buf, size_t size,
- 	return offset;
- }
- 
-+static int
-+nftnl_expr_bitwise_snprintf_shift(char *buf, size_t size, const char *op,
-+				  const struct nftnl_expr_bitwise *bitwise)
-+{	int remain = size, offset = 0, ret;
-+
-+	ret = snprintf(buf, remain, "reg %u = ( reg %u %s ",
-+		       bitwise->dreg, bitwise->sreg, op);
-+	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-+
-+	ret = nftnl_data_reg_snprintf(buf + offset, remain, &bitwise->data,
-+				      NFTNL_OUTPUT_DEFAULT, 0, DATA_VALUE);
-+	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-+
-+	ret = snprintf(buf + offset, remain, ") ");
-+	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-+
-+	return offset;
-+}
-+
- static int nftnl_expr_bitwise_snprintf_default(char *buf, size_t size,
- 					       const struct nftnl_expr *e)
- {
-@@ -244,7 +263,10 @@ static int nftnl_expr_bitwise_snprintf_default(char *buf, size_t size,
- 		err = nftnl_expr_bitwise_snprintf_bool(buf, size, bitwise);
- 		break;
- 	case NFT_BITWISE_LSHIFT:
-+		err = nftnl_expr_bitwise_snprintf_shift(buf, size, "<<", bitwise);
-+		break;
- 	case NFT_BITWISE_RSHIFT:
-+		err = nftnl_expr_bitwise_snprintf_shift(buf, size, ">>", bitwise);
- 		break;
- 	}
- 
-diff --git a/tests/nft-expr_bitwise-test.c b/tests/nft-expr_bitwise-test.c
-index 41c0af435283..74a0e2aa6933 100644
---- a/tests/nft-expr_bitwise-test.c
-+++ b/tests/nft-expr_bitwise-test.c
-@@ -21,41 +21,87 @@
- 
- static int test_ok = 1;
- 
--static void print_err(const char *msg)
-+static void print_err(const char *test, const char *msg)
- {
- 	test_ok = 0;
--	printf("\033[31mERROR:\e[0m %s\n", msg);
-+	printf("\033[31mERROR:\e[0m [%s] %s\n", test, msg);
- }
- 
--static void cmp_nftnl_expr(struct nftnl_expr *rule_a,
--			   struct nftnl_expr *rule_b)
-+static void cmp_nftnl_expr_bool(struct nftnl_expr *rule_a,
-+				struct nftnl_expr *rule_b)
- {
- 	uint32_t maska, maskb;
- 	uint32_t xora, xorb;
- 
- 	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_BITWISE_DREG) !=
- 	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_BITWISE_DREG))
--		print_err("Expr BITWISE_DREG mismatches");
-+		print_err("bool", "Expr BITWISE_DREG mismatches");
- 	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_BITWISE_SREG) !=
- 	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_BITWISE_SREG))
--		print_err("Expr BITWISE_SREG mismatches");
-+		print_err("bool", "Expr BITWISE_SREG mismatches");
- 	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_BITWISE_OP) !=
- 	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_BITWISE_OP))
--		print_err("Expr BITWISE_OP mismatches");
-+		print_err("bool", "Expr BITWISE_OP mismatches");
- 	if (nftnl_expr_get_u16(rule_a, NFTNL_EXPR_BITWISE_LEN) !=
- 	    nftnl_expr_get_u16(rule_b, NFTNL_EXPR_BITWISE_LEN))
--		print_err("Expr BITWISE_DREG mismatches");
-+		print_err("bool", "Expr BITWISE_DREG mismatches");
- 	nftnl_expr_get(rule_a, NFTNL_EXPR_BITWISE_MASK, &maska);
- 	nftnl_expr_get(rule_b, NFTNL_EXPR_BITWISE_MASK, &maskb);
- 	if (maska != maskb)
--		print_err("Size of BITWISE_MASK mismatches");
-+		print_err("bool", "Size of BITWISE_MASK mismatches");
- 	nftnl_expr_get(rule_a, NFTNL_EXPR_BITWISE_XOR, &xora);
- 	nftnl_expr_get(rule_b, NFTNL_EXPR_BITWISE_XOR, &xorb);
- 	if (xora != xorb)
--		print_err("Size of BITWISE_XOR mismatches");
-+		print_err("bool", "Size of BITWISE_XOR mismatches");
- }
- 
--int main(int argc, char *argv[])
-+static void cmp_nftnl_expr_lshift(struct nftnl_expr *rule_a,
-+				  struct nftnl_expr *rule_b)
-+{
-+	uint32_t data_a, data_b;
-+
-+	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_BITWISE_DREG) !=
-+	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_BITWISE_DREG))
-+		print_err("lshift", "Expr BITWISE_DREG mismatches");
-+	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_BITWISE_SREG) !=
-+	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_BITWISE_SREG))
-+		print_err("lshift", "Expr BITWISE_SREG mismatches");
-+	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_BITWISE_OP) !=
-+	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_BITWISE_OP))
-+		print_err("lshift", "Expr BITWISE_OP mismatches");
-+	if (nftnl_expr_get_u16(rule_a, NFTNL_EXPR_BITWISE_LEN) !=
-+	    nftnl_expr_get_u16(rule_b, NFTNL_EXPR_BITWISE_LEN))
-+		print_err("lshift", "Expr BITWISE_LEN mismatches");
-+	nftnl_expr_get(rule_a, NFTNL_EXPR_BITWISE_DATA, &data_a);
-+	nftnl_expr_get(rule_b, NFTNL_EXPR_BITWISE_DATA, &data_b);
-+	if (data_a != data_b)
-+		print_err("lshift", "Expr BITWISE_DATA mismatches");
-+}
-+
-+static void cmp_nftnl_expr_rshift(struct nftnl_expr *rule_a,
-+				  struct nftnl_expr *rule_b)
-+{
-+	uint32_t data_a, data_b;
-+
-+	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_BITWISE_DREG) !=
-+	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_BITWISE_DREG))
-+		print_err("rshift", "Expr BITWISE_DREG mismatches");
-+	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_BITWISE_SREG) !=
-+	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_BITWISE_SREG))
-+		print_err("rshift", "Expr BITWISE_SREG mismatches");
-+	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_BITWISE_OP) !=
-+	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_BITWISE_OP))
-+		print_err("rshift", "Expr BITWISE_OP mismatches");
-+	if (nftnl_expr_get_u16(rule_a, NFTNL_EXPR_BITWISE_LEN) !=
-+	    nftnl_expr_get_u16(rule_b, NFTNL_EXPR_BITWISE_LEN))
-+		print_err("rshift", "Expr BITWISE_LEN mismatches");
-+	nftnl_expr_get(rule_a, NFTNL_EXPR_BITWISE_DATA, &data_a);
-+	nftnl_expr_get(rule_b, NFTNL_EXPR_BITWISE_DATA, &data_b);
-+	if (data_a != data_b)
-+		print_err("rshift", "Expr BITWISE_DATA mismatches");
-+}
-+
-+static void test_bool(void)
- {
- 	struct nftnl_rule *a, *b = NULL;
- 	struct nftnl_expr *ex = NULL;
-@@ -69,10 +115,10 @@ int main(int argc, char *argv[])
- 	a = nftnl_rule_alloc();
- 	b = nftnl_rule_alloc();
- 	if (a == NULL || b == NULL)
--		print_err("OOM");
-+		print_err("bool", "OOM");
- 	ex = nftnl_expr_alloc("bitwise");
- 	if (ex == NULL)
--		print_err("OOM");
-+		print_err("bool", "OOM");
- 
- 	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_SREG, 0x12345678);
- 	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_DREG, 0x78123456);
-@@ -87,30 +133,150 @@ int main(int argc, char *argv[])
- 	nftnl_rule_nlmsg_build_payload(nlh, a);
- 
- 	if (nftnl_rule_nlmsg_parse(nlh, b) < 0)
--		print_err("parsing problems");
-+		print_err("bool", "parsing problems");
-+
-+	iter_a = nftnl_expr_iter_create(a);
-+	iter_b = nftnl_expr_iter_create(b);
-+	if (iter_a == NULL || iter_b == NULL)
-+		print_err("bool", "OOM");
-+
-+	rule_a = nftnl_expr_iter_next(iter_a);
-+	rule_b = nftnl_expr_iter_next(iter_b);
-+	if (rule_a == NULL || rule_b == NULL)
-+		print_err("bool", "OOM");
-+
-+	if (nftnl_expr_iter_next(iter_a) != NULL ||
-+	    nftnl_expr_iter_next(iter_b) != NULL)
-+		print_err("bool", "More 1 expr.");
-+
-+	nftnl_expr_iter_destroy(iter_a);
-+	nftnl_expr_iter_destroy(iter_b);
-+
-+	cmp_nftnl_expr_bool(rule_a,rule_b);
-+
-+	nftnl_rule_free(a);
-+	nftnl_rule_free(b);
-+}
-+
-+static void test_lshift(void)
-+{
-+	struct nftnl_rule *a, *b = NULL;
-+	struct nftnl_expr *ex = NULL;
-+	struct nlmsghdr *nlh;
-+	char buf[4096];
-+	struct nftnl_expr_iter *iter_a, *iter_b = NULL;
-+	struct nftnl_expr *rule_a, *rule_b = NULL;
-+
-+	a = nftnl_rule_alloc();
-+	b = nftnl_rule_alloc();
-+	if (a == NULL || b == NULL)
-+		print_err("lshift", "OOM");
-+	ex = nftnl_expr_alloc("bitwise");
-+	if (ex == NULL)
-+		print_err("lshift", "OOM");
-+
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_SREG, 0x12345678);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_DREG, 0x78123456);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_OP, NFT_BITWISE_LSHIFT);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_LEN, 0x56781234);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_DATA, 13);
-+
-+	nftnl_rule_add_expr(a, ex);
-+
-+	nlh = nftnl_rule_nlmsg_build_hdr(buf, NFT_MSG_NEWRULE, AF_INET, 0, 1234);
-+	nftnl_rule_nlmsg_build_payload(nlh, a);
-+
-+	if (nftnl_rule_nlmsg_parse(nlh, b) < 0)
-+		print_err("lshift", "parsing problems");
- 
- 	iter_a = nftnl_expr_iter_create(a);
- 	iter_b = nftnl_expr_iter_create(b);
- 	if (iter_a == NULL || iter_b == NULL)
--		print_err("OOM");
-+		print_err("lshift", "OOM");
- 
- 	rule_a = nftnl_expr_iter_next(iter_a);
- 	rule_b = nftnl_expr_iter_next(iter_b);
- 	if (rule_a == NULL || rule_b == NULL)
--		print_err("OOM");
-+		print_err("lshift", "OOM");
- 
- 	if (nftnl_expr_iter_next(iter_a) != NULL ||
- 	    nftnl_expr_iter_next(iter_b) != NULL)
--		print_err("More 1 expr.");
-+		print_err("lshift", "More 1 expr.");
- 
- 	nftnl_expr_iter_destroy(iter_a);
- 	nftnl_expr_iter_destroy(iter_b);
- 
--	cmp_nftnl_expr(rule_a,rule_b);
-+	cmp_nftnl_expr_lshift(rule_a,rule_b);
- 
- 	nftnl_rule_free(a);
- 	nftnl_rule_free(b);
-+}
-+
-+static void test_rshift(void)
-+{
-+	struct nftnl_rule *a, *b = NULL;
-+	struct nftnl_expr *ex = NULL;
-+	struct nlmsghdr *nlh;
-+	char buf[4096];
-+	struct nftnl_expr_iter *iter_a, *iter_b = NULL;
-+	struct nftnl_expr *rule_a, *rule_b = NULL;
-+
-+	a = nftnl_rule_alloc();
-+	b = nftnl_rule_alloc();
-+	if (a == NULL || b == NULL)
-+		print_err("rshift", "OOM");
-+	ex = nftnl_expr_alloc("bitwise");
-+	if (ex == NULL)
-+		print_err("rshift", "OOM");
-+
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_SREG, 0x12345678);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_DREG, 0x78123456);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_OP, NFT_BITWISE_RSHIFT);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_LEN, 0x56781234);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_DATA, 17);
-+
-+	nftnl_rule_add_expr(a, ex);
-+
-+	nlh = nftnl_rule_nlmsg_build_hdr(buf, NFT_MSG_NEWRULE, AF_INET, 0, 1234);
-+	nftnl_rule_nlmsg_build_payload(nlh, a);
-+
-+	if (nftnl_rule_nlmsg_parse(nlh, b) < 0)
-+		print_err("rshift", "parsing problems");
-+
-+	iter_a = nftnl_expr_iter_create(a);
-+	iter_b = nftnl_expr_iter_create(b);
-+	if (iter_a == NULL || iter_b == NULL)
-+		print_err("rshift", "OOM");
-+
-+	rule_a = nftnl_expr_iter_next(iter_a);
-+	rule_b = nftnl_expr_iter_next(iter_b);
-+	if (rule_a == NULL || rule_b == NULL)
-+		print_err("rshift", "OOM");
-+
-+	if (nftnl_expr_iter_next(iter_a) != NULL ||
-+	    nftnl_expr_iter_next(iter_b) != NULL)
-+		print_err("rshift", "More 1 expr.");
-+
-+	nftnl_expr_iter_destroy(iter_a);
-+	nftnl_expr_iter_destroy(iter_b);
-+
-+	cmp_nftnl_expr_rshift(rule_a,rule_b);
-+
-+	nftnl_rule_free(a);
-+	nftnl_rule_free(b);
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	test_bool();
-+	if (!test_ok)
-+		exit(EXIT_FAILURE);
-+
-+	test_lshift();
-+	if (!test_ok)
-+		exit(EXIT_FAILURE);
- 
-+	test_rshift();
- 	if (!test_ok)
- 		exit(EXIT_FAILURE);
- 
--- 
-2.24.1
-
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+syzbot can test patches for this bug, for details see:
+https://goo.gl/tpsmEJ#testing-patches
