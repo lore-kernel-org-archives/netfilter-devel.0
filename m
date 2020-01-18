@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1383C32771
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 20:14:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 195E4C33CB7
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 20:15:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7A41024683
+	by mail.kernel.org (Postfix) with ESMTP id ED24B24683
 	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Jan 2020 20:14:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728797AbgARUO7 (ORCPT
+        id S1729145AbgARUO6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 18 Jan 2020 15:14:59 -0500
-Received: from correo.us.es ([193.147.175.20]:48406 "EHLO mail.us.es"
+        Sat, 18 Jan 2020 15:14:58 -0500
+Received: from correo.us.es ([193.147.175.20]:48426 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727665AbgARUOa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1728708AbgARUOa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Sat, 18 Jan 2020 15:14:30 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C18932EFEAA
-        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 21:14:28 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 4DBED2EFEAE
+        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 21:14:29 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B20ADDA702
-        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 21:14:28 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3E85BDA718
+        for <netfilter-devel@vger.kernel.org>; Sat, 18 Jan 2020 21:14:29 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A7CA8DA710; Sat, 18 Jan 2020 21:14:28 +0100 (CET)
+        id 33360DA714; Sat, 18 Jan 2020 21:14:29 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 98632DA702;
-        Sat, 18 Jan 2020 21:14:26 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 30CEADA701;
+        Sat, 18 Jan 2020 21:14:27 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 18 Jan 2020 21:14:26 +0100 (CET)
+ Sat, 18 Jan 2020 21:14:27 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 72FA641E4800;
-        Sat, 18 Jan 2020 21:14:26 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 0BB7641E4800;
+        Sat, 18 Jan 2020 21:14:27 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 08/21] netfilter: flowtable: refresh flow if hardware offload fails
-Date:   Sat, 18 Jan 2020 21:14:04 +0100
-Message-Id: <20200118201417.334111-9-pablo@netfilter.org>
+Subject: [PATCH 09/21] netfilter: hashlimit: do not use indirect calls during gc
+Date:   Sat, 18 Jan 2020 21:14:05 +0100
+Message-Id: <20200118201417.334111-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200118201417.334111-1-pablo@netfilter.org>
 References: <20200118201417.334111-1-pablo@netfilter.org>
@@ -54,143 +54,71 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If nf_flow_offload_add() fails to add the flow to hardware, then the
-NF_FLOW_HW_REFRESH flag bit is set and the flow remains in the flowtable
-software path.
+From: Florian Westphal <fw@strlen.de>
 
-If flowtable hardware offload is enabled, this patch enqueues a new
-request to offload this flow to hardware.
+no need, just use a simple boolean to indicate we want to reap all
+entries.
 
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_flow_table.h |  1 +
- net/netfilter/nf_flow_table_core.c    |  4 +++-
- net/netfilter/nf_flow_table_ip.c      | 13 +++++++++++++
- net/netfilter/nf_flow_table_offload.c | 14 +++++---------
- 4 files changed, 22 insertions(+), 10 deletions(-)
+ net/netfilter/xt_hashlimit.c | 22 ++++------------------
+ 1 file changed, 4 insertions(+), 18 deletions(-)
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index 9ee1eaeaab04..e0f709d9d547 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -95,6 +95,7 @@ enum nf_flow_flags {
- 	NF_FLOW_HW,
- 	NF_FLOW_HW_DYING,
- 	NF_FLOW_HW_DEAD,
-+	NF_FLOW_HW_REFRESH,
- };
- 
- enum flow_offload_type {
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index e919bafd68d1..7e91989a1b55 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -243,8 +243,10 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
- 		return err;
- 	}
- 
--	if (nf_flowtable_hw_offload(flow_table))
-+	if (nf_flowtable_hw_offload(flow_table)) {
-+		__set_bit(NF_FLOW_HW, &flow->flags);
- 		nf_flow_offload_add(flow_table, flow);
-+	}
- 
- 	return 0;
- }
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index f4ccb5f5008b..9e563fd3da0f 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -232,6 +232,13 @@ static unsigned int nf_flow_xmit_xfrm(struct sk_buff *skb,
- 	return NF_STOLEN;
- }
- 
-+static bool nf_flow_offload_refresh(struct nf_flowtable *flow_table,
-+				    struct flow_offload *flow)
-+{
-+	return nf_flowtable_hw_offload(flow_table) &&
-+	       test_and_clear_bit(NF_FLOW_HW_REFRESH, &flow->flags);
-+}
-+
- unsigned int
- nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 			const struct nf_hook_state *state)
-@@ -272,6 +279,9 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 	if (nf_flow_state_check(flow, ip_hdr(skb)->protocol, skb, thoff))
- 		return NF_ACCEPT;
- 
-+	if (unlikely(nf_flow_offload_refresh(flow_table, flow)))
-+		nf_flow_offload_add(flow_table, flow);
-+
- 	if (nf_flow_offload_dst_check(&rt->dst)) {
- 		flow_offload_teardown(flow);
- 		return NF_ACCEPT;
-@@ -498,6 +508,9 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 				sizeof(*ip6h)))
- 		return NF_ACCEPT;
- 
-+	if (unlikely(nf_flow_offload_refresh(flow_table, flow)))
-+		nf_flow_offload_add(flow_table, flow);
-+
- 	if (nf_flow_offload_dst_check(&rt->dst)) {
- 		flow_offload_teardown(flow);
- 		return NF_ACCEPT;
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index b4c79fbb2d82..77b129f196c6 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -654,20 +654,20 @@ static int flow_offload_rule_add(struct flow_offload_work *offload,
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index ced3fc8fad7c..bccd47cd7190 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -357,21 +357,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
  	return 0;
  }
  
--static int flow_offload_work_add(struct flow_offload_work *offload)
-+static void flow_offload_work_add(struct flow_offload_work *offload)
- {
- 	struct nf_flow_rule *flow_rule[FLOW_OFFLOAD_DIR_MAX];
- 	int err;
- 
- 	err = nf_flow_offload_alloc(offload, flow_rule);
- 	if (err < 0)
--		return -ENOMEM;
-+		return;
- 
- 	err = flow_offload_rule_add(offload, flow_rule);
-+	if (err < 0)
-+		set_bit(NF_FLOW_HW_REFRESH, &offload->flow->flags);
- 
- 	nf_flow_offload_destroy(flow_rule);
+-static bool select_all(const struct xt_hashlimit_htable *ht,
+-		       const struct dsthash_ent *he)
+-{
+-	return true;
+-}
 -
--	return err;
- }
- 
- static void flow_offload_work_del(struct flow_offload_work *offload)
-@@ -712,7 +712,6 @@ static void flow_offload_work_handler(struct work_struct *work)
+-static bool select_gc(const struct xt_hashlimit_htable *ht,
+-		      const struct dsthash_ent *he)
+-{
+-	return time_after_eq(jiffies, he->expires);
+-}
+-
+-static void htable_selective_cleanup(struct xt_hashlimit_htable *ht,
+-			bool (*select)(const struct xt_hashlimit_htable *ht,
+-				      const struct dsthash_ent *he))
++static void htable_selective_cleanup(struct xt_hashlimit_htable *ht, bool select_all)
  {
- 	struct flow_offload_work *offload, *next;
- 	LIST_HEAD(offload_pending_list);
--	int ret;
+ 	unsigned int i;
  
- 	spin_lock_bh(&flow_offload_pending_list_lock);
- 	list_replace_init(&flow_offload_pending_list, &offload_pending_list);
-@@ -721,9 +720,7 @@ static void flow_offload_work_handler(struct work_struct *work)
- 	list_for_each_entry_safe(offload, next, &offload_pending_list, list) {
- 		switch (offload->cmd) {
- 		case FLOW_CLS_REPLACE:
--			ret = flow_offload_work_add(offload);
--			if (ret < 0)
--				__clear_bit(NF_FLOW_HW, &offload->flow->flags);
-+			flow_offload_work_add(offload);
- 			break;
- 		case FLOW_CLS_DESTROY:
- 			flow_offload_work_del(offload);
-@@ -776,7 +773,6 @@ void nf_flow_offload_add(struct nf_flowtable *flowtable,
- 	if (!offload)
- 		return;
+@@ -381,7 +367,7 @@ static void htable_selective_cleanup(struct xt_hashlimit_htable *ht,
  
--	__set_bit(NF_FLOW_HW, &flow->flags);
- 	flow_offload_queue_work(offload);
+ 		spin_lock_bh(&ht->lock);
+ 		hlist_for_each_entry_safe(dh, n, &ht->hash[i], node) {
+-			if ((*select)(ht, dh))
++			if (time_after_eq(jiffies, dh->expires) || select_all)
+ 				dsthash_free(ht, dh);
+ 		}
+ 		spin_unlock_bh(&ht->lock);
+@@ -395,7 +381,7 @@ static void htable_gc(struct work_struct *work)
+ 
+ 	ht = container_of(work, struct xt_hashlimit_htable, gc_work.work);
+ 
+-	htable_selective_cleanup(ht, select_gc);
++	htable_selective_cleanup(ht, false);
+ 
+ 	queue_delayed_work(system_power_efficient_wq,
+ 			   &ht->gc_work, msecs_to_jiffies(ht->cfg.gc_interval));
+@@ -419,7 +405,7 @@ static void htable_destroy(struct xt_hashlimit_htable *hinfo)
+ {
+ 	cancel_delayed_work_sync(&hinfo->gc_work);
+ 	htable_remove_proc_entry(hinfo);
+-	htable_selective_cleanup(hinfo, select_all);
++	htable_selective_cleanup(hinfo, true);
+ 	kfree(hinfo->name);
+ 	vfree(hinfo);
  }
- 
 -- 
 2.11.0
 
