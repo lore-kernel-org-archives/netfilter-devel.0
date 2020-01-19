@@ -2,183 +2,148 @@ Return-Path: <SRS0=vOmJ=3I=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56416C33CB1
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 13:35:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67041C33CB1
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 16:58:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2903020663
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 13:35:41 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="DPt6DTqN"
+	by mail.kernel.org (Postfix) with ESMTP id 43E4C20684
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 16:58:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727107AbgASNfl (ORCPT
+        id S1727121AbgASQ5K (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 19 Jan 2020 08:35:41 -0500
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:25144 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727045AbgASNfk (ORCPT
+        Sun, 19 Jan 2020 11:57:10 -0500
+Received: from mail-io1-f71.google.com ([209.85.166.71]:55342 "EHLO
+        mail-io1-f71.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726860AbgASQ5J (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 19 Jan 2020 08:35:40 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1579440939;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=TLUsjERWNUFahymOZ67xW0IO1SHse49SM7XFB+hDjic=;
-        b=DPt6DTqN6Rj0p6thPEFCEU6Z5+/0EQ3bZwCrdipzTLeS/Cqibhkr0e+mzYHLPu/wQISjHL
-        f9G05b6ZK4Hm2jxMD/QWkChp3Ncq8VpniGD947NxAOfcfzi+Ne8JqbEeeWzi90SFsWvV39
-        XNnX4skppCjeVzzAcWNvTWzE3scgKTU=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-393-2BhOcBvLP5KzttF7c6CT3A-1; Sun, 19 Jan 2020 08:35:36 -0500
-X-MC-Unique: 2BhOcBvLP5KzttF7c6CT3A-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id E59B0DB62;
-        Sun, 19 Jan 2020 13:35:34 +0000 (UTC)
-Received: from epycfail.redhat.com (ovpn-112-51.ams2.redhat.com [10.36.112.51])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id DD9F088873;
-        Sun, 19 Jan 2020 13:35:32 +0000 (UTC)
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
-        =?UTF-8?q?Kadlecsik=20J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>,
-        Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>
-Subject: [PATCH libnftnl v3 2/2] set_elem: Introduce support for NFTNL_SET_ELEM_KEY_END
-Date:   Sun, 19 Jan 2020 14:35:26 +0100
-Message-Id: <73732b57aa4cbc6de2faf31ca571347e59560e80.1579432712.git.sbrivio@redhat.com>
-In-Reply-To: <cover.1579432712.git.sbrivio@redhat.com>
-References: <cover.1579432712.git.sbrivio@redhat.com>
+        Sun, 19 Jan 2020 11:57:09 -0500
+Received: by mail-io1-f71.google.com with SMTP id z21so18305653iob.22
+        for <netfilter-devel@vger.kernel.org>; Sun, 19 Jan 2020 08:57:09 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=bNseSmDTrA51braKCNj/lz4EvnVrSQC47Ii4IWwahNM=;
+        b=hKrGjh5gBay/+q7w/J77MCZP5sybIlyek4TQjMkzB5qXT/Hl3isOoYXGCY/vbuDx2Y
+         6pgV5BJlUs60VYvc4NbRzNY7KNC6MX4fGDk6ybfqF1SpkXE5pgSDdftqASvrNhN29vhy
+         O7GHwxV4xToVq0ifq3BtHXYocmD99IALleHEP/+8IZXEzP1OyewWLuUoAjPo1ZbOyTzb
+         JMyxCIerjiBKFPycypO79Fpqoc7Ap9i3loqvELR5G5jKE+jgkU0MOjv5EjrDT0IH1eRo
+         Fb+8+kgLkwt6ZRZCiqEKk8C42cP1ohnm3KZzS8NK8P2M6DsF0GZMGpIHgStbg1Y2dbv+
+         Lhiw==
+X-Gm-Message-State: APjAAAXM+AuZ3f9U4Y0Siqm1fj3u2qflgtQ1T2AbhboKB5EORzUhKM3W
+        hwS7MlKy65ClNT6BmJ5W68uwduYSxSbKbWZO6ANKDvWG5Lsk
+X-Google-Smtp-Source: APXvYqxtY1uF2i55A7gZpgNMxOtW4x67itM8KH16bEC/5RG58vOV3mD7hMCXY16SO+/4dgwzcRHUgxN9JvTO3yqcH2EcO5KclOcY
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
-Content-Transfer-Encoding: quoted-printable
+X-Received: by 2002:a05:6e02:10d1:: with SMTP id s17mr7555983ilj.198.1579453028684;
+ Sun, 19 Jan 2020 08:57:08 -0800 (PST)
+Date:   Sun, 19 Jan 2020 08:57:08 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000b6da7b059c8110c4@google.com>
+Subject: general protection fault in nf_flow_table_offload_setup
+From:   syzbot <syzbot+e93c1d9ae19a0236289c@syzkaller.appspotmail.com>
+To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        kadlec@netfilter.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The new set element attribute maps to the netlink attribute
-NFTA_SET_ELEM_KEY_END in the same way as NFTNL_SET_ELEM_KEY
-maps to NFTA_SET_ELEM_KEY, and represents the key data used
-to express the upper bound of a range, in concatenations.
+Hello,
 
-v3: New patch
+syzbot found the following crash on:
 
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+HEAD commit:    7f013ede Merge git://git.kernel.org/pub/scm/linux/kernel/g..
+git tree:       net-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=133bfa85e00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=66d8660c57ff3c98
+dashboard link: https://syzkaller.appspot.com/bug?extid=e93c1d9ae19a0236289c
+compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=166d8faee00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=11aec135e00000
+
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+e93c1d9ae19a0236289c@syzkaller.appspotmail.com
+
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 9684 Comm: syz-executor080 Not tainted 5.5.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__list_splice include/linux/list.h:408 [inline]
+RIP: 0010:list_splice include/linux/list.h:424 [inline]
+RIP: 0010:nf_flow_table_block_setup net/netfilter/nf_flow_table_offload.c:825 [inline]
+RIP: 0010:nf_flow_table_offload_setup+0x4dc/0x6d0 net/netfilter/nf_flow_table_offload.c:882
+Code: bc 24 50 ff ff ff 48 ba 00 00 00 00 00 fc ff df 4d 8b ae 00 02 00 00 4d 8b a4 24 58 ff ff ff 49 8d 7f 08 48 89 f9 48 c1 e9 03 <80> 3c 11 00 0f 85 cd 01 00 00 4c 89 e2 49 89 47 08 48 b8 00 00 00
+RSP: 0018:ffffc90002007228 EFLAGS: 00010202
+RAX: ffff888091272a50 RBX: 1ffff92000400e49 RCX: 0000000000000001
+RDX: dffffc0000000000 RSI: ffffffff8673172e RDI: 0000000000000008
+RBP: ffffc90002007370 R08: ffff888097816580 R09: fffff52000400e54
+R10: fffff52000400e53 R11: ffffc9000200729e R12: ffffffff894a1188
+R13: ffff888091272a50 R14: ffff888091272850 R15: 0000000000000000
+FS:  0000000000ca3880(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000104 CR3: 0000000092cc9000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ nft_register_flowtable_net_hooks net/netfilter/nf_tables_api.c:6025 [inline]
+ nf_tables_newflowtable+0x1352/0x1e20 net/netfilter/nf_tables_api.c:6142
+ nfnetlink_rcv_batch+0xf42/0x17a0 net/netfilter/nfnetlink.c:433
+ nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:543 [inline]
+ nfnetlink_rcv+0x3e7/0x460 net/netfilter/nfnetlink.c:561
+ netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
+ netlink_unicast+0x59e/0x7e0 net/netlink/af_netlink.c:1328
+ netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:672
+ ____sys_sendmsg+0x753/0x880 net/socket.c:2343
+ ___sys_sendmsg+0x100/0x170 net/socket.c:2397
+ __sys_sendmsg+0x105/0x1d0 net/socket.c:2430
+ __do_sys_sendmsg net/socket.c:2439 [inline]
+ __se_sys_sendmsg net/socket.c:2437 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2437
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x440519
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 fb 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffd2c0117d8 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440519
+RDX: 0000000000000000 RSI: 0000000020003e00 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 00000000004002c8
+R10: 0000000000000003 R11: 0000000000000246 R12: 0000000000401da0
+R13: 0000000000401e30 R14: 0000000000000000 R15: 0000000000000000
+Modules linked in:
+---[ end trace 536c0ff4bab32d1b ]---
+RIP: 0010:__list_splice include/linux/list.h:408 [inline]
+RIP: 0010:list_splice include/linux/list.h:424 [inline]
+RIP: 0010:nf_flow_table_block_setup net/netfilter/nf_flow_table_offload.c:825 [inline]
+RIP: 0010:nf_flow_table_offload_setup+0x4dc/0x6d0 net/netfilter/nf_flow_table_offload.c:882
+Code: bc 24 50 ff ff ff 48 ba 00 00 00 00 00 fc ff df 4d 8b ae 00 02 00 00 4d 8b a4 24 58 ff ff ff 49 8d 7f 08 48 89 f9 48 c1 e9 03 <80> 3c 11 00 0f 85 cd 01 00 00 4c 89 e2 49 89 47 08 48 b8 00 00 00
+RSP: 0018:ffffc90002007228 EFLAGS: 00010202
+RAX: ffff888091272a50 RBX: 1ffff92000400e49 RCX: 0000000000000001
+RDX: dffffc0000000000 RSI: ffffffff8673172e RDI: 0000000000000008
+RBP: ffffc90002007370 R08: ffff888097816580 R09: fffff52000400e54
+R10: fffff52000400e53 R11: ffffc9000200729e R12: ffffffff894a1188
+R13: ffff888091272a50 R14: ffff888091272850 R15: 0000000000000000
+FS:  0000000000ca3880(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000104 CR3: 0000000092cc9000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+
+
 ---
- include/libnftnl/set.h |  1 +
- include/set_elem.h     |  1 +
- src/set_elem.c         | 24 ++++++++++++++++++++++++
- 3 files changed, 26 insertions(+)
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/include/libnftnl/set.h b/include/libnftnl/set.h
-index dcae354b76c4..58d1e7c52f40 100644
---- a/include/libnftnl/set.h
-+++ b/include/libnftnl/set.h
-@@ -105,6 +105,7 @@ enum {
- 	NFTNL_SET_ELEM_USERDATA,
- 	NFTNL_SET_ELEM_EXPR,
- 	NFTNL_SET_ELEM_OBJREF,
-+	NFTNL_SET_ELEM_KEY_END,
- 	__NFTNL_SET_ELEM_MAX
- };
- #define NFTNL_SET_ELEM_MAX (__NFTNL_SET_ELEM_MAX - 1)
-diff --git a/include/set_elem.h b/include/set_elem.h
-index cc4d52943272..52f185aa11be 100644
---- a/include/set_elem.h
-+++ b/include/set_elem.h
-@@ -8,6 +8,7 @@ struct nftnl_set_elem {
- 	uint32_t		set_elem_flags;
- 	uint32_t		flags;
- 	union nftnl_data_reg	key;
-+	union nftnl_data_reg	key_end;
- 	union nftnl_data_reg	data;
- 	struct nftnl_expr	*expr;
- 	uint64_t		timeout;
-diff --git a/src/set_elem.c b/src/set_elem.c
-index d3ce807d838c..22031938ebbc 100644
---- a/src/set_elem.c
-+++ b/src/set_elem.c
-@@ -75,6 +75,7 @@ void nftnl_set_elem_unset(struct nftnl_set_elem *s, uin=
-t16_t attr)
- 		break;
- 	case NFTNL_SET_ELEM_FLAGS:
- 	case NFTNL_SET_ELEM_KEY:	/* NFTA_SET_ELEM_KEY */
-+	case NFTNL_SET_ELEM_KEY_END:	/* NFTA_SET_ELEM_KEY_END */
- 	case NFTNL_SET_ELEM_VERDICT:	/* NFTA_SET_ELEM_DATA */
- 	case NFTNL_SET_ELEM_DATA:	/* NFTA_SET_ELEM_DATA */
- 	case NFTNL_SET_ELEM_TIMEOUT:	/* NFTA_SET_ELEM_TIMEOUT */
-@@ -118,6 +119,10 @@ int nftnl_set_elem_set(struct nftnl_set_elem *s, uin=
-t16_t attr,
- 		memcpy(&s->key.val, data, data_len);
- 		s->key.len =3D data_len;
- 		break;
-+	case NFTNL_SET_ELEM_KEY_END:	/* NFTA_SET_ELEM_KEY_END */
-+		memcpy(&s->key_end.val, data, data_len);
-+		s->key_end.len =3D data_len;
-+		break;
- 	case NFTNL_SET_ELEM_VERDICT:	/* NFTA_SET_ELEM_DATA */
- 		memcpy(&s->data.verdict, data, sizeof(s->data.verdict));
- 		break;
-@@ -193,6 +198,9 @@ const void *nftnl_set_elem_get(struct nftnl_set_elem =
-*s, uint16_t attr, uint32_t
- 	case NFTNL_SET_ELEM_KEY:	/* NFTA_SET_ELEM_KEY */
- 		*data_len =3D s->key.len;
- 		return &s->key.val;
-+	case NFTNL_SET_ELEM_KEY_END:	/* NFTA_SET_ELEM_KEY_END */
-+		*data_len =3D s->key_end.len;
-+		return &s->key_end.val;
- 	case NFTNL_SET_ELEM_VERDICT:	/* NFTA_SET_ELEM_DATA */
- 		*data_len =3D sizeof(s->data.verdict);
- 		return &s->data.verdict;
-@@ -287,6 +295,14 @@ void nftnl_set_elem_nlmsg_build_payload(struct nlmsg=
-hdr *nlh,
- 		mnl_attr_put(nlh, NFTA_DATA_VALUE, e->key.len, e->key.val);
- 		mnl_attr_nest_end(nlh, nest1);
- 	}
-+	if (e->flags & (1 << NFTNL_SET_ELEM_KEY_END)) {
-+		struct nlattr *nest1;
-+
-+		nest1 =3D mnl_attr_nest_start(nlh, NFTA_SET_ELEM_KEY_END);
-+		mnl_attr_put(nlh, NFTA_DATA_VALUE, e->key_end.len,
-+			     e->key_end.val);
-+		mnl_attr_nest_end(nlh, nest1);
-+	}
- 	if (e->flags & (1 << NFTNL_SET_ELEM_VERDICT)) {
- 		struct nlattr *nest1, *nest2;
-=20
-@@ -373,6 +389,7 @@ static int nftnl_set_elem_parse_attr_cb(const struct =
-nlattr *attr, void *data)
- 			abi_breakage();
- 		break;
- 	case NFTA_SET_ELEM_KEY:
-+	case NFTA_SET_ELEM_KEY_END:
- 	case NFTA_SET_ELEM_DATA:
- 	case NFTA_SET_ELEM_EXPR:
- 		if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
-@@ -421,6 +438,13 @@ static int nftnl_set_elems_parse2(struct nftnl_set *=
-s, const struct nlattr *nest
- 			goto out_set_elem;
- 		e->flags |=3D (1 << NFTNL_SET_ELEM_KEY);
-         }
-+	if (tb[NFTA_SET_ELEM_KEY_END]) {
-+		ret =3D nftnl_parse_data(&e->key_end, tb[NFTA_SET_ELEM_KEY_END],
-+				       &type);
-+		if (ret < 0)
-+			goto out_set_elem;
-+		e->flags |=3D (1 << NFTNL_SET_ELEM_KEY_END);
-+	}
-         if (tb[NFTA_SET_ELEM_DATA]) {
- 		ret =3D nftnl_parse_data(&e->data, tb[NFTA_SET_ELEM_DATA], &type);
- 		if (ret < 0)
---=20
-2.24.1
-
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+syzbot can test patches for this bug, for details see:
+https://goo.gl/tpsmEJ#testing-patches
