@@ -2,90 +2,98 @@ Return-Path: <SRS0=vOmJ=3I=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77F1BC33CB1
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 17:50:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA812C33CB1
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 18:12:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 54A5E20674
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 17:50:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 91E6920679
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 18:12:05 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="mGAkYmHg"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728665AbgASRuL (ORCPT
+        id S1727138AbgASSMF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 19 Jan 2020 12:50:11 -0500
-Received: from mx2.suse.de ([195.135.220.15]:50722 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727111AbgASRuL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 19 Jan 2020 12:50:11 -0500
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx2.suse.de (Postfix) with ESMTP id 92E9FAD19;
-        Sun, 19 Jan 2020 17:50:09 +0000 (UTC)
-Subject: Re: [PATCH nf] netfilter: conntrack: sctp: use distinct states for
- new SCTP connections
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Michal Kubecek <mkubecek@suse.cz>
-References: <20200118121050.GA22909@incl>
- <20200118203900.4cbujiax7jcg73dk@salvia>
-From:   Jiri Wiesner <jwiesner@suse.com>
-Message-ID: <e53e196c-5300-982c-4c06-d20b31857b32@suse.com>
-Date:   Sun, 19 Jan 2020 18:50:05 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.3.0
+        Sun, 19 Jan 2020 13:12:05 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:46022 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727111AbgASSME (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 19 Jan 2020 13:12:04 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
+        :To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=xOxlmIxLMFWFHY/nTKSk2TyzQW0BYjxiFwyDi6N519Y=; b=mGAkYmHgUIINNWx/mZW9wZffMC
+        xC3h+/oXVAiTyhy9OXF5cGSWv3Up+OoAI05FqrR88Vc/3VgwOpQsq0uxV4xMPRp3jzZtcKPu0Kucn
+        GwQVudGI/ASTVLH7BsWg5E0OJt9eeaaa2PaZD/Ezj8aApqbUy7YsAz0z7nAtLoxJokRKBbt4eqApZ
+        Ud2Z7Z8bujgR5mD1fSrvK3piW3FFS0YNn8HSLDPnVqFhmol6W4P5EdOViWC9SoUjsQtJSECWQzByi
+        KDdlsGxbnNaNRzDl03DBBi+jE3ScmTDkA7asJKcSV4Eb9i5F0gobaWynTYBoh+FgYET/Bl7zf8nVw
+        vhPR8dcw==;
+Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
+        by kadath.azazel.net with esmtp (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1itF3L-0004um-Q6
+        for netfilter-devel@vger.kernel.org; Sun, 19 Jan 2020 18:12:03 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH nft] evaluate: don't eval unary arguments.
+Date:   Sun, 19 Jan 2020 18:12:03 +0000
+Message-Id: <20200119181203.60884-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-In-Reply-To: <20200118203900.4cbujiax7jcg73dk@salvia>
-Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 18/01/2020 21:39, Pablo Neira Ayuso wrote:
-> On Sat, Jan 18, 2020 at 01:10:50PM +0100, Jiri Wiesner wrote:
->> The netlink notifications triggered by the INIT and INIT_ACK chunks
->> for a tracked SCTP association do not include protocol information
->> for the corresponding connection - SCTP state and verification tags
->> for the original and reply direction are missing. Since the connection
->> tracking implementation allows user space programs to receive
->> notifications about a connection and then create a new connection
->> based on the values received in a notification, it makes sense that
->> INIT and INIT_ACK notifications should contain the SCTP state
->> and verification tags available at the time when a notification
->> is sent. The missing verification tags cause a newly created
->> netfilter connection to fail to verify the tags of SCTP packets
->> when this connection has been created from the values previously
->> received in an INIT or INIT_ACK notification.
->>
->> A PROTOINFO event is cached in sctp_packet() when the state
->> of a connection changes. The CLOSED and COOKIE_WAIT state will
->> be used for connections that have seen an INIT and INIT_ACK chunk,
->> respectively. The distinct states will cause a connection state
->> change in sctp_packet().
-> This problem shows through conntrack -E, correct?
->
-> Thanks.
-Yes, although "conntrack -E" does not display verification tags. These 
-are the first 3 notifications of an association as printed by "conntrack 
--E" (output truncated after src=):
-     [NEW] ipv4     2 sctp     132 3 src=
-  [UPDATE] ipv4     2 sctp     132 3 src=
-  [UPDATE] ipv4     2 sctp     132 3 COOKIE_ECHOED src=
-As you see, there is no connection state printed in the first two 
-notifications.
+When a unary expression is inserted to implement a byte-order
+conversion, the expression being converted has already been evaluated
+and so expr_evaluate_unary doesn't need to do so.  For most types of
+expression, the double evaluation doesn't matter since evaluation is
+idempotent.  However, in the case of payload expressions which are
+munged during evaluation, it can cause unexpected errors:
 
-I used a custom tool which can print verification tags and formats its 
-output similarly to "conntrack -E":
-     [NEW] ipv4     2 sctp     132 3 0 0 src=
-  [UPDATE] ipv4     2 sctp     132 3 0 0 src=
-  [UPDATE] ipv4     2 sctp     132 3 COOKIE_ECHOED 50ced389 e967350e src=
-The tags are printed as zero in the first two notifications, but that 
-rather means the tags have not been received in the notification. The 
-above test was done under Linux 5.5-rc4.
+  # nft add table ip t
+  # nft add chain ip t c '{ type filter hook input priority filter; }'
+  # nft add rule ip t c ip dscp set 'ip dscp | 0x10'
+  Error: Value 252 exceeds valid range 0-63
+  add rule ip t c ip dscp set ip dscp | 0x10
+                              ^^^^^^^
+
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ src/evaluate.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index e7881543d2de..9d5fdaf0ef3e 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -997,13 +997,9 @@ static int expr_evaluate_range(struct eval_ctx *ctx, struct expr **expr)
+  */
+ static int expr_evaluate_unary(struct eval_ctx *ctx, struct expr **expr)
+ {
+-	struct expr *unary = *expr, *arg;
++	struct expr *unary = *expr, *arg = unary->arg;
+ 	enum byteorder byteorder;
+ 
+-	if (expr_evaluate(ctx, &unary->arg) < 0)
+-		return -1;
+-	arg = unary->arg;
+-
+ 	assert(!expr_is_constant(arg));
+ 	assert(expr_basetype(arg)->type == TYPE_INTEGER);
+ 	assert(arg->etype != EXPR_UNARY);
+-- 
+2.24.1
+
