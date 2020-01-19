@@ -2,110 +2,207 @@ Return-Path: <SRS0=vOmJ=3I=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 924CAC33CB1
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 10:58:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE500C33CB1
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 12:57:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3DF2C2053B
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 10:58:03 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="oIRATuUH"
+	by mail.kernel.org (Postfix) with ESMTP id 92B7B20679
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 12:57:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726775AbgASK6C (ORCPT
+        id S1727011AbgASM5K (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 19 Jan 2020 05:58:02 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:57832 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726744AbgASK6C (ORCPT
+        Sun, 19 Jan 2020 07:57:10 -0500
+Received: from mail-io1-f70.google.com ([209.85.166.70]:37948 "EHLO
+        mail-io1-f70.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726816AbgASM5K (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 19 Jan 2020 05:58:02 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
-        :To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=VefDYV3KeYmG7u5x9ItWBWm5qn/EjM1ui6E4iMFkoio=; b=oIRATuUHocOLkJaMudn1dg8Yy1
-        mHTbt2lLCJ0Pfa8dsM/cc2myCvw1sUfh6f2Lu6bQH1jrmygmEUtI8i4fGXLGe7y5Dww1ZORgtaHa4
-        PnyYKzAHqmdVd++Ejtr6uUZmqkXq2ab2Q6sQ5FUxah0m/smxI5GMPJ9RFYx+mY3Ry2roz/87G2Stb
-        8wNX4UkCuYuvRgTu/Ky46RDTTQOSmPJMZ1mX94ohkxWCc3EmGvm30ew3+io2W3j3rFf15k7fO40xj
-        TxJSvzjv/MDTGYokEP4uIEk5d/2YdIvEJnGG0jC8K9/o+/vDDlJnrK+GHb3RjCBqWFLxkl3lW26qW
-        VQqsRcOQ==;
-Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
-        by kadath.azazel.net with esmtp (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1it8HJ-0004bc-Ce
-        for netfilter-devel@vger.kernel.org; Sun, 19 Jan 2020 10:58:01 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft] include: nf_tables: correct bitwise header comment.
-Date:   Sun, 19 Jan 2020 10:58:01 +0000
-Message-Id: <20200119105801.368018-1-jeremy@azazel.net>
-X-Mailer: git-send-email 2.24.1
+        Sun, 19 Jan 2020 07:57:10 -0500
+Received: by mail-io1-f70.google.com with SMTP id x2so18102289iog.5
+        for <netfilter-devel@vger.kernel.org>; Sun, 19 Jan 2020 04:57:09 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=yrkN12Ir9F+vfz2Dvlu3TxsW0aKOP5JdAFcCDbRPRq4=;
+        b=UO8zYqzMQ5yQ3j7x2Dxhgt2CoYQyQzehEehND/Hauq6h3IeyAAKAX9BHymCqR5N+5b
+         Afj4kCDjBFpFt5eclfa+bE9ZsRtbluVqMVvv180G+RPDBp0thPfc+eyYcazpIW39F9tf
+         6ArW2JVUkeqcxCSuiH5ZBSqn03bzmuje9EwN9JOD7W+LEPQbZU0TvsUF/wwTDn8qRqtf
+         4YiJl2bqZMmk/99EWOAhW7lm5SPHpCW4tiFKC2tq8hO1KBq7Rgc0xNu7wc0wu1+R7Qkx
+         mCbjO8H+nrG7jS2KUSyiCgMysm6+2Sdt+QFek3MPy2ouefYc6m2acAqWiuYkeBhxgBVJ
+         po1w==
+X-Gm-Message-State: APjAAAU8my3RnaaylCoUklc7ptFEHGay4PFfYXq6CqCaZBzEh04eoVes
+        bRGN0dkOIwrOzcxVGWEhV+ynlly6NJCSI0uomdc6rpsUrNEf
+X-Google-Smtp-Source: APXvYqzXry5dROEGnvmNmukmqlTHlZQ/OaEER9EuMeh1HL4CYRynZXhT77mjwRzsClNwyZydcIRXcGK0/a47cIZJBhm2SuSCkbDe
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+X-Received: by 2002:a6b:b683:: with SMTP id g125mr39422291iof.197.1579438629024;
+ Sun, 19 Jan 2020 04:57:09 -0800 (PST)
+Date:   Sun, 19 Jan 2020 04:57:09 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000006d7b1e059c7db653@google.com>
+Subject: KASAN: use-after-free Read in bitmap_ip_ext_cleanup
+From:   syzbot <syzbot+b554d01b6c7870b17da2@syzkaller.appspotmail.com>
+To:     coreteam@netfilter.org, davem@davemloft.net,
+        florent.fourcot@wifirst.fr, fw@strlen.de, jeremy@azazel.net,
+        johannes.berg@intel.com, kadlec@netfilter.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The comment documenting how bitwise expressions work includes a table
-which summarizes the mask and xor arguments combined to express the
-supported boolean operations.  However, the row for OR:
+Hello,
 
- mask    xor
- 0       x
+syzbot found the following crash on:
 
-is incorrect.
+HEAD commit:    9aaa2949 Merge branch '1GbE' of git://git.kernel.org/pub/s..
+git tree:       net-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=1012b166e00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=66d8660c57ff3c98
+dashboard link: https://syzkaller.appspot.com/bug?extid=b554d01b6c7870b17da2
+compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15db12a5e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=15316faee00000
 
-  dreg = (sreg & 0) ^ x
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+b554d01b6c7870b17da2@syzkaller.appspotmail.com
 
-is not equivalent to:
+==================================================================
+BUG: KASAN: use-after-free in test_bit include/asm-generic/bitops/instrumented-non-atomic.h:110 [inline]
+BUG: KASAN: use-after-free in bitmap_ip_ext_cleanup+0xd8/0x290 net/netfilter/ipset/ip_set_bitmap_gen.h:51
+Read of size 8 at addr ffff8880a7ca67c0 by task syz-executor319/9852
 
-  dreg = sreg | x
+CPU: 0 PID: 9852 Comm: syz-executor319 Not tainted 5.5.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x41 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:639
+ check_memory_region_inline mm/kasan/generic.c:185 [inline]
+ check_memory_region+0x134/0x1a0 mm/kasan/generic.c:192
+ __kasan_check_read+0x11/0x20 mm/kasan/common.c:95
+ test_bit include/asm-generic/bitops/instrumented-non-atomic.h:110 [inline]
+ bitmap_ip_ext_cleanup+0xd8/0x290 net/netfilter/ipset/ip_set_bitmap_gen.h:51
+ bitmap_ip_destroy+0x17c/0x1d0 net/netfilter/ipset/ip_set_bitmap_gen.h:65
+ ip_set_create+0xe47/0x1500 net/netfilter/ipset/ip_set_core.c:1165
+ nfnetlink_rcv_msg+0xcf2/0xfb0 net/netfilter/nfnetlink.c:229
+ netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
+ nfnetlink_rcv+0x1ba/0x460 net/netfilter/nfnetlink.c:563
+ netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
+ netlink_unicast+0x59e/0x7e0 net/netlink/af_netlink.c:1328
+ netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:672
+ ____sys_sendmsg+0x753/0x880 net/socket.c:2343
+ ___sys_sendmsg+0x100/0x170 net/socket.c:2397
+ __sys_sendmsg+0x105/0x1d0 net/socket.c:2430
+ __do_sys_sendmsg net/socket.c:2439 [inline]
+ __se_sys_sendmsg net/socket.c:2437 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2437
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x441459
+Code: e8 fc ab 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 9b 09 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffe37820b08 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000441459
+RDX: 0000000000000000 RSI: 0000000020000300 RDI: 0000000000000003
+RBP: 0000000000012efc R08: 00000000004002c8 R09: 00000000004002c8
+R10: 0000000000000004 R11: 0000000000000246 R12: 0000000000402280
+R13: 0000000000402310 R14: 0000000000000000 R15: 0000000000000000
 
-What the code actually does is:
+Allocated by task 9852:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:513 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:486
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:527
+ __do_kmalloc mm/slab.c:3656 [inline]
+ __kmalloc+0x163/0x770 mm/slab.c:3665
+ kmalloc include/linux/slab.h:561 [inline]
+ kzalloc include/linux/slab.h:670 [inline]
+ ip_set_alloc+0x38/0x5e net/netfilter/ipset/ip_set_core.c:255
+ init_map_ip net/netfilter/ipset/ip_set_bitmap_ip.c:223 [inline]
+ bitmap_ip_create+0x6ec/0xc20 net/netfilter/ipset/ip_set_bitmap_ip.c:327
+ ip_set_create+0x6f1/0x1500 net/netfilter/ipset/ip_set_core.c:1111
+ nfnetlink_rcv_msg+0xcf2/0xfb0 net/netfilter/nfnetlink.c:229
+ netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
+ nfnetlink_rcv+0x1ba/0x460 net/netfilter/nfnetlink.c:563
+ netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
+ netlink_unicast+0x59e/0x7e0 net/netlink/af_netlink.c:1328
+ netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:672
+ ____sys_sendmsg+0x753/0x880 net/socket.c:2343
+ ___sys_sendmsg+0x100/0x170 net/socket.c:2397
+ __sys_sendmsg+0x105/0x1d0 net/socket.c:2430
+ __do_sys_sendmsg net/socket.c:2439 [inline]
+ __se_sys_sendmsg net/socket.c:2437 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2437
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
 
-  dreg = (sreg & ~x) ^ x
+Freed by task 9852:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:335 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:474
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:483
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x10a/0x2c0 mm/slab.c:3757
+ kvfree+0x61/0x70 mm/util.c:603
+ ip_set_free+0x16/0x20 net/netfilter/ipset/ip_set_core.c:276
+ bitmap_ip_destroy+0xae/0x1d0 net/netfilter/ipset/ip_set_bitmap_gen.h:63
+ ip_set_create+0xe47/0x1500 net/netfilter/ipset/ip_set_core.c:1165
+ nfnetlink_rcv_msg+0xcf2/0xfb0 net/netfilter/nfnetlink.c:229
+ netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
+ nfnetlink_rcv+0x1ba/0x460 net/netfilter/nfnetlink.c:563
+ netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
+ netlink_unicast+0x59e/0x7e0 net/netlink/af_netlink.c:1328
+ netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:672
+ ____sys_sendmsg+0x753/0x880 net/socket.c:2343
+ ___sys_sendmsg+0x100/0x170 net/socket.c:2397
+ __sys_sendmsg+0x105/0x1d0 net/socket.c:2430
+ __do_sys_sendmsg net/socket.c:2439 [inline]
+ __se_sys_sendmsg net/socket.c:2437 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2437
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
 
-Update the documentation to match.
+The buggy address belongs to the object at ffff8880a7ca67c0
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 0 bytes inside of
+ 32-byte region [ffff8880a7ca67c0, ffff8880a7ca67e0)
+The buggy address belongs to the page:
+page:ffffea00029f2980 refcount:1 mapcount:0 mapping:ffff8880aa4001c0 index:0xffff8880a7ca6fc1
+raw: 00fffe0000000200 ffffea00026bfc88 ffffea00027d0708 ffff8880aa4001c0
+raw: ffff8880a7ca6fc1 ffff8880a7ca6000 000000010000003f 0000000000000000
+page dumped because: kasan: bad access detected
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+Memory state around the buggy address:
+ ffff8880a7ca6680: 04 fc fc fc fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8880a7ca6700: fb fb fb fb fc fc fc fc 00 00 fc fc fc fc fc fc
+>ffff8880a7ca6780: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+                                           ^
+ ffff8880a7ca6800: fb fb fb fb fc fc fc fc 00 00 fc fc fc fc fc fc
+ ffff8880a7ca6880: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+==================================================================
+
+
 ---
- include/linux/netfilter/nf_tables.h | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index c556ccd3dbf7..42ed5ca39477 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -491,15 +491,16 @@ enum nft_immediate_attributes {
-  * @NFTA_BITWISE_MASK: mask value (NLA_NESTED: nft_data_attributes)
-  * @NFTA_BITWISE_XOR: xor value (NLA_NESTED: nft_data_attributes)
-  *
-- * The bitwise expression performs the following operation:
-+ * The bitwise expression supports boolean and shift operations.  It implements
-+ * the boolean operations by performing the following operation:
-  *
-  * dreg = (sreg & mask) ^ xor
-  *
-- * which allow to express all bitwise operations:
-+ * with these mask and xor values:
-  *
-  * 		mask	xor
-  * NOT:		1	1
-- * OR:		0	x
-+ * OR:		~x	x
-  * XOR:		1	x
-  * AND:		x	0
-  */
--- 
-2.24.1
-
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+syzbot can test patches for this bug, for details see:
+https://goo.gl/tpsmEJ#testing-patches
