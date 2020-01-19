@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B0E1C3F68F
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 22:57:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 059F6C47409
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 22:57:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 57FAF20678
+	by mail.kernel.org (Postfix) with ESMTP id D1AF5206B7
 	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 22:57:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="cptWjcof"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="bVhctQv6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728982AbgASW5N (ORCPT
+        id S1728984AbgASW5N (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sun, 19 Jan 2020 17:57:13 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:56586 "EHLO
+Received: from kadath.azazel.net ([81.187.231.250]:56592 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728913AbgASW5M (ORCPT
+        with ESMTP id S1728932AbgASW5M (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 19 Jan 2020 17:57:12 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
@@ -29,22 +29,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=4ffP/OLwVOxq8eHXa0FtGLsuHiJ0ANpb4pgERHNcUXw=; b=cptWjcoflStQGCc3yQG4TT4tKN
-        Zu/GszSlmGSTdWakQeEB0c1WNXJCoPkUri3FS8RoarBVw38GQQhKnSQFjoD6B1d0AN3vp/3J1kiwb
-        iVYjNayHtrPW6RWPtggsl9DrRTF6XtYKJbe+C9/M7JRAbZiouCJDoovuoB1M5juGrSmcuVOCkzfpg
-        mGfdfPwwRgM4R2kh8LpjXHf9P0/2lMcCnCVwBI/wSmmZB8FcSqFeFpG1+fhfSE7BbAo4kcEYwZ+gL
-        BoYxuEVwhhdRIsr/hN8HS/k+wZxerOZIXWPU5XPQqg+hRHc78owFmy3iWtTfnOeawT52yeFVm6zRB
-        GkpyMmeg==;
+        bh=WlEUaKYegEY32IoeaEOTSvwQTk2z6+ByYTHyZMdUJAY=; b=bVhctQv6xKojehQgl1/6Om6xj2
+        ICcytQ6o2EXiZtZZ8xC1WdjHNUoQMp1jxIOuuVFQ1vnAKz3eHe8a8R6R+YhmesVEnJ+1ViIiacbW7
+        fwRw1K8asN6UGm45do1M8A4B3iP7EOJdsnaae+BzyMf0zVcOFOQ1oy+53lOiMD26AnvUsvlfWG6eh
+        Owrop7LJUla//0U6xKVaz4S6se+Exp8de5OQ/MPXhNS5/zMcg+KDAMbjZ3asb47ZDec9ztbo1URAR
+        3YEUChb/RcsAakUbHZQ1epa/dJGiCJp6TbnMq/lG2NEX3iRlP/Kz/UfrMEe7YV0rpy/kzlWe/rpYa
+        uLoz1YMg==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1itJVH-0006wh-8Q
+        id 1itJVH-0006wh-Ll
         for netfilter-devel@vger.kernel.org; Sun, 19 Jan 2020 22:57:11 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft v3 6/9] evaluate: change shift byte-order to host-endian.
-Date:   Sun, 19 Jan 2020 22:57:07 +0000
-Message-Id: <20200119225710.222976-7-jeremy@azazel.net>
+Subject: [PATCH nft v3 9/9] tests: shell: add bit-shift tests.
+Date:   Sun, 19 Jan 2020 22:57:10 +0000
+Message-Id: <20200119225710.222976-10-jeremy@azazel.net>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200119225710.222976-1-jeremy@azazel.net>
 References: <20200119225710.222976-1-jeremy@azazel.net>
@@ -58,28 +58,79 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The byte-order of the righthand operands of the right-shifts generated
-for payload and exthdr expressions is big-endian.  However, all right
-shift operands should be host-endian.
+Add a couple of tests for setting the CT mark to a bitwise expression
+derived from the packet mark and vice versa.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- src/evaluate.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tests/shell/testcases/chains/0040mark_shift_0         | 11 +++++++++++
+ tests/shell/testcases/chains/0040mark_shift_1         | 11 +++++++++++
+ .../shell/testcases/chains/dumps/0040mark_shift_0.nft |  6 ++++++
+ .../shell/testcases/chains/dumps/0040mark_shift_1.nft |  6 ++++++
+ 4 files changed, 34 insertions(+)
+ create mode 100755 tests/shell/testcases/chains/0040mark_shift_0
+ create mode 100755 tests/shell/testcases/chains/0040mark_shift_1
+ create mode 100644 tests/shell/testcases/chains/dumps/0040mark_shift_0.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0040mark_shift_1.nft
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 5bd0858cbee1..52719f56abea 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -487,7 +487,7 @@ static void expr_evaluate_bits(struct eval_ctx *ctx, struct expr **exprp)
- 	if (shift) {
- 		off = constant_expr_alloc(&expr->location,
- 					  expr_basetype(expr),
--					  BYTEORDER_BIG_ENDIAN,
-+					  BYTEORDER_HOST_ENDIAN,
- 					  sizeof(shift), &shift);
- 
- 		lshift = binop_expr_alloc(&expr->location, OP_RSHIFT, and, off);
+diff --git a/tests/shell/testcases/chains/0040mark_shift_0 b/tests/shell/testcases/chains/0040mark_shift_0
+new file mode 100755
+index 000000000000..b40ee2dd5278
+--- /dev/null
++++ b/tests/shell/testcases/chains/0040mark_shift_0
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++set -e
++
++RULESET="
++  add table t
++  add chain t c { type filter hook output priority mangle; }
++  add rule t c oif lo ct mark set meta mark << 8 | 0x10
++"
++
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/chains/0040mark_shift_1 b/tests/shell/testcases/chains/0040mark_shift_1
+new file mode 100755
+index 000000000000..b609f5ef10ad
+--- /dev/null
++++ b/tests/shell/testcases/chains/0040mark_shift_1
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++set -e
++
++RULESET="
++  add table t
++  add chain t c { type filter hook input priority mangle; }
++  add rule t c iif lo ct mark & 0xff 0x10 meta mark set ct mark >> 8
++"
++
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/chains/dumps/0040mark_shift_0.nft b/tests/shell/testcases/chains/dumps/0040mark_shift_0.nft
+new file mode 100644
+index 000000000000..8dacf427c590
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0040mark_shift_0.nft
+@@ -0,0 +1,6 @@
++table ip t {
++	chain c {
++		type filter hook output priority mangle; policy accept;
++		oif "lo" ct mark set meta mark << 8 | 0x00000010
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0040mark_shift_1.nft b/tests/shell/testcases/chains/dumps/0040mark_shift_1.nft
+new file mode 100644
+index 000000000000..56ec8dc766ca
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0040mark_shift_1.nft
+@@ -0,0 +1,6 @@
++table ip t {
++	chain c {
++		type filter hook input priority mangle; policy accept;
++		iif "lo" ct mark & 0x000000ff == 0x00000010 meta mark set ct mark >> 8
++	}
++}
 -- 
 2.24.1
 
