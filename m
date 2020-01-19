@@ -2,52 +2,49 @@ Return-Path: <SRS0=vOmJ=3I=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D916C33CAF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66C69C4741C
 	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 22:57:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 13C7A20678
+	by mail.kernel.org (Postfix) with ESMTP id 3ED3E206B7
 	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 22:57:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="AsJQJm2h"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="ClcNEt/u"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728977AbgASW5M (ORCPT
+        id S1728927AbgASW5M (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sun, 19 Jan 2020 17:57:12 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:56578 "EHLO
+Received: from kadath.azazel.net ([81.187.231.250]:56574 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728853AbgASW5L (ORCPT
+        with ESMTP id S1728819AbgASW5L (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 19 Jan 2020 17:57:11 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
+        :To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=JyEgMHBRJE5J2jQdBCAQWpZmlFyp61Gu5dwsIFD9GdE=; b=AsJQJm2hHdTrojF1jZyiENurG7
-        fmMz6tu6LrLJa5kaM2FCkyCoCwtZjKtoa+rq/H2621VaWsX5ZKj0JHOU/3dWs2r+HWrq63bc6Cv3K
-        BvwYL62BZ5pOU2ew9XTt4fO0t46YFRT/fRhmxe45kW8uZBjlRuyn7tWIbSMFWA4OGgiXr643rCJBo
-        sHbxw+NraraYFMpVc2AijAVsdA0DJ/eldj/x7xmnchbn5ac0yCNsc6ZBH1q0AdpGBjEdgdMnjL0Z2
-        riXgTd7d4McJHaWV4e1cJEGuy9R14gkUMeWlwO2510/X04zX6B3wF5ZbVstN7zh5lDyeADXWWOlLg
-        5R/9A1sg==;
+        bh=KmMgoqWn7ueNl03jTazSW8TYy7jjDjWZuTEIREBRzEY=; b=ClcNEt/uMwCgVPrb5Z2cyip/xe
+        y5orP1mxhMNnRu4exvEmmD+4GvJ67Zt4miOSWC42KeORiW+yXgQyw6WezWHKitBKlJS/C+rvlhKfZ
+        mkRoHZLXTjfbrENAFcPf/4sJyHZsiyYZeuLHoaf0m+/aQCOGInR3bwZS95tKt+ZBGwYrFN+fTUyAU
+        z4nuemimOKuYY7pU+pTArL2C+r1j0/DE/7HOxdkebiUACT5YLxdHAGSRoTjuBTeSsa0vBMZGDS65N
+        nLaBDe50EYK4xKvoF/8jBXMMexyEbg3YxVez3jAf6WdqzL+glRI+j9v6/8vai2KzDvL/yXJB0Yuvx
+        p/qhuGBQ==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1itJVG-0006wh-NW
+        id 1itJVG-0006wh-F9
         for netfilter-devel@vger.kernel.org; Sun, 19 Jan 2020 22:57:10 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft v3 2/9] src: white-space fixes.
-Date:   Sun, 19 Jan 2020 22:57:03 +0000
-Message-Id: <20200119225710.222976-3-jeremy@azazel.net>
+Subject: [PATCH nft v3 0/9] bitwise shift support
+Date:   Sun, 19 Jan 2020 22:57:01 +0000
+Message-Id: <20200119225710.222976-1-jeremy@azazel.net>
 X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200119225710.222976-1-jeremy@azazel.net>
-References: <20200119225710.222976-1-jeremy@azazel.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
@@ -58,65 +55,49 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Remove some trailing white-space and fix some indentation.
+The kernel supports bitwise shift operations.  This patch-set adds the
+support to nft.  There are a few preliminary housekeeping patches.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- src/evaluate.c            | 11 +++++------
- src/netlink_delinearize.c |  2 +-
- src/netlink_linearize.c   |  2 +-
- 3 files changed, 7 insertions(+), 8 deletions(-)
+Changes since v2:
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 9d5fdaf0ef3e..5bd0858cbee1 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -2336,14 +2336,13 @@ static int stmt_evaluate_meta(struct eval_ctx *ctx, struct stmt *stmt)
- static int stmt_evaluate_ct(struct eval_ctx *ctx, struct stmt *stmt)
- {
- 	if (stmt_evaluate_arg(ctx, stmt,
--				 stmt->ct.tmpl->dtype,
--				 stmt->ct.tmpl->len,
--				 stmt->ct.tmpl->byteorder,
--				 &stmt->ct.expr) < 0)
-+			      stmt->ct.tmpl->dtype,
-+			      stmt->ct.tmpl->len,
-+			      stmt->ct.tmpl->byteorder,
-+			      &stmt->ct.expr) < 0)
- 		return -1;
- 
--	if (stmt->ct.key == NFT_CT_SECMARK &&
--	    expr_is_constant(stmt->ct.expr))
-+	if (stmt->ct.key == NFT_CT_SECMARK && expr_is_constant(stmt->ct.expr))
- 		return stmt_error(ctx, stmt,
- 				  "ct secmark must not be set to constant value");
- 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 154353b8161a..387e4b046c6b 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -171,7 +171,7 @@ static void netlink_parse_immediate(struct netlink_parse_ctx *ctx,
- 	struct expr *expr;
- 
- 	if (nftnl_expr_is_set(nle, NFTNL_EXPR_IMM_VERDICT)) {
--		nld.verdict = nftnl_expr_get_u32(nle, NFTNL_EXPR_IMM_VERDICT); 
-+		nld.verdict = nftnl_expr_get_u32(nle, NFTNL_EXPR_IMM_VERDICT);
- 		if  (nftnl_expr_is_set(nle, NFTNL_EXPR_IMM_CHAIN)) {
- 			nld.chain = nftnl_expr_get(nle, NFTNL_EXPR_IMM_CHAIN,
- 						   &nld.len);
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 498326d0087a..d5e177d5e75c 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -1243,7 +1243,7 @@ static void netlink_gen_queue_stmt(struct netlink_linearize_ctx *ctx,
- }
- 
- static void netlink_gen_ct_stmt(struct netlink_linearize_ctx *ctx,
--				  const struct stmt *stmt)
-+				const struct stmt *stmt)
- {
- 	struct nftnl_expr *nle;
- 	enum nft_registers sreg;
+  * set the type and byte-order of righthand shift operands to integer
+    and host-endian during delinearization;
+  * always set the length of righthand shift operands to 32 bits during
+    linearization.
+
+Changes since v1:
+
+  * update to the final kernel and libnftnl API's;
+  * update nf_tables.h in a separate patch;
+  * change byte-order of payload shifts generated by expr_evaluate_bits.
+
+Jeremy Sowden (9):
+  Update gitignore.
+  src: white-space fixes.
+  netlink_delinearize: fix typo.
+  netlink_delinearize: remove commented out pr_debug statement.
+  parser: add parenthesized statement expressions.
+  evaluate: change shift byte-order to host-endian.
+  include: update nf_tables.h.
+  netlink: add support for handling shift expressions.
+  tests: shell: add bit-shift tests.
+
+ .gitignore                                    |  9 ++
+ include/linux/netfilter/nf_tables.h           | 23 +++++
+ src/evaluate.c                                | 13 ++-
+ src/netlink_delinearize.c                     | 93 +++++++++++++++----
+ src/netlink_linearize.c                       | 52 ++++++++++-
+ src/parser_bison.y                            | 25 ++---
+ tests/shell/testcases/chains/0040mark_shift_0 | 11 +++
+ tests/shell/testcases/chains/0040mark_shift_1 | 11 +++
+ .../chains/dumps/0040mark_shift_0.nft         |  6 ++
+ .../chains/dumps/0040mark_shift_1.nft         |  6 ++
+ 10 files changed, 208 insertions(+), 41 deletions(-)
+ create mode 100755 tests/shell/testcases/chains/0040mark_shift_0
+ create mode 100755 tests/shell/testcases/chains/0040mark_shift_1
+ create mode 100644 tests/shell/testcases/chains/dumps/0040mark_shift_0.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0040mark_shift_1.nft
+
 -- 
 2.24.1
 
