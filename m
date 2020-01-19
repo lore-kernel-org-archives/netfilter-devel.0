@@ -2,207 +2,181 @@ Return-Path: <SRS0=vOmJ=3I=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE500C33CB1
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 12:57:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9631AC33CB1
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 13:33:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 92B7B20679
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 12:57:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 60F5620663
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 13:33:33 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Y5YrZwiC"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727011AbgASM5K (ORCPT
+        id S1726982AbgASNdd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 19 Jan 2020 07:57:10 -0500
-Received: from mail-io1-f70.google.com ([209.85.166.70]:37948 "EHLO
-        mail-io1-f70.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726816AbgASM5K (ORCPT
+        Sun, 19 Jan 2020 08:33:33 -0500
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:45665 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726778AbgASNdc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 19 Jan 2020 07:57:10 -0500
-Received: by mail-io1-f70.google.com with SMTP id x2so18102289iog.5
-        for <netfilter-devel@vger.kernel.org>; Sun, 19 Jan 2020 04:57:09 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=yrkN12Ir9F+vfz2Dvlu3TxsW0aKOP5JdAFcCDbRPRq4=;
-        b=UO8zYqzMQ5yQ3j7x2Dxhgt2CoYQyQzehEehND/Hauq6h3IeyAAKAX9BHymCqR5N+5b
-         Afj4kCDjBFpFt5eclfa+bE9ZsRtbluVqMVvv180G+RPDBp0thPfc+eyYcazpIW39F9tf
-         6ArW2JVUkeqcxCSuiH5ZBSqn03bzmuje9EwN9JOD7W+LEPQbZU0TvsUF/wwTDn8qRqtf
-         4YiJl2bqZMmk/99EWOAhW7lm5SPHpCW4tiFKC2tq8hO1KBq7Rgc0xNu7wc0wu1+R7Qkx
-         mCbjO8H+nrG7jS2KUSyiCgMysm6+2Sdt+QFek3MPy2ouefYc6m2acAqWiuYkeBhxgBVJ
-         po1w==
-X-Gm-Message-State: APjAAAU8my3RnaaylCoUklc7ptFEHGay4PFfYXq6CqCaZBzEh04eoVes
-        bRGN0dkOIwrOzcxVGWEhV+ynlly6NJCSI0uomdc6rpsUrNEf
-X-Google-Smtp-Source: APXvYqzXry5dROEGnvmNmukmqlTHlZQ/OaEER9EuMeh1HL4CYRynZXhT77mjwRzsClNwyZydcIRXcGK0/a47cIZJBhm2SuSCkbDe
+        Sun, 19 Jan 2020 08:33:32 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1579440811;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=wyI/zwH9kjbo2lzuaoQfYtvyJJn95afz1h9gnDaZ/1E=;
+        b=Y5YrZwiCHj2pdL3d5zbqiBA2JuyIbYE2UiQKrcJYcO5UE4LXxSxlUj5TjLktGmyQTd6E7/
+        GA4Lqy6Vvzlfx7g2TzwCeW60bnkYWTUVJrbvWDitomJf9wnrZOZWAEDHBnPjaKcekjhwMY
+        buR9H0x08cIHDdN8GTvN6upEvOD6elM=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-184-TZ7iukn1N1OhUEbfc37lmA-1; Sun, 19 Jan 2020 08:33:27 -0500
+X-MC-Unique: TZ7iukn1N1OhUEbfc37lmA-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 6614A18A6EC0;
+        Sun, 19 Jan 2020 13:33:26 +0000 (UTC)
+Received: from epycfail.redhat.com (ovpn-112-51.ams2.redhat.com [10.36.112.51])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 8299A5D9CA;
+        Sun, 19 Jan 2020 13:33:22 +0000 (UTC)
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Cc:     Florian Westphal <fw@strlen.de>,
+        =?UTF-8?q?Kadlecsik=20J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>,
+        Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>
+Subject: [PATCH nf-next v3 0/9] nftables: Set implementation for arbitrary concatenation of ranges
+Date:   Sun, 19 Jan 2020 14:33:12 +0100
+Message-Id: <cover.1579434906.git.sbrivio@redhat.com>
 MIME-Version: 1.0
-X-Received: by 2002:a6b:b683:: with SMTP id g125mr39422291iof.197.1579438629024;
- Sun, 19 Jan 2020 04:57:09 -0800 (PST)
-Date:   Sun, 19 Jan 2020 04:57:09 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000006d7b1e059c7db653@google.com>
-Subject: KASAN: use-after-free Read in bitmap_ip_ext_cleanup
-From:   syzbot <syzbot+b554d01b6c7870b17da2@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net,
-        florent.fourcot@wifirst.fr, fw@strlen.de, jeremy@azazel.net,
-        johannes.berg@intel.com, kadlec@netfilter.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+Existing nftables set implementations allow matching entries with
+interval expressions (rbtree), e.g. 192.0.2.1-192.0.2.4, entries
+specifying field concatenation (hash, rhash), e.g. 192.0.2.1:22,
+but not both.
 
-syzbot found the following crash on:
+In other words, none of the set types allows matching on range
+expressions for more than one packet field at a time, such as ipset
+does with types bitmap:ip,mac, and, to a more limited extent
+(netmasks, not arbitrary ranges), with types hash:net,net,
+hash:net,port, hash:ip,port,net, and hash:net,port,net.
 
-HEAD commit:    9aaa2949 Merge branch '1GbE' of git://git.kernel.org/pub/s..
-git tree:       net-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=1012b166e00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=66d8660c57ff3c98
-dashboard link: https://syzkaller.appspot.com/bug?extid=b554d01b6c7870b17da2
-compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15db12a5e00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=15316faee00000
+As a pure hash-based approach is unsuitable for matching on ranges,
+and "proxying" the existing red-black tree type looks impractical as
+elements would need to be shared and managed across all employed
+trees, this new set implementation intends to fill the functionality
+gap by employing a relatively novel approach.
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+b554d01b6c7870b17da2@syzkaller.appspotmail.com
+The fundamental idea, illustrated in deeper detail in patch 5/9, is to
+use lookup tables classifying a small number of grouped bits from each
+field, and map the lookup results in a way that yields a verdict for
+the full set of specified fields.
 
-==================================================================
-BUG: KASAN: use-after-free in test_bit include/asm-generic/bitops/instrumented-non-atomic.h:110 [inline]
-BUG: KASAN: use-after-free in bitmap_ip_ext_cleanup+0xd8/0x290 net/netfilter/ipset/ip_set_bitmap_gen.h:51
-Read of size 8 at addr ffff8880a7ca67c0 by task syz-executor319/9852
+The grouping bit aspect is loosely inspired by the Grouper algorithm,
+by Jay Ligatti, Josh Kuhn, and Chris Gage (see patch 5/9 for the full
+reference).
 
-CPU: 0 PID: 9852 Comm: syz-executor319 Not tainted 5.5.0-rc5-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-Call Trace:
- __dump_stack lib/dump_stack.c:77 [inline]
- dump_stack+0x197/0x210 lib/dump_stack.c:118
- print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
- __kasan_report.cold+0x1b/0x41 mm/kasan/report.c:506
- kasan_report+0x12/0x20 mm/kasan/common.c:639
- check_memory_region_inline mm/kasan/generic.c:185 [inline]
- check_memory_region+0x134/0x1a0 mm/kasan/generic.c:192
- __kasan_check_read+0x11/0x20 mm/kasan/common.c:95
- test_bit include/asm-generic/bitops/instrumented-non-atomic.h:110 [inline]
- bitmap_ip_ext_cleanup+0xd8/0x290 net/netfilter/ipset/ip_set_bitmap_gen.h:51
- bitmap_ip_destroy+0x17c/0x1d0 net/netfilter/ipset/ip_set_bitmap_gen.h:65
- ip_set_create+0xe47/0x1500 net/netfilter/ipset/ip_set_core.c:1165
- nfnetlink_rcv_msg+0xcf2/0xfb0 net/netfilter/nfnetlink.c:229
- netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
- nfnetlink_rcv+0x1ba/0x460 net/netfilter/nfnetlink.c:563
- netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
- netlink_unicast+0x59e/0x7e0 net/netlink/af_netlink.c:1328
- netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
- sock_sendmsg_nosec net/socket.c:652 [inline]
- sock_sendmsg+0xd7/0x130 net/socket.c:672
- ____sys_sendmsg+0x753/0x880 net/socket.c:2343
- ___sys_sendmsg+0x100/0x170 net/socket.c:2397
- __sys_sendmsg+0x105/0x1d0 net/socket.c:2430
- __do_sys_sendmsg net/socket.c:2439 [inline]
- __se_sys_sendmsg net/socket.c:2437 [inline]
- __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2437
- do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
- entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x441459
-Code: e8 fc ab 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 9b 09 fc ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007ffe37820b08 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
-RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000441459
-RDX: 0000000000000000 RSI: 0000000020000300 RDI: 0000000000000003
-RBP: 0000000000012efc R08: 00000000004002c8 R09: 00000000004002c8
-R10: 0000000000000004 R11: 0000000000000246 R12: 0000000000402280
-R13: 0000000000402310 R14: 0000000000000000 R15: 0000000000000000
+A reference, stand-alone implementation of the algorithm itself is
+available at:
+	https://pipapo.lameexcu.se
 
-Allocated by task 9852:
- save_stack+0x23/0x90 mm/kasan/common.c:72
- set_track mm/kasan/common.c:80 [inline]
- __kasan_kmalloc mm/kasan/common.c:513 [inline]
- __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:486
- kasan_kmalloc+0x9/0x10 mm/kasan/common.c:527
- __do_kmalloc mm/slab.c:3656 [inline]
- __kmalloc+0x163/0x770 mm/slab.c:3665
- kmalloc include/linux/slab.h:561 [inline]
- kzalloc include/linux/slab.h:670 [inline]
- ip_set_alloc+0x38/0x5e net/netfilter/ipset/ip_set_core.c:255
- init_map_ip net/netfilter/ipset/ip_set_bitmap_ip.c:223 [inline]
- bitmap_ip_create+0x6ec/0xc20 net/netfilter/ipset/ip_set_bitmap_ip.c:327
- ip_set_create+0x6f1/0x1500 net/netfilter/ipset/ip_set_core.c:1111
- nfnetlink_rcv_msg+0xcf2/0xfb0 net/netfilter/nfnetlink.c:229
- netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
- nfnetlink_rcv+0x1ba/0x460 net/netfilter/nfnetlink.c:563
- netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
- netlink_unicast+0x59e/0x7e0 net/netlink/af_netlink.c:1328
- netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
- sock_sendmsg_nosec net/socket.c:652 [inline]
- sock_sendmsg+0xd7/0x130 net/socket.c:672
- ____sys_sendmsg+0x753/0x880 net/socket.c:2343
- ___sys_sendmsg+0x100/0x170 net/socket.c:2397
- __sys_sendmsg+0x105/0x1d0 net/socket.c:2430
- __do_sys_sendmsg net/socket.c:2439 [inline]
- __se_sys_sendmsg net/socket.c:2437 [inline]
- __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2437
- do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
- entry_SYSCALL_64_after_hwframe+0x49/0xbe
+Some notes about possible future optimisations are also mentioned
+there. This algorithm reduces the matching problem to, essentially,
+a repetitive sequence of simple bitwise operations, and is
+particularly suitable to be optimised by leveraging SIMD instruction
+sets. An AVX2-based implementation is also presented in this series.
 
-Freed by task 9852:
- save_stack+0x23/0x90 mm/kasan/common.c:72
- set_track mm/kasan/common.c:80 [inline]
- kasan_set_free_info mm/kasan/common.c:335 [inline]
- __kasan_slab_free+0x102/0x150 mm/kasan/common.c:474
- kasan_slab_free+0xe/0x10 mm/kasan/common.c:483
- __cache_free mm/slab.c:3426 [inline]
- kfree+0x10a/0x2c0 mm/slab.c:3757
- kvfree+0x61/0x70 mm/util.c:603
- ip_set_free+0x16/0x20 net/netfilter/ipset/ip_set_core.c:276
- bitmap_ip_destroy+0xae/0x1d0 net/netfilter/ipset/ip_set_bitmap_gen.h:63
- ip_set_create+0xe47/0x1500 net/netfilter/ipset/ip_set_core.c:1165
- nfnetlink_rcv_msg+0xcf2/0xfb0 net/netfilter/nfnetlink.c:229
- netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
- nfnetlink_rcv+0x1ba/0x460 net/netfilter/nfnetlink.c:563
- netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
- netlink_unicast+0x59e/0x7e0 net/netlink/af_netlink.c:1328
- netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
- sock_sendmsg_nosec net/socket.c:652 [inline]
- sock_sendmsg+0xd7/0x130 net/socket.c:672
- ____sys_sendmsg+0x753/0x880 net/socket.c:2343
- ___sys_sendmsg+0x100/0x170 net/socket.c:2397
- __sys_sendmsg+0x105/0x1d0 net/socket.c:2430
- __do_sys_sendmsg net/socket.c:2439 [inline]
- __se_sys_sendmsg net/socket.c:2437 [inline]
- __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2437
- do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
- entry_SYSCALL_64_after_hwframe+0x49/0xbe
+I plan to post the adaptation of the existing AVX2 vectorised
+implementation for (at least) NEON at a later time.
 
-The buggy address belongs to the object at ffff8880a7ca67c0
- which belongs to the cache kmalloc-32 of size 32
-The buggy address is located 0 bytes inside of
- 32-byte region [ffff8880a7ca67c0, ffff8880a7ca67e0)
-The buggy address belongs to the page:
-page:ffffea00029f2980 refcount:1 mapcount:0 mapping:ffff8880aa4001c0 index:0xffff8880a7ca6fc1
-raw: 00fffe0000000200 ffffea00026bfc88 ffffea00027d0708 ffff8880aa4001c0
-raw: ffff8880a7ca6fc1 ffff8880a7ca6000 000000010000003f 0000000000000000
-page dumped because: kasan: bad access detected
+Patches 1/9 to 3/9 implement the needed infrastructure: new
+attributes are used to describe length of single ranged fields in
+concatenations and to denote the upper bound for ranges.
 
-Memory state around the buggy address:
- ffff8880a7ca6680: 04 fc fc fc fc fc fc fc fb fb fb fb fc fc fc fc
- ffff8880a7ca6700: fb fb fb fb fc fc fc fc 00 00 fc fc fc fc fc fc
->ffff8880a7ca6780: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
-                                           ^
- ffff8880a7ca6800: fb fb fb fb fc fc fc fc 00 00 fc fc fc fc fc fc
- ffff8880a7ca6880: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
-==================================================================
+Patch 4/9 adds a new bitmap operation that copies the source bitmap
+onto the destination while removing a given region, and is needed to
+delete regions of arrays mapping between lookup tables.
 
+Patch 5/9 is the actual set implementation.
 
----
-This bug is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+Patch 6/9 introduces selftests for the new implementation.
 
-syzbot will keep track of this bug report. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-syzbot can test patches for this bug, for details see:
-https://goo.gl/tpsmEJ#testing-patches
+Patches 7/9 and 8/9 are preparatory work to add an alternative,
+vectorised lookup implementation.
+
+Patch 9/9 contains the AVX2-based implementation of the lookup
+routines.
+
+The nftables and libnftnl counterparts depend on changes to the UAPI
+header file included in patches 2/9 and 3/9.
+
+Credits go to Jay Ligatti, Josh Kuhn, and Chris Gage for their
+original Grouper implementation and article from ICCCN proceedings
+(see reference in patch 5/9), and to Daniel Lemire for his public
+domain implementation of a fast iterator on set bits using built-in
+implementations of the CTZL operation, also included in patch 5/9.
+
+Special thanks go to Florian Westphal for all the nftables consulting
+and the original interface idea, to Sabrina Dubroca for support with
+RCU and bit manipulation topics, to Eric Garver for an early review,
+to Phil Sutter for reaffirming the need for the use case covered
+here, and to Pablo Neira Ayuso for proposing a dramatic
+simplification of the infrastructure.
+
+v3:
+ - add patches 1/9 and 2/9
+ - drop patch 5/8 (unrolled lookup loops), as it actually decreases
+   matching rates in some cases
+ - other changes listed in single patches
+v2: Changes listed in messages for 3/8 and 8/8
+
+Pablo Neira Ayuso (2):
+  netfilter: nf_tables: add nft_setelem_parse_key()
+  netfilter: nf_tables: add NFTA_SET_ELEM_KEY_END attribute
+
+Stefano Brivio (7):
+  netfilter: nf_tables: Support for sets with multiple ranged fields
+  bitmap: Introduce bitmap_cut(): cut bits and shift remaining
+  nf_tables: Add set type for arbitrary concatenation of ranges
+  selftests: netfilter: Introduce tests for sets with range
+    concatenation
+  nft_set_pipapo: Prepare for vectorised implementation: alignment
+  nft_set_pipapo: Prepare for vectorised implementation: helpers
+  nft_set_pipapo: Introduce AVX2-based lookup implementation
+
+ include/linux/bitmap.h                        |    4 +
+ include/net/netfilter/nf_tables.h             |   22 +-
+ include/net/netfilter/nf_tables_core.h        |    2 +
+ include/uapi/linux/netfilter/nf_tables.h      |   17 +
+ lib/bitmap.c                                  |   66 +
+ net/netfilter/Makefile                        |    8 +-
+ net/netfilter/nf_tables_api.c                 |  260 ++-
+ net/netfilter/nf_tables_set_core.c            |    8 +
+ net/netfilter/nft_dynset.c                    |    2 +-
+ net/netfilter/nft_set_pipapo.c                | 2012 +++++++++++++++++
+ net/netfilter/nft_set_pipapo.h                |  237 ++
+ net/netfilter/nft_set_pipapo_avx2.c           |  842 +++++++
+ net/netfilter/nft_set_pipapo_avx2.h           |   14 +
+ net/netfilter/nft_set_rbtree.c                |    3 +
+ tools/testing/selftests/netfilter/Makefile    |    3 +-
+ .../selftests/netfilter/nft_concat_range.sh   | 1481 ++++++++++++
+ 16 files changed, 4911 insertions(+), 70 deletions(-)
+ create mode 100644 net/netfilter/nft_set_pipapo.c
+ create mode 100644 net/netfilter/nft_set_pipapo.h
+ create mode 100644 net/netfilter/nft_set_pipapo_avx2.c
+ create mode 100644 net/netfilter/nft_set_pipapo_avx2.h
+ create mode 100755 tools/testing/selftests/netfilter/nft_concat_range.sh
+
+--=20
+2.24.1
+
