@@ -2,55 +2,84 @@ Return-Path: <SRS0=vOmJ=3I=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.4 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4421C33CB1
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 09:35:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CBA4C33CB1
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 09:41:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B1C4D206ED
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 09:35:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2573B206D7
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 09:41:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726619AbgASJdy (ORCPT
+        id S1726619AbgASJlz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 19 Jan 2020 04:33:54 -0500
-Received: from shards.monkeyblade.net ([23.128.96.9]:46938 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725860AbgASJdy (ORCPT
+        Sun, 19 Jan 2020 04:41:55 -0500
+Received: from mail-pg1-f198.google.com ([209.85.215.198]:38979 "EHLO
+        mail-pg1-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725860AbgASJlz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 19 Jan 2020 04:33:54 -0500
-Received: from localhost (unknown [62.21.130.100])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id 7444F149AEC82;
-        Sun, 19 Jan 2020 01:33:53 -0800 (PST)
-Date:   Sun, 19 Jan 2020 10:33:49 +0100 (CET)
-Message-Id: <20200119.103349.542757079492110281.davem@davemloft.net>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH 00/21] Netfilter updates for net-next
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20200118201417.334111-1-pablo@netfilter.org>
-References: <20200118201417.334111-1-pablo@netfilter.org>
-X-Mailer: Mew version 6.8 on Emacs 26.3
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Sun, 19 Jan 2020 01:33:54 -0800 (PST)
+        Sun, 19 Jan 2020 04:41:55 -0500
+Received: by mail-pg1-f198.google.com with SMTP id v2so17314737pgv.6
+        for <netfilter-devel@vger.kernel.org>; Sun, 19 Jan 2020 01:41:55 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
+         :from:to;
+        bh=BRczTDviaeDTYez7KOKQz91MPq0sq1Vv8zv+kc9CGFY=;
+        b=tPcxp7zRDO31a3Mu3Sf5ycMTVtCWJjvXFFqz8at5gERu66SiNT7+xiP/S8OBdih9VY
+         3/MF2DH2Q0mVAshhdN/FMDh7YOpduUr/adic3m3oTaEY65NpECO0nz0Xk7JsKrZX1jpF
+         znIEvcXH+ZUhoDgcvLaAwgpEQsgoaQrkHe6g7BudQlc5XrPZs81mPjNtHIHvYbKT/Dek
+         14c4Gf5mhKw5f+hQXFOdRwDEGo3HjDtVHhjjn22IFLHY+7IMMVqSUSGYMh0CWmmF0L1q
+         geic1CKVJGAVxBlIWEtAV/rLD4oSVSLxrn+0H82aA5pzAJ+gk8Wxi7hAltNrup0Ik3F+
+         ZRIQ==
+X-Gm-Message-State: APjAAAWMOxvN3PMC6kn7TB24nhHlYuxlSZtRNzff6eW1RhlyRBtB45Up
+        VSuxVoRKshvbPx07Bgqn9tAaAiWAGjsg1S4liruC3d9dC37+
+X-Google-Smtp-Source: APXvYqxRJpvjM5JY3HPtw4SSeYYGyt3BTK2lm+dpjQSdSGFX2T4NMrq384OFBw8/ldl/wdX6vviEk7HiCqq+7oDPg/j/rBdVYNKH
+MIME-Version: 1.0
+X-Received: by 2002:a6b:731a:: with SMTP id e26mr36446343ioh.254.1579426501752;
+ Sun, 19 Jan 2020 01:35:01 -0800 (PST)
+Date:   Sun, 19 Jan 2020 01:35:01 -0800
+In-Reply-To: <000000000000e0ab4c059c79f014@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <00000000000095fe43059c7ae3f9@google.com>
+Subject: Re: KASAN: slab-out-of-bounds Read in bitmap_port_ext_cleanup
+From:   syzbot <syzbot+7b6206fb525c1f5ec3f8@syzkaller.appspotmail.com>
+To:     a@unstable.cc, andrew@lunn.ch, b.a.t.m.a.n@lists.open-mesh.org,
+        coreteam@netfilter.org, davem@davemloft.net,
+        florent.fourcot@wifirst.fr, fw@strlen.de, grygorii.strashko@ti.com,
+        j-keerthy@ti.com, jeremy@azazel.net, johannes.berg@intel.com,
+        kadlec@netfilter.org, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org, mareklindner@neomailbox.ch,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, sw@simonwunderlich.de,
+        syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Sat, 18 Jan 2020 21:13:56 +0100
+syzbot has bisected this bug to:
 
-> The following patchset contains Netfilter updates for net-next, they are:
- ...
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+commit 2f9b0d93a9d3ec64558537ab5d7cff820886afa4
+Author: Keerthy <j-keerthy@ti.com>
+Date:   Mon Jun 24 05:16:19 2019 +0000
 
-Pulled, thanks Pablo.
+    net: ethernet: ti: cpsw: Fix suspend/resume break
+
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=17fcf959e00000
+start commit:   e02d9c4c Merge branch 'bnxt_en-fixes'
+git tree:       net
+final crash:    https://syzkaller.appspot.com/x/report.txt?x=1402f959e00000
+console output: https://syzkaller.appspot.com/x/log.txt?x=1002f959e00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=7e89bd00623fe71e
+dashboard link: https://syzkaller.appspot.com/bug?extid=7b6206fb525c1f5ec3f8
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=16551cc9e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14a04966e00000
+
+Reported-by: syzbot+7b6206fb525c1f5ec3f8@syzkaller.appspotmail.com
+Fixes: 2f9b0d93a9d3 ("net: ethernet: ti: cpsw: Fix suspend/resume break")
+
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
