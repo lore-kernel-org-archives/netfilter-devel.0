@@ -2,148 +2,90 @@ Return-Path: <SRS0=vOmJ=3I=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67041C33CB1
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 16:58:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77F1BC33CB1
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 17:50:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 43E4C20684
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 16:58:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 54A5E20674
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 17:50:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727121AbgASQ5K (ORCPT
+        id S1728665AbgASRuL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 19 Jan 2020 11:57:10 -0500
-Received: from mail-io1-f71.google.com ([209.85.166.71]:55342 "EHLO
-        mail-io1-f71.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726860AbgASQ5J (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 19 Jan 2020 11:57:09 -0500
-Received: by mail-io1-f71.google.com with SMTP id z21so18305653iob.22
-        for <netfilter-devel@vger.kernel.org>; Sun, 19 Jan 2020 08:57:09 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=bNseSmDTrA51braKCNj/lz4EvnVrSQC47Ii4IWwahNM=;
-        b=hKrGjh5gBay/+q7w/J77MCZP5sybIlyek4TQjMkzB5qXT/Hl3isOoYXGCY/vbuDx2Y
-         6pgV5BJlUs60VYvc4NbRzNY7KNC6MX4fGDk6ybfqF1SpkXE5pgSDdftqASvrNhN29vhy
-         O7GHwxV4xToVq0ifq3BtHXYocmD99IALleHEP/+8IZXEzP1OyewWLuUoAjPo1ZbOyTzb
-         JMyxCIerjiBKFPycypO79Fpqoc7Ap9i3loqvELR5G5jKE+jgkU0MOjv5EjrDT0IH1eRo
-         Fb+8+kgLkwt6ZRZCiqEKk8C42cP1ohnm3KZzS8NK8P2M6DsF0GZMGpIHgStbg1Y2dbv+
-         Lhiw==
-X-Gm-Message-State: APjAAAXM+AuZ3f9U4Y0Siqm1fj3u2qflgtQ1T2AbhboKB5EORzUhKM3W
-        hwS7MlKy65ClNT6BmJ5W68uwduYSxSbKbWZO6ANKDvWG5Lsk
-X-Google-Smtp-Source: APXvYqxtY1uF2i55A7gZpgNMxOtW4x67itM8KH16bEC/5RG58vOV3mD7hMCXY16SO+/4dgwzcRHUgxN9JvTO3yqcH2EcO5KclOcY
+        Sun, 19 Jan 2020 12:50:11 -0500
+Received: from mx2.suse.de ([195.135.220.15]:50722 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727111AbgASRuL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 19 Jan 2020 12:50:11 -0500
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+        by mx2.suse.de (Postfix) with ESMTP id 92E9FAD19;
+        Sun, 19 Jan 2020 17:50:09 +0000 (UTC)
+Subject: Re: [PATCH nf] netfilter: conntrack: sctp: use distinct states for
+ new SCTP connections
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Michal Kubecek <mkubecek@suse.cz>
+References: <20200118121050.GA22909@incl>
+ <20200118203900.4cbujiax7jcg73dk@salvia>
+From:   Jiri Wiesner <jwiesner@suse.com>
+Message-ID: <e53e196c-5300-982c-4c06-d20b31857b32@suse.com>
+Date:   Sun, 19 Jan 2020 18:50:05 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.3.0
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:10d1:: with SMTP id s17mr7555983ilj.198.1579453028684;
- Sun, 19 Jan 2020 08:57:08 -0800 (PST)
-Date:   Sun, 19 Jan 2020 08:57:08 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000b6da7b059c8110c4@google.com>
-Subject: general protection fault in nf_flow_table_offload_setup
-From:   syzbot <syzbot+e93c1d9ae19a0236289c@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@netfilter.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20200118203900.4cbujiax7jcg73dk@salvia>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+On 18/01/2020 21:39, Pablo Neira Ayuso wrote:
+> On Sat, Jan 18, 2020 at 01:10:50PM +0100, Jiri Wiesner wrote:
+>> The netlink notifications triggered by the INIT and INIT_ACK chunks
+>> for a tracked SCTP association do not include protocol information
+>> for the corresponding connection - SCTP state and verification tags
+>> for the original and reply direction are missing. Since the connection
+>> tracking implementation allows user space programs to receive
+>> notifications about a connection and then create a new connection
+>> based on the values received in a notification, it makes sense that
+>> INIT and INIT_ACK notifications should contain the SCTP state
+>> and verification tags available at the time when a notification
+>> is sent. The missing verification tags cause a newly created
+>> netfilter connection to fail to verify the tags of SCTP packets
+>> when this connection has been created from the values previously
+>> received in an INIT or INIT_ACK notification.
+>>
+>> A PROTOINFO event is cached in sctp_packet() when the state
+>> of a connection changes. The CLOSED and COOKIE_WAIT state will
+>> be used for connections that have seen an INIT and INIT_ACK chunk,
+>> respectively. The distinct states will cause a connection state
+>> change in sctp_packet().
+> This problem shows through conntrack -E, correct?
+>
+> Thanks.
+Yes, although "conntrack -E" does not display verification tags. These 
+are the first 3 notifications of an association as printed by "conntrack 
+-E" (output truncated after src=):
+     [NEW] ipv4     2 sctp     132 3 src=
+  [UPDATE] ipv4     2 sctp     132 3 src=
+  [UPDATE] ipv4     2 sctp     132 3 COOKIE_ECHOED src=
+As you see, there is no connection state printed in the first two 
+notifications.
 
-syzbot found the following crash on:
-
-HEAD commit:    7f013ede Merge git://git.kernel.org/pub/scm/linux/kernel/g..
-git tree:       net-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=133bfa85e00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=66d8660c57ff3c98
-dashboard link: https://syzkaller.appspot.com/bug?extid=e93c1d9ae19a0236289c
-compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=166d8faee00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=11aec135e00000
-
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+e93c1d9ae19a0236289c@syzkaller.appspotmail.com
-
-kasan: CONFIG_KASAN_INLINE enabled
-kasan: GPF could be caused by NULL-ptr deref or user memory access
-general protection fault: 0000 [#1] PREEMPT SMP KASAN
-CPU: 1 PID: 9684 Comm: syz-executor080 Not tainted 5.5.0-rc5-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-RIP: 0010:__list_splice include/linux/list.h:408 [inline]
-RIP: 0010:list_splice include/linux/list.h:424 [inline]
-RIP: 0010:nf_flow_table_block_setup net/netfilter/nf_flow_table_offload.c:825 [inline]
-RIP: 0010:nf_flow_table_offload_setup+0x4dc/0x6d0 net/netfilter/nf_flow_table_offload.c:882
-Code: bc 24 50 ff ff ff 48 ba 00 00 00 00 00 fc ff df 4d 8b ae 00 02 00 00 4d 8b a4 24 58 ff ff ff 49 8d 7f 08 48 89 f9 48 c1 e9 03 <80> 3c 11 00 0f 85 cd 01 00 00 4c 89 e2 49 89 47 08 48 b8 00 00 00
-RSP: 0018:ffffc90002007228 EFLAGS: 00010202
-RAX: ffff888091272a50 RBX: 1ffff92000400e49 RCX: 0000000000000001
-RDX: dffffc0000000000 RSI: ffffffff8673172e RDI: 0000000000000008
-RBP: ffffc90002007370 R08: ffff888097816580 R09: fffff52000400e54
-R10: fffff52000400e53 R11: ffffc9000200729e R12: ffffffff894a1188
-R13: ffff888091272a50 R14: ffff888091272850 R15: 0000000000000000
-FS:  0000000000ca3880(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000020000104 CR3: 0000000092cc9000 CR4: 00000000001406e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- nft_register_flowtable_net_hooks net/netfilter/nf_tables_api.c:6025 [inline]
- nf_tables_newflowtable+0x1352/0x1e20 net/netfilter/nf_tables_api.c:6142
- nfnetlink_rcv_batch+0xf42/0x17a0 net/netfilter/nfnetlink.c:433
- nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:543 [inline]
- nfnetlink_rcv+0x3e7/0x460 net/netfilter/nfnetlink.c:561
- netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
- netlink_unicast+0x59e/0x7e0 net/netlink/af_netlink.c:1328
- netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
- sock_sendmsg_nosec net/socket.c:652 [inline]
- sock_sendmsg+0xd7/0x130 net/socket.c:672
- ____sys_sendmsg+0x753/0x880 net/socket.c:2343
- ___sys_sendmsg+0x100/0x170 net/socket.c:2397
- __sys_sendmsg+0x105/0x1d0 net/socket.c:2430
- __do_sys_sendmsg net/socket.c:2439 [inline]
- __se_sys_sendmsg net/socket.c:2437 [inline]
- __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2437
- do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
- entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x440519
-Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 fb 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007ffd2c0117d8 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
-RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440519
-RDX: 0000000000000000 RSI: 0000000020003e00 RDI: 0000000000000003
-RBP: 00000000006ca018 R08: 0000000000000000 R09: 00000000004002c8
-R10: 0000000000000003 R11: 0000000000000246 R12: 0000000000401da0
-R13: 0000000000401e30 R14: 0000000000000000 R15: 0000000000000000
-Modules linked in:
----[ end trace 536c0ff4bab32d1b ]---
-RIP: 0010:__list_splice include/linux/list.h:408 [inline]
-RIP: 0010:list_splice include/linux/list.h:424 [inline]
-RIP: 0010:nf_flow_table_block_setup net/netfilter/nf_flow_table_offload.c:825 [inline]
-RIP: 0010:nf_flow_table_offload_setup+0x4dc/0x6d0 net/netfilter/nf_flow_table_offload.c:882
-Code: bc 24 50 ff ff ff 48 ba 00 00 00 00 00 fc ff df 4d 8b ae 00 02 00 00 4d 8b a4 24 58 ff ff ff 49 8d 7f 08 48 89 f9 48 c1 e9 03 <80> 3c 11 00 0f 85 cd 01 00 00 4c 89 e2 49 89 47 08 48 b8 00 00 00
-RSP: 0018:ffffc90002007228 EFLAGS: 00010202
-RAX: ffff888091272a50 RBX: 1ffff92000400e49 RCX: 0000000000000001
-RDX: dffffc0000000000 RSI: ffffffff8673172e RDI: 0000000000000008
-RBP: ffffc90002007370 R08: ffff888097816580 R09: fffff52000400e54
-R10: fffff52000400e53 R11: ffffc9000200729e R12: ffffffff894a1188
-R13: ffff888091272a50 R14: ffff888091272850 R15: 0000000000000000
-FS:  0000000000ca3880(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000020000104 CR3: 0000000092cc9000 CR4: 00000000001406e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-
-
----
-This bug is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this bug report. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-syzbot can test patches for this bug, for details see:
-https://goo.gl/tpsmEJ#testing-patches
+I used a custom tool which can print verification tags and formats its 
+output similarly to "conntrack -E":
+     [NEW] ipv4     2 sctp     132 3 0 0 src=
+  [UPDATE] ipv4     2 sctp     132 3 0 0 src=
+  [UPDATE] ipv4     2 sctp     132 3 COOKIE_ECHOED 50ced389 e967350e src=
+The tags are printed as zero in the first two notifications, but that 
+rather means the tags have not been received in the notification. The 
+above test was done under Linux 5.5-rc4.
