@@ -2,84 +2,205 @@ Return-Path: <SRS0=vOmJ=3I=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1158EC33CAF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 20:21:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A5B2C33CB8
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 21:09:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D78D0206ED
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 20:21:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 11177206ED
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 21:09:15 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="BsrWEb1Z"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728894AbgASUVB (ORCPT
+        id S1728797AbgASVGz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 19 Jan 2020 15:21:01 -0500
-Received: from mail-io1-f72.google.com ([209.85.166.72]:46597 "EHLO
-        mail-io1-f72.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727138AbgASUVB (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 19 Jan 2020 15:21:01 -0500
-Received: by mail-io1-f72.google.com with SMTP id p206so18713658iod.13
-        for <netfilter-devel@vger.kernel.org>; Sun, 19 Jan 2020 12:21:01 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=tB8tVCfxWFIVfqWEsKuHgi0liSe9R1RZ+UBErAfoDaU=;
-        b=dLR0EHHaS0vjQzHbMeI15xDGCAtzbRu7PDZAw77yfDfDLIJYAqPrBISE3gpc7bTnrZ
-         OXE2Dxy9Ii8esxeIYfROksIwsmAMO8T0Yf3ZMF693HPfezNC7/CnnYsVY/IEgnkyIlfG
-         tq2gop0leeV9hjxDzzsRc0wlKt4y2eJL9LqqGTErhW0dvkStFtzDF6y0sPqpymAc2xUp
-         YTQISiGdw6TdP1Vu0OpCuZf4elOJ8h3g77jsiPfXbVLtxkNL1CcsL07AiIDb9AV2aymu
-         mYyjdJiClXdzXpmmk0m2enkbRDMlwSOtsvd47BQ0g5Zd33TpFve0Ir6xk+/JulCjGPRB
-         P8CA==
-X-Gm-Message-State: APjAAAXBhdfry/5SjWRvGmrm6Vfe+Fcy4dNoAUXHbC7PEXXaCtqmCX1A
-        cCUQHiFmaJSQNRv5zs8iQ1QTnuxIC2VfzZkZxSlRJnJKjIMt
-X-Google-Smtp-Source: APXvYqyBW0ANY5otx8x2mkJHYLCBShYafFG9L0jcSxJr3/w8Z3m4XgrA+Nba0kwQlcnkDJsAXjzzdqX7oGV/luxPfoRNInuKbPwk
-MIME-Version: 1.0
-X-Received: by 2002:a6b:b74a:: with SMTP id h71mr15932229iof.212.1579465260652;
- Sun, 19 Jan 2020 12:21:00 -0800 (PST)
-Date:   Sun, 19 Jan 2020 12:21:00 -0800
-In-Reply-To: <0000000000006d7b1e059c7db653@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000cbfd34059c83e917@google.com>
-Subject: Re: KASAN: use-after-free Read in bitmap_ip_ext_cleanup
-From:   syzbot <syzbot+b554d01b6c7870b17da2@syzkaller.appspotmail.com>
-To:     a@unstable.cc, b.a.t.m.a.n@lists.open-mesh.org,
-        bridge@lists.linux-foundation.org, coreteam@netfilter.org,
-        davem@davemloft.net, florent.fourcot@wifirst.fr, fw@strlen.de,
-        jeremy@azazel.net, johannes.berg@intel.com, kadlec@netfilter.org,
-        linux-kernel@vger.kernel.org, mareklindner@neomailbox.ch,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        nikolay@cumulusnetworks.com, pablo@netfilter.org,
-        roopa@cumulusnetworks.com, sw@simonwunderlich.de,
+        Sun, 19 Jan 2020 16:06:55 -0500
+Received: from smtp-out.kfki.hu ([148.6.0.45]:57395 "EHLO smtp-out.kfki.hu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727556AbgASVGz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 19 Jan 2020 16:06:55 -0500
+Received: from localhost (localhost [127.0.0.1])
+        by smtp0.kfki.hu (Postfix) with ESMTP id 7BC2B67400D7;
+        Sun, 19 Jan 2020 22:06:52 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        blackhole.kfki.hu; h=mime-version:user-agent:message-id:from
+        :from:date:date:received:received:received; s=20151130; t=
+        1579468010; x=1581282411; bh=Zl1tVs4+aH1J5s1xxsluuPXRl/TtucpGu08
+        Xy5u6MY4=; b=BsrWEb1ZNQ4MavQoXz4H+JviaDSMQSanYUekbCb2fHzEyjhRK4q
+        0pnqHuVZX83VvRL7kvuDF7ty3hmS1BJCykj3u75LSKKMy1/DmHYtojn5FZ82JhvG
+        3pEYgQmd1DbSk1vR/t1FArilWEF2JMgRJoafEorMi40RHGn1DzRRPXHc=
+X-Virus-Scanned: Debian amavisd-new at smtp0.kfki.hu
+Received: from smtp0.kfki.hu ([127.0.0.1])
+        by localhost (smtp0.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Sun, 19 Jan 2020 22:06:50 +0100 (CET)
+Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.240.2])
+        by smtp0.kfki.hu (Postfix) with ESMTP id 421A967400C5;
+        Sun, 19 Jan 2020 22:06:50 +0100 (CET)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id 142C4215E9; Sun, 19 Jan 2020 22:06:50 +0100 (CET)
+Date:   Sun, 19 Jan 2020 22:06:49 +0100 (CET)
+From:   =?UTF-8?Q?Kadlecsik_J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>
+To:     syzbot <syzbot+fabca5cbf5e54f3fe2de@syzkaller.appspotmail.com>
+cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
         syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH 1/1] netfilter: ipset: use bitmap infrastructure completely
+Message-ID: <alpine.DEB.2.20.2001192203200.18095@blackhole.kfki.hu>
+User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has bisected this bug to:
+The bitmap allocation did not use full unsigned long sizes
+when calculating the required size and that was triggered by KASAN
+as slab-out-of-bounds read in several places. The patch fixes all
+of them.
 
-commit 3d26eb8ad1e9b906433903ce05f775cf038e747f
-Author: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
-Date:   Tue Jul 2 12:00:20 2019 +0000
+Reported-by: syzbot+fabca5cbf5e54f3fe2de@syzkaller.appspotmail.com
+Reported-by: syzbot+827ced406c9a1d9570ed@syzkaller.appspotmail.com
+Reported-by: syzbot+190d63957b22ef673ea5@syzkaller.appspotmail.com
+Reported-by: syzbot+dfccdb2bdb4a12ad425e@syzkaller.appspotmail.com
+Reported-by: syzbot+df0d0f5895ef1f41a65b@syzkaller.appspotmail.com
+Reported-by: syzbot+b08bd19bb37513357fd4@syzkaller.appspotmail.com
+Reported-by: syzbot+53cdd0ec0bbabd53370a@syzkaller.appspotmail.com
+Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+---
+ include/linux/netfilter/ipset/ip_set.h    | 7 -------
+ net/netfilter/ipset/ip_set_bitmap_gen.h   | 2 +-
+ net/netfilter/ipset/ip_set_bitmap_ip.c    | 6 +++---
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c | 6 +++---
+ net/netfilter/ipset/ip_set_bitmap_port.c  | 6 +++---
+ 5 files changed, 10 insertions(+), 17 deletions(-)
 
-    net: bridge: don't cache ether dest pointer on input
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index 4d8b1eaf7708..908d38dbcb91 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -426,13 +426,6 @@ ip6addrptr(const struct sk_buff *skb, bool src, struct in6_addr *addr)
+ 	       sizeof(*addr));
+ }
+ 
+-/* Calculate the bytes required to store the inclusive range of a-b */
+-static inline int
+-bitmap_bytes(u32 a, u32 b)
+-{
+-	return 4 * ((((b - a + 8) / 8) + 3) / 4);
+-}
+-
+ /* How often should the gc be run by default */
+ #define IPSET_GC_TIME			(3 * 60)
+ 
+diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
+index 077a2cb65fcb..26ab0e9612d8 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_gen.h
++++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
+@@ -75,7 +75,7 @@ mtype_flush(struct ip_set *set)
+ 
+ 	if (set->extensions & IPSET_EXT_DESTROY)
+ 		mtype_ext_cleanup(set);
+-	memset(map->members, 0, map->memsize);
++	bitmap_zero(map->members, map->elements);
+ 	set->elements = 0;
+ 	set->ext_size = 0;
+ }
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
+index abe8f77d7d23..0a2196f59106 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ip.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
+@@ -37,7 +37,7 @@ MODULE_ALIAS("ip_set_bitmap:ip");
+ 
+ /* Type structure */
+ struct bitmap_ip {
+-	void *members;		/* the set members */
++	unsigned long *members;	/* the set members */
+ 	u32 first_ip;		/* host byte order, included in range */
+ 	u32 last_ip;		/* host byte order, included in range */
+ 	u32 elements;		/* number of max elements in the set */
+@@ -220,7 +220,7 @@ init_map_ip(struct ip_set *set, struct bitmap_ip *map,
+ 	    u32 first_ip, u32 last_ip,
+ 	    u32 elements, u32 hosts, u8 netmask)
+ {
+-	map->members = ip_set_alloc(map->memsize);
++	map->members = bitmap_zalloc(elements, GFP_KERNEL | __GFP_NOWARN);
+ 	if (!map->members)
+ 		return false;
+ 	map->first_ip = first_ip;
+@@ -322,7 +322,7 @@ bitmap_ip_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
+ 	if (!map)
+ 		return -ENOMEM;
+ 
+-	map->memsize = bitmap_bytes(0, elements - 1);
++	map->memsize = BITS_TO_LONGS(elements) * sizeof(unsigned long);
+ 	set->variant = &bitmap_ip;
+ 	if (!init_map_ip(set, map, first_ip, last_ip,
+ 			 elements, hosts, netmask)) {
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index b618713297da..739e343efaf6 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -42,7 +42,7 @@ enum {
+ 
+ /* Type structure */
+ struct bitmap_ipmac {
+-	void *members;		/* the set members */
++	unsigned long *members;	/* the set members */
+ 	u32 first_ip;		/* host byte order, included in range */
+ 	u32 last_ip;		/* host byte order, included in range */
+ 	u32 elements;		/* number of max elements in the set */
+@@ -299,7 +299,7 @@ static bool
+ init_map_ipmac(struct ip_set *set, struct bitmap_ipmac *map,
+ 	       u32 first_ip, u32 last_ip, u32 elements)
+ {
+-	map->members = ip_set_alloc(map->memsize);
++	map->members = bitmap_zalloc(elements, GFP_KERNEL | __GFP_NOWARN);
+ 	if (!map->members)
+ 		return false;
+ 	map->first_ip = first_ip;
+@@ -360,7 +360,7 @@ bitmap_ipmac_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
+ 	if (!map)
+ 		return -ENOMEM;
+ 
+-	map->memsize = bitmap_bytes(0, elements - 1);
++	map->memsize = BITS_TO_LONGS(elements) * sizeof(unsigned long);
+ 	set->variant = &bitmap_ipmac;
+ 	if (!init_map_ipmac(set, map, first_ip, last_ip, elements)) {
+ 		kfree(map);
+diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
+index 23d6095cb196..b49978dd810d 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_port.c
++++ b/net/netfilter/ipset/ip_set_bitmap_port.c
+@@ -30,7 +30,7 @@ MODULE_ALIAS("ip_set_bitmap:port");
+ 
+ /* Type structure */
+ struct bitmap_port {
+-	void *members;		/* the set members */
++	unsigned long *members;	/* the set members */
+ 	u16 first_port;		/* host byte order, included in range */
+ 	u16 last_port;		/* host byte order, included in range */
+ 	u32 elements;		/* number of max elements in the set */
+@@ -231,7 +231,7 @@ static bool
+ init_map_port(struct ip_set *set, struct bitmap_port *map,
+ 	      u16 first_port, u16 last_port)
+ {
+-	map->members = ip_set_alloc(map->memsize);
++	map->members = bitmap_zalloc(map->elements, GFP_KERNEL | __GFP_NOWARN);
+ 	if (!map->members)
+ 		return false;
+ 	map->first_port = first_port;
+@@ -271,7 +271,7 @@ bitmap_port_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
+ 		return -ENOMEM;
+ 
+ 	map->elements = elements;
+-	map->memsize = bitmap_bytes(0, map->elements);
++	map->memsize = BITS_TO_LONGS(elements) * sizeof(unsigned long);
+ 	set->variant = &bitmap_port;
+ 	if (!init_map_port(set, map, first_port, last_port)) {
+ 		kfree(map);
+-- 
+2.20.1
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=17bb1cc9e00000
-start commit:   9aaa2949 Merge branch '1GbE' of git://git.kernel.org/pub/s..
-git tree:       net-next
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=147b1cc9e00000
-console output: https://syzkaller.appspot.com/x/log.txt?x=107b1cc9e00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=66d8660c57ff3c98
-dashboard link: https://syzkaller.appspot.com/bug?extid=b554d01b6c7870b17da2
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15db12a5e00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=15316faee00000
-
-Reported-by: syzbot+b554d01b6c7870b17da2@syzkaller.appspotmail.com
-Fixes: 3d26eb8ad1e9 ("net: bridge: don't cache ether dest pointer on input")
-
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
