@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D02C6C33CB8
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 22:57:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D916C33CAF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 22:57:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A5FBF20678
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 22:57:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13C7A20678
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 22:57:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="Ke7KOxlh"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="AsJQJm2h"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728988AbgASW5N (ORCPT
+        id S1728977AbgASW5M (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 19 Jan 2020 17:57:13 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:56590 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728819AbgASW5M (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 19 Jan 2020 17:57:12 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:56578 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728853AbgASW5L (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 19 Jan 2020 17:57:11 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
          s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=BL75eMWTNtU9WKOLzK9kbjLS5c2hx/WblagWc6PE2+M=; b=Ke7KOxlhN/c+dDlMhAFkYX1OX2
-        cXUa5dX57l+sQpp1NkNr2SL6dorTKN/ZOHMBk5Lec8hHBztId6ItiTgpPFwRSLBAboQqyU3WMYrOc
-        wpRdkcurap0DDAJL5MQGfpkc/CvQKhUCfh7yD0CAFDw+l+vcxuLT13LxCpWP8ONi9BqOj5r9QzVrt
-        qUuw8qN/JMDZQgXOIxrGhaDwg+5FaWCqXL3o4Vyc2P2aVIdVrXKzTQUSjpfPNY2506LJxNGl7Xn7V
-        yMYSh7Fw4N/odTe/qEdKxoMYJfV8R/Gshry8rrI9wC7NmjEQRSdkR5Q5tc28/T4MvPM3/ay+EEfv5
-        BF3EKIxQ==;
+        bh=JyEgMHBRJE5J2jQdBCAQWpZmlFyp61Gu5dwsIFD9GdE=; b=AsJQJm2hHdTrojF1jZyiENurG7
+        fmMz6tu6LrLJa5kaM2FCkyCoCwtZjKtoa+rq/H2621VaWsX5ZKj0JHOU/3dWs2r+HWrq63bc6Cv3K
+        BvwYL62BZ5pOU2ew9XTt4fO0t46YFRT/fRhmxe45kW8uZBjlRuyn7tWIbSMFWA4OGgiXr643rCJBo
+        sHbxw+NraraYFMpVc2AijAVsdA0DJ/eldj/x7xmnchbn5ac0yCNsc6ZBH1q0AdpGBjEdgdMnjL0Z2
+        riXgTd7d4McJHaWV4e1cJEGuy9R14gkUMeWlwO2510/X04zX6B3wF5ZbVstN7zh5lDyeADXWWOlLg
+        5R/9A1sg==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1itJVH-0006wh-Ft
-        for netfilter-devel@vger.kernel.org; Sun, 19 Jan 2020 22:57:11 +0000
+        id 1itJVG-0006wh-NW
+        for netfilter-devel@vger.kernel.org; Sun, 19 Jan 2020 22:57:10 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft v3 8/9] netlink: add support for handling shift expressions.
-Date:   Sun, 19 Jan 2020 22:57:09 +0000
-Message-Id: <20200119225710.222976-9-jeremy@azazel.net>
+Subject: [PATCH nft v3 2/9] src: white-space fixes.
+Date:   Sun, 19 Jan 2020 22:57:03 +0000
+Message-Id: <20200119225710.222976-3-jeremy@azazel.net>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200119225710.222976-1-jeremy@azazel.net>
 References: <20200119225710.222976-1-jeremy@azazel.net>
@@ -58,216 +58,65 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The kernel supports bitwise shift operations, so add support to the
-netlink linearization and delinearization code.  The number of bits (the
-righthand operand) is expected to be a 32-bit value in host endianness.
+Remove some trailing white-space and fix some indentation.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- src/netlink_delinearize.c | 87 ++++++++++++++++++++++++++++++++-------
- src/netlink_linearize.c   | 50 ++++++++++++++++++++--
- 2 files changed, 120 insertions(+), 17 deletions(-)
+ src/evaluate.c            | 11 +++++------
+ src/netlink_delinearize.c |  2 +-
+ src/netlink_linearize.c   |  2 +-
+ 3 files changed, 7 insertions(+), 8 deletions(-)
 
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 9d5fdaf0ef3e..5bd0858cbee1 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2336,14 +2336,13 @@ static int stmt_evaluate_meta(struct eval_ctx *ctx, struct stmt *stmt)
+ static int stmt_evaluate_ct(struct eval_ctx *ctx, struct stmt *stmt)
+ {
+ 	if (stmt_evaluate_arg(ctx, stmt,
+-				 stmt->ct.tmpl->dtype,
+-				 stmt->ct.tmpl->len,
+-				 stmt->ct.tmpl->byteorder,
+-				 &stmt->ct.expr) < 0)
++			      stmt->ct.tmpl->dtype,
++			      stmt->ct.tmpl->len,
++			      stmt->ct.tmpl->byteorder,
++			      &stmt->ct.expr) < 0)
+ 		return -1;
+ 
+-	if (stmt->ct.key == NFT_CT_SECMARK &&
+-	    expr_is_constant(stmt->ct.expr))
++	if (stmt->ct.key == NFT_CT_SECMARK && expr_is_constant(stmt->ct.expr))
+ 		return stmt_error(ctx, stmt,
+ 				  "ct secmark must not be set to constant value");
+ 
 diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 8f2a5dfacd3e..4dcaaba6218a 100644
+index 154353b8161a..387e4b046c6b 100644
 --- a/src/netlink_delinearize.c
 +++ b/src/netlink_delinearize.c
-@@ -356,22 +356,17 @@ static void netlink_parse_lookup(struct netlink_parse_ctx *ctx,
- 	ctx->stmt = expr_stmt_alloc(loc, expr);
- }
+@@ -171,7 +171,7 @@ static void netlink_parse_immediate(struct netlink_parse_ctx *ctx,
+ 	struct expr *expr;
  
--static void netlink_parse_bitwise(struct netlink_parse_ctx *ctx,
--				  const struct location *loc,
--				  const struct nftnl_expr *nle)
-+static struct expr *netlink_parse_bitwise_bool(struct netlink_parse_ctx *ctx,
-+					       const struct location *loc,
-+					       const struct nftnl_expr *nle,
-+					       enum nft_registers sreg,
-+					       struct expr *left)
-+
- {
- 	struct nft_data_delinearize nld;
--	enum nft_registers sreg, dreg;
--	struct expr *expr, *left, *mask, *xor, *or;
-+	struct expr *expr, *mask, *xor, *or;
- 	mpz_t m, x, o;
- 
--	sreg = netlink_parse_register(nle, NFTNL_EXPR_BITWISE_SREG);
--	left = netlink_get_register(ctx, loc, sreg);
--	if (left == NULL)
--		return netlink_error(ctx, loc,
--				     "Bitwise expression has no left "
--				     "hand side");
--
- 	expr = left;
- 
- 	nld.value = nftnl_expr_get(nle, NFTNL_EXPR_BITWISE_MASK, &nld.len);
-@@ -423,6 +418,62 @@ static void netlink_parse_bitwise(struct netlink_parse_ctx *ctx,
- 	mpz_clear(x);
- 	mpz_clear(o);
- 
-+	return expr;
-+}
-+
-+static struct expr *netlink_parse_bitwise_shift(struct netlink_parse_ctx *ctx,
-+						const struct location *loc,
-+						const struct nftnl_expr *nle,
-+						enum ops op,
-+						enum nft_registers sreg,
-+						struct expr *left)
-+{
-+	struct nft_data_delinearize nld;
-+	struct expr *expr, *right;
-+
-+	nld.value = nftnl_expr_get(nle, NFTNL_EXPR_BITWISE_DATA, &nld.len);
-+	right = netlink_alloc_value(loc, &nld);
-+
-+	expr = binop_expr_alloc(loc, op, left, right);
-+	expr->len = left->len;
-+
-+	return expr;
-+}
-+
-+static void netlink_parse_bitwise(struct netlink_parse_ctx *ctx,
-+				  const struct location *loc,
-+				  const struct nftnl_expr *nle)
-+{
-+	enum nft_registers sreg, dreg;
-+	struct expr *expr, *left;
-+	enum nft_bitwise_ops op;
-+
-+	sreg = netlink_parse_register(nle, NFTNL_EXPR_BITWISE_SREG);
-+	left = netlink_get_register(ctx, loc, sreg);
-+	if (left == NULL)
-+		return netlink_error(ctx, loc,
-+				     "Bitwise expression has no left "
-+				     "hand side");
-+
-+	op = nftnl_expr_get_u32(nle, NFTNL_EXPR_BITWISE_OP);
-+
-+	switch (op) {
-+	case NFT_BITWISE_BOOL:
-+		expr = netlink_parse_bitwise_bool(ctx, loc, nle, sreg,
-+						  left);
-+		break;
-+	case NFT_BITWISE_LSHIFT:
-+		expr = netlink_parse_bitwise_shift(ctx, loc, nle, OP_LSHIFT,
-+						   sreg, left);
-+		break;
-+	case NFT_BITWISE_RSHIFT:
-+		expr = netlink_parse_bitwise_shift(ctx, loc, nle, OP_RSHIFT,
-+						   sreg, left);
-+		break;
-+	default:
-+		BUG("invalid bitwise operation %u\n", op);
-+	}
-+
- 	dreg = netlink_parse_register(nle, NFTNL_EXPR_BITWISE_DREG);
- 	netlink_set_register(ctx, dreg, expr);
- }
-@@ -2091,8 +2142,16 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
- 		break;
- 	case EXPR_BINOP:
- 		expr_postprocess(ctx, &expr->left);
--		expr_set_type(expr->right, expr->left->dtype,
--			      expr->left->byteorder);
-+		switch (expr->op) {
-+		case OP_LSHIFT:
-+		case OP_RSHIFT:
-+			expr_set_type(expr->right, &integer_type,
-+				      BYTEORDER_HOST_ENDIAN);
-+			break;
-+		default:
-+			expr_set_type(expr->right, expr->left->dtype,
-+				      expr->left->byteorder);
-+		}
- 		expr_postprocess(ctx, &expr->right);
- 
- 		expr_set_type(expr, expr->left->dtype,
+ 	if (nftnl_expr_is_set(nle, NFTNL_EXPR_IMM_VERDICT)) {
+-		nld.verdict = nftnl_expr_get_u32(nle, NFTNL_EXPR_IMM_VERDICT); 
++		nld.verdict = nftnl_expr_get_u32(nle, NFTNL_EXPR_IMM_VERDICT);
+ 		if  (nftnl_expr_is_set(nle, NFTNL_EXPR_IMM_CHAIN)) {
+ 			nld.chain = nftnl_expr_get(nle, NFTNL_EXPR_IMM_CHAIN,
+ 						   &nld.len);
 diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index d5e177d5e75c..1b9abb379577 100644
+index 498326d0087a..d5e177d5e75c 100644
 --- a/src/netlink_linearize.c
 +++ b/src/netlink_linearize.c
-@@ -545,9 +545,36 @@ static void combine_binop(mpz_t mask, mpz_t xor, const mpz_t m, const mpz_t x)
- 	mpz_and(mask, mask, m);
+@@ -1243,7 +1243,7 @@ static void netlink_gen_queue_stmt(struct netlink_linearize_ctx *ctx,
  }
  
--static void netlink_gen_binop(struct netlink_linearize_ctx *ctx,
-+static void netlink_gen_shift(struct netlink_linearize_ctx *ctx,
- 			      const struct expr *expr,
- 			      enum nft_registers dreg)
-+{
-+	enum nft_bitwise_ops op = expr->op == OP_LSHIFT ?
-+		NFT_BITWISE_LSHIFT : NFT_BITWISE_RSHIFT;
-+	unsigned int len = div_round_up(expr->len, BITS_PER_BYTE);
-+	struct nft_data_linearize nld;
-+	struct nftnl_expr *nle;
-+
-+	netlink_gen_expr(ctx, expr->left, dreg);
-+
-+	nle = alloc_nft_expr("bitwise");
-+	netlink_put_register(nle, NFTNL_EXPR_BITWISE_SREG, dreg);
-+	netlink_put_register(nle, NFTNL_EXPR_BITWISE_DREG, dreg);
-+	nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_OP, op);
-+	nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_LEN, len);
-+
-+	netlink_gen_raw_data(expr->right->value, expr->right->byteorder,
-+			     sizeof(uint32_t), &nld);
-+
-+	nftnl_expr_set(nle, NFTNL_EXPR_BITWISE_DATA, nld.value,
-+		       nld.len);
-+
-+	nftnl_rule_add_expr(ctx->nlr, nle);
-+}
-+
-+static void netlink_gen_bitwise(struct netlink_linearize_ctx *ctx,
-+				const struct expr *expr,
-+				enum nft_registers dreg)
+ static void netlink_gen_ct_stmt(struct netlink_linearize_ctx *ctx,
+-				  const struct stmt *stmt)
++				const struct stmt *stmt)
  {
  	struct nftnl_expr *nle;
- 	struct nft_data_linearize nld;
-@@ -562,8 +589,9 @@ static void netlink_gen_binop(struct netlink_linearize_ctx *ctx,
- 	mpz_init(val);
- 	mpz_init(tmp);
- 
--	binops[n++] = left = (void *)expr;
--	while (left->etype == EXPR_BINOP && left->left != NULL)
-+	binops[n++] = left = (struct expr *) expr;
-+	while (left->etype == EXPR_BINOP && left->left != NULL &&
-+	       (left->op == OP_AND || left->op == OP_OR || left->op == OP_XOR))
- 		binops[n++] = left = left->left;
- 	n--;
- 
-@@ -598,6 +626,7 @@ static void netlink_gen_binop(struct netlink_linearize_ctx *ctx,
- 	nle = alloc_nft_expr("bitwise");
- 	netlink_put_register(nle, NFTNL_EXPR_BITWISE_SREG, dreg);
- 	netlink_put_register(nle, NFTNL_EXPR_BITWISE_DREG, dreg);
-+	nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_OP, NFT_BITWISE_BOOL);
- 	nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_LEN, len);
- 
- 	netlink_gen_raw_data(mask, expr->byteorder, len, &nld);
-@@ -613,6 +642,21 @@ static void netlink_gen_binop(struct netlink_linearize_ctx *ctx,
- 	nftnl_rule_add_expr(ctx->nlr, nle);
- }
- 
-+static void netlink_gen_binop(struct netlink_linearize_ctx *ctx,
-+			      const struct expr *expr,
-+			      enum nft_registers dreg)
-+{
-+	switch(expr->op) {
-+	case OP_LSHIFT:
-+	case OP_RSHIFT:
-+		netlink_gen_shift(ctx, expr, dreg);
-+		break;
-+	default:
-+		netlink_gen_bitwise(ctx, expr, dreg);
-+		break;
-+	}
-+}
-+
- static enum nft_byteorder_ops netlink_gen_unary_op(enum ops op)
- {
- 	switch (op) {
+ 	enum nft_registers sreg;
 -- 
 2.24.1
 
