@@ -2,56 +2,60 @@ Return-Path: <SRS0=vOmJ=3I=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9631AC33CB1
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 13:33:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF47BC33CB1
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 13:33:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 60F5620663
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 13:33:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AB7DD2072B
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 13:33:38 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Y5YrZwiC"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="e43xjoJ/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726982AbgASNdd (ORCPT
+        id S1727041AbgASNdi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 19 Jan 2020 08:33:33 -0500
-Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:45665 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726778AbgASNdc (ORCPT
+        Sun, 19 Jan 2020 08:33:38 -0500
+Received: from us-smtp-2.mimecast.com ([205.139.110.61]:42562 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726778AbgASNdi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 19 Jan 2020 08:33:32 -0500
+        Sun, 19 Jan 2020 08:33:38 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1579440811;
+        s=mimecast20190719; t=1579440816;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=wyI/zwH9kjbo2lzuaoQfYtvyJJn95afz1h9gnDaZ/1E=;
-        b=Y5YrZwiCHj2pdL3d5zbqiBA2JuyIbYE2UiQKrcJYcO5UE4LXxSxlUj5TjLktGmyQTd6E7/
-        GA4Lqy6Vvzlfx7g2TzwCeW60bnkYWTUVJrbvWDitomJf9wnrZOZWAEDHBnPjaKcekjhwMY
-        buR9H0x08cIHDdN8GTvN6upEvOD6elM=
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=MN84y9cdfOxo6ARVIDWTdnZq2ObjDad/xMalCLfXKWA=;
+        b=e43xjoJ/QCArCMmgOVPU4Ln/erQoxMJyzNh7UKAUDaCaVCRlnzNKuUNDs5z3SIfPoCpy1i
+        mCyoxdedobPt6RLXPdDguP6Pi8rQB1DJ7TwKbETEnE1/PCPxhHGifS7/uQievL93OCUYl+
+        q/CJP5Fz0BG80bZDsa/Fkl7IXyR/6MM=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-184-TZ7iukn1N1OhUEbfc37lmA-1; Sun, 19 Jan 2020 08:33:27 -0500
-X-MC-Unique: TZ7iukn1N1OhUEbfc37lmA-1
+ us-mta-76-7P8TzBYJMzyBgzC6lvQflw-1; Sun, 19 Jan 2020 08:33:31 -0500
+X-MC-Unique: 7P8TzBYJMzyBgzC6lvQflw-1
 Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 6614A18A6EC0;
-        Sun, 19 Jan 2020 13:33:26 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B9A44100550E;
+        Sun, 19 Jan 2020 13:33:29 +0000 (UTC)
 Received: from epycfail.redhat.com (ovpn-112-51.ams2.redhat.com [10.36.112.51])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 8299A5D9CA;
-        Sun, 19 Jan 2020 13:33:22 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id F293C5D9CA;
+        Sun, 19 Jan 2020 13:33:26 +0000 (UTC)
 From:   Stefano Brivio <sbrivio@redhat.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org
 Cc:     Florian Westphal <fw@strlen.de>,
         =?UTF-8?q?Kadlecsik=20J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>,
         Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>
-Subject: [PATCH nf-next v3 0/9] nftables: Set implementation for arbitrary concatenation of ranges
-Date:   Sun, 19 Jan 2020 14:33:12 +0100
-Message-Id: <cover.1579434906.git.sbrivio@redhat.com>
+Subject: [PATCH nf-next v3 1/9] netfilter: nf_tables: add nft_setelem_parse_key()
+Date:   Sun, 19 Jan 2020 14:33:13 +0100
+Message-Id: <cd16c6687bdf9616110f769b83933988a7078f0f.1579434906.git.sbrivio@redhat.com>
+In-Reply-To: <cover.1579434906.git.sbrivio@redhat.com>
+References: <cover.1579434906.git.sbrivio@redhat.com>
 MIME-Version: 1.0
 X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
 Content-Transfer-Encoding: quoted-printable
@@ -60,123 +64,257 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Existing nftables set implementations allow matching entries with
-interval expressions (rbtree), e.g. 192.0.2.1-192.0.2.4, entries
-specifying field concatenation (hash, rhash), e.g. 192.0.2.1:22,
-but not both.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-In other words, none of the set types allows matching on range
-expressions for more than one packet field at a time, such as ipset
-does with types bitmap:ip,mac, and, to a more limited extent
-(netmasks, not arbitrary ranges), with types hash:net,net,
-hash:net,port, hash:ip,port,net, and hash:net,port,net.
+Add helper function to parse the set element key netlink attribute.
 
-As a pure hash-based approach is unsuitable for matching on ranges,
-and "proxying" the existing red-black tree type looks impractical as
-elements would need to be shared and managed across all employed
-trees, this new set implementation intends to fill the functionality
-gap by employing a relatively novel approach.
+v3: New patch
 
-The fundamental idea, illustrated in deeper detail in patch 5/9, is to
-use lookup tables classifying a small number of grouped bits from each
-field, and map the lookup results in a way that yields a verdict for
-the full set of specified fields.
+[sbrivio: refactor error paths and labels; use NFT_DATA_VALUE_MAXLEN
+  instead of sizeof(*key) in helper, value can be longer than that;
+  rebase]
+Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+---
+ net/netfilter/nf_tables_api.c | 91 +++++++++++++++++------------------
+ 1 file changed, 45 insertions(+), 46 deletions(-)
 
-The grouping bit aspect is loosely inspired by the Grouper algorithm,
-by Jay Ligatti, Josh Kuhn, and Chris Gage (see patch 5/9 for the full
-reference).
-
-A reference, stand-alone implementation of the algorithm itself is
-available at:
-	https://pipapo.lameexcu.se
-
-Some notes about possible future optimisations are also mentioned
-there. This algorithm reduces the matching problem to, essentially,
-a repetitive sequence of simple bitwise operations, and is
-particularly suitable to be optimised by leveraging SIMD instruction
-sets. An AVX2-based implementation is also presented in this series.
-
-I plan to post the adaptation of the existing AVX2 vectorised
-implementation for (at least) NEON at a later time.
-
-Patches 1/9 to 3/9 implement the needed infrastructure: new
-attributes are used to describe length of single ranged fields in
-concatenations and to denote the upper bound for ranges.
-
-Patch 4/9 adds a new bitmap operation that copies the source bitmap
-onto the destination while removing a given region, and is needed to
-delete regions of arrays mapping between lookup tables.
-
-Patch 5/9 is the actual set implementation.
-
-Patch 6/9 introduces selftests for the new implementation.
-
-Patches 7/9 and 8/9 are preparatory work to add an alternative,
-vectorised lookup implementation.
-
-Patch 9/9 contains the AVX2-based implementation of the lookup
-routines.
-
-The nftables and libnftnl counterparts depend on changes to the UAPI
-header file included in patches 2/9 and 3/9.
-
-Credits go to Jay Ligatti, Josh Kuhn, and Chris Gage for their
-original Grouper implementation and article from ICCCN proceedings
-(see reference in patch 5/9), and to Daniel Lemire for his public
-domain implementation of a fast iterator on set bits using built-in
-implementations of the CTZL operation, also included in patch 5/9.
-
-Special thanks go to Florian Westphal for all the nftables consulting
-and the original interface idea, to Sabrina Dubroca for support with
-RCU and bit manipulation topics, to Eric Garver for an early review,
-to Phil Sutter for reaffirming the need for the use case covered
-here, and to Pablo Neira Ayuso for proposing a dramatic
-simplification of the infrastructure.
-
-v3:
- - add patches 1/9 and 2/9
- - drop patch 5/8 (unrolled lookup loops), as it actually decreases
-   matching rates in some cases
- - other changes listed in single patches
-v2: Changes listed in messages for 3/8 and 8/8
-
-Pablo Neira Ayuso (2):
-  netfilter: nf_tables: add nft_setelem_parse_key()
-  netfilter: nf_tables: add NFTA_SET_ELEM_KEY_END attribute
-
-Stefano Brivio (7):
-  netfilter: nf_tables: Support for sets with multiple ranged fields
-  bitmap: Introduce bitmap_cut(): cut bits and shift remaining
-  nf_tables: Add set type for arbitrary concatenation of ranges
-  selftests: netfilter: Introduce tests for sets with range
-    concatenation
-  nft_set_pipapo: Prepare for vectorised implementation: alignment
-  nft_set_pipapo: Prepare for vectorised implementation: helpers
-  nft_set_pipapo: Introduce AVX2-based lookup implementation
-
- include/linux/bitmap.h                        |    4 +
- include/net/netfilter/nf_tables.h             |   22 +-
- include/net/netfilter/nf_tables_core.h        |    2 +
- include/uapi/linux/netfilter/nf_tables.h      |   17 +
- lib/bitmap.c                                  |   66 +
- net/netfilter/Makefile                        |    8 +-
- net/netfilter/nf_tables_api.c                 |  260 ++-
- net/netfilter/nf_tables_set_core.c            |    8 +
- net/netfilter/nft_dynset.c                    |    2 +-
- net/netfilter/nft_set_pipapo.c                | 2012 +++++++++++++++++
- net/netfilter/nft_set_pipapo.h                |  237 ++
- net/netfilter/nft_set_pipapo_avx2.c           |  842 +++++++
- net/netfilter/nft_set_pipapo_avx2.h           |   14 +
- net/netfilter/nft_set_rbtree.c                |    3 +
- tools/testing/selftests/netfilter/Makefile    |    3 +-
- .../selftests/netfilter/nft_concat_range.sh   | 1481 ++++++++++++
- 16 files changed, 4911 insertions(+), 70 deletions(-)
- create mode 100644 net/netfilter/nft_set_pipapo.c
- create mode 100644 net/netfilter/nft_set_pipapo.h
- create mode 100644 net/netfilter/nft_set_pipapo_avx2.c
- create mode 100644 net/netfilter/nft_set_pipapo_avx2.h
- create mode 100755 tools/testing/selftests/netfilter/nft_concat_range.sh
-
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.=
+c
+index 43f05b3acd60..0628b9ad7aa4 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4490,11 +4490,28 @@ static int nft_setelem_parse_flags(const struct n=
+ft_set *set,
+ 	return 0;
+ }
+=20
++static int nft_setelem_parse_key(struct nft_ctx *ctx, struct nft_set *se=
+t,
++				 struct nft_data *key, struct nlattr *attr)
++{
++	struct nft_data_desc desc;
++	int err;
++
++	err =3D nft_data_init(ctx, key, NFT_DATA_VALUE_MAXLEN, &desc, attr);
++	if (err < 0)
++		return err;
++
++	if (desc.type !=3D NFT_DATA_VALUE || desc.len !=3D set->klen) {
++		nft_data_release(key, desc.type);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ static int nft_get_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			    const struct nlattr *attr)
+ {
+ 	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
+-	struct nft_data_desc desc;
+ 	struct nft_set_elem elem;
+ 	struct sk_buff *skb;
+ 	uint32_t flags =3D 0;
+@@ -4513,17 +4530,11 @@ static int nft_get_set_elem(struct nft_ctx *ctx, =
+struct nft_set *set,
+ 	if (err < 0)
+ 		return err;
+=20
+-	err =3D nft_data_init(ctx, &elem.key.val, sizeof(elem.key), &desc,
+-			    nla[NFTA_SET_ELEM_KEY]);
++	err =3D nft_setelem_parse_key(ctx, set, &elem.key.val,
++				    nla[NFTA_SET_ELEM_KEY]);
+ 	if (err < 0)
+ 		return err;
+=20
+-	err =3D -EINVAL;
+-	if (desc.type !=3D NFT_DATA_VALUE || desc.len !=3D set->klen) {
+-		nft_data_release(&elem.key.val, desc.type);
+-		return err;
+-	}
+-
+ 	priv =3D set->ops->get(ctx->net, set, &elem, flags);
+ 	if (IS_ERR(priv))
+ 		return PTR_ERR(priv);
+@@ -4722,13 +4733,13 @@ static int nft_add_set_elem(struct nft_ctx *ctx, =
+struct nft_set *set,
+ {
+ 	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
+ 	u8 genmask =3D nft_genmask_next(ctx->net);
+-	struct nft_data_desc d1, d2;
+ 	struct nft_set_ext_tmpl tmpl;
+ 	struct nft_set_ext *ext, *ext2;
+ 	struct nft_set_elem elem;
+ 	struct nft_set_binding *binding;
+ 	struct nft_object *obj =3D NULL;
+ 	struct nft_userdata *udata;
++	struct nft_data_desc desc;
+ 	struct nft_data data;
+ 	enum nft_registers dreg;
+ 	struct nft_trans *trans;
+@@ -4794,15 +4805,12 @@ static int nft_add_set_elem(struct nft_ctx *ctx, =
+struct nft_set *set,
+ 			return err;
+ 	}
+=20
+-	err =3D nft_data_init(ctx, &elem.key.val, sizeof(elem.key), &d1,
+-			    nla[NFTA_SET_ELEM_KEY]);
++	err =3D nft_setelem_parse_key(ctx, set, &elem.key.val,
++				    nla[NFTA_SET_ELEM_KEY]);
+ 	if (err < 0)
+ 		goto err1;
+-	err =3D -EINVAL;
+-	if (d1.type !=3D NFT_DATA_VALUE || d1.len !=3D set->klen)
+-		goto err2;
+=20
+-	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, d1.len);
++	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, set->klen);
+ 	if (timeout > 0) {
+ 		nft_set_ext_add(&tmpl, NFT_SET_EXT_EXPIRATION);
+ 		if (timeout !=3D set->timeout)
+@@ -4825,13 +4833,13 @@ static int nft_add_set_elem(struct nft_ctx *ctx, =
+struct nft_set *set,
+ 	}
+=20
+ 	if (nla[NFTA_SET_ELEM_DATA] !=3D NULL) {
+-		err =3D nft_data_init(ctx, &data, sizeof(data), &d2,
++		err =3D nft_data_init(ctx, &data, sizeof(data), &desc,
+ 				    nla[NFTA_SET_ELEM_DATA]);
+ 		if (err < 0)
+ 			goto err2;
+=20
+ 		err =3D -EINVAL;
+-		if (set->dtype !=3D NFT_DATA_VERDICT && d2.len !=3D set->dlen)
++		if (set->dtype !=3D NFT_DATA_VERDICT && desc.len !=3D set->dlen)
+ 			goto err3;
+=20
+ 		dreg =3D nft_type_to_reg(set->dtype);
+@@ -4848,18 +4856,18 @@ static int nft_add_set_elem(struct nft_ctx *ctx, =
+struct nft_set *set,
+=20
+ 			err =3D nft_validate_register_store(&bind_ctx, dreg,
+ 							  &data,
+-							  d2.type, d2.len);
++							  desc.type, desc.len);
+ 			if (err < 0)
+ 				goto err3;
+=20
+-			if (d2.type =3D=3D NFT_DATA_VERDICT &&
++			if (desc.type =3D=3D NFT_DATA_VERDICT &&
+ 			    (data.verdict.code =3D=3D NFT_GOTO ||
+ 			     data.verdict.code =3D=3D NFT_JUMP))
+ 				nft_validate_state_update(ctx->net,
+ 							  NFT_VALIDATE_NEED);
+ 		}
+=20
+-		nft_set_ext_add_length(&tmpl, NFT_SET_EXT_DATA, d2.len);
++		nft_set_ext_add_length(&tmpl, NFT_SET_EXT_DATA, desc.len);
+ 	}
+=20
+ 	/* The full maximum length of userdata can exceed the maximum
+@@ -4942,9 +4950,9 @@ static int nft_add_set_elem(struct nft_ctx *ctx, st=
+ruct nft_set *set,
+ 	kfree(elem.priv);
+ err3:
+ 	if (nla[NFTA_SET_ELEM_DATA] !=3D NULL)
+-		nft_data_release(&data, d2.type);
++		nft_data_release(&data, desc.type);
+ err2:
+-	nft_data_release(&elem.key.val, d1.type);
++	nft_data_release(&elem.key.val, NFT_DATA_VALUE);
+ err1:
+ 	return err;
+ }
+@@ -5040,7 +5048,6 @@ static int nft_del_setelem(struct nft_ctx *ctx, str=
+uct nft_set *set,
+ {
+ 	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
+ 	struct nft_set_ext_tmpl tmpl;
+-	struct nft_data_desc desc;
+ 	struct nft_set_elem elem;
+ 	struct nft_set_ext *ext;
+ 	struct nft_trans *trans;
+@@ -5051,11 +5058,10 @@ static int nft_del_setelem(struct nft_ctx *ctx, s=
+truct nft_set *set,
+ 	err =3D nla_parse_nested_deprecated(nla, NFTA_SET_ELEM_MAX, attr,
+ 					  nft_set_elem_policy, NULL);
+ 	if (err < 0)
+-		goto err1;
++		return err;
+=20
+-	err =3D -EINVAL;
+ 	if (nla[NFTA_SET_ELEM_KEY] =3D=3D NULL)
+-		goto err1;
++		return -EINVAL;
+=20
+ 	nft_set_ext_prepare(&tmpl);
+=20
+@@ -5065,37 +5071,31 @@ static int nft_del_setelem(struct nft_ctx *ctx, s=
+truct nft_set *set,
+ 	if (flags !=3D 0)
+ 		nft_set_ext_add(&tmpl, NFT_SET_EXT_FLAGS);
+=20
+-	err =3D nft_data_init(ctx, &elem.key.val, sizeof(elem.key), &desc,
+-			    nla[NFTA_SET_ELEM_KEY]);
++	err =3D nft_setelem_parse_key(ctx, set, &elem.key.val,
++				    nla[NFTA_SET_ELEM_KEY]);
+ 	if (err < 0)
+-		goto err1;
+-
+-	err =3D -EINVAL;
+-	if (desc.type !=3D NFT_DATA_VALUE || desc.len !=3D set->klen)
+-		goto err2;
++		return err;
+=20
+-	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, desc.len);
++	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, set->klen);
+=20
+ 	err =3D -ENOMEM;
+ 	elem.priv =3D nft_set_elem_init(set, &tmpl, elem.key.val.data, NULL, 0,
+ 				      0, GFP_KERNEL);
+ 	if (elem.priv =3D=3D NULL)
+-		goto err2;
++		goto fail_elem;
+=20
+ 	ext =3D nft_set_elem_ext(set, elem.priv);
+ 	if (flags)
+ 		*nft_set_ext_flags(ext) =3D flags;
+=20
+ 	trans =3D nft_trans_elem_alloc(ctx, NFT_MSG_DELSETELEM, set);
+-	if (trans =3D=3D NULL) {
+-		err =3D -ENOMEM;
+-		goto err3;
+-	}
++	if (trans =3D=3D NULL)
++		goto fail_trans;
+=20
+ 	priv =3D set->ops->deactivate(ctx->net, set, &elem);
+ 	if (priv =3D=3D NULL) {
+ 		err =3D -ENOENT;
+-		goto err4;
++		goto fail_ops;
+ 	}
+ 	kfree(elem.priv);
+ 	elem.priv =3D priv;
+@@ -5106,13 +5106,12 @@ static int nft_del_setelem(struct nft_ctx *ctx, s=
+truct nft_set *set,
+ 	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
+ 	return 0;
+=20
+-err4:
++fail_ops:
+ 	kfree(trans);
+-err3:
++fail_trans:
+ 	kfree(elem.priv);
+-err2:
+-	nft_data_release(&elem.key.val, desc.type);
+-err1:
++fail_elem:
++	nft_data_release(&elem.key.val, NFT_DATA_VALUE);
+ 	return err;
+ }
+=20
 --=20
 2.24.1
 
