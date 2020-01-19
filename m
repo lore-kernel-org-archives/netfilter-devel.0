@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5456CC33CB6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B0E1C3F68F
 	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 22:57:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 22ACD20678
+	by mail.kernel.org (Postfix) with ESMTP id 57FAF20678
 	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 22:57:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="tLtrNJKm"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="cptWjcof"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728981AbgASW5M (ORCPT
+        id S1728982AbgASW5N (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 19 Jan 2020 17:57:12 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:56582 "EHLO
+        Sun, 19 Jan 2020 17:57:13 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:56586 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728894AbgASW5M (ORCPT
+        with ESMTP id S1728913AbgASW5M (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 19 Jan 2020 17:57:12 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
@@ -29,22 +29,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=/3T9m6QEVfVUD/+aCjgdUGEDP5YZEMp2PxMcG7lIs9w=; b=tLtrNJKmemGN46Uec2ki83nOu/
-        n6punoftk88t2oPJ3SIDd6Kq3sbA3XvaUymsL2C59JYF+16be/BGH5iRYmuc197P5O78ra/fiN1QD
-        M7SZG2VAMcpARa/x60ZHBusvPa5i/V7hv2je+DxRrtSuD6gSkg5DA9fmcXB6ayYDNcqd8GsIB+3Dk
-        82bPuleeCiY9u5p7WoXyrI8hXXVotlULGkE6OUTk9P4Ltcd1ZMdYmUQE7dXzH4LJrJ8ratYvsW52y
-        HMM3EtpUx42oT8CMLjAqht7s/NLsQobfr6RtJTgGBvsJji/IuVqREDpmdkyHKCaUh6xzhrMU8FRAX
-        KHtYJofw==;
+        bh=4ffP/OLwVOxq8eHXa0FtGLsuHiJ0ANpb4pgERHNcUXw=; b=cptWjcoflStQGCc3yQG4TT4tKN
+        Zu/GszSlmGSTdWakQeEB0c1WNXJCoPkUri3FS8RoarBVw38GQQhKnSQFjoD6B1d0AN3vp/3J1kiwb
+        iVYjNayHtrPW6RWPtggsl9DrRTF6XtYKJbe+C9/M7JRAbZiouCJDoovuoB1M5juGrSmcuVOCkzfpg
+        mGfdfPwwRgM4R2kh8LpjXHf9P0/2lMcCnCVwBI/wSmmZB8FcSqFeFpG1+fhfSE7BbAo4kcEYwZ+gL
+        BoYxuEVwhhdRIsr/hN8HS/k+wZxerOZIXWPU5XPQqg+hRHc78owFmy3iWtTfnOeawT52yeFVm6zRB
+        GkpyMmeg==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1itJVH-0006wh-0U
+        id 1itJVH-0006wh-8Q
         for netfilter-devel@vger.kernel.org; Sun, 19 Jan 2020 22:57:11 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft v3 4/9] netlink_delinearize: remove commented out pr_debug statement.
-Date:   Sun, 19 Jan 2020 22:57:05 +0000
-Message-Id: <20200119225710.222976-5-jeremy@azazel.net>
+Subject: [PATCH nft v3 6/9] evaluate: change shift byte-order to host-endian.
+Date:   Sun, 19 Jan 2020 22:57:07 +0000
+Message-Id: <20200119225710.222976-7-jeremy@azazel.net>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200119225710.222976-1-jeremy@azazel.net>
 References: <20200119225710.222976-1-jeremy@azazel.net>
@@ -58,26 +58,28 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The statement doesn't compile, so remove it.
+The byte-order of the righthand operands of the right-shifts generated
+for payload and exthdr expressions is big-endian.  However, all right
+shift operands should be host-endian.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- src/netlink_delinearize.c | 2 --
- 1 file changed, 2 deletions(-)
+ src/evaluate.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 8b9b5c808384..8f2a5dfacd3e 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -2047,8 +2047,6 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
- {
- 	struct expr *expr = *exprp, *i;
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 5bd0858cbee1..52719f56abea 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -487,7 +487,7 @@ static void expr_evaluate_bits(struct eval_ctx *ctx, struct expr **exprp)
+ 	if (shift) {
+ 		off = constant_expr_alloc(&expr->location,
+ 					  expr_basetype(expr),
+-					  BYTEORDER_BIG_ENDIAN,
++					  BYTEORDER_HOST_ENDIAN,
+ 					  sizeof(shift), &shift);
  
--	//pr_debug("%s len %u\n", expr->ops->name, expr->len);
--
- 	switch (expr->etype) {
- 	case EXPR_MAP:
- 		switch (expr->map->etype) {
+ 		lshift = binop_expr_alloc(&expr->location, OP_RSHIFT, and, off);
 -- 
 2.24.1
 
