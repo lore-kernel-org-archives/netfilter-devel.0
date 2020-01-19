@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4618C33CAF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 22:57:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10DA8C33CB7
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 22:57:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6BC4020678
+	by mail.kernel.org (Postfix) with ESMTP id D29D520678
 	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jan 2020 22:57:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="bYHwH09V"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="EuXgtNn6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728911AbgASW5L (ORCPT
+        id S1728978AbgASW5M (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 19 Jan 2020 17:57:11 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:56576 "EHLO
+        Sun, 19 Jan 2020 17:57:12 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:56580 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728831AbgASW5L (ORCPT
+        with ESMTP id S1728855AbgASW5L (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 19 Jan 2020 17:57:11 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
@@ -29,22 +29,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=g0qES8VIZMRmjQBNINWBdVXFNmpN4pEbN1niPnx98mk=; b=bYHwH09VVw/GhEUlnXOrR94lBX
-        aln1ZSY6qz1YUDWr+oUKja2aAuLACylZDbw53gNsw5RgcVwoxy4kYKmq7CICvvXkRrBNMIuQ7ytaA
-        oFil5Rn54m7nwhwJwqoaWTuz8L14WZvHJAI7gNk8jn/JDUKZu6GgUt7CgiY10TLx24ngANGFfS9Cl
-        53TQHAnqQF3i1TPPsP30AFKWUwXb6wDByxDvXL19XH9sj5aFttAKJxT4J/dQ4+r1vjMBZvOLuxP+V
-        +DNq4h0gHgUGC6iupRK4+G4XE5EEj5i+HY1fNxcK5IDvftOBuiEv3u9kMFv7abhJD/cCcWDjCF+JV
-        6gJFwP4g==;
+        bh=4UgfGNOvAnEkVa1oYgfDMZ+bKSypTjVKKOInNkEErvs=; b=EuXgtNn6JOkQ5SsYv52j6Ah2dc
+        3IN82gOkI002semIMYA1iKlgQaJgU4/v92dBP6nUaddq1qpFNUN2c4WPPczpaea9j6wHjJLcnTIXG
+        Qr3vOs1H0k36VKCZHC5yFhPPGaxohvqSE+QNLY2RIZJv+CmkbS1WG1uV5No+XLGjQlJetNA5H2G5j
+        YI6xsXg26eUOthcDUXvqDW9UoikE71Y26KByO7GTQxoQWfggP7KJIJV16Amm2Eaf1FiaJMF+kyRFo
+        9/MQLMIBNfBzUfthT+TdZ40Lww7chbsiJGXqO4mI2aNRSNo1K1AW5MM6aF1IXeVJt7Z/2NkkpSt4y
+        rWokrFuA==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1itJVG-0006wh-JC
+        id 1itJVG-0006wh-S7
         for netfilter-devel@vger.kernel.org; Sun, 19 Jan 2020 22:57:10 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft v3 1/9] Update gitignore.
-Date:   Sun, 19 Jan 2020 22:57:02 +0000
-Message-Id: <20200119225710.222976-2-jeremy@azazel.net>
+Subject: [PATCH nft v3 3/9] netlink_delinearize: fix typo.
+Date:   Sun, 19 Jan 2020 22:57:04 +0000
+Message-Id: <20200119225710.222976-4-jeremy@azazel.net>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200119225710.222976-1-jeremy@azazel.net>
 References: <20200119225710.222976-1-jeremy@azazel.net>
@@ -58,30 +58,26 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add ctags and etags tag files, and Emacs back-up files.
+s/Of/If/ in comment describing function.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- .gitignore | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ src/netlink_delinearize.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/.gitignore b/.gitignore
-index 2cb1e2afd45c..6b37b1237037 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -19,3 +19,12 @@ libtool
- 
- # Debian package build temporary files
- build-stamp
-+
-+# Tag files for Vim and Emacs.
-+TAGS
-+tags
-+
-+# Emacs back-up files.
-+*~
-+\#*\#
-+.\#*
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 387e4b046c6b..8b9b5c808384 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -2352,7 +2352,7 @@ static void stmt_payload_binop_pp(struct rule_pp_ctx *ctx, struct expr *binop)
+  * the original payload expression because it has an odd size or
+  * a non-byte divisible offset/length.
+  *
+- * Of that was the case, the 'value' expression is not a value but
++ * If that was the case, the 'value' expression is not a value but
+  * a binop expression with a munged payload expression on the left
+  * and a mask to clear the real payload offset/length.
+  *
 -- 
 2.24.1
 
