@@ -6,48 +6,50 @@ X-Spam-Status: No, score=-0.4 required=3.0 tests=FROM_LOCAL_HEX,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3489C33CA1
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jan 2020 11:37:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59C6CC2D0DB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jan 2020 12:17:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C8E4A20678
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jan 2020 11:37:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D51E207FF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jan 2020 12:17:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726642AbgATLhP (ORCPT
+        id S1727045AbgATMRK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 Jan 2020 06:37:15 -0500
-Received: from mail-il1-f198.google.com ([209.85.166.198]:48880 "EHLO
-        mail-il1-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726573AbgATLhK (ORCPT
+        Mon, 20 Jan 2020 07:17:10 -0500
+Received: from mail-io1-f72.google.com ([209.85.166.72]:38383 "EHLO
+        mail-io1-f72.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726650AbgATMRK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Jan 2020 06:37:10 -0500
-Received: by mail-il1-f198.google.com with SMTP id u14so24905852ilq.15
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Jan 2020 03:37:10 -0800 (PST)
+        Mon, 20 Jan 2020 07:17:10 -0500
+Received: by mail-io1-f72.google.com with SMTP id x2so19636549iog.5
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 Jan 2020 04:17:10 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=xBNA/KgA2wagbqF/XqH/qEY6DtCxvfx3ozrZJF+FY60=;
-        b=C/aGaSNA2jLmYq0yIsLLpGn/oZw9I2AiCEKdPjJGLyHnf42f1eOfCK4ZY9WnSyQLJ1
-         T44hKpwwdYhxN8m4iMn3ZIrKppatrIzCdg6MfipE67ChFX9mYdXikFNIDU6Z6ish/b83
-         JKXZQRho/Z+pIThGiSrKJ3XDDxQL2wB0rNarr3dFBdMc4ka/3vkXLBMwvWScE9NU5Sic
-         ZWdWnaNl2sJcVFYUxxPfwSlCIDeXRXuDGEClNbObtW1wjQyoVv7AxTc+7uKQjsxW9FJl
-         EKFlcWM/XWkhNj4opkjezV2y+6K6MoOm2nd4VYgQ1Xwy7DGRuWIyfv6Fo8g9i//gcHKG
-         gjcA==
-X-Gm-Message-State: APjAAAVxIjsh1ywyHRaDT0m1Jmh4gbSplwrLm9nvPmeJ2y45jID3goXc
-        3LyQ68vTI9lMWhv2gC2gjWnnkRz5KDeAOIsCR/4HJ9sWIQQb
-X-Google-Smtp-Source: APXvYqyyPInJ+VE6VgIJfo5d2Ws7ikGEU73uOM4B1N5bMf4CHCMYDRODgnN2k8anBIa46t0NiOGKRSQS7YC+o+aTZIQrTvvoMu9G
+        bh=Vkx1X/uhypGcfwV4uVIachDeWGXHsTal5Hm4vIDjIpQ=;
+        b=fQiEeOq5qf6v6TvY17dqksN8XlBs8rQseGqFstZUTvA4Qjacyhe4zu55Gocyk6pz9v
+         SWOUuYuHbzPWoHQqejCa+ZM5csNMLoYITUj6dfDWB+YqRG/HE+gWkIncm1CtpiUEzs0c
+         dlJplDl2qiOdJU6wpsu41M4VdLH5NmlSiArEOwsC5KYlzqlGxA+bgRSyF1EfDiDi2RSb
+         xoHHUA3PPiE+gokH88lj1U+9OSErn0ODn0tLHz/aT3IKUpN9kCiy+byQSpBhB05SS35R
+         Bav0mtU0HGxkI+xx/ini9lajCRUzl43wnirLN8LCVOW9U+KdybomCLmrcU+VihxEH7//
+         gkjw==
+X-Gm-Message-State: APjAAAVgYjCZo92KyGe+isKFx4r9v4kyW5CU8fffhdoV6RFQH2xjew2r
+        3P76UsM7Rn2v6Fs37Je/DYdFaGzHc+qWHHWRHHYSxDV7c14p
+X-Google-Smtp-Source: APXvYqwilhB1JHiupE5U//dbWs3ax4JsiMGoYOFU/8NJJzes44K+HaTtsYE4mfxkS6OLb++qrdSNj7JpkZCnI5doRmqJZzeiMc0L
 MIME-Version: 1.0
-X-Received: by 2002:a92:db4f:: with SMTP id w15mr10001596ilq.182.1579520229796;
- Mon, 20 Jan 2020 03:37:09 -0800 (PST)
-Date:   Mon, 20 Jan 2020 03:37:09 -0800
+X-Received: by 2002:a02:a60e:: with SMTP id c14mr44602708jam.80.1579522629805;
+ Mon, 20 Jan 2020 04:17:09 -0800 (PST)
+Date:   Mon, 20 Jan 2020 04:17:09 -0800
 X-Google-Appengine-App-Id: s~syzkaller
 X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000367175059c90b6bf@google.com>
-Subject: KASAN: use-after-free Read in __nf_tables_abort
-From:   syzbot <syzbot+29125d208b3dae9a7019@syzkaller.appspotmail.com>
+Message-ID: <00000000000043aa29059c91459e@google.com>
+Subject: KASAN: slab-out-of-bounds Read in bitmap_ipmac_gc
+From:   syzbot <syzbot+c1a1fb435465986efe35@syzkaller.appspotmail.com>
 To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@netfilter.org, linux-kernel@vger.kernel.org,
+        info@metux.net, jeremy@azazel.net, kadlec@netfilter.org,
+        kstewart@linuxfoundation.org, linux-kernel@vger.kernel.org,
         netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
+        pablo@netfilter.org, sbrivio@redhat.com,
+        syzkaller-bugs@googlegroups.com, tglx@linutronix.de
 Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
@@ -58,88 +60,102 @@ Hello,
 
 syzbot found the following crash on:
 
-HEAD commit:    def9d278 Linux 5.5-rc7
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=16d4e966e00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=cf8e288883e40aba
-dashboard link: https://syzkaller.appspot.com/bug?extid=29125d208b3dae9a7019
+HEAD commit:    b3f7e3f2 Merge ra.kernel.org:/pub/scm/linux/kernel/git/net..
+git tree:       net-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=17b4e966e00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=25af05ec22c1bcef
+dashboard link: https://syzkaller.appspot.com/bug?extid=c1a1fb435465986efe35
 compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=12c78faee00000
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=10d00685e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=15d471d1e00000
 
 IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+29125d208b3dae9a7019@syzkaller.appspotmail.com
+Reported-by: syzbot+c1a1fb435465986efe35@syzkaller.appspotmail.com
 
 ==================================================================
-BUG: KASAN: use-after-free in __list_del_entry_valid+0xd2/0xf5 lib/list_debug.c:42
-Read of size 8 at addr ffff888096085408 by task syz-executor.0/9949
+BUG: KASAN: slab-out-of-bounds in test_bit include/asm-generic/bitops/instrumented-non-atomic.h:110 [inline]
+BUG: KASAN: slab-out-of-bounds in bitmap_ipmac_gc_test net/netfilter/ipset/ip_set_bitmap_ipmac.c:102 [inline]
+BUG: KASAN: slab-out-of-bounds in bitmap_ipmac_gc+0x119/0x590 net/netfilter/ipset/ip_set_bitmap_gen.h:277
+Read of size 8 at addr ffff8880a97e9cc0 by task swapper/1/0
 
-CPU: 0 PID: 9949 Comm: syz-executor.0 Not tainted 5.5.0-rc7-syzkaller #0
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 5.5.0-rc6-syzkaller #0
 Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
 Call Trace:
+ <IRQ>
  __dump_stack lib/dump_stack.c:77 [inline]
  dump_stack+0x197/0x210 lib/dump_stack.c:118
  print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
  __kasan_report.cold+0x1b/0x41 mm/kasan/report.c:506
  kasan_report+0x12/0x20 mm/kasan/common.c:639
- __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
- __list_del_entry_valid+0xd2/0xf5 lib/list_debug.c:42
- __list_del_entry include/linux/list.h:131 [inline]
- list_del_rcu include/linux/rculist.h:148 [inline]
- __nf_tables_abort+0x1e53/0x2a50 net/netfilter/nf_tables_api.c:7258
- nf_tables_abort+0x17/0x30 net/netfilter/nf_tables_api.c:7373
- nfnetlink_rcv_batch+0xa5d/0x17a0 net/netfilter/nfnetlink.c:494
- nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:543 [inline]
- nfnetlink_rcv+0x3e7/0x460 net/netfilter/nfnetlink.c:561
- netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
- netlink_unicast+0x58c/0x7d0 net/netlink/af_netlink.c:1328
- netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
- sock_sendmsg_nosec net/socket.c:639 [inline]
- sock_sendmsg+0xd7/0x130 net/socket.c:659
- ____sys_sendmsg+0x753/0x880 net/socket.c:2330
- ___sys_sendmsg+0x100/0x170 net/socket.c:2384
- __sys_sendmsg+0x105/0x1d0 net/socket.c:2417
- __do_sys_sendmsg net/socket.c:2426 [inline]
- __se_sys_sendmsg net/socket.c:2424 [inline]
- __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2424
- do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
- entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x45b349
-Code: ad b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007f29992c7c78 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
-RAX: ffffffffffffffda RBX: 00007f29992c86d4 RCX: 000000000045b349
-RDX: 0000000000000000 RSI: 0000000020000280 RDI: 0000000000000003
-RBP: 000000000075bf20 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
-R13: 0000000000000917 R14: 00000000004ca810 R15: 000000000075bf2c
+ check_memory_region_inline mm/kasan/generic.c:185 [inline]
+ check_memory_region+0x134/0x1a0 mm/kasan/generic.c:192
+ __kasan_check_read+0x11/0x20 mm/kasan/common.c:95
+ test_bit include/asm-generic/bitops/instrumented-non-atomic.h:110 [inline]
+ bitmap_ipmac_gc_test net/netfilter/ipset/ip_set_bitmap_ipmac.c:102 [inline]
+ bitmap_ipmac_gc+0x119/0x590 net/netfilter/ipset/ip_set_bitmap_gen.h:277
+ call_timer_fn+0x1ac/0x780 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers kernel/time/timer.c:1773 [inline]
+ __run_timers kernel/time/timer.c:1740 [inline]
+ run_timer_softirq+0x6c3/0x1790 kernel/time/timer.c:1786
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x19b/0x1e0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0x1a3/0x610 arch/x86/kernel/apic/apic.c:1137
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ </IRQ>
+RIP: 0010:__raw_spin_unlock_irq include/linux/spinlock_api_smp.h:169 [inline]
+RIP: 0010:_raw_spin_unlock_irq+0x4f/0x80 kernel/locking/spinlock.c:199
+Code: c0 a8 33 93 89 48 ba 00 00 00 00 00 fc ff df 48 c1 e8 03 80 3c 10 00 75 33 48 83 3d b2 9f b9 01 00 74 20 fb 66 0f 1f 44 00 00 <bf> 01 00 00 00 e8 37 01 77 f9 65 8b 05 78 8a 28 78 85 c0 74 06 41
+RSP: 0018:ffffc90000d3fc68 EFLAGS: 00000282 ORIG_RAX: ffffffffffffff13
+RAX: 1ffffffff1326675 RBX: ffff8880a99fc340 RCX: 0000000000000000
+RDX: dffffc0000000000 RSI: 0000000000000006 RDI: ffff8880a99fcbd4
+RBP: ffffc90000d3fc70 R08: ffff8880a99fc340 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8880ae937340
+R13: ffff8880a64a05c0 R14: 0000000000000000 R15: 0000000000000001
+ finish_lock_switch kernel/sched/core.c:3124 [inline]
+ finish_task_switch+0x147/0x750 kernel/sched/core.c:3224
+ context_switch kernel/sched/core.c:3388 [inline]
+ __schedule+0x93c/0x1f90 kernel/sched/core.c:4081
+ schedule_idle+0x58/0x90 kernel/sched/core.c:4183
+ do_idle+0x35e/0x6e0 kernel/sched/idle.c:293
+ cpu_startup_entry+0x1b/0x20 kernel/sched/idle.c:361
+ start_secondary+0x2f4/0x410 arch/x86/kernel/smpboot.c:264
+ secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:242
 
-Allocated by task 9949:
+Allocated by task 9651:
  save_stack+0x23/0x90 mm/kasan/common.c:72
  set_track mm/kasan/common.c:80 [inline]
  __kasan_kmalloc mm/kasan/common.c:513 [inline]
  __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:486
  kasan_kmalloc+0x9/0x10 mm/kasan/common.c:527
- kmem_cache_alloc_trace+0x158/0x790 mm/slab.c:3551
- kmalloc include/linux/slab.h:556 [inline]
+ __do_kmalloc mm/slab.c:3656 [inline]
+ __kmalloc+0x163/0x770 mm/slab.c:3665
+ kmalloc include/linux/slab.h:561 [inline]
  kzalloc include/linux/slab.h:670 [inline]
- nf_tables_newtable+0xa4d/0x1510 net/netfilter/nf_tables_api.c:981
- nfnetlink_rcv_batch+0xf42/0x17a0 net/netfilter/nfnetlink.c:433
- nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:543 [inline]
- nfnetlink_rcv+0x3e7/0x460 net/netfilter/nfnetlink.c:561
+ ip_set_alloc+0x38/0x5e net/netfilter/ipset/ip_set_core.c:255
+ init_map_ipmac net/netfilter/ipset/ip_set_bitmap_ipmac.c:302 [inline]
+ bitmap_ipmac_create+0x4e8/0xa00 net/netfilter/ipset/ip_set_bitmap_ipmac.c:365
+ ip_set_create+0x6f1/0x1500 net/netfilter/ipset/ip_set_core.c:1111
+ nfnetlink_rcv_msg+0xcf2/0xfb0 net/netfilter/nfnetlink.c:229
+ netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
+ nfnetlink_rcv+0x1ba/0x460 net/netfilter/nfnetlink.c:563
  netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
- netlink_unicast+0x58c/0x7d0 net/netlink/af_netlink.c:1328
+ netlink_unicast+0x59e/0x7e0 net/netlink/af_netlink.c:1328
  netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
- sock_sendmsg_nosec net/socket.c:639 [inline]
- sock_sendmsg+0xd7/0x130 net/socket.c:659
- ____sys_sendmsg+0x753/0x880 net/socket.c:2330
- ___sys_sendmsg+0x100/0x170 net/socket.c:2384
- __sys_sendmsg+0x105/0x1d0 net/socket.c:2417
- __do_sys_sendmsg net/socket.c:2426 [inline]
- __se_sys_sendmsg net/socket.c:2424 [inline]
- __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2424
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:672
+ ____sys_sendmsg+0x753/0x880 net/socket.c:2343
+ ___sys_sendmsg+0x100/0x170 net/socket.c:2397
+ __sys_sendmsg+0x105/0x1d0 net/socket.c:2430
+ __do_sys_sendmsg net/socket.c:2439 [inline]
+ __se_sys_sendmsg net/socket.c:2437 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2437
  do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
  entry_SYSCALL_64_after_hwframe+0x49/0xbe
 
-Freed by task 2840:
+Freed by task 9407:
  save_stack+0x23/0x90 mm/kasan/common.c:72
  set_track mm/kasan/common.c:80 [inline]
  kasan_set_free_info mm/kasan/common.c:335 [inline]
@@ -147,31 +163,36 @@ Freed by task 2840:
  kasan_slab_free+0xe/0x10 mm/kasan/common.c:483
  __cache_free mm/slab.c:3426 [inline]
  kfree+0x10a/0x2c0 mm/slab.c:3757
- nf_tables_table_destroy.isra.0+0xef/0x150 net/netfilter/nf_tables_api.c:1160
- nft_commit_release net/netfilter/nf_tables_api.c:6810 [inline]
- nf_tables_trans_destroy_work+0x406/0x7c0 net/netfilter/nf_tables_api.c:6860
- process_one_work+0x9af/0x1740 kernel/workqueue.c:2264
- worker_thread+0x98/0xe40 kernel/workqueue.c:2410
- kthread+0x361/0x430 kernel/kthread.c:255
- ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+ load_elf_binary+0x61c/0x5310 fs/binfmt_elf.c:760
+ search_binary_handler fs/exec.c:1658 [inline]
+ search_binary_handler+0x16d/0x570 fs/exec.c:1635
+ exec_binprm fs/exec.c:1701 [inline]
+ __do_execve_file.isra.0+0x1329/0x22b0 fs/exec.c:1821
+ do_execveat_common fs/exec.c:1867 [inline]
+ do_execve fs/exec.c:1884 [inline]
+ __do_sys_execve fs/exec.c:1960 [inline]
+ __se_sys_execve fs/exec.c:1955 [inline]
+ __x64_sys_execve+0x8f/0xc0 fs/exec.c:1955
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
 
-The buggy address belongs to the object at ffff888096085400
- which belongs to the cache kmalloc-512 of size 512
-The buggy address is located 8 bytes inside of
- 512-byte region [ffff888096085400, ffff888096085600)
+The buggy address belongs to the object at ffff8880a97e9cc0
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 0 bytes inside of
+ 32-byte region [ffff8880a97e9cc0, ffff8880a97e9ce0)
 The buggy address belongs to the page:
-page:ffffea0002582140 refcount:1 mapcount:0 mapping:ffff8880aa400a80 index:0x0
-raw: 00fffe0000000200 ffffea0002402a88 ffffea000294a748 ffff8880aa400a80
-raw: 0000000000000000 ffff888096085000 0000000100000004 0000000000000000
+page:ffffea0002a5fa40 refcount:1 mapcount:0 mapping:ffff8880aa4001c0 index:0xffff8880a97e9fc1
+raw: 00fffe0000000200 ffffea0002a4cac8 ffffea000291ca88 ffff8880aa4001c0
+raw: ffff8880a97e9fc1 ffff8880a97e9000 000000010000002f 0000000000000000
 page dumped because: kasan: bad access detected
 
 Memory state around the buggy address:
- ffff888096085300: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
- ffff888096085380: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
->ffff888096085400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-                      ^
- ffff888096085480: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
- ffff888096085500: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880a97e9b80: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8880a97e9c00: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+>ffff8880a97e9c80: fb fb fb fb fc fc fc fc 04 fc fc fc fc fc fc fc
+                                           ^
+ ffff8880a97e9d00: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8880a97e9d80: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
 ==================================================================
 
 
