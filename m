@@ -2,86 +2,77 @@ Return-Path: <SRS0=8tM5=3J=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F6D5C33CAA
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jan 2020 18:22:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18B1AC32771
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jan 2020 21:39:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0BA4522525
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jan 2020 18:22:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E58BC22522
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jan 2020 21:39:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728587AbgATSWC (ORCPT
+        id S1727691AbgATVj4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 Jan 2020 13:22:02 -0500
-Received: from mail-il1-f199.google.com ([209.85.166.199]:39272 "EHLO
-        mail-il1-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726982AbgATSWB (ORCPT
+        Mon, 20 Jan 2020 16:39:56 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:57648 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726752AbgATVj4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Jan 2020 13:22:01 -0500
-Received: by mail-il1-f199.google.com with SMTP id n6so313517ile.6
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Jan 2020 10:22:01 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=MqDXOoM9vvTcTH3u9+KklRDGAKW3hOgR3ZSR/h+boWo=;
-        b=uEgFRclT6XakumetGDthd9PWFaqPbmjCf7t97++FKqLvH1bdWpNZruNphSNqdNX+fo
-         jCQfh8t+23e9NZHxwInMDWEWjTjYW4P1MXb7JETP0Sp+Vik+6ssJj433N+FmGOJ6uwtG
-         PcBzv9yvQ7nsIvxhAcffdq7CoHs3/ZchKG2RvejVZXla7GsA9jGk+yzHayp+f6vorVZS
-         Xq67TBTwns/S3HUaviQj2sMf6i1VVDgUxaM6L8Oc+5Cb32gVuI8YqUXXEbsu67x2/o5M
-         /Cg4tWq6wXBkKtwpDxPdGBW0Kos4Pv2K5JpwSACBNUdUfnDbESkQVhz8B63mUsiIJNe2
-         VNsw==
-X-Gm-Message-State: APjAAAXLl2jLkGf8hha5WTMxrzTNxtMGEmQgJnIaxaqXFDtSSuNvzoQc
-        qb6MqaweTLkHAFYV3umy7+06hY1FD8FxHlB/WdemsWchD5Tp
-X-Google-Smtp-Source: APXvYqzfQyTnxVv2xv/HZdiNuXYYiHLNeNXNJ6hv0nTAZFxD/xXg/rkalEYxh8LA+d9fc9B6xIMLWxfmsZDaI5AWugpAqhqpGZ/4
+        Mon, 20 Jan 2020 16:39:56 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1item2-0003fY-5o; Mon, 20 Jan 2020 22:39:54 +0100
+Date:   Mon, 20 Jan 2020 22:39:54 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     sbezverk <sbezverk@gmail.com>
+Cc:     Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: Re: load balancing between two chains
+Message-ID: <20200120213954.GF795@breakpoint.cc>
+References: <011F145A-C830-444E-A9AD-DB45178EBF78@gmail.com>
+ <20200120112309.GG19873@orbyte.nwl.cc>
+ <F6976F28-188D-4267-8B95-F4BF1EDD43F2@gmail.com>
+ <20200120170656.GE795@breakpoint.cc>
+ <A774A3A8-64EB-4897-8574-076CC326F020@gmail.com>
 MIME-Version: 1.0
-X-Received: by 2002:a02:856a:: with SMTP id g97mr227401jai.97.1579544520986;
- Mon, 20 Jan 2020 10:22:00 -0800 (PST)
-Date:   Mon, 20 Jan 2020 10:22:00 -0800
-In-Reply-To: <00000000000043aa29059c91459e@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000149402059c965e75@google.com>
-Subject: Re: KASAN: slab-out-of-bounds Read in bitmap_ipmac_gc
-From:   syzbot <syzbot+c1a1fb435465986efe35@syzkaller.appspotmail.com>
-To:     a@unstable.cc, b.a.t.m.a.n@lists.open-mesh.org,
-        coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        gregkh@linuxfoundation.org, info@metux.net, jeremy@azazel.net,
-        kadlec@netfilter.org, kstewart@linuxfoundation.org,
-        linux-kernel@vger.kernel.org, lipeng321@huawei.com,
-        liuyonglong@huawei.com, mareklindner@neomailbox.ch,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, salil.mehta@huawei.com, sbrivio@redhat.com,
-        shuliubin@huawei.com, sw@simonwunderlich.de,
-        syzkaller-bugs@googlegroups.com, tglx@linutronix.de,
-        yisen.zhuang@huawei.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <A774A3A8-64EB-4897-8574-076CC326F020@gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has bisected this bug to:
+sbezverk <sbezverk@gmail.com> wrote:
+> Changed kernel to 5.4.10, and switch to use "inc" instead of "random".  Now first curl works and second fails. Whenever second chain is selected to be used,  curl connection gets stuck. 
+> 
+>         chain k8s-nfproxy-svc-M53CN2XYVUHRQ7UB {
+>                 numgen inc mod 2 vmap { 0 : goto k8s-nfproxy-sep-TMVEFT7EX55F4T62, 1 : goto k8s-nfproxy-sep-GTJ7BFLUOQRCGMD5 }
+>                 counter packets 1 bytes 60 comment ""
+>         }
+> 
+>         chain k8s-nfproxy-sep-TMVEFT7EX55F4T62 {
+>                 counter packets 1 bytes 60 comment ""
+>                 ip saddr 57.112.0.41 meta mark set 0x00004000 comment ""
+>                 dnat to 57.112.0.41:8080 fully-random
+>         }
+> 
+>         chain k8s-nfproxy-sep-GTJ7BFLUOQRCGMD5 {
+>                 counter packets 0 bytes 0 comment ""
+>                 ip saddr 57.112.0.52 meta mark set 0x00004000 comment ""
+>                 dnat to 57.112.0.52:8989 fully-random
+>         }
+> 
+> Any debug I could enable to see where the packet goes?
 
-commit 0d581ba311a27762fe1a14e5db5f65d225b3d844
-Author: Yonglong Liu <liuyonglong@huawei.com>
-Date:   Wed Jul 3 11:12:30 2019 +0000
+The counter after numgen should not increment, but it does.
+Either numgen does something wrong, or hash alg is broken and doesn't
+find a result for "1".
 
-    net: hns: add support for vlan TSO
+There was such a bug but it was fixed in 5.1...
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=16d5dfaee00000
-start commit:   def9d278 Linux 5.5-rc7
-git tree:       upstream
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=15d5dfaee00000
-console output: https://syzkaller.appspot.com/x/log.txt?x=11d5dfaee00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=cf8e288883e40aba
-dashboard link: https://syzkaller.appspot.com/bug?extid=c1a1fb435465986efe35
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=153ac495e00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=153471d1e00000
-
-Reported-by: syzbot+c1a1fb435465986efe35@syzkaller.appspotmail.com
-Fixes: 0d581ba311a2 ("net: hns: add support for vlan TSO")
-
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+please show:
+uname -a
+nft --version
