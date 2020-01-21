@@ -7,53 +7,53 @@ X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3AB3C33CAF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jan 2020 23:18:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16887C2D0CE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jan 2020 23:18:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7E24124653
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jan 2020 23:18:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DA1E924656
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jan 2020 23:18:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="VVW2gcaC"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="RWeddKfe"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727022AbgAUXSR (ORCPT
+        id S1727141AbgAUXSU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Jan 2020 18:18:17 -0500
-Received: from us-smtp-1.mimecast.com ([205.139.110.61]:26820 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726605AbgAUXSQ (ORCPT
+        Tue, 21 Jan 2020 18:18:20 -0500
+Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:43589 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726605AbgAUXSU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Jan 2020 18:18:16 -0500
+        Tue, 21 Jan 2020 18:18:20 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1579648696;
+        s=mimecast20190719; t=1579648698;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=oiY7q8OZXNWGI6CA9kMQIizNZg6ZwBcGI2bpU4lv7Z0=;
-        b=VVW2gcaCjCNBRr7zNy2KY2RZ85gRmlzksFVMmLtoKPbksBF2aTXxtqAhmJC6sd8OCI8Gjc
-        SNvQwBwg8PhF8vVh29b8NTJWIbRPKCqoE3Y3KAwgjaheMa5uFR9L78cmgFJHV/PQdHEGUq
-        DCqUEkcFqGJMkSBjNVaGuoBVkNcNHr0=
+        bh=0xzrBvdvOyDMk+tSAP656bunlUcN+iYrBCKHirUjpIc=;
+        b=RWeddKfe2ERO12mZECpc79qGkOMhEX1KN4tWxPj8UCexOPHATkb7d48YZIqZ6Iqeop1sye
+        CjARS4+Nov/JtaYmeZo2Zi192exTKhqF9OblfZel3MYu3FkaIypU8paGbBncQW7RmZvhrP
+        r1E2zF08KO/PQsAUcY8VNgsPX+Y560U=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-126-0DmW2evYOWS0sipQiBjAgA-1; Tue, 21 Jan 2020 18:18:12 -0500
-X-MC-Unique: 0DmW2evYOWS0sipQiBjAgA-1
+ us-mta-131-CRxutZ0FM5Clon7plWptLQ-1; Tue, 21 Jan 2020 18:18:14 -0500
+X-MC-Unique: CRxutZ0FM5Clon7plWptLQ-1
 Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id E6C5018FE860;
-        Tue, 21 Jan 2020 23:18:10 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 20658DB60;
+        Tue, 21 Jan 2020 23:18:13 +0000 (UTC)
 Received: from epycfail.redhat.com (ovpn-112-49.ams2.redhat.com [10.36.112.49])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 193415C1BB;
-        Tue, 21 Jan 2020 23:18:08 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 566785C1BB;
+        Tue, 21 Jan 2020 23:18:11 +0000 (UTC)
 From:   Stefano Brivio <sbrivio@redhat.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org
 Cc:     Florian Westphal <fw@strlen.de>,
         =?UTF-8?q?Kadlecsik=20J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>,
         Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>
-Subject: [PATCH nf-next v4 3/9] netfilter: nf_tables: Support for sets with multiple ranged fields
-Date:   Wed, 22 Jan 2020 00:17:53 +0100
-Message-Id: <c02a408d46aa24c42cf594125f101eb935595904.1579647351.git.sbrivio@redhat.com>
+Subject: [PATCH nf-next v4 4/9] bitmap: Introduce bitmap_cut(): cut bits and shift remaining
+Date:   Wed, 22 Jan 2020 00:17:54 +0100
+Message-Id: <a4ee22fb535ef6cf978085a2aa0980cbf48f3634.1579647351.git.sbrivio@redhat.com>
 In-Reply-To: <cover.1579647351.git.sbrivio@redhat.com>
 References: <cover.1579647351.git.sbrivio@redhat.com>
 MIME-Version: 1.0
@@ -64,309 +64,137 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Introduce a new nested netlink attribute, NFTA_SET_DESC_CONCAT, used
-to specify the length of each field in a set concatenation.
-
-This allows set implementations to support concatenation of multiple
-ranged items, as they can divide the input key into matching data for
-every single field. Such set implementations would be selected as
-they specify support for NFT_SET_INTERVAL and allow desc->field_count
-to be greater than one. Explicitly disallow this for nft_set_rbtree.
-
-In order to specify the interval for a set entry, userspace would
-include in NFTA_SET_DESC_CONCAT attributes field lengths, and pass
-range endpoints as two separate keys, represented by attributes
-NFTA_SET_ELEM_KEY and NFTA_SET_ELEM_KEY_END.
-
-While at it, export the number of 32-bit registers available for
-packet matching, as nftables will need this to know the maximum
-number of field lengths that can be specified.
-
-For example, "packets with an IPv4 address between 192.0.2.0 and
-192.0.2.42, with destination port between 22 and 25", can be
-expressed as two concatenated elements:
-
-  NFTA_SET_ELEM_KEY:            192.0.2.0 . 22
-  NFTA_SET_ELEM_KEY_END:        192.0.2.42 . 25
-
-and NFTA_SET_DESC_CONCAT attribute would contain:
-
-  NFTA_LIST_ELEM
-    NFTA_SET_FIELD_LEN:		4
-  NFTA_LIST_ELEM
-    NFTA_SET_FIELD_LEN:		2
-
-v4: No changes
-v3: Complete rework, NFTA_SET_DESC_CONCAT instead of NFTA_SET_SUBKEY
-v2: No changes
+The new bitmap function bitmap_cut() copies bits from source to
+destination by removing the region specified by parameters first
+and cut, and remapping the bits above the cut region by right
+shifting them.
 
 Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
 ---
- include/net/netfilter/nf_tables.h        |  8 +++
- include/uapi/linux/netfilter/nf_tables.h | 15 ++++
- net/netfilter/nf_tables_api.c            | 90 +++++++++++++++++++++++-
- net/netfilter/nft_set_rbtree.c           |  3 +
- 4 files changed, 115 insertions(+), 1 deletion(-)
+v4: No changes
+v3: No changes
+v2: No changes
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf=
-_tables.h
-index 504c0aa93805..4170c033d461 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -264,11 +264,15 @@ struct nft_set_iter {
-  *	@klen: key length
-  *	@dlen: data length
-  *	@size: number of set elements
-+ *	@field_len: length of each field in concatenation, bytes
-+ *	@field_count: number of concatenated fields in element
-  */
- struct nft_set_desc {
- 	unsigned int		klen;
- 	unsigned int		dlen;
- 	unsigned int		size;
-+	u8			field_len[NFT_REG32_COUNT];
-+	u8			field_count;
- };
-=20
- /**
-@@ -409,6 +413,8 @@ void nft_unregister_set(struct nft_set_type *type);
-  * 	@dtype: data type (verdict or numeric type defined by userspace)
-  * 	@objtype: object type (see NFT_OBJECT_* definitions)
-  * 	@size: maximum set size
-+ *	@field_len: length of each field in concatenation, bytes
-+ *	@field_count: number of concatenated fields in element
-  *	@use: number of rules references to this set
-  * 	@nelems: number of elements
-  * 	@ndeact: number of deactivated elements queued for removal
-@@ -435,6 +441,8 @@ struct nft_set {
- 	u32				dtype;
- 	u32				objtype;
- 	u32				size;
-+	u8				field_len[NFT_REG32_COUNT];
-+	u8				field_count;
- 	u32				use;
- 	atomic_t			nelems;
- 	u32				ndeact;
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linu=
-x/netfilter/nf_tables.h
-index c13106496bd2..065218a20bb7 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -48,6 +48,7 @@ enum nft_registers {
-=20
- #define NFT_REG_SIZE	16
- #define NFT_REG32_SIZE	4
-+#define NFT_REG32_COUNT	(NFT_REG32_15 - NFT_REG32_00 + 1)
-=20
- /**
-  * enum nft_verdicts - nf_tables internal verdicts
-@@ -301,14 +302,28 @@ enum nft_set_policies {
-  * enum nft_set_desc_attributes - set element description
-  *
-  * @NFTA_SET_DESC_SIZE: number of elements in set (NLA_U32)
-+ * @NFTA_SET_DESC_CONCAT: description of field concatenation (NLA_NESTED=
-)
-  */
- enum nft_set_desc_attributes {
- 	NFTA_SET_DESC_UNSPEC,
- 	NFTA_SET_DESC_SIZE,
-+	NFTA_SET_DESC_CONCAT,
- 	__NFTA_SET_DESC_MAX
- };
- #define NFTA_SET_DESC_MAX	(__NFTA_SET_DESC_MAX - 1)
+ include/linux/bitmap.h |  4 +++
+ lib/bitmap.c           | 66 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 70 insertions(+)
+
+diff --git a/include/linux/bitmap.h b/include/linux/bitmap.h
+index ff335b22f23c..f0f3a9fffa6a 100644
+--- a/include/linux/bitmap.h
++++ b/include/linux/bitmap.h
+@@ -53,6 +53,7 @@
+  *  bitmap_find_next_zero_area_off(buf, len, pos, n, mask)  as above
+  *  bitmap_shift_right(dst, src, n, nbits)      *dst =3D *src >> n
+  *  bitmap_shift_left(dst, src, n, nbits)       *dst =3D *src << n
++ *  bitmap_cut(dst, src, first, n, nbits)       Cut n bits from first, c=
+opy rest
+  *  bitmap_replace(dst, old, new, mask, nbits)  *dst =3D (*old & ~(*mask=
+)) | (*new & *mask)
+  *  bitmap_remap(dst, src, old, new, nbits)     *dst =3D map(old, new)(s=
+rc)
+  *  bitmap_bitremap(oldbit, old, new, nbits)    newbit =3D map(old, new)=
+(oldbit)
+@@ -133,6 +134,9 @@ extern void __bitmap_shift_right(unsigned long *dst, =
+const unsigned long *src,
+ 				unsigned int shift, unsigned int nbits);
+ extern void __bitmap_shift_left(unsigned long *dst, const unsigned long =
+*src,
+ 				unsigned int shift, unsigned int nbits);
++extern void bitmap_cut(unsigned long *dst, const unsigned long *src,
++		       unsigned int first, unsigned int cut,
++		       unsigned int nbits);
+ extern int __bitmap_and(unsigned long *dst, const unsigned long *bitmap1=
+,
+ 			const unsigned long *bitmap2, unsigned int nbits);
+ extern void __bitmap_or(unsigned long *dst, const unsigned long *bitmap1=
+,
+diff --git a/lib/bitmap.c b/lib/bitmap.c
+index 4250519d7d1c..6e175fbd69a9 100644
+--- a/lib/bitmap.c
++++ b/lib/bitmap.c
+@@ -168,6 +168,72 @@ void __bitmap_shift_left(unsigned long *dst, const u=
+nsigned long *src,
+ }
+ EXPORT_SYMBOL(__bitmap_shift_left);
 =20
 +/**
-+ * enum nft_set_field_attributes - attributes of concatenated fields
++ * bitmap_cut() - remove bit region from bitmap and right shift remainin=
+g bits
++ * @dst: destination bitmap, might overlap with src
++ * @src: source bitmap
++ * @first: start bit of region to be removed
++ * @cut: number of bits to remove
++ * @nbits: bitmap size, in bits
 + *
-+ * @NFTA_SET_FIELD_LEN: length of single field, in bits (NLA_U32)
++ * Set the n-th bit of @dst iff the n-th bit of @src is set and
++ * n is less than @first, or the m-th bit of @src is set for any
++ * m such that @first <=3D n < nbits, and m =3D n + @cut.
++ *
++ * In pictures, example for a big-endian 32-bit architecture:
++ *
++ * @src:
++ * 31                                   63
++ * |                                    |
++ * 10000000 11000001 11110010 00010101  10000000 11000001 01110010 00010=
+101
++ *                 |  |              |                                  =
+  |
++ *                16  14             0                                  =
+ 32
++ *
++ * if @cut is 3, and @first is 14, bits 14-16 in @src are cut and @dst i=
+s:
++ *
++ * 31                                   63
++ * |                                    |
++ * 10110000 00011000 00110010 00010101  00010000 00011000 00101110 01000=
+010
++ *                    |              |                                  =
+  |
++ *                    14 (bit 17     0                                  =
+ 32
++ *                        from @src)
++ *
++ * Note that @dst and @src might overlap partially or entirely.
++ *
++ * This is implemented in the obvious way, with a shift and carry
++ * step for each moved bit. Optimisation is left as an exercise
++ * for the compiler.
 + */
-+enum nft_set_field_attributes {
-+	NFTA_SET_FIELD_UNSPEC,
-+	NFTA_SET_FIELD_LEN,
-+	__NFTA_SET_FIELD_MAX
-+};
-+#define NFTA_SET_FIELD_MAX	(__NFTA_SET_FIELD_MAX - 1)
-+
- /**
-  * enum nft_set_attributes - nf_tables set netlink attributes
-  *
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.=
-c
-index 6cfd65348958..767688e5673c 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3358,6 +3358,7 @@ static const struct nla_policy nft_set_policy[NFTA_=
-SET_MAX + 1] =3D {
-=20
- static const struct nla_policy nft_set_desc_policy[NFTA_SET_DESC_MAX + 1=
-] =3D {
- 	[NFTA_SET_DESC_SIZE]		=3D { .type =3D NLA_U32 },
-+	[NFTA_SET_DESC_CONCAT]		=3D { .type =3D NLA_NESTED },
- };
-=20
- static int nft_ctx_init_from_setattr(struct nft_ctx *ctx, struct net *ne=
-t,
-@@ -3524,6 +3525,33 @@ static __be64 nf_jiffies64_to_msecs(u64 input)
- 	return cpu_to_be64(jiffies64_to_msecs(input));
- }
-=20
-+static int nf_tables_fill_set_concat(struct sk_buff *skb,
-+				     const struct nft_set *set)
++void bitmap_cut(unsigned long *dst, const unsigned long *src,
++		unsigned int first, unsigned int cut, unsigned int nbits)
 +{
-+	struct nlattr *concat, *field;
++	unsigned int len =3D BITS_TO_LONGS(nbits);
++	unsigned long keep =3D 0, carry;
 +	int i;
 +
-+	concat =3D nla_nest_start_noflag(skb, NFTA_SET_DESC_CONCAT);
-+	if (!concat)
-+		return -ENOMEM;
++	memmove(dst, src, len * sizeof(*dst));
 +
-+	for (i =3D 0; i < set->field_count; i++) {
-+		field =3D nla_nest_start_noflag(skb, NFTA_LIST_ELEM);
-+		if (!field)
-+			return -ENOMEM;
-+
-+		if (nla_put_be32(skb, NFTA_SET_FIELD_LEN,
-+				 htonl(set->field_len[i])))
-+			return -ENOMEM;
-+
-+		nla_nest_end(skb, field);
++	if (first % BITS_PER_LONG) {
++		keep =3D src[first / BITS_PER_LONG] &
++		       (~0UL >> (BITS_PER_LONG - first % BITS_PER_LONG));
 +	}
 +
-+	nla_nest_end(skb, concat);
++	while (cut--) {
++		for (i =3D first / BITS_PER_LONG; i < len; i++) {
++			if (i < len - 1)
++				carry =3D dst[i + 1] & 1UL;
++			else
++				carry =3D 0;
 +
-+	return 0;
-+}
-+
- static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx =
-*ctx,
- 			      const struct nft_set *set, u16 event, u16 flags)
- {
-@@ -3587,11 +3615,17 @@ static int nf_tables_fill_set(struct sk_buff *skb=
-, const struct nft_ctx *ctx,
- 		goto nla_put_failure;
-=20
- 	desc =3D nla_nest_start_noflag(skb, NFTA_SET_DESC);
-+
- 	if (desc =3D=3D NULL)
- 		goto nla_put_failure;
- 	if (set->size &&
- 	    nla_put_be32(skb, NFTA_SET_DESC_SIZE, htonl(set->size)))
- 		goto nla_put_failure;
-+
-+	if (set->field_count > 1 &&
-+	    nf_tables_fill_set_concat(skb, set))
-+		goto nla_put_failure;
-+
- 	nla_nest_end(skb, desc);
-=20
- 	nlmsg_end(skb, nlh);
-@@ -3764,6 +3798,53 @@ static int nf_tables_getset(struct net *net, struc=
-t sock *nlsk,
- 	return err;
- }
-=20
-+static const struct nla_policy nft_concat_policy[NFTA_SET_FIELD_MAX + 1]=
- =3D {
-+	[NFTA_SET_FIELD_LEN]	=3D { .type =3D NLA_U32 },
-+};
-+
-+static int nft_set_desc_concat_parse(const struct nlattr *attr,
-+				     struct nft_set_desc *desc)
-+{
-+	struct nlattr *tb[NFTA_SET_FIELD_MAX + 1];
-+	u32 len;
-+	int err;
-+
-+	err =3D nla_parse_nested_deprecated(tb, NFTA_SET_FIELD_MAX, attr,
-+					  nft_concat_policy, NULL);
-+	if (err < 0)
-+		return err;
-+
-+	if (!tb[NFTA_SET_FIELD_LEN])
-+		return -EINVAL;
-+
-+	len =3D ntohl(nla_get_be32(tb[NFTA_SET_FIELD_LEN]));
-+
-+	if (len * BITS_PER_BYTE / 32 > NFT_REG32_COUNT)
-+		return -E2BIG;
-+
-+	desc->field_len[desc->field_count++] =3D len;
-+
-+	return 0;
-+}
-+
-+static int nft_set_desc_concat(struct nft_set_desc *desc,
-+			       const struct nlattr *nla)
-+{
-+	struct nlattr *attr;
-+	int rem, err;
-+
-+	nla_for_each_nested(attr, nla, rem) {
-+		if (nla_type(attr) !=3D NFTA_LIST_ELEM)
-+			return -EINVAL;
-+
-+		err =3D nft_set_desc_concat_parse(attr, desc);
-+		if (err < 0)
-+			return err;
++			dst[i] =3D (dst[i] >> 1) | (carry << (BITS_PER_LONG - 1));
++		}
 +	}
 +
-+	return 0;
++	dst[first / BITS_PER_LONG] &=3D ~0UL << (first % BITS_PER_LONG);
++	dst[first / BITS_PER_LONG] |=3D keep;
 +}
++EXPORT_SYMBOL(bitmap_cut);
 +
- static int nf_tables_set_desc_parse(struct nft_set_desc *desc,
- 				    const struct nlattr *nla)
+ int __bitmap_and(unsigned long *dst, const unsigned long *bitmap1,
+ 				const unsigned long *bitmap2, unsigned int bits)
  {
-@@ -3777,8 +3858,10 @@ static int nf_tables_set_desc_parse(struct nft_set=
-_desc *desc,
-=20
- 	if (da[NFTA_SET_DESC_SIZE] !=3D NULL)
- 		desc->size =3D ntohl(nla_get_be32(da[NFTA_SET_DESC_SIZE]));
-+	if (da[NFTA_SET_DESC_CONCAT])
-+		err =3D nft_set_desc_concat(desc, da[NFTA_SET_DESC_CONCAT]);
-=20
--	return 0;
-+	return err;
- }
-=20
- static int nf_tables_newset(struct net *net, struct sock *nlsk,
-@@ -3801,6 +3884,7 @@ static int nf_tables_newset(struct net *net, struct=
- sock *nlsk,
- 	unsigned char *udata;
- 	u16 udlen;
- 	int err;
-+	int i;
-=20
- 	if (nla[NFTA_SET_TABLE] =3D=3D NULL ||
- 	    nla[NFTA_SET_NAME] =3D=3D NULL ||
-@@ -3979,6 +4063,10 @@ static int nf_tables_newset(struct net *net, struc=
-t sock *nlsk,
- 	set->gc_int =3D gc_int;
- 	set->handle =3D nf_tables_alloc_handle(table);
-=20
-+	set->field_count =3D desc.field_count;
-+	for (i =3D 0; i < desc.field_count; i++)
-+		set->field_len[i] =3D desc.field_len[i];
-+
- 	err =3D ops->init(set, &desc, nla);
- 	if (err < 0)
- 		goto err3;
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtre=
-e.c
-index a9f804f7a04a..5000b938ab1e 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -466,6 +466,9 @@ static void nft_rbtree_destroy(const struct nft_set *=
-set)
- static bool nft_rbtree_estimate(const struct nft_set_desc *desc, u32 fea=
-tures,
- 				struct nft_set_estimate *est)
- {
-+	if (desc->field_count > 1)
-+		return false;
-+
- 	if (desc->size)
- 		est->size =3D sizeof(struct nft_rbtree) +
- 			    desc->size * sizeof(struct nft_rbtree_elem);
 --=20
 2.24.1
 
