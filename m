@@ -6,47 +6,48 @@ X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
 	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3224C33CAA
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jan 2020 19:57:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C81EC2D0CE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jan 2020 21:50:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A2842217F4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jan 2020 19:57:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 50B8D24125
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jan 2020 21:50:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728855AbgAUT5K (ORCPT
+        id S1729099AbgAUVuC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Jan 2020 14:57:10 -0500
-Received: from mail-io1-f72.google.com ([209.85.166.72]:46252 "EHLO
-        mail-io1-f72.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727360AbgAUT5K (ORCPT
+        Tue, 21 Jan 2020 16:50:02 -0500
+Received: from mail-io1-f69.google.com ([209.85.166.69]:56184 "EHLO
+        mail-io1-f69.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728799AbgAUVuC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Jan 2020 14:57:10 -0500
-Received: by mail-io1-f72.google.com with SMTP id p206so2466419iod.13
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jan 2020 11:57:10 -0800 (PST)
+        Tue, 21 Jan 2020 16:50:02 -0500
+Received: by mail-io1-f69.google.com with SMTP id z21so2635630iob.22
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jan 2020 13:50:02 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=Na+0RlDjz+USmrX/lnYIn3IXaqN3eGHx5d+CcmxDSfw=;
-        b=i+N0U5AHt1vyeQlKewwsl6XEUbM9irWW2R9wVisEsXiS3rYE8u7wHTbcBzEhB3jqnt
-         Mu2/lk9TOUhcsXEiVwHXZEFKGzGw4yOKYTDslMWaFzOotiKX11Sc6yTBXouGCW9xG/VG
-         WIO4Uo6fevvTRWUpv/tDZLScyN1RjWzKir9IuwPMCGXIL49HHlyeHSF61BLptag+KJnU
-         QofVC+coMyr5iDJF5HRdMpC2FoujzyLThRCG27oVNyZz/50D5VMx5KUDjcBEIG++BxLO
-         pnLjZGFzh2ch6zXckoWdDfAqc2puP0rBhUjnHDQSZ4sCg1nIyWDFBiVPdwpiumurx9Va
-         6Wkg==
-X-Gm-Message-State: APjAAAWE9QXvcrzSzvGEHYrGB6aZbM7TMZwxYuLNodadKc9UVd3y4Afn
-        u8Xo6B8J57zFuIBIrxIRZhJjrmQxYvyzmyDtNxhvsuoOfvpQ
-X-Google-Smtp-Source: APXvYqzHKTdCXBMX0jBeRbPRbRY+ALjXzg9J04Y3NuOJkVKKtwwqCljRZoKvKqYX8YYEt2H5NhdCDSddo87YSau6iPRhLSxkrtrX
+        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
+         :from:to;
+        bh=1nu34KWVojNJ0iYFVQZsR/2nmBumiBAt3h2LvuI970Y=;
+        b=edL02p4qnWYiOBXcjKeaNLA8dKmixFQJt77HrsvRrPiv+B9BcVHEgZF39EY949EXEW
+         iJXIbZj4GcSzYP0POTpI6T2NYD6YPbNmYvh8/Cw0c6zhc96yCMWMVtrhGUwmMt+CVFV3
+         z0sZb4j3oZSmrvTUyxSnl2xyxo/0xCFp6p1uJZ3d/4X0/uIAgsrLPGKcxG3RiX4VNJjN
+         XsEByT90AUK8xIh4hVV+dM7Z/c9JqgBft3Fv2PB5lqKTByqV9sTnmK9EimlyOZqtzKZP
+         aS3jG7U76WZ4+ZHq/O186pxYYCjuiFHy0yze3XjU+q8pgQBVbPQ+2pMfOjaCtjNUKsYw
+         Bmfg==
+X-Gm-Message-State: APjAAAXXxkuOJKff481/dZhKbL0+vEOy/vul0i2DWvSE9M9alshuXQXi
+        xoHR232gcS051pFUx4Yy/OztFcIW/msEZIyl8vh1a7Gp8gwe
+X-Google-Smtp-Source: APXvYqxQ4rOLGRXLTbwmviB3A/+GgBIvEUj4X8+0mXpwIfIkcZe7psrzASaNmKDPlT3fRnC4f73MzzR9V1/NkWOy3R3G2dY3dwD9
 MIME-Version: 1.0
-X-Received: by 2002:a5e:8813:: with SMTP id l19mr4458172ioj.261.1579636629982;
- Tue, 21 Jan 2020 11:57:09 -0800 (PST)
-Date:   Tue, 21 Jan 2020 11:57:09 -0800
+X-Received: by 2002:a6b:5503:: with SMTP id j3mr4657404iob.142.1579643401878;
+ Tue, 21 Jan 2020 13:50:01 -0800 (PST)
+Date:   Tue, 21 Jan 2020 13:50:01 -0800
+In-Reply-To: <000000000000367175059c90b6bf@google.com>
 X-Google-Appengine-App-Id: s~syzkaller
 X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000346dcd059cabd0b5@google.com>
-Subject: WARNING: suspicious RCU usage in find_set_and_id
-From:   syzbot <syzbot+fc69d7cb21258ab4ae4d@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net,
-        florent.fourcot@wifirst.fr, fw@strlen.de, jeremy@azazel.net,
-        johannes.berg@intel.com, kadlec@netfilter.org,
+Message-ID: <000000000000d747bf059cad63b0@google.com>
+Subject: Re: KASAN: use-after-free Read in __nf_tables_abort
+From:   syzbot <syzbot+29125d208b3dae9a7019@syzkaller.appspotmail.com>
+To:     coreteam@netfilter.org, dan.carpenter@oracle.com,
+        davem@davemloft.net, fw@strlen.de, kadlec@netfilter.org,
         linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
         netfilter-devel@vger.kernel.org, pablo@netfilter.org,
         syzkaller-bugs@googlegroups.com
@@ -56,70 +57,25 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+syzbot has bisected this bug to:
 
-syzbot found the following crash on:
+commit ec7470b834fe7b5d7eff11b6677f5d7fdf5e9a91
+Author: Pablo Neira Ayuso <pablo@netfilter.org>
+Date:   Mon Jan 13 17:09:58 2020 +0000
 
-HEAD commit:    ab7541c3 Merge tag 'fuse-fixes-5.5-rc7' of git://git.kerne..
+    netfilter: nf_tables: store transaction list locally while requesting module
+
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=14890721e00000
+start commit:   d96d875e Merge tag 'fixes_for_v5.5-rc8' of git://git.kerne..
 git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=154ca959e00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=cfbb8fa33f49f9f3
-dashboard link: https://syzkaller.appspot.com/bug?extid=fc69d7cb21258ab4ae4d
-compiler:       clang version 10.0.0 (https://github.com/llvm/llvm-project/ c2443155a0fb245c8f17f2c1c72b6ea391e86e81)
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=12dcb0d6e00000
+final crash:    https://syzkaller.appspot.com/x/report.txt?x=16890721e00000
+console output: https://syzkaller.appspot.com/x/log.txt?x=12890721e00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=83c00afca9cf5153
+dashboard link: https://syzkaller.appspot.com/bug?extid=29125d208b3dae9a7019
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1203f521e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=10a706a5e00000
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+fc69d7cb21258ab4ae4d@syzkaller.appspotmail.com
+Reported-by: syzbot+29125d208b3dae9a7019@syzkaller.appspotmail.com
+Fixes: ec7470b834fe ("netfilter: nf_tables: store transaction list locally while requesting module")
 
-=============================
-WARNING: suspicious RCU usage
-5.5.0-rc6-syzkaller #0 Not tainted
------------------------------
-net/netfilter/ipset/ip_set_core.c:1001 suspicious rcu_dereference_protected() usage!
-
-other info that might help us debug this:
-
-
-rcu_scheduler_active = 2, debug_locks = 1
-1 lock held by syz-executor.0/8783:
- #0: ffff8880a681c5d8 (nlk_cb_mutex-NETFILTER){+.+.}, at: netlink_dump+0x75/0x1170 net/netlink/af_netlink.c:2199
-
-stack backtrace:
-CPU: 1 PID: 8783 Comm: syz-executor.0 Not tainted 5.5.0-rc6-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-Call Trace:
- __dump_stack lib/dump_stack.c:77 [inline]
- dump_stack+0x1fb/0x318 lib/dump_stack.c:118
- lockdep_rcu_suspicious+0x156/0x1c0 kernel/locking/lockdep.c:5435
- find_set_and_id+0x140/0x2f0 net/netfilter/ipset/ip_set_core.c:1001
- dump_init net/netfilter/ipset/ip_set_core.c:1506 [inline]
- ip_set_dump_start+0x7c5/0x1800 net/netfilter/ipset/ip_set_core.c:1541
- netlink_dump+0x4ed/0x1170 net/netlink/af_netlink.c:2244
- netlink_recvmsg+0x659/0xfb0 net/netlink/af_netlink.c:2000
- sock_recvmsg_nosec net/socket.c:873 [inline]
- sock_recvmsg net/socket.c:891 [inline]
- __sys_recvfrom+0x328/0x4b0 net/socket.c:2042
- __do_sys_recvfrom net/socket.c:2060 [inline]
- __se_sys_recvfrom net/socket.c:2056 [inline]
- __x64_sys_recvfrom+0xe5/0x100 net/socket.c:2056
- do_syscall_64+0xf7/0x1c0 arch/x86/entry/common.c:294
- entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x45aff9
-Code: ad b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007fc45d1a6c78 EFLAGS: 00000246 ORIG_RAX: 000000000000002d
-RAX: ffffffffffffffda RBX: 00007fc45d1a76d4 RCX: 000000000045aff9
-RDX: 36ff0824c68970de RSI: 0000000000000000 RDI: 0000000000000003
-RBP: 000000000075bf20 R08: 0000000000000000 R09: 0000000000000226
-R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
-R13: 000000000000085c R14: 00000000004c9852 R15: 000000000075bf2c
-
-
----
-This bug is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this bug report. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-syzbot can test patches for this bug, for details see:
-https://goo.gl/tpsmEJ#testing-patches
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
