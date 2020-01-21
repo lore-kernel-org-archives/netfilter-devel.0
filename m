@@ -2,145 +2,211 @@ Return-Path: <SRS0=AyPt=3K=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE481C33CAA
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jan 2020 06:40:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 641D0C2D0CE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jan 2020 11:36:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B4A0D21734
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jan 2020 06:40:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 292B022522
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jan 2020 11:36:00 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="H2m6sw8g"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728186AbgAUGkJ (ORCPT
+        id S1728748AbgAULfw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Jan 2020 01:40:09 -0500
-Received: from mail-io1-f71.google.com ([209.85.166.71]:37130 "EHLO
-        mail-io1-f71.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726729AbgAUGkJ (ORCPT
+        Tue, 21 Jan 2020 06:35:52 -0500
+Received: from userp2130.oracle.com ([156.151.31.86]:53506 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726052AbgAULfw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Jan 2020 01:40:09 -0500
-Received: by mail-io1-f71.google.com with SMTP id s6so1119927iod.4
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Jan 2020 22:40:08 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=VRitl32ZgVi8jJ8iDoSO0IiVKSdozfDuXzo2Yu5la8Q=;
-        b=uVOtMIq5ZNdusjUv6Yd7vcFdjyrZ3o7YX3gw3mt/zZMOaprfDODng1Mv8nNUSVXuT0
-         Q4h0orFSlmnRjax4smbS+q3so5PWAnUEKI+y0VCLeY+j+JY7S0oF6StqgGuRqCXCLXNE
-         vo8iTWps+eLYGaXkQSxF/NKHzKrlRE0L7P5uz1T80i4bjkgUYMSD/tlFdpACQLM/cdDd
-         tHbclK0u6n/d+4XzGMOQmEIa0JPXyWpDr2ejIvepo1ilkASZVKAy4l92MUH+kh2WXKGl
-         W4KSZ6c8qZreuz4PCYCvdSKtJdIuFK2BvV2vyJmREIXR0us1OElbVobkkRZApWkbfFNg
-         9oGw==
-X-Gm-Message-State: APjAAAWK8jP4xERD0FWO1y0xcDrGFt3rtXh/dNOcLulqQjtHn6s8DPN3
-        xPUzZnhZONiJDjFMPzNoZFsH6Rp06jOhJ9BrTpVgaoG49U5t
-X-Google-Smtp-Source: APXvYqySbtxXbZlyaZABGQA4gd7GTyJ46ZhPFb75b3UyKRsPjM4zQwqZ5PNZlswvVpkPHGzZpnq9rUBGXSfp8nphBoe5CghEwLOr
-MIME-Version: 1.0
-X-Received: by 2002:a92:d18a:: with SMTP id z10mr2559332ilz.48.1579588808224;
- Mon, 20 Jan 2020 22:40:08 -0800 (PST)
-Date:   Mon, 20 Jan 2020 22:40:08 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000ce3795059ca0ad2b@google.com>
-Subject: general protection fault in __nf_tables_chain_type_lookup
-From:   syzbot <syzbot+c4a099076c8ad98e282d@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        Tue, 21 Jan 2020 06:35:52 -0500
+Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
+        by userp2130.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00LBXNBK034296;
+        Tue, 21 Jan 2020 11:35:30 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : references : mime-version : content-type :
+ in-reply-to; s=corp-2019-08-05;
+ bh=O5LftPvaGtM67EfFxPIbJZyTLJGrdDk4vCyyoTH8rgs=;
+ b=H2m6sw8gKZMIJjcwFJ8L4Up2uDvY1FZUjbYrLIzoo0QE3/WrQMP4QRK3pQJzrz8mD5GB
+ Ralso39tSUuxT/sTVrTBISgrKdlhwh5oNQAUc0UgGyrKjRejK1+lDK8909OPMvNYRkm7
+ W1TSUq20A9ubTEMRgNeKNN640QJ4GIF18YeoLeoS9XiAenPd+pVGbPcpOzFfC/62sdsR
+ Vtr+9MYuCv7Q7k5qkBsssPz4xhjhl5lU0fYLmxbxvDb6jSyQNdW413HWNBKVuXv+QV3+
+ rijTEHWbninGWsAJfZVRNKfp35Z3DS67crc09zTUZTSjL2Jq84B9zILkfrUh2Mpp3WrS XA== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+        by userp2130.oracle.com with ESMTP id 2xkseucgkr-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 21 Jan 2020 11:35:30 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+        by userp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00LBY2BF182316;
+        Tue, 21 Jan 2020 11:35:30 GMT
+Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
+        by userp3020.oracle.com with ESMTP id 2xnsj4drrn-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 21 Jan 2020 11:35:26 +0000
+Received: from abhmp0016.oracle.com (abhmp0016.oracle.com [141.146.116.22])
+        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 00LBWk3f024105;
+        Tue, 21 Jan 2020 11:32:46 GMT
+Received: from kadam (/129.205.23.165)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Tue, 21 Jan 2020 03:32:45 -0800
+Date:   Tue, 21 Jan 2020 14:32:36 +0300
+From:   Dan Carpenter <dan.carpenter@oracle.com>
+To:     syzbot <syzbot+29125d208b3dae9a7019@syzkaller.appspotmail.com>,
+        pablo@netfilter.org
+Cc:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
         kadlec@netfilter.org, linux-kernel@vger.kernel.org,
         netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+        syzkaller-bugs@googlegroups.com
+Subject: Re: KASAN: use-after-free Read in __nf_tables_abort
+Message-ID: <20200121113235.GA1847@kadam>
+References: <000000000000367175059c90b6bf@google.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <000000000000367175059c90b6bf@google.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9506 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=758
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1911140001 definitions=main-2001210098
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9506 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1011
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=820 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1911140001
+ definitions=main-2001210098
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+I think I see the problem, but I'm not sure how you want to fix it...
 
-syzbot found the following crash on:
+net/netfilter/nf_tables_api.c
+   942  static int nf_tables_newtable(struct net *net, struct sock *nlsk,
+   943                                struct sk_buff *skb, const struct nlmsghdr *nlh,
+   944                                const struct nlattr * const nla[],
+   945                                struct netlink_ext_ack *extack)
+   946  {
+   947          const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
+   948          u8 genmask = nft_genmask_next(net);
+   949          int family = nfmsg->nfgen_family;
+   950          const struct nlattr *attr;
+   951          struct nft_table *table;
+   952          u32 flags = 0;
+   953          struct nft_ctx ctx;
+   954          int err;
+   955  
+   956          lockdep_assert_held(&net->nft.commit_mutex);
+   957          attr = nla[NFTA_TABLE_NAME];
+   958          table = nft_table_lookup(net, attr, family, genmask);
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This is looking up table in net->nft.tables
 
-HEAD commit:    b3f7e3f2 Merge ra.kernel.org:/pub/scm/linux/kernel/git/net..
-git tree:       net-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=11f5dfaee00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=25af05ec22c1bcef
-dashboard link: https://syzkaller.appspot.com/bug?extid=c4a099076c8ad98e282d
-compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+   959          if (IS_ERR(table)) {
+   960                  if (PTR_ERR(table) != -ENOENT)
+   961                          return PTR_ERR(table);
+   962          } else {
+   963                  if (nlh->nlmsg_flags & NLM_F_EXCL) {
+   964                          NL_SET_BAD_ATTR(extack, attr);
+   965                          return -EEXIST;
+   966                  }
+   967                  if (nlh->nlmsg_flags & NLM_F_REPLACE)
+   968                          return -EOPNOTSUPP;
+   969  
+   970                  nft_ctx_init(&ctx, net, skb, nlh, family, table, NULL, nla);
+   971                  return nf_tables_updtable(&ctx);
+                               ^^^^^^^^^^^^^^^^^^^^^^^
+Then it adds it to &ctx->net->nft.commit_list
 
-Unfortunately, I don't have any reproducer for this crash yet.
+   972          }
+   973  
+   974          if (nla[NFTA_TABLE_FLAGS]) {
+   975                  flags = ntohl(nla_get_be32(nla[NFTA_TABLE_FLAGS]));
+   976                  if (flags & ~NFT_TABLE_F_DORMANT)
+   977                          return -EINVAL;
+   978          }
+   979  
+   980          err = -ENOMEM;
+   981          table = kzalloc(sizeof(*table), GFP_KERNEL);
+   982          if (table == NULL)
+   983                  goto err_kzalloc;
+   984  
+   985          table->name = nla_strdup(attr, GFP_KERNEL);
+   986          if (table->name == NULL)
+   987                  goto err_strdup;
+   988  
+   989          err = rhltable_init(&table->chains_ht, &nft_chain_ht_params);
+   990          if (err)
+   991                  goto err_chain_ht;
+   992  
+   993          INIT_LIST_HEAD(&table->chains);
+   994          INIT_LIST_HEAD(&table->sets);
+   995          INIT_LIST_HEAD(&table->objects);
+   996          INIT_LIST_HEAD(&table->flowtables);
+   997          table->family = family;
+   998          table->flags = flags;
+   999          table->handle = ++table_handle;
+  1000  
+  1001          nft_ctx_init(&ctx, net, skb, nlh, family, table, NULL, nla);
+  1002          err = nft_trans_table_add(&ctx, NFT_MSG_NEWTABLE);
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Added to ctx->net->nft.commit_list
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+c4a099076c8ad98e282d@syzkaller.appspotmail.com
+  1003          if (err < 0)
+  1004                  goto err_trans;
+  1005  
+  1006          list_add_tail_rcu(&table->list, &net->nft.tables);
+                                                ^^^^^^^^^^^^^^^^
+Added to net->nft.tables
 
-kasan: CONFIG_KASAN_INLINE enabled
-kasan: GPF could be caused by NULL-ptr deref or user memory access
-general protection fault: 0000 [#1] PREEMPT SMP KASAN
-CPU: 0 PID: 24147 Comm: syz-executor.4 Not tainted 5.5.0-rc6-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-RIP: 0010:strlen+0x1f/0xa0 lib/string.c:527
-Code: 00 66 2e 0f 1f 84 00 00 00 00 00 48 b8 00 00 00 00 00 fc ff df 55 48 89 fa 48 89 e5 48 c1 ea 03 41 54 49 89 fc 53 48 83 ec 08 <0f> b6 04 02 48 89 fa 83 e2 07 38 d0 7f 04 84 c0 75 4d 41 80 3c 24
-RSP: 0018:ffffc90008d6f048 EFLAGS: 00010296
-RAX: dffffc0000000000 RBX: fffffffffffffdc0 RCX: ffffc900114fb000
-RDX: 0000000000000000 RSI: ffffffff83afcbcc RDI: 0000000000000000
-RBP: ffffc90008d6f060 R08: ffff88805fb28640 R09: ffff888091274c48
-R10: fffff520011ade2f R11: ffffc90008d6f17f R12: 0000000000000000
-R13: ffff888091274c48 R14: 0000000000000000 R15: dffffc0000000000
-FS:  00007f6a77110700(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00000000024f0e80 CR3: 0000000093c3f000 CR4: 00000000001406f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- strlen include/linux/string.h:302 [inline]
- nla_strcmp+0x24/0x120 lib/nlattr.c:607
- __nf_tables_chain_type_lookup+0xa3/0x160 net/netfilter/nf_tables_api.c:562
- nf_tables_chain_type_lookup net/netfilter/nf_tables_api.c:613 [inline]
- nft_chain_parse_hook+0x2b8/0xa10 net/netfilter/nf_tables_api.c:1773
- nf_tables_addchain.constprop.0+0x1c1/0x1520 net/netfilter/nf_tables_api.c:1899
- nf_tables_newchain+0x1033/0x1820 net/netfilter/nf_tables_api.c:2207
- nfnetlink_rcv_batch+0xf42/0x17a0 net/netfilter/nfnetlink.c:433
- nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:543 [inline]
- nfnetlink_rcv+0x3e7/0x460 net/netfilter/nfnetlink.c:561
- netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
- netlink_unicast+0x59e/0x7e0 net/netlink/af_netlink.c:1328
- netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
- sock_sendmsg_nosec net/socket.c:652 [inline]
- sock_sendmsg+0xd7/0x130 net/socket.c:672
- ____sys_sendmsg+0x753/0x880 net/socket.c:2343
- ___sys_sendmsg+0x100/0x170 net/socket.c:2397
- __sys_sendmsg+0x105/0x1d0 net/socket.c:2430
- __do_sys_sendmsg net/socket.c:2439 [inline]
- __se_sys_sendmsg net/socket.c:2437 [inline]
- __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2437
- do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
- entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x45b349
-Code: ad b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007f6a7710fc78 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
-RAX: ffffffffffffffda RBX: 00007f6a771106d4 RCX: 000000000045b349
-RDX: 0000000000000080 RSI: 00000000200000c0 RDI: 0000000000000003
-RBP: 000000000075bf20 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
-R13: 0000000000000917 R14: 00000000004ca810 R15: 000000000075bf2c
-Modules linked in:
----[ end trace ca4680ab3a32a755 ]---
-RIP: 0010:strlen+0x1f/0xa0 lib/string.c:527
-Code: 00 66 2e 0f 1f 84 00 00 00 00 00 48 b8 00 00 00 00 00 fc ff df 55 48 89 fa 48 89 e5 48 c1 ea 03 41 54 49 89 fc 53 48 83 ec 08 <0f> b6 04 02 48 89 fa 83 e2 07 38 d0 7f 04 84 c0 75 4d 41 80 3c 24
-RSP: 0018:ffffc90008d6f048 EFLAGS: 00010296
-RAX: dffffc0000000000 RBX: fffffffffffffdc0 RCX: ffffc900114fb000
-RDX: 0000000000000000 RSI: ffffffff83afcbcc RDI: 0000000000000000
-RBP: ffffc90008d6f060 R08: ffff88805fb28640 R09: ffff888091274c48
-R10: fffff520011ade2f R11: ffffc90008d6f17f R12: 0000000000000000
-R13: ffff888091274c48 R14: 0000000000000000 R15: dffffc0000000000
-FS:  00007f6a77110700(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007ffcd75cf9c8 CR3: 0000000093c3f000 CR4: 00000000001406e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+  1007          return 0;
+  1008  err_trans:
+  1009          rhltable_destroy(&table->chains_ht);
+  1010  err_chain_ht:
+  1011          kfree(table->name);
+  1012  err_strdup:
+  1013          kfree(table);
 
+net/netfilter/nf_tables_api.c
+  6995  static void nf_tables_commit_release(struct net *net)
+  6996  {
+  6997          struct nft_trans *trans;
+  6998  
+  6999          /* all side effects have to be made visible.
+  7000           * For example, if a chain named 'foo' has been deleted, a
+  7001           * new transaction must not find it anymore.
+  7002           *
+  7003           * Memory reclaim happens asynchronously from work queue
+  7004           * to prevent expensive synchronize_rcu() in commit phase.
+  7005           */
+  7006          if (list_empty(&net->nft.commit_list)) {
+  7007                  mutex_unlock(&net->nft.commit_mutex);
+  7008                  return;
+  7009          }
+  7010  
+  7011          trans = list_last_entry(&net->nft.commit_list,
+  7012                                  struct nft_trans, list);
+  7013          get_net(trans->ctx.net);
+  7014          WARN_ON_ONCE(trans->put_net);
+  7015  
+  7016          trans->put_net = true;
+  7017          spin_lock(&nf_tables_destroy_list_lock);
+  7018          list_splice_tail_init(&net->nft.commit_list, &nf_tables_destroy_list);
+                                       ^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^
+This starts the process of freeing everything from net->nft.commit_list,
+but we need to delete it from the net->nft.tables list as well.
 
----
-This bug is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+  7019          spin_unlock(&nf_tables_destroy_list_lock);
+  7020  
+  7021          mutex_unlock(&net->nft.commit_mutex);
+  7022  
+  7023          schedule_work(&trans_destroy_work);
+  7024  }
 
-syzbot will keep track of this bug report. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+regards,
+dan carpenter
