@@ -2,211 +2,175 @@ Return-Path: <SRS0=AyPt=3K=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 641D0C2D0CE
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jan 2020 11:36:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 650FEC47409
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jan 2020 12:37:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 292B022522
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jan 2020 11:36:00 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="H2m6sw8g"
+	by mail.kernel.org (Postfix) with ESMTP id 4345221734
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jan 2020 12:37:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728748AbgAULfw (ORCPT
+        id S1729061AbgAUMhK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Jan 2020 06:35:52 -0500
-Received: from userp2130.oracle.com ([156.151.31.86]:53506 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726052AbgAULfw (ORCPT
+        Tue, 21 Jan 2020 07:37:10 -0500
+Received: from mail-il1-f199.google.com ([209.85.166.199]:46525 "EHLO
+        mail-il1-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726968AbgAUMhJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Jan 2020 06:35:52 -0500
-Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-        by userp2130.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00LBXNBK034296;
-        Tue, 21 Jan 2020 11:35:30 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : references : mime-version : content-type :
- in-reply-to; s=corp-2019-08-05;
- bh=O5LftPvaGtM67EfFxPIbJZyTLJGrdDk4vCyyoTH8rgs=;
- b=H2m6sw8gKZMIJjcwFJ8L4Up2uDvY1FZUjbYrLIzoo0QE3/WrQMP4QRK3pQJzrz8mD5GB
- Ralso39tSUuxT/sTVrTBISgrKdlhwh5oNQAUc0UgGyrKjRejK1+lDK8909OPMvNYRkm7
- W1TSUq20A9ubTEMRgNeKNN640QJ4GIF18YeoLeoS9XiAenPd+pVGbPcpOzFfC/62sdsR
- Vtr+9MYuCv7Q7k5qkBsssPz4xhjhl5lU0fYLmxbxvDb6jSyQNdW413HWNBKVuXv+QV3+
- rijTEHWbninGWsAJfZVRNKfp35Z3DS67crc09zTUZTSjL2Jq84B9zILkfrUh2Mpp3WrS XA== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by userp2130.oracle.com with ESMTP id 2xkseucgkr-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 21 Jan 2020 11:35:30 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00LBY2BF182316;
-        Tue, 21 Jan 2020 11:35:30 GMT
-Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
-        by userp3020.oracle.com with ESMTP id 2xnsj4drrn-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 21 Jan 2020 11:35:26 +0000
-Received: from abhmp0016.oracle.com (abhmp0016.oracle.com [141.146.116.22])
-        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 00LBWk3f024105;
-        Tue, 21 Jan 2020 11:32:46 GMT
-Received: from kadam (/129.205.23.165)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Tue, 21 Jan 2020 03:32:45 -0800
-Date:   Tue, 21 Jan 2020 14:32:36 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     syzbot <syzbot+29125d208b3dae9a7019@syzkaller.appspotmail.com>,
-        pablo@netfilter.org
-Cc:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@netfilter.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        syzkaller-bugs@googlegroups.com
-Subject: Re: KASAN: use-after-free Read in __nf_tables_abort
-Message-ID: <20200121113235.GA1847@kadam>
-References: <000000000000367175059c90b6bf@google.com>
+        Tue, 21 Jan 2020 07:37:09 -0500
+Received: by mail-il1-f199.google.com with SMTP id a2so1992430ill.13
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jan 2020 04:37:09 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
+         :from:to;
+        bh=Rw9xaBkd0xQvvdYC3NqAsCsIs+iEDGD6CLdubAFODHg=;
+        b=c3oCu5Av0HEHlWPGC+MxNg28lzzdXfORmIBtf0FWidWru+1O7Zj+BPB+7KKPMi1brk
+         faGaG4/Jaz4/aofokPQqrp4iNzEVabdYre+kxDTGng7hWT3Uv9Biszi8fL5O3ayNEDF9
+         suMybp12l0+W4FPsxIImJAicdOfHld6v+PCmqEsdXhKH5/Ex13puGBJ705z8LozQHT6E
+         mXtAksVZVqJL3AQ+xWwbcnP7LmQb2dBtAPvEcn7NuRTlCemgdNIQPUu+ZRg9B4wFogJh
+         RHlByA298KM+4LyOVzlC8SS+Wo2gVehiGbK2WzXKY1vcsFQttATQvwbW4/Di4hzElq7M
+         9qWA==
+X-Gm-Message-State: APjAAAX/3cCZlrOVr/8O/i4mIGKy0NzVlt4nFdMH2iWmcQ4YB7YXAnmV
+        P3VbN5fQ751AFdUd9fyRPJ+duhM/tiEHF6jOlSuyxBOwfhKB
+X-Google-Smtp-Source: APXvYqznUuW1kpUcB5jVBbfWfUPxqB3lfTK6SeYTTRFrQYYuiLVL6sgLaK4PM4twzO909GnmsmQrHi8c3QYG2Euh039Bz73XQWaC
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+X-Received: by 2002:a92:d781:: with SMTP id d1mr3336749iln.30.1579610229029;
+ Tue, 21 Jan 2020 04:37:09 -0800 (PST)
+Date:   Tue, 21 Jan 2020 04:37:09 -0800
 In-Reply-To: <000000000000367175059c90b6bf@google.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9506 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
- phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=758
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.0.1-1911140001 definitions=main-2001210098
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9506 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1011
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=820 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1911140001
- definitions=main-2001210098
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <00000000000095c2ce059ca5aa97@google.com>
+Subject: Re: KASAN: use-after-free Read in __nf_tables_abort
+From:   syzbot <syzbot+29125d208b3dae9a7019@syzkaller.appspotmail.com>
+To:     coreteam@netfilter.org, dan.carpenter@oracle.com,
+        davem@davemloft.net, fw@strlen.de, kadlec@netfilter.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-I think I see the problem, but I'm not sure how you want to fix it...
+syzbot has found a reproducer for the following crash on:
 
-net/netfilter/nf_tables_api.c
-   942  static int nf_tables_newtable(struct net *net, struct sock *nlsk,
-   943                                struct sk_buff *skb, const struct nlmsghdr *nlh,
-   944                                const struct nlattr * const nla[],
-   945                                struct netlink_ext_ack *extack)
-   946  {
-   947          const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
-   948          u8 genmask = nft_genmask_next(net);
-   949          int family = nfmsg->nfgen_family;
-   950          const struct nlattr *attr;
-   951          struct nft_table *table;
-   952          u32 flags = 0;
-   953          struct nft_ctx ctx;
-   954          int err;
-   955  
-   956          lockdep_assert_held(&net->nft.commit_mutex);
-   957          attr = nla[NFTA_TABLE_NAME];
-   958          table = nft_table_lookup(net, attr, family, genmask);
-                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-This is looking up table in net->nft.tables
+HEAD commit:    d96d875e Merge tag 'fixes_for_v5.5-rc8' of git://git.kerne..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=10cd81c9e00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=83c00afca9cf5153
+dashboard link: https://syzkaller.appspot.com/bug?extid=29125d208b3dae9a7019
+compiler:       clang version 10.0.0 (https://github.com/llvm/llvm-project/ c2443155a0fb245c8f17f2c1c72b6ea391e86e81)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1203f521e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=10a706a5e00000
 
-   959          if (IS_ERR(table)) {
-   960                  if (PTR_ERR(table) != -ENOENT)
-   961                          return PTR_ERR(table);
-   962          } else {
-   963                  if (nlh->nlmsg_flags & NLM_F_EXCL) {
-   964                          NL_SET_BAD_ATTR(extack, attr);
-   965                          return -EEXIST;
-   966                  }
-   967                  if (nlh->nlmsg_flags & NLM_F_REPLACE)
-   968                          return -EOPNOTSUPP;
-   969  
-   970                  nft_ctx_init(&ctx, net, skb, nlh, family, table, NULL, nla);
-   971                  return nf_tables_updtable(&ctx);
-                               ^^^^^^^^^^^^^^^^^^^^^^^
-Then it adds it to &ctx->net->nft.commit_list
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+29125d208b3dae9a7019@syzkaller.appspotmail.com
 
-   972          }
-   973  
-   974          if (nla[NFTA_TABLE_FLAGS]) {
-   975                  flags = ntohl(nla_get_be32(nla[NFTA_TABLE_FLAGS]));
-   976                  if (flags & ~NFT_TABLE_F_DORMANT)
-   977                          return -EINVAL;
-   978          }
-   979  
-   980          err = -ENOMEM;
-   981          table = kzalloc(sizeof(*table), GFP_KERNEL);
-   982          if (table == NULL)
-   983                  goto err_kzalloc;
-   984  
-   985          table->name = nla_strdup(attr, GFP_KERNEL);
-   986          if (table->name == NULL)
-   987                  goto err_strdup;
-   988  
-   989          err = rhltable_init(&table->chains_ht, &nft_chain_ht_params);
-   990          if (err)
-   991                  goto err_chain_ht;
-   992  
-   993          INIT_LIST_HEAD(&table->chains);
-   994          INIT_LIST_HEAD(&table->sets);
-   995          INIT_LIST_HEAD(&table->objects);
-   996          INIT_LIST_HEAD(&table->flowtables);
-   997          table->family = family;
-   998          table->flags = flags;
-   999          table->handle = ++table_handle;
-  1000  
-  1001          nft_ctx_init(&ctx, net, skb, nlh, family, table, NULL, nla);
-  1002          err = nft_trans_table_add(&ctx, NFT_MSG_NEWTABLE);
-                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Added to ctx->net->nft.commit_list
+==================================================================
+BUG: KASAN: use-after-free in __list_del_entry_valid+0x2f/0x100 lib/list_debug.c:42
+Read of size 8 at addr ffff888097973008 by task syz-executor694/8782
 
-  1003          if (err < 0)
-  1004                  goto err_trans;
-  1005  
-  1006          list_add_tail_rcu(&table->list, &net->nft.tables);
-                                                ^^^^^^^^^^^^^^^^
-Added to net->nft.tables
+CPU: 1 PID: 8782 Comm: syz-executor694 Not tainted 5.5.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1fb/0x318 lib/dump_stack.c:118
+ print_address_description+0x74/0x5c0 mm/kasan/report.c:374
+ __kasan_report+0x149/0x1c0 mm/kasan/report.c:506
+ kasan_report+0x26/0x50 mm/kasan/common.c:639
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+ __list_del_entry_valid+0x2f/0x100 lib/list_debug.c:42
+ __list_del_entry include/linux/list.h:131 [inline]
+ list_del_rcu include/linux/rculist.h:148 [inline]
+ __nf_tables_abort+0x16d2/0x2e80 net/netfilter/nf_tables_api.c:7258
+ nf_tables_abort+0x15/0x30 net/netfilter/nf_tables_api.c:7373
+ nfnetlink_rcv_batch net/netfilter/nfnetlink.c:494 [inline]
+ nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:543 [inline]
+ nfnetlink_rcv+0x1a88/0x1e50 net/netfilter/nfnetlink.c:561
+ netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
+ netlink_unicast+0x767/0x920 net/netlink/af_netlink.c:1328
+ netlink_sendmsg+0xa2c/0xd50 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:639 [inline]
+ sock_sendmsg net/socket.c:659 [inline]
+ ____sys_sendmsg+0x4f7/0x7f0 net/socket.c:2330
+ ___sys_sendmsg net/socket.c:2384 [inline]
+ __sys_sendmsg+0x1ed/0x290 net/socket.c:2417
+ __do_sys_sendmsg net/socket.c:2426 [inline]
+ __se_sys_sendmsg net/socket.c:2424 [inline]
+ __x64_sys_sendmsg+0x7f/0x90 net/socket.c:2424
+ do_syscall_64+0xf7/0x1c0 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4470c9
+Code: e8 dc e6 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 2b 06 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffb4f1fad98 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000006dcc28 RCX: 00000000004470c9
+RDX: 0000000000000000 RSI: 0000000020000280 RDI: 0000000000000003
+RBP: 00000000006dcc20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dcc2c
+R13: 00000000200002c0 R14: 00000000004af6c8 R15: 0000000000000000
 
-  1007          return 0;
-  1008  err_trans:
-  1009          rhltable_destroy(&table->chains_ht);
-  1010  err_chain_ht:
-  1011          kfree(table->name);
-  1012  err_strdup:
-  1013          kfree(table);
+Allocated by task 8782:
+ save_stack mm/kasan/common.c:72 [inline]
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc+0x118/0x1c0 mm/kasan/common.c:513
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:527
+ kmem_cache_alloc_trace+0x221/0x2f0 mm/slab.c:3551
+ kmalloc include/linux/slab.h:556 [inline]
+ kzalloc include/linux/slab.h:670 [inline]
+ nf_tables_newtable+0x350/0x1b10 net/netfilter/nf_tables_api.c:981
+ nfnetlink_rcv_batch net/netfilter/nfnetlink.c:433 [inline]
+ nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:543 [inline]
+ nfnetlink_rcv+0xecf/0x1e50 net/netfilter/nfnetlink.c:561
+ netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
+ netlink_unicast+0x767/0x920 net/netlink/af_netlink.c:1328
+ netlink_sendmsg+0xa2c/0xd50 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:639 [inline]
+ sock_sendmsg net/socket.c:659 [inline]
+ ____sys_sendmsg+0x4f7/0x7f0 net/socket.c:2330
+ ___sys_sendmsg net/socket.c:2384 [inline]
+ __sys_sendmsg+0x1ed/0x290 net/socket.c:2417
+ __do_sys_sendmsg net/socket.c:2426 [inline]
+ __se_sys_sendmsg net/socket.c:2424 [inline]
+ __x64_sys_sendmsg+0x7f/0x90 net/socket.c:2424
+ do_syscall_64+0xf7/0x1c0 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
 
-net/netfilter/nf_tables_api.c
-  6995  static void nf_tables_commit_release(struct net *net)
-  6996  {
-  6997          struct nft_trans *trans;
-  6998  
-  6999          /* all side effects have to be made visible.
-  7000           * For example, if a chain named 'foo' has been deleted, a
-  7001           * new transaction must not find it anymore.
-  7002           *
-  7003           * Memory reclaim happens asynchronously from work queue
-  7004           * to prevent expensive synchronize_rcu() in commit phase.
-  7005           */
-  7006          if (list_empty(&net->nft.commit_list)) {
-  7007                  mutex_unlock(&net->nft.commit_mutex);
-  7008                  return;
-  7009          }
-  7010  
-  7011          trans = list_last_entry(&net->nft.commit_list,
-  7012                                  struct nft_trans, list);
-  7013          get_net(trans->ctx.net);
-  7014          WARN_ON_ONCE(trans->put_net);
-  7015  
-  7016          trans->put_net = true;
-  7017          spin_lock(&nf_tables_destroy_list_lock);
-  7018          list_splice_tail_init(&net->nft.commit_list, &nf_tables_destroy_list);
-                                       ^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^
-This starts the process of freeing everything from net->nft.commit_list,
-but we need to delete it from the net->nft.tables list as well.
+Freed by task 2679:
+ save_stack mm/kasan/common.c:72 [inline]
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:335 [inline]
+ __kasan_slab_free+0x12e/0x1e0 mm/kasan/common.c:474
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:483
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x10d/0x220 mm/slab.c:3757
+ nft_commit_release net/netfilter/nf_tables_api.c:2496 [inline]
+ nf_tables_trans_destroy_work+0x9b8/0xbb0 net/netfilter/nf_tables_api.c:6860
+ process_one_work+0x7f5/0x10d0 kernel/workqueue.c:2264
+ worker_thread+0xbbc/0x1630 kernel/workqueue.c:2410
+ kthread+0x332/0x350 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
 
-  7019          spin_unlock(&nf_tables_destroy_list_lock);
-  7020  
-  7021          mutex_unlock(&net->nft.commit_mutex);
-  7022  
-  7023          schedule_work(&trans_destroy_work);
-  7024  }
+The buggy address belongs to the object at ffff888097973000
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 8 bytes inside of
+ 512-byte region [ffff888097973000, ffff888097973200)
+The buggy address belongs to the page:
+page:ffffea00025e5cc0 refcount:1 mapcount:0 mapping:ffff8880aa800a80 index:0x0
+raw: 00fffe0000000200 ffffea0002a53ac8 ffffea0002806848 ffff8880aa800a80
+raw: 0000000000000000 ffff888097973000 0000000100000004 0000000000000000
+page dumped because: kasan: bad access detected
 
-regards,
-dan carpenter
+Memory state around the buggy address:
+ ffff888097972f00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888097972f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff888097973000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                      ^
+ ffff888097973080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888097973100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================
+
