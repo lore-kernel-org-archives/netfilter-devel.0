@@ -2,395 +2,222 @@ Return-Path: <SRS0=e21D=3L=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFD16C32771
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 21:17:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A197C33CAF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 21:28:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9FA732465B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 21:17:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C446221835
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 21:28:18 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="sjR3Kohy"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728767AbgAVVRR (ORCPT
+        id S1728978AbgAVV2R (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Jan 2020 16:17:17 -0500
-Received: from correo.us.es ([193.147.175.20]:57612 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725827AbgAVVRR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Jan 2020 16:17:17 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 37995DA70A
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 22:17:13 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 26CE9DA712
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 22:17:13 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 1C4C4DA70E; Wed, 22 Jan 2020 22:17:13 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B3592DA710
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 22:17:10 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 22 Jan 2020 22:17:10 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id A299242EF9E1
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 22:17:10 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v2] netfilter: nf_tables: autoload modules from the abort path
-Date:   Wed, 22 Jan 2020 22:17:06 +0100
-Message-Id: <20200122211706.150042-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Wed, 22 Jan 2020 16:28:17 -0500
+Received: from mail-lf1-f67.google.com ([209.85.167.67]:35615 "EHLO
+        mail-lf1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725827AbgAVV2Q (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 22 Jan 2020 16:28:16 -0500
+Received: by mail-lf1-f67.google.com with SMTP id z18so742300lfe.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 13:28:14 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=UlbIRxeN9Q76SjfgK7QR1Vwr+MWjG4ms1YscK+m3ZzA=;
+        b=sjR3KohyzTMBY/tFrzlS/cG22yQtz+Kj0wlR28uWlOMMS98+mdyhDRY4wdLlRbRBWQ
+         4VlXyQi9Pw2NSmQ8fvwn9NxitppXBQTEWwjARvDbpiJhj/K0Y2i1EITeGLzwZ9AH5V63
+         j8XDebSAcj8dY4OSKlnr8BS/HvXVTvkfh1v1rMq9jtjpDyFdJqJ5TCN1NW8CiCsvMp5t
+         Xhb80Ol0PeyJlSg/G7BNimSobNlNwIOJ510Xic8jSS7FVl0FfJkgEVDeG1eadjiSlAeb
+         Czd8yw50v5cUx1XPONGfCW8/GGWBMBpXhutQp8L57JTt9oNAhGO4n84vU5u8OGXSD6G4
+         ZanA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=UlbIRxeN9Q76SjfgK7QR1Vwr+MWjG4ms1YscK+m3ZzA=;
+        b=AJ2LiyP2tkyMOlFuXuoJ1bNXS26+wx47qfoStaF60ywoESX0/Z5MBAoHwAMHv7SbX3
+         oGucPbPDggnS5I2t0uVzR0b5EPUIUEt3PRLovFyGYZA7AJWxCbrNoubLVWFKnYp/MZWQ
+         cGiL5RfZOWsNLdjztW6civ2IUTz6ZLM5+dUk8KozTIwSKpvEhcVas08tDLpNC4QayWEe
+         bSo9KC+dgo/UOACfzJlGC7C0MGLLERLwfSu0JbgB0IEP1VPm13FZOSxO63XsvvtV/3vh
+         +FocdKRBv3HE+CydaDeCDaS6M7cSl/oh78VuT3ufHhwuM4xCT1oRRlqpcNruh7NfosaW
+         yVAw==
+X-Gm-Message-State: APjAAAUfPLyv5ld23ncUdGYJra5lGsrNb5PCDITEbDhFptGl7qjlYzLo
+        QeHJIsOThaWgleIUUCHA4vd/+XZtvR6oPNUc2ny/b4c=
+X-Google-Smtp-Source: APXvYqzmCy0bZf7U/H8d37zLwqEk/uVU9XMfs5fLgp38rC119ErDsvdLgD7EkL0RZ3pxjNI9STqxXeIxXnoeDiUoytM=
+X-Received: by 2002:a19:dc1e:: with SMTP id t30mr2878129lfg.34.1579728493389;
+ Wed, 22 Jan 2020 13:28:13 -0800 (PST)
+MIME-Version: 1.0
+References: <cover.1577736799.git.rgb@redhat.com> <70ad50e69185c50843d5e14462f1c4f03655d503.1577736799.git.rgb@redhat.com>
+In-Reply-To: <70ad50e69185c50843d5e14462f1c4f03655d503.1577736799.git.rgb@redhat.com>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Wed, 22 Jan 2020 16:28:02 -0500
+Message-ID: <CAHC9VhTKE_3bOXs+UcpKDQhatKH92uY3Hy=JA4sXXVGOC0ek8A@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V8 02/16] audit: add container id
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
+        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
+        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
+        mpatel@redhat.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch introduces a list of pending module requests that is updated
-from preparation phase. Then, at the very end of the abort phase,
-iterate over this list to load the requested modules. Given the mutex is
-released when loading modules, the list of modules is zapped so this is
-iteration occurs over a local list. Thus, the request_module() call
-occurs when object lists in consistent state and the commit list is
-empty.
+On Tue, Dec 31, 2019 at 2:49 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+>
+> Implement the proc fs write to set the audit container identifier of a
+> process, emitting an AUDIT_CONTAINER_OP record to document the event.
+>
+> This is a write from the container orchestrator task to a proc entry of
+> the form /proc/PID/audit_containerid where PID is the process ID of the
+> newly created task that is to become the first task in a container, or
+> an additional task added to a container.
+>
+> The write expects up to a u64 value (unset: 18446744073709551615).
+>
+> The writer must have capability CAP_AUDIT_CONTROL.
+>
+> This will produce a record such as this:
+>   type=CONTAINER_OP msg=audit(2018-06-06 12:39:29.636:26949) : op=set opid=2209 contid=123456 old-contid=18446744073709551615
+>
+> The "op" field indicates an initial set.  The "opid" field is the
+> object's PID, the process being "contained".  New and old audit
+> container identifier values are given in the "contid" fields.
+>
+> It is not permitted to unset the audit container identifier.
+> A child inherits its parent's audit container identifier.
+>
+> Please see the github audit kernel issue for the main feature:
+>   https://github.com/linux-audit/audit-kernel/issues/90
+> Please see the github audit userspace issue for supporting additions:
+>   https://github.com/linux-audit/audit-userspace/issues/51
+> Please see the github audit testsuiite issue for the test case:
+>   https://github.com/linux-audit/audit-testsuite/issues/64
+> Please see the github audit wiki for the feature overview:
+>   https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
+>
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> Acked-by: Serge Hallyn <serge@hallyn.com>
+> Acked-by: Steve Grubb <sgrubb@redhat.com>
+> Acked-by: Neil Horman <nhorman@tuxdriver.com>
+> Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> ---
+>  fs/proc/base.c             | 36 ++++++++++++++++++++++++++++
+>  include/linux/audit.h      | 25 ++++++++++++++++++++
+>  include/uapi/linux/audit.h |  2 ++
+>  kernel/audit.c             | 58 ++++++++++++++++++++++++++++++++++++++++++++++
+>  kernel/audit.h             |  1 +
+>  kernel/auditsc.c           |  4 ++++
+>  6 files changed, 126 insertions(+)
 
-This new module list is composed of nft_module_request objects that
-contain the module name and one status field that tells if the module
-has been already loaded (the 'done' field).
+...
 
-The module list handling must be the very last thing, and the commit
-list must be already empty.
+> diff --git a/kernel/audit.c b/kernel/audit.c
+> index 397f8fb4836a..2d7707426b7d 100644
+> --- a/kernel/audit.c
+> +++ b/kernel/audit.c
+> @@ -2356,6 +2358,62 @@ int audit_signal_info(int sig, struct task_struct *t)
+>         return audit_signal_info_syscall(t);
+>  }
+>
+> +/*
+> + * audit_set_contid - set current task's audit contid
+> + * @task: target task
+> + * @contid: contid value
+> + *
+> + * Returns 0 on success, -EPERM on permission failure.
+> + *
+> + * Called (set) from fs/proc/base.c::proc_contid_write().
+> + */
+> +int audit_set_contid(struct task_struct *task, u64 contid)
+> +{
+> +       u64 oldcontid;
+> +       int rc = 0;
+> +       struct audit_buffer *ab;
+> +
+> +       task_lock(task);
+> +       /* Can't set if audit disabled */
+> +       if (!task->audit) {
+> +               task_unlock(task);
+> +               return -ENOPROTOOPT;
+> +       }
+> +       oldcontid = audit_get_contid(task);
+> +       read_lock(&tasklist_lock);
+> +       /* Don't allow the audit containerid to be unset */
+> +       if (!audit_contid_valid(contid))
+> +               rc = -EINVAL;
+> +       /* if we don't have caps, reject */
+> +       else if (!capable(CAP_AUDIT_CONTROL))
+> +               rc = -EPERM;
+> +       /* if task has children or is not single-threaded, deny */
+> +       else if (!list_empty(&task->children))
+> +               rc = -EBUSY;
+> +       else if (!(thread_group_leader(task) && thread_group_empty(task)))
+> +               rc = -EALREADY;
 
-This patch also updates nfnetlink to include the reason to enter the
-abort phase, which is required for this new autoload module rationale.
+[NOTE: there is a bigger issue below which I think is going to require
+a respin/fixup of this patch so I'm going to take the opportunity to
+do a bit more bikeshedding ;)]
 
-Fixes: 452238e8d5ff ("netfilter: nf_tables: add and use helper for module autoload")
-Reported-by: syzbot+29125d208b3dae9a7019@syzkaller.appspotmail.com
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: call nf_tables_module_autoload_cleanup() holding the mutex from
-    the nf_tables_commit_release() path. Only one Fixes: tag.
+It seems like we could combine both the thread/children checks under a
+single -EBUSY return value.  In both cases the caller should be able
+to determine if the target process is multi-threaded for has spawned
+children, yes?  FWIW, my motivation for this question is that
+-EALREADY seems like a poor choice here.
 
- include/linux/netfilter/nfnetlink.h |   2 +-
- include/net/netns/nftables.h        |   1 +
- net/netfilter/nf_tables_api.c       | 121 ++++++++++++++++++++++++------------
- net/netfilter/nfnetlink.c           |   6 +-
- 4 files changed, 86 insertions(+), 44 deletions(-)
+> +       /* if contid is already set, deny */
+> +       else if (audit_contid_set(task))
+> +               rc = -ECHILD;
 
-diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
-index cf09ab37b45b..851425c3178f 100644
---- a/include/linux/netfilter/nfnetlink.h
-+++ b/include/linux/netfilter/nfnetlink.h
-@@ -31,7 +31,7 @@ struct nfnetlink_subsystem {
- 	const struct nfnl_callback *cb;	/* callback for individual types */
- 	struct module *owner;
- 	int (*commit)(struct net *net, struct sk_buff *skb);
--	int (*abort)(struct net *net, struct sk_buff *skb);
-+	int (*abort)(struct net *net, struct sk_buff *skb, bool autoload);
- 	void (*cleanup)(struct net *net);
- 	bool (*valid_genid)(struct net *net, u32 genid);
- };
-diff --git a/include/net/netns/nftables.h b/include/net/netns/nftables.h
-index 286fd960896f..a1a8d45adb42 100644
---- a/include/net/netns/nftables.h
-+++ b/include/net/netns/nftables.h
-@@ -7,6 +7,7 @@
- struct netns_nftables {
- 	struct list_head	tables;
- 	struct list_head	commit_list;
-+	struct list_head	module_list;
- 	struct mutex		commit_mutex;
- 	unsigned int		base_seq;
- 	u8			gencursor;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 4aa01c1253b1..b61d3025e3f1 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -578,35 +578,40 @@ __nf_tables_chain_type_lookup(const struct nlattr *nla, u8 family)
- 	return NULL;
- }
- 
--/*
-- * Loading a module requires dropping mutex that guards the transaction.
-- * A different client might race to start a new transaction meanwhile. Zap the
-- * list of pending transaction and then restore it once the mutex is grabbed
-- * again. Users of this function return EAGAIN which implicitly triggers the
-- * transaction abort path to clean up the list of pending transactions.
-- */
-+struct nft_module_request {
-+	struct list_head	list;
-+	char			module[MODULE_NAME_LEN];
-+	bool			done;
-+};
-+
- #ifdef CONFIG_MODULES
--static void nft_request_module(struct net *net, const char *fmt, ...)
-+static int nft_request_module(struct net *net, const char *fmt, ...)
- {
- 	char module_name[MODULE_NAME_LEN];
--	LIST_HEAD(commit_list);
-+	struct nft_module_request *req;
- 	va_list args;
- 	int ret;
- 
--	list_splice_init(&net->nft.commit_list, &commit_list);
--
- 	va_start(args, fmt);
- 	ret = vsnprintf(module_name, MODULE_NAME_LEN, fmt, args);
- 	va_end(args);
- 	if (ret >= MODULE_NAME_LEN)
--		return;
-+		return 0;
- 
--	mutex_unlock(&net->nft.commit_mutex);
--	request_module("%s", module_name);
--	mutex_lock(&net->nft.commit_mutex);
-+	list_for_each_entry(req, &net->nft.module_list, list) {
-+		if (!strcmp(req->module, module_name) && req->done)
-+			return 0;
-+	}
- 
--	WARN_ON_ONCE(!list_empty(&net->nft.commit_list));
--	list_splice(&commit_list, &net->nft.commit_list);
-+	req = kmalloc(sizeof(*req), GFP_KERNEL);
-+	if (!req)
-+		return -ENOMEM;
-+
-+	req->done = false;
-+	strlcpy(req->module, module_name, MODULE_NAME_LEN);
-+	list_add_tail(&req->list, &net->nft.module_list);
-+
-+	return -EAGAIN;
- }
- #endif
- 
-@@ -630,10 +635,9 @@ nf_tables_chain_type_lookup(struct net *net, const struct nlattr *nla,
- 	lockdep_nfnl_nft_mutex_not_held();
- #ifdef CONFIG_MODULES
- 	if (autoload) {
--		nft_request_module(net, "nft-chain-%u-%.*s", family,
--				   nla_len(nla), (const char *)nla_data(nla));
--		type = __nf_tables_chain_type_lookup(nla, family);
--		if (type != NULL)
-+		if (nft_request_module(net, "nft-chain-%u-%.*s", family,
-+				       nla_len(nla),
-+				       (const char *)nla_data(nla)) == -EAGAIN)
- 			return ERR_PTR(-EAGAIN);
- 	}
- #endif
-@@ -2341,9 +2345,8 @@ static const struct nft_expr_type *__nft_expr_type_get(u8 family,
- static int nft_expr_type_request_module(struct net *net, u8 family,
- 					struct nlattr *nla)
- {
--	nft_request_module(net, "nft-expr-%u-%.*s", family,
--			   nla_len(nla), (char *)nla_data(nla));
--	if (__nft_expr_type_get(family, nla))
-+	if (nft_request_module(net, "nft-expr-%u-%.*s", family,
-+			       nla_len(nla), (char *)nla_data(nla)) == -EAGAIN)
- 		return -EAGAIN;
- 
- 	return 0;
-@@ -2369,9 +2372,9 @@ static const struct nft_expr_type *nft_expr_type_get(struct net *net,
- 		if (nft_expr_type_request_module(net, family, nla) == -EAGAIN)
- 			return ERR_PTR(-EAGAIN);
- 
--		nft_request_module(net, "nft-expr-%.*s",
--				   nla_len(nla), (char *)nla_data(nla));
--		if (__nft_expr_type_get(family, nla))
-+		if (nft_request_module(net, "nft-expr-%.*s",
-+				       nla_len(nla),
-+				       (char *)nla_data(nla)) == -EAGAIN)
- 			return ERR_PTR(-EAGAIN);
- 	}
- #endif
-@@ -2462,9 +2465,10 @@ static int nf_tables_expr_parse(const struct nft_ctx *ctx,
- 			err = PTR_ERR(ops);
- #ifdef CONFIG_MODULES
- 			if (err == -EAGAIN)
--				nft_expr_type_request_module(ctx->net,
--							     ctx->family,
--							     tb[NFTA_EXPR_NAME]);
-+				if (nft_expr_type_request_module(ctx->net,
-+								 ctx->family,
-+								 tb[NFTA_EXPR_NAME]) != -EAGAIN)
-+					err = -ENOENT;
- #endif
- 			goto err1;
- 		}
-@@ -3301,8 +3305,7 @@ nft_select_set_ops(const struct nft_ctx *ctx,
- 	lockdep_nfnl_nft_mutex_not_held();
- #ifdef CONFIG_MODULES
- 	if (list_empty(&nf_tables_set_types)) {
--		nft_request_module(ctx->net, "nft-set");
--		if (!list_empty(&nf_tables_set_types))
-+		if (nft_request_module(ctx->net, "nft-set") == -EAGAIN)
- 			return ERR_PTR(-EAGAIN);
- 	}
- #endif
-@@ -5428,8 +5431,7 @@ nft_obj_type_get(struct net *net, u32 objtype)
- 	lockdep_nfnl_nft_mutex_not_held();
- #ifdef CONFIG_MODULES
- 	if (type == NULL) {
--		nft_request_module(net, "nft-obj-%u", objtype);
--		if (__nft_obj_type_get(objtype))
-+		if (nft_request_module(net, "nft-obj-%u", objtype) == -EAGAIN)
- 			return ERR_PTR(-EAGAIN);
- 	}
- #endif
-@@ -6002,8 +6004,7 @@ nft_flowtable_type_get(struct net *net, u8 family)
- 	lockdep_nfnl_nft_mutex_not_held();
- #ifdef CONFIG_MODULES
- 	if (type == NULL) {
--		nft_request_module(net, "nf-flowtable-%u", family);
--		if (__nft_flowtable_type_get(family))
-+		if (nft_request_module(net, "nf-flowtable-%u", family) == -EAGAIN)
- 			return ERR_PTR(-EAGAIN);
- 	}
- #endif
-@@ -7005,6 +7006,18 @@ static void nft_chain_del(struct nft_chain *chain)
- 	list_del_rcu(&chain->list);
- }
- 
-+static void nf_tables_module_autoload_cleanup(struct net *net)
-+{
-+	struct nft_module_request *req, *next;
-+
-+	WARN_ON_ONCE(!list_empty(&net->nft.commit_list));
-+	list_for_each_entry_safe(req, next, &net->nft.module_list, list) {
-+		WARN_ON_ONCE(!req->done);
-+		list_del(&req->list);
-+		kfree(req);
-+	}
-+}
-+
- static void nf_tables_commit_release(struct net *net)
- {
- 	struct nft_trans *trans;
-@@ -7017,6 +7030,7 @@ static void nf_tables_commit_release(struct net *net)
- 	 * to prevent expensive synchronize_rcu() in commit phase.
- 	 */
- 	if (list_empty(&net->nft.commit_list)) {
-+		nf_tables_module_autoload_cleanup(net);
- 		mutex_unlock(&net->nft.commit_mutex);
- 		return;
- 	}
-@@ -7031,6 +7045,7 @@ static void nf_tables_commit_release(struct net *net)
- 	list_splice_tail_init(&net->nft.commit_list, &nf_tables_destroy_list);
- 	spin_unlock(&nf_tables_destroy_list_lock);
- 
-+	nf_tables_module_autoload_cleanup(net);
- 	mutex_unlock(&net->nft.commit_mutex);
- 
- 	schedule_work(&trans_destroy_work);
-@@ -7222,6 +7237,26 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 	return 0;
- }
- 
-+static void nf_tables_module_autoload(struct net *net)
-+{
-+	struct nft_module_request *req, *next;
-+	LIST_HEAD(module_list);
-+
-+	list_splice_init(&net->nft.module_list, &module_list);
-+	mutex_unlock(&net->nft.commit_mutex);
-+	list_for_each_entry_safe(req, next, &module_list, list) {
-+		if (req->done) {
-+			list_del(&req->list);
-+			kfree(req);
-+		} else {
-+			request_module("%s", req->module);
-+			req->done = true;
-+		}
-+	}
-+	mutex_lock(&net->nft.commit_mutex);
-+	list_splice(&module_list, &net->nft.module_list);
-+}
-+
- static void nf_tables_abort_release(struct nft_trans *trans)
- {
- 	switch (trans->msg_type) {
-@@ -7251,7 +7286,7 @@ static void nf_tables_abort_release(struct nft_trans *trans)
- 	kfree(trans);
- }
- 
--static int __nf_tables_abort(struct net *net)
-+static int __nf_tables_abort(struct net *net, bool autoload)
- {
- 	struct nft_trans *trans, *next;
- 	struct nft_trans_elem *te;
-@@ -7373,6 +7408,11 @@ static int __nf_tables_abort(struct net *net)
- 		nf_tables_abort_release(trans);
- 	}
- 
-+	if (autoload)
-+		nf_tables_module_autoload(net);
-+	else
-+		nf_tables_module_autoload_cleanup(net);
-+
- 	return 0;
- }
- 
-@@ -7381,9 +7421,9 @@ static void nf_tables_cleanup(struct net *net)
- 	nft_validate_state_update(net, NFT_VALIDATE_SKIP);
- }
- 
--static int nf_tables_abort(struct net *net, struct sk_buff *skb)
-+static int nf_tables_abort(struct net *net, struct sk_buff *skb, bool autoload)
- {
--	int ret = __nf_tables_abort(net);
-+	int ret = __nf_tables_abort(net, autoload);
- 
- 	mutex_unlock(&net->nft.commit_mutex);
- 
-@@ -7978,6 +8018,7 @@ static int __net_init nf_tables_init_net(struct net *net)
- {
- 	INIT_LIST_HEAD(&net->nft.tables);
- 	INIT_LIST_HEAD(&net->nft.commit_list);
-+	INIT_LIST_HEAD(&net->nft.module_list);
- 	mutex_init(&net->nft.commit_mutex);
- 	net->nft.base_seq = 1;
- 	net->nft.validate_state = NFT_VALIDATE_SKIP;
-@@ -7989,7 +8030,7 @@ static void __net_exit nf_tables_exit_net(struct net *net)
- {
- 	mutex_lock(&net->nft.commit_mutex);
- 	if (!list_empty(&net->nft.commit_list))
--		__nf_tables_abort(net);
-+		__nf_tables_abort(net, false);
- 	__nft_release_tables(net);
- 	mutex_unlock(&net->nft.commit_mutex);
- 	WARN_ON_ONCE(!list_empty(&net->nft.tables));
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 4abbb452cf6c..99127e2d95a8 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -476,7 +476,7 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	}
- done:
- 	if (status & NFNL_BATCH_REPLAY) {
--		ss->abort(net, oskb);
-+		ss->abort(net, oskb, true);
- 		nfnl_err_reset(&err_list);
- 		kfree_skb(skb);
- 		module_put(ss->owner);
-@@ -487,11 +487,11 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
- 			status |= NFNL_BATCH_REPLAY;
- 			goto done;
- 		} else if (err) {
--			ss->abort(net, oskb);
-+			ss->abort(net, oskb, false);
- 			netlink_ack(oskb, nlmsg_hdr(oskb), err, NULL);
- 		}
- 	} else {
--		ss->abort(net, oskb);
-+		ss->abort(net, oskb, false);
- 	}
- 	if (ss->cleanup)
- 		ss->cleanup(net);
--- 
-2.11.0
+Does -EEXIST make more sense here?
 
+> +       read_unlock(&tasklist_lock);
+> +       if (!rc)
+> +               task->audit->contid = contid;
+> +       task_unlock(task);
+> +
+> +       if (!audit_enabled)
+> +               return rc;
+> +
+> +       ab = audit_log_start(audit_context(), GFP_KERNEL, AUDIT_CONTAINER_OP);
+> +       if (!ab)
+> +               return rc;
+> +
+> +       audit_log_format(ab,
+> +                        "op=set opid=%d contid=%llu old-contid=%llu",
+> +                        task_tgid_nr(task), contid, oldcontid);
+> +       audit_log_end(ab);
+
+Assuming audit is enabled we always emit the record above, even if we
+were not actually able to set the Audit Container ID (ACID); this
+seems wrong to me.  I think the proper behavior would be to either add
+a "res=" field to indicate success/failure or only emit the record
+when we actually change a task's ACID.  Considering the impact that
+the ACID value will potentially have on the audit stream, it seems
+like always logging the record and including a "res=" field may be the
+safer choice.
+
+
+> +       return rc;
+> +}
+> +
+>  /**
+>   * audit_log_end - end one audit record
+>   * @ab: the audit_buffer
+
+--
+paul moore
+www.paul-moore.com
