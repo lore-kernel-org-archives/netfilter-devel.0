@@ -2,62 +2,63 @@ Return-Path: <SRS0=e21D=3L=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CB94C32771
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 21:29:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEF7BC32771
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 21:29:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5B21F24673
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 21:29:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A83B21835
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 21:29:46 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="vdbmKD+y"
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="VG+pSGaQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729327AbgAVV3T (ORCPT
+        id S1729476AbgAVV3n (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Jan 2020 16:29:19 -0500
-Received: from mail-lj1-f193.google.com ([209.85.208.193]:41858 "EHLO
+        Wed, 22 Jan 2020 16:29:43 -0500
+Received: from mail-lj1-f193.google.com ([209.85.208.193]:40051 "EHLO
         mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729251AbgAVV3S (ORCPT
+        with ESMTP id S1729459AbgAVV3m (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Jan 2020 16:29:18 -0500
-Received: by mail-lj1-f193.google.com with SMTP id h23so707501ljc.8
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 13:29:17 -0800 (PST)
+        Wed, 22 Jan 2020 16:29:42 -0500
+Received: by mail-lj1-f193.google.com with SMTP id n18so710071ljo.7
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 13:29:40 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=0IWzoSHaF7JN7KzmRnEKXue37+ElHpTL6tvjAuEiiiE=;
-        b=vdbmKD+yNje7jhxOhco/lhYmf+3Q1q+XjGe74FJCrmQXQ5t6WJS+kdh6i9Krkm3ZTB
-         zeqWO82x5b2dbahES4hr2RG0xoDgGanxYKm5yUIzlxfqnQXUOlyeGElCDg9Y2F956m+q
-         7kLbk3H8VsgEX4YrYWvAKFyp0xFcpC5Fr974FOn9rnivaLGIufkBpu/uJeqfZEuV1WFE
-         eABuXY7Ss5Si7RevcqYhdcQvJRfuH38hsWHMgIpSxxvws5XSUZZim12h+5uAeW2p966k
-         3WcllzOlzMcPtleAH4Pm/M/kBtjWAsBD+u3/IbIpQgJo0Ocqw42SsFkzXbUoEtD7rVvM
-         CRlQ==
+        bh=bxPhh7N7fIA127zr04oMv8OimndCsehwtjANlH0ufAg=;
+        b=VG+pSGaQEHZ01TdE6+inaGCl7YIbKV9BQclbGxGKMBuWJI1/IniG8OJQ/PmZgSAqRR
+         8E8az/WCM9eetPppdm2WfrskxLGjsmff77/uc0ifBf4LCWMBMWgyB5A8y/pMa9fCtBkS
+         iPAVZl36IuQJFXEK7CcgeOT5L0sv/ij6f/gHyxRD+QgVwSaFAk8HURScNnari2n6kEcI
+         IVUqWDdrv97oGI7vkGBLqlZNOxueQ8DNFJaxgE8pWiVnqjpv93ZTkEm3y+GrS5vo9eh6
+         mqxkeG5NAUIG65H1IVdlfGB6ZlFASVR9vEtQwZl+aYxBvcEIT5ACrAVI9oB6zVzvUnZp
+         PAlw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=0IWzoSHaF7JN7KzmRnEKXue37+ElHpTL6tvjAuEiiiE=;
-        b=ZxVJaRb8fvtq7a98O0/kEPx7r4aNFAgZR1EodO9VKctL/YDLoaRwapYNmbho27g18O
-         k0X5JxBLVe+H3AEq/q/NWh+xmJpoC+C33+ojDN0XNu9HEw7tLhF+qN3JHcyd9s96fwkk
-         x6l+HKARjHNU21u87nSFCSE0aJ3gE7CCkMHl0eag1HOKTzPi4vTCwGWzbcc7CrZNUCMc
-         LJu99dVQrnVZwTvVblLTLADrfaflpIO/c4RZQ4QbZyAnsp2MKRzbrsFsS1QFv7qniNMy
-         P7L5KJjakBJK0p1NeMPWRUlryE72CK/XJryT6ZrP1M/urahkBbR/J43v4/44RVcdc3Q3
-         i8Aw==
-X-Gm-Message-State: APjAAAXfNyCgicpVycXUUyaceP/vq8jMlQ5hd19cPdtkDvcHnrPT5QMU
-        clUjDJ70oFbi5zjCgSMD4nOupQTkO3PAlo6BnUoq
-X-Google-Smtp-Source: APXvYqyJPHhr26PhrZ+pA9b8pTPEHYf1WFuy5Ob3gcESY7hxuJ6vYnDhzK5W1Ro4odt+SPVTOx5x/cd75TN9sGtuTYo=
-X-Received: by 2002:a2e:5357:: with SMTP id t23mr21086243ljd.227.1579728556739;
- Wed, 22 Jan 2020 13:29:16 -0800 (PST)
+        bh=bxPhh7N7fIA127zr04oMv8OimndCsehwtjANlH0ufAg=;
+        b=fba3nO4XEGtSCltd2JHOONB23EQLjmpbIP5lJ952NjWjsYsMM7xkGMVtIpUlREARO2
+         edMt5q/j/jm2+AJ7UqAeeG/QU2Bo7hQ3eFiS+uEjzEGEnTMw4qu05mulqUiUn7mofKIo
+         QUIZZqnxQpU4TUqwJ/mkn6sd3uYzwYUQln4e2J1RkhOjq0gbgKRQRypsVt9G37CrxOvx
+         PsxrwzJLmKimZUfkLLuj0V+wjwCfhfPEIy4J44CKcdrHq2VirizaRfdLgs1HrVb+BrVI
+         AdM0PY7OAFNlk+Xy6i+sKscVdFtzanwEeenlwjwUjk4exhLpLYXS8O4z8bj5o2PSdZWe
+         MNjQ==
+X-Gm-Message-State: APjAAAW19zxLpzWzwYXyUe4gJnFAm6u508urmeiPB8g9JqH2VPMxBCvX
+        J0jtcD/aFOSLCfdHNHHPSxJyIU5JhDOqx0fFkGux
+X-Google-Smtp-Source: APXvYqzeo+JIXOnTNsp8hlNCS0EhcIav6k16IWLVBCjbo48MM+ye9PmS2K9sFncvQx6VkvN1QXW6bcGPUW1n+S8axUk=
+X-Received: by 2002:a2e:870b:: with SMTP id m11mr20503341lji.93.1579728580019;
+ Wed, 22 Jan 2020 13:29:40 -0800 (PST)
 MIME-Version: 1.0
-References: <cover.1577736799.git.rgb@redhat.com> <cfbb80a08fc770dd0dcf6dac6ff307a80d877c3f.1577736799.git.rgb@redhat.com>
-In-Reply-To: <cfbb80a08fc770dd0dcf6dac6ff307a80d877c3f.1577736799.git.rgb@redhat.com>
+References: <cover.1577736799.git.rgb@redhat.com> <229a7be1f1136906a360a46e2cf8cdcd4c7c4b1b.1577736799.git.rgb@redhat.com>
+In-Reply-To: <229a7be1f1136906a360a46e2cf8cdcd4c7c4b1b.1577736799.git.rgb@redhat.com>
 From:   Paul Moore <paul@paul-moore.com>
-Date:   Wed, 22 Jan 2020 16:29:05 -0500
-Message-ID: <CAHC9VhT1+mx_tVzyXD=UBqagqYgAFjZ=X1A6oBiMvjVCn8=V-w@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V8 12/16] audit: contid check descendancy and nesting
+Date:   Wed, 22 Jan 2020 16:29:29 -0500
+Message-ID: <CAHC9VhS2h8LfYCZOkjmvSkJ5rXXJTEkRwrBMHZW=TYkpaKVUyA@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V8 15/16] audit: check contid count per netns and
+ add config param limit
 To:     Richard Guy Briggs <rgb@redhat.com>
 Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
         Linux-Audit Mailing List <linux-audit@redhat.com>,
@@ -76,92 +77,35 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 On Tue, Dec 31, 2019 at 2:51 PM Richard Guy Briggs <rgb@redhat.com> wrote:
 >
-> Require the target task to be a descendant of the container
-> orchestrator/engine.
+> Clamp the number of audit container identifiers associated with a
+> network namespace to limit the netlink and disk bandwidth used and to
+> prevent losing information from record text size overflow in the contid
+> field.
 >
-> You would only change the audit container ID from one set or inherited
-> value to another if you were nesting containers.
+> Add a configuration parameter AUDIT_STATUS_CONTID_NETNS_LIMIT (0x100)
+> to set the audit container identifier netns limit.  This is used to
+> prevent overflow of the contid field in CONTAINER_OP and CONTAINER_ID
+> messages, losing information, and to limit bandwidth used by these
+> messages.
 >
-> If changing the contid, the container orchestrator/engine must be a
-> descendant and not same orchestrator as the one that set it so it is not
-> possible to change the contid of another orchestrator's container.
->
-> Since the task_is_descendant() function is used in YAMA and in audit,
-> remove the duplication and pull the function into kernel/core/sched.c
+> This value must be balanced with the audit container identifier nesting
+> depth limit to multiply out to no more than 400.  This is determined by
+> the total audit message length less message overhead divided by the
+> length of the text representation of an audit container identifier.
 >
 > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 > ---
->  include/linux/sched.h    |  3 +++
->  kernel/audit.c           | 44 ++++++++++++++++++++++++++++++++++++--------
->  kernel/sched/core.c      | 33 +++++++++++++++++++++++++++++++++
->  security/yama/yama_lsm.c | 33 ---------------------------------
->  4 files changed, 72 insertions(+), 41 deletions(-)
+>  include/linux/audit.h      | 16 +++++++----
+>  include/linux/nsproxy.h    |  2 +-
+>  include/uapi/linux/audit.h |  2 ++
+>  kernel/audit.c             | 68 ++++++++++++++++++++++++++++++++++++++--------
+>  kernel/audit.h             |  7 +++++
+>  kernel/fork.c              | 10 +++++--
+>  kernel/nsproxy.c           | 27 +++++++++++++++---
+>  7 files changed, 107 insertions(+), 25 deletions(-)
 
-...
-
-> diff --git a/kernel/audit.c b/kernel/audit.c
-> index f7a8d3288ca0..ef8e07524c46 100644
-> --- a/kernel/audit.c
-> +++ b/kernel/audit.c
-> @@ -2603,22 +2610,43 @@ int audit_set_contid(struct task_struct *task, u64 contid)
->         oldcontid = audit_get_contid(task);
->         read_lock(&tasklist_lock);
->         /* Don't allow the contid to be unset */
-> -       if (!audit_contid_valid(contid))
-> +       if (!audit_contid_valid(contid)) {
->                 rc = -EINVAL;
-> +               goto unlock;
-> +       }
->         /* Don't allow the contid to be set to the same value again */
-> -       else if (contid == oldcontid) {
-> +       if (contid == oldcontid) {
->                 rc = -EADDRINUSE;
-> +               goto unlock;
-> +       }
->         /* if we don't have caps, reject */
-> -       else if (!capable(CAP_AUDIT_CONTROL))
-> +       if (!capable(CAP_AUDIT_CONTROL)) {
->                 rc = -EPERM;
-> -       /* if task has children or is not single-threaded, deny */
-> -       else if (!list_empty(&task->children))
-> +               goto unlock;
-> +       }
-> +       /* if task has children, deny */
-> +       if (!list_empty(&task->children)) {
->                 rc = -EBUSY;
-> -       else if (!(thread_group_leader(task) && thread_group_empty(task)))
-> +               goto unlock;
-> +       }
-> +       /* if task is not single-threaded, deny */
-> +       if (!(thread_group_leader(task) && thread_group_empty(task))) {
->                 rc = -EALREADY;
-> -       /* if contid is already set, deny */
-> -       else if (audit_contid_set(task))
-> +               goto unlock;
-> +       }
-
-It seems like the if/else-if conversion above should be part of an
-earlier patchset.
-
-> +       /* if task is not descendant, block */
-> +       if (task == current) {
-> +               rc = -EBADSLT;
-> +               goto unlock;
-> +       }
-> +       if (!task_is_descendant(current, task)) {
-> +               rc = -EXDEV;
-> +               goto unlock;
-> +       }
-
-I understand you are trying to provide a unique error code for each
-failure case, but this is getting silly.  Let's group the descendent
-checks under the same error code.
-
-> +       /* only allow contid setting again if nesting */
-> +       if (audit_contid_set(task) && audit_contid_isowner(task))
->                 rc = -ECHILD;
-
-Should that be "!audit_contid_isowner()"?
+Similar to my comments in patch 14, let's defer this to a later time
+if we need to do this at all.
 
 --
 paul moore
