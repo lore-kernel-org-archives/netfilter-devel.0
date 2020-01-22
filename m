@@ -2,74 +2,127 @@ Return-Path: <SRS0=e21D=3L=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C81B2C2D0DB
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 11:43:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C1A5C2D0DB
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 13:31:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9F6B621734
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 11:43:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4C29920678
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 13:31:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728939AbgAVLnq (ORCPT
+        id S1729012AbgAVNbi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Jan 2020 06:43:46 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:38730 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726191AbgAVLnp (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Jan 2020 06:43:45 -0500
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1iuEQ1-0007c2-PI; Wed, 22 Jan 2020 12:43:33 +0100
-Date:   Wed, 22 Jan 2020 12:43:33 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Daniel Borkmann <daniel@iogearbox.net>
-Cc:     Praveen Chaudhary <praveen5582@gmail.com>, fw@strlen.de,
-        pablo@netfilter.org, davem@davemloft.net, kadlec@netfilter.org,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Zhenggen Xu <zxu@linkedin.com>,
-        Andy Stracner <astracner@linkedin.com>
-Subject: Re: [PATCH v3] [net]: Fix skb->csum update in
- inet_proto_csum_replace16().
-Message-ID: <20200122114333.GQ795@breakpoint.cc>
-References: <1573080729-3102-1-git-send-email-pchaudhary@linkedin.com>
- <1573080729-3102-2-git-send-email-pchaudhary@linkedin.com>
- <16d56ee6-53bc-1124-3700-bc0a78f927d6@iogearbox.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <16d56ee6-53bc-1124-3700-bc0a78f927d6@iogearbox.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        Wed, 22 Jan 2020 08:31:38 -0500
+Received: from correo.us.es ([193.147.175.20]:55336 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728668AbgAVNTK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 22 Jan 2020 08:19:10 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id C400B303D0C
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 14:19:06 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B66FEDA79A
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 14:19:06 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id AC273DA714; Wed, 22 Jan 2020 14:19:06 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 70CDEDA702
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 14:19:04 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 22 Jan 2020 14:19:04 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (barqueta.lsi.us.es [150.214.188.150])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 6226E42EF9E1
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 14:19:04 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] netfilter: nf_tables: add __nft_chain_type_get()
+Date:   Wed, 22 Jan 2020 14:19:00 +0100
+Message-Id: <20200122131900.6598-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Daniel Borkmann <daniel@iogearbox.net> wrote:
-> > @@ -449,9 +464,6 @@ void inet_proto_csum_replace16(__sum16 *sum, struct sk_buff *skb,
-> >   	if (skb->ip_summed != CHECKSUM_PARTIAL) {
-> >   		*sum = csum_fold(csum_partial(diff, sizeof(diff),
-> >   				 ~csum_unfold(*sum)));
-> > -		if (skb->ip_summed == CHECKSUM_COMPLETE && pseudohdr)
-> > -			skb->csum = ~csum_partial(diff, sizeof(diff),
-> > -						  ~skb->csum);
-> 
-> What is the technical rationale in removing this here but not in any of the
-> other inet_proto_csum_replace*() functions? You changelog has zero analysis
-> on why here but not elsewhere this change would be needed?
+This new helper function validates that unknown family and chain type
+coming from userspace do not trigger an out-of-bound array access. Bail
+out in case __nft_chain_type_get() returns NULL from
+nft_chain_parse_hook().
 
-Right, I think it could be dropped everywhere BUT there is a major caveat:
+Fixes: 9370761c56b6 ("netfilter: nf_tables: convert built-in tables/chains to chain types")
+Reported-by: syzbot+156a04714799b1d480bc@syzkaller.appspotmail.com
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 29 +++++++++++++++++++++--------
+ 1 file changed, 21 insertions(+), 8 deletions(-)
 
-At least for the nf_nat case ipv4 header manipulation (which uses the other
-helpers froum utils.c) will eventually also update iph->checksum field
-to account for the changed ip addresses.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 65f51a2e9c2a..4aa01c1253b1 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -553,14 +553,27 @@ static inline u64 nf_tables_alloc_handle(struct nft_table *table)
+ static const struct nft_chain_type *chain_type[NFPROTO_NUMPROTO][NFT_CHAIN_T_MAX];
+ 
+ static const struct nft_chain_type *
++__nft_chain_type_get(u8 family, enum nft_chain_types type)
++{
++	if (family >= NFPROTO_NUMPROTO ||
++	    type >= NFT_CHAIN_T_MAX)
++		return NULL;
++
++	return chain_type[family][type];
++}
++
++static const struct nft_chain_type *
+ __nf_tables_chain_type_lookup(const struct nlattr *nla, u8 family)
+ {
++	const struct nft_chain_type *type;
+ 	int i;
+ 
+ 	for (i = 0; i < NFT_CHAIN_T_MAX; i++) {
+-		if (chain_type[family][i] != NULL &&
+-		    !nla_strcmp(nla, chain_type[family][i]->name))
+-			return chain_type[family][i];
++		type = __nft_chain_type_get(family, i);
++		if (!type)
++			continue;
++		if (!nla_strcmp(nla, type->name))
++			return type;
+ 	}
+ 	return NULL;
+ }
+@@ -1162,11 +1175,8 @@ static void nf_tables_table_destroy(struct nft_ctx *ctx)
+ 
+ void nft_register_chain_type(const struct nft_chain_type *ctype)
+ {
+-	if (WARN_ON(ctype->family >= NFPROTO_NUMPROTO))
+-		return;
+-
+ 	nfnl_lock(NFNL_SUBSYS_NFTABLES);
+-	if (WARN_ON(chain_type[ctype->family][ctype->type] != NULL)) {
++	if (WARN_ON(__nft_chain_type_get(ctype->family, ctype->type))) {
+ 		nfnl_unlock(NFNL_SUBSYS_NFTABLES);
+ 		return;
+ 	}
+@@ -1768,7 +1778,10 @@ static int nft_chain_parse_hook(struct net *net,
+ 	hook->num = ntohl(nla_get_be32(ha[NFTA_HOOK_HOOKNUM]));
+ 	hook->priority = ntohl(nla_get_be32(ha[NFTA_HOOK_PRIORITY]));
+ 
+-	type = chain_type[family][NFT_CHAIN_T_DEFAULT];
++	type = __nft_chain_type_get(family, NFT_CHAIN_T_DEFAULT);
++	if (!type)
++		return -EOPNOTSUPP;
++
+ 	if (nla[NFTA_CHAIN_TYPE]) {
+ 		type = nf_tables_chain_type_lookup(net, nla[NFTA_CHAIN_TYPE],
+ 						   family, autoload);
+-- 
+2.11.0
 
-And that update doesn't touch skb->csum.
-
-So in a way the update of skb->csum in the other helpers indirectly account
-for later ip header checksum update.
-
-At least that was my conclusion when reviewing the earlier incarnation
-of the patch.
