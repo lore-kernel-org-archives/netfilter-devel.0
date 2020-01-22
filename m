@@ -2,63 +2,63 @@ Return-Path: <SRS0=e21D=3L=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 209E8C32771
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 21:29:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DEFD9C3F68F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 21:29:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E6AD624676
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 21:29:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ACC0A21835
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 21:29:55 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="VJNm7ixV"
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="KbqShNWE"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729439AbgAVV3j (ORCPT
+        id S1729503AbgAVV3z (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Jan 2020 16:29:39 -0500
-Received: from mail-lf1-f68.google.com ([209.85.167.68]:33478 "EHLO
-        mail-lf1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729393AbgAVV3g (ORCPT
+        Wed, 22 Jan 2020 16:29:55 -0500
+Received: from mail-lf1-f67.google.com ([209.85.167.67]:36473 "EHLO
+        mail-lf1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729146AbgAVV3y (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Jan 2020 16:29:36 -0500
-Received: by mail-lf1-f68.google.com with SMTP id n25so758526lfl.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 13:29:34 -0800 (PST)
+        Wed, 22 Jan 2020 16:29:54 -0500
+Received: by mail-lf1-f67.google.com with SMTP id f24so740132lfh.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 13:29:52 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=T8dyZsx/1G1o4Km+D3AEjaFYjcDXoKwu76FXwqPPMog=;
-        b=VJNm7ixVgyAguIeuR1pIXq0hv6ch7qgz5+W7axDIdGlhCNwpeyNJplyxY1npsTRa4q
-         3AvFO2bN5r9I/mbrHMKFriPmjMXEUWYzS+PN/eLwCoaJhzX3jbPQJyRrX+O6IifhmS4t
-         bAW5ztBvjxYTbpp9vIw4qcfvCMDSpuT8XuKqnlkWEusBikGN7eK6zxIwb+ANo0MusAUH
-         y+2kEafA7mRzCvr0s6iDXqOBMqy0gyMtoVIoPF3UpKq+lYrO5MoIoGFloRBeyZfAnJAY
-         cqsdx7KP8XS8YRJxgBSf+GmUDq5DSAoNnh1r2nnWw3k0ufdHWJw6q2xH0VYZhZTHi5df
-         rQRQ==
+        bh=QtzDsuL2wxUZ5ywGO+m8auB4mvm7TddMdWO8k2uItsM=;
+        b=KbqShNWEjgiFyu/5p615XDnhjKT0jZHGFWQpOKnIJKJXmSWLcMLndJwYe8W2HBj6H0
+         sFS2xlDnSp0XL1KiHGn3m8Lum8rwkQjyq5MwiCxHxNRlo8b1OG7qwG4G9TnyW2m5LsSa
+         fFKpmjgQpyPe0OCJsMnh5d+hq7cbUTmwLfrETpTvCMbhZi9mgGgUb6qx5h6hm6B5+ZYn
+         vp6991kA33cRxkdb7IkPfjYCdbTz/D4btQ7Agf5tt0/kGsSDNhPH9U2foSYivHJ+xdt7
+         M2cUIrtb3K5GmWVE9CAm6LlgjZvSd8Errsk4aUhRiBWDQ31saOR7WC6O0Z6deGJw1OYN
+         r+1A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=T8dyZsx/1G1o4Km+D3AEjaFYjcDXoKwu76FXwqPPMog=;
-        b=KsWiBnPvatP1ZVm+Bn/wfrgTHJgrx3UEEcAbUY85DBfirrVjn+01+I2yrfQ5sTAmDi
-         MCxD+0pEpLq0lqHTgS7sz9gMa4Xgv4YvF3yq+RziRTp0fcFI3AfnbRBOUrRxoSytbGR+
-         L5uAynWGi7U0KocqRk5jR1XaHTFCrFJzvPOVEFTDhhJURHE61QSTiKCwxmjyEu7kO7cv
-         5BLhiaV2OpRj7UhH772OD7B47dtovbP1CifLzcijAfzyZ6g+cI3QfSlzjNJNcWt5fFr7
-         bRp9lbdLNkGBrWFheA0//F6pJXWwBGcw9C0kLQem1KiXY3qLjiB7r8GoiM83UyccDZft
-         HEng==
-X-Gm-Message-State: APjAAAXEwLlyB/t/PSQ2Ui5GzqfalHSoCbmcFHcmjoCsBjK72ZVTQGqk
-        AnsqepyaNuXxak2VhEMj8dAqWB/sk1mqK6UBMBYH
-X-Google-Smtp-Source: APXvYqz71TZIg9MpEPSBX37Fh9pYf3NdlS4RNWJNnf5mBSZhvbWQtLxCouQ51G9Z/+VOzq252Xo+mwvfcQY+/hQ0B1U=
-X-Received: by 2002:ac2:4422:: with SMTP id w2mr2853088lfl.178.1579728573496;
- Wed, 22 Jan 2020 13:29:33 -0800 (PST)
+        bh=QtzDsuL2wxUZ5ywGO+m8auB4mvm7TddMdWO8k2uItsM=;
+        b=FjIgkdMWx20vUqjDNHSk/pAuskwXOMmqxGB9DmVBmV05/Vou8eG9WoQ3qb1rE2h9ej
+         5X+2fAn4Zj8lQ0grT+wc4ee8UGILK4GJF8v4MvbiPOuS6G1ZeFZw3o4+L/YOyPCsqf70
+         PFPJsUFIUCn+8mMtP6TOKAdUkm20Ix3aBUT8leX0jaOuxnWCkOtRXK+4zeMkvg7yLhu5
+         BAQvMvN6ReOobpwxJP0hTpqxQqGmWrBSZe6+0ghhyvTQ89bdwy9kQ4zS6UViH+k2n6xp
+         CcJ4Hsna+UMx0uInOzBgCAQ5E/xomZmrgU2Z2LIRXPIjXL9ml9Ohv1Fg2+fU+SzoRFgR
+         e7ow==
+X-Gm-Message-State: APjAAAVBIViooOpvR1huPpaujiPOLlgvD92DW+vkNY7A0CT/fFibJii4
+        OiKX0YMY3VHikRawlS78UCYfQEVWp9sQhUJRzT7O
+X-Google-Smtp-Source: APXvYqy5NenDRP+GLKo9J8quNnfqfhyEzEl8NSpHCWF7mi5ljohn5db2MdvAsLqzUXcY1Lu1XrqhV/m/a9rdNNnHFD8=
+X-Received: by 2002:a19:7515:: with SMTP id y21mr2766879lfe.45.1579728591582;
+ Wed, 22 Jan 2020 13:29:51 -0800 (PST)
 MIME-Version: 1.0
-References: <cover.1577736799.git.rgb@redhat.com> <28cf3e16f8440bcb852767d3ae13e1a56c19569c.1577736799.git.rgb@redhat.com>
-In-Reply-To: <28cf3e16f8440bcb852767d3ae13e1a56c19569c.1577736799.git.rgb@redhat.com>
+References: <cover.1577736799.git.rgb@redhat.com> <5941671b6b6b5de28ab2cc80e72f288cf83291d5.1577736799.git.rgb@redhat.com>
+In-Reply-To: <5941671b6b6b5de28ab2cc80e72f288cf83291d5.1577736799.git.rgb@redhat.com>
 From:   Paul Moore <paul@paul-moore.com>
-Date:   Wed, 22 Jan 2020 16:29:22 -0500
-Message-ID: <CAHC9VhS5snVdRJ95ymCb0oX7dhM_6A5rdtKSRm4fo1xi0hA4NQ@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V8 14/16] audit: check contid depth and add limit
- config param
+Date:   Wed, 22 Jan 2020 16:29:39 -0500
+Message-ID: <CAHC9VhQYXQp+C0EHwLuW50yUenfH4KF1xKQdS=bn_OzHfnFmmg@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V8 16/16] audit: add capcontid to set contid
+ outside init_user_ns
 To:     Richard Guy Briggs <rgb@redhat.com>
 Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
         Linux-Audit Mailing List <linux-audit@redhat.com>,
@@ -77,29 +77,194 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 On Tue, Dec 31, 2019 at 2:51 PM Richard Guy Briggs <rgb@redhat.com> wrote:
 >
-> Clamp the depth of audit container identifier nesting to limit the
-> netlink and disk bandwidth used and to prevent losing information from
-> record text size overflow in the contid field.
+> Provide a mechanism similar to CAP_AUDIT_CONTROL to explicitly give a
+> process in a non-init user namespace the capability to set audit
+> container identifiers.
 >
-> Add a configuration parameter AUDIT_STATUS_CONTID_DEPTH_LIMIT (0x80) to
-> set the audit container identifier depth limit.  This can be used to
-> prevent overflow of the contid field in CONTAINER_OP and CONTAINER_ID
-> messages, losing information, and to limit bandwidth used by these
-> messages.
+> Provide /proc/$PID/audit_capcontid interface to capcontid.
+> Valid values are: 1==enabled, 0==disabled
+
+It would be good to be more explicit about "enabled" and "disabled" in
+the commit description.  For example, which setting allows the target
+task to set audit container IDs of it's children processes?
+
+> Report this action in message type AUDIT_SET_CAPCONTID 1022 with fields
+> opid= capcontid= old-capcontid=
 >
 > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 > ---
->  include/uapi/linux/audit.h |  2 ++
->  kernel/audit.c             | 46 ++++++++++++++++++++++++++++++++++++++++++++++
->  kernel/audit.h             |  2 ++
->  3 files changed, 50 insertions(+)
+>  fs/proc/base.c             | 55 ++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/audit.h      | 14 ++++++++++++
+>  include/uapi/linux/audit.h |  1 +
+>  kernel/audit.c             | 35 +++++++++++++++++++++++++++++
+>  4 files changed, 105 insertions(+)
 
-Since setting an audit container ID, and hence acting as an
-orchestrator and creating a new nested level of audit container IDs,
-is a privileged operation I think we can equate this to the infamous
-"shooting oneself in the foot" problem.  Let's leave this limitation
-out of the patchset for now, if it becomes a problem in the future we
-can consider restricting the nesting depth.
+...
+
+> diff --git a/fs/proc/base.c b/fs/proc/base.c
+> index 26091800180c..283ef8e006e7 100644
+> --- a/fs/proc/base.c
+> +++ b/fs/proc/base.c
+> @@ -1360,6 +1360,59 @@ static ssize_t proc_contid_write(struct file *file, const char __user *buf,
+>         .write          = proc_contid_write,
+>         .llseek         = generic_file_llseek,
+>  };
+> +
+> +static ssize_t proc_capcontid_read(struct file *file, char __user *buf,
+> +                                 size_t count, loff_t *ppos)
+> +{
+> +       struct inode *inode = file_inode(file);
+> +       struct task_struct *task = get_proc_task(inode);
+> +       ssize_t length;
+> +       char tmpbuf[TMPBUFLEN];
+> +
+> +       if (!task)
+> +               return -ESRCH;
+> +       /* if we don't have caps, reject */
+> +       if (!capable(CAP_AUDIT_CONTROL) && !audit_get_capcontid(current))
+> +               return -EPERM;
+> +       length = scnprintf(tmpbuf, TMPBUFLEN, "%u", audit_get_capcontid(task));
+> +       put_task_struct(task);
+> +       return simple_read_from_buffer(buf, count, ppos, tmpbuf, length);
+> +}
+> +
+> +static ssize_t proc_capcontid_write(struct file *file, const char __user *buf,
+> +                                  size_t count, loff_t *ppos)
+> +{
+> +       struct inode *inode = file_inode(file);
+> +       u32 capcontid;
+> +       int rv;
+> +       struct task_struct *task = get_proc_task(inode);
+> +
+> +       if (!task)
+> +               return -ESRCH;
+> +       if (*ppos != 0) {
+> +               /* No partial writes. */
+> +               put_task_struct(task);
+> +               return -EINVAL;
+> +       }
+> +
+> +       rv = kstrtou32_from_user(buf, count, 10, &capcontid);
+> +       if (rv < 0) {
+> +               put_task_struct(task);
+> +               return rv;
+> +       }
+> +
+> +       rv = audit_set_capcontid(task, capcontid);
+> +       put_task_struct(task);
+> +       if (rv < 0)
+> +               return rv;
+> +       return count;
+> +}
+> +
+> +static const struct file_operations proc_capcontid_operations = {
+> +       .read           = proc_capcontid_read,
+> +       .write          = proc_capcontid_write,
+> +       .llseek         = generic_file_llseek,
+> +};
+>  #endif
+>
+>  #ifdef CONFIG_FAULT_INJECTION
+> @@ -3121,6 +3174,7 @@ static int proc_stack_depth(struct seq_file *m, struct pid_namespace *ns,
+>         REG("loginuid",   S_IWUSR|S_IRUGO, proc_loginuid_operations),
+>         REG("sessionid",  S_IRUGO, proc_sessionid_operations),
+>         REG("audit_containerid", S_IWUSR|S_IRUSR, proc_contid_operations),
+> +       REG("audit_capcontainerid", S_IWUSR|S_IRUSR|S_IRUSR, proc_capcontid_operations),
+>  #endif
+>  #ifdef CONFIG_FAULT_INJECTION
+>         REG("make-it-fail", S_IRUGO|S_IWUSR, proc_fault_inject_operations),
+> @@ -3522,6 +3576,7 @@ static int proc_tid_comm_permission(struct inode *inode, int mask)
+>         REG("loginuid",  S_IWUSR|S_IRUGO, proc_loginuid_operations),
+>         REG("sessionid",  S_IRUGO, proc_sessionid_operations),
+>         REG("audit_containerid", S_IWUSR|S_IRUSR, proc_contid_operations),
+> +       REG("audit_capcontainerid", S_IWUSR|S_IRUSR|S_IRUSR, proc_capcontid_operations),
+>  #endif
+>  #ifdef CONFIG_FAULT_INJECTION
+>         REG("make-it-fail", S_IRUGO|S_IWUSR, proc_fault_inject_operations),
+> diff --git a/include/linux/audit.h b/include/linux/audit.h
+> index 28b9c7cd86a6..62c453306c2a 100644
+> --- a/include/linux/audit.h
+> +++ b/include/linux/audit.h
+> @@ -116,6 +116,7 @@ struct audit_task_info {
+>         kuid_t                  loginuid;
+>         unsigned int            sessionid;
+>         struct audit_contobj    *cont;
+> +       u32                     capcontid;
+
+Where is the code change that actually uses this to enforce the
+described policy on setting an audit container ID?
+
+> diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
+> index 2844d78cd7af..01251e6dcec0 100644
+> --- a/include/uapi/linux/audit.h
+> +++ b/include/uapi/linux/audit.h
+> @@ -73,6 +73,7 @@
+>  #define AUDIT_GET_FEATURE      1019    /* Get which features are enabled */
+>  #define AUDIT_CONTAINER_OP     1020    /* Define the container id and info */
+>  #define AUDIT_SIGNAL_INFO2     1021    /* Get info auditd signal sender */
+> +#define AUDIT_SET_CAPCONTID    1022    /* Set cap_contid of a task */
+>
+>  #define AUDIT_FIRST_USER_MSG   1100    /* Userspace messages mostly uninteresting to kernel */
+>  #define AUDIT_USER_AVC         1107    /* We filter this differently */
+> diff --git a/kernel/audit.c b/kernel/audit.c
+> index 1287f0b63757..1c22dd084ae8 100644
+> --- a/kernel/audit.c
+> +++ b/kernel/audit.c
+> @@ -2698,6 +2698,41 @@ static bool audit_contid_isowner(struct task_struct *tsk)
+>         return false;
+>  }
+>
+> +int audit_set_capcontid(struct task_struct *task, u32 enable)
+> +{
+> +       u32 oldcapcontid;
+> +       int rc = 0;
+> +       struct audit_buffer *ab;
+> +
+> +       if (!task->audit)
+> +               return -ENOPROTOOPT;
+> +       oldcapcontid = audit_get_capcontid(task);
+> +       /* if task is not descendant, block */
+> +       if (task == current)
+> +               rc = -EBADSLT;
+> +       else if (!task_is_descendant(current, task))
+> +               rc = -EXDEV;
+
+See my previous comments about error code sanity.
+
+> +       else if (current_user_ns() == &init_user_ns) {
+> +               if (!capable(CAP_AUDIT_CONTROL) && !audit_get_capcontid(current))
+> +                       rc = -EPERM;
+
+I think we just want to use ns_capable() in the context of the current
+userns to check CAP_AUDIT_CONTROL, yes?  Something like this ...
+
+  if (current_user_ns() != &init_user_ns) {
+    if (!ns_capable(CAP_AUDIT_CONTROL) || !audit_get_capcontid())
+      rc = -EPERM;
+  } else if (!capable(CAP_AUDIT_CONTROL))
+    rc = -EPERM;
+
+> +       }
+> +       if (!rc)
+> +               task->audit->capcontid = enable;
+> +
+> +       if (!audit_enabled)
+> +               return rc;
+> +
+> +       ab = audit_log_start(audit_context(), GFP_KERNEL, AUDIT_SET_CAPCONTID);
+> +       if (!ab)
+> +               return rc;
+> +
+> +       audit_log_format(ab,
+> +                        "opid=%d capcontid=%u old-capcontid=%u",
+> +                        task_tgid_nr(task), enable, oldcapcontid);
+> +       audit_log_end(ab);
+
+My prior comments about recording the success/failure, or not emitting
+the record on failure, seem relevant here too.
+
+> +       return rc;
+> +}
 
 --
 paul moore
