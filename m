@@ -2,79 +2,382 @@ Return-Path: <SRS0=e21D=3L=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E10CC2D0DB
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 16:24:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91F54C2D0DB
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 18:52:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 75323217F4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 16:24:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6656921835
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 18:52:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728925AbgAVQYC (ORCPT
+        id S1728925AbgAVSwM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Jan 2020 11:24:02 -0500
-Received: from mail-io1-f70.google.com ([209.85.166.70]:51315 "EHLO
-        mail-io1-f70.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726061AbgAVQYC (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Jan 2020 11:24:02 -0500
-Received: by mail-io1-f70.google.com with SMTP id t18so6678iob.18
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 08:24:02 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=zJCuXAAGGfmdn3xKT3mw1EQTFOCTjnZ0M4GP0MOAhHQ=;
-        b=ty2cQIHjx0gAx9FR5eVUdOTtf7/486og0AZRkMovKcCzAf9uAZwoEX8TO4oBYoEl5o
-         jJ7nx9hsi+Zgob+KlgDyMzj4XDysEwZ2NwNpVcaNSun6mvkTZJhljNravDBuFUjG08MR
-         N8Wi8xX/zav1mUMIkgDx4Zoqspm3nsXZ2vSJN6vFf3gXzLtwGL5wgUWCHso/KbbEDGls
-         L+pqL4H8AgvTBqjPI+DKE5KOlSRcg7DEFlRZF5NMC74+i/4omKdDUv7ThX0vgqKUkqb2
-         hxFBuU634H3V0+ydXk5rLwxg90OhrU73vTOGe3x0BUlnqMo1q10ABjztDGZZRmiY5eoI
-         c2PQ==
-X-Gm-Message-State: APjAAAWmRBPC8HpElfApktEjkcbCdKdLWZ/UiGBp2i7xoc7JV4NbvfFz
-        /s3F595Cy2b1GX4Jds2h7GRoVHgLdnpnf2bLpqElMJUTIBxi
-X-Google-Smtp-Source: APXvYqyJNUTQllpzChKWI3nNnvCCMcKFDK8FOmsX5mlgK8LQmSBOogF54plRyAyGRd+Lr8Pp2HjGvCwNo5+7ENt5YVZMH92fGi8/
-MIME-Version: 1.0
-X-Received: by 2002:a6b:8e47:: with SMTP id q68mr7385399iod.274.1579710241804;
- Wed, 22 Jan 2020 08:24:01 -0800 (PST)
-Date:   Wed, 22 Jan 2020 08:24:01 -0800
-In-Reply-To: <000000000000b6da7b059c8110c4@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000cf992f059cbcf362@google.com>
-Subject: Re: general protection fault in nf_flow_table_offload_setup
-From:   syzbot <syzbot+e93c1d9ae19a0236289c@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@netfilter.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+        Wed, 22 Jan 2020 13:52:12 -0500
+Received: from correo.us.es ([193.147.175.20]:49334 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726026AbgAVSwL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 22 Jan 2020 13:52:11 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id B970212C1E9
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 19:52:07 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A915DDA714
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 19:52:07 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id A870DDA713; Wed, 22 Jan 2020 19:52:07 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 42AFEDA701;
+        Wed, 22 Jan 2020 19:52:05 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 22 Jan 2020 19:52:05 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 2496342EF9E0;
+        Wed, 22 Jan 2020 19:52:05 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de
+Subject: [PATCH nf] netfilter: nf_tables: autoload modules from the abort path
+Date:   Wed, 22 Jan 2020 19:52:02 +0100
+Message-Id: <20200122185202.23891-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has bisected this bug to:
+This patch introduces a list of pending module requests that is updated
+from preparation phase. Then, at the very end of the abort phase,
+iterate over this list to load the requested modules. Given the mutex is
+released when loading modules, the list of modules is zapped so this is
+iteration occurs over a local list. Thus, the request_module() call
+occurs when object lists in consistent state and the commit list is
+empty.
 
-commit a7965d58ddab0253ddfae58bd5c7d2de46ef0f76
-Author: Pablo Neira Ayuso <pablo@netfilter.org>
-Date:   Mon Jan 13 18:02:22 2020 +0000
+This new module list is composed of nft_module_request objects that
+contain the module name and one status field that tells if the module
+has been already loaded (the 'done' field).
 
-    netfilter: flowtable: add nf_flow_table_offload_cmd()
+This patch also updates nfnetlink to include the reason to enter the
+abort phase, which is required for this new autoload module rationale.
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=17ea59c9e00000
-start commit:   4f2c17e0 Merge branch 'master' of git://git.kernel.org/pub..
-git tree:       net-next
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=141a59c9e00000
-console output: https://syzkaller.appspot.com/x/log.txt?x=101a59c9e00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=7f93900a7904130d
-dashboard link: https://syzkaller.appspot.com/bug?extid=e93c1d9ae19a0236289c
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=166fea6ee00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=108d6185e00000
+Fixes: ec7470b834fe ("netfilter: nf_tables: store transaction list locally while requesting module")
+Fixes: 452238e8d5ff ("netfilter: nf_tables: add and use helper for module autoload")
+Reported-by: syzbot+29125d208b3dae9a7019@syzkaller.appspotmail.com
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Just quickly runned tests here from userspace. Will make a second pass
+on reviewing later.
 
-Reported-by: syzbot+e93c1d9ae19a0236289c@syzkaller.appspotmail.com
-Fixes: a7965d58ddab ("netfilter: flowtable: add nf_flow_table_offload_cmd()")
+ include/linux/netfilter/nfnetlink.h |   2 +-
+ include/net/netns/nftables.h        |   1 +
+ net/netfilter/nf_tables_api.c       | 119 ++++++++++++++++++++++++------------
+ net/netfilter/nfnetlink.c           |   6 +-
+ 4 files changed, 84 insertions(+), 44 deletions(-)
 
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
+index cf09ab37b45b..851425c3178f 100644
+--- a/include/linux/netfilter/nfnetlink.h
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -31,7 +31,7 @@ struct nfnetlink_subsystem {
+ 	const struct nfnl_callback *cb;	/* callback for individual types */
+ 	struct module *owner;
+ 	int (*commit)(struct net *net, struct sk_buff *skb);
+-	int (*abort)(struct net *net, struct sk_buff *skb);
++	int (*abort)(struct net *net, struct sk_buff *skb, bool autoload);
+ 	void (*cleanup)(struct net *net);
+ 	bool (*valid_genid)(struct net *net, u32 genid);
+ };
+diff --git a/include/net/netns/nftables.h b/include/net/netns/nftables.h
+index 286fd960896f..a1a8d45adb42 100644
+--- a/include/net/netns/nftables.h
++++ b/include/net/netns/nftables.h
+@@ -7,6 +7,7 @@
+ struct netns_nftables {
+ 	struct list_head	tables;
+ 	struct list_head	commit_list;
++	struct list_head	module_list;
+ 	struct mutex		commit_mutex;
+ 	unsigned int		base_seq;
+ 	u8			gencursor;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 4aa01c1253b1..740c904f642c 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -578,35 +578,40 @@ __nf_tables_chain_type_lookup(const struct nlattr *nla, u8 family)
+ 	return NULL;
+ }
+ 
+-/*
+- * Loading a module requires dropping mutex that guards the transaction.
+- * A different client might race to start a new transaction meanwhile. Zap the
+- * list of pending transaction and then restore it once the mutex is grabbed
+- * again. Users of this function return EAGAIN which implicitly triggers the
+- * transaction abort path to clean up the list of pending transactions.
+- */
++struct nft_module_request {
++	struct list_head	list;
++	char			module[MODULE_NAME_LEN];
++	bool			done;
++};
++
+ #ifdef CONFIG_MODULES
+-static void nft_request_module(struct net *net, const char *fmt, ...)
++static int nft_request_module(struct net *net, const char *fmt, ...)
+ {
+ 	char module_name[MODULE_NAME_LEN];
+-	LIST_HEAD(commit_list);
++	struct nft_module_request *req;
+ 	va_list args;
+ 	int ret;
+ 
+-	list_splice_init(&net->nft.commit_list, &commit_list);
+-
+ 	va_start(args, fmt);
+ 	ret = vsnprintf(module_name, MODULE_NAME_LEN, fmt, args);
+ 	va_end(args);
+ 	if (ret >= MODULE_NAME_LEN)
+-		return;
++		return 0;
+ 
+-	mutex_unlock(&net->nft.commit_mutex);
+-	request_module("%s", module_name);
+-	mutex_lock(&net->nft.commit_mutex);
++	list_for_each_entry(req, &net->nft.module_list, list) {
++		if (!strcmp(req->module, module_name) && req->done)
++			return 0;
++	}
+ 
+-	WARN_ON_ONCE(!list_empty(&net->nft.commit_list));
+-	list_splice(&commit_list, &net->nft.commit_list);
++	req = kmalloc(sizeof(*req), GFP_KERNEL);
++	if (!req)
++		return -ENOMEM;
++
++	req->done = false;
++	strlcpy(req->module, module_name, MODULE_NAME_LEN);
++	list_add_tail(&req->list, &net->nft.module_list);
++
++	return -EAGAIN;
+ }
+ #endif
+ 
+@@ -630,10 +635,9 @@ nf_tables_chain_type_lookup(struct net *net, const struct nlattr *nla,
+ 	lockdep_nfnl_nft_mutex_not_held();
+ #ifdef CONFIG_MODULES
+ 	if (autoload) {
+-		nft_request_module(net, "nft-chain-%u-%.*s", family,
+-				   nla_len(nla), (const char *)nla_data(nla));
+-		type = __nf_tables_chain_type_lookup(nla, family);
+-		if (type != NULL)
++		if (nft_request_module(net, "nft-chain-%u-%.*s", family,
++				       nla_len(nla),
++				       (const char *)nla_data(nla)) == -EAGAIN)
+ 			return ERR_PTR(-EAGAIN);
+ 	}
+ #endif
+@@ -2341,9 +2345,8 @@ static const struct nft_expr_type *__nft_expr_type_get(u8 family,
+ static int nft_expr_type_request_module(struct net *net, u8 family,
+ 					struct nlattr *nla)
+ {
+-	nft_request_module(net, "nft-expr-%u-%.*s", family,
+-			   nla_len(nla), (char *)nla_data(nla));
+-	if (__nft_expr_type_get(family, nla))
++	if (nft_request_module(net, "nft-expr-%u-%.*s", family,
++			       nla_len(nla), (char *)nla_data(nla)) == -EAGAIN)
+ 		return -EAGAIN;
+ 
+ 	return 0;
+@@ -2369,9 +2372,9 @@ static const struct nft_expr_type *nft_expr_type_get(struct net *net,
+ 		if (nft_expr_type_request_module(net, family, nla) == -EAGAIN)
+ 			return ERR_PTR(-EAGAIN);
+ 
+-		nft_request_module(net, "nft-expr-%.*s",
+-				   nla_len(nla), (char *)nla_data(nla));
+-		if (__nft_expr_type_get(family, nla))
++		if (nft_request_module(net, "nft-expr-%.*s",
++				       nla_len(nla),
++				       (char *)nla_data(nla)) == -EAGAIN)
+ 			return ERR_PTR(-EAGAIN);
+ 	}
+ #endif
+@@ -2462,9 +2465,10 @@ static int nf_tables_expr_parse(const struct nft_ctx *ctx,
+ 			err = PTR_ERR(ops);
+ #ifdef CONFIG_MODULES
+ 			if (err == -EAGAIN)
+-				nft_expr_type_request_module(ctx->net,
+-							     ctx->family,
+-							     tb[NFTA_EXPR_NAME]);
++				if (nft_expr_type_request_module(ctx->net,
++								 ctx->family,
++								 tb[NFTA_EXPR_NAME]) != -EAGAIN)
++					err = -ENOENT;
+ #endif
+ 			goto err1;
+ 		}
+@@ -3301,8 +3305,7 @@ nft_select_set_ops(const struct nft_ctx *ctx,
+ 	lockdep_nfnl_nft_mutex_not_held();
+ #ifdef CONFIG_MODULES
+ 	if (list_empty(&nf_tables_set_types)) {
+-		nft_request_module(ctx->net, "nft-set");
+-		if (!list_empty(&nf_tables_set_types))
++		if (nft_request_module(ctx->net, "nft-set") == -EAGAIN)
+ 			return ERR_PTR(-EAGAIN);
+ 	}
+ #endif
+@@ -5428,8 +5431,7 @@ nft_obj_type_get(struct net *net, u32 objtype)
+ 	lockdep_nfnl_nft_mutex_not_held();
+ #ifdef CONFIG_MODULES
+ 	if (type == NULL) {
+-		nft_request_module(net, "nft-obj-%u", objtype);
+-		if (__nft_obj_type_get(objtype))
++		if (nft_request_module(net, "nft-obj-%u", objtype) == -EAGAIN)
+ 			return ERR_PTR(-EAGAIN);
+ 	}
+ #endif
+@@ -6002,8 +6004,7 @@ nft_flowtable_type_get(struct net *net, u8 family)
+ 	lockdep_nfnl_nft_mutex_not_held();
+ #ifdef CONFIG_MODULES
+ 	if (type == NULL) {
+-		nft_request_module(net, "nf-flowtable-%u", family);
+-		if (__nft_flowtable_type_get(family))
++		if (nft_request_module(net, "nf-flowtable-%u", family) == -EAGAIN)
+ 			return ERR_PTR(-EAGAIN);
+ 	}
+ #endif
+@@ -7005,6 +7006,17 @@ static void nft_chain_del(struct nft_chain *chain)
+ 	list_del_rcu(&chain->list);
+ }
+ 
++static void nf_tables_module_autoload_cleanup(struct net *net)
++{
++	struct nft_module_request *req, *next;
++
++	list_for_each_entry_safe(req, next, &net->nft.module_list, list) {
++		WARN_ON_ONCE(!req->done);
++		list_del(&req->list);
++		kfree(req);
++	}
++}
++
+ static void nf_tables_commit_release(struct net *net)
+ {
+ 	struct nft_trans *trans;
+@@ -7218,10 +7230,31 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 
+ 	nf_tables_gen_notify(net, skb, NFT_MSG_NEWGEN);
+ 	nf_tables_commit_release(net);
++	nf_tables_module_autoload_cleanup(net);
+ 
+ 	return 0;
+ }
+ 
++static void nf_tables_module_autoload(struct net *net)
++{
++	struct nft_module_request *req, *next;
++	LIST_HEAD(module_list);
++
++	list_splice_init(&net->nft.module_list, &module_list);
++	mutex_unlock(&net->nft.commit_mutex);
++	list_for_each_entry_safe(req, next, &module_list, list) {
++		if (req->done) {
++			list_del(&req->list);
++			kfree(req);
++		} else {
++			request_module("%s", req->module);
++			req->done = true;
++		}
++	}
++	mutex_lock(&net->nft.commit_mutex);
++	list_splice(&module_list, &net->nft.module_list);
++}
++
+ static void nf_tables_abort_release(struct nft_trans *trans)
+ {
+ 	switch (trans->msg_type) {
+@@ -7251,7 +7284,7 @@ static void nf_tables_abort_release(struct nft_trans *trans)
+ 	kfree(trans);
+ }
+ 
+-static int __nf_tables_abort(struct net *net)
++static int __nf_tables_abort(struct net *net, bool autoload)
+ {
+ 	struct nft_trans *trans, *next;
+ 	struct nft_trans_elem *te;
+@@ -7373,6 +7406,11 @@ static int __nf_tables_abort(struct net *net)
+ 		nf_tables_abort_release(trans);
+ 	}
+ 
++	if (autoload)
++		nf_tables_module_autoload(net);
++	else
++		nf_tables_module_autoload_cleanup(net);
++
+ 	return 0;
+ }
+ 
+@@ -7381,9 +7419,9 @@ static void nf_tables_cleanup(struct net *net)
+ 	nft_validate_state_update(net, NFT_VALIDATE_SKIP);
+ }
+ 
+-static int nf_tables_abort(struct net *net, struct sk_buff *skb)
++static int nf_tables_abort(struct net *net, struct sk_buff *skb, bool autoload)
+ {
+-	int ret = __nf_tables_abort(net);
++	int ret = __nf_tables_abort(net, autoload);
+ 
+ 	mutex_unlock(&net->nft.commit_mutex);
+ 
+@@ -7978,6 +8016,7 @@ static int __net_init nf_tables_init_net(struct net *net)
+ {
+ 	INIT_LIST_HEAD(&net->nft.tables);
+ 	INIT_LIST_HEAD(&net->nft.commit_list);
++	INIT_LIST_HEAD(&net->nft.module_list);
+ 	mutex_init(&net->nft.commit_mutex);
+ 	net->nft.base_seq = 1;
+ 	net->nft.validate_state = NFT_VALIDATE_SKIP;
+@@ -7989,7 +8028,7 @@ static void __net_exit nf_tables_exit_net(struct net *net)
+ {
+ 	mutex_lock(&net->nft.commit_mutex);
+ 	if (!list_empty(&net->nft.commit_list))
+-		__nf_tables_abort(net);
++		__nf_tables_abort(net, false);
+ 	__nft_release_tables(net);
+ 	mutex_unlock(&net->nft.commit_mutex);
+ 	WARN_ON_ONCE(!list_empty(&net->nft.tables));
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 4abbb452cf6c..99127e2d95a8 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -476,7 +476,7 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	}
+ done:
+ 	if (status & NFNL_BATCH_REPLAY) {
+-		ss->abort(net, oskb);
++		ss->abort(net, oskb, true);
+ 		nfnl_err_reset(&err_list);
+ 		kfree_skb(skb);
+ 		module_put(ss->owner);
+@@ -487,11 +487,11 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			status |= NFNL_BATCH_REPLAY;
+ 			goto done;
+ 		} else if (err) {
+-			ss->abort(net, oskb);
++			ss->abort(net, oskb, false);
+ 			netlink_ack(oskb, nlmsg_hdr(oskb), err, NULL);
+ 		}
+ 	} else {
+-		ss->abort(net, oskb);
++		ss->abort(net, oskb, false);
+ 	}
+ 	if (ss->cleanup)
+ 		ss->cleanup(net);
+-- 
+2.11.0
+
