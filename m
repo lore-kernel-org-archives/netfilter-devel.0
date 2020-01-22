@@ -2,64 +2,62 @@ Return-Path: <SRS0=e21D=3L=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7476FC33CB6
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 21:29:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B703C33CB6
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 21:29:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 37FC424673
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 21:29:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D090B24673
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 21:29:31 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="TP5mJnA7"
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="IMKvzt5h"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729287AbgAVV3K (ORCPT
+        id S1727893AbgAVV3b (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Jan 2020 16:29:10 -0500
-Received: from mail-lj1-f193.google.com ([209.85.208.193]:41844 "EHLO
-        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729277AbgAVV3K (ORCPT
+        Wed, 22 Jan 2020 16:29:31 -0500
+Received: from mail-lf1-f65.google.com ([209.85.167.65]:33464 "EHLO
+        mail-lf1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729387AbgAVV31 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Jan 2020 16:29:10 -0500
-Received: by mail-lj1-f193.google.com with SMTP id h23so707141ljc.8
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 13:29:08 -0800 (PST)
+        Wed, 22 Jan 2020 16:29:27 -0500
+Received: by mail-lf1-f65.google.com with SMTP id n25so758283lfl.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 13:29:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=znKmNqKr9gQDPfmrmtDejwJ1HslDiuzLboL4qUqmh40=;
-        b=TP5mJnA7Gm0zdUG0OehnvyJWts/xMVo/mJxSurXzDTUcBQIzgsR1ns3H1p5rCpwp/o
-         o5WEcw4A9HNc0n06O9ImPfjXjQS6Nxh19LC0d4tgDt1Av2slE1y47OS6cviu0l1oIqGb
-         nh2EDlHL5wynTTB5yhFbFZDoa5TkK67zq9GykjlOT7s5XEF58dYNcPell0+CauOKp+XT
-         nLFr9NOTwYPXWpaLNMfgFzqUgIZQ4EPNmzDpdQRueK1UtfBk0Xs1bWMty7FyANkkTdvm
-         VpHNDh0cBO2f65tpkygyfW6HPpO5AJZ4qHWFD4baSKueZohLmEzK207pMLwN5wsHnsWU
-         4+wg==
+        bh=f0IkEaXGVt8hUwF5uD44/2Lbilo5B8J7tUK5oD4D1tM=;
+        b=IMKvzt5hA/l/NbMQKPL+I7Jyo3nfkoDyZBLi5RRpV+j/tCfVTPajPZF/8GU6ionRxK
+         +mQvxp5xyCs/lbcj6fFzQN4Qx1QZwbZnFyqVJt1eXrhrtdv8R8zb6thx4q6gtOe7qdbv
+         5E93iQ92ILpO7fxqk7N35pyU4vQtv7jxP2GP0fuciK3ZgZYXrrSxeC+vto4ftrmoX6xE
+         BMLerP1Bzr4rimUoCrUubcW9bUpU+oy6tgpr2A1RG4zmzYvb7Ds2n6dNPujUpm52og8K
+         3daDlG3WlViN5WCY+t1+i4y8O4eenhXIrO7AMnatPzf7Iv6Jx0Do09fsis7ZX1cIrVTs
+         3HLQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=znKmNqKr9gQDPfmrmtDejwJ1HslDiuzLboL4qUqmh40=;
-        b=suJScMGBimlJtxbznqeOi4uUQTnrSg+nIphX97J2FAwEAWfTjj2GHOgKoHpGfIns7Q
-         tJA3LtoCFZR1DLYSjhX3TBWvpIBDbZXgcz64mW0tkoyuCgjGR/moyaWSsDnvveN7WsNV
-         hQtdQFy3s58y7CyuQnuRJScy6D16EBS7weHUtc/Ij7LLrHESQPk1yZ5TtLlM9JWuyux0
-         n6kqW3fw6A0gMMcqw4U1TCRf1j851iEb6LsbdwGB8IBCJOgDePnunR4MgyEb7qOLBGlo
-         x8LjRDKEPQAJmP3yxI8pVJ/ftd9UebSantFj2m1UxJLmmGQtI9NGKpqfF9pWqlbNe2Yf
-         x47w==
-X-Gm-Message-State: APjAAAWRuI6q9VGzEspQq63nUZmUTOgOBvR4b90d8Knh07nITqrqPKv7
-        qcj2fP1X1aJS9HlBuPv9BXilOh352MlBITdqapAo
-X-Google-Smtp-Source: APXvYqwNba8ProlqYi+98kL7VZ17yOmxtTEHhSWsRlLym5CCBD8UqFSuw3B9hkfCZhhRvoe+Scem/yZ0v/+v52re61A=
-X-Received: by 2002:a2e:9196:: with SMTP id f22mr21784742ljg.18.1579728548032;
- Wed, 22 Jan 2020 13:29:08 -0800 (PST)
+        bh=f0IkEaXGVt8hUwF5uD44/2Lbilo5B8J7tUK5oD4D1tM=;
+        b=b9pq8oZ8h8nc+adVXTMwnfIcx63lVWMEjfgfPBdIyCeQ6WCGlsNqAdylO+h5JJOFFU
+         k8GlK9wW6P9Y94j5B7o6EORmD5VjD+vBCytXF6GhHXqJEQonDNfTiamcLtplrpP8MSKy
+         X/0k+4OPvmO2I/wjyUFp6yFyLPfh/nmOUc/bi8ShnJthHet5dX7SKuhdcohPAZU+RUvM
+         kZ1jDpZ+f+zydyCtytgHvmKQLlReAwklIRYVqyS/TYfpWN3ejB2Qul4OfpZ/YaU67inY
+         Oc4IgiqgIAWUJjRolcfuHIPH/Ak44W73FfjcY4wun3kXj1gSqACCYWgUM8bRmNWmgmd9
+         Qh5Q==
+X-Gm-Message-State: APjAAAW/Adxdh/VhW3BpLyeN7u0KviuopT0Uq0FVcNPxu7yl+R6tKqvO
+        pkM4PBOt7E53ipMWwzFBDVNnnXG0LZUiQv0MDww4
+X-Google-Smtp-Source: APXvYqx6r1SK4hKv8XLYG/rNPUwDn+V7yCGZtcjCRWbKMCH81fFEo/59FQtSCiTTXbrKb1kPr0DggWaePW+geWzK5tI=
+X-Received: by 2002:ac2:5f59:: with SMTP id 25mr2754662lfz.193.1579728564136;
+ Wed, 22 Jan 2020 13:29:24 -0800 (PST)
 MIME-Version: 1.0
-References: <cover.1577736799.git.rgb@redhat.com> <2954ed671a7622ddf3abdb8854dbba2ad13e9f33.1577736799.git.rgb@redhat.com>
-In-Reply-To: <2954ed671a7622ddf3abdb8854dbba2ad13e9f33.1577736799.git.rgb@redhat.com>
+References: <cover.1577736799.git.rgb@redhat.com> <6452955c1e038227a5cd169f689f3fd3db27513f.1577736799.git.rgb@redhat.com>
+In-Reply-To: <6452955c1e038227a5cd169f689f3fd3db27513f.1577736799.git.rgb@redhat.com>
 From:   Paul Moore <paul@paul-moore.com>
-Date:   Wed, 22 Jan 2020 16:28:57 -0500
-Message-ID: <CAHC9VhRw3Fj9-hi+Vj8JJb_GXM4B9N5hRXa9H6aQkuuFqJJ15w@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V8 11/16] audit: add support for containerid to
- network namespaces
+Date:   Wed, 22 Jan 2020 16:29:12 -0500
+Message-ID: <CAHC9VhRkH=YEjAY6dJJHSp934grHnf=O4RiqLu3U8DzdVQOZkg@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V8 13/16] audit: track container nesting
 To:     Richard Guy Briggs <rgb@redhat.com>
 Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
         Linux-Audit Mailing List <linux-audit@redhat.com>,
@@ -78,192 +76,128 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 On Tue, Dec 31, 2019 at 2:51 PM Richard Guy Briggs <rgb@redhat.com> wrote:
 >
-> This also adds support to qualify NETFILTER_PKT records.
+> Track the parent container of a container to be able to filter and
+> report nesting.
 >
-> Audit events could happen in a network namespace outside of a task
-> context due to packets received from the net that trigger an auditing
-> rule prior to being associated with a running task.  The network
-> namespace could be in use by multiple containers by association to the
-> tasks in that network namespace.  We still want a way to attribute
-> these events to any potential containers.  Keep a list per network
-> namespace to track these audit container identifiiers.
->
-> Add/increment the audit container identifier on:
-> - initial setting of the audit container identifier via /proc
-> - clone/fork call that inherits an audit container identifier
-> - unshare call that inherits an audit container identifier
-> - setns call that inherits an audit container identifier
-> Delete/decrement the audit container identifier on:
-> - an inherited audit container identifier dropped when child set
-> - process exit
-> - unshare call that drops a net namespace
-> - setns call that drops a net namespace
->
-> Add audit container identifier auxiliary record(s) to NETFILTER_PKT
-> event standalone records.  Iterate through all potential audit container
-> identifiers associated with a network namespace.
->
-> Please see the github audit kernel issue for contid net support:
->   https://github.com/linux-audit/audit-kernel/issues/92
-> Please see the github audit testsuiite issue for the test case:
->   https://github.com/linux-audit/audit-testsuite/issues/64
-> Please see the github audit wiki for the feature overview:
->   https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
+> Now that we have a way to track and check the parent container of a
+> container, modify the contid field format to be able to report that
+> nesting using a carrat ("^") separator to indicate nesting.  The
+> original field format was "contid=<contid>" for task-associated records
+> and "contid=<contid>[,<contid>[...]]" for network-namespace-associated
+> records.  The new field format is
+> "contid=<contid>[^<contid>[...]][,<contid>[...]]".
+
+Let's make sure we always use a comma as a separator, even when
+recording the parent information, for example:
+"contid=<contid>[,^<contid>[...]][,<contid>[...]]"
+
 > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> Acked-by: Neil Horman <nhorman@tuxdriver.com>
-> Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
 > ---
->  include/linux/audit.h    |  24 +++++++++
->  kernel/audit.c           | 132 ++++++++++++++++++++++++++++++++++++++++++++++-
->  kernel/nsproxy.c         |   4 ++
->  net/netfilter/nft_log.c  |  11 +++-
->  net/netfilter/xt_AUDIT.c |  11 +++-
->  5 files changed, 176 insertions(+), 6 deletions(-)
+>  include/linux/audit.h |  1 +
+>  kernel/audit.c        | 53 +++++++++++++++++++++++++++++++++++++++++++--------
+>  kernel/audit.h        |  1 +
+>  kernel/auditfilter.c  | 17 ++++++++++++++++-
+>  kernel/auditsc.c      |  2 +-
+>  5 files changed, 64 insertions(+), 10 deletions(-)
 
 ...
 
-> diff --git a/include/linux/audit.h b/include/linux/audit.h
-> index 5531d37a4226..ed8d5b74758d 100644
-> --- a/include/linux/audit.h
-> +++ b/include/linux/audit.h
-> @@ -12,6 +12,7 @@
->  #include <linux/sched.h>
->  #include <linux/ptrace.h>
->  #include <uapi/linux/audit.h>
-> +#include <linux/refcount.h>
->
->  #define AUDIT_INO_UNSET ((unsigned long)-1)
->  #define AUDIT_DEV_UNSET ((dev_t)-1)
-> @@ -121,6 +122,13 @@ struct audit_task_info {
->
->  extern struct audit_task_info init_struct_audit;
->
-> +struct audit_contobj_netns {
-> +       struct list_head        list;
-> +       u64                     id;
-
-Since we now track audit container IDs in their own structure, why not
-link directly to the audit container ID object (and bump the
-refcount)?
-
-> +       refcount_t              refcount;
-> +       struct rcu_head         rcu;
-> +};
-> +
->  extern int is_audit_feature_set(int which);
->
->  extern int __init audit_register_class(int class, unsigned *list);
-> @@ -225,6 +233,12 @@ static inline u64 audit_get_contid(struct task_struct *tsk)
->  }
->
->  extern void audit_log_container_id(struct audit_context *context, u64 contid);
-> +extern void audit_netns_contid_add(struct net *net, u64 contid);
-> +extern void audit_netns_contid_del(struct net *net, u64 contid);
-> +extern void audit_switch_task_namespaces(struct nsproxy *ns,
-> +                                        struct task_struct *p);
-> +extern void audit_log_netns_contid_list(struct net *net,
-> +                                       struct audit_context *context);
->
->  extern u32 audit_enabled;
->
-> @@ -297,6 +311,16 @@ static inline u64 audit_get_contid(struct task_struct *tsk)
->
->  static inline void audit_log_container_id(struct audit_context *context, u64 contid)
->  { }
-> +static inline void audit_netns_contid_add(struct net *net, u64 contid)
-> +{ }
-> +static inline void audit_netns_contid_del(struct net *net, u64 contid)
-> +{ }
-> +static inline void audit_switch_task_namespaces(struct nsproxy *ns,
-> +                                               struct task_struct *p)
-> +{ }
-> +static inline void audit_log_netns_contid_list(struct net *net,
-> +                                              struct audit_context *context)
-> +{ }
->
->  #define audit_enabled AUDIT_OFF
->
 > diff --git a/kernel/audit.c b/kernel/audit.c
-> index d4e6eafe5644..f7a8d3288ca0 100644
+> index ef8e07524c46..68be59d1a89b 100644
 > --- a/kernel/audit.c
 > +++ b/kernel/audit.c
-> @@ -59,6 +59,7 @@
->  #include <linux/freezer.h>
->  #include <linux/pid_namespace.h>
->  #include <net/netns/generic.h>
-> +#include <net/net_namespace.h>
->
->  #include "audit.h"
->
-> @@ -86,9 +87,13 @@
->  /**
->   * struct audit_net - audit private network namespace data
->   * @sk: communication socket
-> + * @contid_list: audit container identifier list
-> + * @contid_list_lock audit container identifier list lock
->   */
->  struct audit_net {
->         struct sock *sk;
-> +       struct list_head contid_list;
-> +       spinlock_t contid_list_lock;
->  };
->
->  /**
-> @@ -305,8 +310,11 @@ struct audit_task_info init_struct_audit = {
->  void audit_free(struct task_struct *tsk)
->  {
->         struct audit_task_info *info = tsk->audit;
-> +       struct nsproxy *ns = tsk->nsproxy;
->
->         audit_free_syscall(tsk);
-> +       if (ns)
-> +               audit_netns_contid_del(ns->net_ns, audit_get_contid(tsk));
->         /* Freeing the audit_task_info struct must be performed after
->          * audit_log_exit() due to need for loginuid and sessionid.
->          */
-> @@ -409,6 +417,120 @@ static struct sock *audit_get_sk(const struct net *net)
->         return aunet->sk;
+
+> @@ -492,6 +493,7 @@ void audit_switch_task_namespaces(struct nsproxy *ns, struct task_struct *p)
+>                 audit_netns_contid_add(new->net_ns, contid);
 >  }
 >
-> +void audit_netns_contid_add(struct net *net, u64 contid)
+> +void audit_log_contid(struct audit_buffer *ab, u64 contid);
+
+If we need a forward declaration, might as well just move it up near
+the top of the file with the rest of the declarations.
+
+> +void audit_log_contid(struct audit_buffer *ab, u64 contid)
 > +{
-> +       struct audit_net *aunet;
-> +       struct list_head *contid_list;
-> +       struct audit_contobj_netns *cont;
-> +
-> +       if (!net)
+> +       struct audit_contobj *cont = NULL, *prcont = NULL;
+> +       int h;
+
+It seems safer to pass the audit container ID object and not the u64.
+
+> +       if (!audit_contid_valid(contid)) {
+> +               audit_log_format(ab, "%llu", contid);
+
+Do we really want to print (u64)-1 here?  Since this is a known
+invalid number, would "?" be a better choice?
+
 > +               return;
-> +       if (!audit_contid_valid(contid))
-> +               return;
-> +       aunet = net_generic(net, audit_net_id);
-> +       if (!aunet)
-> +               return;
-> +       contid_list = &aunet->contid_list;
+> +       }
+> +       h = audit_hash_contid(contid);
 > +       rcu_read_lock();
-> +       list_for_each_entry_rcu(cont, contid_list, list)
+> +       list_for_each_entry_rcu(cont, &audit_contid_hash[h], list)
 > +               if (cont->id == contid) {
-> +                       spin_lock(&aunet->contid_list_lock);
-> +                       refcount_inc(&cont->refcount);
-> +                       spin_unlock(&aunet->contid_list_lock);
-> +                       goto out;
+> +                       prcont = cont;
+
+Why not just pull the code below into the body of this if statement?
+It all needs to be done under the RCU read lock anyway and the code
+would read much better this way.
+
+> +                       break;
 > +               }
-> +       cont = kmalloc(sizeof(*cont), GFP_ATOMIC);
-> +       if (cont) {
-> +               INIT_LIST_HEAD(&cont->list);
-> +               cont->id = contid;
-> +               refcount_set(&cont->refcount, 1);
-> +               spin_lock(&aunet->contid_list_lock);
-> +               list_add_rcu(&cont->list, contid_list);
-> +               spin_unlock(&aunet->contid_list_lock);
+> +       if (!prcont) {
+> +               audit_log_format(ab, "%llu", contid);
+> +               goto out;
+> +       }
+> +       while (prcont) {
+> +               audit_log_format(ab, "%llu", prcont->id);
+> +               prcont = prcont->parent;
+> +               if (prcont)
+> +                       audit_log_format(ab, "^");
+
+In the interest of limiting the number of calls to audit_log_format(),
+how about something like the following:
+
+  audit_log_format("%llu", cont);
+  iter = cont->parent;
+  while (iter) {
+    if (iter->parent)
+      audit_log_format("^%llu,", iter);
+    else
+      audit_log_format("^%llu", iter);
+    iter = iter->parent;
+  }
+
 > +       }
 > +out:
 > +       rcu_read_unlock();
 > +}
+> +
+>  /*
+>   * audit_log_container_id - report container info
+>   * @context: task or local context for record
 
-See my comments about refcount_t, spinlocks, and list manipulation
-races from earlier in the patchset; the same thing applies to the
-function above.
+...
 
+> @@ -2705,9 +2741,10 @@ int audit_set_contid(struct task_struct *task, u64 contid)
+>         if (!ab)
+>                 return rc;
+>
+> -       audit_log_format(ab,
+> -                        "op=set opid=%d contid=%llu old-contid=%llu",
+> -                        task_tgid_nr(task), contid, oldcontid);
+> +       audit_log_format(ab, "op=set opid=%d contid=", task_tgid_nr(task));
+> +       audit_log_contid(ab, contid);
+> +       audit_log_format(ab, " old-contid=");
+> +       audit_log_contid(ab, oldcontid);
+
+This is an interesting case where contid and old-contid are going to
+be largely the same, only the first (current) ID is going to be
+different; do we want to duplicate all of those IDs?
+
+
+>         audit_log_end(ab);
+>         return rc;
+>  }
+> @@ -2723,9 +2760,9 @@ void audit_log_container_drop(void)
 
 --
 paul moore
