@@ -2,136 +2,91 @@ Return-Path: <SRS0=Vl9M=3M=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 061BFC32771
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 00:48:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85CD8C33CAA
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 03:45:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D29C321569
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 00:48:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5CC7624125
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 03:45:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726004AbgAWAsC (ORCPT
+        id S1726026AbgAWDps (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Jan 2020 19:48:02 -0500
-Received: from alexa-out-sd-01.qualcomm.com ([199.106.114.38]:41386 "EHLO
-        alexa-out-sd-01.qualcomm.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725911AbgAWAsC (ORCPT
+        Wed, 22 Jan 2020 22:45:48 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:42468 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725933AbgAWDpr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Jan 2020 19:48:02 -0500
-Received: from unknown (HELO ironmsg01-sd.qualcomm.com) ([10.53.140.141])
-  by alexa-out-sd-01.qualcomm.com with ESMTP; 22 Jan 2020 16:47:59 -0800
-Received: from stranche-lnx.qualcomm.com ([129.46.14.77])
-  by ironmsg01-sd.qualcomm.com with ESMTP; 22 Jan 2020 16:47:59 -0800
-Received: by stranche-lnx.qualcomm.com (Postfix, from userid 383980)
-        id 24F9048B7; Wed, 22 Jan 2020 17:47:59 -0700 (MST)
-From:   Sean Tranchetti <stranche@codeaurora.org>
-To:     pablo@netfilter.org, netfilter-devel@vger.kernel.org
-Cc:     Sean Tranchetti <stranche@codeaurora.org>
-Subject: [PATCH nf] Revert "netfilter: unlock xt_table earlier in __do_replace"
-Date:   Wed, 22 Jan 2020 17:47:35 -0700
-Message-Id: <1579740455-17249-1-git-send-email-stranche@codeaurora.org>
-X-Mailer: git-send-email 1.9.1
+        Wed, 22 Jan 2020 22:45:47 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1iuTRB-000406-OE; Thu, 23 Jan 2020 04:45:45 +0100
+Date:   Thu, 23 Jan 2020 04:45:45 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf,v2] netfilter: nf_tables: autoload modules from the
+ abort path
+Message-ID: <20200123034545.GS795@breakpoint.cc>
+References: <20200122211706.150042-1-pablo@netfilter.org>
+ <20200122222808.GR795@breakpoint.cc>
+ <20200122224947.iucrwyxmsrtm7ppe@salvia>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200122224947.iucrwyxmsrtm7ppe@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-A recently reported crash in the x_tables framework seems to stem from
-a potential race condition between adding rules to a table and having a
-packet traversing the table at the same time.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Jan 22, 2020 at 11:28:08PM +0100, Florian Westphal wrote:
+> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > +	list_for_each_entry(req, &net->nft.module_list, list) {
+> > > +		if (!strcmp(req->module, module_name) && req->done)
+> > > +			return 0;
+> > > +	}
+> > 
+> > If the module is already on this list, why does it need to be
+> > added a second time?
+> 
+> The first time this finds no module on the list, then the module is
+> added to the list and nft_request_module() returns -EAGAIN. This
+> triggers abort path with autoload parameter set to true from
+> nfnetlink, this sets the module done field to true.
 
-In the crash, the jumpstack being used by the table traversal was freed
-by the table replace code. After performing some bisection, it seems that
-commit f31e5f1a891f ("netfilter: unlock xt_table earlier in __do_replace")
-exposed this race condition by unlocking the table before the
-get_old_counters() routine was called to perform the synchronization.
+I guess I was confused by the need for the "&& req->done" part.
 
-Call Stack:
-	Unable to handle kernel paging request at virtual address
-	006b6b6b6b6b6bc5
+AFAIU req->done is always true here.
 
-	pc : ipt_do_table+0x3b8/0x660
-	lr : ipt_do_table+0x31c/0x660
-	Call trace:
-	ipt_do_table+0x3b8/0x660
-	iptable_mangle_hook+0x58/0xf8
-	nf_hook_slow+0x48/0xd8
-	__ip_local_out+0xf4/0x138
-	__ip_queue_xmit+0x348/0x3a0
-	ip_queue_xmit+0x10/0x18
+> Now, on the second path, it will find that this already tried to load
+> the module, so it does not add it again, nft_request_module() returns 0.
 
-Signed-off-by: Sean Tranchetti <stranche@codeaurora.org>
----
- net/ipv4/netfilter/arp_tables.c | 3 +--
- net/ipv4/netfilter/ip_tables.c  | 3 +--
- net/ipv6/netfilter/ip6_tables.c | 3 +--
- 3 files changed, 3 insertions(+), 6 deletions(-)
+But the "I already tried this" is already implied by the presence of the
+module name?  Or did I misunderstand?
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index f1f78a7..85cb189 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -921,8 +921,6 @@ static int __do_replace(struct net *net, const char *name,
- 	    (newinfo->number <= oldinfo->initial_entries))
- 		module_put(t->me);
- 
--	xt_table_unlock(t);
--
- 	get_old_counters(oldinfo, counters);
- 
- 	/* Decrease module usage counts and free resource */
-@@ -937,6 +935,7 @@ static int __do_replace(struct net *net, const char *name,
- 		net_warn_ratelimited("arptables: counters copy to user failed while replacing table\n");
- 	}
- 	vfree(counters);
-+	xt_table_unlock(t);
- 	return ret;
- 
-  put_module:
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 10b91eb..9f98bc5 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -1076,8 +1076,6 @@ static int get_info(struct net *net, void __user *user,
- 	    (newinfo->number <= oldinfo->initial_entries))
- 		module_put(t->me);
- 
--	xt_table_unlock(t);
--
- 	get_old_counters(oldinfo, counters);
- 
- 	/* Decrease module usage counts and free resource */
-@@ -1091,6 +1089,7 @@ static int get_info(struct net *net, void __user *user,
- 		net_warn_ratelimited("iptables: counters copy to user failed while replacing table\n");
- 	}
- 	vfree(counters);
-+	xt_table_unlock(t);
- 	return ret;
- 
-  put_module:
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index c973ace..f2637bfb 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1093,8 +1093,6 @@ static int get_info(struct net *net, void __user *user,
- 	    (newinfo->number <= oldinfo->initial_entries))
- 		module_put(t->me);
- 
--	xt_table_unlock(t);
--
- 	get_old_counters(oldinfo, counters);
- 
- 	/* Decrease module usage counts and free resource */
-@@ -1108,6 +1106,7 @@ static int get_info(struct net *net, void __user *user,
- 		net_warn_ratelimited("ip6tables: counters copy to user failed while replacing table\n");
- 	}
- 	vfree(counters);
-+	xt_table_unlock(t);
- 	return ret;
- 
-  put_module:
--- 
-1.9.1
+> Then, there is a look up to find the object that was missing. If
+> module was successfully load, the object will be in place, otherwise
+> -ENOENT is reported to userspace.
 
+Good, that will prevent infite retries in case userspace requests
+non-existent module.
+
+> I can include this logic in the patch description in a v3.
+
+That would be good, thanks!
+
+> I run the syzbot reproducer for 1 hour and no problems, not sure how
+> much I have to run it more. I guess the more time the better.
+
+It triggers instantly for me provided:
+1. CONFIG_MODULES=y (with MODULES=n the faulty code part isn't built...)
+2. set "sysctl kernel.modprobe=/root/sleep1.sh"
+   I found that with normal modprobe the race window is rather small and
+   the thread doing the request_module has a decent chance of re-locking
+   the mutex before another syzkaller thread has a chance to alter the
+   current generation.
