@@ -2,229 +2,181 @@ Return-Path: <SRS0=Vl9M=3M=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C204C33CB6
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 19:56:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B156DC2D0DB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 20:04:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 573CA24125
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 19:56:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 761B221D7D
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 20:04:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="pfzgJ4Nz"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ECeXObAg"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729094AbgAWT42 (ORCPT
+        id S1729134AbgAWUEe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Jan 2020 14:56:28 -0500
-Received: from userp2120.oracle.com ([156.151.31.85]:58320 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726191AbgAWT42 (ORCPT
+        Thu, 23 Jan 2020 15:04:34 -0500
+Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:31870 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1729095AbgAWUEd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Jan 2020 14:56:28 -0500
-Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-        by userp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00NJoYPh193302;
-        Thu, 23 Jan 2020 19:55:39 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : references : mime-version : content-type :
- in-reply-to; s=corp-2019-08-05;
- bh=MnL551nh+up1IIBRHpE2UvztGl+8xKjewu7+Zj2xl4k=;
- b=pfzgJ4NzW9JJT83B49Nu7oiW4Db+V58pV58ixfRnDZ79Aq/M/717YthrPUbl5TMpE4ta
- VcsxQXskB9b9EPpyZmt63fRcWFfDg1+X99aaAFoWfs5Y5FfGEbAbLrxXPL41KEdMjUqg
- Q1+ORchiul7ue4le58BIsgMU1X+2KgBtK8KcJD0SdJ40qLFRnUp+thAI6v5L62QeJzwZ
- iQQY18q0wYLlvMb7l/NTgAHspeKR2nsqIXJkt/kf8s/rPpdw26Q5vFOb/DP+BOglnX8s
- braVORI60vgW6JKR57qfefCsdrv3sNosIJWz3EHOkBbLu9aPmpeTSSHXnhpNC1Cgw3sF tg== 
-Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
-        by userp2120.oracle.com with ESMTP id 2xktnrmhaj-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 23 Jan 2020 19:55:39 +0000
-Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
-        by userp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00NJob9C170263;
-        Thu, 23 Jan 2020 19:55:39 GMT
-Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
-        by userp3030.oracle.com with ESMTP id 2xpq7ngvbg-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 23 Jan 2020 19:55:38 +0000
-Received: from abhmp0005.oracle.com (abhmp0005.oracle.com [141.146.116.11])
-        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 00NJtYxE032271;
-        Thu, 23 Jan 2020 19:55:34 GMT
-Received: from localhost (/10.145.179.16)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Thu, 23 Jan 2020 11:55:34 -0800
-Date:   Thu, 23 Jan 2020 11:55:31 -0800
-From:   "Darrick J. Wong" <darrick.wong@oracle.com>
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>, Jan Kara <jack@suse.com>,
-        "Theodore Ts'o" <tytso@mit.edu>,
-        Andreas Dilger <adilger.kernel@dilger.ca>,
-        linux-ext4@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Paul Mackerras <paulus@samba.org>, linux-ppp@vger.kernel.org,
-        reiserfs-devel@vger.kernel.org,
-        linux-xfs <linux-xfs@vger.kernel.org>
-Subject: Re: [PATCH] Documentation: changes.rst: update several outdated
- project URLs
-Message-ID: <20200123195531.GW8247@magnolia>
-References: <efb1f518-9e66-c472-d124-4b7d91e56639@infradead.org>
+        Thu, 23 Jan 2020 15:04:33 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1579809872;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=xjRl9ZZ81W8xX/UqPzwMqsqBvlHeFQjwNrpBMx4oFqs=;
+        b=ECeXObAgFZ7fO/VDpVAZm1jwqDydMoMXPVwl76uoxbbxEDQjjnYNxLhDU7sAHzWI+pS8nv
+        MtVen3TIYyPN2ViyCVpll5wP7hwZULmmZuDrg+pT4c6CeN/ilwGpSHLSwfz7I5QVUPElEN
+        w0JA6siJ7owELb7ZK3LsJtyHRLUunYQ=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-391-CnYRFvCbNZWJjbwRdlgROQ-1; Thu, 23 Jan 2020 15:04:30 -0500
+X-MC-Unique: CnYRFvCbNZWJjbwRdlgROQ-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id DCB608005A7;
+        Thu, 23 Jan 2020 20:04:26 +0000 (UTC)
+Received: from madcap2.tricolour.ca (ovpn-112-12.phx2.redhat.com [10.3.112.12])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id E05405C1B2;
+        Thu, 23 Jan 2020 20:04:15 +0000 (UTC)
+Date:   Thu, 23 Jan 2020 15:04:12 -0500
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Paul Moore <paul@paul-moore.com>
+Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
+        containers@lists.linux-foundation.org,
+        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
+        simo@redhat.com, netdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
+        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
+Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
+ the audit daemon
+Message-ID: <20200123200412.j2aucdp3cvk57prw@madcap2.tricolour.ca>
+References: <cover.1577736799.git.rgb@redhat.com>
+ <7d7933d742fdf4a94c84b791906a450b16f2e81f.1577736799.git.rgb@redhat.com>
+ <CAHC9VhSuwJGryfrBfzxG01zwb-O_7dbjS0x0a3w-XjcNuYSAcg@mail.gmail.com>
+ <20200123162918.b3jbed7tbvr2sf2p@madcap2.tricolour.ca>
+ <CAHC9VhTusiQoudB8G5jjDFyM9WxBUAjZ6_X35ywJ063Jb75dQA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <efb1f518-9e66-c472-d124-4b7d91e56639@infradead.org>
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9509 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
- phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.0.1-1911140001 definitions=main-2001230146
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9509 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1011
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1911140001
- definitions=main-2001230146
+In-Reply-To: <CAHC9VhTusiQoudB8G5jjDFyM9WxBUAjZ6_X35ywJ063Jb75dQA@mail.gmail.com>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jan 23, 2020 at 11:00:12AM -0800, Randy Dunlap wrote:
-> From: Randy Dunlap <rdunlap@infradead.org>
+On 2020-01-23 12:09, Paul Moore wrote:
+> On Thu, Jan 23, 2020 at 11:29 AM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > On 2020-01-22 16:28, Paul Moore wrote:
+> > > On Tue, Dec 31, 2019 at 2:50 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > >
+> > > > Add audit container identifier support to the action of signalling the
+> > > > audit daemon.
+> > > >
+> > > > Since this would need to add an element to the audit_sig_info struct,
+> > > > a new record type AUDIT_SIGNAL_INFO2 was created with a new
+> > > > audit_sig_info2 struct.  Corresponding support is required in the
+> > > > userspace code to reflect the new record request and reply type.
+> > > > An older userspace won't break since it won't know to request this
+> > > > record type.
+> > > >
+> > > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> > > > ---
+> > > >  include/linux/audit.h       |  7 +++++++
+> > > >  include/uapi/linux/audit.h  |  1 +
+> > > >  kernel/audit.c              | 35 +++++++++++++++++++++++++++++++++++
+> > > >  kernel/audit.h              |  1 +
+> > > >  security/selinux/nlmsgtab.c |  1 +
+> > > >  5 files changed, 45 insertions(+)
+> > >
+> > > ...
+> > >
+> > > > diff --git a/kernel/audit.c b/kernel/audit.c
+> > > > index 0871c3e5d6df..51159c94041c 100644
+> > > > --- a/kernel/audit.c
+> > > > +++ b/kernel/audit.c
+> > > > @@ -126,6 +126,14 @@ struct auditd_connection {
+> > > >  kuid_t         audit_sig_uid = INVALID_UID;
+> > > >  pid_t          audit_sig_pid = -1;
+> > > >  u32            audit_sig_sid = 0;
+> > > > +/* Since the signal information is stored in the record buffer at the
+> > > > + * time of the signal, but not retrieved until later, there is a chance
+> > > > + * that the last process in the container could terminate before the
+> > > > + * signal record is delivered.  In this circumstance, there is a chance
+> > > > + * the orchestrator could reuse the audit container identifier, causing
+> > > > + * an overlap of audit records that refer to the same audit container
+> > > > + * identifier, but a different container instance.  */
+> > > > +u64            audit_sig_cid = AUDIT_CID_UNSET;
+> > >
+> > > I believe we could prevent the case mentioned above by taking an
+> > > additional reference to the audit container ID object when the signal
+> > > information is collected, dropping it only after the signal
+> > > information is collected by userspace or another process signals the
+> > > audit daemon.  Yes, it would block that audit container ID from being
+> > > reused immediately, but since we are talking about one number out of
+> > > 2^64 that seems like a reasonable tradeoff.
+> >
+> > I had thought that through and should have been more explicit about that
+> > situation when I documented it.  We could do that, but then the syscall
+> > records would be connected with the call from auditd on shutdown to
+> > request that signal information, rather than the exit of that last
+> > process that was using that container.  This strikes me as misleading.
+> > Is that really what we want?
 > 
-> Update projects URLs in the changes.rst file.
+>  ???
 > 
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: linux-doc@vger.kernel.org
-> Cc: Jan Kara <jack@suse.com>
-> Cc: "Theodore Ts'o" <tytso@mit.edu>
-> Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-> Cc: linux-ext4@vger.kernel.org
-> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-> Cc: Florian Westphal <fw@strlen.de>
-> Cc: netfilter-devel@vger.kernel.org
-> Cc: coreteam@netfilter.org
-> Cc: Paul Mackerras <paulus@samba.org>
-> Cc: linux-ppp@vger.kernel.org
-> Cc: Jan Kara <jack@suse.com>
-> Cc: reiserfs-devel@vger.kernel.org
-> Cc: Darrick J. Wong <darrick.wong@oracle.com>
-> Cc: linux-xfs@vger.kernel.org
-> ---
+> I think one of us is not understanding the other; maybe it's me, maybe
+> it's you, maybe it's both of us.
 > 
->  Documentation/process/changes.rst                    |   12 ++++++----
->  Documentation/translations/it_IT/process/changes.rst |   12 ++++++----
->  2 files changed, 16 insertions(+), 8 deletions(-)
-> 
-> diff -Naurp linux-next-20200123/Documentation/translations/it_IT/process/changes.rst%WWW linux-next-20200123/Documentation/translations/it_IT/process/changes.rst
-> --- linux-next-20200123/Documentation/translations/it_IT/process/changes.rst%WWW	2019-11-24 16:32:01.000000000 -0800
-> +++ linux-next-20200123/Documentation/translations/it_IT/process/changes.rst	2020-01-23 10:47:56.226457425 -0800
-> @@ -391,6 +391,8 @@ E2fsprogs
->  ---------
->  
->  - <http://prdownloads.sourceforge.net/e2fsprogs/e2fsprogs-1.29.tar.gz>
-> +- <https://www.kernel.org/pub/linux/kernel/people/tytso/e2fsprogs/>
-> +- <https://git.kernel.org/pub/scm/fs/ext2/e2fsprogs.git/>
->  
->  JFSutils
->  --------
-> @@ -400,12 +402,12 @@ JFSutils
->  Reiserfsprogs
->  -------------
->  
-> -- <http://www.kernel.org/pub/linux/utils/fs/reiserfs/>
-> +- <https://git.kernel.org/pub/scm/linux/kernel/git/jeffm/reiserfsprogs.git/>
->  
->  Xfsprogs
->  --------
->  
-> -- <ftp://oss.sgi.com/projects/xfs/>
-> +- <https://git.kernel.org/pub/scm/fs/xfs/xfsprogs-dev.git>
+> Anyway, here is what I was trying to convey with my original comment
+> ... When we record the audit container ID in audit_signal_info() we
+> take an extra reference to the audit container ID object so that it
+> will not disappear (and get reused) until after we respond with an
+> AUDIT_SIGNAL_INFO2.  In audit_receive_msg() when we do the
+> AUDIT_SIGNAL_INFO2 processing we drop the extra reference we took in
+> audit_signal_info().  Unless I'm missing some other change you made,
+> this *shouldn't* affect the syscall records, all it does is preserve
+> the audit container ID object in the kernel's ACID store so it doesn't
+> get reused.
 
-Can we add a link to the release tarballs too?
+This is exactly what I had understood.  I hadn't considered the extra
+details below in detail due to my original syscall concern, but they
+make sense.
 
-https://www.kernel.org/pub/linux/utils/fs/xfs/xfsprogs/
+The syscall I refer to is the one connected with the drop of the
+audit container identifier by the last process that was in that
+container in patch 5/16.  The production of this record is contingent on
+the last ref in a contobj being dropped.  So if it is due to that ref
+being maintained by audit_signal_info() until the AUDIT_SIGNAL_INFO2
+record it fetched, then it will appear that the fetch action closed the
+container rather than the last process in the container to exit.
 
-With that amended,
-Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
+Does this make sense?
 
---D
-
->  
->  Pcmciautils
->  -----------
-> @@ -444,7 +446,9 @@ Rete
->  PPP
->  ---
->  
-> -- <ftp://ftp.samba.org/pub/ppp/>
-> +- <https://download.samba.org/pub/ppp/>
-> +- <https://git.ozlabs.org/?p=ppp.git>
-> +- <https://github.com/paulusmack/ppp/>
->  
->  
->  NFS-utils
-> @@ -455,7 +459,7 @@ NFS-utils
->  Iptables
->  --------
->  
-> -- <http://www.iptables.org/downloads.html>
-> +- <https://netfilter.org/projects/iptables/index.html>
->  
->  Ip-route2
->  ---------
-> diff -Naurp linux-next-20200123/Documentation/process/changes.rst%WWW linux-next-20200123/Documentation/process/changes.rst
-> --- linux-next-20200123/Documentation/process/changes.rst%WWW	2019-11-24 16:32:01.000000000 -0800
-> +++ linux-next-20200123/Documentation/process/changes.rst	2020-01-23 10:47:56.226457425 -0800
-> @@ -384,6 +384,8 @@ E2fsprogs
->  ---------
->  
->  - <http://prdownloads.sourceforge.net/e2fsprogs/e2fsprogs-1.29.tar.gz>
-> +- <https://www.kernel.org/pub/linux/kernel/people/tytso/e2fsprogs/>
-> +- <https://git.kernel.org/pub/scm/fs/ext2/e2fsprogs.git/>
->  
->  JFSutils
->  --------
-> @@ -393,12 +395,12 @@ JFSutils
->  Reiserfsprogs
->  -------------
->  
-> -- <http://www.kernel.org/pub/linux/utils/fs/reiserfs/>
-> +- <https://git.kernel.org/pub/scm/linux/kernel/git/jeffm/reiserfsprogs.git/>
->  
->  Xfsprogs
->  --------
->  
-> -- <ftp://oss.sgi.com/projects/xfs/>
-> +- <https://git.kernel.org/pub/scm/fs/xfs/xfsprogs-dev.git>
->  
->  Pcmciautils
->  -----------
-> @@ -437,7 +439,9 @@ Networking
->  PPP
->  ---
->  
-> -- <ftp://ftp.samba.org/pub/ppp/>
-> +- <https://download.samba.org/pub/ppp/>
-> +- <https://git.ozlabs.org/?p=ppp.git>
-> +- <https://github.com/paulusmack/ppp/>
->  
->  NFS-utils
->  ---------
-> @@ -447,7 +451,7 @@ NFS-utils
->  Iptables
->  --------
->  
-> -- <http://www.iptables.org/downloads.html>
-> +- <https://netfilter.org/projects/iptables/index.html>
->  
->  Ip-route2
->  ---------
+> (We do need to do some extra housekeeping in audit_signal_info() to
+> deal with the case where nobody asks for AUDIT_SIGNAL_INFO2 -
+> basically if audit_sig_cid is not NULL we should drop a reference
+> before assigning it a new object pointer, and of course we would need
+> to set audit_sig_cid to NULL in audit_receive_msg() after sending it
+> up to userspace and dropping the extra ref.)
 > 
-> 
+> paul moore
+
+- RGB
+
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
+
