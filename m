@@ -2,97 +2,162 @@ Return-Path: <SRS0=Vl9M=3M=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48ECCC2D0DB
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 20:08:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E29F5C33CB6
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 20:34:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 19F0C21D7E
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 20:08:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AAF2421D7D
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 20:34:00 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=mg.codeaurora.org header.i=@mg.codeaurora.org header.b="t9cLn/if"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XDS7ahLW"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729061AbgAWUIQ (ORCPT
+        id S1729158AbgAWUdm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Jan 2020 15:08:16 -0500
-Received: from mail25.static.mailgun.info ([104.130.122.25]:33346 "EHLO
-        mail25.static.mailgun.info" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727215AbgAWUIQ (ORCPT
+        Thu, 23 Jan 2020 15:33:42 -0500
+Received: from mail-pl1-f196.google.com ([209.85.214.196]:44963 "EHLO
+        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726167AbgAWUdl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Jan 2020 15:08:16 -0500
-DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mg.codeaurora.org; q=dns/txt;
- s=smtp; t=1579810095; h=Message-ID: References: In-Reply-To: Subject:
- Cc: To: From: Date: Content-Transfer-Encoding: Content-Type:
- MIME-Version: Sender; bh=u+8Z/XIxtWT4JtZBGkj3NyDJOQ2r5UpCc7DQzpF+k7s=;
- b=t9cLn/iffHhIyP/49Lyk6aT5pVd49o1yQEFtp5AeSx6DRqlL4n7F+oUaSfjb1jGTzJTA+iaf
- rikPl6kYDvG1wc93xLdJZPhw/Yntq9LIXYFGbqcCZGnHheE6/q45uS9eQdbARVOBsTBCbxFR
- aJ+UnJ3ikGkbGcaUwZRemMU/9SE=
-X-Mailgun-Sending-Ip: 104.130.122.25
-X-Mailgun-Sid: WyJlM2NhZSIsICJuZXRmaWx0ZXItZGV2ZWxAdmdlci5rZXJuZWwub3JnIiwgImJlOWU0YSJd
-Received: from smtp.codeaurora.org (ec2-35-166-182-171.us-west-2.compute.amazonaws.com [35.166.182.171])
- by mxa.mailgun.org with ESMTP id 5e29fd2e.7f05fdc034c8-smtp-out-n01;
- Thu, 23 Jan 2020 20:08:14 -0000 (UTC)
-Received: by smtp.codeaurora.org (Postfix, from userid 1001)
-        id 97483C447A1; Thu, 23 Jan 2020 20:08:14 +0000 (UTC)
-Received: from mail.codeaurora.org (localhost.localdomain [127.0.0.1])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: stranche)
-        by smtp.codeaurora.org (Postfix) with ESMTPSA id 2C570C43383;
-        Thu, 23 Jan 2020 20:08:14 +0000 (UTC)
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date:   Thu, 23 Jan 2020 13:08:14 -0700
-From:   stranche@codeaurora.org
-To:     Florian Westphal <fw@strlen.de>
-Cc:     pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        lucien.xin@gmail.com, subashab@codeaurora.org
-Subject: Re: [PATCH nf] Revert "netfilter: unlock xt_table earlier in
- __do_replace"
-In-Reply-To: <20200123102921.GU795@breakpoint.cc>
-References: <1579740455-17249-1-git-send-email-stranche@codeaurora.org>
- <20200123102921.GU795@breakpoint.cc>
-Message-ID: <41d1a7e128c92ac4cbc85806e0a09692@codeaurora.org>
-X-Sender: stranche@codeaurora.org
-User-Agent: Roundcube Webmail/1.3.9
+        Thu, 23 Jan 2020 15:33:41 -0500
+Received: by mail-pl1-f196.google.com with SMTP id d9so1824258plo.11;
+        Thu, 23 Jan 2020 12:33:40 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references;
+        bh=f0+S9564eaUdaVntJFA619acREnhDqTMtFRxd+yrr/g=;
+        b=XDS7ahLWl3lQUIyBeoFQ3YBHYyZ9lM3910LDhcOemIhoy43IGRDMNMp6AkKiD1JNTI
+         WOkiQh9+7iFGfdUJgwm2Y33pI0rANe3TM1qjsPFG3vMVGnuQDeMY/9PB5zxVdeVVDLdC
+         LeQBCjGnb3jVrx8tSfJR8EbcsSBa3Fg+I+WECWrJKuZPwPVoC5jqv7tN0T41ipfk0pu2
+         1iDEvmvhP5pAei6lHWdrgrP4cmwH3JBPuOYJmpqSIHMPaVC2huOdhq6hfQ7VNnl5vctY
+         AMmu22ail4Rnu4aQES2K4DgqyM5ZTRTCkej3G1eUWZTi/rYkjD/L7cBSPno2etWxpxPn
+         hh6w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references;
+        bh=f0+S9564eaUdaVntJFA619acREnhDqTMtFRxd+yrr/g=;
+        b=Uu5iLoc2FTjQdKgYtu4O8HAsHr4OHq7BjsHfO08LbsKKspt4FCmDmjsq+GjzVFnF51
+         ByzL1Q0voNckrWuFYx9rYbBGgVGUgJRvyVbxJE55EAV0gE8b7KwDDkbab9iiBF/ofHtm
+         quEbvFJWxSoMftpMmEIzeJGq9ghT8C4NW1MCPpLASEd7x3OarBA/+tYc/AFM2Z8mdVcG
+         G/xwo9ArWv7dlw0x1CNAIrmdVnqQkt1/Wcsb5fG1PsVeycPsS7q6xpGHQJUvz0Aj1xv0
+         fR2n5ii3T9xt8Tbm6g/LWzEgoERErAZiA+lrS9RMsRZ/P6+p60PASZl5xGjFOBUGoyjW
+         V97Q==
+X-Gm-Message-State: APjAAAUyI3fzNVIQ2GdQ4Ei/XK0RyBvQ7WoW5+WfF06aCYTjHIt1rL8W
+        OGcpkLcE5NscLJ2+oq9yOg==
+X-Google-Smtp-Source: APXvYqwa0AUWXoRz1qA3JM82TYC9l3mMKiMkL4N+M+/KAdVOC+b8cSaX0Y5XUqvN78D74Iidc6fjwQ==
+X-Received: by 2002:a17:902:b407:: with SMTP id x7mr18081270plr.301.1579811620224;
+        Thu, 23 Jan 2020 12:33:40 -0800 (PST)
+Received: from localhost.localdomain ([216.52.21.4])
+        by smtp.gmail.com with ESMTPSA id 71sm3816790pfb.123.2020.01.23.12.33.38
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Thu, 23 Jan 2020 12:33:39 -0800 (PST)
+From:   Praveen Chaudhary <praveen5582@gmail.com>
+X-Google-Original-From: Praveen Chaudhary <pchaudhary@linkedin.com>
+To:     fw@strlen.de, pablo@netfilter.org, davem@davemloft.net,
+        kadlec@netfilter.org, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc:     Zhenggen Xu <zxu@linkedin.com>,
+        Andy Stracner <astracner@linkedin.com>
+Subject: [PATCH v4] [net]: Fix skb->csum update in inet_proto_csum_replace16().
+Date:   Thu, 23 Jan 2020 12:33:28 -0800
+Message-Id: <1579811608-688-2-git-send-email-pchaudhary@linkedin.com>
+X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1579811608-688-1-git-send-email-pchaudhary@linkedin.com>
+References: <20200123142929.GV795@breakpoint.cc>
+ <1579811608-688-1-git-send-email-pchaudhary@linkedin.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-01-23 03:29, Florian Westphal wrote:
-> 
-> I don't see how this changes anything wrt. packet path.
-> This disallows another instance of iptables(-restore) to come in
-> before the counters have been copied/freed and the destructors have 
-> run.
-> 
-> But as those have nothing to do with the jumpstack I don't see how this
-> helps.
+skb->csum is updated incorrectly, when manipulation for NF_NAT_MANIP_SRC\DST
+is done on IPV6 packet.
 
-Based on on the stack of the iptables-restore task that freed the 
-jumpstack being accessed in the ipt_do_table() routine, we end up in 
-__do_replace()
-       0xFFFFFF9239243AE0, ->kvfree
-       0xFFFFFF923A1969EC, ->xt_free_table_info+0x50
-       0xFFFFFF923A2100E0, ->__do_replace+0x200
+Fix:
+There is no need to update skb->csum in inet_proto_csum_replace16(), because
+update in two fields a.) IPv6 src/dst address and b.) L4 header checksum
+cancels each other for skb->csum calculation.
+Whereas inet_proto_csum_replace4 function needs to update skb->csum,
+because update in 3 fields a.) IPv4 src/dst address, b.) IPv4 Header checksum
+and c.) L4 header checksum results in same diff as L4 Header checksum for
+skb->csum calculation.
 
-Prior to the original patch, this xt_free_table_info was under lock, so 
-it seems that having this call under lock guarantees that the new 
-table->private entry that contains the jumpstack is seen across all 
-CPUs.
+Signed-off-by: Praveen Chaudhary <pchaudhary@linkedin.com>
+Signed-off-by: Zhenggen Xu <zxu@linkedin.com>
+Signed-off-by: Andy Stracner <astracner@linkedin.com>
 
-> 
-> But the packet path doesn't grab the table mutex.
-> 
+Reviewed-by: Florian Westphal <fw@strlen.de>
+---
+Changes in V2.
+1.) Updating diff as per email discussion with Florian Westphal.
+    Since inet_proto_csum_replace16() does incorrect calculation
+    for skb->csum in all cases.
+2.) Change in Commmit logs.
+---
 
-Good point. Perhaps the reason that moving this lock helps is because it 
-prevents multiple writers from stepping on one another in such a way 
-that the private entry is left in a bad state. Or this whole thing is a 
-red herring and the problem is actually that xt_replace_table() is able 
-to return prematurely and not all CPUs are finished with the old 
-jumpstack by the time the old table info is freed.
+---
+Changes in V3.
+Addressing Pablo`s Suggesion.
+1.) Updated Subject and description
+2.) Added full documentation of function.
+---
+
+---
+Changes in V4.
+Addressing Daniel`s Suggesion.
+1.) Updated Commit Message.
+2.) Updated documentation of function to include, why inet_proto_csum_replace4
+    needs to update skb->csum.
+---
+---
+ net/core/utils.c | 22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
+
+diff --git a/net/core/utils.c b/net/core/utils.c
+index 6b6e51d..e2f8290 100644
+--- a/net/core/utils.c
++++ b/net/core/utils.c
+@@ -438,6 +438,25 @@ void inet_proto_csum_replace4(__sum16 *sum, struct sk_buff *skb,
+ }
+ EXPORT_SYMBOL(inet_proto_csum_replace4);
+ 
++/**
++ * inet_proto_csum_replace16 - update L4 header checksum field as per the
++ * update in IPv6 src/dst address.
++ * Note: there is no need to update skb->csum in this function, because
++ * update in two fields a.) IPv6 src/dst address and b.) L4 header checksum
++ * cancels each other for skb->csum calculation.
++ * Whereas inet_proto_csum_replace4 function needs to update skb->csum,
++ * because update in 3 fields a.) IPv4 src/dst address, b.) IPv4 Header checksum
++ * and c.) L4 header checksum results in same diff as L4 Header checksum for
++ * skb->csum calculation.
++ *
++ * @sum: L4 header checksum field
++ * @skb: sk_buff for the packet
++ * @from: old IPv6 address
++ * @to: new IPv6 address
++ * @pseudohdr: True if L4 header checksum includes pseudoheader
++ *
++ * Return void
++ */
+ void inet_proto_csum_replace16(__sum16 *sum, struct sk_buff *skb,
+ 			       const __be32 *from, const __be32 *to,
+ 			       bool pseudohdr)
+@@ -449,9 +468,6 @@ void inet_proto_csum_replace16(__sum16 *sum, struct sk_buff *skb,
+ 	if (skb->ip_summed != CHECKSUM_PARTIAL) {
+ 		*sum = csum_fold(csum_partial(diff, sizeof(diff),
+ 				 ~csum_unfold(*sum)));
+-		if (skb->ip_summed == CHECKSUM_COMPLETE && pseudohdr)
+-			skb->csum = ~csum_partial(diff, sizeof(diff),
+-						  ~skb->csum);
+ 	} else if (pseudohdr)
+ 		*sum = ~csum_fold(csum_partial(diff, sizeof(diff),
+ 				  csum_unfold(*sum)));
+-- 
+2.7.4
+
