@@ -1,104 +1,75 @@
-Return-Path: <SRS0=e21D=3L=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=Vl9M=3M=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19BBBC32771
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 22:50:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C223FC33CB6
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 00:43:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E14662253D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jan 2020 22:50:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F84821569
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 00:43:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725972AbgAVWuc (ORCPT
+        id S1726729AbgAWAno (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Jan 2020 17:50:32 -0500
-Received: from correo.us.es ([193.147.175.20]:48000 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725943AbgAVWuc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Jan 2020 17:50:32 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9E5FC15C112
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 23:50:30 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 919C5DA70E
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2020 23:50:30 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 86D20DA703; Wed, 22 Jan 2020 23:50:30 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 704F0DA70E;
-        Wed, 22 Jan 2020 23:50:28 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 22 Jan 2020 23:50:28 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 4EC8842EF9E0;
-        Wed, 22 Jan 2020 23:50:28 +0100 (CET)
-Date:   Wed, 22 Jan 2020 23:50:27 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf,v2] netfilter: nf_tables: autoload modules from the
- abort path
-Message-ID: <20200122225027.r7h622abigbvuh3t@salvia>
-References: <20200122211706.150042-1-pablo@netfilter.org>
- <20200122222808.GR795@breakpoint.cc>
- <20200122224947.iucrwyxmsrtm7ppe@salvia>
+        Wed, 22 Jan 2020 19:43:44 -0500
+Received: from youngberry.canonical.com ([91.189.89.112]:52657 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725911AbgAWAno (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 22 Jan 2020 19:43:44 -0500
+Received: from [82.43.126.140] (helo=localhost)
+        by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        (Exim 4.86_2)
+        (envelope-from <colin.king@canonical.com>)
+        id 1iuQan-000694-7F; Thu, 23 Jan 2020 00:43:29 +0000
+From:   Colin King <colin.king@canonical.com>
+To:     Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] ipvs: fix spelling mistake "to" -> "too"
+Date:   Thu, 23 Jan 2020 00:43:28 +0000
+Message-Id: <20200123004328.2833127-1-colin.king@canonical.com>
+X-Mailer: git-send-email 2.24.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200122224947.iucrwyxmsrtm7ppe@salvia>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jan 22, 2020 at 11:49:47PM +0100, Pablo Neira Ayuso wrote:
-> On Wed, Jan 22, 2020 at 11:28:08PM +0100, Florian Westphal wrote:
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > +	list_for_each_entry(req, &net->nft.module_list, list) {
-> > > +		if (!strcmp(req->module, module_name) && req->done)
-> > > +			return 0;
-> > > +	}
-> > 
-> > If the module is already on this list, why does it need to be
-> > added a second time?
-> 
-> The first time this finds no module on the list, then the module is
-> added to the list and nft_request_module() returns -EAGAIN. This
-> triggers abort path with autoload parameter set to true from
-> nfnetlink, this sets the module done field to true.
-> 
-> Now, on the second path, it will find that this already tried to load
+From: Colin Ian King <colin.king@canonical.com>
 
-s/second path/second pass
+There is a spelling mistake in a IP_VS_ERR_RL message. Fix it.
 
-> the module, so it does not add it again, nft_request_module() returns 0.
-> Then, there is a look up to find the object that was missing. If
-> module was successfully load, the object will be in place, otherwise
-> -ENOENT is reported to userspace.
-> 
-> So the code above is just checking for the second pass after one abort
-> with autoload parameter set on, not to read it again.
-> 
-> I can include this logic in the patch description in a v3.
-> 
-> > Other than that I like this idea as it avoids the entire "drop
-> > transaction mutex while inside a transaction" mess.
-> 
-> request_module() and the transaction logic was not fitting well, after
-> this there will be a well-defined location to do this.
-> 
-> I run the syzbot reproducer for 1 hour and no problems, not sure how
-> much I have to run it more. I guess the more time the better.
-> 
-> Thanks.
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ net/netfilter/ipvs/ip_vs_sync.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
+index 8dc892a9dc91..605e0f68f8bd 100644
+--- a/net/netfilter/ipvs/ip_vs_sync.c
++++ b/net/netfilter/ipvs/ip_vs_sync.c
+@@ -1239,7 +1239,7 @@ static void ip_vs_process_message(struct netns_ipvs *ipvs, __u8 *buffer,
+ 
+ 			p = msg_end;
+ 			if (p + sizeof(s->v4) > buffer+buflen) {
+-				IP_VS_ERR_RL("BACKUP, Dropping buffer, to small\n");
++				IP_VS_ERR_RL("BACKUP, Dropping buffer, too small\n");
+ 				return;
+ 			}
+ 			s = (union ip_vs_sync_conn *)p;
+-- 
+2.24.0
+
