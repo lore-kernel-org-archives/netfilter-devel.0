@@ -2,181 +2,97 @@ Return-Path: <SRS0=Vl9M=3M=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B156DC2D0DB
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 20:04:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48ECCC2D0DB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 20:08:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 761B221D7D
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 20:04:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 19F0C21D7E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 20:08:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ECeXObAg"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=mg.codeaurora.org header.i=@mg.codeaurora.org header.b="t9cLn/if"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729134AbgAWUEe (ORCPT
+        id S1729061AbgAWUIQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Jan 2020 15:04:34 -0500
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:31870 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1729095AbgAWUEd (ORCPT
+        Thu, 23 Jan 2020 15:08:16 -0500
+Received: from mail25.static.mailgun.info ([104.130.122.25]:33346 "EHLO
+        mail25.static.mailgun.info" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727215AbgAWUIQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Jan 2020 15:04:33 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1579809872;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=xjRl9ZZ81W8xX/UqPzwMqsqBvlHeFQjwNrpBMx4oFqs=;
-        b=ECeXObAgFZ7fO/VDpVAZm1jwqDydMoMXPVwl76uoxbbxEDQjjnYNxLhDU7sAHzWI+pS8nv
-        MtVen3TIYyPN2ViyCVpll5wP7hwZULmmZuDrg+pT4c6CeN/ilwGpSHLSwfz7I5QVUPElEN
-        w0JA6siJ7owELb7ZK3LsJtyHRLUunYQ=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-391-CnYRFvCbNZWJjbwRdlgROQ-1; Thu, 23 Jan 2020 15:04:30 -0500
-X-MC-Unique: CnYRFvCbNZWJjbwRdlgROQ-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        Thu, 23 Jan 2020 15:08:16 -0500
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mg.codeaurora.org; q=dns/txt;
+ s=smtp; t=1579810095; h=Message-ID: References: In-Reply-To: Subject:
+ Cc: To: From: Date: Content-Transfer-Encoding: Content-Type:
+ MIME-Version: Sender; bh=u+8Z/XIxtWT4JtZBGkj3NyDJOQ2r5UpCc7DQzpF+k7s=;
+ b=t9cLn/iffHhIyP/49Lyk6aT5pVd49o1yQEFtp5AeSx6DRqlL4n7F+oUaSfjb1jGTzJTA+iaf
+ rikPl6kYDvG1wc93xLdJZPhw/Yntq9LIXYFGbqcCZGnHheE6/q45uS9eQdbARVOBsTBCbxFR
+ aJ+UnJ3ikGkbGcaUwZRemMU/9SE=
+X-Mailgun-Sending-Ip: 104.130.122.25
+X-Mailgun-Sid: WyJlM2NhZSIsICJuZXRmaWx0ZXItZGV2ZWxAdmdlci5rZXJuZWwub3JnIiwgImJlOWU0YSJd
+Received: from smtp.codeaurora.org (ec2-35-166-182-171.us-west-2.compute.amazonaws.com [35.166.182.171])
+ by mxa.mailgun.org with ESMTP id 5e29fd2e.7f05fdc034c8-smtp-out-n01;
+ Thu, 23 Jan 2020 20:08:14 -0000 (UTC)
+Received: by smtp.codeaurora.org (Postfix, from userid 1001)
+        id 97483C447A1; Thu, 23 Jan 2020 20:08:14 +0000 (UTC)
+Received: from mail.codeaurora.org (localhost.localdomain [127.0.0.1])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id DCB608005A7;
-        Thu, 23 Jan 2020 20:04:26 +0000 (UTC)
-Received: from madcap2.tricolour.ca (ovpn-112-12.phx2.redhat.com [10.3.112.12])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id E05405C1B2;
-        Thu, 23 Jan 2020 20:04:15 +0000 (UTC)
-Date:   Thu, 23 Jan 2020 15:04:12 -0500
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
-        containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
-Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
- the audit daemon
-Message-ID: <20200123200412.j2aucdp3cvk57prw@madcap2.tricolour.ca>
-References: <cover.1577736799.git.rgb@redhat.com>
- <7d7933d742fdf4a94c84b791906a450b16f2e81f.1577736799.git.rgb@redhat.com>
- <CAHC9VhSuwJGryfrBfzxG01zwb-O_7dbjS0x0a3w-XjcNuYSAcg@mail.gmail.com>
- <20200123162918.b3jbed7tbvr2sf2p@madcap2.tricolour.ca>
- <CAHC9VhTusiQoudB8G5jjDFyM9WxBUAjZ6_X35ywJ063Jb75dQA@mail.gmail.com>
+        (Authenticated sender: stranche)
+        by smtp.codeaurora.org (Postfix) with ESMTPSA id 2C570C43383;
+        Thu, 23 Jan 2020 20:08:14 +0000 (UTC)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHC9VhTusiQoudB8G5jjDFyM9WxBUAjZ6_X35ywJ063Jb75dQA@mail.gmail.com>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date:   Thu, 23 Jan 2020 13:08:14 -0700
+From:   stranche@codeaurora.org
+To:     Florian Westphal <fw@strlen.de>
+Cc:     pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+        lucien.xin@gmail.com, subashab@codeaurora.org
+Subject: Re: [PATCH nf] Revert "netfilter: unlock xt_table earlier in
+ __do_replace"
+In-Reply-To: <20200123102921.GU795@breakpoint.cc>
+References: <1579740455-17249-1-git-send-email-stranche@codeaurora.org>
+ <20200123102921.GU795@breakpoint.cc>
+Message-ID: <41d1a7e128c92ac4cbc85806e0a09692@codeaurora.org>
+X-Sender: stranche@codeaurora.org
+User-Agent: Roundcube Webmail/1.3.9
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-01-23 12:09, Paul Moore wrote:
-> On Thu, Jan 23, 2020 at 11:29 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > On 2020-01-22 16:28, Paul Moore wrote:
-> > > On Tue, Dec 31, 2019 at 2:50 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > >
-> > > > Add audit container identifier support to the action of signalling the
-> > > > audit daemon.
-> > > >
-> > > > Since this would need to add an element to the audit_sig_info struct,
-> > > > a new record type AUDIT_SIGNAL_INFO2 was created with a new
-> > > > audit_sig_info2 struct.  Corresponding support is required in the
-> > > > userspace code to reflect the new record request and reply type.
-> > > > An older userspace won't break since it won't know to request this
-> > > > record type.
-> > > >
-> > > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > > > ---
-> > > >  include/linux/audit.h       |  7 +++++++
-> > > >  include/uapi/linux/audit.h  |  1 +
-> > > >  kernel/audit.c              | 35 +++++++++++++++++++++++++++++++++++
-> > > >  kernel/audit.h              |  1 +
-> > > >  security/selinux/nlmsgtab.c |  1 +
-> > > >  5 files changed, 45 insertions(+)
-> > >
-> > > ...
-> > >
-> > > > diff --git a/kernel/audit.c b/kernel/audit.c
-> > > > index 0871c3e5d6df..51159c94041c 100644
-> > > > --- a/kernel/audit.c
-> > > > +++ b/kernel/audit.c
-> > > > @@ -126,6 +126,14 @@ struct auditd_connection {
-> > > >  kuid_t         audit_sig_uid = INVALID_UID;
-> > > >  pid_t          audit_sig_pid = -1;
-> > > >  u32            audit_sig_sid = 0;
-> > > > +/* Since the signal information is stored in the record buffer at the
-> > > > + * time of the signal, but not retrieved until later, there is a chance
-> > > > + * that the last process in the container could terminate before the
-> > > > + * signal record is delivered.  In this circumstance, there is a chance
-> > > > + * the orchestrator could reuse the audit container identifier, causing
-> > > > + * an overlap of audit records that refer to the same audit container
-> > > > + * identifier, but a different container instance.  */
-> > > > +u64            audit_sig_cid = AUDIT_CID_UNSET;
-> > >
-> > > I believe we could prevent the case mentioned above by taking an
-> > > additional reference to the audit container ID object when the signal
-> > > information is collected, dropping it only after the signal
-> > > information is collected by userspace or another process signals the
-> > > audit daemon.  Yes, it would block that audit container ID from being
-> > > reused immediately, but since we are talking about one number out of
-> > > 2^64 that seems like a reasonable tradeoff.
-> >
-> > I had thought that through and should have been more explicit about that
-> > situation when I documented it.  We could do that, but then the syscall
-> > records would be connected with the call from auditd on shutdown to
-> > request that signal information, rather than the exit of that last
-> > process that was using that container.  This strikes me as misleading.
-> > Is that really what we want?
+On 2020-01-23 03:29, Florian Westphal wrote:
 > 
->  ???
+> I don't see how this changes anything wrt. packet path.
+> This disallows another instance of iptables(-restore) to come in
+> before the counters have been copied/freed and the destructors have 
+> run.
 > 
-> I think one of us is not understanding the other; maybe it's me, maybe
-> it's you, maybe it's both of us.
+> But as those have nothing to do with the jumpstack I don't see how this
+> helps.
+
+Based on on the stack of the iptables-restore task that freed the 
+jumpstack being accessed in the ipt_do_table() routine, we end up in 
+__do_replace()
+       0xFFFFFF9239243AE0, ->kvfree
+       0xFFFFFF923A1969EC, ->xt_free_table_info+0x50
+       0xFFFFFF923A2100E0, ->__do_replace+0x200
+
+Prior to the original patch, this xt_free_table_info was under lock, so 
+it seems that having this call under lock guarantees that the new 
+table->private entry that contains the jumpstack is seen across all 
+CPUs.
+
 > 
-> Anyway, here is what I was trying to convey with my original comment
-> ... When we record the audit container ID in audit_signal_info() we
-> take an extra reference to the audit container ID object so that it
-> will not disappear (and get reused) until after we respond with an
-> AUDIT_SIGNAL_INFO2.  In audit_receive_msg() when we do the
-> AUDIT_SIGNAL_INFO2 processing we drop the extra reference we took in
-> audit_signal_info().  Unless I'm missing some other change you made,
-> this *shouldn't* affect the syscall records, all it does is preserve
-> the audit container ID object in the kernel's ACID store so it doesn't
-> get reused.
-
-This is exactly what I had understood.  I hadn't considered the extra
-details below in detail due to my original syscall concern, but they
-make sense.
-
-The syscall I refer to is the one connected with the drop of the
-audit container identifier by the last process that was in that
-container in patch 5/16.  The production of this record is contingent on
-the last ref in a contobj being dropped.  So if it is due to that ref
-being maintained by audit_signal_info() until the AUDIT_SIGNAL_INFO2
-record it fetched, then it will appear that the fetch action closed the
-container rather than the last process in the container to exit.
-
-Does this make sense?
-
-> (We do need to do some extra housekeeping in audit_signal_info() to
-> deal with the case where nobody asks for AUDIT_SIGNAL_INFO2 -
-> basically if audit_sig_cid is not NULL we should drop a reference
-> before assigning it a new object pointer, and of course we would need
-> to set audit_sig_cid to NULL in audit_receive_msg() after sending it
-> up to userspace and dropping the extra ref.)
+> But the packet path doesn't grab the table mutex.
 > 
-> paul moore
 
-- RGB
-
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
-
+Good point. Perhaps the reason that moving this lock helps is because it 
+prevents multiple writers from stepping on one another in such a way 
+that the private entry is left in a bad state. Or this whole thing is a 
+red herring and the problem is actually that xt_replace_table() is able 
+to return prematurely and not all CPUs are finished with the old 
+jumpstack by the time the old table info is freed.
