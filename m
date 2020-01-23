@@ -2,93 +2,96 @@ Return-Path: <SRS0=Vl9M=3M=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04685C33CAA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 08:21:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BF30C2D0DB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 10:29:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CC0BE22522
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 08:21:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 67B1D24125
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 10:29:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726204AbgAWIVP (ORCPT
+        id S1726191AbgAWK3X (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Jan 2020 03:21:15 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:43226 "EHLO
+        Thu, 23 Jan 2020 05:29:23 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:43814 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726083AbgAWIVP (ORCPT
+        by vger.kernel.org with ESMTP id S1726026AbgAWK3X (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Jan 2020 03:21:15 -0500
+        Thu, 23 Jan 2020 05:29:23 -0500
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@strlen.de>)
-        id 1iuXje-0005Xd-Ny; Thu, 23 Jan 2020 09:21:06 +0100
-Date:   Thu, 23 Jan 2020 09:21:06 +0100
+        id 1iuZjl-0006LN-3G; Thu, 23 Jan 2020 11:29:21 +0100
+Date:   Thu, 23 Jan 2020 11:29:21 +0100
 From:   Florian Westphal <fw@strlen.de>
-To:     Daniel Borkmann <daniel@iogearbox.net>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Praveen Chaudhary <praveen5582@gmail.com>, pablo@netfilter.org,
-        davem@davemloft.net, kadlec@netfilter.org,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Zhenggen Xu <zxu@linkedin.com>,
-        Andy Stracner <astracner@linkedin.com>
-Subject: Re: [PATCH v3] [net]: Fix skb->csum update in
- inet_proto_csum_replace16().
-Message-ID: <20200123082106.GT795@breakpoint.cc>
-References: <1573080729-3102-1-git-send-email-pchaudhary@linkedin.com>
- <1573080729-3102-2-git-send-email-pchaudhary@linkedin.com>
- <16d56ee6-53bc-1124-3700-bc0a78f927d6@iogearbox.net>
- <20200122114333.GQ795@breakpoint.cc>
- <daf995db-37c6-a2f7-4d12-5c1a29e1c59b@iogearbox.net>
+To:     Sean Tranchetti <stranche@codeaurora.org>
+Cc:     pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+        lucien.xin@gmail.com
+Subject: Re: [PATCH nf] Revert "netfilter: unlock xt_table earlier in
+ __do_replace"
+Message-ID: <20200123102921.GU795@breakpoint.cc>
+References: <1579740455-17249-1-git-send-email-stranche@codeaurora.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <daf995db-37c6-a2f7-4d12-5c1a29e1c59b@iogearbox.net>
+In-Reply-To: <1579740455-17249-1-git-send-email-stranche@codeaurora.org>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Daniel Borkmann <daniel@iogearbox.net> wrote:
-> On 1/22/20 12:43 PM, Florian Westphal wrote:
-> > Daniel Borkmann <daniel@iogearbox.net> wrote:
-> > > > @@ -449,9 +464,6 @@ void inet_proto_csum_replace16(__sum16 *sum, struct sk_buff *skb,
-> > > >    	if (skb->ip_summed != CHECKSUM_PARTIAL) {
-> > > >    		*sum = csum_fold(csum_partial(diff, sizeof(diff),
-> > > >    				 ~csum_unfold(*sum)));
-> > > > -		if (skb->ip_summed == CHECKSUM_COMPLETE && pseudohdr)
-> > > > -			skb->csum = ~csum_partial(diff, sizeof(diff),
-> > > > -						  ~skb->csum);
-> > > 
-> > > What is the technical rationale in removing this here but not in any of the
-> > > other inet_proto_csum_replace*() functions? You changelog has zero analysis
-> > > on why here but not elsewhere this change would be needed?
-> > 
-> > Right, I think it could be dropped everywhere BUT there is a major caveat:
-> > 
-> > At least for the nf_nat case ipv4 header manipulation (which uses the other
-> > helpers froum utils.c) will eventually also update iph->checksum field
-> > to account for the changed ip addresses.
-> > 
-> > And that update doesn't touch skb->csum.
-> > 
-> > So in a way the update of skb->csum in the other helpers indirectly account
-> > for later ip header checksum update.
-> > 
-> > At least that was my conclusion when reviewing the earlier incarnation
-> > of the patch.
+Sean Tranchetti <stranche@codeaurora.org> wrote:
+
+[ CC Xin Long ]
+
+> A recently reported crash in the x_tables framework seems to stem from
+> a potential race condition between adding rules to a table and having a
+> packet traversing the table at the same time.
 > 
-> Mainly asking because not inet_proto_csum_replace16() but the other ones are
-> exposed via BPF and they are all in no way fundamentally different to each
-> other, but my concern is that depending on how the BPF prog updates the csums
-> things could start to break. :/
+> In the crash, the jumpstack being used by the table traversal was freed
+> by the table replace code. After performing some bisection, it seems that
+> commit f31e5f1a891f ("netfilter: unlock xt_table earlier in __do_replace")
+> exposed this race condition by unlocking the table before the
+> get_old_counters() routine was called to perform the synchronization.
 
-I'm reasonably sure removing the skb->csum update from the other
-helpers will also break ipv4 nat :)
+But the packet path doesn't grab the table mutex.
 
-So, AFAIU from what you're saying above the patch seems fine as-is and
-just needs a more verbose commit message explaining why replace16()
-doesn't update skb->csum while all the other ones do.
+> Call Stack:
+> 	Unable to handle kernel paging request at virtual address
+> 	006b6b6b6b6b6bc5
+> 
+> 	pc : ipt_do_table+0x3b8/0x660
+> 	lr : ipt_do_table+0x31c/0x660
+> 	Call trace:
+> 	ipt_do_table+0x3b8/0x660
+> 	iptable_mangle_hook+0x58/0xf8
+> 	nf_hook_slow+0x48/0xd8
+> 	__ip_local_out+0xf4/0x138
+> 	__ip_queue_xmit+0x348/0x3a0
+> 	ip_queue_xmit+0x10/0x18
+> 
+> Signed-off-by: Sean Tranchetti <stranche@codeaurora.org>
+> ---
+> @@ -921,8 +921,6 @@ static int __do_replace(struct net *net, const char *name,
+>  	    (newinfo->number <= oldinfo->initial_entries))
+>  		module_put(t->me);
+>  
+> -	xt_table_unlock(t);
+> -
+>  	get_old_counters(oldinfo, counters);
+>  
+>  	/* Decrease module usage counts and free resource */
+> @@ -937,6 +935,7 @@ static int __do_replace(struct net *net, const char *name,
+>  		net_warn_ratelimited("arptables: counters copy to user failed while replacing table\n");
+>  	}
+>  	vfree(counters);
+> +	xt_table_unlock(t);
 
-Is that correct?
+I don't see how this changes anything wrt. packet path.
+This disallows another instance of iptables(-restore) to come in
+before the counters have been copied/freed and the destructors have run.
+
+But as those have nothing to do with the jumpstack I don't see how this
+helps.
