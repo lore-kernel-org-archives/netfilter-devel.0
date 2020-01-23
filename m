@@ -2,79 +2,93 @@ Return-Path: <SRS0=Vl9M=3M=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 816E5C33CAA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 07:25:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04685C33CAA
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 08:21:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5E17B217F4
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 07:25:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CC0BE22522
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 08:21:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726029AbgAWHZv (ORCPT
+        id S1726204AbgAWIVP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Jan 2020 02:25:51 -0500
-Received: from relay.sw.ru ([185.231.240.75]:36720 "EHLO relay.sw.ru"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725955AbgAWHZv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Jan 2020 02:25:51 -0500
-Received: from vvs-ws.sw.ru ([172.16.24.21])
-        by relay.sw.ru with esmtp (Exim 4.92.3)
-        (envelope-from <vvs@virtuozzo.com>)
-        id 1iuWs8-0005xN-DM; Thu, 23 Jan 2020 10:25:48 +0300
-From:   Vasily Averin <vvs@virtuozzo.com>
-Subject: [PATCH 4/4] xt_mttg_seq_next should increase position index
-To:     coreteam@netfilter.org, netfilter-devel@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Message-ID: <68a9cf0e-36b7-59b1-649d-41892d11e72b@virtuozzo.com>
-Date:   Thu, 23 Jan 2020 10:25:47 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.2.2
+        Thu, 23 Jan 2020 03:21:15 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:43226 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726083AbgAWIVP (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 23 Jan 2020 03:21:15 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1iuXje-0005Xd-Ny; Thu, 23 Jan 2020 09:21:06 +0100
+Date:   Thu, 23 Jan 2020 09:21:06 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Daniel Borkmann <daniel@iogearbox.net>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Praveen Chaudhary <praveen5582@gmail.com>, pablo@netfilter.org,
+        davem@davemloft.net, kadlec@netfilter.org,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Zhenggen Xu <zxu@linkedin.com>,
+        Andy Stracner <astracner@linkedin.com>
+Subject: Re: [PATCH v3] [net]: Fix skb->csum update in
+ inet_proto_csum_replace16().
+Message-ID: <20200123082106.GT795@breakpoint.cc>
+References: <1573080729-3102-1-git-send-email-pchaudhary@linkedin.com>
+ <1573080729-3102-2-git-send-email-pchaudhary@linkedin.com>
+ <16d56ee6-53bc-1124-3700-bc0a78f927d6@iogearbox.net>
+ <20200122114333.GQ795@breakpoint.cc>
+ <daf995db-37c6-a2f7-4d12-5c1a29e1c59b@iogearbox.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <daf995db-37c6-a2f7-4d12-5c1a29e1c59b@iogearbox.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-if seq_file .next fuction does not change position index,
-read after some lseek can generate unexpected output.
+Daniel Borkmann <daniel@iogearbox.net> wrote:
+> On 1/22/20 12:43 PM, Florian Westphal wrote:
+> > Daniel Borkmann <daniel@iogearbox.net> wrote:
+> > > > @@ -449,9 +464,6 @@ void inet_proto_csum_replace16(__sum16 *sum, struct sk_buff *skb,
+> > > >    	if (skb->ip_summed != CHECKSUM_PARTIAL) {
+> > > >    		*sum = csum_fold(csum_partial(diff, sizeof(diff),
+> > > >    				 ~csum_unfold(*sum)));
+> > > > -		if (skb->ip_summed == CHECKSUM_COMPLETE && pseudohdr)
+> > > > -			skb->csum = ~csum_partial(diff, sizeof(diff),
+> > > > -						  ~skb->csum);
+> > > 
+> > > What is the technical rationale in removing this here but not in any of the
+> > > other inet_proto_csum_replace*() functions? You changelog has zero analysis
+> > > on why here but not elsewhere this change would be needed?
+> > 
+> > Right, I think it could be dropped everywhere BUT there is a major caveat:
+> > 
+> > At least for the nf_nat case ipv4 header manipulation (which uses the other
+> > helpers froum utils.c) will eventually also update iph->checksum field
+> > to account for the changed ip addresses.
+> > 
+> > And that update doesn't touch skb->csum.
+> > 
+> > So in a way the update of skb->csum in the other helpers indirectly account
+> > for later ip header checksum update.
+> > 
+> > At least that was my conclusion when reviewing the earlier incarnation
+> > of the patch.
+> 
+> Mainly asking because not inet_proto_csum_replace16() but the other ones are
+> exposed via BPF and they are all in no way fundamentally different to each
+> other, but my concern is that depending on how the BPF prog updates the csums
+> things could start to break. :/
 
-https://bugzilla.kernel.org/show_bug.cgi?id=206283
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
----
- net/netfilter/x_tables.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+I'm reasonably sure removing the skb->csum update from the other
+helpers will also break ipv4 nat :)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index ce70c25..44f971f 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1551,6 +1551,9 @@ static void *xt_mttg_seq_next(struct seq_file *seq, void *v, loff_t *ppos,
- 	uint8_t nfproto = (unsigned long)PDE_DATA(file_inode(seq->file));
- 	struct nf_mttg_trav *trav = seq->private;
- 
-+	if (ppos != NULL)
-+		++(*ppos);
-+
- 	switch (trav->class) {
- 	case MTTG_TRAV_INIT:
- 		trav->class = MTTG_TRAV_NFP_UNSPEC;
-@@ -1576,9 +1579,6 @@ static void *xt_mttg_seq_next(struct seq_file *seq, void *v, loff_t *ppos,
- 	default:
- 		return NULL;
- 	}
--
--	if (ppos != NULL)
--		++*ppos;
- 	return trav;
- }
- 
--- 
-1.8.3.1
+So, AFAIU from what you're saying above the patch seems fine as-is and
+just needs a more verbose commit message explaining why replace16()
+doesn't update skb->csum while all the other ones do.
 
+Is that correct?
