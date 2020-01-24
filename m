@@ -1,144 +1,82 @@
-Return-Path: <SRS0=Vl9M=3M=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=/v6G=3N=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8926C35240
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 23:54:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8A3CC2D0CE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 04:55:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 87BD7206D3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jan 2020 23:54:15 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="SHKwoRWc"
+	by mail.kernel.org (Postfix) with ESMTP id A434C2070A
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 04:55:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729832AbgAWXyN (ORCPT
+        id S1730321AbgAXEzC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Jan 2020 18:54:13 -0500
-Received: from bombadil.infradead.org ([198.137.202.133]:45440 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729277AbgAWXyM (ORCPT
+        Thu, 23 Jan 2020 23:55:02 -0500
+Received: from mail-il1-f197.google.com ([209.85.166.197]:47101 "EHLO
+        mail-il1-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729316AbgAXEzB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Jan 2020 18:54:12 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
-        Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:
-        Subject:Sender:Reply-To:Content-ID:Content-Description:Resent-Date:
-        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
-        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-         bh=bgKW+J/FqGAQgoMhgI1N/oYW+JVXIpMbXjqOj6SbCQo=; b=SHKwoRWceYdc+xm+r4rtx8R1A
-        HzkrMHl7ciXXgFIuNZRQ3tPE2mdCKYCp6K9K0Aw4sZj75SrRP78z6Oax18ZJyJW2ogBU6jBmjv6Js
-        3YIJg6duKUB0Ij18nhcG5PFoVZhR8cUDTKWbdwU16f/sFi+JBUALjx5rTawnLev+jwOxoRaXtXJWz
-        AnpE4oZRuz9jQJMxMH/Ub87EWOic/S6rrG3NGLg1KvlhfrkpZ5g+A984+tL1BRILoZYzL80Po/Ycx
-        vkWVXyilpu8gx7H79Om8Ta+cC/kpy7KngJJWhuqHdaQMzDQYgTMZh++78fGa0ZREqKNNKkRSImc2o
-        jXFTHgOMA==;
-Received: from [2601:1c0:6280:3f0::ed68]
-        by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1iumIc-0003Cp-VM; Thu, 23 Jan 2020 23:54:11 +0000
-Subject: Re: [PATCH] Documentation: changes.rst: update several outdated
- project URLs
-To:     "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc:     "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>, Jan Kara <jack@suse.com>,
-        Theodore Ts'o <tytso@mit.edu>,
-        Andreas Dilger <adilger.kernel@dilger.ca>,
-        linux-ext4@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Paul Mackerras <paulus@samba.org>, linux-ppp@vger.kernel.org,
-        reiserfs-devel@vger.kernel.org,
-        linux-xfs <linux-xfs@vger.kernel.org>
-References: <efb1f518-9e66-c472-d124-4b7d91e56639@infradead.org>
- <20200123195531.GW8247@magnolia>
-From:   Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <792339b0-5fa1-4347-11e2-2620f498856c@infradead.org>
-Date:   Thu, 23 Jan 2020 15:54:09 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.3.0
+        Thu, 23 Jan 2020 23:55:01 -0500
+Received: by mail-il1-f197.google.com with SMTP id a2so652041ill.13
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Jan 2020 20:55:01 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
+         :from:to;
+        bh=wqIW1GSh96dKBLUXIwcBCdzQGnE7BxtkVO3LYYJlVQE=;
+        b=SlyiRdkET9EWZtfFYm0yZ7W0YRhVQJ9uSKRxyR1h0jfTnJdGBl6YfzknBlPyrAvxP+
+         r/xhKfIQ9i0M62lW/hPXvgwvMZg4pDwkOQrlm15nN/YKl91NDSwyLOr9+TbTkaUW3DY/
+         bvt+DgR2xe1gC114OQ2/KDoGu7e84IRtyexLECl3lr6J59ulq0IivWjTyfTWmkOdRRrz
+         +DJDDoPCPIiK8KkUoPRjRl9CN+qvBP35cbA24xhTTeFDAQdRQT4LubqzHZhODzxehOfu
+         nz6tzW4068JmlzOUTGX4Hh3Bgcudbjp5ushE2wbEoRT89IfdyHKWRNFwTlQ5tb6vPC4e
+         8+wQ==
+X-Gm-Message-State: APjAAAWcohR0Skk2wmB4V1HD2SZ/0t1lAxjcP9k38jkv+k0XbNGWXHSy
+        XaC5mbVeU5oitNPafg93jQ9TWeYhSSXwgOfCcI16EeH+4aTF
+X-Google-Smtp-Source: APXvYqxrBcPP1lod4jQ5x9Z+3r0zQv4PBuVpX/irM3rH1cFEkIinSrYxZh5p5QiT0thS8XZ7XZ8TETunB7YSrXzC5GGeknq9swin
 MIME-Version: 1.0
-In-Reply-To: <20200123195531.GW8247@magnolia>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+X-Received: by 2002:a92:7903:: with SMTP id u3mr1546730ilc.254.1579841700988;
+ Thu, 23 Jan 2020 20:55:00 -0800 (PST)
+Date:   Thu, 23 Jan 2020 20:55:00 -0800
+In-Reply-To: <000000000000204b4d059cd6d766@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000638fae059cdb8fe8@google.com>
+Subject: Re: KASAN: slab-out-of-bounds Read in bitmap_port_destroy
+From:   syzbot <syzbot+b96275fd6ad891076ced@syzkaller.appspotmail.com>
+To:     arvid.brodin@alten.se, coreteam@netfilter.org, davem@davemloft.net,
+        florent.fourcot@wifirst.fr, fw@strlen.de, jeremy@azazel.net,
+        johannes.berg@intel.com, kadlec@netfilter.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com, xiyou.wangcong@gmail.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 1/23/20 11:55 AM, Darrick J. Wong wrote:
-> On Thu, Jan 23, 2020 at 11:00:12AM -0800, Randy Dunlap wrote:
->> From: Randy Dunlap <rdunlap@infradead.org>
->>
->> Update projects URLs in the changes.rst file.
->>
->> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
->> Cc: Jonathan Corbet <corbet@lwn.net>
->> Cc: linux-doc@vger.kernel.org
->> Cc: Jan Kara <jack@suse.com>
->> Cc: "Theodore Ts'o" <tytso@mit.edu>
->> Cc: Andreas Dilger <adilger.kernel@dilger.ca>
->> Cc: linux-ext4@vger.kernel.org
->> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
->> Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
->> Cc: Florian Westphal <fw@strlen.de>
->> Cc: netfilter-devel@vger.kernel.org
->> Cc: coreteam@netfilter.org
->> Cc: Paul Mackerras <paulus@samba.org>
->> Cc: linux-ppp@vger.kernel.org
->> Cc: Jan Kara <jack@suse.com>
->> Cc: reiserfs-devel@vger.kernel.org
->> Cc: Darrick J. Wong <darrick.wong@oracle.com>
->> Cc: linux-xfs@vger.kernel.org
->> ---
->>
->>  Documentation/process/changes.rst                    |   12 ++++++----
->>  Documentation/translations/it_IT/process/changes.rst |   12 ++++++----
->>  2 files changed, 16 insertions(+), 8 deletions(-)
->>
->> diff -Naurp linux-next-20200123/Documentation/translations/it_IT/process/changes.rst%WWW linux-next-20200123/Documentation/translations/it_IT/process/changes.rst
->> --- linux-next-20200123/Documentation/translations/it_IT/process/changes.rst%WWW	2019-11-24 16:32:01.000000000 -0800
->> +++ linux-next-20200123/Documentation/translations/it_IT/process/changes.rst	2020-01-23 10:47:56.226457425 -0800
->> @@ -391,6 +391,8 @@ E2fsprogs
->>  ---------
->>  
->>  - <http://prdownloads.sourceforge.net/e2fsprogs/e2fsprogs-1.29.tar.gz>
->> +- <https://www.kernel.org/pub/linux/kernel/people/tytso/e2fsprogs/>
->> +- <https://git.kernel.org/pub/scm/fs/ext2/e2fsprogs.git/>
->>  
->>  JFSutils
->>  --------
->> @@ -400,12 +402,12 @@ JFSutils
->>  Reiserfsprogs
->>  -------------
->>  
->> -- <http://www.kernel.org/pub/linux/utils/fs/reiserfs/>
->> +- <https://git.kernel.org/pub/scm/linux/kernel/git/jeffm/reiserfsprogs.git/>
->>  
->>  Xfsprogs
->>  --------
->>  
->> -- <ftp://oss.sgi.com/projects/xfs/>
->> +- <https://git.kernel.org/pub/scm/fs/xfs/xfsprogs-dev.git>
-> 
-> Can we add a link to the release tarballs too?
-> 
-> https://www.kernel.org/pub/linux/utils/fs/xfs/xfsprogs/
-> 
-> With that amended,
-> Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
-> 
-> --D
+syzbot has bisected this bug to:
 
-Sure, I added that link.
-I'll wait a bit for other comments before posting v2.
+commit b9a1e627405d68d475a3c1f35e685ccfb5bbe668
+Author: Cong Wang <xiyou.wangcong@gmail.com>
+Date:   Thu Jul 4 00:21:13 2019 +0000
 
-thanks.
--- 
-~Randy
+    hsr: implement dellink to clean up resources
 
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=17d0c611e00000
+start commit:   131701c6 Merge tag 'leds-5.5-rc8' of git://git.kernel.org/..
+git tree:       upstream
+final crash:    https://syzkaller.appspot.com/x/report.txt?x=1430c611e00000
+console output: https://syzkaller.appspot.com/x/log.txt?x=1030c611e00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=83c00afca9cf5153
+dashboard link: https://syzkaller.appspot.com/bug?extid=b96275fd6ad891076ced
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15fba721e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1339726ee00000
+
+Reported-by: syzbot+b96275fd6ad891076ced@syzkaller.appspotmail.com
+Fixes: b9a1e627405d ("hsr: implement dellink to clean up resources")
+
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
