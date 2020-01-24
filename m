@@ -2,186 +2,87 @@ Return-Path: <SRS0=/v6G=3N=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E4F6C2D0DB
-	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 14:36:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFFBAC32771
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 18:49:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5483A20704
-	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 14:36:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579876562;
-	bh=fLVaVqI/k47RJMZ62O9vSB3wxuhMTT5z2izeJOJkHbc=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=V/6UQCkMQKbL/MVffrxDDkGhJVa4YI8N5CjWYoh+UatnDuFEy8nJsTVOMA7wfq69d
-	 G+Jnf0WoVncGbocO9fv2hrz/4EX6A+JEtE+naIm/FM07pg8q4leTHQsf9ndwW0HIhb
-	 y+95YUfZjY63cuxI5I2nzDbM53NyKSneJ/rao03Q=
+	by mail.kernel.org (Postfix) with ESMTP id D01502072C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 18:49:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388876AbgAXOf4 (ORCPT
+        id S2388649AbgAXStW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 24 Jan 2020 09:35:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39772 "EHLO mail.kernel.org"
+        Fri, 24 Jan 2020 13:49:22 -0500
+Received: from correo.us.es ([193.147.175.20]:40620 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391640AbgAXOT2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Jan 2020 09:19:28 -0500
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        id S2387843AbgAXStW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 24 Jan 2020 13:49:22 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 9356EBAEF2
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Jan 2020 19:49:19 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 85D93DA716
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Jan 2020 19:49:19 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 79A1EDA710; Fri, 24 Jan 2020 19:49:19 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5E3B8DA705;
+        Fri, 24 Jan 2020 19:49:17 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 24 Jan 2020 19:49:17 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3D01C208C4;
-        Fri, 24 Jan 2020 14:19:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579875567;
-        bh=fLVaVqI/k47RJMZ62O9vSB3wxuhMTT5z2izeJOJkHbc=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ePA6o7ws9rq99Za+P4N/MKDV12pBcGKISLiHnuN1uEr/97LuNjkK0r5uMRogz+GfJ
-         KhOlNRqHBA+0ea+PjwZE65bn1aJ+UO8odMvIUmL99lcS3BMgv5iEfKrfbIMuJVfaJs
-         XSHSQIuNEd+JgCsnTtWi6s0KM2bJWLSkbCZNSkuU=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
-        syzbot+91bdd8eece0f6629ec8b@syzkaller.appspotmail.com,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 060/107] netfilter: arp_tables: init netns pointer in xt_tgdtor_param struct
-Date:   Fri, 24 Jan 2020 09:17:30 -0500
-Message-Id: <20200124141817.28793-60-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200124141817.28793-1-sashal@kernel.org>
-References: <20200124141817.28793-1-sashal@kernel.org>
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 407C842EE38E;
+        Fri, 24 Jan 2020 19:49:17 +0100 (CET)
+Date:   Fri, 24 Jan 2020 19:49:16 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jiri Wiesner <jwiesner@suse.com>
+Cc:     netfilter-devel@vger.kernel.org,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Michal Kubecek <mkubecek@suse.cz>
+Subject: Re: [PATCH nf] netfilter: conntrack: sctp: use distinct states for
+ new SCTP connections
+Message-ID: <20200124184916.axf6oy6jcduyhcfa@salvia>
+References: <20200118121050.GA22909@incl>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200118121050.GA22909@incl>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+On Sat, Jan 18, 2020 at 01:10:50PM +0100, Jiri Wiesner wrote:
+> The netlink notifications triggered by the INIT and INIT_ACK chunks
+> for a tracked SCTP association do not include protocol information
+> for the corresponding connection - SCTP state and verification tags
+> for the original and reply direction are missing. Since the connection
+> tracking implementation allows user space programs to receive
+> notifications about a connection and then create a new connection
+> based on the values received in a notification, it makes sense that
+> INIT and INIT_ACK notifications should contain the SCTP state
+> and verification tags available at the time when a notification
+> is sent. The missing verification tags cause a newly created
+> netfilter connection to fail to verify the tags of SCTP packets
+> when this connection has been created from the values previously
+> received in an INIT or INIT_ACK notification.
+> 
+> A PROTOINFO event is cached in sctp_packet() when the state
+> of a connection changes. The CLOSED and COOKIE_WAIT state will
+> be used for connections that have seen an INIT and INIT_ACK chunk,
+> respectively. The distinct states will cause a connection state
+> change in sctp_packet().
 
-[ Upstream commit 212e7f56605ef9688d0846db60c6c6ec06544095 ]
-
-An earlier commit (1b789577f655060d98d20e,
-"netfilter: arp_tables: init netns pointer in xt_tgchk_param struct")
-fixed missing net initialization for arptables, but turns out it was
-incomplete.  We can get a very similar struct net NULL deref during
-error unwinding:
-
-general protection fault: 0000 [#1] PREEMPT SMP KASAN
-RIP: 0010:xt_rateest_put+0xa1/0x440 net/netfilter/xt_RATEEST.c:77
- xt_rateest_tg_destroy+0x72/0xa0 net/netfilter/xt_RATEEST.c:175
- cleanup_entry net/ipv4/netfilter/arp_tables.c:509 [inline]
- translate_table+0x11f4/0x1d80 net/ipv4/netfilter/arp_tables.c:587
- do_replace net/ipv4/netfilter/arp_tables.c:981 [inline]
- do_arpt_set_ctl+0x317/0x650 net/ipv4/netfilter/arp_tables.c:1461
-
-Also init the netns pointer in xt_tgdtor_param struct.
-
-Fixes: add67461240c1d ("netfilter: add struct net * to target parameters")
-Reported-by: syzbot+91bdd8eece0f6629ec8b@syzkaller.appspotmail.com
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- net/ipv4/netfilter/arp_tables.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
-
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 069f72edb2640..f1f78a742b36a 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -496,12 +496,13 @@ static inline int check_entry_size_and_hooks(struct arpt_entry *e,
- 	return 0;
- }
- 
--static inline void cleanup_entry(struct arpt_entry *e)
-+static void cleanup_entry(struct arpt_entry *e, struct net *net)
- {
- 	struct xt_tgdtor_param par;
- 	struct xt_entry_target *t;
- 
- 	t = arpt_get_target(e);
-+	par.net      = net;
- 	par.target   = t->u.kernel.target;
- 	par.targinfo = t->data;
- 	par.family   = NFPROTO_ARP;
-@@ -584,7 +585,7 @@ static int translate_table(struct net *net,
- 		xt_entry_foreach(iter, entry0, newinfo->size) {
- 			if (i-- == 0)
- 				break;
--			cleanup_entry(iter);
-+			cleanup_entry(iter, net);
- 		}
- 		return ret;
- 	}
-@@ -927,7 +928,7 @@ static int __do_replace(struct net *net, const char *name,
- 	/* Decrease module usage counts and free resource */
- 	loc_cpu_old_entry = oldinfo->entries;
- 	xt_entry_foreach(iter, loc_cpu_old_entry, oldinfo->size)
--		cleanup_entry(iter);
-+		cleanup_entry(iter, net);
- 
- 	xt_free_table_info(oldinfo);
- 	if (copy_to_user(counters_ptr, counters,
-@@ -990,7 +991,7 @@ static int do_replace(struct net *net, const void __user *user,
- 
-  free_newinfo_untrans:
- 	xt_entry_foreach(iter, loc_cpu_entry, newinfo->size)
--		cleanup_entry(iter);
-+		cleanup_entry(iter, net);
-  free_newinfo:
- 	xt_free_table_info(newinfo);
- 	return ret;
-@@ -1287,7 +1288,7 @@ static int compat_do_replace(struct net *net, void __user *user,
- 
-  free_newinfo_untrans:
- 	xt_entry_foreach(iter, loc_cpu_entry, newinfo->size)
--		cleanup_entry(iter);
-+		cleanup_entry(iter, net);
-  free_newinfo:
- 	xt_free_table_info(newinfo);
- 	return ret;
-@@ -1514,7 +1515,7 @@ static int do_arpt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len
- 	return ret;
- }
- 
--static void __arpt_unregister_table(struct xt_table *table)
-+static void __arpt_unregister_table(struct net *net, struct xt_table *table)
- {
- 	struct xt_table_info *private;
- 	void *loc_cpu_entry;
-@@ -1526,7 +1527,7 @@ static void __arpt_unregister_table(struct xt_table *table)
- 	/* Decrease module usage counts and free resources */
- 	loc_cpu_entry = private->entries;
- 	xt_entry_foreach(iter, loc_cpu_entry, private->size)
--		cleanup_entry(iter);
-+		cleanup_entry(iter, net);
- 	if (private->number > private->initial_entries)
- 		module_put(table_owner);
- 	xt_free_table_info(private);
-@@ -1566,7 +1567,7 @@ int arpt_register_table(struct net *net,
- 
- 	ret = nf_register_net_hooks(net, ops, hweight32(table->valid_hooks));
- 	if (ret != 0) {
--		__arpt_unregister_table(new_table);
-+		__arpt_unregister_table(net, new_table);
- 		*res = NULL;
- 	}
- 
-@@ -1581,7 +1582,7 @@ void arpt_unregister_table(struct net *net, struct xt_table *table,
- 			   const struct nf_hook_ops *ops)
- {
- 	nf_unregister_net_hooks(net, ops, hweight32(table->valid_hooks));
--	__arpt_unregister_table(table);
-+	__arpt_unregister_table(net, table);
- }
- 
- /* The built-in targets: standard (NULL) and error. */
--- 
-2.20.1
-
+Applied, thanks for explaining.
