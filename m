@@ -7,52 +7,53 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63AE1C35243
-	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 14:30:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 168ACC35244
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 14:32:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 373562077C
-	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 14:30:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E1EE520661
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 14:32:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579876203;
-	bh=NKUWcnaZ4Q8Vm/x3QJFvN3FDrtdj6qgb6GiRZNvZ7aA=;
+	s=default; t=1579876339;
+	bh=qr7owESt+Vz2/tX7+VYaDm15p8ZqK9HnMkAvEEwOEdE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=TV1Nfn4jXkZyc9FSRJ5DTPfbyiCGuLSN6gAY40+vcmWsQZMHoYtKt69tmOX8njyFt
-	 O5olFixpDA+b5XrohM0tom46M3+Gl9MscpWYjj25Ez7Ix2QDex2XsUbjuQrPjrN6gc
-	 FzrFvB3K2kJ5BXvms9D1hmDgX5c8SL92b1nb1caI=
+	b=NCf1qmOgoN1bxycGyxqs6pNzbZA6hwtkZbHbhah2DHDmiab5SfyaDkrQAIpMdEdtC
+	 GDp3OVVoCg7dzQ5Ce6iSQwf9pkfZ9B81xJxC4sxaVfrLdkcNSl2TLf6OldAeSAopKW
+	 kkVd7UkE1Xe9CM1fc0KfstB6ZsBknXHt80bT9PSw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2405067AbgAXOUt (ORCPT
+        id S2392650AbgAXOcH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 24 Jan 2020 09:20:49 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42146 "EHLO mail.kernel.org"
+        Fri, 24 Jan 2020 09:32:07 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40970 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2405051AbgAXOUt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Jan 2020 09:20:49 -0500
+        id S2404519AbgAXOUJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 24 Jan 2020 09:20:09 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DBA662077C;
-        Fri, 24 Jan 2020 14:20:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 89EA12087E;
+        Fri, 24 Jan 2020 14:20:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579875647;
-        bh=NKUWcnaZ4Q8Vm/x3QJFvN3FDrtdj6qgb6GiRZNvZ7aA=;
+        s=default; t=1579875608;
+        bh=qr7owESt+Vz2/tX7+VYaDm15p8ZqK9HnMkAvEEwOEdE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=cG+17zIMloi6iwBtLfRN/8tq9b+MxRDWlwQ4d7UmBBI6a6o6+oXnbpuj/ZNgjpDBD
-         LYiow9azH6XJ5nadhSQfk6e/brtv+bzHGlbbgwJFk1BO1BH+bFWJBbqnDZ80uDpVlx
-         W8Fa4nCpCkXDDOEntIiExXSQvVM0obb+1hkW1GO0=
+        b=pFeesanWnc5onbTFnqKIqonB25WbRplYlpvBNSxXFmJ794842z26N5nX9w1pRdW1F
+         aNnYd/u0X/tn5T6U2lBVXTz8Qha2N+1jAQ5sd4zVyEMSF4mMJ+83DDeao2m27k9j3L
+         D4lsonkUPqL+9sEIhIgW4+87Yz+NqdEouZbDDjSI=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
-        syzbot+91bdd8eece0f6629ec8b@syzkaller.appspotmail.com,
+Cc:     Eyal Birger <eyal.birger@gmail.com>,
+        Shmulik Ladkani <shmulik.ladkani@gmail.com>,
+        Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 30/56] netfilter: arp_tables: init netns pointer in xt_tgdtor_param struct
-Date:   Fri, 24 Jan 2020 09:19:46 -0500
-Message-Id: <20200124142012.29752-30-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 095/107] netfilter: nat: fix ICMP header corruption on ICMP errors
+Date:   Fri, 24 Jan 2020 09:18:05 -0500
+Message-Id: <20200124141817.28793-95-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200124142012.29752-1-sashal@kernel.org>
-References: <20200124142012.29752-1-sashal@kernel.org>
+In-Reply-To: <20200124141817.28793-1-sashal@kernel.org>
+References: <20200124141817.28793-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -62,126 +63,58 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Eyal Birger <eyal.birger@gmail.com>
 
-[ Upstream commit 212e7f56605ef9688d0846db60c6c6ec06544095 ]
+[ Upstream commit 61177e911dad660df86a4553eb01c95ece2f6a82 ]
 
-An earlier commit (1b789577f655060d98d20e,
-"netfilter: arp_tables: init netns pointer in xt_tgchk_param struct")
-fixed missing net initialization for arptables, but turns out it was
-incomplete.  We can get a very similar struct net NULL deref during
-error unwinding:
+Commit 8303b7e8f018 ("netfilter: nat: fix spurious connection timeouts")
+made nf_nat_icmp_reply_translation() use icmp_manip_pkt() as the l4
+manipulation function for the outer packet on ICMP errors.
 
-general protection fault: 0000 [#1] PREEMPT SMP KASAN
-RIP: 0010:xt_rateest_put+0xa1/0x440 net/netfilter/xt_RATEEST.c:77
- xt_rateest_tg_destroy+0x72/0xa0 net/netfilter/xt_RATEEST.c:175
- cleanup_entry net/ipv4/netfilter/arp_tables.c:509 [inline]
- translate_table+0x11f4/0x1d80 net/ipv4/netfilter/arp_tables.c:587
- do_replace net/ipv4/netfilter/arp_tables.c:981 [inline]
- do_arpt_set_ctl+0x317/0x650 net/ipv4/netfilter/arp_tables.c:1461
+However, icmp_manip_pkt() assumes the packet has an 'id' field which
+is not correct for all types of ICMP messages.
 
-Also init the netns pointer in xt_tgdtor_param struct.
+This is not correct for ICMP error packets, and leads to bogus bytes
+being written the ICMP header, which can be wrongfully regarded as
+'length' bytes by RFC 4884 compliant receivers.
 
-Fixes: add67461240c1d ("netfilter: add struct net * to target parameters")
-Reported-by: syzbot+91bdd8eece0f6629ec8b@syzkaller.appspotmail.com
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fix by assigning the 'id' field only for ICMP messages that have this
+semantic.
+
+Reported-by: Shmulik Ladkani <shmulik.ladkani@gmail.com>
+Fixes: 8303b7e8f018 ("netfilter: nat: fix spurious connection timeouts")
+Signed-off-by: Eyal Birger <eyal.birger@gmail.com>
+Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/ipv4/netfilter/arp_tables.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ net/netfilter/nf_nat_proto.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index f1b7293c60230..10d8f95eb7712 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -495,12 +495,13 @@ static inline int check_entry_size_and_hooks(struct arpt_entry *e,
- 	return 0;
- }
+diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
+index 0a59c14b51776..64eedc17037ad 100644
+--- a/net/netfilter/nf_nat_proto.c
++++ b/net/netfilter/nf_nat_proto.c
+@@ -233,6 +233,19 @@ icmp_manip_pkt(struct sk_buff *skb,
+ 		return false;
  
--static inline void cleanup_entry(struct arpt_entry *e)
-+static void cleanup_entry(struct arpt_entry *e, struct net *net)
- {
- 	struct xt_tgdtor_param par;
- 	struct xt_entry_target *t;
- 
- 	t = arpt_get_target(e);
-+	par.net      = net;
- 	par.target   = t->u.kernel.target;
- 	par.targinfo = t->data;
- 	par.family   = NFPROTO_ARP;
-@@ -583,7 +584,7 @@ static int translate_table(struct net *net,
- 		xt_entry_foreach(iter, entry0, newinfo->size) {
- 			if (i-- == 0)
- 				break;
--			cleanup_entry(iter);
-+			cleanup_entry(iter, net);
- 		}
- 		return ret;
- 	}
-@@ -926,7 +927,7 @@ static int __do_replace(struct net *net, const char *name,
- 	/* Decrease module usage counts and free resource */
- 	loc_cpu_old_entry = oldinfo->entries;
- 	xt_entry_foreach(iter, loc_cpu_old_entry, oldinfo->size)
--		cleanup_entry(iter);
-+		cleanup_entry(iter, net);
- 
- 	xt_free_table_info(oldinfo);
- 	if (copy_to_user(counters_ptr, counters,
-@@ -989,7 +990,7 @@ static int do_replace(struct net *net, const void __user *user,
- 
-  free_newinfo_untrans:
- 	xt_entry_foreach(iter, loc_cpu_entry, newinfo->size)
--		cleanup_entry(iter);
-+		cleanup_entry(iter, net);
-  free_newinfo:
- 	xt_free_table_info(newinfo);
- 	return ret;
-@@ -1286,7 +1287,7 @@ static int compat_do_replace(struct net *net, void __user *user,
- 
-  free_newinfo_untrans:
- 	xt_entry_foreach(iter, loc_cpu_entry, newinfo->size)
--		cleanup_entry(iter);
-+		cleanup_entry(iter, net);
-  free_newinfo:
- 	xt_free_table_info(newinfo);
- 	return ret;
-@@ -1513,7 +1514,7 @@ static int do_arpt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len
- 	return ret;
- }
- 
--static void __arpt_unregister_table(struct xt_table *table)
-+static void __arpt_unregister_table(struct net *net, struct xt_table *table)
- {
- 	struct xt_table_info *private;
- 	void *loc_cpu_entry;
-@@ -1525,7 +1526,7 @@ static void __arpt_unregister_table(struct xt_table *table)
- 	/* Decrease module usage counts and free resources */
- 	loc_cpu_entry = private->entries;
- 	xt_entry_foreach(iter, loc_cpu_entry, private->size)
--		cleanup_entry(iter);
-+		cleanup_entry(iter, net);
- 	if (private->number > private->initial_entries)
- 		module_put(table_owner);
- 	xt_free_table_info(private);
-@@ -1565,7 +1566,7 @@ int arpt_register_table(struct net *net,
- 
- 	ret = nf_register_net_hooks(net, ops, hweight32(table->valid_hooks));
- 	if (ret != 0) {
--		__arpt_unregister_table(new_table);
-+		__arpt_unregister_table(net, new_table);
- 		*res = NULL;
- 	}
- 
-@@ -1580,7 +1581,7 @@ void arpt_unregister_table(struct net *net, struct xt_table *table,
- 			   const struct nf_hook_ops *ops)
- {
- 	nf_unregister_net_hooks(net, ops, hweight32(table->valid_hooks));
--	__arpt_unregister_table(table);
-+	__arpt_unregister_table(net, table);
- }
- 
- /* The built-in targets: standard (NULL) and error. */
+ 	hdr = (struct icmphdr *)(skb->data + hdroff);
++	switch (hdr->type) {
++	case ICMP_ECHO:
++	case ICMP_ECHOREPLY:
++	case ICMP_TIMESTAMP:
++	case ICMP_TIMESTAMPREPLY:
++	case ICMP_INFO_REQUEST:
++	case ICMP_INFO_REPLY:
++	case ICMP_ADDRESS:
++	case ICMP_ADDRESSREPLY:
++		break;
++	default:
++		return true;
++	}
+ 	inet_proto_csum_replace2(&hdr->checksum, skb,
+ 				 hdr->un.echo.id, tuple->src.u.icmp.id, false);
+ 	hdr->un.echo.id = tuple->src.u.icmp.id;
 -- 
 2.20.1
 
