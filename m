@@ -7,49 +7,50 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16315C35242
-	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 14:26:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4840C2D0DB
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 14:26:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E04C3206F0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 14:26:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 90C2F2077C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 14:26:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579875996;
-	bh=9er1V+v/1Md2BF4a+9WoWg0NKWYmvPyreoFkcrN3+H4=;
+	s=default; t=1579876004;
+	bh=4A02OZQtCnmk/4AORUiKn+upIKfOZbzV/wc9V16rDiE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=iJ6lItVBI7Nn/auVC4DEVi8I22trdoZPY3MDEKnk3ncW4owciYTf8Eo9/D/7NWOj5
-	 JL/YiPzYqUL5vm/B0/iwF6yQk1ETmXI3YQgyYzNvCLgbc3cVs9qAUyaO1lUc2BfCjC
-	 2WzdIMXoM298sGg2ijNJ1UVi7UB/AHPtm2d6nS8s=
+	b=oEZr3E5TKJyYliXukIc+gZAtDLg3kjUZh2dfw0osru6EnSfcG0LMxKdsW85HbBjYO
+	 S0n4LExRSnpYPGCHk0uIy7Ik80sepKyPHYXut+zj+tnUrFq2q7i7Lauw/v9VPHynrD
+	 NNkSvIAQd4wVEQf17y4d+b0NUr0ngJQesDqLRp88=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2405355AbgAXOVi (ORCPT
+        id S2389956AbgAXO0i (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 24 Jan 2020 09:21:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43510 "EHLO mail.kernel.org"
+        Fri, 24 Jan 2020 09:26:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43464 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2405346AbgAXOVi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Jan 2020 09:21:38 -0500
+        id S2405339AbgAXOVg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 24 Jan 2020 09:21:36 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3FFEA218AC;
-        Fri, 24 Jan 2020 14:21:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D7C7324686;
+        Fri, 24 Jan 2020 14:21:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579875697;
-        bh=9er1V+v/1Md2BF4a+9WoWg0NKWYmvPyreoFkcrN3+H4=;
+        s=default; t=1579875695;
+        bh=4A02OZQtCnmk/4AORUiKn+upIKfOZbzV/wc9V16rDiE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=WBhjK407WD7t626RNzPJma+wlJaJIZxY2xVx81N7kHEY2VfO4KHMos8Mm5OcFY5rE
-         GglRtXE2lIkHtxpTMRWQaXt/32rZId541gOkYnio08CQRAWxlc5j71qXDXXEPJc0YV
-         kjPuYjrdEMArJbtCXAje7MQ6Lf3UHELItc0PjCY8=
+        b=pgVUQoD/GaQmzDuUaixuJuUrVc2KYF0LfgnRPvLO+ivkkaFWn2NBCikVJ5gUrWbmh
+         MIlCvOYwua8vJQPZA7DYFuCzbsRYsYP9udVfs8aDcngb9BRZ33aWuhUjeS+mAil2j2
+         CDDDW16Lq+9R1bhAB3OUU0LOlxwgRw+JWLEdO7gg=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
-        syzbot+91bdd8eece0f6629ec8b@syzkaller.appspotmail.com,
+Cc:     Cong Wang <xiyou.wangcong@gmail.com>,
+        syzbot+4c3cc6dbe7259dbf9054@syzkaller.appspotmail.com,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 15/32] netfilter: arp_tables: init netns pointer in xt_tgdtor_param struct
-Date:   Fri, 24 Jan 2020 09:21:02 -0500
-Message-Id: <20200124142119.30484-15-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 14/32] netfilter: fix a use-after-free in mtype_destroy()
+Date:   Fri, 24 Jan 2020 09:21:01 -0500
+Message-Id: <20200124142119.30484-14-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200124142119.30484-1-sashal@kernel.org>
 References: <20200124142119.30484-1-sashal@kernel.org>
@@ -62,126 +63,38 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Cong Wang <xiyou.wangcong@gmail.com>
 
-[ Upstream commit 212e7f56605ef9688d0846db60c6c6ec06544095 ]
+[ Upstream commit c120959387efa51479056fd01dc90adfba7a590c ]
 
-An earlier commit (1b789577f655060d98d20e,
-"netfilter: arp_tables: init netns pointer in xt_tgchk_param struct")
-fixed missing net initialization for arptables, but turns out it was
-incomplete.  We can get a very similar struct net NULL deref during
-error unwinding:
+map->members is freed by ip_set_free() right before using it in
+mtype_ext_cleanup() again. So we just have to move it down.
 
-general protection fault: 0000 [#1] PREEMPT SMP KASAN
-RIP: 0010:xt_rateest_put+0xa1/0x440 net/netfilter/xt_RATEEST.c:77
- xt_rateest_tg_destroy+0x72/0xa0 net/netfilter/xt_RATEEST.c:175
- cleanup_entry net/ipv4/netfilter/arp_tables.c:509 [inline]
- translate_table+0x11f4/0x1d80 net/ipv4/netfilter/arp_tables.c:587
- do_replace net/ipv4/netfilter/arp_tables.c:981 [inline]
- do_arpt_set_ctl+0x317/0x650 net/ipv4/netfilter/arp_tables.c:1461
-
-Also init the netns pointer in xt_tgdtor_param struct.
-
-Fixes: add67461240c1d ("netfilter: add struct net * to target parameters")
-Reported-by: syzbot+91bdd8eece0f6629ec8b@syzkaller.appspotmail.com
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Reported-by: syzbot+4c3cc6dbe7259dbf9054@syzkaller.appspotmail.com
+Fixes: 40cd63bf33b2 ("netfilter: ipset: Support extensions which need a per data destroy function")
+Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/ipv4/netfilter/arp_tables.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ net/netfilter/ipset/ip_set_bitmap_gen.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index e288489ae3d56..6dd727e0a72f6 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -506,12 +506,13 @@ static inline int check_entry_size_and_hooks(struct arpt_entry *e,
- 	return 0;
- }
+diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
+index 8ad2b52a0b328..b0701f6259cc9 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_gen.h
++++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
+@@ -64,9 +64,9 @@ mtype_destroy(struct ip_set *set)
+ 	if (SET_WITH_TIMEOUT(set))
+ 		del_timer_sync(&map->gc);
  
--static inline void cleanup_entry(struct arpt_entry *e)
-+static void cleanup_entry(struct arpt_entry *e, struct net *net)
- {
- 	struct xt_tgdtor_param par;
- 	struct xt_entry_target *t;
+-	ip_set_free(map->members);
+ 	if (set->dsize && set->extensions & IPSET_EXT_DESTROY)
+ 		mtype_ext_cleanup(set);
++	ip_set_free(map->members);
+ 	ip_set_free(map);
  
- 	t = arpt_get_target(e);
-+	par.net      = net;
- 	par.target   = t->u.kernel.target;
- 	par.targinfo = t->data;
- 	par.family   = NFPROTO_ARP;
-@@ -601,7 +602,7 @@ static int translate_table(struct net *net,
- 		xt_entry_foreach(iter, entry0, newinfo->size) {
- 			if (i-- == 0)
- 				break;
--			cleanup_entry(iter);
-+			cleanup_entry(iter, net);
- 		}
- 		return ret;
- 	}
-@@ -926,7 +927,7 @@ static int __do_replace(struct net *net, const char *name,
- 	/* Decrease module usage counts and free resource */
- 	loc_cpu_old_entry = oldinfo->entries;
- 	xt_entry_foreach(iter, loc_cpu_old_entry, oldinfo->size)
--		cleanup_entry(iter);
-+		cleanup_entry(iter, net);
- 
- 	xt_free_table_info(oldinfo);
- 	if (copy_to_user(counters_ptr, counters,
-@@ -990,7 +991,7 @@ static int do_replace(struct net *net, const void __user *user,
- 
-  free_newinfo_untrans:
- 	xt_entry_foreach(iter, loc_cpu_entry, newinfo->size)
--		cleanup_entry(iter);
-+		cleanup_entry(iter, net);
-  free_newinfo:
- 	xt_free_table_info(newinfo);
- 	return ret;
-@@ -1287,7 +1288,7 @@ static int compat_do_replace(struct net *net, void __user *user,
- 
-  free_newinfo_untrans:
- 	xt_entry_foreach(iter, loc_cpu_entry, newinfo->size)
--		cleanup_entry(iter);
-+		cleanup_entry(iter, net);
-  free_newinfo:
- 	xt_free_table_info(newinfo);
- 	return ret;
-@@ -1514,7 +1515,7 @@ static int do_arpt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len
- 	return ret;
- }
- 
--static void __arpt_unregister_table(struct xt_table *table)
-+static void __arpt_unregister_table(struct net *net, struct xt_table *table)
- {
- 	struct xt_table_info *private;
- 	void *loc_cpu_entry;
-@@ -1526,7 +1527,7 @@ static void __arpt_unregister_table(struct xt_table *table)
- 	/* Decrease module usage counts and free resources */
- 	loc_cpu_entry = private->entries;
- 	xt_entry_foreach(iter, loc_cpu_entry, private->size)
--		cleanup_entry(iter);
-+		cleanup_entry(iter, net);
- 	if (private->number > private->initial_entries)
- 		module_put(table_owner);
- 	xt_free_table_info(private);
-@@ -1566,7 +1567,7 @@ int arpt_register_table(struct net *net,
- 
- 	ret = nf_register_net_hooks(net, ops, hweight32(table->valid_hooks));
- 	if (ret != 0) {
--		__arpt_unregister_table(new_table);
-+		__arpt_unregister_table(net, new_table);
- 		*res = NULL;
- 	}
- 
-@@ -1581,7 +1582,7 @@ void arpt_unregister_table(struct net *net, struct xt_table *table,
- 			   const struct nf_hook_ops *ops)
- {
- 	nf_unregister_net_hooks(net, ops, hweight32(table->valid_hooks));
--	__arpt_unregister_table(table);
-+	__arpt_unregister_table(net, table);
- }
- 
- /* The built-in targets: standard (NULL) and error. */
+ 	set->data = NULL;
 -- 
 2.20.1
 
