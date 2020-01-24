@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DCEEC2D0DB
-	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 14:24:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16315C35242
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 14:26:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 04A062072C
-	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 14:24:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E04C3206F0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 14:26:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579875863;
-	bh=KdHYxm0MIcwjyGcxRWpTfmdAGOIy7C8IEKehNg73PaQ=;
+	s=default; t=1579875996;
+	bh=9er1V+v/1Md2BF4a+9WoWg0NKWYmvPyreoFkcrN3+H4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=LFzNDEqgKQFJAA7c4rOOTXnkcHLkN5rCo/3cCwqhcZSP1EX1GtJreaF90dLBioDsc
-	 f3zaSaOFuHb8vo2Xobd25O5pkgd09ap5cl8Gw+czaH0c2GvveWUr4TzuD9ddPB7RXV
-	 CLAMny5mN5ndg+jJVyQSGHKQMeoInhBbGUKlcU1g=
+	b=iJ6lItVBI7Nn/auVC4DEVi8I22trdoZPY3MDEKnk3ncW4owciYTf8Eo9/D/7NWOj5
+	 JL/YiPzYqUL5vm/B0/iwF6yQk1ETmXI3YQgyYzNvCLgbc3cVs9qAUyaO1lUc2BfCjC
+	 2WzdIMXoM298sGg2ijNJ1UVi7UB/AHPtm2d6nS8s=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390215AbgAXOYR (ORCPT
+        id S2405355AbgAXOVi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 24 Jan 2020 09:24:17 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44248 "EHLO mail.kernel.org"
+        Fri, 24 Jan 2020 09:21:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43510 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388305AbgAXOWN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Jan 2020 09:22:13 -0500
+        id S2405346AbgAXOVi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 24 Jan 2020 09:21:38 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 56E812072C;
-        Fri, 24 Jan 2020 14:22:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3FFEA218AC;
+        Fri, 24 Jan 2020 14:21:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579875732;
-        bh=KdHYxm0MIcwjyGcxRWpTfmdAGOIy7C8IEKehNg73PaQ=;
+        s=default; t=1579875697;
+        bh=9er1V+v/1Md2BF4a+9WoWg0NKWYmvPyreoFkcrN3+H4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=acxYn1k2DjrA7b7s+BzWTmInfyXDXVg/+28kX9UWPTtXpMelK+oeZWsFv4JiMwBKN
-         BCO+Qf1OYPm7CmFdpe9Baymlp8Oa7MkuV7emPEbcMmrwi+Ptxy+L2PEOOyjapsUBag
-         D6gTsdJx1e9NHcYRSlEoeItx2ZGmvQP7fgb1e6wY=
+        b=WBhjK407WD7t626RNzPJma+wlJaJIZxY2xVx81N7kHEY2VfO4KHMos8Mm5OcFY5rE
+         GglRtXE2lIkHtxpTMRWQaXt/32rZId541gOkYnio08CQRAWxlc5j71qXDXXEPJc0YV
+         kjPuYjrdEMArJbtCXAje7MQ6Lf3UHELItc0PjCY8=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Florian Westphal <fw@strlen.de>,
@@ -47,12 +47,12 @@ Cc:     Florian Westphal <fw@strlen.de>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 11/18] netfilter: arp_tables: init netns pointer in xt_tgdtor_param struct
-Date:   Fri, 24 Jan 2020 09:21:50 -0500
-Message-Id: <20200124142157.30931-11-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 15/32] netfilter: arp_tables: init netns pointer in xt_tgdtor_param struct
+Date:   Fri, 24 Jan 2020 09:21:02 -0500
+Message-Id: <20200124142119.30484-15-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200124142157.30931-1-sashal@kernel.org>
-References: <20200124142157.30931-1-sashal@kernel.org>
+In-Reply-To: <20200124142119.30484-1-sashal@kernel.org>
+References: <20200124142119.30484-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -92,10 +92,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 10 insertions(+), 9 deletions(-)
 
 diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index d819e91df90d6..e02b862651942 100644
+index e288489ae3d56..6dd727e0a72f6 100644
 --- a/net/ipv4/netfilter/arp_tables.c
 +++ b/net/ipv4/netfilter/arp_tables.c
-@@ -515,12 +515,13 @@ static inline int check_entry_size_and_hooks(struct arpt_entry *e,
+@@ -506,12 +506,13 @@ static inline int check_entry_size_and_hooks(struct arpt_entry *e,
  	return 0;
  }
  
@@ -110,7 +110,7 @@ index d819e91df90d6..e02b862651942 100644
  	par.target   = t->u.kernel.target;
  	par.targinfo = t->data;
  	par.family   = NFPROTO_ARP;
-@@ -612,7 +613,7 @@ static int translate_table(struct net *net,
+@@ -601,7 +602,7 @@ static int translate_table(struct net *net,
  		xt_entry_foreach(iter, entry0, newinfo->size) {
  			if (i-- == 0)
  				break;
@@ -119,7 +119,7 @@ index d819e91df90d6..e02b862651942 100644
  		}
  		return ret;
  	}
-@@ -939,7 +940,7 @@ static int __do_replace(struct net *net, const char *name,
+@@ -926,7 +927,7 @@ static int __do_replace(struct net *net, const char *name,
  	/* Decrease module usage counts and free resource */
  	loc_cpu_old_entry = oldinfo->entries;
  	xt_entry_foreach(iter, loc_cpu_old_entry, oldinfo->size)
@@ -128,7 +128,7 @@ index d819e91df90d6..e02b862651942 100644
  
  	xt_free_table_info(oldinfo);
  	if (copy_to_user(counters_ptr, counters,
-@@ -1003,7 +1004,7 @@ static int do_replace(struct net *net, const void __user *user,
+@@ -990,7 +991,7 @@ static int do_replace(struct net *net, const void __user *user,
  
   free_newinfo_untrans:
  	xt_entry_foreach(iter, loc_cpu_entry, newinfo->size)
@@ -137,7 +137,7 @@ index d819e91df90d6..e02b862651942 100644
   free_newinfo:
  	xt_free_table_info(newinfo);
  	return ret;
-@@ -1300,7 +1301,7 @@ static int compat_do_replace(struct net *net, void __user *user,
+@@ -1287,7 +1288,7 @@ static int compat_do_replace(struct net *net, void __user *user,
  
   free_newinfo_untrans:
  	xt_entry_foreach(iter, loc_cpu_entry, newinfo->size)
@@ -146,7 +146,7 @@ index d819e91df90d6..e02b862651942 100644
   free_newinfo:
  	xt_free_table_info(newinfo);
  	return ret;
-@@ -1527,7 +1528,7 @@ static int do_arpt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len
+@@ -1514,7 +1515,7 @@ static int do_arpt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len
  	return ret;
  }
  
@@ -155,7 +155,7 @@ index d819e91df90d6..e02b862651942 100644
  {
  	struct xt_table_info *private;
  	void *loc_cpu_entry;
-@@ -1539,7 +1540,7 @@ static void __arpt_unregister_table(struct xt_table *table)
+@@ -1526,7 +1527,7 @@ static void __arpt_unregister_table(struct xt_table *table)
  	/* Decrease module usage counts and free resources */
  	loc_cpu_entry = private->entries;
  	xt_entry_foreach(iter, loc_cpu_entry, private->size)
@@ -164,7 +164,7 @@ index d819e91df90d6..e02b862651942 100644
  	if (private->number > private->initial_entries)
  		module_put(table_owner);
  	xt_free_table_info(private);
-@@ -1579,7 +1580,7 @@ int arpt_register_table(struct net *net,
+@@ -1566,7 +1567,7 @@ int arpt_register_table(struct net *net,
  
  	ret = nf_register_net_hooks(net, ops, hweight32(table->valid_hooks));
  	if (ret != 0) {
@@ -173,7 +173,7 @@ index d819e91df90d6..e02b862651942 100644
  		*res = NULL;
  	}
  
-@@ -1594,7 +1595,7 @@ void arpt_unregister_table(struct net *net, struct xt_table *table,
+@@ -1581,7 +1582,7 @@ void arpt_unregister_table(struct net *net, struct xt_table *table,
  			   const struct nf_hook_ops *ops)
  {
  	nf_unregister_net_hooks(net, ops, hweight32(table->valid_hooks));
