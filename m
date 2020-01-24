@@ -4,41 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 563D5C2D0DB
-	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 14:22:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94B25C32771
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 14:24:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 22CBD2467B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 14:22:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E9FC2072C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 14:24:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1579875753;
-	bh=BCF3DENsae70C9wEJ6TwFWjlWYssD7mrLzFYTpJrthg=;
+	s=default; t=1579875855;
+	bh=NvMQwN4NqQFLjdHLzXDLee5CT4nUiZxasY9ZXbNAiJ4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=KF1xnByZgeAmaX12XbWeEzviUt1/lPhWY3/9/6wSWk0NeUCHziVP6XbKWsKEqfiSq
-	 rpbVdtJDT/VuhWFsZUMkhs+5djsHO5Uo62n8MnErFr5VsDlt0Wt8BX1nD6bN0Ealwv
-	 OcfrXwtM6iMfQBp/zOBdzbFH/qjnWXp+BYSMMUXM=
+	b=SWyPICtQYclEQ/ebK0S04fS0wd+hGDPdb+EA1EZ612weouWYzL24p+wYjTCstpTvM
+	 8RIhSnE7DUuvd76ATOSEQZyOIMsEVaIu2tAkYeTuOz1g0IqIPPaXg0HIOc9DWhTpg9
+	 EF/VRKppO1SQOc9GjBzTSp4NzzrUrz7wgKC+z5/E=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392393AbgAXOWc (ORCPT
+        id S2392309AbgAXOWO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 24 Jan 2020 09:22:32 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44586 "EHLO mail.kernel.org"
+        Fri, 24 Jan 2020 09:22:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44222 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2405448AbgAXOW2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Jan 2020 09:22:28 -0500
+        id S2392301AbgAXOWL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 24 Jan 2020 09:22:11 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0047422527;
-        Fri, 24 Jan 2020 14:22:26 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EA857222C2;
+        Fri, 24 Jan 2020 14:22:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1579875748;
-        bh=BCF3DENsae70C9wEJ6TwFWjlWYssD7mrLzFYTpJrthg=;
+        s=default; t=1579875731;
+        bh=NvMQwN4NqQFLjdHLzXDLee5CT4nUiZxasY9ZXbNAiJ4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=rg++z94EEKuyC74YADpC+DNMCWpdgQi9Xyp5KKFa5DkR3ufMRHzmYbU/q1L0iBe4t
-         XhcoYZ9hg3/DZ65PBNTEogBvBP1VSIhgkuNoK12WWGx8pAYr3Kmhh0m6+s+XvNIggv
-         c3TL7mCS4b1zq0WwujAErZFh+AJwfOeR49u3Mez4=
+        b=LtsY0hKHOIli7/ScGdlv7nMfKvOb8e0PZZwhSjIUfroAiSShZ7oNg5Hqbz0sh2nX0
+         ar+wRcFg4wL1TgaOx3/QqoO91Ktbv7DO5nRbDO+bnp44w4o+UhZr9/4ScE4ulaahfu
+         srQ/aRNme/CkT0+9dZLDz+j4vnt8w5qh8WHMHWGQ=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Cong Wang <xiyou.wangcong@gmail.com>,
@@ -48,12 +48,12 @@ Cc:     Cong Wang <xiyou.wangcong@gmail.com>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.4 5/9] netfilter: fix a use-after-free in mtype_destroy()
-Date:   Fri, 24 Jan 2020 09:22:17 -0500
-Message-Id: <20200124142221.31201-5-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 10/18] netfilter: fix a use-after-free in mtype_destroy()
+Date:   Fri, 24 Jan 2020 09:21:49 -0500
+Message-Id: <20200124142157.30931-10-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200124142221.31201-1-sashal@kernel.org>
-References: <20200124142221.31201-1-sashal@kernel.org>
+In-Reply-To: <20200124142157.30931-1-sashal@kernel.org>
+References: <20200124142157.30931-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -81,7 +81,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
-index b0bc475f641e3..adc703ccd68bd 100644
+index 2e8e7e5fb4a64..9b32059dee2d7 100644
 --- a/net/netfilter/ipset/ip_set_bitmap_gen.h
 +++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
 @@ -66,9 +66,9 @@ mtype_destroy(struct ip_set *set)
