@@ -2,81 +2,108 @@ Return-Path: <SRS0=/v6G=3N=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8A3CC2D0CE
-	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 04:55:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 261CAC32771
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 09:12:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A434C2070A
-	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 04:55:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE9442075D
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Jan 2020 09:12:35 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="inKXSq39"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730321AbgAXEzC (ORCPT
+        id S1730225AbgAXJMb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Jan 2020 23:55:02 -0500
-Received: from mail-il1-f197.google.com ([209.85.166.197]:47101 "EHLO
-        mail-il1-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729316AbgAXEzB (ORCPT
+        Fri, 24 Jan 2020 04:12:31 -0500
+Received: from aserp2120.oracle.com ([141.146.126.78]:47310 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729575AbgAXJMa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Jan 2020 23:55:01 -0500
-Received: by mail-il1-f197.google.com with SMTP id a2so652041ill.13
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Jan 2020 20:55:01 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=wqIW1GSh96dKBLUXIwcBCdzQGnE7BxtkVO3LYYJlVQE=;
-        b=SlyiRdkET9EWZtfFYm0yZ7W0YRhVQJ9uSKRxyR1h0jfTnJdGBl6YfzknBlPyrAvxP+
-         r/xhKfIQ9i0M62lW/hPXvgwvMZg4pDwkOQrlm15nN/YKl91NDSwyLOr9+TbTkaUW3DY/
-         bvt+DgR2xe1gC114OQ2/KDoGu7e84IRtyexLECl3lr6J59ulq0IivWjTyfTWmkOdRRrz
-         +DJDDoPCPIiK8KkUoPRjRl9CN+qvBP35cbA24xhTTeFDAQdRQT4LubqzHZhODzxehOfu
-         nz6tzW4068JmlzOUTGX4Hh3Bgcudbjp5ushE2wbEoRT89IfdyHKWRNFwTlQ5tb6vPC4e
-         8+wQ==
-X-Gm-Message-State: APjAAAWcohR0Skk2wmB4V1HD2SZ/0t1lAxjcP9k38jkv+k0XbNGWXHSy
-        XaC5mbVeU5oitNPafg93jQ9TWeYhSSXwgOfCcI16EeH+4aTF
-X-Google-Smtp-Source: APXvYqxrBcPP1lod4jQ5x9Z+3r0zQv4PBuVpX/irM3rH1cFEkIinSrYxZh5p5QiT0thS8XZ7XZ8TETunB7YSrXzC5GGeknq9swin
-MIME-Version: 1.0
-X-Received: by 2002:a92:7903:: with SMTP id u3mr1546730ilc.254.1579841700988;
- Thu, 23 Jan 2020 20:55:00 -0800 (PST)
-Date:   Thu, 23 Jan 2020 20:55:00 -0800
-In-Reply-To: <000000000000204b4d059cd6d766@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000638fae059cdb8fe8@google.com>
-Subject: Re: KASAN: slab-out-of-bounds Read in bitmap_port_destroy
-From:   syzbot <syzbot+b96275fd6ad891076ced@syzkaller.appspotmail.com>
-To:     arvid.brodin@alten.se, coreteam@netfilter.org, davem@davemloft.net,
+        Fri, 24 Jan 2020 04:12:30 -0500
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+        by aserp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00O98DT2182359;
+        Fri, 24 Jan 2020 09:12:05 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : references : mime-version : content-type :
+ in-reply-to; s=corp-2019-08-05;
+ bh=8kvAOtCW6dIcRl85xkPmD0Dw0YMEA5UV2a/Xwj5qbos=;
+ b=inKXSq39uT760lyxFhb/Iry+4rta4FHzI3rIkFJcgT/MeedI6PSK1qTO/1NcQQpaDowL
+ VATKdMYWVTUaisa5YAEfMwA34wOsys953dhWE+3P0liveF2CeUPxqj0sr1nyQunxV4tM
+ MK165yZqnlxc9uH9cuHMPA23gDSrghP0tHn47SowU+99fWdeaTxdgTCROqW6ukFNFMW/
+ UpQR2c9imJKMeestcI+xjhP1fGZQdJhjT0Y9UgDyaCyrAFIQXdO5CoGg42Ez/DWMACfA
+ fXxmbcO4d64SId4SaWbd8i99Tg8GXruXsjVdFJ6QtL2fr4fqdpQWbWUsyEnHSWseB0Cv JQ== 
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+        by aserp2120.oracle.com with ESMTP id 2xksyqqrbj-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 24 Jan 2020 09:12:05 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+        by aserp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00O99IWp113807;
+        Fri, 24 Jan 2020 09:12:05 GMT
+Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
+        by aserp3020.oracle.com with ESMTP id 2xqmwdtx51-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 24 Jan 2020 09:12:04 +0000
+Received: from abhmp0006.oracle.com (abhmp0006.oracle.com [141.146.116.12])
+        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 00O9Bs73023462;
+        Fri, 24 Jan 2020 09:11:54 GMT
+Received: from kadam (/129.205.23.165)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Fri, 24 Jan 2020 01:11:53 -0800
+Date:   Fri, 24 Jan 2020 12:11:44 +0300
+From:   Dan Carpenter <dan.carpenter@oracle.com>
+To:     Hillf Danton <hdanton@sina.com>
+Cc:     syzbot <syzbot+b96275fd6ad891076ced@syzkaller.appspotmail.com>,
+        coreteam@netfilter.org, davem@davemloft.net,
         florent.fourcot@wifirst.fr, fw@strlen.de, jeremy@azazel.net,
         johannes.berg@intel.com, kadlec@netfilter.org,
         linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
         netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        syzkaller-bugs@googlegroups.com, xiyou.wangcong@gmail.com
-Content-Type: text/plain; charset="UTF-8"
+        syzkaller-bugs@googlegroups.com
+Subject: Re: KASAN: slab-out-of-bounds Read in bitmap_port_destroy
+Message-ID: <20200124091144.GK1847@kadam>
+References: <20200124085521.12504-1-hdanton@sina.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200124085521.12504-1-hdanton@sina.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9509 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1911140001 definitions=main-2001240076
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9509 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1011
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1911140001
+ definitions=main-2001240076
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has bisected this bug to:
+On Fri, Jan 24, 2020 at 04:55:21PM +0800, Hillf Danton wrote:
+> Ensure four bytes and ask slab to do the rest.
+> 
+> --- a/include/linux/netfilter/ipset/ip_set.h
+> +++ b/include/linux/netfilter/ipset/ip_set.h
+> @@ -430,7 +430,7 @@ ip6addrptr(const struct sk_buff *skb, bo
+>  static inline int
+>  bitmap_bytes(u32 a, u32 b)
+>  {
+> -	return 4 * ((((b - a + 8) / 8) + 3) / 4);
+> +	return 4 + (b - a) / 8;
+>  }
+>  
 
-commit b9a1e627405d68d475a3c1f35e685ccfb5bbe668
-Author: Cong Wang <xiyou.wangcong@gmail.com>
-Date:   Thu Jul 4 00:21:13 2019 +0000
+Thanks, but this was already fixed by:
 
-    hsr: implement dellink to clean up resources
+https://lore.kernel.org/netfilter-devel/alpine.DEB.2.20.2001192203200.18095@blackhole.kfki.hu/
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=17d0c611e00000
-start commit:   131701c6 Merge tag 'leds-5.5-rc8' of git://git.kernel.org/..
-git tree:       upstream
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=1430c611e00000
-console output: https://syzkaller.appspot.com/x/log.txt?x=1030c611e00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=83c00afca9cf5153
-dashboard link: https://syzkaller.appspot.com/bug?extid=b96275fd6ad891076ced
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15fba721e00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1339726ee00000
+regards,
+dan carpenter
 
-Reported-by: syzbot+b96275fd6ad891076ced@syzkaller.appspotmail.com
-Fixes: b9a1e627405d ("hsr: implement dellink to clean up resources")
-
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
