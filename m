@@ -2,135 +2,118 @@ Return-Path: <SRS0=x4bV=3O=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F14FEC2D0DB
-	for <netfilter-devel@archiver.kernel.org>; Sat, 25 Jan 2020 17:34:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97AF2C2D0DB
+	for <netfilter-devel@archiver.kernel.org>; Sat, 25 Jan 2020 17:34:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D1ABE2070A
-	for <netfilter-devel@archiver.kernel.org>; Sat, 25 Jan 2020 17:34:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 78DB02070A
+	for <netfilter-devel@archiver.kernel.org>; Sat, 25 Jan 2020 17:34:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726858AbgAYReZ (ORCPT
+        id S1727440AbgAYRe2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 25 Jan 2020 12:34:25 -0500
-Received: from correo.us.es ([193.147.175.20]:35446 "EHLO mail.us.es"
+        Sat, 25 Jan 2020 12:34:28 -0500
+Received: from correo.us.es ([193.147.175.20]:35476 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726194AbgAYReZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 25 Jan 2020 12:34:25 -0500
+        id S1727107AbgAYRe1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 25 Jan 2020 12:34:27 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3E10C12C1E1
-        for <netfilter-devel@vger.kernel.org>; Sat, 25 Jan 2020 18:34:22 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 47B6C12C1ED
+        for <netfilter-devel@vger.kernel.org>; Sat, 25 Jan 2020 18:34:24 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2F6BBDA712
-        for <netfilter-devel@vger.kernel.org>; Sat, 25 Jan 2020 18:34:22 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 38ED3DA714
+        for <netfilter-devel@vger.kernel.org>; Sat, 25 Jan 2020 18:34:24 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 2515CDA70F; Sat, 25 Jan 2020 18:34:22 +0100 (CET)
+        id 2EBE7DA712; Sat, 25 Jan 2020 18:34:24 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 189DFDA702;
-        Sat, 25 Jan 2020 18:34:20 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 29FABDA702;
+        Sat, 25 Jan 2020 18:34:22 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 25 Jan 2020 18:34:20 +0100 (CET)
+ Sat, 25 Jan 2020 18:34:22 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id E962342EE38E;
-        Sat, 25 Jan 2020 18:34:19 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 051DE42EE38E;
+        Sat, 25 Jan 2020 18:34:21 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 0/7] Netfilter fixes for net
-Date:   Sat, 25 Jan 2020 18:34:08 +0100
-Message-Id: <20200125173415.191571-1-pablo@netfilter.org>
+Subject: [PATCH 3/7] netfilter: conntrack: sctp: use distinct states for new SCTP connections
+Date:   Sat, 25 Jan 2020 18:34:11 +0100
+Message-Id: <20200125173415.191571-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20200125173415.191571-1-pablo@netfilter.org>
+References: <20200125173415.191571-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+From: Jiri Wiesner <jwiesner@suse.com>
 
-The following patchset contains Netfilter fixes for net:
+The netlink notifications triggered by the INIT and INIT_ACK chunks
+for a tracked SCTP association do not include protocol information
+for the corresponding connection - SCTP state and verification tags
+for the original and reply direction are missing. Since the connection
+tracking implementation allows user space programs to receive
+notifications about a connection and then create a new connection
+based on the values received in a notification, it makes sense that
+INIT and INIT_ACK notifications should contain the SCTP state
+and verification tags available at the time when a notification
+is sent. The missing verification tags cause a newly created
+netfilter connection to fail to verify the tags of SCTP packets
+when this connection has been created from the values previously
+received in an INIT or INIT_ACK notification.
 
-1) Missing netlink attribute sanity check for NFTA_OSF_DREG,
-   from Florian Westphal.
+A PROTOINFO event is cached in sctp_packet() when the state
+of a connection changes. The CLOSED and COOKIE_WAIT state will
+be used for connections that have seen an INIT and INIT_ACK chunk,
+respectively. The distinct states will cause a connection state
+change in sctp_packet().
 
-2) Use bitmap infrastructure in ipset to fix KASAN slab-out-of-bounds
-   reads, from Jozsef Kadlecsik.
+Signed-off-by: Jiri Wiesner <jwiesner@suse.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_proto_sctp.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-3) Missing initial CLOSED state in new sctp connection through
-   ctnetlink events, from Jiri Wiesner.
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index 0399ae8f1188..4f897b14b606 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -114,7 +114,7 @@ static const u8 sctp_conntracks[2][11][SCTP_CONNTRACK_MAX] = {
+ 	{
+ /*	ORIGINAL	*/
+ /*                  sNO, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS, sHA */
+-/* init         */ {sCW, sCW, sCW, sCE, sES, sSS, sSR, sSA, sCW, sHA},
++/* init         */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCW, sHA},
+ /* init_ack     */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCL, sHA},
+ /* abort        */ {sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL},
+ /* shutdown     */ {sCL, sCL, sCW, sCE, sSS, sSS, sSR, sSA, sCL, sSS},
+@@ -130,7 +130,7 @@ static const u8 sctp_conntracks[2][11][SCTP_CONNTRACK_MAX] = {
+ /*	REPLY	*/
+ /*                  sNO, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS, sHA */
+ /* init         */ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sSA, sIV, sHA},/* INIT in sCL Big TODO */
+-/* init_ack     */ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sSA, sIV, sHA},
++/* init_ack     */ {sIV, sCW, sCW, sCE, sES, sSS, sSR, sSA, sIV, sHA},
+ /* abort        */ {sIV, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sIV, sCL},
+ /* shutdown     */ {sIV, sCL, sCW, sCE, sSR, sSS, sSR, sSA, sIV, sSR},
+ /* shutdown_ack */ {sIV, sCL, sCW, sCE, sES, sSA, sSA, sSA, sIV, sHA},
+@@ -316,7 +316,7 @@ sctp_new(struct nf_conn *ct, const struct sk_buff *skb,
+ 			ct->proto.sctp.vtag[IP_CT_DIR_REPLY] = sh->vtag;
+ 		}
+ 
+-		ct->proto.sctp.state = new_state;
++		ct->proto.sctp.state = SCTP_CONNTRACK_NONE;
+ 	}
+ 
+ 	return true;
+-- 
+2.11.0
 
-4) Missing check for NFT_CHAIN_HW_OFFLOAD in nf_tables offload
-   indirect block infrastructure, from wenxu.
-
-5) Add __nft_chain_type_get() to sanity check family and chain type.
-
-6) Autoload modules from the nf_tables abort path to fix races
-   reported by syzbot.
-
-7) Remove unnecessary skb->csum update on inet_proto_csum_replace16(),
-   from Praveen Chaudhary.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thank you.
-
-----------------------------------------------------------------
-
-The following changes since commit e02d9c4c68dc0ca08ded9487720bba775c09669b:
-
-  Merge branch 'bnxt_en-fixes' (2020-01-18 14:38:30 +0100)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to 189c9b1e94539b11c80636bc13e9cf47529e7bba:
-
-  net: Fix skb->csum update in inet_proto_csum_replace16(). (2020-01-24 20:54:30 +0100)
-
-----------------------------------------------------------------
-Florian Westphal (1):
-      netfilter: nft_osf: add missing check for DREG attribute
-
-Jiri Wiesner (1):
-      netfilter: conntrack: sctp: use distinct states for new SCTP connections
-
-Kadlecsik József (1):
-      netfilter: ipset: use bitmap infrastructure completely
-
-Pablo Neira Ayuso (2):
-      netfilter: nf_tables: add __nft_chain_type_get()
-      netfilter: nf_tables: autoload modules from the abort path
-
-Praveen Chaudhary (1):
-      net: Fix skb->csum update in inet_proto_csum_replace16().
-
-wenxu (1):
-      netfilter: nf_tables_offload: fix check the chain offload flag
-
- include/linux/netfilter/ipset/ip_set.h    |   7 --
- include/linux/netfilter/nfnetlink.h       |   2 +-
- include/net/netns/nftables.h              |   1 +
- net/core/utils.c                          |  20 +++-
- net/netfilter/ipset/ip_set_bitmap_gen.h   |   2 +-
- net/netfilter/ipset/ip_set_bitmap_ip.c    |   6 +-
- net/netfilter/ipset/ip_set_bitmap_ipmac.c |   6 +-
- net/netfilter/ipset/ip_set_bitmap_port.c  |   6 +-
- net/netfilter/nf_conntrack_proto_sctp.c   |   6 +-
- net/netfilter/nf_tables_api.c             | 155 +++++++++++++++++++++---------
- net/netfilter/nf_tables_offload.c         |   2 +-
- net/netfilter/nfnetlink.c                 |   6 +-
- net/netfilter/nft_osf.c                   |   3 +
- 13 files changed, 146 insertions(+), 76 deletions(-)
