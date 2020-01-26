@@ -6,50 +6,51 @@ X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
 	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B953AC35246
-	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Jan 2020 18:57:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 442CAC35247
+	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Jan 2020 19:17:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 996B820708
-	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Jan 2020 18:57:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 22B0A2071E
+	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Jan 2020 19:17:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729052AbgAZS5M (ORCPT
+        id S1728266AbgAZTRN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 26 Jan 2020 13:57:12 -0500
-Received: from mail-il1-f199.google.com ([209.85.166.199]:45769 "EHLO
-        mail-il1-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726087AbgAZS5L (ORCPT
+        Sun, 26 Jan 2020 14:17:13 -0500
+Received: from mail-il1-f200.google.com ([209.85.166.200]:44091 "EHLO
+        mail-il1-f200.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726087AbgAZTRN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 26 Jan 2020 13:57:11 -0500
-Received: by mail-il1-f199.google.com with SMTP id w6so5994170ill.12
-        for <netfilter-devel@vger.kernel.org>; Sun, 26 Jan 2020 10:57:11 -0800 (PST)
+        Sun, 26 Jan 2020 14:17:13 -0500
+Received: by mail-il1-f200.google.com with SMTP id h87so6043626ild.11
+        for <netfilter-devel@vger.kernel.org>; Sun, 26 Jan 2020 11:17:13 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=4ZP9aA+zIEpB3uIuHSmth1jADn5k/uQ+B1Zpr7nQv70=;
-        b=olXGk2MR1RAnFyR7KIS+6KY6aUBVCUwEjvN68xw/uW/r2nmYKMDIWfG2A9LbgEl2D6
-         6JT0nV35R7wWh9zNAkzEcWPAzlZmXFaIhtx1VQ98J0RfIDBoEWWdnVo/uvq+viWB6RJD
-         tJz5/FebWNqVWTnJ1nF2ypOGMEIYDHcE5B2cAvowdIzoYSS+jVBuc4acnOr/Ri1xbaq5
-         97r2q5apb/kOBEW52FOz64MO72eacuztREzq9GNsaTfzNiiT5kCPFZlxC3q3HTi1jvHa
-         L9KVk0sWwjV5JNnJaEmz058k710DAKRJt7tue5nLTeEB7/Emg9N0U/LRiqHqMenXDLGc
-         eatw==
-X-Gm-Message-State: APjAAAX++fvJ1aOmPfjknmibwzIM4k3St8qAPDuoaIZ2LK6biUiaOWen
-        bUhLB2zO4foa1ftoPIVBHcGiyk9VRqnjmXO94vAlPUyXQ6sU
-X-Google-Smtp-Source: APXvYqyhTQI5JmG+C2CBt0HtVr+q//jXnYkZKUeUwJrs4rMHlctKas/u39x6bOc/pyKNSABZ9eXHUsAfhmVHhh2iGMwipBXb5Um0
+        bh=L8NUDqJ5/9ffHvysFUQ1Gd7irrCU343ZTNBThpxErFc=;
+        b=hk9J90rrlC0JRYIu2+6k0rr5+GlS+CpfWks3u0rfHjYCoKXF/ALaK6vrebfxkDcTGg
+         cwlIa/WBQ+AM1HTwdRtWwrs2/r4jNGMkIfrXNDOUcGmYMwgvG8aVMjl4XTdSR9VU4O0k
+         SFbZ2teIXSsIq49TGy3hHMEPWAwLZ64Dx+IibKpgdLyoug7MDMQPdeC6y9mGRRfLXIv6
+         fRvdpfU363T1SXchCgJEEAr7JSqSO8Jt4byTO+fXIY6//pM1XN3yYk3W5TkOIjkaVMlp
+         AiDKpSbPKRj7kUazDYweh7D48CSRD9+MzUIrhGAoyllQHx6MAJN/VOJnzdypLY4pdHDD
+         3Cag==
+X-Gm-Message-State: APjAAAUSj1S7X7AYGnAGPgYN0QK34SJM24KSOsa+qHWrJplCcGaeb1Mm
+        JGO0/Gk3ajtIV19DX3hWG4FDjydB3IZ7L66UuGkTG1cc3B6m
+X-Google-Smtp-Source: APXvYqy2FO/kaugtkmh1l8sSHmjXteBOw+KAqpqW4d/ariDju9QlrS/pOq8s2AF0qY0YPfKLBA+pgNdsO1/Q1W0kWOx/iW4BrRny
 MIME-Version: 1.0
-X-Received: by 2002:a92:d84c:: with SMTP id h12mr5048206ilq.127.1580065031160;
- Sun, 26 Jan 2020 10:57:11 -0800 (PST)
-Date:   Sun, 26 Jan 2020 10:57:11 -0800
+X-Received: by 2002:a05:6638:34e:: with SMTP id x14mr10950046jap.38.1580066232718;
+ Sun, 26 Jan 2020 11:17:12 -0800 (PST)
+Date:   Sun, 26 Jan 2020 11:17:12 -0800
 X-Google-Appengine-App-Id: s~syzkaller
 X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000e78d8a059d0f8eba@google.com>
-Subject: general protection fault in ip_set_comment_free
-From:   syzbot <syzbot+6a86565c74ebe30aea18@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net,
-        florent.fourcot@wifirst.fr, fw@strlen.de, jeremy@azazel.net,
-        johannes.berg@intel.com, kadlec@blackhole.kfki.hu,
-        kadlec@netfilter.org, linux-kernel@vger.kernel.org,
+Message-ID: <00000000000085dfc2059d0fd66d@google.com>
+Subject: INFO: rcu detected stall in hash_ip4_gc
+From:   syzbot <syzbot+68a806795ac89df3aa1c@syzkaller.appspotmail.com>
+To:     bp@alien8.de, coreteam@netfilter.org, davem@davemloft.net,
+        fw@strlen.de, hpa@zytor.com, kadlec@blackhole.kfki.hu,
+        linux-kernel@vger.kernel.org, mingo@redhat.com,
         netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
+        pablo@netfilter.org, peterz@infradead.org,
+        syzkaller-bugs@googlegroups.com, tglx@linutronix.de,
+        tony.luck@intel.com, x86@kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
@@ -60,14 +61,15 @@ Hello,
 
 syzbot found the following crash on:
 
-HEAD commit:    d5d359b0 Merge branch 'for-linus' of git://git.kernel.org/..
+HEAD commit:    6381b442 Merge tag 'iommu-fixes-v5.5-rc7' of git://git.ker..
 git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=1366c611e00000
+console output: https://syzkaller.appspot.com/x/log.txt?x=14f44769e00000
 kernel config:  https://syzkaller.appspot.com/x/.config?x=cf8e288883e40aba
-dashboard link: https://syzkaller.appspot.com/bug?extid=6a86565c74ebe30aea18
+dashboard link: https://syzkaller.appspot.com/bug?extid=68a806795ac89df3aa1c
 compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=12df0376e00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14d225c9e00000
+userspace arch: i386
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=11fad479e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=12f62f21e00000
 
 The bug was bisected to:
 
@@ -77,81 +79,105 @@ Date:   Sat Oct 27 13:07:40 2018 +0000
 
     netfilter: ipset: Introduction of new commands and protocol version 7
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=12508376e00000
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=11508376e00000
-console output: https://syzkaller.appspot.com/x/log.txt?x=16508376e00000
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1128b611e00000
+final crash:    https://syzkaller.appspot.com/x/report.txt?x=1328b611e00000
+console output: https://syzkaller.appspot.com/x/log.txt?x=1528b611e00000
 
 IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+6a86565c74ebe30aea18@syzkaller.appspotmail.com
+Reported-by: syzbot+68a806795ac89df3aa1c@syzkaller.appspotmail.com
 Fixes: 23c42a403a9c ("netfilter: ipset: Introduction of new commands and protocol version 7")
 
-kasan: CONFIG_KASAN_INLINE enabled
-kasan: GPF could be caused by NULL-ptr deref or user memory access
-general protection fault: 0000 [#1] PREEMPT SMP KASAN
-CPU: 0 PID: 9800 Comm: syz-executor125 Not tainted 5.5.0-rc7-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-RIP: 0010:strlen+0x1f/0xa0 lib/string.c:527
-Code: 00 66 2e 0f 1f 84 00 00 00 00 00 48 b8 00 00 00 00 00 fc ff df 55 48 89 fa 48 89 e5 48 c1 ea 03 41 54 49 89 fc 53 48 83 ec 08 <0f> b6 04 02 48 89 fa 83 e2 07 38 d0 7f 04 84 c0 75 4d 41 80 3c 24
-RSP: 0018:ffffc90001fa6e90 EFLAGS: 00010286
-RAX: dffffc0000000000 RBX: ffff88808f875f18 RCX: 1ffffffff14f6ffe
-RDX: 0000000000000042 RSI: ffffffff8673d9a1 RDI: 0000000000000214
-RBP: ffffc90001fa6ea8 R08: ffff8880870de500 R09: ffffed1011f0ebe3
-R10: ffffed1011f0ebe2 R11: ffff88808f875f17 R12: 0000000000000214
-R13: 0000000000000204 R14: ffff8880a5508200 R15: ffff88808f875f00
-FS:  00000000014a2880(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: ffffffffff600400 CR3: 00000000a9778000 CR4: 00000000001406f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+rcu: INFO: rcu_preempt detected stalls on CPUs/tasks:
+	(detected by 1, t=10502 jiffies, g=9453, q=929)
+rcu: All QSes seen, last rcu_preempt kthread activity 10502 (4294981303-4294970801), jiffies_till_next_fqs=1, root ->qsmask 0x0
+syz-executor596 R  running task    28776  9738   9733 0x20020008
 Call Trace:
- strlen include/linux/string.h:302 [inline]
- ip_set_comment_free+0x69/0xe0 net/netfilter/ipset/ip_set_core.c:402
- ip_set_ext_destroy include/linux/netfilter/ipset/ip_set.h:275 [inline]
- ip_set_ext_destroy include/linux/netfilter/ipset/ip_set.h:267 [inline]
- hash_net4_add+0x1b9a/0x2200 net/netfilter/ipset/ip_set_hash_gen.h:766
- hash_net4_uadt+0x596/0x940 net/netfilter/ipset/ip_set_hash_net.c:195
- call_ad+0x1a0/0x5a0 net/netfilter/ipset/ip_set_core.c:1716
- ip_set_ad.isra.0+0x572/0xb20 net/netfilter/ipset/ip_set_core.c:1804
- ip_set_uadd+0x37/0x50 net/netfilter/ipset/ip_set_core.c:1829
- nfnetlink_rcv_msg+0xcf2/0xfb0 net/netfilter/nfnetlink.c:229
- netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
- nfnetlink_rcv+0x1ba/0x460 net/netfilter/nfnetlink.c:563
- netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
- netlink_unicast+0x58c/0x7d0 net/netlink/af_netlink.c:1328
- netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
- sock_sendmsg_nosec net/socket.c:639 [inline]
- sock_sendmsg+0xd7/0x130 net/socket.c:659
- ____sys_sendmsg+0x753/0x880 net/socket.c:2330
- ___sys_sendmsg+0x100/0x170 net/socket.c:2384
- __sys_sendmsg+0x105/0x1d0 net/socket.c:2417
- __do_sys_sendmsg net/socket.c:2426 [inline]
- __se_sys_sendmsg net/socket.c:2424 [inline]
- __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2424
- do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
- entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x440379
-Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 fb 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007ffcfb990398 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
-RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440379
-RDX: 0000000000000000 RSI: 0000000020000d00 RDI: 0000000000000004
-RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
-R10: 00000000004002c8 R11: 0000000000000246 R12: 0000000000401c00
-R13: 0000000000401c90 R14: 0000000000000000 R15: 0000000000000000
-Modules linked in:
----[ end trace a6760a9ec122842d ]---
-RIP: 0010:strlen+0x1f/0xa0 lib/string.c:527
-Code: 00 66 2e 0f 1f 84 00 00 00 00 00 48 b8 00 00 00 00 00 fc ff df 55 48 89 fa 48 89 e5 48 c1 ea 03 41 54 49 89 fc 53 48 83 ec 08 <0f> b6 04 02 48 89 fa 83 e2 07 38 d0 7f 04 84 c0 75 4d 41 80 3c 24
-RSP: 0018:ffffc90001fa6e90 EFLAGS: 00010286
-RAX: dffffc0000000000 RBX: ffff88808f875f18 RCX: 1ffffffff14f6ffe
-RDX: 0000000000000042 RSI: ffffffff8673d9a1 RDI: 0000000000000214
-RBP: ffffc90001fa6ea8 R08: ffff8880870de500 R09: ffffed1011f0ebe3
-R10: ffffed1011f0ebe2 R11: ffff88808f875f17 R12: 0000000000000214
-R13: 0000000000000204 R14: ffff8880a5508200 R15: ffff88808f875f00
-FS:  00000000014a2880(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: ffffffffff600400 CR3: 00000000a9778000 CR4: 00000000001406f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+ <IRQ>
+ sched_show_task kernel/sched/core.c:5954 [inline]
+ sched_show_task.cold+0x2ee/0x35d kernel/sched/core.c:5929
+ print_other_cpu_stall kernel/rcu/tree_stall.h:410 [inline]
+ check_cpu_stall kernel/rcu/tree_stall.h:538 [inline]
+ rcu_pending kernel/rcu/tree.c:2827 [inline]
+ rcu_sched_clock_irq.cold+0xaf4/0xc0d kernel/rcu/tree.c:2271
+ update_process_times+0x2d/0x70 kernel/time/timer.c:1726
+ tick_sched_handle+0xa2/0x190 kernel/time/tick-sched.c:171
+ tick_sched_timer+0x53/0x140 kernel/time/tick-sched.c:1314
+ __run_hrtimer kernel/time/hrtimer.c:1517 [inline]
+ __hrtimer_run_queues+0x364/0xe40 kernel/time/hrtimer.c:1579
+ hrtimer_interrupt+0x314/0x770 kernel/time/hrtimer.c:1641
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1110 [inline]
+ smp_apic_timer_interrupt+0x160/0x610 arch/x86/kernel/apic/apic.c:1135
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+RIP: 0010:native_safe_halt+0xe/0x10 arch/x86/include/asm/irqflags.h:61
+Code: 18 77 de f9 eb 8a cc cc cc cc cc cc e9 07 00 00 00 0f 00 2d c4 31 54 00 f4 c3 66 90 e9 07 00 00 00 0f 00 2d b4 31 54 00 fb f4 <c3> cc 55 48 89 e5 41 57 41 56 41 55 41 54 53 e8 fe 3f 8e f9 e8 c9
+RSP: 0018:ffffc90000da8b10 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff13
+RAX: 1ffffffff1326676 RBX: ffff8880a46f6e20 RCX: 0000000000000002
+RDX: dffffc0000000000 RSI: 0000000000000008 RDI: ffff8880a3224b14
+RBP: ffffc90000da8b30 R08: 1ffffffff165e7b1 R09: fffffbfff165e7b2
+R10: fffffbfff165e7b1 R11: ffffffff8b2f3d8f R12: 0000000000000003
+R13: 0000000000000282 R14: 0000000000000000 R15: 0000000000000001
+ pv_wait arch/x86/include/asm/paravirt.h:648 [inline]
+ pv_wait_head_or_lock kernel/locking/qspinlock_paravirt.h:470 [inline]
+ __pv_queued_spin_lock_slowpath+0x9ba/0xc40 kernel/locking/qspinlock.c:507
+ pv_queued_spin_lock_slowpath arch/x86/include/asm/paravirt.h:638 [inline]
+ queued_spin_lock_slowpath arch/x86/include/asm/qspinlock.h:50 [inline]
+ queued_spin_lock include/asm-generic/qspinlock.h:81 [inline]
+ do_raw_spin_lock+0x21d/0x2f0 kernel/locking/spinlock_debug.c:113
+ __raw_spin_lock_bh include/linux/spinlock_api_smp.h:136 [inline]
+ _raw_spin_lock_bh+0x3b/0x50 kernel/locking/spinlock.c:175
+ spin_lock_bh include/linux/spinlock.h:343 [inline]
+ hash_ip4_gc+0x49/0x150 net/netfilter/ipset/ip_set_hash_gen.h:532
+ call_timer_fn+0x1ac/0x780 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers kernel/time/timer.c:1773 [inline]
+ __run_timers kernel/time/timer.c:1740 [inline]
+ run_timer_softirq+0x6c3/0x1790 kernel/time/timer.c:1786
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x19b/0x1e0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0x1a3/0x610 arch/x86/kernel/apic/apic.c:1137
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ </IRQ>
+RIP: 0010:schedule_debug kernel/sched/core.c:3878 [inline]
+RIP: 0010:__schedule+0x119/0x1f90 kernel/sched/core.c:4013
+Code: 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 ad 18 00 00 48 b8 00 00 00 00 00 fc ff df 4d 8b 7d 18 4c 89 fa 48 c1 ea 03 80 3c 02 00 <0f> 85 d2 18 00 00 49 81 3f 9d 6e ac 57 0f 85 47 1e 00 00 84 db 75
+RSP: 0018:ffffc90001f17b70 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: ffffffff839f64da
+RDX: 1ffff920003e2000 RSI: ffffffff839f64e3 RDI: ffff8880a3224298
+RBP: ffffc90001f17c38 R08: ffff8880a3224280 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8880ae937340
+R13: ffff8880a3224280 R14: 0000000000037340 R15: ffffc90001f10000
+ schedule+0xdc/0x2b0 kernel/sched/core.c:4155
+ freezable_schedule include/linux/freezer.h:172 [inline]
+ do_nanosleep+0x21f/0x640 kernel/time/hrtimer.c:1874
+ hrtimer_nanosleep+0x297/0x550 kernel/time/hrtimer.c:1927
+ __do_sys_nanosleep_time32 kernel/time/hrtimer.c:1981 [inline]
+ __se_sys_nanosleep_time32 kernel/time/hrtimer.c:1968 [inline]
+ __ia32_sys_nanosleep_time32+0x1ad/0x230 kernel/time/hrtimer.c:1968
+ do_syscall_32_irqs_on arch/x86/entry/common.c:337 [inline]
+ do_fast_syscall_32+0x27b/0xe16 arch/x86/entry/common.c:408
+ entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
+RIP: 0023:0xf7f089a9
+Code: 00 00 00 89 d3 5b 5e 5f 5d c3 b8 80 96 98 00 eb c4 8b 04 24 c3 8b 1c 24 c3 8b 34 24 c3 8b 3c 24 c3 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 eb 0d 90 90 90 90 90 90 90 90 90 90 90 90
+RSP: 002b:00000000ffe365ac EFLAGS: 00000246 ORIG_RAX: 00000000000000a2
+RAX: ffffffffffffffda RBX: 00000000ffe365d8 RCX: 0000000000000000
+RDX: 0000000000002611 RSI: 0000000000051fda RDI: 0000000000000000
+RBP: 00000000ffe36628 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+rcu: rcu_preempt kthread starved for 10502 jiffies! g9453 f0x2 RCU_GP_WAIT_FQS(5) ->state=0x0 ->cpu=0
+rcu: RCU grace-period kthread stack dump:
+rcu_preempt     R  running task    29264    10      2 0x80004000
+Call Trace:
+ context_switch kernel/sched/core.c:3385 [inline]
+ __schedule+0x934/0x1f90 kernel/sched/core.c:4081
+ schedule+0xdc/0x2b0 kernel/sched/core.c:4155
+ schedule_timeout+0x486/0xc50 kernel/time/timer.c:1895
+ rcu_gp_fqs_loop kernel/rcu/tree.c:1661 [inline]
+ rcu_gp_kthread+0x9b2/0x18d0 kernel/rcu/tree.c:1821
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
 
 
 ---
