@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F8CEC3F68F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jan 2020 08:22:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E68A3C35242
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jan 2020 08:22:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0FB3D21569
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jan 2020 08:22:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C75EC20842
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jan 2020 08:22:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729142AbgA0IWI (ORCPT
+        id S1729155AbgA0IWK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 27 Jan 2020 03:22:08 -0500
-Received: from correo.us.es ([193.147.175.20]:36426 "EHLO mail.us.es"
+        Mon, 27 Jan 2020 03:22:10 -0500
+Received: from correo.us.es ([193.147.175.20]:36454 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729012AbgA0IWI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Jan 2020 03:22:08 -0500
+        id S1729139AbgA0IWK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 Jan 2020 03:22:10 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9C9F9B1930
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jan 2020 09:22:06 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 212CFB193B
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jan 2020 09:22:08 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 819C9DA707
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jan 2020 09:22:06 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0E6E2DA70E
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jan 2020 09:22:08 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7630EDA701; Mon, 27 Jan 2020 09:22:06 +0100 (CET)
+        id 00EF8DA703; Mon, 27 Jan 2020 09:22:07 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BEE36DA707;
-        Mon, 27 Jan 2020 09:22:03 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CFFE1DA716;
+        Mon, 27 Jan 2020 09:22:05 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 27 Jan 2020 09:22:03 +0100 (CET)
+ Mon, 27 Jan 2020 09:22:05 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 9D2BA42EFB83;
-        Mon, 27 Jan 2020 09:22:03 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id AD2CD42EFB82;
+        Mon, 27 Jan 2020 09:22:05 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 1/6] netfilter: nf_tables: add nft_setelem_parse_key()
-Date:   Mon, 27 Jan 2020 09:20:49 +0100
-Message-Id: <20200127082054.318263-2-pablo@netfilter.org>
+Subject: [PATCH 4/6] bitmap: Introduce bitmap_cut(): cut bits and shift remaining
+Date:   Mon, 27 Jan 2020 09:20:52 +0100
+Message-Id: <20200127082054.318263-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200127082054.318263-1-pablo@netfilter.org>
 References: <20200127082054.318263-1-pablo@netfilter.org>
@@ -54,243 +54,119 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add helper function to parse the set element key netlink attribute.
+From: Stefano Brivio <sbrivio@redhat.com>
 
-v4: No changes
-v3: New patch
+The new bitmap function bitmap_cut() copies bits from source to
+destination by removing the region specified by parameters first
+and cut, and remapping the bits above the cut region by right
+shifting them.
 
-[sbrivio: refactor error paths and labels; use NFT_DATA_VALUE_MAXLEN
-  instead of sizeof(*key) in helper, value can be longer than that;
-  rebase]
+Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 91 +++++++++++++++++++++----------------------
- 1 file changed, 45 insertions(+), 46 deletions(-)
+ include/linux/bitmap.h |  4 +++
+ lib/bitmap.c           | 66 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 70 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 7e63b481cc86..58e3b285a3d1 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4524,11 +4524,28 @@ static int nft_setelem_parse_flags(const struct nft_set *set,
- 	return 0;
+diff --git a/include/linux/bitmap.h b/include/linux/bitmap.h
+index ff335b22f23c..f0f3a9fffa6a 100644
+--- a/include/linux/bitmap.h
++++ b/include/linux/bitmap.h
+@@ -53,6 +53,7 @@
+  *  bitmap_find_next_zero_area_off(buf, len, pos, n, mask)  as above
+  *  bitmap_shift_right(dst, src, n, nbits)      *dst = *src >> n
+  *  bitmap_shift_left(dst, src, n, nbits)       *dst = *src << n
++ *  bitmap_cut(dst, src, first, n, nbits)       Cut n bits from first, copy rest
+  *  bitmap_replace(dst, old, new, mask, nbits)  *dst = (*old & ~(*mask)) | (*new & *mask)
+  *  bitmap_remap(dst, src, old, new, nbits)     *dst = map(old, new)(src)
+  *  bitmap_bitremap(oldbit, old, new, nbits)    newbit = map(old, new)(oldbit)
+@@ -133,6 +134,9 @@ extern void __bitmap_shift_right(unsigned long *dst, const unsigned long *src,
+ 				unsigned int shift, unsigned int nbits);
+ extern void __bitmap_shift_left(unsigned long *dst, const unsigned long *src,
+ 				unsigned int shift, unsigned int nbits);
++extern void bitmap_cut(unsigned long *dst, const unsigned long *src,
++		       unsigned int first, unsigned int cut,
++		       unsigned int nbits);
+ extern int __bitmap_and(unsigned long *dst, const unsigned long *bitmap1,
+ 			const unsigned long *bitmap2, unsigned int nbits);
+ extern void __bitmap_or(unsigned long *dst, const unsigned long *bitmap1,
+diff --git a/lib/bitmap.c b/lib/bitmap.c
+index 4250519d7d1c..6e175fbd69a9 100644
+--- a/lib/bitmap.c
++++ b/lib/bitmap.c
+@@ -168,6 +168,72 @@ void __bitmap_shift_left(unsigned long *dst, const unsigned long *src,
  }
+ EXPORT_SYMBOL(__bitmap_shift_left);
  
-+static int nft_setelem_parse_key(struct nft_ctx *ctx, struct nft_set *set,
-+				 struct nft_data *key, struct nlattr *attr)
++/**
++ * bitmap_cut() - remove bit region from bitmap and right shift remaining bits
++ * @dst: destination bitmap, might overlap with src
++ * @src: source bitmap
++ * @first: start bit of region to be removed
++ * @cut: number of bits to remove
++ * @nbits: bitmap size, in bits
++ *
++ * Set the n-th bit of @dst iff the n-th bit of @src is set and
++ * n is less than @first, or the m-th bit of @src is set for any
++ * m such that @first <= n < nbits, and m = n + @cut.
++ *
++ * In pictures, example for a big-endian 32-bit architecture:
++ *
++ * @src:
++ * 31                                   63
++ * |                                    |
++ * 10000000 11000001 11110010 00010101  10000000 11000001 01110010 00010101
++ *                 |  |              |                                    |
++ *                16  14             0                                   32
++ *
++ * if @cut is 3, and @first is 14, bits 14-16 in @src are cut and @dst is:
++ *
++ * 31                                   63
++ * |                                    |
++ * 10110000 00011000 00110010 00010101  00010000 00011000 00101110 01000010
++ *                    |              |                                    |
++ *                    14 (bit 17     0                                   32
++ *                        from @src)
++ *
++ * Note that @dst and @src might overlap partially or entirely.
++ *
++ * This is implemented in the obvious way, with a shift and carry
++ * step for each moved bit. Optimisation is left as an exercise
++ * for the compiler.
++ */
++void bitmap_cut(unsigned long *dst, const unsigned long *src,
++		unsigned int first, unsigned int cut, unsigned int nbits)
 +{
-+	struct nft_data_desc desc;
-+	int err;
++	unsigned int len = BITS_TO_LONGS(nbits);
++	unsigned long keep = 0, carry;
++	int i;
 +
-+	err = nft_data_init(ctx, key, NFT_DATA_VALUE_MAXLEN, &desc, attr);
-+	if (err < 0)
-+		return err;
++	memmove(dst, src, len * sizeof(*dst));
 +
-+	if (desc.type != NFT_DATA_VALUE || desc.len != set->klen) {
-+		nft_data_release(key, desc.type);
-+		return -EINVAL;
++	if (first % BITS_PER_LONG) {
++		keep = src[first / BITS_PER_LONG] &
++		       (~0UL >> (BITS_PER_LONG - first % BITS_PER_LONG));
 +	}
 +
-+	return 0;
-+}
++	while (cut--) {
++		for (i = first / BITS_PER_LONG; i < len; i++) {
++			if (i < len - 1)
++				carry = dst[i + 1] & 1UL;
++			else
++				carry = 0;
 +
- static int nft_get_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			    const struct nlattr *attr)
++			dst[i] = (dst[i] >> 1) | (carry << (BITS_PER_LONG - 1));
++		}
++	}
++
++	dst[first / BITS_PER_LONG] &= ~0UL << (first % BITS_PER_LONG);
++	dst[first / BITS_PER_LONG] |= keep;
++}
++EXPORT_SYMBOL(bitmap_cut);
++
+ int __bitmap_and(unsigned long *dst, const unsigned long *bitmap1,
+ 				const unsigned long *bitmap2, unsigned int bits)
  {
- 	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
--	struct nft_data_desc desc;
- 	struct nft_set_elem elem;
- 	struct sk_buff *skb;
- 	uint32_t flags = 0;
-@@ -4547,17 +4564,11 @@ static int nft_get_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	if (err < 0)
- 		return err;
- 
--	err = nft_data_init(ctx, &elem.key.val, sizeof(elem.key), &desc,
--			    nla[NFTA_SET_ELEM_KEY]);
-+	err = nft_setelem_parse_key(ctx, set, &elem.key.val,
-+				    nla[NFTA_SET_ELEM_KEY]);
- 	if (err < 0)
- 		return err;
- 
--	err = -EINVAL;
--	if (desc.type != NFT_DATA_VALUE || desc.len != set->klen) {
--		nft_data_release(&elem.key.val, desc.type);
--		return err;
--	}
--
- 	priv = set->ops->get(ctx->net, set, &elem, flags);
- 	if (IS_ERR(priv))
- 		return PTR_ERR(priv);
-@@ -4756,13 +4767,13 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- {
- 	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
- 	u8 genmask = nft_genmask_next(ctx->net);
--	struct nft_data_desc d1, d2;
- 	struct nft_set_ext_tmpl tmpl;
- 	struct nft_set_ext *ext, *ext2;
- 	struct nft_set_elem elem;
- 	struct nft_set_binding *binding;
- 	struct nft_object *obj = NULL;
- 	struct nft_userdata *udata;
-+	struct nft_data_desc desc;
- 	struct nft_data data;
- 	enum nft_registers dreg;
- 	struct nft_trans *trans;
-@@ -4828,15 +4839,12 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			return err;
- 	}
- 
--	err = nft_data_init(ctx, &elem.key.val, sizeof(elem.key), &d1,
--			    nla[NFTA_SET_ELEM_KEY]);
-+	err = nft_setelem_parse_key(ctx, set, &elem.key.val,
-+				    nla[NFTA_SET_ELEM_KEY]);
- 	if (err < 0)
- 		goto err1;
--	err = -EINVAL;
--	if (d1.type != NFT_DATA_VALUE || d1.len != set->klen)
--		goto err2;
- 
--	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, d1.len);
-+	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, set->klen);
- 	if (timeout > 0) {
- 		nft_set_ext_add(&tmpl, NFT_SET_EXT_EXPIRATION);
- 		if (timeout != set->timeout)
-@@ -4859,13 +4867,13 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	}
- 
- 	if (nla[NFTA_SET_ELEM_DATA] != NULL) {
--		err = nft_data_init(ctx, &data, sizeof(data), &d2,
-+		err = nft_data_init(ctx, &data, sizeof(data), &desc,
- 				    nla[NFTA_SET_ELEM_DATA]);
- 		if (err < 0)
- 			goto err2;
- 
- 		err = -EINVAL;
--		if (set->dtype != NFT_DATA_VERDICT && d2.len != set->dlen)
-+		if (set->dtype != NFT_DATA_VERDICT && desc.len != set->dlen)
- 			goto err3;
- 
- 		dreg = nft_type_to_reg(set->dtype);
-@@ -4882,18 +4890,18 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 
- 			err = nft_validate_register_store(&bind_ctx, dreg,
- 							  &data,
--							  d2.type, d2.len);
-+							  desc.type, desc.len);
- 			if (err < 0)
- 				goto err3;
- 
--			if (d2.type == NFT_DATA_VERDICT &&
-+			if (desc.type == NFT_DATA_VERDICT &&
- 			    (data.verdict.code == NFT_GOTO ||
- 			     data.verdict.code == NFT_JUMP))
- 				nft_validate_state_update(ctx->net,
- 							  NFT_VALIDATE_NEED);
- 		}
- 
--		nft_set_ext_add_length(&tmpl, NFT_SET_EXT_DATA, d2.len);
-+		nft_set_ext_add_length(&tmpl, NFT_SET_EXT_DATA, desc.len);
- 	}
- 
- 	/* The full maximum length of userdata can exceed the maximum
-@@ -4976,9 +4984,9 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	kfree(elem.priv);
- err3:
- 	if (nla[NFTA_SET_ELEM_DATA] != NULL)
--		nft_data_release(&data, d2.type);
-+		nft_data_release(&data, desc.type);
- err2:
--	nft_data_release(&elem.key.val, d1.type);
-+	nft_data_release(&elem.key.val, NFT_DATA_VALUE);
- err1:
- 	return err;
- }
-@@ -5074,7 +5082,6 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
- {
- 	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
- 	struct nft_set_ext_tmpl tmpl;
--	struct nft_data_desc desc;
- 	struct nft_set_elem elem;
- 	struct nft_set_ext *ext;
- 	struct nft_trans *trans;
-@@ -5085,11 +5092,10 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
- 	err = nla_parse_nested_deprecated(nla, NFTA_SET_ELEM_MAX, attr,
- 					  nft_set_elem_policy, NULL);
- 	if (err < 0)
--		goto err1;
-+		return err;
- 
--	err = -EINVAL;
- 	if (nla[NFTA_SET_ELEM_KEY] == NULL)
--		goto err1;
-+		return -EINVAL;
- 
- 	nft_set_ext_prepare(&tmpl);
- 
-@@ -5099,37 +5105,31 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
- 	if (flags != 0)
- 		nft_set_ext_add(&tmpl, NFT_SET_EXT_FLAGS);
- 
--	err = nft_data_init(ctx, &elem.key.val, sizeof(elem.key), &desc,
--			    nla[NFTA_SET_ELEM_KEY]);
-+	err = nft_setelem_parse_key(ctx, set, &elem.key.val,
-+				    nla[NFTA_SET_ELEM_KEY]);
- 	if (err < 0)
--		goto err1;
--
--	err = -EINVAL;
--	if (desc.type != NFT_DATA_VALUE || desc.len != set->klen)
--		goto err2;
-+		return err;
- 
--	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, desc.len);
-+	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, set->klen);
- 
- 	err = -ENOMEM;
- 	elem.priv = nft_set_elem_init(set, &tmpl, elem.key.val.data, NULL, 0,
- 				      0, GFP_KERNEL);
- 	if (elem.priv == NULL)
--		goto err2;
-+		goto fail_elem;
- 
- 	ext = nft_set_elem_ext(set, elem.priv);
- 	if (flags)
- 		*nft_set_ext_flags(ext) = flags;
- 
- 	trans = nft_trans_elem_alloc(ctx, NFT_MSG_DELSETELEM, set);
--	if (trans == NULL) {
--		err = -ENOMEM;
--		goto err3;
--	}
-+	if (trans == NULL)
-+		goto fail_trans;
- 
- 	priv = set->ops->deactivate(ctx->net, set, &elem);
- 	if (priv == NULL) {
- 		err = -ENOENT;
--		goto err4;
-+		goto fail_ops;
- 	}
- 	kfree(elem.priv);
- 	elem.priv = priv;
-@@ -5140,13 +5140,12 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
- 	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
- 	return 0;
- 
--err4:
-+fail_ops:
- 	kfree(trans);
--err3:
-+fail_trans:
- 	kfree(elem.priv);
--err2:
--	nft_data_release(&elem.key.val, desc.type);
--err1:
-+fail_elem:
-+	nft_data_release(&elem.key.val, NFT_DATA_VALUE);
- 	return err;
- }
- 
 -- 
 2.11.0
 
