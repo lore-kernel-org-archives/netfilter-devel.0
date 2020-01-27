@@ -4,47 +4,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AA6EC35248
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jan 2020 08:22:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B87ACC35248
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jan 2020 08:22:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E5D5F20842
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jan 2020 08:22:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8F328214AF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jan 2020 08:22:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729159AbgA0IWL (ORCPT
+        id S1729184AbgA0IWQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 27 Jan 2020 03:22:11 -0500
-Received: from correo.us.es ([193.147.175.20]:36456 "EHLO mail.us.es"
+        Mon, 27 Jan 2020 03:22:16 -0500
+Received: from correo.us.es ([193.147.175.20]:36462 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729138AbgA0IWL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Jan 2020 03:22:11 -0500
+        id S1729146AbgA0IWP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 Jan 2020 03:22:15 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A3C59B1935
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jan 2020 09:22:07 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 7E650B1927
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jan 2020 09:22:10 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 92C16DA709
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jan 2020 09:22:07 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6FE4ADA709
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jan 2020 09:22:10 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 87A9DDA703; Mon, 27 Jan 2020 09:22:07 +0100 (CET)
+        id 63A10DA705; Mon, 27 Jan 2020 09:22:10 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3F7A9DA70F;
-        Mon, 27 Jan 2020 09:22:05 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 05FE5DA702;
+        Mon, 27 Jan 2020 09:22:07 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 27 Jan 2020 09:22:05 +0100 (CET)
+ Mon, 27 Jan 2020 09:22:07 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 1C00C42EFB81;
-        Mon, 27 Jan 2020 09:22:05 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id B59A842EFB81;
+        Mon, 27 Jan 2020 09:22:06 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 3/6] netfilter: nf_tables: Support for sets with multiple ranged fields
-Date:   Mon, 27 Jan 2020 09:20:51 +0100
-Message-Id: <20200127082054.318263-4-pablo@netfilter.org>
+Subject: [PATCH 6/6] selftests: netfilter: Introduce tests for sets with range concatenation
+Date:   Mon, 27 Jan 2020 09:20:54 +0100
+Message-Id: <20200127082054.318263-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200127082054.318263-1-pablo@netfilter.org>
 References: <20200127082054.318263-1-pablo@netfilter.org>
@@ -56,294 +57,1534 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Stefano Brivio <sbrivio@redhat.com>
 
-Introduce a new nested netlink attribute, NFTA_SET_DESC_CONCAT, used
-to specify the length of each field in a set concatenation.
+This test covers functionality and stability of the newly added
+nftables set implementation supporting concatenation of ranged
+fields.
 
-This allows set implementations to support concatenation of multiple
-ranged items, as they can divide the input key into matching data for
-every single field. Such set implementations would be selected as
-they specify support for NFT_SET_INTERVAL and allow desc->field_count
-to be greater than one. Explicitly disallow this for nft_set_rbtree.
+For some selected set expression types, test:
+- correctness, by checking that packets match or don't
+- concurrency, by attempting races between insertion, deletion, lookup
+- timeout feature, checking that packets don't match expired entries
 
-In order to specify the interval for a set entry, userspace would
-include in NFTA_SET_DESC_CONCAT attributes field lengths, and pass
-range endpoints as two separate keys, represented by attributes
-NFTA_SET_ELEM_KEY and NFTA_SET_ELEM_KEY_END.
+and (roughly) estimate matching rates, comparing to baselines for
+simple drop on netdev ingress hook and for hash and rbtrees sets.
 
-While at it, export the number of 32-bit registers available for
-packet matching, as nftables will need this to know the maximum
-number of field lengths that can be specified.
+In order to send packets, this needs one of sendip, netcat or bash.
+To flood with traffic, iperf3, iperf and netperf are supported. For
+performance measurements, this relies on the sample pktgen script
+pktgen_bench_xmit_mode_netif_receive.sh.
 
-For example, "packets with an IPv4 address between 192.0.2.0 and
-192.0.2.42, with destination port between 22 and 25", can be
-expressed as two concatenated elements:
-
-  NFTA_SET_ELEM_KEY:            192.0.2.0 . 22
-  NFTA_SET_ELEM_KEY_END:        192.0.2.42 . 25
-
-and NFTA_SET_DESC_CONCAT attribute would contain:
-
-  NFTA_LIST_ELEM
-    NFTA_SET_FIELD_LEN:		4
-  NFTA_LIST_ELEM
-    NFTA_SET_FIELD_LEN:		2
-
-v4: No changes
-v3: Complete rework, NFTA_SET_DESC_CONCAT instead of NFTA_SET_SUBKEY
-v2: No changes
+If none of the tools suitable for a given test are available, specific
+tests will be skipped.
 
 Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h        |  8 +++
- include/uapi/linux/netfilter/nf_tables.h | 15 ++++++
- net/netfilter/nf_tables_api.c            | 90 +++++++++++++++++++++++++++++++-
- net/netfilter/nft_set_rbtree.c           |  3 ++
- 4 files changed, 115 insertions(+), 1 deletion(-)
+ tools/testing/selftests/netfilter/Makefile         |    3 +-
+ .../selftests/netfilter/nft_concat_range.sh        | 1481 ++++++++++++++++++++
+ 2 files changed, 1483 insertions(+), 1 deletion(-)
+ create mode 100755 tools/testing/selftests/netfilter/nft_concat_range.sh
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 504c0aa93805..4170c033d461 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -264,11 +264,15 @@ struct nft_set_iter {
-  *	@klen: key length
-  *	@dlen: data length
-  *	@size: number of set elements
-+ *	@field_len: length of each field in concatenation, bytes
-+ *	@field_count: number of concatenated fields in element
-  */
- struct nft_set_desc {
- 	unsigned int		klen;
- 	unsigned int		dlen;
- 	unsigned int		size;
-+	u8			field_len[NFT_REG32_COUNT];
-+	u8			field_count;
- };
+diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
+index de1032b5ddea..08194aa44006 100644
+--- a/tools/testing/selftests/netfilter/Makefile
++++ b/tools/testing/selftests/netfilter/Makefile
+@@ -2,6 +2,7 @@
+ # Makefile for netfilter selftests
  
- /**
-@@ -409,6 +413,8 @@ void nft_unregister_set(struct nft_set_type *type);
-  * 	@dtype: data type (verdict or numeric type defined by userspace)
-  * 	@objtype: object type (see NFT_OBJECT_* definitions)
-  * 	@size: maximum set size
-+ *	@field_len: length of each field in concatenation, bytes
-+ *	@field_count: number of concatenated fields in element
-  *	@use: number of rules references to this set
-  * 	@nelems: number of elements
-  * 	@ndeact: number of deactivated elements queued for removal
-@@ -435,6 +441,8 @@ struct nft_set {
- 	u32				dtype;
- 	u32				objtype;
- 	u32				size;
-+	u8				field_len[NFT_REG32_COUNT];
-+	u8				field_count;
- 	u32				use;
- 	atomic_t			nelems;
- 	u32				ndeact;
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index c13106496bd2..065218a20bb7 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -48,6 +48,7 @@ enum nft_registers {
+ TEST_PROGS := nft_trans_stress.sh nft_nat.sh bridge_brouter.sh \
+-	conntrack_icmp_related.sh nft_flowtable.sh ipvs.sh
++	conntrack_icmp_related.sh nft_flowtable.sh ipvs.sh \
++	nft_concat_range.sh
  
- #define NFT_REG_SIZE	16
- #define NFT_REG32_SIZE	4
-+#define NFT_REG32_COUNT	(NFT_REG32_15 - NFT_REG32_00 + 1)
- 
- /**
-  * enum nft_verdicts - nf_tables internal verdicts
-@@ -301,15 +302,29 @@ enum nft_set_policies {
-  * enum nft_set_desc_attributes - set element description
-  *
-  * @NFTA_SET_DESC_SIZE: number of elements in set (NLA_U32)
-+ * @NFTA_SET_DESC_CONCAT: description of field concatenation (NLA_NESTED)
-  */
- enum nft_set_desc_attributes {
- 	NFTA_SET_DESC_UNSPEC,
- 	NFTA_SET_DESC_SIZE,
-+	NFTA_SET_DESC_CONCAT,
- 	__NFTA_SET_DESC_MAX
- };
- #define NFTA_SET_DESC_MAX	(__NFTA_SET_DESC_MAX - 1)
- 
- /**
-+ * enum nft_set_field_attributes - attributes of concatenated fields
-+ *
-+ * @NFTA_SET_FIELD_LEN: length of single field, in bits (NLA_U32)
-+ */
-+enum nft_set_field_attributes {
-+	NFTA_SET_FIELD_UNSPEC,
-+	NFTA_SET_FIELD_LEN,
-+	__NFTA_SET_FIELD_MAX
-+};
-+#define NFTA_SET_FIELD_MAX	(__NFTA_SET_FIELD_MAX - 1)
+ include ../lib.mk
+diff --git a/tools/testing/selftests/netfilter/nft_concat_range.sh b/tools/testing/selftests/netfilter/nft_concat_range.sh
+new file mode 100755
+index 000000000000..aca21dde102a
+--- /dev/null
++++ b/tools/testing/selftests/netfilter/nft_concat_range.sh
+@@ -0,0 +1,1481 @@
++#!/bin/sh
++# SPDX-License-Identifier: GPL-2.0
++#
++# nft_concat_range.sh - Tests for sets with concatenation of ranged fields
++#
++# Copyright (c) 2019 Red Hat GmbH
++#
++# Author: Stefano Brivio <sbrivio@redhat.com>
++#
++# shellcheck disable=SC2154,SC2034,SC2016,SC2030,SC2031
++# ^ Configuration and templates sourced with eval, counters reused in subshells
 +
-+/**
-  * enum nft_set_attributes - nf_tables set netlink attributes
-  *
-  * @NFTA_SET_TABLE: table name (NLA_STRING)
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 5f645a85538a..d1318bdf49ca 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3391,6 +3391,7 @@ static const struct nla_policy nft_set_policy[NFTA_SET_MAX + 1] = {
- 
- static const struct nla_policy nft_set_desc_policy[NFTA_SET_DESC_MAX + 1] = {
- 	[NFTA_SET_DESC_SIZE]		= { .type = NLA_U32 },
-+	[NFTA_SET_DESC_CONCAT]		= { .type = NLA_NESTED },
- };
- 
- static int nft_ctx_init_from_setattr(struct nft_ctx *ctx, struct net *net,
-@@ -3557,6 +3558,33 @@ static __be64 nf_jiffies64_to_msecs(u64 input)
- 	return cpu_to_be64(jiffies64_to_msecs(input));
- }
- 
-+static int nf_tables_fill_set_concat(struct sk_buff *skb,
-+				     const struct nft_set *set)
-+{
-+	struct nlattr *concat, *field;
-+	int i;
++KSELFTEST_SKIP=4
 +
-+	concat = nla_nest_start_noflag(skb, NFTA_SET_DESC_CONCAT);
-+	if (!concat)
-+		return -ENOMEM;
++# Available test groups:
++# - correctness: check that packets match given entries, and only those
++# - concurrency: attempt races between insertion, deletion and lookup
++# - timeout: check that packets match entries until they expire
++# - performance: estimate matching rate, compare with rbtree and hash baselines
++TESTS="correctness concurrency timeout"
++[ "${quicktest}" != "1" ] && TESTS="${TESTS} performance"
 +
-+	for (i = 0; i < set->field_count; i++) {
-+		field = nla_nest_start_noflag(skb, NFTA_LIST_ELEM);
-+		if (!field)
-+			return -ENOMEM;
++# Set types, defined by TYPE_ variables below
++TYPES="net_port port_net net6_port port_proto net6_port_mac net6_port_mac_proto
++       net_port_net net_mac net_mac_icmp net6_mac_icmp net6_port_net6_port
++       net_port_mac_proto_net"
 +
-+		if (nla_put_be32(skb, NFTA_SET_FIELD_LEN,
-+				 htonl(set->field_len[i])))
-+			return -ENOMEM;
++# List of possible paths to pktgen script from kernel tree for performance tests
++PKTGEN_SCRIPT_PATHS="
++	../../../samples/pktgen/pktgen_bench_xmit_mode_netif_receive.sh
++	pktgen/pktgen_bench_xmit_mode_netif_receive.sh"
 +
-+		nla_nest_end(skb, field);
++# Definition of set types:
++# display	display text for test report
++# type_spec	nftables set type specifier
++# chain_spec	nftables type specifier for rules mapping to set
++# dst		call sequence of format_*() functions for destination fields
++# src		call sequence of format_*() functions for source fields
++# start		initial integer used to generate addresses and ports
++# count		count of entries to generate and match
++# src_delta	number summed to destination generator for source fields
++# tools		list of tools for correctness and timeout tests, any can be used
++# proto		L4 protocol of test packets
++#
++# race_repeat	race attempts per thread, 0 disables concurrency test for type
++# flood_tools	list of tools for concurrency tests, any can be used
++# flood_proto	L4 protocol of test packets for concurrency tests
++# flood_spec	nftables type specifier for concurrency tests
++#
++# perf_duration	duration of single pktgen injection test
++# perf_spec	nftables type specifier for performance tests
++# perf_dst	format_*() functions for destination fields in performance test
++# perf_src	format_*() functions for source fields in performance test
++# perf_entries	number of set entries for performance test
++# perf_proto	L3 protocol of test packets
++TYPE_net_port="
++display		net,port
++type_spec	ipv4_addr . inet_service
++chain_spec	ip daddr . udp dport
++dst		addr4 port
++src		 
++start		1
++count		5
++src_delta	2000
++tools		sendip nc bash
++proto		udp
++
++race_repeat	3
++flood_tools	iperf3 iperf netperf
++flood_proto	udp
++flood_spec	ip daddr . udp dport
++
++perf_duration	5
++perf_spec	ip daddr . udp dport
++perf_dst	addr4 port
++perf_src	 
++perf_entries	1000
++perf_proto	ipv4
++"
++
++TYPE_port_net="
++display		port,net
++type_spec	inet_service . ipv4_addr
++chain_spec	udp dport . ip daddr
++dst		port addr4
++src		 
++start		1
++count		5
++src_delta	2000
++tools		sendip nc bash
++proto		udp
++
++race_repeat	3
++flood_tools	iperf3 iperf netperf
++flood_proto	udp
++flood_spec	udp dport . ip daddr
++
++perf_duration	5
++perf_spec	udp dport . ip daddr
++perf_dst	port addr4
++perf_src	 
++perf_entries	100
++perf_proto	ipv4
++"
++
++TYPE_net6_port="
++display		net6,port
++type_spec	ipv6_addr . inet_service
++chain_spec	ip6 daddr . udp dport
++dst		addr6 port
++src		 
++start		10
++count		5
++src_delta	2000
++tools		sendip nc bash
++proto		udp6
++
++race_repeat	3
++flood_tools	iperf3 iperf netperf
++flood_proto	tcp6
++flood_spec	ip6 daddr . udp dport
++
++perf_duration	5
++perf_spec	ip6 daddr . udp dport
++perf_dst	addr6 port
++perf_src	 
++perf_entries	1000
++perf_proto	ipv6
++"
++
++TYPE_port_proto="
++display		port,proto
++type_spec	inet_service . inet_proto
++chain_spec	udp dport . meta l4proto
++dst		port proto
++src		 
++start		1
++count		5
++src_delta	2000
++tools		sendip nc bash
++proto		udp
++
++race_repeat	0
++
++perf_duration	5
++perf_spec	udp dport . meta l4proto
++perf_dst	port proto
++perf_src	 
++perf_entries	30000
++perf_proto	ipv4
++"
++
++TYPE_net6_port_mac="
++display		net6,port,mac
++type_spec	ipv6_addr . inet_service . ether_addr
++chain_spec	ip6 daddr . udp dport . ether saddr
++dst		addr6 port
++src		mac
++start		10
++count		5
++src_delta	2000
++tools		sendip nc bash
++proto		udp6
++
++race_repeat	0
++
++perf_duration	5
++perf_spec	ip6 daddr . udp dport . ether daddr
++perf_dst	addr6 port mac
++perf_src	 
++perf_entries	10
++perf_proto	ipv6
++"
++
++TYPE_net6_port_mac_proto="
++display		net6,port,mac,proto
++type_spec	ipv6_addr . inet_service . ether_addr . inet_proto
++chain_spec	ip6 daddr . udp dport . ether saddr . meta l4proto
++dst		addr6 port
++src		mac proto
++start		10
++count		5
++src_delta	2000
++tools		sendip nc bash
++proto		udp6
++
++race_repeat	0
++
++perf_duration	5
++perf_spec	ip6 daddr . udp dport . ether daddr . meta l4proto
++perf_dst	addr6 port mac proto
++perf_src	 
++perf_entries	1000
++perf_proto	ipv6
++"
++
++TYPE_net_port_net="
++display		net,port,net
++type_spec	ipv4_addr . inet_service . ipv4_addr
++chain_spec	ip daddr . udp dport . ip saddr
++dst		addr4 port
++src		addr4
++start		1
++count		5
++src_delta	2000
++tools		sendip nc bash
++proto		udp
++
++race_repeat	3
++flood_tools	iperf3 iperf netperf
++flood_proto	tcp
++flood_spec	ip daddr . udp dport . ip saddr
++
++perf_duration	0
++"
++
++TYPE_net6_port_net6_port="
++display		net6,port,net6,port
++type_spec	ipv6_addr . inet_service . ipv6_addr . inet_service
++chain_spec	ip6 daddr . udp dport . ip6 saddr . udp sport
++dst		addr6 port
++src		addr6 port
++start		10
++count		5
++src_delta	2000
++tools		sendip nc
++proto		udp6
++
++race_repeat	3
++flood_tools	iperf3 iperf netperf
++flood_proto	tcp6
++flood_spec	ip6 daddr . tcp dport . ip6 saddr . tcp sport
++
++perf_duration	0
++"
++
++TYPE_net_port_mac_proto_net="
++display		net,port,mac,proto,net
++type_spec	ipv4_addr . inet_service . ether_addr . inet_proto . ipv4_addr
++chain_spec	ip daddr . udp dport . ether saddr . meta l4proto . ip saddr
++dst		addr4 port
++src		mac proto addr4
++start		1
++count		5
++src_delta	2000
++tools		sendip nc bash
++proto		udp
++
++race_repeat	0
++
++perf_duration	0
++"
++
++TYPE_net_mac="
++display		net,mac
++type_spec	ipv4_addr . ether_addr
++chain_spec	ip daddr . ether saddr
++dst		addr4
++src		mac
++start		1
++count		5
++src_delta	2000
++tools		sendip nc bash
++proto		udp
++
++race_repeat	0
++
++perf_duration	5
++perf_spec	ip daddr . ether daddr
++perf_dst	addr4 mac
++perf_src	 
++perf_entries	1000
++perf_proto	ipv4
++"
++
++TYPE_net_mac_icmp="
++display		net,mac - ICMP
++type_spec	ipv4_addr . ether_addr
++chain_spec	ip daddr . ether saddr
++dst		addr4
++src		mac
++start		1
++count		5
++src_delta	2000
++tools		ping
++proto		icmp
++
++race_repeat	0
++
++perf_duration	0
++"
++
++TYPE_net6_mac_icmp="
++display		net6,mac - ICMPv6
++type_spec	ipv6_addr . ether_addr
++chain_spec	ip6 daddr . ether saddr
++dst		addr6
++src		mac
++start		10
++count		50
++src_delta	2000
++tools		ping
++proto		icmp6
++
++race_repeat	0
++
++perf_duration	0
++"
++
++TYPE_net_port_proto_net="
++display		net,port,proto,net
++type_spec	ipv4_addr . inet_service . inet_proto . ipv4_addr
++chain_spec	ip daddr . udp dport . meta l4proto . ip saddr
++dst		addr4 port proto
++src		addr4
++start		1
++count		5
++src_delta	2000
++tools		sendip nc
++proto		udp
++
++race_repeat	3
++flood_tools	iperf3 iperf netperf
++flood_proto	tcp
++flood_spec	ip daddr . tcp dport . meta l4proto . ip saddr
++
++perf_duration	0
++"
++
++# Set template for all tests, types and rules are filled in depending on test
++set_template='
++flush ruleset
++
++table inet filter {
++	counter test {
++		packets 0 bytes 0
 +	}
 +
-+	nla_nest_end(skb, concat);
-+
-+	return 0;
-+}
-+
- static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
- 			      const struct nft_set *set, u16 event, u16 flags)
- {
-@@ -3620,11 +3648,17 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
- 		goto nla_put_failure;
- 
- 	desc = nla_nest_start_noflag(skb, NFTA_SET_DESC);
-+
- 	if (desc == NULL)
- 		goto nla_put_failure;
- 	if (set->size &&
- 	    nla_put_be32(skb, NFTA_SET_DESC_SIZE, htonl(set->size)))
- 		goto nla_put_failure;
-+
-+	if (set->field_count > 1 &&
-+	    nf_tables_fill_set_concat(skb, set))
-+		goto nla_put_failure;
-+
- 	nla_nest_end(skb, desc);
- 
- 	nlmsg_end(skb, nlh);
-@@ -3797,6 +3831,53 @@ static int nf_tables_getset(struct net *net, struct sock *nlsk,
- 	return err;
- }
- 
-+static const struct nla_policy nft_concat_policy[NFTA_SET_FIELD_MAX + 1] = {
-+	[NFTA_SET_FIELD_LEN]	= { .type = NLA_U32 },
-+};
-+
-+static int nft_set_desc_concat_parse(const struct nlattr *attr,
-+				     struct nft_set_desc *desc)
-+{
-+	struct nlattr *tb[NFTA_SET_FIELD_MAX + 1];
-+	u32 len;
-+	int err;
-+
-+	err = nla_parse_nested_deprecated(tb, NFTA_SET_FIELD_MAX, attr,
-+					  nft_concat_policy, NULL);
-+	if (err < 0)
-+		return err;
-+
-+	if (!tb[NFTA_SET_FIELD_LEN])
-+		return -EINVAL;
-+
-+	len = ntohl(nla_get_be32(tb[NFTA_SET_FIELD_LEN]));
-+
-+	if (len * BITS_PER_BYTE / 32 > NFT_REG32_COUNT)
-+		return -E2BIG;
-+
-+	desc->field_len[desc->field_count++] = len;
-+
-+	return 0;
-+}
-+
-+static int nft_set_desc_concat(struct nft_set_desc *desc,
-+			       const struct nlattr *nla)
-+{
-+	struct nlattr *attr;
-+	int rem, err;
-+
-+	nla_for_each_nested(attr, nla, rem) {
-+		if (nla_type(attr) != NFTA_LIST_ELEM)
-+			return -EINVAL;
-+
-+		err = nft_set_desc_concat_parse(attr, desc);
-+		if (err < 0)
-+			return err;
++	set test {
++		type ${type_spec}
++		flags interval,timeout
 +	}
 +
-+	return 0;
++	chain input {
++		type filter hook prerouting priority 0; policy accept;
++		${chain_spec} @test counter name \"test\"
++	}
 +}
 +
- static int nf_tables_set_desc_parse(struct nft_set_desc *desc,
- 				    const struct nlattr *nla)
- {
-@@ -3810,8 +3891,10 @@ static int nf_tables_set_desc_parse(struct nft_set_desc *desc,
- 
- 	if (da[NFTA_SET_DESC_SIZE] != NULL)
- 		desc->size = ntohl(nla_get_be32(da[NFTA_SET_DESC_SIZE]));
-+	if (da[NFTA_SET_DESC_CONCAT])
-+		err = nft_set_desc_concat(desc, da[NFTA_SET_DESC_CONCAT]);
- 
--	return 0;
-+	return err;
- }
- 
- static int nf_tables_newset(struct net *net, struct sock *nlsk,
-@@ -3834,6 +3917,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 	unsigned char *udata;
- 	u16 udlen;
- 	int err;
-+	int i;
- 
- 	if (nla[NFTA_SET_TABLE] == NULL ||
- 	    nla[NFTA_SET_NAME] == NULL ||
-@@ -4012,6 +4096,10 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 	set->gc_int = gc_int;
- 	set->handle = nf_tables_alloc_handle(table);
- 
-+	set->field_count = desc.field_count;
-+	for (i = 0; i < desc.field_count; i++)
-+		set->field_len[i] = desc.field_len[i];
++table netdev perf {
++	counter test {
++		packets 0 bytes 0
++	}
 +
- 	err = ops->init(set, &desc, nla);
- 	if (err < 0)
- 		goto err3;
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index a9f804f7a04a..5000b938ab1e 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -466,6 +466,9 @@ static void nft_rbtree_destroy(const struct nft_set *set)
- static bool nft_rbtree_estimate(const struct nft_set_desc *desc, u32 features,
- 				struct nft_set_estimate *est)
- {
-+	if (desc->field_count > 1)
-+		return false;
++	counter match {
++		packets 0 bytes 0
++	}
 +
- 	if (desc->size)
- 		est->size = sizeof(struct nft_rbtree) +
- 			    desc->size * sizeof(struct nft_rbtree_elem);
++	set test {
++		type ${type_spec}
++		flags interval
++	}
++
++	set norange {
++		type ${type_spec}
++	}
++
++	set noconcat {
++		type ${type_spec%% *}
++		flags interval
++	}
++
++	chain test {
++		type filter hook ingress device veth_a priority 0;
++	}
++}
++'
++
++err_buf=
++info_buf=
++
++# Append string to error buffer
++err() {
++	err_buf="${err_buf}${1}
++"
++}
++
++# Append string to information buffer
++info() {
++	info_buf="${info_buf}${1}
++"
++}
++
++# Flush error buffer to stdout
++err_flush() {
++	printf "%s" "${err_buf}"
++	err_buf=
++}
++
++# Flush information buffer to stdout
++info_flush() {
++	printf "%s" "${info_buf}"
++	info_buf=
++}
++
++# Setup veth pair: this namespace receives traffic, B generates it
++setup_veth() {
++	ip netns add B
++	ip link add veth_a type veth peer name veth_b || return 1
++
++	ip link set veth_a up
++	ip link set veth_b netns B
++
++	ip -n B link set veth_b up
++
++	ip addr add dev veth_a 10.0.0.1
++	ip route add default dev veth_a
++
++	ip -6 addr add fe80::1/64 dev veth_a nodad
++	ip -6 addr add 2001:db8::1/64 dev veth_a nodad
++	ip -6 route add default dev veth_a
++
++	ip -n B route add default dev veth_b
++
++	ip -6 -n B addr add fe80::2/64 dev veth_b nodad
++	ip -6 -n B addr add 2001:db8::2/64 dev veth_b nodad
++	ip -6 -n B route add default dev veth_b
++
++	B() {
++		ip netns exec B "$@" >/dev/null 2>&1
++	}
++
++	sleep 2
++}
++
++# Fill in set template and initialise set
++setup_set() {
++	eval "echo \"${set_template}\"" | nft -f -
++}
++
++# Check that at least one of the needed tools is available
++check_tools() {
++	__tools=
++	for tool in ${tools}; do
++		if [ "${tool}" = "nc" ] && [ "${proto}" = "udp6" ] && \
++		   ! nc -u -w0 1.1.1.1 1 2>/dev/null; then
++			# Some GNU netcat builds might not support IPv6
++			__tools="${__tools} netcat-openbsd"
++			continue
++		fi
++		__tools="${__tools} ${tool}"
++
++		command -v "${tool}" >/dev/null && return 0
++	done
++	err "need one of:${__tools}, skipping" && return 1
++}
++
++# Set up function to send ICMP packets
++setup_send_icmp() {
++	send_icmp() {
++		B ping -c1 -W1 "${dst_addr4}" >/dev/null 2>&1
++	}
++}
++
++# Set up function to send ICMPv6 packets
++setup_send_icmp6() {
++	if command -v ping6 >/dev/null; then
++		send_icmp6() {
++			ip -6 addr add "${dst_addr6}" dev veth_a nodad \
++				2>/dev/null
++			B ping6 -q -c1 -W1 "${dst_addr6}"
++		}
++	else
++		send_icmp6() {
++			ip -6 addr add "${dst_addr6}" dev veth_a nodad \
++				2>/dev/null
++			B ping -q -6 -c1 -W1 "${dst_addr6}"
++		}
++	fi
++}
++
++# Set up function to send single UDP packets on IPv4
++setup_send_udp() {
++	if command -v sendip >/dev/null; then
++		send_udp() {
++			[ -n "${src_port}" ] && src_port="-us ${src_port}"
++			[ -n "${dst_port}" ] && dst_port="-ud ${dst_port}"
++			[ -n "${src_addr4}" ] && src_addr4="-is ${src_addr4}"
++
++			# shellcheck disable=SC2086 # sendip needs split options
++			B sendip -p ipv4 -p udp ${src_addr4} ${src_port} \
++						${dst_port} "${dst_addr4}"
++
++			src_port=
++			dst_port=
++			src_addr4=
++		}
++	elif command -v nc >/dev/null; then
++		if nc -u -w0 1.1.1.1 1 2>/dev/null; then
++			# OpenBSD netcat
++			nc_opt="-w0"
++		else
++			# GNU netcat
++			nc_opt="-q0"
++		fi
++
++		send_udp() {
++			if [ -n "${src_addr4}" ]; then
++				B ip addr add "${src_addr4}" dev veth_b
++				__src_addr4="-s ${src_addr4}"
++			fi
++			ip addr add "${dst_addr4}" dev veth_a 2>/dev/null
++			[ -n "${src_port}" ] && src_port="-p ${src_port}"
++
++			echo "" | B nc -u "${nc_opt}" "${__src_addr4}" \
++				  "${src_port}" "${dst_addr4}" "${dst_port}"
++
++			src_addr4=
++			src_port=
++		}
++	elif [ -z "$(bash -c 'type -p')" ]; then
++		send_udp() {
++			ip addr add "${dst_addr4}" dev veth_a 2>/dev/null
++			if [ -n "${src_addr4}" ]; then
++				B ip addr add "${src_addr4}/16" dev veth_b
++				B ip route add default dev veth_b
++			fi
++
++			B bash -c "echo > /dev/udp/${dst_addr4}/${dst_port}"
++
++			if [ -n "${src_addr4}" ]; then
++				B ip addr del "${src_addr4}/16" dev veth_b
++			fi
++			src_addr4=
++		}
++	else
++		return 1
++	fi
++}
++
++# Set up function to send single UDP packets on IPv6
++setup_send_udp6() {
++	if command -v sendip >/dev/null; then
++		send_udp6() {
++			[ -n "${src_port}" ] && src_port="-us ${src_port}"
++			[ -n "${dst_port}" ] && dst_port="-ud ${dst_port}"
++			if [ -n "${src_addr6}" ]; then
++				src_addr6="-6s ${src_addr6}"
++			else
++				src_addr6="-6s 2001:db8::2"
++			fi
++			ip -6 addr add "${dst_addr6}" dev veth_a nodad \
++				2>/dev/null
++
++			# shellcheck disable=SC2086 # this needs split options
++			B sendip -p ipv6 -p udp ${src_addr6} ${src_port} \
++						${dst_port} "${dst_addr6}"
++
++			src_port=
++			dst_port=
++			src_addr6=
++		}
++	elif command -v nc >/dev/null && nc -u -w0 1.1.1.1 1 2>/dev/null; then
++		# GNU netcat might not work with IPv6, try next tool
++		send_udp6() {
++			ip -6 addr add "${dst_addr6}" dev veth_a nodad \
++				2>/dev/null
++			if [ -n "${src_addr6}" ]; then
++				B ip addr add "${src_addr6}" dev veth_b nodad
++			else
++				src_addr6="2001:db8::2"
++			fi
++			[ -n "${src_port}" ] && src_port="-p ${src_port}"
++
++			# shellcheck disable=SC2086 # this needs split options
++			echo "" | B nc -u w0 "-s${src_addr6}" ${src_port} \
++					       ${dst_addr6} ${dst_port}
++
++			src_addr6=
++			src_port=
++		}
++	elif [ -z "$(bash -c 'type -p')" ]; then
++		send_udp6() {
++			ip -6 addr add "${dst_addr6}" dev veth_a nodad \
++				2>/dev/null
++			B ip addr add "${src_addr6}" dev veth_b nodad
++			B bash -c "echo > /dev/udp/${dst_addr6}/${dst_port}"
++			ip -6 addr del "${dst_addr6}" dev veth_a 2>/dev/null
++		}
++	else
++		return 1
++	fi
++}
++
++# Set up function to send TCP traffic on IPv4
++setup_flood_tcp() {
++	if command -v iperf3 >/dev/null; then
++		flood_tcp() {
++			[ -n "${dst_port}" ] && dst_port="-p ${dst_port}"
++			if [ -n "${src_addr4}" ]; then
++				B ip addr add "${src_addr4}/16" dev veth_b
++				src_addr4="-B ${src_addr4}"
++			else
++				B ip addr add dev veth_b 10.0.0.2
++				src_addr4="-B 10.0.0.2"
++			fi
++			if [ -n "${src_port}" ]; then
++				src_port="--cport ${src_port}"
++			fi
++			B ip route add default dev veth_b 2>/dev/null
++			ip addr add "${dst_addr4}" dev veth_a 2>/dev/null
++
++			# shellcheck disable=SC2086 # this needs split options
++			iperf3 -s -DB "${dst_addr4}" ${dst_port} >/dev/null 2>&1
++			sleep 2
++
++			# shellcheck disable=SC2086 # this needs split options
++			B iperf3 -c "${dst_addr4}" ${dst_port} ${src_port} \
++				${src_addr4} -l16 -t 1000
++
++			src_addr4=
++			src_port=
++			dst_port=
++		}
++	elif command -v iperf >/dev/null; then
++		flood_tcp() {
++			[ -n "${dst_port}" ] && dst_port="-p ${dst_port}"
++			if [ -n "${src_addr4}" ]; then
++				B ip addr add "${src_addr4}/16" dev veth_b
++				src_addr4="-B ${src_addr4}"
++			else
++				B ip addr add dev veth_b 10.0.0.2 2>/dev/null
++				src_addr4="-B 10.0.0.2"
++			fi
++			if [ -n "${src_port}" ]; then
++				src_addr4="${src_addr4}:${src_port}"
++			fi
++			B ip route add default dev veth_b
++			ip addr add "${dst_addr4}" dev veth_a 2>/dev/null
++
++			# shellcheck disable=SC2086 # this needs split options
++			iperf -s -DB "${dst_addr4}" ${dst_port} >/dev/null 2>&1
++			sleep 2
++
++			# shellcheck disable=SC2086 # this needs split options
++			B iperf -c "${dst_addr4}" ${dst_port} ${src_addr4} \
++				-l20 -t 1000
++
++			src_addr4=
++			src_port=
++			dst_port=
++		}
++	elif command -v netperf >/dev/null; then
++		flood_tcp() {
++			[ -n "${dst_port}" ] && dst_port="-p ${dst_port}"
++			if [ -n "${src_addr4}" ]; then
++				B ip addr add "${src_addr4}/16" dev veth_b
++			else
++				B ip addr add dev veth_b 10.0.0.2
++				src_addr4="10.0.0.2"
++			fi
++			if [ -n "${src_port}" ]; then
++				dst_port="${dst_port},${src_port}"
++			fi
++			B ip route add default dev veth_b
++			ip addr add "${dst_addr4}" dev veth_a 2>/dev/null
++
++			# shellcheck disable=SC2086 # this needs split options
++			netserver -4 ${dst_port} -L "${dst_addr4}" \
++				>/dev/null 2>&1
++			sleep 2
++
++			# shellcheck disable=SC2086 # this needs split options
++			B netperf -4 -H "${dst_addr4}" ${dst_port} \
++				-L "${src_addr4}" -l 1000 -t TCP_STREAM
++
++			src_addr4=
++			src_port=
++			dst_port=
++		}
++	else
++		return 1
++	fi
++}
++
++# Set up function to send TCP traffic on IPv6
++setup_flood_tcp6() {
++	if command -v iperf3 >/dev/null; then
++		flood_tcp6() {
++			[ -n "${dst_port}" ] && dst_port="-p ${dst_port}"
++			if [ -n "${src_addr6}" ]; then
++				B ip addr add "${src_addr6}" dev veth_b nodad
++				src_addr6="-B ${src_addr6}"
++			else
++				src_addr6="-B 2001:db8::2"
++			fi
++			if [ -n "${src_port}" ]; then
++				src_port="--cport ${src_port}"
++			fi
++			B ip route add default dev veth_b
++			ip -6 addr add "${dst_addr6}" dev veth_a nodad \
++				2>/dev/null
++
++			# shellcheck disable=SC2086 # this needs split options
++			iperf3 -s -DB "${dst_addr6}" ${dst_port} >/dev/null 2>&1
++			sleep 2
++
++			# shellcheck disable=SC2086 # this needs split options
++			B iperf3 -c "${dst_addr6}" ${dst_port} \
++				${src_port} ${src_addr6} -l16 -t 1000
++
++			src_addr6=
++			src_port=
++			dst_port=
++		}
++	elif command -v iperf >/dev/null; then
++		flood_tcp6() {
++			[ -n "${dst_port}" ] && dst_port="-p ${dst_port}"
++			if [ -n "${src_addr6}" ]; then
++				B ip addr add "${src_addr6}" dev veth_b nodad
++				src_addr6="-B ${src_addr6}"
++			else
++				src_addr6="-B 2001:db8::2"
++			fi
++			if [ -n "${src_port}" ]; then
++				src_addr6="${src_addr6}:${src_port}"
++			fi
++			B ip route add default dev veth_b
++			ip -6 addr add "${dst_addr6}" dev veth_a nodad \
++				2>/dev/null
++
++			# shellcheck disable=SC2086 # this needs split options
++			iperf -s -VDB "${dst_addr6}" ${dst_port} >/dev/null 2>&1
++			sleep 2
++
++			# shellcheck disable=SC2086 # this needs split options
++			B iperf -c "${dst_addr6}" -V ${dst_port} \
++				${src_addr6} -l1 -t 1000
++
++			src_addr6=
++			src_port=
++			dst_port=
++		}
++	elif command -v netperf >/dev/null; then
++		flood_tcp6() {
++			[ -n "${dst_port}" ] && dst_port="-p ${dst_port}"
++			if [ -n "${src_addr6}" ]; then
++				B ip addr add "${src_addr6}" dev veth_b nodad
++			else
++				src_addr6="2001:db8::2"
++			fi
++			if [ -n "${src_port}" ]; then
++				dst_port="${dst_port},${src_port}"
++			fi
++			B ip route add default dev veth_b
++			ip -6 addr add "${dst_addr6}" dev veth_a nodad \
++				2>/dev/null
++
++			# shellcheck disable=SC2086 # this needs split options
++			netserver -6 ${dst_port} -L "${dst_addr6}" \
++				>/dev/null 2>&1
++			sleep 2
++
++			# shellcheck disable=SC2086 # this needs split options
++			B netperf -6 -H "${dst_addr6}" ${dst_port} \
++				-L "${src_addr6}" -l 1000 -t TCP_STREAM
++
++			src_addr6=
++			src_port=
++			dst_port=
++		}
++	else
++		return 1
++	fi
++}
++
++# Set up function to send UDP traffic on IPv4
++setup_flood_udp() {
++	if command -v iperf3 >/dev/null; then
++		flood_udp() {
++			[ -n "${dst_port}" ] && dst_port="-p ${dst_port}"
++			if [ -n "${src_addr4}" ]; then
++				B ip addr add "${src_addr4}/16" dev veth_b
++				src_addr4="-B ${src_addr4}"
++			else
++				B ip addr add dev veth_b 10.0.0.2 2>/dev/null
++				src_addr4="-B 10.0.0.2"
++			fi
++			if [ -n "${src_port}" ]; then
++				src_port="--cport ${src_port}"
++			fi
++			B ip route add default dev veth_b
++			ip addr add "${dst_addr4}" dev veth_a 2>/dev/null
++
++			# shellcheck disable=SC2086 # this needs split options
++			iperf3 -s -DB "${dst_addr4}" ${dst_port}
++			sleep 2
++
++			# shellcheck disable=SC2086 # this needs split options
++			B iperf3 -u -c "${dst_addr4}" -Z -b 100M -l16 -t1000 \
++				${dst_port} ${src_port} ${src_addr4}
++
++			src_addr4=
++			src_port=
++			dst_port=
++		}
++	elif command -v iperf >/dev/null; then
++		flood_udp() {
++			[ -n "${dst_port}" ] && dst_port="-p ${dst_port}"
++			if [ -n "${src_addr4}" ]; then
++				B ip addr add "${src_addr4}/16" dev veth_b
++				src_addr4="-B ${src_addr4}"
++			else
++				B ip addr add dev veth_b 10.0.0.2
++				src_addr4="-B 10.0.0.2"
++			fi
++			if [ -n "${src_port}" ]; then
++				src_addr4="${src_addr4}:${src_port}"
++			fi
++			B ip route add default dev veth_b
++			ip addr add "${dst_addr4}" dev veth_a 2>/dev/null
++
++			# shellcheck disable=SC2086 # this needs split options
++			iperf -u -sDB "${dst_addr4}" ${dst_port} >/dev/null 2>&1
++			sleep 2
++
++			# shellcheck disable=SC2086 # this needs split options
++			B iperf -u -c "${dst_addr4}" -b 100M -l1 -t1000 \
++				${dst_port} ${src_addr4}
++
++			src_addr4=
++			src_port=
++			dst_port=
++		}
++	elif command -v netperf >/dev/null; then
++		flood_udp() {
++			[ -n "${dst_port}" ] && dst_port="-p ${dst_port}"
++			if [ -n "${src_addr4}" ]; then
++				B ip addr add "${src_addr4}/16" dev veth_b
++			else
++				B ip addr add dev veth_b 10.0.0.2
++				src_addr4="10.0.0.2"
++			fi
++			if [ -n "${src_port}" ]; then
++				dst_port="${dst_port},${src_port}"
++			fi
++			B ip route add default dev veth_b
++			ip addr add "${dst_addr4}" dev veth_a 2>/dev/null
++
++			# shellcheck disable=SC2086 # this needs split options
++			netserver -4 ${dst_port} -L "${dst_addr4}" \
++				>/dev/null 2>&1
++			sleep 2
++
++			# shellcheck disable=SC2086 # this needs split options
++			B netperf -4 -H "${dst_addr4}" ${dst_port} \
++				-L "${src_addr4}" -l 1000 -t UDP_STREAM
++
++			src_addr4=
++			src_port=
++			dst_port=
++		}
++	else
++		return 1
++	fi
++}
++
++# Find pktgen script and set up function to start pktgen injection
++setup_perf() {
++	for pktgen_script_path in ${PKTGEN_SCRIPT_PATHS} __notfound; do
++		command -v "${pktgen_script_path}" >/dev/null && break
++	done
++	[ "${pktgen_script_path}" = "__notfound" ] && return 1
++
++	perf_ipv4() {
++		${pktgen_script_path} -s80 \
++			-i veth_a -d "${dst_addr4}" -p "${dst_port}" \
++			-m "${dst_mac}" \
++			-t $(($(nproc) / 5 + 1)) -b10000 -n0 2>/dev/null &
++		perf_pid=$!
++	}
++	perf_ipv6() {
++		IP6=6 ${pktgen_script_path} -s100 \
++			-i veth_a -d "${dst_addr6}" -p "${dst_port}" \
++			-m "${dst_mac}" \
++			-t $(($(nproc) / 5 + 1)) -b10000 -n0 2>/dev/null &
++		perf_pid=$!
++	}
++}
++
++# Clean up before each test
++cleanup() {
++	nft reset counter inet filter test	>/dev/null 2>&1
++	nft flush ruleset			>/dev/null 2>&1
++	ip link del dummy0			2>/dev/null
++	ip route del default			2>/dev/null
++	ip -6 route del default			2>/dev/null
++	ip netns del B				2>/dev/null
++	ip link del veth_a			2>/dev/null
++	timeout=
++	killall iperf3				2>/dev/null
++	killall iperf				2>/dev/null
++	killall netperf				2>/dev/null
++	killall netserver			2>/dev/null
++	rm -f ${tmp}
++	sleep 2
++}
++
++# Entry point for setup functions
++setup() {
++	if [ "$(id -u)" -ne 0 ]; then
++		echo "  need to run as root"
++		exit ${KSELFTEST_SKIP}
++	fi
++
++	cleanup
++	check_tools || return 1
++	for arg do
++		if ! eval setup_"${arg}"; then
++			err "  ${arg} not supported"
++			return 1
++		fi
++	done
++}
++
++# Format integer into IPv4 address, summing 10.0.0.5 (arbitrary) to it
++format_addr4() {
++	a=$((${1} + 16777216 * 10 + 5))
++	printf "%i.%i.%i.%i"						\
++	       "$((a / 16777216))" "$((a % 16777216 / 65536))"	\
++	       "$((a % 65536 / 256))" "$((a % 256))"
++}
++
++# Format integer into IPv6 address, summing 2001:db8:: to it
++format_addr6() {
++	printf "2001:db8::%04x:%04x" "$((${1} / 65536))" "$((${1} % 65536))"
++}
++
++# Format integer into EUI-48 address, summing 00:01:00:00:00:00 to it
++format_mac() {
++	printf "00:01:%02x:%02x:%02x:%02x" \
++	       "$((${1} / 16777216))" "$((${1} % 16777216 / 65536))"	\
++	       "$((${1} % 65536 / 256))" "$((${1} % 256))"
++}
++
++# Format integer into port, avoid 0 port
++format_port() {
++	printf "%i" "$((${1} % 65534 + 1))"
++}
++
++# Drop suffixed '6' from L4 protocol, if any
++format_proto() {
++	printf "%s" "${proto}" | tr -d 6
++}
++
++# Format destination and source fields into nft concatenated type
++format() {
++	__start=
++	__end=
++	__expr="{ "
++
++	for f in ${dst}; do
++		[ "${__expr}" != "{ " ] && __expr="${__expr} . "
++
++		__start="$(eval format_"${f}" "${start}")"
++		__end="$(eval format_"${f}" "${end}")"
++
++		if [ "${f}" = "proto" ]; then
++			__expr="${__expr}${__start}"
++		else
++			__expr="${__expr}${__start}-${__end}"
++		fi
++	done
++	for f in ${src}; do
++		__expr="${__expr} . "
++		__start="$(eval format_"${f}" "${srcstart}")"
++		__end="$(eval format_"${f}" "${srcend}")"
++
++		if [ "${f}" = "proto" ]; then
++			__expr="${__expr}${__start}"
++		else
++			__expr="${__expr}${__start}-${__end}"
++		fi
++	done
++
++	if [ -n "${timeout}" ]; then
++		echo "${__expr} timeout ${timeout}s }"
++	else
++		echo "${__expr} }"
++	fi
++}
++
++# Format destination and source fields into nft type, start element only
++format_norange() {
++	__expr="{ "
++
++	for f in ${dst}; do
++		[ "${__expr}" != "{ " ] && __expr="${__expr} . "
++
++		__expr="${__expr}$(eval format_"${f}" "${start}")"
++	done
++	for f in ${src}; do
++		__expr="${__expr} . $(eval format_"${f}" "${start}")"
++	done
++
++	echo "${__expr} }"
++}
++
++# Format first destination field into nft type
++format_noconcat() {
++	for f in ${dst}; do
++		__start="$(eval format_"${f}" "${start}")"
++		__end="$(eval format_"${f}" "${end}")"
++
++		if [ "${f}" = "proto" ]; then
++			echo "{ ${__start} }"
++		else
++			echo "{ ${__start}-${__end} }"
++		fi
++		return
++	done
++}
++
++# Add single entry to 'test' set in 'inet filter' table
++add() {
++	if ! nft add element inet filter test "${1}"; then
++		err "Failed to add ${1} given ruleset:"
++		err "$(nft list ruleset -a)"
++		return 1
++	fi
++}
++
++# Format and output entries for sets in 'netdev perf' table
++add_perf() {
++	if [ "${1}" = "test" ]; then
++		echo "add element netdev perf test $(format)"
++	elif [ "${1}" = "norange" ]; then
++		echo "add element netdev perf norange $(format_norange)"
++	elif [ "${1}" = "noconcat" ]; then
++		echo "add element netdev perf noconcat $(format_noconcat)"
++	fi
++}
++
++# Add single entry to 'norange' set in 'netdev perf' table
++add_perf_norange() {
++	if ! nft add element netdev perf norange "${1}"; then
++		err "Failed to add ${1} given ruleset:"
++		err "$(nft list ruleset -a)"
++		return 1
++	fi
++}
++
++# Add single entry to 'noconcat' set in 'netdev perf' table
++add_perf_noconcat() {
++	if ! nft add element netdev perf noconcat "${1}"; then
++		err "Failed to add ${1} given ruleset:"
++		err "$(nft list ruleset -a)"
++		return 1
++	fi
++}
++
++# Delete single entry from set
++del() {
++	if ! nft delete element inet filter test "${1}"; then
++		err "Failed to delete ${1} given ruleset:"
++		err "$(nft list ruleset -a)"
++		return 1
++	fi
++}
++
++# Return packet count from 'test' counter in 'inet filter' table
++count_packets() {
++	found=0
++	for token in $(nft list counter inet filter test); do
++		[ ${found} -eq 1 ] && echo "${token}" && return
++		[ "${token}" = "packets" ] && found=1
++	done
++}
++
++# Return packet count from 'test' counter in 'netdev perf' table
++count_perf_packets() {
++	found=0
++	for token in $(nft list counter netdev perf test); do
++		[ ${found} -eq 1 ] && echo "${token}" && return
++		[ "${token}" = "packets" ] && found=1
++	done
++}
++
++# Set MAC addresses, send traffic according to specifier
++flood() {
++	ip link set veth_a address "$(format_mac "${1}")"
++	ip -n B link set veth_b address "$(format_mac "${2}")"
++
++	for f in ${dst}; do
++		eval dst_"$f"=\$\(format_\$f "${1}"\)
++	done
++	for f in ${src}; do
++		eval src_"$f"=\$\(format_\$f "${2}"\)
++	done
++	eval flood_\$proto
++}
++
++# Set MAC addresses, start pktgen injection
++perf() {
++	dst_mac="$(format_mac "${1}")"
++	ip link set veth_a address "${dst_mac}"
++
++	for f in ${dst}; do
++		eval dst_"$f"=\$\(format_\$f "${1}"\)
++	done
++	for f in ${src}; do
++		eval src_"$f"=\$\(format_\$f "${2}"\)
++	done
++	eval perf_\$perf_proto
++}
++
++# Set MAC addresses, send single packet, check that it matches, reset counter
++send_match() {
++	ip link set veth_a address "$(format_mac "${1}")"
++	ip -n B link set veth_b address "$(format_mac "${2}")"
++
++	for f in ${dst}; do
++		eval dst_"$f"=\$\(format_\$f "${1}"\)
++	done
++	for f in ${src}; do
++		eval src_"$f"=\$\(format_\$f "${2}"\)
++	done
++	eval send_\$proto
++	if [ "$(count_packets)" != "1" ]; then
++		err "${proto} packet to:"
++		err "  $(for f in ${dst}; do
++			 eval format_\$f "${1}"; printf ' '; done)"
++		err "from:"
++		err "  $(for f in ${src}; do
++			 eval format_\$f "${2}"; printf ' '; done)"
++		err "should have matched ruleset:"
++		err "$(nft list ruleset -a)"
++		return 1
++	fi
++	nft reset counter inet filter test >/dev/null
++}
++
++# Set MAC addresses, send single packet, check that it doesn't match
++send_nomatch() {
++	ip link set veth_a address "$(format_mac "${1}")"
++	ip -n B link set veth_b address "$(format_mac "${2}")"
++
++	for f in ${dst}; do
++		eval dst_"$f"=\$\(format_\$f "${1}"\)
++	done
++	for f in ${src}; do
++		eval src_"$f"=\$\(format_\$f "${2}"\)
++	done
++	eval send_\$proto
++	if [ "$(count_packets)" != "0" ]; then
++		err "${proto} packet to:"
++		err "  $(for f in ${dst}; do
++			 eval format_\$f "${1}"; printf ' '; done)"
++		err "from:"
++		err "  $(for f in ${src}; do
++			 eval format_\$f "${2}"; printf ' '; done)"
++		err "should not have matched ruleset:"
++		err "$(nft list ruleset -a)"
++		return 1
++	fi
++}
++
++# Correctness test template:
++# - add ranged element, check that packets match it
++# - check that packets outside range don't match it
++# - remove some elements, check that packets don't match anymore
++test_correctness() {
++	setup veth send_"${proto}" set || return ${KSELFTEST_SKIP}
++
++	range_size=1
++	for i in $(seq "${start}" $((start + count))); do
++		end=$((start + range_size))
++
++		# Avoid negative or zero-sized port ranges
++		if [ $((end / 65534)) -gt $((start / 65534)) ]; then
++			start=${end}
++			end=$((end + 1))
++		fi
++		srcstart=$((start + src_delta))
++		srcend=$((end + src_delta))
++
++		add "$(format)" || return 1
++		for j in $(seq ${start} $((range_size / 2 + 1)) ${end}); do
++			send_match "${j}" $((j + src_delta)) || return 1
++		done
++		send_nomatch $((end + 1)) $((end + 1 + src_delta)) || return 1
++
++		# Delete elements now and then
++		if [ $((i % 3)) -eq 0 ]; then
++			del "$(format)" || return 1
++			for j in $(seq ${start} \
++				   $((range_size / 2 + 1)) ${end}); do
++				send_nomatch "${j}" $((j + src_delta)) \
++					|| return 1
++			done
++		fi
++
++		range_size=$((range_size + 1))
++		start=$((end + range_size))
++	done
++}
++
++# Concurrency test template:
++# - add all the elements
++# - start a thread for each physical thread that:
++#   - adds all the elements
++#   - flushes the set
++#   - adds all the elements
++#   - flushes the entire ruleset
++#   - adds the set back
++#   - adds all the elements
++#   - delete all the elements
++test_concurrency() {
++	proto=${flood_proto}
++	tools=${flood_tools}
++	chain_spec=${flood_spec}
++	setup veth flood_"${proto}" set || return ${KSELFTEST_SKIP}
++
++	range_size=1
++	cstart=${start}
++	flood_pids=
++	for i in $(seq ${start} $((start + count))); do
++		end=$((start + range_size))
++		srcstart=$((start + src_delta))
++		srcend=$((end + src_delta))
++
++		add "$(format)" || return 1
++
++		flood "${i}" $((i + src_delta)) & flood_pids="${flood_pids} $!"
++
++		range_size=$((range_size + 1))
++		start=$((end + range_size))
++	done
++
++	sleep 10
++
++	pids=
++	for c in $(seq 1 "$(nproc)"); do (
++		for r in $(seq 1 "${race_repeat}"); do
++			range_size=1
++
++			# $start needs to be local to this subshell
++			# shellcheck disable=SC2030
++			start=${cstart}
++			for i in $(seq ${start} $((start + count))); do
++				end=$((start + range_size))
++				srcstart=$((start + src_delta))
++				srcend=$((end + src_delta))
++
++				add "$(format)" 2>/dev/null
++
++				range_size=$((range_size + 1))
++				start=$((end + range_size))
++			done
++
++			nft flush inet filter test 2>/dev/null
++
++			range_size=1
++			start=${cstart}
++			for i in $(seq ${start} $((start + count))); do
++				end=$((start + range_size))
++				srcstart=$((start + src_delta))
++				srcend=$((end + src_delta))
++
++				add "$(format)" 2>/dev/null
++
++				range_size=$((range_size + 1))
++				start=$((end + range_size))
++			done
++
++			nft flush ruleset
++			setup set 2>/dev/null
++
++			range_size=1
++			start=${cstart}
++			for i in $(seq ${start} $((start + count))); do
++				end=$((start + range_size))
++				srcstart=$((start + src_delta))
++				srcend=$((end + src_delta))
++
++				add "$(format)" 2>/dev/null
++
++				range_size=$((range_size + 1))
++				start=$((end + range_size))
++			done
++
++			range_size=1
++			start=${cstart}
++			for i in $(seq ${start} $((start + count))); do
++				end=$((start + range_size))
++				srcstart=$((start + src_delta))
++				srcend=$((end + src_delta))
++
++				del "$(format)" 2>/dev/null
++
++				range_size=$((range_size + 1))
++				start=$((end + range_size))
++			done
++		done
++	) & pids="${pids} $!"
++	done
++
++	# shellcheck disable=SC2046,SC2086 # word splitting wanted here
++	wait $(for pid in ${pids}; do echo ${pid}; done)
++	# shellcheck disable=SC2046,SC2086
++	kill $(for pid in ${flood_pids}; do echo ${pid}; done) 2>/dev/null
++	# shellcheck disable=SC2046,SC2086
++	wait $(for pid in ${flood_pids}; do echo ${pid}; done) 2>/dev/null
++
++	return 0
++}
++
++# Timeout test template:
++# - add all the elements with 3s timeout while checking that packets match
++# - wait 3s after the last insertion, check that packets don't match any entry
++test_timeout() {
++	setup veth send_"${proto}" set || return ${KSELFTEST_SKIP}
++
++	timeout=3
++	range_size=1
++	for i in $(seq "${start}" $((start + count))); do
++		end=$((start + range_size))
++		srcstart=$((start + src_delta))
++		srcend=$((end + src_delta))
++
++		add "$(format)" || return 1
++
++		for j in $(seq ${start} $((range_size / 2 + 1)) ${end}); do
++			send_match "${j}" $((j + src_delta)) || return 1
++		done
++
++		range_size=$((range_size + 1))
++		start=$((end + range_size))
++	done
++	sleep 3
++	for i in $(seq ${start} $((start + count))); do
++		end=$((start + range_size))
++		srcstart=$((start + src_delta))
++		srcend=$((end + src_delta))
++
++		for j in $(seq ${start} $((range_size / 2 + 1)) ${end}); do
++			send_nomatch "${j}" $((j + src_delta)) || return 1
++		done
++
++		range_size=$((range_size + 1))
++		start=$((end + range_size))
++	done
++}
++
++# Performance test template:
++# - add concatenated ranged entries
++# - add non-ranged concatenated entries (for hash set matching rate baseline)
++# - add ranged entries with first field only (for rbhash baseline)
++# - start pktgen injection directly on device rx path of this namespace
++# - measure drop only rate, hash and rbtree baselines, then matching rate
++test_performance() {
++	chain_spec=${perf_spec}
++	dst="${perf_dst}"
++	src="${perf_src}"
++	setup veth perf set || return ${KSELFTEST_SKIP}
++
++	first=${start}
++	range_size=1
++	for set in test norange noconcat; do
++		start=${first}
++		for i in $(seq ${start} $((start + perf_entries))); do
++			end=$((start + range_size))
++			srcstart=$((start + src_delta))
++			srcend=$((end + src_delta))
++
++			if [ $((end / 65534)) -gt $((start / 65534)) ]; then
++				start=${end}
++				end=$((end + 1))
++			elif [ ${start} -eq ${end} ]; then
++				end=$((start + 1))
++			fi
++
++			add_perf ${set}
++
++			start=$((end + range_size))
++		done > "${tmp}"
++		nft -f "${tmp}"
++	done
++
++	perf $((end - 1)) ${srcstart}
++
++	sleep 2
++
++	nft add rule netdev perf test counter name \"test\" drop
++	nft reset counter netdev perf test >/dev/null 2>&1
++	sleep "${perf_duration}"
++	pps="$(printf %10s $(($(count_perf_packets) / perf_duration)))"
++	info "    baseline (drop from netdev hook):            ${pps}pps"
++	handle="$(nft -a list chain netdev perf test | grep counter)"
++	handle="${handle##* }"
++	nft delete rule netdev perf test handle "${handle}"
++
++	nft add rule "netdev perf test ${chain_spec} @norange \
++		counter name \"test\" drop"
++	nft reset counter netdev perf test >/dev/null 2>&1
++	sleep "${perf_duration}"
++	pps="$(printf %10s $(($(count_perf_packets) / perf_duration)))"
++	info "    baseline hash (non-ranged entries):          ${pps}pps"
++	handle="$(nft -a list chain netdev perf test | grep counter)"
++	handle="${handle##* }"
++	nft delete rule netdev perf test handle "${handle}"
++
++	nft add rule "netdev perf test ${chain_spec%%. *} @noconcat \
++		counter name \"test\" drop"
++	nft reset counter netdev perf test >/dev/null 2>&1
++	sleep "${perf_duration}"
++	pps="$(printf %10s $(($(count_perf_packets) / perf_duration)))"
++	info "    baseline rbtree (match on first field only): ${pps}pps"
++	handle="$(nft -a list chain netdev perf test | grep counter)"
++	handle="${handle##* }"
++	nft delete rule netdev perf test handle "${handle}"
++
++	nft add rule "netdev perf test ${chain_spec} @test \
++		counter name \"test\" drop"
++	nft reset counter netdev perf test >/dev/null 2>&1
++	sleep "${perf_duration}"
++	pps="$(printf %10s $(($(count_perf_packets) / perf_duration)))"
++	p5="$(printf %5s "${perf_entries}")"
++	info "    set with ${p5} full, ranged entries:         ${pps}pps"
++	kill "${perf_pid}"
++}
++
++# Run everything in a separate network namespace
++[ "${1}" != "run" ] && { unshare -n "${0}" run; exit $?; }
++tmp="$(mktemp)"
++trap cleanup EXIT
++
++# Entry point for test runs
++passed=0
++for name in ${TESTS}; do
++	printf "TEST: %s\n" "${name}"
++	for type in ${TYPES}; do
++		eval desc=\$TYPE_"${type}"
++		IFS='
++'
++		for __line in ${desc}; do
++			# shellcheck disable=SC2086
++			eval ${__line%%	*}=\"${__line##*	}\";
++		done
++		IFS=' 	
++'
++
++		if [ "${name}" = "concurrency" ] && \
++		   [ "${race_repeat}" = "0" ]; then
++			continue
++		fi
++		if [ "${name}" = "performance" ] && \
++		   [ "${perf_duration}" = "0" ]; then
++			continue
++		fi
++
++		printf "  %-60s  " "${display}"
++		eval test_"${name}"
++		ret=$?
++
++		if [ $ret -eq 0 ]; then
++			printf "[ OK ]\n"
++			info_flush
++			passed=$((passed + 1))
++		elif [ $ret -eq 1 ]; then
++			printf "[FAIL]\n"
++			err_flush
++			exit 1
++		elif [ $ret -eq ${KSELFTEST_SKIP} ]; then
++			printf "[SKIP]\n"
++			err_flush
++		fi
++	done
++done
++
++[ ${passed} -eq 0 ] && exit ${KSELFTEST_SKIP}
 -- 
 2.11.0
 
