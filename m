@@ -1,165 +1,163 @@
-Return-Path: <SRS0=fFh5=3R=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=bO8k=3S=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4C86C2D0DB
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Jan 2020 21:27:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43D4DC33CB2
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Jan 2020 09:56:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9DC0E2173E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Jan 2020 21:27:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1FE3420708
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Jan 2020 09:56:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726266AbgA1V15 (ORCPT
+        id S1726128AbgA2J41 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 28 Jan 2020 16:27:57 -0500
-Received: from correo.us.es ([193.147.175.20]:43142 "EHLO mail.us.es"
+        Wed, 29 Jan 2020 04:56:27 -0500
+Received: from fourcot.fr ([217.70.191.14]:49238 "EHLO olfflo.fourcot.fr"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726211AbgA1V15 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 Jan 2020 16:27:57 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7FA4D1878A8
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Jan 2020 22:27:54 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 70AA4DA710
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Jan 2020 22:27:54 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 65E56DA707; Tue, 28 Jan 2020 22:27:54 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 56AC1DA701;
-        Tue, 28 Jan 2020 22:27:52 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 28 Jan 2020 22:27:52 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 3B37742EF4E0;
-        Tue, 28 Jan 2020 22:27:52 +0100 (CET)
-Date:   Tue, 28 Jan 2020 22:27:51 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Stefano Brivio <sbrivio@redhat.com>
-Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        Kadlecsik =?iso-8859-1?Q?J=F3zsef?= <kadlec@blackhole.kfki.hu>,
-        Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>
-Subject: Re: [PATCH libnftnl v3 1/2] set: Add support for
- NFTA_SET_DESC_CONCAT attributes
-Message-ID: <20200128212751.exx3zl5pfeond5pi@salvia>
-References: <cover.1579432712.git.sbrivio@redhat.com>
- <1c8f7f6ceca5a37c5115c75ed2ebcc337e78a3d1.1579432712.git.sbrivio@redhat.com>
- <20200128193016.42lnsncnvmypf62p@salvia>
- <20200128211752.00312b6a@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20200128211752.00312b6a@redhat.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+        id S1726067AbgA2J41 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 29 Jan 2020 04:56:27 -0500
+X-Greylist: delayed 574 seconds by postgrey-1.27 at vger.kernel.org; Wed, 29 Jan 2020 04:56:26 EST
+From:   Romain Bellan <romain.bellan@wifirst.fr>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Romain Bellan <romain.bellan@wifirst.fr>,
+        Florent Fourcot <florent.fourcot@wifirst.fr>
+Subject: [PATCH libnftnl 2/2] utils: add NFCT_FILTER_DUMP_TUPLE example
+Date:   Wed, 29 Jan 2020 10:47:19 +0100
+Message-Id: <20200129094719.670-2-romain.bellan@wifirst.fr>
+X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20200129094719.670-1-romain.bellan@wifirst.fr>
+References: <20200129094719.670-1-romain.bellan@wifirst.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jan 28, 2020 at 09:17:52PM +0100, Stefano Brivio wrote:
-> On Tue, 28 Jan 2020 20:30:16 +0100
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> 
-> > On Sun, Jan 19, 2020 at 02:35:25PM +0100, Stefano Brivio wrote:
-> > > If NFTNL_SET_DESC_CONCAT data is passed, pass that to the kernel
-> > > as NFTA_SET_DESC_CONCAT attributes: it describes the length of
-> > > single concatenated fields, in bytes.
-> > > 
-> > > Similarly, parse NFTA_SET_DESC_CONCAT attributes if received
-> > > from the kernel.
-> > > 
-> > > This is the libnftnl counterpart for nftables patch:
-> > >   src: Add support for NFTNL_SET_DESC_CONCAT
-> > > 
-> > > v3:
-> > >  - use NFTNL_SET_DESC_CONCAT and NFTA_SET_DESC_CONCAT instead of a
-> > >    stand-alone NFTA_SET_SUBKEY attribute (Pablo Neira Ayuso)
-> > >  - pass field length in bytes instead of bits, fields would get
-> > >    unnecessarily big otherwise
-> > > v2:
-> > >  - fixed grammar in commit message
-> > >  - removed copy of array bytes in nftnl_set_nlmsg_build_subkey_payload(),
-> > >    we're simply passing values to htonl() (Phil Sutter)
-> > > 
-> > > Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
-> > > ---
-> > >  include/libnftnl/set.h |   1 +
-> > >  include/set.h          |   2 +
-> > >  src/set.c              | 111 ++++++++++++++++++++++++++++++++++-------
-> > >  3 files changed, 95 insertions(+), 19 deletions(-)
-> > > 
-> > > diff --git a/include/libnftnl/set.h b/include/libnftnl/set.h
-> > > index db3fa686d60a..dcae354b76c4 100644
-> > > --- a/include/libnftnl/set.h
-> > > +++ b/include/libnftnl/set.h
-> > > @@ -24,6 +24,7 @@ enum nftnl_set_attr {
-> > >  	NFTNL_SET_ID,
-> > >  	NFTNL_SET_POLICY,
-> > >  	NFTNL_SET_DESC_SIZE,
-> > > +	NFTNL_SET_DESC_CONCAT,  
-> > 
-> > This one needs to be defined at the end to not break binary interface.
-> 
-> Hah, right, I just focused on not breaking kernel UAPI and didn't check
-> this. I'll move it.
+Simple example to see conntrack kernel side filtering configuration.
+Callback is reading the kernel result, and user is notified when kernel
+does not support filtering (so filtering must be done in userspace)
 
-Good, thanks.
+Signed-off-by: Romain Bellan <romain.bellan@wifirst.fr>
+Signed-off-by: Florent Fourcot <florent.fourcot@wifirst.fr>
+---
+ utils/.gitignore                    |  1 +
+ utils/Makefile.am                   |  4 ++
+ utils/conntrack_dump_filter_tuple.c | 70 +++++++++++++++++++++++++++++
+ 3 files changed, 75 insertions(+)
+ create mode 100644 utils/conntrack_dump_filter_tuple.c
 
-> > Compilation breaks for some reason:
-> > 
-> > In file included from ../include/internal.h:10,
-> >                  from gen.c:9:
-> > ../include/set.h:28:22: error: ‘NFT_REG32_COUNT’ undeclared here (not
-> > in a function); did you mean ‘NFT_REG32_15’?
-> >    28 |   uint8_t  field_len[NFT_REG32_COUNT];
-> >       |                      ^~~~~~~~~~~~~~~
-> >       |                      NFT_REG32_15
-> 
-> That's something that comes from kernel headers changes, now
-> commit f3a2181e16f1 ("netfilter: nf_tables: Support for sets with
-> multiple ranged fields"), this hunk:
-> 
-> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-> index c13106496bd2..065218a20bb7 100644
-> --- a/include/uapi/linux/netfilter/nf_tables.h
-> +++ b/include/uapi/linux/netfilter/nf_tables.h
-> @@ -48,6 +48,7 @@ enum nft_registers {
->  
->  #define NFT_REG_SIZE   16
->  #define NFT_REG32_SIZE 4
-> +#define NFT_REG32_COUNT        (NFT_REG32_15 - NFT_REG32_00 + 1)
->  
->  /**
->   * enum nft_verdicts - nf_tables internal verdicts
-> 
-> I didn't include those in userspace patches, following e.g. current
-> iproute2 practice. Let me know if I should actually submit that as
-> separate change -- I thought it would be more practical for you to sync
-> headers as needed.
+diff --git a/utils/.gitignore b/utils/.gitignore
+index 63dfcb2..0de05c0 100644
+--- a/utils/.gitignore
++++ b/utils/.gitignore
+@@ -3,6 +3,7 @@
+ /conntrack_delete
+ /conntrack_dump
+ /conntrack_dump_filter
++/conntrack_dump_filter_tuple
+ /conntrack_events
+ /conntrack_filter
+ /conntrack_flush
+diff --git a/utils/Makefile.am b/utils/Makefile.am
+index 69bafe6..438ca74 100644
+--- a/utils/Makefile.am
++++ b/utils/Makefile.am
+@@ -9,6 +9,7 @@ check_PROGRAMS = expect_dump expect_create expect_get expect_delete \
+ 	       conntrack_master conntrack_filter \
+ 	       conntrack_grp_create \
+ 	       conntrack_dump_filter \
++	       conntrack_dump_filter_tuple \
+ 	       ctexp_events
+ 
+ conntrack_grp_create_SOURCES = conntrack_grp_create.c
+@@ -35,6 +36,9 @@ conntrack_dump_LDADD = ../src/libnetfilter_conntrack.la
+ conntrack_dump_filter_SOURCES = conntrack_dump_filter.c
+ conntrack_dump_filter_LDADD = ../src/libnetfilter_conntrack.la
+ 
++conntrack_dump_filter_tuple_SOURCES = conntrack_dump_filter_tuple.c
++conntrack_dump_filter_tuple_LDADD = ../src/libnetfilter_conntrack.la
++
+ conntrack_flush_SOURCES = conntrack_flush.c
+ conntrack_flush_LDADD = ../src/libnetfilter_conntrack.la
+ 
+diff --git a/utils/conntrack_dump_filter_tuple.c b/utils/conntrack_dump_filter_tuple.c
+new file mode 100644
+index 0000000..44633da
+--- /dev/null
++++ b/utils/conntrack_dump_filter_tuple.c
+@@ -0,0 +1,70 @@
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <errno.h>
++#include <arpa/inet.h>
++
++#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
++
++static int cb(const struct nlmsghdr *nlh,
++	      enum nf_conntrack_msg_type type,
++	      struct nf_conntrack *ct,
++	      void *data)
++{
++	char buf[1024];
++
++	if (!(nlh->nlmsg_flags & NLM_F_DUMP_FILTERED))
++	  {
++	    fprintf(stderr, "No filtering in kernel, do filtering in userspace\n");
++	    return NFCT_CB_FAILURE;
++	  }
++
++	nfct_snprintf(buf, sizeof(buf), ct, NFCT_T_UNKNOWN, NFCT_O_DEFAULT, NFCT_OF_SHOW_LAYER3 | NFCT_OF_TIMESTAMP);
++	printf("%s\n", buf);
++
++	return NFCT_CB_CONTINUE;
++}
++
++int main(void)
++{
++	int ret;
++	struct nfct_handle *h;
++
++	h = nfct_open(CONNTRACK, 0);
++	if (!h) {
++		perror("nfct_open");
++		return -1;
++	}
++	struct nfct_filter_dump *filter_dump = nfct_filter_dump_create();
++	if (filter_dump == NULL) {
++		perror("nfct_filter_dump_alloc");
++		return -1;
++	}
++
++	struct nf_conntrack	*ct;
++	ct = nfct_new();
++	if (!ct) {
++		perror("nfct_new");
++		return 0;
++	}
++
++	nfct_set_attr_u8(ct, ATTR_ORIG_L3PROTO, AF_INET);
++	nfct_set_attr_u8(ct, ATTR_L4PROTO, IPPROTO_ICMP);
++	nfct_set_attr_u32(ct, ATTR_ORIG_IPV4_DST, inet_addr("203.0.113.55"));
++	nfct_filter_dump_set_attr(filter_dump, NFCT_FILTER_DUMP_TUPLE, ct);
++
++	nfct_callback_register2(h, NFCT_T_ALL, cb, NULL);
++	ret = nfct_query(h, NFCT_Q_DUMP_FILTER, filter_dump);
++
++	nfct_filter_dump_destroy(filter_dump);
++
++	printf("TEST: get conntrack ");
++	if (ret == -1)
++		printf("(%d)(%s)\n", ret, strerror(errno));
++	else
++		printf("(OK)\n");
++
++	nfct_close(h);
++
++	ret == -1 ? exit(EXIT_FAILURE) : exit(EXIT_SUCCESS);
++}
+-- 
+2.20.1
 
-I'd suggest you send a separated patch to get the nf_tables.h cached
-copy under libnftnl/include/linux/
-
-I occasionally make patches like this one:
-
-commit 239fabea9a436aaa7b787f389d80dfb57f7b893c
-Author: Pablo Neira Ayuso <pablo@netfilter.org>
-Date:   Tue Aug 13 21:41:45 2019 +0200
-
-    include: resync nf_tables.h cache copy
-
-    Get this header in sync with 5.3-rc1.
-
-You bring all pending updates, so you help keep it sync :-)
-
-Thanks.
