@@ -6,158 +6,268 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43D4DC33CB2
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Jan 2020 09:56:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E28DC33CB7
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Jan 2020 09:56:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1FE3420708
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Jan 2020 09:56:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E47DA20708
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Jan 2020 09:56:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726128AbgA2J41 (ORCPT
+        id S1726186AbgA2J42 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 29 Jan 2020 04:56:27 -0500
-Received: from fourcot.fr ([217.70.191.14]:49238 "EHLO olfflo.fourcot.fr"
+        Wed, 29 Jan 2020 04:56:28 -0500
+Received: from fourcot.fr ([217.70.191.14]:49236 "EHLO olfflo.fourcot.fr"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726067AbgA2J41 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 Jan 2020 04:56:27 -0500
-X-Greylist: delayed 574 seconds by postgrey-1.27 at vger.kernel.org; Wed, 29 Jan 2020 04:56:26 EST
+        id S1726091AbgA2J42 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 29 Jan 2020 04:56:28 -0500
 From:   Romain Bellan <romain.bellan@wifirst.fr>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Romain Bellan <romain.bellan@wifirst.fr>,
         Florent Fourcot <florent.fourcot@wifirst.fr>
-Subject: [PATCH libnftnl 2/2] utils: add NFCT_FILTER_DUMP_TUPLE example
-Date:   Wed, 29 Jan 2020 10:47:19 +0100
-Message-Id: <20200129094719.670-2-romain.bellan@wifirst.fr>
+Subject: [PATCH libnftnl 1/2] Adding NFCT_FILTER_DUMP_TUPLE in filter_dump_attr, using kernel CTA_FILTER API
+Date:   Wed, 29 Jan 2020 10:47:18 +0100
+Message-Id: <20200129094719.670-1-romain.bellan@wifirst.fr>
 X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20200129094719.670-1-romain.bellan@wifirst.fr>
-References: <20200129094719.670-1-romain.bellan@wifirst.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Simple example to see conntrack kernel side filtering configuration.
-Callback is reading the kernel result, and user is notified when kernel
-does not support filtering (so filtering must be done in userspace)
+Following kernel side new conntrack filtering API, this patch implements
+userspace part. This patch:
+
+ * Update headers to get new flag value from kernel
+ * Use a conntrack struct to configure filtering
+ * Set netlink flags according to values set in conntrack struct
 
 Signed-off-by: Romain Bellan <romain.bellan@wifirst.fr>
 Signed-off-by: Florent Fourcot <florent.fourcot@wifirst.fr>
 ---
- utils/.gitignore                    |  1 +
- utils/Makefile.am                   |  4 ++
- utils/conntrack_dump_filter_tuple.c | 70 +++++++++++++++++++++++++++++
- 3 files changed, 75 insertions(+)
- create mode 100644 utils/conntrack_dump_filter_tuple.c
+ include/internal/object.h                     |  1 +
+ include/internal/prototypes.h                 |  2 +-
+ .../libnetfilter_conntrack.h                  |  1 +
+ .../linux_nfnetlink_conntrack.h               | 22 +++++
+ src/conntrack/api.c                           |  2 +-
+ src/conntrack/filter_dump.c                   | 98 ++++++++++++++++++-
+ 6 files changed, 120 insertions(+), 6 deletions(-)
 
-diff --git a/utils/.gitignore b/utils/.gitignore
-index 63dfcb2..0de05c0 100644
---- a/utils/.gitignore
-+++ b/utils/.gitignore
-@@ -3,6 +3,7 @@
- /conntrack_delete
- /conntrack_dump
- /conntrack_dump_filter
-+/conntrack_dump_filter_tuple
- /conntrack_events
- /conntrack_filter
- /conntrack_flush
-diff --git a/utils/Makefile.am b/utils/Makefile.am
-index 69bafe6..438ca74 100644
---- a/utils/Makefile.am
-+++ b/utils/Makefile.am
-@@ -9,6 +9,7 @@ check_PROGRAMS = expect_dump expect_create expect_get expect_delete \
- 	       conntrack_master conntrack_filter \
- 	       conntrack_grp_create \
- 	       conntrack_dump_filter \
-+	       conntrack_dump_filter_tuple \
- 	       ctexp_events
+diff --git a/include/internal/object.h b/include/internal/object.h
+index 3f6904f..cd385b7 100644
+--- a/include/internal/object.h
++++ b/include/internal/object.h
+@@ -286,6 +286,7 @@ struct nfct_filter {
+  */
  
- conntrack_grp_create_SOURCES = conntrack_grp_create.c
-@@ -35,6 +36,9 @@ conntrack_dump_LDADD = ../src/libnetfilter_conntrack.la
- conntrack_dump_filter_SOURCES = conntrack_dump_filter.c
- conntrack_dump_filter_LDADD = ../src/libnetfilter_conntrack.la
+ struct nfct_filter_dump {
++	struct nf_conntrack		ct;
+ 	struct nfct_filter_dump_mark	mark;
+ 	uint8_t				l3num;
+ 	uint32_t			set;
+diff --git a/include/internal/prototypes.h b/include/internal/prototypes.h
+index c0047b3..5e935f0 100644
+--- a/include/internal/prototypes.h
++++ b/include/internal/prototypes.h
+@@ -35,7 +35,7 @@ void __copy_fast(struct nf_conntrack *ct1, const struct nf_conntrack *ct);
  
-+conntrack_dump_filter_tuple_SOURCES = conntrack_dump_filter_tuple.c
-+conntrack_dump_filter_tuple_LDADD = ../src/libnetfilter_conntrack.la
-+
- conntrack_flush_SOURCES = conntrack_flush.c
- conntrack_flush_LDADD = ../src/libnetfilter_conntrack.la
+ int __setup_netlink_socket_filter(int fd, struct nfct_filter *filter);
  
-diff --git a/utils/conntrack_dump_filter_tuple.c b/utils/conntrack_dump_filter_tuple.c
-new file mode 100644
-index 0000000..44633da
---- /dev/null
-+++ b/utils/conntrack_dump_filter_tuple.c
-@@ -0,0 +1,70 @@
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <errno.h>
-+#include <arpa/inet.h>
+-void __build_filter_dump(struct nfnlhdr *req, size_t size, const struct nfct_filter_dump *filter_dump);
++int __build_filter_dump(struct nfnlhdr *req, size_t size, const struct nfct_filter_dump *filter_dump);
+ 
+ int nfct_build_tuple(struct nlmsghdr *nlh, const struct __nfct_tuple *t, int type);
+ int nfct_parse_tuple(const struct nlattr *attr, struct __nfct_tuple *tuple, int dir, uint32_t *set);
+diff --git a/include/libnetfilter_conntrack/libnetfilter_conntrack.h b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
+index c5c6b61..be31722 100644
+--- a/include/libnetfilter_conntrack/libnetfilter_conntrack.h
++++ b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
+@@ -545,6 +545,7 @@ struct nfct_filter_dump_mark {
+ enum nfct_filter_dump_attr {
+ 	NFCT_FILTER_DUMP_MARK = 0,	/* struct nfct_filter_dump_mark */
+ 	NFCT_FILTER_DUMP_L3NUM,		/* uint8_t */
++	NFCT_FILTER_DUMP_TUPLE,
+ 	NFCT_FILTER_DUMP_MAX
+ };
+ 
+diff --git a/include/libnetfilter_conntrack/linux_nfnetlink_conntrack.h b/include/libnetfilter_conntrack/linux_nfnetlink_conntrack.h
+index aa45723..36ada55 100644
+--- a/include/libnetfilter_conntrack/linux_nfnetlink_conntrack.h
++++ b/include/libnetfilter_conntrack/linux_nfnetlink_conntrack.h
+@@ -58,6 +58,7 @@ enum ctattr_type {
+ 	CTA_LABELS,
+ 	CTA_LABELS_MASK,
+ 	CTA_SYNPROXY,
++	CTA_FILTER,
+ 	__CTA_MAX
+ };
+ #define CTA_MAX (__CTA_MAX - 1)
+@@ -275,6 +276,27 @@ enum ctattr_expect_stats {
+ };
+ #define CTA_STATS_EXP_MAX (__CTA_STATS_EXP_MAX - 1)
+ 
++enum ctattr_filter {
++       CTA_FILTER_UNSPEC,
++       CTA_FILTER_ORIG_FLAGS,
++       CTA_FILTER_REPLY_FLAGS,
++       __CTA_FILTER_MAX
++};
++#define CTA_FILTER_MAX (__CTA_FILTER_MAX - 1)
 +
-+#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
++#define CTA_FILTER_FLAG_CTA_IP_SRC             (1 << 0)
++#define CTA_FILTER_FLAG_CTA_IP_DST             (1 << 1)
++#define CTA_FILTER_FLAG_CTA_TUPLE_ZONE         (1 << 2)
++#define CTA_FILTER_FLAG_CTA_PROTO_NUM          (1 << 3)
++#define CTA_FILTER_FLAG_CTA_PROTO_SRC_PORT     (1 << 4)
++#define CTA_FILTER_FLAG_CTA_PROTO_DST_PORT     (1 << 5)
++#define CTA_FILTER_FLAG_CTA_PROTO_ICMP_TYPE    (1 << 6)
++#define CTA_FILTER_FLAG_CTA_PROTO_ICMP_CODE    (1 << 7)
++#define CTA_FILTER_FLAG_CTA_PROTO_ICMP_ID      (1 << 8)
++#define CTA_FILTER_FLAG_CTA_PROTO_ICMPV6_TYPE	(1 << 9)
++#define CTA_FILTER_FLAG_CTA_PROTO_ICMPV6_CODE	(1 << 10)
++#define CTA_FILTER_FLAG_CTA_PROTO_ICMPV6_ID	(1 << 11)
 +
-+static int cb(const struct nlmsghdr *nlh,
-+	      enum nf_conntrack_msg_type type,
-+	      struct nf_conntrack *ct,
-+	      void *data)
+ #ifdef __cplusplus
+ }
+ #endif
+diff --git a/src/conntrack/api.c b/src/conntrack/api.c
+index ffa5216..d03e18f 100644
+--- a/src/conntrack/api.c
++++ b/src/conntrack/api.c
+@@ -845,7 +845,7 @@ __build_query_ct(struct nfnl_subsys_handle *ssh,
+ 	case NFCT_Q_DUMP_FILTER:
+ 		nfct_fill_hdr(req, IPCTNL_MSG_CT_GET, NLM_F_DUMP, AF_UNSPEC,
+ 			      NFNETLINK_V0);
+-		__build_filter_dump(req, size, data);
++		assert(__build_filter_dump(req, size, data) == 0);
+ 		break;
+ 	case NFCT_Q_DUMP_FILTER_RESET:
+ 		nfct_fill_hdr(req, IPCTNL_MSG_CT_GET_CTRZERO, NLM_F_DUMP,
+diff --git a/src/conntrack/filter_dump.c b/src/conntrack/filter_dump.c
+index 158b4cb..70249fc 100644
+--- a/src/conntrack/filter_dump.c
++++ b/src/conntrack/filter_dump.c
+@@ -7,6 +7,8 @@
+  * (at your option) any later version.
+  */
+ 
++#include <libmnl/libmnl.h>
++
+ #include "internal/internal.h"
+ 
+ static void
+@@ -26,22 +28,110 @@ set_filter_dump_attr_family(struct nfct_filter_dump *filter_dump,
+ 	filter_dump->l3num = *((uint8_t *)value);
+ }
+ 
++static void
++set_filter_dump_attr_tuple(struct nfct_filter_dump *filter_dump,
++			   const void *value)
 +{
-+	char buf[1024];
-+
-+	if (!(nlh->nlmsg_flags & NLM_F_DUMP_FILTERED))
-+	  {
-+	    fprintf(stderr, "No filtering in kernel, do filtering in userspace\n");
-+	    return NFCT_CB_FAILURE;
-+	  }
-+
-+	nfct_snprintf(buf, sizeof(buf), ct, NFCT_T_UNKNOWN, NFCT_O_DEFAULT, NFCT_OF_SHOW_LAYER3 | NFCT_OF_TIMESTAMP);
-+	printf("%s\n", buf);
-+
-+	return NFCT_CB_CONTINUE;
++	memcpy(&filter_dump->ct, value, sizeof(struct nf_conntrack));
 +}
 +
-+int main(void)
+ const set_filter_dump_attr set_filter_dump_attr_array[NFCT_FILTER_DUMP_MAX] = {
+ 	[NFCT_FILTER_DUMP_MARK]		= set_filter_dump_attr_mark,
+ 	[NFCT_FILTER_DUMP_L3NUM]	= set_filter_dump_attr_family,
++	[NFCT_FILTER_DUMP_TUPLE]	= set_filter_dump_attr_tuple,
+ };
+ 
+-void __build_filter_dump(struct nfnlhdr *req, size_t size,
+-			 const struct nfct_filter_dump *filter_dump)
++uint32_t get_flags_from_ct(const struct nf_conntrack *ct, int family)
+ {
++	uint32_t	tuple_flags = 0;
++
++	if (family == AF_INET)
++	{
++		if (test_bit(ATTR_ORIG_IPV4_SRC, ct->head.set))
++			tuple_flags |= CTA_FILTER_FLAG_CTA_IP_SRC;
++		if (test_bit(ATTR_ORIG_IPV4_DST, ct->head.set))
++			tuple_flags |= CTA_FILTER_FLAG_CTA_IP_DST;
++
++		if (test_bit(ATTR_ICMP_TYPE, ct->head.set))
++			tuple_flags |= CTA_FILTER_FLAG_CTA_PROTO_ICMP_TYPE;
++		if (test_bit(ATTR_ICMP_CODE, ct->head.set))
++			tuple_flags |= CTA_FILTER_FLAG_CTA_PROTO_ICMP_CODE;
++		if (test_bit(ATTR_ICMP_ID, ct->head.set))
++			tuple_flags |= CTA_FILTER_FLAG_CTA_PROTO_ICMP_ID;
++	}
++	else if (family == AF_INET6)
++	{
++		if (test_bit(ATTR_ORIG_IPV6_SRC, ct->head.set))
++			tuple_flags |= CTA_FILTER_FLAG_CTA_IP_SRC;
++		if (test_bit(ATTR_ORIG_IPV6_DST, ct->head.set))
++			tuple_flags |= CTA_FILTER_FLAG_CTA_IP_DST;
++
++		if (test_bit(ATTR_ICMP_TYPE, ct->head.set))
++			tuple_flags |= CTA_FILTER_FLAG_CTA_PROTO_ICMPV6_TYPE;
++		if (test_bit(ATTR_ICMP_CODE, ct->head.set))
++			tuple_flags |= CTA_FILTER_FLAG_CTA_PROTO_ICMPV6_CODE;
++		if (test_bit(ATTR_ICMP_ID, ct->head.set))
++			tuple_flags |= CTA_FILTER_FLAG_CTA_PROTO_ICMPV6_ID;
++	}
++
++	if (test_bit(ATTR_ORIG_ZONE, ct->head.set))
++		tuple_flags |= CTA_FILTER_FLAG_CTA_TUPLE_ZONE;
++
++	if (test_bit(ATTR_ORIG_L4PROTO, ct->head.set))
++		tuple_flags |= CTA_FILTER_FLAG_CTA_PROTO_NUM;
++	if (test_bit(ATTR_ORIG_PORT_SRC, ct->head.set))
++		tuple_flags |= CTA_FILTER_FLAG_CTA_PROTO_SRC_PORT;
++	if (test_bit(ATTR_ORIG_PORT_DST, ct->head.set))
++		tuple_flags |= CTA_FILTER_FLAG_CTA_PROTO_DST_PORT;
++
++	return tuple_flags;
++}
++
++int __build_filter_dump(struct nfnlhdr *req, size_t size,
++			const struct nfct_filter_dump *filter_dump)
 +{
 +	int ret;
-+	struct nfct_handle *h;
++	struct nlattr *nest;
++	int l3num_changed = 0;
 +
-+	h = nfct_open(CONNTRACK, 0);
-+	if (!h) {
-+		perror("nfct_open");
-+		return -1;
+ 	if (filter_dump->set & (1 << NFCT_FILTER_DUMP_MARK)) {
+ 		nfnl_addattr32(&req->nlh, size, CTA_MARK,
+-				htonl(filter_dump->mark.val));
++			       htonl(filter_dump->mark.val));
+ 		nfnl_addattr32(&req->nlh, size, CTA_MARK_MASK,
+-				htonl(filter_dump->mark.mask));
++			       htonl(filter_dump->mark.mask));
+ 	}
+ 	if (filter_dump->set & (1 << NFCT_FILTER_DUMP_L3NUM)) {
+ 		struct nfgenmsg *nfg = NLMSG_DATA(&req->nlh);
+ 		nfg->nfgen_family = filter_dump->l3num;
++		l3num_changed = 1;
 +	}
-+	struct nfct_filter_dump *filter_dump = nfct_filter_dump_create();
-+	if (filter_dump == NULL) {
-+		perror("nfct_filter_dump_alloc");
-+		return -1;
-+	}
++	if (filter_dump->set & (1 << NFCT_FILTER_DUMP_TUPLE)) {
++		const struct nf_conntrack *ct = &filter_dump->ct;
++		struct nfgenmsg *nfg = NLMSG_DATA(&req->nlh);
 +
-+	struct nf_conntrack	*ct;
-+	ct = nfct_new();
-+	if (!ct) {
-+		perror("nfct_new");
-+		return 0;
-+	}
++		ret = nfct_nlmsg_build(&req->nlh, ct);
++		if (ret == -1)
++			return -1;
 +
-+	nfct_set_attr_u8(ct, ATTR_ORIG_L3PROTO, AF_INET);
-+	nfct_set_attr_u8(ct, ATTR_L4PROTO, IPPROTO_ICMP);
-+	nfct_set_attr_u32(ct, ATTR_ORIG_IPV4_DST, inet_addr("203.0.113.55"));
-+	nfct_filter_dump_set_attr(filter_dump, NFCT_FILTER_DUMP_TUPLE, ct);
++		nest = mnl_attr_nest_start(&req->nlh, CTA_FILTER);
++		if (nest == NULL)
++			return -1;
 +
-+	nfct_callback_register2(h, NFCT_T_ALL, cb, NULL);
-+	ret = nfct_query(h, NFCT_Q_DUMP_FILTER, filter_dump);
++		if (test_bit(ATTR_ORIG_L3PROTO, ct->head.set))
++		{
++			if (l3num_changed && filter_dump->l3num !=
++			    ct->head.orig.l3protonum)
++				return -1;
 +
-+	nfct_filter_dump_destroy(filter_dump);
++			nfg->nfgen_family = ct->head.orig.l3protonum;
++		}
 +
-+	printf("TEST: get conntrack ");
-+	if (ret == -1)
-+		printf("(%d)(%s)\n", ret, strerror(errno));
-+	else
-+		printf("(OK)\n");
++		mnl_attr_put_u32(&req->nlh, CTA_FILTER_ORIG_FLAGS,
++				 get_flags_from_ct(&filter_dump->ct,
++						   nfg->nfgen_family));
++		mnl_attr_put_u32(&req->nlh, CTA_FILTER_REPLY_FLAGS, 0);
++		mnl_attr_nest_end(&req->nlh, nest);
+ 	}
 +
-+	nfct_close(h);
-+
-+	ret == -1 ? exit(EXIT_FAILURE) : exit(EXIT_SUCCESS);
-+}
++	return 0;
+ }
 -- 
 2.20.1
 
