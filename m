@@ -6,58 +6,68 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5512AC2D0DB
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Jan 2020 13:28:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28286C35240
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Jan 2020 17:35:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2F74C2070E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Jan 2020 13:28:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 02CF42071E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Jan 2020 17:35:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726484AbgA2N24 (ORCPT
+        id S1727339AbgA2Rfa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 29 Jan 2020 08:28:56 -0500
-Received: from rs07.intra2net.com ([85.214.138.66]:34272 "EHLO
-        rs07.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726069AbgA2N2z (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 Jan 2020 08:28:55 -0500
-X-Greylist: delayed 551 seconds by postgrey-1.27 at vger.kernel.org; Wed, 29 Jan 2020 08:28:55 EST
-Received: from mail.m.i2n (unknown [172.17.128.1])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by rs07.intra2net.com (Postfix) with ESMTPS id BFE8A150016C
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jan 2020 14:19:42 +0100 (CET)
-Received: from localhost (mail.m.i2n [127.0.0.1])
-        by localhost (Postfix) with ESMTP id 8EB02602
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jan 2020 14:19:42 +0100 (CET)
-X-Virus-Scanned: by Intra2net Mail Security (AVE=8.3.54.164,VDF=8.16.35.170)
-Received: from localhost (storm.m.i2n [172.16.1.2])
+        Wed, 29 Jan 2020 12:35:30 -0500
+Received: from correo.us.es ([193.147.175.20]:50962 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726679AbgA2Rfa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 29 Jan 2020 12:35:30 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id E9B54F8D61
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jan 2020 18:35:28 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D7E8FDA715
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jan 2020 18:35:28 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id CD7FEDA710; Wed, 29 Jan 2020 18:35:28 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DCA2FDA702;
+        Wed, 29 Jan 2020 18:35:26 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 29 Jan 2020 18:35:26 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.m.i2n (Postfix) with ESMTPS id 25613576
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jan 2020 14:19:41 +0100 (CET)
-Date:   Wed, 29 Jan 2020 14:19:41 +0100
-From:   Thomas Jarosch <thomas.jarosch@intra2net.com>
-To:     netfilter-devel@vger.kernel.org
-Subject: use of netfilter-announce list
-Message-ID: <20200129131941.r7ep7jjhoam4fu7h@intra2net.com>
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id C081F42EFB80;
+        Wed, 29 Jan 2020 18:35:26 +0100 (CET)
+Date:   Wed, 29 Jan 2020 18:35:25 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Kadlecsik =?iso-8859-1?Q?J=F3zsef?= <kadlec@blackhole.kfki.hu>
+Cc:     syzbot <syzbot+fc69d7cb21258ab4ae4d@syzkaller.appspotmail.com>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        syzkaller-bugs@googlegroups.com
+Subject: Re: [PATCH 1/1] netfilter: ipset: fix suspicious RCU usage in
+ find_set_and_id
+Message-ID: <20200129173525.ikrw5bckxrgqc52v@salvia>
+References: <alpine.DEB.2.20.2001252034050.23279@blackhole.kfki.hu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-User-Agent: NeoMutt/20180716
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <alpine.DEB.2.20.2001252034050.23279@blackhole.kfki.hu>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+On Sat, Jan 25, 2020 at 08:39:25PM +0100, Kadlecsik József wrote:
+> find_set_and_id() is called when the NFNL_SUBSYS_IPSET mutex is held.
+> However, in the error path there can be a follow-up recvmsg() without
+> the mutex held. Use the start() function of struct netlink_dump_control
+> instead of dump() to verify and report if the specified set does not
+> exist.
 
-I've noticed the netfilter-announce mailinglist
-doesn't seem to be used in a consistent manner:
-
-The release of iptables 1.8.3 was announced there, but other new releases
-like iptables 1.8.4 / nftables 0.9.3 didn't make it to this list.
-
-Is the netfilter-announce list deprecated?
-
-Cheers,
-Thomas
+Applied, thanks Jozsef.
