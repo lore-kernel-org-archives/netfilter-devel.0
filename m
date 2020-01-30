@@ -1,198 +1,88 @@
-Return-Path: <SRS0=bO8k=3S=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=SOhW=3T=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,URIBL_DBL_ABUSE_MALW,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2920DC35240
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Jan 2020 23:15:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C1F8C2D0DB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Jan 2020 00:16:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F155E20716
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Jan 2020 23:15:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 53F47206A2
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Jan 2020 00:16:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="hxaoehU7"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="CwITr/QR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727086AbgA2XPT (ORCPT
+        id S1726856AbgA3AQp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 29 Jan 2020 18:15:19 -0500
-Received: from bombadil.infradead.org ([198.137.202.133]:52452 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727024AbgA2XPT (ORCPT
+        Wed, 29 Jan 2020 19:16:45 -0500
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:23393 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726671AbgA3AQp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 Jan 2020 18:15:19 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
-        Content-Type:MIME-Version:Date:Message-ID:Subject:From:Cc:To:Sender:Reply-To:
-        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-        Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:List-Id:
-        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-         bh=YE5ymmg/Qoh5EFK9pVvYeClJYE682bbCQnrC66d+TOc=; b=hxaoehU77S1fZAy677mOd1sm1
-        JjfnFRlZxbzaUUX53Ti75TXmkGdG7ltwdyqeib0jlXtiXKYLAqubtBIyQh9RF9pmtRUuvMoQhx4ON
-        lZDuGYZNIdASkaBwDckHywVVyTOkSmI6rgb4VCbHm8cusVXnFx5zmAQFMMhbyrKyCXsZRMmlyhio5
-        yXOc5zcqDiGjp3VZJHkF0/1i9A5i9i61s+4oayNZRySecQKFeNMUiPRvQHpg2TJ6Zl7ssEpLFrLgD
-        wu3x2p4pbdKNN4Zi6AQRLwS5/IuCzWi5nCDhRX/Jk5hX/7YkSgCEnm0noXgupWgg91QCoQWp/d5R3
-        qPFjnIM/A==;
-Received: from [2601:1c0:6280:3f0:897c:6038:c71d:ecac]
-        by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1iwwYH-0007Ig-Te; Wed, 29 Jan 2020 23:15:18 +0000
-To:     "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc:     Jan Kara <jack@suse.com>, Theodore Ts'o <tytso@mit.edu>,
-        Andreas Dilger <adilger.kernel@dilger.ca>,
-        linux-ext4@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Paul Mackerras <paulus@samba.org>, linux-ppp@vger.kernel.org,
-        reiserfs-devel@vger.kernel.org,
-        "Darrick J . Wong" <darrick.wong@oracle.com>,
-        linux-xfs <linux-xfs@vger.kernel.org>
-From:   Randy Dunlap <rdunlap@infradead.org>
-Subject: [PATCH v2] Documentation: changes.rst: update several outdated
- project URLs
-Message-ID: <a9c3c509-8f30-fcc4-d9e0-b53aeaa89e4f@infradead.org>
-Date:   Wed, 29 Jan 2020 15:15:15 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.4.1
+        Wed, 29 Jan 2020 19:16:45 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1580343404;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=u7buwLtbPQ0gweUHBYDRALUowEyyvUfOjG1KTupzyWU=;
+        b=CwITr/QRwDeMkZrY0vYf9q1FlgicMPTtdUr/+tpLePHCyGS3aPpPL0wzc5l03yWiLfv4GK
+        XB54NERksbowQf5MH1VwU0zXSNkj4IdMYVVQ1ysOQ2Zgq5C+GWBPAFIhuxDWqUrT5wauzb
+        hXKaXyXvbYXhuXseZF0PYuLE5K7PW2Q=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-102-6qhn4tUCP_ibBpO9sLsXHQ-1; Wed, 29 Jan 2020 19:16:39 -0500
+X-MC-Unique: 6qhn4tUCP_ibBpO9sLsXHQ-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 899DB8017CC;
+        Thu, 30 Jan 2020 00:16:38 +0000 (UTC)
+Received: from epycfail.redhat.com (ovpn-200-43.brq.redhat.com [10.40.200.43])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 1ACA919756;
+        Thu, 30 Jan 2020 00:16:35 +0000 (UTC)
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Cc:     Florian Westphal <fw@strlen.de>,
+        =?UTF-8?q?Kadlecsik=20J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>,
+        Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>
+Subject: [PATCH libnftnl v4 0/3] Attributes for concatenated ranges
+Date:   Thu, 30 Jan 2020 01:16:31 +0100
+Message-Id: <cover.1580342940.git.sbrivio@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
+This series adds support for NFTA_SET_DESC_CONCAT set attribute and
+the additional key passed as NFTA_SET_ELEM_KEY_END to denote the
+upper bound of a range in a generic way, as suggested by Pablo.
 
-Update projects URLs in the changes.rst file.
+v4: Sync nf_tables.h header, move NFTNL_SET_DESC_CONCAT to avoid
+    ABI breakage (Pablo Neira Ayuso)
 
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: linux-doc@vger.kernel.org
-Cc: Jan Kara <jack@suse.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: linux-ext4@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: linux-ppp@vger.kernel.org
-Cc: reiserfs-devel@vger.kernel.org
-Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: linux-xfs@vger.kernel.org
-Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
-Acked-by: Theodore Ts'o <tytso@mit.edu>
----
-v2 changes:
-. add Ack and Review tags;
-. update as requested by Darrick and Ted;
+v3: Support for separate "end" key added as 2/2, reworked 1/2 to
+    use set description data for length of concatenation fields
 
- Documentation/process/changes.rst                    |   14 ++++++----
- Documentation/translations/it_IT/process/changes.rst |   14 ++++++----
- 2 files changed, 18 insertions(+), 10 deletions(-)
+Stefano Brivio (3):
+  include: resync nf_tables.h cache copy
+  set: Add support for NFTA_SET_DESC_CONCAT attributes
+  set_elem: Introduce support for NFTNL_SET_ELEM_KEY_END
 
---- linux-next-20200129.orig/Documentation/translations/it_IT/process/changes.rst
-+++ linux-next-20200129/Documentation/translations/it_IT/process/changes.rst
-@@ -390,7 +390,8 @@ Mkinitrd
- E2fsprogs
- ---------
- 
--- <http://prdownloads.sourceforge.net/e2fsprogs/e2fsprogs-1.29.tar.gz>
-+- <https://www.kernel.org/pub/linux/kernel/people/tytso/e2fsprogs/>
-+- <https://git.kernel.org/pub/scm/fs/ext2/e2fsprogs.git/>
- 
- JFSutils
- --------
-@@ -400,12 +401,13 @@ JFSutils
- Reiserfsprogs
- -------------
- 
--- <http://www.kernel.org/pub/linux/utils/fs/reiserfs/>
-+- <https://git.kernel.org/pub/scm/linux/kernel/git/jeffm/reiserfsprogs.git/>
- 
- Xfsprogs
- --------
- 
--- <ftp://oss.sgi.com/projects/xfs/>
-+- <https://git.kernel.org/pub/scm/fs/xfs/xfsprogs-dev.git>
-+- <https://www.kernel.org/pub/linux/utils/fs/xfs/xfsprogs/>
- 
- Pcmciautils
- -----------
-@@ -444,7 +446,9 @@ Rete
- PPP
- ---
- 
--- <ftp://ftp.samba.org/pub/ppp/>
-+- <https://download.samba.org/pub/ppp/>
-+- <https://git.ozlabs.org/?p=ppp.git>
-+- <https://github.com/paulusmack/ppp/>
- 
- 
- NFS-utils
-@@ -455,7 +459,7 @@ NFS-utils
- Iptables
- --------
- 
--- <http://www.iptables.org/downloads.html>
-+- <https://netfilter.org/projects/iptables/index.html>
- 
- Ip-route2
- ---------
---- linux-next-20200129.orig/Documentation/process/changes.rst
-+++ linux-next-20200129/Documentation/process/changes.rst
-@@ -383,7 +383,8 @@ Mkinitrd
- E2fsprogs
- ---------
- 
--- <http://prdownloads.sourceforge.net/e2fsprogs/e2fsprogs-1.29.tar.gz>
-+- <https://www.kernel.org/pub/linux/kernel/people/tytso/e2fsprogs/>
-+- <https://git.kernel.org/pub/scm/fs/ext2/e2fsprogs.git/>
- 
- JFSutils
- --------
-@@ -393,12 +394,13 @@ JFSutils
- Reiserfsprogs
- -------------
- 
--- <http://www.kernel.org/pub/linux/utils/fs/reiserfs/>
-+- <https://git.kernel.org/pub/scm/linux/kernel/git/jeffm/reiserfsprogs.git/>
- 
- Xfsprogs
- --------
- 
--- <ftp://oss.sgi.com/projects/xfs/>
-+- <https://git.kernel.org/pub/scm/fs/xfs/xfsprogs-dev.git>
-+- <https://www.kernel.org/pub/linux/utils/fs/xfs/xfsprogs/>
- 
- Pcmciautils
- -----------
-@@ -437,7 +439,9 @@ Networking
- PPP
- ---
- 
--- <ftp://ftp.samba.org/pub/ppp/>
-+- <https://download.samba.org/pub/ppp/>
-+- <https://git.ozlabs.org/?p=ppp.git>
-+- <https://github.com/paulusmack/ppp/>
- 
- NFS-utils
- ---------
-@@ -447,7 +451,7 @@ NFS-utils
- Iptables
- --------
- 
--- <http://www.iptables.org/downloads.html>
-+- <https://netfilter.org/projects/iptables/index.html>
- 
- Ip-route2
- ---------
+ include/libnftnl/set.h              |   2 +
+ include/linux/netfilter/nf_tables.h |  17 +++++
+ include/set.h                       |   2 +
+ include/set_elem.h                  |   1 +
+ src/set.c                           | 111 +++++++++++++++++++++++-----
+ src/set_elem.c                      |  24 ++++++
+ 6 files changed, 138 insertions(+), 19 deletions(-)
+
+--=20
+2.24.1
 
