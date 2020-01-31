@@ -2,61 +2,99 @@ Return-Path: <SRS0=LRZR=3U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A3E8C2D0DB
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 22:06:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00121C2D0DB
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 22:08:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1C94120705
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 22:06:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CE5032082E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 22:08:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726216AbgAaWGC (ORCPT
+        id S1726213AbgAaWIK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 31 Jan 2020 17:06:02 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:52740 "EHLO
+        Fri, 31 Jan 2020 17:08:10 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:52746 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726163AbgAaWGC (ORCPT
+        by vger.kernel.org with ESMTP id S1726163AbgAaWIK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 31 Jan 2020 17:06:02 -0500
+        Fri, 31 Jan 2020 17:08:10 -0500
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@strlen.de>)
-        id 1ixeQI-000608-Ei; Fri, 31 Jan 2020 23:05:58 +0100
-Date:   Fri, 31 Jan 2020 23:05:58 +0100
+        id 1ixeSN-00060X-O8; Fri, 31 Jan 2020 23:08:07 +0100
+Date:   Fri, 31 Jan 2020 23:08:07 +0100
 From:   Florian Westphal <fw@strlen.de>
-To:     Phil Sutter <phil@nwl.cc>,
-        "Serguei Bezverkhi (sbezverk)" <sbezverk@cisco.com>,
-        Florian Westphal <fw@strlen.de>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Re: Proxy load balancer rules
-Message-ID: <20200131220558.GI795@breakpoint.cc>
-References: <DEB99F9B-0D1A-40DD-97C8-3FB0C4E24CD6@cisco.com>
- <20200131140909.GR28318@orbyte.nwl.cc>
+To:     Cong Wang <xiyou.wangcong@gmail.com>
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        syzbot+adf6c6c2be1c3a718121@syzkaller.appspotmail.com,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Subject: Re: [Patch nf 3/3] xt_hashlimit: limit the max size of hashtable
+Message-ID: <20200131220807.GJ795@breakpoint.cc>
+References: <20200131205216.22213-1-xiyou.wangcong@gmail.com>
+ <20200131205216.22213-4-xiyou.wangcong@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200131140909.GR28318@orbyte.nwl.cc>
+In-Reply-To: <20200131205216.22213-4-xiyou.wangcong@gmail.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Phil Sutter <phil@nwl.cc> wrote:
-> Hi Serguei,
+Cong Wang <xiyou.wangcong@gmail.com> wrote:
+> The user-specified hashtable size is unbound, this could
+> easily lead to an OOM or a hung task as we hold the global
+> mutex while allocating and initializing the new hashtable.
 > 
-> On Thu, Jan 30, 2020 at 05:12:07PM +0000, Serguei Bezverkhi (sbezverk) wrote:
-> [...]
-> > 
-> > !
-> > !   -m recent --rcheck --seconds 10800 --reap  --rsource - keywords I am looking for equivalent in  nftables  
-> > !
-> > 
-> > -A KUBE-XLB-BAJ42O6WMSSB7YGA -m comment --comment "services-9837/affinity-lb-esipp-transition:" -m recent --rcheck --seconds 10800 --reap --name KUBE-SEP-JAOQ4ZBNFGZ34AZ4 --mask 255.255.255.255 --rsource -j KUBE-SEP-JAOQ4ZBNFGZ34AZ4
-> > -A KUBE-XLB-BAJ42O6WMSSB7YGA -m comment --comment "services-9837/affinity-lb-esipp-transition:" -m recent --rcheck --seconds 10800 --reap --name KUBE-SEP-WLHDVQTL57VBPURE --mask 255.255.255.255 --rsource -j KUBE-SEP-WLHDVQTL57VBPURE
-> > -A KUBE-XLB-BAJ42O6WMSSB7YGA -m comment --comment "services-9837/affinity-lb-esipp-transition:" -m recent --rcheck --seconds 10800 --reap --name KUBE-SEP-5XWCIKNI3M4MWAMU --mask 255.255.255.255 --rsource -j KUBE-SEP-5XWCIKNI3M4MWAMU
+> The max value is derived from the max value when chosen by
+> the kernel.
 > 
-> There is no direct equivalent for recent extension in nftables (yet).
+> Reported-and-tested-by: syzbot+adf6c6c2be1c3a718121@syzkaller.appspotmail.com
+> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+> Cc: Florian Westphal <fw@strlen.de>
+> Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+> ---
+>  net/netfilter/xt_hashlimit.c | 6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+> index 57a2639bcc22..6327134c5886 100644
+> --- a/net/netfilter/xt_hashlimit.c
+> +++ b/net/netfilter/xt_hashlimit.c
+> @@ -272,6 +272,8 @@ dsthash_free(struct xt_hashlimit_htable *ht, struct dsthash_ent *ent)
+>  }
+>  static void htable_gc(struct work_struct *work);
+>  
+> +#define HASHLIMIT_MAX_SIZE 8192
+> +
+>  static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+>  			 const char *name, u_int8_t family,
+>  			 struct xt_hashlimit_htable **out_hinfo,
+> @@ -290,7 +292,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+>  		size = (nr_pages << PAGE_SHIFT) / 16384 /
+>  		       sizeof(struct hlist_head);
+>  		if (nr_pages > 1024 * 1024 * 1024 / PAGE_SIZE)
+> -			size = 8192;
+> +			size = HASHLIMIT_MAX_SIZE;
+>  		if (size < 16)
+>  			size = 16;
+>  	}
+> @@ -848,6 +850,8 @@ static int hashlimit_mt_check_common(const struct xt_mtchk_param *par,
+>  
+>  	if (cfg->gc_interval == 0 || cfg->expire == 0)
+>  		return -EINVAL;
+> +	if (cfg->size > HASHLIMIT_MAX_SIZE)
+> +		return -ENOMEM;
 
-Do we need one? All use cases I've seen can be handled via set infra.
+Hmm, won't that break restore of rulesets that have something like
+
+--hashlimit-size 10000?
+
+AFAIU this limits the module to vmalloc requests of only 64kbyte.
+I'm not opposed to a limit (or a cap), but 64k seems a bit low to me.
