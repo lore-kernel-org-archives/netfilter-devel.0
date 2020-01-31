@@ -2,85 +2,113 @@ Return-Path: <SRS0=LRZR=3U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DA78C33CB7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 19:24:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7602AC33CB7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 20:52:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7F7702082E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 19:24:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4695D2173E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 20:52:57 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ifr+XYVL"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726670AbgAaTYr (ORCPT
+        id S1726698AbgAaUw4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 31 Jan 2020 14:24:47 -0500
-Received: from correo.us.es ([193.147.175.20]:36832 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726385AbgAaTYj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 31 Jan 2020 14:24:39 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A2BBDFC5F6
-        for <netfilter-devel@vger.kernel.org>; Fri, 31 Jan 2020 20:24:37 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 88524DA70F
-        for <netfilter-devel@vger.kernel.org>; Fri, 31 Jan 2020 20:24:37 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7DCE9DA702; Fri, 31 Jan 2020 20:24:37 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 86BFDDA707;
-        Fri, 31 Jan 2020 20:24:35 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 31 Jan 2020 20:24:35 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 5B24342EFB80;
-        Fri, 31 Jan 2020 20:24:35 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 4/6] netfilter: flowtable: Fix missing flush hardware on table free
-Date:   Fri, 31 Jan 2020 20:24:26 +0100
-Message-Id: <20200131192428.167274-5-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20200131192428.167274-1-pablo@netfilter.org>
-References: <20200131192428.167274-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Fri, 31 Jan 2020 15:52:56 -0500
+Received: from mail-pj1-f66.google.com ([209.85.216.66]:56036 "EHLO
+        mail-pj1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726102AbgAaUwz (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 31 Jan 2020 15:52:55 -0500
+Received: by mail-pj1-f66.google.com with SMTP id d5so3368331pjz.5;
+        Fri, 31 Jan 2020 12:52:55 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=oAzrzsjfwfb2NIzzZbZDHsuVL/on7pj6/MP3jhQnaRY=;
+        b=Ifr+XYVLgJV7/+DBXpVG23JNLzbRw3PFkfqiSksCI3muXUMZBlo5pJyTHVKMZlYrG2
+         fVJeraB+wCKQpvnWmDgJa/1ZVC1tJNesfk8pWYBulOTVFslg/KK6qDac/HmK0rZhswmA
+         fc7xAUoJG+P0Cc8Wz4g9LtRrhQ1qVkCwke6Bxd1fNmAHZP/BNpuaS1zVnmgYV1pC87Rd
+         eCl5pRutrXtnI9AtdTjdMEuaf2JiqT9loHI/gZKJEN7vGg0ERf68cNA9DCikl6ASDLa1
+         RLgzsKx/PkOG0GtRM63xQUdXfHZimsSBwiH9Z8lDJPuqCNA7bUGAtKJmP7UzGPv1oG7A
+         HJTg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=oAzrzsjfwfb2NIzzZbZDHsuVL/on7pj6/MP3jhQnaRY=;
+        b=AFO9/Te2qcRm1VxgupLCHPdOfR1QHG0MlDshM9j8lP71pZ6Z8Ej7LncPa6aNW0FXSP
+         I9HeSOonOoTXR2k+O5a+J8eCw0BZX5tmxWgYZNfV7HcDZm2+t2qfoddSmVQE4uodhdw8
+         8I8lyf7vgOHjiMUcPsk8HP08nY5Q+wDqfOn1+nsj0E+qGL9z1LK+R85eMXrG3AVgZbxA
+         6tg9cYMBkGghgw3bmBI/XDDQgPegelpPpT76nSnS0P8yHzaHLz9MISFtaF2bIsGp/mPw
+         oMk9ELK6gqPgHa4xN/+tNBUbM7Th1njoh5A+ImwTpu2pepf9Cda3Fp/7tXU1KOUs0eEI
+         L6tQ==
+X-Gm-Message-State: APjAAAVPNEXTMxtxTcSK5Gb4GNcrW361NFjFA5Mu9KwWBpMLycp/cbrH
+        MsZmH1fsU0IPn9ZgvpqtUdWZKmwv888=
+X-Google-Smtp-Source: APXvYqw2w5weWDxQil8rnx96IEgzQK9YOcuE+JjskYVY6LG8n7fURa1Q1fMK1+LnhXx95tVD7Cy6tQ==
+X-Received: by 2002:a17:90a:26ab:: with SMTP id m40mr14844193pje.42.1580503974452;
+        Fri, 31 Jan 2020 12:52:54 -0800 (PST)
+Received: from tw-172-25-31-76.office.twttr.net ([8.25.197.24])
+        by smtp.gmail.com with ESMTPSA id m128sm11599169pfm.183.2020.01.31.12.52.53
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 31 Jan 2020 12:52:54 -0800 (PST)
+From:   Cong Wang <xiyou.wangcong@gmail.com>
+To:     netdev@vger.kernel.org
+Cc:     netfilter-devel@vger.kernel.org,
+        Cong Wang <xiyou.wangcong@gmail.com>,
+        syzbot+adf6c6c2be1c3a718121@syzkaller.appspotmail.com,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Subject: [Patch nf 1/3] xt_hashlimit: avoid OOM for user-controlled vmalloc
+Date:   Fri, 31 Jan 2020 12:52:14 -0800
+Message-Id: <20200131205216.22213-2-xiyou.wangcong@gmail.com>
+X-Mailer: git-send-email 2.21.1
+In-Reply-To: <20200131205216.22213-1-xiyou.wangcong@gmail.com>
+References: <20200131205216.22213-1-xiyou.wangcong@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Paul Blakey <paulb@mellanox.com>
+The hashtable size could be controlled by user, so use flags
+GFP_USER | __GFP_NOWARN to avoid OOM warning triggered by user-space.
 
-If entries exist when freeing a hardware offload enabled table,
-we queue work for hardware while running the gc iteration.
+Also add __GFP_NORETRY to avoid retrying, as this is just a
+best effort and the failure is already handled gracefully.
 
-Execute it (flush) after queueing.
-
-Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
-Signed-off-by: Paul Blakey <paulb@mellanox.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Reported-and-tested-by: syzbot+adf6c6c2be1c3a718121@syzkaller.appspotmail.com
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>
+Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
 ---
- net/netfilter/nf_flow_table_core.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/xt_hashlimit.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 14a069c72bb2..8af28e10b4e6 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -553,6 +553,7 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
- 	cancel_delayed_work_sync(&flow_table->gc_work);
- 	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
- 	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
-+	nf_flow_table_offload_flush(flow_table);
- 	rhashtable_destroy(&flow_table->rhashtable);
- }
- EXPORT_SYMBOL_GPL(nf_flow_table_free);
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index bccd47cd7190..885a266d8e57 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -293,8 +293,9 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+ 		if (size < 16)
+ 			size = 16;
+ 	}
+-	/* FIXME: don't use vmalloc() here or anywhere else -HW */
+-	hinfo = vmalloc(struct_size(hinfo, hash, size));
++	/* FIXME: don't use __vmalloc() here or anywhere else -HW */
++	hinfo = __vmalloc(struct_size(hinfo, hash, size),
++			  GFP_USER | __GFP_NOWARN | __GFP_NORETRY, PAGE_KERNEL);
+ 	if (hinfo == NULL)
+ 		return -ENOMEM;
+ 	*out_hinfo = hinfo;
 -- 
-2.11.0
+2.21.1
 
