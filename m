@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E46CC35240
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DA78C33CB7
 	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 19:24:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 362CE2082E
+	by mail.kernel.org (Postfix) with ESMTP id 7F7702082E
 	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 19:24:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726698AbgAaTYs (ORCPT
+        id S1726670AbgAaTYr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 31 Jan 2020 14:24:48 -0500
-Received: from correo.us.es ([193.147.175.20]:36848 "EHLO mail.us.es"
+        Fri, 31 Jan 2020 14:24:47 -0500
+Received: from correo.us.es ([193.147.175.20]:36832 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726505AbgAaTYj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1726385AbgAaTYj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 31 Jan 2020 14:24:39 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E7595FC5F9
-        for <netfilter-devel@vger.kernel.org>; Fri, 31 Jan 2020 20:24:38 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id A2BBDFC5F6
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 Jan 2020 20:24:37 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D7998DA709
-        for <netfilter-devel@vger.kernel.org>; Fri, 31 Jan 2020 20:24:38 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 88524DA70F
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 Jan 2020 20:24:37 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id CCA37DA702; Fri, 31 Jan 2020 20:24:38 +0100 (CET)
+        id 7DCE9DA702; Fri, 31 Jan 2020 20:24:37 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E1C02DA715;
-        Fri, 31 Jan 2020 20:24:36 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 86BFDDA707;
+        Fri, 31 Jan 2020 20:24:35 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 31 Jan 2020 20:24:36 +0100 (CET)
+ Fri, 31 Jan 2020 20:24:35 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id B50B942EFB80;
-        Fri, 31 Jan 2020 20:24:36 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 5B24342EFB80;
+        Fri, 31 Jan 2020 20:24:35 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 6/6] netfilter: nf_flowtable: fix documentation
-Date:   Fri, 31 Jan 2020 20:24:28 +0100
-Message-Id: <20200131192428.167274-7-pablo@netfilter.org>
+Subject: [PATCH 4/6] netfilter: flowtable: Fix missing flush hardware on table free
+Date:   Fri, 31 Jan 2020 20:24:26 +0100
+Message-Id: <20200131192428.167274-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200131192428.167274-1-pablo@netfilter.org>
 References: <20200131192428.167274-1-pablo@netfilter.org>
@@ -55,38 +55,32 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Matteo Croce <mcroce@redhat.com>
+From: Paul Blakey <paulb@mellanox.com>
 
-In the flowtable documentation there is a missing semicolon, the command
-as is would give this error:
+If entries exist when freeing a hardware offload enabled table,
+we queue work for hardware while running the gc iteration.
 
-    nftables.conf:5:27-33: Error: syntax error, unexpected devices, expecting newline or semicolon
-                    hook ingress priority 0 devices = { br0, pppoe-data };
-                                            ^^^^^^^
-    nftables.conf:4:12-13: Error: invalid hook (null)
-            flowtable ft {
-                      ^^
+Execute it (flush) after queueing.
 
-Fixes: 19b351f16fd9 ("netfilter: add flowtable documentation")
-Signed-off-by: Matteo Croce <mcroce@redhat.com>
+Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
+Signed-off-by: Paul Blakey <paulb@mellanox.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- Documentation/networking/nf_flowtable.txt | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_flow_table_core.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/Documentation/networking/nf_flowtable.txt b/Documentation/networking/nf_flowtable.txt
-index ca2136c76042..0bf32d1121be 100644
---- a/Documentation/networking/nf_flowtable.txt
-+++ b/Documentation/networking/nf_flowtable.txt
-@@ -76,7 +76,7 @@ flowtable and add one rule to your forward chain.
- 
-         table inet x {
- 		flowtable f {
--			hook ingress priority 0 devices = { eth0, eth1 };
-+			hook ingress priority 0; devices = { eth0, eth1 };
- 		}
-                 chain y {
-                         type filter hook forward priority 0; policy accept;
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 14a069c72bb2..8af28e10b4e6 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -553,6 +553,7 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
+ 	cancel_delayed_work_sync(&flow_table->gc_work);
+ 	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
+ 	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
++	nf_flow_table_offload_flush(flow_table);
+ 	rhashtable_destroy(&flow_table->rhashtable);
+ }
+ EXPORT_SYMBOL_GPL(nf_flow_table_free);
 -- 
 2.11.0
 
