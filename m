@@ -7,24 +7,24 @@ X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00121C2D0DB
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 22:08:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5EACC35240
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 22:09:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CE5032082E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 22:08:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A2C5C2082E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 22:09:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726213AbgAaWIK (ORCPT
+        id S1726322AbgAaWI6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 31 Jan 2020 17:08:10 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:52746 "EHLO
+        Fri, 31 Jan 2020 17:08:58 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:52758 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726163AbgAaWIK (ORCPT
+        by vger.kernel.org with ESMTP id S1726163AbgAaWI6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 31 Jan 2020 17:08:10 -0500
+        Fri, 31 Jan 2020 17:08:58 -0500
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@strlen.de>)
-        id 1ixeSN-00060X-O8; Fri, 31 Jan 2020 23:08:07 +0100
-Date:   Fri, 31 Jan 2020 23:08:07 +0100
+        id 1ixeTA-000610-Ss; Fri, 31 Jan 2020 23:08:56 +0100
+Date:   Fri, 31 Jan 2020 23:08:56 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     Cong Wang <xiyou.wangcong@gmail.com>
 Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
@@ -32,14 +32,15 @@ Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>
-Subject: Re: [Patch nf 3/3] xt_hashlimit: limit the max size of hashtable
-Message-ID: <20200131220807.GJ795@breakpoint.cc>
+Subject: Re: [Patch nf 1/3] xt_hashlimit: avoid OOM for user-controlled
+ vmalloc
+Message-ID: <20200131220856.GK795@breakpoint.cc>
 References: <20200131205216.22213-1-xiyou.wangcong@gmail.com>
- <20200131205216.22213-4-xiyou.wangcong@gmail.com>
+ <20200131205216.22213-2-xiyou.wangcong@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200131205216.22213-4-xiyou.wangcong@gmail.com>
+In-Reply-To: <20200131205216.22213-2-xiyou.wangcong@gmail.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
@@ -47,12 +48,11 @@ List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Cong Wang <xiyou.wangcong@gmail.com> wrote:
-> The user-specified hashtable size is unbound, this could
-> easily lead to an OOM or a hung task as we hold the global
-> mutex while allocating and initializing the new hashtable.
+> The hashtable size could be controlled by user, so use flags
+> GFP_USER | __GFP_NOWARN to avoid OOM warning triggered by user-space.
 > 
-> The max value is derived from the max value when chosen by
-> the kernel.
+> Also add __GFP_NORETRY to avoid retrying, as this is just a
+> best effort and the failure is already handled gracefully.
 > 
 > Reported-and-tested-by: syzbot+adf6c6c2be1c3a718121@syzkaller.appspotmail.com
 > Cc: Pablo Neira Ayuso <pablo@netfilter.org>
@@ -60,41 +60,23 @@ Cong Wang <xiyou.wangcong@gmail.com> wrote:
 > Cc: Florian Westphal <fw@strlen.de>
 > Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
 > ---
->  net/netfilter/xt_hashlimit.c | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
+>  net/netfilter/xt_hashlimit.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
 > 
 > diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-> index 57a2639bcc22..6327134c5886 100644
+> index bccd47cd7190..885a266d8e57 100644
 > --- a/net/netfilter/xt_hashlimit.c
 > +++ b/net/netfilter/xt_hashlimit.c
-> @@ -272,6 +272,8 @@ dsthash_free(struct xt_hashlimit_htable *ht, struct dsthash_ent *ent)
->  }
->  static void htable_gc(struct work_struct *work);
->  
-> +#define HASHLIMIT_MAX_SIZE 8192
-> +
->  static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
->  			 const char *name, u_int8_t family,
->  			 struct xt_hashlimit_htable **out_hinfo,
-> @@ -290,7 +292,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
->  		size = (nr_pages << PAGE_SHIFT) / 16384 /
->  		       sizeof(struct hlist_head);
->  		if (nr_pages > 1024 * 1024 * 1024 / PAGE_SIZE)
-> -			size = 8192;
-> +			size = HASHLIMIT_MAX_SIZE;
+> @@ -293,8 +293,9 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
 >  		if (size < 16)
 >  			size = 16;
 >  	}
-> @@ -848,6 +850,8 @@ static int hashlimit_mt_check_common(const struct xt_mtchk_param *par,
->  
->  	if (cfg->gc_interval == 0 || cfg->expire == 0)
->  		return -EINVAL;
-> +	if (cfg->size > HASHLIMIT_MAX_SIZE)
-> +		return -ENOMEM;
+> -	/* FIXME: don't use vmalloc() here or anywhere else -HW */
+> -	hinfo = vmalloc(struct_size(hinfo, hash, size));
+> +	/* FIXME: don't use __vmalloc() here or anywhere else -HW */
+> +	hinfo = __vmalloc(struct_size(hinfo, hash, size),
+> +			  GFP_USER | __GFP_NOWARN | __GFP_NORETRY, PAGE_KERNEL);
 
-Hmm, won't that break restore of rulesets that have something like
-
---hashlimit-size 10000?
-
-AFAIU this limits the module to vmalloc requests of only 64kbyte.
-I'm not opposed to a limit (or a cap), but 64k seems a bit low to me.
+Rationale looks sane, wonder if it makes sense to drop Haralds comment
+though, I don't see what other solution other than vmalloc could be used
+here.
