@@ -2,88 +2,125 @@ Return-Path: <SRS0=LRZR=3U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B37DC2D0DB
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 20:53:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02624C2D0DB
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 20:57:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E5ECA214D8
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 20:53:25 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WDQnFvZD"
+	by mail.kernel.org (Postfix) with ESMTP id CCA53214D8
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 20:57:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1580504269;
+	bh=xSaADny3VeFeTtHG/1htvc3v34drLqjFKsbK6AuXjHk=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=Z5MaeB+zoO0bhpp6ogyXJ2k/YK6PK766kafhyHvIdvhkDg3e1gLzbJWmc28z1yqtI
+	 UF8KvjHweTIkuS7OA7rA6PKhjjEOgXsk5NCbyG2ePpNQ4jEGuz2zSteiuZkCfcy+R4
+	 LrxWa6omVleQAJ3d8EcgZZvHj/vlpN7br+8U7xgA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726443AbgAaUwy (ORCPT
+        id S1726758AbgAaU5t (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 31 Jan 2020 15:52:54 -0500
-Received: from mail-pf1-f181.google.com ([209.85.210.181]:33977 "EHLO
-        mail-pf1-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726109AbgAaUwy (ORCPT
+        Fri, 31 Jan 2020 15:57:49 -0500
+Received: from mail-lf1-f68.google.com ([209.85.167.68]:37120 "EHLO
+        mail-lf1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726199AbgAaU5o (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 31 Jan 2020 15:52:54 -0500
-Received: by mail-pf1-f181.google.com with SMTP id i6so3961434pfc.1;
-        Fri, 31 Jan 2020 12:52:54 -0800 (PST)
+        Fri, 31 Jan 2020 15:57:44 -0500
+Received: by mail-lf1-f68.google.com with SMTP id b15so5831680lfc.4
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 Jan 2020 12:57:42 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=WcImXaVJ5xFLxdQlO5pxg/sgsWml7hPwoVGgOSXa54E=;
-        b=WDQnFvZDfy2/68PjMYjoj5CQ99WMGu/FrNceTwCeg+RnM/ZZXdJcFJ/etzCH3G+K9r
-         tPy59x+RjefU1Xu85AMTeLTPXPjUEkX6v033jKVmD1FZLBCpbe0jbCvUB/mLMbTZib7u
-         LwEPwJjiGgJ6YaepZWKhvqx0uzJCXo2u6Nta575PYBje/7MeYHwfrtIxxx4QmkiYHIqG
-         5cI7IXnFqRdKYxmrb4CiUF2eHGpqv9wTILHRvCWTk7706mOrE2qWQTN0XHR2dcXYo5OA
-         jytmExABYZWnRAocmOw5eGQuvfJo8nyX5p4Hke+SqUu1YDWHlXlFi6vAClcI40fV1fqV
-         fuaQ==
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=yIy8jX/bIqNLPn135lJfh03fB0J5DTm/sQQubpuwpIc=;
+        b=T9YJkCW9JbP3I/VrV8Kj+Sqgh32TFui6J89dvvzFWNF4uNBBlwLYLIiloGbloeGdEn
+         +WhsCFna2qbBsj24mHwTYrLs7jNN597VW/cYfZ14T/ucXOrbAuhgBHDPx8ZibV3JpYUn
+         SIOsaSvx7SY3ycO1LVDx3/u1kmOYO3RuQI1m4=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=WcImXaVJ5xFLxdQlO5pxg/sgsWml7hPwoVGgOSXa54E=;
-        b=X20oT0vvAShmJlofTbdnJXOe7/A2BNX8MU9GJrvqy4HXYlCEGxw/bCbNoFlt5aVGh9
-         K36bfHdzGIv6o9ldJ7YsUnJeTTgvUTt8ddmPgKrSFRHvbeb37gCgp9I5kVOSYqOxj4KV
-         tqwASt5A3aOewaYIQxsJOnz/bOy56UvaCayvDOOZBMa4yCpJk3qj+grXqWOindTuVTEL
-         VnMDBqqoN31gJOqz6K2n9JL/KhmVbn0Pi8mCTJ1ZGxjaBlkNAU/BBOuOIvgcQDIKOfOx
-         /oNsQxUc6YVvw4p5aGMrSB7NBw3KNQQJbrcejwQLAlq9X/GkKuDwaUtHu1LeAwyJ3elB
-         FTJA==
-X-Gm-Message-State: APjAAAVyswzW5XoFBDc6V+sIX3vjtcYYmcH2DlmhFKJtxsUC3q8etBZs
-        i4wOyPnvGiztdeujMVCZfvYEb5kBvew=
-X-Google-Smtp-Source: APXvYqxHUey9/YOsqpgaM3L4MdLEhz3u9ODuF/3lT9Ia7gsboTJ175OSI/76JbuQLF3j2NIcMiD3cQ==
-X-Received: by 2002:a05:6a00:45:: with SMTP id i5mr12189501pfk.252.1580503973481;
-        Fri, 31 Jan 2020 12:52:53 -0800 (PST)
-Received: from tw-172-25-31-76.office.twttr.net ([8.25.197.24])
-        by smtp.gmail.com with ESMTPSA id m128sm11599169pfm.183.2020.01.31.12.52.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 31 Jan 2020 12:52:53 -0800 (PST)
-From:   Cong Wang <xiyou.wangcong@gmail.com>
-To:     netdev@vger.kernel.org
-Cc:     netfilter-devel@vger.kernel.org,
-        Cong Wang <xiyou.wangcong@gmail.com>
-Subject: [Patch nf 0/3] netfilter: xt_hashlimit: a few improvements
-Date:   Fri, 31 Jan 2020 12:52:13 -0800
-Message-Id: <20200131205216.22213-1-xiyou.wangcong@gmail.com>
-X-Mailer: git-send-email 2.21.1
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=yIy8jX/bIqNLPn135lJfh03fB0J5DTm/sQQubpuwpIc=;
+        b=SlSft/Li7rZix+Husw3azYZjo1JGOzYbeov4n6kAUAMsVJiBIDoqRwXyKt+dNQw9pe
+         ag5YkWfAjDU6Ze4oymlrbW9yZJXDvyOb37dweZU8x+1gtbrkTBKkhpQ0ZLwh7ca6pFhn
+         WxwlYDeTBVGyFpydz/gUIrAG79q9rCWq/fgNFHrkK9BZDCcMFXtf12TrxPwbMQtykMjg
+         g6hwDihKwceTs90neGPFa3+CJ0QeVOfVhMeM5jJaXTSr/VhsTSm8NdyYKf3WaWnaroP0
+         TuVYaMfGqXPfNzMPzyYklIIChGswsQk2v8uyNPglrQEL3o3LMQDSIZk6T4GMZTOZ7agW
+         Yzwg==
+X-Gm-Message-State: APjAAAUCMjnpz+6loDLQdLIEdIom24CtRCG43OCHfn0Lc9Jv+khYIoQh
+        qIioyBEimpCIgWXVBUcccL5r95kV4+Q=
+X-Google-Smtp-Source: APXvYqy6lcoZwBGnhR0RYBawuXVs8Z9+NxAtU0L7uEhnO2SJIQ+GR5uKowpV2hD72SoRIYjYqsCycQ==
+X-Received: by 2002:ac2:5626:: with SMTP id b6mr6469760lff.134.1580504260781;
+        Fri, 31 Jan 2020 12:57:40 -0800 (PST)
+Received: from mail-lj1-f174.google.com (mail-lj1-f174.google.com. [209.85.208.174])
+        by smtp.gmail.com with ESMTPSA id z1sm5139382lfh.35.2020.01.31.12.57.39
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 31 Jan 2020 12:57:39 -0800 (PST)
+Received: by mail-lj1-f174.google.com with SMTP id o15so2958184ljg.6
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 Jan 2020 12:57:39 -0800 (PST)
+X-Received: by 2002:a2e:88c5:: with SMTP id a5mr7089308ljk.201.1580504259100;
+ Fri, 31 Jan 2020 12:57:39 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <000000000000dd68d0059c74a1db@google.com> <000000000000ed3a48059d17277e@google.com>
+In-Reply-To: <000000000000ed3a48059d17277e@google.com>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Fri, 31 Jan 2020 12:57:23 -0800
+X-Gmail-Original-Message-ID: <CAHk-=wgNo-3FuNWSj+pRqJEG3phVnpcEi+NNq7f_VMWeTugFDA@mail.gmail.com>
+Message-ID: <CAHk-=wgNo-3FuNWSj+pRqJEG3phVnpcEi+NNq7f_VMWeTugFDA@mail.gmail.com>
+Subject: Re: KASAN: slab-out-of-bounds Read in bitmap_ip_add
+To:     Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc:     coreteam@netfilter.org, David Miller <davem@davemloft.net>,
+        Marco Elver <elver@google.com>,
+        Florian Westphal <fw@strlen.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Enrico Weigelt, metux IT consult" <info@metux.net>,
+        jeremy@azazel.net, Kate Stewart <kstewart@linuxfoundation.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        syzkaller-bugs <syzkaller-bugs@googlegroups.com>,
+        Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patchset improves vmalloc allocation handling and
-hashlimit_mutex usage for xt_hashlimit.
+On Sun, Jan 26, 2020 at 8:01 PM syzbot
+<syzbot+f3e96783d74ee8ea9aa3@syzkaller.appspotmail.com> wrote:
+>
+> syzbot has bisected this bug to:
 
----
+Ok, the bisection is obviously bogus - it just points to where the
+KASAN support was added to _notice_ the problem.
 
-Cong Wang (3):
-  xt_hashlimit: avoid OOM for user-controlled vmalloc
-  xt_hashlimit: reduce hashlimit_mutex scope for htable_put()
-  xt_hashlimit: limit the max size of hashtable
+But is somebody looking at the actual KASAN report itself?
 
- net/netfilter/xt_hashlimit.c | 23 ++++++++++++++---------
- 1 file changed, 14 insertions(+), 9 deletions(-)
+  https://syzkaller.appspot.com/bug?extid=f3e96783d74ee8ea9aa3
 
--- 
-2.21.1
+It does look like nfnetlink_rcv_msg() ends up looking at a bit:
 
+ bitmap_ip_do_add net/netfilter/ipset/ip_set_bitmap_ip.c:83 [inline]
+ bitmap_ip_add+0xef/0xe60 net/netfilter/ipset/ip_set_bitmap_gen.h:136
+ bitmap_ip_uadt+0x73e/0xa10 net/netfilter/ipset/ip_set_bitmap_ip.c:186
+ call_ad+0x1a0/0x5a0 net/netfilter/ipset/ip_set_core.c:1716
+ ip_set_ad.isra.0+0x572/0xb20 net/netfilter/ipset/ip_set_core.c:1804
+ ip_set_uadd+0x37/0x50 net/netfilter/ipset/ip_set_core.c:1829
+ nfnetlink_rcv_msg+0xcf2/0xfb0 net/netfilter/nfnetlink.c:229
+
+that is past the allocation:
+
+ ip_set_alloc+0x38/0x5e net/netfilter/ipset/ip_set_core.c:255
+ init_map_ip net/netfilter/ipset/ip_set_bitmap_ip.c:223 [inline]
+ bitmap_ip_create+0x6ec/0xc20 net/netfilter/ipset/ip_set_bitmap_ip.c:327
+ ip_set_create+0x6f1/0x1500 net/netfilter/ipset/ip_set_core.c:1111
+ nfnetlink_rcv_msg+0xcf2/0xfb0 net/netfilter/nfnetlink.c:229
+
+Maybe this has already been fixed, but I'm just trying to follow-up on
+the syzbot report..
+
+           Linus
