@@ -8,55 +8,55 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7602AC33CB7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 20:52:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAADBC33CB7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 20:53:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4695D2173E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 20:52:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 99A67217BA
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 20:53:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ifr+XYVL"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Nphb9NXe"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726698AbgAaUw4 (ORCPT
+        id S1726998AbgAaUxP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 31 Jan 2020 15:52:56 -0500
-Received: from mail-pj1-f66.google.com ([209.85.216.66]:56036 "EHLO
-        mail-pj1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726102AbgAaUwz (ORCPT
+        Fri, 31 Jan 2020 15:53:15 -0500
+Received: from mail-pl1-f196.google.com ([209.85.214.196]:38125 "EHLO
+        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726718AbgAaUw5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 31 Jan 2020 15:52:55 -0500
-Received: by mail-pj1-f66.google.com with SMTP id d5so3368331pjz.5;
-        Fri, 31 Jan 2020 12:52:55 -0800 (PST)
+        Fri, 31 Jan 2020 15:52:57 -0500
+Received: by mail-pl1-f196.google.com with SMTP id t6so3212647plj.5;
+        Fri, 31 Jan 2020 12:52:56 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=oAzrzsjfwfb2NIzzZbZDHsuVL/on7pj6/MP3jhQnaRY=;
-        b=Ifr+XYVLgJV7/+DBXpVG23JNLzbRw3PFkfqiSksCI3muXUMZBlo5pJyTHVKMZlYrG2
-         fVJeraB+wCKQpvnWmDgJa/1ZVC1tJNesfk8pWYBulOTVFslg/KK6qDac/HmK0rZhswmA
-         fc7xAUoJG+P0Cc8Wz4g9LtRrhQ1qVkCwke6Bxd1fNmAHZP/BNpuaS1zVnmgYV1pC87Rd
-         eCl5pRutrXtnI9AtdTjdMEuaf2JiqT9loHI/gZKJEN7vGg0ERf68cNA9DCikl6ASDLa1
-         RLgzsKx/PkOG0GtRM63xQUdXfHZimsSBwiH9Z8lDJPuqCNA7bUGAtKJmP7UzGPv1oG7A
-         HJTg==
+        bh=OU7pCbPuM2E7mJI/H5ckjCXxPxlbQB9wqm/B7j0dW/4=;
+        b=Nphb9NXeamgOuoKh37H38HpKV+y/WJaeOnUbwII6g8CamLlsV4tOtcuVGMV0eihm1W
+         qIvxY24VpBIxz1xTb0BPmcS47tfTb+fa7T+C6LE1Gdnl58C7LxbHl9lxdhPuCGQh5HDX
+         R7Y5Sm7nSz9tYz1/TvFMRNHcvIjqk9A+9/2jJ7rBovbWE/TyWLzkPKKSZQVpbtYGWciR
+         5/r0VPSGtp3gf7pC79WFEF0SMRFP73GWn/LLpqDzg3GFZqjC87/Uj8l/ZGLRjWdRVdnV
+         Rf94jDNOYqPFbolW91a12vc6bC+xEETTQqXAm1HSTl1ngmAiahN3qO7e00cUece3U2pP
+         +mYg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=oAzrzsjfwfb2NIzzZbZDHsuVL/on7pj6/MP3jhQnaRY=;
-        b=AFO9/Te2qcRm1VxgupLCHPdOfR1QHG0MlDshM9j8lP71pZ6Z8Ej7LncPa6aNW0FXSP
-         I9HeSOonOoTXR2k+O5a+J8eCw0BZX5tmxWgYZNfV7HcDZm2+t2qfoddSmVQE4uodhdw8
-         8I8lyf7vgOHjiMUcPsk8HP08nY5Q+wDqfOn1+nsj0E+qGL9z1LK+R85eMXrG3AVgZbxA
-         6tg9cYMBkGghgw3bmBI/XDDQgPegelpPpT76nSnS0P8yHzaHLz9MISFtaF2bIsGp/mPw
-         oMk9ELK6gqPgHa4xN/+tNBUbM7Th1njoh5A+ImwTpu2pepf9Cda3Fp/7tXU1KOUs0eEI
-         L6tQ==
-X-Gm-Message-State: APjAAAVPNEXTMxtxTcSK5Gb4GNcrW361NFjFA5Mu9KwWBpMLycp/cbrH
-        MsZmH1fsU0IPn9ZgvpqtUdWZKmwv888=
-X-Google-Smtp-Source: APXvYqw2w5weWDxQil8rnx96IEgzQK9YOcuE+JjskYVY6LG8n7fURa1Q1fMK1+LnhXx95tVD7Cy6tQ==
-X-Received: by 2002:a17:90a:26ab:: with SMTP id m40mr14844193pje.42.1580503974452;
-        Fri, 31 Jan 2020 12:52:54 -0800 (PST)
+        bh=OU7pCbPuM2E7mJI/H5ckjCXxPxlbQB9wqm/B7j0dW/4=;
+        b=CPH9CAjf3wNPGLMSseJNaNbz5MMSJ53pM69oNsslyQDf0p68CsZ5sslV3D9QzbL98g
+         ufY4pSbjGys0q0V2utSAzEtAZ8+nPVaP8aWpjgfjiKBl71XD1+hP02D6sPkpqglXeTxC
+         NeQ119f7OM2C9jG+cRJY/3EUH6Vy1TObCAwkGDLLkzXwEsMN/R1zBqIDT7+jhrQ/CVJv
+         52O1we0OrwjvWY1ErsAvpHGBUopwnw0Ifbq2i9F3nKxMIWJ0SsL72Bx9xgTTRMO8nfjR
+         SoKvo0vWeh5B+PKUfnWjjjzSl4FwlVBfaYitJtF/aa8C+dfGPJlnasY+sfPY/kKaLiQU
+         PXvQ==
+X-Gm-Message-State: APjAAAUJRZjngrPe3bqddU3Iw9PNcM+7IMT1YpaS1OzntdlyJToFQ6sW
+        0+iZDhPS33o6GEp7Kiz/iwq/9OMV06I=
+X-Google-Smtp-Source: APXvYqyXzlJSRWytiAEImeyGlflJaG5k/1+DneHvRmmRD2bjxg77FVFMTGc8s25B/qoJvPeqlGZCtw==
+X-Received: by 2002:a17:90a:a48a:: with SMTP id z10mr7124931pjp.52.1580503976350;
+        Fri, 31 Jan 2020 12:52:56 -0800 (PST)
 Received: from tw-172-25-31-76.office.twttr.net ([8.25.197.24])
-        by smtp.gmail.com with ESMTPSA id m128sm11599169pfm.183.2020.01.31.12.52.53
+        by smtp.gmail.com with ESMTPSA id m128sm11599169pfm.183.2020.01.31.12.52.55
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 31 Jan 2020 12:52:54 -0800 (PST)
+        Fri, 31 Jan 2020 12:52:55 -0800 (PST)
 From:   Cong Wang <xiyou.wangcong@gmail.com>
 To:     netdev@vger.kernel.org
 Cc:     netfilter-devel@vger.kernel.org,
@@ -65,9 +65,9 @@ Cc:     netfilter-devel@vger.kernel.org,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>
-Subject: [Patch nf 1/3] xt_hashlimit: avoid OOM for user-controlled vmalloc
-Date:   Fri, 31 Jan 2020 12:52:14 -0800
-Message-Id: <20200131205216.22213-2-xiyou.wangcong@gmail.com>
+Subject: [Patch nf 3/3] xt_hashlimit: limit the max size of hashtable
+Date:   Fri, 31 Jan 2020 12:52:16 -0800
+Message-Id: <20200131205216.22213-4-xiyou.wangcong@gmail.com>
 X-Mailer: git-send-email 2.21.1
 In-Reply-To: <20200131205216.22213-1-xiyou.wangcong@gmail.com>
 References: <20200131205216.22213-1-xiyou.wangcong@gmail.com>
@@ -78,11 +78,12 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The hashtable size could be controlled by user, so use flags
-GFP_USER | __GFP_NOWARN to avoid OOM warning triggered by user-space.
+The user-specified hashtable size is unbound, this could
+easily lead to an OOM or a hung task as we hold the global
+mutex while allocating and initializing the new hashtable.
 
-Also add __GFP_NORETRY to avoid retrying, as this is just a
-best effort and the failure is already handled gracefully.
+The max value is derived from the max value when chosen by
+the kernel.
 
 Reported-and-tested-by: syzbot+adf6c6c2be1c3a718121@syzkaller.appspotmail.com
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
@@ -90,25 +91,40 @@ Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
 Cc: Florian Westphal <fw@strlen.de>
 Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
 ---
- net/netfilter/xt_hashlimit.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ net/netfilter/xt_hashlimit.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index bccd47cd7190..885a266d8e57 100644
+index 57a2639bcc22..6327134c5886 100644
 --- a/net/netfilter/xt_hashlimit.c
 +++ b/net/netfilter/xt_hashlimit.c
-@@ -293,8 +293,9 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+@@ -272,6 +272,8 @@ dsthash_free(struct xt_hashlimit_htable *ht, struct dsthash_ent *ent)
+ }
+ static void htable_gc(struct work_struct *work);
+ 
++#define HASHLIMIT_MAX_SIZE 8192
++
+ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+ 			 const char *name, u_int8_t family,
+ 			 struct xt_hashlimit_htable **out_hinfo,
+@@ -290,7 +292,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+ 		size = (nr_pages << PAGE_SHIFT) / 16384 /
+ 		       sizeof(struct hlist_head);
+ 		if (nr_pages > 1024 * 1024 * 1024 / PAGE_SIZE)
+-			size = 8192;
++			size = HASHLIMIT_MAX_SIZE;
  		if (size < 16)
  			size = 16;
  	}
--	/* FIXME: don't use vmalloc() here or anywhere else -HW */
--	hinfo = vmalloc(struct_size(hinfo, hash, size));
-+	/* FIXME: don't use __vmalloc() here or anywhere else -HW */
-+	hinfo = __vmalloc(struct_size(hinfo, hash, size),
-+			  GFP_USER | __GFP_NOWARN | __GFP_NORETRY, PAGE_KERNEL);
- 	if (hinfo == NULL)
- 		return -ENOMEM;
- 	*out_hinfo = hinfo;
+@@ -848,6 +850,8 @@ static int hashlimit_mt_check_common(const struct xt_mtchk_param *par,
+ 
+ 	if (cfg->gc_interval == 0 || cfg->expire == 0)
+ 		return -EINVAL;
++	if (cfg->size > HASHLIMIT_MAX_SIZE)
++		return -ENOMEM;
+ 	if (par->family == NFPROTO_IPV4) {
+ 		if (cfg->srcmask > 32 || cfg->dstmask > 32)
+ 			return -EINVAL;
 -- 
 2.21.1
 
