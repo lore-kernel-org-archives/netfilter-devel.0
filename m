@@ -2,96 +2,222 @@ Return-Path: <SRS0=LRZR=3U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 892E7C2D0DB
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 14:09:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DED99C2D0DB
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 14:50:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5E5C9214D8
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 14:09:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A6567206D5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jan 2020 14:50:32 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="MKt2VH41"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728730AbgAaOJO (ORCPT
+        id S1729012AbgAaOuc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 31 Jan 2020 09:09:14 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:33740 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728659AbgAaOJO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 31 Jan 2020 09:09:14 -0500
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1ixWyr-00074w-4U; Fri, 31 Jan 2020 15:09:09 +0100
-Date:   Fri, 31 Jan 2020 15:09:09 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     "Serguei Bezverkhi (sbezverk)" <sbezverk@cisco.com>
-Cc:     Florian Westphal <fw@strlen.de>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Re: Proxy load balancer rules
-Message-ID: <20200131140909.GR28318@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        "Serguei Bezverkhi (sbezverk)" <sbezverk@cisco.com>,
-        Florian Westphal <fw@strlen.de>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-References: <DEB99F9B-0D1A-40DD-97C8-3FB0C4E24CD6@cisco.com>
+        Fri, 31 Jan 2020 09:50:32 -0500
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:59985 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1728825AbgAaOuc (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 31 Jan 2020 09:50:32 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1580482230;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=G5qtNmF55up9PuW19M9ztod4mbJlD+L5BOsXwBxDWkA=;
+        b=MKt2VH41uORlD7ZbEOXTf74RVVuQLJvOGBAFp38fc5eqnvFTVJhFnCQ0D0eGXHGqYFfqCd
+        S1w3ktfm/zbB+6qKyuZi1ciCLyeLy5+Im0vWDb0BXLoWeBqc0cYjblf2Az/+Tg3BVs2dBe
+        i4lJd9zXhTo7Eiy5Y77cKoa4Lw2HMOA=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-330-I55GL5ZpPoKvKnwr-qcgbg-1; Fri, 31 Jan 2020 09:50:23 -0500
+X-MC-Unique: I55GL5ZpPoKvKnwr-qcgbg-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id EFCB118C35A0;
+        Fri, 31 Jan 2020 14:50:20 +0000 (UTC)
+Received: from x2.localnet (ovpn-117-67.phx2.redhat.com [10.3.117.67])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id B23C55C54A;
+        Fri, 31 Jan 2020 14:50:09 +0000 (UTC)
+From:   Steve Grubb <sgrubb@redhat.com>
+To:     Paul Moore <paul@paul-moore.com>
+Cc:     Richard Guy Briggs <rgb@redhat.com>,
+        containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        omosnace@redhat.com, dhowells@redhat.com, simo@redhat.com,
+        Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
+        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
+        mpatel@redhat.com
+Subject: Re: [PATCH ghak90 V8 13/16] audit: track container nesting
+Date:   Fri, 31 Jan 2020 09:50:08 -0500
+Message-ID: <5238532.OiMyN8JqPO@x2>
+Organization: Red Hat
+In-Reply-To: <CAHC9VhRkH=YEjAY6dJJHSp934grHnf=O4RiqLu3U8DzdVQOZkg@mail.gmail.com>
+References: <cover.1577736799.git.rgb@redhat.com> <6452955c1e038227a5cd169f689f3fd3db27513f.1577736799.git.rgb@redhat.com> <CAHC9VhRkH=YEjAY6dJJHSp934grHnf=O4RiqLu3U8DzdVQOZkg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <DEB99F9B-0D1A-40DD-97C8-3FB0C4E24CD6@cisco.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Serguei,
-
-On Thu, Jan 30, 2020 at 05:12:07PM +0000, Serguei Bezverkhi (sbezverk) wrote:
-[...]
+On Wednesday, January 22, 2020 4:29:12 PM EST Paul Moore wrote:
+> On Tue, Dec 31, 2019 at 2:51 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > Track the parent container of a container to be able to filter and
+> > report nesting.
+> > 
+> > Now that we have a way to track and check the parent container of a
+> > container, modify the contid field format to be able to report that
+> > nesting using a carrat ("^") separator to indicate nesting.  The
+> > original field format was "contid=<contid>" for task-associated records
+> > and "contid=<contid>[,<contid>[...]]" for network-namespace-associated
+> > records.  The new field format is
+> > "contid=<contid>[^<contid>[...]][,<contid>[...]]".
 > 
-> !
-> !   -m recent --rcheck --seconds 10800 --reap  --rsource - keywords I am looking for equivalent in  nftables  
-> !
+> Let's make sure we always use a comma as a separator, even when
+> recording the parent information, for example:
+> "contid=<contid>[,^<contid>[...]][,<contid>[...]]"
 > 
-> -A KUBE-XLB-BAJ42O6WMSSB7YGA -m comment --comment "services-9837/affinity-lb-esipp-transition:" -m recent --rcheck --seconds 10800 --reap --name KUBE-SEP-JAOQ4ZBNFGZ34AZ4 --mask 255.255.255.255 --rsource -j KUBE-SEP-JAOQ4ZBNFGZ34AZ4
-> -A KUBE-XLB-BAJ42O6WMSSB7YGA -m comment --comment "services-9837/affinity-lb-esipp-transition:" -m recent --rcheck --seconds 10800 --reap --name KUBE-SEP-WLHDVQTL57VBPURE --mask 255.255.255.255 --rsource -j KUBE-SEP-WLHDVQTL57VBPURE
-> -A KUBE-XLB-BAJ42O6WMSSB7YGA -m comment --comment "services-9837/affinity-lb-esipp-transition:" -m recent --rcheck --seconds 10800 --reap --name KUBE-SEP-5XWCIKNI3M4MWAMU --mask 255.255.255.255 --rsource -j KUBE-SEP-5XWCIKNI3M4MWAMU
-
-There is no direct equivalent for recent extension in nftables (yet).
-But in this case I think a set with timeout would do the trick.
-
-The above simply checks if saddr is part of that set (--rcheck). The
-value given in --seconds would be the set's default element timeout. No
-need for --reap, elements will disappear automatically.
-
-[...]
-> -A KUBE-SEP-5XWCIKNI3M4MWAMU -s 57.112.0.208/32 -j KUBE-MARK-MASQ
-> -A KUBE-SEP-5XWCIKNI3M4MWAMU -p tcp -m recent --set --name KUBE-SEP-5XWCIKNI3M4MWAMU --mask 255.255.255.255 --rsource -m tcp -j DNAT [unsupported revision]
+> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> > ---
+> > 
+> >  include/linux/audit.h |  1 +
+> >  kernel/audit.c        | 53
+> >  +++++++++++++++++++++++++++++++++++++++++++-------- kernel/audit.h     
+> >    |  1 +
+> >  kernel/auditfilter.c  | 17 ++++++++++++++++-
+> >  kernel/auditsc.c      |  2 +-
+> >  5 files changed, 64 insertions(+), 10 deletions(-)
 > 
-> -A KUBE-SEP-JAOQ4ZBNFGZ34AZ4 -s 57.112.0.206/32 -j KUBE-MARK-MASQ
-> -A KUBE-SEP-JAOQ4ZBNFGZ34AZ4 -p tcp -m recent --set --name KUBE-SEP-JAOQ4ZBNFGZ34AZ4 --mask 255.255.255.255 --rsource -m tcp -j DNAT [unsupported revision]
+> ...
 > 
-> -A KUBE-SEP-WLHDVQTL57VBPURE -s 57.112.0.207/32 -j KUBE-MARK-MASQ
-> -A KUBE-SEP-WLHDVQTL57VBPURE -p tcp -m recent --set --name KUBE-SEP-WLHDVQTL57VBPURE --mask 255.255.255.255 --rsource -m tcp -j DNAT [unsupported revision]
+> > diff --git a/kernel/audit.c b/kernel/audit.c
+> > index ef8e07524c46..68be59d1a89b 100644
+> > --- a/kernel/audit.c
+> > +++ b/kernel/audit.c
+> > 
+> > @@ -492,6 +493,7 @@ void audit_switch_task_namespaces(struct nsproxy *ns,
+> > struct task_struct *p)> 
+> >                 audit_netns_contid_add(new->net_ns, contid);
+> >  
+> >  }
+> > 
+> > +void audit_log_contid(struct audit_buffer *ab, u64 contid);
+> 
+> If we need a forward declaration, might as well just move it up near
+> the top of the file with the rest of the declarations.
+> 
+> > +void audit_log_contid(struct audit_buffer *ab, u64 contid)
+> > +{
+> > +       struct audit_contobj *cont = NULL, *prcont = NULL;
+> > +       int h;
+> 
+> It seems safer to pass the audit container ID object and not the u64.
+> 
+> > +       if (!audit_contid_valid(contid)) {
+> > +               audit_log_format(ab, "%llu", contid);
+> 
+> Do we really want to print (u64)-1 here?  Since this is a known
+> invalid number, would "?" be a better choice?
 
-These rules add saddr to the set or reset the timeout if already
-present.
+The established pattern is that we print -1 when its unset and "?" when its 
+totalling missing. So, how could this be invalid? It should be set or not. 
+That is unless its totally missing just like when we do not run with selinux 
+enabled and a context just doesn't exist.
 
-So, in order to replicate the above in nftables, you would:
+-Steve
 
-* Add a new set for each different --name values given above
-  - define a default timeout (suggested)
-  - define a max size (suggested)
-* Translate --rcheck into a simple set lookup
-* Translate --set into set statement:
-  'update @setxy { ip saddr timeout 10800 }'
-  - use 'update' instead of 'add' to reset the timeout
 
-For further info, please refer to nft manpage[1] as well as nftables
-wiki[2].
+> > +               return;
+> > +       }
+> > +       h = audit_hash_contid(contid);
+> > +       rcu_read_lock();
+> > +       list_for_each_entry_rcu(cont, &audit_contid_hash[h], list)
+> > +               if (cont->id == contid) {
+> > +                       prcont = cont;
+> 
+> Why not just pull the code below into the body of this if statement?
+> It all needs to be done under the RCU read lock anyway and the code
+> would read much better this way.
+> 
+> > +                       break;
+> > +               }
+> > +       if (!prcont) {
+> > +               audit_log_format(ab, "%llu", contid);
+> > +               goto out;
+> > +       }
+> > +       while (prcont) {
+> > +               audit_log_format(ab, "%llu", prcont->id);
+> > +               prcont = prcont->parent;
+> > +               if (prcont)
+> > +                       audit_log_format(ab, "^");
+> 
+> In the interest of limiting the number of calls to audit_log_format(),
+> how about something like the following:
+> 
+>   audit_log_format("%llu", cont);
+>   iter = cont->parent;
+>   while (iter) {
+>     if (iter->parent)
+>       audit_log_format("^%llu,", iter);
+>     else
+>       audit_log_format("^%llu", iter);
+>     iter = iter->parent;
+>   }
+> 
+> > +       }
+> > +out:
+> > +       rcu_read_unlock();
+> > +}
+> > +
+> > 
+> >  /*
+> >  
+> >   * audit_log_container_id - report container info
+> >   * @context: task or local context for record
+> 
+> ...
+> 
+> > @@ -2705,9 +2741,10 @@ int audit_set_contid(struct task_struct *task, u64
+> > contid)> 
+> >         if (!ab)
+> >         
+> >                 return rc;
+> > 
+> > -       audit_log_format(ab,
+> > -                        "op=set opid=%d contid=%llu old-contid=%llu",
+> > -                        task_tgid_nr(task), contid, oldcontid);
+> > +       audit_log_format(ab, "op=set opid=%d contid=",
+> > task_tgid_nr(task)); +       audit_log_contid(ab, contid);
+> > +       audit_log_format(ab, " old-contid=");
+> > +       audit_log_contid(ab, oldcontid);
+> 
+> This is an interesting case where contid and old-contid are going to
+> be largely the same, only the first (current) ID is going to be
+> different; do we want to duplicate all of those IDs?
+> 
+> >         audit_log_end(ab);
+> >         return rc;
+> >  
+> >  }
+> > 
+> > @@ -2723,9 +2760,9 @@ void audit_log_container_drop(void)
+> 
+> --
+> paul moore
+> www.paul-moore.com
 
-Cheers, Phil
 
-[1] 'SETS' and 'SET STATEMENT' sections in nft(8) 
-[2] https://wiki.nftables.org/wiki-nftables/index.php/Updating_sets_from_the_packet_path
+
 
