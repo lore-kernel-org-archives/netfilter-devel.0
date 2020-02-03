@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AC65C3524D
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Feb 2020 11:20:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C0EEC35247
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Feb 2020 11:20:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3792320721
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Feb 2020 11:20:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2327E20721
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Feb 2020 11:20:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="tMIWQjza"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="tMIlDQBe"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727406AbgBCLUY (ORCPT
+        id S1727366AbgBCLUZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 3 Feb 2020 06:20:24 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:33248 "EHLO
+        Mon, 3 Feb 2020 06:20:25 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:33252 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727257AbgBCLUY (ORCPT
+        with ESMTP id S1727306AbgBCLUY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 3 Feb 2020 06:20:24 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
@@ -29,22 +29,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=LXsxCAx33gxZBJljHWbJRxFEcyPvr+QoeGZZqx9y5vs=; b=tMIWQjzaL0HNCG7JaoM9ksUWQ2
-        j7X+zRF1dqZyWq4Wjah84VGGoX9W1FJEYgamFz11w2dABI7i5/ZoJ7g75CWJzdlHfnG5X3GlLGHu8
-        YYsgu+fF1ZHXFZzuKb6HcxewNbYHnXfwfkERaR5X+0NPc3AL0aF/w48Ta+OquzDGdFLpfDKB7q6Cu
-        WYWwNMACghNTP+zvcROzl8HXNd0zIdPpLOKn3vEtqHpEtqGqGDjEtjXs5drhvwh9uUVFobRM6eefP
-        s24rmdRSASoL1rVpxylUeXHDEvcWvYIAFtNTB1Fgjqfd+TzCLcmNCONqjVDqxbWApjP90c+ahtRaO
-        /f0+YP5w==;
+        bh=wOFfEFTjWwR4/TuAekGEhiH7+o06UHfgBdSDi7+teSQ=; b=tMIlDQBeeqxqMBLwQd//B/6FNg
+        zoTrt+zfN1mUWFIyDID3RM/XidCyU+9G5MTOJiv8Zzt06VRak1fgahiW7e0M3Kb/6igObWxeDpNDc
+        ZhuC2cWtDYVWoIx0+zoRU6h+CayzoAubpmvGhAmEp8zyQjkdwQuj4bDBl6PhoutWgYzvYe3PIamsx
+        /T9b25ijxQTc1cvCV4vlCwbtQUfQ365E9yim3ljgekBUvia21buSm4hSDmm5/7czYNPLVckTNMtf4
+        BH4W6XCC5Npnotj5JWaQAZERdm0HEC6EGEVHHw7wU80foz+YpyyDV5KY/Em2j4Z0mm6YlBox10QYd
+        ZLMmLfGw==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1iyZmB-0007Br-D8
+        id 1iyZmB-0007Br-M5
         for netfilter-devel@vger.kernel.org; Mon, 03 Feb 2020 11:20:23 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft v4 2/6] evaluate: correct variable name.
-Date:   Mon,  3 Feb 2020 11:20:19 +0000
-Message-Id: <20200203112023.646840-3-jeremy@azazel.net>
+Subject: [PATCH nft v4 4/6] tests: shell: add bit-shift tests.
+Date:   Mon,  3 Feb 2020 11:20:21 +0000
+Message-Id: <20200203112023.646840-5-jeremy@azazel.net>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200203112023.646840-1-jeremy@azazel.net>
 References: <20200203112023.646840-1-jeremy@azazel.net>
@@ -58,45 +58,79 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Rename the `lshift` variable used to store an right-shift expression to
-`rshift`.
+Add a couple of shell test-cases for setting the CT mark to a bitwise
+expression derived from the packet mark and vice versa.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- src/evaluate.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ tests/shell/testcases/chains/0040mark_shift_0         | 11 +++++++++++
+ tests/shell/testcases/chains/0040mark_shift_1         | 11 +++++++++++
+ .../shell/testcases/chains/dumps/0040mark_shift_0.nft |  6 ++++++
+ .../shell/testcases/chains/dumps/0040mark_shift_1.nft |  6 ++++++
+ 4 files changed, 34 insertions(+)
+ create mode 100755 tests/shell/testcases/chains/0040mark_shift_0
+ create mode 100755 tests/shell/testcases/chains/0040mark_shift_1
+ create mode 100644 tests/shell/testcases/chains/dumps/0040mark_shift_0.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0040mark_shift_1.nft
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 09dd493f0757..966582e44a7d 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -450,7 +450,7 @@ static uint8_t expr_offset_shift(const struct expr *expr, unsigned int offset,
- 
- static void expr_evaluate_bits(struct eval_ctx *ctx, struct expr **exprp)
- {
--	struct expr *expr = *exprp, *and, *mask, *lshift, *off;
-+	struct expr *expr = *exprp, *and, *mask, *rshift, *off;
- 	unsigned masklen, len = expr->len, extra_len = 0;
- 	uint8_t shift;
- 	mpz_t bitmask;
-@@ -490,12 +490,12 @@ static void expr_evaluate_bits(struct eval_ctx *ctx, struct expr **exprp)
- 					  BYTEORDER_BIG_ENDIAN,
- 					  sizeof(shift), &shift);
- 
--		lshift = binop_expr_alloc(&expr->location, OP_RSHIFT, and, off);
--		lshift->dtype		= expr->dtype;
--		lshift->byteorder	= expr->byteorder;
--		lshift->len		= masklen;
-+		rshift = binop_expr_alloc(&expr->location, OP_RSHIFT, and, off);
-+		rshift->dtype		= expr->dtype;
-+		rshift->byteorder	= expr->byteorder;
-+		rshift->len		= masklen;
- 
--		*exprp = lshift;
-+		*exprp = rshift;
- 	} else
- 		*exprp = and;
- 
+diff --git a/tests/shell/testcases/chains/0040mark_shift_0 b/tests/shell/testcases/chains/0040mark_shift_0
+new file mode 100755
+index 000000000000..55447f0b9737
+--- /dev/null
++++ b/tests/shell/testcases/chains/0040mark_shift_0
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++set -e
++
++RULESET="
++  add table t
++  add chain t c { type filter hook output priority mangle; }
++  add rule t c oif lo ct mark set (meta mark | 0x10) << 8
++"
++
++$NFT --debug=eval -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/chains/0040mark_shift_1 b/tests/shell/testcases/chains/0040mark_shift_1
+new file mode 100755
+index 000000000000..b609f5ef10ad
+--- /dev/null
++++ b/tests/shell/testcases/chains/0040mark_shift_1
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++set -e
++
++RULESET="
++  add table t
++  add chain t c { type filter hook input priority mangle; }
++  add rule t c iif lo ct mark & 0xff 0x10 meta mark set ct mark >> 8
++"
++
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/chains/dumps/0040mark_shift_0.nft b/tests/shell/testcases/chains/dumps/0040mark_shift_0.nft
+new file mode 100644
+index 000000000000..52d59d2c6da4
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0040mark_shift_0.nft
+@@ -0,0 +1,6 @@
++table ip t {
++	chain c {
++		type filter hook output priority mangle; policy accept;
++		oif "lo" ct mark set (meta mark | 0x00000010) << 8
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0040mark_shift_1.nft b/tests/shell/testcases/chains/dumps/0040mark_shift_1.nft
+new file mode 100644
+index 000000000000..56ec8dc766ca
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0040mark_shift_1.nft
+@@ -0,0 +1,6 @@
++table ip t {
++	chain c {
++		type filter hook input priority mangle; policy accept;
++		iif "lo" ct mark & 0x000000ff == 0x00000010 meta mark set ct mark >> 8
++	}
++}
 -- 
 2.24.1
 
