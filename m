@@ -2,80 +2,92 @@ Return-Path: <SRS0=ffOv=3X=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E411C3524D
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Feb 2020 12:16:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A74E8C33CAC
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Feb 2020 13:54:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6B3C92082E
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Feb 2020 12:16:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D8422166E
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Feb 2020 13:54:40 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="knNQWUds"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727837AbgBCMQP (ORCPT
+        id S1728265AbgBCNyk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 3 Feb 2020 07:16:15 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:57956 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727201AbgBCMQO (ORCPT
+        Mon, 3 Feb 2020 08:54:40 -0500
+Received: from mail-40130.protonmail.ch ([185.70.40.130]:38165 "EHLO
+        mail-40130.protonmail.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727494AbgBCNyj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 3 Feb 2020 07:16:14 -0500
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1iyaeC-0003z5-L5; Mon, 03 Feb 2020 13:16:12 +0100
-Date:   Mon, 3 Feb 2020 13:16:12 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Cong Wang <xiyou.wangcong@gmail.com>
-Cc:     netdev@vger.kernel.org, fw@strlen.de,
-        netfilter-devel@vger.kernel.org,
-        syzbot+adf6c6c2be1c3a718121@syzkaller.appspotmail.com,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>
-Subject: Re: [Patch nf v2 1/3] xt_hashlimit: avoid OOM for user-controlled
- vmalloc
-Message-ID: <20200203121612.GR795@breakpoint.cc>
-References: <20200203043053.19192-1-xiyou.wangcong@gmail.com>
- <20200203043053.19192-2-xiyou.wangcong@gmail.com>
+        Mon, 3 Feb 2020 08:54:39 -0500
+Date:   Mon, 03 Feb 2020 13:54:31 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+        s=default; t=1580738076;
+        bh=OFdiTIMRr9CKLh8jUhcTeYLf9TN9FQ+Y21QjYyUQpyk=;
+        h=Date:To:From:Reply-To:Subject:Feedback-ID:From;
+        b=knNQWUdsRsk1NPWQCdT4w89mafF8FthJcmDWzMSBayvntwG37DtIXu9KXf4K4GLR0
+         O/qBd6qPyuh83D86LKLFfZM87x1zb1fA+bJYRHnMruYJBE0Y0UthfOmo/Q6Jv/FmA3
+         mgInlbITD6ARtSizMIXqKH60YFaS1Nve5J8K8/bs=
+To:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+From:   dyslexicatheist <dyslexicatheist@protonmail.com>
+Reply-To: dyslexicatheist <dyslexicatheist@protonmail.com>
+Subject: invalid read in
+Message-ID: <gwRjoIGUgI5MEgxSob7CBSUwPbYkxILRc4_ZrYWYNI7d1-T5Ej95p3XkEY_f9hLqHK5nVun7dk6RqObi0c_4482IJ6s6U33PyS6Hrm4z46E=@protonmail.com>
+Feedback-ID: LnsYXauhtR_e9kgk2d-isThAhyxIsD2PcS0_jrp6ej-3I2WPS9tR2zudCE_YY9WCDyXkRWYo2nBz1g-cDBMDOQ==:Ext:ProtonMail
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200203043053.19192-2-xiyou.wangcong@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Cong Wang <xiyou.wangcong@gmail.com> wrote:
-> The hashtable size could be controlled by user, so use flags
-> GFP_USER | __GFP_NOWARN to avoid OOM warning triggered by user-space.
-> 
-> Also add __GFP_NORETRY to avoid retrying, as this is just a
-> best effort and the failure is already handled gracefully.
-> 
-> Reported-and-tested-by: syzbot+adf6c6c2be1c3a718121@syzkaller.appspotmail.com
-> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-> Cc: Florian Westphal <fw@strlen.de>
-> Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
-> ---
->  net/netfilter/xt_hashlimit.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-> index bccd47cd7190..5d9943b37c42 100644
-> --- a/net/netfilter/xt_hashlimit.c
-> +++ b/net/netfilter/xt_hashlimit.c
-> @@ -293,8 +293,8 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
->  		if (size < 16)
->  			size = 16;
->  	}
-> -	/* FIXME: don't use vmalloc() here or anywhere else -HW */
-> -	hinfo = vmalloc(struct_size(hinfo, hash, size));
-> +	hinfo = __vmalloc(struct_size(hinfo, hash, size),
-> +			  GFP_USER | __GFP_NOWARN | __GFP_NORETRY, PAGE_KERNEL);
+Hello,
 
-Sorry for not noticing this earlier: should that be GFP_KERNEL_ACCOUNT
-instead of GFP_USER?
+I've written a filter to parse out punicode from DNS payloads and rewrite t=
+he packet in case it contains any IDN (xn--) marker unless the IDN is on a =
+whitelist. Valgrind reports that nfq_create_queue() returns uninitialized
+bytes resulting in thiserror:
 
+
+sudo valgrind --tool=3Dmemcheck --leak-check=3Dyes --show-reachable=3Dyes \
+           --num-callers=3D20 --track-fds=3Dyes --track-origins=3Dyes -s \
+            ./nfq --syslog --facility LOG_LOCAL0 --log-level info \
+                  --port 53  --renice -20 --rewrite-answer
+      =3D=3D714384=3D=3D
+      =3D=3D714384=3D=3D Syscall param socketcall.sendto(msg) points to uni=
+nitialised byte(s)
+      =3D=3D714384=3D=3D    at 0x4B977C7: sendto (sendto.c:27)
+      =3D=3D714384=3D=3D    by 0x486BE02: nfnl_send (in /usr/lib/x86_64-lin=
+ux-gnu/libnfnetlink.so.0.2.0)
+      =3D=3D714384=3D=3D    by 0x486DBD2: nfnl_query (in /usr/lib/x86_64-li=
+nux-gnu/libnfnetlink.so.0.2.0)
+      =3D=3D714384=3D=3D    by 0x4A73995: nfq_set_mode (libnetfilter_queue.=
+c:639)
+      =3D=3D714384=3D=3D    by 0x10B247: start_nfqueue_processing (nfq.c:53=
+2)
+      =3D=3D714384=3D=3D    by 0x10C289: main (nfq.c:987)
+      =3D=3D714384=3D=3D  Address 0x1ffefefbfd is on thread 1's stack
+      =3D=3D714384=3D=3D  in frame #3, created by nfq_set_mode (libnetfilte=
+r_queue.c:623)
+      =3D=3D714384=3D=3D  Uninitialised value was created by a stack alloca=
+tion
+      =3D=3D714384=3D=3D    at 0x10A1B0: ??? (in /src/nfq/src/nfq)
+
+After searching on this list archive, I found 1 question but without a foll=
+ow-up answer:
+https://marc.info/?l=3Dnetfilter-devel&m=3D137132916826745&w=3D4
+
+Having already spent over a day chasing this. Not having come across other =
+cases on github except this person self reporting[1] made me think it must =
+be indeed something in my code that I'm missing and that could have trigger=
+ed this. Or is it really rare (harmless) bug in libnetfilter?
+
+[1] https://github.com/misje/dhcpoptinj/issues/5
+
+thanks for any help,
+~DA
