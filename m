@@ -2,66 +2,119 @@ Return-Path: <SRS0=ffOv=3X=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3361DC35247
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Feb 2020 17:49:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 607C5C3524D
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Feb 2020 18:54:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DB9D62086A
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Feb 2020 17:49:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3AA6B20838
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Feb 2020 18:54:55 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="KTX9RxEI"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="vgJEamG1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728997AbgBCRtq (ORCPT
+        id S1728742AbgBCSyx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 3 Feb 2020 12:49:46 -0500
-Received: from mail-40130.protonmail.ch ([185.70.40.130]:32512 "EHLO
-        mail-40130.protonmail.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727314AbgBCRtq (ORCPT
+        Mon, 3 Feb 2020 13:54:53 -0500
+Received: from mail-ot1-f67.google.com ([209.85.210.67]:45184 "EHLO
+        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727275AbgBCSyx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 3 Feb 2020 12:49:46 -0500
-Date:   Mon, 03 Feb 2020 17:49:36 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
-        s=default; t=1580752184;
-        bh=LZWyT4x9q5jdimOIVrKCiPt5lk5vbKi3arIOwD3MeGc=;
-        h=Date:To:From:Reply-To:Subject:In-Reply-To:References:Feedback-ID:
-         From;
-        b=KTX9RxEIQt/MskYmhngV4/DSJQTx1EmRviY1dNPzpkUxMiIqJyScJ2VRVkeCGHwej
-         MF+kRg9aDIvKKk0kJ71CHSRcT3Sa1hCOtpno8xA0T5l75R44W91hF4wmmmwsDfy7Xh
-         ZVD5MDfliQkR7izMS/iTcdRsyNHxY0L/urMm8Hw4=
-To:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-From:   dyslexicatheist <dyslexicatheist@protonmail.com>
-Reply-To: dyslexicatheist <dyslexicatheist@protonmail.com>
-Subject: Re: invalid read in
-Message-ID: <s7HX6aItJNJ0k3vJDOdNMEIR5DZxNsav0EwjPqFGroEYHSRmMrGoNy6SX_gHXvSatbsTt1yNihtxUXK_ARVqtWmAsDhmD5fudDnu4mA8Tro=@protonmail.com>
-In-Reply-To: <20200203173003.GF20229@orbyte.nwl.cc>
-References: <gwRjoIGUgI5MEgxSob7CBSUwPbYkxILRc4_ZrYWYNI7d1-T5Ej95p3XkEY_f9hLqHK5nVun7dk6RqObi0c_4482IJ6s6U33PyS6Hrm4z46E=@protonmail.com>
- <20200203163152.GY19873@orbyte.nwl.cc>
- <7BnNOPQw33ulxkwoWPovsrpwB_JPbS5nJhaTevbPCUkPRxObOpyrmqo3pFe_h82tov85DMfE1cYdX1xX3xhHNLbTef3XXmkqU26_ulUKpfY=@protonmail.com>
- <20200203173003.GF20229@orbyte.nwl.cc>
-Feedback-ID: LnsYXauhtR_e9kgk2d-isThAhyxIsD2PcS0_jrp6ej-3I2WPS9tR2zudCE_YY9WCDyXkRWYo2nBz1g-cDBMDOQ==:Ext:ProtonMail
+        Mon, 3 Feb 2020 13:54:53 -0500
+Received: by mail-ot1-f67.google.com with SMTP id 59so14646245otp.12;
+        Mon, 03 Feb 2020 10:54:51 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=jtTiPAHoPdehMe7tTgXan4c5NOqxoO1V8vwYLOzh25k=;
+        b=vgJEamG1+O71DbkHbORzUTlkh2csWrDmYmk1IH2YkIV3zMjlZOmxaKXjX+EnvmjGHE
+         v3K1F+ASuOFe4crlHQudVXXC3tn1ZYuBiTFucUiKWUA1oXP30VWrxMHKiPeoaVniyKZR
+         vqgvjVBNtacCxRK4Q1yyVlvbxEx79IAlGgakEshxWe3RAAVpOe7VpWSojYJ9T8mhtmI0
+         cBCjY3OFzg3GkVni7gNjxBtuUiP4LNxu1E+4mOlvUNNRNmvh/Xg12J+fhUZ/cW2f6jZW
+         aFwk6WLeGFCQ7MyfY4VLxLs+o0zR6/aplFzHYqewdFIO6Ed57ZCj+MuzCY/ttHn+SZuI
+         fcag==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=jtTiPAHoPdehMe7tTgXan4c5NOqxoO1V8vwYLOzh25k=;
+        b=OM1a3TniT0jHdlLib9k04XimTiIwtjEV6d3yRn0Hy5ZTjBBsNSMr1qCNerrUxQX2qV
+         SfS1AuYT3fIcza20MTMZTNEzBMWCoitJv0ASgkm/+oj0PLiukqCUvE985HBM+ZJgWn+t
+         5TsF4qMzWJxRgjZ8JYRivYe3mR2DarE67C0YlrxH5FHqwFTJuIFgaZEYEdHh+0LZ9kcl
+         GvobqJHZJUMmoBNozMu1lBP5NIff2VnlWjB0Ik45uD/ubAd+Awzj6qRseNI6fU0Sm0Oh
+         6v3FTZcr9Zo2Fj/HGnM3OxVr7ihM8A1dbiq2+Ftz1gRPXtkvxlTUwh7KvKtnIRUoIBZJ
+         ANbA==
+X-Gm-Message-State: APjAAAUq5XHalqR3x/hAVAcIiYR4epoTDD8OL2wT5ujeU14Tp80ZGVvT
+        maF2Exp02OeJAH+v0tNlQKbq3euB3+GY5guOq00=
+X-Google-Smtp-Source: APXvYqwbVf9z6tVUScBzjXfBK+nhuSfmtUMAJeVBycTNB1L0t+VZMK+Y4Ww41/lOeVFVDbd/3wyR5A/5I8VoEPKO5K4=
+X-Received: by 2002:a9d:7559:: with SMTP id b25mr18044214otl.189.1580756091365;
+ Mon, 03 Feb 2020 10:54:51 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+References: <20200203043053.19192-1-xiyou.wangcong@gmail.com>
+ <20200203043053.19192-2-xiyou.wangcong@gmail.com> <20200203121612.GR795@breakpoint.cc>
+In-Reply-To: <20200203121612.GR795@breakpoint.cc>
+From:   Cong Wang <xiyou.wangcong@gmail.com>
+Date:   Mon, 3 Feb 2020 10:54:39 -0800
+Message-ID: <CAM_iQpWhQgJXumEnoKvH5VaCRTkZKmQQdKLkRsChf3+GiN47qQ@mail.gmail.com>
+Subject: Re: [Patch nf v2 1/3] xt_hashlimit: avoid OOM for user-controlled vmalloc
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        syzbot <syzbot+adf6c6c2be1c3a718121@syzkaller.appspotmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Monday, February 3, 2020 5:30 PM, Phil Sutter <phil@nwl.cc> wrote:
-
-> > thanks for your help Phil. I have just tried this but unfortunately it =
-didn't change the outcome. Also tried other variations such as memset'ing b=
-oth &u and the &params struct, but nada.
+On Mon, Feb 3, 2020 at 4:16 AM Florian Westphal <fw@strlen.de> wrote:
 >
-> Maybe you need to apply the same to __build_send_cfg_msg() as well?
-
-thanks, I just tried this. the error persists. this is puzzling.
-
+> Cong Wang <xiyou.wangcong@gmail.com> wrote:
+> > The hashtable size could be controlled by user, so use flags
+> > GFP_USER | __GFP_NOWARN to avoid OOM warning triggered by user-space.
+> >
+> > Also add __GFP_NORETRY to avoid retrying, as this is just a
+> > best effort and the failure is already handled gracefully.
+> >
+> > Reported-and-tested-by: syzbot+adf6c6c2be1c3a718121@syzkaller.appspotmail.com
+> > Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> > Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+> > Cc: Florian Westphal <fw@strlen.de>
+> > Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+> > ---
+> >  net/netfilter/xt_hashlimit.c | 4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+> > index bccd47cd7190..5d9943b37c42 100644
+> > --- a/net/netfilter/xt_hashlimit.c
+> > +++ b/net/netfilter/xt_hashlimit.c
+> > @@ -293,8 +293,8 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+> >               if (size < 16)
+> >                       size = 16;
+> >       }
+> > -     /* FIXME: don't use vmalloc() here or anywhere else -HW */
+> > -     hinfo = vmalloc(struct_size(hinfo, hash, size));
+> > +     hinfo = __vmalloc(struct_size(hinfo, hash, size),
+> > +                       GFP_USER | __GFP_NOWARN | __GFP_NORETRY, PAGE_KERNEL);
 >
-> Cheers, Phil
+> Sorry for not noticing this earlier: should that be GFP_KERNEL_ACCOUNT
+> instead of GFP_USER?
 
+Why do you think it should be accounted in kmemcg?
 
+I think this one is controlled by user, so I pick GFP_USER,
+like many other cases, for example,
+proc_allowed_congestion_control().
+
+GFP_KERNEL_ACCOUNT (or SLAB_ACCOUNT) is not
+common in networking, it is typically for socket allocations.
+GFP_USER is common.
+
+Thanks.
