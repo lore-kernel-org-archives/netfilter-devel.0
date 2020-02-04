@@ -2,233 +2,99 @@ Return-Path: <SRS0=DSQd=3Y=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D374C2D0B1
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Feb 2020 13:20:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C6CDC35247
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Feb 2020 15:31:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EE55E2084E
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Feb 2020 13:20:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5CB5020730
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Feb 2020 15:31:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="W0cRHz6M"
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="rcaY4f4+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727286AbgBDNUF (ORCPT
+        id S1727347AbgBDPbn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 4 Feb 2020 08:20:05 -0500
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:47107 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727174AbgBDNUE (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 Feb 2020 08:20:04 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1580822403;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=DiCDr9VOMNIOGlerAt3rk5gsTcg7CmFEgtEnbuSq7k8=;
-        b=W0cRHz6MEySCD75UlhTV5sELbv7zUOqFCgnqWlFSfCIgz9CHKlidY/t/lqN4MajjGpntXT
-        GlV8mtP1I5AjXQE061CaXcgzIMpCD05VxzKePghdZOEHUVNM/8UL//rZs0J8K9SvqzYNee
-        YNExsKNcICcMzQ7T6jAwNJQAGe+yt6A=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-117-CabuI7ORPYG9_kFSuyn87w-1; Tue, 04 Feb 2020 08:20:01 -0500
-X-MC-Unique: CabuI7ORPYG9_kFSuyn87w-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 815E38C8800;
-        Tue,  4 Feb 2020 13:19:59 +0000 (UTC)
-Received: from madcap2.tricolour.ca (ovpn-112-16.rdu2.redhat.com [10.10.112.16])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 7F8A9811F8;
-        Tue,  4 Feb 2020 13:19:47 +0000 (UTC)
-Date:   Tue, 4 Feb 2020 08:19:44 -0500
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Steve Grubb <sgrubb@redhat.com>
-Cc:     Paul Moore <paul@paul-moore.com>,
-        containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        omosnace@redhat.com, dhowells@redhat.com, simo@redhat.com,
-        Eric Paris <eparis@parisplace.org>,
-        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
-        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
-        mpatel@redhat.com
-Subject: Re: [PATCH ghak90 V8 13/16] audit: track container nesting
-Message-ID: <20200204131944.esnzcqvnecfnqgbi@madcap2.tricolour.ca>
-References: <cover.1577736799.git.rgb@redhat.com>
- <6452955c1e038227a5cd169f689f3fd3db27513f.1577736799.git.rgb@redhat.com>
- <CAHC9VhRkH=YEjAY6dJJHSp934grHnf=O4RiqLu3U8DzdVQOZkg@mail.gmail.com>
- <5238532.OiMyN8JqPO@x2>
+        Tue, 4 Feb 2020 10:31:43 -0500
+Received: from mx1.riseup.net ([198.252.153.129]:42660 "EHLO mx1.riseup.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727321AbgBDPbn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 4 Feb 2020 10:31:43 -0500
+Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "Sectigo RSA Domain Validation Secure Server CA" (not verified))
+        by mx1.riseup.net (Postfix) with ESMTPS id 48BpZj0TpFzFdC4;
+        Tue,  4 Feb 2020 07:31:41 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1580830302; bh=zPEvW44WaIRC1/bD86wR2NAqz/3smZqt888LhHp9PgE=;
+        h=To:References:From:Subject:Date:In-Reply-To:From;
+        b=rcaY4f4+201mjDpNd7YBDtcYEpLbVhPuqtTtuIGC6fqky69tp261k+5ViyPnFyx2Q
+         qRmtAw2kHY2cWCy6Mq2/llna/GJbgbtub1kaIslNXwm8WBXqBzE0HwR1j+aGNNmoC1
+         z8Gl0e6SZrygajIYLtfuvnoUNiz7t+3GqWDIaCUo=
+X-Riseup-User-ID: 4C0019C614E92179B1CAA3A6B1AD06A12D93491189537E37064B539AF4F2551D
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by capuchin.riseup.net (Postfix) with ESMTPSA id 48BpYd15c2z8w97;
+        Tue,  4 Feb 2020 07:30:44 -0800 (PST)
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+References: <20200131105123.dldbsjzqe6akaefr@salvia>
+From:   =?UTF-8?Q?Jos=c3=a9_M=2e_Guisado?= <guigom@riseup.net>
+Autocrypt: addr=guigom@riseup.net; keydata=
+ mQENBFvZsBUBCACwz0EO8bYf6CLL3445nBrt+EPX+pDgGpEh1vFG71UwLCc0Q52SsNJDOML8
+ EwnlMjCJS8jofSarvLZ/GbV6yABfw1BlYy+EzfDV7q/jPWioN1OzrfKaGo7M0eOmCM1RrePD
+ EBqd7u5vKbpK9K2jSR4ZLCkoUho/HFSj7Ef1PRbuKQbVoGkEOsLQlHebWnK0iaAsUiGnvgVi
+ 9O5ydijBIs1K/W0kvx9y50R6ZsbwzenljLkyo7nBZEBx+M+5g/O8Gi8jDc3p9z5VZBFkDaez
+ AigMeCMF9ajzaU9ir26LL6HuBrCJyiKCx4wecMr+9izVJK55lsnnOAwerv3dvq7G25pTABEB
+ AAG0JEpvc8OpIE0uIEd1aXNhZG8gPGd1aWdvbUByaXNldXAubmV0PokBVwQTAQgAQQIbAwUL
+ CQgHAgYVCgkICwIEFgIDAQIeAQIXgAIZARYhBORobWbTHQlsWyQKpCSafhl6luu5BQJeD3XU
+ BQkEFvk/AAoJECSafhl6luu5hQ0IAKaHPO3+7ce097MWCjKkNxHd/pBimYx+YD7GF3r/dZ59
+ 7LKBQcPIxJriubL6zM0Qc8su8v5pL42N+5GdcppbkPPw2IMhF3M0A1pk249fxo1udE1a/Z+Y
+ o25hNdVYjngsNraqHe2Om6u89KON5mBW194+RCxWzhhjQcG6JEONJ4ONVPbn/1mvK0Rex2sO
+ o7S5IwX7YXxpFsRgX6SewqFr/N3EJ7J5UrD9+SH6z8AsvTIKEBdKtrOaIdKO66flRXrG/Cyq
+ 2hZtMaCW8PVZJL6m2701PjDGeJeJ1oGHaVQbn23JRsx9KRPLAkGbGa1GiE349BFI/aon1/+x
+ lJG84SxbkKS5AQ0EW9mwFQEIALWeJTGQVwIPxMVEChhWl5RTnSiQNAheWt4rg+i5QTp5o1Xn
+ M4I5VKceEwoUnxp5CxAtLzTQIyBar7+K6GLorCgxstDoimzcqsC25CmHCEHV+sgDGUQeOUpB
+ oYD2Qiv2OC0V/EPpN4jfzZdA5IXSMq/ERAuI3EwZ3ig0deEI7f+w/cMqW02OLJKV77j4ZVas
+ iYgQgh8zsgWsn7nRqIPJl/Eqc7Mh25uTEdQsolfZE2QnPq9koCsiDHlsxjiZUOrCCj+7yb5k
+ FAHagkkL7torBwyVQfbHHRW854HbZLtfc6Yntp9MPd9UMjYsphQXaCl2/8aQo6kqkWP/XboG
+ J+ihLlcAEQEAAYkBPAQYAQgAJgIbDBYhBORobWbTHQlsWyQKpCSafhl6luu5BQJeD3aMBQkE
+ Fvn3AAoJECSafhl6luu5rIAH/j+R+SwRtTwa9BALuTKq3JwJxIvd5IYi5ymh5x6Qgkc6vuu4
+ hnLjOvMcYEC65+jEeJizjZrKBmQmvOx5TvCTjJWws75luLEAl2gnyPZP+Sc18d9PJeBsWLXQ
+ psN/otNzhtB2rRpOzSyMPK7VHEAbUk80sIY80uyTEkMefBkoe43Rw5IKJZ1IYykITj6C6LHp
+ N894e1s6MkjDLRZ8OJ1HNqP2Ew1sp9QuO9mAQcgBQHdGelEsha3ePUkhGdWHkQrolZC2G0yG
+ ANIb809yJG+8M216U2yt6FhtDqJzYIfIdxd8/i/cC7HJT5be+UD3fOWlv8lHwfuvRAhrhUfO
+ seoA1UI=
+Subject: Re: [MAINTENANCE] migrating git.netfilter.org
+Message-ID: <fbd79f10-0e17-a46e-32f5-e079389ac1f6@riseup.net>
+Date:   Tue, 4 Feb 2020 16:30:50 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5238532.OiMyN8JqPO@x2>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+In-Reply-To: <20200131105123.dldbsjzqe6akaefr@salvia>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-01-31 09:50, Steve Grubb wrote:
-> On Wednesday, January 22, 2020 4:29:12 PM EST Paul Moore wrote:
-> > On Tue, Dec 31, 2019 at 2:51 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > Track the parent container of a container to be able to filter and
-> > > report nesting.
-> > > 
-> > > Now that we have a way to track and check the parent container of a
-> > > container, modify the contid field format to be able to report that
-> > > nesting using a carrat ("^") separator to indicate nesting.  The
-> > > original field format was "contid=<contid>" for task-associated records
-> > > and "contid=<contid>[,<contid>[...]]" for network-namespace-associated
-> > > records.  The new field format is
-> > > "contid=<contid>[^<contid>[...]][,<contid>[...]]".
-> > 
-> > Let's make sure we always use a comma as a separator, even when
-> > recording the parent information, for example:
-> > "contid=<contid>[,^<contid>[...]][,<contid>[...]]"
-> > 
-> > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > > ---
-> > > 
-> > >  include/linux/audit.h |  1 +
-> > >  kernel/audit.c        | 53
-> > >  +++++++++++++++++++++++++++++++++++++++++++-------- kernel/audit.h     
-> > >    |  1 +
-> > >  kernel/auditfilter.c  | 17 ++++++++++++++++-
-> > >  kernel/auditsc.c      |  2 +-
-> > >  5 files changed, 64 insertions(+), 10 deletions(-)
-> > 
-> > ...
-> > 
-> > > diff --git a/kernel/audit.c b/kernel/audit.c
-> > > index ef8e07524c46..68be59d1a89b 100644
-> > > --- a/kernel/audit.c
-> > > +++ b/kernel/audit.c
-> > > 
-> > > @@ -492,6 +493,7 @@ void audit_switch_task_namespaces(struct nsproxy *ns,
-> > > struct task_struct *p)> 
-> > >                 audit_netns_contid_add(new->net_ns, contid);
-> > >  
-> > >  }
-> > > 
-> > > +void audit_log_contid(struct audit_buffer *ab, u64 contid);
-> > 
-> > If we need a forward declaration, might as well just move it up near
-> > the top of the file with the rest of the declarations.
-> > 
-> > > +void audit_log_contid(struct audit_buffer *ab, u64 contid)
-> > > +{
-> > > +       struct audit_contobj *cont = NULL, *prcont = NULL;
-> > > +       int h;
-> > 
-> > It seems safer to pass the audit container ID object and not the u64.
-> > 
-> > > +       if (!audit_contid_valid(contid)) {
-> > > +               audit_log_format(ab, "%llu", contid);
-> > 
-> > Do we really want to print (u64)-1 here?  Since this is a known
-> > invalid number, would "?" be a better choice?
+On 31/01/2020 11:51, Pablo Neira Ayuso wrote:
+> Hi,
 > 
-> The established pattern is that we print -1 when its unset and "?" when its 
-> totalling missing. So, how could this be invalid? It should be set or not. 
-> That is unless its totally missing just like when we do not run with selinux 
-> enabled and a context just doesn't exist.
-
-Ok, so in this case it is clearly unset, so should be -1, which will be a
-20-digit number when represented as an unsigned long long int.
-
-Thank you for that clarification Steve.
-
-> -Steve
+> A few of our volunteers have been working hard to migrate
+> git.netfilter.org to a new server. The dns entry also has been updated
+> accordingly. Just let us know if you experience any troubles.
 > 
-> > > +               return;
-> > > +       }
-> > > +       h = audit_hash_contid(contid);
-> > > +       rcu_read_lock();
-> > > +       list_for_each_entry_rcu(cont, &audit_contid_hash[h], list)
-> > > +               if (cont->id == contid) {
-> > > +                       prcont = cont;
-> > 
-> > Why not just pull the code below into the body of this if statement?
-> > It all needs to be done under the RCU read lock anyway and the code
-> > would read much better this way.
-> > 
-> > > +                       break;
-> > > +               }
-> > > +       if (!prcont) {
-> > > +               audit_log_format(ab, "%llu", contid);
-> > > +               goto out;
-> > > +       }
-> > > +       while (prcont) {
-> > > +               audit_log_format(ab, "%llu", prcont->id);
-> > > +               prcont = prcont->parent;
-> > > +               if (prcont)
-> > > +                       audit_log_format(ab, "^");
-> > 
-> > In the interest of limiting the number of calls to audit_log_format(),
-> > how about something like the following:
-> > 
-> >   audit_log_format("%llu", cont);
-> >   iter = cont->parent;
-> >   while (iter) {
-> >     if (iter->parent)
-> >       audit_log_format("^%llu,", iter);
-> >     else
-> >       audit_log_format("^%llu", iter);
-> >     iter = iter->parent;
-> >   }
-> > 
-> > > +       }
-> > > +out:
-> > > +       rcu_read_unlock();
-> > > +}
-> > > +
-> > > 
-> > >  /*
-> > >  
-> > >   * audit_log_container_id - report container info
-> > >   * @context: task or local context for record
-> > 
-> > ...
-> > 
-> > > @@ -2705,9 +2741,10 @@ int audit_set_contid(struct task_struct *task, u64
-> > > contid)> 
-> > >         if (!ab)
-> > >         
-> > >                 return rc;
-> > > 
-> > > -       audit_log_format(ab,
-> > > -                        "op=set opid=%d contid=%llu old-contid=%llu",
-> > > -                        task_tgid_nr(task), contid, oldcontid);
-> > > +       audit_log_format(ab, "op=set opid=%d contid=",
-> > > task_tgid_nr(task)); +       audit_log_contid(ab, contid);
-> > > +       audit_log_format(ab, " old-contid=");
-> > > +       audit_log_contid(ab, oldcontid);
-> > 
-> > This is an interesting case where contid and old-contid are going to
-> > be largely the same, only the first (current) ID is going to be
-> > different; do we want to duplicate all of those IDs?
-> > 
-> > >         audit_log_end(ab);
-> > >         return rc;
-> > >  
-> > >  }
-> > > 
-> > > @@ -2723,9 +2760,9 @@ void audit_log_container_drop(void)
-> > 
-> > paul moore
+> Thanks.
 
-- RGB
+Great!
 
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
+https://git.netfilter.org/iptables/ has been showing "Repository seems
+to be empty" for a few hours but the git url
+(git://git.netfilter.org/iptables) is working fine.
+
+
+
+
 
