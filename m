@@ -2,79 +2,88 @@ Return-Path: <SRS0=DSQd=3Y=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E747C35247
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Feb 2020 15:43:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23962C35247
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Feb 2020 15:47:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5A30E20674
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Feb 2020 15:43:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E2E842084E
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Feb 2020 15:47:46 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="EXFvQTnt"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727399AbgBDPnr (ORCPT
+        id S1727359AbgBDPrm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 4 Feb 2020 10:43:47 -0500
-Received: from correo.us.es ([193.147.175.20]:42104 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727369AbgBDPnq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 Feb 2020 10:43:46 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 8F859130E24
-        for <netfilter-devel@vger.kernel.org>; Tue,  4 Feb 2020 16:43:44 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 81BE1DA711
-        for <netfilter-devel@vger.kernel.org>; Tue,  4 Feb 2020 16:43:44 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 776A1DA709; Tue,  4 Feb 2020 16:43:44 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3BF8EDA702;
-        Tue,  4 Feb 2020 16:43:42 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 04 Feb 2020 16:43:42 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (65.pool85-50-107.static.orange.es [85.50.107.65])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Tue, 4 Feb 2020 10:47:42 -0500
+Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:55832 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1727348AbgBDPrl (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 4 Feb 2020 10:47:41 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1580831260;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=k5j3ObvOODL75kJLhay5/4twRQnCsNc1II2lP04Cwzc=;
+        b=EXFvQTntXUNXt7svOP1my7rv8MJb2pHJklxfIyioWzthFzHE16TIwHX0pajDYMq/2QCBkv
+        rqNa+mcP8/BKtf01LV/cTX/GXrMf6o5+ba6bZsbuPOk/sijKwJS5g3biZfQTn7RlwSomL5
+        KO+5uBg9yYwHfZL2FQuvv4+C2P86u70=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-245-6f651S_0N52lsFSFMHrBKg-1; Tue, 04 Feb 2020 10:47:39 -0500
+X-MC-Unique: 6f651S_0N52lsFSFMHrBKg-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 1B93742EF4E0;
-        Tue,  4 Feb 2020 16:43:42 +0100 (CET)
-Date:   Tue, 4 Feb 2020 16:43:40 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     =?iso-8859-1?Q?Jos=E9_M=2E?= Guisado <guigom@riseup.net>
-Cc:     netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-Subject: Re: [MAINTENANCE] migrating git.netfilter.org
-Message-ID: <20200204154340.6dw4z7rdqs32b32l@salvia>
-References: <20200131105123.dldbsjzqe6akaefr@salvia>
- <fbd79f10-0e17-a46e-32f5-e079389ac1f6@riseup.net>
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B3F7A19251A6;
+        Tue,  4 Feb 2020 15:47:36 +0000 (UTC)
+Received: from x2.localnet (ovpn-116-11.phx2.redhat.com [10.3.116.11])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id BFF115C1B5;
+        Tue,  4 Feb 2020 15:47:23 +0000 (UTC)
+From:   Steve Grubb <sgrubb@redhat.com>
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     Paul Moore <paul@paul-moore.com>,
+        containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        omosnace@redhat.com, dhowells@redhat.com, simo@redhat.com,
+        Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
+        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
+        mpatel@redhat.com
+Subject: Re: [PATCH ghak90 V8 13/16] audit: track container nesting
+Date:   Tue, 04 Feb 2020 10:47:22 -0500
+Message-ID: <3665686.i1MIc9PeWa@x2>
+Organization: Red Hat
+In-Reply-To: <20200204131944.esnzcqvnecfnqgbi@madcap2.tricolour.ca>
+References: <cover.1577736799.git.rgb@redhat.com> <5238532.OiMyN8JqPO@x2> <20200204131944.esnzcqvnecfnqgbi@madcap2.tricolour.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <fbd79f10-0e17-a46e-32f5-e079389ac1f6@riseup.net>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Feb 04, 2020 at 04:30:50PM +0100, José M. Guisado wrote:
-> On 31/01/2020 11:51, Pablo Neira Ayuso wrote:
-> > Hi,
-> > 
-> > A few of our volunteers have been working hard to migrate
-> > git.netfilter.org to a new server. The dns entry also has been updated
-> > accordingly. Just let us know if you experience any troubles.
-> > 
-> > Thanks.
+On Tuesday, February 4, 2020 8:19:44 AM EST Richard Guy Briggs wrote:
+> > The established pattern is that we print -1 when its unset and "?" when
+> > its totalling missing. So, how could this be invalid? It should be set
+> > or not. That is unless its totally missing just like when we do not run
+> > with selinux enabled and a context just doesn't exist.
 > 
-> Great!
+> Ok, so in this case it is clearly unset, so should be -1, which will be a
+> 20-digit number when represented as an unsigned long long int.
 > 
-> https://git.netfilter.org/iptables/ has been showing "Repository seems
-> to be empty" for a few hours but the git url
-> (git://git.netfilter.org/iptables) is working fine.
+> Thank you for that clarification Steve.
 
-Fixed, thanks.
+It is literally a  -1.  ( 2 characters)
+
+-Steve
+
+
