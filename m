@@ -2,80 +2,67 @@ Return-Path: <SRS0=cCuT=32=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 464AEC2D0B1
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Feb 2020 11:19:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15170C2D0B1
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Feb 2020 11:38:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 15F73206CC
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Feb 2020 11:19:16 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QgXX2MOc"
+	by mail.kernel.org (Postfix) with ESMTP id E67C5214AF
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Feb 2020 11:38:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727705AbgBFLTP (ORCPT
+        id S1727505AbgBFLib (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Feb 2020 06:19:15 -0500
-Received: from mail-il1-f179.google.com ([209.85.166.179]:34822 "EHLO
-        mail-il1-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727607AbgBFLTP (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Feb 2020 06:19:15 -0500
-Received: by mail-il1-f179.google.com with SMTP id g12so4768541ild.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 06 Feb 2020 03:19:15 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=pz8JlyTI0TQW+4nWjPastDNVI5T0/SftBU/RlKuIxmQ=;
-        b=QgXX2MOcL85PcKdIZFJZVW5ASAfwmJ24gfW72+XRML8SBP1BbSsoVoelhqRjJ/nPD1
-         Mevsscgi8B9d+MGXkTsaFdFKRKu7GV8lBhIwbF1MVP3BAi1B7G+xVJtYPvVBhM1qwruz
-         z+09aqsP5pfSh/Xwt+2MOgr94+rcAdPNW2HOI0BXQri4ZffwlZrpTUTEnIRjv+5t/F/y
-         2MIWjLh7qw6M8C7bi/5JSlClg6hMpo/NvgTEtBnGDj7JvpckR3E6eRx9WHAE7mN5Um7X
-         IPxlfxvX1CeaWHI+gmuWlCZ0cPOat4/COMyMQBQGwAg6JhYEdnf/3YaRjt60lLpCwOC2
-         Zngw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=pz8JlyTI0TQW+4nWjPastDNVI5T0/SftBU/RlKuIxmQ=;
-        b=UTgY2oeMRlUjIX2nOQvbnbfp2hSjKQFAkKptXg3Pl/BGCfLsb6VvK8+1PbJR/OvMTX
-         XeCBe1sh3vUAgU24RUoj230gvgy9/GVtQbGTm52BCRuW0LtX7C/50kmc9j9bllKfyCwH
-         A0pGCheW3xCTkdfmR+BGsZC5vg3b9eWkeaIDGleikHdHLrkNmRE5YQSEbT2zFlaVaSEP
-         Ncx9dsJr9hSRWDFm/YNW3dFFMssY81Y2uU+8UTNN3uTV4XB/YfWJ4NnwJNjyBscEl0yz
-         0NUTb14/K+Iwdu9aFG2WRCB0mXbHXIXcf75w6saYec2VIPvWR8D6r7nqU3x2oc1PMzlU
-         3nLg==
-X-Gm-Message-State: APjAAAWFCEtKfUMfOCZnIBtKffh/iXvQaKBTNj4o+8mPLDqTrRKMYl4F
-        YXFEy3+36CWY2b/OBAqVbpWQVTSF8bTqgjEnypqgcCjBhiM=
-X-Google-Smtp-Source: APXvYqzTFG6qSoO5Su318dhyYonxGmwcsRtJIw0NJl/W6RyWKcZbB4KYXfbqigOUzaoRDZNwZMVvH9Lwb16zlJVP3Sc=
-X-Received: by 2002:a92:50f:: with SMTP id q15mr3362831ile.47.1580987954377;
- Thu, 06 Feb 2020 03:19:14 -0800 (PST)
+        Thu, 6 Feb 2020 06:38:31 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:48846 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726687AbgBFLib (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 6 Feb 2020 06:38:31 -0500
+Received: from localhost ([::1]:33704 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1izfUL-00067Y-8y; Thu, 06 Feb 2020 12:38:29 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [nft PATCH 1/2] doc: nft.8: Mention wildcard interface matching
+Date:   Thu,  6 Feb 2020 12:38:27 +0100
+Message-Id: <20200206113828.7306-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-From:   jean-christophe manciot <actionmystique@gmail.com>
-Date:   Thu, 6 Feb 2020 12:19:03 +0100
-Message-ID: <CAKcFC3a_dpZEPUnyH_MNUrSpj+aeh=kT=QMV49-jrJMF6qRSWg@mail.gmail.com>
-Subject: How to continue to use Maxmind geoip csv in xtables-addons 3.8+
-To:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-I have realized by digging within xt_geoip_build that the expected
-geoip provider has been changed from Maxmind to db-ip since 3.8-1
-(debian sid).
+Special meaning of asterisk in interface names wasn't described
+anywhere.
 
-This means that running xt_geoip_build with csv downloaded from
-Maxmind can no longer work.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ doc/primary-expression.txt | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-I am aware that Maxmind recently introduced "Significant Changes to
-Accessing and Using GeoLite2 Databases" and introduced a new end-user
-license agreement.
-
-However, is there a way to continue to use Maxmind geoip db with
-latest debian xtables-addons for people who detain the required
-license key in order to download GeoLite2 databases?
-
+diff --git a/doc/primary-expression.txt b/doc/primary-expression.txt
+index 94eccc20241a2..b15df015e5484 100644
+--- a/doc/primary-expression.txt
++++ b/doc/primary-expression.txt
+@@ -36,6 +36,13 @@ add such a rule, it will stop matching if the interface gets renamed and it
+ will match again in case interface gets deleted and later a new interface
+ with the same name is created.
+ 
++Like with iptables, wildcard matching on interface name prefixes is available for
++*iifname* and *oifname* matches by appending an asterisk (*) character. Note
++however that unlike iptables, nftables does not accept interface names
++consisting of the wildcard character only - users are supposed to just skip
++those always matching expressions. In order to match on literal asterisk
++character at end of interface name, one may escape it using backslash (\).
++
+ .Meta expression types
+ [options="header"]
+ |==================
 -- 
-Jean-Christophe
+2.24.1
+
