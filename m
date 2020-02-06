@@ -2,60 +2,124 @@ Return-Path: <SRS0=cCuT=32=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7375EC33CAC
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Feb 2020 14:15:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68D14C2D0B1
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Feb 2020 14:46:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4C4952082E
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Feb 2020 14:15:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 44D7720838
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Feb 2020 14:46:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728141AbgBFOPw (ORCPT
+        id S1727398AbgBFOq1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Feb 2020 09:15:52 -0500
-Received: from a3.inai.de ([88.198.85.195]:52846 "EHLO a3.inai.de"
+        Thu, 6 Feb 2020 09:46:27 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:49184 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727481AbgBFOPw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Feb 2020 09:15:52 -0500
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id F2AB25877E37B; Thu,  6 Feb 2020 15:15:50 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id EF65360D6A406;
-        Thu,  6 Feb 2020 15:15:50 +0100 (CET)
-Date:   Thu, 6 Feb 2020 15:15:50 +0100 (CET)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     jean-christophe manciot <actionmystique@gmail.com>
-cc:     netfilter-devel@vger.kernel.org
-Subject: Re: How to continue to use Maxmind geoip csv in xtables-addons
- 3.8+
-In-Reply-To: <CAKcFC3a_dpZEPUnyH_MNUrSpj+aeh=kT=QMV49-jrJMF6qRSWg@mail.gmail.com>
-Message-ID: <nycvar.YFH.7.76.2002061515450.18928@n3.vanv.qr>
-References: <CAKcFC3a_dpZEPUnyH_MNUrSpj+aeh=kT=QMV49-jrJMF6qRSWg@mail.gmail.com>
-User-Agent: Alpine 2.21 (LSU 202 2017-01-01)
+        id S1727007AbgBFOq0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 6 Feb 2020 09:46:26 -0500
+Received: from localhost ([::1]:34042 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1iziQD-00085m-L6; Thu, 06 Feb 2020 15:46:25 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] xtables-translate: Fix for interface name corner-cases
+Date:   Thu,  6 Feb 2020 15:46:25 +0100
+Message-Id: <20200206144625.27616-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thursday 2020-02-06 12:19, jean-christophe manciot wrote:
+There are two special situations xlate_ifname() didn't cover for:
 
->I have realized by digging within xt_geoip_build that the expected
->geoip provider has been changed from Maxmind to db-ip since 3.8-1
->(debian sid).
->
->This means that running xt_geoip_build with csv downloaded from
->Maxmind can no longer work.
->
->I am aware that Maxmind recently introduced "Significant Changes to
->Accessing and Using GeoLite2 Databases" and introduced a new end-user
->license agreement.
->
->However, is there a way to continue to use Maxmind geoip db with
->latest debian xtables-addons for people who detain the required
->license key in order to download GeoLite2 databases?
+* Interface name being '*': This went unchanged, creating a command nft
+  wouldn't accept. Instead translate into '\*' which doesn't change
+  semantics.
 
-Just grab the old script from git.
+* Interface name being '+': Can't translate into nft wildcard character
+  as nft doesn't accept asterisk-only interface names. Instead decide
+  what to do based on 'invert' value: Skip match creation if false,
+  match against an invalid interface name if true.
+
+Also add a test to make sure future changes to this behaviour are
+noticed.
+
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ extensions/generic.txlate    | 12 ++++++++++++
+ iptables/xtables-translate.c | 27 +++++++++++++++++++++++----
+ 2 files changed, 35 insertions(+), 4 deletions(-)
+
+diff --git a/extensions/generic.txlate b/extensions/generic.txlate
+index b38fbd1fe113b..aabe13b169718 100644
+--- a/extensions/generic.txlate
++++ b/extensions/generic.txlate
+@@ -18,3 +18,15 @@ nft add rule bridge filter FORWARD iifname != "iname" meta ibrname "ilogname" oi
+ 
+ ebtables-translate -I INPUT -p ip -d 1:2:3:4:5:6/ff:ff:ff:ff:00:00
+ nft insert rule bridge filter INPUT ether type 0x800 ether daddr 01:02:03:04:00:00 and ff:ff:ff:ff:00:00 == 01:02:03:04:00:00 counter
++
++# asterisk is not special in iptables and it is even a valid interface name
++iptables-translate -A FORWARD -i '*'
++nft add rule ip filter FORWARD iifname "\*" counter
++
++# skip for always matching interface names
++iptables-translate -A FORWARD -i '+'
++nft add rule ip filter FORWARD counter
++
++# match against invalid interface name to simulate never matching rule
++iptables-translate -A FORWARD ! -i '+'
++nft add rule ip filter FORWARD iifname "INVAL/D" counter
+diff --git a/iptables/xtables-translate.c b/iptables/xtables-translate.c
+index 77a186b905d73..d2a62f4d53ee8 100644
+--- a/iptables/xtables-translate.c
++++ b/iptables/xtables-translate.c
+@@ -33,15 +33,34 @@ void xlate_ifname(struct xt_xlate *xl, const char *nftmeta, const char *ifname,
+ 		  bool invert)
+ {
+ 	int ifaclen = strlen(ifname);
+-	char iface[IFNAMSIZ];
++	char iface[IFNAMSIZ + 1];
+ 
+ 	if (ifaclen < 1 || ifaclen >= IFNAMSIZ)
+ 		return;
+ 
+ 	strcpy(iface, ifname);
+-	if (iface[ifaclen - 1] == '+')
+-		iface[ifaclen - 1] = '*';
+-
++	switch (iface[ifaclen - 1]) {
++	case '+':
++		if (ifaclen > 1) {
++			iface[ifaclen - 1] = '*';
++			break;
++		}
++		/* Nftables does not support wildcard only string. Workaround
++		 * is easy, given that this will match always or never
++		 * depending on 'invert' value. To match always, simply don't
++		 * generate an expression. To match never, use an invalid
++		 * interface name (kernel doesn't accept '/' in names) to match
++		 * against. */
++		if (!invert)
++			return;
++		strcpy(iface, "INVAL/D");
++		invert = false;
++		break;
++	case '*':
++		iface[ifaclen - 1] = '\\';
++		strcat(iface, "*");
++		break;
++	}
+ 	xt_xlate_add(xl, "%s %s\"%s\" ", nftmeta, invert ? "!= " : "", iface);
+ }
+ 
+-- 
+2.24.1
+
