@@ -2,71 +2,126 @@ Return-Path: <SRS0=l6lg=33=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B35CC352A2
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Feb 2020 11:25:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1B0AC352A2
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Feb 2020 11:43:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EDB8720838
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Feb 2020 11:25:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BBBE120720
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Feb 2020 11:43:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726827AbgBGLZL (ORCPT
+        id S1726936AbgBGLnX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 7 Feb 2020 06:25:11 -0500
-Received: from correo.us.es ([193.147.175.20]:60684 "EHLO mail.us.es"
+        Fri, 7 Feb 2020 06:43:23 -0500
+Received: from a3.inai.de ([88.198.85.195]:36640 "EHLO a3.inai.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726674AbgBGLZL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 7 Feb 2020 06:25:11 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BBFB311AD0C
-        for <netfilter-devel@vger.kernel.org>; Fri,  7 Feb 2020 12:25:10 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AB781DA722
-        for <netfilter-devel@vger.kernel.org>; Fri,  7 Feb 2020 12:25:10 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A09F0DA720; Fri,  7 Feb 2020 12:25:10 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C57ECDA718;
-        Fri,  7 Feb 2020 12:25:08 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 07 Feb 2020 12:25:08 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id A511B42EF42B;
-        Fri,  7 Feb 2020 12:25:08 +0100 (CET)
-Date:   Fri, 7 Feb 2020 12:25:07 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
+        id S1726897AbgBGLnX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 7 Feb 2020 06:43:23 -0500
+Received: by a3.inai.de (Postfix, from userid 65534)
+        id AF4A15872B9CB; Fri,  7 Feb 2020 12:43:21 +0100 (CET)
+Received: from a4.inai.de (a4.inai.de [IPv6:2a01:4f8:10b:45d8::f8])
+        by a3.inai.de (Postfix) with ESMTP id 3910E58728700;
+        Fri,  7 Feb 2020 12:43:21 +0100 (CET)
+From:   Jan Engelhardt <jengelh@inai.de>
+To:     pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH 0/4] Extend testsuites to run against installed
- binaries
-Message-ID: <20200207112507.f5eyhaxfyyftzqm7@salvia>
-References: <20200206005851.28962-1-phil@nwl.cc>
+Subject: [PATCH nft] src: compute mnemonic port name much easier
+Date:   Fri,  7 Feb 2020 12:43:21 +0100
+Message-Id: <20200207114321.29709-1-jengelh@inai.de>
+X-Mailer: git-send-email 2.25.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200206005851.28962-1-phil@nwl.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Feb 06, 2020 at 01:58:47AM +0100, Phil Sutter wrote:
-> Help with CI integration by allowing to run the testsuite on installed
-> binaries instead of the local ones in the built source tree.
-> 
-> This series contains an unrelated Python3 fix for json_echo test tool in
-> patch 1, the remaining three extend json_echo, monitor and py testsuites
-> as described. Of the remaining testsuites, shell already accepts NFT env
-> variable and build is bound to source tree anyway.
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+---
+ src/datatype.c | 34 ++++++----------------------------
+ src/json.c     | 20 +++++---------------
+ 2 files changed, 11 insertions(+), 43 deletions(-)
 
-LGTM.
+diff --git a/src/datatype.c b/src/datatype.c
+index 189e1b48..e4ef51e8 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -657,34 +657,12 @@ const struct datatype inet_protocol_type = {
+ 
+ static void inet_service_print(const struct expr *expr, struct output_ctx *octx)
+ {
+-	struct sockaddr_in sin = { .sin_family = AF_INET };
+-	char buf[NI_MAXSERV];
+-	uint16_t port;
+-	int err;
+-
+-	sin.sin_port = mpz_get_be16(expr->value);
+-	err = getnameinfo((struct sockaddr *)&sin, sizeof(sin), NULL, 0,
+-			  buf, sizeof(buf), 0);
+-	if (err != 0) {
+-		nft_print(octx, "%u", ntohs(sin.sin_port));
+-		return;
+-	}
+-	port = atoi(buf);
+-	/* We got a TCP service name string, display it... */
+-	if (htons(port) != sin.sin_port) {
+-		nft_print(octx, "\"%s\"", buf);
+-		return;
+-	}
+-
+-	/* ...otherwise, this might be a UDP service name. */
+-	err = getnameinfo((struct sockaddr *)&sin, sizeof(sin), NULL, 0,
+-			  buf, sizeof(buf), NI_DGRAM);
+-	if (err != 0) {
+-		/* No service name, display numeric value. */
+-		nft_print(octx, "%u", ntohs(sin.sin_port));
+-		return;
+-	}
+-	nft_print(octx, "\"%s\"", buf);
++	uint16_t port = mpz_get_be16(expr->value);
++	const struct servent *s = getservbyport(port, NULL);
++	if (s == NULL)
++		nft_print(octx, "%hu", ntohs(port));
++	else
++		nft_print(octx, "\"%s\"", s->s_name);
+ }
+ 
+ void inet_service_type_print(const struct expr *expr, struct output_ctx *octx)
+diff --git a/src/json.c b/src/json.c
+index 1906e7db..7be13e6e 100644
+--- a/src/json.c
++++ b/src/json.c
+@@ -1021,23 +1021,13 @@ json_t *inet_protocol_type_json(const struct expr *expr,
+ 
+ json_t *inet_service_type_json(const struct expr *expr, struct output_ctx *octx)
+ {
+-	struct sockaddr_in sin = {
+-		.sin_family = AF_INET,
+-		.sin_port = mpz_get_be16(expr->value),
+-	};
+-	char buf[NI_MAXSERV];
++	uint16_t port = mpz_get_be16(expr->value);
++	const struct servent *s = NULL;
+ 
+ 	if (!nft_output_service(octx) ||
+-	    getnameinfo((struct sockaddr *)&sin, sizeof(sin),
+-		        NULL, 0, buf, sizeof(buf), 0))
+-		return json_integer(ntohs(sin.sin_port));
+-
+-	if (htons(atoi(buf)) == sin.sin_port ||
+-	    getnameinfo((struct sockaddr *)&sin, sizeof(sin),
+-			NULL, 0, buf, sizeof(buf), NI_DGRAM))
+-		return json_integer(ntohs(sin.sin_port));
+-
+-	return json_string(buf);
++	    (s = getservbyport(port, NULL)) == NULL)
++		return json_integer(ntohs(port));
++	return json_string(s->s_name);
+ }
+ 
+ json_t *mark_type_json(const struct expr *expr, struct output_ctx *octx)
+-- 
+2.25.0
+
