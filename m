@@ -1,115 +1,69 @@
-Return-Path: <SRS0=cCuT=32=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=l6lg=33=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18252C35247
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Feb 2020 16:03:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B29F6C352A2
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Feb 2020 10:25:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ECE0520838
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Feb 2020 16:03:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 88E6E214AF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Feb 2020 10:25:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727379AbgBFQDm (ORCPT
+        id S1726954AbgBGKZ1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Feb 2020 11:03:42 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:49318 "EHLO orbyte.nwl.cc"
+        Fri, 7 Feb 2020 05:25:27 -0500
+Received: from correo.us.es ([193.147.175.20]:39490 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726925AbgBFQDm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Feb 2020 11:03:42 -0500
-Received: from localhost ([::1]:34176 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1izjcz-0000iV-7x; Thu, 06 Feb 2020 17:03:41 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] doc: nft.8: Describe element commands in their own section
-Date:   Thu,  6 Feb 2020 17:03:40 +0100
-Message-Id: <20200206160340.2472-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.24.1
+        id S1726674AbgBGKZ1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 7 Feb 2020 05:25:27 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id CC01E1798A3
+        for <netfilter-devel@vger.kernel.org>; Fri,  7 Feb 2020 11:25:26 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BF30FDA710
+        for <netfilter-devel@vger.kernel.org>; Fri,  7 Feb 2020 11:25:26 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id A4E34DA718; Fri,  7 Feb 2020 11:25:26 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D52ADDA703;
+        Fri,  7 Feb 2020 11:25:24 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 07 Feb 2020 11:25:24 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id B811E42EF42A;
+        Fri,  7 Feb 2020 11:25:24 +0100 (CET)
+Date:   Fri, 7 Feb 2020 11:25:23 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Stefano Brivio <sbrivio@redhat.com>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        Kadlecsik =?iso-8859-1?Q?J=F3zsef?= <kadlec@blackhole.kfki.hu>,
+        Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>
+Subject: Re: [PATCH nft v4 1/4] include: resync nf_tables.h cache copy
+Message-ID: <20200207102523.q6igzzoaeak25vyx@salvia>
+References: <cover.1580342294.git.sbrivio@redhat.com>
+ <4783c22e0cd95bfac0b15a924cf9452b84cf71df.1580342294.git.sbrivio@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4783c22e0cd95bfac0b15a924cf9452b84cf71df.1580342294.git.sbrivio@redhat.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This unifies the redundant information in sets and maps sections and
-also covers 'get' command.
+On Thu, Jan 30, 2020 at 01:16:55AM +0100, Stefano Brivio wrote:
+> Get this header in sync with nf-next as of merge commit
+> b3a608222336 (5.6-rc1-ish).
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- doc/nft.txt | 40 +++++++++++++++++++++++++++++++++++++---
- 1 file changed, 37 insertions(+), 3 deletions(-)
-
-diff --git a/doc/nft.txt b/doc/nft.txt
-index 45350253ccbfe..ba0c8c0bef445 100644
---- a/doc/nft.txt
-+++ b/doc/nft.txt
-@@ -507,8 +507,6 @@ be tuned with the flags that can be specified at set creation time.
- *delete*:: Delete the specified set.
- *list*:: Display the elements in the specified set.
- *flush*:: Remove all elements from the specified set.
--*add element*:: Comma-separated list of elements to add into the specified set.
--*delete element*:: Comma-separated list of elements to delete from the specified set.
- 
- .Set specifications
- [options="header"]
-@@ -550,7 +548,6 @@ MAPS
- *add map* ['family'] 'table' 'map' *{ type* 'type' | *typeof* 'expression' [*flags* 'flags' *;*] [*elements = {* 'element'[*,* ...] *} ;*] [*size* 'size' *;*] [*policy* 'policy' *;*] *}*
- {*delete* | *list* | *flush*} *map* ['family'] 'table' 'map'
- *list maps* ['family']
--{*add* | *delete*} *element* ['family'] 'table' 'map' *{ elements = {* 'element'[*,* ...] *} ; }*
- 
- Maps store data based on some specific key used as input. They are uniquely identified by a user-defined name and attached to tables.
- 
-@@ -587,6 +584,43 @@ string: performance [default], memory
- |=================
- 
- 
-+ELEMENTS
-+--------
-+[verse]
-+____
-+{*add* | *create* | *delete* | *get* } *element* ['family'] 'table' 'set' *{* 'ELEMENT'[*,* ...] *}*
-+
-+'ELEMENT' := 'key_expression' 'OPTIONS' [*:* 'value_expression']
-+'OPTIONS' := [*timeout* 'TIMESPEC'] [*expires* 'TIMESPEC'] [*comment* 'string']
-+'TIMESPEC' := ['num'*d*]['num'*h*]['num'*m*]['num'[*s*]]
-+____
-+Element-related commands allow to change contents of named sets and maps.
-+'key_expression' is typically a value matching the set type.
-+'value_expression' is not allowed in sets but mandatory when adding to maps, where it
-+matches the data part in it's type definition. When deleting from maps, it may
-+be specified but is optional as 'key_expression' uniquely identifies the
-+element.
-+
-+*create* command is similar to *add* with the exception that none of the
-+listed elements may already exist.
-+
-+*get* command is useful to check if an element is contained in a set which may
-+be non-trivial in very large and/or interval sets. In the latter case, the
-+containing interval is returned instead of just the element itself.
-+
-+.Element options
-+[options="header"]
-+|=================
-+|Option | Description
-+|timeout |
-+timeout value for sets/maps with flag *timeout*
-+|expires |
-+the time until given element expires, useful for ruleset replication only
-+|comment |
-+per element comment field
-+|=================
-+
-+
- FLOWTABLES
- -----------
- [verse]
--- 
-2.24.1
-
+Applied, thanks Stefano.
