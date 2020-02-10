@@ -2,117 +2,166 @@ Return-Path: <SRS0=1PBg=36=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 629CBC3F68F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 14:15:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97F67C352A3
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 15:08:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3B4D220714
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 14:15:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 65E7820661
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 15:08:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="FLeDUtnU"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bsk45ITM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728554AbgBJOPQ (ORCPT
+        id S1728360AbgBJPIe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Feb 2020 09:15:16 -0500
-Received: from frisell.zx2c4.com ([192.95.5.64]:46911 "EHLO frisell.zx2c4.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727079AbgBJOPQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Feb 2020 09:15:16 -0500
-Received: by frisell.zx2c4.com (ZX2C4 Mail Server) with ESMTP id bdbfefa7;
-        Mon, 10 Feb 2020 14:13:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; d=zx2c4.com; h=from:to:cc
-        :subject:date:message-id:mime-version:content-transfer-encoding;
-         s=mail; bh=S84KG6qYHBBvrUjNlU6vz3MKLCQ=; b=FLeDUtnUFoig/5/NVW2H
-        I4ADCI4q8Y5OVlqhJQysDXOwcRJXIcLfYmlztlrCyMc9T0gorxI4nfKfeFQYIq5t
-        8K9aVeG/xrI6uYnWLl9xtf9Sm0AqqU3LFcV1fw5P1AuLAe51veUebk5VTYNNbbeA
-        syNGdpo2gQW3t5C+ol4UancdoVoDp7W/8c1SlOh97YJl7KwZlRnqnuBBT/KzKFvH
-        JY/mwYbWTz+HAxtLBc3ahr8LpDgzCbaPjRTJe3WZoiNP8HhOoApz+bZf6v0bAEq7
-        eQ3XSAfhQoSPhY1vzcbtAin14o20YcT0bb+XZEddUbC70CcBAxV+oNfWc4ivdzYe
-        1w==
-Received: by frisell.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id cfc07e64 (TLSv1.2:ECDHE-RSA-AES256-GCM-SHA384:256:NO);
-        Mon, 10 Feb 2020 14:13:39 +0000 (UTC)
-From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
-To:     netdev@vger.kernel.org, davem@davemloft.net
-Cc:     "Jason A. Donenfeld" <Jason@zx2c4.com>,
-        netfilter-devel@vger.kernel.org
-Subject: [PATCH v2 net 0/5] icmp: account for NAT when sending icmps from ndo layer
-Date:   Mon, 10 Feb 2020 15:14:18 +0100
-Message-Id: <20200210141423.173790-1-Jason@zx2c4.com>
+        Mon, 10 Feb 2020 10:08:34 -0500
+Received: from us-smtp-1.mimecast.com ([205.139.110.61]:54881 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1727842AbgBJPIe (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Feb 2020 10:08:34 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1581347312;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=iGTTXES5hBpetbzaN0t801BEF31nbGd+Ep8TLKYHULo=;
+        b=bsk45ITMAKd5ERvv21i6pz2rQKbvpmjufI3z20IPCHnqpD7fm+dDrZRMUBUQU+CWt/vRxd
+        QBfEqsff0+gbNr7+NwpTORbwJP8Wx1FSRgdaRJq/sCmkkVxJ06YkuAg/E/Bh8TQZF+Gqca
+        vbbcUFYuDiB+yHd9ygpq03xKSfUwrcI=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-220-AsmWTZgfMAiDoZdtPAEJjA-1; Mon, 10 Feb 2020 10:08:18 -0500
+X-MC-Unique: AsmWTZgfMAiDoZdtPAEJjA-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 98F108017DF;
+        Mon, 10 Feb 2020 15:08:17 +0000 (UTC)
+Received: from localhost (ovpn-200-43.brq.redhat.com [10.40.200.43])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 1182D89F18;
+        Mon, 10 Feb 2020 15:08:14 +0000 (UTC)
+Date:   Mon, 10 Feb 2020 16:08:09 +0100
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        Kadlecsik =?UTF-8?B?SsOzenNlZg==?= <kadlec@blackhole.kfki.hu>,
+        Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>
+Subject: Re: [PATCH nft v4 3/4] src: Add support for concatenated set ranges
+Message-ID: <20200210160809.6178251e@redhat.com>
+In-Reply-To: <20200207103306.r4xweekigdrzojy7@salvia>
+References: <cover.1580342294.git.sbrivio@redhat.com>
+ <92d2e10dda6dbb8443383606bde835ca1e9da834.1580342294.git.sbrivio@redhat.com>
+ <20200207103306.r4xweekigdrzojy7@salvia>
+Organization: Red Hat
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The ICMP routines use the source address for two reasons:
+On Fri, 7 Feb 2020 11:33:06 +0100
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-1. Rate-limiting ICMP transmissions based on source address, so
-   that one source address cannot provoke a flood of replies. If
-   the source address is wrong, the rate limiting will be
-   incorrectly applied.
+> Applied, thanks. See comments below though.
+> 
+> On Thu, Jan 30, 2020 at 01:16:57AM +0100, Stefano Brivio wrote:
+> > After exporting field lengths via NFTNL_SET_DESC_CONCAT attributes,
+> > we now need to adjust parsing of user input and generation of
+> > netlink key data to complete support for concatenation of set
+> > ranges.
+> > 
+> > Instead of using separate elements for start and end of a range,
+> > denoting the end element by the NFT_SET_ELEM_INTERVAL_END flag,
+> > as it's currently done for ranges without concatenation, we'll use
+> > the new attribute NFTNL_SET_ELEM_KEY_END as suggested by Pablo. It
+> > behaves in the same way as NFTNL_SET_ELEM_KEY, but it indicates
+> > that the included key represents the upper bound of a range.
+> > 
+> > For example, "packets with an IPv4 address between 192.0.2.0 and
+> > 192.0.2.42, with destination port between 22 and 25", needs to be
+> > expressed as a single element with two keys:
+> > 
+> >   NFTA_SET_ELEM_KEY:		192.0.2.0 . 22
+> >   NFTA_SET_ELEM_KEY_END:	192.0.2.42 . 25
+> > 
+> > To achieve this, we need to:
+> > 
+> > - adjust the lexer rules to allow multiton expressions as elements
+> >   of a concatenation. As wildcards are not allowed (semantics would
+> >   be ambiguous), exclude wildcards expressions from the set of
+> >   possible multiton expressions, and allow them directly where
+> >   needed. Concatenations now admit prefixes and ranges
+> > 
+> > - generate, for each element in a range concatenation, a second key
+> >   attribute, that includes the upper bound for the range
+> > 
+> > - also expand prefixes and non-ranged values in the concatenation
+> >   to ranges: given a set with interval and concatenation support,
+> >   the kernel has no way to tell which elements are ranged, so they
+> >   all need to be. For example, 192.0.2.0 . 192.0.2.9 : 1024 is
+> >   sent as:
+> > 
+> >   NFTA_SET_ELEM_KEY:		192.0.2.0 . 1024
+> >   NFTA_SET_ELEM_KEY_END:	192.0.2.9 . 1024
+> > 
+> > - aggregate ranges when elements received by the kernel represent
+> >   concatenated ranges, see concat_range_aggregate()  
+> 
+> I think concat_range_aggregate() can be remove.
+> 
+> NFTA_SET_ELEM_KEY and the NFTA_SET_ELEM_KEY_END are now coming in the
+> same element. From the set element delinearization path this could
+> just build the range, correct?
 
-2. Choosing the interface and hence new source address of the
-   generated ICMP packet. If the original packet source address
-   is wrong, ICMP replies will be sent from the wrong source
-   address, resulting in either a misdelivery, infoleak, or just
-   general network admin confusion.
+Correct, with two caveats:
 
-Most of the time, the icmp_send and icmpv6_send routines can just reach
-down into the skb's IP header to determine the saddr. However, if
-icmp_send or icmpv6_send is being called from a network device driver --
-there are a few in the tree -- then it's possible that by the time
-icmp_send or icmpv6_send looks at the packet, the packet's source
-address has already been transformed by SNAT or MASQUERADE or some other
-transformation that CONNTRACK knows about. In this case, the packet's
-source address is most certainly the *wrong* source address to be used
-for the purpose of ICMP replies.
+- building ranges isn't that straightforward. Some complexity currently
+  in concat_range_aggregate() would go away if we embed that logic in  
+  netlink_delinearize_setelem(), but most of it would remain, and that
+  logic doesn't seem to belong to "netlink" functions. I guess this is
+  quite subjective though
 
-Rather, the source address we want to use for ICMP replies is the
-original one, from before the transformation occurred.
+- if we keep a mechanism that can build ranges this way, the day we
+  want to switch to NFTA_SET_ELEM_KEY_END for ranges in general, also
+  for other set types (or without concatenation anyway), maintaining
+  compatibility with older kernels, it should be easier to let
+  concat_range_aggregate() handle all cases. I'm not sure, I haven't
+  really thought it through
 
-Fortunately, it's very easy to just ask CONNTRACK if it knows about this
-packet, and if so, how to fix it up. The saddr is the only field in the
-header we need to fix up, for the purposes of the subsequent processing
-in the icmp_send and icmpv6_send functions, so we do the lookup very
-early on, so that the rest of the ICMP machinery can progress as usual.
+> [...]
+> > diff --git a/include/rule.h b/include/rule.h
+> > index a7f106f715cf..c232221e541b 100644
+> > --- a/include/rule.h
+> > +++ b/include/rule.h
+> > @@ -372,6 +372,11 @@ static inline bool set_is_interval(uint32_t set_flags)
+> >  	return set_flags & NFT_SET_INTERVAL;
+> >  }
+> >  
+> > +static inline bool set_is_non_concat_range(struct set *s)
+> > +{
+> > +	return (s->flags & NFT_SET_INTERVAL) && s->desc.field_count <= 1;
+> > +}  
+> 
+> I might make a second pass to revisit this new helper.
+> 
+> Probably, we can pass struct set to all set_is_*() helpers instead,
+> and use set_is_interval() for the legacy interval representation
+> that is using the segtree infrastructure.
 
-Changes v1->v2:
-- icmpv6 takes subtly different types than icmpv4, like u32 instead of be32,
-  u8 instead of int.
-- Since we're technically writing to the skb, we need to make sure it's not
-  a shared one [Dave, 2017].
-- Restore the original skb data after icmp_send returns. All current users
-  are freeing the packet right after, so it doesn't matter, but future users
-  might not.
-- Remove superfluous route lookup in sunvnet [Dave].
-- Use NF_NAT instead of NF_CONNTRACK for condition [Florian].
-- Include this cover letter [Dave].
+Ah, yes, I also think that would make sense.
 
-Cc: netdev@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
-
-Jason A. Donenfeld (5):
-  icmp: introduce helper for NAT'd source address in network device
-    context
-  gtp: use icmp_ndo_send helper
-  sunvnet: use icmp_ndo_send helper
-  wireguard: use icmp_ndo_send helper
-  xfrm: interface: use icmp_ndo_send helper
-
- drivers/net/ethernet/sun/sunvnet_common.c | 23 +++--------------
- drivers/net/gtp.c                         |  4 +--
- drivers/net/wireguard/device.c            |  4 +--
- include/linux/icmpv6.h                    |  6 +++++
- include/net/icmp.h                        |  6 +++++
- net/ipv4/icmp.c                           | 29 ++++++++++++++++++++++
- net/ipv6/ip6_icmp.c                       | 30 +++++++++++++++++++++++
- net/xfrm/xfrm_interface.c                 |  6 ++---
- 8 files changed, 82 insertions(+), 26 deletions(-)
+By the way, while I didn't switch other helpers to take 'struct set' in
+this series (because it didn't fit the scope), I'm quite convinced that
+functions called set_is_*() should really take a 'set' as argument. :)
 
 -- 
-2.25.0
+Stefano
 
