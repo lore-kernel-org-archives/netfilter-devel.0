@@ -2,66 +2,120 @@ Return-Path: <SRS0=1PBg=36=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2C2EC352A4
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 22:46:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD382C352A4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 23:08:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C54DD2051A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 22:46:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8526020733
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 23:08:02 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mmWthATi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727505AbgBJWqv (ORCPT
+        id S1727639AbgBJXH5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Feb 2020 17:46:51 -0500
-Received: from correo.us.es ([193.147.175.20]:58956 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727116AbgBJWqv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Feb 2020 17:46:51 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C0C0BE8B6D
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Feb 2020 23:46:50 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B487DDA705
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Feb 2020 23:46:50 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id AA101DA701; Mon, 10 Feb 2020 23:46:50 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CB389DA705;
-        Mon, 10 Feb 2020 23:46:48 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 10 Feb 2020 23:46:48 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id A107C426CCBA;
-        Mon, 10 Feb 2020 23:46:48 +0100 (CET)
-Date:   Mon, 10 Feb 2020 23:46:46 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Laurent Fasnacht <fasnacht@protonmail.ch>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft include v2 3/7] scanner: move indesc list append in
- scanner_push_indesc
-Message-ID: <20200210224646.mfqxffdeczayxi23@salvia>
-References: <20200210101709.9182-1-fasnacht@protonmail.ch>
- <20200210101709.9182-4-fasnacht@protonmail.ch>
+        Mon, 10 Feb 2020 18:07:57 -0500
+Received: from mail-ot1-f67.google.com ([209.85.210.67]:38283 "EHLO
+        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727516AbgBJXH5 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Feb 2020 18:07:57 -0500
+Received: by mail-ot1-f67.google.com with SMTP id z9so8208584oth.5;
+        Mon, 10 Feb 2020 15:07:56 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=jRiq/HHzhlZ9XSHrTt87uvpDh68wK+B7Fb3SKhNR96E=;
+        b=mmWthATiZMjQ0XrMTxA59hikIPhEucZP+mt7+oAihEqjXm6Wyb3Lrpq2cG91kOtB34
+         1vMY1/Gv1Fh8aafOu36K+ir/jex3cbKsfmLy3JqANBIy+XAXo5KshNmkhi0mkXf3WScm
+         6MaW3lQsPdW0Sp60fAq4JW6zTOAHkOoSyMw4hq5X5fp0JORR14wf99EQqdaKTt1wydEl
+         KuYsxDRNVWhoxNMtSr/8yWNjpHGWhq1vwGgautz8EAV9UrV9DP2VU+WlttEaWZeEZBxl
+         YpMOLF2t1vBgUrQFw9ZCsJCQeL/K6jKwi59Ql41zGvB9cnwytfHoBPd+G+FklCRuIEg+
+         Gelw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=jRiq/HHzhlZ9XSHrTt87uvpDh68wK+B7Fb3SKhNR96E=;
+        b=h1Y/8ytBLIQdfZV3c2k0ioyNAkgrza+sXCklg6RpYzlRYzrOgQLZmGhae0YERoIQOD
+         iQXHggFRpI+6rpoS4UxSQ4w6eZO0rC551MqKR9ksDxPha8TjUtuAPNXmgzq23EZvnDEk
+         645giraU1BdaUDcL7K5E6TKE7xNqH6U6mB4S3QUxI64Q5tnh0pUjHznwxcs85XhI8KSc
+         sQ39BSU7c/v8liRHx85yKyeO2KTmGOebyBAGuH0/6sTZMTBetSA2moGCULN4lSvAb5G+
+         G1kD+orfC/BbpvwPWOjRWmmk963SAUIKTLJxmTSOxSYJqvMEOdB6Pd1vTkMC+/XkTW6I
+         Ok4g==
+X-Gm-Message-State: APjAAAXJj++UP4N82ke+ryHMijlWSM+cbuf6fnLm3nZEXKWMumeut6/r
+        itlcqEW5zUmoosBaearMputtcMC5xWIwjOnP1nw=
+X-Google-Smtp-Source: APXvYqwjMxBgYv9PzzxcHqfZhfSm4YWQLuMPKkkW21qvNdzy/laP5WsI/5fj67N+oxeU/bXXOndxzomwWW/Bs9gWHr4=
+X-Received: by 2002:a9d:53c4:: with SMTP id i4mr3144957oth.48.1581376076151;
+ Mon, 10 Feb 2020 15:07:56 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200210101709.9182-4-fasnacht@protonmail.ch>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+References: <00000000000019ff88059e3d0013@google.com>
+In-Reply-To: <00000000000019ff88059e3d0013@google.com>
+From:   Cong Wang <xiyou.wangcong@gmail.com>
+Date:   Mon, 10 Feb 2020 15:07:45 -0800
+Message-ID: <CAM_iQpWaO5C8FtaP6BGRAc3v0CTTOySH-SmTyd21vU8R_LwWCw@mail.gmail.com>
+Subject: Re: WARNING: proc registration bug in hashlimit_mt_check_common
+To:     syzbot <syzbot+d195fd3b9a364ddd6731@syzkaller.appspotmail.com>
+Cc:     coreteam@netfilter.org, David Miller <davem@davemloft.net>,
+        Florian Westphal <fw@strlen.de>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Jakub Kicinski <kuba@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        syzkaller-bugs <syzkaller-bugs@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Feb 10, 2020 at 10:17:22AM +0000, Laurent Fasnacht wrote:
-> Having a single point makes refactoring easier.
+On Mon, Feb 10, 2020 at 10:35 AM syzbot
+<syzbot+d195fd3b9a364ddd6731@syzkaller.appspotmail.com> wrote:
+>
+> Hello,
+>
+> syzbot found the following crash on:
+>
+> HEAD commit:    2981de74 Add linux-next specific files for 20200210
+> git tree:       linux-next
+> console output: https://syzkaller.appspot.com/x/log.txt?x=104b16b5e00000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=53fc3c3fcb36274f
+> dashboard link: https://syzkaller.appspot.com/bug?extid=d195fd3b9a364ddd6731
+> compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=136321d9e00000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=159f7431e00000
+>
+> The bug was bisected to:
+>
+> commit 8d0015a7ab76b8b1e89a3e5f5710a6e5103f2dd5
+> Author: Cong Wang <xiyou.wangcong@gmail.com>
+> Date:   Mon Feb 3 04:30:53 2020 +0000
+>
+>     netfilter: xt_hashlimit: limit the max size of hashtable
+>
+> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=12a7f25ee00000
+> final crash:    https://syzkaller.appspot.com/x/report.txt?x=11a7f25ee00000
+> console output: https://syzkaller.appspot.com/x/log.txt?x=16a7f25ee00000
+>
+> IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> Reported-by: syzbot+d195fd3b9a364ddd6731@syzkaller.appspotmail.com
+> Fixes: 8d0015a7ab76 ("netfilter: xt_hashlimit: limit the max size of hashtable")
+>
+> xt_hashlimit: size too large, truncated to 1048576
+> xt_hashlimit: max too large, truncated to 1048576
+> ------------[ cut here ]------------
+> proc_dir_entry 'ip6t_hashlimit/syzkaller1' already registered
 
-Also applied this one. Thanks.
+I think we probably have to remove the procfs file too before releasing
+the global mutex. Or, we can mark the table as deleted before actually
+delete it, but this requires to change the search logic as well.
+
+I will work on a patch.
+
+Thanks.
