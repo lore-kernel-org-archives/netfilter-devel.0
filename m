@@ -6,38 +6,33 @@ X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFC23C352A3
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 15:51:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66112C352A3
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 16:04:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 927D620714
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 15:51:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 469E124685
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 16:04:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727722AbgBJPvv (ORCPT
+        id S1727722AbgBJQEO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Feb 2020 10:51:51 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:59310 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727430AbgBJPvv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Feb 2020 10:51:51 -0500
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1j1BLf-0006Qd-Fb; Mon, 10 Feb 2020 16:51:47 +0100
-Date:   Mon, 10 Feb 2020 16:51:47 +0100
-From:   Phil Sutter <phil@nwl.cc>
+        Mon, 10 Feb 2020 11:04:14 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:59478 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727646AbgBJQEN (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Feb 2020 11:04:13 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1j1BXe-0006p3-CP; Mon, 10 Feb 2020 17:04:10 +0100
+Date:   Mon, 10 Feb 2020 17:04:10 +0100
+From:   Florian Westphal <fw@strlen.de>
 To:     Stefano Brivio <sbrivio@redhat.com>
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        Kadlecsik =?utf-8?Q?J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>,
-        Eric Garver <eric@garver.life>
+        Kadlecsik =?iso-8859-15?Q?J=F3zsef?= <kadlec@blackhole.kfki.hu>,
+        Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>
 Subject: Re: [PATCH nft v4 4/4] tests: Introduce test for set with
  concatenated ranges
-Message-ID: <20200210155147.GA10078@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Stefano Brivio <sbrivio@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        Kadlecsik =?utf-8?Q?J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>,
-        Eric Garver <eric@garver.life>
+Message-ID: <20200210160410.GH2991@breakpoint.cc>
 References: <cover.1580342294.git.sbrivio@redhat.com>
  <6f1dbaf2ab5a98b2616b14d93ee589a7e741e5f9.1580342294.git.sbrivio@redhat.com>
  <20200207103442.3fnk6rrxzny7hvoa@salvia>
@@ -52,7 +47,7 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Feb 10, 2020 at 04:08:40PM +0100, Stefano Brivio wrote:
+Stefano Brivio <sbrivio@redhat.com> wrote:
 > On Fri, 7 Feb 2020 11:34:42 +0100
 > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 > 
@@ -66,10 +61,7 @@ On Mon, Feb 10, 2020 at 04:08:40PM +0100, Stefano Brivio wrote:
 > > meanwhile the tests finishes for those 3 minutes.
 > 
 > But I wanted to see his production :(
-
-I'm not good at knitting, always liked crocheting more. That said, I
-like fast testsuites more than any of those. ;)
-
+> 
 > > If this can be shortened, better. Probably you can add a parameter to
 > > enable the extra torture test mode not that is away from the
 > > ./run-test.sh path.
@@ -77,19 +69,6 @@ like fast testsuites more than any of those. ;)
 > I can't think of an easy way to remove that sleep(1), I could decrease
 > the timeouts passed to nft but then there's no portable way to wait for
 > less than one second.
-> 
-> Probably a good way to make it faster and still retain coverage would
-> be to decrease the amount of combinations. Right now, most of the 6 ^ 3
-> combinations (six "types", three values each to have: single, prefix,
-> range -- where allowed) are tested. I could stop after the first 3 x 3
-> matrix instead, if we come from run-tests.sh.
-> 
-> Let me know if you have other ideas, otherwise I'd send a patch doing
-> this.
 
-You could test the timeout feature just once and for all? I doubt there
-will ever be a bug in that feature which only a certain data type
-exposes, but you may e.g. create all the sets with elements at the same
-time so waiting for the timeout once is enough.
-
-Cheers, Phil
+Even busybox' sleep can do 'sleep 0.01', do we really need to be *that*
+portable?
