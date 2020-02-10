@@ -2,165 +2,101 @@ Return-Path: <SRS0=1PBg=36=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97F67C352A3
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 15:08:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19465C352A3
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 15:09:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 65E7820661
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 15:08:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E2D2120661
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 15:09:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bsk45ITM"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="HJZ/bVPv"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728360AbgBJPIe (ORCPT
+        id S1729056AbgBJPJJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Feb 2020 10:08:34 -0500
-Received: from us-smtp-1.mimecast.com ([205.139.110.61]:54881 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727842AbgBJPIe (ORCPT
+        Mon, 10 Feb 2020 10:09:09 -0500
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:23033 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726809AbgBJPJJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Feb 2020 10:08:34 -0500
+        Mon, 10 Feb 2020 10:09:09 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1581347312;
+        s=mimecast20190719; t=1581347348;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=iGTTXES5hBpetbzaN0t801BEF31nbGd+Ep8TLKYHULo=;
-        b=bsk45ITMAKd5ERvv21i6pz2rQKbvpmjufI3z20IPCHnqpD7fm+dDrZRMUBUQU+CWt/vRxd
-        QBfEqsff0+gbNr7+NwpTORbwJP8Wx1FSRgdaRJq/sCmkkVxJ06YkuAg/E/Bh8TQZF+Gqca
-        vbbcUFYuDiB+yHd9ygpq03xKSfUwrcI=
+        bh=u+D+BBxGcSs0uQSMfygFD/KR7tIcPePfrffZeb+n+bg=;
+        b=HJZ/bVPv/lwNnwzGaj0AirktylmPa+g7C9+Za5lPYC69FQ9Snt6yKBVILqhq0/LEmQgVTe
+        VQ16xhEQ6c4IgQaGMvgJqzs/tq2T4AXCxf6e2nn2EulkHIMqLekWOP7YeQzFw+yCJ4s1+z
+        dzMKuU719KCeler1aAmsEZ8SSBGrx5Y=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-220-AsmWTZgfMAiDoZdtPAEJjA-1; Mon, 10 Feb 2020 10:08:18 -0500
-X-MC-Unique: AsmWTZgfMAiDoZdtPAEJjA-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+ us-mta-70-xl2yFSy5Pw-CBD2AOrNgYQ-1; Mon, 10 Feb 2020 10:08:50 -0500
+X-MC-Unique: xl2yFSy5Pw-CBD2AOrNgYQ-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 98F108017DF;
-        Mon, 10 Feb 2020 15:08:17 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 9521E800D4E;
+        Mon, 10 Feb 2020 15:08:48 +0000 (UTC)
 Received: from localhost (ovpn-200-43.brq.redhat.com [10.40.200.43])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 1182D89F18;
-        Mon, 10 Feb 2020 15:08:14 +0000 (UTC)
-Date:   Mon, 10 Feb 2020 16:08:09 +0100
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id DE2A68ED05;
+        Mon, 10 Feb 2020 15:08:45 +0000 (UTC)
+Date:   Mon, 10 Feb 2020 16:08:40 +0100
 From:   Stefano Brivio <sbrivio@redhat.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
         Kadlecsik =?UTF-8?B?SsOzenNlZg==?= <kadlec@blackhole.kfki.hu>,
         Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>
-Subject: Re: [PATCH nft v4 3/4] src: Add support for concatenated set ranges
-Message-ID: <20200210160809.6178251e@redhat.com>
-In-Reply-To: <20200207103306.r4xweekigdrzojy7@salvia>
+Subject: Re: [PATCH nft v4 4/4] tests: Introduce test for set with
+ concatenated ranges
+Message-ID: <20200210160840.695a031c@redhat.com>
+In-Reply-To: <20200207103442.3fnk6rrxzny7hvoa@salvia>
 References: <cover.1580342294.git.sbrivio@redhat.com>
- <92d2e10dda6dbb8443383606bde835ca1e9da834.1580342294.git.sbrivio@redhat.com>
- <20200207103306.r4xweekigdrzojy7@salvia>
+ <6f1dbaf2ab5a98b2616b14d93ee589a7e741e5f9.1580342294.git.sbrivio@redhat.com>
+ <20200207103442.3fnk6rrxzny7hvoa@salvia>
 Organization: Red Hat
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 7 Feb 2020 11:33:06 +0100
+On Fri, 7 Feb 2020 11:34:42 +0100
 Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-> Applied, thanks. See comments below though.
+> On Thu, Jan 30, 2020 at 01:16:58AM +0100, Stefano Brivio wrote:
+> > This test checks that set elements can be added, deleted, that
+> > addition and deletion are refused when appropriate, that entries
+> > time out properly, and that they can be fetched by matching values
+> > in the given ranges.  
 > 
-> On Thu, Jan 30, 2020 at 01:16:57AM +0100, Stefano Brivio wrote:
-> > After exporting field lengths via NFTNL_SET_DESC_CONCAT attributes,
-> > we now need to adjust parsing of user input and generation of
-> > netlink key data to complete support for concatenation of set
-> > ranges.
-> > 
-> > Instead of using separate elements for start and end of a range,
-> > denoting the end element by the NFT_SET_ELEM_INTERVAL_END flag,
-> > as it's currently done for ranges without concatenation, we'll use
-> > the new attribute NFTNL_SET_ELEM_KEY_END as suggested by Pablo. It
-> > behaves in the same way as NFTNL_SET_ELEM_KEY, but it indicates
-> > that the included key represents the upper bound of a range.
-> > 
-> > For example, "packets with an IPv4 address between 192.0.2.0 and
-> > 192.0.2.42, with destination port between 22 and 25", needs to be
-> > expressed as a single element with two keys:
-> > 
-> >   NFTA_SET_ELEM_KEY:		192.0.2.0 . 22
-> >   NFTA_SET_ELEM_KEY_END:	192.0.2.42 . 25
-> > 
-> > To achieve this, we need to:
-> > 
-> > - adjust the lexer rules to allow multiton expressions as elements
-> >   of a concatenation. As wildcards are not allowed (semantics would
-> >   be ambiguous), exclude wildcards expressions from the set of
-> >   possible multiton expressions, and allow them directly where
-> >   needed. Concatenations now admit prefixes and ranges
-> > 
-> > - generate, for each element in a range concatenation, a second key
-> >   attribute, that includes the upper bound for the range
-> > 
-> > - also expand prefixes and non-ranged values in the concatenation
-> >   to ranges: given a set with interval and concatenation support,
-> >   the kernel has no way to tell which elements are ranged, so they
-> >   all need to be. For example, 192.0.2.0 . 192.0.2.9 : 1024 is
-> >   sent as:
-> > 
-> >   NFTA_SET_ELEM_KEY:		192.0.2.0 . 1024
-> >   NFTA_SET_ELEM_KEY_END:	192.0.2.9 . 1024
-> > 
-> > - aggregate ranges when elements received by the kernel represent
-> >   concatenated ranges, see concat_range_aggregate()  
-> 
-> I think concat_range_aggregate() can be remove.
-> 
-> NFTA_SET_ELEM_KEY and the NFTA_SET_ELEM_KEY_END are now coming in the
-> same element. From the set element delinearization path this could
-> just build the range, correct?
+> I'll keep this back so Phil doesn't have to do some knitting work
+> meanwhile the tests finishes for those 3 minutes.
 
-Correct, with two caveats:
+But I wanted to see his production :(
 
-- building ranges isn't that straightforward. Some complexity currently
-  in concat_range_aggregate() would go away if we embed that logic in  
-  netlink_delinearize_setelem(), but most of it would remain, and that
-  logic doesn't seem to belong to "netlink" functions. I guess this is
-  quite subjective though
+> If this can be shortened, better. Probably you can add a parameter to
+> enable the extra torture test mode not that is away from the
+> ./run-test.sh path.
 
-- if we keep a mechanism that can build ranges this way, the day we
-  want to switch to NFTA_SET_ELEM_KEY_END for ranges in general, also
-  for other set types (or without concatenation anyway), maintaining
-  compatibility with older kernels, it should be easier to let
-  concat_range_aggregate() handle all cases. I'm not sure, I haven't
-  really thought it through
+I can't think of an easy way to remove that sleep(1), I could decrease
+the timeouts passed to nft but then there's no portable way to wait for
+less than one second.
 
-> [...]
-> > diff --git a/include/rule.h b/include/rule.h
-> > index a7f106f715cf..c232221e541b 100644
-> > --- a/include/rule.h
-> > +++ b/include/rule.h
-> > @@ -372,6 +372,11 @@ static inline bool set_is_interval(uint32_t set_flags)
-> >  	return set_flags & NFT_SET_INTERVAL;
-> >  }
-> >  
-> > +static inline bool set_is_non_concat_range(struct set *s)
-> > +{
-> > +	return (s->flags & NFT_SET_INTERVAL) && s->desc.field_count <= 1;
-> > +}  
-> 
-> I might make a second pass to revisit this new helper.
-> 
-> Probably, we can pass struct set to all set_is_*() helpers instead,
-> and use set_is_interval() for the legacy interval representation
-> that is using the segtree infrastructure.
+Probably a good way to make it faster and still retain coverage would
+be to decrease the amount of combinations. Right now, most of the 6 ^ 3
+combinations (six "types", three values each to have: single, prefix,
+range -- where allowed) are tested. I could stop after the first 3 x 3
+matrix instead, if we come from run-tests.sh.
 
-Ah, yes, I also think that would make sense.
-
-By the way, while I didn't switch other helpers to take 'struct set' in
-this series (because it didn't fit the scope), I'm quite convinced that
-functions called set_is_*() should really take a 'set' as argument. :)
+Let me know if you have other ideas, otherwise I'd send a patch doing
+this.
 
 -- 
 Stefano
