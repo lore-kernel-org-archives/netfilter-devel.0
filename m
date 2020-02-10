@@ -2,107 +2,123 @@ Return-Path: <SRS0=1PBg=36=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D718DC352A5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 19:13:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D20B2C352A4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 22:32:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A47EB20873
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 19:13:36 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="TGANoTTL"
+	by mail.kernel.org (Postfix) with ESMTP id AF07D20733
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 22:32:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727484AbgBJTNg (ORCPT
+        id S1727431AbgBJWcA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Feb 2020 14:13:36 -0500
-Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:31350 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726831AbgBJTNf (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Feb 2020 14:13:35 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1581362014;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=VP+9ORQBFbYqxw8SON+3XZw4F2/58qApLFJoNRxj/8g=;
-        b=TGANoTTLIIPlyzL1fNtxsqA2+wDLnVkS7a8l3wta9HYn1kyintaVjWf+YfD/xqQ/k+blrz
-        MxDdjIvSx8PbMlHv3JNlbV2WzKkhku6zuk7oFCPFsFgt/FXjGl9vDaWvj1Q0vp/Jhk4h9T
-        lNCGV3OmHc+g3bxIckw9XNSM2hiMe44=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-226-ePpTtxC0Od61N3rMM4hVWg-1; Mon, 10 Feb 2020 14:13:31 -0500
-X-MC-Unique: ePpTtxC0Od61N3rMM4hVWg-1
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        Mon, 10 Feb 2020 17:32:00 -0500
+Received: from correo.us.es ([193.147.175.20]:56218 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727254AbgBJWcA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Feb 2020 17:32:00 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id BB2A5E8B6C
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Feb 2020 23:31:57 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AE6A8DA705
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Feb 2020 23:31:57 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id A368DDA702; Mon, 10 Feb 2020 23:31:57 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 962BCDA709;
+        Mon, 10 Feb 2020 23:31:55 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 10 Feb 2020 23:31:55 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B8736107ACC9;
-        Mon, 10 Feb 2020 19:13:29 +0000 (UTC)
-Received: from madcap2.tricolour.ca (ovpn-112-16.rdu2.redhat.com [10.10.112.16])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 415775C103;
-        Mon, 10 Feb 2020 19:13:21 +0000 (UTC)
-Date:   Mon, 10 Feb 2020 14:13:18 -0500
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, sgrubb@redhat.com,
-        omosnace@redhat.com, fw@strlen.de, twoerner@redhat.com,
-        Eric Paris <eparis@parisplace.org>, ebiederm@xmission.com,
-        tgraf@infradead.org
-Subject: Re: [PATCH ghak25 v2 1/9] netfilter: normalize x_table function
- declarations
-Message-ID: <20200210191318.yubldkszlh55wvdt@madcap2.tricolour.ca>
-References: <cover.1577830902.git.rgb@redhat.com>
- <194bdc565d548a14e12357a7c1a594605b7fdf0f.1577830902.git.rgb@redhat.com>
- <CAHC9VhT9T-UMnu6bWdd733XB6QaP+Sm3KWhdy828RN_FVWBMmw@mail.gmail.com>
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 77BB5426CCB9;
+        Mon, 10 Feb 2020 23:31:55 +0100 (CET)
+Date:   Mon, 10 Feb 2020 23:31:53 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Laurent Fasnacht <fasnacht@protonmail.ch>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft include v2 7/7] scanner: remove
+ parser_state->indesc_idx
+Message-ID: <20200210223153.siwzx76uhnxurkj2@salvia>
+References: <20200210101709.9182-1-fasnacht@protonmail.ch>
+ <20200210101709.9182-8-fasnacht@protonmail.ch>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAHC9VhT9T-UMnu6bWdd733XB6QaP+Sm3KWhdy828RN_FVWBMmw@mail.gmail.com>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
+In-Reply-To: <20200210101709.9182-8-fasnacht@protonmail.ch>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-01-30 22:17, Paul Moore wrote:
-> On Mon, Jan 6, 2020 at 1:54 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > Git context diffs were being produced with unhelpful declaration types
-> > in the place of function names to help identify the funciton in which
->                                                       ^^^^^^^^
->                                                       function
-> > changes were made.
-> >
-> > Normalize x_table function declarations so that git context diff
-> > function labels work as expected.
-> >
-> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > ---
-> >  net/netfilter/x_tables.c | 43 ++++++++++++++++++-------------------------
-> >  1 file changed, 18 insertions(+), 25 deletions(-)
+On Mon, Feb 10, 2020 at 10:17:28AM +0000, Laurent Fasnacht wrote:
+> Now that we have a proper stack implementation, we don't need an
+> additional counter for the number of buffer state pushed.
 > 
-> Considering that this patch is a style change in code outside of
-> audit, and we want to merge this via the audit tree, I think it is
-> best if you drop the style changes from this patchset.  You can always
-> submit them later to the netfilter developers.
+> Signed-off-by: Laurent Fasnacht <fasnacht@protonmail.ch>
+> ---
+>  include/parser.h | 1 -
+>  src/scanner.l    | 6 ------
+>  2 files changed, 7 deletions(-)
+> 
+> diff --git a/include/parser.h b/include/parser.h
+> index 66db92d8..636d1c88 100644
+> --- a/include/parser.h
+> +++ b/include/parser.h
+> @@ -15,7 +15,6 @@
+>  
+>  struct parser_state {
+>  	struct input_descriptor		*indesc;
+> -	unsigned int			indesc_idx;
+>  	struct list_head		indesc_list;
+>  
+>  	struct list_head		*msgs;
+> diff --git a/src/scanner.l b/src/scanner.l
+> index 8407a2a1..39e7ae0f 100644
+> --- a/src/scanner.l
+> +++ b/src/scanner.l
+> @@ -674,12 +674,10 @@ static void scanner_push_indesc(struct parser_state *state,
+>  		list_add(&indesc->list, &state->indesc->list);
+>  	}
+>  	state->indesc = indesc;
+> -	state->indesc_idx++;
+>  }
+>  
+>  static void scanner_pop_indesc(struct parser_state *state)
+>  {
+> -	state->indesc_idx--;
+>  	if (!list_empty(&state->indesc_list)) {
+>  		state->indesc = list_entry(state->indesc->list.prev, struct input_descriptor, list);
+>  	} else {
+> @@ -968,10 +966,6 @@ void scanner_destroy(struct nft_ctx *nft)
+>  {
+>  	struct parser_state *state = yyget_extra(nft->scanner);
+>  
+> -	do {
+> -		yypop_buffer_state(nft->scanner);
 
-Fair enough.  They were intended to help make the audit patches cleaner
-by giving proper function name context in the diff, but I'll address the
-issues and re-submit via netfilter-devel.
+nft_pop_buffer_state calls free().
 
-> paul moore
+Are you sure this can be removed without incurring in memleaks?
 
-- RGB
+Thanks.
 
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
-
+> -	} while (state->indesc_idx--);
+> -
+>  	input_descriptor_list_destroy(state);
+>  	yylex_destroy(nft->scanner);
+>  }
+> -- 
+> 2.20.1
+> 
+> 
