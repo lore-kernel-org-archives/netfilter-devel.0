@@ -2,47 +2,35 @@ Return-Path: <SRS0=wrU5=37=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 487BCC3F68F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 15:00:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F440C352A3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 17:09:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2029120675
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 15:00:46 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="sHpg9J+U"
+	by mail.kernel.org (Postfix) with ESMTP id 6563120578
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 17:09:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729186AbgBKPAo (ORCPT
+        id S1728696AbgBKRJS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 11 Feb 2020 10:00:44 -0500
-Received: from frisell.zx2c4.com ([192.95.5.64]:34135 "EHLO frisell.zx2c4.com"
+        Tue, 11 Feb 2020 12:09:18 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:33676 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728073AbgBKPAo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 11 Feb 2020 10:00:44 -0500
-Received: by frisell.zx2c4.com (ZX2C4 Mail Server) with ESMTP id 410fcb10;
-        Tue, 11 Feb 2020 14:58:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; d=zx2c4.com; h=from:to:cc
-        :subject:date:message-id:in-reply-to:references:mime-version
-        :content-transfer-encoding; s=mail; bh=cvFTjpZLrJrQTfsSPNkWJAHA0
-        1A=; b=sHpg9J+U15rSXI6n4dBy0pOqWY8ZmWdsB+M4ulixNEp7W93Wwu4fpAIK/
-        ah2ulldMiWIV3W4DLW516E/4wAY/dCPJuNlV9VZfzqwOJxyZbEg6pebpu9PL8sJq
-        5e6tYvm789ckVxaVv9EOrpf/vR2lLDCg+mkt+2tRkuaCTTzYVsPTL7lEzBcaF+Ud
-        6NRvKQHT919rcMxI2T/fQtsSc/r6KvGwMhblnYrFEwrGnvOwHJDjqJrMH1NMIhPX
-        nYEsHl4xjgN5nCSXWiEZsK7qCCCsxl1DSjNIhphlglNhkgeUsKWJQaqSpksCxtjE
-        lQTxmaMuk73P8h9bV1iaB6IGPmeQw==
-Received: by frisell.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 51c3b1ba (TLSv1.2:ECDHE-RSA-AES256-GCM-SHA384:256:NO);
-        Tue, 11 Feb 2020 14:58:58 +0000 (UTC)
-From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
-To:     netdev@vger.kernel.org, davem@davemloft.net
-Cc:     "Jason A. Donenfeld" <Jason@zx2c4.com>,
-        netfilter-devel@vger.kernel.org
-Subject: [PATCH v3 net 0/9] icmp: account for NAT when sending icmps from ndo layer
-Date:   Tue, 11 Feb 2020 16:00:19 +0100
-Message-Id: <20200211150028.688073-1-Jason@zx2c4.com>
-In-Reply-To: <20200210141423.173790-2-Jason@zx2c4.com>
-References: <20200210141423.173790-2-Jason@zx2c4.com>
+        id S1728369AbgBKRJR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 11 Feb 2020 12:09:17 -0500
+Received: from localhost ([::1]:46764 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1j1Z2C-0004Ee-A3; Tue, 11 Feb 2020 18:09:16 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org,
+        Arturo Borrero Gonzalez <arturo@netfilter.org>
+Subject: [iptables PATCH] xtables-restore: fix for --noflush and empty lines
+Date:   Tue, 11 Feb 2020 18:09:13 +0100
+Message-Id: <20200211170913.2374-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -50,95 +38,73 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The ICMP routines use the source address for two reasons:
+Lookahead buffer used for cache requirements estimate in restore
+--noflush separates individual lines with nul-chars. Two consecutive
+nul-chars are interpreted as end of buffer and remaining buffer content
+is skipped.
 
-1. Rate-limiting ICMP transmissions based on source address, so
-   that one source address cannot provoke a flood of replies. If
-   the source address is wrong, the rate limiting will be
-   incorrectly applied.
+Sadly, reading an empty line (i.e., one containing a newline character
+only) caused double nul-chars to appear in buffer as well, leading to
+premature stop when reading cached lines from buffer.
 
-2. Choosing the interface and hence new source address of the
-   generated ICMP packet. If the original packet source address
-   is wrong, ICMP replies will be sent from the wrong source
-   address, resulting in either a misdelivery, infoleak, or just
-   general network admin confusion.
+To fix that, make use of xtables_restore_parse_line() skipping empty
+lines without calling strtok() and just leave the newline character in
+place. A more intuitive approach, namely skipping empty lines while
+buffering, is deliberately not chosen as that would cause wrong values
+in 'line' variable.
 
-Most of the time, the icmp_send and icmpv6_send routines can just reach
-down into the skb's IP header to determine the saddr. However, if
-icmp_send or icmpv6_send is being called from a network device driver --
-there are a few in the tree -- then it's possible that by the time
-icmp_send or icmpv6_send looks at the packet, the packet's source
-address has already been transformed by SNAT or MASQUERADE or some other
-transformation that CONNTRACK knows about. In this case, the packet's
-source address is most certainly the *wrong* source address to be used
-for the purpose of ICMP replies.
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1400
+Fixes: 09cb517949e69 ("xtables-restore: Improve performance of --noflush operation")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ .../ipt-restore/0011-noflush-empty-line_0        | 16 ++++++++++++++++
+ iptables/xtables-restore.c                       |  8 +++++---
+ 2 files changed, 21 insertions(+), 3 deletions(-)
+ create mode 100755 iptables/tests/shell/testcases/ipt-restore/0011-noflush-empty-line_0
 
-Rather, the source address we want to use for ICMP replies is the
-original one, from before the transformation occurred.
-
-Fortunately, it's very easy to just ask CONNTRACK if it knows about this
-packet, and if so, how to fix it up. The saddr is the only field in the
-header we need to fix up, for the purposes of the subsequent processing
-in the icmp_send and icmpv6_send functions, so we do the lookup very
-early on, so that the rest of the ICMP machinery can progress as usual.
-
-Changes v2->v3:
-- Add selftest to ensure this actually does what we want and never regresses.
-- Check the size of the skb header before operating on it.
-- Use skb_ensure_writable to ensure we can modify the cloned skb [Florian].
-- Conditionalize this on IPS_SRC_NAT so we don't do anything unnecessarily
-  [Florian].
-- It turns out that since we're calling these from the xmit path,
-  skb_share_check isn't required, so remove that [Florian]. This simplifes the
-  code a bit too. **The supposition here is that skbs passed to ndo_start_xmit
-  are _never_ shared. If this is not correct NOW IS THE TIME TO PIPE UP, for
-  doom awaits us later.**
-- While investigating the shared skb business, several drivers appeared to be
-  calling it incorrectly in the xmit path, so this series also removes those
-  unnecessary calls, based on the supposition mentioned in the previous point.
-
-Changes v1->v2:
-- icmpv6 takes subtly different types than icmpv4, like u32 instead of be32,
-  u8 instead of int.
-- Since we're technically writing to the skb, we need to make sure it's not
-  a shared one [Dave, 2017].
-- Restore the original skb data after icmp_send returns. All current users
-  are freeing the packet right after, so it doesn't matter, but future users
-  might not.
-- Remove superfluous route lookup in sunvnet [Dave].
-- Use NF_NAT instead of NF_CONNTRACK for condition [Florian].
-- Include this cover letter [Dave].
-
-Cc: netdev@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
-
-Jason A. Donenfeld (9):
-  icmp: introduce helper for nat'd source address in network device
-    context
-  gtp: use icmp_ndo_send helper
-  sunvnet: use icmp_ndo_send helper
-  xfrm: interface: use icmp_ndo_send helper
-  wireguard: device: use icmp_ndo_send helper and remove skb_share_check
-  firewire: remove skb_share_check from xmit path
-  ipvlan: remove skb_share_check from xmit path
-  fm10k: remove skb_share_check from xmit path
-  benet: remove skb_share_check from xmit path
-
- drivers/firewire/net.c                        |  4 ---
- drivers/net/ethernet/emulex/benet/be_main.c   |  4 ---
- .../net/ethernet/intel/fm10k/fm10k_netdev.c   |  5 ----
- drivers/net/ethernet/sun/sunvnet_common.c     | 23 +++------------
- drivers/net/gtp.c                             |  4 +--
- drivers/net/ipvlan/ipvlan_core.c              |  3 --
- drivers/net/wireguard/device.c                |  8 ++---
- include/linux/icmpv6.h                        |  6 ++++
- include/net/icmp.h                            |  6 ++++
- net/ipv4/icmp.c                               | 28 ++++++++++++++++++
- net/ipv6/ip6_icmp.c                           | 29 +++++++++++++++++++
- net/xfrm/xfrm_interface.c                     |  6 ++--
- tools/testing/selftests/wireguard/netns.sh    | 10 +++++++
- 13 files changed, 90 insertions(+), 46 deletions(-)
-
+diff --git a/iptables/tests/shell/testcases/ipt-restore/0011-noflush-empty-line_0 b/iptables/tests/shell/testcases/ipt-restore/0011-noflush-empty-line_0
+new file mode 100755
+index 0000000000000..bea1a690bb624
+--- /dev/null
++++ b/iptables/tests/shell/testcases/ipt-restore/0011-noflush-empty-line_0
+@@ -0,0 +1,16 @@
++#!/bin/bash -e
++
++# make sure empty lines won't break --noflush
++
++cat <<EOF | $XT_MULTI iptables-restore --noflush
++# just a comment followed by innocent empty line
++
++*filter
++-A FORWARD -j ACCEPT
++COMMIT
++EOF
++
++EXPECT='Chain FORWARD (policy ACCEPT)
++target     prot opt source               destination         
++ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0           '
++diff -u <(echo "$EXPECT") <($XT_MULTI iptables -n -L FORWARD)
+diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
+index 63cc15cee9621..fb2ac8b5c12a3 100644
+--- a/iptables/xtables-restore.c
++++ b/iptables/xtables-restore.c
+@@ -293,11 +293,13 @@ void xtables_restore_parse(struct nft_handle *h,
+ 		while (fgets(buffer, sizeof(buffer), p->in)) {
+ 			size_t blen = strlen(buffer);
+ 
+-			/* drop trailing newline; xtables_restore_parse_line()
++			/* Drop trailing newline; xtables_restore_parse_line()
+ 			 * uses strtok() which replaces them by nul-characters,
+ 			 * causing unpredictable string delimiting in
+-			 * preload_buffer */
+-			if (buffer[blen - 1] == '\n')
++			 * preload_buffer.
++			 * Unless this is an empty line which would fold into a
++			 * spurious EoB indicator (double nul-char). */
++			if (buffer[blen - 1] == '\n' && blen > 1)
+ 				buffer[blen - 1] = '\0';
+ 			else
+ 				blen++;
 -- 
-2.25.0
+2.24.1
 
