@@ -3,74 +3,76 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 566C9C352A3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 08:38:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A85EC352A3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 08:53:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1F560206CC
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 08:38:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 12ED42070A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 08:53:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727617AbgBKIi5 (ORCPT
+        id S1727769AbgBKIxb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 11 Feb 2020 03:38:57 -0500
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:45280 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726973AbgBKIi5 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 11 Feb 2020 03:38:57 -0500
-Received: from [192.168.43.231] (unknown [182.97.48.226])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 0EC6641129;
-        Tue, 11 Feb 2020 16:38:49 +0800 (CST)
-Subject: Re: [PATCH nf-next v2 0/4] netfilter: nft_tunnel: support tunnel
- match expr offload
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        Tue, 11 Feb 2020 03:53:31 -0500
+Received: from correo.us.es ([193.147.175.20]:60366 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727691AbgBKIxb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 11 Feb 2020 03:53:31 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 95334EB90B
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2020 09:53:29 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 67CABFA64B
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2020 09:53:29 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id A1311DA854; Tue, 11 Feb 2020 09:53:22 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2AD6EDA864;
+        Tue, 11 Feb 2020 09:52:42 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 11 Feb 2020 09:52:42 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 0BA8342EF42C;
+        Tue, 11 Feb 2020 09:52:42 +0100 (CET)
+Date:   Tue, 11 Feb 2020 09:52:40 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>
 Cc:     netfilter-devel@vger.kernel.org
-References: <1573890564-16500-1-git-send-email-wenxu@ucloud.cn>
- <20191118220310.bp24erhewr2uetbp@salvia>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <6f59f380-8d3e-92f8-83e4-b413286a9c20@ucloud.cn>
-Date:   Tue, 11 Feb 2020 16:38:48 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
- Thunderbird/68.4.2
+Subject: Re: [iptables PATCH v2] xtables-translate: Fix for interface name
+ corner-cases
+Message-ID: <20200211085240.ivexmgfusvziqbex@salvia>
+References: <20200210124828.32400-1-phil@nwl.cc>
 MIME-Version: 1.0
-In-Reply-To: <20191118220310.bp24erhewr2uetbp@salvia>
-Content-Type: text/plain; charset=gbk
-Content-Transfer-Encoding: 8bit
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVS0pNS0tLSUxLQ09ITkpZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Mgw6GDo*Sjg6KCgSDR0cMk88
-        GgEaCUJVSlVKTkNKT0pLSEhLT0pDVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpDSVVC
-        TFVPQ1VJSU1ZV1kIAVlBSUpNQjcG
-X-HM-Tid: 0a703366a6732086kuqy0ec6641129
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200210124828.32400-1-phil@nwl.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Mon, Feb 10, 2020 at 01:48:28PM +0100, Phil Sutter wrote:
+> There are two special situations xlate_ifname() didn't cover for:
+> 
+> * Interface name containing '*': This went unchanged, creating a command
+>   nft wouldn't accept. Instead translate into '\*' which doesn't change
+>   semantics.
+> 
+> * Interface name being '+': Can't translate into nft wildcard character
+>   as nft doesn't accept asterisk-only interface names. Instead decide
+>   what to do based on 'invert' value: Skip match creation if false,
+>   match against an invalid interface name if true.
+> 
+> Also add a test to make sure future changes to this behaviour are
+> noticed.
 
-ÔÚ 2019/11/19 6:03, Pablo Neira Ayuso Ð´µÀ:
-> On Sat, Nov 16, 2019 at 03:49:20PM +0800, wenxu@ucloud.cn wrote:
->> From: wenxu <wenxu@ucloud.cn>
->>
->> This series add NFT_TUNNEL_IPV4/6_SRC/DST match and tunnel expr offload.
-> Thanks. Please, let me revamp a new patch series for the
-> encapsulation/decapsulation support to make sure those are mixing well
-> with your tunnel matching support.
-Pablo, any update for this series?
->
->> wenxu (4):
->>   netfilter: nft_tunnel: add nft_tunnel_mode_match function
->>   netfilter: nft_tunnel: support NFT_TUNNEL_IPV4_SRC/DST match
->>   netfilter: nft_tunnel: support NFT_TUNNEL_IPV6_SRC/DST match
->>   netfilter: nft_tunnel: add nft_tunnel_get_offload support
->>
->>  include/net/netfilter/nf_tables_offload.h |   5 ++
->>  include/uapi/linux/netfilter/nf_tables.h  |   4 +
->>  net/netfilter/nft_tunnel.c                | 138 +++++++++++++++++++++++++++---
->>  3 files changed, 134 insertions(+), 13 deletions(-)
->>
->> -- 
->> 1.8.3.1
->>
+Phil, this is fine. Thanks.
