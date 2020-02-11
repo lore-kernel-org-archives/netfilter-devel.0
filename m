@@ -1,77 +1,99 @@
-Return-Path: <SRS0=1PBg=36=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=wrU5=37=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58067C352A4
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 23:33:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4536FC35242
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 04:36:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 32A3720715
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Feb 2020 23:33:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D01762072C
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 04:36:51 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=protonmail.ch header.i=@protonmail.ch header.b="fts4sqpX"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727505AbgBJXdA (ORCPT
+        id S1728147AbgBKEgv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Feb 2020 18:33:00 -0500
-Received: from correo.us.es ([193.147.175.20]:40182 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727452AbgBJXdA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Feb 2020 18:33:00 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 54EF4EB903
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2020 00:33:00 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 495C6DA703
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2020 00:33:00 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 3EFD3DA707; Tue, 11 Feb 2020 00:33:00 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4FDD1DA70E;
-        Tue, 11 Feb 2020 00:32:58 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 11 Feb 2020 00:32:58 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 2C54B4251481;
-        Tue, 11 Feb 2020 00:32:58 +0100 (CET)
-Date:   Tue, 11 Feb 2020 00:32:56 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Laurent Fasnacht <fasnacht@protonmail.ch>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft include v2 4/7] scanner: remove parser_state->indescs
- static array
-Message-ID: <20200210233256.bis2igtwje77vimm@salvia>
+        Mon, 10 Feb 2020 23:36:51 -0500
+Received: from mail-40131.protonmail.ch ([185.70.40.131]:58944 "EHLO
+        mail-40131.protonmail.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727900AbgBKEgv (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Feb 2020 23:36:51 -0500
+Date:   Tue, 11 Feb 2020 04:36:44 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.ch;
+        s=default; t=1581395808;
+        bh=vewVrwJGRwCJ7ouBRS/nz/7b/VlVzw4VVz5IkIWu3qo=;
+        h=Date:To:From:Cc:Reply-To:Subject:In-Reply-To:References:
+         Feedback-ID:From;
+        b=fts4sqpXEiOXPNfA8RywLsZNyrxeNdoSJ6SBZDtSAZ8RJbwtoYMwTmzqxDr2tshaN
+         u8Xd4zqq8G+lyEG8+CS5EszolZOq2egFdASyQ1LJMcdvcrYlHtMvgMJbYcswApy90D
+         OcPX9YtPQcdDpK6vnsjB7b+plT6LJOJkJOQcxkwM=
+To:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+From:   Laurent Fasnacht <fasnacht@protonmail.ch>
+Cc:     "pablo@netfilter.org" <pablo@netfilter.org>
+Reply-To: Laurent Fasnacht <fasnacht@protonmail.ch>
+Subject: Re: [PATCH nft include v2 4/7] scanner: remove parser_state->indescs static array
+Message-ID: <B0GhcdgsD8gKeSn6wk4mAmzGp6cAi-uxHSUVpr5yexgU0kmx4o3uoS_ci4H49xeBrf7F39IoG5OC-peD3kC6TlNtL7zpvbBzQZP7FYu5GRY=@protonmail.ch>
+In-Reply-To: <20200210233256.bis2igtwje77vimm@salvia>
 References: <20200210101709.9182-1-fasnacht@protonmail.ch>
  <20200210101709.9182-5-fasnacht@protonmail.ch>
+ <20200210233256.bis2igtwje77vimm@salvia>
+Feedback-ID: 67Kw-YMwrBchoIMLcnFuA64ZnJub6AgnNvfJUjsgbTTSp4dmymKgGy_PLLqmOsJ9F58iClONCeGYaqp9YPx84w==:Ext:ProtonMail
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200210101709.9182-5-fasnacht@protonmail.ch>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Feb 10, 2020 at 10:17:24AM +0000, Laurent Fasnacht wrote:
-> This static array is redundant wth the indesc_list structure, but
-> is less flexible.
+On Tuesday, February 11, 2020 12:32 AM, Pablo Neira Ayuso <pablo@netfilter.=
+org> wrote:
 
-Skipping this patch and taking 5/7, I get a crash.
+> On Mon, Feb 10, 2020 at 10:17:24AM +0000, Laurent Fasnacht wrote:
+>
+> > This static array is redundant wth the indesc_list structure, but
+> > is less flexible.
+>
+> Skipping this patch and taking 5/7, I get a crash.
 
-Sorry, I'm trying to understand if there is an easy fix for this,
-without simplifying things. I mean, first fix things, then move on and
-improve everything.
+Probably was out of bounds in state->indescs[MAX_INCLUDE_DEPTH].
 
-The removal of the array stack looks like mandatory dependency to fix
-this?
+> Sorry, I'm trying to understand if there is an easy fix for this,
+> without simplifying things. I mean, first fix things, then move on and
+> improve everything.
 
-Please, help me understand. Thanks.
+In my opinion, there isn't, unfortunately. That's why it took me quite some=
+ time to fix. Let me explain:
+
+The data structure the original code is trying to achieve is a stack of inp=
+ut descriptors, where one entry in that stack is one level of include. This=
+ stack is implemented using the indesc_idx variable and the indescs and fd =
+array.
+
+Unfortunately, there is an issue with that design for glob includes: glob i=
+ncludes add all the discovered files to that stack at once (in reverse alph=
+abetic order so the parsing happens in alphabetic order). The bound check f=
+or the static array incorrectly leads to the error message that the maximum=
+ inclusion depth is reached. However, removing that check alone will result=
+ in out of bound access of both fd and indescs arrays)
+
+So basically, in order to apply patch 5/7, you need 2/7 and 4/7 (and 3/7, w=
+hich is minor refactoring) to get rid the static arrays.
+
+As an example, the test supplied in patch 1/7 only has one level of inclusi=
+on, but adds all the files to the stack, so the static arrays will overflow=
+.
+
+As a side note, the stack implementation is incorrect, both in the original=
+ code and after patch 5/7 is applied (since it's a minimal patch, as you pr=
+eviously ask). The stack implementation is fixed in patch 6/7. That specifi=
+c patch is however unrelated to the include depth problem. I believe howeve=
+r that it's the correct fix of bug #1383, and should be applied in order to=
+ have a sane data structure.
+
+Does that help?
