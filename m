@@ -2,77 +2,143 @@ Return-Path: <SRS0=wrU5=37=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A85EC352A3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 08:53:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 487BCC3F68F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 15:00:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 12ED42070A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 08:53:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2029120675
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 15:00:46 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="sHpg9J+U"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727769AbgBKIxb (ORCPT
+        id S1729186AbgBKPAo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 11 Feb 2020 03:53:31 -0500
-Received: from correo.us.es ([193.147.175.20]:60366 "EHLO mail.us.es"
+        Tue, 11 Feb 2020 10:00:44 -0500
+Received: from frisell.zx2c4.com ([192.95.5.64]:34135 "EHLO frisell.zx2c4.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727691AbgBKIxb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 11 Feb 2020 03:53:31 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 95334EB90B
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2020 09:53:29 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 67CABFA64B
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2020 09:53:29 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A1311DA854; Tue, 11 Feb 2020 09:53:22 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2AD6EDA864;
-        Tue, 11 Feb 2020 09:52:42 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 11 Feb 2020 09:52:42 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 0BA8342EF42C;
-        Tue, 11 Feb 2020 09:52:42 +0100 (CET)
-Date:   Tue, 11 Feb 2020 09:52:40 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH v2] xtables-translate: Fix for interface name
- corner-cases
-Message-ID: <20200211085240.ivexmgfusvziqbex@salvia>
-References: <20200210124828.32400-1-phil@nwl.cc>
+        id S1728073AbgBKPAo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 11 Feb 2020 10:00:44 -0500
+Received: by frisell.zx2c4.com (ZX2C4 Mail Server) with ESMTP id 410fcb10;
+        Tue, 11 Feb 2020 14:58:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; d=zx2c4.com; h=from:to:cc
+        :subject:date:message-id:in-reply-to:references:mime-version
+        :content-transfer-encoding; s=mail; bh=cvFTjpZLrJrQTfsSPNkWJAHA0
+        1A=; b=sHpg9J+U15rSXI6n4dBy0pOqWY8ZmWdsB+M4ulixNEp7W93Wwu4fpAIK/
+        ah2ulldMiWIV3W4DLW516E/4wAY/dCPJuNlV9VZfzqwOJxyZbEg6pebpu9PL8sJq
+        5e6tYvm789ckVxaVv9EOrpf/vR2lLDCg+mkt+2tRkuaCTTzYVsPTL7lEzBcaF+Ud
+        6NRvKQHT919rcMxI2T/fQtsSc/r6KvGwMhblnYrFEwrGnvOwHJDjqJrMH1NMIhPX
+        nYEsHl4xjgN5nCSXWiEZsK7qCCCsxl1DSjNIhphlglNhkgeUsKWJQaqSpksCxtjE
+        lQTxmaMuk73P8h9bV1iaB6IGPmeQw==
+Received: by frisell.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 51c3b1ba (TLSv1.2:ECDHE-RSA-AES256-GCM-SHA384:256:NO);
+        Tue, 11 Feb 2020 14:58:58 +0000 (UTC)
+From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
+To:     netdev@vger.kernel.org, davem@davemloft.net
+Cc:     "Jason A. Donenfeld" <Jason@zx2c4.com>,
+        netfilter-devel@vger.kernel.org
+Subject: [PATCH v3 net 0/9] icmp: account for NAT when sending icmps from ndo layer
+Date:   Tue, 11 Feb 2020 16:00:19 +0100
+Message-Id: <20200211150028.688073-1-Jason@zx2c4.com>
+In-Reply-To: <20200210141423.173790-2-Jason@zx2c4.com>
+References: <20200210141423.173790-2-Jason@zx2c4.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200210124828.32400-1-phil@nwl.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Feb 10, 2020 at 01:48:28PM +0100, Phil Sutter wrote:
-> There are two special situations xlate_ifname() didn't cover for:
-> 
-> * Interface name containing '*': This went unchanged, creating a command
->   nft wouldn't accept. Instead translate into '\*' which doesn't change
->   semantics.
-> 
-> * Interface name being '+': Can't translate into nft wildcard character
->   as nft doesn't accept asterisk-only interface names. Instead decide
->   what to do based on 'invert' value: Skip match creation if false,
->   match against an invalid interface name if true.
-> 
-> Also add a test to make sure future changes to this behaviour are
-> noticed.
+The ICMP routines use the source address for two reasons:
 
-Phil, this is fine. Thanks.
+1. Rate-limiting ICMP transmissions based on source address, so
+   that one source address cannot provoke a flood of replies. If
+   the source address is wrong, the rate limiting will be
+   incorrectly applied.
+
+2. Choosing the interface and hence new source address of the
+   generated ICMP packet. If the original packet source address
+   is wrong, ICMP replies will be sent from the wrong source
+   address, resulting in either a misdelivery, infoleak, or just
+   general network admin confusion.
+
+Most of the time, the icmp_send and icmpv6_send routines can just reach
+down into the skb's IP header to determine the saddr. However, if
+icmp_send or icmpv6_send is being called from a network device driver --
+there are a few in the tree -- then it's possible that by the time
+icmp_send or icmpv6_send looks at the packet, the packet's source
+address has already been transformed by SNAT or MASQUERADE or some other
+transformation that CONNTRACK knows about. In this case, the packet's
+source address is most certainly the *wrong* source address to be used
+for the purpose of ICMP replies.
+
+Rather, the source address we want to use for ICMP replies is the
+original one, from before the transformation occurred.
+
+Fortunately, it's very easy to just ask CONNTRACK if it knows about this
+packet, and if so, how to fix it up. The saddr is the only field in the
+header we need to fix up, for the purposes of the subsequent processing
+in the icmp_send and icmpv6_send functions, so we do the lookup very
+early on, so that the rest of the ICMP machinery can progress as usual.
+
+Changes v2->v3:
+- Add selftest to ensure this actually does what we want and never regresses.
+- Check the size of the skb header before operating on it.
+- Use skb_ensure_writable to ensure we can modify the cloned skb [Florian].
+- Conditionalize this on IPS_SRC_NAT so we don't do anything unnecessarily
+  [Florian].
+- It turns out that since we're calling these from the xmit path,
+  skb_share_check isn't required, so remove that [Florian]. This simplifes the
+  code a bit too. **The supposition here is that skbs passed to ndo_start_xmit
+  are _never_ shared. If this is not correct NOW IS THE TIME TO PIPE UP, for
+  doom awaits us later.**
+- While investigating the shared skb business, several drivers appeared to be
+  calling it incorrectly in the xmit path, so this series also removes those
+  unnecessary calls, based on the supposition mentioned in the previous point.
+
+Changes v1->v2:
+- icmpv6 takes subtly different types than icmpv4, like u32 instead of be32,
+  u8 instead of int.
+- Since we're technically writing to the skb, we need to make sure it's not
+  a shared one [Dave, 2017].
+- Restore the original skb data after icmp_send returns. All current users
+  are freeing the packet right after, so it doesn't matter, but future users
+  might not.
+- Remove superfluous route lookup in sunvnet [Dave].
+- Use NF_NAT instead of NF_CONNTRACK for condition [Florian].
+- Include this cover letter [Dave].
+
+Cc: netdev@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+
+Jason A. Donenfeld (9):
+  icmp: introduce helper for nat'd source address in network device
+    context
+  gtp: use icmp_ndo_send helper
+  sunvnet: use icmp_ndo_send helper
+  xfrm: interface: use icmp_ndo_send helper
+  wireguard: device: use icmp_ndo_send helper and remove skb_share_check
+  firewire: remove skb_share_check from xmit path
+  ipvlan: remove skb_share_check from xmit path
+  fm10k: remove skb_share_check from xmit path
+  benet: remove skb_share_check from xmit path
+
+ drivers/firewire/net.c                        |  4 ---
+ drivers/net/ethernet/emulex/benet/be_main.c   |  4 ---
+ .../net/ethernet/intel/fm10k/fm10k_netdev.c   |  5 ----
+ drivers/net/ethernet/sun/sunvnet_common.c     | 23 +++------------
+ drivers/net/gtp.c                             |  4 +--
+ drivers/net/ipvlan/ipvlan_core.c              |  3 --
+ drivers/net/wireguard/device.c                |  8 ++---
+ include/linux/icmpv6.h                        |  6 ++++
+ include/net/icmp.h                            |  6 ++++
+ net/ipv4/icmp.c                               | 28 ++++++++++++++++++
+ net/ipv6/ip6_icmp.c                           | 29 +++++++++++++++++++
+ net/xfrm/xfrm_interface.c                     |  6 ++--
+ tools/testing/selftests/wireguard/netns.sh    | 10 +++++++
+ 13 files changed, 90 insertions(+), 46 deletions(-)
+
+-- 
+2.25.0
+
