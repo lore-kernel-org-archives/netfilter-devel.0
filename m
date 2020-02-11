@@ -2,141 +2,77 @@ Return-Path: <SRS0=wrU5=37=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACD2EC352A3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 19:47:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92222C35242
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 20:23:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8D8412086A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 19:47:28 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="Cscf9pi2"
+	by mail.kernel.org (Postfix) with ESMTP id 695B820708
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 20:23:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729161AbgBKTr0 (ORCPT
+        id S1731809AbgBKUXS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 11 Feb 2020 14:47:26 -0500
-Received: from frisell.zx2c4.com ([192.95.5.64]:52685 "EHLO frisell.zx2c4.com"
+        Tue, 11 Feb 2020 15:23:18 -0500
+Received: from correo.us.es ([193.147.175.20]:39182 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728448AbgBKTr0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 11 Feb 2020 14:47:26 -0500
-Received: by frisell.zx2c4.com (ZX2C4 Mail Server) with ESMTP id 6f9f2e92;
-        Tue, 11 Feb 2020 19:45:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; d=zx2c4.com; h=from:to:cc
-        :subject:date:message-id:mime-version:content-transfer-encoding;
-         s=mail; bh=op6WHeg/1QNzAvID/xPxIANnoAU=; b=Cscf9pi2nx6HIkrtBbsF
-        FKduWr+brblH2UsJby6zVRkbUHpUAJN8WQ/bB/GS+446Z6ZJQ6wdheAszbpsRCeT
-        WZGh7xYtvmKoiO2GOyBKeN0SwXgpK+WYrj3f4htCVa+CMytzqfUcItwWfiehHYQ+
-        KBAAOI6zKV1v6pqZnWvPt8a/Xm7YWaT5V4uFabgSd87VOgpkZ/601D7mHTTdldVn
-        t5x2KPExc5t7+um62la6aLgztkqTvKJ4gNllYOUjHtFRt66n6czHfp7B7l4PJSXu
-        EXi1KgdVeLc9+x6SfwynUh6ESJGzOsRDqnsmECmzP4LCFw0slpFs96wZfmdn1NV4
-        +Q==
-Received: by frisell.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 699ceed6 (TLSv1.2:ECDHE-RSA-AES256-GCM-SHA384:256:NO);
-        Tue, 11 Feb 2020 19:45:39 +0000 (UTC)
-From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
-To:     netdev@vger.kernel.org, davem@davemloft.net
-Cc:     "Jason A. Donenfeld" <Jason@zx2c4.com>,
-        netfilter-devel@vger.kernel.org
-Subject: [PATCH v4 net 0/5] icmp: account for NAT when sending icmps from ndo layer
-Date:   Tue, 11 Feb 2020 20:47:04 +0100
-Message-Id: <20200211194709.723383-1-Jason@zx2c4.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        id S1731076AbgBKUXS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 11 Feb 2020 15:23:18 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id EF0C6EBACA
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2020 21:23:16 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E171ADA702
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2020 21:23:16 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id D70B9DA70F; Tue, 11 Feb 2020 21:23:16 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E7B5ADA702;
+        Tue, 11 Feb 2020 21:23:14 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 11 Feb 2020 21:23:14 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id B954342EF9E0;
+        Tue, 11 Feb 2020 21:23:14 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fasnacht@protonmail.ch
+Subject: [PATCH nft 0/4] glob and maximum number of includes
+Date:   Tue, 11 Feb 2020 21:23:04 +0100
+Message-Id: <20200211202308.90575-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The ICMP routines use the source address for two reasons:
+Hi Laurent,
 
-1. Rate-limiting ICMP transmissions based on source address, so
-   that one source address cannot provoke a flood of replies. If
-   the source address is wrong, the rate limiting will be
-   incorrectly applied.
+This approach maintains an array of stacks per depth.
 
-2. Choosing the interface and hence new source address of the
-   generated ICMP packet. If the original packet source address
-   is wrong, ICMP replies will be sent from the wrong source
-   address, resulting in either a misdelivery, infoleak, or just
-   general network admin confusion.
+The initial three patches comes as a preparation. The last patch is
+aiming to fix the issue with glob and the maximum number of includes.
 
-Most of the time, the icmp_send and icmpv6_send routines can just reach
-down into the skb's IP header to determine the saddr. However, if
-icmp_send or icmpv6_send is being called from a network device driver --
-there are a few in the tree -- then it's possible that by the time
-icmp_send or icmpv6_send looks at the packet, the packet's source
-address has already been transformed by SNAT or MASQUERADE or some other
-transformation that CONNTRACK knows about. In this case, the packet's
-source address is most certainly the *wrong* source address to be used
-for the purpose of ICMP replies.
+Thanks for your detailed feedback and explanations.
 
-Rather, the source address we want to use for ICMP replies is the
-original one, from before the transformation occurred.
+Pablo Neira Ayuso (4):
+  scanner: call scanner_push_file() after scanner_push_file()
+  scanner: add indesc_file_alloc() helper function
+  scanner: call scanner_push_indesc() after scanner_push_file()
+  scanner: multi-level input file stack for glob
 
-Fortunately, it's very easy to just ask CONNTRACK if it knows about this
-packet, and if so, how to fix it up. The saddr is the only field in the
-header we need to fix up, for the purposes of the subsequent processing
-in the icmp_send and icmpv6_send functions, so we do the lookup very
-early on, so that the rest of the ICMP machinery can progress as usual.
-
-Changes v3->v4:
-- Add back the skb_shared checking, since the previous assumption isn't
-  actually true [Eric]. This implies dropping the additional patches v3 had
-  for removing skb_share_check from various drivers. We can revisit that
-  general set of ideas later, but that's probably better suited as a net-next
-  patchset rather than this stable one which is geared at fixing bugs. So,
-  this implements things in the safe conservative way.
-
-Changes v2->v3:
-- Add selftest to ensure this actually does what we want and never regresses.
-- Check the size of the skb header before operating on it.
-- Use skb_ensure_writable to ensure we can modify the cloned skb [Florian].
-- Conditionalize this on IPS_SRC_NAT so we don't do anything unnecessarily
-  [Florian].
-- It turns out that since we're calling these from the xmit path,
-  skb_share_check isn't required, so remove that [Florian]. This simplifes the
-  code a bit too. **The supposition here is that skbs passed to ndo_start_xmit
-  are _never_ shared. If this is not correct NOW IS THE TIME TO PIPE UP, for
-  doom awaits us later.**
-- While investigating the shared skb business, several drivers appeared to be
-  calling it incorrectly in the xmit path, so this series also removes those
-  unnecessary calls, based on the supposition mentioned in the previous point.
-
-Changes v1->v2:
-- icmpv6 takes subtly different types than icmpv4, like u32 instead of be32,
-  u8 instead of int.
-- Since we're technically writing to the skb, we need to make sure it's not
-  a shared one [Dave, 2017].
-- Restore the original skb data after icmp_send returns. All current users
-  are freeing the packet right after, so it doesn't matter, but future users
-  might not.
-- Remove superfluous route lookup in sunvnet [Dave].
-- Use NF_NAT instead of NF_CONNTRACK for condition [Florian].
-- Include this cover letter [Dave].
-
-Cc: netdev@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
-
-Jason A. Donenfeld (5):
-  icmp: introduce helper for nat'd source address in network device
-    context
-  gtp: use icmp_ndo_send helper
-  sunvnet: use icmp_ndo_send helper
-  wireguard: device: use icmp_ndo_send helper
-  xfrm: interface: use icmp_ndo_send helper
-
- drivers/net/ethernet/sun/sunvnet_common.c  | 23 +++------------
- drivers/net/gtp.c                          |  4 +--
- drivers/net/wireguard/device.c             |  4 +--
- include/linux/icmpv6.h                     |  6 ++++
- include/net/icmp.h                         |  6 ++++
- net/ipv4/icmp.c                            | 33 +++++++++++++++++++++
- net/ipv6/ip6_icmp.c                        | 34 ++++++++++++++++++++++
- net/xfrm/xfrm_interface.c                  |  6 ++--
- tools/testing/selftests/wireguard/netns.sh | 11 +++++++
- 9 files changed, 101 insertions(+), 26 deletions(-)
+ include/list.h     |  30 ++++++++++++++
+ include/parser.h   |   3 +-
+ src/parser_bison.y |   5 ++-
+ src/scanner.l      | 120 +++++++++++++++++++++++++++++++++++++----------------
+ 4 files changed, 119 insertions(+), 39 deletions(-)
 
 -- 
-2.25.0
+2.11.0
 
