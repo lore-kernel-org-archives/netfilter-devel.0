@@ -1,247 +1,133 @@
-Return-Path: <SRS0=wrU5=37=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=6DSs=4A=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED1A4C352A3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 20:23:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AD12C2BA83
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Feb 2020 09:21:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C9EAF20708
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Feb 2020 20:23:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3F2E920659
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Feb 2020 09:21:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731812AbgBKUXV (ORCPT
+        id S1728748AbgBLJVe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 11 Feb 2020 15:23:21 -0500
-Received: from correo.us.es ([193.147.175.20]:39214 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731807AbgBKUXU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 11 Feb 2020 15:23:20 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 270C5EBACB
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2020 21:23:20 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1786CDA709
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Feb 2020 21:23:20 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 0D2E2DA705; Tue, 11 Feb 2020 21:23:20 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F1F12DA701;
-        Tue, 11 Feb 2020 21:23:17 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 11 Feb 2020 21:23:17 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id CE4C742EF9E0;
-        Tue, 11 Feb 2020 21:23:17 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     fasnacht@protonmail.ch
-Subject: [PATCH nft 4/4] scanner: multi-level input file stack for glob
-Date:   Tue, 11 Feb 2020 21:23:08 +0100
-Message-Id: <20200211202308.90575-5-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20200211202308.90575-1-pablo@netfilter.org>
-References: <20200211202308.90575-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Wed, 12 Feb 2020 04:21:34 -0500
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:39413 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728772AbgBLJVd (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 12 Feb 2020 04:21:33 -0500
+Received: by mail-wr1-f68.google.com with SMTP id y11so1284595wrt.6
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Feb 2020 01:21:32 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:autocrypt
+         :message-id:date:user-agent:mime-version:in-reply-to
+         :content-language:content-transfer-encoding;
+        bh=un8S1X6Iu/C7t3ZnSlot/0Dh1UwsPCdktiVfSz6p1/g=;
+        b=e+2+L08Xarus82AnVRMS8+Obq20b4RFvEy8XN05F8Y05u7QR+pMNyZTD7YMrQ18itT
+         BcJAz4Ll97wadO/aebvJ5Hz3AyMhwI8sl9DG16qyQH5mX3PmWAVSn1pGcd1IDiyZ/RxV
+         cNlmx1BBBsG9HZzMP6idnlsYGYyCgmaYLU0tyWEq02mI7BRu8Yz8uarKSWHsPC0enDyZ
+         Aw4ehr9BEhW3qaxXjTJ1Rko4ZA6O69O+PEeEMPMrUhbb+XOKyW7l7wgowv6LsogGPdVL
+         L/Vbkqt0B99Gn5utbyUHQmsZ1i8tOB0CjnJYUtYaoGNPzZPmqPHYP4UUOKbMRbmWFZ7f
+         l3mQ==
+X-Gm-Message-State: APjAAAVT60yZVREsUM4lzhKlFJqaInGBMkjQKPcYScnBlNHWHAylKBPr
+        MHJUoeDA8xU2HpPhsqm9PDJLPROv
+X-Google-Smtp-Source: APXvYqyV34bFduQOKWpiuClHTIGbRT6F4EKwQbH2he2t8c7jdfXNDoGlZRlWVDpnio5TItb91LElyA==
+X-Received: by 2002:a5d:540f:: with SMTP id g15mr13596249wrv.86.1581499291177;
+        Wed, 12 Feb 2020 01:21:31 -0800 (PST)
+Received: from [10.239.43.214] (79.red-80-24-233.staticip.rima-tde.net. [80.24.233.79])
+        by smtp.gmail.com with ESMTPSA id v12sm8545160wru.23.2020.02.12.01.21.29
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 12 Feb 2020 01:21:30 -0800 (PST)
+Subject: Re: [iptables PATCH] xtables-restore: fix for --noflush and empty
+ lines
+To:     Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+References: <20200211170913.2374-1-phil@nwl.cc>
+From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
+Autocrypt: addr=arturo@netfilter.org; keydata=
+ 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
+ EXgmBmyUKrJkh/zvupp9t9Y2ioPbcMObRIEXio4=
+Message-ID: <7c9717f5-5173-7eee-e5f8-4431ca6217e3@netfilter.org>
+Date:   Wed, 12 Feb 2020 10:21:28 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.4.2
+MIME-Version: 1.0
+In-Reply-To: <20200211170913.2374-1-phil@nwl.cc>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch updates indesc_list to become an array of stacks. Each stack
-represents the files that have been included at this depth.
+On 2/11/20 6:09 PM, Phil Sutter wrote:
+> Lookahead buffer used for cache requirements estimate in restore
+> --noflush separates individual lines with nul-chars. Two consecutive
+> nul-chars are interpreted as end of buffer and remaining buffer content
+> is skipped.
+> 
+> Sadly, reading an empty line (i.e., one containing a newline character
+> only) caused double nul-chars to appear in buffer as well, leading to
+> premature stop when reading cached lines from buffer.
+> 
+> To fix that, make use of xtables_restore_parse_line() skipping empty
+> lines without calling strtok() and just leave the newline character in
+> place. A more intuitive approach, namely skipping empty lines while
+> buffering, is deliberately not chosen as that would cause wrong values
+> in 'line' variable.
+> 
+> Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1400
+> Fixes: 09cb517949e69 ("xtables-restore: Improve performance of --noflush operation")
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
 
-The scanner_add_indesc() function adds the indesc to this depth, this is
-called in case the user specifies wildcards.
+Thanks for working on this!
 
-Otherwise, the scanner_push_indesc() function for regular inclusion.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/list.h     | 30 +++++++++++++++++++++++++++++
- include/parser.h   |  3 +--
- src/parser_bison.y |  5 ++++-
- src/scanner.l      | 55 ++++++++++++++++++++++++++++++++++++++++--------------
- 4 files changed, 76 insertions(+), 17 deletions(-)
-
-diff --git a/include/list.h b/include/list.h
-index 75d292124010..29f5ca739632 100644
---- a/include/list.h
-+++ b/include/list.h
-@@ -22,6 +22,17 @@ struct list_head {
- 	struct list_head *next, *prev;
- };
- 
-+/**
-+ * list_is_first -- tests whether @list is the first entry in list @head
-+ * @list: the entry to test
-+ * @head: the head of the list
-+ */
-+static inline int list_is_first(const struct list_head *list,
-+				const struct list_head *head)
-+{
-+	return list->prev == head;
-+}
-+
- #define LIST_HEAD_INIT(name) { &(name), &(name) }
- 
- #define LIST_HEAD(name) \
-@@ -623,3 +634,22 @@ static inline void hlist_add_after(struct hlist_node *n,
- 	     pos = n)
- 
- #endif
-+
-+/**
-+ * list_prev_entry - get the prev element in list
-+ * @pos:        the type * to cursor
-+ * @member:     the name of the list_head within the struct.
-+ */
-+#define list_prev_entry(pos, member) \
-+	list_entry((pos)->member.prev, typeof(*(pos)), member)
-+
-+/**
-+ * list_last_entry - get the last element from a list
-+ * @ptr:        the list head to take the element from.
-+ * @type:       the type of the struct this is embedded in.
-+ * @member:     the name of the list_head within the struct.
-+ *
-+ * Note, that list is expected to be not empty.
-+ */
-+#define list_last_entry(ptr, type, member) \
-+	list_entry((ptr)->prev, type, member)
-diff --git a/include/parser.h b/include/parser.h
-index 949284d9466c..d24133059203 100644
---- a/include/parser.h
-+++ b/include/parser.h
-@@ -15,9 +15,8 @@
- 
- struct parser_state {
- 	struct input_descriptor		*indesc;
--	struct input_descriptor		*indescs[MAX_INCLUDE_DEPTH];
- 	unsigned int			indesc_idx;
--	struct list_head		indesc_list;
-+	struct list_head		indesc_list[MAX_INCLUDE_DEPTH];
- 
- 	struct list_head		*msgs;
- 	unsigned int			nerrs;
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index f5d7026a8574..216126472687 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -45,11 +45,14 @@ void parser_init(struct nft_ctx *nft, struct parser_state *state,
- 		 struct list_head *msgs, struct list_head *cmds,
- 		 struct scope *top_scope)
- {
-+	int i;
-+
- 	memset(state, 0, sizeof(*state));
- 	state->msgs = msgs;
- 	state->cmds = cmds;
- 	state->scopes[0] = scope_init(top_scope, NULL);
--	init_list_head(&state->indesc_list);
-+	for (i = 0; i < MAX_INCLUDE_DEPTH; i++)
-+		init_list_head(&state->indesc_list[i]);
- }
- 
- static void yyerror(struct location *loc, struct nft_ctx *nft, void *scanner,
-diff --git a/src/scanner.l b/src/scanner.l
-index 9584f61c489c..9a6734dd4ec4 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -681,22 +681,44 @@ indesc_file_alloc(FILE *f, const char *filename, const struct location *loc)
- 	return indesc;
- }
- 
-+static inline struct list_head *indesc_list(struct parser_state *state)
-+{
-+	return &state->indesc_list[state->indesc_idx];
-+}
-+
- static void scanner_push_indesc(struct parser_state *state,
- 				struct input_descriptor *indesc)
- {
--	state->indescs[state->indesc_idx] = indesc;
--	state->indesc = state->indescs[state->indesc_idx++];
--	list_add_tail(&indesc->list, &state->indesc_list);
-+	state->indesc = indesc;
-+	list_add_tail(&indesc->list, indesc_list(state));
-+	state->indesc_idx++;
-+}
-+
-+static void scanner_add_indesc(struct parser_state *state,
-+			       struct input_descriptor *indesc)
-+{
-+	state->indesc = indesc;
-+	list_add_tail(&indesc->list, indesc_list(state));
- }
- 
- static void scanner_pop_indesc(struct parser_state *state)
- {
--	state->indesc_idx--;
-+	if (list_empty(indesc_list(state)))
-+		state->indesc_idx--;
- 
--	if (state->indesc_idx > 0)
--		state->indesc = state->indescs[state->indesc_idx - 1];
--	else
-+	if (state->indesc_idx == 0) {
- 		state->indesc = NULL;
-+		return;
-+	}
-+
-+	if (list_is_first(&state->indesc->list, indesc_list(state))) {
-+		state->indesc_idx--;
-+		state->indesc =
-+			list_last_entry(indesc_list(state),
-+					struct input_descriptor, list);
-+	} else {
-+		state->indesc = list_prev_entry(state->indesc, list);
-+	}
- }
- 
- static void scanner_pop_buffer(yyscan_t scanner)
-@@ -816,8 +838,10 @@ static int include_glob(struct nft_ctx *nft, void *scanner, const char *pattern,
- 				goto err;
- 
- 			indesc = scanner_push_file(nft, scanner, f, path, loc);
--			scanner_push_indesc(state, indesc);
-+			scanner_add_indesc(state, indesc);
- 		}
-+		if (glob_data.gl_pathc)
-+			state->indesc_idx++;
- 
- 		globfree(&glob_data);
- 
-@@ -962,14 +986,17 @@ static void input_descriptor_destroy(const struct input_descriptor *indesc)
- static void input_descriptor_list_destroy(struct parser_state *state)
- {
- 	struct input_descriptor *indesc, *next;
-+	int i;
- 
--	list_for_each_entry_safe(indesc, next, &state->indesc_list, list) {
--		if (indesc->f) {
--			fclose(indesc->f);
--			indesc->f = NULL;
-+	for (i = 0; i < MAX_INCLUDE_DEPTH; i++) {
-+		list_for_each_entry_safe(indesc, next, &state->indesc_list[i], list) {
-+			if (indesc->f) {
-+				fclose(indesc->f);
-+				indesc->f = NULL;
-+			}
-+			list_del(&indesc->list);
-+			input_descriptor_destroy(indesc);
- 		}
--		list_del(&indesc->list);
--		input_descriptor_destroy(indesc);
- 	}
- }
- 
--- 
-2.11.0
+Acked-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
 
