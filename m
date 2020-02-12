@@ -2,132 +2,397 @@ Return-Path: <SRS0=6DSs=4A=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AD12C2BA83
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Feb 2020 09:21:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F8CEC352A4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Feb 2020 20:31:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3F2E920659
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Feb 2020 09:21:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F34A021739
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Feb 2020 20:31:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728748AbgBLJVe (ORCPT
+        id S1727692AbgBLUbj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Feb 2020 04:21:34 -0500
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:39413 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728772AbgBLJVd (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Feb 2020 04:21:33 -0500
-Received: by mail-wr1-f68.google.com with SMTP id y11so1284595wrt.6
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Feb 2020 01:21:32 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:autocrypt
-         :message-id:date:user-agent:mime-version:in-reply-to
-         :content-language:content-transfer-encoding;
-        bh=un8S1X6Iu/C7t3ZnSlot/0Dh1UwsPCdktiVfSz6p1/g=;
-        b=e+2+L08Xarus82AnVRMS8+Obq20b4RFvEy8XN05F8Y05u7QR+pMNyZTD7YMrQ18itT
-         BcJAz4Ll97wadO/aebvJ5Hz3AyMhwI8sl9DG16qyQH5mX3PmWAVSn1pGcd1IDiyZ/RxV
-         cNlmx1BBBsG9HZzMP6idnlsYGYyCgmaYLU0tyWEq02mI7BRu8Yz8uarKSWHsPC0enDyZ
-         Aw4ehr9BEhW3qaxXjTJ1Rko4ZA6O69O+PEeEMPMrUhbb+XOKyW7l7wgowv6LsogGPdVL
-         L/Vbkqt0B99Gn5utbyUHQmsZ1i8tOB0CjnJYUtYaoGNPzZPmqPHYP4UUOKbMRbmWFZ7f
-         l3mQ==
-X-Gm-Message-State: APjAAAVT60yZVREsUM4lzhKlFJqaInGBMkjQKPcYScnBlNHWHAylKBPr
-        MHJUoeDA8xU2HpPhsqm9PDJLPROv
-X-Google-Smtp-Source: APXvYqyV34bFduQOKWpiuClHTIGbRT6F4EKwQbH2he2t8c7jdfXNDoGlZRlWVDpnio5TItb91LElyA==
-X-Received: by 2002:a5d:540f:: with SMTP id g15mr13596249wrv.86.1581499291177;
-        Wed, 12 Feb 2020 01:21:31 -0800 (PST)
-Received: from [10.239.43.214] (79.red-80-24-233.staticip.rima-tde.net. [80.24.233.79])
-        by smtp.gmail.com with ESMTPSA id v12sm8545160wru.23.2020.02.12.01.21.29
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 12 Feb 2020 01:21:30 -0800 (PST)
-Subject: Re: [iptables PATCH] xtables-restore: fix for --noflush and empty
- lines
-To:     Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>
+        Wed, 12 Feb 2020 15:31:39 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:36332 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727111AbgBLUbj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 12 Feb 2020 15:31:39 -0500
+Received: from localhost ([::1]:49422 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1j1yfZ-0002vw-DF; Wed, 12 Feb 2020 21:31:37 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-References: <20200211170913.2374-1-phil@nwl.cc>
-From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
-Autocrypt: addr=arturo@netfilter.org; keydata=
- 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
- EXgmBmyUKrJkh/zvupp9t9Y2ioPbcMObRIEXio4=
-Message-ID: <7c9717f5-5173-7eee-e5f8-4431ca6217e3@netfilter.org>
-Date:   Wed, 12 Feb 2020 10:21:28 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.4.2
+Subject: [iptables PATCH] tests: shell: Fix skip checks with --host mode
+Date:   Wed, 12 Feb 2020 21:31:34 +0100
+Message-Id: <20200212203134.25621-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-In-Reply-To: <20200211170913.2374-1-phil@nwl.cc>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2/11/20 6:09 PM, Phil Sutter wrote:
-> Lookahead buffer used for cache requirements estimate in restore
-> --noflush separates individual lines with nul-chars. Two consecutive
-> nul-chars are interpreted as end of buffer and remaining buffer content
-> is skipped.
-> 
-> Sadly, reading an empty line (i.e., one containing a newline character
-> only) caused double nul-chars to appear in buffer as well, leading to
-> premature stop when reading cached lines from buffer.
-> 
-> To fix that, make use of xtables_restore_parse_line() skipping empty
-> lines without calling strtok() and just leave the newline character in
-> place. A more intuitive approach, namely skipping empty lines while
-> buffering, is deliberately not chosen as that would cause wrong values
-> in 'line' variable.
-> 
-> Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1400
-> Fixes: 09cb517949e69 ("xtables-restore: Improve performance of --noflush operation")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> ---
+When testing host binaries, XT_MULTI variable contains just the program
+name without path component which most skip checks didn't expect. Fix
+them, and while being at it also reduce indenting level in two scripts
+by moving the skip check up front with an early exit call.
 
-Thanks for working on this!
+Fixes: 416898e335322 ("tests/shell: Support testing host binaries")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ .../arptables/0001-arptables-save-restore_0   |   2 +-
+ .../0002-arptables-restore-defaults_0         |   2 +-
+ .../arptables/0003-arptables-verbose-output_0 |   2 +-
+ .../testcases/ebtables/0001-ebtables-basic_0  | 135 +++++++++---------
+ .../ebtables/0002-ebtables-save-restore_0     |   2 +-
+ .../ebtables/0003-ebtables-restore-defaults_0 |   2 +-
+ .../testcases/ebtables/0004-save-counters_0   |   2 +-
+ .../testcases/ebtables/0005-ifnamechecks_0    |   2 +-
+ .../firewalld-restore/0001-firewalld_0        |   2 +-
+ .../testcases/ipt-restore/0004-restore-race_0 |   2 +-
+ .../shell/testcases/nft-only/0001compat_0     |  15 +-
+ .../shell/testcases/nft-only/0002invflags_0   |   2 +-
+ .../nft-only/0003delete-with-comment_0        |   2 +-
+ 13 files changed, 88 insertions(+), 84 deletions(-)
 
-Acked-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
+diff --git a/iptables/tests/shell/testcases/arptables/0001-arptables-save-restore_0 b/iptables/tests/shell/testcases/arptables/0001-arptables-save-restore_0
+index bf04dc0a3e15a..e64e9142ee98b 100755
+--- a/iptables/tests/shell/testcases/arptables/0001-arptables-save-restore_0
++++ b/iptables/tests/shell/testcases/arptables/0001-arptables-save-restore_0
+@@ -4,7 +4,7 @@ set -e
+ #set -x
+ 
+ # there is no legacy backend to test
+-[[ $XT_MULTI == */xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
++[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
+ 
+ # fill arptables manually
+ 
+diff --git a/iptables/tests/shell/testcases/arptables/0002-arptables-restore-defaults_0 b/iptables/tests/shell/testcases/arptables/0002-arptables-restore-defaults_0
+index 38d387f327ebb..afd0fcb460d85 100755
+--- a/iptables/tests/shell/testcases/arptables/0002-arptables-restore-defaults_0
++++ b/iptables/tests/shell/testcases/arptables/0002-arptables-restore-defaults_0
+@@ -3,7 +3,7 @@
+ set -e
+ 
+ # there is no legacy backend to test
+-[[ $XT_MULTI == */xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
++[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
+ 
+ # arptables-restore reuses preloaded targets and matches, make sure defaults
+ # apply to consecutive rules using the same target/match as a previous one
+diff --git a/iptables/tests/shell/testcases/arptables/0003-arptables-verbose-output_0 b/iptables/tests/shell/testcases/arptables/0003-arptables-verbose-output_0
+index 10c5ec33ada2c..952cfa7898371 100755
+--- a/iptables/tests/shell/testcases/arptables/0003-arptables-verbose-output_0
++++ b/iptables/tests/shell/testcases/arptables/0003-arptables-verbose-output_0
+@@ -4,7 +4,7 @@ set -e
+ set -x
+ 
+ # there is no legacy backend to test
+-[[ $XT_MULTI == */xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
++[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
+ 
+ $XT_MULTI arptables -N foo
+ 
+diff --git a/iptables/tests/shell/testcases/ebtables/0001-ebtables-basic_0 b/iptables/tests/shell/testcases/ebtables/0001-ebtables-basic_0
+index c7f24a383f698..0c1eb4ca66f52 100755
+--- a/iptables/tests/shell/testcases/ebtables/0001-ebtables-basic_0
++++ b/iptables/tests/shell/testcases/ebtables/0001-ebtables-basic_0
+@@ -1,86 +1,89 @@
+ #!/bin/sh
+ 
++case "$XT_MULTI" in
++*xtables-nft-multi)
++	;;
++*)
++	echo "skip $XT_MULTI"
++	exit 0
++	;;
++esac
++
+ get_entries_count() { # (chain)
+ 	$XT_MULTI ebtables -L $1 | sed -n 's/.*entries: \([0-9]*\).*/\1/p'
+ }
+ 
+ set -x
+-case "$XT_MULTI" in
+-*/xtables-nft-multi)
+-	for t in filter nat;do
+-		$XT_MULTI ebtables -t $t -L || exit 1
+-		$XT_MULTI ebtables -t $t -X || exit 1
+-		$XT_MULTI ebtables -t $t -F || exit 1
+-	done
+-
+-	for t in broute foobar ;do
+-		$XT_MULTI ebtables -t $t -L &&
+-		$XT_MULTI ebtables -t $t -X &&
+-		$XT_MULTI ebtables -t $t -F
+-		if [ $? -eq 0 ]; then
+-			echo "Expect nonzero return for unsupported table"
+-			exit 1
+-		fi
+-	done
+ 
++for t in filter nat;do
++	$XT_MULTI ebtables -t $t -L || exit 1
++	$XT_MULTI ebtables -t $t -X || exit 1
++	$XT_MULTI ebtables -t $t -F || exit 1
++done
+ 
+-	$XT_MULTI ebtables -t filter -N FOO || exit 1
+-	$XT_MULTI ebtables -t filter -N FOO
++for t in broute foobar ;do
++	$XT_MULTI ebtables -t $t -L &&
++	$XT_MULTI ebtables -t $t -X &&
++	$XT_MULTI ebtables -t $t -F
+ 	if [ $? -eq 0 ]; then
+-		echo "Duplicate chain FOO"
+-		$XT_MULTI ebtables -t filter -L
++		echo "Expect nonzero return for unsupported table"
+ 		exit 1
+ 	fi
++done
+ 
+-	entries=$(get_entries_count FOO)
+-	if [ $entries -ne 0 ]; then
+-		echo "Unexpected entries count in empty unreferenced chain (expected 0, have $entries)"
+-		$XT_MULTI ebtables -L
+-		exit 1
+-	fi
+ 
+-	$XT_MULTI ebtables -A FORWARD -j FOO
+-	entries=$(get_entries_count FORWARD)
+-	if [ $entries -ne 1 ]; then
+-		echo "Unexpected entries count in FORWARD chain (expected 1, have $entries)"
+-		$XT_MULTI ebtables -L
+-		exit 1
+-	fi
++$XT_MULTI ebtables -t filter -N FOO || exit 1
++$XT_MULTI ebtables -t filter -N FOO
++if [ $? -eq 0 ]; then
++	echo "Duplicate chain FOO"
++	$XT_MULTI ebtables -t filter -L
++	exit 1
++fi
+ 
+-	entries=$(get_entries_count FOO)
+-	if [ $entries -ne 0 ]; then
+-		echo "Unexpected entries count in empty referenced chain (expected 0, have $entries)"
+-		$XT_MULTI ebtables -L
+-		exit 1
+-	fi
++entries=$(get_entries_count FOO)
++if [ $entries -ne 0 ]; then
++	echo "Unexpected entries count in empty unreferenced chain (expected 0, have $entries)"
++	$XT_MULTI ebtables -L
++	exit 1
++fi
+ 
+-	$XT_MULTI ebtables -A FOO -j ACCEPT
+-	entries=$(get_entries_count FOO)
+-	if [ $entries -ne 1 ]; then
+-		echo "Unexpected entries count in non-empty referenced chain (expected 1, have $entries)"
+-		$XT_MULTI ebtables -L
+-		exit 1
+-	fi
++$XT_MULTI ebtables -A FORWARD -j FOO
++entries=$(get_entries_count FORWARD)
++if [ $entries -ne 1 ]; then
++	echo "Unexpected entries count in FORWARD chain (expected 1, have $entries)"
++	$XT_MULTI ebtables -L
++	exit 1
++fi
+ 
+-	$XT_MULTI ebtables -t filter -N BAR || exit 1
+-	$XT_MULTI ebtables -t filter -N BAZ || exit 1
++entries=$(get_entries_count FOO)
++if [ $entries -ne 0 ]; then
++	echo "Unexpected entries count in empty referenced chain (expected 0, have $entries)"
++	$XT_MULTI ebtables -L
++	exit 1
++fi
+ 
+-	$XT_MULTI ebtables -t filter -L | grep -q FOO || exit 1
+-	$XT_MULTI ebtables -t filter -L | grep -q BAR || exit 1
+-	$XT_MULTI ebtables -t filter -L | grep -q BAZ || exit 1
++$XT_MULTI ebtables -A FOO -j ACCEPT
++entries=$(get_entries_count FOO)
++if [ $entries -ne 1 ]; then
++	echo "Unexpected entries count in non-empty referenced chain (expected 1, have $entries)"
++	$XT_MULTI ebtables -L
++	exit 1
++fi
+ 
+-	$XT_MULTI ebtables -t filter -L BAZ || exit 1
+-	$XT_MULTI ebtables -t filter -X BAZ || exit 1
+-	$XT_MULTI ebtables -t filter -L BAZ | grep -q BAZ
+-	if [ $? -eq 0 ]; then
+-		echo "Deleted chain -L BAZ ok, expected failure"
+-		$XT_MULTI ebtables -t filter -L
+-		exit 1
+-	fi
++$XT_MULTI ebtables -t filter -N BAR || exit 1
++$XT_MULTI ebtables -t filter -N BAZ || exit 1
+ 
+-	$XT_MULTI ebtables -t $t -F || exit 0
+-	;;
+-*)
+-	echo "skip $XT_MULTI"
+-	;;
+-esac
++$XT_MULTI ebtables -t filter -L | grep -q FOO || exit 1
++$XT_MULTI ebtables -t filter -L | grep -q BAR || exit 1
++$XT_MULTI ebtables -t filter -L | grep -q BAZ || exit 1
++
++$XT_MULTI ebtables -t filter -L BAZ || exit 1
++$XT_MULTI ebtables -t filter -X BAZ || exit 1
++$XT_MULTI ebtables -t filter -L BAZ | grep -q BAZ
++if [ $? -eq 0 ]; then
++	echo "Deleted chain -L BAZ ok, expected failure"
++	$XT_MULTI ebtables -t filter -L
++	exit 1
++fi
++
++$XT_MULTI ebtables -t $t -F || exit 0
+diff --git a/iptables/tests/shell/testcases/ebtables/0002-ebtables-save-restore_0 b/iptables/tests/shell/testcases/ebtables/0002-ebtables-save-restore_0
+index e18d46551509d..b84f63a7c3672 100755
+--- a/iptables/tests/shell/testcases/ebtables/0002-ebtables-save-restore_0
++++ b/iptables/tests/shell/testcases/ebtables/0002-ebtables-save-restore_0
+@@ -4,7 +4,7 @@ set -e
+ #set -x
+ 
+ # there is no legacy backend to test
+-[[ $XT_MULTI == */xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
++[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
+ 
+ # fill ebtables manually
+ 
+diff --git a/iptables/tests/shell/testcases/ebtables/0003-ebtables-restore-defaults_0 b/iptables/tests/shell/testcases/ebtables/0003-ebtables-restore-defaults_0
+index 62d224134456b..63891c1bb731a 100755
+--- a/iptables/tests/shell/testcases/ebtables/0003-ebtables-restore-defaults_0
++++ b/iptables/tests/shell/testcases/ebtables/0003-ebtables-restore-defaults_0
+@@ -3,7 +3,7 @@
+ set -e
+ 
+ # there is no legacy backend to test
+-[[ $XT_MULTI == */xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
++[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
+ 
+ # ebtables-restore reuses preloaded targets and matches, make sure defaults
+ # apply to consecutive rules using the same target/match as a previous one
+diff --git a/iptables/tests/shell/testcases/ebtables/0004-save-counters_0 b/iptables/tests/shell/testcases/ebtables/0004-save-counters_0
+index 46966f433139a..d52db900604ef 100755
+--- a/iptables/tests/shell/testcases/ebtables/0004-save-counters_0
++++ b/iptables/tests/shell/testcases/ebtables/0004-save-counters_0
+@@ -3,7 +3,7 @@
+ set -e
+ 
+ # there is no legacy backend to test
+-[[ $XT_MULTI == */xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
++[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
+ 
+ $XT_MULTI ebtables --init-table
+ $XT_MULTI ebtables -A FORWARD -i nodev123 -o nodev432 -j ACCEPT
+diff --git a/iptables/tests/shell/testcases/ebtables/0005-ifnamechecks_0 b/iptables/tests/shell/testcases/ebtables/0005-ifnamechecks_0
+index 2163d364b318b..0b3acfd7613db 100755
+--- a/iptables/tests/shell/testcases/ebtables/0005-ifnamechecks_0
++++ b/iptables/tests/shell/testcases/ebtables/0005-ifnamechecks_0
+@@ -3,7 +3,7 @@
+ set -e
+ 
+ # there is no legacy backend to test
+-[[ $XT_MULTI == */xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
++[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
+ 
+ EXPECT='*filter
+ :INPUT ACCEPT
+diff --git a/iptables/tests/shell/testcases/firewalld-restore/0001-firewalld_0 b/iptables/tests/shell/testcases/firewalld-restore/0001-firewalld_0
+index 8bf0c2c6c194e..0174b03f4ebc7 100755
+--- a/iptables/tests/shell/testcases/firewalld-restore/0001-firewalld_0
++++ b/iptables/tests/shell/testcases/firewalld-restore/0001-firewalld_0
+@@ -231,7 +231,7 @@ for table in nat mangle raw filter;do
+ done
+ 
+ case "$XT_MULTI" in
+-*/xtables-nft-multi)
++*xtables-nft-multi)
+ 	# nft-multi displays chain names in different order, work around this for now
+ 	tmpfile2=$(mktemp)
+ 	sort "$tmpfile" > "$tmpfile2"
+diff --git a/iptables/tests/shell/testcases/ipt-restore/0004-restore-race_0 b/iptables/tests/shell/testcases/ipt-restore/0004-restore-race_0
+index 96a5e66d0ab81..9fc50615b8926 100755
+--- a/iptables/tests/shell/testcases/ipt-restore/0004-restore-race_0
++++ b/iptables/tests/shell/testcases/ipt-restore/0004-restore-race_0
+@@ -86,7 +86,7 @@ if [ $LINES1 -ne $LINES2 ]; then
+ fi
+ 
+ case "$XT_MULTI" in
+-*/xtables-nft-multi)
++*xtables-nft-multi)
+ 	attempts=$((RANDOM%10))
+ 	attempts=$((attempts+1))
+ 	;;
+diff --git a/iptables/tests/shell/testcases/nft-only/0001compat_0 b/iptables/tests/shell/testcases/nft-only/0001compat_0
+index 4319ea5a6a797..a617c52f53695 100755
+--- a/iptables/tests/shell/testcases/nft-only/0001compat_0
++++ b/iptables/tests/shell/testcases/nft-only/0001compat_0
+@@ -5,17 +5,18 @@
+ # xtables: avoid bogus 'is incompatible' warning
+ 
+ case "$XT_MULTI" in
+-*/xtables-nft-multi)
+-	nft -v >/dev/null || exit 0
+-	nft 'add table ip nft-test; add chain ip nft-test foobar { type filter hook forward priority 42;  }' || exit 1
+-	nft 'add table ip6 nft-test; add chain ip6 nft-test foobar { type filter hook forward priority 42;  }' || exit 1
+-
+-	$XT_MULTI iptables -L -t filter || exit 1
+-	$XT_MULTI ip6tables -L -t filter || exit 1
++*xtables-nft-multi)
+ 	;;
+ *)
+ 	echo skip $XT_MULTI
++	exit 0
+ 	;;
+ esac
+ 
++nft -v >/dev/null || exit 0
++nft 'add table ip nft-test; add chain ip nft-test foobar { type filter hook forward priority 42;  }' || exit 1
++nft 'add table ip6 nft-test; add chain ip6 nft-test foobar { type filter hook forward priority 42;  }' || exit 1
++
++$XT_MULTI iptables -L -t filter || exit 1
++$XT_MULTI ip6tables -L -t filter || exit 1
+ exit 0
+diff --git a/iptables/tests/shell/testcases/nft-only/0002invflags_0 b/iptables/tests/shell/testcases/nft-only/0002invflags_0
+index 406b6081a98a4..fe33874dde7f2 100755
+--- a/iptables/tests/shell/testcases/nft-only/0002invflags_0
++++ b/iptables/tests/shell/testcases/nft-only/0002invflags_0
+@@ -2,7 +2,7 @@
+ 
+ set -e
+ 
+-[[ $XT_MULTI == */xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
++[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
+ 
+ $XT_MULTI iptables -A INPUT -p tcp --dport 53 ! -s 192.168.0.1 -j ACCEPT
+ $XT_MULTI ip6tables -A INPUT -p tcp --dport 53 ! -s feed:babe::1 -j ACCEPT
+diff --git a/iptables/tests/shell/testcases/nft-only/0003delete-with-comment_0 b/iptables/tests/shell/testcases/nft-only/0003delete-with-comment_0
+index 67af9fd897410..ccb009e469076 100755
+--- a/iptables/tests/shell/testcases/nft-only/0003delete-with-comment_0
++++ b/iptables/tests/shell/testcases/nft-only/0003delete-with-comment_0
+@@ -2,7 +2,7 @@
+ 
+ set -e
+ 
+-[[ $XT_MULTI == */xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
++[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
+ 
+ comment1="foo bar"
+ comment2="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+-- 
+2.24.1
 
