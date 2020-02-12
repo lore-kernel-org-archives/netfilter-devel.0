@@ -2,397 +2,70 @@ Return-Path: <SRS0=6DSs=4A=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F8CEC352A4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Feb 2020 20:31:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A3BEC352A4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Feb 2020 20:44:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F34A021739
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Feb 2020 20:31:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D7A5E24682
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Feb 2020 20:44:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727692AbgBLUbj (ORCPT
+        id S1727791AbgBLUoo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Feb 2020 15:31:39 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:36332 "EHLO orbyte.nwl.cc"
+        Wed, 12 Feb 2020 15:44:44 -0500
+Received: from correo.us.es ([193.147.175.20]:44370 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727111AbgBLUbj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Feb 2020 15:31:39 -0500
-Received: from localhost ([::1]:49422 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1j1yfZ-0002vw-DF; Wed, 12 Feb 2020 21:31:37 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] tests: shell: Fix skip checks with --host mode
-Date:   Wed, 12 Feb 2020 21:31:34 +0100
-Message-Id: <20200212203134.25621-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.24.1
+        id S1727111AbgBLUoo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 12 Feb 2020 15:44:44 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 3896CE122F
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Feb 2020 21:44:43 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 299C3DA703
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Feb 2020 21:44:43 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 1F295DA709; Wed, 12 Feb 2020 21:44:43 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2AF24DA703;
+        Wed, 12 Feb 2020 21:44:41 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 12 Feb 2020 21:44:41 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 0CA1D42EF42C;
+        Wed, 12 Feb 2020 21:44:41 +0100 (CET)
+Date:   Wed, 12 Feb 2020 21:44:39 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fasnacht@protonmail.ch
+Subject: Re: [PATCH nft 0/4] glob and maximum number of includes
+Message-ID: <20200212204439.h44tjfvdz45ydkk3@salvia>
+References: <20200211202308.90575-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200211202308.90575-1-pablo@netfilter.org>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When testing host binaries, XT_MULTI variable contains just the program
-name without path component which most skip checks didn't expect. Fix
-them, and while being at it also reduce indenting level in two scripts
-by moving the skip check up front with an early exit call.
+On Tue, Feb 11, 2020 at 09:23:04PM +0100, Pablo Neira Ayuso wrote:
+> Hi Laurent,
+> 
+> This approach maintains an array of stacks per depth.
+> 
+> The initial three patches comes as a preparation. The last patch is
+> aiming to fix the issue with glob and the maximum number of includes.
 
-Fixes: 416898e335322 ("tests/shell: Support testing host binaries")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- .../arptables/0001-arptables-save-restore_0   |   2 +-
- .../0002-arptables-restore-defaults_0         |   2 +-
- .../arptables/0003-arptables-verbose-output_0 |   2 +-
- .../testcases/ebtables/0001-ebtables-basic_0  | 135 +++++++++---------
- .../ebtables/0002-ebtables-save-restore_0     |   2 +-
- .../ebtables/0003-ebtables-restore-defaults_0 |   2 +-
- .../testcases/ebtables/0004-save-counters_0   |   2 +-
- .../testcases/ebtables/0005-ifnamechecks_0    |   2 +-
- .../firewalld-restore/0001-firewalld_0        |   2 +-
- .../testcases/ipt-restore/0004-restore-race_0 |   2 +-
- .../shell/testcases/nft-only/0001compat_0     |  15 +-
- .../shell/testcases/nft-only/0002invflags_0   |   2 +-
- .../nft-only/0003delete-with-comment_0        |   2 +-
- 13 files changed, 88 insertions(+), 84 deletions(-)
-
-diff --git a/iptables/tests/shell/testcases/arptables/0001-arptables-save-restore_0 b/iptables/tests/shell/testcases/arptables/0001-arptables-save-restore_0
-index bf04dc0a3e15a..e64e9142ee98b 100755
---- a/iptables/tests/shell/testcases/arptables/0001-arptables-save-restore_0
-+++ b/iptables/tests/shell/testcases/arptables/0001-arptables-save-restore_0
-@@ -4,7 +4,7 @@ set -e
- #set -x
- 
- # there is no legacy backend to test
--[[ $XT_MULTI == */xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
-+[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
- 
- # fill arptables manually
- 
-diff --git a/iptables/tests/shell/testcases/arptables/0002-arptables-restore-defaults_0 b/iptables/tests/shell/testcases/arptables/0002-arptables-restore-defaults_0
-index 38d387f327ebb..afd0fcb460d85 100755
---- a/iptables/tests/shell/testcases/arptables/0002-arptables-restore-defaults_0
-+++ b/iptables/tests/shell/testcases/arptables/0002-arptables-restore-defaults_0
-@@ -3,7 +3,7 @@
- set -e
- 
- # there is no legacy backend to test
--[[ $XT_MULTI == */xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
-+[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
- 
- # arptables-restore reuses preloaded targets and matches, make sure defaults
- # apply to consecutive rules using the same target/match as a previous one
-diff --git a/iptables/tests/shell/testcases/arptables/0003-arptables-verbose-output_0 b/iptables/tests/shell/testcases/arptables/0003-arptables-verbose-output_0
-index 10c5ec33ada2c..952cfa7898371 100755
---- a/iptables/tests/shell/testcases/arptables/0003-arptables-verbose-output_0
-+++ b/iptables/tests/shell/testcases/arptables/0003-arptables-verbose-output_0
-@@ -4,7 +4,7 @@ set -e
- set -x
- 
- # there is no legacy backend to test
--[[ $XT_MULTI == */xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
-+[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
- 
- $XT_MULTI arptables -N foo
- 
-diff --git a/iptables/tests/shell/testcases/ebtables/0001-ebtables-basic_0 b/iptables/tests/shell/testcases/ebtables/0001-ebtables-basic_0
-index c7f24a383f698..0c1eb4ca66f52 100755
---- a/iptables/tests/shell/testcases/ebtables/0001-ebtables-basic_0
-+++ b/iptables/tests/shell/testcases/ebtables/0001-ebtables-basic_0
-@@ -1,86 +1,89 @@
- #!/bin/sh
- 
-+case "$XT_MULTI" in
-+*xtables-nft-multi)
-+	;;
-+*)
-+	echo "skip $XT_MULTI"
-+	exit 0
-+	;;
-+esac
-+
- get_entries_count() { # (chain)
- 	$XT_MULTI ebtables -L $1 | sed -n 's/.*entries: \([0-9]*\).*/\1/p'
- }
- 
- set -x
--case "$XT_MULTI" in
--*/xtables-nft-multi)
--	for t in filter nat;do
--		$XT_MULTI ebtables -t $t -L || exit 1
--		$XT_MULTI ebtables -t $t -X || exit 1
--		$XT_MULTI ebtables -t $t -F || exit 1
--	done
--
--	for t in broute foobar ;do
--		$XT_MULTI ebtables -t $t -L &&
--		$XT_MULTI ebtables -t $t -X &&
--		$XT_MULTI ebtables -t $t -F
--		if [ $? -eq 0 ]; then
--			echo "Expect nonzero return for unsupported table"
--			exit 1
--		fi
--	done
- 
-+for t in filter nat;do
-+	$XT_MULTI ebtables -t $t -L || exit 1
-+	$XT_MULTI ebtables -t $t -X || exit 1
-+	$XT_MULTI ebtables -t $t -F || exit 1
-+done
- 
--	$XT_MULTI ebtables -t filter -N FOO || exit 1
--	$XT_MULTI ebtables -t filter -N FOO
-+for t in broute foobar ;do
-+	$XT_MULTI ebtables -t $t -L &&
-+	$XT_MULTI ebtables -t $t -X &&
-+	$XT_MULTI ebtables -t $t -F
- 	if [ $? -eq 0 ]; then
--		echo "Duplicate chain FOO"
--		$XT_MULTI ebtables -t filter -L
-+		echo "Expect nonzero return for unsupported table"
- 		exit 1
- 	fi
-+done
- 
--	entries=$(get_entries_count FOO)
--	if [ $entries -ne 0 ]; then
--		echo "Unexpected entries count in empty unreferenced chain (expected 0, have $entries)"
--		$XT_MULTI ebtables -L
--		exit 1
--	fi
- 
--	$XT_MULTI ebtables -A FORWARD -j FOO
--	entries=$(get_entries_count FORWARD)
--	if [ $entries -ne 1 ]; then
--		echo "Unexpected entries count in FORWARD chain (expected 1, have $entries)"
--		$XT_MULTI ebtables -L
--		exit 1
--	fi
-+$XT_MULTI ebtables -t filter -N FOO || exit 1
-+$XT_MULTI ebtables -t filter -N FOO
-+if [ $? -eq 0 ]; then
-+	echo "Duplicate chain FOO"
-+	$XT_MULTI ebtables -t filter -L
-+	exit 1
-+fi
- 
--	entries=$(get_entries_count FOO)
--	if [ $entries -ne 0 ]; then
--		echo "Unexpected entries count in empty referenced chain (expected 0, have $entries)"
--		$XT_MULTI ebtables -L
--		exit 1
--	fi
-+entries=$(get_entries_count FOO)
-+if [ $entries -ne 0 ]; then
-+	echo "Unexpected entries count in empty unreferenced chain (expected 0, have $entries)"
-+	$XT_MULTI ebtables -L
-+	exit 1
-+fi
- 
--	$XT_MULTI ebtables -A FOO -j ACCEPT
--	entries=$(get_entries_count FOO)
--	if [ $entries -ne 1 ]; then
--		echo "Unexpected entries count in non-empty referenced chain (expected 1, have $entries)"
--		$XT_MULTI ebtables -L
--		exit 1
--	fi
-+$XT_MULTI ebtables -A FORWARD -j FOO
-+entries=$(get_entries_count FORWARD)
-+if [ $entries -ne 1 ]; then
-+	echo "Unexpected entries count in FORWARD chain (expected 1, have $entries)"
-+	$XT_MULTI ebtables -L
-+	exit 1
-+fi
- 
--	$XT_MULTI ebtables -t filter -N BAR || exit 1
--	$XT_MULTI ebtables -t filter -N BAZ || exit 1
-+entries=$(get_entries_count FOO)
-+if [ $entries -ne 0 ]; then
-+	echo "Unexpected entries count in empty referenced chain (expected 0, have $entries)"
-+	$XT_MULTI ebtables -L
-+	exit 1
-+fi
- 
--	$XT_MULTI ebtables -t filter -L | grep -q FOO || exit 1
--	$XT_MULTI ebtables -t filter -L | grep -q BAR || exit 1
--	$XT_MULTI ebtables -t filter -L | grep -q BAZ || exit 1
-+$XT_MULTI ebtables -A FOO -j ACCEPT
-+entries=$(get_entries_count FOO)
-+if [ $entries -ne 1 ]; then
-+	echo "Unexpected entries count in non-empty referenced chain (expected 1, have $entries)"
-+	$XT_MULTI ebtables -L
-+	exit 1
-+fi
- 
--	$XT_MULTI ebtables -t filter -L BAZ || exit 1
--	$XT_MULTI ebtables -t filter -X BAZ || exit 1
--	$XT_MULTI ebtables -t filter -L BAZ | grep -q BAZ
--	if [ $? -eq 0 ]; then
--		echo "Deleted chain -L BAZ ok, expected failure"
--		$XT_MULTI ebtables -t filter -L
--		exit 1
--	fi
-+$XT_MULTI ebtables -t filter -N BAR || exit 1
-+$XT_MULTI ebtables -t filter -N BAZ || exit 1
- 
--	$XT_MULTI ebtables -t $t -F || exit 0
--	;;
--*)
--	echo "skip $XT_MULTI"
--	;;
--esac
-+$XT_MULTI ebtables -t filter -L | grep -q FOO || exit 1
-+$XT_MULTI ebtables -t filter -L | grep -q BAR || exit 1
-+$XT_MULTI ebtables -t filter -L | grep -q BAZ || exit 1
-+
-+$XT_MULTI ebtables -t filter -L BAZ || exit 1
-+$XT_MULTI ebtables -t filter -X BAZ || exit 1
-+$XT_MULTI ebtables -t filter -L BAZ | grep -q BAZ
-+if [ $? -eq 0 ]; then
-+	echo "Deleted chain -L BAZ ok, expected failure"
-+	$XT_MULTI ebtables -t filter -L
-+	exit 1
-+fi
-+
-+$XT_MULTI ebtables -t $t -F || exit 0
-diff --git a/iptables/tests/shell/testcases/ebtables/0002-ebtables-save-restore_0 b/iptables/tests/shell/testcases/ebtables/0002-ebtables-save-restore_0
-index e18d46551509d..b84f63a7c3672 100755
---- a/iptables/tests/shell/testcases/ebtables/0002-ebtables-save-restore_0
-+++ b/iptables/tests/shell/testcases/ebtables/0002-ebtables-save-restore_0
-@@ -4,7 +4,7 @@ set -e
- #set -x
- 
- # there is no legacy backend to test
--[[ $XT_MULTI == */xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
-+[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
- 
- # fill ebtables manually
- 
-diff --git a/iptables/tests/shell/testcases/ebtables/0003-ebtables-restore-defaults_0 b/iptables/tests/shell/testcases/ebtables/0003-ebtables-restore-defaults_0
-index 62d224134456b..63891c1bb731a 100755
---- a/iptables/tests/shell/testcases/ebtables/0003-ebtables-restore-defaults_0
-+++ b/iptables/tests/shell/testcases/ebtables/0003-ebtables-restore-defaults_0
-@@ -3,7 +3,7 @@
- set -e
- 
- # there is no legacy backend to test
--[[ $XT_MULTI == */xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
-+[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
- 
- # ebtables-restore reuses preloaded targets and matches, make sure defaults
- # apply to consecutive rules using the same target/match as a previous one
-diff --git a/iptables/tests/shell/testcases/ebtables/0004-save-counters_0 b/iptables/tests/shell/testcases/ebtables/0004-save-counters_0
-index 46966f433139a..d52db900604ef 100755
---- a/iptables/tests/shell/testcases/ebtables/0004-save-counters_0
-+++ b/iptables/tests/shell/testcases/ebtables/0004-save-counters_0
-@@ -3,7 +3,7 @@
- set -e
- 
- # there is no legacy backend to test
--[[ $XT_MULTI == */xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
-+[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
- 
- $XT_MULTI ebtables --init-table
- $XT_MULTI ebtables -A FORWARD -i nodev123 -o nodev432 -j ACCEPT
-diff --git a/iptables/tests/shell/testcases/ebtables/0005-ifnamechecks_0 b/iptables/tests/shell/testcases/ebtables/0005-ifnamechecks_0
-index 2163d364b318b..0b3acfd7613db 100755
---- a/iptables/tests/shell/testcases/ebtables/0005-ifnamechecks_0
-+++ b/iptables/tests/shell/testcases/ebtables/0005-ifnamechecks_0
-@@ -3,7 +3,7 @@
- set -e
- 
- # there is no legacy backend to test
--[[ $XT_MULTI == */xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
-+[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
- 
- EXPECT='*filter
- :INPUT ACCEPT
-diff --git a/iptables/tests/shell/testcases/firewalld-restore/0001-firewalld_0 b/iptables/tests/shell/testcases/firewalld-restore/0001-firewalld_0
-index 8bf0c2c6c194e..0174b03f4ebc7 100755
---- a/iptables/tests/shell/testcases/firewalld-restore/0001-firewalld_0
-+++ b/iptables/tests/shell/testcases/firewalld-restore/0001-firewalld_0
-@@ -231,7 +231,7 @@ for table in nat mangle raw filter;do
- done
- 
- case "$XT_MULTI" in
--*/xtables-nft-multi)
-+*xtables-nft-multi)
- 	# nft-multi displays chain names in different order, work around this for now
- 	tmpfile2=$(mktemp)
- 	sort "$tmpfile" > "$tmpfile2"
-diff --git a/iptables/tests/shell/testcases/ipt-restore/0004-restore-race_0 b/iptables/tests/shell/testcases/ipt-restore/0004-restore-race_0
-index 96a5e66d0ab81..9fc50615b8926 100755
---- a/iptables/tests/shell/testcases/ipt-restore/0004-restore-race_0
-+++ b/iptables/tests/shell/testcases/ipt-restore/0004-restore-race_0
-@@ -86,7 +86,7 @@ if [ $LINES1 -ne $LINES2 ]; then
- fi
- 
- case "$XT_MULTI" in
--*/xtables-nft-multi)
-+*xtables-nft-multi)
- 	attempts=$((RANDOM%10))
- 	attempts=$((attempts+1))
- 	;;
-diff --git a/iptables/tests/shell/testcases/nft-only/0001compat_0 b/iptables/tests/shell/testcases/nft-only/0001compat_0
-index 4319ea5a6a797..a617c52f53695 100755
---- a/iptables/tests/shell/testcases/nft-only/0001compat_0
-+++ b/iptables/tests/shell/testcases/nft-only/0001compat_0
-@@ -5,17 +5,18 @@
- # xtables: avoid bogus 'is incompatible' warning
- 
- case "$XT_MULTI" in
--*/xtables-nft-multi)
--	nft -v >/dev/null || exit 0
--	nft 'add table ip nft-test; add chain ip nft-test foobar { type filter hook forward priority 42;  }' || exit 1
--	nft 'add table ip6 nft-test; add chain ip6 nft-test foobar { type filter hook forward priority 42;  }' || exit 1
--
--	$XT_MULTI iptables -L -t filter || exit 1
--	$XT_MULTI ip6tables -L -t filter || exit 1
-+*xtables-nft-multi)
- 	;;
- *)
- 	echo skip $XT_MULTI
-+	exit 0
- 	;;
- esac
- 
-+nft -v >/dev/null || exit 0
-+nft 'add table ip nft-test; add chain ip nft-test foobar { type filter hook forward priority 42;  }' || exit 1
-+nft 'add table ip6 nft-test; add chain ip6 nft-test foobar { type filter hook forward priority 42;  }' || exit 1
-+
-+$XT_MULTI iptables -L -t filter || exit 1
-+$XT_MULTI ip6tables -L -t filter || exit 1
- exit 0
-diff --git a/iptables/tests/shell/testcases/nft-only/0002invflags_0 b/iptables/tests/shell/testcases/nft-only/0002invflags_0
-index 406b6081a98a4..fe33874dde7f2 100755
---- a/iptables/tests/shell/testcases/nft-only/0002invflags_0
-+++ b/iptables/tests/shell/testcases/nft-only/0002invflags_0
-@@ -2,7 +2,7 @@
- 
- set -e
- 
--[[ $XT_MULTI == */xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
-+[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
- 
- $XT_MULTI iptables -A INPUT -p tcp --dport 53 ! -s 192.168.0.1 -j ACCEPT
- $XT_MULTI ip6tables -A INPUT -p tcp --dport 53 ! -s feed:babe::1 -j ACCEPT
-diff --git a/iptables/tests/shell/testcases/nft-only/0003delete-with-comment_0 b/iptables/tests/shell/testcases/nft-only/0003delete-with-comment_0
-index 67af9fd897410..ccb009e469076 100755
---- a/iptables/tests/shell/testcases/nft-only/0003delete-with-comment_0
-+++ b/iptables/tests/shell/testcases/nft-only/0003delete-with-comment_0
-@@ -2,7 +2,7 @@
- 
- set -e
- 
--[[ $XT_MULTI == */xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
-+[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
- 
- comment1="foo bar"
- comment2="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
--- 
-2.24.1
-
+Hm, unfortunately, my patchset does not work. I'm going to toss this
+and go back to your approach.
