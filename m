@@ -2,91 +2,90 @@ Return-Path: <SRS0=+t1+=4B=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MALFORMED_FREEMAIL,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3F30C2BA83
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 13:04:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B5BAC2BA83
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 14:13:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 954A924650
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 13:04:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D55920873
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 14:13:00 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RBJ012Rs"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729957AbgBMNEl (ORCPT
+        id S1730191AbgBMONA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 Feb 2020 08:04:41 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:37944 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729557AbgBMNEl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Feb 2020 08:04:41 -0500
-Received: from localhost ([::1]:51034 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1j2EAZ-0003d1-Vy; Thu, 13 Feb 2020 14:04:40 +0100
-From:   Phil Sutter <phil@nwl.cc>
+        Thu, 13 Feb 2020 09:13:00 -0500
+Received: from mail-qt1-f170.google.com ([209.85.160.170]:34427 "EHLO
+        mail-qt1-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730079AbgBMOM7 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Feb 2020 09:12:59 -0500
+Received: by mail-qt1-f170.google.com with SMTP id h12so4472305qtu.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Feb 2020 06:12:59 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=user-agent:date:subject:from:to:cc:message-id:thread-topic
+         :mime-version:content-transfer-encoding;
+        bh=StZokD5W5ArfrLbxR8zHaZmIlXYBoE9ALI4qPSfWqL4=;
+        b=RBJ012RsCpofCzP6Ttd8GXXGu1KbflM05JGV7YgezY8MkegdGP5mdADdqYjaIrFtl5
+         yHKSgEngLSPXwWIaowaJ4eNGyiPs+4+0b6dySy+ocf4O3sM3ABUdKdX1ZInywOi7uwta
+         mpkfs2QV6hpVha4DL5NCX/6cuRiSp45L3gjixWkhfI4HmPQK8vfCKd0HghD1z+/fbLxf
+         a7296WJ3ZCH9U5lhqL/yjmwg0IBWAYI/yClQeOQtDRoEkpe2fCFnMk0PIbDpqHPlqxWE
+         N2e2diHOwxTYUDf3MbVSMzUEss+mJnaXQHeCZN4xHjhuh9vymuUaef1sBYr169dtjyqb
+         yvMg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:user-agent:date:subject:from:to:cc:message-id
+         :thread-topic:mime-version:content-transfer-encoding;
+        bh=StZokD5W5ArfrLbxR8zHaZmIlXYBoE9ALI4qPSfWqL4=;
+        b=iyVk69hrkM/hTSZFlfDTfst8shtRR1TnsTqwx+mFZZ24fwu6Tn0uyAB9kJah8yRewg
+         pbZqWafedCj/fY1bgDDPX4DI9hh56riqODpZkx+Z+LOQ3iU/+o5CsPfnRpeMOnUT28ts
+         6EfCNAS4dfpj95xoIoIxgmBrBuhId6OZVqAmVrzlJfC6KAm7gKIVId6YpvuEAAusY9fc
+         sbIXkwzdMdBSMGGJFuSFbUto1ebtrDsZGm5IgmSn728RHaNybf4soml0louMjbzDsOd3
+         HbQozvTfu8OVajYfBNvL2+NEBvMwTVBQsSq3x5+PZm6evbaP3GKsleYCEjPIQhvvIxfT
+         X60g==
+X-Gm-Message-State: APjAAAUPIkZn/DT9LbgRJIr+pbm4Mu0Ki1cxtliUzFgrGQe2j0h/d7m6
+        G9ov/GkeEQlcXe1Vn7eUp7byco3/tEo=
+X-Google-Smtp-Source: APXvYqytKfiOJt6szc2iWXUecXJu+GC95mi6er0mJa9AnpWZt/tiHzDHbkq+2278WwZoVmNlpeYpXA==
+X-Received: by 2002:aed:2022:: with SMTP id 31mr11176095qta.321.1581603179025;
+        Thu, 13 Feb 2020 06:12:59 -0800 (PST)
+Received: from [10.117.94.148] ([173.38.117.65])
+        by smtp.gmail.com with ESMTPSA id p26sm1336666qkp.34.2020.02.13.06.12.58
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 13 Feb 2020 06:12:58 -0800 (PST)
+User-Agent: Microsoft-MacOutlook/10.22.0.200209
+Date:   Thu, 13 Feb 2020 09:12:57 -0500
+Subject: Proposing to add a structure to UserData
+From:   sbezverk <sbezverk@gmail.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] xtables-translate: Fix for iface++
-Date:   Thu, 13 Feb 2020 14:04:36 +0100
-Message-Id: <20200213130436.26755-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.24.1
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+CC:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Message-ID: <169CDFEB-A792-4063-AEC5-05B1714AED91@gmail.com>
+Thread-Topic: Proposing to add a structure to UserData
+Mime-version: 1.0
+Content-type: text/plain;
+        charset="UTF-8"
+Content-transfer-encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In legacy iptables, only the last plus sign remains special, any
-previous ones are taken literally. Therefore xtables-translate must not
-replace all of them with asterisk but just the last one.
+Hello Pablo,
 
-Fixes: e179e87a1179e ("xtables-translate: Fix for interface name corner-cases")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- extensions/generic.txlate    | 4 ++++
- iptables/xtables-translate.c | 6 +++---
- 2 files changed, 7 insertions(+), 3 deletions(-)
+I would like to propose to add some structure to UserData. Currently nft tool uses UserData to carry comments and it prints out whatever is stored in it without much of processing. Since UserData is the only available mechanism to store some metadata for a rule, if it is used, then comments in nft cli get totally screwed up.
 
-diff --git a/extensions/generic.txlate b/extensions/generic.txlate
-index c92d082abea78..0e256c3727559 100644
---- a/extensions/generic.txlate
-+++ b/extensions/generic.txlate
-@@ -23,6 +23,10 @@ nft insert rule bridge filter INPUT ether type 0x800 ether daddr 01:02:03:04:00:
- iptables-translate -A FORWARD -i '*' -o 'eth*foo'
- nft add rule ip filter FORWARD iifname "\*" oifname "eth\*foo" counter
- 
-+# escape all asterisks but translate only the first plus character
-+iptables-translate -A FORWARD -i 'eth*foo*+' -o 'eth++'
-+nft add rule ip filter FORWARD iifname "eth\*foo\**" oifname "eth+*" counter
-+
- # skip for always matching interface names
- iptables-translate -A FORWARD -i '+'
- nft add rule ip filter FORWARD counter
-diff --git a/iptables/xtables-translate.c b/iptables/xtables-translate.c
-index c4e177c0d63ba..0f95855b41aa4 100644
---- a/iptables/xtables-translate.c
-+++ b/iptables/xtables-translate.c
-@@ -40,9 +40,6 @@ void xlate_ifname(struct xt_xlate *xl, const char *nftmeta, const char *ifname,
- 
- 	for (i = 0, j = 0; i < ifaclen + 1; i++, j++) {
- 		switch (ifname[i]) {
--		case '+':
--			iface[j] = '*';
--			break;
- 		case '*':
- 			iface[j++] = '\\';
- 			/* fall through */
-@@ -65,6 +62,9 @@ void xlate_ifname(struct xt_xlate *xl, const char *nftmeta, const char *ifname,
- 		invert = false;
- 	}
- 
-+	if (iface[j - 2] == '+')
-+		iface[j - 2] = '*';
-+
- 	xt_xlate_add(xl, "%s %s\"%s\" ", nftmeta, invert ? "!= " : "", iface);
- }
- 
--- 
-2.24.1
+What do you think about to add a little structure to userdata in order to preserve nft comments and at the same time allow developers to use UserData for other things.
+
+If we could add attributes to UserData indicating type NFT_USERDATA_COMMENT with length, then we could preserve nft comments and at the same time allow to use UserData for other things.
+
+What do you think?
+
+Thank you
+Serguei
+
+   
+
 
