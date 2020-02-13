@@ -1,180 +1,212 @@
-Return-Path: <SRS0=6DSs=4A=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=+t1+=4B=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE82DC352A4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Feb 2020 22:39:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81111C3B187
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 00:09:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7C6FD20848
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Feb 2020 22:39:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 578E4206DB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 00:09:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="POS2kwkz"
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="cgZdKtHS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729259AbgBLWjJ (ORCPT
+        id S1729225AbgBMAJu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Feb 2020 17:39:09 -0500
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:31377 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1729176AbgBLWjJ (ORCPT
+        Wed, 12 Feb 2020 19:09:50 -0500
+Received: from mail-ed1-f65.google.com ([209.85.208.65]:42193 "EHLO
+        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729152AbgBMAJt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Feb 2020 17:39:09 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1581547148;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=aHRhn6tYA2uPSVh6/rkm63iog4UAvaa+4hT5pNyhnbA=;
-        b=POS2kwkzakBTOUzvIh6tTg3Vr3rS+fQya405N/TmX8Mp4ejvVP0oHovl2WeKVkri5T50ki
-        0JHRkyy/NMBohuTY2+zUp45GisA4+/PgOMe6cni7ODZeCDPd68LMvBUv07beRCwR2lhXl/
-        /qDw6iDs07Z/P2gYF3LszE6PfmlclD4=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-273-wICrGc1-NMGw74EGxDF9nw-1; Wed, 12 Feb 2020 17:38:58 -0500
-X-MC-Unique: wICrGc1-NMGw74EGxDF9nw-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 115101800D6B;
-        Wed, 12 Feb 2020 22:38:56 +0000 (UTC)
-Received: from x2.localnet (ovpn-116-254.phx2.redhat.com [10.3.116.254])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 2713A19C6A;
-        Wed, 12 Feb 2020 22:38:46 +0000 (UTC)
-From:   Steve Grubb <sgrubb@redhat.com>
-To:     linux-audit@redhat.com
-Cc:     Paul Moore <paul@paul-moore.com>,
-        Richard Guy Briggs <rgb@redhat.com>, nhorman@tuxdriver.com,
-        linux-api@vger.kernel.org, containers@lists.linux-foundation.org,
+        Wed, 12 Feb 2020 19:09:49 -0500
+Received: by mail-ed1-f65.google.com with SMTP id e10so4546947edv.9
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Feb 2020 16:09:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=HglMhRV1r3SlCbyh50p8XWXMifi0DbV0medDPmHPWIY=;
+        b=cgZdKtHSkw6wGlofy5ORamY4majYp5ZL8xVC4i2IAjxKZ+DIoA+RHnKzW5rqBgKYhH
+         gYPFParo3CDZbz5ML9ncCpAGxaZIqwx9I1HFgW7sEUl7WXlTFQtoX17ClMgO6pBPOyvF
+         U+UR9ZzRqd3M0HuauEVRrm6SsbkzDwCTV0jTOz2x48ia2WVNYy7+UwckGmY7T5U21yyp
+         p+2nblF0CL7Gywq8jeENvPPsr4unR99eYMqiQBn4r8CfJZzu/+Sh4crQxD06V5Xtfp6z
+         BNvTs4R1mnuLI2tUL4OGNyHhlSKD8k9P4AuCDtX3Yp6Wk3ra+TvmSr/YUAo0vI0Ah2ld
+         YzmA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=HglMhRV1r3SlCbyh50p8XWXMifi0DbV0medDPmHPWIY=;
+        b=HeNGs2905lrQU6f+lTJM/W1fZSDw+W8L6peN1zdAj/G3wAAC9DefJwW9H+7L1LasES
+         1WNMZyW9kPyiVAOm5OXgY9Pm/7OkHqM8QlJOFwS+93+l+2H24SPx2eyWRExwcoh0ZA9z
+         oOKCAZxwTtLXtx7GU2I5veim9dL1YMntbgRtf9z26G4bDkTx6wcq1239/Z5qf1tS2bPt
+         gU5xunLuz04NK11th7R3HYb5j5mlOroAI4RB59SJ6fgUtou+v9L0bZcJTTxN+nvJD5Ru
+         SasP950TVNaYFIIRsqWFsD3Uu011IgbB+0GSyEOsB1s4c0UhN6daJ7kAYHxg7/Q4PvkT
+         /i3g==
+X-Gm-Message-State: APjAAAWJDA32r84qSutpoDzDmXqhjdkKsmKrP5fUh6Epab9cwxHSU9SQ
+        H/M4PEcDl8WiMdlmtc2SqH2YEllUIluakUD8WWbG
+X-Google-Smtp-Source: APXvYqxZzJWTQkF0MyAR/0hvazcgtPMpLBtZbyavM6j8WQ0AcCQg2H9RMuC42u9/Eg9eKGj3MTNxtdWkgRhqZAMYJww=
+X-Received: by 2002:a50:e108:: with SMTP id h8mr11996848edl.196.1581552586354;
+ Wed, 12 Feb 2020 16:09:46 -0800 (PST)
+MIME-Version: 1.0
+References: <cover.1577736799.git.rgb@redhat.com> <20200204231454.oxa7pyvuxbj466fj@madcap2.tricolour.ca>
+ <CAHC9VhQquokw+7UOU=G0SsD35UdgmfysVKCGCE87JVaoTkbisg@mail.gmail.com> <3142237.YMNxv0uec1@x2>
+In-Reply-To: <3142237.YMNxv0uec1@x2>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Wed, 12 Feb 2020 19:09:35 -0500
+Message-ID: <CAHC9VhTiCHQbp2SwK0Xb1QgpUZxOQ26JKKPsVGT0ZvMqx28oPQ@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
+ the audit daemon
+To:     Steve Grubb <sgrubb@redhat.com>
+Cc:     linux-audit@redhat.com, Richard Guy Briggs <rgb@redhat.com>,
+        nhorman@tuxdriver.com, linux-api@vger.kernel.org,
+        containers@lists.linux-foundation.org,
         LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
         netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
         simo@redhat.com, netdev@vger.kernel.org,
         linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
         mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
-Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling the audit daemon
-Date:   Wed, 12 Feb 2020 17:38:45 -0500
-Message-ID: <3142237.YMNxv0uec1@x2>
-Organization: Red Hat
-In-Reply-To: <CAHC9VhQquokw+7UOU=G0SsD35UdgmfysVKCGCE87JVaoTkbisg@mail.gmail.com>
-References: <cover.1577736799.git.rgb@redhat.com> <20200204231454.oxa7pyvuxbj466fj@madcap2.tricolour.ca> <CAHC9VhQquokw+7UOU=G0SsD35UdgmfysVKCGCE87JVaoTkbisg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wednesday, February 5, 2020 5:50:28 PM EST Paul Moore wrote:
-> > > > > ... When we record the audit container ID in audit_signal_info() we
-> > > > > take an extra reference to the audit container ID object so that it
-> > > > > will not disappear (and get reused) until after we respond with an
-> > > > > AUDIT_SIGNAL_INFO2.  In audit_receive_msg() when we do the
-> > > > > AUDIT_SIGNAL_INFO2 processing we drop the extra reference we took
-> > > > > in
-> > > > > audit_signal_info().  Unless I'm missing some other change you
-> > > > > made,
-> > > > > this *shouldn't* affect the syscall records, all it does is
-> > > > > preserve
-> > > > > the audit container ID object in the kernel's ACID store so it
-> > > > > doesn't
-> > > > > get reused.
-> > > > 
-> > > > This is exactly what I had understood.  I hadn't considered the extra
-> > > > details below in detail due to my original syscall concern, but they
-> > > > make sense.
-> > > > 
-> > > > The syscall I refer to is the one connected with the drop of the
-> > > > audit container identifier by the last process that was in that
-> > > > container in patch 5/16.  The production of this record is contingent
-> > > > on
-> > > > the last ref in a contobj being dropped.  So if it is due to that ref
-> > > > being maintained by audit_signal_info() until the AUDIT_SIGNAL_INFO2
-> > > > record it fetched, then it will appear that the fetch action closed
-> > > > the
-> > > > container rather than the last process in the container to exit.
-> > > > 
-> > > > Does this make sense?
-> > > 
-> > > More so than your original reply, at least to me anyway.
-> > > 
-> > > It makes sense that the audit container ID wouldn't be marked as
-> > > "dead" since it would still be very much alive and available for use
-> > > by the orchestrator, the question is if that is desirable or not.  I
-> > > think the answer to this comes down the preserving the correctness of
-> > > the audit log.
-> > > 
-> > > If the audit container ID reported by AUDIT_SIGNAL_INFO2 has been
-> > > reused then I think there is a legitimate concern that the audit log
-> > > is not correct, and could be misleading.  If we solve that by grabbing
-> > > an extra reference, then there could also be some confusion as
-> > > userspace considers a container to be "dead" while the audit container
-> > > ID still exists in the kernel, and the kernel generated audit
-> > > container ID death record will not be generated until much later (and
-> > > possibly be associated with a different event, but that could be
-> > > solved by unassociating the container death record).
-> > 
-> > How does syscall association of the death record with AUDIT_SIGNAL_INFO2
-> > possibly get associated with another event?  Or is the syscall
-> > association with the fetch for the AUDIT_SIGNAL_INFO2 the other event?
-> 
-> The issue is when does the audit container ID "die".  If it is when
-> the last task in the container exits, then the death record will be
-> associated when the task's exit.  If the audit container ID lives on
-> until the last reference of it in the audit logs, including the
-> SIGNAL_INFO2 message, the death record will be associated with the
-> related SIGNAL_INFO2 syscalls, or perhaps unassociated depending on
-> the details of the syscalls/netlink.
-> 
-> > Another idea might be to bump the refcount in audit_signal_info() but
-> > mark tht contid as dead so it can't be reused if we are concerned that
-> > the dead contid be reused?
-> 
-> Ooof.  Yes, maybe, but that would be ugly.
-> 
-> > There is still the problem later that the reported contid is incomplete
-> > compared to the rest of the contid reporting cycle wrt nesting since
-> > AUDIT_SIGNAL_INFO2 will need to be more complex w/2 variable length
-> > fields to accommodate a nested contid list.
-> 
-> Do we really care about the full nested audit container ID list in the
-> SIGNAL_INFO2 record?
-> 
-> > > Of the two
-> > > approaches, I think the latter is safer in that it preserves the
-> > > correctness of the audit log, even though it could result in a delay
-> > > of the container death record.
-> > 
-> > I prefer the former since it strongly indicates last task in the
-> > container.  The AUDIT_SIGNAL_INFO2 msg has the pid and other subject
-> > attributes and the contid to strongly link the responsible party.
-> 
-> Steve is the only one who really tracks the security certifications
-> that are relevant to audit, see what the certification requirements
-> have to say and we can revisit this.
+On Wed, Feb 12, 2020 at 5:39 PM Steve Grubb <sgrubb@redhat.com> wrote:
+> On Wednesday, February 5, 2020 5:50:28 PM EST Paul Moore wrote:
+> > > > > > ... When we record the audit container ID in audit_signal_info() we
+> > > > > > take an extra reference to the audit container ID object so that it
+> > > > > > will not disappear (and get reused) until after we respond with an
+> > > > > > AUDIT_SIGNAL_INFO2.  In audit_receive_msg() when we do the
+> > > > > > AUDIT_SIGNAL_INFO2 processing we drop the extra reference we took
+> > > > > > in
+> > > > > > audit_signal_info().  Unless I'm missing some other change you
+> > > > > > made,
+> > > > > > this *shouldn't* affect the syscall records, all it does is
+> > > > > > preserve
+> > > > > > the audit container ID object in the kernel's ACID store so it
+> > > > > > doesn't
+> > > > > > get reused.
+> > > > >
+> > > > > This is exactly what I had understood.  I hadn't considered the extra
+> > > > > details below in detail due to my original syscall concern, but they
+> > > > > make sense.
+> > > > >
+> > > > > The syscall I refer to is the one connected with the drop of the
+> > > > > audit container identifier by the last process that was in that
+> > > > > container in patch 5/16.  The production of this record is contingent
+> > > > > on
+> > > > > the last ref in a contobj being dropped.  So if it is due to that ref
+> > > > > being maintained by audit_signal_info() until the AUDIT_SIGNAL_INFO2
+> > > > > record it fetched, then it will appear that the fetch action closed
+> > > > > the
+> > > > > container rather than the last process in the container to exit.
+> > > > >
+> > > > > Does this make sense?
+> > > >
+> > > > More so than your original reply, at least to me anyway.
+> > > >
+> > > > It makes sense that the audit container ID wouldn't be marked as
+> > > > "dead" since it would still be very much alive and available for use
+> > > > by the orchestrator, the question is if that is desirable or not.  I
+> > > > think the answer to this comes down the preserving the correctness of
+> > > > the audit log.
+> > > >
+> > > > If the audit container ID reported by AUDIT_SIGNAL_INFO2 has been
+> > > > reused then I think there is a legitimate concern that the audit log
+> > > > is not correct, and could be misleading.  If we solve that by grabbing
+> > > > an extra reference, then there could also be some confusion as
+> > > > userspace considers a container to be "dead" while the audit container
+> > > > ID still exists in the kernel, and the kernel generated audit
+> > > > container ID death record will not be generated until much later (and
+> > > > possibly be associated with a different event, but that could be
+> > > > solved by unassociating the container death record).
+> > >
+> > > How does syscall association of the death record with AUDIT_SIGNAL_INFO2
+> > > possibly get associated with another event?  Or is the syscall
+> > > association with the fetch for the AUDIT_SIGNAL_INFO2 the other event?
+> >
+> > The issue is when does the audit container ID "die".  If it is when
+> > the last task in the container exits, then the death record will be
+> > associated when the task's exit.  If the audit container ID lives on
+> > until the last reference of it in the audit logs, including the
+> > SIGNAL_INFO2 message, the death record will be associated with the
+> > related SIGNAL_INFO2 syscalls, or perhaps unassociated depending on
+> > the details of the syscalls/netlink.
+> >
+> > > Another idea might be to bump the refcount in audit_signal_info() but
+> > > mark tht contid as dead so it can't be reused if we are concerned that
+> > > the dead contid be reused?
+> >
+> > Ooof.  Yes, maybe, but that would be ugly.
+> >
+> > > There is still the problem later that the reported contid is incomplete
+> > > compared to the rest of the contid reporting cycle wrt nesting since
+> > > AUDIT_SIGNAL_INFO2 will need to be more complex w/2 variable length
+> > > fields to accommodate a nested contid list.
+> >
+> > Do we really care about the full nested audit container ID list in the
+> > SIGNAL_INFO2 record?
+> >
+> > > > Of the two
+> > > > approaches, I think the latter is safer in that it preserves the
+> > > > correctness of the audit log, even though it could result in a delay
+> > > > of the container death record.
+> > >
+> > > I prefer the former since it strongly indicates last task in the
+> > > container.  The AUDIT_SIGNAL_INFO2 msg has the pid and other subject
+> > > attributes and the contid to strongly link the responsible party.
+> >
+> > Steve is the only one who really tracks the security certifications
+> > that are relevant to audit, see what the certification requirements
+> > have to say and we can revisit this.
+>
+> Sever Virtualization Protection Profile is the closest applicable standard
+>
+> https://www.niap-ccevs.org/Profile/Info.cfm?PPID=408&id=408
+>
+> It is silent on audit requirements for the lifecycle of a VM. I assume that
+> all that is needed is what the orchestrator says its doing at the high level.
+> So, if an orchestrator wants to shutdown a container, the orchestrator must
+> log that intent and its results. In a similar fashion, systemd logs that it's
+> killing a service and we don't actually hook the exit syscall of the service
+> to record that.
+>
+> Now, if a container was being used as a VPS, and it had a fully functioning
+> userspace, it's own services, and its very own audit daemon, then in this
+> case it would care who sent a signal to its auditd. The tenant of that
+> container may have to comply with PCI-DSS or something else. It would log the
+> audit service is being terminated and systemd would record that its tearing
+> down the environment. The OS doesn't need to do anything.
 
-Sever Virtualization Protection Profile is the closest applicable standard
+This latter case is the case of interest here, since the host auditd
+should only be killed from a process on the host itself, not a process
+running in a container.  If we work under the assumption (and this may
+be a break in our approach to not defining "container") that an auditd
+instance is only ever signaled by a process with the same audit
+container ID (ACID), is this really even an issue?  Right now it isn't
+as even with this patchset we will still really only support one
+auditd instance, presumably on the host, so this isn't a significant
+concern.  Moving forward, once we add support for multiple auditd
+instances we will likely need to move the signal info into
+(potentially) s per-ACID struct, a struct whose lifetime would match
+that of the associated container by definition; as the auditd
+container died, the struct would die, the refcounts dropped, and any
+ACID held only the signal info refcount would be dropped/killed.
 
-https://www.niap-ccevs.org/Profile/Info.cfm?PPID=408&id=408
+However, making this assumption would mean that we are expecting a
+"container" to provide some level of isolation such that processes
+with a different audit container ID do not signal each other.  From a
+practical perspective I think that fits with the most (all?)
+definitions of "container", but I can't say that for certain.  In
+those cases where the assumption is not correct and processes can
+signal each other across audit container ID boundaries, perhaps it is
+enough to explain that an audit container ID may not fully disappear
+until it has been fetched with a SIGNAL_INFO2 message.
 
-It is silent on audit requirements for the lifecycle of a VM. I assume that 
-all that is needed is what the orchestrator says its doing at the high level. 
-So, if an orchestrator wants to shutdown a container, the orchestrator must 
-log that intent and its results. In a similar fashion, systemd logs that it's 
-killing a service and we don't actually hook the exit syscall of the service 
-to record that.
-
-Now, if a container was being used as a VPS, and it had a fully functioning 
-userspace, it's own services, and its very own audit daemon, then in this 
-case it would care who sent a signal to its auditd. The tenant of that 
-container may have to comply with PCI-DSS or something else. It would log the 
-audit service is being terminated and systemd would record that its tearing 
-down the environment. The OS doesn't need to do anything.
-
--Steve
-
-
+-- 
+paul moore
+www.paul-moore.com
