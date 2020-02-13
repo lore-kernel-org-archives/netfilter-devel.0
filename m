@@ -2,198 +2,78 @@ Return-Path: <SRS0=+t1+=4B=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEE3FC3B190
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 21:59:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EB82C3B190
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 22:19:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8D7BE24687
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 21:59:13 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="rRCxR57C"
+	by mail.kernel.org (Postfix) with ESMTP id 46A4B218AC
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 22:19:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728296AbgBMV7L (ORCPT
+        id S1728023AbgBMWTX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 Feb 2020 16:59:11 -0500
-Received: from mail-ed1-f66.google.com ([209.85.208.66]:42194 "EHLO
-        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728204AbgBMV7L (ORCPT
+        Thu, 13 Feb 2020 17:19:23 -0500
+Received: from shards.monkeyblade.net ([23.128.96.9]:47070 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726780AbgBMWTW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Feb 2020 16:59:11 -0500
-Received: by mail-ed1-f66.google.com with SMTP id e10so8701469edv.9
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Feb 2020 13:59:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=dR96Ls041PGles0WWTgdxsFA4gswjPBr2dNrlkBSuNQ=;
-        b=rRCxR57CMKJEJvKUsBRBaCGNlEl5GeneJok3J1oqVCL9i03XHBTkzBKLVXlCX80abR
-         waS3e2st7hqr5AUSVywbiuHu/XcoJmFgOcPcq/NRWkATB05enSVqkl80JRFrqFA7+TzZ
-         VP60OmlNYIOOnNo1pTgwF6ZUTJ9B+xYWfKepxQsuTcSQlH2ADq4oxtRLbeGf/SyLe7Z5
-         YYEdGrtOkXicpYXO7tS/kxFgOlUN19E6+SiiE6iPdGEHXwVtgWm62Jeai1NFqHNb4FeV
-         UgDE19W1OOEMKwc3kfP3rCvuUG9qKToWRYzTN/pkKxHZ/jtbJNqySZOSNxS3RDDHFH+p
-         8DDQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=dR96Ls041PGles0WWTgdxsFA4gswjPBr2dNrlkBSuNQ=;
-        b=Pqug4K103V4egpHwzQU3OYR3GMI6QZfpd3Q/+giKTxsL4URvcoRoG7xYCLaQZhC/Cb
-         MJlP7MHW4rdwjKZXDu07xW2xyAcSuXqmVGaoxSlV3JGIW1hGvtfUzXAaRK1lSguY6WRP
-         v4tXOzMXuKMnmc/MmEVPkid7YhYjkCLUnwdWwMYD/uUy3C+gOfnjgopfPJdP7r2xaWVM
-         bbOfWBkPTzj2Hz4iPXXix86vGqMbjjPg2Sqs/9XrvByG2THqhGuRgzqv7be/3dWXR4Fi
-         soDy/4ibKDmsfFYLp2UlevuDdUF7Mzv6nTOcD4cLVGU+vrkK7qxctu+xdwH9K2kBtrmf
-         8Z0A==
-X-Gm-Message-State: APjAAAX5lC9hFTA6+gk1P1I+/Yu451FIYU7Kqk4h2vx6oUjqUIBW9Mky
-        iNObzqiN+mgYgoaRdfXXnjR3FTuSiEHpbHyQHvju
-X-Google-Smtp-Source: APXvYqwJlC4P1+vTqQ7auzlqHDyoqi32fnbka+h4eFFK4GnrJSQwBwYPSRpLTAitL/ZfvrnPR1P7gUIIEptxDZxCT9E=
-X-Received: by 2002:a50:a7a5:: with SMTP id i34mr17484612edc.128.1581631147637;
- Thu, 13 Feb 2020 13:59:07 -0800 (PST)
-MIME-Version: 1.0
-References: <cover.1577736799.git.rgb@redhat.com> <5941671b6b6b5de28ab2cc80e72f288cf83291d5.1577736799.git.rgb@redhat.com>
- <CAHC9VhQYXQp+C0EHwLuW50yUenfH4KF1xKQdS=bn_OzHfnFmmg@mail.gmail.com>
- <20200205003930.2efpm4tvrisgmj4t@madcap2.tricolour.ca> <CAHC9VhSsfBbfYmqLoR=QBgF5_VwbA8Dqqz97MjqwwJ6Jq6fHwA@mail.gmail.com>
- <20200206125135.u4dmybkmvxfgui2b@madcap2.tricolour.ca>
-In-Reply-To: <20200206125135.u4dmybkmvxfgui2b@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Thu, 13 Feb 2020 16:58:56 -0500
-Message-ID: <CAHC9VhT8RsFtmqD22p_NxJaqoAg+do9mX45Luw9fEkr+nQjvxg@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V8 16/16] audit: add capcontid to set contid
- outside init_user_ns
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
-        containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
-Content-Type: text/plain; charset="UTF-8"
+        Thu, 13 Feb 2020 17:19:22 -0500
+Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id 5710015B75334;
+        Thu, 13 Feb 2020 14:19:22 -0800 (PST)
+Date:   Thu, 13 Feb 2020 14:19:21 -0800 (PST)
+Message-Id: <20200213.141921.2246207693168419669.davem@davemloft.net>
+To:     Jason@zx2c4.com
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v4 net 0/5] icmp: account for NAT when sending icmps
+ from ndo layer
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20200211194709.723383-1-Jason@zx2c4.com>
+References: <20200211194709.723383-1-Jason@zx2c4.com>
+X-Mailer: Mew version 6.8 on Emacs 26.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Thu, 13 Feb 2020 14:19:22 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Feb 6, 2020 at 7:52 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2020-02-05 17:56, Paul Moore wrote:
-> > On Tue, Feb 4, 2020 at 7:39 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > On 2020-01-22 16:29, Paul Moore wrote:
-> > > > On Tue, Dec 31, 2019 at 2:51 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > > >
-> > > > > Provide a mechanism similar to CAP_AUDIT_CONTROL to explicitly give a
-> > > > > process in a non-init user namespace the capability to set audit
-> > > > > container identifiers.
-> > > > >
-> > > > > Provide /proc/$PID/audit_capcontid interface to capcontid.
-> > > > > Valid values are: 1==enabled, 0==disabled
-> > > >
-> > > > It would be good to be more explicit about "enabled" and "disabled" in
-> > > > the commit description.  For example, which setting allows the target
-> > > > task to set audit container IDs of it's children processes?
-> > >
-> > > Ok...
-> > >
-> > > > > Report this action in message type AUDIT_SET_CAPCONTID 1022 with fields
-> > > > > opid= capcontid= old-capcontid=
-> > > > >
-> > > > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > > > > ---
-> > > > >  fs/proc/base.c             | 55 ++++++++++++++++++++++++++++++++++++++++++++++
-> > > > >  include/linux/audit.h      | 14 ++++++++++++
-> > > > >  include/uapi/linux/audit.h |  1 +
-> > > > >  kernel/audit.c             | 35 +++++++++++++++++++++++++++++
-> > > > >  4 files changed, 105 insertions(+)
-> >
-> > ...
-> >
-> > > > > diff --git a/kernel/audit.c b/kernel/audit.c
-> > > > > index 1287f0b63757..1c22dd084ae8 100644
-> > > > > --- a/kernel/audit.c
-> > > > > +++ b/kernel/audit.c
-> > > > > @@ -2698,6 +2698,41 @@ static bool audit_contid_isowner(struct task_struct *tsk)
-> > > > >         return false;
-> > > > >  }
-> > > > >
-> > > > > +int audit_set_capcontid(struct task_struct *task, u32 enable)
-> > > > > +{
-> > > > > +       u32 oldcapcontid;
-> > > > > +       int rc = 0;
-> > > > > +       struct audit_buffer *ab;
-> > > > > +
-> > > > > +       if (!task->audit)
-> > > > > +               return -ENOPROTOOPT;
-> > > > > +       oldcapcontid = audit_get_capcontid(task);
-> > > > > +       /* if task is not descendant, block */
-> > > > > +       if (task == current)
-> > > > > +               rc = -EBADSLT;
-> > > > > +       else if (!task_is_descendant(current, task))
-> > > > > +               rc = -EXDEV;
-> > > >
-> > > > See my previous comments about error code sanity.
-> > >
-> > > I'll go with EXDEV.
-> > >
-> > > > > +       else if (current_user_ns() == &init_user_ns) {
-> > > > > +               if (!capable(CAP_AUDIT_CONTROL) && !audit_get_capcontid(current))
-> > > > > +                       rc = -EPERM;
-> > > >
-> > > > I think we just want to use ns_capable() in the context of the current
-> > > > userns to check CAP_AUDIT_CONTROL, yes?  Something like this ...
-> > >
-> > > I thought we had firmly established in previous discussion that
-> > > CAP_AUDIT_CONTROL in anything other than init_user_ns was completely irrelevant
-> > > and untrustable.
-> >
-> > In the case of a container with multiple users, and multiple
-> > applications, one being a nested orchestrator, it seems relevant to
-> > allow that container to control which of it's processes are able to
-> > exercise CAP_AUDIT_CONTROL.  Granted, we still want to control it
-> > within the overall host, e.g. the container in question must be
-> > allowed to run a nested orchestrator, but allowing the container
-> > itself to provide it's own granularity seems like the right thing to
-> > do.
->
-> Looking back to discussion on the v6 patch 2/10 (2019-05-30 15:29 Paul
-> Moore[1], 2019-07-08 14:05 RGB[2]) , it occurs to me that the
-> ns_capable(CAP_AUDIT_CONTROL) application was dangerous since there was
-> no parental accountability in storage or reporting.  Now that is in
-> place, it does seem a bit more reasonable to allow it, but I'm still not
-> clear on why we would want both mechanisms now.  I don't understand what
-> the last line in that email meant: "We would probably still want a
-> ns_capable(CAP_AUDIT_CONTROL) restriction in this case."  Allow
-> ns_capable(CAP_AUDIT_CONTROL) to govern these actions, or restrict
-> ns_capable(CAP_AUDIT_CONTROL) from being used to govern these actions?
->
-> If an unprivileged user has been given capcontid to be able run their
-> own container orchestrator/engine and spawns a user namespace with
-> CAP_AUDIT_CONTROL, what matters is capcontid, and not CAP_AUDIT_CONTROL.
-> I could see needing CAP_AUDIT_CONTROL *in addition* to capcontid to give
-> it finer grained control, but since capcontid would have to be given to
-> each process explicitly anways, I don't see the point.
->
-> If that unprivileged user had not been given capcontid,
-> giving itself or one of its descendants CAP_AUDIT_CONTROL should not let
-> it jump into the game all of a sudden unless the now chained audit
-> container identifiers are deemed accountable enough.  And then now we
-> need those hard limits on container depth and network namespace
-> container membership.
+From: "Jason A. Donenfeld" <Jason@zx2c4.com>
+Date: Tue, 11 Feb 2020 20:47:04 +0100
 
-Perhaps I'm not correctly understanding what you are trying to do with
-this patchset, but my current understanding is that you are trying to
-use capcontid to control which child audit container IDs (ACIDs) are
-allowed to manage their own ACIDs.  Further, I believe that the
-capcontid setting operates at a per-ACID level, meaning there is no
-provision for the associated container to further restrict that
-ability, i.e. no access control granularity below the ACID level.  My
-thinking is that ns_capable(CAP_AUDIT_CONTROL) could be used within an
-ACID to increase the granularity of the access controls so that only
-privileged processes running inside the ACID would be able to manage
-the ACIDs.  Does that make sense?
+> The ICMP routines use the source address for two reasons:
+> 
+> 1. Rate-limiting ICMP transmissions based on source address, so
+>    that one source address cannot provoke a flood of replies. If
+>    the source address is wrong, the rate limiting will be
+>    incorrectly applied.
+> 
+> 2. Choosing the interface and hence new source address of the
+>    generated ICMP packet. If the original packet source address
+>    is wrong, ICMP replies will be sent from the wrong source
+>    address, resulting in either a misdelivery, infoleak, or just
+>    general network admin confusion.
+> 
+> Most of the time, the icmp_send and icmpv6_send routines can just reach
+> down into the skb's IP header to determine the saddr. However, if
+> icmp_send or icmpv6_send is being called from a network device driver --
+> there are a few in the tree -- then it's possible that by the time
+> icmp_send or icmpv6_send looks at the packet, the packet's source
+> address has already been transformed by SNAT or MASQUERADE or some other
+> transformation that CONNTRACK knows about. In this case, the packet's
+> source address is most certainly the *wrong* source address to be used
+> for the purpose of ICMP replies.
+> 
+> Rather, the source address we want to use for ICMP replies is the
+> original one, from before the transformation occurred.
+ ...
 
--- 
-paul moore
-www.paul-moore.com
+Series applied, thank you.
+
