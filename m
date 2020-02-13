@@ -2,132 +2,172 @@ Return-Path: <SRS0=+t1+=4B=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AF73C3B188
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 06:54:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE0DEC2BA83
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 12:06:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 424D020848
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 06:54:32 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BGCcKoMq"
+	by mail.kernel.org (Postfix) with ESMTP id BAFDA2168B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 12:06:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729748AbgBMGya (ORCPT
+        id S1729531AbgBMMGC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 Feb 2020 01:54:30 -0500
-Received: from mail-pj1-f68.google.com ([209.85.216.68]:54796 "EHLO
-        mail-pj1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726368AbgBMGya (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Feb 2020 01:54:30 -0500
-Received: by mail-pj1-f68.google.com with SMTP id dw13so1955582pjb.4;
-        Wed, 12 Feb 2020 22:54:28 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=/8OPE3QClCM3tJ/k8M5VunHmvW/7oEs/dWvoTT+1C/w=;
-        b=BGCcKoMqQT1f4WrwRoQM+uU2rWZx8+pR3R+Hto3Iy59l7qrYHGsbyCBMFRD/UIW9cG
-         m0mWDZpfJ6DlISgJcZRZNN3qj3IEgPDqqXF2MhCNl/yszIYtXTvPfV9xEShYAwVjahlY
-         98WFL2jzaLBe2RGwdtpOKb0eoFkemjBRu86EBa21KDtKnKm0TpVHW4iaJcTurHka74y0
-         qmUwtw360q7GN9vDUTWVf7Ws0grYk+1t3yE321JUKs2VVEuWIWUcam36qVVDi2leiXKQ
-         eAYR7/pbXCraf0rLYbiv3geSGoHbK17fO1oc1RoAbT3oozHfF0qFS3U+BLmSD/zCx7Ui
-         Fc2Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=/8OPE3QClCM3tJ/k8M5VunHmvW/7oEs/dWvoTT+1C/w=;
-        b=gD3CFgOrG+JKtRUT3gC5fp5YxuUtb94QKG59fHNTWZeVZcrcoChGdrmdD1XxxDgELi
-         kJyUWqlRO0BSv2bKlPxsgk7qRGkz2g7M/UFPbLIQKhdCUG7o1Cwpq/VAzAb09MAinbQh
-         sLNcXF0yFWhsViLd9bqGkApdx3rvJPV6wI2h1M2xPNIRp04jILuJxICPx1QpGiuh3Ipp
-         CxSGFUmSxouibOtNEUBOMFENRfiwceRuk/zyOesEt1pfZCL54ejfmjcWT9LH7887wx3w
-         yUxFvcuUBsLmaiYFyI91xQ9vQtVIVXG/DZ1FGuETNRb4nRq25zD68uIRWpxi06aIjthk
-         xgUA==
-X-Gm-Message-State: APjAAAX4UrLsY+i+WsL1+bfdcItCyzeo7/gCKIF2L23qN3nJt1RSp6UY
-        oCYV0Rpzu1y+BxoIQGIAhW2Ck4Iw
-X-Google-Smtp-Source: APXvYqymgooCRcFXaTTCTOB9wLJD4VlCpjgkje5+whVps+yfri+vh9v3RU5TRPt2N0KXXExfTus7pQ==
-X-Received: by 2002:a17:90a:a78b:: with SMTP id f11mr3558719pjq.8.1581576867716;
-        Wed, 12 Feb 2020 22:54:27 -0800 (PST)
-Received: from tw-172-25-31-76.office.twttr.net ([8.25.197.24])
-        by smtp.gmail.com with ESMTPSA id y16sm1430168pfn.177.2020.02.12.22.54.26
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 12 Feb 2020 22:54:27 -0800 (PST)
-From:   Cong Wang <xiyou.wangcong@gmail.com>
-To:     netdev@vger.kernel.org
-Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org,
-        Cong Wang <xiyou.wangcong@gmail.com>,
-        syzbot+d195fd3b9a364ddd6731@syzkaller.appspotmail.com,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [Patch nf] netfilter: xt_hashlimit: unregister proc file before releasing mutex
-Date:   Wed, 12 Feb 2020 22:53:52 -0800
-Message-Id: <20200213065352.6310-1-xiyou.wangcong@gmail.com>
-X-Mailer: git-send-email 2.21.1
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Thu, 13 Feb 2020 07:06:02 -0500
+Received: from correo.us.es ([193.147.175.20]:35918 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727059AbgBMMGC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Feb 2020 07:06:02 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id EC983100788
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Feb 2020 13:05:59 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DD6F0DA78C
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Feb 2020 13:05:59 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id D2A12DA781; Thu, 13 Feb 2020 13:05:59 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 88199DA710
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Feb 2020 13:05:57 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 13 Feb 2020 13:05:57 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 693AC42EE38E
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Feb 2020 13:05:57 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] tests: shell: validate error reporting with include and glob
+Date:   Thu, 13 Feb 2020 13:05:53 +0100
+Message-Id: <20200213120553.574947-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Before releasing the global mutex, we only unlink the hashtable
-from the hash list, its proc file is still not unregistered at
-this point. So syzbot could trigger a race condition where a
-parallel htable_create() could register the same file immediately
-after the mutex is released.
-
-Move htable_remove_proc_entry() back to mutex protection to
-fix this. And, fold htable_destroy() into htable_put() to make
-the code slightly easier to understand.
-
-Reported-and-tested-by: syzbot+d195fd3b9a364ddd6731@syzkaller.appspotmail.com
-Fixes: c4a3922d2d20 ("netfilter: xt_hashlimit: reduce hashlimit_mutex scope for htable_put()")
-Cc: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_hashlimit.c | 16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ tests/shell/testcases/include/0018include_error_0 | 34 ++++++++++++
+ tests/shell/testcases/include/0019include_error_0 | 63 +++++++++++++++++++++++
+ 2 files changed, 97 insertions(+)
+ create mode 100755 tests/shell/testcases/include/0018include_error_0
+ create mode 100755 tests/shell/testcases/include/0019include_error_0
 
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 7a2c4b8408c4..8c835ad63729 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -402,15 +402,6 @@ static void htable_remove_proc_entry(struct xt_hashlimit_htable *hinfo)
- 		remove_proc_entry(hinfo->name, parent);
- }
- 
--static void htable_destroy(struct xt_hashlimit_htable *hinfo)
--{
--	cancel_delayed_work_sync(&hinfo->gc_work);
--	htable_remove_proc_entry(hinfo);
--	htable_selective_cleanup(hinfo, true);
--	kfree(hinfo->name);
--	vfree(hinfo);
--}
--
- static struct xt_hashlimit_htable *htable_find_get(struct net *net,
- 						   const char *name,
- 						   u_int8_t family)
-@@ -432,8 +423,13 @@ static void htable_put(struct xt_hashlimit_htable *hinfo)
- {
- 	if (refcount_dec_and_mutex_lock(&hinfo->use, &hashlimit_mutex)) {
- 		hlist_del(&hinfo->node);
-+		htable_remove_proc_entry(hinfo);
- 		mutex_unlock(&hashlimit_mutex);
--		htable_destroy(hinfo);
+diff --git a/tests/shell/testcases/include/0018include_error_0 b/tests/shell/testcases/include/0018include_error_0
+new file mode 100755
+index 000000000000..ae2dba3cfbe8
+--- /dev/null
++++ b/tests/shell/testcases/include/0018include_error_0
+@@ -0,0 +1,34 @@
++#!/bin/bash
 +
-+		cancel_delayed_work_sync(&hinfo->gc_work);
-+		htable_selective_cleanup(hinfo, true);
-+		kfree(hinfo->name);
-+		vfree(hinfo);
- 	}
- }
- 
++tmpfile1=$(mktemp)
++if [ ! -w $tmpfile1 ] ; then
++        echo "Failed to create tmp file" >&2
++        exit 1
++fi
++
++touch $tmpfile1
++
++RULESET="include \"$tmpfile1\"
++)
++"
++
++tmpfile2=$(mktemp)
++if [ ! -w $tmpfile2 ] ; then
++        echo "Failed to create tmp file" >&2
++        exit 1
++fi
++
++tmpfile3=$(mktemp)
++if [ ! -w $tmpfile3 ] ; then
++        echo "Failed to create tmp file" >&2
++        exit 1
++fi
++
++echo "/dev/stdin:2:1-1: Error: syntax error, unexpected ')'
++)
++^" > $tmpfile3
++
++$NFT -I/tmp/ -f - <<< "$RULESET" 2> $tmpfile2
++$DIFF -u $tmpfile2 $tmpfile3
++
++rm $tmpfile1 $tmpfile2 $tmpfile3
+diff --git a/tests/shell/testcases/include/0019include_error_0 b/tests/shell/testcases/include/0019include_error_0
+new file mode 100755
+index 000000000000..4b84a578c16f
+--- /dev/null
++++ b/tests/shell/testcases/include/0019include_error_0
+@@ -0,0 +1,63 @@
++#!/bin/bash
++
++tmpfile1=$(mktemp)
++if [ ! -w $tmpfile1 ] ; then
++        echo "Failed to create tmp file" >&2
++        exit 1
++fi
++
++tmpfile2=$(mktemp)
++if [ ! -w $tmpfile2 ] ; then
++        echo "Failed to create tmp file" >&2
++        exit 1
++fi
++
++echo "(" >> $tmpfile2
++
++tmpdir=$(mktemp -d)
++
++echo "include \"$tmpfile2\"
++include \"$tmpdir/*.nft\"
++x" > $tmpfile1
++
++echo "=" > $tmpdir/1.nft
++echo ")" > $tmpdir/2.nft
++echo "-" > $tmpdir/3.nft
++
++tmpfile3=$(mktemp)
++if [ ! -w $tmpfile3 ] ; then
++        echo "Failed to create tmp file" >&2
++        exit 1
++fi
++
++echo "In file included from $tmpfile1:1:1-30:
++$tmpfile2:1:1-1: Error: syntax error, unexpected '('
++(
++^
++In file included from $tmpfile1:2:1-36:
++$tmpdir/1.nft:1:1-1: Error: syntax error, unexpected '='
++=
++^
++In file included from $tmpfile1:2:1-36:
++$tmpdir/2.nft:1:1-1: Error: syntax error, unexpected ')'
++)
++^
++In file included from $tmpfile1:2:1-36:
++$tmpdir/3.nft:1:1-1: Error: syntax error, unexpected -
++-
++^
++$tmpfile1:3:2-2: Error: syntax error, unexpected newline, expecting string
++x
++ ^" > $tmpfile3
++
++tmpfile4=$(mktemp)
++if [ ! -w $tmpfile4 ] ; then
++        echo "Failed to create tmp file" >&2
++        exit 1
++fi
++
++$NFT -I/tmp/ -f $tmpfile1 2> $tmpfile4
++$DIFF -u $tmpfile3 $tmpfile4
++
++rm $tmpfile1 $tmpfile2 $tmpfile3 $tmpfile4
++rm -r $tmpdir
 -- 
-2.21.1
+2.11.0
 
