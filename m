@@ -2,91 +2,91 @@ Return-Path: <SRS0=+t1+=4B=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 853BEC2BA83
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 12:35:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3F30C2BA83
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 13:04:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 661D620578
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 12:35:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 954A924650
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 13:04:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729820AbgBMMfA (ORCPT
+        id S1729957AbgBMNEl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 Feb 2020 07:35:00 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:47840 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729531AbgBMMfA (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Feb 2020 07:35:00 -0500
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1j2Dhp-0004oY-Ks; Thu, 13 Feb 2020 13:34:57 +0100
-Date:   Thu, 13 Feb 2020 13:34:57 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     Florian Westphal <fw@strlen.de>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
-        twoerner@redhat.com, eparis@parisplace.org, tgraf@infradead.org
-Subject: Re: [PATCH ghak25 v2 8/9] netfilter: add audit operation field
-Message-ID: <20200213123457.GO2991@breakpoint.cc>
-References: <cover.1577830902.git.rgb@redhat.com>
- <6768f7c7d9804216853e6e9c59e44f8a10f46b99.1577830902.git.rgb@redhat.com>
- <20200106202306.GO795@breakpoint.cc>
- <20200213121410.b2dsh2kwg3k7xg7e@madcap2.tricolour.ca>
+        Thu, 13 Feb 2020 08:04:41 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:37944 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729557AbgBMNEl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Feb 2020 08:04:41 -0500
+Received: from localhost ([::1]:51034 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1j2EAZ-0003d1-Vy; Thu, 13 Feb 2020 14:04:40 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] xtables-translate: Fix for iface++
+Date:   Thu, 13 Feb 2020 14:04:36 +0100
+Message-Id: <20200213130436.26755-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200213121410.b2dsh2kwg3k7xg7e@madcap2.tricolour.ca>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Richard Guy Briggs <rgb@redhat.com> wrote:
-> The default policy is NF_ACCEPT (because Rusty didn't want
-> more email, go figure...).  It occurred to me later that some table
-> loads took a command line parameter to be able to change the default
-> policy verdict from NF_ACCEPT to NF_DROP.  In particular, filter FORWARD
-> hook tables.  Is there a straightforward way to be able to detect this
-> in all the audit_nf_cfg() callers to be able to log it?  In particular,
-> in:
-> 	net/bridge/netfilter/ebtables.c: ebt_register_table()
-> 	net/bridge/netfilter/ebtables.c: do_replace_finish()
-> 	net/bridge/netfilter/ebtables.c: __ebt_unregister_table()
-> 	net/netfilter/x_tables.c: xt_replace_table()
-> 	net/netfilter/x_tables.c: xt_unregister_table()
+In legacy iptables, only the last plus sign remains special, any
+previous ones are taken literally. Therefore xtables-translate must not
+replace all of them with asterisk but just the last one.
 
-The module parameter or the policy?
+Fixes: e179e87a1179e ("xtables-translate: Fix for interface name corner-cases")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ extensions/generic.txlate    | 4 ++++
+ iptables/xtables-translate.c | 6 +++---
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-The poliy can be changed via the xtables tools.
-Given you can have:
+diff --git a/extensions/generic.txlate b/extensions/generic.txlate
+index c92d082abea78..0e256c3727559 100644
+--- a/extensions/generic.txlate
++++ b/extensions/generic.txlate
+@@ -23,6 +23,10 @@ nft insert rule bridge filter INPUT ether type 0x800 ether daddr 01:02:03:04:00:
+ iptables-translate -A FORWARD -i '*' -o 'eth*foo'
+ nft add rule ip filter FORWARD iifname "\*" oifname "eth\*foo" counter
+ 
++# escape all asterisks but translate only the first plus character
++iptables-translate -A FORWARD -i 'eth*foo*+' -o 'eth++'
++nft add rule ip filter FORWARD iifname "eth\*foo\**" oifname "eth+*" counter
++
+ # skip for always matching interface names
+ iptables-translate -A FORWARD -i '+'
+ nft add rule ip filter FORWARD counter
+diff --git a/iptables/xtables-translate.c b/iptables/xtables-translate.c
+index c4e177c0d63ba..0f95855b41aa4 100644
+--- a/iptables/xtables-translate.c
++++ b/iptables/xtables-translate.c
+@@ -40,9 +40,6 @@ void xlate_ifname(struct xt_xlate *xl, const char *nftmeta, const char *ifname,
+ 
+ 	for (i = 0, j = 0; i < ifaclen + 1; i++, j++) {
+ 		switch (ifname[i]) {
+-		case '+':
+-			iface[j] = '*';
+-			break;
+ 		case '*':
+ 			iface[j++] = '\\';
+ 			/* fall through */
+@@ -65,6 +62,9 @@ void xlate_ifname(struct xt_xlate *xl, const char *nftmeta, const char *ifname,
+ 		invert = false;
+ 	}
+ 
++	if (iface[j - 2] == '+')
++		iface[j - 2] = '*';
++
+ 	xt_xlate_add(xl, "%s %s\"%s\" ", nftmeta, invert ? "!= " : "", iface);
+ }
+ 
+-- 
+2.24.1
 
-*filter
-:INPUT ACCEPT [0:0]
-:FORWARD DROP [0:0]
-:OUTPUT ACCEPT [0:0]
--A FORWARD -j ACCEPT
-COMMIT
-
-... which effectily gives a FORWARD ACCEPT policy I'm not sure logging
-the policy is useful.
-
-Furthermore, ebtables has polices even for user-defined chains.
-
-> Both potential solutions are awkward, adding a parameter to pass that
-> value in, but also trying to reach into the protocol-specific entry
-> table to find that value.  Would you have a recommendation?  This
-> assumes that reporting that default policy value is even desired or
-> required.
-
-See above, I don't think its useful.  If it is needed, its probably best
-to define an informational struct containing the policy (accept/drop)
-value for the each hook points (prerouting to postrouting),  fill
-that from the backend specific code (as thats the only place that
-exposes the backend specific structs ...) and then pass that to
-the audit logging functions.
