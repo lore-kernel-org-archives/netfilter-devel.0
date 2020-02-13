@@ -2,107 +2,91 @@ Return-Path: <SRS0=+t1+=4B=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.7 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B65CC2BA83
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 12:33:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 853BEC2BA83
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 12:35:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E3DFB20578
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 12:32:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 661D620578
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 12:35:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729674AbgBMMc7 (ORCPT
+        id S1729820AbgBMMfA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 Feb 2020 07:32:59 -0500
-Received: from correo.us.es ([193.147.175.20]:55918 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729531AbgBMMc7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Feb 2020 07:32:59 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9D59B127C61
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Feb 2020 13:32:58 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8FE8EDA703
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Feb 2020 13:32:58 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 857C6DA70E; Thu, 13 Feb 2020 13:32:58 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 81399DA703;
-        Thu, 13 Feb 2020 13:32:56 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 13 Feb 2020 13:32:56 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 62DAE42EE38E;
-        Thu, 13 Feb 2020 13:32:56 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     fasnacht@protonmail.ch
-Subject: [PATCH nft] scanner: use list_is_first() from scanner_pop_indesc()
-Date:   Thu, 13 Feb 2020 13:32:52 +0100
-Message-Id: <20200213123252.629687-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Thu, 13 Feb 2020 07:35:00 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:47840 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729531AbgBMMfA (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Feb 2020 07:35:00 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1j2Dhp-0004oY-Ks; Thu, 13 Feb 2020 13:34:57 +0100
+Date:   Thu, 13 Feb 2020 13:34:57 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     Florian Westphal <fw@strlen.de>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
+        twoerner@redhat.com, eparis@parisplace.org, tgraf@infradead.org
+Subject: Re: [PATCH ghak25 v2 8/9] netfilter: add audit operation field
+Message-ID: <20200213123457.GO2991@breakpoint.cc>
+References: <cover.1577830902.git.rgb@redhat.com>
+ <6768f7c7d9804216853e6e9c59e44f8a10f46b99.1577830902.git.rgb@redhat.com>
+ <20200106202306.GO795@breakpoint.cc>
+ <20200213121410.b2dsh2kwg3k7xg7e@madcap2.tricolour.ca>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200213121410.b2dsh2kwg3k7xg7e@madcap2.tricolour.ca>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-!list_empty() always stands true since the list is never empty
-when calling scanner_pop_indesc().
+Richard Guy Briggs <rgb@redhat.com> wrote:
+> The default policy is NF_ACCEPT (because Rusty didn't want
+> more email, go figure...).  It occurred to me later that some table
+> loads took a command line parameter to be able to change the default
+> policy verdict from NF_ACCEPT to NF_DROP.  In particular, filter FORWARD
+> hook tables.  Is there a straightforward way to be able to detect this
+> in all the audit_nf_cfg() callers to be able to log it?  In particular,
+> in:
+> 	net/bridge/netfilter/ebtables.c: ebt_register_table()
+> 	net/bridge/netfilter/ebtables.c: do_replace_finish()
+> 	net/bridge/netfilter/ebtables.c: __ebt_unregister_table()
+> 	net/netfilter/x_tables.c: xt_replace_table()
+> 	net/netfilter/x_tables.c: xt_unregister_table()
 
-Check for list_is_first() which actually tells us this is the
-initial input file, hence, state->indesc is set to NULL.
+The module parameter or the policy?
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-@Fasnacht: this is a follow up on top of your patchset, that is already
-           in git.netfilter.org/nftables.
+The poliy can be changed via the xtables tools.
+Given you can have:
 
- include/list.h | 11 +++++++++++
- src/scanner.l  |  2 +-
- 2 files changed, 12 insertions(+), 1 deletion(-)
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT ACCEPT [0:0]
+-A FORWARD -j ACCEPT
+COMMIT
 
-diff --git a/include/list.h b/include/list.h
-index 75d292124010..9c4da81749de 100644
---- a/include/list.h
-+++ b/include/list.h
-@@ -33,6 +33,17 @@ static inline void init_list_head(struct list_head *list)
- 	list->prev = list;
- }
- 
-+/**
-+ * list_is_first -- tests whether @list is the first entry in list @head
-+ * @list: the entry to test
-+ * @head: the head of the list
-+ */
-+static inline int list_is_first(const struct list_head *list,
-+				const struct list_head *head)
-+{
-+	return list->prev == head;
-+}
-+
- /*
-  * Insert a new entry between two known consecutive entries.
-  *
-diff --git a/src/scanner.l b/src/scanner.l
-index ed29833b6fc4..3932883b9ade 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -678,7 +678,7 @@ static void scanner_push_indesc(struct parser_state *state,
- 
- static void scanner_pop_indesc(struct parser_state *state)
- {
--	if (!list_empty(&state->indesc_list)) {
-+	if (!list_is_first(&state->indesc->list, &state->indesc_list)) {
- 		state->indesc = list_entry(state->indesc->list.prev,
- 					   struct input_descriptor, list);
- 	} else {
--- 
-2.11.0
+... which effectily gives a FORWARD ACCEPT policy I'm not sure logging
+the policy is useful.
 
+Furthermore, ebtables has polices even for user-defined chains.
+
+> Both potential solutions are awkward, adding a parameter to pass that
+> value in, but also trying to reach into the protocol-specific entry
+> table to find that value.  Would you have a recommendation?  This
+> assumes that reporting that default policy value is even desired or
+> required.
+
+See above, I don't think its useful.  If it is needed, its probably best
+to define an informational struct containing the policy (accept/drop)
+value for the each hook points (prerouting to postrouting),  fill
+that from the backend specific code (as thats the only place that
+exposes the backend specific structs ...) and then pass that to
+the audit logging functions.
