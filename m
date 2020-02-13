@@ -6,168 +6,127 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE0DEC2BA83
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 12:06:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D804C2BA83
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 12:06:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BAFDA2168B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 12:06:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7B0C92168B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 12:06:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729531AbgBMMGC (ORCPT
+        id S1729674AbgBMMG0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 Feb 2020 07:06:02 -0500
-Received: from correo.us.es ([193.147.175.20]:35918 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727059AbgBMMGC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Feb 2020 07:06:02 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EC983100788
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Feb 2020 13:05:59 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DD6F0DA78C
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Feb 2020 13:05:59 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D2A12DA781; Thu, 13 Feb 2020 13:05:59 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 88199DA710
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Feb 2020 13:05:57 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 13 Feb 2020 13:05:57 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 693AC42EE38E
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Feb 2020 13:05:57 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] tests: shell: validate error reporting with include and glob
-Date:   Thu, 13 Feb 2020 13:05:53 +0100
-Message-Id: <20200213120553.574947-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Thu, 13 Feb 2020 07:06:26 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:47740 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727059AbgBMMG0 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Feb 2020 07:06:26 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1j2DGC-0004eq-Lt; Thu, 13 Feb 2020 13:06:24 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Serguei Bezverkhi <sbezverk@gmail.com>
+Subject: [PATCH nft] src: maps: update data expression dtype based on set
+Date:   Thu, 13 Feb 2020 13:06:17 +0100
+Message-Id: <20200213120617.145154-1-fw@strlen.de>
+X-Mailer: git-send-email 2.24.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- tests/shell/testcases/include/0018include_error_0 | 34 ++++++++++++
- tests/shell/testcases/include/0019include_error_0 | 63 +++++++++++++++++++++++
- 2 files changed, 97 insertions(+)
- create mode 100755 tests/shell/testcases/include/0018include_error_0
- create mode 100755 tests/shell/testcases/include/0019include_error_0
+What we want:
+-               update @sticky-set-svc-M53CN2XYVUHRQ7UB { ip saddr : 0x00000002 }
+what we got:
++               update @sticky-set-svc-M53CN2XYVUHRQ7UB { ip saddr : 0x2000000 [invalid type] }
 
-diff --git a/tests/shell/testcases/include/0018include_error_0 b/tests/shell/testcases/include/0018include_error_0
-new file mode 100755
-index 000000000000..ae2dba3cfbe8
+Reported-by: Serguei Bezverkhi <sbezverk@gmail.com>
+Close: https://bugzilla.netfilter.org/show_bug.cgi?id=1405
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/netlink_delinearize.c                     |  1 +
+ .../maps/dumps/typeof_maps_update_0.nft       | 21 ++++++++++++++
+ .../shell/testcases/maps/typeof_maps_update_0 | 28 +++++++++++++++++++
+ 3 files changed, 50 insertions(+)
+ create mode 100644 tests/shell/testcases/maps/dumps/typeof_maps_update_0.nft
+ create mode 100755 tests/shell/testcases/maps/typeof_maps_update_0
+
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 7d9c764625c5..4f774fb9f150 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -1424,6 +1424,7 @@ static void netlink_parse_dynset(struct netlink_parse_ctx *ctx,
+ 	}
+ 
+ 	if (expr_data != NULL) {
++		expr_set_type(expr_data, set->data->dtype, set->data->byteorder);
+ 		stmt = map_stmt_alloc(loc);
+ 		stmt->map.set	= set_ref_expr_alloc(loc, set);
+ 		stmt->map.key	= expr;
+diff --git a/tests/shell/testcases/maps/dumps/typeof_maps_update_0.nft b/tests/shell/testcases/maps/dumps/typeof_maps_update_0.nft
+new file mode 100644
+index 000000000000..698219cb5460
 --- /dev/null
-+++ b/tests/shell/testcases/include/0018include_error_0
-@@ -0,0 +1,34 @@
++++ b/tests/shell/testcases/maps/dumps/typeof_maps_update_0.nft
+@@ -0,0 +1,21 @@
++table ip kube-nfproxy-v4 {
++	map sticky-set-svc-M53CN2XYVUHRQ7UB {
++		type ipv4_addr : mark
++		size 65535
++		timeout 6m
++	}
++
++	map sticky-set-svc-153CN2XYVUHRQ7UB {
++		typeof ip daddr : meta mark
++		size 65535
++		timeout 1m
++	}
++
++	chain k8s-nfproxy-sep-TMVEFT7EX55F4T62 {
++		update @sticky-set-svc-M53CN2XYVUHRQ7UB { ip saddr : 0x00000002 }
++	}
++
++	chain k8s-nfproxy-sep-GMVEFT7EX55F4T62 {
++		update @sticky-set-svc-153CN2XYVUHRQ7UB { ip saddr : 0x00000003 }
++	}
++}
+diff --git a/tests/shell/testcases/maps/typeof_maps_update_0 b/tests/shell/testcases/maps/typeof_maps_update_0
+new file mode 100755
+index 000000000000..c233b13ffc8d
+--- /dev/null
++++ b/tests/shell/testcases/maps/typeof_maps_update_0
+@@ -0,0 +1,28 @@
 +#!/bin/bash
 +
-+tmpfile1=$(mktemp)
-+if [ ! -w $tmpfile1 ] ; then
-+        echo "Failed to create tmp file" >&2
-+        exit 1
-+fi
++# check update statement doesn't print "invalid dtype" on the data element.
 +
-+touch $tmpfile1
++EXPECTED="table ip kube-nfproxy-v4 {
++ map sticky-set-svc-M53CN2XYVUHRQ7UB {
++  type ipv4_addr : mark
++  size 65535
++  timeout 6m
++ }
 +
-+RULESET="include \"$tmpfile1\"
-+)
-+"
++ map sticky-set-svc-153CN2XYVUHRQ7UB {
++  typeof ip daddr : meta mark
++  size 65535
++  timeout 1m
++ }
 +
-+tmpfile2=$(mktemp)
-+if [ ! -w $tmpfile2 ] ; then
-+        echo "Failed to create tmp file" >&2
-+        exit 1
-+fi
++ chain k8s-nfproxy-sep-TMVEFT7EX55F4T62 {
++  update @sticky-set-svc-M53CN2XYVUHRQ7UB { ip saddr : 0x2 }
++ }
++ chain k8s-nfproxy-sep-GMVEFT7EX55F4T62 {
++  update @sticky-set-svc-153CN2XYVUHRQ7UB { ip saddr : 0x3 }
++ }
++}"
 +
-+tmpfile3=$(mktemp)
-+if [ ! -w $tmpfile3 ] ; then
-+        echo "Failed to create tmp file" >&2
-+        exit 1
-+fi
++set -e
++$NFT -f - <<< $EXPECTED
 +
-+echo "/dev/stdin:2:1-1: Error: syntax error, unexpected ')'
-+)
-+^" > $tmpfile3
-+
-+$NFT -I/tmp/ -f - <<< "$RULESET" 2> $tmpfile2
-+$DIFF -u $tmpfile2 $tmpfile3
-+
-+rm $tmpfile1 $tmpfile2 $tmpfile3
-diff --git a/tests/shell/testcases/include/0019include_error_0 b/tests/shell/testcases/include/0019include_error_0
-new file mode 100755
-index 000000000000..4b84a578c16f
---- /dev/null
-+++ b/tests/shell/testcases/include/0019include_error_0
-@@ -0,0 +1,63 @@
-+#!/bin/bash
-+
-+tmpfile1=$(mktemp)
-+if [ ! -w $tmpfile1 ] ; then
-+        echo "Failed to create tmp file" >&2
-+        exit 1
-+fi
-+
-+tmpfile2=$(mktemp)
-+if [ ! -w $tmpfile2 ] ; then
-+        echo "Failed to create tmp file" >&2
-+        exit 1
-+fi
-+
-+echo "(" >> $tmpfile2
-+
-+tmpdir=$(mktemp -d)
-+
-+echo "include \"$tmpfile2\"
-+include \"$tmpdir/*.nft\"
-+x" > $tmpfile1
-+
-+echo "=" > $tmpdir/1.nft
-+echo ")" > $tmpdir/2.nft
-+echo "-" > $tmpdir/3.nft
-+
-+tmpfile3=$(mktemp)
-+if [ ! -w $tmpfile3 ] ; then
-+        echo "Failed to create tmp file" >&2
-+        exit 1
-+fi
-+
-+echo "In file included from $tmpfile1:1:1-30:
-+$tmpfile2:1:1-1: Error: syntax error, unexpected '('
-+(
-+^
-+In file included from $tmpfile1:2:1-36:
-+$tmpdir/1.nft:1:1-1: Error: syntax error, unexpected '='
-+=
-+^
-+In file included from $tmpfile1:2:1-36:
-+$tmpdir/2.nft:1:1-1: Error: syntax error, unexpected ')'
-+)
-+^
-+In file included from $tmpfile1:2:1-36:
-+$tmpdir/3.nft:1:1-1: Error: syntax error, unexpected -
-+-
-+^
-+$tmpfile1:3:2-2: Error: syntax error, unexpected newline, expecting string
-+x
-+ ^" > $tmpfile3
-+
-+tmpfile4=$(mktemp)
-+if [ ! -w $tmpfile4 ] ; then
-+        echo "Failed to create tmp file" >&2
-+        exit 1
-+fi
-+
-+$NFT -I/tmp/ -f $tmpfile1 2> $tmpfile4
-+$DIFF -u $tmpfile3 $tmpfile4
-+
-+rm $tmpfile1 $tmpfile2 $tmpfile3 $tmpfile4
-+rm -r $tmpdir
 -- 
-2.11.0
+2.24.1
 
