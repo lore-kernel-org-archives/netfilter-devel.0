@@ -1,79 +1,69 @@
-Return-Path: <SRS0=+t1+=4B=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=aq0Q=4C=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EB82C3B190
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 22:19:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F467C2BA83
+	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Feb 2020 09:02:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 46A4B218AC
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Feb 2020 22:19:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1188520873
+	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Feb 2020 09:02:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728023AbgBMWTX (ORCPT
+        id S1728332AbgBNJCE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 Feb 2020 17:19:23 -0500
-Received: from shards.monkeyblade.net ([23.128.96.9]:47070 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726780AbgBMWTW (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Feb 2020 17:19:22 -0500
-Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id 5710015B75334;
-        Thu, 13 Feb 2020 14:19:22 -0800 (PST)
-Date:   Thu, 13 Feb 2020 14:19:21 -0800 (PST)
-Message-Id: <20200213.141921.2246207693168419669.davem@davemloft.net>
-To:     Jason@zx2c4.com
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v4 net 0/5] icmp: account for NAT when sending icmps
- from ndo layer
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20200211194709.723383-1-Jason@zx2c4.com>
-References: <20200211194709.723383-1-Jason@zx2c4.com>
-X-Mailer: Mew version 6.8 on Emacs 26.1
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Thu, 13 Feb 2020 14:19:22 -0800 (PST)
+        Fri, 14 Feb 2020 04:02:04 -0500
+Received: from correo.us.es ([193.147.175.20]:49342 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728865AbgBNJCE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 14 Feb 2020 04:02:04 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 839A81F0CE7
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Feb 2020 10:00:28 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 72EEFDA71A
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Feb 2020 10:00:28 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 71675DA715; Fri, 14 Feb 2020 10:00:28 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B0F11DA791;
+        Fri, 14 Feb 2020 10:00:26 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 14 Feb 2020 10:00:16 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 8533B42EF4E0;
+        Fri, 14 Feb 2020 10:00:26 +0100 (CET)
+Date:   Fri, 14 Feb 2020 10:00:24 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH] xtables-translate: Fix for iface++
+Message-ID: <20200214090024.tqfubfkvnczq5bcy@salvia>
+References: <20200213130436.26755-1-phil@nwl.cc>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200213130436.26755-1-phil@nwl.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: "Jason A. Donenfeld" <Jason@zx2c4.com>
-Date: Tue, 11 Feb 2020 20:47:04 +0100
+On Thu, Feb 13, 2020 at 02:04:36PM +0100, Phil Sutter wrote:
+> In legacy iptables, only the last plus sign remains special, any
+> previous ones are taken literally. Therefore xtables-translate must not
+> replace all of them with asterisk but just the last one.
 
-> The ICMP routines use the source address for two reasons:
-> 
-> 1. Rate-limiting ICMP transmissions based on source address, so
->    that one source address cannot provoke a flood of replies. If
->    the source address is wrong, the rate limiting will be
->    incorrectly applied.
-> 
-> 2. Choosing the interface and hence new source address of the
->    generated ICMP packet. If the original packet source address
->    is wrong, ICMP replies will be sent from the wrong source
->    address, resulting in either a misdelivery, infoleak, or just
->    general network admin confusion.
-> 
-> Most of the time, the icmp_send and icmpv6_send routines can just reach
-> down into the skb's IP header to determine the saddr. However, if
-> icmp_send or icmpv6_send is being called from a network device driver --
-> there are a few in the tree -- then it's possible that by the time
-> icmp_send or icmpv6_send looks at the packet, the packet's source
-> address has already been transformed by SNAT or MASQUERADE or some other
-> transformation that CONNTRACK knows about. In this case, the packet's
-> source address is most certainly the *wrong* source address to be used
-> for the purpose of ICMP replies.
-> 
-> Rather, the source address we want to use for ICMP replies is the
-> original one, from before the transformation occurred.
- ...
+Interesting corner case.
 
-Series applied, thank you.
-
+LGTM.
