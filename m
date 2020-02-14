@@ -4,54 +4,55 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88F23C2BA83
-	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Feb 2020 15:51:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A70FCC3B1A1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Feb 2020 17:09:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5394E2467E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Feb 2020 15:51:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 759CA20637
+	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Feb 2020 17:09:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1581695500;
-	bh=6HEabNHqFEipAWICMy3lsoue89B8JCjd2vU/ihVA3RA=;
+	s=default; t=1581700147;
+	bh=fLdj1bfTpZ/AoJbVRl8A14jHH7ap3xGhu/sgu2jrqhE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=wQb4SPkcZIsOC0jbY3oU3ywlKk20QUQcct16MBK9RV9miPp2Pz47DDeWQXKgj/PKi
-	 p4YvTSfbFYfPo2z3ZeR8S/OvCoTaz+DVYkOTup1h3VTwf2e1YdW24NEPw1fgnFSJs3
-	 PJN1rl9VkmTQwiOv1WIcQaTMgzumA7W3jD85CBN4=
+	b=tMnVcNhsnQQNh0tSX7cjbigYmrT69WevhTPb+8sLBZpL4+pCqMi2xBhYsLzKz8u+A
+	 PAV1g+fQl8PyXzsEpM8WkUju45a2lFGI2T6ARJhrYH5omdTGTzWSpMw6l8bBDrpumQ
+	 ESFGtWsLi0ZYI+U5fpPSXIJtlPIPwrOcBY9CcNKM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730828AbgBNPvj (ORCPT
+        id S2403975AbgBNQN5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 14 Feb 2020 10:51:39 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56724 "EHLO mail.kernel.org"
+        Fri, 14 Feb 2020 11:13:57 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43120 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730817AbgBNPvi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 14 Feb 2020 10:51:38 -0500
+        id S2403967AbgBNQN4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 14 Feb 2020 11:13:56 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CF621222C4;
-        Fri, 14 Feb 2020 15:51:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DF174246BD;
+        Fri, 14 Feb 2020 16:13:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1581695497;
-        bh=6HEabNHqFEipAWICMy3lsoue89B8JCjd2vU/ihVA3RA=;
+        s=default; t=1581696835;
+        bh=fLdj1bfTpZ/AoJbVRl8A14jHH7ap3xGhu/sgu2jrqhE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=AssHX7Pe37VnQ2Ri7G+1epC7594MSDUyl7vkEbI016arb3ckEjgU8Rm47XocAzTd6
-         mnEFJSNAs9GFJIC1WJfrlfreVAoh7cNDObCVW6Ag0drpIVpk/Wt3SFRNirbzJlnJVs
-         WNueAO7vLwae5THKZ0GRgZP32deDt7+LvJe0/A+w=
+        b=FRd5GrF3Cn0q5EXWDdVaEfSElCUIkYug0WbveMP/zsRo5s6mUkjvPe3nxOM5NnKGf
+         siNxdjqhfXrKhXCUWHn74aZcgrmbbRavCSIQjzft51hPfqJVcKQ9qnp2hKXAkvPFHs
+         t8w48fs4thnGkUS/QuFsetqYsO1jX10Jqx7wW24c=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Paul Blakey <paulb@mellanox.com>,
+Cc:     Xin Long <lucien.xin@gmail.com>,
+        Simon Horman <simon.horman@netronome.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.5 125/542] netfilter: flowtable: Fix missing flush hardware on table free
-Date:   Fri, 14 Feb 2020 10:41:57 -0500
-Message-Id: <20200214154854.6746-125-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 100/252] netfilter: nft_tunnel: add the missing ERSPAN_VERSION nla_policy
+Date:   Fri, 14 Feb 2020 11:09:15 -0500
+Message-Id: <20200214161147.15842-100-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200214154854.6746-1-sashal@kernel.org>
-References: <20200214154854.6746-1-sashal@kernel.org>
+In-Reply-To: <20200214161147.15842-1-sashal@kernel.org>
+References: <20200214161147.15842-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -61,35 +62,37 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Paul Blakey <paulb@mellanox.com>
+From: Xin Long <lucien.xin@gmail.com>
 
-[ Upstream commit 0f34f30a1be80f3f59efeaab596396bc698e7337 ]
+[ Upstream commit 0705f95c332081036d85f26691e9d3cd7d901c31 ]
 
-If entries exist when freeing a hardware offload enabled table,
-we queue work for hardware while running the gc iteration.
+ERSPAN_VERSION is an attribute parsed in kernel side, nla_policy
+type should be added for it, like other attributes.
 
-Execute it (flush) after queueing.
-
-Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
-Signed-off-by: Paul Blakey <paulb@mellanox.com>
+Fixes: af308b94a2a4 ("netfilter: nf_tables: add tunnel support")
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
+Reviewed-by: Simon Horman <simon.horman@netronome.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_flow_table_core.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/nft_tunnel.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index e33a73cb1f42e..640a46fd710d2 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -554,6 +554,7 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
- 	cancel_delayed_work_sync(&flow_table->gc_work);
- 	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
- 	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
-+	nf_flow_table_offload_flush(flow_table);
- 	rhashtable_destroy(&flow_table->rhashtable);
+diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
+index e5444f3ff43fc..5e66042ac3466 100644
+--- a/net/netfilter/nft_tunnel.c
++++ b/net/netfilter/nft_tunnel.c
+@@ -218,8 +218,9 @@ static int nft_tunnel_obj_vxlan_init(const struct nlattr *attr,
  }
- EXPORT_SYMBOL_GPL(nf_flow_table_free);
+ 
+ static const struct nla_policy nft_tunnel_opts_erspan_policy[NFTA_TUNNEL_KEY_ERSPAN_MAX + 1] = {
++	[NFTA_TUNNEL_KEY_ERSPAN_VERSION]	= { .type = NLA_U32 },
+ 	[NFTA_TUNNEL_KEY_ERSPAN_V1_INDEX]	= { .type = NLA_U32 },
+-	[NFTA_TUNNEL_KEY_ERSPAN_V2_DIR]	= { .type = NLA_U8 },
++	[NFTA_TUNNEL_KEY_ERSPAN_V2_DIR]		= { .type = NLA_U8 },
+ 	[NFTA_TUNNEL_KEY_ERSPAN_V2_HWID]	= { .type = NLA_U8 },
+ };
+ 
 -- 
 2.20.1
 
