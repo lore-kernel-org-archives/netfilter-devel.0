@@ -2,100 +2,147 @@ Return-Path: <SRS0=aq0Q=4C=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4159BC2BA83
-	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Feb 2020 17:14:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DD48C3B1A1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Feb 2020 17:24:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0A58F20637
-	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Feb 2020 17:14:44 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="EvtjqYiF"
+	by mail.kernel.org (Postfix) with ESMTP id 52C902168B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Feb 2020 17:24:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389492AbgBNROk (ORCPT
+        id S2392562AbgBNRYW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 14 Feb 2020 12:14:40 -0500
-Received: from us-smtp-2.mimecast.com ([207.211.31.81]:60050 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2403833AbgBNROi (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 14 Feb 2020 12:14:38 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1581700477;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=HR1cXDBK2Iefu4y3SrHW/W6N9JttW8zay3uH6Q96KvM=;
-        b=EvtjqYiFKgQeQSFhP4RbAldaVxc9G2W0HQfaB15/bVBUn+Hdegv71lSMOH9Kx4ZjDbDNCS
-        Ou5ZhQdZEkCg2Nb/0N4aXil9no3w7yMHC0A4i35HUQP/NSfycnvrGshvYpFUs2pQYXzbeZ
-        GQNhGY4Y16VSvgVADZryw4+CnhwC9ic=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-103-syXFmYayNMGUKsupW7Ni4A-1; Fri, 14 Feb 2020 12:14:28 -0500
-X-MC-Unique: syXFmYayNMGUKsupW7Ni4A-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id BEB0F8017CC;
-        Fri, 14 Feb 2020 17:14:27 +0000 (UTC)
-Received: from epycfail.redhat.com (ovpn-200-43.brq.redhat.com [10.40.200.43])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id B1FD219C4F;
-        Fri, 14 Feb 2020 17:14:26 +0000 (UTC)
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next 2/2] netfilter: nft_set_pipapo: Don't abuse unlikely() in pipapo_refill()
-Date:   Fri, 14 Feb 2020 18:14:14 +0100
-Message-Id: <5208393012d9aa0b312f503dbd1dad565e92e032.1581699548.git.sbrivio@redhat.com>
-In-Reply-To: <cover.1581699548.git.sbrivio@redhat.com>
-References: <cover.1581699548.git.sbrivio@redhat.com>
+        Fri, 14 Feb 2020 12:24:22 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:40762 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2389179AbgBNRYW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 14 Feb 2020 12:24:22 -0500
+Received: from localhost ([::1]:53852 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1j2ehQ-0004PX-Uo; Fri, 14 Feb 2020 18:24:21 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [libnftnl PATCH] src: Fix nftnl_assert() on data_len
+Date:   Fri, 14 Feb 2020 18:24:17 +0100
+Message-Id: <20200214172417.11217-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-I originally used unlikely() in the if (match_only) clause, which
-we hit on the mapping table for the last field in a set, to ensure
-we avoid branching to the rest of for loop body, which is executed
-more frequently.
+Typical idiom for *_get_u*() getters is to call *_get_data() and make
+sure data_len matches what each of them is returning. Yet they shouldn't
+trust *_get_data() to write into passed pointer to data_len since for
+chains and NFTNL_CHAIN_DEVICES attribute, it does not. Make sure these
+assert() calls trigger in those cases.
 
-However, Pablo reports, this is confusing as it gives the impression
-that this is not a common case, and it's actually not the intended
-usage of unlikely().
-
-I couldn't observe any statistical difference in matching rates on
-x864_64 and aarch64 without it, so just drop it.
-
-Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Fixes: 3c4287f62044 ("nf_tables: Add set type for arbitrary concatenation=
- of ranges")
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- net/netfilter/nft_set_pipapo.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ src/chain.c | 8 ++++----
+ src/rule.c  | 6 +++---
+ src/set.c   | 4 ++--
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipap=
-o.c
-index 579600b39f39..feac8553f6d9 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -503,7 +503,7 @@ static int pipapo_refill(unsigned long *map, int len,=
- int rules,
- 				return -1;
- 			}
-=20
--			if (unlikely(match_only)) {
-+			if (match_only) {
- 				bitmap_clear(map, i, 1);
- 				return i;
- 			}
---=20
-2.25.0
+diff --git a/src/chain.c b/src/chain.c
+index b4066e4d4e888..62a9249b57930 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -385,7 +385,7 @@ const char *nftnl_chain_get_str(const struct nftnl_chain *c, uint16_t attr)
+ EXPORT_SYMBOL(nftnl_chain_get_u32);
+ uint32_t nftnl_chain_get_u32(const struct nftnl_chain *c, uint16_t attr)
+ {
+-	uint32_t data_len;
++	uint32_t data_len = 0;
+ 	const uint32_t *val = nftnl_chain_get_data(c, attr, &data_len);
+ 
+ 	nftnl_assert(val, attr, data_len == sizeof(uint32_t));
+@@ -396,7 +396,7 @@ uint32_t nftnl_chain_get_u32(const struct nftnl_chain *c, uint16_t attr)
+ EXPORT_SYMBOL(nftnl_chain_get_s32);
+ int32_t nftnl_chain_get_s32(const struct nftnl_chain *c, uint16_t attr)
+ {
+-	uint32_t data_len;
++	uint32_t data_len = 0;
+ 	const int32_t *val = nftnl_chain_get_data(c, attr, &data_len);
+ 
+ 	nftnl_assert(val, attr, data_len == sizeof(int32_t));
+@@ -407,7 +407,7 @@ int32_t nftnl_chain_get_s32(const struct nftnl_chain *c, uint16_t attr)
+ EXPORT_SYMBOL(nftnl_chain_get_u64);
+ uint64_t nftnl_chain_get_u64(const struct nftnl_chain *c, uint16_t attr)
+ {
+-	uint32_t data_len;
++	uint32_t data_len = 0;
+ 	const uint64_t *val = nftnl_chain_get_data(c, attr, &data_len);
+ 
+ 	nftnl_assert(val, attr, data_len == sizeof(int64_t));
+@@ -418,7 +418,7 @@ uint64_t nftnl_chain_get_u64(const struct nftnl_chain *c, uint16_t attr)
+ EXPORT_SYMBOL(nftnl_chain_get_u8);
+ uint8_t nftnl_chain_get_u8(const struct nftnl_chain *c, uint16_t attr)
+ {
+-	uint32_t data_len;
++	uint32_t data_len = 0;
+ 	const uint8_t *val = nftnl_chain_get_data(c, attr, &data_len);
+ 
+ 	nftnl_assert(val, attr, data_len == sizeof(int8_t));
+diff --git a/src/rule.c b/src/rule.c
+index 8d7e0681cb42c..ffdbbf8e08140 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -249,7 +249,7 @@ const char *nftnl_rule_get_str(const struct nftnl_rule *r, uint16_t attr)
+ EXPORT_SYMBOL(nftnl_rule_get_u32);
+ uint32_t nftnl_rule_get_u32(const struct nftnl_rule *r, uint16_t attr)
+ {
+-	uint32_t data_len;
++	uint32_t data_len = 0;
+ 	const uint32_t *val = nftnl_rule_get_data(r, attr, &data_len);
+ 
+ 	nftnl_assert(val, attr, data_len == sizeof(uint32_t));
+@@ -260,7 +260,7 @@ uint32_t nftnl_rule_get_u32(const struct nftnl_rule *r, uint16_t attr)
+ EXPORT_SYMBOL(nftnl_rule_get_u64);
+ uint64_t nftnl_rule_get_u64(const struct nftnl_rule *r, uint16_t attr)
+ {
+-	uint32_t data_len;
++	uint32_t data_len = 0;
+ 	const uint64_t *val = nftnl_rule_get_data(r, attr, &data_len);
+ 
+ 	nftnl_assert(val, attr, data_len == sizeof(uint64_t));
+@@ -271,7 +271,7 @@ uint64_t nftnl_rule_get_u64(const struct nftnl_rule *r, uint16_t attr)
+ EXPORT_SYMBOL(nftnl_rule_get_u8);
+ uint8_t nftnl_rule_get_u8(const struct nftnl_rule *r, uint16_t attr)
+ {
+-	uint32_t data_len;
++	uint32_t data_len = 0;
+ 	const uint8_t *val = nftnl_rule_get_data(r, attr, &data_len);
+ 
+ 	nftnl_assert(val, attr, data_len == sizeof(uint8_t));
+diff --git a/src/set.c b/src/set.c
+index 651dcfa56022d..6a6f19bc7fbbf 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -303,7 +303,7 @@ const char *nftnl_set_get_str(const struct nftnl_set *s, uint16_t attr)
+ EXPORT_SYMBOL(nftnl_set_get_u32);
+ uint32_t nftnl_set_get_u32(const struct nftnl_set *s, uint16_t attr)
+ {
+-	uint32_t data_len;
++	uint32_t data_len = 0;
+ 	const uint32_t *val = nftnl_set_get_data(s, attr, &data_len);
+ 
+ 	nftnl_assert(val, attr, data_len == sizeof(uint32_t));
+@@ -314,7 +314,7 @@ uint32_t nftnl_set_get_u32(const struct nftnl_set *s, uint16_t attr)
+ EXPORT_SYMBOL(nftnl_set_get_u64);
+ uint64_t nftnl_set_get_u64(const struct nftnl_set *s, uint16_t attr)
+ {
+-	uint32_t data_len;
++	uint32_t data_len = 0;
+ 	const uint64_t *val = nftnl_set_get_data(s, attr, &data_len);
+ 
+ 	nftnl_assert(val, attr, data_len == sizeof(uint64_t));
+-- 
+2.24.1
 
