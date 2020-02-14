@@ -2,77 +2,117 @@ Return-Path: <SRS0=aq0Q=4C=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43C5FC3B1AF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Feb 2020 17:46:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BB3BC3B1B1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Feb 2020 17:58:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1AFFF206D7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Feb 2020 17:46:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35880222C4
+	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Feb 2020 17:58:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1581703097;
+	bh=XdazMGhwIbJBiuiXlZkpj9HZX5NWsSPBy8ztckTuicA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=zxOp7nJyq23HwRivk+bOO1h2CFEa2j7Qa310lwARJfOYyfP+XaUMJBkASthIfYr6L
+	 KhvHTAFkfhdpClN8ok75rsCua93SCweJ6hT1m8UGAvgtBfrKEHHtksgR/P55/i/8V6
+	 jRyuAezZLkIqKYnN+eg7/Odb845K0I4CYqDcuxt8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389401AbgBNRqt (ORCPT
+        id S2388428AbgBNR6G (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 14 Feb 2020 12:46:49 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:40622 "EHLO orbyte.nwl.cc"
+        Fri, 14 Feb 2020 12:58:06 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39788 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389254AbgBNQCJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 14 Feb 2020 11:02:09 -0500
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1j2dPq-0002xp-75; Fri, 14 Feb 2020 17:02:06 +0100
-Date:   Fri, 14 Feb 2020 17:02:06 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Stefano Brivio <sbrivio@redhat.com>
+        id S1730621AbgBNP5O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 14 Feb 2020 10:57:14 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id ED396222C4;
+        Fri, 14 Feb 2020 15:57:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1581695833;
+        bh=XdazMGhwIbJBiuiXlZkpj9HZX5NWsSPBy8ztckTuicA=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=UDdl9zWh9mhlZnghccYlO/ED6eS5TRgVuXuVYgYV8WAmrEjEPmW5hCcXNTn98httE
+         woBDVmQ862mP3HJ2BlgyrvTNMl9LchEZHl4j8Dw3yKoL8tE7KIp6ZjP85VdNCf3+EQ
+         Y9oRUgVWY67XZ6Mc9JCCghtvDWyer6MV9vy8uS9o=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        Kadlecsik =?utf-8?Q?J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>,
-        Eric Garver <eric@garver.life>
-Subject: Re: [PATCH nft v5] tests: Introduce test for set with concatenated
- ranges
-Message-ID: <20200214160206.GQ20005@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Stefano Brivio <sbrivio@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        Kadlecsik =?utf-8?Q?J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>,
-        Eric Garver <eric@garver.life>
-References: <546dccfe97760ba910676b84799b15d38164e192.1581693171.git.sbrivio@redhat.com>
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.5 386/542] netfilter: flowtable: restrict flow dissector match on meta ingress device
+Date:   Fri, 14 Feb 2020 10:46:18 -0500
+Message-Id: <20200214154854.6746-386-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200214154854.6746-1-sashal@kernel.org>
+References: <20200214154854.6746-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <546dccfe97760ba910676b84799b15d38164e192.1581693171.git.sbrivio@redhat.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Feb 14, 2020 at 04:27:25PM +0100, Stefano Brivio wrote:
-> This test checks that set elements can be added, deleted, that
-> addition and deletion are refused when appropriate, that entries
-> time out properly, and that they can be fetched by matching values
-> in the given ranges.
-> 
-> v5:
->  - speed this up by performing the timeout test for one single
->    permutation (Phil Sutter), by decreasing the number of
->    permutations from 96 to 12 if this is invoked by run-tests.sh
->    (Pablo Neira Ayuso) and by combining some commands into single
->    nft calls where possible: with dash 0.5.8 on AMD Epyc 7351 the
->    test now takes 1.8s instead of 82.5s
->  - renumber test to 0043, 0042 was added meanwhile
-> v4: No changes
-> v3:
->  - renumber test to 0042, 0041 was added meanwhile
-> v2:
->  - actually check an IPv6 prefix, instead of specifying everything
->    as explicit ranges in ELEMS_ipv6_addr
->  - renumber test to 0041, 0038 already exists
-> 
-> Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Acked-by: Phil Sutter <phil@nwl.cc>
+[ Upstream commit a7521a60a5f3e1f58a015fedb6e69aed40455feb ]
 
-Thanks!
+Set on FLOW_DISSECTOR_KEY_META meta key using flow tuple ingress interface.
+
+Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/nf_flow_table_offload.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index d06969af1085e..9e01074dc34cb 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -24,6 +24,7 @@ struct flow_offload_work {
+ };
+ 
+ struct nf_flow_key {
++	struct flow_dissector_key_meta			meta;
+ 	struct flow_dissector_key_control		control;
+ 	struct flow_dissector_key_basic			basic;
+ 	union {
+@@ -55,6 +56,7 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
+ 	struct nf_flow_key *mask = &match->mask;
+ 	struct nf_flow_key *key = &match->key;
+ 
++	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_META, meta);
+ 	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_CONTROL, control);
+ 	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_BASIC, basic);
+ 	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_IPV4_ADDRS, ipv4);
+@@ -62,6 +64,9 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
+ 	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_TCP, tcp);
+ 	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_PORTS, tp);
+ 
++	key->meta.ingress_ifindex = tuple->iifidx;
++	mask->meta.ingress_ifindex = 0xffffffff;
++
+ 	switch (tuple->l3proto) {
+ 	case AF_INET:
+ 		key->control.addr_type = FLOW_DISSECTOR_KEY_IPV4_ADDRS;
+@@ -105,7 +110,8 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
+ 	key->tp.dst = tuple->dst_port;
+ 	mask->tp.dst = 0xffff;
+ 
+-	match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_CONTROL) |
++	match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_META) |
++				      BIT(FLOW_DISSECTOR_KEY_CONTROL) |
+ 				      BIT(FLOW_DISSECTOR_KEY_BASIC) |
+ 				      BIT(FLOW_DISSECTOR_KEY_PORTS);
+ 	return 0;
+-- 
+2.20.1
+
