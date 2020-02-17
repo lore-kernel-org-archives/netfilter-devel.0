@@ -1,116 +1,90 @@
-Return-Path: <SRS0=xYwY=4E=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=8OCJ=4F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16E96C76199
-	for <netfilter-devel@archiver.kernel.org>; Sun, 16 Feb 2020 17:28:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B3C1C7619B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Feb 2020 02:03:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E0C5520857
-	for <netfilter-devel@archiver.kernel.org>; Sun, 16 Feb 2020 17:28:25 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="R9a6Mac4"
+	by mail.kernel.org (Postfix) with ESMTP id 087C42072C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Feb 2020 02:03:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728542AbgBPR2V (ORCPT
+        id S1726498AbgBQCDK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 16 Feb 2020 12:28:21 -0500
-Received: from mail-pl1-f194.google.com ([209.85.214.194]:35284 "EHLO
-        mail-pl1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728496AbgBPR2U (ORCPT
+        Sun, 16 Feb 2020 21:03:10 -0500
+Received: from mail3.iservicesmail.com ([217.130.24.75]:25096 "EHLO
+        mail3.iservicesmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726251AbgBQCDK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 16 Feb 2020 12:28:20 -0500
-Received: by mail-pl1-f194.google.com with SMTP id g6so5773993plt.2;
-        Sun, 16 Feb 2020 09:28:19 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=li9wRD+trYzeYRrIDTG7VErShRh4YzHNS/3QPJhsHYs=;
-        b=R9a6Mac428S9opSV3aq/ZhqE30jY6lafTCf7S2d1eJ1E99RSCGWcpDXTeZ3Vg3+GyD
-         ihz21YJzlyYeM3anV69vpMgMV6lksRliQJ0HCBJbYfSLI+6QzXpoQOwW0aU0izce8Ky+
-         BvU/CsSiIhoznN0iXSXvbX23to+afL5HRUjQ/g0BjQj+mjhbeXlEqW0wLFe15ZHEn8Ip
-         VZjDKptRZCNYMvxaU/Ngrb0Ps89+DO1AkcGFEVdK/ApL+P+Exqzjhlh3gNRNjQnnyuqJ
-         MzGQYvNnAP301j1JSOtlVfkSF9EnxwP70stmA832B99N7jjUloV4FBtKk5SXhWB1f6Wf
-         EL2w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=li9wRD+trYzeYRrIDTG7VErShRh4YzHNS/3QPJhsHYs=;
-        b=iaA5Q+1xyKP1pbhr56lv/UDb+60N4WfU2CkhyiesjpEZk1tNfwoxgk7Co294bNA1Fa
-         f1aYZYX6knoLVyAnRBCI2D2/3HQHIys3fXFm9Nxgkd6J5V2ehz9lke7yrtZ92yirtLWU
-         qaB0VViWdipKJS00h8ZF20SHyzN2w6Kyamh8c2njePoxrgzM7l4lRPcpe6gXn/qNxOll
-         T6HcPL0+BAxwXw+X8r0vm2AKtEi4JT0rtGwqZSi00LKHBb+kq86aaYsDulG0YG9utp5k
-         f67y46QBBbPlSKrZ0KWpAbIZf0xj1tikg3gQ8xmWYOBtA2LAjY4w/NQzKbjGwq77cI+q
-         kdNA==
-X-Gm-Message-State: APjAAAXWiJqvZEWHExDCv4HSVatTIy+Af+9sAu0Xc5nTNNOs2cJ+QR7i
-        unvrGnFXO6s/K8jZBjXGvX4=
-X-Google-Smtp-Source: APXvYqwnA7pjS1054IxgkOuF4Ptq6AKSK3rxTwoaU0ILSWvT53J2OayxuX5Dez18xr9oJSMfJG/xXg==
-X-Received: by 2002:a17:902:6a88:: with SMTP id n8mr12421746plk.265.1581874098693;
-        Sun, 16 Feb 2020 09:28:18 -0800 (PST)
-Received: from localhost.localdomain ([103.211.17.250])
-        by smtp.googlemail.com with ESMTPSA id iq22sm13836213pjb.9.2020.02.16.09.28.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 16 Feb 2020 09:28:18 -0800 (PST)
-From:   Amol Grover <frextrite@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Jeremy Sowden <jeremy@azazel.net>,
-        Florent Fourcot <florent.fourcot@wifirst.fr>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Johannes Berg <johannes.berg@intel.com>
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-kernel-mentees@lists.linuxfoundation.org,
-        Joel Fernandes <joel@joelfernandes.org>,
-        Madhuparna Bhowmik <madhuparnabhowmik10@gmail.com>,
-        "Paul E . McKenney" <paulmck@kernel.org>,
-        Amol Grover <frextrite@gmail.com>
-Subject: [PATCH] netfilter: ipset: Pass lockdep expression to RCU lists
-Date:   Sun, 16 Feb 2020 22:56:54 +0530
-Message-Id: <20200216172653.19772-1-frextrite@gmail.com>
-X-Mailer: git-send-email 2.24.1
+        Sun, 16 Feb 2020 21:03:10 -0500
+IronPort-SDR: y5JlVGRz98MhjZtbjIh3lgGHds/Z/GgzZiepEnEsA1GoMZUXeIqzmAZbFcQPuU9ejvAMermj2r
+ 7yTKV/w5Iodg==
+IronPort-PHdr: =?us-ascii?q?9a23=3AdLpJIhGZMALHOXt8zLPrJZ1GYnF86YWxBRYc79?=
+ =?us-ascii?q?8ds5kLTJ78rsiwAkXT6L1XgUPTWs2DsrQY0raQ7P2rAj1IyK3CmU5BWaQEbw?=
+ =?us-ascii?q?UCh8QSkl5oK+++Imq/EsTXaTcnFt9JTl5v8iLzG0FUHMHjew+a+SXqvnYdFR?=
+ =?us-ascii?q?rlKAV6OPn+FJLMgMSrzeCy/IDYbxlViDanbr5+MRq7oR/Tu8QWjodvJKI8wQ?=
+ =?us-ascii?q?bVr3VVfOhb2WxnKVWPkhjm+8y+5oRj8yNeu/Ig885PT6D3dLkmQLJbETorLX?=
+ =?us-ascii?q?k76NXkuhffQwSP4GAcUngNnRpTHwfF9hD6UYzvvSb8q+FwxTOVPczyTbAzRD?=
+ =?us-ascii?q?Si86JmQwLmhSsbKzI09nzch8pth6xZvR2hvQRyzYDUboGPKvRwfb7TctwGSm?=
+ =?us-ascii?q?RORctRSy5MDZ+gY4cTE+YNI+BVpJT9qVsUqhu+ABGhCvnxxT9UmHD2x7Ax3O?=
+ =?us-ascii?q?QmEQHA0wwrAtUDsGzTrNXvKKcdS/u4zLTOzTXCdPNWxS3955LVfR87u/2MXK?=
+ =?us-ascii?q?5wfNPXxEIyFA3Flk2dpZL4Mz6XzOgBrmaW4/Z6We6xhGMrsQ98rzipy8wxkI?=
+ =?us-ascii?q?fGnJgVxUrB9ShhxYY1IsC3R1BjbN6/FZtQqzmaN4xrQsM+W21ouDg1yrkBuZ?=
+ =?us-ascii?q?OjeSgF0pUnxxrFa/OZd4iE/h3uWPyPITd/mX1qYry/hxG08Ue+0OHzSNK03E?=
+ =?us-ascii?q?5LripDjNbMqmgA2wLO5sWFUPdx40ms1SqV2wzN5exIO045mKrDJ54k2LEwl5?=
+ =?us-ascii?q?4TsUrZHi/xnUX7lLeWdkI++ui08evqeajmppmdN49vlgH+KL4hldGlDugiMw?=
+ =?us-ascii?q?gOQ3CX+f6g27374U35XLJKg+UwkqbHrJDaK8UbpqqlAwBLyIYv8guwACm40N?=
+ =?us-ascii?q?sGmXkKN0xFeB2ZgIjzIV3OI+73De25g1uylDdn3ffGPqfuAsaFEn+Wlrr9c7?=
+ =?us-ascii?q?d590NGjQY+091bz4xbB6tHI//pXEL18tvCAUwDPhSw0trgXe1wyo4EEV2IBK?=
+ =?us-ascii?q?DRZLvfrVKS+eUpLOmPZJQfsx7yLvEk47jlinpvynEHeqz85ZYLZWrwIfNgLA?=
+ =?us-ascii?q?3NeX32nt4pDGELpRYkReDjzlyeB20AL02uVr4xs2loQLmtCp3OE9ig?=
+X-IronPort-Anti-Spam-Filtered: true
+X-IronPort-Anti-Spam-Result: =?us-ascii?q?A2HOOAC380lelyMYgtlmgkOBPgIBgVV?=
+ =?us-ascii?q?SIBKMY4ZsVAZzH4NDhlKEEYEFgQCDM4YHEwyBWw0BAQEBATUCBAEBhECCBCQ?=
+ =?us-ascii?q?8Ag0CAw0BAQYBAQEBAQUEAQECEAEBAQEBCBYGhXOCOyKDcCAPOUoMQAEOAYN?=
+ =?us-ascii?q?XgksBAQoprTwNDQKFHoJPBAqBCIEbI4E2AwEBjCEaeYEHgSMhgisIAYIBgn8?=
+ =?us-ascii?q?BEgFugkiCWQSNUhIhiUWYNIFqWgSWa4I5AQ+IFoQ3A4JaD4ELgx2DCYFnhFK?=
+ =?us-ascii?q?Bf59mhBRXgSBzcTMaCDCBbhqBIE8YDY43jisCQIEXEAJPi0mCMgEB?=
+X-IPAS-Result: =?us-ascii?q?A2HOOAC380lelyMYgtlmgkOBPgIBgVVSIBKMY4ZsVAZzH?=
+ =?us-ascii?q?4NDhlKEEYEFgQCDM4YHEwyBWw0BAQEBATUCBAEBhECCBCQ8Ag0CAw0BAQYBA?=
+ =?us-ascii?q?QEBAQUEAQECEAEBAQEBCBYGhXOCOyKDcCAPOUoMQAEOAYNXgksBAQoprTwND?=
+ =?us-ascii?q?QKFHoJPBAqBCIEbI4E2AwEBjCEaeYEHgSMhgisIAYIBgn8BEgFugkiCWQSNU?=
+ =?us-ascii?q?hIhiUWYNIFqWgSWa4I5AQ+IFoQ3A4JaD4ELgx2DCYFnhFKBf59mhBRXgSBzc?=
+ =?us-ascii?q?TMaCDCBbhqBIE8YDY43jisCQIEXEAJPi0mCMgEB?=
+X-IronPort-AV: E=Sophos;i="5.70,450,1574118000"; 
+   d="scan'208";a="319313391"
+Received: from mailrel04.vodafone.es ([217.130.24.35])
+  by mail01.vodafone.es with ESMTP; 17 Feb 2020 03:03:08 +0100
+Received: (qmail 29285 invoked from network); 17 Feb 2020 01:53:16 -0000
+Received: from unknown (HELO 192.168.1.163) (mariapazos@[217.217.179.17])
+          (envelope-sender <porta@unistrada.it>)
+          by mailrel04.vodafone.es (qmail-ldap-1.03) with SMTP
+          for <netfilter-devel@vger.kernel.org>; 17 Feb 2020 01:53:16 -0000
+Date:   Mon, 17 Feb 2020 02:53:16 +0100 (CET)
+From:   Peter Wong <porta@unistrada.it>
+Reply-To: Peter Wong <peterwonghkhsbc@gmail.com>
+To:     netfilter-devel@vger.kernel.org
+Message-ID: <28989567.43999.1581904396763.JavaMail.cash@217.130.24.55>
+Subject: Investment opportunity
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-ip_set_type_list is traversed using list_for_each_entry_rcu
-outside an RCU read-side critical section but under the protection
-of ip_set_type_mutex.
+Greetings,
+Please check the attached email for a buisness proposal to explore.
+Looking forward to hearing from you for more details.
+Sincerely: Peter Wong
 
-Hence, add corresponding lockdep expression to silence false-positive
-warnings, and harden RCU lists.
 
-Signed-off-by: Amol Grover <frextrite@gmail.com>
----
- net/netfilter/ipset/ip_set_core.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index cf895bc80871..97c851589160 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -86,7 +86,8 @@ find_set_type(const char *name, u8 family, u8 revision)
- {
- 	struct ip_set_type *type;
- 
--	list_for_each_entry_rcu(type, &ip_set_type_list, list)
-+	list_for_each_entry_rcu(type, &ip_set_type_list, list,
-+				lockdep_is_held(&ip_set_type_mutex))
- 		if (STRNCMP(type->name, name) &&
- 		    (type->family == family ||
- 		     type->family == NFPROTO_UNSPEC) &&
--- 
-2.24.1
+
+----------------------------------------------------
+This email was sent by the shareware version of Postman Professional.
 
