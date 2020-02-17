@@ -2,139 +2,90 @@ Return-Path: <SRS0=8OCJ=4F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46F1BC34022
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Feb 2020 17:39:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA574C34022
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Feb 2020 19:25:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E446220725
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Feb 2020 17:39:43 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=thalesgroup.com header.i=@thalesgroup.com header.b="8NNHV8Ts"
+	by mail.kernel.org (Postfix) with ESMTP id 7FC7D20725
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Feb 2020 19:25:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729016AbgBQRjn (ORCPT
+        id S1727749AbgBQTZv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 17 Feb 2020 12:39:43 -0500
-Received: from thsbbfxrt02p.thalesgroup.com ([192.93.158.29]:56428 "EHLO
-        thsbbfxrt02p.thalesgroup.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726818AbgBQRjn (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Feb 2020 12:39:43 -0500
-X-Greylist: delayed 348 seconds by postgrey-1.27 at vger.kernel.org; Mon, 17 Feb 2020 12:39:42 EST
-Received: from thsbbfxrt02p.thalesgroup.com (localhost [127.0.0.1])
-        by localhost (Postfix) with SMTP id 48Lrgj0tFlzJxkJ
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Feb 2020 18:33:53 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=thalesgroup.com;
-        s=xrt20181201; t=1581960833;
-        bh=NT7MIOmB+0u0q9kw+mFMdpw2CriEr6NBqLkJsY76/8w=;
-        h=From:To:Subject:Date:Message-ID:Content-Transfer-Encoding:
-         MIME-Version:From;
-        b=8NNHV8TsU7f/qSuOWMCRCgjxQaYgzIQ5GhZMiZB41qR7eYmgRIN2r7cb98SheUM4O
-         +EdXGXuS0CgFLtz0IxqWgdiI5RcrTD3r5Ml7ysWg9Jp1B9yCanyJhaBDUZZSkBsXXr
-         2aDBBIgMtdXjSmyMop4rjyx3OSiHjMfA/FMFImP3HlIzuPfLSgoKu5RdEbcQznSucX
-         vcwqiy2wbPdJ49puXZHf6ngz7gVyzehJMmDAZfnw9j7nj+VRWJWv6CQkV8OATQ/MAx
-         R2PJt+jA3KFfK0ii2zp0TaYiAj6u3fQs9RusUuvv/u25g1drSi+IreK2qzXBjjP8WT
-         l1n8YoRqo3hyg==
-From:   FUSTE Emmanuel <emmanuel.fuste@thalesgroup.com>
-To:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Strange nf_conntrack_tcp_timeout_established behavior
-Thread-Topic: Strange nf_conntrack_tcp_timeout_established behavior
-Thread-Index: AQHV5bhrp8PUNIgsU0+452UfNMwcFw==
-Date:   Mon, 17 Feb 2020 17:33:51 +0000
-Message-ID: <1167d09d-12f3-90b7-e015-907883b1835b@thalesgroup.com>
-Accept-Language: fr-FR, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-user-agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.3.1
-x-pmwin-version: 4.0.3, Antivirus-Engine: 3.77.1, Antivirus-Data: 5.72
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <247C0958AEF15B429B1BBF6B06BEB86F@iris.infra.thales>
-Content-Transfer-Encoding: base64
+        Mon, 17 Feb 2020 14:25:51 -0500
+Received: from correo.us.es ([193.147.175.20]:44170 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727241AbgBQTZv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Feb 2020 14:25:51 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 2AF9C12C1E4
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Feb 2020 20:25:50 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 190F8DA736
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Feb 2020 20:25:50 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 0EAFBDA7B2; Mon, 17 Feb 2020 20:25:50 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2017DDA3A0;
+        Mon, 17 Feb 2020 20:25:48 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 17 Feb 2020 20:25:48 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id F2CD442EF4E0;
+        Mon, 17 Feb 2020 20:25:47 +0100 (CET)
+Date:   Mon, 17 Feb 2020 20:25:46 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf 0/4] netfilter: conntrack: allow insertion of clashing
+ entries
+Message-ID: <20200217192546.pa26vfni4kmhlpng@salvia>
+References: <20200203163707.27254-1-fw@strlen.de>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200203163707.27254-1-fw@strlen.de>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-SGVsbG8sDQpJIGFtIGZhY2luZyBhIHN0cmFuZ2UgcHJvYmxlbSB3aXRoIHJlY2VudCBrZXJuZWxz
-Lg0KDQpPbiAiYmFkIiBrZXJuZWwsIG5mX2Nvbm50cmFja190Y3BfdGltZW91dF9lc3RhYmxpc2hl
-ZCBkZWZhdWx0IHZhbHVlIGlzIA0Kbm90IGhvbm9yZWQsIGFuZCBjb25udHJhY2sgLUwgcmV0dXJu
-IGRpZmZlcmVudCByZXN1bHRzIG9uIHRoZSBzYW1lIA0KbWFjaGluZSBpbiBkaWZmZXJlbnQgc3No
-IHJvb3Qgc2Vzc2lvbnMuDQoNClVidW50dSB2ZW5kb3Iga2VybmVsIDQuMTUgKDY0Yml0cykgOiBj
-b3JyZWN0IGJlaGF2aW91cg0KVWJ1bnR1IDUuMy4wIHZlbmRvciBrZXJuZWwgKDY0Yml0cyk6IEJB
-RCAod2l0aCBpcHRhYmxlIDEuNi4xIC0+IGlwdGFibGUgDQpydWxlcykNCkRlYmlhbiBrZXJuZWwg
-NS40LjE5ICgzMmJpdHMpOiBCQUQgKHdpdGggaXB0YWJsZS1uZnQgLT4gbmZ0IHJ1bGVzKQ0KDQpD
-bGVhbiBib290LCBubyBjb25udHJhY2sgbW9kdWxlIGxvYWRlZDoNCiMgY2F0IC9wcm9jL3N5cy9u
-ZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja190Y3BfdGltZW91dF9lc3RhYmxpc2hlZA0KY2F0OiAv
-cHJvYy9zeXMvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfdGNwX3RpbWVvdXRfZXN0YWJsaXNo
-ZWQ6IE5vIA0Kc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQ0KIyBtb2Rwcm9iZSBuZl9jb25udHJhY2sN
-CiMgY2F0IC9wcm9jL3N5cy9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja190Y3BfdGltZW91dF9l
-c3RhYmxpc2hlZA0KNDMyMDAwDQoNCkFkZCBhbiBpcCB0YWJsZSBydWxlIHRvIHN0YXJ0IGNvbm5l
-Y3Rpb24gdHJhY2tpbmc6DQojIGlwdGFibGUgLUEgSU5QVVQgLW0gc3RhdGUgLS1zdGF0ZSBSRUxB
-VEVELEVTVEFCTElTSEVEIC1qIEFDQ0VQVA0KDQpzaG93IHRjcCBzZXNzaW9uIHRyYWNraW5nIDoN
-CiMgY29ubnRyYWNrIC1MIHxncmVwIF50Y3ANCnRjcMKgwqDCoMKgwqAgNiAyOTkgRVNUQUJMSVNI
-RUQgc3JjPTEwLjIyMi4yMTkuMTY0IGRzdD0xMC4yMjIuMjE5LjggDQpzcG9ydD01NDQ3MCBkcG9y
-dD0yMiBzcmM9MTAuMjIyLjIxOS44IGRzdD0xMC4yMjIuMjE5LjE2NCBzcG9ydD0yMiANCmRwb3J0
-PTU0NDcwIFtBU1NVUkVEXSBtYXJrPTAgdXNlPTENCg0KdGltZW91dCBpcyBub3QgNDMyMDAwcyBi
-dXQgMzAwcy4NCk9uIGEgbW9kZXJhdGVkIGxvYWRlZCBzbXRwIHNlcnZlciwgYWxsIHNlc3Npb25z
-IGFyZSBhdCAzMDBzDQoNCmRvDQojIGVjaG8gNDMyMDAwID4vcHJvYy9zeXMvbmV0L25ldGZpbHRl
-ci9uZl9jb25udHJhY2tfdGNwX3RpbWVvdXRfZXN0YWJsaXNoZWQNCnNvbWV0aW1lcyBzZXNzaW9u
-cyBzdGFydCB0byBwaWNrIDQzMjAwMCBhcyBuZXcgdGltZW91dMKgIHNvbWV0aW1lcyBub3QuDQpG
-b3JjZSB0aGluZ3MgdG8gaGFwcGVuOg0KIyBjb25udHJhY2sgLUYNCiMgY29ubnRyYWNrIC1MIHxn
-cmVwIF50Y3AgfGdyZXAgRVNUQUJMSVNIRUQgfGdyZXAgQVNTVVJFRA0Kbm93IG9uIHRoZSBsb2Fk
-ZWQgc2VydmVyLCBtb3N0IHRjcCBzZXNzaW9ucyBwaWNrIHRoZSA0MzIwMDAgdGltZW91dCANCnZh
-bHVlLCBidXQgdGltZSB0byB0aW1lIHNvbWUgc3RpbGwgcGljayAzMDBzLg0KDQpPbiB0aGUgZGVi
-aWFuIHRlc3QgbWFjaGluZSB0cmVlIHNzaCBzZXNzaW9ucyBhcmUgb3BlbmVkIGluIHRyZWUgd2lu
-ZG93IA0KKEkgZG9udCBoYXZlIGNvbnNvbGUgb24gdGhpcyBtYWNoaW5lKQ0KRmlyc3Qgc3NoIHNl
-c3Npb246DQojIGNvbm50cmFjayAtTCB8Z3JlcCBedGNwDQpjb25udHJhY2sgdjEuNC41IChjb25u
-dHJhY2stdG9vbHMpOiAyNCBmbG93IGVudHJpZXMgaGF2ZSBiZWVuIHNob3duLg0KdGNwwqDCoMKg
-wqDCoCA2IDQzMTE0NCBFU1RBQkxJU0hFRCBzcmM9MTAuMjIyLjIxOS4xNjQgZHN0PTEwLjIyMi4y
-MTkuOCANCnNwb3J0PTU1MjQzIGRwb3J0PTIyIHNyYz0xMC4yMjIuMjE5LjggZHN0PTEwLjIyMi4y
-MTkuMTY0IHNwb3J0PTIyIA0KZHBvcnQ9NTUyNDMgW0FTU1VSRURdIG1hcms9MCB1c2U9MQ0KdGNw
-wqDCoMKgwqDCoCA2IDQzMTEyMCBFU1RBQkxJU0hFRCBzcmM9MTAuMjIyLjIxOS44IGRzdD0xMC4y
-MjIuMjE5LjE2NCANCnNwb3J0PTIyIGRwb3J0PTU1MzM5IHNyYz0xMC4yMjIuMjE5LjE2NCBkc3Q9
-MTAuMjIyLjIxOS44IHNwb3J0PTU1MzM5IA0KZHBvcnQ9MjIgW0FTU1VSRURdIG1hcms9MCB1c2U9
-MQ0KdGNwwqDCoMKgwqDCoCA2IDI5OSBFU1RBQkxJU0hFRCBzcmM9MTAuMjIyLjIxOS4xNjQgZHN0
-PTEwLjIyMi4yMTkuOCANCnNwb3J0PTU0NDcwIGRwb3J0PTIyIHNyYz0xMC4yMjIuMjE5LjggZHN0
-PTEwLjIyMi4yMTkuMTY0IHNwb3J0PTIyIA0KZHBvcnQ9NTQ0NzAgW0FTU1VSRURdIG1hcms9MCB1
-c2U9MQ0KDQpzZWNvbmQgb25lOg0KfiMgY29ubnRyYWNrIC1MIHxncmVwIF50Y3ANCmNvbm50cmFj
-ayB2MS40LjUgKGNvbm50cmFjay10b29scyk6IDI3IGZsb3cgZW50cmllcyBoYXZlIGJlZW4gc2hv
-d24uDQp0Y3DCoMKgwqDCoMKgIDYgNDMxMDk5IEVTVEFCTElTSEVEIHNyYz0xMC4yMjIuMjE5LjE2
-NCBkc3Q9MTAuMjIyLjIxOS44IA0Kc3BvcnQ9NTUyNDMgZHBvcnQ9MjIgc3JjPTEwLjIyMi4yMTku
-OCBkc3Q9MTAuMjIyLjIxOS4xNjQgc3BvcnQ9MjIgDQpkcG9ydD01NTI0MyBbQVNTVVJFRF0gbWFy
-az0wIHVzZT0xDQp0Y3DCoMKgwqDCoMKgIDYgNDMxOTk5IEVTVEFCTElTSEVEIHNyYz0xMC4yMjIu
-MjE5LjggZHN0PTEwLjIyMi4yMTkuMTY0IA0Kc3BvcnQ9MjIgZHBvcnQ9NTUzMzkgc3JjPTEwLjIy
-Mi4yMTkuMTY0IGRzdD0xMC4yMjIuMjE5Ljggc3BvcnQ9NTUzMzkgDQpkcG9ydD0yMiBbQVNTVVJF
-RF0gbWFyaz0wIHVzZT0xDQp0Y3DCoMKgwqDCoMKgIDYgNDMxOTYzIEVTVEFCTElTSEVEIHNyYz0x
-MC4yMjIuMjE5LjE2NCBkc3Q9MTAuMjIyLjIxOS44IA0Kc3BvcnQ9NTQ0NzAgZHBvcnQ9MjIgc3Jj
-PTEwLjIyMi4yMTkuOCBkc3Q9MTAuMjIyLjIxOS4xNjQgc3BvcnQ9MjIgDQpkcG9ydD01NDQ3MCBb
-QVNTVVJFRF0gbWFyaz0wIHVzZT0xDQoNCmxhc3Qgb25lOg0KIyBjb25udHJhY2sgLUwgfGdyZXAg
-XnRjcA0KY29ubnRyYWNrIHYxLjQuNSAoY29ubnRyYWNrLXRvb2xzKTogMjIgZmxvdyBlbnRyaWVz
-IGhhdmUgYmVlbiBzaG93bi4NCnRjcMKgwqDCoMKgwqAgNiA0MzE5OTkgRVNUQUJMSVNIRUQgc3Jj
-PTEwLjIyMi4yMTkuMTY0IGRzdD0xMC4yMjIuMjE5LjggDQpzcG9ydD01NTI0MyBkcG9ydD0yMiBz
-cmM9MTAuMjIyLjIxOS44IGRzdD0xMC4yMjIuMjE5LjE2NCBzcG9ydD0yMiANCmRwb3J0PTU1MjQz
-IFtBU1NVUkVEXSBtYXJrPTAgdXNlPTENCnRjcMKgwqDCoMKgwqAgNiA0MzE5NzkgRVNUQUJMSVNI
-RUQgc3JjPTEwLjIyMi4yMTkuOCBkc3Q9MTAuMjIyLjIxOS4xNjQgDQpzcG9ydD0yMiBkcG9ydD01
-NTMzOSBzcmM9MTAuMjIyLjIxOS4xNjQgZHN0PTEwLjIyMi4yMTkuOCBzcG9ydD01NTMzOSANCmRw
-b3J0PTIyIFtBU1NVUkVEXSBtYXJrPTAgdXNlPTENCnRjcMKgwqDCoMKgwqAgNiA0MzE5NDIgRVNU
-QUJMSVNIRUQgc3JjPTEwLjIyMi4yMTkuMTY0IGRzdD0xMC4yMjIuMjE5LjggDQpzcG9ydD01NDQ3
-MCBkcG9ydD0yMiBzcmM9MTAuMjIyLjIxOS44IGRzdD0xMC4yMjIuMjE5LjE2NCBzcG9ydD0yMiAN
-CmRwb3J0PTU0NDcwIFtBU1NVUkVEXSBtYXJrPTAgdXNlPTENCg0KY3Jhenkgbm8gPyE/IS4uLi4u
-DQoNCk9rIHRoZXNlIGFyZSBhbGwgInZlbmRvciIga2VybmVscywgYnV0IHRoZSBEZWJpYW4gb25l
-IGlzIHByZXR0eSBnZW51aW5lLiANCkl0IHNlZW1zIHRoYXQgc29tZSB1cHN0cmVhbSBidWdzIGFy
-ZSBsdXJraW5nIGFyb3VuZC4gRGViaWFuIGtlcm5lbCA1LjIuOSANCigzMmJpdHMpIHNlZW1zIG5v
-dCBhZmZlY3RlZCwgYnV0IFVidW50dSA1LjAgaXMgcGFydGlhbGx5IGFmZmVjdGVkOiAxMCUgDQpv
-ZiBjb25uZWN0aW9ucyAoZHVlIHRvIHNvbWUgYmFja3BvcnRzID8pDQoNCk9uIHRoZSBtb3N0IGFm
-ZmVjdGVkIHByb2R1Y3Rpb24gbWFjaGluZSAoVWJ1bnR1IHdpdGggNS4zIGtlcm5lbCksIHRoZSAN
-CnNhbWUgY29ubnRyYWNrIC1MIGludm9jYXRpb24gc29tZXRpbWVzIHJldHVybiAzMDAgc29tZXRp
-bWVzIDQzMjAwMCBmb3IgDQp0aGUgc2FtZSBsb25nLXJ1bm5pbmcgdGNwIGNvbm5lY3Rpb24uIEkg
-ZG9uJ3Qga25vdyBpZiBpdCBpcyBhIG5ldGxpbmsgDQpwcm9ibGVtIG9yIGEgcmVhbCBjb25udHJh
-Y2sgdGltZXIgY2hhbmdlIG9uIGFjdGl2aXR5IG9uIHRoZSB0Y3Agc2Vzc2lvbi4gDQpCdXQgYXMg
-bXkgc3NoIHNlc3Npb25zIG5ldmVyIHN1cnZpdmUgbW9yZSB0aGFuIDEwfjE1IG1pbiBJIHRoaW5r
-IHRoZXJlIA0KaXMgYSByZWFsIHByb2JsZW0gb24gdGhlIGNvbm50cmFjayB0aW1lcnMuDQoNCkFu
-eSB0aG91Z2h0cyA/DQoNCkVtbWFudWVsLg==
+On Mon, Feb 03, 2020 at 05:37:03PM +0100, Florian Westphal wrote:
+> This series allows conntrack to insert a duplicate conntrack entry
+> if the reply direction doesn't result in a clash with a different
+> original connection.
+
+Applied, thanks for your patience.
+
+I introduced the late clash resolution approach to deal with nfqueue,
+now this is extended to cover more cases, let's give it a try.
+
+>Alternatives considered were:
+>1.  Confirm ct entries at allocation time, not in postrouting.
+> a. will cause uneccesarry work when the skb that creates the
+>    conntrack is dropped by ruleset.
+> b. in case nat is applied, ct entry would need to be moved in
+>    the table, which requires another spinlock pair to be taken.
+> c. breaks the 'unconfirmed entry is private to cpu' assumption:
+>    we would need to guard all nfct->ext allocation requests with
+>    ct->lock spinlock.
+>
+>2. Make the unconfirmed list a hash table instead of a pcpu list.
+>   Shares drawback c) of the first alternative.
+
+The spinlock would need to be grabbed rarely, right? My mean, most
+extension allocations happen before insertion to the unconfirmed list.
+Only _ext_add() invocations coming after init_conntrack() might
+require this.
+
+Thanks.
