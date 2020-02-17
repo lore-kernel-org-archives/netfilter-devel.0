@@ -2,68 +2,47 @@ Return-Path: <SRS0=8OCJ=4F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2561FC7619D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Feb 2020 06:42:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D509C35254
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Feb 2020 09:54:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 070BF206F4
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Feb 2020 06:42:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 19418206F4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Feb 2020 09:54:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726397AbgBQGmQ (ORCPT
+        id S1729073AbgBQJyI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 17 Feb 2020 01:42:16 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:38678 "EHLO
+        Mon, 17 Feb 2020 04:54:08 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:39856 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725855AbgBQGmQ (ORCPT
+        by vger.kernel.org with ESMTP id S1729025AbgBQJyI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Feb 2020 01:42:16 -0500
+        Mon, 17 Feb 2020 04:54:08 -0500
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1j3a6d-0006zB-SH; Mon, 17 Feb 2020 07:42:11 +0100
-Date:   Mon, 17 Feb 2020 07:42:11 +0100
+        (envelope-from <fw@breakpoint.cc>)
+        id 1j3d6N-0008Lv-M3; Mon, 17 Feb 2020 10:54:07 +0100
 From:   Florian Westphal <fw@strlen.de>
-To:     syzbot <syzbot+2a3b1b28cad90c608e20@syzkaller.appspotmail.com>
-Cc:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@netfilter.org, kuba@kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        syzkaller-bugs@googlegroups.com
-Subject: Re: WARNING in nf_tables_table_destroy
-Message-ID: <20200217064211.GA19559@breakpoint.cc>
-References: <00000000000014b040059c654481@google.com>
- <0000000000003f07f8059ebf6465@google.com>
+To:     <netfilter-devel@vger.kernel.org>
+Subject: [PATCH nf-next 0/2] netfilter: nf_tables: make sets built-in
+Date:   Mon, 17 Feb 2020 10:53:57 +0100
+Message-Id: <20200217095359.22791-1-fw@strlen.de>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0000000000003f07f8059ebf6465@google.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot <syzbot+2a3b1b28cad90c608e20@syzkaller.appspotmail.com> wrote:
-> syzbot suspects this bug was fixed by commit:
-> 
-> commit eb014de4fd418de1a277913cba244e47274fe392
-> Author: Pablo Neira Ayuso <pablo@netfilter.org>
-> Date:   Tue Jan 21 15:48:03 2020 +0000
-> 
->     netfilter: nf_tables: autoload modules from the abort path
-> 
-> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=14e9cc7ee00000
-> start commit:   5a9ef194 net: systemport: Fixed queue mapping in internal ..
-> git tree:       net
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=7e89bd00623fe71e
-> dashboard link: https://syzkaller.appspot.com/bug?extid=2a3b1b28cad90c608e20
-> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15338966e00000
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1667d8d6e00000
-> 
-> If the result looks correct, please mark the bug fixed by replying with:
+There is little to no technical reason to have an extra kconfig knob for
+this; nf_tables main use case it levaraging set infrastructure for
+decisions/packet classification.
 
-It does.
+Also there were number of bug reports that turned out to be
+caused by builds with nftables enabled and sets disabled.
 
-#syz fix: netfilter: nf_tables: autoload modules from the abort path
+This removes the set kconfig knob and places set infra in the nf_tables
+core.
+
