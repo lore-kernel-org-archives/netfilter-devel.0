@@ -2,222 +2,149 @@ Return-Path: <SRS0=aYEw=4G=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 526D0C34038
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Feb 2020 10:59:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EE2EC34026
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Feb 2020 12:00:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 366EF206E2
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Feb 2020 10:59:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1623B206F4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Feb 2020 12:00:23 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=thalesgroup.com header.i=@thalesgroup.com header.b="vj5TNzCJ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726477AbgBRK7n (ORCPT
+        id S1726360AbgBRMAW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 Feb 2020 05:59:43 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:45184 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726411AbgBRK7m (ORCPT
+        Tue, 18 Feb 2020 07:00:22 -0500
+Received: from thsbbfxrt02p.thalesgroup.com ([192.93.158.29]:42774 "EHLO
+        thsbbfxrt02p.thalesgroup.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726206AbgBRMAW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Feb 2020 05:59:42 -0500
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1j40bM-0002n8-JS; Tue, 18 Feb 2020 11:59:40 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 2/2] netfilter: nf_tables: make all set structs const
-Date:   Tue, 18 Feb 2020 11:59:27 +0100
-Message-Id: <20200218105927.4685-3-fw@strlen.de>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200218105927.4685-1-fw@strlen.de>
-References: <20200218105927.4685-1-fw@strlen.de>
+        Tue, 18 Feb 2020 07:00:22 -0500
+Received: from thsbbfxrt02p.thalesgroup.com (localhost [127.0.0.1])
+        by localhost (Postfix) with SMTP id 48MKDN5r1wzJyZv
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Feb 2020 13:00:20 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=thalesgroup.com;
+        s=xrt20181201; t=1582027220;
+        bh=mmxBT4ggXZN3xRbxM7ju8K10boGVCEr/gpkvar1Eajg=;
+        h=From:To:Subject:Date:Message-ID:References:In-Reply-To:
+         Content-Transfer-Encoding:MIME-Version:From;
+        b=vj5TNzCJ51Ly5JxPr6Gc9SuOKq2nRs8MqfWpc3yM/Mm7zfFKM97XHMv+LB+m0c3KQ
+         7lbqQNQXzNDvJofW2K46Kvhci6EAR/HQdwG/djUHC0nBe7QitvQjG0iqsj3a9MFnXF
+         QtOdhNTA38vDZirOz25tdBAtdhB3FOe2ZE2uuLnKH9GkBNxTse2I0CumuNeV8ecKd8
+         2/eAPzGpugowBAhesEEiMulDkkLPsLDCSPke7PuL7icVwAoFr9/iJIrxhH/zgBQSo5
+         1ra97EfneLFBNnxxPGg8memTU8dELyNuIRSkv6XTiKvFvJSgqqai143NwiF0cdmUEW
+         8gvKegbVTqLRQ==
+From:   FUSTE Emmanuel <emmanuel.fuste@thalesgroup.com>
+To:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: Re: Strange nf_conntrack_tcp_timeout_established behavior
+Thread-Topic: Strange nf_conntrack_tcp_timeout_established behavior
+Thread-Index: AQHV5bhrp8PUNIgsU0+452UfNMwcF6ggybyA
+Date:   Tue, 18 Feb 2020 12:00:12 +0000
+Message-ID: <537c9a90-93fa-addc-40e2-f581c119e876@thalesgroup.com>
+References: <1167d09d-12f3-90b7-e015-907883b1835b@thalesgroup.com>
+In-Reply-To: <1167d09d-12f3-90b7-e015-907883b1835b@thalesgroup.com>
+Accept-Language: fr-FR, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+user-agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.3.1
+x-pmwin-version: 4.0.3, Antivirus-Engine: 3.77.1, Antivirus-Data: 5.72
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <18315EC6D0BD534BAEDFF102087DC5F9@iris.infra.thales>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-They do not need to be writeable anymore.
-
-v2: remove left-over __read_mostly annotation in set_pipapo.c (Stefano)
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_tables.h      |  4 ----
- include/net/netfilter/nf_tables_core.h | 12 ++++++------
- net/netfilter/nf_tables_api.c          | 14 ++------------
- net/netfilter/nft_set_bitmap.c         |  3 +--
- net/netfilter/nft_set_hash.c           |  9 +++------
- net/netfilter/nft_set_pipapo.c         |  3 +--
- net/netfilter/nft_set_rbtree.c         |  3 +--
- 7 files changed, 14 insertions(+), 34 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 9a5f41028736..d913cdb6a27b 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -385,14 +385,10 @@ struct nft_set_ops {
-  *      struct nft_set_type - nf_tables set type
-  *
-  *      @ops: set ops for this type
-- *      @list: used internally
-- *      @owner: module reference
-  *      @features: features supported by the implementation
-  */
- struct nft_set_type {
- 	const struct nft_set_ops	ops;
--	struct list_head		list;
--	struct module			*owner;
- 	u32				features;
- };
- #define to_set_type(o) container_of(o, struct nft_set_type, ops)
-diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
-index 29e7e1021267..3e30cc5d195b 100644
---- a/include/net/netfilter/nf_tables_core.h
-+++ b/include/net/netfilter/nf_tables_core.h
-@@ -69,12 +69,12 @@ extern const struct nft_expr_ops nft_payload_fast_ops;
- extern struct static_key_false nft_counters_enabled;
- extern struct static_key_false nft_trace_enabled;
- 
--extern struct nft_set_type nft_set_rhash_type;
--extern struct nft_set_type nft_set_hash_type;
--extern struct nft_set_type nft_set_hash_fast_type;
--extern struct nft_set_type nft_set_rbtree_type;
--extern struct nft_set_type nft_set_bitmap_type;
--extern struct nft_set_type nft_set_pipapo_type;
-+extern const struct nft_set_type nft_set_rhash_type;
-+extern const struct nft_set_type nft_set_hash_type;
-+extern const struct nft_set_type nft_set_hash_fast_type;
-+extern const struct nft_set_type nft_set_rbtree_type;
-+extern const struct nft_set_type nft_set_bitmap_type;
-+extern const struct nft_set_type nft_set_pipapo_type;
- 
- struct nft_expr;
- struct nft_regs;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 28add8f24191..0cd41e42df81 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3339,11 +3339,6 @@ nft_select_set_ops(const struct nft_ctx *ctx,
- 			break;
- 		}
- 
--		if (!try_module_get(type->owner))
--			continue;
--		if (bops != NULL)
--			module_put(to_set_type(bops)->owner);
--
- 		bops = ops;
- 		best = est;
- 	}
-@@ -4042,10 +4037,8 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 		size = ops->privsize(nla, &desc);
- 
- 	set = kvzalloc(sizeof(*set) + size + udlen, GFP_KERNEL);
--	if (!set) {
--		err = -ENOMEM;
--		goto err1;
--	}
-+	if (!set)
-+		return -ENOMEM;
- 
- 	name = nla_strdup(nla[NFTA_SET_NAME], GFP_KERNEL);
- 	if (!name) {
-@@ -4104,8 +4097,6 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 	kfree(set->name);
- err2:
- 	kvfree(set);
--err1:
--	module_put(to_set_type(ops)->owner);
- 	return err;
- }
- 
-@@ -4115,7 +4106,6 @@ static void nft_set_destroy(struct nft_set *set)
- 		return;
- 
- 	set->ops->destroy(set);
--	module_put(to_set_type(set->ops)->owner);
- 	kfree(set->name);
- 	kvfree(set);
- }
-diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
-index 87e8d9ba0c9b..1cb2e67e6e03 100644
---- a/net/netfilter/nft_set_bitmap.c
-+++ b/net/netfilter/nft_set_bitmap.c
-@@ -293,8 +293,7 @@ static bool nft_bitmap_estimate(const struct nft_set_desc *desc, u32 features,
- 	return true;
- }
- 
--struct nft_set_type nft_set_bitmap_type __read_mostly = {
--	.owner		= THIS_MODULE,
-+const struct nft_set_type nft_set_bitmap_type = {
- 	.ops		= {
- 		.privsize	= nft_bitmap_privsize,
- 		.elemsize	= offsetof(struct nft_bitmap_elem, ext),
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index d350a7cd3af0..4d3f147e8d8d 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -662,8 +662,7 @@ static bool nft_hash_fast_estimate(const struct nft_set_desc *desc, u32 features
- 	return true;
- }
- 
--struct nft_set_type nft_set_rhash_type __read_mostly = {
--	.owner		= THIS_MODULE,
-+const struct nft_set_type nft_set_rhash_type = {
- 	.features	= NFT_SET_MAP | NFT_SET_OBJECT |
- 			  NFT_SET_TIMEOUT | NFT_SET_EVAL,
- 	.ops		= {
-@@ -686,8 +685,7 @@ struct nft_set_type nft_set_rhash_type __read_mostly = {
- 	},
- };
- 
--struct nft_set_type nft_set_hash_type __read_mostly = {
--	.owner		= THIS_MODULE,
-+const struct nft_set_type nft_set_hash_type = {
- 	.features	= NFT_SET_MAP | NFT_SET_OBJECT,
- 	.ops		= {
- 		.privsize       = nft_hash_privsize,
-@@ -706,8 +704,7 @@ struct nft_set_type nft_set_hash_type __read_mostly = {
- 	},
- };
- 
--struct nft_set_type nft_set_hash_fast_type __read_mostly = {
--	.owner		= THIS_MODULE,
-+const struct nft_set_type nft_set_hash_fast_type = {
- 	.features	= NFT_SET_MAP | NFT_SET_OBJECT,
- 	.ops		= {
- 		.privsize       = nft_hash_privsize,
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index f0cb1e13af50..f7f75f618a04 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -2079,8 +2079,7 @@ static void nft_pipapo_gc_init(const struct nft_set *set)
- 	priv->last_gc = jiffies;
- }
- 
--struct nft_set_type nft_set_pipapo_type __read_mostly = {
--	.owner		= THIS_MODULE,
-+const struct nft_set_type nft_set_pipapo_type = {
- 	.features	= NFT_SET_INTERVAL | NFT_SET_MAP | NFT_SET_OBJECT |
- 			  NFT_SET_TIMEOUT,
- 	.ops		= {
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 5000b938ab1e..172ef8189f99 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -481,8 +481,7 @@ static bool nft_rbtree_estimate(const struct nft_set_desc *desc, u32 features,
- 	return true;
- }
- 
--struct nft_set_type nft_set_rbtree_type __read_mostly = {
--	.owner		= THIS_MODULE,
-+const struct nft_set_type nft_set_rbtree_type = {
- 	.features	= NFT_SET_INTERVAL | NFT_SET_MAP | NFT_SET_OBJECT | NFT_SET_TIMEOUT,
- 	.ops		= {
- 		.privsize	= nft_rbtree_privsize,
--- 
-2.24.1
-
+T2ssIHRvcCBwb3N0aW5nIG15IG93biBtZXNzYWdlIC4uLiA6IEZvcmdldCBpdC4NCg0KRGVidWdn
+aW5nIHNzaCB0Y3Agc2Vzc2lvbiB0cmFja2luZyB2aWEgc3NoIHNlc3Npb24gaXMgYSB2ZXJ5IGJh
+ZCBpZGVhIA0KLi4uIG15IHRlc3Qgb24gdGhlIGRlYmlhbiBtYWNoaW5lIGlzIG5vcm1hbC4NCkkg
+dGhpbmsgSSBmb3VuZCB0aGUgY3VscHJpdCBvZiBteSBoZWFkYWNoZSA6IGhlYXZ5IFpXUCBmaWx0
+ZXJpbmcgYnkgc29tZSANCmZpcmV3YWxscy4uLi4NCg0KRW1tYW51ZWwuDQoNCkxlIDE3LzAyLzIw
+MjAgw6AgMTg6MzMsIEVtbWFudWVsIEZ1c3TDqSBhIMOpY3JpdMKgOg0KPiBIZWxsbywNCj4gSSBh
+bSBmYWNpbmcgYSBzdHJhbmdlIHByb2JsZW0gd2l0aCByZWNlbnQga2VybmVscy4NCj4NCj4gT24g
+ImJhZCIga2VybmVsLCBuZl9jb25udHJhY2tfdGNwX3RpbWVvdXRfZXN0YWJsaXNoZWQgZGVmYXVs
+dCB2YWx1ZSBpcyANCj4gbm90IGhvbm9yZWQsIGFuZCBjb25udHJhY2sgLUwgcmV0dXJuIGRpZmZl
+cmVudCByZXN1bHRzIG9uIHRoZSBzYW1lIA0KPiBtYWNoaW5lIGluIGRpZmZlcmVudCBzc2ggcm9v
+dCBzZXNzaW9ucy4NCj4NCj4gVWJ1bnR1IHZlbmRvciBrZXJuZWwgNC4xNSAoNjRiaXRzKSA6IGNv
+cnJlY3QgYmVoYXZpb3VyDQo+IFVidW50dSA1LjMuMCB2ZW5kb3Iga2VybmVsICg2NGJpdHMpOiBC
+QUQgKHdpdGggaXB0YWJsZSAxLjYuMSAtPiANCj4gaXB0YWJsZSBydWxlcykNCj4gRGViaWFuIGtl
+cm5lbCA1LjQuMTkgKDMyYml0cyk6IEJBRCAod2l0aCBpcHRhYmxlLW5mdCAtPiBuZnQgcnVsZXMp
+DQo+DQo+IENsZWFuIGJvb3QsIG5vIGNvbm50cmFjayBtb2R1bGUgbG9hZGVkOg0KPiAjIGNhdCAv
+cHJvYy9zeXMvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfdGNwX3RpbWVvdXRfZXN0YWJsaXNo
+ZWQNCj4gY2F0OiAvcHJvYy9zeXMvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfdGNwX3RpbWVv
+dXRfZXN0YWJsaXNoZWQ6IE5vIA0KPiBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5DQo+ICMgbW9kcHJv
+YmUgbmZfY29ubnRyYWNrDQo+ICMgY2F0IC9wcm9jL3N5cy9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50
+cmFja190Y3BfdGltZW91dF9lc3RhYmxpc2hlZA0KPiA0MzIwMDANCj4NCj4gQWRkIGFuIGlwIHRh
+YmxlIHJ1bGUgdG8gc3RhcnQgY29ubmVjdGlvbiB0cmFja2luZzoNCj4gIyBpcHRhYmxlIC1BIElO
+UFVUIC1tIHN0YXRlIC0tc3RhdGUgUkVMQVRFRCxFU1RBQkxJU0hFRCAtaiBBQ0NFUFQNCj4NCj4g
+c2hvdyB0Y3Agc2Vzc2lvbiB0cmFja2luZyA6DQo+ICMgY29ubnRyYWNrIC1MIHxncmVwIF50Y3AN
+Cj4gdGNwwqDCoMKgwqDCoCA2IDI5OSBFU1RBQkxJU0hFRCBzcmM9MTAuMjIyLjIxOS4xNjQgZHN0
+PTEwLjIyMi4yMTkuOCANCj4gc3BvcnQ9NTQ0NzAgZHBvcnQ9MjIgc3JjPTEwLjIyMi4yMTkuOCBk
+c3Q9MTAuMjIyLjIxOS4xNjQgc3BvcnQ9MjIgDQo+IGRwb3J0PTU0NDcwIFtBU1NVUkVEXSBtYXJr
+PTAgdXNlPTENCj4NCj4gdGltZW91dCBpcyBub3QgNDMyMDAwcyBidXQgMzAwcy4NCj4gT24gYSBt
+b2RlcmF0ZWQgbG9hZGVkIHNtdHAgc2VydmVyLCBhbGwgc2Vzc2lvbnMgYXJlIGF0IDMwMHMNCj4N
+Cj4gZG8NCj4gIyBlY2hvIDQzMjAwMCANCj4gPi9wcm9jL3N5cy9uZXQvbmV0ZmlsdGVyL25mX2Nv
+bm50cmFja190Y3BfdGltZW91dF9lc3RhYmxpc2hlZA0KPiBzb21ldGltZXMgc2Vzc2lvbnMgc3Rh
+cnQgdG8gcGljayA0MzIwMDAgYXMgbmV3IHRpbWVvdXTCoCBzb21ldGltZXMgbm90Lg0KPiBGb3Jj
+ZSB0aGluZ3MgdG8gaGFwcGVuOg0KPiAjIGNvbm50cmFjayAtRg0KPiAjIGNvbm50cmFjayAtTCB8
+Z3JlcCBedGNwIHxncmVwIEVTVEFCTElTSEVEIHxncmVwIEFTU1VSRUQNCj4gbm93IG9uIHRoZSBs
+b2FkZWQgc2VydmVyLCBtb3N0IHRjcCBzZXNzaW9ucyBwaWNrIHRoZSA0MzIwMDAgdGltZW91dCAN
+Cj4gdmFsdWUsIGJ1dCB0aW1lIHRvIHRpbWUgc29tZSBzdGlsbCBwaWNrIDMwMHMuDQo+DQo+IE9u
+IHRoZSBkZWJpYW4gdGVzdCBtYWNoaW5lIHRyZWUgc3NoIHNlc3Npb25zIGFyZSBvcGVuZWQgaW4g
+dHJlZSB3aW5kb3cgDQo+IChJIGRvbnQgaGF2ZSBjb25zb2xlIG9uIHRoaXMgbWFjaGluZSkNCj4g
+Rmlyc3Qgc3NoIHNlc3Npb246DQo+ICMgY29ubnRyYWNrIC1MIHxncmVwIF50Y3ANCj4gY29ubnRy
+YWNrIHYxLjQuNSAoY29ubnRyYWNrLXRvb2xzKTogMjQgZmxvdyBlbnRyaWVzIGhhdmUgYmVlbiBz
+aG93bi4NCj4gdGNwwqDCoMKgwqDCoCA2IDQzMTE0NCBFU1RBQkxJU0hFRCBzcmM9MTAuMjIyLjIx
+OS4xNjQgZHN0PTEwLjIyMi4yMTkuOCANCj4gc3BvcnQ9NTUyNDMgZHBvcnQ9MjIgc3JjPTEwLjIy
+Mi4yMTkuOCBkc3Q9MTAuMjIyLjIxOS4xNjQgc3BvcnQ9MjIgDQo+IGRwb3J0PTU1MjQzIFtBU1NV
+UkVEXSBtYXJrPTAgdXNlPTENCj4gdGNwwqDCoMKgwqDCoCA2IDQzMTEyMCBFU1RBQkxJU0hFRCBz
+cmM9MTAuMjIyLjIxOS44IGRzdD0xMC4yMjIuMjE5LjE2NCANCj4gc3BvcnQ9MjIgZHBvcnQ9NTUz
+Mzkgc3JjPTEwLjIyMi4yMTkuMTY0IGRzdD0xMC4yMjIuMjE5Ljggc3BvcnQ9NTUzMzkgDQo+IGRw
+b3J0PTIyIFtBU1NVUkVEXSBtYXJrPTAgdXNlPTENCj4gdGNwwqDCoMKgwqDCoCA2IDI5OSBFU1RB
+QkxJU0hFRCBzcmM9MTAuMjIyLjIxOS4xNjQgZHN0PTEwLjIyMi4yMTkuOCANCj4gc3BvcnQ9NTQ0
+NzAgZHBvcnQ9MjIgc3JjPTEwLjIyMi4yMTkuOCBkc3Q9MTAuMjIyLjIxOS4xNjQgc3BvcnQ9MjIg
+DQo+IGRwb3J0PTU0NDcwIFtBU1NVUkVEXSBtYXJrPTAgdXNlPTENCj4NCj4gc2Vjb25kIG9uZToN
+Cj4gfiMgY29ubnRyYWNrIC1MIHxncmVwIF50Y3ANCj4gY29ubnRyYWNrIHYxLjQuNSAoY29ubnRy
+YWNrLXRvb2xzKTogMjcgZmxvdyBlbnRyaWVzIGhhdmUgYmVlbiBzaG93bi4NCj4gdGNwwqDCoMKg
+wqDCoCA2IDQzMTA5OSBFU1RBQkxJU0hFRCBzcmM9MTAuMjIyLjIxOS4xNjQgZHN0PTEwLjIyMi4y
+MTkuOCANCj4gc3BvcnQ9NTUyNDMgZHBvcnQ9MjIgc3JjPTEwLjIyMi4yMTkuOCBkc3Q9MTAuMjIy
+LjIxOS4xNjQgc3BvcnQ9MjIgDQo+IGRwb3J0PTU1MjQzIFtBU1NVUkVEXSBtYXJrPTAgdXNlPTEN
+Cj4gdGNwwqDCoMKgwqDCoCA2IDQzMTk5OSBFU1RBQkxJU0hFRCBzcmM9MTAuMjIyLjIxOS44IGRz
+dD0xMC4yMjIuMjE5LjE2NCANCj4gc3BvcnQ9MjIgZHBvcnQ9NTUzMzkgc3JjPTEwLjIyMi4yMTku
+MTY0IGRzdD0xMC4yMjIuMjE5Ljggc3BvcnQ9NTUzMzkgDQo+IGRwb3J0PTIyIFtBU1NVUkVEXSBt
+YXJrPTAgdXNlPTENCj4gdGNwwqDCoMKgwqDCoCA2IDQzMTk2MyBFU1RBQkxJU0hFRCBzcmM9MTAu
+MjIyLjIxOS4xNjQgZHN0PTEwLjIyMi4yMTkuOCANCj4gc3BvcnQ9NTQ0NzAgZHBvcnQ9MjIgc3Jj
+PTEwLjIyMi4yMTkuOCBkc3Q9MTAuMjIyLjIxOS4xNjQgc3BvcnQ9MjIgDQo+IGRwb3J0PTU0NDcw
+IFtBU1NVUkVEXSBtYXJrPTAgdXNlPTENCj4NCj4gbGFzdCBvbmU6DQo+ICMgY29ubnRyYWNrIC1M
+IHxncmVwIF50Y3ANCj4gY29ubnRyYWNrIHYxLjQuNSAoY29ubnRyYWNrLXRvb2xzKTogMjIgZmxv
+dyBlbnRyaWVzIGhhdmUgYmVlbiBzaG93bi4NCj4gdGNwwqDCoMKgwqDCoCA2IDQzMTk5OSBFU1RB
+QkxJU0hFRCBzcmM9MTAuMjIyLjIxOS4xNjQgZHN0PTEwLjIyMi4yMTkuOCANCj4gc3BvcnQ9NTUy
+NDMgZHBvcnQ9MjIgc3JjPTEwLjIyMi4yMTkuOCBkc3Q9MTAuMjIyLjIxOS4xNjQgc3BvcnQ9MjIg
+DQo+IGRwb3J0PTU1MjQzIFtBU1NVUkVEXSBtYXJrPTAgdXNlPTENCj4gdGNwwqDCoMKgwqDCoCA2
+IDQzMTk3OSBFU1RBQkxJU0hFRCBzcmM9MTAuMjIyLjIxOS44IGRzdD0xMC4yMjIuMjE5LjE2NCAN
+Cj4gc3BvcnQ9MjIgZHBvcnQ9NTUzMzkgc3JjPTEwLjIyMi4yMTkuMTY0IGRzdD0xMC4yMjIuMjE5
+Ljggc3BvcnQ9NTUzMzkgDQo+IGRwb3J0PTIyIFtBU1NVUkVEXSBtYXJrPTAgdXNlPTENCj4gdGNw
+wqDCoMKgwqDCoCA2IDQzMTk0MiBFU1RBQkxJU0hFRCBzcmM9MTAuMjIyLjIxOS4xNjQgZHN0PTEw
+LjIyMi4yMTkuOCANCj4gc3BvcnQ9NTQ0NzAgZHBvcnQ9MjIgc3JjPTEwLjIyMi4yMTkuOCBkc3Q9
+MTAuMjIyLjIxOS4xNjQgc3BvcnQ9MjIgDQo+IGRwb3J0PTU0NDcwIFtBU1NVUkVEXSBtYXJrPTAg
+dXNlPTENCj4NCj4gY3Jhenkgbm8gPyE/IS4uLi4uDQo+DQo+IE9rIHRoZXNlIGFyZSBhbGwgInZl
+bmRvciIga2VybmVscywgYnV0IHRoZSBEZWJpYW4gb25lIGlzIHByZXR0eSANCj4gZ2VudWluZS4g
+SXQgc2VlbXMgdGhhdCBzb21lIHVwc3RyZWFtIGJ1Z3MgYXJlIGx1cmtpbmcgYXJvdW5kLiBEZWJp
+YW4gDQo+IGtlcm5lbCA1LjIuOSAoMzJiaXRzKSBzZWVtcyBub3QgYWZmZWN0ZWQsIGJ1dCBVYnVu
+dHUgNS4wIGlzIHBhcnRpYWxseSANCj4gYWZmZWN0ZWQ6IDEwJSBvZiBjb25uZWN0aW9ucyAoZHVl
+IHRvIHNvbWUgYmFja3BvcnRzID8pDQo+DQo+IE9uIHRoZSBtb3N0IGFmZmVjdGVkIHByb2R1Y3Rp
+b24gbWFjaGluZSAoVWJ1bnR1IHdpdGggNS4zIGtlcm5lbCksIHRoZSANCj4gc2FtZSBjb25udHJh
+Y2sgLUwgaW52b2NhdGlvbiBzb21ldGltZXMgcmV0dXJuIDMwMCBzb21ldGltZXMgNDMyMDAwIGZv
+ciANCj4gdGhlIHNhbWUgbG9uZy1ydW5uaW5nIHRjcCBjb25uZWN0aW9uLiBJIGRvbid0IGtub3cg
+aWYgaXQgaXMgYSBuZXRsaW5rIA0KPiBwcm9ibGVtIG9yIGEgcmVhbCBjb25udHJhY2sgdGltZXIg
+Y2hhbmdlIG9uIGFjdGl2aXR5IG9uIHRoZSB0Y3AgDQo+IHNlc3Npb24uIEJ1dCBhcyBteSBzc2gg
+c2Vzc2lvbnMgbmV2ZXIgc3Vydml2ZSBtb3JlIHRoYW4gMTB+MTUgbWluIEkgDQo+IHRoaW5rIHRo
+ZXJlIGlzIGEgcmVhbCBwcm9ibGVtIG9uIHRoZSBjb25udHJhY2sgdGltZXJzLg0KPg0KPiBBbnkg
+dGhvdWdodHMgPw0KPg0KPiBFbW1hbnVlbC4NCg==
