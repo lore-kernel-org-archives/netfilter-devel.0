@@ -2,149 +2,95 @@ Return-Path: <SRS0=aYEw=4G=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EE2EC34026
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Feb 2020 12:00:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19876C34026
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Feb 2020 12:19:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1623B206F4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Feb 2020 12:00:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8FA5620722
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Feb 2020 12:19:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=thalesgroup.com header.i=@thalesgroup.com header.b="vj5TNzCJ"
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="qWHVAR/4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726360AbgBRMAW (ORCPT
+        id S1726363AbgBRMTu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 Feb 2020 07:00:22 -0500
-Received: from thsbbfxrt02p.thalesgroup.com ([192.93.158.29]:42774 "EHLO
-        thsbbfxrt02p.thalesgroup.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726206AbgBRMAW (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Feb 2020 07:00:22 -0500
-Received: from thsbbfxrt02p.thalesgroup.com (localhost [127.0.0.1])
-        by localhost (Postfix) with SMTP id 48MKDN5r1wzJyZv
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Feb 2020 13:00:20 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=thalesgroup.com;
-        s=xrt20181201; t=1582027220;
-        bh=mmxBT4ggXZN3xRbxM7ju8K10boGVCEr/gpkvar1Eajg=;
-        h=From:To:Subject:Date:Message-ID:References:In-Reply-To:
-         Content-Transfer-Encoding:MIME-Version:From;
-        b=vj5TNzCJ51Ly5JxPr6Gc9SuOKq2nRs8MqfWpc3yM/Mm7zfFKM97XHMv+LB+m0c3KQ
-         7lbqQNQXzNDvJofW2K46Kvhci6EAR/HQdwG/djUHC0nBe7QitvQjG0iqsj3a9MFnXF
-         QtOdhNTA38vDZirOz25tdBAtdhB3FOe2ZE2uuLnKH9GkBNxTse2I0CumuNeV8ecKd8
-         2/eAPzGpugowBAhesEEiMulDkkLPsLDCSPke7PuL7icVwAoFr9/iJIrxhH/zgBQSo5
-         1ra97EfneLFBNnxxPGg8memTU8dELyNuIRSkv6XTiKvFvJSgqqai143NwiF0cdmUEW
-         8gvKegbVTqLRQ==
-From:   FUSTE Emmanuel <emmanuel.fuste@thalesgroup.com>
-To:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Re: Strange nf_conntrack_tcp_timeout_established behavior
-Thread-Topic: Strange nf_conntrack_tcp_timeout_established behavior
-Thread-Index: AQHV5bhrp8PUNIgsU0+452UfNMwcF6ggybyA
-Date:   Tue, 18 Feb 2020 12:00:12 +0000
-Message-ID: <537c9a90-93fa-addc-40e2-f581c119e876@thalesgroup.com>
-References: <1167d09d-12f3-90b7-e015-907883b1835b@thalesgroup.com>
-In-Reply-To: <1167d09d-12f3-90b7-e015-907883b1835b@thalesgroup.com>
-Accept-Language: fr-FR, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-user-agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.3.1
-x-pmwin-version: 4.0.3, Antivirus-Engine: 3.77.1, Antivirus-Data: 5.72
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <18315EC6D0BD534BAEDFF102087DC5F9@iris.infra.thales>
-Content-Transfer-Encoding: base64
+        Tue, 18 Feb 2020 07:19:50 -0500
+Received: from smtp-out.kfki.hu ([148.6.0.46]:49111 "EHLO smtp-out.kfki.hu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726086AbgBRMTu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Feb 2020 07:19:50 -0500
+Received: from localhost (localhost [127.0.0.1])
+        by smtp1.kfki.hu (Postfix) with ESMTP id E574B3C80103;
+        Tue, 18 Feb 2020 13:19:47 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        blackhole.kfki.hu; h=mime-version:x-mailer:message-id:date:date
+        :from:from:received:received:received; s=20151130; t=1582028386;
+         x=1583842787; bh=HZS2XOQ5uwv9+gtaxWiw8Xt7RS0NkqkIoxaJBDtsbUM=; b=
+        qWHVAR/4TcJyBg86mhl0RfdCPaU0TBMJ+dCXWpiimewwhOuD5BDe8pX5N+cpsE0F
+        L/2n2PUv1P51kj5NRq2xhkZxo6Ix323CJifHioKjqn0MrZXkawtFyecnujZgu5x9
+        2BRjtHCZ9MPzLez87losab5WiR+nBpqZfYMESxvCS58=
+X-Virus-Scanned: Debian amavisd-new at smtp1.kfki.hu
+Received: from smtp1.kfki.hu ([127.0.0.1])
+        by localhost (smtp1.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Tue, 18 Feb 2020 13:19:46 +0100 (CET)
+Received: from blackhole.kfki.hu (blackhole.kfki.hu [IPv6:2001:738:5001:1::240:2])
+        by smtp1.kfki.hu (Postfix) with ESMTP id B1E453C80100;
+        Tue, 18 Feb 2020 13:19:45 +0100 (CET)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id 89AD621D5C; Tue, 18 Feb 2020 13:19:45 +0100 (CET)
+From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Hillf Danton <hdanton@sina.com>
+Subject: [PATCH 0/1] ipset patch for nf
+Date:   Tue, 18 Feb 2020 13:19:44 +0100
+Message-Id: <20200218121945.14513-1-kadlec@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-T2ssIHRvcCBwb3N0aW5nIG15IG93biBtZXNzYWdlIC4uLiA6IEZvcmdldCBpdC4NCg0KRGVidWdn
-aW5nIHNzaCB0Y3Agc2Vzc2lvbiB0cmFja2luZyB2aWEgc3NoIHNlc3Npb24gaXMgYSB2ZXJ5IGJh
-ZCBpZGVhIA0KLi4uIG15IHRlc3Qgb24gdGhlIGRlYmlhbiBtYWNoaW5lIGlzIG5vcm1hbC4NCkkg
-dGhpbmsgSSBmb3VuZCB0aGUgY3VscHJpdCBvZiBteSBoZWFkYWNoZSA6IGhlYXZ5IFpXUCBmaWx0
-ZXJpbmcgYnkgc29tZSANCmZpcmV3YWxscy4uLi4NCg0KRW1tYW51ZWwuDQoNCkxlIDE3LzAyLzIw
-MjAgw6AgMTg6MzMsIEVtbWFudWVsIEZ1c3TDqSBhIMOpY3JpdMKgOg0KPiBIZWxsbywNCj4gSSBh
-bSBmYWNpbmcgYSBzdHJhbmdlIHByb2JsZW0gd2l0aCByZWNlbnQga2VybmVscy4NCj4NCj4gT24g
-ImJhZCIga2VybmVsLCBuZl9jb25udHJhY2tfdGNwX3RpbWVvdXRfZXN0YWJsaXNoZWQgZGVmYXVs
-dCB2YWx1ZSBpcyANCj4gbm90IGhvbm9yZWQsIGFuZCBjb25udHJhY2sgLUwgcmV0dXJuIGRpZmZl
-cmVudCByZXN1bHRzIG9uIHRoZSBzYW1lIA0KPiBtYWNoaW5lIGluIGRpZmZlcmVudCBzc2ggcm9v
-dCBzZXNzaW9ucy4NCj4NCj4gVWJ1bnR1IHZlbmRvciBrZXJuZWwgNC4xNSAoNjRiaXRzKSA6IGNv
-cnJlY3QgYmVoYXZpb3VyDQo+IFVidW50dSA1LjMuMCB2ZW5kb3Iga2VybmVsICg2NGJpdHMpOiBC
-QUQgKHdpdGggaXB0YWJsZSAxLjYuMSAtPiANCj4gaXB0YWJsZSBydWxlcykNCj4gRGViaWFuIGtl
-cm5lbCA1LjQuMTkgKDMyYml0cyk6IEJBRCAod2l0aCBpcHRhYmxlLW5mdCAtPiBuZnQgcnVsZXMp
-DQo+DQo+IENsZWFuIGJvb3QsIG5vIGNvbm50cmFjayBtb2R1bGUgbG9hZGVkOg0KPiAjIGNhdCAv
-cHJvYy9zeXMvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfdGNwX3RpbWVvdXRfZXN0YWJsaXNo
-ZWQNCj4gY2F0OiAvcHJvYy9zeXMvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfdGNwX3RpbWVv
-dXRfZXN0YWJsaXNoZWQ6IE5vIA0KPiBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5DQo+ICMgbW9kcHJv
-YmUgbmZfY29ubnRyYWNrDQo+ICMgY2F0IC9wcm9jL3N5cy9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50
-cmFja190Y3BfdGltZW91dF9lc3RhYmxpc2hlZA0KPiA0MzIwMDANCj4NCj4gQWRkIGFuIGlwIHRh
-YmxlIHJ1bGUgdG8gc3RhcnQgY29ubmVjdGlvbiB0cmFja2luZzoNCj4gIyBpcHRhYmxlIC1BIElO
-UFVUIC1tIHN0YXRlIC0tc3RhdGUgUkVMQVRFRCxFU1RBQkxJU0hFRCAtaiBBQ0NFUFQNCj4NCj4g
-c2hvdyB0Y3Agc2Vzc2lvbiB0cmFja2luZyA6DQo+ICMgY29ubnRyYWNrIC1MIHxncmVwIF50Y3AN
-Cj4gdGNwwqDCoMKgwqDCoCA2IDI5OSBFU1RBQkxJU0hFRCBzcmM9MTAuMjIyLjIxOS4xNjQgZHN0
-PTEwLjIyMi4yMTkuOCANCj4gc3BvcnQ9NTQ0NzAgZHBvcnQ9MjIgc3JjPTEwLjIyMi4yMTkuOCBk
-c3Q9MTAuMjIyLjIxOS4xNjQgc3BvcnQ9MjIgDQo+IGRwb3J0PTU0NDcwIFtBU1NVUkVEXSBtYXJr
-PTAgdXNlPTENCj4NCj4gdGltZW91dCBpcyBub3QgNDMyMDAwcyBidXQgMzAwcy4NCj4gT24gYSBt
-b2RlcmF0ZWQgbG9hZGVkIHNtdHAgc2VydmVyLCBhbGwgc2Vzc2lvbnMgYXJlIGF0IDMwMHMNCj4N
-Cj4gZG8NCj4gIyBlY2hvIDQzMjAwMCANCj4gPi9wcm9jL3N5cy9uZXQvbmV0ZmlsdGVyL25mX2Nv
-bm50cmFja190Y3BfdGltZW91dF9lc3RhYmxpc2hlZA0KPiBzb21ldGltZXMgc2Vzc2lvbnMgc3Rh
-cnQgdG8gcGljayA0MzIwMDAgYXMgbmV3IHRpbWVvdXTCoCBzb21ldGltZXMgbm90Lg0KPiBGb3Jj
-ZSB0aGluZ3MgdG8gaGFwcGVuOg0KPiAjIGNvbm50cmFjayAtRg0KPiAjIGNvbm50cmFjayAtTCB8
-Z3JlcCBedGNwIHxncmVwIEVTVEFCTElTSEVEIHxncmVwIEFTU1VSRUQNCj4gbm93IG9uIHRoZSBs
-b2FkZWQgc2VydmVyLCBtb3N0IHRjcCBzZXNzaW9ucyBwaWNrIHRoZSA0MzIwMDAgdGltZW91dCAN
-Cj4gdmFsdWUsIGJ1dCB0aW1lIHRvIHRpbWUgc29tZSBzdGlsbCBwaWNrIDMwMHMuDQo+DQo+IE9u
-IHRoZSBkZWJpYW4gdGVzdCBtYWNoaW5lIHRyZWUgc3NoIHNlc3Npb25zIGFyZSBvcGVuZWQgaW4g
-dHJlZSB3aW5kb3cgDQo+IChJIGRvbnQgaGF2ZSBjb25zb2xlIG9uIHRoaXMgbWFjaGluZSkNCj4g
-Rmlyc3Qgc3NoIHNlc3Npb246DQo+ICMgY29ubnRyYWNrIC1MIHxncmVwIF50Y3ANCj4gY29ubnRy
-YWNrIHYxLjQuNSAoY29ubnRyYWNrLXRvb2xzKTogMjQgZmxvdyBlbnRyaWVzIGhhdmUgYmVlbiBz
-aG93bi4NCj4gdGNwwqDCoMKgwqDCoCA2IDQzMTE0NCBFU1RBQkxJU0hFRCBzcmM9MTAuMjIyLjIx
-OS4xNjQgZHN0PTEwLjIyMi4yMTkuOCANCj4gc3BvcnQ9NTUyNDMgZHBvcnQ9MjIgc3JjPTEwLjIy
-Mi4yMTkuOCBkc3Q9MTAuMjIyLjIxOS4xNjQgc3BvcnQ9MjIgDQo+IGRwb3J0PTU1MjQzIFtBU1NV
-UkVEXSBtYXJrPTAgdXNlPTENCj4gdGNwwqDCoMKgwqDCoCA2IDQzMTEyMCBFU1RBQkxJU0hFRCBz
-cmM9MTAuMjIyLjIxOS44IGRzdD0xMC4yMjIuMjE5LjE2NCANCj4gc3BvcnQ9MjIgZHBvcnQ9NTUz
-Mzkgc3JjPTEwLjIyMi4yMTkuMTY0IGRzdD0xMC4yMjIuMjE5Ljggc3BvcnQ9NTUzMzkgDQo+IGRw
-b3J0PTIyIFtBU1NVUkVEXSBtYXJrPTAgdXNlPTENCj4gdGNwwqDCoMKgwqDCoCA2IDI5OSBFU1RB
-QkxJU0hFRCBzcmM9MTAuMjIyLjIxOS4xNjQgZHN0PTEwLjIyMi4yMTkuOCANCj4gc3BvcnQ9NTQ0
-NzAgZHBvcnQ9MjIgc3JjPTEwLjIyMi4yMTkuOCBkc3Q9MTAuMjIyLjIxOS4xNjQgc3BvcnQ9MjIg
-DQo+IGRwb3J0PTU0NDcwIFtBU1NVUkVEXSBtYXJrPTAgdXNlPTENCj4NCj4gc2Vjb25kIG9uZToN
-Cj4gfiMgY29ubnRyYWNrIC1MIHxncmVwIF50Y3ANCj4gY29ubnRyYWNrIHYxLjQuNSAoY29ubnRy
-YWNrLXRvb2xzKTogMjcgZmxvdyBlbnRyaWVzIGhhdmUgYmVlbiBzaG93bi4NCj4gdGNwwqDCoMKg
-wqDCoCA2IDQzMTA5OSBFU1RBQkxJU0hFRCBzcmM9MTAuMjIyLjIxOS4xNjQgZHN0PTEwLjIyMi4y
-MTkuOCANCj4gc3BvcnQ9NTUyNDMgZHBvcnQ9MjIgc3JjPTEwLjIyMi4yMTkuOCBkc3Q9MTAuMjIy
-LjIxOS4xNjQgc3BvcnQ9MjIgDQo+IGRwb3J0PTU1MjQzIFtBU1NVUkVEXSBtYXJrPTAgdXNlPTEN
-Cj4gdGNwwqDCoMKgwqDCoCA2IDQzMTk5OSBFU1RBQkxJU0hFRCBzcmM9MTAuMjIyLjIxOS44IGRz
-dD0xMC4yMjIuMjE5LjE2NCANCj4gc3BvcnQ9MjIgZHBvcnQ9NTUzMzkgc3JjPTEwLjIyMi4yMTku
-MTY0IGRzdD0xMC4yMjIuMjE5Ljggc3BvcnQ9NTUzMzkgDQo+IGRwb3J0PTIyIFtBU1NVUkVEXSBt
-YXJrPTAgdXNlPTENCj4gdGNwwqDCoMKgwqDCoCA2IDQzMTk2MyBFU1RBQkxJU0hFRCBzcmM9MTAu
-MjIyLjIxOS4xNjQgZHN0PTEwLjIyMi4yMTkuOCANCj4gc3BvcnQ9NTQ0NzAgZHBvcnQ9MjIgc3Jj
-PTEwLjIyMi4yMTkuOCBkc3Q9MTAuMjIyLjIxOS4xNjQgc3BvcnQ9MjIgDQo+IGRwb3J0PTU0NDcw
-IFtBU1NVUkVEXSBtYXJrPTAgdXNlPTENCj4NCj4gbGFzdCBvbmU6DQo+ICMgY29ubnRyYWNrIC1M
-IHxncmVwIF50Y3ANCj4gY29ubnRyYWNrIHYxLjQuNSAoY29ubnRyYWNrLXRvb2xzKTogMjIgZmxv
-dyBlbnRyaWVzIGhhdmUgYmVlbiBzaG93bi4NCj4gdGNwwqDCoMKgwqDCoCA2IDQzMTk5OSBFU1RB
-QkxJU0hFRCBzcmM9MTAuMjIyLjIxOS4xNjQgZHN0PTEwLjIyMi4yMTkuOCANCj4gc3BvcnQ9NTUy
-NDMgZHBvcnQ9MjIgc3JjPTEwLjIyMi4yMTkuOCBkc3Q9MTAuMjIyLjIxOS4xNjQgc3BvcnQ9MjIg
-DQo+IGRwb3J0PTU1MjQzIFtBU1NVUkVEXSBtYXJrPTAgdXNlPTENCj4gdGNwwqDCoMKgwqDCoCA2
-IDQzMTk3OSBFU1RBQkxJU0hFRCBzcmM9MTAuMjIyLjIxOS44IGRzdD0xMC4yMjIuMjE5LjE2NCAN
-Cj4gc3BvcnQ9MjIgZHBvcnQ9NTUzMzkgc3JjPTEwLjIyMi4yMTkuMTY0IGRzdD0xMC4yMjIuMjE5
-Ljggc3BvcnQ9NTUzMzkgDQo+IGRwb3J0PTIyIFtBU1NVUkVEXSBtYXJrPTAgdXNlPTENCj4gdGNw
-wqDCoMKgwqDCoCA2IDQzMTk0MiBFU1RBQkxJU0hFRCBzcmM9MTAuMjIyLjIxOS4xNjQgZHN0PTEw
-LjIyMi4yMTkuOCANCj4gc3BvcnQ9NTQ0NzAgZHBvcnQ9MjIgc3JjPTEwLjIyMi4yMTkuOCBkc3Q9
-MTAuMjIyLjIxOS4xNjQgc3BvcnQ9MjIgDQo+IGRwb3J0PTU0NDcwIFtBU1NVUkVEXSBtYXJrPTAg
-dXNlPTENCj4NCj4gY3Jhenkgbm8gPyE/IS4uLi4uDQo+DQo+IE9rIHRoZXNlIGFyZSBhbGwgInZl
-bmRvciIga2VybmVscywgYnV0IHRoZSBEZWJpYW4gb25lIGlzIHByZXR0eSANCj4gZ2VudWluZS4g
-SXQgc2VlbXMgdGhhdCBzb21lIHVwc3RyZWFtIGJ1Z3MgYXJlIGx1cmtpbmcgYXJvdW5kLiBEZWJp
-YW4gDQo+IGtlcm5lbCA1LjIuOSAoMzJiaXRzKSBzZWVtcyBub3QgYWZmZWN0ZWQsIGJ1dCBVYnVu
-dHUgNS4wIGlzIHBhcnRpYWxseSANCj4gYWZmZWN0ZWQ6IDEwJSBvZiBjb25uZWN0aW9ucyAoZHVl
-IHRvIHNvbWUgYmFja3BvcnRzID8pDQo+DQo+IE9uIHRoZSBtb3N0IGFmZmVjdGVkIHByb2R1Y3Rp
-b24gbWFjaGluZSAoVWJ1bnR1IHdpdGggNS4zIGtlcm5lbCksIHRoZSANCj4gc2FtZSBjb25udHJh
-Y2sgLUwgaW52b2NhdGlvbiBzb21ldGltZXMgcmV0dXJuIDMwMCBzb21ldGltZXMgNDMyMDAwIGZv
-ciANCj4gdGhlIHNhbWUgbG9uZy1ydW5uaW5nIHRjcCBjb25uZWN0aW9uLiBJIGRvbid0IGtub3cg
-aWYgaXQgaXMgYSBuZXRsaW5rIA0KPiBwcm9ibGVtIG9yIGEgcmVhbCBjb25udHJhY2sgdGltZXIg
-Y2hhbmdlIG9uIGFjdGl2aXR5IG9uIHRoZSB0Y3AgDQo+IHNlc3Npb24uIEJ1dCBhcyBteSBzc2gg
-c2Vzc2lvbnMgbmV2ZXIgc3Vydml2ZSBtb3JlIHRoYW4gMTB+MTUgbWluIEkgDQo+IHRoaW5rIHRo
-ZXJlIGlzIGEgcmVhbCBwcm9ibGVtIG9uIHRoZSBjb25udHJhY2sgdGltZXJzLg0KPg0KPiBBbnkg
-dGhvdWdodHMgPw0KPg0KPiBFbW1hbnVlbC4NCg==
+Hi Pablo,
+
+Please consider to apply the next patch to the nf tree. It's larger than
+usual, but the issue could not be solved simpler.
+
+- Fix "INFO: rcu detected stall in hash_xxx" reports of syzbot
+  by introducing region locking and using workqueue instead of timer base=
+d
+  gc of timed out entries in hash types of sets in ipset.
+
+Best regards,
+Jozsef
+
+The following changes since commit 83d0585f91da441a0b11bc5ff93f4cda56de67=
+03:
+
+  Merge branch 'Fix-reconnection-latency-caused-by-FIN-ACK-handling-race'=
+ (2020-02-02 13:45:05 -0800)
+
+are available in the Git repository at:
+
+  git://blackhole.kfki.hu/nf f431c76a1f36bcd6bbfd
+
+for you to fetch changes up to f431c76a1f36bcd6bbfd668a98127ac60226b86f:
+
+  netfilter: ipset: Fix "INFO: rcu detected stall in hash_xxx" reports (2=
+020-02-18 11:19:06 +0100)
+
+----------------------------------------------------------------
+Jozsef Kadlecsik (1):
+      netfilter: ipset: Fix "INFO: rcu detected stall in hash_xxx" report=
+s
+
+ include/linux/netfilter/ipset/ip_set.h |  11 +-
+ net/netfilter/ipset/ip_set_core.c      |  34 +-
+ net/netfilter/ipset/ip_set_hash_gen.h  | 633 +++++++++++++++++++++++----=
+------
+ 3 files changed, 472 insertions(+), 206 deletions(-)
