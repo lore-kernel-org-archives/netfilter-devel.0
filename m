@@ -2,176 +2,86 @@ Return-Path: <SRS0=yhqN=4H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DC60C34050
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Feb 2020 14:51:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 900DEC34053
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Feb 2020 15:46:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F3C7924654
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Feb 2020 14:51:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 66B182464E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Feb 2020 15:46:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726634AbgBSOvd (ORCPT
+        id S1726697AbgBSPqD convert rfc822-to-8bit (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Feb 2020 09:51:33 -0500
-Received: from correo.us.es ([193.147.175.20]:53316 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726569AbgBSOvd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Feb 2020 09:51:33 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 1D8131E2C70
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2020 15:51:31 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0E1D6DA840
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2020 15:51:31 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 03BF7DA801; Wed, 19 Feb 2020 15:51:31 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1E6FBDA788
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2020 15:51:29 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 19 Feb 2020 15:51:29 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 0926942EF4E1
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2020 15:51:29 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 3/3] src: improve error reporting when remove rules
-Date:   Wed, 19 Feb 2020 15:51:23 +0100
-Message-Id: <20200219145123.667618-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20200219145123.667618-1-pablo@netfilter.org>
-References: <20200219145123.667618-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Wed, 19 Feb 2020 10:46:03 -0500
+Received: from mail-il1-f197.google.com ([209.85.166.197]:48313 "EHLO
+        mail-il1-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726643AbgBSPqD (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 19 Feb 2020 10:46:03 -0500
+Received: by mail-il1-f197.google.com with SMTP id u14so513493ilq.15
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2020 07:46:03 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
+         :from:to:content-transfer-encoding;
+        bh=meEL6Fy6aleZ9jtvpgGrvnGSbq9MuEYemHMybXseYg4=;
+        b=o0spg6qFhrpsWHkC89OE44I8Ye0ZPpkIdJI1bZRTDkaHOgJrlBVvm/OxQiHiKz/UFZ
+         vFIeaAlyX+wzGyIQTSDePYAQkU7whyr2GQfwf0ZzF6NFdPmzGDeEguNLZhi/szw2pI7S
+         10Jh/HTyeSq8UC8F/hs9TzNRem4JBPFlIyc1G/l0oXc3X/ExRwAKIuPI/zWleegmPafH
+         5CwyCm87QIpLI0IfDWfHhtFNgnMzVEwUsezeapnlH3NtrGJjl+3ADopHKM5+rfbbCGyl
+         swAPV8coBo/RpbxCj5npi5FWc/UndzZvcfC+GI11YbGfpszFVR30RhuHdguD0jeXh3/3
+         YK1w==
+X-Gm-Message-State: APjAAAULPgY6nNEvhV8fVWt5L/McxpLPgbNZmkk7Y4aTT8wBsl/spavw
+        WaiF6ikDs3qkEFn6YofRz/ta5PIaBUDXYvbHJagM03pgqjOM
+X-Google-Smtp-Source: APXvYqwJfaY34Duul7QI4nsW4eP5gWo56eh9X0PBjI8pEz/ZDnQ4R7/IwdlEugDK5rSMkM2M9L+WROKda4/pXhpDOVDjiChOjTov
+MIME-Version: 1.0
+X-Received: by 2002:a92:91d8:: with SMTP id e85mr25001159ill.146.1582127163011;
+ Wed, 19 Feb 2020 07:46:03 -0800 (PST)
+Date:   Wed, 19 Feb 2020 07:46:02 -0800
+In-Reply-To: <000000000000c7999e059c86eebe@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000008a7b14059eefafff@google.com>
+Subject: Re: KASAN: use-after-free Read in bitmap_ipmac_ext_cleanup
+From:   syzbot <syzbot+33fc3ad6fa11675e1a7e@syzkaller.appspotmail.com>
+To:     a@unstable.cc, b.a.t.m.a.n@lists.open-mesh.org,
+        coreteam@netfilter.org, davem@davemloft.net,
+        florent.fourcot@wifirst.fr, fw@strlen.de, jeremy@azazel.net,
+        johannes.berg@intel.com, kadlec@blackhole.kfki.hu,
+        kadlec@netfilter.org, linux-kernel@vger.kernel.org,
+        mareklindner@neomailbox.ch, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        po-hsu.lin@canonical.com, skhan@linuxfoundation.org,
+        sw@simonwunderlich.de, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
- # nft delete rule ip y z handle 7
- Error: Could not process rule: No such file or directory
- delete rule ip y z handle 7
-                ^
+syzbot suspects this bug was fixed by commit:
 
- # nft delete rule ip x z handle 7
- Error: Could not process rule: No such file or directory
- delete rule ip x z handle 7
-                  ^
+commit 32c72165dbd0e246e69d16a3ad348a4851afd415
+Author: Kadlecsik József <kadlec@blackhole.kfki.hu>
+Date:   Sun Jan 19 21:06:49 2020 +0000
 
- # nft delete rule ip x x handle 7
- Error: Could not process rule: No such file or directory
- delete rule ip x x handle 7
-                           ^
+    netfilter: ipset: use bitmap infrastructure completely
 
- # nft replace rule x y handle 10 ip saddr 1.1.1.2 counter
- Error: Could not process rule: No such file or directory
- replace rule x y handle 10 ip saddr 1.1.1.2 counter
-                         ^^
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=13435a7ee00000
+start commit:   8f8972a3 Merge tag 'mtd/fixes-for-5.5-rc7' of git://git.ke..
+git tree:       upstream
+kernel config:  https://syzkaller.appspot.com/x/.config?x=d9290aeb7e6cf1c4
+dashboard link: https://syzkaller.appspot.com/bug?extid=33fc3ad6fa11675e1a7e
+userspace arch: i386
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15982cc9e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=11be38d6e00000
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/mnl.h |  4 ++--
- src/mnl.c     | 34 +++++++++++++++++++++++-----------
- 2 files changed, 25 insertions(+), 13 deletions(-)
+If the result looks correct, please mark the bug fixed by replying with:
 
-diff --git a/include/mnl.h b/include/mnl.h
-index 6d247ccae4d1..74b1b56fd686 100644
---- a/include/mnl.h
-+++ b/include/mnl.h
-@@ -31,8 +31,8 @@ int mnl_batch_talk(struct netlink_ctx *ctx, struct list_head *err_list,
- 
- int mnl_nft_rule_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 		     unsigned int flags);
--int mnl_nft_rule_del(struct netlink_ctx *ctx, const struct cmd *cmd);
--int mnl_nft_rule_replace(struct netlink_ctx *ctx, const struct cmd *cmd);
-+int mnl_nft_rule_del(struct netlink_ctx *ctx, struct cmd *cmd);
-+int mnl_nft_rule_replace(struct netlink_ctx *ctx, struct cmd *cmd);
- 
- struct nftnl_rule_list *mnl_nft_rule_dump(struct netlink_ctx *ctx,
- 					  int family);
-diff --git a/src/mnl.c b/src/mnl.c
-index 6d1e476444ef..3d21a0ed68a8 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -475,7 +475,7 @@ int mnl_nft_rule_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 	return 0;
- }
- 
--int mnl_nft_rule_replace(struct netlink_ctx *ctx, const struct cmd *cmd)
-+int mnl_nft_rule_replace(struct netlink_ctx *ctx, struct cmd *cmd)
- {
- 	struct rule *rule = cmd->rule;
- 	struct handle *h = &rule->handle;
-@@ -491,15 +491,20 @@ int mnl_nft_rule_replace(struct netlink_ctx *ctx, const struct cmd *cmd)
- 		memory_allocation_error();
- 
- 	nftnl_rule_set_u32(nlr, NFTNL_RULE_FAMILY, h->family);
--	nftnl_rule_set_str(nlr, NFTNL_RULE_TABLE, h->table.name);
--	nftnl_rule_set_str(nlr, NFTNL_RULE_CHAIN, h->chain.name);
--	nftnl_rule_set_u64(nlr, NFTNL_RULE_HANDLE, h->handle.id);
- 
- 	netlink_linearize_rule(ctx, nlr, rule);
- 	nlh = nftnl_nlmsg_build_hdr(nftnl_batch_buffer(ctx->batch),
- 				    NFT_MSG_NEWRULE,
- 				    cmd->handle.family,
- 				    NLM_F_REPLACE | flags, ctx->seqnum);
-+
-+	cmd_add_loc(cmd, nlh->nlmsg_len, &h->table.location);
-+	mnl_attr_put_strz(nlh, NFTA_RULE_TABLE, h->table.name);
-+	cmd_add_loc(cmd, nlh->nlmsg_len, &h->chain.location);
-+	mnl_attr_put_strz(nlh, NFTA_RULE_CHAIN, h->chain.name);
-+	cmd_add_loc(cmd, nlh->nlmsg_len, &h->handle.location);
-+	mnl_attr_put_u64(nlh, NFTA_RULE_HANDLE, htobe64(h->handle.id));
-+
- 	nftnl_rule_nlmsg_build_payload(nlh, nlr);
- 	nftnl_rule_free(nlr);
- 
-@@ -508,9 +513,9 @@ int mnl_nft_rule_replace(struct netlink_ctx *ctx, const struct cmd *cmd)
- 	return 0;
- }
- 
--int mnl_nft_rule_del(struct netlink_ctx *ctx, const struct cmd *cmd)
-+int mnl_nft_rule_del(struct netlink_ctx *ctx, struct cmd *cmd)
- {
--	const struct handle *h = &cmd->handle;
-+	struct handle *h = &cmd->handle;
- 	struct nftnl_rule *nlr;
- 	struct nlmsghdr *nlh;
- 
-@@ -519,16 +524,23 @@ int mnl_nft_rule_del(struct netlink_ctx *ctx, const struct cmd *cmd)
- 		memory_allocation_error();
- 
- 	nftnl_rule_set_u32(nlr, NFTNL_RULE_FAMILY, h->family);
--	nftnl_rule_set_str(nlr, NFTNL_RULE_TABLE, h->table.name);
--	if (h->chain.name)
--		nftnl_rule_set_str(nlr, NFTNL_RULE_CHAIN, h->chain.name);
--	if (h->handle.id)
--		nftnl_rule_set_u64(nlr, NFTNL_RULE_HANDLE, h->handle.id);
- 
- 	nlh = nftnl_nlmsg_build_hdr(nftnl_batch_buffer(ctx->batch),
- 				    NFT_MSG_DELRULE,
- 				    nftnl_rule_get_u32(nlr, NFTNL_RULE_FAMILY),
- 				    0, ctx->seqnum);
-+
-+	cmd_add_loc(cmd, nlh->nlmsg_len, &h->table.location);
-+	mnl_attr_put_strz(nlh, NFTA_RULE_TABLE, h->table.name);
-+	if (h->chain.name) {
-+		cmd_add_loc(cmd, nlh->nlmsg_len, &h->chain.location);
-+		mnl_attr_put_strz(nlh, NFTA_RULE_CHAIN, h->chain.name);
-+	}
-+	if (h->handle.id) {
-+		cmd_add_loc(cmd, nlh->nlmsg_len, &h->handle.location);
-+		mnl_attr_put_u64(nlh, NFTA_RULE_HANDLE, htobe64(h->handle.id));
-+	}
-+
- 	nftnl_rule_nlmsg_build_payload(nlh, nlr);
- 	nftnl_rule_free(nlr);
- 
--- 
-2.11.0
+#syz fix: netfilter: ipset: use bitmap infrastructure completely
 
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
