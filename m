@@ -2,79 +2,33 @@ Return-Path: <SRS0=yhqN=4H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EA64C3404D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Feb 2020 10:17:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BB08C34047
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Feb 2020 10:28:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 20001207FD
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Feb 2020 10:17:11 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mN10sBd/"
+	by mail.kernel.org (Postfix) with ESMTP id 0DFD920801
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Feb 2020 10:28:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726558AbgBSKRF (ORCPT
+        id S1726487AbgBSK2c (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Feb 2020 05:17:05 -0500
-Received: from mail-pg1-f193.google.com ([209.85.215.193]:46409 "EHLO
-        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726210AbgBSKRF (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Feb 2020 05:17:05 -0500
-Received: by mail-pg1-f193.google.com with SMTP id y30so855916pga.13;
-        Wed, 19 Feb 2020 02:17:05 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=wx3cl/ju+y18z95mSB4X4cdRQQ7rCw0DISRZpgvl858=;
-        b=mN10sBd/GXiQoJR3Ywfsm0PgOHnA0dVmNF3IgQ8Ktyp7fHFx4uXm9z6AnSYjILHEIV
-         BAZuo/Qzdzixq8W+e9q65H8A0nw4EeI4VW8DpBfebiI8ju0TWNS5j6aH+EUlou6AYQnO
-         QowgF8dWYECxBSGNFRbDdqgiNPb4ggGYLCHRw6x4N1s+H7Y8VoinygwuqrYU9UI08Mkn
-         1jdpPlct9uT3eS4Hyp281UiuPQ8R9RCNUENIsaUMvOdmPRsrzEPB6R3V2VvWEQzELr9T
-         dXuxcP4YxroyUstNofwTQhh6Yk+wv4ttKWd+yjJf0swaUFO3aBClYJpFbl4F8ctGX/Bf
-         ZVdw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=wx3cl/ju+y18z95mSB4X4cdRQQ7rCw0DISRZpgvl858=;
-        b=R+uQYR//jDMLz6rW5FgeVsvM6NUNgcDU1EpL38UnDCrGyT/D/mBn06c4KF4ZTdsprJ
-         Kko+OMVZ4muJ87CV7lV3o0RUR+ee7Gk3GsKD0JB+hIXLl048gr2bPJP8MiESSsFjtRgZ
-         K1mxcE+BiEyS93bb45w8aSo/H+Yz6LT2LZt2HnDZM8iYAQbum2M/KZlXrUSRwoVPo1Ih
-         7oGZONIKAtOcNJfo1vN+36f0vD8Hku3MQl619Db7KAdT96irQFsG+6Op68H0PCbr6z8C
-         qYdY60HCpzuPaPoGAMhoFFVJvqw0+5rFv5Ya8OQUPOCuF2pM84vHPEx1QCkyz2I1i2uG
-         H4YQ==
-X-Gm-Message-State: APjAAAXECzoHvUUIDoqxUyOVTLYR9Of/LoL7ZoHSmkLDQkvmaMN45Ws/
-        /6W1VdEw77kdUvivlwLkrKM=
-X-Google-Smtp-Source: APXvYqy6NiIl+ebEVWdcRWivE8SiuoiFsCnaSaA8epCJyhv6rxlKttT+lXy/ebF12zJfvlcSy/d+Bw==
-X-Received: by 2002:a63:6d0b:: with SMTP id i11mr26437592pgc.266.1582107424607;
-        Wed, 19 Feb 2020 02:17:04 -0800 (PST)
-Received: from localhost.localdomain ([146.196.37.220])
-        by smtp.googlemail.com with ESMTPSA id a2sm2400885pfi.30.2020.02.19.02.16.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 19 Feb 2020 02:17:04 -0800 (PST)
-From:   Amol Grover <frextrite@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Jakub Kicinski <kuba@kernel.org>
-Cc:     linux-kernel@vger.kernel.org,
-        linux-kernel-mentees@lists.linuxfoundation.org,
-        Joel Fernandes <joel@joelfernandes.org>,
-        Madhuparna Bhowmik <madhuparnabhowmik10@gmail.com>,
-        "Paul E . McKenney" <paulmck@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Amol Grover <frextrite@gmail.com>
-Subject: [PATCH] netfilter: ipt_CLUSTERIP: Pass lockdep expression to RCU lists
-Date:   Wed, 19 Feb 2020 15:46:27 +0530
-Message-Id: <20200219101626.31943-1-frextrite@gmail.com>
+        Wed, 19 Feb 2020 05:28:32 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:51722 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726270AbgBSK2c (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 19 Feb 2020 05:28:32 -0500
+Received: from localhost ([::1]:36580 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1j4Mak-0001mw-Vj; Wed, 19 Feb 2020 11:28:31 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [libnftnl PATCH] src: Fix for reading garbage in nftnl_chain getters
+Date:   Wed, 19 Feb 2020 11:28:25 +0100
+Message-Id: <20200219102825.11519-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -83,42 +37,46 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-cn->configs is traversed using list_for_each_entry_rcu
-outside an RCU read-side critical section but under the protection
-of cn->lock.
+In {s,u}{32,64} type getters nftnl_assert() is called to make sure
+returned data length matches expectations. Therefore all attributes must
+set data_len, which NFTNL_CHAIN_DEVICES didn't.
 
-Hence, add corresponding lockdep expression to silence false-positive
-warnings, and harden RCU lists.
+While being at it, do the same change for NFTNL_FLOWTABLE_DEVICES as
+well to make code a bit more consistent although the problem was fixed
+for flowtables with commit f8eed54150fd4 ("flowtable: Fix for reading
+garbage") already (but in the other direction).
 
-Signed-off-by: Amol Grover <frextrite@gmail.com>
+Fixes: e3ac19b5ec162 ("chain: multi-device support")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- net/ipv4/netfilter/ipt_CLUSTERIP.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ src/chain.c     | 1 +
+ src/flowtable.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 6bdb1ab8af61..df856ff835b7 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -139,7 +139,8 @@ __clusterip_config_find(struct net *net, __be32 clusterip)
- 	struct clusterip_config *c;
- 	struct clusterip_net *cn = clusterip_pernet(net);
- 
--	list_for_each_entry_rcu(c, &cn->configs, list) {
-+	list_for_each_entry_rcu(c, &cn->configs, list,
-+				lockdep_is_held(&cn->lock)) {
- 		if (c->clusterip == clusterip)
- 			return c;
+diff --git a/src/chain.c b/src/chain.c
+index b4066e4d4e888..94a9e43a17548 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -364,6 +364,7 @@ const void *nftnl_chain_get_data(const struct nftnl_chain *c, uint16_t attr,
+ 		*data_len = strlen(c->dev) + 1;
+ 		return c->dev;
+ 	case NFTNL_CHAIN_DEVICES:
++		*data_len = 0;
+ 		return &c->dev_array[0];
  	}
-@@ -194,7 +195,8 @@ clusterip_netdev_event(struct notifier_block *this, unsigned long event,
- 	struct clusterip_config *c;
- 
- 	spin_lock_bh(&cn->lock);
--	list_for_each_entry_rcu(c, &cn->configs, list) {
-+	list_for_each_entry_rcu(c, &cn->configs, list,
-+				lockdep_is_held(&cn->lock)) {
- 		switch (event) {
- 		case NETDEV_REGISTER:
- 			if (!strcmp(dev->name, c->ifname)) {
+ 	return NULL;
+diff --git a/src/flowtable.c b/src/flowtable.c
+index 1e235d0ba50fa..635322d7fa563 100644
+--- a/src/flowtable.c
++++ b/src/flowtable.c
+@@ -230,6 +230,7 @@ const void *nftnl_flowtable_get_data(const struct nftnl_flowtable *c,
+ 		*data_len = sizeof(int32_t);
+ 		return &c->family;
+ 	case NFTNL_FLOWTABLE_DEVICES:
++		*data_len = 0;
+ 		return &c->dev_array[0];
+ 	case NFTNL_FLOWTABLE_SIZE:
+ 		*data_len = sizeof(int32_t);
 -- 
 2.24.1
 
