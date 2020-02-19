@@ -6,47 +6,45 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F80CC18E00
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Feb 2020 20:08:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7BFEC34056
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Feb 2020 20:18:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2DB7C2176D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Feb 2020 20:08:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9173724654
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Feb 2020 20:18:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726963AbgBSUI0 (ORCPT
+        id S1726719AbgBSUSC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Feb 2020 15:08:26 -0500
-Received: from correo.us.es ([193.147.175.20]:53272 "EHLO mail.us.es"
+        Wed, 19 Feb 2020 15:18:02 -0500
+Received: from correo.us.es ([193.147.175.20]:57074 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727035AbgBSUIZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Feb 2020 15:08:25 -0500
+        id S1726645AbgBSUSC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 19 Feb 2020 15:18:02 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 315556D4E1
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2020 21:08:23 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 8BA0D6CB60
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2020 21:17:59 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 23108DA736
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2020 21:08:23 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7DA4FDA3C3
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2020 21:17:59 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 1831EDA72F; Wed, 19 Feb 2020 21:08:23 +0100 (CET)
+        id 733ACDA3C2; Wed, 19 Feb 2020 21:17:59 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C21FADA3C2
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2020 21:08:20 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8905DDA7B6
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2020 21:17:57 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 19 Feb 2020 21:08:20 +0100 (CET)
+ Wed, 19 Feb 2020 21:17:57 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id AEF3242EF532
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2020 21:08:20 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 73D8B42EF52A
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2020 21:17:57 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/2] mnl: do not use expr->identifier to fetch device name
-Date:   Wed, 19 Feb 2020 21:08:17 +0100
-Message-Id: <20200219200817.1146947-2-pablo@netfilter.org>
+Subject: [PATCH nft 2/2,v2] mnl: do not use expr->identifier to fetch device name
+Date:   Wed, 19 Feb 2020 21:17:55 +0100
+Message-Id: <20200219201755.1186617-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20200219200817.1146947-1-pablo@netfilter.org>
-References: <20200219200817.1146947-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
@@ -60,8 +58,12 @@ Fixes: 3fdc7541fba0 ("src: add multidevice support for netdev chain")
 Fixes: 92911b362e90 ("src: add support to add flowtables")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/mnl.c | 33 +++++++++++++++++++++++++++++----
- 1 file changed, 29 insertions(+), 4 deletions(-)
+v2: Use constant expression from flowtable_expr_member, otherwise
+    expr->len is unset.
+
+ src/mnl.c          | 33 +++++++++++++++++++++++++++++----
+ src/parser_bison.y |  6 +++---
+ 2 files changed, 32 insertions(+), 7 deletions(-)
 
 diff --git a/src/mnl.c b/src/mnl.c
 index 4f42795e0f12..bca5add0f8eb 100644
@@ -148,6 +150,23 @@ index 4f42795e0f12..bca5add0f8eb 100644
  	free(dev_array);
  
  	netlink_dump_flowtable(flo, ctx);
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index ad512cdbb4c2..fd00b40a104a 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1909,9 +1909,9 @@ flowtable_list_expr	:	flowtable_expr_member
+ 
+ flowtable_expr_member	:	STRING
+ 			{
+-				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
+-						       current_scope(state),
+-						       $1);
++				$$ = constant_expr_alloc(&@$, &string_type,
++							 BYTEORDER_HOST_ENDIAN,
++							 strlen($1) * BITS_PER_BYTE, $1);
+ 				xfree($1);
+ 			}
+ 			;
 -- 
 2.11.0
 
