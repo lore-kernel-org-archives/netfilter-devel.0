@@ -2,85 +2,117 @@ Return-Path: <SRS0=yhqN=4H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
+X-Spam-Status: No, score=-7.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A73EC3404C
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Feb 2020 02:08:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72217C34022
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Feb 2020 06:51:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 38ECF207FD
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Feb 2020 02:08:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4780C2176D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Feb 2020 06:51:24 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="P8l5AL1u"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727915AbgBSCIC convert rfc822-to-8bit (ORCPT
+        id S1726260AbgBSGuk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 Feb 2020 21:08:02 -0500
-Received: from mail-io1-f71.google.com ([209.85.166.71]:37412 "EHLO
-        mail-io1-f71.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727893AbgBSCIC (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Feb 2020 21:08:02 -0500
-Received: by mail-io1-f71.google.com with SMTP id p4so15273940ioo.4
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Feb 2020 18:08:01 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to:content-transfer-encoding;
-        bh=4diWwWLXm7lY/GHl3gvscC/1M0a1R7YH2cSj9Fw5eHQ=;
-        b=YUfCDRUtKtmOzaMxueoLBr7Hxl58XzxxuA7uGofY/sKym87VJZmOj9ydSiIjkFIYqe
-         KIEitkKodgPcjyNYLbY+NIxXg420dZFBpbgcOsX4Y5gKNPUU3MOTI4hjiFygvu7w6WSY
-         +Ryl2zzi36E02lKG0qGOmDqmO2CeDEi4pK901owqhX2pGDA7cRJwJ+LXKriMLhI/x7vU
-         J/8H825Zyysu6/Lvf3HFaKwbmqwGeos1+PyrPzCPo2CfbjPex7iZeHCR7An6BvfQQUyV
-         aguH05V/nSw9j3F8urv7LetOLiEpY3hUAglchqA64vF07rDeIFJrJ11Gp5m4/oDUW9MF
-         Yb3A==
-X-Gm-Message-State: APjAAAV7+qpxwhrHpEjwSPHQYsa95Uox0+BFAZmMOhAHYsGOsTzPr7gz
-        vB0CCjYOamwYj3UVV55j/LoYH17ke+clRQQRkJJ1M2VQimv1
-X-Google-Smtp-Source: APXvYqzdxPP1bcYe7a4xOJJ2PZvwgFfZkFkliW3rcWAp+NO+QUzOk5XyZt5pyzhMqqramXLk6gwjJUtyolpYMy0PBvZtFLrsOuX6
-MIME-Version: 1.0
-X-Received: by 2002:a92:15c2:: with SMTP id 63mr22276770ilv.111.1582078081462;
- Tue, 18 Feb 2020 18:08:01 -0800 (PST)
-Date:   Tue, 18 Feb 2020 18:08:01 -0800
-In-Reply-To: <000000000000bb0378059c865fdf@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000000d774c059ee442e6@google.com>
+        Wed, 19 Feb 2020 01:50:40 -0500
+Received: from smtp-out.kfki.hu ([148.6.0.48]:59167 "EHLO smtp-out.kfki.hu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726121AbgBSGuk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 19 Feb 2020 01:50:40 -0500
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 2C7F3CC00F8;
+        Wed, 19 Feb 2020 07:50:38 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        blackhole.kfki.hu; h=mime-version:user-agent:references
+        :message-id:in-reply-to:from:from:date:date:received:received
+        :received; s=20151130; t=1582095036; x=1583909437; bh=6N/wx1PPm7
+        0XWkAYLWsXauw4+sMVlpaGdfM/XPXQNfs=; b=P8l5AL1uJmdf4WSO/J4pKD+6nV
+        0fPeRbqTfRajP8An38Xf7agnkiU0vDzIVPuQG32BZwMeZUQgKhN4rDOC2jqi2xim
+        i20JDuOzx9m4pGbAu8EXYZN2ETn5xnENKKjTTF1g1ayRFaKKFgoPjBRLCKWBPwFz
+        3ewJn1A287yoxasEg=
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Wed, 19 Feb 2020 07:50:36 +0100 (CET)
+Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.240.2])
+        by smtp2.kfki.hu (Postfix) with ESMTP id DC736CC00F3;
+        Wed, 19 Feb 2020 07:50:33 +0100 (CET)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id 6720120FCF; Wed, 19 Feb 2020 07:50:33 +0100 (CET)
+Date:   Wed, 19 Feb 2020 07:50:33 +0100 (CET)
+From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+X-X-Sender: kadlec@blackhole.kfki.hu
+To:     syzbot <syzbot+8b5f151de2f35100bbc5@syzkaller.appspotmail.com>
+cc:     a@unstable.cc, b.a.t.m.a.n@lists.open-mesh.org,
+        coreteam@netfilter.org, David Miller <davem@davemloft.net>,
+        florent.fourcot@wifirst.fr, Florian Westphal <fw@strlen.de>,
+        jeremy@azazel.net, johannes.berg@intel.com,
+        linux-kernel@vger.kernel.org, lipeng321@huawei.com,
+        mareklindner@neomailbox.ch, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        sw@simonwunderlich.de, syzkaller-bugs@googlegroups.com,
+        tanhuazhong@huawei.com
 Subject: Re: KASAN: use-after-free Read in bitmap_ip_destroy
-From:   syzbot <syzbot+8b5f151de2f35100bbc5@syzkaller.appspotmail.com>
-To:     a@unstable.cc, b.a.t.m.a.n@lists.open-mesh.org,
-        coreteam@netfilter.org, davem@davemloft.net,
-        florent.fourcot@wifirst.fr, fw@strlen.de, jeremy@azazel.net,
-        johannes.berg@intel.com, kadlec@blackhole.kfki.hu,
-        kadlec@netfilter.org, linux-kernel@vger.kernel.org,
-        lipeng321@huawei.com, mareklindner@neomailbox.ch,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, sw@simonwunderlich.de,
-        syzkaller-bugs@googlegroups.com, tanhuazhong@huawei.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <0000000000000d774c059ee442e6@google.com>
+Message-ID: <alpine.DEB.2.20.2002190746590.20111@blackhole.kfki.hu>
+References: <0000000000000d774c059ee442e6@google.com>
+User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
+MIME-Version: 1.0
+Content-Type: multipart/mixed; BOUNDARY="110363376-950394365-1582095033=:20111"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot suspects this bug was fixed by commit:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-commit 32c72165dbd0e246e69d16a3ad348a4851afd415
-Author: Kadlecsik József <kadlec@blackhole.kfki.hu>
-Date:   Sun Jan 19 21:06:49 2020 +0000
+--110363376-950394365-1582095033=:20111
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-    netfilter: ipset: use bitmap infrastructure completely
-
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=17fc79b5e00000
-start commit:   8f8972a3 Merge tag 'mtd/fixes-for-5.5-rc7' of git://git.ke..
-git tree:       upstream
-kernel config:  https://syzkaller.appspot.com/x/.config?x=cfbb8fa33f49f9f3
-dashboard link: https://syzkaller.appspot.com/bug?extid=8b5f151de2f35100bbc5
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=12e22559e00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=16056faee00000
-
-If the result looks correct, please mark the bug fixed by replying with:
 
 #syz fix: netfilter: ipset: use bitmap infrastructure completely
 
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+On Tue, 18 Feb 2020, syzbot wrote:
+
+> syzbot suspects this bug was fixed by commit:
+>=20
+> commit 32c72165dbd0e246e69d16a3ad348a4851afd415
+> Author: Kadlecsik J=C3=B3zsef <kadlec@blackhole.kfki.hu>
+> Date:   Sun Jan 19 21:06:49 2020 +0000
+>=20
+>     netfilter: ipset: use bitmap infrastructure completely
+>=20
+> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=3D17fc79b5e0=
+0000
+> start commit:   8f8972a3 Merge tag 'mtd/fixes-for-5.5-rc7' of git://git.k=
+e..
+> git tree:       upstream
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=3Dcfbb8fa33f49f=
+9f3
+> dashboard link: https://syzkaller.appspot.com/bug?extid=3D8b5f151de2f3510=
+0bbc5
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=3D12e22559e00=
+000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=3D16056faee0000=
+0
+>=20
+> If the result looks correct, please mark the bug fixed by replying with:
+>=20
+> #syz fix: netfilter: ipset: use bitmap infrastructure completely
+>=20
+> For information about bisection process see: https://goo.gl/tpsmEJ#bisect=
+ion
+>=20
+
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
+--110363376-950394365-1582095033=:20111--
