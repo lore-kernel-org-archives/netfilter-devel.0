@@ -1,172 +1,112 @@
-Return-Path: <SRS0=yhqN=4H=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=kbfM=4I=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7BFEC34056
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Feb 2020 20:18:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5AC5C5ACC4
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Feb 2020 03:32:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9173724654
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Feb 2020 20:18:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7BB6D208C4
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Feb 2020 03:32:29 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MTI5Gd1o"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726719AbgBSUSC (ORCPT
+        id S1727957AbgBTDc1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Feb 2020 15:18:02 -0500
-Received: from correo.us.es ([193.147.175.20]:57074 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726645AbgBSUSC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Feb 2020 15:18:02 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 8BA0D6CB60
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2020 21:17:59 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7DA4FDA3C3
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2020 21:17:59 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 733ACDA3C2; Wed, 19 Feb 2020 21:17:59 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8905DDA7B6
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2020 21:17:57 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 19 Feb 2020 21:17:57 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 73D8B42EF52A
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2020 21:17:57 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/2,v2] mnl: do not use expr->identifier to fetch device name
-Date:   Wed, 19 Feb 2020 21:17:55 +0100
-Message-Id: <20200219201755.1186617-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Wed, 19 Feb 2020 22:32:27 -0500
+Received: from mail-oi1-f195.google.com ([209.85.167.195]:33925 "EHLO
+        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727749AbgBTDc1 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 19 Feb 2020 22:32:27 -0500
+Received: by mail-oi1-f195.google.com with SMTP id l136so26162080oig.1;
+        Wed, 19 Feb 2020 19:32:25 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=FkF0ycPRGHhqzquEy6JKzkt16I6SXZOg50EECEsoAiY=;
+        b=MTI5Gd1odwsP1ifJMDwJ3udM7XXRm2aOaT9itFusiMLqMH+q77dzB0aV7wlPQrXnl0
+         itcvg0OrhmlW9ELGwiLzBZbwaTggXILZ+G/TYWwpPywvfVldZopn/zx1wfuBYdnQNgzU
+         C4pKHt7c2RzB91iUQN1Ill/1VQfHI5pduLkcnZusWUClFoiG+3US6iZ3c07VT8lkgasG
+         9NrKuQX8nrs4tVjS4GskKvh1uRgpRqwq7LgI3AFtAO5rulnbPbnNlqv8IWKfhdf8bmCd
+         A1Tzmi50256FJEFVehxS5PycRVR5ntiWJw2QI6hbIUuMfI+E8gic/v8L1uwj803hzGad
+         Sk1Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=FkF0ycPRGHhqzquEy6JKzkt16I6SXZOg50EECEsoAiY=;
+        b=FDHl5s9++hMbOgIMCV9B+Fkv7o54RRKawFOLM7xbHkvXeeTyl6R/NQZNpNC7gKYCtZ
+         um36bEU7xBj7rrpUiFSfut19ncqoJWCYx/Vjc3GfLY8Y5806uS0Fo/KKHaxIhZbN12Hq
+         qKlt76bseH+PFFbzP0LjnCTwKJuGR31Px9o3MBpb8CK1G1xtWqPRZb40zYkpB4K/b5as
+         ug3WnTDzuPrV8zfbl9Yw/Ekikk8cA6J1f+qICagroCUGddKhpgl+VH7xpe7TgKWv23sH
+         5lOqWAxW6RQ9D4ByMFaELDMhlvIrxG7QrE5xOPK9YRKSlJopGAxONKq2mdv/Wmj0QCH8
+         FVQQ==
+X-Gm-Message-State: APjAAAVrmR+6QTBVEezRF6qzWoCigAlGWvC/3rcEXPp4UCFHvBg0IN8k
+        s/JWw7pK/lHQJoYELDVtAOeXaaUiQ0tiQzwAeyfQ2CDzxZc=
+X-Google-Smtp-Source: APXvYqyD/un22q+qtTZ5LbIhFY9b09HssAnOPAoOqILbRFYkBGepPyk20TZodlXmSEsdn4jjTarhxHgtBWVFSc4kUCI=
+X-Received: by 2002:aca:1011:: with SMTP id 17mr693298oiq.72.1582169544773;
+ Wed, 19 Feb 2020 19:32:24 -0800 (PST)
+MIME-Version: 1.0
+References: <20200213065352.6310-1-xiyou.wangcong@gmail.com>
+ <20200218213524.5yuccwnl2eie6p6x@salvia> <CAM_iQpWfb7xgd2LuRmaXhRSJskJPsupFk0A7=dRXtMEjZJjr3w@mail.gmail.com>
+ <20200218220507.cqlhd4kj4ukyjhuu@salvia>
+In-Reply-To: <20200218220507.cqlhd4kj4ukyjhuu@salvia>
+From:   Cong Wang <xiyou.wangcong@gmail.com>
+Date:   Wed, 19 Feb 2020 19:32:13 -0800
+Message-ID: <CAM_iQpUYGVpUCatMHVKSx4jM9c6kbYxcWBV0--1mrQi6NbPhhg@mail.gmail.com>
+Subject: Re: [Patch nf] netfilter: xt_hashlimit: unregister proc file before
+ releasing mutex
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        Florian Westphal <fw@strlen.de>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        syzbot <syzbot+d195fd3b9a364ddd6731@syzkaller.appspotmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This string might not be nul-terminated, resulting in spurious errors
-when adding netdev chains.
+On Tue, Feb 18, 2020 at 2:05 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>
+> On Tue, Feb 18, 2020 at 01:40:26PM -0800, Cong Wang wrote:
+> > On Tue, Feb 18, 2020 at 1:35 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > >
+> > > On Wed, Feb 12, 2020 at 10:53:52PM -0800, Cong Wang wrote:
+> > > > Before releasing the global mutex, we only unlink the hashtable
+> > > > from the hash list, its proc file is still not unregistered at
+> > > > this point. So syzbot could trigger a race condition where a
+> > > > parallel htable_create() could register the same file immediately
+> > > > after the mutex is released.
+> > > >
+> > > > Move htable_remove_proc_entry() back to mutex protection to
+> > > > fix this. And, fold htable_destroy() into htable_put() to make
+> > > > the code slightly easier to understand.
+> > >
+> > > Probably revert previous one?
+> >
+> > The hung task could appear again if we move the cleanup
+> > back under mutex.
+>
+> How could the hung task appear again by reverting
+> c4a3922d2d20c710f827? Please elaborate.
 
-Fixes: 3fdc7541fba0 ("src: add multidevice support for netdev chain")
-Fixes: 92911b362e90 ("src: add support to add flowtables")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: Use constant expression from flowtable_expr_member, otherwise
-    expr->len is unset.
+Because the cfg.max could be as large as 8*HASHLIMIT_MAX_SIZE:
 
- src/mnl.c          | 33 +++++++++++++++++++++++++++++----
- src/parser_bison.y |  6 +++---
- 2 files changed, 32 insertions(+), 7 deletions(-)
+ 311         if (hinfo->cfg.max == 0)
+ 312                 hinfo->cfg.max = 8 * hinfo->cfg.size;
+ 313         else if (hinfo->cfg.max < hinfo->cfg.size)
+ 314                 hinfo->cfg.max = hinfo->cfg.size;
 
-diff --git a/src/mnl.c b/src/mnl.c
-index 4f42795e0f12..bca5add0f8eb 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -26,6 +26,7 @@
- 
- #include <mnl.h>
- #include <string.h>
-+#include <net/if.h>
- #include <sys/socket.h>
- #include <arpa/inet.h>
- #include <fcntl.h>
-@@ -609,7 +610,9 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
- {
- 	int priority, policy, i = 0;
- 	struct nftnl_chain *nlc;
-+	unsigned int ifname_len;
- 	const char **dev_array;
-+	char ifname[IFNAMSIZ];
- 	struct nlmsghdr *nlh;
- 	struct expr *expr;
- 	int dev_array_len;
-@@ -635,7 +638,12 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 			dev_array = xmalloc(sizeof(char *) * 8);
- 			dev_array_len = 8;
- 			list_for_each_entry(expr, &cmd->chain->dev_expr->expressions, list) {
--				dev_array[i++] = expr->identifier;
-+				ifname_len = div_round_up(expr->len, BITS_PER_BYTE);
-+				memset(ifname, 0, sizeof(ifname));
-+				mpz_export_data(ifname, expr->value,
-+						BYTEORDER_HOST_ENDIAN,
-+						ifname_len);
-+				dev_array[i++] = xstrdup(ifname);
- 				if (i == dev_array_len) {
- 					dev_array_len *= 2;
- 					dev_array = xrealloc(dev_array,
-@@ -650,6 +658,10 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 				nftnl_chain_set_data(nlc, NFTNL_CHAIN_DEVICES, dev_array,
- 						     sizeof(char *) * dev_array_len);
- 
-+			i = 0;
-+			while (dev_array[i] != NULL)
-+				xfree(dev_array[i++]);
-+
- 			xfree(dev_array);
- 		}
- 	}
-@@ -1565,7 +1577,9 @@ int mnl_nft_flowtable_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 			  unsigned int flags)
- {
- 	struct nftnl_flowtable *flo;
-+	unsigned int ifname_len;
- 	const char **dev_array;
-+	char ifname[IFNAMSIZ];
- 	struct nlmsghdr *nlh;
- 	int i = 0, len = 1;
- 	struct expr *expr;
-@@ -1586,13 +1600,24 @@ int mnl_nft_flowtable_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 	list_for_each_entry(expr, &cmd->flowtable->dev_expr->expressions, list)
- 		len++;
- 
--	dev_array = calloc(len, sizeof(char *));
--	list_for_each_entry(expr, &cmd->flowtable->dev_expr->expressions, list)
--		dev_array[i++] = expr->identifier;
-+	dev_array = xmalloc(sizeof(char *) * len);
-+
-+	list_for_each_entry(expr, &cmd->flowtable->dev_expr->expressions, list) {
-+		ifname_len = div_round_up(expr->len, BITS_PER_BYTE);
-+		memset(ifname, 0, sizeof(ifname));
-+		mpz_export_data(ifname, expr->value, BYTEORDER_HOST_ENDIAN,
-+				ifname_len);
-+		dev_array[i++] = xstrdup(ifname);
-+	}
- 
- 	dev_array[i] = NULL;
- 	nftnl_flowtable_set_data(flo, NFTNL_FLOWTABLE_DEVICES,
- 				 dev_array, sizeof(char *) * len);
-+
-+	i = 0;
-+	while (dev_array[i] != NULL)
-+		xfree(dev_array[i++]);
-+
- 	free(dev_array);
- 
- 	netlink_dump_flowtable(flo, ctx);
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index ad512cdbb4c2..fd00b40a104a 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -1909,9 +1909,9 @@ flowtable_list_expr	:	flowtable_expr_member
- 
- flowtable_expr_member	:	STRING
- 			{
--				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
--						       current_scope(state),
--						       $1);
-+				$$ = constant_expr_alloc(&@$, &string_type,
-+							 BYTEORDER_HOST_ENDIAN,
-+							 strlen($1) * BITS_PER_BYTE, $1);
- 				xfree($1);
- 			}
- 			;
--- 
-2.11.0
+Not sure whether we can finish cleaning up 8*HASHLIMIT_MAX_SIZE
+entries within the time a hung task tolerates. This largely depends on
+how much contention the spinlock has, at least I don't want to bet
+on it.
 
+Thanks.
