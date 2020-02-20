@@ -2,111 +2,76 @@ Return-Path: <SRS0=kbfM=4I=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5AC5C5ACC4
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Feb 2020 03:32:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1766C761A1
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Feb 2020 07:28:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7BB6D208C4
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Feb 2020 03:32:29 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MTI5Gd1o"
+	by mail.kernel.org (Postfix) with ESMTP id AEAA824654
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Feb 2020 07:28:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727957AbgBTDc1 (ORCPT
+        id S1726679AbgBTH21 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Feb 2020 22:32:27 -0500
-Received: from mail-oi1-f195.google.com ([209.85.167.195]:33925 "EHLO
-        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727749AbgBTDc1 (ORCPT
+        Thu, 20 Feb 2020 02:28:27 -0500
+Received: from mx60.baidu.com ([61.135.168.60]:37158 "EHLO
+        tc-sys-mailedm02.tc.baidu.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726149AbgBTH21 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Feb 2020 22:32:27 -0500
-Received: by mail-oi1-f195.google.com with SMTP id l136so26162080oig.1;
-        Wed, 19 Feb 2020 19:32:25 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=FkF0ycPRGHhqzquEy6JKzkt16I6SXZOg50EECEsoAiY=;
-        b=MTI5Gd1odwsP1ifJMDwJ3udM7XXRm2aOaT9itFusiMLqMH+q77dzB0aV7wlPQrXnl0
-         itcvg0OrhmlW9ELGwiLzBZbwaTggXILZ+G/TYWwpPywvfVldZopn/zx1wfuBYdnQNgzU
-         C4pKHt7c2RzB91iUQN1Ill/1VQfHI5pduLkcnZusWUClFoiG+3US6iZ3c07VT8lkgasG
-         9NrKuQX8nrs4tVjS4GskKvh1uRgpRqwq7LgI3AFtAO5rulnbPbnNlqv8IWKfhdf8bmCd
-         A1Tzmi50256FJEFVehxS5PycRVR5ntiWJw2QI6hbIUuMfI+E8gic/v8L1uwj803hzGad
-         Sk1Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=FkF0ycPRGHhqzquEy6JKzkt16I6SXZOg50EECEsoAiY=;
-        b=FDHl5s9++hMbOgIMCV9B+Fkv7o54RRKawFOLM7xbHkvXeeTyl6R/NQZNpNC7gKYCtZ
-         um36bEU7xBj7rrpUiFSfut19ncqoJWCYx/Vjc3GfLY8Y5806uS0Fo/KKHaxIhZbN12Hq
-         qKlt76bseH+PFFbzP0LjnCTwKJuGR31Px9o3MBpb8CK1G1xtWqPRZb40zYkpB4K/b5as
-         ug3WnTDzuPrV8zfbl9Yw/Ekikk8cA6J1f+qICagroCUGddKhpgl+VH7xpe7TgKWv23sH
-         5lOqWAxW6RQ9D4ByMFaELDMhlvIrxG7QrE5xOPK9YRKSlJopGAxONKq2mdv/Wmj0QCH8
-         FVQQ==
-X-Gm-Message-State: APjAAAVrmR+6QTBVEezRF6qzWoCigAlGWvC/3rcEXPp4UCFHvBg0IN8k
-        s/JWw7pK/lHQJoYELDVtAOeXaaUiQ0tiQzwAeyfQ2CDzxZc=
-X-Google-Smtp-Source: APXvYqyD/un22q+qtTZ5LbIhFY9b09HssAnOPAoOqILbRFYkBGepPyk20TZodlXmSEsdn4jjTarhxHgtBWVFSc4kUCI=
-X-Received: by 2002:aca:1011:: with SMTP id 17mr693298oiq.72.1582169544773;
- Wed, 19 Feb 2020 19:32:24 -0800 (PST)
-MIME-Version: 1.0
-References: <20200213065352.6310-1-xiyou.wangcong@gmail.com>
- <20200218213524.5yuccwnl2eie6p6x@salvia> <CAM_iQpWfb7xgd2LuRmaXhRSJskJPsupFk0A7=dRXtMEjZJjr3w@mail.gmail.com>
- <20200218220507.cqlhd4kj4ukyjhuu@salvia>
-In-Reply-To: <20200218220507.cqlhd4kj4ukyjhuu@salvia>
-From:   Cong Wang <xiyou.wangcong@gmail.com>
-Date:   Wed, 19 Feb 2020 19:32:13 -0800
-Message-ID: <CAM_iQpUYGVpUCatMHVKSx4jM9c6kbYxcWBV0--1mrQi6NbPhhg@mail.gmail.com>
-Subject: Re: [Patch nf] netfilter: xt_hashlimit: unregister proc file before
- releasing mutex
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        Florian Westphal <fw@strlen.de>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        syzbot <syzbot+d195fd3b9a364ddd6731@syzkaller.appspotmail.com>
-Content-Type: text/plain; charset="UTF-8"
+        Thu, 20 Feb 2020 02:28:27 -0500
+X-Greylist: delayed 465 seconds by postgrey-1.27 at vger.kernel.org; Thu, 20 Feb 2020 02:28:25 EST
+Received: from localhost (cp01-cos-dev01.cp01.baidu.com [10.92.119.46])
+        by tc-sys-mailedm02.tc.baidu.com (Postfix) with ESMTP id 9BA8011C0034
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Feb 2020 15:20:18 +0800 (CST)
+From:   Li RongQing <lirongqing@baidu.com>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH][nf-next] netfilter: cleanup unused macro
+Date:   Thu, 20 Feb 2020 15:20:18 +0800
+Message-Id: <1582183218-17489-1-git-send-email-lirongqing@baidu.com>
+X-Mailer: git-send-email 1.7.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Feb 18, 2020 at 2:05 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->
-> On Tue, Feb 18, 2020 at 01:40:26PM -0800, Cong Wang wrote:
-> > On Tue, Feb 18, 2020 at 1:35 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > >
-> > > On Wed, Feb 12, 2020 at 10:53:52PM -0800, Cong Wang wrote:
-> > > > Before releasing the global mutex, we only unlink the hashtable
-> > > > from the hash list, its proc file is still not unregistered at
-> > > > this point. So syzbot could trigger a race condition where a
-> > > > parallel htable_create() could register the same file immediately
-> > > > after the mutex is released.
-> > > >
-> > > > Move htable_remove_proc_entry() back to mutex protection to
-> > > > fix this. And, fold htable_destroy() into htable_put() to make
-> > > > the code slightly easier to understand.
-> > >
-> > > Probably revert previous one?
-> >
-> > The hung task could appear again if we move the cleanup
-> > back under mutex.
->
-> How could the hung task appear again by reverting
-> c4a3922d2d20c710f827? Please elaborate.
+TEMPLATE_NULLS_VAL is not used after commit 0838aa7fcfcd
+("netfilter: fix netns dependencies with conntrack templates")
 
-Because the cfg.max could be as large as 8*HASHLIMIT_MAX_SIZE:
+PFX is not used after commit 8bee4bad03c5b ("netfilter: xt
+extensions: use pr_<level>")
 
- 311         if (hinfo->cfg.max == 0)
- 312                 hinfo->cfg.max = 8 * hinfo->cfg.size;
- 313         else if (hinfo->cfg.max < hinfo->cfg.size)
- 314                 hinfo->cfg.max = hinfo->cfg.size;
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
+---
+ net/netfilter/nf_conntrack_core.c | 1 -
+ net/netfilter/xt_SECMARK.c        | 2 --
+ 2 files changed, 3 deletions(-)
 
-Not sure whether we can finish cleaning up 8*HASHLIMIT_MAX_SIZE
-entries within the time a hung task tolerates. This largely depends on
-how much contention the spinlock has, at least I don't want to bet
-on it.
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index d1305423640f..1f91351432cc 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -2497,7 +2497,6 @@ void nf_conntrack_init_end(void)
+  */
+ #define UNCONFIRMED_NULLS_VAL	((1<<30)+0)
+ #define DYING_NULLS_VAL		((1<<30)+1)
+-#define TEMPLATE_NULLS_VAL	((1<<30)+2)
+ 
+ int nf_conntrack_init_net(struct net *net)
+ {
+diff --git a/net/netfilter/xt_SECMARK.c b/net/netfilter/xt_SECMARK.c
+index 2317721f3ecb..75625d13e976 100644
+--- a/net/netfilter/xt_SECMARK.c
++++ b/net/netfilter/xt_SECMARK.c
+@@ -21,8 +21,6 @@ MODULE_DESCRIPTION("Xtables: packet security mark modification");
+ MODULE_ALIAS("ipt_SECMARK");
+ MODULE_ALIAS("ip6t_SECMARK");
+ 
+-#define PFX "SECMARK: "
+-
+ static u8 mode;
+ 
+ static unsigned int
+-- 
+2.16.2
 
-Thanks.
