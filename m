@@ -6,32 +6,30 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05A80C35656
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Feb 2020 14:03:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4046C35647
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Feb 2020 14:03:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CCCF920679
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Feb 2020 14:03:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A254320679
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Feb 2020 14:03:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728815AbgBUODe (ORCPT
+        id S1728817AbgBUODj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Feb 2020 09:03:34 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:56994 "EHLO orbyte.nwl.cc"
+        Fri, 21 Feb 2020 09:03:39 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:57000 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728755AbgBUODe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Feb 2020 09:03:34 -0500
-Received: from localhost ([::1]:41852 helo=tatos)
+        id S1728755AbgBUODj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 21 Feb 2020 09:03:39 -0500
+Received: from localhost ([::1]:41858 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1j58tw-0000gB-Rv; Fri, 21 Feb 2020 15:03:32 +0100
+        id 1j58u2-0000gJ-5H; Fri, 21 Feb 2020 15:03:38 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 2/3] xtables: Drop -4 and -6 support from xtables-{save,restore}
-Date:   Fri, 21 Feb 2020 15:03:23 +0100
-Message-Id: <20200221140324.21082-2-phil@nwl.cc>
+Subject: [iptables PATCH 1/3] xtables: Align effect of -4/-6 options with legacy
+Date:   Fri, 21 Feb 2020 15:03:22 +0100
+Message-Id: <20200221140324.21082-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200221140324.21082-1-phil@nwl.cc>
-References: <20200221140324.21082-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -39,77 +37,153 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Legacy tools don't support those options, either.
+Legacy iptables doesn't accept -4 or -6 if they don't match the
+symlink's native family. The only exception to that is iptables-restore
+which simply ignores the lines introduced by non-matching options, which
+is useful to create combined dump files for feeding into both
+iptables-restore and ip6tables-restore.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/xtables-restore.c |  9 +--------
- iptables/xtables-save.c    | 11 +----------
- 2 files changed, 2 insertions(+), 18 deletions(-)
+ .../shell/testcases/iptables/0006-46-args_0   | 88 +++++++++++++++++++
+ iptables/xtables.c                            | 21 ++---
+ 2 files changed, 96 insertions(+), 13 deletions(-)
+ create mode 100755 iptables/tests/shell/testcases/iptables/0006-46-args_0
 
-diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
-index fb2ac8b5c12a3..61a3c92001615 100644
---- a/iptables/xtables-restore.c
-+++ b/iptables/xtables-restore.c
-@@ -381,7 +381,7 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
- 		exit(1);
- 	}
- 
--	while ((c = getopt_long(argc, argv, "bcvVthnM:T:46wW", options, NULL)) != -1) {
-+	while ((c = getopt_long(argc, argv, "bcvVthnM:T:wW", options, NULL)) != -1) {
- 		switch (c) {
- 			case 'b':
- 				fprintf(stderr, "-b/--binary option is not implemented\n");
-@@ -410,13 +410,6 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
- 			case 'T':
- 				p.tablename = optarg;
- 				break;
--			case '4':
--				h.family = AF_INET;
--				break;
--			case '6':
--				h.family = AF_INET6;
--				xtables_set_nfproto(AF_INET6);
--				break;
- 			case 'w': /* fallthrough.  Ignored by xt-restore */
- 			case 'W':
- 				if (!optarg && xs_has_arg(argc, argv))
-diff --git a/iptables/xtables-save.c b/iptables/xtables-save.c
-index 3a52f8c3d8209..1b6c363bef7c1 100644
---- a/iptables/xtables-save.c
-+++ b/iptables/xtables-save.c
-@@ -32,7 +32,7 @@
- #define prog_name xtables_globals.program_name
- #define prog_vers xtables_globals.program_version
- 
--static const char *ipt_save_optstring = "bcdt:M:f:46V";
-+static const char *ipt_save_optstring = "bcdt:M:f:V";
- static const struct option ipt_save_options[] = {
- 	{.name = "counters", .has_arg = false, .val = 'c'},
- 	{.name = "version",  .has_arg = false, .val = 'V'},
-@@ -40,8 +40,6 @@ static const struct option ipt_save_options[] = {
- 	{.name = "table",    .has_arg = true,  .val = 't'},
- 	{.name = "modprobe", .has_arg = true,  .val = 'M'},
- 	{.name = "file",     .has_arg = true,  .val = 'f'},
--	{.name = "ipv4",     .has_arg = false, .val = '4'},
--	{.name = "ipv6",     .has_arg = false, .val = '6'},
- 	{NULL},
- };
- 
-@@ -189,13 +187,6 @@ xtables_save_main(int family, int argc, char *argv[],
- 		case 'd':
- 			dump = true;
+diff --git a/iptables/tests/shell/testcases/iptables/0006-46-args_0 b/iptables/tests/shell/testcases/iptables/0006-46-args_0
+new file mode 100755
+index 0000000000000..17a0a01829df5
+--- /dev/null
++++ b/iptables/tests/shell/testcases/iptables/0006-46-args_0
+@@ -0,0 +1,88 @@
++#!/bin/bash
++
++RC=0
++
++$XT_MULTI iptables -6 -A FORWARD -j ACCEPT
++rc=$?
++if [[ $rc -ne 2 ]]; then
++	echo "'iptables -6' returned $rc instead of 2"
++	RC=1
++fi
++
++$XT_MULTI ip6tables -4 -A FORWARD -j ACCEPT
++rc=$?
++if [[ $rc -ne 2 ]]; then
++	echo "'ip6tables -4' returned $rc instead of 2"
++	RC=1
++fi
++
++RULESET='*filter
++-4 -A FORWARD -d 10.0.0.1 -j ACCEPT
++-6 -A FORWARD -d fec0:10::1 -j ACCEPT
++COMMIT
++'
++EXPECT4='-P FORWARD ACCEPT
++-A FORWARD -d 10.0.0.1/32 -j ACCEPT'
++EXPECT6='-P FORWARD ACCEPT
++-A FORWARD -d fec0:10::1/128 -j ACCEPT'
++EXPECT_EMPTY='-P FORWARD ACCEPT'
++
++echo "$RULESET" | $XT_MULTI iptables-restore || {
++	echo "iptables-restore failed!"
++	RC=1
++}
++diff -u -Z <(echo -e "$EXPECT4") <($XT_MULTI iptables -S FORWARD) || {
++	echo "unexpected iptables ruleset"
++	RC=1
++}
++diff -u -Z <(echo -e "$EXPECT_EMPTY") <($XT_MULTI ip6tables -S FORWARD) || {
++	echo "unexpected non-empty ip6tables ruleset"
++	RC=1
++}
++
++$XT_MULTI iptables -F FORWARD
++
++echo "$RULESET" | $XT_MULTI ip6tables-restore || {
++	echo "ip6tables-restore failed!"
++	RC=1
++}
++diff -u -Z <(echo -e "$EXPECT6") <($XT_MULTI ip6tables -S FORWARD) || {
++	echo "unexpected ip6tables ruleset"
++	RC=1
++}
++diff -u -Z <(echo -e "$EXPECT_EMPTY") <($XT_MULTI iptables -S FORWARD) || {
++	echo "unexpected non-empty iptables ruleset"
++	RC=1
++}
++
++$XT_MULTI ip6tables -F FORWARD
++
++$XT_MULTI iptables -4 -A FORWARD -d 10.0.0.1 -j ACCEPT || {
++	echo "iptables failed!"
++	RC=1
++}
++diff -u -Z <(echo -e "$EXPECT4") <($XT_MULTI iptables -S FORWARD) || {
++	echo "unexpected iptables ruleset"
++	RC=1
++}
++diff -u -Z <(echo -e "$EXPECT_EMPTY") <($XT_MULTI ip6tables -S FORWARD) || {
++	echo "unexpected non-empty ip6tables ruleset"
++	RC=1
++}
++
++$XT_MULTI iptables -F FORWARD
++
++$XT_MULTI ip6tables -6 -A FORWARD -d fec0:10::1 -j ACCEPT || {
++	echo "ip6tables failed!"
++	RC=1
++}
++diff -u -Z <(echo -e "$EXPECT6") <($XT_MULTI ip6tables -S FORWARD) || {
++	echo "unexpected ip6tables ruleset"
++	RC=1
++}
++diff -u -Z <(echo -e "$EXPECT_EMPTY") <($XT_MULTI iptables -S FORWARD) || {
++	echo "unexpected non-empty iptables ruleset"
++	RC=1
++}
++
++exit $RC
+diff --git a/iptables/xtables.c b/iptables/xtables.c
+index 8f9dc628d0029..3d75a1ddacae2 100644
+--- a/iptables/xtables.c
++++ b/iptables/xtables.c
+@@ -917,27 +917,22 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
  			break;
--		case '4':
--			h.family = AF_INET;
+ 
+ 		case '4':
++			if (args->family == AF_INET)
++				break;
++
+ 			if (p->restore && args->family == AF_INET6)
+ 				return;
+ 
+-			if (args->family != AF_INET)
+-				exit_tryhelp(2);
+-
+-			h->ops = nft_family_ops_lookup(args->family);
 -			break;
--		case '6':
--			h.family = AF_INET6;
++			exit_tryhelp(2);
+ 
+ 		case '6':
++			if (args->family == AF_INET6)
++				break;
++
+ 			if (p->restore && args->family == AF_INET)
+ 				return;
+ 
+-			args->family = AF_INET6;
 -			xtables_set_nfproto(AF_INET6);
+-
+-			h->ops = nft_family_ops_lookup(args->family);
+-			if (h->ops == NULL)
+-				xtables_error(PARAMETER_PROBLEM,
+-					      "Unknown family");
 -			break;
- 		case 'V':
- 			printf("%s v%s (nf_tables)\n", prog_name, prog_vers);
- 			exit(0);
++			exit_tryhelp(2);
+ 
+ 		case 1: /* non option */
+ 			if (optarg[0] == '!' && optarg[1] == '\0') {
 -- 
 2.25.1
 
