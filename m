@@ -2,110 +2,123 @@ Return-Path: <SRS0=J2Vc=4L=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5161C35675
-	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Feb 2020 23:15:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F17CC35670
+	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Feb 2020 23:49:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C83B3208C3
-	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Feb 2020 23:15:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5F32F206E0
+	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Feb 2020 23:49:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727158AbgBWXPe (ORCPT
+        id S1727150AbgBWXts (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 23 Feb 2020 18:15:34 -0500
-Received: from correo.us.es ([193.147.175.20]:41626 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727125AbgBWXPe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 23 Feb 2020 18:15:34 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EBBFEEF432
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Feb 2020 00:15:26 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DF09FDA72F
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Feb 2020 00:15:26 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C89FCDA3B0; Mon, 24 Feb 2020 00:15:26 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DFB62DA3A1;
-        Mon, 24 Feb 2020 00:15:24 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 24 Feb 2020 00:15:24 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id BEF5942EF4E0;
-        Mon, 24 Feb 2020 00:15:24 +0100 (CET)
-Date:   Mon, 24 Feb 2020 00:15:29 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Duncan Roe <duncan_roe@optusnet.com.au>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libnetfilter_queue] build: doc: "make" builds & installs
- a full set of man pages
-Message-ID: <20200223231529.jd7dfhebp7lfvbgs@salvia>
-References: <20200208012844.30481-1-duncan_roe@optusnet.com.au>
- <20200223222733.rc4mhtvxgxiihlij@salvia>
- <20200223223514.GA19559@breakpoint.cc>
- <20200223223706.543ya6xumtuk3l7b@salvia>
- <20200223225419.GB19559@breakpoint.cc>
+        Sun, 23 Feb 2020 18:49:48 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:45984 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726534AbgBWXts (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 23 Feb 2020 18:49:48 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1j610L-0004jA-6Q; Mon, 24 Feb 2020 00:49:45 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH libnetfilter_queue] src: add nfq_get_skbinfo()
+Date:   Mon, 24 Feb 2020 00:49:41 +0100
+Message-Id: <20200223234941.44877-1-fw@strlen.de>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200223225419.GB19559@breakpoint.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Florian,
+Silly, since its easy to fetch this via libmnl.
+Unfortunately there is a large number of software that uses the old
+API, so add a helper to return the attribute.
 
-On Sun, Feb 23, 2020 at 11:54:19PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Sun, Feb 23, 2020 at 11:35:14PM +0100, Florian Westphal wrote:
-> > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > > On Sat, Feb 08, 2020 at 12:28:44PM +1100, Duncan Roe wrote:
-> > > > > This enables one to enter "man <any nfq function>" and get the appropriate
-> > > > > group man page created by doxygen.
-> > > > > 
-> > > > >  - New makefile in doxygen directory. Rebuilds documentation if any sources
-> > > > >    change that contain doxygen comments, or if fixmanpages.sh changes
-> > > > >  - New shell script fixmanpages.sh which
-> > > > >    - Renames each group man page to the first function listed therein
-> > > > >    - Creates symlinks for subsequently listed functions (if any)
-> > > > >    - Deletes _* temp files
-> > > > >  - Update top-level makefile to visit new subdir doxygen
-> > > > >  - Update top-level configure to only build documentation if doxygen installed
-> > > > 
-> > > > I'd prefer people to keep this infrastructure out of tree. Thanks.
-> > > 
-> > > Hmm, why?
-> > 
-> > Would you like to allow to generate manpage per function in the
-> > library? We never had this so far.
-> > 
-> > Probably a single manpage in the style of libnftables(3)?
-> 
-> I like it.  I mean, its up to distros to package this, I guess
-> most of them will place this into some extra doc sub-package.
-> 
-> $ man 3 ssl-<tab>
-> zsh: do you wish to see all 416 possibilities (70 lines)?
-> 
-> ... so there are libraries that do this.
-> Also, from what I understand, there is not a single man-page per
-> function, the extra ones are just aliases.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ fixmanpages.sh                                |  6 ++--
+ .../libnetfilter_queue/libnetfilter_queue.h   |  1 +
+ src/libnetfilter_queue.c                      | 31 +++++++++++++++++++
+ 3 files changed, 36 insertions(+), 2 deletions(-)
 
-I was not familiar with this fine-grain manpage approach, thanks for
-explaining.
+diff --git a/fixmanpages.sh b/fixmanpages.sh
+index 897086bad6df..4d12247d14f6 100755
+--- a/fixmanpages.sh
++++ b/fixmanpages.sh
+@@ -11,8 +11,10 @@ function main
+     add2group nfq_get_nfmark nfq_get_timestamp nfq_get_indev nfq_get_physindev
+     add2group nfq_get_outdev nfq_get_physoutdev nfq_get_indev_name
+     add2group nfq_get_physindev_name nfq_get_outdev_name
+-    add2group nfq_get_physoutdev_name nfq_get_packet_hw nfq_get_uid
+-    add2group nfq_get_gid nfq_get_secctx nfq_get_payload
++    add2group nfq_get_physoutdev_name nfq_get_packet_hw
++    add2group nfq_get_skbinfo
++    add2group nfq_get_uid nfq_get_gid
++    add2group nfq_get_secctx nfq_get_payload
+   setgroup Queue nfq_fd
+     add2group nfq_create_queue nfq_destroy_queue nfq_handle_packet nfq_set_mode
+     add2group nfq_set_queue_flags nfq_set_queue_maxlen nfq_set_verdict
+diff --git a/include/libnetfilter_queue/libnetfilter_queue.h b/include/libnetfilter_queue/libnetfilter_queue.h
+index 092c57d07451..46e14e135458 100644
+--- a/include/libnetfilter_queue/libnetfilter_queue.h
++++ b/include/libnetfilter_queue/libnetfilter_queue.h
+@@ -103,6 +103,7 @@ extern uint32_t nfq_get_indev(struct nfq_data *nfad);
+ extern uint32_t nfq_get_physindev(struct nfq_data *nfad);
+ extern uint32_t nfq_get_outdev(struct nfq_data *nfad);
+ extern uint32_t nfq_get_physoutdev(struct nfq_data *nfad);
++extern uint32_t nfq_get_skbinfo(struct nfq_data *nfad);
+ extern int nfq_get_uid(struct nfq_data *nfad, uint32_t *uid);
+ extern int nfq_get_gid(struct nfq_data *nfad, uint32_t *gid);
+ extern int nfq_get_secctx(struct nfq_data *nfad, unsigned char **secdata);
+diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
+index 3cf9653393e6..f5462a374b80 100644
+--- a/src/libnetfilter_queue.c
++++ b/src/libnetfilter_queue.c
+@@ -1210,6 +1210,37 @@ struct nfqnl_msg_packet_hw *nfq_get_packet_hw(struct nfq_data *nfad)
+ 					struct nfqnl_msg_packet_hw);
+ }
+ 
++/**
++ * nfq_get_skbinfo - return the NFQA_SKB_INFO meta information
++ * \param nfad Netlink packet data handle passed to callback function
++ *
++ * This can be used to obtain extra information about a packet by testing
++ * the returned integer for any of the following bit flags:
++ *
++ * - NFQA_SKB_CSUMNOTREADY
++ *   packet header checksums will be computed by hardware later on, i.e.
++ *   tcp/ip checksums in the packet must not be validated, application
++ *   should pretend they are correct.
++ * - NFQA_SKB_GSO
++ *   packet is an aggregated super-packet.  It exceeds device mtu and will
++ *   be (re-)split on transmit by hardware.
++ * - NFQA_SKB_CSUM_NOTVERIFIED
++ *   packet checksum was not yet verified by the kernel/hardware, for
++ *   example because this is an incoming packet and the NIC does not
++ *   perform checksum validation at hardware level.
++ * See nfq_set_queue_flags() documentation for more information.
++ *
++ * \return the skbinfo value
++ */
++EXPORT_SYMBOL
++uint32_t nfq_get_skbinfo(struct nfq_data *nfad)
++{
++	if (!nfnl_attr_present(nfad->data, NFQA_SKB_INFO))
++		return 0;
++
++	return ntohl(nfnl_get_data(nfad->data, NFQA_SKB_INFO, uint32_t));
++}
++
+ /**
+  * nfq_get_uid - get the UID of the user the packet belongs to
+  * \param nfad Netlink packet data handle passed to callback function
+-- 
+2.24.1
 
-Please, go ahead and apply this patch.
-
-Thanks.
