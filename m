@@ -6,56 +6,54 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01835C35673
-	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Feb 2020 21:40:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92E99C35671
+	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Feb 2020 21:40:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CA26420675
-	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Feb 2020 21:40:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F65C20675
+	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Feb 2020 21:40:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727106AbgBWVkE (ORCPT
+        id S1727133AbgBWVkW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 23 Feb 2020 16:40:04 -0500
-Received: from correo.us.es ([193.147.175.20]:51346 "EHLO mail.us.es"
+        Sun, 23 Feb 2020 16:40:22 -0500
+Received: from correo.us.es ([193.147.175.20]:51440 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727099AbgBWVkE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 23 Feb 2020 16:40:04 -0500
+        id S1727099AbgBWVkW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 23 Feb 2020 16:40:22 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5F6A2EBACB
-        for <netfilter-devel@vger.kernel.org>; Sun, 23 Feb 2020 22:39:57 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 898B6EBAC0
+        for <netfilter-devel@vger.kernel.org>; Sun, 23 Feb 2020 22:40:15 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 526A0DA788
-        for <netfilter-devel@vger.kernel.org>; Sun, 23 Feb 2020 22:39:57 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7CDFEDA3C4
+        for <netfilter-devel@vger.kernel.org>; Sun, 23 Feb 2020 22:40:15 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 3D8B8DA39F; Sun, 23 Feb 2020 22:39:57 +0100 (CET)
+        id 7289DDA8E6; Sun, 23 Feb 2020 22:40:15 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5AA68DA788;
-        Sun, 23 Feb 2020 22:39:55 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A89DDDA7B2;
+        Sun, 23 Feb 2020 22:40:13 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 23 Feb 2020 22:39:55 +0100 (CET)
+ Sun, 23 Feb 2020 22:40:13 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 37EA442EF4E1;
-        Sun, 23 Feb 2020 22:39:55 +0100 (CET)
-Date:   Sun, 23 Feb 2020 22:39:59 +0100
+        by entrada.int (Postfix) with ESMTPSA id 81E5A42EF4E1;
+        Sun, 23 Feb 2020 22:40:13 +0100 (CET)
+Date:   Sun, 23 Feb 2020 22:40:18 +0100
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Manoj Basapathi <manojbm@codeaurora.org>
-Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de,
-        sharathv@qti.qualcomm.com, ssaha@qti.qualcomm.com,
-        vidulak@qti.qualcomm.com, manojbm@qti.qualcomm.com,
-        Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Subject: Re: [PATCH] [nf-next,v4] netfilter: xtables: Add snapshot of
- hardidletimer target
-Message-ID: <20200223213959.gndhpo4v3uwog7vb@salvia>
-References: <20200206110729.30027-1-manojbm@codeaurora.org>
+To:     Xin Long <lucien.xin@gmail.com>
+Cc:     network dev <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, davem@davemloft.net
+Subject: Re: [PATCHv2 nf-next] netfilter: nft_tunnel: add support for geneve
+ opts
+Message-ID: <20200223214018.g5jbv4p4o74k6rru@salvia>
+References: <0711b62fce237dfde2d02e92d4d273c9578818ef.1581313282.git.lucien.xin@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200206110729.30027-1-manojbm@codeaurora.org>
+In-Reply-To: <0711b62fce237dfde2d02e92d4d273c9578818ef.1581313282.git.lucien.xin@gmail.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -63,7 +61,8 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Feb 06, 2020 at 04:37:29PM +0530, Manoj Basapathi wrote:
-> This is a snapshot of hardidletimer netfilter target.
+On Mon, Feb 10, 2020 at 01:41:22PM +0800, Xin Long wrote:
+> Like vxlan and erspan opts, geneve opts should also be supported in
+> nft_tunnel.
 
-Applied.
+Applied, thanks.
