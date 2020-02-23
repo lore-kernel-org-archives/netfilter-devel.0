@@ -6,52 +6,53 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93498C35673
-	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Feb 2020 21:44:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C392C35673
+	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Feb 2020 21:51:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 73B5020836
-	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Feb 2020 21:44:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5485F20675
+	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Feb 2020 21:51:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727021AbgBWVoi (ORCPT
+        id S1726678AbgBWVvP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 23 Feb 2020 16:44:38 -0500
-Received: from correo.us.es ([193.147.175.20]:52334 "EHLO mail.us.es"
+        Sun, 23 Feb 2020 16:51:15 -0500
+Received: from correo.us.es ([193.147.175.20]:53564 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726302AbgBWVoh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 23 Feb 2020 16:44:37 -0500
+        id S1726302AbgBWVvO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 23 Feb 2020 16:51:14 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DDF9EEBAC2
-        for <netfilter-devel@vger.kernel.org>; Sun, 23 Feb 2020 22:44:30 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 33842EBAC3
+        for <netfilter-devel@vger.kernel.org>; Sun, 23 Feb 2020 22:51:08 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D0625DA801
-        for <netfilter-devel@vger.kernel.org>; Sun, 23 Feb 2020 22:44:30 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2546BDA72F
+        for <netfilter-devel@vger.kernel.org>; Sun, 23 Feb 2020 22:51:08 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C60EBDA7B2; Sun, 23 Feb 2020 22:44:30 +0100 (CET)
+        id 1A9A8DA788; Sun, 23 Feb 2020 22:51:08 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0888CDA38F;
-        Sun, 23 Feb 2020 22:44:29 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 557DFDA72F;
+        Sun, 23 Feb 2020 22:51:06 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 23 Feb 2020 22:44:29 +0100 (CET)
+ Sun, 23 Feb 2020 22:51:06 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id CC93242EF4E1;
-        Sun, 23 Feb 2020 22:44:28 +0100 (CET)
-Date:   Sun, 23 Feb 2020 22:44:33 +0100
+        by entrada.int (Postfix) with ESMTPSA id 30CC142EF4E1;
+        Sun, 23 Feb 2020 22:51:06 +0100 (CET)
+Date:   Sun, 23 Feb 2020 22:51:10 +0100
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Li RongQing <lirongqing@baidu.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH][nf-next] netfilter: cleanup unused macro
-Message-ID: <20200223214433.25gmmbgzddnchnpj@salvia>
-References: <1582183218-17489-1-git-send-email-lirongqing@baidu.com>
+To:     Andreas Jaggi <andreas.jaggi@waterwave.ch>
+Cc:     Netfilter Development Mailing list 
+        <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH] ulogd: printpkt: always print IPv6 protocol
+Message-ID: <20200223215110.7zbxe3tyiisythf3@salvia>
+References: <12B140AA-502D-488F-B6A2-9E9DCF1DFC71@waterwave.ch>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1582183218-17489-1-git-send-email-lirongqing@baidu.com>
+In-Reply-To: <12B140AA-502D-488F-B6A2-9E9DCF1DFC71@waterwave.ch>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -59,11 +60,7 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Feb 20, 2020 at 03:20:18PM +0800, Li RongQing wrote:
-> TEMPLATE_NULLS_VAL is not used after commit 0838aa7fcfcd
-> ("netfilter: fix netns dependencies with conntrack templates")
-> 
-> PFX is not used after commit 8bee4bad03c5b ("netfilter: xt
-> extensions: use pr_<level>")
+On Fri, Feb 21, 2020 at 07:40:36AM +0100, Andreas Jaggi wrote:
+> Print the protocol number for protocols not known by name.
 
-Applied.
+Applied, thanks.
