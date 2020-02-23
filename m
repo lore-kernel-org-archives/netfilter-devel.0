@@ -7,50 +7,50 @@ X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E324C35671
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA6DEC35673
 	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Feb 2020 21:23:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2DF6D206E0
+	by mail.kernel.org (Postfix) with ESMTP id A81E4206E0
 	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Feb 2020 21:23:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="NGIttYDC"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="WC/GIQp0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727115AbgBWVXk (ORCPT
+        id S1727125AbgBWVXk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sun, 23 Feb 2020 16:23:40 -0500
-Received: from us-smtp-2.mimecast.com ([205.139.110.61]:24779 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727064AbgBWVXj (ORCPT
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:52910 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1727100AbgBWVXj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 23 Feb 2020 16:23:39 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1582493017;
+        s=mimecast20190719; t=1582493018;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=tInGgpunq6P2sjOI/OuhW3z6RMxf8LtznRrYOnUx8xs=;
-        b=NGIttYDCLa5RecOzXWUqoxBRPvLz+XijWq4VReM/2er8SxUB96kTo9ftnOv1HXqPkjBMjF
-        nXetjADn1zjIdiDTjcGRKOZ78t4Hg+51T5EwNTxWbwiqsi0qxByXPmUFUKPF3ff6GyFGB/
-        /OTbpVQp18gtB6g3o/7tj3h9aYBl8w8=
+        bh=otIsXYTgLABW5YSWka4b2dMuK7paRTOLwWzhVbliWAw=;
+        b=WC/GIQp0PfKgyj4H2wFv3s0nj29Et1nKQ543VUFgIok/SOqdOuBlmL4VyvKpadFreY2Mhu
+        K4oUbLtDLn1plcHY04YQbWb6scL796NFt9JkoCaZFy4svXhB1BZDfmPVc9WPbqKIt8c2hK
+        7I659aT6cWcvG2KEDweGaB4f2YE6jFg=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-354-W99v6_ZIPuiq39clupW2Eg-1; Sun, 23 Feb 2020 16:23:35 -0500
-X-MC-Unique: W99v6_ZIPuiq39clupW2Eg-1
+ us-mta-292-0zwPjhy9MW2v4WrMyL6UaA-1; Sun, 23 Feb 2020 16:23:34 -0500
+X-MC-Unique: 0zwPjhy9MW2v4WrMyL6UaA-1
 Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id DE0BF800D50;
-        Sun, 23 Feb 2020 21:23:34 +0000 (UTC)
-Received: from epycfail.redhat.com (ovpn-200-29.brq.redhat.com [10.40.200.29])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id DF97287B01;
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 6D38F100550E;
         Sun, 23 Feb 2020 21:23:33 +0000 (UTC)
+Received: from epycfail.redhat.com (ovpn-200-29.brq.redhat.com [10.40.200.29])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 6D86987B01;
+        Sun, 23 Feb 2020 21:23:32 +0000 (UTC)
 From:   Stefano Brivio <sbrivio@redhat.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next 4/5] nft_set_pipapo: Prepare for vectorised implementation: helpers
-Date:   Sun, 23 Feb 2020 22:23:15 +0100
-Message-Id: <3927efdf278c2f188ad3386fd64e83cb2d9969f0.1582488826.git.sbrivio@redhat.com>
+Subject: [PATCH nf-next 3/5] nft_set_pipapo: Prepare for vectorised implementation: alignment
+Date:   Sun, 23 Feb 2020 22:23:14 +0100
+Message-Id: <2723f85da2cd9d6b7158c7a2514c6b22f044b1b6.1582488826.git.sbrivio@redhat.com>
 In-Reply-To: <cover.1582488826.git.sbrivio@redhat.com>
 References: <cover.1582488826.git.sbrivio@redhat.com>
 MIME-Version: 1.0
@@ -61,455 +61,32 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Move most macros and helpers to a header file, so that they can be
-conveniently used by related implementations.
+SIMD vector extension sets require stricter alignment than native
+instruction sets to operate efficiently (AVX, NEON) or for some
+instructions to work at all (AltiVec).
 
-No functional changes are intended here.
+Provide facilities to define arbitrary alignment for lookup tables
+and scratch maps. By defining byte alignment with NFT_PIPAPO_ALIGN,
+lt_aligned and scratch_aligned pointers become available.
+
+Additional headroom is allocated, and pointers to the possibly
+unaligned, originally allocated areas are kept so that they can
+be freed.
 
 Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
 ---
- net/netfilter/nft_set_pipapo.c | 269 +-------------------------------
- net/netfilter/nft_set_pipapo.h | 277 +++++++++++++++++++++++++++++++++
- 2 files changed, 285 insertions(+), 261 deletions(-)
- create mode 100644 net/netfilter/nft_set_pipapo.h
+ net/netfilter/nft_set_pipapo.c | 135 +++++++++++++++++++++++++++------
+ 1 file changed, 110 insertions(+), 25 deletions(-)
 
 diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipap=
 o.c
-index eb9a3cd8a811..0f474e00665d 100644
+index 63e608e73e05..eb9a3cd8a811 100644
 --- a/net/netfilter/nft_set_pipapo.c
 +++ b/net/netfilter/nft_set_pipapo.c
-@@ -330,188 +330,20 @@
+@@ -398,6 +398,22 @@
+ #define NFT_PIPAPO_RULE0_MAX		((1UL << (NFT_PIPAPO_MAP_TOBITS - 1)) \
+ 					- (1UL << NFT_PIPAPO_MAP_NBITS))
 =20
- #include <linux/kernel.h>
- #include <linux/init.h>
--#include <linux/log2.h>
- #include <linux/module.h>
- #include <linux/netlink.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables_core.h>
- #include <uapi/linux/netfilter/nf_tables.h>
--#include <net/ipv6.h>			/* For the maximum length of a field */
- #include <linux/bitmap.h>
- #include <linux/bitops.h>
-=20
--/* Count of concatenated fields depends on count of 32-bit nftables regi=
-sters */
--#define NFT_PIPAPO_MAX_FIELDS		NFT_REG32_COUNT
--
--/* Largest supported field size */
--#define NFT_PIPAPO_MAX_BYTES		(sizeof(struct in6_addr))
--#define NFT_PIPAPO_MAX_BITS		(NFT_PIPAPO_MAX_BYTES * BITS_PER_BYTE)
--
--/* Bits to be grouped together in table buckets depending on set size */
--#define NFT_PIPAPO_GROUP_BITS_INIT	NFT_PIPAPO_GROUP_BITS_SMALL_SET
--#define NFT_PIPAPO_GROUP_BITS_SMALL_SET	8
--#define NFT_PIPAPO_GROUP_BITS_LARGE_SET	4
--#define NFT_PIPAPO_GROUP_BITS_ARE_8_OR_4				\
--	BUILD_BUG_ON((NFT_PIPAPO_GROUP_BITS_SMALL_SET !=3D 8) ||		\
--		     (NFT_PIPAPO_GROUP_BITS_LARGE_SET !=3D 4))
--#define NFT_PIPAPO_GROUPS_PER_BYTE(f)	(BITS_PER_BYTE / (f)->bb)
--
--/* If a lookup table gets bigger than NFT_PIPAPO_LT_SIZE_HIGH, switch to=
- the
-- * small group width, and switch to the big group width if the table get=
-s
-- * smaller than NFT_PIPAPO_LT_SIZE_LOW.
-- *
-- * Picking 2MiB as threshold (for a single table) avoids as much as poss=
-ible
-- * crossing page boundaries on most architectures (x86-64 and MIPS huge =
-pages,
-- * ARMv7 supersections, POWER "large" pages, SPARC Level 1 regions, etc.=
-), which
-- * keeps performance nice in case kvmalloc() gives us non-contiguous are=
-as.
-- */
--#define NFT_PIPAPO_LT_SIZE_THRESHOLD	(1 << 21)
--#define NFT_PIPAPO_LT_SIZE_HYSTERESIS	(1 << 16)
--#define NFT_PIPAPO_LT_SIZE_HIGH		NFT_PIPAPO_LT_SIZE_THRESHOLD
--#define NFT_PIPAPO_LT_SIZE_LOW		NFT_PIPAPO_LT_SIZE_THRESHOLD -	\
--					NFT_PIPAPO_LT_SIZE_HYSTERESIS
--
--/* Fields are padded to 32 bits in input registers */
--#define NFT_PIPAPO_GROUPS_PADDED_SIZE(f)				\
--	(round_up((f)->groups / NFT_PIPAPO_GROUPS_PER_BYTE(f), sizeof(u32)))
--#define NFT_PIPAPO_GROUPS_PADDING(f)					\
--	(NFT_PIPAPO_GROUPS_PADDED_SIZE(f) - (f)->groups /		\
--					    NFT_PIPAPO_GROUPS_PER_BYTE(f))
--
--/* Number of buckets given by 2 ^ n, with n bucket bits */
--#define NFT_PIPAPO_BUCKETS(bb)		(1 << (bb))
--
--/* Each n-bit range maps to up to n * 2 rules */
--#define NFT_PIPAPO_MAP_NBITS		(const_ilog2(NFT_PIPAPO_MAX_BITS * 2))
--
--/* Use the rest of mapping table buckets for rule indices, but it makes =
-no sense
-- * to exceed 32 bits
-- */
--#if BITS_PER_LONG =3D=3D 64
--#define NFT_PIPAPO_MAP_TOBITS		32
--#else
--#define NFT_PIPAPO_MAP_TOBITS		(BITS_PER_LONG - NFT_PIPAPO_MAP_NBITS)
--#endif
--
--/* ...which gives us the highest allowed index for a rule */
--#define NFT_PIPAPO_RULE0_MAX		((1UL << (NFT_PIPAPO_MAP_TOBITS - 1)) \
--					- (1UL << NFT_PIPAPO_MAP_NBITS))
--
--/* Definitions for vectorised implementations */
--#ifdef NFT_PIPAPO_ALIGN
--#define NFT_PIPAPO_ALIGN_HEADROOM					\
--	(NFT_PIPAPO_ALIGN - ARCH_KMALLOC_MINALIGN)
--#define NFT_PIPAPO_LT_ALIGN(lt)		(PTR_ALIGN((lt), NFT_PIPAPO_ALIGN))
--#define NFT_PIPAPO_LT_ASSIGN(field, x)					\
--	do {								\
--		(field)->lt_aligned =3D NFT_PIPAPO_LT_ALIGN(x);		\
--		(field)->lt =3D (x);					\
--	} while (0)
--#else
--#define NFT_PIPAPO_ALIGN_HEADROOM	0
--#define NFT_PIPAPO_LT_ALIGN(lt)		(lt)
--#define NFT_PIPAPO_LT_ASSIGN(field, x)	((field)->lt =3D (x))
--#endif /* NFT_PIPAPO_ALIGN */
--
--#define nft_pipapo_for_each_field(field, index, match)		\
--	for ((field) =3D (match)->f, (index) =3D 0;			\
--	     (index) < (match)->field_count;			\
--	     (index)++, (field)++)
--
--/**
-- * union nft_pipapo_map_bucket - Bucket of mapping table
-- * @to:		First rule number (in next field) this rule maps to
-- * @n:		Number of rules (in next field) this rule maps to
-- * @e:		If there's no next field, pointer to element this rule maps to
-- */
--union nft_pipapo_map_bucket {
--	struct {
--#if BITS_PER_LONG =3D=3D 64
--		static_assert(NFT_PIPAPO_MAP_TOBITS <=3D 32);
--		u32 to;
--
--		static_assert(NFT_PIPAPO_MAP_NBITS <=3D 32);
--		u32 n;
--#else
--		unsigned long to:NFT_PIPAPO_MAP_TOBITS;
--		unsigned long  n:NFT_PIPAPO_MAP_NBITS;
--#endif
--	};
--	struct nft_pipapo_elem *e;
--};
--
--/**
-- * struct nft_pipapo_field - Lookup, mapping tables and related data for=
- a field
-- * @groups:	Amount of bit groups
-- * @rules:	Number of inserted rules
-- * @bsize:	Size of each bucket in lookup table, in longs
-- * @bb:		Number of bits grouped together in lookup table buckets
-- * @lt:		Lookup table: 'groups' rows of buckets
-- * @lt_aligned:	Version of @lt aligned to NFT_PIPAPO_ALIGN bytes
-- * @mt:		Mapping table: one bucket per rule
-- */
--struct nft_pipapo_field {
--	int groups;
--	unsigned long rules;
--	size_t bsize;
--	int bb;
--#ifdef NFT_PIPAPO_ALIGN
--	unsigned long *lt_aligned;
--#endif
--	unsigned long *lt;
--	union nft_pipapo_map_bucket *mt;
--};
--
--/**
-- * struct nft_pipapo_match - Data used for lookup and matching
-- * @field_count		Amount of fields in set
-- * @scratch:		Preallocated per-CPU maps for partial matching results
-- * @scratch_aligned:	Version of @scratch aligned to NFT_PIPAPO_ALIGN byt=
-es
-- * @bsize_max:		Maximum lookup table bucket size of all fields, in longs
-- * @rcu			Matching data is swapped on commits
-- * @f:			Fields, with lookup and mapping tables
-- */
--struct nft_pipapo_match {
--	int field_count;
--#ifdef NFT_PIPAPO_ALIGN
--	unsigned long * __percpu *scratch_aligned;
--#endif
--	unsigned long * __percpu *scratch;
--	size_t bsize_max;
--	struct rcu_head rcu;
--	struct nft_pipapo_field f[0];
--};
-+#include "nft_set_pipapo.h"
-=20
- /* Current working bitmap index, toggled between field matches */
- static DEFINE_PER_CPU(bool, nft_pipapo_scratch_index);
-=20
--/**
-- * struct nft_pipapo - Representation of a set
-- * @match:	Currently in-use matching data
-- * @clone:	Copy where pending insertions and deletions are kept
-- * @width:	Total bytes to be matched for one packet, including padding
-- * @dirty:	Working copy has pending insertions or deletions
-- * @last_gc:	Timestamp of last garbage collection run, jiffies
-- */
--struct nft_pipapo {
--	struct nft_pipapo_match __rcu *match;
--	struct nft_pipapo_match *clone;
--	int width;
--	bool dirty;
--	unsigned long last_gc;
--};
--
--struct nft_pipapo_elem;
--
--/**
-- * struct nft_pipapo_elem - API-facing representation of single set elem=
-ent
-- * @ext:	nftables API extensions
-- */
--struct nft_pipapo_elem {
--	struct nft_set_ext ext;
--};
--
- /**
-  * pipapo_refill() - For each set bit, set bits from selected mapping ta=
-ble item
-  * @map:	Bitmap to be scanned for set bits
-@@ -529,9 +361,8 @@ struct nft_pipapo_elem {
-  *
-  * Return: -1 on no match, bit position on 'match_only', 0 otherwise.
-  */
--static int pipapo_refill(unsigned long *map, int len, int rules,
--			 unsigned long *dst, union nft_pipapo_map_bucket *mt,
--			 bool match_only)
-+int pipapo_refill(unsigned long *map, int len, int rules, unsigned long =
-*dst,
-+		  union nft_pipapo_map_bucket *mt, bool match_only)
- {
- 	unsigned long bitset;
- 	int k, ret =3D -1;
-@@ -565,54 +396,6 @@ static int pipapo_refill(unsigned long *map, int len=
-, int rules,
- 	return ret;
- }
-=20
--/**
-- * pipapo_and_field_buckets_4bit() - Intersect buckets for 4-bit groups
-- * @f:		Field including lookup table
-- * @dst:	Area to store result
-- * @data:	Input data selecting table buckets
-- */
--static void pipapo_and_field_buckets_4bit(struct nft_pipapo_field *f,
--					  unsigned long *dst,
--					  const u8 *data)
--{
--	unsigned long *lt =3D f->lt;
--	int group;
--
--	for (group =3D 0; group < f->groups; group +=3D BITS_PER_BYTE / 4, data=
-++) {
--		u8 v;
--
--		v =3D *data >> 4;
--		__bitmap_and(dst, dst, lt + v * f->bsize,
--			     f->bsize * BITS_PER_LONG);
--		lt +=3D f->bsize * NFT_PIPAPO_BUCKETS(4);
--
--		v =3D *data & 0x0f;
--		__bitmap_and(dst, dst, lt + v * f->bsize,
--			     f->bsize * BITS_PER_LONG);
--		lt +=3D f->bsize * NFT_PIPAPO_BUCKETS(4);
--	}
--}
--
--/**
-- * pipapo_and_field_buckets_8bit() - Intersect buckets for 8-bit groups
-- * @f:		Field including lookup table
-- * @dst:	Area to store result
-- * @data:	Input data selecting table buckets
-- */
--static void pipapo_and_field_buckets_8bit(struct nft_pipapo_field *f,
--					  unsigned long *dst,
--					  const u8 *data)
--{
--	unsigned long *lt =3D f->lt;
--	int group;
--
--	for (group =3D 0; group < f->groups; group++, data++) {
--		__bitmap_and(dst, dst, lt + *data * f->bsize,
--			     f->bsize * BITS_PER_LONG);
--		lt +=3D f->bsize * NFT_PIPAPO_BUCKETS(8);
--	}
--}
--
- /**
-  * nft_pipapo_lookup() - Lookup function
-  * @net:	Network namespace
-@@ -753,7 +536,6 @@ static struct nft_pipapo_elem *pipapo_get(const struc=
-t net *net,
- 	memset(res_map, 0xff, m->bsize_max * sizeof(*res_map));
-=20
- 	nft_pipapo_for_each_field(f, i, m) {
--		unsigned long *lt =3D NFT_PIPAPO_LT_ALIGN(f->lt);
- 		bool last =3D i =3D=3D m->field_count - 1;
- 		int b;
-=20
-@@ -2190,58 +1972,23 @@ static u64 nft_pipapo_privsize(const struct nlatt=
-r * const nla[],
- }
-=20
- /**
-- * nft_pipapo_estimate() - Estimate set size, space and lookup complexit=
-y
-- * @desc:	Set description, element count and field description used here
-+ * nft_pipapo_estimate() - Set size, space and lookup complexity
-+ * @desc:	Set description, element count and field description used
-  * @features:	Flags: NFT_SET_INTERVAL needs to be there
-  * @est:	Storage for estimation data
-  *
-- * The size for this set type can vary dramatically, as it depends on th=
-e number
-- * of rules (composing netmasks) the entries expand to. We compute the w=
-orst
-- * case here.
-- *
-- * In general, for a non-ranged entry or a single composing netmask, we =
-need
-- * one bit in each of the sixteen buckets, for each 4-bit group (that is=
-, each
-- * input bit needs four bits of matching data), plus a bucket in the map=
-ping
-- * table for each field.
-- *
-- * Return: true only for compatible range concatenations
-+ * Return: true if set description is compatible, false otherwise
-  */
- static bool nft_pipapo_estimate(const struct nft_set_desc *desc, u32 fea=
-tures,
- 				struct nft_set_estimate *est)
- {
--	unsigned long entry_size;
--	int i;
--
- 	if (!(features & NFT_SET_INTERVAL) || desc->field_count <=3D 1)
- 		return false;
-=20
--	for (i =3D 0, entry_size =3D 0; i < desc->field_count; i++) {
--		unsigned long rules;
--
--		if (desc->field_len[i] > NFT_PIPAPO_MAX_BYTES)
--			return false;
--
--		/* Worst-case ranges for each concatenated field: each n-bit
--		 * field can expand to up to n * 2 rules in each bucket, and
--		 * each rule also needs a mapping bucket.
--		 */
--		rules =3D ilog2(desc->field_len[i] * BITS_PER_BYTE) * 2;
--		entry_size +=3D rules *
--			      NFT_PIPAPO_BUCKETS(NFT_PIPAPO_GROUP_BITS_INIT) /
--			      BITS_PER_BYTE;
--		entry_size +=3D rules * sizeof(union nft_pipapo_map_bucket);
--	}
--
--	/* Rules in lookup and mapping tables are needed for each entry */
--	est->size =3D desc->size * entry_size;
--	if (est->size && div_u64(est->size, desc->size) !=3D entry_size)
-+	est->size =3D pipapo_estimate_size(desc);
-+	if (!est->size)
- 		return false;
-=20
--	est->size +=3D sizeof(struct nft_pipapo) +
--		     sizeof(struct nft_pipapo_match) * 2;
--
--	est->size +=3D sizeof(struct nft_pipapo_field) * desc->field_count;
--
- 	est->lookup =3D NFT_SET_CLASS_O_LOG_N;
-=20
- 	est->space =3D NFT_SET_CLASS_O_N;
-diff --git a/net/netfilter/nft_set_pipapo.h b/net/netfilter/nft_set_pipap=
-o.h
-new file mode 100644
-index 000000000000..20e4851a60b0
---- /dev/null
-+++ b/net/netfilter/nft_set_pipapo.h
-@@ -0,0 +1,277 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+
-+#ifndef _NFT_SET_PIPAPO_H
-+
-+#include <linux/log2.h>
-+#include <net/ipv6.h>			/* For the maximum length of a field */
-+
-+/* Count of concatenated fields depends on count of 32-bit nftables regi=
-sters */
-+#define NFT_PIPAPO_MAX_FIELDS		NFT_REG32_COUNT
-+
-+/* Largest supported field size */
-+#define NFT_PIPAPO_MAX_BYTES		(sizeof(struct in6_addr))
-+#define NFT_PIPAPO_MAX_BITS		(NFT_PIPAPO_MAX_BYTES * BITS_PER_BYTE)
-+
-+/* Bits to be grouped together in table buckets depending on set size */
-+#define NFT_PIPAPO_GROUP_BITS_INIT	NFT_PIPAPO_GROUP_BITS_SMALL_SET
-+#define NFT_PIPAPO_GROUP_BITS_SMALL_SET	8
-+#define NFT_PIPAPO_GROUP_BITS_LARGE_SET	4
-+#define NFT_PIPAPO_GROUP_BITS_ARE_8_OR_4				\
-+	BUILD_BUG_ON((NFT_PIPAPO_GROUP_BITS_SMALL_SET !=3D 8) ||		\
-+		     (NFT_PIPAPO_GROUP_BITS_LARGE_SET !=3D 4))
-+#define NFT_PIPAPO_GROUPS_PER_BYTE(f)	(BITS_PER_BYTE / (f)->bb)
-+
-+/* If a lookup table gets bigger than NFT_PIPAPO_LT_SIZE_HIGH, switch to=
- the
-+ * small group width, and switch to the big group width if the table get=
-s
-+ * smaller than NFT_PIPAPO_LT_SIZE_LOW.
-+ *
-+ * Picking 2MiB as threshold (for a single table) avoids as much as poss=
-ible
-+ * crossing page boundaries on most architectures (x86-64 and MIPS huge =
-pages,
-+ * ARMv7 supersections, POWER "large" pages, SPARC Level 1 regions, etc.=
-), which
-+ * keeps performance nice in case kvmalloc() gives us non-contiguous are=
-as.
-+ */
-+#define NFT_PIPAPO_LT_SIZE_THRESHOLD	(1 << 21)
-+#define NFT_PIPAPO_LT_SIZE_HYSTERESIS	(1 << 16)
-+#define NFT_PIPAPO_LT_SIZE_HIGH		NFT_PIPAPO_LT_SIZE_THRESHOLD
-+#define NFT_PIPAPO_LT_SIZE_LOW		NFT_PIPAPO_LT_SIZE_THRESHOLD -	\
-+					NFT_PIPAPO_LT_SIZE_HYSTERESIS
-+
-+/* Fields are padded to 32 bits in input registers */
-+#define NFT_PIPAPO_GROUPS_PADDED_SIZE(f)				\
-+	(round_up((f)->groups / NFT_PIPAPO_GROUPS_PER_BYTE(f), sizeof(u32)))
-+#define NFT_PIPAPO_GROUPS_PADDING(f)					\
-+	(NFT_PIPAPO_GROUPS_PADDED_SIZE(f) - (f)->groups /		\
-+					    NFT_PIPAPO_GROUPS_PER_BYTE(f))
-+
-+/* Number of buckets given by 2 ^ n, with n bucket bits */
-+#define NFT_PIPAPO_BUCKETS(bb)		(1 << (bb))
-+
-+/* Each n-bit range maps to up to n * 2 rules */
-+#define NFT_PIPAPO_MAP_NBITS		(const_ilog2(NFT_PIPAPO_MAX_BITS * 2))
-+
-+/* Use the rest of mapping table buckets for rule indices, but it makes =
-no sense
-+ * to exceed 32 bits
-+ */
-+#if BITS_PER_LONG =3D=3D 64
-+#define NFT_PIPAPO_MAP_TOBITS		32
-+#else
-+#define NFT_PIPAPO_MAP_TOBITS		(BITS_PER_LONG - NFT_PIPAPO_MAP_NBITS)
-+#endif
-+
-+/* ...which gives us the highest allowed index for a rule */
-+#define NFT_PIPAPO_RULE0_MAX		((1UL << (NFT_PIPAPO_MAP_TOBITS - 1)) \
-+					- (1UL << NFT_PIPAPO_MAP_NBITS))
-+
 +/* Definitions for vectorised implementations */
 +#ifdef NFT_PIPAPO_ALIGN
 +#define NFT_PIPAPO_ALIGN_HEADROOM					\
@@ -526,216 +103,329 @@ no sense
 +#define NFT_PIPAPO_LT_ASSIGN(field, x)	((field)->lt =3D (x))
 +#endif /* NFT_PIPAPO_ALIGN */
 +
-+#define nft_pipapo_for_each_field(field, index, match)		\
-+	for ((field) =3D (match)->f, (index) =3D 0;			\
-+	     (index) < (match)->field_count;			\
-+	     (index)++, (field)++)
-+
-+/**
-+ * union nft_pipapo_map_bucket - Bucket of mapping table
-+ * @to:		First rule number (in next field) this rule maps to
-+ * @n:		Number of rules (in next field) this rule maps to
-+ * @e:		If there's no next field, pointer to element this rule maps to
-+ */
-+union nft_pipapo_map_bucket {
-+	struct {
-+#if BITS_PER_LONG =3D=3D 64
-+		static_assert(NFT_PIPAPO_MAP_TOBITS <=3D 32);
-+		u32 to;
-+
-+		static_assert(NFT_PIPAPO_MAP_NBITS <=3D 32);
-+		u32 n;
-+#else
-+		unsigned long to:NFT_PIPAPO_MAP_TOBITS;
-+		unsigned long  n:NFT_PIPAPO_MAP_NBITS;
-+#endif
-+	};
-+	struct nft_pipapo_elem *e;
-+};
-+
-+/**
-+ * struct nft_pipapo_field - Lookup, mapping tables and related data for=
- a field
-+ * @groups:	Amount of bit groups
-+ * @rules:	Number of inserted rules
-+ * @bsize:	Size of each bucket in lookup table, in longs
-+ * @bb:		Number of bits grouped together in lookup table buckets
-+ * @lt:		Lookup table: 'groups' rows of buckets
+ #define nft_pipapo_for_each_field(field, index, match)		\
+ 	for ((field) =3D (match)->f, (index) =3D 0;			\
+ 	     (index) < (match)->field_count;			\
+@@ -432,6 +448,7 @@ union nft_pipapo_map_bucket {
+  * @bsize:	Size of each bucket in lookup table, in longs
+  * @bb:		Number of bits grouped together in lookup table buckets
+  * @lt:		Lookup table: 'groups' rows of buckets
 + * @lt_aligned:	Version of @lt aligned to NFT_PIPAPO_ALIGN bytes
-+ * @mt:		Mapping table: one bucket per rule
-+ */
-+struct nft_pipapo_field {
-+	int groups;
-+	unsigned long rules;
-+	size_t bsize;
-+	int bb;
+  * @mt:		Mapping table: one bucket per rule
+  */
+ struct nft_pipapo_field {
+@@ -439,6 +456,9 @@ struct nft_pipapo_field {
+ 	unsigned long rules;
+ 	size_t bsize;
+ 	int bb;
 +#ifdef NFT_PIPAPO_ALIGN
 +	unsigned long *lt_aligned;
 +#endif
-+	unsigned long *lt;
-+	union nft_pipapo_map_bucket *mt;
-+};
-+
-+/**
-+ * struct nft_pipapo_match - Data used for lookup and matching
-+ * @field_count		Amount of fields in set
-+ * @scratch:		Preallocated per-CPU maps for partial matching results
+ 	unsigned long *lt;
+ 	union nft_pipapo_map_bucket *mt;
+ };
+@@ -447,12 +467,16 @@ struct nft_pipapo_field {
+  * struct nft_pipapo_match - Data used for lookup and matching
+  * @field_count		Amount of fields in set
+  * @scratch:		Preallocated per-CPU maps for partial matching results
 + * @scratch_aligned:	Version of @scratch aligned to NFT_PIPAPO_ALIGN byt=
 es
-+ * @bsize_max:		Maximum lookup table bucket size of all fields, in longs
-+ * @rcu			Matching data is swapped on commits
-+ * @f:			Fields, with lookup and mapping tables
-+ */
-+struct nft_pipapo_match {
-+	int field_count;
+  * @bsize_max:		Maximum lookup table bucket size of all fields, in longs
+  * @rcu			Matching data is swapped on commits
+  * @f:			Fields, with lookup and mapping tables
+  */
+ struct nft_pipapo_match {
+ 	int field_count;
 +#ifdef NFT_PIPAPO_ALIGN
 +	unsigned long * __percpu *scratch_aligned;
 +#endif
-+	unsigned long * __percpu *scratch;
-+	size_t bsize_max;
-+	struct rcu_head rcu;
-+	struct nft_pipapo_field f[0];
-+};
+ 	unsigned long * __percpu *scratch;
+ 	size_t bsize_max;
+ 	struct rcu_head rcu;
+@@ -729,6 +753,7 @@ static struct nft_pipapo_elem *pipapo_get(const struc=
+t net *net,
+ 	memset(res_map, 0xff, m->bsize_max * sizeof(*res_map));
+=20
+ 	nft_pipapo_for_each_field(f, i, m) {
++		unsigned long *lt =3D NFT_PIPAPO_LT_ALIGN(f->lt);
+ 		bool last =3D i =3D=3D m->field_count - 1;
+ 		int b;
+=20
+@@ -817,6 +842,10 @@ static int pipapo_resize(struct nft_pipapo_field *f,=
+ int old_rules, int rules)
+ 	int group, bucket;
+=20
+ 	new_bucket_size =3D DIV_ROUND_UP(rules, BITS_PER_LONG);
++#ifdef NFT_PIPAPO_ALIGN
++	new_bucket_size =3D roundup(new_bucket_size,
++				  NFT_PIPAPO_ALIGN / sizeof(*new_lt));
++#endif
+=20
+ 	if (new_bucket_size =3D=3D f->bsize)
+ 		goto mt;
+@@ -827,12 +856,15 @@ static int pipapo_resize(struct nft_pipapo_field *f=
+, int old_rules, int rules)
+ 		copy =3D new_bucket_size;
+=20
+ 	new_lt =3D kvzalloc(f->groups * NFT_PIPAPO_BUCKETS(f->bb) *
+-			  new_bucket_size * sizeof(*new_lt), GFP_KERNEL);
++			  new_bucket_size * sizeof(*new_lt) +
++			  NFT_PIPAPO_ALIGN_HEADROOM,
++			  GFP_KERNEL);
+ 	if (!new_lt)
+ 		return -ENOMEM;
+=20
+-	new_p =3D new_lt;
+-	old_p =3D old_lt;
++	new_p =3D NFT_PIPAPO_LT_ALIGN(new_lt);
++	old_p =3D NFT_PIPAPO_LT_ALIGN(old_lt);
 +
-+/**
-+ * struct nft_pipapo - Representation of a set
-+ * @match:	Currently in-use matching data
-+ * @clone:	Copy where pending insertions and deletions are kept
-+ * @width:	Total bytes to be matched for one packet, including padding
-+ * @dirty:	Working copy has pending insertions or deletions
-+ * @last_gc:	Timestamp of last garbage collection run, jiffies
-+ */
-+struct nft_pipapo {
-+	struct nft_pipapo_match __rcu *match;
-+	struct nft_pipapo_match *clone;
-+	int width;
-+	bool dirty;
-+	unsigned long last_gc;
-+};
-+
-+struct nft_pipapo_elem;
-+
-+/**
-+ * struct nft_pipapo_elem - API-facing representation of single set elem=
-ent
-+ * @ext:	nftables API extensions
-+ */
-+struct nft_pipapo_elem {
-+	struct nft_set_ext ext;
-+};
-+
-+int pipapo_refill(unsigned long *map, int len, int rules, unsigned long =
-*dst,
-+		  union nft_pipapo_map_bucket *mt, bool match_only);
-+
-+/**
-+ * pipapo_and_field_buckets_4bit() - Intersect 4-bit buckets
-+ * @f:		Field including lookup table
-+ * @dst:	Area to store result
-+ * @data:	Input data selecting table buckets
-+ */
-+static inline void pipapo_and_field_buckets_4bit(struct nft_pipapo_field=
- *f,
-+						 unsigned long *dst,
-+						 const u8 *data)
-+{
-+	unsigned long *lt =3D NFT_PIPAPO_LT_ALIGN(f->lt);
-+	int group;
-+
-+	for (group =3D 0; group < f->groups; group +=3D BITS_PER_BYTE / 4, data=
-++) {
-+		u8 v;
-+
-+		v =3D *data >> 4;
-+		__bitmap_and(dst, dst, lt + v * f->bsize,
-+			     f->bsize * BITS_PER_LONG);
-+		lt +=3D f->bsize * NFT_PIPAPO_BUCKETS(4);
-+
-+		v =3D *data & 0x0f;
-+		__bitmap_and(dst, dst, lt + v * f->bsize,
-+			     f->bsize * BITS_PER_LONG);
-+		lt +=3D f->bsize * NFT_PIPAPO_BUCKETS(4);
+ 	for (group =3D 0; group < f->groups; group++) {
+ 		for (bucket =3D 0; bucket < NFT_PIPAPO_BUCKETS(f->bb); bucket++) {
+ 			memcpy(new_p, old_p, copy * sizeof(*new_p));
+@@ -861,7 +893,7 @@ static int pipapo_resize(struct nft_pipapo_field *f, =
+int old_rules, int rules)
+=20
+ 	if (new_lt) {
+ 		f->bsize =3D new_bucket_size;
+-		f->lt =3D new_lt;
++		NFT_PIPAPO_LT_ASSIGN(f, new_lt);
+ 		kvfree(old_lt);
+ 	}
+=20
+@@ -883,7 +915,8 @@ static void pipapo_bucket_set(struct nft_pipapo_field=
+ *f, int rule, int group,
+ {
+ 	unsigned long *pos;
+=20
+-	pos =3D f->lt + f->bsize * NFT_PIPAPO_BUCKETS(f->bb) * group;
++	pos =3D NFT_PIPAPO_LT_ALIGN(f->lt);
++	pos +=3D f->bsize * NFT_PIPAPO_BUCKETS(f->bb) * group;
+ 	pos +=3D f->bsize * v;
+=20
+ 	__set_bit(rule, pos);
+@@ -1048,22 +1081,27 @@ static void pipapo_lt_bits_adjust(struct nft_pipa=
+po_field *f)
+ 		return;
+ 	}
+=20
+-	new_lt =3D kvzalloc(lt_size, GFP_KERNEL);
++	new_lt =3D kvzalloc(lt_size + NFT_PIPAPO_ALIGN_HEADROOM, GFP_KERNEL);
+ 	if (!new_lt)
+ 		return;
+=20
+ 	NFT_PIPAPO_GROUP_BITS_ARE_8_OR_4;
+-	if (f->bb =3D=3D 4 && bb =3D=3D 8)
+-		pipapo_lt_4b_to_8b(f->groups, f->bsize, f->lt, new_lt);
+-	else if (f->bb =3D=3D 8 && bb =3D=3D 4)
+-		pipapo_lt_8b_to_4b(f->groups, f->bsize, f->lt, new_lt);
+-	else
++	if (f->bb =3D=3D 4 && bb =3D=3D 8) {
++		pipapo_lt_4b_to_8b(f->groups, f->bsize,
++				   NFT_PIPAPO_LT_ALIGN(f->lt),
++				   NFT_PIPAPO_LT_ALIGN(new_lt));
++	} else if (f->bb =3D=3D 8 && bb =3D=3D 4) {
++		pipapo_lt_8b_to_4b(f->groups, f->bsize,
++				   NFT_PIPAPO_LT_ALIGN(f->lt),
++				   NFT_PIPAPO_LT_ALIGN(new_lt));
++	} else {
+ 		BUG();
 +	}
-+}
+=20
+ 	f->groups =3D groups;
+ 	f->bb =3D bb;
+ 	kvfree(f->lt);
+-	f->lt =3D new_lt;
++	NFT_PIPAPO_LT_ASSIGN(f, new_lt);
+ }
+=20
+ /**
+@@ -1289,8 +1327,12 @@ static int pipapo_realloc_scratch(struct nft_pipap=
+o_match *clone,
+=20
+ 	for_each_possible_cpu(i) {
+ 		unsigned long *scratch;
++#ifdef NFT_PIPAPO_ALIGN
++		unsigned long *scratch_aligned;
++#endif
+=20
+-		scratch =3D kzalloc_node(bsize_max * sizeof(*scratch) * 2,
++		scratch =3D kzalloc_node(bsize_max * sizeof(*scratch) * 2 +
++				       NFT_PIPAPO_ALIGN_HEADROOM,
+ 				       GFP_KERNEL, cpu_to_node(i));
+ 		if (!scratch) {
+ 			/* On failure, there's no need to undo previous
+@@ -1306,6 +1348,11 @@ static int pipapo_realloc_scratch(struct nft_pipap=
+o_match *clone,
+ 		kfree(*per_cpu_ptr(clone->scratch, i));
+=20
+ 		*per_cpu_ptr(clone->scratch, i) =3D scratch;
 +
-+/**
-+ * pipapo_and_field_buckets_8bit() - Intersect 8-bit buckets
-+ * @f:		Field including lookup table
-+ * @dst:	Area to store result
-+ * @data:	Input data selecting table buckets
-+ */
-+static inline void pipapo_and_field_buckets_8bit(struct nft_pipapo_field=
- *f,
-+						 unsigned long *dst,
-+						 const u8 *data)
-+{
-+	unsigned long *lt =3D NFT_PIPAPO_LT_ALIGN(f->lt);
-+	int group;
++#ifdef NFT_PIPAPO_ALIGN
++		scratch_aligned =3D NFT_PIPAPO_LT_ALIGN(scratch);
++		*per_cpu_ptr(clone->scratch_aligned, i) =3D scratch_aligned;
++#endif
+ 	}
+=20
+ 	return 0;
+@@ -1433,21 +1480,33 @@ static struct nft_pipapo_match *pipapo_clone(stru=
+ct nft_pipapo_match *old)
+ 	if (!new->scratch)
+ 		goto out_scratch;
+=20
++#ifdef NFT_PIPAPO_ALIGN
++	new->scratch_aligned =3D alloc_percpu(*new->scratch_aligned);
++	if (!new->scratch_aligned)
++		goto out_scratch;
++#endif
 +
-+	for (group =3D 0; group < f->groups; group++, data++) {
-+		__bitmap_and(dst, dst, lt + *data * f->bsize,
-+			     f->bsize * BITS_PER_LONG);
-+		lt +=3D f->bsize * NFT_PIPAPO_BUCKETS(8);
+ 	rcu_head_init(&new->rcu);
+=20
+ 	src =3D old->f;
+ 	dst =3D new->f;
+=20
+ 	for (i =3D 0; i < old->field_count; i++) {
++		unsigned long *new_lt;
++
+ 		memcpy(dst, src, offsetof(struct nft_pipapo_field, lt));
+=20
+-		dst->lt =3D kvzalloc(src->groups * NFT_PIPAPO_BUCKETS(src->bb) *
+-				   src->bsize * sizeof(*dst->lt),
+-				   GFP_KERNEL);
+-		if (!dst->lt)
++		new_lt =3D kvzalloc(src->groups * NFT_PIPAPO_BUCKETS(src->bb) *
++				  src->bsize * sizeof(*dst->lt) +
++				  NFT_PIPAPO_ALIGN_HEADROOM,
++				  GFP_KERNEL);
++		if (!new_lt)
+ 			goto out_lt;
+=20
+-		memcpy(dst->lt, src->lt,
++		NFT_PIPAPO_LT_ASSIGN(dst, new_lt);
++
++		memcpy(NFT_PIPAPO_LT_ALIGN(new_lt),
++		       NFT_PIPAPO_LT_ALIGN(src->lt),
+ 		       src->bsize * sizeof(*dst->lt) *
+ 		       src->groups * NFT_PIPAPO_BUCKETS(src->bb));
+=20
+@@ -1470,8 +1529,11 @@ static struct nft_pipapo_match *pipapo_clone(struc=
+t nft_pipapo_match *old)
+ 		kvfree(dst->lt);
+ 		dst--;
+ 	}
+-	free_percpu(new->scratch);
++#ifdef NFT_PIPAPO_ALIGN
++	free_percpu(new->scratch_aligned);
++#endif
+ out_scratch:
++	free_percpu(new->scratch);
+ 	kfree(new);
+=20
+ 	return ERR_PTR(-ENOMEM);
+@@ -1627,7 +1689,8 @@ static void pipapo_drop(struct nft_pipapo_match *m,
+ 			unsigned long *pos;
+ 			int b;
+=20
+-			pos =3D f->lt + g * NFT_PIPAPO_BUCKETS(f->bb) * f->bsize;
++			pos =3D NFT_PIPAPO_LT_ALIGN(f->lt) + g *
++			      NFT_PIPAPO_BUCKETS(f->bb) * f->bsize;
+=20
+ 			for (b =3D 0; b < NFT_PIPAPO_BUCKETS(f->bb); b++) {
+ 				bitmap_cut(pos, pos, rulemap[i].to,
+@@ -1733,6 +1796,9 @@ static void pipapo_reclaim_match(struct rcu_head *r=
+cu)
+ 	for_each_possible_cpu(i)
+ 		kfree(*per_cpu_ptr(m->scratch, i));
+=20
++#ifdef NFT_PIPAPO_ALIGN
++	free_percpu(m->scratch_aligned);
++#endif
+ 	free_percpu(m->scratch);
+=20
+ 	pipapo_free_fields(m);
+@@ -1936,8 +2002,8 @@ static int pipapo_get_boundaries(struct nft_pipapo_=
+field *f, int first_rule,
+ 		for (b =3D 0; b < NFT_PIPAPO_BUCKETS(f->bb); b++) {
+ 			unsigned long *pos;
+=20
+-			pos =3D f->lt + (g * NFT_PIPAPO_BUCKETS(f->bb) + b) *
+-				      f->bsize;
++			pos =3D NFT_PIPAPO_LT_ALIGN(f->lt) +
++			      (g * NFT_PIPAPO_BUCKETS(f->bb) + b) * f->bsize;
+ 			if (test_bit(first_rule, pos) && x0 =3D=3D -1)
+ 				x0 =3D b;
+ 			if (test_bit(first_rule + rule_count - 1, pos))
+@@ -2218,11 +2284,21 @@ static int nft_pipapo_init(const struct nft_set *=
+set,
+ 	m->scratch =3D alloc_percpu(unsigned long *);
+ 	if (!m->scratch) {
+ 		err =3D -ENOMEM;
+-		goto out_free;
++		goto out_scratch;
+ 	}
+ 	for_each_possible_cpu(i)
+ 		*per_cpu_ptr(m->scratch, i) =3D NULL;
+=20
++#ifdef NFT_PIPAPO_ALIGN
++	m->scratch_aligned =3D alloc_percpu(unsigned long *);
++	if (!m->scratch_aligned) {
++		err =3D -ENOMEM;
++		goto out_free;
 +	}
-+}
++	for_each_possible_cpu(i)
++		*per_cpu_ptr(m->scratch_aligned, i) =3D NULL;
++#endif
 +
-+/**
-+ * pipapo_estimate_size() - Estimate worst-case for set size
-+ * @desc:	Set description, element count and field description used here
-+ *
-+ * The size for this set type can vary dramatically, as it depends on th=
-e number
-+ * of rules (composing netmasks) the entries expand to. We compute the w=
-orst
-+ * case here.
-+ *
-+ * In general, for a non-ranged entry or a single composing netmask, we =
-need
-+ * one bit in each of the sixteen NFT_PIPAPO_BUCKETS, for each 4-bit gro=
-up (that
-+ * is, each input bit needs four bits of matching data), plus a bucket i=
-n the
-+ * mapping table for each field.
-+ *
-+ * Return: worst-case set size in bytes, 0 on any overflow
-+ */
-+static u64 pipapo_estimate_size(const struct nft_set_desc *desc)
-+{
-+	unsigned long entry_size;
-+	u64 size;
-+	int i;
-+
-+	for (i =3D 0, entry_size =3D 0; i < desc->field_count; i++) {
-+		unsigned long rules;
-+
-+		if (desc->field_len[i] > NFT_PIPAPO_MAX_BYTES)
-+			return 0;
-+
-+		/* Worst-case ranges for each concatenated field: each n-bit
-+		 * field can expand to up to n * 2 rules in each bucket, and
-+		 * each rule also needs a mapping bucket.
-+		 */
-+		rules =3D ilog2(desc->field_len[i] * BITS_PER_BYTE) * 2;
-+		entry_size +=3D rules *
-+			      NFT_PIPAPO_BUCKETS(NFT_PIPAPO_GROUP_BITS_INIT) /
-+			      BITS_PER_BYTE;
-+		entry_size +=3D rules * sizeof(union nft_pipapo_map_bucket);
-+	}
-+
-+	/* Rules in lookup and mapping tables are needed for each entry */
-+	size =3D desc->size * entry_size;
-+	if (size && div_u64(size, desc->size) !=3D entry_size)
-+		return 0;
-+
-+	size +=3D sizeof(struct nft_pipapo) + sizeof(struct nft_pipapo_match) *=
- 2;
-+
-+	size +=3D sizeof(struct nft_pipapo_field) * desc->field_count;
-+
-+	return size;
-+}
-+
-+#endif /* _NFT_SET_PIPAPO_H */
+ 	rcu_head_init(&m->rcu);
+=20
+ 	nft_pipapo_for_each_field(f, i, m) {
+@@ -2233,7 +2309,7 @@ static int nft_pipapo_init(const struct nft_set *se=
+t,
+=20
+ 		f->bsize =3D 0;
+ 		f->rules =3D 0;
+-		f->lt =3D NULL;
++		NFT_PIPAPO_LT_ASSIGN(f, NULL);
+ 		f->mt =3D NULL;
+ 	}
+=20
+@@ -2251,7 +2327,11 @@ static int nft_pipapo_init(const struct nft_set *s=
+et,
+ 	return 0;
+=20
+ out_free:
++#ifdef NFT_PIPAPO_ALIGN
++	free_percpu(m->scratch_aligned);
++#endif
+ 	free_percpu(m->scratch);
++out_scratch:
+ 	kfree(m);
+=20
+ 	return err;
+@@ -2286,16 +2366,21 @@ static void nft_pipapo_destroy(const struct nft_s=
+et *set)
+ 			nft_set_elem_destroy(set, e, true);
+ 		}
+=20
++#ifdef NFT_PIPAPO_ALIGN
++		free_percpu(m->scratch_aligned);
++#endif
+ 		for_each_possible_cpu(cpu)
+ 			kfree(*per_cpu_ptr(m->scratch, cpu));
+ 		free_percpu(m->scratch);
+-
+ 		pipapo_free_fields(m);
+ 		kfree(m);
+ 		priv->match =3D NULL;
+ 	}
+=20
+ 	if (priv->clone) {
++#ifdef NFT_PIPAPO_ALIGN
++		free_percpu(priv->clone->scratch_aligned);
++#endif
+ 		for_each_possible_cpu(cpu)
+ 			kfree(*per_cpu_ptr(priv->clone->scratch, cpu));
+ 		free_percpu(priv->clone->scratch);
 --=20
 2.25.0
 
