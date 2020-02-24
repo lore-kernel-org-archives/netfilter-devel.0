@@ -6,186 +6,147 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E2F6C38BE1
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 18:39:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29BCCC38BE0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 18:39:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4F3C720836
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 18:39:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0E18E20836
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 18:39:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727736AbgBXSjq (ORCPT
+        id S1727825AbgBXSjq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 24 Feb 2020 13:39:46 -0500
-Received: from correo.us.es ([193.147.175.20]:45010 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:45016 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727426AbgBXSjp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Feb 2020 13:39:45 -0500
+        id S1726652AbgBXSjq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 24 Feb 2020 13:39:46 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4E438E8D68
+        by mail.us.es (Postfix) with ESMTP id A1BB0E8D6F
         for <netfilter-devel@vger.kernel.org>; Mon, 24 Feb 2020 19:39:38 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 40C66DA72F
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 94D17DA3A4
         for <netfilter-devel@vger.kernel.org>; Mon, 24 Feb 2020 19:39:38 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 40060DA7B6; Mon, 24 Feb 2020 19:39:38 +0100 (CET)
+        id 92720DA3A3; Mon, 24 Feb 2020 19:39:38 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 647DEDA72F;
-        Mon, 24 Feb 2020 19:39:35 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8E757DA3C4;
+        Mon, 24 Feb 2020 19:39:36 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 24 Feb 2020 19:39:35 +0100 (CET)
+ Mon, 24 Feb 2020 19:39:36 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 3CBD4424EECB;
-        Mon, 24 Feb 2020 19:39:35 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 6A3BB424EEE5;
+        Mon, 24 Feb 2020 19:39:36 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     fw@strlen.de, nevola@gmail.com
-Subject: [PATCH 7/6 nft,v2] src: nat concatenation support with anonymous maps
-Date:   Mon, 24 Feb 2020 19:39:37 +0100
-Message-Id: <20200224183938.318160-1-pablo@netfilter.org>
+Subject: [PATCH 8/6 nft,v2] tests: shell: adjust tests to new nat concatenation syntax
+Date:   Mon, 24 Feb 2020 19:39:38 +0100
+Message-Id: <20200224183938.318160-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20200224183938.318160-1-pablo@netfilter.org>
+References: <20200224183938.318160-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch extends the parser to define the mapping datatypes, eg.
-
-  ... dnat ip addr . port to ip saddr map { 1.1.1.1 : 2.2.2.2 . 30 }
-  ... dnat ip addr . port to ip saddr map @y
-
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: IPv6 support and fix incorrect datatype.
+ tests/shell/testcases/maps/dumps/nat_addr_port.nft | 16 ++++++++--------
+ tests/shell/testcases/maps/nat_addr_port           | 16 ++++++++--------
+ 2 files changed, 16 insertions(+), 16 deletions(-)
 
- src/evaluate.c            | 23 ++++++++++++++++++++---
- src/netlink_delinearize.c |  1 +
- src/parser_bison.y        |  7 +++++++
- src/scanner.l             |  1 +
- src/statement.c           |  3 +++
- 5 files changed, 32 insertions(+), 3 deletions(-)
-
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 0afd0403d3a4..2d4985c0d409 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -2853,15 +2853,32 @@ static int stmt_evaluate_nat_map(struct eval_ctx *ctx, struct stmt *stmt)
- {
- 	struct expr *one, *two, *data, *tmp;
- 	const struct datatype *dtype;
--	int err;
-+	int addr_type, err;
- 
--	dtype = get_addr_dtype(stmt->nat.family);
-+	if (stmt->nat.ipportmap) {
-+		switch (stmt->nat.family) {
-+		case NFPROTO_IPV4:
-+			addr_type = TYPE_IPADDR;
-+			break;
-+		case NFPROTO_IPV6:
-+			addr_type = TYPE_IP6ADDR;
-+			break;
-+		default:
-+			return -1;
-+		}
-+		dtype = concat_type_alloc((addr_type << TYPE_BITS) |
-+					   TYPE_INET_SERVICE);
-+	} else {
-+		dtype = get_addr_dtype(stmt->nat.family);
-+	}
- 
- 	expr_set_context(&ctx->ectx, dtype, dtype->size);
- 	if (expr_evaluate(ctx, &stmt->nat.addr))
- 		return -1;
- 
- 	data = stmt->nat.addr->mappings->set->data;
-+	datatype_set(data, dtype);
-+
- 	if (expr_ops(data)->type != EXPR_CONCAT)
- 		return __stmt_evaluate_arg(ctx, stmt, dtype, dtype->size,
- 					   BYTEORDER_BIG_ENDIAN,
-@@ -2875,6 +2892,7 @@ static int stmt_evaluate_nat_map(struct eval_ctx *ctx, struct stmt *stmt)
- 					   BYTEORDER_BIG_ENDIAN,
- 					   &stmt->nat.addr);
- 
-+	dtype = get_addr_dtype(stmt->nat.family);
- 	tmp = one;
- 	err = __stmt_evaluate_arg(ctx, stmt, dtype, dtype->size,
- 				  BYTEORDER_BIG_ENDIAN,
-@@ -2891,7 +2909,6 @@ static int stmt_evaluate_nat_map(struct eval_ctx *ctx, struct stmt *stmt)
- 	if (tmp != two)
- 		BUG("Internal error: Unexpected alteration of l4 expression");
- 
--	stmt->nat.ipportmap = true;
- 	return err;
+diff --git a/tests/shell/testcases/maps/dumps/nat_addr_port.nft b/tests/shell/testcases/maps/dumps/nat_addr_port.nft
+index bd20ae7e65c7..210cab7f6b00 100644
+--- a/tests/shell/testcases/maps/dumps/nat_addr_port.nft
++++ b/tests/shell/testcases/maps/dumps/nat_addr_port.nft
+@@ -19,8 +19,8 @@ table ip ipfoo {
+ 		dnat to ip daddr map @x
+ 		ip saddr 10.1.1.1 dnat to 10.2.3.4
+ 		ip saddr 10.1.1.2 tcp dport 42 dnat to 10.2.3.4:4242
+-		meta l4proto tcp dnat to ip saddr map @y
+-		dnat to ip saddr . tcp dport map @z
++		meta l4proto tcp dnat ip addr . port to ip saddr map @y
++		dnat ip addr . port to ip saddr . tcp dport map @z
+ 	}
  }
- 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 6203a53c6154..0058e2cfe42a 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -1065,6 +1065,7 @@ static void netlink_parse_nat(struct netlink_parse_ctx *ctx,
+ table ip6 ip6foo {
+@@ -42,8 +42,8 @@ table ip6 ip6foo {
+ 		dnat to ip6 daddr map @x
+ 		ip6 saddr dead::1 dnat to feed::1
+ 		ip6 saddr dead::2 tcp dport 42 dnat to [c0::1a]:4242
+-		meta l4proto tcp dnat to ip6 saddr map @y
+-		dnat to ip6 saddr . tcp dport map @z
++		meta l4proto tcp dnat ip6 addr . port to ip6 saddr map @y
++		dnat ip6 addr . port to ip6 saddr . tcp dport map @z
  	}
- 
- 	if (is_nat_proto_map(addr, family)) {
-+		stmt->nat.family = family;
- 		stmt->nat.ipportmap = true;
- 		ctx->stmt = stmt;
- 		return;
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index fd00b40a104a..4c27fcc635dc 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -373,6 +373,7 @@ int nft_lex(void *, void *, void *);
- %token FLAGS			"flags"
- %token CPI			"cpi"
- 
-+%token PORT			"port"
- %token UDP			"udp"
- %token SPORT			"sport"
- %token DPORT			"dport"
-@@ -3141,6 +3142,12 @@ nat_stmt_args		:	stmt_expr
- 			{
- 				$<stmt>0->nat.flags = $2;
- 			}
-+			|	nf_key_proto ADDR DOT	PORT	TO	stmt_expr
-+			{
-+				$<stmt>0->nat.family = $1;
-+				$<stmt>0->nat.addr = $6;
-+				$<stmt>0->nat.ipportmap = true;
-+			}
- 			;
- 
- masq_stmt		:	masq_stmt_alloc		masq_stmt_args
-diff --git a/src/scanner.l b/src/scanner.l
-index 3932883b9ade..45699c85d7d0 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -471,6 +471,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "udplite"		{ return UDPLITE; }
- "sport"			{ return SPORT; }
- "dport"			{ return DPORT; }
-+"port"			{ return PORT; }
- 
- "tcp"			{ return TCP; }
- "ackseq"		{ return ACKSEQ; }
-diff --git a/src/statement.c b/src/statement.c
-index be35bceff19a..182edac8f2ec 100644
---- a/src/statement.c
-+++ b/src/statement.c
-@@ -607,6 +607,9 @@ static void nat_stmt_print(const struct stmt *stmt, struct output_ctx *octx)
- 			break;
- 		}
- 
-+		if (stmt->nat.ipportmap)
-+			nft_print(octx, " addr . port");
-+
- 		nft_print(octx, " to");
+ }
+ table inet inetfoo {
+@@ -78,12 +78,12 @@ table inet inetfoo {
+ 		dnat ip to ip daddr map @x4
+ 		ip saddr 10.1.1.1 dnat ip to 10.2.3.4
+ 		ip saddr 10.1.1.2 tcp dport 42 dnat ip to 10.2.3.4:4242
+-		meta l4proto tcp meta nfproto ipv4 dnat ip to ip saddr map @y4
+-		meta nfproto ipv4 dnat ip to ip saddr . tcp dport map @z4
++		meta l4proto tcp meta nfproto ipv4 dnat ip addr . port to ip saddr map @y4
++		meta nfproto ipv4 dnat ip addr . port to ip saddr . tcp dport map @z4
+ 		dnat ip6 to ip6 daddr map @x6
+ 		ip6 saddr dead::1 dnat ip6 to feed::1
+ 		ip6 saddr dead::2 tcp dport 42 dnat ip6 to [c0::1a]:4242
+-		meta l4proto tcp meta nfproto ipv6 dnat ip6 to ip6 saddr map @y6
+-		meta nfproto ipv6 dnat ip6 to ip6 saddr . tcp dport map @z6
++		meta l4proto tcp meta nfproto ipv6 dnat ip6 addr . port to ip6 saddr map @y6
++		meta nfproto ipv6 dnat ip6 addr . port to ip6 saddr . tcp dport map @z6
  	}
- 
+ }
+diff --git a/tests/shell/testcases/maps/nat_addr_port b/tests/shell/testcases/maps/nat_addr_port
+index 58bb8942720c..a8d970e5e5ef 100755
+--- a/tests/shell/testcases/maps/nat_addr_port
++++ b/tests/shell/testcases/maps/nat_addr_port
+@@ -21,8 +21,8 @@ table ip ipfoo {
+ 		dnat to ip daddr map @x
+ 		ip saddr 10.1.1.1 dnat to 10.2.3.4
+ 		ip saddr 10.1.1.2 tcp dport 42 dnat to 10.2.3.4:4242
+-		meta l4proto tcp dnat to ip saddr map @y
+-		meta l4proto tcp dnat to ip saddr . tcp dport map @z
++		meta l4proto tcp dnat ip addr . port to ip saddr map @y
++		meta l4proto tcp dnat ip addr . port to ip saddr . tcp dport map @z
+ 	}
+ }
+ EOF
+@@ -52,8 +52,8 @@ table ip6 ip6foo {
+ 		dnat to ip6 daddr map @x
+ 		ip6 saddr dead::1 dnat to feed::1
+ 		ip6 saddr dead::2 tcp dport 42 dnat to [c0::1a]:4242
+-		meta l4proto tcp dnat to ip6 saddr map @y
+-		meta l4proto tcp dnat to ip6 saddr . tcp dport map @z
++		meta l4proto tcp dnat ip6 addr . port to ip6 saddr map @y
++		meta l4proto tcp dnat ip6 addr . port to ip6 saddr . tcp dport map @z
+ 	}
+ }
+ EOF
+@@ -93,13 +93,13 @@ table inet inetfoo {
+ 		dnat ip to ip daddr map @x4
+ 		ip saddr 10.1.1.1 dnat to 10.2.3.4
+ 		ip saddr 10.1.1.2 tcp dport 42 dnat to 10.2.3.4:4242
+-		meta l4proto tcp dnat ip to ip saddr map @y4
+-		meta l4proto tcp dnat ip to ip saddr . tcp dport map @z4
++		meta l4proto tcp dnat ip addr . port to ip saddr map @y4
++		meta l4proto tcp dnat ip addr . port to ip saddr . tcp dport map @z4
+ 		dnat ip6 to ip6 daddr map @x6
+ 		ip6 saddr dead::1 dnat to feed::1
+ 		ip6 saddr dead::2 tcp dport 42 dnat to [c0::1a]:4242
+-		meta l4proto tcp dnat ip6 to ip6 saddr map @y6
+-		meta l4proto tcp dnat ip6 to ip6 saddr . tcp dport map @z6
++		meta l4proto tcp dnat ip6 addr . port to ip6 saddr map @y6
++		meta l4proto tcp dnat ip6 addr . port to ip6 saddr . tcp dport map @z6
+ 	}
+ }
+ EOF
 -- 
 2.11.0
 
