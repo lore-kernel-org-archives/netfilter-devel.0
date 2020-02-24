@@ -6,62 +6,63 @@ X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
 	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98335C38BE2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 19:43:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD02EC38BE0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 19:47:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7148A20CC7
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 19:43:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 95BB020656
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 19:47:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="TBqDzJhR"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="VnAeAS+F"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727459AbgBXTnJ (ORCPT
+        id S1727304AbgBXTr4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 24 Feb 2020 14:43:09 -0500
-Received: from us-smtp-1.mimecast.com ([207.211.31.81]:38293 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726664AbgBXTnJ (ORCPT
+        Mon, 24 Feb 2020 14:47:56 -0500
+Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:58863 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726687AbgBXTr4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Feb 2020 14:43:09 -0500
+        Mon, 24 Feb 2020 14:47:56 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1582573388;
+        s=mimecast20190719; t=1582573674;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=UPEDBw2q2/zVnpRqbyDC0y/dD98/YWWp9w4/MyvOaPI=;
-        b=TBqDzJhRGzKsQK/5pTqN6I9wWxKAhn5UrjRFMCkMthDCzfd+M+/L+c65SVNrobdlWlNi2l
-        5h+xm9J2flI4/iCIYxSdolgLv8lJ5nLs9sZ+F26evNEB2UfNu0BrOitB5AO46JbOW6rU1Q
-        kFQ9Wd6+jeBwUs5K/xVE7tEjwpkqXUU=
-Received: from mail-ed1-f70.google.com (mail-ed1-f70.google.com
- [209.85.208.70]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-469-AuTEkmw7P8GUGQU7lBQbeg-1; Mon, 24 Feb 2020 14:43:06 -0500
-X-MC-Unique: AuTEkmw7P8GUGQU7lBQbeg-1
-Received: by mail-ed1-f70.google.com with SMTP id m21so7378687edp.14
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Feb 2020 11:43:06 -0800 (PST)
+        bh=nnxs4S3V4j1u81O81rJrhpwntUjBUuBdMvRvoYKsH34=;
+        b=VnAeAS+FgR/N+SBfwvt4oTSWCXZjDasbEqJ79VIAGXCiyhL/5gP6T+KIYRgmQo7oRPd3E5
+        U0WQKc1N2RiEJTJYOkDNwCsSN81AN79EuCnQBorUlar5WnF5s7QvD75jBLGawChc7g886P
+        +Kc5TQ7kJ0CdFu+YEUQIXsKKGznvYpg=
+Received: from mail-ed1-f71.google.com (mail-ed1-f71.google.com
+ [209.85.208.71]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-485-9oF_FChzO4KL4VkzxALH6w-1; Mon, 24 Feb 2020 14:47:50 -0500
+X-MC-Unique: 9oF_FChzO4KL4VkzxALH6w-1
+Received: by mail-ed1-f71.google.com with SMTP id c24so7415653edy.9
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Feb 2020 11:47:50 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=UPEDBw2q2/zVnpRqbyDC0y/dD98/YWWp9w4/MyvOaPI=;
-        b=isRgtwUQMBid5eDlgL0Y+AcQ0LBb6zy/ngAinYmVqh3fDRELNbQCZ+PUO85O9Y7aHZ
-         G5r4DmkhybAAog5P1eE9pcMQn/A+PbaI4+SP70qnsgGf8E0wclWfIwvY84ZoAId0GWox
-         Rby3ifr2Nh9XR2G2QSoT7FNZKU+DJIVtxKwaRkHOnX3QWdPEl2R/ih/ryaa26PnNFoKo
-         hF7gmkE9tCVgpDWp4SYXGc6u+igMIqkizy1BHSBvzJUvtt8N9T1c1ry5hFRSAdJ7Kjti
-         R2S5cJQ/eNAhaaiP9Eb0ECBoKCNVzFEPJ2vU7JL/2y+S4FTeP8Xa59a/1qCuQp+YH38t
-         EVqw==
-X-Gm-Message-State: APjAAAXjpLP9sEf6PQPkx/OJQLTemsSTOkVnZPiMdRdcQ/IJM58oxJIx
-        KSjbAYOkEUa10ssnLZrHP4lB8QY5+r7SgrWfnz99fNQCceFQ7CELsmDw2hdot2E5deFGf+5fT+L
-        mabSc2ntp3FvxZlq/ERidWt5iIiHfH33DABuyl9Gt9Atg
-X-Received: by 2002:aa7:c707:: with SMTP id i7mr47033917edq.287.1582573385342;
-        Mon, 24 Feb 2020 11:43:05 -0800 (PST)
-X-Google-Smtp-Source: APXvYqx7hGQH+EDqFTrWey8Z79uUeupBz1Q0g4hvPLJr6VyJj0z08Kj/PZCQBR3230yo3IpOEuhkhq5q2+dh4qw2gN8=
-X-Received: by 2002:aa7:c707:: with SMTP id i7mr47033902edq.287.1582573385142;
- Mon, 24 Feb 2020 11:43:05 -0800 (PST)
+        bh=nnxs4S3V4j1u81O81rJrhpwntUjBUuBdMvRvoYKsH34=;
+        b=jQ9aoSvp+u7FimAbi1w44RizCENHeBcMYcpjlyhgq2tP1HpkHqtts2YDV8KpVg+zQ9
+         AXp+4ZBE6Qay1MHNIFiUhX8wLpHyi3y+KGbXDGwbwZz9f0pt1JVGsEP6cgJDBjLft7ya
+         XLO+wE6daCefkfStFN4EdC86BzVD/ZTPZ5c4oY5p3RQzKuTDUj1m0cOG8fIGch+gJUaX
+         azpXwlJvSEAmxEtHKWT1KsWf842n01WAjrGdccx+BrW8tWdxCqM54JEkTUbUPzjUY8Hq
+         QX+thCxwZ8VZk8sFvVtOIiZNr7Hyq6gkdQj/dGAaIxA8cnK+1SP5tWYPoWHfr9gFftp8
+         Z7+Q==
+X-Gm-Message-State: APjAAAXaYD0zPDKQHzR2uuPiHyYASBfLH0QUyc9xdjziVfMCf0VKH01t
+        DuCsFOcXn60WuVOIC0PDqU/B6+GNQboy/BKYzIV4n7Z+va+cFVh2T/Yj1eS7DmEqR/FcD6IRW4l
+        8BhNJavdAOjiwoVzLRhMLXdeo2iuYM6sDw37+7hFvLz9y
+X-Received: by 2002:a17:906:ce57:: with SMTP id se23mr48387486ejb.362.1582573669106;
+        Mon, 24 Feb 2020 11:47:49 -0800 (PST)
+X-Google-Smtp-Source: APXvYqytTPwGRqhKju/NQPHj9LOagQ32SFVcrzvfbIgfGBW57jVwx7rncRDFd0C3JXVggWYL8tobRTZVXYqtNRKtLfc=
+X-Received: by 2002:a17:906:ce57:: with SMTP id se23mr48387474ejb.362.1582573668885;
+ Mon, 24 Feb 2020 11:47:48 -0800 (PST)
 MIME-Version: 1.0
 References: <20200224185529.50530-1-mcroce@redhat.com> <20200224191154.GH19559@breakpoint.cc>
-In-Reply-To: <20200224191154.GH19559@breakpoint.cc>
+ <CAGnkfhyUOyd1XWdSSxL844RG-_z32qGasV7a+2m7XNrS8qvtCw@mail.gmail.com>
+In-Reply-To: <CAGnkfhyUOyd1XWdSSxL844RG-_z32qGasV7a+2m7XNrS8qvtCw@mail.gmail.com>
 From:   Matteo Croce <mcroce@redhat.com>
-Date:   Mon, 24 Feb 2020 20:42:29 +0100
-Message-ID: <CAGnkfhyUOyd1XWdSSxL844RG-_z32qGasV7a+2m7XNrS8qvtCw@mail.gmail.com>
+Date:   Mon, 24 Feb 2020 20:47:13 +0100
+Message-ID: <CAGnkfhzA6j2B43DFgQedeGE6H5XvHKWd7KPg3ocGVr0K_u2NJA@mail.gmail.com>
 Subject: Re: [PATCH nf] netfilter: ensure rcu_read_lock() in ipv4_find_option()
 To:     Florian Westphal <fw@strlen.de>
 Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
@@ -78,18 +79,37 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Feb 24, 2020 at 8:12 PM Florian Westphal <fw@strlen.de> wrote:
+On Mon, Feb 24, 2020 at 8:42 PM Matteo Croce <mcroce@redhat.com> wrote:
 >
-> Matteo Croce <mcroce@redhat.com> wrote:
-> > As in commit c543cb4a5f07 ("ipv4: ensure rcu_read_lock() in ipv4_link_failure()")
-> > and commit 3e72dfdf8227 ("ipv4: ensure rcu_read_lock() in cipso_v4_error()"),
-> > __ip_options_compile() must be called under rcu protection.
+> On Mon, Feb 24, 2020 at 8:12 PM Florian Westphal <fw@strlen.de> wrote:
+> >
+> > Matteo Croce <mcroce@redhat.com> wrote:
+> > > As in commit c543cb4a5f07 ("ipv4: ensure rcu_read_lock() in ipv4_link_failure()")
+> > > and commit 3e72dfdf8227 ("ipv4: ensure rcu_read_lock() in cipso_v4_error()"),
+> > > __ip_options_compile() must be called under rcu protection.
+> >
+> > This is not needed, all netfilter hooks run with rcu_read_lock held.
+> >
 >
-> This is not needed, all netfilter hooks run with rcu_read_lock held.
->
+> Ok, so let's drop it, thanks.
 
-Ok, so let's drop it, thanks.
+What about adding a RCU_LOCKDEP_WARN() in __ip_options_compile() to
+protect against future errors? Something like:
 
+----------------------------------%<-------------------------------------
+@@ -262,6 +262,9 @@ int __ip_options_compile(struct net *net,
+  unsigned char *iph;
+  int optlen, l;
+
++ RCU_LOCKDEP_WARN(!rcu_read_lock_held(),
++ __FUNC__ " needs rcu_read_lock() protection");
++
+  if (skb) {
+  rt = skb_rtable(skb);
+  optptr = (unsigned char *)&(ip_hdr(skb)[1]);
+---------------------------------->%-------------------------------------
+
+Bye,
 -- 
 Matteo Croce
 per aspera ad upstream
