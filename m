@@ -2,34 +2,36 @@ Return-Path: <SRS0=eo3W=4M=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E9B6C35677
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 00:03:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F9F4C35670
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 00:03:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 479502071C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 00:03:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1ECD02071C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 00:03:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727159AbgBXADe (ORCPT
+        id S1727167AbgBXADo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 23 Feb 2020 19:03:34 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:46000 "EHLO
+        Sun, 23 Feb 2020 19:03:44 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:46002 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726534AbgBXADe (ORCPT
+        by vger.kernel.org with ESMTP id S1726534AbgBXADo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 23 Feb 2020 19:03:34 -0500
+        Sun, 23 Feb 2020 19:03:44 -0500
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1j61Df-0004l7-80; Mon, 24 Feb 2020 01:03:31 +0100
+        id 1j61Do-0004lH-Gl; Mon, 24 Feb 2020 01:03:40 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
-Cc:     nevola@gmail.com
-Subject: [PATCH nft 0/6] allow s/dnat to map to both addr and port
-Date:   Mon, 24 Feb 2020 01:03:18 +0100
-Message-Id: <20200224000324.9333-1-fw@strlen.de>
+Cc:     nevola@gmail.com, Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft 1/6] tests: add initial nat map test
+Date:   Mon, 24 Feb 2020 01:03:19 +0100
+Message-Id: <20200224000324.9333-2-fw@strlen.de>
 X-Mailer: git-send-email 2.24.1
+In-Reply-To: <20200224000324.9333-1-fw@strlen.de>
+References: <20200224000324.9333-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -37,48 +39,128 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Right now its not possible to use a map with snat/dnat to alter both
-address and port at the same time.
+Will be extended to cover upcoming
+'dnat to ip saddr . tcp dport map { \
+  1.2.3.4 . 80 : 5.6.7.8 : 8080,
+  2.2.3.4 . 80 : 7.6.7.8 : 1234,
+   ...
 
-This series teaches nft to accept this:
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ .../testcases/maps/dumps/nat_addr_port.nft    | 13 +++
+ tests/shell/testcases/maps/nat_addr_port      | 83 +++++++++++++++++++
+ 2 files changed, 96 insertions(+)
+ create mode 100644 tests/shell/testcases/maps/dumps/nat_addr_port.nft
+ create mode 100755 tests/shell/testcases/maps/nat_addr_port
 
-	map y4 {
-		type ipv4_addr : ipv4_addr . inet_service
-		elements = { 192.168.7.2 : 10.1.1.1 . 4242 }
-	}
- 	meta l4proto tcp meta nfproto ipv4 dnat ip to ip saddr map @y4
-
-i.e., it allows:
-1. A mapping that contains a concatenated expression.
-2. nat expression will peek into set type and detect when
-   the mapping is of 'addr + port' type.
-   Linearization will compute the register that contains the port
-   part of the mapping.
-3. Delinarization will figure out when this trick was used by looking
-   at the length of the mapping: 64 == ipv4addr+service, 160 == ipv6addr+service.
-
-What does not work:
-Anonymous mappings, i.e.
-meta l4proto tcp meta nfproto ipv4 dnat ip to ip saddr map { 1.2.3.4 : 1.2.3.5 . 53, ..
-
-doesn't work.  When evaluating "1.2.3.4", this is still a symbol and
-unlike with named sets, nft doesn't have a properly declared set type.
-
-This is similar to the 'maps-on-LHS-side' issue.
-Phil suggested to allow this:
- ...  to ip saddr map { type ipv4_addr : ipv4_addr . inet_service; 1.2.3.4 : 1.2.3.5 . 53, ..
-
-i.e. re-use the declarative syntax from map code.
-
-Another related issue:
-"typeof" doesn't work with concatenations so far.
-
-I don't know when I will have time to look into this more.
-I have incomplete patches for concat typeof (udata) support
-and a patch to extend the grammar for the proposed { type ... in
-anon sets (doesn't cause grammar problems).
-
-I will continue to work on it but don't know yet when I will do so, so
-I am sending the finished patches I have at this time.
-
+diff --git a/tests/shell/testcases/maps/dumps/nat_addr_port.nft b/tests/shell/testcases/maps/dumps/nat_addr_port.nft
+new file mode 100644
+index 000000000000..3ed6812e585f
+--- /dev/null
++++ b/tests/shell/testcases/maps/dumps/nat_addr_port.nft
+@@ -0,0 +1,13 @@
++table ip ipfoo {
++	map x {
++		type ipv4_addr : ipv4_addr
++	}
++
++	chain c {
++		type nat hook prerouting priority dstnat; policy accept;
++		iifname != "foobar" accept
++		dnat to ip daddr map @x
++		ip saddr 10.1.1.1 dnat to 10.2.3.4
++		ip saddr 10.1.1.2 tcp dport 42 dnat to 10.2.3.4:4242
++	}
++}
+diff --git a/tests/shell/testcases/maps/nat_addr_port b/tests/shell/testcases/maps/nat_addr_port
+new file mode 100755
+index 000000000000..77a2f110aeb9
+--- /dev/null
++++ b/tests/shell/testcases/maps/nat_addr_port
+@@ -0,0 +1,83 @@
++#!/bin/bash
++
++# skeleton
++$NFT -f /dev/stdin <<EOF || exit 1
++table ip ipfoo {
++	map x {
++		type ipv4_addr : ipv4_addr
++	}
++
++	chain c {
++		type nat hook prerouting priority dstnat; policy accept;
++		meta iifname != "foobar" accept
++		dnat to ip daddr map @x
++		ip saddr 10.1.1.1 dnat to 10.2.3.4
++		ip saddr 10.1.1.2 tcp dport 42 dnat to 10.2.3.4:4242
++	}
++}
++EOF
++
++# should fail: rule has no test for l4 protocol
++$NFT add rule 'ip ipfoo c ip saddr 10.1.1.2 dnat to 10.2.3.4:4242' && exit 1
++
++# should fail: map has wrong family: 4->6
++$NFT add rule 'inet inetfoo c dnat to ip daddr map @x6' && exit 1
++
++# should fail: map has wrong family: 6->4
++$NFT add rule 'inet inetfoo c dnat to ip6 daddr map @x4' && exit 1
++
++# should fail: rule has no test for l4 protocol
++$NFT add rule 'inet inetfoo c ip6 saddr f0:0b::a3 dnat to [1c::3]:42' && exit 1
++
++# should fail: rule has no test for l4 protocol, but map has inet_service
++$NFT add rule 'inet inetfoo c dnat to ip daddr map @y4' && exit 1
++
++# should fail: rule has test for l4 protocol, but map has wrong family: 4->6
++$NFT add rule 'inet inetfoo c meta l4proto tcp dnat to ip daddr map @y6' && exit 1
++
++# should fail: rule has test for l4 protocol, but map has wrong family: 6->4
++$NFT add rule 'inet inetfoo c meta l4proto tcp dnat to ip6 daddr map @y4' && exit 1
++
++# fail: inet_service, but expect ipv4_addr
++$NFT -f /dev/stdin <<EOF && exit 1
++table inet inetfoo {
++	map a {
++		type ipv4_addr : inet_service
++	}
++
++	chain c {
++		type nat hook prerouting priority dstnat; policy accept;
++		meta l4proto tcp dnat ip to ip saddr map @a
++	}
++}
++EOF
++
++# fail: maps to inet_service . inet_service, not addr . service
++$NFT -f /dev/stdin <<EOF && exit 1
++table inet inetfoo {
++	map b {
++		type ipv4_addr : inet_service . inet_service
++	}
++
++	chain c {
++		type nat hook prerouting priority dstnat; policy accept;
++		meta l4proto tcp dnat ip to ip saddr map @a
++	}
++}
++EOF
++
++# fail: only accept exactly two sub-expressions: 'addr . service'
++$NFT -f /dev/stdin <<EOF && exit 1
++table inet inetfoo {
++	map b {
++		type ipv4_addr : inet_addr . inet_service . inet_service
++	}
++
++	chain c {
++		type nat hook prerouting priority dstnat; policy accept;
++		meta l4proto tcp dnat ip to ip saddr map @a
++	}
++}
++EOF
++
++exit 0
+-- 
+2.24.1
 
