@@ -2,128 +2,66 @@ Return-Path: <SRS0=eo3W=4M=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FDEAC35679
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 05:29:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BA04C11D2A
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 09:39:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 01F4120661
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 05:29:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1FB2A20838
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 09:39:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727186AbgBXF3i (ORCPT
+        id S1726687AbgBXJjh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 24 Feb 2020 00:29:38 -0500
-Received: from m9785.mail.qiye.163.com ([220.181.97.85]:43317 "EHLO
-        m9785.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726810AbgBXF3i (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Feb 2020 00:29:38 -0500
-Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9785.mail.qiye.163.com (Hmail) with ESMTPA id 3D5A05C18AC;
-        Mon, 24 Feb 2020 13:22:56 +0800 (CST)
-From:   wenxu@ucloud.cn
-To:     pablo@netfilter.org
+        Mon, 24 Feb 2020 04:39:37 -0500
+Received: from correo.us.es ([193.147.175.20]:56686 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726452AbgBXJjh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 24 Feb 2020 04:39:37 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 08185E2C7C
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Feb 2020 10:39:30 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E35DCFC601
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Feb 2020 10:39:29 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 3DB5DFF13C; Mon, 24 Feb 2020 10:39:27 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7ECE753899;
+        Mon, 24 Feb 2020 10:39:20 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 24 Feb 2020 10:39:20 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 496C642EF4E2;
+        Mon, 24 Feb 2020 10:39:20 +0100 (CET)
+Date:   Mon, 24 Feb 2020 10:39:25 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Duncan Roe <duncan_roe@optusnet.com.au>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next v5 4/4] netfilter: flowtable: add tunnel encap/decap action offload support
-Date:   Mon, 24 Feb 2020 13:22:55 +0800
-Message-Id: <1582521775-25176-5-git-send-email-wenxu@ucloud.cn>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1582521775-25176-1-git-send-email-wenxu@ucloud.cn>
-References: <1582521775-25176-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVSkJMS0tLSU1OSklKT01ZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6P1E6Dxw5DDg8DiwDEBkSHUMP
-        LhlPCUpVSlVKTkNJTklKTExNSEtNVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUhPTkk3Bg++
-X-HM-Tid: 0a7075a5f88d2087kuqy3d5a05c18ac
+Subject: Re: [PATCH libnetfilter_queue v3] src: move static nfq_hdr_put from
+ examples/nf-queue.c into the library since everyone is going to want it.
+Message-ID: <20200224093925.r5vz2wcz47iivyfa@salvia>
+References: <20200224005226.3645-1-duncan_roe@optusnet.com.au>
+ <20200224022151.4467-1-duncan_roe@optusnet.com.au>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200224022151.4467-1-duncan_roe@optusnet.com.au>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+On Mon, Feb 24, 2020 at 01:21:51PM +1100, Duncan Roe wrote:
+> Also rename nfq_hdr_put to nfq_nlmsg_put
 
-This patch add tunnel encap decap action offload in the flowtable
-offload.
-
-Signed-off-by: wenxu <wenxu@ucloud.cn>
----
-v5: no change
-
- net/netfilter/nf_flow_table_offload.c | 47 +++++++++++++++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
-
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 413f98a..a706d6e 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -504,10 +504,53 @@ static void flow_offload_redirect(const struct flow_offload *flow,
- 	dev_hold(rt->dst.dev);
- }
- 
-+static void flow_offload_encap_tunnel(const struct flow_offload *flow,
-+				      enum flow_offload_tuple_dir dir,
-+				      struct nf_flow_rule *flow_rule)
-+{
-+	struct flow_action_entry *entry;
-+	struct dst_entry *dst;
-+
-+	dst = flow->tuplehash[dir].tuple.dst_cache;
-+	if (dst->lwtstate) {
-+		struct ip_tunnel_info *tun_info;
-+
-+		tun_info = lwt_tun_info(dst->lwtstate);
-+		if (tun_info && (tun_info->mode & IP_TUNNEL_INFO_TX)) {
-+			entry = flow_action_entry_next(flow_rule);
-+			entry->id = FLOW_ACTION_TUNNEL_ENCAP;
-+			entry->tunnel = tun_info;
-+		}
-+	}
-+}
-+
-+static void flow_offload_decap_tunnel(const struct flow_offload *flow,
-+				      enum flow_offload_tuple_dir dir,
-+				      struct nf_flow_rule *flow_rule)
-+{
-+	struct flow_action_entry *entry;
-+	struct dst_entry *dst;
-+
-+	dst = flow->tuplehash[!dir].tuple.dst_cache;
-+	if (dst->lwtstate) {
-+		struct ip_tunnel_info *tun_info;
-+
-+		tun_info = lwt_tun_info(dst->lwtstate);
-+		if (tun_info && (tun_info->mode & IP_TUNNEL_INFO_TX)) {
-+			entry = flow_action_entry_next(flow_rule);
-+			entry->id = FLOW_ACTION_TUNNEL_DECAP;
-+		}
-+	}
-+}
-+
- int nf_flow_rule_route_ipv4(struct net *net, const struct flow_offload *flow,
- 			    enum flow_offload_tuple_dir dir,
- 			    struct nf_flow_rule *flow_rule)
- {
-+	flow_offload_decap_tunnel(flow, dir, flow_rule);
-+
-+	flow_offload_encap_tunnel(flow, dir, flow_rule);
-+
- 	if (flow_offload_eth_src(net, flow, dir, flow_rule) < 0 ||
- 	    flow_offload_eth_dst(net, flow, dir, flow_rule) < 0)
- 		return -1;
-@@ -534,6 +577,10 @@ int nf_flow_rule_route_ipv6(struct net *net, const struct flow_offload *flow,
- 			    enum flow_offload_tuple_dir dir,
- 			    struct nf_flow_rule *flow_rule)
- {
-+	flow_offload_decap_tunnel(flow, dir, flow_rule);
-+
-+	flow_offload_encap_tunnel(flow, dir, flow_rule);
-+
- 	if (flow_offload_eth_src(net, flow, dir, flow_rule) < 0 ||
- 	    flow_offload_eth_dst(net, flow, dir, flow_rule) < 0)
- 		return -1;
--- 
-1.8.3.1
-
+Applied, thanks.
