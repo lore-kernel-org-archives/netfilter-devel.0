@@ -2,115 +2,78 @@ Return-Path: <SRS0=eo3W=4M=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD02EC38BE0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 19:47:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E6CBC38BF9
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 23:19:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 95BB020656
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 19:47:56 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="VnAeAS+F"
+	by mail.kernel.org (Postfix) with ESMTP id 1DFFD2080D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 23:19:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727304AbgBXTr4 (ORCPT
+        id S1727721AbgBXXTl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 24 Feb 2020 14:47:56 -0500
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:58863 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726687AbgBXTr4 (ORCPT
+        Mon, 24 Feb 2020 18:19:41 -0500
+Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:57678 "EHLO
+        mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726651AbgBXXTl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Feb 2020 14:47:56 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1582573674;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=nnxs4S3V4j1u81O81rJrhpwntUjBUuBdMvRvoYKsH34=;
-        b=VnAeAS+FgR/N+SBfwvt4oTSWCXZjDasbEqJ79VIAGXCiyhL/5gP6T+KIYRgmQo7oRPd3E5
-        U0WQKc1N2RiEJTJYOkDNwCsSN81AN79EuCnQBorUlar5WnF5s7QvD75jBLGawChc7g886P
-        +Kc5TQ7kJ0CdFu+YEUQIXsKKGznvYpg=
-Received: from mail-ed1-f71.google.com (mail-ed1-f71.google.com
- [209.85.208.71]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-485-9oF_FChzO4KL4VkzxALH6w-1; Mon, 24 Feb 2020 14:47:50 -0500
-X-MC-Unique: 9oF_FChzO4KL4VkzxALH6w-1
-Received: by mail-ed1-f71.google.com with SMTP id c24so7415653edy.9
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Feb 2020 11:47:50 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=nnxs4S3V4j1u81O81rJrhpwntUjBUuBdMvRvoYKsH34=;
-        b=jQ9aoSvp+u7FimAbi1w44RizCENHeBcMYcpjlyhgq2tP1HpkHqtts2YDV8KpVg+zQ9
-         AXp+4ZBE6Qay1MHNIFiUhX8wLpHyi3y+KGbXDGwbwZz9f0pt1JVGsEP6cgJDBjLft7ya
-         XLO+wE6daCefkfStFN4EdC86BzVD/ZTPZ5c4oY5p3RQzKuTDUj1m0cOG8fIGch+gJUaX
-         azpXwlJvSEAmxEtHKWT1KsWf842n01WAjrGdccx+BrW8tWdxCqM54JEkTUbUPzjUY8Hq
-         QX+thCxwZ8VZk8sFvVtOIiZNr7Hyq6gkdQj/dGAaIxA8cnK+1SP5tWYPoWHfr9gFftp8
-         Z7+Q==
-X-Gm-Message-State: APjAAAXaYD0zPDKQHzR2uuPiHyYASBfLH0QUyc9xdjziVfMCf0VKH01t
-        DuCsFOcXn60WuVOIC0PDqU/B6+GNQboy/BKYzIV4n7Z+va+cFVh2T/Yj1eS7DmEqR/FcD6IRW4l
-        8BhNJavdAOjiwoVzLRhMLXdeo2iuYM6sDw37+7hFvLz9y
-X-Received: by 2002:a17:906:ce57:: with SMTP id se23mr48387486ejb.362.1582573669106;
-        Mon, 24 Feb 2020 11:47:49 -0800 (PST)
-X-Google-Smtp-Source: APXvYqytTPwGRqhKju/NQPHj9LOagQ32SFVcrzvfbIgfGBW57jVwx7rncRDFd0C3JXVggWYL8tobRTZVXYqtNRKtLfc=
-X-Received: by 2002:a17:906:ce57:: with SMTP id se23mr48387474ejb.362.1582573668885;
- Mon, 24 Feb 2020 11:47:48 -0800 (PST)
-MIME-Version: 1.0
-References: <20200224185529.50530-1-mcroce@redhat.com> <20200224191154.GH19559@breakpoint.cc>
- <CAGnkfhyUOyd1XWdSSxL844RG-_z32qGasV7a+2m7XNrS8qvtCw@mail.gmail.com>
-In-Reply-To: <CAGnkfhyUOyd1XWdSSxL844RG-_z32qGasV7a+2m7XNrS8qvtCw@mail.gmail.com>
-From:   Matteo Croce <mcroce@redhat.com>
-Date:   Mon, 24 Feb 2020 20:47:13 +0100
-Message-ID: <CAGnkfhzA6j2B43DFgQedeGE6H5XvHKWd7KPg3ocGVr0K_u2NJA@mail.gmail.com>
-Subject: Re: [PATCH nf] netfilter: ensure rcu_read_lock() in ipv4_find_option()
+        Mon, 24 Feb 2020 18:19:41 -0500
+Received: from dimstar.local.net (n122-110-29-255.sun2.vic.optusnet.com.au [122.110.29.255])
+        by mail105.syd.optusnet.com.au (Postfix) with SMTP id 056793A1D2B
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Feb 2020 10:19:22 +1100 (AEDT)
+Received: (qmail 8470 invoked by uid 501); 24 Feb 2020 23:19:22 -0000
+Date:   Tue, 25 Feb 2020 10:19:22 +1100
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
 To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Stephen Suryaputra <ssuryaextr@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_queue] src: add nfq_get_skbinfo()
+Message-ID: <20200224231922.GA4516@dimstar.local.net>
+Mail-Followup-To: Florian Westphal <fw@strlen.de>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20200223234941.44877-1-fw@strlen.de>
+ <20200224010344.GA3564@dimstar.local.net>
+ <20200224101648.GF19559@breakpoint.cc>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200224101648.GF19559@breakpoint.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.3 cv=LYdCFQXi c=1 sm=1 tr=0
+        a=xEIwVUYJq7t7CX9UEWuoUA==:117 a=xEIwVUYJq7t7CX9UEWuoUA==:17
+        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=kj9zAlcOel0A:10 a=l697ptgUJYAA:10
+        a=RSmzAf-M6YYA:10 a=PO7r1zJSAAAA:8 a=Z4cdAhcMAePSP6NWx6IA:9
+        a=CjuIK1q_8ugA:10
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Feb 24, 2020 at 8:42 PM Matteo Croce <mcroce@redhat.com> wrote:
+Hi again Florian,
+
+On Mon, Feb 24, 2020 at 11:16:48AM +0100, Florian Westphal wrote:
+> Duncan Roe <duncan_roe@optusnet.com.au> wrote:
+> > Can I suggest:
+> >
+> >   > + *   example because this is an incoming packet and the NIC does not
+> >   > + *   perform checksum validation at hardware level.
+> > - > + * See nfq_set_queue_flags() documentation for more information.
+> >   > + *
+> >   > + * \return the skbinfo value
+> > + > + * \sa __nfq_set_queue_flags__(3)
+> >   > + */
+> >   > +EXPORT_SYMBOL
+> >
+> > I think this will look better, especially on the man page.
 >
-> On Mon, Feb 24, 2020 at 8:12 PM Florian Westphal <fw@strlen.de> wrote:
-> >
-> > Matteo Croce <mcroce@redhat.com> wrote:
-> > > As in commit c543cb4a5f07 ("ipv4: ensure rcu_read_lock() in ipv4_link_failure()")
-> > > and commit 3e72dfdf8227 ("ipv4: ensure rcu_read_lock() in cipso_v4_error()"),
-> > > __ip_options_compile() must be called under rcu protection.
-> >
-> > This is not needed, all netfilter hooks run with rcu_read_lock held.
-> >
->
-> Ok, so let's drop it, thanks.
+> Its does, thanks.  I've made this change in my local tree.
 
-What about adding a RCU_LOCKDEP_WARN() in __ip_options_compile() to
-protect against future errors? Something like:
+Sorry to do this to you, but would you mind changing line ~56 in fixmanpages.sh
+from "function   add2group" to "function add2group" please?.
 
-----------------------------------%<-------------------------------------
-@@ -262,6 +262,9 @@ int __ip_options_compile(struct net *net,
-  unsigned char *iph;
-  int optlen, l;
+I.e. remove 2 unnecessary spaces. This will then match commit cbe9959921 (src:
+expose nfq_nlmsg_put)
 
-+ RCU_LOCKDEP_WARN(!rcu_read_lock_held(),
-+ __FUNC__ " needs rcu_read_lock() protection");
-+
-  if (skb) {
-  rt = skb_rtable(skb);
-  optptr = (unsigned char *)&(ip_hdr(skb)[1]);
----------------------------------->%-------------------------------------
-
-Bye,
--- 
-Matteo Croce
-per aspera ad upstream
-
+Cheers ... Duncan.
