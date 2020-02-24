@@ -2,120 +2,190 @@ Return-Path: <SRS0=eo3W=4M=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC30AC11D32
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 17:52:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E2F6C38BE1
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 18:39:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 85F8820836
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 17:52:59 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="NsdmE9th"
+	by mail.kernel.org (Postfix) with ESMTP id 4F3C720836
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Feb 2020 18:39:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728012AbgBXRw6 (ORCPT
+        id S1727736AbgBXSjq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 24 Feb 2020 12:52:58 -0500
-Received: from us-smtp-1.mimecast.com ([207.211.31.81]:55781 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727887AbgBXRw6 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Feb 2020 12:52:58 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1582566776;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=Nok5rvcHEPwISiSBowc38lw2iibPzDdKIse0Seo+A1g=;
-        b=NsdmE9thcdTSefA482gOqKyxwLGJ4gLCwLqA7bxOhlO997RhXWI/dcjlW2VVKW6Uw4pUYT
-        x4t45jbDCX/i2I9qv4Y9GMdEe0lViY6m1WHUtvYqrdt4wXZsfmrhgm+Twcu06EdSfCtScC
-        wErFddx5V5pnl/9aYkgR5Chr7XvX4oI=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-439-VWrnzLyFM5CZX9F0_-gDcg-1; Mon, 24 Feb 2020 12:52:54 -0500
-X-MC-Unique: VWrnzLyFM5CZX9F0_-gDcg-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id BED4618A5500;
-        Mon, 24 Feb 2020 17:52:53 +0000 (UTC)
-Received: from epycfail.redhat.com (ovpn-200-29.brq.redhat.com [10.40.200.29])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 90BA01001DC0;
-        Mon, 24 Feb 2020 17:52:52 +0000 (UTC)
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     =?UTF-8?q?Kadlecsik=20J=C3=B3zsef?= <kadlec@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, Mithil Mhatre <mmhatre@redhat.com>
-Subject: [PATCH] ipset: Update byte and packet counters regardless of whether they match
-Date:   Mon, 24 Feb 2020 18:52:43 +0100
-Message-Id: <f4b0ae68661c865c3083d2fa896e9a112057a82f.1582566351.git.sbrivio@redhat.com>
-MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
-Content-Transfer-Encoding: quoted-printable
+        Mon, 24 Feb 2020 13:39:46 -0500
+Received: from correo.us.es ([193.147.175.20]:45010 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727426AbgBXSjp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 24 Feb 2020 13:39:45 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 4E438E8D68
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Feb 2020 19:39:38 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 40C66DA72F
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Feb 2020 19:39:38 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 40060DA7B6; Mon, 24 Feb 2020 19:39:38 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 647DEDA72F;
+        Mon, 24 Feb 2020 19:39:35 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 24 Feb 2020 19:39:35 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 3CBD4424EECB;
+        Mon, 24 Feb 2020 19:39:35 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de, nevola@gmail.com
+Subject: [PATCH 7/6 nft,v2] src: nat concatenation support with anonymous maps
+Date:   Mon, 24 Feb 2020 19:39:37 +0100
+Message-Id: <20200224183938.318160-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In ip_set_match_extensions(), for sets with counters, we take care of
-updating counters themselves by calling ip_set_update_counter(), and of
-checking if the given comparison and values match, by calling
-ip_set_match_counter() if needed.
+This patch extends the parser to define the mapping datatypes, eg.
 
-However, if a given comparison on counters doesn't match the configured
-values, that doesn't mean the set entry itself isn't matching.
+  ... dnat ip addr . port to ip saddr map { 1.1.1.1 : 2.2.2.2 . 30 }
+  ... dnat ip addr . port to ip saddr map @y
 
-This fix restores the behaviour we had before commit 4750005a85f7
-("netfilter: ipset: Fix "don't update counters" mode when counters used
-at the matching"), without reintroducing the issue fixed there: back
-then, mtype_data_match() first updated counters in any case, and then
-took care of matching on counters.
-
-Now, if the IPSET_FLAG_SKIP_COUNTER_UPDATE flag is set,
-ip_set_update_counter() will anyway skip counter updates if desired.
-
-The issue observed is illustrated by this reproducer:
-
-  ipset create c hash:ip counters
-  ipset add c 192.0.2.1
-  iptables -I INPUT -m set --match-set c src --bytes-gt 800 -j DROP
-
-if we now send packets from 192.0.2.1, bytes and packets counters
-for the entry as shown by 'ipset list' are always zero, and, no
-matter how many bytes we send, the rule will never match, because
-counters themselves are not updated.
-
-Reported-by: Mithil Mhatre <mmhatre@redhat.com>
-Fixes: 4750005a85f7 ("netfilter: ipset: Fix "don't update counters" mode =
-when counters used at the matching")
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_core.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+v2: IPv6 support and fix incorrect datatype.
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_s=
-et_core.c
-index 69c107f9ba8d..b140e38d9333 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -649,13 +649,14 @@ ip_set_match_extensions(struct ip_set *set, const s=
-truct ip_set_ext *ext,
- 	if (SET_WITH_COUNTER(set)) {
- 		struct ip_set_counter *counter =3D ext_counter(data, set);
-=20
-+		ip_set_update_counter(counter, ext, flags);
+ src/evaluate.c            | 23 ++++++++++++++++++++---
+ src/netlink_delinearize.c |  1 +
+ src/parser_bison.y        |  7 +++++++
+ src/scanner.l             |  1 +
+ src/statement.c           |  3 +++
+ 5 files changed, 32 insertions(+), 3 deletions(-)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 0afd0403d3a4..2d4985c0d409 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2853,15 +2853,32 @@ static int stmt_evaluate_nat_map(struct eval_ctx *ctx, struct stmt *stmt)
+ {
+ 	struct expr *one, *two, *data, *tmp;
+ 	const struct datatype *dtype;
+-	int err;
++	int addr_type, err;
+ 
+-	dtype = get_addr_dtype(stmt->nat.family);
++	if (stmt->nat.ipportmap) {
++		switch (stmt->nat.family) {
++		case NFPROTO_IPV4:
++			addr_type = TYPE_IPADDR;
++			break;
++		case NFPROTO_IPV6:
++			addr_type = TYPE_IP6ADDR;
++			break;
++		default:
++			return -1;
++		}
++		dtype = concat_type_alloc((addr_type << TYPE_BITS) |
++					   TYPE_INET_SERVICE);
++	} else {
++		dtype = get_addr_dtype(stmt->nat.family);
++	}
+ 
+ 	expr_set_context(&ctx->ectx, dtype, dtype->size);
+ 	if (expr_evaluate(ctx, &stmt->nat.addr))
+ 		return -1;
+ 
+ 	data = stmt->nat.addr->mappings->set->data;
++	datatype_set(data, dtype);
 +
- 		if (flags & IPSET_FLAG_MATCH_COUNTERS &&
- 		    !(ip_set_match_counter(ip_set_get_packets(counter),
- 				mext->packets, mext->packets_op) &&
- 		      ip_set_match_counter(ip_set_get_bytes(counter),
- 				mext->bytes, mext->bytes_op)))
- 			return false;
--		ip_set_update_counter(counter, ext, flags);
+ 	if (expr_ops(data)->type != EXPR_CONCAT)
+ 		return __stmt_evaluate_arg(ctx, stmt, dtype, dtype->size,
+ 					   BYTEORDER_BIG_ENDIAN,
+@@ -2875,6 +2892,7 @@ static int stmt_evaluate_nat_map(struct eval_ctx *ctx, struct stmt *stmt)
+ 					   BYTEORDER_BIG_ENDIAN,
+ 					   &stmt->nat.addr);
+ 
++	dtype = get_addr_dtype(stmt->nat.family);
+ 	tmp = one;
+ 	err = __stmt_evaluate_arg(ctx, stmt, dtype, dtype->size,
+ 				  BYTEORDER_BIG_ENDIAN,
+@@ -2891,7 +2909,6 @@ static int stmt_evaluate_nat_map(struct eval_ctx *ctx, struct stmt *stmt)
+ 	if (tmp != two)
+ 		BUG("Internal error: Unexpected alteration of l4 expression");
+ 
+-	stmt->nat.ipportmap = true;
+ 	return err;
+ }
+ 
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 6203a53c6154..0058e2cfe42a 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -1065,6 +1065,7 @@ static void netlink_parse_nat(struct netlink_parse_ctx *ctx,
  	}
- 	if (SET_WITH_SKBINFO(set))
- 		ip_set_get_skbinfo(ext_skbinfo(data, set),
---=20
-2.25.0
+ 
+ 	if (is_nat_proto_map(addr, family)) {
++		stmt->nat.family = family;
+ 		stmt->nat.ipportmap = true;
+ 		ctx->stmt = stmt;
+ 		return;
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index fd00b40a104a..4c27fcc635dc 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -373,6 +373,7 @@ int nft_lex(void *, void *, void *);
+ %token FLAGS			"flags"
+ %token CPI			"cpi"
+ 
++%token PORT			"port"
+ %token UDP			"udp"
+ %token SPORT			"sport"
+ %token DPORT			"dport"
+@@ -3141,6 +3142,12 @@ nat_stmt_args		:	stmt_expr
+ 			{
+ 				$<stmt>0->nat.flags = $2;
+ 			}
++			|	nf_key_proto ADDR DOT	PORT	TO	stmt_expr
++			{
++				$<stmt>0->nat.family = $1;
++				$<stmt>0->nat.addr = $6;
++				$<stmt>0->nat.ipportmap = true;
++			}
+ 			;
+ 
+ masq_stmt		:	masq_stmt_alloc		masq_stmt_args
+diff --git a/src/scanner.l b/src/scanner.l
+index 3932883b9ade..45699c85d7d0 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -471,6 +471,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "udplite"		{ return UDPLITE; }
+ "sport"			{ return SPORT; }
+ "dport"			{ return DPORT; }
++"port"			{ return PORT; }
+ 
+ "tcp"			{ return TCP; }
+ "ackseq"		{ return ACKSEQ; }
+diff --git a/src/statement.c b/src/statement.c
+index be35bceff19a..182edac8f2ec 100644
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -607,6 +607,9 @@ static void nat_stmt_print(const struct stmt *stmt, struct output_ctx *octx)
+ 			break;
+ 		}
+ 
++		if (stmt->nat.ipportmap)
++			nft_print(octx, " addr . port");
++
+ 		nft_print(octx, " to");
+ 	}
+ 
+-- 
+2.11.0
 
