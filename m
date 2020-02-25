@@ -2,107 +2,143 @@ Return-Path: <SRS0=2ZCu=4N=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A7D9C35DF5
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Feb 2020 07:07:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7383AC35DF9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Feb 2020 08:07:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E16DD2082F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Feb 2020 07:07:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE26A218AC
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Feb 2020 08:07:14 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="Viu8v4Fi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729169AbgBYHHP (ORCPT
+        id S1729623AbgBYIHO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 Feb 2020 02:07:15 -0500
-Received: from relay.sw.ru ([185.231.240.75]:40350 "EHLO relay.sw.ru"
+        Tue, 25 Feb 2020 03:07:14 -0500
+Received: from smtp-out.kfki.hu ([148.6.0.46]:35645 "EHLO smtp-out.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729131AbgBYHHP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Feb 2020 02:07:15 -0500
-Received: from vvs-ws.sw.ru ([172.16.24.21])
-        by relay.sw.ru with esmtp (Exim 4.92.3)
-        (envelope-from <vvs@virtuozzo.com>)
-        id 1j6UJF-0004s3-8p; Tue, 25 Feb 2020 10:07:13 +0300
-From:   Vasily Averin <vvs@virtuozzo.com>
-Subject: [PATCH v2 4/4] xt_mttg_seq_next should increase position index
-To:     coreteam@netfilter.org, netfilter-devel@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-References: <497a82c1-7b6a-adf4-a4ce-df46fe436aae@virtuozzo.com>
-Message-ID: <c47c76a1-4c2f-c7a6-e04a-0651e19c4718@virtuozzo.com>
-Date:   Tue, 25 Feb 2020 10:07:12 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.4.1
+        id S1729600AbgBYIHO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 25 Feb 2020 03:07:14 -0500
+Received: from localhost (localhost [127.0.0.1])
+        by smtp1.kfki.hu (Postfix) with ESMTP id A257B3C800FB;
+        Tue, 25 Feb 2020 09:07:11 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        blackhole.kfki.hu; h=mime-version:user-agent:references
+        :message-id:in-reply-to:from:from:date:date:received:received
+        :received; s=20151130; t=1582618029; x=1584432430; bh=Gqp51dGD+2
+        DM8sKmdnpeIhwkNt/Z4KBqGrakGoOkiNs=; b=Viu8v4FiVKXHo7KtciJbQK4nOy
+        i5S6T1E7FtwauhBbhgmSz1lcOZQOW4UKx7PTF6A+q40zITFneSn96mOT8ZTaffD5
+        hakny9aclT9Scpzb2a/Rb1WT0KdwoOr82x3Dmm+1vggQaYI39Y3ry1q3G+XDRFwe
+        GQQw8pk3okS9WZeRY=
+X-Virus-Scanned: Debian amavisd-new at smtp1.kfki.hu
+Received: from smtp1.kfki.hu ([127.0.0.1])
+        by localhost (smtp1.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Tue, 25 Feb 2020 09:07:09 +0100 (CET)
+Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.240.2])
+        by smtp1.kfki.hu (Postfix) with ESMTP id 5340E3C800F8;
+        Tue, 25 Feb 2020 09:07:09 +0100 (CET)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id 2A037206C9; Tue, 25 Feb 2020 09:07:09 +0100 (CET)
+Date:   Tue, 25 Feb 2020 09:07:09 +0100 (CET)
+From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+X-X-Sender: kadlec@blackhole.kfki.hu
+To:     Stefano Brivio <sbrivio@redhat.com>
+cc:     netfilter-devel@vger.kernel.org, Mithil Mhatre <mmhatre@redhat.com>
+Subject: Re: [PATCH] ipset: Update byte and packet counters regardless of
+ whether they match
+In-Reply-To: <f4b0ae68661c865c3083d2fa896e9a112057a82f.1582566351.git.sbrivio@redhat.com>
+Message-ID: <alpine.DEB.2.20.2002250857120.26348@blackhole.kfki.hu>
+References: <f4b0ae68661c865c3083d2fa896e9a112057a82f.1582566351.git.sbrivio@redhat.com>
+User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
 MIME-Version: 1.0
-In-Reply-To: <497a82c1-7b6a-adf4-a4ce-df46fe436aae@virtuozzo.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If .next function does not change position index,
-following .show function will repeat output related
-to current position index.
+Hi Stefano MithilMithil,
 
-Without patch:
- # dd if=/proc/net/ip_tables_matches  # original file output
- conntrack
- conntrack
- conntrack
- recent
- recent
- icmp
- udplite
- udp
- tcp
- 0+1 records in
- 0+1 records out
- 65 bytes copied, 5.4074e-05 s, 1.2 MB/s
+On Mon, 24 Feb 2020, Stefano Brivio wrote:
 
- # dd if=/proc/net/ip_tables_matches bs=62 skip=1
- dd: /proc/net/ip_tables_matches: cannot skip to specified offset
- cp   <<< end of  last line
- tcp  <<< and then unexpected whole last line once again
- 0+1 records in
- 0+1 records out
- 7 bytes copied, 0.000102447 s, 68.3 kB/s
+> In ip_set_match_extensions(), for sets with counters, we take care of 
+> updating counters themselves by calling ip_set_update_counter(), and of 
+> checking if the given comparison and values match, by calling 
+> ip_set_match_counter() if needed.
+> 
+> However, if a given comparison on counters doesn't match the configured 
+> values, that doesn't mean the set entry itself isn't matching.
+> 
+> This fix restores the behaviour we had before commit 4750005a85f7 
+> ("netfilter: ipset: Fix "don't update counters" mode when counters used 
+> at the matching"), without reintroducing the issue fixed there: back 
+> then, mtype_data_match() first updated counters in any case, and then 
+> took care of matching on counters.
+> 
+> Now, if the IPSET_FLAG_SKIP_COUNTER_UPDATE flag is set,
+> ip_set_update_counter() will anyway skip counter updates if desired.
+> 
+> The issue observed is illustrated by this reproducer:
+> 
+>   ipset create c hash:ip counters
+>   ipset add c 192.0.2.1
+>   iptables -I INPUT -m set --match-set c src --bytes-gt 800 -j DROP
+> 
+> if we now send packets from 192.0.2.1, bytes and packets counters
+> for the entry as shown by 'ipset list' are always zero, and, no
+> matter how many bytes we send, the rule will never match, because
+> counters themselves are not updated.
 
-Cc: stable@vger.kernel.org
-Fixes: 1f4aace60b0e ("fs/seq_file.c: simplify seq_file iteration code ...")
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=206283
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
----
- net/netfilter/x_tables.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Sorry, but I disagree. ipset behaves the same as iptables itself: the 
+counters are increased when the whole rule matches and that includes the 
+counter comparison as well. I think it's less counter-intuitive that one 
+can create never matching rules than to explain that "counter matching is 
+a non-match for the point of view of 'when the rule matches, update the 
+counter'".
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index e27c6c5..cd2b034 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1551,6 +1551,9 @@ static void *xt_mttg_seq_next(struct seq_file *seq, void *v, loff_t *ppos,
- 	uint8_t nfproto = (unsigned long)PDE_DATA(file_inode(seq->file));
- 	struct nf_mttg_trav *trav = seq->private;
+What's really missing is a decrement-counters flag: that way one could 
+store different "quotas" for the elements in a set.
+
+Best regards,
+Jozsef
  
-+	if (ppos != NULL)
-+		++(*ppos);
-+
- 	switch (trav->class) {
- 	case MTTG_TRAV_INIT:
- 		trav->class = MTTG_TRAV_NFP_UNSPEC;
-@@ -1576,9 +1579,6 @@ static void *xt_mttg_seq_next(struct seq_file *seq, void *v, loff_t *ppos,
- 	default:
- 		return NULL;
- 	}
+> Reported-by: Mithil Mhatre <mmhatre@redhat.com>
+> Fixes: 4750005a85f7 ("netfilter: ipset: Fix "don't update counters" mode when counters used at the matching")
+> Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+> ---
+>  net/netfilter/ipset/ip_set_core.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> index 69c107f9ba8d..b140e38d9333 100644
+> --- a/net/netfilter/ipset/ip_set_core.c
+> +++ b/net/netfilter/ipset/ip_set_core.c
+> @@ -649,13 +649,14 @@ ip_set_match_extensions(struct ip_set *set, const struct ip_set_ext *ext,
+>  	if (SET_WITH_COUNTER(set)) {
+>  		struct ip_set_counter *counter = ext_counter(data, set);
+>  
+> +		ip_set_update_counter(counter, ext, flags);
+> +
+>  		if (flags & IPSET_FLAG_MATCH_COUNTERS &&
+>  		    !(ip_set_match_counter(ip_set_get_packets(counter),
+>  				mext->packets, mext->packets_op) &&
+>  		      ip_set_match_counter(ip_set_get_bytes(counter),
+>  				mext->bytes, mext->bytes_op)))
+>  			return false;
+> -		ip_set_update_counter(counter, ext, flags);
+>  	}
+>  	if (SET_WITH_SKBINFO(set))
+>  		ip_set_get_skbinfo(ext_skbinfo(data, set),
+> -- 
+> 2.25.0
+> 
+> 
+
 -
--	if (ppos != NULL)
--		++*ppos;
- 	return trav;
- }
- 
--- 
-1.8.3.1
-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
