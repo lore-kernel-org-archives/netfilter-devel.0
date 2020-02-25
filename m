@@ -2,120 +2,105 @@ Return-Path: <SRS0=2ZCu=4N=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C50FC35DF2
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Feb 2020 06:42:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1595FC35DF5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Feb 2020 07:05:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4082721556
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Feb 2020 06:42:53 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="xAVWNr5M"
+	by mail.kernel.org (Postfix) with ESMTP id DD5F9218AC
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Feb 2020 07:05:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729039AbgBYGmx (ORCPT
+        id S1729086AbgBYHFl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 Feb 2020 01:42:53 -0500
-Received: from userp2130.oracle.com ([156.151.31.86]:49134 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726936AbgBYGmw (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Feb 2020 01:42:52 -0500
-Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-        by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 01P6XPql062356;
-        Tue, 25 Feb 2020 06:42:43 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : mime-version : content-type; s=corp-2020-01-29;
- bh=34NUe7/tuMM5XkS7YeXLr+/Kr3j+pRIAm29dcfakx+8=;
- b=xAVWNr5MP5jY8TUIUeHcePePJCXF1HhNFAY7osKl3tzjYck0fCk/qPP7xuBDgdbYU8Yn
- IlSHlwvDUbAvhojHV2++4zczHuYPaInQEhVui+I1i5HLuoXRaSR/kUWIDn+I+xxroP5O
- aXILNf60DSXxptUOfI7K78MlmEsBAsMwWTuGT3oistA0s0Fspaue1SrZiRTG2hzSyo4i
- chZlsjiIFFai+y41AtrG+ecXHiBsP/2jnn5MBrc8mAVaMVq9aiVxpNLJnBTyXEEKhm0Q
- A4FkSN3kbR0wH0EBju46iDnjtKob8T2o00VPSf5R1SM6MFCNddwIQGxkPliEaltC7g9r nQ== 
-Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
-        by userp2130.oracle.com with ESMTP id 2ycppr9qg4-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 25 Feb 2020 06:42:42 +0000
-Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
-        by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 01P6g8mA092996;
-        Tue, 25 Feb 2020 06:42:42 GMT
-Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
-        by aserp3020.oracle.com with ESMTP id 2yby5fk1hw-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 25 Feb 2020 06:42:42 +0000
-Received: from abhmp0009.oracle.com (abhmp0009.oracle.com [141.146.116.15])
-        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 01P6galn013830;
-        Tue, 25 Feb 2020 06:42:36 GMT
-Received: from kili.mountain (/129.205.23.165)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Mon, 24 Feb 2020 22:42:35 -0800
-Date:   Tue, 25 Feb 2020 09:42:22 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Manoj Basapathi <manojbm@codeaurora.org>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        kernel-janitors@vger.kernel.org
-Subject: [PATCH] netfilter: clean up some indenting
-Message-ID: <20200225064150.hwewi26uc2yfwh2u@kili.mountain>
+        Tue, 25 Feb 2020 02:05:41 -0500
+Received: from relay.sw.ru ([185.231.240.75]:40198 "EHLO relay.sw.ru"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725788AbgBYHFl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 25 Feb 2020 02:05:41 -0500
+Received: from vvs-ws.sw.ru ([172.16.24.21])
+        by relay.sw.ru with esmtp (Exim 4.92.3)
+        (envelope-from <vvs@virtuozzo.com>)
+        id 1j6UHb-0004rN-9A; Tue, 25 Feb 2020 10:05:31 +0300
+From:   Vasily Averin <vvs@virtuozzo.com>
+Subject: [PATCH v2 0/4] netfilter: seq_file .next functions should increase
+ position index
+To:     coreteam@netfilter.org, netfilter-devel@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+References: <497a82c1-7b6a-adf4-a4ce-df46fe436aae@virtuozzo.com>
+Message-ID: <5328139a-1c65-74a5-c748-1aabc18ef26c@virtuozzo.com>
+Date:   Tue, 25 Feb 2020 10:05:29 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.4.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-X-Mailer: git-send-email haha only kidding
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9541 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 mlxscore=0 bulkscore=0
- suspectscore=0 mlxlogscore=999 phishscore=0 adultscore=0 spamscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2001150001
- definitions=main-2002250054
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9541 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 mlxlogscore=999
- lowpriorityscore=0 malwarescore=0 suspectscore=0 impostorscore=0
- spamscore=0 phishscore=0 mlxscore=0 clxscore=1011 adultscore=0
- priorityscore=1501 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2001150001 definitions=main-2002250052
+In-Reply-To: <497a82c1-7b6a-adf4-a4ce-df46fe436aae@virtuozzo.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-These lines were indented wrong so Smatch complained.
-net/netfilter/xt_IDLETIMER.c:81 idletimer_tg_show() warn: inconsistent indenting
+v2: resend with improved patch description
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
- net/netfilter/xt_IDLETIMER.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+In Aug 2018 NeilBrown noticed 
+commit 1f4aace60b0e ("fs/seq_file.c: simplify seq_file iteration code and interface")
+"Some ->next functions do not increment *pos when they return NULL...
+Note that such ->next functions are buggy and should be fixed. 
+A simple demonstration is
+   
+dd if=/proc/swaps bs=1000 skip=1
+    
+Choose any block size larger than the size of /proc/swaps.  This will
+always show the whole last line of /proc/swaps"
 
-diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-index d620bbf13b30..75bd0e5dd312 100644
---- a/net/netfilter/xt_IDLETIMER.c
-+++ b/net/netfilter/xt_IDLETIMER.c
-@@ -77,9 +77,8 @@ static ssize_t idletimer_tg_show(struct device *dev,
- 			ktimespec = ktime_to_timespec64(expires_alarm);
- 			time_diff = ktimespec.tv_sec;
- 		} else {
--		expires = timer->timer.expires;
--			time_diff = jiffies_to_msecs(
--						expires - jiffies) / 1000;
-+			expires = timer->timer.expires;
-+			time_diff = jiffies_to_msecs(expires - jiffies) / 1000;
- 		}
- 	}
- 
-@@ -216,7 +215,7 @@ static int idletimer_tg_create_v1(struct idletimer_tg_info_v1 *info)
- 	kobject_uevent(idletimer_tg_kobj,KOBJ_ADD);
- 
- 	list_add(&info->timer->entry, &idletimer_tg_list);
--		pr_debug("timer type value is %u", info->timer_type);
-+	pr_debug("timer type value is %u", info->timer_type);
- 	info->timer->timer_type = info->timer_type;
- 	info->timer->refcnt = 1;
- 
+/proc/swaps output was fixed recently, however there are lot of other
+affected files, and few of them of them are related to netfilter subsystem.
+
+For example please take look at recent_seq_next()
+
+ # dd if=/proc/net/xt_recent/SSH # original file output
+ src=127.0.0.4 ttl: 0 last_seen: 6275444819 oldest_pkt: 1 6275444819
+ src=127.0.0.2 ttl: 0 last_seen: 6275438906 oldest_pkt: 1 6275438906
+ src=127.0.0.3 ttl: 0 last_seen: 6275441953 oldest_pkt: 1 6275441953
+ 0+1 records in
+ 0+1 records out
+ 204 bytes copied, 6.1332e-05 s, 3.3 MB/s
+
+Read after lseek into middle of last line (offset 140 in example below)
+generates expected end of last line and then unexpected whole last line
+once again
+
+ # dd if=/proc/net/xt_recent/SSH bs=140 skip=1
+ dd: /proc/net/xt_recent/SSH: cannot skip to specified offset
+ 127.0.0.3 ttl: 0 last_seen: 6275441953 oldest_pkt: 1 6275441953
+ src=127.0.0.3 ttl: 0 last_seen: 6275441953 oldest_pkt: 1 6275441953
+ 0+1 records in
+ 0+1 records out
+ 132 bytes copied, 6.2487e-05 s, 2.1 MB/s
+
+In general if .next function does not change position index,
+following .show function will repeat output related
+to current position index. I.e. position index should be updated 
+even if .next function returns NULL.
+
+https://bugzilla.kernel.org/show_bug.cgi?id=206283
+
+Vasily Averin (4):
+  ct_cpu_seq_next should increase position index
+  synproxy_cpu_seq_next should increase position index
+  recent_seq_next should increase position index
+  xt_mttg_seq_next should increase position index
+
+ net/netfilter/nf_conntrack_standalone.c | 2 +-
+ net/netfilter/nf_synproxy_core.c        | 2 +-
+ net/netfilter/x_tables.c                | 6 +++---
+ net/netfilter/xt_recent.c               | 2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
+
 -- 
-2.11.0
-
+1.8.3.1
