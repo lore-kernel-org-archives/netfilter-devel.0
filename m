@@ -2,155 +2,109 @@ Return-Path: <SRS0=2ZCu=4N=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 513E2C35E04
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Feb 2020 19:33:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED3C9C35E01
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Feb 2020 20:21:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 26A3520CC7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Feb 2020 19:33:34 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="eZ+aZQoW"
+	by mail.kernel.org (Postfix) with ESMTP id C987F2084E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Feb 2020 20:21:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729377AbgBYTdd (ORCPT
+        id S1731748AbgBYUVs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 Feb 2020 14:33:33 -0500
-Received: from us-smtp-2.mimecast.com ([205.139.110.61]:49372 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728714AbgBYTdd (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Feb 2020 14:33:33 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1582659211;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=mI+GfseGla2p090SpD16PYhsYGOsDsHLshPDGwKt9gY=;
-        b=eZ+aZQoWl441s9Kv+StFQfqkhNXqqrLRmlRsk8HLYMJe80dHD3ydERRgubgqrSUZ2/E160
-        vXc4M/FTDFkDre9mPRp1n6MORXwFn4ERQ/7J+GkK6oJmr51hCQinyNZ/OhPGb0SbFbQbso
-        udUH8lTZkHebVEpPzWG69klAWe2PpZQ=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-60-v_Lqe0MmO-6ozvQVe96NSg-1; Tue, 25 Feb 2020 14:33:29 -0500
-X-MC-Unique: v_Lqe0MmO-6ozvQVe96NSg-1
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        Tue, 25 Feb 2020 15:21:48 -0500
+Received: from correo.us.es ([193.147.175.20]:50736 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731565AbgBYUVs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 25 Feb 2020 15:21:48 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 2C32C11EB23
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Feb 2020 21:21:39 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1C7F5DA3A1
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Feb 2020 21:21:39 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 0F2EEDA3C4; Tue, 25 Feb 2020 21:21:39 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 204BFDA7B2;
+        Tue, 25 Feb 2020 21:21:37 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 25 Feb 2020 21:21:37 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id AF3F2800D5A;
-        Tue, 25 Feb 2020 19:33:28 +0000 (UTC)
-Received: from localhost (ovpn-200-22.brq.redhat.com [10.40.200.22])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 0368091824;
-        Tue, 25 Feb 2020 19:33:25 +0000 (UTC)
-Date:   Tue, 25 Feb 2020 20:33:19 +0100
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf 0/2] nft_set_pipapo: Fix crash due to dangling
- entries in mapping table
-Message-ID: <20200225203319.5ba95a62@redhat.com>
-In-Reply-To: <20200225184857.GC9532@orbyte.nwl.cc>
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id F172342EE38F;
+        Tue, 25 Feb 2020 21:21:36 +0100 (CET)
+Date:   Tue, 25 Feb 2020 21:21:43 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Stefano Brivio <sbrivio@redhat.com>
+Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+        Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf 0/2] nft_set_pipapo: Fix crash due to dangling entries
+ in mapping table
+Message-ID: <20200225202143.tqsfhggvklvhnsvs@salvia>
 References: <cover.1582250437.git.sbrivio@redhat.com>
-        <20200221211704.GM20005@orbyte.nwl.cc>
-        <20200221232218.2157d72b@elisabeth>
-        <20200222011933.GO20005@orbyte.nwl.cc>
-        <20200223222258.2bb7516a@redhat.com>
-        <20200225123934.p3vru3tmbsjj2o7y@salvia>
-        <20200225141346.7406e06b@redhat.com>
-        <20200225134236.sdz5ujufvxm2in3h@salvia>
-        <20200225153435.17319874@redhat.com>
-        <20200225184857.GC9532@orbyte.nwl.cc>
-Organization: Red Hat
+ <20200221211704.GM20005@orbyte.nwl.cc>
+ <20200221232218.2157d72b@elisabeth>
+ <20200222011933.GO20005@orbyte.nwl.cc>
+ <20200223222258.2bb7516a@redhat.com>
+ <20200225123934.p3vru3tmbsjj2o7y@salvia>
+ <20200225141346.7406e06b@redhat.com>
+ <20200225134236.sdz5ujufvxm2in3h@salvia>
+ <20200225153435.17319874@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200225153435.17319874@redhat.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, 25 Feb 2020 19:48:57 +0100
-Phil Sutter <phil@nwl.cc> wrote:
+Hi Stefano,
 
-> Hi,
+On Tue, Feb 25, 2020 at 03:34:35PM +0100, Stefano Brivio wrote:
+[...]
+> This is the problem Phil reported:
+[...]
+> Or also simply with:
 > 
-> Sorry for jumping back into the discussion this late.
+> # nft add element t s '{ 20-30 . 40 }'
+> # nft add element t s '{ 25-35 . 40 }'
 > 
-> On Tue, Feb 25, 2020 at 03:34:35PM +0100, Stefano Brivio wrote:
-> [...]
-> > Or also simply with:
-> > 
-> > # nft add element t s '{ 20-30 . 40 }'
-> > # nft add element t s '{ 25-35 . 40 }'
-> > 
-> > the second element is silently ignored. I'm returning -EEXIST from
-> > nft_pipapo_insert(), but nft_add_set_elem() clears it because NLM_F_EXCL
-> > is not set.
-> > 
-> > Are you suggesting that this is consistent and therefore not a problem?
-> > 
-> > Or are you proposing that I should handle this in userspace as it's done
-> > for non-concatenated ranges?  
+> the second element is silently ignored. I'm returning -EEXIST from
+> nft_pipapo_insert(), but nft_add_set_elem() clears it because NLM_F_EXCL
+> is not set.
 > 
-> The problem is that user tried to add a new element which is not yet
-> contained and the 'add element' command is the same as if it was
-> identical to an existing one. We must not ignore this situation as the
-> user needs to know: In the above case e.g., element '35 . 40' won't
-> match after the zero-return from 'add element' command.
-> 
-> At first I assumed we could merge e.g.:
-> 
-> | { 20-30 . 40-50, 25-35 . 45-55 }
-> 
-> into:
-> 
-> | { 20-35 . 40-55 }
-> 
-> But now I realize this is wrong. We would match e.g. '{ 20 . 55 }', a
-> combination the user never specified.
-> 
-> Given that merging multiple concatenated ranges is a non-trivial task, I
-> guess the only sane thing to do (for now at least) is to perform overlap
-> detection in user space and reject the command if an overlap is
-> detected. Stefano, do you see any problems with that?
+> Are you suggesting that this is consistent and therefore not a problem?
 
-Functionally, it's doable. The downsides I see are:
+                        NLM_F_EXCL      !NLM_F_EXCL
+        exact match       EEXIST             0 [*]
+        partial match     EEXIST           EEXIST
 
-1. This logic is already implemented by pipapo, so I would duplicate
-   it.
+The [*] case would allow for element timeout/expiration updates from
+the control plane for exact matches. Note that element updates are not
+supported yet, so this check for !NLM_F_EXCL is a stub. I don't think
+we should allow for updates on partial matches
 
-   Other than code duplication itself, the worst part is the risk of
-   (accidental) mismatch between the two implementations, and the fact
-   that if we ever want to change this logic, we'll have to change it in
-   two places (taking care of not breaking API, etc.)
+I think what it is missing is a error to report "partial match" from
+pipapo. Then, the core translates this "partial match" error to EEXIST
+whether NLM_F_EXCL is set or not.
 
-2. It's going to be a bit more complicated than interval_overlap(),
-   expect perhaps 50 LoCs, plus conditionals to select
-   interval_overlap() or something_else_overlap()
+Would this work for you?
 
-3. [very, very debatable] I consider accepting already existing
-   entries, without returning -EEXIST, a bug, no matter if NLM_F_EXCL
-   was not passed: NLM_F_EXCL should simply mean what RFC 3549 says,
-   that is, "Don't replace the config object if it already exists.". By
-   leaving that "error clearing" in the API, we maintain this. On the
-   other hand, even in the unlikely case we agree it's a bug, "fixing"
-   it comes with UAPI breakage risks, too.
+> Or are you proposing that I should handle this in userspace as it's done
+> for non-concatenated ranges?
 
-So, yes, I would like to avoid that, but if:
+I don't think we should handle this from userspace. If we do so, we'll
+need to get an element cache for incremental updates, that will be slow.
 
-a. I can't return anything else than -EEXIST from nft_pipapo_insert()
-
-b. I can't remove that "if (err == -EEXIST) err = 0;" part
-
-then I don't see any other solution than implementing it in userspace.
-I hope somebody had better ideas, but if not, I would go ahead and
-implement it in userspace.
-
--- 
-Stefano
-
+Thanks for explaining.
