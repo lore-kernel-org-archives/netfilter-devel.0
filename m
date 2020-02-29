@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 999A6C3F2CE
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Feb 2020 11:44:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B019C3F2C6
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Feb 2020 11:44:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 53B852469C
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Feb 2020 11:44:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4875A2469C
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Feb 2020 11:44:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="omgOZYwK"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="kudWfIbW"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726944AbgB2Lo0 (ORCPT
+        id S1726956AbgB2Lo2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 29 Feb 2020 06:44:26 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:49468 "EHLO
+        Sat, 29 Feb 2020 06:44:28 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:49480 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726925AbgB2Lo0 (ORCPT
+        with ESMTP id S1726925AbgB2Lo1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 29 Feb 2020 06:44:26 -0500
+        Sat, 29 Feb 2020 06:44:27 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
          s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=oLeyal1QdNdylWSJizm30cxIOS6E6FjFpYjM1ecNcak=; b=omgOZYwKIK0alwsrfFTfiRJoYf
-        VVZ6LTaPbXf2UM6jPLe3Bfuex5iJimmWGA+it6QtAo2+uyNINVZAXEt+rRBKJbMyaaKypTOBqg4ST
-        OyxPhDeCz9oVEVImiYcU/gl+lFGF1AcPbzR//O6X/iC2c+WZ9+GKbC6rBpAik8HsYE/BRTQhDa4zy
-        WFnU4zi+AZ7mvopMrfb/Ovu2opp4gFREUertBVvjmPKbV8Nf11z6LmsN+czL8QkoNFleBSOLOyuzH
-        OOfr1jFK2K+wsNoHJ2cCSstfU1E/nfg0/pcX2D3zu9FakA+3Il9OoPXcBCAlyjrQ1xIzZbpGq5VJD
-        gj/5PerA==;
+        bh=LbcYDU65bQ34H+lIeGiPFLS9z51WFVsz32zAIlWXKq8=; b=kudWfIbWKgNrZzZxraywkKACmF
+        1jwS1OncTEk1EjiocP/osN4BpLfr0I8PaHvBSoKqJgcouUHT65/tKg+FaP66akQFJ3gK8ZG7MeZYC
+        88E3mx2gkgDHf3gCaX7d8dMSvdGwWflojfqO7QyzanEV0sLxrcASWsAnUBFf4z9NhATX91Yu3xeMB
+        XVMr/EfgmR8Ezn8syoAUCsH2PWGzohos7ce672HWEh5vrgVfyb38CZKVKG+ccnPuZL4TeiRD628wA
+        9TigxzM4cEQX7awPvDkISduA2+Z7j2ygpcSc/DVS7GqSJOuLw0REKZqYYdGxHk8BfppcTdJNrNboO
+        nAiBR5vw==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1j80HO-0003Wm-G5; Sat, 29 Feb 2020 11:27:34 +0000
+        id 1j80HO-0003Wm-BM; Sat, 29 Feb 2020 11:27:34 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Florian Westphal <fw@strlen.de>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft 18/18] tests: py: add variable binop RHS tests.
-Date:   Sat, 29 Feb 2020 11:27:31 +0000
-Message-Id: <20200229112731.796417-19-jeremy@azazel.net>
+Subject: [PATCH nft 17/18] tests: shell: add variable binop RHS tests.
+Date:   Sat, 29 Feb 2020 11:27:30 +0000
+Message-Id: <20200229112731.796417-18-jeremy@azazel.net>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200229112731.796417-1-jeremy@azazel.net>
 References: <20200229112731.796417-1-jeremy@azazel.net>
@@ -64,504 +64,173 @@ statement arguments that include binops with variable RHS operands.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- tests/py/any/ct.t               |  1 +
- tests/py/any/ct.t.json          | 37 ++++++++++++++++++
- tests/py/any/ct.t.payload       | 33 ++++++++++++++++
- tests/py/inet/tcp.t             |  2 +
- tests/py/inet/tcp.t.json        | 46 +++++++++++++++++++++-
- tests/py/inet/tcp.t.payload     | 68 +++++++++++++++++++++++++++++++++
- tests/py/ip/ip.t                |  3 ++
- tests/py/ip/ip.t.json           | 66 ++++++++++++++++++++++++++++++++
- tests/py/ip/ip.t.payload        | 26 +++++++++++++
- tests/py/ip/ip.t.payload.bridge | 30 +++++++++++++++
- tests/py/ip/ip.t.payload.inet   | 30 +++++++++++++++
- tests/py/ip/ip.t.payload.netdev | 30 +++++++++++++++
- 12 files changed, 371 insertions(+), 1 deletion(-)
+ tests/shell/testcases/chains/0040mark_shift_2         | 11 +++++++++++
+ tests/shell/testcases/chains/0041payload_variable_0   | 11 +++++++++++
+ tests/shell/testcases/chains/0041payload_variable_1   | 11 +++++++++++
+ tests/shell/testcases/chains/0041payload_variable_2   | 11 +++++++++++
+ tests/shell/testcases/chains/0041payload_variable_3   | 11 +++++++++++
+ .../shell/testcases/chains/dumps/0040mark_shift_2.nft |  6 ++++++
+ .../testcases/chains/dumps/0041payload_variable_0.nft |  6 ++++++
+ .../testcases/chains/dumps/0041payload_variable_1.nft |  6 ++++++
+ .../testcases/chains/dumps/0041payload_variable_2.nft |  6 ++++++
+ .../testcases/chains/dumps/0041payload_variable_3.nft |  6 ++++++
+ 10 files changed, 85 insertions(+)
+ create mode 100755 tests/shell/testcases/chains/0040mark_shift_2
+ create mode 100755 tests/shell/testcases/chains/0041payload_variable_0
+ create mode 100755 tests/shell/testcases/chains/0041payload_variable_1
+ create mode 100755 tests/shell/testcases/chains/0041payload_variable_2
+ create mode 100755 tests/shell/testcases/chains/0041payload_variable_3
+ create mode 100644 tests/shell/testcases/chains/dumps/0040mark_shift_2.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0041payload_variable_0.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0041payload_variable_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0041payload_variable_2.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0041payload_variable_3.nft
 
-diff --git a/tests/py/any/ct.t b/tests/py/any/ct.t
-index f65d275987cd..0581c6a4fd8f 100644
---- a/tests/py/any/ct.t
-+++ b/tests/py/any/ct.t
-@@ -59,6 +59,7 @@ ct mark set 0x11;ok;ct mark set 0x00000011
- ct mark set mark;ok;ct mark set meta mark
- ct mark set (meta mark | 0x10) << 8;ok;ct mark set (meta mark | 0x00000010) << 8
- ct mark set mark map { 1 : 10, 2 : 20, 3 : 30 };ok;ct mark set meta mark map { 0x00000003 : 0x0000001e, 0x00000002 : 0x00000014, 0x00000001 : 0x0000000a}
-+ct mark set ct mark and 0xffff0000 or meta mark and 0xffff;ok;ct mark set ct mark & 0xffff0000 | meta mark & 0x0000ffff
- 
- ct mark set {0x11333, 0x11};fail
- ct zone set {123, 127};fail
-diff --git a/tests/py/any/ct.t.json b/tests/py/any/ct.t.json
-index 59ac27c3055c..aca7c3243cc0 100644
---- a/tests/py/any/ct.t.json
-+++ b/tests/py/any/ct.t.json
-@@ -779,6 +779,43 @@
-     }
- ]
- 
-+# ct mark set ct mark and 0xffff0000 or meta mark and 0xffff
-+[
-+    {
-+        "mangle": {
-+            "key": {
-+                "ct": {
-+                    "key": "mark"
-+                }
-+            },
-+            "value": {
-+                "|": [
-+                    {
-+                        "&": [
-+                            {
-+                                "ct": {
-+                                    "key": "mark"
-+                                }
-+                            },
-+                            4294901760
-+                        ]
-+                    },
-+                    {
-+                        "&": [
-+                            {
-+                                "meta": {
-+                                    "key": "mark"
-+                                }
-+                            },
-+                            65535
-+                        ]
-+                    }
-+                ]
-+            }
-+        }
-+    }
-+]
+diff --git a/tests/shell/testcases/chains/0040mark_shift_2 b/tests/shell/testcases/chains/0040mark_shift_2
+new file mode 100755
+index 000000000000..2ff3418bdd3f
+--- /dev/null
++++ b/tests/shell/testcases/chains/0040mark_shift_2
+@@ -0,0 +1,11 @@
++#!/bin/bash
 +
- # ct expiration 30s
- [
-     {
-diff --git a/tests/py/any/ct.t.payload b/tests/py/any/ct.t.payload
-index 661591257804..17a1c382ea65 100644
---- a/tests/py/any/ct.t.payload
-+++ b/tests/py/any/ct.t.payload
-@@ -359,6 +359,39 @@ ip test-ip4 output
-   [ lookup reg 1 set __map%d dreg 1 ]
-   [ ct set mark with reg 1 ]
- 
-+# ct mark set ct mark and 0xffff0000 or meta mark and 0xffff
-+ip
-+  [ ct load mark => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0xffff0000 ) ^ 0x00000000 ]
-+  [ meta load mark => reg 2 ]
-+  [ bitwise reg 2 = (reg=2 & 0x0000ffff ) ^ 0xffffffff ]
-+  [ meta load mark => reg 3 ]
-+  [ bitwise reg 3 = (reg=3 & 0x0000ffff ) ^ 0x00000000 ]
-+  [ bitwise reg 1 = (reg=1 & reg 2 ) ^ reg 3 ]
-+  [ ct set mark with reg 1 ]
++set -e
 +
-+# ct mark set ct mark and 0xffff0000 or meta mark and 0xffff
-+ip6
-+  [ ct load mark => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0xffff0000 ) ^ 0x00000000 ]
-+  [ meta load mark => reg 2 ]
-+  [ bitwise reg 2 = (reg=2 & 0x0000ffff ) ^ 0xffffffff ]
-+  [ meta load mark => reg 3 ]
-+  [ bitwise reg 3 = (reg=3 & 0x0000ffff ) ^ 0x00000000 ]
-+  [ bitwise reg 1 = (reg=1 & reg 2 ) ^ reg 3 ]
-+  [ ct set mark with reg 1 ]
++RULESET="
++  add table t
++  add chain t c { type filter hook input priority mangle; }
++  add rule t c ct mark set ct mark and 0xffff0000 or meta mark and 0xffff
++"
 +
-+# ct mark set ct mark and 0xffff0000 or meta mark and 0xffff
-+inet
-+  [ ct load mark => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0xffff0000 ) ^ 0x00000000 ]
-+  [ meta load mark => reg 2 ]
-+  [ bitwise reg 2 = (reg=2 & 0x0000ffff ) ^ 0xffffffff ]
-+  [ meta load mark => reg 3 ]
-+  [ bitwise reg 3 = (reg=3 & 0x0000ffff ) ^ 0x00000000 ]
-+  [ bitwise reg 1 = (reg=1 & reg 2 ) ^ reg 3 ]
-+  [ ct set mark with reg 1 ]
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/chains/0041payload_variable_0 b/tests/shell/testcases/chains/0041payload_variable_0
+new file mode 100755
+index 000000000000..c9819ff4ab88
+--- /dev/null
++++ b/tests/shell/testcases/chains/0041payload_variable_0
+@@ -0,0 +1,11 @@
++#!/bin/bash
 +
- # ct original bytes > 100000
- ip test-ip4 output
-   [ ct load bytes => reg 1 , dir original ]
-diff --git a/tests/py/inet/tcp.t b/tests/py/inet/tcp.t
-index e0a83e2b4152..081248643981 100644
---- a/tests/py/inet/tcp.t
-+++ b/tests/py/inet/tcp.t
-@@ -7,6 +7,8 @@
- *netdev;test-netdev;ingress
- 
- tcp dport set {1, 2, 3};fail
-+tcp dport set tcp dport;ok
-+tcp dport set tcp dport lshift 1;ok;tcp dport set tcp dport << 1
- 
- tcp dport 22;ok
- tcp dport != 233;ok
-diff --git a/tests/py/inet/tcp.t.json b/tests/py/inet/tcp.t.json
-index babe59208925..d8375fbe1e85 100644
---- a/tests/py/inet/tcp.t.json
-+++ b/tests/py/inet/tcp.t.json
-@@ -1,3 +1,48 @@
-+# tcp dport set tcp dport
-+[
-+    {
-+        "mangle": {
-+            "key": {
-+                "payload": {
-+                    "field": "dport",
-+                    "protocol": "tcp"
-+                }
-+            },
-+            "value": {
-+                "payload": {
-+                    "field": "dport",
-+                    "protocol": "tcp"
-+                }
-+            }
-+        }
-+    }
-+]
++set -e
 +
-+# tcp dport set tcp dport lshift 1
-+[
-+    {
-+        "mangle": {
-+            "key": {
-+                "payload": {
-+                    "field": "dport",
-+                    "protocol": "tcp"
-+                }
-+            },
-+            "value": {
-+                "<<": [
-+                    {
-+                        "payload": {
-+                            "field": "dport",
-+                            "protocol": "tcp"
-+                        }
-+                    },
-+                    1
-+                ]
-+            }
-+        }
-+    }
-+]
++RULESET="
++  add table t
++  add chain t c { type filter hook output priority mangle; }
++  add rule ip t c tcp dport set tcp dport
++"
 +
- # tcp dport 22
- [
-     {
-@@ -1636,4 +1681,3 @@
-         }
-     }
- ]
--
-diff --git a/tests/py/inet/tcp.t.payload b/tests/py/inet/tcp.t.payload
-index 55f1bc2eff87..13de1ff80722 100644
---- a/tests/py/inet/tcp.t.payload
-+++ b/tests/py/inet/tcp.t.payload
-@@ -1,3 +1,71 @@
-+# tcp dport set tcp dport
-+ip
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ payload write reg 1 => 2b @ transport header + 2 csum_type 1 csum_off 16 csum_flags 0x0 ]
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/chains/0041payload_variable_1 b/tests/shell/testcases/chains/0041payload_variable_1
+new file mode 100755
+index 000000000000..e9b1e1dde515
+--- /dev/null
++++ b/tests/shell/testcases/chains/0041payload_variable_1
+@@ -0,0 +1,11 @@
++#!/bin/bash
 +
-+# tcp dport set tcp dport
-+ip6
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ payload write reg 1 => 2b @ transport header + 2 csum_type 1 csum_off 16 csum_flags 0x0 ]
++set -e
 +
-+# tcp dport set tcp dport
-+inet
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ payload write reg 1 => 2b @ transport header + 2 csum_type 1 csum_off 16 csum_flags 0x0 ]
++RULESET="
++  add table t
++  add chain t c { type filter hook output priority mangle; }
++  add rule ip t c tcp dport set tcp dport lshift 1
++"
 +
-+# tcp dport set tcp dport
-+netdev
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ payload write reg 1 => 2b @ transport header + 2 csum_type 1 csum_off 16 csum_flags 0x0 ]
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/chains/0041payload_variable_2 b/tests/shell/testcases/chains/0041payload_variable_2
+new file mode 100755
+index 000000000000..5a458ef5d525
+--- /dev/null
++++ b/tests/shell/testcases/chains/0041payload_variable_2
+@@ -0,0 +1,11 @@
++#!/bin/bash
 +
-+# tcp dport set tcp dport lshift 1
-+ip
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ byteorder reg 1 = ntoh(reg 1, 2, 2) ]
-+  [ bitwise reg 1 = ( reg 1 << 0x00000001 ) ]
-+  [ byteorder reg 1 = hton(reg 1, 2, 2) ]
-+  [ payload write reg 1 => 2b @ transport header + 2 csum_type 1 csum_off 16 csum_flags 0x0 ]
++set -e
 +
-+# tcp dport set tcp dport lshift 1
-+ip6
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ byteorder reg 1 = ntoh(reg 1, 2, 2) ]
-+  [ bitwise reg 1 = ( reg 1 << 0x00000001 ) ]
-+  [ byteorder reg 1 = hton(reg 1, 2, 2) ]
-+  [ payload write reg 1 => 2b @ transport header + 2 csum_type 1 csum_off 16 csum_flags 0x0 ]
++RULESET="
++  add table t
++  add chain t c { type filter hook output priority mangle; }
++  add rule ip t c ip dscp set ip dscp
++"
 +
-+# tcp dport set tcp dport lshift 1
-+inet
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ byteorder reg 1 = ntoh(reg 1, 2, 2) ]
-+  [ bitwise reg 1 = ( reg 1 << 0x00000001 ) ]
-+  [ byteorder reg 1 = hton(reg 1, 2, 2) ]
-+  [ payload write reg 1 => 2b @ transport header + 2 csum_type 1 csum_off 16 csum_flags 0x0 ]
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/chains/0041payload_variable_3 b/tests/shell/testcases/chains/0041payload_variable_3
+new file mode 100755
+index 000000000000..0375399c3d0f
+--- /dev/null
++++ b/tests/shell/testcases/chains/0041payload_variable_3
+@@ -0,0 +1,11 @@
++#!/bin/bash
 +
-+# tcp dport set tcp dport lshift 1
-+netdev
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ byteorder reg 1 = ntoh(reg 1, 2, 2) ]
-+  [ bitwise reg 1 = ( reg 1 << 0x00000001 ) ]
-+  [ byteorder reg 1 = hton(reg 1, 2, 2) ]
-+  [ payload write reg 1 => 2b @ transport header + 2 csum_type 1 csum_off 16 csum_flags 0x0 ]
++set -e
 +
- # tcp dport 22
- inet test-inet input
-   [ meta load l4proto => reg 1 ]
-diff --git a/tests/py/ip/ip.t b/tests/py/ip/ip.t
-index 0421d01bf6e4..1a5fb5c0efb3 100644
---- a/tests/py/ip/ip.t
-+++ b/tests/py/ip/ip.t
-@@ -135,3 +135,6 @@ iif "lo" ip protocol set 1;ok
- 
- iif "lo" ip dscp set af23;ok
- iif "lo" ip dscp set cs0;ok
++RULESET="
++  add table t
++  add chain t c { type filter hook output priority mangle; }
++  add rule ip t c ip dscp set ip dscp or 0x3
++"
 +
-+iif "lo" ip dscp set ip dscp;ok
-+iif "lo" ip dscp set ip dscp or 0x3;ok;iif "lo" ip dscp set ip dscp | 0x03
-diff --git a/tests/py/ip/ip.t.json b/tests/py/ip/ip.t.json
-index 3131ab790c04..4e0cef9357c8 100644
---- a/tests/py/ip/ip.t.json
-+++ b/tests/py/ip/ip.t.json
-@@ -1836,3 +1836,69 @@
-     }
- ]
- 
-+# iif "lo" ip dscp set ip dscp
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "meta": {
-+                    "key": "iif"
-+                }
-+            },
-+            "op": "==",
-+            "right": "lo"
-+        }
-+    },
-+    {
-+        "mangle": {
-+            "key": {
-+                "payload": {
-+                    "field": "dscp",
-+                    "protocol": "ip"
-+                }
-+            },
-+            "value": {
-+                "payload": {
-+                    "field": "dscp",
-+                    "protocol": "ip"
-+                }
-+            }
-+        }
-+    }
-+]
-+
-+# iif "lo" ip dscp set ip dscp or 0x3
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "meta": {
-+                    "key": "iif"
-+                }
-+            },
-+            "op": "==",
-+            "right": "lo"
-+        }
-+    },
-+    {
-+        "mangle": {
-+            "key": {
-+                "payload": {
-+                    "field": "dscp",
-+                    "protocol": "ip"
-+                }
-+            },
-+            "value": {
-+                "|": [
-+                    {
-+                        "payload": {
-+                            "field": "dscp",
-+                            "protocol": "ip"
-+                        }
-+                    },
-+                    3
-+                ]
-+            }
-+        }
-+    }
-+]
-diff --git a/tests/py/ip/ip.t.payload b/tests/py/ip/ip.t.payload
-index d627b22f2614..d6c5d14d52ac 100644
---- a/tests/py/ip/ip.t.payload
-+++ b/tests/py/ip/ip.t.payload
-@@ -614,3 +614,29 @@ ip test-ip4 input
-   [ bitwise reg 1 = (reg=1 & 0x000000ff ) ^ 0x00000100 ]
-   [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x1 ]
- 
-+# iif "lo" ip dscp set ip dscp
-+ip
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ network header + 0 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000003ff ) ^ 0x00000000 ]
-+  [ payload load 1b @ network header + 1 => reg 2 ]
-+  [ bitwise reg 2 = (reg=2 & 0x000000fc ) ^ 0x00000000 ]
-+  [ bitwise reg 2 = ( reg 2 >> 0x00000002 ) ]
-+  [ bitwise reg 2 = ( reg 2 << 0x00000002 ) ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ffff ) ^ reg 2 ]
-+  [ payload write reg 1 => 2b @ network header + 0 csum_type 1 csum_off 10 csum_flags 0x0 ]
-+
-+# iif "lo" ip dscp set ip dscp or 0x3
-+ip
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ network header + 0 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000003ff ) ^ 0x00000000 ]
-+  [ payload load 1b @ network header + 1 => reg 2 ]
-+  [ bitwise reg 2 = (reg=2 & 0x000000fc ) ^ 0x00000000 ]
-+  [ bitwise reg 2 = ( reg 2 >> 0x00000002 ) ]
-+  [ bitwise reg 2 = (reg=2 & 0x000000fc ) ^ 0x00000003 ]
-+  [ bitwise reg 2 = ( reg 2 << 0x00000002 ) ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ffff ) ^ reg 2 ]
-+  [ payload write reg 1 => 2b @ network header + 0 csum_type 1 csum_off 10 csum_flags 0x0 ]
-diff --git a/tests/py/ip/ip.t.payload.bridge b/tests/py/ip/ip.t.payload.bridge
-index 91a4fde382e6..5a99142a9704 100644
---- a/tests/py/ip/ip.t.payload.bridge
-+++ b/tests/py/ip/ip.t.payload.bridge
-@@ -784,3 +784,33 @@ bridge test-bridge input
-   [ bitwise reg 1 = (reg=1 & 0x000003ff ) ^ 0x00000000 ]
-   [ payload write reg 1 => 2b @ network header + 0 csum_type 1 csum_off 10 csum_flags 0x0 ]
- 
-+# iif "lo" ip dscp set ip dscp
-+bridge
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ meta load protocol => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 2b @ network header + 0 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000003ff ) ^ 0x00000000 ]
-+  [ payload load 1b @ network header + 1 => reg 2 ]
-+  [ bitwise reg 2 = (reg=2 & 0x000000fc ) ^ 0x00000000 ]
-+  [ bitwise reg 2 = ( reg 2 >> 0x00000002 ) ]
-+  [ bitwise reg 2 = ( reg 2 << 0x00000002 ) ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ffff ) ^ reg 2 ]
-+  [ payload write reg 1 => 2b @ network header + 0 csum_type 1 csum_off 10 csum_flags 0x0 ]
-+
-+# iif "lo" ip dscp set ip dscp or 0x3
-+bridge
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ meta load protocol => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 2b @ network header + 0 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000003ff ) ^ 0x00000000 ]
-+  [ payload load 1b @ network header + 1 => reg 2 ]
-+  [ bitwise reg 2 = (reg=2 & 0x000000fc ) ^ 0x00000000 ]
-+  [ bitwise reg 2 = ( reg 2 >> 0x00000002 ) ]
-+  [ bitwise reg 2 = (reg=2 & 0x000000fc ) ^ 0x00000003 ]
-+  [ bitwise reg 2 = ( reg 2 << 0x00000002 ) ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ffff ) ^ reg 2 ]
-+  [ payload write reg 1 => 2b @ network header + 0 csum_type 1 csum_off 10 csum_flags 0x0 ]
-diff --git a/tests/py/ip/ip.t.payload.inet b/tests/py/ip/ip.t.payload.inet
-index b9cb28a22e7a..5440ceeb33f9 100644
---- a/tests/py/ip/ip.t.payload.inet
-+++ b/tests/py/ip/ip.t.payload.inet
-@@ -796,3 +796,33 @@ inet test-inet input
-   [ bitwise reg 1 = (reg=1 & 0x000000ff ) ^ 0x00000100 ]
-   [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x1 ]
- 
-+# iif "lo" ip dscp set ip dscp
-+inet
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ meta load nfproto => reg 1 ]
-+  [ cmp eq reg 1 0x00000002 ]
-+  [ payload load 2b @ network header + 0 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000003ff ) ^ 0x00000000 ]
-+  [ payload load 1b @ network header + 1 => reg 2 ]
-+  [ bitwise reg 2 = (reg=2 & 0x000000fc ) ^ 0x00000000 ]
-+  [ bitwise reg 2 = ( reg 2 >> 0x00000002 ) ]
-+  [ bitwise reg 2 = ( reg 2 << 0x00000002 ) ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ffff ) ^ reg 2 ]
-+  [ payload write reg 1 => 2b @ network header + 0 csum_type 1 csum_off 10 csum_flags 0x0 ]
-+
-+# iif "lo" ip dscp set ip dscp or 0x3
-+inet
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ meta load nfproto => reg 1 ]
-+  [ cmp eq reg 1 0x00000002 ]
-+  [ payload load 2b @ network header + 0 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000003ff ) ^ 0x00000000 ]
-+  [ payload load 1b @ network header + 1 => reg 2 ]
-+  [ bitwise reg 2 = (reg=2 & 0x000000fc ) ^ 0x00000000 ]
-+  [ bitwise reg 2 = ( reg 2 >> 0x00000002 ) ]
-+  [ bitwise reg 2 = (reg=2 & 0x000000fc ) ^ 0x00000003 ]
-+  [ bitwise reg 2 = ( reg 2 << 0x00000002 ) ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ffff ) ^ reg 2 ]
-+  [ payload write reg 1 => 2b @ network header + 0 csum_type 1 csum_off 10 csum_flags 0x0 ]
-diff --git a/tests/py/ip/ip.t.payload.netdev b/tests/py/ip/ip.t.payload.netdev
-index 588e5ca2a3e3..2e125158ee6e 100644
---- a/tests/py/ip/ip.t.payload.netdev
-+++ b/tests/py/ip/ip.t.payload.netdev
-@@ -896,3 +896,33 @@ netdev test-netdev ingress
-   [ bitwise reg 1 = (reg=1 & 0x000000ff ) ^ 0x00000100 ]
-   [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x1 ]
- 
-+# iif "lo" ip dscp set ip dscp
-+netdev
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ meta load protocol => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 2b @ network header + 0 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000003ff ) ^ 0x00000000 ]
-+  [ payload load 1b @ network header + 1 => reg 2 ]
-+  [ bitwise reg 2 = (reg=2 & 0x000000fc ) ^ 0x00000000 ]
-+  [ bitwise reg 2 = ( reg 2 >> 0x00000002 ) ]
-+  [ bitwise reg 2 = ( reg 2 << 0x00000002 ) ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ffff ) ^ reg 2 ]
-+  [ payload write reg 1 => 2b @ network header + 0 csum_type 1 csum_off 10 csum_flags 0x0 ]
-+
-+# iif "lo" ip dscp set ip dscp or 0x3
-+netdev
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ meta load protocol => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 2b @ network header + 0 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000003ff ) ^ 0x00000000 ]
-+  [ payload load 1b @ network header + 1 => reg 2 ]
-+  [ bitwise reg 2 = (reg=2 & 0x000000fc ) ^ 0x00000000 ]
-+  [ bitwise reg 2 = ( reg 2 >> 0x00000002 ) ]
-+  [ bitwise reg 2 = (reg=2 & 0x000000fc ) ^ 0x00000003 ]
-+  [ bitwise reg 2 = ( reg 2 << 0x00000002 ) ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ffff ) ^ reg 2 ]
-+  [ payload write reg 1 => 2b @ network header + 0 csum_type 1 csum_off 10 csum_flags 0x0 ]
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/chains/dumps/0040mark_shift_2.nft b/tests/shell/testcases/chains/dumps/0040mark_shift_2.nft
+new file mode 100644
+index 000000000000..14f2d1685706
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0040mark_shift_2.nft
+@@ -0,0 +1,6 @@
++table ip t {
++	chain c {
++		type filter hook input priority mangle; policy accept;
++		ct mark set ct mark & 0xffff0000 | meta mark & 0x0000ffff
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0041payload_variable_0.nft b/tests/shell/testcases/chains/dumps/0041payload_variable_0.nft
+new file mode 100644
+index 000000000000..731949e6b355
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0041payload_variable_0.nft
+@@ -0,0 +1,6 @@
++table ip t {
++	chain c {
++		type filter hook output priority mangle; policy accept;
++		tcp dport set tcp dport
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0041payload_variable_1.nft b/tests/shell/testcases/chains/dumps/0041payload_variable_1.nft
+new file mode 100644
+index 000000000000..2cd87a4dc8e1
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0041payload_variable_1.nft
+@@ -0,0 +1,6 @@
++table ip t {
++	chain c {
++		type filter hook output priority mangle; policy accept;
++		tcp dport set tcp dport << 1
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0041payload_variable_2.nft b/tests/shell/testcases/chains/dumps/0041payload_variable_2.nft
+new file mode 100644
+index 000000000000..d1e7adb92c4c
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0041payload_variable_2.nft
+@@ -0,0 +1,6 @@
++table ip t {
++	chain c {
++		type filter hook output priority mangle; policy accept;
++		ip dscp set ip dscp
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0041payload_variable_3.nft b/tests/shell/testcases/chains/dumps/0041payload_variable_3.nft
+new file mode 100644
+index 000000000000..52b3a833175a
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0041payload_variable_3.nft
+@@ -0,0 +1,6 @@
++table ip t {
++	chain c {
++		type filter hook output priority mangle; policy accept;
++		ip dscp set ip dscp | 0x03
++	}
++}
 -- 
 2.25.0
 
