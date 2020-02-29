@@ -2,80 +2,122 @@ Return-Path: <SRS0=4Rej=4R=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6F38C3F2CE
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Feb 2020 11:44:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1298C3F2CD
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Feb 2020 19:30:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 758D72469C
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Feb 2020 11:44:39 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="Iz67rube"
+	by mail.kernel.org (Postfix) with ESMTP id BDB572468A
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Feb 2020 19:30:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726994AbgB2Loj (ORCPT
+        id S1727305AbgB2T3y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 29 Feb 2020 06:44:39 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:49564 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726990AbgB2Loj (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 29 Feb 2020 06:44:39 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=B0UTu3CcNcfKFzzm3TasWV0BikuktgZERyrOQFhTBII=; b=Iz67rubeW0bWRnDPYUHhekN4un
-        eCeMPtE+3r5bM0CxzILuWjPoNUiCjx2Ct1Hf9jUdy8HjnfOcFdLyU5acdjoUt7HNDZiGPM05De78B
-        FVLhGfbHIXT/q5Ga4rpAcCwD4WkHZlwGByPLCDtFfMN5oapfM3eT///ZCY/ZIq7vqPDmQuFalY9HK
-        dHZUJssxNUtjYR5lOJ3SDdM1wQR/MtGa10O8zMT2U1i0QwQLNxiPp/GBfbrqrFocmun7CM5gus0DS
-        /yLudCFWImZGx9H4KcrhXgq+ajP16QN35y03fGS83rVZO5MqmoMwmjb8zRscO3o+XCGFtk7ZJgY8c
-        9934J31g==;
-Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
-        by kadath.azazel.net with esmtp (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1j80HO-0003Wm-6g; Sat, 29 Feb 2020 11:27:34 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft 16/18] tests: shell: remove stray debug flag.
-Date:   Sat, 29 Feb 2020 11:27:29 +0000
-Message-Id: <20200229112731.796417-17-jeremy@azazel.net>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200229112731.796417-1-jeremy@azazel.net>
-References: <20200229112731.796417-1-jeremy@azazel.net>
+        Sat, 29 Feb 2020 14:29:54 -0500
+Received: from correo.us.es ([193.147.175.20]:42538 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727194AbgB2T3y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 29 Feb 2020 14:29:54 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id DC5E0C22FC
+        for <netfilter-devel@vger.kernel.org>; Sat, 29 Feb 2020 20:29:39 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CF1C1DA390
+        for <netfilter-devel@vger.kernel.org>; Sat, 29 Feb 2020 20:29:39 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id B86FADA3AD; Sat, 29 Feb 2020 20:29:39 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8EE35DA788;
+        Sat, 29 Feb 2020 20:29:37 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Sat, 29 Feb 2020 20:29:37 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [84.78.24.68])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 36E1842EE38E;
+        Sat, 29 Feb 2020 20:29:37 +0100 (CET)
+Date:   Sat, 29 Feb 2020 20:29:47 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jiri Pirko <jiri@resnulli.us>
+Cc:     netdev@vger.kernel.org, davem@davemloft.net, kuba@kernel.org,
+        saeedm@mellanox.com, leon@kernel.org, michael.chan@broadcom.com,
+        vishal@chelsio.com, jeffrey.t.kirsher@intel.com,
+        idosch@mellanox.com, aelior@marvell.com, peppe.cavallaro@st.com,
+        alexandre.torgue@st.com, jhs@mojatatu.com,
+        xiyou.wangcong@gmail.com, ecree@solarflare.com, mlxsw@mellanox.com,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [patch net-next v2 01/12] flow_offload: Introduce offload of HW
+ stats type
+Message-ID: <20200229192947.oaclokcpn4fjbhzr@salvia>
+References: <20200228172505.14386-1-jiri@resnulli.us>
+ <20200228172505.14386-2-jiri@resnulli.us>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200228172505.14386-2-jiri@resnulli.us>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-0040mark_shift_0 was passing --debug=eval to nft.  Remove it.
+On Fri, Feb 28, 2020 at 06:24:54PM +0100, Jiri Pirko wrote:
+> From: Jiri Pirko <jiri@mellanox.com>
+> 
+> Initially, pass "ANY" (struct is zeroed) to the drivers as that is the
+> current implicit value coming down to flow_offload. Add a bool
+> indicating that entries have mixed HW stats type.
+> 
+> Signed-off-by: Jiri Pirko <jiri@mellanox.com>
+> ---
+> v1->v2:
+> - moved to actions
+> - add mixed bool
+> ---
+>  include/net/flow_offload.h | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
+> index 4e864c34a1b0..eee1cbc5db3c 100644
+> --- a/include/net/flow_offload.h
+> +++ b/include/net/flow_offload.h
+> @@ -154,6 +154,10 @@ enum flow_action_mangle_base {
+>  	FLOW_ACT_MANGLE_HDR_TYPE_UDP,
+>  };
+>  
+> +enum flow_action_hw_stats_type {
+> +	FLOW_ACTION_HW_STATS_TYPE_ANY,
+> +};
+> +
+>  typedef void (*action_destr)(void *priv);
+>  
+>  struct flow_action_cookie {
+> @@ -168,6 +172,7 @@ void flow_action_cookie_destroy(struct flow_action_cookie *cookie);
+>  
+>  struct flow_action_entry {
+>  	enum flow_action_id		id;
+> +	enum flow_action_hw_stats_type	hw_stats_type;
+>  	action_destr			destructor;
+>  	void				*destructor_priv;
+>  	union {
+> @@ -228,6 +233,7 @@ struct flow_action_entry {
+>  };
+>  
+>  struct flow_action {
+> +	bool				mixed_hw_stats_types;
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- tests/shell/testcases/chains/0040mark_shift_0 | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Why do you want to place this built-in into the struct flow_action as
+a boolean?
 
-diff --git a/tests/shell/testcases/chains/0040mark_shift_0 b/tests/shell/testcases/chains/0040mark_shift_0
-index 55447f0b9737..ef3dccfa049a 100755
---- a/tests/shell/testcases/chains/0040mark_shift_0
-+++ b/tests/shell/testcases/chains/0040mark_shift_0
-@@ -8,4 +8,4 @@ RULESET="
-   add rule t c oif lo ct mark set (meta mark | 0x10) << 8
- "
- 
--$NFT --debug=eval -f - <<< "$RULESET"
-+$NFT -f - <<< "$RULESET"
--- 
-2.25.0
+You can express the same thing through a new FLOW_ACTION_COUNTER.
+I know tc has implicit counters in actions, in that case tc can just
+generate the counter right after the action.
 
+Please, explain me why it would be a problem from the driver side to
+provide a separated counter action.
