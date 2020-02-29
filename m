@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B019C3F2C6
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Feb 2020 11:44:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4418EC3F2CE
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Feb 2020 11:44:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4875A2469C
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Feb 2020 11:44:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F8E72469C
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Feb 2020 11:44:30 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="kudWfIbW"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="HTwzkd5H"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726956AbgB2Lo2 (ORCPT
+        id S1726960AbgB2Lo3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 29 Feb 2020 06:44:28 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:49480 "EHLO
+        Sat, 29 Feb 2020 06:44:29 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:49490 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726925AbgB2Lo1 (ORCPT
+        with ESMTP id S1726925AbgB2Lo3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 29 Feb 2020 06:44:27 -0500
+        Sat, 29 Feb 2020 06:44:29 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
          s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=LbcYDU65bQ34H+lIeGiPFLS9z51WFVsz32zAIlWXKq8=; b=kudWfIbWKgNrZzZxraywkKACmF
-        1jwS1OncTEk1EjiocP/osN4BpLfr0I8PaHvBSoKqJgcouUHT65/tKg+FaP66akQFJ3gK8ZG7MeZYC
-        88E3mx2gkgDHf3gCaX7d8dMSvdGwWflojfqO7QyzanEV0sLxrcASWsAnUBFf4z9NhATX91Yu3xeMB
-        XVMr/EfgmR8Ezn8syoAUCsH2PWGzohos7ce672HWEh5vrgVfyb38CZKVKG+ccnPuZL4TeiRD628wA
-        9TigxzM4cEQX7awPvDkISduA2+Z7j2ygpcSc/DVS7GqSJOuLw0REKZqYYdGxHk8BfppcTdJNrNboO
-        nAiBR5vw==;
+        bh=VhIqMCPoOpG3rbu3PiHrGHKD9I375LMYzV3UEE4cU30=; b=HTwzkd5HiTRpWGGZSBFwWd23D4
+        1GX06zLEwNCa6V8bVdESc/UpCezyjWmoykZUGNJwKNO6S0ACqKNeQNlAsGF3oFzy1emC2gT12G93w
+        XapK/ZIWa5xbj1lbt5A9WeLLXci6eLFVZF1cQ/zfdGwqBImUp5MPkTQRKVE/6ciJw7wfm+Hopq5zO
+        MFSFtpn0iZUUnc4WD7p3/RYFaLLQbz8lpdl2l6z0MoeiJhLDTy7zBBbZr4NTS/RWWY3Y1L/93bkz4
+        IvPcH3gUo1EJCEaTp0iPw9x9KRTavupyuHMAgYE14ZLnv82m1RbA5pilA5Djf2f75jum9yWF/eLoc
+        pNTsrHhA==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1j80HO-0003Wm-BM; Sat, 29 Feb 2020 11:27:34 +0000
+        id 1j80HN-0003Wm-No; Sat, 29 Feb 2020 11:27:33 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Florian Westphal <fw@strlen.de>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft 17/18] tests: shell: add variable binop RHS tests.
-Date:   Sat, 29 Feb 2020 11:27:30 +0000
-Message-Id: <20200229112731.796417-18-jeremy@azazel.net>
+Subject: [PATCH nft 13/18] netlink_delinearize: refactor stmt_payload_binop_postprocess.
+Date:   Sat, 29 Feb 2020 11:27:26 +0000
+Message-Id: <20200229112731.796417-14-jeremy@azazel.net>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200229112731.796417-1-jeremy@azazel.net>
 References: <20200229112731.796417-1-jeremy@azazel.net>
@@ -59,178 +59,236 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add some tests to validate setting payload fields and marks with
-statement arguments that include binops with variable RHS operands.
+Move the contents of the two major cases (I and II) into separate
+functions.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- tests/shell/testcases/chains/0040mark_shift_2         | 11 +++++++++++
- tests/shell/testcases/chains/0041payload_variable_0   | 11 +++++++++++
- tests/shell/testcases/chains/0041payload_variable_1   | 11 +++++++++++
- tests/shell/testcases/chains/0041payload_variable_2   | 11 +++++++++++
- tests/shell/testcases/chains/0041payload_variable_3   | 11 +++++++++++
- .../shell/testcases/chains/dumps/0040mark_shift_2.nft |  6 ++++++
- .../testcases/chains/dumps/0041payload_variable_0.nft |  6 ++++++
- .../testcases/chains/dumps/0041payload_variable_1.nft |  6 ++++++
- .../testcases/chains/dumps/0041payload_variable_2.nft |  6 ++++++
- .../testcases/chains/dumps/0041payload_variable_3.nft |  6 ++++++
- 10 files changed, 85 insertions(+)
- create mode 100755 tests/shell/testcases/chains/0040mark_shift_2
- create mode 100755 tests/shell/testcases/chains/0041payload_variable_0
- create mode 100755 tests/shell/testcases/chains/0041payload_variable_1
- create mode 100755 tests/shell/testcases/chains/0041payload_variable_2
- create mode 100755 tests/shell/testcases/chains/0041payload_variable_3
- create mode 100644 tests/shell/testcases/chains/dumps/0040mark_shift_2.nft
- create mode 100644 tests/shell/testcases/chains/dumps/0041payload_variable_0.nft
- create mode 100644 tests/shell/testcases/chains/dumps/0041payload_variable_1.nft
- create mode 100644 tests/shell/testcases/chains/dumps/0041payload_variable_2.nft
- create mode 100644 tests/shell/testcases/chains/dumps/0041payload_variable_3.nft
+ src/netlink_delinearize.c | 192 +++++++++++++++++++++-----------------
+ 1 file changed, 107 insertions(+), 85 deletions(-)
 
-diff --git a/tests/shell/testcases/chains/0040mark_shift_2 b/tests/shell/testcases/chains/0040mark_shift_2
-new file mode 100755
-index 000000000000..2ff3418bdd3f
---- /dev/null
-+++ b/tests/shell/testcases/chains/0040mark_shift_2
-@@ -0,0 +1,11 @@
-+#!/bin/bash
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 4e5d64ede8bd..e8e9e5719ee8 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -2514,6 +2514,109 @@ static void stmt_payload_binop_pp(struct rule_pp_ctx *ctx, struct expr *binop)
+ 	}
+ }
+ 
++static bool stmt_payload_binop_postprocess_i(struct rule_pp_ctx *ctx)
++{
++	struct expr *expr, *binop, *payload, *value, *mask;
++	struct stmt *stmt = ctx->stmt;
++	mpz_t tmp, bitmask;
 +
-+set -e
++	expr = stmt->payload.val;
 +
-+RULESET="
-+  add table t
-+  add chain t c { type filter hook input priority mangle; }
-+  add rule t c ct mark set ct mark and 0xffff0000 or meta mark and 0xffff
-+"
++	if (expr->op != OP_OR)
++		return false;
 +
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/chains/0041payload_variable_0 b/tests/shell/testcases/chains/0041payload_variable_0
-new file mode 100755
-index 000000000000..c9819ff4ab88
---- /dev/null
-+++ b/tests/shell/testcases/chains/0041payload_variable_0
-@@ -0,0 +1,11 @@
-+#!/bin/bash
++	value = expr->right;
++	if (value->etype != EXPR_VALUE)
++		return false;
 +
-+set -e
++	binop = expr->left;
++	if (binop->op != OP_AND)
++		return false;
 +
-+RULESET="
-+  add table t
-+  add chain t c { type filter hook output priority mangle; }
-+  add rule ip t c tcp dport set tcp dport
-+"
++	payload = binop->left;
++	if (payload->etype != EXPR_PAYLOAD)
++		return false;
 +
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/chains/0041payload_variable_1 b/tests/shell/testcases/chains/0041payload_variable_1
-new file mode 100755
-index 000000000000..e9b1e1dde515
---- /dev/null
-+++ b/tests/shell/testcases/chains/0041payload_variable_1
-@@ -0,0 +1,11 @@
-+#!/bin/bash
++	if (!payload_expr_cmp(stmt->payload.expr, payload))
++		return false;
 +
-+set -e
++	mask = binop->right;
++	if (mask->etype != EXPR_VALUE)
++		return false;
 +
-+RULESET="
-+  add table t
-+  add chain t c { type filter hook output priority mangle; }
-+  add rule ip t c tcp dport set tcp dport lshift 1
-+"
++	mpz_init(tmp);
++	mpz_set(tmp, mask->value);
 +
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/chains/0041payload_variable_2 b/tests/shell/testcases/chains/0041payload_variable_2
-new file mode 100755
-index 000000000000..5a458ef5d525
---- /dev/null
-+++ b/tests/shell/testcases/chains/0041payload_variable_2
-@@ -0,0 +1,11 @@
-+#!/bin/bash
++	mpz_init_bitmask(bitmask, payload->len);
++	mpz_xor(bitmask, bitmask, mask->value);
++	mpz_xor(bitmask, bitmask, value->value);
++	mpz_set(mask->value, bitmask);
++	mpz_clear(bitmask);
 +
-+set -e
-+
-+RULESET="
-+  add table t
-+  add chain t c { type filter hook output priority mangle; }
-+  add rule ip t c ip dscp set ip dscp
-+"
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/chains/0041payload_variable_3 b/tests/shell/testcases/chains/0041payload_variable_3
-new file mode 100755
-index 000000000000..0375399c3d0f
---- /dev/null
-+++ b/tests/shell/testcases/chains/0041payload_variable_3
-@@ -0,0 +1,11 @@
-+#!/bin/bash
-+
-+set -e
-+
-+RULESET="
-+  add table t
-+  add chain t c { type filter hook output priority mangle; }
-+  add rule ip t c ip dscp set ip dscp or 0x3
-+"
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/chains/dumps/0040mark_shift_2.nft b/tests/shell/testcases/chains/dumps/0040mark_shift_2.nft
-new file mode 100644
-index 000000000000..14f2d1685706
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0040mark_shift_2.nft
-@@ -0,0 +1,6 @@
-+table ip t {
-+	chain c {
-+		type filter hook input priority mangle; policy accept;
-+		ct mark set ct mark & 0xffff0000 | meta mark & 0x0000ffff
++	binop_postprocess(ctx, expr);
++	if (!payload_is_known(payload)) {
++		mpz_set(mask->value, tmp);
++	} else {
++		expr_free(stmt->payload.expr);
++		stmt->payload.expr = expr_get(payload);
++		stmt->payload.val = expr_get(expr->right);
++		expr_free(expr);
 +	}
++
++	mpz_clear(tmp);
++
++	return true;
 +}
-diff --git a/tests/shell/testcases/chains/dumps/0041payload_variable_0.nft b/tests/shell/testcases/chains/dumps/0041payload_variable_0.nft
-new file mode 100644
-index 000000000000..731949e6b355
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0041payload_variable_0.nft
-@@ -0,0 +1,6 @@
-+table ip t {
-+	chain c {
-+		type filter hook output priority mangle; policy accept;
-+		tcp dport set tcp dport
++
++static bool stmt_payload_binop_postprocess_ii(struct rule_pp_ctx *ctx)
++{
++	struct expr *expr, *payload, *value;
++	struct stmt *stmt = ctx->stmt;
++	mpz_t bitmask;
++
++	expr = stmt->payload.val;
++
++	value = expr->right;
++	if (value->etype != EXPR_VALUE)
++		return false;
++
++	switch (expr->op) {
++	case OP_AND: /* IIa */
++		payload = expr->left;
++		mpz_init_bitmask(bitmask, payload->len);
++		mpz_xor(bitmask, bitmask, value->value);
++		mpz_set(value->value, bitmask);
++		mpz_clear(bitmask);
++		break;
++	case OP_OR: /* IIb */
++		break;
++	default: /* No idea */
++		return false;
 +	}
-+}
-diff --git a/tests/shell/testcases/chains/dumps/0041payload_variable_1.nft b/tests/shell/testcases/chains/dumps/0041payload_variable_1.nft
-new file mode 100644
-index 000000000000..2cd87a4dc8e1
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0041payload_variable_1.nft
-@@ -0,0 +1,6 @@
-+table ip t {
-+	chain c {
-+		type filter hook output priority mangle; policy accept;
-+		tcp dport set tcp dport << 1
++
++	stmt_payload_binop_pp(ctx, expr);
++	if (!payload_is_known(expr->left))
++		return false;
++
++	expr_free(stmt->payload.expr);
++
++	switch (expr->op) {
++	case OP_AND:
++		/* Mask was used to match payload, i.e.
++		 * user asked to set zero value.
++		 */
++		mpz_set_ui(value->value, 0);
++		break;
++	default:
++		break;
 +	}
++
++	stmt->payload.expr = expr_get(expr->left);
++	stmt->payload.val = expr_get(expr->right);
++	expr_free(expr);
++	return true;
 +}
-diff --git a/tests/shell/testcases/chains/dumps/0041payload_variable_2.nft b/tests/shell/testcases/chains/dumps/0041payload_variable_2.nft
-new file mode 100644
-index 000000000000..d1e7adb92c4c
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0041payload_variable_2.nft
-@@ -0,0 +1,6 @@
-+table ip t {
-+	chain c {
-+		type filter hook output priority mangle; policy accept;
-+		ip dscp set ip dscp
-+	}
-+}
-diff --git a/tests/shell/testcases/chains/dumps/0041payload_variable_3.nft b/tests/shell/testcases/chains/dumps/0041payload_variable_3.nft
-new file mode 100644
-index 000000000000..52b3a833175a
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0041payload_variable_3.nft
-@@ -0,0 +1,6 @@
-+table ip t {
-+	chain c {
-+		type filter hook output priority mangle; policy accept;
-+		ip dscp set ip dscp | 0x03
-+	}
-+}
++
+ /**
+  * stmt_payload_binop_postprocess - decode payload set binop
+  *
+@@ -2558,9 +2661,8 @@ static void stmt_payload_binop_pp(struct rule_pp_ctx *ctx, struct expr *binop)
+  */
+ static void stmt_payload_binop_postprocess(struct rule_pp_ctx *ctx)
+ {
+-	struct expr *expr, *binop, *payload, *value, *mask;
++	struct expr *expr;
+ 	struct stmt *stmt = ctx->stmt;
+-	mpz_t bitmask;
+ 
+ 	expr = stmt->payload.val;
+ 
+@@ -2568,93 +2670,13 @@ static void stmt_payload_binop_postprocess(struct rule_pp_ctx *ctx)
+ 		return;
+ 
+ 	switch (expr->left->etype) {
+-	case EXPR_BINOP: {/* I? */
+-		mpz_t tmp;
+-
+-		if (expr->op != OP_OR)
+-			return;
+-
+-		value = expr->right;
+-		if (value->etype != EXPR_VALUE)
++	case EXPR_BINOP: /* I? */
++		if (stmt_payload_binop_postprocess_i(ctx))
+ 			return;
+-
+-		binop = expr->left;
+-		if (binop->op != OP_AND)
+-			return;
+-
+-		payload = binop->left;
+-		if (payload->etype != EXPR_PAYLOAD)
+-			return;
+-
+-		if (!payload_expr_cmp(stmt->payload.expr, payload))
+-			return;
+-
+-		mask = binop->right;
+-		if (mask->etype != EXPR_VALUE)
+-			return;
+-
+-		mpz_init(tmp);
+-		mpz_set(tmp, mask->value);
+-
+-		mpz_init_bitmask(bitmask, payload->len);
+-		mpz_xor(bitmask, bitmask, mask->value);
+-		mpz_xor(bitmask, bitmask, value->value);
+-		mpz_set(mask->value, bitmask);
+-		mpz_clear(bitmask);
+-
+-		binop_postprocess(ctx, expr);
+-		if (!payload_is_known(payload)) {
+-			mpz_set(mask->value, tmp);
+-			mpz_clear(tmp);
+-			return;
+-		}
+-
+-		mpz_clear(tmp);
+-		expr_free(stmt->payload.expr);
+-		stmt->payload.expr = expr_get(payload);
+-		stmt->payload.val = expr_get(expr->right);
+-		expr_free(expr);
+ 		break;
+-	}
+ 	case EXPR_PAYLOAD: /* II? */
+-		value = expr->right;
+-		if (value->etype != EXPR_VALUE)
+-			return;
+-
+-		switch (expr->op) {
+-		case OP_AND: /* IIa */
+-			payload = expr->left;
+-			mpz_init_bitmask(bitmask, payload->len);
+-			mpz_xor(bitmask, bitmask, value->value);
+-			mpz_set(value->value, bitmask);
+-			mpz_clear(bitmask);
+-			break;
+-		case OP_OR: /* IIb */
+-			break;
+-		default: /* No idea */
++		if (stmt_payload_binop_postprocess_ii(ctx))
+ 			return;
+-		}
+-
+-		stmt_payload_binop_pp(ctx, expr);
+-		if (!payload_is_known(expr->left))
+-			return;
+-
+-		expr_free(stmt->payload.expr);
+-
+-		switch (expr->op) {
+-		case OP_AND:
+-			/* Mask was used to match payload, i.e.
+-			 * user asked to set zero value.
+-			 */
+-			mpz_set_ui(value->value, 0);
+-			break;
+-		default:
+-			break;
+-		}
+-
+-		stmt->payload.expr = expr_get(expr->left);
+-		stmt->payload.val = expr_get(expr->right);
+-		expr_free(expr);
+ 		break;
+ 	default: /* No idea */
+ 		break;
 -- 
 2.25.0
 
