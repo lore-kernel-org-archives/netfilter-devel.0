@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A633AC3F2DA
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Feb 2020 11:27:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22E2EC3F2C6
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Feb 2020 11:44:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7E61F246A2
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Feb 2020 11:27:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DA3F42469C
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Feb 2020 11:44:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="DIWU4OD0"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="lc76hcOZ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726925AbgB2L1f (ORCPT
+        id S1726933AbgB2LoY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 29 Feb 2020 06:27:35 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:48662 "EHLO
+        Sat, 29 Feb 2020 06:44:24 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:49460 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726860AbgB2L1e (ORCPT
+        with ESMTP id S1726925AbgB2LoY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 29 Feb 2020 06:27:34 -0500
+        Sat, 29 Feb 2020 06:44:24 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
          s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=0srJ3nymNhV/Nr9XHAEFsOKXM5BDIO9KIz2p6tz2UJs=; b=DIWU4OD04OhzK84wdfX+Zkr3iY
-        LCj0HiN9OjPwJLdULOXB5UWA8KKbuz+8b6pB/Gu3hvKgpSRHKbE3uEdRp04EM5waBGx3AYdyKx801
-        LA9NCZ0xrNdrfcBJLC0FEdFNeqKMYv4td+s7MomoN50q0zlFDWwQz4my2IMGRC2uvKdr9sLUTL2AV
-        GaPSxlYnpA3efUwauSz2Ut82IzeEvByPCi4EHqIFXOOvsqnClwImyQu9Kj1OiIFD0SRSAqK7/0Ste
-        Q8u1lBZTpKZQmZ/3MVnDV1FQ/kjgb7bPycSGw0lNSwhMdw/7B/PjL3qkPZu/KJwEl4r+fJf/Mr5vR
-        ZbmNzG+Q==;
+        bh=Zk2N9w2BDQeiCgNqbkHj06Jl9c+xbE9zj+LfO6V+Ur4=; b=lc76hcOZnf/he/yXOFVcwtYmMp
+        4zs9ucVLrwLE1ab39B+5k4Z68JKBfuUZyCAWolxiWdxOFQw1Dw0GNUVLI40WjJjX9Dq23Ku805SOs
+        0P/WwPecgNoiUALDNDIzZdFvzAWRSMuJC8sJgIzeIjQP0+SFllzR/Z1WS1/J0Fmu8x/CSrlyXDDzJ
+        61sFADtnBzt6W6qlD+7E7ixGXO3iXqNutmk/VNw2tx1/BImeKIsJFCBEmQbZCpzpPPG4IXClQdx9v
+        iIQeYO3ilcvSswxmNkXuZMgS8G5c73P+nzPuK6JrjfALCaG4uP5AAF+H1d8M8PTLd5R6fh0AnTM6x
+        63gL84ig==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1j80HM-0003Wm-LY; Sat, 29 Feb 2020 11:27:32 +0000
+        id 1j80HN-0003Wm-AT; Sat, 29 Feb 2020 11:27:33 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Florian Westphal <fw@strlen.de>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft 07/18] src: fix leaks.
-Date:   Sat, 29 Feb 2020 11:27:20 +0000
-Message-Id: <20200229112731.796417-8-jeremy@azazel.net>
+Subject: [PATCH nft 11/18] netlink_linearize: round binop bitmask length up.
+Date:   Sat, 29 Feb 2020 11:27:24 +0000
+Message-Id: <20200229112731.796417-12-jeremy@azazel.net>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200229112731.796417-1-jeremy@azazel.net>
 References: <20200229112731.796417-1-jeremy@azazel.net>
@@ -59,46 +59,47 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Some bitmask variables are not cleared.
+In this example:
+
+nft --debug=netlink add rule ip t c ip dscp set ip dscp
+ip t c
+  [ payload load 2b @ network header + 0 => reg 1 ]
+  [ bitwise reg 1 = (reg=1 & 0x000003ff ) ^ 0x00000000 ]
+  [ payload load 1b @ network header + 1 => reg 2 ]
+  [ bitwise reg 2 = (reg=2 & 0x0000003c ) ^ 0x00000000 ]
+  [ bitwise reg 2 = ( reg 2 >> 0x00000002 ) ]
+  [ bitwise reg 2 = ( reg 2 << 0x00000002 ) ]
+  [ bitwise reg 1 = (reg=1 & 0x0000ffff ) ^ reg 2 ]
+  [ payload write reg 1 => 2b @ network header + 0 csum_type 1 csum_off 10 csum_flags 0x0 ]
+
+The mask at line 4 should be 0xfc, not 0x3c.
+
+Evaluation of the payload expression munges it from `ip dscp` to
+`(ip dscp & 0xfc) >> 2`.  When this AND expression is evaluated, its
+length is set to 6, the length of `ip dscp`.  When the bitwise netlink
+expression is generated, the length of the AND is used to generate the
+mask, 0x3f, used in combining the binop's.  The upshot of this is that
+the original mask gets mangled to 0x3c.  We can fix this by rounding the
+length of the mask to the nearest byte.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- src/evaluate.c            | 2 ++
- src/netlink_delinearize.c | 1 +
- 2 files changed, 3 insertions(+)
+ src/netlink_linearize.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index d5cc386d9792..34b71d1312cb 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -483,6 +483,7 @@ static void expr_evaluate_bits(struct eval_ctx *ctx, struct expr **exprp)
- 	mask = constant_expr_alloc(&expr->location, expr_basetype(expr),
- 				   BYTEORDER_HOST_ENDIAN, masklen, NULL);
- 	mpz_set(mask->value, bitmask);
-+	mpz_clear(bitmask);
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index b2987efbc49f..2e7ee5ae4de7 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -597,7 +597,7 @@ static void netlink_gen_bitwise_constant(struct netlink_linearize_ctx *ctx,
  
- 	and = binop_expr_alloc(&expr->location, OP_AND, expr, mask);
- 	and->dtype	= expr->dtype;
-@@ -2290,6 +2291,7 @@ static int stmt_evaluate_payload(struct eval_ctx *ctx, struct stmt *stmt)
- 	mpz_export_data(data, bitmask, BYTEORDER_HOST_ENDIAN, sizeof(data));
- 	mask = constant_expr_alloc(&payload->location, expr_basetype(payload),
- 				   BYTEORDER_HOST_ENDIAN, masklen, data);
-+	mpz_clear(bitmask);
+ 	netlink_gen_expr(ctx, binops[n--], dreg);
  
- 	payload_bytes = payload_expr_alloc(&payload->location, NULL, 0);
- 	payload_init_raw(payload_bytes, payload->payload.base,
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 3c80895a43f9..79efda123c14 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -2558,6 +2558,7 @@ static void stmt_payload_binop_postprocess(struct rule_pp_ctx *ctx)
- 			mpz_init_bitmask(bitmask, payload->len);
- 			mpz_xor(bitmask, bitmask, value->value);
- 			mpz_set(value->value, bitmask);
-+			mpz_clear(bitmask);
- 			break;
- 		case OP_OR: /* IIb */
- 			break;
+-	mpz_bitmask(mask, expr->len);
++	mpz_bitmask(mask, round_up(expr->len, BITS_PER_BYTE));
+ 	mpz_set_ui(xor, 0);
+ 	for (; n >= 0; n--) {
+ 		i = binops[n];
 -- 
 2.25.0
 
