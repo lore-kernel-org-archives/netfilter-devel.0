@@ -1,123 +1,130 @@
-Return-Path: <SRS0=4Rej=4R=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=wwvA=4S=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1298C3F2CD
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Feb 2020 19:30:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7121C3F2C6
+	for <netfilter-devel@archiver.kernel.org>; Sun,  1 Mar 2020 01:20:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BDB572468A
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Feb 2020 19:30:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9B64C2073D
+	for <netfilter-devel@archiver.kernel.org>; Sun,  1 Mar 2020 01:20:46 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=mojatatu-com.20150623.gappssmtp.com header.i=@mojatatu-com.20150623.gappssmtp.com header.b="pgN9DHDx"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727305AbgB2T3y (ORCPT
+        id S1727291AbgCABUc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 29 Feb 2020 14:29:54 -0500
-Received: from correo.us.es ([193.147.175.20]:42538 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727194AbgB2T3y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 29 Feb 2020 14:29:54 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DC5E0C22FC
-        for <netfilter-devel@vger.kernel.org>; Sat, 29 Feb 2020 20:29:39 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CF1C1DA390
-        for <netfilter-devel@vger.kernel.org>; Sat, 29 Feb 2020 20:29:39 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B86FADA3AD; Sat, 29 Feb 2020 20:29:39 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8EE35DA788;
-        Sat, 29 Feb 2020 20:29:37 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 29 Feb 2020 20:29:37 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [84.78.24.68])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 36E1842EE38E;
-        Sat, 29 Feb 2020 20:29:37 +0100 (CET)
-Date:   Sat, 29 Feb 2020 20:29:47 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jiri Pirko <jiri@resnulli.us>
-Cc:     netdev@vger.kernel.org, davem@davemloft.net, kuba@kernel.org,
-        saeedm@mellanox.com, leon@kernel.org, michael.chan@broadcom.com,
-        vishal@chelsio.com, jeffrey.t.kirsher@intel.com,
-        idosch@mellanox.com, aelior@marvell.com, peppe.cavallaro@st.com,
-        alexandre.torgue@st.com, jhs@mojatatu.com,
-        xiyou.wangcong@gmail.com, ecree@solarflare.com, mlxsw@mellanox.com,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [patch net-next v2 01/12] flow_offload: Introduce offload of HW
- stats type
-Message-ID: <20200229192947.oaclokcpn4fjbhzr@salvia>
-References: <20200228172505.14386-1-jiri@resnulli.us>
- <20200228172505.14386-2-jiri@resnulli.us>
+        Sat, 29 Feb 2020 20:20:32 -0500
+Received: from mail-io1-f66.google.com ([209.85.166.66]:33036 "EHLO
+        mail-io1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727207AbgCABUc (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 29 Feb 2020 20:20:32 -0500
+Received: by mail-io1-f66.google.com with SMTP id z8so7796024ioh.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 29 Feb 2020 17:20:30 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=mojatatu-com.20150623.gappssmtp.com; s=20150623;
+        h=to:cc:from:subject:message-id:date:user-agent:mime-version
+         :content-language:content-transfer-encoding;
+        bh=f5z/QHLt0ozKh8TBMNaXq75e8pU1iIjqJ84SSwXEoK8=;
+        b=pgN9DHDxvMFugos3J1zQYwXDXgQkB2NadYUXSJxcmai16ygF7AjY5tWa11y9wxk3EL
+         PrNqPWgM8E00RH2jy1HEYqjfFAJojxP/aNm4YuddYFsuyL9QXuPeicEyMmYjH/jVESJY
+         WSFQrDAaPsN8PyxBDSPwEcSWcmtYQFxVLXzaNQi04n+zB0F8GaIa8soXwFcCJKIopt/M
+         4avs59GWlude8fbn3pksmM30EcO5p2sRbEDR+toiRPFKwHRUCJBGGQafJ1NJqIMqpkdQ
+         v+Rz4SAHNL5tYW+XTwHZkDIFgGWgjIDEW4mR6AzeLSay6TPzSxhYWuP/kzPEMtCOPgsH
+         E3Sw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:to:cc:from:subject:message-id:date:user-agent
+         :mime-version:content-language:content-transfer-encoding;
+        bh=f5z/QHLt0ozKh8TBMNaXq75e8pU1iIjqJ84SSwXEoK8=;
+        b=ULLo8AP9BSSDcOFzDT77xg7DDj/dUzAIvi5Uyfvfwe443AigggTfSjsqCGbOH9p69n
+         WNahP3kqHU5vn/woFhBBMWKGLjcadT/rZnHI4w2sVaMyjXFgaT1YS8xWGRg2k1ZOLy35
+         lOBDiT1V5ekEcD5A0UKg6VXSv0df0n7zKNqIkFA0ypjbfLJwPUKlRN00gAHIoY2cyPNB
+         1KiuZdVUUJ+Lgc/adogAXghGBSQv1Y8Iy42DCqrDzODypnyfRUaIJgZJ7z0X42xmLI8n
+         7wiRljNcfS+XjhxB+objeAGW+jf9PAMS5bAx2aXtIJsIq8RYGAGG/HiuwL9PpYjAFewN
+         yByg==
+X-Gm-Message-State: APjAAAWDEnOQdhCFfLA3CXspztRZllfFvf52faDVcnwMpmU9MhljHjfP
+        BsKV655RcrWoUDtv/Jqla/HPJQ==
+X-Google-Smtp-Source: APXvYqzCi/pc1mv8Enojrol0zk7FwZLd9rmYRooOm10UownUsG/vBKwss+EUwjQ4agh94Y8xI6w+0w==
+X-Received: by 2002:a6b:740c:: with SMTP id s12mr9022219iog.108.1583025629987;
+        Sat, 29 Feb 2020 17:20:29 -0800 (PST)
+Received: from [10.0.0.194] ([64.26.149.125])
+        by smtp.googlemail.com with ESMTPSA id k12sm2402743ioa.36.2020.02.29.17.20.28
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 29 Feb 2020 17:20:29 -0800 (PST)
+To:     people <people@netdevconf.org>
+Cc:     speakers-0x14@netdevconf.info,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        prog-committee-0x14@netdevconf.info,
+        Kimberley Jeffries <kimberleyjeffries@gmail.com>,
+        Christie Geldart <christie@ambedia.com>,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, lartc@vger.kernel.org,
+        pjwaskiewicz@gmail.com, arunvn@juniper.net,
+        vikram.siwach@mobiledgex.com, gnu@toad.com, steve@meter.com,
+        lwn@lwn.net
+From:   Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: 0x14: COVID-19 update, postponement of Netdev conf 0x14
+Message-ID: <73dce759-8006-b8fb-5dea-3805a5d8a69c@mojatatu.com>
+Date:   Sat, 29 Feb 2020 20:20:28 -0500
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.5.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200228172505.14386-2-jiri@resnulli.us>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Feb 28, 2020 at 06:24:54PM +0100, Jiri Pirko wrote:
-> From: Jiri Pirko <jiri@mellanox.com>
-> 
-> Initially, pass "ANY" (struct is zeroed) to the drivers as that is the
-> current implicit value coming down to flow_offload. Add a bool
-> indicating that entries have mixed HW stats type.
-> 
-> Signed-off-by: Jiri Pirko <jiri@mellanox.com>
-> ---
-> v1->v2:
-> - moved to actions
-> - add mixed bool
-> ---
->  include/net/flow_offload.h | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
-> index 4e864c34a1b0..eee1cbc5db3c 100644
-> --- a/include/net/flow_offload.h
-> +++ b/include/net/flow_offload.h
-> @@ -154,6 +154,10 @@ enum flow_action_mangle_base {
->  	FLOW_ACT_MANGLE_HDR_TYPE_UDP,
->  };
->  
-> +enum flow_action_hw_stats_type {
-> +	FLOW_ACTION_HW_STATS_TYPE_ANY,
-> +};
-> +
->  typedef void (*action_destr)(void *priv);
->  
->  struct flow_action_cookie {
-> @@ -168,6 +172,7 @@ void flow_action_cookie_destroy(struct flow_action_cookie *cookie);
->  
->  struct flow_action_entry {
->  	enum flow_action_id		id;
-> +	enum flow_action_hw_stats_type	hw_stats_type;
->  	action_destr			destructor;
->  	void				*destructor_priv;
->  	union {
-> @@ -228,6 +233,7 @@ struct flow_action_entry {
->  };
->  
->  struct flow_action {
-> +	bool				mixed_hw_stats_types;
 
-Why do you want to place this built-in into the struct flow_action as
-a boolean?
+Hi,
 
-You can express the same thing through a new FLOW_ACTION_COUNTER.
-I know tc has implicit counters in actions, in that case tc can just
-generate the counter right after the action.
+After much deliberation, due to the Coronavirus outbreak
+(COVID-19) the NetDev Society board has decided to
+postpone the conference scheduled to happen in Vancouver,
+BC March 17th-20, 2020. Netdev Society has been consulting
+with attendees and sponsors, monitoring health
+organizations, and trying to work with government and
+corporate imposed restrictions on travel and event
+attendance. The conclusion reached is that for the health
+and wellbeing of the community, it is best to postpone the
+conference at this time. We understand that this is an
+unfortunate situation for everyone, and very much
+appreciate your understanding and cooperation in this
+matter.
 
-Please, explain me why it would be a problem from the driver side to
-provide a separated counter action.
+The new tentative date for Netdev conference is June 16
+to 19th, 2020 at the same location. Please note that this
+date is tentative due to the unpredictability of the
+Coronavirus.
+
+What happens to registration:
+         1. If you are already registered then no action is needed.
+         All registrations are applied to the new date for the
+         conference.
+
+         2. If you cannot make the new date for the conference, you
+         can cancel registration for a refund minus a 7% processing
+         fee. To cancel registration please send a request to
+         registrar@netdevconf.info.
+
+         3. Conference registration will remain open. If you have
+         not registered and intend to attend the conference for the
+         new date you may do so at current rates. Details are at:
+         https://netdevconf.info/0x14/register.html.
+
+
+For any questions or points of clarification, please email:
+registrar@netdevconf.info
+
+We will be updating the conference web site in the next few days.
+Please see https://netdevconf.info/0x14 for the latest conference
+information.
+
+Thanks,
+Jamal on behalf Netdev Society
