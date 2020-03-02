@@ -6,53 +6,66 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88B39C3F2CD
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 19:22:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 100D7C3F2CD
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 19:24:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6096421775
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 19:22:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E57C121D56
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 19:24:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727616AbgCBTWN (ORCPT
+        id S1727468AbgCBTYl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Mar 2020 14:22:13 -0500
-Received: from correo.us.es ([193.147.175.20]:42466 "EHLO mail.us.es"
+        Mon, 2 Mar 2020 14:24:41 -0500
+Received: from correo.us.es ([193.147.175.20]:43000 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727581AbgCBTWN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Mar 2020 14:22:13 -0500
+        id S1727234AbgCBTYl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 2 Mar 2020 14:24:41 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 44485303D05
-        for <netfilter-devel@vger.kernel.org>; Mon,  2 Mar 2020 20:21:58 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id EA3DB303D09
+        for <netfilter-devel@vger.kernel.org>; Mon,  2 Mar 2020 20:24:26 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 36E54DA38F
-        for <netfilter-devel@vger.kernel.org>; Mon,  2 Mar 2020 20:21:58 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DBFF9DA3AB
+        for <netfilter-devel@vger.kernel.org>; Mon,  2 Mar 2020 20:24:26 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 2C4C3DA3A0; Mon,  2 Mar 2020 20:21:58 +0100 (CET)
+        id BC0C6DA3A8; Mon,  2 Mar 2020 20:24:26 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5D595DA3A5;
-        Mon,  2 Mar 2020 20:21:56 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CF602DA38F;
+        Mon,  2 Mar 2020 20:24:24 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 02 Mar 2020 20:21:56 +0100 (CET)
+ Mon, 02 Mar 2020 20:24:24 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 3E15C426CCB9;
-        Mon,  2 Mar 2020 20:21:56 +0100 (CET)
-Date:   Mon, 2 Mar 2020 20:22:08 +0100
+        by entrada.int (Postfix) with ESMTPSA id 93EAD426CCB9;
+        Mon,  2 Mar 2020 20:24:24 +0100 (CET)
+Date:   Mon, 2 Mar 2020 20:24:37 +0100
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH 4/4] nft: cache: Review flush_cache()
-Message-ID: <20200302192208.3s5omyihan5xuj44@salvia>
-References: <20200302175358.27796-1-phil@nwl.cc>
- <20200302175358.27796-5-phil@nwl.cc>
+To:     Edward Cree <ecree@solarflare.com>
+Cc:     Jiri Pirko <jiri@resnulli.us>, netdev@vger.kernel.org,
+        davem@davemloft.net, kuba@kernel.org, saeedm@mellanox.com,
+        leon@kernel.org, michael.chan@broadcom.com, vishal@chelsio.com,
+        jeffrey.t.kirsher@intel.com, idosch@mellanox.com,
+        aelior@marvell.com, peppe.cavallaro@st.com,
+        alexandre.torgue@st.com, jhs@mojatatu.com,
+        xiyou.wangcong@gmail.com, mlxsw@mellanox.com,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [patch net-next v2 01/12] flow_offload: Introduce offload of HW
+ stats type
+Message-ID: <20200302192437.wtge3ze775thigzp@salvia>
+References: <20200228172505.14386-1-jiri@resnulli.us>
+ <20200228172505.14386-2-jiri@resnulli.us>
+ <20200229192947.oaclokcpn4fjbhzr@salvia>
+ <20200301084443.GQ26061@nanopsycho>
+ <20200302132016.trhysqfkojgx2snt@salvia>
+ <1da092c0-3018-7107-78d3-4496098825a3@solarflare.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20200302175358.27796-5-phil@nwl.cc>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1da092c0-3018-7107-78d3-4496098825a3@solarflare.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -60,13 +73,21 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Mar 02, 2020 at 06:53:58PM +0100, Phil Sutter wrote:
-> While fixing for iptables-nft-restore under stress, I managed to hit
-> NULL-pointer deref in flush_cache(). Given that nftnl_*_list_free()
-> functions are not NULL-pointer tolerant, better make sure such are not
-> passed by accident.
+On Mon, Mar 02, 2020 at 04:29:32PM +0000, Edward Cree wrote:
+> On 02/03/2020 13:20, Pablo Neira Ayuso wrote:
+> > 2) explicit counter action, in this case the user specifies explicitly
+> >    that it needs a counter in a given position of the rule. This
+> >    counter might come before or after the actual action.
+>
+> But the existing API can already do this, with a gact pipe.  Plus, Jiri's
+>  new API will allow specifying a counter on any action (rather than only,
+>  implicitly, those which have .stats_update()) should that prove to be
+>  necessary.
+> 
+> I really think the 'explicit counter action' is a solution in search of a
+>  problem, let's not add random orthogonality violations.  (Equally if the
+>  counter action had been there first, I'd be against adding counters to
+>  the other actions.)
 
-Could you explain what sequence is triggering the NULL-pointer
-dereference?
-
-Thank you.
+It looks to me that you want to restrict the API to tc for no good
+_technical_ reason.
