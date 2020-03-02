@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 432ACC3F2D1
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 22:44:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1730C3F2CD
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 22:44:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0E31B208C3
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 22:44:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B2CDA208C3
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 22:44:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="cw+rtMOG"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="fUFPpOPo"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726915AbgCBWoc (ORCPT
+        id S1726925AbgCBWoe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Mar 2020 17:44:32 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:42622 "EHLO
+        Mon, 2 Mar 2020 17:44:34 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:42636 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726793AbgCBWoc (ORCPT
+        with ESMTP id S1726793AbgCBWoe (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Mar 2020 17:44:32 -0500
+        Mon, 2 Mar 2020 17:44:34 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
          s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=BCmPEkKBUQMBBtRreV3JD+YolS+EJLadKnRq8WJCRRU=; b=cw+rtMOGJGOt1sSxcOKQQK0cT0
-        QItXUUTDGj2XAS8FHDkUKm/sXbEh3rHlJBHVW1hsa09fl09JRbHPtGv3F0OidFzwipvYPlw5uHaYn
-        +fDLu1g+F7twQYlsNnKgy6C7A5c+HDMDFmkIozpzAw8nwXAkzojtRMtlGbFeBgSda0Ubc1OwgFWqT
-        yFuOavkhiU3+wX3FABwZD+nlN/qzKjLetSHG7ZyeE/sI/Ri90wMYqHmEl8+i8dKgl4krciKzFTzBv
-        L32TCJYaMqywJQnJ1ukY49wRs3uuvioCLp0rDAjxss7iqCFCqIlEPYIjuILViOdddYWaSHNiy28fG
-        yJuK0ePw==;
+        bh=GkNBoAaCfiOy1tSeFOFqzvydz3NU9hUze4l+ntnJSzU=; b=fUFPpOPoy6Bk738qgMg3cXQdSK
+        PWX4RC2sTIDnfmiaIZWyVn18Yd0FAv1DRT25DcHrMdtU3awSbBi5TURawDF+5J2DyIdVfeQHm4Q6H
+        UPSyAAe764GL3Z/yC0wUNSbp3aG/UunpMT68ndG+dILjVEMcyFkwI2PUbbUdZmX+k04Xa2e97n3oO
+        SXLJ5beGpT3tNXk3oRCiP5r043jbWZFUQn4BEsz9dJ+5X+TU/NcvDjobidYiIZS8ldpswaQOvVuSH
+        XGGEGRgjrn0/tw/Vc+Mc0rt29jRVEfR8d1WxaPuaqVB9PIa5j4305INIH8wskVDA8tStVMxh5Lk6g
+        JT2GV+Ig==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1j8tPC-0000Sg-RI; Mon, 02 Mar 2020 22:19:18 +0000
+        id 1j8tPB-0000Sg-LH; Mon, 02 Mar 2020 22:19:17 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Florian Westphal <fw@strlen.de>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft v2 17/18] tests: shell: add variable binop RHS tests.
-Date:   Mon,  2 Mar 2020 22:19:15 +0000
-Message-Id: <20200302221916.1005019-18-jeremy@azazel.net>
+Subject: [PATCH nft v2 10/18] evaluate: allow boolean binop expressions with variable righthand arguments.
+Date:   Mon,  2 Mar 2020 22:19:08 +0000
+Message-Id: <20200302221916.1005019-11-jeremy@azazel.net>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200302221916.1005019-1-jeremy@azazel.net>
 References: <20200302221916.1005019-1-jeremy@azazel.net>
@@ -59,178 +59,64 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add some tests to validate setting payload fields and marks with
-statement arguments that include binops with variable RHS operands.
+Hitherto, the kernel has required constant values for the xor and mask
+attributes of boolean bitwise expressions.  This has meant that the
+righthand argument of a boolean binop must be constant.  Now the kernel
+supports passing mask and xor via registers, we can relax this
+restriction.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- tests/shell/testcases/chains/0040mark_shift_2         | 11 +++++++++++
- tests/shell/testcases/chains/0041payload_variable_0   | 11 +++++++++++
- tests/shell/testcases/chains/0041payload_variable_1   | 11 +++++++++++
- tests/shell/testcases/chains/0041payload_variable_2   | 11 +++++++++++
- tests/shell/testcases/chains/0041payload_variable_3   | 11 +++++++++++
- .../shell/testcases/chains/dumps/0040mark_shift_2.nft |  6 ++++++
- .../testcases/chains/dumps/0041payload_variable_0.nft |  6 ++++++
- .../testcases/chains/dumps/0041payload_variable_1.nft |  6 ++++++
- .../testcases/chains/dumps/0041payload_variable_2.nft |  6 ++++++
- .../testcases/chains/dumps/0041payload_variable_3.nft |  6 ++++++
- 10 files changed, 85 insertions(+)
- create mode 100755 tests/shell/testcases/chains/0040mark_shift_2
- create mode 100755 tests/shell/testcases/chains/0041payload_variable_0
- create mode 100755 tests/shell/testcases/chains/0041payload_variable_1
- create mode 100755 tests/shell/testcases/chains/0041payload_variable_2
- create mode 100755 tests/shell/testcases/chains/0041payload_variable_3
- create mode 100644 tests/shell/testcases/chains/dumps/0040mark_shift_2.nft
- create mode 100644 tests/shell/testcases/chains/dumps/0041payload_variable_0.nft
- create mode 100644 tests/shell/testcases/chains/dumps/0041payload_variable_1.nft
- create mode 100644 tests/shell/testcases/chains/dumps/0041payload_variable_2.nft
- create mode 100644 tests/shell/testcases/chains/dumps/0041payload_variable_3.nft
+ src/evaluate.c | 23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-diff --git a/tests/shell/testcases/chains/0040mark_shift_2 b/tests/shell/testcases/chains/0040mark_shift_2
-new file mode 100755
-index 000000000000..2ff3418bdd3f
---- /dev/null
-+++ b/tests/shell/testcases/chains/0040mark_shift_2
-@@ -0,0 +1,11 @@
-+#!/bin/bash
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 4a23b231c74d..1db175007c2d 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1135,7 +1135,7 @@ static int expr_evaluate_bitwise(struct eval_ctx *ctx, struct expr **expr)
+ 	op->byteorder = left->byteorder;
+ 	op->len	      = left->len;
+ 
+-	if (expr_is_constant(left))
++	if (expr_is_constant(left) && expr_is_constant(op->right))
+ 		return constant_binop_simplify(ctx, expr);
+ 	return 0;
+ }
+@@ -1179,23 +1179,22 @@ static int expr_evaluate_binop(struct eval_ctx *ctx, struct expr **expr)
+ 					 "for %s expressions",
+ 					 sym, expr_name(left));
+ 
+-	if (!expr_is_constant(right))
+-		return expr_binary_error(ctx->msgs, right, op,
+-					 "Right hand side of binary operation "
+-					 "(%s) must be constant", sym);
+-
+-	if (!expr_is_singleton(right))
+-		return expr_binary_error(ctx->msgs, left, op,
+-					 "Binary operation (%s) is undefined "
+-					 "for %s expressions",
+-					 sym, expr_name(right));
+-
+ 	/* The grammar guarantees this */
+ 	assert(expr_basetype(left) == expr_basetype(right));
+ 
+ 	switch (op->op) {
+ 	case OP_LSHIFT:
+ 	case OP_RSHIFT:
++		if (!expr_is_constant(right))
++			return expr_binary_error(ctx->msgs, right, op,
++						 "Right hand side of binary operation "
++						 "(%s) must be constant", sym);
 +
-+set -e
-+
-+RULESET="
-+  add table t
-+  add chain t c { type filter hook input priority mangle; }
-+  add rule t c ct mark set ct mark and 0xffff0000 or meta mark and 0xffff
-+"
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/chains/0041payload_variable_0 b/tests/shell/testcases/chains/0041payload_variable_0
-new file mode 100755
-index 000000000000..c9819ff4ab88
---- /dev/null
-+++ b/tests/shell/testcases/chains/0041payload_variable_0
-@@ -0,0 +1,11 @@
-+#!/bin/bash
-+
-+set -e
-+
-+RULESET="
-+  add table t
-+  add chain t c { type filter hook output priority mangle; }
-+  add rule ip t c tcp dport set tcp dport
-+"
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/chains/0041payload_variable_1 b/tests/shell/testcases/chains/0041payload_variable_1
-new file mode 100755
-index 000000000000..e9b1e1dde515
---- /dev/null
-+++ b/tests/shell/testcases/chains/0041payload_variable_1
-@@ -0,0 +1,11 @@
-+#!/bin/bash
-+
-+set -e
-+
-+RULESET="
-+  add table t
-+  add chain t c { type filter hook output priority mangle; }
-+  add rule ip t c tcp dport set tcp dport lshift 1
-+"
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/chains/0041payload_variable_2 b/tests/shell/testcases/chains/0041payload_variable_2
-new file mode 100755
-index 000000000000..5a458ef5d525
---- /dev/null
-+++ b/tests/shell/testcases/chains/0041payload_variable_2
-@@ -0,0 +1,11 @@
-+#!/bin/bash
-+
-+set -e
-+
-+RULESET="
-+  add table t
-+  add chain t c { type filter hook output priority mangle; }
-+  add rule ip t c ip dscp set ip dscp
-+"
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/chains/0041payload_variable_3 b/tests/shell/testcases/chains/0041payload_variable_3
-new file mode 100755
-index 000000000000..0375399c3d0f
---- /dev/null
-+++ b/tests/shell/testcases/chains/0041payload_variable_3
-@@ -0,0 +1,11 @@
-+#!/bin/bash
-+
-+set -e
-+
-+RULESET="
-+  add table t
-+  add chain t c { type filter hook output priority mangle; }
-+  add rule ip t c ip dscp set ip dscp or 0x3
-+"
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/chains/dumps/0040mark_shift_2.nft b/tests/shell/testcases/chains/dumps/0040mark_shift_2.nft
-new file mode 100644
-index 000000000000..14f2d1685706
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0040mark_shift_2.nft
-@@ -0,0 +1,6 @@
-+table ip t {
-+	chain c {
-+		type filter hook input priority mangle; policy accept;
-+		ct mark set ct mark & 0xffff0000 | meta mark & 0x0000ffff
-+	}
-+}
-diff --git a/tests/shell/testcases/chains/dumps/0041payload_variable_0.nft b/tests/shell/testcases/chains/dumps/0041payload_variable_0.nft
-new file mode 100644
-index 000000000000..731949e6b355
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0041payload_variable_0.nft
-@@ -0,0 +1,6 @@
-+table ip t {
-+	chain c {
-+		type filter hook output priority mangle; policy accept;
-+		tcp dport set tcp dport
-+	}
-+}
-diff --git a/tests/shell/testcases/chains/dumps/0041payload_variable_1.nft b/tests/shell/testcases/chains/dumps/0041payload_variable_1.nft
-new file mode 100644
-index 000000000000..2cd87a4dc8e1
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0041payload_variable_1.nft
-@@ -0,0 +1,6 @@
-+table ip t {
-+	chain c {
-+		type filter hook output priority mangle; policy accept;
-+		tcp dport set tcp dport << 1
-+	}
-+}
-diff --git a/tests/shell/testcases/chains/dumps/0041payload_variable_2.nft b/tests/shell/testcases/chains/dumps/0041payload_variable_2.nft
-new file mode 100644
-index 000000000000..d1e7adb92c4c
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0041payload_variable_2.nft
-@@ -0,0 +1,6 @@
-+table ip t {
-+	chain c {
-+		type filter hook output priority mangle; policy accept;
-+		ip dscp set ip dscp
-+	}
-+}
-diff --git a/tests/shell/testcases/chains/dumps/0041payload_variable_3.nft b/tests/shell/testcases/chains/dumps/0041payload_variable_3.nft
-new file mode 100644
-index 000000000000..52b3a833175a
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0041payload_variable_3.nft
-@@ -0,0 +1,6 @@
-+table ip t {
-+	chain c {
-+		type filter hook output priority mangle; policy accept;
-+		ip dscp set ip dscp | 0x03
-+	}
-+}
++		if (!expr_is_singleton(right))
++			return expr_binary_error(ctx->msgs, left, op,
++						 "Binary operation (%s) is undefined "
++						 "for %s expressions",
++						 sym, expr_name(right));
+ 		return expr_evaluate_shift(ctx, expr);
+ 	case OP_AND:
+ 	case OP_XOR:
 -- 
 2.25.1
 
