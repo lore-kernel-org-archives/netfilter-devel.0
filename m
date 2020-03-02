@@ -2,116 +2,76 @@ Return-Path: <SRS0=hj4T=4T=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C455C3F2CD
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 20:18:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AD9EC3F2D7
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 20:59:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7428521D56
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 20:18:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583180337;
-	bh=USVMp9N3wGY67WGeSZvztHCNHfpshzncK2NRw4+hyeI=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=kNuM8F9xYv/LdVA2gPA2gOV0K5IfnuULx1EJ1UgdR2yS8dSjf0FNf119IaRE4PvGL
-	 uoS6LkpYUN5t5Nj8V/NkESR86jwbxv/b5jy9BxxbcRdAgk+ulwDd0Djc9pmXPqDQ7F
-	 kWAZvuVmU0BT+mIW7JScAd549qRBoLdmQWNXojqE=
+	by mail.kernel.org (Postfix) with ESMTP id 6AFFA2173E
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 20:59:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726368AbgCBUS4 (ORCPT
+        id S1726810AbgCBU7B (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Mar 2020 15:18:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39418 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725446AbgCBUSz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Mar 2020 15:18:55 -0500
-Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.128])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1C6A7214DB;
-        Mon,  2 Mar 2020 20:18:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1583180334;
-        bh=USVMp9N3wGY67WGeSZvztHCNHfpshzncK2NRw4+hyeI=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=u699LD0MpaUcLbVgrcbM4rYQCOUgCe1NChLsh1k+K0TGR2gbFcglo4t36XUEbXHjh
-         5KTNSJNpVGAeNi1wG/jlAjUhFPao5AkSv2/IFnL1LUH88lFSb64MTrDAfFAKDVOXWx
-         xstSav0WKVfjZsVhbi1UtFbfircMZk7tKNcwOWUY=
-Date:   Mon, 2 Mar 2020 12:18:52 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Edward Cree <ecree@solarflare.com>, Jiri Pirko <jiri@resnulli.us>,
-        netdev@vger.kernel.org, davem@davemloft.net, saeedm@mellanox.com,
-        leon@kernel.org, michael.chan@broadcom.com, vishal@chelsio.com,
-        jeffrey.t.kirsher@intel.com, idosch@mellanox.com,
-        aelior@marvell.com, peppe.cavallaro@st.com,
-        alexandre.torgue@st.com, jhs@mojatatu.com,
-        xiyou.wangcong@gmail.com, mlxsw@mellanox.com,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [patch net-next v2 01/12] flow_offload: Introduce offload of HW
- stats type
-Message-ID: <20200302121852.50a4fccc@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20200302192437.wtge3ze775thigzp@salvia>
-References: <20200228172505.14386-1-jiri@resnulli.us>
-        <20200228172505.14386-2-jiri@resnulli.us>
-        <20200229192947.oaclokcpn4fjbhzr@salvia>
-        <20200301084443.GQ26061@nanopsycho>
-        <20200302132016.trhysqfkojgx2snt@salvia>
-        <1da092c0-3018-7107-78d3-4496098825a3@solarflare.com>
-        <20200302192437.wtge3ze775thigzp@salvia>
+        Mon, 2 Mar 2020 15:59:01 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:59282 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725911AbgCBU7A (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 2 Mar 2020 15:59:00 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1j8s9S-0000av-WA; Mon, 02 Mar 2020 21:58:59 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     syzkaller-bugs@googlegroups.com, netdev@vger.kernel.org,
+        Florian Westphal <fw@strlen.de>,
+        syzbot+a2ff6fa45162a5ed4dd3@syzkaller.appspotmail.com
+Subject: [PATCH nf] netfilter: nf_tables: free flowtable hooks on hook register error
+Date:   Mon,  2 Mar 2020 21:58:50 +0100
+Message-Id: <20200302205850.29365-1-fw@strlen.de>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, 2 Mar 2020 20:24:37 +0100 Pablo Neira Ayuso wrote:
-> On Mon, Mar 02, 2020 at 04:29:32PM +0000, Edward Cree wrote:
-> > On 02/03/2020 13:20, Pablo Neira Ayuso wrote: =20
-> > > 2) explicit counter action, in this case the user specifies explicitly
-> > >    that it needs a counter in a given position of the rule. This
-> > >    counter might come before or after the actual action. =20
-> >
-> > But the existing API can already do this, with a gact pipe.=C2=A0 Plus,=
- Jiri's
-> > =C2=A0new API will allow specifying a counter on any action (rather tha=
-n only,
-> > =C2=A0implicitly, those which have .stats_update()) should that prove t=
-o be
-> > =C2=A0necessary.
-> >=20
-> > I really think the 'explicit counter action' is a solution in search of=
- a
-> > =C2=A0problem, let's not add random orthogonality violations.=C2=A0 (Eq=
-ually if the
-> > =C2=A0counter action had been there first, I'd be against adding counte=
-rs to
-> > =C2=A0the other actions.) =20
->=20
-> It looks to me that you want to restrict the API to tc for no good
-> _technical_ reason.
+If hook registration fails, the hooks allocated via nft_netdev_hook_alloc
+need to be freed.
 
-Undeniably part of the reason is that given how complex flow offloads
-got there may be some resistance to large re-factoring. IMHO well
-thought out refactoring of stats is needed.. but I'm not convinced=20
-this is the direction.
+We can't change the goto label to 'goto 5' -- while it does fix the memleak
+it does cause a warning splat from the netfilter core (the hooks were not
+registered).
 
-Could you give us clearer understanding of what the use cases for the
-counter action is?
+Fixes: 3f0465a9ef02 ("netfilter: nf_tables: dynamically allocate hooks per net_device in flowtables")
+Reported-by: syzbot+a2ff6fa45162a5ed4dd3@syzkaller.appspotmail.com
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_tables_api.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-AFAIK right now actions do the accounting on input. That seems like the
-only logical option. Either action takes the packet out of the action
-pipeline, in which case even the counter action after will not see it,
-or it doesn't and the input counter of the next action can be used.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index d1318bdf49ca..bb064aa4154b 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -6300,8 +6300,13 @@ static int nf_tables_newflowtable(struct net *net, struct sock *nlsk,
+ 		goto err4;
+ 
+ 	err = nft_register_flowtable_net_hooks(ctx.net, table, flowtable);
+-	if (err < 0)
++	if (err < 0) {
++		list_for_each_entry_safe(hook, next, &flowtable->hook_list, list) {
++			list_del_rcu(&hook->list);
++			kfree_rcu(hook, rcu);
++		}
+ 		goto err4;
++	}
+ 
+ 	err = nft_trans_flowtable_add(&ctx, NFT_MSG_NEWFLOWTABLE, flowtable);
+ 	if (err < 0)
+-- 
+2.24.1
 
-Given counters must be next to real actions and not other counter
-to have value, having them as a separate action seems to make no
-difference at all (if users are silly, we can use the pipe/no-op).
-
-IOW modeling the stats as attribute of other actions or a separate
-action is entirely equivalent, and there's nothing to be gained from
-moving from the existing scheme to explicit actions... other than it'd
-make it look more like nft actions... :)
