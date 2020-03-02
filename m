@@ -2,148 +2,138 @@ Return-Path: <SRS0=hj4T=4T=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF48CC3F2D1
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 12:54:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1979C3F2D2
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 13:20:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A31A1217F4
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 12:54:20 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=embeddedor.com header.i=@embeddedor.com header.b="rU5J4TqU"
+	by mail.kernel.org (Postfix) with ESMTP id A3B762187F
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 13:20:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727589AbgCBMyU (ORCPT
+        id S1727644AbgCBNUV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Mar 2020 07:54:20 -0500
-Received: from gateway33.websitewelcome.com ([192.185.146.85]:38512 "EHLO
-        gateway33.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727497AbgCBMyU (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Mar 2020 07:54:20 -0500
-X-Greylist: delayed 1235 seconds by postgrey-1.27 at vger.kernel.org; Mon, 02 Mar 2020 07:54:19 EST
-Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
-        by gateway33.websitewelcome.com (Postfix) with ESMTP id 3CB2840D632
-        for <netfilter-devel@vger.kernel.org>; Mon,  2 Mar 2020 06:33:44 -0600 (CST)
-Received: from gator4166.hostgator.com ([108.167.133.22])
-        by cmsmtp with SMTP
-        id 8kGWjSgRPRP4z8kGWjqYni; Mon, 02 Mar 2020 06:33:44 -0600
-X-Authority-Reason: nr=8
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=embeddedor.com; s=default; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=cgFXzrhuRasjv4le4yADv0Z7+ShHUhX/2A3FnoweDww=; b=rU5J4TqUzLvVYwG032wvogzd0E
-        /nWWn+RQwRKKAFiSaNBeh90i8nKpnwtvcuIw3jV2Zr1M4B8XKv/pUPbJXp615vCjT2UNznr+nXQm7
-        4lDsKm/wuc2OZz6Had57w2G00Y35GP9XU9ofDE0DZuPto8+cz9JvCSn53/JCAUObzZxkvW1UCbl+8
-        kXKQp7IbpE9/dCux20fMGa0ALcVKm+2VZ124G+V9jv0FUfvTz2JP8JLPFEln+bc/HGllHDP7hdQzT
-        /nl5ZvomCgsjO6mE+0H96/kgTp5PW0HqKnrwTYYmx6ISKLs6dfNzU9kcWGm6ld+9NgquNOhEynPwK
-        IUtqeU2Q==;
-Received: from [200.39.29.131] (port=48066 helo=[192.168.43.132])
-        by gator4166.hostgator.com with esmtpsa (TLSv1.2:ECDHE-RSA-AES128-GCM-SHA256:128)
-        (Exim 4.92)
-        (envelope-from <gustavo@embeddedor.com>)
-        id 1j8kGV-004HVF-BF; Mon, 02 Mar 2020 06:33:43 -0600
-Subject: Re: [PATCH][next] netfilter: Replace zero-length array with
- flexible-array member
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Roopa Prabhu <roopa@cumulusnetworks.com>,
-        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, bridge@lists.linux-foundation.org,
-        netdev@vger.kernel.org
-References: <20200220135914.GA14062@embeddedor>
- <20200302122318.ookpzldcqltlz5wx@salvia>
-From:   "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Autocrypt: addr=gustavo@embeddedor.com; keydata=
- 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
- VtSixD1uOgytAP7RWS474w==
-Message-ID: <8e415003-8948-a1f6-6009-39bd44e4b161@embeddedor.com>
-Date:   Mon, 2 Mar 2020 06:36:37 -0600
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.4.1
+        Mon, 2 Mar 2020 08:20:21 -0500
+Received: from correo.us.es ([193.147.175.20]:44132 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727421AbgCBNUV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 2 Mar 2020 08:20:21 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id CCA00118460
+        for <netfilter-devel@vger.kernel.org>; Mon,  2 Mar 2020 14:20:06 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B757EDA3A5
+        for <netfilter-devel@vger.kernel.org>; Mon,  2 Mar 2020 14:20:06 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id B4394DA390; Mon,  2 Mar 2020 14:20:06 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 82818DA7B6;
+        Mon,  2 Mar 2020 14:20:04 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 02 Mar 2020 14:20:04 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 4545A42EF9E0;
+        Mon,  2 Mar 2020 14:20:04 +0100 (CET)
+Date:   Mon, 2 Mar 2020 14:20:16 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jiri Pirko <jiri@resnulli.us>
+Cc:     netdev@vger.kernel.org, davem@davemloft.net, kuba@kernel.org,
+        saeedm@mellanox.com, leon@kernel.org, michael.chan@broadcom.com,
+        vishal@chelsio.com, jeffrey.t.kirsher@intel.com,
+        idosch@mellanox.com, aelior@marvell.com, peppe.cavallaro@st.com,
+        alexandre.torgue@st.com, jhs@mojatatu.com,
+        xiyou.wangcong@gmail.com, ecree@solarflare.com, mlxsw@mellanox.com,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [patch net-next v2 01/12] flow_offload: Introduce offload of HW
+ stats type
+Message-ID: <20200302132016.trhysqfkojgx2snt@salvia>
+References: <20200228172505.14386-1-jiri@resnulli.us>
+ <20200228172505.14386-2-jiri@resnulli.us>
+ <20200229192947.oaclokcpn4fjbhzr@salvia>
+ <20200301084443.GQ26061@nanopsycho>
 MIME-Version: 1.0
-In-Reply-To: <20200302122318.ookpzldcqltlz5wx@salvia>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - gator4166.hostgator.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - embeddedor.com
-X-BWhitelist: no
-X-Source-IP: 200.39.29.131
-X-Source-L: No
-X-Exim-ID: 1j8kGV-004HVF-BF
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
-X-Source-Sender: ([192.168.43.132]) [200.39.29.131]:48066
-X-Source-Auth: gustavo@embeddedor.com
-X-Email-Count: 43
-X-Source-Cap: Z3V6aWRpbmU7Z3V6aWRpbmU7Z2F0b3I0MTY2Lmhvc3RnYXRvci5jb20=
-X-Local-Domain: yes
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200301084443.GQ26061@nanopsycho>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-
-On 3/2/20 06:23, Pablo Neira Ayuso wrote:
-> Applied, thanks.
+On Sun, Mar 01, 2020 at 09:44:43AM +0100, Jiri Pirko wrote:
+> Sat, Feb 29, 2020 at 08:29:47PM CET, pablo@netfilter.org wrote:
+> >On Fri, Feb 28, 2020 at 06:24:54PM +0100, Jiri Pirko wrote:
+[...]
+> >> diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
+> >> index 4e864c34a1b0..eee1cbc5db3c 100644
+> >> --- a/include/net/flow_offload.h
+> >> +++ b/include/net/flow_offload.h
+> >> @@ -154,6 +154,10 @@ enum flow_action_mangle_base {
+> >>  	FLOW_ACT_MANGLE_HDR_TYPE_UDP,
+> >>  };
+> >>  
+> >> +enum flow_action_hw_stats_type {
+> >> +	FLOW_ACTION_HW_STATS_TYPE_ANY,
+> >> +};
+> >> +
+> >>  typedef void (*action_destr)(void *priv);
+> >>  
+> >>  struct flow_action_cookie {
+> >> @@ -168,6 +172,7 @@ void flow_action_cookie_destroy(struct flow_action_cookie *cookie);
+> >>  
+> >>  struct flow_action_entry {
+> >>  	enum flow_action_id		id;
+> >> +	enum flow_action_hw_stats_type	hw_stats_type;
+> >>  	action_destr			destructor;
+> >>  	void				*destructor_priv;
+> >>  	union {
+> >> @@ -228,6 +233,7 @@ struct flow_action_entry {
+> >>  };
+> >>  
+> >>  struct flow_action {
+> >> +	bool				mixed_hw_stats_types;
+> >
+> >Why do you want to place this built-in into the struct flow_action as
+> >a boolean?
 > 
+> Because it is convenient for the driver to know if multiple hw_stats_type
+> values are used for multiple actions.
+> 
+> >You can express the same thing through a new FLOW_ACTION_COUNTER.
+[...]
+> >Please, explain me why it would be a problem from the driver side to
+> >provide a separated counter action.
+> 
+> I don't see any point in doing that. The action itself implies that has
+> stats, you don't need a separate action for that for the flow_offload
+> abstraction layer. What you would end up with is:
+> counter_action1, actual_action1, counter_action2, actual_action2,...
+> 
+> What is the point of that?
 
-Thanks, Pablo.
---
-Gustavo
+Yes, it's a bit more work for tc to generate counter action + actual
+action.
+
+However, netfilter has two ways to use counters:
+
+1) per-rule counter, in this case the counter is updated after rule
+   matching, right before calling the action. This is the legacy mode.
+
+2) explicit counter action, in this case the user specifies explicitly
+   that it needs a counter in a given position of the rule. This
+   counter might come before or after the actual action.
+
+ethtool does not have counters yet. Now there is a netlink interface
+for it, there might be counters there at some point.
+
+I'm suggesting a model that would work for the existing front-ends
+using the flow_action API.
