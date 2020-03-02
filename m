@@ -2,189 +2,171 @@ Return-Path: <SRS0=hj4T=4T=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EF32C3F2D1
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 22:44:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1458DC3F2D1
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 22:49:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 32268208C3
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 22:44:38 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="feN7UQpt"
+	by mail.kernel.org (Postfix) with ESMTP id DD0852173E
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 22:49:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1583189373;
+	bh=wmG7nx2gKT1ej2x9EGIjzDwZjQRIEbOxHvYx2O8/GNc=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=NWvuOZkC3nE8HZiAvVQUpW0/OvPrOYPtAk1f66he0B1/tW0k5blazFYYMFsah5Ix9
+	 0hJrKLhTbiu0+jqOPrVENDMSiP0cHjnZlgNCF6uKtleZySVmVAQolGUahzV0MsAmDG
+	 qkUbGMdMUYLHDHCrCJC0lwQCxh78XnbVz7nSAtbM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726947AbgCBWoi (ORCPT
+        id S1726783AbgCBWtc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Mar 2020 17:44:38 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:42662 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726793AbgCBWoh (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Mar 2020 17:44:37 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=NC32fWxc2bv2VGuR1Bhak1t38P1C+TSgdw5bWQxp+X4=; b=feN7UQptN4vQHvILVuzrog/hKR
-        TMNELRkBBUau03hHVk7dZZ7roDXPsPGnHa+KqTaJ26/E5hxSzc4uynO7sOQDsCXBPgoCwZyMyVk1E
-        R1d7ImE/A4OjzAG9CwoH/Mrb/RT0mGD/ZV6DnV8R6OiKhNoCcyluFOSR3iQjWyAi277H2mRFLgkCy
-        7fyJSIBPkxyinHWdc0x3TdyBaEhtD/YN4Bkin/e7C98Njwl9AuPTIu6OfGoB64LkKNglOW2fmb6Hv
-        gV1/qtekw3xOo0Qnkx49lYQj9RfmjfUoMIL0O3W8jsEbmoFvJ6kOQEJXsQtkE459kAeG/BUCP39OM
-        wTp/qPNQ==;
-Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
-        by kadath.azazel.net with esmtp (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1j8tPC-0000Sg-9y; Mon, 02 Mar 2020 22:19:18 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft v2 14/18] netlink_delinearize: add support for processing variable payload statement arguments.
-Date:   Mon,  2 Mar 2020 22:19:12 +0000
-Message-Id: <20200302221916.1005019-15-jeremy@azazel.net>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200302221916.1005019-1-jeremy@azazel.net>
-References: <20200302221916.1005019-1-jeremy@azazel.net>
+        Mon, 2 Mar 2020 17:49:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47930 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726728AbgCBWtc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 2 Mar 2020 17:49:32 -0500
+Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.128])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6742C208C3;
+        Mon,  2 Mar 2020 22:49:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1583189371;
+        bh=wmG7nx2gKT1ej2x9EGIjzDwZjQRIEbOxHvYx2O8/GNc=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=g4vnX1NnfAqIGFss7C95ORBUJ2Gyj7CxJVVwMf+erdB285lm4aKcaRKyb62bR7aLX
+         6IoEAS56a6QAmjug8KZ9S6mpZlbPwtfsccMjWh1lD+3RJ/5vFYS+tHN1Y9MVp/Gw3t
+         KQiBv8nuM/DQBhqnZeOS/DKMTTk6yBsT2MHHVTNI=
+Date:   Mon, 2 Mar 2020 14:49:28 -0800
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Edward Cree <ecree@solarflare.com>, Jiri Pirko <jiri@resnulli.us>,
+        netdev@vger.kernel.org, davem@davemloft.net, saeedm@mellanox.com,
+        leon@kernel.org, michael.chan@broadcom.com, vishal@chelsio.com,
+        jeffrey.t.kirsher@intel.com, idosch@mellanox.com,
+        aelior@marvell.com, peppe.cavallaro@st.com,
+        alexandre.torgue@st.com, jhs@mojatatu.com,
+        xiyou.wangcong@gmail.com, mlxsw@mellanox.com,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [patch net-next v2 01/12] flow_offload: Introduce offload of HW
+ stats type
+Message-ID: <20200302144928.0aca19a0@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <20200302214659.v4zm2whrv4qjz3pe@salvia>
+References: <20200228172505.14386-1-jiri@resnulli.us>
+        <20200228172505.14386-2-jiri@resnulli.us>
+        <20200229192947.oaclokcpn4fjbhzr@salvia>
+        <20200301084443.GQ26061@nanopsycho>
+        <20200302132016.trhysqfkojgx2snt@salvia>
+        <1da092c0-3018-7107-78d3-4496098825a3@solarflare.com>
+        <20200302192437.wtge3ze775thigzp@salvia>
+        <20200302121852.50a4fccc@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        <20200302214659.v4zm2whrv4qjz3pe@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If a user uses a variable payload expression in a payload statement, the
-structure of the statement value is not handled by the existing
-statement postprocessing function, so we need to extend it.
+On Mon, 2 Mar 2020 22:46:59 +0100 Pablo Neira Ayuso wrote:
+> On Mon, Mar 02, 2020 at 12:18:52PM -0800, Jakub Kicinski wrote:
+> > On Mon, 2 Mar 2020 20:24:37 +0100 Pablo Neira Ayuso wrote: =20
+> > > On Mon, Mar 02, 2020 at 04:29:32PM +0000, Edward Cree wrote: =20
+> > > > On 02/03/2020 13:20, Pablo Neira Ayuso wrote:   =20
+> > > > > 2) explicit counter action, in this case the user specifies expli=
+citly
+> > > > >    that it needs a counter in a given position of the rule. This
+> > > > >    counter might come before or after the actual action.   =20
+> > > >
+> > > > But the existing API can already do this, with a gact pipe.=C2=A0 P=
+lus, Jiri's
+> > > > =C2=A0new API will allow specifying a counter on any action (rather=
+ than only,
+> > > > =C2=A0implicitly, those which have .stats_update()) should that pro=
+ve to be
+> > > > =C2=A0necessary.
+> > > >=20
+> > > > I really think the 'explicit counter action' is a solution in searc=
+h of a
+> > > > =C2=A0problem, let's not add random orthogonality violations.=C2=A0=
+ (Equally if the
+> > > > =C2=A0counter action had been there first, I'd be against adding co=
+unters to
+> > > > =C2=A0the other actions.)   =20
+> > >=20
+> > > It looks to me that you want to restrict the API to tc for no good
+> > > _technical_ reason. =20
+> >=20
+> > Undeniably part of the reason is that given how complex flow offloads
+> > got there may be some resistance to large re-factoring. IMHO well
+> > thought out refactoring of stats is needed.. but I'm not convinced=20
+> > this is the direction.
+> >
+> > Could you give us clearer understanding of what the use cases for the
+> > counter action is?
+> >=20
+> > AFAIK right now actions do the accounting on input. That seems like the
+> > only logical option. Either action takes the packet out of the action
+> > pipeline, in which case even the counter action after will not see it,
+> > or it doesn't and the input counter of the next action can be used.
+> >
+> > Given counters must be next to real actions and not other counter
+> > to have value, having them as a separate action seems to make no
+> > difference at all (if users are silly, we can use the pipe/no-op). =20
+>=20
+> This model that is proposed here is correct in the tc world, where
+> counters are tied to actions (as you describe above). However, the
+> flow_offload API already supports for ethtool and netfilter these
+> days.
+>=20
+> In Netfilter, counters are detached from actions. Obviously, a counter
+> must be placed before the action _if_ the action gets the packet out
+> of the pipeline, e.g.
+>=20
+>      ip saddr 1.1.1.1 counter drop
+>=20
+> In this case, the counter is placed before the 'drop' action. Users
+> that need no counters have to remove 'counter' from the rule syntax to
+> opt-out.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- src/netlink_delinearize.c | 74 +++++++++++++++++++++++++++++++++++----
- 1 file changed, 68 insertions(+), 6 deletions(-)
+In Jiri's set if counter exists DROP should get the ANY flag, if
+counter is not there - DISABLED.
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index e8e9e5719ee8..571cab1d932b 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -2514,7 +2514,7 @@ static void stmt_payload_binop_pp(struct rule_pp_ctx *ctx, struct expr *binop)
- 	}
- }
- 
--static bool stmt_payload_binop_postprocess_i(struct rule_pp_ctx *ctx)
-+static bool stmt_payload_binop_postprocess_i_a(struct rule_pp_ctx *ctx)
- {
- 	struct expr *expr, *binop, *payload, *value, *mask;
- 	struct stmt *stmt = ctx->stmt;
-@@ -2568,6 +2568,56 @@ static bool stmt_payload_binop_postprocess_i(struct rule_pp_ctx *ctx)
- 	return true;
- }
- 
-+static bool stmt_payload_binop_postprocess_i_b(struct rule_pp_ctx *ctx)
-+{
-+	struct expr *expr, *payload, *mask, *xor;
-+	struct stmt *stmt = ctx->stmt;
-+	unsigned int shift;
-+	mpz_t tmp, bitmask;
-+
-+	expr = stmt->payload.val;
-+
-+	if (expr->op != OP_XOR)
-+		return false;
-+
-+	if (expr->left->etype != EXPR_BINOP)
-+		return false;
-+
-+	if (expr->left->op != OP_AND)
-+		return false;
-+
-+	xor     = expr->right;
-+	mask    = expr->left->right;
-+	payload = expr->left->left;
-+
-+	mpz_init(tmp);
-+	mpz_set(tmp, mask->value);
-+
-+	mpz_init_bitmask(bitmask, payload->len);
-+	mpz_xor(bitmask, bitmask, mask->value);
-+	mpz_set(mask->value, bitmask);
-+	mpz_clear(bitmask);
-+
-+	if (payload_expr_trim(payload, mask, &ctx->pctx, &shift))
-+		payload_match_postprocess(ctx, expr->left, payload);
-+
-+	if (!payload_is_known(payload)) {
-+		mpz_set(mask->value, tmp);
-+	} else {
-+		if (shift) {
-+			expr->right = expr_get(xor->left);
-+			expr_free(xor);
-+		}
-+		expr_free(stmt->payload.expr);
-+		stmt->payload.expr = expr_get(payload);
-+		stmt->payload.val = expr_get(expr->right);
-+		expr_free(expr);
-+	}
-+
-+	mpz_clear(tmp);
-+	return true;
-+}
-+
- static bool stmt_payload_binop_postprocess_ii(struct rule_pp_ctx *ctx)
- {
- 	struct expr *expr, *payload, *value;
-@@ -2634,21 +2684,30 @@ static bool stmt_payload_binop_postprocess_ii(struct rule_pp_ctx *ctx)
-  * and a mask to clear the real payload offset/length.
-  *
-  * So check if we have one of the following binops:
-- * I)
-+ *
-+ * Ia)
-  *           binop (|)
-  *       binop(&)   value/set
-  * payload   value(mask)
-  *
-- * This is the normal case, the | RHS is the value the user wants
-- * to set, the & RHS is the mask value that discards bits we need
-+ * This is the normal constant case, the | RHS is the value the user
-+ * wants to set, the & RHS is the mask value that discards bits we need
-  * to clear but retains everything unrelated to the set operation.
-  *
-+ * Ib)
-+ *         binop (^)
-+ *       binop(&)   value/set
-+ * payload   value(mask)
-+ *
-+ * The user wants to set a variable payload argument.  The ^ RHS is the
-+ * variable expression.  The mask is as above.
-+ *
-  * IIa)
-  *     binop (&)
-  * payload   mask
-  *
-  * User specified a zero set value -- netlink bitwise decoding
-- * discarded the redundant "| 0" part.  This is identical to I),
-+ * discarded the redundant "| 0" part.  This is identical to Ia),
-  * we can just set value to 0 after we inferred the real payload size.
-  *
-  * IIb)
-@@ -2671,7 +2730,10 @@ static void stmt_payload_binop_postprocess(struct rule_pp_ctx *ctx)
- 
- 	switch (expr->left->etype) {
- 	case EXPR_BINOP: /* I? */
--		if (stmt_payload_binop_postprocess_i(ctx))
-+		if (stmt_payload_binop_postprocess_i_a(ctx))
-+			return;
-+
-+		if (stmt_payload_binop_postprocess_i_b(ctx))
- 			return;
- 		break;
- 	case EXPR_PAYLOAD: /* II? */
--- 
-2.25.1
+> > IOW modeling the stats as attribute of other actions or a separate
+> > action is entirely equivalent, and there's nothing to be gained from
+> > moving from the existing scheme to explicit actions... other than it'd
+> > make it look more like nft actions... :) =20
+>=20
+> I just wonder if a model that allows tc and netfilter to use this new
+> statistics infrastructure would make everyone happy. My understanding
+> is that it is not far away from what this patchset provides.
+>=20
+> The retorical question here probably is if you still want to allow the
+> Netfilter front-end to benefit from this new flow_action API
+> extension.
+>=20
+> The real question is: if you think this tc counter+action scheme can
+> be used by netfilter, then please explain how.
 
+In Jiri's latest patch set the counter type is per action, so just
+"merge right" the counter info into the next action and the models=20
+are converted.
+
+If user is silly and has multiple counter actions in a row - the
+pipe/no-op action comes into play (that isn't part of this set,=20
+as Jiri said).
+
+Can you give us examples of what wouldn't work? Can you for instance
+share the counter across rules?
+
+Also neither proposal addresses the problem of reporting _different_
+counter values at different stages in the pipeline, i.e. moving from
+stats per flow to per action. But nobody seems to be willing to work=20
+on that.
+
+AFAICT with Jiri's change we only need one check in the drivers to
+convert from old scheme to new, with explicit action we need two
+(additional one being ignoring the counter action). Not a big deal,
+but 1 is less than 2 =F0=9F=A4=B7=E2=80=8D=E2=99=82=EF=B8=8F
