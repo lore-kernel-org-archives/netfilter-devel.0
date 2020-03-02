@@ -2,76 +2,144 @@ Return-Path: <SRS0=hj4T=4T=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AD9EC3F2D7
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 20:59:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69AB3C3F2D7
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 21:47:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6AFFA2173E
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 20:59:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 44B2021739
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 21:47:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726810AbgCBU7B (ORCPT
+        id S1726783AbgCBVrG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Mar 2020 15:59:01 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:59282 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725911AbgCBU7A (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Mar 2020 15:59:00 -0500
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1j8s9S-0000av-WA; Mon, 02 Mar 2020 21:58:59 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     syzkaller-bugs@googlegroups.com, netdev@vger.kernel.org,
-        Florian Westphal <fw@strlen.de>,
-        syzbot+a2ff6fa45162a5ed4dd3@syzkaller.appspotmail.com
-Subject: [PATCH nf] netfilter: nf_tables: free flowtable hooks on hook register error
-Date:   Mon,  2 Mar 2020 21:58:50 +0100
-Message-Id: <20200302205850.29365-1-fw@strlen.de>
-X-Mailer: git-send-email 2.24.1
+        Mon, 2 Mar 2020 16:47:06 -0500
+Received: from correo.us.es ([193.147.175.20]:47838 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726720AbgCBVrF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 2 Mar 2020 16:47:05 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id D41DD396279
+        for <netfilter-devel@vger.kernel.org>; Mon,  2 Mar 2020 22:46:49 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C55ACDA3AF
+        for <netfilter-devel@vger.kernel.org>; Mon,  2 Mar 2020 22:46:49 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id B7E49DA3A9; Mon,  2 Mar 2020 22:46:49 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6A75EDA801;
+        Mon,  2 Mar 2020 22:46:47 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 02 Mar 2020 22:46:47 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 36033426CCBA;
+        Mon,  2 Mar 2020 22:46:47 +0100 (CET)
+Date:   Mon, 2 Mar 2020 22:46:59 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     Edward Cree <ecree@solarflare.com>, Jiri Pirko <jiri@resnulli.us>,
+        netdev@vger.kernel.org, davem@davemloft.net, saeedm@mellanox.com,
+        leon@kernel.org, michael.chan@broadcom.com, vishal@chelsio.com,
+        jeffrey.t.kirsher@intel.com, idosch@mellanox.com,
+        aelior@marvell.com, peppe.cavallaro@st.com,
+        alexandre.torgue@st.com, jhs@mojatatu.com,
+        xiyou.wangcong@gmail.com, mlxsw@mellanox.com,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [patch net-next v2 01/12] flow_offload: Introduce offload of HW
+ stats type
+Message-ID: <20200302214659.v4zm2whrv4qjz3pe@salvia>
+References: <20200228172505.14386-1-jiri@resnulli.us>
+ <20200228172505.14386-2-jiri@resnulli.us>
+ <20200229192947.oaclokcpn4fjbhzr@salvia>
+ <20200301084443.GQ26061@nanopsycho>
+ <20200302132016.trhysqfkojgx2snt@salvia>
+ <1da092c0-3018-7107-78d3-4496098825a3@solarflare.com>
+ <20200302192437.wtge3ze775thigzp@salvia>
+ <20200302121852.50a4fccc@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20200302121852.50a4fccc@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If hook registration fails, the hooks allocated via nft_netdev_hook_alloc
-need to be freed.
+On Mon, Mar 02, 2020 at 12:18:52PM -0800, Jakub Kicinski wrote:
+> On Mon, 2 Mar 2020 20:24:37 +0100 Pablo Neira Ayuso wrote:
+> > On Mon, Mar 02, 2020 at 04:29:32PM +0000, Edward Cree wrote:
+> > > On 02/03/2020 13:20, Pablo Neira Ayuso wrote:  
+> > > > 2) explicit counter action, in this case the user specifies explicitly
+> > > >    that it needs a counter in a given position of the rule. This
+> > > >    counter might come before or after the actual action.  
+> > >
+> > > But the existing API can already do this, with a gact pipe.  Plus, Jiri's
+> > >  new API will allow specifying a counter on any action (rather than only,
+> > >  implicitly, those which have .stats_update()) should that prove to be
+> > >  necessary.
+> > > 
+> > > I really think the 'explicit counter action' is a solution in search of a
+> > >  problem, let's not add random orthogonality violations.  (Equally if the
+> > >  counter action had been there first, I'd be against adding counters to
+> > >  the other actions.)  
+> > 
+> > It looks to me that you want to restrict the API to tc for no good
+> > _technical_ reason.
+> 
+> Undeniably part of the reason is that given how complex flow offloads
+> got there may be some resistance to large re-factoring. IMHO well
+> thought out refactoring of stats is needed.. but I'm not convinced 
+> this is the direction.
+>
+> Could you give us clearer understanding of what the use cases for the
+> counter action is?
+> 
+> AFAIK right now actions do the accounting on input. That seems like the
+> only logical option. Either action takes the packet out of the action
+> pipeline, in which case even the counter action after will not see it,
+> or it doesn't and the input counter of the next action can be used.
+>
+> Given counters must be next to real actions and not other counter
+> to have value, having them as a separate action seems to make no
+> difference at all (if users are silly, we can use the pipe/no-op).
 
-We can't change the goto label to 'goto 5' -- while it does fix the memleak
-it does cause a warning splat from the netfilter core (the hooks were not
-registered).
+This model that is proposed here is correct in the tc world, where
+counters are tied to actions (as you describe above). However, the
+flow_offload API already supports for ethtool and netfilter these
+days.
 
-Fixes: 3f0465a9ef02 ("netfilter: nf_tables: dynamically allocate hooks per net_device in flowtables")
-Reported-by: syzbot+a2ff6fa45162a5ed4dd3@syzkaller.appspotmail.com
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_tables_api.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+In Netfilter, counters are detached from actions. Obviously, a counter
+must be placed before the action _if_ the action gets the packet out
+of the pipeline, e.g.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index d1318bdf49ca..bb064aa4154b 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -6300,8 +6300,13 @@ static int nf_tables_newflowtable(struct net *net, struct sock *nlsk,
- 		goto err4;
- 
- 	err = nft_register_flowtable_net_hooks(ctx.net, table, flowtable);
--	if (err < 0)
-+	if (err < 0) {
-+		list_for_each_entry_safe(hook, next, &flowtable->hook_list, list) {
-+			list_del_rcu(&hook->list);
-+			kfree_rcu(hook, rcu);
-+		}
- 		goto err4;
-+	}
- 
- 	err = nft_trans_flowtable_add(&ctx, NFT_MSG_NEWFLOWTABLE, flowtable);
- 	if (err < 0)
--- 
-2.24.1
+     ip saddr 1.1.1.1 counter drop
 
+In this case, the counter is placed before the 'drop' action. Users
+that need no counters have to remove 'counter' from the rule syntax to
+opt-out.
+
+> IOW modeling the stats as attribute of other actions or a separate
+> action is entirely equivalent, and there's nothing to be gained from
+> moving from the existing scheme to explicit actions... other than it'd
+> make it look more like nft actions... :)
+
+I just wonder if a model that allows tc and netfilter to use this new
+statistics infrastructure would make everyone happy. My understanding
+is that it is not far away from what this patchset provides.
+
+The retorical question here probably is if you still want to allow the
+Netfilter front-end to benefit from this new flow_action API
+extension.
+
+The real question is: if you think this tc counter+action scheme can
+be used by netfilter, then please explain how.
