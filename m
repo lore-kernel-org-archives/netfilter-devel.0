@@ -2,126 +2,93 @@ Return-Path: <SRS0=hj4T=4T=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CFF2C3F2D2
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 14:16:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43A23C3F2D8
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 16:29:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C68CB2187F
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 14:16:40 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="NUaE6SnQ"
+	by mail.kernel.org (Postfix) with ESMTP id 1CBAF2465E
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 16:29:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726988AbgCBOQk (ORCPT
+        id S1727159AbgCBQ3r (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Mar 2020 09:16:40 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:50000 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726204AbgCBOQk (ORCPT
+        Mon, 2 Mar 2020 11:29:47 -0500
+Received: from dispatch1-us1.ppe-hosted.com ([148.163.129.52]:36072 "EHLO
+        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727030AbgCBQ3r (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Mar 2020 09:16:40 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=pC5BdRYAsofIcRFj8/SCW3PpmArlza4W47V96xnMytI=; b=NUaE6SnQIkGiyJODdJfMYJKM/A
-        0a2xwYDgvEjBV6SICkj4Q0sC2sQdM+kSPGaTYkigX+47nIaDgnxjtjUlkqbb4mT8Fpb6h6bhUbSSt
-        4X68bFhg5JOVqxYp3KnGBuAeJcng5jBNGhnAdx4+iidir4735IcOZA0lCCaGeokak0DN9faUSb3Cg
-        nCkXpKwMvban5sjF3RQ9+J8zUX+TSdxeHCv3RbnaS0x6zNW/TIpMZK0at9QKyU8EPaqb6GdZLKz7W
-        5dmAdbhOBVACSDwXy/uvVD/Up3mZdHmj8GUgNhQABvS0a0zfm2gq/36E5MRmUs+tq6pgTXMBoXsSO
-        PjzJXxHQ==;
-Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=azazel.net)
-        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1j8ls5-0005UN-Qq; Mon, 02 Mar 2020 14:16:37 +0000
-Date:   Mon, 2 Mar 2020 14:16:36 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
+        Mon, 2 Mar 2020 11:29:47 -0500
+X-Virus-Scanned: Proofpoint Essentials engine
+Received: from webmail.solarflare.com (uk.solarflare.com [193.34.186.16])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 457F794007C;
+        Mon,  2 Mar 2020 16:29:45 +0000 (UTC)
+Received: from [10.17.20.203] (10.17.20.203) by ukex01.SolarFlarecom.com
+ (10.17.10.4) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Mon, 2 Mar 2020
+ 16:29:36 +0000
+Subject: Re: [patch net-next v2 01/12] flow_offload: Introduce offload of HW
+ stats type
 To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft 05/18] evaluate: no need to swap byte-order for
- values of fewer than 16 bits.
-Message-ID: <20200302141636.GA996468@azazel.net>
-References: <20200229112731.796417-1-jeremy@azazel.net>
- <20200229112731.796417-6-jeremy@azazel.net>
+        Jiri Pirko <jiri@resnulli.us>
+CC:     <netdev@vger.kernel.org>, <davem@davemloft.net>, <kuba@kernel.org>,
+        <saeedm@mellanox.com>, <leon@kernel.org>,
+        <michael.chan@broadcom.com>, <vishal@chelsio.com>,
+        <jeffrey.t.kirsher@intel.com>, <idosch@mellanox.com>,
+        <aelior@marvell.com>, <peppe.cavallaro@st.com>,
+        <alexandre.torgue@st.com>, <jhs@mojatatu.com>,
+        <xiyou.wangcong@gmail.com>, <mlxsw@mellanox.com>,
+        <netfilter-devel@vger.kernel.org>
+References: <20200228172505.14386-1-jiri@resnulli.us>
+ <20200228172505.14386-2-jiri@resnulli.us>
+ <20200229192947.oaclokcpn4fjbhzr@salvia> <20200301084443.GQ26061@nanopsycho>
+ <20200302132016.trhysqfkojgx2snt@salvia>
+From:   Edward Cree <ecree@solarflare.com>
+Message-ID: <1da092c0-3018-7107-78d3-4496098825a3@solarflare.com>
+Date:   Mon, 2 Mar 2020 16:29:32 +0000
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.2.2
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="IJpNTDwzlM2Ie8A6"
-Content-Disposition: inline
-In-Reply-To: <20200229112731.796417-6-jeremy@azazel.net>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+In-Reply-To: <20200302132016.trhysqfkojgx2snt@salvia>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Content-Language: en-GB
+X-Originating-IP: [10.17.20.203]
+X-ClientProxiedBy: ocex03.SolarFlarecom.com (10.20.40.36) To
+ ukex01.SolarFlarecom.com (10.17.10.4)
+X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1020-25264.003
+X-TM-AS-Result: No-3.849000-8.000000-10
+X-TMASE-MatchedRID: QfHZjzml1E8bF9xF7zzuNfZvT2zYoYOwC/ExpXrHizzX1cRD6e4P5NSL
+        ORr4Zhm8IHihTRCBJ1ltewhzqv9YS6hUBSBrsWXxtvnlOJ61K3r2X2nyY2WSCcu+4EUKZ3vm0S+
+        TvGOUgqL2LbpCmFcD5pu+5Nb0pnThretZkLOvTssZSUX8zcPGn9eh/5dF8Efbf2dEskHXJhD5gc
+        6akIiNTQXtme8N0/6lwwA6ev2FLZJsMVyAAdvrLeIfK/Jd5eHmHkWa9nMURC5ye2s5ZlPBl6PFj
+        JEFr+olA6QGdvwfwZYNXwNUB3oA790H8LFZNFG7CKFCmhdu5cWNjrwpdeJBI6sg5bWIRniU5aaL
+        pIF9qa6LLHa9LQCI6JJH5x2hrN5mHovwctn5rtfHn14A3I06W09UWTcHpEqnXwLU7HsLL72igEH
+        y7J4S6ylkreA5r24aYnCi5itk3iprD5+Qup1qU56oP1a0mRIj
+X-TM-AS-User-Approved-Sender: Yes
+X-TM-AS-User-Blocked-Sender: No
+X-TMASE-Result: 10--3.849000-8.000000
+X-TMASE-Version: SMEX-12.5.0.1300-8.5.1020-25264.003
+X-MDID: 1583166586-hcP_vLkroZbg
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On 02/03/2020 13:20, Pablo Neira Ayuso wrote:
+> 2) explicit counter action, in this case the user specifies explicitly
+>    that it needs a counter in a given position of the rule. This
+>    counter might come before or after the actual action.
+But the existing API can already do this, with a gact pipe.  Plus, Jiri's
+ new API will allow specifying a counter on any action (rather than only,
+ implicitly, those which have .stats_update()) should that prove to be
+ necessary.
 
---IJpNTDwzlM2Ie8A6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I really think the 'explicit counter action' is a solution in search of a
+ problem, let's not add random orthogonality violations.  (Equally if the
+ counter action had been there first, I'd be against adding counters to
+ the other actions.)
 
-On 2020-02-29, at 11:27:18 +0000, Jeremy Sowden wrote:
-> Endianness is not meaningful for objects smaller than 2 bytes and the
-> byte-order conversions are no-ops in the kernel, so don't bother
-> inserting them.
->
-> Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
-> ---
->  src/evaluate.c              | 2 +-
->  tests/py/any/meta.t.payload | 4 ----
->  2 files changed, 1 insertion(+), 5 deletions(-)
->
-> diff --git a/src/evaluate.c b/src/evaluate.c
-> index 9b1a04f26f44..d5cc386d9792 100644
-> --- a/src/evaluate.c
-> +++ b/src/evaluate.c
-> @@ -149,7 +149,7 @@ static int byteorder_conversion(struct eval_ctx *ctx, struct expr **expr,
->
->  	if (expr_is_constant(*expr))
->  		(*expr)->byteorder = byteorder;
-> -	else {
-> +	else if ((*expr)->len / BITS_PER_BYTE > 1) {
->  		op = byteorder_conversion_op(*expr, byteorder);
->  		*expr = unary_expr_alloc(&(*expr)->location, op, *expr);
->  		if (expr_evaluate(ctx, expr) < 0)
-
-This isn't quite right.  It should be:
-
-@@ -147,7 +147,7 @@ static int byteorder_conversion(struct eval_ctx *ctx, struct expr **expr,
-                                  byteorder_names[byteorder],
-                                  byteorder_names[(*expr)->byteorder]);
-
--       if (expr_is_constant(*expr))
-+       if (expr_is_constant(*expr) || (*expr)->len / BITS_PER_BYTE < 2)
-                (*expr)->byteorder = byteorder;
-        else {
-                op = byteorder_conversion_op(*expr, byteorder);
-
-I'll send out a new version this evening.
-
---IJpNTDwzlM2Ie8A6
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQGzBAABCgAdFiEEd/6/sDFjb+OCRmRMonv1GCHZ79cFAl5dFT0ACgkQonv1GCHZ
-79fopgv/Zh41I8rUpiGDvqJC/SdPw5tyRJ4AbYpQV10xOsu2T1zmgo295AS8yQue
-OLOf0X+h+j/pbvWgLjDnF748vV/smTYPnlF64ZOC1HDqbT6lgPDKVnNBc/lbRmfR
-43sh8cRvXmPrPdFYzDYcH531JBkr3Cwdc4n6ZTngsR/AVKxzi5Tm19Fi4NciS14q
-CXB/vkow1SOchy8Nps55GnEx8jOlSYEYXIUuR7QbdCKloU+6McUeKj4CKl+Ke4OB
-GQf0+RcMyWvUo8jC/iob7IN4zfqbsHQOEaPTyXQKZ8gisYryQWCzg54ARabS+8wD
-Y7jcOgOfFIowBKThZqhP5aY6qs/ljPYp2rr4ztpmM3uXWydtz3dvAkCkLIPNiAC0
-udYwVtMiZkoXAQYolTiTNrW8ZJB03EkPOOy/nmocekcmBdD+B5zl6JwDbS+NW7p1
-1SqeTgen5ZPWEDIqlzC9DLWI/YFAWj6zZjHLIwQnnPHVwik6ReR5CPqcJS073YtO
-IfGIxKvr
-=jhqQ
------END PGP SIGNATURE-----
-
---IJpNTDwzlM2Ie8A6--
+-ed
