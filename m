@@ -2,50 +2,50 @@ Return-Path: <SRS0=hj4T=4T=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03D44C3F2D1
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 22:44:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83F0FC3F2D1
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 22:44:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C7690208C3
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 22:44:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F508208C3
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 22:44:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="KhKxbfF2"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="kh1dQ7gA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726785AbgCBWoX (ORCPT
+        id S1726845AbgCBWo1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Mar 2020 17:44:23 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:42564 "EHLO
+        Mon, 2 Mar 2020 17:44:27 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:42584 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726728AbgCBWoX (ORCPT
+        with ESMTP id S1726793AbgCBWo0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Mar 2020 17:44:23 -0500
+        Mon, 2 Mar 2020 17:44:26 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
          s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=d3DE9n7HukkhlGkga5/z10hP5uDrQRKAur534w1xi64=; b=KhKxbfF2RE7XaMdm118+6IUFRh
-        CcJWO0RL/r5lqT0KlN5Rm16BKG4yGscFksiFLbcJGMhwvBlfYRuXbv68sBa++nOZrCiUMK5YbjXRH
-        m3Fx2BF3+jVHKJuRM71itDziILXtdpnq1HCqk6ta6j/9ptzq2hpJ5K8PH2tlQLjea+rzHUeqZTkFC
-        Mn1yixEhYGBykRwAg1PM5pY3w/cZ/zQi5zwTns+yujdexihCx9SPTUmESMo62WspG1g5xE1ukS83e
-        ffR32HVssVZq2KOs9e5KbjXOOZIxi3efSA7EkJ013nbnjwp8sedkWQq5XK4ORwwhojaXfsmYomIZe
-        SoV7/4yw==;
+        bh=7RBGis5cIYqUfg5UYGAt8Mo8nI1dbcqISJfybXqnPSE=; b=kh1dQ7gAx8Vxf/9+M2HWtqZ1UM
+        8qa+gRjPoyPywxrfwCiYl9nI1JvIN37LYZNtOKcOXH/rQOPLYrEjTVh8jDW1iQQ0BJvZGYZIAW1YX
+        6vmmJCt9bPl1VWRoPJiA+0UAdKG4DnMWijyFmxiWDfYua9JLeuUCb0KAkdNBnKMe2AlpW6MYUU69Q
+        sI5+UEkyO9fvQvEdIQn/nDT+I7LigjcYeC5OKct+YOdjl4f3q5GhWM0Kcs2YzrfayDrd5OrCC1zyX
+        1/xQqq6wkYHYqJfnPz8Dopo3hbPS8UNJvAU4YJlXmjGmB3Psq0jIMTqyY9BSAbmldSmE9LkbSiEn/
+        kaoMV5iQ==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1j8tPC-0000Sg-Ev; Mon, 02 Mar 2020 22:19:18 +0000
+        id 1j8tPC-0000Sg-43; Mon, 02 Mar 2020 22:19:18 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Florian Westphal <fw@strlen.de>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft v2 15/18] netlink_delinearize: add postprocessing for payload binops.
-Date:   Mon,  2 Mar 2020 22:19:13 +0000
-Message-Id: <20200302221916.1005019-16-jeremy@azazel.net>
+Subject: [PATCH nft v2 13/18] netlink_delinearize: refactor stmt_payload_binop_postprocess.
+Date:   Mon,  2 Mar 2020 22:19:11 +0000
+Message-Id: <20200302221916.1005019-14-jeremy@azazel.net>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200302221916.1005019-1-jeremy@azazel.net>
 References: <20200302221916.1005019-1-jeremy@azazel.net>
@@ -59,59 +59,236 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If a user uses a variable payload expression in a payload statement, we
-need to undo any munging during delinearization.
+Move the contents of the two major cases (I and II) into separate
+functions.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- src/netlink_delinearize.c | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ src/netlink_delinearize.c | 192 +++++++++++++++++++++-----------------
+ 1 file changed, 107 insertions(+), 85 deletions(-)
 
 diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 571cab1d932b..73faa93c862e 100644
+index 4e5d64ede8bd..e8e9e5719ee8 100644
 --- a/src/netlink_delinearize.c
 +++ b/src/netlink_delinearize.c
-@@ -2125,6 +2125,30 @@ static void relational_binop_postprocess(struct rule_pp_ctx *ctx, struct expr *e
+@@ -2514,6 +2514,109 @@ static void stmt_payload_binop_pp(struct rule_pp_ctx *ctx, struct expr *binop)
  	}
  }
  
-+static bool payload_binop_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
++static bool stmt_payload_binop_postprocess_i(struct rule_pp_ctx *ctx)
 +{
-+	struct expr *expr = *exprp;
++	struct expr *expr, *binop, *payload, *value, *mask;
++	struct stmt *stmt = ctx->stmt;
++	mpz_t tmp, bitmask;
 +
-+	if (expr->op != OP_RSHIFT)
++	expr = stmt->payload.val;
++
++	if (expr->op != OP_OR)
 +		return false;
 +
-+	if (expr->left->etype != EXPR_BINOP || expr->left->op != OP_AND)
++	value = expr->right;
++	if (value->etype != EXPR_VALUE)
 +		return false;
 +
-+	if (expr->left->left->etype != EXPR_PAYLOAD)
++	binop = expr->left;
++	if (binop->op != OP_AND)
 +		return false;
 +
-+	expr_set_type(expr->right, &integer_type,
-+		      BYTEORDER_HOST_ENDIAN);
-+	expr_postprocess(ctx, &expr->right);
++	payload = binop->left;
++	if (payload->etype != EXPR_PAYLOAD)
++		return false;
++
++	if (!payload_expr_cmp(stmt->payload.expr, payload))
++		return false;
++
++	mask = binop->right;
++	if (mask->etype != EXPR_VALUE)
++		return false;
++
++	mpz_init(tmp);
++	mpz_set(tmp, mask->value);
++
++	mpz_init_bitmask(bitmask, payload->len);
++	mpz_xor(bitmask, bitmask, mask->value);
++	mpz_xor(bitmask, bitmask, value->value);
++	mpz_set(mask->value, bitmask);
++	mpz_clear(bitmask);
 +
 +	binop_postprocess(ctx, expr);
-+	*exprp = expr_get(expr->left);
-+	expr_free(expr);
++	if (!payload_is_known(payload)) {
++		mpz_set(mask->value, tmp);
++	} else {
++		expr_free(stmt->payload.expr);
++		stmt->payload.expr = expr_get(payload);
++		stmt->payload.val = expr_get(expr->right);
++		expr_free(expr);
++	}
++
++	mpz_clear(tmp);
 +
 +	return true;
 +}
 +
- static struct expr *string_wildcard_expr_alloc(struct location *loc,
- 					       const struct expr *mask,
- 					       const struct expr *expr)
-@@ -2258,6 +2282,9 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
- 		expr_set_type(expr, expr->arg->dtype, !expr->arg->byteorder);
- 		break;
- 	case EXPR_BINOP:
-+		if (payload_binop_postprocess(ctx, exprp))
-+			break;
++static bool stmt_payload_binop_postprocess_ii(struct rule_pp_ctx *ctx)
++{
++	struct expr *expr, *payload, *value;
++	struct stmt *stmt = ctx->stmt;
++	mpz_t bitmask;
 +
- 		expr_postprocess(ctx, &expr->left);
- 		switch (expr->op) {
- 		case OP_LSHIFT:
++	expr = stmt->payload.val;
++
++	value = expr->right;
++	if (value->etype != EXPR_VALUE)
++		return false;
++
++	switch (expr->op) {
++	case OP_AND: /* IIa */
++		payload = expr->left;
++		mpz_init_bitmask(bitmask, payload->len);
++		mpz_xor(bitmask, bitmask, value->value);
++		mpz_set(value->value, bitmask);
++		mpz_clear(bitmask);
++		break;
++	case OP_OR: /* IIb */
++		break;
++	default: /* No idea */
++		return false;
++	}
++
++	stmt_payload_binop_pp(ctx, expr);
++	if (!payload_is_known(expr->left))
++		return false;
++
++	expr_free(stmt->payload.expr);
++
++	switch (expr->op) {
++	case OP_AND:
++		/* Mask was used to match payload, i.e.
++		 * user asked to set zero value.
++		 */
++		mpz_set_ui(value->value, 0);
++		break;
++	default:
++		break;
++	}
++
++	stmt->payload.expr = expr_get(expr->left);
++	stmt->payload.val = expr_get(expr->right);
++	expr_free(expr);
++	return true;
++}
++
+ /**
+  * stmt_payload_binop_postprocess - decode payload set binop
+  *
+@@ -2558,9 +2661,8 @@ static void stmt_payload_binop_pp(struct rule_pp_ctx *ctx, struct expr *binop)
+  */
+ static void stmt_payload_binop_postprocess(struct rule_pp_ctx *ctx)
+ {
+-	struct expr *expr, *binop, *payload, *value, *mask;
++	struct expr *expr;
+ 	struct stmt *stmt = ctx->stmt;
+-	mpz_t bitmask;
+ 
+ 	expr = stmt->payload.val;
+ 
+@@ -2568,93 +2670,13 @@ static void stmt_payload_binop_postprocess(struct rule_pp_ctx *ctx)
+ 		return;
+ 
+ 	switch (expr->left->etype) {
+-	case EXPR_BINOP: {/* I? */
+-		mpz_t tmp;
+-
+-		if (expr->op != OP_OR)
+-			return;
+-
+-		value = expr->right;
+-		if (value->etype != EXPR_VALUE)
++	case EXPR_BINOP: /* I? */
++		if (stmt_payload_binop_postprocess_i(ctx))
+ 			return;
+-
+-		binop = expr->left;
+-		if (binop->op != OP_AND)
+-			return;
+-
+-		payload = binop->left;
+-		if (payload->etype != EXPR_PAYLOAD)
+-			return;
+-
+-		if (!payload_expr_cmp(stmt->payload.expr, payload))
+-			return;
+-
+-		mask = binop->right;
+-		if (mask->etype != EXPR_VALUE)
+-			return;
+-
+-		mpz_init(tmp);
+-		mpz_set(tmp, mask->value);
+-
+-		mpz_init_bitmask(bitmask, payload->len);
+-		mpz_xor(bitmask, bitmask, mask->value);
+-		mpz_xor(bitmask, bitmask, value->value);
+-		mpz_set(mask->value, bitmask);
+-		mpz_clear(bitmask);
+-
+-		binop_postprocess(ctx, expr);
+-		if (!payload_is_known(payload)) {
+-			mpz_set(mask->value, tmp);
+-			mpz_clear(tmp);
+-			return;
+-		}
+-
+-		mpz_clear(tmp);
+-		expr_free(stmt->payload.expr);
+-		stmt->payload.expr = expr_get(payload);
+-		stmt->payload.val = expr_get(expr->right);
+-		expr_free(expr);
+ 		break;
+-	}
+ 	case EXPR_PAYLOAD: /* II? */
+-		value = expr->right;
+-		if (value->etype != EXPR_VALUE)
+-			return;
+-
+-		switch (expr->op) {
+-		case OP_AND: /* IIa */
+-			payload = expr->left;
+-			mpz_init_bitmask(bitmask, payload->len);
+-			mpz_xor(bitmask, bitmask, value->value);
+-			mpz_set(value->value, bitmask);
+-			mpz_clear(bitmask);
+-			break;
+-		case OP_OR: /* IIb */
+-			break;
+-		default: /* No idea */
++		if (stmt_payload_binop_postprocess_ii(ctx))
+ 			return;
+-		}
+-
+-		stmt_payload_binop_pp(ctx, expr);
+-		if (!payload_is_known(expr->left))
+-			return;
+-
+-		expr_free(stmt->payload.expr);
+-
+-		switch (expr->op) {
+-		case OP_AND:
+-			/* Mask was used to match payload, i.e.
+-			 * user asked to set zero value.
+-			 */
+-			mpz_set_ui(value->value, 0);
+-			break;
+-		default:
+-			break;
+-		}
+-
+-		stmt->payload.expr = expr_get(expr->left);
+-		stmt->payload.val = expr_get(expr->right);
+-		expr_free(expr);
+ 		break;
+ 	default: /* No idea */
+ 		break;
 -- 
 2.25.1
 
