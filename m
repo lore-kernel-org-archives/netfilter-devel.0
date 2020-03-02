@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4C59C3F2CD
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 17:54:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53E1BC3F2CD
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 17:54:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 899572173E
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 17:54:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2AFD82173E
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 17:54:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727113AbgCBRyO (ORCPT
+        id S1727196AbgCBRyT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Mar 2020 12:54:14 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:53324 "EHLO orbyte.nwl.cc"
+        Mon, 2 Mar 2020 12:54:19 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:53330 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726451AbgCBRyO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Mar 2020 12:54:14 -0500
-Received: from localhost ([::1]:38182 helo=tatos)
+        id S1727126AbgCBRyS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 2 Mar 2020 12:54:18 -0500
+Received: from localhost ([::1]:38188 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1j8pGe-0007Il-G5; Mon, 02 Mar 2020 18:54:12 +0100
+        id 1j8pGj-0007J8-Q2; Mon, 02 Mar 2020 18:54:17 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 3/4] nft: cache: Simplify chain list allocation
-Date:   Mon,  2 Mar 2020 18:53:57 +0100
-Message-Id: <20200302175358.27796-4-phil@nwl.cc>
+Subject: [iptables PATCH 2/4] nft: cache: Make nft_rebuild_cache() respect fake cache
+Date:   Mon,  2 Mar 2020 18:53:56 +0100
+Message-Id: <20200302175358.27796-3-phil@nwl.cc>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200302175358.27796-1-phil@nwl.cc>
 References: <20200302175358.27796-1-phil@nwl.cc>
@@ -39,96 +39,70 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Allocate chain lists right after fetching table cache, regardless of
-whether partial cache is fetched or not. Chain list pointers reside in
-struct nft_cache's table array and hence are present irrespective of
-actual tables in kernel. Given the small number of tables, there wasn't
-much overhead avoided by the conditional in fetch_chain_cache().
+If transaction needed a refresh in nft_action(), restore with flush
+would fetch a full cache instead of merely refreshing table list
+contained in "fake" cache.
+
+To fix this, nft_rebuild_cache() must distinguish between fake cache and
+full rule cache. Therefore introduce NFT_CL_FAKE to be distinguished
+from NFT_CL_RULES.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/nft-cache.c | 46 ++++++++++++++++++--------------------------
- 1 file changed, 19 insertions(+), 27 deletions(-)
+ iptables/nft-cache.c | 11 ++++++++---
+ iptables/nft.h       |  3 ++-
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
 diff --git a/iptables/nft-cache.c b/iptables/nft-cache.c
-index e1b1e89c9e0d3..0429fb32f2ed0 100644
+index 6f21f2283e0fb..e1b1e89c9e0d3 100644
 --- a/iptables/nft-cache.c
 +++ b/iptables/nft-cache.c
-@@ -107,6 +107,23 @@ static int fetch_table_cache(struct nft_handle *h)
- 	return 1;
- }
- 
-+static int init_chain_cache(struct nft_handle *h)
-+{
-+	int i;
-+
-+	for (i = 0; i < NFT_TABLE_MAX; i++) {
-+		enum nft_table_type type = h->tables[i].type;
-+
-+		if (!h->tables[i].name)
-+			continue;
-+
-+		h->cache->table[type].chains = nftnl_chain_list_alloc();
-+		if (!h->cache->table[type].chains)
-+			return -1;
-+	}
-+	return 0;
-+}
-+
- struct nftnl_chain_list_cb_data {
- 	struct nft_handle *h;
- 	const struct builtin_table *t;
-@@ -316,26 +333,6 @@ static int fetch_chain_cache(struct nft_handle *h,
- 	struct nlmsghdr *nlh;
- 	int i, ret;
- 
--	if (!t) {
--		for (i = 0; i < NFT_TABLE_MAX; i++) {
--			enum nft_table_type type = h->tables[i].type;
--
--			if (!h->tables[i].name)
--				continue;
--
--			if (h->cache->table[type].chains)
--				continue;
--
--			h->cache->table[type].chains = nftnl_chain_list_alloc();
--			if (!h->cache->table[type].chains)
--				return -1;
--		}
--	} else if (!h->cache->table[t->type].chains) {
--		h->cache->table[t->type].chains = nftnl_chain_list_alloc();
--		if (!h->cache->table[t->type].chains)
--			return -1;
--	}
--
- 	if (t && chain) {
- 		struct nftnl_chain *c = nftnl_chain_alloc();
- 
-@@ -465,6 +462,7 @@ retry:
- 	switch (h->cache_level) {
- 	case NFT_CL_NONE:
- 		fetch_table_cache(h);
-+		init_chain_cache(h);
- 		if (level == NFT_CL_TABLES)
+@@ -484,6 +484,7 @@ retry:
  			break;
  		/* fall through */
-@@ -521,14 +519,8 @@ void nft_fake_cache(struct nft_handle *h)
- 	int i;
+ 	case NFT_CL_RULES:
++	case NFT_CL_FAKE:
+ 		break;
+ 	}
  
- 	fetch_table_cache(h);
--	for (i = 0; i < NFT_TABLE_MAX; i++) {
--		enum nft_table_type type = h->tables[i].type;
-+	init_chain_cache(h);
+@@ -528,7 +529,7 @@ void nft_fake_cache(struct nft_handle *h)
  
--		if (!h->tables[i].name)
--			continue;
--
--		h->cache->table[type].chains = nftnl_chain_list_alloc();
--	}
- 	h->cache_level = NFT_CL_FAKE;
+ 		h->cache->table[type].chains = nftnl_chain_list_alloc();
+ 	}
+-	h->cache_level = NFT_CL_RULES;
++	h->cache_level = NFT_CL_FAKE;
  	mnl_genid_get(h, &h->nft_genid);
  }
+ 
+@@ -641,8 +642,12 @@ void nft_rebuild_cache(struct nft_handle *h)
+ 	if (h->cache_level)
+ 		__nft_flush_cache(h);
+ 
+-	h->cache_level = NFT_CL_NONE;
+-	__nft_build_cache(h, level, NULL, NULL, NULL);
++	if (h->cache_level == NFT_CL_FAKE) {
++		nft_fake_cache(h);
++	} else {
++		h->cache_level = NFT_CL_NONE;
++		__nft_build_cache(h, level, NULL, NULL, NULL);
++	}
+ }
+ 
+ void nft_release_cache(struct nft_handle *h)
+diff --git a/iptables/nft.h b/iptables/nft.h
+index 5cf260a6d2cd3..2094b01455194 100644
+--- a/iptables/nft.h
++++ b/iptables/nft.h
+@@ -32,7 +32,8 @@ enum nft_cache_level {
+ 	NFT_CL_TABLES,
+ 	NFT_CL_CHAINS,
+ 	NFT_CL_SETS,
+-	NFT_CL_RULES
++	NFT_CL_RULES,
++	NFT_CL_FAKE	/* must be last entry */
+ };
+ 
+ struct nft_cache {
 -- 
 2.25.1
 
