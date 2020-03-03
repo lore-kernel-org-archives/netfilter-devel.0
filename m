@@ -6,70 +6,53 @@ X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DB25C3F2C6
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Mar 2020 21:25:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71CF5C3F2C6
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Mar 2020 21:53:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3D64D214DB
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Mar 2020 21:25:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4FD1B20848
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Mar 2020 21:53:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732622AbgCCVZR (ORCPT
+        id S1727311AbgCCVxF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 Mar 2020 16:25:17 -0500
-Received: from correo.us.es ([193.147.175.20]:50948 "EHLO mail.us.es"
+        Tue, 3 Mar 2020 16:53:05 -0500
+Received: from correo.us.es ([193.147.175.20]:57890 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732596AbgCCVZR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 Mar 2020 16:25:17 -0500
+        id S1725932AbgCCVxF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 3 Mar 2020 16:53:05 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 901846D01F
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 Mar 2020 22:25:00 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 990846CB60
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 Mar 2020 22:52:49 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7FE62FB362
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 Mar 2020 22:25:00 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 88543DA3A1
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 Mar 2020 22:52:49 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 68DD8DA3B1; Tue,  3 Mar 2020 22:25:00 +0100 (CET)
+        id 7D8EEDA72F; Tue,  3 Mar 2020 22:52:49 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5BAC4DA736;
-        Tue,  3 Mar 2020 22:24:58 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 70A42DA736;
+        Tue,  3 Mar 2020 22:52:47 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 03 Mar 2020 22:24:58 +0100 (CET)
+ Tue, 03 Mar 2020 22:52:47 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 1A17642EE38F;
-        Tue,  3 Mar 2020 22:24:58 +0100 (CET)
-Date:   Tue, 3 Mar 2020 22:25:11 +0100
+        by entrada.int (Postfix) with ESMTPSA id 51F4A42EE38E;
+        Tue,  3 Mar 2020 22:52:47 +0100 (CET)
+Date:   Tue, 3 Mar 2020 22:53:00 +0100
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Edward Cree <ecree@solarflare.com>
-Cc:     Jakub Kicinski <kuba@kernel.org>, Jiri Pirko <jiri@resnulli.us>,
-        netdev@vger.kernel.org, davem@davemloft.net, saeedm@mellanox.com,
-        leon@kernel.org, michael.chan@broadcom.com, vishal@chelsio.com,
-        jeffrey.t.kirsher@intel.com, idosch@mellanox.com,
-        aelior@marvell.com, peppe.cavallaro@st.com,
-        alexandre.torgue@st.com, jhs@mojatatu.com,
-        xiyou.wangcong@gmail.com, mlxsw@mellanox.com,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [patch net-next v2 01/12] flow_offload: Introduce offload of HW
- stats type
-Message-ID: <20200303212511.ilge4x2k5zmnyr6w@salvia>
-References: <20200301084443.GQ26061@nanopsycho>
- <20200302132016.trhysqfkojgx2snt@salvia>
- <1da092c0-3018-7107-78d3-4496098825a3@solarflare.com>
- <20200302192437.wtge3ze775thigzp@salvia>
- <20200302121852.50a4fccc@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
- <20200302214659.v4zm2whrv4qjz3pe@salvia>
- <20200302144928.0aca19a0@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
- <9478af72-189f-740e-5a6d-608670e5b734@solarflare.com>
- <20200303202739.6nwq3ru2vf62j2ek@salvia>
- <0452cffa-1054-418f-0a5d-8e15afd87969@solarflare.com>
+To:     wenxu@ucloud.cn
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH nf-next v5 0/4] netfilter: flowtable: add indr-block
+ offload
+Message-ID: <20200303215300.qzo4ankxq5ktaba4@salvia>
+References: <1582521775-25176-1-git-send-email-wenxu@ucloud.cn>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <0452cffa-1054-418f-0a5d-8e15afd87969@solarflare.com>
+In-Reply-To: <1582521775-25176-1-git-send-email-wenxu@ucloud.cn>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -77,57 +60,41 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Mar 03, 2020 at 09:06:48PM +0000, Edward Cree wrote:
-> On 03/03/2020 20:27, Pablo Neira Ayuso wrote:
-> > On Tue, Mar 03, 2020 at 06:55:54PM +0000, Edward Cree wrote:
-> >> On 02/03/2020 22:49, Jakub Kicinski wrote:
-> >>> On Mon, 2 Mar 2020 22:46:59 +0100 Pablo Neira Ayuso wrote:
-> >>>> On Mon, Mar 02, 2020 at 12:18:52PM -0800, Jakub Kicinski wrote:
-> >>>>> On Mon, 2 Mar 2020 20:24:37 +0100 Pablo Neira Ayuso wrote:  
-> >>>>>> It looks to me that you want to restrict the API to tc for no good
-> >>>>>> _technical_ reason.  
-> >> The technical reason is that having two ways to do things where one would
-> >>  suffice means more code to be written, tested, debugged.  So if you want
-> >>  to add this you need to convince us that the existing way (a) doesn't
-> >>  meet your needs and (b) can't be extended to cover them.
-> > One single unified way to express the hardware offload for _every_
-> > supported frontend is the way to go. The flow_offload API provides a
-> > framework to model all hardware offloads for each existing front-end.
-> >
-> > I understand your motivation might be a specific front-end of your
-> > choice, that's fair enough.
-> I think we've misunderstood each other (90% my fault).
+Hi,
+
+On Mon, Feb 24, 2020 at 01:22:51PM +0800, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
 > 
-> When you wrote "restrict the API to tc" I read that as "restrict growth of
->  the API for flow offloading" (which I *do* want); I've now re-parsed and
->  believe you meant it as "limit the API so that only tc may use it" (which
->  is not my desire at all).
+> This patch provide tunnel offload based on route lwtunnel. 
+> The first two patches support indr callback setup
+> Then add tunnel match and action offload.
 > 
-> Thus, when I spoke of "two ways to do things" I meant that _within_ the
->  (unified) flow_offload API there should be a single approach to stats
->  (the counters attached to actions), to which levels above and below it
->  impedance-match as necessary (e.g. by merging netfilter count actions
->  onto the following action as Jakub described) rather than bundling
->  two interfaces (tc-style counters and separate counter actions)
->  into one API (which would mean that drivers would all need to write
->  code to handle both kinds, at no gain of expressiveness).
+> This version modify the second patch: make the dev can bind with different 
+> flowtable and check the NF_FLOWTABLE_HW_OFFLOAD flags in 
+> nf_flow_table_indr_block_cb_cmd. 
 
-It's not that natural to express counters like you prefer for
-netfilter, but fair enough, we'll carry on that extra burden of
-merging counters to actions.
+I found some time to look at this indirect block infrastructure that
+you have added to net/core/flow_offload.c
 
-Sometimes decisions just need a second round: I will expect broken
-endianness in drivers because of the 32-bit word choice for the
-payload mangling API. But that's a different story.
+This is _complex_ code, I don't understand why it is so complex.
+Frontend calls walks into the driver through callback, then, it gets
+back to the front-end code again through another callback to come
+back... this is hard to follow.
 
-Noone to blame, there is still experimentation going on in this API.
+Then, we still have problem with the existing approach that you
+propose, since there is 1:N mapping between the indirect block and the
+net_device.
 
-> I was *not* referring to tc and netfilter
->  as the "two different ways", but  I can see why you read it that
->  way.
+Probably not a requirement in your case, but the same net_device might
+be used in several flowtables. Your patch is flawed there and I don't
+see an easy way to fix this.
 
-I don't follow, sorry.
+I know there is no way to use ->ndo_setup_tc for tunnel devices, but
+you could have just make it work making it look consistent to the
+->ndo_setup_tc logic.
 
-> I hope that makes sense now.
+I'm inclined to apply this patch though, in the hope that this all can
+be revisited later to get it in line with the ->ndo_setup_tc approach.
+However, probably I'm hoping for too much.
 
-Sure, thank you.
+Thank you.
