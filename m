@@ -2,115 +2,192 @@ Return-Path: <SRS0=D+Hy=4U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37F42C3F2C6
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Mar 2020 09:33:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F19CC3F2CD
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Mar 2020 09:37:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 10AAB21556
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Mar 2020 09:33:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D6038205ED
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Mar 2020 09:36:59 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="FFplUM1S"
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="VErE2Zew"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728193AbgCCJdj (ORCPT
+        id S1728164AbgCCJg7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 Mar 2020 04:33:39 -0500
-Received: from kadath.azazel.net ([81.187.231.250]:40126 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728157AbgCCJdj (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 Mar 2020 04:33:39 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=u4rVlHmO8ErXp80akfDlRbuwHreleju7OoU32r5raUA=; b=FFplUM1SWn1LpFXalyADgDwmc8
-        PpYEobSd2zPBB2/PY2EKmzf+3N6sehE3cirHit0FXmpg+OBIm1/boALKcwdB5PMPzdZWHOiIbnE7Y
-        jg3Z65x6xYKYt5RnrJNF28ji0lop+v5EWezzApENCvTInLeWdC5N0QeyHitH8CYqnXgplQRblIV/T
-        RhzDLJO4wniYg/kbMHuY+to1gMrLaoJa+2amRcwuv963SFYzqraiLLEH/CENLC7YGADb7KXuhmaO0
-        n38Sit/EouakejKXfGcBXnseI4QJz/kbQuJ7lUQoB1r0W+ZIR+AWBpG5aLWWvNvGHQvXPNs8aIQ2p
-        G8hSxO1w==;
-Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=azazel.net)
-        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1j93vj-0007lb-Pf; Tue, 03 Mar 2020 09:33:35 +0000
-Date:   Tue, 3 Mar 2020 09:33:34 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft v2 11/18] netlink_linearize: round binop bitmask
- length up.
-Message-ID: <20200303093334.GA2265@azazel.net>
-References: <20200302221916.1005019-1-jeremy@azazel.net>
- <20200302221916.1005019-12-jeremy@azazel.net>
+        Tue, 3 Mar 2020 04:36:59 -0500
+Received: from smtp-out.kfki.hu ([148.6.0.48]:50671 "EHLO smtp-out.kfki.hu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728045AbgCCJg7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 3 Mar 2020 04:36:59 -0500
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 3DA2DCC00F3;
+        Tue,  3 Mar 2020 10:36:56 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        blackhole.kfki.hu; h=mime-version:user-agent:references
+        :message-id:in-reply-to:from:from:date:date:received:received
+        :received; s=20151130; t=1583228214; x=1585042615; bh=5FVrDeZsp1
+        t0gaw/zGPrvUKcVmpTJQd7tqIhkhPETZA=; b=VErE2ZewpJvFYuJPNzDPS4Odl5
+        GnkHaippRQb7B5me7+xFr90yJwDJgR4KQ6oUsADJPTlZRsSRxIcIHenxFLjVcHos
+        9BPiiawyz8SA306wKQbesoKs69rhG/KFQmNZr833ooYEvR2I8NXAXDIGT4QER2Zh
+        TZiNMQsw4qfWLvqvs=
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Tue,  3 Mar 2020 10:36:54 +0100 (CET)
+Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.240.2])
+        by smtp2.kfki.hu (Postfix) with ESMTP id E7951CC00E6;
+        Tue,  3 Mar 2020 10:36:53 +0100 (CET)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id BF62E21229; Tue,  3 Mar 2020 10:36:53 +0100 (CET)
+Date:   Tue, 3 Mar 2020 10:36:53 +0100 (CET)
+From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+X-X-Sender: kadlec@blackhole.kfki.hu
+To:     Stefano Brivio <sbrivio@redhat.com>
+cc:     netfilter-devel@vger.kernel.org, Mithil Mhatre <mmhatre@redhat.com>
+Subject: Re: [PATCH] ipset: Update byte and packet counters regardless of
+ whether they match
+In-Reply-To: <20200228124039.00e5a343@redhat.com>
+Message-ID: <alpine.DEB.2.20.2003031020330.3731@blackhole.kfki.hu>
+References: <f4b0ae68661c865c3083d2fa896e9a112057a82f.1582566351.git.sbrivio@redhat.com> <alpine.DEB.2.20.2002250857120.26348@blackhole.kfki.hu> <20200225094043.5a78337e@redhat.com> <alpine.DEB.2.20.2002250954060.26348@blackhole.kfki.hu> <20200225132235.5204639d@redhat.com>
+ <alpine.DEB.2.20.2002252113111.29920@blackhole.kfki.hu> <20200225215322.6fb5ecb0@redhat.com> <alpine.DEB.2.20.2002272112360.11901@blackhole.kfki.hu> <20200228124039.00e5a343@redhat.com>
+User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="liOOAslEiF7prFVr"
-Content-Disposition: inline
-In-Reply-To: <20200302221916.1005019-12-jeremy@azazel.net>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi Stefano,
 
---liOOAslEiF7prFVr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Fri, 28 Feb 2020, Stefano Brivio wrote:
 
-On 2020-03-02, at 22:19:09 +0000, Jeremy Sowden wrote:
-> In this example:
->
-> nft --debug=netlink add rule ip t c ip dscp set ip dscp
-> ip t c
->   [ payload load 2b @ network header + 0 => reg 1 ]
->   [ bitwise reg 1 = (reg=1 & 0x000003ff ) ^ 0x00000000 ]
->   [ payload load 1b @ network header + 1 => reg 2 ]
->   [ bitwise reg 2 = (reg=2 & 0x0000003c ) ^ 0x00000000 ]
->   [ bitwise reg 2 = ( reg 2 >> 0x00000002 ) ]
->   [ bitwise reg 2 = ( reg 2 << 0x00000002 ) ]
->   [ bitwise reg 1 = (reg=1 & 0x0000ffff ) ^ reg 2 ]
->   [ payload write reg 1 => 2b @ network header + 0 csum_type 1 csum_off 10 csum_flags 0x0 ]
->
-> The mask at line 4 should be 0xfc, not 0x3c.
->
-> Evaluation of the payload expression munges it from `ip dscp` to
-> `(ip dscp & 0xfc) >> 2`.  When this AND expression is evaluated, its
-> length is set to 6, the length of `ip dscp`.  When the bitwise netlink
-> expression is generated, the length of the AND is used to generate the
-> mask, 0x3f, used in combining the binop's.  The upshot of this is that
-> the original mask gets mangled to 0x3c.  We can fix this by rounding
-> the length of the mask to the nearest byte.
+> On Thu, 27 Feb 2020 21:37:10 +0100 (CET)
+> Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
+> 
+> > On Tue, 25 Feb 2020, Stefano Brivio wrote:
+> > 
+> > > On Tue, 25 Feb 2020 21:37:45 +0100 (CET)
+> > > Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
+> > >   
+> > > > On Tue, 25 Feb 2020, Stefano Brivio wrote:
+> > > >   
+> > > > > > The logic could be changed in the user rules from
+> > > > > > 
+> > > > > > iptables -I INPUT -m set --match-set c src --bytes-gt 800 -j DROP
+> > > > > > 
+> > > > > > to
+> > > > > > 
+> > > > > > iptables -I INPUT -m set --match-set c src --bytes-lt 800 -j ACCEPT
+> > > > > > [ otherwise DROP ]
+> > > > > > 
+> > > > > > but of course it might be not so simple, depending on how the rules are 
+> > > > > > built up.    
+> > > > > 
+> > > > > Yes, it would work, unless the user actually wants to check with the
+> > > > > same counter how many bytes are sent "in excess".    
+> > > > 
+> > > > You mean the counters are still updated whenever the element is matched in 
+> > > > the set and then one could check how many bytes were sent over the 
+> > > > threshold just by listing the set elements.  
+> > > 
+> > > Yes, exactly -- note that it was possible (and, I think, used) before.  
+> > 
+> > I'm still not really convinced about such a feature. Why is it useful to 
+> > know how many bytes would be sent over the "limit"?
+> 
+> This is useful in case one wants different treatments for packets
+> according to a number of thresholds in different rules. For example,
+> 
+>     iptables -I INPUT -m set --match-set c src --bytes-lt 100 -j noise
+>     iptables -I noise -m set --match-set c src --bytes-lt 20000 -j download
+> 
+> and you want to log packets from chains 'noise' and 'download' with
+> different prefixes.
 
-This is the wrong solution.
+What do you think about this patch?
 
-J.
+diff --git a/kernel/include/uapi/linux/netfilter/ipset/ip_set.h b/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
+index 7545af4..6881329 100644
+--- a/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
++++ b/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
+@@ -186,6 +186,9 @@ enum ipset_cmd_flags {
+ 	IPSET_FLAG_MAP_SKBPRIO = (1 << IPSET_FLAG_BIT_MAP_SKBPRIO),
+ 	IPSET_FLAG_BIT_MAP_SKBQUEUE = 10,
+ 	IPSET_FLAG_MAP_SKBQUEUE = (1 << IPSET_FLAG_BIT_MAP_SKBQUEUE),
++	IPSET_FLAG_BIT_UPDATE_COUNTERS_FIRST = 11,
++	IPSET_FLAG_UPDATE_COUNTERS_FIRST =
++		(1 << IPSET_FLAG_BIT_UPDATE_COUNTERS_FIRST),
+ 	IPSET_FLAG_CMD_MAX = 15,
+ };
+ 
+diff --git a/kernel/net/netfilter/ipset/ip_set_core.c b/kernel/net/netfilter/ipset/ip_set_core.c
+index 1df6536..423d0de 100644
+--- a/kernel/net/netfilter/ipset/ip_set_core.c
++++ b/kernel/net/netfilter/ipset/ip_set_core.c
+@@ -622,10 +622,9 @@ ip_set_add_packets(u64 packets, struct ip_set_counter *counter)
+ 
+ static void
+ ip_set_update_counter(struct ip_set_counter *counter,
+-		      const struct ip_set_ext *ext, u32 flags)
++		      const struct ip_set_ext *ext)
+ {
+-	if (ext->packets != ULLONG_MAX &&
+-	    !(flags & IPSET_FLAG_SKIP_COUNTER_UPDATE)) {
++	if (ext->packets != ULLONG_MAX) {
+ 		ip_set_add_bytes(ext->bytes, counter);
+ 		ip_set_add_packets(ext->packets, counter);
+ 	}
+@@ -649,13 +648,19 @@ ip_set_match_extensions(struct ip_set *set, const struct ip_set_ext *ext,
+ 	if (SET_WITH_COUNTER(set)) {
+ 		struct ip_set_counter *counter = ext_counter(data, set);
+ 
++		if (flags & IPSET_FLAG_UPDATE_COUNTERS_FIRST)
++			ip_set_update_counter(counter, ext);
++
+ 		if (flags & IPSET_FLAG_MATCH_COUNTERS &&
+ 		    !(ip_set_match_counter(ip_set_get_packets(counter),
+ 				mext->packets, mext->packets_op) &&
+ 		      ip_set_match_counter(ip_set_get_bytes(counter),
+ 				mext->bytes, mext->bytes_op)))
+ 			return false;
+-		ip_set_update_counter(counter, ext, flags);
++
++		if (!(flags & (IPSET_FLAG_UPDATE_COUNTERS_FIRST|
++			       IPSET_FLAG_SKIP_COUNTER_UPDATE)))
++			ip_set_update_counter(counter, ext);
+ 	}
+ 	if (SET_WITH_SKBINFO(set))
+ 		ip_set_get_skbinfo(ext_skbinfo(data, set),
 
---liOOAslEiF7prFVr
-Content-Type: application/pgp-signature; name="signature.asc"
+Then the rules above would look like
 
------BEGIN PGP SIGNATURE-----
+... -m set ... --update-counters-first --bytes-lt 100 -j noise
+... -m set ... --update-counters-first --bytes-ge 100 -j download
+ 
+> > > What I meant is really the case where "--update-counters" (or 
+> > > "--force-update-counters") and "! --update-counters" are both 
+> > > absent: I don't see any particular advantage in the current 
+> > > behaviour for that case.
+> > 
+> > The counters are used just for statistical purposes: reflect the 
+> > packets/bytes which were let through, i.e. matched the whole "rule". 
+> > In that case updating the counters before the counter value matching 
+> > is evaluated gives false results.
+> 
+> Well, but for that, iptables/x_tables counters are available and (as far 
+> as I know) typically used.
 
-iQGzBAABCgAdFiEEd/6/sDFjb+OCRmRMonv1GCHZ79cFAl5eJFIACgkQonv1GCHZ
-79fr2wv/WwGFo6M9A1GAvEJAjedsVtGcQyH4/+MQ8v0Y1CE8pM8KeaFJdl5EzYEm
-PP7+HnbLr6Wr82jwxFvQoD7HKujtnn3O0z9plZXznmuF7msQhikKf21V8D4aXk5g
-pmaLFa5E8cXQupN+EYgXe7oYufxzSUZxJa+8TWcTzkRsmdwFkpZaSicSObNl/22e
-x36S8N+TYQO+IOPTwUtXcrTkqS77qMEWrv1ro642VzjE5IE6vNF2vfexWuvNOLPi
-+oyigbuPqL0ZKFuO+bXznJS16HjS2fzKnGUQ3KfIxjnJtlPWOAF6DA0o0MbrOHRC
-e7Trp/V0xN/GkyomlsoL5EKsRMJJO9cDOqXMoqyOLC+Hyt9kjnWA2eudIsoE/s0H
-c+z8+4Hu+yaz65Jq/SD+lUgW1gbb/wMAkOc8oqohvd3PVJ+p2X72tJ5khSSi+N8L
-NS6cXI9HZV3wUI4zx2xgvFsS/AGukhG7MytX6/j2aQ4R64v0jh1hbMAnKJfEHCtS
-cwMF01p4
-=+A+n
------END PGP SIGNATURE-----
+With "rules" I meant at ipset level (match element + packet/byte counters 
+as specified), i.e. counters for statistical purposes per set elements 
+level.
 
---liOOAslEiF7prFVr--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
