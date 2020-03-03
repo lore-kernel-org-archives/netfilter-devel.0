@@ -1,172 +1,128 @@
-Return-Path: <SRS0=hj4T=4T=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=D+Hy=4U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1458DC3F2D1
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 22:49:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6024C3F2CD
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Mar 2020 00:26:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DD0852173E
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Mar 2020 22:49:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583189373;
-	bh=wmG7nx2gKT1ej2x9EGIjzDwZjQRIEbOxHvYx2O8/GNc=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=NWvuOZkC3nE8HZiAvVQUpW0/OvPrOYPtAk1f66he0B1/tW0k5blazFYYMFsah5Ix9
-	 0hJrKLhTbiu0+jqOPrVENDMSiP0cHjnZlgNCF6uKtleZySVmVAQolGUahzV0MsAmDG
-	 qkUbGMdMUYLHDHCrCJC0lwQCxh78XnbVz7nSAtbM=
+	by mail.kernel.org (Postfix) with ESMTP id 8C35B2467B
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Mar 2020 00:26:26 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b="kzv9byor"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726783AbgCBWtc (ORCPT
+        id S1727085AbgCCA0X (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Mar 2020 17:49:32 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47930 "EHLO mail.kernel.org"
+        Mon, 2 Mar 2020 19:26:23 -0500
+Received: from ozlabs.org ([203.11.71.1]:58941 "EHLO ozlabs.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726728AbgCBWtc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Mar 2020 17:49:32 -0500
-Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.128])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        id S1726915AbgCCA0X (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 2 Mar 2020 19:26:23 -0500
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6742C208C3;
-        Mon,  2 Mar 2020 22:49:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1583189371;
-        bh=wmG7nx2gKT1ej2x9EGIjzDwZjQRIEbOxHvYx2O8/GNc=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=g4vnX1NnfAqIGFss7C95ORBUJ2Gyj7CxJVVwMf+erdB285lm4aKcaRKyb62bR7aLX
-         6IoEAS56a6QAmjug8KZ9S6mpZlbPwtfsccMjWh1lD+3RJ/5vFYS+tHN1Y9MVp/Gw3t
-         KQiBv8nuM/DQBhqnZeOS/DKMTTk6yBsT2MHHVTNI=
-Date:   Mon, 2 Mar 2020 14:49:28 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Edward Cree <ecree@solarflare.com>, Jiri Pirko <jiri@resnulli.us>,
-        netdev@vger.kernel.org, davem@davemloft.net, saeedm@mellanox.com,
-        leon@kernel.org, michael.chan@broadcom.com, vishal@chelsio.com,
-        jeffrey.t.kirsher@intel.com, idosch@mellanox.com,
-        aelior@marvell.com, peppe.cavallaro@st.com,
-        alexandre.torgue@st.com, jhs@mojatatu.com,
-        xiyou.wangcong@gmail.com, mlxsw@mellanox.com,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [patch net-next v2 01/12] flow_offload: Introduce offload of HW
- stats type
-Message-ID: <20200302144928.0aca19a0@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20200302214659.v4zm2whrv4qjz3pe@salvia>
-References: <20200228172505.14386-1-jiri@resnulli.us>
-        <20200228172505.14386-2-jiri@resnulli.us>
-        <20200229192947.oaclokcpn4fjbhzr@salvia>
-        <20200301084443.GQ26061@nanopsycho>
-        <20200302132016.trhysqfkojgx2snt@salvia>
-        <1da092c0-3018-7107-78d3-4496098825a3@solarflare.com>
-        <20200302192437.wtge3ze775thigzp@salvia>
-        <20200302121852.50a4fccc@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-        <20200302214659.v4zm2whrv4qjz3pe@salvia>
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 48Wd985fPQz9sSG;
+        Tue,  3 Mar 2020 11:26:20 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
+        s=201702; t=1583195181;
+        bh=6pNAZ4DNdVjlv1OmTqyQ0CQpMidWYRVRMi415EdzFLc=;
+        h=Date:From:To:Cc:Subject:From;
+        b=kzv9byorkfPrd7DYiYlrIPiBbd+bYYnp1AXR3ttQVpD56sZ0IK0gsrwntv/HpxQgL
+         tph+FEXez5mEAa5IucY03akcTStY9ZKyWP1Zrhj/SesO87572xUk+yiUv3R3gq2GZj
+         fjJpiaaECCy0k/Hpx9MRY0eKyHYq5rLcSVPNslFFvM2tHxhpY55XSV61hACWdTqGAS
+         BJjgI0kOw/f+zhj5EgogimWiT6mZws2xzwSiZSCx9TBAdcExgtytDpJi/nWqDtQ19Y
+         k/9G2pNHci/NSDfcAEIUT7GUn/zhqXId1+WQQy0kPh9ZWQ7lT/eKmOcJ3TB+H9uUxc
+         ZmXU/lc5DXfXw==
+Date:   Tue, 3 Mar 2020 11:26:14 +1100
+From:   Stephen Rothwell <sfr@canb.auug.org.au>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>
+Cc:     Linux Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: linux-next: manual merge of the netfilter-next tree with Linus'
+ tree
+Message-ID: <20200303112614.546aa34f@canb.auug.org.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; boundary="Sig_/QYioLg.i7ALBe_AZALOdD7Y";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, 2 Mar 2020 22:46:59 +0100 Pablo Neira Ayuso wrote:
-> On Mon, Mar 02, 2020 at 12:18:52PM -0800, Jakub Kicinski wrote:
-> > On Mon, 2 Mar 2020 20:24:37 +0100 Pablo Neira Ayuso wrote: =20
-> > > On Mon, Mar 02, 2020 at 04:29:32PM +0000, Edward Cree wrote: =20
-> > > > On 02/03/2020 13:20, Pablo Neira Ayuso wrote:   =20
-> > > > > 2) explicit counter action, in this case the user specifies expli=
-citly
-> > > > >    that it needs a counter in a given position of the rule. This
-> > > > >    counter might come before or after the actual action.   =20
-> > > >
-> > > > But the existing API can already do this, with a gact pipe.=C2=A0 P=
-lus, Jiri's
-> > > > =C2=A0new API will allow specifying a counter on any action (rather=
- than only,
-> > > > =C2=A0implicitly, those which have .stats_update()) should that pro=
-ve to be
-> > > > =C2=A0necessary.
-> > > >=20
-> > > > I really think the 'explicit counter action' is a solution in searc=
-h of a
-> > > > =C2=A0problem, let's not add random orthogonality violations.=C2=A0=
- (Equally if the
-> > > > =C2=A0counter action had been there first, I'd be against adding co=
-unters to
-> > > > =C2=A0the other actions.)   =20
-> > >=20
-> > > It looks to me that you want to restrict the API to tc for no good
-> > > _technical_ reason. =20
-> >=20
-> > Undeniably part of the reason is that given how complex flow offloads
-> > got there may be some resistance to large re-factoring. IMHO well
-> > thought out refactoring of stats is needed.. but I'm not convinced=20
-> > this is the direction.
-> >
-> > Could you give us clearer understanding of what the use cases for the
-> > counter action is?
-> >=20
-> > AFAIK right now actions do the accounting on input. That seems like the
-> > only logical option. Either action takes the packet out of the action
-> > pipeline, in which case even the counter action after will not see it,
-> > or it doesn't and the input counter of the next action can be used.
-> >
-> > Given counters must be next to real actions and not other counter
-> > to have value, having them as a separate action seems to make no
-> > difference at all (if users are silly, we can use the pipe/no-op). =20
->=20
-> This model that is proposed here is correct in the tc world, where
-> counters are tied to actions (as you describe above). However, the
-> flow_offload API already supports for ethtool and netfilter these
-> days.
->=20
-> In Netfilter, counters are detached from actions. Obviously, a counter
-> must be placed before the action _if_ the action gets the packet out
-> of the pipeline, e.g.
->=20
->      ip saddr 1.1.1.1 counter drop
->=20
-> In this case, the counter is placed before the 'drop' action. Users
-> that need no counters have to remove 'counter' from the rule syntax to
-> opt-out.
+--Sig_/QYioLg.i7ALBe_AZALOdD7Y
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-In Jiri's set if counter exists DROP should get the ANY flag, if
-counter is not there - DISABLED.
+Hi all,
 
-> > IOW modeling the stats as attribute of other actions or a separate
-> > action is entirely equivalent, and there's nothing to be gained from
-> > moving from the existing scheme to explicit actions... other than it'd
-> > make it look more like nft actions... :) =20
->=20
-> I just wonder if a model that allows tc and netfilter to use this new
-> statistics infrastructure would make everyone happy. My understanding
-> is that it is not far away from what this patchset provides.
->=20
-> The retorical question here probably is if you still want to allow the
-> Netfilter front-end to benefit from this new flow_action API
-> extension.
->=20
-> The real question is: if you think this tc counter+action scheme can
-> be used by netfilter, then please explain how.
+Today's linux-next merge of the netfilter-next tree got a conflict in:
 
-In Jiri's latest patch set the counter type is per action, so just
-"merge right" the counter info into the next action and the models=20
-are converted.
+  net/netfilter/ipset/ip_set_hash_gen.h
 
-If user is silly and has multiple counter actions in a row - the
-pipe/no-op action comes into play (that isn't part of this set,=20
-as Jiri said).
+between commit:
 
-Can you give us examples of what wouldn't work? Can you for instance
-share the counter across rules?
+  f66ee0410b1c ("netfilter: ipset: Fix "INFO: rcu detected stall in hash_xx=
+x" reports")
 
-Also neither proposal addresses the problem of reporting _different_
-counter values at different stages in the pipeline, i.e. moving from
-stats per flow to per action. But nobody seems to be willing to work=20
-on that.
+from Linus' tree and commit:
 
-AFAICT with Jiri's change we only need one check in the drivers to
-convert from old scheme to new, with explicit action we need two
-(additional one being ignoring the counter action). Not a big deal,
-but 1 is less than 2 =F0=9F=A4=B7=E2=80=8D=E2=99=82=EF=B8=8F
+  9fabbf56abfe ("netfilter: Replace zero-length array with flexible-array m=
+ember")
+
+from the netfilter-next tree.
+
+I fixed it up (see below) and can carry the fix as necessary. This
+is now fixed as far as linux-next is concerned, but any non trivial
+conflicts should be mentioned to your upstream maintainer when your tree
+is submitted for merging.  You may also want to consider cooperating
+with the maintainer of the conflicting tree to minimise any particularly
+complex conflicts.
+
+--=20
+Cheers,
+Stephen Rothwell
+
+diff --cc net/netfilter/ipset/ip_set_hash_gen.h
+index e52d7b7597a0,f1edc5b9b4ce..1ee43752d6d3
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@@ -105,11 -75,9 +105,11 @@@ struct htable_gc=20
+  /* The hash table: the table size stored here in order to make resizing e=
+asy */
+  struct htable {
+  	atomic_t ref;		/* References for resizing */
+ -	atomic_t uref;		/* References for dumping */
+ +	atomic_t uref;		/* References for dumping and gc */
+  	u8 htable_bits;		/* size of hash table =3D=3D 2^htable_bits */
+ +	u32 maxelem;		/* Maxelem per region */
+ +	struct ip_set_region *hregion;	/* Region locks and ext sizes */
+- 	struct hbucket __rcu *bucket[0]; /* hashtable buckets */
++ 	struct hbucket __rcu *bucket[]; /* hashtable buckets */
+  };
+ =20
+  #define hbucket(h, i)		((h)->bucket[i])
+
+--Sig_/QYioLg.i7ALBe_AZALOdD7Y
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAl5dpCYACgkQAVBC80lX
+0Gw3uwf/RaVvcJWrbYdHPzAx4vdbLuHRp6bdBd+kgaV3Np/hFh/ipUI5+fq2yeWK
+ZogcV2y+VqXIVTliSHhNN0RkH9vlwo/tylSfs9WFERG1HmrMsQmhtTt0Idjfef0y
+AD/S+WYSn0uV5eZxHa/ZUUS4xkdqvfrumnXVlz7haeert/+FrHDFc3BkzgxdJxLi
+REVLdgBvyrly5ZiwaVqQliQ+NlyG3uRVhRMNiPwLq4hTjnauy5gIukRqsMwUmGeb
+RT6U1skYeytt7UDFWKEkX/8s3PG/1jqdTf9dEKPgOybaqAsl5W+uidZTdvmHiIVW
+JFbEtM9+NNJBpmmh6LlVCR/cltXNLw==
+=Ig/C
+-----END PGP SIGNATURE-----
+
+--Sig_/QYioLg.i7ALBe_AZALOdD7Y--
