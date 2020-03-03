@@ -4,48 +4,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2ABFBC3F2C6
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Mar 2020 05:08:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E332C3F2CD
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Mar 2020 05:08:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E258620717
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Mar 2020 05:08:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 50B9E20717
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Mar 2020 05:08:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583212129;
-	bh=ZS3bZpQ+Cbse6gx8MRxnC78v7gZj6LWH6FyPdy0z9+0=;
+	s=default; t=1583212130;
+	bh=9F7aK5GlY+bFUZvd25qhfbo8WZmzw55Hr+t0rWIjmpc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=EjkicQWU97p+jeI0f3j6DCuM77E0z3OqvyDJE7QjXLVruFSbdBD5zWv5uiYPesEI1
-	 6iYR6nSxAqYYq36xkU8abRJ25sNcLqQTwnBzIYm7bol3gZGHTvoHSN/qkeHrOgZWGz
-	 Ua4VS72OAnJP+YNCAt2K5w4d/kr2q26KIGhItrf4=
+	b=VPbHUfqtEP5C5jBh2YkWzBlKJpXgUYRPJW2ewSQKgpyBjv32394sOwnWs0AiD73Wt
+	 oa2Mp77zpTtLQCQHupBit1L/xxFIKv7Yflb0UH4f54OVgWucORm4HYlS83VMt19AuI
+	 MFXl9fAO8x90kGdBIV/ifqKpq31X+ncIy+cyigKM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726083AbgCCFIp (ORCPT
+        id S1727101AbgCCFIt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 Mar 2020 00:08:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40426 "EHLO mail.kernel.org"
+        Tue, 3 Mar 2020 00:08:49 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40398 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725807AbgCCFIp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1725818AbgCCFIp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 3 Mar 2020 00:08:45 -0500
 Received: from kicinski-fedora-PC1C0HJN.thefacebook.com (unknown [163.114.132.128])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A020F2465A;
+        by mail.kernel.org (Postfix) with ESMTPSA id 3D42521739;
         Tue,  3 Mar 2020 05:08:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
         s=default; t=1583212124;
-        bh=ZS3bZpQ+Cbse6gx8MRxnC78v7gZj6LWH6FyPdy0z9+0=;
+        bh=9F7aK5GlY+bFUZvd25qhfbo8WZmzw55Hr+t0rWIjmpc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=EQ6QkIjUkyTnrynKyLKaHe/NvncPdPep7RjJDNDQ15EUxMo/b01yCLm9DGYgoW/4E
-         4OfgyJ/XqsCF1cOz0lztSjFN4BV0AP0P1t20lHBxfDGVE+DMD4yffnNSad9XBHsbQG
-         6rZy79Jgj/vvSdrG0Kc3b2zsJeTCbak5XqRLMXR4=
+        b=1L0RcrYI+UjkX8d2UfjGGByfqnqMoufbbqQxh+z+p18ueVKCH5//PSAtIPB00HNtp
+         0LqoikyIZeFEr1xSS7PaysGFrFqOVzyCfNk4JHboB8KbkNnzTS9nJf+f4z2yNgr8yU
+         oLD1IIxlsNO33pDhdm5962B7udZuXwJk4I6ykXP8=
 From:   Jakub Kicinski <kuba@kernel.org>
 To:     pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de,
         netdev@vger.kernel.org, Jakub Kicinski <kuba@kernel.org>
-Subject: [PATCH netfilter 2/3] netfilter: add missing attribute validation for payload csum flags
-Date:   Mon,  2 Mar 2020 21:08:32 -0800
-Message-Id: <20200303050833.4089193-3-kuba@kernel.org>
+Subject: [PATCH netfilter 1/3] netfilter: add missing attribute validation for cthelper
+Date:   Mon,  2 Mar 2020 21:08:31 -0800
+Message-Id: <20200303050833.4089193-2-kuba@kernel.org>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200303050833.4089193-1-kuba@kernel.org>
 References: <20200303050833.4089193-1-kuba@kernel.org>
@@ -56,27 +56,28 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add missing attribute validation for NFTA_PAYLOAD_CSUM_FLAGS
+Add missing attribute validation for cthelper
 to the netlink policy.
 
-Fixes: 1814096980bb ("netfilter: nft_payload: layer 4 checksum adjustment for pseudoheader fields")
+Fixes: 12f7a505331e ("netfilter: add user-space connection tracking helper infrastructure")
 Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 ---
- net/netfilter/nft_payload.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/nfnetlink_cthelper.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 1993af3a2979..a7de3a58f553 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -129,6 +129,7 @@ static const struct nla_policy nft_payload_policy[NFTA_PAYLOAD_MAX + 1] = {
- 	[NFTA_PAYLOAD_LEN]		= { .type = NLA_U32 },
- 	[NFTA_PAYLOAD_CSUM_TYPE]	= { .type = NLA_U32 },
- 	[NFTA_PAYLOAD_CSUM_OFFSET]	= { .type = NLA_U32 },
-+	[NFTA_PAYLOAD_CSUM_FLAGS]	= { .type = NLA_U32 },
+diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
+index de3a9596b7f1..a5f294aa8e4c 100644
+--- a/net/netfilter/nfnetlink_cthelper.c
++++ b/net/netfilter/nfnetlink_cthelper.c
+@@ -742,6 +742,8 @@ static const struct nla_policy nfnl_cthelper_policy[NFCTH_MAX+1] = {
+ 	[NFCTH_NAME] = { .type = NLA_NUL_STRING,
+ 			 .len = NF_CT_HELPER_NAME_LEN-1 },
+ 	[NFCTH_QUEUE_NUM] = { .type = NLA_U32, },
++	[NFCTH_PRIV_DATA_LEN] = { .type = NLA_U32, },
++	[NFCTH_STATUS] = { .type = NLA_U32, },
  };
  
- static int nft_payload_init(const struct nft_ctx *ctx,
+ static const struct nfnl_callback nfnl_cthelper_cb[NFNL_MSG_CTHELPER_MAX] = {
 -- 
 2.24.1
 
