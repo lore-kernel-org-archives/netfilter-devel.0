@@ -2,192 +2,154 @@ Return-Path: <SRS0=D+Hy=4U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F19CC3F2CD
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Mar 2020 09:37:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA89DC3F2C6
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Mar 2020 09:48:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D6038205ED
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Mar 2020 09:36:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C075120848
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Mar 2020 09:48:46 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="VErE2Zew"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="oFOqjgku"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728164AbgCCJg7 (ORCPT
+        id S1728070AbgCCJsq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 Mar 2020 04:36:59 -0500
-Received: from smtp-out.kfki.hu ([148.6.0.48]:50671 "EHLO smtp-out.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728045AbgCCJg7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 Mar 2020 04:36:59 -0500
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 3DA2DCC00F3;
-        Tue,  3 Mar 2020 10:36:56 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        blackhole.kfki.hu; h=mime-version:user-agent:references
-        :message-id:in-reply-to:from:from:date:date:received:received
-        :received; s=20151130; t=1583228214; x=1585042615; bh=5FVrDeZsp1
-        t0gaw/zGPrvUKcVmpTJQd7tqIhkhPETZA=; b=VErE2ZewpJvFYuJPNzDPS4Odl5
-        GnkHaippRQb7B5me7+xFr90yJwDJgR4KQ6oUsADJPTlZRsSRxIcIHenxFLjVcHos
-        9BPiiawyz8SA306wKQbesoKs69rhG/KFQmNZr833ooYEvR2I8NXAXDIGT4QER2Zh
-        TZiNMQsw4qfWLvqvs=
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Tue,  3 Mar 2020 10:36:54 +0100 (CET)
-Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id E7951CC00E6;
-        Tue,  3 Mar 2020 10:36:53 +0100 (CET)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id BF62E21229; Tue,  3 Mar 2020 10:36:53 +0100 (CET)
-Date:   Tue, 3 Mar 2020 10:36:53 +0100 (CET)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-X-X-Sender: kadlec@blackhole.kfki.hu
-To:     Stefano Brivio <sbrivio@redhat.com>
-cc:     netfilter-devel@vger.kernel.org, Mithil Mhatre <mmhatre@redhat.com>
-Subject: Re: [PATCH] ipset: Update byte and packet counters regardless of
- whether they match
-In-Reply-To: <20200228124039.00e5a343@redhat.com>
-Message-ID: <alpine.DEB.2.20.2003031020330.3731@blackhole.kfki.hu>
-References: <f4b0ae68661c865c3083d2fa896e9a112057a82f.1582566351.git.sbrivio@redhat.com> <alpine.DEB.2.20.2002250857120.26348@blackhole.kfki.hu> <20200225094043.5a78337e@redhat.com> <alpine.DEB.2.20.2002250954060.26348@blackhole.kfki.hu> <20200225132235.5204639d@redhat.com>
- <alpine.DEB.2.20.2002252113111.29920@blackhole.kfki.hu> <20200225215322.6fb5ecb0@redhat.com> <alpine.DEB.2.20.2002272112360.11901@blackhole.kfki.hu> <20200228124039.00e5a343@redhat.com>
-User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
+        Tue, 3 Mar 2020 04:48:46 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:40792 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727412AbgCCJsq (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 3 Mar 2020 04:48:46 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
+        :Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=xM30wAf15CzJW7piyc9upjLZtczSsdj2dBzPuyHC6Rk=; b=oFOqjgku228Pe1Amle6Yu5icLN
+        KKAPWpkKGchXjS8y87BYGB6EmeUikIj9xhaKrUk+tkgncoXJgOHqWtUOy4CLewlR0DUbiESgbl28M
+        bzwSipV5MthGkTLmN8xUfkiSnD9Sq6jnAnERMdWT9QPygW25197I3IDMurxK5+801+EbsyxPc5Fne
+        GC03kb+W1SjRI2jquM1DtW5Ee8v4Ue8EstMp/UOQYGHgjGVCefLcO/kwvIflnsNVhtqmVzOY1qKY6
+        XTP/6FE1QjvZPCC6i01vccM/rhWJQ5bF8Nb1U2/fLarCZQbDg5Uob6dxJ31EyPiz+GsoL3+R9T00I
+        urdkRvdw==;
+Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
+        by kadath.azazel.net with esmtp (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1j94AO-00081M-NL; Tue, 03 Mar 2020 09:48:44 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH nft v3 00/18] Support for boolean binops with variable RHS operands.
+Date:   Tue,  3 Mar 2020 09:48:26 +0000
+Message-Id: <20200303094844.26694-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Stefano,
+Kernel support for passing mask and xor values for bitwise boolean
+operations via registers allows us to support boolean binop's with
+variable RHS operands: XOR expressions pass the xor value in a register;
+AND expressions pass the mask value in a register; OR expressions pass
+both mask and xor values in registers.
 
-On Fri, 28 Feb 2020, Stefano Brivio wrote:
+NB, OR expressions are converted to `(a & (b ^ 1)) ^ b` during
+linearization (in patch 9), because it makes both linearization and
+delinearization a lot simpler.  However, it involves rearranging and
+allocating expressions after the evaluation phase.  Since nothing else
+does this, AFAICS, I'm not sure whether it's the right thing to do.
 
-> On Thu, 27 Feb 2020 21:37:10 +0100 (CET)
-> Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
-> 
-> > On Tue, 25 Feb 2020, Stefano Brivio wrote:
-> > 
-> > > On Tue, 25 Feb 2020 21:37:45 +0100 (CET)
-> > > Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
-> > >   
-> > > > On Tue, 25 Feb 2020, Stefano Brivio wrote:
-> > > >   
-> > > > > > The logic could be changed in the user rules from
-> > > > > > 
-> > > > > > iptables -I INPUT -m set --match-set c src --bytes-gt 800 -j DROP
-> > > > > > 
-> > > > > > to
-> > > > > > 
-> > > > > > iptables -I INPUT -m set --match-set c src --bytes-lt 800 -j ACCEPT
-> > > > > > [ otherwise DROP ]
-> > > > > > 
-> > > > > > but of course it might be not so simple, depending on how the rules are 
-> > > > > > built up.    
-> > > > > 
-> > > > > Yes, it would work, unless the user actually wants to check with the
-> > > > > same counter how many bytes are sent "in excess".    
-> > > > 
-> > > > You mean the counters are still updated whenever the element is matched in 
-> > > > the set and then one could check how many bytes were sent over the 
-> > > > threshold just by listing the set elements.  
-> > > 
-> > > Yes, exactly -- note that it was possible (and, I think, used) before.  
-> > 
-> > I'm still not really convinced about such a feature. Why is it useful to 
-> > know how many bytes would be sent over the "limit"?
-> 
-> This is useful in case one wants different treatments for packets
-> according to a number of thresholds in different rules. For example,
-> 
->     iptables -I INPUT -m set --match-set c src --bytes-lt 100 -j noise
->     iptables -I noise -m set --match-set c src --bytes-lt 20000 -j download
-> 
-> and you want to log packets from chains 'noise' and 'download' with
-> different prefixes.
+The patch-set comprises four parts:
 
-What do you think about this patch?
+   1 -  7: some tidying and bug-fixes;
+   8 - 10: support for variable RHS operands;
+  11 - 15: updates to linearization and delinearization of payload
+           expressions to work correctly with variable RHS operands;
+  16 - 18: some new shell and Python test-cases.
 
-diff --git a/kernel/include/uapi/linux/netfilter/ipset/ip_set.h b/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
-index 7545af4..6881329 100644
---- a/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
-+++ b/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
-@@ -186,6 +186,9 @@ enum ipset_cmd_flags {
- 	IPSET_FLAG_MAP_SKBPRIO = (1 << IPSET_FLAG_BIT_MAP_SKBPRIO),
- 	IPSET_FLAG_BIT_MAP_SKBQUEUE = 10,
- 	IPSET_FLAG_MAP_SKBQUEUE = (1 << IPSET_FLAG_BIT_MAP_SKBQUEUE),
-+	IPSET_FLAG_BIT_UPDATE_COUNTERS_FIRST = 11,
-+	IPSET_FLAG_UPDATE_COUNTERS_FIRST =
-+		(1 << IPSET_FLAG_BIT_UPDATE_COUNTERS_FIRST),
- 	IPSET_FLAG_CMD_MAX = 15,
- };
- 
-diff --git a/kernel/net/netfilter/ipset/ip_set_core.c b/kernel/net/netfilter/ipset/ip_set_core.c
-index 1df6536..423d0de 100644
---- a/kernel/net/netfilter/ipset/ip_set_core.c
-+++ b/kernel/net/netfilter/ipset/ip_set_core.c
-@@ -622,10 +622,9 @@ ip_set_add_packets(u64 packets, struct ip_set_counter *counter)
- 
- static void
- ip_set_update_counter(struct ip_set_counter *counter,
--		      const struct ip_set_ext *ext, u32 flags)
-+		      const struct ip_set_ext *ext)
- {
--	if (ext->packets != ULLONG_MAX &&
--	    !(flags & IPSET_FLAG_SKIP_COUNTER_UPDATE)) {
-+	if (ext->packets != ULLONG_MAX) {
- 		ip_set_add_bytes(ext->bytes, counter);
- 		ip_set_add_packets(ext->packets, counter);
- 	}
-@@ -649,13 +648,19 @@ ip_set_match_extensions(struct ip_set *set, const struct ip_set_ext *ext,
- 	if (SET_WITH_COUNTER(set)) {
- 		struct ip_set_counter *counter = ext_counter(data, set);
- 
-+		if (flags & IPSET_FLAG_UPDATE_COUNTERS_FIRST)
-+			ip_set_update_counter(counter, ext);
-+
- 		if (flags & IPSET_FLAG_MATCH_COUNTERS &&
- 		    !(ip_set_match_counter(ip_set_get_packets(counter),
- 				mext->packets, mext->packets_op) &&
- 		      ip_set_match_counter(ip_set_get_bytes(counter),
- 				mext->bytes, mext->bytes_op)))
- 			return false;
--		ip_set_update_counter(counter, ext, flags);
-+
-+		if (!(flags & (IPSET_FLAG_UPDATE_COUNTERS_FIRST|
-+			       IPSET_FLAG_SKIP_COUNTER_UPDATE)))
-+			ip_set_update_counter(counter, ext);
- 	}
- 	if (SET_WITH_SKBINFO(set))
- 		ip_set_get_skbinfo(ext_skbinfo(data, set),
+Changes since v2:
 
-Then the rules above would look like
+  * patch 11 updated to stop binop length being clobbered during
+    evaluation, instead of working around it during linearization.
 
-... -m set ... --update-counters-first --bytes-lt 100 -j noise
-... -m set ... --update-counters-first --bytes-ge 100 -j download
- 
-> > > What I meant is really the case where "--update-counters" (or 
-> > > "--force-update-counters") and "! --update-counters" are both 
-> > > absent: I don't see any particular advantage in the current 
-> > > behaviour for that case.
-> > 
-> > The counters are used just for statistical purposes: reflect the 
-> > packets/bytes which were let through, i.e. matched the whole "rule". 
-> > In that case updating the counters before the counter value matching 
-> > is evaluated gives false results.
-> 
-> Well, but for that, iptables/x_tables counters are available and (as far 
-> as I know) typically used.
+Changes since v1:
 
-With "rules" I meant at ipset level (match element + packet/byte counters 
-as specified), i.e. counters for statistical purposes per set elements 
-level.
+  * patch 05 updated to treat short values as constant, rather than
+    doing nothing with them.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Jeremy Sowden (18):
+  evaluate: add separate variables for lshift and xor binops.
+  evaluate: simplify calculation of payload size.
+  evaluate: don't evaluate payloads twice.
+  evaluate: convert the byte-order of payload statement arguments.
+  evaluate: no need to swap byte-order for values of fewer than 16 bits.
+  netlink_delinearize: set shift RHS byte-order.
+  src: fix leaks.
+  include: update nf_tables.h.
+  src: support (de)linearization of bitwise op's with variable right
+    operands.
+  evaluate: allow boolean binop expressions with variable righthand
+    arguments.
+  evaluate: don't clobber binop bitmask lengths.
+  netlink_delinearize: fix typo.
+  netlink_delinearize: refactor stmt_payload_binop_postprocess.
+  netlink_delinearize: add support for processing variable payload
+    statement arguments.
+  netlink_delinearize: add postprocessing for payload binops.
+  tests: shell: remove stray debug flag.
+  tests: shell: add variable binop RHS tests.
+  tests: py: add variable binop RHS tests.
+
+ include/expression.h                          |   1 +
+ include/linux/netfilter/nf_tables.h           |   4 +
+ src/evaluate.c                                |  77 ++--
+ src/netlink_delinearize.c                     | 370 +++++++++++++-----
+ src/netlink_linearize.c                       |  95 ++++-
+ tests/py/any/ct.t                             |   1 +
+ tests/py/any/ct.t.json                        |  37 ++
+ tests/py/any/ct.t.payload                     |  33 ++
+ tests/py/any/meta.t.payload                   |   4 -
+ tests/py/inet/tcp.t                           |   2 +
+ tests/py/inet/tcp.t.json                      |  46 ++-
+ tests/py/inet/tcp.t.payload                   |  68 ++++
+ tests/py/ip/ip.t                              |   3 +
+ tests/py/ip/ip.t.json                         |  66 ++++
+ tests/py/ip/ip.t.payload                      |  26 ++
+ tests/py/ip/ip.t.payload.bridge               |  30 ++
+ tests/py/ip/ip.t.payload.inet                 |  30 ++
+ tests/py/ip/ip.t.payload.netdev               |  30 ++
+ tests/shell/testcases/chains/0040mark_shift_0 |   2 +-
+ tests/shell/testcases/chains/0040mark_shift_2 |  11 +
+ .../testcases/chains/0041payload_variable_0   |  11 +
+ .../testcases/chains/0041payload_variable_1   |  11 +
+ .../testcases/chains/0041payload_variable_2   |  11 +
+ .../testcases/chains/0041payload_variable_3   |  11 +
+ .../chains/dumps/0040mark_shift_2.nft         |   6 +
+ .../chains/dumps/0041payload_variable_0.nft   |   6 +
+ .../chains/dumps/0041payload_variable_1.nft   |   6 +
+ .../chains/dumps/0041payload_variable_2.nft   |   6 +
+ .../chains/dumps/0041payload_variable_3.nft   |   6 +
+ 29 files changed, 873 insertions(+), 137 deletions(-)
+ create mode 100755 tests/shell/testcases/chains/0040mark_shift_2
+ create mode 100755 tests/shell/testcases/chains/0041payload_variable_0
+ create mode 100755 tests/shell/testcases/chains/0041payload_variable_1
+ create mode 100755 tests/shell/testcases/chains/0041payload_variable_2
+ create mode 100755 tests/shell/testcases/chains/0041payload_variable_3
+ create mode 100644 tests/shell/testcases/chains/dumps/0040mark_shift_2.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0041payload_variable_0.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0041payload_variable_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0041payload_variable_2.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0041payload_variable_3.nft
+
+-- 
+2.25.1
+
