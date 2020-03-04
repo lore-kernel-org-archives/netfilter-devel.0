@@ -2,116 +2,79 @@ Return-Path: <SRS0=EiUA=4V=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E16BC3F2C6
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Mar 2020 02:13:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACA5AC3F2C6
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Mar 2020 02:25:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 518952073B
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Mar 2020 02:13:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8A16720842
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Mar 2020 02:25:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387397AbgCDCNg (ORCPT
+        id S2387492AbgCDCZJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 Mar 2020 21:13:36 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:56646 "EHLO orbyte.nwl.cc"
+        Tue, 3 Mar 2020 21:25:09 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:56680 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727854AbgCDCNg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 Mar 2020 21:13:36 -0500
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1j9JXS-0007wU-ME; Wed, 04 Mar 2020 03:13:34 +0100
-Date:   Wed, 4 Mar 2020 03:13:34 +0100
+        id S2387398AbgCDCZJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 3 Mar 2020 21:25:09 -0500
+Received: from localhost ([::1]:41538 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1j9Jie-000891-07; Wed, 04 Mar 2020 03:25:08 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH 1/4] nft: cache: Fix nft_release_cache() under
- stress
-Message-ID: <20200304021334.GH5627@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20200302175358.27796-1-phil@nwl.cc>
- <20200302175358.27796-2-phil@nwl.cc>
- <20200302191930.5evt74vfrqd7zura@salvia>
- <20200303010252.GB5627@orbyte.nwl.cc>
- <20200303205554.oc5dwigdvje6whed@salvia>
+Subject: [iptables PATCH] connlabel: Allow numeric labels even if connlabel.conf exists
+Date:   Wed,  4 Mar 2020 03:24:59 +0100
+Message-Id: <20200304022459.6433-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200303205554.oc5dwigdvje6whed@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+Existing code is a bit quirky: If no connlabel.conf was found, the local
+function connlabel_value_parse() is called which tries to interpret
+given label as a number. If the config exists though,
+nfct_labelmap_get_bit() is called instead which doesn't care about
+"undefined" connlabel names. So unless installed connlabel.conf contains
+entries for all possible numeric labels, rules added by users may stop
+working if a connlabel.conf is created. Fix this by falling back to
+connlabel_value_parse() function also if connlabel_open() returned 0 but
+nfct_labelmap_get_bit() returned an error.
 
-On Tue, Mar 03, 2020 at 09:55:54PM +0100, Pablo Neira Ayuso wrote:
-> On Tue, Mar 03, 2020 at 02:02:52AM +0100, Phil Sutter wrote:
-> > Hi Pablo,
-> > 
-> > On Mon, Mar 02, 2020 at 08:19:30PM +0100, Pablo Neira Ayuso wrote:
-> > > On Mon, Mar 02, 2020 at 06:53:55PM +0100, Phil Sutter wrote:
-> > > > iptables-nft-restore calls nft_action(h, NFT_COMPAT_COMMIT) for each
-> > > > COMMIT line in input. When restoring a dump containing multiple large
-> > > > tables, chances are nft_rebuild_cache() has to run multiple times.
-> 
-> It is true that chances that this code runs multiple times since the
-> new fine-grain caching logic is in place.
+Fixes: 3a3bb480a738a ("extensions: connlabel: Fallback on missing connlabel.conf")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ extensions/libxt_connlabel.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-AFAICT, this is not related to granularity of caching logic. The crux is
-that your fix of Florian's concurrency fix in commit f6ad231d698c7
-("nft: keep original cache in case of ERESTART") ignores the fact that
-cache may have to be rebuilt multiple times. I wasn't aware of it
-either, but knowing that each COMMIT line causes a COMMIT internally
-makes it obvious. Your patch adds code to increment cache_index but none
-to reset it to zero.
+diff --git a/extensions/libxt_connlabel.c b/extensions/libxt_connlabel.c
+index 5a01fe7237bd8..1fc92f42cd969 100644
+--- a/extensions/libxt_connlabel.c
++++ b/extensions/libxt_connlabel.c
+@@ -71,7 +71,7 @@ static void connlabel_mt_parse(struct xt_option_call *cb)
+ {
+ 	struct xt_connlabel_mtinfo *info = cb->data;
+ 	bool have_labelmap = !connlabel_open();
+-	int tmp;
++	int tmp = -1;
+ 
+ 	xtables_option_parse(cb);
+ 
+@@ -79,7 +79,7 @@ static void connlabel_mt_parse(struct xt_option_call *cb)
+ 	case O_LABEL:
+ 		if (have_labelmap)
+ 			tmp = nfct_labelmap_get_bit(map, cb->arg);
+-		else
++		if (tmp < 0)
+ 			tmp = connlabel_value_parse(cb->arg);
+ 
+ 		if (tmp < 0)
+-- 
+2.25.1
 
-> > > Then, fix nft_rebuild_cache() please.
-> > 
-> > This is not the right place to fix the problem: nft_rebuild_cache()
-> > simply rebuilds the cache, switching to a secondary instance if not done
-> > so before to avoid freeing objects referenced from batch jobs.
-> > 
-> > When creating batch jobs (e.g., adding a rule or chain), code is not
-> > aware of which cache instance is currently in use. It will just add
-> > those objects to nft_handle->cache pointer.
-> > 
-> > It is the job of nft_release_cache() to return things back to normal
-> > after each COMMIT line, which includes restoring nft_handle->cache
-> > pointer to point at first cache instance.
-> > 
-> > If you see a flaw in my reasoning, I'm all ears. Also, if you see a
-> > better solution, please elaborate - IMO, nft_release_cache() should undo
-> > what nft_rebuild_cache() may have done. From nft_action() perspective,
-> > they are related.
-> 
-> Would this patch still work after this series are applied:
-> 
-> https://patchwork.ozlabs.org/project/netfilter-devel/list/?series=151404
-> 
-> That is working and passing tests. It is just missing the code to
-> restore the fine grain dumping, that should be easy to add.
-> 
-> That logic will really reduce the chances to exercise all this cache
-> dump / cache cancel. Bugs in this cache consistency code is usually
-> not that easy to trigger and usually hard to fix.
-> 
-> I just think it would be a pity if that work ends up in the trash can.
-
-I didn't review those patches yet, but from a quick glance it doesn't
-seem to touch the problematic code around __nft_flush_cache(). Let's
-make a deal: You accept my fix for the existing cache logic and I'll in
-return fix your series if necessary and at least find out what needs to
-be done so it doesn't cause a performance regression.
-
-I don't veto against or sabotage your approach of separating caching
-from parsing, but completing your series regarding performance as an
-alternative assuming it fixes the existing bug at all is not feasible.
-Therefore please let's go with a fix first and commit to cache logic
-rewrite as illustrated in your patches.
-
-Cheers, Phil
