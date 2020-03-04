@@ -2,93 +2,88 @@ Return-Path: <SRS0=EiUA=4V=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AF53C3F2D1
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Mar 2020 09:50:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EAC6C3F2D7
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Mar 2020 10:14:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 018A420848
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Mar 2020 09:50:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0944620870
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Mar 2020 10:14:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729023AbgCDJuf (ORCPT
+        id S2387977AbgCDKON (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Mar 2020 04:50:35 -0500
-Received: from bmailout2.hostsharing.net ([83.223.78.240]:51801 "EHLO
-        bmailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728953AbgCDJuf (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Mar 2020 04:50:35 -0500
-Received: from h08.hostsharing.net (h08.hostsharing.net [IPv6:2a01:37:1000::53df:5f1c:0])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (Client CN "*.hostsharing.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (not verified))
-        by bmailout2.hostsharing.net (Postfix) with ESMTPS id 016172800B3CC;
-        Wed,  4 Mar 2020 10:50:33 +0100 (CET)
-Received: by h08.hostsharing.net (Postfix, from userid 100393)
-        id C3A1F3F493; Wed,  4 Mar 2020 10:50:32 +0100 (CET)
-Date:   Wed, 4 Mar 2020 10:50:32 +0100
-From:   Lukas Wunner <lukas@wunner.de>
+        Wed, 4 Mar 2020 05:14:13 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:57560 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2387969AbgCDKON (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 4 Mar 2020 05:14:13 -0500
+Received: from localhost ([::1]:42418 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1j9R2a-0008K3-6o; Wed, 04 Mar 2020 11:14:12 +0100
+From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Martin Mares <mj@ucw.cz>,
-        Daniel Borkmann <daniel@iogearbox.net>
-Subject: Re: [PATCH nf-next,RFC 0/5] Netfilter egress hook
-Message-ID: <20200304095032.s6ypvmo45d75wkr7@wunner.de>
-References: <cover.1572528496.git.lukas@wunner.de>
- <20191107225149.5t4sg35b5gwuwawa@salvia>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH v2] connlabel: Allow numeric labels even if connlabel.conf exists
+Date:   Wed,  4 Mar 2020 11:14:03 +0100
+Message-Id: <20200304101403.4849-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191107225149.5t4sg35b5gwuwawa@salvia>
-User-Agent: NeoMutt/20170113 (1.7.2)
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Nov 07, 2019 at 11:51:49PM +0100, Pablo Neira Ayuso wrote:
-> On Thu, Oct 31, 2019 at 02:41:00PM +0100, Lukas Wunner wrote:
-> > Introduce a netfilter egress hook to complement the existing ingress hook.
-> > 
-> > User space support for nft is submitted in a separate patch.
-> > 
-> > The need for this arose because I had to filter egress packets which do
-> > not match a specific ethertype.  The most common solution appears to be
-> > to enslave the interface to a bridge and use ebtables, but that's
-> > cumbersome to configure and comes with a (small) performance penalty.
-> > An alternative approach is tc, but that doesn't afford equivalent
-> > matching options as netfilter.  A bit of googling reveals that more
-> > people have expressed a desire for egress filtering in the past:
-> > 
-> > https://www.spinics.net/lists/netfilter/msg50038.html
-> > https://unix.stackexchange.com/questions/512371
-> > 
-> > I am first performing traffic control with sch_handle_egress() before
-> > performing filtering with nf_egress().  That order is identical to
-> > ingress processing.  I'm wondering whether an inverse order would be
-> > more logical or more beneficial.  Among other things it would allow
-> > marking packets with netfilter on egress before performing traffic
-> > control based on that mark.  Thoughts?
-> 
-> Would you provide some numbers on the performance impact for this new
-> hook?
+Existing code is a bit quirky: If no connlabel.conf was found, the local
+function connlabel_value_parse() is called which tries to interpret
+given label as a number. If the config exists though,
+nfct_labelmap_get_bit() is called instead which doesn't care about
+"undefined" connlabel names. So unless installed connlabel.conf contains
+entries for all possible numeric labels, rules added by users may stop
+working if a connlabel.conf is created.
 
-Just a gentle ping for this series.  I'd still be very interested to
-get it upstream.  When posting the above-quoted RFC, Daniel NAK'ed it
-saying that "weak justification" was provided "for something that sits
-in critical fastpath".
+Related man page snippet states: "Using a number always overrides
+connlabel.conf", so try numeric parsing and fall back to nfct only if
+that failed.
 
-However I followed up with numbers showing that the series actually
-results in a speedup rather than a slowdown if the feature isn't used:
+Fixes: 51340f7b6a110 ("extensions: libxt_connlabel: use libnetfilter_conntrack")
+Fixes: 3a3bb480a738a ("extensions: connlabel: Fallback on missing connlabel.conf")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+Changes since v1:
+- Prefer numeric parsing over labelmap.
+---
+ extensions/libxt_connlabel.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-https://lore.kernel.org/netfilter-devel/20191123131108.dlnrbutabh5i55ix@wunner.de/
+diff --git a/extensions/libxt_connlabel.c b/extensions/libxt_connlabel.c
+index 5a01fe7237bd8..565b8c796b017 100644
+--- a/extensions/libxt_connlabel.c
++++ b/extensions/libxt_connlabel.c
+@@ -70,18 +70,15 @@ static int connlabel_value_parse(const char *in)
+ static void connlabel_mt_parse(struct xt_option_call *cb)
+ {
+ 	struct xt_connlabel_mtinfo *info = cb->data;
+-	bool have_labelmap = !connlabel_open();
+ 	int tmp;
+ 
+ 	xtables_option_parse(cb);
+ 
+ 	switch (cb->entry->id) {
+ 	case O_LABEL:
+-		if (have_labelmap)
++		tmp = connlabel_value_parse(cb->arg);
++		if (tmp < 0 && !connlabel_open())
+ 			tmp = nfct_labelmap_get_bit(map, cb->arg);
+-		else
+-			tmp = connlabel_value_parse(cb->arg);
+-
+ 		if (tmp < 0)
+ 			xtables_error(PARAMETER_PROBLEM,
+ 				      "label '%s' not found or invalid value",
+-- 
+2.25.1
 
-So what's the consensus?  Shall I post a non-RFC version, rebased on
-current nf-next/master?
-
-Thanks!
-
-Lukas
