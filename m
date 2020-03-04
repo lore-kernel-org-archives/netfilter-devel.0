@@ -6,109 +6,110 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A00AAC3F2D1
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Mar 2020 12:54:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07868C3F2D1
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Mar 2020 17:02:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6DDBF2072A
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Mar 2020 12:54:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D868922B48
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Mar 2020 17:02:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729118AbgCDMyj (ORCPT
+        id S1729717AbgCDRCn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Mar 2020 07:54:39 -0500
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:23785 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726440AbgCDMyi (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Mar 2020 07:54:38 -0500
-Received: from [192.168.1.6] (unknown [101.86.128.44])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 1912040F71;
-        Wed,  4 Mar 2020 20:54:26 +0800 (CST)
-Subject: Re: [PATCH nf-next v5 0/4] netfilter: flowtable: add indr-block
- offload
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-References: <1582521775-25176-1-git-send-email-wenxu@ucloud.cn>
- <20200303215300.qzo4ankxq5ktaba4@salvia>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <83bfbc34-6a3e-1f31-4546-1511c5dcddf5@ucloud.cn>
-Date:   Wed, 4 Mar 2020 20:54:25 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
- Thunderbird/68.5.0
+        Wed, 4 Mar 2020 12:02:43 -0500
+Received: from correo.us.es ([193.147.175.20]:51150 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727804AbgCDRCn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 4 Mar 2020 12:02:43 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 2593E11ADC3
+        for <netfilter-devel@vger.kernel.org>; Wed,  4 Mar 2020 18:02:26 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 14F16DA3AB
+        for <netfilter-devel@vger.kernel.org>; Wed,  4 Mar 2020 18:02:26 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 14363DA3A9; Wed,  4 Mar 2020 18:02:26 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 97012DA7B2;
+        Wed,  4 Mar 2020 18:02:23 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 04 Mar 2020 18:02:23 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 78E4742EE38E;
+        Wed,  4 Mar 2020 18:02:23 +0100 (CET)
+Date:   Wed, 4 Mar 2020 18:02:37 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH 1/4] nft: cache: Fix nft_release_cache() under
+ stress
+Message-ID: <20200304170237.nkzhn24cyq7wuchk@salvia>
+References: <20200302175358.27796-1-phil@nwl.cc>
+ <20200302175358.27796-2-phil@nwl.cc>
+ <20200302191930.5evt74vfrqd7zura@salvia>
+ <20200303010252.GB5627@orbyte.nwl.cc>
+ <20200303205554.oc5dwigdvje6whed@salvia>
+ <20200304021334.GH5627@orbyte.nwl.cc>
 MIME-Version: 1.0
-In-Reply-To: <20200303215300.qzo4ankxq5ktaba4@salvia>
-Content-Type: text/plain; charset=gbk
-Content-Transfer-Encoding: 8bit
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSEhJS0tLSkhNSExOT0hZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MQg6SQw*GDg3QyE2I005PioK
-        IRkwCh1VSlVKTkNISElNT01NSU1MVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpLSlVD
-        TVVKSUNVT09ZV1kIAVlBSE5ISTcG
-X-HM-Tid: 0a70a59c90942086kuqy1912040f71
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200304021334.GH5627@orbyte.nwl.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi Phil,
 
-ÔÚ 2020/3/4 5:53, Pablo Neira Ayuso Ð´µÀ:
-> Hi,
->
-> On Mon, Feb 24, 2020 at 01:22:51PM +0800, wenxu@ucloud.cn wrote:
->> From: wenxu <wenxu@ucloud.cn>
->>
->> This patch provide tunnel offload based on route lwtunnel. 
->> The first two patches support indr callback setup
->> Then add tunnel match and action offload.
->>
->> This version modify the second patch: make the dev can bind with different 
->> flowtable and check the NF_FLOWTABLE_HW_OFFLOAD flags in 
->> nf_flow_table_indr_block_cb_cmd. 
-> I found some time to look at this indirect block infrastructure that
-> you have added to net/core/flow_offload.c
->
-> This is _complex_ code, I don't understand why it is so complex.
-> Frontend calls walks into the driver through callback, then, it gets
-> back to the front-end code again through another callback to come
-> back... this is hard to follow.
->
-> Then, we still have problem with the existing approach that you
-> propose, since there is 1:N mapping between the indirect block and the
-> net_device.
+On Wed, Mar 04, 2020 at 03:13:34AM +0100, Phil Sutter wrote:
+> Hi Pablo,
+> 
+> On Tue, Mar 03, 2020 at 09:55:54PM +0100, Pablo Neira Ayuso wrote:
+> > On Tue, Mar 03, 2020 at 02:02:52AM +0100, Phil Sutter wrote:
+> > > Hi Pablo,
+> > > 
+> > > On Mon, Mar 02, 2020 at 08:19:30PM +0100, Pablo Neira Ayuso wrote:
+> > > > On Mon, Mar 02, 2020 at 06:53:55PM +0100, Phil Sutter wrote:
+> > > > > iptables-nft-restore calls nft_action(h, NFT_COMPAT_COMMIT) for each
+> > > > > COMMIT line in input. When restoring a dump containing multiple large
+> > > > > tables, chances are nft_rebuild_cache() has to run multiple times.
+> > 
+> > It is true that chances that this code runs multiple times since the
+> > new fine-grain caching logic is in place.
+> 
+> AFAICT, this is not related to granularity of caching logic. The crux is
+> that your fix of Florian's concurrency fix in commit f6ad231d698c7
+> ("nft: keep original cache in case of ERESTART") ignores the fact that
+> cache may have to be rebuilt multiple times. I wasn't aware of it
+> either, but knowing that each COMMIT line causes a COMMIT internally
+> makes it obvious. Your patch adds code to increment cache_index but none
+> to reset it to zero.
 
-The indirect block infrastructure is designed by the driver guys. The callbacks
+Thanks for explaining.
 
-is used for building and finishing relationship between the tunnel device and
+[...]
+> > Would this patch still work after this series are applied:
+> > 
+> > https://patchwork.ozlabs.org/project/netfilter-devel/list/?series=151404
+> > 
+> > That is working and passing tests. It is just missing the code to
+> > restore the fine grain dumping, that should be easy to add.
+> > 
+> > That logic will really reduce the chances to exercise all this cache
+> > dump / cache cancel. Bugs in this cache consistency code is usually
+> > not that easy to trigger and usually hard to fix.
+> > 
+> > I just think it would be a pity if that work ends up in the trash can.
+> 
+> I didn't review those patches yet, but from a quick glance it doesn't
+> seem to touch the problematic code around __nft_flush_cache(). Let's
+> make a deal: You accept my fix for the existing cache logic and I'll in
+> return fix your series if necessary and at least find out what needs to
+> be done so it doesn't cause a performance regression.
 
-the hardware devices. Such as the tunnel device come in and go away and the hardware
-
-device come in and go away. The relationship between the tunnel device and the
-
-hardware devices is so subtle.
-
-> Probably not a requirement in your case, but the same net_device might
-> be used in several flowtables. Your patch is flawed there and I don't
-> see an easy way to fix this.
-
-The same tunnel device can only be added to one offloaded flowtables. The tunnel device
-
-can build the relationship with the hardware devices one time in the dirver. This is protected
-
-by flow_block_cb_is_busy and xxx_indr_block_cb_priv in driver.
-
-
->
-> I know there is no way to use ->ndo_setup_tc for tunnel devices, but
-> you could have just make it work making it look consistent to the
-> ->ndo_setup_tc logic.
-
-I think the difficulty is how to find the hardware device for tunnel device to set the rule
-
-to the hardware.
-
->
-> I'm inclined to apply this patch though, in the hope that this all can
-> be revisited later to get it in line with the ->ndo_setup_tc approach.
-> However, probably I'm hoping for too much.
->
-> Thank you.
->
+OK, deal :-)
