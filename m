@@ -3,73 +3,112 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 208B6C3F2D1
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Mar 2020 12:31:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A00AAC3F2D1
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Mar 2020 12:54:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E6FBF20838
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Mar 2020 12:31:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6DDBF2072A
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Mar 2020 12:54:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388019AbgCDMbf (ORCPT
+        id S1729118AbgCDMyj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Mar 2020 07:31:35 -0500
-Received: from correo.us.es ([193.147.175.20]:54340 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387975AbgCDMbf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Mar 2020 07:31:35 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9B36AE34E4
-        for <netfilter-devel@vger.kernel.org>; Wed,  4 Mar 2020 13:31:18 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8CEC3DA3A9
-        for <netfilter-devel@vger.kernel.org>; Wed,  4 Mar 2020 13:31:18 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7F637DA38F; Wed,  4 Mar 2020 13:31:18 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 97027FB378;
-        Wed,  4 Mar 2020 13:31:16 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 04 Mar 2020 13:31:16 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 706DD42EF52A;
-        Wed,  4 Mar 2020 13:31:16 +0100 (CET)
-Date:   Wed, 4 Mar 2020 13:31:30 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Lukas Wunner <lukas@wunner.de>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Martin Mares <mj@ucw.cz>,
-        Daniel Borkmann <daniel@iogearbox.net>
-Subject: Re: [PATCH nf-next,RFC 0/5] Netfilter egress hook
-Message-ID: <20200304123130.yyb3miizk6yez4od@salvia>
-References: <cover.1572528496.git.lukas@wunner.de>
- <20191107225149.5t4sg35b5gwuwawa@salvia>
- <20200304095032.s6ypvmo45d75wkr7@wunner.de>
+        Wed, 4 Mar 2020 07:54:39 -0500
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:23785 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726440AbgCDMyi (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 4 Mar 2020 07:54:38 -0500
+Received: from [192.168.1.6] (unknown [101.86.128.44])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 1912040F71;
+        Wed,  4 Mar 2020 20:54:26 +0800 (CST)
+Subject: Re: [PATCH nf-next v5 0/4] netfilter: flowtable: add indr-block
+ offload
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+References: <1582521775-25176-1-git-send-email-wenxu@ucloud.cn>
+ <20200303215300.qzo4ankxq5ktaba4@salvia>
+From:   wenxu <wenxu@ucloud.cn>
+Message-ID: <83bfbc34-6a3e-1f31-4546-1511c5dcddf5@ucloud.cn>
+Date:   Wed, 4 Mar 2020 20:54:25 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.5.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200304095032.s6ypvmo45d75wkr7@wunner.de>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <20200303215300.qzo4ankxq5ktaba4@salvia>
+Content-Type: text/plain; charset=gbk
+Content-Transfer-Encoding: 8bit
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSEhJS0tLSkhNSExOT0hZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MQg6SQw*GDg3QyE2I005PioK
+        IRkwCh1VSlVKTkNISElNT01NSU1MVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpLSlVD
+        TVVKSUNVT09ZV1kIAVlBSE5ISTcG
+X-HM-Tid: 0a70a59c90942086kuqy1912040f71
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Mar 04, 2020 at 10:50:32AM +0100, Lukas Wunner wrote:
-[...]
-> So what's the consensus?  Shall I post a non-RFC version, rebased on
-> current nf-next/master?
 
-Please, move on and rebase on top of nf-next/master.
+ÔÚ 2020/3/4 5:53, Pablo Neira Ayuso Ð´µÀ:
+> Hi,
+>
+> On Mon, Feb 24, 2020 at 01:22:51PM +0800, wenxu@ucloud.cn wrote:
+>> From: wenxu <wenxu@ucloud.cn>
+>>
+>> This patch provide tunnel offload based on route lwtunnel. 
+>> The first two patches support indr callback setup
+>> Then add tunnel match and action offload.
+>>
+>> This version modify the second patch: make the dev can bind with different 
+>> flowtable and check the NF_FLOWTABLE_HW_OFFLOAD flags in 
+>> nf_flow_table_indr_block_cb_cmd. 
+> I found some time to look at this indirect block infrastructure that
+> you have added to net/core/flow_offload.c
+>
+> This is _complex_ code, I don't understand why it is so complex.
+> Frontend calls walks into the driver through callback, then, it gets
+> back to the front-end code again through another callback to come
+> back... this is hard to follow.
+>
+> Then, we still have problem with the existing approach that you
+> propose, since there is 1:N mapping between the indirect block and the
+> net_device.
 
-Thank you.
+The indirect block infrastructure is designed by the driver guys. The callbacks
+
+is used for building and finishing relationship between the tunnel device and
+
+the hardware devices. Such as the tunnel device come in and go away and the hardware
+
+device come in and go away. The relationship between the tunnel device and the
+
+hardware devices is so subtle.
+
+> Probably not a requirement in your case, but the same net_device might
+> be used in several flowtables. Your patch is flawed there and I don't
+> see an easy way to fix this.
+
+The same tunnel device can only be added to one offloaded flowtables. The tunnel device
+
+can build the relationship with the hardware devices one time in the dirver. This is protected
+
+by flow_block_cb_is_busy and xxx_indr_block_cb_priv in driver.
+
+
+>
+> I know there is no way to use ->ndo_setup_tc for tunnel devices, but
+> you could have just make it work making it look consistent to the
+> ->ndo_setup_tc logic.
+
+I think the difficulty is how to find the hardware device for tunnel device to set the rule
+
+to the hardware.
+
+>
+> I'm inclined to apply this patch though, in the hope that this all can
+> be revisited later to get it in line with the ->ndo_setup_tc approach.
+> However, probably I'm hoping for too much.
+>
+> Thank you.
+>
