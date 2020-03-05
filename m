@@ -2,78 +2,87 @@ Return-Path: <SRS0=H9P1=4W=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6800FC3F2D7
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 13:37:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E13EFC3F2CD
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 14:48:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 41989208C3
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 13:37:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9679B20732
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 14:48:07 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="MrUuh2kH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726111AbgCENh1 (ORCPT
+        id S1726490AbgCEOsH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Mar 2020 08:37:27 -0500
-Received: from correo.us.es ([193.147.175.20]:38386 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725880AbgCENh1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Mar 2020 08:37:27 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CF10D20A530
-        for <netfilter-devel@vger.kernel.org>; Thu,  5 Mar 2020 14:37:09 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BEB5ADA3C3
-        for <netfilter-devel@vger.kernel.org>; Thu,  5 Mar 2020 14:37:09 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id BAC62DA8E6; Thu,  5 Mar 2020 14:37:09 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CA117DA38D;
-        Thu,  5 Mar 2020 14:37:07 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 05 Mar 2020 14:37:07 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id AB31C42EF4E0;
-        Thu,  5 Mar 2020 14:37:07 +0100 (CET)
-Date:   Thu, 5 Mar 2020 14:37:22 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, syzkaller-bugs@googlegroups.com,
-        netdev@vger.kernel.org,
-        syzbot+a2ff6fa45162a5ed4dd3@syzkaller.appspotmail.com
-Subject: Re: [PATCH nf] netfilter: nf_tables: free flowtable hooks on hook
- register error
-Message-ID: <20200305133722.ddjx7nefs6wbzhej@salvia>
-References: <20200302205850.29365-1-fw@strlen.de>
- <20200305120931.poeox6r3rapcbujb@salvia>
+        Thu, 5 Mar 2020 09:48:07 -0500
+Received: from kadath.azazel.net ([81.187.231.250]:55984 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726143AbgCEOsH (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 5 Mar 2020 09:48:07 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=SV9al90o40wPbWIVNmqk011x1TUcmeKMIMpkjiwB4Ew=; b=MrUuh2kHaj8w2iBl6DlartyBSx
+        xhSXLGDh3p18mWDXXjI/o03rKnSWUwfgKtJVNsviluIBuwcY4avIRnmBW74SR1bwVs87w2lsFoyCC
+        Pa069CrdrdEuXZtN87JWeklTZ6tu68aQEvNstrkcwE8ru2yn6G9LJxh8qOslUbucgk22pQ7Oq4q51
+        b9TFMZFStol/Sn3Q0PQTtj47rkXF32XnwGCUiMuTVY/m8U1+kJFHV1BOKfCYaukJ0UG/P9qJXqd3m
+        TycNL/iCR/54I78Ae7PP9ykNa3z2sGmU7AUDO+jnVSTYRSrNzFTnJSR0ihBw9AJi6eDouMH0SLfqh
+        eGOkt4dA==;
+Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
+        by kadath.azazel.net with esmtp (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1j9rnB-0006kU-Nj; Thu, 05 Mar 2020 14:48:05 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH nft 3/4] main: interpolate default include path into help format-string.
+Date:   Thu,  5 Mar 2020 14:48:04 +0000
+Message-Id: <20200305144805.143783-4-jeremy@azazel.net>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20200305144805.143783-1-jeremy@azazel.net>
+References: <20200305144805.143783-1-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200305120931.poeox6r3rapcbujb@salvia>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Mar 05, 2020 at 01:10:12PM +0100, Pablo Neira Ayuso wrote:
-> On Mon, Mar 02, 2020 at 09:58:50PM +0100, Florian Westphal wrote:
-> > If hook registration fails, the hooks allocated via nft_netdev_hook_alloc
-> > need to be freed.
-> > 
-> > We can't change the goto label to 'goto 5' -- while it does fix the memleak
-> > it does cause a warning splat from the netfilter core (the hooks were not
-> > registered).
-> 
-> It seems test/shell crashes after this, looking. It works after
-> reverting.
+The default include path is a string literal defined as a preprocessor
+macro by autoconf.  We can just interpolate it.
 
-Actually, no problem problem is not related to this patch. Sorry for
-the noise.
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ src/main.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/main.c b/src/main.c
+index d00c7ec2b687..4e9a2ed3bcec 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -160,10 +160,10 @@ static void show_help(const char *name)
+ "  -T, --numeric-time			Print time values numerically.\n"
+ "  -a, --handle				Output rule handle.\n"
+ "  -e, --echo				Echo what has been added, inserted or replaced.\n"
+-"  -I, --includepath <directory>		Add <directory> to the paths searched for include files. Default is: %s\n"
++"  -I, --includepath <directory>		Add <directory> to the paths searched for include files. Default is: " DEFAULT_INCLUDE_PATH "\n"
+ "  -d, --debug <level [,level...]>	Specify debugging level (scanner, parser, eval, netlink, mnl, proto-ctx, segtree, all)\n"
+ "\n",
+-	name, DEFAULT_INCLUDE_PATH);
++	name);
+ }
+ 
+ static void show_version(void)
+-- 
+2.25.1
+
