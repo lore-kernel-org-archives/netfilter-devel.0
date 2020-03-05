@@ -4,41 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E865C3F2D1
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 17:13:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD61CC3F2D1
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 17:20:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 25A7420848
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 17:13:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 84845207FD
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 17:20:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583428433;
-	bh=3IeweYz10iLPB5x/FxuKK3ushj7/AQrBPdxWYnpyJ3c=;
+	s=default; t=1583428828;
+	bh=DSVLmcHuc32RxTyihN1Xc6Ef2bEnbbW4cyvwhbxU2pI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=xOlAaxsfXO2FlDfuf9It0RtKBwiyTRjP8s0/Rx1BM8PqS25RyfnJWQA5pNYso4TAd
-	 iFRQJnKUJMLqXEO0n3GTaIOkI458PhxedtULGJdOYXw9M/8VHck4swwhPfyhIxgGt3
-	 pzkdbaDSBsRX69YQHrpivyZMtxwNj/suzegdz/20=
+	b=eAo0TXGhzyn14+qiAUZXwO9ckME4Y2Ee9IZGdizHLb1zXNf3keZOFc+Hm4WGnY2vS
+	 +GYtlAOim9MWvCUUQVx1dk0w00VZSYDbFANwgNnoANYY0qK3+I6uvtSyWfwNz+Ivc5
+	 c8RIFM9DLfD0cd5rnlTXJiQmpSLbKfpvIquIuelE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727434AbgCERNw (ORCPT
+        id S1727862AbgCEROy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Mar 2020 12:13:52 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39578 "EHLO mail.kernel.org"
+        Thu, 5 Mar 2020 12:14:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41312 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727408AbgCERNu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Mar 2020 12:13:50 -0500
+        id S1726128AbgCEROw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 5 Mar 2020 12:14:52 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AE7EF21556;
-        Thu,  5 Mar 2020 17:13:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 44083217F4;
+        Thu,  5 Mar 2020 17:14:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1583428429;
-        bh=3IeweYz10iLPB5x/FxuKK3ushj7/AQrBPdxWYnpyJ3c=;
+        s=default; t=1583428492;
+        bh=DSVLmcHuc32RxTyihN1Xc6Ef2bEnbbW4cyvwhbxU2pI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=uZHtR0y4QBYCgCjdEy0G20yZqNbDOJvDxypflvWF/BItqtv/FRBFT21wyh9qLcfNH
-         rK3dxe+Re5sHhjpf2gXiPa8+MjHBQF/O5eUSx1xBvdG8YUZ/4mLFAICSG98MQyHLAj
-         hHoGjfKBlRualXBd1K1I4FXL5+0XAykKo3MyNgEA=
+        b=Nz6YA8FzMIQW06sWzoSitQwhw3KNqhsFr87eAT5vfMKRk1DibPr18uRIqU0WG5i1M
+         Faq+qVuGeORuTR30u+vDZ5HFD8J6FrjMtJEF16BzDlfenzZJ5kSfC28Gi4exKBv5Vq
+         AQQFXuylC4Z7DtkOwfgObKNNpX1TQ/CWGkubbnck=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
@@ -46,12 +46,12 @@ Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.5 29/67] netfilter: ipset: Fix forceadd evaluation path
-Date:   Thu,  5 Mar 2020 12:12:30 -0500
-Message-Id: <20200305171309.29118-29-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 25/58] netfilter: ipset: Fix forceadd evaluation path
+Date:   Thu,  5 Mar 2020 12:13:46 -0500
+Message-Id: <20200305171420.29595-25-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200305171309.29118-1-sashal@kernel.org>
-References: <20200305171309.29118-1-sashal@kernel.org>
+In-Reply-To: <20200305171420.29595-1-sashal@kernel.org>
+References: <20200305171420.29595-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -79,7 +79,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 2 insertions(+)
 
 diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 71e93eac08319..e52d7b7597a0d 100644
+index 2ac28c5c7e957..2389c9f89e481 100644
 --- a/net/netfilter/ipset/ip_set_hash_gen.h
 +++ b/net/netfilter/ipset/ip_set_hash_gen.h
 @@ -931,6 +931,8 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
