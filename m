@@ -2,98 +2,62 @@ Return-Path: <SRS0=H9P1=4W=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35EFDC3F2D1
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 10:15:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 538CEC3F2CD
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 10:53:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 14E1520848
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 10:15:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2F422208C3
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 10:53:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725877AbgCEKPs (ORCPT
+        id S1726049AbgCEKxn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Mar 2020 05:15:48 -0500
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:50764 "EHLO
+        Thu, 5 Mar 2020 05:53:43 -0500
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:50882 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725937AbgCEKPs (ORCPT
+        by vger.kernel.org with ESMTP id S1725880AbgCEKxm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Mar 2020 05:15:48 -0500
+        Thu, 5 Mar 2020 05:53:42 -0500
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1j9nXe-00073i-Ku; Thu, 05 Mar 2020 11:15:46 +0100
+        (envelope-from <fw@strlen.de>)
+        id 1j9o8K-0007Dm-8S; Thu, 05 Mar 2020 11:53:40 +0100
+Date:   Thu, 5 Mar 2020 11:53:40 +0100
 From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nf_tables: fix infinite loop when expr is not available
-Date:   Thu,  5 Mar 2020 11:15:36 +0100
-Message-Id: <20200305101536.13029-1-fw@strlen.de>
-X-Mailer: git-send-email 2.24.1
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft v3 00/18] Support for boolean binops with variable
+ RHS operands.
+Message-ID: <20200305105340.GH979@breakpoint.cc>
+References: <20200303094844.26694-1-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200303094844.26694-1-jeremy@azazel.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nft will loop forever if the kernel doesn't support an expression:
+Jeremy Sowden <jeremy@azazel.net> wrote:
+> Kernel support for passing mask and xor values for bitwise boolean
+> operations via registers allows us to support boolean binop's with
+> variable RHS operands: XOR expressions pass the xor value in a register;
+> AND expressions pass the mask value in a register; OR expressions pass
+> both mask and xor values in registers.
+> 
+> NB, OR expressions are converted to `(a & (b ^ 1)) ^ b` during
+> linearization (in patch 9), because it makes both linearization and
+> delinearization a lot simpler.  However, it involves rearranging and
+> allocating expressions after the evaluation phase.  Since nothing else
+> does this, AFAICS, I'm not sure whether it's the right thing to do.
+> 
+> The patch-set comprises four parts:
+> 
+>    1 -  7: some tidying and bug-fixes;
 
-1. nft_expr_type_get() appends the family specific name to the module list.
-2. -EAGAIN is returned to nfnetlink, nfnetlink calls abort path.
-3. abort path sets ->done to true and calls request_module for the
-   expression.
-4. nfnetlink replays the batch, we end up in nft_expr_type_get() again.
-5. nft_expr_type_get attempts to append family-specific name. This
-   one already exists on the list, so we continue
-6. nft_expr_type_get adds the generic expression name to the module
-   list. -EAGAIN is returned, nfnetlink calls abort path.
-7. abort path encounters the family-specific expression which
-   has 'done' set, so it gets removed.
-8. abort path requests the generic expression name, sets done to true.
-9. batch is replayed.
-
-If the expression could not be loaded, then we will end up back at 1),
-because the family-specific name got removed and the cycle starts again.
-
-Note that userspace can SIGKILL the nft process to stop the cycle, but
-the desired behaviour is to return an error after the generic expr name
-fails to load the expression.
-
-Fixes: eb014de4fd418 ("netfilter: nf_tables: autoload modules from the abort path")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_tables_api.c | 10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index bb064aa4154b..798a20648c2f 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -7383,13 +7383,8 @@ static void nf_tables_module_autoload(struct net *net)
- 	list_splice_init(&net->nft.module_list, &module_list);
- 	mutex_unlock(&net->nft.commit_mutex);
- 	list_for_each_entry_safe(req, next, &module_list, list) {
--		if (req->done) {
--			list_del(&req->list);
--			kfree(req);
--		} else {
--			request_module("%s", req->module);
--			req->done = true;
--		}
-+		request_module("%s", req->module);
-+		req->done = true;
- 	}
- 	mutex_lock(&net->nft.commit_mutex);
- 	list_splice(&module_list, &net->nft.module_list);
-@@ -8172,6 +8167,7 @@ static void __net_exit nf_tables_exit_net(struct net *net)
- 	__nft_release_tables(net);
- 	mutex_unlock(&net->nft.commit_mutex);
- 	WARN_ON_ONCE(!list_empty(&net->nft.tables));
-+	WARN_ON_ONCE(!list_empty(&net->nft.module_list));
- }
- 
- static struct pernet_operations nf_tables_net_ops = {
--- 
-2.24.1
-
+I've pushed these to master, thanks.
