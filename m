@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACDC8C3F2D8
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 17:20:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8C2CC3F2D2
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 17:22:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5C11A21739
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 17:20:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E33E207FD
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 17:22:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1583428831;
-	bh=GIsDD01Yt33XCm7FbaLgzR371rPoln8i3L9gZVXLXIw=;
+	s=default; t=1583428976;
+	bh=9BomOEDdG4KGQeMyPpQVy/7nCcOS//vi9vhan5UNMiM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=kkPOSiQdaFPHfDoydRlC+Q3Maf8ZSUROGEAuBm3vE6mm7KxlhZjMbUxIWzf4VOSuw
-	 Q9/XZ6Gr3B8PNpNiGu9VPXY8WBsMEKNRDuB3r3cCzOA0neGX+2xOsPfNvgo9CXCy7Q
-	 SfG+h0Ls3Vs5Wah6cbAPnFKrw1eiLv7fiAT+VKSo=
+	b=1Xi71Y/nKak6hm/K8t6JcGeaVXJn1ZRtPVej1r/qt3W+1SGP23ttEQit3azAyasgK
+	 kgiPtMUW7gv+u0IXsXA+Jvh6wvrE4F0P7Oy9IzWc2I9869v8NPARoIH0s1ahtEEOxR
+	 izmRFF6Tge8HutB9nXELAG8+agM0BZK2d7Fwq0dg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727851AbgCEROy (ORCPT
+        id S1727414AbgCERNw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Mar 2020 12:14:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41282 "EHLO mail.kernel.org"
+        Thu, 5 Mar 2020 12:13:52 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39498 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727829AbgCEROw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Mar 2020 12:14:52 -0500
+        id S1727359AbgCERNu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 5 Mar 2020 12:13:50 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4A555208CD;
-        Thu,  5 Mar 2020 17:14:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1429F20848;
+        Thu,  5 Mar 2020 17:13:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1583428490;
-        bh=GIsDD01Yt33XCm7FbaLgzR371rPoln8i3L9gZVXLXIw=;
+        s=default; t=1583428428;
+        bh=9BomOEDdG4KGQeMyPpQVy/7nCcOS//vi9vhan5UNMiM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=x+fa/+K/Cu/6PJfi4CTxkJBf5fUuvIUNXKmLjmmT8ilAHW5PSKto+f3o7jXyiYBB+
-         zqU1d3rD55AKc2DZGLxPzMAoiRVubGFTE7H2PTrDHZSSqpqbRFx7RwnXuvgZJg7hms
-         N2B6+cH+2SqzWm65+dj90Y/aQlUFDa3wBC/2BwM0=
+        b=jOS8+Rlbp5J30vlzNhbe7uAbHg2P4WqhqgTxsRkZ9Nam/I2uq+sluXcE7pabqv/+r
+         UvtoSWTeg6/Dew9lABlI9Y+MxwHSWrcCOR1XjsCybTCJLL9AtTQMAuSJ/6uPzHJeKD
+         vz+jAhVcFbcsJGp3iMY3k5HebcXk3VoZ6ekVChXA=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
@@ -48,12 +48,12 @@ Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 24/58] netfilter: ipset: Fix "INFO: rcu detected stall in hash_xxx" reports
-Date:   Thu,  5 Mar 2020 12:13:45 -0500
-Message-Id: <20200305171420.29595-24-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.5 28/67] netfilter: ipset: Fix "INFO: rcu detected stall in hash_xxx" reports
+Date:   Thu,  5 Mar 2020 12:12:29 -0500
+Message-Id: <20200305171309.29118-28-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200305171420.29595-1-sashal@kernel.org>
-References: <20200305171420.29595-1-sashal@kernel.org>
+In-Reply-To: <20200305171309.29118-1-sashal@kernel.org>
+References: <20200305171309.29118-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -115,7 +115,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  3 files changed, 472 insertions(+), 206 deletions(-)
 
 diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index 77336f4c4b1ce..32658749e9db0 100644
+index 908d38dbcb91f..5448c8b443dbf 100644
 --- a/include/linux/netfilter/ipset/ip_set.h
 +++ b/include/linux/netfilter/ipset/ip_set.h
 @@ -121,6 +121,7 @@ struct ip_set_ext {
@@ -141,7 +141,7 @@ index 77336f4c4b1ce..32658749e9db0 100644
  };
  
  /* The core set type structure */
-@@ -681,7 +690,7 @@ ip_set_init_skbinfo(struct ip_set_skbinfo *skbinfo,
+@@ -501,7 +510,7 @@ ip_set_init_skbinfo(struct ip_set_skbinfo *skbinfo,
  }
  
  #define IP_SET_INIT_KEXT(skb, opt, set)			\
@@ -151,10 +151,10 @@ index 77336f4c4b1ce..32658749e9db0 100644
  
  #define IP_SET_INIT_UEXT(set)				\
 diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index a9df9dac57b2d..75da200aa5d87 100644
+index 69c107f9ba8db..8dd17589217d7 100644
 --- a/net/netfilter/ipset/ip_set_core.c
 +++ b/net/netfilter/ipset/ip_set_core.c
-@@ -557,6 +557,20 @@ ip_set_rcu_get(struct net *net, ip_set_id_t index)
+@@ -723,6 +723,20 @@ ip_set_rcu_get(struct net *net, ip_set_id_t index)
  	return set;
  }
  
@@ -175,7 +175,7 @@ index a9df9dac57b2d..75da200aa5d87 100644
  int
  ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
  	    const struct xt_action_param *par, struct ip_set_adt_opt *opt)
-@@ -578,9 +592,9 @@ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
+@@ -744,9 +758,9 @@ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
  	if (ret == -EAGAIN) {
  		/* Type requests element to be completed */
  		pr_debug("element must be completed, ADD is triggered\n");
@@ -187,7 +187,7 @@ index a9df9dac57b2d..75da200aa5d87 100644
  		ret = 1;
  	} else {
  		/* --return-nomatch: invert matched element */
-@@ -609,9 +623,9 @@ ip_set_add(ip_set_id_t index, const struct sk_buff *skb,
+@@ -775,9 +789,9 @@ ip_set_add(ip_set_id_t index, const struct sk_buff *skb,
  	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
  		return -IPSET_ERR_TYPE_MISMATCH;
  
@@ -199,7 +199,7 @@ index a9df9dac57b2d..75da200aa5d87 100644
  
  	return ret;
  }
-@@ -631,9 +645,9 @@ ip_set_del(ip_set_id_t index, const struct sk_buff *skb,
+@@ -797,9 +811,9 @@ ip_set_del(ip_set_id_t index, const struct sk_buff *skb,
  	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
  		return -IPSET_ERR_TYPE_MISMATCH;
  
@@ -211,7 +211,7 @@ index a9df9dac57b2d..75da200aa5d87 100644
  
  	return ret;
  }
-@@ -1098,9 +1112,9 @@ ip_set_flush_set(struct ip_set *set)
+@@ -1264,9 +1278,9 @@ ip_set_flush_set(struct ip_set *set)
  {
  	pr_debug("set: %s\n",  set->name);
  
@@ -223,7 +223,7 @@ index a9df9dac57b2d..75da200aa5d87 100644
  }
  
  static int ip_set_flush(struct net *net, struct sock *ctnl, struct sk_buff *skb,
-@@ -1523,9 +1537,9 @@ call_ad(struct sock *ctnl, struct sk_buff *skb, struct ip_set *set,
+@@ -1713,9 +1727,9 @@ call_ad(struct sock *ctnl, struct sk_buff *skb, struct ip_set *set,
  	bool eexist = flags & IPSET_FLAG_EXIST, retried = false;
  
  	do {
@@ -236,7 +236,7 @@ index a9df9dac57b2d..75da200aa5d87 100644
  	} while (ret == -EAGAIN &&
  		 set->variant->resize &&
 diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index d098d87bc3317..2ac28c5c7e957 100644
+index 7480ce55b5c85..71e93eac08319 100644
 --- a/net/netfilter/ipset/ip_set_hash_gen.h
 +++ b/net/netfilter/ipset/ip_set_hash_gen.h
 @@ -7,13 +7,21 @@
