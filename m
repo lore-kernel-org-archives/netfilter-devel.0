@@ -7,197 +7,165 @@ X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 899D3C3F2D2
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 20:33:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CEF1C3F2D1
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 20:34:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 65CA6207FD
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 20:33:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 44E55207FD
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Mar 2020 20:34:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Ci/MsYNj"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="b4qk1Q/T"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726282AbgCEUdd (ORCPT
+        id S1726170AbgCEUeT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Mar 2020 15:33:33 -0500
-Received: from us-smtp-2.mimecast.com ([205.139.110.61]:43070 "EHLO
+        Thu, 5 Mar 2020 15:34:19 -0500
+Received: from us-smtp-2.mimecast.com ([205.139.110.61]:30995 "EHLO
         us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726049AbgCEUdd (ORCPT
+        by vger.kernel.org with ESMTP id S1726162AbgCEUeS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Mar 2020 15:33:33 -0500
+        Thu, 5 Mar 2020 15:34:18 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1583440412;
+        s=mimecast20190719; t=1583440458;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=FNftTzZxI1b3cESst7sMGN9YhZe1vN+5jFr1kxCiOHw=;
-        b=Ci/MsYNjwXfXAHMNktPhjyih8f2A8IFCHdPe0a/rdJuFMw0EnuI9xpdPNi3s0lah9dwvAP
-        XhYZ6yqglUN/2USVC686EydftR2cbfqEQxmJUoUQDwKt5tGBQeUiEIJAssRb1Y/BdMVOu5
-        fA9R0u1J28PthHpyhrmiUfEXV7AJSyo=
+         content-transfer-encoding:content-transfer-encoding;
+        bh=wBYDrzFKvbdYPaZwx64CedCJkcROH7sVVuCttU8bkLk=;
+        b=b4qk1Q/TomJuymBDzhXel35iIav13oT2dWmmsZj22H5Slp22OOD45W3+Len/a2QnphHk/j
+        XgmZvDZk92rc4UZiEzwRH9jZ9gHkcscxNu7mi/BKc/fLh9tV9j7ifx3nvb+0hUODQZ5oHW
+        x3FuBZYt86O/mJLvHMQ3RU8wo4y2TNQ=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-328-bRoXTGYfOBGVq20avs5IcQ-1; Thu, 05 Mar 2020 15:33:28 -0500
-X-MC-Unique: bRoXTGYfOBGVq20avs5IcQ-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+ us-mta-382-6W-FMl6PNoauMwLrpUBuwA-1; Thu, 05 Mar 2020 15:34:16 -0500
+X-MC-Unique: 6W-FMl6PNoauMwLrpUBuwA-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 48A8B107ACC7;
-        Thu,  5 Mar 2020 20:33:27 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 93C86100550D;
+        Thu,  5 Mar 2020 20:34:15 +0000 (UTC)
 Received: from epycfail.redhat.com (ovpn-200-16.brq.redhat.com [10.40.200.16])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 1127810016EB;
-        Thu,  5 Mar 2020 20:33:25 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 5D0F191D9F;
+        Thu,  5 Mar 2020 20:34:14 +0000 (UTC)
 From:   Stefano Brivio <sbrivio@redhat.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: [PATCH nf 4/4] nft_set_rbtree: Detect partial overlaps on insertion
-Date:   Thu,  5 Mar 2020 21:33:05 +0100
-Message-Id: <e6f84fe980f55dde272f7c17e2423390a03e942d.1583438771.git.sbrivio@redhat.com>
-In-Reply-To: <cover.1583438771.git.sbrivio@redhat.com>
-References: <cover.1583438771.git.sbrivio@redhat.com>
+Subject: [PATCH nft] tests: Introduce test for insertion of overlapping and non-overlapping ranges
+Date:   Thu,  5 Mar 2020 21:34:11 +0100
+Message-Id: <a0fbd674a9df38fddd9066dd4762d551c207d66a.1583438395.git.sbrivio@redhat.com>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
 Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-...and return -ENOTEMPTY to the front-end in this case, instead of
-proceeding. Currently, nft takes care of checking for these cases
-and not sending them to the kernel, but if we drop the set_overlap()
-call in nft we can end up in situations like:
+Insertion of overlapping ranges should return success only if the new
+elements are identical to existing ones, or, for concatenated ranges,
+if the new element is less specific (in all its fields) than any
+existing one.
 
- # nft add table t
- # nft add set t s '{ type inet_service ; flags interval ; }'
- # nft add element t s '{ 1 - 5 }'
- # nft add element t s '{ 6 - 10 }'
- # nft add element t s '{ 4 - 7 }'
- # nft list set t s
- table ip t {
- 	set s {
- 		type inet_service
- 		flags interval
- 		elements =3D { 1-3, 4-5, 6-7 }
- 	}
- }
+Note that, in case the range is identical to an existing one, insertion
+won't actually be performed, but no error will be returned either on
+'add element'.
 
-This change has the primary purpose of making the behaviour
-consistent with nft_set_pipapo, but is also functional to avoid
-inconsistent behaviour if userspace sends overlapping elements for
-any reason.
+This was inspired by a failing case reported by Phil Sutter (where
+concatenated overlapping ranges would fail insertion silently) and is
+fixed by kernel series with subject:
+	nftables: Consistently report partial and entire set overlaps
+
+With that series, these tests now pass also if the call to set_overlap()
+on insertion is skipped. Partial or entire overlapping was already
+detected by the kernel for concatenated ranges (nft_set_pipapo) from
+the beginning, and that series makes the nft_set_rbtree implementation
+consistent in terms of detection and reporting. Without that, overlap
+checks are performed by nft but not guaranteed by the kernel.
+
+However, we can't just drop set_overlap() now, as we need to preserve
+compatibility with older kernels.
 
 Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
 ---
- net/netfilter/nft_set_rbtree.c | 68 ++++++++++++++++++++++++++++++++--
- 1 file changed, 65 insertions(+), 3 deletions(-)
+ .../testcases/sets/0044interval_overlap_0     | 66 +++++++++++++++++++
+ 1 file changed, 66 insertions(+)
+ create mode 100755 tests/shell/testcases/sets/0044interval_overlap_0
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtre=
-e.c
-index 85572b2a6051..c97c493cd867 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -213,8 +213,43 @@ static int __nft_rbtree_insert(const struct net *net=
-, const struct nft_set *set,
- 	u8 genmask =3D nft_genmask_next(net);
- 	struct nft_rbtree_elem *rbe;
- 	struct rb_node *parent, **p;
-+	bool overlap =3D false;
- 	int d;
-=20
-+	/* Detect overlaps as we descend the tree. Set the flag in these cases:
-+	 *
-+	 * a1. |__ _ _?  >|__ _ _  (insert start after existing start)
-+	 * a2. _ _ __>|  ?_ _ __|  (insert end before existing end)
-+	 * a3. _ _ ___|  ?_ _ _>|  (insert end after existing end)
-+	 * a4. >|__ _ _   _ _ __|  (insert start before existing end)
-+	 *
-+	 * and clear it later on, as we eventually reach the points indicated b=
-y
-+	 * '?' above, in the cases described below. We'll always meet these
-+	 * later, locally, due to tree ordering, and overlaps for the intervals
-+	 * that are the closest together are always evaluated last.
-+	 *
-+	 * b1. |__ _ _!  >|__ _ _  (insert start after existing end)
-+	 * b2. _ _ __>|  !_ _ __|  (insert end before existing start)
-+	 * b3. !_____>|            (insert end after existing start)
-+	 *
-+	 * Case a4. resolves to b1.:
-+	 * - if the inserted start element is the leftmost, because the '0'
-+	 *   element in the tree serves as end element
-+	 * - otherwise, if an existing end is found. Note that end elements are
-+	 *   always inserted after corresponding start elements.
-+	 *
-+	 * For a new, rightmost pair of elements, we'll hit cases b1. and b3.,
-+	 * in that order.
-+	 *
-+	 * The flag is also cleared in two special cases:
-+	 *
-+	 * b4. |__ _ _!|<_ _ _   (insert start right before existing end)
-+	 * b5. |__ _ >|!__ _ _   (insert end right after existing start)
-+	 *
-+	 * which always happen as last step and imply that no further
-+	 * overlapping is possible.
-+	 */
+diff --git a/tests/shell/testcases/sets/0044interval_overlap_0 b/tests/sh=
+ell/testcases/sets/0044interval_overlap_0
+new file mode 100755
+index 000000000000..fad92ddcf356
+--- /dev/null
++++ b/tests/shell/testcases/sets/0044interval_overlap_0
+@@ -0,0 +1,66 @@
++#!/bin/sh -e
++#
++# 0044interval_overlap_0 - Add overlapping and non-overlapping intervals
++#
++# Check that adding overlapping intervals to a set returns an error, unl=
+ess:
++# - the inserted element overlaps entirely, that is, it's identical to a=
+n
++#   existing one
++# - for concatenated ranges, the new element is less specific than any e=
+xisting
++#   overlapping element, as elements are evaluated in order of insertion
 +
- 	parent =3D NULL;
- 	p =3D &priv->root.rb_node;
- 	while (*p !=3D NULL) {
-@@ -223,17 +258,40 @@ static int __nft_rbtree_insert(const struct net *ne=
-t, const struct nft_set *set,
- 		d =3D memcmp(nft_set_ext_key(&rbe->ext),
- 			   nft_set_ext_key(&new->ext),
- 			   set->klen);
--		if (d < 0)
-+		if (d < 0) {
- 			p =3D &parent->rb_left;
--		else if (d > 0)
++#	Accept	Interval	List
++intervals_simple=3D"
++	y	 0 -  2		0-2
++	y	 0 -  2		0-2
++	n	 0 -  1		0-2
++	n	 0 -  3		0-2
++	y	 3 - 10		0-2, 3-10
++	n	 3 -  9		0-2, 3-10
++	n	 4 - 10		0-2, 3-10
++	n	 4 -  9		0-2, 3-10
++	y	20 - 30		0-2, 3-10, 20-30
++	y	11 - 12		0-2, 3-10, 11-12, 20-30
++	y	13 - 19		0-2, 3-10, 11-12, 13-19, 20-30
++	n	25 - 40		0-2, 3-10, 11-12, 13-19, 20-30
++	y	50 - 60		0-2, 3-10, 11-12, 13-19, 20-30, 50-60
++	y	31 - 49		0-2, 3-10, 11-12, 13-19, 20-30, 31-49, 50-60
++	n	59 - 60		0-2, 3-10, 11-12, 13-19, 20-30, 31-49, 50-60
++"
 +
-+			if (nft_rbtree_interval_start(new)) {
-+				overlap =3D nft_rbtree_interval_start(rbe) &&
-+					  nft_set_elem_active(&rbe->ext,
-+							      genmask);
-+			} else {
-+				overlap =3D nft_rbtree_interval_end(rbe) &&
-+					  nft_set_elem_active(&rbe->ext,
-+							      genmask);
-+			}
-+		} else if (d > 0) {
- 			p =3D &parent->rb_right;
--		else {
++intervals_concat=3D"
++	y	0-2 . 0-3	0-2 . 0-3
++	y	0-2 . 0-3	0-2 . 0-3
++	n	0-1 . 0-2	0-2 . 0-3
++	y	10-20 . 30-40	0-2 . 0-3, 10-20 . 30-40
++	n	15-20 . 50-60	0-2 . 0-3, 10-20 . 30-40, 15-20 . 50-60
++	y	3-9 . 4-29	0-2 . 0-3, 10-20 . 30-40, 15-20 . 50-60, 3-9 . 4-29
++	y	3-9 . 4-29	0-2 . 0-3, 10-20 . 30-40, 15-20 . 50-60, 3-9 . 4-29
++	n	11-19 . 30-40	0-2 . 0-3, 10-20 . 30-40, 15-20 . 50-60, 3-9 . 4-29
++	y	15-20 . 49-61	0-2 . 0-3, 10-20 . 30-40, 15-20 . 50-60, 3-9 . 4-29, 15=
+-20 . 49-61
++"
 +
-+			if (nft_rbtree_interval_end(new)) {
-+				overlap =3D nft_rbtree_interval_end(rbe) &&
-+					  nft_set_elem_active(&rbe->ext,
-+							      genmask);
-+			} else if (nft_rbtree_interval_end(rbe) &&
-+				   nft_set_elem_active(&rbe->ext, genmask)) {
-+				overlap =3D true;
-+			}
-+		} else {
- 			if (nft_rbtree_interval_end(rbe) &&
- 			    nft_rbtree_interval_start(new)) {
- 				p =3D &parent->rb_left;
++$NFT add table t
++$NFT add set t s '{ type inet_service ; flags interval ; }'
++$NFT add set t c '{ type inet_service . inet_service ; flags interval ; =
+}'
 +
-+				overlap =3D false;
- 			} else if (nft_rbtree_interval_start(rbe) &&
- 				   nft_rbtree_interval_end(new)) {
- 				p =3D &parent->rb_right;
++IFS=3D'=09
++'
++set=3D"s"
++for t in ${intervals_simple} switch ${intervals_concat}; do
++	[ "${t}" =3D "switch" ] && set=3D"c"         && continue
++	[ -z "${pass}" ]      && pass=3D"${t}"     && continue
++	[ -z "${interval}" ]  && interval=3D"${t}" && continue
 +
-+				overlap =3D false;
- 			} else if (nft_set_elem_active(&rbe->ext, genmask)) {
- 				*ext =3D &rbe->ext;
- 				return -EEXIST;
-@@ -242,6 +300,10 @@ static int __nft_rbtree_insert(const struct net *net=
-, const struct nft_set *set,
- 			}
- 		}
- 	}
++	if [ "${pass}" =3D "y" ]; then
++		$NFT add element t ${set} "{ ${interval} }"
++	else
++		! $NFT add element t ${set} "{ ${interval} }" 2>/dev/null
++	fi
++	$NFT list set t ${set} | tr -d '\n\t' | tr -s ' ' | \
++		grep -q "elements =3D { ${t} }"
 +
-+	if (overlap)
-+		return -ENOTEMPTY;
++	pass=3D
++	interval=3D
++done
 +
- 	rb_link_node_rcu(&new->node, parent, p);
- 	rb_insert_color(&new->node, &priv->root);
- 	return 0;
++unset IFS
 --=20
 2.25.1
 
