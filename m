@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A25ACC10F25
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Mar 2020 18:15:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00D52C3F2D6
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Mar 2020 18:15:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8664F20578
+	by mail.kernel.org (Postfix) with ESMTP id CCBEB20578
 	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Mar 2020 18:15:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726974AbgCFSP1 (ORCPT
+        id S1726947AbgCFSPY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 6 Mar 2020 13:15:27 -0500
-Received: from correo.us.es ([193.147.175.20]:40770 "EHLO mail.us.es"
+        Fri, 6 Mar 2020 13:15:24 -0500
+Received: from correo.us.es ([193.147.175.20]:40792 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726905AbgCFSPY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1726859AbgCFSPY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 6 Mar 2020 13:15:24 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E144B15AEA0
-        for <netfilter-devel@vger.kernel.org>; Fri,  6 Mar 2020 19:15:06 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 7D39515AEB4
+        for <netfilter-devel@vger.kernel.org>; Fri,  6 Mar 2020 19:15:05 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D1ABBDA8E6
-        for <netfilter-devel@vger.kernel.org>; Fri,  6 Mar 2020 19:15:06 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6EBF9DA788
+        for <netfilter-devel@vger.kernel.org>; Fri,  6 Mar 2020 19:15:05 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C7095DA7B2; Fri,  6 Mar 2020 19:15:06 +0100 (CET)
+        id 6475DDA390; Fri,  6 Mar 2020 19:15:05 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EB01CDA3A9;
-        Fri,  6 Mar 2020 19:15:04 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8F2D9DA3A4;
+        Fri,  6 Mar 2020 19:15:03 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 06 Mar 2020 19:15:04 +0100 (CET)
+ Fri, 06 Mar 2020 19:15:03 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id C6BBE4301DE0;
-        Fri,  6 Mar 2020 19:15:04 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 60A264301DE0;
+        Fri,  6 Mar 2020 19:15:03 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 11/11] netfilter: nft_chain_nat: inet family is missing module ownership
-Date:   Fri,  6 Mar 2020 19:15:13 +0100
-Message-Id: <20200306181513.656594-12-pablo@netfilter.org>
+Subject: [PATCH 08/11] netfilter: nft_tunnel: add missing attribute validation for tunnels
+Date:   Fri,  6 Mar 2020 19:15:10 +0100
+Message-Id: <20200306181513.656594-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200306181513.656594-1-pablo@netfilter.org>
 References: <20200306181513.656594-1-pablo@netfilter.org>
@@ -54,57 +54,31 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Set owner to THIS_MODULE, otherwise the nft_chain_nat module might be
-removed while there are still inet/nat chains in place.
+From: Jakub Kicinski <kuba@kernel.org>
 
-[  117.942096] BUG: unable to handle page fault for address: ffffffffa0d5e040
-[  117.942101] #PF: supervisor read access in kernel mode
-[  117.942103] #PF: error_code(0x0000) - not-present page
-[  117.942106] PGD 200c067 P4D 200c067 PUD 200d063 PMD 3dc909067 PTE 0
-[  117.942113] Oops: 0000 [#1] PREEMPT SMP PTI
-[  117.942118] CPU: 3 PID: 27 Comm: kworker/3:0 Not tainted 5.6.0-rc3+ #348
-[  117.942133] Workqueue: events nf_tables_trans_destroy_work [nf_tables]
-[  117.942145] RIP: 0010:nf_tables_chain_destroy.isra.0+0x94/0x15a [nf_tables]
-[  117.942149] Code: f6 45 54 01 0f 84 d1 00 00 00 80 3b 05 74 44 48 8b 75 e8 48 c7 c7 72 be de a0 e8 56 e6 2d e0 48 8b 45 e8 48 c7 c7 7f be de a0 <48> 8b 30 e8 43 e6 2d e0 48 8b 45 e8 48 8b 40 10 48 85 c0 74 5b 8b
-[  117.942152] RSP: 0018:ffffc9000015be10 EFLAGS: 00010292
-[  117.942155] RAX: ffffffffa0d5e040 RBX: ffff88840be87fc2 RCX: 0000000000000007
-[  117.942158] RDX: 0000000000000007 RSI: 0000000000000086 RDI: ffffffffa0debe7f
-[  117.942160] RBP: ffff888403b54b50 R08: 0000000000001482 R09: 0000000000000004
-[  117.942162] R10: 0000000000000000 R11: 0000000000000001 R12: ffff8883eda7e540
-[  117.942164] R13: dead000000000122 R14: dead000000000100 R15: ffff888403b3db80
-[  117.942167] FS:  0000000000000000(0000) GS:ffff88840e4c0000(0000) knlGS:0000000000000000
-[  117.942169] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  117.942172] CR2: ffffffffa0d5e040 CR3: 00000003e4c52002 CR4: 00000000001606e0
-[  117.942174] Call Trace:
-[  117.942188]  nf_tables_trans_destroy_work.cold+0xd/0x12 [nf_tables]
-[  117.942196]  process_one_work+0x1d6/0x3b0
-[  117.942200]  worker_thread+0x45/0x3c0
-[  117.942203]  ? process_one_work+0x3b0/0x3b0
-[  117.942210]  kthread+0x112/0x130
-[  117.942214]  ? kthread_create_worker_on_cpu+0x40/0x40
-[  117.942221]  ret_from_fork+0x35/0x40
+Add missing attribute validation for tunnel source and
+destination ports to the netlink policy.
 
-nf_tables_chain_destroy() crashes on module_put() because the module is
-gone.
-
-Fixes: d164385ec572 ("netfilter: nat: add inet family nat support")
+Fixes: af308b94a2a4 ("netfilter: nf_tables: add tunnel support")
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_chain_nat.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/nft_tunnel.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/net/netfilter/nft_chain_nat.c b/net/netfilter/nft_chain_nat.c
-index ff9ac8ae0031..eac4a901233f 100644
---- a/net/netfilter/nft_chain_nat.c
-+++ b/net/netfilter/nft_chain_nat.c
-@@ -89,6 +89,7 @@ static const struct nft_chain_type nft_chain_nat_inet = {
- 	.name		= "nat",
- 	.type		= NFT_CHAIN_T_NAT,
- 	.family		= NFPROTO_INET,
-+	.owner		= THIS_MODULE,
- 	.hook_mask	= (1 << NF_INET_PRE_ROUTING) |
- 			  (1 << NF_INET_LOCAL_IN) |
- 			  (1 << NF_INET_LOCAL_OUT) |
+diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
+index 4c3f2e24c7cb..764e88682a81 100644
+--- a/net/netfilter/nft_tunnel.c
++++ b/net/netfilter/nft_tunnel.c
+@@ -339,6 +339,8 @@ static const struct nla_policy nft_tunnel_key_policy[NFTA_TUNNEL_KEY_MAX + 1] =
+ 	[NFTA_TUNNEL_KEY_FLAGS]	= { .type = NLA_U32, },
+ 	[NFTA_TUNNEL_KEY_TOS]	= { .type = NLA_U8, },
+ 	[NFTA_TUNNEL_KEY_TTL]	= { .type = NLA_U8, },
++	[NFTA_TUNNEL_KEY_SPORT]	= { .type = NLA_U16, },
++	[NFTA_TUNNEL_KEY_DPORT]	= { .type = NLA_U16, },
+ 	[NFTA_TUNNEL_KEY_OPTS]	= { .type = NLA_NESTED, },
+ };
+ 
 -- 
 2.11.0
 
