@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78E2AC10F25
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B9EEC10F00
 	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Mar 2020 18:15:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4CC24205ED
+	by mail.kernel.org (Postfix) with ESMTP id 74C5A20578
 	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Mar 2020 18:15:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726300AbgCFSPk (ORCPT
+        id S1726769AbgCFSPV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 6 Mar 2020 13:15:40 -0500
-Received: from correo.us.es ([193.147.175.20]:40774 "EHLO mail.us.es"
+        Fri, 6 Mar 2020 13:15:21 -0500
+Received: from correo.us.es ([193.147.175.20]:40742 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726788AbgCFSPX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 Mar 2020 13:15:23 -0500
+        id S1726382AbgCFSPV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 6 Mar 2020 13:15:21 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 8C23B15AEB2
-        for <netfilter-devel@vger.kernel.org>; Fri,  6 Mar 2020 19:15:04 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 7A09015AEA8
+        for <netfilter-devel@vger.kernel.org>; Fri,  6 Mar 2020 19:15:02 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7CABEDA3AA
-        for <netfilter-devel@vger.kernel.org>; Fri,  6 Mar 2020 19:15:04 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6955BDA3A4
+        for <netfilter-devel@vger.kernel.org>; Fri,  6 Mar 2020 19:15:02 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7268BDA3A5; Fri,  6 Mar 2020 19:15:04 +0100 (CET)
+        id 67E82DA39F; Fri,  6 Mar 2020 19:15:02 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A4AA2DA38D;
-        Fri,  6 Mar 2020 19:15:02 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3EDFCDA3A0;
+        Fri,  6 Mar 2020 19:15:00 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 06 Mar 2020 19:15:02 +0100 (CET)
+ Fri, 06 Mar 2020 19:15:00 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 77EDB4301DE0;
-        Fri,  6 Mar 2020 19:15:02 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 126B04301DE0;
+        Fri,  6 Mar 2020 19:15:00 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 06/11] netfilter: cthelper: add missing attribute validation for cthelper
-Date:   Fri,  6 Mar 2020 19:15:08 +0100
-Message-Id: <20200306181513.656594-7-pablo@netfilter.org>
+Subject: [PATCH 01/11] netfilter: nf_conntrack: ct_cpu_seq_next should increase position index
+Date:   Fri,  6 Mar 2020 19:15:03 +0100
+Message-Id: <20200306181513.656594-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200306181513.656594-1-pablo@netfilter.org>
 References: <20200306181513.656594-1-pablo@netfilter.org>
@@ -54,31 +54,34 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Jakub Kicinski <kuba@kernel.org>
+From: Vasily Averin <vvs@virtuozzo.com>
 
-Add missing attribute validation for cthelper
-to the netlink policy.
+If .next function does not change position index,
+following .show function will repeat output related
+to current position index.
 
-Fixes: 12f7a505331e ("netfilter: add user-space connection tracking helper infrastructure")
-Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Cc: stable@vger.kernel.org
+Fixes: 1f4aace60b0e ("fs/seq_file.c: simplify seq_file iteration code ...")
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=206283
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_cthelper.c | 2 ++
- 1 file changed, 2 insertions(+)
+ net/netfilter/nf_conntrack_standalone.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index de3a9596b7f1..a5f294aa8e4c 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -742,6 +742,8 @@ static const struct nla_policy nfnl_cthelper_policy[NFCTH_MAX+1] = {
- 	[NFCTH_NAME] = { .type = NLA_NUL_STRING,
- 			 .len = NF_CT_HELPER_NAME_LEN-1 },
- 	[NFCTH_QUEUE_NUM] = { .type = NLA_U32, },
-+	[NFCTH_PRIV_DATA_LEN] = { .type = NLA_U32, },
-+	[NFCTH_STATUS] = { .type = NLA_U32, },
- };
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 410809c669e1..4912069627b6 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -411,7 +411,7 @@ static void *ct_cpu_seq_next(struct seq_file *seq, void *v, loff_t *pos)
+ 		*pos = cpu + 1;
+ 		return per_cpu_ptr(net->ct.stat, cpu);
+ 	}
+-
++	(*pos)++;
+ 	return NULL;
+ }
  
- static const struct nfnl_callback nfnl_cthelper_cb[NFNL_MSG_CTHELPER_MAX] = {
 -- 
 2.11.0
 
