@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0208C10DCE
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Mar 2020 18:15:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78E2AC10F25
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Mar 2020 18:15:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D539A2064A
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Mar 2020 18:15:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4CC24205ED
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Mar 2020 18:15:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726866AbgCFSPW (ORCPT
+        id S1726300AbgCFSPk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 6 Mar 2020 13:15:22 -0500
-Received: from correo.us.es ([193.147.175.20]:40756 "EHLO mail.us.es"
+        Fri, 6 Mar 2020 13:15:40 -0500
+Received: from correo.us.es ([193.147.175.20]:40774 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726642AbgCFSPW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 Mar 2020 13:15:22 -0500
+        id S1726788AbgCFSPX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 6 Mar 2020 13:15:23 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 803C915AEB6
-        for <netfilter-devel@vger.kernel.org>; Fri,  6 Mar 2020 19:15:03 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 8C23B15AEB2
+        for <netfilter-devel@vger.kernel.org>; Fri,  6 Mar 2020 19:15:04 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6FB70DA3AA
-        for <netfilter-devel@vger.kernel.org>; Fri,  6 Mar 2020 19:15:03 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7CABEDA3AA
+        for <netfilter-devel@vger.kernel.org>; Fri,  6 Mar 2020 19:15:04 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 6F193DA3A4; Fri,  6 Mar 2020 19:15:03 +0100 (CET)
+        id 7268BDA3A5; Fri,  6 Mar 2020 19:15:04 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 41372DA3AB;
-        Fri,  6 Mar 2020 19:15:01 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A4AA2DA38D;
+        Fri,  6 Mar 2020 19:15:02 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 06 Mar 2020 19:15:01 +0100 (CET)
+ Fri, 06 Mar 2020 19:15:02 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 1CD104301DE0;
-        Fri,  6 Mar 2020 19:15:01 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 77EDB4301DE0;
+        Fri,  6 Mar 2020 19:15:02 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 03/11] netfilter: xt_recent: recent_seq_next should increase position index
-Date:   Fri,  6 Mar 2020 19:15:05 +0100
-Message-Id: <20200306181513.656594-4-pablo@netfilter.org>
+Subject: [PATCH 06/11] netfilter: cthelper: add missing attribute validation for cthelper
+Date:   Fri,  6 Mar 2020 19:15:08 +0100
+Message-Id: <20200306181513.656594-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200306181513.656594-1-pablo@netfilter.org>
 References: <20200306181513.656594-1-pablo@netfilter.org>
@@ -54,60 +54,31 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Vasily Averin <vvs@virtuozzo.com>
+From: Jakub Kicinski <kuba@kernel.org>
 
-If .next function does not change position index,
-following .show function will repeat output related
-to current position index.
+Add missing attribute validation for cthelper
+to the netlink policy.
 
-Without the patch:
- # dd if=/proc/net/xt_recent/SSH # original file outpt
- src=127.0.0.4 ttl: 0 last_seen: 6275444819 oldest_pkt: 1 6275444819
- src=127.0.0.2 ttl: 0 last_seen: 6275438906 oldest_pkt: 1 6275438906
- src=127.0.0.3 ttl: 0 last_seen: 6275441953 oldest_pkt: 1 6275441953
- 0+1 records in
- 0+1 records out
- 204 bytes copied, 6.1332e-05 s, 3.3 MB/s
-
-Read after lseek into middle of last line (offset 140 in example below)
-generates expected end of last line and then unexpected whole last line
-once again
-
- # dd if=/proc/net/xt_recent/SSH bs=140 skip=1
- dd: /proc/net/xt_recent/SSH: cannot skip to specified offset
- 127.0.0.3 ttl: 0 last_seen: 6275441953 oldest_pkt: 1 6275441953
- src=127.0.0.3 ttl: 0 last_seen: 6275441953 oldest_pkt: 1 6275441953
- 0+1 records in
- 0+1 records out
- 132 bytes copied, 6.2487e-05 s, 2.1 MB/s
-
-Cc: stable@vger.kernel.org
-Fixes: 1f4aace60b0e ("fs/seq_file.c: simplify seq_file iteration code ...")
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=206283
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Fixes: 12f7a505331e ("netfilter: add user-space connection tracking helper infrastructure")
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_recent.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nfnetlink_cthelper.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index 0a9708004e20..225a7ab6d79a 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -492,12 +492,12 @@ static void *recent_seq_next(struct seq_file *seq, void *v, loff_t *pos)
- 	const struct recent_entry *e = v;
- 	const struct list_head *head = e->list.next;
+diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
+index de3a9596b7f1..a5f294aa8e4c 100644
+--- a/net/netfilter/nfnetlink_cthelper.c
++++ b/net/netfilter/nfnetlink_cthelper.c
+@@ -742,6 +742,8 @@ static const struct nla_policy nfnl_cthelper_policy[NFCTH_MAX+1] = {
+ 	[NFCTH_NAME] = { .type = NLA_NUL_STRING,
+ 			 .len = NF_CT_HELPER_NAME_LEN-1 },
+ 	[NFCTH_QUEUE_NUM] = { .type = NLA_U32, },
++	[NFCTH_PRIV_DATA_LEN] = { .type = NLA_U32, },
++	[NFCTH_STATUS] = { .type = NLA_U32, },
+ };
  
-+	(*pos)++;
- 	while (head == &t->iphash[st->bucket]) {
- 		if (++st->bucket >= ip_list_hash_size)
- 			return NULL;
- 		head = t->iphash[st->bucket].next;
- 	}
--	(*pos)++;
- 	return list_entry(head, struct recent_entry, list);
- }
- 
+ static const struct nfnl_callback nfnl_cthelper_cb[NFNL_MSG_CTHELPER_MAX] = {
 -- 
 2.11.0
 
