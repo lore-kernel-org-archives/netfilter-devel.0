@@ -4,54 +4,54 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60E4CC10F25
-	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Mar 2020 16:53:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B632BC10F00
+	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Mar 2020 16:53:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 28B4020684
-	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Mar 2020 16:53:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 85D0320684
+	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Mar 2020 16:53:01 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="A2ZXILeQ"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ZrN3elS3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726281AbgCGQxA (ORCPT
+        id S1726284AbgCGQxB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 7 Mar 2020 11:53:00 -0500
-Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:22318 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726116AbgCGQw7 (ORCPT
+        Sat, 7 Mar 2020 11:53:01 -0500
+Received: from us-smtp-2.mimecast.com ([207.211.31.81]:44809 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726116AbgCGQxB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 7 Mar 2020 11:52:59 -0500
+        Sat, 7 Mar 2020 11:53:01 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1583599978;
+        s=mimecast20190719; t=1583599980;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=emJreOaTtHDAegEU0BZS7d4qA77CHTMcIzGSIxRs5U0=;
-        b=A2ZXILeQXvzu8100ZxuuUZdM/L/RfqDVoBm2P/nZvxq5W+N645iWneOgATto8gYrVFeQNf
-        QmkWzZ25xUtz7MTXfyLf/eP4Za0dJfC2tEEmrqMXHV+zZwnBt7mbQC6tdsVh17xsBPMgRU
-        CZ/ShTiXmJY1OrN9bHdjxswqFBFpxbQ=
+        bh=IjYmcPnf3a4KIUv1D19hmkYRkMeJRQC2xD0qp+kunac=;
+        b=ZrN3elS3jHuirw1NN47b6dG334Sd8p8cclDOh/fxvRoiUqY+xXuV8YNz4ddArygUxPMUTt
+        34TFNskcBqONknnd57oyhPaOaIyHTOe2SPDsvG7/PXIG7ILSBIboYVkEEqzmfF1RAmEpk9
+        SMD+XaCTow/mpDU9F8TcHFY4AT7eSQ4=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-302-s1DN_dssPlapmttW8H5G-Q-1; Sat, 07 Mar 2020 11:52:56 -0500
-X-MC-Unique: s1DN_dssPlapmttW8H5G-Q-1
+ us-mta-325-l23D9MMWOBC4tqHMAZGu8g-1; Sat, 07 Mar 2020 11:52:58 -0500
+X-MC-Unique: l23D9MMWOBC4tqHMAZGu8g-1
 Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 26BD813F5;
-        Sat,  7 Mar 2020 16:52:55 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id F37618017CC;
+        Sat,  7 Mar 2020 16:52:56 +0000 (UTC)
 Received: from epycfail.redhat.com (ovpn-200-16.brq.redhat.com [10.40.200.16])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id C4A6E91D84;
-        Sat,  7 Mar 2020 16:52:53 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id A7E8B91D84;
+        Sat,  7 Mar 2020 16:52:55 +0000 (UTC)
 From:   Stefano Brivio <sbrivio@redhat.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 2/6] nft_set_pipapo: Add support for 8-bit lookup groups and dynamic switch
-Date:   Sat,  7 Mar 2020 17:52:33 +0100
-Message-Id: <f60eb5bcbfdd47c53313e97445d4ceb14ed217f4.1583598508.git.sbrivio@redhat.com>
+Subject: [PATCH nf-next v2 3/6] nft_set_pipapo: Prepare for vectorised implementation: alignment
+Date:   Sat,  7 Mar 2020 17:52:34 +0100
+Message-Id: <91706ac141733b64556cb6ab72c98dbc13faa092.1583598508.git.sbrivio@redhat.com>
 In-Reply-To: <cover.1583598508.git.sbrivio@redhat.com>
 References: <cover.1583598508.git.sbrivio@redhat.com>
 MIME-Version: 1.0
@@ -62,453 +62,373 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-While grouping matching bits in groups of four saves memory compared
-to the more natural choice of 8-bit words (lookup table size is one
-eighth), it comes at a performance cost, as the number of lookup
-comparisons is doubled, and those also needs bitshifts and masking.
+SIMD vector extension sets require stricter alignment than native
+instruction sets to operate efficiently (AVX, NEON) or for some
+instructions to work at all (AltiVec).
 
-Introduce support for 8-bit lookup groups, together with a mapping
-mechanism to dynamically switch, based on defined per-table size
-thresholds and hysteresis, between 8-bit and 4-bit groups, as tables
-grow and shrink. Empty sets start with 8-bit groups, and per-field
-tables are converted to 4-bit groups if they get too big.
+Provide facilities to define arbitrary alignment for lookup tables
+and scratch maps. By defining byte alignment with NFT_PIPAPO_ALIGN,
+lt_aligned and scratch_aligned pointers become available.
 
-An alternative approach would have been to swap per-set lookup
-operation functions as needed, but this doesn't allow for different
-group sizes in the same set, which looks desirable if some fields
-need significantly more matching data compared to others due to
-heavier impact of ranges (e.g. a big number of subnets with
-relatively simple port specifications).
-
-Allowing different group sizes for the same lookup functions implies
-the need for further conditional clauses, whose cost, however,
-appears to be negligible in tests.
-
-The matching rate figures below were obtained for x86_64 running
-the nft_concat_range.sh "performance" cases, averaged over five
-runs, on a single thread of an AMD Epyc 7402 CPU, and for aarch64
-on a single thread of a BCM2711 (Raspberry Pi 4 Model B 4GB),
-clocked at a stable 2147MHz frequency:
-
----------------.-----------------------------------.------------.
-AMD Epyc 7402  |          baselines, Mpps          | this patch |
- 1 thread      |___________________________________|____________|
- 3.35GHz       |        |        |        |        |            |
- 768KiB L1D$   | netdev |  hash  | rbtree |        |            |
----------------|  hook  |   no   | single | pipapo |   pipapo   |
-type   entries |  drop  | ranges | field  | 4 bits | bit switch |
----------------|--------|--------|--------|--------|------------|
-net,port       |        |        |        |        |            |
-         1000  |   19.0 |   10.4 |    3.8 |    2.8 | 4.0   +43% |
----------------|--------|--------|--------|--------|------------|
-port,net       |        |        |        |        |            |
-          100  |   18.8 |   10.3 |    5.8 |    5.5 | 6.3   +14% |
----------------|--------|--------|--------|--------|------------|
-net6,port      |        |        |        |        |            |
-         1000  |   16.4 |    7.6 |    1.8 |    1.3 | 2.1   +61% |
----------------|--------|--------|--------|--------|------------|
-port,proto     |        |        |        |        |     [1]    |
-        30000  |   19.6 |   11.6 |    3.9 |    0.3 | 0.5   +66% |
----------------|--------|--------|--------|--------|------------|
-net6,port,mac  |        |        |        |        |            |
-           10  |   16.5 |    5.4 |    4.3 |    2.6 | 3.4   +31% |
----------------|--------|--------|--------|--------|------------|
-net6,port,mac, |        |        |        |        |            |
-proto    1000  |   16.5 |    5.7 |    1.9 |    1.0 | 1.4   +40% |
----------------|--------|--------|--------|--------|------------|
-net,mac        |        |        |        |        |            |
-         1000  |   19.0 |    8.4 |    3.9 |    1.7 | 2.5   +47% |
----------------'--------'--------'--------'--------'------------'
-[1] Causes switch of lookup table buckets for 'port', not 'proto',
-    to 4-bit groups
-
- ---------------.-----------------------------------.------------.
- BCM2711        |          baselines, Mpps          | this patch |
-  1 thread      |___________________________________|____________|
-  2147MHz       |        |        |        |        |            |
-  32KiB L1D$    | netdev |  hash  | rbtree |        |            |
- ---------------|  hook  |   no   | single | pipapo |   pipapo   |
- type   entries |  drop  | ranges | field  | 4 bits | bit switch |
- ---------------|--------|--------|--------|--------|------------|
- net,port       |        |        |        |        |            |
-          1000  |   1.63 |   1.37 |   0.87 |   0.61 | 0.70  +17% |
- ---------------|--------|--------|--------|--------|------------|
- port,net       |        |        |        |        |            |
-           100  |   1.64 |   1.36 |   1.02 |   0.78 | 0.81   +4% |
- ---------------|--------|--------|--------|--------|------------|
- net6,port      |        |        |        |        |            |
-          1000  |   1.56 |   1.27 |   0.65 |   0.34 | 0.50  +47% |
- ---------------|--------|--------|--------|--------|------------|
- port,proto [2] |        |        |        |        |            |
-         10000  |   1.68 |   1.43 |   0.84 |   0.30 | 0.40  +13% |
- ---------------|--------|--------|--------|--------|------------|
- net6,port,mac  |        |        |        |        |            |
-            10  |   1.56 |   1.14 |   1.02 |   0.62 | 0.66   +6% |
- ---------------|--------|--------|--------|--------|------------|
- net6,port,mac, |        |        |        |        |            |
- proto    1000  |   1.56 |   1.12 |   0.64 |   0.27 | 0.40  +48% |
- ---------------|--------|--------|--------|--------|------------|
- net,mac        |        |        |        |        |            |
-          1000  |   1.63 |   1.26 |   0.87 |   0.41 | 0.53  +29% |
- ---------------'--------'--------'--------'--------'------------'
-[2] Using 10000 entries instead of 30000 as it would take way too
-    long for the test script to generate all of them
+Additional headroom is allocated, and pointers to the possibly
+unaligned, originally allocated areas are kept so that they can
+be freed.
 
 Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
 ---
 v2: Rebase, no changes
 
- net/netfilter/nft_set_pipapo.c | 241 +++++++++++++++++++++++++++++++--
- 1 file changed, 233 insertions(+), 8 deletions(-)
+ net/netfilter/nft_set_pipapo.c | 135 +++++++++++++++++++++++++++------
+ 1 file changed, 110 insertions(+), 25 deletions(-)
 
 diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipap=
 o.c
-index 43d7189a6a1f..83e54bd3187d 100644
+index 83e54bd3187d..ef6866fe90a1 100644
 --- a/net/netfilter/nft_set_pipapo.c
 +++ b/net/netfilter/nft_set_pipapo.c
-@@ -348,11 +348,30 @@
- #define NFT_PIPAPO_MAX_BYTES		(sizeof(struct in6_addr))
- #define NFT_PIPAPO_MAX_BITS		(NFT_PIPAPO_MAX_BYTES * BITS_PER_BYTE)
+@@ -398,6 +398,22 @@
+ #define NFT_PIPAPO_RULE0_MAX		((1UL << (NFT_PIPAPO_MAP_TOBITS - 1)) \
+ 					- (1UL << NFT_PIPAPO_MAP_NBITS))
 =20
--/* Number of bits to be grouped together in lookup table buckets, arbitr=
-ary */
--#define NFT_PIPAPO_GROUP_BITS		4
--
-+/* Bits to be grouped together in table buckets depending on set size */
-+#define NFT_PIPAPO_GROUP_BITS_INIT	NFT_PIPAPO_GROUP_BITS_SMALL_SET
-+#define NFT_PIPAPO_GROUP_BITS_SMALL_SET	8
-+#define NFT_PIPAPO_GROUP_BITS_LARGE_SET	4
-+#define NFT_PIPAPO_GROUP_BITS_ARE_8_OR_4				\
-+	BUILD_BUG_ON((NFT_PIPAPO_GROUP_BITS_SMALL_SET !=3D 8) ||		\
-+		     (NFT_PIPAPO_GROUP_BITS_LARGE_SET !=3D 4))
- #define NFT_PIPAPO_GROUPS_PER_BYTE(f)	(BITS_PER_BYTE / (f)->bb)
-=20
-+/* If a lookup table gets bigger than NFT_PIPAPO_LT_SIZE_HIGH, switch to=
- the
-+ * small group width, and switch to the big group width if the table get=
-s
-+ * smaller than NFT_PIPAPO_LT_SIZE_LOW.
-+ *
-+ * Picking 2MiB as threshold (for a single table) avoids as much as poss=
-ible
-+ * crossing page boundaries on most architectures (x86-64 and MIPS huge =
-pages,
-+ * ARMv7 supersections, POWER "large" pages, SPARC Level 1 regions, etc.=
-), which
-+ * keeps performance nice in case kvmalloc() gives us non-contiguous are=
-as.
-+ */
-+#define NFT_PIPAPO_LT_SIZE_THRESHOLD	(1 << 21)
-+#define NFT_PIPAPO_LT_SIZE_HYSTERESIS	(1 << 16)
-+#define NFT_PIPAPO_LT_SIZE_HIGH		NFT_PIPAPO_LT_SIZE_THRESHOLD
-+#define NFT_PIPAPO_LT_SIZE_LOW		NFT_PIPAPO_LT_SIZE_THRESHOLD -	\
-+					NFT_PIPAPO_LT_SIZE_HYSTERESIS
++/* Definitions for vectorised implementations */
++#ifdef NFT_PIPAPO_ALIGN
++#define NFT_PIPAPO_ALIGN_HEADROOM					\
++	(NFT_PIPAPO_ALIGN - ARCH_KMALLOC_MINALIGN)
++#define NFT_PIPAPO_LT_ALIGN(lt)		(PTR_ALIGN((lt), NFT_PIPAPO_ALIGN))
++#define NFT_PIPAPO_LT_ASSIGN(field, x)					\
++	do {								\
++		(field)->lt_aligned =3D NFT_PIPAPO_LT_ALIGN(x);		\
++		(field)->lt =3D (x);					\
++	} while (0)
++#else
++#define NFT_PIPAPO_ALIGN_HEADROOM	0
++#define NFT_PIPAPO_LT_ALIGN(lt)		(lt)
++#define NFT_PIPAPO_LT_ASSIGN(field, x)	((field)->lt =3D (x))
++#endif /* NFT_PIPAPO_ALIGN */
 +
- /* Fields are padded to 32 bits in input registers */
- #define NFT_PIPAPO_GROUPS_PADDED_SIZE(f)				\
- 	(round_up((f)->groups / NFT_PIPAPO_GROUPS_PER_BYTE(f), sizeof(u32)))
-@@ -550,6 +569,26 @@ static void pipapo_and_field_buckets_4bit(struct nft=
-_pipapo_field *f,
- 	}
- }
-=20
-+/**
-+ * pipapo_and_field_buckets_8bit() - Intersect buckets for 8-bit groups
-+ * @f:		Field including lookup table
-+ * @dst:	Area to store result
-+ * @data:	Input data selecting table buckets
-+ */
-+static void pipapo_and_field_buckets_8bit(struct nft_pipapo_field *f,
-+					  unsigned long *dst,
-+					  const u8 *data)
-+{
-+	unsigned long *lt =3D f->lt;
-+	int group;
-+
-+	for (group =3D 0; group < f->groups; group++, data++) {
-+		__bitmap_and(dst, dst, lt + *data * f->bsize,
-+			     f->bsize * BITS_PER_LONG);
-+		lt +=3D f->bsize * NFT_PIPAPO_BUCKETS(8);
-+	}
-+}
-+
- /**
-  * nft_pipapo_lookup() - Lookup function
-  * @net:	Network namespace
-@@ -594,8 +633,11 @@ static bool nft_pipapo_lookup(const struct net *net,=
- const struct nft_set *set,
- 		/* For each bit group: select lookup table bucket depending on
- 		 * packet bytes value, then AND bucket value
- 		 */
--		pipapo_and_field_buckets_4bit(f, res_map, rp);
--		BUILD_BUG_ON(NFT_PIPAPO_GROUP_BITS !=3D 4);
-+		if (likely(f->bb =3D=3D 8))
-+			pipapo_and_field_buckets_8bit(f, res_map, rp);
-+		else
-+			pipapo_and_field_buckets_4bit(f, res_map, rp);
-+		NFT_PIPAPO_GROUP_BITS_ARE_8_OR_4;
-=20
- 		rp +=3D f->groups / NFT_PIPAPO_GROUPS_PER_BYTE(f);
-=20
-@@ -693,7 +735,9 @@ static struct nft_pipapo_elem *pipapo_get(const struc=
+ #define nft_pipapo_for_each_field(field, index, match)		\
+ 	for ((field) =3D (match)->f, (index) =3D 0;			\
+ 	     (index) < (match)->field_count;			\
+@@ -432,6 +448,7 @@ union nft_pipapo_map_bucket {
+  * @bsize:	Size of each bucket in lookup table, in longs
+  * @bb:		Number of bits grouped together in lookup table buckets
+  * @lt:		Lookup table: 'groups' rows of buckets
++ * @lt_aligned:	Version of @lt aligned to NFT_PIPAPO_ALIGN bytes
+  * @mt:		Mapping table: one bucket per rule
+  */
+ struct nft_pipapo_field {
+@@ -439,6 +456,9 @@ struct nft_pipapo_field {
+ 	unsigned long rules;
+ 	size_t bsize;
+ 	int bb;
++#ifdef NFT_PIPAPO_ALIGN
++	unsigned long *lt_aligned;
++#endif
+ 	unsigned long *lt;
+ 	union nft_pipapo_map_bucket *mt;
+ };
+@@ -447,12 +467,16 @@ struct nft_pipapo_field {
+  * struct nft_pipapo_match - Data used for lookup and matching
+  * @field_count		Amount of fields in set
+  * @scratch:		Preallocated per-CPU maps for partial matching results
++ * @scratch_aligned:	Version of @scratch aligned to NFT_PIPAPO_ALIGN byt=
+es
+  * @bsize_max:		Maximum lookup table bucket size of all fields, in longs
+  * @rcu			Matching data is swapped on commits
+  * @f:			Fields, with lookup and mapping tables
+  */
+ struct nft_pipapo_match {
+ 	int field_count;
++#ifdef NFT_PIPAPO_ALIGN
++	unsigned long * __percpu *scratch_aligned;
++#endif
+ 	unsigned long * __percpu *scratch;
+ 	size_t bsize_max;
+ 	struct rcu_head rcu;
+@@ -729,6 +753,7 @@ static struct nft_pipapo_elem *pipapo_get(const struc=
 t net *net,
- 		/* For each bit group: select lookup table bucket depending on
- 		 * packet bytes value, then AND bucket value
- 		 */
--		if (f->bb =3D=3D 4)
-+		if (f->bb =3D=3D 8)
-+			pipapo_and_field_buckets_8bit(f, res_map, data);
-+		else if (f->bb =3D=3D 4)
- 			pipapo_and_field_buckets_4bit(f, res_map, data);
- 		else
- 			BUG();
-@@ -845,6 +889,183 @@ static void pipapo_bucket_set(struct nft_pipapo_fie=
-ld *f, int rule, int group,
+ 	memset(res_map, 0xff, m->bsize_max * sizeof(*res_map));
+=20
+ 	nft_pipapo_for_each_field(f, i, m) {
++		unsigned long *lt =3D NFT_PIPAPO_LT_ALIGN(f->lt);
+ 		bool last =3D i =3D=3D m->field_count - 1;
+ 		int b;
+=20
+@@ -817,6 +842,10 @@ static int pipapo_resize(struct nft_pipapo_field *f,=
+ int old_rules, int rules)
+ 	int group, bucket;
+=20
+ 	new_bucket_size =3D DIV_ROUND_UP(rules, BITS_PER_LONG);
++#ifdef NFT_PIPAPO_ALIGN
++	new_bucket_size =3D roundup(new_bucket_size,
++				  NFT_PIPAPO_ALIGN / sizeof(*new_lt));
++#endif
+=20
+ 	if (new_bucket_size =3D=3D f->bsize)
+ 		goto mt;
+@@ -827,12 +856,15 @@ static int pipapo_resize(struct nft_pipapo_field *f=
+, int old_rules, int rules)
+ 		copy =3D new_bucket_size;
+=20
+ 	new_lt =3D kvzalloc(f->groups * NFT_PIPAPO_BUCKETS(f->bb) *
+-			  new_bucket_size * sizeof(*new_lt), GFP_KERNEL);
++			  new_bucket_size * sizeof(*new_lt) +
++			  NFT_PIPAPO_ALIGN_HEADROOM,
++			  GFP_KERNEL);
+ 	if (!new_lt)
+ 		return -ENOMEM;
+=20
+-	new_p =3D new_lt;
+-	old_p =3D old_lt;
++	new_p =3D NFT_PIPAPO_LT_ALIGN(new_lt);
++	old_p =3D NFT_PIPAPO_LT_ALIGN(old_lt);
++
+ 	for (group =3D 0; group < f->groups; group++) {
+ 		for (bucket =3D 0; bucket < NFT_PIPAPO_BUCKETS(f->bb); bucket++) {
+ 			memcpy(new_p, old_p, copy * sizeof(*new_p));
+@@ -861,7 +893,7 @@ static int pipapo_resize(struct nft_pipapo_field *f, =
+int old_rules, int rules)
+=20
+ 	if (new_lt) {
+ 		f->bsize =3D new_bucket_size;
+-		f->lt =3D new_lt;
++		NFT_PIPAPO_LT_ASSIGN(f, new_lt);
+ 		kvfree(old_lt);
+ 	}
+=20
+@@ -883,7 +915,8 @@ static void pipapo_bucket_set(struct nft_pipapo_field=
+ *f, int rule, int group,
+ {
+ 	unsigned long *pos;
+=20
+-	pos =3D f->lt + f->bsize * NFT_PIPAPO_BUCKETS(f->bb) * group;
++	pos =3D NFT_PIPAPO_LT_ALIGN(f->lt);
++	pos +=3D f->bsize * NFT_PIPAPO_BUCKETS(f->bb) * group;
+ 	pos +=3D f->bsize * v;
+=20
  	__set_bit(rule, pos);
- }
+@@ -1048,22 +1081,27 @@ static void pipapo_lt_bits_adjust(struct nft_pipa=
+po_field *f)
+ 		return;
+ 	}
 =20
-+/**
-+ * pipapo_lt_4b_to_8b() - Switch lookup table group width from 4 bits to=
- 8 bits
-+ * @old_groups:	Number of current groups
-+ * @bsize:	Size of one bucket, in longs
-+ * @old_lt:	Pointer to the current lookup table
-+ * @new_lt:	Pointer to the new, pre-allocated lookup table
-+ *
-+ * Each bucket with index b in the new lookup table, belonging to group =
-g, is
-+ * filled with the bit intersection between:
-+ * - bucket with index given by the upper 4 bits of b, from group g, and
-+ * - bucket with index given by the lower 4 bits of b, from group g + 1
-+ *
-+ * That is, given buckets from the new lookup table N(x, y) and the old =
-lookup
-+ * table O(x, y), with x bucket index, and y group index:
-+ *
-+ *	N(b, g) :=3D O(b / 16, g) & O(b % 16, g + 1)
-+ *
-+ * This ensures equivalence of the matching results on lookup. Two examp=
-les in
-+ * pictures:
-+ *
-+ *              bucket
-+ *  group  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 ... 2=
-54 255
-+ *    0                ^
-+ *    1                |                                                =
- ^
-+ *   ...             ( & )                                              =
- |
-+ *                  /     \                                             =
- |
-+ *                 /       \                                         .-(=
- & )-.
-+ *                /  bucket \                                        |  =
-     |
-+ *      group  0 / 1   2   3 \ 4   5   6   7   8   9  10  11  12  13 |14=
-  15 |
-+ *        0     /             \                                      |  =
-     |
-+ *        1                    \                                     |  =
-     |
-+ *        2                                                          |  =
-   --'
-+ *        3                                                          '-
-+ *       ...
-+ */
-+static void pipapo_lt_4b_to_8b(int old_groups, int bsize,
-+			       unsigned long *old_lt, unsigned long *new_lt)
-+{
-+	int g, b, i;
-+
-+	for (g =3D 0; g < old_groups / 2; g++) {
-+		int src_g0 =3D g * 2, src_g1 =3D g * 2 + 1;
-+
-+		for (b =3D 0; b < NFT_PIPAPO_BUCKETS(8); b++) {
-+			int src_b0 =3D b / NFT_PIPAPO_BUCKETS(4);
-+			int src_b1 =3D b % NFT_PIPAPO_BUCKETS(4);
-+			int src_i0 =3D src_g0 * NFT_PIPAPO_BUCKETS(4) + src_b0;
-+			int src_i1 =3D src_g1 * NFT_PIPAPO_BUCKETS(4) + src_b1;
-+
-+			for (i =3D 0; i < bsize; i++) {
-+				*new_lt =3D old_lt[src_i0 * bsize + i] &
-+					  old_lt[src_i1 * bsize + i];
-+				new_lt++;
-+			}
-+		}
-+	}
-+}
-+
-+/**
-+ * pipapo_lt_8b_to_4b() - Switch lookup table group width from 8 bits to=
- 4 bits
-+ * @old_groups:	Number of current groups
-+ * @bsize:	Size of one bucket, in longs
-+ * @old_lt:	Pointer to the current lookup table
-+ * @new_lt:	Pointer to the new, pre-allocated lookup table
-+ *
-+ * Each bucket with index b in the new lookup table, belonging to group =
-g, is
-+ * filled with the bit union of:
-+ * - all the buckets with index such that the upper four bits of the low=
-er byte
-+ *   equal b, from group g, with g odd
-+ * - all the buckets with index such that the lower four bits equal b, f=
-rom
-+ *   group g, with g even
-+ *
-+ * That is, given buckets from the new lookup table N(x, y) and the old =
-lookup
-+ * table O(x, y), with x bucket index, and y group index:
-+ *
-+ *	- with g odd:  N(b, g) :=3D U(O(x, g) for each x : x =3D (b & 0xf0) >=
-> 4)
-+ *	- with g even: N(b, g) :=3D U(O(x, g) for each x : x =3D b & 0x0f)
-+ *
-+ * where U() denotes the arbitrary union operation (binary OR of n terms=
-). This
-+ * ensures equivalence of the matching results on lookup.
-+ */
-+static void pipapo_lt_8b_to_4b(int old_groups, int bsize,
-+			       unsigned long *old_lt, unsigned long *new_lt)
-+{
-+	int g, b, bsrc, i;
-+
-+	memset(new_lt, 0, old_groups * 2 * NFT_PIPAPO_BUCKETS(4) * bsize *
-+			  sizeof(unsigned long));
-+
-+	for (g =3D 0; g < old_groups * 2; g +=3D 2) {
-+		int src_g =3D g / 2;
-+
-+		for (b =3D 0; b < NFT_PIPAPO_BUCKETS(4); b++) {
-+			for (bsrc =3D NFT_PIPAPO_BUCKETS(8) * src_g;
-+			     bsrc < NFT_PIPAPO_BUCKETS(8) * (src_g + 1);
-+			     bsrc++) {
-+				if (((bsrc & 0xf0) >> 4) !=3D b)
-+					continue;
-+
-+				for (i =3D 0; i < bsize; i++)
-+					new_lt[i] |=3D old_lt[bsrc * bsize + i];
-+			}
-+
-+			new_lt +=3D bsize;
-+		}
-+
-+		for (b =3D 0; b < NFT_PIPAPO_BUCKETS(4); b++) {
-+			for (bsrc =3D NFT_PIPAPO_BUCKETS(8) * src_g;
-+			     bsrc < NFT_PIPAPO_BUCKETS(8) * (src_g + 1);
-+			     bsrc++) {
-+				if ((bsrc & 0x0f) !=3D b)
-+					continue;
-+
-+				for (i =3D 0; i < bsize; i++)
-+					new_lt[i] |=3D old_lt[bsrc * bsize + i];
-+			}
-+
-+			new_lt +=3D bsize;
-+		}
-+	}
-+}
-+
-+/**
-+ * pipapo_lt_bits_adjust() - Adjust group size for lookup table if neede=
-d
-+ * @f:		Field containing lookup table
-+ */
-+static void pipapo_lt_bits_adjust(struct nft_pipapo_field *f)
-+{
-+	unsigned long *new_lt;
-+	int groups, bb;
-+	size_t lt_size;
-+
-+	lt_size =3D f->groups * NFT_PIPAPO_BUCKETS(f->bb) * f->bsize *
-+		  sizeof(*f->lt);
-+
-+	if (f->bb =3D=3D NFT_PIPAPO_GROUP_BITS_SMALL_SET &&
-+	    lt_size > NFT_PIPAPO_LT_SIZE_HIGH) {
-+		groups =3D f->groups * 2;
-+		bb =3D NFT_PIPAPO_GROUP_BITS_LARGE_SET;
-+
-+		lt_size =3D groups * NFT_PIPAPO_BUCKETS(bb) * f->bsize *
-+			  sizeof(*f->lt);
-+	} else if (f->bb =3D=3D NFT_PIPAPO_GROUP_BITS_LARGE_SET &&
-+		   lt_size < NFT_PIPAPO_LT_SIZE_LOW) {
-+		groups =3D f->groups / 2;
-+		bb =3D NFT_PIPAPO_GROUP_BITS_SMALL_SET;
-+
-+		lt_size =3D groups * NFT_PIPAPO_BUCKETS(bb) * f->bsize *
-+			  sizeof(*f->lt);
-+
-+		/* Don't increase group width if the resulting lookup table size
-+		 * would exceed the upper size threshold for a "small" set.
-+		 */
-+		if (lt_size > NFT_PIPAPO_LT_SIZE_HIGH)
-+			return;
+-	new_lt =3D kvzalloc(lt_size, GFP_KERNEL);
++	new_lt =3D kvzalloc(lt_size + NFT_PIPAPO_ALIGN_HEADROOM, GFP_KERNEL);
+ 	if (!new_lt)
+ 		return;
+=20
+ 	NFT_PIPAPO_GROUP_BITS_ARE_8_OR_4;
+-	if (f->bb =3D=3D 4 && bb =3D=3D 8)
+-		pipapo_lt_4b_to_8b(f->groups, f->bsize, f->lt, new_lt);
+-	else if (f->bb =3D=3D 8 && bb =3D=3D 4)
+-		pipapo_lt_8b_to_4b(f->groups, f->bsize, f->lt, new_lt);
+-	else
++	if (f->bb =3D=3D 4 && bb =3D=3D 8) {
++		pipapo_lt_4b_to_8b(f->groups, f->bsize,
++				   NFT_PIPAPO_LT_ALIGN(f->lt),
++				   NFT_PIPAPO_LT_ALIGN(new_lt));
++	} else if (f->bb =3D=3D 8 && bb =3D=3D 4) {
++		pipapo_lt_8b_to_4b(f->groups, f->bsize,
++				   NFT_PIPAPO_LT_ALIGN(f->lt),
++				   NFT_PIPAPO_LT_ALIGN(new_lt));
 +	} else {
-+		return;
+ 		BUG();
 +	}
-+
-+	new_lt =3D kvzalloc(lt_size, GFP_KERNEL);
-+	if (!new_lt)
-+		return;
-+
-+	NFT_PIPAPO_GROUP_BITS_ARE_8_OR_4;
-+	if (f->bb =3D=3D 4 && bb =3D=3D 8)
-+		pipapo_lt_4b_to_8b(f->groups, f->bsize, f->lt, new_lt);
-+	else if (f->bb =3D=3D 8 && bb =3D=3D 4)
-+		pipapo_lt_8b_to_4b(f->groups, f->bsize, f->lt, new_lt);
-+	else
-+		BUG();
-+
-+	f->groups =3D groups;
-+	f->bb =3D bb;
-+	kvfree(f->lt);
-+	f->lt =3D new_lt;
-+}
-+
+=20
+ 	f->groups =3D groups;
+ 	f->bb =3D bb;
+ 	kvfree(f->lt);
+-	f->lt =3D new_lt;
++	NFT_PIPAPO_LT_ASSIGN(f, new_lt);
+ }
+=20
  /**
-  * pipapo_insert() - Insert new rule in field given input key and mask l=
-ength
-  * @f:		Field containing lookup table
-@@ -894,6 +1115,8 @@ static int pipapo_insert(struct nft_pipapo_field *f,=
- const uint8_t *k,
- 		}
- 	}
+@@ -1289,8 +1327,12 @@ static int pipapo_realloc_scratch(struct nft_pipap=
+o_match *clone,
 =20
-+	pipapo_lt_bits_adjust(f);
+ 	for_each_possible_cpu(i) {
+ 		unsigned long *scratch;
++#ifdef NFT_PIPAPO_ALIGN
++		unsigned long *scratch_aligned;
++#endif
+=20
+-		scratch =3D kzalloc_node(bsize_max * sizeof(*scratch) * 2,
++		scratch =3D kzalloc_node(bsize_max * sizeof(*scratch) * 2 +
++				       NFT_PIPAPO_ALIGN_HEADROOM,
+ 				       GFP_KERNEL, cpu_to_node(i));
+ 		if (!scratch) {
+ 			/* On failure, there's no need to undo previous
+@@ -1306,6 +1348,11 @@ static int pipapo_realloc_scratch(struct nft_pipap=
+o_match *clone,
+ 		kfree(*per_cpu_ptr(clone->scratch, i));
+=20
+ 		*per_cpu_ptr(clone->scratch, i) =3D scratch;
 +
- 	return 1;
- }
++#ifdef NFT_PIPAPO_ALIGN
++		scratch_aligned =3D NFT_PIPAPO_LT_ALIGN(scratch);
++		*per_cpu_ptr(clone->scratch_aligned, i) =3D scratch_aligned;
++#endif
+ 	}
 =20
-@@ -1424,6 +1647,8 @@ static void pipapo_drop(struct nft_pipapo_match *m,
- 			;
- 		}
- 		f->rules -=3D rulemap[i].n;
+ 	return 0;
+@@ -1433,21 +1480,33 @@ static struct nft_pipapo_match *pipapo_clone(stru=
+ct nft_pipapo_match *old)
+ 	if (!new->scratch)
+ 		goto out_scratch;
+=20
++#ifdef NFT_PIPAPO_ALIGN
++	new->scratch_aligned =3D alloc_percpu(*new->scratch_aligned);
++	if (!new->scratch_aligned)
++		goto out_scratch;
++#endif
 +
-+		pipapo_lt_bits_adjust(f);
- 	}
- }
+ 	rcu_head_init(&new->rcu);
 =20
-@@ -1936,7 +2161,7 @@ static bool nft_pipapo_estimate(const struct nft_se=
-t_desc *desc, u32 features,
- 		 */
- 		rules =3D ilog2(desc->field_len[i] * BITS_PER_BYTE) * 2;
- 		entry_size +=3D rules *
--			      NFT_PIPAPO_BUCKETS(NFT_PIPAPO_GROUP_BITS) /
-+			      NFT_PIPAPO_BUCKETS(NFT_PIPAPO_GROUP_BITS_INIT) /
- 			      BITS_PER_BYTE;
- 		entry_size +=3D rules * sizeof(union nft_pipapo_map_bucket);
+ 	src =3D old->f;
+ 	dst =3D new->f;
+=20
+ 	for (i =3D 0; i < old->field_count; i++) {
++		unsigned long *new_lt;
++
+ 		memcpy(dst, src, offsetof(struct nft_pipapo_field, lt));
+=20
+-		dst->lt =3D kvzalloc(src->groups * NFT_PIPAPO_BUCKETS(src->bb) *
+-				   src->bsize * sizeof(*dst->lt),
+-				   GFP_KERNEL);
+-		if (!dst->lt)
++		new_lt =3D kvzalloc(src->groups * NFT_PIPAPO_BUCKETS(src->bb) *
++				  src->bsize * sizeof(*dst->lt) +
++				  NFT_PIPAPO_ALIGN_HEADROOM,
++				  GFP_KERNEL);
++		if (!new_lt)
+ 			goto out_lt;
+=20
+-		memcpy(dst->lt, src->lt,
++		NFT_PIPAPO_LT_ASSIGN(dst, new_lt);
++
++		memcpy(NFT_PIPAPO_LT_ALIGN(new_lt),
++		       NFT_PIPAPO_LT_ALIGN(src->lt),
+ 		       src->bsize * sizeof(*dst->lt) *
+ 		       src->groups * NFT_PIPAPO_BUCKETS(src->bb));
+=20
+@@ -1470,8 +1529,11 @@ static struct nft_pipapo_match *pipapo_clone(struc=
+t nft_pipapo_match *old)
+ 		kvfree(dst->lt);
+ 		dst--;
  	}
-@@ -2001,7 +2226,7 @@ static int nft_pipapo_init(const struct nft_set *se=
-t,
+-	free_percpu(new->scratch);
++#ifdef NFT_PIPAPO_ALIGN
++	free_percpu(new->scratch_aligned);
++#endif
+ out_scratch:
++	free_percpu(new->scratch);
+ 	kfree(new);
+=20
+ 	return ERR_PTR(-ENOMEM);
+@@ -1627,7 +1689,8 @@ static void pipapo_drop(struct nft_pipapo_match *m,
+ 			unsigned long *pos;
+ 			int b;
+=20
+-			pos =3D f->lt + g * NFT_PIPAPO_BUCKETS(f->bb) * f->bsize;
++			pos =3D NFT_PIPAPO_LT_ALIGN(f->lt) + g *
++			      NFT_PIPAPO_BUCKETS(f->bb) * f->bsize;
+=20
+ 			for (b =3D 0; b < NFT_PIPAPO_BUCKETS(f->bb); b++) {
+ 				bitmap_cut(pos, pos, rulemap[i].to,
+@@ -1733,6 +1796,9 @@ static void pipapo_reclaim_match(struct rcu_head *r=
+cu)
+ 	for_each_possible_cpu(i)
+ 		kfree(*per_cpu_ptr(m->scratch, i));
+=20
++#ifdef NFT_PIPAPO_ALIGN
++	free_percpu(m->scratch_aligned);
++#endif
+ 	free_percpu(m->scratch);
+=20
+ 	pipapo_free_fields(m);
+@@ -1936,8 +2002,8 @@ static int pipapo_get_boundaries(struct nft_pipapo_=
+field *f, int first_rule,
+ 		for (b =3D 0; b < NFT_PIPAPO_BUCKETS(f->bb); b++) {
+ 			unsigned long *pos;
+=20
+-			pos =3D f->lt + (g * NFT_PIPAPO_BUCKETS(f->bb) + b) *
+-				      f->bsize;
++			pos =3D NFT_PIPAPO_LT_ALIGN(f->lt) +
++			      (g * NFT_PIPAPO_BUCKETS(f->bb) + b) * f->bsize;
+ 			if (test_bit(first_rule, pos) && x0 =3D=3D -1)
+ 				x0 =3D b;
+ 			if (test_bit(first_rule + rule_count - 1, pos))
+@@ -2218,11 +2284,21 @@ static int nft_pipapo_init(const struct nft_set *=
+set,
+ 	m->scratch =3D alloc_percpu(unsigned long *);
+ 	if (!m->scratch) {
+ 		err =3D -ENOMEM;
+-		goto out_free;
++		goto out_scratch;
+ 	}
+ 	for_each_possible_cpu(i)
+ 		*per_cpu_ptr(m->scratch, i) =3D NULL;
+=20
++#ifdef NFT_PIPAPO_ALIGN
++	m->scratch_aligned =3D alloc_percpu(unsigned long *);
++	if (!m->scratch_aligned) {
++		err =3D -ENOMEM;
++		goto out_free;
++	}
++	for_each_possible_cpu(i)
++		*per_cpu_ptr(m->scratch_aligned, i) =3D NULL;
++#endif
++
  	rcu_head_init(&m->rcu);
 =20
  	nft_pipapo_for_each_field(f, i, m) {
--		f->bb =3D NFT_PIPAPO_GROUP_BITS;
-+		f->bb =3D NFT_PIPAPO_GROUP_BITS_INIT;
- 		f->groups =3D desc->field_len[i] * NFT_PIPAPO_GROUPS_PER_BYTE(f);
+@@ -2233,7 +2309,7 @@ static int nft_pipapo_init(const struct nft_set *se=
+t,
 =20
- 		priv->width +=3D round_up(desc->field_len[i], sizeof(u32));
+ 		f->bsize =3D 0;
+ 		f->rules =3D 0;
+-		f->lt =3D NULL;
++		NFT_PIPAPO_LT_ASSIGN(f, NULL);
+ 		f->mt =3D NULL;
+ 	}
+=20
+@@ -2251,7 +2327,11 @@ static int nft_pipapo_init(const struct nft_set *s=
+et,
+ 	return 0;
+=20
+ out_free:
++#ifdef NFT_PIPAPO_ALIGN
++	free_percpu(m->scratch_aligned);
++#endif
+ 	free_percpu(m->scratch);
++out_scratch:
+ 	kfree(m);
+=20
+ 	return err;
+@@ -2286,16 +2366,21 @@ static void nft_pipapo_destroy(const struct nft_s=
+et *set)
+ 			nft_set_elem_destroy(set, e, true);
+ 		}
+=20
++#ifdef NFT_PIPAPO_ALIGN
++		free_percpu(m->scratch_aligned);
++#endif
+ 		for_each_possible_cpu(cpu)
+ 			kfree(*per_cpu_ptr(m->scratch, cpu));
+ 		free_percpu(m->scratch);
+-
+ 		pipapo_free_fields(m);
+ 		kfree(m);
+ 		priv->match =3D NULL;
+ 	}
+=20
+ 	if (priv->clone) {
++#ifdef NFT_PIPAPO_ALIGN
++		free_percpu(priv->clone->scratch_aligned);
++#endif
+ 		for_each_possible_cpu(cpu)
+ 			kfree(*per_cpu_ptr(priv->clone->scratch, cpu));
+ 		free_percpu(priv->clone->scratch);
 --=20
 2.25.1
 
