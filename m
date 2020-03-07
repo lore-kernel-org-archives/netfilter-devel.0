@@ -6,32 +6,30 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B94E5C10DCE
-	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Mar 2020 02:26:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A708C10F00
+	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Mar 2020 02:26:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 98F3E206D7
-	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Mar 2020 02:26:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 45BBD206D7
+	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Mar 2020 02:26:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726635AbgCGC0n (ORCPT
+        id S1726860AbgCGC0t (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 6 Mar 2020 21:26:43 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:36972 "EHLO orbyte.nwl.cc"
+        Fri, 6 Mar 2020 21:26:49 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:36980 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726231AbgCGC0n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 Mar 2020 21:26:43 -0500
-Received: from localhost ([::1]:50062 helo=tatos)
+        id S1726846AbgCGC0t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 6 Mar 2020 21:26:49 -0500
+Received: from localhost ([::1]:50070 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1jAPAo-0001Xl-3c; Sat, 07 Mar 2020 03:26:42 +0100
+        id 1jAPAt-0001Y8-EV; Sat, 07 Mar 2020 03:26:47 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Eric Garver <e@erig.me>, netfilter-devel@vger.kernel.org
-Subject: [nft PATCH v2 2/2] tests/py: Add tests involving concatenated ranges
-Date:   Sat,  7 Mar 2020 03:26:33 +0100
-Message-Id: <20200307022633.6181-2-phil@nwl.cc>
+Subject: [nft PATCH v2 1/2] parser_json: Support ranges in concat expressions
+Date:   Sat,  7 Mar 2020 03:26:32 +0100
+Message-Id: <20200307022633.6181-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200307022633.6181-1-phil@nwl.cc>
-References: <20200307022633.6181-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -39,147 +37,108 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Very basic testing, just a set definition, a rule which references it
-and another one with an anonymous set.
+Duplicate commit 8ac2f3b2fca38's changes to bison parser into JSON
+parser by introducing a new context flag signalling we're parsing
+concatenated expressions.
 
-Sadly this is already enough to expose some pending issues:
-
-* Payload dependency killing ignores the concatenated IP header
-  expressions on LHS, so rule output is asymmetric.
-
-* Anonymous sets don't accept concatenated ranges yet, so the second
-  rule is manually disabled for now.
-
+Fixes: 8ac2f3b2fca38 ("src: Add support for concatenated set ranges")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
 Changes since v1:
-- New patch.
+- Fix accidental reject of concat expressions on LHS.
 ---
- tests/py/inet/sets.t                |  6 +++++
- tests/py/inet/sets.t.json           | 35 +++++++++++++++++++++++++++++
- tests/py/inet/sets.t.payload.bridge | 13 +++++++++++
- tests/py/inet/sets.t.payload.inet   | 11 +++++++++
- tests/py/inet/sets.t.payload.netdev | 12 ++++++++++
- 5 files changed, 77 insertions(+)
+ src/parser_json.c | 47 +++++++++++++++++++++++++++--------------------
+ 1 file changed, 27 insertions(+), 20 deletions(-)
 
-diff --git a/tests/py/inet/sets.t b/tests/py/inet/sets.t
-index daf8f2d6ca302..e0b0ee867f9b7 100644
---- a/tests/py/inet/sets.t
-+++ b/tests/py/inet/sets.t
-@@ -16,3 +16,9 @@ ip saddr != @set2 drop;fail
+diff --git a/src/parser_json.c b/src/parser_json.c
+index 85082ccee7ef6..480b15aeb2507 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -40,6 +40,7 @@
+ #define CTX_F_MANGLE	(1 << 5)
+ #define CTX_F_SES	(1 << 6)	/* set_elem_expr_stmt */
+ #define CTX_F_MAP	(1 << 7)	/* LHS of map_expr */
++#define CTX_F_CONCAT	(1 << 8)	/* inside concat_expr */
  
- ip6 daddr != @set2 accept;ok
- ip6 daddr @set1 drop;fail
-+
-+!set3 type ipv4_addr . ipv4_addr . inet_service flags interval;ok
-+?set3 10.0.0.0/8 . 192.168.1.3-192.168.1.9 . 1024-65535;ok
-+
-+ip saddr . ip daddr . tcp dport @set3 accept;ok
-+-ip daddr . tcp dport { 10.0.0.0/8 . 10-23, 192.168.1.1-192.168.3.8 . 80-443 } accept;ok
-diff --git a/tests/py/inet/sets.t.json b/tests/py/inet/sets.t.json
-index bcb638f2664d5..58e19ef647058 100644
---- a/tests/py/inet/sets.t.json
-+++ b/tests/py/inet/sets.t.json
-@@ -36,3 +36,38 @@
-     }
- ]
+ struct json_ctx {
+ 	struct input_descriptor indesc;
+@@ -99,6 +100,7 @@ static struct expr *json_parse_primary_expr(struct json_ctx *ctx, json_t *root);
+ static struct expr *json_parse_set_rhs_expr(struct json_ctx *ctx, json_t *root);
+ static struct expr *json_parse_set_elem_expr_stmt(struct json_ctx *ctx, json_t *root);
+ static struct expr *json_parse_map_lhs_expr(struct json_ctx *ctx, json_t *root);
++static struct expr *json_parse_concat_elem_expr(struct json_ctx *ctx, json_t *root);
+ static struct stmt *json_parse_stmt(struct json_ctx *ctx, json_t *root);
  
-+# ip saddr . ip daddr . tcp dport @set3 accept
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "concat": [
-+                    {
-+                        "payload": {
-+                            "field": "saddr",
-+                            "protocol": "ip"
-+                        }
-+                    },
-+                    {
-+                        "payload": {
-+                            "field": "daddr",
-+                            "protocol": "ip"
-+                        }
-+                    },
-+                    {
-+                        "payload": {
-+                            "field": "dport",
-+                            "protocol": "tcp"
-+                        }
-+                    }
-+                ]
-+            },
-+            "op": "==",
-+            "right": "@set3"
-+        }
-+    },
-+    {
-+        "accept": null
-+    }
-+]
-+
-diff --git a/tests/py/inet/sets.t.payload.bridge b/tests/py/inet/sets.t.payload.bridge
-index f5aaab1d79bc6..089d9dd7a28dd 100644
---- a/tests/py/inet/sets.t.payload.bridge
-+++ b/tests/py/inet/sets.t.payload.bridge
-@@ -13,3 +13,16 @@ bridge test-inet input
-   [ payload load 16b @ network header + 24 => reg 1 ]
-   [ lookup reg 1 set set2 0x1 ]
-   [ immediate reg 0 accept ]
-+
-+# ip saddr . ip daddr . tcp dport @set3 accept
-+bridge 
-+  [ meta load protocol => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ payload load 4b @ network header + 12 => reg 1 ]
-+  [ payload load 4b @ network header + 16 => reg 9 ]
-+  [ payload load 2b @ transport header + 2 => reg 10 ]
-+  [ lookup reg 1 set set3 ]
-+  [ immediate reg 0 accept ]
-+
-diff --git a/tests/py/inet/sets.t.payload.inet b/tests/py/inet/sets.t.payload.inet
-index 1584fc07451eb..c5acd6103a038 100644
---- a/tests/py/inet/sets.t.payload.inet
-+++ b/tests/py/inet/sets.t.payload.inet
-@@ -14,4 +14,15 @@ inet test-inet input
-   [ lookup reg 1 set set2 0x1 ]
-   [ immediate reg 0 accept ]
+ /* parsing helpers */
+@@ -1058,7 +1060,7 @@ static struct expr *json_parse_concat_expr(struct json_ctx *ctx,
+ 	}
  
-+# ip saddr . ip daddr . tcp dport @set3 accept
-+inet 
-+  [ meta load nfproto => reg 1 ]
-+  [ cmp eq reg 1 0x00000002 ]
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ payload load 4b @ network header + 12 => reg 1 ]
-+  [ payload load 4b @ network header + 16 => reg 9 ]
-+  [ payload load 2b @ transport header + 2 => reg 10 ]
-+  [ lookup reg 1 set set3 ]
-+  [ immediate reg 0 accept ]
+ 	json_array_foreach(root, index, value) {
+-		tmp = json_parse_primary_expr(ctx, value);
++		tmp = json_parse_concat_elem_expr(ctx, value);
+ 		if (!tmp) {
+ 			json_error(ctx, "Parsing expr at index %zd failed.", index);
+ 			expr_free(expr);
+@@ -1354,28 +1356,28 @@ static struct expr *json_parse_expr(struct json_ctx *ctx, json_t *root)
+ 		{ "set", json_parse_set_expr, CTX_F_RHS | CTX_F_STMT }, /* allow this as stmt expr because that allows set references */
+ 		{ "map", json_parse_map_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS },
+ 		/* below three are multiton_rhs_expr */
+-		{ "prefix", json_parse_prefix_expr, CTX_F_RHS | CTX_F_STMT },
+-		{ "range", json_parse_range_expr, CTX_F_RHS | CTX_F_STMT },
+-		{ "payload", json_parse_payload_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_MANGLE | CTX_F_SES | CTX_F_MAP },
+-		{ "exthdr", json_parse_exthdr_expr, CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP },
++		{ "prefix", json_parse_prefix_expr, CTX_F_RHS | CTX_F_STMT | CTX_F_CONCAT },
++		{ "range", json_parse_range_expr, CTX_F_RHS | CTX_F_STMT | CTX_F_CONCAT },
++		{ "payload", json_parse_payload_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_MANGLE | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
++		{ "exthdr", json_parse_exthdr_expr, CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
+ 		{ "tcp option", json_parse_tcp_option_expr, CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_MANGLE | CTX_F_SES },
+ 		{ "ip option", json_parse_ip_option_expr, CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_MANGLE | CTX_F_SES },
+-		{ "meta", json_parse_meta_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_MANGLE | CTX_F_SES | CTX_F_MAP },
+-		{ "osf", json_parse_osf_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_MAP },
+-		{ "ipsec", json_parse_xfrm_expr, CTX_F_PRIMARY | CTX_F_MAP },
+-		{ "socket", json_parse_socket_expr, CTX_F_PRIMARY },
+-		{ "rt", json_parse_rt_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP },
+-		{ "ct", json_parse_ct_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_MANGLE | CTX_F_SES | CTX_F_MAP },
+-		{ "numgen", json_parse_numgen_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP },
++		{ "meta", json_parse_meta_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_MANGLE | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
++		{ "osf", json_parse_osf_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_MAP | CTX_F_CONCAT },
++		{ "ipsec", json_parse_xfrm_expr, CTX_F_PRIMARY | CTX_F_MAP | CTX_F_CONCAT },
++		{ "socket", json_parse_socket_expr, CTX_F_PRIMARY | CTX_F_CONCAT },
++		{ "rt", json_parse_rt_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
++		{ "ct", json_parse_ct_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_MANGLE | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
++		{ "numgen", json_parse_numgen_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
+ 		/* below two are hash expr */
+-		{ "jhash", json_parse_hash_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP },
+-		{ "symhash", json_parse_hash_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP },
+-		{ "fib", json_parse_fib_expr, CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP },
+-		{ "|", json_parse_binop_expr, CTX_F_RHS | CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP },
+-		{ "^", json_parse_binop_expr, CTX_F_RHS | CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP },
+-		{ "&", json_parse_binop_expr, CTX_F_RHS | CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP },
+-		{ ">>", json_parse_binop_expr, CTX_F_RHS | CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP },
+-		{ "<<", json_parse_binop_expr, CTX_F_RHS | CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP },
++		{ "jhash", json_parse_hash_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
++		{ "symhash", json_parse_hash_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
++		{ "fib", json_parse_fib_expr, CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
++		{ "|", json_parse_binop_expr, CTX_F_RHS | CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
++		{ "^", json_parse_binop_expr, CTX_F_RHS | CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
++		{ "&", json_parse_binop_expr, CTX_F_RHS | CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
++		{ ">>", json_parse_binop_expr, CTX_F_RHS | CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
++		{ "<<", json_parse_binop_expr, CTX_F_RHS | CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP | CTX_F_CONCAT },
+ 		{ "accept", json_parse_verdict_expr, CTX_F_RHS | CTX_F_SET_RHS },
+ 		{ "drop", json_parse_verdict_expr, CTX_F_RHS | CTX_F_SET_RHS },
+ 		{ "continue", json_parse_verdict_expr, CTX_F_RHS | CTX_F_SET_RHS },
+@@ -1500,6 +1502,11 @@ static struct expr *json_parse_map_lhs_expr(struct json_ctx *ctx, json_t *root)
+ 	return json_parse_flagged_expr(ctx, CTX_F_MAP, root);
+ }
  
-diff --git a/tests/py/inet/sets.t.payload.netdev b/tests/py/inet/sets.t.payload.netdev
-index 9c94e38429fb7..82994eabf48b7 100644
---- a/tests/py/inet/sets.t.payload.netdev
-+++ b/tests/py/inet/sets.t.payload.netdev
-@@ -14,3 +14,15 @@ netdev test-netdev ingress
-   [ lookup reg 1 set set2 0x1 ]
-   [ immediate reg 0 accept ]
- 
-+# ip saddr . ip daddr . tcp dport @ set3 accept
-+inet 
-+  [ meta load nfproto => reg 1 ]
-+  [ cmp eq reg 1 0x00000002 ]
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ payload load 4b @ network header + 12 => reg 1 ]
-+  [ payload load 4b @ network header + 16 => reg 9 ]
-+  [ payload load 2b @ transport header + 2 => reg 10 ]
-+  [ lookup reg 1 set set3 ]
-+  [ immediate reg 0 accept ]
++static struct expr *json_parse_concat_elem_expr(struct json_ctx *ctx, json_t *root)
++{
++	return json_parse_flagged_expr(ctx, CTX_F_CONCAT, root);
++}
 +
+ static struct expr *json_parse_dtype_expr(struct json_ctx *ctx, json_t *root)
+ {
+ 	if (json_is_string(root)) {
 -- 
 2.25.1
 
