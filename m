@@ -2,82 +2,65 @@ Return-Path: <SRS0=jBJt=42=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61402C10F27
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Mar 2020 11:07:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33FC0C10F27
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Mar 2020 11:11:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2BE112051A
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Mar 2020 11:07:49 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="TfWBsWa/"
+	by mail.kernel.org (Postfix) with ESMTP id 0A4E72051A
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Mar 2020 11:11:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726368AbgCILHt (ORCPT
+        id S1726071AbgCILLD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 Mar 2020 07:07:49 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:45678 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726217AbgCILHs (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Mar 2020 07:07:48 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
-        :Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=UK43FYs6ez37lKN3it0s+oGqClasn4p7W92VG5HL7bo=; b=TfWBsWa/5jz/0VOUUTHV3xNCr1
-        6RV/HDYPkPrcNuT4Fji3WEsm8VbdDU2NqSbSeqrBzgogIAaeI/ZoPhrfsZ0u7fDoZwAUTPQgGWPVq
-        D8C5pzQ7dJ09Il0fsqn2BqD5KuwqFh/3VLlRKh75ljxAgrpD3dVRR7Otqkr2xobiQ1RR+AB0rGXxb
-        TOE0+eg7ksGitlxYI5fUV16k1X8Fj3BZfL9TT5U9HoUFEu6VfnM717oRXvEp5Qbf4Thou2pS2CXZZ
-        fDVvk9jm7cbGo7GfnHJbAh6BGSWHQIrQgInD3wd99+vvczTVlkRl2NB/7AmliNAJAJdokVRq14NWX
-        xgPW2Shg==;
-Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
-        by kadath.azazel.net with esmtp (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1jBGGB-0000SO-Le; Mon, 09 Mar 2020 11:07:47 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        Mon, 9 Mar 2020 07:11:03 -0400
+Received: from correo.us.es ([193.147.175.20]:49240 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725956AbgCILLD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 9 Mar 2020 07:11:03 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 5757FEF43E
+        for <netfilter-devel@vger.kernel.org>; Mon,  9 Mar 2020 12:10:42 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 444B3DA3A1
+        for <netfilter-devel@vger.kernel.org>; Mon,  9 Mar 2020 12:10:42 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 43516DA39F; Mon,  9 Mar 2020 12:10:42 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 21978DA38D;
+        Mon,  9 Mar 2020 12:10:39 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 09 Mar 2020 12:10:39 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id D6E0842EE396;
+        Mon,  9 Mar 2020 12:10:38 +0100 (CET)
+Date:   Mon, 9 Mar 2020 12:10:58 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jeremy Sowden <jeremy@azazel.net>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft] parser_bison: fix rshift statement expression.
-Date:   Mon,  9 Mar 2020 11:07:47 +0000
-Message-Id: <20200309110747.155907-1-jeremy@azazel.net>
-X-Mailer: git-send-email 2.25.1
+Subject: Re: [PATCH nft] parser_bison: fix rshift statement expression.
+Message-ID: <20200309111058.x5vmz2yz2nx5yzhc@salvia>
+References: <20200309110747.155907-1-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200309110747.155907-1-jeremy@azazel.net>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The RHS of RSHIFT statement expressions should be primary_stmt_expr, not
-primary_rhs_expr.
+On Mon, Mar 09, 2020 at 11:07:47AM +0000, Jeremy Sowden wrote:
+> The RHS of RSHIFT statement expressions should be primary_stmt_expr, not
+> primary_rhs_expr.
 
-Fixes: dccab4f646b4 ("parser_bison: consolidate stmt_expr rule")
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- src/parser_bison.y | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index b37e9e565cc1..26ce4e089e1e 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -3022,7 +3022,7 @@ shift_stmt_expr		:	primary_stmt_expr
- 			{
- 				$$ = binop_expr_alloc(&@$, OP_LSHIFT, $1, $3);
- 			}
--			|	shift_stmt_expr		RSHIFT		primary_rhs_expr
-+			|	shift_stmt_expr		RSHIFT		primary_stmt_expr
- 			{
- 				$$ = binop_expr_alloc(&@$, OP_RSHIFT, $1, $3);
- 			}
--- 
-2.25.1
-
+Applied, thanks.
