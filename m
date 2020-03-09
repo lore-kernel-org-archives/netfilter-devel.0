@@ -2,115 +2,178 @@ Return-Path: <SRS0=jBJt=42=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6C17C10F27
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Mar 2020 09:25:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1A32C10F27
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Mar 2020 10:07:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 973CB20727
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Mar 2020 09:25:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 958852072A
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Mar 2020 10:07:52 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="TtgMvynj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726379AbgCIJZ5 (ORCPT
+        id S1726469AbgCIKHw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 Mar 2020 05:25:57 -0400
-Received: from correo.us.es ([193.147.175.20]:48074 "EHLO mail.us.es"
+        Mon, 9 Mar 2020 06:07:52 -0400
+Received: from smtp-out.kfki.hu ([148.6.0.48]:50999 "EHLO smtp-out.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725962AbgCIJZ4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Mar 2020 05:25:56 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B19CB3066A4
-        for <netfilter-devel@vger.kernel.org>; Mon,  9 Mar 2020 10:25:33 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A3120DA3AA
-        for <netfilter-devel@vger.kernel.org>; Mon,  9 Mar 2020 10:25:33 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 98DB9DA39F; Mon,  9 Mar 2020 10:25:33 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C3ECBDA3AC;
-        Mon,  9 Mar 2020 10:25:31 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 09 Mar 2020 10:25:31 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id A591C42EF9E1;
-        Mon,  9 Mar 2020 10:25:31 +0100 (CET)
-Date:   Mon, 9 Mar 2020 10:25:50 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jeremy Sowden <jeremy@azazel.net>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: shift_stmt_expr grammar question
-Message-ID: <20200309092550.5xcghwtzso7x7cfi@salvia>
-References: <20200308104003.GC121279@azazel.net>
+        id S1725942AbgCIKHw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 9 Mar 2020 06:07:52 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.kfki.hu (Postfix) with ESMTP id EF497CC011C;
+        Mon,  9 Mar 2020 11:07:48 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        blackhole.kfki.hu; h=mime-version:user-agent:references
+        :message-id:in-reply-to:from:from:date:date:received:received
+        :received; s=20151130; t=1583748466; x=1585562867; bh=I163FxNVnW
+        Fue4AwkHHkxiaC6ft7b5aVIginGdHCAQI=; b=TtgMvynj1c7fAdxdpsAB83TSqY
+        z5xXeJiA3y1h2jKOv5TwjgCBpIdSUFs6iv0Cf/b2FtbF77LDVtFwaK22CaOFgPF9
+        t/t1xByXSXxDDBgn2mdl9ttuFB/DorzA1c03aUj2Wx8lC+fVlO0bIgBizrFVC5Bt
+        ipsUY+FgwJ8MlDG4I=
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Mon,  9 Mar 2020 11:07:46 +0100 (CET)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 8243ACC00E8;
+        Mon,  9 Mar 2020 11:07:46 +0100 (CET)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id 23C822142E; Mon,  9 Mar 2020 11:07:46 +0100 (CET)
+Date:   Mon, 9 Mar 2020 11:07:46 +0100 (CET)
+From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+X-X-Sender: kadlec@blackhole.kfki.hu
+To:     Stefano Brivio <sbrivio@redhat.com>
+cc:     netfilter-devel@vger.kernel.org, Mithil Mhatre <mmhatre@redhat.com>
+Subject: Re: [PATCH] ipset: Update byte and packet counters regardless of
+ whether they match
+In-Reply-To: <20200303231646.472e982e@elisabeth>
+Message-ID: <alpine.DEB.2.20.2003091059110.6217@blackhole.kfki.hu>
+References: <f4b0ae68661c865c3083d2fa896e9a112057a82f.1582566351.git.sbrivio@redhat.com>        <alpine.DEB.2.20.2002250857120.26348@blackhole.kfki.hu>        <20200225094043.5a78337e@redhat.com>        <alpine.DEB.2.20.2002250954060.26348@blackhole.kfki.hu>
+        <20200225132235.5204639d@redhat.com>        <alpine.DEB.2.20.2002252113111.29920@blackhole.kfki.hu>        <20200225215322.6fb5ecb0@redhat.com>        <alpine.DEB.2.20.2002272112360.11901@blackhole.kfki.hu>        <20200228124039.00e5a343@redhat.com>
+        <alpine.DEB.2.20.2003031020330.3731@blackhole.kfki.hu> <20200303231646.472e982e@elisabeth>
+User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="6qrzvvwyjg3f24qh"
-Content-Disposition: inline
-In-Reply-To: <20200308104003.GC121279@azazel.net>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi Stefano,
 
---6qrzvvwyjg3f24qh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, 3 Mar 2020, Stefano Brivio wrote:
 
-Hi Jeremy,
+> On Tue, 3 Mar 2020 10:36:53 +0100 (CET)
+> Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
+> 
+> > On Fri, 28 Feb 2020, Stefano Brivio wrote:
+> > 
+> > > On Thu, 27 Feb 2020 21:37:10 +0100 (CET)
+> > > Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
+> > >   
+> > > > On Tue, 25 Feb 2020, Stefano Brivio wrote:
+> > > >   
+> > > > > On Tue, 25 Feb 2020 21:37:45 +0100 (CET)
+> > > > > Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
+> > > > >     
+> > > > > > On Tue, 25 Feb 2020, Stefano Brivio wrote:
+> > > > > >     
+> > > > > > > > The logic could be changed in the user rules from
+> > > > > > > > 
+> > > > > > > > iptables -I INPUT -m set --match-set c src --bytes-gt 800 -j DROP
+> > > > > > > > 
+> > > > > > > > to
+> > > > > > > > 
+> > > > > > > > iptables -I INPUT -m set --match-set c src --bytes-lt 800 -j ACCEPT
+> > > > > > > > [ otherwise DROP ]
+> > > > > > > > 
+> > > > > > > > but of course it might be not so simple, depending on how the rules are 
+> > > > > > > > built up.      
+> > > > > > > 
+> > > > > > > Yes, it would work, unless the user actually wants to check with the
+> > > > > > > same counter how many bytes are sent "in excess".      
+> > > > > > 
+> > > > > > You mean the counters are still updated whenever the element is matched in 
+> > > > > > the set and then one could check how many bytes were sent over the 
+> > > > > > threshold just by listing the set elements.    
+> > > > > 
+> > > > > Yes, exactly -- note that it was possible (and, I think, used) before.    
+> > > > 
+> > > > I'm still not really convinced about such a feature. Why is it useful to 
+> > > > know how many bytes would be sent over the "limit"?  
+> > > 
+> > > This is useful in case one wants different treatments for packets
+> > > according to a number of thresholds in different rules. For example,
+> > > 
+> > >     iptables -I INPUT -m set --match-set c src --bytes-lt 100 -j noise
+> > >     iptables -I noise -m set --match-set c src --bytes-lt 20000 -j download
+> > > 
+> > > and you want to log packets from chains 'noise' and 'download' with
+> > > different prefixes.  
+> > 
+> > What do you think about this patch?
+> 
+> Thanks, I think it gives a way to avoid the issue.
+> 
+> I'm still not convinced that keeping this disabled by default is the 
+> best way to go (mostly because we had a kernel change affecting 
+> semantics that were exported to userspace for a long time), but if 
+> there's a need for the opposite of this option, introducing it as a 
+> negation becomes linguistically awkward. :)
 
-On Sun, Mar 08, 2020 at 10:40:03AM +0000, Jeremy Sowden wrote:
-> Just noticed that the production for right shifts differs from the
-> production for left shifts (src/parser_bison.y, ll. 3020ff.):
->=20
->   shift_stmt_expr    :       primary_stmt_expr
->                      |       shift_stmt_expr         LSHIFT          prim=
-ary_stmt_expr
->                      {
->                              $$ =3D binop_expr_alloc(&@$, OP_LSHIFT, $1, =
-$3);
->                      }
->                      |       shift_stmt_expr         RSHIFT          prim=
-ary_rhs_expr
->                      {
->                              $$ =3D binop_expr_alloc(&@$, OP_RSHIFT, $1, =
-$3);
->                      }
->                      ;
->=20
-> Is there a reason why the RHS of LSHIFT is primary_stmt_expr, but the
-> RHS of RSHIFT is primary_rhs_expr?
+The situation is far from ideal: the original mode (update counters 
+regardless of the outcome of the counter matches) worked for almost five 
+years. Then the 'Fix "don't update counters" mode...' patch changed it so 
+that the result of the counter matches was taken into account, for about 
+two years. I don't know how many user is expecting either the original or 
+the changed behaviour, but better not change it again. Also, the grammar 
+seems to be simpler this way :-).
+ 
+> And anyway, it's surely better than not having this possibility at all.
+> 
+> Let me know if you want me to review (or try to draft) man page
+> changes. Just a few comments inline:
 
-It's likely a leftover. The rhs rule was introduced to reduce chances
-of hitting shift/reduce conflicts, and to restrict syntax on the rhs.
+Could you write a manpage update to describe properly the features?
+ 
+> > diff --git a/kernel/net/netfilter/ipset/ip_set_core.c b/kernel/net/netfilter/ipset/ip_set_core.c
+> > index 1df6536..423d0de 100644
+> > --- a/kernel/net/netfilter/ipset/ip_set_core.c
+> > +++ b/kernel/net/netfilter/ipset/ip_set_core.c
+> > @@ -622,10 +622,9 @@ ip_set_add_packets(u64 packets, struct ip_set_counter *counter)
+> >  
+> >  static void
+> >  ip_set_update_counter(struct ip_set_counter *counter,
+> > -		      const struct ip_set_ext *ext, u32 flags)
+> > +		      const struct ip_set_ext *ext)
+> >  {
+> > -	if (ext->packets != ULLONG_MAX &&
+> > -	    !(flags & IPSET_FLAG_SKIP_COUNTER_UPDATE)) {
+> > +	if (ext->packets != ULLONG_MAX) {
+> 
+> This means that UPDATE_COUNTERS_FIRST wins over SKIP_COUNTER_UPDATE. Is 
+> that intended? Intuitively, I would say that "skip" is more imperative 
+> than "do it *first*". Anyway, I guess they will be mutually exclusive.
 
---6qrzvvwyjg3f24qh
-Content-Type: application/pgp-signature; name="signature.asc"
+In my opinion the two flags are mutually exclusive, therefore I dropped
+the checking in ip_set_update_counter(). IPSET_FLAG_SKIP_COUNTER_UPDATE is 
+taken into account in ip_set_match_extensions() now.
 
------BEGIN PGP SIGNATURE-----
+> > -		ip_set_update_counter(counter, ext, flags);
+> > +
+> > +		if (!(flags & (IPSET_FLAG_UPDATE_COUNTERS_FIRST|
+> 
+> Nit: whitespace before |.
 
-iQIzBAABCAAdFiEEFEKqOX9jqZmzwkCc1GSBvS7ZkBkFAl5mC5oACgkQ1GSBvS7Z
-kBm0fBAAo34hWsRQAWA8R0FmEtWIjDlpMUIgjLnWj8CzQHwAun6KKwW9GZ6H+DTv
-F2sEo9Se1IrPtts7OS8zn31qjU/n4p1Dt9lUljIXve1F26y3KIpUp3VXEkzJ/NjM
-8E80S9T5ba5TmgLCXeF5eN9lpD+NRrgOY1oGp8TOMuo6CJOKdiAeN+ztpphTZ5Lg
-ZepJHt0QSLAy+di2qhrnXHPObSTJQ5qG36dZR4a/YLel0z4V5aHXSXDe6FHK1otW
-OKNCEruHn7z4M2u07QPU7qdEb4q9B10KzirZT/h1eZHMWVefa1WPpJrgs/2hwV7m
-ciqacSrAbnEwduQn3Uzx2BizYLTzIQaZWtj5YN4S62cTwzAkV56m13F8Skxsfgxa
-i4dMKEOUY8RBWpkf5oflMFg23nSfJmMPa52CVYIo+8IPh7WPSHcnNy7/EHqa9nXq
-IvjhPNWt9q17VUw6ttZORaxxxWlne1t0aetx/8dDRl48+unlYY/nsucM/86dorGw
-ABM5n0u9MmxFf81B22JUAnpWcEtyWipcf1O6f1BvNvl9TDd3lUCSSx8OOvScOYow
-v9ZQfV4ZTQoKlkTWl9eeUkUjjnnsChK1XxC7aUsPoL1XhrErFVJCqWf/BkkSMzXc
-7GzBNsTDr1ICZ5Akseryh5A7xCYW/NU4cC6sT3XgycKbCj1Y7hI=
-=IR3q
------END PGP SIGNATURE-----
+I'll fix it, thanks!
 
---6qrzvvwyjg3f24qh--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
