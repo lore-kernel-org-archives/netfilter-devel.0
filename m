@@ -2,118 +2,143 @@ Return-Path: <SRS0=fe67=44=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE5A8C0044D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Mar 2020 19:52:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92F78C0044D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Mar 2020 20:53:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EABC72072F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Mar 2020 19:52:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8BA0420749
+	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Mar 2020 20:53:52 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="Y75oDhbS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731165AbgCKTwJ (ORCPT
+        id S1726713AbgCKUxv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 11 Mar 2020 15:52:09 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:54740 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1731030AbgCKTwJ (ORCPT
+        Wed, 11 Mar 2020 16:53:51 -0400
+Received: from kadath.azazel.net ([81.187.231.250]:42062 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726672AbgCKUxu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 11 Mar 2020 15:52:09 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1jC7Oh-0006EV-Fv; Wed, 11 Mar 2020 20:52:07 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 1/1] netfilter: conntrack: re-visit sysctls in unprivileged namespaces
-Date:   Wed, 11 Mar 2020 20:52:01 +0100
-Message-Id: <20200311195201.18738-1-fw@strlen.de>
-X-Mailer: git-send-email 2.24.1
+        Wed, 11 Mar 2020 16:53:50 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=1J8s9BZYxouLQDti2mlJdkHTX5ACdh6Y5vHLf8c29e8=; b=Y75oDhbSRejyCTr8FvgnbZMF6z
+        GCUhsOG5bAmiHSV90DUVIFzFNO5O7gbhT35RQ0bepQCmgYE15gJnT/YNdur9mhTi3RcL3+g7i+Cir
+        3glRxa59B4si4NY0DEOUOxc9bEZzuVYxqMxnWvg4IbMo9CKfE5w5l9JygHyYuVl6S3/OU4IQ4RoOt
+        0YBpRYRmFvzMVuCWxYBpGtMzGDgeF7N8Qz8iUhThubzR5KGQmD3WKSVZZW7vjpI1KzL2x3tVGFBJI
+        atugVnndh1n4j6y6a+dhktEF2hz7vzYmjvYbLqUarS20zKGJL8j4qcO7gbGb2051a15Vn856ThMIn
+        yYHWkH6Q==;
+Received: from celephais.dreamlands ([192.168.96.3] helo=azazel.net)
+        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1jC8MO-0007Pb-PT; Wed, 11 Mar 2020 20:53:48 +0000
+Date:   Wed, 11 Mar 2020 20:54:13 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft v3 18/18] tests: py: add variable binop RHS tests.
+Message-ID: <20200311205413.GD121279@azazel.net>
+References: <20200303094844.26694-1-jeremy@azazel.net>
+ <20200303094844.26694-19-jeremy@azazel.net>
+ <20200310023913.uebkl7uywu4gkldn@salvia>
+ <20200310093008.GA166204@azazel.net>
+ <20200311132613.c2onkaxo7uizzofs@salvia>
+ <20200311143535.GA184442@azazel.net>
+ <20200311171752.cjv5kd6arsog4gia@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="mJm6k4Vb/yFcL9ZU"
+Content-Disposition: inline
+In-Reply-To: <20200311171752.cjv5kd6arsog4gia@salvia>
+X-SA-Exim-Connect-IP: 192.168.96.3
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-since commit b884fa46177659 ("netfilter: conntrack: unify sysctl handling")
-conntrack no longer exposes most of its sysctls (e.g. tcp timeouts
-settings) to network namespaces that are not owned by the initial user
-namespace.
 
-This patch exposes all sysctls even if the namespace is unpriviliged.
+--mJm6k4Vb/yFcL9ZU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-compared to a 4.19 kernel, the newly visible and writeable sysctls are:
-  net.netfilter.nf_conntrack_acct
-  net.netfilter.nf_conntrack_timestamp
-  .. to allow to enable accouting and timestamp extensions.
+On 2020-03-11, at 18:17:52 +0100, Pablo Neira Ayuso wrote:
+> On Wed, Mar 11, 2020 at 02:35:35PM +0000, Jeremy Sowden wrote:
+> > On 2020-03-11, at 14:26:13 +0100, Pablo Neira Ayuso wrote:
+> > > Do you think it would be to keep back this one from the nf-next
+> > > tree until you evaluate an alternative way to extend nft_bitwise?
+> > >
+> > > commit 8d1f378a51fcf2f5e44e06ff726a91c885d248cc
+> > > Author: Jeremy Sowden <jeremy@azazel.net>
+> > > Date:   Mon Feb 24 12:49:31 2020 +0000
+> > >
+> > >     netfilter: bitwise: add support for passing mask and xor
+> > >     values in registers.
+> >
+> > If we do move away from converting all boolean op's to:
+> >
+> >   d = (s & m) ^ x
+> >
+> > then it seems unlikely that the new attributes will be used.
+>
+> I see.
+>
+> > For me, it depends whether you rebase nf-next.  I'm guessing not.
+> > In that case, I probably wouldn't bother reverting the patch now,
+> > since it's not big or invasive, and it wouldn't much matter if it
+> > went into 5.6 and got removed in a later patch-set.
+>
+> OK. I'm considering to rebase given this patch is not yet into
+> net-next, unless anyone here is opposed to this in order to pass a
+> pull-request with no add-patch-then-revert.
 
-  net.netfilter.nf_conntrack_events
-  .. to turn off conntrack event notifications.
+Fbm.
 
-  net.netfilter.nf_conntrack_checksum
-  .. to disable checksum validation.
+> Regarding the new extension, we only have to be careful when updating
+> userspace, so only new code uses the new bitwise extension you make.
+> Old code will still use the old boolean approach:
+>
+>     d = (s & m) ^ x
+>
+> So only the payload with non-constant right-hand side will be using
+> your new extension for nft_bitwise.
 
-  net.netfilter.nf_conntrack_log_invalid
-  .. to enable logging of packets deemed invalid by conntrack.
+The kernel should definitely continue to support the old way of doing
+things.
 
-newly visible sysctls that are only exported as read-only:
+> For libnftnl, I'm inclined to revert.
 
-  net.netfilter.nf_conntrack_count
-  .. current number of conntrack entries living in this netns.
+Agreed.
 
-  net.netfilter.nf_conntrack_max
-  .. global upperlimit (maximum size of the table).
+> Let me know, thanks.
 
-  net.netfilter.nf_conntrack_buckets
-  .. size of the conntrack table (hash buckets).
+J.
 
-  net.netfilter.nf_conntrack_expect_max
-  .. maximum number of permitted expectations in this netns.
+--mJm6k4Vb/yFcL9ZU
+Content-Type: application/pgp-signature; name="signature.asc"
 
-  net.netfilter.nf_conntrack_helper
-  .. conntrack helper auto assignment.
+-----BEGIN PGP SIGNATURE-----
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_conntrack_standalone.c | 19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+iQGzBAABCgAdFiEEd/6/sDFjb+OCRmRMonv1GCHZ79cFAl5pT+0ACgkQonv1GCHZ
+79f3GQv9F5vJdo7DBxXMaw0XetuE/P3I1jqhtwt6WO9ug/R2knGCdlB+zAFbDH8q
+kV47/Rti8TEFtUVz2ooDJJqaw8FnNIvaDOrA9OJ4b0aWg8YN8dSc5BDQ+0Zv7hU6
+sbaj8DewcKVxNyseQ/1EZNb6/IpqGhrI5OmA5ozUfAzakxW9MYdmf9Ig1F2uil5N
+gPzPvKYTrTGtt8ZIO9FV/hQxFTxIqxDu8p1AyL/8ad+KXx8RJe1scaGbZ8WpckM9
+1HCRqXN1CgU/6Apy45JNxkfUeKW0oOFiD0fHxhLOTnI8KfwsB3PN/4yQJUJZ0rMj
+J6x3yQZ436MtC0VCOHsiuDBS7d6nZNVX2u6GLODlrcgOJYdMaD5fdqNtxbv+KiLb
+dteYwNNA7elpwCMZ52LbcA6CPRLZ1E0Bw2veroUbicanIC7tnxCr1gUKB2OH7hrP
+Qr16Hzm72j75g9vXBvBifYGEghIXH9onvMFEGENBOinNrQSjGprRcjNGL2dcMrMj
+Nz+mCXD7
+=1QpK
+-----END PGP SIGNATURE-----
 
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 410809c669e1..954f2bedec16 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -1054,21 +1054,18 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
- 	nf_conntrack_standalone_init_dccp_sysctl(net, table);
- 	nf_conntrack_standalone_init_gre_sysctl(net, table);
- 
--	/* Don't export sysctls to unprivileged users */
-+	/* Don't allow unprivileged users to alter certain sysctls */
- 	if (net->user_ns != &init_user_ns) {
--		table[NF_SYSCTL_CT_MAX].procname = NULL;
--		table[NF_SYSCTL_CT_ACCT].procname = NULL;
--		table[NF_SYSCTL_CT_HELPER].procname = NULL;
--#ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
--		table[NF_SYSCTL_CT_TIMESTAMP].procname = NULL;
--#endif
-+		table[NF_SYSCTL_CT_MAX].mode = 0444;
-+		table[NF_SYSCTL_CT_EXPECT_MAX].mode = 0444;
-+		table[NF_SYSCTL_CT_HELPER].mode = 0444;
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
--		table[NF_SYSCTL_CT_EVENTS].procname = NULL;
-+		table[NF_SYSCTL_CT_EVENTS].mode = 0444;
- #endif
--	}
--
--	if (!net_eq(&init_net, net))
- 		table[NF_SYSCTL_CT_BUCKETS].mode = 0444;
-+	} else if (!net_eq(&init_net, net)) {
-+		table[NF_SYSCTL_CT_BUCKETS].mode = 0444;
-+	}
- 
- 	net->ct.sysctl_header = register_net_sysctl(net, "net/netfilter", table);
- 	if (!net->ct.sysctl_header)
--- 
-2.24.1
-
+--mJm6k4Vb/yFcL9ZU--
