@@ -2,33 +2,34 @@ Return-Path: <SRS0=fe67=44=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A697C3F2C6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05AB0C10F29
 	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Mar 2020 14:13:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1CD8221D7E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Mar 2020 14:13:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D6F6F21D7E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Mar 2020 14:13:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729717AbgCKON1 (ORCPT
+        id S1729712AbgCKON1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Wed, 11 Mar 2020 10:13:27 -0400
-Received: from correo.us.es ([193.147.175.20]:59648 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:59644 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729680AbgCKON1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1729678AbgCKON1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 11 Mar 2020 10:13:27 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D22DCDA708
+        by mail.us.es (Postfix) with ESMTP id 66C89DA399
         for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2020 15:13:03 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C1573DA3A0
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 575F4DA3C4
         for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2020 15:13:03 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B7075DA38D; Wed, 11 Mar 2020 15:13:03 +0100 (CET)
+        id 4CEC4DA8E6; Wed, 11 Mar 2020 15:13:03 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E36BBDA3C3
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7BAA0DA3A5
         for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2020 15:13:01 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
@@ -36,14 +37,14 @@ Received: from 192.168.1.97 (192.168.1.97)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id CFCAE42EF42A
+        by entrada.int (Postfix) with ESMTPA id 67D5E42EF42A
         for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2020 15:13:01 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next 3/4] netfilter: nf_tables: add nft_set_elem_update_expr() helper function
-Date:   Wed, 11 Mar 2020 15:13:17 +0100
-Message-Id: <20200311141318.3633-4-pablo@netfilter.org>
+Subject: [PATCH nf-next 2/4] netfilter: nf_tables: add elements with stateful expressions
+Date:   Wed, 11 Mar 2020 15:13:16 +0100
+Message-Id: <20200311141318.3633-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200311141318.3633-1-pablo@netfilter.org>
 References: <20200311141318.3633-1-pablo@netfilter.org>
@@ -53,70 +54,78 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This helper function runs the eval path of the stateful expression
-of an existing set element.
+Update nft_add_set_elem() to handle the NFTA_SET_ELEM_EXPR netlink
+attribute. This patch allows users to to add elements with stateful
+expressions.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h | 12 ++++++++++++
- net/netfilter/nft_dynset.c        |  8 +-------
- 2 files changed, 13 insertions(+), 7 deletions(-)
+ net/netfilter/nf_tables_api.c | 21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 13c257f7dd44..f9f61905a485 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -897,6 +897,18 @@ static inline struct nft_userdata *nft_userdata(const struct nft_rule *rule)
- 	return (void *)&rule->data[rule->dlen];
- }
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 0f670d13ae27..a90bf8d0b9ea 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4913,6 +4913,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 	struct nft_set_elem elem;
+ 	struct nft_set_binding *binding;
+ 	struct nft_object *obj = NULL;
++	struct nft_expr *expr = NULL;
+ 	struct nft_userdata *udata;
+ 	struct nft_data_desc desc;
+ 	struct nft_data data;
+@@ -4980,10 +4981,17 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			return err;
+ 	}
  
-+static inline void nft_set_elem_update_expr(const struct nft_set_ext *ext,
-+					    struct nft_regs *regs,
-+					    const struct nft_pktinfo *pkt)
-+{
-+	struct nft_expr *expr;
-+
-+	if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPR)) {
-+		expr = nft_set_ext_expr(ext);
-+		expr->ops->eval(expr, regs, pkt);
++	if (nla[NFTA_SET_ELEM_EXPR] != NULL) {
++		expr = nft_set_elem_expr_alloc(ctx, set,
++					       nla[NFTA_SET_ELEM_EXPR]);
++		if (IS_ERR(expr))
++			return PTR_ERR(expr);
 +	}
-+}
 +
- /*
-  * The last pointer isn't really necessary, but the compiler isn't able to
-  * determine that the result of nft_expr_last() is always the same since it
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index e106cf1c5b8b..46ab28ec4b53 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -81,7 +81,6 @@ void nft_dynset_eval(const struct nft_expr *expr,
- 	const struct nft_dynset *priv = nft_expr_priv(expr);
- 	struct nft_set *set = priv->set;
- 	const struct nft_set_ext *ext;
--	const struct nft_expr *sexpr;
- 	u64 timeout;
+ 	err = nft_setelem_parse_key(ctx, set, &elem.key.val,
+ 				    nla[NFTA_SET_ELEM_KEY]);
+ 	if (err < 0)
+-		return err;
++		goto err_set_elem_expr;
  
- 	if (priv->op == NFT_DYNSET_OP_DELETE) {
-@@ -91,18 +90,13 @@ void nft_dynset_eval(const struct nft_expr *expr,
+ 	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, set->klen);
  
- 	if (set->ops->update(set, &regs->data[priv->sreg_key], nft_dynset_new,
- 			     expr, regs, &ext)) {
--		sexpr = NULL;
--		if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPR))
--			sexpr = nft_set_ext_expr(ext);
--
- 		if (priv->op == NFT_DYNSET_OP_UPDATE &&
- 		    nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION)) {
- 			timeout = priv->timeout ? : set->timeout;
- 			*nft_set_ext_expiration(ext) = get_jiffies_64() + timeout;
- 		}
+@@ -5002,6 +5010,10 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			nft_set_ext_add(&tmpl, NFT_SET_EXT_TIMEOUT);
+ 	}
  
--		if (sexpr != NULL)
--			sexpr->ops->eval(sexpr, regs, pkt);
-+		nft_set_elem_update_expr(ext, regs, pkt);
++	if (expr)
++		nft_set_ext_add_length(&tmpl, NFT_SET_EXT_EXPR,
++				       expr->ops->size);
++
+ 	if (nla[NFTA_SET_ELEM_OBJREF] != NULL) {
+ 		if (!(set->flags & NFT_SET_OBJECT)) {
+ 			err = -EINVAL;
+@@ -5086,6 +5098,10 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 		*nft_set_ext_obj(ext) = obj;
+ 		obj->use++;
+ 	}
++	if (expr) {
++		memcpy(nft_set_ext_expr(ext), expr, expr->ops->size);
++		kfree(expr);
++	}
  
- 		if (priv->invert)
- 			regs->verdict.code = NFT_BREAK;
+ 	trans = nft_trans_elem_alloc(ctx, NFT_MSG_NEWSETELEM, set);
+ 	if (trans == NULL)
+@@ -5141,6 +5157,9 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 	nft_data_release(&elem.key_end.val, NFT_DATA_VALUE);
+ err_parse_key:
+ 	nft_data_release(&elem.key.val, NFT_DATA_VALUE);
++err_set_elem_expr:
++	if (expr != NULL)
++		nft_expr_destroy(ctx, expr);
+ 
+ 	return err;
+ }
 -- 
 2.11.0
 
