@@ -2,103 +2,93 @@ Return-Path: <SRS0=fe67=44=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0289EC10F27
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E2E3C18E5A
 	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Mar 2020 14:30:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 13D6C204EC
+	by mail.kernel.org (Postfix) with ESMTP id 88EBA204EC
 	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Mar 2020 14:30:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729718AbgCKOaX (ORCPT
+        id S1729792AbgCKOaY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 11 Mar 2020 10:30:23 -0400
-Received: from correo.us.es ([193.147.175.20]:41044 "EHLO mail.us.es"
+        Wed, 11 Mar 2020 10:30:24 -0400
+Received: from correo.us.es ([193.147.175.20]:41056 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729057AbgCKOaX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1729511AbgCKOaX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 11 Mar 2020 10:30:23 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D9BA6DA708
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2020 15:29:59 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 3AD5CC04A6
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2020 15:30:01 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CB38EDA3AE
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2020 15:29:59 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2BAF8DA3A3
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2020 15:30:01 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id BFAEDDA3A9; Wed, 11 Mar 2020 15:29:59 +0100 (CET)
+        id 21465DA3A9; Wed, 11 Mar 2020 15:30:01 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E0AECDA3C2
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2020 15:29:57 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5D328DA3A3
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2020 15:29:59 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 11 Mar 2020 15:29:57 +0100 (CET)
+ Wed, 11 Mar 2020 15:29:59 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id CB60742EF42B
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2020 15:29:57 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 401B042EF42B
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2020 15:29:59 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH 0/5 nf-next,v2] enhance stateful expression support
-Date:   Wed, 11 Mar 2020 15:30:11 +0100
-Message-Id: <20200311143016.4414-1-pablo@netfilter.org>
+Subject: [PATCH 2/5] netfilter: nf_tables: remove EXPORT_SYMBOL_GPL for nft_expr_init()
+Date:   Wed, 11 Mar 2020 15:30:13 +0100
+Message-Id: <20200311143016.4414-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20200311143016.4414-1-pablo@netfilter.org>
+References: <20200311143016.4414-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patchset allows users to add and to restore stateful expressions
-of set elements, e.g.
+Not exposed anymore to modules, remove it.
 
- table ip test {
-        set test {
-                type ipv4_addr
-                size 65535
-                flags dynamic,timeout
-                timeout 30d
-                gc-interval 1d
-                elements = { 192.168.10.13 expires 19d23h52m27s576ms counter packets 51 bytes 17265 }
-        }
-        chain output {
-                type filter hook output priority 0;
-                update @test { ip saddr }
-        }
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables.h | 2 --
+ net/netfilter/nf_tables_api.c     | 4 ++--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index da2b8ff9f066..13c257f7dd44 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -853,8 +853,6 @@ static inline void *nft_expr_priv(const struct nft_expr *expr)
+ 	return (void *)expr->data;
  }
-
-You can also add counters to elements from the control place, ie.
-
- table ip test {
-        set test {
-                type ipv4_addr
-                size 65535
-                elements = { 192.168.2.1 counter packets 75 bytes 19043 }
-        }
-
-        chain output {
-                type filter hook output priority filter; policy accept;
-                ip daddr @test
-        }
+ 
+-struct nft_expr *nft_expr_init(const struct nft_ctx *ctx,
+-			       const struct nlattr *nla);
+ void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
+ int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
+ 		  const struct nft_expr *expr);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index a9f4169c8610..0f670d13ae27 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2523,8 +2523,8 @@ static void nf_tables_expr_destroy(const struct nft_ctx *ctx,
+ 	module_put(type->owner);
  }
-
-v2: Missing patch to add nft_set_elem_expr_alloc() helper function.
-
-Pablo Neira Ayuso (5):
-  netfilter: nf_tables: add nft_set_elem_expr_alloc()
-  netfilter: nf_tables: remove EXPORT_SYMBOL_GPL for nft_expr_init()
-  netfilter: nf_tables: add elements with stateful expressions
-  netfilter: nf_tables: add nft_set_elem_update_expr() helper function
-  netfilter: nft_lookup: update element stateful expression
-
- include/net/netfilter/nf_tables.h | 18 +++++++++++--
- net/netfilter/nf_tables_api.c     | 55 ++++++++++++++++++++++++++++++++++++---
- net/netfilter/nft_dynset.c        | 23 +++-------------
- net/netfilter/nft_lookup.c        |  1 +
- 4 files changed, 72 insertions(+), 25 deletions(-)
-
---
+ 
+-struct nft_expr *nft_expr_init(const struct nft_ctx *ctx,
+-			       const struct nlattr *nla)
++static struct nft_expr *nft_expr_init(const struct nft_ctx *ctx,
++				      const struct nlattr *nla)
+ {
+ 	struct nft_expr_info info;
+ 	struct nft_expr *expr;
+-- 
 2.11.0
 
