@@ -2,186 +2,166 @@ Return-Path: <SRS0=fe67=44=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.3 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D82DDC10F27
-	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Mar 2020 13:26:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C79EC10F29
+	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Mar 2020 14:05:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B4C5521655
-	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Mar 2020 13:26:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6C52221D7E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Mar 2020 14:05:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729660AbgCKN0T convert rfc822-to-8bit (ORCPT
+        id S1729682AbgCKOFW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 11 Mar 2020 09:26:19 -0400
-Received: from correo.us.es ([193.147.175.20]:34428 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729611AbgCKN0T (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 11 Mar 2020 09:26:19 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id ADA0B1E2C67
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2020 14:25:54 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9CB3E11C4DB
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2020 14:25:54 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 9250011C4C1; Wed, 11 Mar 2020 14:25:54 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 87E1311C4D9;
-        Wed, 11 Mar 2020 14:25:52 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 11 Mar 2020 14:25:52 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 6B3CC42EF42A;
-        Wed, 11 Mar 2020 14:25:52 +0100 (CET)
-Date:   Wed, 11 Mar 2020 14:26:13 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jeremy Sowden <jeremy@azazel.net>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft v3 18/18] tests: py: add variable binop RHS tests.
-Message-ID: <20200311132613.c2onkaxo7uizzofs@salvia>
-References: <20200303094844.26694-1-jeremy@azazel.net>
- <20200303094844.26694-19-jeremy@azazel.net>
- <20200310023913.uebkl7uywu4gkldn@salvia>
- <20200310093008.GA166204@azazel.net>
+        Wed, 11 Mar 2020 10:05:22 -0400
+Received: from www62.your-server.de ([213.133.104.62]:59082 "EHLO
+        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729531AbgCKOFW (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 11 Mar 2020 10:05:22 -0400
+Received: from sslproxy02.your-server.de ([78.47.166.47])
+        by www62.your-server.de with esmtpsa (TLSv1.2:DHE-RSA-AES256-GCM-SHA384:256)
+        (Exim 4.89_1)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1jC1z4-0006YO-9Y; Wed, 11 Mar 2020 15:05:18 +0100
+Received: from [85.7.42.192] (helo=pc-9.home)
+        by sslproxy02.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1jC1z3-0008E4-SM; Wed, 11 Mar 2020 15:05:17 +0100
+Subject: Re: [PATCH nf-next 3/3] netfilter: Introduce egress hook
+To:     Lukas Wunner <lukas@wunner.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Martin Mares <mj@ucw.cz>,
+        Dmitry Safonov <0x7f454c46@gmail.com>,
+        Thomas Graf <tgraf@suug.ch>,
+        Alexei Starovoitov <ast@kernel.org>,
+        David Miller <davem@davemloft.net>
+References: <cover.1583927267.git.lukas@wunner.de>
+ <14ab7e5af20124a34a50426fd570da7d3b0369ce.1583927267.git.lukas@wunner.de>
+From:   Daniel Borkmann <daniel@iogearbox.net>
+Message-ID: <a57687ae-2da6-ca2a-1c84-e4332a5e4556@iogearbox.net>
+Date:   Wed, 11 Mar 2020 15:05:16 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <20200310093008.GA166204@azazel.net>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <14ab7e5af20124a34a50426fd570da7d3b0369ce.1583927267.git.lukas@wunner.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Authenticated-Sender: daniel@iogearbox.net
+X-Virus-Scanned: Clear (ClamAV 0.102.2/25748/Wed Mar 11 12:08:41 2020)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Jeremy,
-
-On Tue, Mar 10, 2020 at 09:30:08AM +0000, Jeremy Sowden wrote:
-> On 2020-03-10, at 03:39:13 +0100, Pablo Neira Ayuso wrote:
-> > On Tue, Mar 03, 2020 at 09:48:44AM +0000, Jeremy Sowden wrote:
-> > [...]
-> > > diff --git a/tests/py/any/ct.t.payload b/tests/py/any/ct.t.payload
-> > > index 661591257804..17a1c382ea65 100644
-> > > --- a/tests/py/any/ct.t.payload
-> > > +++ b/tests/py/any/ct.t.payload
-> > > @@ -359,6 +359,39 @@ ip test-ip4 output
-> > >    [ lookup reg 1 set __map%d dreg 1 ]
-> > >    [ ct set mark with reg 1 ]
-> > >
-> > > +# ct mark set ct mark and 0xffff0000 or meta mark and 0xffff
-> > > +ip
-> > > +  [ ct load mark => reg 1 ]
-> > > +  [ bitwise reg 1 = (reg=1 & 0xffff0000 ) ^ 0x00000000 ]
-> >
-> > These two are: ct mark and 0xffff0000
-> >
-> > > +  [ meta load mark => reg 2 ]
-> > > +  [ bitwise reg 2 = (reg=2 & 0x0000ffff ) ^ 0xffffffff ]
-> >
-> > Refetch.
-> >
-> > > +  [ meta load mark => reg 3 ]
-> > > +  [ bitwise reg 3 = (reg=3 & 0x0000ffff ) ^ 0x00000000 ]
-> >
-> > These two are: meta mark and 0xffff
-> >
-> > > +  [ bitwise reg 1 = (reg=1 & reg 2 ) ^ reg 3 ]
-> >
-> > This one is triggering the refetch from meta load in reg 2, right?
-> >
-> > If so, probably extend nft_bitwise to support for 'or' from two
-> > registers would make things more simple?
-> >
-> >      [ bitwise reg 1 = (reg 1 | reg 3) ]
-> >
-> > This one requires two registers as input for this new OR operation.
-> >
-> > > +  [ ct set mark with reg 1 ]
-> > > +
-> > [...]
-> > > diff --git a/tests/py/ip/ip.t.payload b/tests/py/ip/ip.t.payload
-> > > index d627b22f2614..d6c5d14d52ac 100644
-> > > --- a/tests/py/ip/ip.t.payload
-> > > +++ b/tests/py/ip/ip.t.payload
-> > [...]
-> > > +# iif "lo" ip dscp set ip dscp or 0x3
-> > > +ip
-> > > +  [ meta load iif => reg 1 ]
-> > > +  [ cmp eq reg 1 0x00000001 ]
-> > > +  [ payload load 2b @ network header + 0 => reg 1 ]
-> > > +  [ bitwise reg 1 = (reg=1 & 0x000003ff ) ^ 0x00000000 ]
-> > > +  [ payload load 1b @ network header + 1 => reg 2 ]
-> > > +  [ bitwise reg 2 = (reg=2 & 0x000000fc ) ^ 0x00000000 ]
-> > > +  [ bitwise reg 2 = ( reg 2 >> 0x00000002 ) ]
-> > > +  [ bitwise reg 2 = (reg=2 & 0x000000fc ) ^ 0x00000003 ]
-> > > +  [ bitwise reg 2 = ( reg 2 << 0x00000002 ) ]
-> > > +  [ bitwise reg 1 = (reg=1 & 0x0000ffff ) ^ reg 2 ]
-> > > +  [ payload write reg 1 => 2b @ network header + 0 csum_type 1 csum_off 10 csum_flags 0x0 ]
-> >
-> > Probably extending nft_bitwise again is the way to go to simplify
-> > this?
-> >
-> > 1) fetch two bytes from payload => reg 1.
-> > 2) reg 2 = ( reg 1 | 0x000c )
-> >
-> >    userspace 0x3 << 2 => 0x0c, then extend this to two bytes => 0x000c
-> >
-> > This is an OR with immediate value.
-> >
-> > 3) payload write reg 1
-> >
-> > This one requires two immediates.
-> >
-> > Then, how does 'ip dscp set ip dscp and 0x01' bytecode looks like?
-> >
-> > 1) fetch two bytes => reg 1.
-> > 2) reg 1 = (reg 1 & 0xff07) ^ 0x0
-> >
-> > userspace 0x01 => 0x04 (after << 2). Then, 0x04 & 0xff03 = 0xff07.
-> >
-> > This case should be possible to support it with the existing bitwise.
-> >
-> > The delinearization path will need to calculate the closest field
-> > matching, but there is already code for this in the userspace tree (it
-> > was required when matching ip dscp using bitwise operation).
-> >
-> > Would it be possible to simplify all this through new kernel
-> > extension? If so, I'm sorry for wasting resources, this might go to a
-> > different direction than _MREG and _XREG.
+On 3/11/20 12:59 PM, Lukas Wunner wrote:
+> Commit e687ad60af09 ("netfilter: add netfilter ingress hook after
+> handle_ing() under unique static key") introduced the ability to
+> classify packets on ingress.
 > 
-> No problem. :)
+> Allow the same on egress.  Position the hook immediately before a packet
+> is handed to tc and then sent out on an interface, thereby mirroring the
+> ingress order.  This order allows marking packets in the netfilter
+> egress hook and subsequently using the mark in tc.  Another benefit of
+> this order is consistency with a lot of existing documentation which
+> says that egress tc is performed after netfilter hooks.
 > 
-> > Moreover, for field updates like in these examples, I wonder if it is
-> > worth to introduce a new syntax, ie.
-> >
-> >         ip dscp |= 0x01
-> >         ip dscp or_eq 0x01
-> >
-> >         ip dscp &= 0x01
-> >         ip dscp and_eq 0x01
-> >
-> > | and & might be a problem for the shell, for the native nft cli this
-> > should be fine. But this is a different issue.
+> Egress hooks already exist for the most common protocols, such as
+> NF_INET_LOCAL_OUT or NF_ARP_OUT, and those are to be preferred because
+> they are executed earlier during packet processing.  However for more
+> exotic protocols, there is currently no provision to apply netfilter on
+> egress.  A common workaround is to enslave the interface to a bridge and
+
+Sorry for late reply, but still NAK. The primary use-case for this patch set
+is out of tree module which you mentioned last time [0] ...
+
+   There's another reason I chose netfilter over tc:  I need to activate the
+   filter from a kernel module, hence need an in-kernel (rather than user space)
+   API.
+
+   netfilter provides that via nf_register_net_hook(), I couldn't find
+   anything similar for tc.  And an egress netfilter hook seemed like
+   an obvious missing feature given the presence of an ingress hook.
+
+   The module I need this for is out-of-tree:
+   https://github.com/RevolutionPi/piControl/commit/da199ccd2099
+
+   In my experience the argument that a feature is needed for an out-of-tree
+   module holds zero value upstream.  If there's no in-tree user, the feature
+   isn't merged, I've seen this more than enough.  Which is why I didn't mention
+   it in the first place.
+
+   For our use case I wouldn't even need the nft user space support which I
+   posted separately, I just implemented it for completeness and to increase
+   acceptability of the present series.
+
+... and as you mentioned there's local out and post routing already where you
+can mark packets, so no need to make the fast-path slower for exotic protocols
+which can be solved through other means.
+
+   [0] https://lore.kernel.org/netdev/20191123142305.g2kkaudhhyui22fq@wunner.de/
+
+> use ebtables, or to resort to tc.  But when the ingress hook was
+> introduced, consensus was that users should be given the choice to use
+> netfilter or tc, whichever tool suits their needs best:
+> https://lore.kernel.org/netdev/20150430153317.GA3230@salvia/
 > 
-> Thanks for the feedback, Pablo.
+> There have also been occasional user requests for a netfilter egress
+> hook in the past, e.g.:
+> https://www.spinics.net/lists/netfilter/msg50038.html
+> 
+> Performance measurements with pktgen surprisingly show a speedup rather
+> than a slowdown with this commit:
+> 
+> * Without this commit:
+>    Result: OK: 34240933(c34238375+d2558) usec, 100000000 (60byte,0frags)
+>    2920481pps 1401Mb/sec (1401830880bps) errors: 0
+> 
+> * With this commit:
+>    Result: OK: 33997299(c33994193+d3106) usec, 100000000 (60byte,0frags)
+>    2941410pps 1411Mb/sec (1411876800bps) errors: 0
 
-Do you think it would be to keep back this one from the nf-next tree
-until you evaluate an alternative way to extend nft_bitwise?
+So you are suggesting that we've just optimized the stack by adding more
+hooks to it ...?
 
-commit 8d1f378a51fcf2f5e44e06ff726a91c885d248cc
-Author: Jeremy Sowden <jeremy@azazel.net>
-Date:   Mon Feb 24 12:49:31 2020 +0000
-
-    netfilter: bitwise: add support for passing mask and xor values in registers.
-
-Thanks.
+> * Without this commit + tc egress:
+>    Result: OK: 39022386(c39019547+d2839) usec, 100000000 (60byte,0frags)
+>    2562631pps 1230Mb/sec (1230062880bps) errors: 0
+> 
+> * With this commit + tc egress:
+>    Result: OK: 37604447(c37601877+d2570) usec, 100000000 (60byte,0frags)
+>    2659259pps 1276Mb/sec (1276444320bps) errors: 0
+> 
+> * With this commit + nft egress:
+>    Result: OK: 41436689(c41434088+d2600) usec, 100000000 (60byte,0frags)
+>    2413320pps 1158Mb/sec (1158393600bps) errors: 0
+> 
+> Tested on a bare-metal Core i7-3615QM, each measurement was performed
+> three times to verify that the numbers are stable.
+> 
+> Commands to perform a measurement:
+> modprobe pktgen
+> echo "add_device lo@3" > /proc/net/pktgen/kpktgend_3
+> samples/pktgen/pktgen_bench_xmit_mode_queue_xmit.sh -i 'lo@3' -n 100000000
+> 
+> Commands for testing tc egress:
+> tc qdisc add dev lo clsact
+> tc filter add dev lo egress protocol ip prio 1 u32 match ip dst 4.3.2.1/32
+> 
+> Commands for testing nft egress:
+> nft add table netdev t
+> nft add chain netdev t co \{ type filter hook egress device lo priority 0 \; \}
+> nft add rule netdev t co ip daddr 4.3.2.1/32 drop
+> 
+> All testing was performed on the loopback interface to avoid distorting
+> measurements by the packet handling in the low-level Ethernet driver.
+> 
+> Signed-off-by: Lukas Wunner <lukas@wunner.de>
+> Cc: Daniel Borkmann <daniel@iogearbox.net>
