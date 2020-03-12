@@ -2,218 +2,128 @@ Return-Path: <SRS0=u4Sz=45=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A5A9C10DCE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Mar 2020 21:58:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08027C4CECE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Mar 2020 22:41:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D6C0A206FA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Mar 2020 21:58:29 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="FTXc51ao"
+	by mail.kernel.org (Postfix) with ESMTP id DFB082072F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Mar 2020 22:41:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726623AbgCLV63 (ORCPT
+        id S1726691AbgCLWlF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 12 Mar 2020 17:58:29 -0400
-Received: from us-smtp-1.mimecast.com ([205.139.110.61]:59801 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726246AbgCLV63 (ORCPT
+        Thu, 12 Mar 2020 18:41:05 -0400
+Received: from www62.your-server.de ([213.133.104.62]:33948 "EHLO
+        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726620AbgCLWlE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Mar 2020 17:58:29 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1584050307;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=bydTNMJNgIMQ2vZ+TFrMdvYY1Bx3pTEvBd4lxqyQhlg=;
-        b=FTXc51aoJthExlpqhKf65I4WmwEV5NDcNBX33oajIrCB3IC39t+k1+pJJLeLEidLzzDYDO
-        WSG/ahFkA0+K46A45WnUqne0ik1Wm3Gw7ArAlgzxEdVwzArPw28tNXDqLnvA5I9bxtaXLX
-        AI1pODYv725ilTgskUZfJopf+LeB/yw=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-440-uopu1BQaMEyDh_EmRcZsbg-1; Thu, 12 Mar 2020 17:58:25 -0400
-X-MC-Unique: uopu1BQaMEyDh_EmRcZsbg-1
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id C1D9F18CA240;
-        Thu, 12 Mar 2020 21:58:22 +0000 (UTC)
-Received: from madcap2.tricolour.ca (ovpn-112-16.rdu2.redhat.com [10.10.112.16])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 26F0A73874;
-        Thu, 12 Mar 2020 21:58:10 +0000 (UTC)
-Date:   Thu, 12 Mar 2020 17:58:08 -0400
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
-        containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
-Subject: Re: [PATCH ghak90 V8 16/16] audit: add capcontid to set contid
- outside init_user_ns
-Message-ID: <20200312215808.bkezqotlhewconiy@madcap2.tricolour.ca>
-References: <cover.1577736799.git.rgb@redhat.com>
- <5941671b6b6b5de28ab2cc80e72f288cf83291d5.1577736799.git.rgb@redhat.com>
- <CAHC9VhQYXQp+C0EHwLuW50yUenfH4KF1xKQdS=bn_OzHfnFmmg@mail.gmail.com>
- <20200205003930.2efpm4tvrisgmj4t@madcap2.tricolour.ca>
- <CAHC9VhSsfBbfYmqLoR=QBgF5_VwbA8Dqqz97MjqwwJ6Jq6fHwA@mail.gmail.com>
- <20200206125135.u4dmybkmvxfgui2b@madcap2.tricolour.ca>
- <CAHC9VhT8RsFtmqD22p_NxJaqoAg+do9mX45Luw9fEkr+nQjvxg@mail.gmail.com>
+        Thu, 12 Mar 2020 18:41:04 -0400
+Received: from sslproxy05.your-server.de ([78.46.172.2])
+        by www62.your-server.de with esmtpsa (TLSv1.2:DHE-RSA-AES256-GCM-SHA384:256)
+        (Exim 4.89_1)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1jCWVY-0003nk-UG; Thu, 12 Mar 2020 23:40:52 +0100
+Received: from [85.7.42.192] (helo=pc-9.home)
+        by sslproxy05.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1jCWVY-000LlI-HM; Thu, 12 Mar 2020 23:40:52 +0100
+Subject: Re: [PATCH nf-next 3/3] netfilter: Introduce egress hook
+To:     Lukas Wunner <lukas@wunner.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Martin Mares <mj@ucw.cz>,
+        Dmitry Safonov <0x7f454c46@gmail.com>,
+        Thomas Graf <tgraf@suug.ch>,
+        Alexei Starovoitov <ast@kernel.org>,
+        David Miller <davem@davemloft.net>
+References: <cover.1583927267.git.lukas@wunner.de>
+ <14ab7e5af20124a34a50426fd570da7d3b0369ce.1583927267.git.lukas@wunner.de>
+ <a57687ae-2da6-ca2a-1c84-e4332a5e4556@iogearbox.net>
+ <20200311155451.e3mtgrdvuiujgvs6@wunner.de>
+From:   Daniel Borkmann <daniel@iogearbox.net>
+Message-ID: <a73dda33-57f4-95d8-ea51-ed483abd6a7a@iogearbox.net>
+Date:   Thu, 12 Mar 2020 23:40:49 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHC9VhT8RsFtmqD22p_NxJaqoAg+do9mX45Luw9fEkr+nQjvxg@mail.gmail.com>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
+In-Reply-To: <20200311155451.e3mtgrdvuiujgvs6@wunner.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Authenticated-Sender: daniel@iogearbox.net
+X-Virus-Scanned: Clear (ClamAV 0.102.2/25749/Thu Mar 12 14:09:06 2020)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-02-13 16:58, Paul Moore wrote:
-> On Thu, Feb 6, 2020 at 7:52 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > On 2020-02-05 17:56, Paul Moore wrote:
-> > > On Tue, Feb 4, 2020 at 7:39 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > > On 2020-01-22 16:29, Paul Moore wrote:
-> > > > > On Tue, Dec 31, 2019 at 2:51 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > > > >
-> > > > > > Provide a mechanism similar to CAP_AUDIT_CONTROL to explicitly give a
-> > > > > > process in a non-init user namespace the capability to set audit
-> > > > > > container identifiers.
-> > > > > >
-> > > > > > Provide /proc/$PID/audit_capcontid interface to capcontid.
-> > > > > > Valid values are: 1==enabled, 0==disabled
-> > > > >
-> > > > > It would be good to be more explicit about "enabled" and "disabled" in
-> > > > > the commit description.  For example, which setting allows the target
-> > > > > task to set audit container IDs of it's children processes?
-> > > >
-> > > > Ok...
-> > > >
-> > > > > > Report this action in message type AUDIT_SET_CAPCONTID 1022 with fields
-> > > > > > opid= capcontid= old-capcontid=
-> > > > > >
-> > > > > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > > > > > ---
-> > > > > >  fs/proc/base.c             | 55 ++++++++++++++++++++++++++++++++++++++++++++++
-> > > > > >  include/linux/audit.h      | 14 ++++++++++++
-> > > > > >  include/uapi/linux/audit.h |  1 +
-> > > > > >  kernel/audit.c             | 35 +++++++++++++++++++++++++++++
-> > > > > >  4 files changed, 105 insertions(+)
-> > >
-> > > ...
-> > >
-> > > > > > diff --git a/kernel/audit.c b/kernel/audit.c
-> > > > > > index 1287f0b63757..1c22dd084ae8 100644
-> > > > > > --- a/kernel/audit.c
-> > > > > > +++ b/kernel/audit.c
-> > > > > > @@ -2698,6 +2698,41 @@ static bool audit_contid_isowner(struct task_struct *tsk)
-> > > > > >         return false;
-> > > > > >  }
-> > > > > >
-> > > > > > +int audit_set_capcontid(struct task_struct *task, u32 enable)
-> > > > > > +{
-> > > > > > +       u32 oldcapcontid;
-> > > > > > +       int rc = 0;
-> > > > > > +       struct audit_buffer *ab;
-> > > > > > +
-> > > > > > +       if (!task->audit)
-> > > > > > +               return -ENOPROTOOPT;
-> > > > > > +       oldcapcontid = audit_get_capcontid(task);
-> > > > > > +       /* if task is not descendant, block */
-> > > > > > +       if (task == current)
-> > > > > > +               rc = -EBADSLT;
-> > > > > > +       else if (!task_is_descendant(current, task))
-> > > > > > +               rc = -EXDEV;
-> > > > >
-> > > > > See my previous comments about error code sanity.
-> > > >
-> > > > I'll go with EXDEV.
-> > > >
-> > > > > > +       else if (current_user_ns() == &init_user_ns) {
-> > > > > > +               if (!capable(CAP_AUDIT_CONTROL) && !audit_get_capcontid(current))
-> > > > > > +                       rc = -EPERM;
-> > > > >
-> > > > > I think we just want to use ns_capable() in the context of the current
-> > > > > userns to check CAP_AUDIT_CONTROL, yes?  Something like this ...
-> > > >
-> > > > I thought we had firmly established in previous discussion that
-> > > > CAP_AUDIT_CONTROL in anything other than init_user_ns was completely irrelevant
-> > > > and untrustable.
-> > >
-> > > In the case of a container with multiple users, and multiple
-> > > applications, one being a nested orchestrator, it seems relevant to
-> > > allow that container to control which of it's processes are able to
-> > > exercise CAP_AUDIT_CONTROL.  Granted, we still want to control it
-> > > within the overall host, e.g. the container in question must be
-> > > allowed to run a nested orchestrator, but allowing the container
-> > > itself to provide it's own granularity seems like the right thing to
-> > > do.
-> >
-> > Looking back to discussion on the v6 patch 2/10 (2019-05-30 15:29 Paul
-> > Moore[1], 2019-07-08 14:05 RGB[2]) , it occurs to me that the
-> > ns_capable(CAP_AUDIT_CONTROL) application was dangerous since there was
-> > no parental accountability in storage or reporting.  Now that is in
-> > place, it does seem a bit more reasonable to allow it, but I'm still not
-> > clear on why we would want both mechanisms now.  I don't understand what
-> > the last line in that email meant: "We would probably still want a
-> > ns_capable(CAP_AUDIT_CONTROL) restriction in this case."  Allow
-> > ns_capable(CAP_AUDIT_CONTROL) to govern these actions, or restrict
-> > ns_capable(CAP_AUDIT_CONTROL) from being used to govern these actions?
-> >
-> > If an unprivileged user has been given capcontid to be able run their
-> > own container orchestrator/engine and spawns a user namespace with
-> > CAP_AUDIT_CONTROL, what matters is capcontid, and not CAP_AUDIT_CONTROL.
-> > I could see needing CAP_AUDIT_CONTROL *in addition* to capcontid to give
-> > it finer grained control, but since capcontid would have to be given to
-> > each process explicitly anways, I don't see the point.
-> >
-> > If that unprivileged user had not been given capcontid,
-> > giving itself or one of its descendants CAP_AUDIT_CONTROL should not let
-> > it jump into the game all of a sudden unless the now chained audit
-> > container identifiers are deemed accountable enough.  And then now we
-> > need those hard limits on container depth and network namespace
-> > container membership.
+On 3/11/20 4:54 PM, Lukas Wunner wrote:
+> On Wed, Mar 11, 2020 at 03:05:16PM +0100, Daniel Borkmann wrote:
+>> no need to make the fast-path slower for exotic protocols
+>> which can be solved through other means.
 > 
-> Perhaps I'm not correctly understanding what you are trying to do with
-> this patchset, but my current understanding is that you are trying to
-> use capcontid to control which child audit container IDs (ACIDs) are
-> allowed to manage their own ACIDs.  Further, I believe that the
-> capcontid setting operates at a per-ACID level, meaning there is no
-> provision for the associated container to further restrict that
-> ability, i.e. no access control granularity below the ACID level.  My
-> thinking is that ns_capable(CAP_AUDIT_CONTROL) could be used within an
-> ACID to increase the granularity of the access controls so that only
-> privileged processes running inside the ACID would be able to manage
-> the ACIDs.  Does that make sense?
+> As said the fast-path gets faster, not slower.
+> 
+>>> * Without this commit:
+>>>     Result: OK: 34240933(c34238375+d2558) usec, 100000000 (60byte,0frags)
+>>>     2920481pps 1401Mb/sec (1401830880bps) errors: 0
+>>>
+>>> * With this commit:
+>>>     Result: OK: 33997299(c33994193+d3106) usec, 100000000 (60byte,0frags)
+>>>     2941410pps 1411Mb/sec (1411876800bps) errors: 0
+>>
+>> So you are suggesting that we've just optimized the stack by adding more
+>> hooks to it ...?
+> 
+> Since I've provided numbers to disprove your allegation, I think the
+> onus is now on you to prove that your allegation holds any water.
+> Please reproduce the measurements and let's go from there.
+> 
+> This isn't much work, I've made it really easy by providing all the
+> steps necessary in the commit message.
 
-The capcontid is not inherited like the contid (or contobj) in
-audit_alloc(), so it stops at that process that was granted capcontid.
-That process that was granted capcontid can then explicitly further
-grant capcontid to any of its children should it deem necessary.
+So in terms of micro-benchmarking with pktgen, if I understand you correctly,
+you are basically measuring loopback device by pushing packets through the
+__dev_queue_xmit() -> loopback_xmit() -> netif_rx() till the stack drops them
+in IP layer on ingress side? I wonder how your perf profile looks like ...
+Setting a drop point in tc layer and then measuring the effect before/after
+this change with CONFIG_NETFILTER_EGRESS enabled, I'm getting a stable degration
+from ~4.123Mpps to ~4.082Mpps with pktgen, definitely not seeing a speedup.
 
-Since it is a boolean, it defaults to unset in init_struct_audit which
-isn't relevant anyways since that is in the initial user namespace.
-It isn't set in audit_alloc() and would default to false.
-I can set them explicitly both to false to be certain if that makes
-things clearer and more certain.
+# ip link add dev foo type dummy
+# ip link set dev foo up
+# tc qdisc add dev foo clsact
+# tc filter add dev foo egress bpf da bytecode '1,6 0 0 0,'
+# modprobe pktgen
+# echo "add_device foo" > /proc/net/pktgen/kpktgend_3
+# samples/pktgen/pktgen_bench_xmit_mode_queue_xmit.sh -i 'foo' -n 400000000 -m '11:11:11:11:11:11' -d '1.1.1.1'
 
-I still believe ns_capable() is irrelevant here.
+Also to let pktgen count the skb:
 
-> paul moore
+diff --git a/net/core/pktgen.c b/net/core/pktgen.c
+index acc849df60b5..8920da7a7a67 100644
+--- a/net/core/pktgen.c
++++ b/net/core/pktgen.c
+@@ -3372,11 +3372,11 @@ static void pktgen_xmit(struct pktgen_dev *pkt_dev)
+                 ret = dev_queue_xmit(pkt_dev->skb);
+                 switch (ret) {
+                 case NET_XMIT_SUCCESS:
++               case NET_XMIT_DROP:
+                         pkt_dev->sofar++;
+                         pkt_dev->seq_num++;
+                         pkt_dev->tx_bytes += pkt_dev->last_pkt_size;
+                         break;
+-               case NET_XMIT_DROP:
+                 case NET_XMIT_CN:
+                 /* These are all valid return codes for a qdisc but
+                  * indicate packets are being dropped or will likely
 
-- RGB
+(In any case, this whole discussion is moot for out of tree code.)
 
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
-
+Thanks,
+Daniel
