@@ -2,49 +2,49 @@ Return-Path: <SRS0=u4Sz=45=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55FEFC1975A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Mar 2020 20:52:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A5A9C10DCE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Mar 2020 21:58:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 264B0206B7
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Mar 2020 20:52:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D6C0A206FA
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Mar 2020 21:58:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="eqpuTY2C"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="FTXc51ao"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727174AbgCLUwO (ORCPT
+        id S1726623AbgCLV63 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 12 Mar 2020 16:52:14 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:29786 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1725268AbgCLUwL (ORCPT
+        Thu, 12 Mar 2020 17:58:29 -0400
+Received: from us-smtp-1.mimecast.com ([205.139.110.61]:59801 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726246AbgCLV63 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Mar 2020 16:52:11 -0400
+        Thu, 12 Mar 2020 17:58:29 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1584046329;
+        s=mimecast20190719; t=1584050307;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=B1s8axBbD56BcjKd6ubV/APLf4JXWWdJoFoqMQy3Vc8=;
-        b=eqpuTY2Cd3kAOBi4mMeag0JC8wfa3RhDib+0oHHf2oKYSiV2+Qz4S4RgVt3N/yd5tJJjGN
-        HjDHfd6ZfLR5LfL3BUyM0o9dpWobglbL9fN1kiKKyVUzFMsTgWDfc/hpCmmnT+DdyQ60wH
-        6FJLNli74fGp5AnFmmHOuR6ru6Sexyg=
+        bh=bydTNMJNgIMQ2vZ+TFrMdvYY1Bx3pTEvBd4lxqyQhlg=;
+        b=FTXc51aoJthExlpqhKf65I4WmwEV5NDcNBX33oajIrCB3IC39t+k1+pJJLeLEidLzzDYDO
+        WSG/ahFkA0+K46A45WnUqne0ik1Wm3Gw7ArAlgzxEdVwzArPw28tNXDqLnvA5I9bxtaXLX
+        AI1pODYv725ilTgskUZfJopf+LeB/yw=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-52-CRQEcSVHNTiRduTD2FkvkQ-1; Thu, 12 Mar 2020 16:52:05 -0400
-X-MC-Unique: CRQEcSVHNTiRduTD2FkvkQ-1
+ us-mta-440-uopu1BQaMEyDh_EmRcZsbg-1; Thu, 12 Mar 2020 17:58:25 -0400
+X-MC-Unique: uopu1BQaMEyDh_EmRcZsbg-1
 Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 2C31E8017DF;
-        Thu, 12 Mar 2020 20:52:02 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id C1D9F18CA240;
+        Thu, 12 Mar 2020 21:58:22 +0000 (UTC)
 Received: from madcap2.tricolour.ca (ovpn-112-16.rdu2.redhat.com [10.10.112.16])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 28FFE7388A;
-        Thu, 12 Mar 2020 20:51:49 +0000 (UTC)
-Date:   Thu, 12 Mar 2020 16:51:47 -0400
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 26F0A73874;
+        Thu, 12 Mar 2020 21:58:10 +0000 (UTC)
+Date:   Thu, 12 Mar 2020 17:58:08 -0400
 From:   Richard Guy Briggs <rgb@redhat.com>
 To:     Paul Moore <paul@paul-moore.com>
 Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
@@ -55,19 +55,20 @@ Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
         simo@redhat.com, netdev@vger.kernel.org,
         linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
         mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
-Subject: Re: [PATCH ghak90 V8 13/16] audit: track container nesting
-Message-ID: <20200312205147.plxs4czjeuu4davj@madcap2.tricolour.ca>
+Subject: Re: [PATCH ghak90 V8 16/16] audit: add capcontid to set contid
+ outside init_user_ns
+Message-ID: <20200312215808.bkezqotlhewconiy@madcap2.tricolour.ca>
 References: <cover.1577736799.git.rgb@redhat.com>
- <6452955c1e038227a5cd169f689f3fd3db27513f.1577736799.git.rgb@redhat.com>
- <CAHC9VhRkH=YEjAY6dJJHSp934grHnf=O4RiqLu3U8DzdVQOZkg@mail.gmail.com>
- <20200130192753.n7jjrshbhrczjzoe@madcap2.tricolour.ca>
- <CAHC9VhSVN3mNb5enhLR1hY+ekiAyiYWbehrwd_zN7kz13dF=1w@mail.gmail.com>
- <20200205235056.e5365xtgz7rbese2@madcap2.tricolour.ca>
- <CAHC9VhTM6MDHLcBfwJ_9DCroG0VA-meO770ihjn1sVy6=0JrHw@mail.gmail.com>
+ <5941671b6b6b5de28ab2cc80e72f288cf83291d5.1577736799.git.rgb@redhat.com>
+ <CAHC9VhQYXQp+C0EHwLuW50yUenfH4KF1xKQdS=bn_OzHfnFmmg@mail.gmail.com>
+ <20200205003930.2efpm4tvrisgmj4t@madcap2.tricolour.ca>
+ <CAHC9VhSsfBbfYmqLoR=QBgF5_VwbA8Dqqz97MjqwwJ6Jq6fHwA@mail.gmail.com>
+ <20200206125135.u4dmybkmvxfgui2b@madcap2.tricolour.ca>
+ <CAHC9VhT8RsFtmqD22p_NxJaqoAg+do9mX45Luw9fEkr+nQjvxg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAHC9VhTM6MDHLcBfwJ_9DCroG0VA-meO770ihjn1sVy6=0JrHw@mail.gmail.com>
+In-Reply-To: <CAHC9VhT8RsFtmqD22p_NxJaqoAg+do9mX45Luw9fEkr+nQjvxg@mail.gmail.com>
 User-Agent: NeoMutt/20180716
 X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -75,133 +76,135 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-02-13 16:49, Paul Moore wrote:
-> On Wed, Feb 5, 2020 at 6:51 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > On 2020-02-05 18:05, Paul Moore wrote:
-> > > On Thu, Jan 30, 2020 at 2:28 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+On 2020-02-13 16:58, Paul Moore wrote:
+> On Thu, Feb 6, 2020 at 7:52 AM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > On 2020-02-05 17:56, Paul Moore wrote:
+> > > On Tue, Feb 4, 2020 at 7:39 PM Richard Guy Briggs <rgb@redhat.com> wrote:
 > > > > On 2020-01-22 16:29, Paul Moore wrote:
 > > > > > On Tue, Dec 31, 2019 at 2:51 PM Richard Guy Briggs <rgb@redhat.com> wrote:
 > > > > > >
-> > > > > > Track the parent container of a container to be able to filter and
-> > > > > > report nesting.
+> > > > > > Provide a mechanism similar to CAP_AUDIT_CONTROL to explicitly give a
+> > > > > > process in a non-init user namespace the capability to set audit
+> > > > > > container identifiers.
 > > > > > >
-> > > > > > Now that we have a way to track and check the parent container of a
-> > > > > > container, modify the contid field format to be able to report that
-> > > > > > nesting using a carrat ("^") separator to indicate nesting.  The
-> > > > > > original field format was "contid=<contid>" for task-associated records
-> > > > > > and "contid=<contid>[,<contid>[...]]" for network-namespace-associated
-> > > > > > records.  The new field format is
-> > > > > > "contid=<contid>[^<contid>[...]][,<contid>[...]]".
+> > > > > > Provide /proc/$PID/audit_capcontid interface to capcontid.
+> > > > > > Valid values are: 1==enabled, 0==disabled
 > > > > >
-> > > > > Let's make sure we always use a comma as a separator, even when
-> > > > > recording the parent information, for example:
-> > > > > "contid=<contid>[,^<contid>[...]][,<contid>[...]]"
+> > > > > It would be good to be more explicit about "enabled" and "disabled" in
+> > > > > the commit description.  For example, which setting allows the target
+> > > > > task to set audit container IDs of it's children processes?
 > > > >
-> > > > The intent here is to clearly indicate and separate nesting from
-> > > > parallel use of several containers by one netns.  If we do away with
-> > > > that distinction, then we lose that inheritance accountability and
-> > > > should really run the list through a "uniq" function to remove the
-> > > > produced redundancies.  This clear inheritance is something Steve was
-> > > > looking for since tracking down individual events/records to show that
-> > > > inheritance was not aways feasible due to rolled logs or search effort.
+> > > > Ok...
+> > > >
+> > > > > > Report this action in message type AUDIT_SET_CAPCONTID 1022 with fields
+> > > > > > opid= capcontid= old-capcontid=
+> > > > > >
+> > > > > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> > > > > > ---
+> > > > > >  fs/proc/base.c             | 55 ++++++++++++++++++++++++++++++++++++++++++++++
+> > > > > >  include/linux/audit.h      | 14 ++++++++++++
+> > > > > >  include/uapi/linux/audit.h |  1 +
+> > > > > >  kernel/audit.c             | 35 +++++++++++++++++++++++++++++
+> > > > > >  4 files changed, 105 insertions(+)
 > > >
-> > > Perhaps my example wasn't clear.  I'm not opposed to the little
-> > > carat/hat character indicating a container's parent, I just think it
-> > > would be good to also include a comma *in*addition* to the carat/hat.
-> >
-> > Ah, ok.  Well, I'd offer that it would be slightly shorter, slightly
-> > less cluttered and having already written the parser in userspace, I
-> > think the parser would be slightly simpler.
-> >
-> > I must admit, I was a bit puzzled by your snippet of code that was used
-> > as a prefix to the next item rather than as a postfix to the given item.
-> >
-> > Can you say why you prefer the comma in addition?
-> 
-> Generally speaking, I believe that a single delimiter is both easier
-> for the eyes to parse, and easier/safer for machines to parse as well.
-> In this particular case I think of the comma as a delimiter and the
-> carat as a modifier, reusing the carat as a delimiter seems like a bad
-> idea to me.
-
-I'm not crazy about this idea, but I'll have a look at how much work it
-is to recode the userspace search tools.  It also adds extra characters
-and noise into the string format that seems counterproductive.
-
+> > > ...
+> > >
 > > > > > > diff --git a/kernel/audit.c b/kernel/audit.c
-> > > > > > index ef8e07524c46..68be59d1a89b 100644
+> > > > > > index 1287f0b63757..1c22dd084ae8 100644
 > > > > > > --- a/kernel/audit.c
 > > > > > > +++ b/kernel/audit.c
-> > > > >
-> > > > > > @@ -492,6 +493,7 @@ void audit_switch_task_namespaces(struct nsproxy *ns, struct task_struct *p)
-> > > > > >                 audit_netns_contid_add(new->net_ns, contid);
+> > > > > > @@ -2698,6 +2698,41 @@ static bool audit_contid_isowner(struct task_struct *tsk)
+> > > > > >         return false;
 > > > > > >  }
 > > > > > >
-> > > > > > +void audit_log_contid(struct audit_buffer *ab, u64 contid);
-> > > > >
-> > > > > If we need a forward declaration, might as well just move it up near
-> > > > > the top of the file with the rest of the declarations.
-> > > >
-> > > > Ok.
-> > > >
-> > > > > > +void audit_log_contid(struct audit_buffer *ab, u64 contid)
+> > > > > > +int audit_set_capcontid(struct task_struct *task, u32 enable)
 > > > > > > +{
-> > > > > > +       struct audit_contobj *cont = NULL, *prcont = NULL;
-> > > > > > +       int h;
+> > > > > > +       u32 oldcapcontid;
+> > > > > > +       int rc = 0;
+> > > > > > +       struct audit_buffer *ab;
+> > > > > > +
+> > > > > > +       if (!task->audit)
+> > > > > > +               return -ENOPROTOOPT;
+> > > > > > +       oldcapcontid = audit_get_capcontid(task);
+> > > > > > +       /* if task is not descendant, block */
+> > > > > > +       if (task == current)
+> > > > > > +               rc = -EBADSLT;
+> > > > > > +       else if (!task_is_descendant(current, task))
+> > > > > > +               rc = -EXDEV;
 > > > > >
-> > > > > It seems safer to pass the audit container ID object and not the u64.
+> > > > > See my previous comments about error code sanity.
 > > > >
-> > > > It would also be faster, but in some places it isn't available such as
-> > > > for ptrace and signal targets.  This also links back to the drop record
-> > > > refcounts to hold onto the contobj until process exit, or signal
-> > > > delivery.
+> > > > I'll go with EXDEV.
 > > > >
-> > > > What we could do is to supply two potential parameters, a contobj and/or
-> > > > a contid, and have it use the contobj if it is valid, otherwise, use the
-> > > > contid, as is done for names and paths supplied to audit_log_name().
+> > > > > > +       else if (current_user_ns() == &init_user_ns) {
+> > > > > > +               if (!capable(CAP_AUDIT_CONTROL) && !audit_get_capcontid(current))
+> > > > > > +                       rc = -EPERM;
+> > > > >
+> > > > > I think we just want to use ns_capable() in the context of the current
+> > > > > userns to check CAP_AUDIT_CONTROL, yes?  Something like this ...
+> > > >
+> > > > I thought we had firmly established in previous discussion that
+> > > > CAP_AUDIT_CONTROL in anything other than init_user_ns was completely irrelevant
+> > > > and untrustable.
 > > >
-> > > Let's not do multiple parameters, that begs for misuse, let's take the
-> > > wrapper function route:
-> > >
-> > >  func a(int id) {
-> > >    // important stuff
-> > >  }
-> > >
-> > >  func ao(struct obj) {
-> > >    a(obj.id);
-> > >  }
-> > >
-> > > ... and we can add a comment that you *really* should be using the
-> > > variant that passes an object.
+> > > In the case of a container with multiple users, and multiple
+> > > applications, one being a nested orchestrator, it seems relevant to
+> > > allow that container to control which of it's processes are able to
+> > > exercise CAP_AUDIT_CONTROL.  Granted, we still want to control it
+> > > within the overall host, e.g. the container in question must be
+> > > allowed to run a nested orchestrator, but allowing the container
+> > > itself to provide it's own granularity seems like the right thing to
+> > > do.
 > >
-> > I was already doing that where it available, and dereferencing the id
-> > for the call.  But I see an advantage to having both parameters supplied
-> > to the function, since it saves us the trouble of dereferencing it,
-> > searching for the id in the hash list and re-locating the object if the
-> > object is already available.
+> > Looking back to discussion on the v6 patch 2/10 (2019-05-30 15:29 Paul
+> > Moore[1], 2019-07-08 14:05 RGB[2]) , it occurs to me that the
+> > ns_capable(CAP_AUDIT_CONTROL) application was dangerous since there was
+> > no parental accountability in storage or reporting.  Now that is in
+> > place, it does seem a bit more reasonable to allow it, but I'm still not
+> > clear on why we would want both mechanisms now.  I don't understand what
+> > the last line in that email meant: "We would probably still want a
+> > ns_capable(CAP_AUDIT_CONTROL) restriction in this case."  Allow
+> > ns_capable(CAP_AUDIT_CONTROL) to govern these actions, or restrict
+> > ns_capable(CAP_AUDIT_CONTROL) from being used to govern these actions?
+> >
+> > If an unprivileged user has been given capcontid to be able run their
+> > own container orchestrator/engine and spawns a user namespace with
+> > CAP_AUDIT_CONTROL, what matters is capcontid, and not CAP_AUDIT_CONTROL.
+> > I could see needing CAP_AUDIT_CONTROL *in addition* to capcontid to give
+> > it finer grained control, but since capcontid would have to be given to
+> > each process explicitly anways, I don't see the point.
+> >
+> > If that unprivileged user had not been given capcontid,
+> > giving itself or one of its descendants CAP_AUDIT_CONTROL should not let
+> > it jump into the game all of a sudden unless the now chained audit
+> > container identifiers are deemed accountable enough.  And then now we
+> > need those hard limits on container depth and network namespace
+> > container membership.
 > 
-> I strongly prefer we not do multiple parameters for the same "thing";
+> Perhaps I'm not correctly understanding what you are trying to do with
+> this patchset, but my current understanding is that you are trying to
+> use capcontid to control which child audit container IDs (ACIDs) are
+> allowed to manage their own ACIDs.  Further, I believe that the
+> capcontid setting operates at a per-ACID level, meaning there is no
+> provision for the associated container to further restrict that
+> ability, i.e. no access control granularity below the ACID level.  My
+> thinking is that ns_capable(CAP_AUDIT_CONTROL) could be used within an
+> ACID to increase the granularity of the access controls so that only
+> privileged processes running inside the ACID would be able to manage
+> the ACIDs.  Does that make sense?
 
-So do I, ideally.  However...
+The capcontid is not inherited like the contid (or contobj) in
+audit_alloc(), so it stops at that process that was granted capcontid.
+That process that was granted capcontid can then explicitly further
+grant capcontid to any of its children should it deem necessary.
 
-> I would much rather do the wrapper approach as described above.  I
-> would also like to see us use the audit container ID object as much as
-> possible, using a bare integer should be a last resort.
+Since it is a boolean, it defaults to unset in init_struct_audit which
+isn't relevant anyways since that is in the initial user namespace.
+It isn't set in audit_alloc() and would default to false.
+I can set them explicitly both to false to be certain if that makes
+things clearer and more certain.
 
-It is not clear to me that you understood what I wrote above.  I can't
-use the object pointer where preferable because there are a few cases
-where only the ID is available.  If only the ID is available, I would
-have to make a best effort to look up the object pointer and am not
-guaranteed to find it (invalid, stale, signal info...).  If I am forced
-to use only one, it becomes the ID that is used, and I no longer have
-the benefit of already having the object pointer for certainty and
-saving work.  For all cases where I have the object pointer, which is
-most cases, and most frequently used cases, I will have to dereference
-the object pointer to an ID, then go through the work again to re-locate
-the object pointer.  This is less certain, and more work.  Reluctantly,
-the only practical solution I see here is to supply both, favouring the
-object pointer if it is valid, then falling back on the ID from the next
-parameter.
+I still believe ns_capable() is irrelevant here.
 
 > paul moore
 
