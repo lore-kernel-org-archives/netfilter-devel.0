@@ -2,128 +2,57 @@ Return-Path: <SRS0=u4Sz=45=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08027C4CECE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Mar 2020 22:41:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A848C4CECE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Mar 2020 22:44:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DFB082072F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Mar 2020 22:41:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DEB11206CD
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Mar 2020 22:44:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726691AbgCLWlF (ORCPT
+        id S1726740AbgCLWox (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 12 Mar 2020 18:41:05 -0400
-Received: from www62.your-server.de ([213.133.104.62]:33948 "EHLO
-        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726620AbgCLWlE (ORCPT
+        Thu, 12 Mar 2020 18:44:53 -0400
+Received: from shards.monkeyblade.net ([23.128.96.9]:36068 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726608AbgCLWow (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Mar 2020 18:41:04 -0400
-Received: from sslproxy05.your-server.de ([78.46.172.2])
-        by www62.your-server.de with esmtpsa (TLSv1.2:DHE-RSA-AES256-GCM-SHA384:256)
-        (Exim 4.89_1)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1jCWVY-0003nk-UG; Thu, 12 Mar 2020 23:40:52 +0100
-Received: from [85.7.42.192] (helo=pc-9.home)
-        by sslproxy05.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1jCWVY-000LlI-HM; Thu, 12 Mar 2020 23:40:52 +0100
-Subject: Re: [PATCH nf-next 3/3] netfilter: Introduce egress hook
-To:     Lukas Wunner <lukas@wunner.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Martin Mares <mj@ucw.cz>,
-        Dmitry Safonov <0x7f454c46@gmail.com>,
-        Thomas Graf <tgraf@suug.ch>,
-        Alexei Starovoitov <ast@kernel.org>,
-        David Miller <davem@davemloft.net>
-References: <cover.1583927267.git.lukas@wunner.de>
- <14ab7e5af20124a34a50426fd570da7d3b0369ce.1583927267.git.lukas@wunner.de>
- <a57687ae-2da6-ca2a-1c84-e4332a5e4556@iogearbox.net>
- <20200311155451.e3mtgrdvuiujgvs6@wunner.de>
-From:   Daniel Borkmann <daniel@iogearbox.net>
-Message-ID: <a73dda33-57f4-95d8-ea51-ed483abd6a7a@iogearbox.net>
-Date:   Thu, 12 Mar 2020 23:40:49 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.2
-MIME-Version: 1.0
-In-Reply-To: <20200311155451.e3mtgrdvuiujgvs6@wunner.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
+        Thu, 12 Mar 2020 18:44:52 -0400
+Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id 9D92C15842391;
+        Thu, 12 Mar 2020 15:44:51 -0700 (PDT)
+Date:   Thu, 12 Mar 2020 15:44:51 -0700 (PDT)
+Message-Id: <20200312.154451.1866184120850044341.davem@davemloft.net>
+To:     joe@perches.com
+Cc:     kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
+        steffen.klassert@secunet.com, herbert@gondor.apana.org.au,
+        pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        dsahern@kernel.org, edumazet@google.com, kuba@kernel.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [PATCH 2/3] net: [IPv4/IPv6]: Use fallthrough;
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <5206a625c967dfbbe305d17948692c74d8f8da7d.1584040050.git.joe@perches.com>
+References: <cover.1584040050.git.joe@perches.com>
+        <5206a625c967dfbbe305d17948692c74d8f8da7d.1584040050.git.joe@perches.com>
+X-Mailer: Mew version 6.8 on Emacs 26.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-X-Authenticated-Sender: daniel@iogearbox.net
-X-Virus-Scanned: Clear (ClamAV 0.102.2/25749/Thu Mar 12 14:09:06 2020)
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Thu, 12 Mar 2020 15:44:52 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 3/11/20 4:54 PM, Lukas Wunner wrote:
-> On Wed, Mar 11, 2020 at 03:05:16PM +0100, Daniel Borkmann wrote:
->> no need to make the fast-path slower for exotic protocols
->> which can be solved through other means.
-> 
-> As said the fast-path gets faster, not slower.
-> 
->>> * Without this commit:
->>>     Result: OK: 34240933(c34238375+d2558) usec, 100000000 (60byte,0frags)
->>>     2920481pps 1401Mb/sec (1401830880bps) errors: 0
->>>
->>> * With this commit:
->>>     Result: OK: 33997299(c33994193+d3106) usec, 100000000 (60byte,0frags)
->>>     2941410pps 1411Mb/sec (1411876800bps) errors: 0
->>
->> So you are suggesting that we've just optimized the stack by adding more
->> hooks to it ...?
-> 
-> Since I've provided numbers to disprove your allegation, I think the
-> onus is now on you to prove that your allegation holds any water.
-> Please reproduce the measurements and let's go from there.
-> 
-> This isn't much work, I've made it really easy by providing all the
-> steps necessary in the commit message.
 
-So in terms of micro-benchmarking with pktgen, if I understand you correctly,
-you are basically measuring loopback device by pushing packets through the
-__dev_queue_xmit() -> loopback_xmit() -> netif_rx() till the stack drops them
-in IP layer on ingress side? I wonder how your perf profile looks like ...
-Setting a drop point in tc layer and then measuring the effect before/after
-this change with CONFIG_NETFILTER_EGRESS enabled, I'm getting a stable degration
-from ~4.123Mpps to ~4.082Mpps with pktgen, definitely not seeing a speedup.
+The appropriate subject prefix here would be simply "inet: " or similar.
 
-# ip link add dev foo type dummy
-# ip link set dev foo up
-# tc qdisc add dev foo clsact
-# tc filter add dev foo egress bpf da bytecode '1,6 0 0 0,'
-# modprobe pktgen
-# echo "add_device foo" > /proc/net/pktgen/kpktgend_3
-# samples/pktgen/pktgen_bench_xmit_mode_queue_xmit.sh -i 'foo' -n 400000000 -m '11:11:11:11:11:11' -d '1.1.1.1'
+Please resubmit this with a proper Subject line.
 
-Also to let pktgen count the skb:
-
-diff --git a/net/core/pktgen.c b/net/core/pktgen.c
-index acc849df60b5..8920da7a7a67 100644
---- a/net/core/pktgen.c
-+++ b/net/core/pktgen.c
-@@ -3372,11 +3372,11 @@ static void pktgen_xmit(struct pktgen_dev *pkt_dev)
-                 ret = dev_queue_xmit(pkt_dev->skb);
-                 switch (ret) {
-                 case NET_XMIT_SUCCESS:
-+               case NET_XMIT_DROP:
-                         pkt_dev->sofar++;
-                         pkt_dev->seq_num++;
-                         pkt_dev->tx_bytes += pkt_dev->last_pkt_size;
-                         break;
--               case NET_XMIT_DROP:
-                 case NET_XMIT_CN:
-                 /* These are all valid return codes for a qdisc but
-                  * indicate packets are being dropped or will likely
-
-(In any case, this whole discussion is moot for out of tree code.)
-
-Thanks,
-Daniel
+Thank you.
