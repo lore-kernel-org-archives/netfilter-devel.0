@@ -2,71 +2,69 @@ Return-Path: <SRS0=Dam8=46=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01694C4CECE
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Mar 2020 16:47:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01777C10DCE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Mar 2020 16:49:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BA90C206B7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Mar 2020 16:47:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C9C45206B7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Mar 2020 16:49:31 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="LGYXmthH"
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="WoJn/P9W"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726824AbgCMQrt (ORCPT
+        id S1726883AbgCMQtb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Mar 2020 12:47:49 -0400
-Received: from mail-ed1-f66.google.com ([209.85.208.66]:35824 "EHLO
+        Fri, 13 Mar 2020 12:49:31 -0400
+Received: from mail-ed1-f66.google.com ([209.85.208.66]:41270 "EHLO
         mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726406AbgCMQrt (ORCPT
+        with ESMTP id S1726571AbgCMQtb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Mar 2020 12:47:49 -0400
-Received: by mail-ed1-f66.google.com with SMTP id a20so12713633edj.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Mar 2020 09:47:46 -0700 (PDT)
+        Fri, 13 Mar 2020 12:49:31 -0400
+Received: by mail-ed1-f66.google.com with SMTP id m25so12652023edq.8
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Mar 2020 09:49:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=CgoM3beKoYI/5+BkvNF0e0zNF8rAhCT7BQOep064wDk=;
-        b=LGYXmthHZQmVeL3ORXAKlyXPn1vaS3e9UjtSB+15SH4QeWbUDxHZTA0wy6LXXSzU/y
-         AReDf/yNrW9KPOCuIFvFj8Lfr3Di/5qM1MMnxAfvmosg3+zMlQ0sG1h+tbIuzRJZnPGO
-         swdDQJLr7xPNoDTfBhEVjMDfsrwKTQJV4bSWXD9bugamcRKUt7zf8ITOeN7sc3ZoTK9J
-         32u0WLMxZ0xZ9QOW0Ub2cm8b85Yb1sMclPYCpKfHE8DO4V6pq5xMAVki0Yt1ISvmXyI7
-         iokKMBnrf8sn27LHEqKQc/RQ9QkZnxS3FLoraxrwV596hqsYFM7i92OTGeE+0NDjlzoO
-         dEow==
+        bh=YGG5XY3Ewg2kr6ydPgEVpPEQe8Bu0vVCZeuUuZTd/eQ=;
+        b=WoJn/P9W8ionIJ6xiBiPAmxmGbbYK44xv4IrICoWubAgYlhtkhxUJmVCijstH/13K8
+         e8sfsXfNGVfsBKnRV0SJuy8a8BZyemhuV3VRdHRn2DarGPfrMqFVOH/OuDqiVr4hokOl
+         UhOrjDnrSoggcD90vmrkTdZGj88Cdu4MhRmnyJ0V4shQjxGwADiObeG6nDXMrC2tX1Sf
+         Zx5guOou8iWTPF16pL8NUnjXXzxYS+GbneCIQZyfvTaduvQymLt4+IWsFLUbJONa/YD2
+         kXa9vk9xzfHNLaAh621qmRaQsnpJdixash8QTk6Mp+WMhkhfOstdpA5Hj+YyS0gM+Gnv
+         FnoA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=CgoM3beKoYI/5+BkvNF0e0zNF8rAhCT7BQOep064wDk=;
-        b=aPn8U2CLohntz9drxHhwoKDfOUtx6ygXpfIOerpjhtqDXC+ZODflgvsrlE3FGeQwRs
-         Cc196euu7TVueQpTbapYd7wEz1Pw1jKJOiW6jeu/JcLEeGXX5uLTGc0LS8dkbwh4Hd+N
-         R0nAeovhiJKBGtl1LEs3urOiPNyeoZUGm9pOD04W5PTj607C9zDYagm9R1uU4thz4ND9
-         M5AoV3ws1nHq3zne/j9WyWNhRBscaULvpkvV/aVOY56Q6HyBaFCLh89oUMN+fmuDhnZs
-         vGB0IEzAPT1q3UhhoohPM1LX1vL7k/ltDrSOaoROf3KQyE/sTQid/CBqB0K2ghOmKamh
-         9gHA==
-X-Gm-Message-State: ANhLgQ0EvPZPgqahXtdeKcpOQOrRwmX1PAZVBQ3qXc+rnaMg7BFmNTLo
-        vhemW+pBcLHLoXF8SBgFkBnFBcTwX3+xvW1QroUw
-X-Google-Smtp-Source: ADFU+vs1EpKcsGEO9GGNfp34//T93kL6R9Gi6RqejfY1jY1yluK7L7lRWoiZjwp6ZdPwGaa0kzHD5f4noecjshH23Kg=
-X-Received: by 2002:a17:907:271a:: with SMTP id w26mr130507ejk.271.1584118065825;
- Fri, 13 Mar 2020 09:47:45 -0700 (PDT)
+        bh=YGG5XY3Ewg2kr6ydPgEVpPEQe8Bu0vVCZeuUuZTd/eQ=;
+        b=hU7tPAhojU+QznzLRtV0GdG0AC0wprscaBfC8voh1J9YRfMettOwQJyMEqLHfnDWzB
+         9e2+QJ00iMf7FLHltoNFWEPNaxqLv5ZsKsua+NEaBB069qBzVLyUVXv2c5e6hki0cfkf
+         Y2kzlAp6BEiw5PJOcJcu+qgV1UuoWIscx7a9GlgRgz8Io1SBPGdElafBkj2JDltmhPPe
+         bpp7vp2CmRA8CT5qmBmKr92AzjcDTFc4LDelf7Dpx5O7YfPo1uYA4n/DZrl8ZmOLhoqj
+         Ok1fEjfl7gxWe11XMEYAX/EXu78sYbNl5y0z6PaPy0DPyD7i81W+JDIgpoCYCLm8V5a8
+         p3Sg==
+X-Gm-Message-State: ANhLgQ3hpfvrTOc3DHsqwhacYy8CMbGTwXGhNmkYRk079xZaQSGgEq9m
+        Nl1EQvvnKNiNrucBiweIBoVShL4EtAh0wqhzVYSa
+X-Google-Smtp-Source: ADFU+vv+9NsRZqnIPliXMbq5GOtlCub1wdzEkmolWWP97LJYncHkT1zJ8K+tAtQcCN/BN4QsA0IqfHmFy6PXx2taKa0=
+X-Received: by 2002:aa7:dd01:: with SMTP id i1mr14078117edv.164.1584118169827;
+ Fri, 13 Mar 2020 09:49:29 -0700 (PDT)
 MIME-Version: 1.0
-References: <cover.1577736799.git.rgb@redhat.com> <6452955c1e038227a5cd169f689f3fd3db27513f.1577736799.git.rgb@redhat.com>
- <CAHC9VhRkH=YEjAY6dJJHSp934grHnf=O4RiqLu3U8DzdVQOZkg@mail.gmail.com>
- <20200130192753.n7jjrshbhrczjzoe@madcap2.tricolour.ca> <CAHC9VhSVN3mNb5enhLR1hY+ekiAyiYWbehrwd_zN7kz13dF=1w@mail.gmail.com>
- <20200205235056.e5365xtgz7rbese2@madcap2.tricolour.ca> <CAHC9VhTM6MDHLcBfwJ_9DCroG0VA-meO770ihjn1sVy6=0JrHw@mail.gmail.com>
- <20200312205147.plxs4czjeuu4davj@madcap2.tricolour.ca>
-In-Reply-To: <20200312205147.plxs4czjeuu4davj@madcap2.tricolour.ca>
+References: <cover.1577736799.git.rgb@redhat.com> <20200312202733.7kli64zsnqc4mrd2@madcap2.tricolour.ca>
+ <CAHC9VhS9DtxJ4gvOfMRnzoo6ccGJVKL+uZYe6qqH+SPqD8r01Q@mail.gmail.com> <2588582.z15pWOfGEt@x2>
+In-Reply-To: <2588582.z15pWOfGEt@x2>
 From:   Paul Moore <paul@paul-moore.com>
-Date:   Fri, 13 Mar 2020 12:47:34 -0400
-Message-ID: <CAHC9VhTqWdXMsbSbsWJzRRvVbSaaFBmnFFsVutM7XSx5NT_FJA@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V8 13/16] audit: track container nesting
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
+Date:   Fri, 13 Mar 2020 12:49:18 -0400
+Message-ID: <CAHC9VhQ7hFc8EqrEojmjQriWtKkqjPyzWrnrc_eVKjcYhhV8QQ@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
+ the audit daemon
+To:     Steve Grubb <sgrubb@redhat.com>
+Cc:     Richard Guy Briggs <rgb@redhat.com>, linux-audit@redhat.com,
+        nhorman@tuxdriver.com, linux-api@vger.kernel.org,
         containers@lists.linux-foundation.org,
         LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
         netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
         simo@redhat.com, netdev@vger.kernel.org,
         linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
@@ -77,144 +75,29 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Mar 12, 2020 at 4:52 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2020-02-13 16:49, Paul Moore wrote:
-> > On Wed, Feb 5, 2020 at 6:51 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > On 2020-02-05 18:05, Paul Moore wrote:
-> > > > On Thu, Jan 30, 2020 at 2:28 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > > > On 2020-01-22 16:29, Paul Moore wrote:
-> > > > > > On Tue, Dec 31, 2019 at 2:51 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > > > > >
-> > > > > > > Track the parent container of a container to be able to filter and
-> > > > > > > report nesting.
-> > > > > > >
-> > > > > > > Now that we have a way to track and check the parent container of a
-> > > > > > > container, modify the contid field format to be able to report that
-> > > > > > > nesting using a carrat ("^") separator to indicate nesting.  The
-> > > > > > > original field format was "contid=<contid>" for task-associated records
-> > > > > > > and "contid=<contid>[,<contid>[...]]" for network-namespace-associated
-> > > > > > > records.  The new field format is
-> > > > > > > "contid=<contid>[^<contid>[...]][,<contid>[...]]".
-> > > > > >
-> > > > > > Let's make sure we always use a comma as a separator, even when
-> > > > > > recording the parent information, for example:
-> > > > > > "contid=<contid>[,^<contid>[...]][,<contid>[...]]"
-> > > > >
-> > > > > The intent here is to clearly indicate and separate nesting from
-> > > > > parallel use of several containers by one netns.  If we do away with
-> > > > > that distinction, then we lose that inheritance accountability and
-> > > > > should really run the list through a "uniq" function to remove the
-> > > > > produced redundancies.  This clear inheritance is something Steve was
-> > > > > looking for since tracking down individual events/records to show that
-> > > > > inheritance was not aways feasible due to rolled logs or search effort.
-> > > >
-> > > > Perhaps my example wasn't clear.  I'm not opposed to the little
-> > > > carat/hat character indicating a container's parent, I just think it
-> > > > would be good to also include a comma *in*addition* to the carat/hat.
+On Fri, Mar 13, 2020 at 12:45 PM Steve Grubb <sgrubb@redhat.com> wrote:
+> On Friday, March 13, 2020 12:42:15 PM EDT Paul Moore wrote:
+> > > I think more and more, that more complete isolation is being done,
+> > > taking advantage of each type of namespace as they become available, but
+> > > I know a nuber of them didn't find it important yet to use IPC, PID or
+> > > user namespaces which would be the only namespaces I can think of that
+> > > would provide that isolation.
 > > >
-> > > Ah, ok.  Well, I'd offer that it would be slightly shorter, slightly
-> > > less cluttered and having already written the parser in userspace, I
-> > > think the parser would be slightly simpler.
-> > >
-> > > I must admit, I was a bit puzzled by your snippet of code that was used
-> > > as a prefix to the next item rather than as a postfix to the given item.
-> > >
-> > > Can you say why you prefer the comma in addition?
+> > > It isn't entirely clear to me which side you fall on this issue, Paul.
 > >
-> > Generally speaking, I believe that a single delimiter is both easier
-> > for the eyes to parse, and easier/safer for machines to parse as well.
-> > In this particular case I think of the comma as a delimiter and the
-> > carat as a modifier, reusing the carat as a delimiter seems like a bad
-> > idea to me.
+> > That's mostly because I was hoping for some clarification in the
+> > discussion, especially the relevant certification requirements, but it
+> > looks like there is still plenty of room for interpretation there (as
+> > usual).  I'd much rather us arrive at decisions based on requirements
+> > and not gut feelings, which is where I think we are at right now.
 >
-> I'm not crazy about this idea, but I'll have a look at how much work it
-> is to recode the userspace search tools.  It also adds extra characters
-> and noise into the string format that seems counterproductive.
+> Certification rquirements are that we need the identity of anyone attempting
+> to modify the audit configuration including shutting it down.
 
-If anything the parser should be *easier* (although both parsers
-should fall into the "trivial" category).  The comma is the one and
-only delimiter, and if the ACID starts with a carat then it is a
-parent of the preceding ACID.
-
-> > > > > > > diff --git a/kernel/audit.c b/kernel/audit.c
-> > > > > > > index ef8e07524c46..68be59d1a89b 100644
-> > > > > > > --- a/kernel/audit.c
-> > > > > > > +++ b/kernel/audit.c
-> > > > > >
-> > > > > > > @@ -492,6 +493,7 @@ void audit_switch_task_namespaces(struct nsproxy *ns, struct task_struct *p)
-> > > > > > >                 audit_netns_contid_add(new->net_ns, contid);
-> > > > > > >  }
-> > > > > > >
-> > > > > > > +void audit_log_contid(struct audit_buffer *ab, u64 contid);
-> > > > > >
-> > > > > > If we need a forward declaration, might as well just move it up near
-> > > > > > the top of the file with the rest of the declarations.
-> > > > >
-> > > > > Ok.
-> > > > >
-> > > > > > > +void audit_log_contid(struct audit_buffer *ab, u64 contid)
-> > > > > > > +{
-> > > > > > > +       struct audit_contobj *cont = NULL, *prcont = NULL;
-> > > > > > > +       int h;
-> > > > > >
-> > > > > > It seems safer to pass the audit container ID object and not the u64.
-> > > > >
-> > > > > It would also be faster, but in some places it isn't available such as
-> > > > > for ptrace and signal targets.  This also links back to the drop record
-> > > > > refcounts to hold onto the contobj until process exit, or signal
-> > > > > delivery.
-> > > > >
-> > > > > What we could do is to supply two potential parameters, a contobj and/or
-> > > > > a contid, and have it use the contobj if it is valid, otherwise, use the
-> > > > > contid, as is done for names and paths supplied to audit_log_name().
-> > > >
-> > > > Let's not do multiple parameters, that begs for misuse, let's take the
-> > > > wrapper function route:
-> > > >
-> > > >  func a(int id) {
-> > > >    // important stuff
-> > > >  }
-> > > >
-> > > >  func ao(struct obj) {
-> > > >    a(obj.id);
-> > > >  }
-> > > >
-> > > > ... and we can add a comment that you *really* should be using the
-> > > > variant that passes an object.
-> > >
-> > > I was already doing that where it available, and dereferencing the id
-> > > for the call.  But I see an advantage to having both parameters supplied
-> > > to the function, since it saves us the trouble of dereferencing it,
-> > > searching for the id in the hash list and re-locating the object if the
-> > > object is already available.
-> >
-> > I strongly prefer we not do multiple parameters for the same "thing";
->
-> So do I, ideally.  However...
->
-> > I would much rather do the wrapper approach as described above.  I
-> > would also like to see us use the audit container ID object as much as
-> > possible, using a bare integer should be a last resort.
->
-> It is not clear to me that you understood what I wrote above.  I can't
-> use the object pointer where preferable because there are a few cases
-> where only the ID is available.  If only the ID is available, I would
-> have to make a best effort to look up the object pointer and am not
-> guaranteed to find it (invalid, stale, signal info...).  If I am forced
-> to use only one, it becomes the ID that is used, and I no longer have
-> the benefit of already having the object pointer for certainty and
-> saving work.  For all cases where I have the object pointer, which is
-> most cases, and most frequently used cases, I will have to dereference
-> the object pointer to an ID, then go through the work again to re-locate
-> the object pointer.  This is less certain, and more work.  Reluctantly,
-> the only practical solution I see here is to supply both, favouring the
-> object pointer if it is valid, then falling back on the ID from the next
-> parameter.
-
-It has been a while since I last looked at the patchset, but my
-concern over the prefered use of the ACID number vs the ACID object is
-that the number offers no reuse protection where the object does.  I
-really would like us to use the object everywhere it is possible.
+Yep, got it.  Unfortunately that doesn't really help with what we are
+talking about.  Although preventing the reuse of the ACID before the
+SIGNAL2 record does help preserve the sanity of the audit stream which
+I believe to be very important, regardless.
 
 -- 
 paul moore
