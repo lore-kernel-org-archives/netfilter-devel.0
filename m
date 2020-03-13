@@ -2,103 +2,71 @@ Return-Path: <SRS0=Dam8=46=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01777C10DCE
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Mar 2020 16:49:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 510BAC10DCE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Mar 2020 17:12:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C9C45206B7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Mar 2020 16:49:31 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="WoJn/P9W"
+	by mail.kernel.org (Postfix) with ESMTP id 2ED7820771
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Mar 2020 17:12:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726883AbgCMQtb (ORCPT
+        id S1726729AbgCMRMa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Mar 2020 12:49:31 -0400
-Received: from mail-ed1-f66.google.com ([209.85.208.66]:41270 "EHLO
-        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726571AbgCMQtb (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Mar 2020 12:49:31 -0400
-Received: by mail-ed1-f66.google.com with SMTP id m25so12652023edq.8
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Mar 2020 09:49:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=YGG5XY3Ewg2kr6ydPgEVpPEQe8Bu0vVCZeuUuZTd/eQ=;
-        b=WoJn/P9W8ionIJ6xiBiPAmxmGbbYK44xv4IrICoWubAgYlhtkhxUJmVCijstH/13K8
-         e8sfsXfNGVfsBKnRV0SJuy8a8BZyemhuV3VRdHRn2DarGPfrMqFVOH/OuDqiVr4hokOl
-         UhOrjDnrSoggcD90vmrkTdZGj88Cdu4MhRmnyJ0V4shQjxGwADiObeG6nDXMrC2tX1Sf
-         Zx5guOou8iWTPF16pL8NUnjXXzxYS+GbneCIQZyfvTaduvQymLt4+IWsFLUbJONa/YD2
-         kXa9vk9xzfHNLaAh621qmRaQsnpJdixash8QTk6Mp+WMhkhfOstdpA5Hj+YyS0gM+Gnv
-         FnoA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=YGG5XY3Ewg2kr6ydPgEVpPEQe8Bu0vVCZeuUuZTd/eQ=;
-        b=hU7tPAhojU+QznzLRtV0GdG0AC0wprscaBfC8voh1J9YRfMettOwQJyMEqLHfnDWzB
-         9e2+QJ00iMf7FLHltoNFWEPNaxqLv5ZsKsua+NEaBB069qBzVLyUVXv2c5e6hki0cfkf
-         Y2kzlAp6BEiw5PJOcJcu+qgV1UuoWIscx7a9GlgRgz8Io1SBPGdElafBkj2JDltmhPPe
-         bpp7vp2CmRA8CT5qmBmKr92AzjcDTFc4LDelf7Dpx5O7YfPo1uYA4n/DZrl8ZmOLhoqj
-         Ok1fEjfl7gxWe11XMEYAX/EXu78sYbNl5y0z6PaPy0DPyD7i81W+JDIgpoCYCLm8V5a8
-         p3Sg==
-X-Gm-Message-State: ANhLgQ3hpfvrTOc3DHsqwhacYy8CMbGTwXGhNmkYRk079xZaQSGgEq9m
-        Nl1EQvvnKNiNrucBiweIBoVShL4EtAh0wqhzVYSa
-X-Google-Smtp-Source: ADFU+vv+9NsRZqnIPliXMbq5GOtlCub1wdzEkmolWWP97LJYncHkT1zJ8K+tAtQcCN/BN4QsA0IqfHmFy6PXx2taKa0=
-X-Received: by 2002:aa7:dd01:: with SMTP id i1mr14078117edv.164.1584118169827;
- Fri, 13 Mar 2020 09:49:29 -0700 (PDT)
+        Fri, 13 Mar 2020 13:12:30 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:52440 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726414AbgCMRM3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 13 Mar 2020 13:12:29 -0400
+Received: from localhost ([::1]:37298 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1jCnrH-0006dn-U7; Fri, 13 Mar 2020 18:12:27 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] nft: cache: Fix for unused variable warnings
+Date:   Fri, 13 Mar 2020 18:12:19 +0100
+Message-Id: <20200313171219.26857-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-References: <cover.1577736799.git.rgb@redhat.com> <20200312202733.7kli64zsnqc4mrd2@madcap2.tricolour.ca>
- <CAHC9VhS9DtxJ4gvOfMRnzoo6ccGJVKL+uZYe6qqH+SPqD8r01Q@mail.gmail.com> <2588582.z15pWOfGEt@x2>
-In-Reply-To: <2588582.z15pWOfGEt@x2>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Fri, 13 Mar 2020 12:49:18 -0400
-Message-ID: <CAHC9VhQ7hFc8EqrEojmjQriWtKkqjPyzWrnrc_eVKjcYhhV8QQ@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
- the audit daemon
-To:     Steve Grubb <sgrubb@redhat.com>
-Cc:     Richard Guy Briggs <rgb@redhat.com>, linux-audit@redhat.com,
-        nhorman@tuxdriver.com, linux-api@vger.kernel.org,
-        containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Mar 13, 2020 at 12:45 PM Steve Grubb <sgrubb@redhat.com> wrote:
-> On Friday, March 13, 2020 12:42:15 PM EDT Paul Moore wrote:
-> > > I think more and more, that more complete isolation is being done,
-> > > taking advantage of each type of namespace as they become available, but
-> > > I know a nuber of them didn't find it important yet to use IPC, PID or
-> > > user namespaces which would be the only namespaces I can think of that
-> > > would provide that isolation.
-> > >
-> > > It isn't entirely clear to me which side you fall on this issue, Paul.
-> >
-> > That's mostly because I was hoping for some clarification in the
-> > discussion, especially the relevant certification requirements, but it
-> > looks like there is still plenty of room for interpretation there (as
-> > usual).  I'd much rather us arrive at decisions based on requirements
-> > and not gut feelings, which is where I think we are at right now.
->
-> Certification rquirements are that we need the identity of anyone attempting
-> to modify the audit configuration including shutting it down.
+Loop index variable was left in place after removing the loops.
 
-Yep, got it.  Unfortunately that doesn't really help with what we are
-talking about.  Although preventing the reuse of the ACID before the
-SIGNAL2 record does help preserve the sanity of the audit stream which
-I believe to be very important, regardless.
+Fixes: 39ec645093baa ("nft: cache: Simplify chain list allocation")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables/nft-cache.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
+diff --git a/iptables/nft-cache.c b/iptables/nft-cache.c
+index 0dd131e1f70f5..e3c9655739187 100644
+--- a/iptables/nft-cache.c
++++ b/iptables/nft-cache.c
+@@ -331,7 +331,7 @@ static int fetch_chain_cache(struct nft_handle *h,
+ 	};
+ 	char buf[16536];
+ 	struct nlmsghdr *nlh;
+-	int i, ret;
++	int ret;
+ 
+ 	if (t && chain) {
+ 		struct nftnl_chain *c = nftnl_chain_alloc();
+@@ -516,8 +516,6 @@ void nft_build_cache(struct nft_handle *h, struct nftnl_chain *c)
+ 
+ void nft_fake_cache(struct nft_handle *h)
+ {
+-	int i;
+-
+ 	fetch_table_cache(h);
+ 	init_chain_cache(h);
+ 
 -- 
-paul moore
-www.paul-moore.com
+2.25.1
+
