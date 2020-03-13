@@ -2,61 +2,123 @@ Return-Path: <SRS0=Dam8=46=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4946C1975A
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Mar 2020 01:45:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40CCBC10DCE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Mar 2020 03:17:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 956E1206EB
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Mar 2020 01:45:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1984C206F7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Mar 2020 03:17:41 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b="NrCxGDlG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726328AbgCMBpC (ORCPT
+        id S1726510AbgCMDRh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 12 Mar 2020 21:45:02 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:33468 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726194AbgCMBpC (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Mar 2020 21:45:02 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1jCZNL-00086Z-QQ; Fri, 13 Mar 2020 02:44:35 +0100
-Date:   Fri, 13 Mar 2020 02:44:35 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     syzbot <syzbot+68a8ed58e3d17c700de5@syzkaller.appspotmail.com>
-Cc:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        hdanton@sina.com, jbenc@redhat.com, kadlec@blackhole.kfki.hu,
-        linux-kernel@vger.kernel.org, moshe@mellanox.com,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, sd@queasysnail.net,
-        syzkaller-bugs@googlegroups.com, tglx@linutronix.de
-Subject: Re: WARNING in geneve_exit_batch_net (2)
-Message-ID: <20200313014435.GY979@breakpoint.cc>
-References: <0000000000000ea4b4059fb33201@google.com>
- <000000000000c7979105a0a311f6@google.com>
+        Thu, 12 Mar 2020 23:17:37 -0400
+Received: from ozlabs.org ([203.11.71.1]:52195 "EHLO ozlabs.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726491AbgCMDRg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 12 Mar 2020 23:17:36 -0400
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 48drV62x7Xz9sST;
+        Fri, 13 Mar 2020 14:17:33 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
+        s=201702; t=1584069454;
+        bh=ldxHFAXKQE97+v1SRtxLJNZc/rbeWkm1Dkdkyk2tJGw=;
+        h=Date:From:To:Cc:Subject:From;
+        b=NrCxGDlGZnqSGhfVBIpGSup6ql+N1ixG6op5fbmtLRMO/+iQqm1lkYNg9Hqkgzztm
+         ZG/hCZ5AGw7btp7XWNm7hBosg7kI1PQQRf1t47SdnEpMtIgRkj6aEmBS+SNmEFvK4O
+         0DBs8Qu4XD8JSmGYWfMmhf42s0qCFKNDVOmWF0oChX2nQpi7su/91XVSA2Jpe430ZN
+         njceYnp67GR/HfF/gOAcnOjLE3FNpGpwEt1OUNn4yJO/qdWj9wy7hNcmlxsFCzhZdW
+         nRk/W7CfqzdAmILUUQt9vsHc0whYws9ljGHfy2A2SZ/IPdlogpcfH6hHvY4nwwb2dX
+         k2Tmv6Qu9VR6Q==
+Date:   Fri, 13 Mar 2020 14:17:32 +1100
+From:   Stephen Rothwell <sfr@canb.auug.org.au>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>
+Cc:     Linux Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Paul Blakey <paulb@mellanox.com>
+Subject: linux-next: manual merge of the netfilter-next tree with the
+ net-next tree
+Message-ID: <20200313141732.14b6e3e1@canb.auug.org.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <000000000000c7979105a0a311f6@google.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: multipart/signed; boundary="Sig_/yf=nCwDlLhONyVinAjC8vTL";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot <syzbot+68a8ed58e3d17c700de5@syzkaller.appspotmail.com> wrote:
-> syzbot has bisected this bug to:
-> 
-> commit 4e645b47c4f000a503b9c90163ad905786b9bc1d
-> Author: Florian Westphal <fw@strlen.de>
-> Date:   Thu Nov 30 23:21:02 2017 +0000
-> 
->     netfilter: core: make nf_unregister_net_hooks simple wrapper again
+--Sig_/yf=nCwDlLhONyVinAjC8vTL
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-No idea why this turns up, the reproducer doesn't hit any of these code
-paths.
+Hi all,
 
-The debug splat is a false-positive; ndo_stop/list_del hasn't run yet.
-I will send a fix for net tree.
+Today's linux-next merge of the netfilter-next tree got a conflict in:
+
+  net/netfilter/nf_flow_table_offload.c
+
+between commit:
+
+  978703f42549 ("netfilter: flowtable: Add API for registering to flow tabl=
+e events")
+
+from the net-next tree and commit:
+
+  1f412791407b ("netfilter: flowtable: Use nf_flow_offload_tuple for stats =
+as well")
+
+from the netfilter-next tree.
+
+I fixed it up (see below) and can carry the fix as necessary. This
+is now fixed as far as linux-next is concerned, but any non trivial
+conflicts should be mentioned to your upstream maintainer when your tree
+is submitted for merging.  You may also want to consider cooperating
+with the maintainer of the conflicting tree to minimise any particularly
+complex conflicts.
+
+--=20
+Cheers,
+Stephen Rothwell
+
+diff --cc net/netfilter/nf_flow_table_offload.c
+index 42b73a084a63,482a7284e122..000000000000
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@@ -596,8 -619,10 +597,11 @@@ static int nf_flow_offload_tuple(struc
+ =20
+  		i++;
+  	}
+ +	mutex_unlock(&flowtable->flow_block_lock);
+ =20
++ 	if (cmd =3D=3D FLOW_CLS_STATS)
++ 		memcpy(stats, &cls_flow.stats, sizeof(*stats));
++=20
+  	return i;
+  }
+ =20
+
+--Sig_/yf=nCwDlLhONyVinAjC8vTL
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAl5q+0wACgkQAVBC80lX
+0Gyuhwf5AcyfzBo6V1kPBWRFg5gxSwxV14m/StoUCnvLa6DY0vipL3gHKIDIuPVZ
+wBxB2HyB+qRBeVMbZedriIoYMYc5aSIkaW8OdSs7D+9gCck8VN5S+mlglRLIcYHl
+TbmpjGeoPJjQtit5embRdgDUOchLyOfl/i0FJRBkh30/Gzjqy4uHNRJjUnyWMh4R
+8KwV4yKmhDK3idrhcFwjjwz9gpmg+iuQB4pN5aX3/jXPs/Fw6MeaDfaFV/AkNSbT
+lruA8Bx0WKdZ5XAJMnu1V6fukwHejdaXeq0Ek/Q3WiG/9IxiKfp6ebsKT5zfdUuE
+BuJ0RYJ5A0Y21z9hLKhJ89xLAEYqnw==
+=mBn8
+-----END PGP SIGNATURE-----
+
+--Sig_/yf=nCwDlLhONyVinAjC8vTL--
