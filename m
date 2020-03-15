@@ -2,74 +2,82 @@ Return-Path: <SRS0=uBOy=5A=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10C8FC10DCE
-	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Mar 2020 20:45:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C0D0C18E5B
+	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Mar 2020 21:26:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DFA6C205ED
-	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Mar 2020 20:45:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35BB020663
+	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Mar 2020 21:26:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729165AbgCOUok (ORCPT
+        id S1729212AbgCOV0G convert rfc822-to-8bit (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 15 Mar 2020 16:44:40 -0400
-Received: from correo.us.es ([193.147.175.20]:54834 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729152AbgCOUok (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 15 Mar 2020 16:44:40 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7BFCDE8B62
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 Mar 2020 21:44:11 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6E574DA3C2
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 Mar 2020 21:44:11 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 63959DA7B6; Sun, 15 Mar 2020 21:44:11 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 80597DA72F;
-        Sun, 15 Mar 2020 21:44:09 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 15 Mar 2020 21:44:09 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 5464E4251480;
-        Sun, 15 Mar 2020 21:44:09 +0100 (CET)
-Date:   Sun, 15 Mar 2020 21:44:35 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/4] netfilter: nf_flow_table: reload ipv6h in
- nf_flow_nat_ipv6
-Message-ID: <20200315204435.25kji3x5me72xjgg@salvia>
-References: <1584281705-26228-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
+        Sun, 15 Mar 2020 17:26:06 -0400
+Received: from mail-il1-f199.google.com ([209.85.166.199]:46293 "EHLO
+        mail-il1-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729166AbgCOV0G (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 15 Mar 2020 17:26:06 -0400
+Received: by mail-il1-f199.google.com with SMTP id a2so12112304ill.13
+        for <netfilter-devel@vger.kernel.org>; Sun, 15 Mar 2020 14:26:04 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
+         :from:to:content-transfer-encoding;
+        bh=ObBVExDwk8OBYjYRj5UK3XQ8zrdTqTo9rbmRyh92cU0=;
+        b=KMgJLQS29dOC8cj+f0Va/xYzMEWuQCHYgyyeopN/q3JoDPlqUOuIwDXXCs2+h3TAKc
+         YLTuIpqlHr8qDMhSnN+Zjb68l879d3TY7eKcaXOT7tbHZDwa9KmabUOYL/k3Yl+YlM5E
+         +mkURzMkwFrfwimLE8ueM8cpDrGjur8H9kphEWkK6ZPCn1o3HpMYHYaCSPbCIAYvAuFn
+         fcv7NLUHeWi0F36RWUWzlKzEvyGZiTtpRWA3r8oPSJQjqfOcZF1uaGeL9DEa2BUhZBA8
+         zxVv5v759B5IqODYHmRBX8aFAe7mjevK83Svjbo2iXAngC8ziPMt9KII0NO5Aev2134+
+         zDzw==
+X-Gm-Message-State: ANhLgQ0XvBD+st+ye+DRebYuqiFGPuNBEXxU60keAJN7S0KuW+l8ifXB
+        XNjVOhYtPpQBmbrlYwdpCXaW2EO30jxgp2gWaxl//L+uBSy3
+X-Google-Smtp-Source: ADFU+vt4qJpj1JeI/CaGL1tH5qCsGjqSAlUF9zulnGe3k9qHg++O02+OAtSyUOSf2fVU7oTjSCFWtWERadBsDt0XUmGXBPeoxU6S
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1584281705-26228-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-Received: by 2002:a92:d112:: with SMTP id a18mr12650691ilb.259.1584307564141;
+ Sun, 15 Mar 2020 14:26:04 -0700 (PDT)
+Date:   Sun, 15 Mar 2020 14:26:04 -0700
+In-Reply-To: <000000000000f96400059c8ca8cd@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000009363ac05a0eb5940@google.com>
+Subject: Re: KASAN: slab-out-of-bounds Read in bitmap_ipmac_ext_cleanup
+From:   syzbot <syzbot+c400f7b04cadb5df6ea7@syzkaller.appspotmail.com>
+To:     coreteam@netfilter.org, davem@davemloft.net,
+        florent.fourcot@wifirst.fr, fw@strlen.de, jeremy@azazel.net,
+        johannes.berg@intel.com, kadlec@blackhole.kfki.hu,
+        kadlec@netfilter.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Mar 15, 2020 at 10:15:02PM +0800, Haishuang Yan wrote:
-> Since nf_flow_snat_port and nf_flow_snat_ipv6 call pskb_may_pull()
-> which may change skb->data, so we need to reload ipv6h at the right
-> palce.
+syzbot suspects this bug was fixed by commit:
 
-Could you collapse patch 1/4 and 2/4 ?
+commit 32c72165dbd0e246e69d16a3ad348a4851afd415
+Author: Kadlecsik József <kadlec@blackhole.kfki.hu>
+Date:   Sun Jan 19 21:06:49 2020 +0000
 
-Same thing with patches 3/4 and 4/4 ?
+    netfilter: ipset: use bitmap infrastructure completely
 
-Thanks.
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1163e0d3e00000
+start commit:   4703d911 Merge tag 'xarray-5.5' of git://git.infradead.org..
+git tree:       upstream
+kernel config:  https://syzkaller.appspot.com/x/.config?x=cf8e288883e40aba
+dashboard link: https://syzkaller.appspot.com/bug?extid=c400f7b04cadb5df6ea7
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=155af721e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=13cfb79ee00000
+
+If the result looks correct, please mark the bug fixed by replying with:
+
+#syz fix: netfilter: ipset: use bitmap infrastructure completely
+
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
