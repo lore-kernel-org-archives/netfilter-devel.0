@@ -2,95 +2,142 @@ Return-Path: <SRS0=Z7Wb=5B=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.1 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D085EC10DCE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Mar 2020 02:40:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E118C0044D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Mar 2020 06:33:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B2292206E9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Mar 2020 02:40:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4FB9920663
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Mar 2020 06:33:10 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=marinkevich.ru header.i=@marinkevich.ru header.b="cCn4gbh0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730482AbgCPCkE convert rfc822-to-8bit (ORCPT
+        id S1729614AbgCPGc4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 15 Mar 2020 22:40:04 -0400
-Received: from mail-io1-f70.google.com ([209.85.166.70]:54240 "EHLO
-        mail-io1-f70.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729986AbgCPCkE (ORCPT
+        Mon, 16 Mar 2020 02:32:56 -0400
+Received: from scp8.hosting.reg.ru ([31.31.196.44]:54968 "EHLO
+        scp8.hosting.reg.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729593AbgCPGc4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 15 Mar 2020 22:40:04 -0400
-Received: by mail-io1-f70.google.com with SMTP id q24so10787721iot.20
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 Mar 2020 19:40:03 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to:content-transfer-encoding;
-        bh=G7pIHMXafOLm3F/2/i2LvBMFMIvTzROgcOUTWFn2X6I=;
-        b=LqsYgLpUrT488LcFoQLySwQkHXEHPsg5oKOozyySp4sq5NG7waUWo4LW0lc4wpOdwH
-         PMg0pENxjBsQn63Ci5FwoFDYaX/rEGv2JiKVJpQQp20qHYfFnQVTHtuAhRJKza/Km7by
-         WsJn5yg0ogErQGRvvBi9fbnvHNcq0GGZC+lmfIEv+0BYc22jM+bsrmKJ7re72x2RqeWb
-         Hgp6eDzpQSf/FEBRtA6E6VFnPxDXy6wcZ+U6XxvksPDQjCd5W5Dz39K1bDUXhE7qjzk6
-         GZmdsS753vtYuNUf9F3vhZLeBh8dIqik8N5AThqOOzgLz76K8iobOff3+jxoLpEIWuHi
-         S7vA==
-X-Gm-Message-State: ANhLgQ04WOsVpmho/Mrmza1384kVoFRiftnvSC+avrsGY0yZ8pP8zwdy
-        Cue0mJRf6THIOVk/4SsQYrqLnvgiE+wb/9U+K3Qcgjfpva6S
-X-Google-Smtp-Source: ADFU+vsoZxccOxRhbL4Y/MIwgxSx220g7zIbktYsAfwneEMRwc/N8lW0/7POXMyHaJ8GuPRqszlVeuTTjg5as1yqhzbhVmbrzHSZ
+        Mon, 16 Mar 2020 02:32:56 -0400
+X-Greylist: delayed 2456 seconds by postgrey-1.27 at vger.kernel.org; Mon, 16 Mar 2020 02:32:54 EDT
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=marinkevich.ru; s=default; h=Content-Type:MIME-Version:Message-ID:Subject:
+        Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
+        List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=ICtt14DdKbzX+OLuDobayzCZUyiOY0nTOBAzHCBfqGE=; b=cCn4gbh0tjfZhaAf2FLyfea68j
+        gl+Es6KUTaf5V8E5Fl7F9B8MTUcDsPUPpMOOlHnqm/enLQzYaVC5VvClwbtMPp7LveOEJw4e01gjE
+        vfA8m6R7bEw+osghsGWL386vbR3Un5frZtYzIbjk3144DNFPIEFIKVqwPyKfJCbuYld3GOVe0usWJ
+        TbWjAN3BWHl7ZLdybrGMTyDqQGfjKVyerzI3oFpmO13zwXJ34UAa8zZ55Rz33Xo0CxWDJYiiC2TrW
+        YvR4LI2frniFi99val7SVRMV6MMs2w/UaYr5bBhJo5m26AuSV7dsOKdTk5umPxOfWkraqljQQbYlV
+        jiOnX7EA==;
+Received: from mail.eltex.org ([92.125.152.58]:46582 helo=GRayJob)
+        by scp8.hosting.reg.ru with esmtpa (Exim 4.92)
+        (envelope-from <s@marinkevich.ru>)
+        id 1jDifM-0002YW-H1; Mon, 16 Mar 2020 08:51:56 +0300
+Date:   Mon, 16 Mar 2020 12:51:56 +0700
+From:   Sergey Marinkevich <s@marinkevich.ru>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] netfilter: nft_masq: add range specified flag setting
+Message-ID: <20200316055156.GA3822@GRayJob>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6638:3dd:: with SMTP id r29mr2463944jaq.94.1584326403449;
- Sun, 15 Mar 2020 19:40:03 -0700 (PDT)
-Date:   Sun, 15 Mar 2020 19:40:03 -0700
-In-Reply-To: <000000000000bdb5b2059c865f5c@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000007c695f05a0efbc52@google.com>
-Subject: Re: KASAN: slab-out-of-bounds Read in bitmap_ip_ext_cleanup
-From:   syzbot <syzbot+6491ea8f6dddbf04930e@syzkaller.appspotmail.com>
-To:     a@unstable.cc, akpm@linux-foundation.org, allison@lohutok.net,
-        arnd@arndb.de, axboe@kernel.dk, b.a.t.m.a.n@lists.open-mesh.org,
-        bp@alien8.de, catalin.marinas@arm.com, chris@zankel.net,
-        christian.brauner@ubuntu.com, christian@brauner.io,
-        coreteam@netfilter.org, dan.carpenter@oracle.com,
-        davem@davemloft.net, elena.reshetova@intel.com,
-        florent.fourcot@wifirst.fr, fw@strlen.de, geert@linux-m68k.org,
-        hare@suse.com, heiko.carstens@de.ibm.com, hpa@zytor.com,
-        info@drgreenstore.com, info@metux.net, jcmvbkbc@gmail.com,
-        jeremy@azazel.net, johannes.berg@intel.com,
-        kadlec@blackhole.kfki.hu, kadlec@netfilter.org,
-        linux-api@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        linux@armlinux.org.uk, mareklindner@neomailbox.ch,
-        mingo@redhat.com, netdev@vger.kernel.org,
-        netfilter-core-owner@lists.netfilter.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        peterz@infradead.org, sw@simonwunderlich.de,
-        syzkaller-bugs@googlegroups.com, tglx@linutronix.de,
-        viro@zeniv.linux.org.uk, will@kernel.org, x86@kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
+X-AntiAbuse: Primary Hostname - scp8.hosting.reg.ru
+X-AntiAbuse: Original Domain - vger.kernel.org
+X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
+X-AntiAbuse: Sender Address Domain - marinkevich.ru
+X-Get-Message-Sender-Via: scp8.hosting.reg.ru: authenticated_id: s@marinkevich.ru
+X-Authenticated-Sender: scp8.hosting.reg.ru: s@marinkevich.ru
+X-Source: 
+X-Source-Args: 
+X-Source-Dir: 
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot suspects this bug was fixed by commit:
+With nf_tables it is not possible to use port range for masquerading.
+Masquerade statement has option "to [:port-port]" which give no effect
+to translation behavior. But it must change source port of packet to
+one from ":port-port" range.
 
-commit 32c72165dbd0e246e69d16a3ad348a4851afd415
-Author: Kadlecsik József <kadlec@blackhole.kfki.hu>
-Date:   Sun Jan 19 21:06:49 2020 +0000
+My network:
 
-    netfilter: ipset: use bitmap infrastructure completely
+	+-----------------------------+
+	|   ROUTER                    |
+	|                             |
+	|                   Masquerade|
+	| 10.0.0.1            1.1.1.1 |
+	| +------+           +------+ |
+	| | eth1 |           | eth2 | |
+	+-+--^---+-----------+---^--+-+
+	     |                   |
+	     |                   |
+	+----v------+     +------v----+
+	|           |     |           |
+	| 10.0.0.2  |     |  1.1.1.2  |
+	|           |     |           |
+	|PC1        |     |PC2        |
+	+-----------+     +-----------+
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=16b8e545e00000
-start commit:   d96d875e Merge tag 'fixes_for_v5.5-rc8' of git://git.kerne..
-git tree:       upstream
-kernel config:  https://syzkaller.appspot.com/x/.config?x=cf8e288883e40aba
-dashboard link: https://syzkaller.appspot.com/bug?extid=6491ea8f6dddbf04930e
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=126748d6e00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1385f959e00000
+For testing i used rule like this:
 
-If the result looks correct, please mark the bug fixed by replying with:
+	rule ip nat POSTROUTING oifname eth2 masquerade to :666
 
-#syz fix: netfilter: ipset: use bitmap infrastructure completely
+Run netcat for 1.1.1.2 667(UDP) and get dump from PC2:
 
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+	15:22:25.591567 a8:f9:4b:aa:08:44 > a8:f9:4b:ac:e7:8f, ethertype IPv4 (0x0800), length 60: 1.1.1.1.34466 > 1.1.1.2.667: UDP, length 1
+
+Address translation works fine, but source port are not belongs to
+specified range.
+
+I see in similar source code (i.e. nft_redir.c, nft_nat.c) that
+there is setting NF_NAT_RANGE_PROTO_SPECIFIED flag. After adding this,
+repeat test for kernel with this patch, and get dump:
+
+	16:16:22.324710 a8:f9:4b:aa:08:44 > a8:f9:4b:ac:e7:8f, ethertype IPv4 (0x0800), length 60: 1.1.1.1.666 > 1.1.1.2.667: UDP, length 1
+
+Now it is works fine.
+
+Signed-off-by: Sergey Marinkevich <s@marinkevich.ru>
+---
+ net/netfilter/nft_masq.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/net/netfilter/nft_masq.c b/net/netfilter/nft_masq.c
+index bc9fd98c5d6d..448376e59074 100644
+--- a/net/netfilter/nft_masq.c
++++ b/net/netfilter/nft_masq.c
+@@ -113,6 +113,7 @@ static void nft_masq_ipv4_eval(const struct nft_expr *expr,
+ 			&regs->data[priv->sreg_proto_min]);
+ 		range.max_proto.all = (__force __be16)nft_reg_load16(
+ 			&regs->data[priv->sreg_proto_max]);
++		range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
+ 	}
+ 	regs->verdict.code = nf_nat_masquerade_ipv4(pkt->skb, nft_hook(pkt),
+ 						    &range, nft_out(pkt));
+@@ -159,6 +160,7 @@ static void nft_masq_ipv6_eval(const struct nft_expr *expr,
+ 			&regs->data[priv->sreg_proto_min]);
+ 		range.max_proto.all = (__force __be16)nft_reg_load16(
+ 			&regs->data[priv->sreg_proto_max]);
++		range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
+ 	}
+ 	regs->verdict.code = nf_nat_masquerade_ipv6(pkt->skb, &range,
+ 						    nft_out(pkt));
+-- 
+2.21.0
+
