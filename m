@@ -1,111 +1,71 @@
-Return-Path: <SRS0=uBOy=5A=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=Z7Wb=5B=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82E53C10DCE
-	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Mar 2020 21:28:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DA64C10DCE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Mar 2020 01:13:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5DE0E20663
-	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Mar 2020 21:28:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7D995205ED
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Mar 2020 01:13:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729248AbgCOV2E (ORCPT
+        id S1729374AbgCPBM4 convert rfc822-to-8bit (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 15 Mar 2020 17:28:04 -0400
-Received: from correo.us.es ([193.147.175.20]:38634 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729181AbgCOV2E (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 15 Mar 2020 17:28:04 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4ABB5DA72F
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 Mar 2020 22:27:36 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3C443DA38D
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 Mar 2020 22:27:36 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 31D2CDA3C3; Sun, 15 Mar 2020 22:27:36 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 730BADA736;
-        Sun, 15 Mar 2020 22:27:34 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 15 Mar 2020 22:27:34 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 54D444251481;
-        Sun, 15 Mar 2020 22:27:34 +0100 (CET)
-Date:   Sun, 15 Mar 2020 22:28:00 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     wenxu <wenxu@ucloud.cn>
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH nf-next v5 0/4] netfilter: flowtable: add indr-block
- offload
-Message-ID: <20200315212800.j45jg3s4gbpiql53@salvia>
-References: <1582521775-25176-1-git-send-email-wenxu@ucloud.cn>
- <20200303215300.qzo4ankxq5ktaba4@salvia>
- <83bfbc34-6a3e-1f31-4546-1511c5dcddf5@ucloud.cn>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <83bfbc34-6a3e-1f31-4546-1511c5dcddf5@ucloud.cn>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Sun, 15 Mar 2020 21:12:56 -0400
+Received: from cmccmta1.chinamobile.com ([221.176.66.79]:2489 "EHLO
+        cmccmta1.chinamobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729300AbgCPBM4 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 15 Mar 2020 21:12:56 -0400
+Received: from spf.mail.chinamobile.com (unknown[172.16.121.7]) by rmmx-syy-dmz-app01-12001 (RichMail) with SMTP id 2ee15e6ed27523a-d0e54; Mon, 16 Mar 2020 09:12:22 +0800 (CST)
+X-RM-TRANSID: 2ee15e6ed27523a-d0e54
+X-RM-TagInfo: emlType=0                                       
+X-RM-SPAM-FLAG: 00000000
+Received: from [172.20.146.62] (unknown[112.25.154.146])
+        by rmsmtp-syy-appsvr04-12004 (RichMail) with SMTP id 2ee45e6ed26fa05-5e508;
+        Mon, 16 Mar 2020 09:12:17 +0800 (CST)
+X-RM-TRANSID: 2ee45e6ed26fa05-5e508
+Content-Type: text/plain; charset=gb2312
+Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
+Subject: Re: [PATCH 1/4] netfilter: nf_flow_table: reload ipv6h in
+ nf_flow_nat_ipv6
+From:   Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+In-Reply-To: <20200315204435.25kji3x5me72xjgg@salvia>
+Date:   Mon, 16 Mar 2020 09:12:15 +0800
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <C1CD964F-8819-4563-96DD-216EDECB36FB@cmss.chinamobile.com>
+References: <1584281705-26228-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
+ <20200315204435.25kji3x5me72xjgg@salvia>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+X-Mailer: Apple Mail (2.3273)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Mar 04, 2020 at 08:54:25PM +0800, wenxu wrote:
+
+> On 2020Äê3ÔÂ16ÈÕ, at ÉÏÎç4:44, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 > 
-> åœ¨ 2020/3/4 5:53, Pablo Neira Ayuso å†™é“:
-[...]
-> The indirect block infrastructure is designed by the driver guys. The callbacks
-> is used for building and finishing relationship between the tunnel device and
-> the hardware devices. Such as the tunnel device come in and go away and the hardware
-> device come in and go away. The relationship between the tunnel device and the
-> hardware devices is so subtle.
-
-I understand that this mechanism provides a way for the driver to
-subscribe to tunnel devices that might be offloaded.
-
-> > Probably not a requirement in your case, but the same net_device might
-> > be used in several flowtables. Your patch is flawed there and I don't
-> > see an easy way to fix this.
+> On Sun, Mar 15, 2020 at 10:15:02PM +0800, Haishuang Yan wrote:
+>> Since nf_flow_snat_port and nf_flow_snat_ipv6 call pskb_may_pull()
+>> which may change skb->data, so we need to reload ipv6h at the right
+>> palce.
 > 
-> The same tunnel device can only be added to one offloaded flowtables.
-
-This is a limitation that needs to be removed. There are requirements
-to allow to make the same tunnel device be part of another flowtable.
-
-> The tunnel device can build the relationship with the hardware
-> devices one time in the dirver. This is protected by
-> flow_block_cb_is_busy and xxx_indr_block_cb_priv in driver.
->
-> > I know there is no way to use ->ndo_setup_tc for tunnel devices, but
-> > you could have just make it work making it look consistent to the
-> > ->ndo_setup_tc logic.
+> Could you collapse patch 1/4 and 2/4 ?
 > 
-> I think the difficulty is how to find the hardware device for tunnel
-> device to set the rule to the hardware.
+> Same thing with patches 3/4 and 4/4 ?
+> 
+> Thanks.
+> 
 
-Right, this is the problem that the infrastructure is solving,
-however, it's a bit of a twisty way to address the problem.
+Okay, I will collapse the patches. Thanks.
 
-> > I'm inclined to apply this patch though, in the hope that this all can
-> > be revisited later to get it in line with the ->ndo_setup_tc approach.
-> > However, probably I'm hoping for too much.
 
-I have applied this patchset to nf-next.
 
-Probably, there might be a chance to revisit this indirect block
-infrastructure.
-
-Thank you.
