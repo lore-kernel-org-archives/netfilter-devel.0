@@ -2,142 +2,185 @@ Return-Path: <SRS0=Z7Wb=5B=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.1 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E118C0044D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Mar 2020 06:33:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8967CC0044D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Mar 2020 08:16:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4FB9920663
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Mar 2020 06:33:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3F9A620674
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Mar 2020 08:16:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=marinkevich.ru header.i=@marinkevich.ru header.b="cCn4gbh0"
+	dkim=pass (1024-bit key) header.d=iaea.org header.i=@iaea.org header.b="S2IKBhi8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729614AbgCPGc4 (ORCPT
+        id S1730016AbgCPIQe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 Mar 2020 02:32:56 -0400
-Received: from scp8.hosting.reg.ru ([31.31.196.44]:54968 "EHLO
-        scp8.hosting.reg.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729593AbgCPGc4 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Mar 2020 02:32:56 -0400
-X-Greylist: delayed 2456 seconds by postgrey-1.27 at vger.kernel.org; Mon, 16 Mar 2020 02:32:54 EDT
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=marinkevich.ru; s=default; h=Content-Type:MIME-Version:Message-ID:Subject:
-        Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
-        List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=ICtt14DdKbzX+OLuDobayzCZUyiOY0nTOBAzHCBfqGE=; b=cCn4gbh0tjfZhaAf2FLyfea68j
-        gl+Es6KUTaf5V8E5Fl7F9B8MTUcDsPUPpMOOlHnqm/enLQzYaVC5VvClwbtMPp7LveOEJw4e01gjE
-        vfA8m6R7bEw+osghsGWL386vbR3Un5frZtYzIbjk3144DNFPIEFIKVqwPyKfJCbuYld3GOVe0usWJ
-        TbWjAN3BWHl7ZLdybrGMTyDqQGfjKVyerzI3oFpmO13zwXJ34UAa8zZ55Rz33Xo0CxWDJYiiC2TrW
-        YvR4LI2frniFi99val7SVRMV6MMs2w/UaYr5bBhJo5m26AuSV7dsOKdTk5umPxOfWkraqljQQbYlV
-        jiOnX7EA==;
-Received: from mail.eltex.org ([92.125.152.58]:46582 helo=GRayJob)
-        by scp8.hosting.reg.ru with esmtpa (Exim 4.92)
-        (envelope-from <s@marinkevich.ru>)
-        id 1jDifM-0002YW-H1; Mon, 16 Mar 2020 08:51:56 +0300
-Date:   Mon, 16 Mar 2020 12:51:56 +0700
-From:   Sergey Marinkevich <s@marinkevich.ru>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] netfilter: nft_masq: add range specified flag setting
-Message-ID: <20200316055156.GA3822@GRayJob>
+        Mon, 16 Mar 2020 04:16:34 -0400
+Received: from mail-eopbgr40134.outbound.protection.outlook.com ([40.107.4.134]:56704
+        "EHLO EUR03-DB5-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1729975AbgCPIQe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 16 Mar 2020 04:16:34 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Yk8LUlVHShCY32r9hvsMmVN58aNpLK+31gsGjhZrJM1uasRKWy+x/2o9dqvDpVhgMXSaZonFRgwLUL/GNYwZ6z+yHju6jbW2SkHPVJnNsvmv17cmKa40Kc2jllA5WR0G4yxgXgTLDHd/Ss+qIVOgR3ylJetoBBYqcBqJN97oi5/g4D0IlUNpkhO9c4d56fne1ITJXuW1xaSwZKfWXN4l928JnyzqZWuKXB1/uF7Um3dGg6cWS84vndVD0Thj7wNoNUAEbi8vLSPK5jeYzzU4rui+v0M+XpUtFJRt01sm/cWH/FwrvIB/CdCZPfwi3qhZunJfUGFQoUMRpXYU7Tl/bw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=7OsljJfPAxWfmaJubZdAfdO9frEM8azsugT4ToIFCoQ=;
+ b=QFpiWhOgrGwHjU9dfLsmvtrrr0l+zu3swThD6XMgLEaJTP12mUc0Ia2uvl8srRftLRVtMfvIn1KyoyJdxRQR3YAf3JUl7+DlaArm1jacjqhkanYS7hwtX34Hbjh+sMQDfMtu5YZC5ngubJDiB0j1D12xyHTzOEVCBoFOLvLAXBKVAiq9XUDipIWVb9QqqiO9/ENcmzbM9sjYX3p703/Yizu3FQ3D8lwNq5ZuBTRLzN/V0mzemz8my/PypBLV/6TbqH9sK8qXUrYXRfXD+wE+HY97dsktqrVAxDq3JePNNa9aDfAV/ur6PSHcUuP0f+1l3fN171YOMQgfClTSzhJJ/A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=iaea.org; dmarc=pass action=none header.from=iaea.org;
+ dkim=pass header.d=iaea.org; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=iaea.org; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=7OsljJfPAxWfmaJubZdAfdO9frEM8azsugT4ToIFCoQ=;
+ b=S2IKBhi8XznGlUsFaxZfD741aDLywcbN7jJY3E5NhQ177UqJz+6FkMSETUNPvckge0U1PtE4jsxJlhWELSiwFfdM6xefIWC3nTiVYEkYrNky49rFbc63tm75clNU24gt2Fy5n2lzbxZlGn59TxkLfI6+F6KYUR8wiYJp1SpLVFU=
+Received: from AM0PR01MB6290.eurprd01.prod.exchangelabs.com (10.186.188.20) by
+ AM0PR01MB5731.eurprd01.prod.exchangelabs.com (20.179.254.222) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2814.22; Mon, 16 Mar 2020 08:16:28 +0000
+Received: from AM0PR01MB6290.eurprd01.prod.exchangelabs.com
+ ([fe80::9485:a0d8:93b1:37bd]) by AM0PR01MB6290.eurprd01.prod.exchangelabs.com
+ ([fe80::9485:a0d8:93b1:37bd%6]) with mapi id 15.20.2814.021; Mon, 16 Mar 2020
+ 08:16:28 +0000
+From:   "MELCHOR PENA, Bernardo Santiago" <B.S.Melchor-Pena@iaea.org>
+To:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: compilation of netfilter missing libnftnl functions - undefined
+ reference - (RASPBERRY pi 3B)
+Thread-Topic: compilation of netfilter missing libnftnl functions - undefined
+ reference - (RASPBERRY pi 3B)
+Thread-Index: AdX7azCPzi3NqDeySWW84x7O+iK7qQ==
+Date:   Mon, 16 Mar 2020 08:16:28 +0000
+Message-ID: <AM0PR01MB62900376D6F0DCAA682DB966F6F90@AM0PR01MB6290.eurprd01.prod.exchangelabs.com>
+Accept-Language: en-GB, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=B.S.Melchor-Pena@iaea.org; 
+x-originating-ip: [161.5.6.233]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 1c6db49f-be5c-4d90-bbe9-08d7c98253c5
+x-ms-traffictypediagnostic: AM0PR01MB5731:
+x-microsoft-antispam-prvs: <AM0PR01MB5731345E15824C001C2552AAF6F90@AM0PR01MB5731.eurprd01.prod.exchangelabs.com>
+x-ms-oob-tlc-oobclassifiers: OLM:7691;
+x-forefront-prvs: 03449D5DD1
+x-forefront-antispam-report: SFV:NSPM;SFS:(10019020)(4636009)(396003)(366004)(39850400004)(136003)(376002)(346002)(199004)(2906002)(186003)(26005)(81156014)(8676002)(81166006)(6916009)(6506007)(9686003)(55016002)(15974865002)(86362001)(7696005)(8936002)(478600001)(316002)(52536014)(66476007)(33656002)(5660300002)(76116006)(66446008)(66556008)(64756008)(66946007)(71200400001);DIR:OUT;SFP:1102;SCL:1;SRVR:AM0PR01MB5731;H:AM0PR01MB6290.eurprd01.prod.exchangelabs.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;
+received-spf: None (protection.outlook.com: iaea.org does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: JJT5ucIC3+fr72q/NHkKGc8q+68h46R7mUyiaGhjTRxor3/9GT3Uec1TgYUeY1sRhk3O8U1jpPA8PqTN2p06rJyGmGlZ3QLkCwyY0P5g7WMSsEVrj9TPOc7agzzm4uXL32vPOnht8jQq6l2zVWTN4fG5ovzACnEMFnSO3kNGefCjBrRanj9gcs2kSOTJMsPGv5jMLw6NOhmMo0ZHlrDqos7DDv0QM7qylROUQjX2AJA3LIXEXRqrQTSmg9Nptq3dWFSSCzTGhzJDQo3lLWaoq5SCvqdqkmdJ+VJoz0/fKLxI9gLCA7B62NxamvIHn9EW6vz6BURoVk5kSG/DiTw7MkIYDzRDc9ZKbefo1kuX4gKAOmWBwiifVp80DvLo/A1XaZo6zNy/yrg/qmeBJKHemVZPz30vFe0MRvdhZAu+d/wxOxWfTaV/+uOGVOwWd1378ONIeAyGw8AUZhlaffAw5dOSTcalF3Zt/eeHazeSrdnhQr8o6AQqIRwoY2qJyuWN7y5WZ4n8c3RTjZKpi8aQhw==
+x-ms-exchange-antispam-messagedata: bY4Av+Lk5MuaL+j7fywDpfAFh0MBNZCVO5MPRs1DhyKGVIA/IFubn3mwrukJIB1NMZNNgcKlxi9sAqPGWgLgt6e8U0VPl0BR50iaGq5WdIgEquU21EGv4Lx1TtQt7p39twbIXyvwMZ1Y4jEtOmxJgg==
+x-ms-exchange-transport-forked: True
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - scp8.hosting.reg.ru
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - marinkevich.ru
-X-Get-Message-Sender-Via: scp8.hosting.reg.ru: authenticated_id: s@marinkevich.ru
-X-Authenticated-Sender: scp8.hosting.reg.ru: s@marinkevich.ru
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
+X-OriginatorOrg: iaea.org
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1c6db49f-be5c-4d90-bbe9-08d7c98253c5
+X-MS-Exchange-CrossTenant-originalarrivaltime: 16 Mar 2020 08:16:28.3647
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a2f21493-a4d1-4b7f-ad07-819c824f5c4a
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: Rkm34ssfrEIHQwvpHqIF4fbon0iYBTAPG8sBMjqYg1PQw7/2GK19DK0KR0QRaTBIg86w8B0NJ4koXQagxlb19yY9a55q/YGUjgElE3NYym0=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR01MB5731
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-With nf_tables it is not possible to use port range for masquerading.
-Masquerade statement has option "to [:port-port]" which give no effect
-to translation behavior. But it must change source port of packet to
-one from ":port-port" range.
 
-My network:
+Hi,
 
-	+-----------------------------+
-	|   ROUTER                    |
-	|                             |
-	|                   Masquerade|
-	| 10.0.0.1            1.1.1.1 |
-	| +------+           +------+ |
-	| | eth1 |           | eth2 | |
-	+-+--^---+-----------+---^--+-+
-	     |                   |
-	     |                   |
-	+----v------+     +------v----+
-	|           |     |           |
-	| 10.0.0.2  |     |  1.1.1.2  |
-	|           |     |           |
-	|PC1        |     |PC2        |
-	+-----------+     +-----------+
+After downloading snapshots for NFTABLES and LIBNFTNL for 20200314 I procee=
+ded to compile both library and NFTABLES
 
-For testing i used rule like this:
+Library compiled with no errors.
+libnftnl installed in /usr/local/lib
 
-	rule ip nat POSTROUTING oifname eth2 masquerade to :666
+pi@raspberrypi:~/nftables-20200314 $ ls -lia /usr/local/lib/libnftnl.*
+130735 -rwxr-xr-x 1 root root 974 Mar 15 10:55 /usr/local/lib/libnftnl.la
+150748 lrwxrwxrwx 1 root root 18 Mar 15 10:55 /usr/local/lib/libnftnl.so ->=
+ libnftnl.so.11.2.0
+150737 lrwxrwxrwx 1 root root 18 Mar 15 10:55 /usr/local/lib/libnftnl.so.11=
+ -> libnftnl.so.11.2.0
+130734 -rwxr-xr-x 1 root root 969712 Mar 15 10:55 /usr/local/lib/libnftnl.s=
+o.11.2.0
 
-Run netcat for 1.1.1.2 667(UDP) and get dump from PC2:
 
-	15:22:25.591567 a8:f9:4b:aa:08:44 > a8:f9:4b:ac:e7:8f, ethertype IPv4 (0x0800), length 60: 1.1.1.1.34466 > 1.1.1.2.667: UDP, length 1
+nftables gives this error when compiling with Make
 
-Address translation works fine, but source port are not belongs to
-specified range.
+/usr/bin/ld: ./.libs/libnftables.so: undefined reference to `nftnl_flowtabl=
+e_set_data@LIBNFTNL_13'
+/usr/bin/ld: ./.libs/libnftables.so: undefined reference to `nftnl_udata_ne=
+st_end@LIBNFTNL_14'
+/usr/bin/ld: ./.libs/libnftables.so: undefined reference to `nftnl_obj_set_=
+data@LIBNFTNL_13'
+/usr/bin/ld: ./.libs/libnftables.so: undefined reference to `nftnl_flowtabl=
+e_get_u64@LIBNFTNL_11'
+/usr/bin/ld: ./.libs/libnftables.so: undefined reference to `nftnl_flowtabl=
+e_set_u64@LIBNFTNL_11'
+/usr/bin/ld: ./.libs/libnftables.so: undefined reference to `nftnl_udata_ne=
+st_start@LIBNFTNL_14'
 
-I see in similar source code (i.e. nft_redir.c, nft_nat.c) that
-there is setting NF_NAT_RANGE_PROTO_SPECIFIED flag. After adding this,
-repeat test for kernel with this patch, and get dump:
+I have tried to  point link under nftables-20200314/src/.libs
+to point to /usr/local/lib with ln -sf /usr/local/lib/libnftnl.so ./libnfta=
+bles.so
 
-	16:16:22.324710 a8:f9:4b:aa:08:44 > a8:f9:4b:ac:e7:8f, ethertype IPv4 (0x0800), length 60: 1.1.1.1.666 > 1.1.1.2.667: UDP, length 1
+Errors then are the following after running Make
+/usr/bin/ld: main.o: in function `main':
+/home/pi/nftables-20200314/src/main.c:260: undefined reference to `nft_ctx_=
+new'
+/usr/bin/ld: /home/pi/nftables-20200314/src/main.c:305: undefined reference=
+ to `nft_ctx_output_get_debug'
+/usr/bin/ld: /home/pi/nftables-20200314/src/main.c:276: undefined reference=
+ to `nft_ctx_set_dry_run'
+/usr/bin/ld: /home/pi/nftables-20200314/src/main.c:285: undefined reference=
+ to `nft_ctx_add_include_path'
+/usr/bin/ld: /home/pi/nftables-20200314/src/main.c:331: undefined reference=
+ to `nft_ctx_output_set_debug'
+/usr/bin/ld: /home/pi/nftables-20200314/src/main.c:367: undefined reference=
+ to `nft_ctx_output_set_flags'
+/usr/bin/ld: /home/pi/nftables-20200314/src/main.c:384: undefined reference=
+ to `nft_run_cmd_from_buffer'
+/usr/bin/ld: /home/pi/nftables-20200314/src/main.c:400: undefined reference=
+ to `nft_ctx_free'
+/usr/bin/ld: /home/pi/nftables-20200314/src/main.c:386: undefined reference=
+ to `nft_run_cmd_from_filename'
+/usr/bin/ld: cli.o: in function `cli_complete':
+/home/pi/nftables-20200314/src/cli.c:133: undefined reference to `nft_run_c=
+md_from_buffer'
+collect2: error: ld returned 1 exit status
+make[3]: *** [Makefile:644: nft] Error 1
+make[3]: Leaving directory '/home/pi/nftables-20200314/src'
+make[2]: *** [Makefile:500: all] Error 2
+make[2]: Leaving directory '/home/pi/nftables-20200314/src'
+make[1]: *** [Makefile:479: all-recursive] Error 1
+make[1]: Leaving directory '/home/pi/nftables-20200314'
+make: *** [Makefile:388: all] Error 2
 
-Now it is works fine.
 
-Signed-off-by: Sergey Marinkevich <s@marinkevich.ru>
----
- net/netfilter/nft_masq.c | 2 ++
- 1 file changed, 2 insertions(+)
+running RASPBIAN (buster) on raspberry 3B
 
-diff --git a/net/netfilter/nft_masq.c b/net/netfilter/nft_masq.c
-index bc9fd98c5d6d..448376e59074 100644
---- a/net/netfilter/nft_masq.c
-+++ b/net/netfilter/nft_masq.c
-@@ -113,6 +113,7 @@ static void nft_masq_ipv4_eval(const struct nft_expr *expr,
- 			&regs->data[priv->sreg_proto_min]);
- 		range.max_proto.all = (__force __be16)nft_reg_load16(
- 			&regs->data[priv->sreg_proto_max]);
-+		range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
- 	}
- 	regs->verdict.code = nf_nat_masquerade_ipv4(pkt->skb, nft_hook(pkt),
- 						    &range, nft_out(pkt));
-@@ -159,6 +160,7 @@ static void nft_masq_ipv6_eval(const struct nft_expr *expr,
- 			&regs->data[priv->sreg_proto_min]);
- 		range.max_proto.all = (__force __be16)nft_reg_load16(
- 			&regs->data[priv->sreg_proto_max]);
-+		range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
- 	}
- 	regs->verdict.code = nf_nat_masquerade_ipv6(pkt->skb, &range,
- 						    nft_out(pkt));
--- 
-2.21.0
+Please, tell me what combination of lib and user app should I compile. I go=
+t kernel compiled for RASPBERRY with all nft enabled options but I am strug=
+gling with this part.
 
+Thanks
+
+
+Bernardo Santiago Melchor Pena,
+IT Security Engineer | IT Security Infrastructure Unit
+Infrastructure Services Section | Division of Information Technology
+International Atomic Energy Agency | M: (+43) 699-165-22924 | Vienna Intern=
+ational Centre, PO Box 100, 1400 Vienna, Austria |
+Follow us on www.iaea.org
+
+This email message is intended only for the use of the named recipient. Inf=
+ormation contained in this email message and its attachments may be privile=
+ged, confidential and protected from disclosure. If you are not the intende=
+d recipient, please do not read, copy, use or disclose this communication t=
+o others. Also please notify the sender by replying to this message and the=
+n delete it from your system.
