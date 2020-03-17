@@ -2,48 +2,49 @@ Return-Path: <SRS0=psrB=5C=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59F87C18E5B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Mar 2020 13:15:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55C89C10F29
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Mar 2020 13:50:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 31FA720724
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Mar 2020 13:15:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 32D672075E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Mar 2020 13:50:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726845AbgCQNO7 (ORCPT
+        id S1726564AbgCQNuq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Mar 2020 09:14:59 -0400
-Received: from correo.us.es ([193.147.175.20]:52120 "EHLO mail.us.es"
+        Tue, 17 Mar 2020 09:50:46 -0400
+Received: from correo.us.es ([193.147.175.20]:51394 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726794AbgCQNO7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Mar 2020 09:14:59 -0400
+        id S1726189AbgCQNup (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Mar 2020 09:50:45 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 79216F23B8
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Mar 2020 14:14:29 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id D55C3C4801
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Mar 2020 14:50:14 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6A190FC5EA
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Mar 2020 14:14:29 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C62D0100A43
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Mar 2020 14:50:14 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 6992AFC5E6; Tue, 17 Mar 2020 14:14:29 +0100 (CET)
+        id C57F6100A4B; Tue, 17 Mar 2020 14:50:14 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 885CDFC5EC
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Mar 2020 14:14:27 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C9648100A43
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Mar 2020 14:50:12 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 17 Mar 2020 14:14:27 +0100 (CET)
+ Tue, 17 Mar 2020 14:50:12 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 6D78842EE399
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Mar 2020 14:14:27 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id B702842EE38E
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Mar 2020 14:50:12 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnftnl] set: support for NFTNL_SET_EXPR
-Date:   Tue, 17 Mar 2020 14:14:53 +0100
-Message-Id: <20200317131453.30649-1-pablo@netfilter.org>
+Subject: [PATCH nft] src: support for counter in set definition
+Date:   Tue, 17 Mar 2020 14:50:38 +0100
+Message-Id: <20200317135038.27490-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -51,146 +52,145 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds support for the NFTA_SET_EXPR netlink attribute.
+This patch allows you to turn on counter for each element in the set.
+
+ table ip x {
+	set y {
+		typeof ip saddr
+		counter
+		elements = { 192.168.10.35, 192.168.10.101, 192.168.10.135 }
+	}
+
+	chain z {
+		type filter hook output priority filter; policy accept;
+		ip daddr @y
+	}
+ }
+
+This example shows how to turn on counters globally in the set 'y'.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/libnftnl/set.h              |  1 +
- include/libnftnl/udata.h            |  1 +
- include/linux/netfilter/nf_tables.h |  2 ++
- include/set.h                       |  1 +
- src/set.c                           | 27 +++++++++++++++++++++++++++
- 5 files changed, 32 insertions(+)
+ include/rule.h     |  1 +
+ src/evaluate.c     |  9 +++++++++
+ src/mnl.c          |  5 +++++
+ src/netlink.c      |  7 +++++++
+ src/parser_bison.y |  5 +++++
+ src/rule.c         | 10 ++++++++++
+ 6 files changed, 37 insertions(+)
 
-diff --git a/include/libnftnl/set.h b/include/libnftnl/set.h
-index 6843adfa0c1e..5138bb99b426 100644
---- a/include/libnftnl/set.h
-+++ b/include/libnftnl/set.h
-@@ -30,6 +30,7 @@ enum nftnl_set_attr {
- 	NFTNL_SET_OBJ_TYPE,
- 	NFTNL_SET_HANDLE,
- 	NFTNL_SET_DESC_CONCAT,
-+	NFTNL_SET_EXPR,
- 	__NFTNL_SET_MAX
- };
- #define NFTNL_SET_MAX (__NFTNL_SET_MAX - 1)
-diff --git a/include/libnftnl/udata.h b/include/libnftnl/udata.h
-index 8044041189b1..1d57bc3dce16 100644
---- a/include/libnftnl/udata.h
-+++ b/include/libnftnl/udata.h
-@@ -24,6 +24,7 @@ enum nftnl_udata_set_types {
- 	NFTNL_UDATA_SET_MERGE_ELEMENTS,
- 	NFTNL_UDATA_SET_KEY_TYPEOF,
- 	NFTNL_UDATA_SET_DATA_TYPEOF,
-+	NFTNL_UDATA_SET_EXPR,
- 	__NFTNL_UDATA_SET_MAX
- };
- #define NFTNL_UDATA_SET_MAX (__NFTNL_UDATA_SET_MAX - 1)
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 57e83e152bf3..2d291f6eab62 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -342,6 +342,7 @@ enum nft_set_field_attributes {
-  * @NFTA_SET_USERDATA: user data (NLA_BINARY)
-  * @NFTA_SET_OBJ_TYPE: stateful object type (NLA_U32: NFT_OBJECT_*)
-  * @NFTA_SET_HANDLE: set handle (NLA_U64)
-+ * @NFTA_SET_EXPR: set expression (NLA_NESTED: nft_expr_attributes)
-  */
- enum nft_set_attributes {
- 	NFTA_SET_UNSPEC,
-@@ -361,6 +362,7 @@ enum nft_set_attributes {
- 	NFTA_SET_PAD,
- 	NFTA_SET_OBJ_TYPE,
- 	NFTA_SET_HANDLE,
-+	NFTA_SET_EXPR,
- 	__NFTA_SET_MAX
- };
- #define NFTA_SET_MAX		(__NFTA_SET_MAX - 1)
-diff --git a/include/set.h b/include/set.h
-index 895ffdb48bdb..66ac129836de 100644
---- a/include/set.h
-+++ b/include/set.h
-@@ -33,6 +33,7 @@ struct nftnl_set {
- 	uint32_t		flags;
- 	uint32_t		gc_interval;
- 	uint64_t		timeout;
-+	struct nftnl_expr	*expr;
- };
+diff --git a/include/rule.h b/include/rule.h
+index 224e68717bc7..70c8c4cf7b43 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -308,6 +308,7 @@ struct set {
+ 	struct expr		*init;
+ 	struct expr		*rg_cache;
+ 	uint32_t		policy;
++	struct stmt		*stmt;
+ 	bool			root;
+ 	bool			automerge;
+ 	bool			key_typeof_valid;
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 4a23b231c74d..74d33ad489ae 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1306,8 +1306,17 @@ static int expr_evaluate_list(struct eval_ctx *ctx, struct expr **expr)
  
- struct nftnl_set_list;
-diff --git a/src/set.c b/src/set.c
-index 651dcfa56022..15fa29d5f02c 100644
---- a/src/set.c
-+++ b/src/set.c
-@@ -51,6 +51,8 @@ void nftnl_set_free(const struct nftnl_set *s)
- 		xfree(s->name);
- 	if (s->flags & (1 << NFTNL_SET_USERDATA))
- 		xfree(s->user.data);
-+	if (s->flags & (1 << NFTNL_SET_EXPR))
-+		nftnl_expr_free(s->expr);
+ static int expr_evaluate_set_elem(struct eval_ctx *ctx, struct expr **expr)
+ {
++	struct set *set = ctx->set;
+ 	struct expr *elem = *expr;
  
- 	list_for_each_entry_safe(elem, tmp, &s->element_list, head) {
- 		list_del(&elem->head);
-@@ -96,6 +98,9 @@ void nftnl_set_unset(struct nftnl_set *s, uint16_t attr)
- 	case NFTNL_SET_USERDATA:
- 		xfree(s->user.data);
- 		break;
-+	case NFTNL_SET_EXPR:
-+		nftnl_expr_free(s->expr);
-+		break;
- 	default:
- 		return;
- 	}
-@@ -195,6 +200,12 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
- 		memcpy(s->user.data, data, data_len);
- 		s->user.len = data_len;
- 		break;
-+	case NFTNL_SET_EXPR:
-+		if (s->flags & (1 << NFTNL_SET_EXPR))
-+			nftnl_expr_free(s->expr);
++	if (elem->stmt && set->stmt && set->stmt->ops != elem->stmt->ops)
++		return stmt_binary_error(ctx, set->stmt, elem,
++					 "statement mismatch, element expects %s, "
++					 "%s has type %s",
++					 elem->stmt->ops->name,
++					 set_is_map(set->flags) ? "map" : "set",
++					 set->stmt->ops->name);
 +
-+		s->expr = (void *)data;
-+		break;
- 	}
- 	s->flags |= (1 << attr);
- 	return 0;
-@@ -283,6 +294,8 @@ const void *nftnl_set_get_data(const struct nftnl_set *s, uint16_t attr,
- 	case NFTNL_SET_USERDATA:
- 		*data_len = s->user.len;
- 		return s->user.data;
-+	case NFTNL_SET_EXPR:
-+		return s->expr;
- 	}
- 	return NULL;
- }
-@@ -432,6 +445,13 @@ void nftnl_set_nlmsg_build_payload(struct nlmsghdr *nlh, struct nftnl_set *s)
- 		mnl_attr_put_u32(nlh, NFTA_SET_GC_INTERVAL, htonl(s->gc_interval));
- 	if (s->flags & (1 << NFTNL_SET_USERDATA))
- 		mnl_attr_put(nlh, NFTA_SET_USERDATA, s->user.len, s->user.data);
-+	if (s->flags & (1 << NFTNL_SET_EXPR)) {
-+		struct nlattr *nest1;
-+
-+		nest1 = mnl_attr_nest_start(nlh, NFTA_SET_EXPR);
-+		nftnl_expr_build_payload(nlh, s->expr);
-+		mnl_attr_nest_end(nlh, nest1);
+ 	if (expr_evaluate(ctx, &elem->key) < 0)
+ 		return -1;
+ 
+diff --git a/src/mnl.c b/src/mnl.c
+index a517712c14eb..18a73e2878b6 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -1026,6 +1026,11 @@ int mnl_nft_set_add(struct netlink_ctx *ctx, struct cmd *cmd,
+ 			   nftnl_udata_buf_len(udbuf));
+ 	nftnl_udata_buf_free(udbuf);
+ 
++	if (set->stmt) {
++		nftnl_set_set_data(nls, NFTNL_SET_EXPR,
++				   netlink_gen_stmt_stateful(set->stmt), 0);
 +	}
- }
- 
- 
-@@ -635,6 +655,13 @@ int nftnl_set_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_set *s)
- 		if (ret < 0)
- 			return ret;
- 	}
-+	if (tb[NFTA_SET_EXPR]) {
-+		s->expr = nftnl_expr_parse(tb[NFTA_SET_EXPR]);
-+		if (!s->expr)
-+			return -1;
 +
-+		s->flags |= (1 << NFTNL_SET_EXPR);
-+	}
+ 	netlink_dump_set(nls, ctx);
  
- 	s->family = nfg->nfgen_family;
- 	s->flags |= (1 << NFTNL_SET_FAMILY);
+ 	nlh = nftnl_nlmsg_build_hdr(nftnl_batch_buffer(ctx->batch),
+diff --git a/src/netlink.c b/src/netlink.c
+index e10af564bcac..b254753f7424 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -766,6 +766,13 @@ struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
+ 	set->handle.set.name = xstrdup(nftnl_set_get_str(nls, NFTNL_SET_NAME));
+ 	set->automerge	   = automerge;
+ 
++	if (nftnl_set_is_set(nls, NFTNL_SET_EXPR)) {
++		const struct nftnl_expr *nle;
++
++		nle = nftnl_set_get(nls, NFTNL_SET_EXPR);
++		set->stmt = netlink_parse_set_expr(set, &ctx->nft->cache, nle);
++	}
++
+ 	if (datatype) {
+ 		dtype = set_datatype_alloc(datatype, databyteorder);
+ 		klen = nftnl_set_get_u32(nls, NFTNL_SET_DATA_LEN) * BITS_PER_BYTE;
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 3d65d20816d6..e14118ca971e 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1733,6 +1733,11 @@ set_block		:	/* empty */	{ $$ = $<set>-1; }
+ 				$1->gc_int = $3;
+ 				$$ = $1;
+ 			}
++			|	set_block	COUNTER		stmt_separator
++			{
++				$1->stmt = counter_stmt_alloc(&@$);
++				$$ = $1;
++			}
+ 			|	set_block	ELEMENTS	'='		set_block_expr
+ 			{
+ 				$1->init = $4;
+diff --git a/src/rule.c b/src/rule.c
+index 8e5852689091..ab99bbd22616 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -355,6 +355,7 @@ void set_free(struct set *set)
+ 	if (set->init != NULL)
+ 		expr_free(set->init);
+ 	handle_free(&set->handle);
++	stmt_free(set->stmt);
+ 	expr_free(set->key);
+ 	expr_free(set->data);
+ 	xfree(set);
+@@ -544,6 +545,15 @@ static void set_print_declaration(const struct set *set,
+ 		}
+ 		nft_print(octx, "%s", opts->stmt_separator);
+ 	}
++
++	if (set->stmt) {
++		nft_print(octx, "%s%s", opts->tab, opts->tab);
++		octx->flags |= NFT_CTX_OUTPUT_STATELESS;
++		stmt_print(set->stmt, octx);
++		octx->flags &= ~NFT_CTX_OUTPUT_STATELESS;
++		nft_print(octx, "%s", opts->stmt_separator);
++	}
++
+ 	if (set->automerge)
+ 		nft_print(octx, "%s%sauto-merge%s", opts->tab, opts->tab,
+ 			  opts->stmt_separator);
 -- 
 2.11.0
 
