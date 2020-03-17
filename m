@@ -2,86 +2,86 @@ Return-Path: <SRS0=psrB=5C=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61545C2BB1D
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Mar 2020 02:04:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D68CC10F29
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Mar 2020 13:13:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3AD8D20674
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Mar 2020 02:04:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1BA38206EC
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Mar 2020 13:13:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725962AbgCQCEp (ORCPT
+        id S1726084AbgCQNNy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 Mar 2020 22:04:45 -0400
-Received: from cmccmta2.chinamobile.com ([221.176.66.80]:3534 "EHLO
-        cmccmta2.chinamobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725783AbgCQCEp (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Mar 2020 22:04:45 -0400
-Received: from spf.mail.chinamobile.com (unknown[172.16.121.1]) by rmmx-syy-dmz-app05-12005 (RichMail) with SMTP id 2ee55e702fde376-ec129; Tue, 17 Mar 2020 10:03:10 +0800 (CST)
-X-RM-TRANSID: 2ee55e702fde376-ec129
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM-FLAG: 00000000
-Received: from localhost (unknown[223.105.0.241])
-        by rmsmtp-syy-appsvr01-12001 (RichMail) with SMTP id 2ee15e702fdd10e-ec706;
-        Tue, 17 Mar 2020 10:03:10 +0800 (CST)
-X-RM-TRANSID: 2ee15e702fdd10e-ec706
-From:   Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-Subject: [PATCH v2 2/2] netfilter: nf_flow_table: reload ip{v6}h in nf_flow_tuple_ip{v6}
-Date:   Tue, 17 Mar 2020 10:02:53 +0800
-Message-Id: <1584410573-6812-2-git-send-email-yanhaishuang@cmss.chinamobile.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1584410573-6812-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
-References: <1584410573-6812-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
+        Tue, 17 Mar 2020 09:13:54 -0400
+Received: from correo.us.es ([193.147.175.20]:51600 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725916AbgCQNNy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Mar 2020 09:13:54 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 4EFB3F23B1
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Mar 2020 14:13:24 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3BD15FC5E2
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Mar 2020 14:13:24 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 31352FC5E4; Tue, 17 Mar 2020 14:13:24 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 56CDFFC5E2
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Mar 2020 14:13:22 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 17 Mar 2020 14:13:22 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 3984142EE399
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Mar 2020 14:13:22 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next 0/3] support for stateful expressions in set definition
+Date:   Tue, 17 Mar 2020 14:13:43 +0100
+Message-Id: <20200317131346.30544-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Since pskb_may_pull may change skb->data, so we need to reload ip{v6}h at
-the right place.
+Hi,
 
-Fixes: a908fdec3dda ("netfilter: nf_flow_table: move ipv6 offload hook
-code to nf_flow_table")
-Fixes: 7d2086871762 ("netfilter: nf_flow_table: move ipv4 offload hook
-code to nf_flow_table")
-Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
----
-v2: collapse the patches
----
- net/netfilter/nf_flow_table_ip.c | 2 ++
- 1 file changed, 2 insertions(+)
+This patchset allows user to specify a stateful expression in the set
+definition, eg.
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 942bda5..610c60a 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -190,6 +190,7 @@ static int nf_flow_tuple_ip(struct sk_buff *skb, const struct net_device *dev,
- 	if (!pskb_may_pull(skb, thoff + sizeof(*ports)))
- 		return -1;
- 
-+	iph = ip_hdr(skb);
- 	ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
- 
- 	tuple->src_v4.s_addr	= iph->saddr;
-@@ -452,6 +453,7 @@ static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
- 	if (!pskb_may_pull(skb, thoff + sizeof(*ports)))
- 		return -1;
- 
-+	ip6h = ipv6_hdr(skb);
- 	ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
- 
- 	tuple->src_v6		= ip6h->saddr;
--- 
-1.8.3.1
+ table ip x {
+        set y {
+                typeof ip saddr
+                counter
+                elements = { 192.168.10.35, 192.168.10.101, 192.168.10.135 }
+        }
 
+        chain z {
+                type filter hook output priority filter; policy accept;
+                ip daddr @y
+        }
+ }
 
+The example above turns on counters for each element in the set 'y'.
+
+Pablo Neira Ayuso (3):
+  netfilter: nf_tables: move nft_expr_clone() to nf_tables_api.c
+  netfilter: nf_tables: pass context to nft_set_destroy()
+  netfilter: nf_tables: allow to specify stateful expression in set definition
+
+ include/net/netfilter/nf_tables.h        |  3 ++
+ include/uapi/linux/netfilter/nf_tables.h |  2 +
+ net/netfilter/nf_tables_api.c            | 88 ++++++++++++++++++++++++++------
+ net/netfilter/nft_dynset.c               | 17 ------
+ 4 files changed, 76 insertions(+), 34 deletions(-)
+
+--
+2.11.0
 
