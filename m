@@ -4,48 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDDD9C5ACD6
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:41:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28845C1975A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:41:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 96EAE20663
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:41:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0486020663
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:41:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727238AbgCRAkO (ORCPT
+        id S1727512AbgCRAlT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Mar 2020 20:40:14 -0400
-Received: from correo.us.es ([193.147.175.20]:45590 "EHLO mail.us.es"
+        Tue, 17 Mar 2020 20:41:19 -0400
+Received: from correo.us.es ([193.147.175.20]:45622 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727174AbgCRAkM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Mar 2020 20:40:12 -0400
+        id S1727256AbgCRAkP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Mar 2020 20:40:15 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AEBD427F8B1
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:40 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 9DED727F8BC
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:43 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A20ECDA3A0
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:40 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8F428DA3A4
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:43 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 96F36DA390; Wed, 18 Mar 2020 01:39:40 +0100 (CET)
+        id 846E1DA3A0; Wed, 18 Mar 2020 01:39:43 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B5916DA390;
-        Wed, 18 Mar 2020 01:39:38 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C8D46DA72F;
+        Wed, 18 Mar 2020 01:39:41 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 18 Mar 2020 01:39:38 +0100 (CET)
+ Wed, 18 Mar 2020 01:39:41 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 8E7ED426CCB9;
-        Wed, 18 Mar 2020 01:39:38 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 9ADB1426CCB9;
+        Wed, 18 Mar 2020 01:39:41 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 01/29] netfilter: flowtable: Use nf_flow_offload_tuple for stats as well
-Date:   Wed, 18 Mar 2020 01:39:28 +0100
-Message-Id: <20200318003956.73573-2-pablo@netfilter.org>
+Subject: [PATCH 06/29] netfilter: cleanup unused macro
+Date:   Wed, 18 Mar 2020 01:39:33 +0100
+Message-Id: <20200318003956.73573-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200318003956.73573-1-pablo@netfilter.org>
 References: <20200318003956.73573-1-pablo@netfilter.org>
@@ -55,81 +54,46 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Paul Blakey <paulb@mellanox.com>
+From: Li RongQing <lirongqing@baidu.com>
 
-This patch doesn't change any functionality.
+TEMPLATE_NULLS_VAL is not used after commit 0838aa7fcfcd
+("netfilter: fix netns dependencies with conntrack templates")
 
-Signed-off-by: Paul Blakey <paulb@mellanox.com>
+PFX is not used after commit 8bee4bad03c5b ("netfilter: xt
+extensions: use pr_<level>")
+
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_offload.c | 26 +++++++++-----------------
- 1 file changed, 9 insertions(+), 17 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 1 -
+ net/netfilter/xt_SECMARK.c        | 2 --
+ 2 files changed, 3 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 42b73a084a63..88695ff44e76 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -574,6 +574,7 @@ static int nf_flow_offload_tuple(struct nf_flowtable *flowtable,
- 				 struct nf_flow_rule *flow_rule,
- 				 enum flow_offload_tuple_dir dir,
- 				 int priority, int cmd,
-+				 struct flow_stats *stats,
- 				 struct list_head *block_cb_list)
- {
- 	struct flow_cls_offload cls_flow = {};
-@@ -598,6 +599,9 @@ static int nf_flow_offload_tuple(struct nf_flowtable *flowtable,
- 	}
- 	mutex_unlock(&flowtable->flow_block_lock);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 1927fc296f95..a18f8fe728e3 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -2633,7 +2633,6 @@ void nf_conntrack_init_end(void)
+  */
+ #define UNCONFIRMED_NULLS_VAL	((1<<30)+0)
+ #define DYING_NULLS_VAL		((1<<30)+1)
+-#define TEMPLATE_NULLS_VAL	((1<<30)+2)
  
-+	if (cmd == FLOW_CLS_STATS)
-+		memcpy(stats, &cls_flow.stats, sizeof(*stats));
-+
- 	return i;
- }
- 
-@@ -607,7 +611,7 @@ static int flow_offload_tuple_add(struct flow_offload_work *offload,
+ int nf_conntrack_init_net(struct net *net)
  {
- 	return nf_flow_offload_tuple(offload->flowtable, offload->flow,
- 				     flow_rule, dir, offload->priority,
--				     FLOW_CLS_REPLACE,
-+				     FLOW_CLS_REPLACE, NULL,
- 				     &offload->flowtable->flow_block.cb_list);
- }
+diff --git a/net/netfilter/xt_SECMARK.c b/net/netfilter/xt_SECMARK.c
+index 2317721f3ecb..75625d13e976 100644
+--- a/net/netfilter/xt_SECMARK.c
++++ b/net/netfilter/xt_SECMARK.c
+@@ -21,8 +21,6 @@ MODULE_DESCRIPTION("Xtables: packet security mark modification");
+ MODULE_ALIAS("ipt_SECMARK");
+ MODULE_ALIAS("ip6t_SECMARK");
  
-@@ -615,7 +619,7 @@ static void flow_offload_tuple_del(struct flow_offload_work *offload,
- 				   enum flow_offload_tuple_dir dir)
- {
- 	nf_flow_offload_tuple(offload->flowtable, offload->flow, NULL, dir,
--			      offload->priority, FLOW_CLS_DESTROY,
-+			      offload->priority, FLOW_CLS_DESTROY, NULL,
- 			      &offload->flowtable->flow_block.cb_list);
- }
- 
-@@ -661,21 +665,9 @@ static void flow_offload_tuple_stats(struct flow_offload_work *offload,
- 				     enum flow_offload_tuple_dir dir,
- 				     struct flow_stats *stats)
- {
--	struct nf_flowtable *flowtable = offload->flowtable;
--	struct flow_cls_offload cls_flow = {};
--	struct flow_block_cb *block_cb;
--	struct netlink_ext_ack extack;
--	__be16 proto = ETH_P_ALL;
+-#define PFX "SECMARK: "
 -
--	nf_flow_offload_init(&cls_flow, proto, offload->priority,
--			     FLOW_CLS_STATS,
--			     &offload->flow->tuplehash[dir].tuple, &extack);
--
--	mutex_lock(&flowtable->flow_block_lock);
--	list_for_each_entry(block_cb, &flowtable->flow_block.cb_list, list)
--		block_cb->cb(TC_SETUP_CLSFLOWER, &cls_flow, block_cb->cb_priv);
--	mutex_unlock(&flowtable->flow_block_lock);
--	memcpy(stats, &cls_flow.stats, sizeof(*stats));
-+	nf_flow_offload_tuple(offload->flowtable, offload->flow, NULL, dir,
-+			      offload->priority, FLOW_CLS_STATS, stats,
-+			      &offload->flowtable->flow_block.cb_list);
- }
+ static u8 mode;
  
- static void flow_offload_work_stats(struct flow_offload_work *offload)
+ static unsigned int
 -- 
 2.11.0
 
