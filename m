@@ -2,102 +2,218 @@ Return-Path: <SRS0=WbMd=5D=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74224C10DCE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 11:06:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BE2CC5ACD7
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 11:37:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 547542076D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 11:06:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 61A6120774
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 11:37:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727441AbgCRLG4 (ORCPT
+        id S1727391AbgCRLhV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Mar 2020 07:06:56 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:35290 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726586AbgCRLGz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Mar 2020 07:06:55 -0400
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1jEWXF-0006md-TS; Wed, 18 Mar 2020 12:06:53 +0100
-Date:   Wed, 18 Mar 2020 12:06:53 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     "MELCHOR PENA, Bernardo Santiago" <B.S.Melchor-Pena@iaea.org>
-Cc:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Re: compilation of netfilter missing libnftnl functions - undefined
- reference - (RASPBERRY pi 3B)
-Message-ID: <20200318110653.GA7493@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        "MELCHOR PENA, Bernardo Santiago" <B.S.Melchor-Pena@iaea.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-References: <AM0PR01MB62900376D6F0DCAA682DB966F6F90@AM0PR01MB6290.eurprd01.prod.exchangelabs.com>
+        Wed, 18 Mar 2020 07:37:21 -0400
+Received: from ja.ssi.bg ([178.16.129.10]:49902 "EHLO ja.ssi.bg"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726933AbgCRLhV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 18 Mar 2020 07:37:21 -0400
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id 02IBaWel007780;
+        Wed, 18 Mar 2020 13:36:42 +0200
+Date:   Wed, 18 Mar 2020 13:36:32 +0200 (EET)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+cc:     Simon Horman <horms@verge.net.au>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2] ipvs: optimize tunnel dumps for icmp errors
+In-Reply-To: <1584278741-13944-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
+Message-ID: <alpine.LFD.2.21.2003181333460.4911@ja.home.ssi.bg>
+References: <1584278741-13944-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
+User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="KsGdsel6WgEHnImy"
-Content-Disposition: inline
-In-Reply-To: <AM0PR01MB62900376D6F0DCAA682DB966F6F90@AM0PR01MB6290.eurprd01.prod.exchangelabs.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
---KsGdsel6WgEHnImy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Hello,
 
-Hi,
+On Sun, 15 Mar 2020, Haishuang Yan wrote:
 
-On Mon, Mar 16, 2020 at 08:16:28AM +0000, MELCHOR PENA, Bernardo Santiago wrote:
-> After downloading snapshots for NFTABLES and LIBNFTNL for 20200314 I proceeded to compile both library and NFTABLES
+> After strip GRE/UDP tunnel header for icmp errors, it's better to show
+> "GRE/UDP" instead of "IPIP" in debug message.
 > 
-> Library compiled with no errors.
-> libnftnl installed in /usr/local/lib
-> 
-> pi@raspberrypi:~/nftables-20200314 $ ls -lia /usr/local/lib/libnftnl.*
-> 130735 -rwxr-xr-x 1 root root 974 Mar 15 10:55 /usr/local/lib/libnftnl.la
-> 150748 lrwxrwxrwx 1 root root 18 Mar 15 10:55 /usr/local/lib/libnftnl.so -> libnftnl.so.11.2.0
-> 150737 lrwxrwxrwx 1 root root 18 Mar 15 10:55 /usr/local/lib/libnftnl.so.11 -> libnftnl.so.11.2.0
-> 130734 -rwxr-xr-x 1 root root 969712 Mar 15 10:55 /usr/local/lib/libnftnl.so.11.2.0
-> 
-> 
-> nftables gives this error when compiling with Make
-> 
-> /usr/bin/ld: ./.libs/libnftables.so: undefined reference to `nftnl_flowtable_set_data@LIBNFTNL_13'
-> /usr/bin/ld: ./.libs/libnftables.so: undefined reference to `nftnl_udata_nest_end@LIBNFTNL_14'
-> /usr/bin/ld: ./.libs/libnftables.so: undefined reference to `nftnl_obj_set_data@LIBNFTNL_13'
-> /usr/bin/ld: ./.libs/libnftables.so: undefined reference to `nftnl_flowtable_get_u64@LIBNFTNL_11'
-> /usr/bin/ld: ./.libs/libnftables.so: undefined reference to `nftnl_flowtable_set_u64@LIBNFTNL_11'
-> /usr/bin/ld: ./.libs/libnftables.so: undefined reference to `nftnl_udata_nest_start@LIBNFTNL_14'
-> 
-> I have tried to  point link under nftables-20200314/src/.libs
-> to point to /usr/local/lib with ln -sf /usr/local/lib/libnftnl.so ./libnftables.so
+> Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
 
-Looks like you're compiling against host's libnftnl by accident. Have a
-look at the build script I attached to this email. Put it into nftables
-TOPDIR and adjust LIBNFTNL_PATH, then call as regular user.
+	Looks good to me, thanks!
 
-Cheers, Phil
+Acked-by: Julian Anastasov <ja@ssi.bg>
 
---KsGdsel6WgEHnImy
-Content-Type: application/x-sh
-Content-Disposition: attachment; filename="full_rebuild.sh"
-Content-Transfer-Encoding: quoted-printable
+	Simon, this is for -next kernels...
 
-#!/bin/bash=0A#=0A# Recompile both libnftnl and nftables so that nft does n=
-ot use the host=0A# libnftnl anymore.=0A=0ALIBNFTNL_PATH=3D/home/$USER/git/=
-libnftnl=0A=0Acd "$(dirname $0)"=0A=0A# first libnftnl build=0Acd $LIBNFTNL=
-_PATH=0Arm -rf install=0A./autogen.sh=0A./configure --enable-static --prefi=
-x=3D"$PWD/install" || {=0A	echo "libnftnl: configure failed"=0A	exit 1=0A}=
-=0Amake clean=0Amake || { echo "libnftnl: make failed"; exit 2; }=0Amake in=
-stall || { echo "libnftnl: make install failed"; exit 3; }=0Acd -=0A=0A# no=
-w build nftables and link against static libnftnl=0A./autogen.sh=0A./config=
-ure --enable-static --enable-shared --with-json --with-xtables \=0A	--prefi=
-x=3D"$PWD/install" \=0A	PKG_CONFIG_PATH=3D"${LIBNFTNL_PATH}/install/lib/pkg=
-config"=0A#	CFLAGS=3D"-fprofile-arcs -ftest-coverage"=0A[[ $? -eq 0 ]] || {=
- echo "nftables: configure failed"; exit 4; }=0Amake clean=0Amake V=3D1 || =
-{ echo "nftables: make failed"; exit 5; }=0Amake install || { echo "nftable=
-s: make install failed"; exit 6; }=0A
---KsGdsel6WgEHnImy--
+> ---
+> v2: Fix wrong proto message
+> ---
+>  net/netfilter/ipvs/ip_vs_core.c | 46 +++++++++++++++++++++++------------------
+>  1 file changed, 26 insertions(+), 20 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> index 512259f..d2ac530 100644
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -1661,8 +1661,9 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
+>  	struct ip_vs_protocol *pp;
+>  	struct ip_vs_proto_data *pd;
+>  	unsigned int offset, offset2, ihl, verdict;
+> -	bool ipip, new_cp = false;
+> +	bool tunnel, new_cp = false;
+>  	union nf_inet_addr *raddr;
+> +	char *outer_proto;
+>  
+>  	*related = 1;
+>  
+> @@ -1703,8 +1704,8 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
+>  		return NF_ACCEPT; /* The packet looks wrong, ignore */
+>  	raddr = (union nf_inet_addr *)&cih->daddr;
+>  
+> -	/* Special case for errors for IPIP packets */
+> -	ipip = false;
+> +	/* Special case for errors for IPIP/UDP/GRE tunnel packets */
+> +	tunnel = false;
+>  	if (cih->protocol == IPPROTO_IPIP) {
+>  		struct ip_vs_dest *dest;
+>  
+> @@ -1721,7 +1722,8 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
+>  		cih = skb_header_pointer(skb, offset, sizeof(_ciph), &_ciph);
+>  		if (cih == NULL)
+>  			return NF_ACCEPT; /* The packet looks wrong, ignore */
+> -		ipip = true;
+> +		tunnel = true;
+> +		outer_proto = "IPIP";
+>  	} else if ((cih->protocol == IPPROTO_UDP ||	/* Can be UDP encap */
+>  		    cih->protocol == IPPROTO_GRE) &&	/* Can be GRE encap */
+>  		   /* Error for our tunnel must arrive at LOCAL_IN */
+> @@ -1729,16 +1731,19 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
+>  		__u8 iproto;
+>  		int ulen;
+>  
+> -		/* Non-first fragment has no UDP header */
+> +		/* Non-first fragment has no UDP/GRE header */
+>  		if (unlikely(cih->frag_off & htons(IP_OFFSET)))
+>  			return NF_ACCEPT;
+>  		offset2 = offset + cih->ihl * 4;
+> -		if (cih->protocol == IPPROTO_UDP)
+> +		if (cih->protocol == IPPROTO_UDP) {
+>  			ulen = ipvs_udp_decap(ipvs, skb, offset2, AF_INET,
+>  					      raddr, &iproto);
+> -		else
+> +			outer_proto = "UDP";
+> +		} else {
+>  			ulen = ipvs_gre_decap(ipvs, skb, offset2, AF_INET,
+>  					      raddr, &iproto);
+> +			outer_proto = "GRE";
+> +		}
+>  		if (ulen > 0) {
+>  			/* Skip IP and UDP/GRE tunnel headers */
+>  			offset = offset2 + ulen;
+> @@ -1747,7 +1752,7 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
+>  						 &_ciph);
+>  			if (cih && cih->version == 4 && cih->ihl >= 5 &&
+>  			    iproto == IPPROTO_IPIP)
+> -				ipip = true;
+> +				tunnel = true;
+>  			else
+>  				return NF_ACCEPT;
+>  		}
+> @@ -1767,11 +1772,11 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
+>  		      "Checking incoming ICMP for");
+>  
+>  	offset2 = offset;
+> -	ip_vs_fill_iph_skb_icmp(AF_INET, skb, offset, !ipip, &ciph);
+> +	ip_vs_fill_iph_skb_icmp(AF_INET, skb, offset, !tunnel, &ciph);
+>  	offset = ciph.len;
+>  
+>  	/* The embedded headers contain source and dest in reverse order.
+> -	 * For IPIP this is error for request, not for reply.
+> +	 * For IPIP/UDP/GRE tunnel this is error for request, not for reply.
+>  	 */
+>  	cp = INDIRECT_CALL_1(pp->conn_in_get, ip_vs_conn_in_get_proto,
+>  			     ipvs, AF_INET, skb, &ciph);
+> @@ -1779,7 +1784,7 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
+>  	if (!cp) {
+>  		int v;
+>  
+> -		if (ipip || !sysctl_schedule_icmp(ipvs))
+> +		if (tunnel || !sysctl_schedule_icmp(ipvs))
+>  			return NF_ACCEPT;
+>  
+>  		if (!ip_vs_try_to_schedule(ipvs, AF_INET, skb, pd, &v, &cp, &ciph))
+> @@ -1797,7 +1802,7 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
+>  		goto out;
+>  	}
+>  
+> -	if (ipip) {
+> +	if (tunnel) {
+>  		__be32 info = ic->un.gateway;
+>  		__u8 type = ic->type;
+>  		__u8 code = ic->code;
+> @@ -1809,17 +1814,18 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
+>  			u32 mtu = ntohs(ic->un.frag.mtu);
+>  			__be16 frag_off = cih->frag_off;
+>  
+> -			/* Strip outer IP and ICMP, go to IPIP header */
+> +			/* Strip outer IP and ICMP, go to IPIP/UDP/GRE header */
+>  			if (pskb_pull(skb, ihl + sizeof(_icmph)) == NULL)
+> -				goto ignore_ipip;
+> +				goto ignore_tunnel;
+>  			offset2 -= ihl + sizeof(_icmph);
+>  			skb_reset_network_header(skb);
+> -			IP_VS_DBG(12, "ICMP for IPIP %pI4->%pI4: mtu=%u\n",
+> -				&ip_hdr(skb)->saddr, &ip_hdr(skb)->daddr, mtu);
+> +			IP_VS_DBG(12, "ICMP for %s %pI4->%pI4: mtu=%u\n",
+> +				  outer_proto, &ip_hdr(skb)->saddr,
+> +				  &ip_hdr(skb)->daddr, mtu);
+>  			ipv4_update_pmtu(skb, ipvs->net, mtu, 0, 0);
+>  			/* Client uses PMTUD? */
+>  			if (!(frag_off & htons(IP_DF)))
+> -				goto ignore_ipip;
+> +				goto ignore_tunnel;
+>  			/* Prefer the resulting PMTU */
+>  			if (dest) {
+>  				struct ip_vs_dest_dst *dest_dst;
+> @@ -1832,11 +1838,11 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
+>  				mtu -= sizeof(struct iphdr);
+>  			info = htonl(mtu);
+>  		}
+> -		/* Strip outer IP, ICMP and IPIP, go to IP header of
+> +		/* Strip outer IP, ICMP and IPIP/UDP/GRE, go to IP header of
+>  		 * original request.
+>  		 */
+>  		if (pskb_pull(skb, offset2) == NULL)
+> -			goto ignore_ipip;
+> +			goto ignore_tunnel;
+>  		skb_reset_network_header(skb);
+>  		IP_VS_DBG(12, "Sending ICMP for %pI4->%pI4: t=%u, c=%u, i=%u\n",
+>  			&ip_hdr(skb)->saddr, &ip_hdr(skb)->daddr,
+> @@ -1845,7 +1851,7 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
+>  		/* ICMP can be shorter but anyways, account it */
+>  		ip_vs_out_stats(cp, skb);
+>  
+> -ignore_ipip:
+> +ignore_tunnel:
+>  		consume_skb(skb);
+>  		verdict = NF_STOLEN;
+>  		goto out;
+> -- 
+> 1.8.3.1
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
