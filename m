@@ -2,218 +2,140 @@ Return-Path: <SRS0=WbMd=5D=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BE2CC5ACD7
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 11:37:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 554B0C10DCE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 13:11:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 61A6120774
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 11:37:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 276FA20724
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 13:11:48 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ct3E1Jrp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727391AbgCRLhV (ORCPT
+        id S1726971AbgCRNLs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Mar 2020 07:37:21 -0400
-Received: from ja.ssi.bg ([178.16.129.10]:49902 "EHLO ja.ssi.bg"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726933AbgCRLhV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Mar 2020 07:37:21 -0400
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id 02IBaWel007780;
-        Wed, 18 Mar 2020 13:36:42 +0200
-Date:   Wed, 18 Mar 2020 13:36:32 +0200 (EET)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-cc:     Simon Horman <horms@verge.net.au>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] ipvs: optimize tunnel dumps for icmp errors
-In-Reply-To: <1584278741-13944-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
-Message-ID: <alpine.LFD.2.21.2003181333460.4911@ja.home.ssi.bg>
-References: <1584278741-13944-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
-User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
+        Wed, 18 Mar 2020 09:11:48 -0400
+Received: from us-smtp-delivery-74.mimecast.com ([63.128.21.74]:31455 "EHLO
+        us-smtp-delivery-74.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726821AbgCRNLr (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 18 Mar 2020 09:11:47 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1584537106;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=xlChmMy4SLafuKQTGlyJ3sDvLZdWy+MYwHrLdWFHRXE=;
+        b=ct3E1JrpVeU83HhSrYOjoUNJUC/NG0yYojWR/bNPBNEXpsiZ8FPNou+z9sjtjz1vPqu4a4
+        cAJz9kHtrFBKtJDbsV2B+6N7doyvIL9a4GvQjKZdU5pMw4v5dliPYGZlYPD21f6x4XyZM/
+        n9+kYDtdZnHMQ/fL2bmFoO3NoKlpAyk=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-448-5utA3yAaM5-5gQspvcypOg-1; Wed, 18 Mar 2020 09:11:44 -0400
+X-MC-Unique: 5utA3yAaM5-5gQspvcypOg-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 26F7218A5502;
+        Wed, 18 Mar 2020 13:11:43 +0000 (UTC)
+Received: from madcap2.tricolour.ca (unknown [10.36.110.5])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id E94AC19C6A;
+        Wed, 18 Mar 2020 13:11:33 +0000 (UTC)
+Date:   Wed, 18 Mar 2020 09:11:28 -0400
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Linux-Audit Mailing List <linux-audit@redhat.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de, ebiederm@xmission.com, twoerner@redhat.com,
+        eparis@parisplace.org, tgraf@infradead.org
+Subject: Re: [PATCH ghak25 v3 3/3] audit: add subj creds to NETFILTER_CFG
+ record to cover async unregister
+Message-ID: <20200318131128.axyddgotzck7cit2@madcap2.tricolour.ca>
+References: <cover.1584480281.git.rgb@redhat.com>
+ <13ef49b2f111723106d71c1bdeedae09d9b300d8.1584480281.git.rgb@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <13ef49b2f111723106d71c1bdeedae09d9b300d8.1584480281.git.rgb@redhat.com>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-	Hello,
-
-On Sun, 15 Mar 2020, Haishuang Yan wrote:
-
-> After strip GRE/UDP tunnel header for icmp errors, it's better to show
-> "GRE/UDP" instead of "IPIP" in debug message.
+On 2020-03-17 17:30, Richard Guy Briggs wrote:
+> Some table unregister actions seem to be initiated by the kernel to
+> garbage collect unused tables that are not initiated by any userspace
+> actions.  It was found to be necessary to add the subject credentials to
+> cover this case to reveal the source of these actions.  A sample record:
 > 
-> Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+>   type=NETFILTER_CFG msg=audit(2020-03-11 21:25:21.491:269) : table=nat family=bridge entries=0 op=unregister pid=153 uid=root auid=unset tty=(none) ses=unset subj=system_u:system_r:kernel_t:s0 comm=kworker/u4:2 exe=(null)
 
-	Looks good to me, thanks!
+Given the precedent set by bpf unload, I'd really rather drop this patch
+that adds subject credentials.
 
-Acked-by: Julian Anastasov <ja@ssi.bg>
+Similarly with ghak25's subject credentials, but they were already
+present and that would change an existing record format, so it isn't
+quite as justifiable in that case.
 
-	Simon, this is for -next kernels...
-
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 > ---
-> v2: Fix wrong proto message
-> ---
->  net/netfilter/ipvs/ip_vs_core.c | 46 +++++++++++++++++++++++------------------
->  1 file changed, 26 insertions(+), 20 deletions(-)
+>  kernel/auditsc.c | 18 ++++++++++++++++++
+>  1 file changed, 18 insertions(+)
 > 
-> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-> index 512259f..d2ac530 100644
-> --- a/net/netfilter/ipvs/ip_vs_core.c
-> +++ b/net/netfilter/ipvs/ip_vs_core.c
-> @@ -1661,8 +1661,9 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
->  	struct ip_vs_protocol *pp;
->  	struct ip_vs_proto_data *pd;
->  	unsigned int offset, offset2, ihl, verdict;
-> -	bool ipip, new_cp = false;
-> +	bool tunnel, new_cp = false;
->  	union nf_inet_addr *raddr;
-> +	char *outer_proto;
+> diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+> index dbb056feccb9..6c233076dfb7 100644
+> --- a/kernel/auditsc.c
+> +++ b/kernel/auditsc.c
+> @@ -2557,12 +2557,30 @@ void __audit_log_nfcfg(const char *name, u8 af, unsigned int nentries,
+>  		       enum audit_nfcfgop op)
+>  {
+>  	struct audit_buffer *ab;
+> +	const struct cred *cred;
+> +	struct tty_struct *tty;
+> +	char comm[sizeof(current->comm)];
 >  
->  	*related = 1;
->  
-> @@ -1703,8 +1704,8 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
->  		return NF_ACCEPT; /* The packet looks wrong, ignore */
->  	raddr = (union nf_inet_addr *)&cih->daddr;
->  
-> -	/* Special case for errors for IPIP packets */
-> -	ipip = false;
-> +	/* Special case for errors for IPIP/UDP/GRE tunnel packets */
-> +	tunnel = false;
->  	if (cih->protocol == IPPROTO_IPIP) {
->  		struct ip_vs_dest *dest;
->  
-> @@ -1721,7 +1722,8 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
->  		cih = skb_header_pointer(skb, offset, sizeof(_ciph), &_ciph);
->  		if (cih == NULL)
->  			return NF_ACCEPT; /* The packet looks wrong, ignore */
-> -		ipip = true;
-> +		tunnel = true;
-> +		outer_proto = "IPIP";
->  	} else if ((cih->protocol == IPPROTO_UDP ||	/* Can be UDP encap */
->  		    cih->protocol == IPPROTO_GRE) &&	/* Can be GRE encap */
->  		   /* Error for our tunnel must arrive at LOCAL_IN */
-> @@ -1729,16 +1731,19 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
->  		__u8 iproto;
->  		int ulen;
->  
-> -		/* Non-first fragment has no UDP header */
-> +		/* Non-first fragment has no UDP/GRE header */
->  		if (unlikely(cih->frag_off & htons(IP_OFFSET)))
->  			return NF_ACCEPT;
->  		offset2 = offset + cih->ihl * 4;
-> -		if (cih->protocol == IPPROTO_UDP)
-> +		if (cih->protocol == IPPROTO_UDP) {
->  			ulen = ipvs_udp_decap(ipvs, skb, offset2, AF_INET,
->  					      raddr, &iproto);
-> -		else
-> +			outer_proto = "UDP";
-> +		} else {
->  			ulen = ipvs_gre_decap(ipvs, skb, offset2, AF_INET,
->  					      raddr, &iproto);
-> +			outer_proto = "GRE";
-> +		}
->  		if (ulen > 0) {
->  			/* Skip IP and UDP/GRE tunnel headers */
->  			offset = offset2 + ulen;
-> @@ -1747,7 +1752,7 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
->  						 &_ciph);
->  			if (cih && cih->version == 4 && cih->ihl >= 5 &&
->  			    iproto == IPPROTO_IPIP)
-> -				ipip = true;
-> +				tunnel = true;
->  			else
->  				return NF_ACCEPT;
->  		}
-> @@ -1767,11 +1772,11 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
->  		      "Checking incoming ICMP for");
->  
->  	offset2 = offset;
-> -	ip_vs_fill_iph_skb_icmp(AF_INET, skb, offset, !ipip, &ciph);
-> +	ip_vs_fill_iph_skb_icmp(AF_INET, skb, offset, !tunnel, &ciph);
->  	offset = ciph.len;
->  
->  	/* The embedded headers contain source and dest in reverse order.
-> -	 * For IPIP this is error for request, not for reply.
-> +	 * For IPIP/UDP/GRE tunnel this is error for request, not for reply.
->  	 */
->  	cp = INDIRECT_CALL_1(pp->conn_in_get, ip_vs_conn_in_get_proto,
->  			     ipvs, AF_INET, skb, &ciph);
-> @@ -1779,7 +1784,7 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
->  	if (!cp) {
->  		int v;
->  
-> -		if (ipip || !sysctl_schedule_icmp(ipvs))
-> +		if (tunnel || !sysctl_schedule_icmp(ipvs))
->  			return NF_ACCEPT;
->  
->  		if (!ip_vs_try_to_schedule(ipvs, AF_INET, skb, pd, &v, &cp, &ciph))
-> @@ -1797,7 +1802,7 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
->  		goto out;
->  	}
->  
-> -	if (ipip) {
-> +	if (tunnel) {
->  		__be32 info = ic->un.gateway;
->  		__u8 type = ic->type;
->  		__u8 code = ic->code;
-> @@ -1809,17 +1814,18 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
->  			u32 mtu = ntohs(ic->un.frag.mtu);
->  			__be16 frag_off = cih->frag_off;
->  
-> -			/* Strip outer IP and ICMP, go to IPIP header */
-> +			/* Strip outer IP and ICMP, go to IPIP/UDP/GRE header */
->  			if (pskb_pull(skb, ihl + sizeof(_icmph)) == NULL)
-> -				goto ignore_ipip;
-> +				goto ignore_tunnel;
->  			offset2 -= ihl + sizeof(_icmph);
->  			skb_reset_network_header(skb);
-> -			IP_VS_DBG(12, "ICMP for IPIP %pI4->%pI4: mtu=%u\n",
-> -				&ip_hdr(skb)->saddr, &ip_hdr(skb)->daddr, mtu);
-> +			IP_VS_DBG(12, "ICMP for %s %pI4->%pI4: mtu=%u\n",
-> +				  outer_proto, &ip_hdr(skb)->saddr,
-> +				  &ip_hdr(skb)->daddr, mtu);
->  			ipv4_update_pmtu(skb, ipvs->net, mtu, 0, 0);
->  			/* Client uses PMTUD? */
->  			if (!(frag_off & htons(IP_DF)))
-> -				goto ignore_ipip;
-> +				goto ignore_tunnel;
->  			/* Prefer the resulting PMTU */
->  			if (dest) {
->  				struct ip_vs_dest_dst *dest_dst;
-> @@ -1832,11 +1838,11 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
->  				mtu -= sizeof(struct iphdr);
->  			info = htonl(mtu);
->  		}
-> -		/* Strip outer IP, ICMP and IPIP, go to IP header of
-> +		/* Strip outer IP, ICMP and IPIP/UDP/GRE, go to IP header of
->  		 * original request.
->  		 */
->  		if (pskb_pull(skb, offset2) == NULL)
-> -			goto ignore_ipip;
-> +			goto ignore_tunnel;
->  		skb_reset_network_header(skb);
->  		IP_VS_DBG(12, "Sending ICMP for %pI4->%pI4: t=%u, c=%u, i=%u\n",
->  			&ip_hdr(skb)->saddr, &ip_hdr(skb)->daddr,
-> @@ -1845,7 +1851,7 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
->  		/* ICMP can be shorter but anyways, account it */
->  		ip_vs_out_stats(cp, skb);
->  
-> -ignore_ipip:
-> +ignore_tunnel:
->  		consume_skb(skb);
->  		verdict = NF_STOLEN;
->  		goto out;
+>  	ab = audit_log_start(audit_context(), GFP_KERNEL, AUDIT_NETFILTER_CFG);
+>  	if (!ab)
+>  		return;
+>  	audit_log_format(ab, "table=%s family=%u entries=%u op=%s",
+>  			 name, af, nentries, audit_nfcfgs[op].s);
+> +
+> +	cred = current_cred();
+> +	tty = audit_get_tty();
+> +	audit_log_format(ab, " pid=%u uid=%u auid=%u tty=%s ses=%u",
+> +			 task_pid_nr(current),
+> +			 from_kuid(&init_user_ns, cred->uid),
+> +			 from_kuid(&init_user_ns, audit_get_loginuid(current)),
+> +			 tty ? tty_name(tty) : "(none)",
+> +			 audit_get_sessionid(current));
+> +	audit_put_tty(tty);
+> +	audit_log_task_context(ab); /* subj= */
+> +	audit_log_format(ab, " comm=");
+> +	audit_log_untrustedstring(ab, get_task_comm(comm, current));
+> +	audit_log_d_path_exe(ab, current->mm); /* exe= */
+> +
+>  	audit_log_end(ab);
+>  }
+>  EXPORT_SYMBOL_GPL(__audit_log_nfcfg);
 > -- 
 > 1.8.3.1
+> 
+> --
+> Linux-audit mailing list
+> Linux-audit@redhat.com
+> https://www.redhat.com/mailman/listinfo/linux-audit
 
-Regards
+- RGB
 
 --
-Julian Anastasov <ja@ssi.bg>
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
+
