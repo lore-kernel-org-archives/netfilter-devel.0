@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 099D9C4332D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 21:01:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08A0EC4332B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 21:03:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C7AB920773
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 21:01:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BEE0020409
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 21:03:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1584565318;
-	bh=q53szQKyl2fCyHnPBNvsoMFrVxZZozVrflRQuaD3teU=;
+	s=default; t=1584565430;
+	bh=aT7inr3kbkcrO/yezXU9W+OrYI6fOi2oIoeNDjMUW10=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=WVlQ3AgS0zcvkYv01BDAXKzxNpe+1LBXIM7QktvbZDongEvspIp26JfBadWLMWyOk
-	 9HJe5VkOlJ1M4EUXBZJeK2qrp4SrkC5bw0WQWlN/duYaqC+UMDutUHB/I7iLLa2/SX
-	 13mYCSh3B7V2EmYiOdX31RqvM7d+JUGdr4l6oiRQ=
+	b=OY6Xb70ap53kYipsZM21AfgS8xDd/itVbGzlb4a4OZkG0B5KqgTFjU6d/Mr8GLxdy
+	 4DZwNBGfoMm/v3JJE0hU/ZoFlF7GhfpZWYx4V7agPz8XbjvsztdkLiVHL2TwG/O3t0
+	 ADMaGxfDupHmmQiezP9S5mmK9nzB5TatyCJgu6/w=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728732AbgCRVBw (ORCPT
+        id S1728855AbgCRVDm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Mar 2020 17:01:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57024 "EHLO mail.kernel.org"
+        Wed, 18 Mar 2020 17:03:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55928 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728543AbgCRU4L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Mar 2020 16:56:11 -0400
+        id S1728336AbgCRUzb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 18 Mar 2020 16:55:31 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 426B120BED;
-        Wed, 18 Mar 2020 20:56:10 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A5E9A20B1F;
+        Wed, 18 Mar 2020 20:55:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1584564971;
-        bh=q53szQKyl2fCyHnPBNvsoMFrVxZZozVrflRQuaD3teU=;
+        s=default; t=1584564930;
+        bh=aT7inr3kbkcrO/yezXU9W+OrYI6fOi2oIoeNDjMUW10=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qtXTqtXLRAG69kdbN9dYyJ9D1Ojo9XwpS5NH2A7AJnClsa5l8RG/BkYPf1tvhwCLd
-         hceGSJNnBp4zZIoBUkK+c5zMiqeFbWJ4lM61eA5trN24itrQDjq+NRUnsLlC84ufUM
-         LiPPXTVw41j7osISow+7kQ+C9xBNb0UKq5QD3FHQ=
+        b=bh49jOOtMk4hO9SpuQE8IEZSFTHkwfe45PZnPIf6oYGHpANM4hhpHG9YyJR73FmVM
+         VlA05W6TngrvwEP1MZg923l1v+pg+8YoLxYIVqv8MopvfcmcLE4ahSyPbbIsAkv77v
+         J2pJ2naqanqPvA1i+weBZPwLJNLeUisAU7pztkJM=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Jakub Kicinski <kuba@kernel.org>,
@@ -46,12 +46,12 @@ Cc:     Jakub Kicinski <kuba@kernel.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 13/28] netfilter: cthelper: add missing attribute validation for cthelper
-Date:   Wed, 18 Mar 2020 16:55:40 -0400
-Message-Id: <20200318205555.17447-13-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 17/37] netfilter: nft_tunnel: add missing attribute validation for tunnels
+Date:   Wed, 18 Mar 2020 16:54:49 -0400
+Message-Id: <20200318205509.17053-17-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200318205555.17447-1-sashal@kernel.org>
-References: <20200318205555.17447-1-sashal@kernel.org>
+In-Reply-To: <20200318205509.17053-1-sashal@kernel.org>
+References: <20200318205509.17053-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -63,32 +63,32 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Jakub Kicinski <kuba@kernel.org>
 
-[ Upstream commit c049b3450072b8e3998053490e025839fecfef31 ]
+[ Upstream commit 88a637719a1570705c02cacb3297af164b1714e7 ]
 
-Add missing attribute validation for cthelper
-to the netlink policy.
+Add missing attribute validation for tunnel source and
+destination ports to the netlink policy.
 
-Fixes: 12f7a505331e ("netfilter: add user-space connection tracking helper infrastructure")
+Fixes: af308b94a2a4 ("netfilter: nf_tables: add tunnel support")
 Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nfnetlink_cthelper.c | 2 ++
+ net/netfilter/nft_tunnel.c | 2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index d33ce6d5ebce9..dd1030f5dd5e2 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -733,6 +733,8 @@ static const struct nla_policy nfnl_cthelper_policy[NFCTH_MAX+1] = {
- 	[NFCTH_NAME] = { .type = NLA_NUL_STRING,
- 			 .len = NF_CT_HELPER_NAME_LEN-1 },
- 	[NFCTH_QUEUE_NUM] = { .type = NLA_U32, },
-+	[NFCTH_PRIV_DATA_LEN] = { .type = NLA_U32, },
-+	[NFCTH_STATUS] = { .type = NLA_U32, },
+diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
+index 1c6d15ea76d4a..8ae948fd9dcfc 100644
+--- a/net/netfilter/nft_tunnel.c
++++ b/net/netfilter/nft_tunnel.c
+@@ -308,6 +308,8 @@ static const struct nla_policy nft_tunnel_key_policy[NFTA_TUNNEL_KEY_MAX + 1] =
+ 	[NFTA_TUNNEL_KEY_FLAGS]	= { .type = NLA_U32, },
+ 	[NFTA_TUNNEL_KEY_TOS]	= { .type = NLA_U8, },
+ 	[NFTA_TUNNEL_KEY_TTL]	= { .type = NLA_U8, },
++	[NFTA_TUNNEL_KEY_SPORT]	= { .type = NLA_U16, },
++	[NFTA_TUNNEL_KEY_DPORT]	= { .type = NLA_U16, },
+ 	[NFTA_TUNNEL_KEY_OPTS]	= { .type = NLA_NESTED, },
  };
  
- static const struct nfnl_callback nfnl_cthelper_cb[NFNL_MSG_CTHELPER_MAX] = {
 -- 
 2.20.1
 
