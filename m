@@ -2,50 +2,50 @@ Return-Path: <SRS0=WbMd=5D=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97257C2BB1D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:40:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B4E0C1975A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:40:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 67C7220663
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:40:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EEE55206EC
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:40:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727319AbgCRAkV (ORCPT
+        id S1727339AbgCRAkX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Mar 2020 20:40:21 -0400
-Received: from correo.us.es ([193.147.175.20]:45612 "EHLO mail.us.es"
+        Tue, 17 Mar 2020 20:40:23 -0400
+Received: from correo.us.es ([193.147.175.20]:45654 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727228AbgCRAkO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Mar 2020 20:40:14 -0400
+        id S1727286AbgCRAkS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Mar 2020 20:40:18 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A0A1527F8B7
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:42 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 3C51827F8C4
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:47 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8E834DA3A3
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:42 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2CDA2DA38F
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:47 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 83BD1DA3A1; Wed, 18 Mar 2020 01:39:42 +0100 (CET)
+        id 229C6DA39F; Wed, 18 Mar 2020 01:39:47 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 924B8DA3A5;
-        Wed, 18 Mar 2020 01:39:40 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 472EADA38F;
+        Wed, 18 Mar 2020 01:39:45 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 18 Mar 2020 01:39:40 +0100 (CET)
+ Wed, 18 Mar 2020 01:39:45 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 6BC99426CCB9;
-        Wed, 18 Mar 2020 01:39:40 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 216FF426CCB9;
+        Wed, 18 Mar 2020 01:39:45 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 04/29] netfilter: nf_tables: make sets built-in
-Date:   Wed, 18 Mar 2020 01:39:31 +0100
-Message-Id: <20200318003956.73573-5-pablo@netfilter.org>
+Subject: [PATCH 12/29] netfilter: flowtable: add indr block setup support
+Date:   Wed, 18 Mar 2020 01:39:39 +0100
+Message-Id: <20200318003956.73573-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200318003956.73573-1-pablo@netfilter.org>
 References: <20200318003956.73573-1-pablo@netfilter.org>
@@ -55,233 +55,161 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: wenxu <wenxu@ucloud.cn>
 
-Placing nftables set support in an extra module is pointless:
+Add etfilter flowtable support indr-block setup. It makes flowtable offload
+vlan and tunnel device.
 
-1. nf_tables needs dynamic registeration interface for sake of one module
-2. nft heavily relies on sets, e.g. even simple rule like
-   "nft ... tcp dport { 80, 443 }" will not work with _SETS=n.
-
-IOW, either nftables isn't used or both nf_tables and nf_tables_set
-modules are needed anyway.
-
-With extra module:
- 307K net/netfilter/nf_tables.ko
-  79K net/netfilter/nf_tables_set.ko
-
-   text  data  bss     dec filename
- 146416  3072  545  150033 nf_tables.ko
-  35496  1817    0   37313 nf_tables_set.ko
-
-This patch:
- 373K net/netfilter/nf_tables.ko
-
- 178563  4049  545  183157 nf_tables.ko
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: wenxu <wenxu@ucloud.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h  |  6 ------
- net/netfilter/Kconfig              |  8 --------
- net/netfilter/Makefile             |  9 +++------
- net/netfilter/nf_tables_api.c      | 41 +++++++++++---------------------------
- net/netfilter/nf_tables_set_core.c | 31 ----------------------------
- 5 files changed, 15 insertions(+), 80 deletions(-)
- delete mode 100644 net/netfilter/nf_tables_set_core.c
+ net/netfilter/nf_flow_table_offload.c | 94 +++++++++++++++++++++++++++++++++--
+ 1 file changed, 90 insertions(+), 4 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 4170c033d461..9a5f41028736 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -397,9 +397,6 @@ struct nft_set_type {
- };
- #define to_set_type(o) container_of(o, struct nft_set_type, ops)
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index c4cb03555315..f60f01e929b8 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -7,6 +7,7 @@
+ #include <linux/tc_act/tc_csum.h>
+ #include <net/flow_offload.h>
+ #include <net/netfilter/nf_flow_table.h>
++#include <net/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack_tuple.h>
+@@ -827,6 +828,22 @@ static void nf_flow_table_block_offload_init(struct flow_block_offload *bo,
+ 	INIT_LIST_HEAD(&bo->cb_list);
+ }
  
--int nft_register_set(struct nft_set_type *type);
--void nft_unregister_set(struct nft_set_type *type);
--
- /**
-  * 	struct nft_set - nf_tables set instance
-  *
-@@ -1253,9 +1250,6 @@ void nft_trace_notify(struct nft_traceinfo *info);
- #define MODULE_ALIAS_NFT_EXPR(name) \
- 	MODULE_ALIAS("nft-expr-" name)
- 
--#define MODULE_ALIAS_NFT_SET() \
--	MODULE_ALIAS("nft-set")
--
- #define MODULE_ALIAS_NFT_OBJ(type) \
- 	MODULE_ALIAS("nft-obj-" __stringify(type))
- 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 91efae88e8c2..468fea1aebba 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -455,14 +455,6 @@ config NF_TABLES
- 	  To compile it as a module, choose M here.
- 
- if NF_TABLES
--
--config NF_TABLES_SET
--	tristate "Netfilter nf_tables set infrastructure"
--	help
--	  This option enables the nf_tables set infrastructure that allows to
--	  look up for elements in a set and to build one-way mappings between
--	  matchings and actions.
--
- config NF_TABLES_INET
- 	depends on IPV6
- 	select NF_TABLES_IPV4
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 3f572e5a975e..4fff7d0e2d27 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -78,14 +78,11 @@ nf_tables-objs := nf_tables_core.o nf_tables_api.o nft_chain_filter.o \
- 		  nf_tables_trace.o nft_immediate.o nft_cmp.o nft_range.o \
- 		  nft_bitwise.o nft_byteorder.o nft_payload.o nft_lookup.o \
- 		  nft_dynset.o nft_meta.o nft_rt.o nft_exthdr.o \
--		  nft_chain_route.o nf_tables_offload.o
--
--nf_tables_set-objs := nf_tables_set_core.o \
--		      nft_set_hash.o nft_set_bitmap.o nft_set_rbtree.o \
--		      nft_set_pipapo.o
-+		  nft_chain_route.o nf_tables_offload.o \
-+		  nft_set_hash.o nft_set_bitmap.o nft_set_rbtree.o \
-+		  nft_set_pipapo.o
- 
- obj-$(CONFIG_NF_TABLES)		+= nf_tables.o
--obj-$(CONFIG_NF_TABLES_SET)	+= nf_tables_set.o
- obj-$(CONFIG_NFT_COMPAT)	+= nft_compat.o
- obj-$(CONFIG_NFT_CONNLIMIT)	+= nft_connlimit.o
- obj-$(CONFIG_NFT_NUMGEN)	+= nft_numgen.o
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 38c680f28f15..f26a9b638d6c 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3266,25 +3266,14 @@ static int nf_tables_delrule(struct net *net, struct sock *nlsk,
- /*
-  * Sets
-  */
--
--static LIST_HEAD(nf_tables_set_types);
--
--int nft_register_set(struct nft_set_type *type)
--{
--	nfnl_lock(NFNL_SUBSYS_NFTABLES);
--	list_add_tail_rcu(&type->list, &nf_tables_set_types);
--	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
--	return 0;
--}
--EXPORT_SYMBOL_GPL(nft_register_set);
--
--void nft_unregister_set(struct nft_set_type *type)
--{
--	nfnl_lock(NFNL_SUBSYS_NFTABLES);
--	list_del_rcu(&type->list);
--	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
--}
--EXPORT_SYMBOL_GPL(nft_unregister_set);
-+static const struct nft_set_type *nft_set_types[] = {
-+	&nft_set_hash_fast_type,
-+	&nft_set_hash_type,
-+	&nft_set_rhash_type,
-+	&nft_set_bitmap_type,
-+	&nft_set_rbtree_type,
-+	&nft_set_pipapo_type,
-+};
- 
- #define NFT_SET_FEATURES	(NFT_SET_INTERVAL | NFT_SET_MAP | \
- 				 NFT_SET_TIMEOUT | NFT_SET_OBJECT | \
-@@ -3310,15 +3299,11 @@ nft_select_set_ops(const struct nft_ctx *ctx,
- 	struct nft_set_estimate est, best;
- 	const struct nft_set_type *type;
- 	u32 flags = 0;
-+	int i;
- 
- 	lockdep_assert_held(&ctx->net->nft.commit_mutex);
- 	lockdep_nfnl_nft_mutex_not_held();
--#ifdef CONFIG_MODULES
--	if (list_empty(&nf_tables_set_types)) {
--		if (nft_request_module(ctx->net, "nft-set") == -EAGAIN)
--			return ERR_PTR(-EAGAIN);
--	}
--#endif
++static int nf_flow_table_indr_offload_cmd(struct flow_block_offload *bo,
++					  struct nf_flowtable *flowtable,
++					  struct net_device *dev,
++					  enum flow_block_command cmd,
++					  struct netlink_ext_ack *extack)
++{
++	nf_flow_table_block_offload_init(bo, dev_net(dev), cmd, flowtable,
++					 extack);
++	flow_indr_block_call(dev, bo, cmd);
 +
- 	if (nla[NFTA_SET_FLAGS] != NULL)
- 		flags = ntohl(nla_get_be32(nla[NFTA_SET_FLAGS]));
++	if (list_empty(&bo->cb_list))
++		return -EOPNOTSUPP;
++
++	return 0;
++}
++
+ static int nf_flow_table_offload_cmd(struct flow_block_offload *bo,
+ 				     struct nf_flowtable *flowtable,
+ 				     struct net_device *dev,
+@@ -835,9 +852,6 @@ static int nf_flow_table_offload_cmd(struct flow_block_offload *bo,
+ {
+ 	int err;
  
-@@ -3327,7 +3312,8 @@ nft_select_set_ops(const struct nft_ctx *ctx,
- 	best.lookup = ~0;
- 	best.space  = ~0;
+-	if (!dev->netdev_ops->ndo_setup_tc)
+-		return -EOPNOTSUPP;
+-
+ 	nf_flow_table_block_offload_init(bo, dev_net(dev), cmd, flowtable,
+ 					 extack);
+ 	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_FT, bo);
+@@ -858,7 +872,12 @@ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
+ 	if (!nf_flowtable_hw_offload(flowtable))
+ 		return 0;
  
--	list_for_each_entry(type, &nf_tables_set_types, list) {
-+	for (i = 0; i < ARRAY_SIZE(nft_set_types); i++) {
-+		type = nft_set_types[i];
- 		ops = &type->ops;
+-	err = nf_flow_table_offload_cmd(&bo, flowtable, dev, cmd, &extack);
++	if (dev->netdev_ops->ndo_setup_tc)
++		err = nf_flow_table_offload_cmd(&bo, flowtable, dev, cmd,
++						&extack);
++	else
++		err = nf_flow_table_indr_offload_cmd(&bo, flowtable, dev, cmd,
++						     &extack);
+ 	if (err < 0)
+ 		return err;
  
- 		if (!nft_set_ops_candidate(type, flags))
-@@ -4312,7 +4298,6 @@ const struct nft_set_ext_type nft_set_ext_types[] = {
- 		.align	= __alignof__(u32),
- 	},
- };
--EXPORT_SYMBOL_GPL(nft_set_ext_types);
- 
- /*
-  * Set elements
-@@ -5365,7 +5350,6 @@ void nft_set_gc_batch_release(struct rcu_head *rcu)
- 		nft_set_elem_destroy(gcb->head.set, gcb->elems[i], true);
- 	kfree(gcb);
+@@ -866,10 +885,75 @@ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
  }
--EXPORT_SYMBOL_GPL(nft_set_gc_batch_release);
+ EXPORT_SYMBOL_GPL(nf_flow_table_offload_setup);
  
- struct nft_set_gc_batch *nft_set_gc_batch_alloc(const struct nft_set *set,
- 						gfp_t gfp)
-@@ -5378,7 +5362,6 @@ struct nft_set_gc_batch *nft_set_gc_batch_alloc(const struct nft_set *set,
- 	gcb->head.set = set;
- 	return gcb;
++static void nf_flow_table_indr_block_ing_cmd(struct net_device *dev,
++					     struct nf_flowtable *flowtable,
++					     flow_indr_block_bind_cb_t *cb,
++					     void *cb_priv,
++					     enum flow_block_command cmd)
++{
++	struct netlink_ext_ack extack = {};
++	struct flow_block_offload bo;
++
++	if (!flowtable)
++		return;
++
++	nf_flow_table_block_offload_init(&bo, dev_net(dev), cmd, flowtable,
++					 &extack);
++
++	cb(dev, cb_priv, TC_SETUP_FT, &bo);
++
++	nf_flow_table_block_setup(flowtable, &bo, cmd);
++}
++
++static void nf_flow_table_indr_block_cb_cmd(struct nf_flowtable *flowtable,
++					    struct net_device *dev,
++					    flow_indr_block_bind_cb_t *cb,
++					    void *cb_priv,
++					    enum flow_block_command cmd)
++{
++	if (!(flowtable->flags & NF_FLOWTABLE_HW_OFFLOAD))
++		return;
++
++	nf_flow_table_indr_block_ing_cmd(dev, flowtable, cb, cb_priv, cmd);
++}
++
++static void nf_flow_table_indr_block_cb(struct net_device *dev,
++					flow_indr_block_bind_cb_t *cb,
++					void *cb_priv,
++					enum flow_block_command cmd)
++{
++	struct net *net = dev_net(dev);
++	struct nft_flowtable *nft_ft;
++	struct nft_table *table;
++	struct nft_hook *hook;
++
++	mutex_lock(&net->nft.commit_mutex);
++	list_for_each_entry(table, &net->nft.tables, list) {
++		list_for_each_entry(nft_ft, &table->flowtables, list) {
++			list_for_each_entry(hook, &nft_ft->hook_list, list) {
++				if (hook->ops.dev != dev)
++					continue;
++
++				nf_flow_table_indr_block_cb_cmd(&nft_ft->data,
++								dev, cb,
++								cb_priv, cmd);
++			}
++		}
++	}
++	mutex_unlock(&net->nft.commit_mutex);
++}
++
++static struct flow_indr_block_entry block_ing_entry = {
++	.cb	= nf_flow_table_indr_block_cb,
++	.list	= LIST_HEAD_INIT(block_ing_entry.list),
++};
++
+ int nf_flow_table_offload_init(void)
+ {
+ 	INIT_WORK(&nf_flow_offload_work, flow_offload_work_handler);
+ 
++	flow_indr_add_block_cb(&block_ing_entry);
++
+ 	return 0;
  }
--EXPORT_SYMBOL_GPL(nft_set_gc_batch_alloc);
  
- /*
-  * Stateful objects
-diff --git a/net/netfilter/nf_tables_set_core.c b/net/netfilter/nf_tables_set_core.c
-deleted file mode 100644
-index 586b621007eb..000000000000
---- a/net/netfilter/nf_tables_set_core.c
-+++ /dev/null
-@@ -1,31 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#include <linux/module.h>
--#include <net/netfilter/nf_tables_core.h>
--
--static int __init nf_tables_set_module_init(void)
--{
--	nft_register_set(&nft_set_hash_fast_type);
--	nft_register_set(&nft_set_hash_type);
--	nft_register_set(&nft_set_rhash_type);
--	nft_register_set(&nft_set_bitmap_type);
--	nft_register_set(&nft_set_rbtree_type);
--	nft_register_set(&nft_set_pipapo_type);
--
--	return 0;
--}
--
--static void __exit nf_tables_set_module_exit(void)
--{
--	nft_unregister_set(&nft_set_pipapo_type);
--	nft_unregister_set(&nft_set_rbtree_type);
--	nft_unregister_set(&nft_set_bitmap_type);
--	nft_unregister_set(&nft_set_rhash_type);
--	nft_unregister_set(&nft_set_hash_type);
--	nft_unregister_set(&nft_set_hash_fast_type);
--}
--
--module_init(nf_tables_set_module_init);
--module_exit(nf_tables_set_module_exit);
--
--MODULE_LICENSE("GPL");
--MODULE_ALIAS_NFT_SET();
+@@ -878,6 +962,8 @@ void nf_flow_table_offload_exit(void)
+ 	struct flow_offload_work *offload, *next;
+ 	LIST_HEAD(offload_pending_list);
+ 
++	flow_indr_del_block_cb(&block_ing_entry);
++
+ 	cancel_work_sync(&nf_flow_offload_work);
+ 
+ 	list_for_each_entry_safe(offload, next, &offload_pending_list, list) {
 -- 
 2.11.0
 
