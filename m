@@ -2,50 +2,50 @@ Return-Path: <SRS0=WbMd=5D=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55369C5ACD7
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:40:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3895FC2BB1D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:40:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 278AC20738
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:40:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 142B520663
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:40:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727427AbgCRAkp (ORCPT
+        id S1727439AbgCRAku (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Mar 2020 20:40:45 -0400
-Received: from correo.us.es ([193.147.175.20]:45614 "EHLO mail.us.es"
+        Tue, 17 Mar 2020 20:40:50 -0400
+Received: from correo.us.es ([193.147.175.20]:45622 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727338AbgCRAkY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1727332AbgCRAkY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 17 Mar 2020 20:40:24 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 34F7B27F8B5
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:54 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 268E127F8BA
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:53 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 273C9DA72F
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:54 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 171A1DA3A0
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:53 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 1CCD4DA390; Wed, 18 Mar 2020 01:39:54 +0100 (CET)
+        id 0C4F3DA390; Wed, 18 Mar 2020 01:39:53 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6C077DA72F;
-        Wed, 18 Mar 2020 01:39:52 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4D0A6DA38D;
+        Wed, 18 Mar 2020 01:39:51 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 18 Mar 2020 01:39:52 +0100 (CET)
+ Wed, 18 Mar 2020 01:39:51 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 3DADA426CCB9;
-        Wed, 18 Mar 2020 01:39:52 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 27DDC426CCB9;
+        Wed, 18 Mar 2020 01:39:51 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 25/29] netfilter: nft_lookup: update element stateful expression
-Date:   Wed, 18 Mar 2020 01:39:52 +0100
-Message-Id: <20200318003956.73573-26-pablo@netfilter.org>
+Subject: [PATCH 23/29] netfilter: nf_tables: add elements with stateful expressions
+Date:   Wed, 18 Mar 2020 01:39:50 +0100
+Message-Id: <20200318003956.73573-24-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200318003956.73573-1-pablo@netfilter.org>
 References: <20200318003956.73573-1-pablo@netfilter.org>
@@ -55,25 +55,78 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If the set element comes with an stateful expression, update it.
+Update nft_add_set_elem() to handle the NFTA_SET_ELEM_EXPR netlink
+attribute. This patch allows users to to add elements with stateful
+expressions.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_lookup.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/nf_tables_api.c | 21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index 660bad688e2b..1e70359d633c 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -43,6 +43,7 @@ void nft_lookup_eval(const struct nft_expr *expr,
- 		nft_data_copy(&regs->data[priv->dreg],
- 			      nft_set_ext_data(ext), set->dlen);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index bc7a33f0cd06..f92fb6003745 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4891,6 +4891,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 	struct nft_set_elem elem;
+ 	struct nft_set_binding *binding;
+ 	struct nft_object *obj = NULL;
++	struct nft_expr *expr = NULL;
+ 	struct nft_userdata *udata;
+ 	struct nft_data_desc desc;
+ 	struct nft_data data;
+@@ -4958,10 +4959,17 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			return err;
+ 	}
  
-+	nft_set_elem_update_expr(ext, regs, pkt);
++	if (nla[NFTA_SET_ELEM_EXPR] != NULL) {
++		expr = nft_set_elem_expr_alloc(ctx, set,
++					       nla[NFTA_SET_ELEM_EXPR]);
++		if (IS_ERR(expr))
++			return PTR_ERR(expr);
++	}
++
+ 	err = nft_setelem_parse_key(ctx, set, &elem.key.val,
+ 				    nla[NFTA_SET_ELEM_KEY]);
+ 	if (err < 0)
+-		return err;
++		goto err_set_elem_expr;
+ 
+ 	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, set->klen);
+ 
+@@ -4980,6 +4988,10 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			nft_set_ext_add(&tmpl, NFT_SET_EXT_TIMEOUT);
+ 	}
+ 
++	if (expr)
++		nft_set_ext_add_length(&tmpl, NFT_SET_EXT_EXPR,
++				       expr->ops->size);
++
+ 	if (nla[NFTA_SET_ELEM_OBJREF] != NULL) {
+ 		if (!(set->flags & NFT_SET_OBJECT)) {
+ 			err = -EINVAL;
+@@ -5064,6 +5076,10 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 		*nft_set_ext_obj(ext) = obj;
+ 		obj->use++;
+ 	}
++	if (expr) {
++		memcpy(nft_set_ext_expr(ext), expr, expr->ops->size);
++		kfree(expr);
++	}
+ 
+ 	trans = nft_trans_elem_alloc(ctx, NFT_MSG_NEWSETELEM, set);
+ 	if (trans == NULL)
+@@ -5119,6 +5135,9 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 	nft_data_release(&elem.key_end.val, NFT_DATA_VALUE);
+ err_parse_key:
+ 	nft_data_release(&elem.key.val, NFT_DATA_VALUE);
++err_set_elem_expr:
++	if (expr != NULL)
++		nft_expr_destroy(ctx, expr);
+ 
+ 	return err;
  }
- 
- static const struct nla_policy nft_lookup_policy[NFTA_LOOKUP_MAX + 1] = {
 -- 
 2.11.0
 
