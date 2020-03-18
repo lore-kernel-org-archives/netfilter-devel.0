@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DE23C2BB1D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:41:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDDD9C5ACD6
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:41:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 06FE120663
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:41:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 96EAE20663
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:41:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727501AbgCRAlO (ORCPT
+        id S1727238AbgCRAkO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Mar 2020 20:41:14 -0400
-Received: from correo.us.es ([193.147.175.20]:45612 "EHLO mail.us.es"
+        Tue, 17 Mar 2020 20:40:14 -0400
+Received: from correo.us.es ([193.147.175.20]:45590 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727265AbgCRAkP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Mar 2020 20:40:15 -0400
+        id S1727174AbgCRAkM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Mar 2020 20:40:12 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9522D27F8AC
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:45 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id AEBD427F8B1
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:40 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 85F3ADA3A8
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:45 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A20ECDA3A0
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:40 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7B2C1DA3A1; Wed, 18 Mar 2020 01:39:45 +0100 (CET)
+        id 96F36DA390; Wed, 18 Mar 2020 01:39:40 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 98738DA3AA;
-        Wed, 18 Mar 2020 01:39:43 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B5916DA390;
+        Wed, 18 Mar 2020 01:39:38 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 18 Mar 2020 01:39:43 +0100 (CET)
+ Wed, 18 Mar 2020 01:39:38 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 71A0A426CCB9;
-        Wed, 18 Mar 2020 01:39:43 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 8E7ED426CCB9;
+        Wed, 18 Mar 2020 01:39:38 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 09/29] netfilter: bitwise: use more descriptive variable-names.
-Date:   Wed, 18 Mar 2020 01:39:36 +0100
-Message-Id: <20200318003956.73573-10-pablo@netfilter.org>
+Subject: [PATCH 01/29] netfilter: flowtable: Use nf_flow_offload_tuple for stats as well
+Date:   Wed, 18 Mar 2020 01:39:28 +0100
+Message-Id: <20200318003956.73573-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200318003956.73573-1-pablo@netfilter.org>
 References: <20200318003956.73573-1-pablo@netfilter.org>
@@ -55,66 +55,81 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Jeremy Sowden <jeremy@azazel.net>
+From: Paul Blakey <paulb@mellanox.com>
 
-Name the mask and xor data variables, "mask" and "xor," instead of "d1"
-and "d2."
+This patch doesn't change any functionality.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+Signed-off-by: Paul Blakey <paulb@mellanox.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_bitwise.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ net/netfilter/nf_flow_table_offload.c | 26 +++++++++-----------------
+ 1 file changed, 9 insertions(+), 17 deletions(-)
 
-diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
-index 0ed2281f03be..bc37d6c59db4 100644
---- a/net/netfilter/nft_bitwise.c
-+++ b/net/netfilter/nft_bitwise.c
-@@ -93,7 +93,7 @@ static const struct nla_policy nft_bitwise_policy[NFTA_BITWISE_MAX + 1] = {
- static int nft_bitwise_init_bool(struct nft_bitwise *priv,
- 				 const struct nlattr *const tb[])
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 42b73a084a63..88695ff44e76 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -574,6 +574,7 @@ static int nf_flow_offload_tuple(struct nf_flowtable *flowtable,
+ 				 struct nf_flow_rule *flow_rule,
+ 				 enum flow_offload_tuple_dir dir,
+ 				 int priority, int cmd,
++				 struct flow_stats *stats,
+ 				 struct list_head *block_cb_list)
  {
--	struct nft_data_desc d1, d2;
-+	struct nft_data_desc mask, xor;
- 	int err;
- 
- 	if (tb[NFTA_BITWISE_DATA])
-@@ -103,29 +103,29 @@ static int nft_bitwise_init_bool(struct nft_bitwise *priv,
- 	    !tb[NFTA_BITWISE_XOR])
- 		return -EINVAL;
- 
--	err = nft_data_init(NULL, &priv->mask, sizeof(priv->mask), &d1,
-+	err = nft_data_init(NULL, &priv->mask, sizeof(priv->mask), &mask,
- 			    tb[NFTA_BITWISE_MASK]);
- 	if (err < 0)
- 		return err;
--	if (d1.type != NFT_DATA_VALUE || d1.len != priv->len) {
-+	if (mask.type != NFT_DATA_VALUE || mask.len != priv->len) {
- 		err = -EINVAL;
- 		goto err1;
+ 	struct flow_cls_offload cls_flow = {};
+@@ -598,6 +599,9 @@ static int nf_flow_offload_tuple(struct nf_flowtable *flowtable,
  	}
+ 	mutex_unlock(&flowtable->flow_block_lock);
  
--	err = nft_data_init(NULL, &priv->xor, sizeof(priv->xor), &d2,
-+	err = nft_data_init(NULL, &priv->xor, sizeof(priv->xor), &xor,
- 			    tb[NFTA_BITWISE_XOR]);
- 	if (err < 0)
- 		goto err1;
--	if (d2.type != NFT_DATA_VALUE || d2.len != priv->len) {
-+	if (xor.type != NFT_DATA_VALUE || xor.len != priv->len) {
- 		err = -EINVAL;
- 		goto err2;
- 	}
- 
- 	return 0;
- err2:
--	nft_data_release(&priv->xor, d2.type);
-+	nft_data_release(&priv->xor, xor.type);
- err1:
--	nft_data_release(&priv->mask, d1.type);
-+	nft_data_release(&priv->mask, mask.type);
- 	return err;
++	if (cmd == FLOW_CLS_STATS)
++		memcpy(stats, &cls_flow.stats, sizeof(*stats));
++
+ 	return i;
  }
  
+@@ -607,7 +611,7 @@ static int flow_offload_tuple_add(struct flow_offload_work *offload,
+ {
+ 	return nf_flow_offload_tuple(offload->flowtable, offload->flow,
+ 				     flow_rule, dir, offload->priority,
+-				     FLOW_CLS_REPLACE,
++				     FLOW_CLS_REPLACE, NULL,
+ 				     &offload->flowtable->flow_block.cb_list);
+ }
+ 
+@@ -615,7 +619,7 @@ static void flow_offload_tuple_del(struct flow_offload_work *offload,
+ 				   enum flow_offload_tuple_dir dir)
+ {
+ 	nf_flow_offload_tuple(offload->flowtable, offload->flow, NULL, dir,
+-			      offload->priority, FLOW_CLS_DESTROY,
++			      offload->priority, FLOW_CLS_DESTROY, NULL,
+ 			      &offload->flowtable->flow_block.cb_list);
+ }
+ 
+@@ -661,21 +665,9 @@ static void flow_offload_tuple_stats(struct flow_offload_work *offload,
+ 				     enum flow_offload_tuple_dir dir,
+ 				     struct flow_stats *stats)
+ {
+-	struct nf_flowtable *flowtable = offload->flowtable;
+-	struct flow_cls_offload cls_flow = {};
+-	struct flow_block_cb *block_cb;
+-	struct netlink_ext_ack extack;
+-	__be16 proto = ETH_P_ALL;
+-
+-	nf_flow_offload_init(&cls_flow, proto, offload->priority,
+-			     FLOW_CLS_STATS,
+-			     &offload->flow->tuplehash[dir].tuple, &extack);
+-
+-	mutex_lock(&flowtable->flow_block_lock);
+-	list_for_each_entry(block_cb, &flowtable->flow_block.cb_list, list)
+-		block_cb->cb(TC_SETUP_CLSFLOWER, &cls_flow, block_cb->cb_priv);
+-	mutex_unlock(&flowtable->flow_block_lock);
+-	memcpy(stats, &cls_flow.stats, sizeof(*stats));
++	nf_flow_offload_tuple(offload->flowtable, offload->flow, NULL, dir,
++			      offload->priority, FLOW_CLS_STATS, stats,
++			      &offload->flowtable->flow_block.cb_list);
+ }
+ 
+ static void flow_offload_work_stats(struct flow_offload_work *offload)
 -- 
 2.11.0
 
