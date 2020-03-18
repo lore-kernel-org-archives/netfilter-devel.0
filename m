@@ -4,50 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68B83C43332
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 21:08:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69917C4332E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 21:08:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3727220775
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 21:08:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 34C3E20777
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 21:08:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1584565680;
-	bh=+3PT5ixSSczOWYJFYGUU1q4HgAMEEfKeUtxBoxFqb20=;
+	s=default; t=1584565696;
+	bh=MS6kx90JXGnbezXfqzpAbLVYZfERwq0YnoSrayV5A4Y=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=CD4CAkKaR6X/uD8seFMdd+ks4xeX38C39OMRFHRAmZSJ0F/ECNG1zr1knQu2Nmrrd
-	 FbfJYCRhdkO4EpJHn9lM968Qfhv25fpC+fUciKXwpQ+hynUsX3BFcq8BJkIaNF5QFb
-	 E8aSy5M75ggpaJwsfaWqBaDH9NPZC14xiPLi3X3g=
+	b=Oy7ClvnkGgvZC2aGt7KkF3SDK/Nxuo0D90J5MvMNpecYoy05ICCgXaaDibonGWIRA
+	 a97SCf7y7aLWC+td7zfY7uLrLJ+pMpuUkCHVZT2hOIQ+h2TeJbAYfXhUiE2eHuAImS
+	 BOtJGcpjvXB01PF9AqO5r1P6xSCYhjCEmN+jnKOM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727451AbgCRVH6 (ORCPT
+        id S1727551AbgCRUyG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Mar 2020 17:07:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53544 "EHLO mail.kernel.org"
+        Wed, 18 Mar 2020 16:54:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53410 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727536AbgCRUyJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Mar 2020 16:54:09 -0400
+        id S1727536AbgCRUyE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 18 Mar 2020 16:54:04 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D27292098B;
-        Wed, 18 Mar 2020 20:54:07 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 15FCE20724;
+        Wed, 18 Mar 2020 20:54:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1584564848;
-        bh=+3PT5ixSSczOWYJFYGUU1q4HgAMEEfKeUtxBoxFqb20=;
+        s=default; t=1584564843;
+        bh=MS6kx90JXGnbezXfqzpAbLVYZfERwq0YnoSrayV5A4Y=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=UknWaNHzdJBWeiPr8MQFiRXhbaHfEIerLhru2B1ZJvKAt5zNC9v13B7nqbJ5SiGvq
-         OUWCnMVudzpiOrOi9bP9r1B1gNG1u/VXq8Vhqq37+wGXmgj3DBeFEf/sCO+8OfyIMU
-         dGfFtMBAQpmY2M4UFLLeats0u5ZAHQVSKZwV73BY=
+        b=nd0K2jW6ao1E0kXfAA9ufPNtT7sZCzLYBT38kMPwDEAYCtqpRfefJ8q8rWSBn8Eec
+         mBJNyVSVrAgOondL2Gc5GBAoZDjCSCxUerg+u8BxcUNH4DkUxQOWtDYR0XwuII9egM
+         hs2GX2CYS+jBdayyu3zX07zCq/Eg/T3Sh6ldETTM=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc:     Jakub Kicinski <kuba@kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 26/73] netfilter: nf_tables: dump NFTA_CHAIN_FLAGS attribute
-Date:   Wed, 18 Mar 2020 16:52:50 -0400
-Message-Id: <20200318205337.16279-26-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 22/73] netfilter: nft_tunnel: add missing attribute validation for tunnels
+Date:   Wed, 18 Mar 2020 16:52:46 -0400
+Message-Id: <20200318205337.16279-22-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200318205337.16279-1-sashal@kernel.org>
 References: <20200318205337.16279-1-sashal@kernel.org>
@@ -60,36 +61,34 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Jakub Kicinski <kuba@kernel.org>
 
-[ Upstream commit d78008de6103c708171baff9650a7862645d23b0 ]
+[ Upstream commit 88a637719a1570705c02cacb3297af164b1714e7 ]
 
-Missing NFTA_CHAIN_FLAGS netlink attribute when dumping basechain
-definitions.
+Add missing attribute validation for tunnel source and
+destination ports to the netlink policy.
 
-Fixes: c9626a2cbdb2 ("netfilter: nf_tables: add hardware offload support")
+Fixes: af308b94a2a4 ("netfilter: nf_tables: add tunnel support")
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_tables_api.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ net/netfilter/nft_tunnel.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 23544842b6923..bd76ef77c03f5 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1309,6 +1309,11 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
- 					      lockdep_commit_lock_is_held(net));
- 		if (nft_dump_stats(skb, stats))
- 			goto nla_put_failure;
-+
-+		if ((chain->flags & NFT_CHAIN_HW_OFFLOAD) &&
-+		    nla_put_be32(skb, NFTA_CHAIN_FLAGS,
-+				 htonl(NFT_CHAIN_HW_OFFLOAD)))
-+			goto nla_put_failure;
- 	}
+diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
+index 037e8fce9b30e..1effd4878619f 100644
+--- a/net/netfilter/nft_tunnel.c
++++ b/net/netfilter/nft_tunnel.c
+@@ -339,6 +339,8 @@ static const struct nla_policy nft_tunnel_key_policy[NFTA_TUNNEL_KEY_MAX + 1] =
+ 	[NFTA_TUNNEL_KEY_FLAGS]	= { .type = NLA_U32, },
+ 	[NFTA_TUNNEL_KEY_TOS]	= { .type = NLA_U8, },
+ 	[NFTA_TUNNEL_KEY_TTL]	= { .type = NLA_U8, },
++	[NFTA_TUNNEL_KEY_SPORT]	= { .type = NLA_U16, },
++	[NFTA_TUNNEL_KEY_DPORT]	= { .type = NLA_U16, },
+ 	[NFTA_TUNNEL_KEY_OPTS]	= { .type = NLA_NESTED, },
+ };
  
- 	if (nla_put_be32(skb, NFTA_CHAIN_USE, htonl(chain->use)))
 -- 
 2.20.1
 
