@@ -2,50 +2,50 @@ Return-Path: <SRS0=WbMd=5D=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.8 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEE4EC5ACD6
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:40:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2BBEC5ACD8
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:40:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B18C420663
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:40:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CA7CB20663
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:40:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727327AbgCRAkW (ORCPT
+        id S1727393AbgCRAk2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Mar 2020 20:40:22 -0400
-Received: from correo.us.es ([193.147.175.20]:45636 "EHLO mail.us.es"
+        Tue, 17 Mar 2020 20:40:28 -0400
+Received: from correo.us.es ([193.147.175.20]:45686 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727113AbgCRAkT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Mar 2020 20:40:19 -0400
+        id S1727381AbgCRAk1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Mar 2020 20:40:27 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AA57927F8B1
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:45 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 1CCBB27F8A9
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:57 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9CAC5DA3A1
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:45 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 08350DA3A1
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:57 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 8C333DA38D; Wed, 18 Mar 2020 01:39:45 +0100 (CET)
+        id F2271DA38F; Wed, 18 Mar 2020 01:39:56 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 03921DA38D;
-        Wed, 18 Mar 2020 01:39:43 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A0975DA72F;
+        Wed, 18 Mar 2020 01:39:54 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 18 Mar 2020 01:39:43 +0100 (CET)
+ Wed, 18 Mar 2020 01:39:54 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id D1E9F426CCB9;
-        Wed, 18 Mar 2020 01:39:42 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 7B3B8426CCB9;
+        Wed, 18 Mar 2020 01:39:54 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 08/29] netfilter: Replace zero-length array with flexible-array member
-Date:   Wed, 18 Mar 2020 01:39:35 +0100
-Message-Id: <20200318003956.73573-9-pablo@netfilter.org>
+Subject: [PATCH 29/29] netfilter: Introduce egress hook
+Date:   Wed, 18 Mar 2020 01:39:56 +0100
+Message-Id: <20200318003956.73573-30-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200318003956.73573-1-pablo@netfilter.org>
 References: <20200318003956.73573-1-pablo@netfilter.org>
@@ -55,443 +55,318 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+From: Lukas Wunner <lukas@wunner.de>
 
-The current codebase makes use of the zero-length array language
-extension to the C90 standard, but the preferred mechanism to declare
-variable-length types such as these ones is a flexible array member[1][2],
-introduced in C99:
+Commit e687ad60af09 ("netfilter: add netfilter ingress hook after
+handle_ing() under unique static key") introduced the ability to
+classify packets on ingress.
 
-struct foo {
-        int stuff;
-        struct boo array[];
-};
+Allow the same on egress.  Position the hook immediately before a packet
+is handed to tc and then sent out on an interface, thereby mirroring the
+ingress order.  This order allows marking packets in the netfilter
+egress hook and subsequently using the mark in tc.  Another benefit of
+this order is consistency with a lot of existing documentation which
+says that egress tc is performed after netfilter hooks.
 
-By making use of the mechanism above, we will get a compiler warning
-in case the flexible array does not occur last in the structure, which
-will help us prevent some kind of undefined behavior bugs from being
-inadvertently introduced[3] to the codebase from now on.
+Egress hooks already exist for the most common protocols, such as
+NF_INET_LOCAL_OUT or NF_ARP_OUT, and those are to be preferred because
+they are executed earlier during packet processing.  However for more
+exotic protocols, there is currently no provision to apply netfilter on
+egress.  A common workaround is to enslave the interface to a bridge and
+use ebtables, or to resort to tc.  But when the ingress hook was
+introduced, consensus was that users should be given the choice to use
+netfilter or tc, whichever tool suits their needs best:
+https://lore.kernel.org/netdev/20150430153317.GA3230@salvia/
+This hook is also useful for NAT46/NAT64, tunneling and filtering of
+locally generated af_packet traffic such as dhclient.
 
-Also, notice that, dynamic memory allocations won't be affected by
-this change:
+There have also been occasional user requests for a netfilter egress
+hook in the past, e.g.:
+https://www.spinics.net/lists/netfilter/msg50038.html
 
-"Flexible array members have incomplete type, and so the sizeof operator
-may not be applied. As a quirk of the original implementation of
-zero-length arrays, sizeof evaluates to zero."[1]
+Performance measurements with pktgen surprisingly show a speedup rather
+than a slowdown with this commit:
 
-Lastly, fix checkpatch.pl warning
-WARNING: __aligned(size) is preferred over __attribute__((aligned(size)))
-in net/bridge/netfilter/ebtables.c
+* Without this commit:
+  Result: OK: 34240933(c34238375+d2558) usec, 100000000 (60byte,0frags)
+  2920481pps 1401Mb/sec (1401830880bps) errors: 0
 
-This issue was found with the help of Coccinelle.
+* With this commit:
+  Result: OK: 33997299(c33994193+d3106) usec, 100000000 (60byte,0frags)
+  2941410pps 1411Mb/sec (1411876800bps) errors: 0
 
-[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
-[2] https://github.com/KSPP/linux/issues/21
-[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
+* Without this commit + tc egress:
+  Result: OK: 39022386(c39019547+d2839) usec, 100000000 (60byte,0frags)
+  2562631pps 1230Mb/sec (1230062880bps) errors: 0
 
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+* With this commit + tc egress:
+  Result: OK: 37604447(c37601877+d2570) usec, 100000000 (60byte,0frags)
+  2659259pps 1276Mb/sec (1276444320bps) errors: 0
+
+* With this commit + nft egress:
+  Result: OK: 41436689(c41434088+d2600) usec, 100000000 (60byte,0frags)
+  2413320pps 1158Mb/sec (1158393600bps) errors: 0
+
+Tested on a bare-metal Core i7-3615QM, each measurement was performed
+three times to verify that the numbers are stable.
+
+Commands to perform a measurement:
+modprobe pktgen
+echo "add_device lo@3" > /proc/net/pktgen/kpktgend_3
+samples/pktgen/pktgen_bench_xmit_mode_queue_xmit.sh -i 'lo@3' -n 100000000
+
+Commands for testing tc egress:
+tc qdisc add dev lo clsact
+tc filter add dev lo egress protocol ip prio 1 u32 match ip dst 4.3.2.1/32
+
+Commands for testing nft egress:
+nft add table netdev t
+nft add chain netdev t co \{ type filter hook egress device lo priority 0 \; \}
+nft add rule netdev t co ip daddr 4.3.2.1/32 drop
+
+All testing was performed on the loopback interface to avoid distorting
+measurements by the packet handling in the low-level Ethernet driver.
+
+Signed-off-by: Lukas Wunner <lukas@wunner.de>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/ipset/ip_set.h          | 2 +-
- include/linux/netfilter/x_tables.h              | 8 ++++----
- include/linux/netfilter_arp/arp_tables.h        | 2 +-
- include/linux/netfilter_bridge/ebtables.h       | 2 +-
- include/linux/netfilter_ipv4/ip_tables.h        | 2 +-
- include/linux/netfilter_ipv6/ip6_tables.h       | 2 +-
- include/net/netfilter/nf_conntrack_extend.h     | 2 +-
- include/net/netfilter/nf_conntrack_timeout.h    | 2 +-
- include/net/netfilter/nf_tables.h               | 6 +++---
- include/uapi/linux/netfilter_bridge/ebt_among.h | 2 +-
- net/bridge/netfilter/ebtables.c                 | 2 +-
- net/ipv4/netfilter/arp_tables.c                 | 4 ++--
- net/ipv4/netfilter/ip_tables.c                  | 4 ++--
- net/ipv6/netfilter/ip6_tables.c                 | 4 ++--
- net/netfilter/ipset/ip_set_bitmap_ip.c          | 2 +-
- net/netfilter/ipset/ip_set_bitmap_ipmac.c       | 2 +-
- net/netfilter/ipset/ip_set_bitmap_port.c        | 2 +-
- net/netfilter/ipset/ip_set_hash_gen.h           | 4 ++--
- net/netfilter/nfnetlink_acct.c                  | 2 +-
- net/netfilter/nft_set_pipapo.c                  | 2 +-
- net/netfilter/xt_hashlimit.c                    | 2 +-
- net/netfilter/xt_recent.c                       | 4 ++--
- 22 files changed, 32 insertions(+), 32 deletions(-)
+ include/linux/netdevice.h        |  4 ++++
+ include/linux/netfilter_netdev.h | 27 +++++++++++++++++++++++++++
+ include/uapi/linux/netfilter.h   |  1 +
+ net/core/dev.c                   | 23 ++++++++++++++++++++---
+ net/netfilter/Kconfig            |  8 ++++++++
+ net/netfilter/core.c             | 24 ++++++++++++++++++++----
+ net/netfilter/nft_chain_filter.c |  4 +++-
+ 7 files changed, 83 insertions(+), 8 deletions(-)
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index 5448c8b443db..ab192720e2d6 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -98,7 +98,7 @@ struct ip_set_counter {
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index 654808bfad83..15f1e32b430c 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -1751,6 +1751,7 @@ enum netdev_priv_flags {
+  *	@xps_maps:	XXX: need comments on this one
+  *	@miniq_egress:		clsact qdisc specific data for
+  *				egress processing
++ *	@nf_hooks_egress:	netfilter hooks executed for egress packets
+  *	@qdisc_hash:		qdisc hash table
+  *	@watchdog_timeo:	Represents the timeout that is used by
+  *				the watchdog (see dev_watchdog())
+@@ -2026,6 +2027,9 @@ struct net_device {
+ #ifdef CONFIG_NET_CLS_ACT
+ 	struct mini_Qdisc __rcu	*miniq_egress;
+ #endif
++#ifdef CONFIG_NETFILTER_EGRESS
++	struct nf_hook_entries __rcu *nf_hooks_egress;
++#endif
  
- struct ip_set_comment_rcu {
- 	struct rcu_head rcu;
--	char str[0];
-+	char str[];
+ #ifdef CONFIG_NET_SCHED
+ 	DECLARE_HASHTABLE	(qdisc_hash, 4);
+diff --git a/include/linux/netfilter_netdev.h b/include/linux/netfilter_netdev.h
+index 49e26479642e..92d3611a782e 100644
+--- a/include/linux/netfilter_netdev.h
++++ b/include/linux/netfilter_netdev.h
+@@ -47,6 +47,9 @@ static inline void nf_hook_netdev_init(struct net_device *dev)
+ #ifdef CONFIG_NETFILTER_INGRESS
+ 	RCU_INIT_POINTER(dev->nf_hooks_ingress, NULL);
+ #endif
++#ifdef CONFIG_NETFILTER_EGRESS
++	RCU_INIT_POINTER(dev->nf_hooks_egress, NULL);
++#endif
+ }
+ 
+ #ifdef CONFIG_NETFILTER_INGRESS
+@@ -72,4 +75,28 @@ static inline int nf_hook_ingress(struct sk_buff *skb)
+ 	return 0;
+ }
+ #endif /* CONFIG_NETFILTER_INGRESS */
++
++#ifdef CONFIG_NETFILTER_EGRESS
++static inline bool nf_hook_egress_active(const struct sk_buff *skb)
++{
++	return nf_hook_netdev_active(NF_NETDEV_EGRESS,
++				     skb->dev->nf_hooks_egress);
++}
++
++static inline int nf_hook_egress(struct sk_buff *skb)
++{
++	return nf_hook_netdev(skb, NF_NETDEV_EGRESS,
++			      skb->dev->nf_hooks_egress);
++}
++#else /* CONFIG_NETFILTER_EGRESS */
++static inline int nf_hook_egress_active(struct sk_buff *skb)
++{
++	return 0;
++}
++
++static inline int nf_hook_egress(struct sk_buff *skb)
++{
++	return 0;
++}
++#endif /* CONFIG_NETFILTER_EGRESS */
+ #endif /* _NETFILTER_INGRESS_H_ */
+diff --git a/include/uapi/linux/netfilter.h b/include/uapi/linux/netfilter.h
+index ca9e63d6e0e4..d1616574c54f 100644
+--- a/include/uapi/linux/netfilter.h
++++ b/include/uapi/linux/netfilter.h
+@@ -50,6 +50,7 @@ enum nf_inet_hooks {
+ 
+ enum nf_dev_hooks {
+ 	NF_NETDEV_INGRESS,
++	NF_NETDEV_EGRESS,
+ 	NF_NETDEV_NUMHOOKS
  };
  
- struct ip_set_comment {
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 1b261c51b3a3..5da88451853b 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -264,7 +264,7 @@ struct xt_table_info {
- 	unsigned int stacksize;
- 	void ***jumpstack;
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 13d562f67e9c..a2da72a77c20 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -3773,6 +3773,7 @@ EXPORT_SYMBOL(dev_loopback_xmit);
+ static struct sk_buff *
+ sch_handle_egress(struct sk_buff *skb, int *ret, struct net_device *dev)
+ {
++#ifdef CONFIG_NET_CLS_ACT
+ 	struct mini_Qdisc *miniq = rcu_dereference_bh(dev->miniq_egress);
+ 	struct tcf_result cl_res;
  
--	unsigned char entries[0] __aligned(8);
-+	unsigned char entries[] __aligned(8);
+@@ -3806,11 +3807,24 @@ sch_handle_egress(struct sk_buff *skb, int *ret, struct net_device *dev)
+ 	default:
+ 		break;
+ 	}
+-
++#endif /* CONFIG_NET_CLS_ACT */
+ 	return skb;
+ }
+ #endif /* CONFIG_NET_EGRESS */
+ 
++static inline int nf_egress(struct sk_buff *skb)
++{
++	if (nf_hook_egress_active(skb)) {
++		int ret;
++
++		rcu_read_lock();
++		ret = nf_hook_egress(skb);
++		rcu_read_unlock();
++		return ret;
++	}
++	return 0;
++}
++
+ #ifdef CONFIG_XPS
+ static int __get_xps_queue_idx(struct net_device *dev, struct sk_buff *skb,
+ 			       struct xps_dev_maps *dev_maps, unsigned int tci)
+@@ -3997,13 +4011,16 @@ static int __dev_queue_xmit(struct sk_buff *skb, struct net_device *sb_dev)
+ 	qdisc_pkt_len_init(skb);
+ #ifdef CONFIG_NET_CLS_ACT
+ 	skb->tc_at_ingress = 0;
+-# ifdef CONFIG_NET_EGRESS
++#endif
++#ifdef CONFIG_NET_EGRESS
+ 	if (static_branch_unlikely(&egress_needed_key)) {
++		if (nf_egress(skb) < 0)
++			goto out;
++
+ 		skb = sch_handle_egress(skb, &rc, dev);
+ 		if (!skb)
+ 			goto out;
+ 	}
+-# endif
+ #endif
+ 	/* If device/qdisc don't need skb->dst, release it right now while
+ 	 * its hot in this cpu cache.
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 468fea1aebba..f4c68f60f241 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -10,6 +10,14 @@ config NETFILTER_INGRESS
+ 	  This allows you to classify packets from ingress using the Netfilter
+ 	  infrastructure.
+ 
++config NETFILTER_EGRESS
++	bool "Netfilter egress support"
++	default y
++	select NET_EGRESS
++	help
++	  This allows you to classify packets before transmission using the
++	  Netfilter infrastructure.
++
+ config NETFILTER_NETLINK
+ 	tristate
+ 
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 78f046ec506f..85e9c959aba7 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -307,6 +307,12 @@ nf_hook_entry_head(struct net *net, int pf, unsigned int hooknum,
+ 			return &dev->nf_hooks_ingress;
+ 	}
+ #endif
++#ifdef CONFIG_NETFILTER_EGRESS
++	if (hooknum == NF_NETDEV_EGRESS) {
++		if (dev && dev_net(dev) == net)
++			return &dev->nf_hooks_egress;
++	}
++#endif
+ 	WARN_ON_ONCE(1);
+ 	return NULL;
+ }
+@@ -318,11 +324,13 @@ static int __nf_register_net_hook(struct net *net, int pf,
+ 	struct nf_hook_entries __rcu **pp;
+ 
+ 	if (pf == NFPROTO_NETDEV) {
+-#ifndef CONFIG_NETFILTER_INGRESS
+-		if (reg->hooknum == NF_NETDEV_INGRESS)
++		if ((!IS_ENABLED(CONFIG_NETFILTER_INGRESS) &&
++		     reg->hooknum == NF_NETDEV_INGRESS) ||
++		    (!IS_ENABLED(CONFIG_NETFILTER_EGRESS) &&
++		     reg->hooknum == NF_NETDEV_EGRESS))
+ 			return -EOPNOTSUPP;
+-#endif
+-		if (reg->hooknum != NF_NETDEV_INGRESS ||
++		if ((reg->hooknum != NF_NETDEV_INGRESS &&
++		     reg->hooknum != NF_NETDEV_EGRESS) ||
+ 		    !reg->dev || dev_net(reg->dev) != net)
+ 			return -EINVAL;
+ 	}
+@@ -348,6 +356,10 @@ static int __nf_register_net_hook(struct net *net, int pf,
+ 	if (pf == NFPROTO_NETDEV && reg->hooknum == NF_NETDEV_INGRESS)
+ 		net_inc_ingress_queue();
+ #endif
++#ifdef CONFIG_NETFILTER_EGRESS
++	if (pf == NFPROTO_NETDEV && reg->hooknum == NF_NETDEV_EGRESS)
++		net_inc_egress_queue();
++#endif
+ #ifdef CONFIG_JUMP_LABEL
+ 	static_key_slow_inc(&nf_hooks_needed[pf][reg->hooknum]);
+ #endif
+@@ -406,6 +418,10 @@ static void __nf_unregister_net_hook(struct net *net, int pf,
+ 		if (pf == NFPROTO_NETDEV && reg->hooknum == NF_NETDEV_INGRESS)
+ 			net_dec_ingress_queue();
+ #endif
++#ifdef CONFIG_NETFILTER_EGRESS
++		if (pf == NFPROTO_NETDEV && reg->hooknum == NF_NETDEV_EGRESS)
++			net_dec_egress_queue();
++#endif
+ #ifdef CONFIG_JUMP_LABEL
+ 		static_key_slow_dec(&nf_hooks_needed[pf][reg->hooknum]);
+ #endif
+diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
+index c78d01bc02e9..67ce6dbb5496 100644
+--- a/net/netfilter/nft_chain_filter.c
++++ b/net/netfilter/nft_chain_filter.c
+@@ -277,9 +277,11 @@ static const struct nft_chain_type nft_chain_filter_netdev = {
+ 	.name		= "filter",
+ 	.type		= NFT_CHAIN_T_DEFAULT,
+ 	.family		= NFPROTO_NETDEV,
+-	.hook_mask	= (1 << NF_NETDEV_INGRESS),
++	.hook_mask	= (1 << NF_NETDEV_INGRESS) |
++			  (1 << NF_NETDEV_EGRESS),
+ 	.hooks		= {
+ 		[NF_NETDEV_INGRESS]	= nft_do_chain_netdev,
++		[NF_NETDEV_EGRESS]	= nft_do_chain_netdev,
+ 	},
  };
  
- int xt_register_target(struct xt_target *target);
-@@ -464,7 +464,7 @@ struct compat_xt_entry_match {
- 		} kernel;
- 		u_int16_t match_size;
- 	} u;
--	unsigned char data[0];
-+	unsigned char data[];
- };
- 
- struct compat_xt_entry_target {
-@@ -480,7 +480,7 @@ struct compat_xt_entry_target {
- 		} kernel;
- 		u_int16_t target_size;
- 	} u;
--	unsigned char data[0];
-+	unsigned char data[];
- };
- 
- /* FIXME: this works only on 32 bit tasks
-@@ -494,7 +494,7 @@ struct compat_xt_counters {
- struct compat_xt_counters_info {
- 	char name[XT_TABLE_MAXNAMELEN];
- 	compat_uint_t num_counters;
--	struct compat_xt_counters counters[0];
-+	struct compat_xt_counters counters[];
- };
- 
- struct _compat_xt_align {
-diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
-index e98028f00e47..7d3537c40ec9 100644
---- a/include/linux/netfilter_arp/arp_tables.h
-+++ b/include/linux/netfilter_arp/arp_tables.h
-@@ -67,7 +67,7 @@ struct compat_arpt_entry {
- 	__u16 next_offset;
- 	compat_uint_t comefrom;
- 	struct compat_xt_counters counters;
--	unsigned char elems[0];
-+	unsigned char elems[];
- };
- 
- static inline struct xt_entry_target *
-diff --git a/include/linux/netfilter_bridge/ebtables.h b/include/linux/netfilter_bridge/ebtables.h
-index 162f59d0d17a..2f5c4e6ecd8a 100644
---- a/include/linux/netfilter_bridge/ebtables.h
-+++ b/include/linux/netfilter_bridge/ebtables.h
-@@ -85,7 +85,7 @@ struct ebt_table_info {
- 	/* room to maintain the stack used for jumping from and into udc */
- 	struct ebt_chainstack **chainstack;
- 	char *entries;
--	struct ebt_counter counters[0] ____cacheline_aligned;
-+	struct ebt_counter counters[] ____cacheline_aligned;
- };
- 
- struct ebt_table {
-diff --git a/include/linux/netfilter_ipv4/ip_tables.h b/include/linux/netfilter_ipv4/ip_tables.h
-index e9e1ed74cdf1..b394bd4f68a3 100644
---- a/include/linux/netfilter_ipv4/ip_tables.h
-+++ b/include/linux/netfilter_ipv4/ip_tables.h
-@@ -76,7 +76,7 @@ struct compat_ipt_entry {
- 	__u16 next_offset;
- 	compat_uint_t comefrom;
- 	struct compat_xt_counters counters;
--	unsigned char elems[0];
-+	unsigned char elems[];
- };
- 
- /* Helper functions */
-diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
-index 78ab959c4575..8225f7821a29 100644
---- a/include/linux/netfilter_ipv6/ip6_tables.h
-+++ b/include/linux/netfilter_ipv6/ip6_tables.h
-@@ -43,7 +43,7 @@ struct compat_ip6t_entry {
- 	__u16 next_offset;
- 	compat_uint_t comefrom;
- 	struct compat_xt_counters counters;
--	unsigned char elems[0];
-+	unsigned char elems[];
- };
- 
- static inline struct xt_entry_target *
-diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
-index 5ae5295aa46d..e1e588387103 100644
---- a/include/net/netfilter/nf_conntrack_extend.h
-+++ b/include/net/netfilter/nf_conntrack_extend.h
-@@ -45,7 +45,7 @@ enum nf_ct_ext_id {
- struct nf_ct_ext {
- 	u8 offset[NF_CT_EXT_NUM];
- 	u8 len;
--	char data[0];
-+	char data[];
- };
- 
- static inline bool __nf_ct_ext_exist(const struct nf_ct_ext *ext, u8 id)
-diff --git a/include/net/netfilter/nf_conntrack_timeout.h b/include/net/netfilter/nf_conntrack_timeout.h
-index 6dd72396f534..659b0ea25b4d 100644
---- a/include/net/netfilter/nf_conntrack_timeout.h
-+++ b/include/net/netfilter/nf_conntrack_timeout.h
-@@ -14,7 +14,7 @@
- struct nf_ct_timeout {
- 	__u16			l3num;
- 	const struct nf_conntrack_l4proto *l4proto;
--	char			data[0];
-+	char			data[];
- };
- 
- struct ctnl_timeout {
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index d913cdb6a27b..01f48b5e6bf2 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -224,7 +224,7 @@ int nft_validate_register_store(const struct nft_ctx *ctx,
-  */
- struct nft_userdata {
- 	u8			len;
--	unsigned char		data[0];
-+	unsigned char		data[];
- };
- 
- /**
-@@ -565,7 +565,7 @@ struct nft_set_ext_tmpl {
- struct nft_set_ext {
- 	u8	genmask;
- 	u8	offset[NFT_SET_EXT_NUM];
--	char	data[0];
-+	char	data[];
- };
- 
- static inline void nft_set_ext_prepare(struct nft_set_ext_tmpl *tmpl)
-@@ -1375,7 +1375,7 @@ struct nft_trans {
- 	int				msg_type;
- 	bool				put_net;
- 	struct nft_ctx			ctx;
--	char				data[0];
-+	char				data[];
- };
- 
- struct nft_trans_rule {
-diff --git a/include/uapi/linux/netfilter_bridge/ebt_among.h b/include/uapi/linux/netfilter_bridge/ebt_among.h
-index 9acf757bc1f7..73b26a280c4f 100644
---- a/include/uapi/linux/netfilter_bridge/ebt_among.h
-+++ b/include/uapi/linux/netfilter_bridge/ebt_among.h
-@@ -40,7 +40,7 @@ struct ebt_mac_wormhash_tuple {
- struct ebt_mac_wormhash {
- 	int table[257];
- 	int poolsize;
--	struct ebt_mac_wormhash_tuple pool[0];
-+	struct ebt_mac_wormhash_tuple pool[];
- };
- 
- #define ebt_mac_wormhash_size(x) ((x) ? sizeof(struct ebt_mac_wormhash) \
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index e1256e03a9a8..78db58c7aec2 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -1561,7 +1561,7 @@ struct compat_ebt_entry_mwt {
- 		compat_uptr_t ptr;
- 	} u;
- 	compat_uint_t match_size;
--	compat_uint_t data[0] __attribute__ ((aligned (__alignof__(struct compat_ebt_replace))));
-+	compat_uint_t data[] __aligned(__alignof__(struct compat_ebt_replace));
- };
- 
- /* account for possible padding between match_size and ->data */
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index f1f78a742b36..b167f4a5b684 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -1057,7 +1057,7 @@ struct compat_arpt_replace {
- 	u32				underflow[NF_ARP_NUMHOOKS];
- 	u32				num_counters;
- 	compat_uptr_t			counters;
--	struct compat_arpt_entry	entries[0];
-+	struct compat_arpt_entry	entries[];
- };
- 
- static inline void compat_release_entry(struct compat_arpt_entry *e)
-@@ -1383,7 +1383,7 @@ static int compat_copy_entries_to_user(unsigned int total_size,
- struct compat_arpt_get_entries {
- 	char name[XT_TABLE_MAXNAMELEN];
- 	compat_uint_t size;
--	struct compat_arpt_entry entrytable[0];
-+	struct compat_arpt_entry entrytable[];
- };
- 
- static int compat_get_entries(struct net *net,
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 10b91ebdf213..c2670eaa74e6 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -1211,7 +1211,7 @@ struct compat_ipt_replace {
- 	u32			underflow[NF_INET_NUMHOOKS];
- 	u32			num_counters;
- 	compat_uptr_t		counters;	/* struct xt_counters * */
--	struct compat_ipt_entry	entries[0];
-+	struct compat_ipt_entry	entries[];
- };
- 
- static int
-@@ -1562,7 +1562,7 @@ compat_do_ipt_set_ctl(struct sock *sk,	int cmd, void __user *user,
- struct compat_ipt_get_entries {
- 	char name[XT_TABLE_MAXNAMELEN];
- 	compat_uint_t size;
--	struct compat_ipt_entry entrytable[0];
-+	struct compat_ipt_entry entrytable[];
- };
- 
- static int
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index c973ace208c5..e27393498ecb 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1227,7 +1227,7 @@ struct compat_ip6t_replace {
- 	u32			underflow[NF_INET_NUMHOOKS];
- 	u32			num_counters;
- 	compat_uptr_t		counters;	/* struct xt_counters * */
--	struct compat_ip6t_entry entries[0];
-+	struct compat_ip6t_entry entries[];
- };
- 
- static int
-@@ -1571,7 +1571,7 @@ compat_do_ip6t_set_ctl(struct sock *sk, int cmd, void __user *user,
- struct compat_ip6t_get_entries {
- 	char name[XT_TABLE_MAXNAMELEN];
- 	compat_uint_t size;
--	struct compat_ip6t_entry entrytable[0];
-+	struct compat_ip6t_entry entrytable[];
- };
- 
- static int
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
-index 0a2196f59106..486959f70cf3 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ip.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
-@@ -46,7 +46,7 @@ struct bitmap_ip {
- 	u8 netmask;		/* subnet netmask */
- 	struct timer_list gc;	/* garbage collection */
- 	struct ip_set *set;	/* attached to this ip_set */
--	unsigned char extensions[0]	/* data extensions */
-+	unsigned char extensions[]	/* data extensions */
- 		__aligned(__alignof__(u64));
- };
- 
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-index 739e343efaf6..2310a316e0af 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -49,7 +49,7 @@ struct bitmap_ipmac {
- 	size_t memsize;		/* members size */
- 	struct timer_list gc;	/* garbage collector */
- 	struct ip_set *set;	/* attached to this ip_set */
--	unsigned char extensions[0]	/* MAC + data extensions */
-+	unsigned char extensions[]	/* MAC + data extensions */
- 		__aligned(__alignof__(u64));
- };
- 
-diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
-index b49978dd810d..e56ced66f202 100644
---- a/net/netfilter/ipset/ip_set_bitmap_port.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_port.c
-@@ -37,7 +37,7 @@ struct bitmap_port {
- 	size_t memsize;		/* members size */
- 	struct timer_list gc;	/* garbage collection */
- 	struct ip_set *set;	/* attached to this ip_set */
--	unsigned char extensions[0]	/* data extensions */
-+	unsigned char extensions[]	/* data extensions */
- 		__aligned(__alignof__(u64));
- };
- 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index e52d7b7597a0..1ee43752d6d3 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -76,7 +76,7 @@ struct hbucket {
- 	DECLARE_BITMAP(used, AHASH_MAX_TUNED);
- 	u8 size;		/* size of the array */
- 	u8 pos;			/* position of the first free entry */
--	unsigned char value[0]	/* the array of the values */
-+	unsigned char value[]	/* the array of the values */
- 		__aligned(__alignof__(u64));
- };
- 
-@@ -109,7 +109,7 @@ struct htable {
- 	u8 htable_bits;		/* size of hash table == 2^htable_bits */
- 	u32 maxelem;		/* Maxelem per region */
- 	struct ip_set_region *hregion;	/* Region locks and ext sizes */
--	struct hbucket __rcu *bucket[0]; /* hashtable buckets */
-+	struct hbucket __rcu *bucket[]; /* hashtable buckets */
- };
- 
- #define hbucket(h, i)		((h)->bucket[i])
-diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
-index 2481470dec36..5827117f2635 100644
---- a/net/netfilter/nfnetlink_acct.c
-+++ b/net/netfilter/nfnetlink_acct.c
-@@ -33,7 +33,7 @@ struct nf_acct {
- 	refcount_t		refcnt;
- 	char			name[NFACCT_NAME_MAX];
- 	struct rcu_head		rcu_head;
--	char			data[0];
-+	char			data[];
- };
- 
- struct nfacct_filter {
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index d752a39b97d6..26395c8188b1 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -433,7 +433,7 @@ struct nft_pipapo_match {
- 	unsigned long * __percpu *scratch;
- 	size_t bsize_max;
- 	struct rcu_head rcu;
--	struct nft_pipapo_field f[0];
-+	struct nft_pipapo_field f[];
- };
- 
- /* Current working bitmap index, toggled between field matches */
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 8c835ad63729..9c5cfd74a0ee 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -132,7 +132,7 @@ struct xt_hashlimit_htable {
- 	const char *name;
- 	struct net *net;
- 
--	struct hlist_head hash[0];	/* hashtable itself */
-+	struct hlist_head hash[];	/* hashtable itself */
- };
- 
- static int
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index 225a7ab6d79a..19bef176145e 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -71,7 +71,7 @@ struct recent_entry {
- 	u_int8_t		ttl;
- 	u_int8_t		index;
- 	u_int16_t		nstamps;
--	unsigned long		stamps[0];
-+	unsigned long		stamps[];
- };
- 
- struct recent_table {
-@@ -82,7 +82,7 @@ struct recent_table {
- 	unsigned int		entries;
- 	u8			nstamps_max_mask;
- 	struct list_head	lru_list;
--	struct list_head	iphash[0];
-+	struct list_head	iphash[];
- };
- 
- struct recent_net {
 -- 
 2.11.0
 
