@@ -4,32 +4,31 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A04FAC5ACD7
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:41:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09A6EC5ACD6
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:41:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 76A1220663
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:41:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CBE8E20663
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:41:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727490AbgCRAlL (ORCPT
+        id S1727493AbgCRAlL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Tue, 17 Mar 2020 20:41:11 -0400
-Received: from correo.us.es ([193.147.175.20]:45646 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:45642 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727281AbgCRAkR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Mar 2020 20:40:17 -0400
+        id S1727186AbgCRAkQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Mar 2020 20:40:16 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9495A27F8B7
+        by mail.us.es (Postfix) with ESMTP id 0BFC627F8B4
         for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:46 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8632DDA3A3
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:46 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F1E0ADA3A3
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:45 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7ADB9DA39F; Wed, 18 Mar 2020 01:39:46 +0100 (CET)
+        id E7477DA39F; Wed, 18 Mar 2020 01:39:45 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B7E54DA3A0;
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3618FDA72F;
         Wed, 18 Mar 2020 01:39:44 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
@@ -37,15 +36,15 @@ Received: from 192.168.1.97 (192.168.1.97)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 926FF426CCB9;
-        Wed, 18 Mar 2020 01:39:44 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 07359426CCB9;
+        Wed, 18 Mar 2020 01:39:43 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 11/29] netfilter: flowtable: add nf_flow_table_block_offload_init()
-Date:   Wed, 18 Mar 2020 01:39:38 +0100
-Message-Id: <20200318003956.73573-12-pablo@netfilter.org>
+Subject: [PATCH 10/29] netfilter: xt_IDLETIMER: clean up some indenting
+Date:   Wed, 18 Mar 2020 01:39:37 +0100
+Message-Id: <20200318003956.73573-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200318003956.73573-1-pablo@netfilter.org>
 References: <20200318003956.73573-1-pablo@netfilter.org>
@@ -55,60 +54,42 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+From: Dan Carpenter <dan.carpenter@oracle.com>
 
-Add nf_flow_table_block_offload_init prepare for the indr block
-offload patch
+These lines were indented wrong so Smatch complained.
+net/netfilter/xt_IDLETIMER.c:81 idletimer_tg_show() warn: inconsistent indenting
 
-Signed-off-by: wenxu <wenxu@ucloud.cn>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_offload.c | 25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ net/netfilter/xt_IDLETIMER.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 88695ff44e76..c4cb03555315 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -812,6 +812,21 @@ static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
- 	return err;
- }
+diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
+index d620bbf13b30..75bd0e5dd312 100644
+--- a/net/netfilter/xt_IDLETIMER.c
++++ b/net/netfilter/xt_IDLETIMER.c
+@@ -77,9 +77,8 @@ static ssize_t idletimer_tg_show(struct device *dev,
+ 			ktimespec = ktime_to_timespec64(expires_alarm);
+ 			time_diff = ktimespec.tv_sec;
+ 		} else {
+-		expires = timer->timer.expires;
+-			time_diff = jiffies_to_msecs(
+-						expires - jiffies) / 1000;
++			expires = timer->timer.expires;
++			time_diff = jiffies_to_msecs(expires - jiffies) / 1000;
+ 		}
+ 	}
  
-+static void nf_flow_table_block_offload_init(struct flow_block_offload *bo,
-+					     struct net *net,
-+					     enum flow_block_command cmd,
-+					     struct nf_flowtable *flowtable,
-+					     struct netlink_ext_ack *extack)
-+{
-+	memset(bo, 0, sizeof(*bo));
-+	bo->net		= net;
-+	bo->block	= &flowtable->flow_block;
-+	bo->command	= cmd;
-+	bo->binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
-+	bo->extack	= extack;
-+	INIT_LIST_HEAD(&bo->cb_list);
-+}
-+
- static int nf_flow_table_offload_cmd(struct flow_block_offload *bo,
- 				     struct nf_flowtable *flowtable,
- 				     struct net_device *dev,
-@@ -823,14 +838,8 @@ static int nf_flow_table_offload_cmd(struct flow_block_offload *bo,
- 	if (!dev->netdev_ops->ndo_setup_tc)
- 		return -EOPNOTSUPP;
+@@ -216,7 +215,7 @@ static int idletimer_tg_create_v1(struct idletimer_tg_info_v1 *info)
+ 	kobject_uevent(idletimer_tg_kobj,KOBJ_ADD);
  
--	memset(bo, 0, sizeof(*bo));
--	bo->net		= dev_net(dev);
--	bo->block	= &flowtable->flow_block;
--	bo->command	= cmd;
--	bo->binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
--	bo->extack	= extack;
--	INIT_LIST_HEAD(&bo->cb_list);
--
-+	nf_flow_table_block_offload_init(bo, dev_net(dev), cmd, flowtable,
-+					 extack);
- 	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_FT, bo);
- 	if (err < 0)
- 		return err;
+ 	list_add(&info->timer->entry, &idletimer_tg_list);
+-		pr_debug("timer type value is %u", info->timer_type);
++	pr_debug("timer type value is %u", info->timer_type);
+ 	info->timer->timer_type = info->timer_type;
+ 	info->timer->refcnt = 1;
+ 
 -- 
 2.11.0
 
