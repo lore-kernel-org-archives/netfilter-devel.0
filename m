@@ -2,161 +2,328 @@ Return-Path: <SRS0=WbMd=5D=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B7CBC4332B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 22:09:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8C23C4332D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 23:38:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6DAD820752
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 22:09:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7632B20768
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 23:38:41 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="uJavj6m3"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="YK3PPpTD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727241AbgCRWJt (ORCPT
+        id S1727095AbgCRXil (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Mar 2020 18:09:49 -0400
-Received: from mail-ed1-f65.google.com ([209.85.208.65]:42104 "EHLO
-        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726619AbgCRWJt (ORCPT
+        Wed, 18 Mar 2020 19:38:41 -0400
+Received: from us-smtp-delivery-74.mimecast.com ([63.128.21.74]:51612 "EHLO
+        us-smtp-delivery-74.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726647AbgCRXil (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Mar 2020 18:09:49 -0400
-Received: by mail-ed1-f65.google.com with SMTP id b21so64072edy.9
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 15:09:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=JfzzU/d7+bs7S8RW80xj5NfJqnX96IweXITa93PwcGY=;
-        b=uJavj6m3YaJ4njZZvPkkoXHwM7Y47+mKdHuh/KmTdTEAuJIqvcdvHnavGeq0mxKhHq
-         FQf/+og8unjjRryFT1v8JempfBALvfWwTfB5QZppzzDzvZaCYDI9TZC1vDkN+5+3nHuZ
-         FJw2LCwt/4fcfWLZtKC/fvuKEnrKzzRFix/IIVYKFAKA59oeuYybEcFcJxcIi4+/QSwe
-         53dHRPpC7Sz01DK/Pjj55IrBCapM8oVYy+2OV3UnnjocmfcGWgLVwgVVnF2ZWAyUMLRh
-         rW0iZFy1BGl/CZSTlfVlQNnAUdiOYaStXxZSH8m93VafBtO7pg4K09E92RGeTTchFYY5
-         Izdg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=JfzzU/d7+bs7S8RW80xj5NfJqnX96IweXITa93PwcGY=;
-        b=Hb+1z4gsqGRs+OjlmkBgRfy3fFiRRAYzmq0kZdp4hmQRJNUV7moe7KfirskLKuvuI8
-         IC/9pZwZnivhM39qCuPCk1H/KTcpF1DZdp1Y9oP3LusbFlZ0FNwblei9WkUsoz0Sd+j8
-         Wwg7+gd+oyQEf3TSFXr/ejGXrFUOIG6CjOMvwFTBo3bNuE2kg2UjbbsvSy1ewNyMNi6K
-         Hd42YYyItnwaW7CmVxDQzdwWPg1watBxfTuGd5BNL4cfoDTKw2ZweGSypQas4X1BlXWb
-         AH49H3Eo3SDOwr9uSvBmnIAxgmfzAYoY11VbmseTdAG2J0yq+6ReMDXq1M8xJ1Bw0Xns
-         DrPQ==
-X-Gm-Message-State: ANhLgQ0yIfayOG5qxLTea4X3mx/w/8ATVQR+vcMBA5mCW/lnnc3z+7Yq
-        CB9rtq8gHhkKwKvY7ujUfD2RnndcynMN5TsXi0SB
-X-Google-Smtp-Source: ADFU+vtv7H8q642zA3Wkxs658/ZoOMch5bUgWLX+GZ4bvwWx9WnStK5co0hnRa4gNXJW1Fh+y+4mGyf0BwiQnb6dSVs=
-X-Received: by 2002:a17:906:7b8d:: with SMTP id s13mr352313ejo.77.1584569386895;
- Wed, 18 Mar 2020 15:09:46 -0700 (PDT)
+        Wed, 18 Mar 2020 19:38:41 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1584574719;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=o9Wrsz8v4eUq1T/jp5tTm1SuXnBYWqPKbRf8fNcDFh0=;
+        b=YK3PPpTDk6VdovdEX8r5l6tLMYcDto36wyB3FJlZTUjQD638b0TtpgmgpDDIgRXOvpDhnO
+        yAM0vrUCvdBrtYPF3jFOXhhCoI9GErPCPlz5NyFz7dCzjCsLJFU/dDUOsUqok8RqESbK54
+        qoS3ZBVqIvvReOK3XncIQS8U/V8d1nQ=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-224-VpUDSw9WNxK6_v0HA-Jzpg-1; Wed, 18 Mar 2020 19:38:37 -0400
+X-MC-Unique: VpUDSw9WNxK6_v0HA-Jzpg-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id C65BA107ACC7;
+        Wed, 18 Mar 2020 23:38:35 +0000 (UTC)
+Received: from elisabeth (unknown [10.40.208.12])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id C6B8A19756;
+        Wed, 18 Mar 2020 23:38:30 +0000 (UTC)
+Date:   Thu, 19 Mar 2020 00:38:23 +0100
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Martin Zaharinov <micron10@gmail.com>
+Cc:     ecree@solarflare.com, Eric Dumazet <edumazet@google.com>,
+        David Miller <davem@davemloft.net>, pablo@netfilter.org,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        Marco Oliverio <marco.oliverio@tanaza.com>
+Subject: Re: Bug URGENT Report with new kernel 5.5.10-5.6-rc6
+Message-ID: <20200319003823.3b709ad8@elisabeth>
+In-Reply-To: <CALidq=UXHz+rjiG5JxAz-CJ1mKsFLVupsH3W+z58L2nSPKE-7w@mail.gmail.com>
+References: <CALidq=XsQy66n-pTMOMN=B7nEsk7BpRZnUHery5RJyjnMsiXZQ@mail.gmail.com>
+        <CALidq=VVpixeJFJFkUSeDqTW=OX0+dhA04ypE=y949B+Aqaq0w@mail.gmail.com>
+        <CALidq=UXHz+rjiG5JxAz-CJ1mKsFLVupsH3W+z58L2nSPKE-7w@mail.gmail.com>
+Organization: Red Hat
 MIME-Version: 1.0
-References: <cover.1584480281.git.rgb@redhat.com> <3d591dc49fcb643890b93e5b9a8169612b1c96e1.1584480281.git.rgb@redhat.com>
- <CAHC9VhTQBxzFrGn=+b9MzoapV0iiccPOLvkwemdESSb6nOFGXQ@mail.gmail.com> <20200318220012.xeeoeidz5vs6x7g4@madcap2.tricolour.ca>
-In-Reply-To: <20200318220012.xeeoeidz5vs6x7g4@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Wed, 18 Mar 2020 18:09:36 -0400
-Message-ID: <CAHC9VhTFSNhedSmJA38zdq3gXira9FQ6D-bFUFxnwWKcJOfpUQ@mail.gmail.com>
-Subject: Re: [PATCH ghak25 v3 1/3] audit: tidy and extend netfilter_cfg
- x_tables and ebtables logging
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, sgrubb@redhat.com,
-        omosnace@redhat.com, fw@strlen.de, twoerner@redhat.com,
-        Eric Paris <eparis@parisplace.org>, ebiederm@xmission.com,
-        tgraf@infradead.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Mar 18, 2020 at 6:00 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2020-03-18 17:54, Paul Moore wrote:
-> > On Tue, Mar 17, 2020 at 5:31 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > >
-> > > NETFILTER_CFG record generation was inconsistent for x_tables and
-> > > ebtables configuration changes.  The call was needlessly messy and there
-> > > were supporting records missing at times while they were produced when
-> > > not requested.  Simplify the logging call into a new audit_log_nfcfg
-> > > call.  Honour the audit_enabled setting while more consistently
-> > > recording information including supporting records by tidying up dummy
-> > > checks.
-> > >
-> > > Add an op= field that indicates the operation being performed (register
-> > > or replace).
-> > >
-> > > Here is the enhanced sample record:
-> > >   type=NETFILTER_CFG msg=audit(1580905834.919:82970): table=filter family=2 entries=83 op=replace
-> > >
-> > > Generate audit NETFILTER_CFG records on ebtables table registration.
-> > > Previously this was being done for x_tables registration and replacement
-> > > operations and ebtables table replacement only.
-> > >
-> > > See: https://github.com/linux-audit/audit-kernel/issues/25
-> > > See: https://github.com/linux-audit/audit-kernel/issues/35
-> > > See: https://github.com/linux-audit/audit-kernel/issues/43
-> > >
-> > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > > ---
-> > >  include/linux/audit.h           | 19 +++++++++++++++++++
-> > >  kernel/auditsc.c                | 24 ++++++++++++++++++++++++
-> > >  net/bridge/netfilter/ebtables.c | 12 ++++--------
-> > >  net/netfilter/x_tables.c        | 12 +++---------
-> > >  4 files changed, 50 insertions(+), 17 deletions(-)
-> > >
-> > > diff --git a/include/linux/audit.h b/include/linux/audit.h
-> > > index f9ceae57ca8d..f4aed2b9be8d 100644
-> > > --- a/include/linux/audit.h
-> > > +++ b/include/linux/audit.h
-> > > @@ -94,6 +94,11 @@ struct audit_ntp_data {
-> > >  struct audit_ntp_data {};
-> > >  #endif
-> > >
-> > > +enum audit_nfcfgop {
-> > > +       AUDIT_XT_OP_REGISTER,
-> > > +       AUDIT_XT_OP_REPLACE,
-> > > +};
-> > > +
-> > >  extern int is_audit_feature_set(int which);
-> > >
-> > >  extern int __init audit_register_class(int class, unsigned *list);
-> > > @@ -379,6 +384,8 @@ extern int __audit_log_bprm_fcaps(struct linux_binprm *bprm,
-> > >  extern void __audit_fanotify(unsigned int response);
-> > >  extern void __audit_tk_injoffset(struct timespec64 offset);
-> > >  extern void __audit_ntp_log(const struct audit_ntp_data *ad);
-> > > +extern void __audit_log_nfcfg(const char *name, u8 af, unsigned int nentries,
-> > > +                             enum audit_nfcfgop op);
-> > >
-> > >  static inline void audit_ipc_obj(struct kern_ipc_perm *ipcp)
-> > >  {
-> > > @@ -514,6 +521,13 @@ static inline void audit_ntp_log(const struct audit_ntp_data *ad)
-> > >                 __audit_ntp_log(ad);
-> > >  }
-> > >
-> > > +static inline void audit_log_nfcfg(const char *name, u8 af, unsigned int nentries,
-> > > +                                  enum audit_nfcfgop op)
-> > > +{
-> > > +       if (audit_enabled)
-> > > +               __audit_log_nfcfg(name, af, nentries, op);
+[Adding netfilter-devel, netdev, Marco]
+
+Martin,
+
+On Thu, 19 Mar 2020 00:53:53 +0200
+Martin Zaharinov <micron10@gmail.com> wrote:
+
+> Back check with last kernel 5.4.26 machine work stable without crash
+> Changes is comme from 5.5.x >  kernel release i see in mailin Florian
+> add nf_hook_slow_list and other changes .
+> But need to investigate this crash...
+
+I just had a very quick look, I might be wrong, but can you try without:
+
+commit 0b9173f4688dfa7c5d723426be1d979c24ce3d51
+Author: Marco Oliverio <marco.oliverio@tanaza.com>
+Date:   Mon Dec 2 19:54:30 2019 +0100
+
+    netfilter: nf_queue: enqueue skbs with NULL dst
+
+? To me it looks like we're hitting nf_queue_entry_get_br_nf_refs()
+with an skb that's not supposed to end up there, and this commit might
+reveal some issue in that sense.
+
+--=20
+Stefano
+
+>=20
+> Martin
+>=20
+> =D0=9D=D0=B0 =D1=87=D1=82, 19.03.2020 =D0=B3. =D0=B2 0:29 Martin Zaharino=
+v <micron10@gmail.com> =D0=BD=D0=B0=D0=BF=D0=B8=D1=81=D0=B0:
+>=20
 > >
-> > Do we want a dummy check here too?  Or do we always want to generate
-> > this record (assuming audit is enabled) because it is a configuration
-> > related record?
->
-> This is an audit configuration change, so it is mandatory unless there
-> is a rule that excludes it.  I talked about this in the cover letter,
-> but perhaps my wording wasn't as clear as it could have been.
+> >
+> > ---------- Forwarded message ---------
+> > =D0=9E=D1=82: Martin Zaharinov <micron10@gmail.com>
+> > Date: =D1=81=D1=80, 18.03.2020 =D0=B3. =D0=B2 23:31
+> > Subject: Bug URGENT Report with new kernel 5.5.10-5.6-rc6
+> > To: <sbrivio@redhat.com>, <pablo@netfilter.org>, Florian Westphal < =20
+> > fw@strlen.de> =20
+> >
+> >
+> > Hi all
+> > Sorry i write hear not in kernel bug list i not found how to report bug
+> > them.
+> > Server have 300 pppoe customer connect with 400mbit/s traffic
+> > When machine run and load all rules need 20-30 min and machine crash wi=
+th
+> > this bug for my this is old bug but in new kernel manifested immediatel=
+y.
+> > Please help .
+> > Please check this BUG :
+> >
+> > Mar 17 22:26:16  [ 2344.252448][    C5] general protection fault, proba=
+bly
+> > for non-canonical address 0x9a830ebedfe5c683: 0000 [#1] SMP PTI
+> >
+> > Mar 17 22:26:16  [ 2344.253382][    C5] CPU: 5 PID: 12224 Comm: xmrig
+> > Tainted: G           O      5.6.0 #1
+> >
+> > Mar 17 22:26:16  [ 2344.254060][    C5] Hardware name: Supermicro Super
+> > Server/X11SPi-TF, BIOS 3.2 10/17/2019
+> >
+> > Mar 17 22:26:16  [ 2344.254773][    C5] RIP:
+> > 0010:nf_queue_entry_get_refs+0x14/0xe0
+> >
+> > Mar 17 22:26:16  [ 2344.255279][    C5] Code: 5b c3 be 03 00 00 00 4c 89
+> > c7 e8 77 b8 be ff e9 7c ff ff ff 66 90 53 48 8b 47 28 48 89 fb 48 85 c0=
+ 74
+> > 0a 48 8b 80 80 04 00 00 <65> ff 00 48 8b 43 30 48 85 c0 74 0a 48 8b 80 =
+80
+> > 04 00 00 65 ff 00
+> >
+> > Mar 17 22:26:16  [ 2344.256950][    C5] RSP: 0000:ffffa7e44033cc50 EFLA=
+GS:
+> > 00010286
+> >
+> > Mar 17 22:26:16  [ 2344.257456][    C5] RAX: 9a837d63c011c683 RBX:
+> > ffff915af771cf80 RCX: ffff915aecf23780
+> >
+> > Mar 17 22:26:16  [ 2344.258127][    C5] RDX: ffffffff9c82bad0 RSI:
+> > 0000000000000000 RDI: ffff915af771cf80
+> >
+> > Mar 17 22:26:16  [ 2344.258798][    C5] RBP: ffffa7e44033cca8 R08:
+> > ffffffff9d6aaac0 R09: ffff915af7ece000
+> >
+> > Mar 17 22:26:16  [ 2344.259469][    C5] R10: 0000000000000002 R11:
+> > 0000000000000004 R12: ffff915af771cf80
+> >
+> > Mar 17 22:26:16  [ 2344.260140][    C5] R13: ffff915aeccee6f0 R14:
+> > 0000000000000006 R15: ffffffffc03da3b0
+> >
+> > Mar 17 22:26:16  [ 2344.260811][    C5] FS:  00007fd1237fe700(0000)
+> > GS:ffff915b1fd40000(0000) knlGS:0000000000000000
+> >
+> > Mar 17 22:26:16  [ 2344.261564][    C5] CS:  0010 DS: 0000 ES: 0000 CR0:
+> > 0000000080050033
+> >
+> > Mar 17 22:26:16  [ 2344.276319][    C5] CR2: 00007fec73ad5cd0 CR3:
+> > 00000007ff81e005 CR4: 00000000001606e0
+> >
+> > Mar 17 22:26:16  [ 2344.306107][    C5] DR0: 0000000000000000 DR1:
+> > 0000000000000000 DR2: 0000000000000000
+> >
+> > Mar 17 22:26:16  [ 2344.336579][    C5] DR3: 0000000000000000 DR6:
+> > 00000000fffe0ff0 DR7: 0000000000000400
+> >
+> > Mar 17 22:26:16  [ 2344.367000][    C5] Call Trace:
+> >
+> > Mar 17 22:26:16  [ 2344.381799][    C5]  <IRQ>
+> >
+> > Mar 17 22:26:16  [ 2344.396244][    C5]  nf_queue+0x14f/0x2d0
+> >
+> > Mar 17 22:26:16  [ 2344.410633][    C5]  nf_hook_slow+0x84/0xe0
+> >
+> > Mar 17 22:26:16  [ 2344.424672][    C5]  ip_output+0xcd/0x1b0
+> >
+> > Mar 17 22:26:16  [ 2344.438376][    C5]  ? ip_finish_output_gso+0x160/0=
+x160
+> >
+> > Mar 17 22:26:16  [ 2344.452012][    C5]  __ip_queue_xmit+0x17a/0x370
+> >
+> > Mar 17 22:26:16  [ 2344.465466][    C5]  __tcp_transmit_skb+0x57a/0xce0
+> >
+> > Mar 17 22:26:16  [ 2344.478628][    C5]  ? tcp_v4_rcv+0xd5d/0xe30
+> >
+> > Mar 17 22:26:16  [ 2344.491600][    C5]  __tcp_retransmit_skb+0x177/0x8=
+70
+> >
+> > Mar 17 22:26:16  [ 2344.504406][
+> >   C5]  tcp_xmit_retransmit_queue.part.0+0x194/0x390
+> >
+> > Mar 17 22:26:16  [ 2344.517311][    C5]  tcp_pace_kick+0x161/0x180
+> >
+> > Mar 17 22:26:16  [ 2344.529847][    C5]  ? tcp_tasklet_func+0x1f0/0x1f0
+> >
+> > Mar 17 22:26:16  [ 2344.542148][    C5]  __hrtimer_run_queues+0x10b/0x1=
+b0
+> >
+> > Mar 17 22:26:16  [ 2344.554178][    C5]  hrtimer_run_softirq+0x7f/0x170
+> >
+> > Mar 17 22:26:16  [ 2344.565940][    C5]  __do_softirq+0xc8/0x206
+> >
+> > Mar 17 22:26:16  [ 2344.577389][    C5]  irq_exit+0xda/0xf0
+> >
+> > Mar 17 22:26:16  [ 2344.588474][    C5]  smp_apic_timer_interrupt+0x55/=
+0x80
+> >
+> > Mar 17 22:26:16  [ 2344.599449][    C5]  apic_timer_interrupt+0xf/0x20
+> >
+> > Mar 17 22:26:16  [ 2344.610107][    C5]  </IRQ>
+> >
+> > Mar 17 22:26:16  [ 2344.620341][    C5] RIP: 0033:0x7fd128ed01c3
+> >
+> > Mar 17 22:26:16  [ 2344.630378][    C5] Code: f2 25 f8 3f 00 00 f3 44 0f
+> > e6 24 06 66 41 0f 5c c4 4d 0f af c4 41 8d 82 4d dd 34 ec 25 f8 3f 00 00=
+ 4c
+> > 89 1c 06 66 41 0f 58 d0 <66> 41 0f 59 f0 49 81 c0 ff 42 83 88 49 f7 c0 =
+00
+> > 00 80 7f 74 d6 41
+> >
+> > Mar 17 22:26:16  [ 2344.660620][    C5] RSP: 002b:00007fd1237fdd78 EFLA=
+GS:
+> > 00000206 ORIG_RAX: ffffffffffffff13
+> >
+> > Mar 17 22:26:16  [ 2344.680376][    C5] RAX: 0000000000000fc0 RBX:
+> > 00000000000000fe RCX: 000000003b741dc9
+> >
+> > Mar 17 22:26:16  [ 2344.700118][    C5] RDX: 62b3a34bbd2445be RSI:
+> > 00007fd128200000 RDI: 00007fd09abec0c0
+> >
+> > Mar 17 22:26:16  [ 2344.720222][    C5] RBP: 1791b95bb8165a3d R08:
+> > 0086c4305d0ac11c R09: cb4d89df4f950a70
+> >
+> > Mar 17 22:26:16  [ 2344.741734][    C5] R10: 10ce58330b1f3279 R11:
+> > 0e9fac5dfa9ec7b8 R12: f4e400dfd4176ea4
+> >
+> > Mar 17 22:26:16  [ 2344.764623][    C5] R13: 454baf3f4a564cae R14:
+> > 47331223df7be353 R15: b8ab1194f474425a
+> >
+> > Mar 17 22:26:16  [ 2344.788559][    C5] Modules linked in: udp_diag
+> > raw_diag unix_diag af_packet_diag sch_hfsc iptable_filter iptable_mangle
+> > xt_addrtype xt_nat xt_MASQUERADE iptable_nat ip_tables bpfilter  sch_fq=
+_pie
+> > sch_pie netconsole coretemp tg3 e1000e e1000 igb i2c_algo_bit ixgbe mdio
+> > libphy i40e nf_nat_pptp nf_conntrack_pptp nf_nat_tftp nf_conntrack_tftp
+> > nf_nat_ftp nf_conntrack_ftp nf_nat nf_conntrack nf_defrag_ipv6
+> > nf_defrag_ipv4 pppoe pptp gre pppox ppp_mppe ppp_generic slhc libarc4 t=
+un
+> > hpsa scsi_transport_sas ipmi_si ipmi_devintf ipmi_msghandler  sch_fq_co=
+del
+> >
+> > Mar 17 22:26:16  [ 2344.898031][    C5] ---[ end trace d15fca245f16372d
+> > ]---
+> >
+> > Mar 17 22:26:16  [ 2344.912955][    C5] RIP:
+> > 0010:nf_queue_entry_get_refs+0x14/0xe0
+> >
+> > Mar 17 22:26:17  [ 2344.928110][    C5] Code: 5b c3 be 03 00 00 00 4c 89
+> > c7 e8 77 b8 be ff e9 7c ff ff ff 66 90 53 48 8b 47 28 48 89 fb 48 85 c0=
+ 74
+> > 0a 48 8b 80 80 04 00 00 <65> ff 00 48 8b 43 30 48 85 c0 74 0a 48 8b 80 =
+80
+> > 04 00 00 65 ff 00
+> >
+> > Mar 17 22:26:17  [ 2344.974788][    C5] RSP: 0000:ffffa7e44033cc50 EFLA=
+GS:
+> > 00010286
+> >
+> > Mar 17 22:26:17  [ 2344.990738][    C5] RAX: 9a837d63c011c683 RBX:
+> > ffff915af771cf80 RCX: ffff915aecf23780
+> >
+> > Mar 17 22:26:17  [ 2345.022183][    C5] RDX: ffffffff9c82bad0 RSI:
+> > 0000000000000000 RDI: ffff915af771cf80
+> >
+> > Mar 17 22:26:17  [ 2345.053943][    C5] RBP: ffffa7e44033cca8 R08:
+> > ffffffff9d6aaac0 R09: ffff915af7ece000
+> >
+> > Mar 17 22:26:17  [ 2345.085639][    C5] R10: 0000000000000002 R11:
+> > 0000000000000004 R12: ffff915af771cf80
+> >
+> > Mar 17 22:26:17  [ 2345.117285][    C5] R13: ffff915aeccee6f0 R14:
+> > 0000000000000006 R15: ffffffffc03da3b0
+> >
+> > Mar 17 22:26:17  [ 2345.148948][    C5] FS:  00007fd1237fe700(0000)
+> > GS:ffff915b1fd40000(0000) knlGS:0000000000000000
+> >
+> > Mar 17 22:26:17  [ 2345.180715][    C5] CS:  0010 DS: 0000 ES: 0000 CR0:
+> > 0000000080050033
+> >
+> > Mar 17 22:26:17  [ 2345.196835][    C5] CR2: 00007fec73ad5cd0 CR3:
+> > 00000007ff81e005 CR4: 00000000001606e0
+> >
+> > Mar 17 22:26:17  [ 2345.228199][    C5] DR0: 0000000000000000 DR1:
+> > 0000000000000000 DR2: 0000000000000000
+> >
+> > Mar 17 22:26:17  [ 2345.259580][    C5] DR3: 0000000000000000 DR6:
+> > 00000000fffe0ff0 DR7: 0000000000000400
+> >
+> > Mar 17 22:26:17  [ 2345.290736][    C5] Kernel panic - not syncing: Fat=
+al
+> > exception in interrupt
+> >
+> > Mar 17 22:26:17  [ 2345.359056][    C5] Kernel Offset: 0x1b000000 from
+> > 0xffffffff81000000 (relocation range: 0xffffffff80000000-0xffffffffbfff=
+ffff)
+> >
+> > Mar 17 22:26:17  [ 2345.389933][    C5] Rebooting in 10 seconds..
+> >
+> > Mar 17 22:26:27  [ 2355.405624][    C5] ACPI MEMORY or I/O RESET_REG.
+> >
+> >
+> >
+> > best Regards,
+> >
+> > Martin
+> > =20
 
-Yes, it wasn't clear to me what your goals were.
-
-In general I think this patchset looks okay, but it's -rc6 so this
-should wait for the next cycle; it will also give the netdev/netfilter
-folks a chance to comment on this latest revision.
-
--- 
-paul moore
-www.paul-moore.com
