@@ -2,78 +2,99 @@ Return-Path: <SRS0=WbMd=5D=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4738FC10DCE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 10:25:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C508C10DCE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 10:52:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1911E2077B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 10:25:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D7ED020768
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 10:52:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727177AbgCRKZM (ORCPT
+        id S1727113AbgCRKwj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Mar 2020 06:25:12 -0400
-Received: from correo.us.es ([193.147.175.20]:49096 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726310AbgCRKZM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Mar 2020 06:25:12 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DA5956CB62
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 11:24:41 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C2848DA3A5
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 11:24:41 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A0A8CFC5F8; Wed, 18 Mar 2020 11:24:39 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5C18BFC5F8;
-        Wed, 18 Mar 2020 11:24:37 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 18 Mar 2020 11:24:37 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 3F1AB42EE38E;
-        Wed, 18 Mar 2020 11:24:37 +0100 (CET)
-Date:   Wed, 18 Mar 2020 11:25:06 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Dan Carpenter <dan.carpenter@oracle.com>
+        Wed, 18 Mar 2020 06:52:39 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:36707 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726713AbgCRKwj (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 18 Mar 2020 06:52:39 -0400
+Received: from localhost.localdomain (unknown [123.59.132.129])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 7A76B416CC;
+        Wed, 18 Mar 2020 18:52:35 +0800 (CST)
+From:   wenxu@ucloud.cn
+To:     pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [bug report] netfilter: nf_tables: add elements with stateful
- expressions
-Message-ID: <20200318102506.nkrj2mgyabl3j2xd@salvia>
-References: <20200318094531.GA4421@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200318094531.GA4421@mwanda>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Subject: [PATCH nf-next] netfilter: nf_flow_table_offload: fix kernel NULL pointer dereference in nf_flow_table_indr_block_cb
+Date:   Wed, 18 Mar 2020 18:52:35 +0800
+Message-Id: <1584528755-7969-1-git-send-email-wenxu@ucloud.cn>
+X-Mailer: git-send-email 1.8.3.1
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZSVVNSkpLS0tLTUpLSE5KTVlXWShZQU
+        lCN1dZLVlBSVdZCQ4XHghZQVk1NCk2OjckKS43PlkG
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MRw6EQw4TDg8MBwzA0tPQi4x
+        PC4KChRVSlVKTkNPTklDTE5OTkNJVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUhMT043Bg++
+X-HM-Tid: 0a70ed460b362086kuqy7a76b416cc
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Mar 18, 2020 at 12:45:31PM +0300, Dan Carpenter wrote:
-> Hello Pablo Neira Ayuso,
-> 
-> The patch 409444522976: "netfilter: nf_tables: add elements with
-> stateful expressions" from Mar 11, 2020, leads to the following
-> static checker warning:
-> 
-> 	net/netfilter/nf_tables_api.c:5140 nft_add_set_elem()
-> 	warn: passing freed memory 'expr'
+From: wenxu <wenxu@ucloud.cn>
 
-This tool was very fast to diagnose, nice.
+nf_flow_table_indr_block_cb will list net->nft.tables. But nf_flow_table
+may load without nf_tables modules. So the list net->nft.tables may be
+uinit.
 
-I posted this patch to address this:
+[  630.908086] BUG: kernel NULL pointer dereference, address: 00000000000000f0
+[  630.908233] #PF: error_code(0x0000) - not-present page
+[  630.908304] PGD 800000104addd067 P4D 800000104addd067 PUD 104311d067 PMD 0
+[  630.908380] Oops: 0000 [#1] SMP PTI [  630.908615] RIP: 0010:nf_flow_table_indr_block_cb+0xc0/0x190 [nf_flow_table]
+[  630.908690] Code: 5b 41 5c 41 5d 41 5e 41 5f 5d c3 4c 89 75 a0 4c 89 65 a8 4d 89 ee 49 89 dd 4c 89 fe 48 c7 c7 b7 64 36 a0 31 c0 e8 ce ed d8 e0 <49> 8b b7 f0 00 00 00 48 c7 c7 c8 64      36 a0 31 c0 e8 b9 ed d8 e0 49[  630.908790] RSP: 0018:ffffc9000895f8c0 EFLAGS: 00010246
+[  630.908860] RAX: 000000000000001d RBX: ffff888884788000 RCX: 0000000000000001
+[  630.908935] RDX: 0000000000000000 RSI: 0000000000000086 RDI: ffff88905fc18cc0
+[  630.909010] RBP: ffffc9000895f920 R08: 00000000000005bc R09: 00000000000005bc
+[  630.909084] R10: 0000000000000030 R11: ffffffff826ce604 R12: ffffffff823bdcc8
+[  630.909159] R13: ffff888884788000 R14: ffffffff823bdc98 R15: 0000000000000000[  630.909234] FS:  00007f1d633e7740(0000) GS:ffff88905fc00000(0000) knlGS:0000000000000000[  630.909970] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  630.910372] CR2: 00000000000000f0 CR3: 000000103ad2e004 CR4: 00000000001606e0
+[  630.910774] Call Trace:
+[  630.911192]  ? mlx5e_rep_indr_setup_block+0x270/0x270 [mlx5_core]
+[  630.911621]  ? mlx5e_rep_indr_setup_block+0x270/0x270 [mlx5_core]
+[  630.912040]  ? mlx5e_rep_indr_setup_block+0x270/0x270 [mlx5_core]
+[  630.912443]  flow_block_cmd+0x51/0x80
+[  630.912844]  __flow_indr_block_cb_register+0x26c/0x510
+[  630.913265]  mlx5e_nic_rep_netdevice_event+0x9e/0x110 [mlx5_core]
+[  630.913665]  notifier_call_chain+0x53/0xa0
+[  630.914063]  raw_notifier_call_chain+0x16/0x20
+[  630.914466]  call_netdevice_notifiers_info+0x39/0x90
+[  630.914859]  register_netdevice+0x484/0x550
+[  630.915256]  __ip_tunnel_create+0x12b/0x1f0 [ip_tunnel]
+[  630.915661]  ip_tunnel_init_net+0x116/0x180 [ip_tunnel]
+[  630.916062]  ipgre_tap_init_net+0x22/0x30 [ip_gre]
+[  630.916458]  ops_init+0x44/0x110
+[  630.916851]  register_pernet_operations+0x112/0x200
 
-https://patchwork.ozlabs.org/patch/1257035/
+Fixes: b5140a36da78 ("netfilter: flowtable: add indr block setup support")
+Signed-off-by: wenxu <wenxu@ucloud.cn>
+---
+ net/netfilter/nf_flow_table_offload.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Thanks for reporting.
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index ad54931..ca40dfa 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -1029,6 +1029,9 @@ static void nf_flow_table_indr_block_cb(struct net_device *dev,
+ 	struct nft_table *table;
+ 	struct nft_hook *hook;
+ 
++	if (!net->nft.base_seq)
++		return;
++
+ 	mutex_lock(&net->nft.commit_mutex);
+ 	list_for_each_entry(table, &net->nft.tables, list) {
+ 		list_for_each_entry(nft_ft, &table->flowtables, list) {
+-- 
+1.8.3.1
+
