@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A02FC2BB1D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:41:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DE23C2BB1D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:41:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DCD4320663
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:41:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 06FE120663
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 00:41:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727259AbgCRAlO (ORCPT
+        id S1727501AbgCRAlO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Tue, 17 Mar 2020 20:41:14 -0400
-Received: from correo.us.es ([193.147.175.20]:45620 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:45612 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727253AbgCRAkP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1727265AbgCRAkP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 17 Mar 2020 20:40:15 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6886227F8C1
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:44 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 9522D27F8AC
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:45 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5A037DA3A0
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:44 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 85F3ADA3A8
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 01:39:45 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 4F87EDA736; Wed, 18 Mar 2020 01:39:44 +0100 (CET)
+        id 7B2C1DA3A1; Wed, 18 Mar 2020 01:39:45 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 74959DA39F;
-        Wed, 18 Mar 2020 01:39:42 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 98738DA3AA;
+        Wed, 18 Mar 2020 01:39:43 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 18 Mar 2020 01:39:42 +0100 (CET)
+ Wed, 18 Mar 2020 01:39:43 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 436EC426CCB9;
-        Wed, 18 Mar 2020 01:39:42 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 71A0A426CCB9;
+        Wed, 18 Mar 2020 01:39:43 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 07/29] netfilter: nft_set_pipapo: make the symbol 'nft_pipapo_get' static
-Date:   Wed, 18 Mar 2020 01:39:34 +0100
-Message-Id: <20200318003956.73573-8-pablo@netfilter.org>
+Subject: [PATCH 09/29] netfilter: bitwise: use more descriptive variable-names.
+Date:   Wed, 18 Mar 2020 01:39:36 +0100
+Message-Id: <20200318003956.73573-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200318003956.73573-1-pablo@netfilter.org>
 References: <20200318003956.73573-1-pablo@netfilter.org>
@@ -55,35 +55,66 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Chen Wandun <chenwandun@huawei.com>
+From: Jeremy Sowden <jeremy@azazel.net>
 
-Fix the following sparse warning:
+Name the mask and xor data variables, "mask" and "xor," instead of "d1"
+and "d2."
 
-net/netfilter/nft_set_pipapo.c:739:6: warning: symbol 'nft_pipapo_get' was not declared. Should it be static?
-
-Fixes: 3c4287f62044 ("nf_tables: Add set type for arbitrary concatenation of ranges")
-Signed-off-by: Chen Wandun <chenwandun@huawei.com>
-Acked-by: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_pipapo.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nft_bitwise.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 34a1678cf290..d752a39b97d6 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -736,8 +736,8 @@ static struct nft_pipapo_elem *pipapo_get(const struct net *net,
-  * @elem:	nftables API element representation containing key data
-  * @flags:	Unused
-  */
--void *nft_pipapo_get(const struct net *net, const struct nft_set *set,
--		     const struct nft_set_elem *elem, unsigned int flags)
-+static void *nft_pipapo_get(const struct net *net, const struct nft_set *set,
-+			    const struct nft_set_elem *elem, unsigned int flags)
+diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
+index 0ed2281f03be..bc37d6c59db4 100644
+--- a/net/netfilter/nft_bitwise.c
++++ b/net/netfilter/nft_bitwise.c
+@@ -93,7 +93,7 @@ static const struct nla_policy nft_bitwise_policy[NFTA_BITWISE_MAX + 1] = {
+ static int nft_bitwise_init_bool(struct nft_bitwise *priv,
+ 				 const struct nlattr *const tb[])
  {
- 	return pipapo_get(net, set, (const u8 *)elem->key.val.data,
- 			  nft_genmask_cur(net));
+-	struct nft_data_desc d1, d2;
++	struct nft_data_desc mask, xor;
+ 	int err;
+ 
+ 	if (tb[NFTA_BITWISE_DATA])
+@@ -103,29 +103,29 @@ static int nft_bitwise_init_bool(struct nft_bitwise *priv,
+ 	    !tb[NFTA_BITWISE_XOR])
+ 		return -EINVAL;
+ 
+-	err = nft_data_init(NULL, &priv->mask, sizeof(priv->mask), &d1,
++	err = nft_data_init(NULL, &priv->mask, sizeof(priv->mask), &mask,
+ 			    tb[NFTA_BITWISE_MASK]);
+ 	if (err < 0)
+ 		return err;
+-	if (d1.type != NFT_DATA_VALUE || d1.len != priv->len) {
++	if (mask.type != NFT_DATA_VALUE || mask.len != priv->len) {
+ 		err = -EINVAL;
+ 		goto err1;
+ 	}
+ 
+-	err = nft_data_init(NULL, &priv->xor, sizeof(priv->xor), &d2,
++	err = nft_data_init(NULL, &priv->xor, sizeof(priv->xor), &xor,
+ 			    tb[NFTA_BITWISE_XOR]);
+ 	if (err < 0)
+ 		goto err1;
+-	if (d2.type != NFT_DATA_VALUE || d2.len != priv->len) {
++	if (xor.type != NFT_DATA_VALUE || xor.len != priv->len) {
+ 		err = -EINVAL;
+ 		goto err2;
+ 	}
+ 
+ 	return 0;
+ err2:
+-	nft_data_release(&priv->xor, d2.type);
++	nft_data_release(&priv->xor, xor.type);
+ err1:
+-	nft_data_release(&priv->mask, d1.type);
++	nft_data_release(&priv->mask, mask.type);
+ 	return err;
+ }
+ 
 -- 
 2.11.0
 
