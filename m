@@ -2,115 +2,92 @@ Return-Path: <SRS0=WbMd=5D=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3856C4332B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 21:01:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 484F4C4332E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 21:01:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B4C0020409
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 21:01:42 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="m+CruKFq"
+	by mail.kernel.org (Postfix) with ESMTP id 0E88020777
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 21:01:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1584565310;
+	bh=I41Sg0VH3MhQ8yN+hre0/s5r5x55aDp8n7eIk54CK5g=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=g25RmW7qar8PYSx1f8XqzEW4tWnFOBbI7ShDa1Z1Q0OeM7EEA3hg4BbKw1DH+I18Z
+	 R813l/iqbxrseLuC6p209M1wgOg3waBijZmdcq22euqoLNVDwCWHLa2WsL6DAHE5Hg
+	 9PJcZKRHiH3PNe4g/Um/xhG7meBY3Y8jc1AUYVow=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728923AbgCRVBk (ORCPT
+        id S1728647AbgCRVBf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Mar 2020 17:01:40 -0400
-Received: from mail-ed1-f66.google.com ([209.85.208.66]:46819 "EHLO
-        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728227AbgCRVBj (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Mar 2020 17:01:39 -0400
-Received: by mail-ed1-f66.google.com with SMTP id ca19so32632267edb.13
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 14:01:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=h1JVSDR71Ka3PM04u0ramfobv1CKoUTWgjm5qfW2CV8=;
-        b=m+CruKFqyeFiSzmQCZqiAjkeem718D1Unt4LZxrLyM48zoGD0gDaVn0NlVfCexVTzu
-         wihdula0cgpJNes9gbbbPZGOCr8gmzgfMR1DP2niKlc4/Xbz1RjMvIcZK3QeYS4MTBzR
-         VGVmqZmbPsEQ42JahCXbnk6yopm5byhYxfuE4bMF2/oEIwfi0TIGwhWzo+tUFEv5Mobg
-         xAZqhXW9ZYNPl8K7ISeE3z29hhnh0uDlXFQhZXWxMxod1HlKG5GyxdS8a7Q7I9YuWv4C
-         hEdfpxYwsjziy7uL5etvx6svflsV0+OWDJH1g09o69UnURs0B4B8khAkiIXSB+T2BP9R
-         8WWg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=h1JVSDR71Ka3PM04u0ramfobv1CKoUTWgjm5qfW2CV8=;
-        b=GsnG0tIvBT0LfoUr8nQXjlHK44PFBAeUCuCa0Pn5vGP69+b7mZnDvYRgqnEj8xbVZP
-         RtYd2Ibb8yyygDP9CSQU0DoHYVDfm2iwrxkTPZmcU392KMZn/2WrTgT6ice6NOSw+6pl
-         hNwCIf6zdhyWX2mQn7TAoUewejPSMnd3mDFeEP/mKO66SV5mZiUBV4iAvao3nQxTfmXj
-         tKpLZeEwkDAhGeLYw0uAsvlEkD1RtNxCB1elyNhWi+wL+WUyXg2KFrcxaLrxAjjNM52A
-         2GxKgm14dnP4n8lIMIUNv0j20CEZGxMX3+lH950g1HIcJTIIi/bF5/8njudMShDMXH/0
-         p75Q==
-X-Gm-Message-State: ANhLgQ2SoHsfFE8SRbck4RFop1E21T7j34/TdfBsaukPhUVrBlf6i6SI
-        rUDP4oSVbLXKYd935i1+44PHlmUgHS7JPbbRW769
-X-Google-Smtp-Source: ADFU+vtjoB1L41gbvG3IfZm3ksBmDTvbqLdnYvpmD27Ya9UPhKm77W68IFm4/AxRz3i7hA2sUofnKwQPP6SAVhHtg78=
-X-Received: by 2002:a05:6402:8c3:: with SMTP id d3mr5966134edz.31.1584565297053;
- Wed, 18 Mar 2020 14:01:37 -0700 (PDT)
+        Wed, 18 Mar 2020 17:01:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57044 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728550AbgCRU4M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 18 Mar 2020 16:56:12 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 78BD6208E4;
+        Wed, 18 Mar 2020 20:56:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1584564972;
+        bh=I41Sg0VH3MhQ8yN+hre0/s5r5x55aDp8n7eIk54CK5g=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=ZKcqu68YkTDmNVD9ND5YStTSlt5CY210v723K3ic1bSIlvH/w7PqUPKzVDbulmAyj
+         19kCiTeFBgyK1/5ELeA3XH13GAagN6XKK6q4ebTsz1ZGVtlTJtsWy+EVO2UYdDGnvv
+         VQzzG101XabGbJd3nHGLiuW5BCZMWNOyBSRrwRJM=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Jakub Kicinski <kuba@kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.14 14/28] netfilter: nft_payload: add missing attribute validation for payload csum flags
+Date:   Wed, 18 Mar 2020 16:55:41 -0400
+Message-Id: <20200318205555.17447-14-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200318205555.17447-1-sashal@kernel.org>
+References: <20200318205555.17447-1-sashal@kernel.org>
 MIME-Version: 1.0
-References: <cover.1577736799.git.rgb@redhat.com> <20200204231454.oxa7pyvuxbj466fj@madcap2.tricolour.ca>
- <CAHC9VhQquokw+7UOU=G0SsD35UdgmfysVKCGCE87JVaoTkbisg@mail.gmail.com>
- <3142237.YMNxv0uec1@x2> <CAHC9VhTiCHQbp2SwK0Xb1QgpUZxOQ26JKKPsVGT0ZvMqx28oPQ@mail.gmail.com>
- <20200312202733.7kli64zsnqc4mrd2@madcap2.tricolour.ca> <CAHC9VhS9DtxJ4gvOfMRnzoo6ccGJVKL+uZYe6qqH+SPqD8r01Q@mail.gmail.com>
- <20200313192306.wxey3wn2h4htpccm@madcap2.tricolour.ca>
-In-Reply-To: <20200313192306.wxey3wn2h4htpccm@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Wed, 18 Mar 2020 17:01:26 -0400
-Message-ID: <CAHC9VhQKOpVWxDg-tWuCWV22QRu8P_NpFKme==0Ot1RQKa_DWA@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
- the audit daemon
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     Steve Grubb <sgrubb@redhat.com>, linux-audit@redhat.com,
-        nhorman@tuxdriver.com, linux-api@vger.kernel.org,
-        containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
-Content-Type: text/plain; charset="UTF-8"
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Mar 13, 2020 at 3:23 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2020-03-13 12:42, Paul Moore wrote:
+From: Jakub Kicinski <kuba@kernel.org>
 
-...
+[ Upstream commit 9d6effb2f1523eb84516e44213c00f2fd9e6afff ]
 
-> > The thread has had a lot of starts/stops, so I may be repeating a
-> > previous suggestion, but one idea would be to still emit a "death
-> > record" when the final task in the audit container ID does die, but
-> > block the particular audit container ID from reuse until it the
-> > SIGNAL2 info has been reported.  This gives us the timely ACID death
-> > notification while still preventing confusion and ambiguity caused by
-> > potentially reusing the ACID before the SIGNAL2 record has been sent;
-> > there is a small nit about the ACID being present in the SIGNAL2
-> > *after* its death, but I think that can be easily explained and
-> > understood by admins.
->
-> Thinking quickly about possible technical solutions to this, maybe it
-> makes sense to have two counters on a contobj so that we know when the
-> last process in that container exits and can issue the death
-> certificate, but we still block reuse of it until all further references
-> to it have been resolved.  This will likely also make it possible to
-> report the full contid chain in SIGNAL2 records.  This will eliminate
-> some of the issues we are discussing with regards to passing a contobj
-> vs a contid to the audit_log_contid function, but won't eliminate them
-> all because there are still some contids that won't have an object
-> associated with them to make it impossible to look them up in the
-> contobj lists.
+Add missing attribute validation for NFTA_PAYLOAD_CSUM_FLAGS
+to the netlink policy.
 
-I'm not sure you need a full second counter, I imagine a simple flag
-would be okay.  I think you just something to indicate that this ACID
-object is marked as "dead" but it still being held for sanity reasons
-and should not be reused.
+Fixes: 1814096980bb ("netfilter: nft_payload: layer 4 checksum adjustment for pseudoheader fields")
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/nft_payload.c | 1 +
+ 1 file changed, 1 insertion(+)
 
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index e110b0ebbf58b..19446a89a2a81 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -121,6 +121,7 @@ static const struct nla_policy nft_payload_policy[NFTA_PAYLOAD_MAX + 1] = {
+ 	[NFTA_PAYLOAD_LEN]		= { .type = NLA_U32 },
+ 	[NFTA_PAYLOAD_CSUM_TYPE]	= { .type = NLA_U32 },
+ 	[NFTA_PAYLOAD_CSUM_OFFSET]	= { .type = NLA_U32 },
++	[NFTA_PAYLOAD_CSUM_FLAGS]	= { .type = NLA_U32 },
+ };
+ 
+ static int nft_payload_init(const struct nft_ctx *ctx,
 -- 
-paul moore
-www.paul-moore.com
+2.20.1
+
