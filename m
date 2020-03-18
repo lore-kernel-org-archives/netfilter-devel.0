@@ -2,185 +2,160 @@ Return-Path: <SRS0=WbMd=5D=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0E6DC4332E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 22:06:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B7CBC4332B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 22:09:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 898112076E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 22:06:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6DAD820752
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 22:09:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="EGq9j8ta"
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="uJavj6m3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727132AbgCRWGO (ORCPT
+        id S1727241AbgCRWJt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Mar 2020 18:06:14 -0400
-Received: from mail-ed1-f65.google.com ([209.85.208.65]:40485 "EHLO
+        Wed, 18 Mar 2020 18:09:49 -0400
+Received: from mail-ed1-f65.google.com ([209.85.208.65]:42104 "EHLO
         mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726934AbgCRWGO (ORCPT
+        with ESMTP id S1726619AbgCRWJt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Mar 2020 18:06:14 -0400
-Received: by mail-ed1-f65.google.com with SMTP id a24so64927edy.7
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 15:06:12 -0700 (PDT)
+        Wed, 18 Mar 2020 18:09:49 -0400
+Received: by mail-ed1-f65.google.com with SMTP id b21so64072edy.9
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 15:09:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=TDXZZkhqjusv291He84nhKQlMbFezXaGS9XY4w8phpE=;
-        b=EGq9j8ta0EzuoZHC99ctGlzz5FJgMcHEAbQAY1LzC7m2yp+tVJkMr4r617GRqI0ca6
-         Z6smPIs417FGSdP6HYXkQWHLvupus3gRbB6ttGrFxU6ommiXyDGunEw+TRP0TgHao1TU
-         4Zuy5cg6A3jg+knqeniLehrw6GKjBIxp7c/IQ4oZLNCTkhb+VBMb4rkbGmGRA69VSJR9
-         LYyO7JXPLwrPS+tF7PpR1NKN+psauSaajm2Y6qFCN6eNWY78mekonIly4LPjoSQO9Xwj
-         pnC3ZVehyi0uC3wqWOG172opZ0qSIKIrqp40cuBX5baeZ0IuWv1Udr4hof6nAKv0n3Rx
-         3PAQ==
+        bh=JfzzU/d7+bs7S8RW80xj5NfJqnX96IweXITa93PwcGY=;
+        b=uJavj6m3YaJ4njZZvPkkoXHwM7Y47+mKdHuh/KmTdTEAuJIqvcdvHnavGeq0mxKhHq
+         FQf/+og8unjjRryFT1v8JempfBALvfWwTfB5QZppzzDzvZaCYDI9TZC1vDkN+5+3nHuZ
+         FJw2LCwt/4fcfWLZtKC/fvuKEnrKzzRFix/IIVYKFAKA59oeuYybEcFcJxcIi4+/QSwe
+         53dHRPpC7Sz01DK/Pjj55IrBCapM8oVYy+2OV3UnnjocmfcGWgLVwgVVnF2ZWAyUMLRh
+         rW0iZFy1BGl/CZSTlfVlQNnAUdiOYaStXxZSH8m93VafBtO7pg4K09E92RGeTTchFYY5
+         Izdg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=TDXZZkhqjusv291He84nhKQlMbFezXaGS9XY4w8phpE=;
-        b=saXXhGekv9MghUHOVMVgQavKeQ6pdocASEL5OH4R5sr9sOuaU7efqsC9kZxBlg/Vox
-         FfTrW39nT3ZpS58CNbf9BYTbuQRek/ecU26MsMexEyx2EEnz0VmsWrI/EvNvDXHQ0PI1
-         270RP0CQHOLuAu7Qtg+LFsRiS9RxWgw7oDN/pfKYjeaNQPTLTRqfVwaMfIbUecet4UZZ
-         yjwNbHA8mWdHzo3ST6BUAHHKYljWdvMBN+bRAuqdRcIPz+mQ/lSPLD+xoUmlEfYNtyXo
-         KWK35OLl8ZNJOF3jzhzkHzCRYtbV9nHcyoa4nDDQQGk2/rmewnuWuHIuAmdT+Hx0xf5p
-         gZYg==
-X-Gm-Message-State: ANhLgQ3LQEBmJasbgpqLUXrfqgWP7ne5C9aRs2FiezUgT5AvH3gcbpBL
-        16iHs5BQGwz6svVmMH24SoJMKwdNmmvmDxkVNIJ3
-X-Google-Smtp-Source: ADFU+vtW4mfjwnuF24IoXcYzayNDU8snpAdY8T07RFr+nxOE2IbbjW1zRxqJVYGpUJx8Vd5VOBHbcoPpD4xtj23EMDs=
-X-Received: by 2002:a17:906:cb93:: with SMTP id mf19mr378815ejb.272.1584569171696;
- Wed, 18 Mar 2020 15:06:11 -0700 (PDT)
+        bh=JfzzU/d7+bs7S8RW80xj5NfJqnX96IweXITa93PwcGY=;
+        b=Hb+1z4gsqGRs+OjlmkBgRfy3fFiRRAYzmq0kZdp4hmQRJNUV7moe7KfirskLKuvuI8
+         IC/9pZwZnivhM39qCuPCk1H/KTcpF1DZdp1Y9oP3LusbFlZ0FNwblei9WkUsoz0Sd+j8
+         Wwg7+gd+oyQEf3TSFXr/ejGXrFUOIG6CjOMvwFTBo3bNuE2kg2UjbbsvSy1ewNyMNi6K
+         Hd42YYyItnwaW7CmVxDQzdwWPg1watBxfTuGd5BNL4cfoDTKw2ZweGSypQas4X1BlXWb
+         AH49H3Eo3SDOwr9uSvBmnIAxgmfzAYoY11VbmseTdAG2J0yq+6ReMDXq1M8xJ1Bw0Xns
+         DrPQ==
+X-Gm-Message-State: ANhLgQ0yIfayOG5qxLTea4X3mx/w/8ATVQR+vcMBA5mCW/lnnc3z+7Yq
+        CB9rtq8gHhkKwKvY7ujUfD2RnndcynMN5TsXi0SB
+X-Google-Smtp-Source: ADFU+vtv7H8q642zA3Wkxs658/ZoOMch5bUgWLX+GZ4bvwWx9WnStK5co0hnRa4gNXJW1Fh+y+4mGyf0BwiQnb6dSVs=
+X-Received: by 2002:a17:906:7b8d:: with SMTP id s13mr352313ejo.77.1584569386895;
+ Wed, 18 Mar 2020 15:09:46 -0700 (PDT)
 MIME-Version: 1.0
-References: <CAHC9VhQquokw+7UOU=G0SsD35UdgmfysVKCGCE87JVaoTkbisg@mail.gmail.com>
- <3142237.YMNxv0uec1@x2> <CAHC9VhTiCHQbp2SwK0Xb1QgpUZxOQ26JKKPsVGT0ZvMqx28oPQ@mail.gmail.com>
- <CAHC9VhS09b_fM19tn7pHZzxfyxcHnK+PJx80Z9Z1hn8-==4oLA@mail.gmail.com>
- <20200312193037.2tb5f53yeisfq4ta@madcap2.tricolour.ca> <CAHC9VhQoVOzy_b9W6h+kmizKr1rPkC4cy5aYoKT2i0ZgsceNDg@mail.gmail.com>
- <20200313185900.y44yvrfm4zxa5lfk@madcap2.tricolour.ca> <CAHC9VhR2zCCE5bjH75rSwfLC7TJGFj4RBnrtcOoUiqVp9q5TaA@mail.gmail.com>
- <20200318212630.mw2geg4ykhnbtr3k@madcap2.tricolour.ca> <CAHC9VhRYvGAru3aOMwWKCCWDktS+2pGr+=vV4SjHW_0yewD98A@mail.gmail.com>
- <20200318215550.es4stkjwnefrfen2@madcap2.tricolour.ca>
-In-Reply-To: <20200318215550.es4stkjwnefrfen2@madcap2.tricolour.ca>
+References: <cover.1584480281.git.rgb@redhat.com> <3d591dc49fcb643890b93e5b9a8169612b1c96e1.1584480281.git.rgb@redhat.com>
+ <CAHC9VhTQBxzFrGn=+b9MzoapV0iiccPOLvkwemdESSb6nOFGXQ@mail.gmail.com> <20200318220012.xeeoeidz5vs6x7g4@madcap2.tricolour.ca>
+In-Reply-To: <20200318220012.xeeoeidz5vs6x7g4@madcap2.tricolour.ca>
 From:   Paul Moore <paul@paul-moore.com>
-Date:   Wed, 18 Mar 2020 18:06:00 -0400
-Message-ID: <CAHC9VhSdDDP7Ec-w61NhGxZG5ZiekmrBCAg=Y=VJvEZcgQh46g@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
- the audit daemon
+Date:   Wed, 18 Mar 2020 18:09:36 -0400
+Message-ID: <CAHC9VhTFSNhedSmJA38zdq3gXira9FQ6D-bFUFxnwWKcJOfpUQ@mail.gmail.com>
+Subject: Re: [PATCH ghak25 v3 1/3] audit: tidy and extend netfilter_cfg
+ x_tables and ebtables logging
 To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     Steve Grubb <sgrubb@redhat.com>, linux-audit@redhat.com,
-        nhorman@tuxdriver.com, linux-api@vger.kernel.org,
-        containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
+Cc:     Linux-Audit Mailing List <linux-audit@redhat.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, sgrubb@redhat.com,
+        omosnace@redhat.com, fw@strlen.de, twoerner@redhat.com,
+        Eric Paris <eparis@parisplace.org>, ebiederm@xmission.com,
+        tgraf@infradead.org
 Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Mar 18, 2020 at 5:56 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2020-03-18 17:42, Paul Moore wrote:
-> > On Wed, Mar 18, 2020 at 5:27 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > On 2020-03-18 16:56, Paul Moore wrote:
-> > > > On Fri, Mar 13, 2020 at 2:59 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > > > On 2020-03-13 12:29, Paul Moore wrote:
-> > > > > > On Thu, Mar 12, 2020 at 3:30 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > > > > > On 2020-02-13 16:44, Paul Moore wrote:
-> > > > > > > > This is a bit of a thread-hijack, and for that I apologize, but
-> > > > > > > > another thought crossed my mind while thinking about this issue
-> > > > > > > > further ... Once we support multiple auditd instances, including the
-> > > > > > > > necessary record routing and duplication/multiple-sends (the host
-> > > > > > > > always sees *everything*), we will likely need to find a way to "trim"
-> > > > > > > > the audit container ID (ACID) lists we send in the records.  The
-> > > > > > > > auditd instance running on the host/initns will always see everything,
-> > > > > > > > so it will want the full container ACID list; however an auditd
-> > > > > > > > instance running inside a container really should only see the ACIDs
-> > > > > > > > of any child containers.
-> > > > > > >
-> > > > > > > Agreed.  This should be easy to check and limit, preventing an auditd
-> > > > > > > from seeing any contid that is a parent of its own contid.
-> > > > > > >
-> > > > > > > > For example, imagine a system where the host has containers 1 and 2,
-> > > > > > > > each running an auditd instance.  Inside container 1 there are
-> > > > > > > > containers A and B.  Inside container 2 there are containers Y and Z.
-> > > > > > > > If an audit event is generated in container Z, I would expect the
-> > > > > > > > host's auditd to see a ACID list of "1,Z" but container 1's auditd
-> > > > > > > > should only see an ACID list of "Z".  The auditd running in container
-> > > > > > > > 2 should not see the record at all (that will be relatively
-> > > > > > > > straightforward).  Does that make sense?  Do we have the record
-> > > > > > > > formats properly designed to handle this without too much problem (I'm
-> > > > > > > > not entirely sure we do)?
-> > > > > > >
-> > > > > > > I completely agree and I believe we have record formats that are able to
-> > > > > > > handle this already.
-> > > > > >
-> > > > > > I'm not convinced we do.  What about the cases where we have a field
-> > > > > > with a list of audit container IDs?  How do we handle that?
-> > > > >
-> > > > > I don't understand the problem.  (I think you crossed your 1/2 vs
-> > > > > A/B/Y/Z in your example.) ...
-> > > >
-> > > > It looks like I did, sorry about that.
-> > > >
-> > > > > ... Clarifying the example above, if as you
-> > > > > suggest an event happens in container Z, the hosts's auditd would report
-> > > > >         Z,^2
-> > > > > and the auditd in container 2 would report
-> > > > >         Z,^2
-> > > > > but if there were another auditd running in container Z it would report
-> > > > >         Z
-> > > > > while the auditd in container 1 or A/B would see nothing.
-> > > >
-> > > > Yes.  My concern is how do we handle this to minimize duplicating and
-> > > > rewriting the records?  It isn't so much about the format, although
-> > > > the format is a side effect.
+On Wed, Mar 18, 2020 at 6:00 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2020-03-18 17:54, Paul Moore wrote:
+> > On Tue, Mar 17, 2020 at 5:31 PM Richard Guy Briggs <rgb@redhat.com> wrote:
 > > >
-> > > Are you talking about caching, or about divulging more information than
-> > > necessary or even information leaks?  Or even noticing that records that
-> > > need to be generated to two audit daemons share the same contid field
-> > > values and should be generated at the same time or information shared
-> > > between them?  I'd see any of these as optimizations that don't affect
-> > > the api.
+> > > NETFILTER_CFG record generation was inconsistent for x_tables and
+> > > ebtables configuration changes.  The call was needlessly messy and there
+> > > were supporting records missing at times while they were produced when
+> > > not requested.  Simplify the logging call into a new audit_log_nfcfg
+> > > call.  Honour the audit_enabled setting while more consistently
+> > > recording information including supporting records by tidying up dummy
+> > > checks.
+> > >
+> > > Add an op= field that indicates the operation being performed (register
+> > > or replace).
+> > >
+> > > Here is the enhanced sample record:
+> > >   type=NETFILTER_CFG msg=audit(1580905834.919:82970): table=filter family=2 entries=83 op=replace
+> > >
+> > > Generate audit NETFILTER_CFG records on ebtables table registration.
+> > > Previously this was being done for x_tables registration and replacement
+> > > operations and ebtables table replacement only.
+> > >
+> > > See: https://github.com/linux-audit/audit-kernel/issues/25
+> > > See: https://github.com/linux-audit/audit-kernel/issues/35
+> > > See: https://github.com/linux-audit/audit-kernel/issues/43
+> > >
+> > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> > > ---
+> > >  include/linux/audit.h           | 19 +++++++++++++++++++
+> > >  kernel/auditsc.c                | 24 ++++++++++++++++++++++++
+> > >  net/bridge/netfilter/ebtables.c | 12 ++++--------
+> > >  net/netfilter/x_tables.c        | 12 +++---------
+> > >  4 files changed, 50 insertions(+), 17 deletions(-)
+> > >
+> > > diff --git a/include/linux/audit.h b/include/linux/audit.h
+> > > index f9ceae57ca8d..f4aed2b9be8d 100644
+> > > --- a/include/linux/audit.h
+> > > +++ b/include/linux/audit.h
+> > > @@ -94,6 +94,11 @@ struct audit_ntp_data {
+> > >  struct audit_ntp_data {};
+> > >  #endif
+> > >
+> > > +enum audit_nfcfgop {
+> > > +       AUDIT_XT_OP_REGISTER,
+> > > +       AUDIT_XT_OP_REPLACE,
+> > > +};
+> > > +
+> > >  extern int is_audit_feature_set(int which);
+> > >
+> > >  extern int __init audit_register_class(int class, unsigned *list);
+> > > @@ -379,6 +384,8 @@ extern int __audit_log_bprm_fcaps(struct linux_binprm *bprm,
+> > >  extern void __audit_fanotify(unsigned int response);
+> > >  extern void __audit_tk_injoffset(struct timespec64 offset);
+> > >  extern void __audit_ntp_log(const struct audit_ntp_data *ad);
+> > > +extern void __audit_log_nfcfg(const char *name, u8 af, unsigned int nentries,
+> > > +                             enum audit_nfcfgop op);
+> > >
+> > >  static inline void audit_ipc_obj(struct kern_ipc_perm *ipcp)
+> > >  {
+> > > @@ -514,6 +521,13 @@ static inline void audit_ntp_log(const struct audit_ntp_data *ad)
+> > >                 __audit_ntp_log(ad);
+> > >  }
+> > >
+> > > +static inline void audit_log_nfcfg(const char *name, u8 af, unsigned int nentries,
+> > > +                                  enum audit_nfcfgop op)
+> > > +{
+> > > +       if (audit_enabled)
+> > > +               __audit_log_nfcfg(name, af, nentries, op);
 > >
-> > Imagine a record is generated in a container which has more than one
-> > auditd in it's ancestry that should receive this record, how do we
-> > handle that without completely killing performance?  That's my
-> > concern.  If you've already thought up a plan for this - excellent,
-> > please share :)
+> > Do we want a dummy check here too?  Or do we always want to generate
+> > this record (assuming audit is enabled) because it is a configuration
+> > related record?
 >
-> No, I haven't given that much thought other than the correctness and
-> security issues of making sure that each audit daemon is sufficiently
-> isolated to do its job but not jeopardize another audit domain.  Audit
-> already kills performance, according to some...
->
-> We currently won't have that problem since there can only be one so far.
-> Fixing and optimizing this is part of the next phase of the challenge of
-> adding a second audit daemon.
->
-> Let's work on correctness and reasonable efficiency for this phase and
-> not focus on a problem we don't yet have.  I wouldn't consider this
-> incurring technical debt at this point.
+> This is an audit configuration change, so it is mandatory unless there
+> is a rule that excludes it.  I talked about this in the cover letter,
+> but perhaps my wording wasn't as clear as it could have been.
 
-I agree, one stage at a time, but the choice we make here is going to
-have a significant impact on what we can do later.  We need to get
-this as "right" as possible; this isn't something we should dismiss
-with a hand-wave as a problem for the next stage.  We don't need an
-implementation, but I would like to see a rough design of how we would
-address this problem.
+Yes, it wasn't clear to me what your goals were.
 
-> I could see cacheing a contid string from one starting point, but it may
-> be more work to search that cached string to truncate it or add to it
-> when another audit daemon requests a copy of a similar string.  I
-> suppose every full contid string could be generated the first time it is
-> used and parts of it used (start/finish) as needed but that
-> search/indexing may not be worth it.
-
-I hope we can do better than string manipulations in the kernel.  I'd
-much rather defer generating the ACID list (if possible), than
-generating a list only to keep copying and editing it as the record is
-sent.
+In general I think this patchset looks okay, but it's -rc6 so this
+should wait for the next cycle; it will also give the netdev/netfilter
+folks a chance to comment on this latest revision.
 
 -- 
 paul moore
