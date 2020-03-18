@@ -2,136 +2,93 @@ Return-Path: <SRS0=WbMd=5D=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D914C4332B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 20:58:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E08FCC43333
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 20:59:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CED31208E0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 20:58:43 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="vKUVcXTV"
+	by mail.kernel.org (Postfix) with ESMTP id 9EF8E2192A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Mar 2020 20:59:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1584565147;
+	bh=e6ZbtL6uKzijKplzpSabQhYVd1hsxqGHDUAVZXO08oY=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=N64qHkjrUXTl11fCAydYQ/AbkRSxkPi1LdVrQ3ZlnMm+gZ5BURRkVMTiy/xW/zlFH
+	 1NnkjK6Lxz328J/jcvr02y9a0PeuIPvu+Bq6Bnk/Dmg4DuWYlwI1Tly8+q2Kc6YrmH
+	 q9cPYmgcM/undZjYB22AftzgBEN8SY/suhVIXhHQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728483AbgCRU6f (ORCPT
+        id S1728732AbgCRU45 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Mar 2020 16:58:35 -0400
-Received: from mail-ed1-f67.google.com ([209.85.208.67]:40913 "EHLO
-        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728750AbgCRU5A (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Mar 2020 16:57:00 -0400
-Received: by mail-ed1-f67.google.com with SMTP id a24so32662553edy.7
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2020 13:56:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=g4AW1divsHMPr3pCP4CdP4Cl7K8Ooaeq6pBA6GUaETQ=;
-        b=vKUVcXTVLCHqGtHDPpcfyVqC7Iyjswe5s6J8QA9fOEK3HpHui7X1QKcUp6EbQ9CrJA
-         C05DjEwPknqFMwyMxVdqOASL4j0b74tzhGVN0rVlDcTqP9r+6muRk44tUHGBiJX0FH3l
-         0kSJ6xSo1oAI9qxQ9gvTZog0w8m3+yD8qjRaTynTXcNhuDoADAvpXa2+efq0e6D5YD6n
-         3CHbsifYNfb0CcekkOIbFkd9XH2x71AkNHltG81Un5wU3LND7OYeks7yEgdlSRFl1uJ5
-         VwR+O1FlMTPjN3UY4K4PQO/XHK+MSLNlCxZ0KmE3m5D5D1kIPJi19WSDxOhR1iInmt9f
-         77jw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=g4AW1divsHMPr3pCP4CdP4Cl7K8Ooaeq6pBA6GUaETQ=;
-        b=D2nN3JYZJxCTV8dG2z6klTrr82ZhAD2iJaZ02LjR9p7RgLL9OAibWrwy7/cTQhhCro
-         FKIo17zsXv1jew+YxN7pRfjMMfs4l+Fdl5XMh2uirmvJPxIdxEVDY2sQZbuOqKAW1zow
-         D53z4fGcw4PVmcVl5wolu1VJRzydGZWr3bsQ5Swoa2Uy9QqcLuKlcEOnLNDHaQWJfrs9
-         iKAQVFxV/3rMcfLJQuCyRroBxWzSqH32As1TWw0RN42SVoY6sME58FiYtKP7QgyLW64E
-         5hf+qqiE21PyUSfdlieeTBaz0jK6gj2gMfp7nhFpISwMJnuzyY4GX+5ykJmLthde9sHw
-         Fl6Q==
-X-Gm-Message-State: ANhLgQ0p3hvd4bEnRvsZm77ySUdxhqNDbIAFfdReizLbY2pOxs4ODbSj
-        ByW46Wn8npL35var/2m3s7+FIuqmLXfxOv+Nbri8
-X-Google-Smtp-Source: ADFU+vufKN/Y6D0NZVHBfHqWGsUn/HVoc7DCLKs6yGElrUkdM/dJMEcsEF5RKrrMdJTSmw7tnsN+cSFDtag+WxqrPu4=
-X-Received: by 2002:a17:906:7b8d:: with SMTP id s13mr120333ejo.77.1584565017755;
- Wed, 18 Mar 2020 13:56:57 -0700 (PDT)
+        Wed, 18 Mar 2020 16:56:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58394 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727804AbgCRU44 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 18 Mar 2020 16:56:56 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 556E521473;
+        Wed, 18 Mar 2020 20:56:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1584565016;
+        bh=e6ZbtL6uKzijKplzpSabQhYVd1hsxqGHDUAVZXO08oY=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=1wVvfpXXeMT5anA+o/BQHwm4b9/kMWTXbwyEbPXfWgWztx3O4xqQJNejMCUKOAEbU
+         QAbbhd/Pkja2OLvHo3jnMX0JsEvA+XPOyPwoh2wfg94N3UfsWU6GmF3Zo7abmBD3wj
+         OnLG5TdGMfN3/jyI6tRRxshIZ+adCshbz9aqMsl4=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Jakub Kicinski <kuba@kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.4 06/12] netfilter: cthelper: add missing attribute validation for cthelper
+Date:   Wed, 18 Mar 2020 16:56:42 -0400
+Message-Id: <20200318205648.17937-6-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200318205648.17937-1-sashal@kernel.org>
+References: <20200318205648.17937-1-sashal@kernel.org>
 MIME-Version: 1.0
-References: <cover.1577736799.git.rgb@redhat.com> <20200204231454.oxa7pyvuxbj466fj@madcap2.tricolour.ca>
- <CAHC9VhQquokw+7UOU=G0SsD35UdgmfysVKCGCE87JVaoTkbisg@mail.gmail.com>
- <3142237.YMNxv0uec1@x2> <CAHC9VhTiCHQbp2SwK0Xb1QgpUZxOQ26JKKPsVGT0ZvMqx28oPQ@mail.gmail.com>
- <CAHC9VhS09b_fM19tn7pHZzxfyxcHnK+PJx80Z9Z1hn8-==4oLA@mail.gmail.com>
- <20200312193037.2tb5f53yeisfq4ta@madcap2.tricolour.ca> <CAHC9VhQoVOzy_b9W6h+kmizKr1rPkC4cy5aYoKT2i0ZgsceNDg@mail.gmail.com>
- <20200313185900.y44yvrfm4zxa5lfk@madcap2.tricolour.ca>
-In-Reply-To: <20200313185900.y44yvrfm4zxa5lfk@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Wed, 18 Mar 2020 16:56:46 -0400
-Message-ID: <CAHC9VhR2zCCE5bjH75rSwfLC7TJGFj4RBnrtcOoUiqVp9q5TaA@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
- the audit daemon
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     Steve Grubb <sgrubb@redhat.com>, linux-audit@redhat.com,
-        nhorman@tuxdriver.com, linux-api@vger.kernel.org,
-        containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
-Content-Type: text/plain; charset="UTF-8"
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Mar 13, 2020 at 2:59 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2020-03-13 12:29, Paul Moore wrote:
-> > On Thu, Mar 12, 2020 at 3:30 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > On 2020-02-13 16:44, Paul Moore wrote:
-> > > > This is a bit of a thread-hijack, and for that I apologize, but
-> > > > another thought crossed my mind while thinking about this issue
-> > > > further ... Once we support multiple auditd instances, including the
-> > > > necessary record routing and duplication/multiple-sends (the host
-> > > > always sees *everything*), we will likely need to find a way to "trim"
-> > > > the audit container ID (ACID) lists we send in the records.  The
-> > > > auditd instance running on the host/initns will always see everything,
-> > > > so it will want the full container ACID list; however an auditd
-> > > > instance running inside a container really should only see the ACIDs
-> > > > of any child containers.
-> > >
-> > > Agreed.  This should be easy to check and limit, preventing an auditd
-> > > from seeing any contid that is a parent of its own contid.
-> > >
-> > > > For example, imagine a system where the host has containers 1 and 2,
-> > > > each running an auditd instance.  Inside container 1 there are
-> > > > containers A and B.  Inside container 2 there are containers Y and Z.
-> > > > If an audit event is generated in container Z, I would expect the
-> > > > host's auditd to see a ACID list of "1,Z" but container 1's auditd
-> > > > should only see an ACID list of "Z".  The auditd running in container
-> > > > 2 should not see the record at all (that will be relatively
-> > > > straightforward).  Does that make sense?  Do we have the record
-> > > > formats properly designed to handle this without too much problem (I'm
-> > > > not entirely sure we do)?
-> > >
-> > > I completely agree and I believe we have record formats that are able to
-> > > handle this already.
-> >
-> > I'm not convinced we do.  What about the cases where we have a field
-> > with a list of audit container IDs?  How do we handle that?
->
-> I don't understand the problem.  (I think you crossed your 1/2 vs
-> A/B/Y/Z in your example.) ...
+From: Jakub Kicinski <kuba@kernel.org>
 
-It looks like I did, sorry about that.
+[ Upstream commit c049b3450072b8e3998053490e025839fecfef31 ]
 
-> ... Clarifying the example above, if as you
-> suggest an event happens in container Z, the hosts's auditd would report
->         Z,^2
-> and the auditd in container 2 would report
->         Z,^2
-> but if there were another auditd running in container Z it would report
->         Z
-> while the auditd in container 1 or A/B would see nothing.
+Add missing attribute validation for cthelper
+to the netlink policy.
 
-Yes.  My concern is how do we handle this to minimize duplicating and
-rewriting the records?  It isn't so much about the format, although
-the format is a side effect.
+Fixes: 12f7a505331e ("netfilter: add user-space connection tracking helper infrastructure")
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/nfnetlink_cthelper.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
+diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
+index ac143ae4f7b65..8c17338693432 100644
+--- a/net/netfilter/nfnetlink_cthelper.c
++++ b/net/netfilter/nfnetlink_cthelper.c
+@@ -711,6 +711,8 @@ static const struct nla_policy nfnl_cthelper_policy[NFCTH_MAX+1] = {
+ 	[NFCTH_NAME] = { .type = NLA_NUL_STRING,
+ 			 .len = NF_CT_HELPER_NAME_LEN-1 },
+ 	[NFCTH_QUEUE_NUM] = { .type = NLA_U32, },
++	[NFCTH_PRIV_DATA_LEN] = { .type = NLA_U32, },
++	[NFCTH_STATUS] = { .type = NLA_U32, },
+ };
+ 
+ static const struct nfnl_callback nfnl_cthelper_cb[NFNL_MSG_CTHELPER_MAX] = {
 -- 
-paul moore
-www.paul-moore.com
+2.20.1
+
