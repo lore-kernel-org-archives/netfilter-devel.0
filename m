@@ -2,131 +2,165 @@ Return-Path: <SRS0=bD7Q=5E=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A0CAC4332D
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Mar 2020 20:49:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98D5BC4332E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Mar 2020 21:48:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6BF042070A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Mar 2020 20:49:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6DE0A2076F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Mar 2020 21:48:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Is53v1Wz"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bR4PV2Ox"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727001AbgCSUtd (ORCPT
+        id S1727235AbgCSVs1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Mar 2020 16:49:33 -0400
-Received: from us-smtp-delivery-74.mimecast.com ([216.205.24.74]:49622 "EHLO
+        Thu, 19 Mar 2020 17:48:27 -0400
+Received: from us-smtp-delivery-74.mimecast.com ([216.205.24.74]:28349 "EHLO
         us-smtp-delivery-74.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725787AbgCSUtd (ORCPT
+        by vger.kernel.org with ESMTP id S1727162AbgCSVs1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Mar 2020 16:49:33 -0400
+        Thu, 19 Mar 2020 17:48:27 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1584650971;
+        s=mimecast20190719; t=1584654506;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=+kGPWVZ1JYPgnWvFYolrBTfcSCVkDgdHgsl5mik+1R8=;
-        b=Is53v1WzPWj2n+ubyZvrI+ikUr7w+xz4Q8vqhSxFgk7TNPrFRitWEmKtyGjz+tWNhbzP3/
-        8xVcDgSsVG8CimUM11OPy/8d80J3+CZy69XmQyRpMnvZV9GdHEIrDJLSB7S436kvbfkgZW
-        5+zQe59Ogqd4aBHaVWlR6BhZyOc2J/s=
+        bh=tsfr9KiPwPHaSNob1o89QdgA/mKpTxdC3audBQKrY6g=;
+        b=bR4PV2OxMRijskEFjJmDbjur4RI2ZFHRHguU3PgQaU9c+mZp692+hMiM29fgStEtGv9o6z
+        dnhYSR4s5smIwRmQ5f44La8mMpKARcnzGcTq3a8X6HnWBwFKxeESgZX5xqfiwpBjPLEtfH
+        T29miHKMeaSBAl044DRSCTyZOA+qhLk=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-401-VreRf3x-Mlu69AhW5M1NcA-1; Thu, 19 Mar 2020 16:49:29 -0400
-X-MC-Unique: VreRf3x-Mlu69AhW5M1NcA-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
+ us-mta-111-OLeMbR_VN_W9GnHsc2JE3w-1; Thu, 19 Mar 2020 17:48:23 -0400
+X-MC-Unique: OLeMbR_VN_W9GnHsc2JE3w-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 773311005510;
-        Thu, 19 Mar 2020 20:49:28 +0000 (UTC)
-Received: from elisabeth (unknown [10.40.208.93])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id A18385D9CD;
-        Thu, 19 Mar 2020 20:49:26 +0000 (UTC)
-Date:   Thu, 19 Mar 2020 21:49:20 +0100
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf 4/4] nft_set_rbtree: Detect partial overlaps on
- insertion
-Message-ID: <20200319214920.590055ab@elisabeth>
-In-Reply-To: <20200319193211.fcv6xg6mtr3t3mez@salvia>
-References: <cover.1583438771.git.sbrivio@redhat.com>
-        <e6f84fe980f55dde272f7c17e2423390a03e942d.1583438771.git.sbrivio@redhat.com>
-        <20200319193211.fcv6xg6mtr3t3mez@salvia>
-Organization: Red Hat
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 28CAF107ACC4;
+        Thu, 19 Mar 2020 21:48:20 +0000 (UTC)
+Received: from madcap2.tricolour.ca (unknown [10.36.110.5])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 0A40CBBBF3;
+        Thu, 19 Mar 2020 21:48:03 +0000 (UTC)
+Date:   Thu, 19 Mar 2020 17:47:59 -0400
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Paul Moore <paul@paul-moore.com>
+Cc:     Steve Grubb <sgrubb@redhat.com>, linux-audit@redhat.com,
+        nhorman@tuxdriver.com, linux-api@vger.kernel.org,
+        containers@lists.linux-foundation.org,
+        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
+        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
+        simo@redhat.com, netdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
+        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
+Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
+ the audit daemon
+Message-ID: <20200319214759.qgxt2sfkmd6srdol@madcap2.tricolour.ca>
+References: <20200204231454.oxa7pyvuxbj466fj@madcap2.tricolour.ca>
+ <CAHC9VhQquokw+7UOU=G0SsD35UdgmfysVKCGCE87JVaoTkbisg@mail.gmail.com>
+ <3142237.YMNxv0uec1@x2>
+ <CAHC9VhTiCHQbp2SwK0Xb1QgpUZxOQ26JKKPsVGT0ZvMqx28oPQ@mail.gmail.com>
+ <20200312202733.7kli64zsnqc4mrd2@madcap2.tricolour.ca>
+ <CAHC9VhS9DtxJ4gvOfMRnzoo6ccGJVKL+uZYe6qqH+SPqD8r01Q@mail.gmail.com>
+ <20200313192306.wxey3wn2h4htpccm@madcap2.tricolour.ca>
+ <CAHC9VhQKOpVWxDg-tWuCWV22QRu8P_NpFKme==0Ot1RQKa_DWA@mail.gmail.com>
+ <20200318214154.ycxy5dl4pxno6fvi@madcap2.tricolour.ca>
+ <CAHC9VhSuMnd3-ci2Bx-xJ0yscQ=X8ZqFAcNPKpbh_ZWN3FJcuQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHC9VhSuMnd3-ci2Bx-xJ0yscQ=X8ZqFAcNPKpbh_ZWN3FJcuQ@mail.gmail.com>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 19 Mar 2020 20:32:11 +0100
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+On 2020-03-18 17:47, Paul Moore wrote:
+> On Wed, Mar 18, 2020 at 5:42 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > On 2020-03-18 17:01, Paul Moore wrote:
+> > > On Fri, Mar 13, 2020 at 3:23 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > > On 2020-03-13 12:42, Paul Moore wrote:
+> > >
+> > > ...
+> > >
+> > > > > The thread has had a lot of starts/stops, so I may be repeating a
+> > > > > previous suggestion, but one idea would be to still emit a "death
+> > > > > record" when the final task in the audit container ID does die, but
+> > > > > block the particular audit container ID from reuse until it the
+> > > > > SIGNAL2 info has been reported.  This gives us the timely ACID death
+> > > > > notification while still preventing confusion and ambiguity caused by
+> > > > > potentially reusing the ACID before the SIGNAL2 record has been sent;
+> > > > > there is a small nit about the ACID being present in the SIGNAL2
+> > > > > *after* its death, but I think that can be easily explained and
+> > > > > understood by admins.
+> > > >
+> > > > Thinking quickly about possible technical solutions to this, maybe it
+> > > > makes sense to have two counters on a contobj so that we know when the
+> > > > last process in that container exits and can issue the death
+> > > > certificate, but we still block reuse of it until all further references
+> > > > to it have been resolved.  This will likely also make it possible to
+> > > > report the full contid chain in SIGNAL2 records.  This will eliminate
+> > > > some of the issues we are discussing with regards to passing a contobj
+> > > > vs a contid to the audit_log_contid function, but won't eliminate them
+> > > > all because there are still some contids that won't have an object
+> > > > associated with them to make it impossible to look them up in the
+> > > > contobj lists.
+> > >
+> > > I'm not sure you need a full second counter, I imagine a simple flag
+> > > would be okay.  I think you just something to indicate that this ACID
+> > > object is marked as "dead" but it still being held for sanity reasons
+> > > and should not be reused.
+> >
+> > Ok, I see your point.  This refcount can be changed to a flag easily
+> > enough without change to the api if we can be sure that more than one
+> > signal can't be delivered to the audit daemon *and* collected by sig2.
+> > I'll have a more careful look at the audit daemon code to see if I can
+> > determine this.
+> 
+> Maybe I'm not understanding your concern, but this isn't really
+> different than any of the other things we track for the auditd signal
+> sender, right?  If we are worried about multiple signals being sent
+> then it applies to everything, not just the audit container ID.
 
-> Hi Stefano,
-> 
-> Sorry for the late response to this one.
-> 
-> On Thu, Mar 05, 2020 at 09:33:05PM +0100, Stefano Brivio wrote:
-> > @@ -223,17 +258,40 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
-> >  		d = memcmp(nft_set_ext_key(&rbe->ext),
-> >  			   nft_set_ext_key(&new->ext),
-> >  			   set->klen);
-> > -		if (d < 0)
-> > +		if (d < 0) {
-> >  			p = &parent->rb_left;
-> > -		else if (d > 0)
-> > +
-> > +			if (nft_rbtree_interval_start(new)) {
-> > +				overlap = nft_rbtree_interval_start(rbe) &&
-> > +					  nft_set_elem_active(&rbe->ext,
-> > +							      genmask);
-> > +			} else {
-> > +				overlap = nft_rbtree_interval_end(rbe) &&
-> > +					  nft_set_elem_active(&rbe->ext,
-> > +							      genmask);
-> > +			}
-> > +		} else if (d > 0) {
-> >  			p = &parent->rb_right;
-> > -		else {
-> > +
-> > +			if (nft_rbtree_interval_end(new)) {
-> > +				overlap = nft_rbtree_interval_end(rbe) &&
-> > +					  nft_set_elem_active(&rbe->ext,
-> > +							      genmask);
-> > +			} else if (nft_rbtree_interval_end(rbe) &&
-> > +				   nft_set_elem_active(&rbe->ext, genmask)) {
-> > +				overlap = true;
-> > +			}
-> > +		} else {
-> >  			if (nft_rbtree_interval_end(rbe) &&
-> >  			    nft_rbtree_interval_start(new)) {
-> >  				p = &parent->rb_left;
-> > +  
-> 
-> Instead of this inconditional reset of 'overlap':
-> 
-> > +				overlap = false;  
-> 
-> I think this should be:
-> 
->                         if (nft_set_elem_active(&rbe->ext, genmask))
->         			overlap = false;
-> 
-> if the existing rbe is active, then reset 'overlap' to false.
+Yes, you are right.  In all other cases the information is simply
+overwritten.  In the case of the audit container identifier any
+previous value is put before a new one is referenced, so only the last
+signal is kept.  So, we only need a flag.  Does a flag implemented with
+a rcu-protected refcount sound reasonable to you?
 
-I think you're right (also for the case just below this), and, if
-you're not, then a comment on why I'm not checking it is clearly
-needed, because I have a vague memory about the fact we could *perhaps*
-skip it in this particular case, and I can't remember that myself :)
+> > Another question occurs to me is that what if the audit daemon is sent a
+> > signal and it cannot or will not collect the sig2 information from the
+> > kernel (SIGKILL?)?  Does that audit container identifier remain dead
+> > until reboot, or do we institute some other form of reaping, possibly
+> > time-based?
+> 
+> In order to preserve the integrity of the audit log that ACID value
+> would need to remain unavailable until the ACID which contains the
+> associated auditd is "dead" (no one can request the signal sender's
+> info if that container is dead).
 
-I'll fix either problem in v2.
+I don't understand why it would be associated with the contid of the
+audit daemon process rather than with the audit daemon process itself.
+How does the signal collection somehow get transferred or delegated to
+another member of that audit daemon's container?
 
--- 
-Stefano
+Thinking aloud here, the audit daemon's exit when it calls audit_free()
+needs to ..._put_sig and cancel that audit_sig_cid (which in the future
+will be allocated per auditd rather than the global it is now since
+there is only one audit daemon).
+
+> paul moore
+
+- RGB
+
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
 
