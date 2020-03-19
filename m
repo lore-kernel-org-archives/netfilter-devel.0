@@ -2,111 +2,137 @@ Return-Path: <SRS0=bD7Q=5E=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BBE1CC4332D
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Mar 2020 15:57:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0330CC4332D
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Mar 2020 16:41:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9D7A62072C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Mar 2020 15:57:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB7562070A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Mar 2020 16:41:06 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="M5htu4nf"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727477AbgCSP5g (ORCPT
+        id S1727928AbgCSQlF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Mar 2020 11:57:36 -0400
-Received: from dispatch1-us1.ppe-hosted.com ([67.231.154.164]:33288 "EHLO
-        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727217AbgCSP5g (ORCPT
+        Thu, 19 Mar 2020 12:41:05 -0400
+Received: from mail-pl1-f194.google.com ([209.85.214.194]:44113 "EHLO
+        mail-pl1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727877AbgCSQlE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Mar 2020 11:57:36 -0400
-X-Virus-Scanned: Proofpoint Essentials engine
-Received: from webmail.solarflare.com (uk.solarflare.com [193.34.186.16])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mx1-us5.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id D46D34C0051;
-        Thu, 19 Mar 2020 15:57:34 +0000 (UTC)
-Received: from [10.17.20.203] (10.17.20.203) by ukex01.SolarFlarecom.com
- (10.17.10.4) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Thu, 19 Mar
- 2020 15:57:28 +0000
-Subject: Re: [PATCH net-next 6/6] netfilter: nf_flow_table: hardware offload
- support
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        <netfilter-devel@vger.kernel.org>
-CC:     <davem@davemloft.net>, <netdev@vger.kernel.org>,
-        <paulb@mellanox.com>, <ozsh@mellanox.com>, <majd@mellanox.com>,
-        <saeedm@mellanox.com>
-References: <20191111232956.24898-1-pablo@netfilter.org>
- <20191111232956.24898-7-pablo@netfilter.org>
-From:   Edward Cree <ecree@solarflare.com>
-Message-ID: <64004716-fdbe-9542-2484-8a1691d54e53@solarflare.com>
-Date:   Thu, 19 Mar 2020 15:57:25 +0000
+        Thu, 19 Mar 2020 12:41:04 -0400
+Received: by mail-pl1-f194.google.com with SMTP id h11so1275735plr.11;
+        Thu, 19 Mar 2020 09:41:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=N+kUskOEAztsUSeY3dZT12vj2Ojdgoxn5lGNikj9z1U=;
+        b=M5htu4nft5Wl6IcM9YkoOY+berCLoHv2KhBl4yrj1LNzgifwMLJSrdni4h36LM/3lz
+         GpAJ5ITg6czoojg096Uk2x+lYbOv5TXYJB7cJ2e2r5YrBenRBz4ffpmtZW7bhsnnnOu8
+         aTLLEiWr0fX2lRMHNEiflHuRhpMHBLZ+tmh5iGsVTcnv1JupoQ3UeDx6uVi2lUKv03ey
+         KUQ3+6RG+3/hWTsXmjzqKyLi/Yv+qwOJJjNHxwWI7flOzjDo8meaPSU9Tv4HMbEvq47j
+         +R/0JATKjdKC4FeQh92+4OnQce9B5jw3jO2fjWVNvqxWQ0WjX9nawSf0u8ZisB92IE76
+         Zpmg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=N+kUskOEAztsUSeY3dZT12vj2Ojdgoxn5lGNikj9z1U=;
+        b=qYPwbxd1NetK822UJY+37f9H4qTQzkwfB+TPZfsnIS6zkrkZBwDmv6CbW/Muxk3EEg
+         idiOHfD3EQJP4zr3k7M1foUmgwzwz56HDyaIl3bwPUsCerQqbfhKO7we1x13Y/NISsr/
+         CHF2vhUb7iIuSi1A70Yx6qoeo28E4H5VSi4bHtNb6Y92rOnJHqcrV9t/rX6OvKB3Gjcn
+         bhEEPzUfBExvGrcCV4FwqQjovCOwR3Jdv2zgH5jdXJD6MoaEthsFBCq7K2CoyV4Bdm9f
+         j7qOO72R1p7qbMDtfaZbbcCcJeQdKBQzaY/ZxOwGMuGEkSJanGkKikNUYnE02Xr9W8Ks
+         Ca2g==
+X-Gm-Message-State: ANhLgQ2AwT+KMokiDRxX8FOREn2iPK4zOFJj15yioubzRRCW+88GAc4r
+        RNOse8DtDGzbEZuJCqQp21mw1z+f
+X-Google-Smtp-Source: ADFU+vuFp5ZNwIXfJTevssPDNf3T8CH3AaNlm9oYHgHSdzLv5seXgCry8wf8JOaObTMCI+Lt2p3iyA==
+X-Received: by 2002:a17:902:eb49:: with SMTP id i9mr4148743pli.91.1584636063110;
+        Thu, 19 Mar 2020 09:41:03 -0700 (PDT)
+Received: from [192.168.86.235] (c-73-241-150-58.hsd1.ca.comcast.net. [73.241.150.58])
+        by smtp.gmail.com with ESMTPSA id y18sm3008136pge.73.2020.03.19.09.41.00
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 19 Mar 2020 09:41:02 -0700 (PDT)
+Subject: Re: Bug URGENT Report with new kernel 5.5.10-5.6-rc6
+To:     Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Martin Zaharinov <micron10@gmail.com>,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+References: <CALidq=XsQy66n-pTMOMN=B7nEsk7BpRZnUHery5RJyjnMsiXZQ@mail.gmail.com>
+ <CALidq=VVpixeJFJFkUSeDqTW=OX0+dhA04ypE=y949B+Aqaq0w@mail.gmail.com>
+ <CALidq=UXHz+rjiG5JxAz-CJ1mKsFLVupsH3W+z58L2nSPKE-7w@mail.gmail.com>
+ <20200319003823.3b709ad8@elisabeth>
+ <CALidq=Xow0EkAP4LkqvQiDOmVDduEwLKa4c-A54or3GMj6+qVw@mail.gmail.com>
+ <20200319103438.GO979@breakpoint.cc> <20200319104750.x2zz7negjbm6lwch@salvia>
+ <20200319105248.GP979@breakpoint.cc>
+From:   Eric Dumazet <eric.dumazet@gmail.com>
+Message-ID: <fff10500-8b87-62f0-ec89-49453cf9ae57@gmail.com>
+Date:   Thu, 19 Mar 2020 09:40:59 -0700
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.2.2
+ Thunderbird/68.5.0
 MIME-Version: 1.0
-In-Reply-To: <20191111232956.24898-7-pablo@netfilter.org>
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <20200319105248.GP979@breakpoint.cc>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-Content-Language: en-GB
-X-Originating-IP: [10.17.20.203]
-X-ClientProxiedBy: ocex03.SolarFlarecom.com (10.20.40.36) To
- ukex01.SolarFlarecom.com (10.17.10.4)
-X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1020-25300.003
-X-TM-AS-Result: No-9.313900-8.000000-10
-X-TMASE-MatchedRID: scwq2vQP8OEbF9xF7zzuNfZvT2zYoYOwC/ExpXrHizz5+tteD5RzhUa8
-        yKZOJ6C1JjovGzWxJ9SbmkwamF/Rlcf2eXl6VFIUO8xKBrjenTQxXH/dlhvLvyuGKh4AkqKV/cN
-        c7UG2ksjxbDEqAUeozlwUyWghCE2RmlSCGmrTRTD9xyC38S1f/XkamQDZ6bhfVWQnHKxp38gRQP
-        nsANQIhT1ExWdxi/VAVIKZ9Pa/e14YB2fOueQzjzl/1fD/GopdWQy9YC5qGvz6APa9i04WGCq2r
-        l3dzGQ1oRBjtox9n9pUaznb1Oof98NGm2XwkcYX65h41kcF46p9MgV9gnmAIcC+ksT6a9fy
-X-TM-AS-User-Approved-Sender: Yes
-X-TM-AS-User-Blocked-Sender: No
-X-TMASE-Result: 10--9.313900-8.000000
-X-TMASE-Version: SMEX-12.5.0.1300-8.5.1020-25300.003
-X-MDID: 1584633455-EVp-fIOyl10N
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 11/11/2019 23:29, Pablo Neira Ayuso wrote:
-> This patch adds the dataplane hardware offload to the flowtable
-> infrastructure. Three new flags represent the hardware state of this
-> flow:
->
-> * FLOW_OFFLOAD_HW: This flow entry resides in the hardware.
-> * FLOW_OFFLOAD_HW_DYING: This flow entry has been scheduled to be remove
->   from hardware. This might be triggered by either packet path (via TCP
->   RST/FIN packet) or via aging.
-> * FLOW_OFFLOAD_HW_DEAD: This flow entry has been already removed from
->   the hardware, the software garbage collector can remove it from the
->   software flowtable.
->
-> This patch supports for:
->
-> * IPv4 only.
-> * Aging via FLOW_CLS_STATS, no packet and byte counter synchronization
->   at this stage.
->
-> This patch also adds the action callback that specifies how to convert
-> the flow entry into the flow_rule object that is passed to the driver.
->
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-<snip>
-> +static int nf_flow_rule_match(struct nf_flow_match *match,
-> +			      const struct flow_offload_tuple *tuple)
-> +{
-> +	struct nf_flow_key *mask = &match->mask;
-> +	struct nf_flow_key *key = &match->key;
-> +
-> +	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_CONTROL, control);
-> +	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_BASIC, basic);
-> +	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_IPV4_ADDRS, ipv4);
-> +	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_TCP, tcp);
-> +	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_PORTS, tp);
-> +
-> +	switch (tuple->l3proto) {
-> +	case AF_INET:
-> +		key->control.addr_type = FLOW_DISSECTOR_KEY_IPV4_ADDRS;
-Is it intentional that mask->control.addr_type never gets set?
 
--ed
+
+On 3/19/20 3:52 AM, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>> On Thu, Mar 19, 2020 at 11:34:38AM +0100, Florian Westphal wrote:
+>>> Martin Zaharinov <micron10@gmail.com> wrote:
+>>>
+>>> [ trimming CC ]
+>>>
+>>> Please revert
+>>>
+>>> commit 28f8bfd1ac948403ebd5c8070ae1e25421560059
+>>> netfilter: Support iif matches in POSTROUTING
+>>
+>> Please, specify a short description to append to the revert.
+> 
+> TCP makes use of the rb_node in sk_buff for its retransmit queue,
+> amongst others.
+
+
+Only for master skbs kept in TCP internal queues (rtx rb tree)
+
+However the packets leaving TCP stack are clones.
+
+  skb->dev aliases to this storage, i.e., passing
+> skb->dev as the input interface in postrouting may point to another
+> sk_buff instead.
+> This will cause crashes and data corruption with nf_queue, as we will
+> attempt to increment a random pcpu variable when calling dev_hold().
+> 
+> Also, the memory address may also be free'd, which gives UAF splat.
+> 
+
+This seems to suggest clones skb->dev should be cleared before leaving TCP stack,
+if some layer is confused because skb->dev has not yet been set by IP layer ?
+
+Untested patch :
+
+diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
+index 306e25d743e8de1bfe23d6e3b3a9fb0f23664912..c40fb3880307aa3156d01a8b49f1296657346cfd 100644
+--- a/net/ipv4/tcp_output.c
++++ b/net/ipv4/tcp_output.c
+@@ -1228,6 +1228,7 @@ static int __tcp_transmit_skb(struct sock *sk, struct sk_buff *skb,
+        /* Cleanup our debris for IP stacks */
+        memset(skb->cb, 0, max(sizeof(struct inet_skb_parm),
+                               sizeof(struct inet6_skb_parm)));
++       skb->dev = NULL;
+ 
+        tcp_add_tx_delay(skb, tp);
+ 
+
