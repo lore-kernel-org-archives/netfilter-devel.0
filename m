@@ -1,205 +1,149 @@
-Return-Path: <SRS0=bD7Q=5E=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=s0US=5F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA6FFC4332D
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Mar 2020 22:03:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B832C4332B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Mar 2020 03:00:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A2B662076E
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Mar 2020 22:03:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 043F320754
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Mar 2020 03:00:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="X5UIMxMt"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kpCH9LKr"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727324AbgCSWDS (ORCPT
+        id S1726658AbgCTDAa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Mar 2020 18:03:18 -0400
-Received: from us-smtp-delivery-74.mimecast.com ([63.128.21.74]:58581 "EHLO
-        us-smtp-delivery-74.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726663AbgCSWDR (ORCPT
+        Thu, 19 Mar 2020 23:00:30 -0400
+Received: from mail-pl1-f193.google.com ([209.85.214.193]:41577 "EHLO
+        mail-pl1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726596AbgCTDAa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Mar 2020 18:03:17 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1584655396;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=/mdxk2khEaDoWIwtVFmt93rKTZk2xKfiNva34Q7ynLE=;
-        b=X5UIMxMtQPRa+jb20jtL+71wesqkkLISuomHPSOjRnbNceamlxKzBPaCIntGYSdmhkEYrV
-        ep6S+PnUbUNF0TpEDUFZuW2kuxakQaTV+pQeCTv/iV8aK+bnmyF5clEb0XTcf/Ny80cBTS
-        6eEjZx30yCzD384wlWcyOiR4TcBIG6k=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-234-arOU1dVhPROw7mgYVI1lzA-1; Thu, 19 Mar 2020 18:03:14 -0400
-X-MC-Unique: arOU1dVhPROw7mgYVI1lzA-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 988B5107ACC9;
-        Thu, 19 Mar 2020 22:03:12 +0000 (UTC)
-Received: from madcap2.tricolour.ca (unknown [10.36.110.5])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id A1BF5BBBEB;
-        Thu, 19 Mar 2020 22:02:53 +0000 (UTC)
-Date:   Thu, 19 Mar 2020 18:02:49 -0400
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     Steve Grubb <sgrubb@redhat.com>, linux-audit@redhat.com,
-        nhorman@tuxdriver.com, linux-api@vger.kernel.org,
-        containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
-Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
- the audit daemon
-Message-ID: <20200319220249.jyr6xmwvflya5mks@madcap2.tricolour.ca>
-References: <CAHC9VhTiCHQbp2SwK0Xb1QgpUZxOQ26JKKPsVGT0ZvMqx28oPQ@mail.gmail.com>
- <CAHC9VhS09b_fM19tn7pHZzxfyxcHnK+PJx80Z9Z1hn8-==4oLA@mail.gmail.com>
- <20200312193037.2tb5f53yeisfq4ta@madcap2.tricolour.ca>
- <CAHC9VhQoVOzy_b9W6h+kmizKr1rPkC4cy5aYoKT2i0ZgsceNDg@mail.gmail.com>
- <20200313185900.y44yvrfm4zxa5lfk@madcap2.tricolour.ca>
- <CAHC9VhR2zCCE5bjH75rSwfLC7TJGFj4RBnrtcOoUiqVp9q5TaA@mail.gmail.com>
- <20200318212630.mw2geg4ykhnbtr3k@madcap2.tricolour.ca>
- <CAHC9VhRYvGAru3aOMwWKCCWDktS+2pGr+=vV4SjHW_0yewD98A@mail.gmail.com>
- <20200318215550.es4stkjwnefrfen2@madcap2.tricolour.ca>
- <CAHC9VhSdDDP7Ec-w61NhGxZG5ZiekmrBCAg=Y=VJvEZcgQh46g@mail.gmail.com>
+        Thu, 19 Mar 2020 23:00:30 -0400
+Received: by mail-pl1-f193.google.com with SMTP id t16so1898696plr.8;
+        Thu, 19 Mar 2020 20:00:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=gxG63zAIWgKTBOzHey2DE/duHVniOWkY6U4i26i98aw=;
+        b=kpCH9LKrGaaiPmxORj8fBNKI8yqyzvb5aT65crNDKkfH0n2KJs8Aw+8z2lgPEuXN4e
+         sxfYSe66E8q7uBa4SKdhr+IrXOOtLws+f8ZCoU2sV3sHwU0TkxBuAyD4qpoGw1phwvOn
+         DzABBTRWOJomb0lhh7Xrka7woxbA36GHOzLFwNs3Vc2zX9gshbz1deuycF91wJ8YH/69
+         Rjt7rVkNUhGRRQOMmi6npUfpek23wzY8MtXHeOyMAIbijP4o32evxvPeJYJffpDRjIuA
+         9eB3LYuicMm1bY05vGCyIqkHCWJ4KVAy5tncp1B6ftKY4BIOVdcd51koVKQOWMRZMaVp
+         cATg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=gxG63zAIWgKTBOzHey2DE/duHVniOWkY6U4i26i98aw=;
+        b=dzjghrSPwOT7743d5AmMQikoX8/0Qt4jXgVxR5d2xLksTcWYJQ0xoACAS0uiPg2lDk
+         eyrRxMr5g4S4jQ71J/T1WDVWK7srHjZHI0fmSXzWPm66whT4UCAjuD7GZ0xHy66yog6F
+         DC8W0YD3iYwRkODfPNFheG4NsI1zocm/riYasl7azVAr9SGbCurcQUZvoCtj/SZRvo6K
+         Jge2SuX8ql7OZqcSQ0pYXRvUFWycyydzDC78uO3ZO6mKPT8nxPPFhCqYdQ/JRz3wn7JC
+         JXzgwR+4b36QDlgliTVuN139FZpxMQc0pAbjMeV/vp4up9wIDiC6mOZgRJ6f7eA3GS2T
+         dYeg==
+X-Gm-Message-State: ANhLgQ0qVZMTdQTWfMH9IVasoexbrqnw4HPPajweoojWWvNEcD3hnU/q
+        rU2tIEs1x5m8ceihHMFjY+4cvbH/
+X-Google-Smtp-Source: ADFU+vvQMiSD4kmAPMzMtXnU0/i5RXxIHIPkQNLxnQbasYOi9U2EHYOh/MEm2uCaf5e8BGZZcARL1g==
+X-Received: by 2002:a17:90a:33d1:: with SMTP id n75mr6898323pjb.167.1584673227305;
+        Thu, 19 Mar 2020 20:00:27 -0700 (PDT)
+Received: from athina.mtv.corp.google.com ([2620:15c:211:0:c786:d9fd:ab91:6283])
+        by smtp.gmail.com with ESMTPSA id w127sm3680794pfb.70.2020.03.19.20.00.25
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 19 Mar 2020 20:00:26 -0700 (PDT)
+From:   =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <zenczykowski@gmail.com>
+To:     =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     Linux Network Development Mailing List <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, Chenbo Feng <fengc@google.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Willem de Bruijn <willemb@google.com>
+Subject: [PATCH] iptables: open eBPF programs in read only mode
+Date:   Thu, 19 Mar 2020 20:00:15 -0700
+Message-Id: <20200320030015.195806-1-zenczykowski@gmail.com>
+X-Mailer: git-send-email 2.25.1.696.g5e7596f4ac-goog
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHC9VhSdDDP7Ec-w61NhGxZG5ZiekmrBCAg=Y=VJvEZcgQh46g@mail.gmail.com>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-03-18 18:06, Paul Moore wrote:
-> On Wed, Mar 18, 2020 at 5:56 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > On 2020-03-18 17:42, Paul Moore wrote:
-> > > On Wed, Mar 18, 2020 at 5:27 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > > On 2020-03-18 16:56, Paul Moore wrote:
-> > > > > On Fri, Mar 13, 2020 at 2:59 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > > > > On 2020-03-13 12:29, Paul Moore wrote:
-> > > > > > > On Thu, Mar 12, 2020 at 3:30 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > > > > > > On 2020-02-13 16:44, Paul Moore wrote:
-> > > > > > > > > This is a bit of a thread-hijack, and for that I apologize, but
-> > > > > > > > > another thought crossed my mind while thinking about this issue
-> > > > > > > > > further ... Once we support multiple auditd instances, including the
-> > > > > > > > > necessary record routing and duplication/multiple-sends (the host
-> > > > > > > > > always sees *everything*), we will likely need to find a way to "trim"
-> > > > > > > > > the audit container ID (ACID) lists we send in the records.  The
-> > > > > > > > > auditd instance running on the host/initns will always see everything,
-> > > > > > > > > so it will want the full container ACID list; however an auditd
-> > > > > > > > > instance running inside a container really should only see the ACIDs
-> > > > > > > > > of any child containers.
-> > > > > > > >
-> > > > > > > > Agreed.  This should be easy to check and limit, preventing an auditd
-> > > > > > > > from seeing any contid that is a parent of its own contid.
-> > > > > > > >
-> > > > > > > > > For example, imagine a system where the host has containers 1 and 2,
-> > > > > > > > > each running an auditd instance.  Inside container 1 there are
-> > > > > > > > > containers A and B.  Inside container 2 there are containers Y and Z.
-> > > > > > > > > If an audit event is generated in container Z, I would expect the
-> > > > > > > > > host's auditd to see a ACID list of "1,Z" but container 1's auditd
-> > > > > > > > > should only see an ACID list of "Z".  The auditd running in container
-> > > > > > > > > 2 should not see the record at all (that will be relatively
-> > > > > > > > > straightforward).  Does that make sense?  Do we have the record
-> > > > > > > > > formats properly designed to handle this without too much problem (I'm
-> > > > > > > > > not entirely sure we do)?
-> > > > > > > >
-> > > > > > > > I completely agree and I believe we have record formats that are able to
-> > > > > > > > handle this already.
-> > > > > > >
-> > > > > > > I'm not convinced we do.  What about the cases where we have a field
-> > > > > > > with a list of audit container IDs?  How do we handle that?
-> > > > > >
-> > > > > > I don't understand the problem.  (I think you crossed your 1/2 vs
-> > > > > > A/B/Y/Z in your example.) ...
-> > > > >
-> > > > > It looks like I did, sorry about that.
-> > > > >
-> > > > > > ... Clarifying the example above, if as you
-> > > > > > suggest an event happens in container Z, the hosts's auditd would report
-> > > > > >         Z,^2
-> > > > > > and the auditd in container 2 would report
-> > > > > >         Z,^2
-> > > > > > but if there were another auditd running in container Z it would report
-> > > > > >         Z
-> > > > > > while the auditd in container 1 or A/B would see nothing.
-> > > > >
-> > > > > Yes.  My concern is how do we handle this to minimize duplicating and
-> > > > > rewriting the records?  It isn't so much about the format, although
-> > > > > the format is a side effect.
-> > > >
-> > > > Are you talking about caching, or about divulging more information than
-> > > > necessary or even information leaks?  Or even noticing that records that
-> > > > need to be generated to two audit daemons share the same contid field
-> > > > values and should be generated at the same time or information shared
-> > > > between them?  I'd see any of these as optimizations that don't affect
-> > > > the api.
-> > >
-> > > Imagine a record is generated in a container which has more than one
-> > > auditd in it's ancestry that should receive this record, how do we
-> > > handle that without completely killing performance?  That's my
-> > > concern.  If you've already thought up a plan for this - excellent,
-> > > please share :)
-> >
-> > No, I haven't given that much thought other than the correctness and
-> > security issues of making sure that each audit daemon is sufficiently
-> > isolated to do its job but not jeopardize another audit domain.  Audit
-> > already kills performance, according to some...
-> >
-> > We currently won't have that problem since there can only be one so far.
-> > Fixing and optimizing this is part of the next phase of the challenge of
-> > adding a second audit daemon.
-> >
-> > Let's work on correctness and reasonable efficiency for this phase and
-> > not focus on a problem we don't yet have.  I wouldn't consider this
-> > incurring technical debt at this point.
-> 
-> I agree, one stage at a time, but the choice we make here is going to
-> have a significant impact on what we can do later.  We need to get
-> this as "right" as possible; this isn't something we should dismiss
-> with a hand-wave as a problem for the next stage.  We don't need an
-> implementation, but I would like to see a rough design of how we would
-> address this problem.
-> 
-> > I could see cacheing a contid string from one starting point, but it may
-> > be more work to search that cached string to truncate it or add to it
-> > when another audit daemon requests a copy of a similar string.  I
-> > suppose every full contid string could be generated the first time it is
-> > used and parts of it used (start/finish) as needed but that
-> > search/indexing may not be worth it.
-> 
-> I hope we can do better than string manipulations in the kernel.  I'd
-> much rather defer generating the ACID list (if possible), than
-> generating a list only to keep copying and editing it as the record is
-> sent.
+From: Maciej Żenczykowski <maze@google.com>
 
-At the moment we are stuck with a string-only format.  The contid list
-only exists in the kernel.  When do you suggest generating the contid
-list?  It sounds like you are hinting at userspace generating that list
-from multiple records over the span of audit logs since boot of the
-machine.
+Adjust the mode eBPF programs are opened in so 0400 pinned bpf programs
+work without requiring CAP_DAC_OVERRIDE.
 
-Even if we had a binary format, the current design would require
-generating that list at the time of record generation since it could be
-any contiguous subset of a full nested contid list.
+This matches Linux 5.2's:
+  commit e547ff3f803e779a3898f1f48447b29f43c54085
+  Author: Chenbo Feng <fengc@google.com>
+  Date:   Tue May 14 19:42:57 2019 -0700
 
-> paul moore
+    bpf: relax inode permission check for retrieving bpf program
 
-- RGB
+    For iptable module to load a bpf program from a pinned location, it
+    only retrieve a loaded program and cannot change the program content so
+    requiring a write permission for it might not be necessary.
+    Also when adding or removing an unrelated iptable rule, it might need to
+    flush and reload the xt_bpf related rules as well and triggers the inode
+    permission check. It might be better to remove the write premission
+    check for the inode so we won't need to grant write access to all the
+    processes that flush and restore iptables rules.
 
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
+  kernel/bpf/inode.c:
+  - int ret = inode_permission(inode, MAY_READ | MAY_WRITE);
+  + int ret = inode_permission(inode, MAY_READ);
+
+In practice, AFAICT, the xt_bpf match .fd field isn't even used by new
+kernels, but I believe it might be needed for compatibility with old ones
+(though I'm pretty sure table modifications on them will outright fail).
+
+Test: builds, passes Android test suite (albeit on an older iptables base),
+  git grep bpf_obj_get - finds no other users
+Cc: Chenbo Feng <fengc@google.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Willem de Bruijn <willemb@google.com>
+Signed-off-by: Maciej Żenczykowski <maze@google.com>
+---
+ extensions/libxt_bpf.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/extensions/libxt_bpf.c b/extensions/libxt_bpf.c
+index 92958247..bf46505c 100644
+--- a/extensions/libxt_bpf.c
++++ b/extensions/libxt_bpf.c
+@@ -61,12 +61,13 @@ static const struct xt_option_entry bpf_opts_v1[] = {
+ 	XTOPT_TABLEEND,
+ };
+ 
+-static int bpf_obj_get(const char *filepath)
++static int bpf_obj_get_readonly(const char *filepath)
+ {
+ #if defined HAVE_LINUX_BPF_H && defined __NR_bpf && defined BPF_FS_MAGIC
+ 	union bpf_attr attr;
+ 
+ 	memset(&attr, 0, sizeof(attr));
++	attr.file_flags = BPF_F_RDONLY;
+ 	attr.pathname = (__u64) filepath;
+ 
+ 	return syscall(__NR_bpf, BPF_OBJ_GET, &attr, sizeof(attr));
+@@ -125,7 +126,7 @@ static void bpf_parse_string(struct sock_filter *pc, __u16 *lenp, __u16 len_max,
+ static void bpf_parse_obj_pinned(struct xt_bpf_info_v1 *bi,
+ 				 const char *filepath)
+ {
+-	bi->fd = bpf_obj_get(filepath);
++	bi->fd = bpf_obj_get_readonly(filepath);
+ 	if (bi->fd < 0)
+ 		xtables_error(PARAMETER_PROBLEM,
+ 			      "bpf: failed to get bpf object");
+-- 
+2.25.1.696.g5e7596f4ac-goog
 
