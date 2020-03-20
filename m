@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75A5CC4332D
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Mar 2020 13:51:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04A83C4332B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Mar 2020 13:51:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4C5A020722
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Mar 2020 13:51:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CDEED2076E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Mar 2020 13:51:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727134AbgCTNvp (ORCPT
+        id S1727069AbgCTNvo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Mar 2020 09:51:45 -0400
-Received: from correo.us.es ([193.147.175.20]:41532 "EHLO mail.us.es"
+        Fri, 20 Mar 2020 09:51:44 -0400
+Received: from correo.us.es ([193.147.175.20]:41534 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726958AbgCTNvo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1726953AbgCTNvo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 20 Mar 2020 09:51:44 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B3ADD172C83
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Mar 2020 14:51:09 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 4CB1D172C91
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Mar 2020 14:51:10 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 93070DA3C3
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Mar 2020 14:51:09 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3D01EDA3C3
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Mar 2020 14:51:10 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 925FEDA3C2; Fri, 20 Mar 2020 14:51:09 +0100 (CET)
+        id 32B0DDA3C2; Fri, 20 Mar 2020 14:51:10 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B34F9DA3C3;
-        Fri, 20 Mar 2020 14:51:07 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3AB31DA8E6;
+        Fri, 20 Mar 2020 14:51:08 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 20 Mar 2020 14:51:07 +0100 (CET)
+ Fri, 20 Mar 2020 14:51:08 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 8483F42EE38E;
-        Fri, 20 Mar 2020 14:51:07 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 0D7ED42EE38E;
+        Fri, 20 Mar 2020 14:51:08 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 2/4] netfilter: flowtable: reload ip{v6}h in nf_flow_tuple_ip{v6}
-Date:   Fri, 20 Mar 2020 14:51:32 +0100
-Message-Id: <20200320135134.436907-3-pablo@netfilter.org>
+Subject: [PATCH 3/4] netfilter: flowtable: Fix flushing of offloaded flows on free
+Date:   Fri, 20 Mar 2020 14:51:33 +0100
+Message-Id: <20200320135134.436907-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200320135134.436907-1-pablo@netfilter.org>
 References: <20200320135134.436907-1-pablo@netfilter.org>
@@ -54,39 +54,36 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+From: Paul Blakey <paulb@mellanox.com>
 
-Since pskb_may_pull may change skb->data, so we need to reload ip{v6}h at
-the right place.
+Freeing a flowtable with offloaded flows, the flow are deleted from
+hardware but are not deleted from the flow table, leaking them,
+and leaving their offload bit on.
 
-Fixes: a908fdec3dda ("netfilter: nf_flow_table: move ipv6 offload hook code to nf_flow_table")
-Fixes: 7d2086871762 ("netfilter: nf_flow_table: move ipv4 offload hook code to nf_flow_table")
-Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+Add a second pass of the disabled gc to delete the these flows from
+the flow table before freeing it.
+
+Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
+Signed-off-by: Paul Blakey <paulb@mellanox.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_ip.c | 2 ++
- 1 file changed, 2 insertions(+)
+ net/netfilter/nf_flow_table_core.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 22caab7bb755..ba775aecd89a 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -191,6 +191,7 @@ static int nf_flow_tuple_ip(struct sk_buff *skb, const struct net_device *dev,
- 	if (!pskb_may_pull(skb, thoff + sizeof(*ports)))
- 		return -1;
- 
-+	iph = ip_hdr(skb);
- 	ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
- 
- 	tuple->src_v4.s_addr	= iph->saddr;
-@@ -463,6 +464,7 @@ static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
- 	if (!pskb_may_pull(skb, thoff + sizeof(*ports)))
- 		return -1;
- 
-+	ip6h = ipv6_hdr(skb);
- 	ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
- 
- 	tuple->src_v6		= ip6h->saddr;
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 8af28e10b4e6..70ebebaf5bc1 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -554,6 +554,9 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
+ 	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
+ 	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
+ 	nf_flow_table_offload_flush(flow_table);
++	if (nf_flowtable_hw_offload(flow_table))
++		nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step,
++				      flow_table);
+ 	rhashtable_destroy(&flow_table->rhashtable);
+ }
+ EXPORT_SYMBOL_GPL(nf_flow_table_free);
 -- 
 2.11.0
 
