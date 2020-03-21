@@ -2,59 +2,132 @@ Return-Path: <SRS0=AAsr=5G=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F684C4332D
-	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Mar 2020 02:34:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27733C4332E
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Mar 2020 11:29:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E242C20757
-	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Mar 2020 02:34:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 061A320722
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Mar 2020 11:29:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727893AbgCUCei (ORCPT
+        id S1727398AbgCUL3X (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Mar 2020 22:34:38 -0400
-Received: from shards.monkeyblade.net ([23.128.96.9]:54198 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727046AbgCUCei (ORCPT
+        Sat, 21 Mar 2020 07:29:23 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:47574 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726995AbgCUL3W (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Mar 2020 22:34:38 -0400
-Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id A8230158C34B8;
-        Fri, 20 Mar 2020 19:34:37 -0700 (PDT)
-Date:   Fri, 20 Mar 2020 19:34:34 -0700 (PDT)
-Message-Id: <20200320.193434.1013418419753934109.davem@davemloft.net>
-To:     pablo@netfilter.org
+        Sat, 21 Mar 2020 07:29:22 -0400
+Received: from localhost.localdomain (unknown [123.59.132.129])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 02CC4410B3;
+        Sat, 21 Mar 2020 19:29:19 +0800 (CST)
+From:   wenxu@ucloud.cn
+To:     pablo@netfilter.org, paulb@mellanox.com
 Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH 0/4] Netfilter fixes for net
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20200320135134.436907-1-pablo@netfilter.org>
-References: <20200320135134.436907-1-pablo@netfilter.org>
-X-Mailer: Mew version 6.8 on Emacs 26.1
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Fri, 20 Mar 2020 19:34:37 -0700 (PDT)
+Subject: [PATCH nf-next 1/3] netfilter: nf_flow_table: add nf_conn_acct for SW flowtable offload
+Date:   Sat, 21 Mar 2020 19:29:16 +0800
+Message-Id: <1584790158-9752-2-git-send-email-wenxu@ucloud.cn>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1584790158-9752-1-git-send-email-wenxu@ucloud.cn>
+References: <1584790158-9752-1-git-send-email-wenxu@ucloud.cn>
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVSk9LS0tLSE9ISElJTE5ZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PxQ6Agw*ITg8AhMVORUVIRZR
+        MT5PChVVSlVKTkNPTEJLSk5CSktKVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUhDTko3Bg++
+X-HM-Tid: 0a70fcdabeb22086kuqy02cc4410b3
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Fri, 20 Mar 2020 14:51:30 +0100
+From: wenxu <wenxu@ucloud.cn>
 
-> The following patchset contains Netfilter fixes for net:
-> 
-> 1) Refetch IP header pointer after pskb_may_pull() in flowtable,
->    from Haishuang Yan.
-> 
-> 2) Fix memleak in flowtable offload in nf_flow_table_free(),
->    from Paul Blakey.
-> 
-> 3) Set control.addr_type mask in flowtable offload, from Edward Cree.
+Add nf_conn_acct counter for the software flowtable offload
 
-Pulled, thanks Pablo.
+Signed-off-by: wenxu <wenxu@ucloud.cn>
+---
+ include/net/netfilter/nf_flow_table.h |  4 ++++
+ net/netfilter/nf_flow_table_core.c    | 19 +++++++++++++++++++
+ net/netfilter/nf_flow_table_ip.c      |  4 ++++
+ 3 files changed, 27 insertions(+)
+
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index f523ea8..11f9d50 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -180,6 +180,10 @@ struct flow_offload_tuple_rhash *flow_offload_lookup(struct nf_flowtable *flow_t
+ 
+ void flow_offload_teardown(struct flow_offload *flow);
+ 
++void flow_offload_update_acct(struct flow_offload *flow, unsigned int pkts,
++			      unsigned int bytes,
++			      enum flow_offload_tuple_dir dir);
++
+ int nf_flow_snat_port(const struct flow_offload *flow,
+ 		      struct sk_buff *skb, unsigned int thoff,
+ 		      u8 protocol, enum flow_offload_tuple_dir dir);
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 9a477bd..8667e31 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -13,6 +13,7 @@
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+ #include <net/netfilter/nf_conntrack_tuple.h>
++#include <net/netfilter/nf_conntrack_acct.h>
+ 
+ static DEFINE_MUTEX(flowtable_lock);
+ static LIST_HEAD(flowtables);
+@@ -618,6 +619,24 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
+ }
+ EXPORT_SYMBOL_GPL(nf_flow_table_free);
+ 
++void flow_offload_update_acct(struct flow_offload *flow, unsigned int pkts,
++			      unsigned int bytes,
++			      enum flow_offload_tuple_dir dir)
++{
++	struct nf_conn_acct *acct;
++
++	if (flow && flow->ct) {
++		acct = nf_conn_acct_find(flow->ct);
++		if (acct) {
++			struct nf_conn_counter *counter = acct->counter;
++
++			atomic64_add(pkts, &counter[dir].packets);
++			atomic64_add(bytes, &counter[dir].bytes);
++		}
++	}
++}
++EXPORT_SYMBOL_GPL(flow_offload_update_acct);
++
+ static int __init nf_flow_table_module_init(void)
+ {
+ 	return nf_flow_table_offload_init();
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index 5272721..53680a8 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -279,6 +279,8 @@ static unsigned int nf_flow_xmit_xfrm(struct sk_buff *skb,
+ 		return NF_ACCEPT;
+ 	}
+ 
++	flow_offload_update_acct(flow, 1, skb->len, dir);
++
+ 	if (nf_flow_nat_ip(flow, skb, thoff, dir) < 0)
+ 		return NF_DROP;
+ 
+@@ -506,6 +508,8 @@ static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
+ 		return NF_ACCEPT;
+ 	}
+ 
++	flow_offload_update_acct(flow, 1, skb->len, dir);
++
+ 	if (skb_try_make_writable(skb, sizeof(*ip6h)))
+ 		return NF_DROP;
+ 
+-- 
+1.8.3.1
+
