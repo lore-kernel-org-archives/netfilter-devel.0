@@ -7,50 +7,50 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC7D4C4332E
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Mar 2020 02:22:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3995C4332D
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Mar 2020 02:22:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9361920754
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Mar 2020 02:22:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9BB5720754
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Mar 2020 02:22:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="NFJIPQxV"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="WGOpGXkB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728096AbgCVCWU (ORCPT
+        id S1728227AbgCVCWV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 21 Mar 2020 22:22:20 -0400
-Received: from us-smtp-delivery-74.mimecast.com ([63.128.21.74]:31939 "EHLO
+        Sat, 21 Mar 2020 22:22:21 -0400
+Received: from us-smtp-delivery-74.mimecast.com ([63.128.21.74]:29832 "EHLO
         us-smtp-delivery-74.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726409AbgCVCWU (ORCPT
+        by vger.kernel.org with ESMTP id S1726409AbgCVCWV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 21 Mar 2020 22:22:20 -0400
+        Sat, 21 Mar 2020 22:22:21 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1584843739;
+        s=mimecast20190719; t=1584843740;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=oIDcKsleUjxydnHzk0WmnN3DoK1E2R/ZY0gPwXm9f0M=;
-        b=NFJIPQxVjlGkZG7cleod58JFRtj4iq4pBfKzXBHEn6hbXVLQwLTJLbXVWAW0oeYqmJNrPB
-        MesIL4LLtrgCxKGGB7y4FL6kAdjVEl/kfEck8+SVua1B4SMNQSZo0Fa7Nk6dcevwH+BmJ9
-        YDMkQZSe9Q/7tlquWNVFtZyZ0jGSS+Y=
+        bh=IqMRJx8Nd24scWWRtrnkec7kVqNYX9y/2e5301wpfxg=;
+        b=WGOpGXkBiipgOtghqW3k7gzcJ+1yjJfGlt2oH67vCgE0Kn1tVsYLmSLYgbc+t/2owvx04r
+        7i6vguRnB3ltR5AvseOEOv81ENCY3+p+ZgMVNeVLyWH0raIqqqZIgWQKgpKo6mOLRGvchQ
+        wTKq2PN1JPAKckdN2bNFL7osvbwjgQQ=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-266-ENppvgvXOnSyZhzaPQ026g-1; Sat, 21 Mar 2020 22:22:16 -0400
-X-MC-Unique: ENppvgvXOnSyZhzaPQ026g-1
+ us-mta-252-SlaT3gSVMS-hlFhRxeodwQ-1; Sat, 21 Mar 2020 22:22:18 -0400
+X-MC-Unique: SlaT3gSVMS-hlFhRxeodwQ-1
 Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 8D2C0107ACCC;
-        Sun, 22 Mar 2020 02:22:15 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 410B6800D50;
+        Sun, 22 Mar 2020 02:22:17 +0000 (UTC)
 Received: from epycfail.redhat.com (unknown [10.40.208.77])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 541E15C1B5;
-        Sun, 22 Mar 2020 02:22:14 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 070FA5C1B5;
+        Sun, 22 Mar 2020 02:22:15 +0000 (UTC)
 From:   Stefano Brivio <sbrivio@redhat.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: [PATCH nf v2 1/4] nf_tables: Allow set back-ends to report partial overlaps on insertion
-Date:   Sun, 22 Mar 2020 03:21:58 +0100
-Message-Id: <1625b855afe7a5f5c9029fcf91f549fd3d8b4b3e.1584841602.git.sbrivio@redhat.com>
+Subject: [PATCH nf v2 2/4] nft_set_pipapo: Separate partial and complete overlap cases on insertion
+Date:   Sun, 22 Mar 2020 03:21:59 +0100
+Message-Id: <4563a4d36ab694fb066c2a469340f61f776d7da0.1584841602.git.sbrivio@redhat.com>
 In-Reply-To: <cover.1584841602.git.sbrivio@redhat.com>
 References: <cover.1584841602.git.sbrivio@redhat.com>
 MIME-Version: 1.0
@@ -61,52 +61,73 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-
-Currently, the -EEXIST return code of ->insert() callbacks is ambiguous: =
-it
-might indicate that a given element (including intervals) already exists =
-as
-such, or that the new element would clash with existing ones.
-
-If identical elements already exist, the front-end is ignoring this witho=
-ut
-returning error, in case NLM_F_EXCL is not set. However, if the new eleme=
-nt
-can't be inserted due an overlap, we should report this to the user.
-
-To this purpose, allow set back-ends to return -ENOTEMPTY on collision wi=
-th
-existing elements, translate that to -EEXIST, and return that to userspac=
-e,
-no matter if NLM_F_EXCL was set.
+...and return -ENOTEMPTY to the front-end on collision, -EEXIST if
+an identical element already exists. Together with the previous patch,
+element collision will now be returned to the user as -EEXIST.
 
 Reported-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
 ---
 v2: No changes
 
- net/netfilter/nf_tables_api.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ net/netfilter/nft_set_pipapo.c | 34 +++++++++++++++++++++++++++-------
+ 1 file changed, 27 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.=
-c
-index d1318bdf49ca..51371efe8bf0 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5077,6 +5077,11 @@ static int nft_add_set_elem(struct nft_ctx *ctx, s=
-truct nft_set *set,
- 				err =3D -EBUSY;
- 			else if (!(nlmsg_flags & NLM_F_EXCL))
- 				err =3D 0;
-+		} else if (err =3D=3D -ENOTEMPTY) {
-+			/* ENOTEMPTY reports overlapping between this element
-+			 * and an existing one.
-+			 */
-+			err =3D -EEXIST;
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipap=
+o.c
+index 4fc0c924ed5d..ef7e8ad2e344 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -1098,21 +1098,41 @@ static int nft_pipapo_insert(const struct net *ne=
+t, const struct nft_set *set,
+ 	struct nft_pipapo_field *f;
+ 	int i, bsize_max, err =3D 0;
+=20
++	if (nft_set_ext_exists(ext, NFT_SET_EXT_KEY_END))
++		end =3D (const u8 *)nft_set_ext_key_end(ext)->data;
++	else
++		end =3D start;
++
+ 	dup =3D pipapo_get(net, set, start, genmask);
+-	if (PTR_ERR(dup) =3D=3D -ENOENT) {
+-		if (nft_set_ext_exists(ext, NFT_SET_EXT_KEY_END)) {
+-			end =3D (const u8 *)nft_set_ext_key_end(ext)->data;
+-			dup =3D pipapo_get(net, set, end, nft_genmask_next(net));
+-		} else {
+-			end =3D start;
++	if (!IS_ERR(dup)) {
++		/* Check if we already have the same exact entry */
++		const struct nft_data *dup_key, *dup_end;
++
++		dup_key =3D nft_set_ext_key(&dup->ext);
++		if (nft_set_ext_exists(&dup->ext, NFT_SET_EXT_KEY_END))
++			dup_end =3D nft_set_ext_key_end(&dup->ext);
++		else
++			dup_end =3D dup_key;
++
++		if (!memcmp(start, dup_key->data, sizeof(*dup_key->data)) &&
++		    !memcmp(end, dup_end->data, sizeof(*dup_end->data))) {
++			*ext2 =3D &dup->ext;
++			return -EEXIST;
  		}
- 		goto err_element_clash;
++
++		return -ENOTEMPTY;
++	}
++
++	if (PTR_ERR(dup) =3D=3D -ENOENT) {
++		/* Look for partially overlapping entries */
++		dup =3D pipapo_get(net, set, end, nft_genmask_next(net));
  	}
+=20
+ 	if (PTR_ERR(dup) !=3D -ENOENT) {
+ 		if (IS_ERR(dup))
+ 			return PTR_ERR(dup);
+ 		*ext2 =3D &dup->ext;
+-		return -EEXIST;
++		return -ENOTEMPTY;
+ 	}
+=20
+ 	/* Validate */
 --=20
 2.25.1
 
