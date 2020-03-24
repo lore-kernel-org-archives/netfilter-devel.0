@@ -2,261 +2,168 @@ Return-Path: <SRS0=lJQT=5J=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38BE7C54FCE
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 13:32:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 864E7C2BAEE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 13:32:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0FE6C20753
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 13:32:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 69CE020753
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 13:32:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728454AbgCXNSf (ORCPT
+        id S1729197AbgCXNce (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Mar 2020 09:18:35 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:52818 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728735AbgCXNSc (ORCPT
+        Tue, 24 Mar 2020 09:32:34 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:59759 "EHLO
+        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1728218AbgCXNRg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Mar 2020 09:18:32 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1jGjRt-0000Da-Qt; Tue, 24 Mar 2020 14:18:29 +0100
-Date:   Tue, 24 Mar 2020 14:18:29 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Martin Zaharinov <micron10@gmail.com>
-Cc:     Eric Dumazet <eric.dumazet@gmail.com>,
-        Florian Westphal <fw@strlen.de>,
+        Tue, 24 Mar 2020 09:17:36 -0400
+Received: from Internal Mail-Server by MTLPINE1 (envelope-from paulb@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 24 Mar 2020 15:17:29 +0200
+Received: from reg-r-vrt-019-120.mtr.labs.mlnx (reg-r-vrt-019-120.mtr.labs.mlnx [10.213.19.120])
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 02ODHSYr030372;
+        Tue, 24 Mar 2020 15:17:28 +0200
+From:   Paul Blakey <paulb@mellanox.com>
+To:     Paul Blakey <paulb@mellanox.com>, Oz Shlomo <ozsh@mellanox.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: Bug URGENT Report with new kernel 5.5.10-5.6-rc6
-Message-ID: <20200324131829.GF3305@breakpoint.cc>
-References: <20200319003823.3b709ad8@elisabeth>
- <CALidq=Xow0EkAP4LkqvQiDOmVDduEwLKa4c-A54or3GMj6+qVw@mail.gmail.com>
- <20200319103438.GO979@breakpoint.cc>
- <20200319104750.x2zz7negjbm6lwch@salvia>
- <20200319105248.GP979@breakpoint.cc>
- <fff10500-8b87-62f0-ec89-49453cf9ae57@gmail.com>
- <4d9f339c-b0a7-1861-7d76-e0f2cee92b8c@gmail.com>
- <CALidq=VJuhEPO-FWOuUdSG+-VO+h7VHfmtQiAxikxH+vMB+vdQ@mail.gmail.com>
- <CALidq=Wq3FaGPbbjDvcjvw3V=yPWNMPDeFFy-bDL6fffdjb2rw@mail.gmail.com>
- <CALidq=VYSt3WbtapwL-n8cG71=ysYDJTo3L---xj4U1rEC63KQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CALidq=VYSt3WbtapwL-n8cG71=ysYDJTo3L---xj4U1rEC63KQ@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        Majd Dibbiny <majd@mellanox.com>,
+        Roi Dayan <roid@mellanox.com>, netdev@vger.kernel.org,
+        Saeed Mahameed <saeedm@mellanox.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH net-next 2/3] netfilter: flowtable: Use work entry per offload command
+Date:   Tue, 24 Mar 2020 15:17:20 +0200
+Message-Id: <1585055841-14256-3-git-send-email-paulb@mellanox.com>
+X-Mailer: git-send-email 1.8.4.3
+In-Reply-To: <1585055841-14256-1-git-send-email-paulb@mellanox.com>
+References: <1585055841-14256-1-git-send-email-paulb@mellanox.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Martin Zaharinov <micron10@gmail.com> wrote:
-> Hi All
-> More information :
-> 
-> After this bug one of cpu goin lock and load on 100%
-> After reboot machine start and work fine but after go to load time night
-> when user is online machine get in dmesg same crash log and go to lock
-> other cpu
-> Hear is bug report :
-> 
-> 
-> [21542.828151] ------------[ cut here ]------------
-> [21542.828979] refcount_t: underflow; use-after-free.
-> [21542.829840] WARNING: CPU: 52 PID: 0 at lib/refcount.c:28
-> refcount_warn_saturate+0xd8/0xe0
-> [21542.831211] Modules linked in: udp_diag raw_diag unix_diag
-> af_packet_diag sch_hfsc iptable_filter xt_IMQ iptable_mangle xt_addrtype
-> xt_nat xt_MASQUERADE iptable_nat ip_tables bpfilter  sch_fq_pie sch_pie
-> netconsole imq r8169 realtek tg3 igb i2c_algo_bit ixgbe mdio libphy
-> nf_nat_sip nf_conntrack_sip nf_nat_pptp nf_conntrack_pptp nf_nat_tftp
-> nf_conntrack_tftp nf_nat_ftp nf_conntrack_ftp nf_nat nf_conntrack
-> nf_defrag_ipv6 nf_defrag_ipv4 pppoe pptp gre pppox ppp_mppe ppp_generic
-> slhc libarc4 tun megaraid_sas ipmi_si ipmi_devintf ipmi_msghandler
-> sch_fq_codel
+To allow offload commands to execute in parallel, create workqueue
+for flow table offload, and use a work entry per offload command.
 
-Does this patch help?
+Signed-off-by: Paul Blakey <paulb@mellanox.com>
+Reviewed-by: Oz Shlomo <ozsh@mellanox.com>
+---
+ net/netfilter/nf_flow_table_offload.c | 46 ++++++++++++-----------------------
+ 1 file changed, 15 insertions(+), 31 deletions(-)
 
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -14,7 +14,10 @@ struct nf_queue_entry {
- 	struct sk_buff		*skb;
- 	unsigned int		id;
- 	unsigned int		hook_index;	/* index in hook_entries->hook[] */
--
-+#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-+	struct net_device	*physin;
-+	struct net_device	*physout;
-+#endif
- 	struct nf_hook_state	state;
- 	u16			size; /* sizeof(entry) + saved route keys */
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 26591d2..7f41cb2 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -12,9 +12,7 @@
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack_tuple.h>
  
-@@ -35,7 +38,7 @@ void nf_unregister_queue_handler(struct net *net);
- void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict);
+-static struct work_struct nf_flow_offload_work;
+-static DEFINE_SPINLOCK(flow_offload_pending_list_lock);
+-static LIST_HEAD(flow_offload_pending_list);
++static struct workqueue_struct *nf_flow_offload_wq;
  
- void nf_queue_entry_get_refs(struct nf_queue_entry *entry);
--void nf_queue_entry_release_refs(struct nf_queue_entry *entry);
-+void nf_queue_entry_free(struct nf_queue_entry *entry);
+ struct flow_offload_work {
+ 	struct list_head	list;
+@@ -22,6 +20,7 @@ struct flow_offload_work {
+ 	int			priority;
+ 	struct nf_flowtable	*flowtable;
+ 	struct flow_offload	*flow;
++	struct work_struct	work;
+ };
  
- static inline void init_hashrandom(u32 *jhash_initval)
+ #define NF_FLOW_DISSECTOR(__match, __type, __field)	\
+@@ -788,15 +787,10 @@ static void flow_offload_work_stats(struct flow_offload_work *offload)
+ 
+ static void flow_offload_work_handler(struct work_struct *work)
  {
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -46,25 +46,7 @@ void nf_unregister_queue_handler(struct net *net)
- }
- EXPORT_SYMBOL(nf_unregister_queue_handler);
+-	struct flow_offload_work *offload, *next;
+-	LIST_HEAD(offload_pending_list);
+-
+-	spin_lock_bh(&flow_offload_pending_list_lock);
+-	list_replace_init(&flow_offload_pending_list, &offload_pending_list);
+-	spin_unlock_bh(&flow_offload_pending_list_lock);
++	struct flow_offload_work *offload;
  
--static void nf_queue_entry_release_br_nf_refs(struct sk_buff *skb)
--{
--#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
--	struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
+-	list_for_each_entry_safe(offload, next, &offload_pending_list, list) {
+-		switch (offload->cmd) {
++	offload = container_of(work, struct flow_offload_work, work);
++	switch (offload->cmd) {
+ 		case FLOW_CLS_REPLACE:
+ 			flow_offload_work_add(offload);
+ 			break;
+@@ -808,19 +802,14 @@ static void flow_offload_work_handler(struct work_struct *work)
+ 			break;
+ 		default:
+ 			WARN_ON_ONCE(1);
+-		}
+-		list_del(&offload->list);
+-		kfree(offload);
+ 	}
++
++	kfree(offload);
+ }
+ 
+ static void flow_offload_queue_work(struct flow_offload_work *offload)
+ {
+-	spin_lock_bh(&flow_offload_pending_list_lock);
+-	list_add_tail(&offload->list, &flow_offload_pending_list);
+-	spin_unlock_bh(&flow_offload_pending_list_lock);
 -
--	if (nf_bridge) {
--		struct net_device *physdev;
+-	schedule_work(&nf_flow_offload_work);
++	queue_work(nf_flow_offload_wq, &offload->work);
+ }
+ 
+ static struct flow_offload_work *
+@@ -837,6 +826,7 @@ static void flow_offload_queue_work(struct flow_offload_work *offload)
+ 	offload->flow = flow;
+ 	offload->priority = flowtable->priority;
+ 	offload->flowtable = flowtable;
++	INIT_WORK(&offload->work, flow_offload_work_handler);
+ 
+ 	return offload;
+ }
+@@ -887,7 +877,7 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
+ void nf_flow_table_offload_flush(struct nf_flowtable *flowtable)
+ {
+ 	if (nf_flowtable_hw_offload(flowtable))
+-		flush_work(&nf_flow_offload_work);
++		flush_workqueue(nf_flow_offload_wq);
+ }
+ 
+ static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
+@@ -1055,7 +1045,10 @@ static void nf_flow_table_indr_block_cb(struct net_device *dev,
+ 
+ int nf_flow_table_offload_init(void)
+ {
+-	INIT_WORK(&nf_flow_offload_work, flow_offload_work_handler);
++	nf_flow_offload_wq  = alloc_workqueue("nf_flow_table_offload",
++					      WQ_UNBOUND | WQ_MEM_RECLAIM, 0);
++	if (!nf_flow_offload_wq)
++		return -ENOMEM;
+ 
+ 	flow_indr_add_block_cb(&block_ing_entry);
+ 
+@@ -1064,15 +1057,6 @@ int nf_flow_table_offload_init(void)
+ 
+ void nf_flow_table_offload_exit(void)
+ {
+-	struct flow_offload_work *offload, *next;
+-	LIST_HEAD(offload_pending_list);
 -
--		physdev = nf_bridge_get_physindev(skb);
--		if (physdev)
--			dev_put(physdev);
--		physdev = nf_bridge_get_physoutdev(skb);
--		if (physdev)
--			dev_put(physdev);
+ 	flow_indr_del_block_cb(&block_ing_entry);
+-
+-	cancel_work_sync(&nf_flow_offload_work);
+-
+-	list_for_each_entry_safe(offload, next, &offload_pending_list, list) {
+-		list_del(&offload->list);
+-		kfree(offload);
 -	}
--#endif
--}
--
--void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
-+static void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
- {
- 	struct nf_hook_state *state = &entry->state;
- 
-@@ -76,24 +58,34 @@ void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
- 	if (state->sk)
- 		sock_put(state->sk);
- 
--	nf_queue_entry_release_br_nf_refs(entry->skb);
-+#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-+	if (entry->physin)
-+		dev_put(entry->physin);
-+	if (entry->physout)
-+		dev_put(entry->physout);
-+#endif
++	destroy_workqueue(nf_flow_offload_wq);
  }
--EXPORT_SYMBOL_GPL(nf_queue_entry_release_refs);
- 
--static void nf_queue_entry_get_br_nf_refs(struct sk_buff *skb)
-+void nf_queue_entry_free(struct nf_queue_entry *entry)
-+{
-+	nf_queue_entry_release_refs(entry);
-+	kfree(entry);
-+}
-+EXPORT_SYMBOL_GPL(nf_queue_entry_free);
-+
-+static void __nf_queue_entry_init_physdevs(struct nf_queue_entry *entry)
- {
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
--	struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
-+	const struct sk_buff *skb = entry->skb;
-+	struct nf_bridge_info *nf_bridge;
- 
-+	nf_bridge = nf_bridge_info_get(skb);
- 	if (nf_bridge) {
--		struct net_device *physdev;
--
--		physdev = nf_bridge_get_physindev(skb);
--		if (physdev)
--			dev_hold(physdev);
--		physdev = nf_bridge_get_physoutdev(skb);
--		if (physdev)
--			dev_hold(physdev);
-+		entry->physin = nf_bridge_get_physindev(skb);
-+		entry->physout = nf_bridge_get_physoutdev(skb);
-+	} else {
-+		entry->physin = NULL;
-+		entry->physout = NULL;
- 	}
- #endif
- }
-@@ -110,7 +102,12 @@ void nf_queue_entry_get_refs(struct nf_queue_entry *entry)
- 	if (state->sk)
- 		sock_hold(state->sk);
- 
--	nf_queue_entry_get_br_nf_refs(entry->skb);
-+#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-+	if (entry->physin)
-+		dev_hold(entry->physin);
-+	if (entry->physout)
-+		dev_hold(entry->physout);
-+#endif
- }
- EXPORT_SYMBOL_GPL(nf_queue_entry_get_refs);
- 
-@@ -201,6 +198,8 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 		.size	= sizeof(*entry) + route_key_size,
- 	};
- 
-+	__nf_queue_entry_init_physdevs(entry);
-+
- 	nf_queue_entry_get_refs(entry);
- 
- 	switch (entry->state.pf) {
-@@ -304,12 +303,10 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 
- 	hooks = nf_hook_entries_head(net, pf, entry->state.hook);
- 
--	nf_queue_entry_release_refs(entry);
--
- 	i = entry->hook_index;
- 	if (WARN_ON_ONCE(!hooks || i >= hooks->num_hook_entries)) {
- 		kfree_skb(skb);
--		kfree(entry);
-+		nf_queue_entry_free(entry);
- 		return;
- 	}
- 
-@@ -348,6 +345,6 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 		kfree_skb(skb);
- 	}
- 
--	kfree(entry);
-+	nf_queue_entry_free(entry);
- }
- EXPORT_SYMBOL(nf_reinject);
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 76535fd9278c..3243a31f6e82 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -737,12 +737,6 @@ static void nf_bridge_adjust_segmented_data(struct sk_buff *skb)
- #define nf_bridge_adjust_segmented_data(s) do {} while (0)
- #endif
- 
--static void free_entry(struct nf_queue_entry *entry)
--{
--	nf_queue_entry_release_refs(entry);
--	kfree(entry);
--}
--
- static int
- __nfqnl_enqueue_packet_gso(struct net *net, struct nfqnl_instance *queue,
- 			   struct sk_buff *skb, struct nf_queue_entry *entry)
-@@ -768,7 +762,7 @@ __nfqnl_enqueue_packet_gso(struct net *net, struct nfqnl_instance *queue,
- 		entry_seg->skb = skb;
- 		ret = __nfqnl_enqueue_packet(net, queue, entry_seg);
- 		if (ret)
--			free_entry(entry_seg);
-+			nf_queue_entry_free(entry_seg);
- 	}
- 	return ret;
- }
-@@ -827,7 +821,7 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
- 
- 	if (queued) {
- 		if (err) /* some segments are already queued */
--			free_entry(entry);
-+			nf_queue_entry_free(entry);
- 		kfree_skb(skb);
- 		return 0;
- 	}
+-- 
+1.8.3.1
+
