@@ -2,86 +2,66 @@ Return-Path: <SRS0=lJQT=5J=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7395BC43331
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 09:59:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41751C43331
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 13:17:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 481B720786
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 09:59:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F2BD206F6
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 13:17:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727129AbgCXJ7Q (ORCPT
+        id S1728626AbgCXNRi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Mar 2020 05:59:16 -0400
-Received: from correo.us.es ([193.147.175.20]:58910 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727130AbgCXJ7Q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Mar 2020 05:59:16 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B5F9DEFC93
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2020 10:58:38 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A7329DA3A1
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2020 10:58:38 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 9C9C6DA39F; Tue, 24 Mar 2020 10:58:38 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DB963DA3A3
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2020 10:58:36 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 24 Mar 2020 10:58:36 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id BEE9542EF42A
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2020 10:58:36 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf 2/2] netfilter: nft_fwd_netdev: allow to redirect to ifb via ingress
-Date:   Tue, 24 Mar 2020 10:59:06 +0100
-Message-Id: <20200324095906.89979-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20200324095906.89979-1-pablo@netfilter.org>
-References: <20200324095906.89979-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Tue, 24 Mar 2020 09:17:38 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:59767 "EHLO
+        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1728618AbgCXNRh (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 24 Mar 2020 09:17:37 -0400
+Received: from Internal Mail-Server by MTLPINE1 (envelope-from paulb@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 24 Mar 2020 15:17:28 +0200
+Received: from reg-r-vrt-019-120.mtr.labs.mlnx (reg-r-vrt-019-120.mtr.labs.mlnx [10.213.19.120])
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 02ODHSYp030372;
+        Tue, 24 Mar 2020 15:17:28 +0200
+From:   Paul Blakey <paulb@mellanox.com>
+To:     Paul Blakey <paulb@mellanox.com>, Oz Shlomo <ozsh@mellanox.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Majd Dibbiny <majd@mellanox.com>,
+        Roi Dayan <roid@mellanox.com>, netdev@vger.kernel.org,
+        Saeed Mahameed <saeedm@mellanox.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH net-next 0/3] netfilter: flowtable: Support offload of tuples in parallel
+Date:   Tue, 24 Mar 2020 15:17:18 +0200
+Message-Id: <1585055841-14256-1-git-send-email-paulb@mellanox.com>
+X-Mailer: git-send-email 1.8.4.3
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Set skb->tc_redirected to 1, otherwise the ifb driver drops the packet.
-Set skb->tc_from_ingress to 1 to reinject the packet back to the ingress
-path after leaving the ifb egress path.
+The following patchset opens support for offloading tuples in parallel.
 
-This patch inconditionally sets on these two skb fields that are
-meaningful to the ifb driver. The existing forward action is guaranteed
-to run from ingress path.
+Patches for netfilter replace the flow table block lock with rw sem,
+and use a work entry per offload command, so they can be run in
+parallel under rw sem read lock.
 
-Fixes: 39e6dea28adc ("netfilter: nf_tables: add forward expression to the netdev family")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_fwd_netdev.c | 4 ++++
- 1 file changed, 4 insertions(+)
+MLX5 patch removes the unguarded ct entries list, and instead uses
+rhashtable's iterator to support the above.
 
-diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
-index ddd28de810b6..74f050ba6bad 100644
---- a/net/netfilter/nft_fwd_netdev.c
-+++ b/net/netfilter/nft_fwd_netdev.c
-@@ -28,6 +28,10 @@ static void nft_fwd_netdev_eval(const struct nft_expr *expr,
- 	struct nft_fwd_netdev *priv = nft_expr_priv(expr);
- 	int oif = regs->data[priv->sreg_dev];
- 
-+	/* These are used by ifb only. */
-+	pkt->skb->tc_redirected = 1;
-+	pkt->skb->tc_from_ingress = 1;
-+
- 	nf_fwd_netdev_egress(pkt, oif);
- 	regs->verdict.code = NF_STOLEN;
- }
+
+Paul Blakey (3):
+  netfilter: flowtable: Use rw sem as flow block lock
+  netfilter: flowtable: Use work entry per offload command
+  net/mlx5: CT: Use rhashtable's ct entries instead of a seperate list
+
+ drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c | 19 +++-----
+ include/net/netfilter/nf_flow_table.h              |  2 +-
+ net/netfilter/nf_flow_table_core.c                 | 11 +++--
+ net/netfilter/nf_flow_table_offload.c              | 50 ++++++++--------------
+ 4 files changed, 30 insertions(+), 52 deletions(-)
+
 -- 
-2.11.0
+1.8.3.1
 
