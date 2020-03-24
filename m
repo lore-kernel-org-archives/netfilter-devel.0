@@ -6,53 +6,52 @@ X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67F93C43331
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 19:01:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12A0BC43331
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 19:01:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3F3A320714
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 19:01:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC63720714
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 19:01:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727848AbgCXTBi (ORCPT
+        id S1727876AbgCXTBz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Mar 2020 15:01:38 -0400
-Received: from correo.us.es ([193.147.175.20]:55206 "EHLO mail.us.es"
+        Tue, 24 Mar 2020 15:01:55 -0400
+Received: from correo.us.es ([193.147.175.20]:55324 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727672AbgCXTBh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Mar 2020 15:01:37 -0400
+        id S1727715AbgCXTBz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 24 Mar 2020 15:01:55 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id F37111E2C70
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2020 20:00:59 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 799761E2C62
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2020 20:01:17 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E4778DA3C3
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2020 20:00:59 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 67BB0DA390
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2020 20:01:17 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DA15ADA840; Tue, 24 Mar 2020 20:00:59 +0100 (CET)
+        id 5D28ADA736; Tue, 24 Mar 2020 20:01:17 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1E272DA3C2;
-        Tue, 24 Mar 2020 20:00:58 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 93586DA3A0;
+        Tue, 24 Mar 2020 20:01:15 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 24 Mar 2020 20:00:58 +0100 (CET)
+ Tue, 24 Mar 2020 20:01:15 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 0175842EF42B;
-        Tue, 24 Mar 2020 20:00:57 +0100 (CET)
-Date:   Tue, 24 Mar 2020 20:01:33 +0100
+        by entrada.int (Postfix) with ESMTPSA id 7652B42EF42B;
+        Tue, 24 Mar 2020 20:01:15 +0100 (CET)
+Date:   Tue, 24 Mar 2020 20:01:51 +0100
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Stefano Brivio <sbrivio@redhat.com>
-Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf v2 0/4] nftables: Consistently report partial and
- entire set overlaps
-Message-ID: <20200324190133.le2zxpbwhkpjd435@salvia>
-References: <cover.1584841602.git.sbrivio@redhat.com>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v3 nf] selftests: netfilter: add nfqueue test case
+Message-ID: <20200324190151.3qvkupml4krbitvu@salvia>
+References: <20200323163430.11240-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <cover.1584841602.git.sbrivio@redhat.com>
+In-Reply-To: <20200323163430.11240-1-fw@strlen.de>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -60,19 +59,20 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Mar 22, 2020 at 03:21:57AM +0100, Stefano Brivio wrote:
-> Phil reports that inserting an element, that includes a concatenated
-> range colliding with an existing one, fails silently.
+On Mon, Mar 23, 2020 at 05:34:30PM +0100, Florian Westphal wrote:
+> Add a test case to check nf queue infrastructure.
+> Could be extended in the future to also cover serialization of
+> conntrack, uid and secctx attributes in nfqueue.
 > 
-> This is because so far set back-ends have no way to tell apart cases
-> of identical elements being inserted from clashing elements. On
-> insertion, the front-end would strip -EEXIST if NLM_F_EXCL is not
-> passed, so we return success to userspace while an error in fact
-> occurred.
+> For now, this checks that 'queue bypass' works, that a queue rule with
+> no bypass option blocks traffic and that userspace receives the expected
+> number of packets.
+> For this we add two queues and hook all of
+> prerouting/input/forward/output/postrouting.
 > 
-> As suggested by Pablo, allow back-ends to return -ENOTEMPTY in case
-> of partial overlaps, with patch 1/4. Then, with patches 2/4 to 4/4,
-> update nft_set_pipapo and nft_set_rbtree to report partial overlaps
-> using the new error code.
+> Packets get queued twice with a dummy base chain in between:
+> This passes with current nf tree, but reverting
+> commit 946c0d8e6ed4 ("netfilter: nf_queue: fix reinject verdict handling")
+> makes this trip (it processes 30 instead of expected 20 packets).
 
 Applied, thanks.
