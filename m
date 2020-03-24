@@ -2,77 +2,130 @@ Return-Path: <SRS0=lJQT=5J=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12A0BC43331
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 19:01:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37669C54EEB
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 21:02:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DC63720714
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 19:01:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0CCCF2078A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 21:02:16 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="JAa65Qbt"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727876AbgCXTBz (ORCPT
+        id S1727907AbgCXVCP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Mar 2020 15:01:55 -0400
-Received: from correo.us.es ([193.147.175.20]:55324 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727715AbgCXTBz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Mar 2020 15:01:55 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 799761E2C62
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2020 20:01:17 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 67BB0DA390
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2020 20:01:17 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 5D28ADA736; Tue, 24 Mar 2020 20:01:17 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 93586DA3A0;
-        Tue, 24 Mar 2020 20:01:15 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 24 Mar 2020 20:01:15 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Tue, 24 Mar 2020 17:02:15 -0400
+Received: from us-smtp-delivery-74.mimecast.com ([216.205.24.74]:50009 "EHLO
+        us-smtp-delivery-74.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727747AbgCXVCP (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 24 Mar 2020 17:02:15 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1585083734;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=ezORt9tWKqavsqost0+8jwF+irEVoobXTNyqmEmYnCY=;
+        b=JAa65QbtlGo9vHlvtafvPopAQ6x4otyEMGJ/ycLmejJmBnypEpWR/49ss1qjKojiAl/tgw
+        vHYgMR1u3Up/ncRo3Y0TEaLxZ/1cbjXZ9VwuPr96tpeVpeIUsnmuIaZhMKnvJUzmA2lKV5
+        uUaLdEWZJP+sKD7L/1r4oQH4RbZ9aKI=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-289-qKNTB0YPNMSuZYrUnbJeZQ-1; Tue, 24 Mar 2020 17:02:10 -0400
+X-MC-Unique: qKNTB0YPNMSuZYrUnbJeZQ-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 7652B42EF42B;
-        Tue, 24 Mar 2020 20:01:15 +0100 (CET)
-Date:   Tue, 24 Mar 2020 20:01:51 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v3 nf] selftests: netfilter: add nfqueue test case
-Message-ID: <20200324190151.3qvkupml4krbitvu@salvia>
-References: <20200323163430.11240-1-fw@strlen.de>
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id CEFF8189D6C0;
+        Tue, 24 Mar 2020 21:02:08 +0000 (UTC)
+Received: from madcap2.tricolour.ca (unknown [10.10.110.11])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 4FADC19925;
+        Tue, 24 Mar 2020 21:01:54 +0000 (UTC)
+Date:   Tue, 24 Mar 2020 17:01:52 -0400
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Paul Moore <paul@paul-moore.com>
+Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
+        containers@lists.linux-foundation.org,
+        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
+        linux-audit@redhat.com, netfilter-devel@vger.kernel.org,
+        ebiederm@xmission.com, simo@redhat.com, netdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
+        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
+Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
+ the audit daemon
+Message-ID: <20200324210152.5uydf3zqi3dwshfu@madcap2.tricolour.ca>
+References: <20200312193037.2tb5f53yeisfq4ta@madcap2.tricolour.ca>
+ <CAHC9VhQoVOzy_b9W6h+kmizKr1rPkC4cy5aYoKT2i0ZgsceNDg@mail.gmail.com>
+ <20200313185900.y44yvrfm4zxa5lfk@madcap2.tricolour.ca>
+ <CAHC9VhR2zCCE5bjH75rSwfLC7TJGFj4RBnrtcOoUiqVp9q5TaA@mail.gmail.com>
+ <20200318212630.mw2geg4ykhnbtr3k@madcap2.tricolour.ca>
+ <CAHC9VhRYvGAru3aOMwWKCCWDktS+2pGr+=vV4SjHW_0yewD98A@mail.gmail.com>
+ <20200318215550.es4stkjwnefrfen2@madcap2.tricolour.ca>
+ <CAHC9VhSdDDP7Ec-w61NhGxZG5ZiekmrBCAg=Y=VJvEZcgQh46g@mail.gmail.com>
+ <20200319220249.jyr6xmwvflya5mks@madcap2.tricolour.ca>
+ <CAHC9VhR84aN72yNB_j61zZgrQV1y6yvrBLNY7jp7BqQiEDL+cw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200323163430.11240-1-fw@strlen.de>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <CAHC9VhR84aN72yNB_j61zZgrQV1y6yvrBLNY7jp7BqQiEDL+cw@mail.gmail.com>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Mar 23, 2020 at 05:34:30PM +0100, Florian Westphal wrote:
-> Add a test case to check nf queue infrastructure.
-> Could be extended in the future to also cover serialization of
-> conntrack, uid and secctx attributes in nfqueue.
+On 2020-03-23 20:16, Paul Moore wrote:
+> On Thu, Mar 19, 2020 at 6:03 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > On 2020-03-18 18:06, Paul Moore wrote:
 > 
-> For now, this checks that 'queue bypass' works, that a queue rule with
-> no bypass option blocks traffic and that userspace receives the expected
-> number of packets.
-> For this we add two queues and hook all of
-> prerouting/input/forward/output/postrouting.
+> ...
 > 
-> Packets get queued twice with a dummy base chain in between:
-> This passes with current nf tree, but reverting
-> commit 946c0d8e6ed4 ("netfilter: nf_queue: fix reinject verdict handling")
-> makes this trip (it processes 30 instead of expected 20 packets).
+> > > I hope we can do better than string manipulations in the kernel.  I'd
+> > > much rather defer generating the ACID list (if possible), than
+> > > generating a list only to keep copying and editing it as the record is
+> > > sent.
+> >
+> > At the moment we are stuck with a string-only format.
+> 
+> Yes, we are.  That is another topic, and another set of changes I've
+> been deferring so as to not disrupt the audit container ID work.
+> 
+> I was thinking of what we do inside the kernel between when the record
+> triggering event happens and when we actually emit the record to
+> userspace.  Perhaps we collect the ACID information while the event is
+> occurring, but we defer generating the record until later when we have
+> a better understanding of what should be included in the ACID list.
+> It is somewhat similar (but obviously different) to what we do for
+> PATH records (we collect the pathname info when the path is being
+> resolved).
 
-Applied, thanks.
+Ok, now I understand your concern.
+
+In the case of NETFILTER_PKT records, the CONTAINER_ID record is the
+only other possible record and they are generated at the same time with
+a local context.
+
+In the case of any event involving a syscall, that CONTAINER_ID record
+is generated at the time of the rest of the event record generation at
+syscall exit.
+
+The others are only generated when needed, such as the sig2 reply.
+
+We generally just store the contobj pointer until we actually generate
+the CONTAINER_ID (or CONTAINER_OP) record.
+
+> paul moore
+
+- RGB
+
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
+
