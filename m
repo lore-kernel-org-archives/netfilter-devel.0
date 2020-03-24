@@ -2,108 +2,97 @@ Return-Path: <SRS0=lJQT=5J=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B92C9C54FCF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 00:16:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4745FC4332B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 09:59:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 91A96206F9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 00:16:55 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="Pw/jLYEt"
+	by mail.kernel.org (Postfix) with ESMTP id 217D12070A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Mar 2020 09:59:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727690AbgCXAQy (ORCPT
+        id S1727137AbgCXJ7P (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 23 Mar 2020 20:16:54 -0400
-Received: from mail-ed1-f68.google.com ([209.85.208.68]:37814 "EHLO
-        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727464AbgCXAQx (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Mar 2020 20:16:53 -0400
-Received: by mail-ed1-f68.google.com with SMTP id de14so314569edb.4
-        for <netfilter-devel@vger.kernel.org>; Mon, 23 Mar 2020 17:16:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=d/2Y64PABVXdc9ONlMpskyvi+SAnumMA7Crj5Bt/DBQ=;
-        b=Pw/jLYEtjS/ATrpjcImP2D5HPDWiFMBcBAxJVSOwIOaspT/epTOM9IydWFzxho9yua
-         oazmW6QWguLgtIbfTk74PkycIDjFDPzKqyzaoh+DhJAVrmkuDU/uAM53LPP8DVs9E40Q
-         tUZMoTzJY+STJT3ur0XbLBaDl6VIvIN8N0+HMJRRBPnxJx3Fysg9dQsHduc19AT8XqUR
-         Z+R5dqyHsad39E8wBrmCN6RWKFaLpPh9SfxtI2Y1DRQLG2Yf+1AwZidHAvD5ViWXYqSy
-         a907RgFuMp40UgoEATMPqB/Btt7FRTYbwdl5UG8XBt+aLoRiYnvjPwNK2Qw9OiPVrwLO
-         +WDg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=d/2Y64PABVXdc9ONlMpskyvi+SAnumMA7Crj5Bt/DBQ=;
-        b=P1jhBCzg7urCzR3BoBkPZTKLqBwPKded4qtXce/uVir+LkEdZlmal9PotH89fQGcf+
-         U2fZfLiSac6AEPRVWy1Mw3Yq33UHDiQt7gkZmXVXyo+AQ95d/mr/A8Q8LAp4vKg999IX
-         noVDshdXekRMF8Mum2jWqe+oBdk/ojM3HRvAdWeel0W2wp/voN7mfOYadQfmxtzzVzvR
-         7XfNotjREPj1t5w0g/1nNpq34F3t/TID1RQf1w1XgXybrpZzJn/iIoBOv8d05vC0vbEv
-         Ei6OakKZB7gW839VOt7fTMPdSKfBNupX8hk/dtDQ1VUQtl8HdW+QIO+MIlA+Q5JSpGHX
-         kQyA==
-X-Gm-Message-State: ANhLgQ3+qYUoR7DUfK6OxbAy0gZ8hHQTLzCNjMGBPHTzT/DTwf/fCMYu
-        e6IFDtdIzRvnBoN/mu3m1NeF5JAMCShoNKakNpuL
-X-Google-Smtp-Source: ADFU+vsjQok/w3GcfT1LJO6k41X3syl3c/RCvqnEbN1LGDpZdSJHQ9PBkLkvozzz1CLw+59ARBWSon4cJDwpW8rrY9U=
-X-Received: by 2002:a17:906:4b52:: with SMTP id j18mr13098102ejv.272.1585009010419;
- Mon, 23 Mar 2020 17:16:50 -0700 (PDT)
-MIME-Version: 1.0
-References: <CAHC9VhTiCHQbp2SwK0Xb1QgpUZxOQ26JKKPsVGT0ZvMqx28oPQ@mail.gmail.com>
- <CAHC9VhS09b_fM19tn7pHZzxfyxcHnK+PJx80Z9Z1hn8-==4oLA@mail.gmail.com>
- <20200312193037.2tb5f53yeisfq4ta@madcap2.tricolour.ca> <CAHC9VhQoVOzy_b9W6h+kmizKr1rPkC4cy5aYoKT2i0ZgsceNDg@mail.gmail.com>
- <20200313185900.y44yvrfm4zxa5lfk@madcap2.tricolour.ca> <CAHC9VhR2zCCE5bjH75rSwfLC7TJGFj4RBnrtcOoUiqVp9q5TaA@mail.gmail.com>
- <20200318212630.mw2geg4ykhnbtr3k@madcap2.tricolour.ca> <CAHC9VhRYvGAru3aOMwWKCCWDktS+2pGr+=vV4SjHW_0yewD98A@mail.gmail.com>
- <20200318215550.es4stkjwnefrfen2@madcap2.tricolour.ca> <CAHC9VhSdDDP7Ec-w61NhGxZG5ZiekmrBCAg=Y=VJvEZcgQh46g@mail.gmail.com>
- <20200319220249.jyr6xmwvflya5mks@madcap2.tricolour.ca>
-In-Reply-To: <20200319220249.jyr6xmwvflya5mks@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Mon, 23 Mar 2020 20:16:38 -0400
-Message-ID: <CAHC9VhR84aN72yNB_j61zZgrQV1y6yvrBLNY7jp7BqQiEDL+cw@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
- the audit daemon
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     Steve Grubb <sgrubb@redhat.com>, linux-audit@redhat.com,
-        nhorman@tuxdriver.com, linux-api@vger.kernel.org,
-        containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
-Content-Type: text/plain; charset="UTF-8"
+        Tue, 24 Mar 2020 05:59:15 -0400
+Received: from correo.us.es ([193.147.175.20]:58898 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727129AbgCXJ7P (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 24 Mar 2020 05:59:15 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id C3DD3EFC83
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2020 10:58:37 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B59F2DA39F
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2020 10:58:37 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id AB325DA38F; Tue, 24 Mar 2020 10:58:37 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D168EDA3AC
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2020 10:58:35 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 24 Mar 2020 10:58:35 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id BCCBC42EF42A
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2020 10:58:35 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf 1/2] netfilter: nft_fwd_netdev: validate family and chain type
+Date:   Tue, 24 Mar 2020 10:59:05 +0100
+Message-Id: <20200324095906.89979-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Mar 19, 2020 at 6:03 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2020-03-18 18:06, Paul Moore wrote:
+Make sure the forward action is only used from ingress.
 
-...
+Fixes: 39e6dea28adc ("netfilter: nf_tables: add forward expression to the netdev family")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_fwd_netdev.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-> > I hope we can do better than string manipulations in the kernel.  I'd
-> > much rather defer generating the ACID list (if possible), than
-> > generating a list only to keep copying and editing it as the record is
-> > sent.
->
-> At the moment we are stuck with a string-only format.
-
-Yes, we are.  That is another topic, and another set of changes I've
-been deferring so as to not disrupt the audit container ID work.
-
-I was thinking of what we do inside the kernel between when the record
-triggering event happens and when we actually emit the record to
-userspace.  Perhaps we collect the ACID information while the event is
-occurring, but we defer generating the record until later when we have
-a better understanding of what should be included in the ACID list.
-It is somewhat similar (but obviously different) to what we do for
-PATH records (we collect the pathname info when the path is being
-resolved).
-
+diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
+index aba11c2333f3..ddd28de810b6 100644
+--- a/net/netfilter/nft_fwd_netdev.c
++++ b/net/netfilter/nft_fwd_netdev.c
+@@ -190,6 +190,13 @@ static int nft_fwd_neigh_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 	return -1;
+ }
+ 
++static int nft_fwd_validate(const struct nft_ctx *ctx,
++			    const struct nft_expr *expr,
++			    const struct nft_data **data)
++{
++	return nft_chain_validate_hooks(ctx->chain, (1 << NF_NETDEV_INGRESS));
++}
++
+ static struct nft_expr_type nft_fwd_netdev_type;
+ static const struct nft_expr_ops nft_fwd_neigh_netdev_ops = {
+ 	.type		= &nft_fwd_netdev_type,
+@@ -197,6 +204,7 @@ static const struct nft_expr_ops nft_fwd_neigh_netdev_ops = {
+ 	.eval		= nft_fwd_neigh_eval,
+ 	.init		= nft_fwd_neigh_init,
+ 	.dump		= nft_fwd_neigh_dump,
++	.validate	= nft_fwd_validate,
+ };
+ 
+ static const struct nft_expr_ops nft_fwd_netdev_ops = {
+@@ -205,6 +213,7 @@ static const struct nft_expr_ops nft_fwd_netdev_ops = {
+ 	.eval		= nft_fwd_netdev_eval,
+ 	.init		= nft_fwd_netdev_init,
+ 	.dump		= nft_fwd_netdev_dump,
++	.validate	= nft_fwd_validate,
+ 	.offload	= nft_fwd_netdev_offload,
+ };
+ 
 -- 
-paul moore
-www.paul-moore.com
+2.11.0
+
