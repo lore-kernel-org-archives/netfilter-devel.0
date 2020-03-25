@@ -2,285 +2,72 @@ Return-Path: <SRS0=4amC=5K=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FD55C54FD5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Mar 2020 10:40:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03461C1975A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Mar 2020 10:53:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 77CBB20775
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Mar 2020 10:40:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DA2C0206F6
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Mar 2020 10:53:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727458AbgCYKkI (ORCPT
+        id S1727280AbgCYKxf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 25 Mar 2020 06:40:08 -0400
-Received: from correo.us.es ([193.147.175.20]:40254 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727129AbgCYKkI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Mar 2020 06:40:08 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AAC0EE8B61
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Mar 2020 11:39:27 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9A325FC5FA
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Mar 2020 11:39:27 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 98BC8FC5F3; Wed, 25 Mar 2020 11:39:27 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 307A1DA72F;
-        Wed, 25 Mar 2020 11:39:25 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 25 Mar 2020 11:39:25 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 0797E42EF42B;
-        Wed, 25 Mar 2020 11:39:24 +0100 (CET)
-Date:   Wed, 25 Mar 2020 11:40:01 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Geert Uytterhoeven <geert@linux-m68k.org>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-next@vger.kernel.org
-Subject: Re: [PATCH] netfilter: nft_fwd_netdev: Fix CONFIG_NET_CLS_ACT=n build
-Message-ID: <20200325104001.yekvtbrw3lvkhvta@salvia>
-References: <20200325093300.5455-1-geert@linux-m68k.org>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="bbqnkrzhohussjgz"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20200325093300.5455-1-geert@linux-m68k.org>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Wed, 25 Mar 2020 06:53:35 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:45751 "EHLO
+        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726043AbgCYKxf (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 25 Mar 2020 06:53:35 -0400
+Received: from Internal Mail-Server by MTLPINE1 (envelope-from paulb@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 25 Mar 2020 12:53:33 +0200
+Received: from reg-r-vrt-019-120.mtr.labs.mlnx (reg-r-vrt-019-120.mtr.labs.mlnx [10.213.19.120])
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 02PArWhK013788;
+        Wed, 25 Mar 2020 12:53:32 +0200
+From:   Paul Blakey <paulb@mellanox.com>
+To:     Paul Blakey <paulb@mellanox.com>, Oz Shlomo <ozsh@mellanox.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Majd Dibbiny <majd@mellanox.com>,
+        Roi Dayan <roid@mellanox.com>, netdev@vger.kernel.org,
+        Saeed Mahameed <saeedm@mellanox.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH net-next] netfilter: flowtable: Fix accessing null dst entry
+Date:   Wed, 25 Mar 2020 12:53:28 +0200
+Message-Id: <1585133608-25295-1-git-send-email-paulb@mellanox.com>
+X-Mailer: git-send-email 1.8.4.3
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Unlink nft flow table flows, flows from act_ct tables don't have route,
+and so don't have a dst_entry. nf_flow_rule_match() tries to deref
+this null dst_entry regardless.
 
---bbqnkrzhohussjgz
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+Fix that by checking for dst entry exists, and if not, skip
+tunnel match.
 
-On Wed, Mar 25, 2020 at 10:33:00AM +0100, Geert Uytterhoeven wrote:
-> If CONFIG_NET_CLS_ACT=n:
-> 
->     net/netfilter/nft_fwd_netdev.c: In function ‘nft_fwd_netdev_eval’:
->     net/netfilter/nft_fwd_netdev.c:32:10: error: ‘struct sk_buff’ has no member named ‘tc_redirected’
->       pkt->skb->tc_redirected = 1;
-> 	      ^~
->     net/netfilter/nft_fwd_netdev.c:33:10: error: ‘struct sk_buff’ has no member named ‘tc_from_ingress’
->       pkt->skb->tc_from_ingress = 1;
-> 	      ^~
-> 
-> Fix this by protecting this code hunk with the appropriate #ifdef.
+Fixes: cfab6dbd0ecf ("netfilter: flowtable: add tunnel match offload support")
+Signed-off-by: Paul Blakey <paulb@mellanox.com>
+---
+ net/netfilter/nf_flow_table_offload.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Sorry about this, and thank you for fixing up this so fast.
-
-I'm attaching an alternative fix to avoid a dependency on tc from
-netfilter. Still testing, if fine and no objections I'll formally
-submit this.
-
---bbqnkrzhohussjgz
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="x.patch"
-
-diff --git a/drivers/net/Kconfig b/drivers/net/Kconfig
-index 25a8f9387d5a..db8884ad6d40 100644
---- a/drivers/net/Kconfig
-+++ b/drivers/net/Kconfig
-@@ -149,6 +149,7 @@ config NET_FC
- config IFB
- 	tristate "Intermediate Functional Block support"
- 	depends on NET_CLS_ACT
-+	select NET_REDIRECT
- 	---help---
- 	  This is an intermediate driver that allows sharing of
- 	  resources.
-diff --git a/drivers/net/ifb.c b/drivers/net/ifb.c
-index 242b9b0943f8..7fe306e76281 100644
---- a/drivers/net/ifb.c
-+++ b/drivers/net/ifb.c
-@@ -75,7 +75,7 @@ static void ifb_ri_tasklet(unsigned long _txp)
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index ca40dfa..6518a91 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -92,7 +92,7 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
+ 	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_TCP, tcp);
+ 	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_PORTS, tp);
+ 
+-	if (other_dst->lwtstate) {
++	if (other_dst && other_dst->lwtstate) {
+ 		tun_info = lwt_tun_info(other_dst->lwtstate);
+ 		nf_flow_rule_lwt_match(match, tun_info);
  	}
- 
- 	while ((skb = __skb_dequeue(&txp->tq)) != NULL) {
--		skb->tc_redirected = 0;
-+		skb->redirected = 0;
- 		skb->tc_skip_classify = 1;
- 
- 		u64_stats_update_begin(&txp->tsync);
-@@ -96,7 +96,7 @@ static void ifb_ri_tasklet(unsigned long _txp)
- 		rcu_read_unlock();
- 		skb->skb_iif = txp->dev->ifindex;
- 
--		if (!skb->tc_from_ingress) {
-+		if (!skb->from_ingress) {
- 			dev_queue_xmit(skb);
- 		} else {
- 			skb_pull_rcsum(skb, skb->mac_len);
-@@ -243,7 +243,7 @@ static netdev_tx_t ifb_xmit(struct sk_buff *skb, struct net_device *dev)
- 	txp->rx_bytes += skb->len;
- 	u64_stats_update_end(&txp->rsync);
- 
--	if (!skb->tc_redirected || !skb->skb_iif) {
-+	if (!skb->redirected || !skb->skb_iif) {
- 		dev_kfree_skb(skb);
- 		dev->stats.rx_dropped++;
- 		return NETDEV_TX_OK;
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 5b50278c4bc8..42e1ffc25d32 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -848,8 +848,10 @@ struct sk_buff {
- #ifdef CONFIG_NET_CLS_ACT
- 	__u8			tc_skip_classify:1;
- 	__u8			tc_at_ingress:1;
--	__u8			tc_redirected:1;
--	__u8			tc_from_ingress:1;
-+#endif
-+#ifdef CONFIG_NET_REDIRECT
-+	__u8			redirected:1;
-+	__u8			from_ingress:1;
- #endif
- #ifdef CONFIG_TLS_DEVICE
- 	__u8			decrypted:1;
-@@ -4579,5 +4581,31 @@ static inline __wsum lco_csum(struct sk_buff *skb)
- 	return csum_partial(l4_hdr, csum_start - l4_hdr, partial);
- }
- 
-+static inline bool skb_is_redirected(const struct sk_buff *skb)
-+{
-+#ifdef CONFIG_NET_REDIRECT
-+	return skb->redirected;
-+#else
-+	return false;
-+#endif
-+}
-+
-+static inline void skb_set_redirected(struct sk_buff *skb, bool from_ingress)
-+{
-+#ifdef CONFIG_NET_REDIRECT
-+	skb->redirected = 1;
-+	skb->from_ingress = from_ingress;
-+	if (skb->from_ingress)
-+		skb->tstamp = 0;
-+#endif
-+}
-+
-+static inline void skb_reset_redirect(struct sk_buff *skb)
-+{
-+#ifdef CONFIG_NET_REDIRECT
-+	skb->redirected = 0;
-+#endif
-+}
-+
- #endif	/* __KERNEL__ */
- #endif	/* _LINUX_SKBUFF_H */
-diff --git a/include/net/sch_generic.h b/include/net/sch_generic.h
-index 151208704ed2..c30f914867e6 100644
---- a/include/net/sch_generic.h
-+++ b/include/net/sch_generic.h
-@@ -675,22 +675,6 @@ void __qdisc_calculate_pkt_len(struct sk_buff *skb,
- 			       const struct qdisc_size_table *stab);
- int skb_do_redirect(struct sk_buff *);
- 
--static inline void skb_reset_tc(struct sk_buff *skb)
--{
--#ifdef CONFIG_NET_CLS_ACT
--	skb->tc_redirected = 0;
--#endif
--}
--
--static inline bool skb_is_tc_redirected(const struct sk_buff *skb)
--{
--#ifdef CONFIG_NET_CLS_ACT
--	return skb->tc_redirected;
--#else
--	return false;
--#endif
--}
--
- static inline bool skb_at_tc_ingress(const struct sk_buff *skb)
- {
- #ifdef CONFIG_NET_CLS_ACT
-diff --git a/net/Kconfig b/net/Kconfig
-index 2eeb0e55f7c9..df8d8c9bd021 100644
---- a/net/Kconfig
-+++ b/net/Kconfig
-@@ -52,6 +52,9 @@ config NET_INGRESS
- config NET_EGRESS
- 	bool
- 
-+config NET_REDIRECT
-+	bool
-+
- config SKB_EXTENSIONS
- 	bool
- 
-diff --git a/net/core/dev.c b/net/core/dev.c
-index 402a986659cf..500bba8874b0 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -4516,7 +4516,7 @@ static u32 netif_receive_generic_xdp(struct sk_buff *skb,
- 	/* Reinjected packets coming from act_mirred or similar should
- 	 * not get XDP generic processing.
- 	 */
--	if (skb_is_tc_redirected(skb))
-+	if (skb_is_redirected(skb))
- 		return XDP_PASS;
- 
- 	/* XDP packets must be linear and must have sufficient headroom
-@@ -5063,7 +5063,7 @@ static int __netif_receive_skb_core(struct sk_buff *skb, bool pfmemalloc,
- 			goto out;
- 	}
- #endif
--	skb_reset_tc(skb);
-+	skb_reset_redirect(skb);
- skip_classify:
- 	if (pfmemalloc && !skb_pfmemalloc_protocol(skb))
- 		goto drop;
-diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
-index 74f050ba6bad..3087e23297db 100644
---- a/net/netfilter/nft_fwd_netdev.c
-+++ b/net/netfilter/nft_fwd_netdev.c
-@@ -28,9 +28,8 @@ static void nft_fwd_netdev_eval(const struct nft_expr *expr,
- 	struct nft_fwd_netdev *priv = nft_expr_priv(expr);
- 	int oif = regs->data[priv->sreg_dev];
- 
--	/* These are used by ifb only. */
--	pkt->skb->tc_redirected = 1;
--	pkt->skb->tc_from_ingress = 1;
-+	/* This is used by ifb only. */
-+	skb_set_redirected(pkt->skb, true);
- 
- 	nf_fwd_netdev_egress(pkt, oif);
- 	regs->verdict.code = NF_STOLEN;
-diff --git a/net/sched/act_mirred.c b/net/sched/act_mirred.c
-index 1ad300e6dbc0..83dd82fc9f40 100644
---- a/net/sched/act_mirred.c
-+++ b/net/sched/act_mirred.c
-@@ -284,10 +284,8 @@ static int tcf_mirred_act(struct sk_buff *skb, const struct tc_action *a,
- 
- 	/* mirror is always swallowed */
- 	if (is_redirect) {
--		skb2->tc_redirected = 1;
--		skb2->tc_from_ingress = skb2->tc_at_ingress;
--		if (skb2->tc_from_ingress)
--			skb2->tstamp = 0;
-+		skb_set_redirected(skb2, skb2->tc_at_ingress);
-+
- 		/* let's the caller reinsert the packet, if possible */
- 		if (use_reinsert) {
- 			res->ingress = want_ingress;
+-- 
+1.8.3.1
 
---bbqnkrzhohussjgz--
