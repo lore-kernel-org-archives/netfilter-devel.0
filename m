@@ -2,321 +2,124 @@ Return-Path: <SRS0=4amC=5K=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52CC9C1975A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Mar 2020 12:47:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 179C5C54FD0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Mar 2020 14:32:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 34A2020775
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Mar 2020 12:47:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DE41B20714
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Mar 2020 14:32:15 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=lca.pw header.i=@lca.pw header.b="Lz6jH6Md"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727392AbgCYMr2 (ORCPT
+        id S1727794AbgCYOcO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 25 Mar 2020 08:47:28 -0400
-Received: from correo.us.es ([193.147.175.20]:58766 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726998AbgCYMr1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Mar 2020 08:47:27 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 20E851176B9
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Mar 2020 13:46:48 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 12098DA72F
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Mar 2020 13:46:48 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 0750DDA3A1; Wed, 25 Mar 2020 13:46:48 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D56F2DA72F;
-        Wed, 25 Mar 2020 13:46:45 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 25 Mar 2020 13:46:45 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id AC53F42EF42A;
-        Wed, 25 Mar 2020 13:46:45 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, geert@linux-m68k.org
-Subject: [PATCH net] net: Fix CONFIG_NET_CLS_ACT=n and CONFIG_NFT_FWD_NETDEV={y,m} build
-Date:   Wed, 25 Mar 2020 13:47:18 +0100
-Message-Id: <20200325124718.77151-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
+        Wed, 25 Mar 2020 10:32:14 -0400
+Received: from mail-qk1-f193.google.com ([209.85.222.193]:46729 "EHLO
+        mail-qk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727501AbgCYOcN (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 25 Mar 2020 10:32:13 -0400
+Received: by mail-qk1-f193.google.com with SMTP id u4so2667240qkj.13
+        for <netfilter-devel@vger.kernel.org>; Wed, 25 Mar 2020 07:32:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=lca.pw; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=TF9iJBiO0AuQd8nd0BlphkST/Pt9KVdxrtvPH4as2h8=;
+        b=Lz6jH6Md1qAZCC/5tbCU1I+Dtky/ug5dvJDwjhk6TclPOXVHde1FZwa31s1yiEI6ci
+         8jM9Q/9ov0fXa9sA1erX232HFwUXgZgaPhoVuf861MsT44CC0f6DVaElHgtbHEv3EYUJ
+         lKlG2H7wcqWdiRwEXKi9+aBBNHmsgfWaJ5E+p4WrBEH3R+4s/FgqnAcIAfdYpH/DqfAf
+         7tyj+SlrsRzTJ6mlKtfXpfpbgDZ0Fm/+f3gruIF0EVRqrIfJ9hD7sKEqXFbPg7sHZvKN
+         vuhDgTET/1fZX02IlXcA7jSy7EZeNGb4UVctN+3wGxXbNcd7bSZVQI2XhUdiGwg9ROND
+         ghRQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=TF9iJBiO0AuQd8nd0BlphkST/Pt9KVdxrtvPH4as2h8=;
+        b=Z6/rAe4pTc3eK/4XMT/7SEfoQVH56pPqt5wNTSfiqm6/kD0CRkezJfTdwXlipvHoKH
+         Jgi+Hspmax0vQ2eJPhfz5CEKORhMXNVICtzvA/4lBo0tivhQ6DzUHKXWOYcjv4ZUOk57
+         c46m3Iz3+cK5fjwJgizZdIFaYbduHfIS3PCt7wIC+1X5wlBIZURzxkrYIA1CUOCrqw9s
+         9dyrq8S4dd0jE1DEWg3G/pnrNjNztJYoXwej+KQ2hWbNlFwYQnAROIIWugV6im1lCtEs
+         cyrjjQLJrkBE4ad1EhQuC2kWSR9cMInFIUggB5PrEnvKthzFlMmgc/5+pQejTqHqJi5X
+         BC1w==
+X-Gm-Message-State: ANhLgQ1Y8GYmmuKu3iO789hL3zNeT/gkWDJHJ9yZ6OAUj6FaI6/tlJB2
+        /kMja9v5El3/2ZpsHV/AeRC8DA==
+X-Google-Smtp-Source: ADFU+vslIu4ym3oWBVgsGOjHnZWCwTiIQHGRt1uueBxGQSZBviKE1ph/j83kf3q1XH4TpTCuWS0u/w==
+X-Received: by 2002:a37:a597:: with SMTP id o145mr3175372qke.106.1585146731697;
+        Wed, 25 Mar 2020 07:32:11 -0700 (PDT)
+Received: from ovpn-66-69.rdu2.redhat.com (pool-71-184-117-43.bstnma.fios.verizon.net. [71.184.117.43])
+        by smtp.gmail.com with ESMTPSA id v76sm342432qka.32.2020.03.25.07.32.10
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 25 Mar 2020 07:32:11 -0700 (PDT)
+From:   Qian Cai <cai@lca.pw>
+To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de
+Cc:     davem@davemloft.net, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Qian Cai <cai@lca.pw>
+Subject: [PATCH] netfilter/nf_tables: silence a RCU-list warning
+Date:   Wed, 25 Mar 2020 10:31:42 -0400
+Message-Id: <20200325143142.6955-1-cai@lca.pw>
+X-Mailer: git-send-email 2.21.0 (Apple Git-122.2)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-net/netfilter/nft_fwd_netdev.c: In function ‘nft_fwd_netdev_eval’:
-    net/netfilter/nft_fwd_netdev.c:32:10: error: ‘struct sk_buff’ has no member named ‘tc_redirected’
-      pkt->skb->tc_redirected = 1;
-              ^~
-    net/netfilter/nft_fwd_netdev.c:33:10: error: ‘struct sk_buff’ has no member named ‘tc_from_ingress’
-      pkt->skb->tc_from_ingress = 1;
-              ^~
+It is safe to traverse &net->nft.tables with &net->nft.commit_mutex
+held using list_for_each_entry_rcu(). Silence the PROVE_RCU_LIST false
+positive,
 
-To avoid a direct dependency with tc actions from netfilter, wrap the
-redirect bits around CONFIG_NET_REDIRECT and move helpers to
-include/linux/skbuff.h. Turn on this toggle from the ifb driver, the
-only existing client of these bits in the tree.
+WARNING: suspicious RCU usage
+net/netfilter/nf_tables_api.c:523 RCU-list traversed in non-reader section!!
 
-This patch adds skb_set_redirected() that sets on the redirected bit
-on the skbuff, it specifies if the packet was redirect from ingress
-and resets the timestamp (timestamp reset was originally missing in the
-netfilter bugfix).
+other info that might help us debug this:
 
-Fixes: bcfabee1afd99484 ("netfilter: nft_fwd_netdev: allow to redirect to ifb via ingress")
-Reported-by: noreply@ellerman.id.au
-Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+rcu_scheduler_active = 2, debug_locks = 1
+1 lock held by iptables/1384:
+ #0: ffffffff9745c4a8 (&net->nft.commit_mutex){+.+.}, at: nf_tables_valid_genid+0x25/0x60 [nf_tables]
+
+Call Trace:
+ dump_stack+0xa1/0xea
+ lockdep_rcu_suspicious+0x103/0x10d
+ nft_table_lookup.part.0+0x116/0x120 [nf_tables]
+ nf_tables_newtable+0x12c/0x7d0 [nf_tables]
+ nfnetlink_rcv_batch+0x559/0x1190 [nfnetlink]
+ nfnetlink_rcv+0x1da/0x210 [nfnetlink]
+ netlink_unicast+0x306/0x460
+ netlink_sendmsg+0x44b/0x770
+ ____sys_sendmsg+0x46b/0x4a0
+ ___sys_sendmsg+0x138/0x1a0
+ __sys_sendmsg+0xb6/0x130
+ __x64_sys_sendmsg+0x48/0x50
+ do_syscall_64+0x69/0xf4
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+
+Signed-off-by: Qian Cai <cai@lca.pw>
 ---
- drivers/net/Kconfig              |  1 +
- drivers/net/ifb.c                |  6 +++---
- drivers/net/wireguard/queueing.h |  2 +-
- include/linux/skbuff.h           | 36 ++++++++++++++++++++++++++++++++----
- include/net/sch_generic.h        | 16 ----------------
- net/Kconfig                      |  3 +++
- net/core/dev.c                   |  4 ++--
- net/core/pktgen.c                |  2 +-
- net/netfilter/nft_fwd_netdev.c   |  5 ++---
- net/sched/act_mirred.c           |  6 ++----
- 10 files changed, 47 insertions(+), 34 deletions(-)
+ net/netfilter/nf_tables_api.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/Kconfig b/drivers/net/Kconfig
-index 25a8f9387d5a..db8884ad6d40 100644
---- a/drivers/net/Kconfig
-+++ b/drivers/net/Kconfig
-@@ -149,6 +149,7 @@ config NET_FC
- config IFB
- 	tristate "Intermediate Functional Block support"
- 	depends on NET_CLS_ACT
-+	select NET_REDIRECT
- 	---help---
- 	  This is an intermediate driver that allows sharing of
- 	  resources.
-diff --git a/drivers/net/ifb.c b/drivers/net/ifb.c
-index 242b9b0943f8..7fe306e76281 100644
---- a/drivers/net/ifb.c
-+++ b/drivers/net/ifb.c
-@@ -75,7 +75,7 @@ static void ifb_ri_tasklet(unsigned long _txp)
- 	}
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 38c680f28f15..e398d1491057 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -520,7 +520,8 @@ static struct nft_table *nft_table_lookup(const struct net *net,
+ 	if (nla == NULL)
+ 		return ERR_PTR(-EINVAL);
  
- 	while ((skb = __skb_dequeue(&txp->tq)) != NULL) {
--		skb->tc_redirected = 0;
-+		skb->redirected = 0;
- 		skb->tc_skip_classify = 1;
- 
- 		u64_stats_update_begin(&txp->tsync);
-@@ -96,7 +96,7 @@ static void ifb_ri_tasklet(unsigned long _txp)
- 		rcu_read_unlock();
- 		skb->skb_iif = txp->dev->ifindex;
- 
--		if (!skb->tc_from_ingress) {
-+		if (!skb->from_ingress) {
- 			dev_queue_xmit(skb);
- 		} else {
- 			skb_pull_rcsum(skb, skb->mac_len);
-@@ -243,7 +243,7 @@ static netdev_tx_t ifb_xmit(struct sk_buff *skb, struct net_device *dev)
- 	txp->rx_bytes += skb->len;
- 	u64_stats_update_end(&txp->rsync);
- 
--	if (!skb->tc_redirected || !skb->skb_iif) {
-+	if (!skb->redirected || !skb->skb_iif) {
- 		dev_kfree_skb(skb);
- 		dev->stats.rx_dropped++;
- 		return NETDEV_TX_OK;
-diff --git a/drivers/net/wireguard/queueing.h b/drivers/net/wireguard/queueing.h
-index cf1e0e2376d8..3432232afe06 100644
---- a/drivers/net/wireguard/queueing.h
-+++ b/drivers/net/wireguard/queueing.h
-@@ -100,8 +100,8 @@ static inline void wg_reset_packet(struct sk_buff *skb)
- 	skb->dev = NULL;
- #ifdef CONFIG_NET_SCHED
- 	skb->tc_index = 0;
--	skb_reset_tc(skb);
- #endif
-+	skb_reset_redirect(skb);
- 	skb->hdr_len = skb_headroom(skb);
- 	skb_reset_mac_header(skb);
- 	skb_reset_network_header(skb);
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 5b50278c4bc8..e59620234415 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -645,8 +645,8 @@ typedef unsigned char *sk_buff_data_t;
-  *	@offload_l3_fwd_mark: Packet was L3-forwarded in hardware
-  *	@tc_skip_classify: do not classify packet. set by IFB device
-  *	@tc_at_ingress: used within tc_classify to distinguish in/egress
-- *	@tc_redirected: packet was redirected by a tc action
-- *	@tc_from_ingress: if tc_redirected, tc_at_ingress at time of redirect
-+ *	@redirected: packet was redirected by packet classifier
-+ *	@from_ingress: packet was redirected from the ingress path
-  *	@peeked: this packet has been seen already, so stats have been
-  *		done for it, don't do them again
-  *	@nf_trace: netfilter packet trace flag
-@@ -848,8 +848,10 @@ struct sk_buff {
- #ifdef CONFIG_NET_CLS_ACT
- 	__u8			tc_skip_classify:1;
- 	__u8			tc_at_ingress:1;
--	__u8			tc_redirected:1;
--	__u8			tc_from_ingress:1;
-+#endif
-+#ifdef CONFIG_NET_REDIRECT
-+	__u8			redirected:1;
-+	__u8			from_ingress:1;
- #endif
- #ifdef CONFIG_TLS_DEVICE
- 	__u8			decrypted:1;
-@@ -4579,5 +4581,31 @@ static inline __wsum lco_csum(struct sk_buff *skb)
- 	return csum_partial(l4_hdr, csum_start - l4_hdr, partial);
- }
- 
-+static inline bool skb_is_redirected(const struct sk_buff *skb)
-+{
-+#ifdef CONFIG_NET_REDIRECT
-+	return skb->redirected;
-+#else
-+	return false;
-+#endif
-+}
-+
-+static inline void skb_set_redirected(struct sk_buff *skb, bool from_ingress)
-+{
-+#ifdef CONFIG_NET_REDIRECT
-+	skb->redirected = 1;
-+	skb->from_ingress = from_ingress;
-+	if (skb->from_ingress)
-+		skb->tstamp = 0;
-+#endif
-+}
-+
-+static inline void skb_reset_redirect(struct sk_buff *skb)
-+{
-+#ifdef CONFIG_NET_REDIRECT
-+	skb->redirected = 0;
-+#endif
-+}
-+
- #endif	/* __KERNEL__ */
- #endif	/* _LINUX_SKBUFF_H */
-diff --git a/include/net/sch_generic.h b/include/net/sch_generic.h
-index 151208704ed2..c30f914867e6 100644
---- a/include/net/sch_generic.h
-+++ b/include/net/sch_generic.h
-@@ -675,22 +675,6 @@ void __qdisc_calculate_pkt_len(struct sk_buff *skb,
- 			       const struct qdisc_size_table *stab);
- int skb_do_redirect(struct sk_buff *);
- 
--static inline void skb_reset_tc(struct sk_buff *skb)
--{
--#ifdef CONFIG_NET_CLS_ACT
--	skb->tc_redirected = 0;
--#endif
--}
--
--static inline bool skb_is_tc_redirected(const struct sk_buff *skb)
--{
--#ifdef CONFIG_NET_CLS_ACT
--	return skb->tc_redirected;
--#else
--	return false;
--#endif
--}
--
- static inline bool skb_at_tc_ingress(const struct sk_buff *skb)
- {
- #ifdef CONFIG_NET_CLS_ACT
-diff --git a/net/Kconfig b/net/Kconfig
-index 2eeb0e55f7c9..df8d8c9bd021 100644
---- a/net/Kconfig
-+++ b/net/Kconfig
-@@ -52,6 +52,9 @@ config NET_INGRESS
- config NET_EGRESS
- 	bool
- 
-+config NET_REDIRECT
-+	bool
-+
- config SKB_EXTENSIONS
- 	bool
- 
-diff --git a/net/core/dev.c b/net/core/dev.c
-index 402a986659cf..500bba8874b0 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -4516,7 +4516,7 @@ static u32 netif_receive_generic_xdp(struct sk_buff *skb,
- 	/* Reinjected packets coming from act_mirred or similar should
- 	 * not get XDP generic processing.
- 	 */
--	if (skb_is_tc_redirected(skb))
-+	if (skb_is_redirected(skb))
- 		return XDP_PASS;
- 
- 	/* XDP packets must be linear and must have sufficient headroom
-@@ -5063,7 +5063,7 @@ static int __netif_receive_skb_core(struct sk_buff *skb, bool pfmemalloc,
- 			goto out;
- 	}
- #endif
--	skb_reset_tc(skb);
-+	skb_reset_redirect(skb);
- skip_classify:
- 	if (pfmemalloc && !skb_pfmemalloc_protocol(skb))
- 		goto drop;
-diff --git a/net/core/pktgen.c b/net/core/pktgen.c
-index acc849df60b5..d0641bba6b81 100644
---- a/net/core/pktgen.c
-+++ b/net/core/pktgen.c
-@@ -3362,7 +3362,7 @@ static void pktgen_xmit(struct pktgen_dev *pkt_dev)
- 			/* skb was 'freed' by stack, so clean few
- 			 * bits and reuse it
- 			 */
--			skb_reset_tc(skb);
-+			skb_reset_redirect(skb);
- 		} while (--burst > 0);
- 		goto out; /* Skips xmit_mode M_START_XMIT */
- 	} else if (pkt_dev->xmit_mode == M_QUEUE_XMIT) {
-diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
-index 74f050ba6bad..3087e23297db 100644
---- a/net/netfilter/nft_fwd_netdev.c
-+++ b/net/netfilter/nft_fwd_netdev.c
-@@ -28,9 +28,8 @@ static void nft_fwd_netdev_eval(const struct nft_expr *expr,
- 	struct nft_fwd_netdev *priv = nft_expr_priv(expr);
- 	int oif = regs->data[priv->sreg_dev];
- 
--	/* These are used by ifb only. */
--	pkt->skb->tc_redirected = 1;
--	pkt->skb->tc_from_ingress = 1;
-+	/* This is used by ifb only. */
-+	skb_set_redirected(pkt->skb, true);
- 
- 	nf_fwd_netdev_egress(pkt, oif);
- 	regs->verdict.code = NF_STOLEN;
-diff --git a/net/sched/act_mirred.c b/net/sched/act_mirred.c
-index 1ad300e6dbc0..83dd82fc9f40 100644
---- a/net/sched/act_mirred.c
-+++ b/net/sched/act_mirred.c
-@@ -284,10 +284,8 @@ static int tcf_mirred_act(struct sk_buff *skb, const struct tc_action *a,
- 
- 	/* mirror is always swallowed */
- 	if (is_redirect) {
--		skb2->tc_redirected = 1;
--		skb2->tc_from_ingress = skb2->tc_at_ingress;
--		if (skb2->tc_from_ingress)
--			skb2->tstamp = 0;
-+		skb_set_redirected(skb2, skb2->tc_at_ingress);
-+
- 		/* let's the caller reinsert the packet, if possible */
- 		if (use_reinsert) {
- 			res->ingress = want_ingress;
+-	list_for_each_entry_rcu(table, &net->nft.tables, list) {
++	list_for_each_entry_rcu(table, &net->nft.tables, list,
++				lockdep_is_held(&net->nft.commit_mutex)) {
+ 		if (!nla_strcmp(nla, table->name) &&
+ 		    table->family == family &&
+ 		    nft_active_genmask(table, genmask))
 -- 
-2.11.0
+2.21.0 (Apple Git-122.2)
 
