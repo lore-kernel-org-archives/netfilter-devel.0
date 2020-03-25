@@ -2,67 +2,70 @@ Return-Path: <SRS0=4amC=5K=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95929C54FCF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Mar 2020 15:38:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 009BCC2D0E7
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Mar 2020 19:29:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7988B2073E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Mar 2020 15:38:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CE5F52074D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Mar 2020 19:29:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727598AbgCYPim (ORCPT
+        id S1727795AbgCYT3b (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 25 Mar 2020 11:38:42 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:60676 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726838AbgCYPim (ORCPT
+        Wed, 25 Mar 2020 15:29:31 -0400
+Received: from shards.monkeyblade.net ([23.128.96.9]:46696 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727328AbgCYT3b (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Mar 2020 11:38:42 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1jH875-0002DR-Dk; Wed, 25 Mar 2020 16:38:39 +0100
-Date:   Wed, 25 Mar 2020 16:38:39 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Martin Zaharinov <micron10@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Eric Dumazet <eric.dumazet@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: Bug URGENT Report with new kernel 5.5.10-5.6-rc6
-Message-ID: <20200325153839.GB878@breakpoint.cc>
-References: <20200319104750.x2zz7negjbm6lwch@salvia>
- <20200319105248.GP979@breakpoint.cc>
- <fff10500-8b87-62f0-ec89-49453cf9ae57@gmail.com>
- <4d9f339c-b0a7-1861-7d76-e0f2cee92b8c@gmail.com>
- <CALidq=VJuhEPO-FWOuUdSG+-VO+h7VHfmtQiAxikxH+vMB+vdQ@mail.gmail.com>
- <CALidq=Wq3FaGPbbjDvcjvw3V=yPWNMPDeFFy-bDL6fffdjb2rw@mail.gmail.com>
- <CALidq=VYSt3WbtapwL-n8cG71=ysYDJTo3L---xj4U1rEC63KQ@mail.gmail.com>
- <20200324131829.GF3305@breakpoint.cc>
- <CALidq=WBGwMWZeK95WpunO=+yiCo=iFFijXmjQdOMKxj7-XC1A@mail.gmail.com>
- <CALidq=X1fVQgr1CFNqswNK=me42aYtrqp8cmbFO63ekimn4O-g@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CALidq=X1fVQgr1CFNqswNK=me42aYtrqp8cmbFO63ekimn4O-g@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        Wed, 25 Mar 2020 15:29:31 -0400
+Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id E26EC15A0A9FA;
+        Wed, 25 Mar 2020 12:29:30 -0700 (PDT)
+Date:   Wed, 25 Mar 2020 12:29:30 -0700 (PDT)
+Message-Id: <20200325.122930.448274240867191914.davem@davemloft.net>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        geert@linux-m68k.org
+Subject: Re: [PATCH net] net: Fix CONFIG_NET_CLS_ACT=n and
+ CONFIG_NFT_FWD_NETDEV={y,m} build
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20200325124718.77151-1-pablo@netfilter.org>
+References: <20200325124718.77151-1-pablo@netfilter.org>
+X-Mailer: Mew version 6.8 on Emacs 26.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=iso-8859-7
+Content-Transfer-Encoding: base64
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Wed, 25 Mar 2020 12:29:31 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Martin Zaharinov <micron10@gmail.com> wrote:
-> Hi Florian
-> 
-> after run machine for 7-8 hour in dmesg get same debug :
-
-Mhhh, are you sure you applied the patch?
-
-> [28514.488813] Call Trace:
-> [28514.517959]  <IRQ>
-> [28514.546187]  nf_queue_entry_release_refs+0x77/0x90
-> [28514.574371]  nf_reinject+0x65/0x170
-
-nf_reinject() doesn't call nf_queue_entry_release_refs() anymore
-after the patch I made.
+RnJvbTogUGFibG8gTmVpcmEgQXl1c28gPHBhYmxvQG5ldGZpbHRlci5vcmc+DQpEYXRlOiBXZWQs
+IDI1IE1hciAyMDIwIDEzOjQ3OjE4ICswMTAwDQoNCj4gbmV0L25ldGZpbHRlci9uZnRfZndkX25l
+dGRldi5jOiBJbiBmdW5jdGlvbiChbmZ0X2Z3ZF9uZXRkZXZfZXZhbKI6DQo+ICAgICBuZXQvbmV0
+ZmlsdGVyL25mdF9md2RfbmV0ZGV2LmM6MzI6MTA6IGVycm9yOiChc3RydWN0IHNrX2J1ZmaiIGhh
+cyBubyBtZW1iZXIgbmFtZWQgoXRjX3JlZGlyZWN0ZWSiDQo+ICAgICAgIHBrdC0+c2tiLT50Y19y
+ZWRpcmVjdGVkID0gMTsNCj4gICAgICAgICAgICAgICBefg0KPiAgICAgbmV0L25ldGZpbHRlci9u
+ZnRfZndkX25ldGRldi5jOjMzOjEwOiBlcnJvcjogoXN0cnVjdCBza19idWZmoiBoYXMgbm8gbWVt
+YmVyIG5hbWVkIKF0Y19mcm9tX2luZ3Jlc3OiDQo+ICAgICAgIHBrdC0+c2tiLT50Y19mcm9tX2lu
+Z3Jlc3MgPSAxOw0KPiAgICAgICAgICAgICAgIF5+DQo+IA0KPiBUbyBhdm9pZCBhIGRpcmVjdCBk
+ZXBlbmRlbmN5IHdpdGggdGMgYWN0aW9ucyBmcm9tIG5ldGZpbHRlciwgd3JhcCB0aGUNCj4gcmVk
+aXJlY3QgYml0cyBhcm91bmQgQ09ORklHX05FVF9SRURJUkVDVCBhbmQgbW92ZSBoZWxwZXJzIHRv
+DQo+IGluY2x1ZGUvbGludXgvc2tidWZmLmguIFR1cm4gb24gdGhpcyB0b2dnbGUgZnJvbSB0aGUg
+aWZiIGRyaXZlciwgdGhlDQo+IG9ubHkgZXhpc3RpbmcgY2xpZW50IG9mIHRoZXNlIGJpdHMgaW4g
+dGhlIHRyZWUuDQo+IA0KPiBUaGlzIHBhdGNoIGFkZHMgc2tiX3NldF9yZWRpcmVjdGVkKCkgdGhh
+dCBzZXRzIG9uIHRoZSByZWRpcmVjdGVkIGJpdA0KPiBvbiB0aGUgc2tidWZmLCBpdCBzcGVjaWZp
+ZXMgaWYgdGhlIHBhY2tldCB3YXMgcmVkaXJlY3QgZnJvbSBpbmdyZXNzDQo+IGFuZCByZXNldHMg
+dGhlIHRpbWVzdGFtcCAodGltZXN0YW1wIHJlc2V0IHdhcyBvcmlnaW5hbGx5IG1pc3NpbmcgaW4g
+dGhlDQo+IG5ldGZpbHRlciBidWdmaXgpLg0KPiANCj4gRml4ZXM6IGJjZmFiZWUxYWZkOTk0ODQg
+KCJuZXRmaWx0ZXI6IG5mdF9md2RfbmV0ZGV2OiBhbGxvdyB0byByZWRpcmVjdCB0byBpZmIgdmlh
+IGluZ3Jlc3MiKQ0KPiBSZXBvcnRlZC1ieTogbm9yZXBseUBlbGxlcm1hbi5pZC5hdQ0KPiBSZXBv
+cnRlZC1ieTogR2VlcnQgVXl0dGVyaG9ldmVuIDxnZWVydEBsaW51eC1tNjhrLm9yZz4NCj4gU2ln
+bmVkLW9mZi1ieTogUGFibG8gTmVpcmEgQXl1c28gPHBhYmxvQG5ldGZpbHRlci5vcmc+DQoNCkFw
+cGxpZWQsIHRoYW5rcy4NCg==
