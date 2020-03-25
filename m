@@ -6,24 +6,24 @@ X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EF01C54FD3
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Mar 2020 15:22:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95929C54FCF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Mar 2020 15:38:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4060420772
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Mar 2020 15:22:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7988B2073E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Mar 2020 15:38:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727656AbgCYPWR (ORCPT
+        id S1727598AbgCYPim (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 25 Mar 2020 11:22:17 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:60562 "EHLO
+        Wed, 25 Mar 2020 11:38:42 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:60676 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726838AbgCYPWR (ORCPT
+        by vger.kernel.org with ESMTP id S1726838AbgCYPim (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Mar 2020 11:22:17 -0400
+        Wed, 25 Mar 2020 11:38:42 -0400
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@strlen.de>)
-        id 1jH7rC-00026k-7I; Wed, 25 Mar 2020 16:22:14 +0100
-Date:   Wed, 25 Mar 2020 16:22:14 +0100
+        id 1jH875-0002DR-Dk; Wed, 25 Mar 2020 16:38:39 +0100
+Date:   Wed, 25 Mar 2020 16:38:39 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     Martin Zaharinov <micron10@gmail.com>
 Cc:     Florian Westphal <fw@strlen.de>,
@@ -31,7 +31,7 @@ Cc:     Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 Subject: Re: Bug URGENT Report with new kernel 5.5.10-5.6-rc6
-Message-ID: <20200325152214.GA878@breakpoint.cc>
+Message-ID: <20200325153839.GB878@breakpoint.cc>
 References: <20200319104750.x2zz7negjbm6lwch@salvia>
  <20200319105248.GP979@breakpoint.cc>
  <fff10500-8b87-62f0-ec89-49453cf9ae57@gmail.com>
@@ -57,4 +57,12 @@ Martin Zaharinov <micron10@gmail.com> wrote:
 > 
 > after run machine for 7-8 hour in dmesg get same debug :
 
-Do you ahve a reproducer that doesn't need out of tree module?
+Mhhh, are you sure you applied the patch?
+
+> [28514.488813] Call Trace:
+> [28514.517959]  <IRQ>
+> [28514.546187]  nf_queue_entry_release_refs+0x77/0x90
+> [28514.574371]  nf_reinject+0x65/0x170
+
+nf_reinject() doesn't call nf_queue_entry_release_refs() anymore
+after the patch I made.
