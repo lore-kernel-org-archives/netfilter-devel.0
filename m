@@ -2,87 +2,113 @@ Return-Path: <SRS0=p5Wx=5L=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F978C43331
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Mar 2020 14:09:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCFBFC2D0E8
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Mar 2020 14:13:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7E7C2206F8
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Mar 2020 14:09:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A59C7206F6
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Mar 2020 14:13:47 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BsQjkp8O"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727912AbgCZOJB (ORCPT
+        id S1727873AbgCZONq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 26 Mar 2020 10:09:01 -0400
-Received: from correo.us.es ([193.147.175.20]:54534 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727831AbgCZOJB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Mar 2020 10:09:01 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6B36612BFFA
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Mar 2020 15:08:59 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5CCFDDA3A4
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Mar 2020 15:08:59 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 52709DA38D; Thu, 26 Mar 2020 15:08:59 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 81243DA7B2;
-        Thu, 26 Mar 2020 15:08:57 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 26 Mar 2020 15:08:57 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 6358242EF4E2;
-        Thu, 26 Mar 2020 15:08:57 +0100 (CET)
-Date:   Thu, 26 Mar 2020 15:08:57 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Stefano Brivio <sbrivio@redhat.com>
-Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] tests: Introduce test for insertion of overlapping
- and non-overlapping ranges
-Message-ID: <20200326140857.cveevfqf4rvmofjj@salvia>
-References: <a0fbd674a9df38fddd9066dd4762d551c207d66a.1583438395.git.sbrivio@redhat.com>
+        Thu, 26 Mar 2020 10:13:46 -0400
+Received: from mail-lf1-f67.google.com ([209.85.167.67]:38649 "EHLO
+        mail-lf1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725994AbgCZONq (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 26 Mar 2020 10:13:46 -0400
+Received: by mail-lf1-f67.google.com with SMTP id c5so4954215lfp.5;
+        Thu, 26 Mar 2020 07:13:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=s4Ip9GlrlXH3w8IgLCzY7e6/JKcdBO3P2fUyUsD1eXA=;
+        b=BsQjkp8OOxXSqy7SW8on2tzh2Uzr/2PIpWcFt1MPoqwG6PXKQH6jE6FjPBCqfjD0oX
+         p2s0g79wOYBv8tpxf6hcvYSeHehtQ+e/gS4jJRACg+Kds4HjEwP0U0v+pLnts/xgAq/S
+         kGzqhseOxN/fzxNmYUDvKKmwwNOkKBwChtzmu8d+zHHrWFfI1rUCELJRBSR250LTzc4H
+         7Voibb8UyrNDg16p51MpRIek6HohF2fRqhEsgOQrSIEsic7nNtBCcjBtHEfdbI4DlitA
+         q2nXQv4fwYGt9rASrhMCykKl9N9byiY5tP42t8RU7xwYpoURvWfdLeA8aHnEPMP0AX9d
+         31oA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=s4Ip9GlrlXH3w8IgLCzY7e6/JKcdBO3P2fUyUsD1eXA=;
+        b=gA/wVBu28uMF2s5hAADQmRuBTSL6wIUUB8QeyQ3PUY/Lc+140a/H1cWoTqMpjX+VEq
+         QQEjzsuCFJrbSyOvW2OytPoLITzmWQdjBe0IBD3TWIugF55B0rzUlkYwft5YlOTL4Ili
+         AylrXvH8uKVksCmaPu6ao5Yu8nlZ8FLfs3mqKWSNUaXjJaR0bJ+BDOJzBQypCLeUBtfc
+         cNK1KX+nPbXgWVe3joYFTbZUlM5Kp5zPdsIPgRj33kVFb5yp4iXM3k04wRhuJPhoGsoL
+         RChMLWmcr+d8W5pvKk3RxKPiQGdqXNrnZQUYLjEG8u78J+f18uXhdBu79IU+m7iQIzul
+         2e2g==
+X-Gm-Message-State: ANhLgQ37asLg25XHxvTwQulZHg6Iw8UgNQQXkDntw2rohQvaxTLl3APh
+        n65X5pK8ivdzURZBUjPjCkzvHLz8hokL9coqAR0=
+X-Google-Smtp-Source: ADFU+vuXVQnmzFtq/yKZPBUP6NFh5YybbICaCkkPvaW9NRrTM5E/pNcrwWWmxW3xLt4zCj74xcSByecrz7Tv/fKcP7A=
+X-Received: by 2002:ac2:4350:: with SMTP id o16mr5202095lfl.136.1585232023288;
+ Thu, 26 Mar 2020 07:13:43 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <a0fbd674a9df38fddd9066dd4762d551c207d66a.1583438395.git.sbrivio@redhat.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+References: <20200320030015.195806-1-zenczykowski@gmail.com>
+ <20200326135959.tqy5i4qkxwcqgp5y@salvia> <CAHo-OoyGEPKdU5ZEuY29Zzi4NGzD-QMw7Pb-MTXjdKTj-Kj-Pw@mail.gmail.com>
+In-Reply-To: <CAHo-OoyGEPKdU5ZEuY29Zzi4NGzD-QMw7Pb-MTXjdKTj-Kj-Pw@mail.gmail.com>
+From:   =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Date:   Thu, 26 Mar 2020 07:13:33 -0700
+Message-ID: <CAHo-OozGK7ANfFDBnLv2tZVuhXUw1sCCRVTBc0YT7LvYVXH_ZQ@mail.gmail.com>
+Subject: Re: [PATCH] iptables: open eBPF programs in read only mode
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Linux Network Development Mailing List 
+        <netdev@vger.kernel.org>,
+        Netfilter Development Mailinglist 
+        <netfilter-devel@vger.kernel.org>, Chenbo Feng <fengc@google.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Willem de Bruijn <willemb@google.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Mar 05, 2020 at 09:34:11PM +0100, Stefano Brivio wrote:
-> Insertion of overlapping ranges should return success only if the new
-> elements are identical to existing ones, or, for concatenated ranges,
-> if the new element is less specific (in all its fields) than any
-> existing one.
-> 
-> Note that, in case the range is identical to an existing one, insertion
-> won't actually be performed, but no error will be returned either on
-> 'add element'.
-> 
-> This was inspired by a failing case reported by Phil Sutter (where
-> concatenated overlapping ranges would fail insertion silently) and is
-> fixed by kernel series with subject:
-> 	nftables: Consistently report partial and entire set overlaps
-> 
-> With that series, these tests now pass also if the call to set_overlap()
-> on insertion is skipped. Partial or entire overlapping was already
-> detected by the kernel for concatenated ranges (nft_set_pipapo) from
-> the beginning, and that series makes the nft_set_rbtree implementation
-> consistent in terms of detection and reporting. Without that, overlap
-> checks are performed by nft but not guaranteed by the kernel.
-> 
-> However, we can't just drop set_overlap() now, as we need to preserve
-> compatibility with older kernels.
+I think your build system's kernel headers are old.
 
-Applied, thanks.
+Linux 4.15-rc1 commit 6e71b04a82248ccf13a94b85cbc674a9fefe53f5
+Author: Chenbo Feng <fengc@google.com>
+Date:   Wed Oct 18 13:00:22 2017 -0700
+
+    bpf: Add file mode configuration into bpf maps
+--- a/include/uapi/linux/bpf.h
++++ b/include/uapi/linux/bpf.h
+@@ -218,6 +218,10 @@ enum bpf_attach_type {
+
+ #define BPF_OBJ_NAME_LEN 16U
+
++/* Flags for accessing BPF object */
++#define BPF_F_RDONLY           (1U << 3)
++#define BPF_F_WRONLY           (1U << 4)
++
+ union bpf_attr {
+        struct { /* anonymous struct used by BPF_MAP_CREATE command */
+                __u32   map_type;       /* one of enum bpf_map_type */
+@@ -260,6 +264,7 @@ union bpf_attr {
+        struct { /* anonymous struct used by BPF_OBJ_* commands */
+                __aligned_u64   pathname;
+                __u32           bpf_fd;
++               __u32           file_flags;
+        };
+
+        struct { /* anonymous struct used by BPF_PROG_ATTACH/DETACH command=
+s */
+
+On Thu, Mar 26, 2020 at 7:08 AM Maciej =C5=BBenczykowski
+<zenczykowski@gmail.com> wrote:
+>
+> I don't get it.  It builds for me.
+>
+> And it doesn't if I insert an intentional syntax error in the same line,
+> so I'm definitely compiling exactly that code.
