@@ -2,89 +2,160 @@ Return-Path: <SRS0=p5Wx=5L=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6BAAC2D0E8
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Mar 2020 14:22:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B330C2D0E8
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Mar 2020 14:28:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8E0FD2076A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Mar 2020 14:22:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 14F102073E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Mar 2020 14:28:19 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BBufUMaH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727975AbgCZOWc (ORCPT
+        id S1727938AbgCZO2R (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 26 Mar 2020 10:22:32 -0400
-Received: from correo.us.es ([193.147.175.20]:60404 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727695AbgCZOWc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Mar 2020 10:22:32 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id ECB1281413
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Mar 2020 15:22:29 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DD5D7DA72F
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Mar 2020 15:22:29 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D2BFAFC5E5; Thu, 26 Mar 2020 15:22:29 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 12A2CDA72F;
-        Thu, 26 Mar 2020 15:22:28 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 26 Mar 2020 15:22:28 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id E1D5742EF4E0;
-        Thu, 26 Mar 2020 15:22:27 +0100 (CET)
-Date:   Thu, 26 Mar 2020 15:22:27 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Linux Network Development Mailing List 
-        <netdev@vger.kernel.org>,
-        Netfilter Development Mailinglist 
+        Thu, 26 Mar 2020 10:28:17 -0400
+Received: from mail-pj1-f66.google.com ([209.85.216.66]:37303 "EHLO
+        mail-pj1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727732AbgCZO2R (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 26 Mar 2020 10:28:17 -0400
+Received: by mail-pj1-f66.google.com with SMTP id o12so2473407pjs.2;
+        Thu, 26 Mar 2020 07:28:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=hnqEuIgL5QE/YWaTNknecm17JEF809CxZ0Nxmz2DZwk=;
+        b=BBufUMaHut3q3W2RS1KeFJYqBrMPTIUj8xaZUU4ZQpVrB3GFqpKYlPXDLZF6hgJi3m
+         aGszVGXY6fL+ntCVnpqL43pwIEjkjHIDgMi+2+ooJwVjodluXYFJr06FULKygI4UG19l
+         q+waP0flM4v3g4f0sXnBHkMFd+CjcfXoQZruSamUEsR3Bd13BNxfNSQFsdAHp64GnT6X
+         AyS2G2g9L3TqveE8yuiKR1MYfhF5mjzjh6+VcC3qwKDF93D2hO2DuMyyrn2Q/UhiVbF3
+         AQuIeTL120824lZZNwjPTD28J0H7ym0Sn7bRIsP0f6HooY+BdZ4ik0Ay7kORSqZjNcO9
+         bQfA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=hnqEuIgL5QE/YWaTNknecm17JEF809CxZ0Nxmz2DZwk=;
+        b=OcMJSG0mdLBebi3aD584+7uH/0D+vkpgU0ktqZOUFgNqrkacvl8MaS055+GqkMUbrc
+         OF9EC8tB69s1pvZUGeGKafstXBXvsZTvWAkW7FAJSev0bkaAyX++npKc57q98WgNN9w9
+         BFp29vkJ7K7FaMHFhdCmOC6ZLjozLQr29uJJyi4Qi9EjZQfdPu46Z/OXGGQH/b2wMI9J
+         F7JNHJVx0rNhQ9y06OX2jsKVfnWhbesXWpt2cfn9xsOd9rCjYj0o9lkHjZTMzjBTolN+
+         mDx7EjkK6oIGFZERK3oiCrOGeqfSRAQkB+Mnx54C158Ldpelsf/GARsIoPc+sNfFMELM
+         HVWA==
+X-Gm-Message-State: ANhLgQ0vV30Dsx8/OzzaAWswOngphEBUaP6AJ0CpGSMHDvFBDwIkDoUB
+        XGhtdP8ufxaI1An+LPhXZ1c=
+X-Google-Smtp-Source: ADFU+vtHwGrjzDkKQvm76Xrla89vS2y1y5MXcN5XcJrmeVgothXtSmtlTExzmEIRhKYuupM1E5QPHQ==
+X-Received: by 2002:a17:902:8c88:: with SMTP id t8mr8249487plo.176.1585232895708;
+        Thu, 26 Mar 2020 07:28:15 -0700 (PDT)
+Received: from athina.mtv.corp.google.com ([2620:15c:211:0:c786:d9fd:ab91:6283])
+        by smtp.gmail.com with ESMTPSA id j38sm1732732pgi.51.2020.03.26.07.28.14
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 26 Mar 2020 07:28:14 -0700 (PDT)
+From:   =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <zenczykowski@gmail.com>
+To:     =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     Linux Network Development Mailing List <netdev@vger.kernel.org>,
+        Netfilter Development Mailing List 
         <netfilter-devel@vger.kernel.org>, Chenbo Feng <fengc@google.com>,
         Alexei Starovoitov <ast@kernel.org>,
         Willem de Bruijn <willemb@google.com>
-Subject: Re: [PATCH] iptables: open eBPF programs in read only mode
-Message-ID: <20200326142227.fclwbiibfjym7l6m@salvia>
-References: <20200320030015.195806-1-zenczykowski@gmail.com>
- <20200326135959.tqy5i4qkxwcqgp5y@salvia>
- <CAHo-OoyGEPKdU5ZEuY29Zzi4NGzD-QMw7Pb-MTXjdKTj-Kj-Pw@mail.gmail.com>
- <CAHo-OozGK7ANfFDBnLv2tZVuhXUw1sCCRVTBc0YT7LvYVXH_ZQ@mail.gmail.com>
- <CAHo-Oow8otp4ruAUpvGYjXN_f3dsbprg_DKOGG6HNhe_Z8X8Vg@mail.gmail.com>
+Subject: [PATCH v2] iptables: open eBPF programs in read only mode
+Date:   Thu, 26 Mar 2020 07:28:03 -0700
+Message-Id: <20200326142803.239183-1-zenczykowski@gmail.com>
+X-Mailer: git-send-email 2.25.1.696.g5e7596f4ac-goog
+In-Reply-To: <CAHo-OoxMNBTDZW_xqp1X3SGncM-twAySrdnc=ntS7_e2j0YEaA@mail.gmail.com>
+References: <CAHo-OoxMNBTDZW_xqp1X3SGncM-twAySrdnc=ntS7_e2j0YEaA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAHo-Oow8otp4ruAUpvGYjXN_f3dsbprg_DKOGG6HNhe_Z8X8Vg@mail.gmail.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Mar 26, 2020 at 07:16:16AM -0700, Maciej Żenczykowski wrote:
-> I guess maybe we could wrap it in a
-> 
-> #ifdef BPF_F_RDONLY
-> attr.file_flags = BPF_F_RDONLY;
-> #endif
-> 
-> if we want to continue supporting building against pre-4.15 kernel headers...
+From: Maciej Żenczykowski <maze@google.com>
 
-You can probably add a cached copy of this header file to the iptables
-tree via your patch like. This is done in other existing extensions to
-not rely on the available kernel headers.
+Adjust the mode eBPF programs are opened in so 0400 pinned bpf programs
+work without requiring CAP_DAC_OVERRIDE.
 
-There is no parity between userspace iptables and kernel version, it
-is good if you make sure this compiles for older kernels are still
-supported.
+This matches Linux 5.2's:
+  commit e547ff3f803e779a3898f1f48447b29f43c54085
+  Author: Chenbo Feng <fengc@google.com>
+  Date:   Tue May 14 19:42:57 2019 -0700
 
-Thank you.
+    bpf: relax inode permission check for retrieving bpf program
+
+    For iptable module to load a bpf program from a pinned location, it
+    only retrieve a loaded program and cannot change the program content so
+    requiring a write permission for it might not be necessary.
+    Also when adding or removing an unrelated iptable rule, it might need to
+    flush and reload the xt_bpf related rules as well and triggers the inode
+    permission check. It might be better to remove the write premission
+    check for the inode so we won't need to grant write access to all the
+    processes that flush and restore iptables rules.
+
+  kernel/bpf/inode.c:
+  - int ret = inode_permission(inode, MAY_READ | MAY_WRITE);
+  + int ret = inode_permission(inode, MAY_READ);
+
+In practice, AFAICT, the xt_bpf match .fd field isn't even used by new
+kernels, but I believe it might be needed for compatibility with old ones
+(though I'm pretty sure table modifications on them will outright fail).
+
+Test: builds, passes Android test suite (albeit on an older iptables base),
+  git grep bpf_obj_get - finds no other users
+Cc: Chenbo Feng <fengc@google.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Willem de Bruijn <willemb@google.com>
+Signed-off-by: Maciej Żenczykowski <maze@google.com>
+---
+ extensions/libxt_bpf.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/extensions/libxt_bpf.c b/extensions/libxt_bpf.c
+index 92958247..44cdd5cb 100644
+--- a/extensions/libxt_bpf.c
++++ b/extensions/libxt_bpf.c
+@@ -61,11 +61,22 @@ static const struct xt_option_entry bpf_opts_v1[] = {
+ 	XTOPT_TABLEEND,
+ };
+ 
+-static int bpf_obj_get(const char *filepath)
++static int bpf_obj_get_readonly(const char *filepath)
+ {
+ #if defined HAVE_LINUX_BPF_H && defined __NR_bpf && defined BPF_FS_MAGIC
+ 	union bpf_attr attr;
++	// file_flags && BPF_F_RDONLY requires Linux 4.15+ uapi kernel headers
++#ifdef BPF_F_RDONLY
++	int fd;
+ 
++	memset(&attr, 0, sizeof(attr));
++	attr.pathname = (__u64) filepath;
++	attr.file_flags = BPF_F_RDONLY;
++	fd = syscall(__NR_bpf, BPF_OBJ_GET, &attr, sizeof(attr));
++	if (fd >= 0) return fd;
++
++	// on any error fallback to default R/W access for pre-4.15-rc1 kernels
++#endif
+ 	memset(&attr, 0, sizeof(attr));
+ 	attr.pathname = (__u64) filepath;
+ 
+@@ -125,7 +136,7 @@ static void bpf_parse_string(struct sock_filter *pc, __u16 *lenp, __u16 len_max,
+ static void bpf_parse_obj_pinned(struct xt_bpf_info_v1 *bi,
+ 				 const char *filepath)
+ {
+-	bi->fd = bpf_obj_get(filepath);
++	bi->fd = bpf_obj_get_readonly(filepath);
+ 	if (bi->fd < 0)
+ 		xtables_error(PARAMETER_PROBLEM,
+ 			      "bpf: failed to get bpf object");
+-- 
+2.25.1.696.g5e7596f4ac-goog
+
