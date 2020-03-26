@@ -7,59 +7,59 @@ X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 197E9C2D0EE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Mar 2020 14:16:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D136C2D0E8
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Mar 2020 14:20:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E76A3206F8
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Mar 2020 14:16:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3CB1A206F8
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Mar 2020 14:20:00 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dUX0IAtZ"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aorns7ih"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727895AbgCZOQb (ORCPT
+        id S1727831AbgCZOT7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 26 Mar 2020 10:16:31 -0400
-Received: from mail-lf1-f66.google.com ([209.85.167.66]:40868 "EHLO
-        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727763AbgCZOQb (ORCPT
+        Thu, 26 Mar 2020 10:19:59 -0400
+Received: from mail-lj1-f193.google.com ([209.85.208.193]:44802 "EHLO
+        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727652AbgCZOT6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Mar 2020 10:16:31 -0400
-Received: by mail-lf1-f66.google.com with SMTP id j17so4946981lfe.7;
-        Thu, 26 Mar 2020 07:16:27 -0700 (PDT)
+        Thu, 26 Mar 2020 10:19:58 -0400
+Received: by mail-lj1-f193.google.com with SMTP id p14so6543309lji.11;
+        Thu, 26 Mar 2020 07:19:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=/qXdFHUWSCp669/WHwL4HbHxImLf08oY2s3iOgsN6H0=;
-        b=dUX0IAtZBxJ+J3DAZGtKGnr5Mgq0bTaOPZfgbAtlYlpl+UFE2jkKA7nKcto9JJf4KT
-         bwuDGClW12swbjLwDr/4hmqHm8KSiQbgWtJsec+kNoECp3DgRXFm5I20Ln0CY+9lkxgW
-         0toc7oks9qn6p69udG1EmGDxSamOZLTmvcdIVmrZZzd/nTFhYq8JbR/Ac1WalZZy2rAP
-         B8F9et2wKpvoQKSSaPoorGsaC7ApcB2q8t+sj7H7FvHoGfOxZG91FYuYO0YtWn2i5j65
-         R6Ipusj6GoVo/PyX9u1dQAlJhmA/7HJYQ6NZj3cGYfAs1WnKPTvri6M59K1LyNw4wU4S
-         lFYQ==
+        bh=Vi/3G4BkWmGkT3E57WouG+T2Aoil12b1B1ROkEwvQD4=;
+        b=aorns7ihJyGghdGNSWaw9hOtwf0GQT6viuhAiOE768Y1A4Q8lCm+oa/IkJDFxiN9Ld
+         VlEAl3P+rHxmNlRIOjImtkis8npHCFPIVTJLOAUD+4bmZig1fLnawyK4rQuUmNnYD4O4
+         BK+me/G62erO1gQalxB5cvfiR7exqqPIzh5P2edhMXaZ6OKN1pQamtRE6LlI4Oy1BzpB
+         gEIVuj4McbDmHA7cICzPOqII2hTOIOfiaLGi2HNCAjYLbc6eg84YGg6Qoj54FvrmS0zX
+         WioyKpo1A0a5qrdZj5HVP6qe2J4uufGUBYAM2INi0qITFPFVa8XdR9xEQ9VQJmLMEI89
+         ZMnA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=/qXdFHUWSCp669/WHwL4HbHxImLf08oY2s3iOgsN6H0=;
-        b=SoTkmnKPPFPM4vqPaOrfA0ZEcrSzcqr6SBitrbFRb0Wk8vOgSNBe7TlFQTZtfYIZWW
-         QGhCiORUjmz6mVKYhoRV4YaCnCxvi/ahk32JWO21sSFj5WMJvTgHoryh9AvO2cIQWa7J
-         JAuhr8n7kiyiALZPnirpyWiP+Bu6/Iz7QlQt9PD4Fy1bGameH+diNyGQB8RTLbPy+pU8
-         ACll3kyzynYFDiKeBtdSZt6o6twltuaYbkJ6bM985Y1iW09W2rqT4HHPt8cLrna7Jlaj
-         9n3RoI4ZkKVm6a1HY17wg8osjl8LMU/cLQpqTN7u33N7k08rG9yAyE8cdWTspR8rqPEL
-         Ss7Q==
-X-Gm-Message-State: AGi0PuauthnTTALgUG3amdLNAxyUtTXvHNvcKrDiBRbvMElk119Ueos9
-        84oevVPaNuICCO57aFmhSQercgNeOrcQh2kPOiI=
-X-Google-Smtp-Source: APiQypLyOxIsk9spzm+cIk2VhOAZWI5yynOlWw7ymhbBCElhxdaAqM2EyoMnmg66pbjkoDxjAWjVFzh8MtFIE9XxFY8=
-X-Received: by 2002:ac2:5f52:: with SMTP id 18mr1373825lfz.133.1585232187089;
- Thu, 26 Mar 2020 07:16:27 -0700 (PDT)
+        bh=Vi/3G4BkWmGkT3E57WouG+T2Aoil12b1B1ROkEwvQD4=;
+        b=KX/ojd1RBARlpD7wf2mObfoFNPrTZmbxMmDOxeGkp3Fld8wL7/eB2jt9tbSqPiQ49N
+         Al/nHvFxum+X2f5xBtJTQde8jhJOed4FgzUKb55NtQOulLzDUUyd9B2s35SufJ8qj9Mk
+         HNuuYthPKqmnGQiqWhgKbKmm8vkaYXjo5+oy6WG/b8CXN90r+rrSXicVl7ucOit4QlRK
+         LlIIG15ehGCFovyVQ9lEoz/NS+PqpZ3Pxt2ygajCHtWYM6pRpCNkPmJkM03Si4UchLmp
+         jqz/049+G+jzotBiamGeX6737vyvoiGOEkQ1fEXPMPCLmss2wj707HY7xDYgdsKdEucc
+         Eqmg==
+X-Gm-Message-State: ANhLgQ1AedNwt2+RCj4mD9KCiugruiCI1qsJhHhqI62PSluRP4oSsRvT
+        1fMZjUDuEG9G4xda8bAXTBdgYEbAjULeRmPPVJw=
+X-Google-Smtp-Source: ADFU+vsOY7wOtrWIwXZIC+ONOCDnjwwejmKylIX70OR0oCJim7hZQvEkhCwEnBwEfgRr9YOZBoi0q5E2pj/ynD7Sov8=
+X-Received: by 2002:a2e:9ad2:: with SMTP id p18mr5273631ljj.15.1585232394383;
+ Thu, 26 Mar 2020 07:19:54 -0700 (PDT)
 MIME-Version: 1.0
 References: <20200320030015.195806-1-zenczykowski@gmail.com>
  <20200326135959.tqy5i4qkxwcqgp5y@salvia> <CAHo-OoyGEPKdU5ZEuY29Zzi4NGzD-QMw7Pb-MTXjdKTj-Kj-Pw@mail.gmail.com>
- <CAHo-OozGK7ANfFDBnLv2tZVuhXUw1sCCRVTBc0YT7LvYVXH_ZQ@mail.gmail.com>
-In-Reply-To: <CAHo-OozGK7ANfFDBnLv2tZVuhXUw1sCCRVTBc0YT7LvYVXH_ZQ@mail.gmail.com>
+ <CAHo-OozGK7ANfFDBnLv2tZVuhXUw1sCCRVTBc0YT7LvYVXH_ZQ@mail.gmail.com> <CAHo-Oow8otp4ruAUpvGYjXN_f3dsbprg_DKOGG6HNhe_Z8X8Vg@mail.gmail.com>
+In-Reply-To: <CAHo-Oow8otp4ruAUpvGYjXN_f3dsbprg_DKOGG6HNhe_Z8X8Vg@mail.gmail.com>
 From:   =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Date:   Thu, 26 Mar 2020 07:16:16 -0700
-Message-ID: <CAHo-Oow8otp4ruAUpvGYjXN_f3dsbprg_DKOGG6HNhe_Z8X8Vg@mail.gmail.com>
+Date:   Thu, 26 Mar 2020 07:19:44 -0700
+Message-ID: <CAHo-OoxMNBTDZW_xqp1X3SGncM-twAySrdnc=ntS7_e2j0YEaA@mail.gmail.com>
 Subject: Re: [PATCH] iptables: open eBPF programs in read only mode
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Florian Westphal <fw@strlen.de>,
@@ -75,10 +75,7 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-I guess maybe we could wrap it in a
+Ugh, and I guess that on a pre-4.15 kernel it would cause failures due
+to unknown flag...
 
-#ifdef BPF_F_RDONLY
-attr.file_flags = BPF_F_RDONLY;
-#endif
-
-if we want to continue supporting building against pre-4.15 kernel headers...
+Maybe we need to try with flag and fallback to without...
