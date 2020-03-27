@@ -2,83 +2,76 @@ Return-Path: <SRS0=F0cc=5M=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A94DFC2D0ED
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Mar 2020 16:23:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55352C43331
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Mar 2020 16:43:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 797EA20658
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Mar 2020 16:23:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1FDFA20737
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Mar 2020 16:43:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727766AbgC0QXu (ORCPT
+        id S1727606AbgC0QnM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 27 Mar 2020 12:23:50 -0400
-Received: from correo.us.es ([193.147.175.20]:37750 "EHLO mail.us.es"
+        Fri, 27 Mar 2020 12:43:12 -0400
+Received: from correo.us.es ([193.147.175.20]:45964 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727731AbgC0QXt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 27 Mar 2020 12:23:49 -0400
+        id S1726540AbgC0QnM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 27 Mar 2020 12:43:12 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 263E8E8E91
-        for <netfilter-devel@vger.kernel.org>; Fri, 27 Mar 2020 17:23:48 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id F0187F2588
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Mar 2020 17:43:10 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0A632DA3A5
-        for <netfilter-devel@vger.kernel.org>; Fri, 27 Mar 2020 17:23:48 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E3624DA3C4
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Mar 2020 17:43:10 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DED72DA3A0; Fri, 27 Mar 2020 17:23:47 +0100 (CET)
+        id D90E0DA3C2; Fri, 27 Mar 2020 17:43:10 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 076DFDA736;
-        Fri, 27 Mar 2020 17:23:46 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0F212DA72F
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Mar 2020 17:43:09 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 27 Mar 2020 17:23:46 +0100 (CET)
+ Fri, 27 Mar 2020 17:43:09 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id E00F742EE38E;
-        Fri, 27 Mar 2020 17:23:45 +0100 (CET)
-Date:   Fri, 27 Mar 2020 17:23:45 +0100
+Received: from salvia.here (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id E878F42EE38E
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Mar 2020 17:43:08 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     David Miller <davem@davemloft.net>
-Cc:     wenxu@ucloud.cn, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net-next v2] netfilter: Fix incorrect tc_setup_type type
- for flowtable offload
-Message-ID: <20200327162345.jcas4dez5ximalvn@salvia>
-References: <1585006465-27664-1-git-send-email-wenxu@ucloud.cn>
- <20200326.200409.835123184765124238.davem@davemloft.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200326.200409.835123184765124238.davem@davemloft.net>
-User-Agent: NeoMutt/20170113 (1.7.2)
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next 1/3] netfilter: nft_set_bitmap: initialize set element extension in lookups
+Date:   Fri, 27 Mar 2020 17:43:04 +0100
+Message-Id: <20200327164306.19324-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Mar 26, 2020 at 08:04:09PM -0700, David Miller wrote:
-> From: wenxu@ucloud.cn
-> Date: Tue, 24 Mar 2020 07:34:25 +0800
-> 
-> > From: wenxu <wenxu@ucloud.cn>
-> > 
-> > Flowtable offload setup flow_offlod_block in TC_SETP_FT. The indr block
-> > offload of flowtable also should setup in TC_SETUP_FT.
-> > But flow_indr_block_call always sets the tc_set_up_type as TC_SETUP_BLOCK.
-> > So function flow_indr_block_call should expose a parameters to set
-> > the tc_setup_type for each offload subsystem.
-> > 
-> > Fixes: b5140a36da78 ("netfilter: flowtable: add indr block setup support")
-> > Signed-off-by: wenxu <wenxu@ucloud.cn>
-> > ---
-> > v2: modify the comments
-> 
-> Do the netfilter folks want to take this or should I apply it directly?
+Otherwise, nft_lookup might dereference an uninitialized pointer to the
+element extension.
 
-We'll take care of this patch, thank you.
+Fixes: 665153ff5752 ("netfilter: nf_tables: add bitmap set type")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_set_bitmap.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
+index 1cb2e67e6e03..6829a497b4cc 100644
+--- a/net/netfilter/nft_set_bitmap.c
++++ b/net/netfilter/nft_set_bitmap.c
+@@ -81,6 +81,7 @@ static bool nft_bitmap_lookup(const struct net *net, const struct nft_set *set,
+ 	u32 idx, off;
+ 
+ 	nft_bitmap_location(set, key, &idx, &off);
++	*ext = NULL;
+ 
+ 	return nft_bitmap_active(priv->bitmap, idx, off, genmask);
+ }
+-- 
+2.11.0
+
