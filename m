@@ -2,29 +2,28 @@ Return-Path: <SRS0=F0cc=5M=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58B0FC43331
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Mar 2020 09:12:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2603DC2D0EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Mar 2020 09:12:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 37C87206F2
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Mar 2020 09:12:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0615B206F2
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Mar 2020 09:12:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726804AbgC0JMk (ORCPT
+        id S1726661AbgC0JMj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 27 Mar 2020 05:12:40 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:41247 "EHLO
+        Fri, 27 Mar 2020 05:12:39 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:58946 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726333AbgC0JMj (ORCPT
+        with ESMTP id S1726233AbgC0JMj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 27 Mar 2020 05:12:39 -0400
-Received: from Internal Mail-Server by MTLPINE2 (envelope-from paulb@mellanox.com)
+Received: from Internal Mail-Server by MTLPINE1 (envelope-from paulb@mellanox.com)
         with ESMTPS (AES256-SHA encrypted); 27 Mar 2020 12:12:36 +0300
 Received: from reg-r-vrt-019-120.mtr.labs.mlnx (reg-r-vrt-019-120.mtr.labs.mlnx [10.213.19.120])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 02R9CaYh023271;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 02R9CaYe023271;
         Fri, 27 Mar 2020 12:12:36 +0300
 From:   Paul Blakey <paulb@mellanox.com>
 To:     Paul Blakey <paulb@mellanox.com>, Oz Shlomo <ozsh@mellanox.com>,
@@ -33,101 +32,39 @@ To:     Paul Blakey <paulb@mellanox.com>, Oz Shlomo <ozsh@mellanox.com>,
         Roi Dayan <roid@mellanox.com>, netdev@vger.kernel.org,
         Saeed Mahameed <saeedm@mellanox.com>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH net-next v2 3/3] net/mlx5: CT: Use rhashtable's ct entries instead of a seperate list
-Date:   Fri, 27 Mar 2020 12:12:31 +0300
-Message-Id: <1585300351-15741-4-git-send-email-paulb@mellanox.com>
+Subject: [PATCH net-next v2 0/3] netfilter: flowtable: Support offload of tuples in parallel
+Date:   Fri, 27 Mar 2020 12:12:28 +0300
+Message-Id: <1585300351-15741-1-git-send-email-paulb@mellanox.com>
 X-Mailer: git-send-email 1.8.4.3
-In-Reply-To: <1585300351-15741-1-git-send-email-paulb@mellanox.com>
-References: <1585300351-15741-1-git-send-email-paulb@mellanox.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-CT entries list is only used while freeing a ct zone flow table to
-go over all the ct entries offloaded on that zone/table, and flush
-the table.
+The following patchset opens support for offloading tuples in parallel.
 
-Rhashtable already provides an api to go over all the inserted entries.
-Use it instead, and remove the list.
+Patches for netfilter replace the flow table block lock with rw sem,
+and use a work entry per offload command, so they can be run in
+parallel under rw sem read lock.
 
-Signed-off-by: Paul Blakey <paulb@mellanox.com>
-Reviewed-by: Oz Shlomo <ozsh@mellanox.com>
+MLX5 patch removes the unguarded ct entries list, and instead uses
+rhashtable's iterator to support the above.
+
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c | 19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+Changelog:
+  v1->v2: Rebased on dave's net-next, HEAD: 5bb7357 ("Merge branch 'cls_flower-Use-extack-in-fl_set_key'")
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c b/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c
-index a22ad6b..afc8ac3 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c
-@@ -67,11 +67,9 @@ struct mlx5_ct_ft {
- 	struct nf_flowtable *nf_ft;
- 	struct mlx5_tc_ct_priv *ct_priv;
- 	struct rhashtable ct_entries_ht;
--	struct list_head ct_entries_list;
- };
- 
- struct mlx5_ct_entry {
--	struct list_head list;
- 	u16 zone;
- 	struct rhash_head node;
- 	struct flow_rule *flow_rule;
-@@ -617,8 +615,6 @@ struct mlx5_ct_entry {
- 	if (err)
- 		goto err_insert;
- 
--	list_add(&entry->list, &ft->ct_entries_list);
--
- 	return 0;
- 
- err_insert:
-@@ -646,7 +642,6 @@ struct mlx5_ct_entry {
- 	WARN_ON(rhashtable_remove_fast(&ft->ct_entries_ht,
- 				       &entry->node,
- 				       cts_ht_params));
--	list_del(&entry->list);
- 	kfree(entry);
- 
- 	return 0;
-@@ -817,7 +812,6 @@ struct mlx5_ct_entry {
- 	ft->zone = zone;
- 	ft->nf_ft = nf_ft;
- 	ft->ct_priv = ct_priv;
--	INIT_LIST_HEAD(&ft->ct_entries_list);
- 	refcount_set(&ft->refcount, 1);
- 
- 	err = rhashtable_init(&ft->ct_entries_ht, &cts_ht_params);
-@@ -846,12 +840,12 @@ struct mlx5_ct_entry {
- }
- 
- static void
--mlx5_tc_ct_flush_ft(struct mlx5_tc_ct_priv *ct_priv, struct mlx5_ct_ft *ft)
-+mlx5_tc_ct_flush_ft_entry(void *ptr, void *arg)
- {
--	struct mlx5_ct_entry *entry;
-+	struct mlx5_tc_ct_priv *ct_priv = arg;
-+	struct mlx5_ct_entry *entry = ptr;
- 
--	list_for_each_entry(entry, &ft->ct_entries_list, list)
--		mlx5_tc_ct_entry_del_rules(ft->ct_priv, entry);
-+	mlx5_tc_ct_entry_del_rules(ct_priv, entry);
- }
- 
- static void
-@@ -862,9 +856,10 @@ struct mlx5_ct_entry {
- 
- 	nf_flow_table_offload_del_cb(ft->nf_ft,
- 				     mlx5_tc_ct_block_flow_offload, ft);
--	mlx5_tc_ct_flush_ft(ct_priv, ft);
- 	rhashtable_remove_fast(&ct_priv->zone_ht, &ft->node, zone_params);
--	rhashtable_destroy(&ft->ct_entries_ht);
-+	rhashtable_free_and_destroy(&ft->ct_entries_ht,
-+				    mlx5_tc_ct_flush_ft_entry,
-+				    ct_priv);
- 	kfree(ft);
- }
- 
+Paul Blakey (3):
+  netfilter: flowtable: Use rw sem as flow block lock
+  netfilter: flowtable: Use work entry per offload command
+  net/mlx5: CT: Use rhashtable's ct entries instead of a seperate list
+
+ drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c | 19 +++-----
+ include/net/netfilter/nf_flow_table.h              |  2 +-
+ net/netfilter/nf_flow_table_core.c                 | 11 +++--
+ net/netfilter/nf_flow_table_offload.c              | 50 ++++++++--------------
+ 4 files changed, 30 insertions(+), 52 deletions(-)
+
 -- 
 1.8.3.1
 
