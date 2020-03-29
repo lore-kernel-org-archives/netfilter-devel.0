@@ -2,159 +2,142 @@ Return-Path: <SRS0=U5qg=5O=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDA1FC2D0EE
-	for <netfilter-devel@archiver.kernel.org>; Sun, 29 Mar 2020 03:17:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C35EC43331
+	for <netfilter-devel@archiver.kernel.org>; Sun, 29 Mar 2020 09:06:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 93C092071B
-	for <netfilter-devel@archiver.kernel.org>; Sun, 29 Mar 2020 03:17:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4239120675
+	for <netfilter-devel@archiver.kernel.org>; Sun, 29 Mar 2020 09:06:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="hUOW7wlG"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UWxIKpyu"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727528AbgC2DRa (ORCPT
+        id S1727504AbgC2JG2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 28 Mar 2020 23:17:30 -0400
-Received: from mail-ed1-f68.google.com ([209.85.208.68]:44194 "EHLO
-        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727335AbgC2DR3 (ORCPT
+        Sun, 29 Mar 2020 05:06:28 -0400
+Received: from mail-lf1-f48.google.com ([209.85.167.48]:43688 "EHLO
+        mail-lf1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727397AbgC2JG2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 28 Mar 2020 23:17:29 -0400
-Received: by mail-ed1-f68.google.com with SMTP id i16so15751162edy.11
-        for <netfilter-devel@vger.kernel.org>; Sat, 28 Mar 2020 20:17:27 -0700 (PDT)
+        Sun, 29 Mar 2020 05:06:28 -0400
+Received: by mail-lf1-f48.google.com with SMTP id n20so11346382lfl.10
+        for <netfilter-devel@vger.kernel.org>; Sun, 29 Mar 2020 02:06:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=73jM7UJ1SiInp3qgWBqwVopBoGUW8da3yGoLPO2s510=;
-        b=hUOW7wlGLFSvtHFZFzYEk7uCZM0H4qRyVG1Nq3cJ6E529xu/itB2Sw5XZwbQ+u0atq
-         IyUnfYEn/D0SlrwCk47/eOrsUScgL3N5AGSU1dSkADlcDK/uKgu0oxbrZ7a+4AuMZ3/i
-         u+eRvLFW/3YH6/NomvPTj4lTDuRjf4b8+lzYhV5sdgOcQV5z633Ayp/5ldFb0ouvIGof
-         /UFc5isFg/YJtxKJ3Lma2Q7GC1+Cogl7V2tEkB04nQPioaCwIH+ECkq5ZE4XVZ6Ih5Vv
-         wIA1iofcg4YPsZ2gIQ5fdRfyxTKX/BpU+PLevB4xhg1RS674R3j7mNprN6l2A7i+2HnX
-         C7lg==
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=vdlCT5q50k7umXevaLEUeTdn9FMk6+4Gbjr1dO9FjA0=;
+        b=UWxIKpyuPEzoVUJb+LGUwbHpY66exe48w8zXgnHl6B/K0DeWA0GPv+9syDatu3f5YO
+         rT1W58FruWAPEMdPfFKScDUzlbHkUqJUxv8rx32cmXzaFeKeEYqhafH6Yh7IGBoSAjo6
+         GQr5s91+GScAYdZ9n2FbdMag8McR4gIP9N9MiUWGPYcvcxzjC+NV9tQXU1nApkp3sFC6
+         fAFF+ZfbLfM0PLGdd5qSS48PLAlpXMsqWBVefXakb3X7mm8q5DZPhE3T1jxJfPEKC7+M
+         //4t34nakn++Fs81H6JFdvTR0KlsVKUC/VyNuWiF0A8ND8GSTRcjLpf387xRn8KlbXCA
+         NwvA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=73jM7UJ1SiInp3qgWBqwVopBoGUW8da3yGoLPO2s510=;
-        b=Yq/74G0OEClV/LsY3cnZ3JJP58vzcwVDn82oY4ZUrJg04aoeW4b8WcLemr2zafYBmY
-         /wGyQHOHD7SX73wslCcEuEgC8R4ZFXaGOA7TA/47xHQuhqQUPwM1lX3QZ+lvKFNdEeU3
-         5pa20GmCpiHKNyfHVUhmG+r9J0osIlubOpDE4NmxIYUrUdqViKRm03y/PRMzlYZ2L98T
-         /OnjJy9GS6d0JdGnYtFTVG2hPg4eu3Evg7RylSYhqkfZ4xd0g8dHbQZqCOW01X+zQFIN
-         4AungXiaXP62/38sp1l3Lzrjc1V5dNz59mlyI2t+iUgGa0b1RjFZib4CmV977Q6bjUzc
-         f5Wg==
-X-Gm-Message-State: ANhLgQ0QyGlyDZ5xNPkkhWsZZuQ7uUA3cSMoD0wWmDF0HhDP5DVZYSMJ
-        NQ8MrM5CKDoqPHiGbbWPEmoenEyvylhhReyB2P5S
-X-Google-Smtp-Source: ADFU+vv/MFU+PUL6L3fWaCWJ+SsYWlwfM5jrj3x9inQIKOJr3keTEJ5GXU9ljVx28Cw+08JkBWPGuLw/MRT/qz+R/UQ=
-X-Received: by 2002:aa7:d2cb:: with SMTP id k11mr6032886edr.128.1585451846873;
- Sat, 28 Mar 2020 20:17:26 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=vdlCT5q50k7umXevaLEUeTdn9FMk6+4Gbjr1dO9FjA0=;
+        b=XC/Kd8XQnJdRBplPYacCa6A0Eu4xieOjRm6iKN/eqHEDPxdPwUA5hA+vuYthsIHWHl
+         6RJIGWETepT7FnUBHm6sTGLgDA+RgqYCLwlxZZGEceGhPrgPiG+ARfv99e+4ssMGV5xE
+         lMw44cXBTGyPlpIU0qc5xTEciV5O7Ke2raDoUmlaaXAXNaIjrvATXXfkmtCycBZ3eZ4U
+         GAQvdHwrzTGGU0lFb1cTB9Acu8olWIytFA5XnJeAF4bfF9kP3QyANOvYz1N0Pvc0EyaG
+         /il2U41Yq9ULQe3OBLHajOJ6qWOiXVv/3pwzn9TJAYJqZ+jt6zuLGuzp/eTki72F8AK7
+         36HQ==
+X-Gm-Message-State: AGi0PubvZAdz4n4abavtdqBDU4ssiGXDZrmVOGN98jai+XPiupD8SPOi
+        y2BnMj4/KO26ZVnQMwMLcsLHcefR3htw1A==
+X-Google-Smtp-Source: APiQypKxla/S0Arzfppiy3cbor8XbqPD7biY19Dig0FoEynby5HD1qMDmUOO1tpC+mIR+IPopiwKng==
+X-Received: by 2002:ac2:5edc:: with SMTP id d28mr4805966lfq.59.1585472786280;
+        Sun, 29 Mar 2020 02:06:26 -0700 (PDT)
+Received: from localhost.lan ([45.131.71.14])
+        by smtp.gmail.com with ESMTPSA id s14sm5793954ljs.63.2020.03.29.02.06.24
+        (version=TLS1 cipher=AES128-SHA bits=128/128);
+        Sun, 29 Mar 2020 02:06:25 -0700 (PDT)
+From:   Youfu Zhang <zhangyoufu@gmail.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Youfu Zhang <zhangyoufu@gmail.com>
+Subject: [iptables] avoid raw sockets which requires CAP_NET_RAW
+Date:   Sun, 29 Mar 2020 17:06:19 +0800
+Message-Id: <20200329090619.64701-1-zhangyoufu@gmail.com>
+X-Mailer: git-send-email 2.23.0
 MIME-Version: 1.0
-References: <3142237.YMNxv0uec1@x2> <CAHC9VhTiCHQbp2SwK0Xb1QgpUZxOQ26JKKPsVGT0ZvMqx28oPQ@mail.gmail.com>
- <20200312202733.7kli64zsnqc4mrd2@madcap2.tricolour.ca> <CAHC9VhS9DtxJ4gvOfMRnzoo6ccGJVKL+uZYe6qqH+SPqD8r01Q@mail.gmail.com>
- <20200313192306.wxey3wn2h4htpccm@madcap2.tricolour.ca> <CAHC9VhQKOpVWxDg-tWuCWV22QRu8P_NpFKme==0Ot1RQKa_DWA@mail.gmail.com>
- <20200318214154.ycxy5dl4pxno6fvi@madcap2.tricolour.ca> <CAHC9VhSuMnd3-ci2Bx-xJ0yscQ=X8ZqFAcNPKpbh_ZWN3FJcuQ@mail.gmail.com>
- <20200319214759.qgxt2sfkmd6srdol@madcap2.tricolour.ca> <CAHC9VhTp25OAaTO5UMft0OzUZ=oQpZFjebkjjQP0-NrPp0bNAg@mail.gmail.com>
- <20200325122903.obkpyog7fjabzrpf@madcap2.tricolour.ca>
-In-Reply-To: <20200325122903.obkpyog7fjabzrpf@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Sat, 28 Mar 2020 23:17:15 -0400
-Message-ID: <CAHC9VhTuYYqAtoNAKLX3qja6DnqEbFuHchi9ESwbcb5WC_Mvtw@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
- the audit daemon
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     Steve Grubb <sgrubb@redhat.com>, linux-audit@redhat.com,
-        nhorman@tuxdriver.com, linux-api@vger.kernel.org,
-        containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Mar 25, 2020 at 8:29 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2020-03-20 17:56, Paul Moore wrote:
-> > On Thu, Mar 19, 2020 at 5:48 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > On 2020-03-18 17:47, Paul Moore wrote:
-> > > > On Wed, Mar 18, 2020 at 5:42 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > > > On 2020-03-18 17:01, Paul Moore wrote:
-> > > > > > On Fri, Mar 13, 2020 at 3:23 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > > > > > On 2020-03-13 12:42, Paul Moore wrote:
-> > > > > >
-> > > > > > ...
-> > > > > >
-> > > > > > > > The thread has had a lot of starts/stops, so I may be repeating a
-> > > > > > > > previous suggestion, but one idea would be to still emit a "death
-> > > > > > > > record" when the final task in the audit container ID does die, but
-> > > > > > > > block the particular audit container ID from reuse until it the
-> > > > > > > > SIGNAL2 info has been reported.  This gives us the timely ACID death
-> > > > > > > > notification while still preventing confusion and ambiguity caused by
-> > > > > > > > potentially reusing the ACID before the SIGNAL2 record has been sent;
-> > > > > > > > there is a small nit about the ACID being present in the SIGNAL2
-> > > > > > > > *after* its death, but I think that can be easily explained and
-> > > > > > > > understood by admins.
-> > > > > > >
-> > > > > > > Thinking quickly about possible technical solutions to this, maybe it
-> > > > > > > makes sense to have two counters on a contobj so that we know when the
-> > > > > > > last process in that container exits and can issue the death
-> > > > > > > certificate, but we still block reuse of it until all further references
-> > > > > > > to it have been resolved.  This will likely also make it possible to
-> > > > > > > report the full contid chain in SIGNAL2 records.  This will eliminate
-> > > > > > > some of the issues we are discussing with regards to passing a contobj
-> > > > > > > vs a contid to the audit_log_contid function, but won't eliminate them
-> > > > > > > all because there are still some contids that won't have an object
-> > > > > > > associated with them to make it impossible to look them up in the
-> > > > > > > contobj lists.
-> > > > > >
-> > > > > > I'm not sure you need a full second counter, I imagine a simple flag
-> > > > > > would be okay.  I think you just something to indicate that this ACID
-> > > > > > object is marked as "dead" but it still being held for sanity reasons
-> > > > > > and should not be reused.
-> > > > >
-> > > > > Ok, I see your point.  This refcount can be changed to a flag easily
-> > > > > enough without change to the api if we can be sure that more than one
-> > > > > signal can't be delivered to the audit daemon *and* collected by sig2.
-> > > > > I'll have a more careful look at the audit daemon code to see if I can
-> > > > > determine this.
-> > > >
-> > > > Maybe I'm not understanding your concern, but this isn't really
-> > > > different than any of the other things we track for the auditd signal
-> > > > sender, right?  If we are worried about multiple signals being sent
-> > > > then it applies to everything, not just the audit container ID.
-> > >
-> > > Yes, you are right.  In all other cases the information is simply
-> > > overwritten.  In the case of the audit container identifier any
-> > > previous value is put before a new one is referenced, so only the last
-> > > signal is kept.  So, we only need a flag.  Does a flag implemented with
-> > > a rcu-protected refcount sound reasonable to you?
-> >
-> > Well, if I recall correctly you still need to fix the locking in this
-> > patchset so until we see what that looks like it is hard to say for
-> > certain.  Just make sure that the flag is somehow protected from
-> > races; it is probably a lot like the "valid" flags you sometimes see
-> > with RCU protected lists.
->
-> This is like looking for a needle in a haystack.  Can you point me to
-> some code that does "valid" flags with RCU protected lists.
+CAP_NET_RAW is not necessary for xtables to function properly.
+Netfilter socket options are reachable from TCP/UDP sockets.
+Netlink is datagram-oriented, accept both SOCK_RAW and SOCK_DGRAM.
 
-Sigh.  Come on Richard, you've been playing in the kernel for some
-time now.  I can't think of one off the top of my head as I write
-this, but there are several resources that deal with RCU protected
-lists in the kernel, Google is your friend and Documentation/RCU is
-your friend.
+Signed-off-by: Youfu Zhang <zhangyoufu@gmail.com>
+---
+ extensions/libxt_set.h | 2 +-
+ libipq/libipq.c        | 4 ++--
+ libiptc/libiptc.c      | 2 +-
+ libxtables/xtables.c   | 2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
-Spending time to learn how RCU works and how to use it properly is not
-time wasted.  It's a tricky thing to get right (I have to refresh my
-memory on some of the more subtle details each time I write/review RCU
-code), but it's very cool when done correctly.
-
+diff --git a/extensions/libxt_set.h b/extensions/libxt_set.h
+index 41dfbd30..9cdf3636 100644
+--- a/extensions/libxt_set.h
++++ b/extensions/libxt_set.h
+@@ -11,7 +11,7 @@
+ static int
+ get_version(unsigned *version)
+ {
+-	int res, sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
++	int res, sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+ 	struct ip_set_req_version req_version;
+ 	socklen_t size = sizeof(req_version);
+ 	
+diff --git a/libipq/libipq.c b/libipq/libipq.c
+index fb65971a..e703a39c 100644
+--- a/libipq/libipq.c
++++ b/libipq/libipq.c
+@@ -220,9 +220,9 @@ struct ipq_handle *ipq_create_handle(uint32_t flags, uint32_t protocol)
+ 	memset(h, 0, sizeof(struct ipq_handle));
+ 	
+         if (protocol == NFPROTO_IPV4)
+-                h->fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_FIREWALL);
++                h->fd = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_FIREWALL);
+         else if (protocol == NFPROTO_IPV6)
+-                h->fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_IP6_FW);
++                h->fd = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_IP6_FW);
+         else {
+ 		ipq_errno = IPQ_ERR_PROTOCOL;
+ 		free(h);
+diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
+index 58882015..48f77e1a 100644
+--- a/libiptc/libiptc.c
++++ b/libiptc/libiptc.c
+@@ -1309,7 +1309,7 @@ retry:
+ 		return NULL;
+ 	}
+ 
+-	sockfd = socket(TC_AF, SOCK_RAW, IPPROTO_RAW);
++	sockfd = socket(TC_AF, SOCK_DGRAM, IPPROTO_UDP);
+ 	if (sockfd < 0)
+ 		return NULL;
+ 
+diff --git a/libxtables/xtables.c b/libxtables/xtables.c
+index 777c2b08..ccc7f580 100644
+--- a/libxtables/xtables.c
++++ b/libxtables/xtables.c
+@@ -832,7 +832,7 @@ int xtables_compatible_revision(const char *name, uint8_t revision, int opt)
+ 	socklen_t s = sizeof(rev);
+ 	int max_rev, sockfd;
+ 
+-	sockfd = socket(afinfo->family, SOCK_RAW, IPPROTO_RAW);
++	sockfd = socket(afinfo->family, SOCK_DGRAM, IPPROTO_UDP);
+ 	if (sockfd < 0) {
+ 		if (errno == EPERM) {
+ 			/* revision 0 is always supported. */
 -- 
-paul moore
-www.paul-moore.com
+2.23.0
+
