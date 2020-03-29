@@ -2,142 +2,173 @@ Return-Path: <SRS0=U5qg=5O=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-8.1 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C35EC43331
-	for <netfilter-devel@archiver.kernel.org>; Sun, 29 Mar 2020 09:06:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1A4AC2D0EB
+	for <netfilter-devel@archiver.kernel.org>; Sun, 29 Mar 2020 12:29:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4239120675
-	for <netfilter-devel@archiver.kernel.org>; Sun, 29 Mar 2020 09:06:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 775E7206CC
+	for <netfilter-devel@archiver.kernel.org>; Sun, 29 Mar 2020 12:29:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UWxIKpyu"
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=eltex-co.ru header.i=@eltex-co.ru header.b="I0G76xcp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727504AbgC2JG2 (ORCPT
+        id S1728129AbgC2M3R (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 29 Mar 2020 05:06:28 -0400
-Received: from mail-lf1-f48.google.com ([209.85.167.48]:43688 "EHLO
-        mail-lf1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727397AbgC2JG2 (ORCPT
+        Sun, 29 Mar 2020 08:29:17 -0400
+Received: from post1.eltex-co.ru ([92.125.152.62]:38968 "EHLO
+        post1.eltex-co.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727901AbgC2M3R (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 29 Mar 2020 05:06:28 -0400
-Received: by mail-lf1-f48.google.com with SMTP id n20so11346382lfl.10
-        for <netfilter-devel@vger.kernel.org>; Sun, 29 Mar 2020 02:06:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=vdlCT5q50k7umXevaLEUeTdn9FMk6+4Gbjr1dO9FjA0=;
-        b=UWxIKpyuPEzoVUJb+LGUwbHpY66exe48w8zXgnHl6B/K0DeWA0GPv+9syDatu3f5YO
-         rT1W58FruWAPEMdPfFKScDUzlbHkUqJUxv8rx32cmXzaFeKeEYqhafH6Yh7IGBoSAjo6
-         GQr5s91+GScAYdZ9n2FbdMag8McR4gIP9N9MiUWGPYcvcxzjC+NV9tQXU1nApkp3sFC6
-         fAFF+ZfbLfM0PLGdd5qSS48PLAlpXMsqWBVefXakb3X7mm8q5DZPhE3T1jxJfPEKC7+M
-         //4t34nakn++Fs81H6JFdvTR0KlsVKUC/VyNuWiF0A8ND8GSTRcjLpf387xRn8KlbXCA
-         NwvA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=vdlCT5q50k7umXevaLEUeTdn9FMk6+4Gbjr1dO9FjA0=;
-        b=XC/Kd8XQnJdRBplPYacCa6A0Eu4xieOjRm6iKN/eqHEDPxdPwUA5hA+vuYthsIHWHl
-         6RJIGWETepT7FnUBHm6sTGLgDA+RgqYCLwlxZZGEceGhPrgPiG+ARfv99e+4ssMGV5xE
-         lMw44cXBTGyPlpIU0qc5xTEciV5O7Ke2raDoUmlaaXAXNaIjrvATXXfkmtCycBZ3eZ4U
-         GAQvdHwrzTGGU0lFb1cTB9Acu8olWIytFA5XnJeAF4bfF9kP3QyANOvYz1N0Pvc0EyaG
-         /il2U41Yq9ULQe3OBLHajOJ6qWOiXVv/3pwzn9TJAYJqZ+jt6zuLGuzp/eTki72F8AK7
-         36HQ==
-X-Gm-Message-State: AGi0PubvZAdz4n4abavtdqBDU4ssiGXDZrmVOGN98jai+XPiupD8SPOi
-        y2BnMj4/KO26ZVnQMwMLcsLHcefR3htw1A==
-X-Google-Smtp-Source: APiQypKxla/S0Arzfppiy3cbor8XbqPD7biY19Dig0FoEynby5HD1qMDmUOO1tpC+mIR+IPopiwKng==
-X-Received: by 2002:ac2:5edc:: with SMTP id d28mr4805966lfq.59.1585472786280;
-        Sun, 29 Mar 2020 02:06:26 -0700 (PDT)
-Received: from localhost.lan ([45.131.71.14])
-        by smtp.gmail.com with ESMTPSA id s14sm5793954ljs.63.2020.03.29.02.06.24
-        (version=TLS1 cipher=AES128-SHA bits=128/128);
-        Sun, 29 Mar 2020 02:06:25 -0700 (PDT)
-From:   Youfu Zhang <zhangyoufu@gmail.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Youfu Zhang <zhangyoufu@gmail.com>
-Subject: [iptables] avoid raw sockets which requires CAP_NET_RAW
-Date:   Sun, 29 Mar 2020 17:06:19 +0800
-Message-Id: <20200329090619.64701-1-zhangyoufu@gmail.com>
-X-Mailer: git-send-email 2.23.0
+        Sun, 29 Mar 2020 08:29:17 -0400
+X-Greylist: delayed 596 seconds by postgrey-1.27 at vger.kernel.org; Sun, 29 Mar 2020 08:29:15 EDT
+Received: from localhost (localhost [127.0.0.1])
+        by post1.eltex-co.ru (Postfix) with ESMTP id E5BBD185077;
+        Sun, 29 Mar 2020 19:19:16 +0700 (+07)
+X-Virus-Scanned: Debian amavisd-new at eltex-co.ru
+Received: from post1.eltex-co.ru ([127.0.0.1])
+        by localhost (post1.eltex-co.ru [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id 8U_9GVjTqY6m; Sun, 29 Mar 2020 19:19:16 +0700 (+07)
+Received: from GRayJob (unknown [10.25.24.25])
+        by post1.eltex-co.ru (Postfix) with ESMTPA id 4F7EF185058;
+        Sun, 29 Mar 2020 19:19:14 +0700 (+07)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=eltex-co.ru; s=mail;
+        t=1585484356; bh=AwdvP6tnxI1RjaVHyT/dcov8GrM8x+IaCX7dm9mcDgg=;
+        h=Date:From:To:Cc:Subject:From;
+        b=I0G76xcpzLGGBaasKfs8OsmBg0PjHs+CRoSbc9s2aDSsJcbR+mjrabbSsyW5qEX5z
+         pWK4uhr3MV5W99C27jX+0T/ikBzIQrsdttFa1BIu9lWNFK+DRj2bkMDROIqKPI2U7U
+         BEXwTVc9wlUfzbmdbSIefzSEtMzQm5V8WUwv+GYw=
+Date:   Sun, 29 Mar 2020 19:19:14 +0700
+From:   Sergey Marinkevich <sergey.marinkevich@eltex-co.ru>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: [PATCH nf] netfilter: nft_exthdr: fix endianness of tcp option cast
+Message-ID: <20200329121914.GA7748@GRayJob>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-CAP_NET_RAW is not necessary for xtables to function properly.
-Netfilter socket options are reachable from TCP/UDP sockets.
-Netlink is datagram-oriented, accept both SOCK_RAW and SOCK_DGRAM.
+I got a problem on MIPS with Big-Endian is turned on: every time when
+NF trying to change TCP MSS it returns because of new.v16 was greater
+than old.v16. But real MSS was 1460 and my rule was like this:
 
-Signed-off-by: Youfu Zhang <zhangyoufu@gmail.com>
+	add rule table chain tcp option maxseg size set 1400
+
+And 1400 is lesser that 1460, not greater.
+
+Later I founded that main causer is cast from u32 to __be16.
+
+Debugging:
+
+In example MSS = 1400(HEX: 0x578). Here is representation of each byte
+like it is in memory by addresses from left to right(e.g. [0x0 0x1 0x2
+0x3]). LE — Little-Endian system, BE — Big-Endian, left column is type.
+
+	     LE               BE
+	u32: [78 05 00 00]    [00 00 05 78]
+
+As you can see, u32 representation will be casted to u16 from different
+half of 4-byte address range. But actually nf_tables uses registers and
+store data of various size. Actually TCP MSS stored in 2 bytes. But
+registers are still u32 in definition:
+
+	struct nft_regs {
+		union {
+			u32			data[20];
+			struct nft_verdict	verdict;
+		};
+	};
+
+So, access like regs->data[priv->sreg] exactly u32. So, according to
+table presents above, per-byte representation of stored TCP MSS in
+register will be:
+
+	                     LE               BE
+	(u32)regs->data[]:   [78 05 00 00]    [05 78 00 00]
+	                                       ^^ ^^
+
+We see that register uses just half of u32 and other 2 bytes may be
+used for some another data. But in nft_exthdr_tcp_set_eval() it casted
+just like u32 -> __be16:
+
+	new.v16 = src
+
+But u32 overfill __be16, so it get 2 low bytes. For clarity draw
+one more table(<xx xx> means that bytes will be used for cast).
+
+	                     LE                 BE
+	u32:                 [<78 05> 00 00]    [00 00 <05 78>]
+	(u32)regs->data[]:   [<78 05> 00 00]    [05 78 <00 00>]
+
+As you can see, for Little-Endian nothing changes, but for Big-endian we
+take the wrong half. In my case there is some other data instead of
+zeros, so new MSS was wrongly greater.
+
+For shooting this bug I used solution for ports ranges. Applying of this
+patch does not affect Little-Endian systems.
+
+Signed-off-by: Sergey Marinkevich <sergey.marinkevich@eltex-co.ru>
 ---
- extensions/libxt_set.h | 2 +-
- libipq/libipq.c        | 4 ++--
- libiptc/libiptc.c      | 2 +-
- libxtables/xtables.c   | 2 +-
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ net/netfilter/nft_exthdr.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/extensions/libxt_set.h b/extensions/libxt_set.h
-index 41dfbd30..9cdf3636 100644
---- a/extensions/libxt_set.h
-+++ b/extensions/libxt_set.h
-@@ -11,7 +11,7 @@
- static int
- get_version(unsigned *version)
- {
--	int res, sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
-+	int res, sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
- 	struct ip_set_req_version req_version;
- 	socklen_t size = sizeof(req_version);
- 	
-diff --git a/libipq/libipq.c b/libipq/libipq.c
-index fb65971a..e703a39c 100644
---- a/libipq/libipq.c
-+++ b/libipq/libipq.c
-@@ -220,9 +220,9 @@ struct ipq_handle *ipq_create_handle(uint32_t flags, uint32_t protocol)
- 	memset(h, 0, sizeof(struct ipq_handle));
- 	
-         if (protocol == NFPROTO_IPV4)
--                h->fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_FIREWALL);
-+                h->fd = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_FIREWALL);
-         else if (protocol == NFPROTO_IPV6)
--                h->fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_IP6_FW);
-+                h->fd = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_IP6_FW);
-         else {
- 		ipq_errno = IPQ_ERR_PROTOCOL;
- 		free(h);
-diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
-index 58882015..48f77e1a 100644
---- a/libiptc/libiptc.c
-+++ b/libiptc/libiptc.c
-@@ -1309,7 +1309,7 @@ retry:
- 		return NULL;
- 	}
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index a5e8469859e3..07782836fad6 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -228,7 +228,6 @@ static void nft_exthdr_tcp_set_eval(const struct nft_expr *expr,
+ 	unsigned int i, optl, tcphdr_len, offset;
+ 	struct tcphdr *tcph;
+ 	u8 *opt;
+-	u32 src;
  
--	sockfd = socket(TC_AF, SOCK_RAW, IPPROTO_RAW);
-+	sockfd = socket(TC_AF, SOCK_DGRAM, IPPROTO_UDP);
- 	if (sockfd < 0)
- 		return NULL;
+ 	tcph = nft_tcp_header_pointer(pkt, sizeof(buff), buff, &tcphdr_len);
+ 	if (!tcph)
+@@ -237,7 +236,6 @@ static void nft_exthdr_tcp_set_eval(const struct nft_expr *expr,
+ 	opt = (u8 *)tcph;
+ 	for (i = sizeof(*tcph); i < tcphdr_len - 1; i += optl) {
+ 		union {
+-			u8 octet;
+ 			__be16 v16;
+ 			__be32 v32;
+ 		} old, new;
+@@ -259,13 +257,13 @@ static void nft_exthdr_tcp_set_eval(const struct nft_expr *expr,
+ 		if (!tcph)
+ 			return;
  
-diff --git a/libxtables/xtables.c b/libxtables/xtables.c
-index 777c2b08..ccc7f580 100644
---- a/libxtables/xtables.c
-+++ b/libxtables/xtables.c
-@@ -832,7 +832,7 @@ int xtables_compatible_revision(const char *name, uint8_t revision, int opt)
- 	socklen_t s = sizeof(rev);
- 	int max_rev, sockfd;
+-		src = regs->data[priv->sreg];
+ 		offset = i + priv->offset;
  
--	sockfd = socket(afinfo->family, SOCK_RAW, IPPROTO_RAW);
-+	sockfd = socket(afinfo->family, SOCK_DGRAM, IPPROTO_UDP);
- 	if (sockfd < 0) {
- 		if (errno == EPERM) {
- 			/* revision 0 is always supported. */
+ 		switch (priv->len) {
+ 		case 2:
+ 			old.v16 = get_unaligned((u16 *)(opt + offset));
+-			new.v16 = src;
++			new.v16 = (__force __be16)nft_reg_load16(
++				&regs->data[priv->sreg]);
+ 
+ 			switch (priv->type) {
+ 			case TCPOPT_MSS:
+@@ -283,7 +281,7 @@ static void nft_exthdr_tcp_set_eval(const struct nft_expr *expr,
+ 						 old.v16, new.v16, false);
+ 			break;
+ 		case 4:
+-			new.v32 = src;
++			new.v32 = regs->data[priv->sreg];
+ 			old.v32 = get_unaligned((u32 *)(opt + offset));
+ 
+ 			if (old.v32 == new.v32)
 -- 
-2.23.0
+2.21.0
 
