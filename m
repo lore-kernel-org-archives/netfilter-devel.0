@@ -1,72 +1,136 @@
-Return-Path: <SRS0=EmoZ=5N=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=U5qg=5O=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AD27C2D0E7
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Mar 2020 00:59:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01E6DC2D0EE
+	for <netfilter-devel@archiver.kernel.org>; Sun, 29 Mar 2020 03:11:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0927A2073B
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Mar 2020 00:59:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BCD5B206DB
+	for <netfilter-devel@archiver.kernel.org>; Sun, 29 Mar 2020 03:11:57 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="m1tGNjwy"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727104AbgC1A7c (ORCPT
+        id S1727387AbgC2DL4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 27 Mar 2020 20:59:32 -0400
-Received: from m9785.mail.qiye.163.com ([220.181.97.85]:48208 "EHLO
-        m9785.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726212AbgC1A7c (ORCPT
+        Sat, 28 Mar 2020 23:11:56 -0400
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:33316 "EHLO
+        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727144AbgC2DL4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 27 Mar 2020 20:59:32 -0400
-Received: from [192.168.1.5] (unknown [101.93.37.154])
-        by m9785.mail.qiye.163.com (Hmail) with ESMTPA id CD5E25C0F4F;
-        Sat, 28 Mar 2020 08:59:27 +0800 (CST)
-Subject: Re: [PATCH nf-next] netfilter: nf_flow_table_offload: fix kernel NULL
- pointer dereference in nf_flow_table_indr_block_cb
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-References: <1584528755-7969-1-git-send-email-wenxu@ucloud.cn>
- <ac599530-96aa-f562-87fb-3b5e24b7cb9e@ucloud.cn>
- <20200320125444.lo4xieofbqyobsqb@salvia>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <4546a3af-1bf3-12b8-7bef-4396ef08b0e8@ucloud.cn>
-Date:   Sat, 28 Mar 2020 08:58:27 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.6.0
+        Sat, 28 Mar 2020 23:11:56 -0400
+Received: by mail-ed1-f68.google.com with SMTP id z65so16736815ede.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 28 Mar 2020 20:11:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=QCNJAUmnzDN9FZcZL525t31JITbaUoqdlbI+Ngrcb2Q=;
+        b=m1tGNjwy+SOvZqLF6fO17u3ClF2d67j8aXHoHY1dw1Akc1hbsGxDZMYPC2VBMObQfV
+         ova0wmjBzwcmQkBSnqv1BIYenDPMnjgFm5l+U579QF6Ziw8gRaW1IHMK5R1Rkqof/jk0
+         k02MdWhDxlczwjxkzuy/MjRfDqDVz1w8DE1pf8DCkRBRStH3S/Cj8rVhzHPa6zewSMbN
+         41OZmsDyXigpVVvfjIF7+bCqUWin8T2D0rE08sf8lEvHTDizePb4Hxf11vCqV7lbLwlN
+         nyaZ+aCdVU80g51lvj3HKJl/l7o6U5YZsi89i6/CssH3Nr+hTKMar4D17vXJEeLcmBTm
+         ScOA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=QCNJAUmnzDN9FZcZL525t31JITbaUoqdlbI+Ngrcb2Q=;
+        b=Cobs7QYmVm5jud7Rhge5FN+22otkwE40bOePMyN/fahTgOkpjjqTvKt9u4pTwhVAAP
+         AUCZDOibbnzVuAWQv28GCKRzS2KjbsVqF3TKwWItMfZ52NNDi87E2kjpG+3H4Bg4Jdif
+         vqQp8qJ/R+hdTSe2SXW8Kz5kEFpih+NSg/ZOs/tbDHj4a7gNNkEipaNcmQmG6JzIRfG0
+         tcgABo1N3X/HWXqUxfSX+RnrUq5Hm+wVdTqlHZGt6I3VPJ6QnBDlygJXIsd7Kx6Ok8rF
+         +c1lV9nreOwPhVlIMyy2Fo2bonOW63cZno5fdTBEWcP4zy98X8UCQot9widIPXoqTFmU
+         rbvA==
+X-Gm-Message-State: ANhLgQ2O88O4wxa2Sjs1fCW5beheNUIGD/N6pME/gwdOt46PfivcORyx
+        ShoXB/sQ4bI0/ytEKg2gKYgtBlwyKZqYVTZj5eMa
+X-Google-Smtp-Source: ADFU+vsO3z8fR85BdzrdW8wO5Ic5j66UK7NtBXWnojiKMj/pMltL8hW55ibXGgej7CzgWStIAOOuND+xZVVbglX1ybU=
+X-Received: by 2002:a17:906:1993:: with SMTP id g19mr5774145ejd.70.1585451512568;
+ Sat, 28 Mar 2020 20:11:52 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20200320125444.lo4xieofbqyobsqb@salvia>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVQk9LS0tLSkxNT0lCTE5ZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Mxg6UQw5Ezg2KBAtOE8vHjA5
-        FhwKFBFVSlVKTkNOSE5MSk1MQk1MVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpLSlVC
-        SFVITFVKTk9ZV1kIAVlBSkxKTTcG
-X-HM-Tid: 0a711ea69d1f2087kuqycd5e25c0f4f
+References: <20200312193037.2tb5f53yeisfq4ta@madcap2.tricolour.ca>
+ <CAHC9VhQoVOzy_b9W6h+kmizKr1rPkC4cy5aYoKT2i0ZgsceNDg@mail.gmail.com>
+ <20200313185900.y44yvrfm4zxa5lfk@madcap2.tricolour.ca> <CAHC9VhR2zCCE5bjH75rSwfLC7TJGFj4RBnrtcOoUiqVp9q5TaA@mail.gmail.com>
+ <20200318212630.mw2geg4ykhnbtr3k@madcap2.tricolour.ca> <CAHC9VhRYvGAru3aOMwWKCCWDktS+2pGr+=vV4SjHW_0yewD98A@mail.gmail.com>
+ <20200318215550.es4stkjwnefrfen2@madcap2.tricolour.ca> <CAHC9VhSdDDP7Ec-w61NhGxZG5ZiekmrBCAg=Y=VJvEZcgQh46g@mail.gmail.com>
+ <20200319220249.jyr6xmwvflya5mks@madcap2.tricolour.ca> <CAHC9VhR84aN72yNB_j61zZgrQV1y6yvrBLNY7jp7BqQiEDL+cw@mail.gmail.com>
+ <20200324210152.5uydf3zqi3dwshfu@madcap2.tricolour.ca>
+In-Reply-To: <20200324210152.5uydf3zqi3dwshfu@madcap2.tricolour.ca>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Sat, 28 Mar 2020 23:11:41 -0400
+Message-ID: <CAHC9VhTQUnVhoN3JXTAQ7ti+nNLfGNVXhT6D-GYJRSpJHCwDRg@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
+ the audit daemon
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
+        containers@lists.linux-foundation.org,
+        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
+        linux-audit@redhat.com, netfilter-devel@vger.kernel.org,
+        ebiederm@xmission.com, simo@redhat.com, netdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
+        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
-
-
-How about this crash fix?
-
-
-BR
-
-wenxu
-
-在 2020/3/20 20:54, Pablo Neira Ayuso 写道:
-> On Fri, Mar 20, 2020 at 08:42:37PM +0800, wenxu wrote:
->> Hi Pablo,
->>
->>
->> How about this bugfix?   I see the status of this patch is accepted.
->>
->> But it didn't apply to the master?
-> My mistake: back to "Under review" state.
+On Tue, Mar 24, 2020 at 5:02 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2020-03-23 20:16, Paul Moore wrote:
+> > On Thu, Mar 19, 2020 at 6:03 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > On 2020-03-18 18:06, Paul Moore wrote:
+> >
+> > ...
+> >
+> > > > I hope we can do better than string manipulations in the kernel.  I'd
+> > > > much rather defer generating the ACID list (if possible), than
+> > > > generating a list only to keep copying and editing it as the record is
+> > > > sent.
+> > >
+> > > At the moment we are stuck with a string-only format.
+> >
+> > Yes, we are.  That is another topic, and another set of changes I've
+> > been deferring so as to not disrupt the audit container ID work.
+> >
+> > I was thinking of what we do inside the kernel between when the record
+> > triggering event happens and when we actually emit the record to
+> > userspace.  Perhaps we collect the ACID information while the event is
+> > occurring, but we defer generating the record until later when we have
+> > a better understanding of what should be included in the ACID list.
+> > It is somewhat similar (but obviously different) to what we do for
+> > PATH records (we collect the pathname info when the path is being
+> > resolved).
 >
+> Ok, now I understand your concern.
+>
+> In the case of NETFILTER_PKT records, the CONTAINER_ID record is the
+> only other possible record and they are generated at the same time with
+> a local context.
+>
+> In the case of any event involving a syscall, that CONTAINER_ID record
+> is generated at the time of the rest of the event record generation at
+> syscall exit.
+>
+> The others are only generated when needed, such as the sig2 reply.
+>
+> We generally just store the contobj pointer until we actually generate
+> the CONTAINER_ID (or CONTAINER_OP) record.
+
+Perhaps I'm remembering your latest spin of these patches incorrectly,
+but there is still a big gap between when the record is generated and
+when it is sent up to the audit daemon.  Most importantly in that gap
+is the whole big queue/multicast/unicast mess.
+
+You don't need to show me code, but I would like to see some sort of
+plan for dealing with multiple nested audit daemons.  Basically I just
+want to make sure we aren't painting ourselves into a corner with this
+approach; and if for some horrible reason we are, I at least want us
+to be aware of what we are getting ourselves into.
+
+-- 
+paul moore
+www.paul-moore.com
