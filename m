@@ -6,71 +6,71 @@ X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01E6DC2D0EE
-	for <netfilter-devel@archiver.kernel.org>; Sun, 29 Mar 2020 03:11:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDA1FC2D0EE
+	for <netfilter-devel@archiver.kernel.org>; Sun, 29 Mar 2020 03:17:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BCD5B206DB
-	for <netfilter-devel@archiver.kernel.org>; Sun, 29 Mar 2020 03:11:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 93C092071B
+	for <netfilter-devel@archiver.kernel.org>; Sun, 29 Mar 2020 03:17:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="m1tGNjwy"
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="hUOW7wlG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727387AbgC2DL4 (ORCPT
+        id S1727528AbgC2DRa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 28 Mar 2020 23:11:56 -0400
-Received: from mail-ed1-f68.google.com ([209.85.208.68]:33316 "EHLO
+        Sat, 28 Mar 2020 23:17:30 -0400
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:44194 "EHLO
         mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727144AbgC2DL4 (ORCPT
+        with ESMTP id S1727335AbgC2DR3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 28 Mar 2020 23:11:56 -0400
-Received: by mail-ed1-f68.google.com with SMTP id z65so16736815ede.0
-        for <netfilter-devel@vger.kernel.org>; Sat, 28 Mar 2020 20:11:53 -0700 (PDT)
+        Sat, 28 Mar 2020 23:17:29 -0400
+Received: by mail-ed1-f68.google.com with SMTP id i16so15751162edy.11
+        for <netfilter-devel@vger.kernel.org>; Sat, 28 Mar 2020 20:17:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=QCNJAUmnzDN9FZcZL525t31JITbaUoqdlbI+Ngrcb2Q=;
-        b=m1tGNjwy+SOvZqLF6fO17u3ClF2d67j8aXHoHY1dw1Akc1hbsGxDZMYPC2VBMObQfV
-         ova0wmjBzwcmQkBSnqv1BIYenDPMnjgFm5l+U579QF6Ziw8gRaW1IHMK5R1Rkqof/jk0
-         k02MdWhDxlczwjxkzuy/MjRfDqDVz1w8DE1pf8DCkRBRStH3S/Cj8rVhzHPa6zewSMbN
-         41OZmsDyXigpVVvfjIF7+bCqUWin8T2D0rE08sf8lEvHTDizePb4Hxf11vCqV7lbLwlN
-         nyaZ+aCdVU80g51lvj3HKJl/l7o6U5YZsi89i6/CssH3Nr+hTKMar4D17vXJEeLcmBTm
-         ScOA==
+        bh=73jM7UJ1SiInp3qgWBqwVopBoGUW8da3yGoLPO2s510=;
+        b=hUOW7wlGLFSvtHFZFzYEk7uCZM0H4qRyVG1Nq3cJ6E529xu/itB2Sw5XZwbQ+u0atq
+         IyUnfYEn/D0SlrwCk47/eOrsUScgL3N5AGSU1dSkADlcDK/uKgu0oxbrZ7a+4AuMZ3/i
+         u+eRvLFW/3YH6/NomvPTj4lTDuRjf4b8+lzYhV5sdgOcQV5z633Ayp/5ldFb0ouvIGof
+         /UFc5isFg/YJtxKJ3Lma2Q7GC1+Cogl7V2tEkB04nQPioaCwIH+ECkq5ZE4XVZ6Ih5Vv
+         wIA1iofcg4YPsZ2gIQ5fdRfyxTKX/BpU+PLevB4xhg1RS674R3j7mNprN6l2A7i+2HnX
+         C7lg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=QCNJAUmnzDN9FZcZL525t31JITbaUoqdlbI+Ngrcb2Q=;
-        b=Cobs7QYmVm5jud7Rhge5FN+22otkwE40bOePMyN/fahTgOkpjjqTvKt9u4pTwhVAAP
-         AUCZDOibbnzVuAWQv28GCKRzS2KjbsVqF3TKwWItMfZ52NNDi87E2kjpG+3H4Bg4Jdif
-         vqQp8qJ/R+hdTSe2SXW8Kz5kEFpih+NSg/ZOs/tbDHj4a7gNNkEipaNcmQmG6JzIRfG0
-         tcgABo1N3X/HWXqUxfSX+RnrUq5Hm+wVdTqlHZGt6I3VPJ6QnBDlygJXIsd7Kx6Ok8rF
-         +c1lV9nreOwPhVlIMyy2Fo2bonOW63cZno5fdTBEWcP4zy98X8UCQot9widIPXoqTFmU
-         rbvA==
-X-Gm-Message-State: ANhLgQ2O88O4wxa2Sjs1fCW5beheNUIGD/N6pME/gwdOt46PfivcORyx
-        ShoXB/sQ4bI0/ytEKg2gKYgtBlwyKZqYVTZj5eMa
-X-Google-Smtp-Source: ADFU+vsO3z8fR85BdzrdW8wO5Ic5j66UK7NtBXWnojiKMj/pMltL8hW55ibXGgej7CzgWStIAOOuND+xZVVbglX1ybU=
-X-Received: by 2002:a17:906:1993:: with SMTP id g19mr5774145ejd.70.1585451512568;
- Sat, 28 Mar 2020 20:11:52 -0700 (PDT)
+        bh=73jM7UJ1SiInp3qgWBqwVopBoGUW8da3yGoLPO2s510=;
+        b=Yq/74G0OEClV/LsY3cnZ3JJP58vzcwVDn82oY4ZUrJg04aoeW4b8WcLemr2zafYBmY
+         /wGyQHOHD7SX73wslCcEuEgC8R4ZFXaGOA7TA/47xHQuhqQUPwM1lX3QZ+lvKFNdEeU3
+         5pa20GmCpiHKNyfHVUhmG+r9J0osIlubOpDE4NmxIYUrUdqViKRm03y/PRMzlYZ2L98T
+         /OnjJy9GS6d0JdGnYtFTVG2hPg4eu3Evg7RylSYhqkfZ4xd0g8dHbQZqCOW01X+zQFIN
+         4AungXiaXP62/38sp1l3Lzrjc1V5dNz59mlyI2t+iUgGa0b1RjFZib4CmV977Q6bjUzc
+         f5Wg==
+X-Gm-Message-State: ANhLgQ0QyGlyDZ5xNPkkhWsZZuQ7uUA3cSMoD0wWmDF0HhDP5DVZYSMJ
+        NQ8MrM5CKDoqPHiGbbWPEmoenEyvylhhReyB2P5S
+X-Google-Smtp-Source: ADFU+vv/MFU+PUL6L3fWaCWJ+SsYWlwfM5jrj3x9inQIKOJr3keTEJ5GXU9ljVx28Cw+08JkBWPGuLw/MRT/qz+R/UQ=
+X-Received: by 2002:aa7:d2cb:: with SMTP id k11mr6032886edr.128.1585451846873;
+ Sat, 28 Mar 2020 20:17:26 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200312193037.2tb5f53yeisfq4ta@madcap2.tricolour.ca>
- <CAHC9VhQoVOzy_b9W6h+kmizKr1rPkC4cy5aYoKT2i0ZgsceNDg@mail.gmail.com>
- <20200313185900.y44yvrfm4zxa5lfk@madcap2.tricolour.ca> <CAHC9VhR2zCCE5bjH75rSwfLC7TJGFj4RBnrtcOoUiqVp9q5TaA@mail.gmail.com>
- <20200318212630.mw2geg4ykhnbtr3k@madcap2.tricolour.ca> <CAHC9VhRYvGAru3aOMwWKCCWDktS+2pGr+=vV4SjHW_0yewD98A@mail.gmail.com>
- <20200318215550.es4stkjwnefrfen2@madcap2.tricolour.ca> <CAHC9VhSdDDP7Ec-w61NhGxZG5ZiekmrBCAg=Y=VJvEZcgQh46g@mail.gmail.com>
- <20200319220249.jyr6xmwvflya5mks@madcap2.tricolour.ca> <CAHC9VhR84aN72yNB_j61zZgrQV1y6yvrBLNY7jp7BqQiEDL+cw@mail.gmail.com>
- <20200324210152.5uydf3zqi3dwshfu@madcap2.tricolour.ca>
-In-Reply-To: <20200324210152.5uydf3zqi3dwshfu@madcap2.tricolour.ca>
+References: <3142237.YMNxv0uec1@x2> <CAHC9VhTiCHQbp2SwK0Xb1QgpUZxOQ26JKKPsVGT0ZvMqx28oPQ@mail.gmail.com>
+ <20200312202733.7kli64zsnqc4mrd2@madcap2.tricolour.ca> <CAHC9VhS9DtxJ4gvOfMRnzoo6ccGJVKL+uZYe6qqH+SPqD8r01Q@mail.gmail.com>
+ <20200313192306.wxey3wn2h4htpccm@madcap2.tricolour.ca> <CAHC9VhQKOpVWxDg-tWuCWV22QRu8P_NpFKme==0Ot1RQKa_DWA@mail.gmail.com>
+ <20200318214154.ycxy5dl4pxno6fvi@madcap2.tricolour.ca> <CAHC9VhSuMnd3-ci2Bx-xJ0yscQ=X8ZqFAcNPKpbh_ZWN3FJcuQ@mail.gmail.com>
+ <20200319214759.qgxt2sfkmd6srdol@madcap2.tricolour.ca> <CAHC9VhTp25OAaTO5UMft0OzUZ=oQpZFjebkjjQP0-NrPp0bNAg@mail.gmail.com>
+ <20200325122903.obkpyog7fjabzrpf@madcap2.tricolour.ca>
+In-Reply-To: <20200325122903.obkpyog7fjabzrpf@madcap2.tricolour.ca>
 From:   Paul Moore <paul@paul-moore.com>
-Date:   Sat, 28 Mar 2020 23:11:41 -0400
-Message-ID: <CAHC9VhTQUnVhoN3JXTAQ7ti+nNLfGNVXhT6D-GYJRSpJHCwDRg@mail.gmail.com>
+Date:   Sat, 28 Mar 2020 23:17:15 -0400
+Message-ID: <CAHC9VhTuYYqAtoNAKLX3qja6DnqEbFuHchi9ESwbcb5WC_Mvtw@mail.gmail.com>
 Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
  the audit daemon
 To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
+Cc:     Steve Grubb <sgrubb@redhat.com>, linux-audit@redhat.com,
+        nhorman@tuxdriver.com, linux-api@vger.kernel.org,
         containers@lists.linux-foundation.org,
         LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        linux-audit@redhat.com, netfilter-devel@vger.kernel.org,
-        ebiederm@xmission.com, simo@redhat.com, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
+        simo@redhat.com, netdev@vger.kernel.org,
         linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
         mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
 Content-Type: text/plain; charset="UTF-8"
@@ -79,57 +79,81 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Mar 24, 2020 at 5:02 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2020-03-23 20:16, Paul Moore wrote:
-> > On Thu, Mar 19, 2020 at 6:03 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > On 2020-03-18 18:06, Paul Moore wrote:
-> >
-> > ...
-> >
-> > > > I hope we can do better than string manipulations in the kernel.  I'd
-> > > > much rather defer generating the ACID list (if possible), than
-> > > > generating a list only to keep copying and editing it as the record is
-> > > > sent.
+On Wed, Mar 25, 2020 at 8:29 AM Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2020-03-20 17:56, Paul Moore wrote:
+> > On Thu, Mar 19, 2020 at 5:48 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > On 2020-03-18 17:47, Paul Moore wrote:
+> > > > On Wed, Mar 18, 2020 at 5:42 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > > > On 2020-03-18 17:01, Paul Moore wrote:
+> > > > > > On Fri, Mar 13, 2020 at 3:23 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > > > > > On 2020-03-13 12:42, Paul Moore wrote:
+> > > > > >
+> > > > > > ...
+> > > > > >
+> > > > > > > > The thread has had a lot of starts/stops, so I may be repeating a
+> > > > > > > > previous suggestion, but one idea would be to still emit a "death
+> > > > > > > > record" when the final task in the audit container ID does die, but
+> > > > > > > > block the particular audit container ID from reuse until it the
+> > > > > > > > SIGNAL2 info has been reported.  This gives us the timely ACID death
+> > > > > > > > notification while still preventing confusion and ambiguity caused by
+> > > > > > > > potentially reusing the ACID before the SIGNAL2 record has been sent;
+> > > > > > > > there is a small nit about the ACID being present in the SIGNAL2
+> > > > > > > > *after* its death, but I think that can be easily explained and
+> > > > > > > > understood by admins.
+> > > > > > >
+> > > > > > > Thinking quickly about possible technical solutions to this, maybe it
+> > > > > > > makes sense to have two counters on a contobj so that we know when the
+> > > > > > > last process in that container exits and can issue the death
+> > > > > > > certificate, but we still block reuse of it until all further references
+> > > > > > > to it have been resolved.  This will likely also make it possible to
+> > > > > > > report the full contid chain in SIGNAL2 records.  This will eliminate
+> > > > > > > some of the issues we are discussing with regards to passing a contobj
+> > > > > > > vs a contid to the audit_log_contid function, but won't eliminate them
+> > > > > > > all because there are still some contids that won't have an object
+> > > > > > > associated with them to make it impossible to look them up in the
+> > > > > > > contobj lists.
+> > > > > >
+> > > > > > I'm not sure you need a full second counter, I imagine a simple flag
+> > > > > > would be okay.  I think you just something to indicate that this ACID
+> > > > > > object is marked as "dead" but it still being held for sanity reasons
+> > > > > > and should not be reused.
+> > > > >
+> > > > > Ok, I see your point.  This refcount can be changed to a flag easily
+> > > > > enough without change to the api if we can be sure that more than one
+> > > > > signal can't be delivered to the audit daemon *and* collected by sig2.
+> > > > > I'll have a more careful look at the audit daemon code to see if I can
+> > > > > determine this.
+> > > >
+> > > > Maybe I'm not understanding your concern, but this isn't really
+> > > > different than any of the other things we track for the auditd signal
+> > > > sender, right?  If we are worried about multiple signals being sent
+> > > > then it applies to everything, not just the audit container ID.
 > > >
-> > > At the moment we are stuck with a string-only format.
+> > > Yes, you are right.  In all other cases the information is simply
+> > > overwritten.  In the case of the audit container identifier any
+> > > previous value is put before a new one is referenced, so only the last
+> > > signal is kept.  So, we only need a flag.  Does a flag implemented with
+> > > a rcu-protected refcount sound reasonable to you?
 > >
-> > Yes, we are.  That is another topic, and another set of changes I've
-> > been deferring so as to not disrupt the audit container ID work.
-> >
-> > I was thinking of what we do inside the kernel between when the record
-> > triggering event happens and when we actually emit the record to
-> > userspace.  Perhaps we collect the ACID information while the event is
-> > occurring, but we defer generating the record until later when we have
-> > a better understanding of what should be included in the ACID list.
-> > It is somewhat similar (but obviously different) to what we do for
-> > PATH records (we collect the pathname info when the path is being
-> > resolved).
+> > Well, if I recall correctly you still need to fix the locking in this
+> > patchset so until we see what that looks like it is hard to say for
+> > certain.  Just make sure that the flag is somehow protected from
+> > races; it is probably a lot like the "valid" flags you sometimes see
+> > with RCU protected lists.
 >
-> Ok, now I understand your concern.
->
-> In the case of NETFILTER_PKT records, the CONTAINER_ID record is the
-> only other possible record and they are generated at the same time with
-> a local context.
->
-> In the case of any event involving a syscall, that CONTAINER_ID record
-> is generated at the time of the rest of the event record generation at
-> syscall exit.
->
-> The others are only generated when needed, such as the sig2 reply.
->
-> We generally just store the contobj pointer until we actually generate
-> the CONTAINER_ID (or CONTAINER_OP) record.
+> This is like looking for a needle in a haystack.  Can you point me to
+> some code that does "valid" flags with RCU protected lists.
 
-Perhaps I'm remembering your latest spin of these patches incorrectly,
-but there is still a big gap between when the record is generated and
-when it is sent up to the audit daemon.  Most importantly in that gap
-is the whole big queue/multicast/unicast mess.
+Sigh.  Come on Richard, you've been playing in the kernel for some
+time now.  I can't think of one off the top of my head as I write
+this, but there are several resources that deal with RCU protected
+lists in the kernel, Google is your friend and Documentation/RCU is
+your friend.
 
-You don't need to show me code, but I would like to see some sort of
-plan for dealing with multiple nested audit daemons.  Basically I just
-want to make sure we aren't painting ourselves into a corner with this
-approach; and if for some horrible reason we are, I at least want us
-to be aware of what we are getting ourselves into.
+Spending time to learn how RCU works and how to use it properly is not
+time wasted.  It's a tricky thing to get right (I have to refresh my
+memory on some of the more subtle details each time I write/review RCU
+code), but it's very cool when done correctly.
 
 -- 
 paul moore
