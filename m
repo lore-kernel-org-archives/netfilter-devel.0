@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9659DC2D0E7
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:37:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29E87C2D0EE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:37:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 773A8206DB
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:37:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0AC4820780
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:37:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728230AbgC3Ahv (ORCPT
+        id S1728220AbgC3Ahu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 29 Mar 2020 20:37:51 -0400
-Received: from correo.us.es ([193.147.175.20]:57168 "EHLO mail.us.es"
+        Sun, 29 Mar 2020 20:37:50 -0400
+Received: from correo.us.es ([193.147.175.20]:57138 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727962AbgC3AhY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 29 Mar 2020 20:37:24 -0400
+        id S1728018AbgC3AhZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 29 Mar 2020 20:37:25 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 1597BEF42D
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 02:37:23 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 7A604EF439
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 02:37:24 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 04B4C100A44
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 02:37:23 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6A8A8100A4B
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 02:37:24 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id EDCCB100A4C; Mon, 30 Mar 2020 02:37:22 +0200 (CEST)
+        id 60463100A42; Mon, 30 Mar 2020 02:37:24 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 008DE100A4B;
-        Mon, 30 Mar 2020 02:37:21 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 77E5C100A55;
+        Mon, 30 Mar 2020 02:37:22 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 30 Mar 2020 02:37:21 +0200 (CEST)
+ Mon, 30 Mar 2020 02:37:22 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id CDCB042EF42A;
-        Mon, 30 Mar 2020 02:37:20 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 5153942EF42A;
+        Mon, 30 Mar 2020 02:37:22 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 15/26] netfilter: flowtable: Use rw sem as flow block lock
-Date:   Mon, 30 Mar 2020 02:36:57 +0200
-Message-Id: <20200330003708.54017-16-pablo@netfilter.org>
+Subject: [PATCH 20/26] netfilter: nf_queue: prefer nf_queue_entry_free
+Date:   Mon, 30 Mar 2020 02:37:02 +0200
+Message-Id: <20200330003708.54017-21-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200330003708.54017-1-pablo@netfilter.org>
 References: <20200330003708.54017-1-pablo@netfilter.org>
@@ -54,110 +54,81 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Paul Blakey <paulb@mellanox.com>
+From: Florian Westphal <fw@strlen.de>
 
-Currently flow offload threads are synchronized by the flow block mutex.
-Use rw lock instead to increase flow insertion (read) concurrency.
+Instead of dropping refs+kfree, use the helper added in previous patch.
 
-Signed-off-by: Paul Blakey <paulb@mellanox.com>
-Reviewed-by: Oz Shlomo <ozsh@mellanox.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_flow_table.h |  2 +-
- net/netfilter/nf_flow_table_core.c    | 11 +++++------
- net/netfilter/nf_flow_table_offload.c |  4 ++--
- 3 files changed, 8 insertions(+), 9 deletions(-)
+ net/netfilter/nf_queue.c | 27 +++++++++------------------
+ 1 file changed, 9 insertions(+), 18 deletions(-)
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index 4a2ec6fd9ad2..6bf69652f57d 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -74,7 +74,7 @@ struct nf_flowtable {
- 	struct delayed_work		gc_work;
- 	unsigned int			flags;
- 	struct flow_block		flow_block;
--	struct mutex			flow_block_lock; /* Guards flow_block */
-+	struct rw_semaphore		flow_block_lock; /* Guards flow_block */
- 	possible_net_t			net;
- };
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index aadccdd117f0..bbd1209694b8 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -155,18 +155,16 @@ static void nf_ip6_saveroute(const struct sk_buff *skb,
+ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
+ 		      unsigned int index, unsigned int queuenum)
+ {
+-	int status = -ENOENT;
+ 	struct nf_queue_entry *entry = NULL;
+ 	const struct nf_queue_handler *qh;
+ 	struct net *net = state->net;
+ 	unsigned int route_key_size;
++	int status;
  
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 9a477bd563b7..9399bb2df295 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -392,7 +392,7 @@ int nf_flow_table_offload_add_cb(struct nf_flowtable *flow_table,
- 	struct flow_block_cb *block_cb;
- 	int err = 0;
+ 	/* QUEUE == DROP if no one is waiting, to be safe. */
+ 	qh = rcu_dereference(net->nf.queue_handler);
+-	if (!qh) {
+-		status = -ESRCH;
+-		goto err;
+-	}
++	if (!qh)
++		return -ESRCH;
  
--	mutex_lock(&flow_table->flow_block_lock);
-+	down_write(&flow_table->flow_block_lock);
- 	block_cb = flow_block_cb_lookup(block, cb, cb_priv);
- 	if (block_cb) {
- 		err = -EEXIST;
-@@ -408,7 +408,7 @@ int nf_flow_table_offload_add_cb(struct nf_flowtable *flow_table,
- 	list_add_tail(&block_cb->list, &block->cb_list);
- 
- unlock:
--	mutex_unlock(&flow_table->flow_block_lock);
-+	up_write(&flow_table->flow_block_lock);
- 	return err;
- }
- EXPORT_SYMBOL_GPL(nf_flow_table_offload_add_cb);
-@@ -419,13 +419,13 @@ void nf_flow_table_offload_del_cb(struct nf_flowtable *flow_table,
- 	struct flow_block *block = &flow_table->flow_block;
- 	struct flow_block_cb *block_cb;
- 
--	mutex_lock(&flow_table->flow_block_lock);
-+	down_write(&flow_table->flow_block_lock);
- 	block_cb = flow_block_cb_lookup(block, cb, cb_priv);
- 	if (block_cb)
- 		list_del(&block_cb->list);
- 	else
- 		WARN_ON(true);
--	mutex_unlock(&flow_table->flow_block_lock);
-+	up_write(&flow_table->flow_block_lock);
- }
- EXPORT_SYMBOL_GPL(nf_flow_table_offload_del_cb);
- 
-@@ -551,7 +551,7 @@ int nf_flow_table_init(struct nf_flowtable *flowtable)
- 
- 	INIT_DEFERRABLE_WORK(&flowtable->gc_work, nf_flow_offload_work_gc);
- 	flow_block_init(&flowtable->flow_block);
--	mutex_init(&flowtable->flow_block_lock);
-+	init_rwsem(&flowtable->flow_block_lock);
- 
- 	err = rhashtable_init(&flowtable->rhashtable,
- 			      &nf_flow_offload_rhash_params);
-@@ -614,7 +614,6 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
- 	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
- 	nf_flow_table_offload_flush(flow_table);
- 	rhashtable_destroy(&flow_table->rhashtable);
--	mutex_destroy(&flow_table->flow_block_lock);
- }
- EXPORT_SYMBOL_GPL(nf_flow_table_free);
- 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 0c6437fab4fe..b96db831b4ca 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -691,7 +691,7 @@ static int nf_flow_offload_tuple(struct nf_flowtable *flowtable,
- 	if (cmd == FLOW_CLS_REPLACE)
- 		cls_flow.rule = flow_rule->rule;
- 
--	mutex_lock(&flowtable->flow_block_lock);
-+	down_read(&flowtable->flow_block_lock);
- 	list_for_each_entry(block_cb, block_cb_list, list) {
- 		err = block_cb->cb(TC_SETUP_CLSFLOWER, &cls_flow,
- 				   block_cb->cb_priv);
-@@ -700,7 +700,7 @@ static int nf_flow_offload_tuple(struct nf_flowtable *flowtable,
- 
- 		i++;
+ 	switch (state->pf) {
+ 	case AF_INET:
+@@ -181,14 +179,12 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
  	}
--	mutex_unlock(&flowtable->flow_block_lock);
-+	up_read(&flowtable->flow_block_lock);
  
- 	if (cmd == FLOW_CLS_STATS)
- 		memcpy(stats, &cls_flow.stats, sizeof(*stats));
+ 	entry = kmalloc(sizeof(*entry) + route_key_size, GFP_ATOMIC);
+-	if (!entry) {
+-		status = -ENOMEM;
+-		goto err;
+-	}
++	if (!entry)
++		return -ENOMEM;
+ 
+ 	if (skb_dst(skb) && !skb_dst_force(skb)) {
+-		status = -ENETDOWN;
+-		goto err;
++		kfree(entry);
++		return -ENETDOWN;
+ 	}
+ 
+ 	*entry = (struct nf_queue_entry) {
+@@ -212,17 +208,12 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
+ 	}
+ 
+ 	status = qh->outfn(entry, queuenum);
+-
+ 	if (status < 0) {
+-		nf_queue_entry_release_refs(entry);
+-		goto err;
++		nf_queue_entry_free(entry);
++		return status;
+ 	}
+ 
+ 	return 0;
+-
+-err:
+-	kfree(entry);
+-	return status;
+ }
+ 
+ /* Packets leaving via this function must come back through nf_reinject(). */
 -- 
 2.11.0
 
