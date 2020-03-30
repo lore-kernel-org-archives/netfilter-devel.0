@@ -2,100 +2,166 @@ Return-Path: <SRS0=CFkq=5P=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BC60C43331
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:26:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB2F9C43331
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:37:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0145D20757
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:26:21 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b="rFwbE5wq"
+	by mail.kernel.org (Postfix) with ESMTP id 808A9206DB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:37:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727547AbgC3A0S (ORCPT
+        id S1727742AbgC3AhR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 29 Mar 2020 20:26:18 -0400
-Received: from ozlabs.org ([203.11.71.1]:41701 "EHLO ozlabs.org"
+        Sun, 29 Mar 2020 20:37:17 -0400
+Received: from correo.us.es ([193.147.175.20]:57104 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726661AbgC3A0S (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 29 Mar 2020 20:26:18 -0400
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 48rCtZ31Wlz9sPR;
-        Mon, 30 Mar 2020 11:26:14 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
-        s=201702; t=1585527975;
-        bh=QbXOxtxH7m6OajZuEjdOt9MJFpOMzsUFZjcVETW53l4=;
-        h=Date:From:To:Cc:Subject:From;
-        b=rFwbE5wqN4gkFsOdxwLcdIp1OKiK54nE83HOhjZ8TCr6JhSXRzsVYM0TaMQRNbdlg
-         cyrsDo/O002PsHFMhJXuuJYCwPSWZLoYQwXKXrZfOLUPRhYmMVZENsajimxJOu1lfG
-         FaVXd/j02xQljeCwxJXa5kAxm+Ve859sGmzk2IItxSTlxpgzfOAGbb4I6Q6yunaZ6M
-         AVDJEsMZvouc6q3LoRub0bvC0RiQxjrOOOx5soTxsmVbo52cKdsS5jFNNkMEXn/X8Z
-         FtcaIahtjEuBeWf80EbvC1337cpCVdRvi6ESRTPi9wIBJCutCr3qyIpY07J0vSStUz
-         UUfwL/kTX7q0g==
-Date:   Mon, 30 Mar 2020 11:26:11 +1100
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Cc:     Linux Next Mailing List <linux-next@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-Subject: linux-next: build warning after merge of the netfilter-next tree
-Message-ID: <20200330112611.5248d1d4@canb.auug.org.au>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/GjAzYQMIwpxmCSVWZ4noGH5";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+        id S1727612AbgC3AhR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 29 Mar 2020 20:37:17 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 43D18EF42E
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 02:37:15 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3517E100A50
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 02:37:15 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 2ABF5100A4B; Mon, 30 Mar 2020 02:37:15 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 319AC100A42;
+        Mon, 30 Mar 2020 02:37:13 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 30 Mar 2020 02:37:13 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 0BEF642EF42A;
+        Mon, 30 Mar 2020 02:37:13 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org
+Subject: [PATCH 00/26] Netfilter/IPVS updates for net-next
+Date:   Mon, 30 Mar 2020 02:36:42 +0200
+Message-Id: <20200330003708.54017-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
---Sig_/GjAzYQMIwpxmCSVWZ4noGH5
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-Hi all,
+The following patchset contains Netfilter/IPVS updates for net-next:
 
-After merging the netfilter-next tree, today's linux-next build (x86_64
-allmodconfig) produced this warning:
+1) Add support to specify a stateful expression in set definitions,
+   this allows users to specify e.g. counters per set elements.
 
-In file included from net/netfilter/ipvs/ip_vs_core.c:52:
-net/netfilter/ipvs/ip_vs_core.c: In function 'ip_vs_in_icmp':
-include/net/ip_vs.h:233:4: warning: 'outer_proto' may be used uninitialized=
- in this function [-Wmaybe-uninitialized]
-  233 |    printk(KERN_DEBUG pr_fmt(msg), ##__VA_ARGS__); \
-      |    ^~~~~~
-net/netfilter/ipvs/ip_vs_core.c:1666:8: note: 'outer_proto' was declared he=
-re
- 1666 |  char *outer_proto;
-      |        ^~~~~~~~~~~
+2) Flowtable software counter support.
 
-Introduced by commit
+3) Flowtable hardware offload counter support, from wenxu.
 
-  73348fed35d0 ("ipvs: optimize tunnel dumps for icmp errors")
+3) Parallelize flowtable hardware offload requests, from Paul Blakey.
+   This includes a patch to add one work entry per offload command.
 
---=20
-Cheers,
-Stephen Rothwell
+4) Several patches to rework nf_queue refcount handling, from Florian
+   Westphal.
 
---Sig_/GjAzYQMIwpxmCSVWZ4noGH5
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+4) A few fixes for the flowtable tunnel offload: Fix crash if tunneling
+   information is missing and set up indirect flow block as TC_SETUP_FT,
+   patch from wenxu.
 
------BEGIN PGP SIGNATURE-----
+5) Stricter netlink attribute sanity check on filters, from Romain Bellan
+   and Florent Fourcot.
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAl6BPKMACgkQAVBC80lX
-0Gw3nwf/UYChx3lA48RPO6+ZQEyDam1RI2THknZFm7NiAGmhXrCKWsZHUHHt4kIC
-tYRXDI9i2Z8k0Imk+NlebECPZ0M3oJvLGG5u6eoB2B97e4R2I+mb2IqPtC/yj6pQ
-+AlJVmB0pHyPEdN2Xg6tIoeGk24kKnz+OB37mEN7anHOn7mok4tGGQ+leV+ktnCQ
-qDBJBPY/FRWyEsl9GOut70z5YHS83pQwrk2MRq7QpFlhYlhtj7XqDmNQkFSc3FkK
-Rn0u0J3Cnnw8ObhwZCYk7ERZY9q5XQs5+HDyUDZwWDki4XjEQJGig1gfsRj4EOiZ
-z6Yb7PB2DrAeE/FQJIAPGX+9czzf7g==
-=IyIw
------END PGP SIGNATURE-----
+5) Annotations to make sparse happy, from Jules Irenge.
 
---Sig_/GjAzYQMIwpxmCSVWZ4noGH5--
+6) Improve icmp errors in debugging information, from Haishuang Yan.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+Thank you.
+
+----------------------------------------------------------------
+
+The following changes since commit 79e28519ac78dde6d38fe6ea22286af574f5c7db:
+
+  Merge tag 'mlx5-updates-2020-03-17' of git://git.kernel.org/pub/scm/linux/kernel/git/saeed/linux (2020-03-18 19:13:37 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
+
+for you to fetch changes up to ef803b3cf96a26e2a601755b237585a23e6bc30c:
+
+  netfilter: flowtable: add counter support in HW offload (2020-03-30 02:05:40 +0200)
+
+----------------------------------------------------------------
+Florian Westphal (4):
+      netfilter: nf_queue: make nf_queue_entry_release_refs static
+      netfilter: nf_queue: place bridge physports into queue_entry struct
+      netfilter: nf_queue: do not release refcouts until nf_reinject is done
+      netfilter: nf_queue: prefer nf_queue_entry_free
+
+Haishuang Yan (1):
+      ipvs: optimize tunnel dumps for icmp errors
+
+Jules Irenge (2):
+      netfilter: ctnetlink: Add missing annotation for ctnetlink_parse_nat_setup()
+      netfilter: conntrack: Add missing annotations for nf_conntrack_all_lock() and nf_conntrack_all_unlock()
+
+Pablo Neira Ayuso (11):
+      netfilter: nf_tables: move nft_expr_clone() to nf_tables_api.c
+      netfilter: nf_tables: pass context to nft_set_destroy()
+      netfilter: nf_tables: allow to specify stateful expression in set definition
+      netfilter: nf_tables: fix double-free on set expression from the error path
+      netfilter: nf_tables: add nft_set_elem_expr_destroy() and use it
+      netfilter: conntrack: export nf_ct_acct_update()
+      netfilter: nf_tables: add enum nft_flowtable_flags to uapi
+      netfilter: flowtable: add counter support
+      netfilter: nft_set_bitmap: initialize set element extension in lookups
+      netfilter: nft_dynset: validate set expression definition
+      netfilter: nf_tables: skip set types that do not support for expressions
+
+Paul Blakey (2):
+      netfilter: flowtable: Use rw sem as flow block lock
+      netfilter: flowtable: Use work entry per offload command
+
+Qian Cai (1):
+      netfilter: nf_tables: silence a RCU-list warning in nft_table_lookup()
+
+Romain Bellan (1):
+      netfilter: ctnetlink: be more strict when NF_CONNTRACK_MARK is not set
+
+wenxu (4):
+      netfilter: flowtable: fix NULL pointer dereference in tunnel offload support
+      netfilter: flowtable: Fix incorrect tc_setup_type type
+      netfilter: conntrack: add nf_ct_acct_add()
+      netfilter: flowtable: add counter support in HW offload
+
+ include/net/flow_offload.h                |   3 +-
+ include/net/netfilter/nf_conntrack_acct.h |  11 +++
+ include/net/netfilter/nf_flow_table.h     |   5 +-
+ include/net/netfilter/nf_queue.h          |   7 +-
+ include/net/netfilter/nf_tables.h         |   5 ++
+ include/uapi/linux/netfilter/nf_tables.h  |  15 ++++
+ net/core/flow_offload.c                   |   6 +-
+ net/netfilter/ipvs/ip_vs_core.c           |  46 ++++++-----
+ net/netfilter/nf_conntrack_core.c         |  18 +++--
+ net/netfilter/nf_conntrack_netlink.c      |   3 +-
+ net/netfilter/nf_flow_table_core.c        |  11 ++-
+ net/netfilter/nf_flow_table_ip.c          |   7 ++
+ net/netfilter/nf_flow_table_offload.c     |  70 ++++++++---------
+ net/netfilter/nf_queue.c                  |  96 ++++++++++-------------
+ net/netfilter/nf_tables_api.c             | 125 +++++++++++++++++++++++-------
+ net/netfilter/nf_tables_offload.c         |   2 +-
+ net/netfilter/nfnetlink_queue.c           |  10 +--
+ net/netfilter/nft_dynset.c                |  26 ++-----
+ net/netfilter/nft_set_bitmap.c            |   3 +
+ net/sched/cls_api.c                       |   2 +-
+ 20 files changed, 278 insertions(+), 193 deletions(-)
