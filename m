@@ -1,53 +1,98 @@
 Return-Path: <SRS0=CFkq=5P=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.5 required=3.0 tests=FREEMAIL_FORGED_FROMDOMAIN,
-	FREEMAIL_FROM,FREEMAIL_REPLYTO_END_DIGIT,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,PRICE_CATALOG,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33713C43331
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 04:28:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DB2DC2D0EB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 07:11:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 14E2A206F6
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 04:28:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 358E620776
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 07:11:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727817AbgC3E2E (ORCPT
+        id S1729373AbgC3HLk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Mar 2020 00:28:04 -0400
-Received: from host10-96-61-217.static.arubacloud.com ([217.61.96.10]:44158
-        "EHLO mail.richermoren.tk" rhost-flags-OK-FAIL-OK-OK)
-        by vger.kernel.org with ESMTP id S1727300AbgC3E2E (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Mar 2020 00:28:04 -0400
-Received: by mail.richermoren.tk (Postfix, from userid 48)
-        id A749A108391; Mon, 30 Mar 2020 00:13:34 -0400 (EDT)
-To:     netfilter-devel@vger.kernel.org
-Subject: Request for catalog and price list
-X-PHP-Originating-Script: 0:agregesa.php
-From:   Julian Smith <juliansmith2014@mail.ru>
-Reply-To: juliansmith2014@outlook.com
+        Mon, 30 Mar 2020 03:11:40 -0400
+Received: from ja.ssi.bg ([178.16.129.10]:59798 "EHLO ja.ssi.bg"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728489AbgC3HLk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 30 Mar 2020 03:11:40 -0400
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id 02U7BL0O006642;
+        Mon, 30 Mar 2020 10:11:21 +0300
+Date:   Mon, 30 Mar 2020 10:11:21 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+cc:     Simon Horman <horms@verge.net.au>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH nf-next] ipvs: fix uninitialized variable warning
+In-Reply-To: <1585538415-27583-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
+Message-ID: <alpine.LFD.2.21.2003301006560.5190@ja.home.ssi.bg>
+References: <1585538415-27583-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
+User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
 MIME-Version: 1.0
-Content-Type:   text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Message-Id: <20200330041334.A749A108391@mail.richermoren.tk>
-Date:   Mon, 30 Mar 2020 00:13:34 -0400 (EDT)
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello friend,
 
-This is Julian Smith and i am purchasing manager from Sinara Group Co.,LTD in Russia.
-We are glad to know about your company from the web and we are interested in your products.
-Could you kindly send us your Latest catalog and price list for our trial order.
+	Hello,
 
-Thanks and Best Regards,
+On Mon, 30 Mar 2020, Haishuang Yan wrote:
 
-Ms. Julian Smith
-Purchasing Manager
-Sinara Group Co.,LTD
+> If outer_proto is not set, GCC warning as following:
+> 
+> In file included from net/netfilter/ipvs/ip_vs_core.c:52:
+> net/netfilter/ipvs/ip_vs_core.c: In function 'ip_vs_in_icmp':
+> include/net/ip_vs.h:233:4: warning: 'outer_proto' may be used uninitialized in this function [-Wmaybe-uninitialized]
+>  233 |    printk(KERN_DEBUG pr_fmt(msg), ##__VA_ARGS__); \
+>      |    ^~~~~~
+> net/netfilter/ipvs/ip_vs_core.c:1666:8: note: 'outer_proto' was declared here
+> 1666 |  char *outer_proto;
+>      |        ^~~~~~~~~~~
+> 
+> Fixes: 73348fed35d0 ("ipvs: optimize tunnel dumps for icmp errors")
+> Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
 
+Acked-by: Julian Anastasov <ja@ssi.bg>
 
+	Hm, my compiler does not report it: gcc version 9.1.1
+
+> ---
+>  net/netfilter/ipvs/ip_vs_core.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> index d2ac530..aa6a603 100644
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -1663,7 +1663,7 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
+>  	unsigned int offset, offset2, ihl, verdict;
+>  	bool tunnel, new_cp = false;
+>  	union nf_inet_addr *raddr;
+> -	char *outer_proto;
+> +	char *outer_proto = "IPIP";
+>  
+>  	*related = 1;
+>  
+> @@ -1723,7 +1723,6 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
+>  		if (cih == NULL)
+>  			return NF_ACCEPT; /* The packet looks wrong, ignore */
+>  		tunnel = true;
+> -		outer_proto = "IPIP";
+>  	} else if ((cih->protocol == IPPROTO_UDP ||	/* Can be UDP encap */
+>  		    cih->protocol == IPPROTO_GRE) &&	/* Can be GRE encap */
+>  		   /* Error for our tunnel must arrive at LOCAL_IN */
+> -- 
+> 1.8.3.1
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
