@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29CABC2D0ED
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C0F0C2D0ED
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0C5B92072E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E65EE2072E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728880AbgC3TW2 (ORCPT
+        id S1728900AbgC3TW3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Mar 2020 15:22:28 -0400
-Received: from correo.us.es ([193.147.175.20]:48580 "EHLO mail.us.es"
+        Mon, 30 Mar 2020 15:22:29 -0400
+Received: from correo.us.es ([193.147.175.20]:48578 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728471AbgC3TWF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1728496AbgC3TWF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 30 Mar 2020 15:22:05 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 24E791022AC
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:58 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id A51991022A6
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:57 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1152B10078A
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:58 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 96907D2B1F
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:57 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 0AF8610078D; Mon, 30 Mar 2020 21:21:46 +0200 (CEST)
+        id 9425BDA3C4; Mon, 30 Mar 2020 21:21:45 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7BDE4100A63;
-        Mon, 30 Mar 2020 21:21:43 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B475D100A41;
+        Mon, 30 Mar 2020 21:21:42 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 30 Mar 2020 21:21:43 +0200 (CEST)
+ Mon, 30 Mar 2020 21:21:42 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 454F042EF4E1;
-        Mon, 30 Mar 2020 21:21:43 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 8BFCB42EF4E0;
+        Mon, 30 Mar 2020 21:21:42 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 13/28] netfilter: flowtable: Fix incorrect tc_setup_type type
-Date:   Mon, 30 Mar 2020 21:21:21 +0200
-Message-Id: <20200330192136.230459-14-pablo@netfilter.org>
+Subject: [PATCH 10/28] netfilter: conntrack: export nf_ct_acct_update()
+Date:   Mon, 30 Mar 2020 21:21:18 +0200
+Message-Id: <20200330192136.230459-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200330192136.230459-1-pablo@netfilter.org>
 References: <20200330192136.230459-1-pablo@netfilter.org>
@@ -54,99 +54,83 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+This function allows you to update the conntrack counters.
 
-The indirect block setup should use TC_SETUP_FT as the type instead of
-TC_SETUP_BLOCK. Adjust existing users of the indirect flow block
-infrastructure.
-
-Fixes: b5140a36da78 ("netfilter: flowtable: add indr block setup support")
-Signed-off-by: wenxu <wenxu@ucloud.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/flow_offload.h            | 3 ++-
- net/core/flow_offload.c               | 6 +++---
- net/netfilter/nf_flow_table_offload.c | 2 +-
- net/netfilter/nf_tables_offload.c     | 2 +-
- net/sched/cls_api.c                   | 2 +-
- 5 files changed, 8 insertions(+), 7 deletions(-)
+ include/net/netfilter/nf_conntrack_acct.h |  2 ++
+ net/netfilter/nf_conntrack_core.c         | 15 +++++++--------
+ 2 files changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
-index 1e30b0d44b61..1afb6bd4530d 100644
---- a/include/net/flow_offload.h
-+++ b/include/net/flow_offload.h
-@@ -520,6 +520,7 @@ void flow_indr_block_cb_unregister(struct net_device *dev,
- 
- void flow_indr_block_call(struct net_device *dev,
- 			  struct flow_block_offload *bo,
--			  enum flow_block_command command);
-+			  enum flow_block_command command,
-+			  enum tc_setup_type type);
- 
- #endif /* _NET_FLOW_OFFLOAD_H */
-diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
-index 7440e6117c81..e951b743bed3 100644
---- a/net/core/flow_offload.c
-+++ b/net/core/flow_offload.c
-@@ -511,7 +511,8 @@ EXPORT_SYMBOL_GPL(flow_indr_block_cb_unregister);
- 
- void flow_indr_block_call(struct net_device *dev,
- 			  struct flow_block_offload *bo,
--			  enum flow_block_command command)
-+			  enum flow_block_command command,
-+			  enum tc_setup_type type)
- {
- 	struct flow_indr_block_cb *indr_block_cb;
- 	struct flow_indr_block_dev *indr_dev;
-@@ -521,8 +522,7 @@ void flow_indr_block_call(struct net_device *dev,
- 		return;
- 
- 	list_for_each_entry(indr_block_cb, &indr_dev->cb_list, list)
--		indr_block_cb->cb(dev, indr_block_cb->cb_priv, TC_SETUP_BLOCK,
--				  bo);
-+		indr_block_cb->cb(dev, indr_block_cb->cb_priv, type, bo);
- }
- EXPORT_SYMBOL_GPL(flow_indr_block_call);
- 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index a68136a8d750..0c6437fab4fe 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -938,7 +938,7 @@ static int nf_flow_table_indr_offload_cmd(struct flow_block_offload *bo,
- {
- 	nf_flow_table_block_offload_init(bo, dev_net(dev), cmd, flowtable,
- 					 extack);
--	flow_indr_block_call(dev, bo, cmd);
-+	flow_indr_block_call(dev, bo, cmd, TC_SETUP_FT);
- 
- 	if (list_empty(&bo->cb_list))
- 		return -EOPNOTSUPP;
-diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 2bb28483af22..954bccb7f32a 100644
---- a/net/netfilter/nf_tables_offload.c
-+++ b/net/netfilter/nf_tables_offload.c
-@@ -313,7 +313,7 @@ static int nft_indr_block_offload_cmd(struct nft_base_chain *chain,
- 
- 	nft_flow_block_offload_init(&bo, dev_net(dev), cmd, chain, &extack);
- 
--	flow_indr_block_call(dev, &bo, cmd);
-+	flow_indr_block_call(dev, &bo, cmd, TC_SETUP_BLOCK);
- 
- 	if (list_empty(&bo.cb_list))
- 		return -EOPNOTSUPP;
-diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
-index eefacb3176e3..84f8ee6f2009 100644
---- a/net/sched/cls_api.c
-+++ b/net/sched/cls_api.c
-@@ -708,7 +708,7 @@ static void tc_indr_block_call(struct tcf_block *block,
- 	};
- 	INIT_LIST_HEAD(&bo.cb_list);
- 
--	flow_indr_block_call(dev, &bo, command);
-+	flow_indr_block_call(dev, &bo, command, TC_SETUP_BLOCK);
- 	tcf_block_setup(block, &bo);
+diff --git a/include/net/netfilter/nf_conntrack_acct.h b/include/net/netfilter/nf_conntrack_acct.h
+index f7a060c6eb28..df198c51244a 100644
+--- a/include/net/netfilter/nf_conntrack_acct.h
++++ b/include/net/netfilter/nf_conntrack_acct.h
+@@ -65,6 +65,8 @@ static inline void nf_ct_set_acct(struct net *net, bool enable)
+ #endif
  }
  
++void nf_ct_acct_update(struct nf_conn *ct, u32 dir, unsigned int bytes);
++
+ void nf_conntrack_acct_pernet_init(struct net *net);
+ 
+ int nf_conntrack_acct_init(void);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index f82d4a802acc..7ded6d287f87 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -865,9 +865,7 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_hash_check_insert);
+ 
+-static inline void nf_ct_acct_update(struct nf_conn *ct,
+-				     enum ip_conntrack_info ctinfo,
+-				     unsigned int len)
++void nf_ct_acct_update(struct nf_conn *ct, u32 dir, unsigned int bytes)
+ {
+ 	struct nf_conn_acct *acct;
+ 
+@@ -875,10 +873,11 @@ static inline void nf_ct_acct_update(struct nf_conn *ct,
+ 	if (acct) {
+ 		struct nf_conn_counter *counter = acct->counter;
+ 
+-		atomic64_inc(&counter[CTINFO2DIR(ctinfo)].packets);
+-		atomic64_add(len, &counter[CTINFO2DIR(ctinfo)].bytes);
++		atomic64_inc(&counter[dir].packets);
++		atomic64_add(bytes, &counter[dir].bytes);
+ 	}
+ }
++EXPORT_SYMBOL_GPL(nf_ct_acct_update);
+ 
+ static void nf_ct_acct_merge(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
+ 			     const struct nf_conn *loser_ct)
+@@ -892,7 +891,7 @@ static void nf_ct_acct_merge(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
+ 
+ 		/* u32 should be fine since we must have seen one packet. */
+ 		bytes = atomic64_read(&counter[CTINFO2DIR(ctinfo)].bytes);
+-		nf_ct_acct_update(ct, ctinfo, bytes);
++		nf_ct_acct_update(ct, CTINFO2DIR(ctinfo), bytes);
+ 	}
+ }
+ 
+@@ -1933,7 +1932,7 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
+ 		WRITE_ONCE(ct->timeout, extra_jiffies);
+ acct:
+ 	if (do_acct)
+-		nf_ct_acct_update(ct, ctinfo, skb->len);
++		nf_ct_acct_update(ct, CTINFO2DIR(ctinfo), skb->len);
+ }
+ EXPORT_SYMBOL_GPL(__nf_ct_refresh_acct);
+ 
+@@ -1941,7 +1940,7 @@ bool nf_ct_kill_acct(struct nf_conn *ct,
+ 		     enum ip_conntrack_info ctinfo,
+ 		     const struct sk_buff *skb)
+ {
+-	nf_ct_acct_update(ct, ctinfo, skb->len);
++	nf_ct_acct_update(ct, CTINFO2DIR(ctinfo), skb->len);
+ 
+ 	return nf_ct_delete(ct, 0, 0);
+ }
 -- 
 2.11.0
 
