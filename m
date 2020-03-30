@@ -2,60 +2,85 @@ Return-Path: <SRS0=CFkq=5P=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5942CC43331
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 17:51:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F400AC2D0EB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3417A2073B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 17:51:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CD5C620748
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730233AbgC3RvI (ORCPT
+        id S1728316AbgC3TWB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Mar 2020 13:51:08 -0400
-Received: from shards.monkeyblade.net ([23.128.96.9]:40246 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728075AbgC3RvH (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Mar 2020 13:51:07 -0400
-Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id 3C73615C399AA;
-        Mon, 30 Mar 2020 10:51:07 -0700 (PDT)
-Date:   Mon, 30 Mar 2020 10:51:06 -0700 (PDT)
-Message-Id: <20200330.105106.136985527934005976.davem@davemloft.net>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH 00/26] Netfilter/IPVS updates for net-next
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20200330.104857.921940685428035705.davem@davemloft.net>
-References: <20200330003708.54017-1-pablo@netfilter.org>
-        <20200330.104857.921940685428035705.davem@davemloft.net>
-X-Mailer: Mew version 6.8 on Emacs 26.1
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-7
-Content-Transfer-Encoding: base64
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Mon, 30 Mar 2020 10:51:07 -0700 (PDT)
+        Mon, 30 Mar 2020 15:22:01 -0400
+Received: from correo.us.es ([193.147.175.20]:48502 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727170AbgC3TWA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 30 Mar 2020 15:22:00 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id C24F6FFB81
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:56 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AB37712395B
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:56 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 2B178100A59; Mon, 30 Mar 2020 21:21:49 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id ED9A012395D;
+        Mon, 30 Mar 2020 21:21:46 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 30 Mar 2020 21:21:46 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id C08FD42EF4E1;
+        Mon, 30 Mar 2020 21:21:46 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org
+Subject: [PATCH 21/28] netfilter: ctnetlink: be more strict when NF_CONNTRACK_MARK is not set
+Date:   Mon, 30 Mar 2020 21:21:29 +0200
+Message-Id: <20200330192136.230459-22-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20200330192136.230459-1-pablo@netfilter.org>
+References: <20200330192136.230459-1-pablo@netfilter.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-RnJvbTogRGF2aWQgTWlsbGVyIDxkYXZlbUBkYXZlbWxvZnQubmV0Pg0KRGF0ZTogTW9uLCAzMCBN
-YXIgMjAyMCAxMDo0ODo1NyAtMDcwMCAoUERUKQ0KDQo+IEZyb206IFBhYmxvIE5laXJhIEF5dXNv
-IDxwYWJsb0BuZXRmaWx0ZXIub3JnPg0KPiBEYXRlOiBNb24sIDMwIE1hciAyMDIwIDAyOjM2OjQy
-ICswMjAwDQo+IA0KPj4gWW91IGNhbiBwdWxsIHRoZXNlIGNoYW5nZXMgZnJvbToNCj4+IA0KPj4g
-ICBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvcGFibG8vbmYt
-bmV4dC5naXQNCj4gDQo+IFB1bGxlZCwgdGhhbmtzLg0KDQpBY3R1YWxseSwgSSBoYWQgdG8gcmV2
-ZXJ0LCBwbGVhc2UgZml4IHRoZXNlIHdhcm5pbmdzOg0KDQpuZXQvbmV0ZmlsdGVyL2lwdnMvaXBf
-dnNfY29yZS5jOiBJbiBmdW5jdGlvbiChaXBfdnNfaW5faWNtcKI6DQouL2luY2x1ZGUvbmV0L2lw
-X3ZzLmg6MjMzOjQ6IHdhcm5pbmc6IKFvdXRlcl9wcm90b6IgbWF5IGJlIHVzZWQgdW5pbml0aWFs
-aXplZCBpbiB0aGlzIGZ1bmN0aW9uIFstV21heWJlLXVuaW5pdGlhbGl6ZWRdDQogICAgcHJpbnRr
-KEtFUk5fREVCVUcgcHJfZm10KG1zZyksICMjX19WQV9BUkdTX18pOyBcDQogICAgXn5+fn5+DQpu
-ZXQvbmV0ZmlsdGVyL2lwdnMvaXBfdnNfY29yZS5jOjE2NjY6ODogbm90ZTogoW91dGVyX3Byb3Rv
-oiB3YXMgZGVjbGFyZWQgaGVyZQ0KICBjaGFyICpvdXRlcl9wcm90bzsNCiAgICAgICAgXn5+fn5+
-fn5+fn4NCg==
+From: Romain Bellan <romain.bellan@wifirst.fr>
+
+When CONFIG_NF_CONNTRACK_MARK is not set, any CTA_MARK or CTA_MARK_MASK
+in netlink message are not supported. We should return an error when one
+of them is set, not both
+
+Fixes: 9306425b70bf ("netfilter: ctnetlink: must check mark attributes vs NULL")
+Signed-off-by: Romain Bellan <romain.bellan@wifirst.fr>
+Signed-off-by: Florent Fourcot <florent.fourcot@wifirst.fr>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_netlink.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index eb190206cd12..9ddfcd002d3b 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -860,7 +860,7 @@ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
+ 	struct ctnetlink_filter *filter;
+ 
+ #ifndef CONFIG_NF_CONNTRACK_MARK
+-	if (cda[CTA_MARK] && cda[CTA_MARK_MASK])
++	if (cda[CTA_MARK] || cda[CTA_MARK_MASK])
+ 		return ERR_PTR(-EOPNOTSUPP);
+ #endif
+ 
+-- 
+2.11.0
+
