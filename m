@@ -2,178 +2,115 @@ Return-Path: <SRS0=CFkq=5P=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1CA0C2D0F0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 548C1C2D0F2
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:23:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 883AA2072E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 38D112072E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:23:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729072AbgC3TW5 (ORCPT
+        id S1729055AbgC3TW5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 30 Mar 2020 15:22:57 -0400
-Received: from correo.us.es ([193.147.175.20]:48504 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:48518 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728096AbgC3TWB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1728165AbgC3TWB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 30 Mar 2020 15:22:01 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DF013FFB84
+        by mail.us.es (Postfix) with ESMTP id E84D4B5095
         for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:56 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A78872E40F
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C787312B68E
         for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:56 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 24F3C100A4E; Mon, 30 Mar 2020 21:21:42 +0200 (CEST)
+        id 8F183114D65; Mon, 30 Mar 2020 21:21:50 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 99A8F2067E;
-        Mon, 30 Mar 2020 21:21:39 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C5D05100A52;
+        Mon, 30 Mar 2020 21:21:47 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 30 Mar 2020 21:21:39 +0200 (CEST)
+ Mon, 30 Mar 2020 21:21:46 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 6F88D42EF4E0;
-        Mon, 30 Mar 2020 21:21:39 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id A0E6042EF4E0;
+        Mon, 30 Mar 2020 21:21:47 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 00/28] Netfilter/IPVS updates for net-next
-Date:   Mon, 30 Mar 2020 21:21:08 +0200
-Message-Id: <20200330192136.230459-1-pablo@netfilter.org>
+Subject: [PATCH 24/28] netfilter: nf_tables: skip set types that do not support for expressions
+Date:   Mon, 30 Mar 2020 21:21:32 +0200
+Message-Id: <20200330192136.230459-25-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20200330192136.230459-1-pablo@netfilter.org>
+References: <20200330192136.230459-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello David,
+The bitmap set does not support for expressions, skip it from the
+estimation step.
 
-The following patchset contains Netfilter/IPVS updates for net-next:
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables.h | 2 ++
+ net/netfilter/nf_tables_api.c     | 3 +++
+ net/netfilter/nft_set_bitmap.c    | 2 ++
+ 3 files changed, 7 insertions(+)
 
-1) Add support to specify a stateful expression in set definitions,
-   this allows users to specify e.g. counters per set elements.
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 642bc3ef81aa..6eb627b3c99b 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -266,6 +266,7 @@ struct nft_set_iter {
+  *	@size: number of set elements
+  *	@field_len: length of each field in concatenation, bytes
+  *	@field_count: number of concatenated fields in element
++ *	@expr: set must support for expressions
+  */
+ struct nft_set_desc {
+ 	unsigned int		klen;
+@@ -273,6 +274,7 @@ struct nft_set_desc {
+ 	unsigned int		size;
+ 	u8			field_len[NFT_REG32_COUNT];
+ 	u8			field_count;
++	bool			expr;
+ };
+ 
+ /**
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index c1e04ac21392..8a73adfab7ff 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4032,6 +4032,9 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ 			return err;
+ 	}
+ 
++	if (nla[NFTA_SET_EXPR])
++		desc.expr = true;
++
+ 	table = nft_table_lookup(net, nla[NFTA_SET_TABLE], family, genmask);
+ 	if (IS_ERR(table)) {
+ 		NL_SET_BAD_ATTR(extack, nla[NFTA_SET_TABLE]);
+diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
+index 6829a497b4cc..32f0fc8be3a4 100644
+--- a/net/netfilter/nft_set_bitmap.c
++++ b/net/netfilter/nft_set_bitmap.c
+@@ -286,6 +286,8 @@ static bool nft_bitmap_estimate(const struct nft_set_desc *desc, u32 features,
+ 	/* Make sure bitmaps we don't get bitmaps larger than 16 Kbytes. */
+ 	if (desc->klen > 2)
+ 		return false;
++	else if (desc->expr)
++		return false;
+ 
+ 	est->size   = nft_bitmap_total_size(desc->klen);
+ 	est->lookup = NFT_SET_CLASS_O_1;
+-- 
+2.11.0
 
-2) Flowtable software counter support.
-
-3) Flowtable hardware offload counter support, from wenxu.
-
-3) Parallelize flowtable hardware offload requests, from Paul Blakey.
-   This includes a patch to add one work entry per offload command.
-
-4) Several patches to rework nf_queue refcount handling, from Florian
-   Westphal.
-
-4) A few fixes for the flowtable tunnel offload: Fix crash if tunneling
-   information is missing and set up indirect flow block as TC_SETUP_FT,
-   patch from wenxu.
-
-5) Stricter netlink attribute sanity check on filters, from Romain Bellan
-   and Florent Fourcot.
-
-5) Annotations to make sparse happy, from Jules Irenge.
-
-6) Improve icmp errors in debugging information, from Haishuang Yan.
-
-7) Fix warning in IPVS icmp error debugging, from Haishuang Yan.
-
-8) Fix endianess issue in tcp extension header, from Sergey Marinkevich.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
-
-Thank you.
-
-----------------------------------------------------------------
-
-The following changes since commit 79e28519ac78dde6d38fe6ea22286af574f5c7db:
-
-  Merge tag 'mlx5-updates-2020-03-17' of git://git.kernel.org/pub/scm/linux/kernel/git/saeed/linux (2020-03-18 19:13:37 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
-
-for you to fetch changes up to e19680f8347ec0e335ae90801fbe42d85d7b385a:
-
-  ipvs: fix uninitialized variable warning (2020-03-30 21:17:53 +0200)
-
-----------------------------------------------------------------
-Florian Westphal (4):
-      netfilter: nf_queue: make nf_queue_entry_release_refs static
-      netfilter: nf_queue: place bridge physports into queue_entry struct
-      netfilter: nf_queue: do not release refcouts until nf_reinject is done
-      netfilter: nf_queue: prefer nf_queue_entry_free
-
-Haishuang Yan (2):
-      ipvs: optimize tunnel dumps for icmp errors
-      ipvs: fix uninitialized variable warning
-
-Jules Irenge (2):
-      netfilter: ctnetlink: Add missing annotation for ctnetlink_parse_nat_setup()
-      netfilter: conntrack: Add missing annotations for nf_conntrack_all_lock() and nf_conntrack_all_unlock()
-
-Pablo Neira Ayuso (11):
-      netfilter: nf_tables: move nft_expr_clone() to nf_tables_api.c
-      netfilter: nf_tables: pass context to nft_set_destroy()
-      netfilter: nf_tables: allow to specify stateful expression in set definition
-      netfilter: nf_tables: fix double-free on set expression from the error path
-      netfilter: nf_tables: add nft_set_elem_expr_destroy() and use it
-      netfilter: conntrack: export nf_ct_acct_update()
-      netfilter: nf_tables: add enum nft_flowtable_flags to uapi
-      netfilter: flowtable: add counter support
-      netfilter: nft_set_bitmap: initialize set element extension in lookups
-      netfilter: nft_dynset: validate set expression definition
-      netfilter: nf_tables: skip set types that do not support for expressions
-
-Paul Blakey (2):
-      netfilter: flowtable: Use rw sem as flow block lock
-      netfilter: flowtable: Use work entry per offload command
-
-Qian Cai (1):
-      netfilter: nf_tables: silence a RCU-list warning in nft_table_lookup()
-
-Romain Bellan (1):
-      netfilter: ctnetlink: be more strict when NF_CONNTRACK_MARK is not set
-
-Sergey Marinkevich (1):
-      netfilter: nft_exthdr: fix endianness of tcp option cast
-
-wenxu (4):
-      netfilter: flowtable: fix NULL pointer dereference in tunnel offload support
-      netfilter: flowtable: Fix incorrect tc_setup_type type
-      netfilter: conntrack: add nf_ct_acct_add()
-      netfilter: flowtable: add counter support in HW offload
-
- include/net/flow_offload.h                |   3 +-
- include/net/netfilter/nf_conntrack_acct.h |  11 +++
- include/net/netfilter/nf_flow_table.h     |   5 +-
- include/net/netfilter/nf_queue.h          |   7 +-
- include/net/netfilter/nf_tables.h         |   5 ++
- include/uapi/linux/netfilter/nf_tables.h  |  15 ++++
- net/core/flow_offload.c                   |   6 +-
- net/netfilter/ipvs/ip_vs_core.c           |  45 ++++++-----
- net/netfilter/nf_conntrack_core.c         |  18 +++--
- net/netfilter/nf_conntrack_netlink.c      |   3 +-
- net/netfilter/nf_flow_table_core.c        |  11 ++-
- net/netfilter/nf_flow_table_ip.c          |   7 ++
- net/netfilter/nf_flow_table_offload.c     |  70 ++++++++---------
- net/netfilter/nf_queue.c                  |  96 ++++++++++-------------
- net/netfilter/nf_tables_api.c             | 125 +++++++++++++++++++++++-------
- net/netfilter/nf_tables_offload.c         |   2 +-
- net/netfilter/nfnetlink_queue.c           |  10 +--
- net/netfilter/nft_dynset.c                |  26 ++-----
- net/netfilter/nft_exthdr.c                |   8 +-
- net/netfilter/nft_set_bitmap.c            |   3 +
- net/sched/cls_api.c                       |   2 +-
- 21 files changed, 280 insertions(+), 198 deletions(-)
