@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 961F9C43331
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71097C2D0EB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 784812072E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56FBB2072E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728568AbgC3TWF (ORCPT
+        id S1728685AbgC3TWH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Mar 2020 15:22:05 -0400
-Received: from correo.us.es ([193.147.175.20]:48504 "EHLO mail.us.es"
+        Mon, 30 Mar 2020 15:22:07 -0400
+Received: from correo.us.es ([193.147.175.20]:48602 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728365AbgC3TWE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Mar 2020 15:22:04 -0400
+        id S1728569AbgC3TWH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 30 Mar 2020 15:22:07 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0994BB4971
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:57 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 588F71022DB
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:22:03 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E109C12B69E
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:56 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 36758207A2
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:22:03 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id AF9C9123962; Mon, 30 Mar 2020 21:21:44 +0200 (CEST)
+        id A1B9F10218A; Mon, 30 Mar 2020 21:21:47 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 85AD5100A53;
-        Mon, 30 Mar 2020 21:21:41 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 79D3C114D65;
+        Mon, 30 Mar 2020 21:21:44 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 30 Mar 2020 21:21:41 +0200 (CEST)
+ Mon, 30 Mar 2020 21:21:44 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 5805442EF4E1;
-        Mon, 30 Mar 2020 21:21:41 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 4953B42EF4E1;
+        Mon, 30 Mar 2020 21:21:44 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 05/28] netfilter: nf_tables: add nft_set_elem_expr_destroy() and use it
-Date:   Mon, 30 Mar 2020 21:21:13 +0200
-Message-Id: <20200330192136.230459-6-pablo@netfilter.org>
+Subject: [PATCH 15/28] netfilter: flowtable: Use rw sem as flow block lock
+Date:   Mon, 30 Mar 2020 21:21:23 +0200
+Message-Id: <20200330192136.230459-16-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200330192136.230459-1-pablo@netfilter.org>
 References: <20200330192136.230459-1-pablo@netfilter.org>
@@ -54,83 +54,110 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds nft_set_elem_expr_destroy() to destroy stateful
-expressions in set elements.
+From: Paul Blakey <paulb@mellanox.com>
 
-This patch also updates the commit path to call this function to invoke
-expr->ops->destroy_clone when required.
+Currently flow offload threads are synchronized by the flow block mutex.
+Use rw lock instead to increase flow insertion (read) concurrency.
 
-This is implicitly fixing up a module reference counter leak and
-a memory leak in expressions that allocated internal state, e.g.
-nft_counter.
-
-Fixes: 409444522976 ("netfilter: nf_tables: add elements with stateful expressions")
+Signed-off-by: Paul Blakey <paulb@mellanox.com>
+Reviewed-by: Oz Shlomo <ozsh@mellanox.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 28 +++++++++++++++++-----------
- 1 file changed, 17 insertions(+), 11 deletions(-)
+ include/net/netfilter/nf_flow_table.h |  2 +-
+ net/netfilter/nf_flow_table_core.c    | 11 +++++------
+ net/netfilter/nf_flow_table_offload.c |  4 ++--
+ 3 files changed, 8 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 29ad33e52dbb..c5332a313283 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4882,6 +4882,17 @@ void *nft_set_elem_init(const struct nft_set *set,
- 	return elem;
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 4a2ec6fd9ad2..6bf69652f57d 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -74,7 +74,7 @@ struct nf_flowtable {
+ 	struct delayed_work		gc_work;
+ 	unsigned int			flags;
+ 	struct flow_block		flow_block;
+-	struct mutex			flow_block_lock; /* Guards flow_block */
++	struct rw_semaphore		flow_block_lock; /* Guards flow_block */
+ 	possible_net_t			net;
+ };
+ 
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 9a477bd563b7..9399bb2df295 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -392,7 +392,7 @@ int nf_flow_table_offload_add_cb(struct nf_flowtable *flow_table,
+ 	struct flow_block_cb *block_cb;
+ 	int err = 0;
+ 
+-	mutex_lock(&flow_table->flow_block_lock);
++	down_write(&flow_table->flow_block_lock);
+ 	block_cb = flow_block_cb_lookup(block, cb, cb_priv);
+ 	if (block_cb) {
+ 		err = -EEXIST;
+@@ -408,7 +408,7 @@ int nf_flow_table_offload_add_cb(struct nf_flowtable *flow_table,
+ 	list_add_tail(&block_cb->list, &block->cb_list);
+ 
+ unlock:
+-	mutex_unlock(&flow_table->flow_block_lock);
++	up_write(&flow_table->flow_block_lock);
+ 	return err;
  }
+ EXPORT_SYMBOL_GPL(nf_flow_table_offload_add_cb);
+@@ -419,13 +419,13 @@ void nf_flow_table_offload_del_cb(struct nf_flowtable *flow_table,
+ 	struct flow_block *block = &flow_table->flow_block;
+ 	struct flow_block_cb *block_cb;
  
-+static void nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
-+				      struct nft_expr *expr)
-+{
-+	if (expr->ops->destroy_clone) {
-+		expr->ops->destroy_clone(ctx, expr);
-+		module_put(expr->ops->type->owner);
-+	} else {
-+		nf_tables_expr_destroy(ctx, expr);
-+	}
-+}
-+
- void nft_set_elem_destroy(const struct nft_set *set, void *elem,
- 			  bool destroy_expr)
- {
-@@ -4894,16 +4905,9 @@ void nft_set_elem_destroy(const struct nft_set *set, void *elem,
- 	nft_data_release(nft_set_ext_key(ext), NFT_DATA_VALUE);
- 	if (nft_set_ext_exists(ext, NFT_SET_EXT_DATA))
- 		nft_data_release(nft_set_ext_data(ext), set->dtype);
--	if (destroy_expr && nft_set_ext_exists(ext, NFT_SET_EXT_EXPR)) {
--		struct nft_expr *expr = nft_set_ext_expr(ext);
-+	if (destroy_expr && nft_set_ext_exists(ext, NFT_SET_EXT_EXPR))
-+		nft_set_elem_expr_destroy(&ctx, nft_set_ext_expr(ext));
- 
--		if (expr->ops->destroy_clone) {
--			expr->ops->destroy_clone(&ctx, expr);
--			module_put(expr->ops->type->owner);
--		} else {
--			nf_tables_expr_destroy(&ctx, expr);
--		}
--	}
- 	if (nft_set_ext_exists(ext, NFT_SET_EXT_OBJREF))
- 		(*nft_set_ext_obj(ext))->use--;
- 	kfree(elem);
-@@ -4919,7 +4923,8 @@ static void nf_tables_set_elem_destroy(const struct nft_ctx *ctx,
- 	struct nft_set_ext *ext = nft_set_elem_ext(set, elem);
- 
- 	if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPR))
--		nf_tables_expr_destroy(ctx, nft_set_ext_expr(ext));
-+		nft_set_elem_expr_destroy(ctx, nft_set_ext_expr(ext));
-+
- 	kfree(elem);
+-	mutex_lock(&flow_table->flow_block_lock);
++	down_write(&flow_table->flow_block_lock);
+ 	block_cb = flow_block_cb_lookup(block, cb, cb_priv);
+ 	if (block_cb)
+ 		list_del(&block_cb->list);
+ 	else
+ 		WARN_ON(true);
+-	mutex_unlock(&flow_table->flow_block_lock);
++	up_write(&flow_table->flow_block_lock);
  }
+ EXPORT_SYMBOL_GPL(nf_flow_table_offload_del_cb);
  
-@@ -5182,7 +5187,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- err_trans:
- 	if (obj)
- 		obj->use--;
--	kfree(elem.priv);
-+
-+	nf_tables_set_elem_destroy(ctx, set, elem.priv);
- err_parse_data:
- 	if (nla[NFTA_SET_ELEM_DATA] != NULL)
- 		nft_data_release(&data, desc.type);
+@@ -551,7 +551,7 @@ int nf_flow_table_init(struct nf_flowtable *flowtable)
+ 
+ 	INIT_DEFERRABLE_WORK(&flowtable->gc_work, nf_flow_offload_work_gc);
+ 	flow_block_init(&flowtable->flow_block);
+-	mutex_init(&flowtable->flow_block_lock);
++	init_rwsem(&flowtable->flow_block_lock);
+ 
+ 	err = rhashtable_init(&flowtable->rhashtable,
+ 			      &nf_flow_offload_rhash_params);
+@@ -614,7 +614,6 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
+ 	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
+ 	nf_flow_table_offload_flush(flow_table);
+ 	rhashtable_destroy(&flow_table->rhashtable);
+-	mutex_destroy(&flow_table->flow_block_lock);
+ }
+ EXPORT_SYMBOL_GPL(nf_flow_table_free);
+ 
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 0c6437fab4fe..b96db831b4ca 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -691,7 +691,7 @@ static int nf_flow_offload_tuple(struct nf_flowtable *flowtable,
+ 	if (cmd == FLOW_CLS_REPLACE)
+ 		cls_flow.rule = flow_rule->rule;
+ 
+-	mutex_lock(&flowtable->flow_block_lock);
++	down_read(&flowtable->flow_block_lock);
+ 	list_for_each_entry(block_cb, block_cb_list, list) {
+ 		err = block_cb->cb(TC_SETUP_CLSFLOWER, &cls_flow,
+ 				   block_cb->cb_priv);
+@@ -700,7 +700,7 @@ static int nf_flow_offload_tuple(struct nf_flowtable *flowtable,
+ 
+ 		i++;
+ 	}
+-	mutex_unlock(&flowtable->flow_block_lock);
++	up_read(&flowtable->flow_block_lock);
+ 
+ 	if (cmd == FLOW_CLS_STATS)
+ 		memcpy(stats, &cls_flow.stats, sizeof(*stats));
 -- 
 2.11.0
 
