@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D07AC2D0F1
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:23:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69DE1C2D0EB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:23:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4795B2072E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:23:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4E8F92072E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:23:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729086AbgC3TXA (ORCPT
+        id S1727942AbgC3TV7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Mar 2020 15:23:00 -0400
-Received: from correo.us.es ([193.147.175.20]:48506 "EHLO mail.us.es"
+        Mon, 30 Mar 2020 15:21:59 -0400
+Received: from correo.us.es ([193.147.175.20]:48392 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728152AbgC3TWA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Mar 2020 15:22:00 -0400
+        id S1727148AbgC3TV6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 30 Mar 2020 15:21:58 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DF5ACFFB87
+        by mail.us.es (Postfix) with ESMTP id A8093FFB6F
         for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:56 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B72C112396E
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8A8C8114D63
         for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:56 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 38D84100A6E; Mon, 30 Mar 2020 21:21:49 +0200 (CEST)
+        id 07FEB100790; Mon, 30 Mar 2020 21:21:48 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 43BFDFA551;
-        Mon, 30 Mar 2020 21:21:47 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4D865102196;
+        Mon, 30 Mar 2020 21:21:46 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
  Mon, 30 Mar 2020 21:21:46 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 1532442EF4E2;
-        Mon, 30 Mar 2020 21:21:47 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 202D042EF4E1;
+        Mon, 30 Mar 2020 21:21:46 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 22/28] netfilter: nft_set_bitmap: initialize set element extension in lookups
-Date:   Mon, 30 Mar 2020 21:21:30 +0200
-Message-Id: <20200330192136.230459-23-pablo@netfilter.org>
+Subject: [PATCH 19/28] netfilter: nf_queue: do not release refcouts until nf_reinject is done
+Date:   Mon, 30 Mar 2020 21:21:27 +0200
+Message-Id: <20200330192136.230459-20-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200330192136.230459-1-pablo@netfilter.org>
 References: <20200330192136.230459-1-pablo@netfilter.org>
@@ -54,27 +54,62 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Otherwise, nft_lookup might dereference an uninitialized pointer to the
-element extension.
+From: Florian Westphal <fw@strlen.de>
 
-Fixes: 665153ff5752 ("netfilter: nf_tables: add bitmap set type")
+nf_queue is problematic when another NF_QUEUE invocation happens
+from nf_reinject().
+
+1. nf_queue is invoked, increments state->sk refcount.
+2. skb is queued, waiting for verdict.
+3. sk is closed/released.
+3. verdict comes back, nf_reinject is called.
+4. nf_reinject drops the reference -- refcount can now drop to 0
+
+Instead of get_ref/release_ref pattern, we need to nest the get_ref calls:
+    get_ref
+       get_ref
+       release_ref
+     release_ref
+
+So that when we invoke the next processing stage (another netfilter
+or the okfn()), we hold at least one reference count on the
+devices/socket.
+
+After previous patch, it is now safe to put the entry even after okfn()
+has potentially free'd the skb.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_bitmap.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/nf_queue.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
-index 1cb2e67e6e03..6829a497b4cc 100644
---- a/net/netfilter/nft_set_bitmap.c
-+++ b/net/netfilter/nft_set_bitmap.c
-@@ -81,6 +81,7 @@ static bool nft_bitmap_lookup(const struct net *net, const struct nft_set *set,
- 	u32 idx, off;
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 96eb72908467..aadccdd117f0 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -303,12 +303,10 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
  
- 	nft_bitmap_location(set, key, &idx, &off);
-+	*ext = NULL;
+ 	hooks = nf_hook_entries_head(net, pf, entry->state.hook);
  
- 	return nft_bitmap_active(priv->bitmap, idx, off, genmask);
+-	nf_queue_entry_release_refs(entry);
+-
+ 	i = entry->hook_index;
+ 	if (WARN_ON_ONCE(!hooks || i >= hooks->num_hook_entries)) {
+ 		kfree_skb(skb);
+-		kfree(entry);
++		nf_queue_entry_free(entry);
+ 		return;
+ 	}
+ 
+@@ -347,6 +345,6 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 		kfree_skb(skb);
+ 	}
+ 
+-	kfree(entry);
++	nf_queue_entry_free(entry);
  }
+ EXPORT_SYMBOL(nf_reinject);
 -- 
 2.11.0
 
