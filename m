@@ -6,132 +6,83 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7453CC43331
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:38:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADD18C2D0EE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 03:21:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 54CCE206DB
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:38:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E78820732
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 03:21:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727874AbgC3AhT (ORCPT
+        id S1729146AbgC3DVA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 29 Mar 2020 20:37:19 -0400
-Received: from correo.us.es ([193.147.175.20]:57116 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727717AbgC3AhS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 29 Mar 2020 20:37:18 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B3709DA72F
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 02:37:16 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A372EDA736
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 02:37:16 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 989AB100A4B; Mon, 30 Mar 2020 02:37:16 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AE5D0100A44;
-        Mon, 30 Mar 2020 02:37:14 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 30 Mar 2020 02:37:14 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 85D0342EF42A;
-        Mon, 30 Mar 2020 02:37:14 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 01/26] netfilter: nf_tables: move nft_expr_clone() to nf_tables_api.c
-Date:   Mon, 30 Mar 2020 02:36:43 +0200
-Message-Id: <20200330003708.54017-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20200330003708.54017-1-pablo@netfilter.org>
-References: <20200330003708.54017-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Sun, 29 Mar 2020 23:21:00 -0400
+Received: from cmccmta3.chinamobile.com ([221.176.66.81]:4016 "EHLO
+        cmccmta3.chinamobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728987AbgC3DVA (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 29 Mar 2020 23:21:00 -0400
+Received: from spf.mail.chinamobile.com (unknown[172.16.121.5]) by rmmx-syy-dmz-app09-12009 (RichMail) with SMTP id 2ee95e81658ecc9-03bf0; Mon, 30 Mar 2020 11:20:46 +0800 (CST)
+X-RM-TRANSID: 2ee95e81658ecc9-03bf0
+X-RM-TagInfo: emlType=0                                       
+X-RM-SPAM-FLAG: 00000000
+Received: from localhost (unknown[223.105.0.241])
+        by rmsmtp-syy-appsvr03-12003 (RichMail) with SMTP id 2ee35e81658d0c3-a4187;
+        Mon, 30 Mar 2020 11:20:46 +0800 (CST)
+X-RM-TRANSID: 2ee35e81658d0c3-a4187
+From:   Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+To:     Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+Subject: [PATCH nf-next] ipvs: fix uninitialized variable warning
+Date:   Mon, 30 Mar 2020 11:20:15 +0800
+Message-Id: <1585538415-27583-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
+X-Mailer: git-send-email 1.8.3.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Move the nft_expr_clone() helper function to the core.
+If outer_proto is not set, GCC warning as following:
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+In file included from net/netfilter/ipvs/ip_vs_core.c:52:
+net/netfilter/ipvs/ip_vs_core.c: In function 'ip_vs_in_icmp':
+include/net/ip_vs.h:233:4: warning: 'outer_proto' may be used uninitialized in this function [-Wmaybe-uninitialized]
+ 233 |    printk(KERN_DEBUG pr_fmt(msg), ##__VA_ARGS__); \
+     |    ^~~~~~
+net/netfilter/ipvs/ip_vs_core.c:1666:8: note: 'outer_proto' was declared here
+1666 |  char *outer_proto;
+     |        ^~~~~~~~~~~
+
+Fixes: 73348fed35d0 ("ipvs: optimize tunnel dumps for icmp errors")
+Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
 ---
- include/net/netfilter/nf_tables.h |  1 +
- net/netfilter/nf_tables_api.c     | 18 ++++++++++++++++++
- net/netfilter/nft_dynset.c        | 17 -----------------
- 3 files changed, 19 insertions(+), 17 deletions(-)
+ net/netfilter/ipvs/ip_vs_core.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 5d80e09f8148..af2ed70d7eed 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -846,6 +846,7 @@ static inline void *nft_expr_priv(const struct nft_expr *expr)
- 	return (void *)expr->data;
- }
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index d2ac530..aa6a603 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -1663,7 +1663,7 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 	unsigned int offset, offset2, ihl, verdict;
+ 	bool tunnel, new_cp = false;
+ 	union nf_inet_addr *raddr;
+-	char *outer_proto;
++	char *outer_proto = "IPIP";
  
-+int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src);
- void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
- int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
- 		  const struct nft_expr *expr);
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index f92fb6003745..4f6245e7988e 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2557,6 +2557,24 @@ static struct nft_expr *nft_expr_init(const struct nft_ctx *ctx,
- 	return ERR_PTR(err);
- }
+ 	*related = 1;
  
-+int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
-+{
-+	int err;
-+
-+	if (src->ops->clone) {
-+		dst->ops = src->ops;
-+		err = src->ops->clone(dst, src);
-+		if (err < 0)
-+			return err;
-+	} else {
-+		memcpy(dst, src, src->ops->size);
-+	}
-+
-+	__module_get(src->ops->type->owner);
-+
-+	return 0;
-+}
-+
- void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr)
- {
- 	nf_tables_expr_destroy(ctx, expr);
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index 46ab28ec4b53..d1b64c8de585 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -24,23 +24,6 @@ struct nft_dynset {
- 	struct nft_set_binding		binding;
- };
- 
--static int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
--{
--	int err;
--
--	if (src->ops->clone) {
--		dst->ops = src->ops;
--		err = src->ops->clone(dst, src);
--		if (err < 0)
--			return err;
--	} else {
--		memcpy(dst, src, src->ops->size);
--	}
--
--	__module_get(src->ops->type->owner);
--	return 0;
--}
--
- static void *nft_dynset_new(struct nft_set *set, const struct nft_expr *expr,
- 			    struct nft_regs *regs)
- {
+@@ -1723,7 +1723,6 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 		if (cih == NULL)
+ 			return NF_ACCEPT; /* The packet looks wrong, ignore */
+ 		tunnel = true;
+-		outer_proto = "IPIP";
+ 	} else if ((cih->protocol == IPPROTO_UDP ||	/* Can be UDP encap */
+ 		    cih->protocol == IPPROTO_GRE) &&	/* Can be GRE encap */
+ 		   /* Error for our tunnel must arrive at LOCAL_IN */
 -- 
-2.11.0
+1.8.3.1
+
+
 
