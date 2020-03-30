@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7ED2C2D0E9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:37:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 135A3C43331
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:37:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A97E120780
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:37:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E773D206DB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:37:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727922AbgC3AhV (ORCPT
+        id S1727986AbgC3AhX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 29 Mar 2020 20:37:21 -0400
-Received: from correo.us.es ([193.147.175.20]:57138 "EHLO mail.us.es"
+        Sun, 29 Mar 2020 20:37:23 -0400
+Received: from correo.us.es ([193.147.175.20]:57176 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727813AbgC3AhU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 29 Mar 2020 20:37:20 -0400
+        id S1727934AbgC3AhX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 29 Mar 2020 20:37:23 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5EA88EF432
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 02:37:18 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 27314EF434
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 02:37:21 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4DA98100A52
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 02:37:18 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 158FC100A5A
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 02:37:21 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 433EA100A4C; Mon, 30 Mar 2020 02:37:18 +0200 (CEST)
+        id 0AFACDA736; Mon, 30 Mar 2020 02:37:21 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3CC4F100A48;
-        Mon, 30 Mar 2020 02:37:16 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E74FADA736;
+        Mon, 30 Mar 2020 02:37:18 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 30 Mar 2020 02:37:16 +0200 (CEST)
+ Mon, 30 Mar 2020 02:37:18 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 1804A42EF42A;
-        Mon, 30 Mar 2020 02:37:16 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id C18C142EF42A;
+        Mon, 30 Mar 2020 02:37:18 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 03/26] netfilter: nf_tables: allow to specify stateful expression in set definition
-Date:   Mon, 30 Mar 2020 02:36:45 +0200
-Message-Id: <20200330003708.54017-4-pablo@netfilter.org>
+Subject: [PATCH 09/26] ipvs: optimize tunnel dumps for icmp errors
+Date:   Mon, 30 Mar 2020 02:36:51 +0200
+Message-Id: <20200330003708.54017-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200330003708.54017-1-pablo@netfilter.org>
 References: <20200330003708.54017-1-pablo@netfilter.org>
@@ -54,207 +54,165 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch allows users to specify the stateful expression for the
-elements in this set via NFTA_SET_EXPR. This new feature allows you to
-turn on counters for all of the elements in this set.
+From: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
 
+After strip GRE/UDP tunnel header for icmp errors, it's better to show
+"GRE/UDP" instead of "IPIP" in debug message.
+
+Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h        |  2 ++
- include/uapi/linux/netfilter/nf_tables.h |  2 ++
- net/netfilter/nf_tables_api.c            | 60 +++++++++++++++++++++++++-------
- 3 files changed, 52 insertions(+), 12 deletions(-)
+ net/netfilter/ipvs/ip_vs_core.c | 46 +++++++++++++++++++++++------------------
+ 1 file changed, 26 insertions(+), 20 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index af2ed70d7eed..642bc3ef81aa 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -416,6 +416,7 @@ struct nft_set_type {
-  *	@policy: set parameterization (see enum nft_set_policies)
-  *	@udlen: user data length
-  *	@udata: user data
-+ *	@expr: stateful expression
-  * 	@ops: set ops
-  * 	@flags: set flags
-  *	@genmask: generation mask
-@@ -444,6 +445,7 @@ struct nft_set {
- 	u16				policy;
- 	u16				udlen;
- 	unsigned char			*udata;
-+	struct nft_expr			*expr;
- 	/* runtime data below here */
- 	const struct nft_set_ops	*ops ____cacheline_aligned;
- 	u16				flags:14,
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 9c3d2d04d6a1..4e3a5971d4ee 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -342,6 +342,7 @@ enum nft_set_field_attributes {
-  * @NFTA_SET_USERDATA: user data (NLA_BINARY)
-  * @NFTA_SET_OBJ_TYPE: stateful object type (NLA_U32: NFT_OBJECT_*)
-  * @NFTA_SET_HANDLE: set handle (NLA_U64)
-+ * @NFTA_SET_EXPR: set expression (NLA_NESTED: nft_expr_attributes)
-  */
- enum nft_set_attributes {
- 	NFTA_SET_UNSPEC,
-@@ -361,6 +362,7 @@ enum nft_set_attributes {
- 	NFTA_SET_PAD,
- 	NFTA_SET_OBJ_TYPE,
- 	NFTA_SET_HANDLE,
-+	NFTA_SET_EXPR,
- 	__NFTA_SET_MAX
- };
- #define NFTA_SET_MAX		(__NFTA_SET_MAX - 1)
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index df046cd97fa7..f1910cd795fd 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3394,6 +3394,7 @@ static const struct nla_policy nft_set_policy[NFTA_SET_MAX + 1] = {
- 					    .len  = NFT_USERDATA_MAXLEN },
- 	[NFTA_SET_OBJ_TYPE]		= { .type = NLA_U32 },
- 	[NFTA_SET_HANDLE]		= { .type = NLA_U64 },
-+	[NFTA_SET_EXPR]			= { .type = NLA_NESTED },
- };
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 512259f579d7..d2ac530a9501 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -1661,8 +1661,9 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 	struct ip_vs_protocol *pp;
+ 	struct ip_vs_proto_data *pd;
+ 	unsigned int offset, offset2, ihl, verdict;
+-	bool ipip, new_cp = false;
++	bool tunnel, new_cp = false;
+ 	union nf_inet_addr *raddr;
++	char *outer_proto;
  
- static const struct nla_policy nft_set_desc_policy[NFTA_SET_DESC_MAX + 1] = {
-@@ -3597,8 +3598,8 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
- {
- 	struct nfgenmsg *nfmsg;
- 	struct nlmsghdr *nlh;
--	struct nlattr *desc;
- 	u32 portid = ctx->portid;
-+	struct nlattr *nest;
- 	u32 seq = ctx->seq;
+ 	*related = 1;
  
- 	event = nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event);
-@@ -3654,9 +3655,8 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
- 	if (nla_put(skb, NFTA_SET_USERDATA, set->udlen, set->udata))
- 		goto nla_put_failure;
+@@ -1703,8 +1704,8 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 		return NF_ACCEPT; /* The packet looks wrong, ignore */
+ 	raddr = (union nf_inet_addr *)&cih->daddr;
  
--	desc = nla_nest_start_noflag(skb, NFTA_SET_DESC);
--
--	if (desc == NULL)
-+	nest = nla_nest_start_noflag(skb, NFTA_SET_DESC);
-+	if (!nest)
- 		goto nla_put_failure;
- 	if (set->size &&
- 	    nla_put_be32(skb, NFTA_SET_DESC_SIZE, htonl(set->size)))
-@@ -3666,7 +3666,15 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
- 	    nf_tables_fill_set_concat(skb, set))
- 		goto nla_put_failure;
+-	/* Special case for errors for IPIP packets */
+-	ipip = false;
++	/* Special case for errors for IPIP/UDP/GRE tunnel packets */
++	tunnel = false;
+ 	if (cih->protocol == IPPROTO_IPIP) {
+ 		struct ip_vs_dest *dest;
  
--	nla_nest_end(skb, desc);
-+	nla_nest_end(skb, nest);
-+
-+	if (set->expr) {
-+		nest = nla_nest_start_noflag(skb, NFTA_SET_EXPR);
-+		if (nf_tables_fill_expr_info(skb, set->expr) < 0)
-+			goto nla_put_failure;
-+
-+		nla_nest_end(skb, nest);
-+	}
+@@ -1721,7 +1722,8 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 		cih = skb_header_pointer(skb, offset, sizeof(_ciph), &_ciph);
+ 		if (cih == NULL)
+ 			return NF_ACCEPT; /* The packet looks wrong, ignore */
+-		ipip = true;
++		tunnel = true;
++		outer_proto = "IPIP";
+ 	} else if ((cih->protocol == IPPROTO_UDP ||	/* Can be UDP encap */
+ 		    cih->protocol == IPPROTO_GRE) &&	/* Can be GRE encap */
+ 		   /* Error for our tunnel must arrive at LOCAL_IN */
+@@ -1729,16 +1731,19 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 		__u8 iproto;
+ 		int ulen;
  
- 	nlmsg_end(skb, nlh);
- 	return 0;
-@@ -3913,6 +3921,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 	u8 genmask = nft_genmask_next(net);
- 	int family = nfmsg->nfgen_family;
- 	const struct nft_set_ops *ops;
-+	struct nft_expr *expr = NULL;
- 	struct nft_table *table;
- 	struct nft_set *set;
- 	struct nft_ctx ctx;
-@@ -4069,13 +4078,21 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 	name = nla_strdup(nla[NFTA_SET_NAME], GFP_KERNEL);
- 	if (!name) {
- 		err = -ENOMEM;
--		goto err2;
-+		goto err_set_name;
- 	}
- 
- 	err = nf_tables_set_alloc_name(&ctx, set, name);
- 	kfree(name);
- 	if (err < 0)
--		goto err2;
-+		goto err_set_alloc_name;
-+
-+	if (nla[NFTA_SET_EXPR]) {
-+		expr = nft_set_elem_expr_alloc(&ctx, set, nla[NFTA_SET_EXPR]);
-+		if (IS_ERR(expr)) {
-+			err = PTR_ERR(expr);
-+			goto err_set_alloc_name;
+-		/* Non-first fragment has no UDP header */
++		/* Non-first fragment has no UDP/GRE header */
+ 		if (unlikely(cih->frag_off & htons(IP_OFFSET)))
+ 			return NF_ACCEPT;
+ 		offset2 = offset + cih->ihl * 4;
+-		if (cih->protocol == IPPROTO_UDP)
++		if (cih->protocol == IPPROTO_UDP) {
+ 			ulen = ipvs_udp_decap(ipvs, skb, offset2, AF_INET,
+ 					      raddr, &iproto);
+-		else
++			outer_proto = "UDP";
++		} else {
+ 			ulen = ipvs_gre_decap(ipvs, skb, offset2, AF_INET,
+ 					      raddr, &iproto);
++			outer_proto = "GRE";
 +		}
-+	}
+ 		if (ulen > 0) {
+ 			/* Skip IP and UDP/GRE tunnel headers */
+ 			offset = offset2 + ulen;
+@@ -1747,7 +1752,7 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 						 &_ciph);
+ 			if (cih && cih->version == 4 && cih->ihl >= 5 &&
+ 			    iproto == IPPROTO_IPIP)
+-				ipip = true;
++				tunnel = true;
+ 			else
+ 				return NF_ACCEPT;
+ 		}
+@@ -1767,11 +1772,11 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 		      "Checking incoming ICMP for");
  
- 	udata = NULL;
- 	if (udlen) {
-@@ -4092,6 +4109,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 	set->dtype = dtype;
- 	set->objtype = objtype;
- 	set->dlen  = desc.dlen;
-+	set->expr = expr;
- 	set->flags = flags;
- 	set->size  = desc.size;
- 	set->policy = policy;
-@@ -4107,21 +4125,24 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ 	offset2 = offset;
+-	ip_vs_fill_iph_skb_icmp(AF_INET, skb, offset, !ipip, &ciph);
++	ip_vs_fill_iph_skb_icmp(AF_INET, skb, offset, !tunnel, &ciph);
+ 	offset = ciph.len;
  
- 	err = ops->init(set, &desc, nla);
- 	if (err < 0)
--		goto err3;
-+		goto err_set_init;
+ 	/* The embedded headers contain source and dest in reverse order.
+-	 * For IPIP this is error for request, not for reply.
++	 * For IPIP/UDP/GRE tunnel this is error for request, not for reply.
+ 	 */
+ 	cp = INDIRECT_CALL_1(pp->conn_in_get, ip_vs_conn_in_get_proto,
+ 			     ipvs, AF_INET, skb, &ciph);
+@@ -1779,7 +1784,7 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 	if (!cp) {
+ 		int v;
  
- 	err = nft_trans_set_add(&ctx, NFT_MSG_NEWSET, set);
- 	if (err < 0)
--		goto err4;
-+		goto err_set_trans;
+-		if (ipip || !sysctl_schedule_icmp(ipvs))
++		if (tunnel || !sysctl_schedule_icmp(ipvs))
+ 			return NF_ACCEPT;
  
- 	list_add_tail_rcu(&set->list, &table->sets);
- 	table->use++;
- 	return 0;
- 
--err4:
-+err_set_trans:
- 	ops->destroy(set);
--err3:
-+err_set_init:
-+	if (expr)
-+		nft_expr_destroy(&ctx, expr);
-+err_set_alloc_name:
- 	kfree(set->name);
--err2:
-+err_set_name:
- 	kvfree(set);
- 	return err;
- }
-@@ -4131,6 +4152,9 @@ static void nft_set_destroy(const struct nft_ctx *ctx, struct nft_set *set)
- 	if (WARN_ON(set->use > 0))
- 		return;
- 
-+	if (set->expr)
-+		nft_expr_destroy(ctx, set->expr);
-+
- 	set->ops->destroy(set);
- 	kfree(set->name);
- 	kvfree(set);
-@@ -4982,6 +5006,18 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 					       nla[NFTA_SET_ELEM_EXPR]);
- 		if (IS_ERR(expr))
- 			return PTR_ERR(expr);
-+
-+		err = -EOPNOTSUPP;
-+		if (set->expr && set->expr->ops != expr->ops)
-+			goto err_set_elem_expr;
-+	} else if (set->expr) {
-+		expr = kzalloc(set->expr->ops->size, GFP_KERNEL);
-+		if (!expr)
-+			return -ENOMEM;
-+
-+		err = nft_expr_clone(expr, set->expr);
-+		if (err < 0)
-+			goto err_set_elem_expr;
+ 		if (!ip_vs_try_to_schedule(ipvs, AF_INET, skb, pd, &v, &cp, &ciph))
+@@ -1797,7 +1802,7 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 		goto out;
  	}
  
- 	err = nft_setelem_parse_key(ctx, set, &elem.key.val,
+-	if (ipip) {
++	if (tunnel) {
+ 		__be32 info = ic->un.gateway;
+ 		__u8 type = ic->type;
+ 		__u8 code = ic->code;
+@@ -1809,17 +1814,18 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 			u32 mtu = ntohs(ic->un.frag.mtu);
+ 			__be16 frag_off = cih->frag_off;
+ 
+-			/* Strip outer IP and ICMP, go to IPIP header */
++			/* Strip outer IP and ICMP, go to IPIP/UDP/GRE header */
+ 			if (pskb_pull(skb, ihl + sizeof(_icmph)) == NULL)
+-				goto ignore_ipip;
++				goto ignore_tunnel;
+ 			offset2 -= ihl + sizeof(_icmph);
+ 			skb_reset_network_header(skb);
+-			IP_VS_DBG(12, "ICMP for IPIP %pI4->%pI4: mtu=%u\n",
+-				&ip_hdr(skb)->saddr, &ip_hdr(skb)->daddr, mtu);
++			IP_VS_DBG(12, "ICMP for %s %pI4->%pI4: mtu=%u\n",
++				  outer_proto, &ip_hdr(skb)->saddr,
++				  &ip_hdr(skb)->daddr, mtu);
+ 			ipv4_update_pmtu(skb, ipvs->net, mtu, 0, 0);
+ 			/* Client uses PMTUD? */
+ 			if (!(frag_off & htons(IP_DF)))
+-				goto ignore_ipip;
++				goto ignore_tunnel;
+ 			/* Prefer the resulting PMTU */
+ 			if (dest) {
+ 				struct ip_vs_dest_dst *dest_dst;
+@@ -1832,11 +1838,11 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 				mtu -= sizeof(struct iphdr);
+ 			info = htonl(mtu);
+ 		}
+-		/* Strip outer IP, ICMP and IPIP, go to IP header of
++		/* Strip outer IP, ICMP and IPIP/UDP/GRE, go to IP header of
+ 		 * original request.
+ 		 */
+ 		if (pskb_pull(skb, offset2) == NULL)
+-			goto ignore_ipip;
++			goto ignore_tunnel;
+ 		skb_reset_network_header(skb);
+ 		IP_VS_DBG(12, "Sending ICMP for %pI4->%pI4: t=%u, c=%u, i=%u\n",
+ 			&ip_hdr(skb)->saddr, &ip_hdr(skb)->daddr,
+@@ -1845,7 +1851,7 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 		/* ICMP can be shorter but anyways, account it */
+ 		ip_vs_out_stats(cp, skb);
+ 
+-ignore_ipip:
++ignore_tunnel:
+ 		consume_skb(skb);
+ 		verdict = NF_STOLEN;
+ 		goto out;
 -- 
 2.11.0
 
