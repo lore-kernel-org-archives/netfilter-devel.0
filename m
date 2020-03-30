@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B669DC2D0F1
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29CABC2D0ED
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 97B0220748
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C5B92072E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728662AbgC3TWG (ORCPT
+        id S1728880AbgC3TW2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Mar 2020 15:22:06 -0400
-Received: from correo.us.es ([193.147.175.20]:48564 "EHLO mail.us.es"
+        Mon, 30 Mar 2020 15:22:28 -0400
+Received: from correo.us.es ([193.147.175.20]:48580 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728445AbgC3TWE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Mar 2020 15:22:04 -0400
+        id S1728471AbgC3TWF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 30 Mar 2020 15:22:05 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 08803B496A
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:57 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 24E791022AC
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:58 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E03F912B69D
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:56 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1152B10078A
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:58 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id AE11212395E; Mon, 30 Mar 2020 21:21:44 +0200 (CEST)
+        id 0AF8610078D; Mon, 30 Mar 2020 21:21:46 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C40BE100A69;
-        Mon, 30 Mar 2020 21:21:41 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7BDE4100A63;
+        Mon, 30 Mar 2020 21:21:43 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 30 Mar 2020 21:21:41 +0200 (CEST)
+ Mon, 30 Mar 2020 21:21:43 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 9BC7B42EF4E0;
-        Mon, 30 Mar 2020 21:21:41 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 454F042EF4E1;
+        Mon, 30 Mar 2020 21:21:43 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 06/28] netfilter: flowtable: fix NULL pointer dereference in tunnel offload support
-Date:   Mon, 30 Mar 2020 21:21:14 +0200
-Message-Id: <20200330192136.230459-7-pablo@netfilter.org>
+Subject: [PATCH 13/28] netfilter: flowtable: Fix incorrect tc_setup_type type
+Date:   Mon, 30 Mar 2020 21:21:21 +0200
+Message-Id: <20200330192136.230459-14-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200330192136.230459-1-pablo@netfilter.org>
 References: <20200330192136.230459-1-pablo@netfilter.org>
@@ -56,47 +56,97 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-The tc ct action does not cache the route in the flowtable entry.
+The indirect block setup should use TC_SETUP_FT as the type instead of
+TC_SETUP_BLOCK. Adjust existing users of the indirect flow block
+infrastructure.
 
-Fixes: 88bf6e4114d5 ("netfilter: flowtable: add tunnel encap/decap action offload support")
-Fixes: cfab6dbd0ecf ("netfilter: flowtable: add tunnel match offload support")
+Fixes: b5140a36da78 ("netfilter: flowtable: add indr block setup support")
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_offload.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/net/flow_offload.h            | 3 ++-
+ net/core/flow_offload.c               | 6 +++---
+ net/netfilter/nf_flow_table_offload.c | 2 +-
+ net/netfilter/nf_tables_offload.c     | 2 +-
+ net/sched/cls_api.c                   | 2 +-
+ 5 files changed, 8 insertions(+), 7 deletions(-)
 
+diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
+index 1e30b0d44b61..1afb6bd4530d 100644
+--- a/include/net/flow_offload.h
++++ b/include/net/flow_offload.h
+@@ -520,6 +520,7 @@ void flow_indr_block_cb_unregister(struct net_device *dev,
+ 
+ void flow_indr_block_call(struct net_device *dev,
+ 			  struct flow_block_offload *bo,
+-			  enum flow_block_command command);
++			  enum flow_block_command command,
++			  enum tc_setup_type type);
+ 
+ #endif /* _NET_FLOW_OFFLOAD_H */
+diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
+index 7440e6117c81..e951b743bed3 100644
+--- a/net/core/flow_offload.c
++++ b/net/core/flow_offload.c
+@@ -511,7 +511,8 @@ EXPORT_SYMBOL_GPL(flow_indr_block_cb_unregister);
+ 
+ void flow_indr_block_call(struct net_device *dev,
+ 			  struct flow_block_offload *bo,
+-			  enum flow_block_command command)
++			  enum flow_block_command command,
++			  enum tc_setup_type type)
+ {
+ 	struct flow_indr_block_cb *indr_block_cb;
+ 	struct flow_indr_block_dev *indr_dev;
+@@ -521,8 +522,7 @@ void flow_indr_block_call(struct net_device *dev,
+ 		return;
+ 
+ 	list_for_each_entry(indr_block_cb, &indr_dev->cb_list, list)
+-		indr_block_cb->cb(dev, indr_block_cb->cb_priv, TC_SETUP_BLOCK,
+-				  bo);
++		indr_block_cb->cb(dev, indr_block_cb->cb_priv, type, bo);
+ }
+ EXPORT_SYMBOL_GPL(flow_indr_block_call);
+ 
 diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index ad549317af30..a68136a8d750 100644
+index a68136a8d750..0c6437fab4fe 100644
 --- a/net/netfilter/nf_flow_table_offload.c
 +++ b/net/netfilter/nf_flow_table_offload.c
-@@ -92,7 +92,7 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
- 	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_TCP, tcp);
- 	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_PORTS, tp);
+@@ -938,7 +938,7 @@ static int nf_flow_table_indr_offload_cmd(struct flow_block_offload *bo,
+ {
+ 	nf_flow_table_block_offload_init(bo, dev_net(dev), cmd, flowtable,
+ 					 extack);
+-	flow_indr_block_call(dev, bo, cmd);
++	flow_indr_block_call(dev, bo, cmd, TC_SETUP_FT);
  
--	if (other_dst->lwtstate) {
-+	if (other_dst && other_dst->lwtstate) {
- 		tun_info = lwt_tun_info(other_dst->lwtstate);
- 		nf_flow_rule_lwt_match(match, tun_info);
- 	}
-@@ -483,7 +483,7 @@ static void flow_offload_encap_tunnel(const struct flow_offload *flow,
- 	struct dst_entry *dst;
+ 	if (list_empty(&bo->cb_list))
+ 		return -EOPNOTSUPP;
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 2bb28483af22..954bccb7f32a 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -313,7 +313,7 @@ static int nft_indr_block_offload_cmd(struct nft_base_chain *chain,
  
- 	dst = flow->tuplehash[dir].tuple.dst_cache;
--	if (dst->lwtstate) {
-+	if (dst && dst->lwtstate) {
- 		struct ip_tunnel_info *tun_info;
+ 	nft_flow_block_offload_init(&bo, dev_net(dev), cmd, chain, &extack);
  
- 		tun_info = lwt_tun_info(dst->lwtstate);
-@@ -503,7 +503,7 @@ static void flow_offload_decap_tunnel(const struct flow_offload *flow,
- 	struct dst_entry *dst;
+-	flow_indr_block_call(dev, &bo, cmd);
++	flow_indr_block_call(dev, &bo, cmd, TC_SETUP_BLOCK);
  
- 	dst = flow->tuplehash[!dir].tuple.dst_cache;
--	if (dst->lwtstate) {
-+	if (dst && dst->lwtstate) {
- 		struct ip_tunnel_info *tun_info;
+ 	if (list_empty(&bo.cb_list))
+ 		return -EOPNOTSUPP;
+diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
+index eefacb3176e3..84f8ee6f2009 100644
+--- a/net/sched/cls_api.c
++++ b/net/sched/cls_api.c
+@@ -708,7 +708,7 @@ static void tc_indr_block_call(struct tcf_block *block,
+ 	};
+ 	INIT_LIST_HEAD(&bo.cb_list);
  
- 		tun_info = lwt_tun_info(dst->lwtstate);
+-	flow_indr_block_call(dev, &bo, command);
++	flow_indr_block_call(dev, &bo, command, TC_SETUP_BLOCK);
+ 	tcf_block_setup(block, &bo);
+ }
+ 
 -- 
 2.11.0
 
