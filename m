@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69DE1C2D0EB
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:23:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F10CC2D0ED
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:23:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4E8F92072E
+	by mail.kernel.org (Postfix) with ESMTP id EA9452072E
 	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:23:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727942AbgC3TV7 (ORCPT
+        id S1728065AbgC3TXF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Mar 2020 15:21:59 -0400
-Received: from correo.us.es ([193.147.175.20]:48392 "EHLO mail.us.es"
+        Mon, 30 Mar 2020 15:23:05 -0400
+Received: from correo.us.es ([193.147.175.20]:48508 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727148AbgC3TV6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Mar 2020 15:21:58 -0400
+        id S1728123AbgC3TWA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 30 Mar 2020 15:22:00 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A8093FFB6F
+        by mail.us.es (Postfix) with ESMTP id DF22EFFB85
         for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:56 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8A8C8114D63
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AE74812395F
         for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:56 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 07FEB100790; Mon, 30 Mar 2020 21:21:48 +0200 (CEST)
+        id 32A52100A60; Mon, 30 Mar 2020 21:21:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4D865102196;
-        Mon, 30 Mar 2020 21:21:46 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 68E34100788;
+        Mon, 30 Mar 2020 21:21:40 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 30 Mar 2020 21:21:46 +0200 (CEST)
+ Mon, 30 Mar 2020 21:21:40 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 202D042EF4E1;
-        Mon, 30 Mar 2020 21:21:46 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 40A0B42EF4E0;
+        Mon, 30 Mar 2020 21:21:40 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 19/28] netfilter: nf_queue: do not release refcouts until nf_reinject is done
-Date:   Mon, 30 Mar 2020 21:21:27 +0200
-Message-Id: <20200330192136.230459-20-pablo@netfilter.org>
+Subject: [PATCH 01/28] netfilter: nf_tables: move nft_expr_clone() to nf_tables_api.c
+Date:   Mon, 30 Mar 2020 21:21:09 +0200
+Message-Id: <20200330192136.230459-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200330192136.230459-1-pablo@netfilter.org>
 References: <20200330192136.230459-1-pablo@netfilter.org>
@@ -54,62 +54,84 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+Move the nft_expr_clone() helper function to the core.
 
-nf_queue is problematic when another NF_QUEUE invocation happens
-from nf_reinject().
-
-1. nf_queue is invoked, increments state->sk refcount.
-2. skb is queued, waiting for verdict.
-3. sk is closed/released.
-3. verdict comes back, nf_reinject is called.
-4. nf_reinject drops the reference -- refcount can now drop to 0
-
-Instead of get_ref/release_ref pattern, we need to nest the get_ref calls:
-    get_ref
-       get_ref
-       release_ref
-     release_ref
-
-So that when we invoke the next processing stage (another netfilter
-or the okfn()), we hold at least one reference count on the
-devices/socket.
-
-After previous patch, it is now safe to put the entry even after okfn()
-has potentially free'd the skb.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_queue.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ include/net/netfilter/nf_tables.h |  1 +
+ net/netfilter/nf_tables_api.c     | 18 ++++++++++++++++++
+ net/netfilter/nft_dynset.c        | 17 -----------------
+ 3 files changed, 19 insertions(+), 17 deletions(-)
 
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 96eb72908467..aadccdd117f0 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -303,12 +303,10 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 
- 	hooks = nf_hook_entries_head(net, pf, entry->state.hook);
- 
--	nf_queue_entry_release_refs(entry);
--
- 	i = entry->hook_index;
- 	if (WARN_ON_ONCE(!hooks || i >= hooks->num_hook_entries)) {
- 		kfree_skb(skb);
--		kfree(entry);
-+		nf_queue_entry_free(entry);
- 		return;
- 	}
- 
-@@ -347,6 +345,6 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 		kfree_skb(skb);
- 	}
- 
--	kfree(entry);
-+	nf_queue_entry_free(entry);
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 5d80e09f8148..af2ed70d7eed 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -846,6 +846,7 @@ static inline void *nft_expr_priv(const struct nft_expr *expr)
+ 	return (void *)expr->data;
  }
- EXPORT_SYMBOL(nf_reinject);
+ 
++int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src);
+ void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
+ int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
+ 		  const struct nft_expr *expr);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index f92fb6003745..4f6245e7988e 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2557,6 +2557,24 @@ static struct nft_expr *nft_expr_init(const struct nft_ctx *ctx,
+ 	return ERR_PTR(err);
+ }
+ 
++int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
++{
++	int err;
++
++	if (src->ops->clone) {
++		dst->ops = src->ops;
++		err = src->ops->clone(dst, src);
++		if (err < 0)
++			return err;
++	} else {
++		memcpy(dst, src, src->ops->size);
++	}
++
++	__module_get(src->ops->type->owner);
++
++	return 0;
++}
++
+ void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr)
+ {
+ 	nf_tables_expr_destroy(ctx, expr);
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index 46ab28ec4b53..d1b64c8de585 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -24,23 +24,6 @@ struct nft_dynset {
+ 	struct nft_set_binding		binding;
+ };
+ 
+-static int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
+-{
+-	int err;
+-
+-	if (src->ops->clone) {
+-		dst->ops = src->ops;
+-		err = src->ops->clone(dst, src);
+-		if (err < 0)
+-			return err;
+-	} else {
+-		memcpy(dst, src, src->ops->size);
+-	}
+-
+-	__module_get(src->ops->type->owner);
+-	return 0;
+-}
+-
+ static void *nft_dynset_new(struct nft_set *set, const struct nft_expr *expr,
+ 			    struct nft_regs *regs)
+ {
 -- 
 2.11.0
 
