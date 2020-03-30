@@ -1,77 +1,106 @@
-Return-Path: <SRS0=U5qg=5O=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=CFkq=5P=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 986C6C43331
-	for <netfilter-devel@archiver.kernel.org>; Sun, 29 Mar 2020 18:23:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE4D4C43331
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:10:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6D25E20732
-	for <netfilter-devel@archiver.kernel.org>; Sun, 29 Mar 2020 18:23:25 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=thinline.cz header.i=@thinline.cz header.b="Y1CK06Ea"
+	by mail.kernel.org (Postfix) with ESMTP id 843F720784
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:10:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728639AbgC2SXZ (ORCPT
+        id S1727263AbgC3AKx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 29 Mar 2020 14:23:25 -0400
-Received: from gelf9.thinline.cz ([91.239.200.179]:41171 "EHLO
-        gelf9.thinline.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728467AbgC2SXZ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 29 Mar 2020 14:23:25 -0400
-Received: from localhost (unknown [127.0.0.1])
-        by gelf9.thinline.cz (Postfix) with ESMTP id 12A8574813;
-        Sun, 29 Mar 2020 18:23:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=thinline.cz;
-        s=gelf9-201906; t=1585506203;
-        bh=F3RCzA8jEE3UWftQgoZbMRIjTWQ47dMLWkoqMftaK7o=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References;
-        b=Y1CK06Eav4oIyfEEkYKPlanpUR3Z0w/WGZlpfmyw1Ow+6Iy0PYVsHGG1Uf4kKnT53
-         qPGomE5MzC0fX5MO0s+jpye1c9tGfjG2f2/KDf05gwfltVpEx/2g3udUrWOi9kT6s6
-         DBmyZZ8ZyhrvfrN1cF8fiv85GU8oAMEiNj2kWRqYh3dEzaqXtzbS4DxY1dnlsX9/m6
-         rt2JcsChOZf97ql/E9vyj9040N1nYYxGRKgvLs9HNWj6QlyZxMFEEvEexf6Fk6FFIS
-         p3DrgfHeVdQ8+3lG3m7U35ZDkfgpLN1j5K10xrVNXFYoK13FRnCcJE0rWa3rxf5TIn
-         B/3ucpdgCPlUw==
-X-Virus-Scanned: amavisd-new at thinline.cz
-Received: from gelf9.thinline.cz ([127.0.0.1])
-        by localhost (gelf9.cesky-hosting.cz [127.0.0.1]) (amavisd-new, port 10025)
-        with ESMTP id C_Y51C4UNwKg; Sun, 29 Mar 2020 20:23:22 +0200 (CEST)
-Received: from webmail2.cesky-hosting.cz (localhost [127.0.0.1])
-        (Authenticated sender: jaroslav@thinline.cz)
-        by gelf9.thinline.cz (Postfix) with ESMTPA;
-        Sun, 29 Mar 2020 20:23:22 +0200 (CEST)
+        Sun, 29 Mar 2020 20:10:53 -0400
+Received: from correo.us.es ([193.147.175.20]:54578 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726403AbgC3AKx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 29 Mar 2020 20:10:53 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 9E9E5EF427
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 02:10:49 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8E71C102197
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 02:10:49 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 83333DA736; Mon, 30 Mar 2020 02:10:49 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 81AD7DA736;
+        Mon, 30 Mar 2020 02:10:47 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 30 Mar 2020 02:10:47 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 64D2842EF42C;
+        Mon, 30 Mar 2020 02:10:47 +0200 (CEST)
+Date:   Mon, 30 Mar 2020 02:10:47 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Romain Bellan <romain.bellan@wifirst.fr>
+Cc:     netfilter-devel@vger.kernel.org,
+        Florent Fourcot <florent.fourcot@wifirst.fr>
+Subject: Re: [PATCH nf-next v4 1/2] netfilter: ctnetlink: add kernel side
+ filtering for dump
+Message-ID: <20200330001047.w22ppmvkrw4uisda@salvia>
+References: <20200327082632.27129-1-romain.bellan@wifirst.fr>
+ <20200329150821.j6pg42dtbw55ff7s@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date:   Sun, 29 Mar 2020 20:23:22 +0200
-From:   jaroslav@thinline.cz
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: Suggestion: replacement for physdev-is-bridged in nft
-In-Reply-To: <20200329155349.GB23604@breakpoint.cc>
-References: <8b6e45ba8945b226e4c95e6e9a1cf2e4@thinline.cz>
- <20200329155349.GB23604@breakpoint.cc>
-Message-ID: <90d3abe733527e18d53d53989e7ad7ca@thinline.cz>
-X-Sender: jaroslav@thinline.cz
-User-Agent: Roundcube Webmail/1.3.10
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200329150821.j6pg42dtbw55ff7s@salvia>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-> rmmod br_netfilter
+On Sun, Mar 29, 2020 at 05:08:21PM +0200, Pablo Neira Ayuso wrote:
+> On Fri, Mar 27, 2020 at 09:26:31AM +0100, Romain Bellan wrote:
+> > Conntrack dump does not support kernel side filtering (only get exists,
+> > but it returns only one entry. And user has to give a full valid tuple)
+> > 
+> > It means that userspace has to implement filtering after receiving many
+> > irrelevant entries, consuming resources (conntrack table is sometimes
+> > very huge, much more than a routing table for example).
+> > 
+> > This patch adds filtering in kernel side. To achieve this goal, we:
+> > 
+> >  * Add a new CTA_FILTER netlink attributes, actually a flag list to
+> >    parametize filtering
+> >  * Convert some *nlattr_to_tuple() functions, to allow a partial parsing
+> >    of CTA_TUPLE_ORIG and CTA_TUPLE_REPLY (so nf_conntrack_tuple it not
+> >    fully set)
+> > 
+> > Filtering is now possible on:
+> >  * IP SRC/DST values
+> >  * Ports for TCP and UDP flows
+> >  * IMCP(v6) codes types and IDs
+> > 
+> > Filtering is done has an "AND" operator. For example, when flags
+> > PROTO_SRC_PORT, PROTO_NUM and IP_SRC are sets, only entries matching all
+> > values are dumped.
 > 
-> or set
-> net.bridge.bridge-nf-call-arptables=0
-> net.bridge.bridge-nf-call-iptables=0
-> net.bridge.bridge-nf-call-ip6tables=0
+> Applied, thanks.
 
-Alright, the possibility that bridged (non-routed) packets don't need to 
-go through filtering rules didn't occur to me at all
+I'm sorry, I have to keep back this patch.
 
-Thanks a lot for pointing it out, no physdev-is-bridged needed for me 
-now.
+        # conntrack -L
+
+breaks after this patch, and conntrack-tools/test/conntrack.c shows
+several:
+
+        conntrack v1.4.5 (conntrack-tools): Operation failed: invalid parameters
+
+I tried to fix it here but I would need a bit more time, I think this
+is on the right track. However, the new flags logic makes ctnetlink
+hit EINVAL in a number of cases.
+
+Please, revamp and send v5. Thanks.
