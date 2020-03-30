@@ -2,49 +2,50 @@ Return-Path: <SRS0=CFkq=5P=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0E0FC2D0E9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:38:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6FCBC2D0E7
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:38:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9F3D5206DB
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:38:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A7E49206DB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 00:38:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728345AbgC3AiQ (ORCPT
+        id S1727883AbgC3AhT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 29 Mar 2020 20:38:16 -0400
+        Sun, 29 Mar 2020 20:37:19 -0400
 Received: from correo.us.es ([193.147.175.20]:57126 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727892AbgC3AhV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 29 Mar 2020 20:37:21 -0400
+        id S1726403AbgC3AhT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 29 Mar 2020 20:37:19 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E3A45DA72F
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 02:37:19 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id A6314EF42B
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 02:37:17 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D2D09100A42
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 02:37:19 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 96F2A100A42
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 02:37:17 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C7D69100A4B; Mon, 30 Mar 2020 02:37:19 +0200 (CEST)
+        id 8C976100A45; Mon, 30 Mar 2020 02:37:17 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C6FE2100A42;
-        Mon, 30 Mar 2020 02:37:17 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A6CA6100A41;
+        Mon, 30 Mar 2020 02:37:15 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 30 Mar 2020 02:37:17 +0200 (CEST)
+ Mon, 30 Mar 2020 02:37:15 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id A0F6842EF42A;
-        Mon, 30 Mar 2020 02:37:17 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 7F89442EF42A;
+        Mon, 30 Mar 2020 02:37:15 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 06/26] netfilter: flowtable: fix NULL pointer dereference in tunnel offload support
-Date:   Mon, 30 Mar 2020 02:36:48 +0200
-Message-Id: <20200330003708.54017-7-pablo@netfilter.org>
+Subject: [PATCH 02/26] netfilter: nf_tables: pass context to nft_set_destroy()
+Date:   Mon, 30 Mar 2020 02:36:44 +0200
+Message-Id: <20200330003708.54017-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200330003708.54017-1-pablo@netfilter.org>
 References: <20200330003708.54017-1-pablo@netfilter.org>
@@ -54,49 +55,63 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+The patch that adds support for stateful expressions in set definitions
+require this.
 
-The tc ct action does not cache the route in the flowtable entry.
-
-Fixes: 88bf6e4114d5 ("netfilter: flowtable: add tunnel encap/decap action offload support")
-Fixes: cfab6dbd0ecf ("netfilter: flowtable: add tunnel match offload support")
-Signed-off-by: wenxu <wenxu@ucloud.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_offload.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/nf_tables_api.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index ad549317af30..a68136a8d750 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -92,7 +92,7 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
- 	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_TCP, tcp);
- 	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_PORTS, tp);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 4f6245e7988e..df046cd97fa7 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4126,7 +4126,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ 	return err;
+ }
  
--	if (other_dst->lwtstate) {
-+	if (other_dst && other_dst->lwtstate) {
- 		tun_info = lwt_tun_info(other_dst->lwtstate);
- 		nf_flow_rule_lwt_match(match, tun_info);
- 	}
-@@ -483,7 +483,7 @@ static void flow_offload_encap_tunnel(const struct flow_offload *flow,
- 	struct dst_entry *dst;
+-static void nft_set_destroy(struct nft_set *set)
++static void nft_set_destroy(const struct nft_ctx *ctx, struct nft_set *set)
+ {
+ 	if (WARN_ON(set->use > 0))
+ 		return;
+@@ -4271,7 +4271,7 @@ EXPORT_SYMBOL_GPL(nf_tables_deactivate_set);
+ void nf_tables_destroy_set(const struct nft_ctx *ctx, struct nft_set *set)
+ {
+ 	if (list_empty(&set->bindings) && nft_set_is_anonymous(set))
+-		nft_set_destroy(set);
++		nft_set_destroy(ctx, set);
+ }
+ EXPORT_SYMBOL_GPL(nf_tables_destroy_set);
  
- 	dst = flow->tuplehash[dir].tuple.dst_cache;
--	if (dst->lwtstate) {
-+	if (dst && dst->lwtstate) {
- 		struct ip_tunnel_info *tun_info;
- 
- 		tun_info = lwt_tun_info(dst->lwtstate);
-@@ -503,7 +503,7 @@ static void flow_offload_decap_tunnel(const struct flow_offload *flow,
- 	struct dst_entry *dst;
- 
- 	dst = flow->tuplehash[!dir].tuple.dst_cache;
--	if (dst->lwtstate) {
-+	if (dst && dst->lwtstate) {
- 		struct ip_tunnel_info *tun_info;
- 
- 		tun_info = lwt_tun_info(dst->lwtstate);
+@@ -7020,7 +7020,7 @@ static void nft_commit_release(struct nft_trans *trans)
+ 		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
+ 		break;
+ 	case NFT_MSG_DELSET:
+-		nft_set_destroy(nft_trans_set(trans));
++		nft_set_destroy(&trans->ctx, nft_trans_set(trans));
+ 		break;
+ 	case NFT_MSG_DELSETELEM:
+ 		nf_tables_set_elem_destroy(&trans->ctx,
+@@ -7451,7 +7451,7 @@ static void nf_tables_abort_release(struct nft_trans *trans)
+ 		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
+ 		break;
+ 	case NFT_MSG_NEWSET:
+-		nft_set_destroy(nft_trans_set(trans));
++		nft_set_destroy(&trans->ctx, nft_trans_set(trans));
+ 		break;
+ 	case NFT_MSG_NEWSETELEM:
+ 		nft_set_elem_destroy(nft_trans_elem_set(trans),
+@@ -8177,7 +8177,7 @@ static void __nft_release_tables(struct net *net)
+ 		list_for_each_entry_safe(set, ns, &table->sets, list) {
+ 			list_del(&set->list);
+ 			table->use--;
+-			nft_set_destroy(set);
++			nft_set_destroy(&ctx, set);
+ 		}
+ 		list_for_each_entry_safe(obj, ne, &table->objects, list) {
+ 			nft_obj_del(obj);
 -- 
 2.11.0
 
