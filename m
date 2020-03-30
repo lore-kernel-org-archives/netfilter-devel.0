@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04648C43331
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B669DC2D0F1
 	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DA68E2072E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 97B0220748
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:22:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728824AbgC3TWU (ORCPT
+        id S1728662AbgC3TWG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Mar 2020 15:22:20 -0400
-Received: from correo.us.es ([193.147.175.20]:48508 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728640AbgC3TWG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 30 Mar 2020 15:22:06 -0400
+Received: from correo.us.es ([193.147.175.20]:48564 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728445AbgC3TWE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 30 Mar 2020 15:22:04 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D3F6B103285
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:22:03 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 08803B496A
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:57 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C07AE100798
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:22:03 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E03F912B69D
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:56 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 02A4310219A; Mon, 30 Mar 2020 21:21:47 +0200 (CEST)
+        id AE11212395E; Mon, 30 Mar 2020 21:21:44 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B3B22114D72;
-        Mon, 30 Mar 2020 21:21:44 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C40BE100A69;
+        Mon, 30 Mar 2020 21:21:41 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 30 Mar 2020 21:21:44 +0200 (CEST)
+ Mon, 30 Mar 2020 21:21:41 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 870F542EF4E0;
-        Mon, 30 Mar 2020 21:21:44 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 9BC7B42EF4E0;
+        Mon, 30 Mar 2020 21:21:41 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 16/28] netfilter: flowtable: Use work entry per offload command
-Date:   Mon, 30 Mar 2020 21:21:24 +0200
-Message-Id: <20200330192136.230459-17-pablo@netfilter.org>
+Subject: [PATCH 06/28] netfilter: flowtable: fix NULL pointer dereference in tunnel offload support
+Date:   Mon, 30 Mar 2020 21:21:14 +0200
+Message-Id: <20200330192136.230459-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200330192136.230459-1-pablo@netfilter.org>
 References: <20200330192136.230459-1-pablo@netfilter.org>
@@ -54,129 +54,49 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Paul Blakey <paulb@mellanox.com>
+From: wenxu <wenxu@ucloud.cn>
 
-To allow offload commands to execute in parallel, create workqueue
-for flow table offload, and use a work entry per offload command.
+The tc ct action does not cache the route in the flowtable entry.
 
-Signed-off-by: Paul Blakey <paulb@mellanox.com>
-Reviewed-by: Oz Shlomo <ozsh@mellanox.com>
+Fixes: 88bf6e4114d5 ("netfilter: flowtable: add tunnel encap/decap action offload support")
+Fixes: cfab6dbd0ecf ("netfilter: flowtable: add tunnel match offload support")
+Signed-off-by: wenxu <wenxu@ucloud.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_offload.c | 46 ++++++++++++-----------------------
- 1 file changed, 15 insertions(+), 31 deletions(-)
+ net/netfilter/nf_flow_table_offload.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index b96db831b4ca..a9b3b88bd0f1 100644
+index ad549317af30..a68136a8d750 100644
 --- a/net/netfilter/nf_flow_table_offload.c
 +++ b/net/netfilter/nf_flow_table_offload.c
-@@ -12,9 +12,7 @@
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/nf_conntrack_tuple.h>
+@@ -92,7 +92,7 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
+ 	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_TCP, tcp);
+ 	NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_PORTS, tp);
  
--static struct work_struct nf_flow_offload_work;
--static DEFINE_SPINLOCK(flow_offload_pending_list_lock);
--static LIST_HEAD(flow_offload_pending_list);
-+static struct workqueue_struct *nf_flow_offload_wq;
- 
- struct flow_offload_work {
- 	struct list_head	list;
-@@ -22,6 +20,7 @@ struct flow_offload_work {
- 	int			priority;
- 	struct nf_flowtable	*flowtable;
- 	struct flow_offload	*flow;
-+	struct work_struct	work;
- };
- 
- #define NF_FLOW_DISSECTOR(__match, __type, __field)	\
-@@ -788,15 +787,10 @@ static void flow_offload_work_stats(struct flow_offload_work *offload)
- 
- static void flow_offload_work_handler(struct work_struct *work)
- {
--	struct flow_offload_work *offload, *next;
--	LIST_HEAD(offload_pending_list);
--
--	spin_lock_bh(&flow_offload_pending_list_lock);
--	list_replace_init(&flow_offload_pending_list, &offload_pending_list);
--	spin_unlock_bh(&flow_offload_pending_list_lock);
-+	struct flow_offload_work *offload;
- 
--	list_for_each_entry_safe(offload, next, &offload_pending_list, list) {
--		switch (offload->cmd) {
-+	offload = container_of(work, struct flow_offload_work, work);
-+	switch (offload->cmd) {
- 		case FLOW_CLS_REPLACE:
- 			flow_offload_work_add(offload);
- 			break;
-@@ -808,19 +802,14 @@ static void flow_offload_work_handler(struct work_struct *work)
- 			break;
- 		default:
- 			WARN_ON_ONCE(1);
--		}
--		list_del(&offload->list);
--		kfree(offload);
+-	if (other_dst->lwtstate) {
++	if (other_dst && other_dst->lwtstate) {
+ 		tun_info = lwt_tun_info(other_dst->lwtstate);
+ 		nf_flow_rule_lwt_match(match, tun_info);
  	}
-+
-+	kfree(offload);
- }
+@@ -483,7 +483,7 @@ static void flow_offload_encap_tunnel(const struct flow_offload *flow,
+ 	struct dst_entry *dst;
  
- static void flow_offload_queue_work(struct flow_offload_work *offload)
- {
--	spin_lock_bh(&flow_offload_pending_list_lock);
--	list_add_tail(&offload->list, &flow_offload_pending_list);
--	spin_unlock_bh(&flow_offload_pending_list_lock);
--
--	schedule_work(&nf_flow_offload_work);
-+	queue_work(nf_flow_offload_wq, &offload->work);
- }
+ 	dst = flow->tuplehash[dir].tuple.dst_cache;
+-	if (dst->lwtstate) {
++	if (dst && dst->lwtstate) {
+ 		struct ip_tunnel_info *tun_info;
  
- static struct flow_offload_work *
-@@ -837,6 +826,7 @@ nf_flow_offload_work_alloc(struct nf_flowtable *flowtable,
- 	offload->flow = flow;
- 	offload->priority = flowtable->priority;
- 	offload->flowtable = flowtable;
-+	INIT_WORK(&offload->work, flow_offload_work_handler);
+ 		tun_info = lwt_tun_info(dst->lwtstate);
+@@ -503,7 +503,7 @@ static void flow_offload_decap_tunnel(const struct flow_offload *flow,
+ 	struct dst_entry *dst;
  
- 	return offload;
- }
-@@ -887,7 +877,7 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
- void nf_flow_table_offload_flush(struct nf_flowtable *flowtable)
- {
- 	if (nf_flowtable_hw_offload(flowtable))
--		flush_work(&nf_flow_offload_work);
-+		flush_workqueue(nf_flow_offload_wq);
- }
+ 	dst = flow->tuplehash[!dir].tuple.dst_cache;
+-	if (dst->lwtstate) {
++	if (dst && dst->lwtstate) {
+ 		struct ip_tunnel_info *tun_info;
  
- static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
-@@ -1052,7 +1042,10 @@ static struct flow_indr_block_entry block_ing_entry = {
- 
- int nf_flow_table_offload_init(void)
- {
--	INIT_WORK(&nf_flow_offload_work, flow_offload_work_handler);
-+	nf_flow_offload_wq  = alloc_workqueue("nf_flow_table_offload",
-+					      WQ_UNBOUND | WQ_MEM_RECLAIM, 0);
-+	if (!nf_flow_offload_wq)
-+		return -ENOMEM;
- 
- 	flow_indr_add_block_cb(&block_ing_entry);
- 
-@@ -1061,15 +1054,6 @@ int nf_flow_table_offload_init(void)
- 
- void nf_flow_table_offload_exit(void)
- {
--	struct flow_offload_work *offload, *next;
--	LIST_HEAD(offload_pending_list);
--
- 	flow_indr_del_block_cb(&block_ing_entry);
--
--	cancel_work_sync(&nf_flow_offload_work);
--
--	list_for_each_entry_safe(offload, next, &offload_pending_list, list) {
--		list_del(&offload->list);
--		kfree(offload);
--	}
-+	destroy_workqueue(nf_flow_offload_wq);
- }
+ 		tun_info = lwt_tun_info(dst->lwtstate);
 -- 
 2.11.0
 
