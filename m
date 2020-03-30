@@ -2,133 +2,149 @@ Return-Path: <SRS0=CFkq=5P=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A33B6C2D0EB
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:23:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28B7DC43331
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:55:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 89A4F2072E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:23:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E55A520733
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Mar 2020 19:55:47 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="DZk2Ecad"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727406AbgC3TV7 (ORCPT
+        id S1728481AbgC3Tzr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Mar 2020 15:21:59 -0400
-Received: from correo.us.es ([193.147.175.20]:48396 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726672AbgC3TV6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Mar 2020 15:21:58 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B60EDFFB77
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:56 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A2C66114D75
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 21:21:56 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 185C6ADC1; Mon, 30 Mar 2020 21:21:49 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9C140114D6A;
-        Mon, 30 Mar 2020 21:21:46 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 30 Mar 2020 21:21:46 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 7673842EF4E2;
-        Mon, 30 Mar 2020 21:21:46 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 20/28] netfilter: nf_queue: prefer nf_queue_entry_free
-Date:   Mon, 30 Mar 2020 21:21:28 +0200
-Message-Id: <20200330192136.230459-21-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20200330192136.230459-1-pablo@netfilter.org>
-References: <20200330192136.230459-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Mon, 30 Mar 2020 15:55:47 -0400
+Received: from mail-ed1-f65.google.com ([209.85.208.65]:33791 "EHLO
+        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728393AbgC3Tzr (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 30 Mar 2020 15:55:47 -0400
+Received: by mail-ed1-f65.google.com with SMTP id z65so22340438ede.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2020 12:55:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=dh9JcSi6kj0UWIbirpsquHk1PO2ZTJ6f6wAxTa4W5Zs=;
+        b=DZk2EcadSRy+jmjLIyyvOwCfhNdDlY3wMU3gTOTK1MOXJ9bZhFpym+h6ycl+idnIWn
+         SsmZQJKtl9iTffn/DdsGsPysGCoyWM9UFc0uMIYHqOT2z5sBnbcDqL176yFWOcNWpk/v
+         SL53a/gXGohE1DQca/J8rKY+wKFfgrlpBcJTWgpRRmqX4D4/lPWy9aotUaYsxCYmYiYK
+         OtSNHNlZDTpDF0dFONn3fKYVj/3RoQP8vPxJqI1/s4VGJN+h5iwuRg6I0xGMy9Xnyver
+         +2Vt0W54SbaK/bs9jzOVTjHv/eCoKKiYgbHkxhUe93AIoeTE2uwNruCrN5QeGM0qgjOo
+         zdAg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=dh9JcSi6kj0UWIbirpsquHk1PO2ZTJ6f6wAxTa4W5Zs=;
+        b=S8eubJME4yMN4Ce1c2M0c53o3IYw59szmvWIwLGco4GuRlpvLxfjzTe4beLiaSrsKn
+         0pONfiIfCJg5t3MGo5109Np8IbEjZMtgRe+BNB9hXYwU6AQR7qbv3RWL8n4p0MWRUqyV
+         MwBCSjOcjH84TVv+I/fpQegnTNIydQYMFz478NqFmvPWcHxg3CZOgw2qNHGFnim125px
+         kdA2p0eFJipF0QSOD7ytQZfmGcDYLuIZzP21iIyzgJ9w3JgVWqf98nSO56E03KOva17T
+         p1VIUtZZncYr79UtNwELHdz7TcDpDbHkJZdUZEMAyTrmYDLXWE8OywZxbhYy/gc9zzEy
+         PjCQ==
+X-Gm-Message-State: ANhLgQ1hz0Mza4RFGOvZjx6vhtJePoU884JEsP300s4c8njsbj/kwNty
+        UDvqs+ypY4B1lyidZD7dwRcHnFVsUgyiRqPm67G2
+X-Google-Smtp-Source: ADFU+vul3dd78FpyQ/P1xT0CAzUKDA49PHsMIvhi1CMzemU48YH7Min2sbynkoDLmBburfXlTyDJdiTLpwO7v8ADPZw=
+X-Received: by 2002:a50:f152:: with SMTP id z18mr12867397edl.31.1585598145722;
+ Mon, 30 Mar 2020 12:55:45 -0700 (PDT)
+MIME-Version: 1.0
+References: <20200318215550.es4stkjwnefrfen2@madcap2.tricolour.ca>
+ <CAHC9VhSdDDP7Ec-w61NhGxZG5ZiekmrBCAg=Y=VJvEZcgQh46g@mail.gmail.com>
+ <20200319220249.jyr6xmwvflya5mks@madcap2.tricolour.ca> <CAHC9VhR84aN72yNB_j61zZgrQV1y6yvrBLNY7jp7BqQiEDL+cw@mail.gmail.com>
+ <20200324210152.5uydf3zqi3dwshfu@madcap2.tricolour.ca> <CAHC9VhTQUnVhoN3JXTAQ7ti+nNLfGNVXhT6D-GYJRSpJHCwDRg@mail.gmail.com>
+ <20200330134705.jlrkoiqpgjh3rvoh@madcap2.tricolour.ca> <CAHC9VhQTsEMcYAF1CSHrrVn07DR450W9j6sFVfKAQZ0VpheOfw@mail.gmail.com>
+ <20200330162156.mzh2tsnovngudlx2@madcap2.tricolour.ca> <CAHC9VhTRzZXJ6yUFL+xZWHNWZFTyiizBK12ntrcSwmgmySbkWw@mail.gmail.com>
+ <20200330174937.xalrsiev7q3yxsx2@madcap2.tricolour.ca>
+In-Reply-To: <20200330174937.xalrsiev7q3yxsx2@madcap2.tricolour.ca>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Mon, 30 Mar 2020 15:55:36 -0400
+Message-ID: <CAHC9VhR_bKSHDn2WAUgkquu+COwZUanc0RV3GRjMDvpoJ5krjQ@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
+ the audit daemon
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
+        containers@lists.linux-foundation.org,
+        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
+        linux-audit@redhat.com, netfilter-devel@vger.kernel.org,
+        ebiederm@xmission.com, simo@redhat.com, netdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
+        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+On Mon, Mar 30, 2020 at 1:49 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2020-03-30 13:34, Paul Moore wrote:
+> > On Mon, Mar 30, 2020 at 12:22 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > On 2020-03-30 10:26, Paul Moore wrote:
+> > > > On Mon, Mar 30, 2020 at 9:47 AM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > > > On 2020-03-28 23:11, Paul Moore wrote:
+> > > > > > On Tue, Mar 24, 2020 at 5:02 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > > > > > On 2020-03-23 20:16, Paul Moore wrote:
+> > > > > > > > On Thu, Mar 19, 2020 at 6:03 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > > > > > > > On 2020-03-18 18:06, Paul Moore wrote:
 
-Instead of dropping refs+kfree, use the helper added in previous patch.
+...
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_queue.c | 27 +++++++++------------------
- 1 file changed, 9 insertions(+), 18 deletions(-)
+> > > Well, every time a record gets generated, *any* record gets generated,
+> > > we'll need to check for which audit daemons this record is in scope and
+> > > generate a different one for each depending on the content and whether
+> > > or not the content is influenced by the scope.
+> >
+> > That's the problem right there - we don't want to have to generate a
+> > unique record for *each* auditd on *every* record.  That is a recipe
+> > for disaster.
+>
+> I don't see how we can get around this.
+>
+> We will already have that problem for PIDs in different PID namespaces.
 
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index aadccdd117f0..bbd1209694b8 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -155,18 +155,16 @@ static void nf_ip6_saveroute(const struct sk_buff *skb,
- static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 		      unsigned int index, unsigned int queuenum)
- {
--	int status = -ENOENT;
- 	struct nf_queue_entry *entry = NULL;
- 	const struct nf_queue_handler *qh;
- 	struct net *net = state->net;
- 	unsigned int route_key_size;
-+	int status;
- 
- 	/* QUEUE == DROP if no one is waiting, to be safe. */
- 	qh = rcu_dereference(net->nf.queue_handler);
--	if (!qh) {
--		status = -ESRCH;
--		goto err;
--	}
-+	if (!qh)
-+		return -ESRCH;
- 
- 	switch (state->pf) {
- 	case AF_INET:
-@@ -181,14 +179,12 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 	}
- 
- 	entry = kmalloc(sizeof(*entry) + route_key_size, GFP_ATOMIC);
--	if (!entry) {
--		status = -ENOMEM;
--		goto err;
--	}
-+	if (!entry)
-+		return -ENOMEM;
- 
- 	if (skb_dst(skb) && !skb_dst_force(skb)) {
--		status = -ENETDOWN;
--		goto err;
-+		kfree(entry);
-+		return -ENETDOWN;
- 	}
- 
- 	*entry = (struct nf_queue_entry) {
-@@ -212,17 +208,12 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 	}
- 
- 	status = qh->outfn(entry, queuenum);
--
- 	if (status < 0) {
--		nf_queue_entry_release_refs(entry);
--		goto err;
-+		nf_queue_entry_free(entry);
-+		return status;
- 	}
- 
- 	return 0;
--
--err:
--	kfree(entry);
--	return status;
- }
- 
- /* Packets leaving via this function must come back through nf_reinject(). */
+As I said below, let's not worry about this for all of the
+known/current audit records, lets just think about how we solve this
+for the ACID related information.
+
+One of the bigger problems with translating namespace info (e.g. PIDs)
+across ACIDs is that an ACID - by definition - has no understanding of
+namespaces (both the concept as well as any given instance).
+
+> We already need to use a different serial number in each auditd/queue,
+> or else we serialize *all* audit events on the machine and either leak
+> information to the nested daemons that there are other events happenning
+> on the machine, or confuse the host daemon because it now thinks that we
+> are losing events due to serial numbers missing because some nested
+> daemon issued an event that was not relevant to the host daemon,
+> consuming a globally serial audit message sequence number.
+
+This isn't really relevant to the ACID lists, but sure.
+
+> > Solving this for all of the known audit records is not something we
+> > need to worry about in depth at the moment (although giving it some
+> > casual thought is not a bad thing), but solving this for the audit
+> > container ID information *is* something we need to worry about right
+> > now.
+>
+> If you think that a different nested contid value string per daemon is
+> not acceptable, then we are back to issuing a record that has only *one*
+> contid listed without any nesting information.  This brings us back to
+> the original problem of keeping *all* audit log history since the boot
+> of the machine to be able to track the nesting of any particular contid.
+
+I'm not ruling anything out, except for the "let's just completely
+regenerate every record for each auditd instance".
+
+> What am I missing?  What do you suggest?
+
+I'm missing a solution in this thread, since you are the person
+driving this effort I'm asking you to get creative and present us with
+some solutions. :)
+
+
 -- 
-2.11.0
-
+paul moore
+www.paul-moore.com
