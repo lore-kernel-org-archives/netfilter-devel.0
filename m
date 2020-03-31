@@ -2,157 +2,146 @@ Return-Path: <SRS0=TvDw=5Q=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.2 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 161B5C2D0EE
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 16:36:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B91E9C2D0F4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 16:39:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DF66C212CC
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 16:36:10 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EyIQTa7G"
+	by mail.kernel.org (Postfix) with ESMTP id 8FBF320675
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 16:39:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730556AbgCaQgJ (ORCPT
+        id S1730589AbgCaQjN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 31 Mar 2020 12:36:09 -0400
-Received: from mail-pf1-f195.google.com ([209.85.210.195]:41579 "EHLO
-        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726194AbgCaQgJ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 31 Mar 2020 12:36:09 -0400
-Received: by mail-pf1-f195.google.com with SMTP id a24so3730785pfc.8;
-        Tue, 31 Mar 2020 09:36:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=a2tft5SN6SaD3+uP79omFRtB/u7uc82yKfjYjdFaNX4=;
-        b=EyIQTa7Gh9iRVI86F5QKwzhJE9b/9FstuyoY6u5OW7bkBWMuSKUqv+/IGe84V0LIeJ
-         pqIZTMEZtfCb8YTDtufdSjspLPrzLtRnE1li3NmEJrMdZbbRMi7cWugIlbXwgyaO+3wd
-         QYJ8t7sPp3wYdHfg0mj6ms8jZeJ5gS7/Zh1FOOb712DiXML1DWWiUolCf6DXqdXEHE7+
-         LQZ/zVLrAofAFWmetmJtuqCedg+jOOTXL/0n3LBoFEZ2/wt69bnJbEWVByok23NBVjUJ
-         Yk/7yI+JCbe9y4AiSjd3+5Mma9avvWEl1w/f3aKvxNYi+iD8Gu9NuQAv/Wex4/5QGkt8
-         ycAA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=a2tft5SN6SaD3+uP79omFRtB/u7uc82yKfjYjdFaNX4=;
-        b=XgqiqMAonfDbX3mVnQIrAMO40vaz5kC4nL4IondWmlf2H2pIXpOg3ZuVsI3lS0q+l0
-         5SlnkAJJuo50m30zgzZxJosVgxDxxEKgKxLp+HN49+5asPH6VOeIr6YOXKPO+mb/3LSw
-         p5zGesCPYqV8RZT98mO28+zv75FlLJpmp3+jF0svjltlt8RarKrj4eU2XBltZIAQTR7W
-         2hAIWRPYqqoQs8ncNf5L9VnR51DeQqQeTlzLrzKD/tXeHa553HgGd+YL547UZcx6p9mI
-         TGpQGYQvcEn4+7X7QzoE7dIb6XtbNP8YCGRozpQZr+2t23A5NHvLdQxxQceMw3bi0do1
-         9h+A==
-X-Gm-Message-State: ANhLgQ23wwUlGJe2YSxDi+dekBEwV+lzZ/Pmow6D63zQzUM/y2PywIqP
-        snQULZT775szEhN/eX06GG07L0I+Z6M=
-X-Google-Smtp-Source: ADFU+vvU4guU7v+FNKDxX7K25ulInvTEptiThJOFl37u+jNhIxinmnJg4+MIwW0o0T4heZQvJv2XMA==
-X-Received: by 2002:a63:e809:: with SMTP id s9mr18313818pgh.214.1585672567409;
-        Tue, 31 Mar 2020 09:36:07 -0700 (PDT)
-Received: from athina.mtv.corp.google.com ([2620:15c:211:0:c786:d9fd:ab91:6283])
-        by smtp.gmail.com with ESMTPSA id z15sm12927136pfg.152.2020.03.31.09.36.06
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 31 Mar 2020 09:36:06 -0700 (PDT)
-From:   =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <zenczykowski@gmail.com>
-To:     =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     Linux Network Development Mailing List <netdev@vger.kernel.org>,
+        Tue, 31 Mar 2020 12:39:13 -0400
+Received: from correo.us.es ([193.147.175.20]:37624 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730442AbgCaQjL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 31 Mar 2020 12:39:11 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 93084EBACC
+        for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2020 18:39:07 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 83F92123958
+        for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2020 18:39:07 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 64B66123964; Tue, 31 Mar 2020 18:39:07 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 05C99DA736;
+        Tue, 31 Mar 2020 18:39:05 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 31 Mar 2020 18:39:05 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id DC4AA4301DE0;
+        Tue, 31 Mar 2020 18:39:04 +0200 (CEST)
+Date:   Tue, 31 Mar 2020 18:39:04 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Cc:     Maciej =?utf-8?Q?=C5=BBenczykowski?= <maze@google.com>,
+        Florian Westphal <fw@strlen.de>,
+        Linux Network Development Mailing List 
+        <netdev@vger.kernel.org>,
         Netfilter Development Mailing List 
         <netfilter-devel@vger.kernel.org>,
         Manoj Basapathi <manojbm@codeaurora.org>,
         Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Subject: [PATCH] netfilter: IDLETIMER target v1 - match Android layout
-Date:   Tue, 31 Mar 2020 09:35:59 -0700
-Message-Id: <20200331163559.132240-1-zenczykowski@gmail.com>
-X-Mailer: git-send-email 2.26.0.rc2.310.g2932bb562d-goog
+Subject: Re: [PATCH] netfilter: IDLETIMER target v1 - match Android layout
+Message-ID: <20200331163904.ilucynm3brvgfezw@salvia>
+References: <20200331163559.132240-1-zenczykowski@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20200331163559.132240-1-zenczykowski@gmail.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Maciej Żenczykowski <maze@google.com>
+On Tue, Mar 31, 2020 at 09:35:59AM -0700, Maciej Żenczykowski wrote:
+> From: Maciej Żenczykowski <maze@google.com>
+> 
+> Android has long had an extension to IDLETIMER to send netlink
+> messages to userspace, see:
+>   https://android.googlesource.com/kernel/common/+/refs/heads/android-mainline/include/uapi/linux/netfilter/xt_IDLETIMER.h#42
+> Note: this is idletimer target rev 1, there is no rev 0 in
+> the Android common kernel sources, see registration at:
+>   https://android.googlesource.com/kernel/common/+/refs/heads/android-mainline/net/netfilter/xt_IDLETIMER.c#483
+> 
+> When we compare that to upstream's new idletimer target rev 1:
+>   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git/tree/include/uapi/linux/netfilter/xt_IDLETIMER.h#n46
+> 
+> We immediately notice that these two rev 1 structs are the
+> same size and layout, and that while timer_type and send_nl_msg
+> are differently named and serve a different purpose, they're
+> at the same offset.
+> 
+> This makes them impossible to tell apart - and thus one cannot
+> know in a mixed Android/vanilla environment whether one means
+> timer_type or send_nl_msg.
+> 
+> Since this is iptables/netfilter uapi it introduces a problem
+> between iptables (vanilla vs Android) userspace and kernel
+> (vanilla vs Android) if the two don't match each other.
+> 
+> Additionally when at some point in the future Android picks up
+> 5.7+ it's not at all clear how to resolve the resulting merge
+> conflict.
+> 
+> Furthermore, since upgrading the kernel on old Android phones
+> is pretty much impossible there does not seem to be an easy way
+> out of this predicament.
+> 
+> The only thing I've been able to come up with is some super
+> disgusting kernel version >= 5.7 check in the iptables binary
+> to flip between different struct layouts.
+> 
+> By adding a dummy field to the vanilla Linux kernel header file
+> we can force the two structs to be compatible with each other.
+> 
+> Long term I think I would like to deprecate send_nl_msg out of
+> Android entirely, but I haven't quite been able to figure out
+> exactly how we depend on it.  It seems to be very similar to
+> sysfs notifications but with some extra info.
+> 
+> Currently it's actually always enabled whenever Android uses
+> the IDLETIMER target, so we could also probably entirely
+> remove it from the uapi in favour of just always enabling it,
+> but again we can't upgrade old kernels already in the field.
+> 
+> (Also note that this doesn't change the structure's size,
+> as it is simply fitting into the pre-existing padding, and
+> that since 5.7 hasn't been released yet, there's still time
+> to make this uapi visible change)
+> 
+> Cc: Manoj Basapathi <manojbm@codeaurora.org>
+> Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> Signed-off-by: Maciej Żenczykowski <maze@google.com>
+> ---
+>  include/uapi/linux/netfilter/xt_IDLETIMER.h | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/include/uapi/linux/netfilter/xt_IDLETIMER.h b/include/uapi/linux/netfilter/xt_IDLETIMER.h
+> index 434e6506abaa..49ddcdc61c09 100644
+> --- a/include/uapi/linux/netfilter/xt_IDLETIMER.h
+> +++ b/include/uapi/linux/netfilter/xt_IDLETIMER.h
+> @@ -48,6 +48,7 @@ struct idletimer_tg_info_v1 {
+>  
+>  	char label[MAX_IDLETIMER_LABEL_SIZE];
+>  
+> +	__u8 send_nl_msg;   /* unused: for compatibility with Android */
 
-Android has long had an extension to IDLETIMER to send netlink
-messages to userspace, see:
-  https://android.googlesource.com/kernel/common/+/refs/heads/android-mainline/include/uapi/linux/netfilter/xt_IDLETIMER.h#42
-Note: this is idletimer target rev 1, there is no rev 0 in
-the Android common kernel sources, see registration at:
-  https://android.googlesource.com/kernel/common/+/refs/heads/android-mainline/net/netfilter/xt_IDLETIMER.c#483
+Please, add client code for this send_nl_msg field.
 
-When we compare that to upstream's new idletimer target rev 1:
-  https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git/tree/include/uapi/linux/netfilter/xt_IDLETIMER.h#n46
-
-We immediately notice that these two rev 1 structs are the
-same size and layout, and that while timer_type and send_nl_msg
-are differently named and serve a different purpose, they're
-at the same offset.
-
-This makes them impossible to tell apart - and thus one cannot
-know in a mixed Android/vanilla environment whether one means
-timer_type or send_nl_msg.
-
-Since this is iptables/netfilter uapi it introduces a problem
-between iptables (vanilla vs Android) userspace and kernel
-(vanilla vs Android) if the two don't match each other.
-
-Additionally when at some point in the future Android picks up
-5.7+ it's not at all clear how to resolve the resulting merge
-conflict.
-
-Furthermore, since upgrading the kernel on old Android phones
-is pretty much impossible there does not seem to be an easy way
-out of this predicament.
-
-The only thing I've been able to come up with is some super
-disgusting kernel version >= 5.7 check in the iptables binary
-to flip between different struct layouts.
-
-By adding a dummy field to the vanilla Linux kernel header file
-we can force the two structs to be compatible with each other.
-
-Long term I think I would like to deprecate send_nl_msg out of
-Android entirely, but I haven't quite been able to figure out
-exactly how we depend on it.  It seems to be very similar to
-sysfs notifications but with some extra info.
-
-Currently it's actually always enabled whenever Android uses
-the IDLETIMER target, so we could also probably entirely
-remove it from the uapi in favour of just always enabling it,
-but again we can't upgrade old kernels already in the field.
-
-(Also note that this doesn't change the structure's size,
-as it is simply fitting into the pre-existing padding, and
-that since 5.7 hasn't been released yet, there's still time
-to make this uapi visible change)
-
-Cc: Manoj Basapathi <manojbm@codeaurora.org>
-Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Maciej Żenczykowski <maze@google.com>
----
- include/uapi/linux/netfilter/xt_IDLETIMER.h | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/include/uapi/linux/netfilter/xt_IDLETIMER.h b/include/uapi/linux/netfilter/xt_IDLETIMER.h
-index 434e6506abaa..49ddcdc61c09 100644
---- a/include/uapi/linux/netfilter/xt_IDLETIMER.h
-+++ b/include/uapi/linux/netfilter/xt_IDLETIMER.h
-@@ -48,6 +48,7 @@ struct idletimer_tg_info_v1 {
- 
- 	char label[MAX_IDLETIMER_LABEL_SIZE];
- 
-+	__u8 send_nl_msg;   /* unused: for compatibility with Android */
- 	__u8 timer_type;
- 
- 	/* for kernel module internal use only */
--- 
-2.26.0.rc2.310.g2932bb562d-goog
-
+Thank you.
