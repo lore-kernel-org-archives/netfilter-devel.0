@@ -2,128 +2,131 @@ Return-Path: <SRS0=TvDw=5Q=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 849E4C43331
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 21:03:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 906ABC2D0F0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 21:21:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 62730207FF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 21:03:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 61B63206DB
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 21:21:15 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rVzdMzpr"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730677AbgCaVDH (ORCPT
+        id S1731270AbgCaVVN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 31 Mar 2020 17:03:07 -0400
-Received: from correo.us.es ([193.147.175.20]:58280 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728428AbgCaVDG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 31 Mar 2020 17:03:06 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6A29EEF429
-        for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2020 23:03:04 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5AFDDDA736
-        for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2020 23:03:04 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 50B1E12B67D; Tue, 31 Mar 2020 23:03:04 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 47829DA736
-        for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2020 23:03:02 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 31 Mar 2020 23:03:02 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 31C534301DE2
-        for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2020 23:03:02 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next] netfilter: nf_tables: do not update stateful expressions if lookup is inverted
-Date:   Tue, 31 Mar 2020 23:02:59 +0200
-Message-Id: <20200331210259.2579-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Tue, 31 Mar 2020 17:21:13 -0400
+Received: from mail-lj1-f193.google.com ([209.85.208.193]:35895 "EHLO
+        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728245AbgCaVVN (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 31 Mar 2020 17:21:13 -0400
+Received: by mail-lj1-f193.google.com with SMTP id b1so3005956ljp.3;
+        Tue, 31 Mar 2020 14:21:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=CeJAWmi8pyj2Cqo4Z3FIPSvkbNhWN+ArB8lDqJPB0hk=;
+        b=rVzdMzprwCkwuY1yCfod517jm+YgEye9vCggJEu6l+znT4lZw9YR+Smox+DKqXlphn
+         5ZSpctjJMoefuIzzBZ/mOGYF5hhgWJQH59+fgAvRRgD9xwsL3u30uRIRJPUvNbrQ+lIN
+         IO/riXxZ1SzhElkWTVfLHGfmfcfGkvIaKz8f3BlW6DC61uWXl9AcAV1VN2/OcuLJny/t
+         MW76+ptfcRK9hQunQ9nKbkmI9sYq4gqTLyL1cblkyLIx7fvaLK/LC8JjbKpD/APGpHHe
+         fMC+ocx5qLnDdLWtU3IQZ5+R27aFFVHVsbJoV5dq9IuIcjxsIaAEBTSDG8Uvn5vCI9c8
+         eESg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=CeJAWmi8pyj2Cqo4Z3FIPSvkbNhWN+ArB8lDqJPB0hk=;
+        b=fj2LNosBMYUnfVBfu0AUbmQ4hZM8y06vQ+Dly1o/lQ3EqQulb7q8WmtCh+kYLF1J7C
+         yRFF/thTW/S3zF4EUGXQRGbXnnAmBksdkAWLs0s0KfbNq2JNLLCWTGjqzQ0SUGJcGWYM
+         bL8yDCPgjCku9aF2HgDvxFeztFhWKH971VX2WBLyiEBmbkZ7fyf2tI8wdXyUL5XzhIMr
+         Agmsh0P3PLdyA08QofLV/ALzXS7hNQngM6fED/DPZM5Zhc8aWWulrPbv9yFmEu3lQOrT
+         tbRxL3xZb8JJegBpNi7DfwbRZlOWvcm6XLNDZUxMve7Vi5L00v/JvI2JnLvLV9ZD7YnQ
+         dzcA==
+X-Gm-Message-State: AGi0PuYQQptYyvK+77val2UZBh3bo6r0D0uJLqZsq2f3U0Akv25O+oh+
+        28j5ygt2XZAPxvfZpX+0uNi+67a85jW+uFXxBIg=
+X-Google-Smtp-Source: APiQypIUhYwGchIZDdDuPTTze9YkwtXeMQxvGpmTlOXCS0dbo7aO9GLfhCJ06OomtWL+YX3Qh3xMQthRJdFZO20wLBs=
+X-Received: by 2002:a2e:a495:: with SMTP id h21mr11322000lji.123.1585689671599;
+ Tue, 31 Mar 2020 14:21:11 -0700 (PDT)
+MIME-Version: 1.0
+References: <20200331163559.132240-1-zenczykowski@gmail.com>
+ <nycvar.YFH.7.76.2003312012340.6572@n3.vanv.qr> <20200331181641.anvsbczqh6ymyrrl@salvia>
+In-Reply-To: <20200331181641.anvsbczqh6ymyrrl@salvia>
+From:   =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Date:   Tue, 31 Mar 2020 14:21:00 -0700
+Message-ID: <CAHo-Ooy-5CxfWhHuhWHO5M_wm8mO_ZMZT81qNSSNTyN5OAoJww@mail.gmail.com>
+Subject: Re: [PATCH] netfilter: IDLETIMER target v1 - match Android layout
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Jan Engelhardt <jengelh@inai.de>, Florian Westphal <fw@strlen.de>,
+        Linux Network Development Mailing List 
+        <netdev@vger.kernel.org>,
+        Netfilter Development Mailing List 
+        <netfilter-devel@vger.kernel.org>,
+        Manoj Basapathi <manojbm@codeaurora.org>,
+        Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Initialize set lookup matching element to NULL. Otherwise, the
-NFT_LOOKUP_F_INV flag reverses the matching logic and it leads to
-deference an uninitialized pointer to the matching element. Make sure
-element data area and stateful expression are accessed if there is a
-matching set element.
+Right, this is not in 5.6 as it's only in net-next atm as it was only
+merged very recently.
+I mentioned this in the commit message.
 
-This patch undoes 24791b9aa1ab ("netfilter: nft_set_bitmap: initialize set
-element extension in lookups") which is not required anymore.
+I'm not sure what you mean by code that uses this.
+You can checkout aosp source and look there...
+There's the kernel code (that's effectively already linked from the
+commit message), and the iptables userspace changes (
+https://android.googlesource.com/platform/external/iptables/+/refs/heads/ma=
+ster/extensions/libxt_IDLETIMER.c#39
+), and the netd C++/Java layer that uses iptables -j IDLETIMER
+--send_nl_msg 1 (
+https://android.googlesource.com/platform/system/netd/+/refs/heads/master/s=
+erver/IdletimerController.cpp#151
+) and the resulting notifications parsing (can't easily find it atm).
 
-Fixes: 339706bc21c1 ("netfilter: nft_lookup: update element stateful expression")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables.h |  2 +-
- net/netfilter/nft_lookup.c        | 12 +++++++-----
- net/netfilter/nft_set_bitmap.c    |  1 -
- 3 files changed, 8 insertions(+), 7 deletions(-)
+If you mean by code that uses this patch... that's impossible as this
+patch doesn't implement a usable feature.
+It just moves the offset.
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 6eb627b3c99b..4ff7c81e6717 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -901,7 +901,7 @@ static inline void nft_set_elem_update_expr(const struct nft_set_ext *ext,
- {
- 	struct nft_expr *expr;
- 
--	if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPR)) {
-+	if (__nft_set_ext_exists(ext, NFT_SET_EXT_EXPR)) {
- 		expr = nft_set_ext_expr(ext);
- 		expr->ops->eval(expr, regs, pkt);
- 	}
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index 1e70359d633c..f1363b8aabba 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -29,7 +29,7 @@ void nft_lookup_eval(const struct nft_expr *expr,
- {
- 	const struct nft_lookup *priv = nft_expr_priv(expr);
- 	const struct nft_set *set = priv->set;
--	const struct nft_set_ext *ext;
-+	const struct nft_set_ext *ext = NULL;
- 	bool found;
- 
- 	found = set->ops->lookup(nft_net(pkt), set, &regs->data[priv->sreg],
-@@ -39,11 +39,13 @@ void nft_lookup_eval(const struct nft_expr *expr,
- 		return;
- 	}
- 
--	if (set->flags & NFT_SET_MAP)
--		nft_data_copy(&regs->data[priv->dreg],
--			      nft_set_ext_data(ext), set->dlen);
-+	if (ext) {
-+		if (set->flags & NFT_SET_MAP)
-+			nft_data_copy(&regs->data[priv->dreg],
-+				      nft_set_ext_data(ext), set->dlen);
- 
--	nft_set_elem_update_expr(ext, regs, pkt);
-+		nft_set_elem_update_expr(ext, regs, pkt);
-+	}
- }
- 
- static const struct nla_policy nft_lookup_policy[NFTA_LOOKUP_MAX + 1] = {
-diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
-index 32f0fc8be3a4..2a81ea421819 100644
---- a/net/netfilter/nft_set_bitmap.c
-+++ b/net/netfilter/nft_set_bitmap.c
-@@ -81,7 +81,6 @@ static bool nft_bitmap_lookup(const struct net *net, const struct nft_set *set,
- 	u32 idx, off;
- 
- 	nft_bitmap_location(set, key, &idx, &off);
--	*ext = NULL;
- 
- 	return nft_bitmap_active(priv->bitmap, idx, off, genmask);
- }
--- 
-2.11.0
+Could you clarify what you're asking for?
 
+On Tue, Mar 31, 2020 at 11:16 AM Pablo Neira Ayuso <pablo@netfilter.org> wr=
+ote:
+>
+> On Tue, Mar 31, 2020 at 08:14:17PM +0200, Jan Engelhardt wrote:
+> >
+> > On Tuesday 2020-03-31 18:35, Maciej =C5=BBenczykowski wrote:
+> > >Signed-off-by: Maciej =C5=BBenczykowski <maze@google.com>
+> > >---
+> > > include/uapi/linux/netfilter/xt_IDLETIMER.h | 1 +
+> > > 1 file changed, 1 insertion(+)
+> > >
+> > >diff --git a/include/uapi/linux/netfilter/xt_IDLETIMER.h b/include/uap=
+i/linux/netfilter/xt_IDLETIMER.h
+> > >index 434e6506abaa..49ddcdc61c09 100644
+> > >--- a/include/uapi/linux/netfilter/xt_IDLETIMER.h
+> > >+++ b/include/uapi/linux/netfilter/xt_IDLETIMER.h
+> > >@@ -48,6 +48,7 @@ struct idletimer_tg_info_v1 {
+> > >
+> > >     char label[MAX_IDLETIMER_LABEL_SIZE];
+> > >
+> > >+    __u8 send_nl_msg;   /* unused: for compatibility with Android */
+> > >     __u8 timer_type;
+> > >
+> > >     /* for kernel module internal use only */
+> > >--
+> >
+> > This breaks the ABI for law-abiding Linux users (i.e. the GNU/Linux
+> > subgroup of it), which is equally terrible.
+> >
+> > You will have to introduce a IDLETIMER v2.
+>
+> IIRC, IDLETIMER v1 is in net-next, scheduled for 5.7-rc, there is no
+> release for this code yet.
