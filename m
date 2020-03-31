@@ -2,76 +2,74 @@ Return-Path: <SRS0=TvDw=5Q=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-14.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B888AC2D0F1
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 16:07:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 161B5C2D0EE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 16:36:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8F0ED20784
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 16:07:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DF66C212CC
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 16:36:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="E7QP6+nE"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EyIQTa7G"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731097AbgCaQHL (ORCPT
+        id S1730556AbgCaQgJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 31 Mar 2020 12:07:11 -0400
-Received: from mail-pg1-f194.google.com ([209.85.215.194]:33139 "EHLO
-        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730366AbgCaQHL (ORCPT
+        Tue, 31 Mar 2020 12:36:09 -0400
+Received: from mail-pf1-f195.google.com ([209.85.210.195]:41579 "EHLO
+        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726194AbgCaQgJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 31 Mar 2020 12:07:11 -0400
-Received: by mail-pg1-f194.google.com with SMTP id d17so10547622pgo.0;
-        Tue, 31 Mar 2020 09:07:10 -0700 (PDT)
+        Tue, 31 Mar 2020 12:36:09 -0400
+Received: by mail-pf1-f195.google.com with SMTP id a24so3730785pfc.8;
+        Tue, 31 Mar 2020 09:36:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=b1X+kWvTaoc1/8sKIH9Urvg+efjSevl6Sn9xX+k+tdk=;
-        b=E7QP6+nEWaQ3piARVTGv7PrQ3KlmEtoVc+b+4iGu/u4TGouhnhdh2fRTlpC05P6KLf
-         XzoLMuQuFyazLq0QkvzB9raa7zRAwG/07oTtiVyAI7N/sz5tE0fjflijVUn7AYm9JTrl
-         hYR5t2Z0xpbccNY/FEuTZhhBDLY5794BTIB6/xn1Z6QbZsEjdKaoUPVfJq2v0XKRa5Lu
-         vE26toe7X0qGplsHI+/LjDEQwo5Xya0zPxAuiS4I2rjs4X3YPmcIQ8gziJLfVqLgk++J
-         cqLv3KL7+GxXzyTgowPgwQy2dx14TMeqLHJ4rj9auNpahVQMYBjrqaa9+L6wXGpx1kOK
-         LGPA==
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=a2tft5SN6SaD3+uP79omFRtB/u7uc82yKfjYjdFaNX4=;
+        b=EyIQTa7Gh9iRVI86F5QKwzhJE9b/9FstuyoY6u5OW7bkBWMuSKUqv+/IGe84V0LIeJ
+         pqIZTMEZtfCb8YTDtufdSjspLPrzLtRnE1li3NmEJrMdZbbRMi7cWugIlbXwgyaO+3wd
+         QYJ8t7sPp3wYdHfg0mj6ms8jZeJ5gS7/Zh1FOOb712DiXML1DWWiUolCf6DXqdXEHE7+
+         LQZ/zVLrAofAFWmetmJtuqCedg+jOOTXL/0n3LBoFEZ2/wt69bnJbEWVByok23NBVjUJ
+         Yk/7yI+JCbe9y4AiSjd3+5Mma9avvWEl1w/f3aKvxNYi+iD8Gu9NuQAv/Wex4/5QGkt8
+         ycAA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=b1X+kWvTaoc1/8sKIH9Urvg+efjSevl6Sn9xX+k+tdk=;
-        b=pxba0ow81XxCgQIMwIITx8KmH86ojvakKFSx72HvMjvgxFkjiH4JOGwIsAF80vAQMA
-         JgHebxw6f/aH6fmN1EZ5SGR+wMbjeTNsVGRMQTltPfV0bznuuYKkm9kNUgzTEY3Hiihy
-         j/3OfJp3przgdWvCeNmAjUFcNYN0lTYO7KJ+4hl/5TQmO31eg1sJGqw6V1KwxJilTjrd
-         W9H6GS6M7Qmq1hk9ccgpMF8zwLD2uALMK91mWsusVDVKJntFffh1RGPc0mD20Sk7CRxH
-         RbCVd4pRY8+f0jpezXkYdN25OBwYoHoz8imZ4NBWd8s2hIeYCKJsfppQmQXxTnsdMwNf
-         KhQg==
-X-Gm-Message-State: AGi0PubKudS6thWZISpK+8oLDuVopEG1ey38rhqEO5JmZ09OAB5s+zco
-        SNwyM2UJrMhrJS0/xxu+Z4s=
-X-Google-Smtp-Source: APiQypJ/yTO4LiP72ogFNw4xPxdl9op8Gz7lBGkcJE/KhfT3rIhzZOPCqgd0mpZM/YN8hYlgbvbXWA==
-X-Received: by 2002:a63:7159:: with SMTP id b25mr4722166pgn.72.1585670829465;
-        Tue, 31 Mar 2020 09:07:09 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=a2tft5SN6SaD3+uP79omFRtB/u7uc82yKfjYjdFaNX4=;
+        b=XgqiqMAonfDbX3mVnQIrAMO40vaz5kC4nL4IondWmlf2H2pIXpOg3ZuVsI3lS0q+l0
+         5SlnkAJJuo50m30zgzZxJosVgxDxxEKgKxLp+HN49+5asPH6VOeIr6YOXKPO+mb/3LSw
+         p5zGesCPYqV8RZT98mO28+zv75FlLJpmp3+jF0svjltlt8RarKrj4eU2XBltZIAQTR7W
+         2hAIWRPYqqoQs8ncNf5L9VnR51DeQqQeTlzLrzKD/tXeHa553HgGd+YL547UZcx6p9mI
+         TGpQGYQvcEn4+7X7QzoE7dIb6XtbNP8YCGRozpQZr+2t23A5NHvLdQxxQceMw3bi0do1
+         9h+A==
+X-Gm-Message-State: ANhLgQ23wwUlGJe2YSxDi+dekBEwV+lzZ/Pmow6D63zQzUM/y2PywIqP
+        snQULZT775szEhN/eX06GG07L0I+Z6M=
+X-Google-Smtp-Source: ADFU+vvU4guU7v+FNKDxX7K25ulInvTEptiThJOFl37u+jNhIxinmnJg4+MIwW0o0T4heZQvJv2XMA==
+X-Received: by 2002:a63:e809:: with SMTP id s9mr18313818pgh.214.1585672567409;
+        Tue, 31 Mar 2020 09:36:07 -0700 (PDT)
 Received: from athina.mtv.corp.google.com ([2620:15c:211:0:c786:d9fd:ab91:6283])
-        by smtp.gmail.com with ESMTPSA id t63sm11887819pgc.85.2020.03.31.09.07.08
+        by smtp.gmail.com with ESMTPSA id z15sm12927136pfg.152.2020.03.31.09.36.06
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 31 Mar 2020 09:07:08 -0700 (PDT)
+        Tue, 31 Mar 2020 09:36:06 -0700 (PDT)
 From:   =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <zenczykowski@gmail.com>
 To:     =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Florian Westphal <fw@strlen.de>
 Cc:     Linux Network Development Mailing List <netdev@vger.kernel.org>,
         Netfilter Development Mailing List 
-        <netfilter-devel@vger.kernel.org>, Chenbo Feng <fengc@google.com>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Willem de Bruijn <willemb@google.com>
-Subject: [PATCH v3] iptables: open eBPF programs in read only mode
-Date:   Tue, 31 Mar 2020 09:07:03 -0700
-Message-Id: <20200331160703.56842-1-zenczykowski@gmail.com>
+        <netfilter-devel@vger.kernel.org>,
+        Manoj Basapathi <manojbm@codeaurora.org>,
+        Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Subject: [PATCH] netfilter: IDLETIMER target v1 - match Android layout
+Date:   Tue, 31 Mar 2020 09:35:59 -0700
+Message-Id: <20200331163559.132240-1-zenczykowski@gmail.com>
 X-Mailer: git-send-email 2.26.0.rc2.310.g2932bb562d-goog
-In-Reply-To: <20200320030015.195806-1-zenczykowski@gmail.com>
-References: <20200320030015.195806-1-zenczykowski@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -82,88 +80,79 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Maciej Żenczykowski <maze@google.com>
 
-Adjust the mode eBPF programs are opened in so 0400 pinned bpf programs
-work without requiring CAP_DAC_OVERRIDE.
+Android has long had an extension to IDLETIMER to send netlink
+messages to userspace, see:
+  https://android.googlesource.com/kernel/common/+/refs/heads/android-mainline/include/uapi/linux/netfilter/xt_IDLETIMER.h#42
+Note: this is idletimer target rev 1, there is no rev 0 in
+the Android common kernel sources, see registration at:
+  https://android.googlesource.com/kernel/common/+/refs/heads/android-mainline/net/netfilter/xt_IDLETIMER.c#483
 
-This matches Linux 5.2's:
-  commit e547ff3f803e779a3898f1f48447b29f43c54085
-  Author: Chenbo Feng <fengc@google.com>
-  Date:   Tue May 14 19:42:57 2019 -0700
+When we compare that to upstream's new idletimer target rev 1:
+  https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git/tree/include/uapi/linux/netfilter/xt_IDLETIMER.h#n46
 
-    bpf: relax inode permission check for retrieving bpf program
+We immediately notice that these two rev 1 structs are the
+same size and layout, and that while timer_type and send_nl_msg
+are differently named and serve a different purpose, they're
+at the same offset.
 
-    For iptable module to load a bpf program from a pinned location, it
-    only retrieve a loaded program and cannot change the program content so
-    requiring a write permission for it might not be necessary.
-    Also when adding or removing an unrelated iptable rule, it might need to
-    flush and reload the xt_bpf related rules as well and triggers the inode
-    permission check. It might be better to remove the write premission
-    check for the inode so we won't need to grant write access to all the
-    processes that flush and restore iptables rules.
+This makes them impossible to tell apart - and thus one cannot
+know in a mixed Android/vanilla environment whether one means
+timer_type or send_nl_msg.
 
-  kernel/bpf/inode.c:
-  - int ret = inode_permission(inode, MAY_READ | MAY_WRITE);
-  + int ret = inode_permission(inode, MAY_READ);
+Since this is iptables/netfilter uapi it introduces a problem
+between iptables (vanilla vs Android) userspace and kernel
+(vanilla vs Android) if the two don't match each other.
 
-In practice, AFAICT, the xt_bpf match .fd field isn't even used by new
-kernels, but I believe it might be needed for compatibility with old ones
-(though I'm pretty sure table modifications on them will outright fail).
+Additionally when at some point in the future Android picks up
+5.7+ it's not at all clear how to resolve the resulting merge
+conflict.
 
-Test: builds, passes Android test suite (albeit on an older iptables base),
-  git grep bpf_obj_get - finds no other users
-Cc: Chenbo Feng <fengc@google.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Willem de Bruijn <willemb@google.com>
+Furthermore, since upgrading the kernel on old Android phones
+is pretty much impossible there does not seem to be an easy way
+out of this predicament.
+
+The only thing I've been able to come up with is some super
+disgusting kernel version >= 5.7 check in the iptables binary
+to flip between different struct layouts.
+
+By adding a dummy field to the vanilla Linux kernel header file
+we can force the two structs to be compatible with each other.
+
+Long term I think I would like to deprecate send_nl_msg out of
+Android entirely, but I haven't quite been able to figure out
+exactly how we depend on it.  It seems to be very similar to
+sysfs notifications but with some extra info.
+
+Currently it's actually always enabled whenever Android uses
+the IDLETIMER target, so we could also probably entirely
+remove it from the uapi in favour of just always enabling it,
+but again we can't upgrade old kernels already in the field.
+
+(Also note that this doesn't change the structure's size,
+as it is simply fitting into the pre-existing padding, and
+that since 5.7 hasn't been released yet, there's still time
+to make this uapi visible change)
+
+Cc: Manoj Basapathi <manojbm@codeaurora.org>
+Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Maciej Żenczykowski <maze@google.com>
 ---
- extensions/libxt_bpf.c | 25 ++++++++++++++++++-------
- 1 file changed, 18 insertions(+), 7 deletions(-)
+ include/uapi/linux/netfilter/xt_IDLETIMER.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/extensions/libxt_bpf.c b/extensions/libxt_bpf.c
-index 92958247..4aea477a 100644
---- a/extensions/libxt_bpf.c
-+++ b/extensions/libxt_bpf.c
-@@ -61,14 +61,25 @@ static const struct xt_option_entry bpf_opts_v1[] = {
- 	XTOPT_TABLEEND,
- };
+diff --git a/include/uapi/linux/netfilter/xt_IDLETIMER.h b/include/uapi/linux/netfilter/xt_IDLETIMER.h
+index 434e6506abaa..49ddcdc61c09 100644
+--- a/include/uapi/linux/netfilter/xt_IDLETIMER.h
++++ b/include/uapi/linux/netfilter/xt_IDLETIMER.h
+@@ -48,6 +48,7 @@ struct idletimer_tg_info_v1 {
  
--static int bpf_obj_get(const char *filepath)
-+static int bpf_obj_get_readonly(const char *filepath)
- {
- #if defined HAVE_LINUX_BPF_H && defined __NR_bpf && defined BPF_FS_MAGIC
--	union bpf_attr attr;
--
--	memset(&attr, 0, sizeof(attr));
--	attr.pathname = (__u64) filepath;
--
-+	// union bpf_attr includes this in an anonymous struct, but the
-+	// file_flags field and the BPF_F_RDONLY constant are only present
-+	// in Linux 4.15+ kernel headers (include/uapi/linux/bpf.h)
-+	struct {   // this part of union bpf_attr is for BPF_OBJ_* commands
-+		__aligned_u64	pathname;
-+		__u32		bpf_fd;
-+		__u32		file_flags;
-+	} attr = {
-+		.pathname = (__u64)filepath,
-+		.file_flags = (1U << 3),   // BPF_F_RDONLY
-+	};
-+	int fd = syscall(__NR_bpf, BPF_OBJ_GET, &attr, sizeof(attr));
-+	if (fd >= 0) return fd;
-+
-+	// on any error fallback to default R/W access for pre-4.15-rc1 kernels
-+	attr.file_flags = 0;
- 	return syscall(__NR_bpf, BPF_OBJ_GET, &attr, sizeof(attr));
- #else
- 	xtables_error(OTHER_PROBLEM,
-@@ -125,7 +136,7 @@ static void bpf_parse_string(struct sock_filter *pc, __u16 *lenp, __u16 len_max,
- static void bpf_parse_obj_pinned(struct xt_bpf_info_v1 *bi,
- 				 const char *filepath)
- {
--	bi->fd = bpf_obj_get(filepath);
-+	bi->fd = bpf_obj_get_readonly(filepath);
- 	if (bi->fd < 0)
- 		xtables_error(PARAMETER_PROBLEM,
- 			      "bpf: failed to get bpf object");
+ 	char label[MAX_IDLETIMER_LABEL_SIZE];
+ 
++	__u8 send_nl_msg;   /* unused: for compatibility with Android */
+ 	__u8 timer_type;
+ 
+ 	/* for kernel module internal use only */
 -- 
 2.26.0.rc2.310.g2932bb562d-goog
 
