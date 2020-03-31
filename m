@@ -2,317 +2,168 @@ Return-Path: <SRS0=TvDw=5Q=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8F06C2D0EE
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 12:46:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B888AC2D0F1
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 16:07:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AFDC820848
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 12:46:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8F0ED20784
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 16:07:12 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="E7QP6+nE"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730720AbgCaMqB (ORCPT
+        id S1731097AbgCaQHL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 31 Mar 2020 08:46:01 -0400
-Received: from correo.us.es ([193.147.175.20]:41214 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730642AbgCaMqB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 31 Mar 2020 08:46:01 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 1DDEF4FFE00
-        for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2020 14:45:58 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0E8D212395B
-        for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2020 14:45:58 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 03EE7123960; Tue, 31 Mar 2020 14:45:58 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D635112395B
-        for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2020 14:45:55 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 31 Mar 2020 14:45:55 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id C08F54301DE1
-        for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2020 14:45:55 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 1/3] rule: add hook_spec
-Date:   Tue, 31 Mar 2020 14:45:49 +0200
-Message-Id: <20200331124551.403893-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Tue, 31 Mar 2020 12:07:11 -0400
+Received: from mail-pg1-f194.google.com ([209.85.215.194]:33139 "EHLO
+        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730366AbgCaQHL (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 31 Mar 2020 12:07:11 -0400
+Received: by mail-pg1-f194.google.com with SMTP id d17so10547622pgo.0;
+        Tue, 31 Mar 2020 09:07:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=b1X+kWvTaoc1/8sKIH9Urvg+efjSevl6Sn9xX+k+tdk=;
+        b=E7QP6+nEWaQ3piARVTGv7PrQ3KlmEtoVc+b+4iGu/u4TGouhnhdh2fRTlpC05P6KLf
+         XzoLMuQuFyazLq0QkvzB9raa7zRAwG/07oTtiVyAI7N/sz5tE0fjflijVUn7AYm9JTrl
+         hYR5t2Z0xpbccNY/FEuTZhhBDLY5794BTIB6/xn1Z6QbZsEjdKaoUPVfJq2v0XKRa5Lu
+         vE26toe7X0qGplsHI+/LjDEQwo5Xya0zPxAuiS4I2rjs4X3YPmcIQ8gziJLfVqLgk++J
+         cqLv3KL7+GxXzyTgowPgwQy2dx14TMeqLHJ4rj9auNpahVQMYBjrqaa9+L6wXGpx1kOK
+         LGPA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=b1X+kWvTaoc1/8sKIH9Urvg+efjSevl6Sn9xX+k+tdk=;
+        b=pxba0ow81XxCgQIMwIITx8KmH86ojvakKFSx72HvMjvgxFkjiH4JOGwIsAF80vAQMA
+         JgHebxw6f/aH6fmN1EZ5SGR+wMbjeTNsVGRMQTltPfV0bznuuYKkm9kNUgzTEY3Hiihy
+         j/3OfJp3przgdWvCeNmAjUFcNYN0lTYO7KJ+4hl/5TQmO31eg1sJGqw6V1KwxJilTjrd
+         W9H6GS6M7Qmq1hk9ccgpMF8zwLD2uALMK91mWsusVDVKJntFffh1RGPc0mD20Sk7CRxH
+         RbCVd4pRY8+f0jpezXkYdN25OBwYoHoz8imZ4NBWd8s2hIeYCKJsfppQmQXxTnsdMwNf
+         KhQg==
+X-Gm-Message-State: AGi0PubKudS6thWZISpK+8oLDuVopEG1ey38rhqEO5JmZ09OAB5s+zco
+        SNwyM2UJrMhrJS0/xxu+Z4s=
+X-Google-Smtp-Source: APiQypJ/yTO4LiP72ogFNw4xPxdl9op8Gz7lBGkcJE/KhfT3rIhzZOPCqgd0mpZM/YN8hYlgbvbXWA==
+X-Received: by 2002:a63:7159:: with SMTP id b25mr4722166pgn.72.1585670829465;
+        Tue, 31 Mar 2020 09:07:09 -0700 (PDT)
+Received: from athina.mtv.corp.google.com ([2620:15c:211:0:c786:d9fd:ab91:6283])
+        by smtp.gmail.com with ESMTPSA id t63sm11887819pgc.85.2020.03.31.09.07.08
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 31 Mar 2020 09:07:08 -0700 (PDT)
+From:   =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <zenczykowski@gmail.com>
+To:     =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     Linux Network Development Mailing List <netdev@vger.kernel.org>,
+        Netfilter Development Mailing List 
+        <netfilter-devel@vger.kernel.org>, Chenbo Feng <fengc@google.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Willem de Bruijn <willemb@google.com>
+Subject: [PATCH v3] iptables: open eBPF programs in read only mode
+Date:   Tue, 31 Mar 2020 09:07:03 -0700
+Message-Id: <20200331160703.56842-1-zenczykowski@gmail.com>
+X-Mailer: git-send-email 2.26.0.rc2.310.g2932bb562d-goog
+In-Reply-To: <20200320030015.195806-1-zenczykowski@gmail.com>
+References: <20200320030015.195806-1-zenczykowski@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Store location of chain hook definition.
+From: Maciej Żenczykowski <maze@google.com>
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Adjust the mode eBPF programs are opened in so 0400 pinned bpf programs
+work without requiring CAP_DAC_OVERRIDE.
+
+This matches Linux 5.2's:
+  commit e547ff3f803e779a3898f1f48447b29f43c54085
+  Author: Chenbo Feng <fengc@google.com>
+  Date:   Tue May 14 19:42:57 2019 -0700
+
+    bpf: relax inode permission check for retrieving bpf program
+
+    For iptable module to load a bpf program from a pinned location, it
+    only retrieve a loaded program and cannot change the program content so
+    requiring a write permission for it might not be necessary.
+    Also when adding or removing an unrelated iptable rule, it might need to
+    flush and reload the xt_bpf related rules as well and triggers the inode
+    permission check. It might be better to remove the write premission
+    check for the inode so we won't need to grant write access to all the
+    processes that flush and restore iptables rules.
+
+  kernel/bpf/inode.c:
+  - int ret = inode_permission(inode, MAY_READ | MAY_WRITE);
+  + int ret = inode_permission(inode, MAY_READ);
+
+In practice, AFAICT, the xt_bpf match .fd field isn't even used by new
+kernels, but I believe it might be needed for compatibility with old ones
+(though I'm pretty sure table modifications on them will outright fail).
+
+Test: builds, passes Android test suite (albeit on an older iptables base),
+  git grep bpf_obj_get - finds no other users
+Cc: Chenbo Feng <fengc@google.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Willem de Bruijn <willemb@google.com>
+Signed-off-by: Maciej Żenczykowski <maze@google.com>
 ---
- include/rule.h     | 12 ++++++++----
- src/evaluate.c     | 18 +++++++++---------
- src/json.c         |  4 ++--
- src/mnl.c          |  4 ++--
- src/netlink.c      |  8 ++++----
- src/parser_bison.y | 10 ++++++----
- src/parser_json.c  |  6 +++---
- src/rule.c         | 12 ++++++------
- 8 files changed, 40 insertions(+), 34 deletions(-)
+ extensions/libxt_bpf.c | 25 ++++++++++++++++++-------
+ 1 file changed, 18 insertions(+), 7 deletions(-)
 
-diff --git a/include/rule.h b/include/rule.h
-index db11b1d60658..06fefef8a5d8 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -189,6 +189,12 @@ struct prio_spec {
- 	struct expr	*expr;
+diff --git a/extensions/libxt_bpf.c b/extensions/libxt_bpf.c
+index 92958247..4aea477a 100644
+--- a/extensions/libxt_bpf.c
++++ b/extensions/libxt_bpf.c
+@@ -61,14 +61,25 @@ static const struct xt_option_entry bpf_opts_v1[] = {
+ 	XTOPT_TABLEEND,
  };
  
-+struct hook_spec {
-+	struct location	loc;
-+	const char	*name;
-+	unsigned int	num;
-+};
+-static int bpf_obj_get(const char *filepath)
++static int bpf_obj_get_readonly(const char *filepath)
+ {
+ #if defined HAVE_LINUX_BPF_H && defined __NR_bpf && defined BPF_FS_MAGIC
+-	union bpf_attr attr;
+-
+-	memset(&attr, 0, sizeof(attr));
+-	attr.pathname = (__u64) filepath;
+-
++	// union bpf_attr includes this in an anonymous struct, but the
++	// file_flags field and the BPF_F_RDONLY constant are only present
++	// in Linux 4.15+ kernel headers (include/uapi/linux/bpf.h)
++	struct {   // this part of union bpf_attr is for BPF_OBJ_* commands
++		__aligned_u64	pathname;
++		__u32		bpf_fd;
++		__u32		file_flags;
++	} attr = {
++		.pathname = (__u64)filepath,
++		.file_flags = (1U << 3),   // BPF_F_RDONLY
++	};
++	int fd = syscall(__NR_bpf, BPF_OBJ_GET, &attr, sizeof(attr));
++	if (fd >= 0) return fd;
 +
- /**
-  * struct chain - nftables chain
-  *
-@@ -211,9 +217,8 @@ struct chain {
- 	struct location		location;
- 	unsigned int		refcnt;
- 	uint32_t		flags;
--	const char		*hookstr;
--	unsigned int		hooknum;
- 	struct prio_spec	priority;
-+	struct hook_spec	hook;
- 	struct expr		*policy;
- 	const char		*type;
- 	const char		**dev_array;
-@@ -485,8 +490,7 @@ struct flowtable {
- 	struct handle		handle;
- 	struct scope		scope;
- 	struct location		location;
--	const char *		hookstr;
--	unsigned int		hooknum;
-+	struct hook_spec	hook;
- 	struct prio_spec	priority;
- 	const char		**dev_array;
- 	struct expr		*dev_expr;
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 8b03e1f3cfb8..759cdaafb0ea 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -3568,11 +3568,11 @@ static int flowtable_evaluate(struct eval_ctx *ctx, struct flowtable *ft)
- 	if (table == NULL)
- 		return table_not_found(ctx);
- 
--	ft->hooknum = str2hooknum(NFPROTO_NETDEV, ft->hookstr);
--	if (ft->hooknum == NF_INET_NUMHOOKS)
--		return chain_error(ctx, ft, "invalid hook %s", ft->hookstr);
-+	ft->hook.num = str2hooknum(NFPROTO_NETDEV, ft->hook.name);
-+	if (ft->hook.num == NF_INET_NUMHOOKS)
-+		return chain_error(ctx, ft, "invalid hook %s", ft->hook.name);
- 
--	if (!evaluate_priority(ctx, &ft->priority, NFPROTO_NETDEV, ft->hooknum))
-+	if (!evaluate_priority(ctx, &ft->priority, NFPROTO_NETDEV, ft->hook.num))
- 		return __stmt_binary_error(ctx, &ft->priority.loc, NULL,
- 					   "invalid priority expression %s.",
- 					   expr_name(ft->priority.expr));
-@@ -3783,14 +3783,14 @@ static int chain_evaluate(struct eval_ctx *ctx, struct chain *chain)
- 	}
- 
- 	if (chain->flags & CHAIN_F_BASECHAIN) {
--		chain->hooknum = str2hooknum(chain->handle.family,
--					     chain->hookstr);
--		if (chain->hooknum == NF_INET_NUMHOOKS)
-+		chain->hook.num = str2hooknum(chain->handle.family,
-+					      chain->hook.name);
-+		if (chain->hook.num == NF_INET_NUMHOOKS)
- 			return chain_error(ctx, chain, "invalid hook %s",
--					   chain->hookstr);
-+					   chain->hook.name);
- 
- 		if (!evaluate_priority(ctx, &chain->priority,
--				       chain->handle.family, chain->hooknum))
-+				       chain->handle.family, chain->hook.num))
- 			return __stmt_binary_error(ctx, &chain->priority.loc, NULL,
- 						   "invalid priority expression %s in this context.",
- 						   expr_name(chain->priority.expr));
-diff --git a/src/json.c b/src/json.c
-index 86028959b8a3..ed7131816d7d 100644
---- a/src/json.c
-+++ b/src/json.c
-@@ -240,7 +240,7 @@ static json_t *chain_print_json(const struct chain *chain)
- 		tmp = json_pack("{s:s, s:s, s:i, s:s}",
- 				"type", chain->type,
- 				"hook", hooknum2str(chain->handle.family,
--						    chain->hooknum),
-+						    chain->hook.num),
- 				"prio", priority,
- 				"policy", chain_policy2str(policy));
- 		if (chain->dev_expr) {
-@@ -415,7 +415,7 @@ static json_t *flowtable_print_json(const struct flowtable *ftable)
- 			"name", ftable->handle.flowtable.name,
- 			"table", ftable->handle.table.name,
- 			"handle", ftable->handle.handle.id,
--			"hook", hooknum2str(NFPROTO_NETDEV, ftable->hooknum),
-+			"hook", hooknum2str(NFPROTO_NETDEV, ftable->hook.num),
- 			"prio", priority);
- 
- 	for (i = 0; i < ftable->dev_array_len; i++) {
-diff --git a/src/mnl.c b/src/mnl.c
-index 2eea85e838fc..3c009fab6dcf 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -630,7 +630,7 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 		}
- 		if (cmd->chain->flags & CHAIN_F_BASECHAIN) {
- 			nftnl_chain_set_u32(nlc, NFTNL_CHAIN_HOOKNUM,
--					    cmd->chain->hooknum);
-+					    cmd->chain->hook.num);
- 			mpz_export_data(&priority,
- 					cmd->chain->priority.expr->value,
- 					BYTEORDER_HOST_ENDIAN, sizeof(int));
-@@ -1601,7 +1601,7 @@ int mnl_nft_flowtable_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 	nftnl_flowtable_set_u32(flo, NFTNL_FLOWTABLE_FAMILY,
- 				cmd->handle.family);
- 	nftnl_flowtable_set_u32(flo, NFTNL_FLOWTABLE_HOOKNUM,
--				cmd->flowtable->hooknum);
-+				cmd->flowtable->hook.num);
- 	mpz_export_data(&priority, cmd->flowtable->priority.expr->value,
- 			BYTEORDER_HOST_ENDIAN, sizeof(int));
- 	nftnl_flowtable_set_u32(flo, NFTNL_FLOWTABLE_PRIO, priority);
-diff --git a/src/netlink.c b/src/netlink.c
-index ab1afd42f60b..24d746ca636b 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -445,10 +445,10 @@ struct chain *netlink_delinearize_chain(struct netlink_ctx *ctx,
- 	    nftnl_chain_is_set(nlc, NFTNL_CHAIN_PRIO) &&
- 	    nftnl_chain_is_set(nlc, NFTNL_CHAIN_TYPE) &&
- 	    nftnl_chain_is_set(nlc, NFTNL_CHAIN_POLICY)) {
--		chain->hooknum       =
-+		chain->hook.num =
- 			nftnl_chain_get_u32(nlc, NFTNL_CHAIN_HOOKNUM);
--		chain->hookstr       =
--			hooknum2str(chain->handle.family, chain->hooknum);
-+		chain->hook.name =
-+			hooknum2str(chain->handle.family, chain->hook.num);
- 		priority = nftnl_chain_get_s32(nlc, NFTNL_CHAIN_PRIO);
- 		chain->priority.expr =
- 				constant_expr_alloc(&netlink_location,
-@@ -1340,7 +1340,7 @@ netlink_delinearize_flowtable(struct netlink_ctx *ctx,
- 						    sizeof(int) *
- 						    BITS_PER_BYTE,
- 						    &priority);
--	flowtable->hooknum =
-+	flowtable->hook.num =
- 		nftnl_flowtable_get_u32(nlo, NFTNL_FLOWTABLE_HOOKNUM);
- 	flowtable->flags =
- 		nftnl_flowtable_get_u32(nlo, NFTNL_FLOWTABLE_FLAGS);
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 9976bcafb2c4..ebaef17c904c 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -1877,8 +1877,9 @@ flowtable_block		:	/* empty */	{ $$ = $<flowtable>-1; }
- 			|	flowtable_block	stmt_separator
- 			|	flowtable_block	HOOK		STRING	prio_spec	stmt_separator
- 			{
--				$$->hookstr	= chain_hookname_lookup($3);
--				if ($$->hookstr == NULL) {
-+				$$->hook.loc = @3;
-+				$$->hook.name = chain_hookname_lookup($3);
-+				if ($$->hook.name == NULL) {
- 					erec_queue(error(&@3, "unknown chain hook %s", $3),
- 						   state->msgs);
- 					xfree($3);
-@@ -2056,8 +2057,9 @@ hook_spec		:	TYPE		STRING		HOOK		STRING		dev_spec	prio_spec
- 				$<chain>0->type		= xstrdup(chain_type);
- 				xfree($2);
- 
--				$<chain>0->hookstr	= chain_hookname_lookup($4);
--				if ($<chain>0->hookstr == NULL) {
-+				$<chain>0->hook.loc = @4;
-+				$<chain>0->hook.name = chain_hookname_lookup($4);
-+				if ($<chain>0->hook.name == NULL) {
- 					erec_queue(error(&@4, "unknown chain hook %s", $4),
- 						   state->msgs);
- 					xfree($4);
-diff --git a/src/parser_json.c b/src/parser_json.c
-index d158db786b8d..a1765027fdf3 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -2628,8 +2628,8 @@ static struct cmd *json_parse_cmd_add_chain(struct json_ctx *ctx, json_t *root,
- 						   BYTEORDER_HOST_ENDIAN,
- 						   sizeof(int) * BITS_PER_BYTE,
- 						   &prio);
--	chain->hookstr = chain_hookname_lookup(hookstr);
--	if (!chain->hookstr) {
-+	chain->hook.name = chain_hookname_lookup(hookstr);
-+	if (!chain->hook.name) {
- 		json_error(ctx, "Invalid chain hook '%s'.", hookstr);
- 		chain_free(chain);
- 		return NULL;
-@@ -3017,7 +3017,7 @@ static struct cmd *json_parse_cmd_add_flowtable(struct json_ctx *ctx,
- 	}
- 
- 	flowtable = flowtable_alloc(int_loc);
--	flowtable->hookstr = hookstr;
-+	flowtable->hook.name = hookstr;
- 	flowtable->priority.expr =
- 		constant_expr_alloc(int_loc, &integer_type,
- 				    BYTEORDER_HOST_ENDIAN,
-diff --git a/src/rule.c b/src/rule.c
-index 92fa129be077..a312693f4edc 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -1165,7 +1165,7 @@ static void chain_print_declaration(const struct chain *chain,
- 	nft_print(octx, "\n");
- 	if (chain->flags & CHAIN_F_BASECHAIN) {
- 		nft_print(octx, "\t\ttype %s hook %s", chain->type,
--			  hooknum2str(chain->handle.family, chain->hooknum));
-+			  hooknum2str(chain->handle.family, chain->hook.num));
- 		if (chain->dev_array_len == 1) {
- 			nft_print(octx, " device \"%s\"", chain->dev_array[0]);
- 		} else if (chain->dev_array_len > 1) {
-@@ -1179,7 +1179,7 @@ static void chain_print_declaration(const struct chain *chain,
- 		}
- 		nft_print(octx, " priority %s;",
- 			  prio2str(octx, priobuf, sizeof(priobuf),
--				   chain->handle.family, chain->hooknum,
-+				   chain->handle.family, chain->hook.num,
- 				   chain->priority.expr));
- 		if (chain->policy) {
- 			mpz_export_data(&policy, chain->policy->value,
-@@ -1220,9 +1220,9 @@ void chain_print_plain(const struct chain *chain, struct output_ctx *octx)
- 		mpz_export_data(&policy, chain->policy->value,
- 				BYTEORDER_HOST_ENDIAN, sizeof(int));
- 		nft_print(octx, " { type %s hook %s priority %s; policy %s; }",
--			  chain->type, chain->hookstr,
-+			  chain->type, chain->hook.name,
- 			  prio2str(octx, priobuf, sizeof(priobuf),
--				   chain->handle.family, chain->hooknum,
-+				   chain->handle.family, chain->hook.num,
- 				   chain->priority.expr),
- 			  chain_policy2str(policy));
- 	}
-@@ -2235,9 +2235,9 @@ static void flowtable_print_declaration(const struct flowtable *flowtable,
- 	nft_print(octx, "%s", opts->nl);
- 	nft_print(octx, "%s%shook %s priority %s%s",
- 		  opts->tab, opts->tab,
--		  hooknum2str(NFPROTO_NETDEV, flowtable->hooknum),
-+		  hooknum2str(NFPROTO_NETDEV, flowtable->hook.num),
- 		  prio2str(octx, priobuf, sizeof(priobuf), NFPROTO_NETDEV,
--			   flowtable->hooknum, flowtable->priority.expr),
-+			   flowtable->hook.num, flowtable->priority.expr),
- 		  opts->stmt_separator);
- 
- 	nft_print(octx, "%s%sdevices = { ", opts->tab, opts->tab);
++	// on any error fallback to default R/W access for pre-4.15-rc1 kernels
++	attr.file_flags = 0;
+ 	return syscall(__NR_bpf, BPF_OBJ_GET, &attr, sizeof(attr));
+ #else
+ 	xtables_error(OTHER_PROBLEM,
+@@ -125,7 +136,7 @@ static void bpf_parse_string(struct sock_filter *pc, __u16 *lenp, __u16 len_max,
+ static void bpf_parse_obj_pinned(struct xt_bpf_info_v1 *bi,
+ 				 const char *filepath)
+ {
+-	bi->fd = bpf_obj_get(filepath);
++	bi->fd = bpf_obj_get_readonly(filepath);
+ 	if (bi->fd < 0)
+ 		xtables_error(PARAMETER_PROBLEM,
+ 			      "bpf: failed to get bpf object");
 -- 
-2.11.0
+2.26.0.rc2.310.g2932bb562d-goog
 
