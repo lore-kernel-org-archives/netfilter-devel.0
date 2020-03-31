@@ -2,55 +2,101 @@ Return-Path: <SRS0=TvDw=5Q=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A9EDC2D0E9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 03:11:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7F07C43331
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 10:16:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0AB3A2072D
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 03:11:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 91A8920848
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Mar 2020 10:16:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727708AbgCaDLK (ORCPT
+        id S1730224AbgCaKQI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Mar 2020 23:11:10 -0400
-Received: from shards.monkeyblade.net ([23.128.96.9]:46062 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727614AbgCaDLK (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Mar 2020 23:11:10 -0400
-Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id 75AB215D1723D;
-        Mon, 30 Mar 2020 20:11:09 -0700 (PDT)
-Date:   Mon, 30 Mar 2020 20:11:08 -0700 (PDT)
-Message-Id: <20200330.201108.1087158275021620053.davem@davemloft.net>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH 00/28] Netfilter/IPVS updates for net-next
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20200330192136.230459-1-pablo@netfilter.org>
-References: <20200330192136.230459-1-pablo@netfilter.org>
-X-Mailer: Mew version 6.8 on Emacs 26.1
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Mon, 30 Mar 2020 20:11:09 -0700 (PDT)
+        Tue, 31 Mar 2020 06:16:08 -0400
+Received: from correo.us.es ([193.147.175.20]:33626 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727655AbgCaKQI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 31 Mar 2020 06:16:08 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 029CCDA3CD
+        for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2020 12:16:06 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E77D5100A4E
+        for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2020 12:16:05 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id E519B100A59; Tue, 31 Mar 2020 12:16:05 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E261C100A47;
+        Tue, 31 Mar 2020 12:16:03 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 31 Mar 2020 12:16:03 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id BE18342EF4E0;
+        Tue, 31 Mar 2020 12:16:03 +0200 (CEST)
+Date:   Tue, 31 Mar 2020 12:16:03 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     linux-kernel@vger.kernel.org, stable@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH 5.5 138/170] netfilter: nft_fwd_netdev: allow to redirect
+ to ifb via ingress
+Message-ID: <20200331101603.wmsbhgmjc6vf4esk@salvia>
+References: <20200331085423.990189598@linuxfoundation.org>
+ <20200331085438.148415210@linuxfoundation.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200331085438.148415210@linuxfoundation.org>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 30 Mar 2020 21:21:08 +0200
-
-> The following patchset contains Netfilter/IPVS updates for net-next:
- ...
-> You can pull these changes from:
+On Tue, Mar 31, 2020 at 10:59:12AM +0200, Greg Kroah-Hartman wrote:
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+> commit bcfabee1afd99484b6ba067361b8678e28bbc065 upstream.
+> 
+> Set skb->tc_redirected to 1, otherwise the ifb driver drops the packet.
+> Set skb->tc_from_ingress to 1 to reinject the packet back to the ingress
+> path after leaving the ifb egress path.
+> 
+> This patch inconditionally sets on these two skb fields that are
+> meaningful to the ifb driver. The existing forward action is guaranteed
+> to run from ingress path.
+> 
+> Fixes: 39e6dea28adc ("netfilter: nf_tables: add forward expression to the netdev family")
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> 
+> ---
+>  net/netfilter/nft_fwd_netdev.c |    4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> --- a/net/netfilter/nft_fwd_netdev.c
+> +++ b/net/netfilter/nft_fwd_netdev.c
+> @@ -28,6 +28,10 @@ static void nft_fwd_netdev_eval(const st
+>  	struct nft_fwd_netdev *priv = nft_expr_priv(expr);
+>  	int oif = regs->data[priv->sreg_dev];
+>  
+> +	/* These are used by ifb only. */
+> +	pkt->skb->tc_redirected = 1;
+> +	pkt->skb->tc_from_ingress = 1;
 
-Pulled.
+This patch also requires:
+
+2c64605b590e net: Fix CONFIG_NET_CLS_ACT=n and CONFIG_NFT_FWD_NETDEV={y, m} build
+
+Otherwise build breaks with CONFIG_NET_CLS_ACT=n.
+
+Thanks.
