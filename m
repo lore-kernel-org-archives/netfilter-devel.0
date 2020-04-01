@@ -2,154 +2,121 @@ Return-Path: <SRS0=ovZY=5R=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06ECCC43331
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Apr 2020 15:14:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73803C43331
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Apr 2020 15:48:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C85D520719
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Apr 2020 15:14:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 46ECF20B1F
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Apr 2020 15:48:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bgZjXKJx"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dIfpPWfN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732707AbgDAPOs (ORCPT
+        id S1732925AbgDAPsT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 Apr 2020 11:14:48 -0400
-Received: from us-smtp-2.mimecast.com ([207.211.31.81]:35379 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1732561AbgDAPOs (ORCPT
+        Wed, 1 Apr 2020 11:48:19 -0400
+Received: from mail-ed1-f67.google.com ([209.85.208.67]:44757 "EHLO
+        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726640AbgDAPsT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Apr 2020 11:14:48 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1585754087;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=DC7ZsiyRZlD0LvEsH+JarmS3g/yYFnpVMI1lHwTUlAk=;
-        b=bgZjXKJxZAjEBf4SJFpXHqswUR9eU3sb3gJYkPkGcRKWuapOSJVflWdahW+N7P+Flak9dq
-        ReLJfsorp4DNF1/LLBbn2MuLGrmYlz/UVWchKmRf+sLqLIgUPC3nVIxFW+iN+575tpP5PG
-        Zn2gDvBwD0qoQvtr6ikvbl7+0n9cGyE=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-493-quEpzsCKO6m72RvJ3UjhUQ-1; Wed, 01 Apr 2020 11:14:43 -0400
-X-MC-Unique: quEpzsCKO6m72RvJ3UjhUQ-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B46861937FC0;
-        Wed,  1 Apr 2020 15:14:42 +0000 (UTC)
-Received: from epycfail.redhat.com (unknown [10.36.110.29])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 8D3EC5DA66;
-        Wed,  1 Apr 2020 15:14:41 +0000 (UTC)
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: [PATCH nf v2] nft_set_rbtree: Drop spurious condition for overlap detection on insertion
-Date:   Wed,  1 Apr 2020 17:14:38 +0200
-Message-Id: <26b78e559de6ae7250108163c19b48bdf0d12bfd.1585754003.git.sbrivio@redhat.com>
+        Wed, 1 Apr 2020 11:48:19 -0400
+Received: by mail-ed1-f67.google.com with SMTP id i16so429749edy.11
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Apr 2020 08:48:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
+         :user-agent;
+        bh=DFEvvX752a+z0QMIfV2F9J/0ileEyQROzO7m9l7u4Uo=;
+        b=dIfpPWfN3BIuoVX3qezpOuBQincCwZXL1ujFbxBNzBW36OO76xOq9lhNhOeER/RFkb
+         b0aaM/lqyGcQIpBIjrcM9W9K7395D9q2kKL/pseklriAlz4RHcQcVbdJW+9HFx3OnCwE
+         bS/9t8Q7LNgocqh4Wtc09kuxE7RYmGP3twKWIPlWdeSbyxeHpkgkmCpLX4APaEUsSr+b
+         NwpfdJPoeDgG8f87fSO6bSA3nyY629SauAztZnqb4ByRRD9ed5E/1AprxL6CP4Sm/N9I
+         Z64QBx/xNpSRFFOq0osjueemWuJPf981ITiMkNJ1APmguCnYOSvaDm4wkALPeICfRbBp
+         QmNA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
+         :content-disposition:user-agent;
+        bh=DFEvvX752a+z0QMIfV2F9J/0ileEyQROzO7m9l7u4Uo=;
+        b=Vh8qBhewsvZauMtIjfpOFU4HxfMpBGYPxC5iMXoCAzc36vOp9+7ZZmPXg0/qiBGP2f
+         nCRK5IKnvv9WZ91KYpisvuaw8iuDBy2xNRg0HO+a9DtHTrgS4U1+K4i1CeF4syRxzreB
+         BvXAdDYsB7Xe2uTWXyv7w2+u9XW831Ug+6In6bED5LgEvIpZYcHh/Riffhn32C8MU6/4
+         zD6PqPOw5nMGQUc0qI9m7/zohzJ3D4uLN/YkANcmuHrOiY8L8c9odohWHibLaHtuhkRf
+         M1Pg2e4nJZavZF9d1b3/6lvT8JQ1QWB8qT6WI1KRRZzeiriBO9zPZRap7cS9H3iMsq7w
+         2xrQ==
+X-Gm-Message-State: ANhLgQ2yi3O5ZmWH6BhZt95wYhQOHJl6LiZmsGraEwkuYky7opS/9GwR
+        1zYQdOrYk8rf58kdBpddF+Vqdm11zhA=
+X-Google-Smtp-Source: ADFU+vt8zBir9IHNreGyC+9bcDxesyQkHddrJhxRO99QxW50FAm2tFILKM1a4ptpduJcLBJ7fyuh5Q==
+X-Received: by 2002:aa7:d2cb:: with SMTP id k11mr21975863edr.128.1585756097375;
+        Wed, 01 Apr 2020 08:48:17 -0700 (PDT)
+Received: from nevthink ([91.126.71.22])
+        by smtp.gmail.com with ESMTPSA id s7sm628107ejx.28.2020.04.01.08.48.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 01 Apr 2020 08:48:16 -0700 (PDT)
+Date:   Wed, 1 Apr 2020 17:48:13 +0200
+From:   Laura Garcia Liebana <nevola@gmail.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     pablo@netfilter.org
+Subject: [PATCH nft] doc: add hashing expressions description
+Message-ID: <20200401154813.GA12209@nevthink>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Case a1. for overlap detection in __nft_rbtree_insert() is not a valid
-one: start-after-start is not needed to detect any type of interval
-overlap and it actually results in a false positive if, while
-descending the tree, this is the only step we hit after starting from
-the root.
+The hashing expressions jhash and symhash are missing in the
+nft manual.
 
-This introduced a regression, as reported by Pablo, in Python tests
-cases ip/ip.t and ip/numgen.t:
-
-  ip/ip.t: ERROR: line 124: add rule ip test-ip4 input ip hdrlength vmap =
-{ 0-4 : drop, 5 : accept, 6 : continue } counter: This rule should not ha=
-ve failed.
-  ip/numgen.t: ERROR: line 7: add rule ip test-ip4 pre dnat to numgen inc=
- mod 10 map { 0-5 : 192.168.10.100, 6-9 : 192.168.20.200}: This rule shou=
-ld not have failed.
-
-Drop case a1. and renumber others, so that they are a bit clearer. In
-order for these diagrams to be readily understandable, a bigger rework
-is probably needed, such as an ASCII art of the actual rbtree (instead
-of a flattened version).
-
-Shell script test sets/0044interval_overlap_0 should cover all
-possible cases for false negatives, so I consider that test case still
-sufficient after this change.
-
-v2: Fix comments for cases a3. and b3.
-
-Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Fixes: 7c84d41416d8 ("netfilter: nft_set_rbtree: Detect partial overlaps =
-on insertion")
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
 ---
- net/netfilter/nft_set_rbtree.c | 23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ doc/primary-expression.txt | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtre=
-e.c
-index 8617fc16a1ed..46d976969ca3 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -218,27 +218,26 @@ static int __nft_rbtree_insert(const struct net *ne=
-t, const struct nft_set *set,
-=20
- 	/* Detect overlaps as we descend the tree. Set the flag in these cases:
- 	 *
--	 * a1. |__ _ _?  >|__ _ _  (insert start after existing start)
--	 * a2. _ _ __>|  ?_ _ __|  (insert end before existing end)
--	 * a3. _ _ ___|  ?_ _ _>|  (insert end after existing end)
--	 * a4. >|__ _ _   _ _ __|  (insert start before existing end)
-+	 * a1. _ _ __>|  ?_ _ __|  (insert end before existing end)
-+	 * a2. _ _ ___|  ?_ _ _>|  (insert end after existing end)
-+	 * a3. _ _ ___? >|_ _ __|  (insert start before existing end)
- 	 *
- 	 * and clear it later on, as we eventually reach the points indicated b=
-y
- 	 * '?' above, in the cases described below. We'll always meet these
- 	 * later, locally, due to tree ordering, and overlaps for the intervals
- 	 * that are the closest together are always evaluated last.
- 	 *
--	 * b1. |__ _ _!  >|__ _ _  (insert start after existing end)
--	 * b2. _ _ __>|  !_ _ __|  (insert end before existing start)
--	 * b3. !_____>|            (insert end after existing start)
-+	 * b1. _ _ __>|  !_ _ __|  (insert end before existing start)
-+	 * b2. _ _ ___|  !_ _ _>|  (insert end after existing start)
-+	 * b3. _ _ ___! >|_ _ __|  (insert start after existing end)
- 	 *
--	 * Case a4. resolves to b1.:
-+	 * Case a3. resolves to b3.:
- 	 * - if the inserted start element is the leftmost, because the '0'
- 	 *   element in the tree serves as end element
- 	 * - otherwise, if an existing end is found. Note that end elements are
- 	 *   always inserted after corresponding start elements.
- 	 *
--	 * For a new, rightmost pair of elements, we'll hit cases b1. and b3.,
-+	 * For a new, rightmost pair of elements, we'll hit cases b3. and b2.,
- 	 * in that order.
- 	 *
- 	 * The flag is also cleared in two special cases:
-@@ -262,9 +261,9 @@ static int __nft_rbtree_insert(const struct net *net,=
- const struct nft_set *set,
- 			p =3D &parent->rb_left;
-=20
- 			if (nft_rbtree_interval_start(new)) {
--				overlap =3D nft_rbtree_interval_start(rbe) &&
--					  nft_set_elem_active(&rbe->ext,
--							      genmask);
-+				if (nft_rbtree_interval_end(rbe) &&
-+				    nft_set_elem_active(&rbe->ext, genmask))
-+					overlap =3D false;
- 			} else {
- 				overlap =3D nft_rbtree_interval_end(rbe) &&
- 					  nft_set_elem_active(&rbe->ext,
---=20
-2.25.1
+diff --git a/doc/primary-expression.txt b/doc/primary-expression.txt
+index b5488790..48a7609d 100644
+--- a/doc/primary-expression.txt
++++ b/doc/primary-expression.txt
+@@ -430,3 +430,32 @@ add rule nat prerouting dnat to numgen inc mod 2 map \
+ add rule nat prerouting dnat to numgen random mod 10 map \
+         { 0-2 : 192.168.10.100, 3-9 : 192.168.20.200 }
+ ------------------------
++
++HASH EXPRESSIONS
++~~~~~~~~~~~~~~~~
++
++[verse]
++*jhash* {*ip saddr* | *ip6 daddr* | *tcp dport* | *udp sport* | *ether saddr*} [*.* ...] *mod* 'NUM' [ *seed* 'NUM' ] [ *offset* 'NUM' ]
++*symhash* *mod* 'NUM' [ *offset* 'NUM' ]
++
++Use a hashing function to generate a number. The functions available are
++*jhash*, known as Jenkins Hash, and *symhash*, for Symmetric Hash. The
++*jhash* requires an expression to determine the parameters of the packet
++header to apply the hashing, concatenations are possible as well. The value
++after *mod* keyword specifies an upper boundary (read: modulus) which is
++not reached by returned numbers. The optional *seed* is used to specify an
++init value used as seed in the hashing function. The optional *offset*
++allows to increment the returned value by a fixed offset.
++
++A typical use-case for *jhash* and *symhash* is load-balancing:
++
++.Using hash expressions
++------------------------
++# load balance based on source ip between 2 ip addresses:
++add rule nat prerouting dnat to jhash ip saddr mod 2 map \
++	{ 0 : 192.168.10.100, 1 : 192.168.20.200 }
++
++# symmetric load balancing between 2 ip addresses:
++add rule nat prerouting dnat to symhash mod 2 map \
++        { 0 : 192.168.10.100, 1 : 192.168.20.200 }
++------------------------
+-- 
+2.20.1
 
