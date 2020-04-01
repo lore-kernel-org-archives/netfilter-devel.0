@@ -2,135 +2,152 @@ Return-Path: <SRS0=ovZY=5R=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEA0DC43331
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Apr 2020 14:34:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20434C43331
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Apr 2020 14:54:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 97C3C20719
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Apr 2020 14:34:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E7B3520787
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Apr 2020 14:54:56 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="F01I61ee"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733048AbgDAOe0 (ORCPT
+        id S1733046AbgDAOy4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 Apr 2020 10:34:26 -0400
-Received: from correo.us.es ([193.147.175.20]:33000 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732978AbgDAOeZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Apr 2020 10:34:25 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D6AEEF25A6
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Apr 2020 16:34:23 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C45A4132C8C
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Apr 2020 16:34:23 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C4543132CAC; Wed,  1 Apr 2020 16:34:22 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5F445132C8A;
-        Wed,  1 Apr 2020 16:34:20 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 01 Apr 2020 16:34:20 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Wed, 1 Apr 2020 10:54:56 -0400
+Received: from us-smtp-2.mimecast.com ([205.139.110.61]:34542 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1732911AbgDAOy4 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 1 Apr 2020 10:54:56 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1585752895;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=lToqkebx2gycwwGZucSaCoYJd8temZ+b1k+MTuimf/M=;
+        b=F01I61eepqeqNwMaEcK8V0hR7iYQsldxAc3fPOBt9nAtAHYWtCDsVaDZdLKSztoDLohcA7
+        4A8nTUOi6Tw9FYB2xyH7nVxSENCjdxrVMdIkPqZnX0BtrAdb2EvU71vrQsBHbnwlFvTUSp
+        mpggiqo1tusFjnElH+avBJys+OY4kiQ=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-304-56ZISw6pPpefrBGgzPWp9A-1; Wed, 01 Apr 2020 10:54:53 -0400
+X-MC-Unique: 56ZISw6pPpefrBGgzPWp9A-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 403124301DE1;
-        Wed,  1 Apr 2020 16:34:20 +0200 (CEST)
-Date:   Wed, 1 Apr 2020 16:34:19 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     netfilter@vger.kernel.org, netfilter-announce@lists.netfilter.org,
-        lwn@lwn.net
-Subject: [ANNOUNCE] libnftnl 1.1.6 release
-Message-ID: <20200401143419.a3kjyv6jds63zmoz@salvia>
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 9BFBE1B18BC3;
+        Wed,  1 Apr 2020 14:54:52 +0000 (UTC)
+Received: from epycfail.redhat.com (unknown [10.36.110.29])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id BC6995E020;
+        Wed,  1 Apr 2020 14:54:50 +0000 (UTC)
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] nft_set_rbtree: Drop spurious condition for overlap detection on insertion
+Date:   Wed,  1 Apr 2020 16:54:45 +0200
+Message-Id: <0ac4c2d001cfed74d3c2304151d7a44105f47552.1585752835.git.sbrivio@redhat.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="ewrmvbtdxalrojej"
-Content-Disposition: inline
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Case a1. for overlap detection in __nft_rbtree_insert() is not a valid
+one: start-after-start is not needed to detect any type of interval
+overlap and it actually results in a false positive if, while
+descending the tree, this is the only step we hit after starting from
+the root.
 
---ewrmvbtdxalrojej
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This introduced a regression, as reported by Pablo, in Python tests
+cases ip/ip.t and ip/numgen.t:
 
-Hi!
+  ip/ip.t: ERROR: line 124: add rule ip test-ip4 input ip hdrlength vmap =
+{ 0-4 : drop, 5 : accept, 6 : continue } counter: This rule should not ha=
+ve failed.
+  ip/numgen.t: ERROR: line 7: add rule ip test-ip4 pre dnat to numgen inc=
+ mod 10 map { 0-5 : 192.168.10.100, 6-9 : 192.168.20.200}: This rule shou=
+ld not have failed.
 
-The Netfilter project proudly presents:
+Drop case a1. and renumber others, so that they are a bit clearer. In
+order for these diagrams to be readily understandable, a bigger rework
+is probably needed, such as an ASCII art of the actual rbtree (instead
+of a flattened version).
 
-        libnftnl 1.1.6
+Shell script test sets/0044interval_overlap_0 should cover all
+possible cases for false negatives, so I consider that test case still
+sufficient after this change.
 
-libnftnl is a userspace library providing a low-level netlink
-programming interface (API) to the in-kernel nf_tables subsystem.
-This library is currently used by nftables.
+Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: 7c84d41416d8 ("netfilter: nft_set_rbtree: Detect partial overlaps =
+on insertion")
+Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+---
+ net/netfilter/nft_set_rbtree.c | 23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-See ChangeLog that comes attached to this email for more details.
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtre=
+e.c
+index 8617fc16a1ed..bcff0024ad6c 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -218,27 +218,26 @@ static int __nft_rbtree_insert(const struct net *ne=
+t, const struct nft_set *set,
+=20
+ 	/* Detect overlaps as we descend the tree. Set the flag in these cases:
+ 	 *
+-	 * a1. |__ _ _?  >|__ _ _  (insert start after existing start)
+-	 * a2. _ _ __>|  ?_ _ __|  (insert end before existing end)
+-	 * a3. _ _ ___|  ?_ _ _>|  (insert end after existing end)
+-	 * a4. >|__ _ _   _ _ __|  (insert start before existing end)
++	 * a1. _ _ __>|  ?_ _ __|  (insert end before existing end)
++	 * a2. _ _ ___|  ?_ _ _>|  (insert end after existing end)
++	 * a3. >|__ _ ?   _ _ __|  (insert start before existing end)
+ 	 *
+ 	 * and clear it later on, as we eventually reach the points indicated b=
+y
+ 	 * '?' above, in the cases described below. We'll always meet these
+ 	 * later, locally, due to tree ordering, and overlaps for the intervals
+ 	 * that are the closest together are always evaluated last.
+ 	 *
+-	 * b1. |__ _ _!  >|__ _ _  (insert start after existing end)
+-	 * b2. _ _ __>|  !_ _ __|  (insert end before existing start)
+-	 * b3. !_____>|            (insert end after existing start)
++	 * b1. _ _ __>|  !_ _ __|  (insert end before existing start)
++	 * b2. _ _ ___|  !_ _ _>|  (insert end after existing start)
++	 * b3. >|__ _ |   _ _ __|  (insert start before existing end)
+ 	 *
+-	 * Case a4. resolves to b1.:
++	 * Case a3. resolves to b3.:
+ 	 * - if the inserted start element is the leftmost, because the '0'
+ 	 *   element in the tree serves as end element
+ 	 * - otherwise, if an existing end is found. Note that end elements are
+ 	 *   always inserted after corresponding start elements.
+ 	 *
+-	 * For a new, rightmost pair of elements, we'll hit cases b1. and b3.,
++	 * For a new, rightmost pair of elements, we'll hit cases b3. and b2.,
+ 	 * in that order.
+ 	 *
+ 	 * The flag is also cleared in two special cases:
+@@ -262,9 +261,9 @@ static int __nft_rbtree_insert(const struct net *net,=
+ const struct nft_set *set,
+ 			p =3D &parent->rb_left;
+=20
+ 			if (nft_rbtree_interval_start(new)) {
+-				overlap =3D nft_rbtree_interval_start(rbe) &&
+-					  nft_set_elem_active(&rbe->ext,
+-							      genmask);
++				if (nft_rbtree_interval_end(rbe) &&
++				    nft_set_elem_active(&rbe->ext, genmask))
++					overlap =3D false;
+ 			} else {
+ 				overlap =3D nft_rbtree_interval_end(rbe) &&
+ 					  nft_set_elem_active(&rbe->ext,
+--=20
+2.25.1
 
-You can download it from:
-
-http://www.netfilter.org/projects/libnftnl/downloads.html
-ftp://ftp.netfilter.org/pub/libnftnl/
-
-Happy firewalling.
-
-
---ewrmvbtdxalrojej
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="changes-libnftnl-1.1.6.txt"
-
-Brett Mastbergen (1):
-      include: Remove buffer.h
-
-Florian Westphal (1):
-      expr: meta: add slave device matching
-
-Jeremy Sowden (9):
-      Update gitignore.
-      bitwise: fix some incorrect indentation.
-      bitwise: add helper to print boolean expressions.
-      include: update nf_tables.h.
-      bitwise: add support for new netlink attributes.
-      bitwise: add support for left- and right-shifts.
-      tests: bitwise: fix error message.
-      include: update nf_tables.h.
-      bitwise: add support for passing mask and xor via registers.
-
-Pablo Neira Ayuso (12):
-      include: typo in object.h C++ wrapper
-      udata: add NFTNL_UDATA_SET_*TYPEOF* definitions
-      udata: support for TLV attribute nesting
-      src: add nftnl_*_{get,set}_array()
-      chain: add NFTNL_CHAIN_FLAGS
-      set_elem: missing set and build for NFTNL_SET_ELEM_EXPR
-      set: support for NFTNL_SET_EXPR
-      expr: masq: revisit _snprintf()
-      expr: nat: snprint flags in hexadecimal
-      Revert "bitwise: add support for passing mask and xor via registers."
-      include: update nf_tables.h.
-      build: libnftnl 1.1.6 release
-
-Phil Sutter (7):
-      tests: flowtable: Don't check NFTNL_FLOWTABLE_SIZE
-      flowtable: Fix memleak in error path of nftnl_flowtable_parse_devs()
-      chain: Fix memleak in error path of nftnl_chain_parse_devs()
-      flowtable: Correctly check realloc() call
-      chain: Correctly check realloc() call
-      examples: Replace use of deprecated symbols
-      src: Fix for reading garbage in nftnl_chain getters
-
-Stefano Brivio (3):
-      include: resync nf_tables.h cache copy
-      set: Add support for NFTA_SET_DESC_CONCAT attributes
-      set_elem: Introduce support for NFTNL_SET_ELEM_KEY_END
-
-
---ewrmvbtdxalrojej--
