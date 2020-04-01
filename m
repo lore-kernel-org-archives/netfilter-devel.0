@@ -2,72 +2,100 @@ Return-Path: <SRS0=ovZY=5R=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AE6AC10F26
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Apr 2020 13:03:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88ED9C43331
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Apr 2020 14:08:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 79A12206E9
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Apr 2020 13:03:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 642B2206F6
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Apr 2020 14:08:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732678AbgDAND0 (ORCPT
+        id S1732881AbgDAOIw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 Apr 2020 09:03:26 -0400
-Received: from kirsty.vergenet.net ([202.4.237.240]:58774 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732252AbgDANDZ (ORCPT
+        Wed, 1 Apr 2020 10:08:52 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:39298 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1732787AbgDAOIw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Apr 2020 09:03:25 -0400
-Received: from penelope.horms.nl (ip4dab7138.direct-adsl.nl [77.171.113.56])
-        by kirsty.vergenet.net (Postfix) with ESMTPA id AFBE225B779;
-        Thu,  2 Apr 2020 00:03:22 +1100 (AEDT)
-Received: by penelope.horms.nl (Postfix, from userid 7100)
-        id 28A1C67C; Wed,  1 Apr 2020 15:03:20 +0200 (CEST)
-Date:   Wed, 1 Apr 2020 15:03:20 +0200
-From:   Simon Horman <horms@verge.net.au>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Julian Anastasov <ja@ssi.bg>,
-        Haishuang Yan <yanhaishuang@cmss.chinamobile.com>,
-        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] ipvs: optimize tunnel dumps for icmp errors
-Message-ID: <20200401130319.GG29376@vergenet.net>
-References: <1584278741-13944-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
- <alpine.LFD.2.21.2003181333460.4911@ja.home.ssi.bg>
- <20200326140229.emeplg75xszpd7rs@salvia>
+        Wed, 1 Apr 2020 10:08:52 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1jJe2z-0003vL-Un; Wed, 01 Apr 2020 16:08:49 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] concat: provide proper dtype when parsing typeof udata
+Date:   Wed,  1 Apr 2020 16:08:44 +0200
+Message-Id: <20200401140844.27314-1-fw@strlen.de>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200326140229.emeplg75xszpd7rs@salvia>
-Organisation: Horms Solutions BV
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Mar 26, 2020 at 03:02:29PM +0100, Pablo Neira Ayuso wrote:
-> On Wed, Mar 18, 2020 at 01:36:32PM +0200, Julian Anastasov wrote:
-> > 
-> > 	Hello,
-> > 
-> > On Sun, 15 Mar 2020, Haishuang Yan wrote:
-> > 
-> > > After strip GRE/UDP tunnel header for icmp errors, it's better to show
-> > > "GRE/UDP" instead of "IPIP" in debug message.
-> > > 
-> > > Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-> > 
-> > 	Looks good to me, thanks!
-> > 
-> > Acked-by: Julian Anastasov <ja@ssi.bg>
-> > 
-> > 	Simon, this is for -next kernels...
-> 
-> Simon, if no objection, I'm going to include this in the next nf-next
-> pull request.
-> 
+Pablo reports following list bug:
+table ip foo {
+        map whitelist {
+                typeof ip saddr . ip daddr : meta mark
+                elements = { 0x0 [invalid type] . 0x0 [invalid type] : 0x00000001,
+                             0x0 [invalid type] . 0x0 [invalid type] : 0x00000002 }
+        }
+}
 
-Sorry for being slow, I have no objections.
+Problem is that concat provided 'invalid' dtype.
+
+Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/expression.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/src/expression.c b/src/expression.c
+index 863cf86ec1d0..6605beb30407 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -906,8 +906,9 @@ static int concat_parse_udata_nested(const struct nftnl_udata *attr, void *data)
+ static struct expr *concat_expr_parse_udata(const struct nftnl_udata *attr)
+ {
+ 	const struct nftnl_udata *ud[NFTNL_UDATA_SET_KEY_CONCAT_NEST_MAX] = {};
++	const struct datatype *dtype;
+ 	struct expr *concat_expr;
+-	struct datatype *dtype;
++	uint32_t dt = 0;
+ 	unsigned int i;
+ 	int err;
+ 
+@@ -920,8 +921,6 @@ static struct expr *concat_expr_parse_udata(const struct nftnl_udata *attr)
+ 	if (!concat_expr)
+ 		return NULL;
+ 
+-	dtype = xzalloc(sizeof(*dtype));
+-
+ 	for (i = 0; i < array_size(ud); i++) {
+ 		const struct nftnl_udata *nest_ud[NFTNL_UDATA_SET_KEY_CONCAT_SUB_MAX];
+ 		const struct nftnl_udata *nested, *subdata;
+@@ -948,11 +947,14 @@ static struct expr *concat_expr_parse_udata(const struct nftnl_udata *attr)
+ 		if (!expr)
+ 			goto err_free;
+ 
+-		dtype->subtypes++;
++		dt = concat_subtype_add(dt, expr->dtype->type);
+ 		compound_expr_add(concat_expr, expr);
+-		dtype->size += round_up(expr->len, BITS_PER_BYTE * sizeof(uint32_t));
+ 	}
+ 
++	dtype = concat_type_alloc(dt);
++	if (!dtype)
++		goto err_free;
++
+ 	concat_expr->dtype = dtype;
+ 	concat_expr->len = dtype->size;
+ 
+-- 
+2.24.1
+
