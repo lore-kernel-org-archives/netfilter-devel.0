@@ -1,146 +1,297 @@
-Return-Path: <SRS0=ovZY=5R=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=05X/=5S=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MALFORMED_FREEMAIL,
+	MIME_QP_LONG_LINE,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FDE8C43331
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Apr 2020 17:43:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40550C2BA15
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Apr 2020 12:38:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5B9CD20714
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Apr 2020 17:43:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0838320757
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Apr 2020 12:38:16 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="saPIu+O4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732747AbgDARnp (ORCPT
+        id S2388234AbgDBMiO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 Apr 2020 13:43:45 -0400
-Received: from correo.us.es ([193.147.175.20]:42514 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726750AbgDARno (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Apr 2020 13:43:44 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 06A97EB48A
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Apr 2020 19:43:42 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EA1D1132C8A
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Apr 2020 19:43:41 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id E7315132C86; Wed,  1 Apr 2020 19:43:41 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9B7FD132C87;
-        Wed,  1 Apr 2020 19:43:39 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 01 Apr 2020 19:43:39 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 72D7B4301DF4;
-        Wed,  1 Apr 2020 19:43:39 +0200 (CEST)
-Date:   Wed, 1 Apr 2020 19:43:39 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     netfilter@vger.kernel.org, netfilter-announce@lists.netfilter.org,
-        lwn@lwn.net
-Subject: [ANNOUNCE] conntrack-tools 1.4.6
-Message-ID: <20200401174339.d6w75pknmnllwlbv@salvia>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="ubywkqfonttay25s"
-Content-Disposition: inline
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Thu, 2 Apr 2020 08:38:14 -0400
+Received: from mail-qt1-f193.google.com ([209.85.160.193]:32855 "EHLO
+        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729213AbgDBMiO (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 2 Apr 2020 08:38:14 -0400
+Received: by mail-qt1-f193.google.com with SMTP id c14so3079661qtp.0;
+        Thu, 02 Apr 2020 05:38:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=user-agent:date:subject:from:to:cc:message-id:thread-topic
+         :references:in-reply-to:mime-version:content-transfer-encoding;
+        bh=+jH8hdXCd9Ym6DPhy+4AlV5854a6fLVFEkswNBLo8LQ=;
+        b=saPIu+O4u8UdbNbArI5VFdJ758YePBDqI1sbTdazpSKWtd32oYAZyEzLuJLwm/s/XX
+         Txvz6Dsz9X2j8e62xVLYW8rlFXCf1MF8by5eKit06LisEXIvjG+Y9MEpV8mG7/iJkBSj
+         moyb7blhlk2StUF3ORFd0ONBadBL3gxGpU3tLRa8us8Khf7FNLmUnUUhmuIFvNT8JYwb
+         vPE52GkFmu+PJ6cJp6H8sdR6udvWxqnJsT8UHO6ws751DO/VecOqP4ZRpdcEJiqJ7gZ/
+         hGVHoMUHoWsnLpZrkm/UfRFB11vBd0wjz3NfmiW5oPm+aU8eM9QXE7n6HO6kOsEJmMJH
+         No9Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:user-agent:date:subject:from:to:cc:message-id
+         :thread-topic:references:in-reply-to:mime-version
+         :content-transfer-encoding;
+        bh=+jH8hdXCd9Ym6DPhy+4AlV5854a6fLVFEkswNBLo8LQ=;
+        b=C2uQYz5cWWQredHrfIN38BHsBHhZCftBS3RU4CwctLETcMSD7qbL8YQeiXmQc0CbK/
+         JmyYyTgfYdAM5o2QpIelppdAFFt12SQ+MpuHdd0M8o5cKIxePoyjYeh9/7TDoHsfbInq
+         Qxu+IO7JFqnZ1AQhZmqaEp0/U5vcTVAgz5ITqnPEPmqRSo7b8q83vQelJnvrErRoDfN3
+         YbVTErlqB/SLQBLvAWGl+QZH7yKMl2nYPzAkH2xRNORbBboEUzsZk47mDz43uycwRXPJ
+         G6PzPeN/VmhIRdx0JsXJNp2adbrKOeb8W5H7TKdY2B01rlqsnIvo/rGpgF0k8KoUNz2W
+         LTcg==
+X-Gm-Message-State: AGi0PubdjCi+0iLw78k8DIHCHBShXdDGxsQ/GsM+5QItY5qA1yHjMdSc
+        CN+zuAkXkBJApswJ68hubfE=
+X-Google-Smtp-Source: APiQypLV+xtgmiUZkI7Xe4MZVYjWaOO0etWdrNQLLA88VPy5vtl58lZ5ieLWEL5o+0XVpHzODoDKjA==
+X-Received: by 2002:aed:2535:: with SMTP id v50mr2671290qtc.354.1585831091995;
+        Thu, 02 Apr 2020 05:38:11 -0700 (PDT)
+Received: from [10.117.94.148] ([2001:470:b16e:20::200])
+        by smtp.gmail.com with ESMTPSA id l13sm3141191qke.116.2020.04.02.05.38.10
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 02 Apr 2020 05:38:11 -0700 (PDT)
+User-Agent: Microsoft-MacOutlook/16.35.20030802
+Date:   Thu, 02 Apr 2020 08:38:10 -0400
+Subject: Re: [ANNOUNCE] nftables 0.9.4 release
+From:   sbezverk <sbezverk@gmail.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter <netfilter@vger.kernel.org>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+CC:     <netdev@vger.kernel.org>, <lwn@lwn.net>
+Message-ID: <8174B383-989D-4F9D-BDCA-3A82DE5090D2@gmail.com>
+Thread-Topic: [ANNOUNCE] nftables 0.9.4 release
+References: <20200401143114.yfdfej6bldpk5inx@salvia>
+In-Reply-To: <20200401143114.yfdfej6bldpk5inx@salvia>
+Mime-version: 1.0
+Content-type: text/plain;
+        charset="UTF-8"
+Content-transfer-encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hello Pablo,
 
---ubywkqfonttay25s
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Did this commit make into 0.9.4?
 
-Hi!
+https://patchwork.ozlabs.org/patch/1202696/
 
-The Netfilter project proudly presents:
+Thank you
+Serguei
 
-        conntrack-tools 1.4.6
+=EF=BB=BFOn 2020-04-01, 10:34 AM, "Pablo Neira Ayuso" <netfilter-owner@vger.kerne=
+l.org on behalf of pablo@netfilter.org> wrote:
 
-The conntrack-tools are a set of tools targeted at system
-administrators. They are conntrack, the userspace command line
-interface, and conntrackd, the userspace daemon. The tool conntrack
-provides a full featured interface that is intended to replace the old
-/proc/net/ip_conntrack interface. Using conntrack, you can view and
-manage the in-kernel connection tracking state table from userspace.
-On the other hand, conntrackd covers the specific aspects of stateful
-firewalls to enable highly available scenarios, and can be used as
-statistics collector as well.
+    Hi!
+   =20
+    The Netfilter project proudly presents:
+   =20
+            nftables 0.9.4
+   =20
+    This release contains fixes and new features available up to the Linux
+    kernel 5.6 release.
+   =20
+    * Support for ranges in concatenations (requires Linux kernel >=3D 5.6),
+      e.g.
+   =20
+        table ip foo {
+               set whitelist {
+                       type ipv4_addr . ipv4_addr . inet_service
+                       flags interval
+                       elements =3D { 192.168.10.35-192.168.10.40 . 192.68.11=
+.123-192.168.11.125 . 80 }
+               }
+   =20
+               chain bar {
+                       type filter hook prerouting priority filter; policy =
+drop;
+                       ip saddr . ip daddr . tcp dport @whitelist accept
+               }
+        }
+   =20
+      This creates a `whitelist' set whose elements are a concatenation.
+      The interval flag specifies that this set might include ranges in
+      concatenations. The example above is accepting all traffic coming
+      from 192.168.10.35 to 192.168.10.40 (both addresses in the range
+      are included), destination to 192.68.10.123 and TCP destination
+      port 80.
+   =20
+    * typeof support for sets. You can use typeof to specify the datatype
+      of the selector in sets, e.g.
+   =20
+         table ip foo {
+                set whitelist {
+                        typeof ip saddr
+                        elements =3D { 192.168.10.35, 192.168.10.101, 192.168=
+.10.135 }
+                }
+   =20
+                chain bar {
+                        type filter hook prerouting priority filter; policy=
+ drop;
+                        ip daddr @whitelist accept
+                }
+         }
+   =20
+      You can also use typeof in maps:
+   =20
+         table ip foo {
+                map addr2mark {
+                    typeof ip saddr : meta mark
+                    elements =3D { 192.168.10.35 : 0x00000001, 192.168.10.135=
+ : 0x00000002 }
+                }
+         }
+   =20
+    * NAT mappings with concatenations. This allows you to specify the addr=
+ess
+      and port to be used in the NAT mangling from maps, eg.
+   =20
+          nft add rule ip nat pre dnat ip addr . port to ip saddr map { 1.1=
+.1.1 : 2.2.2.2 . 30 }
+   =20
+      You can also use this new feature with named sets:
+   =20
+          nft add map ip nat destinations { type ipv4_addr . inet_service :=
+ ipv4_addr . inet_service \; }
+          nft add rule ip nat pre dnat ip addr . port to ip saddr . tcp dpo=
+rt map @destinations
+   =20
+    * Hardware offload support: Your nic driver must include support for th=
+is
+      infrastructure. You have to enable offload via ethtool:
+   =20
+         # ethtool -K eth0 hw-tc-offload on
+   =20
+      Then, in nftables, you have to turn on the offload flag in the basech=
+ain
+      definition.
+   =20
+         # cat file.nft
+         table netdev x {
+                chain y {
+                    type filter hook ingress device eth0 priority 10; flags=
+ offload;
+                    ip saddr 192.168.30.20 drop
+                }
+         }
+         # nft -f file.nft
+   =20
+      Just a simple example to drop all traffic coming from 192.168.30.20
+      from the hardware. The Linux host see no packets at all from
+      192.168.30.20 after this since the nic filters out the packets.
+   =20
+      As of kernel 5.6, supported features are:
+   =20
+      - Matching on:
+        -- packet header fields.
+        -- input interface.
+   =20
+      - Actions available are:
+        -- accept / drop action.
+        -- Duplicate packet to port through `dup'.
+        -- Mirror packet to port through `fwd'.
+   =20
+    * Enhancements to improve location-based error reporting, e.g.
+   =20
+         # nft delete rule ip y z handle 7
+         Error: Could not process rule: No such file or directory
+         delete rule ip y z handle 7
+                        ^
+   =20
+      In this example above, the table `y' does not exist in your system.
+   =20
+         # nft delete rule ip x x handle 7
+         Error: Could not process rule: No such file or directory
+         delete rule ip x x handle 7
+                                   ^
+   =20
+      This means that rule handle 7 does not exist.
+   =20
+         # nft delete table twst
+         Error: No such file or directory; did you mean table =E2=80=98test=E2=80=99 in=
+ family ip?
+         delete table twst
+                      ^^^^
+   =20
+      If you delete a table whose name has been mistyped, error reporting
+      includes a suggestion.
+   =20
+    * Match on the slave interface through `meta sdif' and `meta
+      sdifname', e.g.
+   =20
+            ... meta sdifname vrf1 ...
+   =20
+    * Support for right and left shifts:
+   =20
+            ... meta mark set meta mark lshift 1 or 0x1 ...
+   =20
+      This example shows how to shift one bit left the existing packet
+      mark and set the less significant bit to 1.
+   =20
+    * New -V option to display extended version information, including
+      compile time options:
+   =20
+         # nft -V
+           nftables v0.9.4 (Jive at Five)
+              cli:          readline
+              json:         yes
+              minigmp:      no
+              libxtables:   yes
+   =20
+    * manpage documentation updates.
+   =20
+    * ... and bugfixes.
+   =20
+    See ChangeLog that comes attached to this email for more details.
+   =20
+    =3D Caveat =3D
+   =20
+    This new version enforces options before commands, ie.
+   =20
+         # nft list ruleset -a
+         Error: syntax error, options must be specified before commands
+         nft list ruleset -a
+            ^             ~~
+   =20
+    Just place the option before the command:
+   =20
+         # nft -a list ruleset
+         ... [ ruleset listing here ] ...
+   =20
+    Make sure to update your scripts.
+   =20
+    You can download this new release from:
+   =20
+    http://www.netfilter.org/projects/nftables/downloads.html#nftables-0.9.=
+4
+    ftp://ftp.netfilter.org/pub/nftables/
+   =20
+    To build the code, libnftnl 1.1.6 and libmnl >=3D 1.0.3 are required:
+   =20
+    * http://netfilter.org/projects/libnftnl/index.html
+    * http://netfilter.org/projects/libmnl/index.html
+   =20
+    Visit our wikipage for user documentation at:
+   =20
+    * http://wiki.nftables.org
+   =20
+    For the manpage reference, check man(8) nft.
+   =20
+    In case of bugs and feature request, file them via:
+   =20
+    * https://bugzilla.netfilter.org
+   =20
+    Happy firewalling!
+   =20
 
-See ChangeLog that comes attached to this email for more details.
 
-You can download it from:
-
-http://www.netfilter.org/projects/libnftnl/downloads.html
-ftp://ftp.netfilter.org/pub/libnftnl/
-
-Happy firewalling.
-
---ubywkqfonttay25s
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="changes-conntrack-tools-1.4.6.txt"
-
-Arturo Borrero Gonzalez (2):
-      conntrackd.conf.8: fix state filter example
-      docs: refresh references to /proc/net/core/rmem_default
-
-Ash Hughes (2):
-      conntrackd: search for RPC headers
-      conntrackd: Use strdup in lexer
-
-Brian Haley (1):
-      conntrack: Allow protocol number zero
-
-Jan-Martin Raemer (1):
-      conntrackd: UDP IPv6 destination address not usable (Bug 1378)
-
-Jose M. Guisado Gomez (1):
-      src: fix strncpy -Wstringop-truncation warnings
-
-Michal Kubecek (2):
-      conntrackd: use correct max unix path length
-      conntrackd: cthelper: Add new SLP helper
-
-Pablo Neira Ayuso (8):
-      build: use -Wno-sign-compare with autogenerated flex code
-      conntrack: extend nfct_mnl_socket_open() to use it to handle events
-      conntrack: use libmnl for conntrack events
-      conntrack: add -o userspace option to tag user-triggered events
-      conntrackd: use strncpy() to unix path
-      conntrack: support for IPS_OFFLOAD
-      conntrackd: incorrect filtering of Address with cidr /0
-      conntrack-tools 1.4.6 release
-
-Phil Sutter (7):
-      conntrackd: helpers: dhcpv6: Fix potential array overrun
-      nfct: Drop dead code in nfct_timeout_parse_params()
-      src: Fix for implicit-fallthrough warnings
-      conntrack: Fix CIDR to mask conversion on Big Endian
-      nfct: helper: Fix NFCTH_ATTR_PROTO_L4NUM size
-      Makefile.am: Use ${} instead of @...@
-      helpers: Fix for warning when compiling against libtirpc
-
-Robin Geuze (2):
-      sync-notrack: Apply userspace filter on resync with internal cache disabled
-      conntrackd: Fix "Address Accept" filter case
-
-Ronald Wahl (1):
-      conntrack: -f family filter does not work
-
-Simon Kirby (1):
-      sync-mode: Also cancel flush timer in ALL_FLUSH_CACHE
-
-
---ubywkqfonttay25s--
