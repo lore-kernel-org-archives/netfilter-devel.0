@@ -2,92 +2,70 @@ Return-Path: <SRS0=tJPO=5V=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C518FC2BA16
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Apr 2020 03:29:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB86BC2BA1B
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Apr 2020 19:47:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9CA7E2078A
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Apr 2020 03:29:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7EAA820644
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Apr 2020 19:47:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726329AbgDED3L (ORCPT
+        id S1728247AbgDETrT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 4 Apr 2020 23:29:11 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:36816 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726283AbgDED3L (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 4 Apr 2020 23:29:11 -0400
-Received: from [192.168.1.6] (unknown [101.93.37.154])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 3EF45418D3
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Apr 2020 11:29:02 +0800 (CST)
-Subject:  flowtable crash in nf_flow_table_indr_block_cb
-References: <2d1dd983-bc7c-7e8d-965d-0ec7d9716c1a@ucloud.cn>
-To:     netfilter-devel@vger.kernel.org
-From:   wenxu <wenxu@ucloud.cn>
-X-Forwarded-Message-Id: <2d1dd983-bc7c-7e8d-965d-0ec7d9716c1a@ucloud.cn>
-Message-ID: <db9dfe4f-62e7-241b-46a0-d878c89696a8@ucloud.cn>
-Date:   Sun, 5 Apr 2020 11:28:00 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.6.0
+        Sun, 5 Apr 2020 15:47:19 -0400
+Received: from correo.us.es ([193.147.175.20]:34330 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727612AbgDETrT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 5 Apr 2020 15:47:19 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id EF2BD8140A
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Apr 2020 21:47:16 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E147F100A50
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Apr 2020 21:47:16 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id D610EDA736; Sun,  5 Apr 2020 21:47:16 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7C921DA736;
+        Sun,  5 Apr 2020 21:47:14 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Sun, 05 Apr 2020 21:47:14 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 59F5342EE38E;
+        Sun,  5 Apr 2020 21:47:14 +0200 (CEST)
+Date:   Sun, 5 Apr 2020 21:47:14 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Eric Dumazet <edumazet@google.com>
+Cc:     Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
+        Eric Dumazet <eric.dumazet@gmail.com>,
+        syzbot <syzkaller@googlegroups.com>
+Subject: Re: [PATCH nf 1/1] netfilter: nf_tables: do not leave dangling
+ pointer in nf_tables_set_alloc_name
+Message-ID: <20200405194714.wagcla6jdvkn55di@salvia>
+References: <20200401173716.222205-1-edumazet@google.com>
 MIME-Version: 1.0
-In-Reply-To: <2d1dd983-bc7c-7e8d-965d-0ec7d9716c1a@ucloud.cn>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVktVTktLS0tLSkxDQ0pIQkhPWVdZKF
-        lBSUI3V1ktWUFJV1kJDhceCFlBWTU0KTY6NyQpLjc#WQY+
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PDo6Mxw5SjgrSxRRAkMvHiFL
-        Hj8wCklVSlVKTkNNS05MSE9JTkJKVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpLSlVC
-        SFVITFVKTk9ZV1kIAVlBSkNCQjcG
-X-HM-Tid: 0a7148626d522086kuqy3ef45418d3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200401173716.222205-1-edumazet@google.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+On Wed, Apr 01, 2020 at 10:37:16AM -0700, Eric Dumazet wrote:
+> If nf_tables_set_alloc_name() frees set->name, we better
+> clear set->name to avoid a future use-after-free or invalid-free.
 
-
-Flowtable will crash in nf_flow_table_indr_block_cb when the nf_tables 
-modules is not in.
-
-
-# modprobe act_ct
-
-The act_ct will auto load the flowtable modules.
-
-# ip l a dev gre type gretap external.
-
-
-nf_flow_table_indr_block_cb will crash for the uninit in net->nft.tables.
-
-I thinkthe following patch is not good a solution indeely
-
-http://patchwork.ozlabs.org/patch/1257422/
-
-
-The flowtable can be used by both nf_tables and act_ct.
-
-But the nf_flow_table_indr_block_cb in flow_indr_block_entry
-
-only be used for nf_tables.  So move the flow_indr_add_block_cb
-
-to the nf_tables modules is a better solution? such as nf_tables_offload.c
-
-or a new nf_flow_table_indr_offload.c?
-
-And the flowtable modules don't need to include the nf_tables.h
-
-
-
-BR
-
-wenxu
-
-
-
-
-
-
+Applied, thank you.
