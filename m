@@ -2,135 +2,134 @@ Return-Path: <SRS0=clD7=5W=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC7E5C2BA18
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Apr 2020 06:17:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7AFDC2BA1B
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Apr 2020 07:06:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8E952206C0
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Apr 2020 06:17:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B284206F8
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Apr 2020 07:06:29 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fUl+6I4x"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726486AbgDFGRN (ORCPT
+        id S1726534AbgDFHG0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Apr 2020 02:17:13 -0400
-Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:55896 "EHLO
-        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725884AbgDFGRM (ORCPT
+        Mon, 6 Apr 2020 03:06:26 -0400
+Received: from mail-pj1-f68.google.com ([209.85.216.68]:35848 "EHLO
+        mail-pj1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726486AbgDFHGZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Apr 2020 02:17:12 -0400
-Received: from dimstar.local.net (n175-34-64-112.sun1.vic.optusnet.com.au [175.34.64.112])
-        by mail104.syd.optusnet.com.au (Postfix) with SMTP id 582317EBD46
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Apr 2020 16:17:05 +1000 (AEST)
-Received: (qmail 25280 invoked by uid 501); 6 Apr 2020 06:17:00 -0000
-Date:   Mon, 6 Apr 2020 16:17:00 +1000
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnetfilter_queue v2] src: Add faster alternatives to
- pktb_alloc()
-Message-ID: <20200406061700.GC13869@dimstar.local.net>
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20200108225323.io724vuxuzsydjzs@salvia>
- <20200201062127.4729-1-duncan_roe@optusnet.com.au>
- <20200219180410.e56psjovne3y43rc@salvia>
+        Mon, 6 Apr 2020 03:06:25 -0400
+Received: by mail-pj1-f68.google.com with SMTP id nu11so6064516pjb.1;
+        Mon, 06 Apr 2020 00:06:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=RqJfBxc+5hEXzJUkSWB0gPw7NrIyI3K3Pr3732qHYAQ=;
+        b=fUl+6I4x7XwQcdmoCTE2Z0XeWKNZEAvwwQhxESe8sRcEQ6vn+AfhNO23bXM8aiWdRe
+         wVnHoSlX0U3b04JnkGrI5Ay7r0HfzNA0pKXN6fKs/gP6RV4tnDNoiDyKyGKhADiOl43n
+         F+mF6OdX/tADPC9HmEUR2PJJhzbFPdsXHduQuuFTWnIM3HbbkxMv3OvuJKYbTAl42H8N
+         1djGWbVFtbtxKYMtodVAdgw7d1ViLwhPqusfpHjBZmhP8Wby1fHN6KWDj01D0FRMHbs2
+         40LctGPDNwQdiPuTkW3RvZYYmwy5GjBoAHY3eo1S34N7o4Y+/bM9ACEMqEVOAq1Y+/ZZ
+         d+Tg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=RqJfBxc+5hEXzJUkSWB0gPw7NrIyI3K3Pr3732qHYAQ=;
+        b=GCOKNDwRQ6oPwdsISBwc3Ccs2EyJR0gJjOeSzMRphCCQxoQqy6U3mLimza2FQ1i9PY
+         Bs0qzgOGKuUM+XbjwPaFoUmsxW7+OKCbf+7ELoJOMA7gr9HrdszmqHB1EQaOVbC1BpcP
+         fImoGj0VdvYj4w3TCJh7zsRq4RhKH5/tCOeYrZ8jGtnZia4Bo2yUVpyXYVu5jgUN/PxO
+         jc8K+9enhl/4BmWOUd9dkmCxBzDYiAaFb9mwQEt7Lt7ENM5BTj8yaeC+GbMYxtLd9Ubx
+         lMjivOwNlL4aIm1LCbeQgHBYTbJcryybWFSyygoBvDLAOFsgecIGyzlLncSWaCbaXrJr
+         +k1Q==
+X-Gm-Message-State: AGi0PubBiffcWLft+F3M/nvSKrBEaHC7eXxnmtFmyQOM6+JF3Q+ot2uQ
+        wH+7yzLxRa1z+EQLLfx0svI=
+X-Google-Smtp-Source: APiQypKNbF2E3D32XKuBDPJhhlvxxo8J2rW27s0dKvSTxEZx7hANy5tViHe3jOKRRTeN/AfHY6j/Qg==
+X-Received: by 2002:a17:902:507:: with SMTP id 7mr19209367plf.42.1586156784681;
+        Mon, 06 Apr 2020 00:06:24 -0700 (PDT)
+Received: from workstation-LAP.localdomain ([103.87.57.178])
+        by smtp.gmail.com with ESMTPSA id m2sm11318884pjk.4.2020.04.06.00.06.19
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Mon, 06 Apr 2020 00:06:23 -0700 (PDT)
+Date:   Mon, 6 Apr 2020 12:36:12 +0530
+From:   Amol Grover <frextrite@gmail.com>
+To:     "David S . Miller" <davem@davemloft.net>
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Jeremy Sowden <jeremy@azazel.net>,
+        Florent Fourcot <florent.fourcot@wifirst.fr>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Johannes Berg <johannes.berg@intel.com>,
+        linux-kernel-mentees@lists.linuxfoundation.org,
+        Joel Fernandes <joel@joelfernandes.org>,
+        Madhuparna Bhowmik <madhuparnabhowmik10@gmail.com>,
+        "Paul E . McKenney" <paulmck@kernel.org>
+Subject: Re: [PATCH] netfilter: ipset: Pass lockdep expression to RCU lists
+Message-ID: <20200406070612.GA240@workstation-LAP.localdomain>
+References: <20200216172653.19772-1-frextrite@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200219180410.e56psjovne3y43rc@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.3 cv=X6os11be c=1 sm=1 tr=0
-        a=keeXcwCgVCrAuxOn72dlvA==:117 a=keeXcwCgVCrAuxOn72dlvA==:17
-        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=kj9zAlcOel0A:10 a=cl8xLZFz6L8A:10
-        a=RSmzAf-M6YYA:10 a=PO7r1zJSAAAA:8 a=csPL-m2dGY2BizXmgCAA:9
-        a=CjuIK1q_8ugA:10
+In-Reply-To: <20200216172653.19772-1-frextrite@gmail.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+On Sun, Feb 16, 2020 at 10:56:54PM +0530, Amol Grover wrote:
+> ip_set_type_list is traversed using list_for_each_entry_rcu
+> outside an RCU read-side critical section but under the protection
+> of ip_set_type_mutex.
+> 
+> Hence, add corresponding lockdep expression to silence false-positive
+> warnings, and harden RCU lists.
+> 
+> Signed-off-by: Amol Grover <frextrite@gmail.com>
+> ---
 
-On Wed, Feb 19, 2020 at 07:04:10PM +0100, Pablo Neira Ayuso wrote:
-> On Sat, Feb 01, 2020 at 05:21:27PM +1100, Duncan Roe wrote:
-> > Functions pktb_alloc_data, pktb_make and pktb_make_data are defined.
-> > The pktb_make pair are syggested as replacements for the pktb_alloc (now) pair
-> > because they are always faster.
-> >
-> > - Add prototypes to include/libnetfilter_queue/pktbuff.h
-> > - Add pktb_alloc_data much as per Pablo's email of Wed, 8 Jan 2020
-> >   speedup: point to packet data in netlink receive buffer rather than copy to
-> >            area immediately following pktb struct
-> > - Add pktb_make much like pktb_usebuf proposed on 10 Dec 2019
-> >   2 sppedups: 1. Use an existing buffer rather than calloc and (later) free one.
-> >               2. Only zero struct and extra parts of pktb - the rest is
-> >                  overwritten by copy (calloc has to zero the lot).
-> > - Add pktb_make_data
-> >   3 speedups: All of the above
-> > - Document the new functions
-> > - Move pktb_alloc and pktb_alloc_data into the "other functions" group since
-> >   they are slower than the "make" equivalent functions
-> >
-> > Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
-> > ---
-> >  include/libnetfilter_queue/pktbuff.h |   3 +
-> >  src/extra/pktbuff.c                  | 296 ++++++++++++++++++++++++++++++-----
-> >  2 files changed, 261 insertions(+), 38 deletions(-)
-> >
-> > diff --git a/include/libnetfilter_queue/pktbuff.h b/include/libnetfilter_queue/pktbuff.h
-> > index 42bc153..fc6bf01 100644
-> > --- a/include/libnetfilter_queue/pktbuff.h
-> > +++ b/include/libnetfilter_queue/pktbuff.h
-> > @@ -4,6 +4,9 @@
-> >  struct pkt_buff;
-> >
-> >  struct pkt_buff *pktb_alloc(int family, void *data, size_t len, size_t extra);
-> > +struct pkt_buff *pktb_alloc_data(int family, void *data, size_t len);
-> > +struct pkt_buff *pktb_make(int family, void *data, size_t len, size_t extra, void *buf, size_t bufsize);
-> > +struct pkt_buff *pktb_make_data(int family, void *data, size_t len, void *buf, size_t bufsize);
->
-> Hm, when I delivered the patch to you, I forgot that you main point
-> was that you wanted to skip the memory allocation.
->
-> I wonder if all these new functions can be consolidated into one
-> single function, something like:
->
->         struct pkt_buff *pktb_alloc2(int family, void *head, size_t head_size, void *data, size_t len, size_t extra);
->
-> The idea is that:
->
-> * head is the memory area that is large enough for the struct pkt_buff
->   (metadata). You can add a new pktb_head_size() function that returns
->   the size of opaque struct pkt_buff structure (whose layout is not
->   exposed to the user). I think you can this void *buf in your pktb_make
->   function.
->
-> * data is the memory area to store the network packet itself.
+Hi David
 
-Wait, you need data & len to describe where the data is *now*. You need an extra
-buf, buflen pair for where to put it.
->
-> Then, you can allocate head and data in the stack and skip
-> malloc/calloc.
->
-> Would this work for you? I would prefer if there is just one single
-> advanced function to do this.
->
-> Thanks for your patience.
+Could you please go through this patch aswell? This patch was directed to 
+preemptively fix the _suspicious RCU usage_ warning which is now also
+being reported by Kernel Test Robot.
 
-I think I can do as you requested.
+[   11.654186] =============================
+[   11.654619] WARNING: suspicious RCU usage
+[   11.655022] 5.6.0-rc1-00179-gdb4ead2cd5253 #1 Not tainted
+[   11.655583] -----------------------------
+[   11.656001] net/netfilter/ipset/ip_set_core.c:89 RCU-list traversed in non-reader section!!
 
-Just one thing: do you really think pktb_alloc2 is a good name when users *must
-not* call pktb_free? pktb_put would have been good but it's already taken.
+Thanks
+Amol
 
-Perhaps pktb_alloc2 could set a flag for pktb_free to become a no-op and maybe
-issue a warning the first time it is called - would that be worth doing?
-
-In pktb_alloc2, if extra == 0 then buf can be NULL and buflen 0, since the data
-will be left in place. That way, we get a single entry point doing as much
-optimising as possible.
-
-Cheers ... Duncan.
+>  net/netfilter/ipset/ip_set_core.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> index cf895bc80871..97c851589160 100644
+> --- a/net/netfilter/ipset/ip_set_core.c
+> +++ b/net/netfilter/ipset/ip_set_core.c
+> @@ -86,7 +86,8 @@ find_set_type(const char *name, u8 family, u8 revision)
+>  {
+>  	struct ip_set_type *type;
+>  
+> -	list_for_each_entry_rcu(type, &ip_set_type_list, list)
+> +	list_for_each_entry_rcu(type, &ip_set_type_list, list,
+> +				lockdep_is_held(&ip_set_type_mutex))
+>  		if (STRNCMP(type->name, name) &&
+>  		    (type->family == family ||
+>  		     type->family == NFPROTO_UNSPEC) &&
+> -- 
+> 2.24.1
+> 
