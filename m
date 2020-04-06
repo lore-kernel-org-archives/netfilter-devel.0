@@ -2,134 +2,74 @@ Return-Path: <SRS0=clD7=5W=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=BODY_SINGLE_WORD,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7AFDC2BA1B
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Apr 2020 07:06:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10A74C2BA19
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Apr 2020 12:31:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8B284206F8
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Apr 2020 07:06:29 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fUl+6I4x"
+	by mail.kernel.org (Postfix) with ESMTP id D619121D7F
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Apr 2020 12:31:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726534AbgDFHG0 (ORCPT
+        id S1727940AbgDFMbW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Apr 2020 03:06:26 -0400
-Received: from mail-pj1-f68.google.com ([209.85.216.68]:35848 "EHLO
-        mail-pj1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726486AbgDFHGZ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Apr 2020 03:06:25 -0400
-Received: by mail-pj1-f68.google.com with SMTP id nu11so6064516pjb.1;
-        Mon, 06 Apr 2020 00:06:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=RqJfBxc+5hEXzJUkSWB0gPw7NrIyI3K3Pr3732qHYAQ=;
-        b=fUl+6I4x7XwQcdmoCTE2Z0XeWKNZEAvwwQhxESe8sRcEQ6vn+AfhNO23bXM8aiWdRe
-         wVnHoSlX0U3b04JnkGrI5Ay7r0HfzNA0pKXN6fKs/gP6RV4tnDNoiDyKyGKhADiOl43n
-         F+mF6OdX/tADPC9HmEUR2PJJhzbFPdsXHduQuuFTWnIM3HbbkxMv3OvuJKYbTAl42H8N
-         1djGWbVFtbtxKYMtodVAdgw7d1ViLwhPqusfpHjBZmhP8Wby1fHN6KWDj01D0FRMHbs2
-         40LctGPDNwQdiPuTkW3RvZYYmwy5GjBoAHY3eo1S34N7o4Y+/bM9ACEMqEVOAq1Y+/ZZ
-         d+Tg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=RqJfBxc+5hEXzJUkSWB0gPw7NrIyI3K3Pr3732qHYAQ=;
-        b=GCOKNDwRQ6oPwdsISBwc3Ccs2EyJR0gJjOeSzMRphCCQxoQqy6U3mLimza2FQ1i9PY
-         Bs0qzgOGKuUM+XbjwPaFoUmsxW7+OKCbf+7ELoJOMA7gr9HrdszmqHB1EQaOVbC1BpcP
-         fImoGj0VdvYj4w3TCJh7zsRq4RhKH5/tCOeYrZ8jGtnZia4Bo2yUVpyXYVu5jgUN/PxO
-         jc8K+9enhl/4BmWOUd9dkmCxBzDYiAaFb9mwQEt7Lt7ENM5BTj8yaeC+GbMYxtLd9Ubx
-         lMjivOwNlL4aIm1LCbeQgHBYTbJcryybWFSyygoBvDLAOFsgecIGyzlLncSWaCbaXrJr
-         +k1Q==
-X-Gm-Message-State: AGi0PubBiffcWLft+F3M/nvSKrBEaHC7eXxnmtFmyQOM6+JF3Q+ot2uQ
-        wH+7yzLxRa1z+EQLLfx0svI=
-X-Google-Smtp-Source: APiQypKNbF2E3D32XKuBDPJhhlvxxo8J2rW27s0dKvSTxEZx7hANy5tViHe3jOKRRTeN/AfHY6j/Qg==
-X-Received: by 2002:a17:902:507:: with SMTP id 7mr19209367plf.42.1586156784681;
-        Mon, 06 Apr 2020 00:06:24 -0700 (PDT)
-Received: from workstation-LAP.localdomain ([103.87.57.178])
-        by smtp.gmail.com with ESMTPSA id m2sm11318884pjk.4.2020.04.06.00.06.19
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Mon, 06 Apr 2020 00:06:23 -0700 (PDT)
-Date:   Mon, 6 Apr 2020 12:36:12 +0530
-From:   Amol Grover <frextrite@gmail.com>
-To:     "David S . Miller" <davem@davemloft.net>
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Mon, 6 Apr 2020 08:31:22 -0400
+Received: from correo.us.es ([193.147.175.20]:52584 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727930AbgDFMbW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Apr 2020 08:31:22 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 4E424F2DF1
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Apr 2020 14:31:20 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3E716100A69
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Apr 2020 14:31:20 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 2BA67100A48; Mon,  6 Apr 2020 14:31:20 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1E548100A47;
+        Mon,  6 Apr 2020 14:31:18 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 06 Apr 2020 14:31:18 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id D75D242EE38E;
+        Mon,  6 Apr 2020 14:31:17 +0200 (CEST)
+Date:   Mon, 6 Apr 2020 14:31:17 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Amol Grover <frextrite@gmail.com>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
+        "David S . Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
         Jeremy Sowden <jeremy@azazel.net>,
         Florent Fourcot <florent.fourcot@wifirst.fr>,
         Kate Stewart <kstewart@linuxfoundation.org>,
         Johannes Berg <johannes.berg@intel.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-kernel-mentees@lists.linuxfoundation.org,
         Joel Fernandes <joel@joelfernandes.org>,
         Madhuparna Bhowmik <madhuparnabhowmik10@gmail.com>,
         "Paul E . McKenney" <paulmck@kernel.org>
 Subject: Re: [PATCH] netfilter: ipset: Pass lockdep expression to RCU lists
-Message-ID: <20200406070612.GA240@workstation-LAP.localdomain>
+Message-ID: <20200406123117.22e22uurcvqyc4qs@salvia>
 References: <20200216172653.19772-1-frextrite@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <20200216172653.19772-1-frextrite@gmail.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Feb 16, 2020 at 10:56:54PM +0530, Amol Grover wrote:
-> ip_set_type_list is traversed using list_for_each_entry_rcu
-> outside an RCU read-side critical section but under the protection
-> of ip_set_type_mutex.
-> 
-> Hence, add corresponding lockdep expression to silence false-positive
-> warnings, and harden RCU lists.
-> 
-> Signed-off-by: Amol Grover <frextrite@gmail.com>
-> ---
-
-Hi David
-
-Could you please go through this patch aswell? This patch was directed to 
-preemptively fix the _suspicious RCU usage_ warning which is now also
-being reported by Kernel Test Robot.
-
-[   11.654186] =============================
-[   11.654619] WARNING: suspicious RCU usage
-[   11.655022] 5.6.0-rc1-00179-gdb4ead2cd5253 #1 Not tainted
-[   11.655583] -----------------------------
-[   11.656001] net/netfilter/ipset/ip_set_core.c:89 RCU-list traversed in non-reader section!!
-
-Thanks
-Amol
-
->  net/netfilter/ipset/ip_set_core.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> index cf895bc80871..97c851589160 100644
-> --- a/net/netfilter/ipset/ip_set_core.c
-> +++ b/net/netfilter/ipset/ip_set_core.c
-> @@ -86,7 +86,8 @@ find_set_type(const char *name, u8 family, u8 revision)
->  {
->  	struct ip_set_type *type;
->  
-> -	list_for_each_entry_rcu(type, &ip_set_type_list, list)
-> +	list_for_each_entry_rcu(type, &ip_set_type_list, list,
-> +				lockdep_is_held(&ip_set_type_mutex))
->  		if (STRNCMP(type->name, name) &&
->  		    (type->family == family ||
->  		     type->family == NFPROTO_UNSPEC) &&
-> -- 
-> 2.24.1
-> 
+Applied.
