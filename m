@@ -2,107 +2,87 @@ Return-Path: <SRS0=FJFf=5X=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DBDAC2BA2B
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 14:35:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36C4EC2BA80
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 15:37:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5F8BE2072A
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 14:35:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0E7A82075E
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 15:37:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729081AbgDGOfL (ORCPT
+        id S1729441AbgDGPhA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 Apr 2020 10:35:11 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:54954 "EHLO orbyte.nwl.cc"
+        Tue, 7 Apr 2020 11:37:00 -0400
+Received: from correo.us.es ([193.147.175.20]:58352 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728306AbgDGOfL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Apr 2020 10:35:11 -0400
-Received: from localhost ([::1]:39812 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1jLpJl-0007fk-Vj; Tue, 07 Apr 2020 16:35:10 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 1/3] nft: cache: Eliminate init_chain_cache()
-Date:   Tue,  7 Apr 2020 16:34:43 +0200
-Message-Id: <20200407143445.26394-2-phil@nwl.cc>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200407143445.26394-1-phil@nwl.cc>
-References: <20200407143445.26394-1-phil@nwl.cc>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        id S1729426AbgDGPhA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 7 Apr 2020 11:37:00 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 711D5E862B
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Apr 2020 17:36:58 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 633C6DA736
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Apr 2020 17:36:58 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 58F0D100A42; Tue,  7 Apr 2020 17:36:58 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 75B8E100A45
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Apr 2020 17:36:56 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 07 Apr 2020 17:36:56 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 58FC442EF42A
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Apr 2020 17:36:56 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf 1/2] netfilter: nf_tables: report EOPNOTSUPP on unsupported flags/object type
+Date:   Tue,  7 Apr 2020 17:36:52 +0200
+Message-Id: <20200407153653.137377-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The function is always called immediately after fetch_table_cache(), so
-merge it into the latter.
+EINVAL should be used for malformed netlink messages. New userspace and
+old kernels might easily result in EINVAL when exercising new set
+features, which is misleading.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Fixes: 8aeff920dcc9 ("netfilter: nf_tables: add stateful object reference to set elements")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- iptables/nft-cache.c | 16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ net/netfilter/nf_tables_api.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/iptables/nft-cache.c b/iptables/nft-cache.c
-index a0c76705c848e..369692fe44fc7 100644
---- a/iptables/nft-cache.c
-+++ b/iptables/nft-cache.c
-@@ -86,7 +86,7 @@ static int fetch_table_cache(struct nft_handle *h)
- 	char buf[16536];
- 	struct nlmsghdr *nlh;
- 	struct nftnl_table_list *list;
--	int ret;
-+	int i, ret;
- 
- 	if (h->cache->tables)
- 		return 0;
-@@ -104,13 +104,6 @@ static int fetch_table_cache(struct nft_handle *h)
- 
- 	h->cache->tables = list;
- 
--	return 1;
--}
--
--static int init_chain_cache(struct nft_handle *h)
--{
--	int i;
--
- 	for (i = 0; i < NFT_TABLE_MAX; i++) {
- 		enum nft_table_type type = h->tables[i].type;
- 
-@@ -119,9 +112,10 @@ static int init_chain_cache(struct nft_handle *h)
- 
- 		h->cache->table[type].chains = nftnl_chain_list_alloc();
- 		if (!h->cache->table[type].chains)
--			return -1;
-+			return 0;
- 	}
--	return 0;
-+
-+	return 1;
- }
- 
- struct nftnl_chain_list_cb_data {
-@@ -458,7 +452,6 @@ __nft_build_cache(struct nft_handle *h, enum nft_cache_level level,
- 	switch (h->cache_level) {
- 	case NFT_CL_NONE:
- 		fetch_table_cache(h);
--		init_chain_cache(h);
- 		if (level == NFT_CL_TABLES)
- 			break;
- 		/* fall through */
-@@ -505,7 +498,6 @@ void nft_build_cache(struct nft_handle *h, struct nftnl_chain *c)
- void nft_fake_cache(struct nft_handle *h)
- {
- 	fetch_table_cache(h);
--	init_chain_cache(h);
- 
- 	h->cache_level = NFT_CL_FAKE;
- 	mnl_genid_get(h, &h->nft_genid);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index f91e96d8de05..21cbde6ecee3 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3963,7 +3963,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ 			      NFT_SET_INTERVAL | NFT_SET_TIMEOUT |
+ 			      NFT_SET_MAP | NFT_SET_EVAL |
+ 			      NFT_SET_OBJECT))
+-			return -EINVAL;
++			return -EOPNOTSUPP;
+ 		/* Only one of these operations is supported */
+ 		if ((flags & (NFT_SET_MAP | NFT_SET_OBJECT)) ==
+ 			     (NFT_SET_MAP | NFT_SET_OBJECT))
+@@ -4001,7 +4001,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ 		objtype = ntohl(nla_get_be32(nla[NFTA_SET_OBJ_TYPE]));
+ 		if (objtype == NFT_OBJECT_UNSPEC ||
+ 		    objtype > NFT_OBJECT_MAX)
+-			return -EINVAL;
++			return -EOPNOTSUPP;
+ 	} else if (flags & NFT_SET_OBJECT)
+ 		return -EINVAL;
+ 	else
 -- 
-2.25.1
+2.11.0
 
