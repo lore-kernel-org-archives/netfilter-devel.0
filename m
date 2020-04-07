@@ -4,41 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F08DC2BB1D
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 00:05:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6419CC2BA80
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 00:07:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 05C7820768
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 00:05:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 34055207FF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 00:07:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586217959;
+	s=default; t=1586218079;
 	bh=MQo4JrUK0tCJzj0nCxLS7KvVp9c85pC9+ZbJrm18i48=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=mcVPVjYwMritqSiDL7W7rBTbUuzUDCljtXtWVZm5PRTVhDNMYzIWLmY94Ur4cXaq/
-	 lcVeKancePEmdZ1Qs25yxEsQSV1UOLf50YxtuByOt7aS1zgJG4RrQUrVlI8WLcnBGD
-	 BbCEZ4lgiFHkjONszfIX+Te0hCk2gu0B/U7gu6XY=
+	b=TVC7exswrYtWTSUxfhWInQbnXNV6eMbQxOAf+OMXNCM9P5X+sIf0uQQJWV5ykex5D
+	 tiIuxNVGvAercnhcSXiC9BWzezZnM/4SYdRah4UgrabYkdReLXxXRY9iqQwmTghNVf
+	 7KF3VVV+A97Dz1kCmuqWVB7gs/x1NjZddaeDBV0g=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728177AbgDGAFs (ORCPT
+        id S1727185AbgDGABh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Apr 2020 20:05:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36862 "EHLO mail.kernel.org"
+        Mon, 6 Apr 2020 20:01:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34812 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728029AbgDGACZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Apr 2020 20:02:25 -0400
+        id S1727115AbgDGABh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Apr 2020 20:01:37 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9054C20768;
-        Tue,  7 Apr 2020 00:02:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E96BF2078A;
+        Tue,  7 Apr 2020 00:01:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586217744;
+        s=default; t=1586217695;
         bh=MQo4JrUK0tCJzj0nCxLS7KvVp9c85pC9+ZbJrm18i48=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=dre4ApjefO9nU33iwFyjLXyCvWQIZXGS/rqZvwzkx9b332X3LVK3k4VLFeKtBNFBi
-         lTKFatZ8bU8sGzN3BIgEHjU+z7HP+7EIZ0pUvX1SOwcvRCoS2xXk9Rx2lPMt04KJcU
-         Z5BuGR1SeEZHtO23jsIop8Ga1LKi1ELhCihVb1O8=
+        b=qAO5+D1UzbgOmfX4OJy4pUTK3mfB3gVy7S/v8ybIdOG5Bg3YbyJZqIqdVjdPp2dFZ
+         6cqszF57ylKAMsylOyUq83WMWMcl9NaS9LGkD/yU+ropU8PQecWHf753c86KTh0a6Y
+         eqjVf+ur7ahPF3SeFPnKnOifMNMpsHVwdX0pSZdI=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Stefano Brivio <sbrivio@redhat.com>,
@@ -46,12 +46,12 @@ Cc:     Stefano Brivio <sbrivio@redhat.com>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 26/32] netfilter: nft_set_rbtree: Detect partial overlaps on insertion
-Date:   Mon,  6 Apr 2020 20:01:44 -0400
-Message-Id: <20200407000151.16768-26-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.5 29/35] netfilter: nft_set_rbtree: Detect partial overlaps on insertion
+Date:   Mon,  6 Apr 2020 20:00:51 -0400
+Message-Id: <20200407000058.16423-29-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200407000151.16768-1-sashal@kernel.org>
-References: <20200407000151.16768-1-sashal@kernel.org>
+In-Reply-To: <20200407000058.16423-1-sashal@kernel.org>
+References: <20200407000058.16423-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
