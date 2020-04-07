@@ -2,101 +2,81 @@ Return-Path: <SRS0=FJFf=5X=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3146C2BB55
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 15:37:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A497AC2BA2B
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 15:48:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8DAB02075E
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 15:37:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D49A20730
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 15:48:29 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="hgaZuv3b"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729442AbgDGPhB (ORCPT
+        id S1727856AbgDGPs3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 Apr 2020 11:37:01 -0400
-Received: from correo.us.es ([193.147.175.20]:58358 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729432AbgDGPhB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Apr 2020 11:37:01 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5B56DE8621
-        for <netfilter-devel@vger.kernel.org>; Tue,  7 Apr 2020 17:36:59 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4C0C4100A47
-        for <netfilter-devel@vger.kernel.org>; Tue,  7 Apr 2020 17:36:59 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 41D5E100A45; Tue,  7 Apr 2020 17:36:59 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 62324100A5A
-        for <netfilter-devel@vger.kernel.org>; Tue,  7 Apr 2020 17:36:57 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 07 Apr 2020 17:36:57 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 4F1DB42EF42A
-        for <netfilter-devel@vger.kernel.org>; Tue,  7 Apr 2020 17:36:57 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf 2/2] netfilter: nf_tables: reintroduce the NFT_SET_CONCAT flag
-Date:   Tue,  7 Apr 2020 17:36:53 +0200
-Message-Id: <20200407153653.137377-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20200407153653.137377-1-pablo@netfilter.org>
+        Tue, 7 Apr 2020 11:48:29 -0400
+Received: from us-smtp-2.mimecast.com ([207.211.31.81]:36597 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727221AbgDGPs3 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 7 Apr 2020 11:48:29 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1586274508;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=ZJ9p2X0paZu7j0U9ZnL5B0Ng08UrZgz1GAgSIVqPWek=;
+        b=hgaZuv3bYrhvxs8XlUf/f7WUdMHy5T4Ge1IG4F6jpFSR+n9vti4AuF+X498TQz432lVgTw
+        mccmDbW+/vn/yO0RInFVkrYJ/vJADRfB1xgZgfg6M+6kyY0rsbUpa7CL6MvYc+3UOr5+Y1
+        ailNFQWA6pObZo6hKkOQQEhu2A1wZAs=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-11-YvLV12nvMQWV1DB48N2qfA-1; Tue, 07 Apr 2020 11:48:26 -0400
+X-MC-Unique: YvLV12nvMQWV1DB48N2qfA-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 7704580268E;
+        Tue,  7 Apr 2020 15:48:20 +0000 (UTC)
+Received: from localhost (unknown [10.36.110.58])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 5E87D28980;
+        Tue,  7 Apr 2020 15:48:18 +0000 (UTC)
+Date:   Tue, 7 Apr 2020 17:48:14 +0200
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf 2/2] netfilter: nf_tables: reintroduce the
+ NFT_SET_CONCAT flag
+Message-ID: <20200407174814.04b4cda2@redhat.com>
+In-Reply-To: <20200407153653.137377-2-pablo@netfilter.org>
 References: <20200407153653.137377-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+        <20200407153653.137377-2-pablo@netfilter.org>
+Organization: Red Hat
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Stefano originally proposed to introduce this flag, users hit EOPNOTSUPP
-in new binaries with old kernels when defining a set with ranges in
-a concatenation.
+On Tue,  7 Apr 2020 17:36:53 +0200
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-Fixes: f3a2181e16f1 ("netfilter: nf_tables: Support for sets with multiple ranged fields")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/uapi/linux/netfilter/nf_tables.h | 2 ++
- net/netfilter/nf_tables_api.c            | 2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+> Stefano originally proposed to introduce this flag, users hit EOPNOTSUPP
+> in new binaries with old kernels when defining a set with ranges in
+> a concatenation.
+> 
+> Fixes: f3a2181e16f1 ("netfilter: nf_tables: Support for sets with multiple ranged fields")
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 30f2a87270dc..4565456c0ef4 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -276,6 +276,7 @@ enum nft_rule_compat_attributes {
-  * @NFT_SET_TIMEOUT: set uses timeouts
-  * @NFT_SET_EVAL: set can be updated from the evaluation path
-  * @NFT_SET_OBJECT: set contains stateful objects
-+ * @NFT_SET_CONCAT: set contains a concatenation
-  */
- enum nft_set_flags {
- 	NFT_SET_ANONYMOUS		= 0x1,
-@@ -285,6 +286,7 @@ enum nft_set_flags {
- 	NFT_SET_TIMEOUT			= 0x10,
- 	NFT_SET_EVAL			= 0x20,
- 	NFT_SET_OBJECT			= 0x40,
-+	NFT_SET_CONCAT			= 0x80,
- };
- 
- /**
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 21cbde6ecee3..9adfbc7e8ae7 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3962,7 +3962,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 		if (flags & ~(NFT_SET_ANONYMOUS | NFT_SET_CONSTANT |
- 			      NFT_SET_INTERVAL | NFT_SET_TIMEOUT |
- 			      NFT_SET_MAP | NFT_SET_EVAL |
--			      NFT_SET_OBJECT))
-+			      NFT_SET_OBJECT | NFT_SET_CONCAT))
- 			return -EOPNOTSUPP;
- 		/* Only one of these operations is supported */
- 		if ((flags & (NFT_SET_MAP | NFT_SET_OBJECT)) ==
+Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
+
 -- 
-2.11.0
+Stefano
 
