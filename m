@@ -2,103 +2,87 @@ Return-Path: <SRS0=FJFf=5X=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4227FC2D0EC
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 20:23:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D307AC2BB85
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 22:29:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0CC6520748
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 20:23:44 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eUnv6kXN"
+	by mail.kernel.org (Postfix) with ESMTP id A45C02063A
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 22:29:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726370AbgDGUXn (ORCPT
+        id S1726651AbgDGW3r (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 Apr 2020 16:23:43 -0400
-Received: from mail-pg1-f194.google.com ([209.85.215.194]:39113 "EHLO
-        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726277AbgDGUXn (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Apr 2020 16:23:43 -0400
-Received: by mail-pg1-f194.google.com with SMTP id g32so2262163pgb.6
-        for <netfilter-devel@vger.kernel.org>; Tue, 07 Apr 2020 13:23:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=NcmWB88u6DUQNSHUBnL+DPiBq7na3itwbE61s39wJgs=;
-        b=eUnv6kXNnSdOsJ8aO92blCpEzLL+27vYbKJjuBMCMqnPww7g+wBHLjn3pXzmiUUltt
-         KkR2JdNGFeIfNOOgISQOJgdoc2BRmHbuSmNOW5m8WU37gdjc2bkrIt+uWN6D9hNHLCQB
-         xCtXTb96gAhNCOc4bIR9zhzuDZSbcZlDcT2XjtLrqpfgW6c1R5oczOt0XvrjKvzU/lAf
-         MseAjLNksUZLl1mGKomDkjCerJ+EyHjkyeoFWtOUvpHJBgGKTexJw0lc4Tu26Iu+cV7s
-         1W0DCt6I4eRuJNiY8WY6BmgX2ly7lUCbo4Gflw8UnMqJXr+Q6KbEon2zP8ZkrVnUGdLD
-         urjg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=NcmWB88u6DUQNSHUBnL+DPiBq7na3itwbE61s39wJgs=;
-        b=L9IVtxatLNdfD28s/kOmDkUVuyqNiA0iJjvgkZPllCdKEnquP2wJj5JmghHMQx/SRO
-         QGu6jkhiTgBY/vz0voK0dibr5C/qrz1QhqMqsqQ1YHK2Mft4ISsyPnqVBQx0w0hfy1Z3
-         e+rkInG5IeVWa/8sZAFSsk2ld7/bEKViIIvopYXhZb6WX6jOn0CEJxtJneb5+Pg2OW5j
-         iuFtNvgVxxU3s66jHBea1o+azX/pagFQ9fCvUfMWwOXfpca7L7Ck/ZB7vY/LFtM4Txp1
-         D63gZm+Uz9z2mExg/LYpiVRWYlA8wOz6wn6gI56tGKF4XoMaZcFeM9R+1W3Y3zQnKtRl
-         8oGw==
-X-Gm-Message-State: AGi0PubDUzeGFwk91VKU6GVaFA2t82L8ZzlJMf0ZyqhV+ii19Gmjm67C
-        biJA93rcvFnfWLzWIcym+mzERbgG
-X-Google-Smtp-Source: APiQypJCkhH2XM1/ubVKAyDxWOfA3IngwHzom0h71tkIHqntDJ2mMvM8qR8AQp7vivYI0us7RPKyKg==
-X-Received: by 2002:a65:6704:: with SMTP id u4mr459587pgf.263.1586291022346;
-        Tue, 07 Apr 2020 13:23:42 -0700 (PDT)
-Received: from localhost ([134.134.137.77])
-        by smtp.gmail.com with ESMTPSA id u3sm15035874pfb.36.2020.04.07.13.23.40
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 07 Apr 2020 13:23:41 -0700 (PDT)
-From:   Matt Turner <mattst88@gmail.com>
+        Tue, 7 Apr 2020 18:29:47 -0400
+Received: from correo.us.es ([193.147.175.20]:53162 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726594AbgDGW3q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 7 Apr 2020 18:29:46 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id C35BBF2DEA
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Apr 2020 00:29:44 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B47D4FA551
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Apr 2020 00:29:44 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id A9EC1FA4F4; Wed,  8 Apr 2020 00:29:44 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D3CFC4EA8F;
+        Wed,  8 Apr 2020 00:29:42 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 08 Apr 2020 00:29:42 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id A78874251480;
+        Wed,  8 Apr 2020 00:29:42 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     Matt Turner <mattst88@gmail.com>
-Subject: [PATCH nftables] build: Allow building from tarballs without yacc/lex
-Date:   Tue,  7 Apr 2020 13:23:37 -0700
-Message-Id: <20200407202337.63505-1-mattst88@gmail.com>
-X-Mailer: git-send-email 2.24.1
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Cc:     davem@davemloft.net, netdev@vger.kernel.org
+Subject: [PATCH 5/7] netfilter: ipset: Pass lockdep expression to RCU lists
+Date:   Wed,  8 Apr 2020 00:29:34 +0200
+Message-Id: <20200407222936.206295-6-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20200407222936.206295-1-pablo@netfilter.org>
+References: <20200407222936.206295-1-pablo@netfilter.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The generated files are included in the tarballs already, but
-configure.ac was coded to fail if yacc/lex were not found regardless.
+From: Amol Grover <frextrite@gmail.com>
 
-Signed-off-by: Matt Turner <mattst88@gmail.com>
+ip_set_type_list is traversed using list_for_each_entry_rcu
+outside an RCU read-side critical section but under the protection
+of ip_set_type_mutex.
+
+Hence, add corresponding lockdep expression to silence false-positive
+warnings, and harden RCU lists.
+
+Signed-off-by: Amol Grover <frextrite@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- configure.ac | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/ipset/ip_set_core.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/configure.ac b/configure.ac
-index a04d94bc..3496e410 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -29,13 +29,13 @@ AC_PROG_SED
- AM_PROG_LEX
- AC_PROG_YACC
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index 8dd17589217d..340cb955af25 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -86,7 +86,8 @@ find_set_type(const char *name, u8 family, u8 revision)
+ {
+ 	struct ip_set_type *type;
  
--if test -z "$ac_cv_prog_YACC"
-+if test -z "$ac_cv_prog_YACC" -a ! -f "${srcdir}/src/parser_bison.c"
- then
-         echo "*** Error: No suitable bison/yacc found. ***"
-         echo "    Please install the 'bison' package."
-         exit 1
- fi
--if test -z "$ac_cv_prog_LEX"
-+if test -z "$ac_cv_prog_LEX" -a ! -f "${srcdir}/src/scanner.c"
- then
-         echo "*** Error: No suitable flex/lex found. ***"
-         echo "    Please install the 'flex' package."
+-	list_for_each_entry_rcu(type, &ip_set_type_list, list)
++	list_for_each_entry_rcu(type, &ip_set_type_list, list,
++				lockdep_is_held(&ip_set_type_mutex))
+ 		if (STRNCMP(type->name, name) &&
+ 		    (type->family == family ||
+ 		     type->family == NFPROTO_UNSPEC) &&
 -- 
-2.24.1
+2.11.0
 
