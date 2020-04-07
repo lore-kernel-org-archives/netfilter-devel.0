@@ -2,105 +2,114 @@ Return-Path: <SRS0=FJFf=5X=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 745A3C2BB1D
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 00:08:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C800C2BA1A
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 00:19:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3979720768
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 00:08:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586218091;
-	bh=nSZIgXpFCKsSZKb4dKx/zHl30eiBHp5c5LbK7nJDkxc=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Cpp8swP1yJxe13Kz+ykKcezcDW7MuyR/0s5sFnT/H9Y1fr9+N3Jz1jA9s7i92drAa
-	 AEXTBNc/+PI5AwruOTk+pRiNuE/K9Pq++cUJqEpjdXQ/6zNKJzF1+S54JNFrE360rT
-	 bIxFXsGEbeL6zX1MlMZYB919ehqUMZsXNrOukmxI=
+	by mail.kernel.org (Postfix) with ESMTP id 2E38B2072A
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 00:19:07 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="PbL6M+Kx"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727026AbgDGABf (ORCPT
+        id S1726395AbgDGATH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Apr 2020 20:01:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34714 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726965AbgDGABe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Apr 2020 20:01:34 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        Mon, 6 Apr 2020 20:19:07 -0400
+Received: from us-smtp-1.mimecast.com ([205.139.110.61]:47390 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726254AbgDGATG (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Apr 2020 20:19:06 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1586218745;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=O68wn4Pe4Xnq82stQk8cQ2xWIKc1fXmzXjPQY3YHR/c=;
+        b=PbL6M+KxHMpzCvNJTT8skeM/ZDjvZ0B+DCtPfT3C/8RQLT2CgtZOX5MfU2aHwXEoLNyFve
+        ftFtmop4dmrDmWQsixDZhQ4ky+daQZQ27/1+17Un57NTHVOV8Om4D/xiiSOMu68bA1rtW6
+        VGzGTw0NDXed4UoKv9H+IaDFAukLG0Q=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-88-6xhVm4c-OSycWycwXboclQ-1; Mon, 06 Apr 2020 20:19:02 -0400
+X-MC-Unique: 6xhVm4c-OSycWycwXboclQ-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 519CE208E4;
-        Tue,  7 Apr 2020 00:01:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1586217693;
-        bh=nSZIgXpFCKsSZKb4dKx/zHl30eiBHp5c5LbK7nJDkxc=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=QoHxiqRgFLjnQDIWxntGWeLiEr6aFAvi5OvnazrebtGst/hOzL3ry5UtQa/xdXTQu
-         HrYROmZDH/J5UuB+KjtKdE2afGXh2XwLYxEjAyImuJwqtyRCJQJjsYw2o7/x/GPzWz
-         F/p6BQRWLtW94mZTNtnG8e1TXD7/93PNR4Zfk9Ks=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>,
-        Stefano Brivio <sbrivio@redhat.com>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.5 27/35] netfilter: nf_tables: Allow set back-ends to report partial overlaps on insertion
-Date:   Mon,  6 Apr 2020 20:00:49 -0400
-Message-Id: <20200407000058.16423-27-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200407000058.16423-1-sashal@kernel.org>
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 451E618C35A1;
+        Tue,  7 Apr 2020 00:19:01 +0000 (UTC)
+Received: from localhost (unknown [10.36.110.15])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id AA3D85E010;
+        Tue,  7 Apr 2020 00:18:58 +0000 (UTC)
+Date:   Tue, 7 Apr 2020 02:18:48 +0200
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Sasha Levin <sashal@kernel.org>
+Cc:     linux-kernel@vger.kernel.org, stable@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org
+Subject: Re: [PATCH AUTOSEL 5.5 27/35] netfilter: nf_tables: Allow set
+ back-ends to report partial overlaps on insertion
+Message-ID: <20200407021848.626df832@redhat.com>
+In-Reply-To: <20200407000058.16423-27-sashal@kernel.org>
 References: <20200407000058.16423-1-sashal@kernel.org>
+        <20200407000058.16423-27-sashal@kernel.org>
+Organization: Red Hat
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Hi Sasha,
 
-[ Upstream commit 8c2d45b2b65ca1f215244be1c600236e83f9815f ]
+On Mon,  6 Apr 2020 20:00:49 -0400
+Sasha Levin <sashal@kernel.org> wrote:
 
-Currently, the -EEXIST return code of ->insert() callbacks is ambiguous: it
-might indicate that a given element (including intervals) already exists as
-such, or that the new element would clash with existing ones.
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> [ Upstream commit 8c2d45b2b65ca1f215244be1c600236e83f9815f ]
 
-If identical elements already exist, the front-end is ignoring this without
-returning error, in case NLM_F_EXCL is not set. However, if the new element
-can't be inserted due an overlap, we should report this to the user.
+This patch, together with 28/35 and 29/35 in this series, and all the
+equivalent patches for 5.4 and 4.19, that is:
+	[PATCH AUTOSEL 5.5 27/35] netfilter: nf_tables: Allow set back-ends to report partial overlaps on insertion
+	[PATCH AUTOSEL 5.5 28/35] netfilter: nft_set_rbtree: Introduce and use nft_rbtree_interval_start()
+	[PATCH AUTOSEL 5.5 29/35] netfilter: nft_set_rbtree: Detect partial overlaps on insertion
+	[PATCH AUTOSEL 5.4 24/32] netfilter: nf_tables: Allow set back-ends to report partial overlaps on insertion
+	[PATCH AUTOSEL 5.4 25/32] netfilter: nft_set_rbtree: Introduce and use nft_rbtree_interval_start()
+	[PATCH AUTOSEL 5.4 26/32] netfilter: nft_set_rbtree: Detect partial overlaps on insertion
+	[PATCH AUTOSEL 4.19 08/13] netfilter: nf_tables: Allow set back-ends to report partial overlaps on insertion
+	[PATCH AUTOSEL 4.19 09/13] netfilter: nft_set_rbtree: Introduce and use nft_rbtree_interval_start()
+	[PATCH AUTOSEL 4.19 10/13] netfilter: nft_set_rbtree: Detect partial overlaps on insertion
 
-To this purpose, allow set back-ends to return -ENOTEMPTY on collision with
-existing elements, translate that to -EEXIST, and return that to userspace,
-no matter if NLM_F_EXCL was set.
+should only be backported together with nf.git commit
+	72239f2795fa ("netfilter: nft_set_rbtree: Drop spurious condition for overlap detection on insertion")
 
-Reported-by: Phil Sutter <phil@nwl.cc>
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- net/netfilter/nf_tables_api.c | 5 +++++
- 1 file changed, 5 insertions(+)
+as they would otherwise introduce a regression. In general, those changes
+are not really relevant before 5.6, as nft_set_pipapo wasn't there and the
+main purpose here is to make the nft_set_rbtree back-end consistent with it:
+they also prevent a malfunction in nft_set_rbtree itself, but nothing that
+would be triggered using 'nft' alone, and no memory badnesses or critical
+issues whatsoever. So it's also safe to drop them, in my opinion.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 11a2a7b5312ee..a9f6bace16245 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4957,6 +4957,11 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 				err = -EBUSY;
- 			else if (!(nlmsg_flags & NLM_F_EXCL))
- 				err = 0;
-+		} else if (err == -ENOTEMPTY) {
-+			/* ENOTEMPTY reports overlapping between this element
-+			 * and an existing one.
-+			 */
-+			err = -EEXIST;
- 		}
- 		goto err5;
- 	}
+Also patches for 4.14 and 4.9:
+	[PATCH AUTOSEL 4.14 6/9] netfilter: nf_tables: Allow set back-ends to report partial overlaps on insertion
+	[PATCH AUTOSEL 4.9 3/5] netfilter: nf_tables: Allow set back-ends to report partial overlaps on insertion
+
+can safely be dropped, because there are no set back-ends there, without
+the following patches, that use this way of reporting a partial overlap.
+
+I'm used to not Cc: stable on networking patches (Dave's net.git),
+but I guess I should instead if they go through nf.git (Pablo's tree),
+right?
+
 -- 
-2.20.1
+Stefano
 
