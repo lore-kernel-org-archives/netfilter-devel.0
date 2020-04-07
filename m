@@ -2,34 +2,34 @@ Return-Path: <SRS0=FJFf=5X=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.7 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93FA3C2D0EC
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 22:29:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99D1DC2BB54
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 22:30:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 76B7D2082D
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 22:29:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 74E46207FF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Apr 2020 22:30:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726647AbgDGW3r (ORCPT
+        id S1726637AbgDGW3q (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 Apr 2020 18:29:47 -0400
-Received: from correo.us.es ([193.147.175.20]:53150 "EHLO mail.us.es"
+        Tue, 7 Apr 2020 18:29:46 -0400
+Received: from correo.us.es ([193.147.175.20]:53154 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726555AbgDGW3q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1726380AbgDGW3q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 7 Apr 2020 18:29:46 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 43A1EF2DE7
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Apr 2020 00:29:44 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 59BE5F2DEE
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Apr 2020 00:29:43 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 30B61FF6F9
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Apr 2020 00:29:44 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4C06EFC54C
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Apr 2020 00:29:43 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 261C7FF6F5; Wed,  8 Apr 2020 00:29:44 +0200 (CEST)
+        id 4146BFA525; Wed,  8 Apr 2020 00:29:43 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E2886DA736;
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5637020C64;
         Wed,  8 Apr 2020 00:29:41 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
@@ -37,117 +37,97 @@ Received: from 192.168.1.97 (192.168.1.97)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id BC6014251480;
+        by entrada.int (Postfix) with ESMTPA id 31EDC4251480;
         Wed,  8 Apr 2020 00:29:41 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 3/7] netfilter: xt_IDLETIMER: target v1 - match Android layout
-Date:   Wed,  8 Apr 2020 00:29:32 +0200
-Message-Id: <20200407222936.206295-4-pablo@netfilter.org>
+Subject: [PATCH 2/7] netfilter: nf_tables: do not update stateful expressions if lookup is inverted
+Date:   Wed,  8 Apr 2020 00:29:31 +0200
+Message-Id: <20200407222936.206295-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200407222936.206295-1-pablo@netfilter.org>
 References: <20200407222936.206295-1-pablo@netfilter.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Maciej Żenczykowski <maze@google.com>
+Initialize set lookup matching element to NULL. Otherwise, the
+NFT_LOOKUP_F_INV flag reverses the matching logic and it leads to
+deference an uninitialized pointer to the matching element. Make sure
+element data area and stateful expression are accessed if there is a
+matching set element.
 
-Android has long had an extension to IDLETIMER to send netlink
-messages to userspace, see:
-  https://android.googlesource.com/kernel/common/+/refs/heads/android-mainline/include/uapi/linux/netfilter/xt_IDLETIMER.h#42
-Note: this is idletimer target rev 1, there is no rev 0 in
-the Android common kernel sources, see registration at:
-  https://android.googlesource.com/kernel/common/+/refs/heads/android-mainline/net/netfilter/xt_IDLETIMER.c#483
+This patch undoes 24791b9aa1ab ("netfilter: nft_set_bitmap: initialize set
+element extension in lookups") which is not required anymore.
 
-When we compare that to upstream's new idletimer target rev 1:
-  https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git/tree/include/uapi/linux/netfilter/xt_IDLETIMER.h#n46
-
-We immediately notice that these two rev 1 structs are the
-same size and layout, and that while timer_type and send_nl_msg
-are differently named and serve a different purpose, they're
-at the same offset.
-
-This makes them impossible to tell apart - and thus one cannot
-know in a mixed Android/vanilla environment whether one means
-timer_type or send_nl_msg.
-
-Since this is iptables/netfilter uapi it introduces a problem
-between iptables (vanilla vs Android) userspace and kernel
-(vanilla vs Android) if the two don't match each other.
-
-Additionally when at some point in the future Android picks up
-5.7+ it's not at all clear how to resolve the resulting merge
-conflict.
-
-Furthermore, since upgrading the kernel on old Android phones
-is pretty much impossible there does not seem to be an easy way
-out of this predicament.
-
-The only thing I've been able to come up with is some super
-disgusting kernel version >= 5.7 check in the iptables binary
-to flip between different struct layouts.
-
-By adding a dummy field to the vanilla Linux kernel header file
-we can force the two structs to be compatible with each other.
-
-Long term I think I would like to deprecate send_nl_msg out of
-Android entirely, but I haven't quite been able to figure out
-exactly how we depend on it.  It seems to be very similar to
-sysfs notifications but with some extra info.
-
-Currently it's actually always enabled whenever Android uses
-the IDLETIMER target, so we could also probably entirely
-remove it from the uapi in favour of just always enabling it,
-but again we can't upgrade old kernels already in the field.
-
-(Also note that this doesn't change the structure's size,
-as it is simply fitting into the pre-existing padding, and
-that since 5.7 hasn't been released yet, there's still time
-to make this uapi visible change)
-
-Cc: Manoj Basapathi <manojbm@codeaurora.org>
-Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Signed-off-by: Maciej Żenczykowski <maze@google.com>
+Fixes: 339706bc21c1 ("netfilter: nft_lookup: update element stateful expression")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/xt_IDLETIMER.h | 1 +
- net/netfilter/xt_IDLETIMER.c                | 3 +++
- 2 files changed, 4 insertions(+)
+ include/net/netfilter/nf_tables.h |  2 +-
+ net/netfilter/nft_lookup.c        | 12 +++++++-----
+ net/netfilter/nft_set_bitmap.c    |  1 -
+ 3 files changed, 8 insertions(+), 7 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/xt_IDLETIMER.h b/include/uapi/linux/netfilter/xt_IDLETIMER.h
-index 434e6506abaa..49ddcdc61c09 100644
---- a/include/uapi/linux/netfilter/xt_IDLETIMER.h
-+++ b/include/uapi/linux/netfilter/xt_IDLETIMER.h
-@@ -48,6 +48,7 @@ struct idletimer_tg_info_v1 {
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 6eb627b3c99b..4ff7c81e6717 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -901,7 +901,7 @@ static inline void nft_set_elem_update_expr(const struct nft_set_ext *ext,
+ {
+ 	struct nft_expr *expr;
  
- 	char label[MAX_IDLETIMER_LABEL_SIZE];
+-	if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPR)) {
++	if (__nft_set_ext_exists(ext, NFT_SET_EXT_EXPR)) {
+ 		expr = nft_set_ext_expr(ext);
+ 		expr->ops->eval(expr, regs, pkt);
+ 	}
+diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
+index 1e70359d633c..f1363b8aabba 100644
+--- a/net/netfilter/nft_lookup.c
++++ b/net/netfilter/nft_lookup.c
+@@ -29,7 +29,7 @@ void nft_lookup_eval(const struct nft_expr *expr,
+ {
+ 	const struct nft_lookup *priv = nft_expr_priv(expr);
+ 	const struct nft_set *set = priv->set;
+-	const struct nft_set_ext *ext;
++	const struct nft_set_ext *ext = NULL;
+ 	bool found;
  
-+	__u8 send_nl_msg;   /* unused: for compatibility with Android */
- 	__u8 timer_type;
+ 	found = set->ops->lookup(nft_net(pkt), set, &regs->data[priv->sreg],
+@@ -39,11 +39,13 @@ void nft_lookup_eval(const struct nft_expr *expr,
+ 		return;
+ 	}
  
- 	/* for kernel module internal use only */
-diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-index 75bd0e5dd312..7b2f359bfce4 100644
---- a/net/netfilter/xt_IDLETIMER.c
-+++ b/net/netfilter/xt_IDLETIMER.c
-@@ -346,6 +346,9 @@ static int idletimer_tg_checkentry_v1(const struct xt_tgchk_param *par)
+-	if (set->flags & NFT_SET_MAP)
+-		nft_data_copy(&regs->data[priv->dreg],
+-			      nft_set_ext_data(ext), set->dlen);
++	if (ext) {
++		if (set->flags & NFT_SET_MAP)
++			nft_data_copy(&regs->data[priv->dreg],
++				      nft_set_ext_data(ext), set->dlen);
  
- 	pr_debug("checkentry targinfo%s\n", info->label);
+-	nft_set_elem_update_expr(ext, regs, pkt);
++		nft_set_elem_update_expr(ext, regs, pkt);
++	}
+ }
  
-+	if (info->send_nl_msg)
-+		return -EOPNOTSUPP;
-+
- 	ret = idletimer_tg_helper((struct idletimer_tg_info *)info);
- 	if(ret < 0)
- 	{
+ static const struct nla_policy nft_lookup_policy[NFTA_LOOKUP_MAX + 1] = {
+diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
+index 32f0fc8be3a4..2a81ea421819 100644
+--- a/net/netfilter/nft_set_bitmap.c
++++ b/net/netfilter/nft_set_bitmap.c
+@@ -81,7 +81,6 @@ static bool nft_bitmap_lookup(const struct net *net, const struct nft_set *set,
+ 	u32 idx, off;
+ 
+ 	nft_bitmap_location(set, key, &idx, &off);
+-	*ext = NULL;
+ 
+ 	return nft_bitmap_active(priv->bitmap, idx, off, genmask);
+ }
 -- 
 2.11.0
 
