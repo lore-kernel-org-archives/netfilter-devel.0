@@ -2,134 +2,95 @@ Return-Path: <SRS0=8NPN=5Y=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0A17C2BA1B
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Apr 2020 16:09:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33F95C2D0F4
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Apr 2020 19:22:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A2484206F5
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Apr 2020 16:09:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ECE352072F
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Apr 2020 19:22:00 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BlpReYOZ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730244AbgDHQJk (ORCPT
+        id S1729059AbgDHTWA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Apr 2020 12:09:40 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:57512 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730191AbgDHQJj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Apr 2020 12:09:39 -0400
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1jMDGj-0003YJ-Hb; Wed, 08 Apr 2020 18:09:37 +0200
-Date:   Wed, 8 Apr 2020 18:09:37 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc:     Stefano Brivio <sbrivio@redhat.com>,
-        netfilter-devel@vger.kernel.org, Mithil Mhatre <mmhatre@redhat.com>
-Subject: Re: [PATCH] ipset: Update byte and packet counters regardless of
- whether they match
-Message-ID: <20200408160937.GI14051@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Stefano Brivio <sbrivio@redhat.com>,
-        netfilter-devel@vger.kernel.org, Mithil Mhatre <mmhatre@redhat.com>
-References: <20200225094043.5a78337e@redhat.com>
- <alpine.DEB.2.20.2002250954060.26348@blackhole.kfki.hu>
- <20200225132235.5204639d@redhat.com>
- <alpine.DEB.2.20.2002252113111.29920@blackhole.kfki.hu>
- <20200225215322.6fb5ecb0@redhat.com>
- <alpine.DEB.2.20.2002272112360.11901@blackhole.kfki.hu>
- <20200228124039.00e5a343@redhat.com>
- <alpine.DEB.2.20.2003031020330.3731@blackhole.kfki.hu>
- <20200303231646.472e982e@elisabeth>
- <alpine.DEB.2.20.2003091059110.6217@blackhole.kfki.hu>
+        Wed, 8 Apr 2020 15:22:00 -0400
+Received: from mail-ua1-f65.google.com ([209.85.222.65]:46632 "EHLO
+        mail-ua1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728351AbgDHTWA (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Apr 2020 15:22:00 -0400
+Received: by mail-ua1-f65.google.com with SMTP id t1so375301uaj.13
+        for <netfilter-devel@vger.kernel.org>; Wed, 08 Apr 2020 12:22:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=CGCTrJygLikFxoCFs8DccL2dg1LmyTyS+3ifIejc0BU=;
+        b=BlpReYOZWGI6cGqGSNorbMCF3RPZS88tLPM2FYh3+LcgwmxA688cn7x0QjQBnjSOlT
+         zCWxTegt7bPDqjRgfOiv+xOPFmOSAyxbqgha9qjVX3UuMgQ/ajegvuS3aDBDFBEIHRbU
+         2W1Ibtu5j38QnGvV9S4t+6jT1ZHuAgMonN4wZBWImt9pi+sDx5FS/VvGckEbGfx0BTum
+         mRyGZ6vC35VKwThVLmYGBLkXYVPjtuxRJo1q4oz24TFGusMwfrgOAfH4siSE2HVgVK7j
+         vhwJ1lT0pnUyI6AX00Tns+w6cByriLDEt7j6tS+CH6v3CqITRrT3WdrJ3M7HT9AUJ5LW
+         +ArQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=CGCTrJygLikFxoCFs8DccL2dg1LmyTyS+3ifIejc0BU=;
+        b=Wi/ZBxFD9RUNwhMjyiNYAp7d3co69DDolQgqXXBmQbP+WmvPB4e7F7qaqwFDcB8+SQ
+         RRGyOihicP+qCowLUEy5OSiM7n6rrBr2G/c7lnGjmySYKeI1nFB7Ux0vl0enDZPcvpDu
+         AECeXbU/jtRyk1zu2VJsEvHH1WnmX4N3a6CB9GnhoKWEF2266T9xhISIGfvF+tt4/Rh/
+         88eoeU1n4CANsSkI7AorC86gY4tgobLFJn+V0wqMpCiQqPe8lX+Lr9cW+UDxsYvV11rc
+         EuDlt3ay2o8Ae0W8RukrM23aKFp8gNC9U4u87vTjIuGn0tVY5IkWJvLlCwymNDaTnjY1
+         gIoQ==
+X-Gm-Message-State: AGi0PuYum60+07OP7l9WwnKCwuDG3pv672mJAWxwGCL9Wm9690FRt2pU
+        ZItvHBlB0Y7jag1eUisXgq1NpftOKkIVqJV92eU=
+X-Google-Smtp-Source: APiQypJnJ5kzDKGEhIOz2eCEv3x+sck1O+PXVc37BGK7RiqHIWQGDC7kw58QxlssDp1tn1BdjonA/p0AckXJlr7cytQ=
+X-Received: by 2002:ab0:764a:: with SMTP id s10mr1070504uaq.1.1586373719808;
+ Wed, 08 Apr 2020 12:21:59 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.2003091059110.6217@blackhole.kfki.hu>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+References: <20200407180124.19169-1-ydahhrk@gmail.com>
+In-Reply-To: <20200407180124.19169-1-ydahhrk@gmail.com>
+From:   Laura Garcia <nevola@gmail.com>
+Date:   Wed, 8 Apr 2020 21:21:48 +0200
+Message-ID: <CAF90-Wg=uGXVOPu-OXupkFYYL0xDYTfV8vTNRvUQgspFMamL=w@mail.gmail.com>
+Subject: Re: [nft PATCH 2/2] expr: add jool expressions
+To:     Alberto Leiva Popper <ydahhrk@gmail.com>
+Cc:     Netfilter Development Mailing list 
+        <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi!
+On Tue, Apr 7, 2020 at 8:03 PM Alberto Leiva Popper <ydahhrk@gmail.com> wrote:
+>
+> Jool statements are used to send packets to the Jool kernel module,
+> which is an IP/ICMP translator: www.jool.mx
+>
+> Sample usage:
+>
+>         modprobe jool
+>         jool instance add "name" --iptables -6 64:ff9b::/96
+>         sudo nft add rule inet table1 chain1 jool nat64 "name"
+>
 
-On Mon, Mar 09, 2020 at 11:07:46AM +0100, Jozsef Kadlecsik wrote:
-> On Tue, 3 Mar 2020, Stefano Brivio wrote:
-> > On Tue, 3 Mar 2020 10:36:53 +0100 (CET)
-> > Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
-> > > On Fri, 28 Feb 2020, Stefano Brivio wrote:
-> > > > On Thu, 27 Feb 2020 21:37:10 +0100 (CET)
-> > > > Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
-> > > > > On Tue, 25 Feb 2020, Stefano Brivio wrote:
-> > > > > > On Tue, 25 Feb 2020 21:37:45 +0100 (CET)
-> > > > > > Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
-> > > > > > > On Tue, 25 Feb 2020, Stefano Brivio wrote:
-> > > > > > > > > The logic could be changed in the user rules from
-> > > > > > > > > 
-> > > > > > > > > iptables -I INPUT -m set --match-set c src --bytes-gt 800 -j DROP
-> > > > > > > > > 
-> > > > > > > > > to
-> > > > > > > > > 
-> > > > > > > > > iptables -I INPUT -m set --match-set c src --bytes-lt 800 -j ACCEPT
-> > > > > > > > > [ otherwise DROP ]
-> > > > > > > > > 
-> > > > > > > > > but of course it might be not so simple, depending on how the rules are 
-> > > > > > > > > built up.      
-> > > > > > > > 
-> > > > > > > > Yes, it would work, unless the user actually wants to check with the
-> > > > > > > > same counter how many bytes are sent "in excess".      
-> > > > > > > 
-> > > > > > > You mean the counters are still updated whenever the element is matched in 
-> > > > > > > the set and then one could check how many bytes were sent over the 
-> > > > > > > threshold just by listing the set elements.    
-> > > > > > 
-> > > > > > Yes, exactly -- note that it was possible (and, I think, used) before.    
-> > > > > 
-> > > > > I'm still not really convinced about such a feature. Why is it useful to 
-> > > > > know how many bytes would be sent over the "limit"?  
-> > > > 
-> > > > This is useful in case one wants different treatments for packets
-> > > > according to a number of thresholds in different rules. For example,
-> > > > 
-> > > >     iptables -I INPUT -m set --match-set c src --bytes-lt 100 -j noise
-> > > >     iptables -I noise -m set --match-set c src --bytes-lt 20000 -j download
-> > > > 
-> > > > and you want to log packets from chains 'noise' and 'download' with
-> > > > different prefixes.  
-> > > 
-> > > What do you think about this patch?
-> > 
-> > Thanks, I think it gives a way to avoid the issue.
-> > 
-> > I'm still not convinced that keeping this disabled by default is the 
-> > best way to go (mostly because we had a kernel change affecting 
-> > semantics that were exported to userspace for a long time), but if 
-> > there's a need for the opposite of this option, introducing it as a 
-> > negation becomes linguistically awkward. :)
-> 
-> The situation is far from ideal: the original mode (update counters 
-> regardless of the outcome of the counter matches) worked for almost five 
-> years. Then the 'Fix "don't update counters" mode...' patch changed it so 
-> that the result of the counter matches was taken into account, for about 
-> two years. I don't know how many user is expecting either the original or 
-> the changed behaviour, but better not change it again. Also, the grammar 
-> seems to be simpler this way :-).
+Hi Alberto,
 
-I didn't look at the mentioned fix, but if it really changed counters
-that fundamentally, that's a clear sign that nobody uses it, or at least
-nobody with a current kernel. :)
+Looking at the code, the pool4db is pretty much an adaptation of what
+conntrack already does. So, why not to put the efforts in extending
+conntrack to support NAT64/NAT46 ?
 
-Either way, the risk of reverting to the old behaviour is not bigger
-than the original divert two years ago and that seems to not have upset
-anyone.
+This way, the support of this natting is likely to be included in the
+kernel vanilla and just configure it with just one rule:
 
-Regarding the actual discussed functionality, I second Stefano in that
-ipset match and rule match should be regarded as two different things:
-ipset counters should count how many packets matched an element in that
-ipset, not how many packets matched an iptables rule referring to it.
-For the latter question, there are iptables rule counters already.
+sudo nft add rule inet table1 chain1 dnat 64 64:ff9b::/96
 
-Cheers, Phil
+One more thing, it seems that jool only supports PREROUTING, is that right?
+
+Cheers.
