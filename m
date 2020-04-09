@@ -6,175 +6,191 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 794D8C2D0EA
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Apr 2020 09:16:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66A23C2BB55
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Apr 2020 20:44:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3494D20757
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Apr 2020 09:16:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4539520753
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Apr 2020 20:44:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726626AbgDIJQo (ORCPT
+        id S1726916AbgDIUoC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 9 Apr 2020 05:16:44 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:59186 "EHLO orbyte.nwl.cc"
+        Thu, 9 Apr 2020 16:44:02 -0400
+Received: from nautica.notk.org ([91.121.71.147]:55462 "EHLO nautica.notk.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726561AbgDIJQo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 Apr 2020 05:16:44 -0400
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1jMTIg-0007jv-F8; Thu, 09 Apr 2020 11:16:42 +0200
-Date:   Thu, 9 Apr 2020 11:16:42 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc:     Stefano Brivio <sbrivio@redhat.com>,
-        netfilter-devel@vger.kernel.org, Mithil Mhatre <mmhatre@redhat.com>
-Subject: Re: [PATCH] ipset: Update byte and packet counters regardless of
- whether they match
-Message-ID: <20200409091642.GJ14051@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Stefano Brivio <sbrivio@redhat.com>,
-        netfilter-devel@vger.kernel.org, Mithil Mhatre <mmhatre@redhat.com>
-References: <20200225132235.5204639d@redhat.com>
- <alpine.DEB.2.20.2002252113111.29920@blackhole.kfki.hu>
- <20200225215322.6fb5ecb0@redhat.com>
- <alpine.DEB.2.20.2002272112360.11901@blackhole.kfki.hu>
- <20200228124039.00e5a343@redhat.com>
- <alpine.DEB.2.20.2003031020330.3731@blackhole.kfki.hu>
- <20200303231646.472e982e@elisabeth>
- <alpine.DEB.2.20.2003091059110.6217@blackhole.kfki.hu>
- <20200408160937.GI14051@orbyte.nwl.cc>
- <alpine.DEB.2.21.2004082147410.23414@blackhole.kfki.hu>
+        id S1726725AbgDIUoC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 9 Apr 2020 16:44:02 -0400
+X-Greylist: delayed 302 seconds by postgrey-1.27 at vger.kernel.org; Thu, 09 Apr 2020 16:44:00 EDT
+Received: by nautica.notk.org (Postfix, from userid 1001)
+        id B1889C009; Thu,  9 Apr 2020 22:38:58 +0200 (CEST)
+Date:   Thu, 9 Apr 2020 22:38:43 +0200
+From:   Dominique Martinet <asmadeus@codewreck.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     netdev@vger.kernel.org
+Subject: ipv6 rpfilter and.. fw mark? problems with wireguard
+Message-ID: <20200409203843.GA6881@nautica>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.21.2004082147410.23414@blackhole.kfki.hu>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+User-Agent: Mutt/1.5.21 (2010-09-15)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Jozsef,
+Hi,
 
-On Wed, Apr 08, 2020 at 09:59:11PM +0200, Jozsef Kadlecsik wrote:
-> On Wed, 8 Apr 2020, Phil Sutter wrote:
-> > On Mon, Mar 09, 2020 at 11:07:46AM +0100, Jozsef Kadlecsik wrote:
-> > > On Tue, 3 Mar 2020, Stefano Brivio wrote:
-> > > > On Tue, 3 Mar 2020 10:36:53 +0100 (CET)
-> > > > Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
-> > > > > On Fri, 28 Feb 2020, Stefano Brivio wrote:
-> > > > > > On Thu, 27 Feb 2020 21:37:10 +0100 (CET)
-> > > > > > Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
-> > > > > > > On Tue, 25 Feb 2020, Stefano Brivio wrote:
-> > > > > > > > On Tue, 25 Feb 2020 21:37:45 +0100 (CET)
-> > > > > > > > Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
-> > > > > > > > > On Tue, 25 Feb 2020, Stefano Brivio wrote:
-> > > > > > > > > > > The logic could be changed in the user rules from
-> > > > > > > > > > > 
-> > > > > > > > > > > iptables -I INPUT -m set --match-set c src --bytes-gt 800 -j DROP
-> > > > > > > > > > > 
-> > > > > > > > > > > to
-> > > > > > > > > > > 
-> > > > > > > > > > > iptables -I INPUT -m set --match-set c src --bytes-lt 800 -j ACCEPT
-> > > > > > > > > > > [ otherwise DROP ]
-> > > > > > > > > > > 
-> > > > > > > > > > > but of course it might be not so simple, depending on how the rules are 
-> > > > > > > > > > > built up.      
-> > > > > > > > > > 
-> > > > > > > > > > Yes, it would work, unless the user actually wants to check with the
-> > > > > > > > > > same counter how many bytes are sent "in excess".      
-> > > > > > > > > 
-> > > > > > > > > You mean the counters are still updated whenever the element is matched in 
-> > > > > > > > > the set and then one could check how many bytes were sent over the 
-> > > > > > > > > threshold just by listing the set elements.    
-> > > > > > > > 
-> > > > > > > > Yes, exactly -- note that it was possible (and, I think, used) before.    
-> > > > > > > 
-> > > > > > > I'm still not really convinced about such a feature. Why is it useful to 
-> > > > > > > know how many bytes would be sent over the "limit"?  
-> > > > > > 
-> > > > > > This is useful in case one wants different treatments for packets
-> > > > > > according to a number of thresholds in different rules. For example,
-> > > > > > 
-> > > > > >     iptables -I INPUT -m set --match-set c src --bytes-lt 100 -j noise
-> > > > > >     iptables -I noise -m set --match-set c src --bytes-lt 20000 -j download
-> > > > > > 
-> > > > > > and you want to log packets from chains 'noise' and 'download' with
-> > > > > > different prefixes.  
-> > > > > 
-> > > > > What do you think about this patch?
-> > > > 
-> > > > Thanks, I think it gives a way to avoid the issue.
-> > > > 
-> > > > I'm still not convinced that keeping this disabled by default is the 
-> > > > best way to go (mostly because we had a kernel change affecting 
-> > > > semantics that were exported to userspace for a long time), but if 
-> > > > there's a need for the opposite of this option, introducing it as a 
-> > > > negation becomes linguistically awkward. :)
-> > > 
-> > > The situation is far from ideal: the original mode (update counters 
-> > > regardless of the outcome of the counter matches) worked for almost five 
-> > > years. Then the 'Fix "don't update counters" mode...' patch changed it so 
-> > > that the result of the counter matches was taken into account, for about 
-> > > two years. I don't know how many user is expecting either the original or 
-> > > the changed behaviour, but better not change it again. Also, the grammar 
-> > > seems to be simpler this way :-).
-> > 
-> > I didn't look at the mentioned fix, but if it really changed counters 
-> > that fundamentally, that's a clear sign that nobody uses it, or at least 
-> > nobody with a current kernel. :)
-> > 
-> > Either way, the risk of reverting to the old behaviour is not bigger 
-> > than the original divert two years ago and that seems to not have upset 
-> > anyone.
-> > 
-> > Regarding the actual discussed functionality, I second Stefano in that 
-> > ipset match and rule match should be regarded as two different things: 
-> > ipset counters should count how many packets matched an element in that 
-> > ipset, not how many packets matched an iptables rule referring to it. 
-> > For the latter question, there are iptables rule counters already.
-> 
-> The ipset match cannot check the other parts of the iptables rule.
-> 
-> The question is that in the case of the ipset match, say
-> 
-> 	-m set --match-set foo src --packets-lt N
-> 
-> should the ipset elemet counters be updated if the packet matched the set
-> or if the packet matched the set and the element counter values according 
-> to the condition as well? What constitutes a "match" in the ipset context 
-> and how does it refer to the counter updating?
+Some context first, I'm trying to use `wg-quick` to setup default routes
+through a wireguard interface on a client.
+It's easy enough to try but hopefully I'll give enough infos to get
+by... descriptions on what wg-quick does at the end of this mail.
 
-From my perspective, the ipset holding elements and associated counters
-is a separate entity from the set match in an iptables rule as in your
-above example.
 
-I didn't check the code, my intuitive understanding of how that set
-match works is by element lookup which returns the element (if found)
-with associated counters and the counter comparison happens afterwards.
+Problem:
+--------
 
-With the above two assumptions in mind, the question how/when counters
-should be updated is quite clear: Since there is no explicit "update
-counter" action, the ipset is supposed to update counters whenever it
-returns an element upon lookup.
+My problem is that wireguard sets up some nice routing table and adds ip
+rules to use it so encrypted packets go through the underlying interface,
+but when it comes back it gets caught in firewalld's default
+IPv6_rpfilter rules.
 
-> Stefano believes that the former is the natural choice. In my mind the 
-> second one.
-> 
-> The patch in the ipset git tree makes possible to choose :-)
+I've turned firewalld off, and can reproduce with either of the
+following single rules (nft or iptables version):
 
-iptables' recent match is a good example for a fully explicit interface,
-but IMHO it is far from intuitive, either. :(
+table inet test {
+    chain raw_PREROUTING {
+        type filter hook prerouting priority raw; policy accept;
+        meta nfproto ipv6 fib saddr . iif oif missing log prefix "rpfilter_DROP: " drop
+    }
+}
 
-> What is the case with nftables? Is the counter value updated if the 
-> counter match parts in a rule returns false?
+or
 
-For quota or limit statements, that's the case. Otherwise they wouldn't
-work:
+ip6tables -t raw -A PREROUTING -m rpfilter --invert -j LOG --log-prefix "rpfilter_DROP: "
+ip6tables -t raw -A PREROUTING -m rpfilter --invert -j DROP
 
-| tcp dport 80 quota over 25MB drop
 
-If the statement wouldn't count if 'over 25MB' condition wasn't true,
-the condition could never become true.
+In either case I get a log like the following:
+[146484.816657] rpfilter_DROP: IN=wlp0s20f3 OUT= MAC=62:2f:57:8e:96:18:00:24:d4:ba:bf:96:86:dd SRC=<serveripv6> DST=<localclientipv6> LEN=140 TC=0 HOPLIMIT=56 FLOWLBL=0 PROTO=UDP SPT=51820 DPT=51820 LEN=100
+which is the response from the server, so an initial packet went out
+from my client and the response got blocked by the rp filter.
 
-Cheers, Phil
+As a workaround, adding a /128 route like the following makes the reply
+get accepted (because wireguard adds `suppress_prefixlength 0` on the
+main table, default route is ignored but not a more specific one?):
+ip -6 r add <serveripv6>/128 via <localgw> dev wlp0s20f3
+
+Or, obviously whitelisting 'udp dport 51820' before the rpfilter drop
+rule in raw prerouting chain works as well.
+
+
+For reference, the same setup with an ipv4 server works just fine, with
+the default of rp_filter=2 on all interfaces or even setting it to 1
+seem ok.
+
+
+Wireguard setup:
+----------------
+
+The script is nice enough to say what it does, which is nice:
+# cat wg0.conf
+[Interface]
+ListenPort = 51820
+PrivateKey = privatekey
+Address = fe80::2/64
+PostUp = ping -c 1 fe80::1%wg0
+
+[Peer]
+PublicKey = serverpublickey
+AllowedIPs = 0.0.0.0/0, ::/0
+Endpoint = serveripv6:51820
+# wg-quick up wg0
+[#] ip link add wg0 type wireguard
+[#] wg setconf wg0 /dev/fd/63
+[#] ip -6 address add fe80::2/64 dev wg0
+[#] ip link set mtu 1420 up dev wg0
+[#] wg set wg0 fwmark 51820
+[#] ip -6 route add ::/0 dev wg0 table 51820
+[#] ip -6 rule add not fwmark 51820 table 51820
+[#] ip -6 rule add table main suppress_prefixlength 0
+[#] nft -f /dev/fd/63
+[#] ip -4 route add 0.0.0.0/0 dev wg0 table 51820
+[#] ip -4 rule add not fwmark 51820 table 51820
+[#] ip -4 rule add table main suppress_prefixlength 0
+[#] sysctl -q net.ipv4.conf.all.src_valid_mark=1
+[#] nft -f /dev/fd/63
+[#] ping -c 1 fe80::1%wg0
+PING fe80::%wg0(fe80::%wg0) 56 data bytes
+
+--- fe80::%wg0 ping statistics ---
+1 packets transmitted, 0 received, 100% packet loss, time 0ms
+
+[#] nft -f /dev/fd/63
+[#] ip -4 rule delete table 51820
+[#] ip -4 rule delete table main suppress_prefixlength 0
+[#] ip -6 rule delete table 51820
+[#] ip -6 rule delete table main suppress_prefixlength 0
+[#] ip link delete dev wg0
+(the last part here after ping is teardown, if I use an ipv4
+server the ping works and things stop here, and `wg-quick down wg0` will
+run the last few commands on teardown)
+
+For completeness, the two nft commands there contain the following
+tables:
+table ip6 wg-quick-wg0 {
+    chain preraw {
+        type filter hook prerouting priority raw; policy accept;
+        iifname != "wg0" ip6 daddr fe80::2 fib saddr type != local drop
+    }
+
+    chain premangle {
+        type filter hook prerouting priority mangle; policy accept;
+        meta l4proto udp meta mark set ct mark
+    }
+
+    chain postmangle {
+        type filter hook postrouting priority mangle; policy accept;
+        meta l4proto udp meta mark 0x0000ca6c ct mark set meta mark
+    }
+}
+
+table ip wg-quick-wg0 {
+    chain preraw {
+        type filter hook prerouting priority raw; policy accept;
+    }
+
+    chain premangle {
+        type filter hook prerouting priority mangle; policy accept;
+        meta l4proto udp meta mark set ct mark
+    }
+
+    chain postmangle {
+        type filter hook postrouting priority mangle; policy accept;
+        meta l4proto udp meta mark 0x0000ca6c ct mark set meta mark
+    }
+}
+
+
+My main routing table before setting up wg is trivial (e.g. local
+interface ip address subnet + one single default route)
+
+Rambling:
+---------
+
+So, why does it work in v4 but not v6?
+If `suppress_prefixlength 0` really does what I think it does, then it
+should be the same for v4 and also v4 default route so v4 rp_filter
+should refuse incoming packets ?
+... So I tried running the setup manually without this rule without a
+difference.
+
+erig on #firewalld@freenode suggested adjusting the fib match to:
+  meta nfproto ipv6 fib saddr . iif . mark  oif missing log prefix "rpfilter_DROP: " drop
+that doesn't seem to make a difference.
+
+
+
+Anyway, happy to test anything that comes to mind, input welcome.
+
+Thanks !
+-- 
+Dominique Martinet | Asmadeus
