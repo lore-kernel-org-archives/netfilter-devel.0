@@ -1,74 +1,117 @@
-Return-Path: <SRS0=kr0B=54=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=78bk=55=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC1CAC2BB86
-	for <netfilter-devel@archiver.kernel.org>; Sun, 12 Apr 2020 08:46:23 +0000 (UTC)
-Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B063B20708
-	for <netfilter-devel@archiver.kernel.org>; Sun, 12 Apr 2020 08:46:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21F4DC2BA19
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Apr 2020 16:39:12 +0000 (UTC)
+Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
+	by mail.kernel.org (Postfix) with ESMTP id EF7A8206DA
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Apr 2020 16:39:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1586795952;
+	bh=OoRhd3H2mZNy2v3zODygeRhXiEbly9vr7r5aIwvM+HE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=2l4IkwMR024wM1qtbnIiWl6Bs66tUZhV+XGXW6WctMVLkC/2mhseNQwt4C6YOHEyd
+	 niw6D1OWS8wxyP1fH0gzQSjbc7chE4cqKkPPF53m3s94C1z4EnHTicge2esgrtFp6s
+	 o/+jk+7Zb+mRnSTy6st+6AK4vMhx2Vw3oDzejk+w=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726700AbgDLIqV (ORCPT
+        id S1731673AbgDMQjD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 12 Apr 2020 04:46:21 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:37452 "EHLO
-        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1725903AbgDLIqV (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 12 Apr 2020 04:46:21 -0400
-Received: from Internal Mail-Server by MTLPINE1 (envelope-from roid@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 12 Apr 2020 11:46:18 +0300
-Received: from dev-r-vrt-138.mtr.labs.mlnx (dev-r-vrt-138.mtr.labs.mlnx [10.212.138.1])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03C8kIxe023441;
-        Sun, 12 Apr 2020 11:46:18 +0300
-From:   Roi Dayan <roid@mellanox.com>
-To:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, davem@davemloft.net
-Cc:     Jiri Pirko <jiri@mellanox.com>, Paul Blakey <paulb@mellanox.com>,
-        Oz Shlomo <ozsh@mellanox.com>, Roi Dayan <roid@mellanox.com>
-Subject: [PATCH net] netfilter: flowtable: Free block_cb when being deleted
-Date:   Sun, 12 Apr 2020 11:45:47 +0300
-Message-Id: <20200412084547.2217-1-roid@mellanox.com>
-X-Mailer: git-send-email 2.8.4
+        Mon, 13 Apr 2020 12:39:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34310 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731652AbgDMQjC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 13 Apr 2020 12:39:02 -0400
+Received: from localhost (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 949BE206DA;
+        Mon, 13 Apr 2020 16:39:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1586795941;
+        bh=OoRhd3H2mZNy2v3zODygeRhXiEbly9vr7r5aIwvM+HE=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=zk8qzDU1IQ+8S+QvQhWMs74W6bhVLWxEUeR2CNxxy+o5BAY9TXg6p7nbw1gPyZ+6w
+         xoplIxSndGoIZJbpZjc90Es57ebeXpWD0L8VDMsPAa7zEO/X+0e/5QidCGEyD//joL
+         WnWqsUhYh3hhMglsrc/jxpa9jrkJpEkI9WBNZfpI=
+Date:   Mon, 13 Apr 2020 12:39:00 -0400
+From:   Sasha Levin <sashal@kernel.org>
+To:     Stefano Brivio <sbrivio@redhat.com>
+Cc:     linux-kernel@vger.kernel.org, stable@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org
+Subject: Re: [PATCH AUTOSEL 5.5 27/35] netfilter: nf_tables: Allow set
+ back-ends to report partial overlaps on insertion
+Message-ID: <20200413163900.GO27528@sasha-vm>
+References: <20200407000058.16423-1-sashal@kernel.org>
+ <20200407000058.16423-27-sashal@kernel.org>
+ <20200407021848.626df832@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <20200407021848.626df832@redhat.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Free block_cb memory when asked to be deleted.
+On Tue, Apr 07, 2020 at 02:18:48AM +0200, Stefano Brivio wrote:
+>Hi Sasha,
+>
+>On Mon,  6 Apr 2020 20:00:49 -0400
+>Sasha Levin <sashal@kernel.org> wrote:
+>
+>> From: Pablo Neira Ayuso <pablo@netfilter.org>
+>>
+>> [ Upstream commit 8c2d45b2b65ca1f215244be1c600236e83f9815f ]
+>
+>This patch, together with 28/35 and 29/35 in this series, and all the
+>equivalent patches for 5.4 and 4.19, that is:
+>	[PATCH AUTOSEL 5.5 27/35] netfilter: nf_tables: Allow set back-ends to report partial overlaps on insertion
+>	[PATCH AUTOSEL 5.5 28/35] netfilter: nft_set_rbtree: Introduce and use nft_rbtree_interval_start()
+>	[PATCH AUTOSEL 5.5 29/35] netfilter: nft_set_rbtree: Detect partial overlaps on insertion
+>	[PATCH AUTOSEL 5.4 24/32] netfilter: nf_tables: Allow set back-ends to report partial overlaps on insertion
+>	[PATCH AUTOSEL 5.4 25/32] netfilter: nft_set_rbtree: Introduce and use nft_rbtree_interval_start()
+>	[PATCH AUTOSEL 5.4 26/32] netfilter: nft_set_rbtree: Detect partial overlaps on insertion
+>	[PATCH AUTOSEL 4.19 08/13] netfilter: nf_tables: Allow set back-ends to report partial overlaps on insertion
+>	[PATCH AUTOSEL 4.19 09/13] netfilter: nft_set_rbtree: Introduce and use nft_rbtree_interval_start()
+>	[PATCH AUTOSEL 4.19 10/13] netfilter: nft_set_rbtree: Detect partial overlaps on insertion
+>
+>should only be backported together with nf.git commit
+>	72239f2795fa ("netfilter: nft_set_rbtree: Drop spurious condition for overlap detection on insertion")
+>
+>as they would otherwise introduce a regression. In general, those changes
+>are not really relevant before 5.6, as nft_set_pipapo wasn't there and the
+>main purpose here is to make the nft_set_rbtree back-end consistent with it:
+>they also prevent a malfunction in nft_set_rbtree itself, but nothing that
+>would be triggered using 'nft' alone, and no memory badnesses or critical
+>issues whatsoever. So it's also safe to drop them, in my opinion.
+>
+>Also patches for 4.14 and 4.9:
+>	[PATCH AUTOSEL 4.14 6/9] netfilter: nf_tables: Allow set back-ends to report partial overlaps on insertion
+>	[PATCH AUTOSEL 4.9 3/5] netfilter: nf_tables: Allow set back-ends to report partial overlaps on insertion
+>
+>can safely be dropped, because there are no set back-ends there, without
+>the following patches, that use this way of reporting a partial overlap.
 
-Fixes: 978703f42549 ("netfilter: flowtable: Add API for registering to flow table events")
-Signed-off-by: Roi Dayan <roid@mellanox.com>
-Reviewed-by: Paul Blakey <paulb@mellanox.com>
-Reviewed-by: Oz Shlomo <ozsh@mellanox.com>
----
- net/netfilter/nf_flow_table_core.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+I've just dropped them all as 72239f2795fa ("netfilter: nft_set_rbtree:
+Drop spurious condition for overlap detection on insertion") didn't make
+it into Linus's tree yet.
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index c0cb79495c35..4344e572b7f9 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -421,10 +421,12 @@ void nf_flow_table_offload_del_cb(struct nf_flowtable *flow_table,
- 
- 	down_write(&flow_table->flow_block_lock);
- 	block_cb = flow_block_cb_lookup(block, cb, cb_priv);
--	if (block_cb)
-+	if (block_cb) {
- 		list_del(&block_cb->list);
--	else
-+		flow_block_cb_free(block_cb);
-+	} else {
- 		WARN_ON(true);
-+	}
- 	up_write(&flow_table->flow_block_lock);
- }
- EXPORT_SYMBOL_GPL(nf_flow_table_offload_del_cb);
+>I'm used to not Cc: stable on networking patches (Dave's net.git),
+>but I guess I should instead if they go through nf.git (Pablo's tree),
+>right?
+
+Yup, this confusion has caused for quite a few netfilter fixes to not
+land in -stable. If it goes through Pablo's tree (and unless he intructs
+otherwise), you should Cc stable.
+
 -- 
-2.8.4
-
+Thanks,
+Sasha
