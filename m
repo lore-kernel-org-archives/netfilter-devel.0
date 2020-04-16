@@ -2,73 +2,125 @@ Return-Path: <SRS0=V6Sm=6A=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDDDAC2BB55
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Apr 2020 18:04:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EB01C2BA2B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Apr 2020 20:36:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF13421924
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Apr 2020 18:04:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A17B206A2
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Apr 2020 20:36:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730731AbgDPSEn (ORCPT
+        id S1730339AbgDPUgW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Apr 2020 14:04:43 -0400
-Received: from correo.us.es ([193.147.175.20]:35456 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727794AbgDPSEm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Apr 2020 14:04:42 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AB4F911EB97
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Apr 2020 20:04:39 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9D91B12396A
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Apr 2020 20:04:39 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 92FEC12395E; Thu, 16 Apr 2020 20:04:39 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6790A12395E;
-        Thu, 16 Apr 2020 20:04:37 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 16 Apr 2020 20:04:37 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 4002742EF4E0;
-        Thu, 16 Apr 2020 20:04:37 +0200 (CEST)
-Date:   Thu, 16 Apr 2020 20:04:36 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Manoj Basapathi <manojbm@codeaurora.org>
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        sharathv@qti.qualcomm.com, ssaha@qti.qualcomm.com,
-        vidulak@qti.qualcomm.com, manojbm@qti.qualcomm.com,
-        subashab@codeaurora.org, Sauvik Saha <ssaha@codeaurora.org>
-Subject: Re: [PATCH] [nf,v3] idletimer extension :  Add alarm timer option
-Message-ID: <20200416180436.22actuvkt4l6zwpl@salvia>
-References: <20200416045329.9573-1-manojbm@codeaurora.org>
+        Thu, 16 Apr 2020 16:36:22 -0400
+Received: from out03.mta.xmission.com ([166.70.13.233]:40974 "EHLO
+        out03.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726114AbgDPUgV (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Apr 2020 16:36:21 -0400
+Received: from in01.mta.xmission.com ([166.70.13.51])
+        by out03.mta.xmission.com with esmtps (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        (Exim 4.90_1)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1jPBF9-0003Wf-Lk; Thu, 16 Apr 2020 14:36:15 -0600
+Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95] helo=x220.xmission.com)
+        by in01.mta.xmission.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.87)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1jPBF8-0008Kz-Fm; Thu, 16 Apr 2020 14:36:15 -0600
+From:   ebiederm@xmission.com (Eric W. Biederman)
+To:     Paul Moore <paul@paul-moore.com>
+Cc:     Richard Guy Briggs <rgb@redhat.com>, nhorman@tuxdriver.com,
+        linux-api@vger.kernel.org, containers@lists.linux-foundation.org,
+        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
+        linux-audit@redhat.com, netfilter-devel@vger.kernel.org,
+        simo@redhat.com, netdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
+        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
+References: <20200318215550.es4stkjwnefrfen2@madcap2.tricolour.ca>
+        <CAHC9VhSdDDP7Ec-w61NhGxZG5ZiekmrBCAg=Y=VJvEZcgQh46g@mail.gmail.com>
+        <20200319220249.jyr6xmwvflya5mks@madcap2.tricolour.ca>
+        <CAHC9VhR84aN72yNB_j61zZgrQV1y6yvrBLNY7jp7BqQiEDL+cw@mail.gmail.com>
+        <20200324210152.5uydf3zqi3dwshfu@madcap2.tricolour.ca>
+        <CAHC9VhTQUnVhoN3JXTAQ7ti+nNLfGNVXhT6D-GYJRSpJHCwDRg@mail.gmail.com>
+        <20200330134705.jlrkoiqpgjh3rvoh@madcap2.tricolour.ca>
+        <CAHC9VhQTsEMcYAF1CSHrrVn07DR450W9j6sFVfKAQZ0VpheOfw@mail.gmail.com>
+        <20200330162156.mzh2tsnovngudlx2@madcap2.tricolour.ca>
+        <CAHC9VhTRzZXJ6yUFL+xZWHNWZFTyiizBK12ntrcSwmgmySbkWw@mail.gmail.com>
+        <20200330174937.xalrsiev7q3yxsx2@madcap2.tricolour.ca>
+        <CAHC9VhR_bKSHDn2WAUgkquu+COwZUanc0RV3GRjMDvpoJ5krjQ@mail.gmail.com>
+Date:   Thu, 16 Apr 2020 15:33:13 -0500
+In-Reply-To: <CAHC9VhR_bKSHDn2WAUgkquu+COwZUanc0RV3GRjMDvpoJ5krjQ@mail.gmail.com>
+        (Paul Moore's message of "Mon, 30 Mar 2020 15:55:36 -0400")
+Message-ID: <871ronf9x2.fsf@x220.int.ebiederm.org>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200416045329.9573-1-manojbm@codeaurora.org>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain
+X-XM-SPF: eid=1jPBF8-0008Kz-Fm;;;mid=<871ronf9x2.fsf@x220.int.ebiederm.org>;;;hst=in01.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
+X-XM-AID: U2FsdGVkX18QCbICEec/DdkpMxCQSiOIlOx7aNlCCNU=
+X-SA-Exim-Connect-IP: 68.227.160.95
+X-SA-Exim-Mail-From: ebiederm@xmission.com
+Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling the audit daemon
+X-SA-Exim-Version: 4.2.1 (built Thu, 05 May 2016 13:38:54 -0600)
+X-SA-Exim-Scanned: Yes (on in01.mta.xmission.com)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Apr 16, 2020 at 10:23:29AM +0530, Manoj Basapathi wrote:
-> Introduce "--alarm" option for idletimer rule.
-> If it is present, hardidle-timer is used, else default timer.
-> The default idletimer starts a deferrable timer or in other
-> words the timer will cease to run when cpu is in suspended
-> state. This change introduces the option to start a
-> non-deferrable or alarm timer which will continue to run even
-> when the cpu is in suspended state.
+Paul Moore <paul@paul-moore.com> writes:
 
-Applied, thanks.
+> On Mon, Mar 30, 2020 at 1:49 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+>> On 2020-03-30 13:34, Paul Moore wrote:
+>> > On Mon, Mar 30, 2020 at 12:22 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+>> > > On 2020-03-30 10:26, Paul Moore wrote:
+>> > > > On Mon, Mar 30, 2020 at 9:47 AM Richard Guy Briggs <rgb@redhat.com> wrote:
+>> > > > > On 2020-03-28 23:11, Paul Moore wrote:
+>> > > > > > On Tue, Mar 24, 2020 at 5:02 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+>> > > > > > > On 2020-03-23 20:16, Paul Moore wrote:
+>> > > > > > > > On Thu, Mar 19, 2020 at 6:03 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+>> > > > > > > > > On 2020-03-18 18:06, Paul Moore wrote:
+>
+> ...
+>
+>> > > Well, every time a record gets generated, *any* record gets generated,
+>> > > we'll need to check for which audit daemons this record is in scope and
+>> > > generate a different one for each depending on the content and whether
+>> > > or not the content is influenced by the scope.
+>> >
+>> > That's the problem right there - we don't want to have to generate a
+>> > unique record for *each* auditd on *every* record.  That is a recipe
+>> > for disaster.
+>> >
+>> > Solving this for all of the known audit records is not something we
+>> > need to worry about in depth at the moment (although giving it some
+>> > casual thought is not a bad thing), but solving this for the audit
+>> > container ID information *is* something we need to worry about right
+>> > now.
+>>
+>> If you think that a different nested contid value string per daemon is
+>> not acceptable, then we are back to issuing a record that has only *one*
+>> contid listed without any nesting information.  This brings us back to
+>> the original problem of keeping *all* audit log history since the boot
+>> of the machine to be able to track the nesting of any particular contid.
+>
+> I'm not ruling anything out, except for the "let's just completely
+> regenerate every record for each auditd instance".
+
+Paul I am a bit confused about what you are referring to when you say
+regenerate every record.
+
+Are you saying that you don't want to repeat the sequence:
+	audit_log_start(...);
+	audit_log_format(...);
+	audit_log_end(...);
+for every nested audit daemon?
+
+Or are you saying that you would like to literraly want to send the same
+skb to each of the nested audit daemons?
+
+Or are you thinking of something else?
+
+Eric
