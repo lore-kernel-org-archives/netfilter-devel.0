@@ -2,260 +2,73 @@ Return-Path: <SRS0=V6Sm=6A=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC6DBC2D0EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Apr 2020 04:54:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDDDAC2BB55
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Apr 2020 18:04:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9346720767
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Apr 2020 04:54:05 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=mg.codeaurora.org header.i=@mg.codeaurora.org header.b="j/YmIm2U"
+	by mail.kernel.org (Postfix) with ESMTP id BF13421924
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Apr 2020 18:04:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392046AbgDPEyF (ORCPT
+        id S1730731AbgDPSEn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Apr 2020 00:54:05 -0400
-Received: from mail27.static.mailgun.info ([104.130.122.27]:22850 "EHLO
-        mail27.static.mailgun.info" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2404320AbgDPEyC (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Apr 2020 00:54:02 -0400
-DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mg.codeaurora.org; q=dns/txt;
- s=smtp; t=1587012840; h=Content-Transfer-Encoding: MIME-Version:
- Message-Id: Date: Subject: Cc: To: From: Sender;
- bh=fILVz8RiWLbP5jviCBsmrA4zzbpInyddAU+6id5PQmM=; b=j/YmIm2Uy8zV1MG9J06IHUJxo5zu60l9zbkTconejaeynEx+xdit+LAtJufjuKiTPKQns6zT
- BhMprV8MJjeoUk88jsKPApqsVdIysCXXyGHGyeMHwjJIRl1P8UdR121OoMOvOCe+T/xqxptj
- P9LHoIbtwjWpAd8P57F3kJpAiTc=
-X-Mailgun-Sending-Ip: 104.130.122.27
-X-Mailgun-Sid: WyJlM2NhZSIsICJuZXRmaWx0ZXItZGV2ZWxAdmdlci5rZXJuZWwub3JnIiwgImJlOWU0YSJd
-Received: from smtp.codeaurora.org (ec2-35-166-182-171.us-west-2.compute.amazonaws.com [35.166.182.171])
- by mxa.mailgun.org with ESMTP id 5e97e4d8.7f397770f1f0-smtp-out-n01;
- Thu, 16 Apr 2020 04:53:44 -0000 (UTC)
-Received: by smtp.codeaurora.org (Postfix, from userid 1001)
-        id 5E45CC433CB; Thu, 16 Apr 2020 04:53:43 +0000 (UTC)
-Received: from manojbm-linux.qualcomm.com (blr-c-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com [103.229.19.19])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-SHA256 (128/128 bits))
+        Thu, 16 Apr 2020 14:04:43 -0400
+Received: from correo.us.es ([193.147.175.20]:35456 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727794AbgDPSEm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Apr 2020 14:04:42 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id AB4F911EB97
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Apr 2020 20:04:39 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9D91B12396A
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Apr 2020 20:04:39 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 92FEC12395E; Thu, 16 Apr 2020 20:04:39 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6790A12395E;
+        Thu, 16 Apr 2020 20:04:37 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 16 Apr 2020 20:04:37 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: manojbm)
-        by smtp.codeaurora.org (Postfix) with ESMTPSA id 67419C433F2;
-        Thu, 16 Apr 2020 04:53:39 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 smtp.codeaurora.org 67419C433F2
-Authentication-Results: aws-us-west-2-caf-mail-1.web.codeaurora.org; dmarc=none (p=none dis=none) header.from=codeaurora.org
-Authentication-Results: aws-us-west-2-caf-mail-1.web.codeaurora.org; spf=none smtp.mailfrom=manojbm@codeaurora.org
-From:   Manoj Basapathi <manojbm@codeaurora.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     coreteam@netfilter.org, pablo@netfilter.org,
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 4002742EF4E0;
+        Thu, 16 Apr 2020 20:04:37 +0200 (CEST)
+Date:   Thu, 16 Apr 2020 20:04:36 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Manoj Basapathi <manojbm@codeaurora.org>
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         sharathv@qti.qualcomm.com, ssaha@qti.qualcomm.com,
         vidulak@qti.qualcomm.com, manojbm@qti.qualcomm.com,
-        subashab@codeaurora.org, Manoj Basapathi <manojbm@codeaurora.org>,
-        Sauvik Saha <ssaha@codeaurora.org>
-Subject: [PATCH] [nf,v3] idletimer extension :  Add alarm timer option
-Date:   Thu, 16 Apr 2020 10:23:29 +0530
-Message-Id: <20200416045329.9573-1-manojbm@codeaurora.org>
-X-Mailer: git-send-email 2.25.1
+        subashab@codeaurora.org, Sauvik Saha <ssaha@codeaurora.org>
+Subject: Re: [PATCH] [nf,v3] idletimer extension :  Add alarm timer option
+Message-ID: <20200416180436.22actuvkt4l6zwpl@salvia>
+References: <20200416045329.9573-1-manojbm@codeaurora.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200416045329.9573-1-manojbm@codeaurora.org>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Introduce "--alarm" option for idletimer rule.
-If it is present, hardidle-timer is used, else default timer.
-The default idletimer starts a deferrable timer or in other
-words the timer will cease to run when cpu is in suspended
-state. This change introduces the option to start a
-non-deferrable or alarm timer which will continue to run even
-when the cpu is in suspended state.
+On Thu, Apr 16, 2020 at 10:23:29AM +0530, Manoj Basapathi wrote:
+> Introduce "--alarm" option for idletimer rule.
+> If it is present, hardidle-timer is used, else default timer.
+> The default idletimer starts a deferrable timer or in other
+> words the timer will cease to run when cpu is in suspended
+> state. This change introduces the option to start a
+> non-deferrable or alarm timer which will continue to run even
+> when the cpu is in suspended state.
 
-Signed-off-by: Manoj Basapathi <manojbm@codeaurora.org>
-Signed-off-by: Sauvik Saha <ssaha@codeaurora.org>
----
- extensions/libxt_IDLETIMER.c           | 99 ++++++++++++++++++++++----
- extensions/libxt_IDLETIMER.t           |  2 +
- include/linux/netfilter/xt_IDLETIMER.h | 12 ++++
- 3 files changed, 100 insertions(+), 13 deletions(-)
-
-diff --git a/extensions/libxt_IDLETIMER.c b/extensions/libxt_IDLETIMER.c
-index 21004a4b..68b223f4 100644
---- a/extensions/libxt_IDLETIMER.c
-+++ b/extensions/libxt_IDLETIMER.c
-@@ -27,6 +27,7 @@
- enum {
- 	O_TIMEOUT = 0,
- 	O_LABEL,
-+	O_ALARM,
- };
- 
- #define s struct idletimer_tg_info
-@@ -39,6 +40,17 @@ static const struct xt_option_entry idletimer_tg_opts[] = {
- };
- #undef s
- 
-+#define s struct idletimer_tg_info_v1
-+static const struct xt_option_entry idletimer_tg_opts_v1[] = {
-+	{.name = "timeout", .id = O_TIMEOUT, .type = XTTYPE_UINT32,
-+	 .flags = XTOPT_MAND | XTOPT_PUT, XTOPT_POINTER(s, timeout)},
-+	{.name = "label", .id = O_LABEL, .type = XTTYPE_STRING,
-+	 .flags = XTOPT_MAND | XTOPT_PUT, XTOPT_POINTER(s, label)},
-+	{.name = "alarm", .id = O_ALARM, .type = XTTYPE_NONE},
-+	XTOPT_TABLEEND,
-+};
-+#undef s
-+
- static void idletimer_tg_help(void)
- {
- 	printf(
-@@ -48,6 +60,16 @@ static void idletimer_tg_help(void)
- "\n");
- }
- 
-+static void idletimer_tg_help_v1(void)
-+{
-+	printf(
-+"IDLETIMER target options:\n"
-+" --timeout time	Timeout until the notification is sent (in seconds)\n"
-+" --label string	Unique rule identifier\n"
-+" --alarm none	    Use alarm instead of default timer\n"
-+"\n");
-+}
-+
- static void idletimer_tg_print(const void *ip,
- 			       const struct xt_entry_target *target,
- 			       int numeric)
-@@ -59,6 +81,20 @@ static void idletimer_tg_print(const void *ip,
- 	printf(" label:%s", info->label);
- }
- 
-+static void idletimer_tg_print_v1(const void *ip,
-+			       const struct xt_entry_target *target,
-+			       int numeric)
-+{
-+	struct idletimer_tg_info_v1 *info =
-+		(struct idletimer_tg_info_v1 *) target->data;
-+
-+	printf(" timeout:%u", info->timeout);
-+	printf(" label:%s", info->label);
-+	if (info->timer_type == XT_IDLETIMER_ALARM)
-+		printf(" alarm");
-+}
-+
-+
- static void idletimer_tg_save(const void *ip,
- 			      const struct xt_entry_target *target)
- {
-@@ -69,21 +105,58 @@ static void idletimer_tg_save(const void *ip,
- 	printf(" --label %s", info->label);
- }
- 
--static struct xtables_target idletimer_tg_reg = {
--	.family	       = NFPROTO_UNSPEC,
--	.name	       = "IDLETIMER",
--	.version       = XTABLES_VERSION,
--	.revision      = 0,
--	.size	       = XT_ALIGN(sizeof(struct idletimer_tg_info)),
--	.userspacesize = offsetof(struct idletimer_tg_info, timer),
--	.help	       = idletimer_tg_help,
--	.x6_parse      = xtables_option_parse,
--	.print	       = idletimer_tg_print,
--	.save	       = idletimer_tg_save,
--	.x6_options    = idletimer_tg_opts,
-+static void idletimer_tg_save_v1(const void *ip,
-+			      const struct xt_entry_target *target)
-+{
-+	struct idletimer_tg_info_v1 *info =
-+		(struct idletimer_tg_info_v1 *) target->data;
-+
-+	printf(" --timeout %u", info->timeout);
-+	printf(" --label %s", info->label);
-+	if (info->timer_type == XT_IDLETIMER_ALARM)
-+		printf(" --alarm");
-+}
-+
-+static void idletimer_tg_parse_v1(struct xt_option_call *cb)
-+{
-+	struct idletimer_tg_info_v1 *info = cb->data;
-+
-+	xtables_option_parse(cb);
-+	if (cb->entry->id == O_ALARM)
-+		info->timer_type = XT_IDLETIMER_ALARM;
-+}
-+
-+static struct xtables_target idletimer_tg_reg[] = {
-+	{
-+		.family	       = NFPROTO_UNSPEC,
-+		.name	       = "IDLETIMER",
-+		.version       = XTABLES_VERSION,
-+		.revision      = 0,
-+		.size	       = XT_ALIGN(sizeof(struct idletimer_tg_info)),
-+		.userspacesize = offsetof(struct idletimer_tg_info, timer),
-+		.help	       = idletimer_tg_help,
-+		.x6_parse      = xtables_option_parse,
-+		.print	       = idletimer_tg_print,
-+		.save	       = idletimer_tg_save,
-+		.x6_options    = idletimer_tg_opts,
-+	},
-+	{
-+		.family	       = NFPROTO_UNSPEC,
-+		.name	       = "IDLETIMER",
-+		.version       = XTABLES_VERSION,
-+		.revision      = 1,
-+		.size	       = XT_ALIGN(sizeof(struct idletimer_tg_info_v1)),
-+		.userspacesize = offsetof(struct idletimer_tg_info_v1, timer),
-+		.help	       = idletimer_tg_help_v1,
-+		.x6_parse      = idletimer_tg_parse_v1,
-+		.print	       = idletimer_tg_print_v1,
-+		.save	       = idletimer_tg_save_v1,
-+		.x6_options    = idletimer_tg_opts_v1,
-+	},
-+
- };
- 
- void _init(void)
- {
--	xtables_register_target(&idletimer_tg_reg);
-+	xtables_register_targets(idletimer_tg_reg, ARRAY_SIZE(idletimer_tg_reg));
- }
-diff --git a/extensions/libxt_IDLETIMER.t b/extensions/libxt_IDLETIMER.t
-index 6afd92c1..d13b119e 100644
---- a/extensions/libxt_IDLETIMER.t
-+++ b/extensions/libxt_IDLETIMER.t
-@@ -2,3 +2,5 @@
- -j IDLETIMER --timeout;;FAIL
- -j IDLETIMER --timeout 42;;FAIL
- -j IDLETIMER --timeout 42 --label foo;=;OK
-+-j IDLETIMER --timeout 42 --label foo --alarm;;OK
-+
-diff --git a/include/linux/netfilter/xt_IDLETIMER.h b/include/linux/netfilter/xt_IDLETIMER.h
-index 208ae938..49ddcdc6 100644
---- a/include/linux/netfilter/xt_IDLETIMER.h
-+++ b/include/linux/netfilter/xt_IDLETIMER.h
-@@ -32,6 +32,7 @@
- #include <linux/types.h>
- 
- #define MAX_IDLETIMER_LABEL_SIZE 28
-+#define XT_IDLETIMER_ALARM 0x01
- 
- struct idletimer_tg_info {
- 	__u32 timeout;
-@@ -42,4 +43,15 @@ struct idletimer_tg_info {
- 	struct idletimer_tg *timer __attribute__((aligned(8)));
- };
- 
-+struct idletimer_tg_info_v1 {
-+	__u32 timeout;
-+
-+	char label[MAX_IDLETIMER_LABEL_SIZE];
-+
-+	__u8 send_nl_msg;   /* unused: for compatibility with Android */
-+	__u8 timer_type;
-+
-+	/* for kernel module internal use only */
-+	struct idletimer_tg *timer __attribute__((aligned(8)));
-+};
- #endif
--- 
-2.25.1
+Applied, thanks.
