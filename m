@@ -2,70 +2,127 @@ Return-Path: <SRS0=JJ+7=6B=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD3EAC38A2B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Apr 2020 21:34:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FAECC38A2B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Apr 2020 21:54:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B49BA206B9
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Apr 2020 21:34:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C3A620B1F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Apr 2020 21:54:03 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="p5mlizDn"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728229AbgDQVeJ (ORCPT
+        id S1728474AbgDQVyB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Apr 2020 17:34:09 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:50970 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727857AbgDQVeJ (ORCPT
+        Fri, 17 Apr 2020 17:54:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47796 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728352AbgDQVyA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Apr 2020 17:34:09 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1jPYcO-00082E-D2; Fri, 17 Apr 2020 23:33:48 +0200
-Date:   Fri, 17 Apr 2020 23:33:48 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Hillf Danton <hdanton@sina.com>
-Cc:     syzbot <syzbot+33e06702fd6cffc24c40@syzkaller.appspotmail.com>,
-        coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@netfilter.org, kuba@kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        syzkaller-bugs@googlegroups.com
-Subject: Re: WARNING in nf_nat_unregister_fn
-Message-ID: <20200417213348.GC32392@breakpoint.cc>
-References: <000000000000490f1005a375ed34@google.com>
- <20200417094250.21872-1-hdanton@sina.com>
+        Fri, 17 Apr 2020 17:54:00 -0400
+Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79248C061A0F
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Apr 2020 14:54:00 -0700 (PDT)
+Received: by mail-ej1-x642.google.com with SMTP id re23so2672196ejb.4
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Apr 2020 14:54:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Bl0pa+hbUKTXV3E8yhfZmk+igw1QNCwVFqR4CtMCNtE=;
+        b=p5mlizDnCc6Smzeerr+47ThU1VtYAcCdc4Har7cwXXeRHLpqG3rirDQ6+LlBZuOJyP
+         GwrQFNk1vQ45HD348VApKz5GTRL/X1psqK6RBdD+GENF4rQwP1sfQhilmuZnkp5we2SI
+         uo7TM92Ktmx51GV7huHA5vroZ1thy738vLX7EuDAAzrscTktsDwkpbPxyOsKezlytqCo
+         HbpGfkw61ya15BWPT/BqPfhwOsgl8uxV37GX3xqEc1WC6us4jCtorA9ncOIaVtJhWFp3
+         RFvDCE65Rc86FZoBebdAF7RMOlbuZETqOEgpSOZXfrHqUU57olayACExlZQVFjwaRYLl
+         gM7g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Bl0pa+hbUKTXV3E8yhfZmk+igw1QNCwVFqR4CtMCNtE=;
+        b=S0RiORvVMMM5LqNHhWfYTW/0oXZTeM4fHuDscwG/t45kh/2d3Ut+FAaVCsFNkBGhgO
+         gSetQBcyCNzb9yZtNJvoM2f29UOJ6TMqtMPvvTayGHeLPNpNYlSBUHPzSZ8dGL9+HXz3
+         XOpEmuq4Hb5S6Qeca0wwVjWLlNNpO0KBjJRfIqU6ObBbtNClfrnu3de8und/IBBsQRfZ
+         BFWa/Pf/FGRi6Cr7z4fvN+Y3KHIjt7B4sMOag7sjW826wrVSDcwDrNaKbXBH2kMVzocG
+         Ht9qSNB+7RFEijHrnyiRV8m5QAamfA352Jm2DYAhomLzChgICHC+PoaZFEiOmHULV5tJ
+         48Lw==
+X-Gm-Message-State: AGi0PuY5qoIZ7EN74cyrhRJtUc3NB6AS8sa5ROYYkMk3XnD7lBwZe3BZ
+        Pf776cVx0m5ozEXhyWAtcvz65ftd2BxRXIj77BRy
+X-Google-Smtp-Source: APiQypJpQfpzdeKOHwySCCbd4znVvnFmq7fAjX0Z1U3JXdJ9nI+FXYWtWqv07L9QpEU8Uqv70QvY3IRGTcQJQ/A0KtY=
+X-Received: by 2002:a17:906:4cd2:: with SMTP id q18mr5203442ejt.70.1587160438885;
+ Fri, 17 Apr 2020 14:53:58 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200417094250.21872-1-hdanton@sina.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+References: <cover.1584480281.git.rgb@redhat.com> <13ef49b2f111723106d71c1bdeedae09d9b300d8.1584480281.git.rgb@redhat.com>
+ <20200318131128.axyddgotzck7cit2@madcap2.tricolour.ca> <CAHC9VhTdLZop0eT11H4uSXRj5M=kBet=GkA8taDwGN_BVMyhrQ@mail.gmail.com>
+ <20200318213327.ow22q6nnjn3ijq6v@madcap2.tricolour.ca>
+In-Reply-To: <20200318213327.ow22q6nnjn3ijq6v@madcap2.tricolour.ca>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Fri, 17 Apr 2020 17:53:47 -0400
+Message-ID: <CAHC9VhSbbjFbF0A_-saquZ8B85XaF7SWD2e1QcWsXhFSQrUAbQ@mail.gmail.com>
+Subject: Re: [PATCH ghak25 v3 3/3] audit: add subj creds to NETFILTER_CFG
+ record to cover async unregister
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     Linux-Audit Mailing List <linux-audit@redhat.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, twoerner@redhat.com,
+        Eric Paris <eparis@parisplace.org>, fw@strlen.de,
+        ebiederm@xmission.com, tgraf@infradead.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hillf Danton <hdanton@sina.com> wrote:
-> In case of failure to register NFPROTO_IPV4, unregister NFPROTO_IPV6
-> instead of ops->pf (== NFPROTO_INET).
-> 
-> --- a/net/netfilter/nf_nat_proto.c
-> +++ b/net/netfilter/nf_nat_proto.c
-> @@ -1022,8 +1022,8 @@ int nf_nat_inet_register_fn(struct net *
->  	ret = nf_nat_register_fn(net, NFPROTO_IPV4, ops, nf_nat_ipv4_ops,
->  				 ARRAY_SIZE(nf_nat_ipv4_ops));
->  	if (ret)
-> -		nf_nat_ipv6_unregister_fn(net, ops);
-> -
-> +		nf_nat_unregister_fn(net, NFPROTO_IPV6, ops,
-> +					ARRAY_SIZE(nf_nat_ipv6_ops));
->  	return ret;
->  }
->  EXPORT_SYMBOL_GPL(nf_nat_inet_register_fn);
+On Wed, Mar 18, 2020 at 5:33 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2020-03-18 17:22, Paul Moore wrote:
+> > On Wed, Mar 18, 2020 at 9:12 AM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > On 2020-03-17 17:30, Richard Guy Briggs wrote:
+> > > > Some table unregister actions seem to be initiated by the kernel to
+> > > > garbage collect unused tables that are not initiated by any userspace
+> > > > actions.  It was found to be necessary to add the subject credentials to
+> > > > cover this case to reveal the source of these actions.  A sample record:
+> > > >
+> > > >   type=NETFILTER_CFG msg=audit(2020-03-11 21:25:21.491:269) : table=nat family=bridge entries=0 op=unregister pid=153 uid=root auid=unset tty=(none) ses=unset subj=system_u:system_r:kernel_t:s0 comm=kworker/u4:2 exe=(null)
+> > >
+> > > Given the precedent set by bpf unload, I'd really rather drop this patch
+> > > that adds subject credentials.
+> > >
+> > > Similarly with ghak25's subject credentials, but they were already
+> > > present and that would change an existing record format, so it isn't
+> > > quite as justifiable in that case.
+> >
+> > Your comments have me confused - do you want this patch (v3 3/3)
+> > considered for merging or no?
+>
+> I would like it considered for merging if you think it will be required
+> to provide enough information about the event that happenned.  In the
+> bpf unload case, there is a program number to provide a link to a
+> previous load action.  In this case, we won't know for sure what caused
+> the table to be unloaded if the number of entries was empty.  I'm still
+> trying to decide if it matters.  For the sake of caution I think it
+> should be included.  I don't like it, but I think it needs to be
+> included.
 
-Yes.  Please make a formal patch submission to netfilter-devel@,
-including you signed-off-by, the Reported-by tag from syzbot
-and a 'Fixes' tag for the buggy commit.
+I'm in the middle of building patches 1/3 and 2/3, assuming all goes
+well I'll merge them into audit/next (expect mail soon), however I'm
+going back and forth on this patch.  Like you I kinda don't like it,
+and with both of us not in love with this patch I have to ask if there
+is certification requirement for this?  I know about the generic
+subj/obj requirements, but in the case where there is no associated
+task/syscall/etc. information it isn't like the extra fields supplied
+in this patch are going to have much information in that regard; it's
+really the *absence* of that information which is telling.  Which
+brings me to wonder if simply the lack of any associated records in
+this event is enough?  Before when we weren't associating records into
+a single event it would have been a problem, but the way things
+currently are, if there are no other records (and you have configured
+that) then I think you have everything you need to know.
 
-Thank you.
+Thoughts?
+
+-- 
+paul moore
+www.paul-moore.com
