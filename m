@@ -1,165 +1,135 @@
-Return-Path: <SRS0=V6Sm=6A=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=JJ+7=6B=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.4 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB5ACC38A2D
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Apr 2020 21:53:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62365C2BB1D
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Apr 2020 05:36:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 886982223F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Apr 2020 21:53:43 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="H/3328u8"
+	by mail.kernel.org (Postfix) with ESMTP id 48E30221E9
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Apr 2020 05:36:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728196AbgDPVxm (ORCPT
+        id S1726405AbgDQFgN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Apr 2020 17:53:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49980 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727979AbgDPVxi (ORCPT
+        Fri, 17 Apr 2020 01:36:13 -0400
+Received: from mail-il1-f197.google.com ([209.85.166.197]:48828 "EHLO
+        mail-il1-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726366AbgDQFgM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Apr 2020 17:53:38 -0400
-Received: from mail-ej1-x641.google.com (mail-ej1-x641.google.com [IPv6:2a00:1450:4864:20::641])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CCF6C061A10
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Apr 2020 14:53:36 -0700 (PDT)
-Received: by mail-ej1-x641.google.com with SMTP id n4so2480941ejs.11
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Apr 2020 14:53:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=eUNGgddkQnrL1o2hsZswaMALGVl9JsvHDg1XmEFxRXs=;
-        b=H/3328u8uHV5B3ZeA1mdyZ9xPFs8kyLs8IUIWPozDW9OfdnPF3NpugbioymI6/8jbX
-         tPmBnafFrVmmeM5qCkJe6iYYWMQGGNCaCIBTu9iKoTjKEnoqIk+PcKTpHZgE+/FY0MuQ
-         PeDR0uxOgSOnRc2hQRaU3VDAQAdfVv5922uyfk2kB4XocRvJL9WrovJY8zVDxj8AifvK
-         dQjxlq17MhIeFeAwrQ2ALcslyU4J+63Hv+v7D9gJECfbybcc7t3dDiczFn2juNoagtw4
-         M58yJrok07SL36Kqx67wdtwLyNUDDujZWYGVj6Cp7ofvKM+0LD9BpoiJx/Nn0LZhuM1V
-         WUOQ==
+        Fri, 17 Apr 2020 01:36:12 -0400
+Received: by mail-il1-f197.google.com with SMTP id h26so1439628ilf.15
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Apr 2020 22:36:11 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=eUNGgddkQnrL1o2hsZswaMALGVl9JsvHDg1XmEFxRXs=;
-        b=Tzdq1gK/aI+LUgD56hKVz+g4c+h8/ruDlb02ygn5AI6ZRUxy4F7FJDDU+ssIxfaJVf
-         J+OVkpp9BXlPR8d10/8WTjKwquXvatpwRuj6hp7LVKLnx8JnfAPRoapm6V6BctY77Sqh
-         f2no5jyZ92FbPGVOgmFpaCrU2czoJ1paljE3rloqbWmQD6/wFO0MmecNc3I6rdW1EPI1
-         NEazrL4Et/rBjdtiVSYuOCE6cKUHIvQGmRmQAySFZ/Sa4tMK2Vy1yknVCrv0iVwVBDgB
-         U1IZ8er54rsSW0fFwtysJcSfEWxC661271zLdo7t8/3vHL/TKrU8ukKVRVQeBI718pPf
-         z9UA==
-X-Gm-Message-State: AGi0PuaQh0jJUNNjxRu9D+kDtzB5OsdUnH+n8qxxEo20LVYtqsNQU2Lm
-        U1PfJKDytDHeY+YQ4LPBmKYLEgGyEBrsEPmf5xeW
-X-Google-Smtp-Source: APiQypL+BE3uA1SW0Bujmyp0BjjA9VEPrFMXVzQljtvXfQzPxFQdYF4edXGWSKCfJiLORwzoe3+Py9YdpYXjI/hRt+E=
-X-Received: by 2002:a17:906:d7a2:: with SMTP id pk2mr118612ejb.272.1587074015141;
- Thu, 16 Apr 2020 14:53:35 -0700 (PDT)
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=RG1OjG9ZdHjWBn7iqio0bdclmjO74pm7jn+YvPQidL0=;
+        b=pBvjRzfsKrIIF5Sa8gGPL/24/TCVeepAj6KGt5W1BfkjT09/PN4+MTsCN+pT4qB88B
+         ti8FQFrOSa0PMTiMrZOSiJVT/kJ0qZ9zBEzSOrLFbVs/v7hYAHhg40DLZH4VuN+5uQ0U
+         8JQYgjzoiaZSQ8F67K5BLgzVfQXFUXQbgz3sSEmFuEdh1AAZI/rLSaKbecUo5v33sVSi
+         G8eHurddqn77UQ4SyOLAWfVHV4+ZoTNNn2xGOXw01/V0yc8ojgqjvaBr5J36QTGNuxr6
+         qoT3HeSkfJo/28PehfSJde3B8M49Eo3MkQKX1MqWmnpRHEBCsjz6ukeCDn6MkM3llvnZ
+         Mh+g==
+X-Gm-Message-State: AGi0PubtoL1LJuuPl/WIThXcDx7HRlLNeW26jKzyV3TxU6BKJelvbwh7
+        kVCiBLFAgFQfLceMpxP5Ps1DMN/J6F2hWMtenBZE9gADcp9l
+X-Google-Smtp-Source: APiQypLvXl9tpCF4fnR+aei09iO499VlF+wR3/zjHxkwGFgHuFkXtq6v3vVfMQ5Dhd/rSCQ0GcFMPJIUbFK3kwrTdjVYsyin7M4F
 MIME-Version: 1.0
-References: <20200318215550.es4stkjwnefrfen2@madcap2.tricolour.ca>
- <CAHC9VhSdDDP7Ec-w61NhGxZG5ZiekmrBCAg=Y=VJvEZcgQh46g@mail.gmail.com>
- <20200319220249.jyr6xmwvflya5mks@madcap2.tricolour.ca> <CAHC9VhR84aN72yNB_j61zZgrQV1y6yvrBLNY7jp7BqQiEDL+cw@mail.gmail.com>
- <20200324210152.5uydf3zqi3dwshfu@madcap2.tricolour.ca> <CAHC9VhTQUnVhoN3JXTAQ7ti+nNLfGNVXhT6D-GYJRSpJHCwDRg@mail.gmail.com>
- <20200330134705.jlrkoiqpgjh3rvoh@madcap2.tricolour.ca> <CAHC9VhQTsEMcYAF1CSHrrVn07DR450W9j6sFVfKAQZ0VpheOfw@mail.gmail.com>
- <20200330162156.mzh2tsnovngudlx2@madcap2.tricolour.ca> <CAHC9VhTRzZXJ6yUFL+xZWHNWZFTyiizBK12ntrcSwmgmySbkWw@mail.gmail.com>
- <20200330174937.xalrsiev7q3yxsx2@madcap2.tricolour.ca> <CAHC9VhR_bKSHDn2WAUgkquu+COwZUanc0RV3GRjMDvpoJ5krjQ@mail.gmail.com>
- <871ronf9x2.fsf@x220.int.ebiederm.org>
-In-Reply-To: <871ronf9x2.fsf@x220.int.ebiederm.org>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Thu, 16 Apr 2020 17:53:23 -0400
-Message-ID: <CAHC9VhR3gbmj5+5MY-whLtStKqDEHgvMRigU9hW0X1kpxF91ag@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
- the audit daemon
-To:     "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     Richard Guy Briggs <rgb@redhat.com>, nhorman@tuxdriver.com,
-        linux-api@vger.kernel.org, containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        linux-audit@redhat.com, netfilter-devel@vger.kernel.org,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
+X-Received: by 2002:a02:4445:: with SMTP id o66mr1759803jaa.36.1587101771040;
+ Thu, 16 Apr 2020 22:36:11 -0700 (PDT)
+Date:   Thu, 16 Apr 2020 22:36:11 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000490f1005a375ed34@google.com>
+Subject: WARNING in nf_nat_unregister_fn
+From:   syzbot <syzbot+33e06702fd6cffc24c40@syzkaller.appspotmail.com>
+To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        kadlec@netfilter.org, kuba@kernel.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Apr 16, 2020 at 4:36 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
-> Paul Moore <paul@paul-moore.com> writes:
-> > On Mon, Mar 30, 2020 at 1:49 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> On 2020-03-30 13:34, Paul Moore wrote:
-> >> > On Mon, Mar 30, 2020 at 12:22 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> > > On 2020-03-30 10:26, Paul Moore wrote:
-> >> > > > On Mon, Mar 30, 2020 at 9:47 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> > > > > On 2020-03-28 23:11, Paul Moore wrote:
-> >> > > > > > On Tue, Mar 24, 2020 at 5:02 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> > > > > > > On 2020-03-23 20:16, Paul Moore wrote:
-> >> > > > > > > > On Thu, Mar 19, 2020 at 6:03 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> > > > > > > > > On 2020-03-18 18:06, Paul Moore wrote:
-> >
-> > ...
-> >
-> >> > > Well, every time a record gets generated, *any* record gets generated,
-> >> > > we'll need to check for which audit daemons this record is in scope and
-> >> > > generate a different one for each depending on the content and whether
-> >> > > or not the content is influenced by the scope.
-> >> >
-> >> > That's the problem right there - we don't want to have to generate a
-> >> > unique record for *each* auditd on *every* record.  That is a recipe
-> >> > for disaster.
-> >> >
-> >> > Solving this for all of the known audit records is not something we
-> >> > need to worry about in depth at the moment (although giving it some
-> >> > casual thought is not a bad thing), but solving this for the audit
-> >> > container ID information *is* something we need to worry about right
-> >> > now.
-> >>
-> >> If you think that a different nested contid value string per daemon is
-> >> not acceptable, then we are back to issuing a record that has only *one*
-> >> contid listed without any nesting information.  This brings us back to
-> >> the original problem of keeping *all* audit log history since the boot
-> >> of the machine to be able to track the nesting of any particular contid.
-> >
-> > I'm not ruling anything out, except for the "let's just completely
-> > regenerate every record for each auditd instance".
->
-> Paul I am a bit confused about what you are referring to when you say
-> regenerate every record.
->
-> Are you saying that you don't want to repeat the sequence:
->         audit_log_start(...);
->         audit_log_format(...);
->         audit_log_end(...);
-> for every nested audit daemon?
+Hello,
 
-If it can be avoided yes.  Audit performance is already not-awesome,
-this would make it even worse.
+syzbot found the following crash on:
 
-> Or are you saying that you would like to literraly want to send the same
-> skb to each of the nested audit daemons?
+HEAD commit:    63bef48f Merge branch 'akpm' (patches from Andrew)
+git tree:       net-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=11e41777e00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=94a7f1dec460ee83
+dashboard link: https://syzkaller.appspot.com/bug?extid=33e06702fd6cffc24c40
+compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
 
-Ideally we would reuse the generated audit messages as much as
-possible.  Less work is better.  That's really my main concern here,
-let's make sure we aren't going to totally tank performance when we
-have a bunch of nested audit daemons.
+Unfortunately, I don't have any reproducer for this crash yet.
 
-> Or are you thinking of something else?
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+33e06702fd6cffc24c40@syzkaller.appspotmail.com
 
-As mentioned above, I'm not thinking of anything specific, other than
-let's please not have to regenerate *all* of the audit record strings
-for each instance of an audit daemon, that's going to be a killer.
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 19934 at net/netfilter/nf_nat_core.c:1106 nf_nat_unregister_fn+0x532/0x5c0 net/netfilter/nf_nat_core.c:1106
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 19934 Comm: syz-executor.5 Not tainted 5.6.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x188/0x20d lib/dump_stack.c:118
+ panic+0x2e3/0x75c kernel/panic.c:221
+ __warn.cold+0x2f/0x35 kernel/panic.c:582
+ report_bug+0x27b/0x2f0 lib/bug.c:195
+ fixup_bug arch/x86/kernel/traps.c:175 [inline]
+ fixup_bug arch/x86/kernel/traps.c:170 [inline]
+ do_error_trap+0x12b/0x220 arch/x86/kernel/traps.c:267
+ do_invalid_op+0x32/0x40 arch/x86/kernel/traps.c:286
+ invalid_op+0x23/0x30 arch/x86/entry/entry_64.S:1027
+RIP: 0010:nf_nat_unregister_fn+0x532/0x5c0 net/netfilter/nf_nat_core.c:1106
+Code: ff df 48 c1 ea 03 80 3c 02 00 75 75 48 8b 44 24 10 4c 89 ef 48 c7 00 00 00 00 00 e8 e8 f8 53 fb e9 4d fe ff ff e8 ee 9c 16 fb <0f> 0b e9 41 fe ff ff e8 e2 45 54 fb e9 b5 fd ff ff 48 8b 7c 24 20
+RSP: 0018:ffffc90005487208 EFLAGS: 00010246
+RAX: 0000000000040000 RBX: 0000000000000004 RCX: ffffc9001444a000
+RDX: 0000000000040000 RSI: ffffffff865c94a2 RDI: 0000000000000005
+RBP: ffff88808b5cf000 R08: ffff8880a2620140 R09: fffffbfff14bcd79
+R10: ffffc90005487208 R11: fffffbfff14bcd78 R12: 0000000000000000
+R13: 0000000000000001 R14: 0000000000000001 R15: 0000000000000000
+ nf_nat_ipv6_unregister_fn net/netfilter/nf_nat_proto.c:1017 [inline]
+ nf_nat_inet_register_fn net/netfilter/nf_nat_proto.c:1038 [inline]
+ nf_nat_inet_register_fn+0xfc/0x140 net/netfilter/nf_nat_proto.c:1023
+ nf_tables_register_hook net/netfilter/nf_tables_api.c:224 [inline]
+ nf_tables_addchain.constprop.0+0x82e/0x13c0 net/netfilter/nf_tables_api.c:1981
+ nf_tables_newchain+0xf68/0x16a0 net/netfilter/nf_tables_api.c:2235
+ nfnetlink_rcv_batch+0x83a/0x1610 net/netfilter/nfnetlink.c:433
+ nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:543 [inline]
+ nfnetlink_rcv+0x3af/0x420 net/netfilter/nfnetlink.c:561
+ netlink_unicast_kernel net/netlink/af_netlink.c:1303 [inline]
+ netlink_unicast+0x537/0x740 net/netlink/af_netlink.c:1329
+ netlink_sendmsg+0x882/0xe10 net/netlink/af_netlink.c:1918
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:672
+ ____sys_sendmsg+0x6bf/0x7e0 net/socket.c:2362
+ ___sys_sendmsg+0x100/0x170 net/socket.c:2416
+ __sys_sendmsg+0xec/0x1b0 net/socket.c:2449
+ do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+RIP: 0033:0x45c889
+Code: ad b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f2d5a3c6c78 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007f2d5a3c76d4 RCX: 000000000045c889
+RDX: 0000000000000000 RSI: 000000002000c2c0 RDI: 0000000000000003
+RBP: 000000000076bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000004
+R13: 000000000000095d R14: 00000000004cc151 R15: 000000000000000c
+Kernel Offset: disabled
+Rebooting in 86400 seconds..
 
-Maybe we have to regenerate some, if we do, what would that look like
-in code?  How do we handle the regeneration aspect?  I worry that is
-going to be really ugly.
 
-Maybe we finally burn down the audit_log_format(...) function and pass
-structs/TLVs to the audit subsystem and the audit subsystem generates
-the strings in the auditd connection thread.  Some of the record
-strings could likely be shared, others would need to be ACID/auditd
-dependent.
+---
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-I'm open to any ideas people may have.  We have a problem, let's solve it.
-
--- 
-paul moore
-www.paul-moore.com
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
