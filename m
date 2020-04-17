@@ -2,134 +2,70 @@ Return-Path: <SRS0=JJ+7=6B=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.4 required=3.0 tests=BODY_SINGLE_WORD,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62365C2BB1D
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Apr 2020 05:36:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2939C38A29
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Apr 2020 19:38:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 48E30221E9
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Apr 2020 05:36:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 99087206B9
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Apr 2020 19:38:49 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ILubfIuS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726405AbgDQFgN (ORCPT
+        id S1730582AbgDQTit (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Apr 2020 01:36:13 -0400
-Received: from mail-il1-f197.google.com ([209.85.166.197]:48828 "EHLO
-        mail-il1-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726366AbgDQFgM (ORCPT
+        Fri, 17 Apr 2020 15:38:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55136 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730336AbgDQTis (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Apr 2020 01:36:12 -0400
-Received: by mail-il1-f197.google.com with SMTP id h26so1439628ilf.15
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Apr 2020 22:36:11 -0700 (PDT)
+        Fri, 17 Apr 2020 15:38:48 -0400
+Received: from mail-ed1-x533.google.com (mail-ed1-x533.google.com [IPv6:2a00:1450:4864:20::533])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A370FC061A0C
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Apr 2020 12:38:48 -0700 (PDT)
+Received: by mail-ed1-x533.google.com with SMTP id e5so2344671edq.5
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Apr 2020 12:38:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
+        bh=BhsA1aKlglGjpRdMu2peVecDmERAuTyLLhI53Hw2hvM=;
+        b=ILubfIuST/TsNWr0c9BkzpnuSHut5yzNyOF4lg2+jMah3wZinbB4gJhA4s/bdWYTWZ
+         pmNk48KU5nsOgJuEwu/RNrVf1TEKYQm2lZQN4LgtVoPRivQNFBRNYoegbLIDHyJmkajX
+         8jp+GmMpiEZNCQpzUNUNrp0/oIYJpdkDYfplJZb4HZLT6E/U/wRAAoW4r4d18jMoU4EH
+         omNJtyAdiXYS4n3l0k2vgyr5Ew5sQBPus6bIafB04YwXzDzYg7SUtdLSdpSQi6DgVbwM
+         GVf7CkBVH+qWCtVVEXqUGYkXPzHVxa/O8TbHbWkuM6f3T3tEowrSuvC5lS9e3S1PEHBR
+         9opg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=RG1OjG9ZdHjWBn7iqio0bdclmjO74pm7jn+YvPQidL0=;
-        b=pBvjRzfsKrIIF5Sa8gGPL/24/TCVeepAj6KGt5W1BfkjT09/PN4+MTsCN+pT4qB88B
-         ti8FQFrOSa0PMTiMrZOSiJVT/kJ0qZ9zBEzSOrLFbVs/v7hYAHhg40DLZH4VuN+5uQ0U
-         8JQYgjzoiaZSQ8F67K5BLgzVfQXFUXQbgz3sSEmFuEdh1AAZI/rLSaKbecUo5v33sVSi
-         G8eHurddqn77UQ4SyOLAWfVHV4+ZoTNNn2xGOXw01/V0yc8ojgqjvaBr5J36QTGNuxr6
-         qoT3HeSkfJo/28PehfSJde3B8M49Eo3MkQKX1MqWmnpRHEBCsjz6ukeCDn6MkM3llvnZ
-         Mh+g==
-X-Gm-Message-State: AGi0PubtoL1LJuuPl/WIThXcDx7HRlLNeW26jKzyV3TxU6BKJelvbwh7
-        kVCiBLFAgFQfLceMpxP5Ps1DMN/J6F2hWMtenBZE9gADcp9l
-X-Google-Smtp-Source: APiQypLvXl9tpCF4fnR+aei09iO499VlF+wR3/zjHxkwGFgHuFkXtq6v3vVfMQ5Dhd/rSCQ0GcFMPJIUbFK3kwrTdjVYsyin7M4F
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to;
+        bh=BhsA1aKlglGjpRdMu2peVecDmERAuTyLLhI53Hw2hvM=;
+        b=JwWG8QK3+J9Q28uhVyGe+UwZ4HEgbmnq1+XxUGxD5GAeQBRE0MIVawjyt5BS/azh5N
+         6oOzdkf7pJKGCjjVUR8AaBcBu2p1PxiNTZ9K/g6KLi/CS4ozJ7OWhYCB8G87RIHIGZ1x
+         tccx9Tnb352dJwl16e3+cjhZMKP+rQNc57tEY9x0DQZVYFfSM6HSofBWmo8f6JOJqUAs
+         zPn7A+CG6ixpN1DTpnfm42jMPQ63sOphVtOCJmB7O+xmZ9f0lWmsBu88LozZMOHEonHA
+         D/u+AFwiEKjxukuFDuhxNGAm5hB+CRwiS+wpY5kq/iPakbMW8OKT1t7i2JkHycNRan3a
+         lt5A==
+X-Gm-Message-State: AGi0Pubx9+1Les5CUm/KJeuSKjldC5NGnggKi8MQAaT/Ch3t83gL26ws
+        1kaLP57dooPZ72BdaMoTJLUIij4GPAhu88WJ1cvmQw==
+X-Google-Smtp-Source: APiQypK29un/xtNwuHT1z61C7ASNvKgtGPDghzqM3101q70JyQlIiiBtXFGr1k2JjKJ6PNf5xWj2g5IPMyO0HPwQ3mk=
+X-Received: by 2002:a05:6402:22f7:: with SMTP id dn23mr4713412edb.167.1587152327120;
+ Fri, 17 Apr 2020 12:38:47 -0700 (PDT)
 MIME-Version: 1.0
-X-Received: by 2002:a02:4445:: with SMTP id o66mr1759803jaa.36.1587101771040;
- Thu, 16 Apr 2020 22:36:11 -0700 (PDT)
-Date:   Thu, 16 Apr 2020 22:36:11 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000490f1005a375ed34@google.com>
-Subject: WARNING in nf_nat_unregister_fn
-From:   syzbot <syzbot+33e06702fd6cffc24c40@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@netfilter.org, kuba@kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        syzkaller-bugs@googlegroups.com
+References: <20200407190508.21496-1-mattst88@gmail.com>
+In-Reply-To: <20200407190508.21496-1-mattst88@gmail.com>
+From:   Matt Turner <mattst88@gmail.com>
+Date:   Fri, 17 Apr 2020 12:38:35 -0700
+Message-ID: <CAEdQ38FeA5wwRVYjET3eD6p2Ueki1ZHPAHhDE7n2D3gHigYq9w@mail.gmail.com>
+Subject: Re: [PATCH nftables] doc: Include generated man pages in dist tarball
+To:     netfilter-devel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
-
-syzbot found the following crash on:
-
-HEAD commit:    63bef48f Merge branch 'akpm' (patches from Andrew)
-git tree:       net-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=11e41777e00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=94a7f1dec460ee83
-dashboard link: https://syzkaller.appspot.com/bug?extid=33e06702fd6cffc24c40
-compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
-
-Unfortunately, I don't have any reproducer for this crash yet.
-
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+33e06702fd6cffc24c40@syzkaller.appspotmail.com
-
-------------[ cut here ]------------
-WARNING: CPU: 0 PID: 19934 at net/netfilter/nf_nat_core.c:1106 nf_nat_unregister_fn+0x532/0x5c0 net/netfilter/nf_nat_core.c:1106
-Kernel panic - not syncing: panic_on_warn set ...
-CPU: 0 PID: 19934 Comm: syz-executor.5 Not tainted 5.6.0-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-Call Trace:
- __dump_stack lib/dump_stack.c:77 [inline]
- dump_stack+0x188/0x20d lib/dump_stack.c:118
- panic+0x2e3/0x75c kernel/panic.c:221
- __warn.cold+0x2f/0x35 kernel/panic.c:582
- report_bug+0x27b/0x2f0 lib/bug.c:195
- fixup_bug arch/x86/kernel/traps.c:175 [inline]
- fixup_bug arch/x86/kernel/traps.c:170 [inline]
- do_error_trap+0x12b/0x220 arch/x86/kernel/traps.c:267
- do_invalid_op+0x32/0x40 arch/x86/kernel/traps.c:286
- invalid_op+0x23/0x30 arch/x86/entry/entry_64.S:1027
-RIP: 0010:nf_nat_unregister_fn+0x532/0x5c0 net/netfilter/nf_nat_core.c:1106
-Code: ff df 48 c1 ea 03 80 3c 02 00 75 75 48 8b 44 24 10 4c 89 ef 48 c7 00 00 00 00 00 e8 e8 f8 53 fb e9 4d fe ff ff e8 ee 9c 16 fb <0f> 0b e9 41 fe ff ff e8 e2 45 54 fb e9 b5 fd ff ff 48 8b 7c 24 20
-RSP: 0018:ffffc90005487208 EFLAGS: 00010246
-RAX: 0000000000040000 RBX: 0000000000000004 RCX: ffffc9001444a000
-RDX: 0000000000040000 RSI: ffffffff865c94a2 RDI: 0000000000000005
-RBP: ffff88808b5cf000 R08: ffff8880a2620140 R09: fffffbfff14bcd79
-R10: ffffc90005487208 R11: fffffbfff14bcd78 R12: 0000000000000000
-R13: 0000000000000001 R14: 0000000000000001 R15: 0000000000000000
- nf_nat_ipv6_unregister_fn net/netfilter/nf_nat_proto.c:1017 [inline]
- nf_nat_inet_register_fn net/netfilter/nf_nat_proto.c:1038 [inline]
- nf_nat_inet_register_fn+0xfc/0x140 net/netfilter/nf_nat_proto.c:1023
- nf_tables_register_hook net/netfilter/nf_tables_api.c:224 [inline]
- nf_tables_addchain.constprop.0+0x82e/0x13c0 net/netfilter/nf_tables_api.c:1981
- nf_tables_newchain+0xf68/0x16a0 net/netfilter/nf_tables_api.c:2235
- nfnetlink_rcv_batch+0x83a/0x1610 net/netfilter/nfnetlink.c:433
- nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:543 [inline]
- nfnetlink_rcv+0x3af/0x420 net/netfilter/nfnetlink.c:561
- netlink_unicast_kernel net/netlink/af_netlink.c:1303 [inline]
- netlink_unicast+0x537/0x740 net/netlink/af_netlink.c:1329
- netlink_sendmsg+0x882/0xe10 net/netlink/af_netlink.c:1918
- sock_sendmsg_nosec net/socket.c:652 [inline]
- sock_sendmsg+0xcf/0x120 net/socket.c:672
- ____sys_sendmsg+0x6bf/0x7e0 net/socket.c:2362
- ___sys_sendmsg+0x100/0x170 net/socket.c:2416
- __sys_sendmsg+0xec/0x1b0 net/socket.c:2449
- do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
- entry_SYSCALL_64_after_hwframe+0x49/0xb3
-RIP: 0033:0x45c889
-Code: ad b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007f2d5a3c6c78 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
-RAX: ffffffffffffffda RBX: 00007f2d5a3c76d4 RCX: 000000000045c889
-RDX: 0000000000000000 RSI: 000000002000c2c0 RDI: 0000000000000003
-RBP: 000000000076bf00 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000004
-R13: 000000000000095d R14: 00000000004cc151 R15: 000000000000000c
-Kernel Offset: disabled
-Rebooting in 86400 seconds..
-
-
----
-This bug is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this bug report. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+Ping
