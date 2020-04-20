@@ -2,142 +2,144 @@ Return-Path: <SRS0=IOUL=6E=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BD99C54FCB
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Apr 2020 14:14:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62873C3A5A0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Apr 2020 14:58:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5B644214AF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Apr 2020 14:14:27 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="moEwSuin"
+	by mail.kernel.org (Postfix) with ESMTP id 4D25020672
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Apr 2020 14:58:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728681AbgDTOO0 (ORCPT
+        id S1729412AbgDTO6w (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 Apr 2020 10:14:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46940 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727930AbgDTOOZ (ORCPT
+        Mon, 20 Apr 2020 10:58:52 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:44340 "EHLO
+        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726913AbgDTO6v (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Apr 2020 10:14:25 -0400
-Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C6FEC061A0F
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2020 07:14:25 -0700 (PDT)
-Received: by mail-wr1-x442.google.com with SMTP id j2so12348142wrs.9
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2020 07:14:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:content-transfer-encoding:in-reply-to;
-        bh=xI2JaVzV5j13dnYS8FpAAt0D9/yzYpNBAOL6NLN+nOI=;
-        b=moEwSuinh8p0wHS2yuO3sqKtegOJKOjKii1BkEFkGaT8WhrL90grxzNefYN5CkV96U
-         UvRw5c55Bkj0CZl9fq27XlcNPB8O8GZvkwPx6eCTEJnY8ThxAteoud/ulUgLK2bNSAKD
-         Q1SX+Aa1nNn6MvZ4/IPdZVB5VGSXWGm3OT02GmBowUKMEJVhGfi/F70JqHYiwUgHPGY6
-         H7CNDfRo+NNG1oKdWpvQiRveCetumNe9TQR858IC0h7ezg+5ADPMsm9ZvKFr3BzRVcod
-         xrRgd6EyOEoaayDCOjfunoJ0niZ6kgEzVEPjWuCbZr+rxGKgvPjCPgzKrcHZ3wfEsoWT
-         qHzw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to;
-        bh=xI2JaVzV5j13dnYS8FpAAt0D9/yzYpNBAOL6NLN+nOI=;
-        b=fIqPgOK+MOgZAYeO3axNzTq9StJzhMsUkbqEjIHqKe+cr6shMxI5WQUBzQplX331JT
-         QP3isWRvt2aq17ryPficLa2AW+uvMCHLBgFGUPeqgCU7dDCUgjMfm2v7MKi3vC8SrI0I
-         4xyV2oqv45DSWUIEfVddl2TwcGGOotwHxsLGYHX6WuZMKQaJ9XvZPvEg3eut90yyHdmf
-         GQC4p5WaD8jzU6ucaSfqY3WDEGj9e3BB1hbskURRrR+pQ2spiS5+PbTfVraMey2h1gn1
-         eNpXQc4G6524KCI3oghbUM4TT805g4/hJrIBvtADBo3gWzcMG+9RBmDArn6XRZey4APu
-         cyrA==
-X-Gm-Message-State: AGi0PubjeoadoyLTIIvZjQ3GsSbsOIMwAI9JKz+1j6B8Ks9qEi+lYktO
-        uWjiE/yvYEt1JNSVsZYjwLaCig==
-X-Google-Smtp-Source: APiQypJqJbSLrNOl6ke4lkTcgYa8/XauIoBjRulAFuhy2H2VQdbONOUAbDWigs6GpsKezx15agTEIg==
-X-Received: by 2002:adf:978c:: with SMTP id s12mr16250853wrb.312.1587392064072;
-        Mon, 20 Apr 2020 07:14:24 -0700 (PDT)
-Received: from localhost (jirka.pirko.cz. [84.16.102.26])
-        by smtp.gmail.com with ESMTPSA id a1sm1421372wrn.80.2020.04.20.07.14.23
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 20 Apr 2020 07:14:23 -0700 (PDT)
-Date:   Mon, 20 Apr 2020 16:14:22 +0200
-From:   Jiri Pirko <jiri@resnulli.us>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Edward Cree <ecree@solarflare.com>,
-        netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org
-Subject: Re: [PATCH net] net: flow_offload: skip hw stats check for
- FLOW_ACTION_HW_STATS_DISABLED
-Message-ID: <20200420141422.GK6581@nanopsycho.orion>
-References: <20200419115338.659487-1-pablo@netfilter.org>
- <20200420080200.GA6581@nanopsycho.orion>
- <20200420090505.pr6wsunozfh7afaj@salvia>
- <20200420091302.GB6581@nanopsycho.orion>
- <20200420100341.6qehcgz66wq4ysax@salvia>
- <20200420115210.GE6581@nanopsycho.orion>
- <3980eea4-18d8-5e62-2d6d-fce0a7e7ed4c@solarflare.com>
- <20200420123915.nrqancwjb7226l7e@salvia>
- <20200420134826.GH6581@nanopsycho.orion>
- <20200420135754.GD32392@breakpoint.cc>
+        Mon, 20 Apr 2020 10:58:51 -0400
+Received: from Internal Mail-Server by MTLPINE2 (envelope-from bodong@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 20 Apr 2020 17:58:45 +0300
+Received: from sw-mtx-017.mtx.labs.mlnx. (sw-mtx-017.mtx.labs.mlnx [10.9.150.103])
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03KEwi6g018789;
+        Mon, 20 Apr 2020 17:58:44 +0300
+From:   Bodong Wang <bodong@mellanox.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     pablo@netfilter.org, ozsh@mellanox.com, paulb@mellanox.com,
+        Bodong Wang <bodong@mellanox.com>
+Subject: [nf-next] netfilter: nf_conntrack, add IPS_HW_OFFLOAD status bit
+Date:   Mon, 20 Apr 2020 09:58:10 -0500
+Message-Id: <20200420145810.11035-1-bodong@mellanox.com>
+X-Mailer: git-send-email 2.21.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20200420135754.GD32392@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Mon, Apr 20, 2020 at 03:57:54PM CEST, fw@strlen.de wrote:
->Jiri Pirko <jiri@resnulli.us> wrote:
->> Mon, Apr 20, 2020 at 02:39:15PM CEST, pablo@netfilter.org wrote:
->> >On Mon, Apr 20, 2020 at 01:28:22PM +0100, Edward Cree wrote:
->> >> On 20/04/2020 12:52, Jiri Pirko wrote:
->> >> > However for TC, when user specifies "HW_STATS_DISABLED", the driver
->> >> > should not do stats.
->> >>
->> >> What should a driver do if the user specifies DISABLED, but the stats
->> >>  are still needed for internal bookkeeping (e.g. to prod an ARP entry
->> >>  that's in use for encapsulation offload, so that it doesn't get
->> >>  expired out of the cache)?  Enable the stats on the HW anyway but
->> >>  not report them to FLOW_CLS_STATS?  Or return an error?
->> >
->> >My interpretation is that HW_STATS_DISABLED means that the front-end
->> >does not care / does not need counters. The driver can still allocate
->> 
->> That is wrong interpretation. If user does not care, he specifies "ANY".
->> That is the default.
->> 
->> When he says "DISABLED" he means disabled. Not "I don't care".
->
->Under what circumstances would the user care about this?
+This bit indicates that the conntrack entry is offloaded to hardware
+flow table. nf_conntrack entry will be tagged with [HW_OFFLOAD] if
+it's offload to hardware.
 
-On some HW, the stats are separate resource. The user instructs the
-stats to be disabled so safe resources. It is explicit. He like to safe
-the resources for other usage (he can list them in devlink resource).
+cat /proc/net/nf_conntrack
+	ipv4 2 tcp 6 \
+	src=1.1.1.17 dst=1.1.1.16 sport=56394 dport=5001 \
+	src=1.1.1.16 dst=1.1.1.17 sport=5001 dport=56394 [HW_OFFLOAD] \
+	mark=0 zone=0 use=3
 
+Note that HW_OFFLOAD/OFFLOAD/ASSURED are mutually exclusive.
 
->Rejecting such config seems to be just to annoy user?
+Signed-off-by: Bodong Wang <bodong@mellanox.com>
+Reviewed-by: Oz Shlomo <ozsh@mellanox.com>
+Reviewed-by: Paul Blakey <paulb@mellanox.com>
+---
+ include/uapi/linux/netfilter/nf_conntrack_common.h |  8 ++++++--
+ net/netfilter/nf_conntrack_standalone.c            |  4 +++-
+ net/netfilter/nf_flow_table_offload.c              | 13 +++++++++++++
+ 3 files changed, 22 insertions(+), 3 deletions(-)
 
-Well, the user passed the arg, he should know what is he doing. There's
-no annoyment.
+diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
+index b6f0bb1dc799..4b3395082d15 100644
+--- a/include/uapi/linux/netfilter/nf_conntrack_common.h
++++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
+@@ -114,15 +114,19 @@ enum ip_conntrack_status {
+ 	IPS_OFFLOAD_BIT = 14,
+ 	IPS_OFFLOAD = (1 << IPS_OFFLOAD_BIT),
+ 
++	/* Conntrack has been offloaded to hardware. */
++	IPS_HW_OFFLOAD_BIT = 15,
++	IPS_HW_OFFLOAD = (1 << IPS_HW_OFFLOAD_BIT),
++
+ 	/* Be careful here, modifying these bits can make things messy,
+ 	 * so don't let users modify them directly.
+ 	 */
+ 	IPS_UNCHANGEABLE_MASK = (IPS_NAT_DONE_MASK | IPS_NAT_MASK |
+ 				 IPS_EXPECTED | IPS_CONFIRMED | IPS_DYING |
+ 				 IPS_SEQ_ADJUST | IPS_TEMPLATE | IPS_UNTRACKED |
+-				 IPS_OFFLOAD),
++				 IPS_OFFLOAD | IPS_HW_OFFLOAD),
+ 
+-	__IPS_MAX_BIT = 15,
++	__IPS_MAX_BIT = 16,
+ };
+ 
+ /* Connection tracking event types */
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 9b57330c81f8..5a3e6c43ee68 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -348,7 +348,9 @@ static int ct_seq_show(struct seq_file *s, void *v)
+ 	if (seq_print_acct(s, ct, IP_CT_DIR_REPLY))
+ 		goto release;
+ 
+-	if (test_bit(IPS_OFFLOAD_BIT, &ct->status))
++	if (test_bit(IPS_HW_OFFLOAD_BIT, &ct->status))
++		seq_puts(s, "[HW_OFFLOAD] ");
++	else if (test_bit(IPS_OFFLOAD_BIT, &ct->status))
+ 		seq_puts(s, "[OFFLOAD] ");
+ 	else if (test_bit(IPS_ASSURED_BIT, &ct->status))
+ 		seq_puts(s, "[ASSURED] ");
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index e3b099c14eff..c9efd20ea65c 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -754,12 +754,15 @@ static void flow_offload_work_add(struct flow_offload_work *offload)
+ 	err = flow_offload_rule_add(offload, flow_rule);
+ 	if (err < 0)
+ 		set_bit(NF_FLOW_HW_REFRESH, &offload->flow->flags);
++	else
++		set_bit(IPS_HW_OFFLOAD_BIT, &offload->flow->ct->status);
+ 
+ 	nf_flow_offload_destroy(flow_rule);
+ }
+ 
+ static void flow_offload_work_del(struct flow_offload_work *offload)
+ {
++	clear_bit(IPS_HW_OFFLOAD_BIT, &offload->flow->ct->status);
+ 	flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_ORIGINAL);
+ 	flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_REPLY);
+ 	set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
+@@ -796,6 +799,16 @@ static void flow_offload_work_stats(struct flow_offload_work *offload)
+ 				       FLOW_OFFLOAD_DIR_REPLY,
+ 				       stats[1].pkts, stats[1].bytes);
+ 	}
++
++	/* Clear HW_OFFLOAD immediately when lastused stopped updating, this can
++	 * happen in two scenarios:
++	 *
++	 * 1. TC rule on a higher level device (e.g. vxlan) was offloaded, but
++	 *    HW driver is unloaded.
++	 * 2. One of the shared block driver is unloaded.
++	 */
++	if (!lastused)
++		clear_bit(IPS_HW_OFFLOAD_BIT, &offload->flow->ct->status);
+ }
+ 
+ static void flow_offload_work_handler(struct work_struct *work)
+-- 
+2.21.1
 
-
->
->I mean, the user is forced to use SW datapath just because HW can't turn
->off stats?!  Same for a config change, why do i need to change my rules
-
-By default, they are on. That is what user should do in most of the
-cases.
-
-
->to say 'enable stats' even though I don't need them in first place?
-
-It may require to program HW differently (as in case of mlxsw).
-
-
->
->Unlike the inverse (want feature X but HW can't support it), it makes
->no sense to me to reject with an error here:
->stats-off is just a hint that can be safely ignored.
