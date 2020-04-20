@@ -2,194 +2,85 @@ Return-Path: <SRS0=IOUL=6E=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E2D7C54FCB
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Apr 2020 13:49:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD7EEC3815B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Apr 2020 13:58:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E21F8206E9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Apr 2020 13:49:49 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="T/buWphy"
+	by mail.kernel.org (Postfix) with ESMTP id 889F62070B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Apr 2020 13:58:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727876AbgDTNts (ORCPT
+        id S1726963AbgDTN6F (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 Apr 2020 09:49:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43092 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726167AbgDTNtr (ORCPT
+        Mon, 20 Apr 2020 09:58:05 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:33092 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726608AbgDTN6F (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Apr 2020 09:49:47 -0400
-Received: from mail-wm1-x341.google.com (mail-wm1-x341.google.com [IPv6:2a00:1450:4864:20::341])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93D6CC061A0C
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2020 06:49:47 -0700 (PDT)
-Received: by mail-wm1-x341.google.com with SMTP id r26so11506032wmh.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2020 06:49:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=ZojA4pqADCBsVqB1CaJT0LsrmwwUhQsSEqijcwbkwAY=;
-        b=T/buWphyjcJ6FvBntY431uiOY/BvaB+1+1pK2FJhSJVANyFgDvzjl/g7NN/JTZs50p
-         hZ/XJ4KKDVHM4rd+BsKchbCJUTK3OimSgnpoASzE0919ZORbmD2FYDIQmx3UrNITCVlg
-         /4UBheA0eNCR2kwfoDmBBcI36jmf5xvjh3/ljgrPXgvTqvlPq0Z9Es0sx6EFETl1Qvzh
-         0vAKCvduffF1RWElwVbDUmnKBdpUvinYHGU26Esj4kRMA4Tz7QUauweuUG+gJkPp/KBF
-         ypU6wIXzWhJGhbDvHC/eOqmomk0NMtNSUc14c/LJ0d8grpNv+rT7LeZQf9DT798uSXXw
-         NSqg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=ZojA4pqADCBsVqB1CaJT0LsrmwwUhQsSEqijcwbkwAY=;
-        b=bIIE0iHusPFKFbnZJJxTfquUQ8DzqmXU7Kya/Urxteg9Pa8wADzU7SrwCeZMCeJ9JS
-         n2gAOqr8baODCNEBvdPTM42vKAAS9nUx1JYg1gpS62C0Nud2r+QqMm9WD4L7DHllAwAx
-         Dvlo1Jd2PkR7pzRiu+YFCfM9eHjZfe61ez8oPuz+QmYEtONU3zvCUpoEWnyo8+75qXgx
-         L+9/m5v8fBFjnv56rMfHmEgHaoVDQis1TiBiwLM2ojmFu+DfNIsftCXoWbcsCFz+eCSJ
-         KSfmnf9yfvHyw/f0HF2cv+HqgirIiH8qPRmwtY21ZBZ0JlkxMR6DZZ8LhNnac2uR8pb9
-         AV7A==
-X-Gm-Message-State: AGi0PubBXfqqTm25G40NlIldhgs/TlW28/ixNjVQieKCZ4gwnSOvpFMr
-        pje9pYl8ih8EKtIIq4HT2U8EKQ==
-X-Google-Smtp-Source: APiQypKXhjtYH3ROG2igsBKqtFQJQaTFm7ddAb2mdwPDYhUM6o3ckOZEyvEGkiP4rVHbzD87HsLsiQ==
-X-Received: by 2002:a7b:c250:: with SMTP id b16mr18559734wmj.100.1587390586309;
-        Mon, 20 Apr 2020 06:49:46 -0700 (PDT)
-Received: from localhost (jirka.pirko.cz. [84.16.102.26])
-        by smtp.gmail.com with ESMTPSA id s6sm1374576wmh.17.2020.04.20.06.49.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 20 Apr 2020 06:49:45 -0700 (PDT)
-Date:   Mon, 20 Apr 2020 15:49:44 +0200
-From:   Jiri Pirko <jiri@resnulli.us>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        Mon, 20 Apr 2020 09:58:05 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1jQWvq-0002GP-MT; Mon, 20 Apr 2020 15:57:54 +0200
+Date:   Mon, 20 Apr 2020 15:57:54 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Jiri Pirko <jiri@resnulli.us>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Edward Cree <ecree@solarflare.com>,
+        netfilter-devel@vger.kernel.org, davem@davemloft.net,
         netdev@vger.kernel.org, kuba@kernel.org
 Subject: Re: [PATCH net] net: flow_offload: skip hw stats check for
  FLOW_ACTION_HW_STATS_DISABLED
-Message-ID: <20200420134944.GI6581@nanopsycho.orion>
+Message-ID: <20200420135754.GD32392@breakpoint.cc>
 References: <20200419115338.659487-1-pablo@netfilter.org>
  <20200420080200.GA6581@nanopsycho.orion>
  <20200420090505.pr6wsunozfh7afaj@salvia>
  <20200420091302.GB6581@nanopsycho.orion>
  <20200420100341.6qehcgz66wq4ysax@salvia>
  <20200420115210.GE6581@nanopsycho.orion>
- <20200420121351.f5akqetiy6nc7fpq@salvia>
+ <3980eea4-18d8-5e62-2d6d-fce0a7e7ed4c@solarflare.com>
+ <20200420123915.nrqancwjb7226l7e@salvia>
+ <20200420134826.GH6581@nanopsycho.orion>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-15
 Content-Disposition: inline
-In-Reply-To: <20200420121351.f5akqetiy6nc7fpq@salvia>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20200420134826.GH6581@nanopsycho.orion>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Mon, Apr 20, 2020 at 02:13:51PM CEST, pablo@netfilter.org wrote:
->On Mon, Apr 20, 2020 at 01:52:10PM +0200, Jiri Pirko wrote:
->> Mon, Apr 20, 2020 at 12:03:41PM CEST, pablo@netfilter.org wrote:
->> >On Mon, Apr 20, 2020 at 11:13:02AM +0200, Jiri Pirko wrote:
->> >> Mon, Apr 20, 2020 at 11:05:05AM CEST, pablo@netfilter.org wrote:
->> >> >On Mon, Apr 20, 2020 at 10:02:00AM +0200, Jiri Pirko wrote:
->> >> >> Sun, Apr 19, 2020 at 01:53:38PM CEST, pablo@netfilter.org wrote:
->> >> >> >If the frontend requests no stats through FLOW_ACTION_HW_STATS_DISABLED,
->> >> >> >drivers that are checking for the hw stats configuration bail out with
->> >> >> >EOPNOTSUPP.
->> >> >>
->> >> >> Wait, that was a point. Driver has to support stats disabling.
->> >> >
->> >> >Hm, some drivers used to accept FLOW_ACTION_HW_STATS_DISABLED, now
->> >> >rulesets that used to work don't work anymore.
->> >>
->> >> How? This check is here since the introduction of hw stats types.
->> >
->> >Netfilter is setting the counter support to
->> >FLOW_ACTION_HW_STATS_DISABLED in this example below:
->> >
->> >  table netdev filter {
->> >        chain ingress {
->> >                type filter hook ingress device eth0 priority 0; flags offload;
->> >
->> >                tcp dport 22 drop
->> >        }
->> >  }
->> 
->> Hmm. In TC the HW_STATS_DISABLED has to be explicitly asked by the user,
->> as the sw stats are always on. Your case is different.
->
->I see, I think requesting HW_STATS_DISABLED in tc fails with the
->existing code though.
->
->> However so far (before HW_STATS patchset), the offload just did the
->> stats and you ignored them in netfilter code, correct?
->
->Yes, netfilter is not collecting stats yet.
->
->> Perhaps we need another value of this, like "HW_STATS_MAY_DISABLED" for
->> such case.
->
->Or just redefine FLOW_ACTION_HW_STATS_DISABLED to define a bit in
->enum flow_action_hw_stats_bit.
->
->enum flow_action_hw_stats_bit {
->        FLOW_ACTION_HW_STATES_DISABLED_BIT,
->        FLOW_ACTION_HW_STATS_IMMEDIATE_BIT,
->        FLOW_ACTION_HW_STATS_DELAYED_BIT,
->};
->
->Then update:
->
->        FLOW_ACTION_HW_STATS_ANY = FLOW_ACTION_HW_STATS_DISABLED |
->                                   FLOW_ACTION_HW_STATS_IMMEDIATE |
->                                   FLOW_ACTION_HW_STATS_DELAYED,
+Jiri Pirko <jiri@resnulli.us> wrote:
+> Mon, Apr 20, 2020 at 02:39:15PM CEST, pablo@netfilter.org wrote:
+> >On Mon, Apr 20, 2020 at 01:28:22PM +0100, Edward Cree wrote:
+> >> On 20/04/2020 12:52, Jiri Pirko wrote:
+> >> > However for TC, when user specifies "HW_STATS_DISABLED", the driver
+> >> > should not do stats.
+> >>
+> >> What should a driver do if the user specifies DISABLED, but the stats
+> >>  are still needed for internal bookkeeping (e.g. to prod an ARP entry
+> >>  that's in use for encapsulation offload, so that it doesn't get
+> >>  expired out of the cache)?  Enable the stats on the HW anyway but
+> >>  not report them to FLOW_CLS_STATS?  Or return an error?
+> >
+> >My interpretation is that HW_STATS_DISABLED means that the front-end
+> >does not care / does not need counters. The driver can still allocate
+> 
+> That is wrong interpretation. If user does not care, he specifies "ANY".
+> That is the default.
+> 
+> When he says "DISABLED" he means disabled. Not "I don't care".
 
-No! That would break the default. "ANY" can never mean "disabled".
+Under what circumstances would the user care about this?
+Rejecting such config seems to be just to annoy user?
 
+I mean, the user is forced to use SW datapath just because HW can't turn
+off stats?!  Same for a config change, why do i need to change my rules
+to say 'enable stats' even though I don't need them in first place?
 
->
->?
->
->> Because you don't care if the HW actually does the stats or
->> not. It is an optimization for you.
->>
->> However for TC, when user specifies "HW_STATS_DISABLED", the driver
->> should not do stats.
->
->My interpretation is that _DISABLED means that front-end does not
->request counters to the driver.
->
->> >The user did not specify a counter in this case.
->> >
->> >I think __flow_action_hw_stats_check() cannot work with
->> >FLOW_ACTION_HW_STATS_DISABLED.
->> >
->> >If check_allow_bit is false and FLOW_ACTION_HW_STATS_DISABLED is
->> >specified, then this always evaluates true:
->> >
->> >        if (!check_allow_bit &&
->> >            action_entry->hw_stats != FLOW_ACTION_HW_STATS_ANY) {
->> >
->> >Similarly:
->> >
->> >        } else if (check_allow_bit &&
->> >                   !(action_entry->hw_stats & BIT(allow_bit))) {
->> >
->> >evaluates true for FLOW_ACTION_HW_STATS_DISABLED, assuming allow_bit is
->> >set, which I think it is the intention.
->> 
->> That is correct. __flow_action_hw_stats_check() helper is here for
->> simple drivers that support just one type of hw stats
->> (immediate/delayed).
->
->If this is solved as I'm proposing above, then
->__flow_action_hw_stats_check() need to take a bitmask instead of enum
->flow_action_hw_stats_bit as parameter, because a driver need to
->specify what they support, eg.
->
->        if (!__flow_action_hw_stats_check(action, &extack,
->                                         FLOW_ACTION_HW_STATS_DISABLED |
->                                         FLOW_ACTION_HW_STATS_DELAYED))
->                return -EOPNOSUPP;
->
->or alternatively, if the driver supports any case:
->
->        if (!__flow_action_hw_stats_check(action, &extack,
->                                         FLOW_ACTION_HW_STATS_ANY))
->                return -EOPNOSUPP;
+Unlike the inverse (want feature X but HW can't support it), it makes
+no sense to me to reject with an error here:
+stats-off is just a hint that can be safely ignored.
