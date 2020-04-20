@@ -2,143 +2,231 @@ Return-Path: <SRS0=IOUL=6E=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA6F7C55181
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Apr 2020 21:05:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D5FEC54FCC
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Apr 2020 22:24:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 90B2C2078C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Apr 2020 21:05:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D25022078C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Apr 2020 22:24:43 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="shrxDiod"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726766AbgDTVF6 (ORCPT
+        id S1726475AbgDTWYf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 Apr 2020 17:05:58 -0400
-Received: from correo.us.es ([193.147.175.20]:43722 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726722AbgDTVF6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Apr 2020 17:05:58 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0FAA6120829
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2020 23:05:57 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0217EFA4F4
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2020 23:05:57 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id EBD2252B60; Mon, 20 Apr 2020 23:05:56 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EECD6DA788;
-        Mon, 20 Apr 2020 23:05:54 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 20 Apr 2020 23:05:54 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id D089F42EF42A;
-        Mon, 20 Apr 2020 23:05:54 +0200 (CEST)
-Date:   Mon, 20 Apr 2020 23:05:54 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Bodong Wang <bodong@mellanox.com>
-Cc:     netfilter-devel@vger.kernel.org, ozsh@mellanox.com,
-        paulb@mellanox.com
-Subject: Re: [nf-next] netfilter: nf_conntrack, add IPS_HW_OFFLOAD status bit
-Message-ID: <20200420210554.gpyvbfzojgzyzvqw@salvia>
-References: <20200420145810.11035-1-bodong@mellanox.com>
- <20200420151525.qk764gfgydbip6u2@salvia>
- <b5f1eaca-a2c7-01f8-2d20-89762f435eaa@mellanox.com>
- <20200420153344.c2tjwmohirlnd4cj@salvia>
- <1ea59d48-c0d0-34fc-f443-eecb2ec3660e@mellanox.com>
- <20200420155828.yyo2wwkwnpav4dtp@salvia>
- <1641b7e5-6558-7184-496a-840af538d9ed@mellanox.com>
+        Mon, 20 Apr 2020 18:24:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40118 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726201AbgDTWYe (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 20 Apr 2020 18:24:34 -0400
+Received: from mail-lj1-x241.google.com (mail-lj1-x241.google.com [IPv6:2a00:1450:4864:20::241])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51AE5C061A0F
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2020 15:24:34 -0700 (PDT)
+Received: by mail-lj1-x241.google.com with SMTP id g4so3719678ljl.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2020 15:24:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=XBrjco43EgLPQHKsgKfkcPVDlJYyQuCrZyg/ov/OCgY=;
+        b=shrxDiodM5ll8/fX+8GjGwAkd8FTCBhTzsAWxCPXGiC0jPqqS1aBYVd4QIKB7oxR9f
+         iYrhNewl1t2Yp0Z54I7P4nzfqu/9DLxaeSwY4VSvUUtQqxkkj/0k0zxQpX/s55YxhOSm
+         m1pbO+U411tiC+aQvNka/G4uWhOZPakRDr6jMh+B67gunAYLTxoj3BqZNqYT24LLwP+/
+         zWJXw9WUY4aLWNl7lU/4JGW+lW8ZOCLc2UybEXh4C8YnMY++ddj4lPR1se2NfycBIWp7
+         z3l3F9AbDyEQjw042/SKBq8nU2U3tqNPsVcR3d2mUCkiYGo+1BqxkFnT7MUDf2joJtz1
+         Njmw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=XBrjco43EgLPQHKsgKfkcPVDlJYyQuCrZyg/ov/OCgY=;
+        b=NcL9AyviPsLuUvISBFroZHkImVNNCi4t21+xUcNuOG05CGNlSExHocRxokLAhhSk6w
+         KF8s6AHfaofxMf0PJurPGtidVjvcXhADuwxtrTexeLWPW6mMHAOltI3c4jmyT6pkHCXf
+         8FZ3vkmpoVg8gO7T9AxG1LrSKogKCoeyglomPeDJZ8lkqi9SzTjxjzgh4sVCbwPagCfj
+         9iFxZh6K7UueF1fMkpYi0iIYGoyO7EzHVH153bB3tF6AJQIesFU0dq8IFdAd0VDSVhhP
+         bBhgXohICCp+wpcS5bZzixsNqX3IYRqDPVG1dVWoY3DiR1TTW7GDAl3ecqmSdW3CQEan
+         v2yw==
+X-Gm-Message-State: AGi0Puab7ivEpRm97veVEz10lg7JKZT+67IQTT6nedwn8winYI/YIozM
+        XO3MfkyboYUfH7fECm454OGvLSVIISTK2TvXPcX1pQ==
+X-Google-Smtp-Source: APiQypLj3aD5kAop4gXWOV8CcVQHDcLCtJZ83zLLmyhddPGY8co/nYuv7WZjxmN5wwyj7tDqfoxWzYnJVFQ08Sk6cGY=
+X-Received: by 2002:a2e:8999:: with SMTP id c25mr11623261lji.73.1587421472474;
+ Mon, 20 Apr 2020 15:24:32 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1641b7e5-6558-7184-496a-840af538d9ed@mellanox.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+References: <20200420121444.178150063@linuxfoundation.org>
+In-Reply-To: <20200420121444.178150063@linuxfoundation.org>
+From:   Naresh Kamboju <naresh.kamboju@linaro.org>
+Date:   Tue, 21 Apr 2020 03:54:20 +0530
+Message-ID: <CA+G9fYsPaoo5YE9pAKV+w=MnZ_AGn93iquOC-tAN5arVyUD8FQ@mail.gmail.com>
+Subject: Re: [PATCH 4.19 00/40] 4.19.117-rc1 review
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+Cc:     open list <linux-kernel@vger.kernel.org>,
+        Sasha Levin <sashal@kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Shuah Khan <shuah@kernel.org>, patches@kernelci.org,
+        Ben Hutchings <ben.hutchings@codethink.co.uk>,
+        lkft-triage@lists.linaro.org,
+        linux- stable <stable@vger.kernel.org>,
+        Wang Wenhu <wenhu.wang@vivo.com>,
+        Tim Stallard <code@timstallard.me.uk>,
+        Taras Chornyi <taras.chornyi@plvision.eu>,
+        Taehee Yoo <ap420073@gmail.com>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        DENG Qingfang <dqfext@gmail.com>,
+        Konstantin Khlebnikov <khlebnikov@yandex-team.ru>,
+        "David S. Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Apr 20, 2020 at 11:45:44AM -0500, Bodong Wang wrote:
-> On 4/20/2020 10:58 AM, Pablo Neira Ayuso wrote:
-> > On Mon, Apr 20, 2020 at 10:46:54AM -0500, Bodong Wang wrote:
-> > > On 4/20/2020 10:33 AM, Pablo Neira Ayuso wrote:
-> > > > On Mon, Apr 20, 2020 at 10:28:00AM -0500, Bodong Wang wrote:
-> > > > > On 4/20/2020 10:15 AM, Pablo Neira Ayuso wrote:
-> > > > > > On Mon, Apr 20, 2020 at 09:58:10AM -0500, Bodong Wang wrote:
-> > > > > > [...]
-> > > > > > > @@ -796,6 +799,16 @@ static void flow_offload_work_stats(struct flow_offload_work *offload)
-> > > > > > >     				       FLOW_OFFLOAD_DIR_REPLY,
-> > > > > > >     				       stats[1].pkts, stats[1].bytes);
-> > > > > > >     	}
-> > > > > > > +
-> > > > > > > +	/* Clear HW_OFFLOAD immediately when lastused stopped updating, this can
-> > > > > > > +	 * happen in two scenarios:
-> > > > > > > +	 *
-> > > > > > > +	 * 1. TC rule on a higher level device (e.g. vxlan) was offloaded, but
-> > > > > > > +	 *    HW driver is unloaded.
-> > > > > > > +	 * 2. One of the shared block driver is unloaded.
-> > > > > > > +	 */
-> > > > > > > +	if (!lastused)
-> > > > > > > +		clear_bit(IPS_HW_OFFLOAD_BIT, &offload->flow->ct->status);
-> > > > > > >     }
-> > > > > > Better inconditionally clear off the flag after the entry is removed
-> > > > > > from hardware instead of relying on the lastused field?
-> > > > > Functionality wise, it should work. Current way is more for containing the
-> > > > > set/clear in the same domain, and no need to ask each vendor to take care of
-> > > > > this bit.
-> > > > No need to ask each vendor, what I mean is to deal with this from
-> > > > flow_offload_work_del(), see attached patch.
-> > > Oh, I see. That is already covered in my patch as below. Howerver,
-> > > flow_offload_work_del will only be triggered after timeout expired(30sec).
-> > > User will see incorrect CT state within this 30 seconds timeframe, which the
-> > > clear_bit based on lastused can solve it.
-> > For TCP fin/rst the removal from hardware occurs once once the
-> > workqueue has a chance to run.
-> > 
-> > For UDP, or in case the TCP connection stalls or no packets are seeing
-> > after 30 seconds, then the flow is removed from hardware after 30
-> > seconds.
-> > 
-> > The IPS_HW_OFFLOAD_BIT flag should be cleaned up when the flow is
-> > effectively removed from hardware.
-> > 
-> > Why do you want to clean it up earlier than that? With your approach,
-> > the flag is cleared but the flow is still in hardware?
-> 
-> In normally cases(no driver unload, etc), it is imdediately removed by
-> flow_offload_work_del. Requests to remove the HW flow are from netfilter
-> layer to driver via block_cb->cb. We're well covered in such cases.
-> 
-> The lastused is more for conner cases such as: iperf is still running, but
-> driver is unloaded. In such case, driver removed all HW flows without
-> notifying netfilter.
+On Mon, 20 Apr 2020 at 18:21, Greg Kroah-Hartman
+<gregkh@linuxfoundation.org> wrote:
+>
+> This is the start of the stable review cycle for the 4.19.117 release.
+> There are 40 patches in this series, all will be posted as a response
+> to this one.  If anyone has any issues with these being applied, please
+> let me know.
+>
+> Responses should be made by Wed, 22 Apr 2020 12:10:36 +0000.
+> Anything received after that time might be too late.
+>
+> The whole patch series can be found in one patch at:
+>         https://www.kernel.org/pub/linux/kernel/v4.x/stable-review/patch-=
+4.19.117-rc1.gz
+> or in the git tree and branch at:
+>         git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable=
+-rc.git linux-4.19.y
+> and the diffstat can be found below.
+>
+> thanks,
+>
+> greg k-h
 
-The driver should invoke the flowtable garbage collector let it clean
-up the entries before the driver is unloaded.
 
-> Flow_offload_work_del will only be called once timeout expired, and
-> the indication of HW_OFFLOAD is incorrect within the timeout period.
-> Meanwhile, lastused stopped updating once driver unloading process
-> destroied flow couters. So, relying on this field to clear the
-> HW_OFFLOAD bit to cover such conner cases.
+Results from Linaro=E2=80=99s test farm.
+Regressions on x86_64.
 
-This corner case is interesting.
+x86_64 boot failed due to kernel BUG and kernel panic.
+It is hard to reproduce this BUG and kernel panic
+We are investigating this problem. The full log links are at [1] and [2].
 
-Could you submit this patch without the lastused trick? Then, we can
-revisit how the driver invokes the garbage collector to deal with the
-cleanup?
+[ 0.000000] Linux version 4.19.117-rc1+ (TuxBuild@f0f6d9b6cd32) (gcc
+version 9.3.0 (Debian 9.3.0-8)) #1 SMP Mon Apr 20 12:40:09 UTC 2020
+<>
+[    3.237717] igb 0000:01:00.0: Using MSI-X interrupts. 4 rx
+queue(s), 4 tx queue(s)
+[    3.246412] BUG: unable to handle kernel paging request at 0000000048244=
+4ab
+[    3.246412] PGD 0 P4D 0
+[    3.246412] Oops: 0002 [#1] SMP PTI
+[    3.246412] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.19.117-rc1+ #1
+[    3.246412] Hardware name: Supermicro SYS-5019S-ML/X11SSH-F, BIOS
+2.0b 07/27/2017
+[    3.246412] RIP: 0010:__hw_addr_add_ex+0xa/0xf0
+[    3.246412] Code: 10 01 49 89 5f 08 48 83 c4 08 5b 5d 41 5c 41 5d
+41 5e 41 5f c3 b8 f4 ff ff ff eb ea 0f 1f 40 00 41 57 41 56 41 55 41
+54 55 53 <48> 83 8c 10 8b 44 24 48 89 4c 24 08 44 89 04 24 44 89 4c 24
+04 89
+[    3.246412] RSP: 0000:ffff9d614002fc48 EFLAGS: 00010246
+[    3.246412] RAX: 0000000000000000 RBX: ffff975d9c17c000 RCX: 00000000000=
+00001
+[    3.246412] RDX: 0000000000000020 RSI: ffff9d614002fc88 RDI: ffff975d9c1=
+7c290
+[    3.246412] RBP: ffff975d9c17c000 R08: 0000000000000000 R09: 00000000000=
+00000
+[    3.246412] R10: ffff975d9da8ee68 R11: 00000000ffffffff R12: 00000000000=
+00008
+[    3.246412] R13: ffffffffab8ba5bc R14: 0000000000000000 R15: ffffffffaaf=
+c93d0
+[    3.246412] FS:  0000000000000000(0000) GS:ffff975d9fa80000(0000)
+knlGS:0000000000000000
+[    3.246412] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    3.438798] ata3: SATA link up 6.0 Gbps (SStatus 133 SControl 300)
+[    3.246412] CR2: 00000000482444ab CR3: 0000000211c0a001 CR4: 00000000003=
+606e0
+[    3.246412] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 00000000000=
+00000
+[    3.246412] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 00000000000=
+00400
+[    3.246412] Call Trace:
+[    3.246412]  ? eth_header+0xb0/0xb0
+[    3.246412]  dev_addr_init+0x76/0xb0
+[    3.448543] ata4: SATA link down (SStatus 0 SControl 300)
+[    3.246412]  alloc_netdev_mqs+0x9d/0x3e0
+[    3.246412]  igb_probe+0x16e/0x14d0
+[    3.462804] ata7: SATA link down (SStatus 0 SControl 300)
+[    3.246412]  local_pci_probe+0x3e/0x90
+[    3.246412]  pci_device_probe+0x102/0x1a0
+[    3.246412]  really_probe+0x1be/0x260
+[    3.472410] ata5: SATA link down (SStatus 0 SControl 300)
+[    3.246412]  driver_probe_device+0x4b/0x90
+[    3.246412]  __driver_attach+0xbb/0xc0
+[    3.246412]  ? driver_probe_device+0x90/0x90
+[    3.246412]  bus_for_each_dev+0x73/0xb0
+[    3.246412]  bus_add_driver+0x192/0x1d0
+[    3.246412]  driver_register+0x67/0xb0
+[    3.246412]  ? e1000_init_module+0x34/0x34
+[    3.246412]  do_one_initcall+0x41/0x1b4
+[    3.246412]  kernel_init_freeable+0x15a/0x1e7
+[    3.246412]  ? rest_init+0x9a/0x9a
+[    3.246412]  kernel_init+0x5/0xf6
+[    3.246412]  ret_from_fork+0x35/0x40
+[    3.246412] Modules linked in:
+[    3.246412] CR2: 00000000482444ab
+[    3.246412] ---[ end trace 19f70173fca0a2aa ]---
+[    3.246412] RIP: 0010:__hw_addr_add_ex+0xa/0xf0
+[    3.246412] Code: 10 01 49 89 5f 08 48 83 c4 08 5b 5d 41 5c 41 5d
+41 5e 41 5f c3 b8 f4 ff ff ff eb ea 0f 1f 40 00 41 57 41 56 41 55 41
+54 55 53 <48> 83 8c 10 8b 44 24 48 89 4c 24 08 44 89 04 24 44 89 4c 24
+04 89
+[    3.246412] RSP: 0000:ffff9d614002fc48 EFLAGS: 00010246
+[    3.246412] RAX: 0000000000000000 RBX: ffff975d9c17c000 RCX: 00000000000=
+00001
+[    3.246412] RDX: 0000000000000020 RSI: ffff9d614002fc88 RDI: ffff975d9c1=
+7c290
+[    3.246412] RBP: ffff975d9c17c000 R08: 0000000000000000 R09: 00000000000=
+00000
+[    3.246412] R10: ffff975d9da8ee68 R11: 00000000ffffffff R12: 00000000000=
+00008
+[    3.246412] R13: ffffffffab8ba5bc R14: 0000000000000000 R15: ffffffffaaf=
+c93d0
+[    3.246412] FS:  0000000000000000(0000) GS:ffff975d9fa80000(0000)
+knlGS:0000000000000000
+[    3.246412] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    3.246412] CR2: 00000000482444ab CR3: 0000000211c0a001 CR4: 00000000003=
+606e0
+[    3.246412] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 00000000000=
+00000
+[    3.246412] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 00000000000=
+00400
+[    3.670747] Kernel panic - not syncing: Attempted to kill init!
+exitcode=3D0x00000009
+[    3.670747]
+[    3.679456] Kernel Offset: 0x29600000 from 0xffffffff81000000
+(relocation range: 0xffffffff80000000-0xffffffffbfffffff)
+[    3.679456] ---[ end Kernel panic - not syncing: Attempted to kill
+init! exitcode=3D0x00000009
+[    3.679456]  ]---
+[    3.701024] ------------[ cut here ]------------
+[    3.702023] sched: Unexpected reschedule of offline CPU#2!
+[    3.702023] WARNING: CPU: 1 PID: 1 at arch/x86/kernel/smp.c:128
+native_smp_send_reschedule+0x2f/0x40
 
-All this model is based on the garbage collector being the one that is
-responsible to cleaning up the flowtable. If there are multiple entry
-points to add/remove entries to the flowtable, we'll end up with
-complicated locking sooner or later.
+ref:
+[1] https://lkft.validation.linaro.org/scheduler/job/1379024#L744
+[2] https://qa-reports.linaro.org/lkft/linux-stable-rc-4.19-oe/build/v4.19.=
+116-41-gdf86600ce713/testrun/1379024/
 
-Thanks.
+--=20
+Linaro LKFT
+https://lkft.linaro.org
