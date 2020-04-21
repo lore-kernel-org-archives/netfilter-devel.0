@@ -2,63 +2,56 @@ Return-Path: <SRS0=Vh4p=6F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6791FC54FD0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 10:40:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD57CC54FD0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 11:30:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 51C8E2068F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 10:40:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 861CF206D4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 11:30:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728594AbgDUKkT (ORCPT
+        id S1726691AbgDULaK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Apr 2020 06:40:19 -0400
-Received: from correo.us.es ([193.147.175.20]:52580 "EHLO mail.us.es"
+        Tue, 21 Apr 2020 07:30:10 -0400
+Received: from correo.us.es ([193.147.175.20]:38814 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728285AbgDUKkS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Apr 2020 06:40:18 -0400
+        id S1726403AbgDULaJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 Apr 2020 07:30:09 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CCF4FB6C88
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Apr 2020 12:40:16 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 49960EF42E
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Apr 2020 13:30:08 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AF4161007B4
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Apr 2020 12:40:16 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3A8CADA8E6
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Apr 2020 13:30:08 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A19C1100790; Tue, 21 Apr 2020 12:40:16 +0200 (CEST)
+        id 39CE3DA7B2; Tue, 21 Apr 2020 13:30:08 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A45C0FC54C;
-        Tue, 21 Apr 2020 12:40:14 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D200FDA8E6;
+        Tue, 21 Apr 2020 13:30:05 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 21 Apr 2020 12:40:14 +0200 (CEST)
+ Tue, 21 Apr 2020 13:30:05 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 8568C42EF42D;
-        Tue, 21 Apr 2020 12:40:14 +0200 (CEST)
-Date:   Tue, 21 Apr 2020 12:40:14 +0200
+        by entrada.int (Postfix) with ESMTPSA id B2E4B42EF42D;
+        Tue, 21 Apr 2020 13:30:05 +0200 (CEST)
+Date:   Tue, 21 Apr 2020 13:30:05 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Cc:     Maciej =?utf-8?Q?=C5=BBenczykowski?= <maze@google.com>,
-        Florian Westphal <fw@strlen.de>,
-        Linux Network Development Mailing List 
-        <netdev@vger.kernel.org>,
-        Netfilter Development Mailing List 
-        <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH] libipt_ULOG.c - include strings.h for the definition of
- ffs()
-Message-ID: <20200421104014.7xfnfphpavmy6yqg@salvia>
-References: <20200421081507.108023-1-zenczykowski@gmail.com>
+To:     Ian Pilcher <arequipeno@gmail.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: libmnl & rtnetlink questions
+Message-ID: <20200421113005.s5xrdtvu35hdoz2t@salvia>
+References: <223164bb-40f0-d1c7-3793-c56c85127f3c@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20200421081507.108023-1-zenczykowski@gmail.com>
+In-Reply-To: <223164bb-40f0-d1c7-3793-c56c85127f3c@gmail.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -66,42 +59,27 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Apr 21, 2020 at 01:15:07AM -0700, Maciej Żenczykowski wrote:
-> From: Maciej Żenczykowski <maze@google.com>
+On Mon, Apr 13, 2020 at 02:00:22PM -0500, Ian Pilcher wrote:
+> First off, please let me know if this list isn't an appropriate place
+> for these sorts of questions.
 > 
-> This resolves compiler warnings:
+> With that out of the way, I'm trying to understand the sample program
+> at:
 > 
-> extensions/libext4_srcs/gen/gensrcs/external/iptables/extensions/libipt_ULOG.c:89:32: error: implicit declaration of function 'ffs' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
->   printf(" --ulog-nlgroup %d", ffs(loginfo->nl_group));
->                                ^
-> extensions/libext4_srcs/gen/gensrcs/external/iptables/extensions/libipt_ULOG.c:105:9: error: implicit declaration of function 'ffs' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
->   ffs(loginfo->nl_group));
->   ^
+>   http://git.netfilter.org/libmnl/tree/examples/rtnl/rtnl-link-dump.c
 > 
-> Test: builds with less warnings
+> I've been able to puzzle most of it out, but I'm confused by the
+> use of the struct rtgenmsg (declared on line 88 and used on lines
+> 95-96).
+> 
+> * Based on rtnetlink(7), shouldn't this more properly be a struct
+>   ifinfomsg (even though only rtgen_family/ifi_family is set)?
 
-For the record, what compiler is triggering this? Or you use different
--W options there?
+RTM_GETLINK expects ifinfomsg, yes.
 
-I don't see these with gcc 9.3 here.
+> * More importantly, why is setting this to AF_PACKET required at all?
+>   Testing the program without setting it reveals that it definitely is
+>   required, but I haven't been able to find anything that explains *why*
+>   that is the case.
 
-> Signed-off-by: Maciej Żenczykowski <maze@google.com>
-> ---
->  extensions/libipt_ULOG.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/extensions/libipt_ULOG.c b/extensions/libipt_ULOG.c
-> index fafb220b..5163eea3 100644
-> --- a/extensions/libipt_ULOG.c
-> +++ b/extensions/libipt_ULOG.c
-> @@ -11,6 +11,7 @@
->   */
->  #include <stdio.h>
->  #include <string.h>
-> +#include <strings.h>
->  #include <xtables.h>
->  /* For 64bit kernel / 32bit userspace */
->  #include <linux/netfilter_ipv4/ipt_ULOG.h>
-> -- 
-> 2.26.1.301.g55bc3eb7cb9-goog
-> 
+Probably AF_UNSPEC is more appropriate there?
