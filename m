@@ -2,136 +2,112 @@ Return-Path: <SRS0=Vh4p=6F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90E3EC54FCC
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 00:42:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF047C54FC9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 08:15:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 722A7206E9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 00:42:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C0E652098B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 08:15:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ORDSmaz4"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UzJPXsdk"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726751AbgDUAm1 (ORCPT
+        id S1728040AbgDUIPZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 Apr 2020 20:42:27 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:51794 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726654AbgDUAm0 (ORCPT
+        Tue, 21 Apr 2020 04:15:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47230 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726013AbgDUIPY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Apr 2020 20:42:26 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1587429745;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type;
-        bh=w0NkVU3TNjEifXe3WvjLawOGXnEzBsNxlMBTVKCi8/I=;
-        b=ORDSmaz4Hq5LJFMJfa+vtCRRMEDdICpIV6hYV+0KCSCuPel5P9O71UNX9HyG71GiYn0nwo
-        mOlhHgKsRVShx0d6dgKshxvFmyy34d503XwD7J8oxZtvJnyrJEMKyvm+hhreO0JdBmqtaU
-        MV2hXmDaf5h6xo/fMhRTRAhly0xM5nE=
-Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
- [209.85.128.70]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-141-fEP0AhMWMdCcPFh_RJfYlQ-1; Mon, 20 Apr 2020 20:42:23 -0400
-X-MC-Unique: fEP0AhMWMdCcPFh_RJfYlQ-1
-Received: by mail-wm1-f70.google.com with SMTP id f128so718751wmf.8
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2020 17:42:23 -0700 (PDT)
+        Tue, 21 Apr 2020 04:15:24 -0400
+Received: from mail-pj1-x1042.google.com (mail-pj1-x1042.google.com [IPv6:2607:f8b0:4864:20::1042])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34FCEC061A0F;
+        Tue, 21 Apr 2020 01:15:23 -0700 (PDT)
+Received: by mail-pj1-x1042.google.com with SMTP id t9so1060338pjw.0;
+        Tue, 21 Apr 2020 01:15:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=zVQPuvs+ga9V2QoaefAziadkD0funnQyJCSSfTN7M/w=;
+        b=UzJPXsdk7kQ/O0ZqsPEMG8XAzUTdYzy24rrQFvvOROb2WcE2WcfmqyGy8mB4iIsOsc
+         mpG16aYxWahFsQQLGBeSJ1Zk4I1ppqH14e8F+P5yE5KGPNpivo2mhyPORYC/Wdmg4NhD
+         b93hg6KsphNylEPRtxkLywO8Dgt8Zsq21YFgaYESBzUOPjZjA/iGTD4bUYuZ5/pTcXTp
+         cfLciu9h2MQrmM0OYBHCbfDTAWA8jUXkEuGLIVHN05EeqpWnSCxaiJfwE62TQke13UH1
+         Rt9fWBR70YA7CmHuvX4z0ggXEbF2Rm5UUWZkYf43QDrace5qCk8eX7Ly/N9gG54q449b
+         S+rQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
-         :content-disposition;
-        bh=w0NkVU3TNjEifXe3WvjLawOGXnEzBsNxlMBTVKCi8/I=;
-        b=IIR5A3/+39NysDHVwnxstDseRKb8kFFgSLEFmRV+g1Qtn9s8OEP+gj3/XOKz+JqG5c
-         t1akGz5j1xB7H9IcJWm4SCnVCS/ITmr5eJ5b009U9gB2lEiECdbqNNzH/EvUNOLHBaoW
-         HbLvqSv93xkZHu5v83jLtObRFJL4tP3dmnYVnTLllwudawztqDbJJOJCDDJ59MRpS7Sv
-         RkQHo9XmZG18879HhLCcwmoKkvjjt/Hd80tMZkMz+BAF5aV+A4A+XzgNIbj1Ls192oSY
-         JqDRvXJG2gRVROhya5u6hrMthA22es27IUnGP8TYv3g0cc5bE0Rzdi4kGaALL/AsypEm
-         4flg==
-X-Gm-Message-State: AGi0PuaMMN6b7ETepRQtk465ytv3XnNQYcOmREH6o+HiNB4Wr+nhExyM
-        XaJNNqqSa37UiTcH6BKHfIxCCk6VbfZychygSOFs1DKh9QDIfp/JFhYr4L8rP+yI488CQa37+J3
-        XNkayi4R7K06pwwlNO5Q18ckbHoRu
-X-Received: by 2002:adf:e986:: with SMTP id h6mr21099176wrm.256.1587429742399;
-        Mon, 20 Apr 2020 17:42:22 -0700 (PDT)
-X-Google-Smtp-Source: APiQypJMHdAwMbl0bBkqMcuJKFNhGzWRL80tdswcBVt5e+NqmPF1FdTfYo2SLeibTLAYgxlSJRwIKg==
-X-Received: by 2002:adf:e986:: with SMTP id h6mr21099165wrm.256.1587429742144;
-        Mon, 20 Apr 2020 17:42:22 -0700 (PDT)
-Received: from pc-3.home (2a01cb0585138800b113760e11343d15.ipv6.abo.wanadoo.fr. [2a01:cb05:8513:8800:b113:760e:1134:3d15])
-        by smtp.gmail.com with ESMTPSA id q18sm1356366wmj.11.2020.04.20.17.42.21
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=zVQPuvs+ga9V2QoaefAziadkD0funnQyJCSSfTN7M/w=;
+        b=sVzw9WE9c219EuWqPu14Njv1hZ5ZWBRonh79aDt5Z5CZjz0nakMhdwOohFzMynjfrd
+         eD5DgF2LIVfRX+fnViqJb0oyZ91pKx3onMF86upkf7wypkMYM0osBWTdybWWUn5yG5mN
+         17e4kPKMpqt29L3FlK5Lc3NJR3hR+MlUrMnile39SzHJK5jnWtA+FFxnHXKtyWbJXnWt
+         EXb/wPMnjpE+FcqssTuZ5Wqf5zOgHgjgIBn25L8lbVJsgRHwpS6bIg6KWLw8BBpNiyYw
+         eDNrTH0qGsj7BBiV1iqPC3kcibkmSF704e6phaNpVLZJHBcN83o24LL/A5wt/guwR9um
+         0ieg==
+X-Gm-Message-State: AGi0PuY0qiHsDtCHuAJT2tlPvWwOztkJ8XtLf8hqrMDLVEMeZ8eAGVxH
+        wniLD3Ji7y3uPTwIz3ZtbYA=
+X-Google-Smtp-Source: APiQypKLrA+0AdFwZE5EJ//bVWYg18MOFdtsc+xTbqWSV5eP4qpA7Hec59TVcz/suj2HbSOaxU1NiQ==
+X-Received: by 2002:a17:90b:3018:: with SMTP id hg24mr4345861pjb.130.1587456922557;
+        Tue, 21 Apr 2020 01:15:22 -0700 (PDT)
+Received: from athina.mtv.corp.google.com ([2620:15c:211:0:c786:d9fd:ab91:6283])
+        by smtp.gmail.com with ESMTPSA id f99sm1731133pjg.22.2020.04.21.01.15.21
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 20 Apr 2020 17:42:21 -0700 (PDT)
-Date:   Tue, 21 Apr 2020 02:42:19 +0200
-From:   Guillaume Nault <gnault@redhat.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: [PATCH net] netfilter: nat: never update the UDP checksum when it's 0
-Message-ID: <335a95d93767f2b58ad89975e4a0b342ee00db91.1587429321.git.gnault@redhat.com>
+        Tue, 21 Apr 2020 01:15:21 -0700 (PDT)
+From:   =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <zenczykowski@gmail.com>
+To:     =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     Linux Network Development Mailing List <netdev@vger.kernel.org>,
+        Netfilter Development Mailing List 
+        <netfilter-devel@vger.kernel.org>
+Subject: [PATCH] libipt_ULOG.c - include strings.h for the definition of ffs()
+Date:   Tue, 21 Apr 2020 01:15:07 -0700
+Message-Id: <20200421081507.108023-1-zenczykowski@gmail.com>
+X-Mailer: git-send-email 2.26.1.301.g55bc3eb7cb9-goog
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If the UDP header of a local VXLAN endpoint is NAT-ed, and the VXLAN
-device has disabled UDP checksums and enabled Tx checksum offloading,
-then the skb passed to udp_manip_pkt() has hdr->check == 0 (outer
-checksum disabled) and skb->ip_summed == CHECKSUM_PARTIAL (inner packet
-checksum offloaded).
+From: Maciej Żenczykowski <maze@google.com>
 
-Because of the ->ip_summed value, udp_manip_pkt() tries to update the
-outer checksum with the new address and port, leading to an invalid
-checksum sent on the wire, as the original null checksum obviously
-didn't take the old address and port into account.
+This resolves compiler warnings:
 
-So, we can't take ->ip_summed into account in udp_manip_pkt(), as it
-might not refer to the checksum we're acting on. Instead, we can base
-the decision to update the UDP checksum entirely on the value of
-hdr->check, because it's null if and only if checksum is disabled:
+extensions/libext4_srcs/gen/gensrcs/external/iptables/extensions/libipt_ULOG.c:89:32: error: implicit declaration of function 'ffs' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+  printf(" --ulog-nlgroup %d", ffs(loginfo->nl_group));
+                               ^
+extensions/libext4_srcs/gen/gensrcs/external/iptables/extensions/libipt_ULOG.c:105:9: error: implicit declaration of function 'ffs' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+  ffs(loginfo->nl_group));
+  ^
 
-  * A fully computed checksum can't be 0, since a 0 checksum is
-    represented by the CSUM_MANGLED_0 value instead.
-
-  * A partial checksum can't be 0, since the pseudo-header always adds
-    at least one non-zero value (the UDP protocol type 0x11) and adding
-    more values to the sum can't make it wrap to 0 as the carry is then
-    added to the wrapped number.
-
-  * A disabled checksum uses the special value 0.
-
-The problem seems to be there from day one, although it was probably
-not visible before UDP tunnels were implemented.
-
-Fixes: 5b1158e909ec ("[NETFILTER]: Add NAT support for nf_conntrack")
-Signed-off-by: Guillaume Nault <gnault@redhat.com>
+Test: builds with less warnings
+Signed-off-by: Maciej Żenczykowski <maze@google.com>
 ---
- net/netfilter/nf_nat_proto.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ extensions/libipt_ULOG.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
-index 64eedc17037a..a69e6fc16296 100644
---- a/net/netfilter/nf_nat_proto.c
-+++ b/net/netfilter/nf_nat_proto.c
-@@ -68,15 +68,13 @@ static bool udp_manip_pkt(struct sk_buff *skb,
- 			  enum nf_nat_manip_type maniptype)
- {
- 	struct udphdr *hdr;
--	bool do_csum;
- 
- 	if (skb_ensure_writable(skb, hdroff + sizeof(*hdr)))
- 		return false;
- 
- 	hdr = (struct udphdr *)(skb->data + hdroff);
--	do_csum = hdr->check || skb->ip_summed == CHECKSUM_PARTIAL;
-+	__udp_manip_pkt(skb, iphdroff, hdr, tuple, maniptype, !!hdr->check);
- 
--	__udp_manip_pkt(skb, iphdroff, hdr, tuple, maniptype, do_csum);
- 	return true;
- }
- 
+diff --git a/extensions/libipt_ULOG.c b/extensions/libipt_ULOG.c
+index fafb220b..5163eea3 100644
+--- a/extensions/libipt_ULOG.c
++++ b/extensions/libipt_ULOG.c
+@@ -11,6 +11,7 @@
+  */
+ #include <stdio.h>
+ #include <string.h>
++#include <strings.h>
+ #include <xtables.h>
+ /* For 64bit kernel / 32bit userspace */
+ #include <linux/netfilter_ipv4/ipt_ULOG.h>
 -- 
-2.21.1
+2.26.1.301.g55bc3eb7cb9-goog
 
