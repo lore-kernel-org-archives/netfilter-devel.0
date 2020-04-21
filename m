@@ -2,135 +2,79 @@ Return-Path: <SRS0=Vh4p=6F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBF31C54FC9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 13:14:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 929E5C54FC9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 14:02:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C3AC62076C
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 13:14:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 694FA206F4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 14:02:06 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=kroah.com header.i=@kroah.com header.b="cKWjnJNr";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="4P15AjXz"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="alUQ643Z"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728841AbgDUNOg (ORCPT
+        id S1728956AbgDUOCF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Apr 2020 09:14:36 -0400
-Received: from out5-smtp.messagingengine.com ([66.111.4.29]:33463 "EHLO
-        out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726780AbgDUNOg (ORCPT
+        Tue, 21 Apr 2020 10:02:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44378 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728712AbgDUOCE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Apr 2020 09:14:36 -0400
-Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
-        by mailout.nyi.internal (Postfix) with ESMTP id A0A285C018D;
-        Tue, 21 Apr 2020 09:14:34 -0400 (EDT)
-Received: from mailfrontend2 ([10.202.2.163])
-  by compute1.internal (MEProxy); Tue, 21 Apr 2020 09:14:34 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kroah.com; h=
-        date:from:to:cc:subject:message-id:references:mime-version
-        :content-type:in-reply-to; s=fm3; bh=zycOR+6bwJZ4JHSqR6NX+uiN3Tw
-        /gGPTY7r2R6DKCBw=; b=cKWjnJNrRwmj77Rinqy5MmebASJv6OyeEPlnrRQl+p3
-        G9JvXjDqrzf1tZ/3O4Ic2p4JpeE9+Cwr1ZWdzRZJBITdh9Ui9l/OY4u7q+Dm3U89
-        nBBJMAFU0vRVbSTrzRbR9rqbeyl5pn3/B9wv0NdEvL9BDZB3o8Dy5ErjGjI3jJXa
-        n1RKTgh64lWaMDLuWYizBr3ShEsctDePpkj+KHt+WnNs0xo7ecg+kHiNcgbADhDf
-        W7m+01HpvXrJYmSFYeVRnWbjPyq7lea6naMsl7vjqA4cfx2PTb5nc2tZuTkz17xn
-        xT4+Ct2l79UvVyuElyRsgTgvOu34ZYeewRSYM9KbUwg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-type:date:from:in-reply-to
-        :message-id:mime-version:references:subject:to:x-me-proxy
-        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; bh=zycOR+
-        6bwJZ4JHSqR6NX+uiN3Tw/gGPTY7r2R6DKCBw=; b=4P15AjXzP6+3Vg8BvUAboo
-        dRYlSfXBPfdaBwPEY+QKBhLBlsMYOAOc50Q402RqxhEmrrnolZRSJaIzUzMjpU3o
-        4Kh2dAinou8YVMqmAreOLJufb2V/f/+mPkg6CZh055FywUikeWh1F7OwAkYetPp5
-        DcMV15QxW+cQLe9YxbQ10W9VUiRWCl7UCrpI0oT8XxEdV9S0ZJMZQqclzwd6+PzM
-        vWlQf3MJNE21ldXZUdC/p1D0bkzUyq4sjtcMaS0I4LhjbOqRreGYGkJVHTWzevzn
-        svoJLAC5R2EzL5/d9ULy1OVpRTvu2oA8AYmSxKg6sdIoy4tyqcZ6JmLoIOQlGBZQ
-        ==
-X-ME-Sender: <xms:ufGeXsNgwLibxkBMiItC1pgLrc_HMaGVsmZAWJp-HfizbnH2Ji3aUg>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeduhedrgeehgdeitdcutefuodetggdotefrodftvf
-    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
-    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
-    fjughrpeffhffvuffkfhggtggujgesthdtredttddtvdenucfhrhhomhepifhrvghgucfm
-    jfcuoehgrhgvgheskhhrohgrhhdrtghomheqnecukfhppeekfedrkeeirdekledruddtje
-    enucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehgrhgv
-    gheskhhrohgrhhdrtghomh
-X-ME-Proxy: <xmx:ufGeXjvDcsn9MyfggEELC2s8TcZ8GbTJ8-ftSQws3A1wS5B0RXyDwQ>
-    <xmx:ufGeXnFhnZmsVAWRq2CAPj830ZPNIhgIQkShXsWZ7mI_OviAAGYJOg>
-    <xmx:ufGeXmSx0_me1dYA5FsUcEwYunKSVW89YauQ9r3EE1nZRgwBL-Bqog>
-    <xmx:uvGeXn6bNMRg48tAFBjfXpxN8ksNoyy72wvR8kiQNyBqa0n185eddQ>
-Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
-        by mail.messagingengine.com (Postfix) with ESMTPA id 16FA73065C82;
-        Tue, 21 Apr 2020 09:14:32 -0400 (EDT)
-Date:   Tue, 21 Apr 2020 15:14:31 +0200
-From:   Greg KH <greg@kroah.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Sasha Levin <sashal@kernel.org>,
-        Stefano Brivio <sbrivio@redhat.com>,
-        linux-kernel@vger.kernel.org, stable@vger.kernel.org,
-        Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org
-Subject: Re: [PATCH AUTOSEL 5.5 27/35] netfilter: nf_tables: Allow set
- back-ends to report partial overlaps on insertion
-Message-ID: <20200421131431.GA793882@kroah.com>
-References: <20200407000058.16423-1-sashal@kernel.org>
- <20200407000058.16423-27-sashal@kernel.org>
- <20200407021848.626df832@redhat.com>
- <20200413163900.GO27528@sasha-vm>
- <20200413223858.17b0f487@redhat.com>
- <20200414150840.GD1068@sasha-vm>
- <20200421113221.rvh3jkjet32m6ng4@salvia>
+        Tue, 21 Apr 2020 10:02:04 -0400
+Received: from mail-ua1-x943.google.com (mail-ua1-x943.google.com [IPv6:2607:f8b0:4864:20::943])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8CD1DC061A41
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Apr 2020 07:02:04 -0700 (PDT)
+Received: by mail-ua1-x943.google.com with SMTP id t8so5091728uap.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Apr 2020 07:02:04 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=WqbOxN61nXB5zGZBDuS82MIDt45zl7XVaPZW7hxj7QI=;
+        b=alUQ643Z4imji3zmf/asSffqA7DEw4Gzjbmw6guiXI+6JedofV7AD/07MgoKS+1Ajt
+         pK4ZC2esqTdkuaR9LVwWe8ApMT0VYz2W5cAdOHtDASKM0/odnqvGjG0ebRyyI4eu14Pc
+         yZLPVVzaqV4zZU5OR5RJWaybeLRPWs0RZGjAErhIF/Sj/9c/lkLhO9IqN7S+UCPc+z5S
+         8pX8VCuo/lpHTg49MSHg+WrHy5B67/zoTObaXo/mV9zDVVA964xNYlZEktBlB8CCe+HU
+         Q6a/zmePfZuIIKeWWJrlb/VAGuxwNKQxwCQjpww/JsSdqmm7AHjoKtpRN+G/+0BWNDah
+         iuKw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=WqbOxN61nXB5zGZBDuS82MIDt45zl7XVaPZW7hxj7QI=;
+        b=IpBEkFwleIvlgK2japO42y0LI0voIzptuDAbs8eXym5Yar+b86894vwYMeDq48JVTG
+         ahfdw/+C/Bo7sX6tqPBqwU/CvFL0p6NjA839di7cIp9wV4hcm76cRDvXVNM2PK/H9oEL
+         KmhLtwij1HzZwCQ1AcDPK1pq02ky908hK+igpKea3U40/cXe1/oFbWzOkRRClSQK3AqA
+         +otKEUDQmqE4RAQN4CPs7KjRQvDnbN2ac99Pv6uDKeq6U/A7iEbnbIuqcLastnNEj8MO
+         092XgWea13m3cAksp2URIo0VSCYITnushJ9o5o09BJ7/02YtmWiffRzr8myXCebd7AYG
+         nPgg==
+X-Gm-Message-State: AGi0PuaP3S+X6mwCH8RXRVtfo3057Bglo2VyNL3Gp/JHnRXAS9mcLUM3
+        r7+Ug/DRRj1sMonG5tAGVHPsfUmjEBES9Qz3cpqIJXkzGzo=
+X-Google-Smtp-Source: APiQypLUGMaSG3mKjGwHFHhUsuvQLIAFiKnW1vQF6fSXPA0+ub7aXz7eQosw7YjrHEXnv/M5S4A4QNOCLICLT6RJu5Y=
+X-Received: by 2002:a9f:3765:: with SMTP id a34mr12073609uae.134.1587477722865;
+ Tue, 21 Apr 2020 07:02:02 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200421113221.rvh3jkjet32m6ng4@salvia>
+References: <20200421081507.108023-1-zenczykowski@gmail.com> <20200421104014.7xfnfphpavmy6yqg@salvia>
+In-Reply-To: <20200421104014.7xfnfphpavmy6yqg@salvia>
+From:   =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Date:   Tue, 21 Apr 2020 07:01:50 -0700
+Message-ID: <CANP3RGfBtFhP8ESVprekuGB-664RHoSYC50mHEKYZwosfHHLxA@mail.gmail.com>
+Subject: Re: [PATCH] libipt_ULOG.c - include strings.h for the definition of ffs()
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Linux Network Development Mailing List 
+        <netdev@vger.kernel.org>,
+        Netfilter Development Mailing List 
+        <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Apr 21, 2020 at 01:32:21PM +0200, Pablo Neira Ayuso wrote:
-> Hi Sasha,
-> 
-> On Tue, Apr 14, 2020 at 11:08:40AM -0400, Sasha Levin wrote:
-> > On Mon, Apr 13, 2020 at 10:38:58PM +0200, Stefano Brivio wrote:
-> > > On Mon, 13 Apr 2020 12:39:00 -0400
-> > > Sasha Levin <sashal@kernel.org> wrote:
-> > > 
-> > > > On Tue, Apr 07, 2020 at 02:18:48AM +0200, Stefano Brivio wrote:
-> > > > 
-> > > > >I'm used to not Cc: stable on networking patches (Dave's net.git),
-> > > > >but I guess I should instead if they go through nf.git (Pablo's tree),
-> > > > >right?
-> > > > 
-> > > > Yup, this confusion has caused for quite a few netfilter fixes to not
-> > > > land in -stable. If it goes through Pablo's tree (and unless he intructs
-> > > > otherwise), you should Cc stable.
-> > > 
-> > > Hah, thanks for clarifying.
-> > > 
-> > > What do you think I should do specifically with 72239f2795fa
-> > > ("netfilter: nft_set_rbtree: Drop spurious condition for overlap detection
-> > > on insertion")?
-> > > 
-> > > I haven't Cc'ed stable on that one. Can I expect AUTOSEL to pick it up
-> > > anyway?
-> > 
-> > I'll make sure it gets queued up when it hits Linus's tree :)
-> 
-> 5.6.6 is out and this fix is still not included...
-> 
-> Would you please enqueue...
-> 
-> commit 72239f2795fab9a58633bd0399698ff7581534a3
-> Author: Stefano Brivio <sbrivio@redhat.com>
-> Date:   Wed Apr 1 17:14:38 2020 +0200
-> 
->     netfilter: nft_set_rbtree: Drop spurious condition for overlap detection on insertion
-> 
-> for 5.6.x -stable ?
-
-Now queued up, thanks.
-
-greg k-h
+Must be some version of clang - presumably with
+-Wimplicit-function-declaration turned on.
+I'm honestly not sure quite how to check, but it is whatever is the
+default in aosp on master.
