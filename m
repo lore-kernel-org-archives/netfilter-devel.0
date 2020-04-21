@@ -2,134 +2,125 @@ Return-Path: <SRS0=Vh4p=6F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FE99C54FCC
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 15:05:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07561C54FD0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 15:15:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 63940206D6
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 15:05:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DBD7F2068F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 15:15:26 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="fowo7rlg"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728479AbgDUPFv (ORCPT
+        id S1726160AbgDUPP0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Apr 2020 11:05:51 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:59875 "EHLO
-        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726628AbgDUPFu (ORCPT
+        Tue, 21 Apr 2020 11:15:26 -0400
+Received: from us-smtp-1.mimecast.com ([207.211.31.81]:33742 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725902AbgDUPPZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Apr 2020 11:05:50 -0400
-Received: from Internal Mail-Server by MTLPINE2 (envelope-from bodong@mellanox.com)
-        with ESMTPS (AES256-SHA encrypted); 21 Apr 2020 18:05:47 +0300
-Received: from sw-mtx-017.mtx.labs.mlnx. (sw-mtx-017.mtx.labs.mlnx [10.9.150.103])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 03LF5kvN007815;
-        Tue, 21 Apr 2020 18:05:46 +0300
-From:   Bodong Wang <bodong@mellanox.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     pablo@netfilter.org, ozsh@mellanox.com, paulb@mellanox.com,
-        Bodong Wang <bodong@mellanox.com>
-Subject: [nf-next V2] netfilter: nf_conntrack, add IPS_HW_OFFLOAD status bit
-Date:   Tue, 21 Apr 2020 10:04:16 -0500
-Message-Id: <20200421150416.19151-1-bodong@mellanox.com>
-X-Mailer: git-send-email 2.21.1
+        Tue, 21 Apr 2020 11:15:25 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1587482122;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=04PEf90F+6uRCyLy6Mn+cR2kwE1/6Z45D9X5YBg8bFQ=;
+        b=fowo7rlgT/3BwDzvqx/naU8klQWhy74/XWAyClQVYuPMmUmSWTsT3z/MInz9hMIRynpgaB
+        SALvRiKRoZlOOv+k15vDEhFgRj8jNQfHdTfigzaN67F8anpnqPedWL4oIRbcyOFdogdqY3
+        BUc7RVHhv0V2zZZQXVVPvyrb8T6uY70=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-349-DnTW3m3TOnWJI0bXu-clzw-1; Tue, 21 Apr 2020 11:15:14 -0400
+X-MC-Unique: DnTW3m3TOnWJI0bXu-clzw-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id E5A2218FE867;
+        Tue, 21 Apr 2020 15:15:11 +0000 (UTC)
+Received: from x2.localnet (ovpn-113-195.phx2.redhat.com [10.3.113.195])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 2781376E92;
+        Tue, 21 Apr 2020 15:15:04 +0000 (UTC)
+From:   Steve Grubb <sgrubb@redhat.com>
+To:     linux-audit@redhat.com
+Cc:     Paul Moore <paul@paul-moore.com>,
+        Richard Guy Briggs <rgb@redhat.com>, fw@strlen.de,
+        LKML <linux-kernel@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
+        twoerner@redhat.com, Eric Paris <eparis@parisplace.org>,
+        tgraf@infradead.org
+Subject: Re: [PATCH ghak25 v3 3/3] audit: add subj creds to NETFILTER_CFG record to cover async unregister
+Date:   Tue, 21 Apr 2020 11:15:02 -0400
+Message-ID: <2156032.xcGZvdN1jG@x2>
+Organization: Red Hat
+In-Reply-To: <CAHC9VhSbbjFbF0A_-saquZ8B85XaF7SWD2e1QcWsXhFSQrUAbQ@mail.gmail.com>
+References: <cover.1584480281.git.rgb@redhat.com> <20200318213327.ow22q6nnjn3ijq6v@madcap2.tricolour.ca> <CAHC9VhSbbjFbF0A_-saquZ8B85XaF7SWD2e1QcWsXhFSQrUAbQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This bit indicates that the conntrack entry is offloaded to hardware
-flow table. nf_conntrack entry will be tagged with [HW_OFFLOAD] if
-it's offload to hardware.
+On Friday, April 17, 2020 5:53:47 PM EDT Paul Moore wrote:
+> On Wed, Mar 18, 2020 at 5:33 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > On 2020-03-18 17:22, Paul Moore wrote:
+> > > On Wed, Mar 18, 2020 at 9:12 AM Richard Guy Briggs <rgb@redhat.com> 
+wrote:
+> > > > On 2020-03-17 17:30, Richard Guy Briggs wrote:
+> > > > > Some table unregister actions seem to be initiated by the kernel to
+> > > > > garbage collect unused tables that are not initiated by any
+> > > > > userspace actions.  It was found to be necessary to add the subject
+> > > > > credentials to cover this case to reveal the source of these
+> > > > > actions.  A sample record:
+> > > > >   type=NETFILTER_CFG msg=audit(2020-03-11 21:25:21.491:269) :
+> > > > >   table=nat family=bridge entries=0 op=unregister pid=153 uid=root
+> > > > >   auid=unset tty=(none) ses=unset
+> > > > >   subj=system_u:system_r:kernel_t:s0 comm=kworker/u4:2 exe=(null)
 
-cat /proc/net/nf_conntrack
-	ipv4 2 tcp 6 \
-	src=1.1.1.17 dst=1.1.1.16 sport=56394 dport=5001 \
-	src=1.1.1.16 dst=1.1.1.17 sport=5001 dport=56394 [HW_OFFLOAD] \
-	mark=0 zone=0 use=3
+If this is the kernel, why is pid not 0? And if pid is 0, then isn't 
+exe=/boot/vmlinuz-X.Y.Z-blah?
 
-Note that HW_OFFLOAD/OFFLOAD/ASSURED are mutually exclusive.
+> > > > Given the precedent set by bpf unload, I'd really rather drop this
+> > > > patch that adds subject credentials.
 
-Changelog:
+<snip> 
 
-* V1->V2:
-- Remove check of lastused from stats. It was meant for cases such
-  as removing driver module while traffic still running. Better to
-  handle such cases from garbage collector.
+> I'm in the middle of building patches 1/3 and 2/3, assuming all goes
+> well I'll merge them into audit/next (expect mail soon), however I'm
+> going back and forth on this patch.  Like you I kinda don't like it,
+> and with both of us not in love with this patch I have to ask if there
+> is certification requirement for this?
 
-Signed-off-by: Bodong Wang <bodong@mellanox.com>
-Reviewed-by: Oz Shlomo <ozsh@mellanox.com>
-Reviewed-by: Paul Blakey <paulb@mellanox.com>
----
- include/uapi/linux/netfilter/nf_conntrack_common.h | 8 ++++++--
- net/netfilter/nf_conntrack_standalone.c            | 4 +++-
- net/netfilter/nf_flow_table_offload.c              | 3 +++
- 3 files changed, 12 insertions(+), 3 deletions(-)
+Yes, any change to information flow must be auditable.
 
-diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
-index b6f0bb1dc799..4b3395082d15 100644
---- a/include/uapi/linux/netfilter/nf_conntrack_common.h
-+++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
-@@ -114,15 +114,19 @@ enum ip_conntrack_status {
- 	IPS_OFFLOAD_BIT = 14,
- 	IPS_OFFLOAD = (1 << IPS_OFFLOAD_BIT),
- 
-+	/* Conntrack has been offloaded to hardware. */
-+	IPS_HW_OFFLOAD_BIT = 15,
-+	IPS_HW_OFFLOAD = (1 << IPS_HW_OFFLOAD_BIT),
-+
- 	/* Be careful here, modifying these bits can make things messy,
- 	 * so don't let users modify them directly.
- 	 */
- 	IPS_UNCHANGEABLE_MASK = (IPS_NAT_DONE_MASK | IPS_NAT_MASK |
- 				 IPS_EXPECTED | IPS_CONFIRMED | IPS_DYING |
- 				 IPS_SEQ_ADJUST | IPS_TEMPLATE | IPS_UNTRACKED |
--				 IPS_OFFLOAD),
-+				 IPS_OFFLOAD | IPS_HW_OFFLOAD),
- 
--	__IPS_MAX_BIT = 15,
-+	__IPS_MAX_BIT = 16,
- };
- 
- /* Connection tracking event types */
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 9b57330c81f8..5a3e6c43ee68 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -348,7 +348,9 @@ static int ct_seq_show(struct seq_file *s, void *v)
- 	if (seq_print_acct(s, ct, IP_CT_DIR_REPLY))
- 		goto release;
- 
--	if (test_bit(IPS_OFFLOAD_BIT, &ct->status))
-+	if (test_bit(IPS_HW_OFFLOAD_BIT, &ct->status))
-+		seq_puts(s, "[HW_OFFLOAD] ");
-+	else if (test_bit(IPS_OFFLOAD_BIT, &ct->status))
- 		seq_puts(s, "[OFFLOAD] ");
- 	else if (test_bit(IPS_ASSURED_BIT, &ct->status))
- 		seq_puts(s, "[ASSURED] ");
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index e3b099c14eff..a2abb0feab7f 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -754,12 +754,15 @@ static void flow_offload_work_add(struct flow_offload_work *offload)
- 	err = flow_offload_rule_add(offload, flow_rule);
- 	if (err < 0)
- 		set_bit(NF_FLOW_HW_REFRESH, &offload->flow->flags);
-+	else
-+		set_bit(IPS_HW_OFFLOAD_BIT, &offload->flow->ct->status);
- 
- 	nf_flow_offload_destroy(flow_rule);
- }
- 
- static void flow_offload_work_del(struct flow_offload_work *offload)
- {
-+	clear_bit(IPS_HW_OFFLOAD_BIT, &offload->flow->ct->status);
- 	flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_ORIGINAL);
- 	flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_REPLY);
- 	set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
--- 
-2.21.1
+> I know about the generic
+> subj/obj requirements, but in the case where there is no associated
+> task/syscall/etc. information it isn't like the extra fields supplied
+> in this patch are going to have much information in that regard; it's
+> really the *absence* of that information which is telling.
+
+Exactly. But if someone does a search based on the fields, they need to be 
+able to find this record. For example, suppose I want to know what actions 
+have been performed by kernel_t, I can run a  search and find this event. 
+
+> Which brings me to wonder if simply the lack of any associated records in
+> this event is enough?  Before when we weren't associating records into
+> a single event it would have been a problem, but the way things
+> currently are, if there are no other records (and you have configured
+> that) then I think you have everything you need to know.
+> 
+> Thoughts?
+
+You can't search on the absense of information. There are some fields that 
+have meaning. It's OK if they are unset. It happens for daemons, too. But we 
+don't remove the fields because of it. It tells part of the story.
+
+-Steve
+
 
