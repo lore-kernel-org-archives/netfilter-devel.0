@@ -2,143 +2,103 @@ Return-Path: <SRS0=Vh4p=6F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 144CBC55181
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 09:06:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AE94C55181
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 09:45:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E9A4421927
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 09:06:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B8872087E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 09:45:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="lwOuVjZv"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="uFlVqQto"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726628AbgDUJGX (ORCPT
+        id S1728327AbgDUJpU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Apr 2020 05:06:23 -0400
-Received: from mail-eopbgr50060.outbound.protection.outlook.com ([40.107.5.60]:41868
-        "EHLO EUR03-VE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726095AbgDUJGW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Apr 2020 05:06:22 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=QcsyIaFKlqw9Xd3/fXr4LF975VmyJnuMPFK5O/CGP0F+ydKAaUsXcCPRESzsAkR725J8T/RyAlbBC9RmxhKrDRo8KEJxU0Ubt6zg2oDP33c/Hl+TT/7drNXPTE9q6fmAQD//SV1HwviWXF3ngwsf6l0J0vUCOY8mq3spvaVbE5aYqQL56Oq9x8h+YvtqgxUFsE6ayMr2XkK5mqOgF7UeyG1pJKiY5Qwa46MC290WY6UkyCdDZpbsuJn/+1NAhW/P1XTcrfuqla5J6rwC4+h+PYCVK7/eBh2ArYDej5hOlPils3283a4Kzn/6mnLouEySOas50GLff+4P8z0avs/V9g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=yIT17Gf7Q8zzxv8UrVSaLcMOGIL1dm1JNssvL9Lz6PA=;
- b=ISMFo+wO0nnesb/fhUl5X9CsUrehoUhN/7yC/j0VbaUI/2qHJvWwu47oxzbjHBs7upbjqyINj84Ujxir21d4TW/Bwgt7rt5AZMrkc7zyFc8XaEFjXPgaYbXjgvn90rpVavdgP09Lkw+p/sxOn4ppnrKsMr74G1GPjoMJf+9fV7qtjHal7P+145zZtT8YIN9HZDk5DViUO+FoIe8P7ZXOK6Fe3fTacr2UhCEmHnPUr7KxW4jxSDF83bWr+Ts93ap5g7M8v2P7TbyRYsCYHOJSAhT6H1oSue0whMDsUHIENYL1MVdBWc0mYvlr2iSg8f7Om0+BfvtNxSOM2wJjAaB24w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
- dkim=pass header.d=mellanox.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=yIT17Gf7Q8zzxv8UrVSaLcMOGIL1dm1JNssvL9Lz6PA=;
- b=lwOuVjZvgT2vfTqC0cweLg9N7Ex0ePGrahm0cd5dOVZRtLLhBFBNMZacb3MyPvZmZuQsYBrwVzK8Xjye6jcvQ0Z9hZsgiDtxXYG96InZ2WbFKLyTTI3e6hMXUTgGR4KJmTGSLNr8tTSQw+mrG66FqIKS/6geJtJsxX5Ym03Yv/Y=
-Authentication-Results: spf=none (sender IP is )
- smtp.mailfrom=roid@mellanox.com; 
-Received: from DB7PR05MB4156.eurprd05.prod.outlook.com (2603:10a6:5:18::21) by
- DB7PR05MB4155.eurprd05.prod.outlook.com (2603:10a6:5:1a::15) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2921.29; Tue, 21 Apr 2020 09:06:13 +0000
-Received: from DB7PR05MB4156.eurprd05.prod.outlook.com
- ([fe80::d12b:b2d7:95a0:8088]) by DB7PR05MB4156.eurprd05.prod.outlook.com
- ([fe80::d12b:b2d7:95a0:8088%7]) with mapi id 15.20.2921.027; Tue, 21 Apr 2020
- 09:06:13 +0000
-Subject: Re: [PATCH net-next] net/sched: act_ct: update nf_conn_acct for
- act_ct SW offload in flowtable
-To:     wenxu@ucloud.cn, paulb@mellanox.com
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-References: <1587426943-31009-1-git-send-email-wenxu@ucloud.cn>
-From:   Roi Dayan <roid@mellanox.com>
-Message-ID: <0ed8b020-611f-525d-0c2b-7f15785cb50b@mellanox.com>
-Date:   Tue, 21 Apr 2020 12:06:09 +0300
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.7.0
-In-Reply-To: <1587426943-31009-1-git-send-email-wenxu@ucloud.cn>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: AM3PR07CA0124.eurprd07.prod.outlook.com
- (2603:10a6:207:7::34) To DB7PR05MB4156.eurprd05.prod.outlook.com
- (2603:10a6:5:18::21)
+        Tue, 21 Apr 2020 05:45:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32912 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728162AbgDUJpU (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 Apr 2020 05:45:20 -0400
+Received: from mail-pj1-x1042.google.com (mail-pj1-x1042.google.com [IPv6:2607:f8b0:4864:20::1042])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B268C061A0F;
+        Tue, 21 Apr 2020 02:45:20 -0700 (PDT)
+Received: by mail-pj1-x1042.google.com with SMTP id e6so1135134pjt.4;
+        Tue, 21 Apr 2020 02:45:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=63dlfBrKorbJ+FwMRBgb43Uw19Cb7qy/VHJKu/L+1jo=;
+        b=uFlVqQtoMEXJofyar5xlWMsXKHPaJ5IfFs1bYkDAcMygct54MuFIdYvTaMEeMHT7V6
+         qO9KUHelwHwrNa9DZB7zmgbDsdHklLam9Aa6vUM3xO6IAGV18W2ZPGJTuWPKobjHOAAI
+         cMzmwoVoBB0jFKxKWco38VVC9A2DHYqMmwrtG8FlUtKWRqdQTj4Sc5P+DmuzV0CSsE3v
+         wxQnjixIdgU3ohCMAx8rXVONsR6S6zBkGG88X7SgNHTMpdEY4ccuJRdZNAI+8jR69z1g
+         sofJh1oVbnN6SsGRbUGva33uN3ZC0z95Q3aR22bjjl4LoQpsxoojRCvXqP2Z+NiSkmTs
+         4VJg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=63dlfBrKorbJ+FwMRBgb43Uw19Cb7qy/VHJKu/L+1jo=;
+        b=lA5f4xHTKC+TWvkAIoBmM7aHzCyGPUn9N9SeCljAjWos9FLm9zl2Cx5ksLXrFCP5Qu
+         hglzPYKqtvausF9q7AGRC1nDSr0cy/DhH9Yw2oSiwFBueAsHmNQ6HImHvgJPtFIq0w6a
+         I838hDS3aDEobC0vrsUZHEUchowgq2S8H1kamabWNb3O3/6UivywrjWHvao5HzfTVlYD
+         OPq+SMKTNXi15vzrXAJVVqRlfyNJlHNxYqntG9ksVvuTph+/gt6nnT1C+6xTHBqxwyQy
+         Z4k3jJOQtGd3GRzAgLIaW0yTpocO51P28JfvGlSZZdWqRQczk1MDb9VJLXfXUEi4CR5S
+         dotw==
+X-Gm-Message-State: AGi0PubUfrKZwPEiFZloxhctb2SFLb7m6DMOX3h/B9EUiBboXgXTMGUS
+        PC/VwmUBccCZGYfrAqn0Y3Q=
+X-Google-Smtp-Source: APiQypL1xj4xNKUg43U4SUtQmw/Hr5BuApYChUbtuQ+3RFQkN1ofC5PbpmqT7rJtDVB10m+n0FOlBQ==
+X-Received: by 2002:a17:90a:8994:: with SMTP id v20mr4669161pjn.76.1587462319819;
+        Tue, 21 Apr 2020 02:45:19 -0700 (PDT)
+Received: from athina.mtv.corp.google.com ([2620:15c:211:0:c786:d9fd:ab91:6283])
+        by smtp.gmail.com with ESMTPSA id h193sm1966886pfe.30.2020.04.21.02.45.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 21 Apr 2020 02:45:19 -0700 (PDT)
+From:   =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <zenczykowski@gmail.com>
+To:     =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     Linux Network Development Mailing List <netdev@vger.kernel.org>,
+        Netfilter Development Mailing List 
+        <netfilter-devel@vger.kernel.org>
+Subject: [PATCH] libxt_IDLETIMER.c - fix target v1 help alignment and doc
+Date:   Tue, 21 Apr 2020 02:45:10 -0700
+Message-Id: <20200421094510.126375-1-zenczykowski@gmail.com>
+X-Mailer: git-send-email 2.26.1.301.g55bc3eb7cb9-goog
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from [192.168.1.170] (176.231.113.172) by AM3PR07CA0124.eurprd07.prod.outlook.com (2603:10a6:207:7::34) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2937.5 via Frontend Transport; Tue, 21 Apr 2020 09:06:11 +0000
-X-Originating-IP: [176.231.113.172]
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: c8bd078d-685f-45c3-d1f4-08d7e5d33d8c
-X-MS-TrafficTypeDiagnostic: DB7PR05MB4155:|DB7PR05MB4155:
-X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <DB7PR05MB415550E4EBEA5FCE2854F5FDB5D50@DB7PR05MB4155.eurprd05.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:2803;
-X-Forefront-PRVS: 038002787A
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DB7PR05MB4156.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(10009020)(4636009)(366004)(136003)(376002)(39860400002)(396003)(346002)(4326008)(8676002)(16526019)(186003)(8936002)(6486002)(66556008)(2906002)(66476007)(6636002)(5660300002)(66946007)(81156014)(31686004)(478600001)(36756003)(31696002)(53546011)(26005)(956004)(16576012)(52116002)(316002)(86362001)(2616005)(15650500001);DIR:OUT;SFP:1101;
-Received-SPF: None (protection.outlook.com: mellanox.com does not designate
- permitted sender hosts)
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: sONcP/ban0EnSG1jt+lbM82KJdfq9vnDeRrpOu1+aeC4iY5ZS5wn9HdeE7co0WYkw4augPYY9giEXXG1KN7MBWqPzg5jMwhJ8+VfehSXubPrcqKlXKlVwkqFi2zs7IPtARsioRgrd8xBGX/NABOyD/di3g78rVd+6JGurY4uj5duRAXDfnVmryR9sJY7cNbhJ0Acl7fNJRbZLBqmJcPKB/Zd0bhbMmpxIu7OLc7t6UG6060o1FOf0p28FNjr/VLL1HUqzEI3+4EYfQyjnb0pn7OUsqfm4NICqcpwFAXbFIiJxpTFq3AY4S0s/zsxTaIcTcjmqvwWwhOWpn6321EwBNpBI3oS4f/FHYvlUXMnexUVpr7SvjIG7IgEotA7cFGezMI6Km9sD0P8jxiOI3NS9p8woENqNvDExp+UoPwSZWY5ioQ4HuJIOXtUHgjif5iI
-X-MS-Exchange-AntiSpam-MessageData: WHK/oE7uW/PRAt/95zsVHWLJLeT3bJUjEkykHF6aOoveBJV859NAeCuvOoQsts3BjY9vJhfC8KW9vp0YfxG5MI/NAPoWZkwViA4hDZzqMTdNcn7A/R5QDAAEL+J/6V3JIIXlmpmJY+DewcB2Lm2fuw==
-X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c8bd078d-685f-45c3-d1f4-08d7e5d33d8c
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Apr 2020 09:06:13.1952
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Ktf7urhstJPHGwVUONuGWQIjigZ0ISodobsvW0TGY9kUMgbIQ9Jd8+JJ+bF2QSna5peA0PebATNFgDcOqspu9w==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB7PR05MB4155
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+From: Maciej Żenczykowski <maze@google.com>
 
+Signed-off-by: Maciej Żenczykowski <maze@google.com>
+---
+ extensions/libxt_IDLETIMER.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On 2020-04-21 2:55 AM, wenxu@ucloud.cn wrote:
-> From: wenxu <wenxu@ucloud.cn>
-> 
-> When the act_ct SW offload in flowtable, The counter of the conntrack
-> entry will never update. So update the nf_conn_acct conuter in act_ct
-> flowtable software offload.
-> 
-> Signed-off-by: wenxu <wenxu@ucloud.cn>
-> ---
->  net/sched/act_ct.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
-> index 1a76639..9adff83 100644
-> --- a/net/sched/act_ct.c
-> +++ b/net/sched/act_ct.c
-> @@ -30,6 +30,7 @@
->  #include <net/netfilter/nf_conntrack_core.h>
->  #include <net/netfilter/nf_conntrack_zones.h>
->  #include <net/netfilter/nf_conntrack_helper.h>
-> +#include <net/netfilter/nf_conntrack_acct.h>
->  #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
->  #include <uapi/linux/netfilter/nf_nat.h>
->  
-> @@ -536,6 +537,7 @@ static bool tcf_ct_flow_table_lookup(struct tcf_ct_params *p,
->  	flow_offload_refresh(nf_ft, flow);
->  	nf_conntrack_get(&ct->ct_general);
->  	nf_ct_set(skb, ct, ctinfo);
-> +	nf_ct_acct_update(ct, dir, skb->len);
->  
->  	return true;
->  }
-> 
+diff --git a/extensions/libxt_IDLETIMER.c b/extensions/libxt_IDLETIMER.c
+index 68b223f4..216b6257 100644
+--- a/extensions/libxt_IDLETIMER.c
++++ b/extensions/libxt_IDLETIMER.c
+@@ -66,7 +66,7 @@ static void idletimer_tg_help_v1(void)
+ "IDLETIMER target options:\n"
+ " --timeout time	Timeout until the notification is sent (in seconds)\n"
+ " --label string	Unique rule identifier\n"
+-" --alarm none	    Use alarm instead of default timer\n"
++" --alarm	Use alarm instead of default timer\n"
+ "\n");
+ }
+ 
+-- 
+2.26.1.301.g55bc3eb7cb9-goog
 
-Hi wenxu,
-
-Looks good. I also tested this and verified.
-
-Thanks,
-Roi
-
-Reviewed-by: Roi Dayan <roid@mellanox.com>
