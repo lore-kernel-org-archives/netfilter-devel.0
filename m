@@ -2,65 +2,135 @@ Return-Path: <SRS0=Vh4p=6F=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B21CC54FD0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 12:35:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBF31C54FC9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 13:14:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 30D912071C
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 12:35:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C3AC62076C
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 13:14:42 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=kroah.com header.i=@kroah.com header.b="cKWjnJNr";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="4P15AjXz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728519AbgDUMfk (ORCPT
+        id S1728841AbgDUNOg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Apr 2020 08:35:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59174 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726018AbgDUMfk (ORCPT
+        Tue, 21 Apr 2020 09:14:36 -0400
+Received: from out5-smtp.messagingengine.com ([66.111.4.29]:33463 "EHLO
+        out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726780AbgDUNOg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Apr 2020 08:35:40 -0400
-X-Greylist: delayed 596 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 21 Apr 2020 05:35:40 PDT
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 690F7C061A10
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Apr 2020 05:35:40 -0700 (PDT)
-Received: from localhost ([::1]:47350 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1jQs7n-0000ax-8k; Tue, 21 Apr 2020 14:35:39 +0200
-From:   Phil Sutter <phil@nwl.cc>
+        Tue, 21 Apr 2020 09:14:36 -0400
+Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
+        by mailout.nyi.internal (Postfix) with ESMTP id A0A285C018D;
+        Tue, 21 Apr 2020 09:14:34 -0400 (EDT)
+Received: from mailfrontend2 ([10.202.2.163])
+  by compute1.internal (MEProxy); Tue, 21 Apr 2020 09:14:34 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kroah.com; h=
+        date:from:to:cc:subject:message-id:references:mime-version
+        :content-type:in-reply-to; s=fm3; bh=zycOR+6bwJZ4JHSqR6NX+uiN3Tw
+        /gGPTY7r2R6DKCBw=; b=cKWjnJNrRwmj77Rinqy5MmebASJv6OyeEPlnrRQl+p3
+        G9JvXjDqrzf1tZ/3O4Ic2p4JpeE9+Cwr1ZWdzRZJBITdh9Ui9l/OY4u7q+Dm3U89
+        nBBJMAFU0vRVbSTrzRbR9rqbeyl5pn3/B9wv0NdEvL9BDZB3o8Dy5ErjGjI3jJXa
+        n1RKTgh64lWaMDLuWYizBr3ShEsctDePpkj+KHt+WnNs0xo7ecg+kHiNcgbADhDf
+        W7m+01HpvXrJYmSFYeVRnWbjPyq7lea6naMsl7vjqA4cfx2PTb5nc2tZuTkz17xn
+        xT4+Ct2l79UvVyuElyRsgTgvOu34ZYeewRSYM9KbUwg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:content-type:date:from:in-reply-to
+        :message-id:mime-version:references:subject:to:x-me-proxy
+        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; bh=zycOR+
+        6bwJZ4JHSqR6NX+uiN3Tw/gGPTY7r2R6DKCBw=; b=4P15AjXzP6+3Vg8BvUAboo
+        dRYlSfXBPfdaBwPEY+QKBhLBlsMYOAOc50Q402RqxhEmrrnolZRSJaIzUzMjpU3o
+        4Kh2dAinou8YVMqmAreOLJufb2V/f/+mPkg6CZh055FywUikeWh1F7OwAkYetPp5
+        DcMV15QxW+cQLe9YxbQ10W9VUiRWCl7UCrpI0oT8XxEdV9S0ZJMZQqclzwd6+PzM
+        vWlQf3MJNE21ldXZUdC/p1D0bkzUyq4sjtcMaS0I4LhjbOqRreGYGkJVHTWzevzn
+        svoJLAC5R2EzL5/d9ULy1OVpRTvu2oA8AYmSxKg6sdIoy4tyqcZ6JmLoIOQlGBZQ
+        ==
+X-ME-Sender: <xms:ufGeXsNgwLibxkBMiItC1pgLrc_HMaGVsmZAWJp-HfizbnH2Ji3aUg>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeduhedrgeehgdeitdcutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
+    fjughrpeffhffvuffkfhggtggujgesthdtredttddtvdenucfhrhhomhepifhrvghgucfm
+    jfcuoehgrhgvgheskhhrohgrhhdrtghomheqnecukfhppeekfedrkeeirdekledruddtje
+    enucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehgrhgv
+    gheskhhrohgrhhdrtghomh
+X-ME-Proxy: <xmx:ufGeXjvDcsn9MyfggEELC2s8TcZ8GbTJ8-ftSQws3A1wS5B0RXyDwQ>
+    <xmx:ufGeXnFhnZmsVAWRq2CAPj830ZPNIhgIQkShXsWZ7mI_OviAAGYJOg>
+    <xmx:ufGeXmSx0_me1dYA5FsUcEwYunKSVW89YauQ9r3EE1nZRgwBL-Bqog>
+    <xmx:uvGeXn6bNMRg48tAFBjfXpxN8ksNoyy72wvR8kiQNyBqa0n185eddQ>
+Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
+        by mail.messagingengine.com (Postfix) with ESMTPA id 16FA73065C82;
+        Tue, 21 Apr 2020 09:14:32 -0400 (EDT)
+Date:   Tue, 21 Apr 2020 15:14:31 +0200
+From:   Greg KH <greg@kroah.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] xshared: Drop pointless assignment in add_param_to_argv()
-Date:   Tue, 21 Apr 2020 14:35:30 +0200
-Message-Id: <20200421123530.31231-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.25.1
+Cc:     Sasha Levin <sashal@kernel.org>,
+        Stefano Brivio <sbrivio@redhat.com>,
+        linux-kernel@vger.kernel.org, stable@vger.kernel.org,
+        Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org
+Subject: Re: [PATCH AUTOSEL 5.5 27/35] netfilter: nf_tables: Allow set
+ back-ends to report partial overlaps on insertion
+Message-ID: <20200421131431.GA793882@kroah.com>
+References: <20200407000058.16423-1-sashal@kernel.org>
+ <20200407000058.16423-27-sashal@kernel.org>
+ <20200407021848.626df832@redhat.com>
+ <20200413163900.GO27528@sasha-vm>
+ <20200413223858.17b0f487@redhat.com>
+ <20200414150840.GD1068@sasha-vm>
+ <20200421113221.rvh3jkjet32m6ng4@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200421113221.rvh3jkjet32m6ng4@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This must be a leftover from a previous cleanup.
+On Tue, Apr 21, 2020 at 01:32:21PM +0200, Pablo Neira Ayuso wrote:
+> Hi Sasha,
+> 
+> On Tue, Apr 14, 2020 at 11:08:40AM -0400, Sasha Levin wrote:
+> > On Mon, Apr 13, 2020 at 10:38:58PM +0200, Stefano Brivio wrote:
+> > > On Mon, 13 Apr 2020 12:39:00 -0400
+> > > Sasha Levin <sashal@kernel.org> wrote:
+> > > 
+> > > > On Tue, Apr 07, 2020 at 02:18:48AM +0200, Stefano Brivio wrote:
+> > > > 
+> > > > >I'm used to not Cc: stable on networking patches (Dave's net.git),
+> > > > >but I guess I should instead if they go through nf.git (Pablo's tree),
+> > > > >right?
+> > > > 
+> > > > Yup, this confusion has caused for quite a few netfilter fixes to not
+> > > > land in -stable. If it goes through Pablo's tree (and unless he intructs
+> > > > otherwise), you should Cc stable.
+> > > 
+> > > Hah, thanks for clarifying.
+> > > 
+> > > What do you think I should do specifically with 72239f2795fa
+> > > ("netfilter: nft_set_rbtree: Drop spurious condition for overlap detection
+> > > on insertion")?
+> > > 
+> > > I haven't Cc'ed stable on that one. Can I expect AUTOSEL to pick it up
+> > > anyway?
+> > 
+> > I'll make sure it gets queued up when it hits Linus's tree :)
+> 
+> 5.6.6 is out and this fix is still not included...
+> 
+> Would you please enqueue...
+> 
+> commit 72239f2795fab9a58633bd0399698ff7581534a3
+> Author: Stefano Brivio <sbrivio@redhat.com>
+> Date:   Wed Apr 1 17:14:38 2020 +0200
+> 
+>     netfilter: nft_set_rbtree: Drop spurious condition for overlap detection on insertion
+> 
+> for 5.6.x -stable ?
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/xshared.c | 1 -
- 1 file changed, 1 deletion(-)
+Now queued up, thanks.
 
-diff --git a/iptables/xshared.c b/iptables/xshared.c
-index 16c58914e59a5..c1d1371a6d54a 100644
---- a/iptables/xshared.c
-+++ b/iptables/xshared.c
-@@ -495,7 +495,6 @@ void add_param_to_argv(struct argv_store *store, char *parsestart, int line)
- 				continue;
- 			} else if (*curchar == '"') {
- 				quote_open = 0;
--				*curchar = '"';
- 			} else {
- 				add_param(&param, curchar);
- 				continue;
--- 
-2.25.1
-
+greg k-h
