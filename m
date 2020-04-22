@@ -1,139 +1,134 @@
-Return-Path: <SRS0=Vh4p=6F=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=o7qJ=6G=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62474C54FC9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 20:20:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC708C2BA19
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Apr 2020 01:37:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 450F5206B8
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Apr 2020 20:20:08 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="gDF5fzIr"
+	by mail.kernel.org (Postfix) with ESMTP id 99FFB20724
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Apr 2020 01:37:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726337AbgDUUUH (ORCPT
+        id S1726328AbgDVBhv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Apr 2020 16:20:07 -0400
-Received: from us-smtp-1.mimecast.com ([207.211.31.81]:34576 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726168AbgDUUUG (ORCPT
+        Tue, 21 Apr 2020 21:37:51 -0400
+Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:38398 "EHLO
+        mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726115AbgDVBhu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Apr 2020 16:20:06 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1587500404;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=EqwDhsb0LCzxwEp0N46fUM7Jiee3HrTDQZIAQEZpzC4=;
-        b=gDF5fzIrK7k+7JcpB/tlkyEjr3DtcrP25d4agwns+tFwpvnlkmXe27HcM49YjtO3uvsuLY
-        1SEx6FFDRJ8h4aA4tNPp4G8AIxsFHOiu5cUzAcaugWuWK+YS/GV/4Gd6ZXlYJI4dfwofRE
-        7j7q8ryaIQq/WS685Oz/HE87rACoAuE=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-391-6mw8GRbXMZaLRTiXi98PdQ-1; Tue, 21 Apr 2020 16:19:57 -0400
-X-MC-Unique: 6mw8GRbXMZaLRTiXi98PdQ-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 10F89107ACC9;
-        Tue, 21 Apr 2020 20:19:56 +0000 (UTC)
-Received: from madcap2.tricolour.ca (unknown [10.3.128.9])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 5540660BEC;
-        Tue, 21 Apr 2020 20:19:48 +0000 (UTC)
-Date:   Tue, 21 Apr 2020 16:19:45 -0400
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, twoerner@redhat.com,
-        Eric Paris <eparis@parisplace.org>, fw@strlen.de,
-        ebiederm@xmission.com, tgraf@infradead.org
-Subject: Re: [PATCH ghak25 v3 3/3] audit: add subj creds to NETFILTER_CFG
- record to cover async unregister
-Message-ID: <20200421201945.spw3ec4duusijswl@madcap2.tricolour.ca>
-References: <cover.1584480281.git.rgb@redhat.com>
- <13ef49b2f111723106d71c1bdeedae09d9b300d8.1584480281.git.rgb@redhat.com>
- <20200318131128.axyddgotzck7cit2@madcap2.tricolour.ca>
- <CAHC9VhTdLZop0eT11H4uSXRj5M=kBet=GkA8taDwGN_BVMyhrQ@mail.gmail.com>
- <20200318213327.ow22q6nnjn3ijq6v@madcap2.tricolour.ca>
- <CAHC9VhSbbjFbF0A_-saquZ8B85XaF7SWD2e1QcWsXhFSQrUAbQ@mail.gmail.com>
+        Tue, 21 Apr 2020 21:37:50 -0400
+Received: from dimstar.local.net (n175-34-64-112.sun1.vic.optusnet.com.au [175.34.64.112])
+        by mail105.syd.optusnet.com.au (Postfix) with SMTP id 527403A3E4E
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Apr 2020 11:37:47 +1000 (AEST)
+Received: (qmail 28337 invoked by uid 501); 22 Apr 2020 01:37:46 -0000
+Date:   Wed, 22 Apr 2020 11:37:46 +1000
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     Alessandro Vesely <vesely@tana.it>
+Cc:     Netfilter <netfilter@vger.kernel.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: nfnetlink: This library is not meant as a public API for
+ application developers.
+Message-ID: <20200422013746.GC30155@dimstar.local.net>
+Mail-Followup-To: Alessandro Vesely <vesely@tana.it>,
+        Netfilter <netfilter@vger.kernel.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <bcff17cd-1457-7454-e00f-22d798afd7e5@tana.it>
+ <20200412082153.GG13869@dimstar.local.net>
+ <5f066999-b830-07ba-c0f6-6ceba39c580e@tana.it>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAHC9VhSbbjFbF0A_-saquZ8B85XaF7SWD2e1QcWsXhFSQrUAbQ@mail.gmail.com>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+In-Reply-To: <5f066999-b830-07ba-c0f6-6ceba39c580e@tana.it>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.3 cv=QIgWuTDL c=1 sm=1 tr=0
+        a=keeXcwCgVCrAuxOn72dlvA==:117 a=keeXcwCgVCrAuxOn72dlvA==:17
+        a=kj9zAlcOel0A:10 a=cl8xLZFz6L8A:10 a=RSmzAf-M6YYA:10
+        a=vVwWD8INIVitEeY55IIA:9 a=CjuIK1q_8ugA:10
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-04-17 17:53, Paul Moore wrote:
-> On Wed, Mar 18, 2020 at 5:33 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > On 2020-03-18 17:22, Paul Moore wrote:
-> > > On Wed, Mar 18, 2020 at 9:12 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > > On 2020-03-17 17:30, Richard Guy Briggs wrote:
-> > > > > Some table unregister actions seem to be initiated by the kernel to
-> > > > > garbage collect unused tables that are not initiated by any userspace
-> > > > > actions.  It was found to be necessary to add the subject credentials to
-> > > > > cover this case to reveal the source of these actions.  A sample record:
-> > > > >
-> > > > >   type=NETFILTER_CFG msg=audit(2020-03-11 21:25:21.491:269) : table=nat family=bridge entries=0 op=unregister pid=153 uid=root auid=unset tty=(none) ses=unset subj=system_u:system_r:kernel_t:s0 comm=kworker/u4:2 exe=(null)
-> > > >
-> > > > Given the precedent set by bpf unload, I'd really rather drop this patch
-> > > > that adds subject credentials.
-> > > >
-> > > > Similarly with ghak25's subject credentials, but they were already
-> > > > present and that would change an existing record format, so it isn't
-> > > > quite as justifiable in that case.
+Hi Ale,
+
+You raise some interesting points. I'm taking this discussion onto the
+netfilter-devel list which I think is more appropriate.
+
+On Mon, Apr 13, 2020 at 08:46:59PM +0200, Alessandro Vesely wrote: [...]
+> On Sun 12/Apr/2020 10:21:53 +0200 Duncan Roe wrote:
+> > On Thu, Feb 13, 2020 at 12:27:41PM +0100, Alessandro Vesely wrote:
+> > > Has that disclaimer always been in libnfnetlink home page[*]?
 > > >
-> > > Your comments have me confused - do you want this patch (v3 3/3)
-> > > considered for merging or no?
+> > > It is the first time I see it.
+> > >
+> > > I have a userspace filter[???] working with it,
+> > > and it currently works well.
+> > >
+> > > If I remove -lnfnetlink from the link command, I get just one undefined
+> > > reference to symbol 'nfnl_rcvbufsiz'.
+> > > It is used only if there is a command line option
+> > > to set the buffer size to a given size, to avoid enobufs.
+> > > For the rest, the daemon uses libnetfilter_queue.
+
+This is loader trickery.
+
+You have written your userspace filter using the deprecated interface, which
+uses libnfnetlink under the covers.
+
+That's fine - the Library Setup module documents how to use the deprecated
+interface. The current functions use libmnl, but documentation for these is
+still under development.
+> > >
+> > > Should I rewrite that?  How?
+> > >
 > >
-> > I would like it considered for merging if you think it will be required
-> > to provide enough information about the event that happenned.  In the
-> > bpf unload case, there is a program number to provide a link to a
-> > previous load action.  In this case, we won't know for sure what caused
-> > the table to be unloaded if the number of entries was empty.  I'm still
-> > trying to decide if it matters.  For the sake of caution I think it
-> > should be included.  I don't like it, but I think it needs to be
-> > included.
-> 
-> I'm in the middle of building patches 1/3 and 2/3, assuming all goes
-> well I'll merge them into audit/next (expect mail soon), however I'm
-> going back and forth on this patch.  Like you I kinda don't like it,
-> and with both of us not in love with this patch I have to ask if there
-> is certification requirement for this?  I know about the generic
-> subj/obj requirements, but in the case where there is no associated
-> task/syscall/etc. information it isn't like the extra fields supplied
-> in this patch are going to have much information in that regard; it's
-> really the *absence* of that information which is telling.  Which
-> brings me to wonder if simply the lack of any associated records in
-> this event is enough?  Before when we weren't associating records into
-> a single event it would have been a problem, but the way things
-> currently are, if there are no other records (and you have configured
-> that) then I think you have everything you need to know.
-> 
-> Thoughts?
+> > Yes you can code to avoid using nfnl_rcvbufsiz() from libnfnetlink.
+> >
+> > Thre is no libmnl or libnetfilter_queue function to do it at present, but
+> > libmnl/examples/netfilter/nfct-daemon.c has the code.
+> > In case you haven't git cloned libmnl, here is a summary:
+> >
+> > > socklen_t buffersize; // Set by your command-line option
+> > Your code likely already has:
+> > > struct mnl_socket *nl;
+> > > nl = mnl_socket_open(NETLINK_NETFILTER);
+> > (after mnl_socket_bind)
+>
+>
+> I don't have mnl_socket_open().  I have struct nfq_handle *h = nfq_open(); and
+> then fd = nfq_fd(h);
+>
+> After replacing the call to nfnl_rcvbufsiz() with setsockopt(), I can actually
+> link without -lnfnetlink.  However, I'm not sure it is sane to fiddle with
+> configure macros trying to avoid it.  On my system I have:
+>
+>     ale@pcale:~$ pkg-config --libs libnetfilter_queue
+>     -lnetfilter_queue -lnfnetlink
+>     ale@pcale:~$ pkg-config --modversion libnetfilter_queue
+>     1.0.2
+>
+> Should a future version drop that dependency, my code is ready :-)
+>
+>
+> > > setsockopt(mnl_socket_get_fd(nl), SOL_SOCKET, SO_RCVBUFFORCE, // You should
+> > >   &buffersize, sizeof(socklen_t));     // check the return code (not shown)
+> > If you like, you can check how big a buffer the kernel gave you
+> > > socklen_t socklen = sizeof buffersize;
+> > > socklen_t read_size = 0;
+> > > getsockopt(mnl_socket_get_fd(nl), SOL_SOCKET, SO_RCVBUF, &read_size, &socklen);
+> > From testing it seems you get a buffer of twice buffersize bytes.
+>
+>
+> It's stranger than that.  The default value is 0x34000.  If I set that same
+> value or higher, I seem to always get 0x68000.
+> However, if I set 0x33fff I get 0x67ffe, the double, as you say.
+> This strange behavior apparently was the same when using nfnl_rcvbufsiz().
 
-I'm good dropping that third patch, but Steve's perspective is more
-authoritative here.
+This does look to me like a bug. Perhaps someone on the devel list would have
+something to say about it.
 
-I'll respin patch 1/3 and 2/3 to fix the checkpatch.pl errors if you
-prefer (was erroneously mentioned in ghak28 feedback).
-
-> paul moore
-
-- RGB
-
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
-
+Cheers ... Duncan.
