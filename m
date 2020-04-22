@@ -2,234 +2,214 @@ Return-Path: <SRS0=o7qJ=6G=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A54EFC5518B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Apr 2020 17:24:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 726E1C54FCB
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Apr 2020 17:53:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7883820776
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Apr 2020 17:24:28 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="MByQJymp"
+	by mail.kernel.org (Postfix) with ESMTP id 5C2432064C
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Apr 2020 17:53:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726915AbgDVRY1 (ORCPT
+        id S1726519AbgDVRx2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Apr 2020 13:24:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44756 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726426AbgDVRYY (ORCPT
+        Wed, 22 Apr 2020 13:53:28 -0400
+Received: from imap3.hz.codethink.co.uk ([176.9.8.87]:51326 "EHLO
+        imap3.hz.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726066AbgDVRx2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Apr 2020 13:24:24 -0400
-Received: from mail-ed1-x542.google.com (mail-ed1-x542.google.com [IPv6:2a00:1450:4864:20::542])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD2CBC03C1AD
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Apr 2020 10:24:23 -0700 (PDT)
-Received: by mail-ed1-x542.google.com with SMTP id r7so2089652edo.11
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Apr 2020 10:24:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=APNUHzLUzqMTjpD++gENW9cK47rOtpcZ7nOkDc65bfc=;
-        b=MByQJympuDJNS+hBn6LYtGOyVLLcMOcuvUgrtqzIoVLJ+mX9g39QScWOin2wZMBJQc
-         YyvxjUFYlyQ7DZEFJc2mPjebsZso3N4MXF159pil7scVlahieg94VT6vw34UeQU6E1uF
-         a63WznrDe8rjEZUHdPw3QAItXutLSrOqHYGeW7aG7IWoHHHbpB9ub2/ed2FHoersmKDz
-         h6CM0ZqOU4IXr0950R3JFr52Z/2cK1U/d+IpJWO3coY9bekURc3HRHnnlxiiSxsLbuat
-         He6h4RTpF4YGJmq08XgrnHlJmBYGdqGkT8b1lvL9C2HQRHT8NiXbaKhdHt79z16VVXQq
-         u/8Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=APNUHzLUzqMTjpD++gENW9cK47rOtpcZ7nOkDc65bfc=;
-        b=o41kLUYlg0PgiHFn+lct4qZGQsjM5peLk0TTmhw9jWLQ+sQBABNH8ubXyKQlgt9Avs
-         uIFFGXydcy9F5dnSL2kc0uNU08yJy3Aj3y81LQTEgolInCgSJHlON8V0S10HN4EVH4IM
-         8M2kyg5sF3wce+M1hRFLGnJ/veEchmkCnDhkY8oREwq00m9RJxDuM7GxI8ep50AQ1Oj+
-         zngJFdfUGYNJ9yNMWf+5xEQ2KE/LzywobnHce7My/tzidHMK+GH1lHuUKku7lC40DWXa
-         4r+iyTyEomKW098ky2wOnRMlJTJ+PS0Hu19pXd7LGkKf9OIz0e5p4wfJlUiWClIM3Z3D
-         mp4g==
-X-Gm-Message-State: AGi0PuYaqhoPezQ9CPpY+wnr1+C0Elz1Xoi6+kJbKV7uX3MtgtcFoemL
-        bV+GCVNApAEl0x8ScQc96koh5Iiv1zobJlrcGMN0
-X-Google-Smtp-Source: APiQypIMvd7pFypaVAqurmo05vROlLEFVqAJCW3HhL11RtC5L7kaKf1j+c3e9Byi2T3gVtDbCY5W8CN8v1dmSnAPJR0=
-X-Received: by 2002:a05:6402:1adc:: with SMTP id ba28mr11965299edb.12.1587576262305;
- Wed, 22 Apr 2020 10:24:22 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200318215550.es4stkjwnefrfen2@madcap2.tricolour.ca>
- <CAHC9VhSdDDP7Ec-w61NhGxZG5ZiekmrBCAg=Y=VJvEZcgQh46g@mail.gmail.com>
- <20200319220249.jyr6xmwvflya5mks@madcap2.tricolour.ca> <CAHC9VhR84aN72yNB_j61zZgrQV1y6yvrBLNY7jp7BqQiEDL+cw@mail.gmail.com>
- <20200324210152.5uydf3zqi3dwshfu@madcap2.tricolour.ca> <CAHC9VhTQUnVhoN3JXTAQ7ti+nNLfGNVXhT6D-GYJRSpJHCwDRg@mail.gmail.com>
- <20200330134705.jlrkoiqpgjh3rvoh@madcap2.tricolour.ca> <CAHC9VhQTsEMcYAF1CSHrrVn07DR450W9j6sFVfKAQZ0VpheOfw@mail.gmail.com>
- <20200330162156.mzh2tsnovngudlx2@madcap2.tricolour.ca> <CAHC9VhTRzZXJ6yUFL+xZWHNWZFTyiizBK12ntrcSwmgmySbkWw@mail.gmail.com>
- <20200330174937.xalrsiev7q3yxsx2@madcap2.tricolour.ca> <CAHC9VhR_bKSHDn2WAUgkquu+COwZUanc0RV3GRjMDvpoJ5krjQ@mail.gmail.com>
- <871ronf9x2.fsf@x220.int.ebiederm.org> <CAHC9VhR3gbmj5+5MY-whLtStKqDEHgvMRigU9hW0X1kpxF91ag@mail.gmail.com>
- <871rol7nw3.fsf@x220.int.ebiederm.org>
-In-Reply-To: <871rol7nw3.fsf@x220.int.ebiederm.org>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Wed, 22 Apr 2020 13:24:10 -0400
-Message-ID: <CAHC9VhQvhja=vUEbT3uJgQqpj-480HZzWV7b5oc2GWtzFN1qJw@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
- the audit daemon
-To:     "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     Richard Guy Briggs <rgb@redhat.com>, nhorman@tuxdriver.com,
-        linux-api@vger.kernel.org, containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        linux-audit@redhat.com, netfilter-devel@vger.kernel.org,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
+        Wed, 22 Apr 2020 13:53:28 -0400
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126] helo=xylophone)
+        by imap3.hz.codethink.co.uk with esmtpsa  (Exim 4.92 #3 (Debian))
+        id 1jRJYj-0000t8-Ax; Wed, 22 Apr 2020 18:53:17 +0100
+Message-ID: <577ed3c83bfbb8c15fe5782496250e31dbcfe0b4.camel@codethink.co.uk>
+Subject: Re: [PATCH 4.19 00/40] 4.19.117-rc1 review
+From:   Ben Hutchings <ben.hutchings@codethink.co.uk>
+To:     Naresh Kamboju <naresh.kamboju@linaro.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+Cc:     open list <linux-kernel@vger.kernel.org>,
+        Sasha Levin <sashal@kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Shuah Khan <shuah@kernel.org>, patches@kernelci.org,
+        lkft-triage@lists.linaro.org,
+        linux- stable <stable@vger.kernel.org>,
+        Wang Wenhu <wenhu.wang@vivo.com>,
+        Tim Stallard <code@timstallard.me.uk>,
+        Taras Chornyi <taras.chornyi@plvision.eu>,
+        Taehee Yoo <ap420073@gmail.com>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        DENG Qingfang <dqfext@gmail.com>,
+        Konstantin Khlebnikov <khlebnikov@yandex-team.ru>,
+        "David S. Miller" <davem@davemloft.net>
+Date:   Wed, 22 Apr 2020 18:53:09 +0100
+In-Reply-To: <CA+G9fYsPaoo5YE9pAKV+w=MnZ_AGn93iquOC-tAN5arVyUD8FQ@mail.gmail.com>
+References: <20200420121444.178150063@linuxfoundation.org>
+         <CA+G9fYsPaoo5YE9pAKV+w=MnZ_AGn93iquOC-tAN5arVyUD8FQ@mail.gmail.com>
+Organization: Codethink Ltd.
 Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.30.5-1.1 
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Apr 17, 2020 at 6:26 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
-> Paul Moore <paul@paul-moore.com> writes:
-> > On Thu, Apr 16, 2020 at 4:36 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
-> >> Paul Moore <paul@paul-moore.com> writes:
-> >> > On Mon, Mar 30, 2020 at 1:49 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> >> On 2020-03-30 13:34, Paul Moore wrote:
-> >> >> > On Mon, Mar 30, 2020 at 12:22 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> >> > > On 2020-03-30 10:26, Paul Moore wrote:
-> >> >> > > > On Mon, Mar 30, 2020 at 9:47 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> >> > > > > On 2020-03-28 23:11, Paul Moore wrote:
-> >> >> > > > > > On Tue, Mar 24, 2020 at 5:02 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> >> > > > > > > On 2020-03-23 20:16, Paul Moore wrote:
-> >> >> > > > > > > > On Thu, Mar 19, 2020 at 6:03 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> >> > > > > > > > > On 2020-03-18 18:06, Paul Moore wrote:
-> >> >
-> >> > ...
-> >> >
-> >> >> > > Well, every time a record gets generated, *any* record gets generated,
-> >> >> > > we'll need to check for which audit daemons this record is in scope and
-> >> >> > > generate a different one for each depending on the content and whether
-> >> >> > > or not the content is influenced by the scope.
-> >> >> >
-> >> >> > That's the problem right there - we don't want to have to generate a
-> >> >> > unique record for *each* auditd on *every* record.  That is a recipe
-> >> >> > for disaster.
-> >> >> >
-> >> >> > Solving this for all of the known audit records is not something we
-> >> >> > need to worry about in depth at the moment (although giving it some
-> >> >> > casual thought is not a bad thing), but solving this for the audit
-> >> >> > container ID information *is* something we need to worry about right
-> >> >> > now.
-> >> >>
-> >> >> If you think that a different nested contid value string per daemon is
-> >> >> not acceptable, then we are back to issuing a record that has only *one*
-> >> >> contid listed without any nesting information.  This brings us back to
-> >> >> the original problem of keeping *all* audit log history since the boot
-> >> >> of the machine to be able to track the nesting of any particular contid.
-> >> >
-> >> > I'm not ruling anything out, except for the "let's just completely
-> >> > regenerate every record for each auditd instance".
-> >>
-> >> Paul I am a bit confused about what you are referring to when you say
-> >> regenerate every record.
-> >>
-> >> Are you saying that you don't want to repeat the sequence:
-> >>         audit_log_start(...);
-> >>         audit_log_format(...);
-> >>         audit_log_end(...);
-> >> for every nested audit daemon?
-> >
-> > If it can be avoided yes.  Audit performance is already not-awesome,
-> > this would make it even worse.
->
-> As far as I can see not repeating sequences like that is fundamental
-> for making this work at all.  Just because only the audit subsystem
-> should know about one or multiple audit daemons.  Nothing else should
-> care.
+On Tue, 2020-04-21 at 03:54 +0530, Naresh Kamboju wrote:
+> On Mon, 20 Apr 2020 at 18:21, Greg Kroah-Hartman
+> <gregkh@linuxfoundation.org> wrote:
+> > This is the start of the stable review cycle for the 4.19.117 release.
+> > There are 40 patches in this series, all will be posted as a response
+> > to this one.  If anyone has any issues with these being applied, please
+> > let me know.
+> > 
+> > Responses should be made by Wed, 22 Apr 2020 12:10:36 +0000.
+> > Anything received after that time might be too late.
+> > 
+> > The whole patch series can be found in one patch at:
+> >         https://www.kernel.org/pub/linux/kernel/v4.x/stable-review/patch-4.19.117-rc1.gz
+> > or in the git tree and branch at:
+> >         git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable-rc.git linux-4.19.y
+> > and the diffstat can be found below.
+> > 
+> > thanks,
+> > 
+> > greg k-h
+> 
+> Results from Linaro’s test farm.
+> Regressions on x86_64.
+> 
+> x86_64 boot failed due to kernel BUG and kernel panic.
+> It is hard to reproduce this BUG and kernel panic
+> We are investigating this problem. The full log links are at [1] and [2].
+> 
+> [ 0.000000] Linux version 4.19.117-rc1+ (TuxBuild@f0f6d9b6cd32) (gcc
+> version 9.3.0 (Debian 9.3.0-8)) #1 SMP Mon Apr 20 12:40:09 UTC 2020
+> <>
+> [    3.237717] igb 0000:01:00.0: Using MSI-X interrupts. 4 rx
+> queue(s), 4 tx queue(s)
+> [    3.246412] BUG: unable to handle kernel paging request at 00000000482444ab
+> [    3.246412] PGD 0 P4D 0
+> [    3.246412] Oops: 0002 [#1] SMP PTI
+> [    3.246412] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.19.117-rc1+ #1
+> [    3.246412] Hardware name: Supermicro SYS-5019S-ML/X11SSH-F, BIOS
+> 2.0b 07/27/2017
+> [    3.246412] RIP: 0010:__hw_addr_add_ex+0xa/0xf0
+> [    3.246412] Code: 10 01 49 89 5f 08 48 83 c4 08 5b 5d 41 5c 41 5d
+> 41 5e 41 5f c3 b8 f4 ff ff ff eb ea 0f 1f 40 00 41 57 41 56 41 55 41
+> 54 55 53 <48> 83 8c 10 8b 44 24 48 89 4c 24 08 44 89 04 24 44 89 4c 24
+> 04 89
 
-Yes, exactly, this has been mentioned in the past.  Both the
-performance hit and the code complication in the caller are things we
-must avoid.
+The code from start of function to the faulting instruction is:
 
-> >> Or are you saying that you would like to literraly want to send the same
-> >> skb to each of the nested audit daemons?
-> >
-> > Ideally we would reuse the generated audit messages as much as
-> > possible.  Less work is better.  That's really my main concern here,
-> > let's make sure we aren't going to totally tank performance when we
-> > have a bunch of nested audit daemons.
->
-> So I think there are two parts of this answer.  Assuming we are talking
-> about nesting audit daemons in containers we will have different
-> rulesets and I expect most of the events for a nested audit daemon won't
-> be of interest to the outer audit daemon.
+__hw_addr_add_ex:	41 57                	push   %r15
+__hw_addr_add_ex+2:	41 56                	push   %r14
+__hw_addr_add_ex+4:	41 55                	push   %r13
+__hw_addr_add_ex+6:	41 54                	push   %r12
+__hw_addr_add_ex+8:	55                   	push   %rbp
+__hw_addr_add_ex+9:	53                   	push   %rbx
+__hw_addr_add_ex+a:	48 83 8c 10 8b 44 24 	orq    $0xffffffffffffff89,0x4824448b(%rax,%rdx,1)
 
-Yes, this is another thing that Richard and I have discussed in the
-past.  We will basically need to create per-daemon queues, rules,
-tracking state, etc.; that is easy enough.  What will be slightly more
-tricky is the part where we apply the filters to the individual
-records and decide if that record is valid/desired for a given daemon.
-I think it can be done without too much pain, and any changes to the
-callers, but it will require a bit of work to make sure it is done
-well and that records are needlessly duplicated in the kernel.
+But in a Debian compiled 4.19 kernel the function starts with:
 
-> Beyond that it should be very straight forward to keep a pointer and
-> leave the buffer as a scatter gather list until audit_log_end
-> and translate pids, and rewrite ACIDs attributes in audit_log_end
-> when we build the final packet.  Either through collaboration with
-> audit_log_format or a special audit_log command that carefully sets
-> up the handful of things that need that information.
+ffffffff815ec470:       e8 8b 53 21 00          callq  0xffffffff81801800
+ffffffff815ec475:       41 57                   push   %r15
+ffffffff815ec477:       41 56                   push   %r14
+ffffffff815ec479:       41 55                   push   %r13
+ffffffff815ec47b:       41 54                   push   %r12
+ffffffff815ec47d:       55                      push   %rbp
+ffffffff815ec47e:       53                      push   %rbx
+ffffffff815ec47f:       48 83 ec 10             sub    $0x10,%rsp
+ffffffff815ec483:       8b 44 24 48             mov    0x48(%rsp),%eax
 
-In order to maximize record re-use I think we will want to hold off on
-assembling the final packet until it is sent to the daemons in the
-kauditd thread.  We'll also likely need to create special
-audit_log_XXX functions to capture fields which we know will need
-translation, e.g. ACID information.  (the reason for the new
-audit_log_XXX functions would be to mark the new sg element and ensure
-the buffer is handled correctly)
+(the first instruction is added by ftrace).
 
-Regardless of the details, I think the scatter gather approach is the
-key here - that seems like the best design idea I've seen thus far.
-It enables us to replace portions of the record as needed ... and
-possibly use the existing skb cow stuff ... it has been a while, but
-does the skb cow functions handle scatter gather skbs or do they need
-to be linear?
+It looks like one byte of the faulting instruction has been corrupted
+somehow.  So this function itself is probably not to blame.  It may be
+worth running a memory test on the test system.
 
-> Hmm.  I am seeing that we send skbs to kauditd and then kauditd
-> sends those skbs to userspace.  I presume that is primary so that
-> sending messages to userspace does not block the process being audited.
-> Plus a little bit so that the retry logic will work.
+Ben.
 
-Long story short, it's a poor design.  I'm not sure who came up with
-it, but I have about a 1000 questions that are variations on "why did
-this seem like a good idea?".
-
-I expect the audit_buffer definition to change significantly during
-the nested auditd work.
-
-> I think the naive implementation would be to simply have 1 kauditd
-> per auditd (strictly and audit context/namespace).  Although that can be
-> optimized if that is a problem.
->
-> Beyond that I think we would need to look at profiles to really
-> understand where the bottlenecks are.
-
-Agreed.  This is a hidden implementation detail that doesn't affect
-the userspace API or the in-kernel callers.  The first approach can be
-simple and we can complicate it as needed in future versions.
-
-> > I'm open to any ideas people may have.  We have a problem, let's solve
-> > it.
->
-> It definitely makes sense to look ahead to having audit daemons running
-> in containers, but in the grand scheme of things that is a nice to have.
-> Probably something we will and should get to, but we have lived a long
-> time without auditd running in containers so I expect we can live a
-> while longer.
-
-It looks like you are confusing my concern.  I'm not pushing Richard
-to implement support for this in the current patchset, I'm pushing
-Richard to consider the design aspect of having multiple audit daemons
-so that we don't code ourselves into a corner with the audit record
-changes he is proposing.  The audit record format is part of the
-kernel/userspace API and as a result requires great care when
-modifying/extending/etc.
-
+> [    3.246412] RSP: 0000:ffff9d614002fc48 EFLAGS: 00010246
+> [    3.246412] RAX: 0000000000000000 RBX: ffff975d9c17c000 RCX: 0000000000000001
+> [    3.246412] RDX: 0000000000000020 RSI: ffff9d614002fc88 RDI: ffff975d9c17c290
+> [    3.246412] RBP: ffff975d9c17c000 R08: 0000000000000000 R09: 0000000000000000
+> [    3.246412] R10: ffff975d9da8ee68 R11: 00000000ffffffff R12: 0000000000000008
+> [    3.246412] R13: ffffffffab8ba5bc R14: 0000000000000000 R15: ffffffffaafc93d0
+> [    3.246412] FS:  0000000000000000(0000) GS:ffff975d9fa80000(0000)
+> knlGS:0000000000000000
+> [    3.246412] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [    3.438798] ata3: SATA link up 6.0 Gbps (SStatus 133 SControl 300)
+> [    3.246412] CR2: 00000000482444ab CR3: 0000000211c0a001 CR4: 00000000003606e0
+> [    3.246412] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> [    3.246412] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+> [    3.246412] Call Trace:
+> [    3.246412]  ? eth_header+0xb0/0xb0
+> [    3.246412]  dev_addr_init+0x76/0xb0
+> [    3.448543] ata4: SATA link down (SStatus 0 SControl 300)
+> [    3.246412]  alloc_netdev_mqs+0x9d/0x3e0
+> [    3.246412]  igb_probe+0x16e/0x14d0
+> [    3.462804] ata7: SATA link down (SStatus 0 SControl 300)
+> [    3.246412]  local_pci_probe+0x3e/0x90
+> [    3.246412]  pci_device_probe+0x102/0x1a0
+> [    3.246412]  really_probe+0x1be/0x260
+> [    3.472410] ata5: SATA link down (SStatus 0 SControl 300)
+> [    3.246412]  driver_probe_device+0x4b/0x90
+> [    3.246412]  __driver_attach+0xbb/0xc0
+> [    3.246412]  ? driver_probe_device+0x90/0x90
+> [    3.246412]  bus_for_each_dev+0x73/0xb0
+> [    3.246412]  bus_add_driver+0x192/0x1d0
+> [    3.246412]  driver_register+0x67/0xb0
+> [    3.246412]  ? e1000_init_module+0x34/0x34
+> [    3.246412]  do_one_initcall+0x41/0x1b4
+> [    3.246412]  kernel_init_freeable+0x15a/0x1e7
+> [    3.246412]  ? rest_init+0x9a/0x9a
+> [    3.246412]  kernel_init+0x5/0xf6
+> [    3.246412]  ret_from_fork+0x35/0x40
+> [    3.246412] Modules linked in:
+> [    3.246412] CR2: 00000000482444ab
+> [    3.246412] ---[ end trace 19f70173fca0a2aa ]---
+> [    3.246412] RIP: 0010:__hw_addr_add_ex+0xa/0xf0
+> [    3.246412] Code: 10 01 49 89 5f 08 48 83 c4 08 5b 5d 41 5c 41 5d
+> 41 5e 41 5f c3 b8 f4 ff ff ff eb ea 0f 1f 40 00 41 57 41 56 41 55 41
+> 54 55 53 <48> 83 8c 10 8b 44 24 48 89 4c 24 08 44 89 04 24 44 89 4c 24
+> 04 89
+> [    3.246412] RSP: 0000:ffff9d614002fc48 EFLAGS: 00010246
+> [    3.246412] RAX: 0000000000000000 RBX: ffff975d9c17c000 RCX: 0000000000000001
+> [    3.246412] RDX: 0000000000000020 RSI: ffff9d614002fc88 RDI: ffff975d9c17c290
+> [    3.246412] RBP: ffff975d9c17c000 R08: 0000000000000000 R09: 0000000000000000
+> [    3.246412] R10: ffff975d9da8ee68 R11: 00000000ffffffff R12: 0000000000000008
+> [    3.246412] R13: ffffffffab8ba5bc R14: 0000000000000000 R15: ffffffffaafc93d0
+> [    3.246412] FS:  0000000000000000(0000) GS:ffff975d9fa80000(0000)
+> knlGS:0000000000000000
+> [    3.246412] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [    3.246412] CR2: 00000000482444ab CR3: 0000000211c0a001 CR4: 00000000003606e0
+> [    3.246412] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> [    3.246412] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+> [    3.670747] Kernel panic - not syncing: Attempted to kill init!
+> exitcode=0x00000009
+> [    3.670747]
+> [    3.679456] Kernel Offset: 0x29600000 from 0xffffffff81000000
+> (relocation range: 0xffffffff80000000-0xffffffffbfffffff)
+> [    3.679456] ---[ end Kernel panic - not syncing: Attempted to kill
+> init! exitcode=0x00000009
+> [    3.679456]  ]---
+> [    3.701024] ------------[ cut here ]------------
+> [    3.702023] sched: Unexpected reschedule of offline CPU#2!
+> [    3.702023] WARNING: CPU: 1 PID: 1 at arch/x86/kernel/smp.c:128
+> native_smp_send_reschedule+0x2f/0x40
+> 
+> ref:
+> [1] https://lkft.validation.linaro.org/scheduler/job/1379024#L744
+> [2] https://qa-reports.linaro.org/lkft/linux-stable-rc-4.19-oe/build/v4.19.116-41-gdf86600ce713/testrun/1379024/
+> 
 -- 
-paul moore
-www.paul-moore.com
+Ben Hutchings, Software Developer                         Codethink Ltd
+https://www.codethink.co.uk/                 Dale House, 35 Dale Street
+                                     Manchester, M1 2HF, United Kingdom
+
