@@ -4,129 +4,112 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A7F3C54FD0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Apr 2020 14:37:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7C90C54FCB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Apr 2020 14:44:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5207F20728
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Apr 2020 14:37:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 95B9B2074F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Apr 2020 14:44:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OHrDhZOv"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="p/Xo6uv3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726363AbgDWOhs (ORCPT
+        id S1728708AbgDWOo5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Apr 2020 10:37:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45000 "EHLO
+        Thu, 23 Apr 2020 10:44:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46136 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726285AbgDWOhr (ORCPT
+        by vger.kernel.org with ESMTP id S1726380AbgDWOo4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Apr 2020 10:37:47 -0400
-Received: from mail-ua1-x933.google.com (mail-ua1-x933.google.com [IPv6:2607:f8b0:4864:20::933])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FA65C08E934
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Apr 2020 07:37:47 -0700 (PDT)
-Received: by mail-ua1-x933.google.com with SMTP id i22so5869952uak.6
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Apr 2020 07:37:47 -0700 (PDT)
+        Thu, 23 Apr 2020 10:44:56 -0400
+Received: from mail-ua1-x942.google.com (mail-ua1-x942.google.com [IPv6:2607:f8b0:4864:20::942])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91625C08E934;
+        Thu, 23 Apr 2020 07:44:56 -0700 (PDT)
+Received: by mail-ua1-x942.google.com with SMTP id s5so5915170uad.4;
+        Thu, 23 Apr 2020 07:44:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=FLh7a2wQdsNVczrscoyX7xl8nvD0UD4kLxy9J5N1VOE=;
-        b=OHrDhZOvS9272EK31Ob9/tIOhexR8Bsfif4KnWZHO566Y7NennsFQZ337vNfvdRrA7
-         4Z9VZVPZBoz1lWQQTnzujkQYxDKF5eHL2ic5mM2E6sa4i+QInoHhYSLUhopUjMchS4V9
-         0tpRUz5olIqDNTLHUwTjlgLEwGSxb8QWHmirDphYXVOrptK3r1LezYWPnFBidhrdNpic
-         5SBHhcaCQjiZ6ypxcJtCvedDKocOBSSCS+cu+a90sPMX0/QTipRpNyyzijZkAKATA/gT
-         CfF0KC4pONx0pm6VjheQappyMbjAn+1zQ3DjQOiy05gcoaMz8his4TzXp2rxq+q+iLo2
-         nHrg==
+        bh=vRrZk0tMCkIyqKJPsSOMqLM7Os4mUPhCNEMI8A+fV4o=;
+        b=p/Xo6uv3pGXc7/tfnw73VDQpGzeAmmlYOWfe7fHRThqXYFpYNc0wCoC37D+tW2q5BD
+         nKdDGG5COpiNY0W6eYqSmCu+NTwbOneHyb1tjB61Hdu4L+GsmZFd3+B7M+baTXyy0BSW
+         4gFpCMP9lmHqEn43d6mw32e8hhljZby34wc4NWeVPS7uVuG+ewMz9NfM0iVO31+lWzwY
+         RXsODyftPPQeQMEIZK8ZZyiwJV1rJHRUMP+fc6hxBnMT+viskfDAli2zR/qJcGng32Sp
+         3GdaTrwiDCobQzDcTlpuNt24yOByXqrvdpWwIa1unyXIZpOyPQy/0l6KY6D1xZl6xqpe
+         uHkQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=FLh7a2wQdsNVczrscoyX7xl8nvD0UD4kLxy9J5N1VOE=;
-        b=M8c+3fTSjZg43A6XQbu5VsnWcYxVcttpWLtcdcYK5Xm5v/tQbDJZo0r5t+8JgGXzOK
-         /ZCKBORXAB6s6gLevRaUoCkl+tjHj97UHpKraLcAl3saa3J+iCB3D+UzC3pZp4ioxqhO
-         62KJlysp6a1ELDgA6Cg4bC3Q0f+hNmpAgQI+gBkfangVbS/4JVK+VkKKUfVk/Dxalvt9
-         55LFOIbhwIi+jTVqFSiHjZwWd46POovXO0ZzFkZ5BrvQYTfB2Q+IkwkTtkKHzPBaYJ3L
-         oSFIb2tGikKl9MyRSiqWF5tUtiq3O3ri0ItBpCKErgdhZR5MdBqv979MMhMiWxsyp64y
-         fM3A==
-X-Gm-Message-State: AGi0PuZArHSwff9vQiYYxhxo0UfN3+ZTXYSW8LWv1n7cjcJ0MnLBYHbV
-        4D1prm3wKm1/rf4puajHBbhAmwwDH71tuVFjy5ziWQ==
-X-Google-Smtp-Source: APiQypIy0Nc0fVP0K9xfqn7fT9f3mbUohj9XSNH5qUTj5rtstikhSrGW4munZWN3j4GyXF/W5lqGbBM96lsEvf9mZro=
-X-Received: by 2002:a67:e98d:: with SMTP id b13mr3566047vso.55.1587652666679;
- Thu, 23 Apr 2020 07:37:46 -0700 (PDT)
+        bh=vRrZk0tMCkIyqKJPsSOMqLM7Os4mUPhCNEMI8A+fV4o=;
+        b=G087VjzHKzN6q9d6cGS5gHj0xkC+PFeJP3Y2dTe5HKyqbHB8qttQ4selIQyTE4/Kd5
+         PyY88zBl8lPjME9sK8b55hmzb5qKwjCtvDXFpP26hc28XOT0GYx1peIcGKdhjuGGSeAu
+         /up9SLpxqSKK9GDYNE1HGimdhE5seHh5VXlvADnteHkhXyE92HReLNRZVPOPnCo2Q46A
+         gOhAe/L1ZSGslALOUuiOL5XienlKdgVl/6DJzsKWPb6cmeS8W9GKeQvz2tDcz3W/tUIj
+         LjHzwiBJ8oDpD6fdpEremN0HqM2qv/fDfy6RiQQdphtClekm5llbwv0M8kqqMi4lvIQt
+         XZ2A==
+X-Gm-Message-State: AGi0PuZDdm4mdrfTYtyVL7MOvM6OUCz4mRIk+0kbBSQLW1svGLSKc+y3
+        Bdq7XFmCPmBSag4CqWle3k7Pnt1EqSqRTlYFZH8=
+X-Google-Smtp-Source: APiQypJeXeY5OHXw0LePpNn+qV5rq3IIj4LdT5dvebpK+c+OZngK20fa1ChT2y38Gt6+pQa6EKZerzI09fNit4KflGk=
+X-Received: by 2002:a05:6102:2261:: with SMTP id v1mr3448482vsd.126.1587653095849;
+ Thu, 23 Apr 2020 07:44:55 -0700 (PDT)
 MIME-Version: 1.0
-References: <5a20c054-cf2e-9694-2242-03e1d01cf568@newquest.fr>
-In-Reply-To: <5a20c054-cf2e-9694-2242-03e1d01cf568@newquest.fr>
+References: <cover.1583927267.git.lukas@wunner.de> <14ab7e5af20124a34a50426fd570da7d3b0369ce.1583927267.git.lukas@wunner.de>
+ <a57687ae-2da6-ca2a-1c84-e4332a5e4556@iogearbox.net> <20200313145526.ikovaalfuy7rnkdl@salvia>
+ <1bd50836-33c4-da44-5771-654bfb0348cc@iogearbox.net> <20200315132836.cj36ape6rpw33iqb@salvia>
+In-Reply-To: <20200315132836.cj36ape6rpw33iqb@salvia>
 From:   Laura Garcia <nevola@gmail.com>
-Date:   Thu, 23 Apr 2020 16:37:35 +0200
-Message-ID: <CAF90-WgPBPaqjcwMv9qO3sFDPDR3VfoY-HdtmCE6FyOdNJPjiw@mail.gmail.com>
-Subject: Re: Problem with flushing nftalbes sets
-To:     Milan JEANTON <m.jeanton@newquest.fr>
-Cc:     Netfilter Development Mailing list 
-        <netfilter-devel@vger.kernel.org>
+Date:   Thu, 23 Apr 2020 16:44:44 +0200
+Message-ID: <CAF90-WgoteQXB9WQmeT1eOHA3GpPbwPCEvNzwKkN20WqpdHW-A@mail.gmail.com>
+Subject: Re: [PATCH nf-next 3/3] netfilter: Introduce egress hook
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Lukas Wunner <lukas@wunner.de>
+Cc:     Daniel Borkmann <daniel@iogearbox.net>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Netfilter Development Mailing list 
+        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Martin Mares <mj@ucw.cz>,
+        Dmitry Safonov <0x7f454c46@gmail.com>,
+        Thomas Graf <tgraf@suug.ch>,
+        Alexei Starovoitov <ast@kernel.org>,
+        David Miller <davem@davemloft.net>
 Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Apr 23, 2020 at 4:26 PM Milan JEANTON <m.jeanton@newquest.fr> wrote:
+On Sun, Mar 15, 2020 at 2:29 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 >
-> Hello,
+> Hello Daniel,
 >
-> I try to send you the message again, it says it couldn't be send because
-> it was an HTML type message.
->
->
-> I use nftables for a development project with our company and I'm happy
-> with this application but I'm still learning a lot with all the options.
->
-> I'm using Debian environments (stretch and buster).
->
-> My problem is with the sets of nftables:
-> I use the sets to manage a large amount of ip addresses since it store
-> only the ipv4 addresses without any rules and process it much quicker.
->
-> So let's say I have this table configuration:
->
-> table ip test {
->          set tmp {
->                  type ipv4_addr
->          }
-> }
->
-> I can add elements in my set without any problem, I can also delete them
-> one by one.
->
-> The problem I have is that I need to delete all the elements in the tmp
-> set and as precised in the manual of nftables I could flush the elements
-> of a set:
->
-> SETS
+> On Sat, Mar 14, 2020 at 01:12:02AM +0100, Daniel Borkmann wrote:
+> > On 3/13/20 3:55 PM, Pablo Neira Ayuso wrote:
 > [...]
-> flush    Remove all elements from the specified set.
+> > > We have plans to support for NAT64 and NAT46, this is the right spot
+> > > to do this mangling. There is already support for the tunneling
+> >
+> > But why is existing local-out or post-routing hook _not_ sufficient for
+> > NAT64 given it being IP based?
 >
-> But when I use the command to flush my sets, it doesn't work and
-> displays me an error message
+> Those hooks are not coming at the end of the IP processing. There is
+> very relevant IP code after those hooks that cannot be bypassed such
+> as fragmentation, tunneling and neighbour output. Such transformation
+> needs to happen after the IP processing, exactly from where Lukas is
+> proposing.
 >
-> nft 'flush set test tmp'
-> Error: Could not process rule: Invalid argument
-> flush set test tmp
-> ^^^^^^^^^^^^^^^^^^^
->
+> [...]
+> > > infrastructure in netfilter from ingress, this spot from egress will
+> > > allow us to perform the tunneling from here. There is also no way to
+> > > drop traffic generated by dhclient, this also allow for filtering such
+> > > locally generated traffic. And many more.
 
-Hi, which kernel version are you running?
+Hi,
 
-It works in my system.
+Any chance to continue with this approach? I'm afraid outbound
+af_packets also could not be filtered without this hook.
 
-Cheers.
-
-> So I used an other method that worked on version 0.7 by selecting all
-> the content of elements, but I updated to version 0.9.4 and can't make
-> it work since there is a new line each two addresses and I would rather
-> use a native command anyway.
->
-> I don't understand what I do wrong ? If you can please help me.
->
-> Regards,
+Thanks.
