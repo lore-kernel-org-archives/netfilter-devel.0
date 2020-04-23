@@ -6,102 +6,79 @@ X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17CEEC54FD0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Apr 2020 16:05:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDC91C54FCB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Apr 2020 20:43:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0289620776
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Apr 2020 16:05:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B751F2073A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Apr 2020 20:43:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729484AbgDWQFp (ORCPT
+        id S1726439AbgDWUnE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Apr 2020 12:05:45 -0400
-Received: from bmailout1.hostsharing.net ([83.223.95.100]:41493 "EHLO
-        bmailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729405AbgDWQFp (ORCPT
+        Thu, 23 Apr 2020 16:43:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46018 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725877AbgDWUnE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Apr 2020 12:05:45 -0400
-Received: from h08.hostsharing.net (h08.hostsharing.net [83.223.95.28])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (Client CN "*.hostsharing.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (not verified))
-        by bmailout1.hostsharing.net (Postfix) with ESMTPS id 8253E30002223;
-        Thu, 23 Apr 2020 18:05:42 +0200 (CEST)
-Received: by h08.hostsharing.net (Postfix, from userid 100393)
-        id 54B383D0764; Thu, 23 Apr 2020 18:05:42 +0200 (CEST)
-Date:   Thu, 23 Apr 2020 18:05:42 +0200
-From:   Lukas Wunner <lukas@wunner.de>
-To:     Laura Garcia <nevola@gmail.com>
+        Thu, 23 Apr 2020 16:43:04 -0400
+X-Greylist: delayed 22116 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 23 Apr 2020 13:43:04 PDT
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 161DCC09B042
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Apr 2020 13:43:04 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1jRigX-0006ED-7I; Thu, 23 Apr 2020 22:43:01 +0200
+Date:   Thu, 23 Apr 2020 22:43:01 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Guillaume Nault <gnault@redhat.com>
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
-        Netfilter Development Mailing list 
-        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Martin Mares <mj@ucw.cz>,
-        Dmitry Safonov <0x7f454c46@gmail.com>,
-        Thomas Graf <tgraf@suug.ch>,
-        Alexei Starovoitov <ast@kernel.org>,
-        David Miller <davem@davemloft.net>
-Subject: Re: [PATCH nf-next 3/3] netfilter: Introduce egress hook
-Message-ID: <20200423160542.d3f6yef4av2gqvur@wunner.de>
-References: <cover.1583927267.git.lukas@wunner.de>
- <14ab7e5af20124a34a50426fd570da7d3b0369ce.1583927267.git.lukas@wunner.de>
- <a57687ae-2da6-ca2a-1c84-e4332a5e4556@iogearbox.net>
- <20200313145526.ikovaalfuy7rnkdl@salvia>
- <1bd50836-33c4-da44-5771-654bfb0348cc@iogearbox.net>
- <20200315132836.cj36ape6rpw33iqb@salvia>
- <CAF90-WgoteQXB9WQmeT1eOHA3GpPbwPCEvNzwKkN20WqpdHW-A@mail.gmail.com>
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH net] netfilter: nat: never update the UDP checksum when
+ it's 0
+Message-ID: <20200423204301.GF32392@breakpoint.cc>
+References: <335a95d93767f2b58ad89975e4a0b342ee00db91.1587429321.git.gnault@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAF90-WgoteQXB9WQmeT1eOHA3GpPbwPCEvNzwKkN20WqpdHW-A@mail.gmail.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <335a95d93767f2b58ad89975e4a0b342ee00db91.1587429321.git.gnault@redhat.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Apr 23, 2020 at 04:44:44PM +0200, Laura Garcia wrote:
-> On Sun, Mar 15, 2020 at 2:29 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Sat, Mar 14, 2020 at 01:12:02AM +0100, Daniel Borkmann wrote:
-> > > On 3/13/20 3:55 PM, Pablo Neira Ayuso wrote:
-> > > > We have plans to support for NAT64 and NAT46, this is the right spot
-> > > > to do this mangling. There is already support for the tunneling
-> > >
-> > > But why is existing local-out or post-routing hook _not_ sufficient for
-> > > NAT64 given it being IP based?
-> >
-> > Those hooks are not coming at the end of the IP processing. There is
-> > very relevant IP code after those hooks that cannot be bypassed such
-> > as fragmentation, tunneling and neighbour output. Such transformation
-> > needs to happen after the IP processing, exactly from where Lukas is
-> > proposing.
-> >
-> > [...]
-> > > > infrastructure in netfilter from ingress, this spot from egress will
-> > > > allow us to perform the tunneling from here. There is also no way to
-> > > > drop traffic generated by dhclient, this also allow for filtering such
-> > > > locally generated traffic. And many more.
+Guillaume Nault <gnault@redhat.com> wrote:
+> If the UDP header of a local VXLAN endpoint is NAT-ed, and the VXLAN
+> device has disabled UDP checksums and enabled Tx checksum offloading,
+> then the skb passed to udp_manip_pkt() has hdr->check == 0 (outer
+> checksum disabled) and skb->ip_summed == CHECKSUM_PARTIAL (inner packet
+> checksum offloaded).
 > 
-> Any chance to continue with this approach? I'm afraid outbound
-> af_packets also could not be filtered without this hook.
+> Because of the ->ip_summed value, udp_manip_pkt() tries to update the
+> outer checksum with the new address and port, leading to an invalid
+> checksum sent on the wire, as the original null checksum obviously
+> didn't take the old address and port into account.
+> 
+> So, we can't take ->ip_summed into account in udp_manip_pkt(), as it
+> might not refer to the checksum we're acting on. Instead, we can base
+> the decision to update the UDP checksum entirely on the value of
+> hdr->check, because it's null if and only if checksum is disabled:
+> 
+>   * A fully computed checksum can't be 0, since a 0 checksum is
+>     represented by the CSUM_MANGLED_0 value instead.
+> 
+>   * A partial checksum can't be 0, since the pseudo-header always adds
+>     at least one non-zero value (the UDP protocol type 0x11) and adding
+>     more values to the sum can't make it wrap to 0 as the carry is then
+>     added to the wrapped number.
+> 
+>   * A disabled checksum uses the special value 0.
+> 
+> The problem seems to be there from day one, although it was probably
+> not visible before UDP tunnels were implemented.
 
-Thanks Laura, good to hear there's interest in the functionality.
+Indeed, we're mangling udphdr->csum unconditionally for CSUM_PARTIAL
+case. Doesn't make sense to me, so:
 
-Daniel submitted a revert of this series but didn't cc me:
-
-https://lore.kernel.org/netdev/bbdee6355234e730ef686f9321bd072bcf4bb232.1584523237.git.daniel@iogearbox.net/
-
-In the ensuing discussion it turned out that the performance argument
-may be addressed by a rearrangement of sch_handle_egress() and
-nf_egress() invocations.  I could look into amending the series
-accordingly and resubmitting, though I'm currently swamped with
-other work.
-
-The question is whether that's going to be sufficient because Daniel
-mentioned having an in-tree user as a prerequisite for accepting this
-feature, to which Pablo responded with NAT64/NAT46.  I don't have
-intentions of implementing those, but maybe someone else has.
-
-Thanks,
-
-Lukas
+Reviewed-by: Florian Westphal <fw@strlen.de>
