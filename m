@@ -1,117 +1,117 @@
-Return-Path: <SRS0=o7qJ=6G=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=9Oxv=6H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6190C55189
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Apr 2020 21:40:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE76DC54FD0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Apr 2020 14:12:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C2E6520781
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Apr 2020 21:40:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A6E2B20857
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Apr 2020 14:12:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="MN8Wqi0V"
+	dkim=pass (2048-bit key) header.d=newquest.fr header.i=@newquest.fr header.b="7h9XBkQI"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726575AbgDVVkl (ORCPT
+        id S1728357AbgDWOM6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Apr 2020 17:40:41 -0400
-Received: from us-smtp-2.mimecast.com ([207.211.31.81]:20756 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726006AbgDVVkl (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Apr 2020 17:40:41 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1587591639;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:in-reply-to:in-reply-to:in-reply-to:
-         references:references:references;
-        bh=/kIA4+QZqqISnPEbYYsZEJA0KgGrqNOmJL/9H2ArNGo=;
-        b=MN8Wqi0VG1eI2DHN+f6aEdhWA48vp2qfgYKuG210M8NMCWAy0LKrjZBbmAtreP3pspFl0l
-        sTxp+2pLJmWvi2hVuKFgtltpWpP5IsLlbc4KbBUD+o6TH4T14pbAViKn4im6otTAq5QLrn
-        SJJYBIZOzLpDgMOWMsEYkmzxEbIb3BE=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-347-y7nOhjMyNWuZrfkUKTEwgg-1; Wed, 22 Apr 2020 17:40:36 -0400
-X-MC-Unique: y7nOhjMyNWuZrfkUKTEwgg-1
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id AF90D8017FD;
-        Wed, 22 Apr 2020 21:40:34 +0000 (UTC)
-Received: from madcap2.tricolour.ca (unknown [10.3.128.9])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 95E115D70A;
-        Wed, 22 Apr 2020 21:40:31 +0000 (UTC)
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org
-Cc:     Paul Moore <paul@paul-moore.com>, sgrubb@redhat.com,
-        omosnace@redhat.com, fw@strlen.de, twoerner@redhat.com,
-        eparis@parisplace.org, ebiederm@xmission.com, tgraf@infradead.org,
-        Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH ghak25 v4 3/3] audit: add subj creds to NETFILTER_CFG record to cover async unregister
-Date:   Wed, 22 Apr 2020 17:39:30 -0400
-Message-Id: <b8ba40255978a73ea15e3859d5c945ecd5fede8e.1587500467.git.rgb@redhat.com>
-In-Reply-To: <cover.1587500467.git.rgb@redhat.com>
-References: <cover.1587500467.git.rgb@redhat.com>
-In-Reply-To: <cover.1587500467.git.rgb@redhat.com>
-References: <cover.1587500467.git.rgb@redhat.com>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
+        Thu, 23 Apr 2020 10:12:58 -0400
+Received: from relay.newquest.fr ([51.77.151.64]:48548 "EHLO relay.newquest.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727832AbgDWOM6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 23 Apr 2020 10:12:58 -0400
+Received: from webmail.newquest.fr (mail2.newquest.fr [89.90.209.189])
+        by relay.newquest.fr (8.14.7/8.14.7) with ESMTP id 03NECtxd015477
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Apr 2020 16:12:55 +0200
+Received: from webmail.newquest.fr (localhost [127.0.0.1])
+        by webmail.newquest.fr (Postfix) with ESMTPS id 50C1EEA0432
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Apr 2020 16:12:55 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by webmail.newquest.fr (Postfix) with ESMTP id 36D0AEA0427
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Apr 2020 16:12:55 +0200 (CEST)
+DKIM-Filter: OpenDKIM Filter v2.10.3 webmail.newquest.fr 36D0AEA0427
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=newquest.fr;
+        s=nqdkim; t=1587651175;
+        bh=rx4KRvxm7KYegLqerZGR/kQcXFSyt0VHhQjdV/Ma948=;
+        h=To:From:Message-ID:Date:MIME-Version;
+        b=7h9XBkQINoJwToXpJxCU7pqWVwjqn76rddVosQiUpFuSzY0a5Db52Ea4Z7PedB8Vo
+         uZ10ZSWySxKQhfDMqmEZL0aEGCRiFOkjr+Cyp2HYdA8CGbuRJPxFf6qU7PunoTPwOM
+         sjonEeTmDZpuBMz07wAoOl0ZPx5r0ZqMe5G7uPXQmNnSRwahRfNy4w7r06BjHPrpOV
+         8KXvhoWONlzTJpL9i6/DF1DXL+zFC3gmN7V1rm2UEp2uJEwntMzQmCARFa4sKHtYuu
+         bNtmMQdbKIQZJARjorc/vVo12iS903hIptNDcu/CjceZfiBEfNtvRT73wRDt8RNlP/
+         JZ5yVzKHaippA==
+Received: from webmail.newquest.fr ([127.0.0.1])
+        by localhost (webmail.newquest.fr [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP id HN80gKj2v6gl for <netfilter-devel@vger.kernel.org>;
+        Thu, 23 Apr 2020 16:12:55 +0200 (CEST)
+Received: from [172.16.0.14] (gateway [192.168.0.254])
+        by webmail.newquest.fr (Postfix) with ESMTPSA id 112CAEA03D8
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Apr 2020 16:12:55 +0200 (CEST)
+To:     netfilter-devel@vger.kernel.org
+From:   Milan JEANTON <m.jeanton@newquest.fr>
+Subject: Problem with flushing nftalbes sets
+Message-ID: <5a20c054-cf2e-9694-2242-03e1d01cf568@newquest.fr>
+Date:   Thu, 23 Apr 2020 16:12:54 +0200
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.7.0
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: fr
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Some table unregister actions seem to be initiated by the kernel to
-garbage collect unused tables that are not initiated by any userspace
-actions.  It was found to be necessary to add the subject credentials to
-cover this case to reveal the source of these actions.  A sample record:
+Hello,
 
-  type=NETFILTER_CFG msg=audit(2020-03-11 21:25:21.491:269) : table=nat family=bridge entries=0 op=unregister pid=153 uid=root auid=unset tty=(none) ses=unset subj=system_u:system_r:kernel_t:s0 comm=kworker/u4:2 exe=(null)
+I try to send you the message again, it says it couldn't be send because=20
+it was an HTML type message.
 
-Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
----
- kernel/auditsc.c | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
 
-diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-index d281c18d1771..d7a45b181be0 100644
---- a/kernel/auditsc.c
-+++ b/kernel/auditsc.c
-@@ -2557,12 +2557,30 @@ void __audit_log_nfcfg(const char *name, u8 af, unsigned int nentries,
- 		       enum audit_nfcfgop op)
- {
- 	struct audit_buffer *ab;
-+	const struct cred *cred;
-+	struct tty_struct *tty;
-+	char comm[sizeof(current->comm)];
- 
- 	ab = audit_log_start(audit_context(), GFP_KERNEL, AUDIT_NETFILTER_CFG);
- 	if (!ab)
- 		return;
- 	audit_log_format(ab, "table=%s family=%u entries=%u op=%s",
- 			 name, af, nentries, audit_nfcfgs[op].s);
-+
-+	cred = current_cred();
-+	tty = audit_get_tty();
-+	audit_log_format(ab, " pid=%u uid=%u auid=%u tty=%s ses=%u",
-+			 task_pid_nr(current),
-+			 from_kuid(&init_user_ns, cred->uid),
-+			 from_kuid(&init_user_ns, audit_get_loginuid(current)),
-+			 tty ? tty_name(tty) : "(none)",
-+			 audit_get_sessionid(current));
-+	audit_put_tty(tty);
-+	audit_log_task_context(ab); /* subj= */
-+	audit_log_format(ab, " comm=");
-+	audit_log_untrustedstring(ab, get_task_comm(comm, current));
-+	audit_log_d_path_exe(ab, current->mm); /* exe= */
-+
- 	audit_log_end(ab);
- }
- EXPORT_SYMBOL_GPL(__audit_log_nfcfg);
--- 
-1.8.3.1
+I use nftables for a development project with our company and I'm happy=20
+with this application but I'm still learning a lot with all the options.
 
+I'm using Debian environments (stretch and buster).
+
+My problem is with the sets of nftables:
+I use the sets to manage a large amount of ip addresses since it store=20
+only the ipv4 addresses without any rules and process it much quicker.
+
+So let's say I have this table configuration:
+
+table ip test {
+ =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 set tmp {
+ =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0 type ipv4_addr
+ =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 }
+}
+
+I can add elements in my set without any problem, I can also delete them=20
+one by one.
+
+The problem I have is that I need to delete all the elements in the tmp=20
+set and as precised in the manual of nftables I could flush the elements=20
+of a set:
+
+SETS
+[...]
+flush=C2=A0=C2=A0=C2=A0 Remove all elements from the specified set.
+
+But when I use the command to flush my sets, it doesn't work and=20
+displays me an error message
+
+nft 'flush set test tmp'
+Error: Could not process rule: Invalid argument
+flush set test tmp
+^^^^^^^^^^^^^^^^^^^
+
+So I used an other method that worked on version 0.7 by selecting all=20
+the content of elements, but I updated to version 0.9.4 and can't make=20
+it work since there is a new line each two addresses and I would rather=20
+use a native command anyway.
+
+I don't understand what I do wrong ? If you can please help me.
+
+Regards,
