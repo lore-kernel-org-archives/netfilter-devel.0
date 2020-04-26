@@ -2,94 +2,99 @@ Return-Path: <SRS0=Hoda=6K=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26902C55194
-	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Apr 2020 13:24:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A20D0C55194
+	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Apr 2020 21:43:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 05D15206DD
-	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Apr 2020 13:24:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 89B752070A
+	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Apr 2020 21:43:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726444AbgDZNYr (ORCPT
+        id S1726343AbgDZVnp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 26 Apr 2020 09:24:47 -0400
-Received: from correo.us.es ([193.147.175.20]:42930 "EHLO mail.us.es"
+        Sun, 26 Apr 2020 17:43:45 -0400
+Received: from correo.us.es ([193.147.175.20]:52878 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726343AbgDZNYQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 26 Apr 2020 09:24:16 -0400
+        id S1726184AbgDZVnn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 26 Apr 2020 17:43:43 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 73C501BFA81
-        for <netfilter-devel@vger.kernel.org>; Sun, 26 Apr 2020 15:24:13 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id B01D9DA72F
+        for <netfilter-devel@vger.kernel.org>; Sun, 26 Apr 2020 23:43:40 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 570ECB7FF5
-        for <netfilter-devel@vger.kernel.org>; Sun, 26 Apr 2020 15:24:13 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A184CBAAB5
+        for <netfilter-devel@vger.kernel.org>; Sun, 26 Apr 2020 23:43:40 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 2B043B7FFD; Sun, 26 Apr 2020 15:24:02 +0200 (CEST)
+        id 9744BBAAB1; Sun, 26 Apr 2020 23:43:40 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 72511DA788;
-        Sun, 26 Apr 2020 15:24:00 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BA990DA736;
+        Sun, 26 Apr 2020 23:43:38 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 26 Apr 2020 15:24:00 +0200 (CEST)
+ Sun, 26 Apr 2020 23:43:38 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 4F28942EF4E2;
-        Sun, 26 Apr 2020 15:24:00 +0200 (CEST)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 9CCFD42EF4E0;
+        Sun, 26 Apr 2020 23:43:38 +0200 (CEST)
+Date:   Sun, 26 Apr 2020 23:43:38 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     duncan_roe@optusnet.com.au
-Subject: [PATCH libnetfilter_queue 0/3] pktbuff API updates
-Date:   Sun, 26 Apr 2020 15:23:53 +0200
-Message-Id: <20200426132356.8346-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+To:     Romain Bellan <romain.bellan@wifirst.fr>
+Cc:     netfilter-devel@vger.kernel.org,
+        Florent Fourcot <florent.fourcot@wifirst.fr>
+Subject: Re: [PATCH nf-next v5 1/1] netfilter: ctnetlink: add kernel side
+ filtering for dump
+Message-ID: <20200426214338.GA2276@salvia>
+References: <20200330204637.11472-1-romain.bellan@wifirst.fr>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200330204637.11472-1-romain.bellan@wifirst.fr>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Duncan,
+Hi Florent, Romain,
 
-This is another turn / incremental update to the pktbuff API based on
-your feedback:
+On Mon, Mar 30, 2020 at 10:46:37PM +0200, Romain Bellan wrote:
+> Conntrack dump does not support kernel side filtering (only get exists,
+> but it returns only one entry. And user has to give a full valid tuple)
+> 
+> It means that userspace has to implement filtering after receiving many
+> irrelevant entries, consuming resources (conntrack table is sometimes
+> very huge, much more than a routing table for example).
+> 
+> This patch adds filtering in kernel side. To achieve this goal, we:
+> 
+>  * Add a new CTA_FILTER netlink attributes, actually a flag list to
+>    parametize filtering
+>  * Convert some *nlattr_to_tuple() functions, to allow a partial parsing
+>    of CTA_TUPLE_ORIG and CTA_TUPLE_REPLY (so nf_conntrack_tuple it not
+>    fully set)
 
-Patch #1 adds pktb_alloc_head() to allocate the pkt_buff structure.
-	 This patch also adds pktb_build_data() to set up the pktbuff
-	 data pointer.
+Still some issues here running conntrack-tools/tests/conntrack/test-conntrack.c
+with your patch v5 on top of nf-next, it reports:
 
-Patch #2 updates the existing example to use pktb_alloc_head() and
-         pktb_build_data().
+        OK: 84 BAD: 38
 
-Patch #3 adds a few helper functions to set up the pointer to the
-         network header.
+it should say:
 
-Your goal is to avoid the memory allocation and the memcpy() in
-pktb_alloc(). With this scheme, users pre-allocate the pktbuff object
-from the configuration step, and then this object is recycled for each
-packet that is received from the kernel.
+        OK: 122 BAD: 0
 
-Would this update fit for your usecase?
+The test this needs to be compiled via:
 
-Thanks.
+        gcc -lnetfilter_conntrack test-conntrack.c -o test
 
-P.S: I'm sorry for the time being, it's been hectic here.
+I'm attaching the log for the run of your patch v5.
 
-Pablo Neira Ayuso (3):
-  pktbuff: add pktb_alloc_head() and pktb_build_data()
-  example: nf-queue: use pkt_buff
-  pktbuff: add pktb_reset_network_header() and pktb_set_network_header()
+Have a look at the "BAD" pattern which provides tells what conntrack
+command stopped working.
 
- examples/nf-queue.c                  | 25 +++++++++++++++++++--
- include/libnetfilter_queue/pktbuff.h |  6 +++++
- src/extra/pktbuff.c                  | 33 ++++++++++++++++++++++++++++
- 3 files changed, 62 insertions(+), 2 deletions(-)
-
---
-2.20.1
-
+Thanks for working on this.
