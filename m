@@ -6,44 +6,44 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12386C81857
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Apr 2020 23:23:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 640B0C81CFF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Apr 2020 23:25:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E61E82075E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Apr 2020 23:23:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 47C942075E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Apr 2020 23:25:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726257AbgD0XXD (ORCPT
+        id S1726343AbgD0XZY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 27 Apr 2020 19:23:03 -0400
-Received: from correo.us.es ([193.147.175.20]:48200 "EHLO mail.us.es"
+        Mon, 27 Apr 2020 19:25:24 -0400
+Received: from correo.us.es ([193.147.175.20]:48900 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726204AbgD0XXD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Apr 2020 19:23:03 -0400
+        id S1725968AbgD0XZX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 Apr 2020 19:25:23 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D0ADCDA7F0
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2020 01:23:01 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 063AEDA885
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2020 01:25:22 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C2F7CDA736
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2020 01:23:01 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EC3E7DA736
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2020 01:25:21 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B893FDA7B2; Tue, 28 Apr 2020 01:23:01 +0200 (CEST)
+        id E1CDBBAC2F; Tue, 28 Apr 2020 01:25:21 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B4811BAAA3
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2020 01:22:59 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DBBB0DA736
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2020 01:25:19 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 28 Apr 2020 01:22:59 +0200 (CEST)
+ Tue, 28 Apr 2020 01:25:19 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id A1A7842EF9E0
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2020 01:22:59 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id C749942EF9E0
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2020 01:25:19 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_conntrack] src: add IPS_HW_OFFLOAD flag
-Date:   Tue, 28 Apr 2020 01:22:56 +0200
-Message-Id: <20200427232256.22466-1-pablo@netfilter.org>
+Subject: [PATCH conntrack-tools] conntrack: add support for the IPS_HW_OFFLOAD flag
+Date:   Tue, 28 Apr 2020 01:25:16 +0200
+Message-Id: <20200427232516.22559-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -53,19 +53,20 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This flags specifies that this conntrack entry is in hardware.
+This patch adds support for the IPS_HW_OFFLOAD flag which specifies that
+this conntrack entry has been offloaded into the hardware.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- .../linux_nf_conntrack_common.h                | 18 ++++++++++++++++--
- src/conntrack/snprintf_default.c               |  4 +++-
- 2 files changed, 19 insertions(+), 3 deletions(-)
+ include/linux/netfilter/nf_conntrack_common.h | 18 ++++++++++++++++--
+ src/conntrack.c                               |  4 ++--
+ 2 files changed, 18 insertions(+), 4 deletions(-)
 
-diff --git a/include/libnetfilter_conntrack/linux_nf_conntrack_common.h b/include/libnetfilter_conntrack/linux_nf_conntrack_common.h
-index 32efa357c8db..131ca258a904 100644
---- a/include/libnetfilter_conntrack/linux_nf_conntrack_common.h
-+++ b/include/libnetfilter_conntrack/linux_nf_conntrack_common.h
-@@ -102,6 +102,15 @@ enum ip_conntrack_status {
+diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
+index 8023e5b6572f..16d20a3b2ff0 100644
+--- a/include/linux/netfilter/nf_conntrack_common.h
++++ b/include/linux/netfilter/nf_conntrack_common.h
+@@ -97,6 +97,15 @@ enum ip_conntrack_status {
  	IPS_UNTRACKED_BIT = 12,
  	IPS_UNTRACKED = (1 << IPS_UNTRACKED_BIT),
  
@@ -81,7 +82,7 @@ index 32efa357c8db..131ca258a904 100644
  	/* Conntrack got a helper explicitly attached via CT target. */
  	IPS_HELPER_BIT = 13,
  	IPS_HELPER = (1 << IPS_HELPER_BIT),
-@@ -110,14 +119,19 @@ enum ip_conntrack_status {
+@@ -105,14 +114,19 @@ enum ip_conntrack_status {
  	IPS_OFFLOAD_BIT = 14,
  	IPS_OFFLOAD = (1 << IPS_OFFLOAD_BIT),
  
@@ -103,21 +104,21 @@ index 32efa357c8db..131ca258a904 100644
  };
  
  /* Connection tracking event types */
-diff --git a/src/conntrack/snprintf_default.c b/src/conntrack/snprintf_default.c
-index 765ce726ea7d..2f2f91864d39 100644
---- a/src/conntrack/snprintf_default.c
-+++ b/src/conntrack/snprintf_default.c
-@@ -184,7 +184,9 @@ static int __snprintf_status_assured(char *buf,
- {
- 	int size = 0;
- 
--	if (ct->status & IPS_OFFLOAD)
-+	if (ct->status & IPS_HW_OFFLOAD)
-+		size = snprintf(buf, len, "[HW_OFFLOAD] ");
-+	else if (ct->status & IPS_OFFLOAD)
- 		size = snprintf(buf, len, "[OFFLOAD] ");
- 	else if (ct->status & IPS_ASSURED)
- 		size = snprintf(buf, len, "[ASSURED] ");
+diff --git a/src/conntrack.c b/src/conntrack.c
+index f65926b298ad..fb4e5be86ed8 100644
+--- a/src/conntrack.c
++++ b/src/conntrack.c
+@@ -870,8 +870,8 @@ static struct parse_parameter {
+ 	size_t  size;
+ 	unsigned int value[8];
+ } parse_array[PARSE_MAX] = {
+-	{ {"ASSURED", "SEEN_REPLY", "UNSET", "FIXED_TIMEOUT", "EXPECTED", "OFFLOAD"}, 6,
+-	  { IPS_ASSURED, IPS_SEEN_REPLY, 0, IPS_FIXED_TIMEOUT, IPS_EXPECTED, IPS_OFFLOAD} },
++	{ {"ASSURED", "SEEN_REPLY", "UNSET", "FIXED_TIMEOUT", "EXPECTED", "OFFLOAD", "HW_OFFLOAD"}, 7,
++	  { IPS_ASSURED, IPS_SEEN_REPLY, 0, IPS_FIXED_TIMEOUT, IPS_EXPECTED, IPS_OFFLOAD, IPS_HW_OFFLOAD} },
+ 	{ {"ALL", "NEW", "UPDATES", "DESTROY"}, 4,
+ 	  { CT_EVENT_F_ALL, CT_EVENT_F_NEW, CT_EVENT_F_UPD, CT_EVENT_F_DEL } },
+ 	{ {"xml", "extended", "timestamp", "id", "ktimestamp", "labels", "userspace" }, 7,
 -- 
 2.20.1
 
