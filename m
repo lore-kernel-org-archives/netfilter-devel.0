@@ -2,114 +2,171 @@ Return-Path: <SRS0=gJ4i=6M=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCA75C83007
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Apr 2020 20:11:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 544DDC83004
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Apr 2020 21:15:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B698C20B80
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Apr 2020 20:11:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3E6DB2072A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Apr 2020 21:15:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726338AbgD1ULe (ORCPT
+        id S1727069AbgD1VPC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 28 Apr 2020 16:11:34 -0400
-Received: from www62.your-server.de ([213.133.104.62]:42914 "EHLO
-        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726180AbgD1ULd (ORCPT
+        Tue, 28 Apr 2020 17:15:02 -0400
+Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:36819 "EHLO
+        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726535AbgD1VO4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 Apr 2020 16:11:33 -0400
-Received: from sslproxy03.your-server.de ([88.198.220.132])
-        by www62.your-server.de with esmtpsa (TLSv1.2:DHE-RSA-AES256-GCM-SHA384:256)
-        (Exim 4.89_1)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1jTWZd-0005iy-An; Tue, 28 Apr 2020 22:11:21 +0200
-Received: from [178.195.186.98] (helo=pc-9.home)
-        by sslproxy03.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1jTWZc-000TWD-TC; Tue, 28 Apr 2020 22:11:20 +0200
-Subject: Re: [PATCH nf-next 3/3] netfilter: Introduce egress hook
-To:     Lukas Wunner <lukas@wunner.de>, Laura Garcia <nevola@gmail.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Netfilter Development Mailing list 
-        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Martin Mares <mj@ucw.cz>,
-        Dmitry Safonov <0x7f454c46@gmail.com>,
-        Thomas Graf <tgraf@suug.ch>,
-        Alexei Starovoitov <ast@kernel.org>,
-        David Miller <davem@davemloft.net>
-References: <cover.1583927267.git.lukas@wunner.de>
- <14ab7e5af20124a34a50426fd570da7d3b0369ce.1583927267.git.lukas@wunner.de>
- <a57687ae-2da6-ca2a-1c84-e4332a5e4556@iogearbox.net>
- <20200313145526.ikovaalfuy7rnkdl@salvia>
- <1bd50836-33c4-da44-5771-654bfb0348cc@iogearbox.net>
- <20200315132836.cj36ape6rpw33iqb@salvia>
- <CAF90-WgoteQXB9WQmeT1eOHA3GpPbwPCEvNzwKkN20WqpdHW-A@mail.gmail.com>
- <20200423160542.d3f6yef4av2gqvur@wunner.de>
-From:   Daniel Borkmann <daniel@iogearbox.net>
-Message-ID: <1a27351b-78a8-febc-45d7-6ee2e8ebda9e@iogearbox.net>
-Date:   Tue, 28 Apr 2020 22:11:19 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.2
+        Tue, 28 Apr 2020 17:14:56 -0400
+Received: from dimstar.local.net (n175-34-64-112.sun1.vic.optusnet.com.au [175.34.64.112])
+        by mail104.syd.optusnet.com.au (Postfix) with SMTP id 44A30820ADB
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2020 07:14:53 +1000 (AEST)
+Received: (qmail 1104 invoked by uid 501); 28 Apr 2020 21:14:52 -0000
+Date:   Wed, 29 Apr 2020 07:14:52 +1000
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_queue 0/3] pktbuff API updates
+Message-ID: <20200428211452.GF15436@dimstar.local.net>
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20200426132356.8346-1-pablo@netfilter.org>
+ <20200427110614.GA15436@dimstar.local.net>
+ <20200427170656.GA22296@salvia>
+ <20200428043302.GB15436@dimstar.local.net>
+ <20200428103407.GA1160@salvia>
 MIME-Version: 1.0
-In-Reply-To: <20200423160542.d3f6yef4av2gqvur@wunner.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Authenticated-Sender: daniel@iogearbox.net
-X-Virus-Scanned: Clear (ClamAV 0.102.2/25796/Tue Apr 28 14:00:48 2020)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200428103407.GA1160@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.3 cv=W5xGqiek c=1 sm=1 tr=0
+        a=keeXcwCgVCrAuxOn72dlvA==:117 a=keeXcwCgVCrAuxOn72dlvA==:17
+        a=kj9zAlcOel0A:10 a=cl8xLZFz6L8A:10 a=RSmzAf-M6YYA:10 a=OLL_FvSJAAAA:8
+        a=MCESyHqk0TfmNL7siMoA:9 a=NK350nmagHTuHoZv:21 a=6WyNACks00FMYP41:21
+        a=CjuIK1q_8ugA:10 a=SAszQ4RR6nkA:10 a=OVJnjtlDKZIA:10 a=Z7RzNMET8NMA:10
+        a=AH0NCSqBHYIA:10 a=oIrB72frpwYPwTMnlWqB:22
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hey Lukas,
+On Tue, Apr 28, 2020 at 12:34:07PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Apr 28, 2020 at 02:33:02PM +1000, Duncan Roe wrote:
+> > On Mon, Apr 27, 2020 at 07:06:56PM +0200, Pablo Neira Ayuso wrote:
+> > > Hi Duncan,
+> > >
+> > > On Mon, Apr 27, 2020 at 09:06:14PM +1000, Duncan Roe wrote:
+> > > > Hi Pablo,
+> > > >
+> > > > On Sun, Apr 26, 2020 at 03:23:53PM +0200, Pablo Neira Ayuso wrote:
+> > > > > Hi Duncan,
+> > > > >
+> > > > > This is another turn / incremental update to the pktbuff API based on
+> > > > > your feedback:
+> > > > >
+> > > > > Patch #1 adds pktb_alloc_head() to allocate the pkt_buff structure.
+> > > > > 	 This patch also adds pktb_build_data() to set up the pktbuff
+> > > > > 	 data pointer.
+> > > > >
+> > > > > Patch #2 updates the existing example to use pktb_alloc_head() and
+> > > > >          pktb_build_data().
+> > > > >
+> > > > > Patch #3 adds a few helper functions to set up the pointer to the
+> > > > >          network header.
+> > > > >
+> > > > > Your goal is to avoid the memory allocation and the memcpy() in
+> > > > > pktb_alloc(). With this scheme, users pre-allocate the pktbuff object
+> > > > > from the configuration step, and then this object is recycled for each
+> > > > > packet that is received from the kernel.
+> > > > >
+> > > > > Would this update fit for your usecase?
+> > > >
+> > > > No, sorry. The show-stopper is, no allowance for the "extra" arg,
+> > > > when you might want to mangle a packet tobe larger than it was.
+> > >
+> > > I see, maybe pktb_build_data() can be extended to take the "extra"
+> > > arg. Or something like this:
+> > >
+> > >  void pktb_build_data(struct pkt_buff *pktb, uint8_t *payload, uint32_t size, uint32_t len)
+> > >
+> > > where size is the total buffer size, and len is the number of bytes
+> > > that are in used in the buffer.
+> >
+> > I really do not like the direction this is taking. pktb_build_data() is one of 4
+> > new functions you are suggesting, the others being pktb_alloc_head(),
+> > pktb_reset_network_header() and pktb_set_network_header(). In
+> > https://www.spinics.net/lists/netfilter-devel/msg65830.html, you asked
+> >
+> > > I wonder if all these new functions can be consolidated into one
+> > > single function, something like:
+> > >
+> > >         struct pkt_buff *pktb_alloc2(int family, void *head, size_t head_size, void *data, size_t len, size_t extra);
+>
+> pktb_alloc2() still has a memcpy which is not needed by people that do
+> not need to mangle the packet.
 
-On 4/23/20 6:05 PM, Lukas Wunner wrote:
-> On Thu, Apr 23, 2020 at 04:44:44PM +0200, Laura Garcia wrote:
->> On Sun, Mar 15, 2020 at 2:29 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->>> On Sat, Mar 14, 2020 at 01:12:02AM +0100, Daniel Borkmann wrote:
->>>> On 3/13/20 3:55 PM, Pablo Neira Ayuso wrote:
->>>>> We have plans to support for NAT64 and NAT46, this is the right spot
->>>>> to do this mangling. There is already support for the tunneling
->>>>
->>>> But why is existing local-out or post-routing hook _not_ sufficient for
->>>> NAT64 given it being IP based?
->>>
->>> Those hooks are not coming at the end of the IP processing. There is
->>> very relevant IP code after those hooks that cannot be bypassed such
->>> as fragmentation, tunneling and neighbour output. Such transformation
->>> needs to happen after the IP processing, exactly from where Lukas is
->>> proposing.
->>>
->>> [...]
->>>>> infrastructure in netfilter from ingress, this spot from egress will
->>>>> allow us to perform the tunneling from here. There is also no way to
->>>>> drop traffic generated by dhclient, this also allow for filtering such
->>>>> locally generated traffic. And many more.
->>
->> Any chance to continue with this approach? I'm afraid outbound
->> af_packets also could not be filtered without this hook.
-> 
-> Thanks Laura, good to hear there's interest in the functionality.
-> 
-> Daniel submitted a revert of this series but didn't cc me:
-> 
-> https://lore.kernel.org/netdev/bbdee6355234e730ef686f9321bd072bcf4bb232.1584523237.git.daniel@iogearbox.net/
-> 
-> In the ensuing discussion it turned out that the performance argument
-> may be addressed by a rearrangement of sch_handle_egress() and
-> nf_egress() invocations.  I could look into amending the series
-> accordingly and resubmitting, though I'm currently swamped with
-> other work.
+No it does not. Please look again. There is only a memcpy if the caller
+specifies extra > 0, in which case she clearly intends to mangle it (perhaps
+depending on its contents).
 
-The rework of these hooks is still on my todo list, too swamped with
-other stuff as well right now, but I'll see to have a prototype this
-net-next development cycle.
+"depending on its contents" is where the memcpy deferral comes in. pktb_alloc2()
+verifies that the supplied buffer is big enough (size >= len + extra). The user
+declared it as a stack variable that size so it will be. With the deferral
+enhancement, pktb_alloc2() records the buffer address and extra in the enlarged
+struct pktbuff (extra is needed to tell pktb_mangle how much memory to memset to
+0).
 
-Thanks,
-Daniel
+If pktb_mangle() finds it has to make the packet larger then its original length
+and the packet is still in its original location then copy it and zero extra.
+(i.e. pktb_mangle() doesn't just check whether it was asked to make the packet
+bigger: it might have previously been asked to make it smaller).
+
+Also (and this *is* tricky, update relevant pointers in the struct pktbuff).
+That invalidates any poiners the caller may have obtained from e.g. pktb_data()
+- see end of email.
+>
+> > That's what I have delivered, except for 2 extra args on the end for the packet
+> > copy buffer. And I get rid of pktb_free(), or at least deprecate and move it off
+> > the main doc page into the "Other functions" page.
+> >
+> > Also pktb_set_network_header() makes no allowance for AF_BRIDGE.
+>
+> This is not a problem, you only have to call this function with
+> ETH_HLEN to set the offset in case of bridge.
+>
+> > Can we please just stick with
+> >
+> > > struct pkt_buff *pktb_alloc2(int family, void *head, size_t headsize,
+> > >                              void *data, size_t len, size_t extra,
+> > >                              void *buf, size_t bufsize)
+>
+> I'm fine if you still like the simplified pktb_alloc2() call, that's OK.
+>
+> [...]
+> > > I think it's fine if pktb_mangle() deals with this data buffer
+> > > reallocation in case it needs to expand the packet, a extra patch on
+> > > top of this should be fine.
+> >
+> > OK - will start on a patch based on
+> > https://www.spinics.net/lists/netfilter-devel/msg66710.html
+>
+> Revisiting, I would prefer to keep things simple. The caller should
+> make sure that pktb_mangle() has a buffer containing enough room. I
+> think it's more simple for the caller to allocate a buffer that is
+> large enough for any mangling.
+
+Yes it's more complex. No problem with the buffer - the user gave that to
+pktb_alloc2().
+
+Problem is that if mangler moves the packet, then any packet pointer the caller
+had is invalid (points to the un-mangled copy). This applies at all levels, e.g.
+nfq_udp_get_payload(). There is no way for the mangler functions to address
+this: it just has to be highlighted in the documentation.
+
+Still, I really like the deferred copy enhancement. Your thoughts?
+
+Cheers ... Duncan.
