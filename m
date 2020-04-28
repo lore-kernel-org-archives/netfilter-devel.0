@@ -2,66 +2,98 @@ Return-Path: <SRS0=gJ4i=6M=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=BODY_SINGLE_WORD,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79115C83001
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Apr 2020 00:06:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5B5EC83003
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Apr 2020 00:14:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5459D2078C
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Apr 2020 00:06:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6EAB92072A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Apr 2020 00:14:40 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="sgRLXNCk"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726380AbgD1AGw (ORCPT
+        id S1726343AbgD1AOi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 27 Apr 2020 20:06:52 -0400
-Received: from correo.us.es ([193.147.175.20]:59482 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726348AbgD1AGw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Apr 2020 20:06:52 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 97718E16F4
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2020 02:06:51 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8B3B62040D
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2020 02:06:51 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 80A4ABAAB1; Tue, 28 Apr 2020 02:06:51 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B6ABDBAAB8;
-        Tue, 28 Apr 2020 02:06:49 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 28 Apr 2020 02:06:49 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 8DDD942EF9E0;
-        Tue, 28 Apr 2020 02:06:49 +0200 (CEST)
-Date:   Tue, 28 Apr 2020 02:06:49 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Cc:     Maciej =?utf-8?Q?=C5=BBenczykowski?= <maze@google.com>,
-        Florian Westphal <fw@strlen.de>,
+        Mon, 27 Apr 2020 20:14:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41312 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726233AbgD1AOi (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 Apr 2020 20:14:38 -0400
+Received: from mail-ej1-x641.google.com (mail-ej1-x641.google.com [IPv6:2a00:1450:4864:20::641])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61967C0610D5;
+        Mon, 27 Apr 2020 17:14:38 -0700 (PDT)
+Received: by mail-ej1-x641.google.com with SMTP id n17so15679577ejh.7;
+        Mon, 27 Apr 2020 17:14:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=0SHN2u7WHirj9rFGRxq0U5QdF66UP7Si1I8EoURuwhQ=;
+        b=sgRLXNCktHnIDbBPPEo/9dHee2ssaliF5PBgA3gLGGKrEeGnIsWrE+Gl/OYBp2iY7q
+         KDZbAewHf+Vjb/ym46ikKM8JtKZdfPVoMI6UWloUOYoxDo+17LbOjhapz7/eB0jRKpw+
+         i/KqcALXG96gY2Fw3QR6ByWYJREHqaMIGKNFTo0I4UOGGMSsqXifpMQb+qZ0oNKkpgtE
+         VGSL+oKhhp3gRR4jqVZnkt+g2cS9eqc1OqOQkN9pHna78neYiAQvcNm3s9+SS4Qp70mP
+         UwSiROG0rAtKs4Zodt/YOv3e8WQIEuK2oVJRboH1Qz6KTGjtfhITK8WcBhm3UNeRd1Dk
+         Jazw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=0SHN2u7WHirj9rFGRxq0U5QdF66UP7Si1I8EoURuwhQ=;
+        b=HyD/vNXmc48OSkji/tnm+vmSTTQHdRO1IFHepRglhSRvAi0RQO495xxyfou/6Dn8rh
+         Gkiy8znyAUZ0aMVygZvMzTJ4raBJUuBHgE06BKHU1yKagAnJh92IeHqkyEUVQF1xu/2v
+         KAPNMLlaoBvIu0NpwUwCVTZOqQDbfpIrTmNlOm78Bt41klOc85KtvqjCCcL3eMu9JJCV
+         YiJBRzVD6BaVvvYXYRTJjFxkH3CBfaXhoqNJj4oIN1ojhegFBuf6foqyV3VZuDHTH4LT
+         5/26aULJIa/Ggc/wScZasfEka9fgum+Gmp32AII9RdVvG4NrVmKhE1/SYfg9cQ6qOwEz
+         7y6w==
+X-Gm-Message-State: AGi0Pub1wvumfoJEQP1fvnwYoeKfWGhwTUtWJgprcqDAdu8EFYaGncQ0
+        lic/xn0UGQdE5HBh2psumrxzYSyrFeKmgLQ4LdM=
+X-Google-Smtp-Source: APiQypLVxQcFf9n4f0ZANWbYr+S5VyOoeb+o5EvX5MHBzdHRbvELCXZ5w7HOS0tJCZZbXtDZ+vDtmdISvLwCpRdEdQ0=
+X-Received: by 2002:a17:906:f288:: with SMTP id gu8mr23065870ejb.281.1588032876999;
+ Mon, 27 Apr 2020 17:14:36 -0700 (PDT)
+MIME-Version: 1.0
+References: <20200421081542.108296-1-zenczykowski@gmail.com> <20200428000525.GD24002@salvia>
+In-Reply-To: <20200428000525.GD24002@salvia>
+From:   =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Date:   Mon, 27 Apr 2020 17:14:24 -0700
+Message-ID: <CAHo-OoxP6ZrvbXFH_tC9_wdVDg7y=8bzVY9oKZTieZL_mqS1NQ@mail.gmail.com>
+Subject: Re: [PATCH] iptables: flush stdout after every verbose log.
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>,
         Linux Network Development Mailing List 
         <netdev@vger.kernel.org>,
         Netfilter Development Mailing List 
         <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH] libxt_IDLETIMER.c - fix target v1 help alignment and doc
-Message-ID: <20200428000649.GF24002@salvia>
-References: <20200421094510.126375-1-zenczykowski@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200421094510.126375-1-zenczykowski@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Applied.
+> Could you check if this slows down iptables-restore?
+
+per the iptables-restore man page
+       -v, --verbose
+              Print additional debug info during ruleset processing.
+
+Well, if you run it with verbose mode enabled you probably don't care
+about performance all that much...
+And it only does anything if you're feeding in comments, which again -
+is unlikely.
+
+iptables-save produces two comment lines per table, so you're likely
+to have a grand total of 8 of these lines
+(if you have raw/nat/mangle/filter tables all listed), and if you feed
+that in to iptables-restore -v then
+you end up calling flush 8 times, which triggers 8 extra write()
+syscalls - which aren't exactly expensive to begin with...
+
+So I think this is a non issue.
+
+(I could change it so that only "#PING" flushes, which is the actual
+comment netd sends for healthchecking,
+but I just don't think it matters)
