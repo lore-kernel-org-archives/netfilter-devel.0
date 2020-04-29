@@ -2,192 +2,129 @@ Return-Path: <SRS0=4AXv=6N=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16B67C83004
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Apr 2020 19:00:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81A8BC83004
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Apr 2020 19:01:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F2B582064A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Apr 2020 19:00:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6EE162064A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Apr 2020 19:01:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727041AbgD2TAZ (ORCPT
+        id S1727824AbgD2TBP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 29 Apr 2020 15:00:25 -0400
-Received: from correo.us.es ([193.147.175.20]:56548 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726423AbgD2TAZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 Apr 2020 15:00:25 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 814734A7066
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2020 21:00:23 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6F0C8BAABA
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2020 21:00:23 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 64783BAAB5; Wed, 29 Apr 2020 21:00:23 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4612F20661
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2020 21:00:21 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 29 Apr 2020 21:00:21 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 27E4142EF9E0
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2020 21:00:21 +0200 (CEST)
-Date:   Wed, 29 Apr 2020 21:00:20 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnetfilter_queue 0/3] pktbuff API updates
-Message-ID: <20200429190020.GA16096@salvia>
-References: <20200426132356.8346-1-pablo@netfilter.org>
- <20200427110614.GA15436@dimstar.local.net>
- <20200427170656.GA22296@salvia>
- <20200428043302.GB15436@dimstar.local.net>
- <20200428103407.GA1160@salvia>
- <20200428211452.GF15436@dimstar.local.net>
- <20200428225520.GA30421@salvia>
- <20200429132840.GA3833@dimstar.local.net>
+        Wed, 29 Apr 2020 15:01:15 -0400
+Received: from mout.kundenserver.de ([212.227.17.10]:55811 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726774AbgD2TBO (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 29 Apr 2020 15:01:14 -0400
+Received: from threadripper.lan ([149.172.19.189]) by mrelayeu.kundenserver.de
+ (mreue106 [212.227.15.145]) with ESMTPA (Nemesis) id
+ 1MsZif-1jA82b1Dq7-00tyVc; Wed, 29 Apr 2020 21:00:58 +0200
+From:   Arnd Bergmann <arnd@arndb.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>
+Cc:     Arnd Bergmann <arnd@arndb.de>, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] netfilter: nf_osf: avoid passing pointer to local var
+Date:   Wed, 29 Apr 2020 21:00:41 +0200
+Message-Id: <20200429190051.27993-1-arnd@arndb.de>
+X-Mailer: git-send-email 2.26.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200429132840.GA3833@dimstar.local.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
+X-Provags-ID: V03:K1:CYlZfuFtNpjZrqTvwZ5028YLJ6KuOCHmVhyazWlbBu2PhEtBqbt
+ 6gk7Yk1cVVGh4KTcIw7birHOPmwEfP89NBJ4jutRj0t7LDFLDWtn40s6DoTQ41kT4oIJ4dL
+ 0lCl3TjjigXQtqSZAHYCqoxT0O3/kYlNBnbVDR1J0DXlK3rMlPkoFGvbesgvwNc20FuaSAJ
+ prW7otpY0Wm5kTT4fSNpA==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:UTHG1ceMWl0=:vrEAPiFvvSnonSYlGvh3LL
+ JSKK+SjWOMMoF2Iau67hHUbGEYcjDuIuB9pByQ7+uImR2f2QP1gj5urYdHRCwfuvECmmXVkXr
+ /G+R4IuRTPjrVYX7SEfVenIQIqCQArexDI16d0AsD6Hqj7zbGo6jp2QDq+rT5/rRE6IbiWTtM
+ ym1O+ovYBc8lFDbXmAbdFCS9uvxFVmtVwzR+I6SCbZIPkQTj7XZ99KOY5vYUZZb/dYZKnjh3z
+ DHc4VgLAxKtaIJbjuN5ONO1NOqcxL9M81n7P2mHUvmBnF7oTCZVs6Aa2tv+DZAfoQdMG8peT1
+ s1EYnLzRBsUrZQCqtgMmI7oKZTwkQsyZ91AloI3LXO2Zl7W+735WKJ4CBZzkEJ6d6J2lgvzoc
+ R9AfBTSIUeQcIjI8jlKpYbqYw83Kr8lio55wOfwiCP/AYgqadMg0t79FUPeH15VkqXadYkP6F
+ WpdgS7/zr4Gj7AtPRXqb4xZpRWGWqQM9tTYCoKje2yT/wyarO3YRAEK9y0k6xfCITxlMyFpqZ
+ RuJxqaJOGODzqeXsYWYZ9XbvEFNMeIPpwBDMc9Ff25k++fCxyR6ylM4gtHOZuQINSCYfkzH7R
+ ufciE9S52vwDlSSZ624E0VTDWJ17GdHfwYaCUBpJmJRQE9/YYBEO+dE5k+DuAkD1G4+ko0TRW
+ RL5fRLPbXdnBVJP6rMXRy6y1kDWY86OHKcYvsgNgRXIWaImgDJevgEU0qBs130GO8RnG6DeZD
+ +t/HFG1wn/NjMPzot+0PDK+DaaKDnmczVHvZy57zdyfq8TzJCILJcXLEm8YhGgVbuk9WKX8NR
+ U/1+KjsU9R7euiyBM8zym9MwFOMIeVqYo2hdcWDO0IiyWyJeKg=
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Apr 29, 2020 at 11:28:40PM +1000, Duncan Roe wrote:
-> On Wed, Apr 29, 2020 at 12:55:20AM +0200, Pablo Neira Ayuso wrote:
-> > On Wed, Apr 29, 2020 at 07:14:52AM +1000, Duncan Roe wrote:
-> > > On Tue, Apr 28, 2020 at 12:34:07PM +0200, Pablo Neira Ayuso wrote:
-> > [...]
-> > > > pktb_alloc2() still has a memcpy which is not needed by people that do
-> > > > not need to mangle the packet.
-> > >
-> > > No it does not. Please look again. There is only a memcpy if the caller
-> > > specifies extra > 0, in which case she clearly intends to mangle it (perhaps
-> > > depending on its contents).
-> >
-> > Right, it only happens if extra is specified.
-> >
-> > +       if (extra) {
-> > +               pkt_data = buf;
-> > +               memcpy(pkt_data, data, len);
-> > +               memset((uint8_t *)pkt_data + len, 0, extra);
-> > +       } else {
-> > +               pkt_data = data;
-> > +       }
-> >
-> > So buf is only used if extra is specified?
-> 
-> Yes, that's right.
+gcc-10 points out that a code path exists where a pointer to a stack
+variable may be passed back to the caller:
 
-OK. Then, the user must pass the buf only if extra is set on.
+net/netfilter/nfnetlink_osf.c: In function 'nf_osf_hdr_ctx_init':
+cc1: warning: function may return address of local variable [-Wreturn-local-addr]
+net/netfilter/nfnetlink_osf.c:171:16: note: declared here
+  171 |  struct tcphdr _tcph;
+      |                ^~~~~
 
-> > > Yes it's more complex. No problem with the buffer - the user gave that to
-> > > pktb_alloc2().
-> >
-> > I'm just hesitating about the new pktb_alloc2() approach because it
-> > has many parameters, it's just looks a bit complicated to me (this
-> > function takes 8 parameters).
-> 
-> It has the original 4 from pktb_alloc() plus 2 {buffer, size} pairs. It could
-> have been just one pair, with packet data appended to metadata as in
-> pktb_alloc() but I thought it would be really awkward to document how to
-> dimension it.
+I am not sure whether this can happen in practice, but moving the
+variable declaration into the callers avoids the problem.
 
-I'm starting to think this function is hard to document, too many
-parameters.
+Fixes: 31a9c29210e2 ("netfilter: nf_osf: add struct nf_osf_hdr_ctx")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ net/netfilter/nfnetlink_osf.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-> I think we should not be usurping the data pointer of mnl_cb_run().
-> I can see people wanting to use it to pass a pointer to e.g. some
-> kind of database that callbacks need to access. There's no
-> performance gain to recycling the buffer: the CB doesn't need to
-> call pktb_head_size() on every invocation, that can be done once by
-> main() e.g.
-> 
->  static size_t sizeof_head;
->  ...
->  int main(int argc, char *argv[])
->  {
->  ...
->          sizeof_head = pktb_head_size(); /* Avoid multiple calls in CB */
->  ...
->  static int queue_cb(const struct nlmsghdr *nlh, void *data)
->  {
->          char head[sizeof_head];
+diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
+index 9f5dea0064ea..916a3c7f9eaf 100644
+--- a/net/netfilter/nfnetlink_osf.c
++++ b/net/netfilter/nfnetlink_osf.c
+@@ -165,12 +165,12 @@ static bool nf_osf_match_one(const struct sk_buff *skb,
+ static const struct tcphdr *nf_osf_hdr_ctx_init(struct nf_osf_hdr_ctx *ctx,
+ 						const struct sk_buff *skb,
+ 						const struct iphdr *ip,
+-						unsigned char *opts)
++						unsigned char *opts,
++						struct tcphdr *_tcph)
+ {
+ 	const struct tcphdr *tcp;
+-	struct tcphdr _tcph;
+ 
+-	tcp = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(struct tcphdr), &_tcph);
++	tcp = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(struct tcphdr), _tcph);
+ 	if (!tcp)
+ 		return NULL;
+ 
+@@ -205,10 +205,11 @@ nf_osf_match(const struct sk_buff *skb, u_int8_t family,
+ 	int fmatch = FMATCH_WRONG;
+ 	struct nf_osf_hdr_ctx ctx;
+ 	const struct tcphdr *tcp;
++	struct tcphdr _tcph;
+ 
+ 	memset(&ctx, 0, sizeof(ctx));
+ 
+-	tcp = nf_osf_hdr_ctx_init(&ctx, skb, ip, opts);
++	tcp = nf_osf_hdr_ctx_init(&ctx, skb, ip, opts, &_tcph);
+ 	if (!tcp)
+ 		return false;
+ 
+@@ -265,10 +266,11 @@ bool nf_osf_find(const struct sk_buff *skb,
+ 	const struct nf_osf_finger *kf;
+ 	struct nf_osf_hdr_ctx ctx;
+ 	const struct tcphdr *tcp;
++	struct tcphdr _tcph;
+ 
+ 	memset(&ctx, 0, sizeof(ctx));
+ 
+-	tcp = nf_osf_hdr_ctx_init(&ctx, skb, ip, opts);
++	tcp = nf_osf_hdr_ctx_init(&ctx, skb, ip, opts, &_tcph);
+ 	if (!tcp)
+ 		return false;
+ 
+-- 
+2.26.0
 
-You might also declare the pre-allocated pkt_buff as a global if you
-don't want to use the data pointer in mnl_cb_run().
-
-static struct pkt_buff *pkt;
-
-int main(int argc, char *argv[])
-{
-        ...
-        pkt = pktb_head_alloc();
-        ...
-}
-
-Then, use it from queue_cb().
-
-Alternatively, you can also define a wrapper structure that you can
-pass to mnl_cb_run(), e.g.
-
-struct my_data {
-        struct pkt_buff *pktb;
-        void            *something_ese;
-};
-
-> > My understanding is that requirements are:
-> >
-> > * Users that do not want to mangle the packet, they use the buffer
-> >   that was passed to recvmsg().
-> > * Users that want to mangle the packet, they use the _mangle()
-> >   function that might reallocate the data buffer (the one you would
-> >   like to have). However, if this data buffer reallocation happens,
-> >   then pkt_buff should annotate that this pkt_buff object needs to
-> >   release this data buffer from pktb_free() otherwise.
-> 
-> No, there is nothing to release. We told pktb_alloc2() where the buffer was,
-> it's on the stack (usually).
-
-Then, I'm not sure I understand yet what extension you would like to
-make to _mangle(), please, clarify.
-
-> > > Problem is that if mangler moves the packet, then any packet pointer the caller
-> > > had is invalid (points to the un-mangled copy). This applies at all levels, e.g.
-> > > nfq_udp_get_payload(). There is no way for the mangler functions to address
-> > > this: it just has to be highlighted in the documentation.
-> >
-> > That's fine, this is exactly how the kernel works: if the function
-> > might reallocate the data area, then you have to refetch pointers
-> > after this. If you teach _mangle() to do reallocations, then
-> > documenting this is fine.
-> >
-> > However, those reallocation need pktb_free() to release that new data
-> > buffer, right?
-> 
-> No way. There is no malloc() nor free() anywhere. The data buffer is
-> (recommended to be) on the stack; for running under gdb it may be preferred to
-> us a static buffer which has to be dimensioned hugely.
-
-If the user pre-allocates the heap or place it in the stack is
-irrelevant, the save for the user is the memcpy() if it's only
-inspecting the packet (no mangling) and the out-of-line pkt_buff
-allocation / or place in the stack.
-
-If pktb_build_data() takes the extra parameter, I think the
-showstopper you mentioned is gone. Otherwise, please tell me what you
-cannot achieve with my patchset.
-
-Thanks.
