@@ -4,47 +4,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E242C8300A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Apr 2020 21:48:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 762F0C83000
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Apr 2020 21:48:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1590520757
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Apr 2020 21:48:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5426220757
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Apr 2020 21:48:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727097AbgD2VsX (ORCPT
+        id S1727101AbgD2VsY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 29 Apr 2020 17:48:23 -0400
-Received: from correo.us.es ([193.147.175.20]:60676 "EHLO mail.us.es"
+        Wed, 29 Apr 2020 17:48:24 -0400
+Received: from correo.us.es ([193.147.175.20]:60664 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726961AbgD2VsX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1727090AbgD2VsX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 29 Apr 2020 17:48:23 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5EE8112BFF8
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2020 23:48:22 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id B463E12BFEE
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2020 23:48:21 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4DD91BAAA1
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2020 23:48:22 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A27BEBAAB5
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2020 23:48:21 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 430FFBAAA3; Wed, 29 Apr 2020 23:48:22 +0200 (CEST)
+        id 97E4ADA736; Wed, 29 Apr 2020 23:48:21 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 49069BAAB1;
-        Wed, 29 Apr 2020 23:48:20 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9E7F2BAAA1;
+        Wed, 29 Apr 2020 23:48:19 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 29 Apr 2020 23:48:20 +0200 (CEST)
+ Wed, 29 Apr 2020 23:48:19 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 2771142EF9E0;
-        Wed, 29 Apr 2020 23:48:20 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 7D01A42EF9E0;
+        Wed, 29 Apr 2020 23:48:19 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 2/2] netfilter: nf_osf: avoid passing pointer to local var
-Date:   Wed, 29 Apr 2020 23:48:11 +0200
-Message-Id: <20200429214811.19941-3-pablo@netfilter.org>
+Subject: [PATCH 1/2] netfilter: nat: never update the UDP checksum when it's 0
+Date:   Wed, 29 Apr 2020 23:48:10 +0200
+Message-Id: <20200429214811.19941-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200429214811.19941-1-pablo@netfilter.org>
 References: <20200429214811.19941-1-pablo@netfilter.org>
@@ -56,73 +57,65 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
+From: Guillaume Nault <gnault@redhat.com>
 
-gcc-10 points out that a code path exists where a pointer to a stack
-variable may be passed back to the caller:
+If the UDP header of a local VXLAN endpoint is NAT-ed, and the VXLAN
+device has disabled UDP checksums and enabled Tx checksum offloading,
+then the skb passed to udp_manip_pkt() has hdr->check == 0 (outer
+checksum disabled) and skb->ip_summed == CHECKSUM_PARTIAL (inner packet
+checksum offloaded).
 
-net/netfilter/nfnetlink_osf.c: In function 'nf_osf_hdr_ctx_init':
-cc1: warning: function may return address of local variable [-Wreturn-local-addr]
-net/netfilter/nfnetlink_osf.c:171:16: note: declared here
-  171 |  struct tcphdr _tcph;
-      |                ^~~~~
+Because of the ->ip_summed value, udp_manip_pkt() tries to update the
+outer checksum with the new address and port, leading to an invalid
+checksum sent on the wire, as the original null checksum obviously
+didn't take the old address and port into account.
 
-I am not sure whether this can happen in practice, but moving the
-variable declaration into the callers avoids the problem.
+So, we can't take ->ip_summed into account in udp_manip_pkt(), as it
+might not refer to the checksum we're acting on. Instead, we can base
+the decision to update the UDP checksum entirely on the value of
+hdr->check, because it's null if and only if checksum is disabled:
 
-Fixes: 31a9c29210e2 ("netfilter: nf_osf: add struct nf_osf_hdr_ctx")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+  * A fully computed checksum can't be 0, since a 0 checksum is
+    represented by the CSUM_MANGLED_0 value instead.
+
+  * A partial checksum can't be 0, since the pseudo-header always adds
+    at least one non-zero value (the UDP protocol type 0x11) and adding
+    more values to the sum can't make it wrap to 0 as the carry is then
+    added to the wrapped number.
+
+  * A disabled checksum uses the special value 0.
+
+The problem seems to be there from day one, although it was probably
+not visible before UDP tunnels were implemented.
+
+Fixes: 5b1158e909ec ("[NETFILTER]: Add NAT support for nf_conntrack")
+Signed-off-by: Guillaume Nault <gnault@redhat.com>
 Reviewed-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_osf.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ net/netfilter/nf_nat_proto.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
-index 9f5dea0064ea..916a3c7f9eaf 100644
---- a/net/netfilter/nfnetlink_osf.c
-+++ b/net/netfilter/nfnetlink_osf.c
-@@ -165,12 +165,12 @@ static bool nf_osf_match_one(const struct sk_buff *skb,
- static const struct tcphdr *nf_osf_hdr_ctx_init(struct nf_osf_hdr_ctx *ctx,
- 						const struct sk_buff *skb,
- 						const struct iphdr *ip,
--						unsigned char *opts)
-+						unsigned char *opts,
-+						struct tcphdr *_tcph)
+diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
+index 3d816a1e5442..59151dc07fdc 100644
+--- a/net/netfilter/nf_nat_proto.c
++++ b/net/netfilter/nf_nat_proto.c
+@@ -68,15 +68,13 @@ static bool udp_manip_pkt(struct sk_buff *skb,
+ 			  enum nf_nat_manip_type maniptype)
  {
- 	const struct tcphdr *tcp;
--	struct tcphdr _tcph;
+ 	struct udphdr *hdr;
+-	bool do_csum;
  
--	tcp = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(struct tcphdr), &_tcph);
-+	tcp = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(struct tcphdr), _tcph);
- 	if (!tcp)
- 		return NULL;
- 
-@@ -205,10 +205,11 @@ nf_osf_match(const struct sk_buff *skb, u_int8_t family,
- 	int fmatch = FMATCH_WRONG;
- 	struct nf_osf_hdr_ctx ctx;
- 	const struct tcphdr *tcp;
-+	struct tcphdr _tcph;
- 
- 	memset(&ctx, 0, sizeof(ctx));
- 
--	tcp = nf_osf_hdr_ctx_init(&ctx, skb, ip, opts);
-+	tcp = nf_osf_hdr_ctx_init(&ctx, skb, ip, opts, &_tcph);
- 	if (!tcp)
+ 	if (skb_ensure_writable(skb, hdroff + sizeof(*hdr)))
  		return false;
  
-@@ -265,10 +266,11 @@ bool nf_osf_find(const struct sk_buff *skb,
- 	const struct nf_osf_finger *kf;
- 	struct nf_osf_hdr_ctx ctx;
- 	const struct tcphdr *tcp;
-+	struct tcphdr _tcph;
+ 	hdr = (struct udphdr *)(skb->data + hdroff);
+-	do_csum = hdr->check || skb->ip_summed == CHECKSUM_PARTIAL;
++	__udp_manip_pkt(skb, iphdroff, hdr, tuple, maniptype, !!hdr->check);
  
- 	memset(&ctx, 0, sizeof(ctx));
- 
--	tcp = nf_osf_hdr_ctx_init(&ctx, skb, ip, opts);
-+	tcp = nf_osf_hdr_ctx_init(&ctx, skb, ip, opts, &_tcph);
- 	if (!tcp)
- 		return false;
+-	__udp_manip_pkt(skb, iphdroff, hdr, tuple, maniptype, do_csum);
+ 	return true;
+ }
  
 -- 
 2.20.1
