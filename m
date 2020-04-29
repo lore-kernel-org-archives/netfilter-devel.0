@@ -2,53 +2,51 @@ Return-Path: <SRS0=4AXv=6N=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01B4BC8300A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Apr 2020 19:48:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE7B2C83000
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Apr 2020 19:48:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E109C22200
+	by mail.kernel.org (Postfix) with ESMTP id C764921775
 	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Apr 2020 19:48:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727844AbgD2TsJ (ORCPT
+        id S1727909AbgD2Ts0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 29 Apr 2020 15:48:09 -0400
-Received: from correo.us.es ([193.147.175.20]:50030 "EHLO mail.us.es"
+        Wed, 29 Apr 2020 15:48:26 -0400
+Received: from correo.us.es ([193.147.175.20]:50158 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726869AbgD2TsI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 Apr 2020 15:48:08 -0400
+        id S1727041AbgD2TsJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 29 Apr 2020 15:48:09 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 92855E1716
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2020 21:42:52 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 855C5E1707
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2020 21:42:48 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8721EBAAB8
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2020 21:42:52 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 77F99DA736
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2020 21:42:48 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7C8B0BAAB1; Wed, 29 Apr 2020 21:42:52 +0200 (CEST)
+        id 774A7BAC2F; Wed, 29 Apr 2020 21:42:48 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 85421BAAB5;
-        Wed, 29 Apr 2020 21:42:50 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6E2BCDA736;
+        Wed, 29 Apr 2020 21:42:46 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 29 Apr 2020 21:42:50 +0200 (CEST)
+ Wed, 29 Apr 2020 21:42:46 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 6195842EF9E0;
-        Wed, 29 Apr 2020 21:42:50 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 4897D42EF9E0;
+        Wed, 29 Apr 2020 21:42:46 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 5/6] netfilter: nft_nat: add helper function to set up NAT address and protocol
-Date:   Wed, 29 Apr 2020 21:42:42 +0200
-Message-Id: <20200429194243.22228-6-pablo@netfilter.org>
+Subject: [PATCH 0/6] Netfilter updates for net-next
+Date:   Wed, 29 Apr 2020 21:42:37 +0200
+Message-Id: <20200429194243.22228-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200429194243.22228-1-pablo@netfilter.org>
-References: <20200429194243.22228-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
@@ -57,89 +55,59 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch add nft_nat_setup_addr() and nft_nat_setup_proto() to set up
-the NAT mangling.
+Hi David,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_nat.c | 56 +++++++++++++++++++++++++----------------
- 1 file changed, 34 insertions(+), 22 deletions(-)
+The following patchset contains Netfilter updates for nf-next:
 
-diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-index 5c7ff213c030..7442aa8b1555 100644
---- a/net/netfilter/nft_nat.c
-+++ b/net/netfilter/nft_nat.c
-@@ -30,6 +30,36 @@ struct nft_nat {
- 	u16			flags;
- };
- 
-+static void nft_nat_setup_addr(struct nf_nat_range2 *range,
-+			       const struct nft_regs *regs,
-+			       const struct nft_nat *priv)
-+{
-+	switch (priv->family) {
-+	case AF_INET:
-+		range->min_addr.ip = (__force __be32)
-+				regs->data[priv->sreg_addr_min];
-+		range->max_addr.ip = (__force __be32)
-+				regs->data[priv->sreg_addr_max];
-+		break;
-+	case AF_INET6:
-+		memcpy(range->min_addr.ip6, &regs->data[priv->sreg_addr_min],
-+		       sizeof(range->min_addr.ip6));
-+		memcpy(range->max_addr.ip6, &regs->data[priv->sreg_addr_max],
-+		       sizeof(range->max_addr.ip6));
-+		break;
-+	}
-+}
-+
-+static void nft_nat_setup_proto(struct nf_nat_range2 *range,
-+				const struct nft_regs *regs,
-+				const struct nft_nat *priv)
-+{
-+	range->min_proto.all = (__force __be16)
-+		nft_reg_load16(&regs->data[priv->sreg_proto_min]);
-+	range->max_proto.all = (__force __be16)
-+		nft_reg_load16(&regs->data[priv->sreg_proto_max]);
-+}
-+
- static void nft_nat_eval(const struct nft_expr *expr,
- 			 struct nft_regs *regs,
- 			 const struct nft_pktinfo *pkt)
-@@ -40,29 +70,11 @@ static void nft_nat_eval(const struct nft_expr *expr,
- 	struct nf_nat_range2 range;
- 
- 	memset(&range, 0, sizeof(range));
--	if (priv->sreg_addr_min) {
--		if (priv->family == AF_INET) {
--			range.min_addr.ip = (__force __be32)
--					regs->data[priv->sreg_addr_min];
--			range.max_addr.ip = (__force __be32)
--					regs->data[priv->sreg_addr_max];
--
--		} else {
--			memcpy(range.min_addr.ip6,
--			       &regs->data[priv->sreg_addr_min],
--			       sizeof(range.min_addr.ip6));
--			memcpy(range.max_addr.ip6,
--			       &regs->data[priv->sreg_addr_max],
--			       sizeof(range.max_addr.ip6));
--		}
--	}
-+	if (priv->sreg_addr_min)
-+		nft_nat_setup_addr(&range, regs, priv);
- 
--	if (priv->sreg_proto_min) {
--		range.min_proto.all = (__force __be16)nft_reg_load16(
--			&regs->data[priv->sreg_proto_min]);
--		range.max_proto.all = (__force __be16)nft_reg_load16(
--			&regs->data[priv->sreg_proto_max]);
--	}
-+	if (priv->sreg_proto_min)
-+		nft_nat_setup_proto(&range, regs, priv);
- 
- 	range.flags = priv->flags;
- 
--- 
-2.20.1
+1) Add IPS_HW_OFFLOAD status bit, from Bodong Wang.
 
+2) Remove 128-bit limit on the set element data area, rise it
+   to 64 bytes.
+
+3) Report EOPNOTSUPP for unsupported NAT types and flags.
+
+4) Set up nft_nat flags from the control plane path.
+
+5) Add helper functions to set up the nf_nat_range2 structure.
+
+6) Add netmap support for nft_nat.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+Thank you.
+
+----------------------------------------------------------------
+
+The following changes since commit 3fd8dc269ff0647819589c21b2ce60af6fc0a455:
+
+  net: hns3: remove an unnecessary check in hclge_set_umv_space() (2020-04-25 20:56:45 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
+
+for you to fetch changes up to 3ff7ddb1353da9b535e65702704cbadea1da9a00:
+
+  netfilter: nft_nat: add netmap support (2020-04-28 00:53:54 +0200)
+
+----------------------------------------------------------------
+Bodong Wang (1):
+      netfilter: nf_conntrack: add IPS_HW_OFFLOAD status bit
+
+Pablo Neira Ayuso (5):
+      netfilter: nf_tables: allow up to 64 bytes in the set element data area
+      netfilter: nft_nat: return EOPNOTSUPP if type or flags are not supported
+      netfilter: nft_nat: set flags from initialization path
+      netfilter: nft_nat: add helper function to set up NAT address and protocol
+      netfilter: nft_nat: add netmap support
+
+ include/net/netfilter/nf_tables.h                  |   4 +
+ include/uapi/linux/netfilter/nf_conntrack_common.h |   8 +-
+ include/uapi/linux/netfilter/nf_nat.h              |   4 +-
+ net/netfilter/nf_conntrack_standalone.c            |   4 +-
+ net/netfilter/nf_flow_table_offload.c              |   3 +
+ net/netfilter/nf_tables_api.c                      |  38 ++++---
+ net/netfilter/nft_nat.c                            | 110 ++++++++++++++++-----
+ 7 files changed, 129 insertions(+), 42 deletions(-)
