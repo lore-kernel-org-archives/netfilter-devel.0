@@ -4,41 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E31EC47247
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 14:06:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3392BC28CBC
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 14:10:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D354206D9
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 14:06:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F89B206D9
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 14:10:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588255570;
+	s=default; t=1588255857;
 	bh=dCReHOxYxOTh3PI23Yj+n0lzVjU5bcXojq6bDVitLKg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=AfwhrjwuGqw9czceImBQlgIFeB8MS1aDXmNzpsBCccYfN/FiWvnOg3uCJmRmRdb5a
-	 8ZW/JYYFTr2n4Q8mykD/q8k5XU9wPY8eOjvPgX96wlM6zANyogryaf73ruXS86GU4h
-	 JjOSAdYTVFY4NZEfbFakSb2mgF6tkNiwoHah3yoI=
+	b=dvukWuG+Zs3M/e+B6OWCRn1cqquNceVHsttpWtGfZcIoZrvVQHjZkdOHC4CG5BhGn
+	 6UATPu3Z6xqKUHybUdYYgPceVVGhoc25ob7exGjL3XMX8pYHJOCJb5r2mnKemo+dPh
+	 W9wLHOgeChObX02m7mXFn7cbygcCa0gkuKqVQHFA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728957AbgD3OGJ (ORCPT
+        id S1728521AbgD3OKr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 30 Apr 2020 10:06:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34270 "EHLO mail.kernel.org"
+        Thu, 30 Apr 2020 10:10:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59960 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728538AbgD3Nww (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 30 Apr 2020 09:52:52 -0400
+        id S1728096AbgD3Nve (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 30 Apr 2020 09:51:34 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B961524955;
-        Thu, 30 Apr 2020 13:52:50 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 454DD24965;
+        Thu, 30 Apr 2020 13:51:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588254771;
+        s=default; t=1588254693;
         bh=dCReHOxYxOTh3PI23Yj+n0lzVjU5bcXojq6bDVitLKg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=xZ4QtVnOtyboYiqhw1V7e/D5iyXJCsmxf+bQ9WJN1orWosFAfDXyNPSbTNZ9QXLbK
-         yom3LgCsqXRBZBldv9PNw7Bywb3QVM2t7OHndMfv8zncrUHH5TicBJp/I1uoh3bqoI
-         MQx2/cLZf/MlvEHMPR+0FUMlamCRuoWogEPOOie8=
+        b=mx7Az5uYb152ffy9c63bwFFrnQWF2zm7a5F5LKW53AoFMkQDBK/sX53SyJWnV/9wW
+         rNjuZ1lJ3yXnHSEVtwoNFLnK/U/j05clmmlY0HlQuDc99+Rq4yoAZomYuPKEG5eSJt
+         celbLtegTJPAnZGAJpjhRxU/Y/3CzgGw68vcsato=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Hillf Danton <hdanton@sina.com>,
@@ -49,12 +49,12 @@ Cc:     Hillf Danton <hdanton@sina.com>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 29/57] netfilter: nat: fix error handling upon registering inet hook
-Date:   Thu, 30 Apr 2020 09:51:50 -0400
-Message-Id: <20200430135218.20372-29-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.6 43/79] netfilter: nat: fix error handling upon registering inet hook
+Date:   Thu, 30 Apr 2020 09:50:07 -0400
+Message-Id: <20200430135043.19851-43-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200430135218.20372-1-sashal@kernel.org>
-References: <20200430135218.20372-1-sashal@kernel.org>
+In-Reply-To: <20200430135043.19851-1-sashal@kernel.org>
+References: <20200430135043.19851-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
