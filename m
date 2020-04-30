@@ -2,179 +2,107 @@ Return-Path: <SRS0=RE83=6O=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F584C47257
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 21:33:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1192C47247
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 22:15:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 432B52071C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 21:33:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C1115206D9
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 22:15:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728001AbgD3Vda (ORCPT
+        id S1726784AbgD3WPy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 30 Apr 2020 17:33:30 -0400
-Received: from mout.kundenserver.de ([212.227.126.133]:45197 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726909AbgD3Vd3 (ORCPT
+        Thu, 30 Apr 2020 18:15:54 -0400
+Received: from mail.redfish-solutions.com ([45.33.216.244]:55050 "EHLO
+        mail.redfish-solutions.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726447AbgD3WPy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 30 Apr 2020 17:33:29 -0400
-Received: from threadripper.lan ([149.172.19.189]) by mrelayeu.kundenserver.de
- (mreue010 [212.227.15.129]) with ESMTPA (Nemesis) id
- 1MmlCY-1imznH36yU-00jrwf; Thu, 30 Apr 2020 23:31:17 +0200
-From:   Arnd Bergmann <arnd@arndb.de>
-To:     linux-kernel@vger.kernel.org
-Cc:     Arnd Bergmann <arnd@arndb.de>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        "David S. Miller" <davem@davemloft.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Johannes Berg <johannes.berg@intel.com>,
-        Intel Linux Wireless <linuxwifi@intel.com>,
-        Amitkumar Karwar <amitkarwar@gmail.com>,
-        James Smart <james.smart@broadcom.com>,
-        Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>,
-        "James E.J. Bottomley" <jejb@linux.ibm.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
-        Bob Copeland <me@bobcopeland.com>, Jan Kara <jack@suse.com>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Neil Horman <nhorman@tuxdriver.com>,
-        linux-crypto@vger.kernel.org, linux-media@vger.kernel.org,
-        ath10k@lists.infradead.org, linux-wireless@vger.kernel.org,
-        netdev@vger.kernel.org, linux-nvme@lists.infradead.org,
-        linux-scsi@vger.kernel.org,
-        linux-karma-devel@lists.sourceforge.net, bpf@vger.kernel.org,
-        linux-usb@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Subject: [PATCH 00/15] gcc-10 warning fixes
-Date:   Thu, 30 Apr 2020 23:30:42 +0200
-Message-Id: <20200430213101.135134-1-arnd@arndb.de>
-X-Mailer: git-send-email 2.26.0
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:d0r1T0atJ0fP6VC0lsoU2Nb50uVHm7+C7HFBKxo5Oh9FT7cjF4F
- 56LFacsuF89qNSNIhAKt16YSLWAlWssvN8MtPe8NN45LaPwc/cCelzxDkHr4+0tFL6+Sa9G
- a57V34rwqixwafD6sE/njElSMiK55+3n3WBVw4f5PpMdpEy2CNFI8yBkDaQox92MxOq478P
- ATheht8WQuHpTQRLL5ZEQ==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:qtjOffXScL0=:Yde/YTTIyDLV71HcVFV/g8
- 5aCgJ4X4xNzxI3sDnVHzb+4x1iuaUyj/FDU6axm1cC5dNjOHg+8xAyvhGoryNPJJFdXCQ9E8u
- /vBjaVgpQi6NvTWJp+z0wFIoWkqjlRGR2wCLBCvG5ImhRZo6H4jl5uiqg/TUea1BRC5KOAUug
- NLH3+1SoQ96QZaVVmYPbql6nsHgFb4uZYdjCp8JTVI2L30Rp4+0Uw3uwnSsZJuLBGqAnsFaeh
- k7gAnZ02jIaJcsH2V+TwomCcLBG4OX9P3yetdeZWPtDSychl7RC+/gMGRpPt2beTcJXb7Sr4/
- wgqf3CYR6/N2vUz2MhXS9Sl+HtdkF3gKvKsNTp2mw9draDW6IVxA+E16ianBs3s2/Jj86Cp4d
- ehuoj5P2KJYrz+9tZ+et7SchBa5i/iGqThgNGHpUmVXaAI8nZHkjO7rEce0Ctm42WVr0HLTd4
- o1jt4fwG8tpZvziYdVKKK9x4WQWsYAq2xx0LoedsVxg8abX+ql1c1UVSezkM6FJvLsBYSOqLC
- Wl2wmpwXK3rQEhxxX4Sh0+p7vR68f1MiX8v4GGJjHzQvAfDgNp//3vXmnFa9OfQMY1+J5Oamt
- RKC21TWUo81CDfLbGJUutjWh36LNJfa+N4p4bSAvqbx+J8urAAoBgP4lL7BwvnjawPWVT3bQ7
- nx782MGIljH805ldEh/1deDsyPsEUVqES3Wx9pJakt2RNm+5lKUyzj8TLjsuKM9bM+MwiaVGP
- y3sVYv2Jji3wkCZuDo3KR4124HQta8GSeSFOnIEeWuWxcaFbOJf9loaB0IyqLaH/bv1s0C1At
- ctEvneGxLk11FkM6cOL//qiBQ4ws+UB1hR0Fmjp4sHdhGtlvK4=
+        Thu, 30 Apr 2020 18:15:54 -0400
+Received: from son-of-builder.redfish-solutions.com (son-of-builder.redfish-solutions.com [192.168.1.56])
+        (authenticated bits=0)
+        by mail.redfish-solutions.com (8.15.2/8.15.2) with ESMTPSA id 03UMFmnt016234
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 30 Apr 2020 16:15:48 -0600
+From:   "Philip Prindeville" <philipp@redfish-solutions.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Jan Engelhardt <jengelh@inai.de>,
+        Philip Prindeville <philipp@redfish-solutions.com>
+Subject: [PATCH v1 1/1] xtables-addons: geoip: install and document xt_geoip_fetch
+Date:   Thu, 30 Apr 2020 16:15:46 -0600
+Message-Id: <20200430221546.12964-1-philipp@redfish-solutions.com>
+X-Mailer: git-send-email 2.17.2
+X-Scanned-By: MIMEDefang 2.84 on 192.168.1.3
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Here are a couple of fixes for warnings introduced with gcc-10.
-If you wish to reproduce these, you can find the compiler I used
-at [1].
+From: Philip Prindeville <philipp@redfish-solutions.com>
 
-If you like the fixes, please apply them directly into maintainer
-trees. I expect that we will also need them to be backported
-into stable kernels later.
+Add a man page for xt_geoip_fetch.1 and include it as part of
+the installed scripts.
 
-I disabled -Wrestrict on gcc in my local test tree, but with
-the patches from this series and the ones I have already sent,
-I see no gcc-10 specific warnings in linux-next when doing
-many randconfig builds for arm/arm64/x86.
+Signed-off-by: Philip Prindeville <philipp@redfish-solutions.com>
+---
+ geoip/Makefile.am      |  2 ++
+ geoip/xt_geoip_fetch.1 | 35 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 37 insertions(+)
 
-      Arnd
-
-Arnd Bergmann (15):
-  crypto - Avoid free() namespace collision
-  iwlwifi: mvm: fix gcc-10 zero-length-bounds warning
-  mwifiex: avoid -Wstringop-overflow warning
-  ath10k: fix gcc-10 zero-length-bounds warnings
-  bpf: avoid gcc-10 stringop-overflow warning
-  netfilter: conntrack: avoid gcc-10 zero-length-bounds warning
-  drop_monitor: work around gcc-10 stringop-overflow warning
-  usb: ehci: avoid gcc-10 zero-length-bounds warning
-  udf: avoid gcc-10 zero-length-bounds warnings
-  hpfs: avoid gcc-10 zero-length-bounds warning
-  omfs: avoid gcc-10 stringop-overflow warning
-  media: s5k5baf: avoid gcc-10 zero-length-bounds warning
-  scsi: sas: avoid gcc-10 zero-length-bounds warning
-  isci: avoid gcc-10 zero-length-bounds warning
-  nvme: avoid gcc-10 zero-length-bounds warning
-
- crypto/lrw.c                                  |  6 +--
- crypto/xts.c                                  |  6 +--
- drivers/media/i2c/s5k5baf.c                   |  4 +-
- drivers/net/wireless/ath/ath10k/htt.h         |  4 +-
- .../net/wireless/intel/iwlwifi/fw/api/tx.h    | 14 +++----
- .../net/wireless/marvell/mwifiex/sta_cmd.c    | 39 ++++++++-----------
- drivers/nvme/host/fc.c                        |  2 +-
- drivers/scsi/aic94xx/aic94xx_tmf.c            |  4 +-
- drivers/scsi/isci/task.h                      |  7 ++--
- drivers/scsi/libsas/sas_task.c                |  3 +-
- fs/hpfs/anode.c                               |  7 +++-
- fs/omfs/file.c                                | 12 +++---
- fs/omfs/omfs_fs.h                             |  2 +-
- fs/udf/ecma_167.h                             |  2 +-
- fs/udf/super.c                                |  2 +-
- include/linux/filter.h                        |  6 +--
- include/linux/usb/ehci_def.h                  | 12 ++++--
- include/net/netfilter/nf_conntrack.h          |  2 +-
- net/core/drop_monitor.c                       | 11 ++++--
- net/netfilter/nf_conntrack_core.c             |  4 +-
- 20 files changed, 76 insertions(+), 73 deletions(-)
-
-[1] https://mirrors.edge.kernel.org/pub/tools/crosstool/files/bin/x86_64/10.0.20200413/
-
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Kalle Valo <kvalo@codeaurora.org>
-Cc: Johannes Berg <johannes.berg@intel.com>
-Cc: Intel Linux Wireless <linuxwifi@intel.com>
-Cc: Amitkumar Karwar <amitkarwar@gmail.com>
-Cc: James Smart <james.smart@broadcom.com>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "James E.J. Bottomley" <jejb@linux.ibm.com>
-Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
-Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
-Cc: Bob Copeland <me@bobcopeland.com>
-Cc: Jan Kara <jack@suse.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Neil Horman <nhorman@tuxdriver.com>
-Cc: linux-crypto@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: ath10k@lists.infradead.org
-Cc: linux-wireless@vger.kernel.org
-Cc: netdev@vger.kernel.org
-Cc: linux-nvme@lists.infradead.org
-Cc: linux-scsi@vger.kernel.org
-Cc: linux-karma-devel@lists.sourceforge.net
-Cc: bpf@vger.kernel.org
-Cc: linux-usb@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
-
-
-
+diff --git a/geoip/Makefile.am b/geoip/Makefile.am
+index aa28c3d21c6e489bb20c8165ecfec2259e0ee438..32048a21e8069a2b865ef6600aed63f6b7d53446 100644
+--- a/geoip/Makefile.am
++++ b/geoip/Makefile.am
+@@ -1,5 +1,7 @@
+ # -*- Makefile -*-
+ 
++bin_SCRIPTS = xt_geoip_fetch
++
+ pkglibexec_SCRIPTS = xt_geoip_build xt_geoip_dl
+ 
+ man1_MANS = xt_geoip_build.1 xt_geoip_dl.1
+diff --git a/geoip/xt_geoip_fetch.1 b/geoip/xt_geoip_fetch.1
+new file mode 100644
+index 0000000000000000000000000000000000000000..7280c74b9ab520e61293a304207dfafee07cbe47
+--- /dev/null
++++ b/geoip/xt_geoip_fetch.1
+@@ -0,0 +1,35 @@
++.TH xt_geoip_fetch 1 "2020-04-30" "xtables-addons" "xtables-addons"
++.SH Name
++.PP
++xt_geoip_fetch \(em dump a country database to stdout
++.SH Syntax
++.PP
++\fBxt_geoip_fetch\fP [\fB\-D\fP
++\fIdatabase_dir\fP] [\fB-4\fP] [\fB-6\fP] \fIcc\fP [ \fIcc\fP ... ]
++.SH Description
++.PP
++xt_geoip_fetch unpacks a country's IPv4 or IPv6 databases and dumps
++them to standard output as a sorted, non-overlaping list of ranges (which
++is how they're represented in the database) suitable for browsing or
++further processing.
++.PP Options
++.TP
++\fB\-D\fP \fIdatabase_dir\fP
++Specifies the directory into which the files have been put. Defaults to ".".
++.TP
++\fB-4\fP
++Specifies IPv4 data only.
++.TP
++\fB-6\fP
++Specifies IPv6 data only.
++.TP
++\fIcc\fP [ \fIcc\fP ... ]
++The ISO-3166 country code names of the desired countries' databases.
++.SH Application
++.PP
++Shell command to dump the list of Swiss IPv6 address ranges:
++.PP
++xt_geoip_fetch \-D /usr/share/xt_geoip \-6 ch
++.SH See also
++.PP
++xt_geoip_build(1)
 -- 
-2.26.0
+2.17.2
 
