@@ -2,83 +2,125 @@ Return-Path: <SRS0=RE83=6O=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CB65C4724C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 19:56:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F342C47254
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 21:32:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6A10320731
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 19:56:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E835A206D6
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 21:32:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726851AbgD3T47 (ORCPT
+        id S1727869AbgD3Vcr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 30 Apr 2020 15:56:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56114 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726338AbgD3T46 (ORCPT
+        Thu, 30 Apr 2020 17:32:47 -0400
+Received: from mout.kundenserver.de ([212.227.126.131]:49795 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726336AbgD3Vcr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 30 Apr 2020 15:56:58 -0400
-Received: from shards.monkeyblade.net (shards.monkeyblade.net [IPv6:2620:137:e000::1:9])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4006CC035495;
-        Thu, 30 Apr 2020 12:56:58 -0700 (PDT)
-Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id 4DE7A1289CE3F;
-        Thu, 30 Apr 2020 12:56:55 -0700 (PDT)
-Date:   Thu, 30 Apr 2020 12:56:54 -0700 (PDT)
-Message-Id: <20200430.125654.335144341485365161.davem@davemloft.net>
-To:     mchehab+huawei@kernel.org
-Cc:     linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        corbet@lwn.net, devel@driverdev.osuosl.org, coreteam@netfilter.org,
-        netfilter-devel@vger.kernel.org, kou.ishizaki@toshiba.co.jp,
-        netdev@vger.kernel.org, paulus@samba.org,
-        linuxppc-dev@lists.ozlabs.org, marcelo.leitner@gmail.com,
-        kadlec@netfilter.org, johannes@sipsolutions.net, fw@strlen.de,
-        gregkh@linuxfoundation.org, kuba@kernel.org,
-        benh@kernel.crashing.org, linux-wireless@vger.kernel.org,
-        geoff@infradead.org, mpe@ellerman.id.au, linux-can@vger.kernel.org,
-        ioana.ciornei@nxp.com, linux-sctp@vger.kernel.org,
-        vyasevich@gmail.com, rds-devel@oss.oracle.com,
-        ruxandra.radulescu@nxp.com, dhowells@redhat.com,
-        pablo@netfilter.org, kvalo@codeaurora.org,
-        santosh.shilimkar@oracle.com, socketcan@hartkopp.net,
-        nhorman@tuxdriver.com, courmisch@gmail.com,
-        linux-rdma@vger.kernel.org, linux-afs@lists.infradead.org,
-        linux-x25@vger.kernel.org, mkl@pengutronix.de
-Subject: Re: [PATCH 00/37] net: manually convert files to ReST format -
- part 2
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <cover.1588261997.git.mchehab+huawei@kernel.org>
-References: <cover.1588261997.git.mchehab+huawei@kernel.org>
-X-Mailer: Mew version 6.8 on Emacs 26.1
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Thu, 30 Apr 2020 12:56:56 -0700 (PDT)
+        Thu, 30 Apr 2020 17:32:47 -0400
+Received: from threadripper.lan ([149.172.19.189]) by mrelayeu.kundenserver.de
+ (mreue010 [212.227.15.129]) with ESMTPA (Nemesis) id
+ 1M2w0K-1jTBOd0Rhs-003PJb; Thu, 30 Apr 2020 23:32:23 +0200
+From:   Arnd Bergmann <arnd@arndb.de>
+To:     linux-kernel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>
+Cc:     Arnd Bergmann <arnd@arndb.de>, Jeremy Sowden <jeremy@azazel.net>,
+        Li RongQing <lirongqing@baidu.com>,
+        Joe Perches <joe@perches.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Jules Irenge <jbi.octave@gmail.com>,
+        Dirk Morris <dmorris@metaloft.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH 06/15] netfilter: conntrack: avoid gcc-10 zero-length-bounds warning
+Date:   Thu, 30 Apr 2020 23:30:48 +0200
+Message-Id: <20200430213101.135134-7-arnd@arndb.de>
+X-Mailer: git-send-email 2.26.0
+In-Reply-To: <20200430213101.135134-1-arnd@arndb.de>
+References: <20200430213101.135134-1-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Provags-ID: V03:K1:8Sp1zqk0kvXNuoj2OkQlE/ujFJe7AlEDhxnJ66L0VukuMY/xxYi
+ +JgvA3BEJVInn94lFMseSuPlDxRS/GL/oaTPplGHTZvnLqo7E/MijvoRxlN0VmpEU2lISm0
+ lE2g9NCgBPAiDai9y5MKBi5xa6BaV6duj4paBSzna762U2aagG+uxR3tmKxRzdadqKwZsQP
+ sTKb8dOBMg6yReMFaqH6w==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:VNz0tYWZTqk=:UsDGslkgNI5fdFKkPvadEp
+ 6mtBxc23aMctyVNSUmtxjmYVlBSip2tqZUVeWE3owPBMOAzBA5KaIipnOc4+0PpR/FzETZXhO
+ /k094E//vxZnfTOZxqwMe+rNEuL0uTQol7g1+JVqrOgBs2tl/5LVpo9uSRvLzyXzdq2Ih5x0s
+ jy/nvLF4ZaFqgffe/1Ij5wy0qGZizKErNItmS1jZA6GqPUe99IR4qVP7GSRFnoVuCGHIOkZOs
+ BQT/QITf4RXgOM09POIWx1EiXMaeET75PoUV7WQXZZyFvQl3GSfxdSsR0njRL/iQlQOJUUKE9
+ HQ46qhkyrNPeO9/5HNrtbsMadFiSghd5C7WtARl2/ebqhQY5u14yK2gX5RvTwKjC/msY4V8Ma
+ 2EiUu4H49OIhOMwK25KYdEKkBe4iS8YAYY6HfBsYZMw8UPWtFchtX4QaTouIA3PJerFzR134x
+ UXcMBdnxLcwasMRYHXnRcWyBFuFOH52QC4NhpI4q3L4IkIRLoXfg3sHIbH/H6qhI+OEwFKzIS
+ w5wNzOrgxrviDDsIdTsyVYONKT7Art9WABh/fydx/FW/BGuc87HioQ0GUfFWI2bZRfpBVA4gc
+ f3CFLH2Cykr1Tkom3EUXjDWcZSBSW2905QaeE4oDK2EzR+hRbUHN40VCs9rEp1amdToMv4w1e
+ CxpXRZvYI3iG3prMVih9ujBWabjb9AN6M6Bh9N69PBEboD2TQAz0fF9+0BhaU4f0h+gt5PFEg
+ zcJRCivnsDG1XWjKDrp4p7GKd5RRj8vZDIuQuj5eq8x9vUwrxFnvSCdj5F9dgU1Ze5PBO1AAt
+ Ei0a3eb1reZbx2wTQbnlgmpLvtKHD8vLmD5ZgRjMFVANTbDmUk=
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Date: Thu, 30 Apr 2020 18:03:55 +0200
+gcc-10 warns around a suspicious access to an empty struct member:
 
-> That's the second part of my work to convert the networking
-> text files into ReST. it is based on today's linux-next (next-20200430).
-> 
-> The full series (including those ones) are at:
-> 
-> 	https://git.linuxtv.org/mchehab/experimental.git/log/?h=net-docs
-> 
-> I should be sending the remaining patches (another /38 series)
-> after getting those merged at -next.
-> 
-> The documents, converted to HTML via the building system are at:
-> 
-> 	https://www.infradead.org/~mchehab/kernel_docs/networking/
+net/netfilter/nf_conntrack_core.c: In function '__nf_conntrack_alloc':
+net/netfilter/nf_conntrack_core.c:1522:9: warning: array subscript 0 is outside the bounds of an interior zero-length array 'u8[0]' {aka 'unsigned char[0]'} [-Wzero-length-bounds]
+ 1522 |  memset(&ct->__nfct_init_offset[0], 0,
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from net/netfilter/nf_conntrack_core.c:37:
+include/net/netfilter/nf_conntrack.h:90:5: note: while referencing '__nfct_init_offset'
+   90 |  u8 __nfct_init_offset[0];
+      |     ^~~~~~~~~~~~~~~~~~
 
-Series applied to net-next, thank you.
+The code is correct but a bit unusual. Rework it slightly in a way that
+does not trigger the warning, using an empty struct instead of an empty
+array. There are probably more elegant ways to do this, but this is the
+smallest change.
+
+Fixes: c41884ce0562 ("netfilter: conntrack: avoid zeroing timer")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ include/net/netfilter/nf_conntrack.h | 2 +-
+ net/netfilter/nf_conntrack_core.c    | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 9f551f3b69c6..90690e37a56f 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -87,7 +87,7 @@ struct nf_conn {
+ 	struct hlist_node	nat_bysource;
+ #endif
+ 	/* all members below initialized via memset */
+-	u8 __nfct_init_offset[0];
++	struct { } __nfct_init_offset;
+ 
+ 	/* If we were expected by an expectation, this will be it */
+ 	struct nf_conn *master;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index c4582eb71766..0173398f4ced 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1519,9 +1519,9 @@ __nf_conntrack_alloc(struct net *net,
+ 	ct->status = 0;
+ 	ct->timeout = 0;
+ 	write_pnet(&ct->ct_net, net);
+-	memset(&ct->__nfct_init_offset[0], 0,
++	memset(&ct->__nfct_init_offset, 0,
+ 	       offsetof(struct nf_conn, proto) -
+-	       offsetof(struct nf_conn, __nfct_init_offset[0]));
++	       offsetof(struct nf_conn, __nfct_init_offset));
+ 
+ 	nf_ct_zone_add(ct, zone);
+ 
+-- 
+2.26.0
+
