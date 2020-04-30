@@ -2,93 +2,72 @@ Return-Path: <SRS0=RE83=6O=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC78FC47247
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 15:08:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A324CC4724C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 15:14:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A7C8420661
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 15:08:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8489020661
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 15:14:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726396AbgD3PIf (ORCPT
+        id S1726455AbgD3POT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 30 Apr 2020 11:08:35 -0400
-Received: from correo.us.es ([193.147.175.20]:36598 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726350AbgD3PIf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 30 Apr 2020 11:08:35 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9E93AB5AAE
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2020 17:08:33 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8EAF8B800B
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2020 17:08:33 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 8E049B8003; Thu, 30 Apr 2020 17:08:33 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 89FFAB8006;
-        Thu, 30 Apr 2020 17:08:31 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 30 Apr 2020 17:08:31 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 6CF3242EFB81;
-        Thu, 30 Apr 2020 17:08:31 +0200 (CEST)
-Date:   Thu, 30 Apr 2020 17:08:31 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH v2 00/18] iptables: introduce cache evaluation
- phase
-Message-ID: <20200430150831.GA2267@salvia>
-References: <20200428121013.24507-1-phil@nwl.cc>
- <20200429213609.GA24368@salvia>
- <20200430135300.GK15009@orbyte.nwl.cc>
+        Thu, 30 Apr 2020 11:14:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39570 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726396AbgD3POT (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 30 Apr 2020 11:14:19 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F02E8C035494
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2020 08:14:18 -0700 (PDT)
+Received: from localhost ([::1]:43926 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1jUAtF-0008AH-Cv; Thu, 30 Apr 2020 17:14:17 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [nft PATCH 1/4] segtree: Fix missing expires value in prefixes
+Date:   Thu, 30 Apr 2020 17:14:05 +0200
+Message-Id: <20200430151408.32283-2-phil@nwl.cc>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20200430151408.32283-1-phil@nwl.cc>
+References: <20200430151408.32283-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200430135300.GK15009@orbyte.nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Apr 30, 2020 at 03:53:00PM +0200, Phil Sutter wrote:
-> Hi Pablo,
->
-> On Wed, Apr 29, 2020 at 11:36:09PM +0200, Pablo Neira Ayuso wrote:
-> > On Tue, Apr 28, 2020 at 02:09:55PM +0200, Phil Sutter wrote:
-> > > Hi Pablo,
-> > >
-> > > As promised, here's a revised version of your cache rework series from
-> > > January. It restores performance according to my tests (which are yet to
-> > > be published somewhere) and passes the testsuites.
-> >
-> > I did not test this yet, and I made a few rounds of quick reviews
-> > alrady, but this series LGTM. Thank you for working on this.
->
-> Cool! Should I push it or do you want to have a closer look first?
+This probable copy'n'paste bug prevented 'expiration' field from being
+populated when turning a range into a prefix in
+interval_map_decompose(). Consequently, interval sets with timeout did
+print expiry value for ranges (such as 10.0.0.1-10.0.0.5) but not
+prefixes (10.0.0.0/8, for instance).
 
-You already took the time to test this, so I think it's fine if you
-push out. Problems can be fixed from master. It would also good a few
-runs to valgrind.
+Fixes: bb0e6d8a2851b ("segtree: incorrect handling of comments and timeouts with mapping")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ src/segtree.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-BTW, this cache consistency check
+diff --git a/src/segtree.c b/src/segtree.c
+index a9d6ecc89d7c1..002ee41a16db0 100644
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -1099,7 +1099,7 @@ void interval_map_decompose(struct expr *set)
+ 					prefix->comment = xstrdup(low->comment);
+ 				if (low->timeout)
+ 					prefix->timeout = low->timeout;
+-				if (low->left->expiration)
++				if (low->expiration)
+ 					prefix->expiration = low->expiration;
+ 			}
+ 
+-- 
+2.25.1
 
-commit 200bc399651499f502ac0de45f4d4aa4c9d37ab6
-Author: Phil Sutter <phil@nwl.cc>
-Date:   Fri Mar 13 13:02:12 2020 +0100
-
-    nft: cache: Fix iptables-save segfault under stress
-
-is already restored in this series, right?
-
-Thanks.
