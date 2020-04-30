@@ -2,148 +2,84 @@ Return-Path: <SRS0=RE83=6O=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3392BC28CBC
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 14:10:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 573EBC47247
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 14:44:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0F89B206D9
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 14:10:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588255857;
-	bh=dCReHOxYxOTh3PI23Yj+n0lzVjU5bcXojq6bDVitLKg=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=dvukWuG+Zs3M/e+B6OWCRn1cqquNceVHsttpWtGfZcIoZrvVQHjZkdOHC4CG5BhGn
-	 6UATPu3Z6xqKUHybUdYYgPceVVGhoc25ob7exGjL3XMX8pYHJOCJb5r2mnKemo+dPh
-	 W9wLHOgeChObX02m7mXFn7cbygcCa0gkuKqVQHFA=
+	by mail.kernel.org (Postfix) with ESMTP id 32C892063A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 14:44:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728521AbgD3OKr (ORCPT
+        id S1726974AbgD3OoG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 30 Apr 2020 10:10:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59960 "EHLO mail.kernel.org"
+        Thu, 30 Apr 2020 10:44:06 -0400
+Received: from correo.us.es ([193.147.175.20]:51444 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728096AbgD3Nve (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 30 Apr 2020 09:51:34 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 454DD24965;
-        Thu, 30 Apr 2020 13:51:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588254693;
-        bh=dCReHOxYxOTh3PI23Yj+n0lzVjU5bcXojq6bDVitLKg=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=mx7Az5uYb152ffy9c63bwFFrnQWF2zm7a5F5LKW53AoFMkQDBK/sX53SyJWnV/9wW
-         rNjuZ1lJ3yXnHSEVtwoNFLnK/U/j05clmmlY0HlQuDc99+Rq4yoAZomYuPKEG5eSJt
-         celbLtegTJPAnZGAJpjhRxU/Y/3CzgGw68vcsato=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Hillf Danton <hdanton@sina.com>,
-        syzbot <syzbot+33e06702fd6cffc24c40@syzkaller.appspotmail.com>,
-        Florian Westphal <fw@strlen.de>,
-        Stefano Brivio <sbrivio@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.6 43/79] netfilter: nat: fix error handling upon registering inet hook
-Date:   Thu, 30 Apr 2020 09:50:07 -0400
-Message-Id: <20200430135043.19851-43-sashal@kernel.org>
+        id S1726780AbgD3OoF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 30 Apr 2020 10:44:05 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id B878DEF43F
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2020 16:44:04 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A810BB8002
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2020 16:44:04 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id A7523B7FF1; Thu, 30 Apr 2020 16:44:04 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 93461B7FF1;
+        Thu, 30 Apr 2020 16:44:02 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 30 Apr 2020 16:44:02 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 7071C42EFB81;
+        Thu, 30 Apr 2020 16:44:02 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     phil@nwl.cc
+Subject: [PATCH nft] rule: fix element cache update in __do_add_setelems()
+Date:   Thu, 30 Apr 2020 16:43:59 +0200
+Message-Id: <20200430144359.1551-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200430135043.19851-1-sashal@kernel.org>
-References: <20200430135043.19851-1-sashal@kernel.org>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Hillf Danton <hdanton@sina.com>
+The set->init and expr arguments might actually refer to the same list
+of elements. Skip set element cache update introduced by dd44081d91ce
+("segtree: Fix add and delete of element in same batch") otherwise
+list_splice_tail_init() actually operates with the same list as
+arguments. Valgrind reports this problem as a memleak since the result
+of this operation was an empty set element list.
 
-[ Upstream commit b4faef1739dd1f3b3981b8bf173a2266ea86b1eb ]
-
-A case of warning was reported by syzbot.
-
-------------[ cut here ]------------
-WARNING: CPU: 0 PID: 19934 at net/netfilter/nf_nat_core.c:1106
-nf_nat_unregister_fn+0x532/0x5c0 net/netfilter/nf_nat_core.c:1106
-Kernel panic - not syncing: panic_on_warn set ...
-CPU: 0 PID: 19934 Comm: syz-executor.5 Not tainted 5.6.0-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-Call Trace:
- __dump_stack lib/dump_stack.c:77 [inline]
- dump_stack+0x188/0x20d lib/dump_stack.c:118
- panic+0x2e3/0x75c kernel/panic.c:221
- __warn.cold+0x2f/0x35 kernel/panic.c:582
- report_bug+0x27b/0x2f0 lib/bug.c:195
- fixup_bug arch/x86/kernel/traps.c:175 [inline]
- fixup_bug arch/x86/kernel/traps.c:170 [inline]
- do_error_trap+0x12b/0x220 arch/x86/kernel/traps.c:267
- do_invalid_op+0x32/0x40 arch/x86/kernel/traps.c:286
- invalid_op+0x23/0x30 arch/x86/entry/entry_64.S:1027
-RIP: 0010:nf_nat_unregister_fn+0x532/0x5c0 net/netfilter/nf_nat_core.c:1106
-Code: ff df 48 c1 ea 03 80 3c 02 00 75 75 48 8b 44 24 10 4c 89 ef 48 c7 00 00 00 00 00 e8 e8 f8 53 fb e9 4d fe ff ff e8 ee 9c 16 fb <0f> 0b e9 41 fe ff ff e8 e2 45 54 fb e9 b5 fd ff ff 48 8b 7c 24 20
-RSP: 0018:ffffc90005487208 EFLAGS: 00010246
-RAX: 0000000000040000 RBX: 0000000000000004 RCX: ffffc9001444a000
-RDX: 0000000000040000 RSI: ffffffff865c94a2 RDI: 0000000000000005
-RBP: ffff88808b5cf000 R08: ffff8880a2620140 R09: fffffbfff14bcd79
-R10: ffffc90005487208 R11: fffffbfff14bcd78 R12: 0000000000000000
-R13: 0000000000000001 R14: 0000000000000001 R15: 0000000000000000
- nf_nat_ipv6_unregister_fn net/netfilter/nf_nat_proto.c:1017 [inline]
- nf_nat_inet_register_fn net/netfilter/nf_nat_proto.c:1038 [inline]
- nf_nat_inet_register_fn+0xfc/0x140 net/netfilter/nf_nat_proto.c:1023
- nf_tables_register_hook net/netfilter/nf_tables_api.c:224 [inline]
- nf_tables_addchain.constprop.0+0x82e/0x13c0 net/netfilter/nf_tables_api.c:1981
- nf_tables_newchain+0xf68/0x16a0 net/netfilter/nf_tables_api.c:2235
- nfnetlink_rcv_batch+0x83a/0x1610 net/netfilter/nfnetlink.c:433
- nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:543 [inline]
- nfnetlink_rcv+0x3af/0x420 net/netfilter/nfnetlink.c:561
- netlink_unicast_kernel net/netlink/af_netlink.c:1303 [inline]
- netlink_unicast+0x537/0x740 net/netlink/af_netlink.c:1329
- netlink_sendmsg+0x882/0xe10 net/netlink/af_netlink.c:1918
- sock_sendmsg_nosec net/socket.c:652 [inline]
- sock_sendmsg+0xcf/0x120 net/socket.c:672
- ____sys_sendmsg+0x6bf/0x7e0 net/socket.c:2362
- ___sys_sendmsg+0x100/0x170 net/socket.c:2416
- __sys_sendmsg+0xec/0x1b0 net/socket.c:2449
- do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
- entry_SYSCALL_64_after_hwframe+0x49/0xb3
-
-and to quiesce it, unregister NFPROTO_IPV6 hook instead of NFPROTO_INET
-in case of failing to register NFPROTO_IPV4 hook.
-
-Reported-by: syzbot <syzbot+33e06702fd6cffc24c40@syzkaller.appspotmail.com>
-Fixes: d164385ec572 ("netfilter: nat: add inet family nat support")
-Cc: Florian Westphal <fw@strlen.de>
-Cc: Stefano Brivio <sbrivio@redhat.com>
-Signed-off-by: Hillf Danton <hdanton@sina.com>
+Fixes: dd44081d91ce ("segtree: Fix add and delete of element in same batch")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_nat_proto.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ src/rule.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
-index 64eedc17037ad..3d816a1e5442e 100644
---- a/net/netfilter/nf_nat_proto.c
-+++ b/net/netfilter/nf_nat_proto.c
-@@ -1035,8 +1035,8 @@ int nf_nat_inet_register_fn(struct net *net, const struct nf_hook_ops *ops)
- 	ret = nf_nat_register_fn(net, NFPROTO_IPV4, ops, nf_nat_ipv4_ops,
- 				 ARRAY_SIZE(nf_nat_ipv4_ops));
- 	if (ret)
--		nf_nat_ipv6_unregister_fn(net, ops);
--
-+		nf_nat_unregister_fn(net, NFPROTO_IPV6, ops,
-+					ARRAY_SIZE(nf_nat_ipv6_ops));
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(nf_nat_inet_register_fn);
+diff --git a/src/rule.c b/src/rule.c
+index 9e80c0251947..23b1cbfc8fb2 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1564,7 +1564,7 @@ static int __do_add_setelems(struct netlink_ctx *ctx, struct set *set,
+ 		return -1;
+ 
+ 	if (!set_is_anonymous(set->flags) &&
+-	    set->init != NULL &&
++	    set->init != NULL && set->init != expr &&
+ 	    set->flags & NFT_SET_INTERVAL &&
+ 	    set->desc.field_count <= 1) {
+ 		interval_map_decompose(expr);
 -- 
 2.20.1
 
