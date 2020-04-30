@@ -2,125 +2,179 @@ Return-Path: <SRS0=RE83=6O=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F342C47254
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 21:32:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F584C47257
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 21:33:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E835A206D6
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 21:32:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 432B52071C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 21:33:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727869AbgD3Vcr (ORCPT
+        id S1728001AbgD3Vda (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 30 Apr 2020 17:32:47 -0400
-Received: from mout.kundenserver.de ([212.227.126.131]:49795 "EHLO
+        Thu, 30 Apr 2020 17:33:30 -0400
+Received: from mout.kundenserver.de ([212.227.126.133]:45197 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726336AbgD3Vcr (ORCPT
+        with ESMTP id S1726909AbgD3Vd3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 30 Apr 2020 17:32:47 -0400
+        Thu, 30 Apr 2020 17:33:29 -0400
 Received: from threadripper.lan ([149.172.19.189]) by mrelayeu.kundenserver.de
  (mreue010 [212.227.15.129]) with ESMTPA (Nemesis) id
- 1M2w0K-1jTBOd0Rhs-003PJb; Thu, 30 Apr 2020 23:32:23 +0200
+ 1MmlCY-1imznH36yU-00jrwf; Thu, 30 Apr 2020 23:31:17 +0200
 From:   Arnd Bergmann <arnd@arndb.de>
-To:     linux-kernel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
+To:     linux-kernel@vger.kernel.org
+Cc:     Arnd Bergmann <arnd@arndb.de>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
         "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>
-Cc:     Arnd Bergmann <arnd@arndb.de>, Jeremy Sowden <jeremy@azazel.net>,
-        Li RongQing <lirongqing@baidu.com>,
-        Joe Perches <joe@perches.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Jules Irenge <jbi.octave@gmail.com>,
-        Dirk Morris <dmorris@metaloft.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH 06/15] netfilter: conntrack: avoid gcc-10 zero-length-bounds warning
-Date:   Thu, 30 Apr 2020 23:30:48 +0200
-Message-Id: <20200430213101.135134-7-arnd@arndb.de>
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Johannes Berg <johannes.berg@intel.com>,
+        Intel Linux Wireless <linuxwifi@intel.com>,
+        Amitkumar Karwar <amitkarwar@gmail.com>,
+        James Smart <james.smart@broadcom.com>,
+        Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>,
+        "James E.J. Bottomley" <jejb@linux.ibm.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+        Bob Copeland <me@bobcopeland.com>, Jan Kara <jack@suse.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Neil Horman <nhorman@tuxdriver.com>,
+        linux-crypto@vger.kernel.org, linux-media@vger.kernel.org,
+        ath10k@lists.infradead.org, linux-wireless@vger.kernel.org,
+        netdev@vger.kernel.org, linux-nvme@lists.infradead.org,
+        linux-scsi@vger.kernel.org,
+        linux-karma-devel@lists.sourceforge.net, bpf@vger.kernel.org,
+        linux-usb@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Subject: [PATCH 00/15] gcc-10 warning fixes
+Date:   Thu, 30 Apr 2020 23:30:42 +0200
+Message-Id: <20200430213101.135134-1-arnd@arndb.de>
 X-Mailer: git-send-email 2.26.0
-In-Reply-To: <20200430213101.135134-1-arnd@arndb.de>
-References: <20200430213101.135134-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:8Sp1zqk0kvXNuoj2OkQlE/ujFJe7AlEDhxnJ66L0VukuMY/xxYi
- +JgvA3BEJVInn94lFMseSuPlDxRS/GL/oaTPplGHTZvnLqo7E/MijvoRxlN0VmpEU2lISm0
- lE2g9NCgBPAiDai9y5MKBi5xa6BaV6duj4paBSzna762U2aagG+uxR3tmKxRzdadqKwZsQP
- sTKb8dOBMg6yReMFaqH6w==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:VNz0tYWZTqk=:UsDGslkgNI5fdFKkPvadEp
- 6mtBxc23aMctyVNSUmtxjmYVlBSip2tqZUVeWE3owPBMOAzBA5KaIipnOc4+0PpR/FzETZXhO
- /k094E//vxZnfTOZxqwMe+rNEuL0uTQol7g1+JVqrOgBs2tl/5LVpo9uSRvLzyXzdq2Ih5x0s
- jy/nvLF4ZaFqgffe/1Ij5wy0qGZizKErNItmS1jZA6GqPUe99IR4qVP7GSRFnoVuCGHIOkZOs
- BQT/QITf4RXgOM09POIWx1EiXMaeET75PoUV7WQXZZyFvQl3GSfxdSsR0njRL/iQlQOJUUKE9
- HQ46qhkyrNPeO9/5HNrtbsMadFiSghd5C7WtARl2/ebqhQY5u14yK2gX5RvTwKjC/msY4V8Ma
- 2EiUu4H49OIhOMwK25KYdEKkBe4iS8YAYY6HfBsYZMw8UPWtFchtX4QaTouIA3PJerFzR134x
- UXcMBdnxLcwasMRYHXnRcWyBFuFOH52QC4NhpI4q3L4IkIRLoXfg3sHIbH/H6qhI+OEwFKzIS
- w5wNzOrgxrviDDsIdTsyVYONKT7Art9WABh/fydx/FW/BGuc87HioQ0GUfFWI2bZRfpBVA4gc
- f3CFLH2Cykr1Tkom3EUXjDWcZSBSW2905QaeE4oDK2EzR+hRbUHN40VCs9rEp1amdToMv4w1e
- CxpXRZvYI3iG3prMVih9ujBWabjb9AN6M6Bh9N69PBEboD2TQAz0fF9+0BhaU4f0h+gt5PFEg
- zcJRCivnsDG1XWjKDrp4p7GKd5RRj8vZDIuQuj5eq8x9vUwrxFnvSCdj5F9dgU1Ze5PBO1AAt
- Ei0a3eb1reZbx2wTQbnlgmpLvtKHD8vLmD5ZgRjMFVANTbDmUk=
+X-Provags-ID: V03:K1:d0r1T0atJ0fP6VC0lsoU2Nb50uVHm7+C7HFBKxo5Oh9FT7cjF4F
+ 56LFacsuF89qNSNIhAKt16YSLWAlWssvN8MtPe8NN45LaPwc/cCelzxDkHr4+0tFL6+Sa9G
+ a57V34rwqixwafD6sE/njElSMiK55+3n3WBVw4f5PpMdpEy2CNFI8yBkDaQox92MxOq478P
+ ATheht8WQuHpTQRLL5ZEQ==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:qtjOffXScL0=:Yde/YTTIyDLV71HcVFV/g8
+ 5aCgJ4X4xNzxI3sDnVHzb+4x1iuaUyj/FDU6axm1cC5dNjOHg+8xAyvhGoryNPJJFdXCQ9E8u
+ /vBjaVgpQi6NvTWJp+z0wFIoWkqjlRGR2wCLBCvG5ImhRZo6H4jl5uiqg/TUea1BRC5KOAUug
+ NLH3+1SoQ96QZaVVmYPbql6nsHgFb4uZYdjCp8JTVI2L30Rp4+0Uw3uwnSsZJuLBGqAnsFaeh
+ k7gAnZ02jIaJcsH2V+TwomCcLBG4OX9P3yetdeZWPtDSychl7RC+/gMGRpPt2beTcJXb7Sr4/
+ wgqf3CYR6/N2vUz2MhXS9Sl+HtdkF3gKvKsNTp2mw9draDW6IVxA+E16ianBs3s2/Jj86Cp4d
+ ehuoj5P2KJYrz+9tZ+et7SchBa5i/iGqThgNGHpUmVXaAI8nZHkjO7rEce0Ctm42WVr0HLTd4
+ o1jt4fwG8tpZvziYdVKKK9x4WQWsYAq2xx0LoedsVxg8abX+ql1c1UVSezkM6FJvLsBYSOqLC
+ Wl2wmpwXK3rQEhxxX4Sh0+p7vR68f1MiX8v4GGJjHzQvAfDgNp//3vXmnFa9OfQMY1+J5Oamt
+ RKC21TWUo81CDfLbGJUutjWh36LNJfa+N4p4bSAvqbx+J8urAAoBgP4lL7BwvnjawPWVT3bQ7
+ nx782MGIljH805ldEh/1deDsyPsEUVqES3Wx9pJakt2RNm+5lKUyzj8TLjsuKM9bM+MwiaVGP
+ y3sVYv2Jji3wkCZuDo3KR4124HQta8GSeSFOnIEeWuWxcaFbOJf9loaB0IyqLaH/bv1s0C1At
+ ctEvneGxLk11FkM6cOL//qiBQ4ws+UB1hR0Fmjp4sHdhGtlvK4=
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-gcc-10 warns around a suspicious access to an empty struct member:
+Here are a couple of fixes for warnings introduced with gcc-10.
+If you wish to reproduce these, you can find the compiler I used
+at [1].
 
-net/netfilter/nf_conntrack_core.c: In function '__nf_conntrack_alloc':
-net/netfilter/nf_conntrack_core.c:1522:9: warning: array subscript 0 is outside the bounds of an interior zero-length array 'u8[0]' {aka 'unsigned char[0]'} [-Wzero-length-bounds]
- 1522 |  memset(&ct->__nfct_init_offset[0], 0,
-      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~
-In file included from net/netfilter/nf_conntrack_core.c:37:
-include/net/netfilter/nf_conntrack.h:90:5: note: while referencing '__nfct_init_offset'
-   90 |  u8 __nfct_init_offset[0];
-      |     ^~~~~~~~~~~~~~~~~~
+If you like the fixes, please apply them directly into maintainer
+trees. I expect that we will also need them to be backported
+into stable kernels later.
 
-The code is correct but a bit unusual. Rework it slightly in a way that
-does not trigger the warning, using an empty struct instead of an empty
-array. There are probably more elegant ways to do this, but this is the
-smallest change.
+I disabled -Wrestrict on gcc in my local test tree, but with
+the patches from this series and the ones I have already sent,
+I see no gcc-10 specific warnings in linux-next when doing
+many randconfig builds for arm/arm64/x86.
 
-Fixes: c41884ce0562 ("netfilter: conntrack: avoid zeroing timer")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- include/net/netfilter/nf_conntrack.h | 2 +-
- net/netfilter/nf_conntrack_core.c    | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+      Arnd
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 9f551f3b69c6..90690e37a56f 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -87,7 +87,7 @@ struct nf_conn {
- 	struct hlist_node	nat_bysource;
- #endif
- 	/* all members below initialized via memset */
--	u8 __nfct_init_offset[0];
-+	struct { } __nfct_init_offset;
- 
- 	/* If we were expected by an expectation, this will be it */
- 	struct nf_conn *master;
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index c4582eb71766..0173398f4ced 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1519,9 +1519,9 @@ __nf_conntrack_alloc(struct net *net,
- 	ct->status = 0;
- 	ct->timeout = 0;
- 	write_pnet(&ct->ct_net, net);
--	memset(&ct->__nfct_init_offset[0], 0,
-+	memset(&ct->__nfct_init_offset, 0,
- 	       offsetof(struct nf_conn, proto) -
--	       offsetof(struct nf_conn, __nfct_init_offset[0]));
-+	       offsetof(struct nf_conn, __nfct_init_offset));
- 
- 	nf_ct_zone_add(ct, zone);
- 
+Arnd Bergmann (15):
+  crypto - Avoid free() namespace collision
+  iwlwifi: mvm: fix gcc-10 zero-length-bounds warning
+  mwifiex: avoid -Wstringop-overflow warning
+  ath10k: fix gcc-10 zero-length-bounds warnings
+  bpf: avoid gcc-10 stringop-overflow warning
+  netfilter: conntrack: avoid gcc-10 zero-length-bounds warning
+  drop_monitor: work around gcc-10 stringop-overflow warning
+  usb: ehci: avoid gcc-10 zero-length-bounds warning
+  udf: avoid gcc-10 zero-length-bounds warnings
+  hpfs: avoid gcc-10 zero-length-bounds warning
+  omfs: avoid gcc-10 stringop-overflow warning
+  media: s5k5baf: avoid gcc-10 zero-length-bounds warning
+  scsi: sas: avoid gcc-10 zero-length-bounds warning
+  isci: avoid gcc-10 zero-length-bounds warning
+  nvme: avoid gcc-10 zero-length-bounds warning
+
+ crypto/lrw.c                                  |  6 +--
+ crypto/xts.c                                  |  6 +--
+ drivers/media/i2c/s5k5baf.c                   |  4 +-
+ drivers/net/wireless/ath/ath10k/htt.h         |  4 +-
+ .../net/wireless/intel/iwlwifi/fw/api/tx.h    | 14 +++----
+ .../net/wireless/marvell/mwifiex/sta_cmd.c    | 39 ++++++++-----------
+ drivers/nvme/host/fc.c                        |  2 +-
+ drivers/scsi/aic94xx/aic94xx_tmf.c            |  4 +-
+ drivers/scsi/isci/task.h                      |  7 ++--
+ drivers/scsi/libsas/sas_task.c                |  3 +-
+ fs/hpfs/anode.c                               |  7 +++-
+ fs/omfs/file.c                                | 12 +++---
+ fs/omfs/omfs_fs.h                             |  2 +-
+ fs/udf/ecma_167.h                             |  2 +-
+ fs/udf/super.c                                |  2 +-
+ include/linux/filter.h                        |  6 +--
+ include/linux/usb/ehci_def.h                  | 12 ++++--
+ include/net/netfilter/nf_conntrack.h          |  2 +-
+ net/core/drop_monitor.c                       | 11 ++++--
+ net/netfilter/nf_conntrack_core.c             |  4 +-
+ 20 files changed, 76 insertions(+), 73 deletions(-)
+
+[1] https://mirrors.edge.kernel.org/pub/tools/crosstool/files/bin/x86_64/10.0.20200413/
+
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Kalle Valo <kvalo@codeaurora.org>
+Cc: Johannes Berg <johannes.berg@intel.com>
+Cc: Intel Linux Wireless <linuxwifi@intel.com>
+Cc: Amitkumar Karwar <amitkarwar@gmail.com>
+Cc: James Smart <james.smart@broadcom.com>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: "James E.J. Bottomley" <jejb@linux.ibm.com>
+Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
+Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+Cc: Bob Copeland <me@bobcopeland.com>
+Cc: Jan Kara <jack@suse.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: linux-crypto@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Cc: ath10k@lists.infradead.org
+Cc: linux-wireless@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Cc: linux-nvme@lists.infradead.org
+Cc: linux-scsi@vger.kernel.org
+Cc: linux-karma-devel@lists.sourceforge.net
+Cc: bpf@vger.kernel.org
+Cc: linux-usb@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org
+
+
+
 -- 
 2.26.0
 
