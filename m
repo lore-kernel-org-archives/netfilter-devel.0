@@ -6,53 +6,54 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFC97C47247
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 14:47:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC78FC47247
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 15:08:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C98BA2076D
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 14:47:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A7C8420661
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 Apr 2020 15:08:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727122AbgD3OrT (ORCPT
+        id S1726396AbgD3PIf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 30 Apr 2020 10:47:19 -0400
-Received: from correo.us.es ([193.147.175.20]:52960 "EHLO mail.us.es"
+        Thu, 30 Apr 2020 11:08:35 -0400
+Received: from correo.us.es ([193.147.175.20]:36598 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726808AbgD3OrT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 30 Apr 2020 10:47:19 -0400
+        id S1726350AbgD3PIf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 30 Apr 2020 11:08:35 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A18AFDA714
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2020 16:47:17 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 9E93AB5AAE
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2020 17:08:33 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8F379B7FF7
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2020 16:47:17 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8EAF8B800B
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2020 17:08:33 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 84B09DA736; Thu, 30 Apr 2020 16:47:17 +0200 (CEST)
+        id 8E049B8003; Thu, 30 Apr 2020 17:08:33 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1C80CB7FFA;
-        Thu, 30 Apr 2020 16:47:15 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 89FFAB8006;
+        Thu, 30 Apr 2020 17:08:31 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 30 Apr 2020 16:47:15 +0200 (CEST)
+ Thu, 30 Apr 2020 17:08:31 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 01C2842EFB83;
-        Thu, 30 Apr 2020 16:47:14 +0200 (CEST)
-Date:   Thu, 30 Apr 2020 16:47:14 +0200
+        by entrada.int (Postfix) with ESMTPSA id 6CF3242EFB81;
+        Thu, 30 Apr 2020 17:08:31 +0200 (CEST)
+Date:   Thu, 30 Apr 2020 17:08:31 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] rule: memleak in __do_add_setelems()
-Message-ID: <20200430144714.GA1454@salvia>
-References: <20200430121845.10388-1-pablo@netfilter.org>
- <20200430130820.GA11056@salvia>
- <20200430135217.GJ15009@orbyte.nwl.cc>
+Subject: Re: [iptables PATCH v2 00/18] iptables: introduce cache evaluation
+ phase
+Message-ID: <20200430150831.GA2267@salvia>
+References: <20200428121013.24507-1-phil@nwl.cc>
+ <20200429213609.GA24368@salvia>
+ <20200430135300.GK15009@orbyte.nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200430135217.GJ15009@orbyte.nwl.cc>
+In-Reply-To: <20200430135300.GK15009@orbyte.nwl.cc>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -60,47 +61,34 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Apr 30, 2020 at 03:52:17PM +0200, Phil Sutter wrote:
+On Thu, Apr 30, 2020 at 03:53:00PM +0200, Phil Sutter wrote:
 > Hi Pablo,
-> 
-> On Thu, Apr 30, 2020 at 03:08:20PM +0200, Pablo Neira Ayuso wrote:
-> > On Thu, Apr 30, 2020 at 02:18:45PM +0200, Pablo Neira Ayuso wrote:
-> > > This patch invokes interval_map_decompose() with named sets:
-> > > 
-> > > ==3402== 2,352 (128 direct, 2,224 indirect) bytes in 1 blocks are definitely lost in loss record 9 of 9
-> > > ==3402==    at 0x483577F: malloc (vg_replace_malloc.c:299)
-> > > ==3402==    by 0x48996A8: xmalloc (utils.c:36)
-> > > ==3402==    by 0x4899778: xzalloc (utils.c:65)
-> > > ==3402==    by 0x487CB46: expr_alloc (expression.c:45)
-> > > ==3402==    by 0x487E2A0: mapping_expr_alloc (expression.c:1140)
-> > > ==3402==    by 0x4898AA8: interval_map_decompose (segtree.c:1095)
-> > > ==3402==    by 0x4872BDF: __do_add_setelems (rule.c:1569)
-> > > ==3402==    by 0x4872BDF: __do_add_setelems (rule.c:1559)
-> > > ==3402==    by 0x4877936: do_command (rule.c:2710)
-> > > ==3402==    by 0x489F1CB: nft_netlink.isra.5 (libnftables.c:42)
-> > > ==3402==    by 0x489FB07: nft_run_cmd_from_filename (libnftables.c:508)
-> > > ==3402==    by 0x10A9AA: main (main.c:455)
-> > > 
-> > > Fixes: dd44081d91ce ("segtree: Fix add and delete of element in same batch")
-> > 
-> > This fixes the problem for anonymous sets, still named sets are
-> > showing a memleak.
-> 
-> The change is strange: My fix (dd44081d91ce) was about anonymous sets.
+>
+> On Wed, Apr 29, 2020 at 11:36:09PM +0200, Pablo Neira Ayuso wrote:
+> > On Tue, Apr 28, 2020 at 02:09:55PM +0200, Phil Sutter wrote:
+> > > Hi Pablo,
+> > >
+> > > As promised, here's a revised version of your cache rework series from
+> > > January. It restores performance according to my tests (which are yet to
+> > > be published somewhere) and passes the testsuites.
+> >
+> > I did not test this yet, and I made a few rounds of quick reviews
+> > alrady, but this series LGTM. Thank you for working on this.
+>
+> Cool! Should I push it or do you want to have a closer look first?
 
-It was about named sets, right?
+You already took the time to test this, so I think it's fine if you
+push out. Problems can be fixed from master. It would also good a few
+runs to valgrind.
 
-# nft 'add element t s { 22-25 }; delete element t s { 22-25 }'
+BTW, this cache consistency check
 
-I think the cache update is still not needed for anonymous sets, even
-if this was not the right fix indeed.
+commit 200bc399651499f502ac0de45f4d4aa4c9d37ab6
+Author: Phil Sutter <phil@nwl.cc>
+Date:   Fri Mar 13 13:02:12 2020 +0100
 
-> Since you make the added code apply to non-anonymous sets only, I would
-> expect for my testcase to start failing again (I didn't test it,
-> though).
-> 
-> Are we maybe missing a free() somewhere instead?
+    nft: cache: Fix iptables-save segfault under stress
 
-I think I found the root cause:
+is already restored in this series, right?
 
-https://marc.info/?l=netfilter-devel&m=158825784609307&w=2
+Thanks.
