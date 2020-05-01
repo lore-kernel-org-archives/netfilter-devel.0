@@ -2,84 +2,68 @@ Return-Path: <SRS0=Z556=6P=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BBA80C47254
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 May 2020 21:09:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4230DC47254
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 May 2020 21:56:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9DE6C208C3
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 May 2020 21:09:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1EC1B2166E
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 May 2020 21:56:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726488AbgEAVJ6 (ORCPT
+        id S1726396AbgEAV4j (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 1 May 2020 17:09:58 -0400
-Received: from smail.fem.tu-ilmenau.de ([141.24.220.41]:49316 "EHLO
-        smail.fem.tu-ilmenau.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726045AbgEAVJ5 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 1 May 2020 17:09:57 -0400
-Received: from mail.fem.tu-ilmenau.de (mail-zuse.net.fem.tu-ilmenau.de [172.21.220.54])
-        (using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+        Fri, 1 May 2020 17:56:39 -0400
+Received: from correo.us.es ([193.147.175.20]:48312 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726045AbgEAV4i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 1 May 2020 17:56:38 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id CC8011C4383
+        for <netfilter-devel@vger.kernel.org>; Fri,  1 May 2020 23:56:37 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C040EBAAA1
+        for <netfilter-devel@vger.kernel.org>; Fri,  1 May 2020 23:56:37 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id B57F56D28C; Fri,  1 May 2020 23:56:37 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DC1CDDA788;
+        Fri,  1 May 2020 23:56:35 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 01 May 2020 23:56:35 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by smail.fem.tu-ilmenau.de (Postfix) with ESMTPS id 6ECC6201B9;
-        Fri,  1 May 2020 23:09:54 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by mail.fem.tu-ilmenau.de (Postfix) with ESMTP id 3C08C61DE;
-        Fri,  1 May 2020 23:09:54 +0200 (CEST)
-X-Virus-Scanned: amavisd-new at fem.tu-ilmenau.de
-Received: from mail.fem.tu-ilmenau.de ([127.0.0.1])
-        by localhost (mail.fem.tu-ilmenau.de [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id z0mv-4GFgHPV; Fri,  1 May 2020 23:09:50 +0200 (CEST)
-Received: from mail-backup.fem.tu-ilmenau.de (mail-backup.net.fem.tu-ilmenau.de [10.42.40.22])
-        (using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mail.fem.tu-ilmenau.de (Postfix) with ESMTPS;
-        Fri,  1 May 2020 23:09:50 +0200 (CEST)
-Received: from a234.fem.tu-ilmenau.de (ray-controller.net.fem.tu-ilmenau.de [10.42.51.234])
-        by mail-backup.fem.tu-ilmenau.de (Postfix) with ESMTP id 9625C56050;
-        Fri,  1 May 2020 23:09:50 +0200 (CEST)
-Received: by a234.fem.tu-ilmenau.de (Postfix, from userid 1000)
-        id 78EB4306A950; Fri,  1 May 2020 23:09:50 +0200 (CEST)
-From:   Michael Braun <michael-dev@fami-braun.de>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Michael Braun <michael-dev@fami-braun.de>
-Subject: [PATCH] tests: dump generated use new nft tool
-Date:   Fri,  1 May 2020 23:09:49 +0200
-Message-Id: <20200501210949.2712-1-michael-dev@fami-braun.de>
-X-Mailer: git-send-email 2.20.1
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id B3B8C4301DE1;
+        Fri,  1 May 2020 23:56:35 +0200 (CEST)
+Date:   Fri, 1 May 2020 23:56:35 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Michael Braun <michael-dev@fami-braun.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] tests: dump generated use new nft tool
+Message-ID: <20200501215635.GA563@salvia>
+References: <20200501210949.2712-1-michael-dev@fami-braun.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200501210949.2712-1-michael-dev@fami-braun.de>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Instead of using an (possibly outdated) system nft to generate dumps,
-use the newly build tool.
+On Fri, May 01, 2020 at 11:09:49PM +0200, Michael Braun wrote:
+> Instead of using an (possibly outdated) system nft to generate dumps,
+> use the newly build tool.
+> 
+> This fixes the dump output being corrupted if the system tool does
+> not support parsing new features.
 
-This fixes the dump output being corrupted if the system tool does
-not support parsing new features.
-
-Signed-off-by: Michael Braun <michael-dev@fami-braun.de>
----
- tests/shell/run-tests.sh | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
-index 2c415489..26f8f46d 100755
---- a/tests/shell/run-tests.sh
-+++ b/tests/shell/run-tests.sh
-@@ -122,7 +122,7 @@ do
- 
- 			if [ "$DUMPGEN" == "y" ] && [ "$rc_got" == 0 ] && [ ! -f "${dumpfile}" ]; then
- 				mkdir -p "${dumppath}"
--				nft list ruleset > "${dumpfile}"
-+				$NFT list ruleset > "${dumpfile}"
- 			fi
- 		else
- 			((failed++))
--- 
-2.20.1
-
+Applied, thanks.
