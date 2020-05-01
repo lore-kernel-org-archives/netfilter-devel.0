@@ -6,100 +6,60 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0A53C47253
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 May 2020 11:05:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 195FEC47257
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 May 2020 15:09:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 96A58208C3
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 May 2020 11:05:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 030FC216FD
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 May 2020 15:09:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728532AbgEALFn (ORCPT
+        id S1729275AbgEAPJO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 1 May 2020 07:05:43 -0400
-Received: from correo.us.es ([193.147.175.20]:49516 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728352AbgEALFm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 1 May 2020 07:05:42 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 83FE3F2DEF
-        for <netfilter-devel@vger.kernel.org>; Fri,  1 May 2020 13:05:39 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 745A74FA0B
-        for <netfilter-devel@vger.kernel.org>; Fri,  1 May 2020 13:05:39 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 69EC05BC; Fri,  1 May 2020 13:05:39 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6C9CCB7FF1;
-        Fri,  1 May 2020 13:05:37 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 01 May 2020 13:05:37 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Fri, 1 May 2020 11:09:14 -0400
+Received: from mail.thelounge.net ([91.118.73.15]:58269 "EHLO
+        mail.thelounge.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728856AbgEAPJM (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 1 May 2020 11:09:12 -0400
+Received: from srv-rhsoft.rhsoft.net (rh.vpn.thelounge.net [10.10.10.2])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature ECDSA (P-256))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 4B0E94301DE0;
-        Fri,  1 May 2020 13:05:37 +0200 (CEST)
-Date:   Fri, 1 May 2020 13:05:36 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH 3/4] segtree: Merge get_set_interval_find() and
- get_set_interval_end()
-Message-ID: <20200501110536.GA13284@salvia>
-References: <20200430151408.32283-1-phil@nwl.cc>
- <20200430151408.32283-4-phil@nwl.cc>
- <20200430153729.GA3602@salvia>
- <20200430154841.GP15009@orbyte.nwl.cc>
- <20200430155218.GA4214@salvia>
- <20200430160120.GT15009@orbyte.nwl.cc>
+        (Authenticated sender: h.reindl@thelounge.net)
+        by mail.thelounge.net (THELOUNGE MTA) with ESMTPSA id 49DFyY5tRszXQ5
+        for <netfilter-devel@vger.kernel.org>; Fri,  1 May 2020 17:09:09 +0200 (CEST)
+To:     netfilter-devel@vger.kernel.org
+From:   Reindl Harald <h.reindl@thelounge.net>
+Subject: strage iptables counts of wireguard traffic
+Organization: the lounge interactive design
+Message-ID: <1aa3eccc-032c-118e-1a4f-c129508696c5@thelounge.net>
+Date:   Fri, 1 May 2020 17:09:09 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.7.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200430160120.GT15009@orbyte.nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Apr 30, 2020 at 06:01:20PM +0200, Phil Sutter wrote:
-> On Thu, Apr 30, 2020 at 05:52:18PM +0200, Pablo Neira Ayuso wrote:
-> > On Thu, Apr 30, 2020 at 05:48:42PM +0200, Phil Sutter wrote:
-> > > On Thu, Apr 30, 2020 at 05:37:29PM +0200, Pablo Neira Ayuso wrote:
-> > > > On Thu, Apr 30, 2020 at 05:14:07PM +0200, Phil Sutter wrote:
-> > > > > Both functions were very similar already. Under the assumption that they
-> > > > > will always either see a range (or start of) that matches exactly or not
-> > > > > at all, reduce complexity and make get_set_interval_find() accept NULL
-> > > > > (left or) right values. This way it becomes a full replacement for
-> > > > > get_set_interval_end().
-> > > > 
-> > > > I have to go back to the commit log of this patch, IIRC my intention
-> > > > here was to allow users to ask for a single element, then return the
-> > > > range that contains it.
-> > > 
-> > > That was my suspicion as well, but while testing I found out that no
-> > > matter what I passed to 'get element', I couldn't provoke a situation in
-> > > which get_set_interval_find() would have left and right elements which
-> > > didn't match exactly (or not at all).
-> > > 
-> > > There must be some preparation happening before the call to
-> > > get_set_decompose() which normalizes things. And still, If I disable the
-> > > call to get_set_decompose() entirely, tests start failing.
-> > 
-> > Hm, so the approximate or exact matching is broken? Or you mean they
-> > fail because you didn't expect the approximate matching?
-> 
-> It's the opposite: Things are working fine even after my
-> simplifications. get_set_interval_find() expected left/right values
-> which sit within a range, e.g. left/right of 22/23 and a set with
-> element 20-30. But to my surprise, this doesn't happen. With these
-> example values, left/right are 20/30, i.e. match the range in the set.
-> 
-> That's why I extended tests/shell/testcases/sets/0034get_element_0.
-> Please have a look if there's a use-case I missed.
+how can it be that a single peer has 2.8 GB traffic and in the raw table
+the whole udp traffic is only 417M?
 
-This looks good indeed. Please, push this out.
+iptables --verbose --list --table raw
+Chain PREROUTING (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source
+destination
+  17M 4378M INBOUND    all  --  wan    any     anywhere             anywhere
+  22M   20G ACCEPT     tcp  --  any    any     anywhere             anywhere
+2802K  417M ACCEPT     udp  --  any    any     anywhere             anywhere
+3678K  299M ACCEPT     icmp --  any    any     anywhere             anywhere
+  256  131K DROP       all  --  any    any     anywhere             anywhere
 
-Thanks for explaining.
+peer: cA4YZkh8GfPIrMtMwMPzutcfW5U0Ht5Gq2XHs5I9dlo=
+  preshared key: (hidden)
+  endpoint: *******
+  allowed ips: *********
+  latest handshake: 59 seconds ago
+  transfer: 148.09 MiB received, 2.67 GiB sent
