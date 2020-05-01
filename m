@@ -2,129 +2,94 @@ Return-Path: <SRS0=Z556=6P=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B118C47258
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 May 2020 16:23:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B368CC47253
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 May 2020 17:07:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2B5362166E
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 May 2020 16:23:31 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="Zvn4tyvf"
+	by mail.kernel.org (Postfix) with ESMTP id 993C220857
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 May 2020 17:07:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729461AbgEAQX2 (ORCPT
+        id S1729025AbgEARHJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 1 May 2020 12:23:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49750 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728947AbgEAQX2 (ORCPT
+        Fri, 1 May 2020 13:07:09 -0400
+Received: from mail.thelounge.net ([91.118.73.15]:19901 "EHLO
+        mail.thelounge.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728972AbgEARHJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 1 May 2020 12:23:28 -0400
-Received: from mail-ed1-x544.google.com (mail-ed1-x544.google.com [IPv6:2a00:1450:4864:20::544])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E29F4C061A0E
-        for <netfilter-devel@vger.kernel.org>; Fri,  1 May 2020 09:23:27 -0700 (PDT)
-Received: by mail-ed1-x544.google.com with SMTP id d16so7631246edq.7
-        for <netfilter-devel@vger.kernel.org>; Fri, 01 May 2020 09:23:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=jfkQqP4P46nAK7oHXekeHfYjV+lTMmLOA7ipwLh/Dr8=;
-        b=Zvn4tyvfjCwJZ4OUXbaZPdeUosydRCUvEPtuDiMRQpLR4Lt1iBBN6upWwzblLJEBt7
-         DC8Kwix4abLHUDib+LHkkSs5i7qxPasdEY0sZRZw9fareW+qLioVXXvY7J90+WTOqSCr
-         KP3FzIgAp/z6w0Z2zvjoZCK4QVNc2k10LZFzL9i2qpc7qKX9lKA2mbhFHpYmEvgWAq/x
-         BttAwm4H7hbo9DPXsPKU1gbl2gNZA4FrIo8F05isaYZqNS+j/gOrY02+dblEz6//nwDe
-         wrOUKMMBmTF/VPdoL5ub21/7574RN3HHihWiPlLtpNk1F3ssOwvCRXE4ZnTNKz4wfMYo
-         GCqg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=jfkQqP4P46nAK7oHXekeHfYjV+lTMmLOA7ipwLh/Dr8=;
-        b=C5mkXfxV4cd8qNJSTd9fz7feeHJCApTt6AdInsv4squWUj3l4NFJ7VCZVXyP3y5dg5
-         WW6sFnkwlO1UAjCZQPeumhZ0hESNLisxSavHdPNyCq7nwTWCkR6Q4VSTRMxINJNJ1MYS
-         z3RQfMaSbADW3ZD80vBvUbAOU8JAHPOI48jPjPpowk+Ldc5OKX40Pc86Amw068hzeh1/
-         PPPq7VEEOVTheUU8mzgxbaqDR8YFrWeiG+4FTiynd+a0kBDgtP1cpMhCxbdSbB6ZXwYg
-         R29Y1xpWxEpMEwmlXvm59FDyKq2U0ypiKfc1N410zckEGcQAh7psscYLRjkSb9c1ftSO
-         QboA==
-X-Gm-Message-State: AGi0PubHiftWFm80K41+bAwKPvT3T9RopjvxozvOH8XEwsIyDDn+a4W8
-        rfleoVJEuh7g/RpLMcg0w9BSlkoDG8SYd3yJAqfg
-X-Google-Smtp-Source: APiQypK825QibI3Ui9tCm2G1lExv4S+wdR3Bg+ka7wXCBeYqlb2bim0M0WRbqiTf2qPAhN/AhIew2jU+IiK7WSk1z7A=
-X-Received: by 2002:aa7:cb0f:: with SMTP id s15mr4169202edt.164.1588350206362;
- Fri, 01 May 2020 09:23:26 -0700 (PDT)
+        Fri, 1 May 2020 13:07:09 -0400
+Received: from srv-rhsoft.rhsoft.net (rh.vpn.thelounge.net [10.10.10.2])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
+        (No client certificate requested)
+        (Authenticated sender: h.reindl@thelounge.net)
+        by mail.thelounge.net (THELOUNGE MTA) with ESMTPSA id 49DJZf6xnHzXQ5;
+        Fri,  1 May 2020 19:07:06 +0200 (CEST)
+Subject: Re: strage iptables counts of wireguard traffic
+To:     Sven-Haegar Koch <haegar@sdinet.de>
+Cc:     netfilter-devel@vger.kernel.org
+References: <1aa3eccc-032c-118e-1a4f-c129508696c5@thelounge.net>
+ <alpine.DEB.2.22.394.2005011859150.1855929@aurora.sdinet.de>
+From:   Reindl Harald <h.reindl@thelounge.net>
+Organization: the lounge interactive design
+Message-ID: <1c3e6483-f307-a565-030d-d729cc7c4246@thelounge.net>
+Date:   Fri, 1 May 2020 19:07:06 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.7.0
 MIME-Version: 1.0
-References: <cover.1587500467.git.rgb@redhat.com> <CAHC9VhR9sNB58A8uQ4FNgAXOgVJ3RaWF4y5MAo=3mcTojaym0Q@mail.gmail.com>
- <20200429143146.3vlcmwvljo74ydb4@madcap2.tricolour.ca> <3348737.k9gCtgYObn@x2>
- <20200429213247.6ewxqf66i2apgyuz@madcap2.tricolour.ca>
-In-Reply-To: <20200429213247.6ewxqf66i2apgyuz@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Fri, 1 May 2020 12:23:15 -0400
-Message-ID: <CAHC9VhRv4GdaBm5ooi5D-j4CBvoOD5L9ab+QPgxhLudtwG=Nsw@mail.gmail.com>
-Subject: Re: [PATCH ghak25 v4 3/3] audit: add subj creds to NETFILTER_CFG
- record to cover async unregister
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     Steve Grubb <sgrubb@redhat.com>,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, omosnace@redhat.com, fw@strlen.de,
-        twoerner@redhat.com, Eric Paris <eparis@parisplace.org>,
-        ebiederm@xmission.com, tgraf@infradead.org
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <alpine.DEB.2.22.394.2005011859150.1855929@aurora.sdinet.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Apr 29, 2020 at 5:33 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2020-04-29 14:47, Steve Grubb wrote:
-> > On Wednesday, April 29, 2020 10:31:46 AM EDT Richard Guy Briggs wrote:
-> > > On 2020-04-28 18:25, Paul Moore wrote:
-> > > > On Wed, Apr 22, 2020 at 5:40 PM Richard Guy Briggs <rgb@redhat.com>
-> > wrote:
-> > > > > Some table unregister actions seem to be initiated by the kernel to
-> > > > > garbage collect unused tables that are not initiated by any userspace
-> > > > > actions.  It was found to be necessary to add the subject credentials
-> > > > > to  cover this case to reveal the source of these actions.  A sample
-> > > > > record:
-> > > > >   type=NETFILTER_CFG msg=audit(2020-03-11 21:25:21.491:269) : table=nat
-> > > > >   family=bridge entries=0 op=unregister pid=153 uid=root auid=unset
-> > > > >   tty=(none) ses=unset subj=system_u:system_r:kernel_t:s0
-> > > > >   comm=kworker/u4:2 exe=(null)>
-> > > > [I'm going to comment up here instead of in the code because it is a
-> > > > bit easier for everyone to see what the actual impact might be on the
-> > > > records.]
-> > > >
-> > > > Steve wants subject info in this case, okay, but let's try to trim out
-> > > > some of the fields which simply don't make sense in this record; I'm
-> > > > thinking of fields that are unset/empty in the kernel case and are
-> > > > duplicates of other records in the userspace/syscall case.  I think
-> > > > that means we can drop "tty", "ses", "comm", and "exe" ... yes?
-> > >
-> > > From the ghak28 discussion, this list and order was selected due to
-> > > Steve's preference for the "kernel" record convention, so deviating from
-> > > this will create yet a new field list.  I'll defer to Steve on this.  It
-> > > also has to do with the searchability of fields if they are missing.
-> > >
-> > > I do agree that some fields will be superfluous in the kernel case.
-> > > The most important field would be "subj", but then "pid" and "comm", I
-> > > would think.  Based on this contents of the "subj" field, I'd think that
-> > > "uid", "auid", "tty", "ses" and "exe" are not needed.
-> >
-> > We can't be adding deleting fields based on how its triggered. If they are
-> > unset, that is fine. The main issue is they have to behave the same.
->
-> I don't think the intent was to have fields swing in and out depending
-> on trigger.  The idea is to potentially permanently not include them in
-> this record type only.  The justification is that where they aren't
-> needed for the kernel trigger situation it made sense to delete them
-> because if it is a user context event it will be accompanied by a
-> syscall record that already has that information and there would be no
-> sense in duplicating it.
 
-Yes, exactly.
 
--- 
-paul moore
-www.paul-moore.com
+Am 01.05.20 um 19:01 schrieb Sven-Haegar Koch:
+> On Fri, 1 May 2020, Reindl Harald wrote:
+> 
+>> how can it be that a single peer has 2.8 GB traffic and in the raw table
+>> the whole udp traffic is only 417M?
+>>
+>> iptables --verbose --list --table raw
+>> Chain PREROUTING (policy ACCEPT 0 packets, 0 bytes)
+>>  pkts bytes target     prot opt in     out     source
+>> destination
+>>   17M 4378M INBOUND    all  --  wan    any     anywhere             anywhere
+>>   22M   20G ACCEPT     tcp  --  any    any     anywhere             anywhere
+>> 2802K  417M ACCEPT     udp  --  any    any     anywhere             anywhere
+>> 3678K  299M ACCEPT     icmp --  any    any     anywhere             anywhere
+>>   256  131K DROP       all  --  any    any     anywhere             anywhere
+>>
+>> peer: cA4YZkh8GfPIrMtMwMPzutcfW5U0Ht5Gq2XHs5I9dlo=
+>>   preshared key: (hidden)
+>>   endpoint: *******
+>>   allowed ips: *********
+>>   latest handshake: 59 seconds ago
+>>   transfer: 148.09 MiB received, 2.67 GiB sent
+> 
+> Locally generated traffic does not pass through the raw PREROUTING 
+> table, it only passes through raw OUTPUT.
+> 
+> If wireguard is running on the same machine and the 2.67 GiB is sent by 
+> the wireguard daemon to the pear, it would only be in OUTPUT when not 
+> received from a third station first.
+
+thank you
+
+ok, that's a valid argument - i thought raw PREROUTING is facing *every*
+package
+
+makes my stats missing some stuff but OK
+
+---------------------------------------------------------------
+1D/0H/9M - TRAFFIC - IPV4: 100%, IPV6: 0%, TCP: 96.1%, UDP: 2%, ICMP:
+1.4%, DROP: 0.7%
+---------------------------------------------------------------
+ALL  4    6  TCP  UDP   ICMP  TCP4  TCP6  UDP4  UDP6  ICMP4  ICMP6  DROP
+21G  21G  0  20G  416M  304M  20G   0     416M  0     304M   0      147M
