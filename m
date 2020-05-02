@@ -1,69 +1,97 @@
-Return-Path: <SRS0=Z556=6P=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=X9fE=6Q=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4230DC47254
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 May 2020 21:56:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0869C3A5A9
+	for <netfilter-devel@archiver.kernel.org>; Sat,  2 May 2020 10:11:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1EC1B2166E
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 May 2020 21:56:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BF5BA208DB
+	for <netfilter-devel@archiver.kernel.org>; Sat,  2 May 2020 10:11:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726396AbgEAV4j (ORCPT
+        id S1727029AbgEBKLy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 1 May 2020 17:56:39 -0400
-Received: from correo.us.es ([193.147.175.20]:48312 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726045AbgEAV4i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 1 May 2020 17:56:38 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CC8011C4383
-        for <netfilter-devel@vger.kernel.org>; Fri,  1 May 2020 23:56:37 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C040EBAAA1
-        for <netfilter-devel@vger.kernel.org>; Fri,  1 May 2020 23:56:37 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B57F56D28C; Fri,  1 May 2020 23:56:37 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DC1CDDA788;
-        Fri,  1 May 2020 23:56:35 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 01 May 2020 23:56:35 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Sat, 2 May 2020 06:11:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46646 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726574AbgEBKLy (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 2 May 2020 06:11:54 -0400
+Received: from smail.fem.tu-ilmenau.de (smail.fem.tu-ilmenau.de [IPv6:2001:638:904:ffbf::41])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF9A7C061A0C
+        for <netfilter-devel@vger.kernel.org>; Sat,  2 May 2020 03:11:53 -0700 (PDT)
+Received: from mail.fem.tu-ilmenau.de (mail-zuse.net.fem.tu-ilmenau.de [172.21.220.54])
+        (using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id B3B8C4301DE1;
-        Fri,  1 May 2020 23:56:35 +0200 (CEST)
-Date:   Fri, 1 May 2020 23:56:35 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Michael Braun <michael-dev@fami-braun.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] tests: dump generated use new nft tool
-Message-ID: <20200501215635.GA563@salvia>
-References: <20200501210949.2712-1-michael-dev@fami-braun.de>
+        by smail.fem.tu-ilmenau.de (Postfix) with ESMTPS id D6AAF2010C;
+        Sat,  2 May 2020 12:11:49 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by mail.fem.tu-ilmenau.de (Postfix) with ESMTP id 92A7461FC;
+        Sat,  2 May 2020 12:11:49 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at fem.tu-ilmenau.de
+Received: from mail.fem.tu-ilmenau.de ([127.0.0.1])
+        by localhost (mail.fem.tu-ilmenau.de [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id rDkEmT87Rimw; Sat,  2 May 2020 12:11:47 +0200 (CEST)
+Received: from mail-backup.fem.tu-ilmenau.de (mail-backup.net.fem.tu-ilmenau.de [10.42.40.22])
+        (using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mail.fem.tu-ilmenau.de (Postfix) with ESMTPS;
+        Sat,  2 May 2020 12:11:47 +0200 (CEST)
+Received: from a234.fem.tu-ilmenau.de (ray-controller.net.fem.tu-ilmenau.de [10.42.51.234])
+        by mail-backup.fem.tu-ilmenau.de (Postfix) with ESMTP id E1DAE56050;
+        Sat,  2 May 2020 12:11:46 +0200 (CEST)
+Received: by a234.fem.tu-ilmenau.de (Postfix, from userid 1000)
+        id B85A1306A950; Sat,  2 May 2020 12:11:46 +0200 (CEST)
+From:   Michael Braun <michael-dev@fami-braun.de>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Michael Braun <michael-dev@fami-braun.de>
+Subject: [PATCH] main: fix get_optstring truncating output
+Date:   Sat,  2 May 2020 12:11:43 +0200
+Message-Id: <20200502101143.18160-1-michael-dev@fami-braun.de>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200501210949.2712-1-michael-dev@fami-braun.de>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, May 01, 2020 at 11:09:49PM +0200, Michael Braun wrote:
-> Instead of using an (possibly outdated) system nft to generate dumps,
-> use the newly build tool.
-> 
-> This fixes the dump output being corrupted if the system tool does
-> not support parsing new features.
+Without this patch, get_optstring returns optstring = +hvVcf:insNSI:d:aejuy.
+After this patch, get_optstring returns optstring = +hvVcf:insNSI:d:aejuypTt
 
-Applied, thanks.
+This is due to optstring containing up to two chars per option, thus it was too
+short.
+
+Signed-off-by: Michael Braun <michael-dev@fami-braun.de>
+---
+ src/main.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/main.c b/src/main.c
+index d213c601..d830c7a2 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -118,7 +118,7 @@ static const struct nft_opt nft_options[] = {
+ 
+ static const char *get_optstring(void)
+ {
+-	static char optstring[NR_NFT_OPTIONS + 2];
++	static char optstring[2 * NR_NFT_OPTIONS + 2];
+ 
+ 	if (!optstring[0]) {
+ 		size_t i, j;
+@@ -128,6 +128,8 @@ static const char *get_optstring(void)
+ 			j += snprintf(optstring + j, sizeof(optstring) - j, "%c%s",
+ 				      nft_options[i].val,
+ 				      nft_options[i].arg ? ":" : "");
++
++		assert(j < sizeof(optstring));
+ 	}
+ 	return optstring;
+ }
+-- 
+2.20.1
+
