@@ -2,96 +2,95 @@ Return-Path: <SRS0=RRXz=6T=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9F1CC47256
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 18:46:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E50DCC47247
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 18:50:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7DA4A2078C
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 18:46:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588704382;
-	bh=aH0UNzPg/9kLER+V9dVWQxAola4B5LI8RxYusZuvzR8=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=sp0yGAwSzlr4cpO1+FteYIVpZG070kQRWGOoG8hgo2LH3heBtEVhbAq2CnINp3WzW
-	 y8j160fTsUQdj0SYQtm4uz5ULQ1uv6L+waA/gV2hgHUqkdc6FPLrIQW6o9OthN4mQo
-	 fr8J+2TSyPH9l9dcN5pnu0AfUJgS8aO7KcOaFd+A=
+	by mail.kernel.org (Postfix) with ESMTP id C2E37206CC
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 18:50:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728807AbgEESqT (ORCPT
+        id S1728660AbgEESuy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 May 2020 14:46:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48184 "EHLO mail.kernel.org"
+        Tue, 5 May 2020 14:50:54 -0400
+Received: from correo.us.es ([193.147.175.20]:43588 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728180AbgEESqT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 May 2020 14:46:19 -0400
-Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.1])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BA2CC206CC;
-        Tue,  5 May 2020 18:46:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588704379;
-        bh=aH0UNzPg/9kLER+V9dVWQxAola4B5LI8RxYusZuvzR8=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=YmoPHZeHSy02tkM7lhZfBFyxSNDIBHfqyO35SeGRNOrPrZbESEFPqdrVPNc8PZKbw
-         CdAkUVzPbTvuFxbJcoMyDGe8DONkg0Qnc3xxBLWbNPgvCtNDdQvLuAP01zhlGPFG43
-         Sz+1O9CXOmDv7+a6ECRtzV7pgx/vSqlMfgFHIH00=
-Date:   Tue, 5 May 2020 11:46:16 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Jiri Pirko <jiri@resnulli.us>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, ecree@solarflare.com
-Subject: Re: [PATCH net,v2] net: flow_offload: skip hw stats check for
- FLOW_ACTION_HW_STATS_DONT_CARE
-Message-ID: <20200505114616.221fc9af@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20200505183643.GI14398@nanopsycho.orion>
-References: <20200505174736.29414-1-pablo@netfilter.org>
-        <20200505183643.GI14398@nanopsycho.orion>
+        id S1728627AbgEESuy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 5 May 2020 14:50:54 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 315301C438B
+        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 20:50:52 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 234D2115417
+        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 20:50:52 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 18D06115416; Tue,  5 May 2020 20:50:52 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0CC652004A
+        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 20:50:50 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 05 May 2020 20:50:50 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id E4A1142EE38F
+        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 20:50:49 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnftnl] expr: objref: add nftnl_expr_objref_free() to release object name
+Date:   Tue,  5 May 2020 20:50:47 +0200
+Message-Id: <20200505185047.12487-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, 5 May 2020 20:36:43 +0200 Jiri Pirko wrote:
-> Tue, May 05, 2020 at 07:47:36PM CEST, pablo@netfilter.org wrote:
-> >This patch adds FLOW_ACTION_HW_STATS_DONT_CARE which tells the driver
-> >that the frontend does not need counters, this hw stats type request
-> >never fails. The FLOW_ACTION_HW_STATS_DISABLED type explicitly requests
-> >the driver to disable the stats, however, if the driver cannot disable
-> >counters, it bails out.
-> >
-> >TCA_ACT_HW_STATS_* maintains the 1:1 mapping with FLOW_ACTION_HW_STATS_*
-> >except by disabled which is mapped to FLOW_ACTION_HW_STATS_DISABLED
-> >(this is 0 in tc). Add tc_act_hw_stats() to perform the mapping between
-> >TCA_ACT_HW_STATS_* and FLOW_ACTION_HW_STATS_*.
-> >
-> >Fixes: 319a1d19471e ("flow_offload: check for basic action hw stats type")
-> >Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>  
-> 
-> Looks great. Thanks!
-> 
-> Reviewed-by: Jiri Pirko <jiri@mellanox.com>
+==4876==ERROR: LeakSanitizer: detected memory leaks
 
-Is this going to "just work" for mlxsw?
+Direct leak of 9 byte(s) in 1 object(s) allocated from:
+    #0 0x7f4e2c16b810 in strdup (/usr/lib/x86_64-linux-gnu/libasan.so.5+0x3a810)
+    #1 0x7f4e2a39906f in nftnl_expr_objref_set expr/objref.c:45
+    #2 0x7f4e2a39906f in nftnl_expr_objref_set expr/objref.c:35
 
-        act = flow_action_first_entry_get(flow_action);                         
-        if (act->hw_stats == FLOW_ACTION_HW_STATS_ANY ||                        
-            act->hw_stats == FLOW_ACTION_HW_STATS_IMMEDIATE) {                  
-                /* Count action is inserted first */                            
-                err = mlxsw_sp_acl_rulei_act_count(mlxsw_sp, rulei, extack);    
-                if (err)                                                        
-                        return err;                                             
-        } else if (act->hw_stats != FLOW_ACTION_HW_STATS_DISABLED) {            
-                NL_SET_ERR_MSG_MOD(extack, "Unsupported action HW stats type"); 
-                return -EOPNOTSUPP;                                             
-        }
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/expr/objref.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-if hw_stats is 0 we'll get into the else and bail.
+diff --git a/src/expr/objref.c b/src/expr/objref.c
+index 7388b18ac929..d3dd17ee788c 100644
+--- a/src/expr/objref.c
++++ b/src/expr/objref.c
+@@ -187,6 +187,13 @@ static int nftnl_expr_objref_snprintf_default(char *buf, size_t len,
+ 				objref->imm.type, objref->imm.name);
+ }
+ 
++static void nftnl_expr_objref_free(const struct nftnl_expr *e)
++{
++	struct nftnl_expr_objref *objref = nftnl_expr_data(e);
++
++	xfree(objref->imm.name);
++}
++
+ static int nftnl_expr_objref_snprintf(char *buf, size_t len, uint32_t type,
+ 				      uint32_t flags,
+ 				      const struct nftnl_expr *e)
+@@ -206,6 +213,7 @@ struct expr_ops expr_ops_objref = {
+ 	.name		= "objref",
+ 	.alloc_len	= sizeof(struct nftnl_expr_objref),
+ 	.max_attr	= NFTA_OBJREF_MAX,
++	.free		= nftnl_expr_objref_free,
+ 	.set		= nftnl_expr_objref_set,
+ 	.get		= nftnl_expr_objref_get,
+ 	.parse		= nftnl_expr_objref_parse,
+-- 
+2.20.1
 
-That doesn't deliver on the "don't care" promise, no?
