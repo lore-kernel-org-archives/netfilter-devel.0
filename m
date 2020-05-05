@@ -2,161 +2,159 @@ Return-Path: <SRS0=RRXz=6T=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20C7FC47254
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 18:40:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 994E0C47254
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 18:40:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 037DF20721
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 18:40:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588704015;
-	bh=hVKf+qmR8DpkiGRwne0mtB2DZPrZLcSf3Iil71IS5vM=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=cThcVEgwCUV8wZgBLfkgAXl5eJLB9Q0r9cGInoSu9cji3K3j6VouSVUPOpYKf92nj
-	 UXbfhxtY02BiBUjr0AoN0f6c9ItZIcQHXC6a8qbc3CxuIsGUVmMIX/5cI+Sh/sAhfu
-	 X66h7NYdsBP02Etvhm4N568ICZl5BQTAFjg/peJY=
+	by mail.kernel.org (Postfix) with ESMTP id 853C4206FA
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 18:40:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728892AbgEESkN (ORCPT
+        id S1728834AbgEESk0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 May 2020 14:40:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45794 "EHLO mail.kernel.org"
+        Tue, 5 May 2020 14:40:26 -0400
+Received: from correo.us.es ([193.147.175.20]:39202 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728076AbgEESkN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 May 2020 14:40:13 -0400
-Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.1])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5B208206FA;
-        Tue,  5 May 2020 18:40:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588704012;
-        bh=hVKf+qmR8DpkiGRwne0mtB2DZPrZLcSf3Iil71IS5vM=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=EEXvDeNNzf3QITsVdYe6EBro2bKd6nY1bELVMFbwWYDBhJljMAaU4+njozpbfxTNg
-         zwwsZroMPaKv1qDHbWnccpRvBRkAUfZkFbzc05NtAp3ZrbpEuNf1R3shCtJ7+0htbH
-         FfbxvtGoPcnixt4vhGzFe2q5p1ysQR53bZS439Hs=
-Date:   Tue, 5 May 2020 11:40:10 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, jiri@resnulli.us, ecree@solarflare.com
-Subject: Re: [PATCH net,v2] net: flow_offload: skip hw stats check for
- FLOW_ACTION_HW_STATS_DONT_CARE
-Message-ID: <20200505114010.132abebd@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20200505174736.29414-1-pablo@netfilter.org>
-References: <20200505174736.29414-1-pablo@netfilter.org>
+        id S1728076AbgEESkZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 5 May 2020 14:40:25 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 7FF291C4387
+        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 20:40:23 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 70EBE115416
+        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 20:40:23 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 668B4115410; Tue,  5 May 2020 20:40:23 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 45A632067D;
+        Tue,  5 May 2020 20:40:21 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 05 May 2020 20:40:21 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 2622942EE38E;
+        Tue,  5 May 2020 20:40:21 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     michael-dev@fami-braun.de
+Subject: [PATCH nft 1/2] src: add rule_stmt_insert_at() and use it
+Date:   Tue,  5 May 2020 20:40:17 +0200
+Message-Id: <20200505184018.12626-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue,  5 May 2020 19:47:36 +0200 Pablo Neira Ayuso wrote:
-> This patch adds FLOW_ACTION_HW_STATS_DONT_CARE which tells the driver
-> that the frontend does not need counters, this hw stats type request
-> never fails. The FLOW_ACTION_HW_STATS_DISABLED type explicitly requests
-> the driver to disable the stats, however, if the driver cannot disable
-> counters, it bails out.
-> 
-> TCA_ACT_HW_STATS_* maintains the 1:1 mapping with FLOW_ACTION_HW_STATS_*
-> except by disabled which is mapped to FLOW_ACTION_HW_STATS_DISABLED
-> (this is 0 in tc). Add tc_act_hw_stats() to perform the mapping between
-> TCA_ACT_HW_STATS_* and FLOW_ACTION_HW_STATS_*.
-> 
-> Fixes: 319a1d19471e ("flow_offload: check for basic action hw stats type")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> v2: define FLOW_ACTION_HW_STATS_DISABLED at the end of the enumeration
->     as Jiri suggested. Keep the 1:1 mapping between TCA_ACT_HW_STATS_*
->     and FLOW_ACTION_HW_STATS_* except by the disabled case.
-> 
->  include/net/flow_offload.h |  9 ++++++++-
->  net/sched/cls_api.c        | 14 ++++++++++++--
->  2 files changed, 20 insertions(+), 3 deletions(-)
-> 
-> diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
-> index 3619c6acf60f..efc8350b42fb 100644
-> --- a/include/net/flow_offload.h
-> +++ b/include/net/flow_offload.h
-> @@ -166,15 +166,18 @@ enum flow_action_mangle_base {
->  enum flow_action_hw_stats_bit {
->  	FLOW_ACTION_HW_STATS_IMMEDIATE_BIT,
->  	FLOW_ACTION_HW_STATS_DELAYED_BIT,
-> +	FLOW_ACTION_HW_STATS_DISABLED_BIT,
->  };
->  
->  enum flow_action_hw_stats {
-> -	FLOW_ACTION_HW_STATS_DISABLED = 0,
-> +	FLOW_ACTION_HW_STATS_DONT_CARE = 0,
+This helper function adds a statement at a given position and it updates
+the rule statement counter.
 
-Why not ~0? Or ANY | DISABLED? 
-Otherwise you may confuse drivers which check bit by bit.
+This patch fixes this:
 
->  	FLOW_ACTION_HW_STATS_IMMEDIATE =
->  		BIT(FLOW_ACTION_HW_STATS_IMMEDIATE_BIT),
->  	FLOW_ACTION_HW_STATS_DELAYED = BIT(FLOW_ACTION_HW_STATS_DELAYED_BIT),
->  	FLOW_ACTION_HW_STATS_ANY = FLOW_ACTION_HW_STATS_IMMEDIATE |
->  				   FLOW_ACTION_HW_STATS_DELAYED,
-> +	FLOW_ACTION_HW_STATS_DISABLED =
-> +		BIT(FLOW_ACTION_HW_STATS_DISABLED_BIT),
->  };
->  
->  typedef void (*action_destr)(void *priv);
-> @@ -325,7 +328,11 @@ __flow_action_hw_stats_check(const struct flow_action *action,
->  		return true;
->  	if (!flow_action_mixed_hw_stats_check(action, extack))
->  		return false;
-> +
->  	action_entry = flow_action_first_entry_get(action);
-> +	if (action_entry->hw_stats == FLOW_ACTION_HW_STATS_DONT_CARE)
-> +		return true;
-> +
->  	if (!check_allow_bit &&
->  	    action_entry->hw_stats != FLOW_ACTION_HW_STATS_ANY) {
->  		NL_SET_ERR_MSG_MOD(extack, "Driver supports only default HW stats type \"any\"");
-> diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
-> index 55bd1429678f..56cf1b9e1e24 100644
-> --- a/net/sched/cls_api.c
-> +++ b/net/sched/cls_api.c
-> @@ -3523,6 +3523,16 @@ static void tcf_sample_get_group(struct flow_action_entry *entry,
->  #endif
->  }
->  
-> +static enum flow_action_hw_stats tc_act_hw_stats(u8 hw_stats)
-> +{
-> +	if (WARN_ON_ONCE(hw_stats > TCA_ACT_HW_STATS_ANY))
-> +		return FLOW_ACTION_HW_STATS_DONT_CARE;
-> +	else if (!hw_stats)
-> +		return FLOW_ACTION_HW_STATS_DISABLED;
-> +
-> +	return hw_stats;
-> +}
-> +
->  int tc_setup_flow_action(struct flow_action *flow_action,
->  			 const struct tcf_exts *exts)
->  {
-> @@ -3546,7 +3556,7 @@ int tc_setup_flow_action(struct flow_action *flow_action,
->  		if (err)
->  			goto err_out_locked;
->  
-> -		entry->hw_stats = act->hw_stats;
-> +		entry->hw_stats = tc_act_hw_stats(act->hw_stats);
->  
->  		if (is_tcf_gact_ok(act)) {
->  			entry->id = FLOW_ACTION_ACCEPT;
-> @@ -3614,7 +3624,7 @@ int tc_setup_flow_action(struct flow_action *flow_action,
->  				entry->mangle.mask = tcf_pedit_mask(act, k);
->  				entry->mangle.val = tcf_pedit_val(act, k);
->  				entry->mangle.offset = tcf_pedit_offset(act, k);
-> -				entry->hw_stats = act->hw_stats;
-> +				entry->hw_stats = tc_act_hw_stats(act->hw_stats);
->  				entry = &flow_action->entries[++j];
->  			}
->  		} else if (is_tcf_csum(act)) {
+flush table bridge test-bridge
+add rule bridge test-bridge input vlan id 1 ip saddr 10.0.0.1
+rule.c:2870:5: runtime error: index 2 out of bounds for type 'stmt *[*]'
+=================================================================
+==1043==ERROR: AddressSanitizer: dynamic-stack-buffer-overflow on address 0x7ffdd69c1350 at pc 0x7f1036f53330 bp 0x7ffdd69c1300 sp 0x7ffdd69c12f8
+WRITE of size 8 at 0x7ffdd69c1350 thread T0
+    #0 0x7f1036f5332f in payload_try_merge /home/mbr/nftables/src/rule.c:2870
+    #1 0x7f1036f534b7 in rule_postprocess /home/mbr/nftables/src/rule.c:2885
+    #2 0x7f1036fb2785 in rule_evaluate /home/mbr/nftables/src/evaluate.c:3744
+    #3 0x7f1036fb627b in cmd_evaluate_add /home/mbr/nftables/src/evaluate.c:3982
+    #4 0x7f1036fbb9e9 in cmd_evaluate /home/mbr/nftables/src/evaluate.c:4462
+    #5 0x7f10370652d2 in nft_evaluate /home/mbr/nftables/src/libnftables.c:414
+    #6 0x7f1037065ba1 in nft_run_cmd_from_buffer /home/mbr/nftables/src/libnftables.c:447
+
+Reported-by: Michael Braun <michael-dev@fami-braun.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/rule.h | 3 +++
+ src/evaluate.c | 9 +++++----
+ src/rule.c     | 7 +++++++
+ 3 files changed, 15 insertions(+), 4 deletions(-)
+
+diff --git a/include/rule.h b/include/rule.h
+index ac69b30673e8..5311b5630165 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -280,6 +280,9 @@ extern void rule_print(const struct rule *rule, struct output_ctx *octx);
+ extern struct rule *rule_lookup(const struct chain *chain, uint64_t handle);
+ extern struct rule *rule_lookup_by_index(const struct chain *chain,
+ 					 uint64_t index);
++void rule_stmt_insert_at(struct rule *rule, struct stmt *nstmt,
++			 struct stmt *stmt);
++
+ 
+ /**
+  * struct set - nftables set
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 597141317000..4cf28987049b 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -659,7 +659,7 @@ static int resolve_protocol_conflict(struct eval_ctx *ctx,
+ 		if (err < 0)
+ 			return err;
+ 
+-		list_add_tail(&nstmt->list, &ctx->stmt->list);
++		rule_stmt_insert_at(ctx->rule, nstmt, ctx->stmt);
+ 	}
+ 
+ 	assert(base <= PROTO_BASE_MAX);
+@@ -673,7 +673,7 @@ static int resolve_protocol_conflict(struct eval_ctx *ctx,
+ 		return 1;
+ 
+ 	payload->payload.offset += ctx->pctx.protocol[base].offset;
+-	list_add_tail(&nstmt->list, &ctx->stmt->list);
++	rule_stmt_insert_at(ctx->rule, nstmt, ctx->stmt);
+ 
+ 	return 0;
+ }
+@@ -698,7 +698,8 @@ static int __expr_evaluate_payload(struct eval_ctx *ctx, struct expr *expr)
+ 	if (desc == NULL) {
+ 		if (payload_gen_dependency(ctx, payload, &nstmt) < 0)
+ 			return -1;
+-		list_add_tail(&nstmt->list, &ctx->stmt->list);
++
++		rule_stmt_insert_at(ctx->rule, nstmt, ctx->stmt);
+ 	} else {
+ 		/* No conflict: Same payload protocol as context, adjust offset
+ 		 * if needed.
+@@ -840,8 +841,8 @@ static int ct_gen_nh_dependency(struct eval_ctx *ctx, struct expr *ct)
+ 	relational_expr_pctx_update(&ctx->pctx, dep);
+ 
+ 	nstmt = expr_stmt_alloc(&dep->location, dep);
++	rule_stmt_insert_at(ctx->rule, nstmt, ctx->stmt);
+ 
+-	list_add_tail(&nstmt->list, &ctx->stmt->list);
+ 	return 0;
+ }
+ 
+diff --git a/src/rule.c b/src/rule.c
+index 23b1cbfc8fb2..0759bec5f1a0 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -686,6 +686,13 @@ struct rule *rule_lookup_by_index(const struct chain *chain, uint64_t index)
+ 	return NULL;
+ }
+ 
++void rule_stmt_insert_at(struct rule *rule, struct stmt *nstmt,
++			 struct stmt *stmt)
++{
++	list_add_tail(&nstmt->list, &stmt->list);
++	rule->num_stmts++;
++}
++
+ struct scope *scope_alloc(void)
+ {
+ 	struct scope *scope = xzalloc(sizeof(struct scope));
+-- 
+2.20.1
 
