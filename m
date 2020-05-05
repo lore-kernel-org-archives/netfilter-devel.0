@@ -6,47 +6,45 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1AA2C47259
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 19:05:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3166C47247
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 19:12:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CDE23206B9
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 19:05:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 96B31206B9
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 19:12:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729040AbgEETFN (ORCPT
+        id S1728076AbgEETM3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 May 2020 15:05:13 -0400
-Received: from correo.us.es ([193.147.175.20]:50968 "EHLO mail.us.es"
+        Tue, 5 May 2020 15:12:29 -0400
+Received: from correo.us.es ([193.147.175.20]:54298 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729113AbgEETFM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 May 2020 15:05:12 -0400
+        id S1726350AbgEETM3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 5 May 2020 15:12:29 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5532B3066A0
-        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 21:05:10 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 88D9D396273
+        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 21:12:27 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 465831158EB
-        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 21:05:10 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7BB64115412
+        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 21:12:27 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 434401158E9; Tue,  5 May 2020 21:05:10 +0200 (CEST)
+        id 714BB115410; Tue,  5 May 2020 21:12:27 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 45E762132B
-        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 21:05:08 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7507D2067D
+        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 21:12:25 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 05 May 2020 21:05:08 +0200 (CEST)
+ Tue, 05 May 2020 21:12:25 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 3204B42EE38E
-        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 21:05:08 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 5A70542EE38F
+        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 21:12:25 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 3/3] src: ct_timeout: release policy string and state list
-Date:   Tue,  5 May 2020 21:05:03 +0200
-Message-Id: <20200505190503.11891-3-pablo@netfilter.org>
+Subject: [PATCH libnftnl] expr: dynset: release stateful expression from .free path
+Date:   Tue,  5 May 2020 21:12:22 +0200
+Message-Id: <20200505191222.30596-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200505190503.11891-1-pablo@netfilter.org>
-References: <20200505190503.11891-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
@@ -55,51 +53,35 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-=================================================================
-==19037==ERROR: LeakSanitizer: detected memory leaks
+==22778==ERROR: LeakSanitizer: detected memory leaks
 
-Direct leak of 18 byte(s) in 2 object(s) allocated from:
-    #0 0x7ff6ee6f9810 in strdup (/usr/lib/x86_64-linux-gnu/libasan.so.5+0x3a810)
-    #1 0x7ff6ee22666d in xstrdup /home/pablo/devel/scm/git-netfilter/nftables/src/utils.c:75
-    #2 0x7ff6ee28cce9 in nft_parse /home/pablo/devel/scm/git-netfilter/nftables/src/parser_bison.c:5792
-    #3 0x4b903f302c8010a  (<unknown module>)
+Direct leak of 64 byte(s) in 1 object(s) allocated from:
+    #0 0x7f3212406518 in calloc (/usr/lib/x86_64-linux-gnu/libasan.so.5+0xe9518)
+    #1 0x7f321041703e in nftnl_expr_alloc /home/pablo/devel/scm/git-netfilter/libnftnl/src/expr.c:37
+    #2 0x7f3211d51c16 in netlink_gen_limit_stmt /home/pablo/devel/scm/git-netfilter/nftables/src/netlink_linearize.c:859
+    #3 0x7f3211d5220c in netlink_gen_stmt_stateful /home/pablo/devel/scm/git-netfilter/nftables/src/netlink_linearize.c:891
+    #4 0x7f3211d58630 in netlink_gen_meter_stmt /home/pablo/devel/scm/git-netfilter/nftables/src/netlink_linearize.c:1441
+[...]
 
-Direct leak of 16 byte(s) in 1 object(s) allocated from:
-    #0 0x7ff6ee7a8330 in __interceptor_malloc (/usr/lib/x86_64-linux-gnu/libasan.so.5+0xe9330)
-    #1 0x7ff6ee226578 in xmalloc /home/pablo/devel/scm/git-netfilter/nftables/src/utils.c:36
-
-SUMMARY: AddressSanitizer: 34 byte(s) leaked in 3 allocation(s).
+SUMMARY: AddressSanitizer: 64 byte(s) leaked in 1 allocation(s).
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/evaluate.c     | 1 +
- src/parser_bison.y | 1 +
- 2 files changed, 2 insertions(+)
+ src/expr/dynset.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 4cf28987049b..9aa283fd2e12 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -3902,6 +3902,7 @@ static int ct_timeout_evaluate(struct eval_ctx *ctx, struct obj *obj)
+diff --git a/src/expr/dynset.c b/src/expr/dynset.c
+index b2d8edca20ac..8b63cb0e5f92 100644
+--- a/src/expr/dynset.c
++++ b/src/expr/dynset.c
+@@ -277,6 +277,7 @@ static void nftnl_expr_dynset_free(const struct nftnl_expr *e)
+ 	struct nftnl_expr_dynset *dynset = nftnl_expr_data(e);
  
- 		ct->timeout[ts->timeout_index] = ts->timeout_value;
- 		list_del(&ts->head);
-+		xfree(ts->timeout_str);
- 		xfree(ts);
- 	}
+ 	xfree(dynset->set_name);
++	nftnl_expr_free(dynset->expr);
+ }
  
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 4369ece60ed0..39d3eac83b16 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -3954,6 +3954,7 @@ ct_timeout_config	:	PROTOCOL	ct_l4protoname	stmt_separator
- 
- 				ct = &$<obj>0->ct_timeout;
- 				list_splice_tail($4, &ct->timeout_list);
-+				xfree($4);
- 			}
- 			|	L3PROTOCOL	family_spec_explicit	stmt_separator
- 			{
+ struct expr_ops expr_ops_dynset = {
 -- 
 2.20.1
 
