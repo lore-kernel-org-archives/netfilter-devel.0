@@ -2,106 +2,156 @@ Return-Path: <SRS0=RRXz=6T=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2B47C47247
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 13:22:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3935C47247
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 17:47:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0550A20746
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 13:22:21 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=fami-braun.de header.i=@fami-braun.de header.b="PI/wadli"
+	by mail.kernel.org (Postfix) with ESMTP id 8EF88206B9
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 17:47:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729066AbgEENWU (ORCPT
+        id S1730518AbgEERrr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 May 2020 09:22:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40378 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729050AbgEENWU (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 May 2020 09:22:20 -0400
-Received: from mo6-p00-ob.smtp.rzone.de (mo6-p00-ob.smtp.rzone.de [IPv6:2a01:238:20a:202:5300::12])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D38FC061A0F
-        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 06:22:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1588684937;
-        s=strato-dkim-0002; d=fami-braun.de;
-        h=Message-ID:References:In-Reply-To:Subject:Cc:To:From:Date:
-        X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
-        bh=n9TKkUDm80CvCjr3SEAsSCm4v/YWgxF06ZI8/aYRHrE=;
-        b=PI/wadliAczTcAKgqdQMPmXrcUeqrTM2S1b7HY5gdGfvdlJ7CeH4YCOkGfbXUuYmtK
-        sZn/I9fCfZTGrnP8/SYymu6LRUA/ChOGTShgQBfR+P8XofwKOT7kBEquWpDHYokpldDw
-        zWs4MtZSsu81ORyv940I0/8fbYx49sTY5c7SfeedxHcxlOUm0psXBrhFZFhv5Fe+K6VF
-        OP9/ygIQP9HplTiAVyYw0QtQVbtDulPd0QldG/e+6PdV0IegEVfI79uijYnFoR7Nn++2
-        eLFrSHzXVOxkTmSWfykjdaqnAcE0NvO9GYgUXDUly6ujsTzVJhNimzUrqcrPLnAo1/ug
-        FZUg==
-X-RZG-AUTH: ":P20JeEWkefDI1ODZs1HHtgV3eF0OpFsRaGIBEm4ljegySSvO7VhbcRIBGrxpcA5nVfJ6oTd1q4vmpMrAs8OZgAsWbSDyXetO/IBA+8ke6XddTw=="
-X-RZG-CLASS-ID: mo00
-Received: from dynamic.fami-braun.de
-        by smtp.strato.de (RZmta 46.6.2 AUTH)
-        with ESMTPSA id g05fffw45DMHxDV
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
-        (Client did not present a certificate);
-        Tue, 5 May 2020 15:22:17 +0200 (CEST)
-Received: from dynamic.fami-braun.de (localhost [127.0.0.1])
-        by dynamic.fami-braun.de (fami-braun.de) with ESMTP id 9113B154262;
-        Tue,  5 May 2020 15:22:16 +0200 (CEST)
-Received: from 4+8OFFEKxBd9OEurqTJGR+eZaxX/sfwA1zTJhFSjvM80eM5BOrYbCw==
- (ciXw0nLglReZl7mBePRtkK836r9u/Yy2)
- by webmail.fami-braun.de
- with HTTP (HTTP/1.1 POST); Tue, 05 May 2020 15:22:07 +0200
+        Tue, 5 May 2020 13:47:47 -0400
+Received: from correo.us.es ([193.147.175.20]:38210 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730431AbgEERrq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 5 May 2020 13:47:46 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id E0D0811EB21
+        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 19:47:42 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D3C0B21FE3
+        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 19:47:42 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id D303F2135D; Tue,  5 May 2020 19:47:42 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5349C1158E3;
+        Tue,  5 May 2020 19:47:40 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 05 May 2020 19:47:40 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 1577942EE38E;
+        Tue,  5 May 2020 19:47:40 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, jiri@resnulli.us,
+        ecree@solarflare.com, kuba@kernel.org
+Subject: [PATCH net,v2] net: flow_offload: skip hw stats check for FLOW_ACTION_HW_STATS_DONT_CARE
+Date:   Tue,  5 May 2020 19:47:36 +0200
+Message-Id: <20200505174736.29414-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date:   Tue, 05 May 2020 15:22:07 +0200
-From:   michael-dev <michael-dev@fami-braun.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] rule: fix out of memory write if num_stmts is too low
-In-Reply-To: <20200505121756.GA8781@salvia>
-References: <20200504204858.15009-1-michael-dev@fami-braun.de>
- <20200505121756.GA8781@salvia>
-User-Agent: Roundcube Webmail/1.4.4
-Message-ID: <284c0e0cba6ddfa50872e7250d8b35c7@fami-braun.de>
-X-Sender: michael-dev@fami-braun.de
-X-Virus-Scanned: clamav-milter 0.102.2 at gate
-X-Virus-Status: Clean
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Am 05.05.2020 14:17, schrieb Pablo Neira Ayuso:
-> On Mon, May 04, 2020 at 10:48:58PM +0200, Michael Braun wrote:
->> Running bridge/vlan.t with ASAN, results in the following error.
->> This patch fixes this
->> 
->> flush table bridge test-bridge
->> add rule bridge test-bridge input vlan id 1 ip saddr 10.0.0.1
-> 
-> Thanks for your patch. Probably this patch instead?
+This patch adds FLOW_ACTION_HW_STATS_DONT_CARE which tells the driver
+that the frontend does not need counters, this hw stats type request
+never fails. The FLOW_ACTION_HW_STATS_DISABLED type explicitly requests
+the driver to disable the stats, however, if the driver cannot disable
+counters, it bails out.
 
-That fixes the testcase for me as well.
+TCA_ACT_HW_STATS_* maintains the 1:1 mapping with FLOW_ACTION_HW_STATS_*
+except by disabled which is mapped to FLOW_ACTION_HW_STATS_DISABLED
+(this is 0 in tc). Add tc_act_hw_stats() to perform the mapping between
+TCA_ACT_HW_STATS_* and FLOW_ACTION_HW_STATS_*.
 
-Though there are some more places that call list_add / list_add_tail on 
-rule->stmts, so I'm unsure if this patch catches all similar cases, e.g:
+Fixes: 319a1d19471e ("flow_offload: check for basic action hw stats type")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: define FLOW_ACTION_HW_STATS_DISABLED at the end of the enumeration
+    as Jiri suggested. Keep the 1:1 mapping between TCA_ACT_HW_STATS_*
+    and FLOW_ACTION_HW_STATS_* except by the disabled case.
 
-src/evaluate.c: list_add(&nstmt->list, &ctx->rule->stmts);
-src/evaluate.c: list_add(&nstmt->list, &ctx->rule->stmts);
-src/netlink_delinearize.c:      list_add_tail(&stmt->list, 
-&ctx->rule->stmts);
-src/netlink_delinearize.c:              list_add_tail(&stmt->list, 
-&ctx->rule->stmts);
-src/netlink_delinearize.c:              list_add_tail(&ctx->stmt->list, 
-&ctx->rule->stmts);
-src/parser_json.c:              list_add_tail(&stmt->list, 
-&rule->stmts);
-src/parser_json.c:              list_add_tail(&stmt->list, 
-&rule->stmts);
-src/xt.c:       list_add_tail(&stmt->list, &ctx->rule->stmts);
-src/xt.c:       list_add_tail(&stmt->list, &ctx->rule->stmts);
+ include/net/flow_offload.h |  9 ++++++++-
+ net/sched/cls_api.c        | 14 ++++++++++++--
+ 2 files changed, 20 insertions(+), 3 deletions(-)
 
-Regards,
-M. Braun
+diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
+index 3619c6acf60f..efc8350b42fb 100644
+--- a/include/net/flow_offload.h
++++ b/include/net/flow_offload.h
+@@ -166,15 +166,18 @@ enum flow_action_mangle_base {
+ enum flow_action_hw_stats_bit {
+ 	FLOW_ACTION_HW_STATS_IMMEDIATE_BIT,
+ 	FLOW_ACTION_HW_STATS_DELAYED_BIT,
++	FLOW_ACTION_HW_STATS_DISABLED_BIT,
+ };
+ 
+ enum flow_action_hw_stats {
+-	FLOW_ACTION_HW_STATS_DISABLED = 0,
++	FLOW_ACTION_HW_STATS_DONT_CARE = 0,
+ 	FLOW_ACTION_HW_STATS_IMMEDIATE =
+ 		BIT(FLOW_ACTION_HW_STATS_IMMEDIATE_BIT),
+ 	FLOW_ACTION_HW_STATS_DELAYED = BIT(FLOW_ACTION_HW_STATS_DELAYED_BIT),
+ 	FLOW_ACTION_HW_STATS_ANY = FLOW_ACTION_HW_STATS_IMMEDIATE |
+ 				   FLOW_ACTION_HW_STATS_DELAYED,
++	FLOW_ACTION_HW_STATS_DISABLED =
++		BIT(FLOW_ACTION_HW_STATS_DISABLED_BIT),
+ };
+ 
+ typedef void (*action_destr)(void *priv);
+@@ -325,7 +328,11 @@ __flow_action_hw_stats_check(const struct flow_action *action,
+ 		return true;
+ 	if (!flow_action_mixed_hw_stats_check(action, extack))
+ 		return false;
++
+ 	action_entry = flow_action_first_entry_get(action);
++	if (action_entry->hw_stats == FLOW_ACTION_HW_STATS_DONT_CARE)
++		return true;
++
+ 	if (!check_allow_bit &&
+ 	    action_entry->hw_stats != FLOW_ACTION_HW_STATS_ANY) {
+ 		NL_SET_ERR_MSG_MOD(extack, "Driver supports only default HW stats type \"any\"");
+diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
+index 55bd1429678f..56cf1b9e1e24 100644
+--- a/net/sched/cls_api.c
++++ b/net/sched/cls_api.c
+@@ -3523,6 +3523,16 @@ static void tcf_sample_get_group(struct flow_action_entry *entry,
+ #endif
+ }
+ 
++static enum flow_action_hw_stats tc_act_hw_stats(u8 hw_stats)
++{
++	if (WARN_ON_ONCE(hw_stats > TCA_ACT_HW_STATS_ANY))
++		return FLOW_ACTION_HW_STATS_DONT_CARE;
++	else if (!hw_stats)
++		return FLOW_ACTION_HW_STATS_DISABLED;
++
++	return hw_stats;
++}
++
+ int tc_setup_flow_action(struct flow_action *flow_action,
+ 			 const struct tcf_exts *exts)
+ {
+@@ -3546,7 +3556,7 @@ int tc_setup_flow_action(struct flow_action *flow_action,
+ 		if (err)
+ 			goto err_out_locked;
+ 
+-		entry->hw_stats = act->hw_stats;
++		entry->hw_stats = tc_act_hw_stats(act->hw_stats);
+ 
+ 		if (is_tcf_gact_ok(act)) {
+ 			entry->id = FLOW_ACTION_ACCEPT;
+@@ -3614,7 +3624,7 @@ int tc_setup_flow_action(struct flow_action *flow_action,
+ 				entry->mangle.mask = tcf_pedit_mask(act, k);
+ 				entry->mangle.val = tcf_pedit_val(act, k);
+ 				entry->mangle.offset = tcf_pedit_offset(act, k);
+-				entry->hw_stats = act->hw_stats;
++				entry->hw_stats = tc_act_hw_stats(act->hw_stats);
+ 				entry = &flow_action->entries[++j];
+ 			}
+ 		} else if (is_tcf_csum(act)) {
+-- 
+2.20.1
+
