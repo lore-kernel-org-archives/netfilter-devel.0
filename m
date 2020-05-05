@@ -2,156 +2,177 @@ Return-Path: <SRS0=RRXz=6T=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7891C47247
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 11:32:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFF09C47254
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 12:11:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B421320757
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 11:32:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B9E4C206B9
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 12:11:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="coAZ8iVO"
+	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="yjAGwpIH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728703AbgEELcI (ORCPT
+        id S1728660AbgEEMLT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 May 2020 07:32:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51346 "EHLO
+        Tue, 5 May 2020 08:11:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57518 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728233AbgEELcF (ORCPT
+        by vger.kernel.org with ESMTP id S1728603AbgEEMLT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 May 2020 07:32:05 -0400
-Received: from mail-lj1-x244.google.com (mail-lj1-x244.google.com [IPv6:2a00:1450:4864:20::244])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D3B0C061A41
-        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 04:32:02 -0700 (PDT)
-Received: by mail-lj1-x244.google.com with SMTP id e25so1224474ljg.5
-        for <netfilter-devel@vger.kernel.org>; Tue, 05 May 2020 04:32:02 -0700 (PDT)
+        Tue, 5 May 2020 08:11:19 -0400
+Received: from mail-wm1-x341.google.com (mail-wm1-x341.google.com [IPv6:2a00:1450:4864:20::341])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9948C061A10
+        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 05:11:18 -0700 (PDT)
+Received: by mail-wm1-x341.google.com with SMTP id z6so2072747wml.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 05 May 2020 05:11:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:from:date:message-id:subject:to:cc;
-        bh=6Kw2yA9CUSLvugQxqJYorOBTA6l0idW5kKDVSxAH/kE=;
-        b=coAZ8iVOFWOOomoiqm+wZLKCpH4mndA9QXaPX2ELit9fUmObsX+ixV/xRXnEZRzD4Y
-         Gdf2oirbDBqp9LrsFvFeOy/7SgPA9OO0FyuyFFEVgPdvyyhrLfSreBUyPcWw5ns3tuf+
-         anzwvmSxbwTnUT/6PyAyyOzSYi2xsd5oM07WEAKBs4ofvOr8F6Xgvty2BrOsW9j2onbq
-         eoRRyFRlAAPqm3e1sBLaKSqejYgJsl6VCtMiETpa+ZccVmcQ5wwLgx6INRCJqTSAAgtx
-         WgwQETURYW0oU/XwYggKOPKfZExvecXyZLcNegkwd3GBLxNUTm/1uBMJJMFJl3x8PK4o
-         LQjA==
+        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=GfkKDN3U0Fak2+2qGbh9J5E/oCVrfybMFbff5lvFh4M=;
+        b=yjAGwpIHpA5KtqMUw5+hpDZOCW58jIDAwPV9D0zt+e6URxhjYmoJrm2IjgM98JJHTo
+         CrLYxALxvOhp5OvWrockQmOE2NZf30RVqTXmFMkafO+MeOPRnOkWGq/WrYlAe1J08p1n
+         7JBrYY/6R6bdgdUC3rel9a8RejJJSR2CcHJIeUx3/zmFQjJgd6YbN46qThP8Wmrsqe8x
+         8LI8Nr/x4iIl98zNOAf56Ot812faA+mpVF3F28kDwnrniYg3pfk2Z8Suhy6lhvOj8jy9
+         lGF6ulE6dUwEkaDFWHd/xeM9eTBTHx/a55E5tV9+/yLoxdXOcnCge1umC/Nl6pF3GSab
+         igww==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=6Kw2yA9CUSLvugQxqJYorOBTA6l0idW5kKDVSxAH/kE=;
-        b=kf+O8DnQIqICvUzUDE4lQTUCiPQNIphc8OPdEHJg9Vb1qfgAk81siU4yzx1tO5dgjQ
-         Ibzg0XarekW6IewtJEN9E2zjgkte28IECJuRxxHjV5GFUyJSf5pDj3cBZ2L0x22YD/hd
-         /cjIuuKjFVUbrkg+q5MIL4jOatlLUrg9VH8vWx4NgT8Wr7tKR1UJLTEe04arsJsn7pCj
-         srCm9Mt9W8ox/Jvxrq9Il1n3jXKcTMZ65fjn+fb1J2pfBmJ4pDmSxv6/TXjt8HNuke6Y
-         pxa7uPjCl/5Itp1XUZ1u7KUrkWaswJ041li+dI93eRBz3L2WUVDqkOwymzXyHkqanTTu
-         HipQ==
-X-Gm-Message-State: AGi0PuaO/3fqmhA+SCjLTrXMA0bB7tfIVai+8B0zAYldL25ZexAOMs5y
-        SAFcS22zajNzqlFzIDTWg9lJbKLSF4/b51Lk4rwSig==
-X-Google-Smtp-Source: APiQypJxsh7E9ZcxUHOPMgujnzqqC41844Pwzmz3J7Msos8vsl6HqgNVKyuYrUnd1CeV9mqGhR7zuEr6aFQB69MShAs=
-X-Received: by 2002:a2e:8999:: with SMTP id c25mr1573219lji.73.1588678320503;
- Tue, 05 May 2020 04:32:00 -0700 (PDT)
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=GfkKDN3U0Fak2+2qGbh9J5E/oCVrfybMFbff5lvFh4M=;
+        b=bMulT3rvcqFWYALj4+viNOlUP2jaHdLQWX+72g7BdiWbrpNSrIbWxl5nF5X9wvgMu+
+         F2tMplbPxQ32t0rBTopnc/DiJUoXJDSCA2ZZJ2QqXiTsx7rrv0M/F56qdQ8ZC1wWIcaI
+         /uR7B0LfinF/whvkD7DVaokAFi0BjQVwljbUqrbLPQdYdjWkFeIDZa/uQg+S6XNBNdq3
+         P27ktLF7kFOkavaHx3NqZoMX5SNDLS3F9M982objkTBgjmThSxnX5rEAZsmzf1puBsWB
+         QyIYPFhu4aBpjYFlUCXGTqkn8PtfPSyXPtiDG5OC0O4Oiq6B2ODKEDatOBkiZNH06SaU
+         wzEA==
+X-Gm-Message-State: AGi0PuZeoJVMAJSgeO0ZdBmHPJt18/elnoYoZ2tfjhVdNr08hHKfsRQH
+        9s6lkZi8wPC0R8K9nbnfgULyfg==
+X-Google-Smtp-Source: APiQypIDO7s4Ggqimk/sDrN5143nXwFIxQntiZ4q34Ow2v6ExztohehSTwyLFshYUzwY7vynqYzilw==
+X-Received: by 2002:a1c:4e12:: with SMTP id g18mr2975910wmh.11.1588680677409;
+        Tue, 05 May 2020 05:11:17 -0700 (PDT)
+Received: from localhost (jirka.pirko.cz. [84.16.102.26])
+        by smtp.gmail.com with ESMTPSA id z22sm3461384wma.20.2020.05.05.05.11.16
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 05 May 2020 05:11:16 -0700 (PDT)
+Date:   Tue, 5 May 2020 14:11:15 +0200
+From:   Jiri Pirko <jiri@resnulli.us>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, ecree@solarflare.com
+Subject: Re: [PATCH net] net: flow_offload: skip hw stats check for
+ FLOW_ACTION_HW_STATS_DONT_CARE
+Message-ID: <20200505121115.GH14398@nanopsycho.orion>
+References: <20200505092159.27269-1-pablo@netfilter.org>
+ <20200505094900.GF14398@nanopsycho.orion>
+ <20200505100814.GA29299@salvia>
 MIME-Version: 1.0
-From:   Naresh Kamboju <naresh.kamboju@linaro.org>
-Date:   Tue, 5 May 2020 17:01:49 +0530
-Message-ID: <CA+G9fYu4gE2vqSmgyYMfdMS-ZDfQiY1vhk2Jbni+wDJFjLHVKg@mail.gmail.com>
-Subject: stable-rc 4.19: NETDEV WATCHDOG: eth0 (asix): transmit queue 0 timed
- out - net/sched/sch_generic.c:466 dev_watchdog
-To:     Netdev <netdev@vger.kernel.org>,
-        linux- stable <stable@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-Cc:     Eric Dumazet <edumazet@google.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>,
-        lkft-triage@lists.linaro.org,
-        "open list:KERNEL SELFTEST FRAMEWORK" 
-        <linux-kselftest@vger.kernel.org>,
-        Jamal Hadi Salim <jhs@mojatatu.com>,
-        Cong Wang <xiyou.wangcong@gmail.com>,
-        Jiri Pirko <jiri@resnulli.us>, Jakub Kicinski <kuba@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200505100814.GA29299@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-While running selftests bpf test_sysctl on stable rc 4.19 branch kernel
-on arm64 hikey device. The following warning was noticed.
+Tue, May 05, 2020 at 12:08:14PM CEST, pablo@netfilter.org wrote:
+>On Tue, May 05, 2020 at 11:49:00AM +0200, Jiri Pirko wrote:
+>> Tue, May 05, 2020 at 11:21:59AM CEST, pablo@netfilter.org wrote:
+>> >This patch adds FLOW_ACTION_HW_STATS_DONT_CARE which tells the driver
+>> >that the frontend does not need counters, this hw stats type request
+>> >never fails. The FLOW_ACTION_HW_STATS_DISABLED type explicitly requests
+>> >the driver to disable the stats, however, if the driver cannot disable
+>> >counters, it bails out.
+>> >
+>> >Remove BUILD_BUG_ON since TCA_ACT_HW_STATS_* don't map 1:1 with
+>> >FLOW_ACTION_HW_STATS_* anymore. Add tc_act_hw_stats() to perform the
+>> >mapping between TCA_ACT_HW_STATS_* and FLOW_ACTION_HW_STATS_*
+>> >
+>> >Fixes: 319a1d19471e ("flow_offload: check for basic action hw stats type")
+>> >Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+>> >---
+>> >This is a follow up after "net: flow_offload: skip hw stats check for
+>> >FLOW_ACTION_HW_STATS_DISABLED". This patch restores the netfilter hardware
+>> >offloads.
+>> >
+>> > include/net/flow_offload.h |  9 ++++++++-
+>> > net/sched/cls_api.c        | 23 +++++++++++++++++------
+>> > 2 files changed, 25 insertions(+), 7 deletions(-)
+>> >
+>> >diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
+>> >index 3619c6acf60f..0c75163699f0 100644
+>> >--- a/include/net/flow_offload.h
+>> >+++ b/include/net/flow_offload.h
+>> >@@ -164,12 +164,15 @@ enum flow_action_mangle_base {
+>> > };
+>> > 
+>> > enum flow_action_hw_stats_bit {
+>> >+	FLOW_ACTION_HW_STATS_DISABLED_BIT,
+>> > 	FLOW_ACTION_HW_STATS_IMMEDIATE_BIT,
+>> > 	FLOW_ACTION_HW_STATS_DELAYED_BIT,
+>> > };
+>> > 
+>> > enum flow_action_hw_stats {
+>> >-	FLOW_ACTION_HW_STATS_DISABLED = 0,
+>> >+	FLOW_ACTION_HW_STATS_DONT_CARE = 0,
+>> >+	FLOW_ACTION_HW_STATS_DISABLED =
+>> >+		BIT(FLOW_ACTION_HW_STATS_DISABLED_BIT),
+>> > 	FLOW_ACTION_HW_STATS_IMMEDIATE =
+>> > 		BIT(FLOW_ACTION_HW_STATS_IMMEDIATE_BIT),
+>> > 	FLOW_ACTION_HW_STATS_DELAYED = BIT(FLOW_ACTION_HW_STATS_DELAYED_BIT),
+>> >@@ -325,7 +328,11 @@ __flow_action_hw_stats_check(const struct flow_action *action,
+>> > 		return true;
+>> > 	if (!flow_action_mixed_hw_stats_check(action, extack))
+>> > 		return false;
+>> >+
+>> > 	action_entry = flow_action_first_entry_get(action);
+>> >+	if (action_entry->hw_stats == FLOW_ACTION_HW_STATS_DONT_CARE)
+>> >+		return true;
+>> >+
+>> > 	if (!check_allow_bit &&
+>> > 	    action_entry->hw_stats != FLOW_ACTION_HW_STATS_ANY) {
+>> > 		NL_SET_ERR_MSG_MOD(extack, "Driver supports only default HW stats type \"any\"");
+>> >diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
+>> >index 55bd1429678f..8ddc16a1ca68 100644
+>> >--- a/net/sched/cls_api.c
+>> >+++ b/net/sched/cls_api.c
+>> >@@ -3523,16 +3523,27 @@ static void tcf_sample_get_group(struct flow_action_entry *entry,
+>> > #endif
+>> > }
+>> > 
+>> >+static enum flow_action_hw_stats tc_act_hw_stats_array[] = {
+>> >+	[0]				= FLOW_ACTION_HW_STATS_DISABLED,
+>> >+	[TCA_ACT_HW_STATS_IMMEDIATE]	= FLOW_ACTION_HW_STATS_IMMEDIATE,
+>> >+	[TCA_ACT_HW_STATS_DELAYED]	= FLOW_ACTION_HW_STATS_DELAYED,
+>> >+	[TCA_ACT_HW_STATS_ANY]		= FLOW_ACTION_HW_STATS_ANY,
+>> 
+>> TCA_ACT_HW_* are bits. There can be a combination of those according
+>> to the user request. For 2 bits, it is not problem, but I have a
+>> patchset in pipes adding another type.
+>> Then you need to have 1:1 mapping in this array for all bit
+>> combinations. That is not right.
+>> 
+>> How about putting DISABLED to the at the end of enum
+>> flow_action_hw_stats? They you can just map 0 here to FLOW_ACTION_HW_STATS_DISABLED
+>> as an exception, but the bits you can take 1:1.
+>
+>Another possibility is to remove this mapping code is to update tc
+>UAPI to get it aligned with this update.
+>
+>This UAPI is only available in the few 5.7.0-rc kernel releases,
+>I think only developers are using this at this stage?
 
-[  118.957395] test_bpf: #296 BPF_MAXINSNS: exec all MSH
-[  148.966435] ------------[ cut here ]------------
-[  148.988349] NETDEV WATCHDOG: eth0 (asix): transmit queue 0 timed out
-[  149.000832] WARNING: CPU: 0 PID: 0 at
-/usr/src/kernel/net/sched/sch_generic.c:466 dev_watchdog+0x2b4/0x2c0
-[  149.016470] Modules linked in: test_bpf(+) wl18xx wlcore mac80211
-cfg80211 crc32_ce hci_uart crct10dif_ce btbcm snd_soc_audio_graph_card
-bluetooth snd_soc_simple_card_utils adv7511 cec wlcore_sdio kirin_drm
-dw_drm_dsi rfkill drm_kms_helper drm drm_panel_orientation_quirks fuse
-[last unloaded: test_bpf]
-[  149.056507] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.19.121-rc1 #1
-[  149.069594] Hardware name: HiKey Development Board (DT)
-[  149.081514] pstate: 80000005 (Nzcv daif -PAN -UAO)
-[  149.093062] pc : dev_watchdog+0x2b4/0x2c0
-[  149.103862] lr : dev_watchdog+0x2b4/0x2c0
-[  149.114575] sp : ffff000008003d10
-[  149.124613] x29: ffff000008003d10 x28: 0000000000000002
-[  149.136698] x27: 0000000000000001 x26: 00000000ffffffff
-[  149.148810] x25: 0000000000000180 x24: ffff800074c654b8
-[  149.160891] x23: ffff800074c65460 x22: ffff8000748dd680
-[  149.172993] x21: ffff00000974a000 x20: ffff800074c65000
-[  149.185065] x19: 0000000000000000 x18: ffffffffffffffff
-[  149.197172] x17: 0000000000000000 x16: 0000000000000000
-[  149.209243] x15: 0000000000000001 x14: ffff000009062cd8
-[  149.221234] x13: 0000000045a6fc2a x12: ffff00000975b630
-[  149.233166] x11: 00000000ffffffff x10: ffff00000974fa48
-[  149.245023] x9 : ffff0000097e3000 x8 : ffff00000974fa48
-[  149.256818] x7 : ffff000008173694 x6 : ffff800077ee62d0
-[  149.268639] x5 : ffff800077ee62d0 x4 : 0000000000000000
-[  149.280412] x3 : ffff800077eef6c8 x2 : 0000000000000103
-[  149.292120] x1 : d13523b333b73d00 x0 : 0000000000000000
-[  149.303783] Call trace:
-[  149.312481]  dev_watchdog+0x2b4/0x2c0
-[  149.322463]  call_timer_fn+0xbc/0x3f0
-[  149.332463]  expire_timers+0x104/0x220
-[  149.342493]  run_timer_softirq+0xec/0x1a8
-[  149.352784]  __do_softirq+0x114/0x554
-[  149.362668]  irq_exit+0x144/0x150
-[  149.372235]  __handle_domain_irq+0x6c/0xc0
-[  149.382633]  gic_handle_irq+0x60/0xb0
-[  149.392606]  el1_irq+0xb4/0x130
-[  149.402031]  cpuidle_enter_state+0xbc/0x3f0
-[  149.412572]  cpuidle_enter+0x34/0x48
-[  149.422539]  call_cpuidle+0x44/0x78
-[  149.432410]  do_idle+0x228/0x2a8
-[  149.441959]  cpu_startup_entry+0x2c/0x30
-[  149.452185]  rest_init+0x25c/0x270
-[  149.461821]  start_kernel+0x468/0x494
-[  149.471659] irq event stamp: 5706193
-[  149.481376] hardirqs last  enabled at (5706192):
-[<ffff00000817376c>] console_unlock+0x424/0x638
-[  149.496628] hardirqs last disabled at (5706193):
-[<ffff000008081490>] do_debug_exception+0xf8/0x1d0
-[  149.512207] softirqs last  enabled at (5706160):
-[<ffff0000080f94a8>] _local_bh_enable+0x28/0x48
-[  149.527590] softirqs last disabled at (5706161):
-[<ffff0000080f9bb4>] irq_exit+0x144/0x150
-[  149.542410] ---[ end trace 4c7bd8e08a6a3d65 ]---
-[  177.828500] jited:1 1366234 PASS
+Hmm, I think that TC-wise, the UAPI as is makes perfect sense. There is
+no don't care. Each bit allows to indicate user what he is interested
+in.
 
-ref:
-https://qa-reports.linaro.org/lkft/linux-stable-rc-4.19-oe/build/v4.19.120-38-g2e3613309d93/testrun/1415357/log
+I would prefer to convert to flow_offload (as we do anyway) in a format
+that is comfortable for flow_offload (given the fact it is used not only
+for TC).
 
-metadata:
-  git branch: linux-4.19.y
-  git repo: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable-rc.git
-  make_kernelversion: 4.19.121-rc1
-  kernel-config:
-http://snapshots.linaro.org/openembedded/lkft/lkft/sumo/hikey/lkft/linux-stable-rc-4.19/530/config
-
--- 
-Linaro LKFT
-https://lkft.linaro.org
+Did you check the solution I suggested? Above. Seems to be quite
+straightforward.
