@@ -2,95 +2,161 @@ Return-Path: <SRS0=RRXz=6T=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4481DC47256
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 18:36:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20C7FC47254
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 18:40:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2357D206FA
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 18:36:48 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="0bBF1w2q"
+	by mail.kernel.org (Postfix) with ESMTP id 037DF20721
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 18:40:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1588704015;
+	bh=hVKf+qmR8DpkiGRwne0mtB2DZPrZLcSf3Iil71IS5vM=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=cThcVEgwCUV8wZgBLfkgAXl5eJLB9Q0r9cGInoSu9cji3K3j6VouSVUPOpYKf92nj
+	 UXbfhxtY02BiBUjr0AoN0f6c9ItZIcQHXC6a8qbc3CxuIsGUVmMIX/5cI+Sh/sAhfu
+	 X66h7NYdsBP02Etvhm4N568ICZl5BQTAFjg/peJY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728990AbgEESgq (ORCPT
+        id S1728892AbgEESkN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 May 2020 14:36:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33664 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728076AbgEESgq (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 May 2020 14:36:46 -0400
-Received: from mail-wm1-x343.google.com (mail-wm1-x343.google.com [IPv6:2a00:1450:4864:20::343])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2FD7C061A0F
-        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 11:36:45 -0700 (PDT)
-Received: by mail-wm1-x343.google.com with SMTP id y24so3457533wma.4
-        for <netfilter-devel@vger.kernel.org>; Tue, 05 May 2020 11:36:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=sJPpDHeX2aoj+DGjkdKLPpH7q4rX80l4P9E7ER8uxmk=;
-        b=0bBF1w2qPmFKDoAvPl8cy0F5j2WmIPAuIaFEznkGyRy/zIBAhYwu7yFuLrQHXqWE1U
-         8hj/XhBHaP8UoaN14tlFc4RZGA3C7xfLd4ZM9pKbAv0q42PsAJNYGinGOPUvgQOrlOoA
-         TWbZagugd+34BAKsy1pLLMg0+QvkpVhTH76lRCQCOLkbVYw25f1lCUj4NRCO09XdLq6V
-         wRmvZCc+Eidg2qkLVed25fGJwvS6Kuj9PN85aDMl2/4uzdxo/EkP+VtqzGGuRu6VLcgP
-         AdgK69dAgnrEc3f7WLg05lwRBxlS8phIOY9mURdY+dqMaOfJ8EmDgOFc76jm0VujcieU
-         2nSw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=sJPpDHeX2aoj+DGjkdKLPpH7q4rX80l4P9E7ER8uxmk=;
-        b=Lkj7T3CfrIsu4woKmroNQeOqQwILvAt+PDeCjFfm0ZcCNu1FiV38oh+/ylwdDZj/ss
-         PfsjK4L6Npwk6yrsx8hg1GSauokfieA+EhlngtfFj0Kd40n0E0bJkdHY4+6Rs/pAqVp8
-         zxjaVS+8dKAZdFVzfcsHflJ7iq0uUJs2/60qwTReVHb/nZdgDc5YwiMcieIZP/4Ud/PV
-         w6vrqBylvCjd2JiT57PpLOZboQk9T9ByKwmMYq9KRTdBZ4zJopGJuCs360GSzKmxBosb
-         7l2NyQNX0fggVavoVTxzTls/3KmB+O3hZqSpuS8K+Lr0svibEvSPIciBrrCQU3jWalp2
-         h59A==
-X-Gm-Message-State: AGi0PubkkaHpv5Dxlonapwb+52BVXoWF6IL9nr17ZkdgjgZzVi/E1Ov1
-        nuDKKFN/1XwBPCn+EzIHj6atgFmKqHwJ2Q==
-X-Google-Smtp-Source: APiQypJiIfTBLt/aj4qgymQlu59qSNxm77/D0iTgA/c+OxvvZz/BO8MtU9qB42NqDwaQY+DmS5pAaA==
-X-Received: by 2002:a1c:770e:: with SMTP id t14mr4515133wmi.187.1588703804607;
-        Tue, 05 May 2020 11:36:44 -0700 (PDT)
-Received: from localhost (jirka.pirko.cz. [84.16.102.26])
-        by smtp.gmail.com with ESMTPSA id o129sm5341367wme.16.2020.05.05.11.36.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 May 2020 11:36:44 -0700 (PDT)
-Date:   Tue, 5 May 2020 20:36:43 +0200
-From:   Jiri Pirko <jiri@resnulli.us>
+        Tue, 5 May 2020 14:40:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45794 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728076AbgEESkN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 5 May 2020 14:40:13 -0400
+Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.1])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5B208206FA;
+        Tue,  5 May 2020 18:40:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1588704012;
+        bh=hVKf+qmR8DpkiGRwne0mtB2DZPrZLcSf3Iil71IS5vM=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=EEXvDeNNzf3QITsVdYe6EBro2bKd6nY1bELVMFbwWYDBhJljMAaU4+njozpbfxTNg
+         zwwsZroMPaKv1qDHbWnccpRvBRkAUfZkFbzc05NtAp3ZrbpEuNf1R3shCtJ7+0htbH
+         FfbxvtGoPcnixt4vhGzFe2q5p1ysQR53bZS439Hs=
+Date:   Tue, 5 May 2020 11:40:10 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, ecree@solarflare.com, kuba@kernel.org
+        netdev@vger.kernel.org, jiri@resnulli.us, ecree@solarflare.com
 Subject: Re: [PATCH net,v2] net: flow_offload: skip hw stats check for
  FLOW_ACTION_HW_STATS_DONT_CARE
-Message-ID: <20200505183643.GI14398@nanopsycho.orion>
+Message-ID: <20200505114010.132abebd@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <20200505174736.29414-1-pablo@netfilter.org>
 References: <20200505174736.29414-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200505174736.29414-1-pablo@netfilter.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Tue, May 05, 2020 at 07:47:36PM CEST, pablo@netfilter.org wrote:
->This patch adds FLOW_ACTION_HW_STATS_DONT_CARE which tells the driver
->that the frontend does not need counters, this hw stats type request
->never fails. The FLOW_ACTION_HW_STATS_DISABLED type explicitly requests
->the driver to disable the stats, however, if the driver cannot disable
->counters, it bails out.
->
->TCA_ACT_HW_STATS_* maintains the 1:1 mapping with FLOW_ACTION_HW_STATS_*
->except by disabled which is mapped to FLOW_ACTION_HW_STATS_DISABLED
->(this is 0 in tc). Add tc_act_hw_stats() to perform the mapping between
->TCA_ACT_HW_STATS_* and FLOW_ACTION_HW_STATS_*.
->
->Fixes: 319a1d19471e ("flow_offload: check for basic action hw stats type")
->Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+On Tue,  5 May 2020 19:47:36 +0200 Pablo Neira Ayuso wrote:
+> This patch adds FLOW_ACTION_HW_STATS_DONT_CARE which tells the driver
+> that the frontend does not need counters, this hw stats type request
+> never fails. The FLOW_ACTION_HW_STATS_DISABLED type explicitly requests
+> the driver to disable the stats, however, if the driver cannot disable
+> counters, it bails out.
+> 
+> TCA_ACT_HW_STATS_* maintains the 1:1 mapping with FLOW_ACTION_HW_STATS_*
+> except by disabled which is mapped to FLOW_ACTION_HW_STATS_DISABLED
+> (this is 0 in tc). Add tc_act_hw_stats() to perform the mapping between
+> TCA_ACT_HW_STATS_* and FLOW_ACTION_HW_STATS_*.
+> 
+> Fixes: 319a1d19471e ("flow_offload: check for basic action hw stats type")
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> v2: define FLOW_ACTION_HW_STATS_DISABLED at the end of the enumeration
+>     as Jiri suggested. Keep the 1:1 mapping between TCA_ACT_HW_STATS_*
+>     and FLOW_ACTION_HW_STATS_* except by the disabled case.
+> 
+>  include/net/flow_offload.h |  9 ++++++++-
+>  net/sched/cls_api.c        | 14 ++++++++++++--
+>  2 files changed, 20 insertions(+), 3 deletions(-)
+> 
+> diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
+> index 3619c6acf60f..efc8350b42fb 100644
+> --- a/include/net/flow_offload.h
+> +++ b/include/net/flow_offload.h
+> @@ -166,15 +166,18 @@ enum flow_action_mangle_base {
+>  enum flow_action_hw_stats_bit {
+>  	FLOW_ACTION_HW_STATS_IMMEDIATE_BIT,
+>  	FLOW_ACTION_HW_STATS_DELAYED_BIT,
+> +	FLOW_ACTION_HW_STATS_DISABLED_BIT,
+>  };
+>  
+>  enum flow_action_hw_stats {
+> -	FLOW_ACTION_HW_STATS_DISABLED = 0,
+> +	FLOW_ACTION_HW_STATS_DONT_CARE = 0,
 
-Looks great. Thanks!
+Why not ~0? Or ANY | DISABLED? 
+Otherwise you may confuse drivers which check bit by bit.
 
-Reviewed-by: Jiri Pirko <jiri@mellanox.com>
+>  	FLOW_ACTION_HW_STATS_IMMEDIATE =
+>  		BIT(FLOW_ACTION_HW_STATS_IMMEDIATE_BIT),
+>  	FLOW_ACTION_HW_STATS_DELAYED = BIT(FLOW_ACTION_HW_STATS_DELAYED_BIT),
+>  	FLOW_ACTION_HW_STATS_ANY = FLOW_ACTION_HW_STATS_IMMEDIATE |
+>  				   FLOW_ACTION_HW_STATS_DELAYED,
+> +	FLOW_ACTION_HW_STATS_DISABLED =
+> +		BIT(FLOW_ACTION_HW_STATS_DISABLED_BIT),
+>  };
+>  
+>  typedef void (*action_destr)(void *priv);
+> @@ -325,7 +328,11 @@ __flow_action_hw_stats_check(const struct flow_action *action,
+>  		return true;
+>  	if (!flow_action_mixed_hw_stats_check(action, extack))
+>  		return false;
+> +
+>  	action_entry = flow_action_first_entry_get(action);
+> +	if (action_entry->hw_stats == FLOW_ACTION_HW_STATS_DONT_CARE)
+> +		return true;
+> +
+>  	if (!check_allow_bit &&
+>  	    action_entry->hw_stats != FLOW_ACTION_HW_STATS_ANY) {
+>  		NL_SET_ERR_MSG_MOD(extack, "Driver supports only default HW stats type \"any\"");
+> diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
+> index 55bd1429678f..56cf1b9e1e24 100644
+> --- a/net/sched/cls_api.c
+> +++ b/net/sched/cls_api.c
+> @@ -3523,6 +3523,16 @@ static void tcf_sample_get_group(struct flow_action_entry *entry,
+>  #endif
+>  }
+>  
+> +static enum flow_action_hw_stats tc_act_hw_stats(u8 hw_stats)
+> +{
+> +	if (WARN_ON_ONCE(hw_stats > TCA_ACT_HW_STATS_ANY))
+> +		return FLOW_ACTION_HW_STATS_DONT_CARE;
+> +	else if (!hw_stats)
+> +		return FLOW_ACTION_HW_STATS_DISABLED;
+> +
+> +	return hw_stats;
+> +}
+> +
+>  int tc_setup_flow_action(struct flow_action *flow_action,
+>  			 const struct tcf_exts *exts)
+>  {
+> @@ -3546,7 +3556,7 @@ int tc_setup_flow_action(struct flow_action *flow_action,
+>  		if (err)
+>  			goto err_out_locked;
+>  
+> -		entry->hw_stats = act->hw_stats;
+> +		entry->hw_stats = tc_act_hw_stats(act->hw_stats);
+>  
+>  		if (is_tcf_gact_ok(act)) {
+>  			entry->id = FLOW_ACTION_ACCEPT;
+> @@ -3614,7 +3624,7 @@ int tc_setup_flow_action(struct flow_action *flow_action,
+>  				entry->mangle.mask = tcf_pedit_mask(act, k);
+>  				entry->mangle.val = tcf_pedit_val(act, k);
+>  				entry->mangle.offset = tcf_pedit_offset(act, k);
+> -				entry->hw_stats = act->hw_stats;
+> +				entry->hw_stats = tc_act_hw_stats(act->hw_stats);
+>  				entry = &flow_action->entries[++j];
+>  			}
+>  		} else if (is_tcf_csum(act)) {
+
