@@ -2,150 +2,203 @@ Return-Path: <SRS0=RRXz=6T=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68CFFC47254
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 09:41:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D849C47247
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 09:49:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 48DDA20675
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 09:41:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0584D206A4
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 09:49:06 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="IBc0A3wB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728238AbgEEJl3 (ORCPT
+        id S1728512AbgEEJtF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 May 2020 05:41:29 -0400
-Received: from smail.fem.tu-ilmenau.de ([141.24.220.41]:57524 "EHLO
-        smail.fem.tu-ilmenau.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728180AbgEEJl2 (ORCPT
+        Tue, 5 May 2020 05:49:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35222 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725766AbgEEJtF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 May 2020 05:41:28 -0400
-Received: from mail.fem.tu-ilmenau.de (mail-zuse.net.fem.tu-ilmenau.de [172.21.220.54])
-        (using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by smail.fem.tu-ilmenau.de (Postfix) with ESMTPS id 1AD2720114;
-        Tue,  5 May 2020 11:41:25 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by mail.fem.tu-ilmenau.de (Postfix) with ESMTP id 010496203;
-        Tue,  5 May 2020 11:41:25 +0200 (CEST)
-X-Virus-Scanned: amavisd-new at fem.tu-ilmenau.de
-Received: from mail.fem.tu-ilmenau.de ([127.0.0.1])
-        by localhost (mail.fem.tu-ilmenau.de [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id s2BtseiP-992; Tue,  5 May 2020 11:41:20 +0200 (CEST)
-Received: from a234.fem.tu-ilmenau.de (ray-controller.net.fem.tu-ilmenau.de [10.42.51.234])
-        by mail.fem.tu-ilmenau.de (Postfix) with ESMTP;
-        Tue,  5 May 2020 11:41:20 +0200 (CEST)
-Received: by a234.fem.tu-ilmenau.de (Postfix, from userid 1000)
-        id 7C72D306A950; Tue,  5 May 2020 11:41:20 +0200 (CEST)
-From:   Michael Braun <michael-dev@fami-braun.de>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Michael Braun <michael-dev@fami-braun.de>
-Subject: [RFC] netlink: do not alter set element width
-Date:   Tue,  5 May 2020 11:41:19 +0200
-Message-Id: <20200505094119.26407-1-michael-dev@fami-braun.de>
-X-Mailer: git-send-email 2.20.1
+        Tue, 5 May 2020 05:49:05 -0400
+Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76966C061A10
+        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 02:49:03 -0700 (PDT)
+Received: by mail-wm1-x342.google.com with SMTP id v8so2060982wma.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 05 May 2020 02:49:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=eH3hQJmEm9UuA4QFHYjZCWYej9mUfXlB6TbzIXAYWQs=;
+        b=IBc0A3wBFR2FhOvJKvRYc5r0YN6K1j8n68nwQelpqnFbFmITgxC8nDbRI1spHuvKi1
+         1NocL3X/9lWbrq6sm5ehk+CRPX3DZaaH9jfJ+ek4J0MRxc2Gpza3rrvAabF9v6OiEnCJ
+         lxv5OES7nP8G3ntNpszioSZD46WlPRal4hZozQZ5kUlGDXRRCUXPWUnfTYoDzjAv0p2f
+         rYocz6uqaYYI5rQAIGRCjYOxpKQpR2mtPbiJZIorLOGvFQIwi201QZ634GEa5bns78AI
+         dXR5BAM/h2L+o1L6g03U9AnvApk+mozEMCXvlFStaziSSxh2YUUaudLMiLT2RRnlASEw
+         tJmw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=eH3hQJmEm9UuA4QFHYjZCWYej9mUfXlB6TbzIXAYWQs=;
+        b=Y3ukdu5cIbNo5osHeZkcmfg+LlawqkB0xa0d2d/9pc8Crc9hvr3kdPtu+dgk1YZ0wh
+         r9pTtPijCsvm2d9UCpYN+/6gLAtL0x4JAdE05olo6gd+WliUdklCeGR70d6eKMFj6Wl9
+         RdjuS3ppvq1UQbFx4oLu0SkmTFwUJX2Rgu/eaJG7UIXR3CYgCehzkOvUYf5C8T96F7Mu
+         BG+lIUi3QxOL1QTqb2gzLSi2Q7cuOO1wMU8lXlMHlg6P3G1kXJHAKyvcWmo/ZmlzBgCj
+         Ad4+GshmLckOCL5A3gIelvL08NASjtuahXDhpKM6q8iagBO3rVxR1l9hqAQNMuF/WQSj
+         MMOw==
+X-Gm-Message-State: AGi0PubqbGLkuWkhhxj+7VVS4Ba8KeMa8WMUCpRJiE6r9OzCZ+AxywMC
+        MXk/6ZoiTMuYraQDNwC8A5cMvQ==
+X-Google-Smtp-Source: APiQypIQbLVODLZnBgyDSBbY4e5IUpImVDiPg9/Y4R+yqyqdnMZwGJnr2Vt1IVAVrwgjJMdVULADjw==
+X-Received: by 2002:a05:600c:1:: with SMTP id g1mr2318811wmc.142.1588672142088;
+        Tue, 05 May 2020 02:49:02 -0700 (PDT)
+Received: from localhost (jirka.pirko.cz. [84.16.102.26])
+        by smtp.gmail.com with ESMTPSA id 32sm2479960wrg.19.2020.05.05.02.49.01
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 05 May 2020 02:49:01 -0700 (PDT)
+Date:   Tue, 5 May 2020 11:49:00 +0200
+From:   Jiri Pirko <jiri@resnulli.us>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, ecree@solarflare.com
+Subject: Re: [PATCH net] net: flow_offload: skip hw stats check for
+ FLOW_ACTION_HW_STATS_DONT_CARE
+Message-ID: <20200505094900.GF14398@nanopsycho.orion>
+References: <20200505092159.27269-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200505092159.27269-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Consider the following rulset
+Tue, May 05, 2020 at 11:21:59AM CEST, pablo@netfilter.org wrote:
+>This patch adds FLOW_ACTION_HW_STATS_DONT_CARE which tells the driver
+>that the frontend does not need counters, this hw stats type request
+>never fails. The FLOW_ACTION_HW_STATS_DISABLED type explicitly requests
+>the driver to disable the stats, however, if the driver cannot disable
+>counters, it bails out.
+>
+>Remove BUILD_BUG_ON since TCA_ACT_HW_STATS_* don't map 1:1 with
+>FLOW_ACTION_HW_STATS_* anymore. Add tc_act_hw_stats() to perform the
+>mapping between TCA_ACT_HW_STATS_* and FLOW_ACTION_HW_STATS_*
+>
+>Fixes: 319a1d19471e ("flow_offload: check for basic action hw stats type")
+>Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+>---
+>This is a follow up after "net: flow_offload: skip hw stats check for
+>FLOW_ACTION_HW_STATS_DISABLED". This patch restores the netfilter hardware
+>offloads.
+>
+> include/net/flow_offload.h |  9 ++++++++-
+> net/sched/cls_api.c        | 23 +++++++++++++++++------
+> 2 files changed, 25 insertions(+), 7 deletions(-)
+>
+>diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
+>index 3619c6acf60f..0c75163699f0 100644
+>--- a/include/net/flow_offload.h
+>+++ b/include/net/flow_offload.h
+>@@ -164,12 +164,15 @@ enum flow_action_mangle_base {
+> };
+> 
+> enum flow_action_hw_stats_bit {
+>+	FLOW_ACTION_HW_STATS_DISABLED_BIT,
+> 	FLOW_ACTION_HW_STATS_IMMEDIATE_BIT,
+> 	FLOW_ACTION_HW_STATS_DELAYED_BIT,
+> };
+> 
+> enum flow_action_hw_stats {
+>-	FLOW_ACTION_HW_STATS_DISABLED = 0,
+>+	FLOW_ACTION_HW_STATS_DONT_CARE = 0,
+>+	FLOW_ACTION_HW_STATS_DISABLED =
+>+		BIT(FLOW_ACTION_HW_STATS_DISABLED_BIT),
+> 	FLOW_ACTION_HW_STATS_IMMEDIATE =
+> 		BIT(FLOW_ACTION_HW_STATS_IMMEDIATE_BIT),
+> 	FLOW_ACTION_HW_STATS_DELAYED = BIT(FLOW_ACTION_HW_STATS_DELAYED_BIT),
+>@@ -325,7 +328,11 @@ __flow_action_hw_stats_check(const struct flow_action *action,
+> 		return true;
+> 	if (!flow_action_mixed_hw_stats_check(action, extack))
+> 		return false;
+>+
+> 	action_entry = flow_action_first_entry_get(action);
+>+	if (action_entry->hw_stats == FLOW_ACTION_HW_STATS_DONT_CARE)
+>+		return true;
+>+
+> 	if (!check_allow_bit &&
+> 	    action_entry->hw_stats != FLOW_ACTION_HW_STATS_ANY) {
+> 		NL_SET_ERR_MSG_MOD(extack, "Driver supports only default HW stats type \"any\"");
+>diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
+>index 55bd1429678f..8ddc16a1ca68 100644
+>--- a/net/sched/cls_api.c
+>+++ b/net/sched/cls_api.c
+>@@ -3523,16 +3523,27 @@ static void tcf_sample_get_group(struct flow_action_entry *entry,
+> #endif
+> }
+> 
+>+static enum flow_action_hw_stats tc_act_hw_stats_array[] = {
+>+	[0]				= FLOW_ACTION_HW_STATS_DISABLED,
+>+	[TCA_ACT_HW_STATS_IMMEDIATE]	= FLOW_ACTION_HW_STATS_IMMEDIATE,
+>+	[TCA_ACT_HW_STATS_DELAYED]	= FLOW_ACTION_HW_STATS_DELAYED,
+>+	[TCA_ACT_HW_STATS_ANY]		= FLOW_ACTION_HW_STATS_ANY,
 
-table bridge t {
-        set nodhcpvlan {
-                typeof vlan id
-                elements = { 1 }
-        }
+TCA_ACT_HW_* are bits. There can be a combination of those according
+to the user request. For 2 bits, it is not problem, but I have a
+patchset in pipes adding another type.
+Then you need to have 1:1 mapping in this array for all bit
+combinations. That is not right.
 
-        chain c1 {
-                vlan id != @nodhcpvlan vlan type arp counter packets 0 bytes 0 jump c2
-                vlan id != @nodhcpvlan vlan type ip counter packets 0 bytes 0 jump c2
-        }
+How about putting DISABLED to the at the end of enum
+flow_action_hw_stats? They you can just map 0 here to FLOW_ACTION_HW_STATS_DISABLED
+as an exception, but the bits you can take 1:1.
 
-        chain c2 {
-        }
-}
 
-This results for nft list ruleset in
-  nft: netlink_delinearize.c:1945: binop_adjust_one: Assertion `value->len >= binop->right->len' failed.
 
-This is due to binop_adjust_one setting value->len to left->len, which
-is shorther than right->len.
-
-Additionally, it does not seem correct to alter set elements from parsing a rule,
-so remove that part all together.
-
-Signed-off-by: Michael Braun <michael-dev@fami-braun.de>
----
- src/netlink_delinearize.c                | 18 ------------------
- tests/shell/testcases/sets/typeof_sets_1 | 22 ++++++++++++++++++++++
- 2 files changed, 22 insertions(+), 18 deletions(-)
- create mode 100755 tests/shell/testcases/sets/typeof_sets_1
-
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index f721d15c..877c0d44 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -1959,29 +1959,11 @@ static void binop_adjust_one(const struct expr *binop, struct expr *value,
- static void __binop_adjust(const struct expr *binop, struct expr *right,
- 			   unsigned int shift)
- {
--	struct expr *i;
--
- 	switch (right->etype) {
- 	case EXPR_VALUE:
- 		binop_adjust_one(binop, right, shift);
- 		break;
- 	case EXPR_SET_REF:
--		list_for_each_entry(i, &right->set->init->expressions, list) {
--			switch (i->key->etype) {
--			case EXPR_VALUE:
--				binop_adjust_one(binop, i->key, shift);
--				break;
--			case EXPR_RANGE:
--				binop_adjust_one(binop, i->key->left, shift);
--				binop_adjust_one(binop, i->key->right, shift);
--				break;
--			case EXPR_SET_ELEM:
--				__binop_adjust(binop, i->key->key, shift);
--				break;
--			default:
--				BUG("unknown expression type %s\n", expr_name(i->key));
--			}
--		}
- 		break;
- 	case EXPR_RANGE:
- 		binop_adjust_one(binop, right->left, shift);
-diff --git a/tests/shell/testcases/sets/typeof_sets_1 b/tests/shell/testcases/sets/typeof_sets_1
-new file mode 100755
-index 00000000..359ae109
---- /dev/null
-+++ b/tests/shell/testcases/sets/typeof_sets_1
-@@ -0,0 +1,22 @@
-+#!/bin/bash
-+
-+# regression test for corner case in netlink_delinearize
-+
-+EXPECTED="table bridge t {
-+        set nodhcpvlan {
-+                typeof vlan id
-+                elements = { 1 }
-+        }
-+
-+        chain c1 {
-+                vlan id != @nodhcpvlan vlan type arp counter packets 0 bytes 0 jump c2
-+                vlan id != @nodhcpvlan vlan type ip counter packets 0 bytes 0 jump c2
-+        }
-+
-+        chain c2 {
-+        }
-+}"
-+
-+set -e
-+$NFT -f - <<< $EXPECTED
-+
--- 
-2.20.1
-
+>+};
+>+
+>+static enum flow_action_hw_stats tc_act_hw_stats(u8 hw_stats)
+>+{
+>+	if (WARN_ON_ONCE(hw_stats > TCA_ACT_HW_STATS_ANY))
+>+		return FLOW_ACTION_HW_STATS_DONT_CARE;
+>+
+>+	return tc_act_hw_stats_array[hw_stats];
+>+}
+>+
+> int tc_setup_flow_action(struct flow_action *flow_action,
+> 			 const struct tcf_exts *exts)
+> {
+> 	struct tc_action *act;
+> 	int i, j, k, err = 0;
+> 
+>-	BUILD_BUG_ON(TCA_ACT_HW_STATS_ANY != FLOW_ACTION_HW_STATS_ANY);
+>-	BUILD_BUG_ON(TCA_ACT_HW_STATS_IMMEDIATE != FLOW_ACTION_HW_STATS_IMMEDIATE);
+>-	BUILD_BUG_ON(TCA_ACT_HW_STATS_DELAYED != FLOW_ACTION_HW_STATS_DELAYED);
+>-
+> 	if (!exts)
+> 		return 0;
+> 
+>@@ -3546,7 +3557,7 @@ int tc_setup_flow_action(struct flow_action *flow_action,
+> 		if (err)
+> 			goto err_out_locked;
+> 
+>-		entry->hw_stats = act->hw_stats;
+>+		entry->hw_stats = tc_act_hw_stats(act->hw_stats);
+> 
+> 		if (is_tcf_gact_ok(act)) {
+> 			entry->id = FLOW_ACTION_ACCEPT;
+>@@ -3614,7 +3625,7 @@ int tc_setup_flow_action(struct flow_action *flow_action,
+> 				entry->mangle.mask = tcf_pedit_mask(act, k);
+> 				entry->mangle.val = tcf_pedit_val(act, k);
+> 				entry->mangle.offset = tcf_pedit_offset(act, k);
+>-				entry->hw_stats = act->hw_stats;
+>+				entry->hw_stats = tc_act_hw_stats(act->hw_stats);
+> 				entry = &flow_action->entries[++j];
+> 			}
+> 		} else if (is_tcf_csum(act)) {
+>-- 
+>2.20.1
+>
