@@ -6,48 +6,46 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86DA2C28CBC
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 09:46:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D519C38A24
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 09:46:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6640B2070B
+	by mail.kernel.org (Postfix) with ESMTP id DD54E2070B
 	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 09:46:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729098AbgEFJqr (ORCPT
+        id S1729126AbgEFJqr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Wed, 6 May 2020 05:46:47 -0400
-Received: from smail.fem.tu-ilmenau.de ([141.24.220.41]:55480 "EHLO
-        smail.fem.tu-ilmenau.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726935AbgEFJqq (ORCPT
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34064 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726935AbgEFJqr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 May 2020 05:46:46 -0400
+        Wed, 6 May 2020 05:46:47 -0400
+Received: from smail.fem.tu-ilmenau.de (smail.fem.tu-ilmenau.de [IPv6:2001:638:904:ffbf::41])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FA76C061A0F
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 May 2020 02:46:47 -0700 (PDT)
 Received: from mail.fem.tu-ilmenau.de (mail-zuse.net.fem.tu-ilmenau.de [172.21.220.54])
         (using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by smail.fem.tu-ilmenau.de (Postfix) with ESMTPS id 06F8E200DA;
-        Wed,  6 May 2020 11:46:42 +0200 (CEST)
+        by smail.fem.tu-ilmenau.de (Postfix) with ESMTPS id 3B62D201E7;
+        Wed,  6 May 2020 11:46:44 +0200 (CEST)
 Received: from localhost (localhost [127.0.0.1])
-        by mail.fem.tu-ilmenau.de (Postfix) with ESMTP id B1EB76219;
-        Wed,  6 May 2020 11:46:42 +0200 (CEST)
+        by mail.fem.tu-ilmenau.de (Postfix) with ESMTP id 0E03D6221;
+        Wed,  6 May 2020 11:46:44 +0200 (CEST)
 X-Virus-Scanned: amavisd-new at fem.tu-ilmenau.de
 Received: from mail.fem.tu-ilmenau.de ([127.0.0.1])
         by localhost (mail.fem.tu-ilmenau.de [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id yvbV2uG5YD2W; Wed,  6 May 2020 11:46:42 +0200 (CEST)
-Received: from mail-backup.fem.tu-ilmenau.de (mail-backup.net.fem.tu-ilmenau.de [10.42.40.22])
-        (using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mail.fem.tu-ilmenau.de (Postfix) with ESMTPS;
-        Wed,  6 May 2020 11:46:42 +0200 (CEST)
+        with ESMTP id zoqHig2zH8ll; Wed,  6 May 2020 11:46:43 +0200 (CEST)
 Received: from a234.fem.tu-ilmenau.de (ray-controller.net.fem.tu-ilmenau.de [10.42.51.234])
-        by mail-backup.fem.tu-ilmenau.de (Postfix) with ESMTP id EAC4A56052;
-        Wed,  6 May 2020 11:46:41 +0200 (CEST)
+        by mail.fem.tu-ilmenau.de (Postfix) with ESMTP;
+        Wed,  6 May 2020 11:46:43 +0200 (CEST)
 Received: by a234.fem.tu-ilmenau.de (Postfix, from userid 1000)
-        id D36E8306A950; Wed,  6 May 2020 11:46:41 +0200 (CEST)
+        id 7BF52306A950; Wed,  6 May 2020 11:46:43 +0200 (CEST)
 From:   Michael Braun <michael-dev@fami-braun.de>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Michael Braun <michael-dev@fami-braun.de>
-Subject: [PATCH 1/3] nftables: add frag-needed (ipv4) to reject options
-Date:   Wed,  6 May 2020 11:46:23 +0200
-Message-Id: <3248042ddaddd431d5306bc3e1cc40b7954c667f.1588758255.git.michael-dev@fami-braun.de>
+Subject: [PATCH 3/3] netfilter: enable reject with bridge vlan
+Date:   Wed,  6 May 2020 11:46:25 +0200
+Message-Id: <1b723dbc8a1a5124794bc3deb7dedf8d46dafcbc.1588758255.git.michael-dev@fami-braun.de>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <cover.1588758255.git.michael-dev@fami-braun.de>
 References: <cover.1588758255.git.michael-dev@fami-braun.de>
@@ -58,39 +56,33 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This enables to send icmp frag-needed messages using reject target.
+Currently, using the bridge reject target with tagged packets
+results in untagged packets being sent back.
+
+Fix this by mirroring the vlan id as well.
 
 Signed-off-by: Michael Braun <michael-dev@fami-braun.de>
 ---
- doc/data-types.txt | 2 ++
- src/datatype.c     | 1 +
- 2 files changed, 3 insertions(+)
+ net/bridge/netfilter/nft_reject_bridge.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/doc/data-types.txt b/doc/data-types.txt
-index 90e19a8b..a42a55fa 100644
---- a/doc/data-types.txt
-+++ b/doc/data-types.txt
-@@ -254,6 +254,8 @@ The ICMP Code type is used to conveniently specify the ICMP header's code field.
- 2
- |port-unreachable|
- 3
-+|frag-needed|
-+4
- |net-prohibited|
- 9
- |host-prohibited|
-diff --git a/src/datatype.c b/src/datatype.c
-index b305bf60..7d652ff2 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -825,6 +825,7 @@ static const struct symbol_table icmp_code_tbl = {
- 		SYMBOL("net-prohibited",	ICMP_NET_ANO),
- 		SYMBOL("host-prohibited",	ICMP_HOST_ANO),
- 		SYMBOL("admin-prohibited",	ICMP_PKT_FILTERED),
-+		SYMBOL("frag-needed",		ICMP_FRAG_NEEDED),
- 		SYMBOL_LIST_END
- 	},
- };
+diff --git a/net/bridge/netfilter/nft_reject_bridge.c b/net/bridge/netfilter/nft_reject_bridge.c
+index b325b569e761..f48cf4cfb80f 100644
+--- a/net/bridge/netfilter/nft_reject_bridge.c
++++ b/net/bridge/netfilter/nft_reject_bridge.c
+@@ -31,6 +31,12 @@ static void nft_reject_br_push_etherhdr(struct sk_buff *oldskb,
+ 	ether_addr_copy(eth->h_dest, eth_hdr(oldskb)->h_source);
+ 	eth->h_proto = eth_hdr(oldskb)->h_proto;
+ 	skb_pull(nskb, ETH_HLEN);
++
++	if (skb_vlan_tag_present(oldskb)) {
++		u16 vid = skb_vlan_tag_get(oldskb);
++
++		__vlan_hwaccel_put_tag(nskb, oldskb->vlan_proto, vid);
++	}
+ }
+ 
+ static int nft_bridge_iphdr_validate(struct sk_buff *skb)
 -- 
 2.20.1
 
