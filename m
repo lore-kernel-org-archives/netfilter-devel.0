@@ -2,120 +2,104 @@ Return-Path: <SRS0=4pKc=6U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5333C28CBC
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 05:22:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC932C28CBC
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 06:50:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 85E75206E6
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 05:22:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8DB94206F9
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 06:50:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="actWQjK3"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="W406yqoH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726778AbgEFFWO (ORCPT
+        id S1727989AbgEFGuj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 May 2020 01:22:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49382 "EHLO
+        Wed, 6 May 2020 02:50:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34852 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1725771AbgEFFWN (ORCPT
+        by vger.kernel.org with ESMTP id S1726843AbgEFGui (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 May 2020 01:22:13 -0400
-Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com [IPv6:2a00:1450:4864:20::443])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E058C061A10
-        for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2020 22:22:13 -0700 (PDT)
-Received: by mail-wr1-x443.google.com with SMTP id j5so587552wrq.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 05 May 2020 22:22:13 -0700 (PDT)
+        Wed, 6 May 2020 02:50:38 -0400
+Received: from mail-pf1-x441.google.com (mail-pf1-x441.google.com [IPv6:2607:f8b0:4864:20::441])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB927C061A0F;
+        Tue,  5 May 2020 23:50:38 -0700 (PDT)
+Received: by mail-pf1-x441.google.com with SMTP id p25so513196pfn.11;
+        Tue, 05 May 2020 23:50:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=Kh12ddWMPPjxzbUQh9yFibL/KncP4qVkRvXKfZG1YFs=;
-        b=actWQjK3kBuUYr4g+cS1koVmgwLpZxnHKeQToZxrFZfBMHHM31kFJsDgFYGYWMSHHj
-         V30EsLgehM7TnDyPTy4cskztczTlX5l63TigBWuj9BxGiJ3n5NRJzIk5zrTxfPWgcFpQ
-         4fefupCL+imDpoevJQZ1EiXJleSFT8qvuNLqYDFmrZ+//uGClbcCSa2yfo/vl73cbO73
-         VVs6P/glE4gqpOPi880JthWq14M+uyaJtxUOldR5V1QEZlE9t8NTngL0syKagBAOJ4zv
-         Arwic6HmzMqcmvaYo3nLhH1a5eF46bmOozAWCa3ATng7zcvV9YIOBECtyJGRRBO3+ca8
-         T/hA==
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=ydko4XrYs4w1KKatK31nfPnq11ga6bQcsiSda7KjcmE=;
+        b=W406yqoHA1efuiQF2WOnQJueVHN5DzZWZ4QTMRuQjpvHq4Xi79poFnuyn3Y74eEGCW
+         eGWp35uZJiTsXrMyr4b+0BFLLj/peWJQHTqDNuDkPKU5L9ZV4qewPBtAg/LENRRrMd3P
+         0gbUcBsUSp99sQgcZBwGTJ23Kn+xzKwDx91964cfsgqZZvjxWL1ScXVCAsCtKTjcAjlh
+         ICSd04dynZRjp9bFtLcOxRYLZ32Aa9hQGxk2eEpw9lKBZtwiAMQFpzT6WW4OIitUdKH1
+         +psAdhMsuwohMl1Qz3UnM15qvVAP5lbj/F2TLiOPd/9HdqBcHOOAyjn5+3w0VLxFYSDE
+         QLpw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=Kh12ddWMPPjxzbUQh9yFibL/KncP4qVkRvXKfZG1YFs=;
-        b=qXTBnKfdBS4p/ILscQGcjQWEcCEdZVcizdx5uge9PiSZsEh8rNXS2yBVsFtD0X1cSW
-         YhWkgOlwvY6Z/wrlfUVAEFpv5GwKGVEqAYbreC/5q2PteIaXR+LXw/I7hyYOxTHFhY03
-         7B5cznQvdhfS8RE0f2f8MOANrtYDScNDbMFzRnvVfLC4MUAEaY5io59KE5obSw9mN+Ls
-         lZf3Uh2ifdUyy0SOaIZgxclYSKhzrqjAC3JU+AKtJtT6CAkZ6ZvgK5cAXqorVQbcDfLi
-         gul59g1pf5r181CAemV/jHPebi+2rpozjLu/AEw5blxRCEh3CRP7c+OzZRy7Qp1SmBh0
-         JoJw==
-X-Gm-Message-State: AGi0PubUfQ/zidzQaAg0zQGYZP88P/6SfynlBSQOYBCaBe7fn6DnLLWQ
-        UMJKaL2takOosl45luFUgf4bTg==
-X-Google-Smtp-Source: APiQypI+rpSMlMLCLgo0LHAB1jA9StdRgGHnnW6T98ROnU9jxru/NxrR43rzOtI7CIHvNHvaOGFDWQ==
-X-Received: by 2002:adf:e7cb:: with SMTP id e11mr6974313wrn.145.1588742532268;
-        Tue, 05 May 2020 22:22:12 -0700 (PDT)
-Received: from localhost (jirka.pirko.cz. [84.16.102.26])
-        by smtp.gmail.com with ESMTPSA id h1sm1158046wme.42.2020.05.05.22.22.11
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=ydko4XrYs4w1KKatK31nfPnq11ga6bQcsiSda7KjcmE=;
+        b=EtMbfOknYPG6Rx8IBPNJ6pfXoVrRL1lpSgdwIlSiCk5W2cUBXDM6tXYi7gnB+1lOF5
+         KgT7lxFvBYKdySf1rHUYRYWmyV4xSGNcN4LD+axxo1Q4zS3emqkvwGHbP0B4rL+IIz90
+         OXoAjSMzT5hbrLqGXUQODuayhuIXGvZQffuh9boeJjYRPXw5nOU0i7I+BNkxQvD9VfoD
+         my0gaCf2uPCj2vr4BD5Mckq0nvRGuVkQuehbhCQjihrbnKKUv7VXRymiZzhsXZVXETci
+         ZySEKuaUxvZ/8vo5b5/qYNTE8eBEoaL0L8C6akRCUcz9xdAYlhLF71EvaoU84fBgU4Ja
+         W4qA==
+X-Gm-Message-State: AGi0PuZYelNNsYgmZ6DQ84Gd/yXYCKRxjj2MzQEvmCfxZgK84jzfChrL
+        xDo4026/75LtQd17EJC96jk=
+X-Google-Smtp-Source: APiQypL0to3E2l1EVPw1+VbbevsDmw05pqwYr4q2mGN9v3c81J+Uv7fWCGTb66X7c+eVOhevTUSHtQ==
+X-Received: by 2002:a63:d501:: with SMTP id c1mr5677377pgg.186.1588747838073;
+        Tue, 05 May 2020 23:50:38 -0700 (PDT)
+Received: from DESKTOP-9405E5V.localdomain ([185.173.93.36])
+        by smtp.gmail.com with ESMTPSA id v94sm3970608pjb.39.2020.05.05.23.50.29
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 May 2020 22:22:11 -0700 (PDT)
-Date:   Wed, 6 May 2020 07:22:10 +0200
-From:   Jiri Pirko <jiri@resnulli.us>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, ecree@solarflare.com
-Subject: Re: [PATCH net,v2] net: flow_offload: skip hw stats check for
- FLOW_ACTION_HW_STATS_DONT_CARE
-Message-ID: <20200506052210.GA2269@nanopsycho.orion>
-References: <20200505174736.29414-1-pablo@netfilter.org>
- <20200505183643.GI14398@nanopsycho.orion>
- <20200505114616.221fc9af@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200505114616.221fc9af@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        Tue, 05 May 2020 23:50:37 -0700 (PDT)
+From:   Huang Qijun <dknightjun@gmail.com>
+To:     pablo@netfilter.org
+Cc:     kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
+        kuba@kernel.org, ast@kernel.org, daniel@iogearbox.net,
+        kafai@fb.com, songliubraving@fb.com, yhs@fb.com, andriin@fb.com,
+        john.fastabend@gmail.com, kpsingh@chromium.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        bpf@vger.kernel.org, Huang Qijun <dknightjun@gmail.com>
+Subject: [PATCH] netfilter: fix make target xt_TCPMSS.o error.
+Date:   Wed,  6 May 2020 14:50:21 +0800
+Message-Id: <20200506065021.2881-1-dknightjun@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Tue, May 05, 2020 at 08:46:16PM CEST, kuba@kernel.org wrote:
->On Tue, 5 May 2020 20:36:43 +0200 Jiri Pirko wrote:
->> Tue, May 05, 2020 at 07:47:36PM CEST, pablo@netfilter.org wrote:
->> >This patch adds FLOW_ACTION_HW_STATS_DONT_CARE which tells the driver
->> >that the frontend does not need counters, this hw stats type request
->> >never fails. The FLOW_ACTION_HW_STATS_DISABLED type explicitly requests
->> >the driver to disable the stats, however, if the driver cannot disable
->> >counters, it bails out.
->> >
->> >TCA_ACT_HW_STATS_* maintains the 1:1 mapping with FLOW_ACTION_HW_STATS_*
->> >except by disabled which is mapped to FLOW_ACTION_HW_STATS_DISABLED
->> >(this is 0 in tc). Add tc_act_hw_stats() to perform the mapping between
->> >TCA_ACT_HW_STATS_* and FLOW_ACTION_HW_STATS_*.
->> >
->> >Fixes: 319a1d19471e ("flow_offload: check for basic action hw stats type")
->> >Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>  
->> 
->> Looks great. Thanks!
->> 
->> Reviewed-by: Jiri Pirko <jiri@mellanox.com>
->
->Is this going to "just work" for mlxsw?
->
->        act = flow_action_first_entry_get(flow_action);                         
->        if (act->hw_stats == FLOW_ACTION_HW_STATS_ANY ||                        
->            act->hw_stats == FLOW_ACTION_HW_STATS_IMMEDIATE) {                  
->                /* Count action is inserted first */                            
->                err = mlxsw_sp_acl_rulei_act_count(mlxsw_sp, rulei, extack);    
->                if (err)                                                        
->                        return err;                                             
->        } else if (act->hw_stats != FLOW_ACTION_HW_STATS_DISABLED) {            
->                NL_SET_ERR_MSG_MOD(extack, "Unsupported action HW stats type"); 
->                return -EOPNOTSUPP;                                             
->        }
->
->if hw_stats is 0 we'll get into the else and bail.
->
->That doesn't deliver on the "don't care" promise, no?
+When compiling netfilter, there will be an error
+"No rule to make target 'net/netfilter/xt_TCPMSS.o'",
+because the xt_TCPMSS.c in the makefile is uppercase,
+and the file name of the source file (xt_tcpmss.c) is lowercase.
+Therefore, change the xt_TCPMSS.c name in the makefile to all lowercase.
 
-Yeah, we need to handle dontcare there, you are right.
+Signed-off-by: Huang Qijun <dknightjun@gmail.com>
+---
+ net/netfilter/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 0e0ded87e27b..b974ade24556 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -157,7 +157,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_REDIRECT) += xt_REDIRECT.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_MASQUERADE) += xt_MASQUERADE.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) += xt_SECMARK.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TPROXY) += xt_TPROXY.o
+-obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
++obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_tcpmss.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) += xt_TCPOPTSTRIP.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TEE) += xt_TEE.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) += xt_TRACE.o
+-- 
+2.17.1
+
