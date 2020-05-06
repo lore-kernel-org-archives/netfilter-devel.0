@@ -2,104 +2,67 @@ Return-Path: <SRS0=4pKc=6U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC932C28CBC
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 06:50:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F933C28CBC
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 09:07:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8DB94206F9
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 06:50:44 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="W406yqoH"
+	by mail.kernel.org (Postfix) with ESMTP id 67D022075A
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 09:07:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727989AbgEFGuj (ORCPT
+        id S1728809AbgEFJH2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 May 2020 02:50:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34852 "EHLO
+        Wed, 6 May 2020 05:07:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56106 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726843AbgEFGui (ORCPT
+        by vger.kernel.org with ESMTP id S1728474AbgEFJH2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 May 2020 02:50:38 -0400
-Received: from mail-pf1-x441.google.com (mail-pf1-x441.google.com [IPv6:2607:f8b0:4864:20::441])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB927C061A0F;
-        Tue,  5 May 2020 23:50:38 -0700 (PDT)
-Received: by mail-pf1-x441.google.com with SMTP id p25so513196pfn.11;
-        Tue, 05 May 2020 23:50:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=ydko4XrYs4w1KKatK31nfPnq11ga6bQcsiSda7KjcmE=;
-        b=W406yqoHA1efuiQF2WOnQJueVHN5DzZWZ4QTMRuQjpvHq4Xi79poFnuyn3Y74eEGCW
-         eGWp35uZJiTsXrMyr4b+0BFLLj/peWJQHTqDNuDkPKU5L9ZV4qewPBtAg/LENRRrMd3P
-         0gbUcBsUSp99sQgcZBwGTJ23Kn+xzKwDx91964cfsgqZZvjxWL1ScXVCAsCtKTjcAjlh
-         ICSd04dynZRjp9bFtLcOxRYLZ32Aa9hQGxk2eEpw9lKBZtwiAMQFpzT6WW4OIitUdKH1
-         +psAdhMsuwohMl1Qz3UnM15qvVAP5lbj/F2TLiOPd/9HdqBcHOOAyjn5+3w0VLxFYSDE
-         QLpw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=ydko4XrYs4w1KKatK31nfPnq11ga6bQcsiSda7KjcmE=;
-        b=EtMbfOknYPG6Rx8IBPNJ6pfXoVrRL1lpSgdwIlSiCk5W2cUBXDM6tXYi7gnB+1lOF5
-         KgT7lxFvBYKdySf1rHUYRYWmyV4xSGNcN4LD+axxo1Q4zS3emqkvwGHbP0B4rL+IIz90
-         OXoAjSMzT5hbrLqGXUQODuayhuIXGvZQffuh9boeJjYRPXw5nOU0i7I+BNkxQvD9VfoD
-         my0gaCf2uPCj2vr4BD5Mckq0nvRGuVkQuehbhCQjihrbnKKUv7VXRymiZzhsXZVXETci
-         ZySEKuaUxvZ/8vo5b5/qYNTE8eBEoaL0L8C6akRCUcz9xdAYlhLF71EvaoU84fBgU4Ja
-         W4qA==
-X-Gm-Message-State: AGi0PuZYelNNsYgmZ6DQ84Gd/yXYCKRxjj2MzQEvmCfxZgK84jzfChrL
-        xDo4026/75LtQd17EJC96jk=
-X-Google-Smtp-Source: APiQypL0to3E2l1EVPw1+VbbevsDmw05pqwYr4q2mGN9v3c81J+Uv7fWCGTb66X7c+eVOhevTUSHtQ==
-X-Received: by 2002:a63:d501:: with SMTP id c1mr5677377pgg.186.1588747838073;
-        Tue, 05 May 2020 23:50:38 -0700 (PDT)
-Received: from DESKTOP-9405E5V.localdomain ([185.173.93.36])
-        by smtp.gmail.com with ESMTPSA id v94sm3970608pjb.39.2020.05.05.23.50.29
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 May 2020 23:50:37 -0700 (PDT)
-From:   Huang Qijun <dknightjun@gmail.com>
-To:     pablo@netfilter.org
-Cc:     kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
-        kuba@kernel.org, ast@kernel.org, daniel@iogearbox.net,
-        kafai@fb.com, songliubraving@fb.com, yhs@fb.com, andriin@fb.com,
-        john.fastabend@gmail.com, kpsingh@chromium.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        bpf@vger.kernel.org, Huang Qijun <dknightjun@gmail.com>
-Subject: [PATCH] netfilter: fix make target xt_TCPMSS.o error.
-Date:   Wed,  6 May 2020 14:50:21 +0800
-Message-Id: <20200506065021.2881-1-dknightjun@gmail.com>
-X-Mailer: git-send-email 2.17.1
+        Wed, 6 May 2020 05:07:28 -0400
+Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC733C061A0F
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 May 2020 02:07:27 -0700 (PDT)
+Received: by a3.inai.de (Postfix, from userid 25121)
+        id E9DD35872FA74; Wed,  6 May 2020 11:07:23 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by a3.inai.de (Postfix) with ESMTP id E894D60C40095;
+        Wed,  6 May 2020 11:07:23 +0200 (CEST)
+Date:   Wed, 6 May 2020 11:07:23 +0200 (CEST)
+From:   Jan Engelhardt <jengelh@inai.de>
+To:     Huang Qijun <dknightjun@gmail.com>
+cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, kuba@kernel.org, ast@kernel.org,
+        daniel@iogearbox.net, kafai@fb.com, songliubraving@fb.com,
+        yhs@fb.com, andriin@fb.com, john.fastabend@gmail.com,
+        kpsingh@chromium.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, bpf@vger.kernel.org
+Subject: Re: [PATCH] netfilter: fix make target xt_TCPMSS.o error.
+In-Reply-To: <20200506065021.2881-1-dknightjun@gmail.com>
+Message-ID: <nycvar.YFH.7.76.2005061106420.3951@n3.vanv.qr>
+References: <20200506065021.2881-1-dknightjun@gmail.com>
+User-Agent: Alpine 2.21 (LSU 202 2017-01-01)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When compiling netfilter, there will be an error
-"No rule to make target 'net/netfilter/xt_TCPMSS.o'",
-because the xt_TCPMSS.c in the makefile is uppercase,
-and the file name of the source file (xt_tcpmss.c) is lowercase.
-Therefore, change the xt_TCPMSS.c name in the makefile to all lowercase.
+On Wednesday 2020-05-06 08:50, Huang Qijun wrote:
 
-Signed-off-by: Huang Qijun <dknightjun@gmail.com>
----
- net/netfilter/Makefile | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+>When compiling netfilter, there will be an error
+>"No rule to make target 'net/netfilter/xt_TCPMSS.o'",
+>because the xt_TCPMSS.c in the makefile is uppercase,
+>and the file name of the source file (xt_tcpmss.c) is lowercase.
 
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 0e0ded87e27b..b974ade24556 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -157,7 +157,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_REDIRECT) += xt_REDIRECT.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_MASQUERADE) += xt_MASQUERADE.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) += xt_SECMARK.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TPROXY) += xt_TPROXY.o
--obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
-+obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_tcpmss.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) += xt_TCPOPTSTRIP.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TEE) += xt_TEE.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) += xt_TRACE.o
--- 
-2.17.1
+>-obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
+>+obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_tcpmss.o
 
+Uhm, no:
+
+11:07 a4:../net/netfilter » ls -l xt_*[Mm][Ss]*.c
+-rw-r--r-- 1 jengelh users 8948 Feb 27 09:30 xt_TCPMSS.c
+-rw-r--r-- 1 jengelh users 2459 Feb 27 09:30 xt_tcpmss.c
