@@ -2,121 +2,100 @@ Return-Path: <SRS0=4pKc=6U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 106DCC28CBC
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 10:20:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9AC8C28CBC
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 10:38:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E01A42068E
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 10:20:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6074F20663
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 10:38:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="ZpbybSrP"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=fami-braun.de header.i=@fami-braun.de header.b="kRcYbh7b"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728951AbgEFKUT (ORCPT
+        id S1729174AbgEFKic (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 May 2020 06:20:19 -0400
-Received: from userp2120.oracle.com ([156.151.31.85]:41660 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726354AbgEFKUR (ORCPT
+        Wed, 6 May 2020 06:38:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42212 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728338AbgEFKib (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 May 2020 06:20:17 -0400
-Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-        by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 046AHosi054927;
-        Wed, 6 May 2020 10:20:06 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : mime-version : content-type; s=corp-2020-01-29;
- bh=PuX6rwaGKKV8LkbfAkFg2knCJQfvM5Hq/d81pqR/SMM=;
- b=ZpbybSrPMqRDG1Ik6hp5HoslntrHfXNgA7juIGJXZ7bUeyQaOS8673E9DQkcBGmm2E5i
- Nrq2ZfhArfEV+zFyNeZfjuAnx0jfL8nEv5JyNLcDF/ydbltwIY8356T7dHgF8LHG4Hyr
- f99mIdMZyjo+zScKsR9RtFE0FFkl0wCgkeIqxd+UzLFSbeU7e/2crWClNutB4cODIqOX
- +z1p5b4ENg1ZUjR19hZg8+ATmc0PLhTdeQ8biwIf5SDROwj5lnfD2fk/iArtJuGVaPyx
- lAUAFcsS1CXEQTegzy/hfJNkBLfKYBwosxqR4y2x4kP00Nj8IBJJI0tJvUzxngmQPANz Jw== 
-Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
-        by userp2120.oracle.com with ESMTP id 30s1gn9byx-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 06 May 2020 10:20:06 +0000
-Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
-        by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 046AHb43028215;
-        Wed, 6 May 2020 10:18:05 GMT
-Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
-        by aserp3020.oracle.com with ESMTP id 30sjnhvvjc-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 06 May 2020 10:18:05 +0000
-Received: from abhmp0003.oracle.com (abhmp0003.oracle.com [141.146.116.9])
-        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 046AI3Am010844;
-        Wed, 6 May 2020 10:18:03 GMT
-Received: from mwanda (/41.57.98.10)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Wed, 06 May 2020 03:18:02 -0700
-Date:   Wed, 6 May 2020 13:17:53 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [PATCH net] netfilter: nf_conntrack_pptp: prevent buffer overflows
- in debug code
-Message-ID: <20200506101753.GD77004@mwanda>
+        Wed, 6 May 2020 06:38:31 -0400
+Received: from mo6-p00-ob.smtp.rzone.de (mo6-p00-ob.smtp.rzone.de [IPv6:2a01:238:20a:202:5300::10])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EC86C061A0F
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 May 2020 03:38:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1588761508;
+        s=strato-dkim-0002; d=fami-braun.de;
+        h=Message-ID:References:In-Reply-To:Subject:Cc:To:From:Date:
+        X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
+        bh=BoeF2Zl4oSI1mAqABBsDGllZUlV3eGECT/MZwdR852g=;
+        b=kRcYbh7bWEso8pqMIZA8Yj4hJdz7Y6lUN6AZrbt1KPxDcsdl8Ia+igaq2UxWlep4Mn
+        2EbxPYCNOCNx87w8xHaQWEWrClqK3JM4wrRsJaFEKHcUlpQGlJ+yUWSWwhDNQpG0oDAf
+        X0G3BAS2kK/5JOLVSsQYvwcgSZnwmqPA2mngKhg0OBaN90D4y7Y+eROfdZuFPONy4V77
+        KFnlmqc2aMTUNqeN0a3pqcZVmg0t0Iq8c/dPacXepbYDNRmqldpgOUnsjyjP11eJZDTK
+        K11nycMFfWzkX8YAANuPDbZKaJnwhveOA/2oRNIkavWXnlLpG1VPdPLSxrLcz1JiSRIS
+        3F4g==
+X-RZG-AUTH: ":P20JeEWkefDI1ODZs1HHtgV3eF0OpFsRaGIBEm4ljegySSvO7VhbcRIBGrxpew15s8IitTOq+h4VmQ=="
+X-RZG-CLASS-ID: mo00
+Received: from dynamic.fami-braun.de
+        by smtp.strato.de (RZmta 46.6.2 DYNA|AUTH)
+        with ESMTPSA id g05fffw46AcS0wa
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
+        (Client did not present a certificate);
+        Wed, 6 May 2020 12:38:28 +0200 (CEST)
+Received: from dynamic.fami-braun.de (localhost [127.0.0.1])
+        by dynamic.fami-braun.de (fami-braun.de) with ESMTP id 181B71540EA;
+        Wed,  6 May 2020 12:38:28 +0200 (CEST)
+Received: from 4sIHYdt22zPTOP4SdjmNfXb2/8dokteyCAqZC7Im6T4+YKPd/n4i8w==
+ (nnvVT5LEcvwf9TDFJdTjzqZY9PeluXoE)
+ by webmail.fami-braun.de
+ with HTTP (HTTP/1.1 POST); Wed, 06 May 2020 12:38:17 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-X-Mailer: git-send-email haha only kidding
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9612 signatures=668687
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 adultscore=0 phishscore=0
- mlxlogscore=999 bulkscore=0 malwarescore=0 spamscore=0 suspectscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
- definitions=main-2005060081
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9612 signatures=668687
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 suspectscore=0 mlxscore=0
- spamscore=0 clxscore=1011 priorityscore=1501 bulkscore=0 phishscore=0
- impostorscore=0 malwarescore=0 lowpriorityscore=0 mlxlogscore=999
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
- definitions=main-2005060081
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date:   Wed, 06 May 2020 12:38:17 +0200
+From:   michael-dev <michael-dev@fami-braun.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] rule: fix out of memory write if num_stmts is too low
+In-Reply-To: <20200505192723.GA30019@salvia>
+References: <20200504204858.15009-1-michael-dev@fami-braun.de>
+ <20200505121756.GA8781@salvia>
+ <284c0e0cba6ddfa50872e7250d8b35c7@fami-braun.de>
+ <20200505192723.GA30019@salvia>
+User-Agent: Roundcube Webmail/1.4.4
+Message-ID: <904b5458697b3960f7944843964793b0@fami-braun.de>
+X-Sender: michael-dev@fami-braun.de
+X-Virus-Scanned: clamav-milter 0.102.2 at gate
+X-Virus-Status: Clean
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Smatch complains that the value for "cmd" comes from the network and
-can't be trusted.  The value is actually checked at the end of these
-functions so I just copied that here as well.
+Am 05.05.2020 21:27, schrieb Pablo Neira Ayuso:
+> BTW, did you update tests/py to run it under ASAN, a patch for this
+> would be great.
 
-Fixes: f09943fefe6b ("[NETFILTER]: nf_conntrack/nf_nat: add PPTP helper port")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
- net/netfilter/nf_conntrack_pptp.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+I was running
+   ./configure CFLAGS="-g -O0 -fsanitize=address -fsanitize=undefined 
+-fno-omit-frame-pointer" LDFLAGS="-lasan"
+so libnftables was compiled with ASAN.
 
-diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
-index a971183f11af7..b4dc567f7fb68 100644
---- a/net/netfilter/nf_conntrack_pptp.c
-+++ b/net/netfilter/nf_conntrack_pptp.c
-@@ -276,7 +276,8 @@ pptp_inbound_pkt(struct sk_buff *skb, unsigned int protoff,
- 	typeof(nf_nat_pptp_hook_inbound) nf_nat_pptp_inbound;
- 
- 	msg = ntohs(ctlh->messageType);
--	pr_debug("inbound control message %s\n", pptp_msg_name[msg]);
-+	pr_debug("inbound control message %s\n",
-+		 msg <= PPTP_MSG_MAX ? pptp_msg_name[msg] : pptp_msg_name[0]);
- 
- 	switch (msg) {
- 	case PPTP_START_SESSION_REPLY:
-@@ -404,7 +405,8 @@ pptp_outbound_pkt(struct sk_buff *skb, unsigned int protoff,
- 	typeof(nf_nat_pptp_hook_outbound) nf_nat_pptp_outbound;
- 
- 	msg = ntohs(ctlh->messageType);
--	pr_debug("outbound control message %s\n", pptp_msg_name[msg]);
-+	pr_debug("outbound control message %s\n",
-+		 msg <= PPTP_MSG_MAX ? pptp_msg_name[msg] : pptp_msg_name[0]);
- 
- 	switch (msg) {
- 	case PPTP_START_SESSION_REQUEST:
--- 
-2.26.2
+But when running the python test, it complained that libasan wasn't 
+loaded as the first library, so I used
+   LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.5 ./nft-test.py -d 
+bridge/vlan.t
+to fix that.
 
+Some python leaks or all leaks can be suppressed as described here: 
+https://github.com/google/sanitizers/wiki/AddressSanitizerLeakSanitizer
+
+This doesn't really look to me like it can be patched easily into the 
+python test scripts, as it might need a reconfigure/rebuild.
+
+Regards,
+M. Braun
