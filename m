@@ -2,78 +2,168 @@ Return-Path: <SRS0=4pKc=6U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19FCEC28CBC
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 11:44:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACCCAC38A2A
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 11:55:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DD0BA206D5
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 11:44:26 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FO9s2GNW"
+	by mail.kernel.org (Postfix) with ESMTP id 982EA20714
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 11:55:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727816AbgEFLo0 (ORCPT
+        id S1727829AbgEFLzr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 May 2020 07:44:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52440 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726843AbgEFLoY (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 May 2020 07:44:24 -0400
-Received: from mail-io1-xd35.google.com (mail-io1-xd35.google.com [IPv6:2607:f8b0:4864:20::d35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68EADC061A0F
-        for <netfilter-devel@vger.kernel.org>; Wed,  6 May 2020 04:44:24 -0700 (PDT)
-Received: by mail-io1-xd35.google.com with SMTP id w4so1763140ioc.6
-        for <netfilter-devel@vger.kernel.org>; Wed, 06 May 2020 04:44:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=jtzU0sZOPdX5FbgdAAINvzrzWTLzUqccHXXnkXVokz0=;
-        b=FO9s2GNWdWCaTfPpJixFUWXlchdMP9aXU0gYV802rp6/UBiUibzsXmU4VP26rciezl
-         I0qsMjjAJs1tP+qvbZwQxEWByH6O9ZMsF+vgCAc7jgPDb1jzDC/APbLVF9/MULfjuLrV
-         z33mfGSD6Iue2rdzIA5b0CDvCVl/yLgUteamsLdBJji4w5Kg+pkRaP9imR7s3AJTVtx+
-         E3SmYxxQJlKC35sJuqBLSxJ1RndOQOTauBxBX3fzrk5VVbK0laYI7F49SOymTF4mUFWa
-         wqZsxT+3hm3mrybgXDWQOsnQuHRE8UsbWSeuj3BA39beZbpcxyCxhioIU0o7JPvRLQj/
-         O9cg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=jtzU0sZOPdX5FbgdAAINvzrzWTLzUqccHXXnkXVokz0=;
-        b=in9jQgycxkBeoXZCTYZifQpN45lgPelJFirvlf0FcXuZq0lAFo4yw5CRNyR/tjo1oh
-         Y0tssyH0fi8OlWcpOuMlBsT9cp4fsKaTTwmXUE7dK6GlkYvBkGz1s7tFz4pwbP+JMwb7
-         eTmPZ82M8M+MWI/82GfHa5kSJUcLs8yO3T3XsEdlxGYI8GkvpY45n+GSqng6xC9VvApk
-         R76QG698e2WtWGz/hSrKpWLEtB6PxQNndp4g9OlYkLnKiP4rss5C6SmCTbsve676v0nJ
-         MlMnmnDLMTmM2M5+gApvKQreU25Sefe0OCiAQ5MS7hAY2mewJoATh2jgviAewKXMfMs7
-         U41g==
-X-Gm-Message-State: AGi0PuaGGe/Urlqo9yl63jBSNTD5u0h+ymJoDo2eejZXQ8TdgIVAYLiX
-        +BRc8JMWwrU4SHhayWXWm7Quc1cRfcNVIzx/5DGfOFfBJLs=
-X-Google-Smtp-Source: APiQypICQsoQ6Pe/nus5scKinpZPUYzigYeiudjUi/234G5wdSj/aP/Q7Mc4PdgjE8DfJQSl//D+O56rlEtdFRbAAEU=
-X-Received: by 2002:a05:6638:44f:: with SMTP id r15mr4401493jap.84.1588765463573;
- Wed, 06 May 2020 04:44:23 -0700 (PDT)
+        Wed, 6 May 2020 07:55:47 -0400
+Received: from correo.us.es ([193.147.175.20]:55598 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727777AbgEFLzq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 6 May 2020 07:55:46 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 9E4D74FFE12
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 May 2020 13:55:44 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8EA0D20C5C
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 May 2020 13:55:44 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 6EB7F5C02C; Wed,  6 May 2020 13:55:44 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 44C5820C5C;
+        Wed,  6 May 2020 13:55:42 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 06 May 2020 13:55:42 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 0763F42EE38E;
+        Wed,  6 May 2020 13:55:41 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, ecree@solarflare.com,
+        kuba@kernel.org, jiri@resnulli.us
+Subject: [PATCH net,v3] net: flow_offload: skip hw stats check for FLOW_ACTION_HW_STATS_DONT_CARE
+Date:   Wed,  6 May 2020 13:55:39 +0200
+Message-Id: <20200506115539.21018-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-From:   Etienne Champetier <champetier.etienne@gmail.com>
-Date:   Wed, 6 May 2020 07:44:12 -0400
-Message-ID: <CAOdf3gqGQQCFJ8O8KVM7fVBYcKLy=UCf+AOvEdaoArMAx98ezg@mail.gmail.com>
-Subject: iptables 1.8.5 ETA ?
-To:     pablo@netfilter.org, netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi All,
+This patch adds FLOW_ACTION_HW_STATS_DONT_CARE which tells the driver
+that the frontend does not need counters, this hw stats type request
+never fails. The FLOW_ACTION_HW_STATS_DISABLED type explicitly requests
+the driver to disable the stats, however, if the driver cannot disable
+counters, it bails out.
 
-Pablo told me 3 weeks ago that "It might take a few weeks to make the
-new release."
-(https://bugzilla.netfilter.org/show_bug.cgi?id=1422#c13)
+TCA_ACT_HW_STATS_* maintains the 1:1 mapping with FLOW_ACTION_HW_STATS_*
+except by disabled which is mapped to FLOW_ACTION_HW_STATS_DISABLED
+(this is 0 in tc). Add tc_act_hw_stats() to perform the mapping between
+TCA_ACT_HW_STATS_* and FLOW_ACTION_HW_STATS_*.
 
-I'm sure it'll be release when it's ready :) but do you see an
-iptables release happening this month ? (to know if I should just wait
-or go ask maintainers for backports)
+Fixes: 319a1d19471e ("flow_offload: check for basic action hw stats type")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v3: update mlxsw to handle _DONT_CARE.
 
-Thanks
-Etienne
+ .../net/ethernet/mellanox/mlxsw/spectrum_flower.c  |  2 +-
+ include/net/flow_offload.h                         |  9 ++++++++-
+ net/sched/cls_api.c                                | 14 ++++++++++++--
+ 3 files changed, 21 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c b/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
+index 51117a5a6bbf..81d0b3481479 100644
+--- a/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
++++ b/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
+@@ -36,7 +36,7 @@ static int mlxsw_sp_flower_parse_actions(struct mlxsw_sp *mlxsw_sp,
+ 		err = mlxsw_sp_acl_rulei_act_count(mlxsw_sp, rulei, extack);
+ 		if (err)
+ 			return err;
+-	} else if (act->hw_stats != FLOW_ACTION_HW_STATS_DISABLED) {
++	} else if (act->hw_stats == FLOW_ACTION_HW_STATS_DELAYED) {
+ 		NL_SET_ERR_MSG_MOD(extack, "Unsupported action HW stats type");
+ 		return -EOPNOTSUPP;
+ 	}
+diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
+index 3619c6acf60f..efc8350b42fb 100644
+--- a/include/net/flow_offload.h
++++ b/include/net/flow_offload.h
+@@ -166,15 +166,18 @@ enum flow_action_mangle_base {
+ enum flow_action_hw_stats_bit {
+ 	FLOW_ACTION_HW_STATS_IMMEDIATE_BIT,
+ 	FLOW_ACTION_HW_STATS_DELAYED_BIT,
++	FLOW_ACTION_HW_STATS_DISABLED_BIT,
+ };
+ 
+ enum flow_action_hw_stats {
+-	FLOW_ACTION_HW_STATS_DISABLED = 0,
++	FLOW_ACTION_HW_STATS_DONT_CARE = 0,
+ 	FLOW_ACTION_HW_STATS_IMMEDIATE =
+ 		BIT(FLOW_ACTION_HW_STATS_IMMEDIATE_BIT),
+ 	FLOW_ACTION_HW_STATS_DELAYED = BIT(FLOW_ACTION_HW_STATS_DELAYED_BIT),
+ 	FLOW_ACTION_HW_STATS_ANY = FLOW_ACTION_HW_STATS_IMMEDIATE |
+ 				   FLOW_ACTION_HW_STATS_DELAYED,
++	FLOW_ACTION_HW_STATS_DISABLED =
++		BIT(FLOW_ACTION_HW_STATS_DISABLED_BIT),
+ };
+ 
+ typedef void (*action_destr)(void *priv);
+@@ -325,7 +328,11 @@ __flow_action_hw_stats_check(const struct flow_action *action,
+ 		return true;
+ 	if (!flow_action_mixed_hw_stats_check(action, extack))
+ 		return false;
++
+ 	action_entry = flow_action_first_entry_get(action);
++	if (action_entry->hw_stats == FLOW_ACTION_HW_STATS_DONT_CARE)
++		return true;
++
+ 	if (!check_allow_bit &&
+ 	    action_entry->hw_stats != FLOW_ACTION_HW_STATS_ANY) {
+ 		NL_SET_ERR_MSG_MOD(extack, "Driver supports only default HW stats type \"any\"");
+diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
+index 55bd1429678f..56cf1b9e1e24 100644
+--- a/net/sched/cls_api.c
++++ b/net/sched/cls_api.c
+@@ -3523,6 +3523,16 @@ static void tcf_sample_get_group(struct flow_action_entry *entry,
+ #endif
+ }
+ 
++static enum flow_action_hw_stats tc_act_hw_stats(u8 hw_stats)
++{
++	if (WARN_ON_ONCE(hw_stats > TCA_ACT_HW_STATS_ANY))
++		return FLOW_ACTION_HW_STATS_DONT_CARE;
++	else if (!hw_stats)
++		return FLOW_ACTION_HW_STATS_DISABLED;
++
++	return hw_stats;
++}
++
+ int tc_setup_flow_action(struct flow_action *flow_action,
+ 			 const struct tcf_exts *exts)
+ {
+@@ -3546,7 +3556,7 @@ int tc_setup_flow_action(struct flow_action *flow_action,
+ 		if (err)
+ 			goto err_out_locked;
+ 
+-		entry->hw_stats = act->hw_stats;
++		entry->hw_stats = tc_act_hw_stats(act->hw_stats);
+ 
+ 		if (is_tcf_gact_ok(act)) {
+ 			entry->id = FLOW_ACTION_ACCEPT;
+@@ -3614,7 +3624,7 @@ int tc_setup_flow_action(struct flow_action *flow_action,
+ 				entry->mangle.mask = tcf_pedit_mask(act, k);
+ 				entry->mangle.val = tcf_pedit_val(act, k);
+ 				entry->mangle.offset = tcf_pedit_offset(act, k);
+-				entry->hw_stats = act->hw_stats;
++				entry->hw_stats = tc_act_hw_stats(act->hw_stats);
+ 				entry = &flow_action->entries[++j];
+ 			}
+ 		} else if (is_tcf_csum(act)) {
+-- 
+2.20.1
+
