@@ -2,88 +2,121 @@ Return-Path: <SRS0=4pKc=6U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCD40C47257
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 09:46:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 106DCC28CBC
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 10:20:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BEC9720714
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 09:46:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E01A42068E
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 10:20:32 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="ZpbybSrP"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729142AbgEFJqs (ORCPT
+        id S1728951AbgEFKUT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 May 2020 05:46:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34068 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726935AbgEFJqs (ORCPT
+        Wed, 6 May 2020 06:20:19 -0400
+Received: from userp2120.oracle.com ([156.151.31.85]:41660 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726354AbgEFKUR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 May 2020 05:46:48 -0400
-Received: from smail.fem.tu-ilmenau.de (smail.fem.tu-ilmenau.de [IPv6:2001:638:904:ffbf::41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E58FDC061A0F
-        for <netfilter-devel@vger.kernel.org>; Wed,  6 May 2020 02:46:47 -0700 (PDT)
-Received: from mail.fem.tu-ilmenau.de (mail-zuse.net.fem.tu-ilmenau.de [172.21.220.54])
-        (using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by smail.fem.tu-ilmenau.de (Postfix) with ESMTPS id DB25620033;
-        Wed,  6 May 2020 11:46:44 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by mail.fem.tu-ilmenau.de (Postfix) with ESMTP id B3EC96226;
-        Wed,  6 May 2020 11:46:44 +0200 (CEST)
-X-Virus-Scanned: amavisd-new at fem.tu-ilmenau.de
-Received: from mail.fem.tu-ilmenau.de ([127.0.0.1])
-        by localhost (mail.fem.tu-ilmenau.de [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id kfobGYzAmS9N; Wed,  6 May 2020 11:46:42 +0200 (CEST)
-Received: from mail-backup.fem.tu-ilmenau.de (mail-backup.net.fem.tu-ilmenau.de [10.42.40.22])
-        (using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mail.fem.tu-ilmenau.de (Postfix) with ESMTPS;
-        Wed,  6 May 2020 11:46:42 +0200 (CEST)
-Received: from a234.fem.tu-ilmenau.de (ray-controller.net.fem.tu-ilmenau.de [10.42.51.234])
-        by mail-backup.fem.tu-ilmenau.de (Postfix) with ESMTP id C4FD056053;
-        Wed,  6 May 2020 11:46:42 +0200 (CEST)
-Received: by a234.fem.tu-ilmenau.de (Postfix, from userid 1000)
-        id BF146306A950; Wed,  6 May 2020 11:46:42 +0200 (CEST)
-From:   Michael Braun <michael-dev@fami-braun.de>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Michael Braun <michael-dev@fami-braun.de>
-Subject: [PATCH 2/3] nftables: enable reject with 802.1q
-Date:   Wed,  6 May 2020 11:46:24 +0200
-Message-Id: <ab66a06ae60d84577e0802ab989658d7b651d7a2.1588758255.git.michael-dev@fami-braun.de>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <cover.1588758255.git.michael-dev@fami-braun.de>
-References: <cover.1588758255.git.michael-dev@fami-braun.de>
+        Wed, 6 May 2020 06:20:17 -0400
+Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
+        by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 046AHosi054927;
+        Wed, 6 May 2020 10:20:06 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : mime-version : content-type; s=corp-2020-01-29;
+ bh=PuX6rwaGKKV8LkbfAkFg2knCJQfvM5Hq/d81pqR/SMM=;
+ b=ZpbybSrPMqRDG1Ik6hp5HoslntrHfXNgA7juIGJXZ7bUeyQaOS8673E9DQkcBGmm2E5i
+ Nrq2ZfhArfEV+zFyNeZfjuAnx0jfL8nEv5JyNLcDF/ydbltwIY8356T7dHgF8LHG4Hyr
+ f99mIdMZyjo+zScKsR9RtFE0FFkl0wCgkeIqxd+UzLFSbeU7e/2crWClNutB4cODIqOX
+ +z1p5b4ENg1ZUjR19hZg8+ATmc0PLhTdeQ8biwIf5SDROwj5lnfD2fk/iArtJuGVaPyx
+ lAUAFcsS1CXEQTegzy/hfJNkBLfKYBwosxqR4y2x4kP00Nj8IBJJI0tJvUzxngmQPANz Jw== 
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+        by userp2120.oracle.com with ESMTP id 30s1gn9byx-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 06 May 2020 10:20:06 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+        by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 046AHb43028215;
+        Wed, 6 May 2020 10:18:05 GMT
+Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
+        by aserp3020.oracle.com with ESMTP id 30sjnhvvjc-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 06 May 2020 10:18:05 +0000
+Received: from abhmp0003.oracle.com (abhmp0003.oracle.com [141.146.116.9])
+        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 046AI3Am010844;
+        Wed, 6 May 2020 10:18:03 GMT
+Received: from mwanda (/41.57.98.10)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Wed, 06 May 2020 03:18:02 -0700
+Date:   Wed, 6 May 2020 13:17:53 +0300
+From:   Dan Carpenter <dan.carpenter@oracle.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [PATCH net] netfilter: nf_conntrack_pptp: prevent buffer overflows
+ in debug code
+Message-ID: <20200506101753.GD77004@mwanda>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+X-Mailer: git-send-email haha only kidding
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9612 signatures=668687
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 adultscore=0 phishscore=0
+ mlxlogscore=999 bulkscore=0 malwarescore=0 spamscore=0 suspectscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
+ definitions=main-2005060081
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9612 signatures=668687
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 suspectscore=0 mlxscore=0
+ spamscore=0 clxscore=1011 priorityscore=1501 bulkscore=0 phishscore=0
+ impostorscore=0 malwarescore=0 lowpriorityscore=0 mlxlogscore=999
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
+ definitions=main-2005060081
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This enables the use nft bridge reject with bridge vlan filtering.
+Smatch complains that the value for "cmd" comes from the network and
+can't be trusted.  The value is actually checked at the end of these
+functions so I just copied that here as well.
 
-It depends on a kernel patch to make the kernel preserve the
-vlan id in nft bridge reject generation.
-
-Signed-off-by: Michael Braun <michael-dev@fami-braun.de>
+Fixes: f09943fefe6b ("[NETFILTER]: nf_conntrack/nf_nat: add PPTP helper port")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 ---
- src/evaluate.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_pptp.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index ec96dd58..20849ef3 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -2635,7 +2635,7 @@ static int stmt_evaluate_reject_bridge(struct eval_ctx *ctx, struct stmt *stmt,
- 	const struct proto_desc *desc;
+diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
+index a971183f11af7..b4dc567f7fb68 100644
+--- a/net/netfilter/nf_conntrack_pptp.c
++++ b/net/netfilter/nf_conntrack_pptp.c
+@@ -276,7 +276,8 @@ pptp_inbound_pkt(struct sk_buff *skb, unsigned int protoff,
+ 	typeof(nf_nat_pptp_hook_inbound) nf_nat_pptp_inbound;
  
- 	desc = ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
--	if (desc != &proto_eth)
-+	if (desc != &proto_eth && desc != &proto_vlan)
- 		return stmt_binary_error(ctx,
- 					 &ctx->pctx.protocol[PROTO_BASE_LL_HDR],
- 					 stmt, "unsupported link layer protocol");
+ 	msg = ntohs(ctlh->messageType);
+-	pr_debug("inbound control message %s\n", pptp_msg_name[msg]);
++	pr_debug("inbound control message %s\n",
++		 msg <= PPTP_MSG_MAX ? pptp_msg_name[msg] : pptp_msg_name[0]);
+ 
+ 	switch (msg) {
+ 	case PPTP_START_SESSION_REPLY:
+@@ -404,7 +405,8 @@ pptp_outbound_pkt(struct sk_buff *skb, unsigned int protoff,
+ 	typeof(nf_nat_pptp_hook_outbound) nf_nat_pptp_outbound;
+ 
+ 	msg = ntohs(ctlh->messageType);
+-	pr_debug("outbound control message %s\n", pptp_msg_name[msg]);
++	pr_debug("outbound control message %s\n",
++		 msg <= PPTP_MSG_MAX ? pptp_msg_name[msg] : pptp_msg_name[0]);
+ 
+ 	switch (msg) {
+ 	case PPTP_START_SESSION_REQUEST:
 -- 
-2.20.1
+2.26.2
 
