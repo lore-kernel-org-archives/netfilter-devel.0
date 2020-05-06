@@ -4,102 +4,98 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C342C38A2A
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 11:11:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCD94C38A24
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 11:26:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0E2B32070B
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 11:11:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BF3102070B
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 11:26:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728512AbgEFLLV (ORCPT
+        id S1727874AbgEFL0f (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 May 2020 07:11:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47346 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728335AbgEFLLU (ORCPT
+        Wed, 6 May 2020 07:26:35 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:38471 "EHLO
+        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1727774AbgEFL0e (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 May 2020 07:11:20 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 814B1C061A0F
-        for <netfilter-devel@vger.kernel.org>; Wed,  6 May 2020 04:11:20 -0700 (PDT)
-Received: from localhost ([::1]:58054 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1jWHxM-0003Ss-Cy; Wed, 06 May 2020 13:11:16 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        Wed, 6 May 2020 07:26:34 -0400
+Received: from Internal Mail-Server by MTLPINE1 (envelope-from paulb@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 6 May 2020 14:26:32 +0300
+Received: from reg-r-vrt-019-120.mtr.labs.mlnx (reg-r-vrt-019-120.mtr.labs.mlnx [10.213.19.120])
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 046BQWek017451;
+        Wed, 6 May 2020 14:26:32 +0300
+From:   Paul Blakey <paulb@mellanox.com>
+To:     Paul Blakey <paulb@mellanox.com>, Oz Shlomo <ozsh@mellanox.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Roi Dayan <roid@mellanox.com>, netdev@vger.kernel.org,
+        Saeed Mahameed <saeedm@mellanox.com>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nf PATCH] netfilter: nft_set_rbtree: Add missing expired checks
-Date:   Wed,  6 May 2020 13:11:07 +0200
-Message-Id: <20200506111107.29778-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.25.1
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH net] netfilter: flowtable: Add pending bit for offload work
+Date:   Wed,  6 May 2020 14:24:39 +0300
+Message-Id: <1588764279-12166-1-git-send-email-paulb@mellanox.com>
+X-Mailer: git-send-email 1.8.4.3
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Expired intervals would still match and be dumped to user space until
-garbage collection wiped them out. Make sure they stop matching and
-disappear (from users' perspective) as soon as they expire.
+Gc step can queue offloaded flow del work or stats work.
+Those work items can race each other and a flow could be freed
+before the stats work is executed and querying it.
+To avoid that, add a pending bit that if a work exists for a flow
+don't queue another work for it.
+This will also avoid adding multiple stats works in case stats work
+didn't complete but gc step started again.
 
-Fixes: 8d8540c4f5e03 ("netfilter: nft_set_rbtree: add timeout support")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Paul Blakey <paulb@mellanox.com>
+Reviewed-by: Roi Dayan <roid@mellanox.com>
 ---
- net/netfilter/nft_set_rbtree.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ include/net/netfilter/nf_flow_table.h | 1 +
+ net/netfilter/nf_flow_table_offload.c | 8 +++++++-
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 3ffef454d4699..8efcea03a4cbb 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -75,7 +75,8 @@ static bool __nft_rbtree_lookup(const struct net *net, const struct nft_set *set
- 		} else if (d > 0)
- 			parent = rcu_dereference_raw(parent->rb_right);
- 		else {
--			if (!nft_set_elem_active(&rbe->ext, genmask)) {
-+			if (!nft_set_elem_active(&rbe->ext, genmask) ||
-+			    nft_set_elem_expired(&rbe->ext)) {
- 				parent = rcu_dereference_raw(parent->rb_left);
- 				continue;
- 			}
-@@ -94,6 +95,7 @@ static bool __nft_rbtree_lookup(const struct net *net, const struct nft_set *set
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 6bf6965..c54a7f7 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -127,6 +127,7 @@ enum nf_flow_flags {
+ 	NF_FLOW_HW_DYING,
+ 	NF_FLOW_HW_DEAD,
+ 	NF_FLOW_HW_REFRESH,
++	NF_FLOW_HW_PENDING,
+ };
  
- 	if (set->flags & NFT_SET_INTERVAL && interval != NULL &&
- 	    nft_set_elem_active(&interval->ext, genmask) &&
-+	    !nft_set_elem_expired(&interval->ext) &&
- 	    nft_rbtree_interval_start(interval)) {
- 		*ext = &interval->ext;
- 		return true;
-@@ -149,7 +151,8 @@ static bool __nft_rbtree_get(const struct net *net, const struct nft_set *set,
- 			if (flags & NFT_SET_ELEM_INTERVAL_END)
- 				interval = rbe;
- 		} else {
--			if (!nft_set_elem_active(&rbe->ext, genmask)) {
-+			if (!nft_set_elem_active(&rbe->ext, genmask) ||
-+			    nft_set_elem_expired(&rbe->ext)) {
- 				parent = rcu_dereference_raw(parent->rb_left);
- 				continue;
- 			}
-@@ -170,6 +173,7 @@ static bool __nft_rbtree_get(const struct net *net, const struct nft_set *set,
+ enum flow_offload_type {
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index b9d5ecc..731d738 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -817,6 +817,7 @@ static void flow_offload_work_handler(struct work_struct *work)
+ 			WARN_ON_ONCE(1);
+ 	}
  
- 	if (set->flags & NFT_SET_INTERVAL && interval != NULL &&
- 	    nft_set_elem_active(&interval->ext, genmask) &&
-+	    !nft_set_elem_expired(&interval->ext) &&
- 	    ((!nft_rbtree_interval_end(interval) &&
- 	      !(flags & NFT_SET_ELEM_INTERVAL_END)) ||
- 	     (nft_rbtree_interval_end(interval) &&
-@@ -418,6 +422,8 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
++	clear_bit(NF_FLOW_HW_PENDING, &offload->flow->flags);
+ 	kfree(offload);
+ }
  
- 		if (iter->count < iter->skip)
- 			goto cont;
-+		if (nft_set_elem_expired(&rbe->ext))
-+			goto cont;
- 		if (!nft_set_elem_active(&rbe->ext, iter->genmask))
- 			goto cont;
+@@ -831,9 +832,14 @@ static void flow_offload_queue_work(struct flow_offload_work *offload)
+ {
+ 	struct flow_offload_work *offload;
  
++	if (test_and_set_bit(NF_FLOW_HW_PENDING, &flow->flags))
++		return NULL;
++
+ 	offload = kmalloc(sizeof(struct flow_offload_work), GFP_ATOMIC);
+-	if (!offload)
++	if (!offload) {
++		clear_bit(NF_FLOW_HW_PENDING, &flow->flags);
+ 		return NULL;
++	}
+ 
+ 	offload->cmd = cmd;
+ 	offload->flow = flow;
 -- 
-2.25.1
+1.8.3.1
 
