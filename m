@@ -2,103 +2,118 @@ Return-Path: <SRS0=4pKc=6U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 528A7C28CBC
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 17:35:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66180C47256
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 18:16:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 315CB208DB
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 17:35:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48AD42078C
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 18:16:29 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="p14/TxlH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728921AbgEFRfC (ORCPT
+        id S1729862AbgEFSQ1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 May 2020 13:35:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51128 "EHLO
+        Wed, 6 May 2020 14:16:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57652 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728047AbgEFRfB (ORCPT
+        with ESMTP id S1728834AbgEFSQ1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 May 2020 13:35:01 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4DE5C061A0F
-        for <netfilter-devel@vger.kernel.org>; Wed,  6 May 2020 10:35:01 -0700 (PDT)
-Received: from localhost ([::1]:58786 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1jWNwi-0002ov-IO; Wed, 06 May 2020 19:35:00 +0200
-From:   Phil Sutter <phil@nwl.cc>
+        Wed, 6 May 2020 14:16:27 -0400
+Received: from mail-wm1-x344.google.com (mail-wm1-x344.google.com [IPv6:2a00:1450:4864:20::344])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 188CEC061A10
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 May 2020 11:16:27 -0700 (PDT)
+Received: by mail-wm1-x344.google.com with SMTP id g12so3819287wmh.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 06 May 2020 11:16:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=gEsdkbpjSSud3rBKiZEKc6BAa94PnVJY+KjLicPdAok=;
+        b=p14/TxlHuHfyz77uSOpupAaWfxDx/OQ/URKaInfN6cjbSQCrdfCroZkEmtp6bjG0ea
+         htjmSRr9Fa9Zj3SAN+rEyevU3ugJTWWNIDQAjeTIgcWJTHZbjJCP2d1maclZDUR9pqNi
+         /hRCuPOmQFFXhIJqCDVCJ6zvpqPmpQY3pkhTHQsgJ3rgzunR/stdkohoTHfKB/F2bLwc
+         dmwshWE//QtgqRxn5Vjrp4syWcWKO+4ER7o7TuCf8NCVrOcwS+OdD+pd0MgqTG5FhzjS
+         FnCuv1R1xUG2pau/QSqJHcEGTjMy9+aMOnoIjgW3RmrZU3rk55d2cNlyhsuP8oYsqXTf
+         X3pg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=gEsdkbpjSSud3rBKiZEKc6BAa94PnVJY+KjLicPdAok=;
+        b=jdheeZ/Fu8BdQypTIysxC1SBzSrchv4QC0KvdGZKZDc6/VsZC4VXAgO8Zuv66UZvzL
+         lF5QSGsOmeeMebbnwMPv54u73ZT/tsCCFUxuiFSGGa+EPa9s5WTICsi7AWYdhUzki0wV
+         IdBb++DXHr12AdXMxFETcQ/5woqs2LHFrqxCrIWDFkUxh+/le9z/ZFhFMQu2S+njt/lw
+         QewZ0otEpg8wLXwxWzQf6x+1M+2u633uOrrsry3g2LD83h3FpzrWIseWcgvC/Cdh174/
+         7nQY1xdsYr8PYG1QyUEyJU6IgTRt+kgvW9mlBWZ1bcHGpsZjopjl2/zGyiXS2KMb88ny
+         Mcyg==
+X-Gm-Message-State: AGi0PuZ2A7ofNCy3DQcNjSNTwSRNBypTfhLm3QPh67ejxmmgfpdvVnRE
+        OD04PtepVdEBrQcEvxzXM9Fzzw==
+X-Google-Smtp-Source: APiQypLFsR+p/YR8vk2oyyPjQ3oflcDldNRNiRy/olMaH3pCQSBZNRnrs0Hh/emY5jFHAi28Itmpjw==
+X-Received: by 2002:a7b:c7d2:: with SMTP id z18mr6151593wmk.72.1588788985747;
+        Wed, 06 May 2020 11:16:25 -0700 (PDT)
+Received: from localhost (jirka.pirko.cz. [84.16.102.26])
+        by smtp.gmail.com with ESMTPSA id d5sm3953874wrp.44.2020.05.06.11.16.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 06 May 2020 11:16:25 -0700 (PDT)
+Date:   Wed, 6 May 2020 20:16:24 +0200
+From:   Jiri Pirko <jiri@resnulli.us>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 06/15] nft: cache: Re-establish cache consistency check
-Date:   Wed,  6 May 2020 19:33:22 +0200
-Message-Id: <20200506173331.9347-7-phil@nwl.cc>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200506173331.9347-1-phil@nwl.cc>
-References: <20200506173331.9347-1-phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, ecree@solarflare.com, kuba@kernel.org
+Subject: Re: [PATCH net,v3] net: flow_offload: skip hw stats check for
+ FLOW_ACTION_HW_STATS_DONT_CARE
+Message-ID: <20200506181624.GC2269@nanopsycho.orion>
+References: <20200506115539.21018-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200506115539.21018-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Restore code ensuring __nft_build_cache() returns a consistent cache in
-which all ruleset elements belong to the same generation.
+Wed, May 06, 2020 at 01:55:39PM CEST, pablo@netfilter.org wrote:
+>This patch adds FLOW_ACTION_HW_STATS_DONT_CARE which tells the driver
+>that the frontend does not need counters, this hw stats type request
+>never fails. The FLOW_ACTION_HW_STATS_DISABLED type explicitly requests
+>the driver to disable the stats, however, if the driver cannot disable
+>counters, it bails out.
+>
+>TCA_ACT_HW_STATS_* maintains the 1:1 mapping with FLOW_ACTION_HW_STATS_*
+>except by disabled which is mapped to FLOW_ACTION_HW_STATS_DISABLED
+>(this is 0 in tc). Add tc_act_hw_stats() to perform the mapping between
+>TCA_ACT_HW_STATS_* and FLOW_ACTION_HW_STATS_*.
+>
+>Fixes: 319a1d19471e ("flow_offload: check for basic action hw stats type")
+>Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+>---
+>v3: update mlxsw to handle _DONT_CARE.
+>
+> .../net/ethernet/mellanox/mlxsw/spectrum_flower.c  |  2 +-
+> include/net/flow_offload.h                         |  9 ++++++++-
+> net/sched/cls_api.c                                | 14 ++++++++++++--
+> 3 files changed, 21 insertions(+), 4 deletions(-)
+>
+>diff --git a/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c b/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
+>index 51117a5a6bbf..81d0b3481479 100644
+>--- a/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
+>+++ b/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
+>@@ -36,7 +36,7 @@ static int mlxsw_sp_flower_parse_actions(struct mlxsw_sp *mlxsw_sp,
+> 		err = mlxsw_sp_acl_rulei_act_count(mlxsw_sp, rulei, extack);
+> 		if (err)
+> 			return err;
+>-	} else if (act->hw_stats != FLOW_ACTION_HW_STATS_DISABLED) {
+>+	} else if (act->hw_stats == FLOW_ACTION_HW_STATS_DELAYED) {
 
-This check was removed by commit 200bc39965149 ("nft: cache: Fix
-iptables-save segfault under stress") as it could lead to segfaults if a
-partial cache fetch was done while cache's chain list was traversed.
-With the new cache fetch logic, __nft_build_cache() is never called
-while holding references to cache entries.
+I think that better is:
+	} else if (act->hw_stats != FLOW_ACTION_HW_STATS_DISABLED &&
+		   act->hw_stats != FLOW_ACTION_HW_STATS_DONT_CARE) {
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/nft-cache.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
-
-diff --git a/iptables/nft-cache.c b/iptables/nft-cache.c
-index 84ea97d3e54a6..638b18bc7e382 100644
---- a/iptables/nft-cache.c
-+++ b/iptables/nft-cache.c
-@@ -484,12 +484,16 @@ static int fetch_rule_cache(struct nft_handle *h,
- 	return 0;
- }
- 
-+static int flush_cache(struct nft_handle *h, struct nft_cache *c,
-+		       const char *tablename);
-+
- static void
- __nft_build_cache(struct nft_handle *h)
- {
- 	struct nft_cache_req *req = &h->cache_req;
- 	const struct builtin_table *t = NULL;
- 	struct list_head *chains = NULL;
-+	uint32_t genid_check;
- 
- 	if (h->cache_init)
- 		return;
-@@ -501,6 +505,7 @@ __nft_build_cache(struct nft_handle *h)
- 	}
- 
- 	h->cache_init = true;
-+retry:
- 	mnl_genid_get(h, &h->nft_genid);
- 
- 	if (req->level >= NFT_CL_TABLES)
-@@ -513,6 +518,12 @@ __nft_build_cache(struct nft_handle *h)
- 		fetch_set_cache(h, t, NULL);
- 	if (req->level >= NFT_CL_RULES)
- 		fetch_rule_cache(h, t);
-+
-+	mnl_genid_get(h, &genid_check);
-+	if (h->nft_genid != genid_check) {
-+		flush_cache(h, h->cache, NULL);
-+		goto retry;
-+	}
- }
- 
- static void __nft_flush_cache(struct nft_handle *h)
--- 
-2.25.1
-
+> 		NL_SET_ERR_MSG_MOD(extack, "Unsupported action HW stats type");
+> 		return -EOPNOTSUPP;
+> 	}
