@@ -1,183 +1,101 @@
-Return-Path: <SRS0=RRXz=6T=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=4pKc=6U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D8A1C47247
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 23:29:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3963C47247
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 00:57:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0982320721
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 May 2020 23:29:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588721387;
-	bh=sJqExTpAnOPz7qfZqPDSiy+312yS9Nr/1POIvmOunjM=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=NwAV83ciGzU2CcSdICzIHeuIGWpe3Xs/fxlT/CgWENpmDazUn+MBg9Sos+rmaIL9+
-	 maY4jPMiq+f+Lpat+pob0ZE9Rit9zfte4wnNS66NnBdsEEQ/HxcW/sOjYq6LBn9Tvw
-	 Du+7qn/qgLQb1ymovopBM83xvyvU1VaqcyHdSa8k=
+	by mail.kernel.org (Postfix) with ESMTP id DCD0E206A5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 May 2020 00:57:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729222AbgEEX3p (ORCPT
+        id S1729678AbgEFA5U (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 May 2020 19:29:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55118 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728642AbgEEX3p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 May 2020 19:29:45 -0400
-Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.1])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1FCE0206B8;
-        Tue,  5 May 2020 23:29:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588721384;
-        bh=sJqExTpAnOPz7qfZqPDSiy+312yS9Nr/1POIvmOunjM=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=a+DvbO5AdYfMWA+YZNASVpDDpsRYdgnyA7QXrjwRP5/31iaaVXq1LGzauhZR/NAIt
-         xejkdikFTW/1jJjS8A7eeeOa4l4DYeKDwyGWfloxfMvhKeoLqmibk+We2xIHIs00DS
-         NffHp6VVUtPiopOM5tCJTDhY1yfSAmIM8utTTPwo=
-Date:   Tue, 5 May 2020 16:29:42 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, jiri@resnulli.us, ecree@solarflare.com
-Subject: Re: [PATCH net,v2] net: flow_offload: skip hw stats check for
- FLOW_ACTION_HW_STATS_DONT_CARE
-Message-ID: <20200505162942.393ed266@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20200505214321.GA13591@salvia>
-References: <20200505174736.29414-1-pablo@netfilter.org>
-        <20200505114010.132abebd@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-        <20200505193145.GA9789@salvia>
-        <20200505124343.27897ad6@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-        <20200505214321.GA13591@salvia>
+        Tue, 5 May 2020 20:57:20 -0400
+Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:34516 "EHLO
+        mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729247AbgEFA5U (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 5 May 2020 20:57:20 -0400
+Received: from dimstar.local.net (n175-34-64-112.sun1.vic.optusnet.com.au [175.34.64.112])
+        by mail105.syd.optusnet.com.au (Postfix) with SMTP id 821DC3A39F1
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 May 2020 10:57:16 +1000 (AEST)
+Received: (qmail 27081 invoked by uid 501); 6 May 2020 00:57:15 -0000
+Date:   Wed, 6 May 2020 10:57:15 +1000
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_queue 0/3] pktbuff API updates
+Message-ID: <20200506005715.GA26529@dimstar.local.net>
+Mail-Followup-To: Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20200428103407.GA1160@salvia>
+ <20200428211452.GF15436@dimstar.local.net>
+ <20200428225520.GA30421@salvia>
+ <20200429132840.GA3833@dimstar.local.net>
+ <20200429191047.GB3833@dimstar.local.net>
+ <20200429191643.GA16749@salvia>
+ <20200429203029.GD3833@dimstar.local.net>
+ <20200429210512.GA14508@salvia>
+ <20200430063404.GF3833@dimstar.local.net>
+ <20200505123034.GA16780@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200505123034.GA16780@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.3 cv=X6os11be c=1 sm=1 tr=0
+        a=keeXcwCgVCrAuxOn72dlvA==:117 a=keeXcwCgVCrAuxOn72dlvA==:17
+        a=kj9zAlcOel0A:10 a=sTwFKg_x9MkA:10 a=RSmzAf-M6YYA:10 a=OLL_FvSJAAAA:8
+        a=ZBu0UavJMiNc8dZV3RcA:9 a=CjuIK1q_8ugA:10 a=SAszQ4RR6nkA:10
+        a=Z7RzNMET8NMA:10 a=oIrB72frpwYPwTMnlWqB:22
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, 5 May 2020 23:43:21 +0200 Pablo Neira Ayuso wrote:
-> On Tue, May 05, 2020 at 12:43:43PM -0700, Jakub Kicinski wrote:
-> > On Tue, 5 May 2020 21:31:45 +0200 Pablo Neira Ayuso wrote:  
-> > > On Tue, May 05, 2020 at 11:40:10AM -0700, Jakub Kicinski wrote:  
-> > > > On Tue,  5 May 2020 19:47:36 +0200 Pablo Neira Ayuso wrote:    
-> > > > > This patch adds FLOW_ACTION_HW_STATS_DONT_CARE which tells the driver
-> > > > > that the frontend does not need counters, this hw stats type request
-> > > > > never fails. The FLOW_ACTION_HW_STATS_DISABLED type explicitly requests
-> > > > > the driver to disable the stats, however, if the driver cannot disable
-> > > > > counters, it bails out.
-> > > > > 
-> > > > > TCA_ACT_HW_STATS_* maintains the 1:1 mapping with FLOW_ACTION_HW_STATS_*
-> > > > > except by disabled which is mapped to FLOW_ACTION_HW_STATS_DISABLED
-> > > > > (this is 0 in tc). Add tc_act_hw_stats() to perform the mapping between
-> > > > > TCA_ACT_HW_STATS_* and FLOW_ACTION_HW_STATS_*.
-> > > > > 
-> > > > > Fixes: 319a1d19471e ("flow_offload: check for basic action hw stats type")
-> > > > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > > > > ---
-> > > > > v2: define FLOW_ACTION_HW_STATS_DISABLED at the end of the enumeration
-> > > > >     as Jiri suggested. Keep the 1:1 mapping between TCA_ACT_HW_STATS_*
-> > > > >     and FLOW_ACTION_HW_STATS_* except by the disabled case.
-> > > > > 
-> > > > >  include/net/flow_offload.h |  9 ++++++++-
-> > > > >  net/sched/cls_api.c        | 14 ++++++++++++--
-> > > > >  2 files changed, 20 insertions(+), 3 deletions(-)
-> > > > > 
-> > > > > diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
-> > > > > index 3619c6acf60f..efc8350b42fb 100644
-> > > > > --- a/include/net/flow_offload.h
-> > > > > +++ b/include/net/flow_offload.h
-> > > > > @@ -166,15 +166,18 @@ enum flow_action_mangle_base {
-> > > > >  enum flow_action_hw_stats_bit {
-> > > > >  	FLOW_ACTION_HW_STATS_IMMEDIATE_BIT,
-> > > > >  	FLOW_ACTION_HW_STATS_DELAYED_BIT,
-> > > > > +	FLOW_ACTION_HW_STATS_DISABLED_BIT,
-> > > > >  };
-> > > > >  
-> > > > >  enum flow_action_hw_stats {
-> > > > > -	FLOW_ACTION_HW_STATS_DISABLED = 0,
-> > > > > +	FLOW_ACTION_HW_STATS_DONT_CARE = 0,    
-> > > > 
-> > > > Why not ~0? Or ANY | DISABLED? 
-> > > > Otherwise you may confuse drivers which check bit by bit.    
-> > > 
-> > > I'm confused, you agreed with this behaviour:  
-> > 
-> > I was expecting the 0 to be exposed at UAPI level, and then kernel
-> > would translate that to a full mask internally.
+Hi Pablo,
+
+On Tue, May 05, 2020 at 02:30:34PM +0200, Pablo Neira Ayuso wrote:
+> Hi Duncan,
+>
+> On Thu, Apr 30, 2020 at 04:34:04PM +1000, Duncan Roe wrote:
+> [..]
+> > Oh well in that case, how about:
 > >
-> > From the other reply:
-> >   
-> > > I can send a v3 to handle the _DONT_CARE type from the mlxsw.  
-> > 
-> > Seems a little unnecessary for all drivers to cater to the special
-> > case, when we made the argument be a bitfield specifically so that 
-> > the drivers can function as long as they match on any of the bits.  
-> 
-> Let's summarize semantics:
-> 
-> - FLOW_ACTION_HW_STATS_DISABLED means disable counters, bail out if
->   driver cannot disable them.
-> 
-> - FLOW_ACTION_HW_STATS_IMMEDIATE means enable inmediate counters,
->   bail out if driver cannot enable inmediate counters.
-> 
-> - FLOW_ACTION_HW_STATS_DELAY means enable delayed counters, bail out
->   if driver cannot enable delay counters.
-> 
-> - FLOW_ACTION_HW_STATS_ANY means enable counters, either inmmediate or
->   delayed, if driver cannot enable any of them, bail out.
-> 
-> - FLOW_ACTION_HW_STATS_DONT_CARE (0) means counters are not needed, never
->   bail out.
-> 
-> How can you combine DISABLED and ANY? Look at the semantics above and
-> combine them: this is asking for any counter otherwise bail out and
-> DISABLED is asking for no counters at all, otherwise bail out.
-> 
-> This sounds like asking for things that are opposed.
-> 
-> So bit A means X, bit B means Y, but if you combine A and B, it means
-> something complete different, say Z?
-> 
-> In your proposal, drivers drivers will have to check for ANY | DISABLED
-> for don't care?
-> 
-> And what is the semantic for 0 (no bit set) in the kernel in your
-> proposal?
-> 
-> Jiri mentioned there will be more bits coming soon. How will you
-> extend this model (all bit set on for DONT_CARE) if new bits with
-> specific semantics are showing up?
-> 
-> Combining ANY | DISABLED is non-sense, it should be rejected.
+> > >	struct pkt_buff *pktb_alloc2(int family, void *buf, size_t buf_size, void *data, size_t len, size_t extra);
+>
+> Getting better. But why do you still need 'extra'?
+>
+> > I.e. exactly as you suggested in
+> > https://www.spinics.net/lists/netfilter-devel/msg65830.html except s/head/buf/
+> >
+> > And we tell users to dimension buf to NFQ_BUFFER_SIZE. We don't even need to
+> > expose pktb_head_size().
+>
+> NFQ_BUFFER_SIZE tells what is the maximum netlink message size coming
+> from the kernel. That netlink message contains metadata and the actual
+> payload data.
+>
+> The pktbuff structure helps you deal with the payload data, not the
+> netlink message itself.
 
-IIRC we went from the pure bitfield implementation (which was my
-preference) to one where 0 means disabled.
+2 reasons, the first being more important:
 
-The initial suggestion was to have the hw_stats field on offload mean
-"user is okay with any of these types". In which case if users don't 
-care about stats at all they should set all the bits, and the driver
-picks whatever it prefers. Driver would work like so:
+1. We zeroise memory from 'data + len' for 'extra' bytes. This mirrors original
+behaviour where calloc() was used to zeroise everything. Zeroising is only done
+if a data copy is needed to mangle packet length to be larger than it was
+originally. Do we need to zeroise at all? You tell me. We do need to zeroise the
+'struct pkt_buff' - was that why calloc() was originally used?
 
-  if (hw_stats & TYPE1) { /* TYPE1 could be disabled */
-  	/* this is the preferred type */
-  } else if (hw_stats & TYPE2) {
-  	/* also support this one */
-  } else {
-  	return ECANTDO;
-  }
+2. We use extra to verify that 'buf_size' is big enough. It must be at least
+'sizeof(struct pkt_buff) + (extra ? len + extra : 0)'.
 
-Unfortunately we ended up with a convoluted API where drivers have to
-check for magic 0 or 'any' values.
+If zeroising is unnecessary then yes, we don't need 'extra'. pktb_mangle() can
+return 0 if 'buf_size' is inadequate. (pktb_alloc2() checks 'buf_size >=
+sizeof(struct pkt_buff)' and copies 'buf_size' into the enlarged 'pktb' so it's
+available to pktb_mangle()).
 
-I don't really care, we spent too much time talking about this simple
-feature, anyway.
-
-But you should adjust mlxsw, the only driver which actually supports
-this feature properly, to get a sense of what drivers have to do. Extra
-if statement times number of drivers - that will start to matter.
+Cheeers ... Duncan.
