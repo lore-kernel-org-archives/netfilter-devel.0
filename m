@@ -3,56 +3,58 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE9A4C38A24
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 May 2020 11:30:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD814C38A2A
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 May 2020 11:44:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9A4020CC7
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 May 2020 11:30:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A9E2D208E4
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 May 2020 11:44:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726924AbgEGLab (ORCPT
+        id S1725947AbgEGLoG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 7 May 2020 07:30:31 -0400
-Received: from correo.us.es ([193.147.175.20]:50822 "EHLO mail.us.es"
+        Thu, 7 May 2020 07:44:06 -0400
+Received: from correo.us.es ([193.147.175.20]:36966 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726908AbgEGLaa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 May 2020 07:30:30 -0400
+        id S1725848AbgEGLoF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 7 May 2020 07:44:05 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CC75B154E82
-        for <netfilter-devel@vger.kernel.org>; Thu,  7 May 2020 13:30:29 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 21F9A4FFE10
+        for <netfilter-devel@vger.kernel.org>; Thu,  7 May 2020 13:44:03 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BE8C6115417
-        for <netfilter-devel@vger.kernel.org>; Thu,  7 May 2020 13:30:29 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 108FD1158EB
+        for <netfilter-devel@vger.kernel.org>; Thu,  7 May 2020 13:44:03 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B3762115412; Thu,  7 May 2020 13:30:29 +0200 (CEST)
+        id 0F26611541C; Thu,  7 May 2020 13:44:03 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8B34F8E619;
-        Thu,  7 May 2020 13:30:27 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A61121158F4;
+        Thu,  7 May 2020 13:44:00 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 07 May 2020 13:30:27 +0200 (CEST)
+ Thu, 07 May 2020 13:44:00 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 7065842EF4E1;
-        Thu,  7 May 2020 13:30:27 +0200 (CEST)
-Date:   Thu, 7 May 2020 13:30:27 +0200
+        by entrada.int (Postfix) with ESMTPSA id 7E54842EF4E2;
+        Thu,  7 May 2020 13:44:00 +0200 (CEST)
+Date:   Thu, 7 May 2020 13:44:00 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-Subject: Re: nft: crash parsing cmd line
-Message-ID: <20200507113027.GB31995@salvia>
-References: <nycvar.YFH.7.76.2005070913540.15894@n3.vanv.qr>
+To:     Edward Cree <ecree@solarflare.com>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, jiri@resnulli.us, kuba@kernel.org
+Subject: Re: [PATCH net,v4] net: flow_offload: skip hw stats check for
+ FLOW_ACTION_HW_STATS_DONT_CARE
+Message-ID: <20200507114400.GA2179@salvia>
+References: <20200506183450.4125-1-pablo@netfilter.org>
+ <828ef810-9768-5b5c-7847-0edeb666af9b@solarflare.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <nycvar.YFH.7.76.2005070913540.15894@n3.vanv.qr>
+In-Reply-To: <828ef810-9768-5b5c-7847-0edeb666af9b@solarflare.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -60,15 +62,21 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, May 07, 2020 at 09:16:22AM +0200, Jan Engelhardt wrote:
-> 
-> It was reported via                                                                                                                                
-> http://bugzilla.opensuse.org/show_bug.cgi?id=1171321                                                                            
-> that nft exhibits a crash parsing the command line. This problem still 
-> exists as of 93eeceb50078e6ca54636017ee843cbeffbb4179.
-> 
-> » nft add rule inet traffic-filter input tcp dport { 22, 80, 443 } accept
+On Thu, May 07, 2020 at 11:38:24AM +0100, Edward Cree wrote:
+> On 06/05/2020 19:34, Pablo Neira Ayuso wrote> -	} else if (act->hw_stats != FLOW_ACTION_HW_STATS_DISABLED) {
+> > +	} else if (act->hw_stats != FLOW_ACTION_HW_STATS_DISABLED &&
+> > +		   act->hw_stats != FLOW_ACTION_HW_STATS_DONT_CARE) {
+> >  		NL_SET_ERR_MSG_MOD(extack, "Unsupported action HW stats type");
+> >  		return -EOPNOTSUPP;
+> >  	}
+> FWIW my whole reason for suggesting DONT_CARE==0 in the first place
+>  was so that drivers could just use it as a boolean, e.g.
+>     if (act->hw_stats && !(act->hw_stats & FLOW_ACTION_HW_STATS_BLAH))
+>         error("driver only supports BLAH stats");
+>
+> If you're not even doing that then the case for DONT_CARE == ~0 is
+>  even stronger.
 
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20200507112919.21227-1-pablo@netfilter.org/
+Could you point to what driver might have any problem with this update?
 
-Thanks for reporting.
+Thank you.
