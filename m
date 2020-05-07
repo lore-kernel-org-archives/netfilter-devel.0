@@ -2,94 +2,90 @@ Return-Path: <SRS0=DUCC=6V=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9313C4724C
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 May 2020 10:38:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FBF8C38A24
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 May 2020 11:29:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91F96207DD
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 May 2020 10:38:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 31ED62084D
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 May 2020 11:29:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726029AbgEGKig (ORCPT
+        id S1726093AbgEGL32 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 7 May 2020 06:38:36 -0400
-Received: from dispatch1-us1.ppe-hosted.com ([148.163.129.52]:43222 "EHLO
-        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725834AbgEGKig (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 May 2020 06:38:36 -0400
-Received: from mx1-us1.ppe-hosted.com (unknown [10.7.65.62])
-        by dispatch1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id 430066005C;
-        Thu,  7 May 2020 10:38:35 +0000 (UTC)
-Received: from us4-mdac16-46.ut7.mdlocal (unknown [10.7.66.13])
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id 476368009B;
-        Thu,  7 May 2020 10:38:35 +0000 (UTC)
-X-Virus-Scanned: Proofpoint Essentials engine
-Received: from mx1-us1.ppe-hosted.com (unknown [10.7.66.38])
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id BEBC028004D;
-        Thu,  7 May 2020 10:38:34 +0000 (UTC)
-Received: from webmail.solarflare.com (uk.solarflare.com [193.34.186.16])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 28C9780005C;
-        Thu,  7 May 2020 10:38:34 +0000 (UTC)
-Received: from [10.17.20.203] (10.17.20.203) by ukex01.SolarFlarecom.com
- (10.17.10.4) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Thu, 7 May 2020
- 11:38:27 +0100
-Subject: Re: [PATCH net,v4] net: flow_offload: skip hw stats check for
- FLOW_ACTION_HW_STATS_DONT_CARE
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        <netfilter-devel@vger.kernel.org>
-CC:     <davem@davemloft.net>, <netdev@vger.kernel.org>,
-        <jiri@resnulli.us>, <kuba@kernel.org>
-References: <20200506183450.4125-1-pablo@netfilter.org>
-From:   Edward Cree <ecree@solarflare.com>
-Message-ID: <828ef810-9768-5b5c-7847-0edeb666af9b@solarflare.com>
-Date:   Thu, 7 May 2020 11:38:24 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.2.2
+        Thu, 7 May 2020 07:29:28 -0400
+Received: from correo.us.es ([193.147.175.20]:50236 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725809AbgEGL31 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 7 May 2020 07:29:27 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 78734154E85
+        for <netfilter-devel@vger.kernel.org>; Thu,  7 May 2020 13:29:25 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6B1D611541A
+        for <netfilter-devel@vger.kernel.org>; Thu,  7 May 2020 13:29:25 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 60315A869; Thu,  7 May 2020 13:29:25 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 05A05A869;
+        Thu,  7 May 2020 13:29:23 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 07 May 2020 13:29:23 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id D116442EF4E0;
+        Thu,  7 May 2020 13:29:22 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     jengelh@inai.de
+Subject: [PATCH nft] mnl: fix error rule reporting with missing table/chain and anonymous sets
+Date:   Thu,  7 May 2020 13:29:19 +0200
+Message-Id: <20200507112919.21227-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-In-Reply-To: <20200506183450.4125-1-pablo@netfilter.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.17.20.203]
-X-ClientProxiedBy: ocex03.SolarFlarecom.com (10.20.40.36) To
- ukex01.SolarFlarecom.com (10.17.10.4)
-X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1020-25404.003
-X-TM-AS-Result: No-1.610000-8.000000-10
-X-TMASE-MatchedRID: VPleTT1nwdS8rRvefcjeTR4ejJMDGBzF+D+zbdY8EilWpXKURBxd8xyZ
-        V3OZbzzYT9nGAb6VEbWgY7jYWXGMNRUlZNGjIc0r/ccgt/EtX/3Fi3oiVvGfqQQsw9A3PIlLWod
-        yjJN48mpGRGqJpovaqklW9ME/2Tk3mMdpq8xmbdIGLRKL2NexjQILzOoe9wbaZa+5Qf2DSM6jxY
-        yRBa/qJQPTK4qtAgwIIC0OoeD/hCbQLWxBF9DMQcRB0bsfrpPIreCTu6Ejg5j56PhsPTTX6HRyc
-        BW2Pk2XN9t9WW1V7Rs0Y/zwWr6luxweyc3jZsvsotCk7EnJZ1VF4ZmWWLAmAotWeLWxPWpCNrSa
-        4CBS563UNewp4E2/TgSpmVYGQlZ3sxk1kV1Ja8cbbCVMcs1jUlqAtPM/2FFilExlQIQeRG0=
-X-TM-AS-User-Approved-Sender: Yes
-X-TM-AS-User-Blocked-Sender: No
-X-TMASE-Result: 10-1.610000-8.000000
-X-TMASE-Version: SMEX-12.5.0.1300-8.5.1020-25404.003
-X-MDID: 1588847915-qJNtCM4SD_Uh
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 06/05/2020 19:34, Pablo Neira Ayuso wrote> -	} else if (act->hw_stats != FLOW_ACTION_HW_STATS_DISABLED) {
-> +	} else if (act->hw_stats != FLOW_ACTION_HW_STATS_DISABLED &&
-> +		   act->hw_stats != FLOW_ACTION_HW_STATS_DONT_CARE) {
->  		NL_SET_ERR_MSG_MOD(extack, "Unsupported action HW stats type");
->  		return -EOPNOTSUPP;
->  	}
-FWIW my whole reason for suggesting DONT_CARE==0 in the first place
- was so that drivers could just use it as a boolean, e.g.
-    if (act->hw_stats && !(act->hw_stats & FLOW_ACTION_HW_STATS_BLAH))
-        error("driver only supports BLAH stats");
-If you're not even doing that then the case for DONT_CARE == ~0 is
- even stronger.
-Sorry I wasn't quick enough on the draw to say this before v4 was
- applied (I was waiting for an answer on the v2 thread; posting a
- Nack on v3 felt like it might come across as needlessly combative).
+Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff7f64f1e in erec_print (octx=0x55555555d2c0, erec=0x55555555fcf0, debug_mask=0) at erec.c:95
+95              switch (indesc->type) {
+(gdb) bt
+    buf=0x55555555db20 "add rule inet traffic-filter input tcp dport { 22, 80, 443 } accept") at libnftables.c:459
+(gdb) p indesc
+$1 = (const struct input_descriptor *) 0x0
 
--ed
+Closes: http://bugzilla.opensuse.org/show_bug.cgi?id=1171321
+Fixes: 086ec6f30c96 ("mnl: extended error support for create command")
+Reported-by: Jan Engelhardt <jengelh@inai.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/mnl.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/mnl.c b/src/mnl.c
+index 94e80261afb7..9ce4072859b1 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -1048,7 +1048,10 @@ int mnl_nft_set_add(struct netlink_ctx *ctx, struct cmd *cmd,
+ 
+ 	cmd_add_loc(cmd, nlh->nlmsg_len, &h->table.location);
+ 	mnl_attr_put_strz(nlh, NFTA_SET_TABLE, h->table.name);
+-	cmd_add_loc(cmd, nlh->nlmsg_len, &h->set.location);
++	if (set_is_anonymous(set->flags))
++		cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->location);
++	else
++		cmd_add_loc(cmd, nlh->nlmsg_len, &h->set.location);
+ 	mnl_attr_put_strz(nlh, NFTA_SET_NAME, h->set.name);
+ 
+ 	nftnl_set_nlmsg_build_payload(nlh, nls);
+-- 
+2.20.1
+
