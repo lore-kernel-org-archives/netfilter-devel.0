@@ -2,92 +2,81 @@ Return-Path: <SRS0=DUCC=6V=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AF18C4724C
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 May 2020 12:15:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C594EC38A24
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 May 2020 14:11:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0AFFD2083B
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 May 2020 12:15:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A34D32082E
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 May 2020 14:11:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726464AbgEGMPw (ORCPT
+        id S1727831AbgEGOLu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 7 May 2020 08:15:52 -0400
-Received: from dispatch1-us1.ppe-hosted.com ([148.163.129.52]:45612 "EHLO
-        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725903AbgEGMPw (ORCPT
+        Thu, 7 May 2020 10:11:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46626 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727804AbgEGOLu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 May 2020 08:15:52 -0400
-Received: from mx1-us1.ppe-hosted.com (unknown [10.7.65.62])
-        by dispatch1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id 8DA95600C1;
-        Thu,  7 May 2020 12:15:51 +0000 (UTC)
-Received: from us4-mdac16-48.ut7.mdlocal (unknown [10.7.66.15])
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id 8CA518009B;
-        Thu,  7 May 2020 12:15:51 +0000 (UTC)
-X-Virus-Scanned: Proofpoint Essentials engine
-Received: from mx1-us1.ppe-hosted.com (unknown [10.7.65.197])
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 0D079280050;
-        Thu,  7 May 2020 12:15:48 +0000 (UTC)
-Received: from webmail.solarflare.com (uk.solarflare.com [193.34.186.16])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 81D4AA40063;
-        Thu,  7 May 2020 12:15:47 +0000 (UTC)
-Received: from [10.17.20.203] (10.17.20.203) by ukex01.SolarFlarecom.com
- (10.17.10.4) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Thu, 7 May 2020
- 13:15:41 +0100
-Subject: Re: [PATCH net,v4] net: flow_offload: skip hw stats check for
- FLOW_ACTION_HW_STATS_DONT_CARE
+        Thu, 7 May 2020 10:11:50 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18BA9C05BD43
+        for <netfilter-devel@vger.kernel.org>; Thu,  7 May 2020 07:11:50 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1jWhFc-0002Ag-4u; Thu, 07 May 2020 16:11:48 +0200
+Date:   Thu, 7 May 2020 16:11:48 +0200
+From:   Florian Westphal <fw@strlen.de>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-CC:     <netfilter-devel@vger.kernel.org>, <davem@davemloft.net>,
-        <netdev@vger.kernel.org>, <jiri@resnulli.us>, <kuba@kernel.org>
-References: <20200506183450.4125-1-pablo@netfilter.org>
- <828ef810-9768-5b5c-7847-0edeb666af9b@solarflare.com>
- <20200507114400.GA2179@salvia>
-From:   Edward Cree <ecree@solarflare.com>
-Message-ID: <dbe545f3-b041-ffe4-a908-f7e29afa322d@solarflare.com>
-Date:   Thu, 7 May 2020 13:15:37 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.2.2
+Cc:     netfilter-devel@vger.kernel.org, jengelh@inai.de
+Subject: Re: [PATCH nft] mnl: fix error rule reporting with missing
+ table/chain and anonymous sets
+Message-ID: <20200507141148.GN32392@breakpoint.cc>
+References: <20200507112919.21227-1-pablo@netfilter.org>
 MIME-Version: 1.0
-In-Reply-To: <20200507114400.GA2179@salvia>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Content-Language: en-GB
-X-Originating-IP: [10.17.20.203]
-X-ClientProxiedBy: ocex03.SolarFlarecom.com (10.20.40.36) To
- ukex01.SolarFlarecom.com (10.17.10.4)
-X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1020-25404.003
-X-TM-AS-Result: No-3.248000-8.000000-10
-X-TMASE-MatchedRID: oTBA/+sdKaa8rRvefcjeTR4ejJMDGBzF69aS+7/zbj+qvcIF1TcLYHzW
-        dSUbujfyiK4AoRG6tnCbymr8/mqLG0BfEFcIy7hycI7vRACwF0L5awEvkHdlMSBQRBOQhaJiT6Y
-        y0anPBpbQmQgkxwKCie74hCpKBA1e33y2DTfklpBtFkauyh5b+MtEPnVvPlFk1R/ptYWR8C4pQP
-        60tO0L4QGHuSswFJxukXSJzFJzhLxCUInNiru3wJ4CIKY/Hg3AnCGS1WQEGtDGr09tQ7Cw/1BIV
-        svVu9ABWBd6ltyXuvuCAFz5q9+UxhhkEtEZPu3D9SJ8jSHFJScyRwp2j1O6EWOSjM7Z9tRA57Dp
-        dQ4myEV+crsQOY4ObTywjVKEq7yyQjkYVKz3GsTwHX5+Q8jjw1wuriZ3P6dErIJZJbQfMXRqaM5
-        LmpUkwzunJXJz8X1QftwZ3X11IV0=
-X-TM-AS-User-Approved-Sender: Yes
-X-TM-AS-User-Blocked-Sender: No
-X-TMASE-Result: 10--3.248000-8.000000
-X-TMASE-Version: SMEX-12.5.0.1300-8.5.1020-25404.003
-X-MDID: 1588853748-aCa3zDxaJ2Z2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200507112919.21227-1-pablo@netfilter.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 07/05/2020 12:44, Pablo Neira Ayuso wrote:
-> Could you point to what driver might have any problem with this update?
-Drivers *can* implement the API in this patch.  It's just that the
- alternative API Jakub proposed would make for simpler driver code.
-I.e. I'm not saying it's bad, just that it could be made better.
-That's why I didn't hard-NACK it at any point.
-I guess I should send the change I'm suggesting as a patch, rather
- than asking it of you — I'll try to get that done today.
-(Although I'm not sure if it's really 'net' material or if I should
- wait for David to merge net into net-next and make the patch
- against the latter — wdyt?)
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Program received signal SIGSEGV, Segmentation fault.
+> 0x00007ffff7f64f1e in erec_print (octx=0x55555555d2c0, erec=0x55555555fcf0, debug_mask=0) at erec.c:95
+> 95              switch (indesc->type) {
+> (gdb) bt
+>     buf=0x55555555db20 "add rule inet traffic-filter input tcp dport { 22, 80, 443 } accept") at libnftables.c:459
+> (gdb) p indesc
+> $1 = (const struct input_descriptor *) 0x0
+> 
+> Closes: http://bugzilla.opensuse.org/show_bug.cgi?id=1171321
+> Fixes: 086ec6f30c96 ("mnl: extended error support for create command")
+> Reported-by: Jan Engelhardt <jengelh@inai.de>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
--ed
+Yes, but there is something else going on.
+
+The command above works without this patch if you use a shorter table name.
+There is another bug that causes nft to pull the wrong error object
+from the queue.
+
+The kernel doesn't generate an error for NFTA_SET_NAME in the above
+rule, so we should not crash even without this (correct) fix, because
+nft should not find this particular error object.
+
+Seems the generated error is for NFTA_SET_ELEM_LIST_TABLE when handling
+nf_tables_newsetelem() in kernel (which makes sense, the table doesn't
+exist).
+
+With the above command (traffic-filter) NFTA_SET_NAMEs start offset
+matches the offset of NFTA_SET_ELEM_LIST_TABLE error message in the
+other netlink message (the one adding the element to the set), it will
+erronously find the cmd_add_loc() of NFTA_SET_NAME and then barf because
+of the bug fixed here.
+
+Not sure how to fix nft_cmd_error(), it looks like the error queueing assumes
+1:1 mapping of cmd struct and netlink message header...?
