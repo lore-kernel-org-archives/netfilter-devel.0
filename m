@@ -1,113 +1,78 @@
-Return-Path: <SRS0=DUCC=6V=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=IXkg=6W=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8624AC47247
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 May 2020 23:48:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74AC4C35280
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 May 2020 01:13:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 67F54215A4
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 May 2020 23:48:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588895305;
-	bh=k/6cWflhLaq57PWrLv3ChauE/FA6fj6ckUlTW4Yxifg=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=XBhefcnIWFgAcxOuXPm08XNGz/orgLuumluC83C3w/Es0yZrOTQiLu7guwRNvg2zA
-	 NtEY3b23Zlq5fKsQcp3Cb/wKb6EwwdsbVV4Lw3lfX4NUUCTQ8FQlt9+M8eRS8I4yQ5
-	 6LOhKuY08P4M7lXQeQIuh8DYOiDDdiNbbLhiqXnY=
+	by mail.kernel.org (Postfix) with ESMTP id 54D50207DD
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 May 2020 01:13:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726776AbgEGXsW (ORCPT
+        id S1726792AbgEHBNV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 7 May 2020 19:48:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50448 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726476AbgEGXsW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 May 2020 19:48:22 -0400
-Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.1])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AD2B321582;
-        Thu,  7 May 2020 23:48:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1588895302;
-        bh=k/6cWflhLaq57PWrLv3ChauE/FA6fj6ckUlTW4Yxifg=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=tcUM+aUeNTL0MQllKrWji6y2mfXybL2tNRMv912IbQLaNf8jWP0WqBV0vaBJiEcGq
-         ffhCTjcn75Dlb8OGSvllq1hHZE6ODsI635Rqh/vFwAIlcpqOBpqweKzFbifnoHnEEp
-         8n5SyOYryLk9RMM7zkpBMBqH+WR91NEyeJj1cY+8=
-Date:   Thu, 7 May 2020 16:48:20 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Edward Cree <ecree@solarflare.com>, netdev@vger.kernel.org,
-        davem@davemloft.net, netfilter-devel@vger.kernel.org,
-        jiri@resnulli.us
-Subject: Re: [RFC PATCH net] net: flow_offload: simplify hw stats check
- handling
-Message-ID: <20200507164820.0f48c36b@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20200507164643.GA10994@salvia>
-References: <49176c41-3696-86d9-f0eb-c20207cd6d23@solarflare.com>
-        <20200507153231.GA10250@salvia>
-        <9000b990-9a25-936e-6063-0034429256f0@solarflare.com>
-        <20200507164643.GA10994@salvia>
+        Thu, 7 May 2020 21:13:21 -0400
+Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:38342 "EHLO
+        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726509AbgEHBNU (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 7 May 2020 21:13:20 -0400
+Received: from dimstar.local.net (n175-34-64-112.sun1.vic.optusnet.com.au [175.34.64.112])
+        by mail104.syd.optusnet.com.au (Postfix) with SMTP id 1309D8207FC
+        for <netfilter-devel@vger.kernel.org>; Fri,  8 May 2020 11:13:18 +1000 (AEST)
+Received: (qmail 22547 invoked by uid 501); 8 May 2020 01:13:17 -0000
+Date:   Fri, 8 May 2020 11:13:17 +1000
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_queue 0/3] pktbuff API updates
+Message-ID: <20200508011317.GD26529@dimstar.local.net>
+Mail-Followup-To: Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20200428103407.GA1160@salvia>
+ <20200428211452.GF15436@dimstar.local.net>
+ <20200428225520.GA30421@salvia>
+ <20200429132840.GA3833@dimstar.local.net>
+ <20200429191047.GB3833@dimstar.local.net>
+ <20200429191643.GA16749@salvia>
+ <20200429203029.GD3833@dimstar.local.net>
+ <20200429210512.GA14508@salvia>
+ <20200430063404.GF3833@dimstar.local.net>
+ <20200505123034.GA16780@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200505123034.GA16780@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.3 cv=W5xGqiek c=1 sm=1 tr=0
+        a=keeXcwCgVCrAuxOn72dlvA==:117 a=keeXcwCgVCrAuxOn72dlvA==:17
+        a=kj9zAlcOel0A:10 a=sTwFKg_x9MkA:10 a=RSmzAf-M6YYA:10 a=OLL_FvSJAAAA:8
+        a=LgnNMTFPk_ALOH8hI4wA:9 a=CjuIK1q_8ugA:10 a=5IQaqkL3LGYA:10
+        a=eNCFSZOqFEwA:10 a=oIrB72frpwYPwTMnlWqB:22
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 7 May 2020 18:46:43 +0200 Pablo Neira Ayuso wrote:
-> On Thu, May 07, 2020 at 04:49:15PM +0100, Edward Cree wrote:
-> > On 07/05/2020 16:32, Pablo Neira Ayuso wrote:  
-> > > On Thu, May 07, 2020 at 03:59:09PM +0100, Edward Cree wrote:  
-> > >> Make FLOW_ACTION_HW_STATS_DONT_CARE be all bits, rather than none, so that
-> > >>  drivers and __flow_action_hw_stats_check can use simple bitwise checks.  
-> > > 
-> > > You have have to explain why this makes sense in terms of semantics.
-> > > 
-> > > _DISABLED and _ANY are contradicting each other.  
-> > No, they aren't.  The DISABLED bit means "I will accept disabled", it doesn't
-> >  mean "I insist on disabled".  What _does_ mean "I insist on disabled" is if
-> >  the DISABLED bit is set and no other bits are.
-> > So DISABLED | ANY means "I accept disabled; I also accept immediate or
-> >  delayed".  A.k.a. "I don't care, do what you like".  
-> 
-> Jiri said Disabled means: bail out if you cannot disable it.
+Hi Pablo,
 
-That's in TC uAPI Jiri chose... doesn't mean we have to do the same
-internally.
+On Tue, May 05, 2020 at 02:30:34PM +0200, Pablo Neira Ayuso wrote: [...]
+> > And we tell users to dimension buf to NFQ_BUFFER_SIZE. We don't even need to
+> > expose pktb_head_size().
 
-> If the driver cannot disable, then it will have to check if the
-> frontend is asking for Disabled (hence, report error to the frontend)
-> or if it is actually asking for Don't care.
-> 
-> What you propose is a context-based interpretation of the bits. So
-> semantics depend on how you accumulate/combine bits.
-> 
-> I really think bits semantics should be interpreted on the bit alone
-> itself.
+On second thoughts, maybe document in a Note the actual formula for how big the
+buffer needs to be. And keep pktb_head_size().
+>
+> NFQ_BUFFER_SIZE tells what is the maximum netlink message size coming
+> from the kernel. That netlink message contains metadata and the actual
+> payload data.
 
-These 3 paragraphs sound to me like you were arguing for Ed's approach..
+I meant NFQ_BUFFER_SIZE (or some better name) to be a new macro expanding to
+'0xffff + (MNL_SOCKET_BUFFER_SIZE/2)' as you suggested in
+https://www.spinics.net/lists/netfilter-devel/msg66938.html. Is that only just
+large enough for largest possible packet? Or is there room for struct pkt_buff
+as well?
 
-> There is one exception though, that is _ANY case, where you let the
-> driver pick between delayed or immediate. But if the driver does not
-> support for counters, it bails out in any case, so the outcome in both
-> request is basically the same.
-> 
-> You are asking for different outcome depending on how bits are
-> combined, which can be done, but it sounds innecessarily complicated
-> to me.
-
-No, quite the opposite, the code as committed to net has magic values
-which drivers have to check.
-
-The counter-proposal is that each bit represents a configuration, and
-if more than one bit is set the driver gets to choose which it prefers. 
-What could be simpler?
-
-netfilter just has to explicitly set the field to DONT_CARE rather than 
-depending on 0 form zalloc() coinciding with the correct value.
+Cheers ... Duncan.
