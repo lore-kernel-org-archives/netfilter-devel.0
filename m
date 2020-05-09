@@ -6,47 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D449AC28CBC
-	for <netfilter-devel@archiver.kernel.org>; Sat,  9 May 2020 09:11:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AB0AC47254
+	for <netfilter-devel@archiver.kernel.org>; Sat,  9 May 2020 09:11:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B49272495C
-	for <netfilter-devel@archiver.kernel.org>; Sat,  9 May 2020 09:11:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 334D42495C
+	for <netfilter-devel@archiver.kernel.org>; Sat,  9 May 2020 09:11:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727811AbgEIJLw (ORCPT
+        id S1727812AbgEIJLw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sat, 9 May 2020 05:11:52 -0400
-Received: from correo.us.es ([193.147.175.20]:52066 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:52050 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726017AbgEIJLw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1725930AbgEIJLw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Sat, 9 May 2020 05:11:52 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6037A4DE735
-        for <netfilter-devel@vger.kernel.org>; Sat,  9 May 2020 11:11:51 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 66CC94DE727
+        for <netfilter-devel@vger.kernel.org>; Sat,  9 May 2020 11:11:50 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 52688115408
-        for <netfilter-devel@vger.kernel.org>; Sat,  9 May 2020 11:11:51 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 591503353
+        for <netfilter-devel@vger.kernel.org>; Sat,  9 May 2020 11:11:50 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 47D9B115409; Sat,  9 May 2020 11:11:51 +0200 (CEST)
+        id 4E9F0DA7B2; Sat,  9 May 2020 11:11:50 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6237F1158E2
-        for <netfilter-devel@vger.kernel.org>; Sat,  9 May 2020 11:11:49 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4AFA720C5D
+        for <netfilter-devel@vger.kernel.org>; Sat,  9 May 2020 11:11:47 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 09 May 2020 11:11:49 +0200 (CEST)
+ Sat, 09 May 2020 11:11:47 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 4E09F42EF4E2
-        for <netfilter-devel@vger.kernel.org>; Sat,  9 May 2020 11:11:49 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 36EA642EF4E1
+        for <netfilter-devel@vger.kernel.org>; Sat,  9 May 2020 11:11:47 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue 2/2] pktbuff: add pktb_head_alloc(), pktb_setup() and pktb_head_size()
-Date:   Sat,  9 May 2020 11:11:41 +0200
-Message-Id: <20200509091141.10619-2-pablo@netfilter.org>
+Subject: [PATCH libnetfilter_queue 1/2] pktbuff: add __pktb_setup()
+Date:   Sat,  9 May 2020 11:11:40 +0200
+Message-Id: <20200509091141.10619-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200509091141.10619-1-pablo@netfilter.org>
-References: <20200509091141.10619-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
@@ -55,70 +53,93 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add two new helper functions, as alternative to pktb_alloc().
-
-* pktb_setup() allows you to skip memcpy()'ing the payload from the
-  netlink message.
-
-* pktb_head_size() returns the size of the pkt_buff opaque object.
-
-* pktb_head_alloc() allows you to allocate the pkt_buff in the heap.
+Add private helper function to set up the pkt_buff object.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/libnetfilter_queue/pktbuff.h |  7 +++++++
- src/extra/pktbuff.c                  | 20 ++++++++++++++++++++
- 2 files changed, 27 insertions(+)
+ src/extra/pktbuff.c | 54 +++++++++++++++++++++++++++------------------
+ 1 file changed, 32 insertions(+), 22 deletions(-)
 
-diff --git a/include/libnetfilter_queue/pktbuff.h b/include/libnetfilter_queue/pktbuff.h
-index 42bc153ec337..a27582b02840 100644
---- a/include/libnetfilter_queue/pktbuff.h
-+++ b/include/libnetfilter_queue/pktbuff.h
-@@ -6,6 +6,13 @@ struct pkt_buff;
- struct pkt_buff *pktb_alloc(int family, void *data, size_t len, size_t extra);
- void pktb_free(struct pkt_buff *pktb);
- 
-+#define NFQ_BUFFER_SIZE	(0xffff + (MNL_SOCKET_BUFFER_SIZE / 2)
-+struct pkt_buff *pktb_setup(struct pkt_buff *pktb, int family, uint8_t *data,
-+			    size_t len, size_t extra);
-+size_t pktb_head_size(void);
-+
-+#define pktb_head_alloc()	(struct pkt_buff *)(malloc(pktb_head_size()))
-+
- uint8_t *pktb_data(struct pkt_buff *pktb);
- uint32_t pktb_len(struct pkt_buff *pktb);
- 
 diff --git a/src/extra/pktbuff.c b/src/extra/pktbuff.c
-index 118ad898f63b..6acefbe72a9b 100644
+index 6dd0ca98aff2..118ad898f63b 100644
 --- a/src/extra/pktbuff.c
 +++ b/src/extra/pktbuff.c
-@@ -103,6 +103,26 @@ struct pkt_buff *pktb_alloc(int family, void *data, size_t len, size_t extra)
- 	return pktb;
- }
+@@ -29,6 +29,34 @@
+  * @{
+  */
  
-+EXPORT_SYMBOL
-+struct pkt_buff *pktb_setup(struct pkt_buff *pktb, int family, uint8_t *buf,
-+			    size_t len, size_t extra)
++static int __pktb_setup(int family, struct pkt_buff *pktb)
 +{
-+	pktb->data_len = len + extra;
-+	pktb->data = buf;
-+	pktb->len = len;
++	struct ethhdr *ethhdr;
 +
-+	if (__pktb_setup(family, pktb) < 0)
-+		return NULL;
++	switch (family) {
++	case AF_INET:
++	case AF_INET6:
++		pktb->network_header = pktb->data;
++		break;
++	case AF_BRIDGE:
++		ethhdr = (struct ethhdr *)pktb->data;
++		pktb->mac_header = pktb->data;
 +
-+	return pktb;
-+}
++		switch(ethhdr->h_proto) {
++		case ETH_P_IP:
++		case ETH_P_IPV6:
++			pktb->network_header = pktb->data + ETH_HLEN;
++			break;
++		default:
++			/* This protocol is unsupported. */
++			return -1;
++		}
++		break;
++	}
 +
-+EXPORT_SYMBOL
-+size_t pktb_head_size(void)
-+{
-+	return sizeof(struct pkt_buff);
++	return 0;
 +}
 +
  /**
-  * pktb_data - get pointer to network packet
-  * \param pktb Pointer to userspace packet buffer
+  * pktb_alloc - allocate a new packet buffer
+  * \param family Indicate what family. Currently supported families are
+@@ -52,7 +80,6 @@ EXPORT_SYMBOL
+ struct pkt_buff *pktb_alloc(int family, void *data, size_t len, size_t extra)
+ {
+ 	struct pkt_buff *pktb;
+-	struct ethhdr *ethhdr;
+ 	void *pkt_data;
+ 
+ 	pktb = calloc(1, sizeof(struct pkt_buff) + len + extra);
+@@ -68,28 +95,11 @@ struct pkt_buff *pktb_alloc(int family, void *data, size_t len, size_t extra)
+ 
+ 	pktb->data = pkt_data;
+ 
+-	switch(family) {
+-	case AF_INET:
+-	case AF_INET6:
+-		pktb->network_header = pktb->data;
+-		break;
+-	case AF_BRIDGE:
+-		ethhdr = (struct ethhdr *)pktb->data;
+-		pktb->mac_header = pktb->data;
+-
+-		switch(ethhdr->h_proto) {
+-		case ETH_P_IP:
+-		case ETH_P_IPV6:
+-			pktb->network_header = pktb->data + ETH_HLEN;
+-			break;
+-		default:
+-			/* This protocol is unsupported. */
+-			errno = EPROTONOSUPPORT;
+-			free(pktb);
+-			return NULL;
+-		}
+-		break;
++	if (__pktb_setup(family, pktb) < 0) {
++		errno = EPROTONOSUPPORT;
++		free(pktb);
+ 	}
++
+ 	return pktb;
+ }
+ 
 -- 
 2.20.1
 
