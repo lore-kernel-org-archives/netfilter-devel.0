@@ -2,90 +2,86 @@ Return-Path: <SRS0=rZfM=6X=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88D51C28CBC
-	for <netfilter-devel@archiver.kernel.org>; Sat,  9 May 2020 09:36:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D4ACC28CBC
+	for <netfilter-devel@archiver.kernel.org>; Sat,  9 May 2020 10:53:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 689ED217BA
-	for <netfilter-devel@archiver.kernel.org>; Sat,  9 May 2020 09:36:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3827621775
+	for <netfilter-devel@archiver.kernel.org>; Sat,  9 May 2020 10:53:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728070AbgEIJgJ (ORCPT
+        id S1727845AbgEIKxD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 9 May 2020 05:36:09 -0400
-Received: from correo.us.es ([193.147.175.20]:36150 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726885AbgEIJgJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 9 May 2020 05:36:09 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4CABF12084B
-        for <netfilter-devel@vger.kernel.org>; Sat,  9 May 2020 11:36:07 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3C03811540B
-        for <netfilter-devel@vger.kernel.org>; Sat,  9 May 2020 11:36:07 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 31A8D115406; Sat,  9 May 2020 11:36:07 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D9272115406;
-        Sat,  9 May 2020 11:36:04 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 09 May 2020 11:36:04 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id AB99142EF4E0;
-        Sat,  9 May 2020 11:36:04 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de, jengelh@inai.de
-Subject: [PATCH nft,v2] mnl: fix error rule reporting with missing table/chain and anonymous sets
-Date:   Sat,  9 May 2020 11:36:01 +0200
-Message-Id: <20200509093601.14671-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        Sat, 9 May 2020 06:53:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40598 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726913AbgEIKxD (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 9 May 2020 06:53:03 -0400
+Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3DFE3C061A0C
+        for <netfilter-devel@vger.kernel.org>; Sat,  9 May 2020 03:53:03 -0700 (PDT)
+Received: by a3.inai.de (Postfix, from userid 25121)
+        id 3D8FA58726E2B; Sat,  9 May 2020 12:52:59 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by a3.inai.de (Postfix) with ESMTP id 3A3BF60D6DCD7;
+        Sat,  9 May 2020 12:52:59 +0200 (CEST)
+Date:   Sat, 9 May 2020 12:52:59 +0200 (CEST)
+From:   Jan Engelhardt <jengelh@inai.de>
+To:     =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+cc:     =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <maze@google.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Linux Network Development Mailing List 
+        <netdev@vger.kernel.org>,
+        Netfilter Development Mailing List 
+        <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH] document danger of '-j REJECT'ing of '-m state INVALID'
+ packets
+In-Reply-To: <20200509052235.150348-1-zenczykowski@gmail.com>
+Message-ID: <nycvar.YFH.7.77.849.2005091231090.11519@n3.vanv.qr>
+References: <20200509052235.150348-1-zenczykowski@gmail.com>
+User-Agent: Alpine 2.22 (LSU 394 2020-01-19)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-handle_merge() skips handle location initialization because set name != NULL.
 
-Program received signal SIGSEGV, Segmentation fault.
-0x00007ffff7f64f1e in erec_print (octx=0x55555555d2c0, erec=0x55555555fcf0, debug_mask=0) at erec.c:95
-95              switch (indesc->type) {
-(gdb) bt
-    buf=0x55555555db20 "add rule inet traffic-filter input tcp dport { 22, 80, 443 } accept") at libnftables.c:459
-(gdb) p indesc
-$1 = (const struct input_descriptor *) 0x0
+On Saturday 2020-05-09 07:22, Maciej Żenczykowski wrote:
+>diff --git a/extensions/libip6t_REJECT.man b/extensions/libip6t_REJECT.man
+>index 0030a51f..b6474811 100644
+>--- a/extensions/libip6t_REJECT.man
+>+++ b/extensions/libip6t_REJECT.man
+>@@ -30,3 +30,18 @@ TCP RST packet to be sent back.  This is mainly useful for blocking
+> hosts (which won't accept your mail otherwise).
+> \fBtcp\-reset\fP
+> can only be used with kernel versions 2.6.14 or later.
+>+.PP
+>+\fIWarning:\fP if you are using connection tracking and \fBACCEPT\fP'ing
+>+\fBESTABLISHED\fP (and possibly \fBRELATED\fP) state packets, do not
+>+indiscriminately \fBREJECT\fP (especially with \fITCP RST\fP) \fBINVALID\fP
+>+state packets.  Sometimes naturally occuring packet reordering will result
+>+in packets being considered \fBINVALID\fP and the generated \fITCP RST\fP
+>+will abort an otherwise healthy connection.
 
-Closes: http://bugzilla.opensuse.org/show_bug.cgi?id=1171321
-Fixes: 086ec6f30c96 ("mnl: extended error support for create command")
-Reported-by: Jan Engelhardt <jengelh@inai.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: Fix this from evaluation phas which does not initialize location.
+I fail to understand the problem here.
 
- src/evaluate.c | 1 +
- 1 file changed, 1 insertion(+)
+1. Because ESTABLISHED and INVALID are mutually exclusive, there is no ordering
+dependency between two rules of the kind {EST=>ACCEPT, INV=>REJ},
+and thus their order plays no role.
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index de5f60ec1f4d..a057be5e553a 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -101,6 +101,7 @@ static struct expr *implicit_set_declaration(struct eval_ctx *ctx,
- 		handle_merge(&set->handle, &ctx->cmd->handle);
- 		memset(&h, 0, sizeof(h));
- 		handle_merge(&h, &set->handle);
-+		h.set.location = expr->location;
- 		cmd = cmd_alloc(CMD_ADD, CMD_OBJ_SET, &h, &expr->location, set);
- 		cmd->location = set->location;
- 		list_add_tail(&cmd->list, &ctx->cmd->list);
--- 
-2.20.1
+2. Given packets D,R (data, rst) leads to state(ct(D))=EST, state(ct(R))=EST in
+the normal case. When this gets reordered to R,D, then we end up with
+state(ct(R))=EST, state(ct(D))=INV. Though the outcome of nfct changes,
+I do not think that will be of consequence, because in the absence of
+filtering, the tcp layer should be discarding/rejecting D.
 
+3. Natural reordering of D1,D2 to D2,D1 should not cause nfct to drop the ct
+at reception of D1 and turn the state to INV. Reordering can happen at any
+time, and we'd be having more reports of problems if it did, wouldn't we...
