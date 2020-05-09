@@ -2,86 +2,56 @@ Return-Path: <SRS0=rZfM=6X=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D4ACC28CBC
-	for <netfilter-devel@archiver.kernel.org>; Sat,  9 May 2020 10:53:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 589D8C28CBC
+	for <netfilter-devel@archiver.kernel.org>; Sat,  9 May 2020 11:52:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3827621775
-	for <netfilter-devel@archiver.kernel.org>; Sat,  9 May 2020 10:53:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 38F2821655
+	for <netfilter-devel@archiver.kernel.org>; Sat,  9 May 2020 11:52:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727845AbgEIKxD (ORCPT
+        id S1728283AbgEILwK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 9 May 2020 06:53:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40598 "EHLO
+        Sat, 9 May 2020 07:52:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49762 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726913AbgEIKxD (ORCPT
+        by vger.kernel.org with ESMTP id S1726063AbgEILwK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 9 May 2020 06:53:03 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3DFE3C061A0C
-        for <netfilter-devel@vger.kernel.org>; Sat,  9 May 2020 03:53:03 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 3D8FA58726E2B; Sat,  9 May 2020 12:52:59 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 3A3BF60D6DCD7;
-        Sat,  9 May 2020 12:52:59 +0200 (CEST)
-Date:   Sat, 9 May 2020 12:52:59 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
-cc:     =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <maze@google.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Linux Network Development Mailing List 
-        <netdev@vger.kernel.org>,
-        Netfilter Development Mailing List 
-        <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH] document danger of '-j REJECT'ing of '-m state INVALID'
- packets
-In-Reply-To: <20200509052235.150348-1-zenczykowski@gmail.com>
-Message-ID: <nycvar.YFH.7.77.849.2005091231090.11519@n3.vanv.qr>
-References: <20200509052235.150348-1-zenczykowski@gmail.com>
-User-Agent: Alpine 2.22 (LSU 394 2020-01-19)
+        Sat, 9 May 2020 07:52:10 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93F04C061A0C
+        for <netfilter-devel@vger.kernel.org>; Sat,  9 May 2020 04:52:10 -0700 (PDT)
+Received: from localhost ([::1]:37184 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1jXO1Y-0005fY-P3; Sat, 09 May 2020 13:52:08 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH 0/2] Critical: Unbreak nfnl_osf tool
+Date:   Sat,  9 May 2020 13:51:58 +0200
+Message-Id: <20200509115200.19480-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+I managed to render nfnl_osf tool useless with my (obviously untested)
+conversion to nfnl_query(). Unbreak it and also fix delete functionality
+which was already broken before I started messing with it.
 
-On Saturday 2020-05-09 07:22, Maciej Żenczykowski wrote:
->diff --git a/extensions/libip6t_REJECT.man b/extensions/libip6t_REJECT.man
->index 0030a51f..b6474811 100644
->--- a/extensions/libip6t_REJECT.man
->+++ b/extensions/libip6t_REJECT.man
->@@ -30,3 +30,18 @@ TCP RST packet to be sent back.  This is mainly useful for blocking
-> hosts (which won't accept your mail otherwise).
-> \fBtcp\-reset\fP
-> can only be used with kernel versions 2.6.14 or later.
->+.PP
->+\fIWarning:\fP if you are using connection tracking and \fBACCEPT\fP'ing
->+\fBESTABLISHED\fP (and possibly \fBRELATED\fP) state packets, do not
->+indiscriminately \fBREJECT\fP (especially with \fITCP RST\fP) \fBINVALID\fP
->+state packets.  Sometimes naturally occuring packet reordering will result
->+in packets being considered \fBINVALID\fP and the generated \fITCP RST\fP
->+will abort an otherwise healthy connection.
+Phil Sutter (2):
+  nfnl_osf: Fix broken conversion to nfnl_query()
+  nfnl_osf: Improve error handling
 
-I fail to understand the problem here.
+ utils/nfnl_osf.c | 21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-1. Because ESTABLISHED and INVALID are mutually exclusive, there is no ordering
-dependency between two rules of the kind {EST=>ACCEPT, INV=>REJ},
-and thus their order plays no role.
+-- 
+2.25.1
 
-2. Given packets D,R (data, rst) leads to state(ct(D))=EST, state(ct(R))=EST in
-the normal case. When this gets reordered to R,D, then we end up with
-state(ct(R))=EST, state(ct(D))=INV. Though the outcome of nfct changes,
-I do not think that will be of consequence, because in the absence of
-filtering, the tcp layer should be discarding/rejecting D.
-
-3. Natural reordering of D1,D2 to D2,D1 should not cause nfct to drop the ct
-at reception of D1 and turn the state to INV. Reordering can happen at any
-time, and we'd be having more reports of problems if it did, wouldn't we...
