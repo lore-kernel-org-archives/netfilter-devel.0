@@ -2,100 +2,120 @@ Return-Path: <SRS0=NFxu=6Z=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D43C0C47255
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 21:26:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 540A0C54E4A
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 21:34:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A7C0A206F5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 21:26:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2F330206D9
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 21:34:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RMKfcOmc"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NqAHlu2A"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725895AbgEKV0R (ORCPT
+        id S1726066AbgEKVeB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 May 2020 17:26:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48290 "EHLO
+        Mon, 11 May 2020 17:34:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49486 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1725810AbgEKV0R (ORCPT
+        by vger.kernel.org with ESMTP id S1725895AbgEKVeB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 May 2020 17:26:17 -0400
-Received: from mail-lj1-x22c.google.com (mail-lj1-x22c.google.com [IPv6:2a00:1450:4864:20::22c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE524C061A0C
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 May 2020 14:26:16 -0700 (PDT)
-Received: by mail-lj1-x22c.google.com with SMTP id a21so11188699ljj.11
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 May 2020 14:26:16 -0700 (PDT)
+        Mon, 11 May 2020 17:34:01 -0400
+Received: from mail-pj1-x1041.google.com (mail-pj1-x1041.google.com [IPv6:2607:f8b0:4864:20::1041])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 251AFC061A0C;
+        Mon, 11 May 2020 14:34:01 -0700 (PDT)
+Received: by mail-pj1-x1041.google.com with SMTP id a5so8490614pjh.2;
+        Mon, 11 May 2020 14:34:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=/IR78QIDGwQ3zRPqdOKqneHUqxdauQ750DTgGvQ56MI=;
-        b=RMKfcOmcnzPvCSTnfP6vCvrwZ0OnG6wCNbDZ2b+81bAaDxpXS/0OjmGKEHDKs8qQvV
-         T0zrig3NwZGUpIL3ww61Xp8KO6B05dnMEnh3sN6uI9y4i13yF5SnTzAVYiOrvpE2Q1sa
-         PdkkN5aCAgxoq1lAOqDvn2xx0a9RPusn4aYu04LBqcacQKbApFH0NuoQGlTM1SD1TGjd
-         /W/euMrOd+0edYR3Hkx6CtW9dylit6hRdUbzAh1AAzp8E3WaGPPmF+pI75stPP2f0KTk
-         iKmpniWeGr0pEXdg7Pb6arGtpdxnMvDQuTM7i69JdXKUhhyRKdSTQxUzB+D7D8mmgMDQ
-         FuAQ==
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=lbgIdJ/aL+x7yqr49pyrmYPxLoAsTpYoiESdy7iQrUY=;
+        b=NqAHlu2A1agoX4CCVujsL6LsUQT0GKOG/1T+vxs7MNtyFVgRblmo3oBTkg/wFWqaep
+         FwgINMXmFijwwBbqbfLm40dbySaZ2Bk1eqjfXKoabY0ZwQ5smyQNl6SoJkbQxCXyzZnY
+         WYWuqFsdPhox5F4u8MdYT07MWimbU1uTA6MBGgSaZeheFmtI6OHxUM9hYDwwBg0nUNQr
+         nLqAL7CQ2dPKUn4HhK8Ihin6yExQGdkjp+N0yxV+ESc5jAMVJQahJNRNyCzOO6GxmtXD
+         youeJYnkEW5kKcC1SCzPxeiV2vL7XoMtiZx0RQy4sQGYT+JfeBpsfzSGJ++Usr71DNBw
+         57UA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=/IR78QIDGwQ3zRPqdOKqneHUqxdauQ750DTgGvQ56MI=;
-        b=hSVh3kB+puWLWIs3aWukYCBpGBjamp1B8odNd65fSSm7Sraf6+tkaDLtlDv6+S1B7m
-         f8knryq5ENHYWvt9fwca3kVryBxZ5E206msZScAG8pm07gk+T2CtsMQ9jZ/bAIEIPWxf
-         +5Y6aq20QnVD+fMQn9Gmb4FdeoLH9xWAXZZKOtQ53Ema4Ma3B3othFQUGmo7etZDv30E
-         2TytiQt6Wt6I8nu3BfgCyHIB2bE7F3JR6DBXHBMAQOb2LIWZnlZsMzUkhI04N7OZb6Mq
-         V2EqS1wK+ggydmH15tux+xiXxHYhdrcbY/SljJZoYO/gOnn315KhfCYNkUnNZG0k1vge
-         utnA==
-X-Gm-Message-State: AOAM531eNh2SeJJCuWKS/V/BcQQGezFC2LM27cqRW0nN09NgdNqFVqvr
-        8dVQ0vv8odBPz/hQ/rE/YDZdFXWFe/ZSqfOAJO9sbh+0
-X-Google-Smtp-Source: ABdhPJx49kzdvc1vcUfwCmIcNdwnLA9iTe0g1P5iuIM9b+iWiUB68MKcTGgLbmWlNYP+cIZBk7yXy/YvrUBuKuZuZVc=
-X-Received: by 2002:a2e:8901:: with SMTP id d1mr11701559lji.37.1589232375050;
- Mon, 11 May 2020 14:26:15 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=lbgIdJ/aL+x7yqr49pyrmYPxLoAsTpYoiESdy7iQrUY=;
+        b=V5JwJ0YJ3ERi7kFnr6gKT7R3/5FM3g/HCIgWd20eTPxcPgSvsdDdJolE/C/5bAmhdp
+         +yMvZiMolL7jG7ad60GXsNz/xkZubzGBHBRcbINoe+kNvhbE1//fWUz+ncboqfyfmtCC
+         18LGH0/BTXHpO48vaNOHNeJfUCKB4xXyh5snx0hNJJ3GOpVWtrmji3aQABIpAko0pNwo
+         MTj2SF35V+yyq4aoid4zjXGcPIc84c1+Bf2j101rbIFEdA0PPK03vXMJXHmhX4Pl/jPI
+         H00WdEcoNv2oqZ+DFkaFNPSUuku0FVx2+ounvGEhScphhYmM9YoAzu3ildxcLb5wZXa+
+         73Lg==
+X-Gm-Message-State: AGi0PuYJ7sGPEqb9SdU9pkD9h1icKHECtF/sVbWF09wl8bv53yWlmX9i
+        hkbbc1HDKIeFsjHzwAg+BEk/1MZE
+X-Google-Smtp-Source: APiQypIXEXsz03zbjw+rgJ+XcXRTDtPSai0/CzZvHBsVBvSv40QWrxAbTiCo2RNFo0OsNH0hYsnbJw==
+X-Received: by 2002:a17:902:eb12:: with SMTP id l18mr17171749plb.269.1589232840552;
+        Mon, 11 May 2020 14:34:00 -0700 (PDT)
+Received: from athina.mtv.corp.google.com ([2620:15c:211:0:c786:d9fd:ab91:6283])
+        by smtp.gmail.com with ESMTPSA id c2sm10068665pfp.118.2020.05.11.14.33.59
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 11 May 2020 14:33:59 -0700 (PDT)
+From:   =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <zenczykowski@gmail.com>
+To:     =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     Linux Network Development Mailing List <netdev@vger.kernel.org>,
+        Netfilter Development Mailing List 
+        <netfilter-devel@vger.kernel.org>
+Subject: [PATCH] libip6t_srh.t: switch to lowercase, add /128 suffix, require success
+Date:   Mon, 11 May 2020 14:33:49 -0700
+Message-Id: <20200511213349.248618-1-zenczykowski@gmail.com>
+X-Mailer: git-send-email 2.26.2.645.ge9eca65c58-goog
 MIME-Version: 1.0
-From:   b38911 Zxc <b38911@gmail.com>
-Date:   Mon, 11 May 2020 21:26:04 +0000
-Message-ID: <CACWCkhBm0yNnm=Jt0Kq+mbO-mOK7nyDfvTi+CEU6s7OVHs0Azw@mail.gmail.com>
-Subject: Correct usage of nf_ct_get
-To:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello.
+From: Maciej Żenczykowski <maze@google.com>
 
-I tried to post this in the User Mailing List, but may be this is a
-better place.
-I have a doubt on the correct usage of the conntrack func "nf_ct_get".
-I'm calling it in this way in my netfilter, to track UDP traffic:
+This looks like an oversight which is easy to fix.
 
- -----<Code snippet>-----
+Furthermore:
+  git grep ';;OK'
+does not find any other matches, so this is the last unverified test case.
 
-       ct = nf_ct_get(skb, &ctinfo);
-       if (ct == NULL)
-       ...
+Test:
+  [root@f32vm IPT]# uname -r
+  5.6.10-300.fc32.x86_64
 
- -----<Code snippet>-----
+  [root@f32vm IPT]# md5sum extensions/libip6t_srh.t
+  b98864bdd6c39a0dd96022c47e652edb  extensions/libip6t_srh.t
 
-On some systems it just work. In some others I get the result as NULL
-until I do something like
+  [root@f32vm IPT]# ./iptables-test.py extensions/libip6t_srh.t
+  extensions/libip6t_srh.t: OK
+  1 test files, 27 unit tests, 27 passed
 
- # iptables -A OUTPUT -m conntrack --ctstate NEW,RELATED,ESTABLISHED -j ACCEPT
+Signed-off-by: Maciej Żenczykowski <maze@google.com>
+---
+ extensions/libip6t_srh.t | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-I understand that this is due to some module missing.
-I did some additional investigations and it looks that what I'm looking
-for can be accomplished with the call to
+diff --git a/extensions/libip6t_srh.t b/extensions/libip6t_srh.t
+index 07b54031..5b02a71b 100644
+--- a/extensions/libip6t_srh.t
++++ b/extensions/libip6t_srh.t
+@@ -23,6 +23,6 @@
+ -m srh ! --srh-tag 0;=;OK
+ -m srh --srh-next-hdr 17 --srh-segs-left-eq 1 --srh-last-entry-eq 4 --srh-tag 0;=;OK
+ -m srh ! --srh-next-hdr 17 ! --srh-segs-left-eq 0 --srh-tag 0;=;OK
+--m srh --srh-psid A::/64 --srh-nsid B:: --srh-lsid C::/0;;OK
+--m srh ! --srh-psid A::/64 ! --srh-nsid B:: ! --srh-lsid C::/0;;OK
++-m srh --srh-psid a::/64 --srh-nsid b::/128 --srh-lsid c::/0;=;OK
++-m srh ! --srh-psid a::/64 ! --srh-nsid b::/128 ! --srh-lsid c::/0;=;OK
+ -m srh;=;OK
+-- 
+2.26.2.645.ge9eca65c58-goog
 
-nf_ct_l3proto_try_module_get
-
-But this looks valid only for some 4.x kernel versions. From more
-recent versions
-it looks this has been removed. Anyone can point me to how to approach
-this on newer
-kernels?
-
-Thanks you so much for your help!
-CC
