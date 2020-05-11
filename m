@@ -2,96 +2,95 @@ Return-Path: <SRS0=NFxu=6Z=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 527D4C54E8F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 10:09:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 964B4C47255
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 10:17:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3C69D20720
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 10:09:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 694C42075E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 10:17:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728889AbgEKKJz (ORCPT
+        id S1728613AbgEKKR5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 May 2020 06:09:55 -0400
-Received: from dispatch1-us1.ppe-hosted.com ([148.163.129.52]:55818 "EHLO
-        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725983AbgEKKJz (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 May 2020 06:09:55 -0400
-Received: from mx1-us1.ppe-hosted.com (unknown [10.7.65.64])
-        by dispatch1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id B87356004F;
-        Mon, 11 May 2020 10:09:54 +0000 (UTC)
-Received: from us4-mdac16-49.ut7.mdlocal (unknown [10.7.66.16])
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id B6D742009B;
-        Mon, 11 May 2020 10:09:54 +0000 (UTC)
-X-Virus-Scanned: Proofpoint Essentials engine
-Received: from mx1-us1.ppe-hosted.com (unknown [10.7.65.174])
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 3CAC022004D;
-        Mon, 11 May 2020 10:09:54 +0000 (UTC)
-Received: from webmail.solarflare.com (uk.solarflare.com [193.34.186.16])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id AF4851C007E;
-        Mon, 11 May 2020 10:09:53 +0000 (UTC)
-Received: from [10.17.20.203] (10.17.20.203) by ukex01.SolarFlarecom.com
- (10.17.10.4) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Mon, 11 May
- 2020 11:09:47 +0100
-Subject: Re: [RFC PATCH net] net: flow_offload: simplify hw stats check
- handling
-To:     Jiri Pirko <jiri@resnulli.us>, Jakub Kicinski <kuba@kernel.org>
-CC:     Pablo Neira Ayuso <pablo@netfilter.org>, <netdev@vger.kernel.org>,
-        <davem@davemloft.net>, <netfilter-devel@vger.kernel.org>
-References: <49176c41-3696-86d9-f0eb-c20207cd6d23@solarflare.com>
- <20200507153231.GA10250@salvia>
- <9000b990-9a25-936e-6063-0034429256f0@solarflare.com>
- <20200507164643.GA10994@salvia>
- <20200507164820.0f48c36b@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
- <20200511053359.GC2245@nanopsycho>
-From:   Edward Cree <ecree@solarflare.com>
-Message-ID: <cc715ede-ce75-39ca-4887-4c1d208b4c1f@solarflare.com>
-Date:   Mon, 11 May 2020 11:09:44 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.2.2
+        Mon, 11 May 2020 06:17:57 -0400
+Received: from correo.us.es ([193.147.175.20]:52474 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725983AbgEKKR4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 11 May 2020 06:17:56 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id BAC4C4FFE1A
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 May 2020 12:17:54 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id ABD92DA736
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 May 2020 12:17:54 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id A14E21158F7; Mon, 11 May 2020 12:17:54 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 974E91158E8;
+        Mon, 11 May 2020 12:17:52 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 11 May 2020 12:17:52 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 6A64042EF42A;
+        Mon, 11 May 2020 12:17:52 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     ozsh@mellanox.com, roid@mellanox.com, saeedm@mellanox.com
+Subject: [PATCH nf] netfilter: flowtable: set NF_FLOW_TEARDOWN flag on entry expiration
+Date:   Mon, 11 May 2020 12:17:42 +0200
+Message-Id: <20200511101742.20748-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-In-Reply-To: <20200511053359.GC2245@nanopsycho>
-Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Content-Language: en-GB
-X-Originating-IP: [10.17.20.203]
-X-ClientProxiedBy: ocex03.SolarFlarecom.com (10.20.40.36) To
- ukex01.SolarFlarecom.com (10.17.10.4)
-X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1020-25412.003
-X-TM-AS-Result: No-5.616200-8.000000-10
-X-TMASE-MatchedRID: cgbqQT5W8he8rRvefcjeTfZvT2zYoYOwC/ExpXrHizzWtEi2QPdTa7SJ
-        tSo+0vIaEzA6FLfmziHJADt1ASJDUpa5OOPdqTS1A9lly13c/gE0AJe3B5qfBhEYLStbyrVdeHI
-        3R7yfiGd16l6K/mgYgLRKB9HFkk/Js08SNE87w/sYkAMBsEcZTCwJt7jDqzeemyiLZetSf8kir3
-        kOMJmHTBQabjOuIvShC24oEZ6SpSkj80Za3RRg8OtOy+Pm9+CG3XX0k0ote7O/1bnNDiuFNqxkR
-        3fS3wCki5f+zHkN9Oc=
-X-TM-AS-User-Approved-Sender: Yes
-X-TM-AS-User-Blocked-Sender: No
-X-TMASE-Result: 10--5.616200-8.000000
-X-TMASE-Version: SMEX-12.5.0.1300-8.5.1020-25412.003
-X-MDID: 1589191794-arpRoAS6J3vX
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 11/05/2020 06:33, Jiri Pirko wrote:
-> Fri, May 08, 2020 at 01:48:20AM CEST, kuba@kernel.org wrote:
->> On Thu, 7 May 2020 18:46:43 +0200 Pablo Neira Ayuso wrote:
->>> Jiri said Disabled means: bail out if you cannot disable it.
->> That's in TC uAPI Jiri chose... doesn't mean we have to do the same
->> internally.
-> Yeah, but if TC user says "disabled", please don't assign counter or
-> fail.
-Right, that's what happens with my proposal: TC "disabled" gets
- mapped to internal "disabled (and no other bits)", which means
- "disable or fail".  In exactly the same way that TC "immediate"
- gets mapped to internal "immediate (and no other bits)" which
- means "immediate or fail".
-As Jakub says, "What could be simpler?"
+If the flow timer expires, the gc sets on the NF_FLOW_TEARDOWN flag.
+Otherwise, the flowtable software path might race to refresh the
+timeout, leaving the state machine in inconsistent state.
 
--ed
+Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
+Reported-by: Paul Blakey <paulb@mellanox.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_flow_table_core.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 4344e572b7f9..42da6e337276 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -284,7 +284,7 @@ static void flow_offload_del(struct nf_flowtable *flow_table,
+ 
+ 	if (nf_flow_has_expired(flow))
+ 		flow_offload_fixup_ct(flow->ct);
+-	else if (test_bit(NF_FLOW_TEARDOWN, &flow->flags))
++	else
+ 		flow_offload_fixup_ct_timeout(flow->ct);
+ 
+ 	flow_offload_free(flow);
+@@ -361,8 +361,10 @@ static void nf_flow_offload_gc_step(struct flow_offload *flow, void *data)
+ {
+ 	struct nf_flowtable *flow_table = data;
+ 
+-	if (nf_flow_has_expired(flow) || nf_ct_is_dying(flow->ct) ||
+-	    test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
++	if (nf_flow_has_expired(flow) || nf_ct_is_dying(flow->ct))
++		set_bit(NF_FLOW_TEARDOWN, &flow->flags);
++
++	if (test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
+ 		if (test_bit(NF_FLOW_HW, &flow->flags)) {
+ 			if (!test_bit(NF_FLOW_HW_DYING, &flow->flags))
+ 				nf_flow_offload_del(flow_table, flow);
+-- 
+2.20.1
+
