@@ -2,314 +2,151 @@ Return-Path: <SRS0=NFxu=6Z=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA2DCC54E8E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 13:38:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34AB1C47255
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 13:57:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CCA0E206B7
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 13:38:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0822D206D6
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 13:57:59 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="daWz36ou"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729995AbgEKNid (ORCPT
+        id S1730288AbgEKN56 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 May 2020 09:38:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59716 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1729912AbgEKNic (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 May 2020 09:38:32 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79494C061A0C
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 May 2020 06:38:32 -0700 (PDT)
-Received: from localhost ([::1]:42694 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1jY8db-00026a-9v; Mon, 11 May 2020 15:38:31 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 1/2] nft: Merge nft_*_rule_find() functions
-Date:   Mon, 11 May 2020 15:38:16 +0200
-Message-Id: <20200511133817.11106-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.25.1
-MIME-Version: 1.0
+        Mon, 11 May 2020 09:57:58 -0400
+Received: from mail-eopbgr130051.outbound.protection.outlook.com ([40.107.13.51]:56398
+        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1730153AbgEKN55 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 11 May 2020 09:57:57 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Z9vyYvQE0Y1H+sODxGeXzkdkSIJEsdkfk05h+xKNNYjq5gAtpjOp1A5zkNe/emPl9vsV4JyeEcsE4rd/suuzQJgcGYGx0bINe6PKN+ePEKyQ09WHOJECljdMA+0e76JewRqOh2sW+j01Kf9xcIdizV6IXd9Ms17xHOFkVkWJJuRuG64XM4I7+JRShYVvaS1PDqk4q6LdRj4/V7zkz1/owy/ixp9XIR9RU0AG2V6fL7n7vZkgY22JiZVbgfAXMnGeSRN1KURLZd9C3ae5HvnV2EjeY2r0u05ES7CqbtZrX+7TBqwbyJHx073D5hNiO2z3j9wGuDlOPexWWOjV3focEw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=uVcuYLdJZr9S6GcEW5P+kCsikj+h0gCMfB1dH2Ul9OU=;
+ b=VQZhaMjbepVUyUuSUnandEf83X/BPiUsZ3zMZGVKZFcGLG8CaBb08obUU+vdIcIMAQSmt9bRmTwYJqJ6SqbNH8b48Vog9XWdWgPgWtqMnoAZ5Xkqcf7gIQ2gNJ8mpyDQENUwdqqG/HrJZNfwRfIyEDDjCIWj/wzGrEEgb8StYbUa2EYi0VL//9wIBZtnpo4VdZB98ohQx+Vn9KVQZuirG0BHqjXoChtpILzGnwJChpxhxq6GUUaiE64L73DsC0icgyqjTokBn34GN6enJRU37cLvES2W2e0MW/0Dk0izY5n7UGsOD/YLL7myhHi/xqhVsrvcG/izV1PVtQtzct7rNg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=uVcuYLdJZr9S6GcEW5P+kCsikj+h0gCMfB1dH2Ul9OU=;
+ b=daWz36oukSS2WVPTYaKp4O+Ib2EpfVyOY4gIZ50nkilhhVm9olJmVopTDrmespAuIfJz+FHrd0h0ErI4wHLhAzPLFO/QPRgPoEZl5eVw6a7HIRnfwa7c62AmVEBfGr4rmfl2BqIg4udmJRx/9HV6skTcFpYM9035Ex254EW1T1A=
+Authentication-Results: vger.kernel.org; dkim=none (message not signed)
+ header.d=none;vger.kernel.org; dmarc=none action=none
+ header.from=mellanox.com;
+Received: from DB7PR05MB4156.eurprd05.prod.outlook.com (2603:10a6:5:18::21) by
+ DB7PR05MB4873.eurprd05.prod.outlook.com (2603:10a6:10:1e::19) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2979.33; Mon, 11 May 2020 13:57:53 +0000
+Received: from DB7PR05MB4156.eurprd05.prod.outlook.com
+ ([fe80::39ab:622c:b05b:c86]) by DB7PR05MB4156.eurprd05.prod.outlook.com
+ ([fe80::39ab:622c:b05b:c86%3]) with mapi id 15.20.2979.033; Mon, 11 May 2020
+ 13:57:53 +0000
+Subject: Re: [PATCH net] netfilter: flowtable: Add pending bit for offload
+ work
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Paul Blakey <paulb@mellanox.com>
+Cc:     Oz Shlomo <ozsh@mellanox.com>, netdev@vger.kernel.org,
+        Saeed Mahameed <saeedm@mellanox.com>,
+        netfilter-devel@vger.kernel.org
+References: <1588764279-12166-1-git-send-email-paulb@mellanox.com>
+ <20200510221434.GA11226@salvia>
+ <9dff92fe-15cd-348d-ff1c-7a102ea9263c@mellanox.com>
+ <20200511115939.GA19979@salvia>
+From:   Roi Dayan <roid@mellanox.com>
+Message-ID: <28366c05-8293-6c9e-bfea-47f86bfc422e@mellanox.com>
+Date:   Mon, 11 May 2020 16:57:50 +0300
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.8.0
+In-Reply-To: <20200511115939.GA19979@salvia>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: AM0PR03CA0006.eurprd03.prod.outlook.com
+ (2603:10a6:208:14::19) To DB7PR05MB4156.eurprd05.prod.outlook.com
+ (2603:10a6:5:18::21)
+MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from [192.168.1.170] (176.231.113.172) by AM0PR03CA0006.eurprd03.prod.outlook.com (2603:10a6:208:14::19) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2979.28 via Frontend Transport; Mon, 11 May 2020 13:57:52 +0000
+X-Originating-IP: [176.231.113.172]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: 2034b9c2-ce76-436e-4c47-08d7f5b34cf4
+X-MS-TrafficTypeDiagnostic: DB7PR05MB4873:|DB7PR05MB4873:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <DB7PR05MB487313A13839F8406266F1BDB5A10@DB7PR05MB4873.eurprd05.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:7691;
+X-Forefront-PRVS: 04004D94E2
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: nNJew+S4RmJDULGVjmnmbxHCXuEobFh6pyGWvlIuTiUl7bMM7AgD3MNhGYNBioi8tYBV8L7Aq+nQxFzmPXW/0i6outv52gIOZvsw+BVV0DDaqtpz/55qgC913frrYDw2V/rls0WXrN8lP4raIFbL/g+sV2bJfIhBPaGeWw1SKgko5Ckbi1LXXxEiBr+iCE6K0rA2+FUXxkpjNkm19mLsA51GbexHb6SKpFGrXb2FlI3M/QOJ8gepRw1pKxaL1MW9waUQlUqpi9QOxs3qKI60tcL81+eJ56JnshgGX21uh+uhmx5vY0ur5OHjkB/g1z+9C6PJHNO8G5gFGuyqigOq2Z4CKXPXzB/cyouejWjKrnHKraW83zVbRf8dlJC/RuvpS+LzY22W52dg+QvtIM2jpBZ2SsMeZIYFX5YfPbuSQOmBTpKzTVtDD8mNTOLqNQL2dYez/rlL1q3yiX2Fcdh4lBUQHT5LCCtIW0QD1VpD8hrVR5U9VXz5LUZQHP0lfpxE4L2mlV3+QA6gZ6a9JpseBUlVWe+LcjvwZziHXTccaOEINp9mqk8FIJEpWG9X3G3d
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DB7PR05MB4156.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(39860400002)(376002)(396003)(136003)(346002)(366004)(33430700001)(86362001)(478600001)(33440700001)(52116002)(6486002)(4326008)(5660300002)(31696002)(6636002)(31686004)(2616005)(8676002)(956004)(110136005)(2906002)(36756003)(16526019)(26005)(16576012)(66476007)(186003)(54906003)(66946007)(8936002)(316002)(53546011)(66556008)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: X6Rm+Vp+NokL4VSEP4pEPAJ6EqBmPcmKnZCApezaIm0Qs2ZCxucueAyUFWqmQskqUPeYcws6BYDL4MKv1gfr1gSvCerXdHhQMV5bVya/woPXHlnFj3oYMyKb8BGwKCjQXFeJUfi/uuLbyziUvZaspAluIMgLEEr+P/jt7pQc6agxAhCIYssfq3RBiyDd7pzkW9zsJAE5klKifBV6MtrmCrT8Mit9G9B1RANNAfIDb4y9CNulOHxyeWUMrPlM2lMbKl2m3fGFO9GHq3C6XX4vju4DKQltwANuUqMhavFU8XR3ejCHXWZHitBhbetB4Ge0KTZg6YX36XXwb+7dykXuHzpQFhqSdk582Szq5LLRlhMvAth416zwl29D7oR7HdFh6cYfNXa9f6Q9Ygh0labfbaaF/xI/2Z//WHdMn5rtm3Q9pJZ1rZLKq+x9pGO3k9VwD/kz4bw87pWzTQ7eeJE88rodAvSpuHvYpzbjvbe9rwAe69Y5Du7eHoPQ31+y8Pd/
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2034b9c2-ce76-436e-4c47-08d7f5b34cf4
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 May 2020 13:57:53.7493
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: nNUzRu0m9/TjrtbdoKiYaKmR3RLKO5csOHRc4iIxzenGIqzOR0D9jYKmZIPHpa50nR9WaCoGGyXwVLtXgr8aEg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB7PR05MB4873
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Both ebtables and arptables are fine with using nft_ipv46_rule_find()
-instead of their own implementations. Take the chance and move the
-former into nft.c as a static helper since it is used in a single place,
-only. Then get rid of the callback from family_ops.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/nft-arp.c    | 28 ----------------------------
- iptables/nft-bridge.c | 38 --------------------------------------
- iptables/nft-ipv4.c   |  1 -
- iptables/nft-ipv6.c   |  1 -
- iptables/nft-shared.c | 39 ---------------------------------------
- iptables/nft-shared.h |  4 ----
- iptables/nft.c        | 41 ++++++++++++++++++++++++++++++++++++++++-
- 7 files changed, 40 insertions(+), 112 deletions(-)
 
-diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
-index 9a831efd07a28..23ab73cba649e 100644
---- a/iptables/nft-arp.c
-+++ b/iptables/nft-arp.c
-@@ -635,33 +635,6 @@ static bool nft_arp_is_same(const void *data_a,
- 				  (unsigned char *)b->arp.outiface_mask);
- }
- 
--static bool nft_arp_rule_find(struct nft_handle *h, struct nftnl_rule *r,
--			      struct nftnl_rule *rule)
--{
--	struct iptables_command_state _cs = {}, *cs = &_cs;
--	struct iptables_command_state this = {};
--	bool ret = false;
--
--	/* Delete by matching rule case */
--	nft_rule_to_iptables_command_state(h, r, &this);
--	nft_rule_to_iptables_command_state(h, rule, cs);
--
--	if (!nft_arp_is_same(&cs->arp, &this.arp))
--		goto out;
--
--	if (!compare_targets(cs->target, this.target))
--		goto out;
--
--	if (this.jumpto && strcmp(cs->jumpto, this.jumpto) != 0)
--		goto out;
--
--	ret = true;
--out:
--	h->ops->clear_cs(&this);
--	h->ops->clear_cs(cs);
--	return ret;
--}
--
- static void nft_arp_save_chain(const struct nftnl_chain *c, const char *policy)
- {
- 	const char *chain = nftnl_chain_get_str(c, NFTNL_CHAIN_NAME);
-@@ -684,6 +657,5 @@ struct nft_family_ops nft_family_ops_arp = {
- 	.post_parse		= NULL,
- 	.rule_to_cs		= nft_rule_to_iptables_command_state,
- 	.clear_cs		= nft_clear_iptables_command_state,
--	.rule_find		= nft_arp_rule_find,
- 	.parse_target		= nft_ipv46_parse_target,
- };
-diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
-index 39a2f704000c7..18f5e78f1b3a2 100644
---- a/iptables/nft-bridge.c
-+++ b/iptables/nft-bridge.c
-@@ -756,43 +756,6 @@ static bool nft_bridge_is_same(const void *data_a, const void *data_b)
- 	return strcmp(a->in, b->in) == 0 && strcmp(a->out, b->out) == 0;
- }
- 
--static bool nft_bridge_rule_find(struct nft_handle *h, struct nftnl_rule *r,
--				 struct nftnl_rule *rule)
--{
--	struct iptables_command_state _cs = {}, *cs = &_cs;
--	struct iptables_command_state this = {};
--	bool ret = false;
--
--	nft_rule_to_ebtables_command_state(h, r, &this);
--	nft_rule_to_ebtables_command_state(h, rule, cs);
--
--	DEBUGP("comparing with... ");
--
--	if (!nft_bridge_is_same(cs, &this))
--		goto out;
--
--	if (!compare_matches(cs->matches, this.matches)) {
--		DEBUGP("Different matches\n");
--		goto out;
--	}
--
--	if (!compare_targets(cs->target, this.target)) {
--		DEBUGP("Different target\n");
--		goto out;
--	}
--
--	if (cs->jumpto != NULL && strcmp(cs->jumpto, this.jumpto) != 0) {
--		DEBUGP("Different verdict\n");
--		goto out;
--	}
--
--	ret = true;
--out:
--	h->ops->clear_cs(&this);
--	h->ops->clear_cs(cs);
--	return ret;
--}
--
- static int xlate_ebmatches(const struct iptables_command_state *cs, struct xt_xlate *xl)
- {
- 	int ret = 1, numeric = cs->options & OPT_NUMERIC;
-@@ -974,6 +937,5 @@ struct nft_family_ops nft_family_ops_bridge = {
- 	.post_parse		= NULL,
- 	.rule_to_cs		= nft_rule_to_ebtables_command_state,
- 	.clear_cs		= ebt_cs_clean,
--	.rule_find		= nft_bridge_rule_find,
- 	.xlate			= nft_bridge_xlate,
- };
-diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
-index 69691fe28cf80..ba789da0c5973 100644
---- a/iptables/nft-ipv4.c
-+++ b/iptables/nft-ipv4.c
-@@ -457,6 +457,5 @@ struct nft_family_ops nft_family_ops_ipv4 = {
- 	.parse_target		= nft_ipv46_parse_target,
- 	.rule_to_cs		= nft_rule_to_iptables_command_state,
- 	.clear_cs		= nft_clear_iptables_command_state,
--	.rule_find		= nft_ipv46_rule_find,
- 	.xlate			= nft_ipv4_xlate,
- };
-diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
-index 76f2613d95c6a..84bcf1c53f48c 100644
---- a/iptables/nft-ipv6.c
-+++ b/iptables/nft-ipv6.c
-@@ -409,6 +409,5 @@ struct nft_family_ops nft_family_ops_ipv6 = {
- 	.parse_target		= nft_ipv46_parse_target,
- 	.rule_to_cs		= nft_rule_to_iptables_command_state,
- 	.clear_cs		= nft_clear_iptables_command_state,
--	.rule_find		= nft_ipv46_rule_find,
- 	.xlate			= nft_ipv6_xlate,
- };
-diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
-index bfc7bc2203239..53cd4cae9ef7c 100644
---- a/iptables/nft-shared.c
-+++ b/iptables/nft-shared.c
-@@ -989,45 +989,6 @@ void nft_ipv46_parse_target(struct xtables_target *t, void *data)
- 	cs->target = t;
- }
- 
--bool nft_ipv46_rule_find(struct nft_handle *h, struct nftnl_rule *r,
--			 struct nftnl_rule *rule)
--{
--	struct iptables_command_state _cs = {}, this = {}, *cs = &_cs;
--	bool ret = false;
--
--	nft_rule_to_iptables_command_state(h, r, &this);
--	nft_rule_to_iptables_command_state(h, rule, cs);
--
--	DEBUGP("comparing with... ");
--#ifdef DEBUG_DEL
--	nft_rule_print_save(h, r, NFT_RULE_APPEND, 0);
--#endif
--	if (!h->ops->is_same(cs, &this))
--		goto out;
--
--	if (!compare_matches(cs->matches, this.matches)) {
--		DEBUGP("Different matches\n");
--		goto out;
--	}
--
--	if (!compare_targets(cs->target, this.target)) {
--		DEBUGP("Different target\n");
--		goto out;
--	}
--
--	if ((!cs->target || !this.target) &&
--	    strcmp(cs->jumpto, this.jumpto) != 0) {
--		DEBUGP("Different verdict\n");
--		goto out;
--	}
--
--	ret = true;
--out:
--	h->ops->clear_cs(&this);
--	h->ops->clear_cs(cs);
--	return ret;
--}
--
- void nft_check_xt_legacy(int family, bool is_ipt_save)
- {
- 	static const char tables6[] = "/proc/net/ip6_tables_names";
-diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
-index 89e9d0b9be335..cb60e685872dd 100644
---- a/iptables/nft-shared.h
-+++ b/iptables/nft-shared.h
-@@ -109,8 +109,6 @@ struct nft_family_ops {
- 	void (*rule_to_cs)(struct nft_handle *h, const struct nftnl_rule *r,
- 			   struct iptables_command_state *cs);
- 	void (*clear_cs)(struct iptables_command_state *cs);
--	bool (*rule_find)(struct nft_handle *h, struct nftnl_rule *r,
--			  struct nftnl_rule *rule);
- 	int (*xlate)(const void *data, struct xt_xlate *xl);
- };
- 
-@@ -171,8 +169,6 @@ void save_matches_and_target(const struct iptables_command_state *cs,
- struct nft_family_ops *nft_family_ops_lookup(int family);
- 
- void nft_ipv46_parse_target(struct xtables_target *t, void *data);
--bool nft_ipv46_rule_find(struct nft_handle *h, struct nftnl_rule *r,
--			 struct nftnl_rule *rule);
- 
- bool compare_matches(struct xtables_rule_match *mt1, struct xtables_rule_match *mt2);
- bool compare_targets(struct xtables_target *tg1, struct xtables_target *tg2);
-diff --git a/iptables/nft.c b/iptables/nft.c
-index 3c0daa8d42529..e65eb91c1c504 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -2120,6 +2120,45 @@ static int __nft_rule_del(struct nft_handle *h, struct nftnl_rule *r)
- 	return 1;
- }
- 
-+static bool nft_rule_cmp(struct nft_handle *h, struct nftnl_rule *r,
-+			 struct nftnl_rule *rule)
-+{
-+	struct iptables_command_state _cs = {}, this = {}, *cs = &_cs;
-+	bool ret = false;
-+
-+	h->ops->rule_to_cs(h, r, &this);
-+	h->ops->rule_to_cs(h, rule, cs);
-+
-+	DEBUGP("comparing with... ");
-+#ifdef DEBUG_DEL
-+	nft_rule_print_save(h, r, NFT_RULE_APPEND, 0);
-+#endif
-+	if (!h->ops->is_same(cs, &this))
-+		goto out;
-+
-+	if (!compare_matches(cs->matches, this.matches)) {
-+		DEBUGP("Different matches\n");
-+		goto out;
-+	}
-+
-+	if (!compare_targets(cs->target, this.target)) {
-+		DEBUGP("Different target\n");
-+		goto out;
-+	}
-+
-+	if ((!cs->target || !this.target) &&
-+	    strcmp(cs->jumpto, this.jumpto) != 0) {
-+		DEBUGP("Different verdict\n");
-+		goto out;
-+	}
-+
-+	ret = true;
-+out:
-+	h->ops->clear_cs(&this);
-+	h->ops->clear_cs(cs);
-+	return ret;
-+}
-+
- static struct nftnl_rule *
- nft_rule_find(struct nft_handle *h, struct nftnl_chain *c,
- 	      struct nftnl_rule *rule, int rulenum)
-@@ -2138,7 +2177,7 @@ nft_rule_find(struct nft_handle *h, struct nftnl_chain *c,
- 
- 	r = nftnl_rule_iter_next(iter);
- 	while (r != NULL) {
--		found = h->ops->rule_find(h, r, rule);
-+		found = nft_rule_cmp(h, r, rule);
- 		if (found)
- 			break;
- 		r = nftnl_rule_iter_next(iter);
--- 
-2.25.1
+On 2020-05-11 2:59 PM, Pablo Neira Ayuso wrote:
+> On Mon, May 11, 2020 at 11:32:36AM +0300, Paul Blakey wrote:
+>> On 5/11/2020 1:14 AM, Pablo Neira Ayuso wrote:
+> [...]
+>>>> @@ -831,9 +832,14 @@ static void flow_offload_queue_work(struct flow_offload_work *offload)
+>>>>  {
+>>>>  	struct flow_offload_work *offload;
+>>>>  
+>>>> +	if (test_and_set_bit(NF_FLOW_HW_PENDING, &flow->flags))
+>>>> +		return NULL;
+>>> In case of stats, it's fine to lose work.
+>>>
+>>> But how does this work for the deletion case? Does this falls back to
+>>> the timeout deletion?
+>>
+>> We get to nf_flow_table_offload_del (delete) in these cases:
+>>
+>>> -------if (nf_flow_has_expired(flow) || nf_ct_is_dying(flow->ct) ||
+>>> -------    test_bit(NF_FLOW_TEARDOWN, &flow->flags) {
+>>> ------->-------   ....
+>>> ------->-------    nf_flow_offload_del(flow_table, flow);
+>>
+>> Which are all persistent once set but the nf_flow_has_expired(flow). So we will
+>> try the delete
+>> again and again till pending flag is unset or the flow is 'saved' by the already
+>> queued stats updating the timeout.
+>> A pending stats update can't save the flow once it's marked for teardown or
+>> (flow->ct is dying), only delay it.
+> 
+> Thanks for explaining.
+> 
+>> We didn't mention flush, like in table free. I guess we need to flush the
+>> hardware workqueue
+>> of any pending stats work, then queue the deletion, and flush again:
+>> Adding nf_flow_table_offload_flush(flow_table), after
+>> cancel_delayed_work_sync(&flow_table->gc_work);
+> 
+> The "flush" makes sure that stats work runs before the deletion, to
+> ensure no races happen for in-transit work objects, right?
+> 
+> We might use alloc_ordered_workqueue() and let the workqueue handle
+> this problem?
+> 
 
+ordered workqueue executed one work at a time.
