@@ -2,136 +2,139 @@ Return-Path: <SRS0=NFxu=6Z=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6344AC54E4B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 08:42:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8449FC54E8D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 09:50:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4C80D208DB
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 08:42:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 60D24206F9
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 09:50:12 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="Xj8B2K/k"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728702AbgEKImt (ORCPT
+        id S1729462AbgEKJuK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 May 2020 04:42:49 -0400
-Received: from correo.us.es ([193.147.175.20]:37970 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728562AbgEKImt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 May 2020 04:42:49 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EC3EFEBAEA
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 May 2020 10:42:45 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DBE311158EE
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 May 2020 10:42:45 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DA4611158E9; Mon, 11 May 2020 10:42:45 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 495A34EA8F;
-        Mon, 11 May 2020 10:42:44 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 11 May 2020 10:42:44 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 2995242EF42D;
-        Mon, 11 May 2020 10:42:44 +0200 (CEST)
-Date:   Mon, 11 May 2020 10:42:43 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Paul Blakey <paulb@mellanox.com>
+        Mon, 11 May 2020 05:50:10 -0400
+Received: from mail-eopbgr80052.outbound.protection.outlook.com ([40.107.8.52]:60750
+        "EHLO EUR04-VI1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728209AbgEKJuK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 11 May 2020 05:50:10 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=GVsuie6WOFwlO3XwUilhv/ZCGkhzigzF1ojGdFV4NJBQ+j8sNkKez/mG8pThRRxJ+08dulFNYHHZ2FXBRCsNdnacZJ95VDFFMli3iLCHv6m0Af+hcggOS1KAdA39Sf2MyLEIiqA4GlELqMBSdnMVOihyt55HkOhlbfpt0sxX0jolLhSjE46gZIFhQeqCv1ilCqMkLEWz6Goo98enrjPZCBQtpf7YR5qo1Mx5YJoVmua/M7VVLMl779Pvgu+mfo1xAyp0x+gt5hEwfo776uShpqjYgByOpvmVpFoo8L+52tKHfIlvRK4JNnZIqFvLfHWNx9fE94kvrrmwrvalNBAe2A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=B3CzadvEI85dxrb5Xp29oi/KlXAwcWN+ctGNOggEvos=;
+ b=H+M75ybvLcXjptMoSnqbnE5kBJ3yD2z0y/wC/0eINsZxMHIN8c/X59/wEh4Jpa3nQ2UT0jIFGPHD71K+CLNuIf0x0Z/kF3L5EgC8MCBA0pk025Y5uPYPoNUxbRH8Bhl7IbcwpEMO5UY6XiJimVz3LlHm54kkeRc/G2P2TdKGW4Qp/78v1GQ+wUS/lMED26wN57qP/E2St7ihxMOkIaknYJk2zCmtAZO89Z0LFLubvhwhHULVR0EGo3jytqPeJ0uSCjnkPIVoWJGRa61n1IQZ82QepOkJABlABEvx+xQmhznUCwuew3Yl4lZq06aHZhtwiiOc6VhGW5ABRJ3XW5pi4A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=B3CzadvEI85dxrb5Xp29oi/KlXAwcWN+ctGNOggEvos=;
+ b=Xj8B2K/k6eTC0ZSJ6rqORZnUu4lCXArCfq18N2KtunSydHQ5kpSjNeO+/7PGqptORy9p1UblXnzvgy/W9BzWk3kiaf1QopAFBRJPoSIrkKvQ0HyMeToMcYgIOID0Y2qEvxMyAP4PKNvkMaSPwCzihFaWPs3Q6464AcFb0bZUPVU=
+Authentication-Results: vger.kernel.org; dkim=none (message not signed)
+ header.d=none;vger.kernel.org; dmarc=none action=none
+ header.from=mellanox.com;
+Received: from AM6PR05MB5096.eurprd05.prod.outlook.com (2603:10a6:20b:11::14)
+ by AM6PR05MB5733.eurprd05.prod.outlook.com (2603:10a6:20b:29::33) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2979.33; Mon, 11 May
+ 2020 09:50:07 +0000
+Received: from AM6PR05MB5096.eurprd05.prod.outlook.com
+ ([fe80::f5bd:86c3:6c50:6718]) by AM6PR05MB5096.eurprd05.prod.outlook.com
+ ([fe80::f5bd:86c3:6c50:6718%7]) with mapi id 15.20.2979.033; Mon, 11 May 2020
+ 09:50:07 +0000
+Subject: Re: [PATCH net] netfilter: flowtable: Fix expired flow not being
+ deleted from software
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Oz Shlomo <ozsh@mellanox.com>, Roi Dayan <roid@mellanox.com>,
         netdev@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>,
         netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net] netfilter: flowtable: Fix expired flow not being
- deleted from software
-Message-ID: <20200511084243.GA18188@salvia>
 References: <1588764449-12706-1-git-send-email-paulb@mellanox.com>
  <20200510222640.GA11645@salvia>
  <a420c22a-9d52-c314-cf9b-ee19831e15a7@mellanox.com>
+ <20200511084243.GA18188@salvia>
+From:   Paul Blakey <paulb@mellanox.com>
+Message-ID: <b3a54d5e-bb00-3306-c064-5c85806560e1@mellanox.com>
+Date:   Mon, 11 May 2020 12:50:02 +0300
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.6.0
+In-Reply-To: <20200511084243.GA18188@salvia>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-ClientProxiedBy: AM3PR04CA0135.eurprd04.prod.outlook.com (2603:10a6:207::19)
+ To AM6PR05MB5096.eurprd05.prod.outlook.com (2603:10a6:20b:11::14)
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="ZPt4rx8FFjLCG7dd"
-Content-Disposition: inline
-In-Reply-To: <a420c22a-9d52-c314-cf9b-ee19831e15a7@mellanox.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from [192.168.50.62] (5.29.240.93) by AM3PR04CA0135.eurprd04.prod.outlook.com (2603:10a6:207::19) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2979.28 via Frontend Transport; Mon, 11 May 2020 09:50:06 +0000
+X-Originating-IP: [5.29.240.93]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: b4b7d5e2-d4da-45f7-6a28-08d7f590afa7
+X-MS-TrafficTypeDiagnostic: AM6PR05MB5733:|AM6PR05MB5733:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <AM6PR05MB57339224559F18CBEE66B7B6CFA10@AM6PR05MB5733.eurprd05.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:8273;
+X-Forefront-PRVS: 04004D94E2
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: VGyXo9kZyyYuiborc8xRZ1kv6RXs91Xfa3/arnC3JbGpZTGxwTRAhcmriwxw8PVDcwdQhWkARuPHlqVf0XSQdcve8YwDYE8IXMmffgOF+PzI85acq8K15sGKkP5t2z0peY+JZg1Aqg56cHH+5brcIu3E2BJlCa31+KZXGm6UiQkaH9zRFIS+xOjq8YDqG7JdfAUT8qLOtOWGEmjT/Ad+9l1b30+6fdp8XJ6biZtyEcfAlZrwdW4n9shH6bBYgKJYhwtyB+STF2WoGaPc5hps+6Xv4vNBYWyTsBftjW6ZAWbU/hyaZV1kPi9jmVy50szfKzKQvNK5GfDDS1+SOJGPoGCYNYA93IdeOUw8I0jggTCNU1xdoAQ4Q4MYMzqmtDQKL8ggxcwrGL/Dgq8fFeBEmUhsGWLaQdZBd1pDBF/TOAbu09bdpBQ92VX7TQSjB0mgyivcQ/g9DoMKRZpF4Ik+yQsI0WXfVrKU8TOORQMosdIy/aK8kVPEKloq5D0lBILvMdmB1/48DHgGptcexpNBcXh9jDdzdJsPw/HwtvJy3Ni4ihVyaihRACfnGdSFi28Z
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM6PR05MB5096.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(39860400002)(396003)(136003)(346002)(366004)(376002)(33430700001)(52116002)(33440700001)(6486002)(6666004)(5660300002)(4326008)(31696002)(478600001)(86362001)(31686004)(2616005)(6916009)(956004)(8936002)(2906002)(36756003)(8676002)(53546011)(66476007)(66556008)(66946007)(186003)(16526019)(26005)(316002)(16576012)(54906003)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: PKdBUJipXaOVQ0sOnarp8/m5qv2KE347NbEY/DsM4vs+mMfQor0sWvq5w6kWhpJa2TupPiB42A4+8m07zKAAry/AJ+BscUBhfWykPRGoCPixPjErg6TSeu4npfoQvp1m9T6Wru17kGB3xPtM5Qxl7He1aZGPlwnLaAMXkd/fZ6Oj1B1J617jdMqmt+elToOhQiAUGwMfISgtNerYjzTHqb0k8vQfAknbKHxNuo1uSNoflfM6RnB4689ABbrEeTt7U+Zf/OBPmDya1WPrd7W9GH9Sg3pxoZdNkZEI+qYhOUY/8LaKi90kH4dtYPAHUzq2jNg5qbpWt7gbAfGFIwQxmd8dHAccYbLzTOMwVcB0JRe3+MRk0nZrsR9K0tK5Ku8dWTvvlaL/ps1y0r/DdUjpm01IoxdFZ2S+u/hu2rGrcOxTh1QsVbICHFw4OM996+nXwelbw07JclqE0nLyjJAnx16Ol+RPW6WmT5s89qh7T/E=
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: b4b7d5e2-d4da-45f7-6a28-08d7f590afa7
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 May 2020 09:50:06.9343
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: tIZTLUFnm3mTtb4yFGRWaj7LFtXWP+Utyd0oVkBch8SMvqWfnsjyRlizMTah2de23ev83f9n6vVCGGsj/0Iw3g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM6PR05MB5733
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
---ZPt4rx8FFjLCG7dd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Mon, May 11, 2020 at 10:24:44AM +0300, Paul Blakey wrote:
-> 
-> 
-> On 5/11/2020 1:26 AM, Pablo Neira Ayuso wrote:
-> > On Wed, May 06, 2020 at 02:27:29PM +0300, Paul Blakey wrote:
-> >> Once a flow is considered expired, it is marked as DYING, and
-> >> scheduled a delete from hardware. The flow will be deleted from
-> >> software, in the next gc_step after hardware deletes the flow
-> >> (and flow is marked DEAD). Till that happens, the flow's timeout
-> >> might be updated from a previous scheduled stats, or software packets
-> >> (refresh). This will cause the gc_step to no longer consider the flow
-> >> expired, and it will not be deleted from software.
-> >>
-> >> Fix that by looking at the DYING flag as in deciding
-> >> a flow should be deleted from software.
-> > Would this work for you?
-> >
-> > The idea is to skip the refresh if this has already expired.
-> >
-> > Thanks.
-> 
-> The idea is ok, but timeout check + update isn't atomic (need atomic_inc_unlesss
-> or something like that), and there is also
-> the hardware stats which if comes too late (after gc finds it expired) might
-> bring a flow back to life.
+On 5/11/2020 11:42 AM, Pablo Neira Ayuso wrote:
+> On Mon, May 11, 2020 at 10:24:44AM +0300, Paul Blakey wrote:
+>>
+>> On 5/11/2020 1:26 AM, Pablo Neira Ayuso wrote:
+>>> On Wed, May 06, 2020 at 02:27:29PM +0300, Paul Blakey wrote:
+>>>> Once a flow is considered expired, it is marked as DYING, and
+>>>> scheduled a delete from hardware. The flow will be deleted from
+>>>> software, in the next gc_step after hardware deletes the flow
+>>>> (and flow is marked DEAD). Till that happens, the flow's timeout
+>>>> might be updated from a previous scheduled stats, or software packets
+>>>> (refresh). This will cause the gc_step to no longer consider the flow
+>>>> expired, and it will not be deleted from software.
+>>>>
+>>>> Fix that by looking at the DYING flag as in deciding
+>>>> a flow should be deleted from software.
+>>> Would this work for you?
+>>>
+>>> The idea is to skip the refresh if this has already expired.
+>>>
+>>> Thanks.
+>> The idea is ok, but timeout check + update isn't atomic (need atomic_inc_unlesss
+>> or something like that), and there is also
+>> the hardware stats which if comes too late (after gc finds it expired) might
+>> bring a flow back to life.
+> Right. Once the entry has expired, there should not be a way turning
+> back.
+>
+> I'm attaching a new sketch, it's basically using the teardown state to
+> specify that the gc already made the decision to remove this entry.
+>
+> Thanks.
 
-Right. Once the entry has expired, there should not be a way turning
-back.
+Looks fine to me, are you submitting that instead?
 
-I'm attaching a new sketch, it's basically using the teardown state to
-specify that the gc already made the decision to remove this entry.
-
-Thanks.
-
---ZPt4rx8FFjLCG7dd
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="x.patch"
-
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 4344e572b7f9..42da6e337276 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -284,7 +284,7 @@ static void flow_offload_del(struct nf_flowtable *flow_table,
- 
- 	if (nf_flow_has_expired(flow))
- 		flow_offload_fixup_ct(flow->ct);
--	else if (test_bit(NF_FLOW_TEARDOWN, &flow->flags))
-+	else
- 		flow_offload_fixup_ct_timeout(flow->ct);
- 
- 	flow_offload_free(flow);
-@@ -361,8 +361,10 @@ static void nf_flow_offload_gc_step(struct flow_offload *flow, void *data)
- {
- 	struct nf_flowtable *flow_table = data;
- 
--	if (nf_flow_has_expired(flow) || nf_ct_is_dying(flow->ct) ||
--	    test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
-+	if (nf_flow_has_expired(flow) || nf_ct_is_dying(flow->ct))
-+		set_bit(NF_FLOW_TEARDOWN, &flow->flags);
-+
-+	if (test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
- 		if (test_bit(NF_FLOW_HW, &flow->flags)) {
- 			if (!test_bit(NF_FLOW_HW_DYING, &flow->flags))
- 				nf_flow_offload_del(flow_table, flow);
-
---ZPt4rx8FFjLCG7dd--
