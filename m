@@ -2,139 +2,126 @@ Return-Path: <SRS0=NFxu=6Z=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3952C47255
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 05:34:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E860C54E8D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 07:24:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A91BF20820
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 05:34:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3B861207FF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 07:24:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="vVRz0IsS"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="qE7NWmfv"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727873AbgEKFeC (ORCPT
+        id S1728471AbgEKHYv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 May 2020 01:34:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40840 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726319AbgEKFeC (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 May 2020 01:34:02 -0400
-Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5DD5C061A0E
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 May 2020 22:34:01 -0700 (PDT)
-Received: by mail-wm1-x342.google.com with SMTP id z72so8028019wmc.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 May 2020 22:34:01 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=yXW3upB1ZZMV2jZFkfjSF6rS0fu0dx5/uaDft0i8oJA=;
-        b=vVRz0IsSwuCc+qTKLWJXsL0RpUAUtQeeMmHfTs+7DotrrmQQ9s1rIemqceWcjrVDaJ
-         Qo7NWKb+gHlv8v94mP3+AzCpbF1xRku8iHfciM9uUXYweeGoclqM7vEcefX6Uz6V5e/D
-         S0XXm2vYSer5t0yrL8qbloQUpyAW6dQYl/c61vuwlcB+E/WXxo2yR0CGKHRI8WZstlGC
-         8C04ghmWR2cVw5Wfl4i7P9YaHU5/QcbKR2CikpnsNmXyUHiRKQLhkfojxkV/olqBnEfv
-         v8kEZoIjZe7KeXfj6fqWo1KyacDt6GY9HCty7lkksh4OSRRYhzRzv1pCY79fE/d1Hgrt
-         llcQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=yXW3upB1ZZMV2jZFkfjSF6rS0fu0dx5/uaDft0i8oJA=;
-        b=hzE4xIDZTC7vJvpSdlEDivDwn+tXKOIgyYkoRVBt1OnYz3quw67kt5CJnFpHr2C2Dx
-         XvRMvE/f8JP9ptAXG5ayjHrnglILVCSWoigDpfct9XiORyzF/fj4Wb74KfiPsSxK9zaQ
-         5dcjjL7zbTHdbhFeCVUHWRXmME+YpAYSTQN+4jGmHLsWR6ziflEsX1bZFZUDuE5GJUf6
-         ZdvXp8YyUudngoJzqGDbIdsZzmByfT55N890q9RChH3mS0LKvq/2BVUNTkl5fKUnCP1P
-         Jo+eL65RC7qz4d5d7qGJJpAeYb54Vm5O5Q1YSidfb2U6ShmHc2bztulGeW5QxH/UHV8w
-         Ztlg==
-X-Gm-Message-State: AGi0PubgRtZMZKdCz+MzSTI6tCVcWlDUpRNhF/hP/c3d02gtFUeemD/Z
-        tluYbxEe8Tib0o4xkzSqf71H/A==
-X-Google-Smtp-Source: APiQypKkIn9NRpi/Ul5rkldsAt/3GFey21aTDyeDscPlxFo+Hfb25LJ/ECiHh6fOzlpqoFvhHzrzww==
-X-Received: by 2002:a1c:5502:: with SMTP id j2mr31342772wmb.56.1589175240437;
-        Sun, 10 May 2020 22:34:00 -0700 (PDT)
-Received: from localhost (jirka.pirko.cz. [84.16.102.26])
-        by smtp.gmail.com with ESMTPSA id y70sm26391759wmc.36.2020.05.10.22.33.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 10 May 2020 22:33:59 -0700 (PDT)
-Date:   Mon, 11 May 2020 07:33:59 +0200
-From:   Jiri Pirko <jiri@resnulli.us>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Edward Cree <ecree@solarflare.com>, netdev@vger.kernel.org,
-        davem@davemloft.net, netfilter-devel@vger.kernel.org
-Subject: Re: [RFC PATCH net] net: flow_offload: simplify hw stats check
- handling
-Message-ID: <20200511053359.GC2245@nanopsycho>
-References: <49176c41-3696-86d9-f0eb-c20207cd6d23@solarflare.com>
- <20200507153231.GA10250@salvia>
- <9000b990-9a25-936e-6063-0034429256f0@solarflare.com>
- <20200507164643.GA10994@salvia>
- <20200507164820.0f48c36b@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        Mon, 11 May 2020 03:24:51 -0400
+Received: from mail-eopbgr80050.outbound.protection.outlook.com ([40.107.8.50]:28132
+        "EHLO EUR04-VI1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728017AbgEKHYv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 11 May 2020 03:24:51 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=RRkJAnjgmhQMShz1DsBgaO91z2l6sleLH7ESJfdTwe9Ni8oDcYxmI3Kts4mkvcnxiuAK5kOLj12YSWc/Kq0QK4jVRauvYfG6U5HadxyDJMwMPTYhH07ea8Cnf73LiDNQc1M36dMkqeWE3T7X+4UNG2BdVB+4k5P8S6Lr26D+kTJZc758dvaPmUI2X0ZH+xrA6pXKGbCzASFxRp/1M6zROVXB1ayNbJ8ddZBcUf4yJZq6cyquu9IWK7743waVwa9wcziCkPm78Lup5eK6QHRzxmNLObNOzz0Q6bQNPtRQVzh5P8iAouLqfqaSaiDElhM/6vUqYe/Z2+gmZlaDOY8k2g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=TXH7HC8cgeE7LiUHT5zRSeVm+VVki1yCFW5LWNYzIR8=;
+ b=Fez8KYx6O1MnP4TO86lr7b6//AMScuddvKiehdfWZLTroc8cRF8pDmzFHTQPBTuYSB6R8Ey9xSSDHt/1kfqMCPLHYaq0cEIpN3u4Mdza2EWpICXLIdlSAJXGKyDeYRwV/E9g2568vmqesnhcPjUI8BC3GF1qGi4z1l/hR/iqQxRukice9/pnDI2EsqWiwtl4eolrS1HaMA/XMPQJ56r5Uns77bvXZo7l4Z1fX+qqHUkpxLUDVa8cuyYVNeBCSWgN/Sj6gvIuljJv5JTwwo7KGV5wOid4Yh4vB2tUXeaBHO2gbFQDIHM2oS6EUu3//JeVeMcjEGB7DrOeR+AIPDrCbw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=TXH7HC8cgeE7LiUHT5zRSeVm+VVki1yCFW5LWNYzIR8=;
+ b=qE7NWmfvAsiA9kd+e2YWcYSrvUHQtFNPJuc8krutUt/sviO7FOOJNSzPjmL9/9HUyq8o3U62eVcDYbkPWCrOvbhdm2CitByi2jbzeW/0SIsKA4V4JeYX+2gHaoafySr6w5GkFFnNVa86DtOWK25+v/7VqSMwl+pWRwwVaZkKBcI=
+Authentication-Results: vger.kernel.org; dkim=none (message not signed)
+ header.d=none;vger.kernel.org; dmarc=none action=none
+ header.from=mellanox.com;
+Received: from AM6PR05MB5096.eurprd05.prod.outlook.com (2603:10a6:20b:11::14)
+ by AM6PR05MB4837.eurprd05.prod.outlook.com (2603:10a6:20b:6::25) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2979.33; Mon, 11 May
+ 2020 07:24:47 +0000
+Received: from AM6PR05MB5096.eurprd05.prod.outlook.com
+ ([fe80::f5bd:86c3:6c50:6718]) by AM6PR05MB5096.eurprd05.prod.outlook.com
+ ([fe80::f5bd:86c3:6c50:6718%7]) with mapi id 15.20.2979.033; Mon, 11 May 2020
+ 07:24:46 +0000
+Subject: Re: [PATCH net] netfilter: flowtable: Fix expired flow not being
+ deleted from software
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Oz Shlomo <ozsh@mellanox.com>, Roi Dayan <roid@mellanox.com>,
+        netdev@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>,
+        netfilter-devel@vger.kernel.org
+References: <1588764449-12706-1-git-send-email-paulb@mellanox.com>
+ <20200510222640.GA11645@salvia>
+From:   Paul Blakey <paulb@mellanox.com>
+Message-ID: <a420c22a-9d52-c314-cf9b-ee19831e15a7@mellanox.com>
+Date:   Mon, 11 May 2020 10:24:44 +0300
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.6.0
+In-Reply-To: <20200510222640.GA11645@salvia>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-ClientProxiedBy: AM0PR10CA0059.EURPRD10.PROD.OUTLOOK.COM
+ (2603:10a6:20b:150::39) To AM6PR05MB5096.eurprd05.prod.outlook.com
+ (2603:10a6:20b:11::14)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200507164820.0f48c36b@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from [192.168.50.62] (5.29.240.93) by AM0PR10CA0059.EURPRD10.PROD.OUTLOOK.COM (2603:10a6:20b:150::39) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2979.28 via Frontend Transport; Mon, 11 May 2020 07:24:45 +0000
+X-Originating-IP: [5.29.240.93]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: d213115b-2a99-437c-d7a0-08d7f57c620a
+X-MS-TrafficTypeDiagnostic: AM6PR05MB4837:|AM6PR05MB4837:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <AM6PR05MB4837AB145531A06EC031F888CFA10@AM6PR05MB4837.eurprd05.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:8882;
+X-Forefront-PRVS: 04004D94E2
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: QYungjOogOWvgdNp1+Cn6TiyslIUUUwHg33iUX9DjBobTGFdLHmtsHzhNornNZKUHmu1Wm3T5mbJ4CNDXOBRhkv78pit9xV1rSk+A431Yz6NxtXc8+dl0yEwPkoz6q1LT9s21NszofpKHIPEhgrm+f0zwyLGjFJJdQ/5tRurzIT3UEjiZk8Q0jzy+YxBknbxyLuPhBT3sXuzgdVRm5J2S+jJ8NU0l0RG7diHlVYFUCb2Do/Eff1983HXs9r+8EAZTui7yDCrW+THkoRGntwoNxNnXDy/8+DnoVE8RTL1AvZ6FDl2eITkc6SgHmZUcZYTw51EwqLnNFHuQD06MSv0oyZGY+93mTRvHtM4A2Opm2j1DMOH66v92MHXK4eKrnxtngIStLw2OS8Jo3HvXppnI9Cus4R5VoqR39waioAblyv4GVdAHkPuRmOI8j9keinP9wtXpu8CiGr9x845Zx99ytyn6WOBAqWiLcWleYPj4okoy3Jv1uq3OlLs08B11niIbDhjzyBM+FuBb1kBHK8ZyJkkLiArkrqi4HgdT7PnKFPfmIBTBGPn08OfKh+U/44P
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM6PR05MB5096.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(366004)(39860400002)(376002)(346002)(396003)(136003)(33430700001)(26005)(53546011)(2616005)(956004)(16576012)(4326008)(31696002)(6916009)(478600001)(316002)(54906003)(66556008)(31686004)(66476007)(8676002)(186003)(33440700001)(66946007)(86362001)(52116002)(36756003)(2906002)(6486002)(16526019)(8936002)(5660300002)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: fMHVGKmIg/yXXg48WvJUR189zzJxXp6IQtWbfQh0lzqJOGWiACM3dYcJpgRganvqBk7J6U48CtQioDihJT4dm3XShWL6KswB1FU+fBmHsumqURUOHivkn0Lf0TNeC2TIMYP4wVLznuZ28y78FrrP0w/j4RgvVk9jzB92K6Y8bs0jBIdDiFVk7CuVXcqilcam/eoUv+BYHnfOKsZlJacF+AQx/ZqPctIGkiQMM8tHaCAnqoYlCJGxI9IOMVAJ3ETd2CMrotzd2nr+f+6T+mzB4MMqiKc5/V4M+sFJC0z3QOQ5mqgIVTatQV1H4rKl9Jh0qeUCsNIFzVsUXcTEWoiXvarmBJku/3AJL2Mvcj7TiLfOHv6ZGzYJj23wXl9sSSBtqv0Q/9dNzoTKDH3augj2z9FBjtQgn2Kkj3eBY04t2Xe4/sdKz3LmaNsE8ky5rico25rfA/UrSLief+2J9UqR4rkRdVdMMjNm29SEBYKNZkg=
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: d213115b-2a99-437c-d7a0-08d7f57c620a
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 May 2020 07:24:46.7751
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: Rx6Dk9Ajsb/XI9wTElGLB51O8hbM533w/DO2bejx33hkh3Urlp9nr/8nysVtLjRlcX0QIi9fK/OsaYJh96frcA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM6PR05MB4837
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Fri, May 08, 2020 at 01:48:20AM CEST, kuba@kernel.org wrote:
->On Thu, 7 May 2020 18:46:43 +0200 Pablo Neira Ayuso wrote:
->> On Thu, May 07, 2020 at 04:49:15PM +0100, Edward Cree wrote:
->> > On 07/05/2020 16:32, Pablo Neira Ayuso wrote:  
->> > > On Thu, May 07, 2020 at 03:59:09PM +0100, Edward Cree wrote:  
->> > >> Make FLOW_ACTION_HW_STATS_DONT_CARE be all bits, rather than none, so that
->> > >>  drivers and __flow_action_hw_stats_check can use simple bitwise checks.  
->> > > 
->> > > You have have to explain why this makes sense in terms of semantics.
->> > > 
->> > > _DISABLED and _ANY are contradicting each other.  
->> > No, they aren't.  The DISABLED bit means "I will accept disabled", it doesn't
->> >  mean "I insist on disabled".  What _does_ mean "I insist on disabled" is if
->> >  the DISABLED bit is set and no other bits are.
->> > So DISABLED | ANY means "I accept disabled; I also accept immediate or
->> >  delayed".  A.k.a. "I don't care, do what you like".  
->> 
->> Jiri said Disabled means: bail out if you cannot disable it.
->
->That's in TC uAPI Jiri chose... doesn't mean we have to do the same
->internally.
-
-Yeah, but if TC user says "disabled", please don't assign counter or
-fail.
 
 
+On 5/11/2020 1:26 AM, Pablo Neira Ayuso wrote:
+> On Wed, May 06, 2020 at 02:27:29PM +0300, Paul Blakey wrote:
+>> Once a flow is considered expired, it is marked as DYING, and
+>> scheduled a delete from hardware. The flow will be deleted from
+>> software, in the next gc_step after hardware deletes the flow
+>> (and flow is marked DEAD). Till that happens, the flow's timeout
+>> might be updated from a previous scheduled stats, or software packets
+>> (refresh). This will cause the gc_step to no longer consider the flow
+>> expired, and it will not be deleted from software.
+>>
+>> Fix that by looking at the DYING flag as in deciding
+>> a flow should be deleted from software.
+> Would this work for you?
 >
->> If the driver cannot disable, then it will have to check if the
->> frontend is asking for Disabled (hence, report error to the frontend)
->> or if it is actually asking for Don't care.
->> 
->> What you propose is a context-based interpretation of the bits. So
->> semantics depend on how you accumulate/combine bits.
->> 
->> I really think bits semantics should be interpreted on the bit alone
->> itself.
+> The idea is to skip the refresh if this has already expired.
 >
->These 3 paragraphs sound to me like you were arguing for Ed's approach..
->
->> There is one exception though, that is _ANY case, where you let the
->> driver pick between delayed or immediate. But if the driver does not
->> support for counters, it bails out in any case, so the outcome in both
->> request is basically the same.
->> 
->> You are asking for different outcome depending on how bits are
->> combined, which can be done, but it sounds innecessarily complicated
->> to me.
->
->No, quite the opposite, the code as committed to net has magic values
->which drivers have to check.
->
->The counter-proposal is that each bit represents a configuration, and
->if more than one bit is set the driver gets to choose which it prefers. 
->What could be simpler?
->
->netfilter just has to explicitly set the field to DONT_CARE rather than 
->depending on 0 form zalloc() coinciding with the correct value.
+> Thanks.
+
+The idea is ok, but timeout check + update isn't atomic (need atomic_inc_unlesss
+or something like that), and there is also
+the hardware stats which if comes too late (after gc finds it expired) might
+bring a flow back to life.
