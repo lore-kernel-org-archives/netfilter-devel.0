@@ -2,108 +2,201 @@ Return-Path: <SRS0=NFxu=6Z=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C595C47255
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 17:29:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0EC3C54E8D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 18:21:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5FC8B206D7
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 17:29:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9972820736
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 18:21:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730644AbgEKR3H (ORCPT
+        id S1731119AbgEKSVY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 May 2020 13:29:07 -0400
-Received: from correo.us.es ([193.147.175.20]:37952 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730215AbgEKR3H (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 May 2020 13:29:07 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 541CC1C41CB
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 May 2020 19:29:05 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 460F41158E5
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 May 2020 19:29:05 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 450B11158E3; Mon, 11 May 2020 19:29:05 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4F34BDA736;
-        Mon, 11 May 2020 19:29:03 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 11 May 2020 19:29:03 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 2F89B42EF52A;
-        Mon, 11 May 2020 19:29:03 +0200 (CEST)
-Date:   Mon, 11 May 2020 19:29:02 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: conntrack: fix infinite loop on rmmod
-Message-ID: <20200511172902.GB2064@salvia>
-References: <20200510122807.24011-1-fw@strlen.de>
+        Mon, 11 May 2020 14:21:24 -0400
+Received: from mail-il1-f200.google.com ([209.85.166.200]:36601 "EHLO
+        mail-il1-f200.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729673AbgEKSVX (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 11 May 2020 14:21:23 -0400
+Received: by mail-il1-f200.google.com with SMTP id l15so10188238ilj.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 May 2020 11:21:21 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=SgahX+xxxn/F7kqBauPLeHjVaGE2RHw7Ce+/vWGFtFE=;
+        b=THo6XZSB2sB3siEMskrb1C+zIaeYotLMdcHYewOZ18/iL18lafZ4a4LkHMeEqdUdP8
+         kg/Id67GmVRce47pW4ldWJ3yL2d17CtxetFcI7eJR9nhM9QHYJNn1YgIczypBasaxmrU
+         GIV5ZsQQ4yBMY12jhmP0ea4a1OMeG8cGoeCK3zAi0TTyUTHeHI61tO35vOcguKcMZcyz
+         PAPWhzUbhY1drFPVk6A/6hlTWvl5i7MrfuZSgGfvSrksYd5KiYUhyfI3GJ19mP4t45Wi
+         nCKABXJLc4buerIpAYEpSoJdiml0m6nIPSMJIEI2qnLtK5y0vX0i1vtZm6tHmSX/7cpd
+         Bd3g==
+X-Gm-Message-State: AGi0PubYBjzzZpECcdJmi3jpRFQte9gtafjzuZ0cWyfB10SJ4iH+SXCf
+        5sZd6qqPEgwBmrnWwmZwstt10nl5cuKh5LAmvqscbIiBdG9U
+X-Google-Smtp-Source: APiQypKf7bSUzReoBubrJJvUiUvyovPF/1cgFZo3lRblXXTsfhO31Itpcb+CmqOsJ11ccV5fWsYnw7Iq4kf2WwOppWFc3QVc1Rth
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200510122807.24011-1-fw@strlen.de>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-Received: by 2002:a02:c9d0:: with SMTP id c16mr16961066jap.80.1589221280642;
+ Mon, 11 May 2020 11:21:20 -0700 (PDT)
+Date:   Mon, 11 May 2020 11:21:20 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000e723d205a56369c2@google.com>
+Subject: KMSAN: uninit-value in hash_net6_del
+From:   syzbot <syzbot+3fba3936436897a34c8a@syzkaller.appspotmail.com>
+To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        glider@google.com, gregkh@linuxfoundation.org, info@metux.net,
+        jeremy@azazel.net, kadlec@netfilter.org,
+        kstewart@linuxfoundation.org, kuba@kernel.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com, tglx@linutronix.de
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, May 10, 2020 at 02:28:07PM +0200, Florian Westphal wrote:
-> 'rmmod nf_conntrack' can hang forever, because the netns exit
-> gets stuck in nf_conntrack_cleanup_net_list():
-> 
-> i_see_dead_people:
->  busy = 0;
->  list_for_each_entry(net, net_exit_list, exit_list) {
->   nf_ct_iterate_cleanup(kill_all, net, 0, 0);
->   if (atomic_read(&net->ct.count) != 0)
->    busy = 1;
->  }
->  if (busy) {
->   schedule();
->   goto i_see_dead_people;
->  }
-> 
-> When nf_ct_iterate_cleanup iterates the conntrack table, all nf_conn
-> structures can be found twice:
-> once for the original tuple and once for the conntracks reply tuple.
-> 
-> get_next_corpse() only calls the iterator when the entry is
-> in original direction -- the idea was to avoid unneeded invocations
-> of the iterator callback.
-> 
-> When support for clashing entries was added, the assumption that
-> all nf_conn objects are added twice, once in original, once for reply
-> tuple no longer holds -- NF_CLASH_BIT entries are only added in
-> the non-clashing reply direction.
-> 
-> Thus, if at least one NF_CLASH entry is in the list then
-> nf_conntrack_cleanup_net_list() always skips it completely.
-> 
-> During normal netns destruction, this causes a hang of several
-> seconds, until the gc worker removes the entry (NF_CLASH entries
-> always have a 1 second timeout).
-> 
-> But in the rmmod case, the gc worker has already been stopped, so
-> ct.count never becomes 0.
-> 
-> We can fix this in two ways:
-> 
-> 1. Add a second test for CLASH_BIT and call iterator for those
->    entries as well, or:
-> 2. Skip the original tuple direction and use the reply tuple.
-> 
-> 2) is simpler, so do that.
+Hello,
 
-Applied, thanks.
+syzbot found the following crash on:
+
+HEAD commit:    21c44613 kmsan: page_alloc: more assuring comment
+git tree:       https://github.com/google/kmsan.git master
+console output: https://syzkaller.appspot.com/x/log.txt?x=12f13632100000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=a5915107b3106aaa
+dashboard link: https://syzkaller.appspot.com/bug?extid=3fba3936436897a34c8a
+compiler:       clang version 10.0.0 (https://github.com/llvm/llvm-project/ c2443155a0fb245c8f17f2c1c72b6ea391e86e81)
+
+Unfortunately, I don't have any reproducer for this crash yet.
+
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+3fba3936436897a34c8a@syzkaller.appspotmail.com
+
+=====================================================
+BUG: KMSAN: uninit-value in __read_once_size include/linux/compiler.h:206 [inline]
+BUG: KMSAN: uninit-value in hash_net6_del+0xa54/0x23e0 net/netfilter/ipset/ip_set_hash_gen.h:1069
+CPU: 0 PID: 32550 Comm: syz-executor.3 Not tainted 5.6.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x220 lib/dump_stack.c:118
+ kmsan_report+0xf7/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x58/0xa0 mm/kmsan/kmsan_instr.c:215
+ __read_once_size include/linux/compiler.h:206 [inline]
+ hash_net6_del+0xa54/0x23e0 net/netfilter/ipset/ip_set_hash_gen.h:1069
+ hash_net6_uadt+0xab6/0xd80 net/netfilter/ipset/ip_set_hash_net.c:343
+ call_ad+0x2dc/0xbc0 net/netfilter/ipset/ip_set_core.c:1731
+ ip_set_ad+0xad2/0x1110 net/netfilter/ipset/ip_set_core.c:1819
+ ip_set_udel+0xf9/0x110 net/netfilter/ipset/ip_set_core.c:1853
+ nfnetlink_rcv_msg+0xb86/0xcf0 net/netfilter/nfnetlink.c:229
+ netlink_rcv_skb+0x451/0x650 net/netlink/af_netlink.c:2478
+ nfnetlink_rcv+0x3b5/0x3ab0 net/netfilter/nfnetlink.c:563
+ netlink_unicast_kernel net/netlink/af_netlink.c:1303 [inline]
+ netlink_unicast+0xf9e/0x1100 net/netlink/af_netlink.c:1329
+ netlink_sendmsg+0x1246/0x14d0 net/netlink/af_netlink.c:1918
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x12b6/0x1350 net/socket.c:2345
+ ___sys_sendmsg net/socket.c:2399 [inline]
+ __sys_sendmsg+0x451/0x5f0 net/socket.c:2432
+ __do_sys_sendmsg net/socket.c:2441 [inline]
+ __se_sys_sendmsg+0x97/0xb0 net/socket.c:2439
+ __x64_sys_sendmsg+0x4a/0x70 net/socket.c:2439
+ do_syscall_64+0xb8/0x160 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x45c829
+Code: 0d b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 db b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f20cf9cbc78 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004fd660 RCX: 000000000045c829
+RDX: 0000000000000000 RSI: 0000000020001080 RDI: 0000000000000003
+RBP: 000000000078bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 000000000000092a R14: 00000000004cbc77 R15: 00007f20cf9cc6d4
+
+Uninit was stored to memory at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:144 [inline]
+ kmsan_internal_chain_origin+0xad/0x130 mm/kmsan/kmsan.c:310
+ __msan_chain_origin+0x50/0x90 mm/kmsan/kmsan_instr.c:165
+ ip6_netmask include/linux/netfilter/ipset/pfxlen.h:51 [inline]
+ hash_net6_uadt+0xa07/0xd80 net/netfilter/ipset/ip_set_hash_net.c:334
+ call_ad+0x2dc/0xbc0 net/netfilter/ipset/ip_set_core.c:1731
+ ip_set_ad+0xad2/0x1110 net/netfilter/ipset/ip_set_core.c:1819
+ ip_set_udel+0xf9/0x110 net/netfilter/ipset/ip_set_core.c:1853
+ nfnetlink_rcv_msg+0xb86/0xcf0 net/netfilter/nfnetlink.c:229
+ netlink_rcv_skb+0x451/0x650 net/netlink/af_netlink.c:2478
+ nfnetlink_rcv+0x3b5/0x3ab0 net/netfilter/nfnetlink.c:563
+ netlink_unicast_kernel net/netlink/af_netlink.c:1303 [inline]
+ netlink_unicast+0xf9e/0x1100 net/netlink/af_netlink.c:1329
+ netlink_sendmsg+0x1246/0x14d0 net/netlink/af_netlink.c:1918
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x12b6/0x1350 net/socket.c:2345
+ ___sys_sendmsg net/socket.c:2399 [inline]
+ __sys_sendmsg+0x451/0x5f0 net/socket.c:2432
+ __do_sys_sendmsg net/socket.c:2441 [inline]
+ __se_sys_sendmsg+0x97/0xb0 net/socket.c:2439
+ __x64_sys_sendmsg+0x4a/0x70 net/socket.c:2439
+ do_syscall_64+0xb8/0x160 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Uninit was stored to memory at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:144 [inline]
+ kmsan_internal_chain_origin+0xad/0x130 mm/kmsan/kmsan.c:310
+ kmsan_memcpy_memmove_metadata+0x272/0x2e0 mm/kmsan/kmsan.c:247
+ kmsan_memcpy_metadata+0xb/0x10 mm/kmsan/kmsan.c:267
+ __msan_memcpy+0x43/0x50 mm/kmsan/kmsan_instr.c:116
+ ip_set_get_ipaddr6+0x26a/0x300 net/netfilter/ipset/ip_set_core.c:324
+ hash_net6_uadt+0x4a6/0xd80 net/netfilter/ipset/ip_set_hash_net.c:320
+ call_ad+0x2dc/0xbc0 net/netfilter/ipset/ip_set_core.c:1731
+ ip_set_ad+0xad2/0x1110 net/netfilter/ipset/ip_set_core.c:1819
+ ip_set_udel+0xf9/0x110 net/netfilter/ipset/ip_set_core.c:1853
+ nfnetlink_rcv_msg+0xb86/0xcf0 net/netfilter/nfnetlink.c:229
+ netlink_rcv_skb+0x451/0x650 net/netlink/af_netlink.c:2478
+ nfnetlink_rcv+0x3b5/0x3ab0 net/netfilter/nfnetlink.c:563
+ netlink_unicast_kernel net/netlink/af_netlink.c:1303 [inline]
+ netlink_unicast+0xf9e/0x1100 net/netlink/af_netlink.c:1329
+ netlink_sendmsg+0x1246/0x14d0 net/netlink/af_netlink.c:1918
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x12b6/0x1350 net/socket.c:2345
+ ___sys_sendmsg net/socket.c:2399 [inline]
+ __sys_sendmsg+0x451/0x5f0 net/socket.c:2432
+ __do_sys_sendmsg net/socket.c:2441 [inline]
+ __se_sys_sendmsg+0x97/0xb0 net/socket.c:2439
+ __x64_sys_sendmsg+0x4a/0x70 net/socket.c:2439
+ do_syscall_64+0xb8/0x160 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:144 [inline]
+ kmsan_internal_poison_shadow+0x66/0xd0 mm/kmsan/kmsan.c:127
+ kmsan_slab_alloc+0x8a/0xe0 mm/kmsan/kmsan_hooks.c:80
+ slab_alloc_node mm/slub.c:2801 [inline]
+ __kmalloc_node_track_caller+0xb40/0x1200 mm/slub.c:4420
+ __kmalloc_reserve net/core/skbuff.c:142 [inline]
+ __alloc_skb+0x2fd/0xac0 net/core/skbuff.c:210
+ alloc_skb include/linux/skbuff.h:1081 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1175 [inline]
+ netlink_sendmsg+0x7d3/0x14d0 net/netlink/af_netlink.c:1893
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x12b6/0x1350 net/socket.c:2345
+ ___sys_sendmsg net/socket.c:2399 [inline]
+ __sys_sendmsg+0x451/0x5f0 net/socket.c:2432
+ __do_sys_sendmsg net/socket.c:2441 [inline]
+ __se_sys_sendmsg+0x97/0xb0 net/socket.c:2439
+ __x64_sys_sendmsg+0x4a/0x70 net/socket.c:2439
+ do_syscall_64+0xb8/0x160 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+=====================================================
+
+
+---
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
