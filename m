@@ -1,125 +1,138 @@
-Return-Path: <SRS0=NFxu=6Z=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=em6Q=62=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 000CBC54E8D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 21:34:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32890C47255
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 May 2020 00:28:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CBEEE206D9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 May 2020 21:34:11 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nWzNmvBU"
+	by mail.kernel.org (Postfix) with ESMTP id 0C96A20714
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 May 2020 00:28:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727805AbgEKVeK (ORCPT
+        id S1726415AbgELA2C (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 May 2020 17:34:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49510 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1725895AbgEKVeK (ORCPT
+        Mon, 11 May 2020 20:28:02 -0400
+Received: from mail.redfish-solutions.com ([45.33.216.244]:60972 "EHLO
+        mail.redfish-solutions.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725881AbgELA2C (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 May 2020 17:34:10 -0400
-Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com [IPv6:2607:f8b0:4864:20::442])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FD37C061A0C;
-        Mon, 11 May 2020 14:34:09 -0700 (PDT)
-Received: by mail-pf1-x442.google.com with SMTP id x77so5341898pfc.0;
-        Mon, 11 May 2020 14:34:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=sXCysljLfLXX410q/6YrEuNh3qGEuRfM8YNbcTjsua4=;
-        b=nWzNmvBU+sA+7DdNALZrh5mspbr0Y5vKHKodfOkPjLrdOUvb8TKOOIGckyMqbCMyrO
-         k3mWuzrYolK+27+wfsTRBsqu9ScekAzpyFgQgPZMyrHHvg0PZ+Z71cLSEvKlvRfVh3wM
-         ItqbcjlKJdconjzhlVEf2RMO2EpIno4jxSF5la8iZNIfcTO14gpgkkzPDKDaQEQHcPYX
-         b+r0nCDXYqa11fq08hyECPwsGE06+u4+mUwOwITDJQoFwbHAqXbZkLkh8wMAIoBYI9fE
-         EtcEm0awMOaiIcsvhnhNFTsBPctKZZ9RGTSO1Wu6yxSfOSKoGrzpRZ0oV1v+khXK0eFG
-         vnjQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=sXCysljLfLXX410q/6YrEuNh3qGEuRfM8YNbcTjsua4=;
-        b=gy6XMsZJ7J5xPkpJvr1Sah1bVHI7o6ffeCqPT8YoNuupdtgQxNSQIgHDMy25FzM9Ng
-         umFhYevW9WVS0wNq4Z4ZZ5aEEctHpEEZzOpb01DtiEYkdhapXpzylGt22NSiTSN0CNw+
-         +aZc3zdbRz1eCexx3+DeOLQHQFEqMBXWIKPagRqpgNzPubgXDVw8wHUHPERsdsyM9Pw7
-         fmroQPBssc4/jUKQHg8EP/EVbXcHYKBzPfBnOxflGOL9U2YmIFkytG68Y0nVeG/ZePQo
-         A56eT/iBSun31jGc+gG+GKg/xaboAUFFXU7CaT2EEbBtl/0oNUliEL1UQskoSC+4qRw7
-         EnvA==
-X-Gm-Message-State: AGi0PubhW+iECLoOmDgdob7NmQM0v5oLQ67azZsy7uWeK5NN3I20zpV/
-        zJe+NlKNttSScTgfyY/SK0zAFqc0
-X-Google-Smtp-Source: APiQypJx4fWNNQJzXlqv7c4r75k2Ax5UXOPYZb0usCL1VF0QvKCgVSNIQDCxzpa2PtgLqoVlqsV85w==
-X-Received: by 2002:a63:1a01:: with SMTP id a1mr15493278pga.87.1589232849175;
-        Mon, 11 May 2020 14:34:09 -0700 (PDT)
-Received: from athina.mtv.corp.google.com ([2620:15c:211:0:c786:d9fd:ab91:6283])
-        by smtp.gmail.com with ESMTPSA id f6sm10340071pfd.175.2020.05.11.14.34.07
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 11 May 2020 14:34:08 -0700 (PDT)
-From:   =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <zenczykowski@gmail.com>
-To:     =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     Linux Network Development Mailing List <netdev@vger.kernel.org>,
-        Netfilter Development Mailing List 
-        <netfilter-devel@vger.kernel.org>
-Subject: [PATCH] libiptc.c: pragma disable a gcc compiler warning
-Date:   Mon, 11 May 2020 14:34:04 -0700
-Message-Id: <20200511213404.248715-1-zenczykowski@gmail.com>
-X-Mailer: git-send-email 2.26.2.645.ge9eca65c58-goog
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Mon, 11 May 2020 20:28:02 -0400
+Received: from son-of-builder.redfish-solutions.com (son-of-builder.redfish-solutions.com [192.168.1.56])
+        (authenticated bits=0)
+        by mail.redfish-solutions.com (8.15.2/8.15.2) with ESMTPSA id 04C0RwJ5025958
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 11 May 2020 18:27:58 -0600
+From:   "Philip Prindeville" <philipp@redfish-solutions.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Jan Engelhardt <jengelh@inai.de>,
+        Philip Prindeville <philipp@redfish-solutions.com>
+Subject: [PATCH v1 1/1] xtables-addons: geoip: update scripts for DBIP names, etc.
+Date:   Mon, 11 May 2020 18:27:47 -0600
+Message-Id: <20200512002747.2108-1-philipp@redfish-solutions.com>
+X-Mailer: git-send-email 2.17.2
+X-Scanned-By: MIMEDefang 2.84 on 192.168.1.3
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Maciej Żenczykowski <maze@google.com>
+From: Philip Prindeville <philipp@redfish-solutions.com>
 
-Fixes:
-  In file included from libip4tc.c:113:
-  In function ‘iptcc_compile_chain’,
-      inlined from ‘iptcc_compile_table’ at libiptc.c:1246:13,
-      inlined from ‘iptc_commit’ at libiptc.c:2575:8,
-      inlined from ‘iptc_commit’ at libiptc.c:2513:1:
-  libiptc.c:1172:2: warning: writing 16 bytes into a region of size 0 [-Wstringop-overflow=]
-   1172 |  memcpy(&foot->e.counters, &c->counters, sizeof(STRUCT_COUNTERS));
-        |  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  In file included from ../include/libiptc/libiptc.h:12,
-                   from libip4tc.c:29:
-  libiptc.c: In function ‘iptc_commit’:
-  ../include/linux/netfilter_ipv4/ip_tables.h:202:19: note: at offset 0 to object ‘entries’ with size 0 declared here
-    202 |  struct ipt_entry entries[0];
-        |                   ^~~~~~~
+Also change the default destination directory to /usr/share/xt_geoip
+as most distros use this now.  Update the documentation.
 
-Which was found via compilation on Fedora 32.
-
-Test: builds without warnings
-Signed-off-by: Maciej Żenczykowski <maze@google.com>
+Signed-off-by: Philip Prindeville <philipp@redfish-solutions.com>
 ---
- libiptc/libiptc.c | 3 +++
- 1 file changed, 3 insertions(+)
+ geoip/xt_geoip_build   |  4 +++-
+ geoip/xt_geoip_build.1 | 10 +++++-----
+ geoip/xt_geoip_fetch   |  3 ++-
+ geoip/xt_geoip_fetch.1 |  3 ++-
+ 4 files changed, 12 insertions(+), 8 deletions(-)
 
-diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
-index 58882015..1a92b267 100644
---- a/libiptc/libiptc.c
-+++ b/libiptc/libiptc.c
-@@ -1169,7 +1169,10 @@ static int iptcc_compile_chain(struct xtc_handle *h, STRUCT_REPLACE *repl, struc
- 	else
- 		foot->target.verdict = RETURN;
- 	/* set policy-counters */
-+#pragma GCC diagnostic push
-+#pragma GCC diagnostic ignored "-Wstringop-overflow"
- 	memcpy(&foot->e.counters, &c->counters, sizeof(STRUCT_COUNTERS));
-+#pragma GCC diagnostic pop
+diff --git a/geoip/xt_geoip_build b/geoip/xt_geoip_build
+index e7ad9bfdcc1e3b617ada77872f9be87e126b885f..edb05426554f799524610ce55cbfe738b838ba0e 100644
+--- a/geoip/xt_geoip_build
++++ b/geoip/xt_geoip_build
+@@ -5,6 +5,7 @@
+ #	Copyright Philip Prindeville, 2018
+ #	Copyright Arjen de Korte, 2020
+ #
++
+ use Getopt::Long;
+ use Net::CIDR::Lite;
+ use Socket qw(AF_INET AF_INET6 inet_pton);
+@@ -17,8 +18,9 @@ my $csv = Text::CSV_XS->new({
+ 	binary => 1,
+ 	eol => $/,
+ }); # or Text::CSV
++
+ my $source_dir = ".";
+-my $target_dir = ".";
++my $target_dir = "/usr/share/xt_geoip";
  
- 	return 0;
- }
+ &Getopt::Long::Configure(qw(bundling));
+ &GetOptions(
+diff --git a/geoip/xt_geoip_build.1 b/geoip/xt_geoip_build.1
+index 3b6ead31edd405688e692d1244fd6726dd529875..2513f34effffee82a206afca057328f5b86385d5 100644
+--- a/geoip/xt_geoip_build.1
++++ b/geoip/xt_geoip_build.1
+@@ -22,13 +22,13 @@ script requires it to be called with a path.
+ .PP Options
+ .TP
+ \fB\-D\fP \fItarget_dir\fP
+-Specifies the target directory into which the files are to be put. Defaults to ".".
++Specifies the target directory into which the files are to be put.
++Defaults to "/usr/share/xt_geoip".
+ .TP
+ \fB\-S\fP \fIsource_dir\fP
+-Specifies the source directory from which to read the three files by the name
+-of \fBGeoLite2\-Country\-Blocks\-IPv4.csv\fP,
+-\fBGeoLite2\-Country\-Blocks\-IPv6.csv\fP and
+-\fBGeoLite2\-Country\-Locations\-en.csv\fP. Defaults to ".".
++Specifies the source directory from which to read the file
++\fBdbip-country-lite.csv\fP.
++Defaults to ".".
+ .SH Application
+ .PP
+ Shell commands to build the databases and put them to where they are expected:
+diff --git a/geoip/xt_geoip_fetch b/geoip/xt_geoip_fetch
+index 06245195fb5166ac005b5021fa0f811e5e511c78..790ae36c68b45a63811eed69782e21ee180c8632 100755
+--- a/geoip/xt_geoip_fetch
++++ b/geoip/xt_geoip_fetch
+@@ -3,6 +3,7 @@
+ #	Utility to query GeoIP database
+ #	Copyright Philip Prindeville, 2018
+ #
++
+ use Getopt::Long;
+ use Socket qw(AF_INET AF_INET6 inet_ntop);
+ use warnings;
+@@ -11,7 +12,7 @@ use strict;
+ sub AF_INET_SIZE() { 4 }
+ sub AF_INET6_SIZE() { 16 }
+ 
+-my $target_dir = ".";
++my $target_dir = "/usr/share/xt_geoip";
+ my $ipv4 = 0;
+ my $ipv6 = 0;
+ 
+diff --git a/geoip/xt_geoip_fetch.1 b/geoip/xt_geoip_fetch.1
+index 7280c74b9ab520e61293a304207dfafee07cbe47..d51feea9328d654e98a24cc52ce7a168c15319d0 100644
+--- a/geoip/xt_geoip_fetch.1
++++ b/geoip/xt_geoip_fetch.1
+@@ -15,7 +15,8 @@ further processing.
+ .PP Options
+ .TP
+ \fB\-D\fP \fIdatabase_dir\fP
+-Specifies the directory into which the files have been put. Defaults to ".".
++Specifies the directory into which the files have been put.
++Defaults to "/usr/share/xt_geoip".
+ .TP
+ \fB-4\fP
+ Specifies IPv4 data only.
 -- 
-2.26.2.645.ge9eca65c58-goog
+2.17.2
 
