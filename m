@@ -2,113 +2,195 @@ Return-Path: <SRS0=Lm+H=63=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51A56C433DF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 15:20:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 965FEC433DF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 15:25:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6611C2065C
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 15:20:54 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bPQXgMTM"
+	by mail.kernel.org (Postfix) with ESMTP id B837520835
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 15:25:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389132AbgEMPUu (ORCPT
+        id S2389158AbgEMPZQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 May 2020 11:20:50 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:41589 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S2389121AbgEMPUt (ORCPT
+        Wed, 13 May 2020 11:25:16 -0400
+Received: from mail-il1-f198.google.com ([209.85.166.198]:33382 "EHLO
+        mail-il1-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731645AbgEMPZP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 May 2020 11:20:49 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1589383248;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=jBoXYA5jC+1FdSc82MyGNu1Sk0AIstPxsVbxIsZVhsA=;
-        b=bPQXgMTMqsKvo740A8vO1fTHQEDf11vAVFNExnWwgxT+M/WhPv1PBT9FOr1Vr6w6765lQt
-        uLBrvi1mC53l1saCxEAhK0n6kTo17DMqFvVK3jj+LTdmHV5azbM7Mi/FJBGcW5JoZ0Dso5
-        0MpWUarCptvF7AQRVXRojjra+A8ikec=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-397-VuQquIe_OPSVs8fjvjQzFA-1; Wed, 13 May 2020 11:20:44 -0400
-X-MC-Unique: VuQquIe_OPSVs8fjvjQzFA-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 3A84583DA41;
-        Wed, 13 May 2020 15:20:43 +0000 (UTC)
-Received: from [10.72.12.111] (ovpn-12-111.pek2.redhat.com [10.72.12.111])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 264A260F8D;
-        Wed, 13 May 2020 15:20:39 +0000 (UTC)
-To:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Cc:     kernel list <linux-kernel@vger.kernel.org>,
-        Jeff Layton <jlayton@kernel.org>,
-        Patrick Donnelly <pdonnell@redhat.com>
-From:   Xiubo Li <xiubli@redhat.com>
-Subject: netfilter: does the API break or something else ?
-Message-ID: <cf0d02b2-b1db-7ef6-41b8-7c345b7d53d5@redhat.com>
-Date:   Wed, 13 May 2020 23:20:35 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.8.0
+        Wed, 13 May 2020 11:25:15 -0400
+Received: by mail-il1-f198.google.com with SMTP id b29so153059ilb.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 08:25:14 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=HQbfDTdKiSPCgrvQsxot82m8/3AaMqneTDzkJfOay20=;
+        b=dezxicO8ORSjlFt5s4rFMWgY1OpJlF2x6xZKhWKbjPVbqAsBnk53p2QibSr+z0YnFa
+         jB/oTeWdxvput8aq1Br7QfISAO7/RCr0FPb21jDDnroeICev6d2m5v46IbxUXs3Q3akM
+         u7G6peXjQulBjkGKoAD1H9IhsGRNc6WjZb7cTRZbebcecXSzNXHPjCDt3acH7OZ3K2fG
+         VkIMc8QAzx/Pk0ur1PplezfEZwIR3edGsrBooTMm54E2rqQIubJ0uV5L40CDtq6WbXbc
+         UDsT69CPoOOfFqWTp65HBOg/h4Gw6CJB+fd8MfO47Giwq3ApmSykgAGtc/A5Fnln7cPw
+         pEHQ==
+X-Gm-Message-State: AGi0Pub5VPDMBzSy64XYqf4cTvyksPuF5ctJjepp1gDUvJmSCYNw/0mB
+        WKbfX4qWEkdiyCgpG/4JEhLwmhQb9xPZbahxdbW3XYOVzWbq
+X-Google-Smtp-Source: APiQypLU5vUPTbAOHhe91/1U+t3W74M0qYA7vJWwe9VQur73W2UxFc+n6+Kl+GizfALqgiT8eQIc8UbFnPC5JfrfH0nktom3BzK+
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+X-Received: by 2002:a6b:8b51:: with SMTP id n78mr8625443iod.147.1589383514268;
+ Wed, 13 May 2020 08:25:14 -0700 (PDT)
+Date:   Wed, 13 May 2020 08:25:14 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000c7a98805a5892ff2@google.com>
+Subject: KMSAN: uninit-value in hash_ip6_test
+From:   syzbot <syzbot+e66172c53a40c795a780@syzkaller.appspotmail.com>
+To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        glider@google.com, gregkh@linuxfoundation.org, info@metux.net,
+        jeremy@azazel.net, kadlec@netfilter.org,
+        kstewart@linuxfoundation.org, kuba@kernel.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com, tglx@linutronix.de
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Experts，
+Hello,
 
-Recently I hit one netfilter issue, it seems the API breaks or something 
-else.
+syzbot found the following crash on:
 
-On CentOS8.1 with the recent upstream kernel built from source, such as 
-5.6.0-rc6/5.7.0-rc4. When running the following command:
-$ sudo bash -c 'iptables -A FORWARD -o enp3s0f1 -i ceph-brx -j ACCEPT'
-iptables v1.8.2 (nf_tables): CHAIN_ADD failed (Operation not supported): 
-chain INPUT
+HEAD commit:    14bcee29 DO-NOT-SUBMIT: kmsan: block: nullb: handle read r..
+git tree:       https://github.com/google/kmsan.git master
+console output: https://syzkaller.appspot.com/x/log.txt?x=14f266a4100000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=6f048d804e1a47a0
+dashboard link: https://syzkaller.appspot.com/bug?extid=e66172c53a40c795a780
+compiler:       clang version 10.0.0 (https://github.com/llvm/llvm-project/ c2443155a0fb245c8f17f2c1c72b6ea391e86e81)
 
-With the nftables command:
+Unfortunately, I don't have any reproducer for this crash yet.
 
-$ sudo nft add chain ip filter INPUT { type filter hook input priority 0\; }
-Error: Could not process rule: Operation not supported
-add chain ip filter INPUT { type filter hook input priority 0; }
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-$  sudo nft add chain ip filter FORWARD { type filter hook forward 
-priority 0\; }
-Error: Could not process rule: Operation not supported
-add chain ip filter FORWARD { type filter hook forward priority 0; }
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-$  sudo nft add chain ip filter OUTPUT { type filter hook output 
-priority 0\; }
-Error: Could not process rule: Operation not supported
-add chain ip filter OUTPUT { type filter hook output priority 0; }
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+e66172c53a40c795a780@syzkaller.appspotmail.com
+
+=====================================================
+BUG: KMSAN: uninit-value in __read_once_size include/linux/compiler.h:206 [inline]
+BUG: KMSAN: uninit-value in hash_ip6_test+0x763/0x7e0 net/netfilter/ipset/ip_set_hash_gen.h:1253
+CPU: 0 PID: 18186 Comm: syz-executor.1 Not tainted 5.7.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x220 lib/dump_stack.c:118
+ kmsan_report+0xf7/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x58/0xa0 mm/kmsan/kmsan_instr.c:215
+ __read_once_size include/linux/compiler.h:206 [inline]
+ hash_ip6_test+0x763/0x7e0 net/netfilter/ipset/ip_set_hash_gen.h:1253
+ hash_ip6_uadt+0x8e6/0xad0 net/netfilter/ipset/ip_set_hash_ip.c:267
+ ip_set_utest+0x657/0x820 net/netfilter/ipset/ip_set_core.c:1884
+ nfnetlink_rcv_msg+0xb86/0xcf0 net/netfilter/nfnetlink.c:229
+ netlink_rcv_skb+0x451/0x650 net/netlink/af_netlink.c:2469
+ nfnetlink_rcv+0x3b5/0x3ab0 net/netfilter/nfnetlink.c:563
+ netlink_unicast_kernel net/netlink/af_netlink.c:1303 [inline]
+ netlink_unicast+0xf9e/0x1100 net/netlink/af_netlink.c:1329
+ netlink_sendmsg+0x1246/0x14d0 net/netlink/af_netlink.c:1918
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x12b6/0x1350 net/socket.c:2362
+ ___sys_sendmsg net/socket.c:2416 [inline]
+ __sys_sendmsg+0x623/0x750 net/socket.c:2449
+ __do_sys_sendmsg net/socket.c:2458 [inline]
+ __se_sys_sendmsg+0x97/0xb0 net/socket.c:2456
+ __x64_sys_sendmsg+0x4a/0x70 net/socket.c:2456
+ do_syscall_64+0xb8/0x160 arch/x86/entry/common.c:297
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x45c829
+Code: 0d b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 db b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f55a0374c78 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004fd960 RCX: 000000000045c829
+RDX: 0000000000000000 RSI: 0000000020000300 RDI: 0000000000000003
+RBP: 000000000078bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 0000000000000936 R14: 00000000004cbda5 R15: 00007f55a03756d4
+
+Uninit was stored to memory at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:144 [inline]
+ kmsan_internal_chain_origin+0xad/0x130 mm/kmsan/kmsan.c:310
+ __msan_chain_origin+0x50/0x90 mm/kmsan/kmsan_instr.c:165
+ ip6_netmask include/linux/netfilter/ipset/pfxlen.h:49 [inline]
+ hash_ip6_netmask net/netfilter/ipset/ip_set_hash_ip.c:185 [inline]
+ hash_ip6_uadt+0x9df/0xad0 net/netfilter/ipset/ip_set_hash_ip.c:263
+ ip_set_utest+0x657/0x820 net/netfilter/ipset/ip_set_core.c:1884
+ nfnetlink_rcv_msg+0xb86/0xcf0 net/netfilter/nfnetlink.c:229
+ netlink_rcv_skb+0x451/0x650 net/netlink/af_netlink.c:2469
+ nfnetlink_rcv+0x3b5/0x3ab0 net/netfilter/nfnetlink.c:563
+ netlink_unicast_kernel net/netlink/af_netlink.c:1303 [inline]
+ netlink_unicast+0xf9e/0x1100 net/netlink/af_netlink.c:1329
+ netlink_sendmsg+0x1246/0x14d0 net/netlink/af_netlink.c:1918
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x12b6/0x1350 net/socket.c:2362
+ ___sys_sendmsg net/socket.c:2416 [inline]
+ __sys_sendmsg+0x623/0x750 net/socket.c:2449
+ __do_sys_sendmsg net/socket.c:2458 [inline]
+ __se_sys_sendmsg+0x97/0xb0 net/socket.c:2456
+ __x64_sys_sendmsg+0x4a/0x70 net/socket.c:2456
+ do_syscall_64+0xb8/0x160 arch/x86/entry/common.c:297
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Uninit was stored to memory at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:144 [inline]
+ kmsan_internal_chain_origin+0xad/0x130 mm/kmsan/kmsan.c:310
+ kmsan_memcpy_memmove_metadata+0x272/0x2e0 mm/kmsan/kmsan.c:247
+ kmsan_memcpy_metadata+0xb/0x10 mm/kmsan/kmsan.c:267
+ __msan_memcpy+0x43/0x50 mm/kmsan/kmsan_instr.c:116
+ ip_set_get_ipaddr6+0x26a/0x300 net/netfilter/ipset/ip_set_core.c:325
+ hash_ip6_uadt+0x450/0xad0 net/netfilter/ipset/ip_set_hash_ip.c:255
+ ip_set_utest+0x657/0x820 net/netfilter/ipset/ip_set_core.c:1884
+ nfnetlink_rcv_msg+0xb86/0xcf0 net/netfilter/nfnetlink.c:229
+ netlink_rcv_skb+0x451/0x650 net/netlink/af_netlink.c:2469
+ nfnetlink_rcv+0x3b5/0x3ab0 net/netfilter/nfnetlink.c:563
+ netlink_unicast_kernel net/netlink/af_netlink.c:1303 [inline]
+ netlink_unicast+0xf9e/0x1100 net/netlink/af_netlink.c:1329
+ netlink_sendmsg+0x1246/0x14d0 net/netlink/af_netlink.c:1918
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x12b6/0x1350 net/socket.c:2362
+ ___sys_sendmsg net/socket.c:2416 [inline]
+ __sys_sendmsg+0x623/0x750 net/socket.c:2449
+ __do_sys_sendmsg net/socket.c:2458 [inline]
+ __se_sys_sendmsg+0x97/0xb0 net/socket.c:2456
+ __x64_sys_sendmsg+0x4a/0x70 net/socket.c:2456
+ do_syscall_64+0xb8/0x160 arch/x86/entry/common.c:297
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:144 [inline]
+ kmsan_internal_poison_shadow+0x66/0xd0 mm/kmsan/kmsan.c:127
+ kmsan_slab_alloc+0x8a/0xe0 mm/kmsan/kmsan_hooks.c:80
+ slab_alloc_node mm/slub.c:2802 [inline]
+ __kmalloc_node_track_caller+0xb40/0x1200 mm/slub.c:4436
+ __kmalloc_reserve net/core/skbuff.c:142 [inline]
+ __alloc_skb+0x2fd/0xac0 net/core/skbuff.c:210
+ alloc_skb include/linux/skbuff.h:1083 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1175 [inline]
+ netlink_sendmsg+0x7d3/0x14d0 net/netlink/af_netlink.c:1893
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x12b6/0x1350 net/socket.c:2362
+ ___sys_sendmsg net/socket.c:2416 [inline]
+ __sys_sendmsg+0x623/0x750 net/socket.c:2449
+ __do_sys_sendmsg net/socket.c:2458 [inline]
+ __se_sys_sendmsg+0x97/0xb0 net/socket.c:2456
+ __x64_sys_sendmsg+0x4a/0x70 net/socket.c:2456
+ do_syscall_64+0xb8/0x160 arch/x86/entry/common.c:297
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+=====================================================
 
 
-While tried them with downstream kernel 4.18.0-147.8.1.el8_1.x86_64, 
-they all could work well.
+---
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-The nftables/libnftnl packages are:
-
-$ rpm -qa|grep nft
-nftables-0.9.0-14.el8.x86_64
-libnftnl-1.1.1-4.el8.x86_64
-
-And we have tried v5.7.0-rc4+ with f31 userspace, they all could work 
-well too.
-
- From above I just suspect the API should break. Could someone kindly 
-point out which and where ?
-Thanks
-BRs
-Xiubo
-
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
