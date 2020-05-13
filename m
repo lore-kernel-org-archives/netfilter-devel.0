@@ -6,47 +6,47 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 594F8C433E1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 16:41:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05DAFC433E0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 16:42:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B6B6520690
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 16:41:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 546FA2065D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 16:42:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389696AbgEMQl7 (ORCPT
+        id S2389706AbgEMQmA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 May 2020 12:41:59 -0400
-Received: from correo.us.es ([193.147.175.20]:54020 "EHLO mail.us.es"
+        Wed, 13 May 2020 12:42:00 -0400
+Received: from correo.us.es ([193.147.175.20]:54086 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389405AbgEMQl6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 May 2020 12:41:58 -0400
+        id S2389647AbgEMQl5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 13 May 2020 12:41:57 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4831527F8B9
-        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 18:41:57 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 05DD627F8B1
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 18:41:55 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3A07B1158ED
-        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 18:41:57 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E8D35512D5
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 18:41:54 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 27E281158F5; Wed, 13 May 2020 18:41:57 +0200 (CEST)
+        id E70DE2067A; Wed, 13 May 2020 18:41:54 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 09E1B11540C;
-        Wed, 13 May 2020 18:41:55 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AFA2D1158F1;
+        Wed, 13 May 2020 18:41:52 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 13 May 2020 18:41:55 +0200 (CEST)
+ Wed, 13 May 2020 18:41:52 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id ABF8642EF4E1;
-        Wed, 13 May 2020 18:41:54 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 53FEE42EF4E0;
+        Wed, 13 May 2020 18:41:52 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, paulb@mellanox.com,
         ozsh@mellanox.com, vladbu@mellanox.com, jiri@resnulli.us,
         kuba@kernel.org, saeedm@mellanox.com, michael.chan@broadcom.com
-Subject: [PATCH 7/8 net] bnxt_tc: update indirect block support
-Date:   Wed, 13 May 2020 18:41:39 +0200
-Message-Id: <20200513164140.7956-8-pablo@netfilter.org>
+Subject: [PATCH 5/8 net] mlx5: update indirect block support
+Date:   Wed, 13 May 2020 18:41:37 +0200
+Message-Id: <20200513164140.7956-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200513164140.7956-1-pablo@netfilter.org>
 References: <20200513164140.7956-1-pablo@netfilter.org>
@@ -61,111 +61,167 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 Register ndo callback via flow_indr_dev_register() and
 flow_indr_dev_unregister().
 
+No need for mlx5e_rep_indr_clean_block_privs() since flow_block_cb_free()
+already releases the internal mapping via ->release callback, which in
+this case is mlx5e_rep_indr_tc_block_unbind().
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- drivers/net/ethernet/broadcom/bnxt/bnxt.h    |  1 -
- drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c | 51 +++++---------------
- 2 files changed, 12 insertions(+), 40 deletions(-)
+ .../net/ethernet/mellanox/mlx5/core/en_rep.c  | 83 +++----------------
+ .../net/ethernet/mellanox/mlx5/core/en_rep.h  |  5 --
+ 2 files changed, 10 insertions(+), 78 deletions(-)
 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.h b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-index f6a3250ef1c5..e7d1c12673bd 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-@@ -1857,7 +1857,6 @@ struct bnxt {
- 	u8			dsn[8];
- 	struct bnxt_tc_info	*tc_info;
- 	struct list_head	tc_indr_block_list;
--	struct notifier_block	tc_netdev_nb;
- 	struct dentry		*debugfs_pdev;
- 	struct device		*hwmon_dev;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+index f372e94948fd..b7aa0d976ba7 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+@@ -65,9 +65,6 @@ struct mlx5e_rep_indr_block_priv {
+ 	struct list_head list;
  };
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c
-index 782ea0771221..0eef4f5e4a46 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c
-@@ -1939,53 +1939,25 @@ static int bnxt_tc_setup_indr_block(struct net_device *netdev, struct bnxt *bp,
- 	return 0;
+ 
+-static void mlx5e_rep_indr_unregister_block(struct mlx5e_rep_priv *rpriv,
+-					    struct net_device *netdev);
+-
+ static void mlx5e_rep_get_drvinfo(struct net_device *dev,
+ 				  struct ethtool_drvinfo *drvinfo)
+ {
+@@ -680,17 +677,6 @@ mlx5e_rep_indr_block_priv_lookup(struct mlx5e_rep_priv *rpriv,
+ 	return NULL;
  }
  
--static int bnxt_tc_setup_indr_cb(struct net_device *netdev, void *cb_priv,
--				 enum tc_setup_type type, void *type_data)
+-static void mlx5e_rep_indr_clean_block_privs(struct mlx5e_rep_priv *rpriv)
 -{
--	switch (type) {
--	case TC_SETUP_BLOCK:
--		return bnxt_tc_setup_indr_block(netdev, cb_priv, type_data);
--	default:
--		return -EOPNOTSUPP;
+-	struct mlx5e_rep_indr_block_priv *cb_priv, *temp;
+-	struct list_head *head = &rpriv->uplink_priv.tc_indr_block_priv_list;
+-
+-	list_for_each_entry_safe(cb_priv, temp, head, list) {
+-		mlx5e_rep_indr_unregister_block(rpriv, cb_priv->netdev);
+-		kfree(cb_priv);
 -	}
 -}
 -
- static bool bnxt_is_netdev_indr_offload(struct net_device *netdev)
+ static int
+ mlx5e_rep_indr_offload(struct net_device *netdev,
+ 		       struct flow_cls_offload *flower,
+@@ -794,9 +780,14 @@ mlx5e_rep_indr_setup_block(struct net_device *netdev,
+ 			   struct flow_block_offload *f,
+ 			   flow_setup_cb_t *setup_cb)
  {
- 	return netif_is_vxlan(netdev);
++	struct mlx5e_priv *priv = netdev_priv(rpriv->netdev);
+ 	struct mlx5e_rep_indr_block_priv *indr_priv;
+ 	struct flow_block_cb *block_cb;
+ 
++	if (!mlx5e_tc_tun_device_to_offload(priv, netdev) &&
++	    !(is_vlan_dev(netdev) && vlan_dev_real_dev(netdev) == rpriv->netdev))
++		return -EOPNOTSUPP;
++
+ 	if (f->binder_type != FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
+ 		return -EOPNOTSUPP;
+ 
+@@ -863,53 +854,6 @@ int mlx5e_rep_indr_setup_cb(struct net_device *netdev, void *cb_priv,
+ 	}
  }
  
--static int bnxt_tc_indr_block_event(struct notifier_block *nb,
--				    unsigned long event, void *ptr)
-+static int bnxt_tc_setup_indr_cb(struct net_device *netdev, void *cb_priv,
-+				 enum tc_setup_type type, void *type_data)
- {
--	struct net_device *netdev;
--	struct bnxt *bp;
--	int rc;
+-static int mlx5e_rep_indr_register_block(struct mlx5e_rep_priv *rpriv,
+-					 struct net_device *netdev)
+-{
+-	int err;
 -
--	netdev = netdev_notifier_info_to_dev(ptr);
- 	if (!bnxt_is_netdev_indr_offload(netdev))
+-	err = __flow_indr_block_cb_register(netdev, rpriv,
+-					    mlx5e_rep_indr_setup_cb,
+-					    rpriv);
+-	if (err) {
+-		struct mlx5e_priv *priv = netdev_priv(rpriv->netdev);
+-
+-		mlx5_core_err(priv->mdev, "Failed to register remote block notifier for %s err=%d\n",
+-			      netdev_name(netdev), err);
+-	}
+-	return err;
+-}
+-
+-static void mlx5e_rep_indr_unregister_block(struct mlx5e_rep_priv *rpriv,
+-					    struct net_device *netdev)
+-{
+-	__flow_indr_block_cb_unregister(netdev, mlx5e_rep_indr_setup_cb,
+-					rpriv);
+-}
+-
+-static int mlx5e_nic_rep_netdevice_event(struct notifier_block *nb,
+-					 unsigned long event, void *ptr)
+-{
+-	struct mlx5e_rep_priv *rpriv = container_of(nb, struct mlx5e_rep_priv,
+-						     uplink_priv.netdevice_nb);
+-	struct mlx5e_priv *priv = netdev_priv(rpriv->netdev);
+-	struct net_device *netdev = netdev_notifier_info_to_dev(ptr);
+-
+-	if (!mlx5e_tc_tun_device_to_offload(priv, netdev) &&
+-	    !(is_vlan_dev(netdev) && vlan_dev_real_dev(netdev) == rpriv->netdev))
 -		return NOTIFY_OK;
 -
--	bp = container_of(nb, struct bnxt, tc_netdev_nb);
-+		return -EOPNOTSUPP;
- 
 -	switch (event) {
 -	case NETDEV_REGISTER:
--		rc = __flow_indr_block_cb_register(netdev, bp,
--						   bnxt_tc_setup_indr_cb,
--						   bp);
--		if (rc)
--			netdev_info(bp->dev,
--				    "Failed to register indirect blk: dev: %s\n",
--				    netdev->name);
+-		mlx5e_rep_indr_register_block(rpriv, netdev);
 -		break;
 -	case NETDEV_UNREGISTER:
--		__flow_indr_block_cb_unregister(netdev,
--						bnxt_tc_setup_indr_cb,
--						bp);
-+	switch (type) {
-+	case TC_SETUP_BLOCK:
-+		return bnxt_tc_setup_indr_block(netdev, cb_priv, type_data);
-+	default:
- 		break;
- 	}
- 
--	return NOTIFY_DONE;
-+	return -EOPNOTSUPP;
- }
- 
- static const struct rhashtable_params bnxt_tc_flow_ht_params = {
-@@ -2074,8 +2046,8 @@ int bnxt_init_tc(struct bnxt *bp)
+-		mlx5e_rep_indr_unregister_block(rpriv, netdev);
+-		break;
+-	}
+-	return NOTIFY_OK;
+-}
+-
+ static void
+ mlx5e_rep_queue_neigh_update_work(struct mlx5e_priv *priv,
+ 				  struct mlx5e_neigh_hash_entry *nhe,
+@@ -1806,12 +1750,10 @@ static int mlx5e_init_uplink_rep_tx(struct mlx5e_rep_priv *rpriv)
  
  	/* init indirect block notifications */
- 	INIT_LIST_HEAD(&bp->tc_indr_block_list);
--	bp->tc_netdev_nb.notifier_call = bnxt_tc_indr_block_event;
--	rc = register_netdevice_notifier(&bp->tc_netdev_nb);
+ 	INIT_LIST_HEAD(&uplink_priv->tc_indr_block_priv_list);
+-	uplink_priv->netdevice_nb.notifier_call = mlx5e_nic_rep_netdevice_event;
+-	err = register_netdevice_notifier_dev_net(rpriv->netdev,
+-						  &uplink_priv->netdevice_nb,
+-						  &uplink_priv->netdevice_nn);
 +
-+	rc = flow_indr_dev_register(bnxt_tc_setup_indr_cb, bp);
- 	if (!rc)
- 		return 0;
++	err = flow_indr_dev_register(mlx5e_rep_indr_setup_cb, rpriv);
+ 	if (err) {
+-		mlx5_core_err(priv->mdev, "Failed to register netdev notifier\n");
++		mlx5_core_err(priv->mdev, "Failed to register indirect block notifier\n");
+ 		goto tc_esw_cleanup;
+ 	}
  
-@@ -2101,7 +2073,8 @@ void bnxt_shutdown_tc(struct bnxt *bp)
- 	if (!bnxt_tc_flower_enabled(bp))
- 		return;
+@@ -1848,13 +1790,8 @@ static int mlx5e_init_rep_tx(struct mlx5e_priv *priv)
  
--	unregister_netdevice_notifier(&bp->tc_netdev_nb);
-+	flow_indr_dev_unregister(bnxt_tc_setup_indr_cb, bp,
-+				 bnxt_tc_setup_indr_block_cb);
- 	rhashtable_destroy(&tc_info->flow_table);
- 	rhashtable_destroy(&tc_info->l2_table);
- 	rhashtable_destroy(&tc_info->decap_l2_table);
+ static void mlx5e_cleanup_uplink_rep_tx(struct mlx5e_rep_priv *rpriv)
+ {
+-	struct mlx5_rep_uplink_priv *uplink_priv = &rpriv->uplink_priv;
+-
+-	/* clean indirect TC block notifications */
+-	unregister_netdevice_notifier_dev_net(rpriv->netdev,
+-					      &uplink_priv->netdevice_nb,
+-					      &uplink_priv->netdevice_nn);
+-	mlx5e_rep_indr_clean_block_privs(rpriv);
++	flow_indr_dev_unregister(mlx5e_rep_indr_setup_cb, rpriv,
++				 mlx5e_rep_indr_setup_tc_cb);
+ 
+ 	/* delete shared tc flow table */
+ 	mlx5e_tc_esw_cleanup(&rpriv->uplink_priv.tc_ht);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h
+index 6a2337900420..3d6a4a9be482 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h
+@@ -68,13 +68,8 @@ struct mlx5_rep_uplink_priv {
+ 	 * tc_indr_block_cb_priv_list is used to lookup indirect callback
+ 	 * private data
+ 	 *
+-	 * netdevice_nb is the netdev events notifier - used to register
+-	 * tunnel devices for block events
+-	 *
+ 	 */
+ 	struct list_head	    tc_indr_block_priv_list;
+-	struct notifier_block	    netdevice_nb;
+-	struct netdev_net_notifier  netdevice_nn;
+ 
+ 	struct mlx5_tun_entropy tun_entropy;
+ 
 -- 
 2.20.1
 
