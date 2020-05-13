@@ -2,80 +2,113 @@ Return-Path: <SRS0=Lm+H=63=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7F3CC433E2
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 15:15:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51A56C433DF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 15:20:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 568AF20671
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 14:38:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6611C2065C
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 15:20:54 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bPQXgMTM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389005AbgEMOiQ (ORCPT
+        id S2389132AbgEMPUu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 May 2020 10:38:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37960 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728345AbgEMOiQ (ORCPT
+        Wed, 13 May 2020 11:20:50 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:41589 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S2389121AbgEMPUt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 May 2020 10:38:16 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 616A1C061A0C
-        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 07:38:16 -0700 (PDT)
-Received: from localhost ([::1]:47654 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1jYsWT-0003iT-6R; Wed, 13 May 2020 16:38:13 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, Eric Garver <e@erig.me>
-Subject: [nft PATCH] JSON: Improve performance of json_events_cb()
-Date:   Wed, 13 May 2020 16:38:03 +0200
-Message-Id: <20200513143803.25109-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.26.2
+        Wed, 13 May 2020 11:20:49 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1589383248;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=jBoXYA5jC+1FdSc82MyGNu1Sk0AIstPxsVbxIsZVhsA=;
+        b=bPQXgMTMqsKvo740A8vO1fTHQEDf11vAVFNExnWwgxT+M/WhPv1PBT9FOr1Vr6w6765lQt
+        uLBrvi1mC53l1saCxEAhK0n6kTo17DMqFvVK3jj+LTdmHV5azbM7Mi/FJBGcW5JoZ0Dso5
+        0MpWUarCptvF7AQRVXRojjra+A8ikec=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-397-VuQquIe_OPSVs8fjvjQzFA-1; Wed, 13 May 2020 11:20:44 -0400
+X-MC-Unique: VuQquIe_OPSVs8fjvjQzFA-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 3A84583DA41;
+        Wed, 13 May 2020 15:20:43 +0000 (UTC)
+Received: from [10.72.12.111] (ovpn-12-111.pek2.redhat.com [10.72.12.111])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 264A260F8D;
+        Wed, 13 May 2020 15:20:39 +0000 (UTC)
+To:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Cc:     kernel list <linux-kernel@vger.kernel.org>,
+        Jeff Layton <jlayton@kernel.org>,
+        Patrick Donnelly <pdonnell@redhat.com>
+From:   Xiubo Li <xiubli@redhat.com>
+Subject: netfilter: does the API break or something else ?
+Message-ID: <cf0d02b2-b1db-7ef6-41b8-7c345b7d53d5@redhat.com>
+Date:   Wed, 13 May 2020 23:20:35 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.8.0
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The function tries to insert handles into JSON input for echo option.
-Yet there may be nothing to do if the given netlink message doesn't
-contain a handle, e.g. if it is an 'add element' command. Calling
-seqnum_to_json() is pointless overhead in that case, and if input is
-large this overhead is significant. Better wait with that call until
-after checking if the message is relevant at all.
+Hi Experts，
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- src/parser_json.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+Recently I hit one netfilter issue, it seems the API breaks or something 
+else.
 
-diff --git a/src/parser_json.c b/src/parser_json.c
-index 4468407b0ecd0..3a84bd96af31f 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -3847,12 +3847,15 @@ static uint64_t handle_from_nlmsg(const struct nlmsghdr *nlh)
- }
- int json_events_cb(const struct nlmsghdr *nlh, struct netlink_mon_handler *monh)
- {
--	json_t *tmp, *json = seqnum_to_json(nlh->nlmsg_seq);
- 	uint64_t handle = handle_from_nlmsg(nlh);
-+	json_t *tmp, *json;
- 	void *iter;
- 
--	/* might be anonymous set, ignore message */
--	if (!json || !handle)
-+	if (!handle)
-+		return MNL_CB_OK;
-+
-+	json = seqnum_to_json(nlh->nlmsg_seq);
-+	if (!json)
- 		return MNL_CB_OK;
- 
- 	tmp = json_object_get(json, "add");
--- 
-2.26.2
+On CentOS8.1 with the recent upstream kernel built from source, such as 
+5.6.0-rc6/5.7.0-rc4. When running the following command:
+$ sudo bash -c 'iptables -A FORWARD -o enp3s0f1 -i ceph-brx -j ACCEPT'
+iptables v1.8.2 (nf_tables): CHAIN_ADD failed (Operation not supported): 
+chain INPUT
+
+With the nftables command:
+
+$ sudo nft add chain ip filter INPUT { type filter hook input priority 0\; }
+Error: Could not process rule: Operation not supported
+add chain ip filter INPUT { type filter hook input priority 0; }
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+$  sudo nft add chain ip filter FORWARD { type filter hook forward 
+priority 0\; }
+Error: Could not process rule: Operation not supported
+add chain ip filter FORWARD { type filter hook forward priority 0; }
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+$  sudo nft add chain ip filter OUTPUT { type filter hook output 
+priority 0\; }
+Error: Could not process rule: Operation not supported
+add chain ip filter OUTPUT { type filter hook output priority 0; }
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+While tried them with downstream kernel 4.18.0-147.8.1.el8_1.x86_64, 
+they all could work well.
+
+The nftables/libnftnl packages are:
+
+$ rpm -qa|grep nft
+nftables-0.9.0-14.el8.x86_64
+libnftnl-1.1.1-4.el8.x86_64
+
+And we have tried v5.7.0-rc4+ with f31 userspace, they all could work 
+well too.
+
+ From above I just suspect the API should break. Could someone kindly 
+point out which and where ?
+Thanks
+BRs
+Xiubo
 
