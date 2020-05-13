@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62AA3C433E0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 16:42:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E56DC433E1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 16:42:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C04A32065D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 16:42:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C2A6C2065D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 16:42:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389723AbgEMQmG (ORCPT
+        id S2389423AbgEMQl4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 May 2020 12:42:06 -0400
-Received: from correo.us.es ([193.147.175.20]:54084 "EHLO mail.us.es"
+        Wed, 13 May 2020 12:41:56 -0400
+Received: from correo.us.es ([193.147.175.20]:54002 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389622AbgEMQl5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 May 2020 12:41:57 -0400
+        id S2389532AbgEMQlz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 13 May 2020 12:41:55 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4564E27F8B3
-        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 18:41:54 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id BD7A727F8AF
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 18:41:52 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 369F61158E5
-        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 18:41:54 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AB2B91158EB
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 18:41:52 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 334AC11541A; Wed, 13 May 2020 18:41:54 +0200 (CEST)
+        id 9E0901158E2; Wed, 13 May 2020 18:41:52 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E9F9A115406;
-        Wed, 13 May 2020 18:41:51 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 64EF971D9;
+        Wed, 13 May 2020 18:41:50 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 13 May 2020 18:41:51 +0200 (CEST)
+ Wed, 13 May 2020 18:41:50 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 957B242EF4E0;
-        Wed, 13 May 2020 18:41:51 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 106CB42EF4E0;
+        Wed, 13 May 2020 18:41:50 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, paulb@mellanox.com,
         ozsh@mellanox.com, vladbu@mellanox.com, jiri@resnulli.us,
         kuba@kernel.org, saeedm@mellanox.com, michael.chan@broadcom.com
-Subject: [PATCH 4/8 net] net: use flow_indr_dev_setup_offload()
-Date:   Wed, 13 May 2020 18:41:36 +0200
-Message-Id: <20200513164140.7956-5-pablo@netfilter.org>
+Subject: [PATCH 2/8 net] net: flow_offload: consolidate indirect flow_block infrastructure
+Date:   Wed, 13 May 2020 18:41:34 +0200
+Message-Id: <20200513164140.7956-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200513164140.7956-1-pablo@netfilter.org>
 References: <20200513164140.7956-1-pablo@netfilter.org>
@@ -59,223 +59,248 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Update existing frontends to use flow_indr_dev_setup_offload().
+Tunnel devices provide no dev->netdev_ops->ndo_setup_tc(...) interface.
+The tunnel device and route control plane does not provide an obvious
+way to relate tunnel and physical devices.
 
-This new function must be called if ->ndo_setup_tc is unset to deal
-with tunnel devices.
+This patch allows drivers to register a tunnel device offload handler
+for the tc and netfilter frontends through flow_indr_dev_register() and
+flow_indr_dev_unregister().
 
-If there is no driver that is subscribed to new tunnel device
-flow_block bindings, then this function bails out with EOPNOTSUPP.
+The frontend calls flow_indr_dev_setup_offload() that iterates over the
+list of drivers that are offering tunnel device hardware offload
+support and it sets up the flow block for this tunnel device.
 
-If the driver module is removed, the ->cleanup() callback removes the
-entries that belong to this tunnel device. This cleanup procedures is
-triggered when the device unregisters the tunnel device offload handler.
+If the driver module is removed, the indirect flow_block ends up with a
+stale callback reference. The module removal path triggers the
+dev_shutdown() path to remove the qdisc and the flow_blocks for the
+physical devices. However, this is not useful for tunnel devices, where
+relation between the physical and the tunnel device is not explicit.
+
+This patch introduces a cleanup callback that is invoked when the driver
+module is removed to clean up the tunnel device flow_block. This patch
+defines struct flow_block_indr and it uses it from flow_block_cb to
+store the information that front-end requires to perform the
+flow_block_cb cleanup on module removal.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_offload.c | 19 ++++++---
- net/netfilter/nf_tables_offload.c     | 28 +++++++++++--
- net/sched/cls_api.c                   | 58 +++++++++++++--------------
- 3 files changed, 67 insertions(+), 38 deletions(-)
+ include/net/flow_offload.h |  19 +++++
+ net/core/flow_offload.c    | 157 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 176 insertions(+)
 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index e3b099c14eff..82562e47d99b 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -933,6 +933,18 @@ static void nf_flow_table_block_offload_init(struct flow_block_offload *bo,
- 	INIT_LIST_HEAD(&bo->cb_list);
- }
+diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
+index efc8350b42fb..77e5a1bc30f0 100644
+--- a/include/net/flow_offload.h
++++ b/include/net/flow_offload.h
+@@ -430,6 +430,16 @@ enum tc_setup_type;
+ typedef int flow_setup_cb_t(enum tc_setup_type type, void *type_data,
+ 			    void *cb_priv);
  
-+static void nf_flow_table_indr_cleanup(struct flow_block_cb *block_cb)
-+{
-+	struct nf_flowtable *flowtable = block_cb->indr.data;
-+	struct net_device *dev = block_cb->indr.dev;
++struct flow_block_cb;
 +
-+	nf_flow_table_gc_cleanup(flowtable, dev);
-+	down_write(&flowtable->flow_block_lock);
-+	list_del(&block_cb->list);
-+	flow_block_cb_free(block_cb);
-+	up_write(&flowtable->flow_block_lock);
++struct flow_block_indr {
++	struct list_head		list;
++	struct net_device		*dev;
++	enum flow_block_binder_type	binder_type;
++	void				*data;
++	void				(*cleanup)(struct flow_block_cb *block_cb);
++};
++
+ struct flow_block_cb {
+ 	struct list_head	driver_list;
+ 	struct list_head	list;
+@@ -437,6 +447,7 @@ struct flow_block_cb {
+ 	void			*cb_ident;
+ 	void			*cb_priv;
+ 	void			(*release)(void *cb_priv);
++	struct flow_block_indr	indr;
+ 	unsigned int		refcnt;
+ };
+ 
+@@ -510,6 +521,14 @@ static inline void flow_block_init(struct flow_block *flow_block)
+ typedef int flow_indr_block_bind_cb_t(struct net_device *dev, void *cb_priv,
+ 				      enum tc_setup_type type, void *type_data);
+ 
++int flow_indr_dev_register(flow_indr_block_bind_cb_t *cb, void *cb_priv);
++void flow_indr_dev_unregister(flow_indr_block_bind_cb_t *cb, void *cb_priv,
++			      flow_setup_cb_t *setup_cb);
++int flow_indr_dev_setup_offload(struct net_device *dev,
++				enum tc_setup_type type, void *data,
++				struct flow_block_offload *bo,
++				void (*cleanup)(struct flow_block_cb *block_cb));
++
+ typedef void flow_indr_block_cmd_t(struct net_device *dev,
+ 				   flow_indr_block_bind_cb_t *cb, void *cb_priv,
+ 				   enum flow_block_command command);
+diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
+index e951b743bed3..073dd0f74dc0 100644
+--- a/net/core/flow_offload.c
++++ b/net/core/flow_offload.c
+@@ -311,6 +311,163 @@ int flow_block_cb_setup_simple(struct flow_block_offload *f,
+ }
+ EXPORT_SYMBOL(flow_block_cb_setup_simple);
+ 
++static DEFINE_MUTEX(flow_indr_block_lock);
++static LIST_HEAD(flow_block_indr_list);
++static LIST_HEAD(flow_block_indr_dev_list);
++
++struct flow_indr_dev {
++	struct list_head		list;
++	flow_indr_block_bind_cb_t	*cb;
++	void				*cb_priv;
++	refcount_t			refcnt;
++	struct rcu_head			rcu;
++};
++
++static struct flow_indr_dev *flow_indr_dev_alloc(flow_indr_block_bind_cb_t *cb,
++						 void *cb_priv)
++{
++	struct flow_indr_dev *indr_dev;
++
++	indr_dev = kmalloc(sizeof(*indr_dev), GFP_KERNEL);
++	if (!indr_dev)
++		return NULL;
++
++	indr_dev->cb		= cb;
++	indr_dev->cb_priv	= cb_priv;
++	refcount_set(&indr_dev->refcnt, 1);
++
++	return indr_dev;
 +}
 +
- static int nf_flow_table_indr_offload_cmd(struct flow_block_offload *bo,
- 					  struct nf_flowtable *flowtable,
- 					  struct net_device *dev,
-@@ -941,12 +953,9 @@ static int nf_flow_table_indr_offload_cmd(struct flow_block_offload *bo,
- {
- 	nf_flow_table_block_offload_init(bo, dev_net(dev), cmd, flowtable,
- 					 extack);
--	flow_indr_block_call(dev, bo, cmd, TC_SETUP_FT);
- 
--	if (list_empty(&bo->cb_list))
--		return -EOPNOTSUPP;
--
--	return 0;
-+	return flow_indr_dev_setup_offload(dev, TC_SETUP_FT, flowtable, bo,
-+					   nf_flow_table_indr_cleanup);
- }
- 
- static int nf_flow_table_offload_cmd(struct flow_block_offload *bo,
-diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 954bccb7f32a..1960f11477e8 100644
---- a/net/netfilter/nf_tables_offload.c
-+++ b/net/netfilter/nf_tables_offload.c
-@@ -304,21 +304,41 @@ static void nft_indr_block_ing_cmd(struct net_device *dev,
- 	nft_block_setup(chain, &bo, cmd);
- }
- 
--static int nft_indr_block_offload_cmd(struct nft_base_chain *chain,
-+static void nft_indr_block_cleanup(struct flow_block_cb *block_cb)
++int flow_indr_dev_register(flow_indr_block_bind_cb_t *cb, void *cb_priv)
 +{
-+	struct nft_base_chain *basechain = block_cb->indr.data;
-+	struct net_device *dev = block_cb->indr.dev;
-+	struct netlink_ext_ack extack = {};
-+	struct net *net = dev_net(dev);
-+	struct flow_block_offload bo;
++	struct flow_indr_dev *indr_dev;
 +
-+	nft_flow_block_offload_init(&bo, dev_net(dev), FLOW_BLOCK_UNBIND,
-+				    basechain, &extack);
-+	mutex_lock(&net->nft.commit_mutex);
-+	list_move(&block_cb->list, &bo.cb_list);
-+	nft_flow_offload_unbind(&bo, basechain);
-+	mutex_unlock(&net->nft.commit_mutex);
++	mutex_lock(&flow_indr_block_lock);
++	list_for_each_entry(indr_dev, &flow_block_indr_dev_list, list) {
++		if (indr_dev->cb == cb &&
++		    indr_dev->cb_priv == cb_priv) {
++			refcount_inc(&indr_dev->refcnt);
++			mutex_unlock(&flow_indr_block_lock);
++			return 0;
++		}
++	}
++
++	indr_dev = flow_indr_dev_alloc(cb, cb_priv);
++	if (!indr_dev) {
++		mutex_unlock(&flow_indr_block_lock);
++		return -ENOMEM;
++	}
++
++	list_add(&indr_dev->list, &flow_block_indr_dev_list);
++	mutex_unlock(&flow_indr_block_lock);
++
++	return 0;
++}
++EXPORT_SYMBOL(flow_indr_dev_register);
++
++static void __flow_block_indr_cleanup(flow_setup_cb_t *setup_cb, void *cb_priv,
++				      struct list_head *cleanup_list)
++{
++	struct flow_block_cb *this, *next;
++
++	list_for_each_entry_safe(this, next, &flow_block_indr_list, indr.list) {
++		if (this->cb == setup_cb &&
++		    this->cb_priv == cb_priv) {
++			list_move(&this->indr.list, cleanup_list);
++			return;
++		}
++	}
 +}
 +
-+static int nft_indr_block_offload_cmd(struct nft_base_chain *basechain,
- 				      struct net_device *dev,
- 				      enum flow_block_command cmd)
- {
- 	struct netlink_ext_ack extack = {};
- 	struct flow_block_offload bo;
-+	int err;
- 
--	nft_flow_block_offload_init(&bo, dev_net(dev), cmd, chain, &extack);
-+	nft_flow_block_offload_init(&bo, dev_net(dev), cmd, basechain, &extack);
- 
--	flow_indr_block_call(dev, &bo, cmd, TC_SETUP_BLOCK);
-+	err = flow_indr_dev_setup_offload(dev, TC_SETUP_BLOCK, basechain, &bo,
-+					  nft_indr_block_cleanup);
-+	if (err < 0)
-+		return err;
- 
- 	if (list_empty(&bo.cb_list))
- 		return -EOPNOTSUPP;
- 
--	return nft_block_setup(chain, &bo, cmd);
-+	return nft_block_setup(basechain, &bo, cmd);
- }
- 
- #define FLOW_SETUP_BLOCK TC_SETUP_BLOCK
-diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
-index 99b349edd020..a16cfea7b136 100644
---- a/net/sched/cls_api.c
-+++ b/net/sched/cls_api.c
-@@ -708,24 +708,26 @@ static void tcf_block_offload_init(struct flow_block_offload *bo,
- 	INIT_LIST_HEAD(&bo->cb_list);
- }
- 
--static void tc_indr_block_call(struct tcf_block *block,
--			       struct net_device *dev,
--			       struct tcf_block_ext_info *ei,
--			       enum flow_block_command command,
--			       struct netlink_ext_ack *extack)
-+static void tcf_block_unbind(struct tcf_block *block,
-+			     struct flow_block_offload *bo);
++static void flow_block_indr_notify(struct list_head *cleanup_list)
++{
++	struct flow_block_cb *this, *next;
 +
-+static void tc_block_indr_cleanup(struct flow_block_cb *block_cb)
- {
--	struct flow_block_offload bo = {
--		.command	= command,
--		.binder_type	= ei->binder_type,
--		.net		= dev_net(dev),
--		.block		= &block->flow_block,
--		.block_shared	= tcf_block_shared(block),
--		.extack		= extack,
--	};
--	INIT_LIST_HEAD(&bo.cb_list);
-+	struct tcf_block *block = block_cb->indr.data;
-+	struct net_device *dev = block_cb->indr.dev;
-+	struct netlink_ext_ack extack = {};
-+	struct flow_block_offload bo;
- 
--	flow_indr_block_call(dev, &bo, command, TC_SETUP_BLOCK);
--	tcf_block_setup(block, &bo);
-+	tcf_block_offload_init(&bo, dev, FLOW_BLOCK_UNBIND,
-+			       block_cb->indr.binder_type,
-+			       &block->flow_block, tcf_block_shared(block),
-+			       &extack);
-+	down_write(&block->cb_lock);
-+	list_move(&block_cb->list, &bo.cb_list);
-+	up_write(&block->cb_lock);
-+	rtnl_lock();
-+	tcf_block_unbind(block, &bo);
-+	rtnl_unlock();
- }
- 
- static bool tcf_block_offload_in_use(struct tcf_block *block)
-@@ -746,7 +748,12 @@ static int tcf_block_offload_cmd(struct tcf_block *block,
- 			       &block->flow_block, tcf_block_shared(block),
- 			       extack);
- 
--	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_BLOCK, &bo);
-+	if (dev->netdev_ops->ndo_setup_tc)
-+		err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_BLOCK, &bo);
-+	else
-+		err = flow_indr_dev_setup_offload(dev, TC_SETUP_BLOCK, block,
-+						  &bo, tc_block_indr_cleanup);
++	list_for_each_entry_safe(this, next, cleanup_list, indr.list) {
++		list_del(&this->indr.list);
++		this->indr.cleanup(this);
++	}
++}
 +
- 	if (err < 0)
- 		return err;
- 
-@@ -761,13 +768,13 @@ static int tcf_block_offload_bind(struct tcf_block *block, struct Qdisc *q,
- 	int err;
- 
- 	down_write(&block->cb_lock);
--	if (!dev->netdev_ops->ndo_setup_tc)
--		goto no_offload_dev_inc;
- 
- 	/* If tc offload feature is disabled and the block we try to bind
- 	 * to already has some offloaded filters, forbid to bind.
- 	 */
--	if (!tc_can_offload(dev) && tcf_block_offload_in_use(block)) {
-+	if (dev->netdev_ops->ndo_setup_tc &&
-+	    !tc_can_offload(dev) &&
-+	    tcf_block_offload_in_use(block)) {
- 		NL_SET_ERR_MSG(extack, "Bind to offloaded block failed as dev has offload disabled");
- 		err = -EOPNOTSUPP;
- 		goto err_unlock;
-@@ -779,18 +786,15 @@ static int tcf_block_offload_bind(struct tcf_block *block, struct Qdisc *q,
- 	if (err)
- 		goto err_unlock;
- 
--	tc_indr_block_call(block, dev, ei, FLOW_BLOCK_BIND, extack);
- 	up_write(&block->cb_lock);
- 	return 0;
- 
- no_offload_dev_inc:
--	if (tcf_block_offload_in_use(block)) {
--		err = -EOPNOTSUPP;
-+	if (tcf_block_offload_in_use(block))
- 		goto err_unlock;
--	}
++void flow_indr_dev_unregister(flow_indr_block_bind_cb_t *cb, void *cb_priv,
++			      flow_setup_cb_t *setup_cb)
++{
++	struct flow_indr_dev *this, *next, *indr_dev = NULL;
++	LIST_HEAD(cleanup_list);
 +
- 	err = 0;
- 	block->nooffloaddevcnt++;
--	tc_indr_block_call(block, dev, ei, FLOW_BLOCK_BIND, extack);
- err_unlock:
- 	up_write(&block->cb_lock);
- 	return err;
-@@ -803,10 +807,6 @@ static void tcf_block_offload_unbind(struct tcf_block *block, struct Qdisc *q,
- 	int err;
++	mutex_lock(&flow_indr_block_lock);
++	list_for_each_entry_safe(this, next, &flow_block_indr_dev_list, list) {
++		if (this->cb == cb &&
++		    this->cb_priv == cb_priv &&
++		    refcount_dec_and_test(&this->refcnt)) {
++			indr_dev = this;
++			list_del(&indr_dev->list);
++			break;
++		}
++	}
++
++	if (!indr_dev) {
++		mutex_unlock(&flow_indr_block_lock);
++		return;
++	}
++
++	__flow_block_indr_cleanup(setup_cb, cb_priv, &cleanup_list);
++	mutex_unlock(&flow_indr_block_lock);
++
++	flow_block_indr_notify(&cleanup_list);
++	kfree(indr_dev);
++}
++EXPORT_SYMBOL(flow_indr_dev_unregister);
++
++static void flow_block_indr_init(struct flow_block_cb *flow_block,
++				 struct flow_block_offload *bo,
++				 struct net_device *dev, void *data,
++				 void (*cleanup)(struct flow_block_cb *block_cb))
++{
++	flow_block->indr.binder_type = bo->binder_type;
++	flow_block->indr.data = data;
++	flow_block->indr.dev = dev;
++	flow_block->indr.cleanup = cleanup;
++}
++
++static void __flow_block_indr_binding(struct flow_block_offload *bo,
++				      struct net_device *dev, void *data,
++				      void (*cleanup)(struct flow_block_cb *block_cb))
++{
++	struct flow_block_cb *block_cb;
++
++	list_for_each_entry(block_cb, &bo->cb_list, list) {
++		switch (bo->command) {
++		case FLOW_BLOCK_BIND:
++			flow_block_indr_init(block_cb, bo, dev, data, cleanup);
++			list_add(&block_cb->indr.list, &flow_block_indr_list);
++			break;
++		case FLOW_BLOCK_UNBIND:
++			list_del(&block_cb->indr.list);
++			break;
++		}
++	}
++}
++
++int flow_indr_dev_setup_offload(struct net_device *dev,
++				enum tc_setup_type type, void *data,
++				struct flow_block_offload *bo,
++				void (*cleanup)(struct flow_block_cb *block_cb))
++{
++	struct flow_indr_dev *this;
++
++	mutex_lock(&flow_indr_block_lock);
++	list_for_each_entry(this, &flow_block_indr_dev_list, list)
++		this->cb(dev, this->cb_priv, type, bo);
++
++	__flow_block_indr_binding(bo, dev, data, cleanup);
++	mutex_unlock(&flow_indr_block_lock);
++
++	return list_empty(&bo->cb_list) ? -EOPNOTSUPP : 0;
++}
++EXPORT_SYMBOL(flow_indr_dev_setup_offload);
++
+ static LIST_HEAD(block_cb_list);
  
- 	down_write(&block->cb_lock);
--	tc_indr_block_call(block, dev, ei, FLOW_BLOCK_UNBIND, NULL);
--
--	if (!dev->netdev_ops->ndo_setup_tc)
--		goto no_offload_dev_dec;
- 	err = tcf_block_offload_cmd(block, dev, ei, FLOW_BLOCK_UNBIND, NULL);
- 	if (err == -EOPNOTSUPP)
- 		goto no_offload_dev_dec;
+ static struct rhashtable indr_setup_block_ht;
 -- 
 2.20.1
 
