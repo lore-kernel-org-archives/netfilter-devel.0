@@ -7,52 +7,51 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C03A6C2D0FE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 06:58:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0703C2D0F8
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 06:58:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9682923128
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 06:58:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7681C20784
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 06:58:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="eWlybqD1"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="pLg5Kt6Q"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732120AbgEMG6G (ORCPT
+        id S1730089AbgEMG5I (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 May 2020 02:58:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50584 "EHLO
+        Wed, 13 May 2020 02:57:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50558 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730102AbgEMG5O (ORCPT
+        with ESMTP id S1726020AbgEMG5G (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 May 2020 02:57:14 -0400
+        Wed, 13 May 2020 02:57:06 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00F55C061A0C;
-        Tue, 12 May 2020 23:57:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8EBFBC061A0C;
+        Tue, 12 May 2020 23:57:06 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
-        Content-Type:MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:
-        To:From:Sender:Reply-To:Content-ID:Content-Description;
-        bh=LiemweaQJNNyLn4dfMO7A8hjFLXFG2PuwhKLysUSths=; b=eWlybqD1KoTTOjAxPIZ2GmGWuc
-        r0mVzo6v3VqIjQsb1BJnI2VjR76FE6lLwK8iPOkLkniP/nfrJ0HvsMbGVVwb9dxmOFJqw4rLzstig
-        /AOO6BOIDBHii8SHUYx5IOVsShPqYwPBXLqTKTKBhFWohbuk1wq8vGYbjFt1N57z/Qy2lB5KQhtZo
-        EBr/cuX/UaWaQgc1OmWk0ayffxDDRoMTObYde4/cIkEUoDzQO6pkUpiUZJvIJ7/G2keHRveErX+22
-        eHW8Spdj0zreRaHWSiScS5jdBaDJFGXKD6kB8Lbt08MtLXYAF/FdfIsVQqY80hDNZp/eNDpiNTtAs
-        zXXZfWsg==;
+        MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
+        :Reply-To:Content-Type:Content-ID:Content-Description;
+        bh=rXtaZ1o/KEZPUZSWEL2q4wXgiltZU/5g4tfpDlbXLdY=; b=pLg5Kt6QBe/gTDZYWUaFlA1FTD
+        24J+oa+KLkw0xpCmIUI1XPHhRyM6GL25rsb5CogQdpQ/OHd67+yePhl/Z7U5oAAzmexDEb6fjALrZ
+        fRmjrmp/NCElzHmUC1zYFfNYIH7ihr4ZMaT+ZgEVARqiRLLuI2ccxAVOm0RCZqqUsMJ1qrfiJOGLB
+        6lWWEVb8ddKF1fJtiFL2R3HNCJAMG3chYWwjDFO07SwyVKJ15wmHtQr1/GsSC33lLEk4IxtEMCtdW
+        IK9T69Y9wNRvXsaKBvVlDsd1fNeZycc366CvQVKfrvb1UrE4xOXusW6qIgfUz40D5RldTXv8OZWPt
+        GktUnNbA==;
 Received: from [2001:4bb8:180:9d3f:c70:4a89:bc61:2] (helo=localhost)
         by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jYlKJ-0003WJ-K9; Wed, 13 May 2020 06:57:12 +0000
+        id 1jYlKB-0003Uw-J1; Wed, 13 May 2020 06:57:04 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     Al Viro <viro@zeniv.linux.org.uk>
 Cc:     Ian Kent <raven@themaw.net>, David Howells <dhowells@redhat.com>,
         linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         linux-security-module@vger.kernel.org,
         netfilter-devel@vger.kernel.org
-Subject: [PATCH 05/14] fs: check FMODE_WRITE in __kernel_write
-Date:   Wed, 13 May 2020 08:56:47 +0200
-Message-Id: <20200513065656.2110441-6-hch@lst.de>
+Subject: [PATCH 02/14] autofs: switch to kernel_write
+Date:   Wed, 13 May 2020 08:56:44 +0200
+Message-Id: <20200513065656.2110441-3-hch@lst.de>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200513065656.2110441-1-hch@lst.de>
 References: <20200513065656.2110441-1-hch@lst.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -60,27 +59,28 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-We still need to check if the fѕ is open write, even for the low-level
-helper.
+While pipes don't really need sb_writers projection, __kernel_write is an
+interface better kept private, and the additional rw_verify_area does not
+hurt here.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/read_write.c | 2 ++
- 1 file changed, 2 insertions(+)
+ fs/autofs/waitq.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 2c601d853ff3d..76be155ad9824 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -505,6 +505,8 @@ ssize_t __kernel_write(struct file *file, const void *buf, size_t count, loff_t
- 	const char __user *p;
- 	ssize_t ret;
+diff --git a/fs/autofs/waitq.c b/fs/autofs/waitq.c
+index b04c528b19d34..74c886f7c51cb 100644
+--- a/fs/autofs/waitq.c
++++ b/fs/autofs/waitq.c
+@@ -53,7 +53,7 @@ static int autofs_write(struct autofs_sb_info *sbi,
  
-+	if (!(file->f_mode & FMODE_WRITE))
-+		return -EBADF;
- 	if (!(file->f_mode & FMODE_CAN_WRITE))
- 		return -EINVAL;
- 
+ 	mutex_lock(&sbi->pipe_mutex);
+ 	while (bytes) {
+-		wr = __kernel_write(file, data, bytes, &file->f_pos);
++		wr = kernel_write(file, data, bytes, &file->f_pos);
+ 		if (wr <= 0)
+ 			break;
+ 		data += wr;
 -- 
 2.26.2
 
