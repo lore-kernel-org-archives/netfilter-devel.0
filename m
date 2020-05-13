@@ -1,113 +1,110 @@
-Return-Path: <SRS0=em6Q=62=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=Lm+H=63=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 037C4C2D0F8
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 May 2020 23:50:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D638C2D0F8
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 04:39:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D20FF20747
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 May 2020 23:50:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1EEEC20675
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 04:39:20 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Qw7DCGV/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729215AbgELXuR convert rfc822-to-8bit (ORCPT
+        id S1726035AbgEMEjQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 May 2020 19:50:17 -0400
-Received: from mail.redfish-solutions.com ([45.33.216.244]:46096 "EHLO
-        mail.redfish-solutions.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726031AbgELXuR (ORCPT
+        Wed, 13 May 2020 00:39:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57386 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725898AbgEMEjP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 May 2020 19:50:17 -0400
-Received: from macbook2.redfish-solutions.com (macbook2.redfish-solutions.com [192.168.1.39])
-        (authenticated bits=0)
-        by mail.redfish-solutions.com (8.15.2/8.15.2) with ESMTPSA id 04CNoEPE032682
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 12 May 2020 17:50:14 -0600
-Content-Type: text/plain;
-        charset=utf-8
-Mime-Version: 1.0 (Mac OS X Mail 13.4 \(3608.80.23.2.2\))
-Subject: Re: [PATCH v1 1/1] xtables-addons: geoip: update scripts for DBIP
- names, etc.
-From:   Philip Prindeville <philipp_subx@redfish-solutions.com>
-In-Reply-To: <nycvar.YFH.7.77.849.2005122250300.12285@n3.vanv.qr>
-Date:   Tue, 12 May 2020 17:50:14 -0600
-Cc:     netfilter-devel@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <88C53F2F-CC3A-4E2C-806A-8C751953C328@redfish-solutions.com>
-References: <20200512002747.2108-1-philipp@redfish-solutions.com>
- <nycvar.YFH.7.77.849.2005121118260.6562@n3.vanv.qr>
- <BC0C3307-DA4C-405E-8B3D-98A752B87EFC@redfish-solutions.com>
- <nycvar.YFH.7.77.849.2005122250300.12285@n3.vanv.qr>
+        Wed, 13 May 2020 00:39:15 -0400
+Received: from mail-pl1-x643.google.com (mail-pl1-x643.google.com [IPv6:2607:f8b0:4864:20::643])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C298FC061A0C;
+        Tue, 12 May 2020 21:39:15 -0700 (PDT)
+Received: by mail-pl1-x643.google.com with SMTP id b12so4419448plz.13;
+        Tue, 12 May 2020 21:39:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=nPz4T7IaudILeXQNatPbOTERFKwRTe6GpmSyU3VsITU=;
+        b=Qw7DCGV/EQa8OqlKZgpNyTLDwQa4cgMhICPeixm3o8oAQflAexa1nJfvYhpuBFVlXb
+         8TNxzEzCXc713hBfn7f3LJgpa8MewCOWMqScKsygwfIBf2aRilueGNIU2sFR5vuYM09w
+         lQ5Pj4c10Wbem57ca70RObkb8D2IRFGqUp8vPt8chlCa5SKwFaBaFm5NpUOjqu2mp9rd
+         0il3LBCqyuwkKsm/N+R0hHQjoKYgpYTbScUqfatFJVgGvLSifdmI3/eiZLavadE8J0Gj
+         ntWxP2E+qARJA67fR5W3dq7lrI6m2TnGfiubxOdvQrGxApNX1TMSTiriQa8g6x80nOI7
+         /eKA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=nPz4T7IaudILeXQNatPbOTERFKwRTe6GpmSyU3VsITU=;
+        b=eFFW0pnhQesHsBpnwMRz8zTdr8TPcQNlT8XxPaOMY0eyKjK9rvH7GEbUswK7YspvWB
+         9WbUTUk9HuEbQCa+xLP7zxkh89g4zDZ5b9RrnQ4yHmsVQ9MhNTzxO8PlzKJCkYdUNAcw
+         +REQCWp/z3bbDkDa7xlKyfl9RYlltOvy3hybo/p+65cVgcYeo3kptuLaV6Ecal82pVbu
+         V32ea6UpMZ8TJeZkRV93H0kYubgUOmInn/eo9G29FS+stbHfEAdGt68RdZiaVb3TSmOJ
+         uy4gdR5riqmegCENI707Vh5XPiKvrsFqDycOGfEzQ8F52cQAXhR2vUT2LLkfCLaNBE62
+         sm1g==
+X-Gm-Message-State: AGi0PuZsaJoB4qsiFZ0vUYtP9vd4k1QY3c7Wx/GpIsDwd7TI5WYf37Pv
+        giIavLWNS36emGMwqt9nShw=
+X-Google-Smtp-Source: APiQypKfhB6VsMblXsptA2c7dr6XLMJSvwYlkcivITW/bUquYwHEbbE06PT28xCkh9Abv4QIQetQcA==
+X-Received: by 2002:a17:902:7b92:: with SMTP id w18mr22115190pll.273.1589344755182;
+        Tue, 12 May 2020 21:39:15 -0700 (PDT)
+Received: from f3 (ae055068.dynamic.ppp.asahi-net.or.jp. [14.3.55.68])
+        by smtp.gmail.com with ESMTPSA id h193sm13425194pfe.30.2020.05.12.21.39.11
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 12 May 2020 21:39:13 -0700 (PDT)
+Date:   Wed, 13 May 2020 13:39:08 +0900
+From:   Benjamin Poirier <benjamin.poirier@gmail.com>
 To:     Jan Engelhardt <jengelh@inai.de>
-X-Mailer: Apple Mail (2.3608.80.23.2.2)
-X-Scanned-By: MIMEDefang 2.84 on 192.168.1.3
+Cc:     zenczykowski@gmail.com, maze@google.com, pablo@netfilter.org,
+        fw@strlen.de, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v2] doc: document danger of applying REJECT to INVALID CTs
+Message-ID: <20200513043908.GA25216@f3>
+References: <CANP3RGe3fnCwj5NUxKu4VDcw=_95yNkCiC2Y4L9otJS1Hnyd-g@mail.gmail.com>
+ <20200512210038.11447-1-jengelh@inai.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200512210038.11447-1-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-
-> On May 12, 2020, at 2:50 PM, Jan Engelhardt <jengelh@inai.de> wrote:
+On 2020-05-12 23:00 +0200, Jan Engelhardt wrote:
+> Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+> ---
 > 
+> Simplify the trigger case by dropping mentions of P_3.
+> New -A commands as proposed.
 > 
-> On Tuesday 2020-05-12 18:51, Philip Prindeville wrote:
->>>> Also change the default destination directory to /usr/share/xt_geoip
->>>> as most distros use this now.  Update the documentation.
->>> 
->>> Maybe there are some "nicer" approaches? I'm calling for further inspirations.
->> 
->> I’m open to suggestions.
+>  extensions/libip6t_REJECT.man | 20 ++++++++++++++++++++
+>  extensions/libipt_REJECT.man  | 20 ++++++++++++++++++++
+>  2 files changed, 40 insertions(+)
 > 
-> This has been floating around my mind.
-
-
-Problem with this change is that "-D foo -s” and “-s -D foo” have different semantics… Should probably make the two options mutually exclusive.
-
--Philip
-
-> 
-> geoip/xt_geoip_build   | 1 +
-> geoip/xt_geoip_build.1 | 8 ++++++--
-> 2 files changed, 7 insertions(+), 2 deletions(-)
-> 
-> diff --git a/geoip/xt_geoip_build b/geoip/xt_geoip_build
-> index 750bf98..7bafa5f 100755
-> --- a/geoip/xt_geoip_build
-> +++ b/geoip/xt_geoip_build
-> @@ -24,6 +24,7 @@ my $target_dir = ".";
-> &GetOptions(
-> 	"D=s" => \$target_dir,
-> 	"i=s" => \$input_file,
-> +	"s" => sub { $target_dir = "/usr/share/xt_geoip"; },
-> );
-> 
-> if (!-d $target_dir) {
-> diff --git a/geoip/xt_geoip_build.1 b/geoip/xt_geoip_build.1
-> index ac3e6d3..598177f 100644
-> --- a/geoip/xt_geoip_build.1
-> +++ b/geoip/xt_geoip_build.1
-> @@ -27,11 +27,15 @@ Specifies the target directory into which the files are to be put. Defaults to "
-> \fB\-i\fP \fIinput_file\fP
-> Specifies the source location of the DBIP CSV file. Defaults to
-> "dbip-country-lite.csv". Use "-" to read from stdin.
-> +.TP
-> +\fB\-s\fP
-> +"System mode". Equivalent to \fB\-D /usr/share/xt_geoip\fP.
-> .SH Application
-> .PP
-> -Shell commands to build the databases and put them to where they are expected:
-> +Shell commands to build the databases and put them to where they are expected
-> +(usually run as root):
-> .PP
-> -xt_geoip_build \-D /usr/share/xt_geoip
-> +xt_geoip_build \-s
-> .SH See also
-> .PP
-> xt_geoip_dl(1)
-> -- 
-> 2.26.2
-> 
-
+> diff --git a/extensions/libip6t_REJECT.man b/extensions/libip6t_REJECT.man
+> index 0030a51f..cc845e6f 100644
+> --- a/extensions/libip6t_REJECT.man
+> +++ b/extensions/libip6t_REJECT.man
+> @@ -30,3 +30,23 @@ TCP RST packet to be sent back.  This is mainly useful for blocking
+>  hosts (which won't accept your mail otherwise).
+>  \fBtcp\-reset\fP
+>  can only be used with kernel versions 2.6.14 or later.
+> +.PP
+> +\fIWarning:\fP You should not indiscrimnately apply the REJECT target to
+                                          ^ typo
+> +packets whose connection state is classified as INVALID; instead, you should
+> +only DROP these.
+> +.PP
+> +Consider a source host transmitting a packet P, with P experiencing so much
+> +delay along its path that the source host issues a retransmission, P_2, with
+> +P_2 being succesful in reaching its destination and advancing the connection
+                   ^ typo
