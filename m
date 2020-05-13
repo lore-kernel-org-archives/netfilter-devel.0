@@ -2,115 +2,115 @@ Return-Path: <SRS0=Lm+H=63=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83E78CA90AF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 09:39:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1E03C433E0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 15:12:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6ED83206B8
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 09:39:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CBEA5205ED
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 15:11:50 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="iqLAN5Gh"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729233AbgEMJjs (ORCPT
+        id S1729153AbgEMPLu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 May 2020 05:39:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47676 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727030AbgEMJjs (ORCPT
+        Wed, 13 May 2020 11:11:50 -0400
+Received: from us-smtp-1.mimecast.com ([207.211.31.81]:40386 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1727778AbgEMPLu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 May 2020 05:39:48 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E58F6C061A0C;
-        Wed, 13 May 2020 02:39:47 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 65534)
-        id 9CC9F58725882; Wed, 13 May 2020 11:39:45 +0200 (CEST)
-Received: from a4.inai.de (a4.inai.de [IPv6:2a01:4f8:10b:45d8::f8])
-        by a3.inai.de (Postfix) with ESMTP id 532D958725880;
-        Wed, 13 May 2020 11:39:44 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     zenczykowski@gmail.com
-Cc:     maze@google.com, pablo@netfilter.org, fw@strlen.de,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [PATCH v4] doc: document danger of applying REJECT to INVALID CTs
-Date:   Wed, 13 May 2020 11:39:44 +0200
-Message-Id: <20200513093944.9752-1-jengelh@inai.de>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <CANP3RGfNH1m=-rFdkAmGUt3vxFqaGmJnW+RKP-faU6WwOKWoZg@mail.gmail.com>
-References: <CANP3RGfNH1m=-rFdkAmGUt3vxFqaGmJnW+RKP-faU6WwOKWoZg@mail.gmail.com>
+        Wed, 13 May 2020 11:11:50 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1589382708;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=T0z0zIUU46135j1qNQ5RB+8B7XF37JnGsuwXcnwHJHE=;
+        b=iqLAN5GhvM5N+OEbWXEjqrtzVxVrOxIZRwrF11J/S0PFsluPnGcLZLApxBl4OfJjbsyqkA
+        LLYCZQhX3wh93Kf3OIBfMncZpIfyQ3owrHHIVulYKmkzW2S6yyBcomMFbqkR6xSBvckxWl
+        jXu0r+4g7iZ6yFkG436gPBlqUrp4HC0=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-103-colpGaGsNz2exwcpsvMbBA-1; Wed, 13 May 2020 11:11:38 -0400
+X-MC-Unique: colpGaGsNz2exwcpsvMbBA-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 2D65E8014C0;
+        Wed, 13 May 2020 15:11:37 +0000 (UTC)
+Received: from localhost (ovpn-113-211.phx2.redhat.com [10.3.113.211])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id D12885D9C5;
+        Wed, 13 May 2020 15:11:36 +0000 (UTC)
+Date:   Wed, 13 May 2020 11:11:36 -0400
+From:   Eric Garver <eric@garver.life>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH] JSON: Improve performance of json_events_cb()
+Message-ID: <20200513151136.72xyr56uuzmby2qo@egarver>
+Mail-Followup-To: Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20200513143803.25109-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200513143803.25109-1-phil@nwl.cc>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
----
+On Wed, May 13, 2020 at 04:38:03PM +0200, Phil Sutter wrote:
+> The function tries to insert handles into JSON input for echo option.
+> Yet there may be nothing to do if the given netlink message doesn't
+> contain a handle, e.g. if it is an 'add element' command. Calling
+> seqnum_to_json() is pointless overhead in that case, and if input is
+> large this overhead is significant. Better wait with that call until
+> after checking if the message is relevant at all.
+> 
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+>  src/parser_json.c | 9 ++++++---
+>  1 file changed, 6 insertions(+), 3 deletions(-)
+> 
+> diff --git a/src/parser_json.c b/src/parser_json.c
+> index 4468407b0ecd0..3a84bd96af31f 100644
+> --- a/src/parser_json.c
+> +++ b/src/parser_json.c
+> @@ -3847,12 +3847,15 @@ static uint64_t handle_from_nlmsg(const struct nlmsghdr *nlh)
+>  }
+>  int json_events_cb(const struct nlmsghdr *nlh, struct netlink_mon_handler *monh)
+>  {
+> -	json_t *tmp, *json = seqnum_to_json(nlh->nlmsg_seq);
+>  	uint64_t handle = handle_from_nlmsg(nlh);
+> +	json_t *tmp, *json;
+>  	void *iter;
+>  
+> -	/* might be anonymous set, ignore message */
+> -	if (!json || !handle)
+> +	if (!handle)
+> +		return MNL_CB_OK;
+> +
+> +	json = seqnum_to_json(nlh->nlmsg_seq);
+> +	if (!json)
+>  		return MNL_CB_OK;
+>  
+>  	tmp = json_object_get(json, "add");
+> -- 
+> 2.26.2
 
-4th time is the charm?!
+Acked-by: Eric Garver <eric@garver.life>
 
- extensions/libip6t_REJECT.man | 20 ++++++++++++++++++++
- extensions/libipt_REJECT.man  | 20 ++++++++++++++++++++
- 2 files changed, 40 insertions(+)
+With this I see a 10x improvement when adding many (hundreds) set
+elements [1].
 
-diff --git a/extensions/libip6t_REJECT.man b/extensions/libip6t_REJECT.man
-index 0030a51f..7387436c 100644
---- a/extensions/libip6t_REJECT.man
-+++ b/extensions/libip6t_REJECT.man
-@@ -30,3 +30,23 @@ TCP RST packet to be sent back.  This is mainly useful for blocking
- hosts (which won't accept your mail otherwise).
- \fBtcp\-reset\fP
- can only be used with kernel versions 2.6.14 or later.
-+.PP
-+\fIWarning:\fP You should not indiscriminately apply the REJECT target to
-+packets whose connection state is classified as INVALID; instead, you should
-+only DROP these.
-+.PP
-+Consider a source host transmitting a packet P, with P experiencing so much
-+delay along its path that the source host issues a retransmission, P_2, with
-+P_2 being succesful in reaching its destination and advancing the connection
-+state normally. It is conceivable that the late-arriving P may be considered to
-+be not associated with any connection tracking entry. Generating a reject
-+packet for this packet would then terminate the healthy connection.
-+.PP
-+So, instead of:
-+.PP
-+-A INPUT ... -j REJECT
-+.PP
-+do consider using:
-+.PP
-+-A INPUT ... -m conntrack --ctstate INVALID -j DROP
-+-A INPUT ... -j REJECT
-diff --git a/extensions/libipt_REJECT.man b/extensions/libipt_REJECT.man
-index 8a360ce7..618a766c 100644
---- a/extensions/libipt_REJECT.man
-+++ b/extensions/libipt_REJECT.man
-@@ -30,3 +30,23 @@ TCP RST packet to be sent back.  This is mainly useful for blocking
- hosts (which won't accept your mail otherwise).
- .IP
- (*) Using icmp\-admin\-prohibited with kernels that do not support it will result in a plain DROP instead of REJECT
-+.PP
-+\fIWarning:\fP You should not indiscriminately apply the REJECT target to
-+packets whose connection state is classified as INVALID; instead, you should
-+only DROP these.
-+.PP
-+Consider a source host transmitting a packet P, with P experiencing so much
-+delay along its path that the source host issues a retransmission, P_2, with
-+P_2 being succesful in reaching its destination and advancing the connection
-+state normally. It is conceivable that the late-arriving P may be considered to
-+be not associated with any connection tracking entry. Generating a reject
-+packet for this packet would then terminate the healthy connection.
-+.PP
-+So, instead of:
-+.PP
-+-A INPUT ... -j REJECT
-+.PP
-+do consider using:
-+.PP
-+-A INPUT ... -m conntrack --ctstate INVALID -j DROP
-+-A INPUT ... -j REJECT
--- 
-2.26.2
+Thanks Phil!
+
+[1]: https://bugzilla.redhat.com/show_bug.cgi?id=1834853#c6
+
 
