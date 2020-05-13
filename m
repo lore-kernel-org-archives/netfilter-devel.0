@@ -2,305 +2,185 @@ Return-Path: <SRS0=Lm+H=63=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E56DC433E1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 16:42:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CBBAC433DF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 17:21:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C2A6C2065D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 16:42:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1747B2053B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 17:21:48 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="cOqWcVkc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389423AbgEMQl4 (ORCPT
+        id S1732740AbgEMRVi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 May 2020 12:41:56 -0400
-Received: from correo.us.es ([193.147.175.20]:54002 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389532AbgEMQlz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 May 2020 12:41:55 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BD7A727F8AF
-        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 18:41:52 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AB2B91158EB
-        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 18:41:52 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 9E0901158E2; Wed, 13 May 2020 18:41:52 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 64EF971D9;
-        Wed, 13 May 2020 18:41:50 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 13 May 2020 18:41:50 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 106CB42EF4E0;
-        Wed, 13 May 2020 18:41:50 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, paulb@mellanox.com,
-        ozsh@mellanox.com, vladbu@mellanox.com, jiri@resnulli.us,
-        kuba@kernel.org, saeedm@mellanox.com, michael.chan@broadcom.com
-Subject: [PATCH 2/8 net] net: flow_offload: consolidate indirect flow_block infrastructure
-Date:   Wed, 13 May 2020 18:41:34 +0200
-Message-Id: <20200513164140.7956-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200513164140.7956-1-pablo@netfilter.org>
-References: <20200513164140.7956-1-pablo@netfilter.org>
+        Wed, 13 May 2020 13:21:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35102 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1732781AbgEMRVh (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 13 May 2020 13:21:37 -0400
+Received: from mail-lj1-x244.google.com (mail-lj1-x244.google.com [IPv6:2a00:1450:4864:20::244])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B168C061A0F
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 10:21:37 -0700 (PDT)
+Received: by mail-lj1-x244.google.com with SMTP id f18so399713lja.13
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 10:21:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=zm0GFw0c5m6rC8EfJtB0fcvdjPOImTuOrxqD/0ggM4I=;
+        b=cOqWcVkcSiDFrpv69KPGgXZ8Z32INOGdORFrIohX7WFmYR4USyndtkje2fggFgMnAX
+         gqI/VxrI8qViFGQ+OLRlqnj2Ep5jUK32kLK1ii3EciOakJcia3oOwt2iMMZNaz6hXuWL
+         AcwUIJaMr+eZcBKYbpOhw+8XSqwEbDEwtxy5FZOWNKjeBBoMGqRmwhxMmmgw739rwDqb
+         mnjoubn4+vq4o9uWdhavbVWOfTEvZLRxR5/lsFeybyfIXh+YovelcKoLd0pW2Z0T9cWg
+         +wl3hOT6qxN5KbPSWxFgLyWe0+dhTbRnT1ZDAuDcWji1ZWaRCHPIFsgyovqnrfx/MVAM
+         1z4w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=zm0GFw0c5m6rC8EfJtB0fcvdjPOImTuOrxqD/0ggM4I=;
+        b=cUkQp0AiHrzgozHwtgmU/SoCZYpFbFdKCzsYw+jjasUbsXUIEYJ/ulB+XOInE+aYgG
+         Tb4BlkLyZSJJW5PaEwZEil0nXqYmTERn35iyFqcYyPaleI3iFTVr62TM1ZorXkCZzrq9
+         jZrSOD8hVo2KkG+G7ybkqb+RQ1Af1KPkMchAT9V9L/iYJkKCZZ2JL9Ppa8eqvTrZ2pEI
+         5ui9kn6TpM4L8RbytkK5ybtN59cmKiRiS6+bUkk6EzAX2SZEMbIjnSj9lNWePqc1KUPx
+         nx0ebRGweCUGnP9jerOStz0xRvnhXyCx+UHI4zOZK9tUZRtUfSTMRqhHT7IIvmiCCccs
+         yoWQ==
+X-Gm-Message-State: AOAM5318sPoI1TMU/tQTLTDU7rs9M9wvtCY9hjexO0vJEPcTmYQ7W74S
+        ITe271Bjl2akP/fP/6Gu6yBMRxdSrIOrTWMYMt/dKVZHHqQifA==
+X-Google-Smtp-Source: ABdhPJzgXXLfNIXgYq0O1VpU5zWs8Qj09MtdPYXwNNlUl10gy+/nx+X87kXLhn6Y+mepHkL0J8QAjQnNhjZV00GntMw=
+X-Received: by 2002:a2e:a0cf:: with SMTP id f15mr78593ljm.165.1589390495530;
+ Wed, 13 May 2020 10:21:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+References: <CA+G9fYu4gE2vqSmgyYMfdMS-ZDfQiY1vhk2Jbni+wDJFjLHVKg@mail.gmail.com>
+In-Reply-To: <CA+G9fYu4gE2vqSmgyYMfdMS-ZDfQiY1vhk2Jbni+wDJFjLHVKg@mail.gmail.com>
+From:   Naresh Kamboju <naresh.kamboju@linaro.org>
+Date:   Wed, 13 May 2020 22:51:23 +0530
+Message-ID: <CA+G9fYtnpLvg+PM7dZD-qyasC8NaPp=E1ybmZAObNHZkANL1yA@mail.gmail.com>
+Subject: Re: stable-rc 4.19: NETDEV WATCHDOG: eth0 (asix): transmit queue 0
+ timed out - net/sched/sch_generic.c:466 dev_watchdog
+To:     Netdev <netdev@vger.kernel.org>,
+        linux- stable <stable@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Cc:     Eric Dumazet <edumazet@google.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org,
+        "David S. Miller" <davem@davemloft.net>,
+        lkft-triage@lists.linaro.org,
+        "open list:KERNEL SELFTEST FRAMEWORK" 
+        <linux-kselftest@vger.kernel.org>,
+        Jamal Hadi Salim <jhs@mojatatu.com>,
+        Cong Wang <xiyou.wangcong@gmail.com>,
+        Jiri Pirko <jiri@resnulli.us>, Jakub Kicinski <kuba@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Tunnel devices provide no dev->netdev_ops->ndo_setup_tc(...) interface.
-The tunnel device and route control plane does not provide an obvious
-way to relate tunnel and physical devices.
+While running selftests bpf test_sysctl on stable rc 5.6 branch kernel
+on arm64 hikey device. The following warning was noticed.
 
-This patch allows drivers to register a tunnel device offload handler
-for the tc and netfilter frontends through flow_indr_dev_register() and
-flow_indr_dev_unregister().
+[ 1097.207013] NETDEV WATCHDOG: eth0 (asix): transmit queue 0 timed out
+[ 1097.387913] WARNING: CPU: 0 PID: 206 at
+/usr/src/kernel/net/sched/sch_generic.c:443 dev_watchdog+0x438/0x470
+[ 1097.479820] Modules linked in: cls_bpf sch_fq sch_ingress test_bpf
+algif_hash af_alg wl18xx wlcore mac80211 libarc4 cfg80211 hci_uart
+snd_soc_audio_graph_card snd_soc_simple_card_utils btqca crct10dif_ce
+btbcm adv7511 wlcore_sdio bluetooth cec ecdh_generic ecc lima rfkill
+kirin_drm gpu_sched drm_kms_helper dw_drm_dsi drm fuse [last unloaded:
+trace_printk]
+[ 1097.684705] CPU: 0 PID: 206 Comm: jbd2/mmcblk0p9- Not tainted 5.6.13-rc1 #1
+[ 1097.776526] Hardware name: HiKey Development Board (DT)
+[ 1097.865766] pstate: 60000005 (nZCv daif -PAN -UAO)
+[ 1097.954668] pc : dev_watchdog+0x438/0x470
+[ 1098.042508] lr : dev_watchdog+0x438/0x470
 
-The frontend calls flow_indr_dev_setup_offload() that iterates over the
-list of drivers that are offering tunnel device hardware offload
-support and it sets up the flow block for this tunnel device.
+ref:
+https://qa-reports.linaro.org/lkft/linux-stable-rc-5.6-oe/build/v5.6.12-119-gf1d28d1c7608/testrun/1430360/log
 
-If the driver module is removed, the indirect flow_block ends up with a
-stale callback reference. The module removal path triggers the
-dev_shutdown() path to remove the qdisc and the flow_blocks for the
-physical devices. However, this is not useful for tunnel devices, where
-relation between the physical and the tunnel device is not explicit.
 
-This patch introduces a cleanup callback that is invoked when the driver
-module is removed to clean up the tunnel device flow_block. This patch
-defines struct flow_block_indr and it uses it from flow_block_cb to
-store the information that front-end requires to perform the
-flow_block_cb cleanup on module removal.
+On Tue, 5 May 2020 at 17:01, Naresh Kamboju <naresh.kamboju@linaro.org> wrote:
+>
+> While running selftests bpf test_sysctl on stable rc 4.19 branch kernel
+> on arm64 hikey device. The following warning was noticed.
+>
+> [  118.957395] test_bpf: #296 BPF_MAXINSNS: exec all MSH
+> [  148.966435] ------------[ cut here ]------------
+> [  148.988349] NETDEV WATCHDOG: eth0 (asix): transmit queue 0 timed out
+> [  149.000832] WARNING: CPU: 0 PID: 0 at
+> /usr/src/kernel/net/sched/sch_generic.c:466 dev_watchdog+0x2b4/0x2c0
+> [  149.016470] Modules linked in: test_bpf(+) wl18xx wlcore mac80211
+> cfg80211 crc32_ce hci_uart crct10dif_ce btbcm snd_soc_audio_graph_card
+> bluetooth snd_soc_simple_card_utils adv7511 cec wlcore_sdio kirin_drm
+> dw_drm_dsi rfkill drm_kms_helper drm drm_panel_orientation_quirks fuse
+> [last unloaded: test_bpf]
+> [  149.056507] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.19.121-rc1 #1
+> [  149.069594] Hardware name: HiKey Development Board (DT)
+> [  149.081514] pstate: 80000005 (Nzcv daif -PAN -UAO)
+> [  149.093062] pc : dev_watchdog+0x2b4/0x2c0
+> [  149.103862] lr : dev_watchdog+0x2b4/0x2c0
+> [  149.114575] sp : ffff000008003d10
+> [  149.124613] x29: ffff000008003d10 x28: 0000000000000002
+> [  149.136698] x27: 0000000000000001 x26: 00000000ffffffff
+> [  149.148810] x25: 0000000000000180 x24: ffff800074c654b8
+> [  149.160891] x23: ffff800074c65460 x22: ffff8000748dd680
+> [  149.172993] x21: ffff00000974a000 x20: ffff800074c65000
+> [  149.185065] x19: 0000000000000000 x18: ffffffffffffffff
+> [  149.197172] x17: 0000000000000000 x16: 0000000000000000
+> [  149.209243] x15: 0000000000000001 x14: ffff000009062cd8
+> [  149.221234] x13: 0000000045a6fc2a x12: ffff00000975b630
+> [  149.233166] x11: 00000000ffffffff x10: ffff00000974fa48
+> [  149.245023] x9 : ffff0000097e3000 x8 : ffff00000974fa48
+> [  149.256818] x7 : ffff000008173694 x6 : ffff800077ee62d0
+> [  149.268639] x5 : ffff800077ee62d0 x4 : 0000000000000000
+> [  149.280412] x3 : ffff800077eef6c8 x2 : 0000000000000103
+> [  149.292120] x1 : d13523b333b73d00 x0 : 0000000000000000
+> [  149.303783] Call trace:
+> [  149.312481]  dev_watchdog+0x2b4/0x2c0
+> [  149.322463]  call_timer_fn+0xbc/0x3f0
+> [  149.332463]  expire_timers+0x104/0x220
+> [  149.342493]  run_timer_softirq+0xec/0x1a8
+> [  149.352784]  __do_softirq+0x114/0x554
+> [  149.362668]  irq_exit+0x144/0x150
+> [  149.372235]  __handle_domain_irq+0x6c/0xc0
+> [  149.382633]  gic_handle_irq+0x60/0xb0
+> [  149.392606]  el1_irq+0xb4/0x130
+> [  149.402031]  cpuidle_enter_state+0xbc/0x3f0
+> [  149.412572]  cpuidle_enter+0x34/0x48
+> [  149.422539]  call_cpuidle+0x44/0x78
+> [  149.432410]  do_idle+0x228/0x2a8
+> [  149.441959]  cpu_startup_entry+0x2c/0x30
+> [  149.452185]  rest_init+0x25c/0x270
+> [  149.461821]  start_kernel+0x468/0x494
+> [  149.471659] irq event stamp: 5706193
+> [  149.481376] hardirqs last  enabled at (5706192):
+> [<ffff00000817376c>] console_unlock+0x424/0x638
+> [  149.496628] hardirqs last disabled at (5706193):
+> [<ffff000008081490>] do_debug_exception+0xf8/0x1d0
+> [  149.512207] softirqs last  enabled at (5706160):
+> [<ffff0000080f94a8>] _local_bh_enable+0x28/0x48
+> [  149.527590] softirqs last disabled at (5706161):
+> [<ffff0000080f9bb4>] irq_exit+0x144/0x150
+> [  149.542410] ---[ end trace 4c7bd8e08a6a3d65 ]---
+> [  177.828500] jited:1 1366234 PASS
+>
+> ref:
+> https://qa-reports.linaro.org/lkft/linux-stable-rc-4.19-oe/build/v4.19.120-38-g2e3613309d93/testrun/1415357/log
+>
+> metadata:
+>   git branch: linux-4.19.y
+>   git repo: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable-rc.git
+>   make_kernelversion: 4.19.121-rc1
+>   kernel-config:
+> http://snapshots.linaro.org/openembedded/lkft/lkft/sumo/hikey/lkft/linux-stable-rc-4.19/530/config
+>
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/flow_offload.h |  19 +++++
- net/core/flow_offload.c    | 157 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 176 insertions(+)
-
-diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
-index efc8350b42fb..77e5a1bc30f0 100644
---- a/include/net/flow_offload.h
-+++ b/include/net/flow_offload.h
-@@ -430,6 +430,16 @@ enum tc_setup_type;
- typedef int flow_setup_cb_t(enum tc_setup_type type, void *type_data,
- 			    void *cb_priv);
- 
-+struct flow_block_cb;
-+
-+struct flow_block_indr {
-+	struct list_head		list;
-+	struct net_device		*dev;
-+	enum flow_block_binder_type	binder_type;
-+	void				*data;
-+	void				(*cleanup)(struct flow_block_cb *block_cb);
-+};
-+
- struct flow_block_cb {
- 	struct list_head	driver_list;
- 	struct list_head	list;
-@@ -437,6 +447,7 @@ struct flow_block_cb {
- 	void			*cb_ident;
- 	void			*cb_priv;
- 	void			(*release)(void *cb_priv);
-+	struct flow_block_indr	indr;
- 	unsigned int		refcnt;
- };
- 
-@@ -510,6 +521,14 @@ static inline void flow_block_init(struct flow_block *flow_block)
- typedef int flow_indr_block_bind_cb_t(struct net_device *dev, void *cb_priv,
- 				      enum tc_setup_type type, void *type_data);
- 
-+int flow_indr_dev_register(flow_indr_block_bind_cb_t *cb, void *cb_priv);
-+void flow_indr_dev_unregister(flow_indr_block_bind_cb_t *cb, void *cb_priv,
-+			      flow_setup_cb_t *setup_cb);
-+int flow_indr_dev_setup_offload(struct net_device *dev,
-+				enum tc_setup_type type, void *data,
-+				struct flow_block_offload *bo,
-+				void (*cleanup)(struct flow_block_cb *block_cb));
-+
- typedef void flow_indr_block_cmd_t(struct net_device *dev,
- 				   flow_indr_block_bind_cb_t *cb, void *cb_priv,
- 				   enum flow_block_command command);
-diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
-index e951b743bed3..073dd0f74dc0 100644
---- a/net/core/flow_offload.c
-+++ b/net/core/flow_offload.c
-@@ -311,6 +311,163 @@ int flow_block_cb_setup_simple(struct flow_block_offload *f,
- }
- EXPORT_SYMBOL(flow_block_cb_setup_simple);
- 
-+static DEFINE_MUTEX(flow_indr_block_lock);
-+static LIST_HEAD(flow_block_indr_list);
-+static LIST_HEAD(flow_block_indr_dev_list);
-+
-+struct flow_indr_dev {
-+	struct list_head		list;
-+	flow_indr_block_bind_cb_t	*cb;
-+	void				*cb_priv;
-+	refcount_t			refcnt;
-+	struct rcu_head			rcu;
-+};
-+
-+static struct flow_indr_dev *flow_indr_dev_alloc(flow_indr_block_bind_cb_t *cb,
-+						 void *cb_priv)
-+{
-+	struct flow_indr_dev *indr_dev;
-+
-+	indr_dev = kmalloc(sizeof(*indr_dev), GFP_KERNEL);
-+	if (!indr_dev)
-+		return NULL;
-+
-+	indr_dev->cb		= cb;
-+	indr_dev->cb_priv	= cb_priv;
-+	refcount_set(&indr_dev->refcnt, 1);
-+
-+	return indr_dev;
-+}
-+
-+int flow_indr_dev_register(flow_indr_block_bind_cb_t *cb, void *cb_priv)
-+{
-+	struct flow_indr_dev *indr_dev;
-+
-+	mutex_lock(&flow_indr_block_lock);
-+	list_for_each_entry(indr_dev, &flow_block_indr_dev_list, list) {
-+		if (indr_dev->cb == cb &&
-+		    indr_dev->cb_priv == cb_priv) {
-+			refcount_inc(&indr_dev->refcnt);
-+			mutex_unlock(&flow_indr_block_lock);
-+			return 0;
-+		}
-+	}
-+
-+	indr_dev = flow_indr_dev_alloc(cb, cb_priv);
-+	if (!indr_dev) {
-+		mutex_unlock(&flow_indr_block_lock);
-+		return -ENOMEM;
-+	}
-+
-+	list_add(&indr_dev->list, &flow_block_indr_dev_list);
-+	mutex_unlock(&flow_indr_block_lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(flow_indr_dev_register);
-+
-+static void __flow_block_indr_cleanup(flow_setup_cb_t *setup_cb, void *cb_priv,
-+				      struct list_head *cleanup_list)
-+{
-+	struct flow_block_cb *this, *next;
-+
-+	list_for_each_entry_safe(this, next, &flow_block_indr_list, indr.list) {
-+		if (this->cb == setup_cb &&
-+		    this->cb_priv == cb_priv) {
-+			list_move(&this->indr.list, cleanup_list);
-+			return;
-+		}
-+	}
-+}
-+
-+static void flow_block_indr_notify(struct list_head *cleanup_list)
-+{
-+	struct flow_block_cb *this, *next;
-+
-+	list_for_each_entry_safe(this, next, cleanup_list, indr.list) {
-+		list_del(&this->indr.list);
-+		this->indr.cleanup(this);
-+	}
-+}
-+
-+void flow_indr_dev_unregister(flow_indr_block_bind_cb_t *cb, void *cb_priv,
-+			      flow_setup_cb_t *setup_cb)
-+{
-+	struct flow_indr_dev *this, *next, *indr_dev = NULL;
-+	LIST_HEAD(cleanup_list);
-+
-+	mutex_lock(&flow_indr_block_lock);
-+	list_for_each_entry_safe(this, next, &flow_block_indr_dev_list, list) {
-+		if (this->cb == cb &&
-+		    this->cb_priv == cb_priv &&
-+		    refcount_dec_and_test(&this->refcnt)) {
-+			indr_dev = this;
-+			list_del(&indr_dev->list);
-+			break;
-+		}
-+	}
-+
-+	if (!indr_dev) {
-+		mutex_unlock(&flow_indr_block_lock);
-+		return;
-+	}
-+
-+	__flow_block_indr_cleanup(setup_cb, cb_priv, &cleanup_list);
-+	mutex_unlock(&flow_indr_block_lock);
-+
-+	flow_block_indr_notify(&cleanup_list);
-+	kfree(indr_dev);
-+}
-+EXPORT_SYMBOL(flow_indr_dev_unregister);
-+
-+static void flow_block_indr_init(struct flow_block_cb *flow_block,
-+				 struct flow_block_offload *bo,
-+				 struct net_device *dev, void *data,
-+				 void (*cleanup)(struct flow_block_cb *block_cb))
-+{
-+	flow_block->indr.binder_type = bo->binder_type;
-+	flow_block->indr.data = data;
-+	flow_block->indr.dev = dev;
-+	flow_block->indr.cleanup = cleanup;
-+}
-+
-+static void __flow_block_indr_binding(struct flow_block_offload *bo,
-+				      struct net_device *dev, void *data,
-+				      void (*cleanup)(struct flow_block_cb *block_cb))
-+{
-+	struct flow_block_cb *block_cb;
-+
-+	list_for_each_entry(block_cb, &bo->cb_list, list) {
-+		switch (bo->command) {
-+		case FLOW_BLOCK_BIND:
-+			flow_block_indr_init(block_cb, bo, dev, data, cleanup);
-+			list_add(&block_cb->indr.list, &flow_block_indr_list);
-+			break;
-+		case FLOW_BLOCK_UNBIND:
-+			list_del(&block_cb->indr.list);
-+			break;
-+		}
-+	}
-+}
-+
-+int flow_indr_dev_setup_offload(struct net_device *dev,
-+				enum tc_setup_type type, void *data,
-+				struct flow_block_offload *bo,
-+				void (*cleanup)(struct flow_block_cb *block_cb))
-+{
-+	struct flow_indr_dev *this;
-+
-+	mutex_lock(&flow_indr_block_lock);
-+	list_for_each_entry(this, &flow_block_indr_dev_list, list)
-+		this->cb(dev, this->cb_priv, type, bo);
-+
-+	__flow_block_indr_binding(bo, dev, data, cleanup);
-+	mutex_unlock(&flow_indr_block_lock);
-+
-+	return list_empty(&bo->cb_list) ? -EOPNOTSUPP : 0;
-+}
-+EXPORT_SYMBOL(flow_indr_dev_setup_offload);
-+
- static LIST_HEAD(block_cb_list);
- 
- static struct rhashtable indr_setup_block_ht;
--- 
-2.20.1
-
+--
+Linaro LKFT
+https://lkft.linaro.org
