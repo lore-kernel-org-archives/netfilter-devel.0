@@ -2,91 +2,271 @@ Return-Path: <SRS0=Lm+H=63=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BF33C433E0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 16:29:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12569C433E0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 16:41:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C97C72054F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 16:29:20 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="sl4294rl"
+	by mail.kernel.org (Postfix) with ESMTP id 688FF20671
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 16:41:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389597AbgEMQ3U (ORCPT
+        id S2389599AbgEMQlz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 May 2020 12:29:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55260 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730731AbgEMQ3T (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 May 2020 12:29:19 -0400
-Received: from mail-il1-x12e.google.com (mail-il1-x12e.google.com [IPv6:2607:f8b0:4864:20::12e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A972C061A0E
-        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 09:29:18 -0700 (PDT)
-Received: by mail-il1-x12e.google.com with SMTP id n11so273251ilj.4
-        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 09:29:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=u51Ie3hxAKPu1qbArRB4HGjjejkk5lYjufdOHA0vJws=;
-        b=sl4294rl0ziF7iRGRKbjVmcmV1+TL81FMJU0HJhYAceWuVWN/1Hu8BAgasC1Pzlyze
-         iDauye8ghZYuPf+/EWuUqpKS9FPtqsf+SZ3cGvRZJdb/zMt88x2k+HNWrWLCZsj/IZeE
-         NVPPZwa/hBCizPDkAI5yBqWjhkwz7U9wN6pRZ8znJ94wsPrNdb5NMBM5h9jy+XoqaKcu
-         KV7Ar7k6dvQws5rPgmELah4pLWggy4d6PO9U4v0I9dZzx3CoXuJs2D/Z+RCX7kJrw0Dp
-         Z76FbuZYx0wvNOI5CnkMRvjuupbm1En1F8e9FnIGW0AWcSeUI/tYo16rT8sf1ESxMOq9
-         j0og==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=u51Ie3hxAKPu1qbArRB4HGjjejkk5lYjufdOHA0vJws=;
-        b=s1/Kc1Hv3G9g+6qfQTFjbjbOesB3RH+pcJyu7ogDr7/Y6NXQMhN1GSqN1L7JjQigDT
-         0qkFosVlnwNj/9hMJSypBZr5p5SVJ1Y8xVvMunQJdbbUTO8bAMw86011F7iyVtj8EVm/
-         8ZWn1IOUzIDN1Yy7oTtH9AmOC3L7vLdIdvYG2hYzVn1yhO+AP4rtWYeBiOkW+FV87u33
-         GNEd4pwquxQXmXePY6VWjDBdbdEmhnbGHrbfrE6ezj0Ir7oiwLoqqbOAPc1KxH49xxiu
-         IJIo1/nBE9hmUL548FRB5oWq4MjOIX/5NF/ef6VswFDB5nI4xt6sbpHY4SoBGTDIYaRY
-         4sig==
-X-Gm-Message-State: AOAM5315nnEeg7bR4F8jISOteLScXlOaipaQw4CcttlT+4M1mWChrzqE
-        +BZldJFPeTrGKrfoYWC7MONHXj1RU4ALU6i5Xj64Dg==
-X-Google-Smtp-Source: ABdhPJzYLxVVXf+n6CL/Szt7SA0ZEqYbJBye1HUm+xogk/LS1J1ffGLd9GGxHIyu2SuVzCEPELcUXLRTpqyKWxTecls=
-X-Received: by 2002:a05:6e02:544:: with SMTP id i4mr259501ils.145.1589387356960;
- Wed, 13 May 2020 09:29:16 -0700 (PDT)
+        Wed, 13 May 2020 12:41:55 -0400
+Received: from correo.us.es ([193.147.175.20]:53954 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2389355AbgEMQlx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 13 May 2020 12:41:53 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 6BCA927F8B2
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 18:41:50 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5A18C1158EE
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 18:41:50 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 4F6B01158E7; Wed, 13 May 2020 18:41:50 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E0EBD20670;
+        Wed, 13 May 2020 18:41:47 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 13 May 2020 18:41:47 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 870EA42EF4E0;
+        Wed, 13 May 2020 18:41:47 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, paulb@mellanox.com,
+        ozsh@mellanox.com, vladbu@mellanox.com, jiri@resnulli.us,
+        kuba@kernel.org, saeedm@mellanox.com, michael.chan@broadcom.com
+Subject: [PATCH 0/8 net] the indirect flow_block offload, revisited
+Date:   Wed, 13 May 2020 18:41:32 +0200
+Message-Id: <20200513164140.7956-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-References: <CANP3RGfNH1m=-rFdkAmGUt3vxFqaGmJnW+RKP-faU6WwOKWoZg@mail.gmail.com>
- <20200513093944.9752-1-jengelh@inai.de>
-In-Reply-To: <20200513093944.9752-1-jengelh@inai.de>
-From:   =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Date:   Wed, 13 May 2020 09:29:05 -0700
-Message-ID: <CANP3RGdUALH97LB2jHryrFsGYq=h2xwDTVRWuaG_-H-9squsXg@mail.gmail.com>
-Subject: Re: [PATCH v4] doc: document danger of applying REJECT to INVALID CTs
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Linux NetDev <netdev@vger.kernel.org>,
-        Netfilter Development Mailing List 
-        <netfilter-devel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Apparently no, did you send the wrong patch?
-But since you'll have to resend again, 2 more minor stylistic comments.
+Hi,
 
-> +P_2 being succesful in reaching its destination and advancing the connection
-successful
+This patchset fixes the indirect flow_block support for the tc CT action
+offload. Please, note that this batch is probably slightly large for the
+net tree, however, I could not find a simple incremental fix.
 
-> +state normally. It is conceivable that the late-arriving P may be considered to
-> +be not associated with any connection tracking entry. Generating a reject
-s/be not/not be/ is probably better
+= The problem
 
-> +only DROP these.
-would 'those' be better?
+The nf_flow_table_indr_block_cb() function provides the tunnel netdevice
+and the indirect flow_block driver callback. From this tunnel netdevice,
+it is not possible to obtain the tc CT flow_block. Note that tc qdisc
+and netfilter backtrack from the tunnel netdevice to the tc block /
+netfilter chain to reach the flow_block object. This allows them to
+clean up the hardware offload rules if the tunnel device is removed.
 
-> +P_2 being succesful in reaching its destination and advancing the connection
-ditto
+= What is the indirect flow_block infrastructure?
+
+The indirect flow_block infrastructure allows drivers to offload
+tc/netfilter rules that belong to software tunnel netdevices, e.g.
+vxlan.
+
+This indirect flow_block infrastructure relates tunnel netdevices with
+drivers because there is no obvious way to relate these two things
+from the control plane.
+
+= How does the indirect flow_block work before this patchset?
+
+Front-ends register the indirect flow_block callback through
+flow_indr_add_block_cb() if they support for offloading tunnel
+netdevices.
+
+== Setting up an indirect flow_block
+
+1) Drivers track tunnel netdevices via NETDEV_{REGISTER,UNREGISTER} events.
+   If there is a new tunnel netdevice that the driver can offload, then the
+   driver invokes __flow_indr_block_cb_register() with the new tunnel
+   netdevice and the driver callback. The __flow_indr_block_cb_register()
+   call iterates over the list of the front-end callbacks.
+
+2) The front-end callback sets up the flow_block_offload structure and it
+   invokes the driver callback to set up the flow_block.
+
+3) The driver callback now registers the flow_block structure and it
+   returns the flow_block back to the front-end.
+
+4) The front-end gets the flow_block object and it is now ready to
+   offload rules for this tunnel netdevice.
+
+A simplified callgraph is represented below.
+
+        Front-end                      Driver
+
+                                   NETDEV_REGISTER
+                                         |
+                         __flow_indr_block_cb_register(netdev, cb_priv, driver_cb)
+                                         | [1]
+            .----------  frontend_indr_block_cb(cb_priv, driver_cb)
+            |
+   setup_flow_block_offload(bo)
+            | [2]
+   driver_cb(bo, cb_priv) ---------------.
+                                         |
+                                  set up flow_blocks [3]
+                                         |
+   add rules to flow_block <-------------'
+   TC_SETUP_CLSFLOWER [4]
+
+== Releasing the indirect flow_block
+
+There are two possibilities, either tunnel netdevice is removed or
+a netdevice (port representor) is removed.
+
+=== Tunnel netdevice is removed
+
+Driver waits for the NETDEV_UNREGISTER event that announces the tunnel
+netdevice removal. Then, it calls __flow_indr_block_cb_unregister() to
+remove the flow_block and rules.  Callgraph is very similar to the one
+described above.
+
+=== Netdevice is removed (port representor)
+
+Driver calls __flow_indr_block_cb_unregister() to remove the existing
+netfilter/tc rule that belong to the tunnel netdevice.
+
+= How does the indirect flow_block work after this patchset?
+
+Drivers register the indirect flow_block setup callback through
+flow_indr_dev_register() if they support for offloading tunnel
+netdevices.
+
+== Setting up an indirect flow_block
+
+1) Frontends check if dev->netdev_ops->ndo_setup_tc is unset. If so,
+   frontends call flow_indr_dev_setup_offload(). This call invokes
+   the drivers' indirect flow_block setup callback.
+
+2) The indirect flow_block setup callback sets up a flow_block structure
+   which relates the tunnel netdevice and the driver.
+
+3) The front-end uses flow_block and offload the rules.
+
+Note that the operational to set up (non-indirect) flow_block is very
+similar.
+
+== Releasing the indirect flow_block
+
+=== Tunnel netdevice is removed
+
+This calls flow_indr_dev_setup_offload() to set down the flow_block and
+remove the offloaded rules. This alternate path is exercised if
+dev->netdev_ops->ndo_setup_tc is unset.
+
+=== Netdevice is removed (port representor)
+
+If a netdevice is removed, then it might need to to clean up the
+offloaded tc/netfilter rules that belongs to the tunnel netdevice:
+
+1) The driver invokes flow_indr_dev_unregister() when a netdevice is
+   removed.
+
+2) This call iterates over the existing indirect flow_blocks
+   and it invokes the cleanup callback to let the front-end remove the
+   tc/netfilter rules. The cleanup callback already provides the
+   flow_block that the front-end needs to clean up.
+
+        Front-end                      Driver
+
+                                         |
+                            flow_indr_dev_unregister(...)
+                                         |
+                         iterate over list of indirect flow_block
+                               and invoke cleanup callback
+                                         |
+            .-----------------------------
+            |
+            .
+   frontend_flow_block_cleanup(flow_block)
+            .
+            |
+           \/
+   remove rules to flow_block
+      TC_SETUP_CLSFLOWER
+
+= About this patchset
+
+This patchset aims to address the existing TC CT problem while
+simplifying the indirect flow_block infrastructure. Saving 300 LoC in
+the flow_offload core and the drivers. The operational gets aligned with
+the (non-indirect) flow_blocks logic. Patchset is composed of:
+
+Patch #1 add nf_flow_table_gc_cleanup() which is required by the
+         netfilter's flowtable new indirect flow_block approach.
+
+Patch #2 adds the flow_block_indr object which is actually part of
+         of the flow_block object. This stores the indirect flow_block
+	 metadata such as the tunnel netdevice owner and the cleanup
+	 callback (in case the tunnel netdevice goes away).
+
+	 This patch adds flow_indr_dev_{un}register() to allow drivers
+         to offer netdevice tunnel hardware offload to the front-ends.
+	 Then, front-ends call flow_indr_dev_setup_offload() to invoke
+	 the drivers to set up the (indirect) flow_block.
+
+Patch #3 add the tcf_block_offload_init() helper function, this is
+	 a preparation patch to adapt the tc front-end to use this
+	 new indirect flow_block infrastructure.
+
+Patch #4 updates the tc and netfilter front-ends to use the new
+	 indirect flow_block infrastructure.
+
+Patch #5 updates the mlx5 driver to use the new indirect flow_block
+	 infrastructure.
+
+Patch #6 updates the nfp driver to use the new indirect flow_block
+         infrastructure.
+
+Patch #7 updates the bnxt driver to use the new indirect flow_block
+         infrastructure.
+
+Patch #8 removes the indirect flow_block infrastructure version 1,
+         now that frontends and drivers have been translated to
+	 version 2 (coming in this patchset).
+
+Please, apply.
+
+Pablo Neira Ayuso (8):
+  netfilter: nf_flowtable: expose nf_flow_table_gc_cleanup()
+  net: flow_offload: consolidate indirect flow_block infrastructure
+  net: cls_api: add tcf_block_offload_init()
+  net: use flow_indr_dev_setup_offload()
+  mlx5: update indirect block support
+  nfp: update indirect block support
+  bnxt_tc: update indirect block support
+  net: remove indirect block netdev event registration
+
+ drivers/net/ethernet/broadcom/bnxt/bnxt.h     |   1 -
+ drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c  |  51 +--
+ .../net/ethernet/mellanox/mlx5/core/en_rep.c  |  83 +----
+ .../net/ethernet/mellanox/mlx5/core/en_rep.h  |   5 -
+ .../net/ethernet/netronome/nfp/flower/main.c  |  11 +-
+ .../net/ethernet/netronome/nfp/flower/main.h  |   7 +-
+ .../ethernet/netronome/nfp/flower/offload.c   |  35 +-
+ include/net/flow_offload.h                    |  28 +-
+ include/net/netfilter/nf_flow_table.h         |   2 +
+ net/core/flow_offload.c                       | 301 +++++++-----------
+ net/netfilter/nf_flow_table_core.c            |   6 +-
+ net/netfilter/nf_flow_table_offload.c         |  85 +----
+ net/netfilter/nf_tables_offload.c             |  69 ++--
+ net/sched/cls_api.c                           | 157 +++------
+ 14 files changed, 251 insertions(+), 590 deletions(-)
+
+--
+2.20.1
+
