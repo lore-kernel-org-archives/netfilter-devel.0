@@ -2,185 +2,84 @@ Return-Path: <SRS0=Lm+H=63=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CBBAC433DF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 17:21:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FA24C433DF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 17:57:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1747B2053B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 17:21:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E90C205CB
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 May 2020 17:57:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="cOqWcVkc"
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="ImDEnMFt"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732740AbgEMRVi (ORCPT
+        id S1732986AbgEMR52 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 May 2020 13:21:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35102 "EHLO
+        Wed, 13 May 2020 13:57:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40630 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1732781AbgEMRVh (ORCPT
+        by vger.kernel.org with ESMTP id S1732611AbgEMR51 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 May 2020 13:21:37 -0400
-Received: from mail-lj1-x244.google.com (mail-lj1-x244.google.com [IPv6:2a00:1450:4864:20::244])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B168C061A0F
-        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 10:21:37 -0700 (PDT)
-Received: by mail-lj1-x244.google.com with SMTP id f18so399713lja.13
-        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 10:21:37 -0700 (PDT)
+        Wed, 13 May 2020 13:57:27 -0400
+Received: from mail-io1-xd34.google.com (mail-io1-xd34.google.com [IPv6:2607:f8b0:4864:20::d34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7AD8C061A0C
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 10:57:27 -0700 (PDT)
+Received: by mail-io1-xd34.google.com with SMTP id j8so18985301iog.13
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2020 10:57:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=zm0GFw0c5m6rC8EfJtB0fcvdjPOImTuOrxqD/0ggM4I=;
-        b=cOqWcVkcSiDFrpv69KPGgXZ8Z32INOGdORFrIohX7WFmYR4USyndtkje2fggFgMnAX
-         gqI/VxrI8qViFGQ+OLRlqnj2Ep5jUK32kLK1ii3EciOakJcia3oOwt2iMMZNaz6hXuWL
-         AcwUIJaMr+eZcBKYbpOhw+8XSqwEbDEwtxy5FZOWNKjeBBoMGqRmwhxMmmgw739rwDqb
-         mnjoubn4+vq4o9uWdhavbVWOfTEvZLRxR5/lsFeybyfIXh+YovelcKoLd0pW2Z0T9cWg
-         +wl3hOT6qxN5KbPSWxFgLyWe0+dhTbRnT1ZDAuDcWji1ZWaRCHPIFsgyovqnrfx/MVAM
-         1z4w==
+        d=chromium.org; s=google;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=QLNoimdegMJVSp5u3b48H5Ye37PeOPouP0xmLALcNm8=;
+        b=ImDEnMFtJgTKOIh5RvM2NQnMLctBhi+Q5e/b+1oRt4THDMdSRwXZXoXepxzi43cLR9
+         3cKJugKhMJ+HpodyWLq70i5hK71xk3gG69sePaESkijM1iM49ZsK9K6SdHWj2g39Uq6X
+         Bcm0WAE/HaCzSY3Leim9o6yiurAKFLjFN85ls=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=zm0GFw0c5m6rC8EfJtB0fcvdjPOImTuOrxqD/0ggM4I=;
-        b=cUkQp0AiHrzgozHwtgmU/SoCZYpFbFdKCzsYw+jjasUbsXUIEYJ/ulB+XOInE+aYgG
-         Tb4BlkLyZSJJW5PaEwZEil0nXqYmTERn35iyFqcYyPaleI3iFTVr62TM1ZorXkCZzrq9
-         jZrSOD8hVo2KkG+G7ybkqb+RQ1Af1KPkMchAT9V9L/iYJkKCZZ2JL9Ppa8eqvTrZ2pEI
-         5ui9kn6TpM4L8RbytkK5ybtN59cmKiRiS6+bUkk6EzAX2SZEMbIjnSj9lNWePqc1KUPx
-         nx0ebRGweCUGnP9jerOStz0xRvnhXyCx+UHI4zOZK9tUZRtUfSTMRqhHT7IIvmiCCccs
-         yoWQ==
-X-Gm-Message-State: AOAM5318sPoI1TMU/tQTLTDU7rs9M9wvtCY9hjexO0vJEPcTmYQ7W74S
-        ITe271Bjl2akP/fP/6Gu6yBMRxdSrIOrTWMYMt/dKVZHHqQifA==
-X-Google-Smtp-Source: ABdhPJzgXXLfNIXgYq0O1VpU5zWs8Qj09MtdPYXwNNlUl10gy+/nx+X87kXLhn6Y+mepHkL0J8QAjQnNhjZV00GntMw=
-X-Received: by 2002:a2e:a0cf:: with SMTP id f15mr78593ljm.165.1589390495530;
- Wed, 13 May 2020 10:21:35 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=QLNoimdegMJVSp5u3b48H5Ye37PeOPouP0xmLALcNm8=;
+        b=KNv9I9jZhySX+2KyyGgYdV2UUkgenRZIciuON2PjzNgxLtqOUbUWsbECjCowvqRv7/
+         w7gsapZQAxEKzG05xdeyepqQYihNxT3XjQm5pgJU9xnkr7WpGgmkMHWdFDv2lIkPo0GQ
+         4vC1mV78+VZv8emgwN/4tpRv1tqHuiGydvjjS/gh5yMgx/CM9VDp6rydvuHqkJjVPnOV
+         IHKSWpFiohmfaqCcWt00JJ8LI574IsE4joM78SRbXh/u1E4Pbz+io0AHCwYYmSJvW1mL
+         4+kfJps8r9mILVzXq3LkKY9VgnhQUZeEmjYPrU2YsmLcrfw0DkhngCmv8H/zRIQuAOQd
+         v19w==
+X-Gm-Message-State: AOAM531eRrUwEjGK7Y4HUPoxt3N0zDcm/UzrualYAkvOgJHxhqXh0Sdg
+        CoVL1QLsn4rU0y4HUSRUdZ06Aqe33VA=
+X-Google-Smtp-Source: ABdhPJzSl9tE2JDeCStp0yqpCaID7+E4glHEVd+1/f2MCReJjrkRU8cmKFjSNCaeZRX3tbEz04J0ng==
+X-Received: by 2002:a5d:8045:: with SMTP id b5mr424066ior.16.1589392646581;
+        Wed, 13 May 2020 10:57:26 -0700 (PDT)
+Received: from jacobraz2.hsd1.co.comcast.net ([2601:281:8101:2040::8327])
+        by smtp.gmail.com with ESMTPSA id y18sm86240ilq.52.2020.05.13.10.57.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 13 May 2020 10:57:25 -0700 (PDT)
+From:   Jacob Rasmussen <jacobraz@chromium.org>
+X-Google-Original-From: Jacob Rasmussen <jacobraz@google.com>
+To:     mkubecek@suse.cz
+Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        Jacob Rasmussen <jacobraz@chromium.org>
+Subject: Re: userspace conntrack helper and confirming the master conntrack
+Date:   Wed, 13 May 2020 11:54:08 -0600
+Message-Id: <20200513175408.195863-1-jacobraz@google.com>
+X-Mailer: git-send-email 2.26.2.645.ge9eca65c58-goog
+In-Reply-To: <20190911081710.GD24779@unicorn.suse.cz>
+References: <20190911081710.GD24779@unicorn.suse.cz>
 MIME-Version: 1.0
-References: <CA+G9fYu4gE2vqSmgyYMfdMS-ZDfQiY1vhk2Jbni+wDJFjLHVKg@mail.gmail.com>
-In-Reply-To: <CA+G9fYu4gE2vqSmgyYMfdMS-ZDfQiY1vhk2Jbni+wDJFjLHVKg@mail.gmail.com>
-From:   Naresh Kamboju <naresh.kamboju@linaro.org>
-Date:   Wed, 13 May 2020 22:51:23 +0530
-Message-ID: <CA+G9fYtnpLvg+PM7dZD-qyasC8NaPp=E1ybmZAObNHZkANL1yA@mail.gmail.com>
-Subject: Re: stable-rc 4.19: NETDEV WATCHDOG: eth0 (asix): transmit queue 0
- timed out - net/sched/sch_generic.c:466 dev_watchdog
-To:     Netdev <netdev@vger.kernel.org>,
-        linux- stable <stable@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-Cc:     Eric Dumazet <edumazet@google.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>,
-        lkft-triage@lists.linaro.org,
-        "open list:KERNEL SELFTEST FRAMEWORK" 
-        <linux-kselftest@vger.kernel.org>,
-        Jamal Hadi Salim <jhs@mojatatu.com>,
-        Cong Wang <xiyou.wangcong@gmail.com>,
-        Jiri Pirko <jiri@resnulli.us>, Jakub Kicinski <kuba@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-While running selftests bpf test_sysctl on stable rc 5.6 branch kernel
-on arm64 hikey device. The following warning was noticed.
+From: Jacob Rasmussen <jacobraz@chromium.org>
 
-[ 1097.207013] NETDEV WATCHDOG: eth0 (asix): transmit queue 0 timed out
-[ 1097.387913] WARNING: CPU: 0 PID: 206 at
-/usr/src/kernel/net/sched/sch_generic.c:443 dev_watchdog+0x438/0x470
-[ 1097.479820] Modules linked in: cls_bpf sch_fq sch_ingress test_bpf
-algif_hash af_alg wl18xx wlcore mac80211 libarc4 cfg80211 hci_uart
-snd_soc_audio_graph_card snd_soc_simple_card_utils btqca crct10dif_ce
-btbcm adv7511 wlcore_sdio bluetooth cec ecdh_generic ecc lima rfkill
-kirin_drm gpu_sched drm_kms_helper dw_drm_dsi drm fuse [last unloaded:
-trace_printk]
-[ 1097.684705] CPU: 0 PID: 206 Comm: jbd2/mmcblk0p9- Not tainted 5.6.13-rc1 #1
-[ 1097.776526] Hardware name: HiKey Development Board (DT)
-[ 1097.865766] pstate: 60000005 (nZCv daif -PAN -UAO)
-[ 1097.954668] pc : dev_watchdog+0x438/0x470
-[ 1098.042508] lr : dev_watchdog+0x438/0x470
+Hello everyone,
 
-ref:
-https://qa-reports.linaro.org/lkft/linux-stable-rc-5.6-oe/build/v5.6.12-119-gf1d28d1c7608/testrun/1430360/log
+I'm encountering a bug on Chrome OS that I believe to be caused by commit 827318feb69cb07ed58bb9b9dd6c2eaa81a116ad and I was wondering if there was any update on a fix/revert landing for this. 
+If a fix has already landed would anyone mind pointing me to the specific commit because I haven't been able to find it on my own.
 
-
-On Tue, 5 May 2020 at 17:01, Naresh Kamboju <naresh.kamboju@linaro.org> wrote:
->
-> While running selftests bpf test_sysctl on stable rc 4.19 branch kernel
-> on arm64 hikey device. The following warning was noticed.
->
-> [  118.957395] test_bpf: #296 BPF_MAXINSNS: exec all MSH
-> [  148.966435] ------------[ cut here ]------------
-> [  148.988349] NETDEV WATCHDOG: eth0 (asix): transmit queue 0 timed out
-> [  149.000832] WARNING: CPU: 0 PID: 0 at
-> /usr/src/kernel/net/sched/sch_generic.c:466 dev_watchdog+0x2b4/0x2c0
-> [  149.016470] Modules linked in: test_bpf(+) wl18xx wlcore mac80211
-> cfg80211 crc32_ce hci_uart crct10dif_ce btbcm snd_soc_audio_graph_card
-> bluetooth snd_soc_simple_card_utils adv7511 cec wlcore_sdio kirin_drm
-> dw_drm_dsi rfkill drm_kms_helper drm drm_panel_orientation_quirks fuse
-> [last unloaded: test_bpf]
-> [  149.056507] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.19.121-rc1 #1
-> [  149.069594] Hardware name: HiKey Development Board (DT)
-> [  149.081514] pstate: 80000005 (Nzcv daif -PAN -UAO)
-> [  149.093062] pc : dev_watchdog+0x2b4/0x2c0
-> [  149.103862] lr : dev_watchdog+0x2b4/0x2c0
-> [  149.114575] sp : ffff000008003d10
-> [  149.124613] x29: ffff000008003d10 x28: 0000000000000002
-> [  149.136698] x27: 0000000000000001 x26: 00000000ffffffff
-> [  149.148810] x25: 0000000000000180 x24: ffff800074c654b8
-> [  149.160891] x23: ffff800074c65460 x22: ffff8000748dd680
-> [  149.172993] x21: ffff00000974a000 x20: ffff800074c65000
-> [  149.185065] x19: 0000000000000000 x18: ffffffffffffffff
-> [  149.197172] x17: 0000000000000000 x16: 0000000000000000
-> [  149.209243] x15: 0000000000000001 x14: ffff000009062cd8
-> [  149.221234] x13: 0000000045a6fc2a x12: ffff00000975b630
-> [  149.233166] x11: 00000000ffffffff x10: ffff00000974fa48
-> [  149.245023] x9 : ffff0000097e3000 x8 : ffff00000974fa48
-> [  149.256818] x7 : ffff000008173694 x6 : ffff800077ee62d0
-> [  149.268639] x5 : ffff800077ee62d0 x4 : 0000000000000000
-> [  149.280412] x3 : ffff800077eef6c8 x2 : 0000000000000103
-> [  149.292120] x1 : d13523b333b73d00 x0 : 0000000000000000
-> [  149.303783] Call trace:
-> [  149.312481]  dev_watchdog+0x2b4/0x2c0
-> [  149.322463]  call_timer_fn+0xbc/0x3f0
-> [  149.332463]  expire_timers+0x104/0x220
-> [  149.342493]  run_timer_softirq+0xec/0x1a8
-> [  149.352784]  __do_softirq+0x114/0x554
-> [  149.362668]  irq_exit+0x144/0x150
-> [  149.372235]  __handle_domain_irq+0x6c/0xc0
-> [  149.382633]  gic_handle_irq+0x60/0xb0
-> [  149.392606]  el1_irq+0xb4/0x130
-> [  149.402031]  cpuidle_enter_state+0xbc/0x3f0
-> [  149.412572]  cpuidle_enter+0x34/0x48
-> [  149.422539]  call_cpuidle+0x44/0x78
-> [  149.432410]  do_idle+0x228/0x2a8
-> [  149.441959]  cpu_startup_entry+0x2c/0x30
-> [  149.452185]  rest_init+0x25c/0x270
-> [  149.461821]  start_kernel+0x468/0x494
-> [  149.471659] irq event stamp: 5706193
-> [  149.481376] hardirqs last  enabled at (5706192):
-> [<ffff00000817376c>] console_unlock+0x424/0x638
-> [  149.496628] hardirqs last disabled at (5706193):
-> [<ffff000008081490>] do_debug_exception+0xf8/0x1d0
-> [  149.512207] softirqs last  enabled at (5706160):
-> [<ffff0000080f94a8>] _local_bh_enable+0x28/0x48
-> [  149.527590] softirqs last disabled at (5706161):
-> [<ffff0000080f9bb4>] irq_exit+0x144/0x150
-> [  149.542410] ---[ end trace 4c7bd8e08a6a3d65 ]---
-> [  177.828500] jited:1 1366234 PASS
->
-> ref:
-> https://qa-reports.linaro.org/lkft/linux-stable-rc-4.19-oe/build/v4.19.120-38-g2e3613309d93/testrun/1415357/log
->
-> metadata:
->   git branch: linux-4.19.y
->   git repo: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable-rc.git
->   make_kernelversion: 4.19.121-rc1
->   kernel-config:
-> http://snapshots.linaro.org/openembedded/lkft/lkft/sumo/hikey/lkft/linux-stable-rc-4.19/530/config
->
-
---
-Linaro LKFT
-https://lkft.linaro.org
+Thanks,
+Jacob
