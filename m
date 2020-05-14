@@ -2,109 +2,73 @@ Return-Path: <SRS0=bPAQ=64=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B02B2C433DF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 May 2020 12:19:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C3ECC433E0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 May 2020 12:23:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B1E4206A5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 May 2020 12:19:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DD6A8206DA
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 May 2020 12:23:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727067AbgENMTf (ORCPT
+        id S1726191AbgENMXc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 14 May 2020 08:19:35 -0400
-Received: from correo.us.es ([193.147.175.20]:54268 "EHLO mail.us.es"
+        Thu, 14 May 2020 08:23:32 -0400
+Received: from correo.us.es ([193.147.175.20]:57122 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726891AbgENMTW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 May 2020 08:19:22 -0400
+        id S1725955AbgENMXc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 14 May 2020 08:23:32 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BED1F15AEAC
-        for <netfilter-devel@vger.kernel.org>; Thu, 14 May 2020 14:19:20 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 2ABBD15C111
+        for <netfilter-devel@vger.kernel.org>; Thu, 14 May 2020 14:23:31 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B19A0DA715
-        for <netfilter-devel@vger.kernel.org>; Thu, 14 May 2020 14:19:20 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1CB76DA716
+        for <netfilter-devel@vger.kernel.org>; Thu, 14 May 2020 14:23:31 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B0D84DA713; Thu, 14 May 2020 14:19:20 +0200 (CEST)
+        id 11E96DA709; Thu, 14 May 2020 14:23:31 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A9E18DA718;
-        Thu, 14 May 2020 14:19:18 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 23B19DA717;
+        Thu, 14 May 2020 14:23:29 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 14 May 2020 14:19:18 +0200 (CEST)
+ Thu, 14 May 2020 14:23:29 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 7FC0E42EF42B;
-        Thu, 14 May 2020 14:19:18 +0200 (CEST)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 026E642EF42B;
+        Thu, 14 May 2020 14:23:28 +0200 (CEST)
+Date:   Thu, 14 May 2020 14:23:28 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 3/6] netfilter: flowtable: Remove WQ_MEM_RECLAIM from workqueue
-Date:   Thu, 14 May 2020 14:19:10 +0200
-Message-Id: <20200514121913.24519-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200514121913.24519-1-pablo@netfilter.org>
-References: <20200514121913.24519-1-pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH 0/3] Fix SECMARK target comparison
+Message-ID: <20200514122328.GA24661@salvia>
+References: <20200512171018.16871-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200512171018.16871-1-phil@nwl.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Roi Dayan <roid@mellanox.com>
+On Tue, May 12, 2020 at 07:10:15PM +0200, Phil Sutter wrote:
+> The kernel sets struct secmark_target_info->secid, so target comparison
+> in user space failed every time. Given that target data comparison
+> happens in libiptc, fixing this is a bit harder than just adding a cmp()
+> callback to struct xtables_target. Instead, allow for targets to write
+> the matchmask bits for their private data themselves and account for
+> that in both legacy and nft code. Then make use of the new
+> infrastructure to fix libxt_SECMARK.
 
-This workqueue is in charge of handling offloaded flow tasks like
-add/del/stats we should not use WQ_MEM_RECLAIM flag.
-The flag can result in the following warning.
+Hm, -D and -C with SECMARK are broken since the beginning.
 
-[  485.557189] ------------[ cut here ]------------
-[  485.562976] workqueue: WQ_MEM_RECLAIM nf_flow_table_offload:flow_offload_worr
-[  485.562985] WARNING: CPU: 7 PID: 3731 at kernel/workqueue.c:2610 check_flush0
-[  485.590191] Kernel panic - not syncing: panic_on_warn set ...
-[  485.597100] CPU: 7 PID: 3731 Comm: kworker/u112:8 Not tainted 5.7.0-rc1.21802
-[  485.606629] Hardware name: Dell Inc. PowerEdge R730/072T6D, BIOS 2.4.3 01/177
-[  485.615487] Workqueue: nf_flow_table_offload flow_offload_work_handler [nf_f]
-[  485.624834] Call Trace:
-[  485.628077]  dump_stack+0x50/0x70
-[  485.632280]  panic+0xfb/0x2d7
-[  485.636083]  ? check_flush_dependency+0x110/0x130
-[  485.641830]  __warn.cold.12+0x20/0x2a
-[  485.646405]  ? check_flush_dependency+0x110/0x130
-[  485.652154]  ? check_flush_dependency+0x110/0x130
-[  485.657900]  report_bug+0xb8/0x100
-[  485.662187]  ? sched_clock_cpu+0xc/0xb0
-[  485.666974]  do_error_trap+0x9f/0xc0
-[  485.671464]  do_invalid_op+0x36/0x40
-[  485.675950]  ? check_flush_dependency+0x110/0x130
-[  485.681699]  invalid_op+0x28/0x30
-
-Fixes: 7da182a998d6 ("netfilter: flowtable: Use work entry per offload command")
-Reported-by: Marcelo Ricardo Leitner <mleitner@redhat.com>
-Signed-off-by: Roi Dayan <roid@mellanox.com>
-Reviewed-by: Paul Blakey <paulb@mellanox.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_flow_table_offload.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 3d4ca62c81f9..2276a73ccba2 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -1062,7 +1062,7 @@ static struct flow_indr_block_entry block_ing_entry = {
- int nf_flow_table_offload_init(void)
- {
- 	nf_flow_offload_wq  = alloc_workqueue("nf_flow_table_offload",
--					      WQ_UNBOUND | WQ_MEM_RECLAIM, 0);
-+					      WQ_UNBOUND, 0);
- 	if (!nf_flow_offload_wq)
- 		return -ENOMEM;
- 
--- 
-2.20.1
-
+Another possible would be to fix the kernel to update the layout, to
+get it aligned with other existing extensions.
