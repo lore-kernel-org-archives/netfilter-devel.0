@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E15C6C433E2
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 May 2020 12:19:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03960C433E0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 May 2020 12:19:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE25D20722
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 May 2020 12:19:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E3A70206A5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 May 2020 12:19:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727785AbgENMTb (ORCPT
+        id S1727116AbgENMTW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 14 May 2020 08:19:31 -0400
-Received: from correo.us.es ([193.147.175.20]:54282 "EHLO mail.us.es"
+        Thu, 14 May 2020 08:19:22 -0400
+Received: from correo.us.es ([193.147.175.20]:54246 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727072AbgENMTX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 May 2020 08:19:23 -0400
+        id S1726294AbgENMTW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 14 May 2020 08:19:22 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A4ECF15AEB5
-        for <netfilter-devel@vger.kernel.org>; Thu, 14 May 2020 14:19:21 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 9C1F315AEB0
+        for <netfilter-devel@vger.kernel.org>; Thu, 14 May 2020 14:19:19 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 95E36DA720
-        for <netfilter-devel@vger.kernel.org>; Thu, 14 May 2020 14:19:21 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8B736DA710
+        for <netfilter-devel@vger.kernel.org>; Thu, 14 May 2020 14:19:19 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 93E60DA717; Thu, 14 May 2020 14:19:21 +0200 (CEST)
+        id 8AC4ADA703; Thu, 14 May 2020 14:19:19 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9A3CBDA71A;
-        Thu, 14 May 2020 14:19:19 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 83A69DA714;
+        Thu, 14 May 2020 14:19:17 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 14 May 2020 14:19:19 +0200 (CEST)
+ Thu, 14 May 2020 14:19:17 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 7587042EF42A;
-        Thu, 14 May 2020 14:19:19 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 5D69A42EF42B;
+        Thu, 14 May 2020 14:19:17 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 5/6] netfilter: flowtable: set NF_FLOW_TEARDOWN flag on entry expiration
-Date:   Thu, 14 May 2020 14:19:12 +0200
-Message-Id: <20200514121913.24519-6-pablo@netfilter.org>
+Subject: [PATCH 1/6] netfilter: conntrack: avoid gcc-10 zero-length-bounds warning
+Date:   Thu, 14 May 2020 14:19:08 +0200
+Message-Id: <20200514121913.24519-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200514121913.24519-1-pablo@netfilter.org>
 References: <20200514121913.24519-1-pablo@netfilter.org>
@@ -57,44 +57,61 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If the flow timer expires, the gc sets on the NF_FLOW_TEARDOWN flag.
-Otherwise, the flowtable software path might race to refresh the
-timeout, leaving the state machine in inconsistent state.
+From: Arnd Bergmann <arnd@arndb.de>
 
-Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
-Reported-by: Paul Blakey <paulb@mellanox.com>
-Reviewed-by: Roi Dayan <roid@mellanox.com>
+gcc-10 warns around a suspicious access to an empty struct member:
+
+net/netfilter/nf_conntrack_core.c: In function '__nf_conntrack_alloc':
+net/netfilter/nf_conntrack_core.c:1522:9: warning: array subscript 0 is outside the bounds of an interior zero-length array 'u8[0]' {aka 'unsigned char[0]'} [-Wzero-length-bounds]
+ 1522 |  memset(&ct->__nfct_init_offset[0], 0,
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from net/netfilter/nf_conntrack_core.c:37:
+include/net/netfilter/nf_conntrack.h:90:5: note: while referencing '__nfct_init_offset'
+   90 |  u8 __nfct_init_offset[0];
+      |     ^~~~~~~~~~~~~~~~~~
+
+The code is correct but a bit unusual. Rework it slightly in a way that
+does not trigger the warning, using an empty struct instead of an empty
+array. There are probably more elegant ways to do this, but this is the
+smallest change.
+
+Fixes: c41884ce0562 ("netfilter: conntrack: avoid zeroing timer")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_core.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ include/net/netfilter/nf_conntrack.h | 2 +-
+ net/netfilter/nf_conntrack_core.c    | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 4344e572b7f9..42da6e337276 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -284,7 +284,7 @@ static void flow_offload_del(struct nf_flowtable *flow_table,
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 9f551f3b69c6..90690e37a56f 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -87,7 +87,7 @@ struct nf_conn {
+ 	struct hlist_node	nat_bysource;
+ #endif
+ 	/* all members below initialized via memset */
+-	u8 __nfct_init_offset[0];
++	struct { } __nfct_init_offset;
  
- 	if (nf_flow_has_expired(flow))
- 		flow_offload_fixup_ct(flow->ct);
--	else if (test_bit(NF_FLOW_TEARDOWN, &flow->flags))
-+	else
- 		flow_offload_fixup_ct_timeout(flow->ct);
+ 	/* If we were expected by an expectation, this will be it */
+ 	struct nf_conn *master;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index c4582eb71766..0173398f4ced 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1519,9 +1519,9 @@ __nf_conntrack_alloc(struct net *net,
+ 	ct->status = 0;
+ 	ct->timeout = 0;
+ 	write_pnet(&ct->ct_net, net);
+-	memset(&ct->__nfct_init_offset[0], 0,
++	memset(&ct->__nfct_init_offset, 0,
+ 	       offsetof(struct nf_conn, proto) -
+-	       offsetof(struct nf_conn, __nfct_init_offset[0]));
++	       offsetof(struct nf_conn, __nfct_init_offset));
  
- 	flow_offload_free(flow);
-@@ -361,8 +361,10 @@ static void nf_flow_offload_gc_step(struct flow_offload *flow, void *data)
- {
- 	struct nf_flowtable *flow_table = data;
+ 	nf_ct_zone_add(ct, zone);
  
--	if (nf_flow_has_expired(flow) || nf_ct_is_dying(flow->ct) ||
--	    test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
-+	if (nf_flow_has_expired(flow) || nf_ct_is_dying(flow->ct))
-+		set_bit(NF_FLOW_TEARDOWN, &flow->flags);
-+
-+	if (test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
- 		if (test_bit(NF_FLOW_HW, &flow->flags)) {
- 			if (!test_bit(NF_FLOW_HW_DYING, &flow->flags))
- 				nf_flow_offload_del(flow_table, flow);
 -- 
 2.20.1
 
