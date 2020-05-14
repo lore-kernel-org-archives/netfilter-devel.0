@@ -2,168 +2,118 @@ Return-Path: <SRS0=bPAQ=64=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59E50C433DF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 May 2020 04:35:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 973D2C433E1
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 May 2020 08:25:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 50F0020575
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 May 2020 04:35:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6FFEC20675
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 May 2020 08:25:50 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="vgKyk2WV";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="vQ2dab9d"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726004AbgENEfz (ORCPT
+        id S1726146AbgENIZq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 14 May 2020 00:35:55 -0400
-Received: from mail106.syd.optusnet.com.au ([211.29.132.42]:44308 "EHLO
-        mail106.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725788AbgENEfy (ORCPT
+        Thu, 14 May 2020 04:25:46 -0400
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:39501 "EHLO
+        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725935AbgENIZp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 May 2020 00:35:54 -0400
-Received: from dimstar.local.net (n175-34-64-112.sun1.vic.optusnet.com.au [175.34.64.112])
-        by mail106.syd.optusnet.com.au (Postfix) with SMTP id 226125AAC4D
-        for <netfilter-devel@vger.kernel.org>; Thu, 14 May 2020 14:35:52 +1000 (AEST)
-Received: (qmail 1307 invoked by uid 501); 14 May 2020 04:35:47 -0000
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libnetfilter_queue 2/3] example: nf-queue: use pkt_buff
-Date:   Thu, 14 May 2020 14:35:46 +1000
-Message-Id: <20200514043547.1255-1-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.14.5
-In-Reply-To: <20200426132356.8346-3-pablo@netfilter.org>
-References: <20200426132356.8346-3-pablo@netfilter.org>
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.3 cv=QIgWuTDL c=1 sm=1 tr=0
-        a=keeXcwCgVCrAuxOn72dlvA==:117 a=keeXcwCgVCrAuxOn72dlvA==:17
-        a=sTwFKg_x9MkA:10 a=RSmzAf-M6YYA:10 a=3HDBlxybAAAA:8
-        a=IH-ITAO_KJS8c0ikSwYA:9 a=laEoCiVfU_Unz3mSdgXN:22
+        Thu, 14 May 2020 04:25:45 -0400
+Received: from compute2.internal (compute2.nyi.internal [10.202.2.42])
+        by mailout.nyi.internal (Postfix) with ESMTP id 435655C0221;
+        Thu, 14 May 2020 04:25:44 -0400 (EDT)
+Received: from mailfrontend2 ([10.202.2.163])
+  by compute2.internal (MEProxy); Thu, 14 May 2020 04:25:44 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
+        message-id:subject:from:to:cc:date:in-reply-to:references
+        :content-type:mime-version:content-transfer-encoding; s=fm3; bh=
+        /xysc5mZRRwSPhJfTdSoHNPvt4tx6ue/BYIZHaszruM=; b=vgKyk2WVbBTezi5J
+        KZZxhb5cZm9Y59EZs1jkDIEB3QN/51GbotXc56FPv7Xfcym56gv3O1qR+nljkg5u
+        9idmRjW8ePiEQlecNuBuJQMR4LbrOqBGXTBX0nE1nXFcEUdhaX57FmZCO4ejJA+J
+        Yhd88QhBv40BAsI1Uw7//IWhAdOnxk0Q1hU+xUGjlQRutLzOhGiVppZIn5WlmQyD
+        Wt0ryMujwkZVPejYBHC9M/ajKDJuwtJswUPv/MxVIas0AzIhh+strqXutV3caOqg
+        PBBB+ny9WUpKGb9ebSby/tJeHZOH3yKkcXhC0E4lF/15UEI2E3uNoEZMgFXPOQnU
+        RcxNuw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:content-transfer-encoding:content-type
+        :date:from:in-reply-to:message-id:mime-version:references
+        :subject:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm2; bh=/xysc5mZRRwSPhJfTdSoHNPvt4tx6ue/BYIZHaszr
+        uM=; b=vQ2dab9dHMuPMC/E2g2BRHkokaNfzXVMkruZHrf1jsACbLHGamb8VmNqE
+        P5ZMhljttd/zS6DTJl7pPkbGBq5pIdNs6F9L+H9NXWVaZBO/E5ezTCv5r4n8PfTn
+        vd6wIwoC+xrNjrmwgGSL04apsHcNpNL65tRPQsCT+TJUjv4g1hOkyGCcJZtzrS3H
+        GxdexL1hxNOW5HIFBTmpckbYeFUC/rVVBmsvfPKukng83zIWcsShNYxamcdefhnC
+        GOA11+klUWv8VNUT+ToY+DAEhUTixAU0HSzzWg+P0gDoXzDTQZ0lupWKqCnoPlvF
+        QS2xTtr/Z+jSUz7/eNmgrBk3ZPE8w==
+X-ME-Sender: <xms:hwC9Xo-am4RF6LNTv7m07mH48iDckWHKMZFJz4JNxG9SYk4P3qqlIA>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeduhedrleeigddtudcutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
+    fjughrpefkuffhvfffjghftggfggfgsehtjeertddtreejnecuhfhrohhmpefkrghnucfm
+    vghnthcuoehrrghvvghnsehthhgvmhgrfidrnhgvtheqnecuggftrfgrthhtvghrnhepfe
+    efteetvdeguddvveefveeftedtffduudehueeihfeuvefgveehffeludeggfejnecukfhp
+    peduudekrddvtdekrddukeejrddvhedtnecuvehluhhsthgvrhfuihiivgeptdenucfrrg
+    hrrghmpehmrghilhhfrhhomheprhgrvhgvnhesthhhvghmrgifrdhnvght
+X-ME-Proxy: <xmx:hwC9Xgtl5wjK72rTScXd71Y-TFGpnL1_uTrxuWn3nX2w28PKsMdFiw>
+    <xmx:hwC9XuA_0lZdHSpSDYw85PV35YMnEkEQa8qWZUpt-wi_mJk0mXcCFg>
+    <xmx:hwC9XofeS0RrUpnYeV3V6IFkhOLUBIv4FGnrR_tWrcfFjyCZx6PQ4A>
+    <xmx:iAC9XmaibCZ2K5m1rscL-SbvJiOKKfft5rL7AmEL5B5DeSmZEnf0bg>
+Received: from mickey.themaw.net (unknown [118.208.187.250])
+        by mail.messagingengine.com (Postfix) with ESMTPA id BEA023060A88;
+        Thu, 14 May 2020 04:25:40 -0400 (EDT)
+Message-ID: <a98e32eb5ad4486fc58e5ce79700a20abecbd69b.camel@themaw.net>
+Subject: Re: [PATCH 02/14] autofs: switch to kernel_write
+From:   Ian Kent <raven@themaw.net>
+To:     Christoph Hellwig <hch@lst.de>, Al Viro <viro@zeniv.linux.org.uk>
+Cc:     David Howells <dhowells@redhat.com>, linux-kernel@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org,
+        linux-security-module@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Date:   Thu, 14 May 2020 16:25:36 +0800
+In-Reply-To: <20200513065656.2110441-3-hch@lst.de>
+References: <20200513065656.2110441-1-hch@lst.de>
+         <20200513065656.2110441-3-hch@lst.de>
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.34.4 (3.34.4-1.fc31) 
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+On Wed, 2020-05-13 at 08:56 +0200, Christoph Hellwig wrote:
+> While pipes don't really need sb_writers projection, __kernel_write
+> is an
+> interface better kept private, and the additional rw_verify_area does
+> not
+> hurt here.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-To hopefully save you time, the email after this is a patch implementing the
-suggestions below, and also using the 5-args pktb_setup() interface which we
-haven't agreed on yet.
+Right, should be fine AFAICS.
+Acked-by: Ian Kent <raven@themaw.net>
 
-Cheers ... Duncan.
-
-On Sun, Apr 26, 2020 at 03:23:55PM +0200, Pablo Neira Ayuso wrote:
-> Update example file to use the pkt_buff structure to store the payload.
->
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 > ---
->  examples/nf-queue.c | 25 +++++++++++++++++++++++--
->  1 file changed, 23 insertions(+), 2 deletions(-)
->
-> diff --git a/examples/nf-queue.c b/examples/nf-queue.c
-> index 3da2c249da23..f0d4c2ee7276 100644
-> --- a/examples/nf-queue.c
-> +++ b/examples/nf-queue.c
-> @@ -14,6 +14,7 @@
->  #include <linux/netfilter/nfnetlink_queue.h>
->
->  #include <libnetfilter_queue/libnetfilter_queue.h>
-> +#include <libnetfilter_queue/pktbuff.h>
->
->  /* only for NFQA_CT, not needed otherwise: */
->  #include <linux/netfilter/nfnetlink_conntrack.h>
-> @@ -50,9 +51,12 @@ static int queue_cb(const struct nlmsghdr *nlh, void *data)
->  {
->  	struct nfqnl_msg_packet_hdr *ph = NULL;
->  	struct nlattr *attr[NFQA_MAX+1] = {};
-> +	struct pkt_buff *pktb = data;
->  	uint32_t id = 0, skbinfo;
->  	struct nfgenmsg *nfg;
-> +	uint8_t *payload;
->  	uint16_t plen;
-> +	int i;
->
->  	if (nfq_nlmsg_parse(nlh, attr) < 0) {
->  		perror("problems parsing");
-> @@ -69,7 +73,8 @@ static int queue_cb(const struct nlmsghdr *nlh, void *data)
->  	ph = mnl_attr_get_payload(attr[NFQA_PACKET_HDR]);
->
->  	plen = mnl_attr_get_payload_len(attr[NFQA_PAYLOAD]);
-> -	/* void *payload = mnl_attr_get_payload(attr[NFQA_PAYLOAD]); */
-> +
-> +	pktb_build_data(pktb, mnl_attr_get_payload(attr[NFQA_PAYLOAD]), plen);
->
->  	skbinfo = attr[NFQA_SKB_INFO] ? ntohl(mnl_attr_get_u32(attr[NFQA_SKB_INFO])) : 0;
->
-> @@ -97,6 +102,14 @@ static int queue_cb(const struct nlmsghdr *nlh, void *data)
->  		printf(", checksum not ready");
->  	puts(")");
->
-> +	printf("payload (len=%d) [", plen);
-> +	payload = pktb_data(pktb);
-> +
-> +	for (i = 0; i < pktb_len(pktb); i++)
-
-'& 0xff' not necessary for uint8_t
-"%02x" gives output that is more useful (longer though)
-
-> +		printf("%x", payload[i] & 0xff);
-> +
-> +	printf("]\n");
-> +
->  	nfq_send_verdict(ntohs(nfg->res_id), id);
->
->  	return MNL_CB_OK;
-> @@ -107,6 +120,7 @@ int main(int argc, char *argv[])
->  	char *buf;
->  	/* largest possible packet payload, plus netlink data overhead: */
->  	size_t sizeof_buf = 0xffff + (MNL_SOCKET_BUFFER_SIZE/2);
-> +	struct pkt_buff *pktb;
->  	struct nlmsghdr *nlh;
->  	int ret;
->  	unsigned int portid, queue_num;
-> @@ -161,6 +175,12 @@ int main(int argc, char *argv[])
->  	ret = 1;
->  	mnl_socket_setsockopt(nl, NETLINK_NO_ENOBUFS, &ret, sizeof(int));
->
-> +	pktb = pktb_alloc_head();
-
-s.b. pktb_head_alloc (did this compile?)
-
-See following patch for simplified code
-
-> +	if (!pktb) {
-> +		perror("pktb_alloc");
-> +		exit(EXIT_FAILURE);
-> +	}
-> +
->  	for (;;) {
->  		ret = mnl_socket_recvfrom(nl, buf, sizeof_buf);
->  		if (ret == -1) {
-> @@ -168,13 +188,14 @@ int main(int argc, char *argv[])
->  			exit(EXIT_FAILURE);
->  		}
->
-> -		ret = mnl_cb_run(buf, ret, 0, portid, queue_cb, NULL);
-> +		ret = mnl_cb_run(buf, ret, 0, portid, queue_cb, pktb);
->  		if (ret < 0){
->  			perror("mnl_cb_run");
->  			exit(EXIT_FAILURE);
->  		}
->  	}
->
-> +	pktb_free(pktb);
->  	mnl_socket_close(nl);
->
->  	return 0;
-> --
-> 2.20.1
->
-
-Duncan Roe (1):
-  example: nf-queue: use pkt_buff (updated)
-
- examples/nf-queue.c | 20 ++++++++------------
- 1 file changed, 8 insertions(+), 12 deletions(-)
-
--- 
-2.14.5
+>  fs/autofs/waitq.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/fs/autofs/waitq.c b/fs/autofs/waitq.c
+> index b04c528b19d34..74c886f7c51cb 100644
+> --- a/fs/autofs/waitq.c
+> +++ b/fs/autofs/waitq.c
+> @@ -53,7 +53,7 @@ static int autofs_write(struct autofs_sb_info *sbi,
+>  
+>  	mutex_lock(&sbi->pipe_mutex);
+>  	while (bytes) {
+> -		wr = __kernel_write(file, data, bytes, &file->f_pos);
+> +		wr = kernel_write(file, data, bytes, &file->f_pos);
+>  		if (wr <= 0)
+>  			break;
+>  		data += wr;
 
