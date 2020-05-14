@@ -2,88 +2,69 @@ Return-Path: <SRS0=bPAQ=64=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BAF95C433E1
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 May 2020 11:16:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 934D4C433E0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 May 2020 11:31:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 935E2206DA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 May 2020 11:16:02 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="QsuGcfZ7"
+	by mail.kernel.org (Postfix) with ESMTP id 75F77206A5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 May 2020 11:31:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726340AbgENLQB (ORCPT
+        id S1726066AbgENLb2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 14 May 2020 07:16:01 -0400
-Received: from us-smtp-1.mimecast.com ([207.211.31.81]:37106 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726216AbgENLQB (ORCPT
+        Thu, 14 May 2020 07:31:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35804 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726010AbgENLb2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 May 2020 07:16:01 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1589454960;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=y8RbUxHYnrrR8+JblLME7HF9A4PH2pMKn/uDVIUW1T4=;
-        b=QsuGcfZ7VKSaplEay58odTvNrNZ59RQtBZAPKh9v0DaEzE8pzXkwGXn9NXN6hTabg1xqcD
-        CjUs13u2yX3k+C8xZ8dazY0YNQNMZGaxyH3+hnfxBp2bqiKNJaVNoohYp59Mg1v4RHKF3h
-        0fk5vTNfIDwtUUJJ2vAD+PQ+QGgH4/E=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-283-h-yimdJeMiexqtghCnu3GA-1; Thu, 14 May 2020 07:15:58 -0400
-X-MC-Unique: h-yimdJeMiexqtghCnu3GA-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id F11E21005512;
-        Thu, 14 May 2020 11:15:56 +0000 (UTC)
-Received: from [10.72.12.111] (ovpn-12-111.pek2.redhat.com [10.72.12.111])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 692D810013D9;
-        Thu, 14 May 2020 11:15:54 +0000 (UTC)
-Subject: Re: netfilter: does the API break or something else ?
-To:     Phil Sutter <phil@nwl.cc>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        Jeff Layton <jlayton@kernel.org>,
-        Patrick Donnelly <pdonnell@redhat.com>
-References: <cf0d02b2-b1db-7ef6-41b8-7c345b7d53d5@redhat.com>
- <20200514105422.GO17795@orbyte.nwl.cc>
-From:   Xiubo Li <xiubli@redhat.com>
-Message-ID: <13fdc06c-42b2-7239-7c40-dc4814c5e5c4@redhat.com>
-Date:   Thu, 14 May 2020 19:15:49 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.8.0
+        Thu, 14 May 2020 07:31:28 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC6F0C061A0C
+        for <netfilter-devel@vger.kernel.org>; Thu, 14 May 2020 04:31:27 -0700 (PDT)
+Received: from localhost ([::1]:49768 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1jZC5G-0007jb-Kw; Thu, 14 May 2020 13:31:26 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [net PATCH] netfilter: ipset: Fix subcounter update skip
+Date:   Thu, 14 May 2020 13:31:21 +0200
+Message-Id: <20200514113121.32474-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-In-Reply-To: <20200514105422.GO17795@orbyte.nwl.cc>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020/5/14 18:54, Phil Sutter wrote:
-> Hi,
->
-> On Wed, May 13, 2020 at 11:20:35PM +0800, Xiubo Li wrote:
->> Recently I hit one netfilter issue, it seems the API breaks or something
->> else.
-> Just for the record, this was caused by a misconfigured kernel.
+If IPSET_FLAG_SKIP_SUBCOUNTER_UPDATE is set, user requested to not
+update counters in sub sets. Therefore IPSET_FLAG_SKIP_COUNTER_UPDATE
+must be set, not unset.
 
-Yeah, thanks Phil for your help.
+Fixes: 6e01781d1c80e ("netfilter: ipset: set match: add support to match the counters")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ net/netfilter/ipset/ip_set_list_set.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-BRs
-
-Xiubo
-
-
-> Cheers, Phil
->
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index cd747c0962fd6..5a67f79665742 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -59,7 +59,7 @@ list_set_ktest(struct ip_set *set, const struct sk_buff *skb,
+ 	/* Don't lookup sub-counters at all */
+ 	opt->cmdflags &= ~IPSET_FLAG_MATCH_COUNTERS;
+ 	if (opt->cmdflags & IPSET_FLAG_SKIP_SUBCOUNTER_UPDATE)
+-		opt->cmdflags &= ~IPSET_FLAG_SKIP_COUNTER_UPDATE;
++		opt->cmdflags |= IPSET_FLAG_SKIP_COUNTER_UPDATE;
+ 	list_for_each_entry_rcu(e, &map->members, list) {
+ 		ret = ip_set_test(e->id, skb, par, opt);
+ 		if (ret <= 0)
+-- 
+2.26.2
 
