@@ -2,66 +2,117 @@ Return-Path: <SRS0=dCSv=65=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.3 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
+	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D0B2C433E0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 May 2020 00:29:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBC0EC433DF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 May 2020 01:36:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 233E6206D8
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 May 2020 00:29:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9662C20734
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 May 2020 01:36:18 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BZH27tzH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728219AbgEOA3T (ORCPT
+        id S1727790AbgEOBgM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 14 May 2020 20:29:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44482 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727805AbgEOA3T (ORCPT
+        Thu, 14 May 2020 21:36:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54816 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726090AbgEOBgM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 May 2020 20:29:19 -0400
-Received: from shards.monkeyblade.net (shards.monkeyblade.net [IPv6:2620:137:e000::1:9])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14BE8C061A0C;
-        Thu, 14 May 2020 17:29:19 -0700 (PDT)
-Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id 097FC14CCC99F;
-        Thu, 14 May 2020 17:29:15 -0700 (PDT)
-Date:   Thu, 14 May 2020 17:29:12 -0700 (PDT)
-Message-Id: <20200514.172912.286966851347264575.davem@davemloft.net>
-To:     pablo@netfilter.org
-Cc:     ecree@solarflare.com, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org, paulb@mellanox.com, ozsh@mellanox.com,
-        vladbu@mellanox.com, jiri@resnulli.us, kuba@kernel.org,
-        saeedm@mellanox.com, michael.chan@broadcom.com
-Subject: Re: [PATCH 0/8 net] the indirect flow_block offload, revisited
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20200514223627.GA3170@salvia>
-References: <20200513164140.7956-1-pablo@netfilter.org>
-        <8f1a3b9a-6a60-f1b3-0fc1-f2361864c822@solarflare.com>
-        <20200514223627.GA3170@salvia>
-X-Mailer: Mew version 6.8 on Emacs 26.3
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Thu, 14 May 2020 17:29:15 -0700 (PDT)
+        Thu, 14 May 2020 21:36:12 -0400
+Received: from mail-pg1-x543.google.com (mail-pg1-x543.google.com [IPv6:2607:f8b0:4864:20::543])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC30CC061A0C;
+        Thu, 14 May 2020 18:36:11 -0700 (PDT)
+Received: by mail-pg1-x543.google.com with SMTP id p21so213490pgm.13;
+        Thu, 14 May 2020 18:36:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=0VjQ+Ma3qI88glsLS8F0bIG67DtfNMG5fSLchrZlPkw=;
+        b=BZH27tzHemzdhmeAt5qyR6/wV3Rep0NuG5yApKqgOQnaClXU3DcmTpxeToHmrIa15l
+         e/VU6aF7VhSU4G6nrw4DsMvQvfQn5gePKL/mL5Ip1KjkVJequxf52sqv4NWsvQrlyzIl
+         VQ8GsWnQ2KmNG4nUelqamCKaGM4nwe7OEROb4Mv33JGjGkhx/Ed70ZHgjJ2UAt3HbgWe
+         gLdBaa0JYh2H8FCFSy8Q3WEBJ7mcUCNK81II+EB30V2TJ8KFGzjS98HFmUz0+cNkAmBM
+         cuxIoNM2qoSTz/bTGviWjKAFqNQXMd2af7Xrp6THTo6nXJN9TexjHiE7l9BAYNLlpGpL
+         0dkQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=0VjQ+Ma3qI88glsLS8F0bIG67DtfNMG5fSLchrZlPkw=;
+        b=cJQx1RAZoznZUE6ejbNl7fo1/0PsBR730EKUdkZNhAqhl81rwqaXhO0yT2uZrdruz6
+         zqL93cxbEYpuwyAZgb2Xo7JuqetynVLHk4GE1bHPN+t8hHPH8rLq6xl8Va51DNP5IqhQ
+         9/vqXeltauQ1iMjBbF5jmQKRvFBb9Pq/UnMhmhuf8jurpppqosluFbV3e0cq00mU3jFC
+         mrKDm2u9W3XPKFpaujCT1NprReQz7jEi+lPbXPja+n+BObTim5z9IJeflkEKM3iR5Qtx
+         tQs5iGLZehvqkGZ9yDJ4VJhg9rVgTzJxUyTpHxMKfIvhyhMHO8G9KKNc6THE2uUNAkkb
+         RXJQ==
+X-Gm-Message-State: AOAM531oQopCifUVCbdgJeXsj/oS1mkG9bF0YLr3zdXrEe7PV3JCHpx+
+        AhaqKLAI14yCP1boDLYl10vF/ZHnAwF4NQ==
+X-Google-Smtp-Source: ABdhPJwCVmlezSMh86iw6O5zaChvYnG2ARTIL31CVxt25Oq99Z82FRfutcz2tDRog+5lMGN4YEQxKQ==
+X-Received: by 2002:a63:482:: with SMTP id 124mr880335pge.169.1589506571419;
+        Thu, 14 May 2020 18:36:11 -0700 (PDT)
+Received: from T480s.vmware.com (toroon0411w-lp130-03-174-95-146-183.dsl.bell.ca. [174.95.146.183])
+        by smtp.googlemail.com with ESMTPSA id e12sm364701pgi.40.2020.05.14.18.36.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 14 May 2020 18:36:10 -0700 (PDT)
+From:   Andrew Sy Kim <kim.andrewsy@gmail.com>
+Cc:     kim.andrewsy@gmail.com, Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netdev@vger.kernel.org (open list:IPVS),
+        lvs-devel@vger.kernel.org (open list:IPVS),
+        netfilter-devel@vger.kernel.org (open list:NETFILTER),
+        coreteam@netfilter.org (open list:NETFILTER),
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH] netfilter/ipvs: expire no destination UDP connections when expire_nodest_conn=1
+Date:   Thu, 14 May 2020 21:35:56 -0400
+Message-Id: <20200515013556.5582-1-kim.andrewsy@gmail.com>
+X-Mailer: git-send-email 2.20.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+To:     unlisted-recipients:; (no To-header on input)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Fri, 15 May 2020 00:36:27 +0200
+When expire_nodest_conn=1 and an IPVS destination is deleted, IPVS
+doesn't expire connections with the IP_VS_CONN_F_ONE_PACKET flag set (any
+UDP connection). If there are many UDP packets to a virtual server from a
+single client and a destination is deleted, many packets are silently
+dropped whenever an existing connection entry with the same source port
+exists. This patch ensures IPVS also expires UDP connections when a
+packet matches an existing connection with no destinations.
 
-> The TC CT action crashes the kernel with an indirect flow_block in place:
-> 
-> https://lore.kernel.org/netfilter-devel/db9dfe4f-62e7-241b-46a0-d878c89696a8@ucloud.cn/
+Signed-off-by: Andrew Sy Kim <kim.andrewsy@gmail.com>
+---
+ net/netfilter/ipvs/ip_vs_core.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-I've read over this patch set at least three times, and reread the
-header posting, and there is no clear indication that this patch
-series fixes a crash at all.
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index aa6a603a2425..f0535586fe75 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -2116,8 +2116,7 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
+ 		else
+ 			ip_vs_conn_put(cp);
+ 
+-		if (sysctl_expire_nodest_conn(ipvs) &&
+-		    !(flags & IP_VS_CONN_F_ONE_PACKET)) {
++		if (sysctl_expire_nodest_conn(ipvs)) {
+ 			/* try to expire the connection immediately */
+ 			ip_vs_conn_expire_now(cp);
+ 		}
+-- 
+2.20.1
 
-You need to be explicit about what bug this is fixing, in the commit
-messages and introduction posting, with quoted crash logs etc.
