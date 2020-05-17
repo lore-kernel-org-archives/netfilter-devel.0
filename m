@@ -2,154 +2,163 @@ Return-Path: <SRS0=IYfa=67=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F2CAC433E0
-	for <netfilter-devel@archiver.kernel.org>; Sun, 17 May 2020 14:15:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66014C433DF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 17 May 2020 17:27:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E1994207BB
-	for <netfilter-devel@archiver.kernel.org>; Sun, 17 May 2020 14:15:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 42C6E20657
+	for <netfilter-devel@archiver.kernel.org>; Sun, 17 May 2020 17:27:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="AQHNj2p1"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OWcozBcr"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728021AbgEQOPg (ORCPT
+        id S1726274AbgEQR1V (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 17 May 2020 10:15:36 -0400
-Received: from us-smtp-1.mimecast.com ([207.211.31.81]:44791 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727929AbgEQOPe (ORCPT
+        Sun, 17 May 2020 13:27:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59146 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726242AbgEQR1V (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 17 May 2020 10:15:34 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1589724932;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=ZSCD2rskbMKGy3GhvSaftPT2Y5k+GJ/7kryyIprAvdw=;
-        b=AQHNj2p1or6dyAi+aujwENogmex3xcdZwV0dmXUPm5UoccCKJ3jlg6ytMQHin4w+yk7IXQ
-        bQCMoujz7VCdBEtyH2pCTCxeMfPlYZnNldyefKsLxbhG3UH1zbuNKJj1sHDxQU2EZU8PMY
-        DuhinuHOtsCM0pGtYcIPHtgMK80bJ28=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-377-kdyH184UP7q8iWcgAZwJLQ-1; Sun, 17 May 2020 10:15:27 -0400
-X-MC-Unique: kdyH184UP7q8iWcgAZwJLQ-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 8CEF01005510;
-        Sun, 17 May 2020 14:15:25 +0000 (UTC)
-Received: from madcap2.tricolour.ca (unknown [10.10.110.46])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id F316D5D9D7;
-        Sun, 17 May 2020 14:15:17 +0000 (UTC)
-Date:   Sun, 17 May 2020 10:15:15 -0400
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     fw@strlen.de, LKML <linux-kernel@vger.kernel.org>,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
-        twoerner@redhat.com, Eric Paris <eparis@parisplace.org>,
-        tgraf@infradead.org
-Subject: Re: [PATCH ghak25 v4 3/3] audit: add subj creds to NETFILTER_CFG
- record to cover async unregister
-Message-ID: <20200517141515.qqx3jx5ulb2546tx@madcap2.tricolour.ca>
-References: <cover.1587500467.git.rgb@redhat.com>
- <b8ba40255978a73ea15e3859d5c945ecd5fede8e.1587500467.git.rgb@redhat.com>
- <CAHC9VhR9sNB58A8uQ4FNgAXOgVJ3RaWF4y5MAo=3mcTojaym0Q@mail.gmail.com>
+        Sun, 17 May 2020 13:27:21 -0400
+Received: from mail-ej1-x644.google.com (mail-ej1-x644.google.com [IPv6:2a00:1450:4864:20::644])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD757C061A0C;
+        Sun, 17 May 2020 10:27:19 -0700 (PDT)
+Received: by mail-ej1-x644.google.com with SMTP id d7so6313874eja.7;
+        Sun, 17 May 2020 10:27:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=ZrODtRB0VLzrBc0RiUggWA8TbcBvamughhphUXIIDnI=;
+        b=OWcozBcrckvqmx+/XIfmse8QLxEeqmaWyCOO/jKLQLj2TDXXN5IjwpwhtWPEpKu5m3
+         lQY52URCBLhpuUfdfIGaIpaQDVF4zFJCqR0PTg4iiKzQ0+Kx0gG08Hi+kd3h/pijJ6tf
+         Np05CwEE8luF6DnxGe8VnCkd2Lh9cCWujTZ4Gz5N2DTXxbUe8oUH5992ti5GaiBTAHkT
+         9s5Bec0nurKDvb2cn6JggXx5PjrE/DxC8I4J0iUu+cq9JuyDumAlTfwajMgJWcRX1RF0
+         Noca6ySUEHVbe04JrXZwJI4+yCVfaZS0UJFeVGnTOK2HB8RDsmAwS2ldA7Qu5HV7oITV
+         fabA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=ZrODtRB0VLzrBc0RiUggWA8TbcBvamughhphUXIIDnI=;
+        b=j9yxwUmZh1/1pmYtC4ZHIEUb7GZD6w1JT9aseV2AHz9EkbSOiQz5sopuIBIxj9CO0r
+         h87egjZaba6jmbFmmlJsf2FidRSo3KzXR+J7TkAD6M/sqa3kL1O8dqDIMgbDbb/HTKP0
+         tGtN4elWxJVjp61lPYnETacr8fB/3F5EFyfSVTWKTnAlXAz3lNST4wzfmcC72U3HgIlS
+         eziKko2LW+k8p5I1eDvC1U5CEyLwE4dMluKs/FphXCIZQFSAken1UlP/4tL6qes6fLLW
+         InsyQSCyztnZI/eAfN0IXcPX4FXea4XepMtRjtpmuFqkoUtkAifj/F5/2GuOCRd0656w
+         0AzA==
+X-Gm-Message-State: AOAM532kqBO5azVYu5T7lBfobNG0Q4xqasSm4/9EV2lPd9Khw6UQauwt
+        s1g/9BMWw/jTIHQVC09ElU/nVKfsxNoI+g/kGnY=
+X-Google-Smtp-Source: ABdhPJwWHN0CABb2lA8LG/MSvk2r7IdvC3Y1JevSk4pFpxDUpN3q1KLVeCkKlTTl9oMdIZZrnKHaKLUD5WupPI0iOKc=
+X-Received: by 2002:a17:907:39b:: with SMTP id ss27mr9661079ejb.209.1589736438146;
+ Sun, 17 May 2020 10:27:18 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHC9VhR9sNB58A8uQ4FNgAXOgVJ3RaWF4y5MAo=3mcTojaym0Q@mail.gmail.com>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+References: <20200515013556.5582-1-kim.andrewsy@gmail.com> <alpine.LFD.2.21.2005152044380.3860@ja.home.ssi.bg>
+In-Reply-To: <alpine.LFD.2.21.2005152044380.3860@ja.home.ssi.bg>
+From:   Andrew Kim <kim.andrewsy@gmail.com>
+Date:   Sun, 17 May 2020 13:27:06 -0400
+Message-ID: <CABc050G5HRaTNp1r0P7HahAUu+RA_Gk2XZBbjDWQsQ40O4VGyw@mail.gmail.com>
+Subject: Re: [PATCH] netfilter/ipvs: expire no destination UDP connections
+ when expire_nodest_conn=1
+To:     Julian Anastasov <ja@ssi.bg>
+Cc:     Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        "open list:IPVS" <netdev@vger.kernel.org>,
+        "open list:IPVS" <lvs-devel@vger.kernel.org>,
+        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
+        "open list:NETFILTER" <coreteam@netfilter.org>,
+        open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-04-28 18:25, Paul Moore wrote:
-> On Wed, Apr 22, 2020 at 5:40 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > Some table unregister actions seem to be initiated by the kernel to
-> > garbage collect unused tables that are not initiated by any userspace
-> > actions.  It was found to be necessary to add the subject credentials to
-> > cover this case to reveal the source of these actions.  A sample record:
+Hi Julian,
+
+Thanks for getting back to me, that makes sense.
+
+Would you be opposed to trying to expire all UDP connections matching
+a deleted destination only if expire_nodest_conn=1?
+Even today with `expire_nodest_conn=1`, many packets could be dropped
+if there are many requests from a single client
+trying to reuse client ports matching a deleted destination. Setting
+`expire_nodest_conn=1` and reducing the UDP timeout
+helps but deleting all connections when the destination is deleted
+seems more efficient.
+
+Looking forward to hearing your thoughts,
+
+Andrew Sy Kim
+
+
+On Fri, May 15, 2020 at 2:07 PM Julian Anastasov <ja@ssi.bg> wrote:
+>
+>
+>         Hello,
+>
+> On Thu, 14 May 2020, Andrew Sy Kim wrote:
+>
+> > When expire_nodest_conn=1 and an IPVS destination is deleted, IPVS
+> > doesn't expire connections with the IP_VS_CONN_F_ONE_PACKET flag set (any
+> > UDP connection). If there are many UDP packets to a virtual server from a
+> > single client and a destination is deleted, many packets are silently
+> > dropped whenever an existing connection entry with the same source port
+> > exists. This patch ensures IPVS also expires UDP connections when a
+> > packet matches an existing connection with no destinations.
 > >
-> >   type=NETFILTER_CFG msg=audit(2020-03-11 21:25:21.491:269) : table=nat family=bridge entries=0 op=unregister pid=153 uid=root auid=unset tty=(none) ses=unset subj=system_u:system_r:kernel_t:s0 comm=kworker/u4:2 exe=(null)
-> 
-> [I'm going to comment up here instead of in the code because it is a
-> bit easier for everyone to see what the actual impact might be on the
-> records.]
-> 
-> Steve wants subject info in this case, okay, but let's try to trim out
-> some of the fields which simply don't make sense in this record; I'm
-> thinking of fields that are unset/empty in the kernel case and are
-> duplicates of other records in the userspace/syscall case.  I think
-> that means we can drop "tty", "ses", "comm", and "exe" ... yes?
-> 
-> While "auid" is a potential target for removal based on the
-> dup-or-unset criteria, I think it falls under Steve's request for
-> subject info here, even if it is garbage in this case.
-
-Can you explain why auid falls under this criteria but ses does not if
-both are unset?  If auid is unset then we know ses is unset?  If subj
-contains *:kernel_t:* then uid can also be dropped even though it is
-set, no?  I figure if we are going to start dropping fields, might as
-well drop enough to make it worth the effort, even though this is a rare
-event.
-
-As for searchability, I have solved that easily in the parser.
-
-> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> > Signed-off-by: Andrew Sy Kim <kim.andrewsy@gmail.com>
 > > ---
-> >  kernel/auditsc.c | 18 ++++++++++++++++++
-> >  1 file changed, 18 insertions(+)
+> >  net/netfilter/ipvs/ip_vs_core.c | 3 +--
+> >  1 file changed, 1 insertion(+), 2 deletions(-)
 > >
-> > diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-> > index d281c18d1771..d7a45b181be0 100644
-> > --- a/kernel/auditsc.c
-> > +++ b/kernel/auditsc.c
-> > @@ -2557,12 +2557,30 @@ void __audit_log_nfcfg(const char *name, u8 af, unsigned int nentries,
-> >                        enum audit_nfcfgop op)
-> >  {
-> >         struct audit_buffer *ab;
-> > +       const struct cred *cred;
-> > +       struct tty_struct *tty;
-> > +       char comm[sizeof(current->comm)];
-> >
-> >         ab = audit_log_start(audit_context(), GFP_KERNEL, AUDIT_NETFILTER_CFG);
-> >         if (!ab)
-> >                 return;
-> >         audit_log_format(ab, "table=%s family=%u entries=%u op=%s",
-> >                          name, af, nentries, audit_nfcfgs[op].s);
-> > +
-> > +       cred = current_cred();
-> > +       tty = audit_get_tty();
-> > +       audit_log_format(ab, " pid=%u uid=%u auid=%u tty=%s ses=%u",
-> > +                        task_pid_nr(current),
-> > +                        from_kuid(&init_user_ns, cred->uid),
-> > +                        from_kuid(&init_user_ns, audit_get_loginuid(current)),
-> > +                        tty ? tty_name(tty) : "(none)",
-> > +                        audit_get_sessionid(current));
-> > +       audit_put_tty(tty);
-> > +       audit_log_task_context(ab); /* subj= */
-> > +       audit_log_format(ab, " comm=");
-> > +       audit_log_untrustedstring(ab, get_task_comm(comm, current));
-> > +       audit_log_d_path_exe(ab, current->mm); /* exe= */
-> > +
-> >         audit_log_end(ab);
-> >  }
-> >  EXPORT_SYMBOL_GPL(__audit_log_nfcfg);
-> 
-> paul moore
-
-- RGB
-
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
-
+> > diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> > index aa6a603a2425..f0535586fe75 100644
+> > --- a/net/netfilter/ipvs/ip_vs_core.c
+> > +++ b/net/netfilter/ipvs/ip_vs_core.c
+> > @@ -2116,8 +2116,7 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
+> >               else
+> >                       ip_vs_conn_put(cp);
+>
+>         Above ip_vs_conn_put() should free the ONE_PACKET
+> connections because:
+>
+> - such connections never start timer, they are designed
+> to exist just to schedule the packet, then they are released.
+> - noone takes extra references
+>
+>         So, ip_vs_conn_put() simply calls ip_vs_conn_expire()
+> where connections should be released immediately. As result,
+> we can not access cp after this point here. That is why we work
+> just with 'flags' below...
+>
+>         Note that not every UDP connection has ONE_PACKET
+> flag, it is present if you configure it for the service.
+> Do you have -o/--ops flag? If not, the UDP connection
+> should expire before the next jiffie. This is the theory,
+> in practice, you may observe some problem...
+>
+> > -             if (sysctl_expire_nodest_conn(ipvs) &&
+> > -                 !(flags & IP_VS_CONN_F_ONE_PACKET)) {
+> > +             if (sysctl_expire_nodest_conn(ipvs)) {
+> >                       /* try to expire the connection immediately */
+> >                       ip_vs_conn_expire_now(cp);
+> >               }
+>
+>         You can also look at the discussion which resulted in
+> the last patch for this place:
+>
+> http://archive.linuxvirtualserver.org/html/lvs-devel/2018-07/msg00014.html
+>
+> Regards
+>
+> --
+> Julian Anastasov <ja@ssi.bg>
