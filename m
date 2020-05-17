@@ -2,217 +2,172 @@ Return-Path: <SRS0=IYfa=67=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.3 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
-	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F07F2C433DF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 17 May 2020 17:28:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B13D0C433DF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 17 May 2020 17:30:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D0B52207DA
-	for <netfilter-devel@archiver.kernel.org>; Sun, 17 May 2020 17:28:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8C1AF2067D
+	for <netfilter-devel@archiver.kernel.org>; Sun, 17 May 2020 17:30:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="okKoVE8e"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bVFin6RX"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726361AbgEQR2G (ORCPT
+        id S1726254AbgEQRak (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 17 May 2020 13:28:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59260 "EHLO
+        Sun, 17 May 2020 13:30:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59660 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726244AbgEQR2F (ORCPT
+        with ESMTP id S1726248AbgEQRak (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 17 May 2020 13:28:05 -0400
-Received: from mail-il1-x12c.google.com (mail-il1-x12c.google.com [IPv6:2607:f8b0:4864:20::12c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99F01C061A0C;
-        Sun, 17 May 2020 10:28:05 -0700 (PDT)
-Received: by mail-il1-x12c.google.com with SMTP id e8so7561977ilm.7;
-        Sun, 17 May 2020 10:28:05 -0700 (PDT)
+        Sun, 17 May 2020 13:30:40 -0400
+Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0CCDC061A0C;
+        Sun, 17 May 2020 10:30:38 -0700 (PDT)
+Received: by mail-ej1-x642.google.com with SMTP id d7so6318481eja.7;
+        Sun, 17 May 2020 10:30:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=ezHFvOY0sk+1uJqHoIJwBLf+T1Zrvf/LHooFVb1kJ2Y=;
-        b=okKoVE8ecn6B4uVqvhL84Q4qeJcLgXDfYK/x5Hqw5wZNxZ10k/dFZhpHV811uy/eDu
-         fi4cCFdtlgB+hE2zqjsAvihscnXuYA+SwrdxlTU903oawUTyocqmnItkk3SIS+uUVXbH
-         szy+ErfKRnVuHjkGwdGP6/9x1EsYLLaJb0cyP/Ueyrjov9ye7cHOEF15kF0paGAGdelA
-         Zo9YqbaZ4Lduizehwy2aaVCXhwXZUYiesPZp1E1Ct8cjwzlb+t5Kj+FDouzRXKSKx8YZ
-         72SEpSBAbR0QCVGPPoxixFcFjnnnrYV5WcajpxUUsjFo04ozM1Urw6W+KmC6Q/aYnQyx
-         BKnA==
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=0OZFa7jftTdxWcOSLEpkn4gNpXoELgMCtZ7/ZZaFvoc=;
+        b=bVFin6RXaSBqs/HWL6nZvR81KfYNuhyVWJLZyNS84/MnadktkEJcboxJxCvgXw+VE1
+         FQe9jEl3xSacnE8AKPGtI+9dS3AMwn1APPFZDevOK7raaxbPaQeJLPo+GZz9tsH5DoBZ
+         30ZNkXzHYor4VYEvi5iYT1vvspznozYtX76pSh+541dvBxXY+L41TDX3J9m0cse9U1ru
+         gaYcs09gf/paEjDfrGL38sv9CSY+Oxda6JzD1EqV4hradjEvhe0mOfJ2QBJjZlOQFNHd
+         tetYucXzh9C78+IzXrdWYA4T4CycFCg8/0rA7yBIm7uj6mazgIHD7IVwyqfQ+f161+OX
+         Nwhg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=ezHFvOY0sk+1uJqHoIJwBLf+T1Zrvf/LHooFVb1kJ2Y=;
-        b=mplAmVBRLZJ9rj6fg8GGU2QMZsOOFQfZ+ZgwpEC2oIUaELMP5fi7DBcsmmsoii4EkS
-         T88aZNofUJjYQr82+lPP/dIXDI4oGNBjWNkYznI72LoCntKAWNkjLZTAsp2+TEYBUegV
-         B40c7bixrKt41EbAqGnmApMs8EipQcSGcpfJBQlGPHijVv0bmOlZYt0Qfl+soMhepTHv
-         fRtHyuhvyZb71R6U6DZ7JxGWmUqsnEbHnkQ/QgY6DetW02NlD4J1s0eEq+4Grc5KoVQq
-         nZhP7diWOdbP672gwNmKEJG3x1vr/QgaQ6o3tzzGMMzCvV7+swYoaHnmSXnfY9KJFlH9
-         yvNA==
-X-Gm-Message-State: AOAM5335XBUMk5ueUAsoOj76I+TyJQAPh8XoJ5BB2msAbQi3BiTpR2fs
-        8qqt66fGlpkxoBNzzp2E6a0=
-X-Google-Smtp-Source: ABdhPJzRdjh8HbHfagb3ZqTdlewqZSJUGRBscEEtrhDvtZK9Nr2i35qO7EXrw6Xl6V6in80mxq4cOQ==
-X-Received: by 2002:a92:9f4b:: with SMTP id u72mr11359892ili.273.1589736484888;
-        Sun, 17 May 2020 10:28:04 -0700 (PDT)
-Received: from localhost.localdomain (toroon0411w-lp130-03-174-95-146-183.dsl.bell.ca. [174.95.146.183])
-        by smtp.googlemail.com with ESMTPSA id f17sm3103724iol.26.2020.05.17.10.28.03
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 17 May 2020 10:28:04 -0700 (PDT)
-From:   Andrew Sy Kim <kim.andrewsy@gmail.com>
-Cc:     kim.andrewsy@gmail.com, "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Wensong Zhang <wensong@linux-vs.org>,
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=0OZFa7jftTdxWcOSLEpkn4gNpXoELgMCtZ7/ZZaFvoc=;
+        b=Bm/VfyyoJI2sCpOim1bZKkfTEU/lII8c4ObnvNaKwu3LkjTykKqhGBeYqiwKZULdDJ
+         hcP7eJ+2IGEaoNouUP2DRnVwHkH4VFtksJrNscbMTgOs9XihFbfFFnCS8O4jymMEWKlv
+         QQxkRuEhvnzMv1UAOc5OH7fre5d+XmB8Ns05ZA+IIIcgt/tjv0zdcUcCSSmdmgnyWHAn
+         kvj0BoGC/d5gApnbvJ39I9RPlNKMTKFY6d+l0rOqcoFnQb2WrZPrJfGHbZ4uYOBPbIH/
+         cc+ygqDpBytwPJy7DzzpqFzV3sovHetu31jqKeM5IAcFJTYTFTwiZBD5a+/NMBL8DDyu
+         3jlQ==
+X-Gm-Message-State: AOAM530fqBKjVG5hRO7J8eUHN0ruouDwJjzHR8iNabrGYj/11638yFKa
+        uHiZSWp+ZCfBUDBysMA7/udxFWpcWWti15oHsxA=
+X-Google-Smtp-Source: ABdhPJwK7lB3LMDKuVqlQkXmcjtEW9KkeZBuZ3TzasyL8xJgzyVYfbuqZAfyadINq/0M+0NGICy0or413Cq9tEvGVKw=
+X-Received: by 2002:a17:906:a1da:: with SMTP id bx26mr11905526ejb.42.1589736637173;
+ Sun, 17 May 2020 10:30:37 -0700 (PDT)
+MIME-Version: 1.0
+References: <20200515013556.5582-1-kim.andrewsy@gmail.com> <alpine.LFD.2.21.2005152044380.3860@ja.home.ssi.bg>
+ <CABc050G5HRaTNp1r0P7HahAUu+RA_Gk2XZBbjDWQsQ40O4VGyw@mail.gmail.com>
+In-Reply-To: <CABc050G5HRaTNp1r0P7HahAUu+RA_Gk2XZBbjDWQsQ40O4VGyw@mail.gmail.com>
+From:   Andrew Kim <kim.andrewsy@gmail.com>
+Date:   Sun, 17 May 2020 13:30:25 -0400
+Message-ID: <CABc050HM=yMbqxDqKX1CLt4qKwXQsf_c6VM=9nkVKWz1GBKCQA@mail.gmail.com>
+Subject: Re: [PATCH] netfilter/ipvs: expire no destination UDP connections
+ when expire_nodest_conn=1
+To:     Julian Anastasov <ja@ssi.bg>
+Cc:     Wensong Zhang <wensong@linux-vs.org>,
         Simon Horman <horms@verge.net.au>,
-        Julian Anastasov <ja@ssi.bg>, Jakub Kicinski <kuba@kernel.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: [PATCH] netfilter/ipvs: immediately expire UDP connections matching unavailable destination if expire_nodest_conn=1
-Date:   Sun, 17 May 2020 13:16:53 -0400
-Message-Id: <20200517171654.8194-1-kim.andrewsy@gmail.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200515013556.5582-1-kim.andrewsy@gmail.com>
-References: <20200515013556.5582-1-kim.andrewsy@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-To:     unlisted-recipients:; (no To-header on input)
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        "open list:IPVS" <netdev@vger.kernel.org>,
+        "open list:IPVS" <lvs-devel@vger.kernel.org>,
+        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
+        "open list:NETFILTER" <coreteam@netfilter.org>,
+        open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If expire_nodest_conn=1 and a UDP destination is deleted, IPVS should
-also expire all matching connections immiediately instead of waiting for
-the next matching packet. This is particulary useful when there are a
-lot of packets coming from a few number of clients. Those clients are
-likely to match against existing entries if a source port in the
-connection hash is reused. When the number of entries in the connection
-tracker is large, we can significantly reduce the number of dropped
-packets by expiring all connections upon deletion.
+I sent a new patch diff based on my ask above. Please take a look :)
 
-Signed-off-by: Andrew Sy Kim <kim.andrewsy@gmail.com>
----
- include/net/ip_vs.h             |  7 ++++++
- net/netfilter/ipvs/ip_vs_conn.c | 38 +++++++++++++++++++++++++++++++++
- net/netfilter/ipvs/ip_vs_core.c |  5 -----
- net/netfilter/ipvs/ip_vs_ctl.c  |  9 ++++++++
- 4 files changed, 54 insertions(+), 5 deletions(-)
+Thanks,
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 83be2d93b407..deecf1344676 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -1049,6 +1049,11 @@ static inline int sysctl_conn_reuse_mode(struct netns_ipvs *ipvs)
- 	return ipvs->sysctl_conn_reuse_mode;
- }
- 
-+static inline int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs)
-+{
-+	return ipvs->sysctl_expire_nodest_conn;
-+}
-+
- static inline int sysctl_schedule_icmp(struct netns_ipvs *ipvs)
- {
- 	return ipvs->sysctl_schedule_icmp;
-@@ -1209,6 +1214,8 @@ struct ip_vs_conn * ip_vs_conn_out_get_proto(struct netns_ipvs *ipvs, int af,
- 					     const struct sk_buff *skb,
- 					     const struct ip_vs_iphdr *iph);
- 
-+void ip_vs_conn_flush_dest(struct netns_ipvs *ipvs, struct ip_vs_dest *dest);
-+
- /* Get reference to gain full access to conn.
-  * By default, RCU read-side critical sections have access only to
-  * conn fields and its PE data, see ip_vs_conn_rcu_free() for reference.
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 02f2f636798d..c69dfbbc3416 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -1366,6 +1366,44 @@ static void ip_vs_conn_flush(struct netns_ipvs *ipvs)
- 		goto flush_again;
- 	}
- }
-+
-+/*	Flush all the connection entries in the ip_vs_conn_tab with a
-+ *	matching destination.
-+ */
-+void ip_vs_conn_flush_dest(struct netns_ipvs *ipvs, struct ip_vs_dest *dest)
-+{
-+	int idx;
-+	struct ip_vs_conn *cp, *cp_c;
-+
-+	rcu_read_lock();
-+	for (idx = 0; idx < ip_vs_conn_tab_size; idx++) {
-+		hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[idx], c_list) {
-+			if (cp->ipvs != ipvs)
-+				continue;
-+
-+			if (cp->dest != dest)
-+				continue;
-+
-+			/* As timers are expired in LIFO order, restart
-+			 * the timer of controlling connection first, so
-+			 * that it is expired after us.
-+			 */
-+			cp_c = cp->control;
-+			/* cp->control is valid only with reference to cp */
-+			if (cp_c && __ip_vs_conn_get(cp)) {
-+				IP_VS_DBG(4, "del controlling connection\n");
-+				ip_vs_conn_expire_now(cp_c);
-+				__ip_vs_conn_put(cp);
-+			}
-+			IP_VS_DBG(4, "del connection\n");
-+			ip_vs_conn_expire_now(cp);
-+		}
-+		cond_resched_rcu();
-+	}
-+	rcu_read_unlock();
-+}
-+EXPORT_SYMBOL_GPL(ip_vs_conn_flush_dest);
-+
- /*
-  * per netns init and exit
-  */
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index aa6a603a2425..0139fa597d76 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -694,11 +694,6 @@ static int sysctl_nat_icmp_send(struct netns_ipvs *ipvs)
- 	return ipvs->sysctl_nat_icmp_send;
- }
- 
--static int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs)
--{
--	return ipvs->sysctl_expire_nodest_conn;
--}
--
- #else
- 
- static int sysctl_snat_reroute(struct netns_ipvs *ipvs) { return 0; }
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 8d14a1acbc37..f87c03622874 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1225,6 +1225,15 @@ ip_vs_del_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
- 	 */
- 	__ip_vs_del_dest(svc->ipvs, dest, false);
- 
-+	/*	If expire_nodest_conn is enabled and protocol is UDP,
-+	 *	attempt best effort flush of all connections with this
-+	 *	destination.
-+	 */
-+	if (sysctl_expire_nodest_conn(svc->ipvs) &&
-+	    dest->protocol == IPPROTO_UDP) {
-+		ip_vs_conn_flush_dest(svc->ipvs, dest);
-+	}
-+
- 	LeaveFunction(2);
- 
- 	return 0;
--- 
-2.20.1
+Andrew Sy Kim
 
+On Sun, May 17, 2020 at 1:27 PM Andrew Kim <kim.andrewsy@gmail.com> wrote:
+>
+> Hi Julian,
+>
+> Thanks for getting back to me, that makes sense.
+>
+> Would you be opposed to trying to expire all UDP connections matching
+> a deleted destination only if expire_nodest_conn=1?
+> Even today with `expire_nodest_conn=1`, many packets could be dropped
+> if there are many requests from a single client
+> trying to reuse client ports matching a deleted destination. Setting
+> `expire_nodest_conn=1` and reducing the UDP timeout
+> helps but deleting all connections when the destination is deleted
+> seems more efficient.
+>
+> Looking forward to hearing your thoughts,
+>
+> Andrew Sy Kim
+>
+>
+> On Fri, May 15, 2020 at 2:07 PM Julian Anastasov <ja@ssi.bg> wrote:
+> >
+> >
+> >         Hello,
+> >
+> > On Thu, 14 May 2020, Andrew Sy Kim wrote:
+> >
+> > > When expire_nodest_conn=1 and an IPVS destination is deleted, IPVS
+> > > doesn't expire connections with the IP_VS_CONN_F_ONE_PACKET flag set (any
+> > > UDP connection). If there are many UDP packets to a virtual server from a
+> > > single client and a destination is deleted, many packets are silently
+> > > dropped whenever an existing connection entry with the same source port
+> > > exists. This patch ensures IPVS also expires UDP connections when a
+> > > packet matches an existing connection with no destinations.
+> > >
+> > > Signed-off-by: Andrew Sy Kim <kim.andrewsy@gmail.com>
+> > > ---
+> > >  net/netfilter/ipvs/ip_vs_core.c | 3 +--
+> > >  1 file changed, 1 insertion(+), 2 deletions(-)
+> > >
+> > > diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> > > index aa6a603a2425..f0535586fe75 100644
+> > > --- a/net/netfilter/ipvs/ip_vs_core.c
+> > > +++ b/net/netfilter/ipvs/ip_vs_core.c
+> > > @@ -2116,8 +2116,7 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
+> > >               else
+> > >                       ip_vs_conn_put(cp);
+> >
+> >         Above ip_vs_conn_put() should free the ONE_PACKET
+> > connections because:
+> >
+> > - such connections never start timer, they are designed
+> > to exist just to schedule the packet, then they are released.
+> > - noone takes extra references
+> >
+> >         So, ip_vs_conn_put() simply calls ip_vs_conn_expire()
+> > where connections should be released immediately. As result,
+> > we can not access cp after this point here. That is why we work
+> > just with 'flags' below...
+> >
+> >         Note that not every UDP connection has ONE_PACKET
+> > flag, it is present if you configure it for the service.
+> > Do you have -o/--ops flag? If not, the UDP connection
+> > should expire before the next jiffie. This is the theory,
+> > in practice, you may observe some problem...
+> >
+> > > -             if (sysctl_expire_nodest_conn(ipvs) &&
+> > > -                 !(flags & IP_VS_CONN_F_ONE_PACKET)) {
+> > > +             if (sysctl_expire_nodest_conn(ipvs)) {
+> > >                       /* try to expire the connection immediately */
+> > >                       ip_vs_conn_expire_now(cp);
+> > >               }
+> >
+> >         You can also look at the discussion which resulted in
+> > the last patch for this place:
+> >
+> > http://archive.linuxvirtualserver.org/html/lvs-devel/2018-07/msg00014.html
+> >
+> > Regards
+> >
+> > --
+> > Julian Anastasov <ja@ssi.bg>
