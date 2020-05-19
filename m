@@ -2,101 +2,95 @@ Return-Path: <SRS0=LRg4=7B=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB8BDC433DF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 18:26:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC78BC433DF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 19:18:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD46120578
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 18:26:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B688C20758
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 19:18:36 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="aL74m/ak"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727113AbgESS0y (ORCPT
+        id S1727000AbgESTSg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 19 May 2020 14:26:54 -0400
-Received: from dispatch1-us1.ppe-hosted.com ([148.163.129.52]:33900 "EHLO
-        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726502AbgESS0y (ORCPT
+        Tue, 19 May 2020 15:18:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45568 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726059AbgESTSg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 May 2020 14:26:54 -0400
-Received: from mx1-us1.ppe-hosted.com (unknown [10.7.65.64])
-        by dispatch1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id 84A96600B0;
-        Tue, 19 May 2020 18:26:53 +0000 (UTC)
-Received: from us4-mdac16-45.ut7.mdlocal (unknown [10.7.64.27])
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id 82E21200A4;
-        Tue, 19 May 2020 18:26:53 +0000 (UTC)
-X-Virus-Scanned: Proofpoint Essentials engine
-Received: from mx1-us1.ppe-hosted.com (unknown [10.7.66.30])
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id EE7A422005F;
-        Tue, 19 May 2020 18:26:52 +0000 (UTC)
-Received: from webmail.solarflare.com (uk.solarflare.com [193.34.186.16])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 647B2100079;
-        Tue, 19 May 2020 18:26:52 +0000 (UTC)
-Received: from [10.17.20.203] (10.17.20.203) by ukex01.SolarFlarecom.com
- (10.17.10.4) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Tue, 19 May
- 2020 19:26:46 +0100
-Subject: Re: [PATCH net-next v2] net: flow_offload: simplify hw stats check
- handling
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-CC:     <davem@davemloft.net>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <jiri@resnulli.us>,
-        <kuba@kernel.org>
-References: <cf0d731d-cb34-accd-ff40-6be013dd9972@solarflare.com>
- <20200519171923.GA16785@salvia>
- <6013b7ce-48c9-7169-c945-01b2226638e4@solarflare.com>
- <20200519173508.GA17141@salvia>
-From:   Edward Cree <ecree@solarflare.com>
-Message-ID: <dc732572-6f69-6cbe-5df1-ca4d6e6ed131@solarflare.com>
-Date:   Tue, 19 May 2020 19:26:42 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.2.2
+        Tue, 19 May 2020 15:18:36 -0400
+Received: from mail-ej1-x641.google.com (mail-ej1-x641.google.com [IPv6:2a00:1450:4864:20::641])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11C14C08C5C0
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2020 12:18:36 -0700 (PDT)
+Received: by mail-ej1-x641.google.com with SMTP id s3so286729eji.6
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2020 12:18:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=pwDvf5G6HSaQ20Oxj0p6X54Wu/x0ouoEho2X1JQouNk=;
+        b=aL74m/akDHaUWo5DAGjBl2jfoa794VKfiSki1M36FYTwo9YSo59CMBv/99InzLpL/G
+         +7bB/+sII5PnN82+4x8MI41VhKSZRJhRKIyl/uZjJXfGPM6l4GX1/QJlMHeYVcsSpXFl
+         wiuYrMgqIe5WbM6vXOjKN+fQ7jY/sLkvgVzU6w7BZO+qrL+9RS5hQ4oPfUUjw/jBJiWT
+         lgKeV6RdJcYPdZ1ikTnTr1qiSAXLJsrWc0aSIGhxLYqdbKPeNy74eMNqRrcxX539grw1
+         vi3Z5ac6eRp6dL45/+2koWyZBj74tbhta40NiTnV4/SUaSRQ02x4RWgnFS6TjaTj8ffw
+         u2qw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=pwDvf5G6HSaQ20Oxj0p6X54Wu/x0ouoEho2X1JQouNk=;
+        b=VKAxdAVXC8uXXcKDPYScL5VFcU9fEne+Zlqo73cSc6Q5G7IO0Z4+FamhyDK6h1GHmf
+         iyruekeBr9EzLLw0VaSBiYa3gb9QOosJ3IxDMQEZeyqGp8t53QS6KGD0oR9afFcm4aQ5
+         vJ9nNFk4ihE6vAI5K2xpsUwZdDNPLWX5bp5lgCceLU+NgUVLEAHPECcodgGQ3TZbtlJH
+         VYPvo3DCOe3QrXaqkMS0XybiQF3kaYLpaSviIA0Zt9yQC1nYqdnSpaY19itfMvua3cd5
+         lL6N19fLuFNuU3R1le7XeJ+iSdL+RuUod6kMF66ktW1ITUs1iIQa1BgXOZmjSQFe0chm
+         MAVg==
+X-Gm-Message-State: AOAM532EO3u5oAn6r1xh6tBIe4O0xFYT2pu0roIeiW42lEIDOXSZTn/+
+        IQJaDvpEzdCH52Mn3SiLkeXWC2EdflyeTScmbqqg
+X-Google-Smtp-Source: ABdhPJwIXuucs0DGivH6PwCdg07KxPMElgAI2ADtY9VUQAv/qt4fe3j2mqb2tBpIQWZ5V2ksbjrenTScUT/dJ6h48BY=
+X-Received: by 2002:a17:907:40f1:: with SMTP id no1mr689589ejb.178.1589915914530;
+ Tue, 19 May 2020 12:18:34 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20200519173508.GA17141@salvia>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Content-Language: en-GB
-X-Originating-IP: [10.17.20.203]
-X-ClientProxiedBy: ocex03.SolarFlarecom.com (10.20.40.36) To
- ukex01.SolarFlarecom.com (10.17.10.4)
-X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1020-25428.003
-X-TM-AS-Result: No-7.974500-8.000000-10
-X-TMASE-MatchedRID: HXSqh3WYKfu8rRvefcjeTR4ejJMDGBzF69aS+7/zbj9RXC4cX65cJJQp
-        8P1TdmSa6p2MwhnGDkBHloHIAzso1UlNkNzbYQ+3Iwk7p1qp3JbdYVrFVbszaMuSXx71bvSLcID
-        y7DqlE8v/Jhd10Wr/0M3UceiBmxhNuAzO9oQibGf/Te3t5cJMGx5FmvZzFEQustuan4ScYgrJdO
-        SGA6s0i13zi/eJ6s3jRV9DrFlwADH+Bakt0aHHFvjQkA7rdCuF6roloi3VB6JE/s+hW1mwCKPFj
-        JEFr+olSXhbxZVQ5H+OhzOa6g8Krb+b/roeYfX8iBn8yIHai+Ci/kb9xHdg/puVhI58xtMJxV1H
-        IZ8FcTU=
-X-TM-AS-User-Approved-Sender: Yes
-X-TM-AS-User-Blocked-Sender: No
-X-TMASE-Result: 10--7.974500-8.000000
-X-TMASE-Version: SMEX-12.5.0.1300-8.5.1020-25428.003
-X-MDID: 1589912813-iVhqZSJFWdM3
+References: <2794b22c0b88637a4270b346e52aeb8db7f59457.1589853445.git.rgb@redhat.com>
+In-Reply-To: <2794b22c0b88637a4270b346e52aeb8db7f59457.1589853445.git.rgb@redhat.com>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Tue, 19 May 2020 15:18:23 -0400
+Message-ID: <CAHC9VhQYUooJbZ9tcOOwb=48LTjtnfo0g11vQuyLzoxdetaxnw@mail.gmail.com>
+Subject: Re: [PATCH ghak25 v5] audit: add subj creds to NETFILTER_CFG record
+ to cover async unregister
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     Linux-Audit Mailing List <linux-audit@redhat.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, sgrubb@redhat.com,
+        Ondrej Mosnacek <omosnace@redhat.com>, fw@strlen.de,
+        twoerner@redhat.com, Eric Paris <eparis@parisplace.org>,
+        tgraf@infradead.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 19/05/2020 18:35, Pablo Neira Ayuso wrote:
-> Did you test your patch with netfilter? I don't think.
-As I mentioned in v1 (and should have repeated on v2, sorry) this is
- compile tested only, as I don't have the hardware to test it.  (I have
- done some testing with the not-yet-upstream sfc_ef100 driver, though.)
-But as I'm not a netfilter user, I don't have a handy set of netfilter
- rules to test this with anyway; and my previous attempts to find useful
- documentation on netfilter.org were not fruitful (although I've just
- now found wiki.nftables.org).  I was hoping someone with the domain
- knowledge (and the hardware) could test this.
-(Also, for complicated reasons, getting nft built for my ef100 test
- system would be decidedly nontrivial; and any test I do without offload
- hardware at the bottom would necessarily be so synthetic I'm not sure
- I'd trust it to prove anything.)
+On Tue, May 19, 2020 at 11:31 AM Richard Guy Briggs <rgb@redhat.com> wrote:
+>
+> Some table unregister actions seem to be initiated by the kernel to
+> garbage collect unused tables that are not initiated by any userspace
+> actions.  It was found to be necessary to add the subject credentials to
+> cover this case to reveal the source of these actions.  A sample record:
+>
+> The tty, ses and exe fields have not been included since they are in the
+> SYSCALL record and contain nothing useful in the non-user context.
+>
+>   type=NETFILTER_CFG msg=audit(2020-03-11 21:25:21.491:269) : table=nat family=bridge entries=0 op=unregister pid=153 uid=root auid=unset subj=system_u:system_r:kernel_t:s0 comm=kworker/u4:2
 
-> Netfilter is a client of this flow offload API, you have to test that
-> your core updates do not break any of existing clients.
-Okay, but can we distinguish between "this needs to be tested with
- netfilter before it can be merged" and "this is breaking netfilter"?
-Or do you have a specific reason why you think this is broken, beyond
- merely 'it isn't tested'?
+Based on where things were left in the discussion on the previous
+draft, I think it would be good if you could explain a bit why the uid
+and auid fields are useful here.
+
+-- 
+paul moore
+www.paul-moore.com
