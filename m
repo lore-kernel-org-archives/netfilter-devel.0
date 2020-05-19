@@ -4,103 +4,67 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3ABCCC433DF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 21:48:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6529AC433E0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 23:08:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 06FCF205CB
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 21:48:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4BD1020823
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 23:08:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728466AbgESVrk (ORCPT
+        id S1727063AbgESXIe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 19 May 2020 17:47:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40976 "EHLO
+        Tue, 19 May 2020 19:08:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53710 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728351AbgESVrf (ORCPT
+        with ESMTP id S1726898AbgESXId (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 May 2020 17:47:35 -0400
-Received: from Galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EB28C08C5C0;
-        Tue, 19 May 2020 14:47:35 -0700 (PDT)
-Received: from [5.158.153.53] (helo=debian-buster-darwi.lab.linutronix.de.)
-        by Galois.linutronix.de with esmtpsa (TLS1.2:DHE_RSA_AES_256_CBC_SHA1:256)
-        (Exim 4.80)
-        (envelope-from <a.darwish@linutronix.de>)
-        id 1jbA4r-0002nf-QD; Tue, 19 May 2020 23:47:09 +0200
-From:   "Ahmed S. Darwish" <a.darwish@linutronix.de>
-To:     Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@redhat.com>, Will Deacon <will@kernel.org>
-Cc:     Thomas Gleixner <tglx@linutronix.de>,
-        "Paul E. McKenney" <paulmck@kernel.org>,
-        "Sebastian A. Siewior" <bigeasy@linutronix.de>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        "Ahmed S. Darwish" <a.darwish@linutronix.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH v1 16/25] netfilter: nft_set_rbtree: Use sequence counter with associated rwlock
-Date:   Tue, 19 May 2020 23:45:38 +0200
-Message-Id: <20200519214547.352050-17-a.darwish@linutronix.de>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200519214547.352050-1-a.darwish@linutronix.de>
-References: <20200519214547.352050-1-a.darwish@linutronix.de>
+        Tue, 19 May 2020 19:08:33 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2095C08C5C3
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2020 16:08:33 -0700 (PDT)
+Received: from localhost ([::1]:34546 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1jbBLb-00081U-HW; Wed, 20 May 2020 01:08:31 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] doc: libxt_MARK: OUTPUT chain is fine, too
+Date:   Wed, 20 May 2020 01:08:22 +0200
+Message-Id: <20200519230822.15290-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Linutronix-Spam-Score: -1.0
-X-Linutronix-Spam-Level: -
-X-Linutronix-Spam-Status: No , -1.0 points, 5.0 required,  ALL_TRUSTED=-1,SHORTCIRCUIT=-0.0001
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-A sequence counter write side critical section must be protected by some
-form of locking to serialize writers. A plain seqcount_t does not
-contain the information of which lock must be held when entering a write
-side critical section.
+In order to route packets originating from the host itself based on
+fwmark, mangle table's OUTPUT chain must be used. Mention this chain as
+alternative to PREROUTING.
 
-Use the new seqcount_rwlock_t data type, which allows to associate a
-rwlock with the sequence counter. This enables lockdep to verify that
-the rwlock used for writer serialization is held when the write side
-critical section is entered.
-
-If lockdep is disabled this lock association is compiled out and has
-neither storage size nor runtime overhead.
-
-Signed-off-by: Ahmed S. Darwish <a.darwish@linutronix.de>
+Fixes: c9be7f153f7bf ("doc: libxt_MARK: no longer restricted to mangle table")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- net/netfilter/nft_set_rbtree.c | 4 ++--
+ extensions/libxt_MARK.man | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 3ffef454d469..f50d986d43c5 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -18,7 +18,7 @@
- struct nft_rbtree {
- 	struct rb_root		root;
- 	rwlock_t		lock;
--	seqcount_t		count;
-+	seqcount_rwlock_t	count;
- 	struct delayed_work	gc_work;
- };
- 
-@@ -505,7 +505,7 @@ static int nft_rbtree_init(const struct nft_set *set,
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 
- 	rwlock_init(&priv->lock);
--	seqcount_init(&priv->count);
-+	seqcount_rwlock_init(&priv->count, &priv->lock);
- 	priv->root = RB_ROOT;
- 
- 	INIT_DEFERRABLE_WORK(&priv->gc_work, nft_rbtree_gc);
+diff --git a/extensions/libxt_MARK.man b/extensions/libxt_MARK.man
+index 712fb76f7340c..b2408597e98f1 100644
+--- a/extensions/libxt_MARK.man
++++ b/extensions/libxt_MARK.man
+@@ -1,7 +1,7 @@
+ This target is used to set the Netfilter mark value associated with the packet.
+ It can, for example, be used in conjunction with routing based on fwmark (needs
+-iproute2). If you plan on doing so, note that the mark needs to be set in the
+-PREROUTING chain of the mangle table to affect routing.
++iproute2). If you plan on doing so, note that the mark needs to be set in
++either the PREROUTING or the OUTPUT chain of the mangle table to affect routing.
+ The mark field is 32 bits wide.
+ .TP
+ \fB\-\-set\-xmark\fP \fIvalue\fP[\fB/\fP\fImask\fP]
 -- 
-2.20.1
+2.26.2
 
