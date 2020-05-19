@@ -2,369 +2,135 @@ Return-Path: <SRS0=LRg4=7B=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2ACEC433E0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 14:19:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 222E5C433DF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 15:31:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BA8C4207D8
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 14:19:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F03A42075F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 15:31:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iSR8N/kA"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ZTToYod/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729158AbgESOTA (ORCPT
+        id S1729270AbgESPbX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 19 May 2020 10:19:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55064 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728855AbgESOTA (ORCPT
+        Tue, 19 May 2020 11:31:23 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:26284 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1729000AbgESPbX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 May 2020 10:19:00 -0400
-Received: from mail-lj1-x243.google.com (mail-lj1-x243.google.com [IPv6:2a00:1450:4864:20::243])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B08F2C08C5C0;
-        Tue, 19 May 2020 07:18:59 -0700 (PDT)
-Received: by mail-lj1-x243.google.com with SMTP id g1so13895903ljk.7;
-        Tue, 19 May 2020 07:18:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=2v5cVIMALEZeOCe9AUN80g80L3FNOhF6glvveRpwVFA=;
-        b=iSR8N/kAOeN+6XftZH9tOlczL62NRBF9Wr+lfL+YQluPicNV2tOvnzBbITewqLcSb1
-         SevDYGcylG+pTcM5cwc5pS9s22x/iVnmIflxgvRU4gida3p8h7NNcQAiq16GbVpqCRnS
-         HgQGpxJaOa+638qLgq2RISA3EADTFzXunD1FD0T+yQeoqaVgsXlNTGLUBlOEhj0GqG2x
-         9dGDrO60Ycznp4aUCHwPuYC8I6tzMrOhKL7mMNSIPHSPZboHh0RvfzPMO0aksDbeKA8W
-         dEo6lxh8+LIxFcLUD0iGRoLBJ4D1SKRWaFxEhfoGvWgWdRyf2OG+kdLL6xFE4ACiNBsv
-         Et3Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=2v5cVIMALEZeOCe9AUN80g80L3FNOhF6glvveRpwVFA=;
-        b=TXJJsqhPeimBZIdc9704bBEdJMqeloB5G6Q65Mk2qWJctKHQYzfbrlt7FjKnrkf8OC
-         dVD/pkJaX8pG3YScZDPjS5GGMD8GcUMF+pLZZbCYLqhfPi8NdEphl3SqJyBgX87qOh1X
-         y9IwjeBaXY/i39vZA1A9OtvJ83uFDHnMdLQOEXqft69pP/PIvx41E5vEplg3F8kjXkjD
-         ugwS0q5dXH/ae1w0z0Cokuk1wsAOX4sUmP81/C2oMAeGvqV1usmjSNFRKzAENutIZrYK
-         hi4279PJpW5wfuWDIWcmTcY5VwVJrqTs4RlCdDlOJBxba3JR09vaNdFIb60zsnXXR365
-         HXhw==
-X-Gm-Message-State: AOAM533e1U+qnWPt8THMMc0Gj8pR/E/rt669biLZMCxn9xXdiPV8IE95
-        JbohmIOyHIsHhB8SjkHVfFXXrJ+NTzKDxNo/aDI=
-X-Google-Smtp-Source: ABdhPJx27ZkhuciouKC7SjdVXrdjgBwhM4OCO7NFDiSiRSYi2n/V6eNVQEGKPSZXCvLB3LQPUFZxfacVSwuXd7ILHzo=
-X-Received: by 2002:a2e:920f:: with SMTP id k15mr12804493ljg.131.1589897938056;
- Tue, 19 May 2020 07:18:58 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200515013556.5582-1-kim.andrewsy@gmail.com> <20200517171654.8194-1-kim.andrewsy@gmail.com>
- <alpine.LFD.2.21.2005182027460.4524@ja.home.ssi.bg> <CABc050G-yW-frv0mCmg=hMnC4iOx9Ht2Zv8eoS1cxQ8uKX6NQw@mail.gmail.com>
- <CANHHuCW6i0BjLRMYkfY8eZGZJZTnE-NO9EH+-gfH94cc6yYn1A@mail.gmail.com>
-In-Reply-To: <CANHHuCW6i0BjLRMYkfY8eZGZJZTnE-NO9EH+-gfH94cc6yYn1A@mail.gmail.com>
-From:   Andrew Kim <kim.andrewsy@gmail.com>
-Date:   Tue, 19 May 2020 10:18:45 -0400
-Message-ID: <CABc050Fb_aX1tOqyhcLJyVv_RvBRQ9EH_aBkUHtMV6MKb_+m9Q@mail.gmail.com>
-Subject: Re: [PATCH] netfilter/ipvs: immediately expire UDP connections
- matching unavailable destination if expire_nodest_conn=1
-To:     Marco Angaroni <marcoangaroni@gmail.com>
-Cc:     Julian Anastasov <ja@ssi.bg>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "open list:IPVS" <netdev@vger.kernel.org>,
-        "open list:IPVS" <lvs-devel@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
-        "open list:NETFILTER" <coreteam@netfilter.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Tue, 19 May 2020 11:31:23 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1589902281;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc; bh=ieIQPluaoA5ik0PXCzJ9SsJMhhzMeJFxrj2dTBp+9dU=;
+        b=ZTToYod/IhRWDl4n56uxklNfgPuPsl3lI+pATbFbzkM6LmzKXy7vdy7wQ1qjOEzba280qu
+        yysF5gfdoNaEy7wmc938GTebPsSLG3BWnPC+Br2WveAQSgVk1jaZ/4UkuWFm32t6Xamzw5
+        YYnsdBawB87GlULh9D/TXP/BIUBQsjI=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-391-Qnt1OykVNPOo44v-peyzSw-1; Tue, 19 May 2020 11:31:17 -0400
+X-MC-Unique: Qnt1OykVNPOo44v-peyzSw-1
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id D19EA1054F92;
+        Tue, 19 May 2020 15:31:15 +0000 (UTC)
+Received: from madcap2.tricolour.ca (unknown [10.10.110.46])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 1388210013D9;
+        Tue, 19 May 2020 15:31:06 +0000 (UTC)
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Linux-Audit Mailing List <linux-audit@redhat.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org
+Cc:     Paul Moore <paul@paul-moore.com>, sgrubb@redhat.com,
+        omosnace@redhat.com, fw@strlen.de, twoerner@redhat.com,
+        eparis@parisplace.org, tgraf@infradead.org,
+        Richard Guy Briggs <rgb@redhat.com>
+Subject: [PATCH ghak25 v5] audit: add subj creds to NETFILTER_CFG record to cover async unregister
+Date:   Tue, 19 May 2020 11:30:42 -0400
+Message-Id: <2794b22c0b88637a4270b346e52aeb8db7f59457.1589853445.git.rgb@redhat.com>
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Marco,
+Some table unregister actions seem to be initiated by the kernel to
+garbage collect unused tables that are not initiated by any userspace
+actions.  It was found to be necessary to add the subject credentials to
+cover this case to reveal the source of these actions.  A sample record:
 
-> could you please confirm if/how this patch is changing any of the?
-> following behaviours, which I=E2=80=99m listing below as per my understan=
-ding?
+The tty, ses and exe fields have not been included since they are in the
+SYSCALL record and contain nothing useful in the non-user context.
 
-This patch would optimize b) where the chances of packets being silently
-dropped is lower.
+  type=NETFILTER_CFG msg=audit(2020-03-11 21:25:21.491:269) : table=nat family=bridge entries=0 op=unregister pid=153 uid=root auid=unset subj=system_u:system_r:kernel_t:s0 comm=kworker/u4:2
 
-> However I'm confused about the references to OPS mode.
-> And why you need to expire all the connections at once: if you expire
-> on a per connection basis, the client experiences the same behaviour
-> (no more re-transmissions), but you avoid the complexities of a new
-> thread.
+Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+---
+Changelog:
+v5
+- rebase on upstreamed ghak28 on audit/next v5.7-rc1
+- remove tty, ses and exe fields as duplicates or unset
+- drop upstreamed patches 1&2 from set
 
-I agree for TCP the client would experience the same behavior. This is most=
-ly
-problematic for UDP when there are many entries in the connection hash
-from the same client to 1 destination. If we only expire connections
-on receiving
-packets, there can be many dropped packets before all entries are expired (=
-or
-we reached the UDP timeout). Expiring all UDP packets immediately would
-reduce the number of packets dropped significantly.
+v4
+- rebase on audit/next v5.7-rc1
+- fix checkpatch.pl errors/warnings in 1/3 and 2/3
 
-Thanks,
+v3
+- rebase on v5.6-rc1 audit/next
+- change audit_nf_cfg to audit_log_nfcfg
+- squash 2,3,4,5 to 1 and update patch descriptions
+- add subject credentials to cover garbage collecting kernel threads
 
-Andrew Sy Kim
+v2
+- Rebase (audit/next 5.5-rc1) to get audit_context access and ebt_register_table ret code
+- Split x_tables and ebtables updates
+- Check audit_dummy_context
+- Store struct audit_nfcfg params in audit_context, abstract to audit_nf_cfg() call
+- Restore back to "table, family, entries" from "family, table, entries"
+- Log unregistration of tables
+- Add "op=" at the end of the AUDIT_NETFILTER_CFG record
+- Defer nsid patch (ghak79) to once nsid patchset upstreamed (ghak32)
+- Add ghak refs
+- Ditch NETFILTER_CFGSOLO record
 
-On Tue, May 19, 2020 at 7:46 AM Marco Angaroni <marcoangaroni@gmail.com> wr=
-ote:
->
-> Hi Andrew, Julian,
->
-> could you please confirm if/how this patch is changing any of the
-> following behaviours, which I=E2=80=99m listing below as per my understan=
-ding
-> ?
->
-> When expire_nodest is set and real-server is unavailable, at the
-> moment the following happens to a packet going through IPVS:
->
-> a) TCP (or other connection-oriented protocols):
->    the packet is silently dropped, then the following retransmission
-> causes the generation of a RST from the load-balancer to the client,
-> which will then re-open a new TCP connection
-> b) UDP:
->    the packet is silently dropped, then the following retransmission
-> is rescheduled to a new real-server
-> c) UDP in OPS mode:
->    the packet is rescheduled to a new real-server, as no previous
-> connection exists in IPVS connection table, and a new OPS connection
-> is created (but it lasts only the time to transmit the packet)
-> d) UDP in OPS mode + persistent-template:
->    the packet is rescheduled to a new real-server, as previous
-> template-connection is invalidated, a new template-connection is
-> created, and a new OPS connection is created (but it lasts only the
-> time to transmit the packet)
->
-> It seems to me that you are trying to optimize case a) and b),
-> avoiding the first step where the packet is silently dropped and
-> consequently avoiding the retransmission.
-> And contextually expire also all the other connections pointing to the
-> unavailable real-sever.
->
-> However I'm confused about the references to OPS mode.
-> And why you need to expire all the connections at once: if you expire
-> on a per connection basis, the client experiences the same behaviour
-> (no more re-transmissions), but you avoid the complexities of a new
-> thread.
->
-> Maybe also the documentation of expire_nodest_conn sysctl should be updat=
-ed.
-> When it's stated:
->
->         If this feature is enabled, the load balancer will expire the
->         connection immediately when a packet arrives and its
->         destination server is not available, then the client program
->         will be notified that the connection is closed
->
-> I think it should be at least "and the client program" instead of
-> "then the client program".
-> Or a more detailed explanation.
->
-> Thanks
-> Marco Angaroni
->
->
-> Il giorno lun 18 mag 2020 alle ore 22:06 Andrew Kim
-> <kim.andrewsy@gmail.com> ha scritto:
-> >
-> > Hi Julian,
-> >
-> > Thank you for getting back to me. I will update the patch based on
-> > your feedback shortly.
-> >
-> > Regards,
-> >
-> > Andrew
-> >
-> > On Mon, May 18, 2020 at 3:10 PM Julian Anastasov <ja@ssi.bg> wrote:
-> > >
-> > >
-> > >         Hello,
-> > >
-> > > On Sun, 17 May 2020, Andrew Sy Kim wrote:
-> > >
-> > > > If expire_nodest_conn=3D1 and a UDP destination is deleted, IPVS sh=
-ould
-> > > > also expire all matching connections immiediately instead of waitin=
-g for
-> > > > the next matching packet. This is particulary useful when there are=
- a
-> > > > lot of packets coming from a few number of clients. Those clients a=
-re
-> > > > likely to match against existing entries if a source port in the
-> > > > connection hash is reused. When the number of entries in the connec=
-tion
-> > > > tracker is large, we can significantly reduce the number of dropped
-> > > > packets by expiring all connections upon deletion.
-> > > >
-> > > > Signed-off-by: Andrew Sy Kim <kim.andrewsy@gmail.com>
-> > > > ---
-> > > >  include/net/ip_vs.h             |  7 ++++++
-> > > >  net/netfilter/ipvs/ip_vs_conn.c | 38 +++++++++++++++++++++++++++++=
-++++
-> > > >  net/netfilter/ipvs/ip_vs_core.c |  5 -----
-> > > >  net/netfilter/ipvs/ip_vs_ctl.c  |  9 ++++++++
-> > > >  4 files changed, 54 insertions(+), 5 deletions(-)
-> > > >
-> > >
-> > > > diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/i=
-p_vs_conn.c
-> > > > index 02f2f636798d..c69dfbbc3416 100644
-> > > > --- a/net/netfilter/ipvs/ip_vs_conn.c
-> > > > +++ b/net/netfilter/ipvs/ip_vs_conn.c
-> > > > @@ -1366,6 +1366,44 @@ static void ip_vs_conn_flush(struct netns_ip=
-vs *ipvs)
-> > > >               goto flush_again;
-> > > >       }
-> > > >  }
-> > > > +
-> > > > +/*   Flush all the connection entries in the ip_vs_conn_tab with a
-> > > > + *   matching destination.
-> > > > + */
-> > > > +void ip_vs_conn_flush_dest(struct netns_ipvs *ipvs, struct ip_vs_d=
-est *dest)
-> > > > +{
-> > > > +     int idx;
-> > > > +     struct ip_vs_conn *cp, *cp_c;
-> > > > +
-> > > > +     rcu_read_lock();
-> > > > +     for (idx =3D 0; idx < ip_vs_conn_tab_size; idx++) {
-> > > > +             hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[idx], c_=
-list) {
-> > > > +                     if (cp->ipvs !=3D ipvs)
-> > > > +                             continue;
-> > > > +
-> > > > +                     if (cp->dest !=3D dest)
-> > > > +                             continue;
-> > > > +
-> > > > +                     /* As timers are expired in LIFO order, resta=
-rt
-> > > > +                      * the timer of controlling connection first,=
- so
-> > > > +                      * that it is expired after us.
-> > > > +                      */
-> > > > +                     cp_c =3D cp->control;
-> > > > +                     /* cp->control is valid only with reference t=
-o cp */
-> > > > +                     if (cp_c && __ip_vs_conn_get(cp)) {
-> > > > +                             IP_VS_DBG(4, "del controlling connect=
-ion\n");
-> > > > +                             ip_vs_conn_expire_now(cp_c);
-> > > > +                             __ip_vs_conn_put(cp);
-> > > > +                     }
-> > > > +                     IP_VS_DBG(4, "del connection\n");
-> > > > +                     ip_vs_conn_expire_now(cp);
-> > > > +             }
-> > > > +             cond_resched_rcu();
-> > >
-> > >         Such kind of loop is correct if done in another context:
-> > >
-> > > 1. kthread
-> > > or
-> > > 2. delayed work: mod_delayed_work(system_long_wq, ...)
-> > >
-> > >         Otherwise cond_resched_rcu() can schedule() while holding
-> > > __ip_vs_mutex. Also, it will add long delay if many dests are
-> > > removed.
-> > >
-> > >         If such loop analyzes instead all cp->dest for
-> > > IP_VS_DEST_F_AVAILABLE, it should be done after calling
-> > > __ip_vs_conn_get().
-> > >
-> > > >  static int sysctl_snat_reroute(struct netns_ipvs *ipvs) { return 0=
-; }
-> > > > diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip=
-_vs_ctl.c
-> > > > index 8d14a1acbc37..f87c03622874 100644
-> > > > --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> > > > +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> > > > @@ -1225,6 +1225,15 @@ ip_vs_del_dest(struct ip_vs_service *svc, st=
-ruct ip_vs_dest_user_kern *udest)
-> > > >        */
-> > > >       __ip_vs_del_dest(svc->ipvs, dest, false);
-> > > >
-> > > > +     /*      If expire_nodest_conn is enabled and protocol is UDP,
-> > > > +      *      attempt best effort flush of all connections with thi=
-s
-> > > > +      *      destination.
-> > > > +      */
-> > > > +     if (sysctl_expire_nodest_conn(svc->ipvs) &&
-> > > > +         dest->protocol =3D=3D IPPROTO_UDP) {
-> > > > +             ip_vs_conn_flush_dest(svc->ipvs, dest);
-> > >
-> > >         Above work should be scheduled from __ip_vs_del_dest().
-> > > Check for UDP is not needed, sysctl_expire_nodest_conn() is for
-> > > all protocols.
-> > >
-> > >         If the flushing is complex to implement, we can still allow
-> > > rescheduling for unavailable dests:
-> > >
-> > > - first we should move this block above the ip_vs_try_to_schedule()
-> > > block because:
-> > >
-> > >         1. the scheduling does not return unavailabel dests, even
-> > >         for persistence, so no need to check new connections for
-> > >         the flag
-> > >
-> > >         2. it will allow to create new connection if dest for
-> > >         existing connection is unavailable
-> > >
-> > >         if (cp && cp->dest && !(cp->dest->flags & IP_VS_DEST_F_AVAILA=
-BLE)) {
-> > >                 /* the destination server is not available */
-> > >
-> > >                 if (sysctl_expire_nodest_conn(ipvs)) {
-> > >                         bool uses_ct =3D ip_vs_conn_uses_conntrack(cp=
-, skb);
-> > >
-> > >                         ip_vs_conn_expire_now(cp);
-> > >                         __ip_vs_conn_put(cp);
-> > >                         if (uses_ct)
-> > >                                 return NF_DROP;
-> > >                         cp =3D NULL;
-> > >                 } else {
-> > >                         __ip_vs_conn_put(cp);
-> > >                         return NF_DROP;
-> > >                 }
-> > >         }
-> > >
-> > >         if (unlikely(!cp)) {
-> > >                 int v;
-> > >
-> > >                 if (!ip_vs_try_to_schedule(ipvs, af, skb, pd, &v, &cp=
-, &iph))
-> > >                         return v;
-> > >         }
-> > >
-> > >         Before now, we always waited one jiffie connection to expire,
-> > > now one packet will:
-> > >
-> > > - schedule expiration for existing connection with unavailable dest,
-> > > as before
-> > >
-> > > - create new connection to available destination that will be found
-> > > first in lists. But it can work only when sysctl var "conntrack" is 0=
-,
-> > > we do not want to create two netfilter conntracks to different
-> > > real servers.
-> > >
-> > >         Note that we intentionally removed the timer_pending() check
-> > > because we can not see existing ONE_PACKET connections in table.
-> > >
-> > > Regards
-> > >
-> > > --
-> > > Julian Anastasov <ja@ssi.bg>
+ kernel/auditsc.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+index cfe3486e5f31..a07ca529ede9 100644
+--- a/kernel/auditsc.c
++++ b/kernel/auditsc.c
+@@ -2557,12 +2557,24 @@ void __audit_log_nfcfg(const char *name, u8 af, unsigned int nentries,
+ 		       enum audit_nfcfgop op)
+ {
+ 	struct audit_buffer *ab;
++	const struct cred *cred;
++	struct tty_struct *tty;
++	char comm[sizeof(current->comm)];
+ 
+ 	ab = audit_log_start(audit_context(), GFP_KERNEL, AUDIT_NETFILTER_CFG);
+ 	if (!ab)
+ 		return;
+ 	audit_log_format(ab, "table=%s family=%u entries=%u op=%s",
+ 			 name, af, nentries, audit_nfcfgs[op].s);
++
++	cred = current_cred();
++	audit_log_format(ab, " pid=%u uid=%u auid=%u",
++			 task_pid_nr(current),
++			 from_kuid(&init_user_ns, cred->uid),
++			 from_kuid(&init_user_ns, audit_get_loginuid(current)));
++	audit_log_task_context(ab); /* subj= */
++	audit_log_format(ab, " comm=");
++	audit_log_untrustedstring(ab, get_task_comm(comm, current));
+ 	audit_log_end(ab);
+ }
+ EXPORT_SYMBOL_GPL(__audit_log_nfcfg);
+-- 
+1.8.3.1
+
