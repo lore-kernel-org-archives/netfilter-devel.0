@@ -2,135 +2,155 @@ Return-Path: <SRS0=LRg4=7B=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 222E5C433DF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 15:31:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EBF5C433DF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 17:02:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F03A42075F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 15:31:26 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ZTToYod/"
+	by mail.kernel.org (Postfix) with ESMTP id 88AF220708
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 17:02:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729270AbgESPbX (ORCPT
+        id S1729185AbgESRCa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 19 May 2020 11:31:23 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:26284 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1729000AbgESPbX (ORCPT
+        Tue, 19 May 2020 13:02:30 -0400
+Received: from dispatch1-us1.ppe-hosted.com ([148.163.129.52]:34182 "EHLO
+        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729001AbgESRC3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 May 2020 11:31:23 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1589902281;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc; bh=ieIQPluaoA5ik0PXCzJ9SsJMhhzMeJFxrj2dTBp+9dU=;
-        b=ZTToYod/IhRWDl4n56uxklNfgPuPsl3lI+pATbFbzkM6LmzKXy7vdy7wQ1qjOEzba280qu
-        yysF5gfdoNaEy7wmc938GTebPsSLG3BWnPC+Br2WveAQSgVk1jaZ/4UkuWFm32t6Xamzw5
-        YYnsdBawB87GlULh9D/TXP/BIUBQsjI=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-391-Qnt1OykVNPOo44v-peyzSw-1; Tue, 19 May 2020 11:31:17 -0400
-X-MC-Unique: Qnt1OykVNPOo44v-peyzSw-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        Tue, 19 May 2020 13:02:29 -0400
+Received: from mx1-us1.ppe-hosted.com (unknown [10.7.65.61])
+        by dispatch1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id 349FE600A4;
+        Tue, 19 May 2020 17:02:29 +0000 (UTC)
+Received: from us4-mdac16-30.ut7.mdlocal (unknown [10.7.66.140])
+        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id 32D13800B4;
+        Tue, 19 May 2020 17:02:29 +0000 (UTC)
+X-Virus-Scanned: Proofpoint Essentials engine
+Received: from mx1-us1.ppe-hosted.com (unknown [10.7.66.36])
+        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 99F0980071;
+        Tue, 19 May 2020 17:02:25 +0000 (UTC)
+Received: from webmail.solarflare.com (uk.solarflare.com [193.34.186.16])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id D19EA1054F92;
-        Tue, 19 May 2020 15:31:15 +0000 (UTC)
-Received: from madcap2.tricolour.ca (unknown [10.10.110.46])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 1388210013D9;
-        Tue, 19 May 2020 15:31:06 +0000 (UTC)
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org
-Cc:     Paul Moore <paul@paul-moore.com>, sgrubb@redhat.com,
-        omosnace@redhat.com, fw@strlen.de, twoerner@redhat.com,
-        eparis@parisplace.org, tgraf@infradead.org,
-        Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH ghak25 v5] audit: add subj creds to NETFILTER_CFG record to cover async unregister
-Date:   Tue, 19 May 2020 11:30:42 -0400
-Message-Id: <2794b22c0b88637a4270b346e52aeb8db7f59457.1589853445.git.rgb@redhat.com>
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
+        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id E7F4DB40090;
+        Tue, 19 May 2020 17:02:24 +0000 (UTC)
+Received: from [10.17.20.203] (10.17.20.203) by ukex01.SolarFlarecom.com
+ (10.17.10.4) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Tue, 19 May
+ 2020 18:02:06 +0100
+From:   Edward Cree <ecree@solarflare.com>
+Subject: [PATCH net-next v2] net: flow_offload: simplify hw stats check
+ handling
+To:     <davem@davemloft.net>
+CC:     <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+        <jiri@resnulli.us>, <kuba@kernel.org>, <pablo@netfilter.org>
+Message-ID: <cf0d731d-cb34-accd-ff40-6be013dd9972@solarflare.com>
+Date:   Tue, 19 May 2020 18:02:02 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.2.2
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.17.20.203]
+X-ClientProxiedBy: ocex03.SolarFlarecom.com (10.20.40.36) To
+ ukex01.SolarFlarecom.com (10.17.10.4)
+X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1020-25428.003
+X-TM-AS-Result: No-3.041700-8.000000-10
+X-TMASE-MatchedRID: lZQXsOY9JGOwwAVMmrrBx6iUivh0j2PvBGvINcfHqhdsMPuLZB/IR2pA
+        q14Ss3bZZOrVTSi4NwUSGgB6fYnFbKpEIvDEr24EolVO7uyOCDVjRBL1FY388SNGK7UC7ElM2Zr
+        OvK69hMu6QeoIbk63dvffbeF2tNWl+nZRZZD696n1P43ozrarBbCsy0J50v8cBph69XjMbdlAHO
+        g8qEtqyI+pAn19BHXOoQ9mxrHXOW16EGW3t8W0t/UwiX15l0tvTySC+TZdy0WRDQkhZa5u72kny
+        jyxlh7mGfpp5qHIHxOpQXNdjc3qgddtrlx8nH5zKrDHzH6zmUV9LQinZ4QefL6qvLNjDYTwmTDw
+        p0zM3zoqtq5d3cxkNZluYBobWQBobYb+UJz/2yztfgn0snuiTWtIxaFp+KDS3cwy3maEJ9gCZpy
+        wXHWsmzw5IorkOcLWXvGrNOVyi2UzcYecw200GDhrnJz8VOX4Q4MNjn8G4SyjGuTpDaYh5In7C/
+        ugmOEZZd8UPl92ZlE=
+X-TM-AS-User-Approved-Sender: Yes
+X-TM-AS-User-Blocked-Sender: No
+X-TMASE-Result: 10--3.041700-8.000000
+X-TMASE-Version: SMEX-12.5.0.1300-8.5.1020-25428.003
+X-MDID: 1589907746-f3AwEbptEarT
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Some table unregister actions seem to be initiated by the kernel to
-garbage collect unused tables that are not initiated by any userspace
-actions.  It was found to be necessary to add the subject credentials to
-cover this case to reveal the source of these actions.  A sample record:
+Make FLOW_ACTION_HW_STATS_DONT_CARE be all bits, rather than none, so that
+ drivers and __flow_action_hw_stats_check can use simple bitwise checks.
 
-The tty, ses and exe fields have not been included since they are in the
-SYSCALL record and contain nothing useful in the non-user context.
+Only the kernel's internal API semantics change; the TC uAPI is unaffected.
 
-  type=NETFILTER_CFG msg=audit(2020-03-11 21:25:21.491:269) : table=nat family=bridge entries=0 op=unregister pid=153 uid=root auid=unset subj=system_u:system_r:kernel_t:s0 comm=kworker/u4:2
+v2: rebased on net-next, removed RFC tags.
 
-Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+Signed-off-by: Edward Cree <ecree@solarflare.com>
 ---
-Changelog:
-v5
-- rebase on upstreamed ghak28 on audit/next v5.7-rc1
-- remove tty, ses and exe fields as duplicates or unset
-- drop upstreamed patches 1&2 from set
+The discussion on this rather petered out without any consensus, so I'm
+ reposting against net-next now that DONT_CARE has appeared there (as it's
+ a bit late in the cycle for something so non-critical to go to 'net').
 
-v4
-- rebase on audit/next v5.7-rc1
-- fix checkpatch.pl errors/warnings in 1/3 and 2/3
+ drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c | 8 ++++----
+ include/net/flow_offload.h                            | 8 ++++----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-v3
-- rebase on v5.6-rc1 audit/next
-- change audit_nf_cfg to audit_log_nfcfg
-- squash 2,3,4,5 to 1 and update patch descriptions
-- add subject credentials to cover garbage collecting kernel threads
-
-v2
-- Rebase (audit/next 5.5-rc1) to get audit_context access and ebt_register_table ret code
-- Split x_tables and ebtables updates
-- Check audit_dummy_context
-- Store struct audit_nfcfg params in audit_context, abstract to audit_nf_cfg() call
-- Restore back to "table, family, entries" from "family, table, entries"
-- Log unregistration of tables
-- Add "op=" at the end of the AUDIT_NETFILTER_CFG record
-- Defer nsid patch (ghak79) to once nsid patchset upstreamed (ghak32)
-- Add ghak refs
-- Ditch NETFILTER_CFGSOLO record
-
- kernel/auditsc.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
-
-diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-index cfe3486e5f31..a07ca529ede9 100644
---- a/kernel/auditsc.c
-+++ b/kernel/auditsc.c
-@@ -2557,12 +2557,24 @@ void __audit_log_nfcfg(const char *name, u8 af, unsigned int nentries,
- 		       enum audit_nfcfgop op)
- {
- 	struct audit_buffer *ab;
-+	const struct cred *cred;
-+	struct tty_struct *tty;
-+	char comm[sizeof(current->comm)];
+diff --git a/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c b/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
+index b286fe158820..51e1b3930c56 100644
+--- a/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
++++ b/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
+@@ -30,14 +30,14 @@ static int mlxsw_sp_flower_parse_actions(struct mlxsw_sp *mlxsw_sp,
+ 		return -EOPNOTSUPP;
  
- 	ab = audit_log_start(audit_context(), GFP_KERNEL, AUDIT_NETFILTER_CFG);
- 	if (!ab)
- 		return;
- 	audit_log_format(ab, "table=%s family=%u entries=%u op=%s",
- 			 name, af, nentries, audit_nfcfgs[op].s);
+ 	act = flow_action_first_entry_get(flow_action);
+-	if (act->hw_stats == FLOW_ACTION_HW_STATS_ANY ||
+-	    act->hw_stats == FLOW_ACTION_HW_STATS_IMMEDIATE) {
++	if (act->hw_stats & FLOW_ACTION_HW_STATS_DISABLED) {
++		/* Nothing to do */
++	} else if (act->hw_stats & FLOW_ACTION_HW_STATS_IMMEDIATE) {
+ 		/* Count action is inserted first */
+ 		err = mlxsw_sp_acl_rulei_act_count(mlxsw_sp, rulei, extack);
+ 		if (err)
+ 			return err;
+-	} else if (act->hw_stats != FLOW_ACTION_HW_STATS_DISABLED &&
+-		   act->hw_stats != FLOW_ACTION_HW_STATS_DONT_CARE) {
++	} else {
+ 		NL_SET_ERR_MSG_MOD(extack, "Unsupported action HW stats type");
+ 		return -EOPNOTSUPP;
+ 	}
+diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
+index 4001ffb04f0d..d58741fcc984 100644
+--- a/include/net/flow_offload.h
++++ b/include/net/flow_offload.h
+@@ -168,10 +168,11 @@ enum flow_action_hw_stats_bit {
+ 	FLOW_ACTION_HW_STATS_IMMEDIATE_BIT,
+ 	FLOW_ACTION_HW_STATS_DELAYED_BIT,
+ 	FLOW_ACTION_HW_STATS_DISABLED_BIT,
 +
-+	cred = current_cred();
-+	audit_log_format(ab, " pid=%u uid=%u auid=%u",
-+			 task_pid_nr(current),
-+			 from_kuid(&init_user_ns, cred->uid),
-+			 from_kuid(&init_user_ns, audit_get_loginuid(current)));
-+	audit_log_task_context(ab); /* subj= */
-+	audit_log_format(ab, " comm=");
-+	audit_log_untrustedstring(ab, get_task_comm(comm, current));
- 	audit_log_end(ab);
- }
- EXPORT_SYMBOL_GPL(__audit_log_nfcfg);
--- 
-1.8.3.1
-
++	FLOW_ACTION_HW_STATS_NUM_BITS
+ };
+ 
+ enum flow_action_hw_stats {
+-	FLOW_ACTION_HW_STATS_DONT_CARE = 0,
+ 	FLOW_ACTION_HW_STATS_IMMEDIATE =
+ 		BIT(FLOW_ACTION_HW_STATS_IMMEDIATE_BIT),
+ 	FLOW_ACTION_HW_STATS_DELAYED = BIT(FLOW_ACTION_HW_STATS_DELAYED_BIT),
+@@ -179,6 +180,7 @@ enum flow_action_hw_stats {
+ 				   FLOW_ACTION_HW_STATS_DELAYED,
+ 	FLOW_ACTION_HW_STATS_DISABLED =
+ 		BIT(FLOW_ACTION_HW_STATS_DISABLED_BIT),
++	FLOW_ACTION_HW_STATS_DONT_CARE = BIT(FLOW_ACTION_HW_STATS_NUM_BITS) - 1,
+ };
+ 
+ typedef void (*action_destr)(void *priv);
+@@ -340,11 +342,9 @@ __flow_action_hw_stats_check(const struct flow_action *action,
+ 		return false;
+ 
+ 	action_entry = flow_action_first_entry_get(action);
+-	if (action_entry->hw_stats == FLOW_ACTION_HW_STATS_DONT_CARE)
+-		return true;
+ 
+ 	if (!check_allow_bit &&
+-	    action_entry->hw_stats != FLOW_ACTION_HW_STATS_ANY) {
++	    ~action_entry->hw_stats & FLOW_ACTION_HW_STATS_ANY) {
+ 		NL_SET_ERR_MSG_MOD(extack, "Driver supports only default HW stats type \"any\"");
+ 		return false;
+ 	} else if (check_allow_bit &&
