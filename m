@@ -6,78 +6,97 @@ X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 252CFC433DF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 17:35:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB8BDC433DF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 18:26:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 077DD206C3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 17:35:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CD46120578
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 18:26:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729197AbgESRfM (ORCPT
+        id S1727113AbgESS0y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 19 May 2020 13:35:12 -0400
-Received: from correo.us.es ([193.147.175.20]:55016 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726059AbgESRfM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 May 2020 13:35:12 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7D056E16E4
-        for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2020 19:35:10 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6D5A4DA723
-        for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2020 19:35:10 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 5FD7BDA714; Tue, 19 May 2020 19:35:10 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 82761DA70E;
-        Tue, 19 May 2020 19:35:08 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 19 May 2020 19:35:08 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Tue, 19 May 2020 14:26:54 -0400
+Received: from dispatch1-us1.ppe-hosted.com ([148.163.129.52]:33900 "EHLO
+        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726502AbgESS0y (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 19 May 2020 14:26:54 -0400
+Received: from mx1-us1.ppe-hosted.com (unknown [10.7.65.64])
+        by dispatch1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id 84A96600B0;
+        Tue, 19 May 2020 18:26:53 +0000 (UTC)
+Received: from us4-mdac16-45.ut7.mdlocal (unknown [10.7.64.27])
+        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id 82E21200A4;
+        Tue, 19 May 2020 18:26:53 +0000 (UTC)
+X-Virus-Scanned: Proofpoint Essentials engine
+Received: from mx1-us1.ppe-hosted.com (unknown [10.7.66.30])
+        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id EE7A422005F;
+        Tue, 19 May 2020 18:26:52 +0000 (UTC)
+Received: from webmail.solarflare.com (uk.solarflare.com [193.34.186.16])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 5DFDC42EF9E1;
-        Tue, 19 May 2020 19:35:08 +0200 (CEST)
-Date:   Tue, 19 May 2020 19:35:08 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Edward Cree <ecree@solarflare.com>
-Cc:     davem@davemloft.net, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, jiri@resnulli.us, kuba@kernel.org
+        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 647B2100079;
+        Tue, 19 May 2020 18:26:52 +0000 (UTC)
+Received: from [10.17.20.203] (10.17.20.203) by ukex01.SolarFlarecom.com
+ (10.17.10.4) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Tue, 19 May
+ 2020 19:26:46 +0100
 Subject: Re: [PATCH net-next v2] net: flow_offload: simplify hw stats check
  handling
-Message-ID: <20200519173508.GA17141@salvia>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+CC:     <davem@davemloft.net>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <jiri@resnulli.us>,
+        <kuba@kernel.org>
 References: <cf0d731d-cb34-accd-ff40-6be013dd9972@solarflare.com>
  <20200519171923.GA16785@salvia>
  <6013b7ce-48c9-7169-c945-01b2226638e4@solarflare.com>
+ <20200519173508.GA17141@salvia>
+From:   Edward Cree <ecree@solarflare.com>
+Message-ID: <dc732572-6f69-6cbe-5df1-ca4d6e6ed131@solarflare.com>
+Date:   Tue, 19 May 2020 19:26:42 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.2.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <20200519173508.GA17141@salvia>
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <6013b7ce-48c9-7169-c945-01b2226638e4@solarflare.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Language: en-GB
+X-Originating-IP: [10.17.20.203]
+X-ClientProxiedBy: ocex03.SolarFlarecom.com (10.20.40.36) To
+ ukex01.SolarFlarecom.com (10.17.10.4)
+X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1020-25428.003
+X-TM-AS-Result: No-7.974500-8.000000-10
+X-TMASE-MatchedRID: HXSqh3WYKfu8rRvefcjeTR4ejJMDGBzF69aS+7/zbj9RXC4cX65cJJQp
+        8P1TdmSa6p2MwhnGDkBHloHIAzso1UlNkNzbYQ+3Iwk7p1qp3JbdYVrFVbszaMuSXx71bvSLcID
+        y7DqlE8v/Jhd10Wr/0M3UceiBmxhNuAzO9oQibGf/Te3t5cJMGx5FmvZzFEQustuan4ScYgrJdO
+        SGA6s0i13zi/eJ6s3jRV9DrFlwADH+Bakt0aHHFvjQkA7rdCuF6roloi3VB6JE/s+hW1mwCKPFj
+        JEFr+olSXhbxZVQ5H+OhzOa6g8Krb+b/roeYfX8iBn8yIHai+Ci/kb9xHdg/puVhI58xtMJxV1H
+        IZ8FcTU=
+X-TM-AS-User-Approved-Sender: Yes
+X-TM-AS-User-Blocked-Sender: No
+X-TMASE-Result: 10--7.974500-8.000000
+X-TMASE-Version: SMEX-12.5.0.1300-8.5.1020-25428.003
+X-MDID: 1589912813-iVhqZSJFWdM3
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, May 19, 2020 at 06:23:35PM +0100, Edward Cree wrote:
-> On 19/05/2020 18:19, Pablo Neira Ayuso wrote:
-> > This is breaking netfilter again. 
->
-> Still waiting for you to explain what this "breaks".� AFAICT the
->�new DONT_CARE has exactly the same effect that the old DONT_CARE
->�did, so as long as netfilter is using DONT_CARE rather than (say)
->�a hard-coded 0, it should be fine.
+On 19/05/2020 18:35, Pablo Neira Ayuso wrote:
+> Did you test your patch with netfilter? I don't think.
+As I mentioned in v1 (and should have repeated on v2, sorry) this is
+ compile tested only, as I don't have the hardware to test it.  (I have
+ done some testing with the not-yet-upstream sfc_ef100 driver, though.)
+But as I'm not a netfilter user, I don't have a handy set of netfilter
+ rules to test this with anyway; and my previous attempts to find useful
+ documentation on netfilter.org were not fruitful (although I've just
+ now found wiki.nftables.org).  I was hoping someone with the domain
+ knowledge (and the hardware) could test this.
+(Also, for complicated reasons, getting nft built for my ef100 test
+ system would be decidedly nontrivial; and any test I do without offload
+ hardware at the bottom would necessarily be so synthetic I'm not sure
+ I'd trust it to prove anything.)
 
-Did you test your patch with netfilter? I don't think.
-
-Netfilter is a client of this flow offload API, you have to test that
-your core updates do not break any of existing clients.
-
-Please, do not make me think this is intentional.
-
-I am pretty sure your motivation is to help get things better.
+> Netfilter is a client of this flow offload API, you have to test that
+> your core updates do not break any of existing clients.
+Okay, but can we distinguish between "this needs to be tested with
+ netfilter before it can be merged" and "this is breaking netfilter"?
+Or do you have a specific reason why you think this is broken, beyond
+ merely 'it isn't tested'?
