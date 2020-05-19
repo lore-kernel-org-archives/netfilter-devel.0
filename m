@@ -1,253 +1,201 @@
-Return-Path: <SRS0=f4Jo=7A=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=LRg4=7B=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0AC2C433E0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 18 May 2020 19:54:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A12EC433E0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 08:54:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8275F20657
-	for <netfilter-devel@archiver.kernel.org>; Mon, 18 May 2020 19:54:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3583B20756
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 08:54:14 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="q4COzxuc"
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="WTiX5baH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728557AbgERTyo (ORCPT
+        id S1728616AbgESIyI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 18 May 2020 15:54:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52406 "EHLO
+        Tue, 19 May 2020 04:54:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60806 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728526AbgERTyn (ORCPT
+        with ESMTP id S1728594AbgESIyI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 18 May 2020 15:54:43 -0400
-Received: from mail-ed1-x541.google.com (mail-ed1-x541.google.com [IPv6:2a00:1450:4864:20::541])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D8EFC061A0C;
-        Mon, 18 May 2020 12:54:43 -0700 (PDT)
-Received: by mail-ed1-x541.google.com with SMTP id l5so3076587edn.7;
-        Mon, 18 May 2020 12:54:42 -0700 (PDT)
+        Tue, 19 May 2020 04:54:08 -0400
+Received: from mail-lj1-x243.google.com (mail-lj1-x243.google.com [IPv6:2a00:1450:4864:20::243])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A940CC061A0C
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2020 01:54:07 -0700 (PDT)
+Received: by mail-lj1-x243.google.com with SMTP id z18so4636065lji.12
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2020 01:54:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
+        d=broadcom.com; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=/s33/VvXYGOPrAm8r0pCzT0GNMPPVkhgGa11qWBep6g=;
-        b=q4COzxuc6flvPfQ7Crk9oiFTtCqk4q6pYceNjhtyzBY2b/tzAoQKnXgt7+aQUfbc/W
-         ojDgtYBtUDoSUg/vQ5Qk+1/RBB5swNARUbTJumOU6slx5dC2o1KTeFJkn6z07efBnBXr
-         KxP06lQVdRPYtNrTZjWZqjECATRM1XFZhfQiXCDuArOGDJpf+sTEkoi45rxYxmucal6Z
-         rOpTQt4jW7LQA7WHcLUknh/EkfcjWhXB57gz+CYFvhD0CK2jFqVvJGDTuol1CLosyl5n
-         PzQOMM47ExzalqvaSiGZPmhtUPTMxH7LnhheGpj4TD46V2GKvb+3JBxKNW/YkY6t2z5w
-         JApg==
+        bh=1LtAw1HpkgoStGUiv5KqkpAKTjRo/vHAX75wJ6jW+ro=;
+        b=WTiX5baHiDtDmo1do3xDhi6Pls2uH5z/qAtdLfDWoKk5dMpUzjkSnWDCgJSvwc3qrs
+         eCTb1/m69dQtLdvUQYunob4H4tLW2JuQwJFlsuwMRS0QTY4O1MOU8fyz8X//4Kt8QuDn
+         VAKnExp5lLChSmeqgMGgLeIiH05AyfMjQoJIk=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=/s33/VvXYGOPrAm8r0pCzT0GNMPPVkhgGa11qWBep6g=;
-        b=msYBcN+9Ft2a8/bvmKWEkvVNJEz2FTjDDhHixxjhbzUWMUwk4308UaT8gt5szpHT2M
-         5mozwoUpCpDSsf2VTQ3uYuanKNcCPlGUFDdR5w8hLc4OFLq1gCaRMhAKK2DA/es7fji3
-         TvicrjRYb2LKYK5l+8xv0PRK9YBv3kmoY/hmUuH/OMtEskat6iaOus8JBUl0bzAylXwR
-         Ria98fN0qdudrFmnkCDhmlSEI772OsyCd2wucaTD/l9AMglJ41sMtrQOYUYJNnUrOa6u
-         lLMEuS6VDpU2slbyquK/b52qvFRUC3m+LKPBqtM/jTbjCtwMMBC2h/k/Mm0uuzvCYJhB
-         u0lw==
-X-Gm-Message-State: AOAM533SYKljFVJcv7z2ZH6FBRB57LgbsqbVyYleG2PdE3H90K1nd2im
-        c55w9jd5ehORvrUUV/GzHcyRkKPYfHHeO63WbCs=
-X-Google-Smtp-Source: ABdhPJyuUmiJ9daRIL60EFvhWnqZ4xns4kX/SorOJMxCWXj78jxGrxNseGdt5d+cgR5YxvNusMUaYdGsL8GboHwmrH8=
-X-Received: by 2002:aa7:c6c6:: with SMTP id b6mr11008427eds.53.1589831681502;
- Mon, 18 May 2020 12:54:41 -0700 (PDT)
+        bh=1LtAw1HpkgoStGUiv5KqkpAKTjRo/vHAX75wJ6jW+ro=;
+        b=E58eyDN/BflP2NLKE1GTGoaCP7f7zw13xx/obyWvapB0Mw8+L1M6fj07H5O9zW8TnL
+         TrWivuPPXglkyFrB7tpUxIkYSWHvH8Fm15/N9N4bgg4HKz+Ug2mIZPA6lboagANOj8u9
+         v+aiv5b9bU6qfq/0Ii1SdAfXMkNYQb2V7KmK0J9dnS/nw9sgp079L11D8ZP6T5j7NZfW
+         XBJjvD2EU/uFYRNVenWa2YWcX5X7Hr0fhotIkJi6SIgdPvZX8SbIH7COlKwilODR7GF2
+         36Yxyokt71HNALwRgE0gmt76J1rgVijQxRaVFCz50BxNp1U1CMNCNKNZYnmaUYZXHZSK
+         jh1w==
+X-Gm-Message-State: AOAM531I9g784XTIKb5Lcsoqr6gAsiV6DK9lvx+fMkpinKEh8i1Vdzbg
+        xVnmiqXQu0F7ZU772XHZPwyLo7dtwC52rodf3F/TyJ3zGy8=
+X-Google-Smtp-Source: ABdhPJwZ8zGQj0WBswOa0UCzyx8W2h8yp/DSuPewhQBihLT4Go4pnhmmGuXkiHtPrXW1PW3n9dVVQmcbr94vXZ/rcIA=
+X-Received: by 2002:a2e:8ed7:: with SMTP id e23mr3779224ljl.32.1589878446014;
+ Tue, 19 May 2020 01:54:06 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200515013556.5582-1-kim.andrewsy@gmail.com> <20200517171654.8194-1-kim.andrewsy@gmail.com>
- <alpine.LFD.2.21.2005182027460.4524@ja.home.ssi.bg>
-In-Reply-To: <alpine.LFD.2.21.2005182027460.4524@ja.home.ssi.bg>
-From:   Andrew Kim <kim.andrewsy@gmail.com>
-Date:   Mon, 18 May 2020 15:54:30 -0400
-Message-ID: <CABc050G-yW-frv0mCmg=hMnC4iOx9Ht2Zv8eoS1cxQ8uKX6NQw@mail.gmail.com>
-Subject: Re: [PATCH] netfilter/ipvs: immediately expire UDP connections
- matching unavailable destination if expire_nodest_conn=1
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "open list:IPVS" <netdev@vger.kernel.org>,
-        "open list:IPVS" <lvs-devel@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
-        "open list:NETFILTER" <coreteam@netfilter.org>
+References: <20200513164140.7956-1-pablo@netfilter.org> <20200513164140.7956-8-pablo@netfilter.org>
+In-Reply-To: <20200513164140.7956-8-pablo@netfilter.org>
+From:   Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+Date:   Tue, 19 May 2020 14:23:54 +0530
+Message-ID: <CAHHeUGUZmM1Fvk2gbund1AhMEV=zeg_JbuPR9DQ1ovELH=iRKQ@mail.gmail.com>
+Subject: Re: [PATCH 7/8 net] bnxt_tc: update indirect block support
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org,
+        David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+        paulb@mellanox.com, Oz Shlomo <ozsh@mellanox.com>,
+        vladbu@mellanox.com, jiri@resnulli.us, kuba@kernel.org,
+        saeedm@mellanox.com, Michael Chan <michael.chan@broadcom.com>,
+        Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
 Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Julian,
-
-Thank you for getting back to me. I will update the patch based on
-your feedback shortly.
-
-Regards,
-
-Andrew
-
-On Mon, May 18, 2020 at 3:10 PM Julian Anastasov <ja@ssi.bg> wrote:
+On Wed, May 13, 2020 at 10:12 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 >
+> Register ndo callback via flow_indr_dev_register() and
+> flow_indr_dev_unregister().
 >
->         Hello,
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  drivers/net/ethernet/broadcom/bnxt/bnxt.h    |  1 -
+>  drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c | 51 +++++---------------
+>  2 files changed, 12 insertions(+), 40 deletions(-)
 >
-> On Sun, 17 May 2020, Andrew Sy Kim wrote:
+> diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.h b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
+> index f6a3250ef1c5..e7d1c12673bd 100644
+> --- a/drivers/net/ethernet/broadcom/bnxt/bnxt.h
+> +++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
+> @@ -1857,7 +1857,6 @@ struct bnxt {
+>         u8                      dsn[8];
+>         struct bnxt_tc_info     *tc_info;
+>         struct list_head        tc_indr_block_list;
+> -       struct notifier_block   tc_netdev_nb;
+>         struct dentry           *debugfs_pdev;
+>         struct device           *hwmon_dev;
+>  };
+> diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c
+> index 782ea0771221..0eef4f5e4a46 100644
+> --- a/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c
+> +++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c
+> @@ -1939,53 +1939,25 @@ static int bnxt_tc_setup_indr_block(struct net_device *netdev, struct bnxt *bp,
+>         return 0;
+>  }
 >
-> > If expire_nodest_conn=1 and a UDP destination is deleted, IPVS should
-> > also expire all matching connections immiediately instead of waiting for
-> > the next matching packet. This is particulary useful when there are a
-> > lot of packets coming from a few number of clients. Those clients are
-> > likely to match against existing entries if a source port in the
-> > connection hash is reused. When the number of entries in the connection
-> > tracker is large, we can significantly reduce the number of dropped
-> > packets by expiring all connections upon deletion.
-> >
-> > Signed-off-by: Andrew Sy Kim <kim.andrewsy@gmail.com>
-> > ---
-> >  include/net/ip_vs.h             |  7 ++++++
-> >  net/netfilter/ipvs/ip_vs_conn.c | 38 +++++++++++++++++++++++++++++++++
-> >  net/netfilter/ipvs/ip_vs_core.c |  5 -----
-> >  net/netfilter/ipvs/ip_vs_ctl.c  |  9 ++++++++
-> >  4 files changed, 54 insertions(+), 5 deletions(-)
-> >
+> -static int bnxt_tc_setup_indr_cb(struct net_device *netdev, void *cb_priv,
+> -                                enum tc_setup_type type, void *type_data)
+> -{
+> -       switch (type) {
+> -       case TC_SETUP_BLOCK:
+> -               return bnxt_tc_setup_indr_block(netdev, cb_priv, type_data);
+> -       default:
+> -               return -EOPNOTSUPP;
+> -       }
+> -}
+> -
+>  static bool bnxt_is_netdev_indr_offload(struct net_device *netdev)
+>  {
+>         return netif_is_vxlan(netdev);
+>  }
 >
-> > diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-> > index 02f2f636798d..c69dfbbc3416 100644
-> > --- a/net/netfilter/ipvs/ip_vs_conn.c
-> > +++ b/net/netfilter/ipvs/ip_vs_conn.c
-> > @@ -1366,6 +1366,44 @@ static void ip_vs_conn_flush(struct netns_ipvs *ipvs)
-> >               goto flush_again;
-> >       }
-> >  }
-> > +
-> > +/*   Flush all the connection entries in the ip_vs_conn_tab with a
-> > + *   matching destination.
-> > + */
-> > +void ip_vs_conn_flush_dest(struct netns_ipvs *ipvs, struct ip_vs_dest *dest)
-> > +{
-> > +     int idx;
-> > +     struct ip_vs_conn *cp, *cp_c;
-> > +
-> > +     rcu_read_lock();
-> > +     for (idx = 0; idx < ip_vs_conn_tab_size; idx++) {
-> > +             hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[idx], c_list) {
-> > +                     if (cp->ipvs != ipvs)
-> > +                             continue;
-> > +
-> > +                     if (cp->dest != dest)
-> > +                             continue;
-> > +
-> > +                     /* As timers are expired in LIFO order, restart
-> > +                      * the timer of controlling connection first, so
-> > +                      * that it is expired after us.
-> > +                      */
-> > +                     cp_c = cp->control;
-> > +                     /* cp->control is valid only with reference to cp */
-> > +                     if (cp_c && __ip_vs_conn_get(cp)) {
-> > +                             IP_VS_DBG(4, "del controlling connection\n");
-> > +                             ip_vs_conn_expire_now(cp_c);
-> > +                             __ip_vs_conn_put(cp);
-> > +                     }
-> > +                     IP_VS_DBG(4, "del connection\n");
-> > +                     ip_vs_conn_expire_now(cp);
-> > +             }
-> > +             cond_resched_rcu();
+> -static int bnxt_tc_indr_block_event(struct notifier_block *nb,
+> -                                   unsigned long event, void *ptr)
+> +static int bnxt_tc_setup_indr_cb(struct net_device *netdev, void *cb_priv,
+> +                                enum tc_setup_type type, void *type_data)
+>  {
+> -       struct net_device *netdev;
+> -       struct bnxt *bp;
+> -       int rc;
+> -
+> -       netdev = netdev_notifier_info_to_dev(ptr);
+>         if (!bnxt_is_netdev_indr_offload(netdev))
+> -               return NOTIFY_OK;
+> -
+> -       bp = container_of(nb, struct bnxt, tc_netdev_nb);
+> +               return -EOPNOTSUPP;
 >
->         Such kind of loop is correct if done in another context:
->
-> 1. kthread
-> or
-> 2. delayed work: mod_delayed_work(system_long_wq, ...)
->
->         Otherwise cond_resched_rcu() can schedule() while holding
-> __ip_vs_mutex. Also, it will add long delay if many dests are
-> removed.
->
->         If such loop analyzes instead all cp->dest for
-> IP_VS_DEST_F_AVAILABLE, it should be done after calling
-> __ip_vs_conn_get().
->
-> >  static int sysctl_snat_reroute(struct netns_ipvs *ipvs) { return 0; }
-> > diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> > index 8d14a1acbc37..f87c03622874 100644
-> > --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> > +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> > @@ -1225,6 +1225,15 @@ ip_vs_del_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
-> >        */
-> >       __ip_vs_del_dest(svc->ipvs, dest, false);
-> >
-> > +     /*      If expire_nodest_conn is enabled and protocol is UDP,
-> > +      *      attempt best effort flush of all connections with this
-> > +      *      destination.
-> > +      */
-> > +     if (sysctl_expire_nodest_conn(svc->ipvs) &&
-> > +         dest->protocol == IPPROTO_UDP) {
-> > +             ip_vs_conn_flush_dest(svc->ipvs, dest);
->
->         Above work should be scheduled from __ip_vs_del_dest().
-> Check for UDP is not needed, sysctl_expire_nodest_conn() is for
-> all protocols.
->
->         If the flushing is complex to implement, we can still allow
-> rescheduling for unavailable dests:
->
-> - first we should move this block above the ip_vs_try_to_schedule()
-> block because:
->
->         1. the scheduling does not return unavailabel dests, even
->         for persistence, so no need to check new connections for
->         the flag
->
->         2. it will allow to create new connection if dest for
->         existing connection is unavailable
->
->         if (cp && cp->dest && !(cp->dest->flags & IP_VS_DEST_F_AVAILABLE)) {
->                 /* the destination server is not available */
->
->                 if (sysctl_expire_nodest_conn(ipvs)) {
->                         bool uses_ct = ip_vs_conn_uses_conntrack(cp, skb);
->
->                         ip_vs_conn_expire_now(cp);
->                         __ip_vs_conn_put(cp);
->                         if (uses_ct)
->                                 return NF_DROP;
->                         cp = NULL;
->                 } else {
->                         __ip_vs_conn_put(cp);
->                         return NF_DROP;
->                 }
+> -       switch (event) {
+> -       case NETDEV_REGISTER:
+> -               rc = __flow_indr_block_cb_register(netdev, bp,
+> -                                                  bnxt_tc_setup_indr_cb,
+> -                                                  bp);
+> -               if (rc)
+> -                       netdev_info(bp->dev,
+> -                                   "Failed to register indirect blk: dev: %s\n",
+> -                                   netdev->name);
+> -               break;
+> -       case NETDEV_UNREGISTER:
+> -               __flow_indr_block_cb_unregister(netdev,
+> -                                               bnxt_tc_setup_indr_cb,
+> -                                               bp);
+> +       switch (type) {
+> +       case TC_SETUP_BLOCK:
+> +               return bnxt_tc_setup_indr_block(netdev, cb_priv, type_data);
+> +       default:
+>                 break;
 >         }
 >
->         if (unlikely(!cp)) {
->                 int v;
+> -       return NOTIFY_DONE;
+> +       return -EOPNOTSUPP;
+>  }
 >
->                 if (!ip_vs_try_to_schedule(ipvs, af, skb, pd, &v, &cp, &iph))
->                         return v;
->         }
+>  static const struct rhashtable_params bnxt_tc_flow_ht_params = {
+> @@ -2074,8 +2046,8 @@ int bnxt_init_tc(struct bnxt *bp)
 >
->         Before now, we always waited one jiffie connection to expire,
-> now one packet will:
+>         /* init indirect block notifications */
+>         INIT_LIST_HEAD(&bp->tc_indr_block_list);
+> -       bp->tc_netdev_nb.notifier_call = bnxt_tc_indr_block_event;
+> -       rc = register_netdevice_notifier(&bp->tc_netdev_nb);
+> +
+> +       rc = flow_indr_dev_register(bnxt_tc_setup_indr_cb, bp);
+>         if (!rc)
+>                 return 0;
 >
-> - schedule expiration for existing connection with unavailable dest,
-> as before
+> @@ -2101,7 +2073,8 @@ void bnxt_shutdown_tc(struct bnxt *bp)
+>         if (!bnxt_tc_flower_enabled(bp))
+>                 return;
 >
-> - create new connection to available destination that will be found
-> first in lists. But it can work only when sysctl var "conntrack" is 0,
-> we do not want to create two netfilter conntracks to different
-> real servers.
->
->         Note that we intentionally removed the timer_pending() check
-> because we can not see existing ONE_PACKET connections in table.
->
-> Regards
->
+> -       unregister_netdevice_notifier(&bp->tc_netdev_nb);
+> +       flow_indr_dev_unregister(bnxt_tc_setup_indr_cb, bp,
+> +                                bnxt_tc_setup_indr_block_cb);
+
+Why does the driver need to provide the "cb" again during unregister,
+since both "cb" and "cb_priv" are already provided during register() ?
+This interface could be simplified/improved if
+flow_indr_dev_register() returns an opaque handle to the object it
+creates (struct flow_indr_dev *) ? The driver should just pass this
+handle during unregistration. Also, why do we need the extra (3rd)
+argument (flow_setup_cb_t / bnxt_tc_setup_indr_block_cb) during unreg
+? It is handled internally by the driver as a part of FLOW_BLOCK_BIND
+/ UNBIND ?
+
+Thanks,
+-Harsha
+
+>         rhashtable_destroy(&tc_info->flow_table);
+>         rhashtable_destroy(&tc_info->l2_table);
+>         rhashtable_destroy(&tc_info->decap_l2_table);
 > --
-> Julian Anastasov <ja@ssi.bg>
+> 2.20.1
+>
