@@ -2,123 +2,168 @@ Return-Path: <SRS0=LRg4=7B=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAF7CC433E1
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 19:45:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA8F9C433E2
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 19:47:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ACA2A206C3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 19:45:20 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="IxGpow3H"
+	by mail.kernel.org (Postfix) with ESMTP id D698B206C3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 May 2020 19:47:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726861AbgESTpR (ORCPT
+        id S1726871AbgESTrn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 19 May 2020 15:45:17 -0400
-Received: from us-smtp-2.mimecast.com ([205.139.110.61]:42023 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726059AbgESTpQ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 May 2020 15:45:16 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1589917514;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=3ZPhjMhc2ZD+ukMEY/C5pv2YZILivCrJg0ecgtUq++g=;
-        b=IxGpow3HcBKLgSZd1TvPAsozO8ihEukkatMB/viAjVyXQ4WmGIF5PSp0XLIzh+RSWtVKuk
-        pk9Pk65n/hSmY43wogFPy5kmGe++A7hGlBfF0aA9XK1cBv0peUG7iBStudB+fh3imj0U3+
-        tC2SD8wdS1IVOxSAuoXllc4l77wrbFs=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-30-yF7nVU6VMq6xX2AWMNpA2Q-1; Tue, 19 May 2020 15:45:12 -0400
-X-MC-Unique: yF7nVU6VMq6xX2AWMNpA2Q-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 5C27219200C0;
-        Tue, 19 May 2020 19:45:11 +0000 (UTC)
-Received: from madcap2.tricolour.ca (unknown [10.10.110.46])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id E4BD460BEC;
-        Tue, 19 May 2020 19:44:59 +0000 (UTC)
-Date:   Tue, 19 May 2020 15:44:57 -0400
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, sgrubb@redhat.com,
-        Ondrej Mosnacek <omosnace@redhat.com>, fw@strlen.de,
-        twoerner@redhat.com, Eric Paris <eparis@parisplace.org>,
-        tgraf@infradead.org
-Subject: Re: [PATCH ghak25 v5] audit: add subj creds to NETFILTER_CFG record
- to cover async unregister
-Message-ID: <20200519194457.nouzteqv2vpcqnta@madcap2.tricolour.ca>
-References: <2794b22c0b88637a4270b346e52aeb8db7f59457.1589853445.git.rgb@redhat.com>
- <CAHC9VhQYUooJbZ9tcOOwb=48LTjtnfo0g11vQuyLzoxdetaxnw@mail.gmail.com>
+        Tue, 19 May 2020 15:47:43 -0400
+Received: from ja.ssi.bg ([178.16.129.10]:54114 "EHLO ja.ssi.bg"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726348AbgESTrn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 19 May 2020 15:47:43 -0400
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id 04JJkPnn004615;
+        Tue, 19 May 2020 22:46:25 +0300
+Date:   Tue, 19 May 2020 22:46:25 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Marco Angaroni <marcoangaroni@gmail.com>
+cc:     Andrew Kim <kim.andrewsy@gmail.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "open list:IPVS" <netdev@vger.kernel.org>,
+        "open list:IPVS" <lvs-devel@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
+        "open list:NETFILTER" <coreteam@netfilter.org>
+Subject: Re: [PATCH] netfilter/ipvs: immediately expire UDP connections
+ matching unavailable destination if expire_nodest_conn=1
+In-Reply-To: <CANHHuCW6i0BjLRMYkfY8eZGZJZTnE-NO9EH+-gfH94cc6yYn1A@mail.gmail.com>
+Message-ID: <alpine.LFD.2.21.2005192139500.3504@ja.home.ssi.bg>
+References: <20200515013556.5582-1-kim.andrewsy@gmail.com> <20200517171654.8194-1-kim.andrewsy@gmail.com> <alpine.LFD.2.21.2005182027460.4524@ja.home.ssi.bg> <CABc050G-yW-frv0mCmg=hMnC4iOx9Ht2Zv8eoS1cxQ8uKX6NQw@mail.gmail.com>
+ <CANHHuCW6i0BjLRMYkfY8eZGZJZTnE-NO9EH+-gfH94cc6yYn1A@mail.gmail.com>
+User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHC9VhQYUooJbZ9tcOOwb=48LTjtnfo0g11vQuyLzoxdetaxnw@mail.gmail.com>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+Content-Type: multipart/mixed; boundary="-1463811672-1121648160-1589917585=:3504"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-05-19 15:18, Paul Moore wrote:
-> On Tue, May 19, 2020 at 11:31 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > Some table unregister actions seem to be initiated by the kernel to
-> > garbage collect unused tables that are not initiated by any userspace
-> > actions.  It was found to be necessary to add the subject credentials to
-> > cover this case to reveal the source of these actions.  A sample record:
-> >
-> > The tty, ses and exe fields have not been included since they are in the
-> > SYSCALL record and contain nothing useful in the non-user context.
-> >
-> >   type=NETFILTER_CFG msg=audit(2020-03-11 21:25:21.491:269) : table=nat family=bridge entries=0 op=unregister pid=153 uid=root auid=unset subj=system_u:system_r:kernel_t:s0 comm=kworker/u4:2
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+---1463811672-1121648160-1589917585=:3504
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+
+
+	Hello,
+
+On Tue, 19 May 2020, Marco Angaroni wrote:
+
+> Hi Andrew, Julian,
 > 
-> Based on where things were left in the discussion on the previous
-> draft, I think it would be good if you could explain a bit why the uid
-> and auid fields are useful here.
+> could you please confirm if/how this patch is changing any of the
+> following behaviours, which I’m listing below as per my understanding
+> ?
+> 
+> When expire_nodest is set and real-server is unavailable, at the
+> moment the following happens to a packet going through IPVS:
+> 
+> a) TCP (or other connection-oriented protocols):
+>    the packet is silently dropped, then the following retransmission
+> causes the generation of a RST from the load-balancer to the client,
+> which will then re-open a new TCP connection
 
-They aren't really useful here.  I was hoping to remove them given your
-reasoning, but I was having trouble guessing what you wanted even after
-asking for clarity.  Can you clarify what you would prefer to see in
-this patch?  I was hoping to skip this extra patch revision which took
-longer than hoped due to trying to guess what you wanted while working
-yesterday during a public holiday to get this patch out in time for the
-merge window.
+	Yes. It seems we can not create new connection in
+all cases, we should also check with is_new_conn().
 
-A UID of 0="root" is really a bit misleading since while it is the most
-trusted user running the most privileged level, the event wasn't
-triggered by a user.  It is the default value of that field.  I did
-think aloud that uid could be set by the kernel to run under a
-particular user's id (like a daemon dropping capabilities and switching
-user after setup to limit abuse), but the kernel is just a tracker for
-these IDs and doesn't really know what they mean other than root.  I saw
-no reply to that idea.  It was set to "root" which isn't unset or
-unexpected, but granted is useless in this case.
+	What we have is that two cases are possible depending on 
+conn_reuse_mode, the state of existing connection and whether
+netfilter conntrack is used:
 
-You had offered that keeping auid was a concession to Steve so I kept it
-in since I had the impression that is what you wanted to see.  That
-explanation seems pretty thin to include in a patch description if what
-you are getting at in your sentence above.
+	1. setup expire for old conn, then drop packet
+	2. setup expire for old conn, then create new
+	conn to schedule the packet
 
-I am willing to purge both if that is what you would prefer to accept in
-the patch.
+	When expiration is set, the timer will fire in the
+next jiffie to remove the connection from hash table. Until
+removed, the connection still can cause drops. Sometimes
+we can simply create new connection with the same tuple,
+so it is possible both connections to coexist for one jiffie
+but the old connection is not reached on lookup.
 
-> paul moore
+> b) UDP:
+>    the packet is silently dropped, then the following retransmission
+> is rescheduled to a new real-server
 
-- RGB
+	Yes, we drop while old conn is not expired yet
+
+> c) UDP in OPS mode:
+>    the packet is rescheduled to a new real-server, as no previous
+> connection exists in IPVS connection table, and a new OPS connection
+> is created (but it lasts only the time to transmit the packet)
+
+	Yes, OPS is not affected.
+
+> d) UDP in OPS mode + persistent-template:
+>    the packet is rescheduled to a new real-server, as previous
+> template-connection is invalidated, a new template-connection is
+> created, and a new OPS connection is created (but it lasts only the
+> time to transmit the packet)
+
+	Yes, the existing template is ignored when its server
+is unavailable.
+
+> It seems to me that you are trying to optimize case a) and b),
+> avoiding the first step where the packet is silently dropped and
+> consequently avoiding the retransmission.
+> And contextually expire also all the other connections pointing to the
+> unavailable real-sever.
+
+	The change will allow immediate scheduling in a new
+connection for any protocol when netfilter conntrack is not
+used:
+
+- TCP: avoids retransmission for SYN
+- UDP: reduces drops from 1 jiffie to 0 (no drops)
+
+	But this single jiffie compared to the delay between
+real server failure and the removal from the IPVS table can be
+negligible. Of course, if real server is removed while it is
+working, with this change we should not see any UDP drops.
+
+> However I'm confused about the references to OPS mode.
+> And why you need to expire all the connections at once: if you expire
+> on a per connection basis, the client experiences the same behaviour
+> (no more re-transmissions), but you avoid the complexities of a new
+> thread.
+
+	Such flushing can help when conntrack is used in which
+case the cost is a retransmission or downtime for one jiffie.
+
+> Maybe also the documentation of expire_nodest_conn sysctl should be updated.
+> When it's stated:
+> 
+>         If this feature is enabled, the load balancer will expire the
+>         connection immediately when a packet arrives and its
+>         destination server is not available, then the client program
+>         will be notified that the connection is closed
+> 
+> I think it should be at least "and the client program" instead of
+> "then the client program".
+> Or a more detailed explanation.
+
+	Yes, if the packet is SYN we can create new connection.
+If it is ACK, the retransmission will get RST.
+
+Regards
 
 --
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
-
+Julian Anastasov <ja@ssi.bg>
+---1463811672-1121648160-1589917585=:3504--
