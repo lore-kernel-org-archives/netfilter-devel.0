@@ -2,211 +2,87 @@ Return-Path: <SRS0=7yxH=7C=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08AB4C433E1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 17:23:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94E05C433DF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 17:31:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E81612075F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 17:23:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 73F9920709
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 17:31:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727987AbgETRXv (ORCPT
+        id S1726747AbgETRbP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 May 2020 13:23:51 -0400
-Received: from dispatch1-us1.ppe-hosted.com ([67.231.154.164]:53672 "EHLO
+        Wed, 20 May 2020 13:31:15 -0400
+Received: from dispatch1-us1.ppe-hosted.com ([148.163.129.52]:46730 "EHLO
         dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727981AbgETRWF (ORCPT
+        by vger.kernel.org with ESMTP id S1726436AbgETRbP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 May 2020 13:22:05 -0400
-Received: from mx1-us1.ppe-hosted.com (unknown [10.110.50.143])
-        by dispatch1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id A480D200DF;
-        Wed, 20 May 2020 17:22:03 +0000 (UTC)
-Received: from us4-mdac16-69.at1.mdlocal (unknown [10.110.50.186])
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id A2E118009B;
-        Wed, 20 May 2020 17:22:03 +0000 (UTC)
+        Wed, 20 May 2020 13:31:15 -0400
+Received: from mx1-us1.ppe-hosted.com (unknown [10.7.65.64])
+        by dispatch1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id E60F96010A;
+        Wed, 20 May 2020 17:31:14 +0000 (UTC)
+Received: from us4-mdac16-59.ut7.mdlocal (unknown [10.7.66.50])
+        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id E350F200A4;
+        Wed, 20 May 2020 17:31:14 +0000 (UTC)
 X-Virus-Scanned: Proofpoint Essentials engine
-Received: from mx1-us1.ppe-hosted.com (unknown [10.110.49.32])
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 3404D40072;
-        Wed, 20 May 2020 17:22:03 +0000 (UTC)
+Received: from mx1-us1.ppe-hosted.com (unknown [10.7.65.198])
+        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 63BAB22004D;
+        Wed, 20 May 2020 17:31:14 +0000 (UTC)
 Received: from webmail.solarflare.com (uk.solarflare.com [193.34.186.16])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id CB948280063;
-        Wed, 20 May 2020 17:22:02 +0000 (UTC)
+        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id AAAB280083;
+        Wed, 20 May 2020 17:31:13 +0000 (UTC)
 Received: from [10.17.20.203] (10.17.20.203) by ukex01.SolarFlarecom.com
  (10.17.10.4) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Wed, 20 May
- 2020 18:21:56 +0100
-From:   Edward Cree <ecree@solarflare.com>
-Subject: [PATCH v3 net-next] net: flow_offload: simplify hw stats check
+ 2020 18:31:07 +0100
+Subject: Re: [PATCH v3 net-next] net: flow_offload: simplify hw stats check
  handling
+From:   Edward Cree <ecree@solarflare.com>
 To:     <davem@davemloft.net>
 CC:     <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
         <jiri@resnulli.us>, <kuba@kernel.org>, <pablo@netfilter.org>
-Message-ID: <2cf9024d-1568-4594-5763-6c4e4e8fe47b@solarflare.com>
-Date:   Wed, 20 May 2020 18:21:53 +0100
+References: <2cf9024d-1568-4594-5763-6c4e4e8fe47b@solarflare.com>
+Message-ID: <f2586a0e-fce1-cee9-e2dc-f3dc73500515@solarflare.com>
+Date:   Wed, 20 May 2020 18:31:05 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
  Thunderbird/68.2.2
 MIME-Version: 1.0
+In-Reply-To: <2cf9024d-1568-4594-5763-6c4e4e8fe47b@solarflare.com>
 Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
 X-Originating-IP: [10.17.20.203]
 X-ClientProxiedBy: ocex03.SolarFlarecom.com (10.20.40.36) To
  ukex01.SolarFlarecom.com (10.17.10.4)
 X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1020-25430.003
-X-TM-AS-Result: No-5.781900-8.000000-10
-X-TMASE-MatchedRID: huLetEq/dPSwwAVMmrrBx6iUivh0j2PvBGvINcfHqhcxORZj0djJkQOr
-        nVAKyYzuC75+d7CNAsqekg5BszIusyxMd3BG3hng/ccgt/EtX/1dA4rYaKGKwlJqwYCQ1BisMH1
-        xx17eFtQMgdTDHmTMF7r7cyh+G7QMHVikQ9YmLLPwqDryy7bDIUj2TRK4Wlr10yA6AM98FEFLxd
-        BSajtA2Hxs7qFZ9FbOAUZWrMnznJp7dpr6RvFomfUwiX15l0tvTySC+TZdy0WRDQkhZa5u72kny
-        jyxlh7mqneduEAVa+rqHEp2n5BcUGKztShDQzFutKR5FXfbyszqobkz1A0A7SgCoCrh9Y4lk66/
-        gtVjZsVnHQJ2jUDp75GTpe1iiCJq71zr0FZRMbALbigRnpKlKSPzRlrdFGDwknQQQGIVv41ASa6
-        U3AEcWXpTFh9eJy4/zF9z8yz1+epqbamnjuWv4A==
+X-TM-AS-Result: No-1.506300-8.000000-10
+X-TMASE-MatchedRID: fgYTp5Xatxa8rRvefcjeTfZvT2zYoYOwC/ExpXrHizwd0WOKRkwsh343
+        HV+1jEvwHWJA3KtH9MFfQt5fdNpZ2kxtwZS3cxlMqjZ865FPtppKP8x7LsjXi5soi2XrUn/JIq9
+        5DjCZh0zCLNfu05PakAtuKBGekqUpbGVEmIfjf3tKXWykORtq3KVFSYbNs/V8rA/g7nJ/y9hRbk
+        ZxhjLG8mNuHHn2cNyf0IElP6gQQdeIe7p1bNVGNIVt/luADAcfu8YlVHIDt5A=
 X-TM-AS-User-Approved-Sender: Yes
 X-TM-AS-User-Blocked-Sender: No
-X-TMASE-Result: 10--5.781900-8.000000
+X-TMASE-Result: 10--1.506300-8.000000
 X-TMASE-Version: SMEX-12.5.0.1300-8.5.1020-25430.003
-X-MDID: 1589995323-i9Z4x4UWyZan
+X-MDID: 1589995874-sWBN5KS6mRhL
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Make FLOW_ACTION_HW_STATS_DONT_CARE be all bits, rather than none, so that
- drivers and __flow_action_hw_stats_check can use simple bitwise checks.
-Also ensure that netfilter explicitly sets its actions to DONT_CARE, rather
- than relying on implicit semantics of zero.
-
-Only the kernel's internal API semantics change; the TC uAPI is unaffected.
-
-v3: set DONT_CARE in nft and ct offload.  Tested the latter with an
- experimental driver; conntrack entry actions had hw_stats=7, as expected.
-
-v2: rebased on net-next, removed RFC tags.
-
-Signed-off-by: Edward Cree <ecree@solarflare.com>
----
-I don't have hardware that does TC_SETUP_FT offload.  Could someone from
- mlx test that nft offload comes through with hw_stats=DONT_CARE?
-
- .../net/ethernet/mellanox/mlxsw/spectrum_flower.c  |  8 ++++----
- include/net/flow_offload.h                         | 11 +++++++----
- net/netfilter/nf_flow_table_offload.c              | 14 +++++++++++---
- net/sched/act_ct.c                                 |  5 +++++
- 4 files changed, 27 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c b/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
-index b286fe158820..51e1b3930c56 100644
---- a/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
-+++ b/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
-@@ -30,14 +30,14 @@ static int mlxsw_sp_flower_parse_actions(struct mlxsw_sp *mlxsw_sp,
- 		return -EOPNOTSUPP;
- 
- 	act = flow_action_first_entry_get(flow_action);
--	if (act->hw_stats == FLOW_ACTION_HW_STATS_ANY ||
--	    act->hw_stats == FLOW_ACTION_HW_STATS_IMMEDIATE) {
-+	if (act->hw_stats & FLOW_ACTION_HW_STATS_DISABLED) {
-+		/* Nothing to do */
-+	} else if (act->hw_stats & FLOW_ACTION_HW_STATS_IMMEDIATE) {
- 		/* Count action is inserted first */
- 		err = mlxsw_sp_acl_rulei_act_count(mlxsw_sp, rulei, extack);
- 		if (err)
- 			return err;
--	} else if (act->hw_stats != FLOW_ACTION_HW_STATS_DISABLED &&
--		   act->hw_stats != FLOW_ACTION_HW_STATS_DONT_CARE) {
-+	} else {
- 		NL_SET_ERR_MSG_MOD(extack, "Unsupported action HW stats type");
- 		return -EOPNOTSUPP;
- 	}
-diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
-index 4001ffb04f0d..95d633785ef9 100644
---- a/include/net/flow_offload.h
-+++ b/include/net/flow_offload.h
-@@ -168,10 +168,11 @@ enum flow_action_hw_stats_bit {
- 	FLOW_ACTION_HW_STATS_IMMEDIATE_BIT,
- 	FLOW_ACTION_HW_STATS_DELAYED_BIT,
- 	FLOW_ACTION_HW_STATS_DISABLED_BIT,
-+
-+	FLOW_ACTION_HW_STATS_NUM_BITS
- };
- 
- enum flow_action_hw_stats {
--	FLOW_ACTION_HW_STATS_DONT_CARE = 0,
- 	FLOW_ACTION_HW_STATS_IMMEDIATE =
- 		BIT(FLOW_ACTION_HW_STATS_IMMEDIATE_BIT),
- 	FLOW_ACTION_HW_STATS_DELAYED = BIT(FLOW_ACTION_HW_STATS_DELAYED_BIT),
-@@ -179,6 +180,7 @@ enum flow_action_hw_stats {
- 				   FLOW_ACTION_HW_STATS_DELAYED,
- 	FLOW_ACTION_HW_STATS_DISABLED =
- 		BIT(FLOW_ACTION_HW_STATS_DISABLED_BIT),
-+	FLOW_ACTION_HW_STATS_DONT_CARE = BIT(FLOW_ACTION_HW_STATS_NUM_BITS) - 1,
- };
- 
- typedef void (*action_destr)(void *priv);
-@@ -340,11 +342,12 @@ __flow_action_hw_stats_check(const struct flow_action *action,
- 		return false;
- 
- 	action_entry = flow_action_first_entry_get(action);
--	if (action_entry->hw_stats == FLOW_ACTION_HW_STATS_DONT_CARE)
--		return true;
-+
-+	/* Zero is not a legal value for hw_stats, catch anyone passing it */
-+	WARN_ON_ONCE(!action_entry->hw_stats);
- 
- 	if (!check_allow_bit &&
--	    action_entry->hw_stats != FLOW_ACTION_HW_STATS_ANY) {
-+	    ~action_entry->hw_stats & FLOW_ACTION_HW_STATS_ANY) {
- 		NL_SET_ERR_MSG_MOD(extack, "Driver supports only default HW stats type \"any\"");
- 		return false;
- 	} else if (check_allow_bit &&
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 2ff4087007a6..60f94a2d15cc 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -165,9 +165,17 @@ static void flow_offload_mangle(struct flow_action_entry *entry,
- static inline struct flow_action_entry *
- flow_action_entry_next(struct nf_flow_rule *flow_rule)
- {
--	int i = flow_rule->rule->action.num_entries++;
-+	struct flow_action *acts = &flow_rule->rule->action;
-+	struct flow_action_entry *act;
-+	int i = acts->num_entries++;
- 
--	return &flow_rule->rule->action.entries[i];
-+	act = acts->entries + i;
-+	/* Pre-fill action hw_stats with DONT_CARE.  Caller can override this
-+	 * if it wants stats for its action
-+	 */
-+	act->hw_stats = FLOW_ACTION_HW_STATS_DONT_CARE;
-+
-+	return act;
- }
- 
- static int flow_offload_eth_src(struct net *net,
-@@ -582,7 +590,7 @@ nf_flow_offload_rule_alloc(struct net *net,
- 	const struct flow_offload_tuple *tuple;
- 	struct nf_flow_rule *flow_rule;
- 	struct dst_entry *other_dst;
--	int err = -ENOMEM;
-+	int err = -ENOMEM, i;
- 
- 	flow_rule = kzalloc(sizeof(*flow_rule), GFP_KERNEL);
- 	if (!flow_rule)
-diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
-index 9adff83b523b..b3b68dacadd0 100644
---- a/net/sched/act_ct.c
-+++ b/net/sched/act_ct.c
-@@ -61,6 +61,11 @@ tcf_ct_flow_table_flow_action_get_next(struct flow_action *flow_action)
- {
- 	int i = flow_action->num_entries++;
- 
-+	/* Pre-fill action hw_stats with DONT_CARE.  Caller can override this
-+	 * if it wants stats for its action
-+	 */
-+	flow_action->entries[i].hw_stats = FLOW_ACTION_HW_STATS_DONT_CARE;
-+
- 	return &flow_action->entries[i];
- }
- 
+On 20/05/2020 18:21, Edward Cree wrote:
+> @@ -582,7 +590,7 @@ nf_flow_offload_rule_alloc(struct net *net,
+>  	const struct flow_offload_tuple *tuple;
+>  	struct nf_flow_rule *flow_rule;
+>  	struct dst_entry *other_dst;
+> -	int err = -ENOMEM;
+> +	int err = -ENOMEM, i;
+>  
+>  	flow_rule = kzalloc(sizeof(*flow_rule), GFP_KERNEL);
+>  	if (!flow_rule)
+Whoops, this changebar isn't meant to be there.  Somehow I missed
+ the unused var warning when I built it, too.
+Drop this, I'll spin v4.
