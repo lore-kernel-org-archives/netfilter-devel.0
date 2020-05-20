@@ -6,101 +6,107 @@ X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AB96C433E0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 14:33:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 152EAC433E1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 15:18:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2F1EF207D3
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 14:33:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F22A520671
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 15:18:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726829AbgETOdh (ORCPT
+        id S1726688AbgETPSs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 May 2020 10:33:37 -0400
-Received: from correo.us.es ([193.147.175.20]:53524 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726691AbgETOdg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 May 2020 10:33:36 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C034F120832
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2020 16:33:32 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B3A0FDA70F
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2020 16:33:32 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A066CDA716; Wed, 20 May 2020 16:33:32 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AA720DA703;
-        Wed, 20 May 2020 16:33:30 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 20 May 2020 16:33:30 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Wed, 20 May 2020 11:18:48 -0400
+Received: from dispatch1-us1.ppe-hosted.com ([67.231.154.164]:41838 "EHLO
+        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726486AbgETPSs (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 20 May 2020 11:18:48 -0400
+Received: from mx1-us1.ppe-hosted.com (unknown [10.110.50.144])
+        by dispatch1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id 6F3E220056;
+        Wed, 20 May 2020 15:18:47 +0000 (UTC)
+Received: from us4-mdac16-59.at1.mdlocal (unknown [10.110.50.152])
+        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id 6DC6E800A4;
+        Wed, 20 May 2020 15:18:47 +0000 (UTC)
+X-Virus-Scanned: Proofpoint Essentials engine
+Received: from mx1-us1.ppe-hosted.com (unknown [10.110.48.236])
+        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id EDACB40077;
+        Wed, 20 May 2020 15:18:46 +0000 (UTC)
+Received: from webmail.solarflare.com (uk.solarflare.com [193.34.186.16])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 8C0EE42EF42B;
-        Wed, 20 May 2020 16:33:30 +0200 (CEST)
-Date:   Wed, 20 May 2020 16:33:30 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Edward Cree <ecree@solarflare.com>
-Cc:     davem@davemloft.net, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, jiri@resnulli.us, kuba@kernel.org
+        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 8A8B8400095;
+        Wed, 20 May 2020 15:18:46 +0000 (UTC)
+Received: from [10.17.20.203] (10.17.20.203) by ukex01.SolarFlarecom.com
+ (10.17.10.4) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Wed, 20 May
+ 2020 16:18:40 +0100
 Subject: Re: [PATCH net-next v2] net: flow_offload: simplify hw stats check
  handling
-Message-ID: <20200520143330.GA23050@salvia>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+CC:     <davem@davemloft.net>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <jiri@resnulli.us>,
+        <kuba@kernel.org>
 References: <cf0d731d-cb34-accd-ff40-6be013dd9972@solarflare.com>
  <20200519171923.GA16785@salvia>
  <6013b7ce-48c9-7169-c945-01b2226638e4@solarflare.com>
  <20200519173508.GA17141@salvia>
  <dc732572-6f69-6cbe-5df1-ca4d6e6ed131@solarflare.com>
+ <20200520143330.GA23050@salvia>
+From:   Edward Cree <ecree@solarflare.com>
+Message-ID: <981c02e9-6152-feed-2607-9607e58b760c@solarflare.com>
+Date:   Wed, 20 May 2020 16:18:37 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.2.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <20200520143330.GA23050@salvia>
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <dc732572-6f69-6cbe-5df1-ca4d6e6ed131@solarflare.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Language: en-GB
+X-Originating-IP: [10.17.20.203]
+X-ClientProxiedBy: ocex03.SolarFlarecom.com (10.20.40.36) To
+ ukex01.SolarFlarecom.com (10.17.10.4)
+X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1020-25430.003
+X-TM-AS-Result: No-3.679000-8.000000-10
+X-TMASE-MatchedRID: hls5oAVArl+8rRvefcjeTR4ejJMDGBzF69aS+7/zbj+qvcIF1TcLYILL
+        5sr088cXhAaFAwxjJ1cOmKSDLU0HeW00sCPwNg7wqYUcLUvrWVj348e2CE/wYiNGK7UC7ElMNJD
+        jFX5JKf1ZAHwcJSAboAXidoJ7b4hPfcSal8l6P7BIwW/Kvkvzgt1eFEoaE12nmbdPE3zcujhPpj
+        LRqc8GlkfXh0xnZvblsgAkUr9nVXYvwcx4DcVB2wGdJZ3Knh6hqV3VmuIFNEv+UVve/ZY5tK5cF
+        KGf3JC5Sl4zVySO23hOBek6Nnej9A/IIKW24r39ngIgpj8eDcByZ8zcONpAscRB0bsfrpPIcSqb
+        xBgG0w6achrirk/mmT27L4wyeFLDpgnXqw6nBZdmBCSRfw/PXn8S1HbHCtojZ5wrY0zWCp9Fzux
+        dhbVQwa1Y5Ca0eNDSo7M4c5rtlSDUNewp4E2/TgSpmVYGQlZ3sxk1kV1Ja8fhIo573pBCBw==
+X-TM-AS-User-Approved-Sender: Yes
+X-TM-AS-User-Blocked-Sender: No
+X-TMASE-Result: 10--3.679000-8.000000
+X-TMASE-Version: SMEX-12.5.0.1300-8.5.1020-25430.003
+X-MDID: 1589987927-2Hm1UR9Je-0O
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, May 19, 2020 at 07:26:42PM +0100, Edward Cree wrote:
-> On 19/05/2020 18:35, Pablo Neira Ayuso wrote:
-[...]
-> > Netfilter is a client of this flow offload API, you have to test that
-> > your core updates do not break any of existing clients.
+On 20/05/2020 15:33, Pablo Neira Ayuso wrote:
+> #1 Drivers calling flow_action_hw_stats_check() fall within the
+> second branch (check_allow_bit is set on).
 >
-> Okay, but can we distinguish between "this needs to be tested with
-> �netfilter before it can be merged" and "this is breaking netfilter"?
-> Or do you have a specific reason why you think this is broken, beyond
-> �merely 'it isn't tested'?
+>         } else if (check_allow_bit &&         <------ HERE
+>
+> These drivers are not honoring the _DONT_CARE bit,
+> __flow_action_hw_stats_check() with check_allow_bit set on does not
+> honor the _DONT_CARE bit.
+I don't understand.  There isn't a _DONT_CARE bit; _DONT_CARE isa
+ bitmask of *all* the bits: BIT(FLOW_ACTION_HW_STATS_NUM_BITS) - 1.
+So if allow_bit < FLOW_ACTION_HW_STATS_NUM_BITS, then
+ BIT(allow_bit) & FLOW_ACTION_HW_STATS_DONT_CARE is nonzero, and
+ thus the function returns true.
 
-This breaks netfilter in two ways !
+> #2 Your patch needs to update Netfilter to set hw_stats to
+>    FLOW_ACTION_HW_STATS_DONT_CARE explicitly.
+Ahh, naïvely I had assumed that you would have done that in the
+ patch that added _DONT_CARE; I should have checked that.  Will
+ fix that for the next version.
 
-#1 Drivers calling flow_action_hw_stats_check() fall within the
-second branch (check_allow_bit is set on).
+Thank you for being specific.
+And you'll be pleased to know that I've managed to bodge a working
+ nft binary onto my test system, so hopefully I'll be able to test
+ with netfilter offload.  Am I right in thinking that an ingress
+ chain on the netdev table is the thing I want?
 
-        } else if (check_allow_bit &&
-
-@@ -340,11 +342,9 @@ __flow_action_hw_stats_check(const struct flow_action *action,
-                return false;
-
-        action_entry = flow_action_first_entry_get(action);
--       if (action_entry->hw_stats == FLOW_ACTION_HW_STATS_DONT_CARE)
--               return true;
-
-        if (!check_allow_bit &&
--           action_entry->hw_stats != FLOW_ACTION_HW_STATS_ANY) {
-+           ~action_entry->hw_stats & FLOW_ACTION_HW_STATS_ANY) {
-                NL_SET_ERR_MSG_MOD(extack, "Driver supports only default HW stats type \"any\"");
-                return false;
-        } else if (check_allow_bit &&         <------ HERE
-
-These drivers are not honoring the _DONT_CARE bit,
-__flow_action_hw_stats_check() with check_allow_bit set on does not
-honor the _DONT_CARE bit.
-
-#2 Your patch needs to update Netfilter to set hw_stats to
-   FLOW_ACTION_HW_STATS_DONT_CARE explicitly.
+-ed
