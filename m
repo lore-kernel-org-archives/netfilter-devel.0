@@ -6,76 +6,101 @@ X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE2FFC433E0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 17:32:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65062C433E0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 17:52:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8AFBE2088E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 17:32:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 50E7E206B6
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 17:52:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726977AbgETRcV (ORCPT
+        id S1726720AbgETRw1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 May 2020 13:32:21 -0400
-Received: from correo.us.es ([193.147.175.20]:47770 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726436AbgETRcV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 May 2020 13:32:21 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A7E0E303D0B
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2020 19:32:18 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9C76DDA722
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2020 19:32:18 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 92073DA736; Wed, 20 May 2020 19:32:18 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 90A5ADA701;
-        Wed, 20 May 2020 19:32:16 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 20 May 2020 19:32:16 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Wed, 20 May 2020 13:52:27 -0400
+Received: from dispatch1-us1.ppe-hosted.com ([67.231.154.164]:34676 "EHLO
+        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726436AbgETRw1 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 20 May 2020 13:52:27 -0400
+Received: from mx1-us1.ppe-hosted.com (unknown [10.110.50.143])
+        by dispatch1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id D8F11200BB;
+        Wed, 20 May 2020 17:52:26 +0000 (UTC)
+Received: from us4-mdac16-38.at1.mdlocal (unknown [10.110.51.53])
+        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id D6F0E8009B;
+        Wed, 20 May 2020 17:52:26 +0000 (UTC)
+X-Virus-Scanned: Proofpoint Essentials engine
+Received: from mx1-us1.ppe-hosted.com (unknown [10.110.50.8])
+        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 61FD740061;
+        Wed, 20 May 2020 17:52:26 +0000 (UTC)
+Received: from webmail.solarflare.com (uk.solarflare.com [193.34.186.16])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 703A942EF42A;
-        Wed, 20 May 2020 19:32:16 +0200 (CEST)
-Date:   Wed, 20 May 2020 19:32:16 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Edward Cree <ecree@solarflare.com>
-Cc:     davem@davemloft.net, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, jiri@resnulli.us, kuba@kernel.org
+        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id F089D4C009B;
+        Wed, 20 May 2020 17:52:25 +0000 (UTC)
+Received: from [10.17.20.203] (10.17.20.203) by ukex01.SolarFlarecom.com
+ (10.17.10.4) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Wed, 20 May
+ 2020 18:52:19 +0100
 Subject: Re: [PATCH v3 net-next] net: flow_offload: simplify hw stats check
  handling
-Message-ID: <20200520173216.GA28641@salvia>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+CC:     <davem@davemloft.net>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <jiri@resnulli.us>,
+        <kuba@kernel.org>
 References: <2cf9024d-1568-4594-5763-6c4e4e8fe47b@solarflare.com>
  <f2586a0e-fce1-cee9-e2dc-f3dc73500515@solarflare.com>
+ <20200520173216.GA28641@salvia>
+From:   Edward Cree <ecree@solarflare.com>
+Message-ID: <6e83fd83-86fd-981a-d080-269b9fd3e20f@solarflare.com>
+Date:   Wed, 20 May 2020 18:52:15 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.2.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <20200520173216.GA28641@salvia>
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <f2586a0e-fce1-cee9-e2dc-f3dc73500515@solarflare.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Language: en-GB
+X-Originating-IP: [10.17.20.203]
+X-ClientProxiedBy: ocex03.SolarFlarecom.com (10.20.40.36) To
+ ukex01.SolarFlarecom.com (10.17.10.4)
+X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1020-25430.003
+X-TM-AS-Result: No-5.158100-8.000000-10
+X-TMASE-MatchedRID: scwq2vQP8OG8rRvefcjeTR4ejJMDGBzF69aS+7/zbj+qvcIF1TcLYD6P
+        hj6DfZCEcf+//KzNhNGE/M8/lUcrM8e3wV6A2hchBWXr+dSZ1T0GchEhVwJY39Uf6bWFkfAuMk2
+        soYXYWBKPKEoHTEz5lLZO1++fulf40YRMm/X9bI5JUdgxNDUXWjg6RKCx6bV17K5p55rm0/Nxmp
+        lAleOtpEPoNa37ZjLwcskIOhkWTOL4miWUEaTQPqMY62qeQBkLfS0Ip2eEHnzWRN8STJpl3PoLR
+        4+zsDTtJC9jS54qtzWrM9sujA4gXlbniNbrVL0vVpZITW7Nwiak6fA/SZcZ9g==
+X-TM-AS-User-Approved-Sender: Yes
+X-TM-AS-User-Blocked-Sender: No
+X-TMASE-Result: 10--5.158100-8.000000
+X-TMASE-Version: SMEX-12.5.0.1300-8.5.1020-25430.003
+X-MDID: 1589997146-dWzB2_nHfUAg
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, May 20, 2020 at 06:31:05PM +0100, Edward Cree wrote:
-> On 20/05/2020 18:21, Edward Cree wrote:
-> > @@ -582,7 +590,7 @@ nf_flow_offload_rule_alloc(struct net *net,
-> >  	const struct flow_offload_tuple *tuple;
-> >  	struct nf_flow_rule *flow_rule;
-> >  	struct dst_entry *other_dst;
-> > -	int err = -ENOMEM;
-> > +	int err = -ENOMEM, i;
-> >  
-> >  	flow_rule = kzalloc(sizeof(*flow_rule), GFP_KERNEL);
-> >  	if (!flow_rule)
-> Whoops, this changebar isn't meant to be there.� Somehow I missed
-> �the unused var warning when I built it, too.
-> Drop this, I'll spin v4.
+On 20/05/2020 18:32, Pablo Neira Ayuso wrote:
+> On Wed, May 20, 2020 at 06:31:05PM +0100, Edward Cree wrote:
+>> On 20/05/2020 18:21, Edward Cree wrote:
+>>> @@ -582,7 +590,7 @@ nf_flow_offload_rule_alloc(struct net *net,
+>>>  	const struct flow_offload_tuple *tuple;
+>>>  	struct nf_flow_rule *flow_rule;
+>>>  	struct dst_entry *other_dst;
+>>> -	int err = -ENOMEM;
+>>> +	int err = -ENOMEM, i;
+>>>  
+>>>  	flow_rule = kzalloc(sizeof(*flow_rule), GFP_KERNEL);
+>>>  	if (!flow_rule)
+>> Whoops, this changebar isn't meant to be there.  Somehow I missed
+>>  the unused var warning when I built it, too.
+>> Drop this, I'll spin v4.
+> The nf_tables_offload.c update is missing, please include this in v4.
+Hmm.  Rather than me trying to whack-a-mole all the places in
+ netfilter that create actions... given that the other user is TC,
+ which explicitly sets hw_stats, maybe I should instead make
+ flow_rule_alloc() populate all the hw_stats with DONT_CARE?
+It certainly makes for a shorter patch, and makes it less likely
+ that bugs will be introduced later when new action offloads get
+ added to netfilter by forgetting to set hw_stats.
+And it means the patch doesn't rely on me knowing things about
+ netfilter internals which I apparently don't.
 
-The nf_tables_offload.c update is missing, please include this in v4.
+-ed
