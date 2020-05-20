@@ -2,105 +2,110 @@ Return-Path: <SRS0=7yxH=7C=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65062C433E0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 17:52:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B44DAC433E0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 18:17:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 50E7E206B6
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 17:52:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7594A20671
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 18:17:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726720AbgETRw1 (ORCPT
+        id S1726789AbgETSRA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 May 2020 13:52:27 -0400
-Received: from dispatch1-us1.ppe-hosted.com ([67.231.154.164]:34676 "EHLO
-        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726436AbgETRw1 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 May 2020 13:52:27 -0400
-Received: from mx1-us1.ppe-hosted.com (unknown [10.110.50.143])
-        by dispatch1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id D8F11200BB;
-        Wed, 20 May 2020 17:52:26 +0000 (UTC)
-Received: from us4-mdac16-38.at1.mdlocal (unknown [10.110.51.53])
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id D6F0E8009B;
-        Wed, 20 May 2020 17:52:26 +0000 (UTC)
-X-Virus-Scanned: Proofpoint Essentials engine
-Received: from mx1-us1.ppe-hosted.com (unknown [10.110.50.8])
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 61FD740061;
-        Wed, 20 May 2020 17:52:26 +0000 (UTC)
-Received: from webmail.solarflare.com (uk.solarflare.com [193.34.186.16])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id F089D4C009B;
-        Wed, 20 May 2020 17:52:25 +0000 (UTC)
-Received: from [10.17.20.203] (10.17.20.203) by ukex01.SolarFlarecom.com
- (10.17.10.4) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Wed, 20 May
- 2020 18:52:19 +0100
-Subject: Re: [PATCH v3 net-next] net: flow_offload: simplify hw stats check
- handling
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-CC:     <davem@davemloft.net>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <jiri@resnulli.us>,
-        <kuba@kernel.org>
-References: <2cf9024d-1568-4594-5763-6c4e4e8fe47b@solarflare.com>
- <f2586a0e-fce1-cee9-e2dc-f3dc73500515@solarflare.com>
- <20200520173216.GA28641@salvia>
-From:   Edward Cree <ecree@solarflare.com>
-Message-ID: <6e83fd83-86fd-981a-d080-269b9fd3e20f@solarflare.com>
-Date:   Wed, 20 May 2020 18:52:15 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.2.2
+        Wed, 20 May 2020 14:17:00 -0400
+Received: from correo.us.es ([193.147.175.20]:43494 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726566AbgETSQ7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 20 May 2020 14:16:59 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 38061DA722
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2020 20:16:58 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 29B0CDA709
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2020 20:16:58 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 1F6E2DA707; Wed, 20 May 2020 20:16:58 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 34977DA710
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2020 20:16:56 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 20 May 2020 20:16:56 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 202C442EF42A
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2020 20:16:56 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next 0/7] dynamic device updates for flowtables
+Date:   Wed, 20 May 2020 20:16:45 +0200
+Message-Id: <20200520181652.30285-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-In-Reply-To: <20200520173216.GA28641@salvia>
-Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Content-Language: en-GB
-X-Originating-IP: [10.17.20.203]
-X-ClientProxiedBy: ocex03.SolarFlarecom.com (10.20.40.36) To
- ukex01.SolarFlarecom.com (10.17.10.4)
-X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1020-25430.003
-X-TM-AS-Result: No-5.158100-8.000000-10
-X-TMASE-MatchedRID: scwq2vQP8OG8rRvefcjeTR4ejJMDGBzF69aS+7/zbj+qvcIF1TcLYD6P
-        hj6DfZCEcf+//KzNhNGE/M8/lUcrM8e3wV6A2hchBWXr+dSZ1T0GchEhVwJY39Uf6bWFkfAuMk2
-        soYXYWBKPKEoHTEz5lLZO1++fulf40YRMm/X9bI5JUdgxNDUXWjg6RKCx6bV17K5p55rm0/Nxmp
-        lAleOtpEPoNa37ZjLwcskIOhkWTOL4miWUEaTQPqMY62qeQBkLfS0Ip2eEHnzWRN8STJpl3PoLR
-        4+zsDTtJC9jS54qtzWrM9sujA4gXlbniNbrVL0vVpZITW7Nwiak6fA/SZcZ9g==
-X-TM-AS-User-Approved-Sender: Yes
-X-TM-AS-User-Blocked-Sender: No
-X-TMASE-Result: 10--5.158100-8.000000
-X-TMASE-Version: SMEX-12.5.0.1300-8.5.1020-25430.003
-X-MDID: 1589997146-dWzB2_nHfUAg
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 20/05/2020 18:32, Pablo Neira Ayuso wrote:
-> On Wed, May 20, 2020 at 06:31:05PM +0100, Edward Cree wrote:
->> On 20/05/2020 18:21, Edward Cree wrote:
->>> @@ -582,7 +590,7 @@ nf_flow_offload_rule_alloc(struct net *net,
->>>  	const struct flow_offload_tuple *tuple;
->>>  	struct nf_flow_rule *flow_rule;
->>>  	struct dst_entry *other_dst;
->>> -	int err = -ENOMEM;
->>> +	int err = -ENOMEM, i;
->>>  
->>>  	flow_rule = kzalloc(sizeof(*flow_rule), GFP_KERNEL);
->>>  	if (!flow_rule)
->> Whoops, this changebar isn't meant to be there.  Somehow I missed
->>  the unused var warning when I built it, too.
->> Drop this, I'll spin v4.
-> The nf_tables_offload.c update is missing, please include this in v4.
-Hmm.  Rather than me trying to whack-a-mole all the places in
- netfilter that create actions... given that the other user is TC,
- which explicitly sets hw_stats, maybe I should instead make
- flow_rule_alloc() populate all the hw_stats with DONT_CARE?
-It certainly makes for a shorter patch, and makes it less likely
- that bugs will be introduced later when new action offloads get
- added to netfilter by forgetting to set hw_stats.
-And it means the patch doesn't rely on me knowing things about
- netfilter internals which I apparently don't.
+Hi,
 
--ed
+Flowtable allows you to enable a fast forwarding path (packets bypass
+the classic forwarding path), eg.
+
+table inet filter {
+        flowtable fastpath {
+                hook ingress priority 0
+                devices = { eth0, eth1 }
+        }
+
+        chain forward {
+                type filter hook forward priority 0; policy accept;
+                ip protocol { tcp , udp } flow offload @fastpath;
+        }
+}
+
+This ruleset above places TCP and UDP flows in the "fastpath" flowtable.
+Flowtables integrate nicely with NAT and lightweight tunnels.
+
+This patchset implements dynamic device updates for flowtables:
+
+Patch #1 generalises the flowtable hook parser to take a hook list.
+Patch #2 passes a hook list to the flowtable hook registration/unregistration.
+Patch #3 adds a helper function to release the flowtable hook list.
+Patch #4 updates the flowtable event notifier to pass a flowtable hook list.
+Patch #5 allows users to add new devices to an existing flowtables.
+Patch #6 allows users to remove devices to an existing flowtables.
+Patch #7 allows to register a flowtable with no initial devices.
+
+This allows users to register a flowtable with no devices:
+
+	nft add flowtable x y { hook ingress priority 0\; }
+
+then, add dynamic devices as they show up:
+
+	nft add flowtable x y { devices = { ppp0, eth1 } \; }
+
+Devices that go away are automagically removed from the flowtable.
+
+Pablo Neira Ayuso (7):
+  netfilter: nf_tables: generalise flowtable hook parsing
+  netfilter: nf_tables: pass hook list to nft_{un,}register_flowtable_net_hooks()
+  netfilter: nf_tables: add nft_flowtable_hooks_destroy()
+  netfilter: nf_tables: pass hook list to flowtable event notifier
+  netfilter: nf_tables: add devices to existing flowtable
+  netfilter: nf_tables: delete devices from flowtable
+  netfilter: nf_tables: allow to register flowtable with no devices
+
+ include/net/netfilter/nf_tables.h |   7 +
+ net/netfilter/nf_tables_api.c     | 304 ++++++++++++++++++++++++------
+ 2 files changed, 253 insertions(+), 58 deletions(-)
+
+-- 
+2.20.1
+
