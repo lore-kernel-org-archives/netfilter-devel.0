@@ -2,123 +2,98 @@ Return-Path: <SRS0=7yxH=7C=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DF75C433E2
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 18:23:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1231C433E0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 18:40:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 55E8D20671
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 18:23:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BFA262072C
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 18:40:59 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="u3zvcyI7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727068AbgETSXs (ORCPT
+        id S1726510AbgETSk7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 May 2020 14:23:48 -0400
-Received: from correo.us.es ([193.147.175.20]:46610 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726799AbgETSXr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 May 2020 14:23:47 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 95F73ED5BF
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2020 20:23:46 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 88298DA70E
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2020 20:23:46 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7DD62DA703; Wed, 20 May 2020 20:23:46 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 921F9DA705
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2020 20:23:44 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 20 May 2020 20:23:44 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 7CF1E42EF42B
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2020 20:23:44 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 4/4] src: allow flowtable definitions with no devices
-Date:   Wed, 20 May 2020 20:23:37 +0200
-Message-Id: <20200520182337.31295-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200520182337.31295-1-pablo@netfilter.org>
-References: <20200520182337.31295-1-pablo@netfilter.org>
+        Wed, 20 May 2020 14:40:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39302 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726548AbgETSk6 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 20 May 2020 14:40:58 -0400
+Received: from mail-ej1-x643.google.com (mail-ej1-x643.google.com [IPv6:2a00:1450:4864:20::643])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5AB89C061A0F
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2020 11:40:58 -0700 (PDT)
+Received: by mail-ej1-x643.google.com with SMTP id s21so5364229ejd.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2020 11:40:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=gu04BwxFLehQzkmABOcTDiBulPEzSlONSfMwZQcVMtk=;
+        b=u3zvcyI7Q++6Mrg+MmoeQfMunW0bnvUUcFgUODN/jYgRJ37WBF4+miKSCA8fdvC/1g
+         GUP10vCDN4Z1KSoQoUQDdvUbxLDVG2GPuPrHlZ/3SWU7DPAgvVQ95YtU24hCtcH/xnZH
+         MM3FZwWjQ254/VEpuag7ghWygCITtaeuOhAUpLzfmNJnz4Nlpotw/Wr+mUUpmKnnXsO2
+         ls9zpoKVCSckhXYfeBugn3yVWwE5hEyKaiE0T4vRXZt5biF7zVJWlWxCZmJUn66vm8k8
+         F3vQ7okR866Ttnsg0lXKLFLkEr32xD5v5CcV+zZ0awhI5brIsS9d5FI28DaRnamMCeHt
+         +19Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=gu04BwxFLehQzkmABOcTDiBulPEzSlONSfMwZQcVMtk=;
+        b=YfFiInYu5mRz7zS6JFIX8i+GLjegYdTfIWqpJDO986MJPJZs7/1orzf/1Exj94VYcz
+         hLs8yZusneX3hOne04F+i+7er5LHYdCclHgNuk0tGQTi9+V4E91jHvHrtfT9bloi+SDv
+         p80YINwBsy0Cnbb/lGR+ODwLO1M/2YJK+sg1vsHzfpyoA1WCMJuLRWWM9Yep5x0nrYtm
+         8dHrMEy4ChDHN2AkgjYJ8CDnFmnUkPZ+78PXq/s5YhMwj2kpTFMxFugT1dpenx+LhBKE
+         wQQHks+VI2uzq5XKAtv74+TSiFMUy6g0BmbjAyJ3++FOWk8bZ2eUW5N1Z3w9/AADult9
+         Ujzw==
+X-Gm-Message-State: AOAM5303MDOcgv3uyHrO4xoQs7gEG4/MVaggtHKghmmb5dIVe77SRx6W
+        M9Z17yEZ0fbSYQtU4QKTxoCV01lT9Z4bv+cD3TG+
+X-Google-Smtp-Source: ABdhPJyl432j3d/8pUxUMZAk69CZRW+QGZ+OUXPSZa5FOTEpEa51O5OI2Wnf9L8vbda23KiNDb/yNHyV/QJBl7Ez13k=
+X-Received: by 2002:a17:906:4d82:: with SMTP id s2mr387133eju.542.1590000056930;
+ Wed, 20 May 2020 11:40:56 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+References: <a585b9933896bc542347d8f3f26b08005344dd84.1589920939.git.rgb@redhat.com>
+ <20200520165510.4l4q47vq6fyx7hh6@madcap2.tricolour.ca>
+In-Reply-To: <20200520165510.4l4q47vq6fyx7hh6@madcap2.tricolour.ca>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Wed, 20 May 2020 14:40:45 -0400
+Message-ID: <CAHC9VhRERV9_kgpcn2LBptgXGY0BB4A9CHT+V4-HFMcNd9_Ncg@mail.gmail.com>
+Subject: Re: [PATCH ghak25 v6] audit: add subj creds to NETFILTER_CFG record
+ to cover async unregister
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     Linux-Audit Mailing List <linux-audit@redhat.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, twoerner@redhat.com,
+        Eric Paris <eparis@parisplace.org>, fw@strlen.de,
+        tgraf@infradead.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
- # nft add flowtable x y { hook ingress priority 0\; }
+On Wed, May 20, 2020 at 12:55 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2020-05-20 12:51, Richard Guy Briggs wrote:
+> > Some table unregister actions seem to be initiated by the kernel to
+> > garbage collect unused tables that are not initiated by any userspace
+> > actions.  It was found to be necessary to add the subject credentials to
+> > cover this case to reveal the source of these actions.  A sample record:
+> >
+> > The uid, auid, tty, ses and exe fields have not been included since they
+> > are in the SYSCALL record and contain nothing useful in the non-user
+> > context.
+> >
+> >   type=NETFILTER_CFG msg=audit(2020-03-11 21:25:21.491:269) : table=nat family=bridge entries=0 op=unregister pid=153 subj=system_u:system_r:kernel_t:s0 comm=kworker/u4:2
 
-The listing shows no devices:
+FWIW, that record looks good.
 
- # nft list ruleset
- table ip x {
-        flowtable y {
-                hook ingress priority filter
-        }
- }
+> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+>
+> Self-NACK.  I forgot to remove cred and tty declarations.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/mnl.c  | 10 ++++++----
- src/rule.c | 14 ++++++++------
- 2 files changed, 14 insertions(+), 10 deletions(-)
-
-diff --git a/src/mnl.c b/src/mnl.c
-index 759ae41ceb01..19f666416909 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -1652,10 +1652,12 @@ int mnl_nft_flowtable_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 		nftnl_flowtable_set_u32(flo, NFTNL_FLOWTABLE_PRIO, 0);
- 	}
- 
--	dev_array = nft_flowtable_dev_array(cmd);
--	nftnl_flowtable_set_data(flo, NFTNL_FLOWTABLE_DEVICES,
--				 dev_array, 0);
--	nft_flowtable_dev_array_free(dev_array);
-+	if (cmd->flowtable->dev_expr) {
-+		dev_array = nft_flowtable_dev_array(cmd);
-+		nftnl_flowtable_set_data(flo, NFTNL_FLOWTABLE_DEVICES,
-+					 dev_array, 0);
-+		nft_flowtable_dev_array_free(dev_array);
-+	}
- 
- 	nftnl_flowtable_set_u32(flo, NFTNL_FLOWTABLE_FLAGS,
- 				cmd->flowtable->flags);
-diff --git a/src/rule.c b/src/rule.c
-index 1f56faeb5c3c..21a52157391d 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -2272,13 +2272,15 @@ static void flowtable_print_declaration(const struct flowtable *flowtable,
- 			   flowtable->hook.num, flowtable->priority.expr),
- 		  opts->stmt_separator);
- 
--	nft_print(octx, "%s%sdevices = { ", opts->tab, opts->tab);
--	for (i = 0; i < flowtable->dev_array_len; i++) {
--		nft_print(octx, "%s", flowtable->dev_array[i]);
--		if (i + 1 != flowtable->dev_array_len)
--			nft_print(octx, ", ");
-+	if (flowtable->dev_array_len > 0) {
-+		nft_print(octx, "%s%sdevices = { ", opts->tab, opts->tab);
-+		for (i = 0; i < flowtable->dev_array_len; i++) {
-+			nft_print(octx, "%s", flowtable->dev_array[i]);
-+			if (i + 1 != flowtable->dev_array_len)
-+				nft_print(octx, ", ");
-+		}
-+		nft_print(octx, " }%s", opts->stmt_separator);
- 	}
--	nft_print(octx, " }%s", opts->stmt_separator);
- 
- 	if (flowtable->flags & NFT_FLOWTABLE_COUNTER)
- 		nft_print(octx, "%s%scounter%s", opts->tab, opts->tab,
 -- 
-2.20.1
-
+paul moore
+www.paul-moore.com
