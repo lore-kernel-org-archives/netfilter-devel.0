@@ -6,107 +6,52 @@ X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 152EAC433E1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 15:18:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16D8DC433DF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 15:59:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F22A520671
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 15:18:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 009D32072C
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 May 2020 15:59:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726688AbgETPSs (ORCPT
+        id S1726818AbgETP7n (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 May 2020 11:18:48 -0400
-Received: from dispatch1-us1.ppe-hosted.com ([67.231.154.164]:41838 "EHLO
-        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726486AbgETPSs (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 May 2020 11:18:48 -0400
-Received: from mx1-us1.ppe-hosted.com (unknown [10.110.50.144])
-        by dispatch1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id 6F3E220056;
-        Wed, 20 May 2020 15:18:47 +0000 (UTC)
-Received: from us4-mdac16-59.at1.mdlocal (unknown [10.110.50.152])
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTP id 6DC6E800A4;
-        Wed, 20 May 2020 15:18:47 +0000 (UTC)
-X-Virus-Scanned: Proofpoint Essentials engine
-Received: from mx1-us1.ppe-hosted.com (unknown [10.110.48.236])
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id EDACB40077;
-        Wed, 20 May 2020 15:18:46 +0000 (UTC)
-Received: from webmail.solarflare.com (uk.solarflare.com [193.34.186.16])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 8A8B8400095;
-        Wed, 20 May 2020 15:18:46 +0000 (UTC)
-Received: from [10.17.20.203] (10.17.20.203) by ukex01.SolarFlarecom.com
- (10.17.10.4) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Wed, 20 May
- 2020 16:18:40 +0100
-Subject: Re: [PATCH net-next v2] net: flow_offload: simplify hw stats check
- handling
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-CC:     <davem@davemloft.net>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <jiri@resnulli.us>,
-        <kuba@kernel.org>
-References: <cf0d731d-cb34-accd-ff40-6be013dd9972@solarflare.com>
- <20200519171923.GA16785@salvia>
- <6013b7ce-48c9-7169-c945-01b2226638e4@solarflare.com>
- <20200519173508.GA17141@salvia>
- <dc732572-6f69-6cbe-5df1-ca4d6e6ed131@solarflare.com>
- <20200520143330.GA23050@salvia>
-From:   Edward Cree <ecree@solarflare.com>
-Message-ID: <981c02e9-6152-feed-2607-9607e58b760c@solarflare.com>
-Date:   Wed, 20 May 2020 16:18:37 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.2.2
+        Wed, 20 May 2020 11:59:43 -0400
+Received: from verein.lst.de ([213.95.11.211]:50490 "EHLO verein.lst.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726560AbgETP7n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 20 May 2020 11:59:43 -0400
+Received: by verein.lst.de (Postfix, from userid 2407)
+        id EB05F68BEB; Wed, 20 May 2020 17:59:40 +0200 (CEST)
+Date:   Wed, 20 May 2020 17:59:40 +0200
+From:   Christoph Hellwig <hch@lst.de>
+To:     Al Viro <viro@zeniv.linux.org.uk>
+Cc:     Ian Kent <raven@themaw.net>, David Howells <dhowells@redhat.com>,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-security-module@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Subject: Re: clean up kernel_{read,write} & friends v2
+Message-ID: <20200520155940.GA4313@lst.de>
+References: <20200513065656.2110441-1-hch@lst.de>
 MIME-Version: 1.0
-In-Reply-To: <20200520143330.GA23050@salvia>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Content-Language: en-GB
-X-Originating-IP: [10.17.20.203]
-X-ClientProxiedBy: ocex03.SolarFlarecom.com (10.20.40.36) To
- ukex01.SolarFlarecom.com (10.17.10.4)
-X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1020-25430.003
-X-TM-AS-Result: No-3.679000-8.000000-10
-X-TMASE-MatchedRID: hls5oAVArl+8rRvefcjeTR4ejJMDGBzF69aS+7/zbj+qvcIF1TcLYILL
-        5sr088cXhAaFAwxjJ1cOmKSDLU0HeW00sCPwNg7wqYUcLUvrWVj348e2CE/wYiNGK7UC7ElMNJD
-        jFX5JKf1ZAHwcJSAboAXidoJ7b4hPfcSal8l6P7BIwW/Kvkvzgt1eFEoaE12nmbdPE3zcujhPpj
-        LRqc8GlkfXh0xnZvblsgAkUr9nVXYvwcx4DcVB2wGdJZ3Knh6hqV3VmuIFNEv+UVve/ZY5tK5cF
-        KGf3JC5Sl4zVySO23hOBek6Nnej9A/IIKW24r39ngIgpj8eDcByZ8zcONpAscRB0bsfrpPIcSqb
-        xBgG0w6achrirk/mmT27L4wyeFLDpgnXqw6nBZdmBCSRfw/PXn8S1HbHCtojZ5wrY0zWCp9Fzux
-        dhbVQwa1Y5Ca0eNDSo7M4c5rtlSDUNewp4E2/TgSpmVYGQlZ3sxk1kV1Ja8fhIo573pBCBw==
-X-TM-AS-User-Approved-Sender: Yes
-X-TM-AS-User-Blocked-Sender: No
-X-TMASE-Result: 10--3.679000-8.000000
-X-TMASE-Version: SMEX-12.5.0.1300-8.5.1020-25430.003
-X-MDID: 1589987927-2Hm1UR9Je-0O
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200513065656.2110441-1-hch@lst.de>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 20/05/2020 15:33, Pablo Neira Ayuso wrote:
-> #1 Drivers calling flow_action_hw_stats_check() fall within the
-> second branch (check_allow_bit is set on).
->
->         } else if (check_allow_bit &&         <------ HERE
->
-> These drivers are not honoring the _DONT_CARE bit,
-> __flow_action_hw_stats_check() with check_allow_bit set on does not
-> honor the _DONT_CARE bit.
-I don't understand.  There isn't a _DONT_CARE bit; _DONT_CARE isa
- bitmask of *all* the bits: BIT(FLOW_ACTION_HW_STATS_NUM_BITS) - 1.
-So if allow_bit < FLOW_ACTION_HW_STATS_NUM_BITS, then
- BIT(allow_bit) & FLOW_ACTION_HW_STATS_DONT_CARE is nonzero, and
- thus the function returns true.
+ping?
 
-> #2 Your patch needs to update Netfilter to set hw_stats to
->    FLOW_ACTION_HW_STATS_DONT_CARE explicitly.
-Ahh, naïvely I had assumed that you would have done that in the
- patch that added _DONT_CARE; I should have checked that.  Will
- fix that for the next version.
-
-Thank you for being specific.
-And you'll be pleased to know that I've managed to bodge a working
- nft binary onto my test system, so hopefully I'll be able to test
- with netfilter offload.  Am I right in thinking that an ingress
- chain on the netdev table is the thing I want?
-
--ed
+On Wed, May 13, 2020 at 08:56:42AM +0200, Christoph Hellwig wrote:
+> Hi Al,
+> 
+> this series fixes a few issues and cleans up the helpers that read from
+> or write to kernel space buffers, and ensures that we don't change the
+> address limit if we are using the ->read_iter and ->write_iter methods
+> that don't need the changed address limit.
+> 
+> Changes since v1:
+>  - __kernel_write must not take sb_writers
+>  - unexported __kernel_write
+---end quoted text---
