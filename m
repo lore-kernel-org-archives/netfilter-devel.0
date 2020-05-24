@@ -2,199 +2,77 @@ Return-Path: <SRS0=wFQz=7G=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CF81C433E1
-	for <netfilter-devel@archiver.kernel.org>; Sun, 24 May 2020 19:54:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 479D9C433E0
+	for <netfilter-devel@archiver.kernel.org>; Sun, 24 May 2020 19:56:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5463920787
-	for <netfilter-devel@archiver.kernel.org>; Sun, 24 May 2020 19:54:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2DD1520787
+	for <netfilter-devel@archiver.kernel.org>; Sun, 24 May 2020 19:56:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388116AbgEXTyY (ORCPT
+        id S2388032AbgEXT4y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 24 May 2020 15:54:24 -0400
-Received: from correo.us.es ([193.147.175.20]:50346 "EHLO mail.us.es"
+        Sun, 24 May 2020 15:56:54 -0400
+Received: from correo.us.es ([193.147.175.20]:53250 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388084AbgEXTyY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 24 May 2020 15:54:24 -0400
+        id S2388029AbgEXT4x (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 24 May 2020 15:56:53 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5F364A58A1
-        for <netfilter-devel@vger.kernel.org>; Sun, 24 May 2020 21:54:22 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id C35D295314
+        for <netfilter-devel@vger.kernel.org>; Sun, 24 May 2020 21:56:52 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4ED13DA712
-        for <netfilter-devel@vger.kernel.org>; Sun, 24 May 2020 21:54:22 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B518EDA707
+        for <netfilter-devel@vger.kernel.org>; Sun, 24 May 2020 21:56:52 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 436A0DA701; Sun, 24 May 2020 21:54:22 +0200 (CEST)
+        id AA86EDA703; Sun, 24 May 2020 21:56:52 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3DD29DA70E;
-        Sun, 24 May 2020 21:54:20 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 74CECDA703;
+        Sun, 24 May 2020 21:56:50 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 24 May 2020 21:54:20 +0200 (CEST)
+ Sun, 24 May 2020 21:56:50 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 15D1B42EF42A;
-        Sun, 24 May 2020 21:54:20 +0200 (CEST)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 5898442EF42A;
+        Sun, 24 May 2020 21:56:50 +0200 (CEST)
+Date:   Sun, 24 May 2020 21:56:50 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     mkubecek@suse.cz, jacobraz@chromium.org, fw@strlen.de
-Subject: [PATCH nf 1/2] netfilter: conntrack: make conntrack userspace helpers work again
-Date:   Sun, 24 May 2020 21:54:09 +0200
-Message-Id: <20200524195410.28502-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200524195410.28502-1-pablo@netfilter.org>
-References: <20200524195410.28502-1-pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v2 nf] netfilter: make conntrack userspace helpers work
+ again
+Message-ID: <20200524195650.GA28733@salvia>
+References: <CAPZ+yNLdFUDCnuBG-LeS4aVvr14Pjp_mBbi+GFR9w49QVK_7Mg@mail.gmail.com>
+ <20200515212712.16637-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200515212712.16637-1-fw@strlen.de>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Florian Westphal says:
+On Fri, May 15, 2020 at 11:27:12PM +0200, Florian Westphal wrote:
+> conntrackd has support for userspace-based connection tracking helpers,
+> to move parsing of control packets to userspace.
 
-"Problem is that after the helper hook was merged back into the confirm
-one, the queueing itself occurs from the confirm hook, i.e. we queue
-from the last netfilter callback in the hook-list.
+I posted a patch that simplifies this logic by checking for:
 
-Therefore, on return, the packet bypasses the confirm action and the
-connection is never committed to the main conntrack table.
+        helper->flags & NF_CT_HELPER_F_USERSPACE
 
-Therefore, on return, the packet bypasses the confirm action and the
-connection is never committed to the main conntrack table.
+from the nf_conntrack_update path.
 
-To fix this there are several ways:
-1. revert the 'Fixes' commit and have a extra helper hook again.
-   Works, but has the drawback of adding another indirect call for
-   everyone.
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20200524195410.28502-2-pablo@netfilter.org/
 
-2. Special case this: split the hooks only when userspace helper
-   gets added, so queueing occurs at a lower priority again,
-   and normal nqueue reinject would eventually call the last hook.
+There was another issue that I have also fixed.
 
-3. Extend the existing nf_queue ct update hook to allow a forced
-   confirmation (plus run the seqadj code).
-
-This goes for 3)."
-
-Fixes: 827318feb69cb ("netfilter: conntrack: remove helper hook again")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_core.c | 79 ++++++++++++++++++++++++++++---
- 1 file changed, 73 insertions(+), 6 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 1d57b95d3481..d2cbce4695a4 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2016,22 +2016,18 @@ static void nf_conntrack_attach(struct sk_buff *nskb, const struct sk_buff *skb)
- 	nf_conntrack_get(skb_nfct(nskb));
- }
- 
--static int nf_conntrack_update(struct net *net, struct sk_buff *skb)
-+static int __nf_conntrack_update(struct net *net, struct sk_buff *skb,
-+				 struct nf_conn *ct)
- {
- 	struct nf_conntrack_tuple_hash *h;
- 	struct nf_conntrack_tuple tuple;
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_nat_hook *nat_hook;
- 	unsigned int status;
--	struct nf_conn *ct;
- 	int dataoff;
- 	u16 l3num;
- 	u8 l4num;
- 
--	ct = nf_ct_get(skb, &ctinfo);
--	if (!ct || nf_ct_is_confirmed(ct))
--		return 0;
--
- 	l3num = nf_ct_l3num(ct);
- 
- 	dataoff = get_l4proto(skb, skb_network_offset(skb), l3num, &l4num);
-@@ -2088,6 +2084,77 @@ static int nf_conntrack_update(struct net *net, struct sk_buff *skb)
- 	return 0;
- }
- 
-+/* This packet is coming from userspace via nf_queue, complete the packet
-+ * processing after the helper invocation in nf_confirm().
-+ */
-+static int nf_confirm_cthelper(struct sk_buff *skb, struct nf_conn *ct,
-+			       enum ip_conntrack_info ctinfo)
-+{
-+	const struct nf_conntrack_helper *helper;
-+	const struct nf_conn_help *help;
-+	unsigned int protoff;
-+
-+	help = nfct_help(ct);
-+	if (!help)
-+		return 0;
-+
-+	helper = rcu_dereference(help->helper);
-+	if (!(helper->flags & NF_CT_HELPER_F_USERSPACE))
-+		return 0;
-+
-+	switch (nf_ct_l3num(ct)) {
-+	case NFPROTO_IPV4:
-+		protoff = skb_network_offset(skb) + ip_hdrlen(skb);
-+		break;
-+#if IS_ENABLED(CONFIG_IPV6)
-+	case NFPROTO_IPV6: {
-+		__be16 frag_off;
-+		u8 pnum;
-+
-+		pnum = ipv6_hdr(skb)->nexthdr;
-+		protoff = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr), &pnum,
-+					   &frag_off);
-+		if (protoff < 0 || (frag_off & htons(~0x7)) != 0)
-+			return 0;
-+		break;
-+	}
-+#endif
-+	default:
-+		return 0;
-+	}
-+
-+	if (test_bit(IPS_SEQ_ADJUST_BIT, &ct->status) &&
-+	    !nf_is_loopback_packet(skb)) {
-+		if (!nf_ct_seq_adjust(skb, ct, ctinfo, protoff)) {
-+			NF_CT_STAT_INC_ATOMIC(nf_ct_net(ct), drop);
-+			return -1;
-+		}
-+	}
-+
-+	/* We've seen it coming out the other side: confirm it */
-+	return nf_conntrack_confirm(skb) == NF_DROP ? - 1 : 0;
-+}
-+
-+static int nf_conntrack_update(struct net *net, struct sk_buff *skb)
-+{
-+	enum ip_conntrack_info ctinfo;
-+	struct nf_conn *ct;
-+	int err;
-+
-+	ct = nf_ct_get(skb, &ctinfo);
-+	if (!ct)
-+		return 0;
-+
-+	err = nf_confirm_cthelper(skb, ct, ctinfo);
-+	if (err < 0)
-+		return err;
-+
-+	if (nf_ct_is_confirmed(ct))
-+		return 0;
-+
-+	return __nf_conntrack_update(net, skb, ct);
-+}
-+
- static bool nf_conntrack_get_tuple_skb(struct nf_conntrack_tuple *dst_tuple,
- 				       const struct sk_buff *skb)
- {
--- 
-2.20.1
-
+Thanks for posting your patch.
