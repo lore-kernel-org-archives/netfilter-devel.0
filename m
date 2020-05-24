@@ -7,114 +7,105 @@ X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6287DC433DF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 24 May 2020 13:00:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9FD3C433E0
+	for <netfilter-devel@archiver.kernel.org>; Sun, 24 May 2020 13:00:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2258E20776
-	for <netfilter-devel@archiver.kernel.org>; Sun, 24 May 2020 13:00:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB91220776
+	for <netfilter-devel@archiver.kernel.org>; Sun, 24 May 2020 13:00:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="KX//J4Uw"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="IRcitDuB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728807AbgEXNAG (ORCPT
+        id S2387416AbgEXNAJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 24 May 2020 09:00:06 -0400
-Received: from us-smtp-2.mimecast.com ([207.211.31.81]:25250 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1725873AbgEXNAG (ORCPT
+        Sun, 24 May 2020 09:00:09 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:39876 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1725873AbgEXNAJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 24 May 2020 09:00:06 -0400
+        Sun, 24 May 2020 09:00:09 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1590325204;
+        s=mimecast20190719; t=1590325207;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding;
-        bh=amIRaCQJsifw59sAdCoNsH1Xquev8M0L1J8U8PCCSkU=;
-        b=KX//J4UwAfpJsfF4+Evr/Qk56w3H0MTAmRIvmpQcBtlHNFtHkBOwaVeXGo2HpUYXG+MP+X
-        59ybKQC7BASBNL0W8QayHlaMkIygu9XOlRHlR1EdfVy5agsztvqwP2IsnPfFj5rDanIYRl
-        9ob3SWAf+MQRDu3OSaxh8FzYwqIduvU=
+        bh=mu7qzasRYqHLzllbvcZIbW5L4x8O2Zzv16NJf3e045s=;
+        b=IRcitDuBjNFDcNDEK/t/z6p1tixU1ch4guZk6tqqGYWdEL8pywjKphuuMJJKpG9LPIgEKB
+        l/bj0CiCPaBAwHySrKo9yoRLYML5Ht1SmRRI+fheO2O1KiHcJXEDLvzj1ZaKD6E3LgGqaH
+        4yHUca2o/cjIMfrFITs17gFQ36KPgJ0=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-55-LLkR7up6Nl2lskQjUC3OgA-1; Sun, 24 May 2020 09:00:02 -0400
-X-MC-Unique: LLkR7up6Nl2lskQjUC3OgA-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+ us-mta-265-9r8kDHAFMe69jGtsMOA8jQ-1; Sun, 24 May 2020 08:59:52 -0400
+X-MC-Unique: 9r8kDHAFMe69jGtsMOA8jQ-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id E15FB1800D42;
-        Sun, 24 May 2020 13:00:00 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 3475980183C;
+        Sun, 24 May 2020 12:59:51 +0000 (UTC)
 Received: from epycfail.redhat.com (unknown [10.36.110.3])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id C679E5C1B2;
-        Sun, 24 May 2020 12:59:59 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 2382760BF3;
+        Sun, 24 May 2020 12:59:49 +0000 (UTC)
 From:   Stefano Brivio <sbrivio@redhat.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] tests: shell: Avoid breaking basic connectivity when run
-Date:   Sun, 24 May 2020 14:59:57 +0200
-Message-Id: <9742365b595a791d4bd47abee6ad6271abe0950b.1590323912.git.sbrivio@redhat.com>
+Cc:     Matt Turner <mattst88@gmail.com>, netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] build: Fix doc build, restore A2X assignment for doc/Makefile
+Date:   Sun, 24 May 2020 14:59:36 +0200
+Message-Id: <8ef909eedea05cdd3072bea59d664e3a52e28dcd.1590320436.git.sbrivio@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-It might be convenient to run tests from a development branch that
-resides on another host, and if we break connectivity on the test
-host as tests are executed, we con't run them this way.
+Commit 4f2813a313ae ("build: Include generated man pages in dist
+tarball") skips AC_CHECK_PROG for A2X altogether if doc/nft.8 is
+already present.
 
-To preserve connectivity, for shell tests, we can simply use the
-'forward' hook instead of 'input' in chains/0036_policy_variable_0
-and transactions/0011_chain_0, without affecting test coverage.
+Now, starting from a clean situation, we can have this sequence:
+  ./configure	# doc/nft.8 not there, A2X set in doc/Makefile
+  make		# builds doc/nft.8
+  ./configure	# doc/nft.8 is there, A2X left empty in doc/Makefile
+  make clean	# removes doc/nft.8
+  make
 
-For py tests, this is more complicated as some test cases install
-chains for all the available hooks, and we would probably need a
-more refined approach to avoid dropping relevant traffic, so I'm
-not covering that right now.
+resulting in:
 
+  [...]
+    GEN      nft.8
+  /bin/sh: -L: command not found
+  make[2]: *** [Makefile:639: nft.8] Error 127
+
+and the only way to get out of this is to issue ./configure again
+after make clean, which is rather unexpected.
+
+Instead of skipping AC_CHECK_PROG when doc/nft.8 is present, keep
+it and simply avoid returning failure if a2x(1) is not available but
+doc/nft.8 was built, so that A2X is properly set in doc/Makefile
+whenever needed.
+
+Fixes: 4f2813a313ae ("build: Include generated man pages in dist tarball")
 Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
 ---
- tests/shell/testcases/chains/0036policy_variable_0       | 2 +-
- tests/shell/testcases/transactions/0011chain_0           | 2 +-
- tests/shell/testcases/transactions/dumps/0011chain_0.nft | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ configure.ac | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/tests/shell/testcases/chains/0036policy_variable_0 b/tests/shell/testcases/chains/0036policy_variable_0
-index d4d98ede0d8d..e9246dd9e974 100755
---- a/tests/shell/testcases/chains/0036policy_variable_0
-+++ b/tests/shell/testcases/chains/0036policy_variable_0
-@@ -9,7 +9,7 @@ define default_policy = \"drop\"
+diff --git a/configure.ac b/configure.ac
+index 3496e410dbbe..5a1f89a0104c 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -50,9 +50,9 @@ AC_EXEEXT
+ AC_DISABLE_STATIC
+ CHECK_GCC_FVISIBILITY
  
- table inet global {
-     chain prerouting {
--        type filter hook prerouting priority filter
-+        type filter hook forward priority filter
-         policy \$default_policy
-     }
- }"
-diff --git a/tests/shell/testcases/transactions/0011chain_0 b/tests/shell/testcases/transactions/0011chain_0
-index 3bed16dddf40..bdfa14975180 100755
---- a/tests/shell/testcases/transactions/0011chain_0
-+++ b/tests/shell/testcases/transactions/0011chain_0
-@@ -5,7 +5,7 @@ set -e
- RULESET="add table x
- add chain x y
- delete chain x y
--add chain x y { type filter hook input priority 0; }
-+add chain x y { type filter hook forward priority 0; }
- add chain x y { policy drop; }"
+-AS_IF([test "x$enable_man_doc" = "xyes" -a ! -f "${srcdir}/doc/nft.8"], [
++AS_IF([test "x$enable_man_doc" = "xyes"], [
+        AC_CHECK_PROG(A2X, [a2x], [a2x], [no])
+-       AS_IF([test "$A2X" = "no"],
++       AS_IF([test "$A2X" = "no" -a ! -f "${srcdir}/doc/nft.8"],
+ 	     [AC_MSG_ERROR([a2x not found, please install asciidoc])])
+ ])
  
- $NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/transactions/dumps/0011chain_0.nft b/tests/shell/testcases/transactions/dumps/0011chain_0.nft
-index df88ad47c5d9..a12726069efc 100644
---- a/tests/shell/testcases/transactions/dumps/0011chain_0.nft
-+++ b/tests/shell/testcases/transactions/dumps/0011chain_0.nft
-@@ -1,5 +1,5 @@
- table ip x {
- 	chain y {
--		type filter hook input priority filter; policy drop;
-+		type filter hook forward priority filter; policy drop;
- 	}
- }
 -- 
 2.26.2
 
