@@ -2,50 +2,52 @@ Return-Path: <SRS0=wFQz=7G=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BF95C433DF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88141C433E2
 	for <netfilter-devel@archiver.kernel.org>; Sun, 24 May 2020 19:54:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3860A207D8
+	by mail.kernel.org (Postfix) with ESMTP id 66C90207D8
 	for <netfilter-devel@archiver.kernel.org>; Sun, 24 May 2020 19:54:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388093AbgEXTyX (ORCPT
+        id S2388121AbgEXTy2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 24 May 2020 15:54:23 -0400
-Received: from correo.us.es ([193.147.175.20]:50344 "EHLO mail.us.es"
+        Sun, 24 May 2020 15:54:28 -0400
+Received: from correo.us.es ([193.147.175.20]:50368 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387992AbgEXTyX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 24 May 2020 15:54:23 -0400
+        id S2388084AbgEXTy2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 24 May 2020 15:54:28 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7898FA58AD
-        for <netfilter-devel@vger.kernel.org>; Sun, 24 May 2020 21:54:21 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id C297CA58A2
+        for <netfilter-devel@vger.kernel.org>; Sun, 24 May 2020 21:54:26 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 56514DA717
-        for <netfilter-devel@vger.kernel.org>; Sun, 24 May 2020 21:54:21 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A0BE7DA713
+        for <netfilter-devel@vger.kernel.org>; Sun, 24 May 2020 21:54:26 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 3D031DA714; Sun, 24 May 2020 21:54:21 +0200 (CEST)
+        id 8FF62DA710; Sun, 24 May 2020 21:54:26 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2EFB8DA709;
-        Sun, 24 May 2020 21:54:19 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 992EBDA702;
+        Sun, 24 May 2020 21:54:24 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 24 May 2020 21:54:19 +0200 (CEST)
+ Sun, 24 May 2020 21:54:24 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id F257F42EF42A;
-        Sun, 24 May 2020 21:54:18 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 64F8B42EF42A;
+        Sun, 24 May 2020 21:54:24 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     mkubecek@suse.cz, jacobraz@chromium.org, fw@strlen.de
-Subject: [PATCH nf 0/2] restore userspace helper support
-Date:   Sun, 24 May 2020 21:54:08 +0200
-Message-Id: <20200524195410.28502-1-pablo@netfilter.org>
+Subject: [PATCH nf 2/2] netfilter: nfnetlink_cthelper: unbreak userspace helper support
+Date:   Sun, 24 May 2020 21:54:10 +0200
+Message-Id: <20200524195410.28502-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200524195410.28502-1-pablo@netfilter.org>
+References: <20200524195410.28502-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
@@ -54,21 +56,36 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Restore helper data size initialization and fix memcopy of the helper
+data size.
 
-This patchset restores the userspace helper support:
+Fixes: 157ffffeb5dc ("netfilter: nfnetlink_cthelper: reject too large userspace allocation requests")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nfnetlink_cthelper.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-1) Missing conntrack confirmation after packet reinjection.
-2) Missing data_len initialization and incorrect nla_memcpy().
-
-Pablo Neira Ayuso (2):
-  netfilter: conntrack: make conntrack userspace helpers work again
-  netfilter: nfnetlink_cthelper: unbreak userspace helper support
-
- net/netfilter/nf_conntrack_core.c  | 79 +++++++++++++++++++++++++++---
- net/netfilter/nfnetlink_cthelper.c |  3 +-
- 2 files changed, 75 insertions(+), 7 deletions(-)
-
+diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
+index a5f294aa8e4c..5b0d0a77379c 100644
+--- a/net/netfilter/nfnetlink_cthelper.c
++++ b/net/netfilter/nfnetlink_cthelper.c
+@@ -103,7 +103,7 @@ nfnl_cthelper_from_nlattr(struct nlattr *attr, struct nf_conn *ct)
+ 	if (help->helper->data_len == 0)
+ 		return -EINVAL;
+ 
+-	nla_memcpy(help->data, nla_data(attr), sizeof(help->data));
++	nla_memcpy(help->data, attr, sizeof(help->data));
+ 	return 0;
+ }
+ 
+@@ -240,6 +240,7 @@ nfnl_cthelper_create(const struct nlattr * const tb[],
+ 		ret = -ENOMEM;
+ 		goto err2;
+ 	}
++	helper->data_len = size;
+ 
+ 	helper->flags |= NF_CT_HELPER_F_USERSPACE;
+ 	memcpy(&helper->tuple, tuple, sizeof(struct nf_conntrack_tuple));
 -- 
 2.20.1
 
