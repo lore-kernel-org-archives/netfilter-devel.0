@@ -2,78 +2,175 @@ Return-Path: <SRS0=uYLw=7H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6D18C433DF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 May 2020 15:59:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 070A2C433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 May 2020 16:17:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AD7502071A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 May 2020 15:59:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0EBC2071A
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 May 2020 16:17:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390998AbgEYP7y (ORCPT
+        id S1729776AbgEYQRQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 May 2020 11:59:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60640 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388211AbgEYP7y (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 May 2020 11:59:54 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4829FC061A0E
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 May 2020 08:59:54 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1jdFW4-0006AQ-Pu; Mon, 25 May 2020 17:59:52 +0200
-Date:   Mon, 25 May 2020 17:59:52 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Stefano Brivio <sbrivio@redhat.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] tests: shell: Avoid breaking basic connectivity when
- run
-Message-ID: <20200525155952.GW17795@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Stefano Brivio <sbrivio@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <9742365b595a791d4bd47abee6ad6271abe0950b.1590323912.git.sbrivio@redhat.com>
+        Mon, 25 May 2020 12:17:16 -0400
+Received: from correo.us.es ([193.147.175.20]:49772 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726514AbgEYQRQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 25 May 2020 12:17:16 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 29EBCB5AA9
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 May 2020 18:17:14 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1B451DA705
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 May 2020 18:17:14 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 0F756DA701; Mon, 25 May 2020 18:17:14 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E23AADA707
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 May 2020 18:17:11 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 25 May 2020 18:17:11 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id D00EE42EE395
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 May 2020 18:17:11 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next] netfilter: nf_tables: skip flowtable hooknum and priority on device updates
+Date:   Mon, 25 May 2020 18:17:09 +0200
+Message-Id: <20200525161709.24801-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9742365b595a791d4bd47abee6ad6271abe0950b.1590323912.git.sbrivio@redhat.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+On device updates, the hooknum and priority attributes are not required.
+This patch makes optional these two netlink attributes.
 
-On Sun, May 24, 2020 at 02:59:57PM +0200, Stefano Brivio wrote:
-> It might be convenient to run tests from a development branch that
-> resides on another host, and if we break connectivity on the test
-> host as tests are executed, we con't run them this way.
-> 
-> To preserve connectivity, for shell tests, we can simply use the
-> 'forward' hook instead of 'input' in chains/0036_policy_variable_0
-> and transactions/0011_chain_0, without affecting test coverage.
-> 
-> For py tests, this is more complicated as some test cases install
-> chains for all the available hooks, and we would probably need a
-> more refined approach to avoid dropping relevant traffic, so I'm
-> not covering that right now.
+Moreover, bail out with EOPNOTSUPP if userspace tries to update the
+hooknum and priority for existing flowtables.
 
-This is a recurring issue, iptables testsuites suffer from this problem
-as well. There it was solved by running everything in a dedicated netns:
+While at this, turn EINVAL into EOPNOTSUPP in case the hooknum is not
+ingress. EINVAL is reserved for missing netlink attribute / malformed
+netlink messages.
 
-iptables/tests/shell: Call testscripts via 'unshare -n <file>'.
-iptables-test.py: If called with --netns, 'ip netns exec <foo>' is
-added as prefix to any of the iptables commands.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 53 +++++++++++++++++++++++------------
+ 1 file changed, 35 insertions(+), 18 deletions(-)
 
-I considered doing the same in nftables testsuites several times but
-never managed to keep me motivated enough. Maybe you want to give it a
-try?
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 897ac5fbe079..073aa1051d43 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -6195,7 +6195,7 @@ static const struct nla_policy nft_flowtable_hook_policy[NFTA_FLOWTABLE_HOOK_MAX
+ static int nft_flowtable_parse_hook(const struct nft_ctx *ctx,
+ 				    const struct nlattr *attr,
+ 				    struct nft_flowtable_hook *flowtable_hook,
+-				    struct nf_flowtable *ft)
++				    struct nft_flowtable *flowtable, bool add)
+ {
+ 	struct nlattr *tb[NFTA_FLOWTABLE_HOOK_MAX + 1];
+ 	struct nft_hook *hook;
+@@ -6209,15 +6209,35 @@ static int nft_flowtable_parse_hook(const struct nft_ctx *ctx,
+ 	if (err < 0)
+ 		return err;
+ 
+-	if (!tb[NFTA_FLOWTABLE_HOOK_NUM] ||
+-	    !tb[NFTA_FLOWTABLE_HOOK_PRIORITY])
+-		return -EINVAL;
++	if (add) {
++		if (!tb[NFTA_FLOWTABLE_HOOK_NUM] ||
++		    !tb[NFTA_FLOWTABLE_HOOK_PRIORITY])
++			return -EINVAL;
+ 
+-	hooknum = ntohl(nla_get_be32(tb[NFTA_FLOWTABLE_HOOK_NUM]));
+-	if (hooknum != NF_NETDEV_INGRESS)
+-		return -EINVAL;
++		hooknum = ntohl(nla_get_be32(tb[NFTA_FLOWTABLE_HOOK_NUM]));
++		if (hooknum != NF_NETDEV_INGRESS)
++			return -EOPNOTSUPP;
++
++		priority = ntohl(nla_get_be32(tb[NFTA_FLOWTABLE_HOOK_PRIORITY]));
++
++		flowtable_hook->priority	= priority;
++		flowtable_hook->num		= hooknum;
++	} else {
++		if (tb[NFTA_FLOWTABLE_HOOK_NUM]) {
++			hooknum = ntohl(nla_get_be32(tb[NFTA_FLOWTABLE_HOOK_NUM]));
++			if (hooknum != flowtable->hooknum)
++				return -EOPNOTSUPP;
++		}
++
++		if (tb[NFTA_FLOWTABLE_HOOK_PRIORITY]) {
++			priority = ntohl(nla_get_be32(tb[NFTA_FLOWTABLE_HOOK_PRIORITY]));
++			if (priority != flowtable->data.priority)
++				return -EOPNOTSUPP;
++		}
+ 
+-	priority = ntohl(nla_get_be32(tb[NFTA_FLOWTABLE_HOOK_PRIORITY]));
++		flowtable_hook->priority	= flowtable->data.priority;
++		flowtable_hook->num		= flowtable->hooknum;
++	}
+ 
+ 	if (tb[NFTA_FLOWTABLE_HOOK_DEVS]) {
+ 		err = nf_tables_parse_netdev_hooks(ctx->net,
+@@ -6227,15 +6247,12 @@ static int nft_flowtable_parse_hook(const struct nft_ctx *ctx,
+ 			return err;
+ 	}
+ 
+-	flowtable_hook->priority	= priority;
+-	flowtable_hook->num		= hooknum;
+-
+ 	list_for_each_entry(hook, &flowtable_hook->list, list) {
+ 		hook->ops.pf		= NFPROTO_NETDEV;
+-		hook->ops.hooknum	= hooknum;
+-		hook->ops.priority	= priority;
+-		hook->ops.priv		= ft;
+-		hook->ops.hook		= ft->type->hook;
++		hook->ops.hooknum	= flowtable_hook->num;
++		hook->ops.priority	= flowtable_hook->priority;
++		hook->ops.priv		= &flowtable->data;
++		hook->ops.hook		= flowtable->data.type->hook;
+ 	}
+ 
+ 	return err;
+@@ -6363,7 +6380,7 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
+ 	int err;
+ 
+ 	err = nft_flowtable_parse_hook(ctx, nla[NFTA_FLOWTABLE_HOOK],
+-				       &flowtable_hook, &flowtable->data);
++				       &flowtable_hook, flowtable, false);
+ 	if (err < 0)
+ 		return err;
+ 
+@@ -6492,7 +6509,7 @@ static int nf_tables_newflowtable(struct net *net, struct sock *nlsk,
+ 		goto err3;
+ 
+ 	err = nft_flowtable_parse_hook(&ctx, nla[NFTA_FLOWTABLE_HOOK],
+-				       &flowtable_hook, &flowtable->data);
++				       &flowtable_hook, flowtable, true);
+ 	if (err < 0)
+ 		goto err4;
+ 
+@@ -6543,7 +6560,7 @@ static int nft_delflowtable_hook(struct nft_ctx *ctx,
+ 	int err;
+ 
+ 	err = nft_flowtable_parse_hook(ctx, nla[NFTA_FLOWTABLE_HOOK],
+-				       &flowtable_hook, &flowtable->data);
++				       &flowtable_hook, flowtable, false);
+ 	if (err < 0)
+ 		return err;
+ 
+-- 
+2.20.1
 
-Cheers, Phil
