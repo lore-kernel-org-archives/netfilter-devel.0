@@ -2,79 +2,76 @@ Return-Path: <SRS0=uYLw=7H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D21BC433E0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 May 2020 12:03:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45949C433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 May 2020 12:50:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0824B2071A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 May 2020 12:03:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C6A72073B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 May 2020 12:50:40 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="e2uV8r+5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390387AbgEYMD4 (ORCPT
+        id S2390618AbgEYMuj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 May 2020 08:03:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51798 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390306AbgEYMD4 (ORCPT
+        Mon, 25 May 2020 08:50:39 -0400
+Received: from us-smtp-2.mimecast.com ([205.139.110.61]:54106 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S2390501AbgEYMuj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 May 2020 08:03:56 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60FC2C061A0E
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 May 2020 05:03:56 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1jdBpi-0004yE-IM; Mon, 25 May 2020 14:03:54 +0200
-Date:   Mon, 25 May 2020 14:03:54 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, jacobraz@chromium.org,
-        fw@strlen.de, mkubecek@suse.cz
-Subject: Re: [PATCH nf,v2 1/2] netfilter: conntrack: make conntrack userspace
- helpers work again
-Message-ID: <20200525120354.GD2915@breakpoint.cc>
-References: <20200525114715.2301-1-pablo@netfilter.org>
+        Mon, 25 May 2020 08:50:39 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1590411038;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=XHN+elCfwcOw0838CZW70Pam8zm7F5oVD/v2pP4Q0bY=;
+        b=e2uV8r+5Ge3LUB74PtN6ero3bApi3eYGGdgYvEfCOEzJbiuDyazwPKxJjPXZfuKoT2mJj2
+        OM6+fsnAwZk4QWTUzYOCEeSPlw3WEs4t9XoST7wnS5A4ytvVFCOqYgsgtITQN7a8MhuNcA
+        5X/ziUjQYV7gMYfy5Wdhv0G9/uyiTQQ=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-112-iHXgy-rRMduXiuUXjvrXmw-1; Mon, 25 May 2020 08:50:36 -0400
+X-MC-Unique: iHXgy-rRMduXiuUXjvrXmw-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 0EF08107ACCD;
+        Mon, 25 May 2020 12:50:36 +0000 (UTC)
+Received: from localhost (unknown [10.36.110.3])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 2962878B57;
+        Mon, 25 May 2020 12:50:34 +0000 (UTC)
+Date:   Mon, 25 May 2020 14:50:31 +0200
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Konstantin Khorenko <khorenko@virtuozzo.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: How to test the kernel netfilter logic?
+Message-ID: <20200525145031.42afc130@redhat.com>
+In-Reply-To: <e925907a-475f-725e-a2b7-6b9d78b236d1@virtuozzo.com>
+References: <e925907a-475f-725e-a2b7-6b9d78b236d1@virtuozzo.com>
+Organization: Red Hat
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200525114715.2301-1-pablo@netfilter.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Florian Westphal says:
-> 
-> "Problem is that after the helper hook was merged back into the confirm
-> one, the queueing itself occurs from the confirm hook, i.e. we queue
-> from the last netfilter callback in the hook-list.
-> 
-> Therefore, on return, the packet bypasses the confirm action and the
-> connection is never committed to the main conntrack table.
-> 
-> Therefore, on return, the packet bypasses the confirm action and the
-> connection is never committed to the main conntrack table.
-> 
-> To fix this there are several ways:
-> 1. revert the 'Fixes' commit and have a extra helper hook again.
->    Works, but has the drawback of adding another indirect call for
->    everyone.
-> 
-> 2. Special case this: split the hooks only when userspace helper
->    gets added, so queueing occurs at a lower priority again,
->    and normal nqueue reinject would eventually call the last hook.
-> 
-> 3. Extend the existing nf_queue ct update hook to allow a forced
->    confirmation (plus run the seqadj code).
-> 
-> This goes for 3)."
-> 
-> Fixes: 827318feb69cb ("netfilter: conntrack: remove helper hook again")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> v2: call __nf_conntrack_update() before ct helper confirmation.
+Hi Konstantin,
 
-Reviewed-by: Florian Westphal <fw@strlen.de>
+On Mon, 25 May 2020 11:37:57 +0300
+Konstantin Khorenko <khorenko@virtuozzo.com> wrote:
+
+> but did not find netfilter tests in kernel git repo as well.
+
+Have a look at tools/testing/selftests/netfilter/, some of the tests
+there actually send traffic and check the outcome.
+
+-- 
+Stefano
+
