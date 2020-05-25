@@ -2,91 +2,103 @@ Return-Path: <SRS0=uYLw=7H=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 927DCC433E1
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 May 2020 21:54:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49D2FC433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 May 2020 23:12:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 750FB2071C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 May 2020 21:54:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C066207CB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 May 2020 23:12:25 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="EnUVz1Cg"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389441AbgEYVym (ORCPT
+        id S2388542AbgEYXMY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 May 2020 17:54:42 -0400
-Received: from correo.us.es ([193.147.175.20]:47304 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389346AbgEYVy2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 May 2020 17:54:28 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id F36C0F8D6F
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 May 2020 23:54:26 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E34F3DA712
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 May 2020 23:54:26 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D8603DA70F; Mon, 25 May 2020 23:54:26 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D0051DA70E;
-        Mon, 25 May 2020 23:54:24 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 25 May 2020 23:54:24 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 9BBB942EE38E;
-        Mon, 25 May 2020 23:54:24 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 1/5] netfilter: nft_reject_bridge: enable reject with bridge vlan
-Date:   Mon, 25 May 2020 23:54:16 +0200
-Message-Id: <20200525215420.2290-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200525215420.2290-1-pablo@netfilter.org>
-References: <20200525215420.2290-1-pablo@netfilter.org>
+        Mon, 25 May 2020 19:12:24 -0400
+Received: from us-smtp-2.mimecast.com ([207.211.31.81]:29163 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S2388013AbgEYXMY (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 25 May 2020 19:12:24 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1590448342;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=nXkpnoCuomfd/APVPagAUOQAmqnAQwAuSuA/tkkwLGA=;
+        b=EnUVz1CgTAOcHvKkRJ8l9bjtEPIYu/+3mcMRZjoV21ADhLuXnQ6SMNh2Zmko215He7pGBB
+        MenIJylWK0uoEk8Iv9JenTGbD/sFQXVWw+fCXHvdj5M4EpJN2svUTruDnuJ1iune2KINSG
+        clIivcXwsmQeQEr/KUaalF47egymg/0=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-191-Ij_RodS2MzCkdYNhky4EPQ-1; Mon, 25 May 2020 19:12:19 -0400
+X-MC-Unique: Ij_RodS2MzCkdYNhky4EPQ-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 1502E19057AD;
+        Mon, 25 May 2020 23:12:18 +0000 (UTC)
+Received: from localhost (unknown [10.36.110.3])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 37CF683861;
+        Mon, 25 May 2020 23:12:16 +0000 (UTC)
+Date:   Tue, 26 May 2020 01:12:13 +0200
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Konstantin Khorenko <khorenko@virtuozzo.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: How to test the kernel netfilter logic?
+Message-ID: <20200526011213.37df67a1@redhat.com>
+In-Reply-To: <8499b3da-fef3-2e42-289a-c824837d8ca3@virtuozzo.com>
+References: <e925907a-475f-725e-a2b7-6b9d78b236d1@virtuozzo.com>
+        <20200525145031.42afc130@redhat.com>
+        <8499b3da-fef3-2e42-289a-c824837d8ca3@virtuozzo.com>
+Organization: Red Hat
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Michael Braun <michael-dev@fami-braun.de>
+On Mon, 25 May 2020 17:00:24 +0300
+Konstantin Khorenko <khorenko@virtuozzo.com> wrote:
 
-Currently, using the bridge reject target with tagged packets
-results in untagged packets being sent back.
+> On 05/25/2020 03:50 PM, Stefano Brivio wrote:
+> > Hi Konstantin,
+> >
+> > On Mon, 25 May 2020 11:37:57 +0300
+> > Konstantin Khorenko <khorenko@virtuozzo.com> wrote:
+> >  
+> >> but did not find netfilter tests in kernel git repo as well.  
+> >
+> > Have a look at tools/testing/selftests/netfilter/, some of the tests
+> > there actually send traffic and check the outcome.  
+> 
+> Hi Stefano,
+> 
+> thank you very much for the answer!
+> 
+> Yes, you are right, i know about that place, i just thought it's just
+> for "smoke" testing:
 
-Fix this by mirroring the vlan id as well.
+Well, I'd say it's a bit more than that, some tests there cover
+specific functionalities rather extensively. Still:
 
-Fixes: 85f5b3086a04 ("netfilter: bridge: add reject support")
-Signed-off-by: Michael Braun <michael-dev@fami-braun.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/bridge/netfilter/nft_reject_bridge.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+> "iptables" and "nftables" repos have many more testcases (for add/del
+> rules), so i thought there is some additional place with similar very
+> detailed tests for kernel part.
 
-diff --git a/net/bridge/netfilter/nft_reject_bridge.c b/net/bridge/netfilter/nft_reject_bridge.c
-index b325b569e761..f48cf4cfb80f 100644
---- a/net/bridge/netfilter/nft_reject_bridge.c
-+++ b/net/bridge/netfilter/nft_reject_bridge.c
-@@ -31,6 +31,12 @@ static void nft_reject_br_push_etherhdr(struct sk_buff *oldskb,
- 	ether_addr_copy(eth->h_dest, eth_hdr(oldskb)->h_source);
- 	eth->h_proto = eth_hdr(oldskb)->h_proto;
- 	skb_pull(nskb, ETH_HLEN);
-+
-+	if (skb_vlan_tag_present(oldskb)) {
-+		u16 vid = skb_vlan_tag_get(oldskb);
-+
-+		__vlan_hwaccel_put_tag(nskb, oldskb->vlan_proto, vid);
-+	}
- }
- 
- static int nft_bridge_iphdr_validate(struct sk_buff *skb)
+...I'm not aware of any (except for ipset cases that actually test both
+sides with packets, see http://git.netfilter.org/ipset/tree/tests).
+
+Sure, I think it would be great to have something with actual traffic
+at the same level of detail as nft tests, though.
+
 -- 
-2.20.1
+Stefano
 
