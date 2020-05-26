@@ -2,94 +2,92 @@ Return-Path: <SRS0=ickv=7I=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82945C433DF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 May 2020 13:37:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1EBEC433E0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 May 2020 13:39:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 58E0A204EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 May 2020 13:37:07 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="uMuPR7nF"
+	by mail.kernel.org (Postfix) with ESMTP id A9C4F2068D
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 May 2020 13:39:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729303AbgEZNhH (ORCPT
+        id S1729300AbgEZNjz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 May 2020 09:37:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38384 "EHLO
+        Tue, 26 May 2020 09:39:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38840 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728126AbgEZNhG (ORCPT
+        with ESMTP id S1728048AbgEZNjz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 May 2020 09:37:06 -0400
-Received: from mail-il1-x136.google.com (mail-il1-x136.google.com [IPv6:2607:f8b0:4864:20::136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C1A2C03E96D
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2020 06:37:06 -0700 (PDT)
-Received: by mail-il1-x136.google.com with SMTP id 18so20417213iln.9
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2020 06:37:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=vJZOgfruD2sE2Z+pv1SauO+c2pg8/9mKfWnyOu0gu28=;
-        b=uMuPR7nFV9QV89EOPdZHZrFWgiFNYflWtPWn7uidR7ySEkq6pv+AE6eiivlGAzRDTp
-         7VErFUczFB/GtymHhTqmAaBb0PLytlaKVSVtc9Wc32N+d6ULOv7fTTL+QQGyv4Z2HUpc
-         5m0a8Vs5UscjxQ04K55KUosWPrVXaOfgg2TALS0ACtnVQgeqn3EWOFChmcPvTb24pUdV
-         f1D70yyuIhSvobPmK0cr9hxOw9krKP4rLtU4heTF1zQRgY9zyPmFBlZwnXGlx5HhD5wQ
-         8ei75eAQ/S8KSVpdCgHG3NUUC9ewh2w9cOSqrlcCtj22ec74u3cnveDBMiJryX18Gyc+
-         A23w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=vJZOgfruD2sE2Z+pv1SauO+c2pg8/9mKfWnyOu0gu28=;
-        b=OhDR6sFuF5e8J50fQdAs0jRs2my7kvU5XCZnkYPQEWEcSmB7D+YRMQWqw1SW0v1Odv
-         e01jCpWwx+/Y7NAhJ+hYeP4aoWaVEiww16MzQr8/dv3aGGOrI6EAI8GG787Gg7CwjVrL
-         8+u9P1eF2B9jvJvw3glSS7Fjfa5bTM+kVbgggJsxqJ/2mreXfwPDWATaI9dX4lQiOhMn
-         zIEI/A6xKYSDosCDI8cfPwilhQ2X+/LXzgUbkW+01IAw05clbfiQWqm4b8KKRUlOYi1U
-         U4GASZVdx9sOCnT11nlGF1HlgbP7jTUz8atFL78vtrRK+eZPBtEyLWmWf0DOiMZTXgCL
-         nuLg==
-X-Gm-Message-State: AOAM533+ef1FBfZFD6G2RMn+LBWUYPNlv6aI12oM81L7n7sg521ODKM3
-        /ZvQKfWrqC0RqD4J0bf3pJ2mZNpFj6o4nzdGoDtr1kx1
-X-Google-Smtp-Source: ABdhPJybThAst3jJMvpmbUUBXNCCNrs2zC1JCi8oFPQTjRklJC1fKtTTUDelvc++foTldM6YAqMP3tGMvJLYywd8UV0=
-X-Received: by 2002:a92:9154:: with SMTP id t81mr1126939ild.235.1590500225691;
- Tue, 26 May 2020 06:37:05 -0700 (PDT)
+        Tue, 26 May 2020 09:39:55 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E944BC03E96D
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2020 06:39:54 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1jdZo8-0004ia-Br; Tue, 26 May 2020 15:39:52 +0200
+Date:   Tue, 26 May 2020 15:39:52 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Stefano Brivio <sbrivio@redhat.com>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 2/2] tests: shell: Introduce test for concatenated
+ ranges in anonymous sets
+Message-ID: <20200526133952.GX17795@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Stefano Brivio <sbrivio@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <cover.1590324033.git.sbrivio@redhat.com>
+ <5735155a0e98738cdc5507385d6225e05c225465.1590324033.git.sbrivio@redhat.com>
+ <20200525154834.GU17795@orbyte.nwl.cc>
+ <20200526011247.71f5c6e1@redhat.com>
 MIME-Version: 1.0
-References: <CAOdf3gqGQQCFJ8O8KVM7fVBYcKLy=UCf+AOvEdaoArMAx98ezg@mail.gmail.com>
- <20200506120012.GA21153@salvia> <20200506120909.GA10344@orbyte.nwl.cc> <CAOdf3gr+7SoqF-hzpccqAsN4ejpn+5K_kDP-2bkaqpqh+CLV7Q@mail.gmail.com>
-In-Reply-To: <CAOdf3gr+7SoqF-hzpccqAsN4ejpn+5K_kDP-2bkaqpqh+CLV7Q@mail.gmail.com>
-From:   Etienne Champetier <champetier.etienne@gmail.com>
-Date:   Tue, 26 May 2020 09:36:54 -0400
-Message-ID: <CAOdf3gqceU4jSQgd+cdtaT8_Oxqe8Xx0ncRB1VuzBYiRLiobXw@mail.gmail.com>
-Subject: Re: iptables 1.8.5 ETA ?
-To:     Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200526011247.71f5c6e1@redhat.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Phil and Pablo,
+Hi,
 
-Le mer. 6 mai 2020 =C3=A0 08:40, Etienne Champetier
-<champetier.etienne@gmail.com> a =C3=A9crit :
->
-> Le mer. 6 mai 2020 =C3=A0 08:09, Phil Sutter <phil@nwl.cc> a =C3=A9crit :
-> [...]
-> >
-> > If above goes well, maybe release next week to leave at least a small
-> > margin for any fallout to show up?
+On Tue, May 26, 2020 at 01:12:47AM +0200, Stefano Brivio wrote:
+> On Mon, 25 May 2020 17:48:34 +0200
+> Phil Sutter <phil@nwl.cc> wrote:
+> 
+> > On Sun, May 24, 2020 at 03:00:27PM +0200, Stefano Brivio wrote:
+> > > Add a simple anonymous set including a concatenated range and check
+> > > it's inserted correctly. This is roughly based on the existing
+> > > 0025_anonymous_set_0 test case.  
+> > 
+> > I think this is pretty much redundant to what tests/py/inet/sets.t tests
+> > if you simply enable the anonymous set rule I added in commit
+> > 64b9aa3803dd1 ("tests/py: Add tests involving concatenated ranges").
+> 
+> Nice, I wasn't aware of that one. Anyway, this isn't really redundant
+> as it also checks that sets are reported back correctly (which I
+> expected to break, even if it didn't) by comparing with the dump file,
+> instead of just checking netlink messages.
+> 
+> So I'd actually suggest that we keep this and I'd send another patch
+> (should I repost this series? A separate patch?) to enable the rule you
+> added for py tests.
 
-Still on track for 1.8.5 this month ?
+But nft-test.py does check ruleset listing, that's what the optional
+third part of a rule line is for. The syntax is roughly:
 
-Best, Etienne
+| <rule>;(fail|ok[;<rule_out>])
 
+It allows us to cover for asymmetric rule listings. A simple example
+from any/ct.t is:
 
->
-> Sounds perfect, I can wait for more fixes :)
-> Thanks
->
-> > Cheers, Phil
+| ct mark or 0x23 == 0x11;ok;ct mark | 0x00000023 == 0x00000011
+
+So nft reports mark values with leading zeroes (don't ask me why ;).
+
+Am I missing some extra your test does?
+
+Cheers, Phil
