@@ -2,98 +2,94 @@ Return-Path: <SRS0=ickv=7I=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF866C433E0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 May 2020 18:45:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41EA5C433DF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 May 2020 20:10:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 968B52073B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 May 2020 18:45:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1590518748;
-	bh=dTkEYg4KSMJPZZj0UBOXCaw3CX1QFptE1NpfaQYBtzU=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=q0j4FrUJYWcVqwibiJRLjKJiSYhUA7oWxAcs8zL16NBP75TE9Vvq/w6ir0VTr4pC4
-	 7AEH38IR+Eo2LpHUZeyLBceJJYk1auB0y/YL8c+pfH7m1VsNEJc15HLNIy1VlW0ssR
-	 +B/iMjaNFdU6hLgJmnIKUhc0n0LX66edt98r3ujc=
+	by mail.kernel.org (Postfix) with ESMTP id 29FD820721
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 May 2020 20:10:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388499AbgEZSpr (ORCPT
+        id S2390924AbgEZUK2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 May 2020 14:45:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42258 "EHLO mail.kernel.org"
+        Tue, 26 May 2020 16:10:28 -0400
+Received: from correo.us.es ([193.147.175.20]:51870 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728576AbgEZSpq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 May 2020 14:45:46 -0400
-Received: from kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net (unknown [163.114.132.6])
+        id S2390569AbgEZUK2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 26 May 2020 16:10:28 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 5E214172C88
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2020 22:10:26 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 50546DA702
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2020 22:10:26 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 45F36DA710; Tue, 26 May 2020 22:10:26 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 431F2DA715;
+        Tue, 26 May 2020 22:10:24 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 26 May 2020 22:10:24 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 61EDF2070A;
-        Tue, 26 May 2020 18:45:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1590518746;
-        bh=dTkEYg4KSMJPZZj0UBOXCaw3CX1QFptE1NpfaQYBtzU=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=Z0giFQYOAC4/gnwHuXpcY3ZaF9sY83uvESW06bwRd3DY+wd3kepO3vEelFhs/TtOy
-         pMgm2VuYeWbapR0fiRubUazvYHMDeX61veQSuWZhANTNrVP2gawrOTcQmlFGsA/NDt
-         UNPDY+kfvyRtzSH2b/HV3L4a932XLoJ6zpjAA/eg=
-Date:   Tue, 26 May 2020 11:45:44 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH 4/5] netfilter: conntrack: make conntrack userspace
- helpers work again
-Message-ID: <20200526114544.2510d245@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
-In-Reply-To: <20200525215420.2290-5-pablo@netfilter.org>
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 24D2D42EF42A;
+        Tue, 26 May 2020 22:10:24 +0200 (CEST)
+Date:   Tue, 26 May 2020 22:10:23 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     David Miller <davem@davemloft.net>
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        kuba@kernel.org
+Subject: Re: [PATCH 0/5] Netfilter fixes for net
+Message-ID: <20200526201023.GA26232@salvia>
 References: <20200525215420.2290-1-pablo@netfilter.org>
-        <20200525215420.2290-5-pablo@netfilter.org>
+ <20200525.182901.536565434439717149.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200525.182901.536565434439717149.davem@davemloft.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, 25 May 2020 23:54:19 +0200 Pablo Neira Ayuso wrote:
-> +/* This packet is coming from userspace via nf_queue, complete the packet
-> + * processing after the helper invocation in nf_confirm().
-> + */
-> +static int nf_confirm_cthelper(struct sk_buff *skb, struct nf_conn *ct,
-> +			       enum ip_conntrack_info ctinfo)
-> +{
-> +	const struct nf_conntrack_helper *helper;
-> +	const struct nf_conn_help *help;
-> +	unsigned int protoff;
-> +
-> +	help = nfct_help(ct);
-> +	if (!help)
-> +		return 0;
-> +
-> +	helper = rcu_dereference(help->helper);
-> +	if (!(helper->flags & NF_CT_HELPER_F_USERSPACE))
-> +		return 0;
-> +
-> +	switch (nf_ct_l3num(ct)) {
-> +	case NFPROTO_IPV4:
-> +		protoff = skb_network_offset(skb) + ip_hdrlen(skb);
-> +		break;
-> +#if IS_ENABLED(CONFIG_IPV6)
-> +	case NFPROTO_IPV6: {
-> +		__be16 frag_off;
-> +		u8 pnum;
-> +
-> +		pnum = ipv6_hdr(skb)->nexthdr;
-> +		protoff = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr), &pnum,
-> +					   &frag_off);
-> +		if (protoff < 0 || (frag_off & htons(~0x7)) != 0)
-> +			return 0;
-> +		break;
-> +	}
+On Mon, May 25, 2020 at 06:29:01PM -0700, David Miller wrote:
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> Date: Mon, 25 May 2020 23:54:15 +0200
+> 
+> > The following patchset contains Netfilter fixes for net:
+> > 
+> > 1) Set VLAN tag in tcp reset/icmp unreachable packets to reject
+> >    connections in the bridge family, from Michael Braun.
+> > 
+> > 2) Incorrect subcounter flag update in ipset, from Phil Sutter.
+> > 
+> > 3) Possible buffer overflow in the pptp conntrack helper, based
+> >    on patch from Dan Carpenter.
+> > 
+> > 4) Restore userspace conntrack helper hook logic that broke after
+> >    hook consolidation rework.
+> > 
+> > 5) Unbreak userspace conntrack helper registration via
+> >    nfnetlink_cthelper.
+> > 
+> > You can pull these changes from:
+> > 
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+> 
+> Pulled, thank you.
 
-net/netfilter/nf_conntrack_core.c: In function nf_confirm_cthelper:
-net/netfilter/nf_conntrack_core.c:2117:15: warning: comparison of unsigned expression in < 0 is always false [-Wtype-limits]
- 2117 |   if (protoff < 0 || (frag_off & htons(~0x7)) != 0)
-      |               ^
+If it's still possible, it would be good to toss this pull request.
+
+Otherwise, I will send another pull request to address the kbuild
+reports.
+
+Thank you.
