@@ -2,166 +2,85 @@ Return-Path: <SRS0=LpWG=7J=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92DE6C433E0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 May 2020 20:51:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABD9EC433E0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 May 2020 21:39:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6DA6F2088E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 May 2020 20:51:47 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="izuNofmM"
+	by mail.kernel.org (Postfix) with ESMTP id 7E3E42075A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 May 2020 21:39:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728715AbgE0Uvr (ORCPT
+        id S1726482AbgE0Vjn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 May 2020 16:51:47 -0400
-Received: from us-smtp-1.mimecast.com ([207.211.31.81]:51072 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728571AbgE0Uvq (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 May 2020 16:51:46 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1590612705;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=oh4H839+SxmSLDEwccxLq90SaWwJvHB2N7qu0JEJSIA=;
-        b=izuNofmM8rcbMgLUx9u0wH+F9y0r5aVmDtvuuQDuj9LFV2EmJbffWfkUhOiUNuQuk3ajuD
-        r3ZIpoyR8CgK4FWgd5X2/lXHreAZC0bUn2Mr/79kh4OsxOw6soG/uC9fWtyVP7l1NwrEvB
-        vT4J1TGP1Hyyam6SiiZon2LIW+x0mgo=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-299-TA0HlPYMNMew9a5pYJyfYQ-1; Wed, 27 May 2020 16:51:41 -0400
-X-MC-Unique: TA0HlPYMNMew9a5pYJyfYQ-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        Wed, 27 May 2020 17:39:43 -0400
+Received: from correo.us.es ([193.147.175.20]:40426 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726114AbgE0Vjm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 27 May 2020 17:39:42 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 216CF9F4C5
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 May 2020 23:39:40 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 12D16DA710
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 May 2020 23:39:40 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 08224DA703; Wed, 27 May 2020 23:39:40 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 227D2DA703;
+        Wed, 27 May 2020 23:39:38 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 27 May 2020 23:39:38 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B0B681005510;
-        Wed, 27 May 2020 20:51:40 +0000 (UTC)
-Received: from epycfail.redhat.com (unknown [10.36.110.54])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 94EFF78B33;
-        Wed, 27 May 2020 20:51:34 +0000 (UTC)
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: [PATCH nft v2 1/2] evaluate: Perform set evaluation on implicitly declared (anonymous) sets
-Date:   Wed, 27 May 2020 22:51:21 +0200
-Message-Id: <03583cfdf6ad252f3c0472616a9e63178ee9d6ae.1590612113.git.sbrivio@redhat.com>
-In-Reply-To: <cover.1590612113.git.sbrivio@redhat.com>
-References: <cover.1590612113.git.sbrivio@redhat.com>
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 05D3B42EF4E0;
+        Wed, 27 May 2020 23:39:37 +0200 (CEST)
+Date:   Wed, 27 May 2020 23:39:37 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Michael Braun <michael-dev@fami-braun.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH 0/3] Avoid gretap fragmentation with nftables on bridge
+Message-ID: <20200527213937.GA2714@salvia>
+References: <cover.1588758255.git.michael-dev@fami-braun.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1588758255.git.michael-dev@fami-braun.de>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If a set is implicitly declared, set_evaluate() is not called as a
-result of cmd_evaluate_add(), because we're adding in fact something
-else (e.g. a rule). Expression-wise, evaluation still happens as the
-implicit set expression is eventually found in the tree and handled
-by expr_evaluate_set(), but context-wise evaluation (set_evaluate())
-is skipped, and this might be relevant instead.
+On Wed, May 06, 2020 at 11:46:22AM +0200, Michael Braun wrote:
+> Hi,
+> 
+> I have a bridge with connects an gretap tunnel with some ethernet lan.
+> On the gretap device I use ignore-df to avoid packets being lost without
+> icmp reject to the sender of the bridged packet.
+> 
+> Still I want to avoid packet fragmentation with the gretap packets.
+> So I though about adding an nftables rule like this:
+> 
+> nft insert rule bridge filter FORWARD \
+>   ip protocol tcp \
+>   ip length > 1400 \
+>   ip frag-off & 0x4000 != 0 \
+>   reject with icmp type frag-needed
+> 
+> This would reject all tcp packets with ip dont-fragment bit set that are
+> bigger than some threshold (here 1400 bytes). The sender would then receive
+> ICMP unreachable - fragmentation needed and reduce its packet size (as
+> defined with PMTU).
 
-This is visible in the reported case of an anonymous set including
-concatenated ranges:
+Patches 1 and 2 are applied, thanks.
 
-  # nft add rule t c ip saddr . tcp dport { 192.0.2.1 . 20-30 } accept
-  BUG: invalid range expression type concat
-  nft: expression.c:1160: range_expr_value_low: Assertion `0' failed.
-  Aborted
-
-because we reach do_add_set() without properly evaluated flags and
-set description, and eventually end up in expr_to_intervals(), which
-can't handle that expression.
-
-Explicitly call set_evaluate() as we add anonymous sets into the
-context, and instruct the same function to:
-- skip expression-wise set evaluation if the set is anonymous, as
-  that happens later anyway as part of the general tree evaluation
-- skip the insertion in the set cache, as it makes no sense to have
-  sets that shouldn't be referenced there
-
-For object maps, the allocation of the expression for set->data is
-already handled by set_evaluate(), so we can now drop that from
-stmt_evaluate_objref_map().
-
-v2:
- - skip insertion of set in cache (Pablo Neira Ayuso)
- - drop double allocation of expression (and leak of the first
-   one) for object maps (Pablo Neira Ayuso)
-
-Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Reported-by: Phil Sutter <phil@nwl.cc>
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
----
- src/evaluate.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
-
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 506f2c6a257e..9019458be53e 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -76,6 +76,7 @@ static void key_fix_dtype_byteorder(struct expr *key)
- 	datatype_set(key, set_datatype_alloc(dtype, key->byteorder));
- }
- 
-+static int set_evaluate(struct eval_ctx *ctx, struct set *set);
- static struct expr *implicit_set_declaration(struct eval_ctx *ctx,
- 					     const char *name,
- 					     struct expr *key,
-@@ -107,6 +108,8 @@ static struct expr *implicit_set_declaration(struct eval_ctx *ctx,
- 		list_add_tail(&cmd->list, &ctx->cmd->list);
- 	}
- 
-+	set_evaluate(ctx, set);
-+
- 	return set_ref_expr_alloc(&expr->location, set);
- }
- 
-@@ -3316,12 +3319,6 @@ static int stmt_evaluate_objref_map(struct eval_ctx *ctx, struct stmt *stmt)
- 
- 		mappings = implicit_set_declaration(ctx, "__objmap%d",
- 						    key, mappings);
--
--		mappings->set->data = constant_expr_alloc(&netlink_location,
--							  &string_type,
--							  BYTEORDER_HOST_ENDIAN,
--							  NFT_OBJ_MAXNAMELEN * BITS_PER_BYTE,
--							  NULL);
- 		mappings->set->objtype  = stmt->objref.type;
- 
- 		map->mappings = mappings;
-@@ -3546,6 +3543,13 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
- 
- 	}
- 
-+	/* Default timeout value implies timeout support */
-+	if (set->timeout)
-+		set->flags |= NFT_SET_TIMEOUT;
-+
-+	if (set_is_anonymous(set->flags))
-+		return 0;
-+
- 	ctx->set = set;
- 	if (set->init != NULL) {
- 		__expr_set_context(&ctx->ectx, set->key->dtype,
-@@ -3558,10 +3562,6 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
- 	if (set_lookup(table, set->handle.set.name) == NULL)
- 		set_add_hash(set_get(set), table);
- 
--	/* Default timeout value implies timeout support */
--	if (set->timeout)
--		set->flags |= NFT_SET_TIMEOUT;
--
- 	return 0;
- }
- 
--- 
-2.26.2
-
+Patch 3 has been merged upstream as a bugfix since VLAN should be
+preversed in any reject case.
