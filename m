@@ -1,88 +1,78 @@
-Return-Path: <SRS0=LpWG=7J=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=RvX8=7K=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B60D1C433E0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 May 2020 22:40:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7610C433DF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 May 2020 00:09:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 92AA22073B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 May 2020 22:40:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A6EBE2084C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 May 2020 00:09:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726282AbgE0Wkv (ORCPT
+        id S1725768AbgE1AJt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 May 2020 18:40:51 -0400
-Received: from correo.us.es ([193.147.175.20]:33446 "EHLO mail.us.es"
+        Wed, 27 May 2020 20:09:49 -0400
+Received: from correo.us.es ([193.147.175.20]:38940 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725879AbgE0Wkp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 May 2020 18:40:45 -0400
+        id S1725267AbgE1AJt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 27 May 2020 20:09:49 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EF863EB48B
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 May 2020 00:40:42 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 51C6DBCAA9
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 May 2020 02:09:48 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E379DDA712
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 May 2020 00:40:42 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4396FDA703
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 May 2020 02:09:48 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D875ADA707; Thu, 28 May 2020 00:40:42 +0200 (CEST)
+        id 39087DA709; Thu, 28 May 2020 02:09:48 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6D639DA71A;
-        Thu, 28 May 2020 00:40:40 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3462BDA703;
+        Thu, 28 May 2020 02:09:46 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 28 May 2020 00:40:40 +0200 (CEST)
+ Thu, 28 May 2020 02:09:46 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 2C12542EF4E0;
-        Thu, 28 May 2020 00:40:40 +0200 (CEST)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 1670042EF4E0;
+        Thu, 28 May 2020 02:09:46 +0200 (CEST)
+Date:   Thu, 28 May 2020 02:09:45 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 2/3] netfilter: conntrack: comparison of unsigned in cthelper confirmation
-Date:   Thu, 28 May 2020 00:40:17 +0200
-Message-Id: <20200527224018.3610-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200527224018.3610-1-pablo@netfilter.org>
-References: <20200527224018.3610-1-pablo@netfilter.org>
+To:     Stefano Brivio <sbrivio@redhat.com>
+Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft v2 0/2] Fix evaluation of anonymous sets with
+ concatenated ranges
+Message-ID: <20200528000945.GA11541@salvia>
+References: <cover.1590612113.git.sbrivio@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1590612113.git.sbrivio@redhat.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-net/netfilter/nf_conntrack_core.c: In function nf_confirm_cthelper:
-net/netfilter/nf_conntrack_core.c:2117:15: warning: comparison of unsigned expression in < 0 is always false [-Wtype-limits]
- 2117 |   if (protoff < 0 || (frag_off & htons(~0x7)) != 0)
-      |               ^
+On Wed, May 27, 2020 at 10:51:20PM +0200, Stefano Brivio wrote:
+> As reported by both Pablo and Phil, trying to add an anonymous set
+> containing a concatenated range would fail:
+> 
+>   # nft add rule x y ip saddr . tcp dport { 192.168.2.1 . 20-30 } accept
+>   BUG: invalid range expression type concat
+>   nft: expression.c:1160: range_expr_value_low: Assertion `0' failed.
+>   Aborted
+> 
+>   # nft add rule t c ip daddr . tcp dport '{ 10.0.0.0/8 . 10-23, 192.168.1.1-192.168.3.8 . 80-443 } accept'
+>   BUG: invalid range expression type concat
+>   nft: expression.c:1296: range_expr_value_low: Assertion `0' failed.
+> 
+> Patch 1/2 fixes this, and 2/2 enables a test for it in inet/sets.t.
 
-ipv6_skip_exthdr() returns a signed integer.
-
-Reported-by: Colin Ian King <colin.king@canonical.com>
-Fixes: 703acd70f249 ("netfilter: nfnetlink_cthelper: unbreak userspace helper support")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index e3b054a2f796..bb72ca5f3999 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2092,7 +2092,7 @@ static int nf_confirm_cthelper(struct sk_buff *skb, struct nf_conn *ct,
- {
- 	const struct nf_conntrack_helper *helper;
- 	const struct nf_conn_help *help;
--	unsigned int protoff;
-+	int protoff;
- 
- 	help = nfct_help(ct);
- 	if (!help)
--- 
-2.20.1
-
+Series applied, thanks Stefano.
