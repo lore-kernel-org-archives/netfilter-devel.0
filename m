@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD1D2C433E0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 May 2020 05:41:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A6FEC433E2
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 May 2020 05:41:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B1D4F20899
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 May 2020 05:41:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4EA2920899
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 May 2020 05:41:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="taesqRkS"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Sly8RB2C"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728140AbgE1Flc (ORCPT
+        id S1728156AbgE1Fli (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 May 2020 01:41:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44776 "EHLO
+        Thu, 28 May 2020 01:41:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44750 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727105AbgE1Fl1 (ORCPT
+        with ESMTP id S1728040AbgE1FlS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 May 2020 01:41:27 -0400
+        Thu, 28 May 2020 01:41:18 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F17EFC05BD1E;
-        Wed, 27 May 2020 22:41:26 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 90EC7C08C5C2;
+        Wed, 27 May 2020 22:41:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
         MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
         :Reply-To:Content-Type:Content-ID:Content-Description;
-        bh=5X3G8p2gpeq1mWhpOrbRnLoYssjgaGtuSsqN+ape3Fw=; b=taesqRkSyAIu/2pRL+KOySjFhB
-        TtDF0spTbSsTcQcYEPzf2Xmk+u9SrWaeiUz7FKdnwI3eDaBkdhFATqSDy0i/tUSaWJbuVXaA81uFB
-        L5LMUM5VHRtiu+OmIVREgnc/f9BqnApHYE8W/M6wh296l/FsUV3pq5V7nkguM+uzMBgkvJ4+SDK4e
-        FX/KWuchAoMHUAePKpzWoNFOkusxGaycL3QI4w3QBVf4nAk5u7qZ4C58iQzb0UfuU4I5/aMKJ4TTu
-        qVqApMY1QvyibhhK6mE2aApD4C36fsXbEQbqFryR7NghXc/f2aowUTV0GCuZjZtOAWYlW02c+hGSK
-        q7BiKACg==;
+        bh=v2d8pva8LsFTXWqDIrLlQ4NNcDJbw9ZGB5N3mHruM2Q=; b=Sly8RB2C62rL3Ag/ASebOALXhx
+        jsuXC/klqC7pOqgzkf/1FnDCemkL8CJ+lOg3UTElUUlsu9+DZ105kBNCHmi+9z0Ta/66886wFbboz
+        l7cRNTN6XYxRap49QE9qL0m7mfcweYdrhtbur4ZVe8uphe8UNliBog+pZxXlUHfN6u3eaS52CjD79
+        Jw3HmMizeh4AfoIP9whoapShinlg6Nkm3V0ALzdCPd1D0DJShVbS/oiyoWWswaMQ+V7VEO7EesKii
+        0gmtiASmBpMtbs6ccT1OWSAcIdicHs9kNujJoQ7qL8XZ8FSzweMvmqkaQed43j7l05cBGEGl5Ld5h
+        79rnpqIg==;
 Received: from p4fdb1ad2.dip0.t-ipconnect.de ([79.219.26.210] helo=localhost)
         by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jeBIB-0002St-VR; Thu, 28 May 2020 05:41:24 +0000
+        id 1jeBI3-0002Qp-M1; Thu, 28 May 2020 05:41:16 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     Al Viro <viro@zeniv.linux.org.uk>
 Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
@@ -47,9 +47,9 @@ Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
         linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         linux-security-module@vger.kernel.org,
         netfilter-devel@vger.kernel.org
-Subject: [PATCH 14/14] fs: don't change the address limit for ->read_iter in __kernel_read
-Date:   Thu, 28 May 2020 07:40:43 +0200
-Message-Id: <20200528054043.621510-15-hch@lst.de>
+Subject: [PATCH 11/14] integrity/ima: switch to using __kernel_read
+Date:   Thu, 28 May 2020 07:40:40 +0200
+Message-Id: <20200528054043.621510-12-hch@lst.de>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200528054043.621510-1-hch@lst.de>
 References: <20200528054043.621510-1-hch@lst.de>
@@ -61,60 +61,39 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If we read to a file that implements ->read_iter there is no need
-to change the address limit if we send a kvec down.  Implement that
-case, and prefer it over using plain ->read with a changed address
-limit if available.
+__kernel_read has a bunch of additional sanity checks, and this moves
+the set_fs out of non-core code.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/read_write.c | 24 +++++++++++++++++-------
- 1 file changed, 17 insertions(+), 7 deletions(-)
+ security/integrity/iint.c | 14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 46ddfce17e839..c93acbd8bf5a3 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -421,7 +421,6 @@ static ssize_t new_sync_read(struct file *filp, char __user *buf, size_t len, lo
- 
- ssize_t __kernel_read(struct file *file, void *buf, size_t count, loff_t *pos)
+diff --git a/security/integrity/iint.c b/security/integrity/iint.c
+index e12c4900510f6..1d20003243c3f 100644
+--- a/security/integrity/iint.c
++++ b/security/integrity/iint.c
+@@ -188,19 +188,7 @@ DEFINE_LSM(integrity) = {
+ int integrity_kernel_read(struct file *file, loff_t offset,
+ 			  void *addr, unsigned long count)
  {
--	mm_segment_t old_fs = get_fs();
- 	ssize_t ret;
- 
- 	if (!(file->f_mode & FMODE_CAN_READ))
-@@ -429,14 +428,25 @@ ssize_t __kernel_read(struct file *file, void *buf, size_t count, loff_t *pos)
- 
- 	if (count > MAX_RW_COUNT)
- 		count =  MAX_RW_COUNT;
+-	mm_segment_t old_fs;
+-	char __user *buf = (char __user *)addr;
+-	ssize_t ret;
+-
+-	if (!(file->f_mode & FMODE_READ))
+-		return -EBADF;
+-
+-	old_fs = get_fs();
 -	set_fs(KERNEL_DS);
--	if (file->f_op->read)
-+	if (file->f_op->read_iter) {
-+		struct kvec iov = { .iov_base = buf, .iov_len = count };
-+		struct kiocb kiocb;
-+		struct iov_iter iter;
-+
-+		init_sync_kiocb(&kiocb, file);
-+		kiocb.ki_pos = *pos;
-+		iov_iter_kvec(&iter, READ, &iov, 1, count);
-+		ret = file->f_op->read_iter(&kiocb, &iter);
-+		*pos = kiocb.ki_pos;
-+	} else if (file->f_op->read) {
-+		mm_segment_t old_fs = get_fs();
-+
-+		set_fs(KERNEL_DS);
- 		ret = file->f_op->read(file, (void __user *)buf, count, pos);
--	else if (file->f_op->read_iter)
--		ret = new_sync_read(file, (void __user *)buf, count, pos);
--	else
-+		set_fs(old_fs);
-+	} else {
- 		ret = -EINVAL;
+-	ret = __vfs_read(file, buf, count, &offset);
 -	set_fs(old_fs);
-+	}
- 	if (ret > 0) {
- 		fsnotify_access(file);
- 		add_rchar(current, ret);
+-
+-	return ret;
++	return __kernel_read(file, addr, count, &offset);
+ }
+ 
+ /*
 -- 
 2.26.2
 
