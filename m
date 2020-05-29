@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2E0CC433E3
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 May 2020 17:50:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78B6EC433DF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 May 2020 17:50:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD13A2073B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 May 2020 17:50:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 596BE206E2
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 May 2020 17:50:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727994AbgE2Rum (ORCPT
+        id S1727980AbgE2Rum (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Fri, 29 May 2020 13:50:42 -0400
-Received: from correo.us.es ([193.147.175.20]:58840 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:58818 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727936AbgE2Ruj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1727770AbgE2Ruj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 29 May 2020 13:50:39 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0290081413
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 May 2020 19:50:37 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 425A281404
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 May 2020 19:50:36 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EA092DA71A
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2A0C1DA720
         for <netfilter-devel@vger.kernel.org>; Fri, 29 May 2020 19:50:36 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DF673DA711; Fri, 29 May 2020 19:50:36 +0200 (CEST)
+        id 1F76FDA701; Fri, 29 May 2020 19:50:36 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9DA74DA716;
-        Fri, 29 May 2020 19:50:34 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CE26BDA71F;
+        Fri, 29 May 2020 19:50:33 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 29 May 2020 19:50:34 +0200 (CEST)
+ Fri, 29 May 2020 19:50:33 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 722C342EE38E;
-        Fri, 29 May 2020 19:50:34 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id A2AD242EE38E;
+        Fri, 29 May 2020 19:50:33 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 9/9] netfilter: nf_tables: skip flowtable hooknum and priority on device updates
-Date:   Fri, 29 May 2020 19:50:26 +0200
-Message-Id: <20200529175026.30541-10-pablo@netfilter.org>
+Subject: [PATCH 7/9] netfilter: nf_tables: delete devices from flowtable
+Date:   Fri, 29 May 2020 19:50:24 +0200
+Message-Id: <20200529175026.30541-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200529175026.30541-1-pablo@netfilter.org>
 References: <20200529175026.30541-1-pablo@netfilter.org>
@@ -56,124 +56,218 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On device updates, the hooknum and priority attributes are not required.
-This patch makes optional these two netlink attributes.
-
-Moreover, bail out with EOPNOTSUPP if userspace tries to update the
-hooknum and priority for existing flowtables.
-
-While at this, turn EINVAL into EOPNOTSUPP in case the hooknum is not
-ingress. EINVAL is reserved for missing netlink attribute / malformed
-netlink messages.
+This patch allows users to delete devices from existing flowtables.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 53 +++++++++++++++++++++++------------
- 1 file changed, 35 insertions(+), 18 deletions(-)
+ include/net/netfilter/nf_tables.h |   1 +
+ net/netfilter/nf_tables_api.c     | 113 +++++++++++++++++++++++++-----
+ 2 files changed, 98 insertions(+), 16 deletions(-)
 
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 4f58c4411bb4..6f0f6fca9ac3 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1002,6 +1002,7 @@ struct nft_stats {
+ 
+ struct nft_hook {
+ 	struct list_head	list;
++	bool			inactive;
+ 	struct nf_hook_ops	ops;
+ 	struct rcu_head		rcu;
+ };
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 897ac5fbe079..073aa1051d43 100644
+index 98f2cbb97e39..1c2c3bb78fa0 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -6195,7 +6195,7 @@ static const struct nla_policy nft_flowtable_hook_policy[NFTA_FLOWTABLE_HOOK_MAX
- static int nft_flowtable_parse_hook(const struct nft_ctx *ctx,
- 				    const struct nlattr *attr,
- 				    struct nft_flowtable_hook *flowtable_hook,
--				    struct nf_flowtable *ft)
-+				    struct nft_flowtable *flowtable, bool add)
+@@ -1669,6 +1669,7 @@ static struct nft_hook *nft_netdev_hook_alloc(struct net *net,
+ 		goto err_hook_dev;
+ 	}
+ 	hook->ops.dev = dev;
++	hook->inactive = false;
+ 
+ 	return hook;
+ 
+@@ -1678,17 +1679,17 @@ static struct nft_hook *nft_netdev_hook_alloc(struct net *net,
+ 	return ERR_PTR(err);
+ }
+ 
+-static bool nft_hook_list_find(struct list_head *hook_list,
+-			       const struct nft_hook *this)
++static struct nft_hook *nft_hook_list_find(struct list_head *hook_list,
++					   const struct nft_hook *this)
  {
- 	struct nlattr *tb[NFTA_FLOWTABLE_HOOK_MAX + 1];
  	struct nft_hook *hook;
-@@ -6209,15 +6209,35 @@ static int nft_flowtable_parse_hook(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		return err;
  
--	if (!tb[NFTA_FLOWTABLE_HOOK_NUM] ||
--	    !tb[NFTA_FLOWTABLE_HOOK_PRIORITY])
--		return -EINVAL;
-+	if (add) {
-+		if (!tb[NFTA_FLOWTABLE_HOOK_NUM] ||
-+		    !tb[NFTA_FLOWTABLE_HOOK_PRIORITY])
-+			return -EINVAL;
- 
--	hooknum = ntohl(nla_get_be32(tb[NFTA_FLOWTABLE_HOOK_NUM]));
--	if (hooknum != NF_NETDEV_INGRESS)
--		return -EINVAL;
-+		hooknum = ntohl(nla_get_be32(tb[NFTA_FLOWTABLE_HOOK_NUM]));
-+		if (hooknum != NF_NETDEV_INGRESS)
-+			return -EOPNOTSUPP;
-+
-+		priority = ntohl(nla_get_be32(tb[NFTA_FLOWTABLE_HOOK_PRIORITY]));
-+
-+		flowtable_hook->priority	= priority;
-+		flowtable_hook->num		= hooknum;
-+	} else {
-+		if (tb[NFTA_FLOWTABLE_HOOK_NUM]) {
-+			hooknum = ntohl(nla_get_be32(tb[NFTA_FLOWTABLE_HOOK_NUM]));
-+			if (hooknum != flowtable->hooknum)
-+				return -EOPNOTSUPP;
-+		}
-+
-+		if (tb[NFTA_FLOWTABLE_HOOK_PRIORITY]) {
-+			priority = ntohl(nla_get_be32(tb[NFTA_FLOWTABLE_HOOK_PRIORITY]));
-+			if (priority != flowtable->data.priority)
-+				return -EOPNOTSUPP;
-+		}
- 
--	priority = ntohl(nla_get_be32(tb[NFTA_FLOWTABLE_HOOK_PRIORITY]));
-+		flowtable_hook->priority	= flowtable->data.priority;
-+		flowtable_hook->num		= flowtable->hooknum;
-+	}
- 
- 	if (tb[NFTA_FLOWTABLE_HOOK_DEVS]) {
- 		err = nf_tables_parse_netdev_hooks(ctx->net,
-@@ -6227,15 +6247,12 @@ static int nft_flowtable_parse_hook(const struct nft_ctx *ctx,
- 			return err;
+ 	list_for_each_entry(hook, hook_list, list) {
+ 		if (this->ops.dev == hook->ops.dev)
+-			return true;
++			return hook;
  	}
  
--	flowtable_hook->priority	= priority;
--	flowtable_hook->num		= hooknum;
--
- 	list_for_each_entry(hook, &flowtable_hook->list, list) {
- 		hook->ops.pf		= NFPROTO_NETDEV;
--		hook->ops.hooknum	= hooknum;
--		hook->ops.priority	= priority;
--		hook->ops.priv		= ft;
--		hook->ops.hook		= ft->type->hook;
-+		hook->ops.hooknum	= flowtable_hook->num;
-+		hook->ops.priority	= flowtable_hook->priority;
-+		hook->ops.priv		= &flowtable->data;
-+		hook->ops.hook		= flowtable->data.type->hook;
- 	}
+-	return false;
++	return NULL;
+ }
  
+ static int nf_tables_parse_netdev_hooks(struct net *net,
+@@ -6530,6 +6531,51 @@ static int nf_tables_newflowtable(struct net *net, struct sock *nlsk,
  	return err;
-@@ -6363,7 +6380,7 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
- 	int err;
+ }
  
- 	err = nft_flowtable_parse_hook(ctx, nla[NFTA_FLOWTABLE_HOOK],
--				       &flowtable_hook, &flowtable->data);
-+				       &flowtable_hook, flowtable, false);
- 	if (err < 0)
- 		return err;
++static int nft_delflowtable_hook(struct nft_ctx *ctx,
++				 struct nft_flowtable *flowtable)
++{
++	const struct nlattr * const *nla = ctx->nla;
++	struct nft_flowtable_hook flowtable_hook;
++	struct nft_hook *this, *next, *hook;
++	struct nft_trans *trans;
++	int err;
++
++	err = nft_flowtable_parse_hook(ctx, nla[NFTA_FLOWTABLE_HOOK],
++				       &flowtable_hook, &flowtable->data);
++	if (err < 0)
++		return err;
++
++	list_for_each_entry_safe(this, next, &flowtable_hook.list, list) {
++		hook = nft_hook_list_find(&flowtable->hook_list, this);
++		if (!hook) {
++			err = -ENOENT;
++			goto err_flowtable_del_hook;
++		}
++		hook->inactive = true;
++		list_del(&this->list);
++		kfree(this);
++	}
++
++	trans = nft_trans_alloc(ctx, NFT_MSG_DELFLOWTABLE,
++				sizeof(struct nft_trans_flowtable));
++	if (!trans)
++		return -ENOMEM;
++
++	nft_trans_flowtable(trans) = flowtable;
++	nft_trans_flowtable_update(trans) = true;
++	INIT_LIST_HEAD(&nft_trans_flowtable_hooks(trans));
++
++	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
++
++	return 0;
++
++err_flowtable_del_hook:
++	list_for_each_entry(hook, &flowtable_hook.list, list)
++		hook->inactive = false;
++
++	return err;
++}
++
+ static int nf_tables_delflowtable(struct net *net, struct sock *nlsk,
+ 				  struct sk_buff *skb,
+ 				  const struct nlmsghdr *nlh,
+@@ -6568,13 +6614,17 @@ static int nf_tables_delflowtable(struct net *net, struct sock *nlsk,
+ 		NL_SET_BAD_ATTR(extack, attr);
+ 		return PTR_ERR(flowtable);
+ 	}
++
++	nft_ctx_init(&ctx, net, skb, nlh, family, table, NULL, nla);
++
++	if (nla[NFTA_FLOWTABLE_HOOK])
++		return nft_delflowtable_hook(&ctx, flowtable);
++
+ 	if (flowtable->use > 0) {
+ 		NL_SET_BAD_ATTR(extack, attr);
+ 		return -EBUSY;
+ 	}
  
-@@ -6492,7 +6509,7 @@ static int nf_tables_newflowtable(struct net *net, struct sock *nlsk,
- 		goto err3;
+-	nft_ctx_init(&ctx, net, skb, nlh, family, table, NULL, nla);
+-
+ 	return nft_delflowtable(&ctx, flowtable);
+ }
  
- 	err = nft_flowtable_parse_hook(&ctx, nla[NFTA_FLOWTABLE_HOOK],
--				       &flowtable_hook, &flowtable->data);
-+				       &flowtable_hook, flowtable, true);
- 	if (err < 0)
- 		goto err4;
+@@ -7184,7 +7234,10 @@ static void nft_commit_release(struct nft_trans *trans)
+ 		nft_obj_destroy(&trans->ctx, nft_trans_obj(trans));
+ 		break;
+ 	case NFT_MSG_DELFLOWTABLE:
+-		nf_tables_flowtable_destroy(nft_trans_flowtable(trans));
++		if (nft_trans_flowtable_update(trans))
++			nft_flowtable_hooks_destroy(&nft_trans_flowtable_hooks(trans));
++		else
++			nf_tables_flowtable_destroy(nft_trans_flowtable(trans));
+ 		break;
+ 	}
  
-@@ -6543,7 +6560,7 @@ static int nft_delflowtable_hook(struct nft_ctx *ctx,
- 	int err;
+@@ -7345,6 +7398,17 @@ static void nft_chain_del(struct nft_chain *chain)
+ 	list_del_rcu(&chain->list);
+ }
  
- 	err = nft_flowtable_parse_hook(ctx, nla[NFTA_FLOWTABLE_HOOK],
--				       &flowtable_hook, &flowtable->data);
-+				       &flowtable_hook, flowtable, false);
- 	if (err < 0)
- 		return err;
++static void nft_flowtable_hooks_del(struct nft_flowtable *flowtable,
++				    struct list_head *hook_list)
++{
++	struct nft_hook *hook, *next;
++
++	list_for_each_entry_safe(hook, next, &flowtable->hook_list, list) {
++		if (hook->inactive)
++			list_move(&hook->list, hook_list);
++	}
++}
++
+ static void nf_tables_module_autoload_cleanup(struct net *net)
+ {
+ 	struct nft_module_request *req, *next;
+@@ -7570,13 +7634,24 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_DELFLOWTABLE:
+-			list_del_rcu(&nft_trans_flowtable(trans)->list);
+-			nf_tables_flowtable_notify(&trans->ctx,
+-						   nft_trans_flowtable(trans),
+-						   &nft_trans_flowtable(trans)->hook_list,
+-						   NFT_MSG_DELFLOWTABLE);
+-			nft_unregister_flowtable_net_hooks(net,
+-					&nft_trans_flowtable(trans)->hook_list);
++			if (nft_trans_flowtable_update(trans)) {
++				nft_flowtable_hooks_del(nft_trans_flowtable(trans),
++							&nft_trans_flowtable_hooks(trans));
++				nf_tables_flowtable_notify(&trans->ctx,
++							   nft_trans_flowtable(trans),
++							   &nft_trans_flowtable_hooks(trans),
++							   NFT_MSG_DELFLOWTABLE);
++				nft_unregister_flowtable_net_hooks(net,
++								   &nft_trans_flowtable_hooks(trans));
++			} else {
++				list_del_rcu(&nft_trans_flowtable(trans)->list);
++				nf_tables_flowtable_notify(&trans->ctx,
++							   nft_trans_flowtable(trans),
++							   &nft_trans_flowtable(trans)->hook_list,
++							   NFT_MSG_DELFLOWTABLE);
++				nft_unregister_flowtable_net_hooks(net,
++						&nft_trans_flowtable(trans)->hook_list);
++			}
+ 			break;
+ 		}
+ 	}
+@@ -7638,6 +7713,7 @@ static int __nf_tables_abort(struct net *net, bool autoload)
+ {
+ 	struct nft_trans *trans, *next;
+ 	struct nft_trans_elem *te;
++	struct nft_hook *hook;
  
+ 	list_for_each_entry_safe_reverse(trans, next, &net->nft.commit_list,
+ 					 list) {
+@@ -7746,8 +7822,13 @@ static int __nf_tables_abort(struct net *net, bool autoload)
+ 			}
+ 			break;
+ 		case NFT_MSG_DELFLOWTABLE:
+-			trans->ctx.table->use++;
+-			nft_clear(trans->ctx.net, nft_trans_flowtable(trans));
++			if (nft_trans_flowtable_update(trans)) {
++				list_for_each_entry(hook, &nft_trans_flowtable(trans)->hook_list, list)
++					hook->inactive = false;
++			} else {
++				trans->ctx.table->use++;
++				nft_clear(trans->ctx.net, nft_trans_flowtable(trans));
++			}
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		}
 -- 
 2.20.1
 
