@@ -1,151 +1,300 @@
-Return-Path: <SRS0=RvX8=7K=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=eCuo=7L=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45CFBC433E0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 May 2020 21:20:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7BBFC433DF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 May 2020 00:26:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1D6E020721
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 May 2020 21:20:50 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="TnEx76dq"
+	by mail.kernel.org (Postfix) with ESMTP id 84876208DB
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 May 2020 00:26:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2436590AbgE1VUt (ORCPT
+        id S2438093AbgE2A0B (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 May 2020 17:20:49 -0400
-Received: from sonic309-27.consmr.mail.ne1.yahoo.com ([66.163.184.153]:45914
-        "EHLO sonic309-27.consmr.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2436584AbgE1VUq (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 May 2020 17:20:46 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1590700845; bh=/Y6kvn26R6KuOwls+YEs880336Z/uTDdfmbnMi9WL6Q=; h=Subject:To:Cc:References:From:Date:In-Reply-To:From:Subject; b=TnEx76dqdGv8r4Qw0dXW5fcr04glYFvxJBD6inBqOURB48o02jb8uZMQKbXfj2pV3LJhURA1zgKxU0DoGyW6Jf3tEGDGhCP5RZnr4uiOjRjcKtQkbTQxhs9XVPhZ/qNr5F82IjMHaapGQ6g5Ym4o+567qxXXvnoASbuJyHuvhHOaiyQvOAR3FpTT4AEA9sPsAIE9ri9bIx/4GXtN13z2rS76e1g7UX0W9cjjYzN3XA7iRMOnL0q3B4foElr/0oAEAp+g42WQit8PBlOz7Y1oFeuhwlXa+OQdkCelVj84Y+BM5Q1adILElToDHIaSapfWKyjhnYwyJ+UfdKXUIYkcGg==
-X-YMail-OSG: EY9Q6cUVM1nk0iX9QI3k9HiPe3uK07pL8WEXShBeOHtBEEOAq0_tW9nIfqlNhT3
- LsbZCQVU9rvRzcv13Xq1O7BPus1zTZaMDDIrlEXJn5AcqoeoFhL6_291D41TRMpWRh23KQj1RryD
- 4frSRhIWDc..X6lh7Gy23sv8JqFMMMO27.UiG1FNxIPXLcnyzd6HzAbttZhbEhuxFUs8eZ7VQNWz
- IerwASrWcjn6OQ3xFaxGPPvSje0dCl8x.Qxxp5C6UFwUgBOPNZ9_PJ91yaBBlTqGQT4NHjJ8QRIe
- ISjCljhJSLREGNDS1CK__0jnf7wn_p1Axct73iC15s0Ymlf0FUqW6OwsPva5uLHFnASVlSUMNBPt
- 5T4M3z_apQaZNPNHwCnDzHH8bGXieqMPLSzTRBsRUnKONwXOjYLoumA.dSylIE0v84JqU9xF69Ot
- c6sEq0_Z27UCuTyIYV5JWqzBI_7ZA2Im8X5MEhonbXVR0Xx7YBnsk3qlQf0TIfQwWjHQbWwvbzOQ
- Rl6U6eL4smVucUmxSYkvs90Fm7C.jMOn9F9Nb76CJA8GBKOgAHzDvidaI_uSNr9Mvq63AvjZtsLY
- QxbB4vvNb2b.2EwKQSkc4M00qfFl6GYXy56aFpwFPMgSomc4G8VYmNmrJDZYJmLeG.0lANXvof7O
- ceMbc2Wcm0R5ctlr_CNqz1ikCn1djyhHGBcG4RDjNy_tDQs9lk9rJTOEx3tldV0KK797pH7Smod3
- B_U9OoYNWtz25ncIm94AKQjweCZtHoShPNrYDz0wf0kKaZRVWeAnlS636vy6vomKyHd2S43yfzJC
- VmJMN0A84V9FCvV8ascI4gb6R.n.RmLHq7tB5GxFb8y7bLpkczktDMuqk_l0zmaRZg.z0KVZK2Ac
- dU89JdaRHIybeOdKpdeftfjNoDZekqaQqsIMB6c7EHg4b9EHfAb5h_pejAczh_lKspX13tx99SUl
- FpEvzXDk3pKOcL97xJMEseIUF_RVJb4ClNfU4zy7SeMICGOOISSvg_ZngkKbVr5PU4tQ3hKd.h7y
- fVXD4uTWHFvy3StK.jvO_ni8vYafbhEhQDq7tTLQi38oyieS3F4ypjy4XyF8Jd1QUCSE81Dz9l35
- fPqCMRY41WtIi48TLJqr_QAdb920Um4mPyst_uOE7oG8gZwLB4J4dX.3QH96PZ_e8d3lZv54QCHh
- 5O3PaKkuQsNVGMHcWHAHec.Rz8DtiYKpUR07Bdj2hU3H6Cj6spC.W0FiSiWtB7l18FCXINMsuMGG
- E3hdK5SBHbIG7Xt4uhYqY1UxU82QcUghUN2Jrc9oBElvVCcKVnvY50AsOCPIajwaV4n1I4AaSkJ2
- SmDb9s9Yl5c9peIP_FOJ1MIETOOOIfw.nHx5SxIkJ6Xo0Dk.Ys6NHuxH0mVGPjOMUmKNPR7p0Jb4
- 4yDG2uedoKBQmF5VaocMcnjhF_Q--
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic309.consmr.mail.ne1.yahoo.com with HTTP; Thu, 28 May 2020 21:20:45 +0000
-Received: by smtp414.mail.ne1.yahoo.com (VZM Hermes SMTP Server) with ESMTPA ID 2db00e875b7cb25914502ab27765bf73;
-          Thu, 28 May 2020 21:20:43 +0000 (UTC)
-Subject: Re: clean up kernel_{read,write} & friends v2
-To:     David Howells <dhowells@redhat.com>,
-        Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Christoph Hellwig <hch@lst.de>, Al Viro <viro@zeniv.linux.org.uk>,
-        Ian Kent <raven@themaw.net>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        LSM List <linux-security-module@vger.kernel.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-References: <CAHk-=wj3iGQqjpvc+gf6+C29Jo4COj6OQQFzdY0h5qvYKTdCow@mail.gmail.com>
- <20200528054043.621510-1-hch@lst.de>
- <22778.1590697055@warthog.procyon.org.uk>
-From:   Casey Schaufler <casey@schaufler-ca.com>
-Autocrypt: addr=casey@schaufler-ca.com; keydata=
- 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
- abzjfg==
-Message-ID: <f89f0f7f-83b4-72c6-7d08-cb6eaeccd443@schaufler-ca.com>
-Date:   Thu, 28 May 2020 14:20:43 -0700
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.8.0
+        Thu, 28 May 2020 20:26:01 -0400
+Received: from correo.us.es ([193.147.175.20]:44216 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2438089AbgE2AZz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 28 May 2020 20:25:55 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id B36D3CF663
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 May 2020 02:25:51 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9B727DA716
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 May 2020 02:25:51 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 90613DA711; Fri, 29 May 2020 02:25:51 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1AB5CDA709;
+        Fri, 29 May 2020 02:25:49 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 29 May 2020 02:25:49 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id A63EA426CCB9;
+        Fri, 29 May 2020 02:25:48 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, paulb@mellanox.com,
+        ozsh@mellanox.com, vladbu@mellanox.com, jiri@resnulli.us,
+        kuba@kernel.org, saeedm@mellanox.com, michael.chan@broadcom.com,
+        sriharsha.basavapatna@broadcom.com
+Subject: [PATCH net-next 0/8] the indirect flow_block infrastructure, revisited
+Date:   Fri, 29 May 2020 02:25:33 +0200
+Message-Id: <20200529002541.19743-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-In-Reply-To: <22778.1590697055@warthog.procyon.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Content-Language: en-US
-X-Mailer: WebService/1.1.15959 hermes_yahoo Apache-HttpAsyncClient/4.1.4 (Java/11.0.6)
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 5/28/2020 1:17 PM, David Howells wrote:
-> Linus Torvalds <torvalds@linux-foundation.org> wrote:
->
->> Or maybe make it check for something more reasonable, like 100 charact=
-ers.
-> Yes please!
+Hi,
 
-No, thank you!
+This series fixes b5140a36da78 ("netfilter: flowtable: add indr block
+setup support") that adds support for the indirect block for the
+flowtable. This patch crashes the kernel with the TC CT action.
 
-C is a symbolic language, not a text language. Encouraging newbies to dec=
-lare
+[  630.908086] BUG: kernel NULL pointer dereference, address: 00000000000000f0
+[  630.908233] #PF: error_code(0x0000) - not-present page
+[  630.908304] PGD 800000104addd067 P4D 800000104addd067 PUD 104311d067 PMD 0
+[  630.908380] Oops: 0000 [#1] SMP PTI [  630.908615] RIP: 0010:nf_flow_table_indr_block_cb+0xc0/0x190 [nf_flow_table]
+[  630.908690] Code: 5b 41 5c 41 5d 41 5e 41 5f 5d c3 4c 89 75 a0 4c 89 65 a8 4d 89 ee 49 89 dd 4c 89 fe 48 c7 c7 b7 64 36 a0 31 c0 e8 ce ed d8 e0 <49> 8b b7 f0 00 00 00 48 c7 c7 c8 64      36 a0 31 c0 e8 b9 ed d8 e0 49[  630.908790] RSP: 0018:ffffc9000895f8c0 EFLAGS: 00010246
+[...]
+[  630.910774] Call Trace:
+[  630.911192]  ? mlx5e_rep_indr_setup_block+0x270/0x270 [mlx5_core]
+[  630.911621]  ? mlx5e_rep_indr_setup_block+0x270/0x270 [mlx5_core]
+[  630.912040]  ? mlx5e_rep_indr_setup_block+0x270/0x270 [mlx5_core]
+[  630.912443]  flow_block_cmd+0x51/0x80
+[  630.912844]  __flow_indr_block_cb_register+0x26c/0x510
+[  630.913265]  mlx5e_nic_rep_netdevice_event+0x9e/0x110 [mlx5_core]
+[  630.913665]  notifier_call_chain+0x53/0xa0
+[  630.914063]  raw_notifier_call_chain+0x16/0x20
+[  630.914466]  call_netdevice_notifiers_info+0x39/0x90
+[  630.914859]  register_netdevice+0x484/0x550
+[  630.915256]  __ip_tunnel_create+0x12b/0x1f0 [ip_tunnel]
+[  630.915661]  ip_tunnel_init_net+0x116/0x180 [ip_tunnel]
+[  630.916062]  ipgre_tap_init_net+0x22/0x30 [ip_gre]
+[  630.916458]  ops_init+0x44/0x110
+[  630.916851]  register_pernet_operations+0x112/0x200
 
-	int iterator;
+A workaround patch to cure this crash has been proposed. However, there
+is another problem: The indirect flow_block still does not work for the
+new TC CT action. The problem is that the existing flow_indr_block_entry
+callback assumes you can look up for the flowtable from the netdevice to
+get the flow_block. This flow_block allows you to offload the flows via
+TC_SETUP_CLSFLOWER. Unfortunately, it is not possible to get the
+flow_block from the TC CT flowtables because they are _not_ bound to any
+specific netdevice.
 
-instead of
+= What is the indirect flow_block infrastructure?
 
-	int i;
+The indirect flow_block infrastructure allows drivers to offload
+tc/netfilter rules that belong to software tunnel netdevices, e.g.
+vxlan.
 
-does the language a disservice.
+This indirect flow_block infrastructure relates tunnel netdevices with
+drivers because there is no obvious way to relate these two things
+from the control plane.
 
-It's true, nobody uses a TTY33 anymore. Those of us who have done so
-understand how "{" is preferable to "BEGIN" and why tabs are better than
-multiple spaces. A narrow "terminal" requires less neck and mouse movemen=
-t.
-Any width limit is arbitrary, so to the extent anyone might care, I advoc=
-ate
-80 forever.
+= How does the indirect flow_block work before this patchset?
 
-> David
->
+Front-ends register the indirect block callback through
+flow_indr_add_block_cb() if they support for offloading tunnel
+netdevices.
+
+== Setting up an indirect block
+
+1) Drivers track tunnel netdevices via NETDEV_{REGISTER,UNREGISTER} events.
+   If there is a new tunnel netdevice that the driver can offload, then the
+   driver invokes __flow_indr_block_cb_register() with the new tunnel
+   netdevice and the driver callback. The __flow_indr_block_cb_register()
+   call iterates over the list of the front-end callbacks.
+
+2) The front-end callback sets up the flow_block_offload structure and it
+   invokes the driver callback to set up the flow_block.
+
+3) The driver callback now registers the flow_block structure and it
+   returns the flow_block back to the front-end.
+
+4) The front-end gets the flow_block object and it is now ready to
+   offload rules for this tunnel netdevice.
+
+A simplified callgraph is represented below.
+
+        Front-end                      Driver
+
+                                   NETDEV_REGISTER
+                                         |
+                     __flow_indr_block_cb_register(netdev, cb_priv, driver_cb)
+                                         | [1]
+            .--------------frontend_indr_block_cb(cb_priv, driver_cb)
+            |
+            .
+   setup_flow_block_offload(bo)
+            | [2]
+       driver_cb(bo, cb_priv) -----------.
+                                         |
+                                         \/
+                                  set up flow_blocks [3]
+                                         |
+      add rules to flow_block <----------
+      TC_SETUP_CLSFLOWER [4]
+
+== Releasing the indirect flow_block
+
+There are two possibilities, either tunnel netdevice is removed or
+a netdevice (port representor) is removed.
+
+=== Tunnel netdevice is removed
+
+Driver waits for the NETDEV_UNREGISTER event that announces the tunnel
+netdevice removal. Then, it calls __flow_indr_block_cb_unregister() to
+remove the flow_block and rules.  Callgraph is very similar to the one
+described above.
+
+=== Netdevice is removed (port representor)
+
+Driver calls __flow_indr_block_cb_unregister() to remove the existing
+netfilter/tc rule that belong to the tunnel netdevice.
+
+= How does the indirect flow_block work after this patchset?
+
+Drivers register the indirect flow_block setup callback through
+flow_indr_dev_register() if they support for offloading tunnel
+netdevices.
+
+== Setting up an indirect flow_block
+
+1) Frontends check if dev->netdev_ops->ndo_setup_tc is unset. If so,
+   frontends call flow_indr_dev_setup_offload(). This call invokes
+   the drivers' indirect flow_block setup callback.
+
+2) The indirect flow_block setup callback sets up a flow_block structure
+   which relates the tunnel netdevice and the driver.
+
+3) The front-end uses flow_block and offload the rules.
+
+Note that the operational to set up (non-indirect) flow_block is very
+similar.
+
+== Releasing the indirect flow_block
+
+=== Tunnel netdevice is removed
+
+This calls flow_indr_dev_setup_offload() to set down the flow_block and
+remove the offloaded rules. This alternate path is exercised if
+dev->netdev_ops->ndo_setup_tc is unset.
+
+=== Netdevice is removed (port representor)
+
+If a netdevice is removed, then it might need to to clean up the
+offloaded tc/netfilter rules that belongs to the tunnel netdevice:
+
+1) The driver invokes flow_indr_dev_unregister() when a netdevice is
+   removed.
+
+2) This call iterates over the existing indirect flow_blocks
+   and it invokes the cleanup callback to let the front-end remove the
+   tc/netfilter rules. The cleanup callback already provides the
+   flow_block that the front-end needs to clean up.
+
+        Front-end                      Driver
+
+                                         |
+                            flow_indr_dev_unregister(...)
+                                         |
+                         iterate over list of indirect flow_block
+                               and invoke cleanup callback
+                                         |
+            .-----------------------------
+            |
+            .
+   frontend_flow_block_cleanup(flow_block)
+            .
+            |
+           \/
+   remove rules to flow_block
+      TC_SETUP_CLSFLOWER
+
+= About this patchset
+
+This patchset aims to address the existing TC CT problem while
+simplifying the indirect flow_block infrastructure. Saving 300 LoC in
+the flow_offload core and the drivers. The operational gets aligned with
+the (non-indirect) flow_blocks logic. Patchset is composed of:
+
+Patch #1 add nf_flow_table_gc_cleanup() which is required by the
+         netfilter's flowtable new indirect flow_block approach.
+
+Patch #2 adds the flow_block_indr object which is actually part of
+         of the flow_block object. This stores the indirect flow_block
+         metadata such as the tunnel netdevice owner and the cleanup
+         callback (in case the tunnel netdevice goes away).
+
+         This patch adds flow_indr_dev_{un}register() to allow drivers
+         to offer netdevice tunnel hardware offload to the front-ends.
+         Then, front-ends call flow_indr_dev_setup_offload() to invoke
+         the drivers to set up the (indirect) flow_block.
+
+Patch #3 add the tcf_block_offload_init() helper function, this is
+         a preparation patch to adapt the tc front-end to use this
+         new indirect flow_block infrastructure.
+
+Patch #4 updates the tc and netfilter front-ends to use the new
+         indirect flow_block infrastructure.
+
+Patch #5 updates the mlx5 driver to use the new indirect flow_block
+         infrastructure.
+
+Patch #6 updates the nfp driver to use the new indirect flow_block
+         infrastructure.
+
+Patch #7 updates the bnxt driver to use the new indirect flow_block
+         infrastructure.
+
+Patch #8 removes the indirect flow_block infrastructure version 1,
+         now that frontends and drivers have been translated to
+         version 2 (coming in this patchset).
+
+Please, apply.
+
+Pablo Neira Ayuso (8):
+  netfilter: nf_flowtable: expose nf_flow_table_gc_cleanup()
+  net: flow_offload: consolidate indirect flow_block infrastructure
+  net: cls_api: add tcf_block_offload_init()
+  net: use flow_indr_dev_setup_offload()
+  mlx5: update indirect block support
+  nfp: update indirect block support
+  bnxt_tc: update indirect block support
+  net: remove indirect block netdev event registration
+
+ drivers/net/ethernet/broadcom/bnxt/bnxt.h     |   1 -
+ drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c  |  51 +--
+ .../ethernet/mellanox/mlx5/core/en/rep/tc.c   |  81 +----
+ .../ethernet/mellanox/mlx5/core/en/rep/tc.h   |   4 -
+ .../net/ethernet/mellanox/mlx5/core/en_rep.c  |   1 -
+ .../net/ethernet/mellanox/mlx5/core/en_rep.h  |   5 -
+ .../net/ethernet/netronome/nfp/flower/main.c  |  11 +-
+ .../net/ethernet/netronome/nfp/flower/main.h  |   7 +-
+ .../ethernet/netronome/nfp/flower/offload.c   |  35 +-
+ include/net/flow_offload.h                    |  28 +-
+ include/net/netfilter/nf_flow_table.h         |   2 +
+ net/core/flow_offload.c                       | 301 +++++++-----------
+ net/netfilter/nf_flow_table_core.c            |   6 +-
+ net/netfilter/nf_flow_table_offload.c         |  85 +----
+ net/netfilter/nf_tables_offload.c             |  69 ++--
+ net/sched/cls_api.c                           | 157 +++------
+ 16 files changed, 249 insertions(+), 595 deletions(-)
+
+--
+2.20.1
 
