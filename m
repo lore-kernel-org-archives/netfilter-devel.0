@@ -2,305 +2,385 @@ Return-Path: <SRS0=eCuo=7L=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70B7FC433E0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 May 2020 00:26:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70B5DC433E1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 May 2020 01:44:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4E241207F9
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 May 2020 00:26:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4066120B80
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 May 2020 01:44:54 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bzUt4OyT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2438150AbgE2A0o (ORCPT
+        id S2390904AbgE2Bou (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 May 2020 20:26:44 -0400
-Received: from correo.us.es ([193.147.175.20]:44268 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2438092AbgE2AZ4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 May 2020 20:25:56 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 1A16EDA737
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 May 2020 02:25:54 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 07F74DA714
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 May 2020 02:25:54 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id F18F2DA70E; Fri, 29 May 2020 02:25:53 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8C7E8DA710;
-        Fri, 29 May 2020 02:25:51 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 29 May 2020 02:25:51 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 1FB0D426CCB9;
-        Fri, 29 May 2020 02:25:51 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, paulb@mellanox.com,
-        ozsh@mellanox.com, vladbu@mellanox.com, jiri@resnulli.us,
-        kuba@kernel.org, saeedm@mellanox.com, michael.chan@broadcom.com,
-        sriharsha.basavapatna@broadcom.com
-Subject: [PATCH net-next 2/8] net: flow_offload: consolidate indirect flow_block infrastructure
-Date:   Fri, 29 May 2020 02:25:35 +0200
-Message-Id: <20200529002541.19743-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200529002541.19743-1-pablo@netfilter.org>
-References: <20200529002541.19743-1-pablo@netfilter.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Thu, 28 May 2020 21:44:50 -0400
+Received: from us-smtp-1.mimecast.com ([205.139.110.61]:22700 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S2390689AbgE2Bos (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 28 May 2020 21:44:48 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1590716685;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc; bh=Xyxj5/TDbjdlA3+eV4LtEp/i31Q4MHxvnPp9oxxL0qc=;
+        b=bzUt4OyTe0xvt9JkA7SEtf89TuKsxsHNErQpYBInwmqzvQqbPA+8+x4Wtw1hCylWSMbzfb
+        kQvLkV5LQY/cTWsXZaaFYH4i0fMnkLNsT2rgWP6n2xJR/vA5H3Z6VnvF5UQ+aZZ7PFI0p7
+        KPTXT7bwY8hY2uLEBoJXOoCRgA98ZM8=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-276-If5AABpnOQmO7Qix9sPqsA-1; Thu, 28 May 2020 21:44:40 -0400
+X-MC-Unique: If5AABpnOQmO7Qix9sPqsA-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 5ED61EC1A5;
+        Fri, 29 May 2020 01:44:39 +0000 (UTC)
+Received: from madcap2.tricolour.ca (unknown [10.10.110.54])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 7D50F5C1C3;
+        Fri, 29 May 2020 01:44:26 +0000 (UTC)
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Linux-Audit Mailing List <linux-audit@redhat.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org
+Cc:     Paul Moore <paul@paul-moore.com>, sgrubb@redhat.com,
+        omosnace@redhat.com, fw@strlen.de, twoerner@redhat.com,
+        eparis@parisplace.org, tgraf@infradead.org,
+        Richard Guy Briggs <rgb@redhat.com>
+Subject: [PATCH ghak124 v2] audit: log nftables configuration change events
+Date:   Thu, 28 May 2020 21:44:00 -0400
+Message-Id: <d45d23ba6d58b1513c641dfb24f009cbc1b7aad6.1590716354.git.rgb@redhat.com>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Tunnel devices provide no dev->netdev_ops->ndo_setup_tc(...) interface.
-The tunnel device and route control plane does not provide an obvious
-way to relate tunnel and physical devices.
+iptables, ip6tables, arptables and ebtables table registration,
+replacement and unregistration configuration events are logged for the
+native (legacy) iptables setsockopt api, but not for the
+nftables netlink api which is used by the nft-variant of iptables in
+addition to nftables itself.
 
-This patch allows drivers to register a tunnel device offload handler
-for the tc and netfilter frontends through flow_indr_dev_register() and
-flow_indr_dev_unregister().
+Add calls to log the configuration actions in the nftables netlink api.
 
-The frontend calls flow_indr_dev_setup_offload() that iterates over the
-list of drivers that are offering tunnel device hardware offload
-support and it sets up the flow block for this tunnel device.
+This uses the same NETFILTER_CFG record format but overloads the table
+field.
 
-If the driver module is removed, the indirect flow_block ends up with a
-stale callback reference. The module removal path triggers the
-dev_shutdown() path to remove the qdisc and the flow_blocks for the
-physical devices. However, this is not useful for tunnel devices, where
-relation between the physical and the tunnel device is not explicit.
+  type=NETFILTER_CFG msg=audit(2020-05-28 17:46:41.878:162) : table=?:0;?:0 family=unspecified entries=2 op=nft_register_gen pid=396 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
+  ...
+  type=NETFILTER_CFG msg=audit(2020-05-28 17:46:41.878:162) : table=firewalld:1;?:0 family=inet entries=0 op=nft_register_table pid=396 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
+  ...
+  type=NETFILTER_CFG msg=audit(2020-05-28 17:46:41.911:163) : table=firewalld:1;filter_FORWARD:85 family=inet entries=8 op=nft_register_chain pid=396 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
+  ...
+  type=NETFILTER_CFG msg=audit(2020-05-28 17:46:41.911:163) : table=firewalld:1;filter_FORWARD:85 family=inet entries=101 op=nft_register_rule pid=396 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
+  ...
+  type=NETFILTER_CFG msg=audit(2020-05-28 17:46:41.911:163) : table=firewalld:1;__set0:87 family=inet entries=87 op=nft_register_setelem pid=396 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
+  ...
+  type=NETFILTER_CFG msg=audit(2020-05-28 17:46:41.911:163) : table=firewalld:1;__set0:87 family=inet entries=0 op=nft_register_set pid=396 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
 
-This patch introduces a cleanup callback that is invoked when the driver
-module is removed to clean up the tunnel device flow_block. This patch
-defines struct flow_block_indr and it uses it from flow_block_cb to
-store the information that front-end requires to perform the
-flow_block_cb cleanup on module removal.
+For further information please see issue
+https://github.com/linux-audit/audit-kernel/issues/124
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 ---
- include/net/flow_offload.h |  19 +++++
- net/core/flow_offload.c    | 157 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 176 insertions(+)
+Changelog:
+v2:
+- differentiate between xtables and nftables
+- add set, setelem, obj, flowtable, gen
+- use nentries field as appropriate per type
+- overload the "tables" field with table handle and chain/set/flowtable
 
-diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
-index 95d633785ef9..5493282348fa 100644
---- a/include/net/flow_offload.h
-+++ b/include/net/flow_offload.h
-@@ -443,6 +443,16 @@ enum tc_setup_type;
- typedef int flow_setup_cb_t(enum tc_setup_type type, void *type_data,
- 			    void *cb_priv);
+ include/linux/audit.h         | 52 +++++++++++++++++++++++++
+ kernel/auditsc.c              | 24 ++++++++++--
+ net/netfilter/nf_tables_api.c | 89 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 162 insertions(+), 3 deletions(-)
+
+diff --git a/include/linux/audit.h b/include/linux/audit.h
+index 3fcd9ee49734..d79866a38505 100644
+--- a/include/linux/audit.h
++++ b/include/linux/audit.h
+@@ -12,6 +12,7 @@
+ #include <linux/sched.h>
+ #include <linux/ptrace.h>
+ #include <uapi/linux/audit.h>
++#include <uapi/linux/netfilter/nf_tables.h>
  
-+struct flow_block_cb;
-+
-+struct flow_block_indr {
-+	struct list_head		list;
-+	struct net_device		*dev;
-+	enum flow_block_binder_type	binder_type;
-+	void				*data;
-+	void				(*cleanup)(struct flow_block_cb *block_cb);
+ #define AUDIT_INO_UNSET ((unsigned long)-1)
+ #define AUDIT_DEV_UNSET ((dev_t)-1)
+@@ -98,6 +99,57 @@ enum audit_nfcfgop {
+ 	AUDIT_XT_OP_REGISTER,
+ 	AUDIT_XT_OP_REPLACE,
+ 	AUDIT_XT_OP_UNREGISTER,
++	AUDIT_NFT_OP_TABLE_REGISTER,
++	AUDIT_NFT_OP_TABLE_UNREGISTER,
++	AUDIT_NFT_OP_CHAIN_REGISTER,
++	AUDIT_NFT_OP_CHAIN_UNREGISTER,
++	AUDIT_NFT_OP_RULE_REGISTER,
++	AUDIT_NFT_OP_RULE_UNREGISTER,
++	AUDIT_NFT_OP_SET_REGISTER,
++	AUDIT_NFT_OP_SET_UNREGISTER,
++	AUDIT_NFT_OP_SETELEM_REGISTER,
++	AUDIT_NFT_OP_SETELEM_UNREGISTER,
++	AUDIT_NFT_OP_GEN_REGISTER,
++	AUDIT_NFT_OP_OBJ_REGISTER,
++	AUDIT_NFT_OP_OBJ_UNREGISTER,
++	AUDIT_NFT_OP_OBJ_RESET,
++	AUDIT_NFT_OP_FLOWTABLE_REGISTER,
++	AUDIT_NFT_OP_FLOWTABLE_UNREGISTER,
++	AUDIT_NFT_OP_INVALID,
 +};
 +
- struct flow_block_cb {
- 	struct list_head	driver_list;
- 	struct list_head	list;
-@@ -450,6 +460,7 @@ struct flow_block_cb {
- 	void			*cb_ident;
- 	void			*cb_priv;
- 	void			(*release)(void *cb_priv);
-+	struct flow_block_indr	indr;
- 	unsigned int		refcnt;
++struct audit_nftcfgop_tab {
++	enum nf_tables_msg_types	nftop;
++	enum audit_nfcfgop		op;
++};
++
++static const struct audit_nftcfgop_tab audit_nftcfgs[] = {
++	{ NFT_MSG_NEWTABLE,	AUDIT_NFT_OP_TABLE_REGISTER		},
++	{ NFT_MSG_GETTABLE,	AUDIT_NFT_OP_INVALID			},
++	{ NFT_MSG_DELTABLE,	AUDIT_NFT_OP_TABLE_UNREGISTER		},
++	{ NFT_MSG_NEWCHAIN,	AUDIT_NFT_OP_CHAIN_REGISTER		},
++	{ NFT_MSG_GETCHAIN,	AUDIT_NFT_OP_INVALID			},
++	{ NFT_MSG_DELCHAIN,	AUDIT_NFT_OP_CHAIN_UNREGISTER		},
++	{ NFT_MSG_NEWRULE,	AUDIT_NFT_OP_RULE_REGISTER		},
++	{ NFT_MSG_GETRULE,	AUDIT_NFT_OP_INVALID			},
++	{ NFT_MSG_DELRULE,	AUDIT_NFT_OP_RULE_UNREGISTER		},
++	{ NFT_MSG_NEWSET,	AUDIT_NFT_OP_SET_REGISTER		},
++	{ NFT_MSG_GETSET,	AUDIT_NFT_OP_INVALID			},
++	{ NFT_MSG_DELSET,	AUDIT_NFT_OP_SET_UNREGISTER		},
++	{ NFT_MSG_NEWSETELEM,	AUDIT_NFT_OP_SETELEM_REGISTER		},
++	{ NFT_MSG_GETSETELEM,	AUDIT_NFT_OP_INVALID			},
++	{ NFT_MSG_DELSETELEM,	AUDIT_NFT_OP_SETELEM_UNREGISTER		},
++	{ NFT_MSG_NEWGEN,	AUDIT_NFT_OP_GEN_REGISTER		},
++	{ NFT_MSG_GETGEN,	AUDIT_NFT_OP_INVALID			},
++	{ NFT_MSG_TRACE,	AUDIT_NFT_OP_INVALID			},
++	{ NFT_MSG_NEWOBJ,	AUDIT_NFT_OP_OBJ_REGISTER		},
++	{ NFT_MSG_GETOBJ,	AUDIT_NFT_OP_INVALID			},
++	{ NFT_MSG_DELOBJ,	AUDIT_NFT_OP_OBJ_UNREGISTER		},
++	{ NFT_MSG_GETOBJ_RESET,	AUDIT_NFT_OP_OBJ_RESET			},
++	{ NFT_MSG_NEWFLOWTABLE,	AUDIT_NFT_OP_FLOWTABLE_REGISTER		},
++	{ NFT_MSG_GETFLOWTABLE,	AUDIT_NFT_OP_INVALID			},
++	{ NFT_MSG_DELFLOWTABLE,	AUDIT_NFT_OP_FLOWTABLE_UNREGISTER	},
++	{ NFT_MSG_MAX,		AUDIT_NFT_OP_INVALID			},
  };
  
-@@ -523,6 +534,14 @@ static inline void flow_block_init(struct flow_block *flow_block)
- typedef int flow_indr_block_bind_cb_t(struct net_device *dev, void *cb_priv,
- 				      enum tc_setup_type type, void *type_data);
+ extern int is_audit_feature_set(int which);
+diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+index 468a23390457..3a9100e95fda 100644
+--- a/kernel/auditsc.c
++++ b/kernel/auditsc.c
+@@ -75,6 +75,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/fsnotify_backend.h>
+ #include <uapi/linux/limits.h>
++#include <uapi/linux/netfilter/nf_tables.h>
  
-+int flow_indr_dev_register(flow_indr_block_bind_cb_t *cb, void *cb_priv);
-+void flow_indr_dev_unregister(flow_indr_block_bind_cb_t *cb, void *cb_priv,
-+			      flow_setup_cb_t *setup_cb);
-+int flow_indr_dev_setup_offload(struct net_device *dev,
-+				enum tc_setup_type type, void *data,
-+				struct flow_block_offload *bo,
-+				void (*cleanup)(struct flow_block_cb *block_cb));
-+
- typedef void flow_indr_block_cmd_t(struct net_device *dev,
- 				   flow_indr_block_bind_cb_t *cb, void *cb_priv,
- 				   enum flow_block_command command);
-diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
-index e64941c526b1..8cd7da2586ae 100644
---- a/net/core/flow_offload.c
-+++ b/net/core/flow_offload.c
-@@ -317,6 +317,163 @@ int flow_block_cb_setup_simple(struct flow_block_offload *f,
- }
- EXPORT_SYMBOL(flow_block_cb_setup_simple);
+ #include "audit.h"
  
-+static DEFINE_MUTEX(flow_indr_block_lock);
-+static LIST_HEAD(flow_block_indr_list);
-+static LIST_HEAD(flow_block_indr_dev_list);
-+
-+struct flow_indr_dev {
-+	struct list_head		list;
-+	flow_indr_block_bind_cb_t	*cb;
-+	void				*cb_priv;
-+	refcount_t			refcnt;
-+	struct rcu_head			rcu;
-+};
-+
-+static struct flow_indr_dev *flow_indr_dev_alloc(flow_indr_block_bind_cb_t *cb,
-+						 void *cb_priv)
-+{
-+	struct flow_indr_dev *indr_dev;
-+
-+	indr_dev = kmalloc(sizeof(*indr_dev), GFP_KERNEL);
-+	if (!indr_dev)
-+		return NULL;
-+
-+	indr_dev->cb		= cb;
-+	indr_dev->cb_priv	= cb_priv;
-+	refcount_set(&indr_dev->refcnt, 1);
-+
-+	return indr_dev;
-+}
-+
-+int flow_indr_dev_register(flow_indr_block_bind_cb_t *cb, void *cb_priv)
-+{
-+	struct flow_indr_dev *indr_dev;
-+
-+	mutex_lock(&flow_indr_block_lock);
-+	list_for_each_entry(indr_dev, &flow_block_indr_dev_list, list) {
-+		if (indr_dev->cb == cb &&
-+		    indr_dev->cb_priv == cb_priv) {
-+			refcount_inc(&indr_dev->refcnt);
-+			mutex_unlock(&flow_indr_block_lock);
-+			return 0;
-+		}
-+	}
-+
-+	indr_dev = flow_indr_dev_alloc(cb, cb_priv);
-+	if (!indr_dev) {
-+		mutex_unlock(&flow_indr_block_lock);
-+		return -ENOMEM;
-+	}
-+
-+	list_add(&indr_dev->list, &flow_block_indr_dev_list);
-+	mutex_unlock(&flow_indr_block_lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(flow_indr_dev_register);
-+
-+static void __flow_block_indr_cleanup(flow_setup_cb_t *setup_cb, void *cb_priv,
-+				      struct list_head *cleanup_list)
-+{
-+	struct flow_block_cb *this, *next;
-+
-+	list_for_each_entry_safe(this, next, &flow_block_indr_list, indr.list) {
-+		if (this->cb == setup_cb &&
-+		    this->cb_priv == cb_priv) {
-+			list_move(&this->indr.list, cleanup_list);
-+			return;
-+		}
-+	}
-+}
-+
-+static void flow_block_indr_notify(struct list_head *cleanup_list)
-+{
-+	struct flow_block_cb *this, *next;
-+
-+	list_for_each_entry_safe(this, next, cleanup_list, indr.list) {
-+		list_del(&this->indr.list);
-+		this->indr.cleanup(this);
-+	}
-+}
-+
-+void flow_indr_dev_unregister(flow_indr_block_bind_cb_t *cb, void *cb_priv,
-+			      flow_setup_cb_t *setup_cb)
-+{
-+	struct flow_indr_dev *this, *next, *indr_dev = NULL;
-+	LIST_HEAD(cleanup_list);
-+
-+	mutex_lock(&flow_indr_block_lock);
-+	list_for_each_entry_safe(this, next, &flow_block_indr_dev_list, list) {
-+		if (this->cb == cb &&
-+		    this->cb_priv == cb_priv &&
-+		    refcount_dec_and_test(&this->refcnt)) {
-+			indr_dev = this;
-+			list_del(&indr_dev->list);
-+			break;
-+		}
-+	}
-+
-+	if (!indr_dev) {
-+		mutex_unlock(&flow_indr_block_lock);
-+		return;
-+	}
-+
-+	__flow_block_indr_cleanup(setup_cb, cb_priv, &cleanup_list);
-+	mutex_unlock(&flow_indr_block_lock);
-+
-+	flow_block_indr_notify(&cleanup_list);
-+	kfree(indr_dev);
-+}
-+EXPORT_SYMBOL(flow_indr_dev_unregister);
-+
-+static void flow_block_indr_init(struct flow_block_cb *flow_block,
-+				 struct flow_block_offload *bo,
-+				 struct net_device *dev, void *data,
-+				 void (*cleanup)(struct flow_block_cb *block_cb))
-+{
-+	flow_block->indr.binder_type = bo->binder_type;
-+	flow_block->indr.data = data;
-+	flow_block->indr.dev = dev;
-+	flow_block->indr.cleanup = cleanup;
-+}
-+
-+static void __flow_block_indr_binding(struct flow_block_offload *bo,
-+				      struct net_device *dev, void *data,
-+				      void (*cleanup)(struct flow_block_cb *block_cb))
-+{
-+	struct flow_block_cb *block_cb;
-+
-+	list_for_each_entry(block_cb, &bo->cb_list, list) {
-+		switch (bo->command) {
-+		case FLOW_BLOCK_BIND:
-+			flow_block_indr_init(block_cb, bo, dev, data, cleanup);
-+			list_add(&block_cb->indr.list, &flow_block_indr_list);
-+			break;
-+		case FLOW_BLOCK_UNBIND:
-+			list_del(&block_cb->indr.list);
-+			break;
-+		}
-+	}
-+}
-+
-+int flow_indr_dev_setup_offload(struct net_device *dev,
-+				enum tc_setup_type type, void *data,
-+				struct flow_block_offload *bo,
-+				void (*cleanup)(struct flow_block_cb *block_cb))
-+{
-+	struct flow_indr_dev *this;
-+
-+	mutex_lock(&flow_indr_block_lock);
-+	list_for_each_entry(this, &flow_block_indr_dev_list, list)
-+		this->cb(dev, this->cb_priv, type, bo);
-+
-+	__flow_block_indr_binding(bo, dev, data, cleanup);
-+	mutex_unlock(&flow_indr_block_lock);
-+
-+	return list_empty(&bo->cb_list) ? -EOPNOTSUPP : 0;
-+}
-+EXPORT_SYMBOL(flow_indr_dev_setup_offload);
-+
- static LIST_HEAD(block_cb_list);
+@@ -136,9 +137,26 @@ struct audit_nfcfgop_tab {
+ };
  
- static struct rhashtable indr_setup_block_ht;
+ static const struct audit_nfcfgop_tab audit_nfcfgs[] = {
+-	{ AUDIT_XT_OP_REGISTER,		"register"	},
+-	{ AUDIT_XT_OP_REPLACE,		"replace"	},
+-	{ AUDIT_XT_OP_UNREGISTER,	"unregister"	},
++	{ AUDIT_XT_OP_REGISTER,			"xt_register"		   },
++	{ AUDIT_XT_OP_REPLACE,			"xt_replace"		   },
++	{ AUDIT_XT_OP_UNREGISTER,		"xt_unregister"		   },
++	{ AUDIT_NFT_OP_TABLE_REGISTER,		"nft_register_table"	   },
++	{ AUDIT_NFT_OP_TABLE_UNREGISTER,	"nft_unregister_table"	   },
++	{ AUDIT_NFT_OP_CHAIN_REGISTER,		"nft_register_chain"	   },
++	{ AUDIT_NFT_OP_CHAIN_UNREGISTER,	"nft_unregister_chain"	   },
++	{ AUDIT_NFT_OP_RULE_REGISTER,		"nft_register_rule"	   },
++	{ AUDIT_NFT_OP_RULE_UNREGISTER,		"nft_unregister_rule"	   },
++	{ AUDIT_NFT_OP_SET_REGISTER,		"nft_register_set"	   },
++	{ AUDIT_NFT_OP_SET_UNREGISTER,		"nft_unregister_set"	   },
++	{ AUDIT_NFT_OP_SETELEM_REGISTER,	"nft_register_setelem"	   },
++	{ AUDIT_NFT_OP_SETELEM_UNREGISTER,	"nft_unregister_setelem"   },
++	{ AUDIT_NFT_OP_GEN_REGISTER,		"nft_register_gen"	   },
++	{ AUDIT_NFT_OP_OBJ_REGISTER,		"nft_register_obj"	   },
++	{ AUDIT_NFT_OP_OBJ_UNREGISTER,		"nft_unregister_obj"	   },
++	{ AUDIT_NFT_OP_OBJ_RESET,		"nft_reset_obj"		   },
++	{ AUDIT_NFT_OP_FLOWTABLE_REGISTER,	"nft_register_flowtable"   },
++	{ AUDIT_NFT_OP_FLOWTABLE_UNREGISTER,	"nft_unregister_flowtable" },
++	{ AUDIT_NFT_OP_INVALID,			"nft_invalid"		   },
+ };
+ 
+ static int audit_match_perm(struct audit_context *ctx, int mask)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 4471393da6d8..7a386eca6e04 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -12,6 +12,7 @@
+ #include <linux/netlink.h>
+ #include <linux/vmalloc.h>
+ #include <linux/rhashtable.h>
++#include <linux/audit.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/nf_tables.h>
+@@ -693,6 +694,14 @@ static void nf_tables_table_notify(const struct nft_ctx *ctx, int event)
+ {
+ 	struct sk_buff *skb;
+ 	int err;
++	char *buf = kasprintf(GFP_KERNEL, "%s:%llu;?:0",
++			      ctx->table->name, ctx->table->handle);
++
++	audit_log_nfcfg(buf,
++			ctx->family,
++			ctx->table->use,
++			audit_nftcfgs[event].op);
++	kfree(buf);
+ 
+ 	if (!ctx->report &&
+ 	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
+@@ -1428,6 +1437,15 @@ static void nf_tables_chain_notify(const struct nft_ctx *ctx, int event)
+ {
+ 	struct sk_buff *skb;
+ 	int err;
++	char *buf = kasprintf(GFP_KERNEL, "%s:%llu;%s:%llu",
++			      ctx->table->name, ctx->table->handle,
++			      ctx->chain->name, ctx->chain->handle);
++
++	audit_log_nfcfg(buf,
++			ctx->family,
++			ctx->chain->use,
++			audit_nftcfgs[event].op);
++	kfree(buf);
+ 
+ 	if (!ctx->report &&
+ 	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
+@@ -2691,6 +2709,15 @@ static void nf_tables_rule_notify(const struct nft_ctx *ctx,
+ {
+ 	struct sk_buff *skb;
+ 	int err;
++	char *buf = kasprintf(GFP_KERNEL, "%s:%llu;%s:%llu",
++			      ctx->table->name, ctx->table->handle,
++			      ctx->chain->name, ctx->chain->handle);
++
++	audit_log_nfcfg(buf,
++			ctx->family,
++			rule->handle,
++			audit_nftcfgs[event].op);
++	kfree(buf);
+ 
+ 	if (!ctx->report &&
+ 	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
+@@ -3692,6 +3719,15 @@ static void nf_tables_set_notify(const struct nft_ctx *ctx,
+ 	struct sk_buff *skb;
+ 	u32 portid = ctx->portid;
+ 	int err;
++	char *buf = kasprintf(gfp_flags, "%s:%llu;%s:%llu",
++			      ctx->table->name, ctx->table->handle,
++			      set->name, set->handle);
++
++	audit_log_nfcfg(buf,
++			ctx->family,
++			set->field_count,
++			audit_nftcfgs[event].op);
++	kfree(buf);
+ 
+ 	if (!ctx->report &&
+ 	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
+@@ -4789,6 +4825,15 @@ static void nf_tables_setelem_notify(const struct nft_ctx *ctx,
+ 	u32 portid = ctx->portid;
+ 	struct sk_buff *skb;
+ 	int err;
++	char *buf = kasprintf(GFP_KERNEL, "%s:%llu;%s:%llu",
++			      ctx->table->name, ctx->table->handle,
++			      set->name, set->handle);
++
++	audit_log_nfcfg(buf,
++			ctx->family,
++			set->handle,
++			audit_nftcfgs[event].op);
++	kfree(buf);
+ 
+ 	if (!ctx->report && !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
+ 		return;
+@@ -5875,6 +5920,19 @@ static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
+ 			    obj->ops->type->type != filter->type)
+ 				goto cont;
+ 
++			if (reset) {
++				char *buf = kasprintf(GFP_KERNEL,
++						      "%s:%llu;?:0",
++						      table->name,
++						      table->handle);
++
++				audit_log_nfcfg(buf,
++						family,
++						obj->handle,
++						audit_nftcfgs[NFT_MSG_GETOBJ_RESET].op);
++				kfree(buf);
++			}
++
+ 			if (nf_tables_fill_obj_info(skb, net, NETLINK_CB(cb->skb).portid,
+ 						    cb->nlh->nlmsg_seq,
+ 						    NFT_MSG_NEWOBJ,
+@@ -5985,6 +6043,17 @@ static int nf_tables_getobj(struct net *net, struct sock *nlsk,
+ 	if (NFNL_MSG_TYPE(nlh->nlmsg_type) == NFT_MSG_GETOBJ_RESET)
+ 		reset = true;
+ 
++	if (reset) {
++		char *buf = kasprintf(GFP_KERNEL, "%s:%llu;?:0",
++				      table->name, table->handle);
++
++		audit_log_nfcfg(buf,
++				family,
++				obj->handle,
++				audit_nftcfgs[NFT_MSG_GETOBJ_RESET].op);
++		kfree(buf);
++	}
++
+ 	err = nf_tables_fill_obj_info(skb2, net, NETLINK_CB(skb).portid,
+ 				      nlh->nlmsg_seq, NFT_MSG_NEWOBJ, 0,
+ 				      family, table, obj, reset);
+@@ -6060,6 +6129,14 @@ void nft_obj_notify(struct net *net, const struct nft_table *table,
+ {
+ 	struct sk_buff *skb;
+ 	int err;
++	char *buf = kasprintf(GFP_KERNEL, "%s:%llu;?:0",
++			      table->name, table->handle);
++
++	audit_log_nfcfg(buf,
++			family,
++			obj->handle,
++			audit_nftcfgs[event].op);
++	kfree(buf);
+ 
+ 	if (!report &&
+ 	    !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
+@@ -6686,6 +6763,15 @@ static void nf_tables_flowtable_notify(struct nft_ctx *ctx,
+ {
+ 	struct sk_buff *skb;
+ 	int err;
++	char *buf = kasprintf(GFP_KERNEL, "%s:%llu;%s:%llu",
++			      flowtable->table->name, flowtable->table->handle,
++			      flowtable->name, flowtable->handle);
++
++	audit_log_nfcfg(buf,
++			ctx->family,
++			flowtable->hooknum,
++			audit_nftcfgs[event].op);
++	kfree(buf);
+ 
+ 	if (ctx->report &&
+ 	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
+@@ -6807,6 +6893,9 @@ static void nf_tables_gen_notify(struct net *net, struct sk_buff *skb,
+ 	struct sk_buff *skb2;
+ 	int err;
+ 
++	audit_log_nfcfg("?:0;?:0", 0, net->nft.base_seq,
++			audit_nftcfgs[event].op);
++
+ 	if (nlmsg_report(nlh) &&
+ 	    !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
+ 		return;
 -- 
-2.20.1
+1.8.3.1
 
