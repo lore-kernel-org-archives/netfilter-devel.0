@@ -2,224 +2,153 @@ Return-Path: <SRS0=eCuo=7L=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FA6BC433E0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 May 2020 22:03:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0636C433E1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 May 2020 23:12:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EAA0C20721
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 May 2020 22:03:03 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="c88/l/pQ"
+	by mail.kernel.org (Postfix) with ESMTP id B4EBA20776
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 May 2020 23:12:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728747AbgE2WCv (ORCPT
+        id S1728460AbgE2XM1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 29 May 2020 18:02:51 -0400
-Received: from sonic309-27.consmr.mail.ne1.yahoo.com ([66.163.184.153]:36806
-        "EHLO sonic309-27.consmr.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728413AbgE2WCt (ORCPT
+        Fri, 29 May 2020 19:12:27 -0400
+Received: from smtprelay0009.hostedemail.com ([216.40.44.9]:38824 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726898AbgE2XM0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 29 May 2020 18:02:49 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1590789768; bh=mEj+xfzKlw4Ib7x5AQ10oWbC2hqZKkrwlMK84MkhhpI=; h=Subject:To:Cc:References:From:Date:In-Reply-To:From:Subject; b=c88/l/pQJgxvc0MmnUAl5HrXokW6XiILcttim2Qoqmyy3gQF6CsjkOC0zZxZp6SXkRnRu5N2+GGH6Wztygl1i/tfh/3+vtO78BGcx39QG4uG1C/HHhVHRv9BmWNiIfRPMo2hO8oedEGRwSZcFPAjvp1mO0rYCR+PHOhe7VmyePT0umkmnrlP7InzYhMqimliRfniWJnnh458MBiI+eFXdE1DRcsF6y66Ctk7INCypzndds9u6HPgbmpeA9JssPvwvgY6qVzRIUIGQVN+gPh3pFwEuWeNHUfGsKIjcFADUlEGP0nJLoLw2ltlLPa4YDGGn3Szbu6a/8pYsRJ61IPNFQ==
-X-YMail-OSG: BbHTdY0VM1l_f3uGlIt31U3Z7YOjnIP8_01nB_WwQppkYchHpCO3knH_x467xSC
- cN5Y_P4sR1wed9Ixzc_W5.SfVJusYlgQj5gALvW4amsGAG93fuFVj9Jw8klt5YSSiwHyrj_Vui9E
- lAZkbGhf.gtLCSyucpKECJAJUD6afb6PDcmYmeBbYRKmkijIvs5QK7hUZ4OpWbOKIq5C3TTTo5E6
- vOsmRMMnxNNNBDJCXIrG.xVbxYMigJFLhQ_W04koNYJR27xMRHRhieHpfky6RMYzk252XTW0FGR6
- awBMBESOGaP_9olDkoKkUqfh8U9bqGmIlRJG4S9QWZlCM_9T0mhEL_YCRaA1V_sLZpLb4mYKFltQ
- I3rq3hspfH44q9100HSRubIaka8T6VQpM8PIqrb_7sgAgoFDBqe37Agj0h9qial5zgE1siSzIln0
- kV2JkTZGdu0lUJfKupl4M84UUBRdynDwnUkugGXjCsLJK17K3arocsZ4OVb5H0h0LPWTXNEPYHYi
- 1ObX05LNnPM27nIE8cwPmizDZKn_2YzY5X6.OnW4y_Yzaf1b6x8jJUwYPQ3ihb5n9JMsEtnn5xKF
- faaIIe6Y2LWaqh3j9ZbNMH0A0K0MrnZpPvJGCsD84uO1lCzDN1AnBMot3Y0NRObsB3zOSWY1Mncq
- tx0nOVrBfny8ADKwhqCh6cH_0a.785a6JwN87p5rtsj1sS03THKg2EclEcWHPGtmgIDE517a1089
- M9pCsYdjgeILDkjJWSpDwHq5qI37Y3DjknLpQPOxV6Npt4787_Xxq7jMwd2FdpdJ60ij2FrWIaxn
- G0VBKRVKguZd_AK1ELoVZ8iRH1q_qYmIaoQwtugZxYkqANZhugzD9xJccyw4co3M_ln6SG1WIRUn
- s05vsuve.v2Q1D.Eax0lIvdX.6UJBThM0AIRRFm.3jcAdbLol5zetpPVEeo8JBLbuJFO.cAFwVwo
- 1FZJco4gK15YRUWfhN9Qsjxk6rnwweHi3ALHhwQnzCH89x93jDXXm30XKetT9KU_55w0SjrN9cjy
- V32bR6hLjyYD0c1m6DMEZFLMeXVwyo7Zsjpu_zju.Qm3FwruGJI6FJn5yYJXkb6ZnUpMbAUjxG68
- e_1_ZSftnrnD7Ax158.N_sByg1pB01ZxnJgGUPPQ0iJh55n0u6Nq57BHpaRMTrHHLBfFJ5WRjTN2
- YJkw.KTLMpBx9gQZ7l6O2yCyw0zcNxBOLo41i78o3scQKnJv8T57GRzjOiY3VHiqRNz47.PfElN1
- 2sxNYeG1fFJG7FVDpTc_gDm8NB4uZrXy1P1xEZXbVODsUUFqJRjFwmbyiQv.Q1KsSo8297f_7trq
- IK0Y5PC6O0PpZS9mLXIu4tvI_gvED9gt7g.QcQBxSSO5tqZGQU74Ln9HMcxBnaeJnQ4SPQCXAYtm
- plMdPL99pzw3qgfZjlqJ0
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic309.consmr.mail.ne1.yahoo.com with HTTP; Fri, 29 May 2020 22:02:48 +0000
-Received: by smtp420.mail.ne1.yahoo.com (VZM Hermes SMTP Server) with ESMTPA ID 20de778416897511a1a9920cd4567e13;
-          Fri, 29 May 2020 22:02:46 +0000 (UTC)
-Subject: Re: clean up kernel_{read,write} & friends v2
+        Fri, 29 May 2020 19:12:26 -0400
+Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
+        by smtprelay07.hostedemail.com (Postfix) with ESMTP id 05684181D337B;
+        Fri, 29 May 2020 23:12:25 +0000 (UTC)
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-HE-Tag: work88_5b00ecc26d67
+X-Filterd-Recvd-Size: 5588
+Received: from XPS-9350.home (unknown [47.151.136.130])
+        (Authenticated sender: joe@perches.com)
+        by omf03.hostedemail.com (Postfix) with ESMTPA;
+        Fri, 29 May 2020 23:12:23 +0000 (UTC)
+Message-ID: <9c360bfa43580ce7726dd3d9d247f1216a690ef0.camel@perches.com>
+Subject: [PATCH] checkpatch/coding-style: Allow 100 column lines
+From:   Joe Perches <joe@perches.com>
 To:     Linus Torvalds <torvalds@linux-foundation.org>,
         David Laight <David.Laight@aculab.com>
-Cc:     David Howells <dhowells@redhat.com>,
+Cc:     Casey Schaufler <casey@schaufler-ca.com>,
+        David Howells <dhowells@redhat.com>,
         Christoph Hellwig <hch@lst.de>,
         Al Viro <viro@zeniv.linux.org.uk>, Ian Kent <raven@themaw.net>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         linux-fsdevel <linux-fsdevel@vger.kernel.org>,
         LSM List <linux-security-module@vger.kernel.org>,
         NetFilter <netfilter-devel@vger.kernel.org>
-References: <CAHk-=wj3iGQqjpvc+gf6+C29Jo4COj6OQQFzdY0h5qvYKTdCow@mail.gmail.com>
- <20200528054043.621510-1-hch@lst.de>
- <22778.1590697055@warthog.procyon.org.uk>
- <f89f0f7f-83b4-72c6-7d08-cb6eaeccd443@schaufler-ca.com>
- <3aea7a1c10e94ea2964fa837ae7d8fe2@AcuMS.aculab.com>
- <CAHk-=wjR0H3+2ba0UUWwoYzYBH0GX9yTf5dj2MZyo0xvyzvJnA@mail.gmail.com>
-From:   Casey Schaufler <casey@schaufler-ca.com>
-Autocrypt: addr=casey@schaufler-ca.com; keydata=
- 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
- abzjfg==
-Message-ID: <7b6a91a5-8c6d-044f-f675-800e0157dc39@schaufler-ca.com>
-Date:   Fri, 29 May 2020 15:02:45 -0700
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.8.0
-MIME-Version: 1.0
+Date:   Fri, 29 May 2020 16:12:21 -0700
 In-Reply-To: <CAHk-=wjR0H3+2ba0UUWwoYzYBH0GX9yTf5dj2MZyo0xvyzvJnA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Content-Language: en-US
-X-Mailer: WebService/1.1.15959 hermes_yahoo Apache-HttpAsyncClient/4.1.4 (Java/11.0.6)
+References: <CAHk-=wj3iGQqjpvc+gf6+C29Jo4COj6OQQFzdY0h5qvYKTdCow@mail.gmail.com>
+         <20200528054043.621510-1-hch@lst.de>
+         <22778.1590697055@warthog.procyon.org.uk>
+         <f89f0f7f-83b4-72c6-7d08-cb6eaeccd443@schaufler-ca.com>
+         <3aea7a1c10e94ea2964fa837ae7d8fe2@AcuMS.aculab.com>
+         <CAHk-=wjR0H3+2ba0UUWwoYzYBH0GX9yTf5dj2MZyo0xvyzvJnA@mail.gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+User-Agent: Evolution 3.36.2-0ubuntu1 
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 5/29/2020 12:19 PM, Linus Torvalds wrote:
-> On Fri, May 29, 2020 at 6:08 AM David Laight <David.Laight@aculab.com> =
-wrote:
->> A wide monitor is for looking at lots of files.
-> Not necessarily.
->
-> Excessive line breaks are BAD. They cause real and every-day problems.
->
-> They cause problems for things like "grep" both in the patterns and in
-> the output, since grep (and a lot of other very basic unix utilities)
-> is fundamentally line-based.
->
-> So the fact is, many of us have long long since skipped the whole
-> "80-column terminal" model, for the same reason that we have many more
-> lines than 25 lines visible at a time.
->
-> And honestly, I don't want to see patches that make the kernel reading
-> experience worse for me and likely for the vast majority of people,
-> based on the argument that some odd people have small terminal
-> windows.
->
-> If you or Christoph have 80 character lines, you'll get possibly ugly
-> wrapped output. Tough. That's _your_ choice. Your hardware limitations
-> shouldn't be a pain for the rest of us.
->
-> Longer lines are fundamentally useful. My monitor is not only a lot
-> wider than it is tall, my fonts are universally narrower than they are
-> tall. Long lines are natural.
->
-> When I tile my terminal windows on my display, I can have 6 terminals
-> visible at one time, and that's because I have them three wide. And I
-> could still fit 80% of a fourth one side-by-side.
->
-> And guess what? That's with my default "100x50" terminal window (go to
-> your gnome terminal settings, you'll find that the 80x25 thing is just
-> an initial default that you can change), not with some 80x25 one. And
-> that's with a font that has anti-aliasing and isn't some pixelated
-> mess.
->
-> And most of my terminals actually end up being dragged wider and
-> taller than that. I checked, and my main one is 142x76 characters
-> right now, because it turns out that wider (and taller) terminals are
-> useful not just for source code.
->
-> Have you looked at "ps ax" output lately? Or used "top"? Or done "git
-> diff --stat" or any number of things where it turns out that 80x25 is
-> really really limiting, and is simply NO LONGER RELEVANT to most of
-> us.
->
-> So no. I do not care about somebody with a 80x25 terminal window
-> getting line wrapping.
+Change the maximum allowed line length to 100 from 80.
 
-The first law of good C programming is:
-	"Thou shalt adhere to the One True Brace Style"
+Miscellanea:
 
-It extrapolates into indentation, line width, and a number of
-other things. Since Linux is a trademark of Linus Torvalds,
-you get to define what the "One Truth" is. Time to resize my
-terminals.
+o to avoid unnecessary whitespace changes in files,
+  checkpatch will no longer emit a warning about line length
+  when scanning files unless --strict is also used
+o Add a bit to coding-style about alignment to open parenthesis
 
->
-> For exactly the same reason I find it completely irrelevant if
-> somebody says that their kernel compile takes 10 hours because they
-> are doing kernel development on a Raspberry PI with 4GB of RAM.
->
-> People with restrictive hardware shouldn't make it more inconvenient
-> for people who have better resources. Yes, we'll accommodate things to
-> within reasonable limits. But no, 80-column terminals in 2020 isn't
-> "reasonable" any more as far as I'm concerned. People commonly used
-> 132-column terminals even back in the 80's, for chrissake, don't try
-> to make 80 columns some immovable standard.
->
-> If you choose to use a 80-column terminal, you can live with the line
-> wrapping. It's just that simple.
->
-> And longer lines are simply useful. Part of that is that we aren't
-> programming in the 80's any more, and our source code is fundamentally
-> wider as a result.
->
-> Yes, local iteration variables are still called 'i', because more
-> context just isn't helpful for some anonymous counter. Being concise
-> is still a good thing, and overly verbose names are not inherently
-> better.
->
-> But still - it's entirely reasonable to have variable names that are
-> 10-15 characters and it makes the code more legible. Writing things
-> out instead of using abbreviations etc.
->
-> And yes, we do use wide tabs, because that makes indentation something
-> you can visually see in the structure at a glance and on a
-> whole-function basis, rather than something you have to try to
-> visually "line up" things for or count spaces.
->
-> So we have lots of fairly fundamental issues that fairly easily make
-> for longer lines in many circumstances.
->
-> And yes, we do line breaks at some point. But there really isn't any
-> reason to make that point be 80 columns any more.
->
->                   Linus
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ Documentation/process/coding-style.rst | 25 ++++++++++++++++---------
+ scripts/checkpatch.pl                  | 14 +++++++++-----
+ 2 files changed, 25 insertions(+), 14 deletions(-)
+
+diff --git a/Documentation/process/coding-style.rst b/Documentation/process/coding-style.rst
+index acb2f1b36350..55b148e9c6b8 100644
+--- a/Documentation/process/coding-style.rst
++++ b/Documentation/process/coding-style.rst
+@@ -84,15 +84,22 @@ Get a decent editor and don't leave whitespace at the end of lines.
+ Coding style is all about readability and maintainability using commonly
+ available tools.
+ 
+-The limit on the length of lines is 80 columns and this is a strongly
+-preferred limit.
+-
+-Statements longer than 80 columns will be broken into sensible chunks, unless
+-exceeding 80 columns significantly increases readability and does not hide
+-information. Descendants are always substantially shorter than the parent and
+-are placed substantially to the right. The same applies to function headers
+-with a long argument list. However, never break user-visible strings such as
+-printk messages, because that breaks the ability to grep for them.
++The preferred limit on the length of a single line is 80 columns.
++
++Statements longer than 80 columns should be broken into sensible chunks,
++unless exceeding 80 columns significantly increases readability and does
++not hide information.
++
++Statements may be up to 100 columns when appropriate.
++
++Descendants are always substantially shorter than the parent and are
++are placed substantially to the right.  A very commonly used style
++is to align descendants to a function open parenthesis.
++
++These same rules are applied to function headers with a long argument list.
++
++However, never break user-visible strings such as printk messages because
++that breaks the ability to grep for them.
+ 
+ 
+ 3) Placing Braces and Spaces
+diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+index dd750241958b..5f00df2c3f59 100755
+--- a/scripts/checkpatch.pl
++++ b/scripts/checkpatch.pl
+@@ -53,7 +53,7 @@ my %ignore_type = ();
+ my @ignore = ();
+ my $help = 0;
+ my $configuration_file = ".checkpatch.conf";
+-my $max_line_length = 80;
++my $max_line_length = 100;
+ my $ignore_perl_version = 0;
+ my $minimum_perl_version = 5.10.0;
+ my $min_conf_desc_length = 4;
+@@ -99,9 +99,11 @@ Options:
+   --types TYPE(,TYPE2...)    show only these comma separated message types
+   --ignore TYPE(,TYPE2...)   ignore various comma separated message types
+   --show-types               show the specific message type in the output
+-  --max-line-length=n        set the maximum line length, if exceeded, warn
++  --max-line-length=n        set the maximum line length, (default $max_line_length)
++                             if exceeded, warn on patches
++                             requires --strict for use with --file
+   --min-conf-desc-length=n   set the min description length, if shorter, warn
+-  --tab-size=n               set the number of spaces for tab (default 8)
++  --tab-size=n               set the number of spaces for tab (default $tabsize)
+   --root=PATH                PATH to the kernel tree root
+   --no-summary               suppress the per-file summary
+   --mailback                 only produce a report in case of warnings/errors
+@@ -3282,8 +3284,10 @@ sub process {
+ 
+ 			if ($msg_type ne "" &&
+ 			    (show_type("LONG_LINE") || show_type($msg_type))) {
+-				WARN($msg_type,
+-				     "line over $max_line_length characters\n" . $herecurr);
++				my $msg_level = \&WARN;
++				$msg_level = \&CHK if ($file);
++				&{$msg_level}($msg_type,
++					      "line length of $length exceeds $max_line_length columns\n" . $herecurr);
+ 			}
+ 		}
+ 
 
