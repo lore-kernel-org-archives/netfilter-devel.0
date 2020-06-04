@@ -2,421 +2,176 @@ Return-Path: <SRS0=RJ5t=7R=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C798BC433DF
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jun 2020 17:58:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2C6BC433DF
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jun 2020 18:16:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A620A206DC
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jun 2020 17:58:19 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="EAUUmtww"
+	by mail.kernel.org (Postfix) with ESMTP id ACE4420738
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jun 2020 18:16:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730389AbgFDR6T (ORCPT
+        id S1730366AbgFDSQW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 4 Jun 2020 13:58:19 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:54994 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1730377AbgFDR6P (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:58:15 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1591293492;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=bHTeBkgo1HQXJA34sxgW/nbImRWua1p2y+6bGTyzAGw=;
-        b=EAUUmtwwtuBKiYaB3VaXf7KWgCxYq+dp2EDRxlK4k/wcsm8NnHq441KTq2QueonTHeWziy
-        Scqn1hJ4JuZCKJcI+RwSRTBSmdPbalWgGXnktyx9mhMiN0A9z+SyEoBqJmTRkln+4zi8+x
-        tNoCQrIADND7wW/63h5jYE+DiLS9lao=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-62-qKh1LPqGOqCxoQoUmXi38w-1; Thu, 04 Jun 2020 13:58:09 -0400
-X-MC-Unique: qKh1LPqGOqCxoQoUmXi38w-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B4EFA805482;
-        Thu,  4 Jun 2020 17:58:07 +0000 (UTC)
-Received: from madcap2.tricolour.ca (unknown [10.10.110.54])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 4E9957CCCF;
-        Thu,  4 Jun 2020 17:57:59 +0000 (UTC)
-Date:   Thu, 4 Jun 2020 13:57:56 -0400
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Steve Grubb <sgrubb@redhat.com>
-Cc:     Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, Paul Moore <paul@paul-moore.com>,
-        omosnace@redhat.com, fw@strlen.de, twoerner@redhat.com,
-        eparis@parisplace.org, tgraf@infradead.org
-Subject: Re: [PATCH ghak124 v3] audit: log nftables configuration change
- events
-Message-ID: <20200604175756.d3x5fy4k4urilgbp@madcap2.tricolour.ca>
-References: <f9da8b5dbf2396b621c77c17b5b1123be5aa484e.1591275439.git.rgb@redhat.com>
- <530434533.t1QJnzVmUA@x2>
+        Thu, 4 Jun 2020 14:16:22 -0400
+Received: from mout.perfora.net ([74.208.4.196]:41257 "EHLO mout.perfora.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729856AbgFDSQU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 4 Jun 2020 14:16:20 -0400
+Received: from [192.168.123.2] ([72.192.149.107]) by mrelay.perfora.net
+ (mreueus002 [74.208.5.2]) with ESMTPSA (Nemesis) id 0MDRPv-1jjsXu20sv-00Gqxu;
+ Thu, 04 Jun 2020 20:16:11 +0200
+Subject: Re: [PATCH nf] nft_set_rbtree: Don't account for expired elements on
+ insertion
+To:     Phil Sutter <phil@nwl.cc>, Stefano Brivio <sbrivio@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        stable@vger.kernel.org, netfilter-devel@vger.kernel.org
+References: <924e80c7b563cc6522a241b123c955c18983edb1.1591141588.git.sbrivio@redhat.com>
+ <20200603153531.GS31506@orbyte.nwl.cc>
+From:   Mike Dillinger <miked@softtalker.com>
+X-Tagtoolbar-Keys: D20200604111609461
+Message-ID: <79640a97-b164-42c4-cc24-2be1c2265e44@softtalker.com>
+Date:   Thu, 4 Jun 2020 11:16:09 -0700
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Firefox/68.0 Thunderbird/68.8.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <530434533.t1QJnzVmUA@x2>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+In-Reply-To: <20200603153531.GS31506@orbyte.nwl.cc>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-Provags-ID: V03:K1:xnOaNxaqT6I9IpQezLahS/A0L5efRZ/p90d8tgQ13oOwm8+RZnU
+ iVZdhhCLslBOiUkTbbX60F26QPIsUjtmlZxnaWERVxrBWyJ/FF9beZJqPthoyPkevzKFaT8
+ u2BTqfxWKZ+k39icz53BllwwDO5BWp0DBVaknc2V1TepDoTY+oEqIU2ZYuSK8HqtzaXVzvx
+ E4hDWhsUjwwoTOoKRbXjQ==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:fIdiQ4vSmxU=:co/LXnM9yiewfkNg9/g+rf
+ v2lpi0pzrc+SNVxbFjg4VQhsQgXmxjZJNqTY6u8Fw/lit8/ai7bBiqz6qhFXyFH6NuRzztRR2
+ sGJ9uwGPy2mIxYocEtMoxEXbtAHrPTQleVDhYMXBGfVTWo1vkiGUZpyLDoaRHpNnG91Q0YrUp
+ Lf6ZrPampMrx1BrVkfciyimPnoytMRAhXxGJPIseqYD6/W5Qhcl9LmvSL/yHbkw6pwI9qYRjh
+ 7YKw5ZiuZ2kTLGvYdZB57dR2WuNHu0av+OadJ1AbmfisTRC6yk+3gJUpUHuVN1R7aKOSZCLtR
+ bipSIpo8F3HYxJP2RIii9mqZRYAfg44PXdZzqh6IEONhMI5VSDrl1ufAOZtlC4sjwEjDZJU4P
+ kODGe9F2IVaseGe0EZEszYh21rr81WNpHJloezXWsM1puqyArdWm8BMuszHJdj8B5Zd6e19xl
+ FxKkRkSzCb2ANRD8QNw6+rToe8LBlPEpEx17BbZolylQx2jSmqoSk+96Xqa+pJPxdvgB3oRYl
+ y1hVzCX3AxCS6DCF/RtcFiwpQ8Ev8EPOd37HrW7a1UhZGNpU4rwT6RydIISkU0waCyyrq8rri
+ 7LZiw5ASmMwS0CZB013ZIBlMdydPAhdLIhx6vt9onFhcHZkcfWINfY6Nh+C6aV50Fn1DEl36s
+ opvr6kbDXe9UqtzEmU3w5kID+a4odlVK4JaaoNrqZpC5+FR9lt2R5qwEbOgKwNxc+5+MNx6Tt
+ 7CcBWUNDkOdfWqgd33zY+CXxUFfv3URuZ0TGTbpMRnlxfEtUjzrtBYcuItmT15Taoq9CAF4vZ
+ Y4qcyiujaf7oc1el3I3UFY5oCmZwEo43t44aS8i+1Lsf3b+a5wGByoQMtETo7E0I6jOXIKC
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-06-04 13:03, Steve Grubb wrote:
-> On Thursday, June 4, 2020 9:20:49 AM EDT Richard Guy Briggs wrote:
-> > iptables, ip6tables, arptables and ebtables table registration,
-> > replacement and unregistration configuration events are logged for the
-> > native (legacy) iptables setsockopt api, but not for the
-> > nftables netlink api which is used by the nft-variant of iptables in
-> > addition to nftables itself.
-> > 
-> > Add calls to log the configuration actions in the nftables netlink api.
-> > 
-> > This uses the same NETFILTER_CFG record format but overloads the table
-> > field.
-> > 
-> >   type=NETFILTER_CFG msg=audit(2020-05-28 17:46:41.878:162) : table=?:0;?:0
-> > family=unspecified entries=2 op=nft_register_gen pid=396
-> > subj=system_u:system_r:firewalld_t:s0 comm=firewalld ...
-> >   type=NETFILTER_CFG msg=audit(2020-05-28 17:46:41.878:162) :
-> > table=firewalld:1;?:0 family=inet entries=0 op=nft_register_table pid=396
-> > subj=system_u:system_r:firewalld_t:s0 comm=firewalld ...
-> >   type=NETFILTER_CFG msg=audit(2020-05-28 17:46:41.911:163) :
-> > table=firewalld:1;filter_FORWARD:85 family=inet entries=8
-> > op=nft_register_chain pid=396 subj=system_u:system_r:firewalld_t:s0
-> > comm=firewalld ...
-> >   type=NETFILTER_CFG msg=audit(2020-05-28 17:46:41.911:163) :
-> > table=firewalld:1;filter_FORWARD:85 family=inet entries=101
-> > op=nft_register_rule pid=396 subj=system_u:system_r:firewalld_t:s0
-> > comm=firewalld ...
-> >   type=NETFILTER_CFG msg=audit(2020-05-28 17:46:41.911:163) :
-> > table=firewalld:1;__set0:87 family=inet entries=87 op=nft_register_setelem
-> > pid=396 subj=system_u:system_r:firewalld_t:s0 comm=firewalld ...
-> >   type=NETFILTER_CFG msg=audit(2020-05-28 17:46:41.911:163) :
-> > table=firewalld:1;__set0:87 family=inet entries=0 op=nft_register_set
-> > pid=396 subj=system_u:system_r:firewalld_t:s0 comm=firewalld
-> > 
-> > For further information please see issue
-> > https://github.com/linux-audit/audit-kernel/issues/124
-> > 
-> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > ---
-> > Changelog:
-> > v3:
-> > - inline message type rather than table
-> > 
-> > v2:
-> > - differentiate between xtables and nftables
-> > - add set, setelem, obj, flowtable, gen
-> > - use nentries field as appropriate per type
-> > - overload the "tables" field with table handle and chain/set/flowtable
-> > 
-> >  include/linux/audit.h         |  18 ++++++++
-> >  kernel/auditsc.c              |  24 ++++++++--
-> >  net/netfilter/nf_tables_api.c | 103
-> > ++++++++++++++++++++++++++++++++++++++++++ 3 files changed, 142
-> > insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/include/linux/audit.h b/include/linux/audit.h
-> > index 3fcd9ee49734..604ede630580 100644
-> > --- a/include/linux/audit.h
-> > +++ b/include/linux/audit.h
-> > @@ -12,6 +12,7 @@
-> >  #include <linux/sched.h>
-> >  #include <linux/ptrace.h>
-> >  #include <uapi/linux/audit.h>
-> > +#include <uapi/linux/netfilter/nf_tables.h>
-> > 
-> >  #define AUDIT_INO_UNSET ((unsigned long)-1)
-> >  #define AUDIT_DEV_UNSET ((dev_t)-1)
-> > @@ -98,6 +99,23 @@ enum audit_nfcfgop {
-> >  	AUDIT_XT_OP_REGISTER,
-> >  	AUDIT_XT_OP_REPLACE,
-> >  	AUDIT_XT_OP_UNREGISTER,
-> > +	AUDIT_NFT_OP_TABLE_REGISTER,
-> > +	AUDIT_NFT_OP_TABLE_UNREGISTER,
-> > +	AUDIT_NFT_OP_CHAIN_REGISTER,
-> > +	AUDIT_NFT_OP_CHAIN_UNREGISTER,
-> > +	AUDIT_NFT_OP_RULE_REGISTER,
-> > +	AUDIT_NFT_OP_RULE_UNREGISTER,
-> > +	AUDIT_NFT_OP_SET_REGISTER,
-> > +	AUDIT_NFT_OP_SET_UNREGISTER,
-> > +	AUDIT_NFT_OP_SETELEM_REGISTER,
-> > +	AUDIT_NFT_OP_SETELEM_UNREGISTER,
-> > +	AUDIT_NFT_OP_GEN_REGISTER,
-> > +	AUDIT_NFT_OP_OBJ_REGISTER,
-> > +	AUDIT_NFT_OP_OBJ_UNREGISTER,
-> > +	AUDIT_NFT_OP_OBJ_RESET,
-> > +	AUDIT_NFT_OP_FLOWTABLE_REGISTER,
-> > +	AUDIT_NFT_OP_FLOWTABLE_UNREGISTER,
-> > +	AUDIT_NFT_OP_INVALID,
-> >  };
-> > 
-> >  extern int is_audit_feature_set(int which);
-> > diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-> > index 468a23390457..3a9100e95fda 100644
-> > --- a/kernel/auditsc.c
-> > +++ b/kernel/auditsc.c
-> > @@ -75,6 +75,7 @@
-> >  #include <linux/uaccess.h>
-> >  #include <linux/fsnotify_backend.h>
-> >  #include <uapi/linux/limits.h>
-> > +#include <uapi/linux/netfilter/nf_tables.h>
-> > 
-> >  #include "audit.h"
-> > 
-> > @@ -136,9 +137,26 @@ struct audit_nfcfgop_tab {
-> >  };
-> > 
-> >  static const struct audit_nfcfgop_tab audit_nfcfgs[] = {
-> > -	{ AUDIT_XT_OP_REGISTER,		"register"	},
-> > -	{ AUDIT_XT_OP_REPLACE,		"replace"	},
-> > -	{ AUDIT_XT_OP_UNREGISTER,	"unregister"	},
-> > +	{ AUDIT_XT_OP_REGISTER,			"xt_register"		   
-> },
-> > +	{ AUDIT_XT_OP_REPLACE,			"xt_replace"		   },
-> > +	{ AUDIT_XT_OP_UNREGISTER,		"xt_unregister"		   },
-> > +	{ AUDIT_NFT_OP_TABLE_REGISTER,		"nft_register_table"	   
-> },
-> > +	{ AUDIT_NFT_OP_TABLE_UNREGISTER,	"nft_unregister_table"	   },
-> > +	{ AUDIT_NFT_OP_CHAIN_REGISTER,		"nft_register_chain"	   
-> },
-> > +	{ AUDIT_NFT_OP_CHAIN_UNREGISTER,	"nft_unregister_chain"	   },
-> > +	{ AUDIT_NFT_OP_RULE_REGISTER,		"nft_register_rule"	   
-> },
-> > +	{ AUDIT_NFT_OP_RULE_UNREGISTER,		"nft_unregister_rule"	   
-> },
-> > +	{ AUDIT_NFT_OP_SET_REGISTER,		"nft_register_set"	   
-> },
-> > +	{ AUDIT_NFT_OP_SET_UNREGISTER,		"nft_unregister_set"	   
-> },
-> > +	{ AUDIT_NFT_OP_SETELEM_REGISTER,	"nft_register_setelem"	   },
-> > +	{ AUDIT_NFT_OP_SETELEM_UNREGISTER,	"nft_unregister_setelem"   },
-> > +	{ AUDIT_NFT_OP_GEN_REGISTER,		"nft_register_gen"	   },
-> > +	{ AUDIT_NFT_OP_OBJ_REGISTER,		"nft_register_obj"	   },
-> > +	{ AUDIT_NFT_OP_OBJ_UNREGISTER,		"nft_unregister_obj"	   },
-> > +	{ AUDIT_NFT_OP_OBJ_RESET,		"nft_reset_obj"		   },
-> > +	{ AUDIT_NFT_OP_FLOWTABLE_REGISTER,	"nft_register_flowtable"   },
-> > +	{ AUDIT_NFT_OP_FLOWTABLE_UNREGISTER,	"nft_unregister_flowtable" },
-> > +	{ AUDIT_NFT_OP_INVALID,			"nft_invalid"		   
-> },
-> >  };
-> 
-> I still don't like the event format because it doesn't give complete subject 
-> information. However, I thought I'd comment on this string table. Usually 
-> it's sufficient to log the number and then have the string table in user space 
-> which looks it up during interpretation.
+> Signed-off-by: Stefano Brivio<sbrivio@redhat.com>
+> ---
+>   .../testcases/sets/0044interval_overlap_0     | 81 ++++++++++++++-----
+>   1 file changed, 61 insertions(+), 20 deletions(-)
+>
+> diff --git a/tests/shell/testcases/sets/0044interval_overlap_0 b/tests/shell/testcases/sets/0044interval_overlap_0
+> index fad92ddcf356..16f661a00116 100755
+> --- a/tests/shell/testcases/sets/0044interval_overlap_0
+> +++ b/tests/shell/testcases/sets/0044interval_overlap_0
+> @@ -7,6 +7,13 @@
+>   #   existing one
+>   # - for concatenated ranges, the new element is less specific than any existing
+>   #   overlapping element, as elements are evaluated in order of insertion
+> +#
+> +# Then, repeat the test with a set configured for 1s timeout, checking that:
+> +# - we can insert all the elements as described above
+> +# - once the timeout has expired, we can insert all the elements again, and old
+> +#   elements are not present
+> +# - before the timeout expires again, we can re-add elements that are not
+> +#   expected to fail, but old elements might be present
+>   
+>   #	Accept	Interval	List
+>   intervals_simple="
+> @@ -39,28 +46,62 @@ intervals_concat="
+>   	y	15-20 . 49-61	0-2 . 0-3, 10-20 . 30-40, 15-20 . 50-60, 3-9 . 4-29, 15-20 . 49-61
+>   "
+>   
+> -$NFT add table t
+> -$NFT add set t s '{ type inet_service ; flags interval ; }'
+> -$NFT add set t c '{ type inet_service . inet_service ; flags interval ; }'
+> +match_elements() {
+> +	skip=0
+> +	n=0
+> +	out=
+> +	for a in $($NFT list set t ${1})}; do
+> +		[ ${n} -eq 0 ] && [ "${a}" = "elements" ] && n=1
+> +		[ ${n} -eq 1 ] && [ "${a}" = "=" ]	  && n=2
+> +		[ ${n} -eq 2 ] && [ "${a}" = "{" ]	  && n=3 && continue
+> +		[ ${n} -lt 3 ] 					 && continue
+> +
+> +		[ "${a}" = "}" ]				 && break
+> +
+> +		[ ${skip} -eq 1 ] && skip=0 && out="${out},"	 && continue
+> +		[ "${a}" = "expires" ] && skip=1		 && continue
+> +
+> +		[ -n "${out}" ] && out="${out} ${a}" || out="${a}"
+> +	done
+> +	[ "${out%,}" = "${2}" ]
+> +}
+>   
+> -IFS='	
+> +add_elements() {
+> +	set="s"
+> +	IFS='	
+>   '
+> -set="s"
+> -for t in ${intervals_simple} switch ${intervals_concat}; do
+> -	[ "${t}" = "switch" ] && set="c"         && continue
+> -	[ -z "${pass}" ]      && pass="${t}"     && continue
+> -	[ -z "${interval}" ]  && interval="${t}" && continue
+> +	for t in ${intervals_simple} switch ${intervals_concat}; do
+> +		unset IFS
+> +		[ "${t}" = "switch" ] && set="c"         && continue
+> +		[ -z "${pass}" ]      && pass="${t}"     && continue
+> +		[ -z "${interval}" ]  && interval="${t}" && continue
+>   
+> -	if [ "${pass}" = "y" ]; then
+> -		$NFT add element t ${set} "{ ${interval} }"
+> -	else
+> -		! $NFT add element t ${set} "{ ${interval} }" 2>/dev/null
+> -	fi
+> -	$NFT list set t ${set} | tr -d '\n\t' | tr -s ' ' | \
+> -		grep -q "elements = { ${t} }"
+> +		if [ "${pass}" = "y" ]; then
+> +			$NFT add element t ${set} "{ ${interval} }"
+> +		else
+> +			! $NFT add element t ${set} "{ ${interval} }" 2>/dev/null
+> +		fi
+>   
+> -	pass=
+> -	interval=
+> -done
+> +		[ "${1}" != "nomatch" ] && match_elements "${set}" "${t}"
+>   
+> -unset IFS
+> +		pass=
+> +		interval=
+> +		IFS='	
+> +'
+> +	done
+> +	unset IFS
+> +}
+> +
+> +$NFT add table t
+> +$NFT add set t s '{ type inet_service ; flags interval ; }'
+> +$NFT add set t c '{ type inet_service . inet_service ; flags interval ; }'
+> +add_elements
+> +
+> +$NFT flush ruleset
+> +$NFT add table t
+> +$NFT add set t s '{ type inet_service ; flags interval,timeout; timeout 1s; gc-interval 1s; }'
+> +$NFT add set t c '{ type inet_service . inet_service ; flags interval,timeout ; timeout 1s; gc-interval 1s; }'
+> +add_elements
+> +sleep 1
+> +add_elements
+> +add_elements nomatch
 
-That is a good idea that would help reduce kernel cycles and netlink
-bandwidth, but the format was set in 2011 so it is a bit late to change
-that now:
-	fbabf31e4d48 ("netfilter: create audit records for x_tables replaces")
+Hello All,
 
-> -Steve
-> 
-> >  static int audit_match_perm(struct audit_context *ctx, int mask)
-> > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> > index 3558e76e2733..b9e7440cc87d 100644
-> > --- a/net/netfilter/nf_tables_api.c
-> > +++ b/net/netfilter/nf_tables_api.c
-> > @@ -12,6 +12,7 @@
-> >  #include <linux/netlink.h>
-> >  #include <linux/vmalloc.h>
-> >  #include <linux/rhashtable.h>
-> > +#include <linux/audit.h>
-> >  #include <linux/netfilter.h>
-> >  #include <linux/netfilter/nfnetlink.h>
-> >  #include <linux/netfilter/nf_tables.h>
-> > @@ -693,6 +694,16 @@ static void nf_tables_table_notify(const struct
-> > nft_ctx *ctx, int event) {
-> >  	struct sk_buff *skb;
-> >  	int err;
-> > +	char *buf = kasprintf(GFP_KERNEL, "%s:%llu;?:0",
-> > +			      ctx->table->name, ctx->table->handle);
-> > +
-> > +	audit_log_nfcfg(buf,
-> > +			ctx->family,
-> > +			ctx->table->use,
-> > +			event == NFT_MSG_NEWTABLE ?
-> > +				AUDIT_NFT_OP_TABLE_REGISTER :
-> > +				AUDIT_NFT_OP_TABLE_UNREGISTER);
-> > +	kfree(buf);
-> > 
-> >  	if (!ctx->report &&
-> >  	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
-> > @@ -1428,6 +1439,17 @@ static void nf_tables_chain_notify(const struct
-> > nft_ctx *ctx, int event) {
-> >  	struct sk_buff *skb;
-> >  	int err;
-> > +	char *buf = kasprintf(GFP_KERNEL, "%s:%llu;%s:%llu",
-> > +			      ctx->table->name, ctx->table->handle,
-> > +			      ctx->chain->name, ctx->chain->handle);
-> > +
-> > +	audit_log_nfcfg(buf,
-> > +			ctx->family,
-> > +			ctx->chain->use,
-> > +			event == NFT_MSG_NEWCHAIN ?
-> > +				AUDIT_NFT_OP_CHAIN_REGISTER :
-> > +				AUDIT_NFT_OP_CHAIN_UNREGISTER);
-> > +	kfree(buf);
-> > 
-> >  	if (!ctx->report &&
-> >  	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
-> > @@ -2691,6 +2713,17 @@ static void nf_tables_rule_notify(const struct
-> > nft_ctx *ctx, {
-> >  	struct sk_buff *skb;
-> >  	int err;
-> > +	char *buf = kasprintf(GFP_KERNEL, "%s:%llu;%s:%llu",
-> > +			      ctx->table->name, ctx->table->handle,
-> > +			      ctx->chain->name, ctx->chain->handle);
-> > +
-> > +	audit_log_nfcfg(buf,
-> > +			ctx->family,
-> > +			rule->handle,
-> > +			event == NFT_MSG_NEWRULE ?
-> > +				AUDIT_NFT_OP_RULE_REGISTER :
-> > +				AUDIT_NFT_OP_RULE_UNREGISTER);
-> > +	kfree(buf);
-> > 
-> >  	if (!ctx->report &&
-> >  	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
-> > @@ -3693,6 +3726,17 @@ static void nf_tables_set_notify(const struct
-> > nft_ctx *ctx, struct sk_buff *skb;
-> >  	u32 portid = ctx->portid;
-> >  	int err;
-> > +	char *buf = kasprintf(gfp_flags, "%s:%llu;%s:%llu",
-> > +			      ctx->table->name, ctx->table->handle,
-> > +			      set->name, set->handle);
-> > +
-> > +	audit_log_nfcfg(buf,
-> > +			ctx->family,
-> > +			set->field_count,
-> > +			event == NFT_MSG_NEWSET ?
-> > +				AUDIT_NFT_OP_SET_REGISTER :
-> > +				AUDIT_NFT_OP_SET_UNREGISTER);
-> > +	kfree(buf);
-> > 
-> >  	if (!ctx->report &&
-> >  	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
-> > @@ -4809,6 +4853,17 @@ static void nf_tables_setelem_notify(const struct
-> > nft_ctx *ctx, u32 portid = ctx->portid;
-> >  	struct sk_buff *skb;
-> >  	int err;
-> > +	char *buf = kasprintf(GFP_KERNEL, "%s:%llu;%s:%llu",
-> > +			      ctx->table->name, ctx->table->handle,
-> > +			      set->name, set->handle);
-> > +
-> > +	audit_log_nfcfg(buf,
-> > +			ctx->family,
-> > +			set->handle,
-> > +			event == NFT_MSG_NEWSETELEM ?
-> > +				AUDIT_NFT_OP_SETELEM_REGISTER :
-> > +				AUDIT_NFT_OP_SETELEM_UNREGISTER);
-> > +	kfree(buf);
-> > 
-> >  	if (!ctx->report && !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
-> >  		return;
-> > @@ -5890,6 +5945,19 @@ static int nf_tables_dump_obj(struct sk_buff *skb,
-> > struct netlink_callback *cb) obj->ops->type->type != filter->type)
-> >  				goto cont;
-> > 
-> > +			if (reset) {
-> > +				char *buf = kasprintf(GFP_KERNEL,
-> > +						      "%s:%llu;?:0",
-> > +						      table->name,
-> > +						      table->handle);
-> > +
-> > +				audit_log_nfcfg(buf,
-> > +						family,
-> > +						obj->handle,
-> > +						AUDIT_NFT_OP_OBJ_RESET);
-> > +				kfree(buf);
-> > +			}
-> > +
-> >  			if (nf_tables_fill_obj_info(skb, net, NETLINK_CB(cb-
-> >skb).portid,
-> >  						    cb->nlh->nlmsg_seq,
-> >  						    NFT_MSG_NEWOBJ,
-> > @@ -6000,6 +6068,17 @@ static int nf_tables_getobj(struct net *net, struct
-> > sock *nlsk, if (NFNL_MSG_TYPE(nlh->nlmsg_type) == NFT_MSG_GETOBJ_RESET)
-> >  		reset = true;
-> > 
-> > +	if (reset) {
-> > +		char *buf = kasprintf(GFP_KERNEL, "%s:%llu;?:0",
-> > +				      table->name, table->handle);
-> > +
-> > +		audit_log_nfcfg(buf,
-> > +				family,
-> > +				obj->handle,
-> > +				AUDIT_NFT_OP_OBJ_RESET);
-> > +		kfree(buf);
-> > +	}
-> > +
-> >  	err = nf_tables_fill_obj_info(skb2, net, NETLINK_CB(skb).portid,
-> >  				      nlh->nlmsg_seq, NFT_MSG_NEWOBJ, 0,
-> >  				      family, table, obj, reset);
-> > @@ -6075,6 +6154,16 @@ void nft_obj_notify(struct net *net, const struct
-> > nft_table *table, {
-> >  	struct sk_buff *skb;
-> >  	int err;
-> > +	char *buf = kasprintf(GFP_KERNEL, "%s:%llu;?:0",
-> > +			      table->name, table->handle);
-> > +
-> > +	audit_log_nfcfg(buf,
-> > +			family,
-> > +			obj->handle,
-> > +			event == NFT_MSG_NEWOBJ ?
-> > +				AUDIT_NFT_OP_OBJ_REGISTER :
-> > +				AUDIT_NFT_OP_OBJ_UNREGISTER);
-> > +	kfree(buf);
-> > 
-> >  	if (!report &&
-> >  	    !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
-> > @@ -6701,6 +6790,17 @@ static void nf_tables_flowtable_notify(struct
-> > nft_ctx *ctx, {
-> >  	struct sk_buff *skb;
-> >  	int err;
-> > +	char *buf = kasprintf(GFP_KERNEL, "%s:%llu;%s:%llu",
-> > +			      flowtable->table->name, flowtable->table->handle,
-> > +			      flowtable->name, flowtable->handle);
-> > +
-> > +	audit_log_nfcfg(buf,
-> > +			ctx->family,
-> > +			flowtable->hooknum,
-> > +			event == NFT_MSG_NEWFLOWTABLE ?
-> > +				AUDIT_NFT_OP_FLOWTABLE_REGISTER :
-> > +				AUDIT_NFT_OP_FLOWTABLE_UNREGISTER);
-> > +	kfree(buf);
-> > 
-> >  	if (ctx->report &&
-> >  	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
-> > @@ -6822,6 +6922,9 @@ static void nf_tables_gen_notify(struct net *net,
-> > struct sk_buff *skb, struct sk_buff *skb2;
-> >  	int err;
-> > 
-> > +	audit_log_nfcfg("?:0;?:0", 0, net->nft.base_seq,
-> > +			AUDIT_NFT_OP_GEN_REGISTER);
-> > +
-> >  	if (nlmsg_report(nlh) &&
-> >  	    !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
-> >  		return;
-> 
-> 
-> 
-> 
+Is there any way I can track this change so I know what kernel version to expect it in?  Pardon my ignorance, but I'm new to Linux kernel changes.  I have familiarity with change requests, so if I can follow this on GitHub or some other tracking system, that would be great.
 
-- RGB
-
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
-
+Thanks!
+-MikeD
