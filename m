@@ -2,176 +2,100 @@ Return-Path: <SRS0=RJ5t=7R=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2C6BC433DF
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jun 2020 18:16:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D830C433E1
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jun 2020 18:40:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ACE4420738
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jun 2020 18:16:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 08E5F207D5
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jun 2020 18:40:36 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="d+pppVRj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730366AbgFDSQW (ORCPT
+        id S1726456AbgFDSkf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 4 Jun 2020 14:16:22 -0400
-Received: from mout.perfora.net ([74.208.4.196]:41257 "EHLO mout.perfora.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729856AbgFDSQU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 Jun 2020 14:16:20 -0400
-Received: from [192.168.123.2] ([72.192.149.107]) by mrelay.perfora.net
- (mreueus002 [74.208.5.2]) with ESMTPSA (Nemesis) id 0MDRPv-1jjsXu20sv-00Gqxu;
- Thu, 04 Jun 2020 20:16:11 +0200
-Subject: Re: [PATCH nf] nft_set_rbtree: Don't account for expired elements on
- insertion
-To:     Phil Sutter <phil@nwl.cc>, Stefano Brivio <sbrivio@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Thu, 4 Jun 2020 14:40:35 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:31110 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1728124AbgFDSkf (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 4 Jun 2020 14:40:35 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1591296034;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=5L6MBW/7l1c3aqJuiD8NksILnbfOSCR/bc4wTe/D8ic=;
+        b=d+pppVRjBKrrJxpqhrlnRA0K9Z8GG/Y4woViHrlI6zrOisloY/kcCfpOjTvqUI77qSCIy9
+        0klHre4TXeXFdKTlbm2ajMvo1etqW0J91f+NlONUN9PU9aznBPCbI8LovT+zOWICAuRq7H
+        ZbOr2WDte0yCKpevEFAP6CjPUFpkGqA=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-394-P7U2_xIlNom1HEX7dbnMTg-1; Thu, 04 Jun 2020 14:40:22 -0400
+X-MC-Unique: P7U2_xIlNom1HEX7dbnMTg-1
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 43E16EC1A8;
+        Thu,  4 Jun 2020 18:40:19 +0000 (UTC)
+Received: from localhost (unknown [10.36.110.49])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 38A1D10013D5;
+        Thu,  4 Jun 2020 18:40:16 +0000 (UTC)
+Date:   Thu, 4 Jun 2020 20:40:03 +0200
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Mike Dillinger <miked@softtalker.com>
+Cc:     Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>,
         stable@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] nft_set_rbtree: Don't account for expired elements
+ on insertion
+Message-ID: <20200604204003.2b07d03a@redhat.com>
+In-Reply-To: <79640a97-b164-42c4-cc24-2be1c2265e44@softtalker.com>
 References: <924e80c7b563cc6522a241b123c955c18983edb1.1591141588.git.sbrivio@redhat.com>
- <20200603153531.GS31506@orbyte.nwl.cc>
-From:   Mike Dillinger <miked@softtalker.com>
-X-Tagtoolbar-Keys: D20200604111609461
-Message-ID: <79640a97-b164-42c4-cc24-2be1c2265e44@softtalker.com>
-Date:   Thu, 4 Jun 2020 11:16:09 -0700
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
- Firefox/68.0 Thunderbird/68.8.1
+        <20200603153531.GS31506@orbyte.nwl.cc>
+        <79640a97-b164-42c4-cc24-2be1c2265e44@softtalker.com>
+Organization: Red Hat
 MIME-Version: 1.0
-In-Reply-To: <20200603153531.GS31506@orbyte.nwl.cc>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
-X-Provags-ID: V03:K1:xnOaNxaqT6I9IpQezLahS/A0L5efRZ/p90d8tgQ13oOwm8+RZnU
- iVZdhhCLslBOiUkTbbX60F26QPIsUjtmlZxnaWERVxrBWyJ/FF9beZJqPthoyPkevzKFaT8
- u2BTqfxWKZ+k39icz53BllwwDO5BWp0DBVaknc2V1TepDoTY+oEqIU2ZYuSK8HqtzaXVzvx
- E4hDWhsUjwwoTOoKRbXjQ==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:fIdiQ4vSmxU=:co/LXnM9yiewfkNg9/g+rf
- v2lpi0pzrc+SNVxbFjg4VQhsQgXmxjZJNqTY6u8Fw/lit8/ai7bBiqz6qhFXyFH6NuRzztRR2
- sGJ9uwGPy2mIxYocEtMoxEXbtAHrPTQleVDhYMXBGfVTWo1vkiGUZpyLDoaRHpNnG91Q0YrUp
- Lf6ZrPampMrx1BrVkfciyimPnoytMRAhXxGJPIseqYD6/W5Qhcl9LmvSL/yHbkw6pwI9qYRjh
- 7YKw5ZiuZ2kTLGvYdZB57dR2WuNHu0av+OadJ1AbmfisTRC6yk+3gJUpUHuVN1R7aKOSZCLtR
- bipSIpo8F3HYxJP2RIii9mqZRYAfg44PXdZzqh6IEONhMI5VSDrl1ufAOZtlC4sjwEjDZJU4P
- kODGe9F2IVaseGe0EZEszYh21rr81WNpHJloezXWsM1puqyArdWm8BMuszHJdj8B5Zd6e19xl
- FxKkRkSzCb2ANRD8QNw6+rToe8LBlPEpEx17BbZolylQx2jSmqoSk+96Xqa+pJPxdvgB3oRYl
- y1hVzCX3AxCS6DCF/RtcFiwpQ8Ev8EPOd37HrW7a1UhZGNpU4rwT6RydIISkU0waCyyrq8rri
- 7LZiw5ASmMwS0CZB013ZIBlMdydPAhdLIhx6vt9onFhcHZkcfWINfY6Nh+C6aV50Fn1DEl36s
- opvr6kbDXe9UqtzEmU3w5kID+a4odlVK4JaaoNrqZpC5+FR9lt2R5qwEbOgKwNxc+5+MNx6Tt
- 7CcBWUNDkOdfWqgd33zY+CXxUFfv3URuZ0TGTbpMRnlxfEtUjzrtBYcuItmT15Taoq9CAF4vZ
- Y4qcyiujaf7oc1el3I3UFY5oCmZwEo43t44aS8i+1Lsf3b+a5wGByoQMtETo7E0I6jOXIKC
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-> Signed-off-by: Stefano Brivio<sbrivio@redhat.com>
-> ---
->   .../testcases/sets/0044interval_overlap_0     | 81 ++++++++++++++-----
->   1 file changed, 61 insertions(+), 20 deletions(-)
->
-> diff --git a/tests/shell/testcases/sets/0044interval_overlap_0 b/tests/shell/testcases/sets/0044interval_overlap_0
-> index fad92ddcf356..16f661a00116 100755
-> --- a/tests/shell/testcases/sets/0044interval_overlap_0
-> +++ b/tests/shell/testcases/sets/0044interval_overlap_0
-> @@ -7,6 +7,13 @@
->   #   existing one
->   # - for concatenated ranges, the new element is less specific than any existing
->   #   overlapping element, as elements are evaluated in order of insertion
-> +#
-> +# Then, repeat the test with a set configured for 1s timeout, checking that:
-> +# - we can insert all the elements as described above
-> +# - once the timeout has expired, we can insert all the elements again, and old
-> +#   elements are not present
-> +# - before the timeout expires again, we can re-add elements that are not
-> +#   expected to fail, but old elements might be present
->   
->   #	Accept	Interval	List
->   intervals_simple="
-> @@ -39,28 +46,62 @@ intervals_concat="
->   	y	15-20 . 49-61	0-2 . 0-3, 10-20 . 30-40, 15-20 . 50-60, 3-9 . 4-29, 15-20 . 49-61
->   "
->   
-> -$NFT add table t
-> -$NFT add set t s '{ type inet_service ; flags interval ; }'
-> -$NFT add set t c '{ type inet_service . inet_service ; flags interval ; }'
-> +match_elements() {
-> +	skip=0
-> +	n=0
-> +	out=
-> +	for a in $($NFT list set t ${1})}; do
-> +		[ ${n} -eq 0 ] && [ "${a}" = "elements" ] && n=1
-> +		[ ${n} -eq 1 ] && [ "${a}" = "=" ]	  && n=2
-> +		[ ${n} -eq 2 ] && [ "${a}" = "{" ]	  && n=3 && continue
-> +		[ ${n} -lt 3 ] 					 && continue
-> +
-> +		[ "${a}" = "}" ]				 && break
-> +
-> +		[ ${skip} -eq 1 ] && skip=0 && out="${out},"	 && continue
-> +		[ "${a}" = "expires" ] && skip=1		 && continue
-> +
-> +		[ -n "${out}" ] && out="${out} ${a}" || out="${a}"
-> +	done
-> +	[ "${out%,}" = "${2}" ]
-> +}
->   
-> -IFS='	
-> +add_elements() {
-> +	set="s"
-> +	IFS='	
->   '
-> -set="s"
-> -for t in ${intervals_simple} switch ${intervals_concat}; do
-> -	[ "${t}" = "switch" ] && set="c"         && continue
-> -	[ -z "${pass}" ]      && pass="${t}"     && continue
-> -	[ -z "${interval}" ]  && interval="${t}" && continue
-> +	for t in ${intervals_simple} switch ${intervals_concat}; do
-> +		unset IFS
-> +		[ "${t}" = "switch" ] && set="c"         && continue
-> +		[ -z "${pass}" ]      && pass="${t}"     && continue
-> +		[ -z "${interval}" ]  && interval="${t}" && continue
->   
-> -	if [ "${pass}" = "y" ]; then
-> -		$NFT add element t ${set} "{ ${interval} }"
-> -	else
-> -		! $NFT add element t ${set} "{ ${interval} }" 2>/dev/null
-> -	fi
-> -	$NFT list set t ${set} | tr -d '\n\t' | tr -s ' ' | \
-> -		grep -q "elements = { ${t} }"
-> +		if [ "${pass}" = "y" ]; then
-> +			$NFT add element t ${set} "{ ${interval} }"
-> +		else
-> +			! $NFT add element t ${set} "{ ${interval} }" 2>/dev/null
-> +		fi
->   
-> -	pass=
-> -	interval=
-> -done
-> +		[ "${1}" != "nomatch" ] && match_elements "${set}" "${t}"
->   
-> -unset IFS
-> +		pass=
-> +		interval=
-> +		IFS='	
-> +'
-> +	done
-> +	unset IFS
-> +}
-> +
-> +$NFT add table t
-> +$NFT add set t s '{ type inet_service ; flags interval ; }'
-> +$NFT add set t c '{ type inet_service . inet_service ; flags interval ; }'
-> +add_elements
-> +
-> +$NFT flush ruleset
-> +$NFT add table t
-> +$NFT add set t s '{ type inet_service ; flags interval,timeout; timeout 1s; gc-interval 1s; }'
-> +$NFT add set t c '{ type inet_service . inet_service ; flags interval,timeout ; timeout 1s; gc-interval 1s; }'
-> +add_elements
-> +sleep 1
-> +add_elements
-> +add_elements nomatch
+Mike,
 
-Hello All,
+On Thu, 4 Jun 2020 11:16:09 -0700
+Mike Dillinger <miked@softtalker.com> wrote:
 
-Is there any way I can track this change so I know what kernel version to expect it in?  Pardon my ignorance, but I'm new to Linux kernel changes.  I have familiarity with change requests, so if I can follow this on GitHub or some other tracking system, that would be great.
+>  [...] =20
+>=20
+> Hello All,
+>=20
+> Is there any way I can track this change so I know what kernel
+> version to expect it in?=C3=82=C2=A0 Pardon my ignorance, but I'm new to =
+Linux
+> kernel changes.=C3=82=C2=A0 I have familiarity with change requests, so i=
+f I
+> can follow this on GitHub or some other tracking system, that would
+> be great.
 
-Thanks!
--MikeD
+Pablo, the maintainer, will answer to the original patch email once
+(and if) it gets applied to the netfilter (nf.git) tree. For that part,
+you can also track it here:
+	http://patchwork.ozlabs.org/project/netfilter-devel/list/
+
+That should be applied to the main tree, though, before the stable team
+picks it, there are several ways to track that... but you're using
+Debian kernels, so I guess you're rather interested in:
+	https://tracker.debian.org/pkg/linux
+	https://tracker.debian.org/pkg/linux/rss
+
+Changelog links are available from there too.
+
+--=20
+Stefano
+
