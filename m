@@ -2,95 +2,111 @@ Return-Path: <SRS0=fWn+=7S=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8867AC433E0
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jun 2020 11:39:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB5CAC433E1
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jun 2020 15:01:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 61AF6206E6
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jun 2020 11:39:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A57BA2065C
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jun 2020 15:01:14 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=pobox.com header.i=@pobox.com header.b="Sxoay7F4";
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=fluxnic.net header.i=@fluxnic.net header.b="Zz/eImY/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726372AbgFELj6 (ORCPT
+        id S1728123AbgFEPBJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 5 Jun 2020 07:39:58 -0400
-Received: from correo.us.es ([193.147.175.20]:44878 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726264AbgFELj5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 5 Jun 2020 07:39:57 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5C531F23B4
-        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jun 2020 13:39:54 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4A453DA84D
-        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jun 2020 13:39:54 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 479A6DA84F; Fri,  5 Jun 2020 13:39:54 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1AADCDA722;
-        Fri,  5 Jun 2020 13:39:51 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 05 Jun 2020 13:39:51 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
+        Fri, 5 Jun 2020 11:01:09 -0400
+Received: from pb-smtp20.pobox.com ([173.228.157.52]:55500 "EHLO
+        pb-smtp20.pobox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726911AbgFEPBH (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 5 Jun 2020 11:01:07 -0400
+Received: from pb-smtp20.pobox.com (unknown [127.0.0.1])
+        by pb-smtp20.pobox.com (Postfix) with ESMTP id 6AE7ED27C6;
+        Fri,  5 Jun 2020 11:01:04 -0400 (EDT)
+        (envelope-from nico@fluxnic.net)
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; d=pobox.com; h=date:from:to
+        :cc:subject:in-reply-to:message-id:references:mime-version
+        :content-type; s=sasl; bh=RQ5UuhFDdm6pYUURqgzo84j9G7A=; b=Sxoay7
+        F4gA4GZdu5Zg9uUlmAkW1Zt5FcDuXuyxgJg0J1/2YOTh+oGVFPS2XCXNhnKxruau
+        MDtfSlY0eXyRJHtGFbaGy1GRIGwT91daJ30IGzYPPomdVWXXQA2tHr5SlWDA734m
+        bZRjhWd3q6ijPU6K2wBSKxViPDDqydIEEmReM=
+Received: from pb-smtp20.sea.icgroup.com (unknown [127.0.0.1])
+        by pb-smtp20.pobox.com (Postfix) with ESMTP id 61111D27C5;
+        Fri,  5 Jun 2020 11:01:04 -0400 (EDT)
+        (envelope-from nico@fluxnic.net)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed; d=fluxnic.net;
+ h=date:from:to:cc:subject:in-reply-to:message-id:references:mime-version:content-type; s=2016-12.pbsmtp; bh=kGSNSFs79QpTCdEy/syIPtk8e7qpRSOVx3t4YYHSTPo=; b=Zz/eImY/hca3rOTLiCqOYWoaV6plgEo+kdFnlRPQFzRcUQoLXjJn0FtfTD7ckQtTqowgcbv/qHCqzK+ScMEpsSblxLiajcMT9GhFudy2osyOw0c/0yOkmdHSrAU5J6sKLf0oVK0xHwQO8Q2r0bmcLvvl02K0jlrhpKiphQGd6bE=
+Received: from yoda.home (unknown [24.203.50.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id E37C742EE38E;
-        Fri,  5 Jun 2020 13:39:50 +0200 (CEST)
-Date:   Fri, 5 Jun 2020 13:39:50 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     netfilter@vger.kernel.org, netfilter-announce@lists.netfilter.org
-Subject: [ANNOUNCE] libnftnl 1.1.7 release
-Message-ID: <20200605113950.GA8489@salvia>
+        by pb-smtp20.pobox.com (Postfix) with ESMTPSA id 263D0D27C0;
+        Fri,  5 Jun 2020 11:01:01 -0400 (EDT)
+        (envelope-from nico@fluxnic.net)
+Received: from xanadu.home (xanadu.home [192.168.2.2])
+        by yoda.home (Postfix) with ESMTPSA id 25E392DA01E9;
+        Fri,  5 Jun 2020 11:00:59 -0400 (EDT)
+Date:   Fri, 5 Jun 2020 11:00:59 -0400 (EDT)
+From:   Nicolas Pitre <nico@fluxnic.net>
+To:     =?ISO-8859-15?Q?Philippe_Mathieu-Daud=E9?= <f4bug@amsat.org>
+cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        David Laight <David.Laight@aculab.com>,
+        Casey Schaufler <casey@schaufler-ca.com>,
+        David Howells <dhowells@redhat.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Al Viro <viro@zeniv.linux.org.uk>, Ian Kent <raven@themaw.net>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        LSM List <linux-security-module@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        Joe Perches <joe@perches.com>
+Subject: Re: clean up kernel_{read,write} & friends v2
+In-Reply-To: <d67deb88-73a8-4c57-6b37-c62190422d65@amsat.org>
+Message-ID: <nycvar.YSQ.7.77.849.2006051039350.1353413@knanqh.ubzr>
+References: <CAHk-=wj3iGQqjpvc+gf6+C29Jo4COj6OQQFzdY0h5qvYKTdCow@mail.gmail.com> <20200528054043.621510-1-hch@lst.de> <22778.1590697055@warthog.procyon.org.uk> <f89f0f7f-83b4-72c6-7d08-cb6eaeccd443@schaufler-ca.com> <3aea7a1c10e94ea2964fa837ae7d8fe2@AcuMS.aculab.com>
+ <CAHk-=wjR0H3+2ba0UUWwoYzYBH0GX9yTf5dj2MZyo0xvyzvJnA@mail.gmail.com> <d67deb88-73a8-4c57-6b37-c62190422d65@amsat.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="9amGYk9869ThD9tj"
-Content-Disposition: inline
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: multipart/mixed; boundary="8323328-1427214125-1591369259=:1353413"
+X-Pobox-Relay-ID: 5EB18F9E-A73D-11EA-B614-B0405B776F7B-78420484!pb-smtp20.pobox.com
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
---9amGYk9869ThD9tj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--8323328-1427214125-1591369259=:1353413
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Hi!
+On Fri, 5 Jun 2020, Philippe Mathieu-Daud=C3=A9 wrote:
 
-The Netfilter project proudly presents:
+> Unfortunately refreshable braille displays have that "hardware
+> limitations". 80 cells displays are very expensive.
+> Visual impairments is rarely a "choice".
+> Relaxing the 80-char limit make it harder for blind developers
+> to contribute.
 
-        libnftnl 1.1.7
+Well, not really.
 
-libnftnl is a userspace library providing a low-level netlink
-programming interface (API) to the in-kernel nf_tables subsystem.
-This library is currently used by nftables.
+It is true that 80-cells displays are awfully expensive. IMHO they are=20
+also unwieldy due to their size: they are hardly portable, and they=20
+require your hands to move twice as far which may sometimes impair=20
+reading efficiency. So I never liked them.
 
-See ChangeLog that comes attached to this email for more details.
+My braille display has 40 cells only. So even with a 80-cells limit I=20
+always had to pan the display to see the whole line anyway.
 
-You can download it from:
+My text console is set to 160x128. The trick here is to have the number=20
+of columns be a multiple of the braille display's width to avoid dead=20
+areas when panning to the right.
 
-http://www.netfilter.org/projects/libnftnl/downloads.html
-ftp://ftp.netfilter.org/pub/libnftnl/
-
-Have fun.
-
---9amGYk9869ThD9tj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="changes-libnftnl-1.1.7.txt"
-
-Pablo Neira Ayuso (5):
-      udata: add NFTNL_UDATA_SET_DATA_INTERVAL
-      expr: objref: add nftnl_expr_objref_free() to release object name
-      expr: dynset: release stateful expression from .free path
-      flowtable: relax logic to build NFTA_FLOWTABLE_HOOK
-      build: libnftnl 1.1.7 release
+So if you ask me, I'm not against relaxing the 80 columns limit for=20
+code. What really matters to me is that I can stay clear of any GUI.
 
 
---9amGYk9869ThD9tj--
+Nicolas
+--8323328-1427214125-1591369259=:1353413--
