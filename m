@@ -1,155 +1,198 @@
-Return-Path: <SRS0=RJ5t=7R=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=fWn+=7S=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0510AC433DF
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jun 2020 18:52:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B93CC433E1
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jun 2020 06:36:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DCBBD207D3
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jun 2020 18:52:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F2BD52081A
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jun 2020 06:36:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="H4EqOuwM"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="N3dlX4HR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728996AbgFDSwN (ORCPT
+        id S1726154AbgFEGgX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 4 Jun 2020 14:52:13 -0400
-Received: from us-smtp-1.mimecast.com ([205.139.110.61]:37458 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728982AbgFDSwN (ORCPT
+        Fri, 5 Jun 2020 02:36:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33138 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726088AbgFEGgW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 Jun 2020 14:52:13 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1591296731;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=SsOiww58zMB8TiRbvx8d+FF7JBDwRx5PHUOX+iIdx7A=;
-        b=H4EqOuwMlzTTQOZiHyrCKurV8/G3aODqswWQ2FBOGQG0D5fOX64Zdqr5Qw6rxXxckxbSAh
-        0viFLd72sgitOH0xW56Z0XaC43mVsigIiIcGa+tau/M6a7CiC/8WNSBeDQyGGir7khjPoW
-        ab/xBpCVo6NMwl8Uz1ocXpH0O86hf7o=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-30-11_TenfrO4GLK4lbkdXN-A-1; Thu, 04 Jun 2020 14:52:08 -0400
-X-MC-Unique: 11_TenfrO4GLK4lbkdXN-A-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 2F9008DFFD0;
-        Thu,  4 Jun 2020 18:52:07 +0000 (UTC)
-Received: from x2.localnet (ovpn-112-220.phx2.redhat.com [10.3.112.220])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 170915D9D3;
-        Thu,  4 Jun 2020 18:51:56 +0000 (UTC)
-From:   Steve Grubb <sgrubb@redhat.com>
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, Paul Moore <paul@paul-moore.com>,
-        omosnace@redhat.com, fw@strlen.de, twoerner@redhat.com,
-        eparis@parisplace.org, tgraf@infradead.org
-Subject: Re: [PATCH ghak124 v3] audit: log nftables configuration change events
-Date:   Thu, 04 Jun 2020 14:51:54 -0400
-Message-ID: <2190308.cDvYnDs5iT@x2>
-Organization: Red Hat
-In-Reply-To: <20200604175756.d3x5fy4k4urilgbp@madcap2.tricolour.ca>
-References: <f9da8b5dbf2396b621c77c17b5b1123be5aa484e.1591275439.git.rgb@redhat.com> <530434533.t1QJnzVmUA@x2> <20200604175756.d3x5fy4k4urilgbp@madcap2.tricolour.ca>
+        Fri, 5 Jun 2020 02:36:22 -0400
+Received: from mail-wm1-x344.google.com (mail-wm1-x344.google.com [IPv6:2a00:1450:4864:20::344])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9682FC08C5C2;
+        Thu,  4 Jun 2020 23:36:22 -0700 (PDT)
+Received: by mail-wm1-x344.google.com with SMTP id u13so7350418wml.1;
+        Thu, 04 Jun 2020 23:36:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=6A+Yc/NcIwBkdU7I3CB2KCsuXoL3rpyUZTqoR0EzSg8=;
+        b=N3dlX4HRWIqNWFCX93secDfZiwMU1Ju9hkUtdPWp8v5KS524hXTrfhbdvCewJRi7Wg
+         hHhj5NeDmzbRinC07HMvOzkv9r5uFM/bCMB2cN36voTuE0z3aWbGA7md0doqRd+sKzWu
+         QhvybNNLUyPClnlia9IJpWa9OdglaDsB1RWx8KSoIsBPBy1KqtDBez+aERH024UzAHlv
+         KtkKZb7WpgDz9TKy10oNAcqtLsYjf1zPHmo6gQ/hb5KNGKqsSr7xIvfJZE+RdKeJNDBp
+         HBBSIXYYYOAGh7qtExGVlET2EFuohIi75h5/HbiBJfa2KkwjAillg2/6rvBRxrUoYX4w
+         SmQw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:subject:to:cc:references:from:message-id
+         :date:user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=6A+Yc/NcIwBkdU7I3CB2KCsuXoL3rpyUZTqoR0EzSg8=;
+        b=ZW++Js6HbeRGftSOYywkXyT0k0matJNPSjnzKS+qrTpxxvu2aLyTGXcrUdaoWu2/gM
+         Kd10F9+q3wSVGWH7XE7jc7PJQqQFfzAnqRf5iD+QLPTLvRFDtJRPQNVEgHZo7zmNZTR0
+         UF3RGkEHB5T6QAj8lD8S8ZezebcZl2Bd+pWX4vGe3gbvaULd1rFwV6B7qPNtFO/RNfbn
+         rs2AsdGScmMpptnQaCa06l57BWQxFpu+7u5FTCJQUKZ+5xIjcJ2hAmDM8YFctWKO8s1R
+         H8Ss5jdy2Z9KaIetYpKWJVEdIimQnGp2MpN6LFHSU5OPr2//V80bGw7eFNelKXg8XE+/
+         yXoA==
+X-Gm-Message-State: AOAM533HMZOsQCNVNLjQ1Ef0MqKCJg8Gb5BDB14KyP9E/1dZGquEj2bg
+        EHYeWUT/bkcFFieV9+Exn8LPSIdA
+X-Google-Smtp-Source: ABdhPJw8f8JI3DbnRJc4v0j6Y8s5RDEkjiIgirZ9MRvFQtf4pVBBGZGGOamsht6XhfANeF6ah9rYxw==
+X-Received: by 2002:a1c:5987:: with SMTP id n129mr1093340wmb.60.1591338981121;
+        Thu, 04 Jun 2020 23:36:21 -0700 (PDT)
+Received: from [192.168.1.43] (181.red-88-10-103.dynamicip.rima-tde.net. [88.10.103.181])
+        by smtp.gmail.com with ESMTPSA id n7sm10832794wrx.82.2020.06.04.23.36.19
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 04 Jun 2020 23:36:20 -0700 (PDT)
+Subject: Re: clean up kernel_{read,write} & friends v2
+To:     Linus Torvalds <torvalds@linux-foundation.org>,
+        David Laight <David.Laight@aculab.com>
+Cc:     Casey Schaufler <casey@schaufler-ca.com>,
+        David Howells <dhowells@redhat.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Al Viro <viro@zeniv.linux.org.uk>, Ian Kent <raven@themaw.net>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        LSM List <linux-security-module@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        Nicolas Pitre <nico@fluxnic.net>, Joe Perches <joe@perches.com>
+References: <CAHk-=wj3iGQqjpvc+gf6+C29Jo4COj6OQQFzdY0h5qvYKTdCow@mail.gmail.com>
+ <20200528054043.621510-1-hch@lst.de>
+ <22778.1590697055@warthog.procyon.org.uk>
+ <f89f0f7f-83b4-72c6-7d08-cb6eaeccd443@schaufler-ca.com>
+ <3aea7a1c10e94ea2964fa837ae7d8fe2@AcuMS.aculab.com>
+ <CAHk-=wjR0H3+2ba0UUWwoYzYBH0GX9yTf5dj2MZyo0xvyzvJnA@mail.gmail.com>
+From:   =?UTF-8?Q?Philippe_Mathieu-Daud=c3=a9?= <f4bug@amsat.org>
+Message-ID: <d67deb88-73a8-4c57-6b37-c62190422d65@amsat.org>
+Date:   Fri, 5 Jun 2020 08:36:18 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.5.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+In-Reply-To: <CAHk-=wjR0H3+2ba0UUWwoYzYBH0GX9yTf5dj2MZyo0xvyzvJnA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thursday, June 4, 2020 1:57:56 PM EDT Richard Guy Briggs wrote:
-> > > diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-> > > index 468a23390457..3a9100e95fda 100644
-> > > --- a/kernel/auditsc.c
-> > > +++ b/kernel/auditsc.c
-> > > @@ -75,6 +75,7 @@
-> > > #include <linux/uaccess.h>
-> > > #include <linux/fsnotify_backend.h>
-> > > #include <uapi/linux/limits.h>
-> > > +#include <uapi/linux/netfilter/nf_tables.h>
-> > > 
-> > > #include "audit.h"
-> > > 
-> > > @@ -136,9 +137,26 @@ struct audit_nfcfgop_tab {
-> > > };
-> > > 
-> > > static const struct audit_nfcfgop_tab audit_nfcfgs[] = {
-> > > -       { AUDIT_XT_OP_REGISTER,         "register"      },
-> > > -       { AUDIT_XT_OP_REPLACE,          "replace"       },
-> > > -       { AUDIT_XT_OP_UNREGISTER,       "unregister"    },
-> > > +       { AUDIT_XT_OP_REGISTER,                 "xt_register"
-> > 
-> > },
-> > 
-> > > +       { AUDIT_XT_OP_REPLACE,                  "xt_replace"           
-> > >    }, +       { AUDIT_XT_OP_UNREGISTER,               "xt_unregister" 
-> > >           }, +       { AUDIT_NFT_OP_TABLE_REGISTER,         
-> > > "nft_register_table"> 
-> > },
-> > 
-> > > +       { AUDIT_NFT_OP_TABLE_UNREGISTER,        "nft_unregister_table" 
-> > >    }, +       { AUDIT_NFT_OP_CHAIN_REGISTER,         
-> > > "nft_register_chain"> 
-> > },
-> > 
-> > > +       { AUDIT_NFT_OP_CHAIN_UNREGISTER,        "nft_unregister_chain" 
-> > >    }, +       { AUDIT_NFT_OP_RULE_REGISTER,          
-> > > "nft_register_rule"> 
-> > },
-> > 
-> > > +       { AUDIT_NFT_OP_RULE_UNREGISTER,         "nft_unregister_rule"
-> > 
-> > },
-> > 
-> > > +       { AUDIT_NFT_OP_SET_REGISTER,            "nft_register_set"
-> > 
-> > },
-> > 
-> > > +       { AUDIT_NFT_OP_SET_UNREGISTER,          "nft_unregister_set"
-> > 
-> > },
-> > 
-> > > +       { AUDIT_NFT_OP_SETELEM_REGISTER,        "nft_register_setelem" 
-> > >    }, +       { AUDIT_NFT_OP_SETELEM_UNREGISTER,     
-> > > "nft_unregister_setelem"   }, +       { AUDIT_NFT_OP_GEN_REGISTER,    
-> > >        "nft_register_gen"         }, +       {
-> > > AUDIT_NFT_OP_OBJ_REGISTER,            "nft_register_obj"         }, + 
-> > >      { AUDIT_NFT_OP_OBJ_UNREGISTER,          "nft_unregister_obj"     
-> > >  }, +       { AUDIT_NFT_OP_OBJ_RESET,               "nft_reset_obj"   
-> > >         }, +       { AUDIT_NFT_OP_FLOWTABLE_REGISTER,     
-> > > "nft_register_flowtable"   }, +       {
-> > > AUDIT_NFT_OP_FLOWTABLE_UNREGISTER,    "nft_unregister_flowtable" }, + 
-> > >      { AUDIT_NFT_OP_INVALID,                 "nft_invalid"
-> > 
-> > },
-> > 
-> > > };
-> > 
-> > I still don't like the event format because it doesn't give complete
-> > subject information. However, I thought I'd comment on this string
-> > table. Usually it's sufficient to log the number and then have the
-> > string table in user space which looks it up during interpretation.
+Hi Linus,
+
+On 5/29/20 9:19 PM, Linus Torvalds wrote:
+> On Fri, May 29, 2020 at 6:08 AM David Laight <David.Laight@aculab.com> wrote:
+>>
+>> A wide monitor is for looking at lots of files.
 > 
-> That is a good idea that would help reduce kernel cycles and netlink
-> bandwidth, but the format was set in 2011 so it is a bit late to change
-> that now:
->         fbabf31e4d48 ("netfilter: create audit records for x_tables
-> replaces")
+> Not necessarily.
+> 
+> Excessive line breaks are BAD. They cause real and every-day problems.
+> 
+> They cause problems for things like "grep" both in the patterns and in
+> the output, since grep (and a lot of other very basic unix utilities)
+> is fundamentally line-based.
+> 
+> So the fact is, many of us have long long since skipped the whole
+> "80-column terminal" model, for the same reason that we have many more
+> lines than 25 lines visible at a time.
+> 
+> And honestly, I don't want to see patches that make the kernel reading
+> experience worse for me and likely for the vast majority of people,
+> based on the argument that some odd people have small terminal
+> windows.
+> 
+> If you or Christoph have 80 character lines, you'll get possibly ugly
+> wrapped output. Tough. That's _your_ choice. Your hardware limitations
+> shouldn't be a pain for the rest of us.
 
-Nothing searches/interprets that field name. So, you can redefine it by 
-renaming it. Or just go with what you have. My preference is push that to 
-user space. But not a showstopper "as is".
+Unfortunately refreshable braille displays have that "hardware
+limitations". 80 cells displays are very expensive.
+Visual impairments is rarely a "choice".
+Relaxing the 80-char limit make it harder for blind developers
+to contribute.
 
--Steve
+> Longer lines are fundamentally useful. My monitor is not only a lot
+> wider than it is tall, my fonts are universally narrower than they are
+> tall. Long lines are natural.
+> 
+> When I tile my terminal windows on my display, I can have 6 terminals
+> visible at one time, and that's because I have them three wide. And I
+> could still fit 80% of a fourth one side-by-side.
+> 
+> And guess what? That's with my default "100x50" terminal window (go to
+> your gnome terminal settings, you'll find that the 80x25 thing is just
+> an initial default that you can change), not with some 80x25 one. And
+> that's with a font that has anti-aliasing and isn't some pixelated
+> mess.
+> 
+> And most of my terminals actually end up being dragged wider and
+> taller than that. I checked, and my main one is 142x76 characters
+> right now, because it turns out that wider (and taller) terminals are
+> useful not just for source code.
+> 
+> Have you looked at "ps ax" output lately? Or used "top"? Or done "git
+> diff --stat" or any number of things where it turns out that 80x25 is
+> really really limiting, and is simply NO LONGER RELEVANT to most of
+> us.
+> 
+> So no. I do not care about somebody with a 80x25 terminal window
+> getting line wrapping.
+> 
+> For exactly the same reason I find it completely irrelevant if
+> somebody says that their kernel compile takes 10 hours because they
+> are doing kernel development on a Raspberry PI with 4GB of RAM.
+> 
+> People with restrictive hardware shouldn't make it more inconvenient
+> for people who have better resources. Yes, we'll accommodate things to
+> within reasonable limits. But no, 80-column terminals in 2020 isn't
+> "reasonable" any more as far as I'm concerned. People commonly used
+> 132-column terminals even back in the 80's, for chrissake, don't try
+> to make 80 columns some immovable standard.
+> 
+> If you choose to use a 80-column terminal, you can live with the line
+> wrapping. It's just that simple.
+> 
+> And longer lines are simply useful. Part of that is that we aren't
+> programming in the 80's any more, and our source code is fundamentally
+> wider as a result.
+> 
+> Yes, local iteration variables are still called 'i', because more
+> context just isn't helpful for some anonymous counter. Being concise
+> is still a good thing, and overly verbose names are not inherently
+> better.
+> 
+> But still - it's entirely reasonable to have variable names that are
+> 10-15 characters and it makes the code more legible. Writing things
+> out instead of using abbreviations etc.
+> 
+> And yes, we do use wide tabs, because that makes indentation something
+> you can visually see in the structure at a glance and on a
+> whole-function basis, rather than something you have to try to
+> visually "line up" things for or count spaces.
+> 
+> So we have lots of fairly fundamental issues that fairly easily make
+> for longer lines in many circumstances.
+> 
+> And yes, we do line breaks at some point. But there really isn't any
+> reason to make that point be 80 columns any more.
+> 
+>                   Linus
 
+Regards,
 
+Phil.
