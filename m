@@ -1,101 +1,109 @@
-Return-Path: <SRS0=pZFI=7T=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=+9KY=7U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E1F3C433DF
-	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Jun 2020 14:25:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62B4CC433DF
+	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Jun 2020 05:09:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 785672073E
-	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Jun 2020 14:25:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EBB012067B
+	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Jun 2020 05:09:16 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=openfortress.nl header.i=rick@openfortress.nl header.b="egAVkYyd"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726504AbgFFOZO (ORCPT
+        id S1726192AbgFGFJQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 6 Jun 2020 10:25:14 -0400
-Received: from mail109.syd.optusnet.com.au ([211.29.132.80]:50912 "EHLO
-        mail109.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726133AbgFFOZN (ORCPT
+        Sun, 7 Jun 2020 01:09:16 -0400
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:56431 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725998AbgFGFJQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 6 Jun 2020 10:25:13 -0400
-Received: from dimstar.local.net (n175-34-64-112.sun1.vic.optusnet.com.au [175.34.64.112])
-        by mail109.syd.optusnet.com.au (Postfix) with SMTP id 7297FD7960D
-        for <netfilter-devel@vger.kernel.org>; Sun,  7 Jun 2020 00:25:11 +1000 (AEST)
-Received: (qmail 6953 invoked by uid 501); 6 Jun 2020 14:25:08 -0000
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     fw@strlen.de, pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue v2 1/1] build: dist: Add fixmanpages.sh to distribution tree
-Date:   Sun,  7 Jun 2020 00:25:08 +1000
-Message-Id: <20200606142508.6906-2-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.14.5
-In-Reply-To: <20200606142508.6906-1-duncan_roe@optusnet.com.au>
-References: <20200606142508.6906-1-duncan_roe@optusnet.com.au>
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.3 cv=W5xGqiek c=1 sm=1 tr=0
-        a=keeXcwCgVCrAuxOn72dlvA==:117 a=keeXcwCgVCrAuxOn72dlvA==:17
-        a=nTHF0DUjJn0A:10 a=RSmzAf-M6YYA:10 a=PO7r1zJSAAAA:8
-        a=-hZqD4WVWLorXeaqBCcA:9
+        Sun, 7 Jun 2020 01:09:16 -0400
+Received: from popmini.vanrein.org ([IPv6:2001:980:93a5:1::7])
+        by smtp-cloud7.xs4all.net with ESMTP
+        id hnYXjEb5PNp2zhnYYjPX4m; Sun, 07 Jun 2020 07:09:14 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=openfortress.nl; 
+ i=rick@openfortress.nl; q=dns/txt; s=fame; t=1591506552; 
+ h=message-id : date : from : mime-version : to : subject 
+ : content-type : content-transfer-encoding : date : from 
+ : subject; 
+ bh=+3s/chQXJMjBf9ntrRCG+2InpiF5rySTXlyVFgFC8m8=; 
+ b=egAVkYydDYPewLofaNCow9DopjlUlKJqTkHOYx01amUWJeimUHMLH+9X
+ R/eqySW2Zqz61FlX8iBnVAShr9MCfx9Y4wl4Tk2dLlKqzmxxZSSQlOr5R5
+ KjAo5eWidN8OiTxDomDou2bnPTYBNjInIQ6aQf8TRhgiHZWd588EO0UZ8=
+Received: by fame.vanrein.org (Postfix, from userid 1006)
+        id 95DE13CE2D; Sun,  7 Jun 2020 05:09:12 +0000 (UTC)
+Received: from airhead.fritz.box (phantom.vanrein.org [83.161.146.46])
+        by fame.vanrein.org (Postfix) with ESMTPA id 738073CE28;
+        Sun,  7 Jun 2020 05:09:06 +0000 (UTC)
+Message-ID: <5EDC7662.1070002@openfortress.nl>
+Date:   Sun, 07 Jun 2020 07:08:50 +0200
+From:   Rick van Rein <rick@openfortress.nl>
+User-Agent: Postbox 3.0.11 (Macintosh/20140602)
+MIME-Version: 1.0
+To:     netfilter-devel@vger.kernel.org
+Subject: Expressive limitation: (daddr,dport) <--> (daddr',dport')
+X-Enigmail-Version: 1.2.3
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-Bogosity: Unsure, tests=bogofilter, spamicity=0.520000, version=1.2.4
+X-CMAE-Envelope: MS4wfNYvmrGuyICK42ufhcio2pYtGMraXLherZKqdgPkhW+OC5HmReR5cBxiiNzqavpuEOJ06O1JuW0IEIYoV1LEzPVBDD20wcxXUwoAJEqPrMvl2ekHWdFY
+ 8JzEZHOh4JgCiM40xZkohChIO42TSOJCwagRK06DUYfQFhc6kup2/9fXJhMo9ejDFZt13NjYelx/QyD+0KC+woAyvXukkUWoULw=
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Also move fixmanpages.sh into the doxygen directory
+Hello,
 
-Tested by running Slackware package builder on libnetfilter_queue-1.0.4.tar.bz2
-created by 'make dist' after applying the patch. Works now, failed before.
+I seem to be running into an expressive limitation of nft while trying
+to do stateless translation.  I prefer statelessness because it it is
+clearer for bidirectionality / peering, and saves lookup times.
 
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
----
- Makefile.am                              | 1 +
- doxygen/Makefile.am                      | 4 ++--
- fixmanpages.sh => doxygen/fixmanpages.sh | 2 +-
- 3 files changed, 4 insertions(+), 3 deletions(-)
- rename fixmanpages.sh => doxygen/fixmanpages.sh (99%)
+After nat64, I have a small set of IPv6 addresses and I would like to
+map their (daddr,dport) or better even (daddr,proto,dport) tuples to
+outgoing (daddr',dport').  Effectively, port forwarding for IPv6.
 
-diff --git a/Makefile.am b/Makefile.am
-index a5b347b..7d3bf23 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -10,3 +10,4 @@ pkgconfigdir = $(libdir)/pkgconfig
- pkgconfig_DATA = libnetfilter_queue.pc
- 
- EXTRA_DIST += Make_global.am
-+EXTRA_DIST += doxygen/fixmanpages.sh
-diff --git a/doxygen/Makefile.am b/doxygen/Makefile.am
-index ef468e0..a4db804 100644
---- a/doxygen/Makefile.am
-+++ b/doxygen/Makefile.am
-@@ -8,8 +8,8 @@ doc_srcs = $(top_srcdir)/src/libnetfilter_queue.c  \
-            $(top_srcdir)/src/extra/udp.c           \
-            $(top_srcdir)/src/extra/pktbuff.c
- 
--doxyfile.stamp: $(doc_srcs) $(top_srcdir)/fixmanpages.sh
--	rm -rf html man && cd .. && doxygen doxygen.cfg && ./fixmanpages.sh
-+doxyfile.stamp: $(doc_srcs) fixmanpages.sh
-+	rm -rf html man && (cd .. && doxygen doxygen.cfg) && ./fixmanpages.sh
- 	touch doxyfile.stamp
- 
- CLEANFILES = doxyfile.stamp
-diff --git a/fixmanpages.sh b/doxygen/fixmanpages.sh
-similarity index 99%
-rename from fixmanpages.sh
-rename to doxygen/fixmanpages.sh
-index dd8b3a4..38e97ba 100755
---- a/fixmanpages.sh
-+++ b/doxygen/fixmanpages.sh
-@@ -3,7 +3,7 @@
- function main
- {
-   set -e
--  cd doxygen/man/man3
-+  cd man/man3
-   rm -f _*
-   setgroup LibrarySetup nfq_open
-     add2group nfq_close nfq_bind_pf nfq_unbind_pf
--- 
-2.14.5
+Individual rules work, like this one side of a bidir portmap:
 
+nft add rule ip6 raw prerouting \
+   ip6 daddr $PREFIX::64:75 \
+   tcp dport 8080 \
+   ip6 daddr set $PREFIX::100:20 \
+   tcp dport set 80 \
+   notrack
+
+I have problems doing this with the map construct, presumably because it
+does not atomically replace (daddr,dport) by (daddr',dport') but instead
+does two assignments with intermediate alterede state.  This is bound to
+work in many cases, but it can give undesired crossover behaviours
+[namely between incoming IPs if they map to the same daddr' while coming
+from the same dport]:
+
+nft add rule ip6 raw prerouting \
+   ip6 daddr set \
+      ip6 daddr . tcp dport \
+         map { $PREFIX::64:75 . 8080 : $PREFIX::100:20 } \
+   tcp dport set \
+      ip6 daddr . tcp dport \
+         map { $PREFIX::100:20 . 8080 : 80 } \
+   notrack
+
+So now I am wondering,
+
+ 0. Is there a way to use maps as atomic setter for (daddr,dport)?
+ 1. Can I reach back to the original value of a just-modified value?
+ 2. Is there a variable, or stack, to prepare with the old value?
+
+Without this, I need to work around an expressive limitation,
+
+ * Fan out from a few IPv6 to many first to minimise rule clashes
+ * Make separate maps and rules and maps for each of the IPv6 addresses
+
+Both sound to me like a lack of expressiveness, or that I missed how.
+
+Thanks!
+ -Rick
