@@ -2,108 +2,160 @@ Return-Path: <SRS0=+9KY=7U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62B4CC433DF
-	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Jun 2020 05:09:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECD97C433DF
+	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Jun 2020 13:34:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EBB012067B
-	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Jun 2020 05:09:16 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=openfortress.nl header.i=rick@openfortress.nl header.b="egAVkYyd"
+	by mail.kernel.org (Postfix) with ESMTP id CD9DD20663
+	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Jun 2020 13:34:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726192AbgFGFJQ (ORCPT
+        id S1726554AbgFGNeq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 7 Jun 2020 01:09:16 -0400
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:56431 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725998AbgFGFJQ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 7 Jun 2020 01:09:16 -0400
-Received: from popmini.vanrein.org ([IPv6:2001:980:93a5:1::7])
-        by smtp-cloud7.xs4all.net with ESMTP
-        id hnYXjEb5PNp2zhnYYjPX4m; Sun, 07 Jun 2020 07:09:14 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=openfortress.nl; 
- i=rick@openfortress.nl; q=dns/txt; s=fame; t=1591506552; 
- h=message-id : date : from : mime-version : to : subject 
- : content-type : content-transfer-encoding : date : from 
- : subject; 
- bh=+3s/chQXJMjBf9ntrRCG+2InpiF5rySTXlyVFgFC8m8=; 
- b=egAVkYydDYPewLofaNCow9DopjlUlKJqTkHOYx01amUWJeimUHMLH+9X
- R/eqySW2Zqz61FlX8iBnVAShr9MCfx9Y4wl4Tk2dLlKqzmxxZSSQlOr5R5
- KjAo5eWidN8OiTxDomDou2bnPTYBNjInIQ6aQf8TRhgiHZWd588EO0UZ8=
-Received: by fame.vanrein.org (Postfix, from userid 1006)
-        id 95DE13CE2D; Sun,  7 Jun 2020 05:09:12 +0000 (UTC)
-Received: from airhead.fritz.box (phantom.vanrein.org [83.161.146.46])
-        by fame.vanrein.org (Postfix) with ESMTPA id 738073CE28;
-        Sun,  7 Jun 2020 05:09:06 +0000 (UTC)
-Message-ID: <5EDC7662.1070002@openfortress.nl>
-Date:   Sun, 07 Jun 2020 07:08:50 +0200
-From:   Rick van Rein <rick@openfortress.nl>
-User-Agent: Postbox 3.0.11 (Macintosh/20140602)
-MIME-Version: 1.0
+        Sun, 7 Jun 2020 09:34:46 -0400
+Received: from correo.us.es ([193.147.175.20]:37298 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726465AbgFGNeq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 7 Jun 2020 09:34:46 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 16CF0F9261
+        for <netfilter-devel@vger.kernel.org>; Sun,  7 Jun 2020 15:34:44 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 07238DA72F
+        for <netfilter-devel@vger.kernel.org>; Sun,  7 Jun 2020 15:34:44 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id F0E09DA722; Sun,  7 Jun 2020 15:34:43 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 480E6DA72F;
+        Sun,  7 Jun 2020 15:34:41 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Sun, 07 Jun 2020 15:34:41 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 29A7641E4800;
+        Sun,  7 Jun 2020 15:34:41 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: Expressive limitation: (daddr,dport) <--> (daddr',dport')
-X-Enigmail-Version: 1.2.3
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-Bogosity: Unsure, tests=bogofilter, spamicity=0.520000, version=1.2.4
-X-CMAE-Envelope: MS4wfNYvmrGuyICK42ufhcio2pYtGMraXLherZKqdgPkhW+OC5HmReR5cBxiiNzqavpuEOJ06O1JuW0IEIYoV1LEzPVBDD20wcxXUwoAJEqPrMvl2ekHWdFY
- 8JzEZHOh4JgCiM40xZkohChIO42TSOJCwagRK06DUYfQFhc6kup2/9fXJhMo9ejDFZt13NjYelx/QyD+0KC+woAyvXukkUWoULw=
+Cc:     sbrivio@redhat.com
+Subject: [PATCH nft] evaluate: missing datatype definition in implicit_set_declaration()
+Date:   Sun,  7 Jun 2020 15:34:37 +0200
+Message-Id: <20200607133437.11912-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+set->data from implicit_set_declaration(), otherwise, set_evaluation()
+bails out with:
 
-I seem to be running into an expressive limitation of nft while trying
-to do stateless translation.  I prefer statelessness because it it is
-clearer for bidirectionality / peering, and saves lookup times.
+ # nft -f /etc/nftables/inet-filter.nft
+ /etc/nftables/inet-filter.nft:8:32-54: Error: map definition does not specify
+ mapping data type
+                tcp dport vmap { 22 : jump ssh_input }
+                               ^^^^^^^^^^^^^^^^^^^^^^^
+ /etc/nftables/inet-filter.nft:13:26-52: Error: map definition does not specify
+ mapping data type
+                 iif vmap { "eth0" : jump wan_input }
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-After nat64, I have a small set of IPv6 addresses and I would like to
-map their (daddr,dport) or better even (daddr,proto,dport) tuples to
-outgoing (daddr',dport').  Effectively, port forwarding for IPv6.
+Fixes: 7aa08d45031e ("evaluate: Perform set evaluation on implicitly declared (anonymous) sets")
+Closes: https://bugzilla.kernel.org/show_bug.cgi?id=208093
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+It looks like we don't have enough tests yet for essencial core features like
+this one to catch all regression.
 
-Individual rules work, like this one side of a bidir portmap:
+ src/evaluate.c | 22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-nft add rule ip6 raw prerouting \
-   ip6 daddr $PREFIX::64:75 \
-   tcp dport 8080 \
-   ip6 daddr set $PREFIX::100:20 \
-   tcp dport set 80 \
-   notrack
+diff --git a/src/evaluate.c b/src/evaluate.c
+index fbc8f1fbd141..fb58c053d4ae 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -80,6 +80,7 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set);
+ static struct expr *implicit_set_declaration(struct eval_ctx *ctx,
+ 					     const char *name,
+ 					     struct expr *key,
++					     struct expr *data,
+ 					     struct expr *expr)
+ {
+ 	struct cmd *cmd;
+@@ -93,6 +94,7 @@ static struct expr *implicit_set_declaration(struct eval_ctx *ctx,
+ 	set->flags	= NFT_SET_ANONYMOUS | expr->set_flags;
+ 	set->handle.set.name = xstrdup(name);
+ 	set->key	= key;
++	set->data	= data;
+ 	set->init	= expr;
+ 	set->automerge	= set->flags & NFT_SET_INTERVAL;
+ 
+@@ -1411,7 +1413,7 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
+ 	struct expr_ctx ectx = ctx->ectx;
+ 	struct expr *map = *expr, *mappings;
+ 	const struct datatype *dtype;
+-	struct expr *key;
++	struct expr *key, *data;
+ 
+ 	expr_set_context(&ctx->ectx, NULL, 0);
+ 	if (expr_evaluate(ctx, &map->map) < 0)
+@@ -1430,15 +1432,14 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
+ 					  ctx->ectx.byteorder,
+ 					  ctx->ectx.len, NULL);
+ 
++		dtype = set_datatype_alloc(ectx.dtype, ectx.byteorder);
++		data = constant_expr_alloc(&netlink_location, dtype,
++					   dtype->byteorder, ectx.len, NULL);
++
+ 		mappings = implicit_set_declaration(ctx, "__map%d",
+-						    key,
++						    key, data,
+ 						    mappings);
+ 
+-		dtype = set_datatype_alloc(ectx.dtype, ectx.byteorder);
+-
+-		mappings->set->data = constant_expr_alloc(&netlink_location,
+-							  dtype, dtype->byteorder,
+-							  ectx.len, NULL);
+ 		if (ectx.len && mappings->set->data->len != ectx.len)
+ 			BUG("%d vs %d\n", mappings->set->data->len, ectx.len);
+ 
+@@ -1898,7 +1899,8 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
+ 		case EXPR_SET:
+ 			right = rel->right =
+ 				implicit_set_declaration(ctx, "__set%d",
+-							 expr_get(left), right);
++							 expr_get(left), NULL,
++							 right);
+ 			/* fall through */
+ 		case EXPR_SET_REF:
+ 			/* Data for range lookups needs to be in big endian order */
+@@ -2389,7 +2391,7 @@ static int stmt_evaluate_meter(struct eval_ctx *ctx, struct stmt *stmt)
+ 		set->set_flags |= NFT_SET_TIMEOUT;
+ 
+ 	setref = implicit_set_declaration(ctx, stmt->meter.name,
+-					  expr_get(key), set);
++					  expr_get(key), NULL, set);
+ 
+ 	setref->set->desc.size = stmt->meter.size;
+ 	stmt->meter.set = setref;
+@@ -3318,7 +3320,7 @@ static int stmt_evaluate_objref_map(struct eval_ctx *ctx, struct stmt *stmt)
+ 					  ctx->ectx.len, NULL);
+ 
+ 		mappings = implicit_set_declaration(ctx, "__objmap%d",
+-						    key, mappings);
++						    key, NULL, mappings);
+ 		mappings->set->objtype  = stmt->objref.type;
+ 
+ 		map->mappings = mappings;
+-- 
+2.20.1
 
-I have problems doing this with the map construct, presumably because it
-does not atomically replace (daddr,dport) by (daddr',dport') but instead
-does two assignments with intermediate alterede state.  This is bound to
-work in many cases, but it can give undesired crossover behaviours
-[namely between incoming IPs if they map to the same daddr' while coming
-from the same dport]:
-
-nft add rule ip6 raw prerouting \
-   ip6 daddr set \
-      ip6 daddr . tcp dport \
-         map { $PREFIX::64:75 . 8080 : $PREFIX::100:20 } \
-   tcp dport set \
-      ip6 daddr . tcp dport \
-         map { $PREFIX::100:20 . 8080 : 80 } \
-   notrack
-
-So now I am wondering,
-
- 0. Is there a way to use maps as atomic setter for (daddr,dport)?
- 1. Can I reach back to the original value of a just-modified value?
- 2. Is there a variable, or stack, to prepare with the old value?
-
-Without this, I need to work around an expressive limitation,
-
- * Fan out from a few IPv6 to many first to minimise rule clashes
- * Make separate maps and rules and maps for each of the IPv6 addresses
-
-Both sound to me like a lack of expressiveness, or that I missed how.
-
-Thanks!
- -Rick
