@@ -6,48 +6,47 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F812C433E1
-	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Jun 2020 18:04:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F437C433E0
+	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Jun 2020 18:26:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 135D6206D5
-	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Jun 2020 18:04:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 665BC206D5
+	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Jun 2020 18:26:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726823AbgFGSEw (ORCPT
+        id S1728134AbgFGS0K (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 7 Jun 2020 14:04:52 -0400
-Received: from correo.us.es ([193.147.175.20]:39174 "EHLO mail.us.es"
+        Sun, 7 Jun 2020 14:26:10 -0400
+Received: from correo.us.es ([193.147.175.20]:45034 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726714AbgFGSEw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 7 Jun 2020 14:04:52 -0400
+        id S1726818AbgFGS0J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 7 Jun 2020 14:26:09 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5F49411D163
-        for <netfilter-devel@vger.kernel.org>; Sun,  7 Jun 2020 20:04:51 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 5190B11D8E0
+        for <netfilter-devel@vger.kernel.org>; Sun,  7 Jun 2020 20:26:08 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 524DEDA72F
-        for <netfilter-devel@vger.kernel.org>; Sun,  7 Jun 2020 20:04:51 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 436CDDA8E8
+        for <netfilter-devel@vger.kernel.org>; Sun,  7 Jun 2020 20:26:08 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 47FE8DA722; Sun,  7 Jun 2020 20:04:51 +0200 (CEST)
+        id 38E16DA8EC; Sun,  7 Jun 2020 20:26:08 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1F37ADA73D
-        for <netfilter-devel@vger.kernel.org>; Sun,  7 Jun 2020 20:04:49 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2AEC2DA8E8
+        for <netfilter-devel@vger.kernel.org>; Sun,  7 Jun 2020 20:26:06 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 07 Jun 2020 20:04:49 +0200 (CEST)
+ Sun, 07 Jun 2020 20:26:06 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 0260C41E4800
-        for <netfilter-devel@vger.kernel.org>; Sun,  7 Jun 2020 20:04:48 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 1560041E4800
+        for <netfilter-devel@vger.kernel.org>; Sun,  7 Jun 2020 20:26:06 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/2] meta: fix asan runtime error in tc handle
-Date:   Sun,  7 Jun 2020 20:04:44 +0200
-Message-Id: <20200607180444.17736-2-pablo@netfilter.org>
+Subject: [PATCH nft] cmd: add misspelling suggestions for rule commands
+Date:   Sun,  7 Jun 2020 20:26:01 +0200
+Message-Id: <20200607182601.24792-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200607180444.17736-1-pablo@netfilter.org>
-References: <20200607180444.17736-1-pablo@netfilter.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -55,26 +54,79 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
- meta.c:92:17: runtime error: left shift of 34661 by 16 places cannot be represented in type 'int'
+ # nft add rule foo ber counter
+ Error: No such file or directory; did you mean chain ‘bar’ in table ip ‘foo’?
+ add rule foo ber counter
+              ^^^
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/meta.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ src/cmd.c | 38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
-diff --git a/src/meta.c b/src/meta.c
-index acc348eb264d..d92d0d323b9b 100644
---- a/src/meta.c
-+++ b/src/meta.c
-@@ -73,7 +73,7 @@ static struct error_record *tchandle_type_parse(struct parse_ctx *ctx,
- 	else if (strcmp(sym->identifier, "none") == 0)
- 		handle = TC_H_UNSPEC;
- 	else if (strchr(sym->identifier, ':')) {
--		uint16_t tmp;
-+		uint32_t tmp;
- 		char *colon;
+diff --git a/src/cmd.c b/src/cmd.c
+index c8ea449222fe..e0cf3e7716cb 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -6,6 +6,7 @@
+ #include <iface.h>
+ #include <errno.h>
+ #include <stdlib.h>
++#include <cache.h>
+ #include <string.h>
  
- 		str = xstrdup(sym->identifier);
+ static int nft_cmd_enoent_table(struct netlink_ctx *ctx, const struct cmd *cmd,
+@@ -40,6 +41,40 @@ static int nft_cmd_enoent_chain(struct netlink_ctx *ctx, const struct cmd *cmd,
+ 	return 1;
+ }
+ 
++static int nft_cmd_enoent_rule(struct netlink_ctx *ctx, const struct cmd *cmd,
++			       struct location *loc)
++{
++	unsigned int flags = NFT_CACHE_TABLE |
++			     NFT_CACHE_CHAIN;
++	const struct table *table;
++	struct chain *chain;
++
++	if (cache_update(ctx->nft, flags, ctx->msgs) < 0)
++		return 0;
++
++	table = table_lookup_fuzzy(&cmd->handle, &ctx->nft->cache);
++	if (table && strcmp(cmd->handle.table.name, table->handle.table.name)) {
++		netlink_io_error(ctx, loc, "%s; did you mean table ‘%s’ in family %s?",
++				 strerror(ENOENT), table->handle.table.name,
++				 family2str(table->handle.family));
++		return 1;
++	} else if (!table) {
++		return 0;
++	}
++
++	chain = chain_lookup_fuzzy(&cmd->handle, &ctx->nft->cache, &table);
++	if (chain && strcmp(cmd->handle.chain.name, chain->handle.chain.name)) {
++		netlink_io_error(ctx, loc, "%s; did you mean chain ‘%s’ in table %s ‘%s’?",
++				 strerror(ENOENT),
++				 chain->handle.chain.name,
++				 family2str(table->handle.family),
++				 table->handle.table.name);
++		return 1;
++	}
++
++	return 0;
++}
++
+ static int nft_cmd_enoent_set(struct netlink_ctx *ctx, const struct cmd *cmd,
+ 			      struct location *loc)
+ {
+@@ -109,6 +144,9 @@ static void nft_cmd_enoent(struct netlink_ctx *ctx, const struct cmd *cmd,
+ 	case CMD_OBJ_SET:
+ 		ret = nft_cmd_enoent_set(ctx, cmd, loc);
+ 		break;
++	case CMD_OBJ_RULE:
++		ret = nft_cmd_enoent_rule(ctx, cmd, loc);
++		break;
+ 	case CMD_OBJ_COUNTER:
+ 	case CMD_OBJ_QUOTA:
+ 	case CMD_OBJ_CT_HELPER:
 -- 
 2.20.1
 
