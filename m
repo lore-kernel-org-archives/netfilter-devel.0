@@ -2,79 +2,114 @@ Return-Path: <SRS0=+9KY=7U=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E919C433DF
-	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Jun 2020 18:47:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 823E1C433DF
+	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Jun 2020 21:37:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6078A20748
-	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Jun 2020 18:47:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 52F0E206D5
+	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Jun 2020 21:37:02 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mNQlxVYF"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727065AbgFGSrU (ORCPT
+        id S1727783AbgFGVhC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 7 Jun 2020 14:47:20 -0400
-Received: from correo.us.es ([193.147.175.20]:50154 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726611AbgFGSrT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 7 Jun 2020 14:47:19 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id ED06195306
-        for <netfilter-devel@vger.kernel.org>; Sun,  7 Jun 2020 20:47:18 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E06F0DA722
-        for <netfilter-devel@vger.kernel.org>; Sun,  7 Jun 2020 20:47:18 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D63A4DA84B; Sun,  7 Jun 2020 20:47:18 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B8876DA73F;
-        Sun,  7 Jun 2020 20:47:16 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 07 Jun 2020 20:47:16 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 9892E41E4800;
-        Sun,  7 Jun 2020 20:47:16 +0200 (CEST)
-Date:   Sun, 7 Jun 2020 20:47:16 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Duncan Roe <duncan_roe@optusnet.com.au>
-Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libnetfilter_queue v2 1/1] build: dist: Add
- fixmanpages.sh to distribution tree
-Message-ID: <20200607184716.GA20705@salvia>
-References: <20200606142508.6906-1-duncan_roe@optusnet.com.au>
- <20200606142508.6906-2-duncan_roe@optusnet.com.au>
- <20200607182951.GA13814@salvia>
- <20200607183943.GA23699@salvia>
+        Sun, 7 Jun 2020 17:37:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55328 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726093AbgFGVhB (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 7 Jun 2020 17:37:01 -0400
+Received: from mail-wr1-x441.google.com (mail-wr1-x441.google.com [IPv6:2a00:1450:4864:20::441])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 190CBC08C5C3
+        for <netfilter-devel@vger.kernel.org>; Sun,  7 Jun 2020 14:37:00 -0700 (PDT)
+Received: by mail-wr1-x441.google.com with SMTP id q11so15358390wrp.3
+        for <netfilter-devel@vger.kernel.org>; Sun, 07 Jun 2020 14:36:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=koI9Pnw3TTzqylYwZM4+3p6W+8Mj23kz6r2pyimPul0=;
+        b=mNQlxVYF+kFt+x1PxgGOmZxy1GLEyuxS00msQa9FMctieF0hO3pT/mopP1K7JLhoxV
+         8uvFbLphcjcMBLtks2nzIXyJ9rogl2a/ozQhhIESZpi55PpCx557hbwstJLmiHrTC8+P
+         MQx/Vrm/dAn8Me5NVSY5eY3+FX2pzHHs6DYIVOIKqHNAxbmNfacJg/Pe2wMal6r35xIm
+         0HdILJ7savJvxgujKNT31qxqgO9jyP8u1uqDUpw4kehlAE6yQB87EaB16cmblZvC0K+X
+         ncd7l+Xyf5H5DOvSI0ZFNBZsdyTkwJUE8evMFzPMZPv+fGwZMY0uCw05TljWeVFV9xL6
+         V7XQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=koI9Pnw3TTzqylYwZM4+3p6W+8Mj23kz6r2pyimPul0=;
+        b=JHnaVLU+womhDWET1r3o/HOzV/+jPUnTgQb+MuujQclwNQopgjvSlIMTNOAN2Trwc6
+         7djHxCThRx5FFClzlvQjPWw+NZscy+V5K31u8omPQdvoo2lwoLBxixfl2QAEVVOXytJm
+         MyQ9cVHZJoIdPk90sYn1eBsPLEciUr7DGpKLjH68DF9OU7os80tYGsd3O0L9Hy2WxMEy
+         tEvzfSvvvvRd6Amiy7FR8Dsb29Jdzkhi52rwiDDJMGsacnH3etIl+7qRylFBywN99Oto
+         WIlV4s4yDsiHCsizGYmhGUolw2+E/TIsT58piW4DFEIGATN1fdIbyZaE7PTDLthUhihj
+         BP1A==
+X-Gm-Message-State: AOAM531pl9MK5Ap91+Y77EJawC0R8pTeKIYNvM3O2rvlyN6RGtGrc9+v
+        U750rteeg3N+Labr4GLUwH9bD/DH
+X-Google-Smtp-Source: ABdhPJyMlPnNd8HOAH/eps7uONke3KBEaeTBrzNuHjXJjmqsryIavWtz6Dm0ZIdmJjrOi3Bc033E+w==
+X-Received: by 2002:adf:fe8d:: with SMTP id l13mr19770789wrr.282.1591565818438;
+        Sun, 07 Jun 2020 14:36:58 -0700 (PDT)
+Received: from kali.home (lfbn-ren-1-590-36.w81-53.abo.wanadoo.fr. [81.53.168.36])
+        by smtp.gmail.com with ESMTPSA id o20sm22080289wra.29.2020.06.07.14.36.57
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 07 Jun 2020 14:36:57 -0700 (PDT)
+From:   Fabrice Fontaine <fontaine.fabrice@gmail.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Fabrice Fontaine <fontaine.fabrice@gmail.com>
+Subject: [PATCH nftables] src/main.c: fix build with gcc <= 4.8
+Date:   Sun,  7 Jun 2020 23:36:47 +0200
+Message-Id: <20200607213647.4107234-1-fontaine.fabrice@gmail.com>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200607183943.GA23699@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Jun 07, 2020 at 08:39:43PM +0200, Pablo Neira Ayuso wrote:
-> On Sun, Jun 07, 2020 at 08:29:51PM +0200, Pablo Neira Ayuso wrote:
-> > On Sun, Jun 07, 2020 at 12:25:08AM +1000, Duncan Roe wrote:
-> > > Also move fixmanpages.sh into the doxygen directory
-> > > 
-> > > Tested by running Slackware package builder on libnetfilter_queue-1.0.4.tar.bz2
-> > > created by 'make dist' after applying the patch. Works now, failed before.
-> > 
-> > Applied, thanks.
-> 
-> Side note: I had to move EXTRA_DIST to doxygen/Makefile.am so make
-> distcheck works.
+Since commit 719e44277f8e89323a87219b4d4bc7abac05b051, build with
+gcc <= 4.8 fails on:
 
-Sorry, I quickly looked to fix it but it still does not work with make
-distcheck here for some reason.
+main.c:186:2: error: 'for' loop initial declarations are only allowed in C99 mode
+  for (size_t i = IDX_INTERACTIVE + 1; i < NR_NFT_OPTIONS; ++i)
+  ^
+
+Fixes:
+ - http://autobuild.buildroot.org/results/cf2359b8311fe91f9335c91f2bb4a730c9f4c9dc
+
+Signed-off-by: Fabrice Fontaine <fontaine.fabrice@gmail.com>
+---
+ src/main.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/main.c b/src/main.c
+index d830c7a2..e248a347 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -169,6 +169,7 @@ static void print_option(const struct nft_opt *opt)
+ 
+ static void show_help(const char *name)
+ {
++	size_t i;
+ 	printf("Usage: %s [ options ] [ cmds... ]\n"
+ 	       "\n"
+ 	       "Options:\n", name);
+@@ -185,7 +186,7 @@ static void show_help(const char *name)
+ 
+ 	fputs("\n", stdout);
+ 
+-	for (size_t i = IDX_INTERACTIVE + 1; i < NR_NFT_OPTIONS; ++i)
++	for (i = IDX_INTERACTIVE + 1; i < NR_NFT_OPTIONS; ++i)
+ 		print_option(&nft_options[i]);
+ 
+ 	fputs("\n", stdout);
+-- 
+2.26.2
+
