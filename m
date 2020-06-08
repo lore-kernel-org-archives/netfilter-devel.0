@@ -2,353 +2,214 @@ Return-Path: <SRS0=kOBD=7V=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.3 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
-	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5771C433DF
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 17:34:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EE3DC433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 18:04:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9C4B720870
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 17:34:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20D512083E
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 18:04:07 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="puuml+9+"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="FsldKeV3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729964AbgFHRe1 (ORCPT
+        id S1729971AbgFHSEF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Jun 2020 13:34:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42700 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726097AbgFHRe0 (ORCPT
+        Mon, 8 Jun 2020 14:04:05 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:39888 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1729979AbgFHSED (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jun 2020 13:34:26 -0400
-Received: from mail-qv1-xf43.google.com (mail-qv1-xf43.google.com [IPv6:2607:f8b0:4864:20::f43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62473C08C5C2;
-        Mon,  8 Jun 2020 10:34:26 -0700 (PDT)
-Received: by mail-qv1-xf43.google.com with SMTP id g11so2266203qvs.2;
-        Mon, 08 Jun 2020 10:34:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=BQfHe5nHe6T64nJZ48xJuQUzNOsqzYNjV6sGWHRurS4=;
-        b=puuml+9+jmfM35SwDwyG9trAffIsVPJBds++JHY9xjCronp2lDcl/8OKgSI5xJPXzv
-         25YVqtEvrByw5S5E/4ew9TsmUi2Cd9IeYMZootnX8yrXX7DsowKoBEQkSEU478yipB7S
-         yzOyi2T+Ghi0V5iNaFvWv6tGrcXbCpJwumo8/ck9EEfzdHZhqKcK/RTpjDGWxdgGbC65
-         LHDHn9gbDA3ENMMy50yl3pdLxhOTANsBgY0X61Nz5wPxMmgzv4ZcXoiFVO+yZKPzECU/
-         hWNMMpGAazjtwnT7eIjYICEJdcP0rw8qiGlErCqIEBzF9/GcIPx3QfYLUnBInwolTJ91
-         mpCQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=BQfHe5nHe6T64nJZ48xJuQUzNOsqzYNjV6sGWHRurS4=;
-        b=FqD/vJkeXiNnSukVnKWLV0jO+GmAPLrx/sLYq29WVjJyRkS/Y7EheUeq4zFumnOVib
-         Jx7LLTCuZ33Lh1VvLxSpFXw34dn53YB2enj97f59K6ex/bMKI17B2f+NVcrQviBxm4Fc
-         uAWbN+cZjFY6EBbihYrpdpL/8drHW5EgpGpgvB3Fb89y4pkAMjysH/94vl4OvmadFRB4
-         fCjIOC3S1/hVmM1Kvngu1R0iwx5/7DxP1hMbN0ntb+I8s8gCh/G0gwsgyrtnwrZhUNKw
-         RG/5oGNZdfJlYCRysegOL3BHhWlPkd+0k6BlKuanmZeB8esKRB5uXCSGbdOsGlWOkj5s
-         5+NA==
-X-Gm-Message-State: AOAM531pSwZ3pvEGEmwnLE7WSXyn+lylKEKd18tXejgPCr3tMoxExN5v
-        dQDqOIj3z0M8/GtWZuyxYx1LawB07FM=
-X-Google-Smtp-Source: ABdhPJyjWN6a0UUnfIvQLXudDSgdikKY0iFJ5htAzJpGtXqaiO9QCf+N4obwNviOfORdXBCZNqOpjw==
-X-Received: by 2002:a0c:b791:: with SMTP id l17mr24070471qve.44.1591637665518;
-        Mon, 08 Jun 2020 10:34:25 -0700 (PDT)
-Received: from localhost.localdomain (toroon0411w-lp130-02-64-231-189-42.dsl.bell.ca. [64.231.189.42])
-        by smtp.googlemail.com with ESMTPSA id a27sm8182805qtc.92.2020.06.08.10.34.24
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 08 Jun 2020 10:34:24 -0700 (PDT)
-From:   Andrew Sy Kim <kim.andrewsy@gmail.com>
-Cc:     Julian Anastasov <ja@ssi.bg>, Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Andrew Sy Kim <kim.andrewsy@gmail.com>
-Subject: [PATCH] netfilter/ipvs: queue delayed work to expire no destination connections if expire_nodest_conn=1
-Date:   Mon,  8 Jun 2020 13:34:12 -0400
-Message-Id: <20200608173413.13870-1-kim.andrewsy@gmail.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <alpine.LFD.2.22.394.2005281954380.4045@ja.home.ssi.bg>
-References: <alpine.LFD.2.22.394.2005281954380.4045@ja.home.ssi.bg>
+        Mon, 8 Jun 2020 14:04:03 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1591639441;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=uw5NjJ0WopWX8Tckd6/nHTcQhEVOsQbonk1220jJm6A=;
+        b=FsldKeV3d5ysvHdWuLLLuSrTtpjI2scwJhNbbsh5ExY0Pp70OWeUWidJDUOR/b5ByGEVvC
+        +sfcB2E5KR9Gu8VEcsnPf3+ESKcaT4uQy7yqLiKphVoHAby0PGBNQoHNjxy++pTRco5E5w
+        Cg7fenYCcS43QNsDQsYBqmBIi2seQgw=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-170-mA0IjPaLOdWDFywZFnhrIg-1; Mon, 08 Jun 2020 14:03:52 -0400
+X-MC-Unique: mA0IjPaLOdWDFywZFnhrIg-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 6FAD91005510;
+        Mon,  8 Jun 2020 18:03:49 +0000 (UTC)
+Received: from madcap2.tricolour.ca (unknown [10.10.110.54])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 9756760BF3;
+        Mon,  8 Jun 2020 18:03:33 +0000 (UTC)
+Date:   Mon, 8 Jun 2020 14:03:30 -0400
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Paul Moore <paul@paul-moore.com>
+Cc:     "Eric W. Biederman" <ebiederm@xmission.com>, nhorman@tuxdriver.com,
+        linux-api@vger.kernel.org, containers@lists.linux-foundation.org,
+        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
+        linux-audit@redhat.com, netfilter-devel@vger.kernel.org,
+        simo@redhat.com, netdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
+        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
+Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
+ the audit daemon
+Message-ID: <20200608180330.z23hohfa2nclhxf5@madcap2.tricolour.ca>
+References: <20200330134705.jlrkoiqpgjh3rvoh@madcap2.tricolour.ca>
+ <CAHC9VhQTsEMcYAF1CSHrrVn07DR450W9j6sFVfKAQZ0VpheOfw@mail.gmail.com>
+ <20200330162156.mzh2tsnovngudlx2@madcap2.tricolour.ca>
+ <CAHC9VhTRzZXJ6yUFL+xZWHNWZFTyiizBK12ntrcSwmgmySbkWw@mail.gmail.com>
+ <20200330174937.xalrsiev7q3yxsx2@madcap2.tricolour.ca>
+ <CAHC9VhR_bKSHDn2WAUgkquu+COwZUanc0RV3GRjMDvpoJ5krjQ@mail.gmail.com>
+ <871ronf9x2.fsf@x220.int.ebiederm.org>
+ <CAHC9VhR3gbmj5+5MY-whLtStKqDEHgvMRigU9hW0X1kpxF91ag@mail.gmail.com>
+ <871rol7nw3.fsf@x220.int.ebiederm.org>
+ <CAHC9VhQvhja=vUEbT3uJgQqpj-480HZzWV7b5oc2GWtzFN1qJw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-To:     unlisted-recipients:; (no To-header on input)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHC9VhQvhja=vUEbT3uJgQqpj-480HZzWV7b5oc2GWtzFN1qJw@mail.gmail.com>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When expire_nodest_conn=1 and a destination is deleted, IPVS does not
-expire the existing connections until the next matching incoming packet.
-If there are many connection entries from a single client to a single
-destination, many packets may get dropped before all the connections are
-expired (more likely with lots of UDP traffic). An optimization can be
-made where upon deletion of a destination, IPVS queues up delayed work
-to immediately expire any connections with a deleted destination. This
-ensures any reused source ports from a client (within the IPVS timeouts)
-are scheduled to new real servers instead of silently dropped.
+On 2020-04-22 13:24, Paul Moore wrote:
+> On Fri, Apr 17, 2020 at 6:26 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
+> > Paul Moore <paul@paul-moore.com> writes:
+> > > On Thu, Apr 16, 2020 at 4:36 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
+> > >> Paul Moore <paul@paul-moore.com> writes:
+> > >> > On Mon, Mar 30, 2020 at 1:49 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > >> >> On 2020-03-30 13:34, Paul Moore wrote:
+> > >> >> > On Mon, Mar 30, 2020 at 12:22 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > >> >> > > On 2020-03-30 10:26, Paul Moore wrote:
+> > >> >> > > > On Mon, Mar 30, 2020 at 9:47 AM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > >> >> > > > > On 2020-03-28 23:11, Paul Moore wrote:
+> > >> >> > > > > > On Tue, Mar 24, 2020 at 5:02 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > >> >> > > > > > > On 2020-03-23 20:16, Paul Moore wrote:
+> > >> >> > > > > > > > On Thu, Mar 19, 2020 at 6:03 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > >> >> > > > > > > > > On 2020-03-18 18:06, Paul Moore wrote:
+> > >> >
+> > >> > ...
+> > >> >
+> > >> >> > > Well, every time a record gets generated, *any* record gets generated,
+> > >> >> > > we'll need to check for which audit daemons this record is in scope and
+> > >> >> > > generate a different one for each depending on the content and whether
+> > >> >> > > or not the content is influenced by the scope.
+> > >> >> >
+> > >> >> > That's the problem right there - we don't want to have to generate a
+> > >> >> > unique record for *each* auditd on *every* record.  That is a recipe
+> > >> >> > for disaster.
+> > >> >> >
+> > >> >> > Solving this for all of the known audit records is not something we
+> > >> >> > need to worry about in depth at the moment (although giving it some
+> > >> >> > casual thought is not a bad thing), but solving this for the audit
+> > >> >> > container ID information *is* something we need to worry about right
+> > >> >> > now.
+> > >> >>
+> > >> >> If you think that a different nested contid value string per daemon is
+> > >> >> not acceptable, then we are back to issuing a record that has only *one*
+> > >> >> contid listed without any nesting information.  This brings us back to
+> > >> >> the original problem of keeping *all* audit log history since the boot
+> > >> >> of the machine to be able to track the nesting of any particular contid.
+> > >> >
+> > >> > I'm not ruling anything out, except for the "let's just completely
+> > >> > regenerate every record for each auditd instance".
+> > >>
+> > >> Paul I am a bit confused about what you are referring to when you say
+> > >> regenerate every record.
+> > >>
+> > >> Are you saying that you don't want to repeat the sequence:
+> > >>         audit_log_start(...);
+> > >>         audit_log_format(...);
+> > >>         audit_log_end(...);
+> > >> for every nested audit daemon?
+> > >
+> > > If it can be avoided yes.  Audit performance is already not-awesome,
+> > > this would make it even worse.
+> >
+> > As far as I can see not repeating sequences like that is fundamental
+> > for making this work at all.  Just because only the audit subsystem
+> > should know about one or multiple audit daemons.  Nothing else should
+> > care.
+> 
+> Yes, exactly, this has been mentioned in the past.  Both the
+> performance hit and the code complication in the caller are things we
+> must avoid.
+> 
+> > >> Or are you saying that you would like to literraly want to send the same
+> > >> skb to each of the nested audit daemons?
+> > >
+> > > Ideally we would reuse the generated audit messages as much as
+> > > possible.  Less work is better.  That's really my main concern here,
+> > > let's make sure we aren't going to totally tank performance when we
+> > > have a bunch of nested audit daemons.
+> >
+> > So I think there are two parts of this answer.  Assuming we are talking
+> > about nesting audit daemons in containers we will have different
+> > rulesets and I expect most of the events for a nested audit daemon won't
+> > be of interest to the outer audit daemon.
+> 
+> Yes, this is another thing that Richard and I have discussed in the
+> past.  We will basically need to create per-daemon queues, rules,
+> tracking state, etc.; that is easy enough.  What will be slightly more
+> tricky is the part where we apply the filters to the individual
+> records and decide if that record is valid/desired for a given daemon.
+> I think it can be done without too much pain, and any changes to the
+> callers, but it will require a bit of work to make sure it is done
+> well and that records are needlessly duplicated in the kernel.
+> 
+> > Beyond that it should be very straight forward to keep a pointer and
+> > leave the buffer as a scatter gather list until audit_log_end
+> > and translate pids, and rewrite ACIDs attributes in audit_log_end
+> > when we build the final packet.  Either through collaboration with
+> > audit_log_format or a special audit_log command that carefully sets
+> > up the handful of things that need that information.
+> 
+> In order to maximize record re-use I think we will want to hold off on
+> assembling the final packet until it is sent to the daemons in the
+> kauditd thread.  We'll also likely need to create special
+> audit_log_XXX functions to capture fields which we know will need
+> translation, e.g. ACID information.  (the reason for the new
+> audit_log_XXX functions would be to mark the new sg element and ensure
+> the buffer is handled correctly)
+> 
+> Regardless of the details, I think the scatter gather approach is the
+> key here - that seems like the best design idea I've seen thus far.
+> It enables us to replace portions of the record as needed ... and
+> possibly use the existing skb cow stuff ... it has been a while, but
+> does the skb cow functions handle scatter gather skbs or do they need
+> to be linear?
 
-Signed-off-by: Andrew Sy Kim <kim.andrewsy@gmail.com>
----
- include/net/ip_vs.h             | 29 +++++++++++++++++++++
- net/netfilter/ipvs/ip_vs_conn.c | 43 +++++++++++++++++++++++++++++++
- net/netfilter/ipvs/ip_vs_core.c | 45 +++++++++++++--------------------
- net/netfilter/ipvs/ip_vs_ctl.c  | 22 ++++++++++++++++
- 4 files changed, 112 insertions(+), 27 deletions(-)
+How does the selection of this data management technique affect our
+choice of field format?  Does this lock the field value to a fixed
+length?  Does the use of scatter/gather techniques or structures allow
+the use of different lengths of data for each destination (auditd)?  I
+could see different target audit daemons triggering or switching to a
+different chunk of data and length.  This does raise a concern related
+to the previous sig_info2 discussion that the struct contobj that exists
+at the time of audit_log_exit called could have been reaped by the time
+the buffer is pulled from the queue for transmission to auditd, but we
+could hold a reference to it as is done for sig_info2.
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 83be2d93b407..49ca61765298 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -14,6 +14,7 @@
- #include <linux/spinlock.h>             /* for struct rwlock_t */
- #include <linux/atomic.h>               /* for struct atomic_t */
- #include <linux/refcount.h>             /* for struct refcount_t */
-+#include <linux/workqueue.h>
- 
- #include <linux/compiler.h>
- #include <linux/timer.h>
-@@ -885,6 +886,8 @@ struct netns_ipvs {
- 	atomic_t		conn_out_counter;
- 
- #ifdef CONFIG_SYSCTL
-+	/* delayed work for expiring no dest connections */
-+	struct delayed_work	expire_nodest_conn_work;
- 	/* 1/rate drop and drop-entry variables */
- 	struct delayed_work	defense_work;   /* Work handler */
- 	int			drop_rate;
-@@ -1049,6 +1052,11 @@ static inline int sysctl_conn_reuse_mode(struct netns_ipvs *ipvs)
- 	return ipvs->sysctl_conn_reuse_mode;
- }
- 
-+static inline int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs)
-+{
-+	return ipvs->sysctl_expire_nodest_conn;
-+}
-+
- static inline int sysctl_schedule_icmp(struct netns_ipvs *ipvs)
- {
- 	return ipvs->sysctl_schedule_icmp;
-@@ -1136,6 +1144,11 @@ static inline int sysctl_conn_reuse_mode(struct netns_ipvs *ipvs)
- 	return 1;
- }
- 
-+static inline int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs)
-+{
-+	return 0;
-+}
-+
- static inline int sysctl_schedule_icmp(struct netns_ipvs *ipvs)
- {
- 	return 0;
-@@ -1505,6 +1518,22 @@ static inline int ip_vs_todrop(struct netns_ipvs *ipvs)
- static inline int ip_vs_todrop(struct netns_ipvs *ipvs) { return 0; }
- #endif
- 
-+#ifdef CONFIG_SYSCTL
-+/* Enqueue delayed work for expiring no dest connections
-+ * Only run when sysctl_expire_nodest=1
-+ */
-+static inline void ip_vs_enqueue_expire_nodest_conns(struct netns_ipvs *ipvs)
-+{
-+	if (sysctl_expire_nodest_conn(ipvs))
-+		queue_delayed_work(system_long_wq,
-+				   &ipvs->expire_nodest_conn_work, 1);
-+}
-+
-+void ip_vs_expire_nodest_conn_flush(struct netns_ipvs *ipvs);
-+#else
-+static inline void ip_vs_enqueue_expire_nodest_conns(struct netns_ipvs) {}
-+#endif
-+
- #define IP_VS_DFWD_METHOD(dest) (atomic_read(&(dest)->conn_flags) & \
- 				 IP_VS_CONN_F_FWD_MASK)
- 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 02f2f636798d..8396ab098953 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -1366,6 +1366,49 @@ static void ip_vs_conn_flush(struct netns_ipvs *ipvs)
- 		goto flush_again;
- 	}
- }
-+
-+#ifdef CONFIG_SYSCTL
-+void ip_vs_expire_nodest_conn_flush(struct netns_ipvs *ipvs)
-+{
-+	int idx;
-+	struct ip_vs_conn *cp, *cp_c;
-+	struct ip_vs_dest *dest;
-+
-+	rcu_read_lock();
-+	for (idx = 0; idx < ip_vs_conn_tab_size; idx++) {
-+		hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[idx], c_list) {
-+			if (cp->ipvs != ipvs)
-+				continue;
-+
-+			dest = cp->dest;
-+			if (!dest || (dest->flags & IP_VS_DEST_F_AVAILABLE))
-+				continue;
-+
-+			/* As timers are expired in LIFO order, restart
-+			 * the timer of controlling connection first, so
-+			 * that it is expired after us.
-+			 */
-+			cp_c = cp->control;
-+			/* cp->control is valid only with reference to cp */
-+			if (cp_c && __ip_vs_conn_get(cp)) {
-+				IP_VS_DBG(4, "del controlling connection\n");
-+				ip_vs_conn_expire_now(cp_c);
-+				__ip_vs_conn_put(cp);
-+			}
-+
-+			IP_VS_DBG(4, "del connection\n");
-+			ip_vs_conn_expire_now(cp);
-+		}
-+		cond_resched_rcu();
-+
-+		/* netns clean up started, aborted delayed work */
-+		if (!ipvs->enable)
-+			return;
-+	}
-+	rcu_read_unlock();
-+}
-+#endif
-+
- /*
-  * per netns init and exit
-  */
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index aa6a603a2425..2508a9caeae8 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -694,16 +694,10 @@ static int sysctl_nat_icmp_send(struct netns_ipvs *ipvs)
- 	return ipvs->sysctl_nat_icmp_send;
- }
- 
--static int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs)
--{
--	return ipvs->sysctl_expire_nodest_conn;
--}
--
- #else
- 
- static int sysctl_snat_reroute(struct netns_ipvs *ipvs) { return 0; }
- static int sysctl_nat_icmp_send(struct netns_ipvs *ipvs) { return 0; }
--static int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs) { return 0; }
- 
- #endif
- 
-@@ -2095,36 +2089,33 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
- 		}
- 	}
- 
--	if (unlikely(!cp)) {
--		int v;
--
--		if (!ip_vs_try_to_schedule(ipvs, af, skb, pd, &v, &cp, &iph))
--			return v;
--	}
--
--	IP_VS_DBG_PKT(11, af, pp, skb, iph.off, "Incoming packet");
--
- 	/* Check the server status */
--	if (cp->dest && !(cp->dest->flags & IP_VS_DEST_F_AVAILABLE)) {
-+	if (cp && cp->dest && !(cp->dest->flags & IP_VS_DEST_F_AVAILABLE)) {
- 		/* the destination server is not available */
- 
--		__u32 flags = cp->flags;
--
--		/* when timer already started, silently drop the packet.*/
--		if (timer_pending(&cp->timer))
--			__ip_vs_conn_put(cp);
--		else
--			ip_vs_conn_put(cp);
-+		if (sysctl_expire_nodest_conn(ipvs)) {
-+			bool uses_ct = ip_vs_conn_uses_conntrack(cp, skb);
- 
--		if (sysctl_expire_nodest_conn(ipvs) &&
--		    !(flags & IP_VS_CONN_F_ONE_PACKET)) {
--			/* try to expire the connection immediately */
- 			ip_vs_conn_expire_now(cp);
-+			__ip_vs_conn_put(cp);
-+			if (uses_ct)
-+				return NF_DROP;
-+			cp = NULL;
-+		} else {
-+			__ip_vs_conn_put(cp);
-+			return NF_DROP;
- 		}
-+	}
- 
--		return NF_DROP;
-+	if (unlikely(!cp)) {
-+		int v;
-+
-+		if (!ip_vs_try_to_schedule(ipvs, af, skb, pd, &v, &cp, &iph))
-+			return v;
- 	}
- 
-+	IP_VS_DBG_PKT(11, af, pp, skb, iph.off, "Incoming packet");
-+
- 	ip_vs_in_stats(cp, skb);
- 	ip_vs_set_state(cp, IP_VS_DIR_INPUT, skb, pd);
- 	if (cp->packet_xmit)
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 8d14a1acbc37..24736efac85c 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -210,6 +210,17 @@ static void update_defense_level(struct netns_ipvs *ipvs)
- 	local_bh_enable();
- }
- 
-+/*	Handler for delayed work for expiring no
-+ *	destination connections
-+ */
-+static void expire_nodest_conn_handler(struct work_struct *work)
-+{
-+	struct netns_ipvs *ipvs;
-+
-+	ipvs = container_of(work, struct netns_ipvs,
-+			    expire_nodest_conn_work.work);
-+	ip_vs_expire_nodest_conn_flush(ipvs);
-+}
- 
- /*
-  *	Timer for checking the defense
-@@ -1163,6 +1174,12 @@ static void __ip_vs_del_dest(struct netns_ipvs *ipvs, struct ip_vs_dest *dest,
- 	list_add(&dest->t_list, &ipvs->dest_trash);
- 	dest->idle_start = 0;
- 	spin_unlock_bh(&ipvs->dest_trash_lock);
-+
-+	/*	Queue up delayed work to expire all no estination connections.
-+	 *	No-op when CONFIG_SYSCTL is disabled.
-+	 */
-+	if (!cleanup)
-+		ip_vs_enqueue_expire_nodest_conns(ipvs);
- }
- 
- 
-@@ -4065,6 +4082,10 @@ static int __net_init ip_vs_control_net_init_sysctl(struct netns_ipvs *ipvs)
- 	INIT_DELAYED_WORK(&ipvs->defense_work, defense_work_handler);
- 	schedule_delayed_work(&ipvs->defense_work, DEFENSE_TIMER_PERIOD);
- 
-+	/* Init delayed work for expiring no dest conn */
-+	INIT_DELAYED_WORK(&ipvs->expire_nodest_conn_work,
-+			  expire_nodest_conn_handler);
-+
- 	return 0;
- }
- 
-@@ -4072,6 +4093,7 @@ static void __net_exit ip_vs_control_net_cleanup_sysctl(struct netns_ipvs *ipvs)
- {
- 	struct net *net = ipvs->net;
- 
-+	cancel_delayed_work_sync(&ipvs->expire_nodest_conn_work);
- 	cancel_delayed_work_sync(&ipvs->defense_work);
- 	cancel_work_sync(&ipvs->defense_work.work);
- 	unregister_net_sysctl_table(ipvs->sysctl_hdr);
--- 
-2.20.1
+Looking through the kernel scatter/gather possibilities, I see struct
+iovec which is used by the readv/writev/preadv/pwritev syscalls, but I'm
+understanding that this is a kernel implementation that will be not
+visible to user space.  So would the struct scatterlist be the right
+choice?
+
+> paul moore
+
+- RGB
+
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
 
