@@ -4,103 +4,100 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68FBCC433DF
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 00:59:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1462C433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 07:15:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4C0B52075A
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 00:59:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AEA4A2076A
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 07:15:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728913AbgFHA6b (ORCPT
+        id S1729041AbgFHHPK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 7 Jun 2020 20:58:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58388 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728165AbgFHA61 (ORCPT
+        Mon, 8 Jun 2020 03:15:10 -0400
+Received: from mail106.syd.optusnet.com.au ([211.29.132.42]:59252 "EHLO
+        mail106.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728022AbgFHHPI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 7 Jun 2020 20:58:27 -0400
-Received: from Galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3E5AC08C5C4;
-        Sun,  7 Jun 2020 17:58:26 -0700 (PDT)
-Received: from [5.158.153.53] (helo=debian-buster-darwi.lab.linutronix.de.)
-        by Galois.linutronix.de with esmtpsa (TLS1.2:DHE_RSA_AES_256_CBC_SHA1:256)
-        (Exim 4.80)
-        (envelope-from <a.darwish@linutronix.de>)
-        id 1ji67D-0000rM-03; Mon, 08 Jun 2020 02:58:15 +0200
-From:   "Ahmed S. Darwish" <a.darwish@linutronix.de>
-To:     Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@redhat.com>, Will Deacon <will@kernel.org>
-Cc:     Thomas Gleixner <tglx@linutronix.de>,
-        "Paul E. McKenney" <paulmck@kernel.org>,
-        "Sebastian A. Siewior" <bigeasy@linutronix.de>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        "Ahmed S. Darwish" <a.darwish@linutronix.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH v2 09/18] netfilter: nft_set_rbtree: Use sequence counter with associated rwlock
-Date:   Mon,  8 Jun 2020 02:57:20 +0200
-Message-Id: <20200608005729.1874024-10-a.darwish@linutronix.de>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200608005729.1874024-1-a.darwish@linutronix.de>
-References: <20200519214547.352050-1-a.darwish@linutronix.de>
- <20200608005729.1874024-1-a.darwish@linutronix.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Linutronix-Spam-Score: -1.0
-X-Linutronix-Spam-Level: -
-X-Linutronix-Spam-Status: No , -1.0 points, 5.0 required,  ALL_TRUSTED=-1,SHORTCIRCUIT=-0.0001
+        Mon, 8 Jun 2020 03:15:08 -0400
+Received: from dimstar.local.net (n175-34-64-112.sun1.vic.optusnet.com.au [175.34.64.112])
+        by mail106.syd.optusnet.com.au (Postfix) with SMTP id 8D5AD6ABC09
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jun 2020 17:15:04 +1000 (AEST)
+Received: (qmail 14492 invoked by uid 501); 8 Jun 2020 07:15:01 -0000
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue 1/2] build: dist: Add fixmanpages.sh to distribution tree
+Date:   Mon,  8 Jun 2020 17:15:00 +1000
+Message-Id: <20200608071501.14448-2-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.14.5
+In-Reply-To: <20200608071501.14448-1-duncan_roe@optusnet.com.au>
+References: <20200608071501.14448-1-duncan_roe@optusnet.com.au>
+In-Reply-To: <20200607184716.GA20705@salvia>
+References: <20200607184716.GA20705@salvia>
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.3 cv=W5xGqiek c=1 sm=1 tr=0
+        a=keeXcwCgVCrAuxOn72dlvA==:117 a=keeXcwCgVCrAuxOn72dlvA==:17
+        a=nTHF0DUjJn0A:10 a=RSmzAf-M6YYA:10 a=PO7r1zJSAAAA:8
+        a=-hZqD4WVWLorXeaqBCcA:9
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-A sequence counter write side critical section must be protected by some
-form of locking to serialize writers. A plain seqcount_t does not
-contain the information of which lock must be held when entering a write
-side critical section.
+Also move fixmanpages.sh into the doxygen directory
 
-Use the new seqcount_rwlock_t data type, which allows to associate a
-rwlock with the sequence counter. This enables lockdep to verify that
-the rwlock used for writer serialization is held when the write side
-critical section is entered.
+Tested by running Slackware package builder on libnetfilter_queue-1.0.4.tar.bz2
+created by 'make dist' after applying the patch. Works now, failed before.
 
-If lockdep is disabled this lock association is compiled out and has
-neither storage size nor runtime overhead.
-
-Signed-off-by: Ahmed S. Darwish <a.darwish@linutronix.de>
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
- net/netfilter/nft_set_rbtree.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Makefile.am                              | 1 +
+ doxygen/Makefile.am                      | 4 ++--
+ fixmanpages.sh => doxygen/fixmanpages.sh | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+ rename fixmanpages.sh => doxygen/fixmanpages.sh (99%)
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 62f416bc0579..9f58261ee4c7 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -18,7 +18,7 @@
- struct nft_rbtree {
- 	struct rb_root		root;
- 	rwlock_t		lock;
--	seqcount_t		count;
-+	seqcount_rwlock_t	count;
- 	struct delayed_work	gc_work;
- };
+diff --git a/Makefile.am b/Makefile.am
+index a5b347b..7d3bf23 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -10,3 +10,4 @@ pkgconfigdir = $(libdir)/pkgconfig
+ pkgconfig_DATA = libnetfilter_queue.pc
  
-@@ -516,7 +516,7 @@ static int nft_rbtree_init(const struct nft_set *set,
- 	struct nft_rbtree *priv = nft_set_priv(set);
+ EXTRA_DIST += Make_global.am
++EXTRA_DIST += doxygen/fixmanpages.sh
+diff --git a/doxygen/Makefile.am b/doxygen/Makefile.am
+index ef468e0..a4db804 100644
+--- a/doxygen/Makefile.am
++++ b/doxygen/Makefile.am
+@@ -8,8 +8,8 @@ doc_srcs = $(top_srcdir)/src/libnetfilter_queue.c  \
+            $(top_srcdir)/src/extra/udp.c           \
+            $(top_srcdir)/src/extra/pktbuff.c
  
- 	rwlock_init(&priv->lock);
--	seqcount_init(&priv->count);
-+	seqcount_rwlock_init(&priv->count, &priv->lock);
- 	priv->root = RB_ROOT;
+-doxyfile.stamp: $(doc_srcs) $(top_srcdir)/fixmanpages.sh
+-	rm -rf html man && cd .. && doxygen doxygen.cfg && ./fixmanpages.sh
++doxyfile.stamp: $(doc_srcs) fixmanpages.sh
++	rm -rf html man && (cd .. && doxygen doxygen.cfg) && ./fixmanpages.sh
+ 	touch doxyfile.stamp
  
- 	INIT_DEFERRABLE_WORK(&priv->gc_work, nft_rbtree_gc);
+ CLEANFILES = doxyfile.stamp
+diff --git a/fixmanpages.sh b/doxygen/fixmanpages.sh
+similarity index 99%
+rename from fixmanpages.sh
+rename to doxygen/fixmanpages.sh
+index dd8b3a4..38e97ba 100755
+--- a/fixmanpages.sh
++++ b/doxygen/fixmanpages.sh
+@@ -3,7 +3,7 @@
+ function main
+ {
+   set -e
+-  cd doxygen/man/man3
++  cd man/man3
+   rm -f _*
+   setgroup LibrarySetup nfq_open
+     add2group nfq_close nfq_bind_pf nfq_unbind_pf
 -- 
-2.20.1
+2.14.5
 
