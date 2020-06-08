@@ -8,65 +8,65 @@ X-Spam-Status: No, score=-8.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3F65C433DF
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 19:00:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BDC0C433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 19:01:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9C5B82074B
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 19:00:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6579D2074B
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 19:01:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="srAGaWzQ"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jylfLgv6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726473AbgFHTAj (ORCPT
+        id S1726490AbgFHTBL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Jun 2020 15:00:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55998 "EHLO
+        Mon, 8 Jun 2020 15:01:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56106 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726197AbgFHTA0 (ORCPT
+        with ESMTP id S1726197AbgFHTBI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jun 2020 15:00:26 -0400
+        Mon, 8 Jun 2020 15:01:08 -0400
 Received: from mail-ej1-x644.google.com (mail-ej1-x644.google.com [IPv6:2a00:1450:4864:20::644])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56BD5C08C5C2
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jun 2020 12:00:26 -0700 (PDT)
-Received: by mail-ej1-x644.google.com with SMTP id n24so19566073ejd.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 08 Jun 2020 12:00:26 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFD64C08C5C2
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jun 2020 12:01:07 -0700 (PDT)
+Received: by mail-ej1-x644.google.com with SMTP id dr13so364416ejc.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 08 Jun 2020 12:01:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=date:from:to:cc:subject:message-id:mime-version:content-disposition
          :user-agent;
-        bh=Z//DuGf15y1uQGWm+B3H5jjBixv5CrmRtleFd9InXCA=;
-        b=srAGaWzQ9CHH8UHVdlPd+MUGqP/JPvis+CpGZQcHuhpCX7Scyz9a0fmwW9LBIChgad
-         im2orC8HaQetH27VFxm5mIqiYG1b03hkxAEpI/oF4okErnn6/j46PaRxEnFVyoZdcFp6
-         BmV48IY+qxLMHb0+u5dlqYaJoeVoxiZQRCSsWxckChOx+h9iUwVGIed8j1GRQQ5g1ZGS
-         GRPAFGRc46cq38zQ0QItnnAlcEBbp5mSip3VIgyV2OLQ3HKOLy4ms2M8KJmUhPf5UUSJ
-         OR6hzUQ4AWB8vzqU7kn2LbfAu2Ar1HC2qS70PzEeImR/+RZnbhJe9piZ8aZzJaRrNZlD
-         zT3A==
+        bh=U73+JNjqEmxwfVu68d0hg93K2xjZ9nGBZs2ooaCEQYo=;
+        b=jylfLgv6QMg/IzEz6Dj0tbpqS/zPq8TCSk23HnPxi7E3fJBLXftOWhqshNiBbyF5GZ
+         QNGsGV7TsVOm2pp/XXeo3Bl17TJ+F5cLdW92E3qT07PX4M65lPAxz91C6Ef1RMa6NkSY
+         +6xBqGDXYvDMLNpd/DhfRy8RNZf322gyw1OvBZxsJ3zNecYRCPHcBw5UQPTgmlPPJF7p
+         qO/ewrvQkwq7DzQuvPNAzEjHii2ID2Tx7JviNgPgHZ2hJUR+tN7INMR6cJVUL8t2L+wx
+         m4fXNEOUKKtF+m0ZV0/YgFrDJo+HvNA0HqF0eHm1a+PH/RCu+EjkSVEkZ0niiV9GK+hJ
+         IgGg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
          :content-disposition:user-agent;
-        bh=Z//DuGf15y1uQGWm+B3H5jjBixv5CrmRtleFd9InXCA=;
-        b=tsl3deb8C87pvRK+YTV0wdJoFOAlJu+QnXbuWFoIjGaOzKXBaszItlOxNV1Xh6/TEE
-         TZ2O64SVjBXJrsATyh2XW+7/gzlbs0Lb8ZYlc6GkvdgTRjHKxDcF0SasXEVPIGtwmq2I
-         8sPKogw13aNXgMHBTk5rMrK67z++QdTZ0xR6OYJomRivUMYNKsCSP4eMzv6f0Y4DxoOL
-         GVvTqk07WCBrCZ69D/OZw67gtx5fk1U9QEwWZ9PQFfQXhQeZZtW9zZuvoOzgeIdY5TpZ
-         g6QLscoCtrbIWaH9vqP1n4KB8Yju5QHwpw9n6ooAXk9W1j7QMGhk+4B446nrtd4/wtUK
-         SvYw==
-X-Gm-Message-State: AOAM531rmgcmJ9EobwX//YtqbrIBSXjn07EV8LPyg8Gf/PODlYe66Drq
-        fU9Hd7u6T8CaKvYfE1e93kTK+0ibBmo=
-X-Google-Smtp-Source: ABdhPJyaloaPISgFnaEnmVh1lqqPJfOlJfKH4bTiUL4ltRWginQbdy+6kdUE9eEBavLIixKYbDZKqg==
-X-Received: by 2002:a17:906:3456:: with SMTP id d22mr21671352ejb.358.1591642824570;
-        Mon, 08 Jun 2020 12:00:24 -0700 (PDT)
+        bh=U73+JNjqEmxwfVu68d0hg93K2xjZ9nGBZs2ooaCEQYo=;
+        b=QLEvVmW+Pdfd+7SZePGcytGXRn4SFkIIl/6JIBd2tnczOR40pYw6Xtkg0jLiCxqFgi
+         AdwN/652Zqgw+tMrd8fI4HxFOkgzcHklFW0IJgObfPD1glIZ9hF6AmO3dDUStzja860I
+         QDah0ST2Nv3HFOfonVps3D5AlrTC+ROvhrbGcSqOqxj6HdQ1XJ3xQhz+c4PN49kUezco
+         +HTKMqoG4ZvsCrH3USMDWLStnuw76VnBUmO9nkLUbqK7nd4MqgMX7reVqN4szykJ1P1f
+         Arwm+I0RIfibNmcU91IJ0ire+eJAofvoGRXxtlivD3NuZ8eQ0FqAWaTEtg5kxzbYXPiH
+         oUVw==
+X-Gm-Message-State: AOAM530GABZxzNbccpJyr5tmpzWjasOQK4Z6RqHqIuGjRYRgabPgXUrY
+        XUNwTeYzzrWGul2Uc9T6Z7rjHghslfA=
+X-Google-Smtp-Source: ABdhPJxXQH7EtVFeLNedZpfeTYMo3+7QNri1c1YHWhlceD9Vj+Cj1hs/wJE+RiAWX7LHNhDvFFpetw==
+X-Received: by 2002:a17:906:4c42:: with SMTP id d2mr22637621ejw.474.1591642866203;
+        Mon, 08 Jun 2020 12:01:06 -0700 (PDT)
 Received: from nevthink ([91.126.71.247])
-        by smtp.gmail.com with ESMTPSA id v29sm13572221edb.62.2020.06.08.12.00.23
+        by smtp.gmail.com with ESMTPSA id i21sm13359269edr.68.2020.06.08.12.01.04
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 08 Jun 2020 12:00:23 -0700 (PDT)
-Date:   Mon, 8 Jun 2020 21:00:21 +0200
+        Mon, 08 Jun 2020 12:01:05 -0700 (PDT)
+Date:   Mon, 8 Jun 2020 21:01:03 +0200
 From:   Laura Garcia Liebana <nevola@gmail.com>
 To:     netfilter-devel@vger.kernel.org
 Cc:     pablo@netfilter.org, devel@zevenet.com
-Subject: [PATCH nf-next 1/2] netfilter: nft: refactor reject verdict source
- code
-Message-ID: <20200608190021.GA23098@nevthink>
+Subject: [PATCH nf-next 2/2] netfilter: nft: add support of reject verdict
+ from ingress
+Message-ID: <20200608190103.GA23207@nevthink>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
@@ -76,359 +76,124 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Within REJECT modules there are duplicated code for different
-families, so this patch re-structures the source code in order
-to reuse as much as possible. The refactoring produces ~30 lines
-removed in total and prepares the code to be added the ingress
-support of REJECT.
+This patch adds the REJECT support from ingress for both stacks
+ipv4 and ipv6, but also, both types ICMP and TCP RESET.
+
+This ability is required in devices that need to REJECT legitimate
+clients which traffic are forwarded from the ingress hook.
 
 Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
 ---
- include/net/netfilter/ipv4/nft_reject_ipv4.h |   9 ++
- include/net/netfilter/ipv6/nft_reject_ipv6.h |   9 ++
- include/net/netfilter/nft_reject.h           |   3 +
- net/ipv4/netfilter/nft_reject_ipv4.c         |  12 ++-
- net/ipv6/netfilter/nft_reject_ipv6.c         |  16 ++-
- net/netfilter/nft_reject.c                   |  29 +++++-
- net/netfilter/nft_reject_inet.c              | 101 ++-----------------
- 7 files changed, 77 insertions(+), 102 deletions(-)
- create mode 100644 include/net/netfilter/ipv4/nft_reject_ipv4.h
- create mode 100644 include/net/netfilter/ipv6/nft_reject_ipv6.h
+ net/netfilter/Kconfig             | 10 +++++
+ net/netfilter/Makefile            |  1 +
+ net/netfilter/nft_reject_netdev.c | 65 +++++++++++++++++++++++++++++++
+ 3 files changed, 76 insertions(+)
+ create mode 100644 net/netfilter/nft_reject_netdev.c
 
-diff --git a/include/net/netfilter/ipv4/nft_reject_ipv4.h b/include/net/netfilter/ipv4/nft_reject_ipv4.h
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 468fea1aebba..25200f249778 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -681,6 +681,16 @@ config NFT_FIB_NETDEV
+ 	  The lookup will be delegated to the IPv4 or IPv6 FIB depending
+ 	  on the protocol of the packet.
+ 
++config NFT_REJECT_NETDEV
++	depends on NFT_REJECT_IPV4
++	depends on NFT_REJECT_IPV6
++	tristate "Netfilter nf_tables netdev REJECT support"
++	help
++	  This option enables the REJECT support from the netdev table.
++	  The return packet generation will be delegated to the IPv4
++	  or IPv6 ICMP or TCP RST implementation depending on the
++	  protocol of the packet.
++
+ endif # NF_TABLES_NETDEV
+ 
+ endif # NF_TABLES
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 0e0ded87e27b..33da7bf1b68e 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -101,6 +101,7 @@ obj-$(CONFIG_NFT_QUEUE)		+= nft_queue.o
+ obj-$(CONFIG_NFT_QUOTA)		+= nft_quota.o
+ obj-$(CONFIG_NFT_REJECT) 	+= nft_reject.o
+ obj-$(CONFIG_NFT_REJECT_INET)	+= nft_reject_inet.o
++obj-$(CONFIG_NFT_REJECT_NETDEV)	+= nft_reject_netdev.o
+ obj-$(CONFIG_NFT_TUNNEL)	+= nft_tunnel.o
+ obj-$(CONFIG_NFT_COUNTER)	+= nft_counter.o
+ obj-$(CONFIG_NFT_LOG)		+= nft_log.o
+diff --git a/net/netfilter/nft_reject_netdev.c b/net/netfilter/nft_reject_netdev.c
 new file mode 100644
-index 000000000000..364810b613c2
+index 000000000000..64123d80210d
 --- /dev/null
-+++ b/include/net/netfilter/ipv4/nft_reject_ipv4.h
-@@ -0,0 +1,9 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _NFT_REJECT_IPV4_H_
-+#define _NFT_REJECT_IPV4_H_
-+
-+void nft_reject_ipv4_eval(const struct nft_expr *expr,
-+			  struct nft_regs *regs,
-+			  const struct nft_pktinfo *pkt);
-+
-+#endif
-diff --git a/include/net/netfilter/ipv6/nft_reject_ipv6.h b/include/net/netfilter/ipv6/nft_reject_ipv6.h
-new file mode 100644
-index 000000000000..568297083858
---- /dev/null
-+++ b/include/net/netfilter/ipv6/nft_reject_ipv6.h
-@@ -0,0 +1,9 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _NFT_REJECT_IPV6_H_
-+#define _NFT_REJECT_IPV6_H_
-+
-+void nft_reject_ipv6_eval(const struct nft_expr *expr,
-+			  struct nft_regs *regs,
-+			  const struct nft_pktinfo *pkt);
-+
-+#endif
-diff --git a/include/net/netfilter/nft_reject.h b/include/net/netfilter/nft_reject.h
-index 56b123a42220..3a3a0a4eaac9 100644
---- a/include/net/netfilter/nft_reject.h
-+++ b/include/net/netfilter/nft_reject.h
-@@ -26,5 +26,8 @@ int nft_reject_dump(struct sk_buff *skb, const struct nft_expr *expr);
- 
- int nft_reject_icmp_code(u8 code);
- int nft_reject_icmpv6_code(u8 code);
-+int nft_reject_generic_validate(const struct nft_ctx *ctx,
-+				const struct nft_expr *expr,
-+				const struct nft_data **data);
- 
- #endif
-diff --git a/net/ipv4/netfilter/nft_reject_ipv4.c b/net/ipv4/netfilter/nft_reject_ipv4.c
-index 7e6fd5cde50f..39414795a5c2 100644
---- a/net/ipv4/netfilter/nft_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nft_reject_ipv4.c
-@@ -16,9 +16,9 @@
- #include <net/netfilter/ipv4/nf_reject.h>
- #include <net/netfilter/nft_reject.h>
- 
--static void nft_reject_ipv4_eval(const struct nft_expr *expr,
--				 struct nft_regs *regs,
--				 const struct nft_pktinfo *pkt)
-+void nft_reject_ipv4_eval(const struct nft_expr *expr,
-+			  struct nft_regs *regs,
-+			  const struct nft_pktinfo *pkt)
- {
- 	struct nft_reject *priv = nft_expr_priv(expr);
- 
-@@ -29,12 +29,18 @@ static void nft_reject_ipv4_eval(const struct nft_expr *expr,
- 	case NFT_REJECT_TCP_RST:
- 		nf_send_reset(nft_net(pkt), pkt->skb, nft_hook(pkt));
- 		break;
-+	case NFT_REJECT_ICMPX_UNREACH:
-+		nf_send_unreach(pkt->skb,
-+				nft_reject_icmp_code(priv->icmp_code),
-+				nft_hook(pkt));
-+		break;
- 	default:
- 		break;
- 	}
- 
- 	regs->verdict.code = NF_DROP;
- }
-+EXPORT_SYMBOL_GPL(nft_reject_ipv4_eval);
- 
- static struct nft_expr_type nft_reject_ipv4_type;
- static const struct nft_expr_ops nft_reject_ipv4_ops = {
-diff --git a/net/ipv6/netfilter/nft_reject_ipv6.c b/net/ipv6/netfilter/nft_reject_ipv6.c
-index 680a28ce29fd..8a2ad7ad387e 100644
---- a/net/ipv6/netfilter/nft_reject_ipv6.c
-+++ b/net/ipv6/netfilter/nft_reject_ipv6.c
-@@ -15,13 +15,17 @@
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nft_reject.h>
- #include <net/netfilter/ipv6/nf_reject.h>
-+#include <net/ipv6.h>
- 
--static void nft_reject_ipv6_eval(const struct nft_expr *expr,
--				 struct nft_regs *regs,
--				 const struct nft_pktinfo *pkt)
-+void nft_reject_ipv6_eval(const struct nft_expr *expr,
-+			  struct nft_regs *regs,
-+			  const struct nft_pktinfo *pkt)
- {
- 	struct nft_reject *priv = nft_expr_priv(expr);
- 
-+	if (!ipv6_mod_enabled())
-+		return;
-+
- 	switch (priv->type) {
- 	case NFT_REJECT_ICMP_UNREACH:
- 		nf_send_unreach6(nft_net(pkt), pkt->skb, priv->icmp_code,
-@@ -30,12 +34,18 @@ static void nft_reject_ipv6_eval(const struct nft_expr *expr,
- 	case NFT_REJECT_TCP_RST:
- 		nf_send_reset6(nft_net(pkt), pkt->skb, nft_hook(pkt));
- 		break;
-+	case NFT_REJECT_ICMPX_UNREACH:
-+		nf_send_unreach6(nft_net(pkt), pkt->skb,
-+				 nft_reject_icmpv6_code(priv->icmp_code),
-+				 nft_hook(pkt));
-+		break;
- 	default:
- 		break;
- 	}
- 
- 	regs->verdict.code = NF_DROP;
- }
-+EXPORT_SYMBOL_GPL(nft_reject_ipv6_eval);
- 
- static struct nft_expr_type nft_reject_ipv6_type;
- static const struct nft_expr_ops nft_reject_ipv6_ops = {
-diff --git a/net/netfilter/nft_reject.c b/net/netfilter/nft_reject.c
-index 5eac28269bdb..bd796e4e8468 100644
---- a/net/netfilter/nft_reject.c
-+++ b/net/netfilter/nft_reject.c
-@@ -26,6 +26,20 @@ EXPORT_SYMBOL_GPL(nft_reject_policy);
- int nft_reject_validate(const struct nft_ctx *ctx,
- 			const struct nft_expr *expr,
- 			const struct nft_data **data)
-+{
-+	struct nft_reject *priv = nft_expr_priv(expr);
-+
-+	if (priv->type != NFT_REJECT_ICMP_UNREACH &&
-+		priv->type != NFT_REJECT_TCP_RST)
-+		return -EINVAL;
-+
-+	return nft_reject_generic_validate(ctx, expr, data);
-+}
-+EXPORT_SYMBOL_GPL(nft_reject_validate);
-+
-+int nft_reject_generic_validate(const struct nft_ctx *ctx,
-+				const struct nft_expr *expr,
-+				const struct nft_data **data)
- {
- 	return nft_chain_validate_hooks(ctx->chain,
- 					(1 << NF_INET_LOCAL_IN) |
-@@ -33,13 +47,14 @@ int nft_reject_validate(const struct nft_ctx *ctx,
- 					(1 << NF_INET_LOCAL_OUT) |
- 					(1 << NF_INET_PRE_ROUTING));
- }
--EXPORT_SYMBOL_GPL(nft_reject_validate);
-+EXPORT_SYMBOL_GPL(nft_reject_generic_validate);
- 
- int nft_reject_init(const struct nft_ctx *ctx,
- 		    const struct nft_expr *expr,
- 		    const struct nlattr * const tb[])
- {
- 	struct nft_reject *priv = nft_expr_priv(expr);
-+	int icmp_code;
- 
- 	if (tb[NFTA_REJECT_TYPE] == NULL)
- 		return -EINVAL;
-@@ -47,15 +62,22 @@ int nft_reject_init(const struct nft_ctx *ctx,
- 	priv->type = ntohl(nla_get_be32(tb[NFTA_REJECT_TYPE]));
- 	switch (priv->type) {
- 	case NFT_REJECT_ICMP_UNREACH:
-+	case NFT_REJECT_ICMPX_UNREACH:
- 		if (tb[NFTA_REJECT_ICMP_CODE] == NULL)
- 			return -EINVAL;
--		priv->icmp_code = nla_get_u8(tb[NFTA_REJECT_ICMP_CODE]);
-+
-+		icmp_code = nla_get_u8(tb[NFTA_REJECT_ICMP_CODE]);
-+		if (priv->type == NFT_REJECT_ICMPX_UNREACH &&
-+		    icmp_code > NFT_REJECT_ICMPX_MAX)
-+			return -EINVAL;
-+
-+		priv->icmp_code = icmp_code;
-+		break;
- 	case NFT_REJECT_TCP_RST:
- 		break;
- 	default:
- 		return -EINVAL;
- 	}
--
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(nft_reject_init);
-@@ -69,6 +91,7 @@ int nft_reject_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 
- 	switch (priv->type) {
- 	case NFT_REJECT_ICMP_UNREACH:
-+	case NFT_REJECT_ICMPX_UNREACH:
- 		if (nla_put_u8(skb, NFTA_REJECT_ICMP_CODE, priv->icmp_code))
- 			goto nla_put_failure;
- 		break;
-diff --git a/net/netfilter/nft_reject_inet.c b/net/netfilter/nft_reject_inet.c
-index f41f414b72d1..4c5d37b1bd22 100644
---- a/net/netfilter/nft_reject_inet.c
-+++ b/net/netfilter/nft_reject_inet.c
-@@ -1,6 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0-only
- /*
-  * Copyright (c) 2014 Patrick McHardy <kaber@trash.net>
++++ b/net/netfilter/nft_reject_netdev.c
+@@ -0,0 +1,65 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
 + * Copyright (c) 2020 Laura Garcia Liebana <nevola@gmail.com>
-  */
- 
- #include <linux/kernel.h>
-@@ -11,107 +12,21 @@
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nft_reject.h>
--#include <net/netfilter/ipv4/nf_reject.h>
--#include <net/netfilter/ipv6/nf_reject.h>
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/netlink.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nft_reject.h>
 +#include <net/netfilter/ipv4/nft_reject_ipv4.h>
 +#include <net/netfilter/ipv6/nft_reject_ipv6.h>
- 
- static void nft_reject_inet_eval(const struct nft_expr *expr,
- 				 struct nft_regs *regs,
- 				 const struct nft_pktinfo *pkt)
- {
--	struct nft_reject *priv = nft_expr_priv(expr);
--
- 	switch (nft_pf(pkt)) {
- 	case NFPROTO_IPV4:
--		switch (priv->type) {
--		case NFT_REJECT_ICMP_UNREACH:
--			nf_send_unreach(pkt->skb, priv->icmp_code,
--					nft_hook(pkt));
--			break;
--		case NFT_REJECT_TCP_RST:
--			nf_send_reset(nft_net(pkt), pkt->skb, nft_hook(pkt));
--			break;
--		case NFT_REJECT_ICMPX_UNREACH:
--			nf_send_unreach(pkt->skb,
--					nft_reject_icmp_code(priv->icmp_code),
--					nft_hook(pkt));
--			break;
--		}
++
++static void nft_reject_netdev_eval(const struct nft_expr *expr,
++				   struct nft_regs *regs,
++				   const struct nft_pktinfo *pkt)
++{
++	switch (ntohs(pkt->skb->protocol)) {
++	case ETH_P_IP:
 +		nft_reject_ipv4_eval(expr, regs, pkt);
- 		break;
- 	case NFPROTO_IPV6:
--		switch (priv->type) {
--		case NFT_REJECT_ICMP_UNREACH:
--			nf_send_unreach6(nft_net(pkt), pkt->skb,
--					 priv->icmp_code, nft_hook(pkt));
--			break;
--		case NFT_REJECT_TCP_RST:
--			nf_send_reset6(nft_net(pkt), pkt->skb, nft_hook(pkt));
--			break;
--		case NFT_REJECT_ICMPX_UNREACH:
--			nf_send_unreach6(nft_net(pkt), pkt->skb,
--					 nft_reject_icmpv6_code(priv->icmp_code),
--					 nft_hook(pkt));
--			break;
--		}
--		break;
--	}
--
--	regs->verdict.code = NF_DROP;
--}
--
--static int nft_reject_inet_init(const struct nft_ctx *ctx,
--				const struct nft_expr *expr,
--				const struct nlattr * const tb[])
--{
--	struct nft_reject *priv = nft_expr_priv(expr);
--	int icmp_code;
--
--	if (tb[NFTA_REJECT_TYPE] == NULL)
--		return -EINVAL;
--
--	priv->type = ntohl(nla_get_be32(tb[NFTA_REJECT_TYPE]));
--	switch (priv->type) {
--	case NFT_REJECT_ICMP_UNREACH:
--	case NFT_REJECT_ICMPX_UNREACH:
--		if (tb[NFTA_REJECT_ICMP_CODE] == NULL)
--			return -EINVAL;
--
--		icmp_code = nla_get_u8(tb[NFTA_REJECT_ICMP_CODE]);
--		if (priv->type == NFT_REJECT_ICMPX_UNREACH &&
--		    icmp_code > NFT_REJECT_ICMPX_MAX)
--			return -EINVAL;
--
--		priv->icmp_code = icmp_code;
++		break;
++	case ETH_P_IPV6:
 +		nft_reject_ipv6_eval(expr, regs, pkt);
- 		break;
--	case NFT_REJECT_TCP_RST:
--		break;
--	default:
--		return -EINVAL;
- 	}
--	return 0;
--}
--
--static int nft_reject_inet_dump(struct sk_buff *skb,
--				const struct nft_expr *expr)
--{
--	const struct nft_reject *priv = nft_expr_priv(expr);
--
--	if (nla_put_be32(skb, NFTA_REJECT_TYPE, htonl(priv->type)))
--		goto nla_put_failure;
--
--	switch (priv->type) {
--	case NFT_REJECT_ICMP_UNREACH:
--	case NFT_REJECT_ICMPX_UNREACH:
--		if (nla_put_u8(skb, NFTA_REJECT_ICMP_CODE, priv->icmp_code))
--			goto nla_put_failure;
--		break;
--	default:
--		break;
--	}
--
--	return 0;
--
--nla_put_failure:
--	return -1;
- }
- 
- static struct nft_expr_type nft_reject_inet_type;
-@@ -119,9 +34,9 @@ static const struct nft_expr_ops nft_reject_inet_ops = {
- 	.type		= &nft_reject_inet_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_reject)),
- 	.eval		= nft_reject_inet_eval,
--	.init		= nft_reject_inet_init,
--	.dump		= nft_reject_inet_dump,
--	.validate	= nft_reject_validate,
++		break;
++	}
++}
++
++static struct nft_expr_type nft_reject_netdev_type;
++static const struct nft_expr_ops nft_reject_netdev_ops = {
++	.type		= &nft_reject_netdev_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_reject)),
++	.eval		= nft_reject_netdev_eval,
 +	.init		= nft_reject_init,
 +	.dump		= nft_reject_dump,
 +	.validate	= nft_reject_generic_validate,
- };
- 
- static struct nft_expr_type nft_reject_inet_type __read_mostly = {
++};
++
++static struct nft_expr_type nft_reject_netdev_type __read_mostly = {
++	.family		= NFPROTO_NETDEV,
++	.name		= "reject",
++	.ops		= &nft_reject_netdev_ops,
++	.policy		= nft_reject_policy,
++	.maxattr	= NFTA_REJECT_MAX,
++	.owner		= THIS_MODULE,
++};
++
++static int __init nft_reject_netdev_module_init(void)
++{
++	return nft_register_expr(&nft_reject_netdev_type);
++}
++
++static void __exit nft_reject_netdev_module_exit(void)
++{
++	nft_unregister_expr(&nft_reject_netdev_type);
++}
++
++module_init(nft_reject_netdev_module_init);
++module_exit(nft_reject_netdev_module_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Laura Garcia Liebana <nevola@gmail.com>");
++MODULE_ALIAS_NFT_AF_EXPR(5, "reject");
 -- 
 2.20.1
 
