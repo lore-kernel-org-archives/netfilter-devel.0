@@ -2,214 +2,102 @@ Return-Path: <SRS0=kOBD=7V=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EE3DC433DF
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 18:04:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35971C433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 18:42:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 20D512083E
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 18:04:07 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="FsldKeV3"
+	by mail.kernel.org (Postfix) with ESMTP id 18DDD2063A
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 18:42:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729971AbgFHSEF (ORCPT
+        id S1725954AbgFHSl7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Jun 2020 14:04:05 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:39888 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1729979AbgFHSED (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jun 2020 14:04:03 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1591639441;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=uw5NjJ0WopWX8Tckd6/nHTcQhEVOsQbonk1220jJm6A=;
-        b=FsldKeV3d5ysvHdWuLLLuSrTtpjI2scwJhNbbsh5ExY0Pp70OWeUWidJDUOR/b5ByGEVvC
-        +sfcB2E5KR9Gu8VEcsnPf3+ESKcaT4uQy7yqLiKphVoHAby0PGBNQoHNjxy++pTRco5E5w
-        Cg7fenYCcS43QNsDQsYBqmBIi2seQgw=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-170-mA0IjPaLOdWDFywZFnhrIg-1; Mon, 08 Jun 2020 14:03:52 -0400
-X-MC-Unique: mA0IjPaLOdWDFywZFnhrIg-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        Mon, 8 Jun 2020 14:41:59 -0400
+Received: from correo.us.es ([193.147.175.20]:45112 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725785AbgFHSl6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Jun 2020 14:41:58 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 6EBA8DBC02
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jun 2020 20:41:56 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5F78CDA78D
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jun 2020 20:41:56 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 53437DA789; Mon,  8 Jun 2020 20:41:56 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2B288DA78B;
+        Mon,  8 Jun 2020 20:41:54 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 08 Jun 2020 20:41:54 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 6FAD91005510;
-        Mon,  8 Jun 2020 18:03:49 +0000 (UTC)
-Received: from madcap2.tricolour.ca (unknown [10.10.110.54])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 9756760BF3;
-        Mon,  8 Jun 2020 18:03:33 +0000 (UTC)
-Date:   Mon, 8 Jun 2020 14:03:30 -0400
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     "Eric W. Biederman" <ebiederm@xmission.com>, nhorman@tuxdriver.com,
-        linux-api@vger.kernel.org, containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        linux-audit@redhat.com, netfilter-devel@vger.kernel.org,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
-Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
- the audit daemon
-Message-ID: <20200608180330.z23hohfa2nclhxf5@madcap2.tricolour.ca>
-References: <20200330134705.jlrkoiqpgjh3rvoh@madcap2.tricolour.ca>
- <CAHC9VhQTsEMcYAF1CSHrrVn07DR450W9j6sFVfKAQZ0VpheOfw@mail.gmail.com>
- <20200330162156.mzh2tsnovngudlx2@madcap2.tricolour.ca>
- <CAHC9VhTRzZXJ6yUFL+xZWHNWZFTyiizBK12ntrcSwmgmySbkWw@mail.gmail.com>
- <20200330174937.xalrsiev7q3yxsx2@madcap2.tricolour.ca>
- <CAHC9VhR_bKSHDn2WAUgkquu+COwZUanc0RV3GRjMDvpoJ5krjQ@mail.gmail.com>
- <871ronf9x2.fsf@x220.int.ebiederm.org>
- <CAHC9VhR3gbmj5+5MY-whLtStKqDEHgvMRigU9hW0X1kpxF91ag@mail.gmail.com>
- <871rol7nw3.fsf@x220.int.ebiederm.org>
- <CAHC9VhQvhja=vUEbT3uJgQqpj-480HZzWV7b5oc2GWtzFN1qJw@mail.gmail.com>
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 09FF942EF4E0;
+        Mon,  8 Jun 2020 20:41:53 +0200 (CEST)
+Date:   Mon, 8 Jun 2020 20:41:53 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Stefano Brivio <sbrivio@redhat.com>
+Cc:     Mike Dillinger <miked@softtalker.com>, stable@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] nft_set_rbtree: Don't account for expired elements on
+ insertion
+Message-ID: <20200608184153.GA7865@salvia>
+References: <924e80c7b563cc6522a241b123c955c18983edb1.1591141588.git.sbrivio@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAHC9VhQvhja=vUEbT3uJgQqpj-480HZzWV7b5oc2GWtzFN1qJw@mail.gmail.com>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+In-Reply-To: <924e80c7b563cc6522a241b123c955c18983edb1.1591141588.git.sbrivio@redhat.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-04-22 13:24, Paul Moore wrote:
-> On Fri, Apr 17, 2020 at 6:26 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
-> > Paul Moore <paul@paul-moore.com> writes:
-> > > On Thu, Apr 16, 2020 at 4:36 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
-> > >> Paul Moore <paul@paul-moore.com> writes:
-> > >> > On Mon, Mar 30, 2020 at 1:49 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > >> >> On 2020-03-30 13:34, Paul Moore wrote:
-> > >> >> > On Mon, Mar 30, 2020 at 12:22 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > >> >> > > On 2020-03-30 10:26, Paul Moore wrote:
-> > >> >> > > > On Mon, Mar 30, 2020 at 9:47 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > >> >> > > > > On 2020-03-28 23:11, Paul Moore wrote:
-> > >> >> > > > > > On Tue, Mar 24, 2020 at 5:02 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > >> >> > > > > > > On 2020-03-23 20:16, Paul Moore wrote:
-> > >> >> > > > > > > > On Thu, Mar 19, 2020 at 6:03 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > >> >> > > > > > > > > On 2020-03-18 18:06, Paul Moore wrote:
-> > >> >
-> > >> > ...
-> > >> >
-> > >> >> > > Well, every time a record gets generated, *any* record gets generated,
-> > >> >> > > we'll need to check for which audit daemons this record is in scope and
-> > >> >> > > generate a different one for each depending on the content and whether
-> > >> >> > > or not the content is influenced by the scope.
-> > >> >> >
-> > >> >> > That's the problem right there - we don't want to have to generate a
-> > >> >> > unique record for *each* auditd on *every* record.  That is a recipe
-> > >> >> > for disaster.
-> > >> >> >
-> > >> >> > Solving this for all of the known audit records is not something we
-> > >> >> > need to worry about in depth at the moment (although giving it some
-> > >> >> > casual thought is not a bad thing), but solving this for the audit
-> > >> >> > container ID information *is* something we need to worry about right
-> > >> >> > now.
-> > >> >>
-> > >> >> If you think that a different nested contid value string per daemon is
-> > >> >> not acceptable, then we are back to issuing a record that has only *one*
-> > >> >> contid listed without any nesting information.  This brings us back to
-> > >> >> the original problem of keeping *all* audit log history since the boot
-> > >> >> of the machine to be able to track the nesting of any particular contid.
-> > >> >
-> > >> > I'm not ruling anything out, except for the "let's just completely
-> > >> > regenerate every record for each auditd instance".
-> > >>
-> > >> Paul I am a bit confused about what you are referring to when you say
-> > >> regenerate every record.
-> > >>
-> > >> Are you saying that you don't want to repeat the sequence:
-> > >>         audit_log_start(...);
-> > >>         audit_log_format(...);
-> > >>         audit_log_end(...);
-> > >> for every nested audit daemon?
-> > >
-> > > If it can be avoided yes.  Audit performance is already not-awesome,
-> > > this would make it even worse.
-> >
-> > As far as I can see not repeating sequences like that is fundamental
-> > for making this work at all.  Just because only the audit subsystem
-> > should know about one or multiple audit daemons.  Nothing else should
-> > care.
+On Wed, Jun 03, 2020 at 01:50:11AM +0200, Stefano Brivio wrote:
+> While checking the validity of insertion in __nft_rbtree_insert(),
+> we currently ignore conflicting elements and intervals only if they
+> are not active within the next generation.
 > 
-> Yes, exactly, this has been mentioned in the past.  Both the
-> performance hit and the code complication in the caller are things we
-> must avoid.
+> However, if we consider expired elements and intervals as
+> potentially conflicting and overlapping, we'll return error for
+> entries that should be added instead. This is particularly visible
+> with garbage collection intervals that are comparable with the
+> element timeout itself, as reported by Mike Dillinger.
 > 
-> > >> Or are you saying that you would like to literraly want to send the same
-> > >> skb to each of the nested audit daemons?
-> > >
-> > > Ideally we would reuse the generated audit messages as much as
-> > > possible.  Less work is better.  That's really my main concern here,
-> > > let's make sure we aren't going to totally tank performance when we
-> > > have a bunch of nested audit daemons.
-> >
-> > So I think there are two parts of this answer.  Assuming we are talking
-> > about nesting audit daemons in containers we will have different
-> > rulesets and I expect most of the events for a nested audit daemon won't
-> > be of interest to the outer audit daemon.
+> Other than the simple issue of denying insertion of valid entries,
+> this might also result in insertion of a single element (opening or
+> closing) out of a given interval. With single entries (that are
+> inserted as intervals of size 1), this leads in turn to the creation
+> of new intervals. For example:
 > 
-> Yes, this is another thing that Richard and I have discussed in the
-> past.  We will basically need to create per-daemon queues, rules,
-> tracking state, etc.; that is easy enough.  What will be slightly more
-> tricky is the part where we apply the filters to the individual
-> records and decide if that record is valid/desired for a given daemon.
-> I think it can be done without too much pain, and any changes to the
-> callers, but it will require a bit of work to make sure it is done
-> well and that records are needlessly duplicated in the kernel.
+>   # nft add element t s { 192.0.2.1 }
+>   # nft list ruleset
+>   [...]
+>      elements = { 192.0.2.1-255.255.255.255 }
 > 
-> > Beyond that it should be very straight forward to keep a pointer and
-> > leave the buffer as a scatter gather list until audit_log_end
-> > and translate pids, and rewrite ACIDs attributes in audit_log_end
-> > when we build the final packet.  Either through collaboration with
-> > audit_log_format or a special audit_log command that carefully sets
-> > up the handful of things that need that information.
+> Always ignore expired elements active in the next generation, while
+> checking for conflicts.
 > 
-> In order to maximize record re-use I think we will want to hold off on
-> assembling the final packet until it is sent to the daemons in the
-> kauditd thread.  We'll also likely need to create special
-> audit_log_XXX functions to capture fields which we know will need
-> translation, e.g. ACID information.  (the reason for the new
-> audit_log_XXX functions would be to mark the new sg element and ensure
-> the buffer is handled correctly)
+> It might be more convenient to introduce a new macro that covers
+> both inactive and expired items, as this type of check also appears
+> quite frequently in other set back-ends. This is however beyond the
+> scope of this fix and can be deferred to a separate patch.
 > 
-> Regardless of the details, I think the scatter gather approach is the
-> key here - that seems like the best design idea I've seen thus far.
-> It enables us to replace portions of the record as needed ... and
-> possibly use the existing skb cow stuff ... it has been a while, but
-> does the skb cow functions handle scatter gather skbs or do they need
-> to be linear?
+> Other than the overlap detection cases introduced by commit
+> 7c84d41416d8 ("netfilter: nft_set_rbtree: Detect partial overlaps
+> on insertion"), we also have to cover the original conflict check
+> dealing with conflicts between two intervals of size 1, which was
+> introduced before support for timeout was introduced. This won't
+> return an error to the user as -EEXIST is masked by nft if
+> NLM_F_EXCL is not given, but would result in a silent failure
+> adding the entry.
 
-How does the selection of this data management technique affect our
-choice of field format?  Does this lock the field value to a fixed
-length?  Does the use of scatter/gather techniques or structures allow
-the use of different lengths of data for each destination (auditd)?  I
-could see different target audit daemons triggering or switching to a
-different chunk of data and length.  This does raise a concern related
-to the previous sig_info2 discussion that the struct contobj that exists
-at the time of audit_log_exit called could have been reaped by the time
-the buffer is pulled from the queue for transmission to auditd, but we
-could hold a reference to it as is done for sig_info2.
-
-Looking through the kernel scatter/gather possibilities, I see struct
-iovec which is used by the readv/writev/preadv/pwritev syscalls, but I'm
-understanding that this is a kernel implementation that will be not
-visible to user space.  So would the struct scatterlist be the right
-choice?
-
-> paul moore
-
-- RGB
-
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
-
+Applied, thanks.
