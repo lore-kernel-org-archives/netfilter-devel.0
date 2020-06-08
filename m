@@ -1,66 +1,121 @@
-Return-Path: <SRS0=+9KY=7U=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=kOBD=7V=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 533B1C433E0
-	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Jun 2020 22:31:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A9C5C433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 00:58:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 368342075A
-	for <netfilter-devel@archiver.kernel.org>; Sun,  7 Jun 2020 22:31:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D42F2077D
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 00:58:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727877AbgFGWbA (ORCPT
+        id S1728923AbgFHA6c (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 7 Jun 2020 18:31:00 -0400
-Received: from correo.us.es ([193.147.175.20]:60044 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726788AbgFGWa7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 7 Jun 2020 18:30:59 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B859480AC0
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jun 2020 00:30:58 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AB386DA840
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jun 2020 00:30:58 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A0DE8DA73F; Mon,  8 Jun 2020 00:30:58 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id ABA51DA722;
-        Mon,  8 Jun 2020 00:30:56 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 08 Jun 2020 00:30:56 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 846DB426CCB9;
-        Mon,  8 Jun 2020 00:30:56 +0200 (CEST)
-Date:   Mon, 8 Jun 2020 00:30:56 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] build: resolve iptables-apply not getting installed
-Message-ID: <20200607223056.GB12097@salvia>
-References: <20200603133848.13672-1-jengelh@inai.de>
+        Sun, 7 Jun 2020 20:58:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58386 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728667AbgFHA61 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 7 Jun 2020 20:58:27 -0400
+Received: from Galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2ACAC08C5C3;
+        Sun,  7 Jun 2020 17:58:26 -0700 (PDT)
+Received: from [5.158.153.53] (helo=debian-buster-darwi.lab.linutronix.de.)
+        by Galois.linutronix.de with esmtpsa (TLS1.2:DHE_RSA_AES_256_CBC_SHA1:256)
+        (Exim 4.80)
+        (envelope-from <a.darwish@linutronix.de>)
+        id 1ji678-0000qF-22; Mon, 08 Jun 2020 02:58:10 +0200
+From:   "Ahmed S. Darwish" <a.darwish@linutronix.de>
+To:     Peter Zijlstra <peterz@infradead.org>,
+        Ingo Molnar <mingo@redhat.com>, Will Deacon <will@kernel.org>
+Cc:     Thomas Gleixner <tglx@linutronix.de>,
+        "Paul E. McKenney" <paulmck@kernel.org>,
+        "Sebastian A. Siewior" <bigeasy@linutronix.de>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        "Ahmed S. Darwish" <a.darwish@linutronix.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH v2 08/18] netfilter: conntrack: Use sequence counter with associated spinlock
+Date:   Mon,  8 Jun 2020 02:57:19 +0200
+Message-Id: <20200608005729.1874024-9-a.darwish@linutronix.de>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200608005729.1874024-1-a.darwish@linutronix.de>
+References: <20200519214547.352050-1-a.darwish@linutronix.de>
+ <20200608005729.1874024-1-a.darwish@linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200603133848.13672-1-jengelh@inai.de>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
+X-Linutronix-Spam-Score: -1.0
+X-Linutronix-Spam-Level: -
+X-Linutronix-Spam-Status: No , -1.0 points, 5.0 required,  ALL_TRUSTED=-1,SHORTCIRCUIT=-0.0001
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jun 03, 2020 at 03:38:48PM +0200, Jan Engelhardt wrote:
-> ip6tables-apply gets installed but iptables-apply does not.
-> That is wrong.
+A sequence counter write side critical section must be protected by some
+form of locking to serialize writers. A plain seqcount_t does not
+contain the information of which lock must be held when entering a write
+side critical section.
 
-Also applied, thanks.
+Use the new seqcount_spinlock_t data type, which allows to associate a
+spinlock with the sequence counter. This enables lockdep to verify that
+the spinlock used for writer serialization is held when the write side
+critical section is entered.
+
+If lockdep is disabled this lock association is compiled out and has
+neither storage size nor runtime overhead.
+
+Signed-off-by: Ahmed S. Darwish <a.darwish@linutronix.de>
+---
+ include/net/netfilter/nf_conntrack.h | 2 +-
+ net/netfilter/nf_conntrack_core.c    | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 90690e37a56f..ea4e2010b246 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -286,7 +286,7 @@ int nf_conntrack_hash_resize(unsigned int hashsize);
+ 
+ extern struct hlist_nulls_head *nf_conntrack_hash;
+ extern unsigned int nf_conntrack_htable_size;
+-extern seqcount_t nf_conntrack_generation;
++extern seqcount_spinlock_t nf_conntrack_generation;
+ extern unsigned int nf_conntrack_max;
+ 
+ /* must be called with rcu read lock held */
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index bb72ca5f3999..1f9518569195 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -180,7 +180,7 @@ EXPORT_SYMBOL_GPL(nf_conntrack_htable_size);
+ 
+ unsigned int nf_conntrack_max __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_conntrack_max);
+-seqcount_t nf_conntrack_generation __read_mostly;
++seqcount_spinlock_t nf_conntrack_generation __read_mostly;
+ static unsigned int nf_conntrack_hash_rnd __read_mostly;
+ 
+ static u32 hash_conntrack_raw(const struct nf_conntrack_tuple *tuple,
+@@ -2589,7 +2589,8 @@ int nf_conntrack_init_start(void)
+ 	/* struct nf_ct_ext uses u8 to store offsets/size */
+ 	BUILD_BUG_ON(total_extension_size() > 255u);
+ 
+-	seqcount_init(&nf_conntrack_generation);
++	seqcount_spinlock_init(&nf_conntrack_generation,
++			       &nf_conntrack_locks_all_lock);
+ 
+ 	for (i = 0; i < CONNTRACK_LOCKS; i++)
+ 		spin_lock_init(&nf_conntrack_locks[i]);
+-- 
+2.20.1
+
