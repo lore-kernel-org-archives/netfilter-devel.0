@@ -2,129 +2,87 @@ Return-Path: <SRS0=kOBD=7V=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E905FC433E1
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 21:47:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8302C433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 22:37:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD3592068D
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 21:47:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 858E62074B
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jun 2020 22:37:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726782AbgFHVro (ORCPT
+        id S1726886AbgFHWhp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Jun 2020 17:47:44 -0400
-Received: from correo.us.es ([193.147.175.20]:44782 "EHLO mail.us.es"
+        Mon, 8 Jun 2020 18:37:45 -0400
+Received: from mga06.intel.com ([134.134.136.31]:51218 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726705AbgFHVrn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jun 2020 17:47:43 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CA9CCF2362
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jun 2020 23:47:41 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B6F18DA78F
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jun 2020 23:47:41 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id ABF1EDA78B; Mon,  8 Jun 2020 23:47:41 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7DC32DA72F;
-        Mon,  8 Jun 2020 23:47:39 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 08 Jun 2020 23:47:39 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 4D2D3426CCB9;
-        Mon,  8 Jun 2020 23:47:39 +0200 (CEST)
-Date:   Mon, 8 Jun 2020 23:47:39 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jacob Keller <jacob.e.keller@intel.com>
+        id S1726734AbgFHWhp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Jun 2020 18:37:45 -0400
+IronPort-SDR: RQDllMmbhxAn+SntVGYimOJM0UJl3TNXkTdtc+z1H8NUE1Gxu+kFcZKg2RG8muUs3OWz/7GPHu
+ 8MP0xVZUJO2A==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jun 2020 15:37:44 -0700
+IronPort-SDR: IVxxPubATQpyQMdXAnAzT3pn4ZjvL99rPnDvRXnSD21QgCOBnQEf6xnVAi6TV8gK3qEM1/TtS0
+ efFyrQxu+RoA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.73,489,1583222400"; 
+   d="scan'208";a="446905549"
+Received: from jekeller-mobl1.amr.corp.intel.com (HELO [10.209.71.222]) ([10.209.71.222])
+  by orsmga005.jf.intel.com with ESMTP; 08 Jun 2020 15:37:43 -0700
+Subject: Re: [PATCH 8/8 net] net: remove indirect block netdev event
+ registration
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
         netdev@vger.kernel.org, paulb@mellanox.com, ozsh@mellanox.com,
         vladbu@mellanox.com, jiri@resnulli.us, kuba@kernel.org,
         saeedm@mellanox.com, michael.chan@broadcom.com
-Subject: Re: [PATCH 8/8 net] net: remove indirect block netdev event
- registration
-Message-ID: <20200608214739.GA12131@salvia>
 References: <20200513164140.7956-1-pablo@netfilter.org>
  <20200513164140.7956-9-pablo@netfilter.org>
  <59884f4f-df03-98ac-0524-3e58c904f201@intel.com>
+ <20200608214739.GA12131@salvia>
+From:   Jacob Keller <jacob.e.keller@intel.com>
+Organization: Intel Corporation
+Message-ID: <dd6aaf74-d7fc-9f84-f872-7ee4e3a971c3@intel.com>
+Date:   Mon, 8 Jun 2020 15:37:42 -0700
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.8.1
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="+HP7ph2BbKc20aGI"
-Content-Disposition: inline
-In-Reply-To: <59884f4f-df03-98ac-0524-3e58c904f201@intel.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <20200608214739.GA12131@salvia>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
---+HP7ph2BbKc20aGI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Mon, Jun 08, 2020 at 02:07:57PM -0700, Jacob Keller wrote:
+On 6/8/2020 2:47 PM, Pablo Neira Ayuso wrote:
+> On Mon, Jun 08, 2020 at 02:07:57PM -0700, Jacob Keller wrote:
+>>
+>>
+>> On 5/13/2020 9:41 AM, Pablo Neira Ayuso wrote:
+>>> Drivers do not register to netdev events to set up indirect blocks
+>>> anymore. Remove __flow_indr_block_cb_register() and
+>>> __flow_indr_block_cb_unregister().
+>>>
+>>> The frontends set up the callbacks through flow_indr_dev_setup_block()
+>>>
+>>> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+>>
+>> This commit failed to remove the prototypes from the header file:
+>> include/net/flow_offload.h
 > 
+> Thanks for reporting.
 > 
-> On 5/13/2020 9:41 AM, Pablo Neira Ayuso wrote:
-> > Drivers do not register to netdev events to set up indirect blocks
-> > anymore. Remove __flow_indr_block_cb_register() and
-> > __flow_indr_block_cb_unregister().
-> > 
-> > The frontends set up the callbacks through flow_indr_dev_setup_block()
-> > 
-> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> I'm attaching a sketch, I will submit this formally later.
 > 
-> This commit failed to remove the prototypes from the header file:
-> include/net/flow_offload.h
 
-Thanks for reporting.
+The sketch looks good to me.
 
-I'm attaching a sketch, I will submit this formally later.
-
---+HP7ph2BbKc20aGI
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="x.patch"
-
-diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
-index 69e13c8b6b3a..f2c8311a0433 100644
---- a/include/net/flow_offload.h
-+++ b/include/net/flow_offload.h
-@@ -542,28 +542,4 @@ int flow_indr_dev_setup_offload(struct net_device *dev,
- 				struct flow_block_offload *bo,
- 				void (*cleanup)(struct flow_block_cb *block_cb));
- 
--typedef void flow_indr_block_cmd_t(struct net_device *dev,
--				   flow_indr_block_bind_cb_t *cb, void *cb_priv,
--				   enum flow_block_command command);
--
--int __flow_indr_block_cb_register(struct net_device *dev, void *cb_priv,
--				  flow_indr_block_bind_cb_t *cb,
--				  void *cb_ident);
--
--void __flow_indr_block_cb_unregister(struct net_device *dev,
--				     flow_indr_block_bind_cb_t *cb,
--				     void *cb_ident);
--
--int flow_indr_block_cb_register(struct net_device *dev, void *cb_priv,
--				flow_indr_block_bind_cb_t *cb, void *cb_ident);
--
--void flow_indr_block_cb_unregister(struct net_device *dev,
--				   flow_indr_block_bind_cb_t *cb,
--				   void *cb_ident);
--
--void flow_indr_block_call(struct net_device *dev,
--			  struct flow_block_offload *bo,
--			  enum flow_block_command command,
--			  enum tc_setup_type type);
--
- #endif /* _NET_FLOW_OFFLOAD_H */
-
---+HP7ph2BbKc20aGI--
+Regards,
+Jake
