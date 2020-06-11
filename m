@@ -1,114 +1,133 @@
-Return-Path: <SRS0=m7zW=7X=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=hh7g=7Y=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C16D5C433E0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Jun 2020 20:58:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24034C433E0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Jun 2020 07:01:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9BD662074B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Jun 2020 20:58:47 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=armlinux.org.uk header.i=@armlinux.org.uk header.b="xXS/kmbZ"
+	by mail.kernel.org (Postfix) with ESMTP id E3C232072F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Jun 2020 07:01:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726828AbgFJU6p (ORCPT
+        id S1726645AbgFKHBK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 10 Jun 2020 16:58:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39320 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726134AbgFJU6p (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 Jun 2020 16:58:45 -0400
-X-Greylist: delayed 437 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 10 Jun 2020 13:58:44 PDT
-Received: from pandora.armlinux.org.uk (unknown [IPv6:2001:4d48:ad52:32c8:214:fdff:fe10:1be6])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5D3BC03E96B;
-        Wed, 10 Jun 2020 13:58:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=armlinux.org.uk; s=pandora-2019; h=Date:Sender:Message-Id:Content-Type:
-        Content-Transfer-Encoding:MIME-Version:Subject:Cc:To:From:Reply-To:Content-ID
-        :Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:
-        Resent-Cc:Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=qRd9E6mg/me3FC+zYkNIbQdzQKiPFe8haYKnIMtGAPI=; b=xXS/kmbZXA25AeuRymU+hgewWJ
-        Ucr/LjQXb+HkftrRyQ6fa4AMVX9nzR/smEsPPKj/13wta/BBtkf0vd6Is0j+D7fY47czVMIb55q5Y
-        QWw1qCEV/pkcIQXkKTmYoNf0GKSwGfZ/ISd3jbWjeny3YE7xsO6TEWMDhNzb4BlinYsOrnBbd97ZX
-        JjBiZvY0eiOPC6pr8ttcA6jewlAjhjrMOGfgnquBsklB42j+WsLB/9i1hDmlwk1gXGXzmEWKic2vB
-        5DNhEHj3BMWPfig6Oa9fR4pJ8WzU4QzZ2ywg5l2eAc10o+0MCIJUqgWPVSuMLiFFVRM1ohzrbhFAZ
-        6naFcpqg==;
-Received: from e0022681537dd.dyn.armlinux.org.uk ([fd8f:7570:feb6:1:222:68ff:fe15:37dd]:59226 helo=rmk-PC.armlinux.org.uk)
-        by pandora.armlinux.org.uk with esmtpsa (TLSv1.2:ECDHE-RSA-AES256-GCM-SHA384:256)
-        (Exim 4.90_1)
-        (envelope-from <rmk@armlinux.org.uk>)
-        id 1jj7gm-0006sH-2y; Wed, 10 Jun 2020 21:51:12 +0100
-Received: from rmk by rmk-PC.armlinux.org.uk with local (Exim 4.92)
-        (envelope-from <rmk@armlinux.org.uk>)
-        id 1jj7gl-0008Bq-BQ; Wed, 10 Jun 2020 21:51:11 +0100
-From:   Russell King <rmk+kernel@armlinux.org.uk>
-To:     coreteam@netfilter.org, netfilter-devel@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org
-Subject: [PATCH] netfiler: ipset: fix unaligned atomic access
+        Thu, 11 Jun 2020 03:01:10 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:34024 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726603AbgFKHBJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 11 Jun 2020 03:01:09 -0400
+Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 00986E67CDEEE3698471;
+        Thu, 11 Jun 2020 15:01:07 +0800 (CST)
+Received: from huawei.com (10.90.53.225) by DGGEMS404-HUB.china.huawei.com
+ (10.3.19.204) with Microsoft SMTP Server id 14.3.487.0; Thu, 11 Jun 2020
+ 15:01:00 +0800
+From:   Zheng Bin <zhengbin13@huawei.com>
+To:     <pablo@netfilter.org>, <kadlec@netfilter.org>, <fw@strlen.de>,
+        <davem@davemloft.net>, <kuba@kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+        <netdev@vger.kernel.org>
+CC:     <zhengbin13@huawei.com>
+Subject: [PATCH -next] netfilter: ctnetlink: Fix memleak in ctnetlink_alloc_filter
+Date:   Thu, 11 Jun 2020 15:08:05 +0800
+Message-ID: <20200611070805.2982-1-zhengbin13@huawei.com>
+X-Mailer: git-send-email 2.26.0.106.g9fadedd
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1jj7gl-0008Bq-BQ@rmk-PC.armlinux.org.uk>
-Date:   Wed, 10 Jun 2020 21:51:11 +0100
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.90.53.225]
+X-CFilter-Loop: Reflected
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When using ip_set with counters and comment, traffic causes the kernel
-to panic on 32-bit ARM:
+ctnetlink_alloc_filter
+  filter = kzalloc
 
-Alignment trap: not handling instruction e1b82f9f at [<bf01b0dc>]
-Unhandled fault: alignment exception (0x221) at 0xea08133c
-PC is at ip_set_match_extensions+0xe0/0x224 [ip_set]
+  In the following process(such as ctnetlink_parse_zone,
+  ctnetlink_parse_filter), if return fail, need to kfree filter.
 
-The problem occurs when we try to update the 64-bit counters - the
-faulting address above is not 64-bit aligned.  The problem occurs
-due to the way elements are allocated, for example:
-
-	set->dsize = ip_set_elem_len(set, tb, 0, 0);
-	map = ip_set_alloc(sizeof(*map) + elements * set->dsize);
-
-If the element has a requirement for a member to be 64-bit aligned,
-and set->dsize is not a multiple of 8, but is a multiple of four,
-then every odd numbered elements will be misaligned - and hitting
-an atomic64_add() on that element will cause the kernel to panic.
-
-ip_set_elem_len() must return a size that is rounded to the maximum
-alignment of any extension field stored in the element.  This change
-ensures that is the case.
-
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+Fixes: cb8aa9a3affb ("netfilter: ctnetlink: add kernel side filtering for dump")
+Signed-off-by: Zheng Bin <zhengbin13@huawei.com>
 ---
-Patch against v5.6, where I tripped over this bug.  This bug has
-caused a kernel panic on my new router twice today.
+ net/netfilter/nf_conntrack_netlink.c | 27 ++++++++++++++++++---------
+ 1 file changed, 18 insertions(+), 9 deletions(-)
 
- net/netfilter/ipset/ip_set_core.c | 2 ++
- 1 file changed, 2 insertions(+)
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index d7bd8b1f27d5..f7fdd91ece6d 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -939,7 +939,8 @@ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
+ 			filter->mark.mask = 0xffffffff;
+ 		}
+ 	} else if (cda[CTA_MARK_MASK]) {
+-		return ERR_PTR(-EINVAL);
++		err = -EINVAL;
++		goto error;
+ 	}
+ #endif
+ 	if (!cda[CTA_FILTER])
+@@ -947,15 +948,17 @@ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 8dd17589217d..be9cd6a500fb 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -459,6 +459,8 @@ ip_set_elem_len(struct ip_set *set, struct nlattr *tb[], size_t len,
- 	for (id = 0; id < IPSET_EXT_ID_MAX; id++) {
- 		if (!add_extension(id, cadt_flags, tb))
- 			continue;
-+		if (align < ip_set_extensions[id].align)
-+			align = ip_set_extensions[id].align;
- 		len = ALIGN(len, ip_set_extensions[id].align);
- 		set->offset[id] = len;
- 		set->extensions |= ip_set_extensions[id].type;
--- 
-2.20.1
+ 	err = ctnetlink_parse_zone(cda[CTA_ZONE], &filter->zone);
+ 	if (err < 0)
+-		return ERR_PTR(err);
++		goto error;
+
+ 	err = ctnetlink_parse_filter(cda[CTA_FILTER], filter);
+ 	if (err < 0)
+-		return ERR_PTR(err);
++		goto error;
+
+ 	if (filter->orig_flags) {
+-		if (!cda[CTA_TUPLE_ORIG])
+-			return ERR_PTR(-EINVAL);
++		if (!cda[CTA_TUPLE_ORIG]) {
++			err = -EINVAL;
++			goto error;
++		}
+
+ 		err = ctnetlink_parse_tuple_filter(cda, &filter->orig,
+ 						   CTA_TUPLE_ORIG,
+@@ -963,12 +966,14 @@ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
+ 						   &filter->zone,
+ 						   filter->orig_flags);
+ 		if (err < 0)
+-			return ERR_PTR(err);
++			goto error;
+ 	}
+
+ 	if (filter->reply_flags) {
+-		if (!cda[CTA_TUPLE_REPLY])
+-			return ERR_PTR(-EINVAL);
++		if (!cda[CTA_TUPLE_REPLY]) {
++			err = -EINVAL;
++			goto error;
++		}
+
+ 		err = ctnetlink_parse_tuple_filter(cda, &filter->reply,
+ 						   CTA_TUPLE_REPLY,
+@@ -976,10 +981,14 @@ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
+ 						   &filter->zone,
+ 						   filter->orig_flags);
+ 		if (err < 0)
+-			return ERR_PTR(err);
++			goto error;
+ 	}
+
+ 	return filter;
++
++error:
++	kfree(filter);
++	return ERR_PTR(err);
+ }
+
+ static bool ctnetlink_needs_filter(u8 family, const struct nlattr * const *cda)
+--
+2.26.0.106.g9fadedd
 
