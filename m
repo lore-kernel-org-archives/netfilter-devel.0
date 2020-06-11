@@ -5,62 +5,62 @@ X-Spam-Level:
 X-Spam-Status: No, score=-13.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28379C433E0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Jun 2020 09:29:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29F4CC433E0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Jun 2020 10:01:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 08DC220747
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Jun 2020 09:29:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01D2620656
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Jun 2020 10:01:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eRXeRYyt"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="sgeBjL7A"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726839AbgFKJ3C (ORCPT
+        id S1727104AbgFKKBu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 11 Jun 2020 05:29:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41328 "EHLO
+        Thu, 11 Jun 2020 06:01:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46372 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726560AbgFKJ3B (ORCPT
+        with ESMTP id S1726946AbgFKKBt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 11 Jun 2020 05:29:01 -0400
-Received: from mail-pj1-x1043.google.com (mail-pj1-x1043.google.com [IPv6:2607:f8b0:4864:20::1043])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D87F2C03E96F;
-        Thu, 11 Jun 2020 02:28:59 -0700 (PDT)
-Received: by mail-pj1-x1043.google.com with SMTP id ne5so2008162pjb.5;
-        Thu, 11 Jun 2020 02:28:59 -0700 (PDT)
+        Thu, 11 Jun 2020 06:01:49 -0400
+Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com [IPv6:2607:f8b0:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C11EBC08C5C1;
+        Thu, 11 Jun 2020 03:01:48 -0700 (PDT)
+Received: by mail-pl1-x642.google.com with SMTP id v24so2145889plo.6;
+        Thu, 11 Jun 2020 03:01:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=date:from:to:cc:subject:message-id:mime-version:content-disposition
          :content-transfer-encoding:user-agent;
-        bh=fmkKfLlPm1SX8BMYeiTAVz52U85xymHRgcogEW45OFc=;
-        b=eRXeRYytRbgk0t8K5ew0ycWqsjAnG0y0GuRz4voxnDk4ItqDoBcSDcTiOeC0Bo9QlM
-         Qv7yhKisJa/xIQEpoeD2+B4k0uHNmUdJ/2AtTd2GQBUZ0gpXDVQ8Uuym1e/Yuk30LFof
-         N5DRfMhNPJMX7op+kU8nhlAsiY6/HXmb1FtwVkfSsRQfkTqKEVBnRKPEINA0QnTNi02H
-         uoZMpI3gyUlz2m2Ipe+/BvqhGVb/i7EW5qdfp8v2/jw1HclCr0lCIbWZX2xN9JdyDhtB
-         BKR1dAF7smAkJ5a97O1cjFwdHTIliPTbNiOTUEPdGX/F7iCujV4YRyWa63sylKSWGnUD
-         wXDg==
+        bh=hDcJLQph3XEDbqRIioZiQfkn61SbO41SN1rr45lJWyU=;
+        b=sgeBjL7AljP1Pm5YNHqOcaY5kTJdalizz4L7U25FzemzsMt5QR8hQ5bkYmVqEYLA04
+         GLBNSCNKLKVpHpqzcWe8utWPVwopNTKj8Fs6mhRndKR5t2XUtiilw9+nXxhEiUaPGcH7
+         G0UnoyDSHyYx/FonVIS0TZ7kWvL5IVyh/oFV1q3eh5rvIPzFTih03lKOLdszSHOuZgaO
+         B5pt2ECbqKJ6PtcbEDwRTo9hgY/YnLOCuwVImNUA4x2Z007jmAwejXWfqxRGKV2Hl1wb
+         UygYK/0gNrcnr812aBxsaBsbzbhsPPSFL6Aj+5oR1wDKDTUOx/S84T1tC1JjAw+/RihC
+         M37Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
          :content-disposition:content-transfer-encoding:user-agent;
-        bh=fmkKfLlPm1SX8BMYeiTAVz52U85xymHRgcogEW45OFc=;
-        b=PwgBrNVMFyrRL9s/L+kzOUyQJjDf37nTe+zVhERvSrF0wJsW3y6+OK1woXCeog8lLO
-         +Jjh5JP/YYKLgPYNE/F3K2W3OowK8YxcBR4M95DDnIqCNdrmnrObIPTgHgBGeO8E0/Gy
-         E27YCfOTvDrrUXVi4hpSRP9eROzjXzJfQCxjLVDT8RHx+FuxIJnbaiDUq0ca24kaHjXp
-         0Ch/7A5RtOkXE/HhKVahbytxuL8cazd9c8D3BpvZECP/MJZD7g78JHSxxzBoZn/2u1cN
-         xrJ6cjcOcDDrmad44STbrcMH/+t8hcUWPBLHVggU/tCUMeEkbc92yxADmmMljq2uQQ5D
-         T8PA==
-X-Gm-Message-State: AOAM533aEwFufzBqkPOvh14w4NAft6OPaptSQb4Ck+kj4lU98NNJyEv6
-        3tP0edhA+YofXSsWiBIVSoE=
-X-Google-Smtp-Source: ABdhPJxUfyCZRv95siBqF+GWljsyDpJWO9UkWkgntK1Sc2lcQIOOux2Qc0v9NZQlXLS20tTFJe3ERQ==
-X-Received: by 2002:a17:902:7281:: with SMTP id d1mr6720583pll.78.1591867739214;
-        Thu, 11 Jun 2020 02:28:59 -0700 (PDT)
+        bh=hDcJLQph3XEDbqRIioZiQfkn61SbO41SN1rr45lJWyU=;
+        b=tYajahjJvrI0FI+8pYA6SyJJ8RRwTwQEvadtU7TrY2fIeBlrwk/amSYiso/t7rRirC
+         0db5IuFXvIUF+criMTZyXiOWze3T1cvafgAxChmFNDrKos+OoRCd7SaHTMXQ7OXy/Zol
+         geGNHNinDbZyODmKo+YXvMt55XuQNSC/CsxI2z1AY0NybTvvoj1QawViA6LTgVxDjakW
+         HrUQpkrFTdrXftjw8QzqqkViubE9tlHfIsImJCkets9scXu8//WP9EgiPl/54NVVQ4qw
+         5rUVmnRP2AKXaRrKhltRCEYYxZ/VO/bd8J+BHuW7sZUKTUKwHEZU3+OqY+R2HLV9qw+7
+         M29g==
+X-Gm-Message-State: AOAM530Zr1SaM5nX59wdsWTScaNcfN2/cA/8j4M5rWOE0oEvO8rczqY0
+        1vWh55tw7RsYogTgXPFwsyg=
+X-Google-Smtp-Source: ABdhPJxU0SQz8NIee5cCWrgG7up+DPKvI6JOVpwxmjVrNc51nGci49w4SkPeXgbboq5Qr9Rb9mVpgA==
+X-Received: by 2002:a17:90a:7c4e:: with SMTP id e14mr7705366pjl.52.1591869708163;
+        Thu, 11 Jun 2020 03:01:48 -0700 (PDT)
 Received: from VM_111_229_centos ([203.205.141.39])
-        by smtp.gmail.com with ESMTPSA id h4sm2090858pjq.55.2020.06.11.02.28.55
+        by smtp.gmail.com with ESMTPSA id q68sm2438721pjc.30.2020.06.11.03.01.41
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 11 Jun 2020 02:28:58 -0700 (PDT)
-Date:   Thu, 11 Jun 2020 17:28:49 +0800
+        Thu, 11 Jun 2020 03:01:47 -0700 (PDT)
+Date:   Thu, 11 Jun 2020 18:01:35 +0800
 From:   YangYuxi <yx.atom1@gmail.com>
 To:     wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
         pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
@@ -69,7 +69,7 @@ Cc:     netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         linux-kernel@vger.kernel.org, yx.atom1@gmail.com
 Subject: [PATCH] ipvs: avoid drop first packet to reuse conntrack
-Message-ID: <20200611092849.GA13977@VM_111_229_centos>
+Message-ID: <20200611100135.GA19243@VM_111_229_centos>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
@@ -80,12 +80,12 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Since commit f719e3754ee ("ipvs: drop first packet
-to redirect conntrack"), when a new TCP connection
-meet the conditions that need reschedule, the first
-syn packet is dropped, this cause one second latency
-for the new connection, more discussion about this
-problem can easy seach from google, such as:
+Since 'commit f719e3754ee2 ("ipvs: drop first packet to
+redirect conntrack")', when a new TCP connection meet
+the conditions that need reschedule, the first syn packet
+is dropped, this cause one second latency for the new
+connection, more discussion about this problem can easy
+search from google, such as:
 
 1)One second connection delay in masque
 https://marc.info/?t=151683118100004&r=1&w=2
