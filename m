@@ -4,62 +4,66 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24034C433E0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Jun 2020 07:01:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80FA2C433E0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Jun 2020 08:46:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E3C232072F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Jun 2020 07:01:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6557920656
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Jun 2020 08:46:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726645AbgFKHBK (ORCPT
+        id S1726828AbgFKIqy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 11 Jun 2020 03:01:10 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:34024 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726603AbgFKHBJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 11 Jun 2020 03:01:09 -0400
-Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 00986E67CDEEE3698471;
-        Thu, 11 Jun 2020 15:01:07 +0800 (CST)
-Received: from huawei.com (10.90.53.225) by DGGEMS404-HUB.china.huawei.com
- (10.3.19.204) with Microsoft SMTP Server id 14.3.487.0; Thu, 11 Jun 2020
- 15:01:00 +0800
-From:   Zheng Bin <zhengbin13@huawei.com>
-To:     <pablo@netfilter.org>, <kadlec@netfilter.org>, <fw@strlen.de>,
-        <davem@davemloft.net>, <kuba@kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-        <netdev@vger.kernel.org>
-CC:     <zhengbin13@huawei.com>
-Subject: [PATCH -next] netfilter: ctnetlink: Fix memleak in ctnetlink_alloc_filter
-Date:   Thu, 11 Jun 2020 15:08:05 +0800
-Message-ID: <20200611070805.2982-1-zhengbin13@huawei.com>
-X-Mailer: git-send-email 2.26.0.106.g9fadedd
+        Thu, 11 Jun 2020 04:46:54 -0400
+Received: from correo.us.es ([193.147.175.20]:53024 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726756AbgFKIqx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 11 Jun 2020 04:46:53 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 9504DDA705
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Jun 2020 10:46:51 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 855B1DA73F
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Jun 2020 10:46:51 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 7A987DA78C; Thu, 11 Jun 2020 10:46:51 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 33B6CDA73F
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Jun 2020 10:46:49 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 11 Jun 2020 10:46:49 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 2115F41E4800
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Jun 2020 10:46:49 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] netfilter: ctnetlink: memleak in filter initialization error path
+Date:   Thu, 11 Jun 2020 10:46:45 +0200
+Message-Id: <20200611084646.9253-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.90.53.225]
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-ctnetlink_alloc_filter
-  filter = kzalloc
-
-  In the following process(such as ctnetlink_parse_zone,
-  ctnetlink_parse_filter), if return fail, need to kfree filter.
+Release the filter object in case of error.
 
 Fixes: cb8aa9a3affb ("netfilter: ctnetlink: add kernel side filtering for dump")
-Signed-off-by: Zheng Bin <zhengbin13@huawei.com>
+Reported-by: syzbot+38b8b548a851a01793c5@syzkaller.appspotmail.com
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_netlink.c | 27 ++++++++++++++++++---------
- 1 file changed, 18 insertions(+), 9 deletions(-)
+ net/netfilter/nf_conntrack_netlink.c | 32 +++++++++++++++++++---------
+ 1 file changed, 22 insertions(+), 10 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index d7bd8b1f27d5..f7fdd91ece6d 100644
+index d7bd8b1f27d5..832eabecfbdd 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
 @@ -939,7 +939,8 @@ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
@@ -68,66 +72,70 @@ index d7bd8b1f27d5..f7fdd91ece6d 100644
  	} else if (cda[CTA_MARK_MASK]) {
 -		return ERR_PTR(-EINVAL);
 +		err = -EINVAL;
-+		goto error;
++		goto err_filter;
  	}
  #endif
  	if (!cda[CTA_FILTER])
 @@ -947,15 +948,17 @@ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
-
+ 
  	err = ctnetlink_parse_zone(cda[CTA_ZONE], &filter->zone);
  	if (err < 0)
 -		return ERR_PTR(err);
-+		goto error;
-
++		goto err_filter;
+ 
  	err = ctnetlink_parse_filter(cda[CTA_FILTER], filter);
  	if (err < 0)
 -		return ERR_PTR(err);
-+		goto error;
-
++		goto err_filter;
+ 
  	if (filter->orig_flags) {
 -		if (!cda[CTA_TUPLE_ORIG])
 -			return ERR_PTR(-EINVAL);
 +		if (!cda[CTA_TUPLE_ORIG]) {
 +			err = -EINVAL;
-+			goto error;
++			goto err_filter;
 +		}
-
+ 
  		err = ctnetlink_parse_tuple_filter(cda, &filter->orig,
  						   CTA_TUPLE_ORIG,
-@@ -963,12 +966,14 @@ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
+@@ -963,23 +966,32 @@ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
  						   &filter->zone,
  						   filter->orig_flags);
  		if (err < 0)
 -			return ERR_PTR(err);
-+			goto error;
++			goto err_filter;
  	}
-
+ 
  	if (filter->reply_flags) {
 -		if (!cda[CTA_TUPLE_REPLY])
 -			return ERR_PTR(-EINVAL);
 +		if (!cda[CTA_TUPLE_REPLY]) {
 +			err = -EINVAL;
-+			goto error;
++			goto err_filter;
 +		}
-
+ 
  		err = ctnetlink_parse_tuple_filter(cda, &filter->reply,
  						   CTA_TUPLE_REPLY,
-@@ -976,10 +981,14 @@ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
+ 						   filter->family,
  						   &filter->zone,
  						   filter->orig_flags);
- 		if (err < 0)
+-		if (err < 0)
 -			return ERR_PTR(err);
-+			goto error;
++		if (err < 0) {
++			err = -EINVAL;
++			goto err_filter;
++		}
  	}
-
+ 
  	return filter;
 +
-+error:
++err_filter:
 +	kfree(filter);
++
 +	return ERR_PTR(err);
  }
-
+ 
  static bool ctnetlink_needs_filter(u8 family, const struct nlattr * const *cda)
---
-2.26.0.106.g9fadedd
+-- 
+2.20.1
 
