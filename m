@@ -2,145 +2,94 @@ Return-Path: <SRS0=iBHO=7Z=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60ECEC433E0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Jun 2020 16:35:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 498F8C433DF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Jun 2020 18:43:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 45907207F7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Jun 2020 16:35:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EA1B4206DC
+	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Jun 2020 18:43:11 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=openfortress.nl header.i=rick@openfortress.nl header.b="ILtLi4wl"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726338AbgFLQfN (ORCPT
+        id S1726304AbgFLSnL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 12 Jun 2020 12:35:13 -0400
-Received: from correo.us.es ([193.147.175.20]:41282 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726085AbgFLQfN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 12 Jun 2020 12:35:13 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A5351FC5E2
-        for <netfilter-devel@vger.kernel.org>; Fri, 12 Jun 2020 18:35:09 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 962DEDA78A
-        for <netfilter-devel@vger.kernel.org>; Fri, 12 Jun 2020 18:35:09 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 8BCDFDA789; Fri, 12 Jun 2020 18:35:09 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 41A9DDA722
-        for <netfilter-devel@vger.kernel.org>; Fri, 12 Jun 2020 18:35:07 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 12 Jun 2020 18:35:07 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 2C48841E4800
-        for <netfilter-devel@vger.kernel.org>; Fri, 12 Jun 2020 18:35:07 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v2] netfilter: nf_tables: hook list memleak in flowtable deletion
-Date:   Fri, 12 Jun 2020 18:35:04 +0200
-Message-Id: <20200612163504.26003-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        Fri, 12 Jun 2020 14:43:11 -0400
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:55619 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726275AbgFLSnL (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 12 Jun 2020 14:43:11 -0400
+Received: from popmini.vanrein.org ([IPv6:2001:980:93a5:1::7])
+        by smtp-cloud9.xs4all.net with ESMTP
+        id jodwjpxLOK7ldjodxjOEhO; Fri, 12 Jun 2020 20:43:09 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=openfortress.nl; 
+ i=rick@openfortress.nl; q=dns/txt; s=fame; t=1591987388; 
+ h=message-id : date : from : mime-version : to : cc : 
+ subject : references : in-reply-to : content-type : 
+ content-transfer-encoding : date : from : subject; 
+ bh=StFYkCa7L34UJ+2h1vNW5X1R528+AhO8Kj6Idk0gaG0=; 
+ b=ILtLi4wl4WFilW8sIJVUex4suaZbS+GJ6TRusfDzYfOEqmLfzescTzrZ
+ L+R6+GP7J2uJh9mQE9VEda7LsM0IY/42bNfyLoyMkroOlCIf5YsAKzqfpq
+ 6qPa3xeQ+JRyfRGvjfrZWYx9QxklgYGsnXIyhNmjhqgk5qcJx6qS8SUJk=
+Received: by fame.vanrein.org (Postfix, from userid 1006)
+        id D68F43D4EE; Fri, 12 Jun 2020 18:43:06 +0000 (UTC)
+Received: from airhead.fritz.box (phantom.vanrein.org [83.161.146.46])
+        by fame.vanrein.org (Postfix) with ESMTPA id B5F6A3D4F0;
+        Fri, 12 Jun 2020 18:43:06 +0000 (UTC)
+Message-ID: <5EE3CCA5.5020405@openfortress.nl>
+Date:   Fri, 12 Jun 2020 20:42:45 +0200
+From:   Rick van Rein <rick@openfortress.nl>
+User-Agent: Postbox 3.0.11 (Macintosh/20140602)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+To:     Florian Westphal <fw@strlen.de>
+CC:     netfilter-devel@vger.kernel.org
+Subject: Re: Extensions for ICMP[6] with sport, dport
+References: <5EDE75D5.7020303@openfortress.nl> <20200609094159.GA21317@breakpoint.cc> <5EDF687A.6020801@openfortress.nl> <20200612163457.GB16460@breakpoint.cc>
+In-Reply-To: <20200612163457.GB16460@breakpoint.cc>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-Bogosity: Unsure, tests=bogofilter, spamicity=0.520000, version=1.2.4
+X-CMAE-Envelope: MS4wfIFi2lQ8r6nexledSy3p4bM0PMTpyR6mVWAAH1W/QCpvkd4ve+Dk8RMOC9kXxpXp6G4nZsPmeItZKaHo0JzNqq4stfdh+ab+jVAtpH7luDs37xBlWlEZ
+ pzIyQEyl3/+tTf/tV1k6A918aZOu6oYDkGBfSYlZKjUpqFTX5BRNGW2jIqKVr72jZl6Cn//sZbijY+8LIixKkIixEeaGdS4HL74=
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-After looking up for the flowtable hooks that need to be removed,
-release the hook objects in the deletion list. The error path needs to
-released these hook objects too.
+Hi Florian,
 
-Fixes: abadb2f865d7 ("netfilter: nf_tables: delete devices from flowtable")
-Reported-by: syzbot+eb9d5924c51d6d59e094@syzkaller.appspotmail.com
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: use flowtable_hook from err_flowtable_del_hook path
+>>  - ICMP-contained content must be NAT-reversed, unlike tunnel content
+> nf_nat takes care of this automatically.
 
- net/netfilter/nf_tables_api.c | 31 ++++++++++++++++++++++++-------
- 1 file changed, 24 insertions(+), 7 deletions(-)
+Hmyeah, I know.  I am really trying with stateless NAT, which I know is not the general advise.  Intending to push p2p applications, I fear that things like a TCP SYN from two ends at the same time are asking for trouble.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 073aa1051d43..7647ecfa0d40 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -6550,12 +6550,22 @@ static int nf_tables_newflowtable(struct net *net, struct sock *nlsk,
- 	return err;
- }
- 
-+static void nft_flowtable_hook_release(struct nft_flowtable_hook *flowtable_hook)
-+{
-+	struct nft_hook *this, *next;
-+
-+	list_for_each_entry_safe(this, next, &flowtable_hook->list, list) {
-+		list_del(&this->list);
-+		kfree(this);
-+	}
-+}
-+
- static int nft_delflowtable_hook(struct nft_ctx *ctx,
- 				 struct nft_flowtable *flowtable)
- {
- 	const struct nlattr * const *nla = ctx->nla;
- 	struct nft_flowtable_hook flowtable_hook;
--	struct nft_hook *this, *next, *hook;
-+	struct nft_hook *this, *hook;
- 	struct nft_trans *trans;
- 	int err;
- 
-@@ -6564,33 +6574,40 @@ static int nft_delflowtable_hook(struct nft_ctx *ctx,
- 	if (err < 0)
- 		return err;
- 
--	list_for_each_entry_safe(this, next, &flowtable_hook.list, list) {
-+	list_for_each_entry(this, &flowtable_hook.list, list) {
- 		hook = nft_hook_list_find(&flowtable->hook_list, this);
- 		if (!hook) {
- 			err = -ENOENT;
- 			goto err_flowtable_del_hook;
- 		}
- 		hook->inactive = true;
--		list_del(&this->list);
--		kfree(this);
- 	}
- 
- 	trans = nft_trans_alloc(ctx, NFT_MSG_DELFLOWTABLE,
- 				sizeof(struct nft_trans_flowtable));
--	if (!trans)
--		return -ENOMEM;
-+	if (!trans) {
-+		err = -ENOMEM;
-+		goto err_flowtable_del_hook;
-+	}
- 
- 	nft_trans_flowtable(trans) = flowtable;
- 	nft_trans_flowtable_update(trans) = true;
- 	INIT_LIST_HEAD(&nft_trans_flowtable_hooks(trans));
-+	nft_flowtable_hook_release(&flowtable_hook);
- 
- 	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
- 
- 	return 0;
- 
- err_flowtable_del_hook:
--	list_for_each_entry(hook, &flowtable_hook.list, list)
-+	list_for_each_entry(this, &flowtable_hook.list, list) {
-+		hook = nft_hook_list_find(&flowtable->hook_list, this);
-+		if (!hook)
-+			break;
-+
- 		hook->inactive = false;
-+	}
-+	nft_flowtable_hook_release(&flowtable_hook);
- 
- 	return err;
- }
--- 
-2.20.1
+>> ip protocol icmp
+>> icmp protocol { tcp, udp, sctp, dccp }
+>
+> What would that do?  "ip protocol" of embedded ip header?
 
+Yes, that's what I meant with this.
+
+>> icmp th daddr set
+>>    icmp th dport map @my-nat-map
+>
+> th daddr looks weird to me, but syntax could
+> be changed later.
+
+Yes, I made a mistake.  It should have said "icmp ip daddr set".
+
+On a side note, I found a good reason for "th daddr" instead of "@th,16,16" that goes beyond readability: its typing can be used in a map with inet_service, unlike @th,16,16 which is a variably-sized integer.
+
+>> If this ends up being kernel work, then I'm afraid I will have to let go.
+>
+> It can probably be done using fixed offsets for this
+> specific case but its likely a lot of work wrt. dependency
+> checking and providing readable syntax for "nft list" again.
+
+Thanks for warning me upfront.  I will try to stay away from it then until I really have the time.
+
+Best,
+ -Rick
