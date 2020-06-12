@@ -2,74 +2,145 @@ Return-Path: <SRS0=iBHO=7Z=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6716C433E0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Jun 2020 16:35:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60ECEC433E0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Jun 2020 16:35:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CBA6F20835
-	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Jun 2020 16:35:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 45907207F7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Jun 2020 16:35:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726281AbgFLQfB (ORCPT
+        id S1726338AbgFLQfN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 12 Jun 2020 12:35:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47062 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726085AbgFLQfB (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 12 Jun 2020 12:35:01 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63D78C03E96F
-        for <netfilter-devel@vger.kernel.org>; Fri, 12 Jun 2020 09:35:01 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1jjmdt-0006Kp-VC; Fri, 12 Jun 2020 18:34:58 +0200
-Date:   Fri, 12 Jun 2020 18:34:57 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Rick van Rein <rick@openfortress.nl>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: Extensions for ICMP[6] with sport, dport
-Message-ID: <20200612163457.GB16460@breakpoint.cc>
-References: <5EDE75D5.7020303@openfortress.nl>
- <20200609094159.GA21317@breakpoint.cc>
- <5EDF687A.6020801@openfortress.nl>
+        Fri, 12 Jun 2020 12:35:13 -0400
+Received: from correo.us.es ([193.147.175.20]:41282 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726085AbgFLQfN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 12 Jun 2020 12:35:13 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id A5351FC5E2
+        for <netfilter-devel@vger.kernel.org>; Fri, 12 Jun 2020 18:35:09 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 962DEDA78A
+        for <netfilter-devel@vger.kernel.org>; Fri, 12 Jun 2020 18:35:09 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 8BCDFDA789; Fri, 12 Jun 2020 18:35:09 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 41A9DDA722
+        for <netfilter-devel@vger.kernel.org>; Fri, 12 Jun 2020 18:35:07 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 12 Jun 2020 18:35:07 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 2C48841E4800
+        for <netfilter-devel@vger.kernel.org>; Fri, 12 Jun 2020 18:35:07 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf,v2] netfilter: nf_tables: hook list memleak in flowtable deletion
+Date:   Fri, 12 Jun 2020 18:35:04 +0200
+Message-Id: <20200612163504.26003-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5EDF687A.6020801@openfortress.nl>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Rick van Rein <rick@openfortress.nl> wrote:
->  - Encapsulated traffic travels in reverse compared to a tunnel
->  - ICMP-contained content must be NAT-reversed, unlike tunnel content
+After looking up for the flowtable hooks that need to be removed,
+release the hook objects in the deletion list. The error path needs to
+released these hook objects too.
 
-nf_nat takes care of this automatically.
+Fixes: abadb2f865d7 ("netfilter: nf_tables: delete devices from flowtable")
+Reported-by: syzbot+eb9d5924c51d6d59e094@syzkaller.appspotmail.com
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: use flowtable_hook from err_flowtable_del_hook path
 
-> 
-> I would argue that these provide (not 100% hard) reasons to treat ICMP differently from tunnels.  Possibly syntaxes, in line with what "nft" does now, could say things like
-> 
-> ip protocol icmp
-> icmp protocol { tcp, udp, sctp, dccp }
+ net/netfilter/nf_tables_api.c | 31 ++++++++++++++++++++++++-------
+ 1 file changed, 24 insertions(+), 7 deletions(-)
 
-What would that do?  "ip protocol" of embedded ip header?
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 073aa1051d43..7647ecfa0d40 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -6550,12 +6550,22 @@ static int nf_tables_newflowtable(struct net *net, struct sock *nlsk,
+ 	return err;
+ }
+ 
++static void nft_flowtable_hook_release(struct nft_flowtable_hook *flowtable_hook)
++{
++	struct nft_hook *this, *next;
++
++	list_for_each_entry_safe(this, next, &flowtable_hook->list, list) {
++		list_del(&this->list);
++		kfree(this);
++	}
++}
++
+ static int nft_delflowtable_hook(struct nft_ctx *ctx,
+ 				 struct nft_flowtable *flowtable)
+ {
+ 	const struct nlattr * const *nla = ctx->nla;
+ 	struct nft_flowtable_hook flowtable_hook;
+-	struct nft_hook *this, *next, *hook;
++	struct nft_hook *this, *hook;
+ 	struct nft_trans *trans;
+ 	int err;
+ 
+@@ -6564,33 +6574,40 @@ static int nft_delflowtable_hook(struct nft_ctx *ctx,
+ 	if (err < 0)
+ 		return err;
+ 
+-	list_for_each_entry_safe(this, next, &flowtable_hook.list, list) {
++	list_for_each_entry(this, &flowtable_hook.list, list) {
+ 		hook = nft_hook_list_find(&flowtable->hook_list, this);
+ 		if (!hook) {
+ 			err = -ENOENT;
+ 			goto err_flowtable_del_hook;
+ 		}
+ 		hook->inactive = true;
+-		list_del(&this->list);
+-		kfree(this);
+ 	}
+ 
+ 	trans = nft_trans_alloc(ctx, NFT_MSG_DELFLOWTABLE,
+ 				sizeof(struct nft_trans_flowtable));
+-	if (!trans)
+-		return -ENOMEM;
++	if (!trans) {
++		err = -ENOMEM;
++		goto err_flowtable_del_hook;
++	}
+ 
+ 	nft_trans_flowtable(trans) = flowtable;
+ 	nft_trans_flowtable_update(trans) = true;
+ 	INIT_LIST_HEAD(&nft_trans_flowtable_hooks(trans));
++	nft_flowtable_hook_release(&flowtable_hook);
+ 
+ 	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
+ 
+ 	return 0;
+ 
+ err_flowtable_del_hook:
+-	list_for_each_entry(hook, &flowtable_hook.list, list)
++	list_for_each_entry(this, &flowtable_hook.list, list) {
++		hook = nft_hook_list_find(&flowtable->hook_list, this);
++		if (!hook)
++			break;
++
+ 		hook->inactive = false;
++	}
++	nft_flowtable_hook_release(&flowtable_hook);
+ 
+ 	return err;
+ }
+-- 
+2.20.1
 
-> icmp th daddr set
->    icmp th dport map @my-nat-map
-
-th daddr looks weird to me, but syntax could
-be changed later.
-
-Dependency generation and delineraization would
-likely be more of a challenge.
-
-> If this ends up being kernel work, then I'm afraid I will have to let go.
-
-It can probably be done using fixed offsets for this
-specific case but its likely a lot of work wrt. dependency
-checking and providing readable syntax for "nft list" again.
