@@ -3,71 +3,95 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FBB4C433E0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Jun 2020 11:34:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05B3BC433E0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Jun 2020 11:56:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3FED320792
-	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Jun 2020 11:34:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D5457207D8
+	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Jun 2020 11:56:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726024AbgFLLeR (ORCPT
+        id S1726307AbgFLL4R (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 12 Jun 2020 07:34:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57058 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725791AbgFLLeQ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 12 Jun 2020 07:34:16 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9360FC03E96F
-        for <netfilter-devel@vger.kernel.org>; Fri, 12 Jun 2020 04:34:16 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 3575C58728702; Fri, 12 Jun 2020 13:34:15 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 342CF60C400B9;
-        Fri, 12 Jun 2020 13:34:15 +0200 (CEST)
-Date:   Fri, 12 Jun 2020 13:34:15 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     Florian Westphal <fw@strlen.de>
-cc:     Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+        Fri, 12 Jun 2020 07:56:17 -0400
+Received: from correo.us.es ([193.147.175.20]:54296 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726268AbgFLL4R (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 12 Jun 2020 07:56:17 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id DC1BC18D003
+        for <netfilter-devel@vger.kernel.org>; Fri, 12 Jun 2020 13:56:14 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CD0C0DA73F
+        for <netfilter-devel@vger.kernel.org>; Fri, 12 Jun 2020 13:56:14 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id CC735DA73D; Fri, 12 Jun 2020 13:56:14 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4397FDA797;
+        Fri, 12 Jun 2020 13:56:12 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 12 Jun 2020 13:56:12 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 21DCC426CCBC;
+        Fri, 12 Jun 2020 13:56:12 +0200 (CEST)
+Date:   Fri, 12 Jun 2020 13:56:11 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Netfilter Developer Mailing List 
+        <netfilter-devel@vger.kernel.org>
 Subject: Re: [ANNOUNCE] libnetfilter_queue 1.0.5 release
-In-Reply-To: <nycvar.YFH.7.77.849.2006121329530.10646@n3.vanv.qr>
-Message-ID: <nycvar.YFH.7.77.849.2006121333320.11258@n3.vanv.qr>
-References: <20200612102413.GD21317@breakpoint.cc> <nycvar.YFH.7.77.849.2006121329530.10646@n3.vanv.qr>
-User-Agent: Alpine 2.22 (LSU 394 2020-01-19)
+Message-ID: <20200612115611.GA31175@salvia>
+References: <20200612102413.GD21317@breakpoint.cc>
+ <nycvar.YFH.7.77.849.2006121329530.10646@n3.vanv.qr>
+ <nycvar.YFH.7.77.849.2006121333320.11258@n3.vanv.qr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <nycvar.YFH.7.77.849.2006121333320.11258@n3.vanv.qr>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Fri, Jun 12, 2020 at 01:34:15PM +0200, Jan Engelhardt wrote:
+> 
+> On Friday 2020-06-12 13:32, Jan Engelhardt wrote:
+> >On Friday 2020-06-12 12:24, Florian Westphal wrote:
+> >>
+> >>The only change compared to version 1.0.4 is releated to documentation.
+> >>To build/install doxygen documentation, you will now need to pass the
+> >>"--with-doxygen" option to the "configure" script.
+> >>
+> >>There are no changes to the library itself.
+> >>
+> >>You can download it from:
+> >>
+> >>https://www.netfilter.org/projects/libnetfilter_queue/downloads.html
+> >
+> >So what will happen to http://ftp.netfilter.org/pub/libnetfilter_queue/ ?
+> >I kind of like the autogenerated directory index to look at
+> >(not scripted, really just as a human). It provides versions and release
+> >dates in one view and you can just pick up any one of them (for historic
+> >research purposes or whatever), without having to engage in a conversation with
+> >the rsync command line.
+> >
+> >Such a dirindex could also be provided by www.netfilter.org, considering
+> >the shutdown plans of the ftp service (or the ftp host itself?).
+> 
+> Oh silly me. Trivially found.
+> http://netfilter.org/projects/libnetfilter_queue/files/, derived from the
+> current 1.0.5 tarball link, is just fine.
 
-On Friday 2020-06-12 13:32, Jan Engelhardt wrote:
->On Friday 2020-06-12 12:24, Florian Westphal wrote:
->>
->>The only change compared to version 1.0.4 is releated to documentation.
->>To build/install doxygen documentation, you will now need to pass the
->>"--with-doxygen" option to the "configure" script.
->>
->>There are no changes to the library itself.
->>
->>You can download it from:
->>
->>https://www.netfilter.org/projects/libnetfilter_queue/downloads.html
->
->So what will happen to http://ftp.netfilter.org/pub/libnetfilter_queue/ ?
->I kind of like the autogenerated directory index to look at
->(not scripted, really just as a human). It provides versions and release
->dates in one view and you can just pick up any one of them (for historic
->research purposes or whatever), without having to engage in a conversation with
->the rsync command line.
->
->Such a dirindex could also be provided by www.netfilter.org, considering
->the shutdown plans of the ftp service (or the ftp host itself?).
+There is also:
 
-Oh silly me. Trivially found.
-http://netfilter.org/projects/libnetfilter_queue/files/, derived from the
-current 1.0.5 tarball link, is just fine.
+        https://www.netfilter.org/pub/
