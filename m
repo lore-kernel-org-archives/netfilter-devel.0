@@ -1,95 +1,83 @@
-Return-Path: <SRS0=iBHO=7Z=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=hyDR=72=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 498F8C433DF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Jun 2020 18:43:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 440FCC433DF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jun 2020 20:29:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EA1B4206DC
-	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Jun 2020 18:43:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E1FE5207BC
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jun 2020 20:29:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=openfortress.nl header.i=rick@openfortress.nl header.b="ILtLi4wl"
+	dkim=pass (2048-bit key) header.d=sbcglobal.net header.i=@sbcglobal.net header.b="gbCJy5Gu"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726304AbgFLSnL (ORCPT
+        id S1726588AbgFMU3P (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 12 Jun 2020 14:43:11 -0400
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:55619 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726275AbgFLSnL (ORCPT
+        Sat, 13 Jun 2020 16:29:15 -0400
+Received: from sonic308-12.consmr.mail.ne1.yahoo.com ([66.163.187.35]:41019
+        "EHLO sonic308-12.consmr.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726442AbgFMU3O (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 12 Jun 2020 14:43:11 -0400
-Received: from popmini.vanrein.org ([IPv6:2001:980:93a5:1::7])
-        by smtp-cloud9.xs4all.net with ESMTP
-        id jodwjpxLOK7ldjodxjOEhO; Fri, 12 Jun 2020 20:43:09 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=openfortress.nl; 
- i=rick@openfortress.nl; q=dns/txt; s=fame; t=1591987388; 
- h=message-id : date : from : mime-version : to : cc : 
- subject : references : in-reply-to : content-type : 
- content-transfer-encoding : date : from : subject; 
- bh=StFYkCa7L34UJ+2h1vNW5X1R528+AhO8Kj6Idk0gaG0=; 
- b=ILtLi4wl4WFilW8sIJVUex4suaZbS+GJ6TRusfDzYfOEqmLfzescTzrZ
- L+R6+GP7J2uJh9mQE9VEda7LsM0IY/42bNfyLoyMkroOlCIf5YsAKzqfpq
- 6qPa3xeQ+JRyfRGvjfrZWYx9QxklgYGsnXIyhNmjhqgk5qcJx6qS8SUJk=
-Received: by fame.vanrein.org (Postfix, from userid 1006)
-        id D68F43D4EE; Fri, 12 Jun 2020 18:43:06 +0000 (UTC)
-Received: from airhead.fritz.box (phantom.vanrein.org [83.161.146.46])
-        by fame.vanrein.org (Postfix) with ESMTPA id B5F6A3D4F0;
-        Fri, 12 Jun 2020 18:43:06 +0000 (UTC)
-Message-ID: <5EE3CCA5.5020405@openfortress.nl>
-Date:   Fri, 12 Jun 2020 20:42:45 +0200
-From:   Rick van Rein <rick@openfortress.nl>
-User-Agent: Postbox 3.0.11 (Macintosh/20140602)
+        Sat, 13 Jun 2020 16:29:14 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sbcglobal.net; s=s2048; t=1592080153; bh=MzT4MrYKGG/TnJp/WrLwRI9l4ZHwYZszf7JT0OkKBcs=; h=To:From:Subject:Date:References:From:Subject; b=gbCJy5GuHM5+ePM0JgNTVeHSim8odtVk8laY+P6btBueJ660fF+o5UnXUCogN0YqnHC4AVydH7vs+clJInP6rGWOzJYL5OUmLBb3WcOAVNXorjGwYQBjTtbiPT8u4gKz93p/XOf3KzXka/p29EVq4OrrCsionkkL5PadxHSj/x0AN+nfBOWGa8nkVy0sr/fC8u1Vi/fn4aHVPeFgsrm97kxSfWpL6T+7hWu5cwKNUEMPgy8PqxWZUel7QDMjz4E+AzdEUJtCH7HnA+t5cJKV/Xup5fF8b/KaY5dFjpYAOPImOsi/2b7jpDWmqO5IaJlu4tpy7zQcB1oBM+7nZJjWiA==
+X-YMail-OSG: Na_U5zEVM1mXXJ8lgu7.2X0pPRgqoyQl1K8NURKBkroBTrRFwTKLQarryON2yT_
+ Tyr8OIC9GMgLyhbCnZDS4dKOW9slUbm7Moggiiui4sDLbseUJIph3v.egUskX6ZpzSEvNiKYdESh
+ 8pgOwsxiDGP28oaKqiVAvktQHVZmywMUEgiptKJSgMbEbs42L9mf97qbe2UJfmSHeh72mjz9Aj8V
+ .ejcoYS6ti8P82tkD0jvQpq8pW4B5cQHXsoD5JOatQB5kb5YOi1CDjLy8uy5Mzyp3N4aFM2gZjD9
+ gYFKyvhbpLXZHgY7vxaIoSNITPRkE_LtyyYsLjK76UNN60hMis93NgClggpczVTLJl2Moo7Y37Dq
+ ivhex_1dWysvE8j2iJcDaMvgVewrmkUuOAZHoJD1t5Lk4HyBmwckXX6t994DbbZ0PNMngdig5Hm5
+ d8qdehLTZiU7OyNgy6Pr9rQeGuA.SOcoTSV320jHjP6zeIOlINwxCvSplCm6GekllOcVgKI87Ymb
+ 9ufpYBt86uo5f8M4mPWgafEkh3ZJbY19L6YXYfnN5PG2EvAlrzAXUFpdT761N9I102TKEN3PUCJ9
+ Hwheuj9CkcAiZCdRTZJ2.pXDTbT0.KOPViqjm5LOLqZxh4qbHfSbLr35ef6v4PNgnNV3RXg7Jo51
+ m2cLJAlJo9wMemtiMn9ZdcYUfMSoP.j1wBvW56ES3xU9M1ymZtWAZIHThoyUiQgfN0zANhN1avHd
+ ou7LDZEvT_Ka2ZgVG3GnmOhNSWss9Tv58gtDrYqzwOcCHwZKjWUMpkD.h7qwIKcYyWRw05Cf83fW
+ ghQa45sIYbzcOESh9XPfwZEOIEh2CgjEG5mN2.uLJa.lEEAOjdr3MrcfdcEPkB.C68oTsU6LLgod
+ V0MT5mYb8AX4YS28ZvkJGTsgvQ5XJTOUGQL2EjBR_WX4Rh7mqxR1rgaOKimL2ycgJbfD66jvWsY5
+ F1b1J1hSUekzSw0HAQa1n5G.U76fsJ4.EowqiPAZDJO6iYU7Y5G8UwLmK.MXffFrTIygJx9pLKdt
+ A7CN2kXvDQkl6qxtoh3ydCPLSdSxHyR4.Qr97ktH2K.gusKRs2mGqTIoaTZvHtp.UNmSDO2lnO1z
+ YWwJvwsSJP4uowkG63qpjNcaBkaMCpwQanuShdW3ViTO1CXdCoLFcdeVfndCs514pGxpbsC1kNaX
+ IXbAXM15flrU4917w9XOKSMvu2sxHXDIq3op5A9iVqVe7Q6ldEWvlNa1ISkaDe3TUZ08TgM_F_6c
+ eLZu2AcAsXchhkv.LO27DJEhY5icGwgKMyxSAeCh0Z0EmDqhRjLtEtKDh3XldpCGJcgQOZK8CgV4
+ RfkSwCf.uV3kV8NP7xjRmce4R5MkI2ggGHb51BHOMHkD.n0CJ82xUd_FQODmC_S8uJJ6f4N8j8Jn
+ Iai36FH1z3A--
+Received: from sonic.gate.mail.ne1.yahoo.com by sonic308.consmr.mail.ne1.yahoo.com with HTTP; Sat, 13 Jun 2020 20:29:13 +0000
+Received: by smtp420.mail.ne1.yahoo.com (VZM Hermes SMTP Server) with ESMTPA ID 486b4269369d8d6769e424b57e02feab;
+          Sat, 13 Jun 2020 20:29:09 +0000 (UTC)
+To:     netfilter-devel@vger.kernel.org
+From:   "SBCGlobal.Net" <s.egbert@sbcglobal.net>
+Subject: Vim Syntax for NFTABLES -- Beta
+Message-ID: <eb966605-d7e5-ee15-133f-d4d4faa0bb82@sbcglobal.net>
+Date:   Sat, 13 Jun 2020 16:29:09 -0400
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:77.0) Gecko/20100101
+ Thunderbird/77.0
 MIME-Version: 1.0
-To:     Florian Westphal <fw@strlen.de>
-CC:     netfilter-devel@vger.kernel.org
-Subject: Re: Extensions for ICMP[6] with sport, dport
-References: <5EDE75D5.7020303@openfortress.nl> <20200609094159.GA21317@breakpoint.cc> <5EDF687A.6020801@openfortress.nl> <20200612163457.GB16460@breakpoint.cc>
-In-Reply-To: <20200612163457.GB16460@breakpoint.cc>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-Bogosity: Unsure, tests=bogofilter, spamicity=0.520000, version=1.2.4
-X-CMAE-Envelope: MS4wfIFi2lQ8r6nexledSy3p4bM0PMTpyR6mVWAAH1W/QCpvkd4ve+Dk8RMOC9kXxpXp6G4nZsPmeItZKaHo0JzNqq4stfdh+ab+jVAtpH7luDs37xBlWlEZ
- pzIyQEyl3/+tTf/tV1k6A918aZOu6oYDkGBfSYlZKjUpqFTX5BRNGW2jIqKVr72jZl6Cn//sZbijY+8LIixKkIixEeaGdS4HL74=
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+References: <eb966605-d7e5-ee15-133f-d4d4faa0bb82.ref@sbcglobal.net>
+X-Mailer: WebService/1.1.16119 hermes_yahoo Apache-HttpAsyncClient/4.1.4 (Java/11.0.6)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Florian,
+All those who are using Vim as an editor and would like to see some form 
+of highlighting with their NFTABLES configuration/script file, I have 
+this Vim script for you.
 
->>  - ICMP-contained content must be NAT-reversed, unlike tunnel content
-> nf_nat takes care of this automatically.
+It's in beta.  But it is very comprehensive.
 
-Hmyeah, I know.  I am really trying with stateless NAT, which I know is not the general advise.  Intending to push p2p applications, I fear that things like a TCP SYN from two ends at the same time are asking for trouble.
+A small preview of what it looks like is this animated GIF link:
+https://raw.githubusercontent.com/egberts/vim-nftables/master/test/nftables.gif
 
->> ip protocol icmp
->> icmp protocol { tcp, udp, sctp, dccp }
->
-> What would that do?  "ip protocol" of embedded ip header?
+Everything is at Gihub: https://github.com/egberts/vim-nftables
 
-Yes, that's what I meant with this.
+Any questions or issue, please file an issue on same Github link as above.
 
->> icmp th daddr set
->>    icmp th dport map @my-nat-map
->
-> th daddr looks weird to me, but syntax could
-> be changed later.
+Thank you and enjoy.
 
-Yes, I made a mistake.  It should have said "icmp ip daddr set".
-
-On a side note, I found a good reason for "th daddr" instead of "@th,16,16" that goes beyond readability: its typing can be used in a map with inet_service, unlike @th,16,16 which is a variably-sized integer.
-
->> If this ends up being kernel work, then I'm afraid I will have to let go.
->
-> It can probably be done using fixed offsets for this
-> specific case but its likely a lot of work wrt. dependency
-> checking and providing readable syntax for "nft list" again.
-
-Thanks for warning me upfront.  I will try to stay away from it then until I really have the time.
-
-Best,
- -Rick
+S. Egbert
