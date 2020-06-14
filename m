@@ -2,52 +2,37 @@ Return-Path: <SRS0=cPjr=73=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CA3EC433DF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Jun 2020 20:35:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85CB1C433E1
+	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Jun 2020 21:08:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5B2592071A
-	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Jun 2020 20:35:21 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Tmgq9WZA"
+	by mail.kernel.org (Postfix) with ESMTP id 65814206D7
+	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Jun 2020 21:08:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727885AbgFNUfR (ORCPT
+        id S1727870AbgFNVIM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 14 Jun 2020 16:35:17 -0400
-Received: from us-smtp-1.mimecast.com ([205.139.110.61]:53840 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727869AbgFNUfP (ORCPT
+        Sun, 14 Jun 2020 17:08:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47566 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726844AbgFNVIM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 14 Jun 2020 16:35:15 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1592166914;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=eDQwvsx6hMB13gWyocZFDvXcBFPxQurPVUXmSPgoBxM=;
-        b=Tmgq9WZAJmbY4EmQXoIRzqMbvMQx3lM+vDyf66/x14WVOGPYWJ1xo+Bm32P192icknpUwd
-        fdj7TS+k260hN0Fx5wxyffyuWsD9GltFisc+IW6eUX8Vh7KVn9M77vzOV/2PxpcUViy4br
-        5V0mPcK6NEh59aJrYkm/cS8iLOnOufs=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-50-WM2ql_62MzWi8YGLPlhzeA-1; Sun, 14 Jun 2020 16:35:10 -0400
-X-MC-Unique: WM2ql_62MzWi8YGLPlhzeA-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 381151005512;
-        Sun, 14 Jun 2020 20:35:07 +0000 (UTC)
-Received: from localhost (unknown [10.36.110.3])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 352495D9C9;
-        Sun, 14 Jun 2020 20:35:00 +0000 (UTC)
-Date:   Sun, 14 Jun 2020 22:34:56 +0200
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     "Alexander A. Klimov" <grandmaster@al2klimov.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sun, 14 Jun 2020 17:08:12 -0400
+Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5BFCBC03E97C;
+        Sun, 14 Jun 2020 14:08:12 -0700 (PDT)
+Received: by a3.inai.de (Postfix, from userid 25121)
+        id 8928C58726429; Sun, 14 Jun 2020 23:08:08 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by a3.inai.de (Postfix) with ESMTP id 70F1D60C2707A;
+        Sun, 14 Jun 2020 23:08:08 +0200 (CEST)
+Date:   Sun, 14 Jun 2020 23:08:08 +0200 (CEST)
+From:   Jan Engelhardt <jengelh@inai.de>
+To:     David Howells <dhowells@redhat.com>
+cc:     "Alexander A. Klimov" <grandmaster@al2klimov.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
@@ -58,7 +43,6 @@ Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Peter Zijlstra <peterz@infradead.org>,
         Boqun Feng <boqun.feng@gmail.com>,
         Nicholas Piggin <npiggin@gmail.com>,
-        David Howells <dhowells@redhat.com>,
         Jade Alglave <j.alglave@ucl.ac.uk>,
         Luc Maranget <luc.maranget@inria.fr>,
         "Paul E. McKenney" <paulmck@kernel.org>,
@@ -68,62 +52,45 @@ Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         coreteam@netfilter.org, netdev@vger.kernel.org,
         linux-arch@vger.kernel.org
 Subject: Re: Good idea to rename files in include/uapi/ ?
-Message-ID: <20200614223456.13807a00@redhat.com>
-In-Reply-To: <9feded75-4b45-2821-287b-af00ec5f910f@al2klimov.de>
-References: <9feded75-4b45-2821-287b-af00ec5f910f@al2klimov.de>
-Organization: Red Hat
+In-Reply-To: <174102.1592165965@warthog.procyon.org.uk>
+Message-ID: <nycvar.YFH.7.77.849.2006142244200.30230@n3.vanv.qr>
+References: <9feded75-4b45-2821-287b-af00ec5f910f@al2klimov.de> <174102.1592165965@warthog.procyon.org.uk>
+User-Agent: Alpine 2.22 (LSU 394 2020-01-19)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+Content-Transfer-Encoding: 8BIT
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, 14 Jun 2020 21:41:17 +0200
-"Alexander A. Klimov" <grandmaster@al2klimov.de> wrote:
 
-> Hello there!
->=20
-> At the moment one can't checkout a clean working directory w/o any=20
-> changed files on a case-insensitive FS as the following file names have=20
-> lower-case duplicates:
+On Sunday 2020-06-14 22:19, David Howells wrote:
+>Alexander A. Klimov <grandmaster@al2klimov.de> wrote:
+>
+>> *Is it a good idea to rename files in include/uapi/ ?*
+>
+>Very likely not.  If programs out there are going to be built on a
+>case-sensitive filesystem (which happens all the time), they're going to break
+>if you rename the headers.  We're kind of stuck with them.
 
-They are not duplicates: matching extensions are lowercase, target
-extensions are uppercase. DSCP is the extension to set DSCP bits, dscp
-is the extension to match on those packet bits.
+Netfilter has precedent for removing old headers, e.g.
+7200135bc1e61f1437dc326ae2ef2f310c50b4eb's ipt_ULOG.h.
 
-> =E2=9E=9C  linux git:(96144c58abe7) git ls-files |sort -f |uniq -id
-> include/uapi/linux/netfilter/xt_CONNMARK.h
-> include/uapi/linux/netfilter/xt_DSCP.h
-> include/uapi/linux/netfilter/xt_MARK.h
-> include/uapi/linux/netfilter/xt_RATEEST.h
-> include/uapi/linux/netfilter/xt_TCPMSS.h
-> include/uapi/linux/netfilter_ipv4/ipt_ECN.h
-> include/uapi/linux/netfilter_ipv4/ipt_TTL.h
-> include/uapi/linux/netfilter_ipv6/ip6t_HL.h
-> net/netfilter/xt_DSCP.c
-> net/netfilter/xt_HL.c
-> net/netfilter/xt_RATEEST.c
-> net/netfilter/xt_TCPMSS.c
-> tools/memory-model/litmus-tests/Z6.0+pooncelock+poonceLock+pombonce.litmus
-> =E2=9E=9C  linux git:(96144c58abe7)
->=20
-> Also even on a case-sensitive one VIm seems to have trouble with editing=
-=20
-> both case-insensitively equal files at the same time.
+Even if kernels would not remove such headers, the iptables userspace
+code wants to be buildable with all kinds of kernels, including past
+releases, which do not have modern headers like xt_l2tp.h.
 
-...what trouble exactly?
+The mantra for userspace programs is therefore "copy the headers" —
+because you never know what /usr/include/linux you get. iptables and
+iproute2 are two example codebases that employ this. And when headers
+do get copied, header removals from the kernel side are no longer a
+big deal either.
 
-> I was going to make a patch renaming the respective duplicates, but I'm=20
-> not sure:
->=20
-> *Is it a good idea to rename files in include/uapi/ ?*
+A header file rename is no problem. We even have dummy headers
+already because of this... or related changes. Just look at
+xt_MARK.h, all it does is include xt_mark.h. Cf.
+28b949885f80efb87d7cebdcf879c99db12c37bd .
 
-I'm not sure it's a good idea to even use git on a case-insensitive
-filesystem. I'm curious, what is your use case?
-
---=20
-Stefano
-
+The boilerplate for xt_*h is quite high thanks to the miniscule
+splitting of headers. Does not feel right in this day and age.
