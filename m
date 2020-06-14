@@ -7,108 +7,96 @@ X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ADEFCC433E0
-	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Jun 2020 21:42:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29914C433DF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Jun 2020 21:42:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 84486206B7
-	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Jun 2020 21:42:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F03DA206B7
+	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Jun 2020 21:42:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="W82c2gPD"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Z8s1zdlS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727950AbgFNVmL (ORCPT
+        id S1727955AbgFNVmW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 14 Jun 2020 17:42:11 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:28919 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727939AbgFNVmK (ORCPT
+        Sun, 14 Jun 2020 17:42:22 -0400
+Received: from us-smtp-2.mimecast.com ([205.139.110.61]:32585 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727939AbgFNVmW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 14 Jun 2020 17:42:10 -0400
+        Sun, 14 Jun 2020 17:42:22 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1592170929;
+        s=mimecast20190719; t=1592170941;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding;
-        bh=zNfzAJH+ArXJdXj+MJTvzy88hNG5o9UrCURuZqn/T0k=;
-        b=W82c2gPDa6t77jQBR6hYF4daH05x+SYC3lBww97eILgYRf/iZEoaRQTcZFwWm1Xunl/AOT
-        Hgqa50kMvN8eC1w9fg3ubBu3TpNrYuraUyucuFSP87lr8iBps/jP3ufhW98pm4EMHpy2lP
-        HGJn11lNAfMidhkpthdKBOlccSUbt6A=
+        bh=5VnfDEpiw9OLyljQaFvR1hkE76w/0y6y1oTWPlFTwSo=;
+        b=Z8s1zdlSbPLKjN/nt/3YxURikcI+K3NrD4Vg9yTu3Tx7C8AdvJmOk3ByPy/DiEvnmTKszH
+        rM/2dtRz6zW9Uq7EPpUT1DoI6X+JL9DIKVCwOZacYTMvSteMVJPfQa/89X5wtziED/4FFN
+        9fFkVfB52a21fN/Rks5NQKoTzGA67xg=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-453-pKN2ryl1M8-94JsUz4HzRQ-1; Sun, 14 Jun 2020 17:42:06 -0400
-X-MC-Unique: pKN2ryl1M8-94JsUz4HzRQ-1
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
+ us-mta-12-k-QxKcjlOzqnuYABCsLJrA-1; Sun, 14 Jun 2020 17:42:17 -0400
+X-MC-Unique: k-QxKcjlOzqnuYABCsLJrA-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 16EFD7BAE;
-        Sun, 14 Jun 2020 21:42:05 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 39525107ACCA;
+        Sun, 14 Jun 2020 21:42:16 +0000 (UTC)
 Received: from epycfail.redhat.com (unknown [10.36.110.3])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id F02BD7FE93;
-        Sun, 14 Jun 2020 21:42:03 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 2C1537CAAC;
+        Sun, 14 Jun 2020 21:42:14 +0000 (UTC)
 From:   Stefano Brivio <sbrivio@redhat.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] tests: Run in separate network namespace, don't break connectivity
-Date:   Sun, 14 Jun 2020 23:41:57 +0200
-Message-Id: <8efb5334f8b4df21b8833e576abd5721486c0182.1592170411.git.sbrivio@redhat.com>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] nft_set_pipapo: Drop useless assignment of scratch map index on insert
+Date:   Sun, 14 Jun 2020 23:42:07 +0200
+Message-Id: <033bc756cdecd4e8cbe01be3bcd50e59a844665c.1592167414.git.sbrivio@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-It might be convenient to run tests from a development branch that
-resides on another host, and if we break connectivity on the test
-host as tests are executed, we can't run them this way.
+In nft_pipapo_insert(), we need to reallocate scratch maps that will
+be used for matching by lookup functions, if they have never been
+allocated or if the bucket size changes as a result of the insertion.
 
-If kernel implementation (CONFIG_NET_NS), unshare(1), or Python
-bindings for unshare() are not available, warn and continue.
+As pipapo_realloc_scratch() provides a pair of fresh, zeroed out
+maps, there's no need to select a particular one after reallocation.
 
-Suggested-by: Phil Sutter <phil@nwl.cc>
+Other than being useless, the existing assignment was also troubled
+by the fact that the index was set only on the CPU performing the
+actual insertion, as spotted by Florian.
+
+Simply drop the assignment.
+
+Reported-by: Florian Westphal <fw@strlen.de>
+Fixes: 3c4287f62044 ("nf_tables: Add set type for arbitrary concatenation of ranges")
 Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
 ---
- tests/py/nft-test.py     | 6 ++++++
- tests/shell/run-tests.sh | 9 +++++++++
- 2 files changed, 15 insertions(+)
+This might cause a conflict on merge from nf.git with commit
+c3829285b2e6 ("netfilter: nft_set_pipapo: Disable preemption before
+getting per-CPU pointer") -- the resolution is to just drop the call
+to this_cpu_write() like this patch does. I can send an explicit
+conflict resolution patch if needed.
 
-diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
-index 01ee6c980ad4..df97ed8eefb7 100755
---- a/tests/py/nft-test.py
-+++ b/tests/py/nft-test.py
-@@ -1394,6 +1394,12 @@ def main():
-     # Change working directory to repository root
-     os.chdir(TESTS_PATH + "/../..")
+ net/netfilter/nft_set_pipapo.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 8b5acc6910fd..9aa2bb3982e8 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -1247,8 +1247,6 @@ static int nft_pipapo_insert(const struct net *net, const struct nft_set *set,
+ 		if (err)
+ 			return err;
  
-+    try:
-+        import unshare
-+        unshare.unshare(unshare.CLONE_NEWNET)
-+    except:
-+        print_warning("cannot run in own namespace, connectivity might break")
-+
-     check_lib_path = True
-     if args.library is None:
-         if args.host:
-diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
-index fcc87a8957c8..328c412e66f9 100755
---- a/tests/shell/run-tests.sh
-+++ b/tests/shell/run-tests.sh
-@@ -22,6 +22,15 @@ if [ "$(id -u)" != "0" ] ; then
- 	msg_error "this requires root!"
- fi
+-		this_cpu_write(nft_pipapo_scratch_index, false);
+-
+ 		m->bsize_max = bsize_max;
+ 	}
  
-+if [ "${1}" != "run" ]; then
-+	if unshare -f -n true; then
-+		unshare -n "${0}" run $@
-+		exit $?
-+	fi
-+	msg_warn "cannot run in own namespace, connectivity might break"
-+fi
-+shift
-+
- [ -z "$NFT" ] && NFT=$SRC_NFT
- ${NFT} > /dev/null 2>&1
- ret=$?
 -- 
 2.27.0
 
