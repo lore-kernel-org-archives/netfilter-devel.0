@@ -6,52 +6,48 @@ X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
 	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA69DC433DF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Jun 2020 20:19:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CA3EC433DF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Jun 2020 20:35:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 66EE4206B7
-	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Jun 2020 20:19:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B2592071A
+	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Jun 2020 20:35:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="HXt/4Vio"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Tmgq9WZA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726905AbgFNUTi (ORCPT
+        id S1727885AbgFNUfR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 14 Jun 2020 16:19:38 -0400
-Received: from us-smtp-2.mimecast.com ([207.211.31.81]:23314 "EHLO
+        Sun, 14 Jun 2020 16:35:17 -0400
+Received: from us-smtp-1.mimecast.com ([205.139.110.61]:53840 "EHLO
         us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726648AbgFNUTi (ORCPT
+        by vger.kernel.org with ESMTP id S1727869AbgFNUfP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 14 Jun 2020 16:19:38 -0400
+        Sun, 14 Jun 2020 16:35:15 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1592165976;
+        s=mimecast20190719; t=1592166914;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=kFnjBBxZoYPqHYe1qb3puDWa9sIB09spfxyDPU0xHcw=;
-        b=HXt/4VioZpOWrJuRqC5SDWN6nAnjw2jZvMRq1D4gydIrjJ6JtBmmJqsqLCVMQzupxBtBd0
-        BKbNE8NFsvNAmGic5WhEWkOS6zYfznMWqpqf2ungRi/ZYxR6BFGKigCFJ2r8vJzMzg9y0F
-        WEDHmV6jP2m/qg2ZC02yY3b1eIFUcmI=
+        bh=eDQwvsx6hMB13gWyocZFDvXcBFPxQurPVUXmSPgoBxM=;
+        b=Tmgq9WZAJmbY4EmQXoIRzqMbvMQx3lM+vDyf66/x14WVOGPYWJ1xo+Bm32P192icknpUwd
+        fdj7TS+k260hN0Fx5wxyffyuWsD9GltFisc+IW6eUX8Vh7KVn9M77vzOV/2PxpcUViy4br
+        5V0mPcK6NEh59aJrYkm/cS8iLOnOufs=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-389-JJlrtXMePiK3O3EITrk7xw-1; Sun, 14 Jun 2020 16:19:34 -0400
-X-MC-Unique: JJlrtXMePiK3O3EITrk7xw-1
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
+ us-mta-50-WM2ql_62MzWi8YGLPlhzeA-1; Sun, 14 Jun 2020 16:35:10 -0400
+X-MC-Unique: WM2ql_62MzWi8YGLPlhzeA-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 77F8E19067E0;
-        Sun, 14 Jun 2020 20:19:30 +0000 (UTC)
-Received: from warthog.procyon.org.uk (ovpn-114-66.rdu2.redhat.com [10.10.114.66])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 1D9A578F0A;
-        Sun, 14 Jun 2020 20:19:25 +0000 (UTC)
-Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
-        Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
-        Kingdom.
-        Registered in England and Wales under Company Registration No. 3798903
-From:   David Howells <dhowells@redhat.com>
-In-Reply-To: <9feded75-4b45-2821-287b-af00ec5f910f@al2klimov.de>
-References: <9feded75-4b45-2821-287b-af00ec5f910f@al2klimov.de>
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 381151005512;
+        Sun, 14 Jun 2020 20:35:07 +0000 (UTC)
+Received: from localhost (unknown [10.36.110.3])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 352495D9C9;
+        Sun, 14 Jun 2020 20:35:00 +0000 (UTC)
+Date:   Sun, 14 Jun 2020 22:34:56 +0200
+From:   Stefano Brivio <sbrivio@redhat.com>
 To:     "Alexander A. Klimov" <grandmaster@al2klimov.de>
-Cc:     dhowells@redhat.com, Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
@@ -62,6 +58,7 @@ Cc:     dhowells@redhat.com, Pablo Neira Ayuso <pablo@netfilter.org>,
         Peter Zijlstra <peterz@infradead.org>,
         Boqun Feng <boqun.feng@gmail.com>,
         Nicholas Piggin <npiggin@gmail.com>,
+        David Howells <dhowells@redhat.com>,
         Jade Alglave <j.alglave@ucl.ac.uk>,
         Luc Maranget <luc.maranget@inria.fr>,
         "Paul E. McKenney" <paulmck@kernel.org>,
@@ -71,24 +68,62 @@ Cc:     dhowells@redhat.com, Pablo Neira Ayuso <pablo@netfilter.org>,
         coreteam@netfilter.org, netdev@vger.kernel.org,
         linux-arch@vger.kernel.org
 Subject: Re: Good idea to rename files in include/uapi/ ?
+Message-ID: <20200614223456.13807a00@redhat.com>
+In-Reply-To: <9feded75-4b45-2821-287b-af00ec5f910f@al2klimov.de>
+References: <9feded75-4b45-2821-287b-af00ec5f910f@al2klimov.de>
+Organization: Red Hat
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <174101.1592165965.1@warthog.procyon.org.uk>
-Date:   Sun, 14 Jun 2020 21:19:25 +0100
-Message-ID: <174102.1592165965@warthog.procyon.org.uk>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Alexander A. Klimov <grandmaster@al2klimov.de> wrote:
+On Sun, 14 Jun 2020 21:41:17 +0200
+"Alexander A. Klimov" <grandmaster@al2klimov.de> wrote:
 
+> Hello there!
+>=20
+> At the moment one can't checkout a clean working directory w/o any=20
+> changed files on a case-insensitive FS as the following file names have=20
+> lower-case duplicates:
+
+They are not duplicates: matching extensions are lowercase, target
+extensions are uppercase. DSCP is the extension to set DSCP bits, dscp
+is the extension to match on those packet bits.
+
+> =E2=9E=9C  linux git:(96144c58abe7) git ls-files |sort -f |uniq -id
+> include/uapi/linux/netfilter/xt_CONNMARK.h
+> include/uapi/linux/netfilter/xt_DSCP.h
+> include/uapi/linux/netfilter/xt_MARK.h
+> include/uapi/linux/netfilter/xt_RATEEST.h
+> include/uapi/linux/netfilter/xt_TCPMSS.h
+> include/uapi/linux/netfilter_ipv4/ipt_ECN.h
+> include/uapi/linux/netfilter_ipv4/ipt_TTL.h
+> include/uapi/linux/netfilter_ipv6/ip6t_HL.h
+> net/netfilter/xt_DSCP.c
+> net/netfilter/xt_HL.c
+> net/netfilter/xt_RATEEST.c
+> net/netfilter/xt_TCPMSS.c
+> tools/memory-model/litmus-tests/Z6.0+pooncelock+poonceLock+pombonce.litmus
+> =E2=9E=9C  linux git:(96144c58abe7)
+>=20
+> Also even on a case-sensitive one VIm seems to have trouble with editing=
+=20
+> both case-insensitively equal files at the same time.
+
+...what trouble exactly?
+
+> I was going to make a patch renaming the respective duplicates, but I'm=20
+> not sure:
+>=20
 > *Is it a good idea to rename files in include/uapi/ ?*
 
-Very likely not.  If programs out there are going to be built on a
-case-sensitive filesystem (which happens all the time), they're going to break
-if you rename the headers.  We're kind of stuck with them.
+I'm not sure it's a good idea to even use git on a case-insensitive
+filesystem. I'm curious, what is your use case?
 
-David
+--=20
+Stefano
 
