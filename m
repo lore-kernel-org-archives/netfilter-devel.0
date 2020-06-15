@@ -1,113 +1,67 @@
-Return-Path: <SRS0=cPjr=73=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=VCDi=74=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62A22C433E0
-	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Jun 2020 23:34:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7740C433E0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 09:00:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4856B20747
-	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Jun 2020 23:34:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A8D6C2065F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 09:00:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728013AbgFNXem (ORCPT
+        id S1728872AbgFOJAu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 14 Jun 2020 19:34:42 -0400
-Received: from smtp.al2klimov.de ([78.46.175.9]:60206 "EHLO smtp.al2klimov.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727928AbgFNXel (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 14 Jun 2020 19:34:41 -0400
-X-Greylist: delayed 13996 seconds by postgrey-1.27 at vger.kernel.org; Sun, 14 Jun 2020 19:34:40 EDT
-Received: from authenticated-user (PRIMARY_HOSTNAME [PUBLIC_IP])
-        by smtp.al2klimov.de (Postfix) with ESMTPA id D5E8B1B599B;
-        Sun, 14 Jun 2020 23:34:34 +0000 (UTC)
-Subject: Re: Good idea to rename files in include/uapi/ ?
-To:     Jan Engelhardt <jengelh@inai.de>,
-        David Howells <dhowells@redhat.com>
+        Mon, 15 Jun 2020 05:00:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43502 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728522AbgFOJAu (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Jun 2020 05:00:50 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8BE7C061A0E
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jun 2020 02:00:49 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1jkkyy-0004rU-Jm; Mon, 15 Jun 2020 11:00:44 +0200
+Date:   Mon, 15 Jun 2020 11:00:44 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Stefano Brivio <sbrivio@redhat.com>
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        Andrea Parri <parri.andrea@gmail.com>,
-        Will Deacon <will@kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Boqun Feng <boqun.feng@gmail.com>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Jade Alglave <j.alglave@ucl.ac.uk>,
-        Luc Maranget <luc.maranget@inria.fr>,
-        "Paul E. McKenney" <paulmck@kernel.org>,
-        Akira Yokosawa <akiyks@gmail.com>,
-        Daniel Lustig <dlustig@nvidia.com>,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-arch@vger.kernel.org,
-        Linus Torvalds <torvalds@linux-foundation.org>
-References: <9feded75-4b45-2821-287b-af00ec5f910f@al2klimov.de>
- <174102.1592165965@warthog.procyon.org.uk>
- <nycvar.YFH.7.77.849.2006142244200.30230@n3.vanv.qr>
-From:   "Alexander A. Klimov" <grandmaster@al2klimov.de>
-Message-ID: <ab88e504-c139-231a-0294-953ffd1a9442@al2klimov.de>
-Date:   Mon, 15 Jun 2020 01:34:33 +0200
+        Laura =?utf-8?Q?Garc=C3=ADa_Li=C3=A9bana?= <nevola@gmail.com>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] tests: shell: Drop redefinition of DIFF variable
+Message-ID: <20200615090044.GH23632@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Stefano Brivio <sbrivio@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Laura =?utf-8?Q?Garc=C3=ADa_Li=C3=A9bana?= <nevola@gmail.com>,
+        netfilter-devel@vger.kernel.org
+References: <bdced35aa00b7933e8b67a52b37754d0b6f86f59.1592170402.git.sbrivio@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <nycvar.YFH.7.77.849.2006142244200.30230@n3.vanv.qr>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-Spamd-Bar: ++
-Authentication-Results: smtp.al2klimov.de;
-        auth=pass smtp.auth=aklimov@al2klimov.de smtp.mailfrom=grandmaster@al2klimov.de
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <bdced35aa00b7933e8b67a52b37754d0b6f86f59.1592170402.git.sbrivio@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi Stefano,
 
+On Sun, Jun 14, 2020 at 11:41:49PM +0200, Stefano Brivio wrote:
+> Commit 7d93e2c2fbc7 ("tests: shell: autogenerate dump verification")
+> introduced the definition of DIFF at the top of run-tests.sh, to make
+> it visually part of the configuration section. Commit 68310ba0f9c2
+> ("tests: shell: Search diff tool once and for all") override this
+> definition.
+> 
+> Drop the unexpected redefinition of DIFF.
 
-Am 14.06.20 um 23:08 schrieb Jan Engelhardt:
-> 
-> On Sunday 2020-06-14 22:19, David Howells wrote:
->> Alexander A. Klimov <grandmaster@al2klimov.de> wrote:
->>
->>> *Is it a good idea to rename files in include/uapi/ ?*
->>
->> Very likely not.  If programs out there are going to be built on a
->> case-sensitive filesystem (which happens all the time), they're going to break
->> if you rename the headers.  We're kind of stuck with them.
-> 
-> Netfilter has precedent for removing old headers, e.g.
-> 7200135bc1e61f1437dc326ae2ef2f310c50b4eb's ipt_ULOG.h.
-> 
-> Even if kernels would not remove such headers, the iptables userspace
-> code wants to be buildable with all kinds of kernels, including past
-> releases, which do not have modern headers like xt_l2tp.h.
-> 
-> The mantra for userspace programs is therefore "copy the headers" —
-> because you never know what /usr/include/linux you get. iptables and
-> iproute2 are two example codebases that employ this. And when headers
-> do get copied, header removals from the kernel side are no longer a
-Absolutely correct, "*when* headers do get copied ..."
+I would fix it the other way round, dropping the first definition. It's
+likely a missing bit from commit 68310ba0f9c20, the second definition is
+in line with FIND and MODPROBE definitions immediately preceding it.
 
-> big deal either.
-> 
-> A header file rename is no problem. We even have dummy headers
-Hmm.. if I understand all of you correctly, David, Stefano, Pablo and Al 
-say like no, not a good idea, but only you, Jan, say like should be no 
-problem.
-
-Jan, do you have anything like commit messages in mainline or public 
-emails from maintainers confirming your opinion?
-What exactly makes you sure that Torvalds, the #1 protector of the 
-userspace, would tolerate a such patch from me?
-Yes, it would break the A*P*I, and not the A*B*I, but who knows..
-
-> already because of this... or related changes. Just look at
-> xt_MARK.h, all it does is include xt_mark.h. Cf.
-> 28b949885f80efb87d7cebdcf879c99db12c37bd .
-> 
-> The boilerplate for xt_*h is quite high thanks to the miniscule
-> splitting of headers. Does not feel right in this day and age.
-> 
+Cheers, Phil
