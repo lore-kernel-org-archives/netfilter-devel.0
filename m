@@ -2,92 +2,97 @@ Return-Path: <SRS0=VCDi=74=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BE9CC433DF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 11:12:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6184C433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 11:44:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DD46E20679
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 11:12:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A21312067B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 11:44:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729640AbgFOLMQ (ORCPT
+        id S1729663AbgFOLoQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Jun 2020 07:12:16 -0400
-Received: from mail-ot1-f67.google.com ([209.85.210.67]:37838 "EHLO
-        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728285AbgFOLMN (ORCPT
+        Mon, 15 Jun 2020 07:44:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40468 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728285AbgFOLoQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Jun 2020 07:12:13 -0400
-Received: by mail-ot1-f67.google.com with SMTP id v13so12770513otp.4;
-        Mon, 15 Jun 2020 04:12:11 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=NzHrWnPYObhVP39iJnXA6fy2WLMwyEQ0/MznsCSraCY=;
-        b=EjQq2ksHyN/Jw7d0xrOUQuHYDw48pkCQryQFAJPfqu9c2+UNnm6p4+0wdMQsQWQZO8
-         +3WhlRGCOrQtTSUYcQBj34oGCjNer+SUbK+mSrN0Tw3J+nb2YQkg4ZR82TXBHacb6Mee
-         QPa1swL6TPDg8/KttePJ7T3HpkdURxx4sFKhfgK8R4RzPhswxFogCmyv3uZ1mZQsxdll
-         UkFoHy7o6RiATPMvm2yE3JIqiKRiUZTL+yzGThf7v+DevejRllNBaaRWA7w1CJgx0TOe
-         IiYV/K6HYfwqBzyb7kxX3qBkgR4HB+nzze+r9lbu8SlwhPtxjRGaveCv1wwTICW3Zmgk
-         M7pQ==
-X-Gm-Message-State: AOAM532k8sbPP7f3QpN+T4GDHBhrNss1s8GBUlZwSV/S0nAQcQOpgkll
-        1btEZLoqWAxopaUa5+JytnaSHqyDBE+Z3+vMvpI=
-X-Google-Smtp-Source: ABdhPJwNU7kfi0xVQVK3yR3e/enj3mxGdeSPNP6ctdSQmPoWnCYqpi9cg2YzIjosqJmPVKeIlWNM7W7afQ9Y4tVeJac=
-X-Received: by 2002:a9d:c29:: with SMTP id 38mr19725517otr.107.1592219531260;
- Mon, 15 Jun 2020 04:12:11 -0700 (PDT)
+        Mon, 15 Jun 2020 07:44:16 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A01CC061A0E;
+        Mon, 15 Jun 2020 04:44:16 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1jknXA-0006IH-Pq; Mon, 15 Jun 2020 13:44:12 +0200
+Date:   Mon, 15 Jun 2020 13:44:12 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     dwilder <dwilder@us.ibm.com>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, wilder@us.ibm.com,
+        mkubecek@suse.com
+Subject: Re: [(RFC) PATCH ] NULL pointer dereference on rmmod iptable_mangle.
+Message-ID: <20200615114412.GD16460@breakpoint.cc>
+References: <20200603212516.22414-1-dwilder@us.ibm.com>
+ <20200603220502.GD28263@breakpoint.cc>
+ <72692f32471b5d2eeef9514bb2c9ba51@linux.vnet.ibm.com>
+ <20200604103815.GE28263@breakpoint.cc>
 MIME-Version: 1.0
-References: <9feded75-4b45-2821-287b-af00ec5f910f@al2klimov.de>
-In-Reply-To: <9feded75-4b45-2821-287b-af00ec5f910f@al2klimov.de>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Mon, 15 Jun 2020 13:12:00 +0200
-Message-ID: <CAMuHMdWixiv2NBQ8_Yo5LVv0wXsPaRAvL2mWYWBDF4p2moh_Og@mail.gmail.com>
-Subject: Re: Good idea to rename files in include/uapi/ ?
-To:     "Alexander A. Klimov" <grandmaster@al2klimov.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        Andrea Parri <parri.andrea@gmail.com>,
-        Will Deacon <will@kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Boqun Feng <boqun.feng@gmail.com>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        David Howells <dhowells@redhat.com>,
-        Jade Alglave <j.alglave@ucl.ac.uk>,
-        Luc Maranget <luc.maranget@inria.fr>,
-        "Paul E. McKenney" <paulmck@kernel.org>,
-        Akira Yokosawa <akiyks@gmail.com>,
-        Daniel Lustig <dlustig@nvidia.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        coreteam@netfilter.org, netdev <netdev@vger.kernel.org>,
-        Linux-Arch <linux-arch@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200604103815.GE28263@breakpoint.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Alexander,
+Florian Westphal <fw@strlen.de> wrote:
+> dwilder <dwilder@us.ibm.com> wrote:
+> > > Since the netns core already does an unconditional synchronize_rcu after
+> > > the pre_exit hooks this would avoid the problem as well.
+> > 
+> > Something like this?  (un-tested)
+> 
+> Yes.
+> 
+> > diff --git a/net/ipv4/netfilter/iptable_mangle.c
+> > b/net/ipv4/netfilter/iptable_mangle.c
+> > index bb9266ea3785..0d448e4d5213 100644
+> > --- a/net/ipv4/netfilter/iptable_mangle.c
+> > +++ b/net/ipv4/netfilter/iptable_mangle.c
+> > @@ -100,15 +100,26 @@ static int __net_init iptable_mangle_table_init(struct
+> > net *net)
+> >         return ret;
+> >  }
+> > 
+> > +static void __net_exit iptable_mangle_net_pre_exit(struct net *net)
+> > +{
+> > +       struct xt_table *table = net->ipv4.iptable_mangle;
+> > +
+> > +       if (mangle_ops)
+> > +               nf_unregister_net_hooks(net, mangle_ops,
+> > +                       hweight32(table->valid_hooks));
+> > +}
+> 
+> You probably need if (table) here, not mangle_ops.
+> I'm not sure if it makes sense to add a new
+> 
+> xt_unregister_table_hook() helper, I guess one would have to try
+> and see if that reduces copy&paste programming or not.
+> 
+> >  static void __net_exit iptable_mangle_net_exit(struct net *net)
+> >  {
+> >         if (!net->ipv4.iptable_mangle)
+> >                 return;
+> > -       ipt_unregister_table(net, net->ipv4.iptable_mangle, mangle_ops);
+> > +       ipt_unregister_table(net, net->ipv4.iptable_mangle, NULL);
+> 
+> I guess the 3rd arg could be removed from the helper.
+> 
+> But yes, this looks like what I had in mind.
 
-On Sun, Jun 14, 2020 at 9:44 PM Alexander A. Klimov
-<grandmaster@al2klimov.de> wrote:
-> *Is it a good idea to rename files in include/uapi/ ?*
+Will there be a followup?  Otherwise I will place this on my todo-list.
 
-No it is not: include/uapi/ is append-only.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Thanks.
