@@ -2,97 +2,100 @@ Return-Path: <SRS0=VCDi=74=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6184C433DF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 11:44:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51DF5C433E0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 11:54:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A21312067B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 11:44:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 38B3A20707
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 11:54:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729663AbgFOLoQ (ORCPT
+        id S1729745AbgFOLyb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Jun 2020 07:44:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40468 "EHLO
+        Mon, 15 Jun 2020 07:54:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42062 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728285AbgFOLoQ (ORCPT
+        with ESMTP id S1729691AbgFOLya (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Jun 2020 07:44:16 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A01CC061A0E;
-        Mon, 15 Jun 2020 04:44:16 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1jknXA-0006IH-Pq; Mon, 15 Jun 2020 13:44:12 +0200
-Date:   Mon, 15 Jun 2020 13:44:12 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     dwilder <dwilder@us.ibm.com>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, wilder@us.ibm.com,
-        mkubecek@suse.com
-Subject: Re: [(RFC) PATCH ] NULL pointer dereference on rmmod iptable_mangle.
-Message-ID: <20200615114412.GD16460@breakpoint.cc>
-References: <20200603212516.22414-1-dwilder@us.ibm.com>
- <20200603220502.GD28263@breakpoint.cc>
- <72692f32471b5d2eeef9514bb2c9ba51@linux.vnet.ibm.com>
- <20200604103815.GE28263@breakpoint.cc>
+        Mon, 15 Jun 2020 07:54:30 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52CB0C061A0E
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jun 2020 04:54:30 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1jknh2-000677-KT; Mon, 15 Jun 2020 13:54:24 +0200
+Date:   Mon, 15 Jun 2020 13:54:24 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Stefano Brivio <sbrivio@redhat.com>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Laura =?utf-8?Q?Garc=C3=ADa_Li=C3=A9bana?= <nevola@gmail.com>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] tests: shell: Drop redefinition of DIFF variable
+Message-ID: <20200615115424.GJ23632@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Stefano Brivio <sbrivio@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Laura =?utf-8?Q?Garc=C3=ADa_Li=C3=A9bana?= <nevola@gmail.com>,
+        netfilter-devel@vger.kernel.org
+References: <bdced35aa00b7933e8b67a52b37754d0b6f86f59.1592170402.git.sbrivio@redhat.com>
+ <20200615090044.GH23632@orbyte.nwl.cc>
+ <20200615121811.08c347e2@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200604103815.GE28263@breakpoint.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20200615121811.08c347e2@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Florian Westphal <fw@strlen.de> wrote:
-> dwilder <dwilder@us.ibm.com> wrote:
-> > > Since the netns core already does an unconditional synchronize_rcu after
-> > > the pre_exit hooks this would avoid the problem as well.
-> > 
-> > Something like this?  (un-tested)
-> 
-> Yes.
-> 
-> > diff --git a/net/ipv4/netfilter/iptable_mangle.c
-> > b/net/ipv4/netfilter/iptable_mangle.c
-> > index bb9266ea3785..0d448e4d5213 100644
-> > --- a/net/ipv4/netfilter/iptable_mangle.c
-> > +++ b/net/ipv4/netfilter/iptable_mangle.c
-> > @@ -100,15 +100,26 @@ static int __net_init iptable_mangle_table_init(struct
-> > net *net)
-> >         return ret;
-> >  }
-> > 
-> > +static void __net_exit iptable_mangle_net_pre_exit(struct net *net)
-> > +{
-> > +       struct xt_table *table = net->ipv4.iptable_mangle;
-> > +
-> > +       if (mangle_ops)
-> > +               nf_unregister_net_hooks(net, mangle_ops,
-> > +                       hweight32(table->valid_hooks));
-> > +}
-> 
-> You probably need if (table) here, not mangle_ops.
-> I'm not sure if it makes sense to add a new
-> 
-> xt_unregister_table_hook() helper, I guess one would have to try
-> and see if that reduces copy&paste programming or not.
-> 
-> >  static void __net_exit iptable_mangle_net_exit(struct net *net)
-> >  {
-> >         if (!net->ipv4.iptable_mangle)
-> >                 return;
-> > -       ipt_unregister_table(net, net->ipv4.iptable_mangle, mangle_ops);
-> > +       ipt_unregister_table(net, net->ipv4.iptable_mangle, NULL);
-> 
-> I guess the 3rd arg could be removed from the helper.
-> 
-> But yes, this looks like what I had in mind.
+Hi Stefano,
 
-Will there be a followup?  Otherwise I will place this on my todo-list.
+On Mon, Jun 15, 2020 at 12:18:11PM +0200, Stefano Brivio wrote:
+> On Mon, 15 Jun 2020 11:00:44 +0200
+> Phil Sutter <phil@nwl.cc> wrote:
+> 
+> > Hi Stefano,
+> > 
+> > On Sun, Jun 14, 2020 at 11:41:49PM +0200, Stefano Brivio wrote:
+> > > Commit 7d93e2c2fbc7 ("tests: shell: autogenerate dump verification")
+> > > introduced the definition of DIFF at the top of run-tests.sh, to make
+> > > it visually part of the configuration section. Commit 68310ba0f9c2
+> > > ("tests: shell: Search diff tool once and for all") override this
+> > > definition.
+> > > 
+> > > Drop the unexpected redefinition of DIFF.  
+> > 
+> > I would fix it the other way round, dropping the first definition.
+> 
+> Then it's not visibly configurable anymore. It was in 2018, so it
+> looks like a regression to me.
 
-Thanks.
+Hmm? Commit 68310ba0f9c2 is from January this year?!
+
+> > It's likely a missing bit from commit 68310ba0f9c20, the second
+> > definition is in line with FIND and MODPROBE definitions immediately
+> > preceding it.
+> 
+> I see a few issues with those blocks:
+> 
+> - that should be a single function called (once or multiple times) for
+>   nft, find, modprobe, diff, anything else we'll need in the future.
+>   It would avoid any oversight of this kind and keep the script
+>   cleaner. For example, what makes sort(1) special here?
+
+It is simply grown and therefore a bit inconsistent.
+
+> - quotes are applied inconsistently. If you expect multiple words from
+>   which(1), then variables should also be quoted when used, otherwise
+>   the check might go through, and we fail later
+
+There are needless quotes around $(...) but within single brackets we
+need them if we expect empty or multi-word strings. Typical output would
+be 'diff not found' and using '[ ! -x "$DIFF" ]' we check if which
+returned diff's path or said error message. We don't expect diff's path
+to contain spaces, hence no quoting afterwards.
+
+Cheers, Phil
