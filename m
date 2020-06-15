@@ -2,103 +2,470 @@ Return-Path: <SRS0=VCDi=74=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50F39C433DF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 16:57:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D711C433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 19:25:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2DECA20663
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 16:57:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1592240244;
-	bh=t+Gq9rDmIsS9imeSgEfOfwJ3RU8rVMc5vfiLN8LDl6g=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
-	b=eCvmxNF9wp2dEjt+7nl+awh74TzN2xwQ1aDpwJCFmSYSv2cnGrNMiJLhl+1NFo1Za
-	 RqMUHXId/pI2CqiDGSHNZ1QoVIxiayapI6/s9QIxmJyrGRtBtkw3SuDuj0OnoVE5HJ
-	 zH4roDFes0D9vPb3M00RvukUxdBaj4Z10S3rDO4w=
+	by mail.kernel.org (Postfix) with ESMTP id 715F520756
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 19:25:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731104AbgFOQ5X (ORCPT
+        id S1729845AbgFOTZI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Jun 2020 12:57:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60978 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729647AbgFOQ5U (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Jun 2020 12:57:20 -0400
-Received: from mail-lf1-x142.google.com (mail-lf1-x142.google.com [IPv6:2a00:1450:4864:20::142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C7D6C08C5C2
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jun 2020 09:57:19 -0700 (PDT)
-Received: by mail-lf1-x142.google.com with SMTP id c12so9960582lfc.10
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jun 2020 09:57:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=eIkal8pUfONI4oNrGMEW7FJGnsyPgxFx6nFiYlCav8Q=;
-        b=BOdfnS1nQ1loTAy3XfZG4v2ypfE6UrK/J+Zd6u9ARxAU0HozZqAjdnCtxoLxulSvq0
-         7PoDNtEz3pdUYnk9jHe+VKu0KTcBji19fekNHUB4EqiWzTIqAhfzI/qVn548WkWINsOo
-         G2cfvtd1eBk/jMWvfGGb0/G2cdASiBLrgA7w0=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=eIkal8pUfONI4oNrGMEW7FJGnsyPgxFx6nFiYlCav8Q=;
-        b=WACV/nLEk6Aj05rh1VBjMybuv9V7TscCBw3BlEoMfvbuFK8Rn0C58c3fVoigOyXq9s
-         HYWxzrJubpdncUh+gzeSQZuhPJEPs3tMEBEQK+1J0DGP0dsDk/FNVprsp82ON4IClzwf
-         gEJE1pXA8I8gjnyLSBdlX9I74KmLiAksUXoRUhJGVRwJH9W1pJL2wx7Yps8x6qVk0avb
-         LoHsjp185bPpsC2kCYuU0muUiylXagf1keV4dLsmqJtAEg6Gr3O8yo3EHOorFGly2nX1
-         nphRpc894G41Gqk2z2Ve+rkn5df1mhecImr1ljwqwieMC3fDfWpiR9cBHtuyg9yN1A59
-         bN3Q==
-X-Gm-Message-State: AOAM532HJxPWoJOs6YThzgUJh9hvfzmjlIwtQzbTvlnYE/RH1hYmHSEP
-        g2yOOQEpO+W6X8u/mPYE22bENAk6Duw=
-X-Google-Smtp-Source: ABdhPJxQYq4kIp6fUf09JS31NU8oOMO9C6PiNQ69HGWpLHiSaqMqf+zKewLPTzlbkS6irakL47AK0w==
-X-Received: by 2002:a05:6512:104c:: with SMTP id c12mr14210011lfb.200.1592240237353;
-        Mon, 15 Jun 2020 09:57:17 -0700 (PDT)
-Received: from mail-lj1-f182.google.com (mail-lj1-f182.google.com. [209.85.208.182])
-        by smtp.gmail.com with ESMTPSA id t19sm4651929lft.47.2020.06.15.09.57.16
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 15 Jun 2020 09:57:16 -0700 (PDT)
-Received: by mail-lj1-f182.google.com with SMTP id z9so20046051ljh.13
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jun 2020 09:57:16 -0700 (PDT)
-X-Received: by 2002:a2e:b5d7:: with SMTP id g23mr12503482ljn.70.1592240235665;
- Mon, 15 Jun 2020 09:57:15 -0700 (PDT)
+        Mon, 15 Jun 2020 15:25:08 -0400
+Received: from ja.ssi.bg ([178.16.129.10]:39858 "EHLO ja.ssi.bg"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1729354AbgFOTZG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Jun 2020 15:25:06 -0400
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id 05FJOQ8q017723;
+        Mon, 15 Jun 2020 22:24:29 +0300
+Date:   Mon, 15 Jun 2020 22:24:26 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Andrew Sy Kim <kim.andrewsy@gmail.com>
+cc:     Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] netfilter/ipvs: queue delayed work to expire no destination
+ connections if expire_nodest_conn=1
+In-Reply-To: <20200608202024.28369-1-kim.andrewsy@gmail.com>
+Message-ID: <alpine.LFD.2.22.394.2006152210030.17355@ja.home.ssi.bg>
+References: <20200608173413.13870-1-kim.andrewsy@gmail.com> <20200608202024.28369-1-kim.andrewsy@gmail.com>
 MIME-Version: 1.0
-References: <20200615121257.798894-1-hch@lst.de> <20200615121257.798894-11-hch@lst.de>
- <CAHk-=wiBJjjV4NuKr_z2Q3vWEXSoGtAmkH=jZ0SkBJ=wZh4=hw@mail.gmail.com>
-In-Reply-To: <CAHk-=wiBJjjV4NuKr_z2Q3vWEXSoGtAmkH=jZ0SkBJ=wZh4=hw@mail.gmail.com>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Mon, 15 Jun 2020 09:56:59 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wiVjH4C+PzyHfsR0+GzFUf_2XX5H_tQoHGqp+pMGuec7Q@mail.gmail.com>
-Message-ID: <CAHk-=wiVjH4C+PzyHfsR0+GzFUf_2XX5H_tQoHGqp+pMGuec7Q@mail.gmail.com>
-Subject: Re: [PATCH 10/13] integrity/ima: switch to using __kernel_read
-To:     Christoph Hellwig <hch@lst.de>
-Cc:     Al Viro <viro@zeniv.linux.org.uk>, Ian Kent <raven@themaw.net>,
-        David Howells <dhowells@redhat.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        LSM List <linux-security-module@vger.kernel.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jun 15, 2020 at 9:46 AM Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
-> It worries me that you're making these kinds of transformations where
-> the comments imply it's a no-op, but the actual code doesn't agree.
 
-Note that it's not that I think the FMODE_READ check is necessarily
-_needed_. It's more the discrepancy between the commit message and the
-code change that I don't like.
+	Hello,
 
-The commit message implies that __kernel_read() has _more_ checks than
-the checks done by integrity_kernel_read(). But it looks like they
-aren't so much "more" as they are just "different".
+On Mon, 8 Jun 2020, Andrew Sy Kim wrote:
 
-                Linus
+> When expire_nodest_conn=1 and a destination is deleted, IPVS does not
+> expire the existing connections until the next matching incoming packet.
+> If there are many connection entries from a single client to a single
+> destination, many packets may get dropped before all the connections are
+> expired (more likely with lots of UDP traffic). An optimization can be
+> made where upon deletion of a destination, IPVS queues up delayed work
+> to immediately expire any connections with a deleted destination. This
+> ensures any reused source ports from a client (within the IPVS timeouts)
+> are scheduled to new real servers instead of silently dropped.
+> 
+> Signed-off-by: Andrew Sy Kim <kim.andrewsy@gmail.com>
+
+	Looks good to me. But you have to base it on the
+following patch that I'll finally post when the trees are open.
+You have to use ip_vs_conn_del() in ip_vs_expire_nodest_conn_flush()
+and the logic as in ip_vs_conn_flush().
+
+	Here is what you can test:
+
+==========================================================
+ipvs: avoid expiring many connections from timer
+
+Add new functions ip_vs_conn_del() and ip_vs_conn_del_put()
+to release many IPVS connections in process context.
+They are suitable for connections found in table
+when we do not want to overload the timers.
+
+Currently, the change is useful for the dropentry delayed
+work but it will be used also in following patch
+when flushing connections to failed destinations.
+
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+---
+ net/netfilter/ipvs/ip_vs_conn.c | 53 +++++++++++++++++++++++----------
+ net/netfilter/ipvs/ip_vs_ctl.c  |  6 ++--
+ 2 files changed, 42 insertions(+), 17 deletions(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 02f2f636798d..b3921ae92740 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -807,6 +807,31 @@ static void ip_vs_conn_rcu_free(struct rcu_head *head)
+ 	kmem_cache_free(ip_vs_conn_cachep, cp);
+ }
+ 
++/* Try to delete connection while not holding reference */
++static void ip_vs_conn_del(struct ip_vs_conn *cp)
++{
++	if (del_timer(&cp->timer)) {
++		/* Drop cp->control chain too */
++		if (cp->control)
++			cp->timeout = 0;
++		ip_vs_conn_expire(&cp->timer);
++	}
++}
++
++/* Try to delete connection while holding reference */
++static void ip_vs_conn_del_put(struct ip_vs_conn *cp)
++{
++	if (del_timer(&cp->timer)) {
++		/* Drop cp->control chain too */
++		if (cp->control)
++			cp->timeout = 0;
++		__ip_vs_conn_put(cp);
++		ip_vs_conn_expire(&cp->timer);
++	} else {
++		__ip_vs_conn_put(cp);
++	}
++}
++
+ static void ip_vs_conn_expire(struct timer_list *t)
+ {
+ 	struct ip_vs_conn *cp = from_timer(cp, t, timer);
+@@ -827,14 +852,17 @@ static void ip_vs_conn_expire(struct timer_list *t)
+ 
+ 		/* does anybody control me? */
+ 		if (ct) {
++			bool has_ref = !cp->timeout && __ip_vs_conn_get(ct);
++
+ 			ip_vs_control_del(cp);
+ 			/* Drop CTL or non-assured TPL if not used anymore */
+-			if (!cp->timeout && !atomic_read(&ct->n_control) &&
++			if (has_ref && !atomic_read(&ct->n_control) &&
+ 			    (!(ct->flags & IP_VS_CONN_F_TEMPLATE) ||
+ 			     !(ct->state & IP_VS_CTPL_S_ASSURED))) {
+ 				IP_VS_DBG(4, "drop controlling connection\n");
+-				ct->timeout = 0;
+-				ip_vs_conn_expire_now(ct);
++				ip_vs_conn_del_put(ct);
++			} else if (has_ref) {
++				__ip_vs_conn_put(ct);
+ 			}
+ 		}
+ 
+@@ -1317,8 +1345,7 @@ void ip_vs_random_dropentry(struct netns_ipvs *ipvs)
+ 
+ drop:
+ 			IP_VS_DBG(4, "drop connection\n");
+-			cp->timeout = 0;
+-			ip_vs_conn_expire_now(cp);
++			ip_vs_conn_del(cp);
+ 		}
+ 		cond_resched_rcu();
+ 	}
+@@ -1341,19 +1368,15 @@ static void ip_vs_conn_flush(struct netns_ipvs *ipvs)
+ 		hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[idx], c_list) {
+ 			if (cp->ipvs != ipvs)
+ 				continue;
+-			/* As timers are expired in LIFO order, restart
+-			 * the timer of controlling connection first, so
+-			 * that it is expired after us.
+-			 */
++			if (atomic_read(&cp->n_control))
++				continue;
+ 			cp_c = cp->control;
+-			/* cp->control is valid only with reference to cp */
+-			if (cp_c && __ip_vs_conn_get(cp)) {
++			IP_VS_DBG(4, "del connection\n");
++			ip_vs_conn_del(cp);
++			if (cp_c && !atomic_read(&cp_c->n_control)) {
+ 				IP_VS_DBG(4, "del controlling connection\n");
+-				ip_vs_conn_expire_now(cp_c);
+-				__ip_vs_conn_put(cp);
++				ip_vs_conn_del(cp_c);
+ 			}
+-			IP_VS_DBG(4, "del connection\n");
+-			ip_vs_conn_expire_now(cp);
+ 		}
+ 		cond_resched_rcu();
+ 	}
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 412656c34f20..1a231f518e3f 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -224,7 +224,8 @@ static void defense_work_handler(struct work_struct *work)
+ 	update_defense_level(ipvs);
+ 	if (atomic_read(&ipvs->dropentry))
+ 		ip_vs_random_dropentry(ipvs);
+-	schedule_delayed_work(&ipvs->defense_work, DEFENSE_TIMER_PERIOD);
++	queue_delayed_work(system_long_wq, &ipvs->defense_work,
++			   DEFENSE_TIMER_PERIOD);
+ }
+ #endif
+ 
+@@ -4063,7 +4064,8 @@ static int __net_init ip_vs_control_net_init_sysctl(struct netns_ipvs *ipvs)
+ 	ipvs->sysctl_tbl = tbl;
+ 	/* Schedule defense work */
+ 	INIT_DELAYED_WORK(&ipvs->defense_work, defense_work_handler);
+-	schedule_delayed_work(&ipvs->defense_work, DEFENSE_TIMER_PERIOD);
++	queue_delayed_work(system_long_wq, &ipvs->defense_work,
++			   DEFENSE_TIMER_PERIOD);
+ 
+ 	return 0;
+ }
+-- 
+2.26.2
+==========================================================
+
+> ---
+>  include/net/ip_vs.h             | 29 +++++++++++++++++++++
+>  net/netfilter/ipvs/ip_vs_conn.c | 43 +++++++++++++++++++++++++++++++
+>  net/netfilter/ipvs/ip_vs_core.c | 45 +++++++++++++--------------------
+>  net/netfilter/ipvs/ip_vs_ctl.c  | 22 ++++++++++++++++
+>  4 files changed, 112 insertions(+), 27 deletions(-)
+> 
+> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+> index 83be2d93b407..49ca61765298 100644
+> --- a/include/net/ip_vs.h
+> +++ b/include/net/ip_vs.h
+> @@ -14,6 +14,7 @@
+>  #include <linux/spinlock.h>             /* for struct rwlock_t */
+>  #include <linux/atomic.h>               /* for struct atomic_t */
+>  #include <linux/refcount.h>             /* for struct refcount_t */
+> +#include <linux/workqueue.h>
+>  
+>  #include <linux/compiler.h>
+>  #include <linux/timer.h>
+> @@ -885,6 +886,8 @@ struct netns_ipvs {
+>  	atomic_t		conn_out_counter;
+>  
+>  #ifdef CONFIG_SYSCTL
+> +	/* delayed work for expiring no dest connections */
+> +	struct delayed_work	expire_nodest_conn_work;
+>  	/* 1/rate drop and drop-entry variables */
+>  	struct delayed_work	defense_work;   /* Work handler */
+>  	int			drop_rate;
+> @@ -1049,6 +1052,11 @@ static inline int sysctl_conn_reuse_mode(struct netns_ipvs *ipvs)
+>  	return ipvs->sysctl_conn_reuse_mode;
+>  }
+>  
+> +static inline int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs)
+> +{
+> +	return ipvs->sysctl_expire_nodest_conn;
+> +}
+> +
+>  static inline int sysctl_schedule_icmp(struct netns_ipvs *ipvs)
+>  {
+>  	return ipvs->sysctl_schedule_icmp;
+> @@ -1136,6 +1144,11 @@ static inline int sysctl_conn_reuse_mode(struct netns_ipvs *ipvs)
+>  	return 1;
+>  }
+>  
+> +static inline int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs)
+> +{
+> +	return 0;
+> +}
+> +
+>  static inline int sysctl_schedule_icmp(struct netns_ipvs *ipvs)
+>  {
+>  	return 0;
+> @@ -1505,6 +1518,22 @@ static inline int ip_vs_todrop(struct netns_ipvs *ipvs)
+>  static inline int ip_vs_todrop(struct netns_ipvs *ipvs) { return 0; }
+>  #endif
+>  
+> +#ifdef CONFIG_SYSCTL
+> +/* Enqueue delayed work for expiring no dest connections
+> + * Only run when sysctl_expire_nodest=1
+> + */
+> +static inline void ip_vs_enqueue_expire_nodest_conns(struct netns_ipvs *ipvs)
+> +{
+> +	if (sysctl_expire_nodest_conn(ipvs))
+> +		queue_delayed_work(system_long_wq,
+> +				   &ipvs->expire_nodest_conn_work, 1);
+> +}
+> +
+> +void ip_vs_expire_nodest_conn_flush(struct netns_ipvs *ipvs);
+> +#else
+> +static inline void ip_vs_enqueue_expire_nodest_conns(struct netns_ipvs) {}
+> +#endif
+> +
+>  #define IP_VS_DFWD_METHOD(dest) (atomic_read(&(dest)->conn_flags) & \
+>  				 IP_VS_CONN_F_FWD_MASK)
+>  
+> diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+> index 02f2f636798d..f0d744e8c716 100644
+> --- a/net/netfilter/ipvs/ip_vs_conn.c
+> +++ b/net/netfilter/ipvs/ip_vs_conn.c
+> @@ -1366,6 +1366,49 @@ static void ip_vs_conn_flush(struct netns_ipvs *ipvs)
+>  		goto flush_again;
+>  	}
+>  }
+> +
+> +#ifdef CONFIG_SYSCTL
+> +void ip_vs_expire_nodest_conn_flush(struct netns_ipvs *ipvs)
+> +{
+> +	int idx;
+> +	struct ip_vs_conn *cp, *cp_c;
+> +	struct ip_vs_dest *dest;
+> +
+> +	rcu_read_lock();
+> +	for (idx = 0; idx < ip_vs_conn_tab_size; idx++) {
+> +		hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[idx], c_list) {
+> +			if (cp->ipvs != ipvs)
+> +				continue;
+> +
+> +			dest = cp->dest;
+> +			if (!dest || (dest->flags & IP_VS_DEST_F_AVAILABLE))
+> +				continue;
+> +
+> +			/* As timers are expired in LIFO order, restart
+> +			 * the timer of controlling connection first, so
+> +			 * that it is expired after us.
+> +			 */
+> +			cp_c = cp->control;
+> +			/* cp->control is valid only with reference to cp */
+> +			if (cp_c && __ip_vs_conn_get(cp)) {
+> +				IP_VS_DBG(4, "del controlling connection\n");
+> +				ip_vs_conn_expire_now(cp_c);
+> +				__ip_vs_conn_put(cp);
+> +			}
+> +
+> +			IP_VS_DBG(4, "del connection\n");
+> +			ip_vs_conn_expire_now(cp);
+> +		}
+> +		cond_resched_rcu();
+> +
+> +		/* netns clean up started, abort delayed work */
+> +		if (!ipvs->enable)
+> +			return;
+> +	}
+> +	rcu_read_unlock();
+> +}
+> +#endif
+> +
+>  /*
+>   * per netns init and exit
+>   */
+> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> index aa6a603a2425..2508a9caeae8 100644
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -694,16 +694,10 @@ static int sysctl_nat_icmp_send(struct netns_ipvs *ipvs)
+>  	return ipvs->sysctl_nat_icmp_send;
+>  }
+>  
+> -static int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs)
+> -{
+> -	return ipvs->sysctl_expire_nodest_conn;
+> -}
+> -
+>  #else
+>  
+>  static int sysctl_snat_reroute(struct netns_ipvs *ipvs) { return 0; }
+>  static int sysctl_nat_icmp_send(struct netns_ipvs *ipvs) { return 0; }
+> -static int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs) { return 0; }
+>  
+>  #endif
+>  
+> @@ -2095,36 +2089,33 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
+>  		}
+>  	}
+>  
+> -	if (unlikely(!cp)) {
+> -		int v;
+> -
+> -		if (!ip_vs_try_to_schedule(ipvs, af, skb, pd, &v, &cp, &iph))
+> -			return v;
+> -	}
+> -
+> -	IP_VS_DBG_PKT(11, af, pp, skb, iph.off, "Incoming packet");
+> -
+>  	/* Check the server status */
+> -	if (cp->dest && !(cp->dest->flags & IP_VS_DEST_F_AVAILABLE)) {
+> +	if (cp && cp->dest && !(cp->dest->flags & IP_VS_DEST_F_AVAILABLE)) {
+>  		/* the destination server is not available */
+>  
+> -		__u32 flags = cp->flags;
+> -
+> -		/* when timer already started, silently drop the packet.*/
+> -		if (timer_pending(&cp->timer))
+> -			__ip_vs_conn_put(cp);
+> -		else
+> -			ip_vs_conn_put(cp);
+> +		if (sysctl_expire_nodest_conn(ipvs)) {
+> +			bool uses_ct = ip_vs_conn_uses_conntrack(cp, skb);
+>  
+> -		if (sysctl_expire_nodest_conn(ipvs) &&
+> -		    !(flags & IP_VS_CONN_F_ONE_PACKET)) {
+> -			/* try to expire the connection immediately */
+>  			ip_vs_conn_expire_now(cp);
+> +			__ip_vs_conn_put(cp);
+> +			if (uses_ct)
+> +				return NF_DROP;
+> +			cp = NULL;
+> +		} else {
+> +			__ip_vs_conn_put(cp);
+> +			return NF_DROP;
+>  		}
+> +	}
+>  
+> -		return NF_DROP;
+> +	if (unlikely(!cp)) {
+> +		int v;
+> +
+> +		if (!ip_vs_try_to_schedule(ipvs, af, skb, pd, &v, &cp, &iph))
+> +			return v;
+>  	}
+>  
+> +	IP_VS_DBG_PKT(11, af, pp, skb, iph.off, "Incoming packet");
+> +
+>  	ip_vs_in_stats(cp, skb);
+>  	ip_vs_set_state(cp, IP_VS_DIR_INPUT, skb, pd);
+>  	if (cp->packet_xmit)
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index 8d14a1acbc37..9e53f517f138 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -210,6 +210,17 @@ static void update_defense_level(struct netns_ipvs *ipvs)
+>  	local_bh_enable();
+>  }
+>  
+> +/* Handler for delayed work for expiring no
+> + * destination connections
+> + */
+> +static void expire_nodest_conn_handler(struct work_struct *work)
+> +{
+> +	struct netns_ipvs *ipvs;
+> +
+> +	ipvs = container_of(work, struct netns_ipvs,
+> +			    expire_nodest_conn_work.work);
+> +	ip_vs_expire_nodest_conn_flush(ipvs);
+> +}
+>  
+>  /*
+>   *	Timer for checking the defense
+> @@ -1163,6 +1174,12 @@ static void __ip_vs_del_dest(struct netns_ipvs *ipvs, struct ip_vs_dest *dest,
+>  	list_add(&dest->t_list, &ipvs->dest_trash);
+>  	dest->idle_start = 0;
+>  	spin_unlock_bh(&ipvs->dest_trash_lock);
+> +
+> +	/* Queue up delayed work to expire all no estination connections.
+> +	 * No-op when CONFIG_SYSCTL is disabled.
+> +	 */
+> +	if (!cleanup)
+> +		ip_vs_enqueue_expire_nodest_conns(ipvs);
+>  }
+>  
+>  
+> @@ -4065,6 +4082,10 @@ static int __net_init ip_vs_control_net_init_sysctl(struct netns_ipvs *ipvs)
+>  	INIT_DELAYED_WORK(&ipvs->defense_work, defense_work_handler);
+>  	schedule_delayed_work(&ipvs->defense_work, DEFENSE_TIMER_PERIOD);
+>  
+> +	/* Init delayed work for expiring no dest conn */
+> +	INIT_DELAYED_WORK(&ipvs->expire_nodest_conn_work,
+> +			  expire_nodest_conn_handler);
+> +
+>  	return 0;
+>  }
+>  
+> @@ -4072,6 +4093,7 @@ static void __net_exit ip_vs_control_net_cleanup_sysctl(struct netns_ipvs *ipvs)
+>  {
+>  	struct net *net = ipvs->net;
+>  
+> +	cancel_delayed_work_sync(&ipvs->expire_nodest_conn_work);
+>  	cancel_delayed_work_sync(&ipvs->defense_work);
+>  	cancel_work_sync(&ipvs->defense_work.work);
+>  	unregister_net_sysctl_table(ipvs->sysctl_hdr);
+> -- 
+> 2.20.1
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
