@@ -4,41 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F5E9C433DF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD2A0C433E1
 	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 12:13:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E506D20679
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 12:13:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9CEA920679
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 12:13:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="R/8vJ0ka"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="kJGaLFdm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729895AbgFOMN2 (ORCPT
+        id S1729915AbgFOMNc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Jun 2020 08:13:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44966 "EHLO
+        Mon, 15 Jun 2020 08:13:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44986 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729880AbgFOMNW (ORCPT
+        with ESMTP id S1729898AbgFOMN3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Jun 2020 08:13:22 -0400
+        Mon, 15 Jun 2020 08:13:29 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B506FC061A0E;
-        Mon, 15 Jun 2020 05:13:22 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3DD72C061A0E;
+        Mon, 15 Jun 2020 05:13:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
         MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
         :Reply-To:Content-Type:Content-ID:Content-Description;
-        bh=TlGwNzeUV5SdPQdMXQTZE0wOboZa+pqgldScyQb3lYk=; b=R/8vJ0kaupTtFA7vm44e95YJSf
-        2lHoDQbLTSdYcQrFbG42XLO52ZQcIlOP2li/9rkRD6XWWwJwBuZVuGcB+4vxYC8AiOrV+tfnCfcKY
-        Vcy53UEFZ4ewPWBs9gmBjIxI+13GOiZYXgzgzF6rqJ4PbLd3qGxLVtRfQ+U2NgbzuhFo/4LiCdHoA
-        h63M0qShCyWfl5jDpQapGOndZl2a9yGtMwu7WEyFyqdAWqmCrA/M/6+NVQRgKTBarhzae8xLAGhWs
-        GOZOeynjzOj61ziv0S+SGCB5mNj53/z8sV+mMOI8xNwWZIocZl4t1b3maeA0ajsIZkgmfz25JLykO
-        vps/Hsnw==;
+        bh=zJW7Jtqa7VI4dbEhWxHAS4o1PYq8n66woBay8gaz72c=; b=kJGaLFdmv2/MpBs2fnBDhfYmc+
+        KKYxOioe2yFs4iG308ClfQBLEOlLThWQVk4nqZtqFFf/BR5IuYMW9DOd+CTC1e2d20YWSLvECRwnU
+        pylluOhKk2wkHrp8ZoIINCO8BzvJ2kLaaSWU69v6bDeJ80kfMdgn6W0YD/fPsNzTLR/uuzvLrmsx/
+        Uke6WfTdfG0toHXwpgZ6hKJTMmyf4bgWhqFNxmf+IWUyVahJhy8NnIAg3TuzApLqSk6EU8kyQiA+V
+        DNFkVG61FUdu0SOfZmm2ELiS9MgvlBOCRJO9qsQu3hcpLBhiSar/XWr8sRAvebwHCRxuoK57Aemqr
+        K8vhtv7A==;
 Received: from 195-192-102-148.dyn.cablelink.at ([195.192.102.148] helo=localhost)
         by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jknzL-000724-QC; Mon, 15 Jun 2020 12:13:20 +0000
+        id 1jknzS-00073g-5E; Mon, 15 Jun 2020 12:13:26 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     Al Viro <viro@zeniv.linux.org.uk>
 Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
@@ -47,9 +47,9 @@ Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
         linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         linux-security-module@vger.kernel.org,
         netfilter-devel@vger.kernel.org
-Subject: [PATCH 07/13] fs: remove __vfs_write
-Date:   Mon, 15 Jun 2020 14:12:51 +0200
-Message-Id: <20200615121257.798894-8-hch@lst.de>
+Subject: [PATCH 09/13] fs: add a __kernel_read helper
+Date:   Mon, 15 Jun 2020 14:12:53 +0200
+Message-Id: <20200615121257.798894-10-hch@lst.de>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200615121257.798894-1-hch@lst.de>
 References: <20200615121257.798894-1-hch@lst.de>
@@ -61,85 +61,59 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Fold it into the two callers.
+This is the counterpart to __kernel_write, and skip the rw_verify_area
+call compared to kernel_read.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/read_write.c | 46 ++++++++++++++++++++++------------------------
- 1 file changed, 22 insertions(+), 24 deletions(-)
+ fs/read_write.c    | 21 +++++++++++++++++++++
+ include/linux/fs.h |  1 +
+ 2 files changed, 22 insertions(+)
 
 diff --git a/fs/read_write.c b/fs/read_write.c
-index 9d50d3cec017d8..f81e15c95f576c 100644
+index 4fb7966f023526..3364fdfc2982b4 100644
 --- a/fs/read_write.c
 +++ b/fs/read_write.c
-@@ -488,17 +488,6 @@ static ssize_t new_sync_write(struct file *filp, const char __user *buf, size_t
- 	return ret;
+@@ -430,6 +430,27 @@ ssize_t __vfs_read(struct file *file, char __user *buf, size_t count,
+ 		return -EINVAL;
  }
  
--static ssize_t __vfs_write(struct file *file, const char __user *p,
--			   size_t count, loff_t *pos)
--{
--	if (file->f_op->write)
--		return file->f_op->write(file, p, count, pos);
--	else if (file->f_op->write_iter)
--		return new_sync_write(file, p, count, pos);
--	else
--		return -EINVAL;
--}
--
- /* caller is responsible for file_start_write/file_end_write */
- ssize_t __kernel_write(struct file *file, const void *buf, size_t count, loff_t *pos)
- {
-@@ -516,7 +505,12 @@ ssize_t __kernel_write(struct file *file, const void *buf, size_t count, loff_t
- 	p = (__force const char __user *)buf;
- 	if (count > MAX_RW_COUNT)
- 		count =  MAX_RW_COUNT;
--	ret = __vfs_write(file, p, count, pos);
-+	if (file->f_op->write)
-+		ret = file->f_op->write(file, p, count, pos);
-+	else if (file->f_op->write_iter)
-+		ret = new_sync_write(file, p, count, pos);
-+	else
-+		ret = -EINVAL;
- 	set_fs(old_fs);
- 	if (ret > 0) {
- 		fsnotify_modify(file);
-@@ -554,19 +548,23 @@ ssize_t vfs_write(struct file *file, const char __user *buf, size_t count, loff_
- 		return -EFAULT;
- 
- 	ret = rw_verify_area(WRITE, file, pos, count);
--	if (!ret) {
--		if (count > MAX_RW_COUNT)
--			count =  MAX_RW_COUNT;
--		file_start_write(file);
--		ret = __vfs_write(file, buf, count, pos);
--		if (ret > 0) {
--			fsnotify_modify(file);
--			add_wchar(current, ret);
--		}
--		inc_syscw(current);
--		file_end_write(file);
-+	if (ret)
-+		return ret;
++ssize_t __kernel_read(struct file *file, void *buf, size_t count, loff_t *pos)
++{
++	mm_segment_t old_fs = get_fs();
++	ssize_t ret;
++
++	if (!(file->f_mode & FMODE_CAN_READ))
++		return -EINVAL;
++
 +	if (count > MAX_RW_COUNT)
 +		count =  MAX_RW_COUNT;
-+	file_start_write(file);
-+	if (file->f_op->write)
-+		ret = file->f_op->write(file, buf, count, pos);
-+	else if (file->f_op->write_iter)
-+		ret = new_sync_write(file, buf, count, pos);
-+	else
-+		ret = -EINVAL;
++	set_fs(KERNEL_DS);
++	ret = __vfs_read(file, (void __user *)buf, count, pos);
++	set_fs(old_fs);
 +	if (ret > 0) {
-+		fsnotify_modify(file);
-+		add_wchar(current, ret);
- 	}
--
-+	inc_syscw(current);
-+	file_end_write(file);
- 	return ret;
- }
- 
++		fsnotify_access(file);
++		add_rchar(current, ret);
++	}
++	inc_syscr(current);
++	return ret;
++}
++
+ ssize_t kernel_read(struct file *file, void *buf, size_t count, loff_t *pos)
+ {
+ 	mm_segment_t old_fs;
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 6c4ab4dc1cd718..21613bf1b49690 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -3035,6 +3035,7 @@ extern int kernel_read_file_from_path_initns(const char *, void **, loff_t *, lo
+ extern int kernel_read_file_from_fd(int, void **, loff_t *, loff_t,
+ 				    enum kernel_read_file_id);
+ extern ssize_t kernel_read(struct file *, void *, size_t, loff_t *);
++ssize_t __kernel_read(struct file *file, void *buf, size_t count, loff_t *pos);
+ extern ssize_t kernel_write(struct file *, const void *, size_t, loff_t *);
+ extern ssize_t __kernel_write(struct file *, const void *, size_t, loff_t *);
+ extern struct file * open_exec(const char *);
 -- 
 2.26.2
 
