@@ -2,121 +2,104 @@ Return-Path: <SRS0=VCDi=74=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FEC5C433E0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 10:18:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5068C433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 11:11:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C2E1B206B7
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 10:18:35 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="NO4q17BR"
+	by mail.kernel.org (Postfix) with ESMTP id 899F320679
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 11:11:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728885AbgFOKSf (ORCPT
+        id S1729038AbgFOLLg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Jun 2020 06:18:35 -0400
-Received: from us-smtp-1.mimecast.com ([205.139.110.61]:54752 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728570AbgFOKSc (ORCPT
+        Mon, 15 Jun 2020 07:11:36 -0400
+Received: from mail-ot1-f66.google.com ([209.85.210.66]:44602 "EHLO
+        mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728285AbgFOLLf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Jun 2020 06:18:32 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1592216311;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=+Fl7xRua9BD202T1dF88kN+Uk1vFmU2y81flPZHp5Go=;
-        b=NO4q17BRA9QwkL5q4usXgY1gzZ1fpDDW2XYmc5oSOgJt8gDUmQ2iFRKtbRMmfA2rRZyGQ+
-        3oMCLbpnAhZ7UWXKxmamcVWLrW/LX1a2Q52gZJov59J1OE9nu0JtaiaPF7/OP+Hi6VTOel
-        L3pOZIDFK51vOO4Njp8IRFLDAw7alks=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-20-01XHvmKsOEinut_-ZiEfpg-1; Mon, 15 Jun 2020 06:18:18 -0400
-X-MC-Unique: 01XHvmKsOEinut_-ZiEfpg-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 008E41883604;
-        Mon, 15 Jun 2020 10:18:17 +0000 (UTC)
-Received: from localhost (unknown [10.36.110.3])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 80D1E1A8EC;
-        Mon, 15 Jun 2020 10:18:15 +0000 (UTC)
-Date:   Mon, 15 Jun 2020 12:18:11 +0200
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Laura =?UTF-8?B?R2FyY8OtYSBM?= =?UTF-8?B?acOpYmFuYQ==?= 
-        <nevola@gmail.com>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] tests: shell: Drop redefinition of DIFF variable
-Message-ID: <20200615121811.08c347e2@redhat.com>
-In-Reply-To: <20200615090044.GH23632@orbyte.nwl.cc>
-References: <bdced35aa00b7933e8b67a52b37754d0b6f86f59.1592170402.git.sbrivio@redhat.com>
-        <20200615090044.GH23632@orbyte.nwl.cc>
-Organization: Red Hat
+        Mon, 15 Jun 2020 07:11:35 -0400
+Received: by mail-ot1-f66.google.com with SMTP id e5so12749939ote.11;
+        Mon, 15 Jun 2020 04:11:34 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=5CY9W/R8PVfuC9sqxRBqVw1uewgeiGQUga39MZZDtgE=;
+        b=cADIiUIGUGJE+40d8zPhf8ygYfhxpUrZArnY35sI3QiKhj309Xm6Fy41ThKAr2FUie
+         E7Xr6v1bQ4T8Sk3ZF10BDVwXIYoMl/J/idI48oldQSZ78F5Q1bqdOk+cV35mCYmXMLOB
+         zsNZScnu+TLV02N+zH21xC6zrNZb2/xgpGGpkxvCtbrZ8VpwD3r0UZ4j2Du/Sngn3vVJ
+         khDTNkCMnGFJg8Ih7LpAkYFgT1qhInaniRgwyw2Ks80J3Xuwefa3o92VdjpJMR9Iutfp
+         3Y7qBBr2kAY/hq4wiHsQAdSzJxwUBL8ZGQ/f2J/o963oTdKsbOm97DGh/YJrqY4CQGLa
+         qgeg==
+X-Gm-Message-State: AOAM5305BchxN+ni0uFyntydTGkyT8O5G/Et72cLKna2xxrKdAg3Rm3B
+        7NtRLlGdhHVg+wmAk7uo+moMLLsUYEJv+DYhDDA=
+X-Google-Smtp-Source: ABdhPJxqwi8MnZ0bTP5LApZwYenNqY/5jKzHiLXqehYN7pgYecrM9cD9SN/qL/FqLS7oLc+l+cgfu73Tu03M1ONzZbQ=
+X-Received: by 2002:a9d:c29:: with SMTP id 38mr19723723otr.107.1592219494134;
+ Mon, 15 Jun 2020 04:11:34 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+References: <9feded75-4b45-2821-287b-af00ec5f910f@al2klimov.de>
+ <20200614223456.13807a00@redhat.com> <5033402c-d95c-eecd-db84-75195b159fab@al2klimov.de>
+In-Reply-To: <5033402c-d95c-eecd-db84-75195b159fab@al2klimov.de>
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+Date:   Mon, 15 Jun 2020 13:11:22 +0200
+Message-ID: <CAMuHMdVvYRzOA-cOj41_0g1OXw+xhJ29=FZNAL5v_fWsBjwm4g@mail.gmail.com>
+Subject: Re: Good idea to rename files in include/uapi/ ?
+To:     "Alexander A. Klimov" <grandmaster@al2klimov.de>
+Cc:     Stefano Brivio <sbrivio@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Andrea Parri <parri.andrea@gmail.com>,
+        Will Deacon <will@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Boqun Feng <boqun.feng@gmail.com>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        David Howells <dhowells@redhat.com>,
+        Jade Alglave <j.alglave@ucl.ac.uk>,
+        Luc Maranget <luc.maranget@inria.fr>,
+        "Paul E. McKenney" <paulmck@kernel.org>,
+        Akira Yokosawa <akiyks@gmail.com>,
+        Daniel Lustig <dlustig@nvidia.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        coreteam@netfilter.org, netdev <netdev@vger.kernel.org>,
+        Linux-Arch <linux-arch@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Phil,
+Hi Alexander,
 
-On Mon, 15 Jun 2020 11:00:44 +0200
-Phil Sutter <phil@nwl.cc> wrote:
+On Mon, Jun 15, 2020 at 1:11 AM Alexander A. Klimov
+<grandmaster@al2klimov.de> wrote:
+> Am 14.06.20 um 22:34 schrieb Stefano Brivio:
+> > On Sun, 14 Jun 2020 21:41:17 +0200
+> >> Also even on a case-sensitive one VIm seems to have trouble with editing
+> >> both case-insensitively equal files at the same time.
+> >
+> > ...what trouble exactly?
+> vi -O2 include/uapi/linux/netfilter/xt_CONNMARK.h
+> include/uapi/linux/netfilter/xt_connmark.h
+>
+> ... opens the first file two times.
 
-> Hi Stefano,
-> 
-> On Sun, Jun 14, 2020 at 11:41:49PM +0200, Stefano Brivio wrote:
-> > Commit 7d93e2c2fbc7 ("tests: shell: autogenerate dump verification")
-> > introduced the definition of DIFF at the top of run-tests.sh, to make
-> > it visually part of the configuration section. Commit 68310ba0f9c2
-> > ("tests: shell: Search diff tool once and for all") override this
-> > definition.
-> > 
-> > Drop the unexpected redefinition of DIFF.  
-> 
-> I would fix it the other way round, dropping the first definition.
+Works fine for me, using vim 2:8.0.1453-1ubuntu1.3.
+You must be using a buggy version.
 
-Then it's not visibly configurable anymore. It was in 2018, so it
-looks like a regression to me.
+Gr{oetje,eeting}s,
 
-> It's likely a missing bit from commit 68310ba0f9c20, the second
-> definition is in line with FIND and MODPROBE definitions immediately
-> preceding it.
-
-I see a few issues with those blocks:
-
-- that should be a single function called (once or multiple times) for
-  nft, find, modprobe, diff, anything else we'll need in the future.
-  It would avoid any oversight of this kind and keep the script
-  cleaner. For example, what makes sort(1) special here?
-
-- quotes are applied inconsistently. If you expect multiple words from
-  which(1), then variables should also be quoted when used, otherwise
-  the check might go through, and we fail later
-
-- we should use 'command -v', which is the standard and standardised
-  way of doing this rather than which(1): 'which' has many different
-  and inconsistent implementations. Will it check aliases? Should you
-  suppress stdout or stderr? How do you... 'which which'?
-
-- we should extend the configurability for single commands to all of
-  them. I need to export NFT, 'diff' I can edit on top of the file, the
-  rest is not configurable at all. It's easy with a single function.
-
-...so I started rewriting that, then realised I didn't have time at the
-moment and just fixed the obvious issue I saw.
-
-If the definition on the top is not actually useful, then I'd rather
-keep things this way instead of just proposing a cosmetic change for
-things that would actually need a small rework.
+                        Geert
 
 -- 
-Stefano
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
