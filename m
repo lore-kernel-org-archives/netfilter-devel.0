@@ -2,100 +2,144 @@ Return-Path: <SRS0=VCDi=74=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51DF5C433E0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 11:54:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F5E9C433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 12:13:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 38B3A20707
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 11:54:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E506D20679
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 12:13:32 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="R/8vJ0ka"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729745AbgFOLyb (ORCPT
+        id S1729895AbgFOMN2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Jun 2020 07:54:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42062 "EHLO
+        Mon, 15 Jun 2020 08:13:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44966 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729691AbgFOLya (ORCPT
+        with ESMTP id S1729880AbgFOMNW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Jun 2020 07:54:30 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52CB0C061A0E
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jun 2020 04:54:30 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1jknh2-000677-KT; Mon, 15 Jun 2020 13:54:24 +0200
-Date:   Mon, 15 Jun 2020 13:54:24 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Stefano Brivio <sbrivio@redhat.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Laura =?utf-8?Q?Garc=C3=ADa_Li=C3=A9bana?= <nevola@gmail.com>,
+        Mon, 15 Jun 2020 08:13:22 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B506FC061A0E;
+        Mon, 15 Jun 2020 05:13:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
+        MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
+        :Reply-To:Content-Type:Content-ID:Content-Description;
+        bh=TlGwNzeUV5SdPQdMXQTZE0wOboZa+pqgldScyQb3lYk=; b=R/8vJ0kaupTtFA7vm44e95YJSf
+        2lHoDQbLTSdYcQrFbG42XLO52ZQcIlOP2li/9rkRD6XWWwJwBuZVuGcB+4vxYC8AiOrV+tfnCfcKY
+        Vcy53UEFZ4ewPWBs9gmBjIxI+13GOiZYXgzgzF6rqJ4PbLd3qGxLVtRfQ+U2NgbzuhFo/4LiCdHoA
+        h63M0qShCyWfl5jDpQapGOndZl2a9yGtMwu7WEyFyqdAWqmCrA/M/6+NVQRgKTBarhzae8xLAGhWs
+        GOZOeynjzOj61ziv0S+SGCB5mNj53/z8sV+mMOI8xNwWZIocZl4t1b3maeA0ajsIZkgmfz25JLykO
+        vps/Hsnw==;
+Received: from 195-192-102-148.dyn.cablelink.at ([195.192.102.148] helo=localhost)
+        by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1jknzL-000724-QC; Mon, 15 Jun 2020 12:13:20 +0000
+From:   Christoph Hellwig <hch@lst.de>
+To:     Al Viro <viro@zeniv.linux.org.uk>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Ian Kent <raven@themaw.net>,
+        David Howells <dhowells@redhat.com>,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-security-module@vger.kernel.org,
         netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] tests: shell: Drop redefinition of DIFF variable
-Message-ID: <20200615115424.GJ23632@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Stefano Brivio <sbrivio@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Laura =?utf-8?Q?Garc=C3=ADa_Li=C3=A9bana?= <nevola@gmail.com>,
-        netfilter-devel@vger.kernel.org
-References: <bdced35aa00b7933e8b67a52b37754d0b6f86f59.1592170402.git.sbrivio@redhat.com>
- <20200615090044.GH23632@orbyte.nwl.cc>
- <20200615121811.08c347e2@redhat.com>
+Subject: [PATCH 07/13] fs: remove __vfs_write
+Date:   Mon, 15 Jun 2020 14:12:51 +0200
+Message-Id: <20200615121257.798894-8-hch@lst.de>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200615121257.798894-1-hch@lst.de>
+References: <20200615121257.798894-1-hch@lst.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200615121811.08c347e2@redhat.com>
+Content-Transfer-Encoding: 8bit
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Stefano,
+Fold it into the two callers.
 
-On Mon, Jun 15, 2020 at 12:18:11PM +0200, Stefano Brivio wrote:
-> On Mon, 15 Jun 2020 11:00:44 +0200
-> Phil Sutter <phil@nwl.cc> wrote:
-> 
-> > Hi Stefano,
-> > 
-> > On Sun, Jun 14, 2020 at 11:41:49PM +0200, Stefano Brivio wrote:
-> > > Commit 7d93e2c2fbc7 ("tests: shell: autogenerate dump verification")
-> > > introduced the definition of DIFF at the top of run-tests.sh, to make
-> > > it visually part of the configuration section. Commit 68310ba0f9c2
-> > > ("tests: shell: Search diff tool once and for all") override this
-> > > definition.
-> > > 
-> > > Drop the unexpected redefinition of DIFF.  
-> > 
-> > I would fix it the other way round, dropping the first definition.
-> 
-> Then it's not visibly configurable anymore. It was in 2018, so it
-> looks like a regression to me.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ fs/read_write.c | 46 ++++++++++++++++++++++------------------------
+ 1 file changed, 22 insertions(+), 24 deletions(-)
 
-Hmm? Commit 68310ba0f9c2 is from January this year?!
+diff --git a/fs/read_write.c b/fs/read_write.c
+index 9d50d3cec017d8..f81e15c95f576c 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -488,17 +488,6 @@ static ssize_t new_sync_write(struct file *filp, const char __user *buf, size_t
+ 	return ret;
+ }
+ 
+-static ssize_t __vfs_write(struct file *file, const char __user *p,
+-			   size_t count, loff_t *pos)
+-{
+-	if (file->f_op->write)
+-		return file->f_op->write(file, p, count, pos);
+-	else if (file->f_op->write_iter)
+-		return new_sync_write(file, p, count, pos);
+-	else
+-		return -EINVAL;
+-}
+-
+ /* caller is responsible for file_start_write/file_end_write */
+ ssize_t __kernel_write(struct file *file, const void *buf, size_t count, loff_t *pos)
+ {
+@@ -516,7 +505,12 @@ ssize_t __kernel_write(struct file *file, const void *buf, size_t count, loff_t
+ 	p = (__force const char __user *)buf;
+ 	if (count > MAX_RW_COUNT)
+ 		count =  MAX_RW_COUNT;
+-	ret = __vfs_write(file, p, count, pos);
++	if (file->f_op->write)
++		ret = file->f_op->write(file, p, count, pos);
++	else if (file->f_op->write_iter)
++		ret = new_sync_write(file, p, count, pos);
++	else
++		ret = -EINVAL;
+ 	set_fs(old_fs);
+ 	if (ret > 0) {
+ 		fsnotify_modify(file);
+@@ -554,19 +548,23 @@ ssize_t vfs_write(struct file *file, const char __user *buf, size_t count, loff_
+ 		return -EFAULT;
+ 
+ 	ret = rw_verify_area(WRITE, file, pos, count);
+-	if (!ret) {
+-		if (count > MAX_RW_COUNT)
+-			count =  MAX_RW_COUNT;
+-		file_start_write(file);
+-		ret = __vfs_write(file, buf, count, pos);
+-		if (ret > 0) {
+-			fsnotify_modify(file);
+-			add_wchar(current, ret);
+-		}
+-		inc_syscw(current);
+-		file_end_write(file);
++	if (ret)
++		return ret;
++	if (count > MAX_RW_COUNT)
++		count =  MAX_RW_COUNT;
++	file_start_write(file);
++	if (file->f_op->write)
++		ret = file->f_op->write(file, buf, count, pos);
++	else if (file->f_op->write_iter)
++		ret = new_sync_write(file, buf, count, pos);
++	else
++		ret = -EINVAL;
++	if (ret > 0) {
++		fsnotify_modify(file);
++		add_wchar(current, ret);
+ 	}
+-
++	inc_syscw(current);
++	file_end_write(file);
+ 	return ret;
+ }
+ 
+-- 
+2.26.2
 
-> > It's likely a missing bit from commit 68310ba0f9c20, the second
-> > definition is in line with FIND and MODPROBE definitions immediately
-> > preceding it.
-> 
-> I see a few issues with those blocks:
-> 
-> - that should be a single function called (once or multiple times) for
->   nft, find, modprobe, diff, anything else we'll need in the future.
->   It would avoid any oversight of this kind and keep the script
->   cleaner. For example, what makes sort(1) special here?
-
-It is simply grown and therefore a bit inconsistent.
-
-> - quotes are applied inconsistently. If you expect multiple words from
->   which(1), then variables should also be quoted when used, otherwise
->   the check might go through, and we fail later
-
-There are needless quotes around $(...) but within single brackets we
-need them if we expect empty or multi-word strings. Typical output would
-be 'diff not found' and using '[ ! -x "$DIFF" ]' we check if which
-returned diff's path or said error message. We don't expect diff's path
-to contain spaces, hence no quoting afterwards.
-
-Cheers, Phil
