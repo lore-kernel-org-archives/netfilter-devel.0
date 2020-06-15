@@ -2,119 +2,135 @@ Return-Path: <SRS0=VCDi=74=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFED8C433E0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 14:36:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C962BC433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 16:21:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 794EB20679
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 14:36:33 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="F71n2lCx"
+	by mail.kernel.org (Postfix) with ESMTP id AF79C2078E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 16:21:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730665AbgFOOgd (ORCPT
+        id S1731008AbgFOQVY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Jun 2020 10:36:33 -0400
-Received: from us-smtp-2.mimecast.com ([207.211.31.81]:43061 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1730397AbgFOOgc (ORCPT
+        Mon, 15 Jun 2020 12:21:24 -0400
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:42066 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1730842AbgFOQVX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Jun 2020 10:36:32 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1592231791;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=QdVYl8C/VsZQcWATjdE02Rrux1zXHaj1EK9Mzw/jj40=;
-        b=F71n2lCxmmOo76hbNZa4i4M8YYT5+IQoMkv3IiVMqKhw61ae8yz2CiSMB1zERCHrBaBfMz
-        MwAD96FNptmtszdxB6IKs/VOsucViAxkY8kLjGqNuQthyvbHt/+HS9dPNuKhTI2pEPwHty
-        Hd5LnsaLXUICY82QrdheUxRd8Yrs/ac=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-449-2tnd4R4XM86oAm1p-u8clw-1; Mon, 15 Jun 2020 10:36:29 -0400
-X-MC-Unique: 2tnd4R4XM86oAm1p-u8clw-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 4348710AB644;
-        Mon, 15 Jun 2020 14:36:28 +0000 (UTC)
-Received: from elisabeth (unknown [10.36.110.54])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 9E0255DA36;
-        Mon, 15 Jun 2020 14:36:25 +0000 (UTC)
-Date:   Mon, 15 Jun 2020 16:36:18 +0200
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Laura =?UTF-8?B?R2FyY8OtYSBMacOpYmFuYQ==?= <nevola@gmail.com>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] tests: shell: Drop redefinition of DIFF variable
-Message-ID: <20200615163618.77b209d5@elisabeth>
-In-Reply-To: <20200615132134.GK23632@orbyte.nwl.cc>
-References: <bdced35aa00b7933e8b67a52b37754d0b6f86f59.1592170402.git.sbrivio@redhat.com>
-        <20200615090044.GH23632@orbyte.nwl.cc>
-        <20200615121811.08c347e2@redhat.com>
-        <20200615115424.GJ23632@orbyte.nwl.cc>
-        <20200615144055.31bbfd66@redhat.com>
-        <20200615132134.GK23632@orbyte.nwl.cc>
-Organization: Red Hat
+        Mon, 15 Jun 2020 12:21:23 -0400
+Received: from pps.filterd (m0098394.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 05FG3s1e117865;
+        Mon, 15 Jun 2020 12:21:15 -0400
+Received: from ppma04dal.us.ibm.com (7a.29.35a9.ip4.static.sl-reverse.com [169.53.41.122])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 31mua6c66f-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 15 Jun 2020 12:21:15 -0400
+Received: from pps.filterd (ppma04dal.us.ibm.com [127.0.0.1])
+        by ppma04dal.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 05FGKmCF024406;
+        Mon, 15 Jun 2020 16:21:14 GMT
+Received: from b01cxnp23034.gho.pok.ibm.com (b01cxnp23034.gho.pok.ibm.com [9.57.198.29])
+        by ppma04dal.us.ibm.com with ESMTP id 31mpe8y3rs-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 15 Jun 2020 16:21:14 +0000
+Received: from b01ledav004.gho.pok.ibm.com (b01ledav004.gho.pok.ibm.com [9.57.199.109])
+        by b01cxnp23034.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 05FGLD6738470132
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 15 Jun 2020 16:21:13 GMT
+Received: from b01ledav004.gho.pok.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 44FD1112061;
+        Mon, 15 Jun 2020 16:21:13 +0000 (GMT)
+Received: from b01ledav004.gho.pok.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id B2B8B112066;
+        Mon, 15 Jun 2020 16:21:12 +0000 (GMT)
+Received: from ltc.linux.ibm.com (unknown [9.16.170.189])
+        by b01ledav004.gho.pok.ibm.com (Postfix) with ESMTP;
+        Mon, 15 Jun 2020 16:21:12 +0000 (GMT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
 Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+Date:   Mon, 15 Jun 2020 09:21:12 -0700
+From:   dwilder <dwilder@us.ibm.com>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        wilder@us.ibm.com, mkubecek@suse.com,
+        netfilter-devel-owner@vger.kernel.org
+In-Reply-To: <20200615114412.GD16460@breakpoint.cc>
+References: <20200603212516.22414-1-dwilder@us.ibm.com>
+ <20200603220502.GD28263@breakpoint.cc>
+ <72692f32471b5d2eeef9514bb2c9ba51@linux.vnet.ibm.com>
+ <20200604103815.GE28263@breakpoint.cc>
+ <20200615114412.GD16460@breakpoint.cc>
+Message-ID: <15bb6cfdb238c9c9ddb5135986aa532b@linux.vnet.ibm.com>
+X-Sender: dwilder@us.ibm.com
+User-Agent: Roundcube Webmail/1.0.1
+X-TM-AS-GCONF: 00
+Subject: RE: [(RFC) PATCH ] NULL pointer dereference on rmmod iptable_mangle.
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.216,18.0.687
+ definitions=2020-06-15_03:2020-06-15,2020-06-15 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=785 bulkscore=0
+ spamscore=0 malwarescore=0 lowpriorityscore=0 impostorscore=0
+ clxscore=1011 adultscore=0 mlxscore=0 suspectscore=0 phishscore=0
+ priorityscore=1501 cotscore=-2147483648 classifier=spam adjust=0
+ reason=mlx scancount=1 engine=8.12.0-2004280000
+ definitions=main-2006150111
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, 15 Jun 2020 15:21:34 +0200
-Phil Sutter <phil@nwl.cc> wrote:
-
-> On Mon, Jun 15, 2020 at 02:40:55PM +0200, Stefano Brivio wrote:
-> > 
-> > [...]
-> > 
-> > Commit 7d93e2c2fbc7 (which makes it "configurable") is from March 2018.  
+On 2020-06-15 04:44, Florian Westphal wrote:
+> Florian Westphal <fw@strlen.de> wrote:
+>> dwilder <dwilder@us.ibm.com> wrote:
+>> > > Since the netns core already does an unconditional synchronize_rcu after
+>> > > the pre_exit hooks this would avoid the problem as well.
+>> >
+>> > Something like this?  (un-tested)
+>> 
+>> Yes.
+>> 
+>> > diff --git a/net/ipv4/netfilter/iptable_mangle.c
+>> > b/net/ipv4/netfilter/iptable_mangle.c
+>> > index bb9266ea3785..0d448e4d5213 100644
+>> > --- a/net/ipv4/netfilter/iptable_mangle.c
+>> > +++ b/net/ipv4/netfilter/iptable_mangle.c
+>> > @@ -100,15 +100,26 @@ static int __net_init iptable_mangle_table_init(struct
+>> > net *net)
+>> >         return ret;
+>> >  }
+>> >
+>> > +static void __net_exit iptable_mangle_net_pre_exit(struct net *net)
+>> > +{
+>> > +       struct xt_table *table = net->ipv4.iptable_mangle;
+>> > +
+>> > +       if (mangle_ops)
+>> > +               nf_unregister_net_hooks(net, mangle_ops,
+>> > +                       hweight32(table->valid_hooks));
+>> > +}
+>> 
+>> You probably need if (table) here, not mangle_ops.
+>> I'm not sure if it makes sense to add a new
+>> 
+>> xt_unregister_table_hook() helper, I guess one would have to try
+>> and see if that reduces copy&paste programming or not.
+>> 
+>> >  static void __net_exit iptable_mangle_net_exit(struct net *net)
+>> >  {
+>> >         if (!net->ipv4.iptable_mangle)
+>> >                 return;
+>> > -       ipt_unregister_table(net, net->ipv4.iptable_mangle, mangle_ops);
+>> > +       ipt_unregister_table(net, net->ipv4.iptable_mangle, NULL);
+>> 
+>> I guess the 3rd arg could be removed from the helper.
+>> 
+>> But yes, this looks like what I had in mind.
 > 
-> I think you're misinterpreting that commit regarding an attempt at
-> making diff binary configurable.
+> Will there be a followup?  Otherwise I will place this on my todo-list.
 > 
-> [...]
->
-> > [...]
-> >
-> > # grep DIFF=\" nftables/tests/shell/run-tests.sh
-> > DIFF="diff -y"  
-> 
-> This is no guaranteed functionality. There's no comment or anything
-> stating you could change the DIFF definition atop the script to
-> customize diff behaviour.
+> Thanks.
 
-But...
+Hi Florian
 
- # Configuration
- TESTDIR="./$(dirname $0)/"
- RETURNCODE_SEPARATOR="_"
- SRC_NFT="$(dirname $0)/../../src/nft"
-+POSITIVE_RET=0
-+DIFF=$(which diff)
-
-:) well, now that you tell me, I can guess that "# Configuration" only
-applied to the original parts, and the rest was added there simply
-because there were no other "sections".
-
-> [...]
-> 
-> As said, the quotes are there to cover the expected 'which' output, no
-> more and no less. Supporting user-defined diff-command (or custom
-> options) is new functionality IMO. I'm totally fine with that and merely
-> want to point out we're not talking about fixing a bug here.
-
-Okay, I see. I'll try to get back to that soon.
-
-Pablo, I think you can drop this patch.
-
--- 
-Stefano
-
+I am working on a patch.  Will post soon.  Sorry for the delay.
