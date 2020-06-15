@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C38C8C433DF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 12:14:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7952C433E2
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 12:14:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A2221206D7
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 12:14:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9E9F120679
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jun 2020 12:14:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="kQj/YptZ"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="MW6WKUON"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729932AbgFOMNj (ORCPT
+        id S1729996AbgFOMON (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Jun 2020 08:13:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45006 "EHLO
+        Mon, 15 Jun 2020 08:14:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44998 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729926AbgFOMNf (ORCPT
+        with ESMTP id S1729908AbgFOMNc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Jun 2020 08:13:35 -0400
+        Mon, 15 Jun 2020 08:13:32 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B41AC061A0E;
-        Mon, 15 Jun 2020 05:13:35 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3ECEDC061A0E;
+        Mon, 15 Jun 2020 05:13:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
         MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
         :Reply-To:Content-Type:Content-ID:Content-Description;
-        bh=/uNGWMS6wsKEeNDbdq2MMYM/revZQnG+SE/ig1KbAgs=; b=kQj/YptZTgHtviYD8VY9pDaHTh
-        Nth47/JWS6HPkOCKIBaXf+P0hgcO4QYIwlLm15PzHXiO8z3vDfVw2OZQfftIyksXcjksV6yZ9q0Kz
-        zQPx0MsVBOuBNzzEYpYY/jP8yjvy8CDszcUkg6hJVpCabuI1zJ1tOw9U3oVn+aijjVm8Brck+zI8t
-        yxLxbHcvW5Uj5T74opjNyhohAHs+gDyfJiHUQtXWs8f5Esfe5q3VXOv+tOtjkKBoXS6OdlLXsJ2PB
-        XL4XVX0iMzkEKdQKWmdfmQpCM5qhGYqdDt3Cji/4SSbJXr/IYiiKx+PhQcHwCqo9jFV2EaaSNKFMH
-        vBtD8CzA==;
+        bh=EBziasLTB9yyj8vVMRpUDtYmmAnu214zH16u+u17qnY=; b=MW6WKUONFQZxICu7turzJKDY7v
+        QGc2aDqWPAjffBuQW310yEAMTvWlwCDyU4WKshAhsUAvasBR9HL7nir4NZzck9WGSEqNtJGer6uJj
+        hmc8sHyARGV+U9MyZFT5nuxJnlHsvvELiXKzwOfYtvPn9VEyWIqQ8Rifc/UOPO9H6xQjpy7ssP55z
+        3217JGlgjaaC3Y0vJYqNZcip+USpgQaErA/HobKBJh+/RCLPf0NWQFUY7n8BnWnRLZhI33Kf40nWG
+        pkbvU0R6tu6ZF+uHnVZ5kMQjp24DTXDWl0jv9rc6mkQHFSnrFkCTwmXABHlTDWqw5pU6nA97b7z2R
+        H/T/+/Yg==;
 Received: from 195-192-102-148.dyn.cablelink.at ([195.192.102.148] helo=localhost)
         by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jknzY-00074R-9o; Mon, 15 Jun 2020 12:13:32 +0000
+        id 1jknzV-00074A-E8; Mon, 15 Jun 2020 12:13:29 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     Al Viro <viro@zeniv.linux.org.uk>
 Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
@@ -47,9 +47,9 @@ Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
         linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         linux-security-module@vger.kernel.org,
         netfilter-devel@vger.kernel.org
-Subject: [PATCH 11/13] fs: implement kernel_read using __kernel_read
-Date:   Mon, 15 Jun 2020 14:12:55 +0200
-Message-Id: <20200615121257.798894-12-hch@lst.de>
+Subject: [PATCH 10/13] integrity/ima: switch to using __kernel_read
+Date:   Mon, 15 Jun 2020 14:12:54 +0200
+Message-Id: <20200615121257.798894-11-hch@lst.de>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200615121257.798894-1-hch@lst.de>
 References: <20200615121257.798894-1-hch@lst.de>
@@ -61,41 +61,39 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Consolidate the two in-kernel read helpers to make upcoming changes
-easier.  The only difference are the missing call to rw_verify_area
-in kernel_read, and an access_ok check that doesn't make sense for
-kernel buffers to start with.
+__kernel_read has a bunch of additional sanity checks, and this moves
+the set_fs out of non-core code.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/read_write.c | 13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ security/integrity/iint.c | 14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 3364fdfc2982b4..e1c471982d6213 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -453,15 +453,12 @@ ssize_t __kernel_read(struct file *file, void *buf, size_t count, loff_t *pos)
- 
- ssize_t kernel_read(struct file *file, void *buf, size_t count, loff_t *pos)
+diff --git a/security/integrity/iint.c b/security/integrity/iint.c
+index e12c4900510f60..1d20003243c3fb 100644
+--- a/security/integrity/iint.c
++++ b/security/integrity/iint.c
+@@ -188,19 +188,7 @@ DEFINE_LSM(integrity) = {
+ int integrity_kernel_read(struct file *file, loff_t offset,
+ 			  void *addr, unsigned long count)
  {
 -	mm_segment_t old_fs;
--	ssize_t result;
-+	ssize_t ret;
- 
+-	char __user *buf = (char __user *)addr;
+-	ssize_t ret;
+-
+-	if (!(file->f_mode & FMODE_READ))
+-		return -EBADF;
+-
 -	old_fs = get_fs();
 -	set_fs(KERNEL_DS);
--	/* The cast to a user pointer is valid due to the set_fs() */
--	result = vfs_read(file, (void __user *)buf, count, pos);
+-	ret = __vfs_read(file, buf, count, &offset);
 -	set_fs(old_fs);
--	return result;
-+	ret = rw_verify_area(READ, file, pos, count);
-+	if (ret)
-+		return ret;
-+	return __kernel_read(file, buf, count, pos);
+-
+-	return ret;
++	return __kernel_read(file, addr, count, &offset);
  }
- EXPORT_SYMBOL(kernel_read);
  
+ /*
 -- 
 2.26.2
 
