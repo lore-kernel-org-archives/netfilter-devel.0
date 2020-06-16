@@ -8,59 +8,59 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBDA8C433E1
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jun 2020 08:29:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 024B2C433E2
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jun 2020 08:39:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B554420739
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jun 2020 08:29:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C7D99206F7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jun 2020 08:39:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="tGwUKJJP"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CozLMfRA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727103AbgFPI3G (ORCPT
+        id S1727935AbgFPIjZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 16 Jun 2020 04:29:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34872 "EHLO
+        Tue, 16 Jun 2020 04:39:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36484 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725911AbgFPI3F (ORCPT
+        with ESMTP id S1726112AbgFPIjX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 Jun 2020 04:29:05 -0400
-Received: from mail-pj1-x1044.google.com (mail-pj1-x1044.google.com [IPv6:2607:f8b0:4864:20::1044])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4FCA2C05BD43;
-        Tue, 16 Jun 2020 01:29:05 -0700 (PDT)
-Received: by mail-pj1-x1044.google.com with SMTP id u8so1097479pje.4;
-        Tue, 16 Jun 2020 01:29:05 -0700 (PDT)
+        Tue, 16 Jun 2020 04:39:23 -0400
+Received: from mail-pg1-x542.google.com (mail-pg1-x542.google.com [IPv6:2607:f8b0:4864:20::542])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A54BC05BD43;
+        Tue, 16 Jun 2020 01:39:23 -0700 (PDT)
+Received: by mail-pg1-x542.google.com with SMTP id r18so8896127pgk.11;
+        Tue, 16 Jun 2020 01:39:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=date:from:to:cc:subject:message-id:mime-version:content-disposition
          :content-transfer-encoding:user-agent;
-        bh=ee7JBA4N+BXx5f1zTvLNBRShtRkjIFThGXMYifBNrAc=;
-        b=tGwUKJJP8WXY/P5hsPZn8pNVezAGaIgdZt9w3AW6VLNxdX7DYTJzHzl0q+G1bZtnWe
-         S0mVgam1f+VxKz/ei3gUKeGEDJDnmM0LqIOzN7pUynBKXv3XPIZOeUkF8mu8zbV6Z5ZN
-         vzeIVjJm7Ej4BiybplDSWMhXvJj6/NQxr6k6REuKykFZ2YeLGMj+Umq0R2o3jqUeS8kY
-         dx7Pxq3mWNeGLEuT1SUHhZNpmCh7qgSaK4ubN4aPsEqM6dOE5aBHcddvpWXuJOH/L9qO
-         etFha9VDAnKVp5CXgXaLva3YdxlZ0tjL7rPPfyHKOgQigLI5QmDivClue/BZmgx3143F
-         ECEA==
+        bh=eNyPM9X2/i9pWLHov9MJPoK/TIQ2U6l7XteVn9AsQR0=;
+        b=CozLMfRAuUofkWnz2obZsfwA0YsS5mciwWcItUWz1As5SnSe/McX/1OF5r6qbQrVHW
+         z4I5FcEC242ISDEVDSMIjR9fxYMd5USERJLA1LxPyORkVldPKXDqD14zOcnUD41mGSDY
+         Kl+oS6F3uYmvJO9KYGbIXbJa5OM4Wu41m3HQR/LcpquWYNnZ+zysM+u+8bZzM+FUSCe9
+         iPRjnq6elwTajyHkNHk0m8ZDvTmS/8N1HXp3h4HfOBFXYd0Wj1S3a4gIHT+1zqGp9VmE
+         LQ4zjxsTCcLAyHEAVcJmW3+ltNCQAAuOJleeRmtvdeJfOFKwNZB0QsKTtn/sT0Rjs/Ce
+         c+QA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
          :content-disposition:content-transfer-encoding:user-agent;
-        bh=ee7JBA4N+BXx5f1zTvLNBRShtRkjIFThGXMYifBNrAc=;
-        b=BtFVB5EdJ7vxJ1WDHI1A7Hg21GAM5JNC4Vigmt6pNKoPbrly2Gqmr9xNKiBty806Nb
-         +dN6lO2vVU6soW7B0MU/X6udM/gEV1igoY1MggC0k5ikm9s3Z6x7huxPxXARZhPPx4d4
-         sG5f8c9vAn80pUxpiqMRzCWVmXEVQmwmSQ7qCeiONkslr1CumHrJKfSIyOa1/gKTiGsw
-         PEBKWmGSryPIMwU1bqxdDOTbNEkz9/PR0NLZQSsylses/TEkM1DZjijtYb8xJvAD9nG/
-         ZC+uZSJxYqT39j6IFIQK1oI1Oh0MBiTLFhXXNUGP++88hdgFY6r9F7pZxvjgNUzbBClX
-         y0NA==
-X-Gm-Message-State: AOAM530wI5Lkhp2Ue7rhQsLdubVYsZWpBaBMC9Zd8Nh863Nl0iP6k0Tc
-        kocpqubtmuGu7wmPmXBNxMA=
-X-Google-Smtp-Source: ABdhPJxZ7GjAo9cEG+DKSwmk6ezNz2ThkIxVV9sLpydZFwKkYVTF7DD9MUfHJUGy0ONZje6FX9MIVA==
-X-Received: by 2002:a17:90a:1ad0:: with SMTP id p74mr1840055pjp.117.1592296144709;
-        Tue, 16 Jun 2020 01:29:04 -0700 (PDT)
+        bh=eNyPM9X2/i9pWLHov9MJPoK/TIQ2U6l7XteVn9AsQR0=;
+        b=jV6Eb79NRZV0In3tZB0ilFUGxrNnojjRjjksy4twVOF3KmIO2932bxjEhEtXWXZj/Q
+         VbIVt2vXYn7yusaEXpO56MN7ujfDph2yyu840zjzHMfZHtrAnJ9QyumDELeQOiowgT0U
+         Cpm1GkhthZJIktuSagzWDKWcWp+Fe/BswADY9EAHaNHkhkpwFqzogCfo74kUkWGNGmJg
+         0R40Rouw7MPwdRcyhxcrRW8KgvQpq0TIowadRe9jv80P/sWVuRVF0n5sUHVSNkLXb/qN
+         WMd8QtSIR4sLlG01u2RcAPgBHY4NCOXHKxxwDIUqKj+IL7jJQM8Toy+uFPt51Rq8YADJ
+         VA9Q==
+X-Gm-Message-State: AOAM532VRGO+nNyCQ7uKhXu+Fd2/OVUT8/HYaI/Tk3n5UuKHWUyPksKZ
+        4an0Jt9j57CkuwDJEKsZ+jQ=
+X-Google-Smtp-Source: ABdhPJx+YYHVLHUO3qih6yEbX9POyfs4H+SwLRy8l88m1TOoqB50d1Hn2+wrCHk6qZ/1Y4okvG1BIQ==
+X-Received: by 2002:a63:dd42:: with SMTP id g2mr1328179pgj.442.1592296762431;
+        Tue, 16 Jun 2020 01:39:22 -0700 (PDT)
 Received: from VM_111_229_centos ([203.205.141.39])
-        by smtp.gmail.com with ESMTPSA id y136sm15944180pfg.55.2020.06.16.01.29.01
+        by smtp.gmail.com with ESMTPSA id j13sm1844702pje.25.2020.06.16.01.39.19
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 16 Jun 2020 01:29:04 -0700 (PDT)
-Date:   Tue, 16 Jun 2020 16:28:56 +0800
+        Tue, 16 Jun 2020 01:39:21 -0700 (PDT)
+Date:   Tue, 16 Jun 2020 16:39:13 +0800
 From:   YangYuxi <yx.atom1@gmail.com>
 To:     wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
         pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
@@ -69,7 +69,7 @@ Cc:     netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         linux-kernel@vger.kernel.org, yx.atom1@gmail.com
 Subject: [PATCH] ipvs: avoid drop first packet by reusing conntrack
-Message-ID: <20200616082856.GA22668@VM_111_229_centos>
+Message-ID: <20200616083913.GA24565@VM_111_229_centos>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
@@ -232,7 +232,7 @@ index 83be2d93b407..052fa87d2a44 100644
  {
  	return 0;
 diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index aa6a603a2425..d1e9af6b5792 100644
+index aa6a603a2425..06d378394619 100644
 --- a/net/netfilter/ipvs/ip_vs_core.c
 +++ b/net/netfilter/ipvs/ip_vs_core.c
 @@ -2066,7 +2066,7 @@ static int ip_vs_in_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
@@ -249,7 +249,7 @@ index aa6a603a2425..d1e9af6b5792 100644
  
  		if (resched) {
 +			if (uses_ct) {
-+				if (unlikely(!atomic_read(&cp->n_control) && !cp->control) &&
++				if (likely(!atomic_read(&cp->n_control) && !cp->control) &&
 +				    likely(sysctl_conn_reuse_old_conntrack(ipvs)))
 +					cp->flags &= ~IP_VS_CONN_F_NFCT;
 +				else
