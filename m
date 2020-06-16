@@ -2,281 +2,106 @@ Return-Path: <SRS0=UdzR=75=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 024B2C433E2
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jun 2020 08:39:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85A66C433DF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jun 2020 09:33:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C7D99206F7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jun 2020 08:39:29 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CozLMfRA"
+	by mail.kernel.org (Postfix) with ESMTP id 6181D20707
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jun 2020 09:33:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727935AbgFPIjZ (ORCPT
+        id S1726496AbgFPJdo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 16 Jun 2020 04:39:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36484 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726112AbgFPIjX (ORCPT
+        Tue, 16 Jun 2020 05:33:44 -0400
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:40393 "EHLO
+        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725901AbgFPJdn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 Jun 2020 04:39:23 -0400
-Received: from mail-pg1-x542.google.com (mail-pg1-x542.google.com [IPv6:2607:f8b0:4864:20::542])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A54BC05BD43;
-        Tue, 16 Jun 2020 01:39:23 -0700 (PDT)
-Received: by mail-pg1-x542.google.com with SMTP id r18so8896127pgk.11;
-        Tue, 16 Jun 2020 01:39:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
-         :content-transfer-encoding:user-agent;
-        bh=eNyPM9X2/i9pWLHov9MJPoK/TIQ2U6l7XteVn9AsQR0=;
-        b=CozLMfRAuUofkWnz2obZsfwA0YsS5mciwWcItUWz1As5SnSe/McX/1OF5r6qbQrVHW
-         z4I5FcEC242ISDEVDSMIjR9fxYMd5USERJLA1LxPyORkVldPKXDqD14zOcnUD41mGSDY
-         Kl+oS6F3uYmvJO9KYGbIXbJa5OM4Wu41m3HQR/LcpquWYNnZ+zysM+u+8bZzM+FUSCe9
-         iPRjnq6elwTajyHkNHk0m8ZDvTmS/8N1HXp3h4HfOBFXYd0Wj1S3a4gIHT+1zqGp9VmE
-         LQ4zjxsTCcLAyHEAVcJmW3+ltNCQAAuOJleeRmtvdeJfOFKwNZB0QsKTtn/sT0Rjs/Ce
-         c+QA==
+        Tue, 16 Jun 2020 05:33:43 -0400
+Received: by mail-wm1-f66.google.com with SMTP id r15so2322571wmh.5
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jun 2020 02:33:42 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
-         :content-disposition:content-transfer-encoding:user-agent;
-        bh=eNyPM9X2/i9pWLHov9MJPoK/TIQ2U6l7XteVn9AsQR0=;
-        b=jV6Eb79NRZV0In3tZB0ilFUGxrNnojjRjjksy4twVOF3KmIO2932bxjEhEtXWXZj/Q
-         VbIVt2vXYn7yusaEXpO56MN7ujfDph2yyu840zjzHMfZHtrAnJ9QyumDELeQOiowgT0U
-         Cpm1GkhthZJIktuSagzWDKWcWp+Fe/BswADY9EAHaNHkhkpwFqzogCfo74kUkWGNGmJg
-         0R40Rouw7MPwdRcyhxcrRW8KgvQpq0TIowadRe9jv80P/sWVuRVF0n5sUHVSNkLXb/qN
-         WMd8QtSIR4sLlG01u2RcAPgBHY4NCOXHKxxwDIUqKj+IL7jJQM8Toy+uFPt51Rq8YADJ
-         VA9Q==
-X-Gm-Message-State: AOAM532VRGO+nNyCQ7uKhXu+Fd2/OVUT8/HYaI/Tk3n5UuKHWUyPksKZ
-        4an0Jt9j57CkuwDJEKsZ+jQ=
-X-Google-Smtp-Source: ABdhPJx+YYHVLHUO3qih6yEbX9POyfs4H+SwLRy8l88m1TOoqB50d1Hn2+wrCHk6qZ/1Y4okvG1BIQ==
-X-Received: by 2002:a63:dd42:: with SMTP id g2mr1328179pgj.442.1592296762431;
-        Tue, 16 Jun 2020 01:39:22 -0700 (PDT)
-Received: from VM_111_229_centos ([203.205.141.39])
-        by smtp.gmail.com with ESMTPSA id j13sm1844702pje.25.2020.06.16.01.39.19
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 16 Jun 2020 01:39:21 -0700 (PDT)
-Date:   Tue, 16 Jun 2020 16:39:13 +0800
-From:   YangYuxi <yx.atom1@gmail.com>
-To:     wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
-        pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, kuba@kernel.org
-Cc:     netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, yx.atom1@gmail.com
-Subject: [PATCH] ipvs: avoid drop first packet by reusing conntrack
-Message-ID: <20200616083913.GA24565@VM_111_229_centos>
+        h=x-gm-message-state:subject:from:to:date:message-id:user-agent
+         :mime-version:content-transfer-encoding;
+        bh=zpLID4YVy99yNU8FoRKsFZL6OOUH6vw32URgB2OXjnk=;
+        b=qCM69h+e1sddn19c6noYhYZ38XYykQw4hTxVp9f4jlmtKFpgap4MAj42KXsrtVacTW
+         XWkps2KcPbIiExxrUasBcBwm5Ixp/V0rEaX5YdpX+A079SpaOR4TeqcCVlxz5kNThg0g
+         3ysUOWUgK6bKUzNZvr5O56+vccvPawwZHh+Prrq5rXf3+2p7onl6LlhHqFMQseRei0L1
+         jWoTIfk2rOWy6f8rwL0V5Rm2pC8/yi1gHaP3VxkX14bXdmnMKswdxVcn9CzwiZsGZNaG
+         tuycX1KI9rg098xNDN5oCL7m177yMwsEFyPnfjyKFbIliV8tijSxUZkBXyzYGn0IyWgR
+         Kbkg==
+X-Gm-Message-State: AOAM532U3q62bg+0d7uSLnuuvEC744CSKUsedHOmCkDWlyrPCxXMMc+/
+        Hep7BQT77PdQkkLGhbDtd7IrcmRkz/dvVg==
+X-Google-Smtp-Source: ABdhPJyMTtHetdwGJPW+JC6TEDa6NLDy34fQArnPDR1gmdXFk45OQLzhRP58y+qZ9g9MC6BWNWRIjA==
+X-Received: by 2002:a1c:9d53:: with SMTP id g80mr2360948wme.13.1592300021373;
+        Tue, 16 Jun 2020 02:33:41 -0700 (PDT)
+Received: from localhost (217.216.74.49.dyn.user.ono.com. [217.216.74.49])
+        by smtp.gmail.com with ESMTPSA id w1sm3065614wmi.13.2020.06.16.02.33.40
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 16 Jun 2020 02:33:40 -0700 (PDT)
+Subject: [iptables PATCH] xtables-translate: don't fail if help was requested
+From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Date:   Tue, 16 Jun 2020 11:33:39 +0200
+Message-ID: <159230001954.62609.10203108901931558446.stgit@endurance>
+User-Agent: StGit/0.19
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-User-Agent: Mutt/1.5.21 (2010-09-15)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Since 'commit f719e3754ee2 ("ipvs: drop first packet to
-redirect conntrack")', when a new TCP connection meet
-the conditions that need reschedule, the first syn packet
-is dropped, this cause one second latency for the new
-connection, more discussion about this problem can easy
-search from google, such as:
+If the user called `iptables-translate -h` then we have CMD_NONE and we should gracefully handle
+this case in do_command_xlate().
 
-1)One second connection delay in masque
-https://marc.info/?t=151683118100004&r=1&w=2
+Before this patch, you would see:
 
-2)IPVS low throughput #70747
-https://github.com/kubernetes/kubernetes/issues/70747
+ user@debian:~$ sudo iptables-translate -h
+ [..]
+ nft Unsupported command?
+ user@debian:~$ echo $?
+ 1
 
-3)Apache Bench can fill up ipvs service proxy in seconds #544
-https://github.com/cloudnativelabs/kube-router/issues/544
+After this patch:
 
-4)Additional 1s latency in `host -> service IP -> pod`
-https://github.com/kubernetes/kubernetes/issues/90854
+ user@debian:~$ sudo iptables-translate -h
+ [..]
+ user@debian:~$ echo $?
+ 0
 
-5)kube-proxy ipvs conn_reuse_mode setting causes errors
-with high load from single client
-https://github.com/kubernetes/kubernetes/issues/81775
-
-The root cause is when the old session is expired, the
-conntrack related to the session is dropped by
-ip_vs_conn_drop_conntrack. The code is as follows:
-```
-static void ip_vs_conn_expire(struct timer_list *t)
-{
-...
-
-     if ((cp->flags & IP_VS_CONN_F_NFCT) &&
-         !(cp->flags & IP_VS_CONN_F_ONE_PACKET)) {
-             /* Do not access conntracks during subsys cleanup
-              * because nf_conntrack_find_get can not be used after
-              * conntrack cleanup for the net.
-              */
-             smp_rmb();
-             if (ipvs->enable)
-                     ip_vs_conn_drop_conntrack(cp);
-     }
-...
-}
-```
-As shown in the code, only when condition (cp->flags & IP_VS_CONN_F_NFCT)
-is true, the function ip_vs_conn_drop_conntrack will be called.
-
-So we optimize this by following steps (Administrators
-can choose the following optimization by setting
-net.ipv4.vs.conn_reuse_old_conntrack=1):
-1) erase the IP_VS_CONN_F_NFCT flag (it is safely because
-   no packets will use the old session)
-2) call ip_vs_conn_expire_now to release the old session,
-   then the related conntrack will not be dropped
-3) then ipvs unnecessary to drop the first syn packet, it
-   just continue to pass the syn packet to the next process,
-   create a new ipvs session, and the new session will related
-   to the old conntrack(which is reopened by conntrack as a new
-   one), the next whole things is just as normal as that the old
-   session isn't used to exist.
-
-The above processing has no problems except for passive FTP,
-for passive FTP situation, ipvs can judging from
-condition (atomic_read(&cp->n_control)) and condition (cp->control).
-So, for other conditions(means not FTP), ipvs should give users
-the right to choose，they can choose a high performance one processing
-logical by setting net.ipv4.vs.conn_reuse_old_conntrack=1. It is necessary
-because most business scenarios (such as kubernetes) are very sensitive
-to TCP short connection latency.
-
-This patch has been verified on our thousands of kubernets
-node servers on Tencent Inc.
-
-Signed-off-by: YangYuxi <yx.atom1@gmail.com>
+Fixes: d4409d449c10fa ("nft: Don't exit early after printing help texts")
+Signed-off-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
 ---
- Documentation/networking/ipvs-sysctl.rst | 23 +++++++++++++++++++++++
- include/net/ip_vs.h                      | 11 +++++++++++
- net/netfilter/ipvs/ip_vs_core.c          | 11 +++++++++--
- net/netfilter/ipvs/ip_vs_ctl.c           |  2 ++
- 4 files changed, 45 insertions(+), 2 deletions(-)
+ iptables/xtables-translate.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/networking/ipvs-sysctl.rst b/Documentation/networking/ipvs-sysctl.rst
-index be36c4600e8f..1c8eac824d2b 100644
---- a/Documentation/networking/ipvs-sysctl.rst
-+++ b/Documentation/networking/ipvs-sysctl.rst
-@@ -50,6 +50,29 @@ conn_reuse_mode - INTEGER
- 	balancer in Direct Routing mode. This bit helps on adding new
- 	real servers to a very busy cluster.
+diff --git a/iptables/xtables-translate.c b/iptables/xtables-translate.c
+index 5aa42496..363c8be1 100644
+--- a/iptables/xtables-translate.c
++++ b/iptables/xtables-translate.c
+@@ -249,7 +249,7 @@ static int do_command_xlate(struct nft_handle *h, int argc, char *argv[],
  
-+conn_reuse_old_conntrack - BOOLEAN
-+	- 0 - disabled
-+	- not 0 - enabled (default)
-+
-+	If set, when a new TCP syn packet hit an old ipvs connection
-+	table and need reschedule to a new dest: if
-+		1) the packet use conntrack
-+		2) the old ipvs connection table is not a master control
-+		   connection (E.g the command connection of passived FTP)
-+		3) the old ipvs connection table been not controlled by any
-+		   connections (E.g the data connection of passived FTP)
-+	ipvs Will not release the old conntrack, just let the conntrack
-+	reopen the old session as it is a new one. This is an optimization
-+	option selectable by the system administrator.
-+
-+	If not set, when a new TCP syn packet hit an old ipvs connection
-+	table and need reschedule to a new dest: if
-+		1) the packet use conntrack
-+	ipvs just drop this syn packet, expire the old connection by timer.
-+	This will cause the client tcp syn to retransmit.
-+
-+	Only has effect when conn_reuse_mode not 0.
-+
- conntrack - BOOLEAN
- 	- 0 - disabled (default)
- 	- not 0 - enabled
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 83be2d93b407..052fa87d2a44 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -928,6 +928,7 @@ struct netns_ipvs {
- 	int			sysctl_pmtu_disc;
- 	int			sysctl_backup_only;
- 	int			sysctl_conn_reuse_mode;
-+	int			sysctl_conn_reuse_old_conntrack;
- 	int			sysctl_schedule_icmp;
- 	int			sysctl_ignore_tunneled;
+ 	cs.restore = restore;
  
-@@ -1049,6 +1050,11 @@ static inline int sysctl_conn_reuse_mode(struct netns_ipvs *ipvs)
- 	return ipvs->sysctl_conn_reuse_mode;
- }
+-	if (!restore)
++	if (!restore && p.command != CMD_NONE)
+ 		printf("nft ");
  
-+static inline int sysctl_conn_reuse_old_conntrack(struct netns_ipvs *ipvs)
-+{
-+	return ipvs->sysctl_conn_reuse_old_conntrack;
-+}
-+
- static inline int sysctl_schedule_icmp(struct netns_ipvs *ipvs)
- {
- 	return ipvs->sysctl_schedule_icmp;
-@@ -1136,6 +1142,11 @@ static inline int sysctl_conn_reuse_mode(struct netns_ipvs *ipvs)
- 	return 1;
- }
- 
-+static inline int sysctl_conn_reuse_old_conntrack(struct netns_ipvs *ipvs)
-+{
-+	return 1;
-+}
-+
- static inline int sysctl_schedule_icmp(struct netns_ipvs *ipvs)
- {
- 	return 0;
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index aa6a603a2425..06d378394619 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2066,7 +2066,7 @@ static int ip_vs_in_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
- 
- 	conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
- 	if (conn_reuse_mode && !iph.fragoffs && is_new_conn(skb, &iph) && cp) {
--		bool uses_ct = false, resched = false;
-+		bool uses_ct = false, resched = false, drop = false;
- 
- 		if (unlikely(sysctl_expire_nodest_conn(ipvs)) && cp->dest &&
- 		    unlikely(!atomic_read(&cp->dest->weight))) {
-@@ -2086,10 +2086,17 @@ static int ip_vs_in_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
- 		}
- 
- 		if (resched) {
-+			if (uses_ct) {
-+				if (likely(!atomic_read(&cp->n_control) && !cp->control) &&
-+				    likely(sysctl_conn_reuse_old_conntrack(ipvs)))
-+					cp->flags &= ~IP_VS_CONN_F_NFCT;
-+				else
-+					drop = true;
-+			}
- 			if (!atomic_read(&cp->n_control))
- 				ip_vs_conn_expire_now(cp);
- 			__ip_vs_conn_put(cp);
--			if (uses_ct)
-+			if (drop)
- 				return NF_DROP;
- 			cp = NULL;
- 		}
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 412656c34f20..eeb87994c21f 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -4049,7 +4049,9 @@ static int __net_init ip_vs_control_net_init_sysctl(struct netns_ipvs *ipvs)
- 	tbl[idx++].data = &ipvs->sysctl_pmtu_disc;
- 	tbl[idx++].data = &ipvs->sysctl_backup_only;
- 	ipvs->sysctl_conn_reuse_mode = 1;
-+	ipvs->sysctl_conn_reuse_old_conntrack = 1;
- 	tbl[idx++].data = &ipvs->sysctl_conn_reuse_mode;
-+	tbl[idx++].data = &ipvs->sysctl_conn_reuse_old_conntrack;
- 	tbl[idx++].data = &ipvs->sysctl_schedule_icmp;
- 	tbl[idx++].data = &ipvs->sysctl_ignore_tunneled;
- 
--- 
-1.8.3.1
+ 	switch (p.command) {
+@@ -310,6 +310,9 @@ static int do_command_xlate(struct nft_handle *h, int argc, char *argv[],
+ 		break;
+ 	case CMD_SET_POLICY:
+ 		break;
++	case CMD_NONE:
++		ret = 1;
++		break;
+ 	default:
+ 		/* We should never reach this... */
+ 		printf("Unsupported command?\n");
 
