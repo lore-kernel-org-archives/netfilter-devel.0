@@ -2,243 +2,122 @@ Return-Path: <SRS0=x4zc=76=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA8E5C433E1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Jun 2020 21:33:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 413FAC433DF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Jun 2020 23:36:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 996B92186A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Jun 2020 21:33:27 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="TfwM4lav"
+	by mail.kernel.org (Postfix) with ESMTP id 212FE21534
+	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Jun 2020 23:36:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726853AbgFQVd1 (ORCPT
+        id S1727040AbgFQXgR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 17 Jun 2020 17:33:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40262 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726763AbgFQVd0 (ORCPT
+        Wed, 17 Jun 2020 19:36:17 -0400
+Received: from mail.thelounge.net ([91.118.73.15]:18835 "EHLO
+        mail.thelounge.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727037AbgFQXgR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 17 Jun 2020 17:33:26 -0400
-Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01E0AC06174E
-        for <netfilter-devel@vger.kernel.org>; Wed, 17 Jun 2020 14:33:25 -0700 (PDT)
-Received: by mail-ej1-x642.google.com with SMTP id p20so4128445ejd.13
-        for <netfilter-devel@vger.kernel.org>; Wed, 17 Jun 2020 14:33:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=082ZDcJ58JiAJ5FQwZhCB4u9ixr0nyVZnt4fYABIR84=;
-        b=TfwM4lavAZ4qLtd5wq6rQlVNKfmuRYQ43amsKkYVgFT+8SBxWmO9x5wsvBq940XKAg
-         b7y6FNbnpN7VONhX+pNMmIsdCJV2FjiC9n3+Wds9hgiE4ZfZvYN7TCSi+l1RKQMVjc4H
-         VTqR6pGcGhx/snMwZMlMlSTbYX/5tZcXbYQ2svqAQstq6/l7ixnZwU+LOMkPqqWbKemq
-         DE2g2KY2Nej+5bcYigqtEWd1ECLF3ZomjpGrAbXdruDnwjJ6vnXStdMOI4InbA3xCd2M
-         rE6umaqSA2gnDeoaV49w5DHVs/9DQHlZzxQYa0C0nK3iaVkh/+O/v2Rk4uIEfXXD7JS4
-         YtMg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=082ZDcJ58JiAJ5FQwZhCB4u9ixr0nyVZnt4fYABIR84=;
-        b=lak5wM8Vb3kU6keyRYlUuGl9K5SxnNhhhVQTBa1xQD4kznF2qeuCeL0vovVZVuM8Fp
-         5fRLIJ/pLSmbiL7tz5HIYh2ctB/asihLCEUUY1Q6eJxEOVKYSagazbwrwDz7yRAK4dCm
-         QdNDMF7wQia/waeVRPbo+yRVFzVSIqDhcyKCpZ4rpBhPVd7UvreOYnkPCXHYHcv59oPv
-         8rSxxTkbbfbUgSPKHRTe+npizD5WYSZQx2jA554d2NunmZxN2nlu7RvcNh6u+P7alSw/
-         eXv8m7ugE1wyGQxmSoy4LENtz6XjVd4/wPIAr5BT2nHo53eXeqob9NVO/XfPy9i/Pp4+
-         2QwQ==
-X-Gm-Message-State: AOAM5331wS9GlCzmwNE8zF7qImvjEsyIhD4bKNHug6TbQY9DPpvfo8AA
-        nDk/9Z3n3W2xFYTZtzUTc8OqNcFxNOSOCAnfpTog
-X-Google-Smtp-Source: ABdhPJwGl2Yew0IZrhIcRIB+PA6D6jtLPBcAXq287JWVLoatXUiRC+F29j9ZkG+eUUYXUmHK2aSjHOoPf26wthrPENk=
-X-Received: by 2002:a17:906:434f:: with SMTP id z15mr1080529ejm.178.1592429604473;
- Wed, 17 Jun 2020 14:33:24 -0700 (PDT)
+        Wed, 17 Jun 2020 19:36:17 -0400
+Received: from srv-rhsoft.rhsoft.net (rh.vpn.thelounge.net [10.10.10.2])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-256) server-digest SHA256)
+        (No client certificate requested)
+        (Authenticated sender: h.reindl@thelounge.net)
+        by mail.thelounge.net (THELOUNGE MTA) with ESMTPSA id 49nLzz2rNTzXSh;
+        Thu, 18 Jun 2020 01:36:10 +0200 (CEST)
+Subject: Re: ipset restore for bitmap:port terrible slow
+To:     Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+References: <ffe689dd-63d8-1b8f-42f2-20c875d124b6@thelounge.net>
+ <alpine.DEB.2.22.394.2006172102360.27120@blackhole.kfki.hu>
+From:   Reindl Harald <h.reindl@thelounge.net>
+Organization: the lounge interactive design
+Message-ID: <5db535e7-c418-1c6b-f511-f7d0d8bc04ac@thelounge.net>
+Date:   Thu, 18 Jun 2020 01:36:10 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.9.0
 MIME-Version: 1.0
-References: <20200330134705.jlrkoiqpgjh3rvoh@madcap2.tricolour.ca>
- <CAHC9VhQTsEMcYAF1CSHrrVn07DR450W9j6sFVfKAQZ0VpheOfw@mail.gmail.com>
- <20200330162156.mzh2tsnovngudlx2@madcap2.tricolour.ca> <CAHC9VhTRzZXJ6yUFL+xZWHNWZFTyiizBK12ntrcSwmgmySbkWw@mail.gmail.com>
- <20200330174937.xalrsiev7q3yxsx2@madcap2.tricolour.ca> <CAHC9VhR_bKSHDn2WAUgkquu+COwZUanc0RV3GRjMDvpoJ5krjQ@mail.gmail.com>
- <871ronf9x2.fsf@x220.int.ebiederm.org> <CAHC9VhR3gbmj5+5MY-whLtStKqDEHgvMRigU9hW0X1kpxF91ag@mail.gmail.com>
- <871rol7nw3.fsf@x220.int.ebiederm.org> <CAHC9VhQvhja=vUEbT3uJgQqpj-480HZzWV7b5oc2GWtzFN1qJw@mail.gmail.com>
- <20200608180330.z23hohfa2nclhxf5@madcap2.tricolour.ca>
-In-Reply-To: <20200608180330.z23hohfa2nclhxf5@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Wed, 17 Jun 2020 17:33:13 -0400
-Message-ID: <CAHC9VhQExpNcK-7H+tZg5ouCVts=YmnNiXrgk-ZYenj_zrr1GQ@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
- the audit daemon
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     "Eric W. Biederman" <ebiederm@xmission.com>, nhorman@tuxdriver.com,
-        linux-api@vger.kernel.org, containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        linux-audit@redhat.com, netfilter-devel@vger.kernel.org,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <alpine.DEB.2.22.394.2006172102360.27120@blackhole.kfki.hu>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jun 8, 2020 at 2:04 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2020-04-22 13:24, Paul Moore wrote:
-> > On Fri, Apr 17, 2020 at 6:26 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
-> > > Paul Moore <paul@paul-moore.com> writes:
-> > > > On Thu, Apr 16, 2020 at 4:36 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
-> > > >> Paul Moore <paul@paul-moore.com> writes:
-> > > >> > On Mon, Mar 30, 2020 at 1:49 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > >> >> On 2020-03-30 13:34, Paul Moore wrote:
-> > > >> >> > On Mon, Mar 30, 2020 at 12:22 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > >> >> > > On 2020-03-30 10:26, Paul Moore wrote:
-> > > >> >> > > > On Mon, Mar 30, 2020 at 9:47 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > >> >> > > > > On 2020-03-28 23:11, Paul Moore wrote:
-> > > >> >> > > > > > On Tue, Mar 24, 2020 at 5:02 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > >> >> > > > > > > On 2020-03-23 20:16, Paul Moore wrote:
-> > > >> >> > > > > > > > On Thu, Mar 19, 2020 at 6:03 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > >> >> > > > > > > > > On 2020-03-18 18:06, Paul Moore wrote:
-> > > >> >
-> > > >> > ...
-> > > >> >
-> > > >> >> > > Well, every time a record gets generated, *any* record gets generated,
-> > > >> >> > > we'll need to check for which audit daemons this record is in scope and
-> > > >> >> > > generate a different one for each depending on the content and whether
-> > > >> >> > > or not the content is influenced by the scope.
-> > > >> >> >
-> > > >> >> > That's the problem right there - we don't want to have to generate a
-> > > >> >> > unique record for *each* auditd on *every* record.  That is a recipe
-> > > >> >> > for disaster.
-> > > >> >> >
-> > > >> >> > Solving this for all of the known audit records is not something we
-> > > >> >> > need to worry about in depth at the moment (although giving it some
-> > > >> >> > casual thought is not a bad thing), but solving this for the audit
-> > > >> >> > container ID information *is* something we need to worry about right
-> > > >> >> > now.
-> > > >> >>
-> > > >> >> If you think that a different nested contid value string per daemon is
-> > > >> >> not acceptable, then we are back to issuing a record that has only *one*
-> > > >> >> contid listed without any nesting information.  This brings us back to
-> > > >> >> the original problem of keeping *all* audit log history since the boot
-> > > >> >> of the machine to be able to track the nesting of any particular contid.
-> > > >> >
-> > > >> > I'm not ruling anything out, except for the "let's just completely
-> > > >> > regenerate every record for each auditd instance".
-> > > >>
-> > > >> Paul I am a bit confused about what you are referring to when you say
-> > > >> regenerate every record.
-> > > >>
-> > > >> Are you saying that you don't want to repeat the sequence:
-> > > >>         audit_log_start(...);
-> > > >>         audit_log_format(...);
-> > > >>         audit_log_end(...);
-> > > >> for every nested audit daemon?
-> > > >
-> > > > If it can be avoided yes.  Audit performance is already not-awesome,
-> > > > this would make it even worse.
-> > >
-> > > As far as I can see not repeating sequences like that is fundamental
-> > > for making this work at all.  Just because only the audit subsystem
-> > > should know about one or multiple audit daemons.  Nothing else should
-> > > care.
-> >
-> > Yes, exactly, this has been mentioned in the past.  Both the
-> > performance hit and the code complication in the caller are things we
-> > must avoid.
-> >
-> > > >> Or are you saying that you would like to literraly want to send the same
-> > > >> skb to each of the nested audit daemons?
-> > > >
-> > > > Ideally we would reuse the generated audit messages as much as
-> > > > possible.  Less work is better.  That's really my main concern here,
-> > > > let's make sure we aren't going to totally tank performance when we
-> > > > have a bunch of nested audit daemons.
-> > >
-> > > So I think there are two parts of this answer.  Assuming we are talking
-> > > about nesting audit daemons in containers we will have different
-> > > rulesets and I expect most of the events for a nested audit daemon won't
-> > > be of interest to the outer audit daemon.
-> >
-> > Yes, this is another thing that Richard and I have discussed in the
-> > past.  We will basically need to create per-daemon queues, rules,
-> > tracking state, etc.; that is easy enough.  What will be slightly more
-> > tricky is the part where we apply the filters to the individual
-> > records and decide if that record is valid/desired for a given daemon.
-> > I think it can be done without too much pain, and any changes to the
-> > callers, but it will require a bit of work to make sure it is done
-> > well and that records are needlessly duplicated in the kernel.
-> >
-> > > Beyond that it should be very straight forward to keep a pointer and
-> > > leave the buffer as a scatter gather list until audit_log_end
-> > > and translate pids, and rewrite ACIDs attributes in audit_log_end
-> > > when we build the final packet.  Either through collaboration with
-> > > audit_log_format or a special audit_log command that carefully sets
-> > > up the handful of things that need that information.
-> >
-> > In order to maximize record re-use I think we will want to hold off on
-> > assembling the final packet until it is sent to the daemons in the
-> > kauditd thread.  We'll also likely need to create special
-> > audit_log_XXX functions to capture fields which we know will need
-> > translation, e.g. ACID information.  (the reason for the new
-> > audit_log_XXX functions would be to mark the new sg element and ensure
-> > the buffer is handled correctly)
-> >
-> > Regardless of the details, I think the scatter gather approach is the
-> > key here - that seems like the best design idea I've seen thus far.
-> > It enables us to replace portions of the record as needed ... and
-> > possibly use the existing skb cow stuff ... it has been a while, but
-> > does the skb cow functions handle scatter gather skbs or do they need
-> > to be linear?
->
-> How does the selection of this data management technique affect our
-> choice of field format?
 
-I'm not sure it affects the record string, but it might affect the
-in-kernel API as we would likely want to have a special function for
-logging the audit container ID that does the scatter-gather management
-for the record.  There might also need to be some changes to how we
-allocate the records.
 
-However, since you're the one working on these patches I would expect
-you to be the one to look into how this would work and what the
-impacts might be to the code, record format, etc.
+Am 17.06.20 um 21:06 schrieb Jozsef Kadlecsik:
+> On Wed, 17 Jun 2020, Reindl Harald wrote:
+> 
+>> the restore of a "bitmap:port" ipset with a lot of entries is *terrible* 
+>> slow, when you add a port-range like 42000–42999 it ends in 999 "add 
+>> PORTS_RESTRICTED" lines in the save-file and restore takes virtually 
+>> ages
+>>
+>> the cpu-time below is the whole systemd-unit which restores iptables, 
+>> ipset and configures the network with 3 nics, a bridge and wireguard
+>>
+>> why is this *that much* inefficient given that the original command with
+>> port ranges returns instantly?
+>>
+>> on a datacenter firewall that makes the difference of 5 seconds or 15
+>> seconds downtime at reboot
+>> ---------------------------
+>>
+>> Name: PORTS_RESTRICTED
+>> Type: bitmap:port
+>> Header: range 1-55000
+>>
+>> ---------------------------
+>>
+>> /usr/sbin/ipset -file /etc/sysconfig/ipset restore
+>>
+>> CPU: 9.594s - Number of entries: 5192
+>> CPU: 6.246s - Number of entries: 3192
+>> CPU: 1.511s - Number of entries: 53
+>>
+>> ---------------------------
+> 
+> I cannot reproduce the issue. What is your ipset version (both userspace 
+> tool and kernel modules)?
 
-> Does this lock the field value to a fixed length?
+5.7.0-1.fc33.x86_64
+ipset-7.5-1.fc31.x86_64
 
-I wouldn't think so.  In fact if it did it wouldn't really be a good solution.
+it's practically the same with 5.6.18 and i found it out by luck what
+ruined my boot times that much because i saved the one with 5192 empty
 
-Once again, this is something I would expect you to look into.
+>> 42000–42999 looks in /etc/sysconfig/ipset like below and frankly either
+>> that can be speeded up or should be saved as ranges wherever it's
+>> possible like hash:net prefers cidr
+> 
+> The bitmap port type does not support ranges, just individual port 
+> elements. 
 
-> Does the use of scatter/gather techniques or structures allow
-> the use of different lengths of data for each destination (auditd)?
+but it does support when you want to add 42000–42999 on the cli and that
+works way faster than restore at reboot
 
-This is related to the above ... but yes, the reason why Eric and I
-were discussing a scatter/gather approach is that it would presumably
-allow one to break the single record string into pieces which could be
-managed and manipulated much easier than the monolithic record string.
+if one could restore just the ipset definitions so that you can load the
+iptables ruleset and after that load the values would improve the
+situation dramatically given that 99% of the ruleset works with empty
+ipsets good enough for some seconds
 
-> I could see different target audit daemons triggering or switching to a
-> different chunk of data and length.  This does raise a concern related
-> to the previous sig_info2 discussion that the struct contobj that exists
-> at the time of audit_log_exit called could have been reaped by the time
-> the buffer is pulled from the queue for transmission to auditd, but we
-> could hold a reference to it as is done for sig_info2.
+> In my test restoring a set with 10000 elements took less than 1s
 
-Yes.
+well, that's a nested VMware ESXi within Vmware Workstation where many
+things are more expensive
 
-> Looking through the kernel scatter/gather possibilities, I see struct
-> iovec which is used by the readv/writev/preadv/pwritev syscalls, but I'm
-> understanding that this is a kernel implementation that will be not
-> visible to user space.  So would the struct scatterlist be the right
-> choice?
+but 9 seconds on a single vcore to restore ipset, iptables, create a
+brdige and assign two interfaces to it with a few ethtool commands on
+the production vm with Intel(R) Xeon(R) Gold 6128 CPU @ 3.40GHz is still
+terrible given that the machine don't do anything else
 
-It has been so long since I've looked at the scatter-gather code that
-I can't really say with any confidence at this point.  All I can say
-is that the scatter-gather code really should just be an
-implementation detail in the kernel and should not be visible to
-userspace; userspace should get the same awful, improperly generated
-netlink message it always has received from the kernel ;)
+i remember times where i lost 4 ping packets to the machines behind the
+firewall but than i added a lot of ports to some ipsets
 
--- 
-paul moore
-www.paul-moore.com
+[root@firewall:~]$  systemd-analyze blame
+9.601s network-up.service
