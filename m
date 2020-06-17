@@ -1,4 +1,4 @@
-Return-Path: <SRS0=UdzR=75=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=x4zc=76=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -6,57 +6,101 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79BDFC433E0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jun 2020 16:33:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DABDC433DF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Jun 2020 08:17:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5D9EA20882
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jun 2020 16:33:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7AE9420679
+	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Jun 2020 08:17:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729941AbgFPQdf (ORCPT
+        id S1726303AbgFQIRx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 16 Jun 2020 12:33:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53656 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729857AbgFPQdf (ORCPT
+        Wed, 17 Jun 2020 04:17:53 -0400
+Received: from mail.thelounge.net ([91.118.73.15]:56687 "EHLO
+        mail.thelounge.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725860AbgFQIRx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 Jun 2020 12:33:35 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD89EC061573
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jun 2020 09:33:34 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 9BF7558718CD5; Tue, 16 Jun 2020 18:33:33 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 9AB9160EE6341;
-        Tue, 16 Jun 2020 18:33:33 +0200 (CEST)
-Date:   Tue, 16 Jun 2020 18:33:33 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     Eugene Crosser <crosser@average.org>
-cc:     netfilter-devel@vger.kernel.org
-Subject: Re: ebtables: load-on-demand extensions
-In-Reply-To: <1566db8a-00d4-d9de-8c3d-6625fe2149fa@average.org>
-Message-ID: <nycvar.YFH.7.77.849.2006161830320.16707@n3.vanv.qr>
-References: <76cd59a3-6403-9408-1b8c-af5f11d5fa85@average.org> <nycvar.YFH.7.77.849.2006161717590.16107@n3.vanv.qr> <1566db8a-00d4-d9de-8c3d-6625fe2149fa@average.org>
-User-Agent: Alpine 2.22 (LSU 394 2020-01-19)
+        Wed, 17 Jun 2020 04:17:53 -0400
+Received: from srv-rhsoft.rhsoft.net (rh.vpn.thelounge.net [10.10.10.2])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-256) server-digest SHA256)
+        (No client certificate requested)
+        (Authenticated sender: h.reindl@thelounge.net)
+        by mail.thelounge.net (THELOUNGE MTA) with ESMTPSA id 49mycH0vzTzXSh;
+        Wed, 17 Jun 2020 10:17:51 +0200 (CEST)
+From:   Reindl Harald <h.reindl@thelounge.net>
+Subject: ipset restore for bitmap:port terrible slow
+Organization: the lounge interactive design
+To:     netfilter-devel@vger.kernel.org
+Message-ID: <ffe689dd-63d8-1b8f-42f2-20c875d124b6@thelounge.net>
+Date:   Wed, 17 Jun 2020 10:17:50 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.9.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi
 
-On Tuesday 2020-06-16 17:54, Eugene Crosser wrote:
->>> 2. Is it correct that "new generation" `nft` filtering infrastructure
->>> does not support dynamically loadable extensions at all? (We need a
->>> custom kernel module because we need access to the fields in the skb
->>> that are not exposed to `nft` [..]
->> 
->> Why not make a patch to publicly expose the skb's data via nft_meta?
->> No more custom modules, no more userspace modifications [..]
->
->For our particular use case, we are running the skb through the kernel
->function `skb_validate_network_len()` with custom mtu size [..]
+the restore of a "bitmap:port" ipset with a lot of entries is *terrible*
+slow, when you add a port-range like 42000–42999 it ends in 999 "add
+PORTS_RESTRICTED" lines in the save-file and restore takes virtually ages
 
-I find no such function in the current or past kernels. Perhaps you could post
-the code of the module(s) you already have, and we can assess if it, or the
-upstream ideals, can be massaged to make the code stick.
+the cpu-time below is the whole systemd-unit which restores iptables,
+ipset and configures the network with 3 nics, a bridge and wireguard
+
+why is this *that much* inefficient given that the original command with
+port ranges returns instantly?
+
+on a datacenter firewall that makes the difference of 5 seconds or 15
+seconds downtime at reboot
+
+---------------------------
+
+Name: PORTS_RESTRICTED
+Type: bitmap:port
+Header: range 1-55000
+
+---------------------------
+
+/usr/sbin/ipset -file /etc/sysconfig/ipset restore
+
+CPU: 9.594s - Number of entries: 5192
+CPU: 6.246s - Number of entries: 3192
+CPU: 1.511s - Number of entries: 53
+
+---------------------------
+
+42000–42999 looks in /etc/sysconfig/ipset like below and frankly either
+that can be speeded up or should be saved as ranges wherever it's
+possible like hash:net prefers cidr
+
+add PORTS_RESTRICTED 42000
+add PORTS_RESTRICTED 42001
+add PORTS_RESTRICTED 42002
+add PORTS_RESTRICTED 42003
+add PORTS_RESTRICTED 42004
+add PORTS_RESTRICTED 42005
+add PORTS_RESTRICTED 42006
+add PORTS_RESTRICTED 42007
+add PORTS_RESTRICTED 42008
+add PORTS_RESTRICTED 42009
+add PORTS_RESTRICTED 42010
+add PORTS_RESTRICTED 42011
+add PORTS_RESTRICTED 42012
+add PORTS_RESTRICTED 42013
+add PORTS_RESTRICTED 42014
+add PORTS_RESTRICTED 42015
+add PORTS_RESTRICTED 42016
+add PORTS_RESTRICTED 42017
+add PORTS_RESTRICTED 42018
+add PORTS_RESTRICTED 42019
+add PORTS_RESTRICTED 42020
+add PORTS_RESTRICTED 42021
+add PORTS_RESTRICTED 42022
+
+---------------------------
