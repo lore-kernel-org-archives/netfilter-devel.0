@@ -2,110 +2,226 @@ Return-Path: <SRS0=bANH=AA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CE91C433FE
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jun 2020 15:19:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E604BC433E0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jun 2020 15:53:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 04C5F21582
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jun 2020 15:19:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C1BC520771
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jun 2020 15:53:21 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="F5DOFR6o"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404037AbgFSPPk (ORCPT
+        id S2393108AbgFSPxU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 19 Jun 2020 11:15:40 -0400
-Received: from correo.us.es ([193.147.175.20]:54130 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2392429AbgFSPPi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Jun 2020 11:15:38 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E34266D8C5
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jun 2020 17:15:33 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D4EE0DA73D
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jun 2020 17:15:33 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id CA887DA3A1; Fri, 19 Jun 2020 17:15:33 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5B7F8DA73D;
-        Fri, 19 Jun 2020 17:15:31 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 19 Jun 2020 17:15:31 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Fri, 19 Jun 2020 11:53:20 -0400
+Received: from us-smtp-2.mimecast.com ([207.211.31.81]:38343 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S2393040AbgFSPWn (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 19 Jun 2020 11:22:43 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1592580160;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=l/HKj8Lu0UpE1Qv0ctjZcKbYlSC0+K+puPRzGZpopZs=;
+        b=F5DOFR6o3Xm31CXANPKwcfWYPT/beAbaauLFET68ErPnkmaoNogEmvOxqpS2s9eiHjqCMx
+        oJLtNAQl1gRB2PbxKv7qCWRARr22pGRgO00YE118UsY5c69JRgTjoJoj+gxkZjA4p/MgyC
+        hB5argMW+WQJd8FjubG5z/wFHxFkiJU=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-439-HPCb-NsRPkaEVYKMkqiNzg-1; Fri, 19 Jun 2020 11:22:36 -0400
+X-MC-Unique: HPCb-NsRPkaEVYKMkqiNzg-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 3DF6842EE38E;
-        Fri, 19 Jun 2020 17:15:31 +0200 (CEST)
-Date:   Fri, 19 Jun 2020 17:15:30 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Eugene Crosser <crosser@average.org>
-Cc:     Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org
-Subject: Re: ebtables: load-on-demand extensions
-Message-ID: <20200619151530.GA3894@salvia>
-References: <76cd59a3-6403-9408-1b8c-af5f11d5fa85@average.org>
- <nycvar.YFH.7.77.849.2006161717590.16107@n3.vanv.qr>
- <1566db8a-00d4-d9de-8c3d-6625fe2149fa@average.org>
- <nycvar.YFH.7.77.849.2006161830320.16707@n3.vanv.qr>
- <874fd8a8-dfd2-f6c3-ae01-61884ca9bcff@average.org>
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id C0F5A872FE0;
+        Fri, 19 Jun 2020 15:22:34 +0000 (UTC)
+Received: from madcap2.tricolour.ca (unknown [10.10.110.28])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 0CD205C1D0;
+        Fri, 19 Jun 2020 15:22:19 +0000 (UTC)
+Date:   Fri, 19 Jun 2020 11:22:17 -0400
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     "Eric W. Biederman" <ebiederm@xmission.com>
+Cc:     Paul Moore <paul@paul-moore.com>, nhorman@tuxdriver.com,
+        linux-api@vger.kernel.org, containers@lists.linux-foundation.org,
+        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
+        linux-audit@redhat.com, netfilter-devel@vger.kernel.org,
+        simo@redhat.com, netdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
+        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
+Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
+ the audit daemon
+Message-ID: <20200619152217.s4bb376ud575gufo@madcap2.tricolour.ca>
+References: <CAHC9VhTQUnVhoN3JXTAQ7ti+nNLfGNVXhT6D-GYJRSpJHCwDRg@mail.gmail.com>
+ <20200330134705.jlrkoiqpgjh3rvoh@madcap2.tricolour.ca>
+ <CAHC9VhQTsEMcYAF1CSHrrVn07DR450W9j6sFVfKAQZ0VpheOfw@mail.gmail.com>
+ <20200330162156.mzh2tsnovngudlx2@madcap2.tricolour.ca>
+ <CAHC9VhTRzZXJ6yUFL+xZWHNWZFTyiizBK12ntrcSwmgmySbkWw@mail.gmail.com>
+ <20200330174937.xalrsiev7q3yxsx2@madcap2.tricolour.ca>
+ <CAHC9VhR_bKSHDn2WAUgkquu+COwZUanc0RV3GRjMDvpoJ5krjQ@mail.gmail.com>
+ <871ronf9x2.fsf@x220.int.ebiederm.org>
+ <CAHC9VhR3gbmj5+5MY-whLtStKqDEHgvMRigU9hW0X1kpxF91ag@mail.gmail.com>
+ <871rol7nw3.fsf@x220.int.ebiederm.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <874fd8a8-dfd2-f6c3-ae01-61884ca9bcff@average.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <871rol7nw3.fsf@x220.int.ebiederm.org>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jun 19, 2020 at 03:45:57PM +0200, Eugene Crosser wrote:
-> On 6/16/20 6:33 PM, Jan Engelhardt wrote:
->
-> >>> Why not make a patch to publicly expose the skb's data via nft_meta?
-> >>> No more custom modules, no more userspace modifications [..]
+On 2020-04-17 17:23, Eric W. Biederman wrote:
+> Paul Moore <paul@paul-moore.com> writes:
+> 
+> > On Thu, Apr 16, 2020 at 4:36 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
+> >> Paul Moore <paul@paul-moore.com> writes:
+> >> > On Mon, Mar 30, 2020 at 1:49 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> >> >> On 2020-03-30 13:34, Paul Moore wrote:
+> >> >> > On Mon, Mar 30, 2020 at 12:22 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> >> >> > > On 2020-03-30 10:26, Paul Moore wrote:
+> >> >> > > > On Mon, Mar 30, 2020 at 9:47 AM Richard Guy Briggs <rgb@redhat.com> wrote:
+> >> >> > > > > On 2020-03-28 23:11, Paul Moore wrote:
+> >> >> > > > > > On Tue, Mar 24, 2020 at 5:02 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> >> >> > > > > > > On 2020-03-23 20:16, Paul Moore wrote:
+> >> >> > > > > > > > On Thu, Mar 19, 2020 at 6:03 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> >> >> > > > > > > > > On 2020-03-18 18:06, Paul Moore wrote:
+> >> >
+> >> > ...
+> >> >
+> >> >> > > Well, every time a record gets generated, *any* record gets generated,
+> >> >> > > we'll need to check for which audit daemons this record is in scope and
+> >> >> > > generate a different one for each depending on the content and whether
+> >> >> > > or not the content is influenced by the scope.
+> >> >> >
+> >> >> > That's the problem right there - we don't want to have to generate a
+> >> >> > unique record for *each* auditd on *every* record.  That is a recipe
+> >> >> > for disaster.
+> >> >> >
+> >> >> > Solving this for all of the known audit records is not something we
+> >> >> > need to worry about in depth at the moment (although giving it some
+> >> >> > casual thought is not a bad thing), but solving this for the audit
+> >> >> > container ID information *is* something we need to worry about right
+> >> >> > now.
+> >> >>
+> >> >> If you think that a different nested contid value string per daemon is
+> >> >> not acceptable, then we are back to issuing a record that has only *one*
+> >> >> contid listed without any nesting information.  This brings us back to
+> >> >> the original problem of keeping *all* audit log history since the boot
+> >> >> of the machine to be able to track the nesting of any particular contid.
+> >> >
+> >> > I'm not ruling anything out, except for the "let's just completely
+> >> > regenerate every record for each auditd instance".
 > >>
-> >> For our particular use case, we are running the skb through the kernel
-> >> function `skb_validate_network_len()` with custom mtu size [..]
+> >> Paul I am a bit confused about what you are referring to when you say
+> >> regenerate every record.
+> >>
+> >> Are you saying that you don't want to repeat the sequence:
+> >>         audit_log_start(...);
+> >>         audit_log_format(...);
+> >>         audit_log_end(...);
+> >> for every nested audit daemon?
 > >
-> > I find no such function in the current or past kernels. Perhaps you could post
-> > the code of the module(s) you already have, and we can assess if it, or the
-> > upstream ideals, can be massaged to make the code stick.
->
-> I really really don't see our module being useful for anyone else! Even
-> for us, it's just a stopgap measure, hopefully to be dropped after a few
-> months. That said, I believe that the company will have no objections
-> against publishing it. I've uploaded initial (untested) code on github
-> here https://github.com/crosser/ebt-pmtud, in case anyone is interested.
+> > If it can be avoided yes.  Audit performance is already not-awesome,
+> > this would make it even worse.
+> 
+> As far as I can see not repeating sequences like that is fundamental
+> for making this work at all.  Just because only the audit subsystem
+> should know about one or multiple audit daemons.  Nothing else should
+> care.
+> 
+> >> Or are you saying that you would like to literraly want to send the same
+> >> skb to each of the nested audit daemons?
+> >
+> > Ideally we would reuse the generated audit messages as much as
+> > possible.  Less work is better.  That's really my main concern here,
+> > let's make sure we aren't going to totally tank performance when we
+> > have a bunch of nested audit daemons.
+> 
+> So I think there are two parts of this answer.  Assuming we are talking
+> about nesting audit daemons in containers we will have different
+> rulesets and I expect most of the events for a nested audit daemon won't
+> be of interest to the outer audit daemon.
+> 
+> Beyond that it should be very straight forward to keep a pointer and
+> leave the buffer as a scatter gather list until audit_log_end
+> and translate pids, and rewrite ACIDs attributes in audit_log_end
+> when we build the final packet.  Either through collaboration with
+> audit_log_format or a special audit_log command that carefully sets
+> up the handful of things that need that information.
+> 
+> Hmm.  I am seeing that we send skbs to kauditd and then kauditd
+> sends those skbs to userspace.  I presume that is primary so that
+> sending messages to userspace does not block the process being audited.
+> 
+> Plus a little bit so that the retry logic will work.
+> 
+> I think the naive implementation would be to simply have 1 kauditd
+> per auditd (strictly and audit context/namespace).  Although that can be
+> optimized if that is a problem.
+> 
+> Beyond that I think we would need to look at profiles to really
+> understand where the bottlenecks are.
+> 
+> >> Or are you thinking of something else?
+> >
+> > As mentioned above, I'm not thinking of anything specific, other than
+> > let's please not have to regenerate *all* of the audit record strings
+> > for each instance of an audit daemon, that's going to be a killer.
+> >
+> > Maybe we have to regenerate some, if we do, what would that look like
+> > in code?  How do we handle the regeneration aspect?  I worry that is
+> > going to be really ugly.
+> >
+> > Maybe we finally burn down the audit_log_format(...) function and pass
+> > structs/TLVs to the audit subsystem and the audit subsystem generates
+> > the strings in the auditd connection thread.  Some of the record
+> > strings could likely be shared, others would need to be ACID/auditd
+> > dependent.
+> 
+> I think we just a very limited amount of structs/TLVs for the cases that
+> matter and one-one auditd and kauditd implementations we should still
+> be able to do everything in audit_log_end.  Plus doing as much work as
+> possible in audit_log_end where things are still cache hot is desirable.
 
-I think there is a way to achieve this with nft 0.9.6 ?
+So in the end, perf may show us that moving things around a bit and
+knowing to which queue(s) we send an skb will help maintain performance
+by writing out the field contents in audit_log_end() and sending to the
+correct queue rather than deferring writing out that field contents in
+the kauditd process due to cache issues.  In any case, it makes sense to
+delay that formatting work until just after the daemon routing decision
+is made.
 
-commit 2a20b5bdbde8a1b510f75b1522772b07e51a77d7
-Author: Michael Braun <...>
-Date:   Wed May 6 11:46:23 2020 +0200
+> > I'm open to any ideas people may have.  We have a problem, let's solve
+> > it.
+> 
+> It definitely makes sense to look ahead to having audit daemons running
+> in containers, but in the grand scheme of things that is a nice to have.
+> Probably something we will and should get to, but we have lived a long
+> time without auditd running in containers so I expect we can live a
+> while longer.
+> 
+> As I understand Richard patchset for the specific case of the ACID we
+> are only talking about taking a subset of an existing string, and one
+> string at that.  Not hard at all.  Especially when looking at the
+> fundamental fact that we will need to send a different skb to
+> userspace, for each audit daemon.
+> 
+> Eric
 
-    datatype: add frag-needed (ipv4) to reject options
+- RGB
 
-    This enables to send icmp frag-needed messages using reject target.
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
 
-    I have a bridge with connects an gretap tunnel with some ethernet lan.
-    On the gretap device I use ignore-df to avoid packets being lost without
-    icmp reject to the sender of the bridged packet.
-
-    Still I want to avoid packet fragmentation with the gretap packets.
-    So I though about adding an nftables rule like this:
-
-    nft insert rule bridge filter FORWARD \
-      ip protocol tcp \
-      ip length > 1400 \
-      ip frag-off & 0x4000 != 0 \
-      reject with icmp type frag-needed
-
-    This would reject all tcp packets with ip dont-fragment bit set that are
-    bigger than some threshold (here 1400 bytes). The sender would then receive
-    ICMP unreachable - fragmentation needed and reduce its packet size (as
-    defined with PMTU).
