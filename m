@@ -2,226 +2,231 @@ Return-Path: <SRS0=bANH=AA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E604BC433E0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jun 2020 15:53:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95F33C433DF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jun 2020 16:21:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C1BC520771
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jun 2020 15:53:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 70FAC2168B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jun 2020 16:21:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="F5DOFR6o"
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=average.org header.i=@average.org header.b="VRyFEqMX"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393108AbgFSPxU (ORCPT
+        id S2394545AbgFSQVe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 19 Jun 2020 11:53:20 -0400
-Received: from us-smtp-2.mimecast.com ([207.211.31.81]:38343 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2393040AbgFSPWn (ORCPT
+        Fri, 19 Jun 2020 12:21:34 -0400
+Received: from dehost.average.org ([88.198.2.197]:49580 "EHLO
+        dehost.average.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389757AbgFSQVY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Jun 2020 11:22:43 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1592580160;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=l/HKj8Lu0UpE1Qv0ctjZcKbYlSC0+K+puPRzGZpopZs=;
-        b=F5DOFR6o3Xm31CXANPKwcfWYPT/beAbaauLFET68ErPnkmaoNogEmvOxqpS2s9eiHjqCMx
-        oJLtNAQl1gRB2PbxKv7qCWRARr22pGRgO00YE118UsY5c69JRgTjoJoj+gxkZjA4p/MgyC
-        hB5argMW+WQJd8FjubG5z/wFHxFkiJU=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-439-HPCb-NsRPkaEVYKMkqiNzg-1; Fri, 19 Jun 2020 11:22:36 -0400
-X-MC-Unique: HPCb-NsRPkaEVYKMkqiNzg-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id C0F5A872FE0;
-        Fri, 19 Jun 2020 15:22:34 +0000 (UTC)
-Received: from madcap2.tricolour.ca (unknown [10.10.110.28])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 0CD205C1D0;
-        Fri, 19 Jun 2020 15:22:19 +0000 (UTC)
-Date:   Fri, 19 Jun 2020 11:22:17 -0400
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     Paul Moore <paul@paul-moore.com>, nhorman@tuxdriver.com,
-        linux-api@vger.kernel.org, containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        linux-audit@redhat.com, netfilter-devel@vger.kernel.org,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
-Subject: Re: [PATCH ghak90 V8 07/16] audit: add contid support for signalling
- the audit daemon
-Message-ID: <20200619152217.s4bb376ud575gufo@madcap2.tricolour.ca>
-References: <CAHC9VhTQUnVhoN3JXTAQ7ti+nNLfGNVXhT6D-GYJRSpJHCwDRg@mail.gmail.com>
- <20200330134705.jlrkoiqpgjh3rvoh@madcap2.tricolour.ca>
- <CAHC9VhQTsEMcYAF1CSHrrVn07DR450W9j6sFVfKAQZ0VpheOfw@mail.gmail.com>
- <20200330162156.mzh2tsnovngudlx2@madcap2.tricolour.ca>
- <CAHC9VhTRzZXJ6yUFL+xZWHNWZFTyiizBK12ntrcSwmgmySbkWw@mail.gmail.com>
- <20200330174937.xalrsiev7q3yxsx2@madcap2.tricolour.ca>
- <CAHC9VhR_bKSHDn2WAUgkquu+COwZUanc0RV3GRjMDvpoJ5krjQ@mail.gmail.com>
- <871ronf9x2.fsf@x220.int.ebiederm.org>
- <CAHC9VhR3gbmj5+5MY-whLtStKqDEHgvMRigU9hW0X1kpxF91ag@mail.gmail.com>
- <871rol7nw3.fsf@x220.int.ebiederm.org>
+        Fri, 19 Jun 2020 12:21:24 -0400
+Received: from [IPv6:2a02:247f:ffff:2548:9a90:96ff:fea0:e2f] (unknown [IPv6:2001:1438:4010:2548:9a90:96ff:fea0:e2f])
+        by dehost.average.org (Postfix) with ESMTPSA id CBC67354AFBD;
+        Fri, 19 Jun 2020 18:21:21 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=average.org; s=mail;
+        t=1592583681; bh=jVpDoyKqxBL1biB3245mYQIlAWc6DrXnDIu77FExgHg=;
+        h=Subject:To:References:From:Cc:Date:In-Reply-To:From;
+        b=VRyFEqMX773oFwPGMIBg3hLeWSGfqC8L2rc11JapsUwUtvuc4g7x5GQw78R8AiiEz
+         hUvhlqbLqNki49ThtaBJOxWCiLzoMUFnKXp4+1hdIfRbgg4Hw1mDw0KjMbsKwDa+o6
+         jozaDgCb55AV/2pFLwsN4P/oKDK6AB5lo+Mgj2yc=
+Subject: Re: ebtables: load-on-demand extensions
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+References: <76cd59a3-6403-9408-1b8c-af5f11d5fa85@average.org>
+ <nycvar.YFH.7.77.849.2006161717590.16107@n3.vanv.qr>
+ <1566db8a-00d4-d9de-8c3d-6625fe2149fa@average.org>
+ <nycvar.YFH.7.77.849.2006161830320.16707@n3.vanv.qr>
+ <874fd8a8-dfd2-f6c3-ae01-61884ca9bcff@average.org>
+ <20200619151530.GA3894@salvia>
+From:   Eugene Crosser <crosser@average.org>
+Autocrypt: addr=crosser@average.org; prefer-encrypt=mutual; keydata=
+ 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
+Cc:     netfilter-devel@vger.kernel.org, Jan Engelhardt <jengelh@inai.de>
+Message-ID: <76517e38-fba8-6638-60d4-c5247aae508c@average.org>
+Date:   Fri, 19 Jun 2020 18:21:15 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.8.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <871rol7nw3.fsf@x220.int.ebiederm.org>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+In-Reply-To: <20200619151530.GA3894@salvia>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ protocol="application/pgp-signature";
+ boundary="DH6geZHLynAmgb4glOqIU38jsybDYQqLl"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-04-17 17:23, Eric W. Biederman wrote:
-> Paul Moore <paul@paul-moore.com> writes:
-> 
-> > On Thu, Apr 16, 2020 at 4:36 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
-> >> Paul Moore <paul@paul-moore.com> writes:
-> >> > On Mon, Mar 30, 2020 at 1:49 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> >> On 2020-03-30 13:34, Paul Moore wrote:
-> >> >> > On Mon, Mar 30, 2020 at 12:22 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> >> > > On 2020-03-30 10:26, Paul Moore wrote:
-> >> >> > > > On Mon, Mar 30, 2020 at 9:47 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> >> > > > > On 2020-03-28 23:11, Paul Moore wrote:
-> >> >> > > > > > On Tue, Mar 24, 2020 at 5:02 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> >> > > > > > > On 2020-03-23 20:16, Paul Moore wrote:
-> >> >> > > > > > > > On Thu, Mar 19, 2020 at 6:03 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> >> > > > > > > > > On 2020-03-18 18:06, Paul Moore wrote:
-> >> >
-> >> > ...
-> >> >
-> >> >> > > Well, every time a record gets generated, *any* record gets generated,
-> >> >> > > we'll need to check for which audit daemons this record is in scope and
-> >> >> > > generate a different one for each depending on the content and whether
-> >> >> > > or not the content is influenced by the scope.
-> >> >> >
-> >> >> > That's the problem right there - we don't want to have to generate a
-> >> >> > unique record for *each* auditd on *every* record.  That is a recipe
-> >> >> > for disaster.
-> >> >> >
-> >> >> > Solving this for all of the known audit records is not something we
-> >> >> > need to worry about in depth at the moment (although giving it some
-> >> >> > casual thought is not a bad thing), but solving this for the audit
-> >> >> > container ID information *is* something we need to worry about right
-> >> >> > now.
-> >> >>
-> >> >> If you think that a different nested contid value string per daemon is
-> >> >> not acceptable, then we are back to issuing a record that has only *one*
-> >> >> contid listed without any nesting information.  This brings us back to
-> >> >> the original problem of keeping *all* audit log history since the boot
-> >> >> of the machine to be able to track the nesting of any particular contid.
-> >> >
-> >> > I'm not ruling anything out, except for the "let's just completely
-> >> > regenerate every record for each auditd instance".
-> >>
-> >> Paul I am a bit confused about what you are referring to when you say
-> >> regenerate every record.
-> >>
-> >> Are you saying that you don't want to repeat the sequence:
-> >>         audit_log_start(...);
-> >>         audit_log_format(...);
-> >>         audit_log_end(...);
-> >> for every nested audit daemon?
-> >
-> > If it can be avoided yes.  Audit performance is already not-awesome,
-> > this would make it even worse.
-> 
-> As far as I can see not repeating sequences like that is fundamental
-> for making this work at all.  Just because only the audit subsystem
-> should know about one or multiple audit daemons.  Nothing else should
-> care.
-> 
-> >> Or are you saying that you would like to literraly want to send the same
-> >> skb to each of the nested audit daemons?
-> >
-> > Ideally we would reuse the generated audit messages as much as
-> > possible.  Less work is better.  That's really my main concern here,
-> > let's make sure we aren't going to totally tank performance when we
-> > have a bunch of nested audit daemons.
-> 
-> So I think there are two parts of this answer.  Assuming we are talking
-> about nesting audit daemons in containers we will have different
-> rulesets and I expect most of the events for a nested audit daemon won't
-> be of interest to the outer audit daemon.
-> 
-> Beyond that it should be very straight forward to keep a pointer and
-> leave the buffer as a scatter gather list until audit_log_end
-> and translate pids, and rewrite ACIDs attributes in audit_log_end
-> when we build the final packet.  Either through collaboration with
-> audit_log_format or a special audit_log command that carefully sets
-> up the handful of things that need that information.
-> 
-> Hmm.  I am seeing that we send skbs to kauditd and then kauditd
-> sends those skbs to userspace.  I presume that is primary so that
-> sending messages to userspace does not block the process being audited.
-> 
-> Plus a little bit so that the retry logic will work.
-> 
-> I think the naive implementation would be to simply have 1 kauditd
-> per auditd (strictly and audit context/namespace).  Although that can be
-> optimized if that is a problem.
-> 
-> Beyond that I think we would need to look at profiles to really
-> understand where the bottlenecks are.
-> 
-> >> Or are you thinking of something else?
-> >
-> > As mentioned above, I'm not thinking of anything specific, other than
-> > let's please not have to regenerate *all* of the audit record strings
-> > for each instance of an audit daemon, that's going to be a killer.
-> >
-> > Maybe we have to regenerate some, if we do, what would that look like
-> > in code?  How do we handle the regeneration aspect?  I worry that is
-> > going to be really ugly.
-> >
-> > Maybe we finally burn down the audit_log_format(...) function and pass
-> > structs/TLVs to the audit subsystem and the audit subsystem generates
-> > the strings in the auditd connection thread.  Some of the record
-> > strings could likely be shared, others would need to be ACID/auditd
-> > dependent.
-> 
-> I think we just a very limited amount of structs/TLVs for the cases that
-> matter and one-one auditd and kauditd implementations we should still
-> be able to do everything in audit_log_end.  Plus doing as much work as
-> possible in audit_log_end where things are still cache hot is desirable.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--DH6geZHLynAmgb4glOqIU38jsybDYQqLl
+Content-Type: multipart/mixed; boundary="2aI6mXMR5aWbqiAIeXkJSJ3z5nVXwtHyu";
+ protected-headers="v1"
+From: Eugene Crosser <crosser@average.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, Jan Engelhardt <jengelh@inai.de>
+Message-ID: <76517e38-fba8-6638-60d4-c5247aae508c@average.org>
+Subject: Re: ebtables: load-on-demand extensions
+References: <76cd59a3-6403-9408-1b8c-af5f11d5fa85@average.org>
+ <nycvar.YFH.7.77.849.2006161717590.16107@n3.vanv.qr>
+ <1566db8a-00d4-d9de-8c3d-6625fe2149fa@average.org>
+ <nycvar.YFH.7.77.849.2006161830320.16707@n3.vanv.qr>
+ <874fd8a8-dfd2-f6c3-ae01-61884ca9bcff@average.org>
+ <20200619151530.GA3894@salvia>
+In-Reply-To: <20200619151530.GA3894@salvia>
 
-So in the end, perf may show us that moving things around a bit and
-knowing to which queue(s) we send an skb will help maintain performance
-by writing out the field contents in audit_log_end() and sending to the
-correct queue rather than deferring writing out that field contents in
-the kauditd process due to cache issues.  In any case, it makes sense to
-delay that formatting work until just after the daemon routing decision
-is made.
+--2aI6mXMR5aWbqiAIeXkJSJ3z5nVXwtHyu
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
 
-> > I'm open to any ideas people may have.  We have a problem, let's solve
-> > it.
-> 
-> It definitely makes sense to look ahead to having audit daemons running
-> in containers, but in the grand scheme of things that is a nice to have.
-> Probably something we will and should get to, but we have lived a long
-> time without auditd running in containers so I expect we can live a
-> while longer.
-> 
-> As I understand Richard patchset for the specific case of the ACID we
-> are only talking about taking a subset of an existing string, and one
-> string at that.  Not hard at all.  Especially when looking at the
-> fundamental fact that we will need to send a different skb to
-> userspace, for each audit daemon.
-> 
-> Eric
+On 6/19/20 5:15 PM, Pablo Neira Ayuso wrote:
 
-- RGB
+>>>>> Why not make a patch to publicly expose the skb's data via nft_meta=
+?
+>>>>> No more custom modules, no more userspace modifications [..]
+>>>>
+>>>> For our particular use case, we are running the skb through the kern=
+el
+>>>> function `skb_validate_network_len()` with custom mtu size [..]
+>>>
+>>> I find no such function in the current or past kernels. Perhaps you c=
+ould post
+>>> the code of the module(s) you already have, and we can assess if it, =
+or the
+>>> upstream ideals, can be massaged to make the code stick.
+>>
+>> I really really don't see our module being useful for anyone else! Eve=
+n
+>> for us, it's just a stopgap measure, hopefully to be dropped after a f=
+ew
+>> months. That said, I believe that the company will have no objections
+>> against publishing it. I've uploaded initial (untested) code on github=
 
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
+>> here https://github.com/crosser/ebt-pmtud, in case anyone is intereste=
+d.
+>=20
+> I think there is a way to achieve this with nft 0.9.6 ?
 
+But this does not take into account that large gso skbs are acceptable,
+does it? What we need is to check `skb->len` (minus mac header) for
+_non-gso_ skbs and `skb_gso_validate_network_len()` for _gso_ skbs.
+
+Does such functionality exist? I did not find any reference to gso in
+the code.
+
+Regards,
+
+Eugene
+
+> commit 2a20b5bdbde8a1b510f75b1522772b07e51a77d7
+> Author: Michael Braun <...>
+> Date:   Wed May 6 11:46:23 2020 +0200
+>=20
+>     datatype: add frag-needed (ipv4) to reject options
+>=20
+>     This enables to send icmp frag-needed messages using reject target.=
+
+>=20
+>     I have a bridge with connects an gretap tunnel with some ethernet l=
+an.
+>     On the gretap device I use ignore-df to avoid packets being lost wi=
+thout
+>     icmp reject to the sender of the bridged packet.
+>=20
+>     Still I want to avoid packet fragmentation with the gretap packets.=
+
+>     So I though about adding an nftables rule like this:
+>=20
+>     nft insert rule bridge filter FORWARD \
+>       ip protocol tcp \
+>       ip length > 1400 \
+>       ip frag-off & 0x4000 !=3D 0 \
+>       reject with icmp type frag-needed
+>=20
+>     This would reject all tcp packets with ip dont-fragment bit set tha=
+t are
+>     bigger than some threshold (here 1400 bytes). The sender would then=
+ receive
+>     ICMP unreachable - fragmentation needed and reduce its packet size =
+(as
+>     defined with PMTU).
+>=20
+
+
+--2aI6mXMR5aWbqiAIeXkJSJ3z5nVXwtHyu--
+
+--DH6geZHLynAmgb4glOqIU38jsybDYQqLl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCgAdFiEEnAziRJw3ydIzIkaHfKQHw5GdRYwFAl7s5fsACgkQfKQHw5Gd
+RYz9RggAn6TUzQzvVdQt7n8nKDGoadMQCZpUojDts0bO9QOU3gYWjEEpudXIKAiH
+RGsgynfiUjf6N5dnec30jA9kVqoDYzNDLWOCZ2xR3rOPss/5zTM/6Fmhf0zEv5mq
+rJYb38BCNjrh1NIWaYtSq8lAKMNvfuGQKEAO4hzOJ7LzgXJS04/BAWxisW7xq61g
+o5u7xwHQTogc4KW+mhReDUt9178xQ44QUQY5r3W5RIcxCULkdeAIdQm/K790yDF1
++jOHi1OpIxwDVcs5B4EFJVQFXzipFY5HYfKYqrHMbKbNAUUN1ebgOo5put4rZYbN
+ICeuLKZtnj/YVsU4QTVm0FSQRho9mg==
+=J6cQ
+-----END PGP SIGNATURE-----
+
+--DH6geZHLynAmgb4glOqIU38jsybDYQqLl--
