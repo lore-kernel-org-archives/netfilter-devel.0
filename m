@@ -2,128 +2,131 @@ Return-Path: <SRS0=hx3k=AC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66736C433DF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jun 2020 19:53:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9794C433E0
+	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jun 2020 20:25:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3FF4B25254
-	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jun 2020 19:53:42 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=armlinux.org.uk header.i=@armlinux.org.uk header.b="i9oR0b39"
+	by mail.kernel.org (Postfix) with ESMTP id D19482527D
+	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jun 2020 20:25:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730375AbgFUTxl (ORCPT
+        id S1730668AbgFUUY7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 21 Jun 2020 15:53:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54648 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730288AbgFUTxl (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 Jun 2020 15:53:41 -0400
-X-Greylist: delayed 499 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 21 Jun 2020 12:53:41 PDT
-Received: from pandora.armlinux.org.uk (pandora.armlinux.org.uk [IPv6:2001:4d48:ad52:32c8:5054:ff:fe00:142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F9C2C061794
-        for <netfilter-devel@vger.kernel.org>; Sun, 21 Jun 2020 12:53:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=armlinux.org.uk; s=pandora-2019; h=Sender:In-Reply-To:Content-Type:
-        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
-        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
-        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-         bh=UYvVtsBPfCIcEvW/lZrMDH7BKzR5W3jcQZqmJvpcKuI=; b=i9oR0b39WFv+j0GRKJv/IGCQc
-        FGSEAUhmE5p42eX/exVwjecvU18CXvTX1WWwl4+rvMKnrUIUBFHUM4LpCvBB+E/tJga/8wrH4Gx14
-        vAqSC5MONsETnIeY5HK47oXRfvH9KhicO1ficitcNtjrikl1CuKI7N5VHv3WBAIZGuIzuP+qWetnJ
-        B4SFuxXt4FVe0C91uIBVjy263NLr8iyfYtVSOTbEF8rlU0VP0ek6FPDVu0fdK5TMoHiThdUb1iuzl
-        44PJB5N716TyZBSB4s80H2unuCqliwrId1YmIlWzcrBaXrMdyJ18gVqNICCXRorgjyu4NGb3PhDI/
-        LAML4uzNg==;
-Received: from shell.armlinux.org.uk ([fd8f:7570:feb6:1:5054:ff:fe00:4ec]:58914)
-        by pandora.armlinux.org.uk with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <linux@armlinux.org.uk>)
-        id 1jn5u1-00086Y-KE; Sun, 21 Jun 2020 20:45:17 +0100
-Received: from linux by shell.armlinux.org.uk with local (Exim 4.92)
-        (envelope-from <linux@shell.armlinux.org.uk>)
-        id 1jn5ty-0007nC-5M; Sun, 21 Jun 2020 20:45:14 +0100
-Date:   Sun, 21 Jun 2020 20:45:14 +0100
-From:   Russell King - ARM Linux admin <linux@armlinux.org.uk>
-To:     coreteam@netfilter.org, netfilter-devel@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Sun, 21 Jun 2020 16:24:59 -0400
+Received: from correo.us.es ([193.147.175.20]:44570 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730663AbgFUUY6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 21 Jun 2020 16:24:58 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 5ADF7130E24
+        for <netfilter-devel@vger.kernel.org>; Sun, 21 Jun 2020 22:24:56 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4DE91DA791
+        for <netfilter-devel@vger.kernel.org>; Sun, 21 Jun 2020 22:24:56 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 42787DA789; Sun, 21 Jun 2020 22:24:56 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A5720DA722;
+        Sun, 21 Jun 2020 22:24:53 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Sun, 21 Jun 2020 22:24:53 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 80CDD42EE38F;
+        Sun, 21 Jun 2020 22:24:53 +0200 (CEST)
+Date:   Sun, 21 Jun 2020 22:24:53 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc:     Russell King - ARM Linux admin <linux@armlinux.org.uk>,
+        coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org
 Subject: Re: [PATCH] netfiler: ipset: fix unaligned atomic access
-Message-ID: <20200621194514.GW1551@shell.armlinux.org.uk>
+Message-ID: <20200621202453.GA30348@salvia>
 References: <E1jj7gl-0008Bq-BQ@rmk-PC.armlinux.org.uk>
+ <20200621194514.GW1551@shell.armlinux.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <E1jj7gl-0008Bq-BQ@rmk-PC.armlinux.org.uk>
+In-Reply-To: <20200621194514.GW1551@shell.armlinux.org.uk>
 User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Gentle ping...
+Hi Jozsef,
 
-This patch fixes a remotely triggerable kernel oops, and as such can
-be viewed as a remote denial of service attack depending on the
-netfilter rule setup.
+I'll place in this in nf.git unless you have any objection.
 
-On Wed, Jun 10, 2020 at 09:51:11PM +0100, Russell King wrote:
-> When using ip_set with counters and comment, traffic causes the kernel
-> to panic on 32-bit ARM:
+Thanks.
+
+On Sun, Jun 21, 2020 at 08:45:14PM +0100, Russell King - ARM Linux admin wrote:
+> Gentle ping...
 > 
-> Alignment trap: not handling instruction e1b82f9f at [<bf01b0dc>]
-> Unhandled fault: alignment exception (0x221) at 0xea08133c
-> PC is at ip_set_match_extensions+0xe0/0x224 [ip_set]
+> This patch fixes a remotely triggerable kernel oops, and as such can
+> be viewed as a remote denial of service attack depending on the
+> netfilter rule setup.
 > 
-> The problem occurs when we try to update the 64-bit counters - the
-> faulting address above is not 64-bit aligned.  The problem occurs
-> due to the way elements are allocated, for example:
+> On Wed, Jun 10, 2020 at 09:51:11PM +0100, Russell King wrote:
+> > When using ip_set with counters and comment, traffic causes the kernel
+> > to panic on 32-bit ARM:
+> > 
+> > Alignment trap: not handling instruction e1b82f9f at [<bf01b0dc>]
+> > Unhandled fault: alignment exception (0x221) at 0xea08133c
+> > PC is at ip_set_match_extensions+0xe0/0x224 [ip_set]
+> > 
+> > The problem occurs when we try to update the 64-bit counters - the
+> > faulting address above is not 64-bit aligned.  The problem occurs
+> > due to the way elements are allocated, for example:
+> > 
+> > 	set->dsize = ip_set_elem_len(set, tb, 0, 0);
+> > 	map = ip_set_alloc(sizeof(*map) + elements * set->dsize);
+> > 
+> > If the element has a requirement for a member to be 64-bit aligned,
+> > and set->dsize is not a multiple of 8, but is a multiple of four,
+> > then every odd numbered elements will be misaligned - and hitting
+> > an atomic64_add() on that element will cause the kernel to panic.
+> > 
+> > ip_set_elem_len() must return a size that is rounded to the maximum
+> > alignment of any extension field stored in the element.  This change
+> > ensures that is the case.
+> > 
+> > Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+> > ---
+> > Patch against v5.6, where I tripped over this bug.  This bug has
+> > caused a kernel panic on my new router twice today.
+> > 
+> >  net/netfilter/ipset/ip_set_core.c | 2 ++
+> >  1 file changed, 2 insertions(+)
+> > 
+> > diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> > index 8dd17589217d..be9cd6a500fb 100644
+> > --- a/net/netfilter/ipset/ip_set_core.c
+> > +++ b/net/netfilter/ipset/ip_set_core.c
+> > @@ -459,6 +459,8 @@ ip_set_elem_len(struct ip_set *set, struct nlattr *tb[], size_t len,
+> >  	for (id = 0; id < IPSET_EXT_ID_MAX; id++) {
+> >  		if (!add_extension(id, cadt_flags, tb))
+> >  			continue;
+> > +		if (align < ip_set_extensions[id].align)
+> > +			align = ip_set_extensions[id].align;
+> >  		len = ALIGN(len, ip_set_extensions[id].align);
+> >  		set->offset[id] = len;
+> >  		set->extensions |= ip_set_extensions[id].type;
+> > -- 
+> > 2.20.1
+> > 
+> > 
 > 
-> 	set->dsize = ip_set_elem_len(set, tb, 0, 0);
-> 	map = ip_set_alloc(sizeof(*map) + elements * set->dsize);
-> 
-> If the element has a requirement for a member to be 64-bit aligned,
-> and set->dsize is not a multiple of 8, but is a multiple of four,
-> then every odd numbered elements will be misaligned - and hitting
-> an atomic64_add() on that element will cause the kernel to panic.
-> 
-> ip_set_elem_len() must return a size that is rounded to the maximum
-> alignment of any extension field stored in the element.  This change
-> ensures that is the case.
-> 
-> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-> ---
-> Patch against v5.6, where I tripped over this bug.  This bug has
-> caused a kernel panic on my new router twice today.
-> 
->  net/netfilter/ipset/ip_set_core.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> index 8dd17589217d..be9cd6a500fb 100644
-> --- a/net/netfilter/ipset/ip_set_core.c
-> +++ b/net/netfilter/ipset/ip_set_core.c
-> @@ -459,6 +459,8 @@ ip_set_elem_len(struct ip_set *set, struct nlattr *tb[], size_t len,
->  	for (id = 0; id < IPSET_EXT_ID_MAX; id++) {
->  		if (!add_extension(id, cadt_flags, tb))
->  			continue;
-> +		if (align < ip_set_extensions[id].align)
-> +			align = ip_set_extensions[id].align;
->  		len = ALIGN(len, ip_set_extensions[id].align);
->  		set->offset[id] = len;
->  		set->extensions |= ip_set_extensions[id].type;
 > -- 
-> 2.20.1
-> 
-> 
-
--- 
-RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
-FTTP is here! 40Mbps down 10Mbps up. Decent connectivity at last!
+> RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
+> FTTP is here! 40Mbps down 10Mbps up. Decent connectivity at last!
