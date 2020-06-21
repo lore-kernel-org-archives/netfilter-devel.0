@@ -2,144 +2,76 @@ Return-Path: <SRS0=hx3k=AC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5FF2C433E0
-	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jun 2020 21:05:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F72DC433DF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jun 2020 23:52:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 50FC720716
-	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jun 2020 21:05:28 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="W4O+AGO3"
+	by mail.kernel.org (Postfix) with ESMTP id 23269252F1
+	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jun 2020 23:52:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730689AbgFUVF1 (ORCPT
+        id S1730932AbgFUXwj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 21 Jun 2020 17:05:27 -0400
-Received: from smtp-out.kfki.hu ([148.6.0.48]:39295 "EHLO smtp-out.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730675AbgFUVF1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 Jun 2020 17:05:27 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 29F03CC0101;
-        Sun, 21 Jun 2020 23:05:21 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        blackhole.kfki.hu; h=mime-version:user-agent:references
-        :message-id:in-reply-to:from:from:date:date:received:received
-        :received; s=20151130; t=1592773518; x=1594587919; bh=fwxZkm1MWG
-        QMcxOAgCizOAJq5jQ+Ka19NTZj5D0nv4E=; b=W4O+AGO3kti2JT+Pu+2zxK9W57
-        OQ+1gfvOU6OEyu7JeNIy/RUVEfNWbBnplNphI2Bhg6ygsXMXC5KUWpMyjk3yg4P/
-        gz7YQ8NtMEyUOD0lq5jYoW5tIozEyW74BoPs8772RTYC7O3ipeM/hS0NlbfTcp8c
-        VULbDn6NWPUrWLHA8=
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Sun, 21 Jun 2020 23:05:18 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id B6FA0CC0100;
-        Sun, 21 Jun 2020 23:05:17 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 798C220D01; Sun, 21 Jun 2020 23:05:17 +0200 (CEST)
-Date:   Sun, 21 Jun 2020 23:05:17 +0200 (CEST)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-X-X-Sender: kadlec@blackhole.kfki.hu
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-cc:     Russell King - ARM Linux admin <linux@armlinux.org.uk>,
-        coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org
-Subject: Re: [PATCH] netfiler: ipset: fix unaligned atomic access
-In-Reply-To: <20200621202453.GA30348@salvia>
-Message-ID: <alpine.DEB.2.22.394.2006212304260.536@blackhole.kfki.hu>
-References: <E1jj7gl-0008Bq-BQ@rmk-PC.armlinux.org.uk> <20200621194514.GW1551@shell.armlinux.org.uk> <20200621202453.GA30348@salvia>
-User-Agent: Alpine 2.22 (DEB 394 2020-01-19)
+        Sun, 21 Jun 2020 19:52:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35108 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726485AbgFUXwj (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 21 Jun 2020 19:52:39 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62CBFC061794
+        for <netfilter-devel@vger.kernel.org>; Sun, 21 Jun 2020 16:52:39 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1jn9lM-0008MO-3N; Mon, 22 Jun 2020 01:52:36 +0200
+Date:   Mon, 22 Jun 2020 01:52:36 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Eugene Crosser <crosser@average.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: Expose skb_gso_validate_network_len() [Was: ebtables:
+ load-on-demand extensions]
+Message-ID: <20200621235236.GN26990@breakpoint.cc>
+References: <nycvar.YFH.7.77.849.2006161717590.16107@n3.vanv.qr>
+ <1566db8a-00d4-d9de-8c3d-6625fe2149fa@average.org>
+ <nycvar.YFH.7.77.849.2006161830320.16707@n3.vanv.qr>
+ <874fd8a8-dfd2-f6c3-ae01-61884ca9bcff@average.org>
+ <20200619151530.GA3894@salvia>
+ <13977ee9-d93b-62fd-c86a-6c4466f63e38@average.org>
+ <20200620110404.GF26990@breakpoint.cc>
+ <2dad5797-6643-da2b-3dcf-350d1d501be1@average.org>
+ <20200621032429.GH26990@breakpoint.cc>
+ <nycvar.YFH.7.77.849.2006211201270.18408@n3.vanv.qr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <nycvar.YFH.7.77.849.2006211201270.18408@n3.vanv.qr>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
-
-On Sun, 21 Jun 2020, Pablo Neira Ayuso wrote:
-
-> I'll place in this in nf.git unless you have any objection.
-
-No objection at all and thanks!
-
-Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
-
-Best regards,
-Jozsef
-
-> On Sun, Jun 21, 2020 at 08:45:14PM +0100, Russell King - ARM Linux admin wrote:
-> > Gentle ping...
-> > 
-> > This patch fixes a remotely triggerable kernel oops, and as such can
-> > be viewed as a remote denial of service attack depending on the
-> > netfilter rule setup.
-> > 
-> > On Wed, Jun 10, 2020 at 09:51:11PM +0100, Russell King wrote:
-> > > When using ip_set with counters and comment, traffic causes the kernel
-> > > to panic on 32-bit ARM:
-> > > 
-> > > Alignment trap: not handling instruction e1b82f9f at [<bf01b0dc>]
-> > > Unhandled fault: alignment exception (0x221) at 0xea08133c
-> > > PC is at ip_set_match_extensions+0xe0/0x224 [ip_set]
-> > > 
-> > > The problem occurs when we try to update the 64-bit counters - the
-> > > faulting address above is not 64-bit aligned.  The problem occurs
-> > > due to the way elements are allocated, for example:
-> > > 
-> > > 	set->dsize = ip_set_elem_len(set, tb, 0, 0);
-> > > 	map = ip_set_alloc(sizeof(*map) + elements * set->dsize);
-> > > 
-> > > If the element has a requirement for a member to be 64-bit aligned,
-> > > and set->dsize is not a multiple of 8, but is a multiple of four,
-> > > then every odd numbered elements will be misaligned - and hitting
-> > > an atomic64_add() on that element will cause the kernel to panic.
-> > > 
-> > > ip_set_elem_len() must return a size that is rounded to the maximum
-> > > alignment of any extension field stored in the element.  This change
-> > > ensures that is the case.
-> > > 
-> > > Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-> > > ---
-> > > Patch against v5.6, where I tripped over this bug.  This bug has
-> > > caused a kernel panic on my new router twice today.
-> > > 
-> > >  net/netfilter/ipset/ip_set_core.c | 2 ++
-> > >  1 file changed, 2 insertions(+)
-> > > 
-> > > diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> > > index 8dd17589217d..be9cd6a500fb 100644
-> > > --- a/net/netfilter/ipset/ip_set_core.c
-> > > +++ b/net/netfilter/ipset/ip_set_core.c
-> > > @@ -459,6 +459,8 @@ ip_set_elem_len(struct ip_set *set, struct nlattr *tb[], size_t len,
-> > >  	for (id = 0; id < IPSET_EXT_ID_MAX; id++) {
-> > >  		if (!add_extension(id, cadt_flags, tb))
-> > >  			continue;
-> > > +		if (align < ip_set_extensions[id].align)
-> > > +			align = ip_set_extensions[id].align;
-> > >  		len = ALIGN(len, ip_set_extensions[id].align);
-> > >  		set->offset[id] = len;
-> > >  		set->extensions |= ip_set_extensions[id].type;
-> > > -- 
-> > > 2.20.1
-> > > 
-> > > 
-> > 
-> > -- 
-> > RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
-> > FTTP is here! 40Mbps down 10Mbps up. Decent connectivity at last!
+Jan Engelhardt <jengelh@inai.de> wrote:
+> >Why?  Maybe someone wants to collect statistics on encountered packet
+> >size or something like that.
 > 
+> Possibly so, but you would not want to penalize users who do
+> want the short-circuiting behavior when they are not interested
+> in the statistics.
 
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+What short-circuit behaviour?
+
+The difference we're talking about is:
+
+*reg = get_gso_segment_or_nh_len(skb);
+
+vs.
+
+if (!skb_is_gso(skb) ||
+    get_gso_segment_len(skb) <= priv->len))
+       regs->verdict.code = NFT_BREAK;
