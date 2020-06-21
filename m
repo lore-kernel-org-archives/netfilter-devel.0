@@ -1,247 +1,498 @@
-Return-Path: <SRS0=jWs9=AB=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=hx3k=AC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4957C433DF
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jun 2020 21:17:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF210C433DF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jun 2020 00:21:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6FEC5246C0
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jun 2020 21:17:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6499F23B4B
+	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jun 2020 00:21:36 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=average.org header.i=@average.org header.b="fq1rSBfp"
+	dkim=pass (1024-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="lUo7db4j"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728913AbgFTVRT (ORCPT
+        id S1728605AbgFUAVg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 20 Jun 2020 17:17:19 -0400
-Received: from dehost.average.org ([88.198.2.197]:52092 "EHLO
-        dehost.average.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728891AbgFTVRS (ORCPT
+        Sat, 20 Jun 2020 20:21:36 -0400
+Received: from mail2.protonmail.ch ([185.70.40.22]:19093 "EHLO
+        mail2.protonmail.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728520AbgFUAVf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 20 Jun 2020 17:17:18 -0400
-Received: from [IPv6:2a02:8106:1:6800::640] (unknown [IPv6:2a02:8106:1:6800::640])
-        by dehost.average.org (Postfix) with ESMTPSA id 14E48354C9CE;
-        Sat, 20 Jun 2020 23:17:09 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=average.org; s=mail;
-        t=1592687829; bh=XKlh8w1b9GfZdeNtUSMvhSUrALwkftwavguCL9NI0hE=;
-        h=To:Cc:References:From:Subject:Date:In-Reply-To:From;
-        b=fq1rSBfpyvaPjW8leTFzw2wMMhakmJUtiMVIImnTtepaVWZgqFeLP+pj+HUgCr0MH
-         S51Knz0f5mf8wBrtonrzYOvUL7gI26D4hBmrQo/xGk9zXSUygCT7vIjKutq7/x1zTG
-         DW0WhFXRFpfoYbQzG6gduvnUz15nsF9Qq3d6vF2Q=
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jan Engelhardt <jengelh@inai.de>,
-        netfilter-devel@vger.kernel.org
-References: <76cd59a3-6403-9408-1b8c-af5f11d5fa85@average.org>
- <nycvar.YFH.7.77.849.2006161717590.16107@n3.vanv.qr>
- <1566db8a-00d4-d9de-8c3d-6625fe2149fa@average.org>
- <nycvar.YFH.7.77.849.2006161830320.16707@n3.vanv.qr>
- <874fd8a8-dfd2-f6c3-ae01-61884ca9bcff@average.org>
- <20200619151530.GA3894@salvia>
- <13977ee9-d93b-62fd-c86a-6c4466f63e38@average.org>
- <20200620110404.GF26990@breakpoint.cc>
-From:   Eugene Crosser <crosser@average.org>
-Autocrypt: addr=crosser@average.org; prefer-encrypt=mutual; keydata=
- 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
-Subject: Re: Expose skb_gso_validate_network_len() [Was: ebtables:
- load-on-demand extensions]
-Message-ID: <2dad5797-6643-da2b-3dcf-350d1d501be1@average.org>
-Date:   Sat, 20 Jun 2020 23:16:56 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.8.0
+        Sat, 20 Jun 2020 20:21:35 -0400
+Date:   Sun, 21 Jun 2020 00:21:24 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+        s=protonmail; t=1592698889;
+        bh=hvitda9RMS3Tzk01vOVlap+Plp5BWPUNIXfHwFOaLGo=;
+        h=Date:To:From:Cc:Reply-To:Subject:From;
+        b=lUo7db4jU6EhaUcEkzFakkMCCCGpcx6nSIhNhlCx7HqNYAiVjCk6m2mk7XZe3wqMF
+         ooYwIm/c+QJjuhcinJMuqXtx/TeOcnIX/uQ+KXVkiv4iSp3OBbTe+B2FRYKpTcIEGZ
+         1OpGrzxrqE+GhoBlSN4iEr7x+I5xKXKfkGLZSuOk=
+To:     netfilter-devel@vger.kernel.org
+From:   Rob Gill <rrobgill@protonmail.com>
+Cc:     Rob Gill <rrobgill@protonmail.com>
+Reply-To: Rob Gill <rrobgill@protonmail.com>
+Subject: [PATCH v2] netfilter: Add MODULE_DESCRIPTION entries to kernel modules
+Message-ID: <20200621002114.16509-1-rrobgill@protonmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20200620110404.GF26990@breakpoint.cc>
-Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="LjL89XtcEW3bvr1tbzWpzMSmqvQDMFRYY"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---LjL89XtcEW3bvr1tbzWpzMSmqvQDMFRYY
-Content-Type: multipart/mixed; boundary="oDfbZjgxzIDXJJESRwzOFNozYoHTVZy6j";
- protected-headers="v1"
-From: Eugene Crosser <crosser@average.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Jan Engelhardt
- <jengelh@inai.de>, netfilter-devel@vger.kernel.org
-Message-ID: <2dad5797-6643-da2b-3dcf-350d1d501be1@average.org>
-Subject: Re: Expose skb_gso_validate_network_len() [Was: ebtables:
- load-on-demand extensions]
-References: <76cd59a3-6403-9408-1b8c-af5f11d5fa85@average.org>
- <nycvar.YFH.7.77.849.2006161717590.16107@n3.vanv.qr>
- <1566db8a-00d4-d9de-8c3d-6625fe2149fa@average.org>
- <nycvar.YFH.7.77.849.2006161830320.16707@n3.vanv.qr>
- <874fd8a8-dfd2-f6c3-ae01-61884ca9bcff@average.org>
- <20200619151530.GA3894@salvia>
- <13977ee9-d93b-62fd-c86a-6c4466f63e38@average.org>
- <20200620110404.GF26990@breakpoint.cc>
-In-Reply-To: <20200620110404.GF26990@breakpoint.cc>
+The user tool modinfo is used to get information on kernel modules, includi=
+ng a
+description where it is available.
 
---oDfbZjgxzIDXJJESRwzOFNozYoHTVZy6j
-Content-Type: text/plain; charset=koi8-r
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
+This patch adds a brief MODULE_DESCRIPTION to netfilter kernel modules
+(descriptions taken from Kconfig file or code comments)
 
-On 20/06/2020 13:04, Florian Westphal wrote:
+Signed-off-by: Rob Gill <rrobgill@protonmail.com>
+---
+ net/bridge/netfilter/nft_meta_bridge.c   | 1 +
+ net/bridge/netfilter/nft_reject_bridge.c | 1 +
+ net/ipv4/netfilter/ipt_SYNPROXY.c        | 1 +
+ net/ipv4/netfilter/nf_flow_table_ipv4.c  | 1 +
+ net/ipv4/netfilter/nft_dup_ipv4.c        | 1 +
+ net/ipv4/netfilter/nft_fib_ipv4.c        | 1 +
+ net/ipv4/netfilter/nft_reject_ipv4.c     | 1 +
+ net/ipv6/netfilter/ip6t_SYNPROXY.c       | 1 +
+ net/ipv6/netfilter/nf_flow_table_ipv6.c  | 1 +
+ net/ipv6/netfilter/nft_dup_ipv6.c        | 1 +
+ net/ipv6/netfilter/nft_fib_ipv6.c        | 1 +
+ net/ipv6/netfilter/nft_reject_ipv6.c     | 1 +
+ net/netfilter/nf_dup_netdev.c            | 1 +
+ net/netfilter/nf_flow_table_core.c       | 1 +
+ net/netfilter/nf_flow_table_inet.c       | 1 +
+ net/netfilter/nf_synproxy_core.c         | 1 +
+ net/netfilter/nfnetlink.c                | 1 +
+ net/netfilter/nft_compat.c               | 1 +
+ net/netfilter/nft_connlimit.c            | 1 +
+ net/netfilter/nft_counter.c              | 1 +
+ net/netfilter/nft_ct.c                   | 1 +
+ net/netfilter/nft_dup_netdev.c           | 1 +
+ net/netfilter/nft_fib_inet.c             | 1 +
+ net/netfilter/nft_fib_netdev.c           | 1 +
+ net/netfilter/nft_flow_offload.c         | 1 +
+ net/netfilter/nft_hash.c                 | 1 +
+ net/netfilter/nft_limit.c                | 1 +
+ net/netfilter/nft_log.c                  | 1 +
+ net/netfilter/nft_masq.c                 | 1 +
+ net/netfilter/nft_nat.c                  | 1 +
+ net/netfilter/nft_numgen.c               | 1 +
+ net/netfilter/nft_objref.c               | 1 +
+ net/netfilter/nft_osf.c                  | 1 +
+ net/netfilter/nft_queue.c                | 1 +
+ net/netfilter/nft_quota.c                | 1 +
+ net/netfilter/nft_redir.c                | 1 +
+ net/netfilter/nft_reject.c               | 1 +
+ net/netfilter/nft_reject_inet.c          | 1 +
+ net/netfilter/nft_synproxy.c             | 1 +
+ net/netfilter/nft_tunnel.c               | 1 +
+ net/netfilter/xt_nat.c                   | 1 +
+ 41 files changed, 41 insertions(+)
 
->>>>>>> Why not make a patch to publicly expose the skb's data via nft_me=
-ta?
->>>>>>> No more custom modules, no more userspace modifications [..]
->>>>>>
->>>>>> For our particular use case, we are running the skb through the ke=
-rnel
->>>>>> function `skb_validate_network_len()` with custom mtu size [..]
+diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/=
+nft_meta_bridge.c
+index 7c9e92b2f..a9b430928 100644
+--- a/net/bridge/netfilter/nft_meta_bridge.c
++++ b/net/bridge/netfilter/nft_meta_bridge.c
+@@ -155,3 +155,4 @@ module_exit(nft_meta_bridge_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("wenxu <wenxu@ucloud.cn>");
+ MODULE_ALIAS_NFT_AF_EXPR(AF_BRIDGE, "meta");
++MODULE_DESCRIPTION("Netfilter nf_table bridge meta support");
+diff --git a/net/bridge/netfilter/nft_reject_bridge.c b/net/bridge/netfilte=
+r/nft_reject_bridge.c
+index f48cf4cfb..5ade5cd73 100644
+--- a/net/bridge/netfilter/nft_reject_bridge.c
++++ b/net/bridge/netfilter/nft_reject_bridge.c
+@@ -455,3 +455,4 @@ module_exit(nft_reject_bridge_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+ MODULE_ALIAS_NFT_AF_EXPR(AF_BRIDGE, "reject");
++MODULE_DESCRIPTION("Netfilter nf_tables bridge reject support");
+diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYN=
+PROXY.c
+index 748dc3ce5..bc37fb1e4 100644
+--- a/net/ipv4/netfilter/ipt_SYNPROXY.c
++++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
+@@ -118,3 +118,4 @@ module_exit(synproxy_tg4_exit);
+=20
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
++MODULE_DESCRIPTION("SYNPROXY target support");
+diff --git a/net/ipv4/netfilter/nf_flow_table_ipv4.c b/net/ipv4/netfilter/n=
+f_flow_table_ipv4.c
+index e32e41b99..5b2716017 100644
+--- a/net/ipv4/netfilter/nf_flow_table_ipv4.c
++++ b/net/ipv4/netfilter/nf_flow_table_ipv4.c
+@@ -34,3 +34,4 @@ module_exit(nf_flow_ipv4_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+ MODULE_ALIAS_NF_FLOWTABLE(AF_INET);
++MODULE_DESCRIPTION("Netfilter flow table module");
+diff --git a/net/ipv4/netfilter/nft_dup_ipv4.c b/net/ipv4/netfilter/nft_dup=
+_ipv4.c
+index abf89b972..1080c5199 100644
+--- a/net/ipv4/netfilter/nft_dup_ipv4.c
++++ b/net/ipv4/netfilter/nft_dup_ipv4.c
+@@ -107,3 +107,4 @@ module_exit(nft_dup_ipv4_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+ MODULE_ALIAS_NFT_AF_EXPR(AF_INET, "dup");
++MODULE_DESCRIPTION("IPv4 nf_tables packet duplication support");
+diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib=
+_ipv4.c
+index ce294113d..c3aee4894 100644
+--- a/net/ipv4/netfilter/nft_fib_ipv4.c
++++ b/net/ipv4/netfilter/nft_fib_ipv4.c
+@@ -210,3 +210,4 @@ module_exit(nft_fib4_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Florian Westphal <fw@strlen.de>");
+ MODULE_ALIAS_NFT_AF_EXPR(2, "fib");
++MODULE_DESCRIPTION("nf_tables fib / ip route lookup support");
+diff --git a/net/ipv4/netfilter/nft_reject_ipv4.c b/net/ipv4/netfilter/nft_=
+reject_ipv4.c
+index 7e6fd5cde..724ede938 100644
+--- a/net/ipv4/netfilter/nft_reject_ipv4.c
++++ b/net/ipv4/netfilter/nft_reject_ipv4.c
+@@ -71,3 +71,4 @@ module_exit(nft_reject_ipv4_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+ MODULE_ALIAS_NFT_AF_EXPR(AF_INET, "reject");
++MODULE_DESCRIPTION("IPv4 packet rejection for nf_tables");
+diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_S=
+YNPROXY.c
+index fd1f52a21..9a0f6438a 100644
+--- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
++++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+@@ -121,3 +121,4 @@ module_exit(synproxy_tg6_exit);
+=20
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
++MODULE_DESCRIPTION("IPv6 SYNPROXY target support");
+diff --git a/net/ipv6/netfilter/nf_flow_table_ipv6.c b/net/ipv6/netfilter/n=
+f_flow_table_ipv6.c
+index a8566ee12..667b8af25 100644
+--- a/net/ipv6/netfilter/nf_flow_table_ipv6.c
++++ b/net/ipv6/netfilter/nf_flow_table_ipv6.c
+@@ -35,3 +35,4 @@ module_exit(nf_flow_ipv6_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+ MODULE_ALIAS_NF_FLOWTABLE(AF_INET6);
++MODULE_DESCRIPTION("Netfilter flow table IPv6 module");
+diff --git a/net/ipv6/netfilter/nft_dup_ipv6.c b/net/ipv6/netfilter/nft_dup=
+_ipv6.c
+index 2af322005..af49109e4 100644
+--- a/net/ipv6/netfilter/nft_dup_ipv6.c
++++ b/net/ipv6/netfilter/nft_dup_ipv6.c
+@@ -105,3 +105,4 @@ module_exit(nft_dup_ipv6_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+ MODULE_ALIAS_NFT_AF_EXPR(AF_INET6, "dup");
++MODULE_DESCRIPTION("IPv6 nf_tables packet duplication support");
+diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib=
+_ipv6.c
+index 7ece86afd..e6c8cdd2a 100644
+--- a/net/ipv6/netfilter/nft_fib_ipv6.c
++++ b/net/ipv6/netfilter/nft_fib_ipv6.c
+@@ -255,3 +255,4 @@ module_exit(nft_fib6_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Florian Westphal <fw@strlen.de>");
+ MODULE_ALIAS_NFT_AF_EXPR(10, "fib");
++MODULE_DESCRIPTION("nf_tables fib / ipv6 route lookup support");
+diff --git a/net/ipv6/netfilter/nft_reject_ipv6.c b/net/ipv6/netfilter/nft_=
+reject_ipv6.c
+index 680a28ce2..68ccd6ec2 100644
+--- a/net/ipv6/netfilter/nft_reject_ipv6.c
++++ b/net/ipv6/netfilter/nft_reject_ipv6.c
+@@ -72,3 +72,4 @@ module_exit(nft_reject_ipv6_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+ MODULE_ALIAS_NFT_AF_EXPR(AF_INET6, "reject");
++MODULE_DESCRIPTION("IPv6 packet rejection for nf_tables");
+diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
+index f108a7692..2b01a151e 100644
+--- a/net/netfilter/nf_dup_netdev.c
++++ b/net/netfilter/nf_dup_netdev.c
+@@ -73,3 +73,4 @@ EXPORT_SYMBOL_GPL(nft_fwd_dup_netdev_offload);
+=20
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
++MODULE_DESCRIPTION("Netfilter packet duplication support");
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_tab=
+le_core.c
+index afa85171d..b1eb5272b 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -594,3 +594,4 @@ module_exit(nf_flow_table_module_exit);
+=20
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
++MODULE_DESCRIPTION("Netfilter flow table module");
+diff --git a/net/netfilter/nf_flow_table_inet.c b/net/netfilter/nf_flow_tab=
+le_inet.c
+index 88bedf1ff..bc4126d8e 100644
+--- a/net/netfilter/nf_flow_table_inet.c
++++ b/net/netfilter/nf_flow_table_inet.c
+@@ -72,3 +72,4 @@ module_exit(nf_flow_inet_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+ MODULE_ALIAS_NF_FLOWTABLE(1); /* NFPROTO_INET */
++MODULE_DESCRIPTION("Netfilter flow table mixed IPv4/IPv6 module");
+diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_c=
+ore.c
+index b9cbe1e24..fab7289c9 100644
+--- a/net/netfilter/nf_synproxy_core.c
++++ b/net/netfilter/nf_synproxy_core.c
+@@ -1237,3 +1237,4 @@ EXPORT_SYMBOL_GPL(nf_synproxy_ipv6_fini);
+=20
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
++MODULE_DESCRIPTION("Netfilter nf_tables SYNPROXY core");
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 99127e2d9..5f24edf95 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -33,6 +33,7 @@
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+ MODULE_ALIAS_NET_PF_PROTO(PF_NETLINK, NETLINK_NETFILTER);
++MODULE_DESCRIPTION("Netfilter messages via netlink socket");
+=20
+ #define nfnl_dereference_protected(id) \
+ =09rcu_dereference_protected(table[(id)].subsys, \
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index f9adca62c..9f24995fb 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -902,3 +902,4 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+ MODULE_ALIAS_NFT_EXPR("match");
+ MODULE_ALIAS_NFT_EXPR("target");
++MODULE_DESCRIPTION("Netfilter x_tables over nf_tables module");
+diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
+index 69d6173f9..df1804259 100644
+--- a/net/netfilter/nft_connlimit.c
++++ b/net/netfilter/nft_connlimit.c
+@@ -280,3 +280,4 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pablo Neira Ayuso");
+ MODULE_ALIAS_NFT_EXPR("connlimit");
+ MODULE_ALIAS_NFT_OBJ(NFT_OBJECT_CONNLIMIT);
++MODULE_DESCRIPTION("Netfilter nf_tables connlimit module");
+diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
+index f6d4d0fa2..a9feaa8f9 100644
+--- a/net/netfilter/nft_counter.c
++++ b/net/netfilter/nft_counter.c
+@@ -303,3 +303,4 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+ MODULE_ALIAS_NFT_EXPR("counter");
+ MODULE_ALIAS_NFT_OBJ(NFT_OBJECT_COUNTER);
++MODULE_DESCRIPTION("Netfilter nf_tables counter module");
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index faea72c2d..77258af1f 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -1345,3 +1345,4 @@ MODULE_ALIAS_NFT_EXPR("notrack");
+ MODULE_ALIAS_NFT_OBJ(NFT_OBJECT_CT_HELPER);
+ MODULE_ALIAS_NFT_OBJ(NFT_OBJECT_CT_TIMEOUT);
+ MODULE_ALIAS_NFT_OBJ(NFT_OBJECT_CT_EXPECT);
++MODULE_DESCRIPTION("Netfilter nf_tables conntrack module");
+diff --git a/net/netfilter/nft_dup_netdev.c b/net/netfilter/nft_dup_netdev.=
+c
+index c2e78c160..aada7acf8 100644
+--- a/net/netfilter/nft_dup_netdev.c
++++ b/net/netfilter/nft_dup_netdev.c
+@@ -102,3 +102,4 @@ module_exit(nft_dup_netdev_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+ MODULE_ALIAS_NFT_AF_EXPR(5, "dup");
++MODULE_DESCRIPTION("Netfilter nf_tables netdev packet duplication support"=
+);
+diff --git a/net/netfilter/nft_fib_inet.c b/net/netfilter/nft_fib_inet.c
+index 465432e05..9434dbf2c 100644
+--- a/net/netfilter/nft_fib_inet.c
++++ b/net/netfilter/nft_fib_inet.c
+@@ -76,3 +76,4 @@ module_exit(nft_fib_inet_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Florian Westphal <fw@strlen.de>");
+ MODULE_ALIAS_NFT_AF_EXPR(1, "fib");
++MODULE_DESCRIPTION("Netfilter nf_tables fib inet support");
+diff --git a/net/netfilter/nft_fib_netdev.c b/net/netfilter/nft_fib_netdev.=
+c
+index a2e726ae7..04779ace7 100644
+--- a/net/netfilter/nft_fib_netdev.c
++++ b/net/netfilter/nft_fib_netdev.c
+@@ -85,3 +85,4 @@ module_exit(nft_fib_netdev_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pablo M. Bermudo Garay <pablombg@gmail.com>");
+ MODULE_ALIAS_NFT_AF_EXPR(5, "fib");
++MODULE_DESCRIPTION("Netfilter nf_tables netdev fib lookups support");
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offl=
+oad.c
+index b70b48996..d24ce460a 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -286,3 +286,4 @@ module_exit(nft_flow_offload_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+ MODULE_ALIAS_NFT_EXPR("flow_offload");
++MODULE_DESCRIPTION("Netfilter nf_tables hardware flow offload module");
+diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
+index b836d550b..31dae79bb 100644
+--- a/net/netfilter/nft_hash.c
++++ b/net/netfilter/nft_hash.c
+@@ -248,3 +248,4 @@ module_exit(nft_hash_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Laura Garcia <nevola@gmail.com>");
+ MODULE_ALIAS_NFT_EXPR("hash");
++MODULE_DESCRIPTION("Netfilter nf_tables hash module");
+diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
+index 35b67d7e3..787e74807 100644
+--- a/net/netfilter/nft_limit.c
++++ b/net/netfilter/nft_limit.c
+@@ -372,3 +372,4 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+ MODULE_ALIAS_NFT_EXPR("limit");
+ MODULE_ALIAS_NFT_OBJ(NFT_OBJECT_LIMIT);
++MODULE_DESCRIPTION("Netfilter nf_tables limit module");
+diff --git a/net/netfilter/nft_log.c b/net/netfilter/nft_log.c
+index fe4831f22..57899454a 100644
+--- a/net/netfilter/nft_log.c
++++ b/net/netfilter/nft_log.c
+@@ -298,3 +298,4 @@ module_exit(nft_log_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+ MODULE_ALIAS_NFT_EXPR("log");
++MODULE_DESCRIPTION("Netfilter nf_tables log module");
+diff --git a/net/netfilter/nft_masq.c b/net/netfilter/nft_masq.c
+index bc9fd98c5..59d997f85 100644
+--- a/net/netfilter/nft_masq.c
++++ b/net/netfilter/nft_masq.c
+@@ -305,3 +305,4 @@ module_exit(nft_masq_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Arturo Borrero Gonzalez <arturo@debian.org>");
+ MODULE_ALIAS_NFT_EXPR("masq");
++MODULE_DESCRIPTION("Netfilter nf_tables masquerade support");
+diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
+index 23a7bfd10..4bcf33b04 100644
+--- a/net/netfilter/nft_nat.c
++++ b/net/netfilter/nft_nat.c
+@@ -402,3 +402,4 @@ module_exit(nft_nat_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>");
+ MODULE_ALIAS_NFT_EXPR("nat");
++MODULE_DESCRIPTION("Network Address Translation support");
+diff --git a/net/netfilter/nft_numgen.c b/net/netfilter/nft_numgen.c
+index 48edb9d5f..46850bbf2 100644
+--- a/net/netfilter/nft_numgen.c
++++ b/net/netfilter/nft_numgen.c
+@@ -217,3 +217,4 @@ module_exit(nft_ng_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Laura Garcia <nevola@gmail.com>");
+ MODULE_ALIAS_NFT_EXPR("numgen");
++MODULE_DESCRIPTION("Netfilter nf_tables number generator module");
+diff --git a/net/netfilter/nft_objref.c b/net/netfilter/nft_objref.c
+index bfd18d2b6..65ac42397 100644
+--- a/net/netfilter/nft_objref.c
++++ b/net/netfilter/nft_objref.c
+@@ -252,3 +252,4 @@ module_exit(nft_objref_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+ MODULE_ALIAS_NFT_EXPR("objref");
++MODULE_DESCRIPTION("Netfilter nf_tables stateful object reference module")=
+;
+diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
+index b42247aa4..c3398f0de 100644
+--- a/net/netfilter/nft_osf.c
++++ b/net/netfilter/nft_osf.c
+@@ -149,3 +149,4 @@ module_exit(nft_osf_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Fernando Fernandez <ffmancera@riseup.net>");
+ MODULE_ALIAS_NFT_EXPR("osf");
++MODULE_DESCRIPTION("Netfilter nf_tables passive OS fingerprint support");
+diff --git a/net/netfilter/nft_queue.c b/net/netfilter/nft_queue.c
+index 5ece0a6aa..05ac74515 100644
+--- a/net/netfilter/nft_queue.c
++++ b/net/netfilter/nft_queue.c
+@@ -216,3 +216,4 @@ module_exit(nft_queue_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Eric Leblond <eric@regit.org>");
+ MODULE_ALIAS_NFT_EXPR("queue");
++MODULE_DESCRIPTION("Netfilter nf_tables queue module");
+diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
+index 441369059..e51e1d37c 100644
+--- a/net/netfilter/nft_quota.c
++++ b/net/netfilter/nft_quota.c
+@@ -254,3 +254,4 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+ MODULE_ALIAS_NFT_EXPR("quota");
+ MODULE_ALIAS_NFT_OBJ(NFT_OBJECT_QUOTA);
++MODULE_DESCRIPTION("Netfilter nf_tables quota module");
+diff --git a/net/netfilter/nft_redir.c b/net/netfilter/nft_redir.c
+index 5b7791715..318a58caa 100644
+--- a/net/netfilter/nft_redir.c
++++ b/net/netfilter/nft_redir.c
+@@ -292,3 +292,4 @@ module_exit(nft_redir_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Arturo Borrero Gonzalez <arturo@debian.org>");
+ MODULE_ALIAS_NFT_EXPR("redir");
++MODULE_DESCRIPTION("Netfilter nf_tables redirect support");
+diff --git a/net/netfilter/nft_reject.c b/net/netfilter/nft_reject.c
+index 00f865fb8..1ba7bd394 100644
+--- a/net/netfilter/nft_reject.c
++++ b/net/netfilter/nft_reject.c
+@@ -119,3 +119,4 @@ EXPORT_SYMBOL_GPL(nft_reject_icmpv6_code);
+=20
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
++MODULE_DESCRIPTION("Netfilter x_tables over nf_tables module");
+diff --git a/net/netfilter/nft_reject_inet.c b/net/netfilter/nft_reject_ine=
+t.c
+index f41f414b7..b27c8791b 100644
+--- a/net/netfilter/nft_reject_inet.c
++++ b/net/netfilter/nft_reject_inet.c
+@@ -149,3 +149,4 @@ module_exit(nft_reject_inet_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+ MODULE_ALIAS_NFT_AF_EXPR(1, "reject");
++MODULE_DESCRIPTION("Netfilter nf_tables reject inet support");
+diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
+index e2c1fc608..8ee984a7d 100644
+--- a/net/netfilter/nft_synproxy.c
++++ b/net/netfilter/nft_synproxy.c
+@@ -388,3 +388,4 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Fernando Fernandez <ffmancera@riseup.net>");
+ MODULE_ALIAS_NFT_EXPR("synproxy");
+ MODULE_ALIAS_NFT_OBJ(NFT_OBJECT_SYNPROXY);
++MODULE_DESCRIPTION("Netfilter nf_tables SYNPROXY expression support");
+diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
+index 30be5787f..ac8447783 100644
+--- a/net/netfilter/nft_tunnel.c
++++ b/net/netfilter/nft_tunnel.c
+@@ -719,3 +719,4 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+ MODULE_ALIAS_NFT_EXPR("tunnel");
+ MODULE_ALIAS_NFT_OBJ(NFT_OBJECT_TUNNEL);
++MODULE_DESCRIPTION("Netfilter nf_tables tunnel module");
+diff --git a/net/netfilter/xt_nat.c b/net/netfilter/xt_nat.c
+index a8e5f6c8d..b4f7bbc3f 100644
+--- a/net/netfilter/xt_nat.c
++++ b/net/netfilter/xt_nat.c
+@@ -244,3 +244,4 @@ MODULE_ALIAS("ipt_SNAT");
+ MODULE_ALIAS("ipt_DNAT");
+ MODULE_ALIAS("ip6t_SNAT");
+ MODULE_ALIAS("ip6t_DNAT");
++MODULE_DESCRIPTION("SNAT and DNAT targets support");
+--=20
+2.17.1
 
->> makes sense to implement the functionality that we need within the "ne=
-w" nft
->> infrastructure.
->=20
-> Yes, just do what Jan suggested and expost this in nft_meta.c
->=20
->> As far as I understand, the part that is missing in the existing imple=
-mentation
->> is exposure (in some form) of `skb_gso_validate_network_len()` functio=
-n to
->> user-configurable filters.
->=20
-> No, nft already has "< $value" logic.
-> The only missing piece of the puzzle is a way to populate an nft
-> register with the "size per segment" value.
+Fix truncation Reported-by: kernel test robot <lkp@intel.com>
 
-I don't think that it works. `skb_gso_network_seglen()` gives the (same f=
-or all
-segments) segment length _only_ when `shinfo->gso_size !=3D GSO_BY_FRAGS`=
-=2E If we
-were to expose maximum segment length for skbs with `gso_size =3D=3D GSO_=
-BY_FRAGS`,
-we'd need a new function that basically replicates the functionality of
-`skb_gso_size_check()` and performs `skb_walk_frags()`, only instead of
-returning `false` on first violation finds and then returns the maximum
-encoutered value.
-
-That means we'd need to introduce a new function for the sole purpose of =
-making
-the proposed check fit in the "less-equal-greater" model. And the only pr=
-actical
-use of the feature is to check "fits-doesn't fit" anyway. It would seem l=
-ogical
-to rather use the kernel function that already exists and already has the=
-
-"fits-doesn't fit" semantic.
-
-Do you think this is a valid argument to implement a boolean predicate ra=
-ther
-than expose an arithmetic value?
-
-Regards,
-
-Eugene
-
->> Because the kernel does now expose the _size_ under
->> which a gso skb can be segmented, but only the _boolean_ with the mean=
-ing "this
->> gso skb can fit in mtu that you've specified",
->=20
-> It would be best to remove "static" from skb_gso_network_seglen() and
-> add an EXPORT_SYMBOL_GPL for it.
->=20
-> Then, extend nft_meta.c to set register content to that for gso
-> or the ip/ipv6 packet size for !gso.
->=20
-> Then, extend nft to support something like
->=20
->       nft insert rule bridge filter FORWARD \
->         ip frag-off & 0x4000 !=3D 0 \
->         ip protocol tcp \
-> 	meta nh_segment_length > 1400 \
->         reject with icmp type frag-needed
->=20
-> [ NB: I suck at naming, so feel free to come up
->   with somethng more descriptive than "nh_segment_length".
->   l3size? nh-len...? ]
->=20
-
-
-
---oDfbZjgxzIDXJJESRwzOFNozYoHTVZy6j--
-
---LjL89XtcEW3bvr1tbzWpzMSmqvQDMFRYY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCgAdFiEEnAziRJw3ydIzIkaHfKQHw5GdRYwFAl7ufM8ACgkQfKQHw5Gd
-RYz+Egf/dWgnPUbYhvjYZbmxM38mtj+mHDaGpxWUMG3zTbO9D8ebt/6m/ulI6CS2
-dxDgVeqQYxkYZPVTpLJF0lrrmaRlcuoFbYSVU+ulUWHB27Ldfmjb3gfUfu4LXQEC
-LYL1ULTjI6Z8PJmNjzLOl0hpVx+36szKpEJjl/1zaG7YXWwc/Botyq4ub8uxWHoa
-w3U/u4DMYMo04p1McptHILnJGi0D+z5LxFchYkc1nwvecPgFDcC1SQ3exjC1S4u7
-/RmZyFuNvzlloy+b9qIK5obJJMslFLLq8Fdu5jfiuxtRO3p9sXJ3lFeBngrKWwF1
-Ygz0t8D9LMAS2JWOumbhouDg3uKJ/w==
-=a/hQ
------END PGP SIGNATURE-----
-
---LjL89XtcEW3bvr1tbzWpzMSmqvQDMFRYY--
