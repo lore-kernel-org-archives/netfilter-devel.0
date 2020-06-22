@@ -3,79 +3,54 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30FBFC433E0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 12:07:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB2A6C433E3
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 12:42:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0E34620708
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 12:07:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C9769207DD
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 12:42:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728116AbgFVMHQ (ORCPT
+        id S1727980AbgFVMmN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Jun 2020 08:07:16 -0400
-Received: from correo.us.es ([193.147.175.20]:46806 "EHLO mail.us.es"
+        Mon, 22 Jun 2020 08:42:13 -0400
+Received: from correo.us.es ([193.147.175.20]:40866 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728110AbgFVMHQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Jun 2020 08:07:16 -0400
+        id S1728143AbgFVMmM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Jun 2020 08:42:12 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B5A03F23D2
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jun 2020 14:07:14 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id A826BB6329
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jun 2020 14:42:10 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9FC9CDA798
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jun 2020 14:07:14 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9A958DA78D
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jun 2020 14:42:10 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 9D3B5DA73F; Mon, 22 Jun 2020 14:07:14 +0200 (CEST)
+        id 8FE2EDA78C; Mon, 22 Jun 2020 14:42:10 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8F81EDA8FA;
-        Mon, 22 Jun 2020 14:07:10 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 21E29DA78E;
+        Mon, 22 Jun 2020 14:42:08 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 22 Jun 2020 14:07:10 +0200 (CEST)
+ Mon, 22 Jun 2020 14:42:08 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id E619642EF4FB;
-        Mon, 22 Jun 2020 14:07:07 +0200 (CEST)
-Date:   Mon, 22 Jun 2020 14:07:07 +0200
+        by entrada.int (Postfix) with ESMTPSA id 05D9E42EF4E1;
+        Mon, 22 Jun 2020 14:42:07 +0200 (CEST)
+Date:   Mon, 22 Jun 2020 14:42:07 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     "Alexander A. Klimov" <grandmaster@al2klimov.de>,
-        David Howells <dhowells@redhat.com>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        Andrea Parri <parri.andrea@gmail.com>,
-        Will Deacon <will@kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Boqun Feng <boqun.feng@gmail.com>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Jade Alglave <j.alglave@ucl.ac.uk>,
-        Luc Maranget <luc.maranget@inria.fr>,
-        "Paul E. McKenney" <paulmck@kernel.org>,
-        Akira Yokosawa <akiyks@gmail.com>,
-        Daniel Lustig <dlustig@nvidia.com>,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-arch@vger.kernel.org,
-        Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: Good idea to rename files in include/uapi/ ?
-Message-ID: <20200622120707.GA17620@salvia>
-References: <9feded75-4b45-2821-287b-af00ec5f910f@al2klimov.de>
- <174102.1592165965@warthog.procyon.org.uk>
- <nycvar.YFH.7.77.849.2006142244200.30230@n3.vanv.qr>
- <ab88e504-c139-231a-0294-953ffd1a9442@al2klimov.de>
- <nycvar.YFH.7.77.849.2006221336180.26495@n3.vanv.qr>
+To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: iptables user space performance benchmarks published
+Message-ID: <20200622124207.GA25671@salvia>
+References: <20200619141157.GU23632@orbyte.nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <nycvar.YFH.7.77.849.2006221336180.26495@n3.vanv.qr>
+In-Reply-To: <20200619141157.GU23632@orbyte.nwl.cc>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -83,21 +58,26 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jun 22, 2020 at 01:37:09PM +0200, Jan Engelhardt wrote:
-> 
-> On Monday 2020-06-15 01:34, Alexander A. Klimov wrote:
-> >> 
-> >> A header file rename is no problem. We even have dummy headers
-> > Hmm.. if I understand all of you correctly, David, Stefano, Pablo and Al say
-> > like no, not a good idea, but only you, Jan, say like should be no problem.
-> >
-> > Jan, do you have anything like commit messages in mainline or public emails
-> > from maintainers confirming your opinion?
-> 
-> I had already given the commit with the (email) message:
-> 
-> >> Just look at xt_MARK.h, all it does is include xt_mark.h. Cf.
-> >> 28b949885f80efb87d7cebdcf879c99db12c37bd .
+Hi Phil,
 
-Why rename this in 2020 ?
+On Fri, Jun 19, 2020 at 04:11:57PM +0200, Phil Sutter wrote:
+> Hi Pablo,
+> 
+> I remember you once asked for the benchmark scripts I used to compare
+> performance of iptables-nft with -legacy in terms of command overhead
+> and caching, as detailed in a blog[1] I wrote about it. I meanwhile
+> managed to polish the scripts a bit and push them into a public repo,
+> accessible here[2]. I'm not sure whether they are useful for regular
+> runs (or even CI) as a single run takes a few hours and parallel use
+> likely kills result precision.
 
+So what is the _technical_ incentive for using the iptables blob
+interface (a.k.a. legacy) these days then?
+
+The iptables-nft frontend is transparent and it outperforms the legacy
+code for dynamic rulesets.
+
+Thanks.
+
+> [1] https://developers.redhat.com/blog/2020/04/27/optimizing-iptables-nft-large-ruleset-performance-in-user-space/
+> [2] http://nwl.cc/cgi-bin/git/gitweb.cgi?p=ipt-sbs-bench.git;a=summary
