@@ -2,89 +2,254 @@ Return-Path: <SRS0=UFFK=AD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,LOTS_OF_MONEY,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC270C433DF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 08:26:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E666BC433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 08:28:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C915D20708
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 08:26:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB58720706
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 08:28:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726140AbgFVI0h (ORCPT
+        id S1725851AbgFVI2r (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Jun 2020 04:26:37 -0400
-Received: from correo.us.es ([193.147.175.20]:48910 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726080AbgFVI0h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Jun 2020 04:26:37 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 31039130E27
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jun 2020 10:26:36 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2278E114D7B
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jun 2020 10:26:36 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 176F0114D76; Mon, 22 Jun 2020 10:26:36 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DE3C4DA72F;
-        Mon, 22 Jun 2020 10:26:33 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 22 Jun 2020 10:26:33 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id B994942EE38F;
-        Mon, 22 Jun 2020 10:26:33 +0200 (CEST)
-Date:   Mon, 22 Jun 2020 10:26:33 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Russell King <rmk+kernel@armlinux.org.uk>
-Cc:     coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org
-Subject: Re: [PATCH] netfiler: ipset: fix unaligned atomic access
-Message-ID: <20200622082633.GA4512@salvia>
-References: <E1jj7gl-0008Bq-BQ@rmk-PC.armlinux.org.uk>
+        Mon, 22 Jun 2020 04:28:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57690 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725616AbgFVI2r (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Jun 2020 04:28:47 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3BB4CC061794
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jun 2020 01:28:47 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1jnHoq-0002pt-7H; Mon, 22 Jun 2020 10:28:44 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf 1/1] selftests: netfilter: add test case for conntrack helper assignment
+Date:   Mon, 22 Jun 2020 10:28:32 +0200
+Message-Id: <20200622082832.2883-1-fw@strlen.de>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <E1jj7gl-0008Bq-BQ@rmk-PC.armlinux.org.uk>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jun 10, 2020 at 09:51:11PM +0100, Russell King wrote:
-> When using ip_set with counters and comment, traffic causes the kernel
-> to panic on 32-bit ARM:
-> 
-> Alignment trap: not handling instruction e1b82f9f at [<bf01b0dc>]
-> Unhandled fault: alignment exception (0x221) at 0xea08133c
-> PC is at ip_set_match_extensions+0xe0/0x224 [ip_set]
-> 
-> The problem occurs when we try to update the 64-bit counters - the
-> faulting address above is not 64-bit aligned.  The problem occurs
-> due to the way elements are allocated, for example:
-> 
-> 	set->dsize = ip_set_elem_len(set, tb, 0, 0);
-> 	map = ip_set_alloc(sizeof(*map) + elements * set->dsize);
-> 
-> If the element has a requirement for a member to be 64-bit aligned,
-> and set->dsize is not a multiple of 8, but is a multiple of four,
-> then every odd numbered elements will be misaligned - and hitting
-> an atomic64_add() on that element will cause the kernel to panic.
-> 
-> ip_set_elem_len() must return a size that is rounded to the maximum
-> alignment of any extension field stored in the element.  This change
-> ensures that is the case.
+check that 'nft ... ct helper set <foo>' works:
+ 1. configure ftp helper via nft and assign it to
+    connections on port 2121
+ 2. check with 'conntrack -L' that the next connection
+    has the ftp helper attached to it.
 
-Applied, thanks.
+Also add a test for auto-assign (old behaviour).
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ tools/testing/selftests/netfilter/Makefile    |   2 +-
+ .../netfilter/nft_conntrack_helper.sh         | 175 ++++++++++++++++++
+ 2 files changed, 176 insertions(+), 1 deletion(-)
+ create mode 100755 tools/testing/selftests/netfilter/nft_conntrack_helper.sh
+
+diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
+index 9c0f758310fe..a179f0dca8ce 100644
+--- a/tools/testing/selftests/netfilter/Makefile
++++ b/tools/testing/selftests/netfilter/Makefile
+@@ -3,7 +3,7 @@
+ 
+ TEST_PROGS := nft_trans_stress.sh nft_nat.sh bridge_brouter.sh \
+ 	conntrack_icmp_related.sh nft_flowtable.sh ipvs.sh \
+-	nft_concat_range.sh \
++	nft_concat_range.sh nft_conntrack_helper.sh \
+ 	nft_queue.sh
+ 
+ LDLIBS = -lmnl
+diff --git a/tools/testing/selftests/netfilter/nft_conntrack_helper.sh b/tools/testing/selftests/netfilter/nft_conntrack_helper.sh
+new file mode 100755
+index 000000000000..edf0a48da6bf
+--- /dev/null
++++ b/tools/testing/selftests/netfilter/nft_conntrack_helper.sh
+@@ -0,0 +1,175 @@
++#!/bin/bash
++#
++# This tests connection tracking helper assignment:
++# 1. can attach ftp helper to a connection from nft ruleset.
++# 2. auto-assign still works.
++#
++# Kselftest framework requirement - SKIP code is 4.
++ksft_skip=4
++ret=0
++
++sfx=$(mktemp -u "XXXXXXXX")
++ns1="ns1-$sfx"
++ns2="ns2-$sfx"
++testipv6=1
++
++cleanup()
++{
++	ip netns del ${ns1}
++	ip netns del ${ns2}
++}
++
++nft --version > /dev/null 2>&1
++if [ $? -ne 0 ];then
++	echo "SKIP: Could not run test without nft tool"
++	exit $ksft_skip
++fi
++
++ip -Version > /dev/null 2>&1
++if [ $? -ne 0 ];then
++	echo "SKIP: Could not run test without ip tool"
++	exit $ksft_skip
++fi
++
++conntrack -V > /dev/null 2>&1
++if [ $? -ne 0 ];then
++	echo "SKIP: Could not run test without conntrack tool"
++	exit $ksft_skip
++fi
++
++which nc >/dev/null 2>&1
++if [ $? -ne 0 ];then
++	echo "SKIP: Could not run test without netcat tool"
++	exit $ksft_skip
++fi
++
++trap cleanup EXIT
++
++ip netns add ${ns1}
++ip netns add ${ns2}
++
++ip link add veth0 netns ${ns1} type veth peer name veth0 netns ${ns2} > /dev/null 2>&1
++if [ $? -ne 0 ];then
++    echo "SKIP: No virtual ethernet pair device support in kernel"
++    exit $ksft_skip
++fi
++
++ip -net ${ns1} link set lo up
++ip -net ${ns1} link set veth0 up
++
++ip -net ${ns2} link set lo up
++ip -net ${ns2} link set veth0 up
++
++ip -net ${ns1} addr add 10.0.1.1/24 dev veth0
++ip -net ${ns1} addr add dead:1::1/64 dev veth0
++
++ip -net ${ns2} addr add 10.0.1.2/24 dev veth0
++ip -net ${ns2} addr add dead:1::2/64 dev veth0
++
++load_ruleset_family() {
++	local family=$1
++	local ns=$2
++
++ip netns exec ${ns} nft -f - <<EOF
++table $family raw {
++	ct helper ftp {
++             type "ftp" protocol tcp
++        }
++	chain pre {
++		type filter hook prerouting priority 0; policy accept;
++		tcp dport 2121 ct helper set "ftp"
++	}
++	chain output {
++		type filter hook output priority 0; policy accept;
++		tcp dport 2121 ct helper set "ftp"
++	}
++}
++EOF
++	return $?
++}
++
++check_for_helper()
++{
++	local netns=$1
++	local message=$2
++	local port=$3
++
++	ip netns exec ${netns} conntrack -L -p tcp --dport $port 2> /dev/null |grep -q 'helper=ftp'
++	if [ $? -ne 0 ] ; then
++		echo "FAIL: ${netns} did not show attached helper $message" 1>&2
++		ret=1
++	fi
++
++	echo "PASS: ${netns} connection on port $port has ftp helper attached" 1>&2
++	return 0
++}
++
++test_helper()
++{
++	local port=$1
++	local msg=$2
++
++	sleep 3 | ip netns exec ${ns2} nc -w 2 -l -p $port > /dev/null &
++
++	sleep 1
++	sleep 1 | ip netns exec ${ns1} nc -w 2 10.0.1.2 $port > /dev/null &
++
++	check_for_helper "$ns1" "ip $msg" $port
++	check_for_helper "$ns2" "ip $msg" $port
++
++	wait
++
++	if [ $testipv6 -eq 0 ] ;then
++		return 0
++	fi
++
++	ip netns exec ${ns1} conntrack -F 2> /dev/null
++	ip netns exec ${ns2} conntrack -F 2> /dev/null
++
++	sleep 3 | ip netns exec ${ns2} nc -w 2 -6 -l -p $port > /dev/null &
++
++	sleep 1
++	sleep 1 | ip netns exec ${ns1} nc -w 2 -6 dead:1::2 $port > /dev/null &
++
++	check_for_helper "$ns1" "ipv6 $msg" $port
++	check_for_helper "$ns2" "ipv6 $msg" $port
++
++	wait
++}
++
++load_ruleset_family ip ${ns1}
++if [ $? -ne 0 ];then
++	echo "FAIL: ${ns1} cannot load ip ruleset" 1>&2
++	exit 1
++fi
++
++load_ruleset_family ip6 ${ns1}
++if [ $? -ne 0 ];then
++	echo "SKIP: ${ns1} cannot load ip6 ruleset" 1>&2
++	testipv6=0
++fi
++
++load_ruleset_family inet ${ns2}
++if [ $? -ne 0 ];then
++	echo "SKIP: ${ns1} cannot load inet ruleset" 1>&2
++	load_ruleset_family ip ${ns2}
++	if [ $? -ne 0 ];then
++		echo "FAIL: ${ns2} cannot load ip ruleset" 1>&2
++		exit 1
++	fi
++
++	if [ $testipv6 -eq 1 ] ;then
++		load_ruleset_family ip6 ${ns2}
++		if [ $? -ne 0 ];then
++			echo "FAIL: ${ns2} cannot load ip6 ruleset" 1>&2
++			exit 1
++		fi
++	fi
++fi
++
++test_helper 2121 "set via ruleset"
++ip netns exec ${ns1} sysctl -q 'net.netfilter.nf_conntrack_helper=1'
++ip netns exec ${ns2} sysctl -q 'net.netfilter.nf_conntrack_helper=1'
++test_helper 21 "auto-assign"
++
++exit $ret
+-- 
+2.26.2
+
