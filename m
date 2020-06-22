@@ -2,100 +2,79 @@ Return-Path: <SRS0=UFFK=AD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ED53C433DF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 09:06:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D69EBC433E0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 11:37:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F0820206E2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 09:06:34 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=armlinux.org.uk header.i=@armlinux.org.uk header.b="UqDZYDsT"
+	by mail.kernel.org (Postfix) with ESMTP id BF8FD2070E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 11:37:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726543AbgFVJGd (ORCPT
+        id S1727852AbgFVLhO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Jun 2020 05:06:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35280 "EHLO
+        Mon, 22 Jun 2020 07:37:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726201AbgFVJGd (ORCPT
+        with ESMTP id S1727060AbgFVLhN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Jun 2020 05:06:33 -0400
-Received: from pandora.armlinux.org.uk (pandora.armlinux.org.uk [IPv6:2001:4d48:ad52:32c8:5054:ff:fe00:142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1904C061794;
-        Mon, 22 Jun 2020 02:06:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=armlinux.org.uk; s=pandora-2019; h=Sender:In-Reply-To:Content-Type:
-        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
-        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
-        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-         bh=1PN9BmIl02yr2MOImBWBYlt3OCU+CLnoaLRpCoCXZj8=; b=UqDZYDsTJeNXbR3ME1QqH6NeA
-        53qISaaeFxTI8mIMGGkg9sBPCGO1JZycpvXKhFEETpHf5vN52b8UYF+UBU4bKGSHMYcXEQuRB51Jn
-        G5wsJQWALUvV40dApWdI/LkhgKQhTFY5ajp5EVvqhUsLBYmTjmTAppb9LumowRp+9HH4KpIxLnxVZ
-        DgEpqiIBxyWpjuOOJHBzzj0L6GygopE2y/mH/QwRv4HfDGbUbNZVIqxZ5e57Fv5mmXhgB8JQjbNvd
-        DutJP9cu+QutYI3deHGWctM1O/JzfciYeb5Af6kR5i7d5f1i68T1b3X4Jkhgf5eVZtQNwUPwTpKsi
-        DK5RJrUfw==;
-Received: from shell.armlinux.org.uk ([fd8f:7570:feb6:1:5054:ff:fe00:4ec]:58942)
-        by pandora.armlinux.org.uk with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <linux@armlinux.org.uk>)
-        id 1jnIPM-0008Ow-3A; Mon, 22 Jun 2020 10:06:28 +0100
-Received: from linux by shell.armlinux.org.uk with local (Exim 4.92)
-        (envelope-from <linux@shell.armlinux.org.uk>)
-        id 1jnIPJ-0008Mq-S5; Mon, 22 Jun 2020 10:06:25 +0100
-Date:   Mon, 22 Jun 2020 10:06:25 +0100
-From:   Russell King - ARM Linux admin <linux@armlinux.org.uk>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+        Mon, 22 Jun 2020 07:37:13 -0400
+Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B11C7C061794;
+        Mon, 22 Jun 2020 04:37:13 -0700 (PDT)
+Received: by a3.inai.de (Postfix, from userid 25121)
+        id 8AF115874A73E; Mon, 22 Jun 2020 13:37:09 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by a3.inai.de (Postfix) with ESMTP id 83C1760C62D24;
+        Mon, 22 Jun 2020 13:37:09 +0200 (CEST)
+Date:   Mon, 22 Jun 2020 13:37:09 +0200 (CEST)
+From:   Jan Engelhardt <jengelh@inai.de>
+To:     "Alexander A. Klimov" <grandmaster@al2klimov.de>
+cc:     David Howells <dhowells@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org
-Subject: Re: [PATCH] netfiler: ipset: fix unaligned atomic access
-Message-ID: <20200622090625.GA1551@shell.armlinux.org.uk>
-References: <E1jj7gl-0008Bq-BQ@rmk-PC.armlinux.org.uk>
- <20200622082633.GA4512@salvia>
+        Jakub Kicinski <kuba@kernel.org>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Andrea Parri <parri.andrea@gmail.com>,
+        Will Deacon <will@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Boqun Feng <boqun.feng@gmail.com>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Jade Alglave <j.alglave@ucl.ac.uk>,
+        Luc Maranget <luc.maranget@inria.fr>,
+        "Paul E. McKenney" <paulmck@kernel.org>,
+        Akira Yokosawa <akiyks@gmail.com>,
+        Daniel Lustig <dlustig@nvidia.com>,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-arch@vger.kernel.org,
+        Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: Good idea to rename files in include/uapi/ ?
+In-Reply-To: <ab88e504-c139-231a-0294-953ffd1a9442@al2klimov.de>
+Message-ID: <nycvar.YFH.7.77.849.2006221336180.26495@n3.vanv.qr>
+References: <9feded75-4b45-2821-287b-af00ec5f910f@al2klimov.de> <174102.1592165965@warthog.procyon.org.uk> <nycvar.YFH.7.77.849.2006142244200.30230@n3.vanv.qr> <ab88e504-c139-231a-0294-953ffd1a9442@al2klimov.de>
+User-Agent: Alpine 2.22 (LSU 394 2020-01-19)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200622082633.GA4512@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jun 22, 2020 at 10:26:33AM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Jun 10, 2020 at 09:51:11PM +0100, Russell King wrote:
-> > When using ip_set with counters and comment, traffic causes the kernel
-> > to panic on 32-bit ARM:
-> > 
-> > Alignment trap: not handling instruction e1b82f9f at [<bf01b0dc>]
-> > Unhandled fault: alignment exception (0x221) at 0xea08133c
-> > PC is at ip_set_match_extensions+0xe0/0x224 [ip_set]
-> > 
-> > The problem occurs when we try to update the 64-bit counters - the
-> > faulting address above is not 64-bit aligned.  The problem occurs
-> > due to the way elements are allocated, for example:
-> > 
-> > 	set->dsize = ip_set_elem_len(set, tb, 0, 0);
-> > 	map = ip_set_alloc(sizeof(*map) + elements * set->dsize);
-> > 
-> > If the element has a requirement for a member to be 64-bit aligned,
-> > and set->dsize is not a multiple of 8, but is a multiple of four,
-> > then every odd numbered elements will be misaligned - and hitting
-> > an atomic64_add() on that element will cause the kernel to panic.
-> > 
-> > ip_set_elem_len() must return a size that is rounded to the maximum
-> > alignment of any extension field stored in the element.  This change
-> > ensures that is the case.
-> 
-> Applied, thanks.
 
-Thanks!
+On Monday 2020-06-15 01:34, Alexander A. Klimov wrote:
+>> 
+>> A header file rename is no problem. We even have dummy headers
+> Hmm.. if I understand all of you correctly, David, Stefano, Pablo and Al say
+> like no, not a good idea, but only you, Jan, say like should be no problem.
+>
+> Jan, do you have anything like commit messages in mainline or public emails
+> from maintainers confirming your opinion?
 
--- 
-RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
-FTTP is here! 40Mbps down 10Mbps up. Decent connectivity at last!
+I had already given the commit with the (email) message:
+
+>> Just look at xt_MARK.h, all it does is include xt_mark.h. Cf.
+>> 28b949885f80efb87d7cebdcf879c99db12c37bd .
