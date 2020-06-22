@@ -2,122 +2,100 @@ Return-Path: <SRS0=UFFK=AD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA090C433E0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 08:40:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ED53C433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 09:06:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CAAE7206D4
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 08:40:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F0820206E2
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 09:06:34 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=armlinux.org.uk header.i=@armlinux.org.uk header.b="UqDZYDsT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726854AbgFVIkd (ORCPT
+        id S1726543AbgFVJGd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Jun 2020 04:40:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59498 "EHLO
+        Mon, 22 Jun 2020 05:06:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35280 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726580AbgFVIkd (ORCPT
+        with ESMTP id S1726201AbgFVJGd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Jun 2020 04:40:33 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 386D0C061794
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jun 2020 01:40:33 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1jnI0F-0002xd-Eu; Mon, 22 Jun 2020 10:40:31 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] doc: revisit meta/rt primary expressions and ct statement
-Date:   Mon, 22 Jun 2020 10:40:26 +0200
-Message-Id: <20200622084026.3703-1-fw@strlen.de>
-X-Mailer: git-send-email 2.26.2
+        Mon, 22 Jun 2020 05:06:33 -0400
+Received: from pandora.armlinux.org.uk (pandora.armlinux.org.uk [IPv6:2001:4d48:ad52:32c8:5054:ff:fe00:142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1904C061794;
+        Mon, 22 Jun 2020 02:06:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=armlinux.org.uk; s=pandora-2019; h=Sender:In-Reply-To:Content-Type:
+        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
+        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+         bh=1PN9BmIl02yr2MOImBWBYlt3OCU+CLnoaLRpCoCXZj8=; b=UqDZYDsTJeNXbR3ME1QqH6NeA
+        53qISaaeFxTI8mIMGGkg9sBPCGO1JZycpvXKhFEETpHf5vN52b8UYF+UBU4bKGSHMYcXEQuRB51Jn
+        G5wsJQWALUvV40dApWdI/LkhgKQhTFY5ajp5EVvqhUsLBYmTjmTAppb9LumowRp+9HH4KpIxLnxVZ
+        DgEpqiIBxyWpjuOOJHBzzj0L6GygopE2y/mH/QwRv4HfDGbUbNZVIqxZ5e57Fv5mmXhgB8JQjbNvd
+        DutJP9cu+QutYI3deHGWctM1O/JzfciYeb5Af6kR5i7d5f1i68T1b3X4Jkhgf5eVZtQNwUPwTpKsi
+        DK5RJrUfw==;
+Received: from shell.armlinux.org.uk ([fd8f:7570:feb6:1:5054:ff:fe00:4ec]:58942)
+        by pandora.armlinux.org.uk with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <linux@armlinux.org.uk>)
+        id 1jnIPM-0008Ow-3A; Mon, 22 Jun 2020 10:06:28 +0100
+Received: from linux by shell.armlinux.org.uk with local (Exim 4.92)
+        (envelope-from <linux@shell.armlinux.org.uk>)
+        id 1jnIPJ-0008Mq-S5; Mon, 22 Jun 2020 10:06:25 +0100
+Date:   Mon, 22 Jun 2020 10:06:25 +0100
+From:   Russell King - ARM Linux admin <linux@armlinux.org.uk>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org
+Subject: Re: [PATCH] netfiler: ipset: fix unaligned atomic access
+Message-ID: <20200622090625.GA1551@shell.armlinux.org.uk>
+References: <E1jj7gl-0008Bq-BQ@rmk-PC.armlinux.org.uk>
+ <20200622082633.GA4512@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200622082633.GA4512@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Clarify meta/rt ipsec examples and document that 'ct helper set'
-needs to be used *after* conntrack lookup.
+On Mon, Jun 22, 2020 at 10:26:33AM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Jun 10, 2020 at 09:51:11PM +0100, Russell King wrote:
+> > When using ip_set with counters and comment, traffic causes the kernel
+> > to panic on 32-bit ARM:
+> > 
+> > Alignment trap: not handling instruction e1b82f9f at [<bf01b0dc>]
+> > Unhandled fault: alignment exception (0x221) at 0xea08133c
+> > PC is at ip_set_match_extensions+0xe0/0x224 [ip_set]
+> > 
+> > The problem occurs when we try to update the 64-bit counters - the
+> > faulting address above is not 64-bit aligned.  The problem occurs
+> > due to the way elements are allocated, for example:
+> > 
+> > 	set->dsize = ip_set_elem_len(set, tb, 0, 0);
+> > 	map = ip_set_alloc(sizeof(*map) + elements * set->dsize);
+> > 
+> > If the element has a requirement for a member to be 64-bit aligned,
+> > and set->dsize is not a multiple of 8, but is a multiple of four,
+> > then every odd numbered elements will be misaligned - and hitting
+> > an atomic64_add() on that element will cause the kernel to panic.
+> > 
+> > ip_set_elem_len() must return a size that is rounded to the maximum
+> > alignment of any extension field stored in the element.  This change
+> > ensures that is the case.
+> 
+> Applied, thanks.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- doc/primary-expression.txt | 11 +++++++----
- doc/statements.txt         |  4 ++++
- 2 files changed, 11 insertions(+), 4 deletions(-)
+Thanks!
 
-diff --git a/doc/primary-expression.txt b/doc/primary-expression.txt
-index 48a7609da339..a9c39cbba420 100644
---- a/doc/primary-expression.txt
-+++ b/doc/primary-expression.txt
-@@ -123,7 +123,7 @@ integer (32 bit)
- pseudo-random number|
- integer (32 bit)
- |ipsec|
--boolean|
-+true if packet was ipsec encrypted |
- boolean (1 bit)
- |iifkind|
- Input interface kind |
-@@ -162,7 +162,7 @@ Device group (32 bit number). Can be specified numerically or as symbolic name d
- Packet type: *host* (addressed to local host), *broadcast* (to all),
- *multicast* (to group), *other* (addressed to another host).
- |ifkind|
--Interface kind (16 byte string). Does not have to exist.
-+Interface kind (16 byte string). See TYPES in ip-link(8) for a list.
- |time|
- Either an integer or a date in ISO format. For example: "2019-06-06 17:00".
- Hour and seconds are optional and can be omitted if desired. If omitted,
-@@ -183,11 +183,12 @@ For example, 17:00 and 17:00:00 would be equivalent.
- -----------------------
- # qualified meta expression
- filter output meta oif eth0
-+filter forward meta iifkind { "tun", "veth" }
- 
- # unqualified meta expression
- filter output oif eth0
- 
--# packet was subject to ipsec processing
-+# incoming packet was subject to ipsec processing
- raw prerouting meta ipsec exists accept
- -----------------------
- 
-@@ -362,13 +363,15 @@ Routing Realm (32 bit number). Can be specified numerically or as symbolic name
- --------------------------
- # IP family independent rt expression
- filter output rt classid 10
--filter output rt ipsec missing
- 
- # IP family dependent rt expressions
- ip filter output rt nexthop 192.168.0.1
- ip6 filter output rt nexthop fd00::1
- inet filter output rt ip nexthop 192.168.0.1
- inet filter output rt ip6 nexthop fd00::1
-+
-+# outgoing packet will be encapsulated/encrypted by ipsec
-+filter output rt ipsec exists
- -------------------------- 
- 
- IPSEC EXPRESSIONS
-diff --git a/doc/statements.txt b/doc/statements.txt
-index ced311cb8d17..f777ffad7153 100644
---- a/doc/statements.txt
-+++ b/doc/statements.txt
-@@ -218,6 +218,10 @@ has to be assigned before a conntrack lookup takes place, i.e. this has to be
- done in prerouting and possibly output (if locally generated packets need to be
- placed in a distinct zone), with a hook priority of -300.
- 
-+The conntrack helper needs to be assigned after a conntrack entry has been
-+found, i.e. it will not work when used with hook priorities equal or before
-+-200.
-+
- .Conntrack statement types
- [options="header"]
- |==================
 -- 
-2.26.2
-
+RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
+FTTP is here! 40Mbps down 10Mbps up. Decent connectivity at last!
