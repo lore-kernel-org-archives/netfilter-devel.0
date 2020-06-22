@@ -2,59 +2,62 @@ Return-Path: <SRS0=UFFK=AD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE2CAC433DF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 17:10:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CC48C433E1
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 17:10:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B8255206BE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 17:10:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 02E93206BE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jun 2020 17:10:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730007AbgFVRKi (ORCPT
+        id S1730021AbgFVRKj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Jun 2020 13:10:38 -0400
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:63702 "EHLO
+        Mon, 22 Jun 2020 13:10:39 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:30240 "EHLO
         mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1729812AbgFVRKh (ORCPT
+        by vger.kernel.org with ESMTP id S1730003AbgFVRKi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Jun 2020 13:10:37 -0400
+        Mon, 22 Jun 2020 13:10:38 -0400
 Received: from pps.filterd (m0098414.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 05MH4JDR002415;
-        Mon, 22 Jun 2020 13:10:28 -0400
-Received: from ppma02wdc.us.ibm.com (aa.5b.37a9.ip4.static.sl-reverse.com [169.55.91.170])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 31tys21wst-1
+        by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 05MH4IOR002338;
+        Mon, 22 Jun 2020 13:10:34 -0400
+Received: from ppma02dal.us.ibm.com (a.bd.3ea9.ip4.static.sl-reverse.com [169.62.189.10])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 31tys21wvy-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 22 Jun 2020 13:10:27 -0400
-Received: from pps.filterd (ppma02wdc.us.ibm.com [127.0.0.1])
-        by ppma02wdc.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 05MGkBDI031249;
-        Mon, 22 Jun 2020 17:10:27 GMT
-Received: from b03cxnp08028.gho.boulder.ibm.com (b03cxnp08028.gho.boulder.ibm.com [9.17.130.20])
-        by ppma02wdc.us.ibm.com with ESMTP id 31sa38s6b1-1
+        Mon, 22 Jun 2020 13:10:33 -0400
+Received: from pps.filterd (ppma02dal.us.ibm.com [127.0.0.1])
+        by ppma02dal.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 05MGje1v007622;
+        Mon, 22 Jun 2020 17:10:33 GMT
+Received: from b03cxnp08027.gho.boulder.ibm.com (b03cxnp08027.gho.boulder.ibm.com [9.17.130.19])
+        by ppma02dal.us.ibm.com with ESMTP id 31t35bm3e3-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 22 Jun 2020 17:10:27 +0000
+        Mon, 22 Jun 2020 17:10:33 +0000
 Received: from b03ledav003.gho.boulder.ibm.com (b03ledav003.gho.boulder.ibm.com [9.17.130.234])
-        by b03cxnp08028.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 05MHAQZh26214664
+        by b03cxnp08027.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 05MHAUQ68782542
         (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Mon, 22 Jun 2020 17:10:26 GMT
+        Mon, 22 Jun 2020 17:10:30 GMT
 Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 46E3B6A04F;
-        Mon, 22 Jun 2020 17:10:26 +0000 (GMT)
+        by IMSVA (Postfix) with ESMTP id E0F846A04F;
+        Mon, 22 Jun 2020 17:10:31 +0000 (GMT)
 Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id CECF56A04D;
-        Mon, 22 Jun 2020 17:10:24 +0000 (GMT)
+        by IMSVA (Postfix) with ESMTP id 75ADA6A051;
+        Mon, 22 Jun 2020 17:10:30 +0000 (GMT)
 Received: from oc8377887825.ibm.com (unknown [9.160.23.249])
         by b03ledav003.gho.boulder.ibm.com (Postfix) with ESMTP;
-        Mon, 22 Jun 2020 17:10:24 +0000 (GMT)
+        Mon, 22 Jun 2020 17:10:30 +0000 (GMT)
 From:   David Wilder <dwilder@us.ibm.com>
 To:     netdev@vger.kernel.org
 Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de, wilder@us.ibm.com,
         mkubecek@suse.com
-Subject: [PATCH v1 0/4] iptables: Module unload causing NULL pointer reference.
-Date:   Mon, 22 Jun 2020 10:10:10 -0700
-Message-Id: <20200622171014.975-1-dwilder@us.ibm.com>
+Subject: [PATCH v1 3/4] netfilter: Split ip6t_unregister_table() into pre_exit and exit helpers.
+Date:   Mon, 22 Jun 2020 10:10:13 -0700
+Message-Id: <20200622171014.975-4-dwilder@us.ibm.com>
 X-Mailer: git-send-email 2.25.0
+In-Reply-To: <20200622171014.975-1-dwilder@us.ibm.com>
+References: <20200622171014.975-1-dwilder@us.ibm.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
@@ -62,8 +65,8 @@ X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.216,18.0.687
  definitions=2020-06-22_10:2020-06-22,2020-06-22 signatures=0
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015
  priorityscore=1501 adultscore=0 lowpriorityscore=0 bulkscore=0 spamscore=0
- suspectscore=0 impostorscore=0 cotscore=-2147483648 phishscore=0
- malwarescore=0 mlxlogscore=928 mlxscore=0 classifier=spam adjust=0
+ suspectscore=1 impostorscore=0 cotscore=-2147483648 phishscore=0
+ malwarescore=0 mlxlogscore=999 mlxscore=0 classifier=spam adjust=0
  reason=mlx scancount=1 engine=8.12.0-2004280000
  definitions=main-2006220118
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -71,44 +74,68 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-A crash happened on ppc64le when running ltp network tests triggered by "rmmod iptable_mangle".
-
-See previous discussion in this thread: https://lists.openwall.net/netdev/2020/06/03/161 .
-
-In the crash I found in iptable_mangle_hook() that state->net->ipv4.iptable_mangle=NULL causing a NULL pointer dereference. net->ipv4.iptable_mangle is set to NULL in iptable_mangle_net_exit() and called when ip_mangle modules is unloaded. A rmmod task was found running in the crash dump.  A 2nd crash showed the same problem when running "rmmod iptable_filter" (net->ipv4.iptable_filter=NULL).
-
-To fix this I added .pre_exit hook in all iptable_foo.c. The pre_exit will un-register the underlying hook and exit would do the table freeing. The netns core does an unconditional synchronize_rcu after the pre_exit hooks insuring no packets are in flight that have picked up the pointer before completing the un-register.
-
-These patches include changes for both iptables and ip6tables.
-
-We tested this fix with ltp running iptables01.sh and iptables01.sh -6 a loop for 72 hours.
+The pre_exit will un-register the underlying hook and .exit will do
+the table freeing. The netns core does an unconditional synchronize_rcu
+after the pre_exit hooks insuring no packets are in flight that have
+picked up the pointer before completing the un-register.
 
 Signed-off-by: David Wilder <dwilder@us.ibm.com>
-
-David Wilder (4):
-  netfilter: Split ipt_unregister_table() into pre_exit and exit
-    helpers.
-  netfilter: Add a .pre_exit hook in all iptable_foo.c.
-  netfilter: Split ip6t_unregister_table() into pre_exit and exit
-    helpers.
-  netfilter: Add a .pre_exit hook in all ip6table_foo.c.
-
- include/linux/netfilter_ipv4/ip_tables.h  |  6 ++++++
+---
  include/linux/netfilter_ipv6/ip6_tables.h |  3 +++
- net/ipv4/netfilter/ip_tables.c            | 15 ++++++++++++++-
- net/ipv4/netfilter/iptable_filter.c       | 10 +++++++++-
- net/ipv4/netfilter/iptable_mangle.c       | 10 +++++++++-
- net/ipv4/netfilter/iptable_nat.c          | 10 ++++++++--
- net/ipv4/netfilter/iptable_raw.c          | 10 +++++++++-
- net/ipv4/netfilter/iptable_security.c     | 11 +++++++++--
  net/ipv6/netfilter/ip6_tables.c           | 15 ++++++++++++++-
- net/ipv6/netfilter/ip6table_filter.c      | 10 +++++++++-
- net/ipv6/netfilter/ip6table_mangle.c      | 10 +++++++++-
- net/ipv6/netfilter/ip6table_nat.c         | 10 ++++++++--
- net/ipv6/netfilter/ip6table_raw.c         | 10 +++++++++-
- net/ipv6/netfilter/ip6table_security.c    | 10 +++++++++-
- 14 files changed, 125 insertions(+), 15 deletions(-)
+ 2 files changed, 17 insertions(+), 1 deletion(-)
 
+diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
+index 8225f78..1547d5f 100644
+--- a/include/linux/netfilter_ipv6/ip6_tables.h
++++ b/include/linux/netfilter_ipv6/ip6_tables.h
+@@ -29,6 +29,9 @@ int ip6t_register_table(struct net *net, const struct xt_table *table,
+ 			const struct nf_hook_ops *ops, struct xt_table **res);
+ void ip6t_unregister_table(struct net *net, struct xt_table *table,
+ 			   const struct nf_hook_ops *ops);
++void ip6t_unregister_table_pre_exit(struct net *net, struct xt_table *table,
++				    const struct nf_hook_ops *ops);
++void ip6t_unregister_table_exit(struct net *net, struct xt_table *table);
+ extern unsigned int ip6t_do_table(struct sk_buff *skb,
+ 				  const struct nf_hook_state *state,
+ 				  struct xt_table *table);
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index e273934..e96a431 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1807,11 +1807,22 @@ int ip6t_register_table(struct net *net, const struct xt_table *table,
+ 	return ret;
+ }
+ 
++void ip6t_unregister_table_pre_exit(struct net *net, struct xt_table *table,
++				    const struct nf_hook_ops *ops)
++{
++	nf_unregister_net_hooks(net, ops, hweight32(table->valid_hooks));
++}
++
++void ip6t_unregister_table_exit(struct net *net, struct xt_table *table)
++{
++	__ip6t_unregister_table(net, table);
++}
++
+ void ip6t_unregister_table(struct net *net, struct xt_table *table,
+ 			   const struct nf_hook_ops *ops)
+ {
+ 	if (ops)
+-		nf_unregister_net_hooks(net, ops, hweight32(table->valid_hooks));
++		ip6t_unregister_table_pre_exit(net, table, ops);
+ 	__ip6t_unregister_table(net, table);
+ }
+ 
+@@ -1969,6 +1980,8 @@ static void __exit ip6_tables_fini(void)
+ 
+ EXPORT_SYMBOL(ip6t_register_table);
+ EXPORT_SYMBOL(ip6t_unregister_table);
++EXPORT_SYMBOL(ip6t_unregister_table_pre_exit);
++EXPORT_SYMBOL(ip6t_unregister_table_exit);
+ EXPORT_SYMBOL(ip6t_do_table);
+ 
+ module_init(ip6_tables_init);
 -- 
 1.8.3.1
 
