@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36ED8C433E3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jun 2020 12:34:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1A3DC433E2
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jun 2020 12:34:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1B36F20716
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jun 2020 12:34:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C6A6A20716
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jun 2020 12:34:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732591AbgFWMex (ORCPT
+        id S1732589AbgFWMew (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 23 Jun 2020 08:34:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36832 "EHLO
+        Tue, 23 Jun 2020 08:34:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36824 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729574AbgFWMeq (ORCPT
+        with ESMTP id S1732507AbgFWMep (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 Jun 2020 08:34:46 -0400
+        Tue, 23 Jun 2020 08:34:45 -0400
 Received: from janet.servers.dxld.at (janet.servers.dxld.at [IPv6:2a01:4f8:201:89f4::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03AC3C061797
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jun 2020 05:34:45 -0700 (PDT)
-Received: janet.servers.dxld.at; Tue, 23 Jun 2020 14:34:44 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0483C061795
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jun 2020 05:34:44 -0700 (PDT)
+Received: janet.servers.dxld.at; Tue, 23 Jun 2020 14:34:43 +0200
 From:   =?UTF-8?q?Daniel=20Gr=C3=B6ber?= <dxld@darkboxed.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     =?UTF-8?q?Daniel=20Gr=C3=B6ber?= <dxld@darkboxed.org>
-Subject: [libnf_ct resend PATCH 4/8] Fix incorrect snprintf size calculation
-Date:   Tue, 23 Jun 2020 14:33:59 +0200
-Message-Id: <20200623123403.31676-5-dxld@darkboxed.org>
+Subject: [libnf_ct resend PATCH 2/8] Fix nfexp_snprintf return value docs
+Date:   Tue, 23 Jun 2020 14:33:57 +0200
+Message-Id: <20200623123403.31676-3-dxld@darkboxed.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200623123403.31676-1-dxld@darkboxed.org>
 References: <20200623123403.31676-1-dxld@darkboxed.org>
@@ -42,29 +42,31 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The previous BUFFER_SIZE() call already updated the remaining 'len'. So
-there is no need to subtract 'size' again. While this just makes the buffer
-appear smaller than it is, which is mostly harmless, the subtraction might
-underflow as 'size > len' is not checked like BUFFER_SIZE() does.
+The docs currently say "[...] Otherwise, 0 is returned."  which is just
+completely wrong. Just like nfct_snprintf the expected buffer size is
+returned.
 
 Signed-off-by: Daniel Gröber <dxld@darkboxed.org>
 ---
- src/conntrack/snprintf_default.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ src/expect/api.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/src/conntrack/snprintf_default.c b/src/conntrack/snprintf_default.c
-index 2f2f918..d00c5cb 100644
---- a/src/conntrack/snprintf_default.c
-+++ b/src/conntrack/snprintf_default.c
-@@ -108,7 +108,7 @@ static int __snprintf_address_ipv6(char *buf,
- 	if (!inet_ntop(AF_INET6, &dst, tmp, sizeof(tmp)))
- 		return -1;
- 
--	ret = snprintf(buf+offset, len-size, "%s=%s ", dst_tag, tmp);
-+	ret = snprintf(buf+offset, len, "%s=%s ", dst_tag, tmp);
- 	BUFFER_SIZE(ret, size, len, offset);
- 
- 	return size;
+diff --git a/src/expect/api.c b/src/expect/api.c
+index 33099d8..39cd092 100644
+--- a/src/expect/api.c
++++ b/src/expect/api.c
+@@ -795,8 +795,9 @@ int nfexp_catch(struct nfct_handle *h)
+  * 	- NFEXP_O_LAYER: include layer 3 information in the output, this is
+  * 			*only* required by NFEXP_O_DEFAULT.
+  * 
+- * On error, -1 is returned and errno is set appropiately. Otherwise,
+- * 0 is returned.
++ * On error, -1 is returned and errno is set appropiately. Otherwise the
++ * size of what _would_ be written is returned, even if the size of the
++ * buffer is insufficient. This behaviour is similar to snprintf.
+  */
+ int nfexp_snprintf(char *buf,
+ 		  unsigned int size,
 -- 
 2.20.1
 
