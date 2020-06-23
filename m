@@ -4,33 +4,33 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.0 required=3.0
 	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA46AC433E0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jun 2020 12:34:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 158A6C433E2
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jun 2020 12:34:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 98DBA20716
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jun 2020 12:34:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F17E620716
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jun 2020 12:34:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732594AbgFWMey (ORCPT
+        id S1732574AbgFWMe5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 23 Jun 2020 08:34:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36844 "EHLO
+        Tue, 23 Jun 2020 08:34:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36834 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732557AbgFWMet (ORCPT
+        with ESMTP id S1732553AbgFWMeq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 Jun 2020 08:34:49 -0400
+        Tue, 23 Jun 2020 08:34:46 -0400
 Received: from janet.servers.dxld.at (janet.servers.dxld.at [IPv6:2a01:4f8:201:89f4::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E268C061795
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09CDEC061755
         for <netfilter-devel@vger.kernel.org>; Tue, 23 Jun 2020 05:34:46 -0700 (PDT)
-Received: janet.servers.dxld.at; Tue, 23 Jun 2020 14:34:45 +0200
+Received: janet.servers.dxld.at; Tue, 23 Jun 2020 14:34:44 +0200
 From:   =?UTF-8?q?Daniel=20Gr=C3=B6ber?= <dxld@darkboxed.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     =?UTF-8?q?Daniel=20Gr=C3=B6ber?= <dxld@darkboxed.org>
-Subject: [libnf_ct resend PATCH 7/8] Fix buffer overflow in protocol related snprintf functions
-Date:   Tue, 23 Jun 2020 14:34:02 +0200
-Message-Id: <20200623123403.31676-8-dxld@darkboxed.org>
+Subject: [libnf_ct resend PATCH 5/8] Add asizeof() macro
+Date:   Tue, 23 Jun 2020 14:34:00 +0200
+Message-Id: <20200623123403.31676-6-dxld@darkboxed.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200623123403.31676-1-dxld@darkboxed.org>
 References: <20200623123403.31676-1-dxld@darkboxed.org>
@@ -44,74 +44,22 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Signed-off-by: Daniel Gröber <dxld@darkboxed.org>
 ---
- src/conntrack/snprintf_default.c | 12 ++++--------
- src/conntrack/snprintf_xml.c     | 20 ++++++++++++++++++--
- 2 files changed, 22 insertions(+), 10 deletions(-)
+ include/internal/internal.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/src/conntrack/snprintf_default.c b/src/conntrack/snprintf_default.c
-index d00c5cb..8e3d41c 100644
---- a/src/conntrack/snprintf_default.c
-+++ b/src/conntrack/snprintf_default.c
-@@ -13,20 +13,16 @@ static int __snprintf_l3protocol(char *buf,
- 				 unsigned int len,
- 				 const struct nf_conntrack *ct)
- {
--	return (snprintf(buf, len, "%-8s %u ", 
--		l3proto2str[ct->head.orig.l3protonum] == NULL ?
--		"unknown" : l3proto2str[ct->head.orig.l3protonum], 
--		 ct->head.orig.l3protonum));
-+        uint8_t num = ct->head.orig.l3protonum;
-+	return snprintf(buf, len, "%-8s %u ", __l3proto2str(num), num);
- }
+diff --git a/include/internal/internal.h b/include/internal/internal.h
+index 859724b..68c5ef0 100644
+--- a/include/internal/internal.h
++++ b/include/internal/internal.h
+@@ -40,6 +40,8 @@
+ #define IPPROTO_DCCP 33
+ #endif
  
- int __snprintf_protocol(char *buf,
- 			unsigned int len,
- 			const struct nf_conntrack *ct)
- {
--	return (snprintf(buf, len, "%-8s %u ", 
--		proto2str[ct->head.orig.protonum] == NULL ?
--		"unknown" : proto2str[ct->head.orig.protonum], 
--		 ct->head.orig.protonum));
-+        uint8_t num = ct->head.orig.protonum;
-+	return snprintf(buf, len, "%-8s %u ", __proto2str(num), num);
- }
- 
- static int __snprintf_timeout(char *buf,
-diff --git a/src/conntrack/snprintf_xml.c b/src/conntrack/snprintf_xml.c
-index c3a836a..6a9dfb4 100644
---- a/src/conntrack/snprintf_xml.c
-+++ b/src/conntrack/snprintf_xml.c
-@@ -55,12 +55,28 @@
- 
- const char *__proto2str(uint8_t protonum)
- {
--	return proto2str[protonum] ? proto2str[protonum] : "unknown";
-+        const char *str = NULL;
++#define asizeof(x) (sizeof(x) / sizeof(*x))
 +
-+        if(protonum < asizeof(proto2str))
-+                str = proto2str[protonum];
-+
-+        if(str == NULL)
-+                str = "unknown";
-+
-+	return str;
- }
- 
- const char *__l3proto2str(uint8_t protonum)
- {
--	return l3proto2str[protonum] ? l3proto2str[protonum] : "unknown";
-+        const char *str = NULL;
-+
-+        if(protonum < asizeof(l3proto2str))
-+                str = l3proto2str[protonum];
-+
-+        if(str == NULL)
-+                str = "unknown";
-+
-+	return str;
- }
- 
- static int __snprintf_ipv4_xml(char *buf,
+ #define BUFFER_SIZE(ret, size, len, offset)		\
+ 	if(ret < 0)					\
+ 		return -1;				\
 -- 
 2.20.1
 
