@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA426C433DF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA46AC433E0
 	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jun 2020 12:34:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B4D2920724
+	by mail.kernel.org (Postfix) with ESMTP id 98DBA20716
 	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jun 2020 12:34:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732610AbgFWMe4 (ORCPT
+        id S1732594AbgFWMey (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 23 Jun 2020 08:34:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36846 "EHLO
+        Tue, 23 Jun 2020 08:34:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36844 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732574AbgFWMet (ORCPT
+        with ESMTP id S1732557AbgFWMet (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 23 Jun 2020 08:34:49 -0400
 Received: from janet.servers.dxld.at (janet.servers.dxld.at [IPv6:2a01:4f8:201:89f4::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65163C061796
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jun 2020 05:34:47 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E268C061795
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jun 2020 05:34:46 -0700 (PDT)
 Received: janet.servers.dxld.at; Tue, 23 Jun 2020 14:34:45 +0200
 From:   =?UTF-8?q?Daniel=20Gr=C3=B6ber?= <dxld@darkboxed.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     =?UTF-8?q?Daniel=20Gr=C3=B6ber?= <dxld@darkboxed.org>
-Subject: [libnf_ct resend PATCH 8/8] Fix buffer overflows in __snprintf_protoinfo* like in *2str fns
-Date:   Tue, 23 Jun 2020 14:34:03 +0200
-Message-Id: <20200623123403.31676-9-dxld@darkboxed.org>
+Subject: [libnf_ct resend PATCH 7/8] Fix buffer overflow in protocol related snprintf functions
+Date:   Tue, 23 Jun 2020 14:34:02 +0200
+Message-Id: <20200623123403.31676-8-dxld@darkboxed.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200623123403.31676-1-dxld@darkboxed.org>
 References: <20200623123403.31676-1-dxld@darkboxed.org>
@@ -44,74 +44,74 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Signed-off-by: Daniel Gröber <dxld@darkboxed.org>
 ---
- src/conntrack/snprintf_default.c | 42 +++++++++++++++++++++++---------
- 1 file changed, 30 insertions(+), 12 deletions(-)
+ src/conntrack/snprintf_default.c | 12 ++++--------
+ src/conntrack/snprintf_xml.c     | 20 ++++++++++++++++++--
+ 2 files changed, 22 insertions(+), 10 deletions(-)
 
 diff --git a/src/conntrack/snprintf_default.c b/src/conntrack/snprintf_default.c
-index 8e3d41c..89eee8f 100644
+index d00c5cb..8e3d41c 100644
 --- a/src/conntrack/snprintf_default.c
 +++ b/src/conntrack/snprintf_default.c
-@@ -36,30 +36,48 @@ static int __snprintf_protoinfo(char *buf,
- 				unsigned int len,
- 				const struct nf_conntrack *ct)
+@@ -13,20 +13,16 @@ static int __snprintf_l3protocol(char *buf,
+ 				 unsigned int len,
+ 				 const struct nf_conntrack *ct)
  {
--	return snprintf(buf, len, "%s ",
--			ct->protoinfo.tcp.state < TCP_CONNTRACK_MAX ?
--			states[ct->protoinfo.tcp.state] :
--			states[TCP_CONNTRACK_NONE]);
-+        const char *str = NULL;
-+        uint8_t state = ct->protoinfo.tcp.state;
-+
-+        if(state < asizeof(states))
-+                str = states[state];
-+
-+        if(str == NULL)
-+                str = states[TCP_CONNTRACK_NONE];
-+
-+	return snprintf(buf, len, "%s ", str);
+-	return (snprintf(buf, len, "%-8s %u ", 
+-		l3proto2str[ct->head.orig.l3protonum] == NULL ?
+-		"unknown" : l3proto2str[ct->head.orig.l3protonum], 
+-		 ct->head.orig.l3protonum));
++        uint8_t num = ct->head.orig.l3protonum;
++	return snprintf(buf, len, "%-8s %u ", __l3proto2str(num), num);
  }
  
- static int __snprintf_protoinfo_sctp(char *buf,
- 				     unsigned int len,
- 				     const struct nf_conntrack *ct)
+ int __snprintf_protocol(char *buf,
+ 			unsigned int len,
+ 			const struct nf_conntrack *ct)
  {
--	return snprintf(buf, len, "%s ",
--			ct->protoinfo.sctp.state < SCTP_CONNTRACK_MAX ?
--			sctp_states[ct->protoinfo.sctp.state] :
--			sctp_states[SCTP_CONNTRACK_NONE]);
-+        const char *str = NULL;
-+        uint8_t state = ct->protoinfo.sctp.state;
-+
-+        if(state < asizeof(sctp_states))
-+                str = sctp_states[state];
-+
-+        if(str == NULL)
-+                str = sctp_states[SCTP_CONNTRACK_NONE];
-+
-+	return snprintf(buf, len, "%s ", str);
+-	return (snprintf(buf, len, "%-8s %u ", 
+-		proto2str[ct->head.orig.protonum] == NULL ?
+-		"unknown" : proto2str[ct->head.orig.protonum], 
+-		 ct->head.orig.protonum));
++        uint8_t num = ct->head.orig.protonum;
++	return snprintf(buf, len, "%-8s %u ", __proto2str(num), num);
  }
  
- static int __snprintf_protoinfo_dccp(char *buf,
- 				     unsigned int len,
- 				     const struct nf_conntrack *ct)
+ static int __snprintf_timeout(char *buf,
+diff --git a/src/conntrack/snprintf_xml.c b/src/conntrack/snprintf_xml.c
+index c3a836a..6a9dfb4 100644
+--- a/src/conntrack/snprintf_xml.c
++++ b/src/conntrack/snprintf_xml.c
+@@ -55,12 +55,28 @@
+ 
+ const char *__proto2str(uint8_t protonum)
  {
--	return snprintf(buf, len, "%s ",
--			ct->protoinfo.dccp.state < DCCP_CONNTRACK_MAX ?
--			sctp_states[ct->protoinfo.dccp.state] :
--			sctp_states[DCCP_CONNTRACK_NONE]);
+-	return proto2str[protonum] ? proto2str[protonum] : "unknown";
 +        const char *str = NULL;
-+        uint8_t state = ct->protoinfo.dccp.state;
 +
-+        if(state < asizeof(dccp_states))
-+                str = dccp_states[state];
++        if(protonum < asizeof(proto2str))
++                str = proto2str[protonum];
 +
 +        if(str == NULL)
-+                str = dccp_states[SCTP_CONNTRACK_NONE];
++                str = "unknown";
 +
-+	return snprintf(buf, len, "%s ", str);
++	return str;
  }
  
- static int __snprintf_address_ipv4(char *buf,
+ const char *__l3proto2str(uint8_t protonum)
+ {
+-	return l3proto2str[protonum] ? l3proto2str[protonum] : "unknown";
++        const char *str = NULL;
++
++        if(protonum < asizeof(l3proto2str))
++                str = l3proto2str[protonum];
++
++        if(str == NULL)
++                str = "unknown";
++
++	return str;
+ }
+ 
+ static int __snprintf_ipv4_xml(char *buf,
 -- 
 2.20.1
 
