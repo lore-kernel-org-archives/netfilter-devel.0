@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F25DCC433E0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jun 2020 16:15:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 247FAC433E1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jun 2020 16:15:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CED7F20768
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jun 2020 16:15:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0402C20738
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jun 2020 16:15:11 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="SEYiB5Bq"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="dUILgoZi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404950AbgFXQO6 (ORCPT
+        id S2404815AbgFXQOH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Jun 2020 12:14:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38688 "EHLO
+        Wed, 24 Jun 2020 12:14:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38658 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2404235AbgFXQOM (ORCPT
+        with ESMTP id S2404785AbgFXQOE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Jun 2020 12:14:12 -0400
+        Wed, 24 Jun 2020 12:14:04 -0400
 Received: from casper.infradead.org (unknown [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55346C0613ED;
-        Wed, 24 Jun 2020 09:14:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62B74C0613ED;
+        Wed, 24 Jun 2020 09:14:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
         References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
         Content-Type:Content-ID:Content-Description;
-        bh=dVcUaNs/nJl21S9DI4MlGzuWbjmDqO4Jqbdos/3DXPs=; b=SEYiB5BqjCV6jniJkzB5E8JhTG
-        eJ224sWAei+pMxmYPPkoawxmQpXxYMxcJS5/eB/EA30KLPrh/N8LPd4eyqdF6SPySZUlx0+AZlJ5V
-        iSSvz+G6018e89C3IFeQN+FBzQ62uo97HtWSfghbxf6g4brX2/rD0ceg6KjXLg3gU2Kn+bzxA8ekT
-        +tPNoHv+eaVo5sQarUK+8RIbfQ83B47c24ojDotVbqmX3cRPUXj34gG8TSAdwVm96JcRAtLDjLjU4
-        JgrkShJfGSzErP2Z4ICzwB0oLETA5q8Crqbs+Rk22LJ6e0ezj+2IR0HTvmEFRTyG3a828xcyIRHkg
-        fI7Q3sMA==;
+        bh=fw2+4gebTcJUXyNcS2c+cOqcMRuf3D2bJUNwgAt6wzg=; b=dUILgoZix7k1GFmu2pIu1nD4Rz
+        uYqtUX0fGcajB4MYLcGXWU1Ni0SiIOBPXnO+fT1Zqagqu7qh66WbzBnejMZXM/VT9gEPVj+2lEN2h
+        2VPQ49kSdj2rbC+daRuzeJ2G/eluIhla+lsqlvUkRNVaMpFa8j0tc3A0koXt4jZcCMMyxyNboTDUE
+        MY1q1nGnhrw8cnEJB276vkPxKcklqStZ8ajv8o6ObqccAdNF2S1cRZ+Eh7HDmONHXJVwfLtsKqkHX
+        DJdNc3oOG4uYaJtfnGlhiQI6uGuWjzjm9Vyje618YLVH7IZNABmT8DqKGao1byH52SKBKUwHHc7Ae
+        QfYmVTRA==;
 Received: from [2001:4bb8:180:a3:5c7c:8955:539d:955b] (helo=localhost)
         by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jo81x-0005yT-Pk; Wed, 24 Jun 2020 16:13:46 +0000
+        id 1jo81q-0005xX-Dn; Wed, 24 Jun 2020 16:13:38 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     Al Viro <viro@zeniv.linux.org.uk>
 Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
@@ -47,9 +47,9 @@ Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
         linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         linux-security-module@vger.kernel.org,
         netfilter-devel@vger.kernel.org
-Subject: [PATCH 07/14] fs: remove __vfs_write
-Date:   Wed, 24 Jun 2020 18:13:28 +0200
-Message-Id: <20200624161335.1810359-8-hch@lst.de>
+Subject: [PATCH 01/14] cachefiles: switch to kernel_write
+Date:   Wed, 24 Jun 2020 18:13:22 +0200
+Message-Id: <20200624161335.1810359-2-hch@lst.de>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200624161335.1810359-1-hch@lst.de>
 References: <20200624161335.1810359-1-hch@lst.de>
@@ -61,85 +61,27 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Fold it into the two callers.
+__kernel_write doesn't take a sb_writers references, which we need here.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: David Howells <dhowells@redhat.com>
 ---
- fs/read_write.c | 46 ++++++++++++++++++++++------------------------
- 1 file changed, 22 insertions(+), 24 deletions(-)
+ fs/cachefiles/rdwr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 5110cd1e6e2771..96e8e354f99b45 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -488,17 +488,6 @@ static ssize_t new_sync_write(struct file *filp, const char __user *buf, size_t
- 	return ret;
- }
- 
--static ssize_t __vfs_write(struct file *file, const char __user *p,
--			   size_t count, loff_t *pos)
--{
--	if (file->f_op->write)
--		return file->f_op->write(file, p, count, pos);
--	else if (file->f_op->write_iter)
--		return new_sync_write(file, p, count, pos);
--	else
--		return -EINVAL;
--}
--
- /* caller is responsible for file_start_write/file_end_write */
- ssize_t __kernel_write(struct file *file, const void *buf, size_t count, loff_t *pos)
- {
-@@ -516,7 +505,12 @@ ssize_t __kernel_write(struct file *file, const void *buf, size_t count, loff_t
- 	p = (__force const char __user *)buf;
- 	if (count > MAX_RW_COUNT)
- 		count =  MAX_RW_COUNT;
--	ret = __vfs_write(file, p, count, pos);
-+	if (file->f_op->write)
-+		ret = file->f_op->write(file, p, count, pos);
-+	else if (file->f_op->write_iter)
-+		ret = new_sync_write(file, p, count, pos);
-+	else
-+		ret = -EINVAL;
- 	set_fs(old_fs);
- 	if (ret > 0) {
- 		fsnotify_modify(file);
-@@ -554,19 +548,23 @@ ssize_t vfs_write(struct file *file, const char __user *buf, size_t count, loff_
- 		return -EFAULT;
- 
- 	ret = rw_verify_area(WRITE, file, pos, count);
--	if (!ret) {
--		if (count > MAX_RW_COUNT)
--			count =  MAX_RW_COUNT;
--		file_start_write(file);
--		ret = __vfs_write(file, buf, count, pos);
--		if (ret > 0) {
--			fsnotify_modify(file);
--			add_wchar(current, ret);
--		}
--		inc_syscw(current);
--		file_end_write(file);
-+	if (ret)
-+		return ret;
-+	if (count > MAX_RW_COUNT)
-+		count =  MAX_RW_COUNT;
-+	file_start_write(file);
-+	if (file->f_op->write)
-+		ret = file->f_op->write(file, buf, count, pos);
-+	else if (file->f_op->write_iter)
-+		ret = new_sync_write(file, buf, count, pos);
-+	else
-+		ret = -EINVAL;
-+	if (ret > 0) {
-+		fsnotify_modify(file);
-+		add_wchar(current, ret);
+diff --git a/fs/cachefiles/rdwr.c b/fs/cachefiles/rdwr.c
+index e7726f5f1241c2..3080cda9e82457 100644
+--- a/fs/cachefiles/rdwr.c
++++ b/fs/cachefiles/rdwr.c
+@@ -937,7 +937,7 @@ int cachefiles_write_page(struct fscache_storage *op, struct page *page)
  	}
--
-+	inc_syscw(current);
-+	file_end_write(file);
- 	return ret;
- }
  
+ 	data = kmap(page);
+-	ret = __kernel_write(file, data, len, &pos);
++	ret = kernel_write(file, data, len, &pos);
+ 	kunmap(page);
+ 	fput(file);
+ 	if (ret != len)
 -- 
 2.26.2
 
