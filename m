@@ -2,57 +2,59 @@ Return-Path: <SRS0=o6T4=AF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C28BC433E0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jun 2020 12:09:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BD73C433E1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jun 2020 12:12:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0878F2088E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jun 2020 12:09:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 076F620CC7
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jun 2020 12:12:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389645AbgFXMJw (ORCPT
+        id S2390279AbgFXMMh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Jun 2020 08:09:52 -0400
-Received: from correo.us.es ([193.147.175.20]:45370 "EHLO mail.us.es"
+        Wed, 24 Jun 2020 08:12:37 -0400
+Received: from correo.us.es ([193.147.175.20]:46894 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388522AbgFXMJv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Jun 2020 08:09:51 -0400
+        id S2388811AbgFXMMg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 24 Jun 2020 08:12:36 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 267591878A2
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Jun 2020 14:09:50 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 11EAF18CDCF
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Jun 2020 14:12:35 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 187B1DA789
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Jun 2020 14:09:50 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F36F8DA792
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Jun 2020 14:12:34 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 0E344DA73D; Wed, 24 Jun 2020 14:09:50 +0200 (CEST)
+        id E8BBBDA78B; Wed, 24 Jun 2020 14:12:34 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0F980DA789;
-        Wed, 24 Jun 2020 14:09:48 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B1ED0DA78F;
+        Wed, 24 Jun 2020 14:12:32 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 24 Jun 2020 14:09:48 +0200 (CEST)
+ Wed, 24 Jun 2020 14:12:32 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id E647C42EF42A;
-        Wed, 24 Jun 2020 14:09:47 +0200 (CEST)
-Date:   Wed, 24 Jun 2020 14:09:47 +0200
+        by entrada.int (Postfix) with ESMTPSA id 936FA42EF42B;
+        Wed, 24 Jun 2020 14:12:32 +0200 (CEST)
+Date:   Wed, 24 Jun 2020 14:12:32 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf 1/1] selftests: netfilter: add test case for conntrack
- helper assignment
-Message-ID: <20200624120947.GA28067@salvia>
-References: <20200622082832.2883-1-fw@strlen.de>
+To:     Vasily Averin <vvs@virtuozzo.com>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        stable@vger.kernel.org
+Subject: Re: [PATCH v4.10] netfilter: nf_conntrack_h323: lost .data_len
+ definition for Q.931/ipv6
+Message-ID: <20200624121232.GA28150@salvia>
+References: <c2385b5c-309c-cc64-2e10-a0ef62897502@virtuozzo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200622082832.2883-1-fw@strlen.de>
+In-Reply-To: <c2385b5c-309c-cc64-2e10-a0ef62897502@virtuozzo.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -60,13 +62,44 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jun 22, 2020 at 10:28:32AM +0200, Florian Westphal wrote:
-> check that 'nft ... ct helper set <foo>' works:
->  1. configure ftp helper via nft and assign it to
->     connections on port 2121
->  2. check with 'conntrack -L' that the next connection
->     has the ftp helper attached to it.
-> 
-> Also add a test for auto-assign (old behaviour).
+CC'ing stable@vger.kernel.org
 
-Applied, thanks.
+On Tue, Jun 09, 2020 at 10:53:22AM +0300, Vasily Averin wrote:
+> Could you please push this patch into stable@?
+> it fixes memory corruption in kernels  v3.5 .. v4.10
+> 
+> Lost .data_len definition leads to write beyond end of
+> struct nf_ct_h323_master. Usually it corrupts following
+> struct nf_conn_nat, however if nat is not loaded it corrupts
+> following slab object.
+> 
+> In mainline this problem went away in v4.11,
+> after commit 9f0f3ebeda47 ("netfilter: helpers: remove data_len usage
+> for inkernel helpers") however many stable kernels are still affected.
+
+-stable maintainers of: 3.16, 4.4 and 4.9.
+
+Please apply this patch, thanks.
+
+> cc: stable@vger.kernel.org
+> Fixes: 1afc56794e03 ("netfilter: nf_ct_helper: implement variable length helper private data") # v3.5
+> Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+> ---
+>  net/netfilter/nf_conntrack_h323_main.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+> index f65d93639d12..29fe1e7eac88 100644
+> --- a/net/netfilter/nf_conntrack_h323_main.c
+> +++ b/net/netfilter/nf_conntrack_h323_main.c
+> @@ -1225,6 +1225,7 @@ static struct nf_conntrack_helper nf_conntrack_helper_q931[] __read_mostly = {
+>  	{
+>  		.name			= "Q.931",
+>  		.me			= THIS_MODULE,
+> +		.data_len		= sizeof(struct nf_ct_h323_master),
+>  		.tuple.src.l3num	= AF_INET6,
+>  		.tuple.src.u.tcp.port	= cpu_to_be16(Q931_PORT),
+>  		.tuple.dst.protonum	= IPPROTO_TCP,
+> -- 
+> 2.17.1
+> 
