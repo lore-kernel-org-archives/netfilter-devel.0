@@ -2,43 +2,42 @@ Return-Path: <SRS0=o6T4=AF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 896BFC433E1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jun 2020 16:16:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84085C433DF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jun 2020 16:16:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6082B20768
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jun 2020 16:16:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B32020A8B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jun 2020 16:16:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="X2WXdDNr"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="gY7cW0jy"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404800AbgFXQP0 (ORCPT
+        id S2404769AbgFXQOC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Jun 2020 12:15:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38660 "EHLO
+        Wed, 24 Jun 2020 12:14:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38646 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2404786AbgFXQOE (ORCPT
+        with ESMTP id S2404235AbgFXQOC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Jun 2020 12:14:04 -0400
+        Wed, 24 Jun 2020 12:14:02 -0400
 Received: from casper.infradead.org (unknown [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3B69C061795;
-        Wed, 24 Jun 2020 09:14:04 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55344C061573;
+        Wed, 24 Jun 2020 09:14:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
-        References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
-        Content-Type:Content-ID:Content-Description;
-        bh=Ruv3QkeH3yf1ddYt00bBWdUvSXa4YUB7wJ/k+J42Rps=; b=X2WXdDNrl5NtIMaD8okmbVqsBE
-        Fv6aiG5zmAjpVm/DMFeGS7tay3Cf5f9FVcSnt9us7oSjadjcmXAEyFmM+p0v3IzXQKNqPp+NwJzmz
-        CjQ8vjnLW3kyWxlPGIijQKtLX4dS/AWJ/ZfG+Qt0oc0osEyuSKPcySr8GK8SaxWB39+n5Dzb1X6RA
-        y35R1bHjb3oU4ymyp2ENPfJAtZqrc80i5SQ02RzMhIJfTzA2/MkuBAnK3/WX+F/G7Skaz9nSCHvcl
-        /+F7Ham9HemsZjqtXl43dJ8d5tbsciSq62GLSNVI2AGE+seDJbGSvkhmT0+CMUM7Y10UElf8czU20
-        xXuiiUpg==;
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:In-Reply-To:References;
+        bh=90OlxAKKJk4MpfGF1wAK+VcXxFJhMFQm3EERw9Z5SnM=; b=gY7cW0jyIntr1TMC49eyr8618s
+        pp7PTXnQGIfLOzJhZrUt7AKPtN7e5veG32FkbWOnsBdcKISt7caT3QrJqO3tXiLzLW8JrImMsZcpo
+        4Pv1tVxQ5hc0Dmk763ZRBduhuQC4nmmuM1MCjYAIisGws+cWSdZO4S4c8SpwJ2Aup5MKRG2xovdEf
+        lU+I6pL16Qw44QQ/sy10leiibrFdZRFXCwMyvqVymtLmW1WXuZC/dD8mz3KgIy+vowJ4+6qHsKEv1
+        tMLqzPy0Y8NscRvPZqg7+4Ng62bVC1ovT3Evc/wvkJoJexju596z3TJ2tEzxsFjGBrHi6MGracAqG
+        eS1my67g==;
 Received: from [2001:4bb8:180:a3:5c7c:8955:539d:955b] (helo=localhost)
         by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jo81v-0005xy-F5; Wed, 24 Jun 2020 16:13:43 +0000
+        id 1jo81p-0005xR-56; Wed, 24 Jun 2020 16:13:37 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     Al Viro <viro@zeniv.linux.org.uk>
 Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
@@ -47,12 +46,10 @@ Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
         linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         linux-security-module@vger.kernel.org,
         netfilter-devel@vger.kernel.org
-Subject: [PATCH 05/14] fs: check FMODE_WRITE in __kernel_write
-Date:   Wed, 24 Jun 2020 18:13:26 +0200
-Message-Id: <20200624161335.1810359-6-hch@lst.de>
+Subject: clean up kernel_{read,write} & friends v5
+Date:   Wed, 24 Jun 2020 18:13:21 +0200
+Message-Id: <20200624161335.1810359-1-hch@lst.de>
 X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200624161335.1810359-1-hch@lst.de>
-References: <20200624161335.1810359-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
@@ -61,29 +58,43 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add a WARN_ON_ONCE if the file isn't actually open for write.  This
-matches the check done in vfs_write, but actually warn warns as a
-kernel user calling write on a file not opened for writing is a pretty
-obvious programming error.
+Hi Al,
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- fs/read_write.c | 2 ++
- 1 file changed, 2 insertions(+)
+this series fixes a few issues and cleans up the helpers that read from
+or write to kernel space buffers, and ensures that we don't change the
+address limit if we are using the ->read_iter and ->write_iter methods
+that don't need the changed address limit.
 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 2c601d853ff3d8..8f9fc05990ae8b 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -505,6 +505,8 @@ ssize_t __kernel_write(struct file *file, const void *buf, size_t count, loff_t
- 	const char __user *p;
- 	ssize_t ret;
- 
-+	if (WARN_ON_ONCE(!(file->f_mode & FMODE_WRITE)))
-+		return -EBADF;
- 	if (!(file->f_mode & FMODE_CAN_WRITE))
- 		return -EINVAL;
- 
--- 
-2.26.2
+I did not add your suggested comments on the instances using
+uaccess_kernel as all of them already have comments.  If you have
+anything better in mind feel free to throw in additional comments.
 
+
+Changes since v4:
+ - warn on calling __kernel_write on files not open for write
+ - add a FMODE_READ check and warning in __kernel_read
+ - add a new patch to remove kernel_readv
+ - stop preferring the iter variants if normal read/write is
+   present
+
+Changes since v3:
+ - keep call_read_iter/call_write_iter for now
+ - don't modify an existing long line
+ - update a change log
+
+Changes since v2:
+ - picked up a few ACKs
+
+Changes since v1:
+ - __kernel_write must not take sb_writers
+ - unexport __kernel_write
+
+Diffstat:
+ fs/autofs/waitq.c            |    2 
+ fs/cachefiles/rdwr.c         |    2 
+ fs/read_write.c              |  171 ++++++++++++++++++++++++++-----------------
+ fs/splice.c                  |   53 +++----------
+ include/linux/fs.h           |    4 -
+ net/bpfilter/bpfilter_kern.c |    2 
+ security/integrity/iint.c    |   14 ---
+ 7 files changed, 125 insertions(+), 123 deletions(-)
