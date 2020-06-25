@@ -3,49 +3,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,LOTS_OF_MONEY,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFB4FC433DF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jun 2020 18:26:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72738C433E2
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jun 2020 18:26:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A2B5020781
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jun 2020 18:26:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5872A20781
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jun 2020 18:26:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2406241AbgFYS0v (ORCPT
+        id S2406197AbgFYS0u (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Jun 2020 14:26:51 -0400
-Received: from correo.us.es ([193.147.175.20]:33602 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2406219AbgFYS0u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 25 Jun 2020 14:26:50 -0400
+Received: from correo.us.es ([193.147.175.20]:33524 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2406199AbgFYS0t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Jun 2020 14:26:49 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 03361FC60C
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jun 2020 20:26:48 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id C82C0FC5F1
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jun 2020 20:26:46 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E924DDA84D
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jun 2020 20:26:47 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BB38DDA855
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jun 2020 20:26:46 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DEF1EDA840; Thu, 25 Jun 2020 20:26:47 +0200 (CEST)
+        id B9E8FDA84F; Thu, 25 Jun 2020 20:26:46 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 949F0DA78E;
-        Thu, 25 Jun 2020 20:26:45 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8D7EDDA72F;
+        Thu, 25 Jun 2020 20:26:44 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 25 Jun 2020 20:26:45 +0200 (CEST)
+ Thu, 25 Jun 2020 20:26:44 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 631AE42EE38F;
-        Thu, 25 Jun 2020 20:26:45 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 6054F42EE38F;
+        Thu, 25 Jun 2020 20:26:44 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 7/7] selftests: netfilter: add test case for conntrack helper assignment
-Date:   Thu, 25 Jun 2020 20:26:35 +0200
-Message-Id: <20200625182635.1958-8-pablo@netfilter.org>
+Subject: [PATCH 5/7] netfilter: ip6tables: Split ip6t_unregister_table() into pre_exit and exit helpers.
+Date:   Thu, 25 Jun 2020 20:26:33 +0200
+Message-Id: <20200625182635.1958-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200625182635.1958-1-pablo@netfilter.org>
 References: <20200625182635.1958-1-pablo@netfilter.org>
@@ -57,218 +57,72 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: David Wilder <dwilder@us.ibm.com>
 
-check that 'nft ... ct helper set <foo>' works:
- 1. configure ftp helper via nft and assign it to
-    connections on port 2121
- 2. check with 'conntrack -L' that the next connection
-    has the ftp helper attached to it.
+The pre_exit will un-register the underlying hook and .exit will do
+the table freeing. The netns core does an unconditional synchronize_rcu
+after the pre_exit hooks insuring no packets are in flight that have
+picked up the pointer before completing the un-register.
 
-Also add a test for auto-assign (old behaviour).
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: b9e69e127397 ("netfilter: xtables: don't hook tables by default")
+Signed-off-by: David Wilder <dwilder@us.ibm.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tools/testing/selftests/netfilter/Makefile    |   2 +-
- .../netfilter/nft_conntrack_helper.sh         | 175 ++++++++++++++++++
- 2 files changed, 176 insertions(+), 1 deletion(-)
- create mode 100755 tools/testing/selftests/netfilter/nft_conntrack_helper.sh
+ include/linux/netfilter_ipv6/ip6_tables.h |  3 +++
+ net/ipv6/netfilter/ip6_tables.c           | 15 ++++++++++++++-
+ 2 files changed, 17 insertions(+), 1 deletion(-)
 
-diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
-index 9c0f758310fe..a179f0dca8ce 100644
---- a/tools/testing/selftests/netfilter/Makefile
-+++ b/tools/testing/selftests/netfilter/Makefile
-@@ -3,7 +3,7 @@
+diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
+index 8225f7821a29..1547d5f9ae06 100644
+--- a/include/linux/netfilter_ipv6/ip6_tables.h
++++ b/include/linux/netfilter_ipv6/ip6_tables.h
+@@ -29,6 +29,9 @@ int ip6t_register_table(struct net *net, const struct xt_table *table,
+ 			const struct nf_hook_ops *ops, struct xt_table **res);
+ void ip6t_unregister_table(struct net *net, struct xt_table *table,
+ 			   const struct nf_hook_ops *ops);
++void ip6t_unregister_table_pre_exit(struct net *net, struct xt_table *table,
++				    const struct nf_hook_ops *ops);
++void ip6t_unregister_table_exit(struct net *net, struct xt_table *table);
+ extern unsigned int ip6t_do_table(struct sk_buff *skb,
+ 				  const struct nf_hook_state *state,
+ 				  struct xt_table *table);
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index e27393498ecb..e96a431549bc 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1807,11 +1807,22 @@ int ip6t_register_table(struct net *net, const struct xt_table *table,
+ 	return ret;
+ }
  
- TEST_PROGS := nft_trans_stress.sh nft_nat.sh bridge_brouter.sh \
- 	conntrack_icmp_related.sh nft_flowtable.sh ipvs.sh \
--	nft_concat_range.sh \
-+	nft_concat_range.sh nft_conntrack_helper.sh \
- 	nft_queue.sh
++void ip6t_unregister_table_pre_exit(struct net *net, struct xt_table *table,
++				    const struct nf_hook_ops *ops)
++{
++	nf_unregister_net_hooks(net, ops, hweight32(table->valid_hooks));
++}
++
++void ip6t_unregister_table_exit(struct net *net, struct xt_table *table)
++{
++	__ip6t_unregister_table(net, table);
++}
++
+ void ip6t_unregister_table(struct net *net, struct xt_table *table,
+ 			   const struct nf_hook_ops *ops)
+ {
+ 	if (ops)
+-		nf_unregister_net_hooks(net, ops, hweight32(table->valid_hooks));
++		ip6t_unregister_table_pre_exit(net, table, ops);
+ 	__ip6t_unregister_table(net, table);
+ }
  
- LDLIBS = -lmnl
-diff --git a/tools/testing/selftests/netfilter/nft_conntrack_helper.sh b/tools/testing/selftests/netfilter/nft_conntrack_helper.sh
-new file mode 100755
-index 000000000000..edf0a48da6bf
---- /dev/null
-+++ b/tools/testing/selftests/netfilter/nft_conntrack_helper.sh
-@@ -0,0 +1,175 @@
-+#!/bin/bash
-+#
-+# This tests connection tracking helper assignment:
-+# 1. can attach ftp helper to a connection from nft ruleset.
-+# 2. auto-assign still works.
-+#
-+# Kselftest framework requirement - SKIP code is 4.
-+ksft_skip=4
-+ret=0
-+
-+sfx=$(mktemp -u "XXXXXXXX")
-+ns1="ns1-$sfx"
-+ns2="ns2-$sfx"
-+testipv6=1
-+
-+cleanup()
-+{
-+	ip netns del ${ns1}
-+	ip netns del ${ns2}
-+}
-+
-+nft --version > /dev/null 2>&1
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not run test without nft tool"
-+	exit $ksft_skip
-+fi
-+
-+ip -Version > /dev/null 2>&1
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not run test without ip tool"
-+	exit $ksft_skip
-+fi
-+
-+conntrack -V > /dev/null 2>&1
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not run test without conntrack tool"
-+	exit $ksft_skip
-+fi
-+
-+which nc >/dev/null 2>&1
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not run test without netcat tool"
-+	exit $ksft_skip
-+fi
-+
-+trap cleanup EXIT
-+
-+ip netns add ${ns1}
-+ip netns add ${ns2}
-+
-+ip link add veth0 netns ${ns1} type veth peer name veth0 netns ${ns2} > /dev/null 2>&1
-+if [ $? -ne 0 ];then
-+    echo "SKIP: No virtual ethernet pair device support in kernel"
-+    exit $ksft_skip
-+fi
-+
-+ip -net ${ns1} link set lo up
-+ip -net ${ns1} link set veth0 up
-+
-+ip -net ${ns2} link set lo up
-+ip -net ${ns2} link set veth0 up
-+
-+ip -net ${ns1} addr add 10.0.1.1/24 dev veth0
-+ip -net ${ns1} addr add dead:1::1/64 dev veth0
-+
-+ip -net ${ns2} addr add 10.0.1.2/24 dev veth0
-+ip -net ${ns2} addr add dead:1::2/64 dev veth0
-+
-+load_ruleset_family() {
-+	local family=$1
-+	local ns=$2
-+
-+ip netns exec ${ns} nft -f - <<EOF
-+table $family raw {
-+	ct helper ftp {
-+             type "ftp" protocol tcp
-+        }
-+	chain pre {
-+		type filter hook prerouting priority 0; policy accept;
-+		tcp dport 2121 ct helper set "ftp"
-+	}
-+	chain output {
-+		type filter hook output priority 0; policy accept;
-+		tcp dport 2121 ct helper set "ftp"
-+	}
-+}
-+EOF
-+	return $?
-+}
-+
-+check_for_helper()
-+{
-+	local netns=$1
-+	local message=$2
-+	local port=$3
-+
-+	ip netns exec ${netns} conntrack -L -p tcp --dport $port 2> /dev/null |grep -q 'helper=ftp'
-+	if [ $? -ne 0 ] ; then
-+		echo "FAIL: ${netns} did not show attached helper $message" 1>&2
-+		ret=1
-+	fi
-+
-+	echo "PASS: ${netns} connection on port $port has ftp helper attached" 1>&2
-+	return 0
-+}
-+
-+test_helper()
-+{
-+	local port=$1
-+	local msg=$2
-+
-+	sleep 3 | ip netns exec ${ns2} nc -w 2 -l -p $port > /dev/null &
-+
-+	sleep 1
-+	sleep 1 | ip netns exec ${ns1} nc -w 2 10.0.1.2 $port > /dev/null &
-+
-+	check_for_helper "$ns1" "ip $msg" $port
-+	check_for_helper "$ns2" "ip $msg" $port
-+
-+	wait
-+
-+	if [ $testipv6 -eq 0 ] ;then
-+		return 0
-+	fi
-+
-+	ip netns exec ${ns1} conntrack -F 2> /dev/null
-+	ip netns exec ${ns2} conntrack -F 2> /dev/null
-+
-+	sleep 3 | ip netns exec ${ns2} nc -w 2 -6 -l -p $port > /dev/null &
-+
-+	sleep 1
-+	sleep 1 | ip netns exec ${ns1} nc -w 2 -6 dead:1::2 $port > /dev/null &
-+
-+	check_for_helper "$ns1" "ipv6 $msg" $port
-+	check_for_helper "$ns2" "ipv6 $msg" $port
-+
-+	wait
-+}
-+
-+load_ruleset_family ip ${ns1}
-+if [ $? -ne 0 ];then
-+	echo "FAIL: ${ns1} cannot load ip ruleset" 1>&2
-+	exit 1
-+fi
-+
-+load_ruleset_family ip6 ${ns1}
-+if [ $? -ne 0 ];then
-+	echo "SKIP: ${ns1} cannot load ip6 ruleset" 1>&2
-+	testipv6=0
-+fi
-+
-+load_ruleset_family inet ${ns2}
-+if [ $? -ne 0 ];then
-+	echo "SKIP: ${ns1} cannot load inet ruleset" 1>&2
-+	load_ruleset_family ip ${ns2}
-+	if [ $? -ne 0 ];then
-+		echo "FAIL: ${ns2} cannot load ip ruleset" 1>&2
-+		exit 1
-+	fi
-+
-+	if [ $testipv6 -eq 1 ] ;then
-+		load_ruleset_family ip6 ${ns2}
-+		if [ $? -ne 0 ];then
-+			echo "FAIL: ${ns2} cannot load ip6 ruleset" 1>&2
-+			exit 1
-+		fi
-+	fi
-+fi
-+
-+test_helper 2121 "set via ruleset"
-+ip netns exec ${ns1} sysctl -q 'net.netfilter.nf_conntrack_helper=1'
-+ip netns exec ${ns2} sysctl -q 'net.netfilter.nf_conntrack_helper=1'
-+test_helper 21 "auto-assign"
-+
-+exit $ret
+@@ -1969,6 +1980,8 @@ static void __exit ip6_tables_fini(void)
+ 
+ EXPORT_SYMBOL(ip6t_register_table);
+ EXPORT_SYMBOL(ip6t_unregister_table);
++EXPORT_SYMBOL(ip6t_unregister_table_pre_exit);
++EXPORT_SYMBOL(ip6t_unregister_table_exit);
+ EXPORT_SYMBOL(ip6t_do_table);
+ 
+ module_init(ip6_tables_init);
 -- 
 2.20.1
 
