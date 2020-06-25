@@ -8,56 +8,56 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FB49C433E0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jun 2020 02:42:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC30CC433E0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jun 2020 02:46:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F3C502078D
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jun 2020 02:42:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 883CC20836
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jun 2020 02:46:18 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kEXvyUMc"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TabtkjAE"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389411AbgFYCmP (ORCPT
+        id S2389479AbgFYCqN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Jun 2020 22:42:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51030 "EHLO
+        Wed, 24 Jun 2020 22:46:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51634 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388930AbgFYCmO (ORCPT
+        with ESMTP id S2388930AbgFYCqM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Jun 2020 22:42:14 -0400
-Received: from mail-qt1-x835.google.com (mail-qt1-x835.google.com [IPv6:2607:f8b0:4864:20::835])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1ACE4C061573;
-        Wed, 24 Jun 2020 19:42:14 -0700 (PDT)
-Received: by mail-qt1-x835.google.com with SMTP id g13so3521133qtv.8;
-        Wed, 24 Jun 2020 19:42:14 -0700 (PDT)
+        Wed, 24 Jun 2020 22:46:12 -0400
+Received: from mail-qt1-x842.google.com (mail-qt1-x842.google.com [IPv6:2607:f8b0:4864:20::842])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50566C061573;
+        Wed, 24 Jun 2020 19:46:11 -0700 (PDT)
+Received: by mail-qt1-x842.google.com with SMTP id v19so3513166qtq.10;
+        Wed, 24 Jun 2020 19:46:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:subject:date:message-id;
-        bh=fbnRB4YoedUi6LoLD8JlUhcVfnMSczit3rkXQlpuCkk=;
-        b=kEXvyUMcDZ9wfp+GNFnO7Kdy0+8rFA8576vLxYjOiNP0e2JVWJ+dy80UGug5pUWJYV
-         Zh4UG/Suq3ekYULrhscG84+fpLM5gICOlmQRCpkCLyObFPu2rrsGSf92EXXD8GocGX/c
-         +UzOWtEs1PoLcU+tSBNnMTl87FUYJaqcuIDSrWBeRKYqSofD4J8lgALECQrRrBxoBR68
-         8E8xep34JgXlCrcCbE2IiaNElDnvpe6gIe29lwOP4A9ZWR0qAfq+huVnU/ftYyE2i1lf
-         cxHN1qvjB273LYnDQMY6ntmqVU9GYFA1cbuR9izWL8NeA1HcUVTfKbRns30z7vaAYX2z
-         4ayw==
+        bh=cQpEhmFPDYIC8mHow/3VbX8CkkK2TboHR1C2syFtHGs=;
+        b=TabtkjAEw+mPYUxy5YE0yd0B08a/Xj8LtVTOmbSl43x5K6ULaRgZhfqywSDGqW88OP
+         CJ38ulDxKmymVU5sJmlKwF+kFe4+yBhvgjXckaB2XMBOiRG8M4TpqZYYhZDvwRDerWBh
+         Viu0tWB3KmNolM7S8tE90tz6IhkaGfc6ZLb8r3DVSXJ8z5FSdGy9aF4wOwzJK3jIeUcF
+         GsOBwujmN/BJMmNFFEQZ0lx3VbHONvGjn+Ezl6cfNPRvi6DKMYPKLf1uFXXXiP8vyz2t
+         qW5ku2qFeLXIEnCcKDfuat2eBRJX0o2gVIslvZ+0yh0exrT99s81w3SGfQw6c9qpOffI
+         54OA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:subject:date:message-id;
-        bh=fbnRB4YoedUi6LoLD8JlUhcVfnMSczit3rkXQlpuCkk=;
-        b=JEtAbcbH19ZlICmkbQgeBlY01Qojlsu7+twvMODyLvZY7CS6+Gpj6R9ONBxf20EOvn
-         l6BRAJepYpl/FkPj59lpWDZdO0Yy/9KXrLMnBmzCMoA6lwc4e/n/BeWs00vvi0iiM6Ux
-         4SNHfgzUPHsDFnWmctNsJFhPMCWyutPYiizxCFnLaWv/e9hdmfVcMmcIDoLWTFkWgF6Z
-         G/uavR263ieySMB3Jgx/FyEjK90KXF+A1A218N4qY4yaDmFygG+ClQl6VZF4c5UHb+pv
-         a9xsP2yfl3JXJyCzT5cZXr1Mle2kOQhyut6c1E95d/ZmXYRjyoCmKc8AyFs4u5Vuv60B
-         IVOA==
-X-Gm-Message-State: AOAM5322eEirxp8wsWFWayKJC2FztKaefYU2ji7aYbeVEj9eqGmADtzG
-        KWXFhfFlO5r6ucQG4xzfRv8=
-X-Google-Smtp-Source: ABdhPJw3OtA7sQGiEp3UleOVwFrZJEtgn2Y11sOcOrX/L957Pc2v8g55AKuks2DKCL0NaC0iXr/6+g==
-X-Received: by 2002:ac8:2aa9:: with SMTP id b38mr11608952qta.49.1593052933353;
-        Wed, 24 Jun 2020 19:42:13 -0700 (PDT)
+        bh=cQpEhmFPDYIC8mHow/3VbX8CkkK2TboHR1C2syFtHGs=;
+        b=FaWxbWQADronh6XXrZeyXwzVUBOrbDCNlQo1nY50+s5gU9IJ+EaKR+yc7DAM+AG2VW
+         e7gjvB0D/5jfJ+0SMW0Q+jiFx42MJuxOpfR7Q+JyMIz9fJegqYL8HfR9v6xKM7d8Yitc
+         DDE7cKyC2xsk6h7HkIrX8HhP6mD9F7U7W20BvxQlOGy4M3MPIf7TvmJbXstjl7K6pyYS
+         8ymrIGYGVyvG2fLmr8Ic46l4znI9SET412dSAJrnwUpSDMzZcI3vD2YGID161UMAGgeZ
+         pDy3ep/iZ99ybkqnLFQ0T6k3pd7nu8Ci6Nh2nIel9wYsmEtbXVJNt7e/WtQ08a928Zpu
+         1c/w==
+X-Gm-Message-State: AOAM532xaoYHw+YcaStAHTwdP0xxDhpKjZ1yvEzWYqly8MvLdl43+k4f
+        Z36etvaYc+TaZcHm9amfxTg=
+X-Google-Smtp-Source: ABdhPJxNn0AzNExJhT2K7CybQTpfKoFtIFgRBK0papWcKvhCdZCuN1h5oKAMtj5Hi/qx6fh5r7M9Qg==
+X-Received: by 2002:ac8:1013:: with SMTP id z19mr29840585qti.130.1593053170544;
+        Wed, 24 Jun 2020 19:46:10 -0700 (PDT)
 Received: from linux.home ([2604:2000:1344:41d:b4f5:b2c7:27bb:8a39])
-        by smtp.googlemail.com with ESMTPSA id n63sm4890048qkn.104.2020.06.24.19.42.12
+        by smtp.googlemail.com with ESMTPSA id y54sm5240187qtj.28.2020.06.24.19.46.09
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 24 Jun 2020 19:42:12 -0700 (PDT)
+        Wed, 24 Jun 2020 19:46:10 -0700 (PDT)
 From:   Gaurav Singh <gaurav1086@gmail.com>
 To:     gaurav1086@gmail.com, Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
@@ -70,38 +70,38 @@ To:     gaurav1086@gmail.com, Pablo Neira Ayuso <pablo@netfilter.org>,
         coreteam@netfilter.org (open list:NETFILTER),
         netdev@vger.kernel.org (open list:NETWORKING [IPv4/IPv6]),
         linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH] [net/ipv6] remove redundant null check in frag_mt6
-Date:   Wed, 24 Jun 2020 22:42:05 -0400
-Message-Id: <20200625024207.1625-1-gaurav1086@gmail.com>
+Subject: [PATCH] [net/ipv6] Remove redundant null check in hbh_mt6
+Date:   Wed, 24 Jun 2020 22:46:04 -0400
+Message-Id: <20200625024605.2881-1-gaurav1086@gmail.com>
 X-Mailer: git-send-email 2.17.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-fh cannot be NULL since its already checked above after
+oh cannot be NULL since its already checked above after
 assignment and is being dereferenced before. Remove the
 redundant null check.
 
 Signed-off-by: Gaurav Singh <gaurav1086@gmail.com>
 ---
- net/ipv6/netfilter/ip6t_frag.c | 3 +--
+ net/ipv6/netfilter/ip6t_hbh.c | 3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/net/ipv6/netfilter/ip6t_frag.c b/net/ipv6/netfilter/ip6t_frag.c
-index fb91eeee4a1e..3aad6439386b 100644
---- a/net/ipv6/netfilter/ip6t_frag.c
-+++ b/net/ipv6/netfilter/ip6t_frag.c
-@@ -85,8 +85,7 @@ frag_mt6(const struct sk_buff *skb, struct xt_action_param *par)
- 		 !((fraginfo->flags & IP6T_FRAG_NMF) &&
- 		   (ntohs(fh->frag_off) & IP6_MF)));
+diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
+index 467b2a86031b..e7a3fb9355ee 100644
+--- a/net/ipv6/netfilter/ip6t_hbh.c
++++ b/net/ipv6/netfilter/ip6t_hbh.c
+@@ -86,8 +86,7 @@ hbh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		  ((optinfo->hdrlen == hdrlen) ^
+ 		   !!(optinfo->invflags & IP6T_OPTS_INV_LEN))));
  
--	return (fh != NULL) &&
--		id_match(fraginfo->ids[0], fraginfo->ids[1],
-+	return id_match(fraginfo->ids[0], fraginfo->ids[1],
- 			 ntohl(fh->identification),
- 			 !!(fraginfo->invflags & IP6T_FRAG_INV_IDS)) &&
- 		!((fraginfo->flags & IP6T_FRAG_RES) &&
+-	ret = (oh != NULL) &&
+-	      (!(optinfo->flags & IP6T_OPTS_LEN) ||
++	ret = (!(optinfo->flags & IP6T_OPTS_LEN) ||
+ 	       ((optinfo->hdrlen == hdrlen) ^
+ 		!!(optinfo->invflags & IP6T_OPTS_INV_LEN)));
+ 
 -- 
 2.17.1
 
