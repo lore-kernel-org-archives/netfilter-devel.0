@@ -2,53 +2,51 @@ Return-Path: <SRS0=ETlx=AG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+X-Spam-Status: No, score=-14.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E24D6C433E0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jun 2020 18:27:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC4D2C433E1
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jun 2020 18:27:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CA0E920781
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jun 2020 18:27:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D5A620781
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jun 2020 18:27:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2406269AbgFYS1A (ORCPT
+        id S2406185AbgFYS0r (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Jun 2020 14:27:00 -0400
-Received: from correo.us.es ([193.147.175.20]:33518 "EHLO mail.us.es"
+        Thu, 25 Jun 2020 14:26:47 -0400
+Received: from correo.us.es ([193.147.175.20]:33460 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404488AbgFYS0t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Jun 2020 14:26:49 -0400
+        id S2404019AbgFYS0q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Jun 2020 14:26:46 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 54DF5FC5E8
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jun 2020 20:26:46 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id CC786FC5EA
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jun 2020 20:26:43 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 449E7DA73D
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jun 2020 20:26:46 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B3CD4DA85E
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jun 2020 20:26:43 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 3A3F8DA84F; Thu, 25 Jun 2020 20:26:46 +0200 (CEST)
+        id A8B42DA855; Thu, 25 Jun 2020 20:26:43 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 08EE6DA73D;
-        Thu, 25 Jun 2020 20:26:44 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 17A20DA73F;
+        Thu, 25 Jun 2020 20:26:41 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 25 Jun 2020 20:26:44 +0200 (CEST)
+ Thu, 25 Jun 2020 20:26:41 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id D1C8E42EE395;
-        Thu, 25 Jun 2020 20:26:43 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id DF62B42EE38F;
+        Thu, 25 Jun 2020 20:26:40 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 4/7] netfilter: iptables: Add a .pre_exit hook in all iptable_foo.c.
-Date:   Thu, 25 Jun 2020 20:26:32 +0200
-Message-Id: <20200625182635.1958-5-pablo@netfilter.org>
+Subject: [PATCH 0/7] Netfilter fixes for net
+Date:   Thu, 25 Jun 2020 20:26:28 +0200
+Message-Id: <20200625182635.1958-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200625182635.1958-1-pablo@netfilter.org>
-References: <20200625182635.1958-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
@@ -57,169 +55,137 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: David Wilder <dwilder@us.ibm.com>
+Hi,
 
-Using new helpers ipt_unregister_table_pre_exit() and
-ipt_unregister_table_exit().
+The following patchset contains Netfilter fixes for net, they are:
 
-Fixes: b9e69e127397 ("netfilter: xtables: don't hook tables by default")
-Signed-off-by: David Wilder <dwilder@us.ibm.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/netfilter/iptable_filter.c   | 10 +++++++++-
- net/ipv4/netfilter/iptable_mangle.c   | 10 +++++++++-
- net/ipv4/netfilter/iptable_nat.c      | 10 ++++++++--
- net/ipv4/netfilter/iptable_raw.c      | 10 +++++++++-
- net/ipv4/netfilter/iptable_security.c | 11 +++++++++--
- 5 files changed, 44 insertions(+), 7 deletions(-)
+1) Unaligned atomic access in ipset, from Russell King.
 
-diff --git a/net/ipv4/netfilter/iptable_filter.c b/net/ipv4/netfilter/iptable_filter.c
-index 9d54b4017e50..8f7bc1ee7453 100644
---- a/net/ipv4/netfilter/iptable_filter.c
-+++ b/net/ipv4/netfilter/iptable_filter.c
-@@ -72,16 +72,24 @@ static int __net_init iptable_filter_net_init(struct net *net)
- 	return 0;
- }
- 
-+static void __net_exit iptable_filter_net_pre_exit(struct net *net)
-+{
-+	if (net->ipv4.iptable_filter)
-+		ipt_unregister_table_pre_exit(net, net->ipv4.iptable_filter,
-+					      filter_ops);
-+}
-+
- static void __net_exit iptable_filter_net_exit(struct net *net)
- {
- 	if (!net->ipv4.iptable_filter)
- 		return;
--	ipt_unregister_table(net, net->ipv4.iptable_filter, filter_ops);
-+	ipt_unregister_table_exit(net, net->ipv4.iptable_filter);
- 	net->ipv4.iptable_filter = NULL;
- }
- 
- static struct pernet_operations iptable_filter_net_ops = {
- 	.init = iptable_filter_net_init,
-+	.pre_exit = iptable_filter_net_pre_exit,
- 	.exit = iptable_filter_net_exit,
- };
- 
-diff --git a/net/ipv4/netfilter/iptable_mangle.c b/net/ipv4/netfilter/iptable_mangle.c
-index bb9266ea3785..f703a717ab1d 100644
---- a/net/ipv4/netfilter/iptable_mangle.c
-+++ b/net/ipv4/netfilter/iptable_mangle.c
-@@ -100,15 +100,23 @@ static int __net_init iptable_mangle_table_init(struct net *net)
- 	return ret;
- }
- 
-+static void __net_exit iptable_mangle_net_pre_exit(struct net *net)
-+{
-+	if (net->ipv4.iptable_mangle)
-+		ipt_unregister_table_pre_exit(net, net->ipv4.iptable_mangle,
-+					      mangle_ops);
-+}
-+
- static void __net_exit iptable_mangle_net_exit(struct net *net)
- {
- 	if (!net->ipv4.iptable_mangle)
- 		return;
--	ipt_unregister_table(net, net->ipv4.iptable_mangle, mangle_ops);
-+	ipt_unregister_table_exit(net, net->ipv4.iptable_mangle);
- 	net->ipv4.iptable_mangle = NULL;
- }
- 
- static struct pernet_operations iptable_mangle_net_ops = {
-+	.pre_exit = iptable_mangle_net_pre_exit,
- 	.exit = iptable_mangle_net_exit,
- };
- 
-diff --git a/net/ipv4/netfilter/iptable_nat.c b/net/ipv4/netfilter/iptable_nat.c
-index ad33687b7444..b0143b109f25 100644
---- a/net/ipv4/netfilter/iptable_nat.c
-+++ b/net/ipv4/netfilter/iptable_nat.c
-@@ -113,16 +113,22 @@ static int __net_init iptable_nat_table_init(struct net *net)
- 	return ret;
- }
- 
-+static void __net_exit iptable_nat_net_pre_exit(struct net *net)
-+{
-+	if (net->ipv4.nat_table)
-+		ipt_nat_unregister_lookups(net);
-+}
-+
- static void __net_exit iptable_nat_net_exit(struct net *net)
- {
- 	if (!net->ipv4.nat_table)
- 		return;
--	ipt_nat_unregister_lookups(net);
--	ipt_unregister_table(net, net->ipv4.nat_table, NULL);
-+	ipt_unregister_table_exit(net, net->ipv4.nat_table);
- 	net->ipv4.nat_table = NULL;
- }
- 
- static struct pernet_operations iptable_nat_net_ops = {
-+	.pre_exit = iptable_nat_net_pre_exit,
- 	.exit	= iptable_nat_net_exit,
- };
- 
-diff --git a/net/ipv4/netfilter/iptable_raw.c b/net/ipv4/netfilter/iptable_raw.c
-index 69697eb4bfc6..9abfe6bf2cb9 100644
---- a/net/ipv4/netfilter/iptable_raw.c
-+++ b/net/ipv4/netfilter/iptable_raw.c
-@@ -67,15 +67,23 @@ static int __net_init iptable_raw_table_init(struct net *net)
- 	return ret;
- }
- 
-+static void __net_exit iptable_raw_net_pre_exit(struct net *net)
-+{
-+	if (net->ipv4.iptable_raw)
-+		ipt_unregister_table_pre_exit(net, net->ipv4.iptable_raw,
-+					      rawtable_ops);
-+}
-+
- static void __net_exit iptable_raw_net_exit(struct net *net)
- {
- 	if (!net->ipv4.iptable_raw)
- 		return;
--	ipt_unregister_table(net, net->ipv4.iptable_raw, rawtable_ops);
-+	ipt_unregister_table_exit(net, net->ipv4.iptable_raw);
- 	net->ipv4.iptable_raw = NULL;
- }
- 
- static struct pernet_operations iptable_raw_net_ops = {
-+	.pre_exit = iptable_raw_net_pre_exit,
- 	.exit = iptable_raw_net_exit,
- };
- 
-diff --git a/net/ipv4/netfilter/iptable_security.c b/net/ipv4/netfilter/iptable_security.c
-index ac633c1db97e..415c1975d770 100644
---- a/net/ipv4/netfilter/iptable_security.c
-+++ b/net/ipv4/netfilter/iptable_security.c
-@@ -62,16 +62,23 @@ static int __net_init iptable_security_table_init(struct net *net)
- 	return ret;
- }
- 
-+static void __net_exit iptable_security_net_pre_exit(struct net *net)
-+{
-+	if (net->ipv4.iptable_security)
-+		ipt_unregister_table_pre_exit(net, net->ipv4.iptable_security,
-+					      sectbl_ops);
-+}
-+
- static void __net_exit iptable_security_net_exit(struct net *net)
- {
- 	if (!net->ipv4.iptable_security)
- 		return;
--
--	ipt_unregister_table(net, net->ipv4.iptable_security, sectbl_ops);
-+	ipt_unregister_table_exit(net, net->ipv4.iptable_security);
- 	net->ipv4.iptable_security = NULL;
- }
- 
- static struct pernet_operations iptable_security_net_ops = {
-+	.pre_exit = iptable_security_net_pre_exit,
- 	.exit = iptable_security_net_exit,
- };
- 
--- 
-2.20.1
+2) Missing module description, from Rob Gill.
 
+3) Patches to fix a module unload causing NULL pointer dereference in
+   xtables, from David Wilder. For the record, I posting here his cover
+   letter explaining the problem:
+
+    A crash happened on ppc64le when running ltp network tests triggered by
+    "rmmod iptable_mangle".
+
+    See previous discussion in this thread:
+    https://lists.openwall.net/netdev/2020/06/03/161 .
+
+    In the crash I found in iptable_mangle_hook() that
+    state->net->ipv4.iptable_mangle=NULL causing a NULL pointer dereference.
+    net->ipv4.iptable_mangle is set to NULL in +iptable_mangle_net_exit() and
+    called when ip_mangle modules is unloaded. A rmmod task was found running
+    in the crash dump.  A 2nd crash showed the same problem when running
+    "rmmod iptable_filter" (net->ipv4.iptable_filter=NULL).
+
+    To fix this I added .pre_exit hook in all iptable_foo.c. The pre_exit will
+    un-register the underlying hook and exit would do the table freeing. The
+    netns core does an unconditional +synchronize_rcu after the pre_exit hooks
+    insuring no packets are in flight that have picked up the pointer before
+    completing the un-register.
+
+    These patches include changes for both iptables and ip6tables.
+
+    We tested this fix with ltp running iptables01.sh and iptables01.sh -6 a
+    loop for 72 hours.
+
+4) Add a selftest for conntrack helper assignment, from Florian Westphal.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thank you.
+
+----------------------------------------------------------------
+
+The following changes since commit 67c20de35a3cc2e2cd940f95ebd85ed0a765315a:
+
+  net: Add MODULE_DESCRIPTION entries to network modules (2020-06-20 21:33:57 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to 619ae8e0697a6fb85b99b19137590c7c337c579e:
+
+  selftests: netfilter: add test case for conntrack helper assignment (2020-06-25 00:50:31 +0200)
+
+----------------------------------------------------------------
+David Wilder (4):
+      netfilter: iptables: Split ipt_unregister_table() into pre_exit and exit helpers.
+      netfilter: iptables: Add a .pre_exit hook in all iptable_foo.c.
+      netfilter: ip6tables: Split ip6t_unregister_table() into pre_exit and exit helpers.
+      netfilter: ip6tables: Add a .pre_exit hook in all ip6table_foo.c.
+
+Florian Westphal (1):
+      selftests: netfilter: add test case for conntrack helper assignment
+
+Rob Gill (1):
+      netfilter: Add MODULE_DESCRIPTION entries to kernel modules
+
+Russell King (1):
+      netfilter: ipset: fix unaligned atomic access
+
+ include/linux/netfilter_ipv4/ip_tables.h           |   6 +
+ include/linux/netfilter_ipv6/ip6_tables.h          |   3 +
+ net/bridge/netfilter/nft_meta_bridge.c             |   1 +
+ net/bridge/netfilter/nft_reject_bridge.c           |   1 +
+ net/ipv4/netfilter/ip_tables.c                     |  15 +-
+ net/ipv4/netfilter/ipt_SYNPROXY.c                  |   1 +
+ net/ipv4/netfilter/iptable_filter.c                |  10 +-
+ net/ipv4/netfilter/iptable_mangle.c                |  10 +-
+ net/ipv4/netfilter/iptable_nat.c                   |  10 +-
+ net/ipv4/netfilter/iptable_raw.c                   |  10 +-
+ net/ipv4/netfilter/iptable_security.c              |  11 +-
+ net/ipv4/netfilter/nf_flow_table_ipv4.c            |   1 +
+ net/ipv4/netfilter/nft_dup_ipv4.c                  |   1 +
+ net/ipv4/netfilter/nft_fib_ipv4.c                  |   1 +
+ net/ipv4/netfilter/nft_reject_ipv4.c               |   1 +
+ net/ipv6/netfilter/ip6_tables.c                    |  15 +-
+ net/ipv6/netfilter/ip6t_SYNPROXY.c                 |   1 +
+ net/ipv6/netfilter/ip6table_filter.c               |  10 +-
+ net/ipv6/netfilter/ip6table_mangle.c               |  10 +-
+ net/ipv6/netfilter/ip6table_nat.c                  |  10 +-
+ net/ipv6/netfilter/ip6table_raw.c                  |  10 +-
+ net/ipv6/netfilter/ip6table_security.c             |  10 +-
+ net/ipv6/netfilter/nf_flow_table_ipv6.c            |   1 +
+ net/ipv6/netfilter/nft_dup_ipv6.c                  |   1 +
+ net/ipv6/netfilter/nft_fib_ipv6.c                  |   1 +
+ net/ipv6/netfilter/nft_reject_ipv6.c               |   1 +
+ net/netfilter/ipset/ip_set_core.c                  |   2 +
+ net/netfilter/nf_dup_netdev.c                      |   1 +
+ net/netfilter/nf_flow_table_core.c                 |   1 +
+ net/netfilter/nf_flow_table_inet.c                 |   1 +
+ net/netfilter/nf_synproxy_core.c                   |   1 +
+ net/netfilter/nfnetlink.c                          |   1 +
+ net/netfilter/nft_compat.c                         |   1 +
+ net/netfilter/nft_connlimit.c                      |   1 +
+ net/netfilter/nft_counter.c                        |   1 +
+ net/netfilter/nft_ct.c                             |   1 +
+ net/netfilter/nft_dup_netdev.c                     |   1 +
+ net/netfilter/nft_fib_inet.c                       |   1 +
+ net/netfilter/nft_fib_netdev.c                     |   1 +
+ net/netfilter/nft_flow_offload.c                   |   1 +
+ net/netfilter/nft_hash.c                           |   1 +
+ net/netfilter/nft_limit.c                          |   1 +
+ net/netfilter/nft_log.c                            |   1 +
+ net/netfilter/nft_masq.c                           |   1 +
+ net/netfilter/nft_nat.c                            |   1 +
+ net/netfilter/nft_numgen.c                         |   1 +
+ net/netfilter/nft_objref.c                         |   1 +
+ net/netfilter/nft_osf.c                            |   1 +
+ net/netfilter/nft_queue.c                          |   1 +
+ net/netfilter/nft_quota.c                          |   1 +
+ net/netfilter/nft_redir.c                          |   1 +
+ net/netfilter/nft_reject.c                         |   1 +
+ net/netfilter/nft_reject_inet.c                    |   1 +
+ net/netfilter/nft_synproxy.c                       |   1 +
+ net/netfilter/nft_tunnel.c                         |   1 +
+ net/netfilter/xt_nat.c                             |   1 +
+ tools/testing/selftests/netfilter/Makefile         |   2 +-
+ .../selftests/netfilter/nft_conntrack_helper.sh    | 175 +++++++++++++++++++++
+ 58 files changed, 344 insertions(+), 16 deletions(-)
+ create mode 100755 tools/testing/selftests/netfilter/nft_conntrack_helper.sh
