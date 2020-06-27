@@ -2,273 +2,132 @@ Return-Path: <SRS0=mL34=AI=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 135ECC433E0
-	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Jun 2020 15:00:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94749C433E0
+	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Jun 2020 17:36:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DA96F2088E
-	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Jun 2020 15:00:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7B20920781
+	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Jun 2020 17:36:00 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="vXDgV6JI"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="TdUOFosK"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726177AbgF0PAQ (ORCPT
+        id S1725932AbgF0RgA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 27 Jun 2020 11:00:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42728 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725922AbgF0PAP (ORCPT
+        Sat, 27 Jun 2020 13:36:00 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:40563 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1725900AbgF0RgA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 27 Jun 2020 11:00:15 -0400
-Received: from mail-lj1-x234.google.com (mail-lj1-x234.google.com [IPv6:2a00:1450:4864:20::234])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87348C061794
-        for <netfilter-devel@vger.kernel.org>; Sat, 27 Jun 2020 08:00:15 -0700 (PDT)
-Received: by mail-lj1-x234.google.com with SMTP id q7so63863ljm.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 27 Jun 2020 08:00:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=to:from:subject:autocrypt:message-id:date:user-agent:mime-version
-         :content-language:content-transfer-encoding;
-        bh=1Sa2D+4f71d7ckewoRcoMugCBbN0bZvB/Tyyxu9ROUc=;
-        b=vXDgV6JIEEowpirnAaAV/8vvm/BakQLxvcFAskQ8g5W0k/qnRLaFNDaOz/K1qeGY0C
-         GyhLgn2P/xQ9iQhGBDHmbBqNPvYaEOOh60EATWwU3O7puCmtSXCMbmpdi2hDS7EZBkwH
-         g1txbqoBUXr/jIBIm3IpreX5I9K/5yUj7a6RnZj16ID5fcTLvrZgB560GJhOfc5GvBOL
-         +/6hzF69XRV2vxV0ba21v94hh2atOGJKFOovl9v7MUSNkAmujpOm3WvSvryXrHhuO8JA
-         2y8kBP7QBO9dPWZkTjbUcnmyHwolw7DA05RoPoPKRw1fWBIvwm7cKFmPD3n0pIIeycsf
-         2epQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:to:from:subject:autocrypt:message-id:date
-         :user-agent:mime-version:content-language:content-transfer-encoding;
-        bh=1Sa2D+4f71d7ckewoRcoMugCBbN0bZvB/Tyyxu9ROUc=;
-        b=pJkjKYkVCy/V5LKueSHCX9Q09w2y0fhClyfrzVu5GOH0jN/NpqLjBlWglru60z/nlF
-         lVJk4abM/yLBmPmnqkKxjsKMnHwXj8dTSX1xk1NfUKyMN8Ire/pqZIyLJLeJVZD4yaP4
-         pa4nQIgyvFAXRIB3qA+NTn/SL36jDSoenmO1iHKBf2XAZoLCjQsGt1nfCxxSOBOXjdXA
-         IknmIfU5JoV/OH7UaNQfE05IBNMO2W3MKCGFfB2GO7H4W/jbG0bHDj76H1bs6AwTfeJ8
-         PkTDhuCSS66T4KEdPMrJDfYwQ8tSrRPjLB6YN2zfoBvtgmRWANY2DSyPGW8Rwa2YFFwM
-         Xk+Q==
-X-Gm-Message-State: AOAM530d9jOZerqiggeyyipdtFPg3EKMnGHevamOq3T3wt+BTMFhgcIh
-        VODO+80bW8575dsFZET38KS2ZqMm
-X-Google-Smtp-Source: ABdhPJxfAC9Lg+Lh7e6ODAuTh39jq5sdddY9CtRjp6MBphkkE5oB11DIQprhrBgSwGSr4L7zFJNkkw==
-X-Received: by 2002:a2e:b003:: with SMTP id y3mr4036984ljk.78.1593270013516;
-        Sat, 27 Jun 2020 08:00:13 -0700 (PDT)
-Received: from ?IPv6:2a00:1370:812d:7752:3103:9df:768d:2252? ([2a00:1370:812d:7752:3103:9df:768d:2252])
-        by smtp.gmail.com with ESMTPSA id u19sm620591ljk.0.2020.06.27.08.00.12
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 27 Jun 2020 08:00:12 -0700 (PDT)
-To:     netfilter-devel@vger.kernel.org
-From:   Andrei Borzenkov <arvidjaar@gmail.com>
-Subject: mDNS helper fails to add expectations if host joined 224.0.0.251
- multicast group
-Autocrypt: addr=arvidjaar@gmail.com; prefer-encrypt=mutual; keydata=
- LS0tLS1CRUdJTiBQR1AgUFVCTElDIEtFWSBCTE9DSy0tLS0tCgptUUdpQkR4aVJ3d1JCQUMz
- Q045d2R3cFZFcVVHbVNvcUY4dFdWSVQ0UC9iTENTWkxraW5TWjJkcnNibEtwZEc3CngrZ3V4
- d3RzK0xnSThxamYvcTVMYWgxVHdPcXpEdmpIWUoxd2JCYXV4WjAzbkR6U0xVaEQ0TXMxSXNx
- bEl3eVQKTHVtUXM0dmNRZHZMeGpGc0c3MGFEZ2xnVVNCb2d0YUlFc2lZWlhsNFgwajNMOWZW
- c3R1ejQvd1h0d0NnMWNOLwp5di9lQkMwdGtjTTFuc0pYUXJDNUF5OEQvMWFBNXFQdGljTEJw
- bUVCeHFrZjBFTUh1enlyRmxxVncxdFVqWitFCnAyTE1sZW04bWFsUHZmZFpLRVo3MVcxYS9Y
- YlJuOEZFU09wMHRVYTVHd2RvRFhnRXAxQ0pVbitXTHVyUjBLUEQKZjAxRTRqL1BISEFvQUJn
- cnFjT1RjSVZvTnB2MmdOaUJ5U1ZzTkd6RlhUZVkvWWQ2dlFjbGtxakJZT05HTjNyOQpSOGJX
- QS8wWTFqNFhLNjFxam93UmszSXk4c0JnZ00zUG1tTlJVSllncm9lcnBjQXIyYnl6NndUc2Iz
- VTdPelVaCjFMbGdpc2s1UXVtMFJONzdtM0kzN0ZYbEloQ21TRVk3S1pWekdOVzNibHVnTEhj
- ZncvSHVDQjdSMXc1cWlMV0sKSzZlQ1FITCtCWndpVThoWDNkdFRxOWQ3V2hSVzVuc1ZQRWFQ
- cXVkUWZNU2kvVXgxa2JRbVFXNWtjbVY1SUVKdgpjbnBsYm10dmRpQThZWEoyYVdScVlXRnlR
- R2R0WVdsc0xtTnZiVDZJWUFRVEVRSUFJQVVDU1hzNk5RSWJBd1lMCkNRZ0hBd0lFRlFJSUF3
- UVdBZ01CQWg0QkFoZUFBQW9KRUVlaXpMcmFYZmVNTE9ZQW5qNG92cGthK21YTnpJbWUKWUNk
- NUxxVzV0bzhGQUo0dlA0SVcrSWM3ZVlYeENMTTcvem05WU1VVmJyUW5RVzVrY21WNUlFSnZj
- bnBsYm10dgpkaUE4WVhKMmFXUnFZV0Z5UUc1bGQyMWhhV3d1Y25VK2lGNEVFeEVDQUI0RkFr
- SXR5WkFDR3dNR0N3a0lCd01DCkF4VUNBd01XQWdFQ0hnRUNGNEFBQ2drUVI2TE11dHBkOTR4
- ajhnQ2VJbThlK2U0cXhETWpRRXhGYlVMNXdNaWkKWUQwQW9LbUlCUzVIRW9wL1R5UUpkTmc2
- U3Z6VmlQRGR0Q1JCYm1SeVpYa2dRbTl5ZW1WdWEyOTJJRHhoY25acApaR3BoWVhKQWJXRnBi
- QzV5ZFQ2SVhBUVRFUUlBSEFVQ1Bxems4QUliQXdRTEJ3TUNBeFVDQXdNV0FnRUNIZ0VDCkY0
- QUFDZ2tRUjZMTXV0cGQ5NHlEdFFDZ2k5NHJoQXdTMXFqK2ZhampiRE02QmlTN0Irc0FvSi9S
- RG1hN0tyQTEKbkllc2JuS29MY1FMYkpZbHRDUkJibVJ5WldvZ1FtOXljMlZ1YTI5M0lEeGhj
- blpwWkdwaFlYSkFiV0ZwYkM1eQpkVDZJVndRVEVRSUFGd1VDUEdKSERRVUxCd29EQkFNVkF3
- SURGZ0lCQWhlQUFBb0pFRWVpekxyYVhmZU1pcFlBCm9MblllRUJmOGNvV2lud3hUZThEVjBS
- T2J4N1NBS0RFamwzdFFxZEY3MGFQd0lPMmgvM0ZqczJjZnJRbVFXNWsKY21WcElFSnZjbnBs
- Ym10dmRpQThZWEoyYVdScVlXRnlRR2R0WVdsc0xtTnZiVDZJWlFRVEVRSUFKUUliQXdZTApD
- UWdIQXdJR0ZRZ0NDUW9MQkJZQ0F3RUNIZ0VDRjRBRkFsaVdBaVFDR1FFQUNna1FSNkxNdXRw
- ZDk0d0ZHd0NlCk51UW5NRHh2ZS9GbzNFdllJa0FPbit6RTIxY0FuUkNRVFhkMWhUZ2NSSGZw
- QXJFZC9SY2I1K1NjdVFFTkJEeGkKUnlRUUJBQ1F0TUUzM1VIZkZPQ0FwTGtpNGtMRnJJdzE1
- QTVhc3VhMTBqbTVJdCtoeHpJOWpEUjkvYk5FS0RUSwpTY2lIbk03YVJVZ2dMd1R0KzZDWGtN
- eThhbit0VnFHTC9NdkRjNC9SS0tsWnhqMzl4UDd3VlhkdDh5MWNpWTRaCnFxWmYzdG1tU045
- RGxMY1pKSU9UODJEYUpadXZyN1VKN3JMekJGYkFVaDR5UkthTm53QURCd1FBak52TXIvS0IK
- Y0dzVi9VdnhaU20vbWRwdlVQdGN3OXFtYnhDcnFGUW9CNlRtb1o3RjZ3cC9yTDNUa1E1VUVs
- UFJnc0cxMitEawo5R2dSaG5ueFRIQ0ZnTjFxVGlaTlg0WUlGcE5yZDBhdTNXL1hrbzc5TDBj
- NC80OXRlbjVPckZJL3BzeDUzZmhZCnZMWWZrSm5jNjJoOGhpTmVNNmtxWWEveDBCRWRkdTky
- Wkc2SVJnUVlFUUlBQmdVQ1BHSkhKQUFLQ1JCSG9zeTYKMmwzM2pNaGRBSjQ4UDdXRHZLTFFR
- NU1Lbm4yRC9USTMzN3VBL2dDZ241bW52bTRTQmN0YmhhU0JnY2tSbWdTeApmd1E9Cj1nWDEr
- Ci0tLS0tRU5EIFBHUCBQVUJMSUMgS0VZIEJMT0NLLS0tLS0K
-Message-ID: <155a851c-e800-cec2-5432-cc82d2f36a45@gmail.com>
-Date:   Sat, 27 Jun 2020 18:00:11 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.8.0
+        Sat, 27 Jun 2020 13:36:00 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1593279358;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=mDDqDNrCYWn3A/GE763yXUtoyIO3ut/0qQZyVMGsIa8=;
+        b=TdUOFosKaI3eGJNg5bwL9NkV45EdOipfETH8TT6Jv8SJlFRWkT5iszQ23bQ9OvFFuUN1vP
+        Cgt7nwKkkTuq5chpCLNK/7v3CxZU8Eq01/c1vFeSjySI7rs4JFf6TtVlssdBPtlGuVK39M
+        ITO+jbZQcFQPWOOlOxD747hImfqlJ7I=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-280-2fXGuuXTPSai4ys0eTT23g-1; Sat, 27 Jun 2020 13:35:45 -0400
+X-MC-Unique: 2fXGuuXTPSai4ys0eTT23g-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 162D0DC25;
+        Sat, 27 Jun 2020 17:35:44 +0000 (UTC)
+Received: from madcap2.tricolour.ca (unknown [10.10.110.28])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 527BE60BF1;
+        Sat, 27 Jun 2020 17:35:36 +0000 (UTC)
+Date:   Sat, 27 Jun 2020 13:35:33 -0400
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Dan Carpenter <dan.carpenter@oracle.com>
+Cc:     netfilter-devel@vger.kernel.org, linux-audit@redhat.com
+Subject: Re: [bug report] audit: log nftables configuration change events
+Message-ID: <20200627173533.aqh4p2nbr33ea3eu@madcap2.tricolour.ca>
+References: <20200626102242.GA313925@mwanda>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200626102242.GA313925@mwanda>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Please Cc me on reply, I am not subscribed to this list.
+On 2020-06-26 13:22, Dan Carpenter wrote:
+> Hello Richard Guy Briggs,
+> 
+> The patch 8e6cf365e1d5: "audit: log nftables configuration change
+> events" from Jun 4, 2020, leads to the following static checker
+> warning:
+> 
+> 	net/netfilter/nf_tables_api.c:6160 nft_obj_notify()
+> 	warn: use 'gfp' here instead of GFP_XXX?
+> 
+> net/netfilter/nf_tables_api.c
+>   6153  void nft_obj_notify(struct net *net, const struct nft_table *table,
+>   6154                      struct nft_object *obj, u32 portid, u32 seq, int event,
+>   6155                      int family, int report, gfp_t gfp)
+>                                                     ^^^^^^^^^
+>   6156  {
+>   6157          struct sk_buff *skb;
+>   6158          int err;
+>   6159          char *buf = kasprintf(GFP_KERNEL, "%s:%llu;?:0",
+>                                       ^^^^^^^^^^
+> This should probably be "gfp".
 
-This is result of troubleshooting of user question "why my printer
-management application fails to discover printer via mDNS".
+Agreed, nice catch.  Checking other similar uses from that patch
+leads me to another bug and the need to extend audit_log_nfcfg() to
+accept a GFP flag.  Patch coming...
 
-Let's start with no firewall to make sure mDNS works.
+>   6160                                table->name, table->handle);
+>   6161  
+>   6162          audit_log_nfcfg(buf,
+>   6163                          family,
+>   6164                          obj->handle,
+>   6165                          event == NFT_MSG_NEWOBJ ?
+>   6166                                  AUDIT_NFT_OP_OBJ_REGISTER :
+>   6167                                  AUDIT_NFT_OP_OBJ_UNREGISTER);
+>   6168          kfree(buf);
+>   6169  
+>   6170          if (!report &&
+>   6171              !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
+>   6172                  return;
+>   6173  
+>   6174          skb = nlmsg_new(NLMSG_GOODSIZE, gfp);
+>                                                 ^^^
+> 
+>   6175          if (skb == NULL)
+>   6176                  goto err;
+>   6177  
+>   6178          err = nf_tables_fill_obj_info(skb, net, portid, seq, event, 0, family,
+>   6179                                        table, obj, false);
+>   6180          if (err < 0) {
+>   6181                  kfree_skb(skb);
+>   6182                  goto err;
+>   6183          }
+>   6184  
+>   6185          nfnetlink_send(skb, net, portid, NFNLGRP_NFTABLES, report, gfp);
+>   6186          return;
+>   6187  err:
+>   6188          nfnetlink_set_err(net, portid, NFNLGRP_NFTABLES, -ENOBUFS);
+>   6189  }
+> 
+> regards,
+> dan carpenter
 
-bor@tw:~> dig -p 5353 @224.0.0.251 leap15.local +short
-169.254.1.76
-bor@tw:~>
+- RGB
 
-Start firewall and verify that mDNS stops working
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
 
-tw:/home/bor # systemctl start firewalld.service
-tw:/home/bor # dig -p 5353 @224.0.0.251 leap15.local +short
-
-; <<>> DiG 9.16.4 <<>> -p 5353 @224.0.0.251 leap15.local +short
-; (1 server found)
-;; global options: +cmd
-;; connection timed out; no servers could be reached
-tw:/home/bor #
-
-Configure mDNS helper (rules for related packets are already default in
-firewalld):
-
-w:/home/bor # nfct add helper mdns inet udp
-tw:/home/bor # systemctl start conntrackd.service
-tw:/home/bor # nfct list helper
-{
-	.name = mdns,
-	.queuenum = 6,
-	.l3protonum = 2,
-	.l4protonum = 17,
-	.priv_data_len = 0,
-	.status = enabled,
-};
-tw:/home/bor # iptables -t raw -A OUTPUT -m addrtype --dst-type
-MULTICAST -p udp --dport 5353 -j CT --helper mdns
-tw:/home/bor #
-
-Let's try resolving again
-
-bor@tw:~> dig -p 5353 @224.0.0.251 leap15.local +short
-169.254.1.76
-bor@tw:~>
-
-And expectations are correctly added
-
-tw:/home/bor # conntrack -E expect
-    [NEW] 30 proto=17 src=0.0.0.0 dst=169.254.33.186 sport=5353
-dport=38407 mask-src=0.0.0.0 mask-dst=0.0.0.0 sport=65535 dport=65535
-master-src=169.254.33.186 master-dst=224.0.0.251 sport=38407 dport=5353
-PERMANENT class=0 helper=mdns
-^Cconntrack v1.4.6 (conntrack-tools): 1 expectation events have been shown.
-tw:/home/bor #
-
-Now try registering interface for mDNS multicast group (exactly what
-Avahi does):
-
-tw:/home/bor # ip maddress show dev enp0s5
-3:	enp0s5
-	link  01:00:5e:00:00:01
-	link  33:33:00:00:00:01
-	link  33:33:ff:89:87:bc
-	inet  224.0.0.1
-	inet6 ff02::1:ff89:87bc
-	inet6 ff02::1
-	inet6 ff01::1
-tw:/home/bor #
-
-bor@tw:~> python
-Python 2.7.18 (default, Apr 23 2020, 09:27:04) [GCC] on linux2
-Type "help", "copyright", "credits" or "license" for more information.
->>> import socket
->>> import struct
->>> s = socket.socket (socket.AF_INET, socket.SOCK_DGRAM)
->>> s.bind (("0.0.0.0", 5353))
->>> req = struct.pack ("=4sl", socket.inet_aton("224.0.0.251"),
-socket.INADDR_ANY)
->>> s.setsockopt (socket.SOL_IP, socket.IP_ADD_MEMBERSHIP, req)
->>>
-
-tw:/home/bor # ss -4lunp
-State     Recv-Q    Send-Q        Local Address:Port       Peer
-Address:Port    Process
-UNCONN    0         0                   0.0.0.0:5353
-0.0.0.0:*        users:(("python",pid=8420,fd=3))
-tw:/home/bor # ip maddress show dev enp0s5
-3:	enp0s5
-	link  01:00:5e:00:00:01
-	link  33:33:00:00:00:01
-	link  33:33:ff:89:87:bc
-	link  01:00:5e:00:00:fb
-	inet  224.0.0.251
-	inet  224.0.0.1
-	inet6 ff02::1:ff89:87bc
-	inet6 ff02::1
-	inet6 ff01::1
-tw:/home/bor #
-
-Let's try to resolve again
-
-tw:/home/bor # dig -p 5353 @224.0.0.251 leap15.local +short
-
-; <<>> DiG 9.16.4 <<>> -p 5353 @224.0.0.251 leap15.local +short
-; (1 server found)
-;; global options: +cmd
-;; connection timed out; no servers could be reached
-tw:/home/bor #
-
-and checking what happens is expectations get deleted immediately
-
-tw:/home/bor # conntrack -E expect
-    [NEW] 30 proto=17 src=0.0.0.0 dst=169.254.33.186 sport=5353
-dport=56327 mask-src=0.0.0.0 mask-dst=0.0.0.0 sport=65535 dport=65535
-master-src=169.254.33.186 master-dst=224.0.0.251 sport=56327 dport=5353
-PERMANENT class=0 helper=mdns
-[DESTROY] 30 proto=17 src=0.0.0.0 dst=169.254.33.186 sport=5353
-dport=56327 mask-src=0.0.0.0 mask-dst=0.0.0.0 sport=65535 dport=65535
-master-src=169.254.33.186 master-dst=224.0.0.251 sport=56327 dport=5353
-PERMANENT class=0 helper=mdns
-    [NEW] 30 proto=17 src=0.0.0.0 dst=169.254.33.186 sport=5353
-dport=56327 mask-src=0.0.0.0 mask-dst=0.0.0.0 sport=65535 dport=65535
-master-src=169.254.33.186 master-dst=224.0.0.251 sport=56327 dport=5353
-PERMANENT class=0 helper=mdns
-[DESTROY] 30 proto=17 src=0.0.0.0 dst=169.254.33.186 sport=5353
-dport=56327 mask-src=0.0.0.0 mask-dst=0.0.0.0 sport=65535 dport=65535
-master-src=169.254.33.186 master-dst=224.0.0.251 sport=56327 dport=5353
-PERMANENT class=0 helper=mdns
-    [NEW] 30 proto=17 src=0.0.0.0 dst=169.254.33.186 sport=5353
-dport=56327 mask-src=0.0.0.0 mask-dst=0.0.0.0 sport=65535 dport=65535
-master-src=169.254.33.186 master-dst=224.0.0.251 sport=56327 dport=5353
-PERMANENT class=0 helper=mdns
-[DESTROY] 30 proto=17 src=0.0.0.0 dst=169.254.33.186 sport=5353
-dport=56327 mask-src=0.0.0.0 mask-dst=0.0.0.0 sport=65535 dport=65535
-master-src=169.254.33.186 master-dst=224.0.0.251 sport=56327 dport=5353
-PERMANENT class=0 helper=mdns
-    [NEW] 30 proto=17 src=0.0.0.0 dst=169.254.33.186 sport=5353
-dport=56327 mask-src=0.0.0.0 mask-dst=0.0.0.0 sport=65535 dport=65535
-master-src=169.254.33.186 master-dst=224.0.0.251 sport=56327 dport=5353
-PERMANENT class=0 helper=mdns
-[DESTROY] 30 proto=17 src=0.0.0.0 dst=169.254.33.186 sport=5353
-dport=56327 mask-src=0.0.0.0 mask-dst=0.0.0.0 sport=65535 dport=65535
-master-src=169.254.33.186 master-dst=224.0.0.251 sport=56327 dport=5353
-PERMANENT class=0 helper=mdns
-^Cconntrack v1.4.6 (conntrack-tools): 8 expectation events have been shown.
-tw:/home/bor #
-
-This is real life issue, as lot of distributions have Avahi enabled by
-default, Avahi registers multicast group as the first thing so discovery
-fails as long as Avahi daemon is running which is default.
-
-bor@tw:~> uname -a
-Linux tw.0.2.15 5.7.5-1-default #1 SMP Tue Jun 23 06:00:46 UTC 2020
-(a1775d0) x86_64 x86_64 x86_64 GNU/Linux
-bor@tw:~>
