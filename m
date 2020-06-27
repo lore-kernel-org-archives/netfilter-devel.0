@@ -2,482 +2,273 @@ Return-Path: <SRS0=mL34=AI=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9880FC433E1
-	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Jun 2020 13:24:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 135ECC433E0
+	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Jun 2020 15:00:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 693E120885
-	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Jun 2020 13:24:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DA96F2088E
+	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Jun 2020 15:00:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Q4zMdi0h"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="vXDgV6JI"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726646AbgF0NYL (ORCPT
+        id S1726177AbgF0PAQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 27 Jun 2020 09:24:11 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:52431 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726895AbgF0NX2 (ORCPT
+        Sat, 27 Jun 2020 11:00:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42728 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725922AbgF0PAP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 27 Jun 2020 09:23:28 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1593264205;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:in-reply-to:in-reply-to:in-reply-to:
-         references:references:references;
-        bh=CPP8DwxyP2nxU5T7VlnBBLby4pxWG218P+Lbpwd6l5M=;
-        b=Q4zMdi0hHDdVtCiqyJzDPfJ7QwKjM4VQE8+4vVn7wHN0UOPydMVb1uBaElnqAB30iPPiMR
-        VQD2aYmgdo0ivSG1O9HVsq8cs3tT2TT8W/X094K0y2c4X2RGHC8UNlZL7W0OAH7yXPzlCJ
-        aXRReJGYsgH3hYu80aewWOTMWZu0a2g=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-109-Az1n9d3oNUGv4uftFmg6og-1; Sat, 27 Jun 2020 09:23:21 -0400
-X-MC-Unique: Az1n9d3oNUGv4uftFmg6og-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 2A05A804003;
-        Sat, 27 Jun 2020 13:23:19 +0000 (UTC)
-Received: from madcap2.tricolour.ca (unknown [10.10.110.28])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 8A09D71662;
-        Sat, 27 Jun 2020 13:23:14 +0000 (UTC)
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Cc:     Paul Moore <paul@paul-moore.com>, sgrubb@redhat.com,
-        omosnace@redhat.com, dhowells@redhat.com, simo@redhat.com,
-        eparis@parisplace.org, serge@hallyn.com, ebiederm@xmission.com,
-        nhorman@tuxdriver.com, dwalsh@redhat.com, mpatel@redhat.com,
-        Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH ghak90 V9 10/13] audit: add support for containerid to network namespaces
-Date:   Sat, 27 Jun 2020 09:20:43 -0400
-Message-Id: <e9c1216a361c38ebc9cb4089922c259e2cfd5013.1593198710.git.rgb@redhat.com>
-In-Reply-To: <cover.1593198710.git.rgb@redhat.com>
-References: <cover.1593198710.git.rgb@redhat.com>
-In-Reply-To: <cover.1593198710.git.rgb@redhat.com>
-References: <cover.1593198710.git.rgb@redhat.com>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+        Sat, 27 Jun 2020 11:00:15 -0400
+Received: from mail-lj1-x234.google.com (mail-lj1-x234.google.com [IPv6:2a00:1450:4864:20::234])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87348C061794
+        for <netfilter-devel@vger.kernel.org>; Sat, 27 Jun 2020 08:00:15 -0700 (PDT)
+Received: by mail-lj1-x234.google.com with SMTP id q7so63863ljm.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 27 Jun 2020 08:00:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=to:from:subject:autocrypt:message-id:date:user-agent:mime-version
+         :content-language:content-transfer-encoding;
+        bh=1Sa2D+4f71d7ckewoRcoMugCBbN0bZvB/Tyyxu9ROUc=;
+        b=vXDgV6JIEEowpirnAaAV/8vvm/BakQLxvcFAskQ8g5W0k/qnRLaFNDaOz/K1qeGY0C
+         GyhLgn2P/xQ9iQhGBDHmbBqNPvYaEOOh60EATWwU3O7puCmtSXCMbmpdi2hDS7EZBkwH
+         g1txbqoBUXr/jIBIm3IpreX5I9K/5yUj7a6RnZj16ID5fcTLvrZgB560GJhOfc5GvBOL
+         +/6hzF69XRV2vxV0ba21v94hh2atOGJKFOovl9v7MUSNkAmujpOm3WvSvryXrHhuO8JA
+         2y8kBP7QBO9dPWZkTjbUcnmyHwolw7DA05RoPoPKRw1fWBIvwm7cKFmPD3n0pIIeycsf
+         2epQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:to:from:subject:autocrypt:message-id:date
+         :user-agent:mime-version:content-language:content-transfer-encoding;
+        bh=1Sa2D+4f71d7ckewoRcoMugCBbN0bZvB/Tyyxu9ROUc=;
+        b=pJkjKYkVCy/V5LKueSHCX9Q09w2y0fhClyfrzVu5GOH0jN/NpqLjBlWglru60z/nlF
+         lVJk4abM/yLBmPmnqkKxjsKMnHwXj8dTSX1xk1NfUKyMN8Ire/pqZIyLJLeJVZD4yaP4
+         pa4nQIgyvFAXRIB3qA+NTn/SL36jDSoenmO1iHKBf2XAZoLCjQsGt1nfCxxSOBOXjdXA
+         IknmIfU5JoV/OH7UaNQfE05IBNMO2W3MKCGFfB2GO7H4W/jbG0bHDj76H1bs6AwTfeJ8
+         PkTDhuCSS66T4KEdPMrJDfYwQ8tSrRPjLB6YN2zfoBvtgmRWANY2DSyPGW8Rwa2YFFwM
+         Xk+Q==
+X-Gm-Message-State: AOAM530d9jOZerqiggeyyipdtFPg3EKMnGHevamOq3T3wt+BTMFhgcIh
+        VODO+80bW8575dsFZET38KS2ZqMm
+X-Google-Smtp-Source: ABdhPJxfAC9Lg+Lh7e6ODAuTh39jq5sdddY9CtRjp6MBphkkE5oB11DIQprhrBgSwGSr4L7zFJNkkw==
+X-Received: by 2002:a2e:b003:: with SMTP id y3mr4036984ljk.78.1593270013516;
+        Sat, 27 Jun 2020 08:00:13 -0700 (PDT)
+Received: from ?IPv6:2a00:1370:812d:7752:3103:9df:768d:2252? ([2a00:1370:812d:7752:3103:9df:768d:2252])
+        by smtp.gmail.com with ESMTPSA id u19sm620591ljk.0.2020.06.27.08.00.12
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 27 Jun 2020 08:00:12 -0700 (PDT)
+To:     netfilter-devel@vger.kernel.org
+From:   Andrei Borzenkov <arvidjaar@gmail.com>
+Subject: mDNS helper fails to add expectations if host joined 224.0.0.251
+ multicast group
+Autocrypt: addr=arvidjaar@gmail.com; prefer-encrypt=mutual; keydata=
+ LS0tLS1CRUdJTiBQR1AgUFVCTElDIEtFWSBCTE9DSy0tLS0tCgptUUdpQkR4aVJ3d1JCQUMz
+ Q045d2R3cFZFcVVHbVNvcUY4dFdWSVQ0UC9iTENTWkxraW5TWjJkcnNibEtwZEc3CngrZ3V4
+ d3RzK0xnSThxamYvcTVMYWgxVHdPcXpEdmpIWUoxd2JCYXV4WjAzbkR6U0xVaEQ0TXMxSXNx
+ bEl3eVQKTHVtUXM0dmNRZHZMeGpGc0c3MGFEZ2xnVVNCb2d0YUlFc2lZWlhsNFgwajNMOWZW
+ c3R1ejQvd1h0d0NnMWNOLwp5di9lQkMwdGtjTTFuc0pYUXJDNUF5OEQvMWFBNXFQdGljTEJw
+ bUVCeHFrZjBFTUh1enlyRmxxVncxdFVqWitFCnAyTE1sZW04bWFsUHZmZFpLRVo3MVcxYS9Y
+ YlJuOEZFU09wMHRVYTVHd2RvRFhnRXAxQ0pVbitXTHVyUjBLUEQKZjAxRTRqL1BISEFvQUJn
+ cnFjT1RjSVZvTnB2MmdOaUJ5U1ZzTkd6RlhUZVkvWWQ2dlFjbGtxakJZT05HTjNyOQpSOGJX
+ QS8wWTFqNFhLNjFxam93UmszSXk4c0JnZ00zUG1tTlJVSllncm9lcnBjQXIyYnl6NndUc2Iz
+ VTdPelVaCjFMbGdpc2s1UXVtMFJONzdtM0kzN0ZYbEloQ21TRVk3S1pWekdOVzNibHVnTEhj
+ ZncvSHVDQjdSMXc1cWlMV0sKSzZlQ1FITCtCWndpVThoWDNkdFRxOWQ3V2hSVzVuc1ZQRWFQ
+ cXVkUWZNU2kvVXgxa2JRbVFXNWtjbVY1SUVKdgpjbnBsYm10dmRpQThZWEoyYVdScVlXRnlR
+ R2R0WVdsc0xtTnZiVDZJWUFRVEVRSUFJQVVDU1hzNk5RSWJBd1lMCkNRZ0hBd0lFRlFJSUF3
+ UVdBZ01CQWg0QkFoZUFBQW9KRUVlaXpMcmFYZmVNTE9ZQW5qNG92cGthK21YTnpJbWUKWUNk
+ NUxxVzV0bzhGQUo0dlA0SVcrSWM3ZVlYeENMTTcvem05WU1VVmJyUW5RVzVrY21WNUlFSnZj
+ bnBsYm10dgpkaUE4WVhKMmFXUnFZV0Z5UUc1bGQyMWhhV3d1Y25VK2lGNEVFeEVDQUI0RkFr
+ SXR5WkFDR3dNR0N3a0lCd01DCkF4VUNBd01XQWdFQ0hnRUNGNEFBQ2drUVI2TE11dHBkOTR4
+ ajhnQ2VJbThlK2U0cXhETWpRRXhGYlVMNXdNaWkKWUQwQW9LbUlCUzVIRW9wL1R5UUpkTmc2
+ U3Z6VmlQRGR0Q1JCYm1SeVpYa2dRbTl5ZW1WdWEyOTJJRHhoY25acApaR3BoWVhKQWJXRnBi
+ QzV5ZFQ2SVhBUVRFUUlBSEFVQ1Bxems4QUliQXdRTEJ3TUNBeFVDQXdNV0FnRUNIZ0VDCkY0
+ QUFDZ2tRUjZMTXV0cGQ5NHlEdFFDZ2k5NHJoQXdTMXFqK2ZhampiRE02QmlTN0Irc0FvSi9S
+ RG1hN0tyQTEKbkllc2JuS29MY1FMYkpZbHRDUkJibVJ5WldvZ1FtOXljMlZ1YTI5M0lEeGhj
+ blpwWkdwaFlYSkFiV0ZwYkM1eQpkVDZJVndRVEVRSUFGd1VDUEdKSERRVUxCd29EQkFNVkF3
+ SURGZ0lCQWhlQUFBb0pFRWVpekxyYVhmZU1pcFlBCm9MblllRUJmOGNvV2lud3hUZThEVjBS
+ T2J4N1NBS0RFamwzdFFxZEY3MGFQd0lPMmgvM0ZqczJjZnJRbVFXNWsKY21WcElFSnZjbnBs
+ Ym10dmRpQThZWEoyYVdScVlXRnlRR2R0WVdsc0xtTnZiVDZJWlFRVEVRSUFKUUliQXdZTApD
+ UWdIQXdJR0ZRZ0NDUW9MQkJZQ0F3RUNIZ0VDRjRBRkFsaVdBaVFDR1FFQUNna1FSNkxNdXRw
+ ZDk0d0ZHd0NlCk51UW5NRHh2ZS9GbzNFdllJa0FPbit6RTIxY0FuUkNRVFhkMWhUZ2NSSGZw
+ QXJFZC9SY2I1K1NjdVFFTkJEeGkKUnlRUUJBQ1F0TUUzM1VIZkZPQ0FwTGtpNGtMRnJJdzE1
+ QTVhc3VhMTBqbTVJdCtoeHpJOWpEUjkvYk5FS0RUSwpTY2lIbk03YVJVZ2dMd1R0KzZDWGtN
+ eThhbit0VnFHTC9NdkRjNC9SS0tsWnhqMzl4UDd3VlhkdDh5MWNpWTRaCnFxWmYzdG1tU045
+ RGxMY1pKSU9UODJEYUpadXZyN1VKN3JMekJGYkFVaDR5UkthTm53QURCd1FBak52TXIvS0IK
+ Y0dzVi9VdnhaU20vbWRwdlVQdGN3OXFtYnhDcnFGUW9CNlRtb1o3RjZ3cC9yTDNUa1E1VUVs
+ UFJnc0cxMitEawo5R2dSaG5ueFRIQ0ZnTjFxVGlaTlg0WUlGcE5yZDBhdTNXL1hrbzc5TDBj
+ NC80OXRlbjVPckZJL3BzeDUzZmhZCnZMWWZrSm5jNjJoOGhpTmVNNmtxWWEveDBCRWRkdTky
+ Wkc2SVJnUVlFUUlBQmdVQ1BHSkhKQUFLQ1JCSG9zeTYKMmwzM2pNaGRBSjQ4UDdXRHZLTFFR
+ NU1Lbm4yRC9USTMzN3VBL2dDZ241bW52bTRTQmN0YmhhU0JnY2tSbWdTeApmd1E9Cj1nWDEr
+ Ci0tLS0tRU5EIFBHUCBQVUJMSUMgS0VZIEJMT0NLLS0tLS0K
+Message-ID: <155a851c-e800-cec2-5432-cc82d2f36a45@gmail.com>
+Date:   Sat, 27 Jun 2020 18:00:11 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.8.0
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This also adds support to qualify NETFILTER_PKT records.
+Please Cc me on reply, I am not subscribed to this list.
 
-Audit events could happen in a network namespace outside of a task
-context due to packets received from the net that trigger an auditing
-rule prior to being associated with a running task.  The network
-namespace could be in use by multiple containers by association to the
-tasks in that network namespace.  We still want a way to attribute
-these events to any potential containers.  Keep a list per network
-namespace to track these audit container identifiiers.
+This is result of troubleshooting of user question "why my printer
+management application fails to discover printer via mDNS".
 
-Add/increment the audit container identifier on:
-- initial setting of the audit container identifier via /proc
-- clone/fork call that inherits an audit container identifier
-- unshare call that inherits an audit container identifier
-- setns call that inherits an audit container identifier
-Delete/decrement the audit container identifier on:
-- an inherited audit container identifier dropped when child set
-- process exit
-- unshare call that drops a net namespace
-- setns call that drops a net namespace
+Let's start with no firewall to make sure mDNS works.
 
-Add audit container identifier auxiliary record(s) to NETFILTER_PKT
-event standalone records.  Iterate through all potential audit container
-identifiers associated with a network namespace.
+bor@tw:~> dig -p 5353 @224.0.0.251 leap15.local +short
+169.254.1.76
+bor@tw:~>
 
-Please see the github audit kernel issue for contid net support:
-  https://github.com/linux-audit/audit-kernel/issues/92
-Please see the github audit testsuiite issue for the test case:
-  https://github.com/linux-audit/audit-testsuite/issues/64
-Please see the github audit wiki for the feature overview:
-  https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
-Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-Acked-by: Neil Horman <nhorman@tuxdriver.com>
-Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
----
- include/linux/audit.h    |  20 ++++++
- kernel/audit.c           | 156 ++++++++++++++++++++++++++++++++++++++++++++++-
- kernel/nsproxy.c         |   4 ++
- net/netfilter/nft_log.c  |  11 +++-
- net/netfilter/xt_AUDIT.c |  11 +++-
- 5 files changed, 195 insertions(+), 7 deletions(-)
+Start firewall and verify that mDNS stops working
 
-diff --git a/include/linux/audit.h b/include/linux/audit.h
-index c4a755ae0d61..304fbb7c3c5b 100644
---- a/include/linux/audit.h
-+++ b/include/linux/audit.h
-@@ -128,6 +128,13 @@ struct audit_task_info {
- 
- extern struct audit_task_info init_struct_audit;
- 
-+struct audit_contobj_netns {
-+	struct list_head	list;
-+	struct audit_contobj	*obj;
-+	int			count;
-+	struct rcu_head		rcu;
-+};
-+
- extern int is_audit_feature_set(int which);
- 
- extern int __init audit_register_class(int class, unsigned *list);
-@@ -233,6 +240,11 @@ static inline u64 audit_get_contid(struct task_struct *tsk)
- 
- extern void audit_log_container_id(struct audit_context *context,
- 				   struct audit_contobj *cont);
-+extern void audit_copy_namespaces(struct net *net, struct task_struct *tsk);
-+extern void audit_switch_task_namespaces(struct nsproxy *ns,
-+					 struct task_struct *p);
-+extern void audit_log_netns_contid_list(struct net *net,
-+					struct audit_context *context);
- 
- extern u32 audit_enabled;
- 
-@@ -306,6 +318,14 @@ static inline u64 audit_get_contid(struct task_struct *tsk)
- static inline void audit_log_container_id(struct audit_context *context,
- 					  struct audit_contobj *cont)
- { }
-+static inline void audit_copy_namespaces(struct net *net, struct task_struct *tsk)
-+{ }
-+static inline void audit_switch_task_namespaces(struct nsproxy *ns,
-+						struct task_struct *p)
-+{ }
-+static inline void audit_log_netns_contid_list(struct net *net,
-+					       struct audit_context *context)
-+{ }
- 
- #define audit_enabled AUDIT_OFF
- 
-diff --git a/kernel/audit.c b/kernel/audit.c
-index 997c34178ee8..a862721dfd9b 100644
---- a/kernel/audit.c
-+++ b/kernel/audit.c
-@@ -59,6 +59,7 @@
- #include <linux/freezer.h>
- #include <linux/pid_namespace.h>
- #include <net/netns/generic.h>
-+#include <net/net_namespace.h>
- 
- #include "audit.h"
- 
-@@ -86,9 +87,13 @@
- /**
-  * struct audit_net - audit private network namespace data
-  * @sk: communication socket
-+ * @contobj_list: audit container identifier list
-+ * @contobj_list_lock audit container identifier list lock
-  */
- struct audit_net {
- 	struct sock *sk;
-+	struct list_head contobj_list;
-+	spinlock_t contobj_list_lock;
- };
- 
- /**
-@@ -214,6 +219,9 @@ struct audit_reply {
- 
- static struct kmem_cache *audit_task_cache;
- 
-+void audit_netns_contid_add(struct net *net, struct audit_contobj *cont);
-+void audit_netns_contid_del(struct net *net, struct audit_contobj *cont);
-+
- void __init audit_task_init(void)
- {
- 	audit_task_cache = kmem_cache_create("audit_task",
-@@ -326,10 +334,17 @@ struct audit_task_info init_struct_audit = {
- void audit_free(struct task_struct *tsk)
- {
- 	struct audit_task_info *info = tsk->audit;
-+	struct nsproxy *ns = tsk->nsproxy;
-+	struct audit_contobj *cont;
- 
- 	audit_free_syscall(tsk);
- 	rcu_read_lock();
--	_audit_contobj_put(tsk->audit->cont);
-+	cont = _audit_contobj_get(tsk);
-+	if (ns) {
-+		audit_netns_contid_del(ns->net_ns, cont);
-+		_audit_contobj_put(cont);
-+	}
-+	_audit_contobj_put(cont);
- 	rcu_read_unlock();
- 	/* Freeing the audit_task_info struct must be performed after
- 	 * audit_log_exit() due to need for loginuid and sessionid.
-@@ -437,6 +452,136 @@ static struct sock *audit_get_sk(const struct net *net)
- 	return aunet->sk;
- }
- 
-+void audit_netns_contid_add(struct net *net, struct audit_contobj *cont)
-+{
-+	struct audit_net *aunet;
-+	struct list_head *contobj_list;
-+	struct audit_contobj_netns *contns;
-+
-+	if (!net)
-+		return;
-+	if (!cont)
-+		return;
-+	aunet = net_generic(net, audit_net_id);
-+	if (!aunet)
-+		return;
-+	contobj_list = &aunet->contobj_list;
-+	rcu_read_lock();
-+	spin_lock(&aunet->contobj_list_lock);
-+	list_for_each_entry_rcu(contns, contobj_list, list)
-+		if (contns->obj == cont) {
-+			contns->count++;
-+			goto out;
-+		}
-+	contns = kmalloc(sizeof(*contns), GFP_ATOMIC);
-+	if (contns) {
-+		INIT_LIST_HEAD(&contns->list);
-+		contns->obj = cont;
-+		contns->count = 1;
-+		list_add_rcu(&contns->list, contobj_list);
-+	}
-+out:
-+	spin_unlock(&aunet->contobj_list_lock);
-+	rcu_read_unlock();
-+}
-+
-+void audit_netns_contid_del(struct net *net, struct audit_contobj *cont)
-+{
-+	struct audit_net *aunet;
-+	struct list_head *contobj_list;
-+	struct audit_contobj_netns *contns = NULL;
-+
-+	if (!net)
-+		return;
-+	if (!cont)
-+		return;
-+	aunet = net_generic(net, audit_net_id);
-+	if (!aunet)
-+		return;
-+	contobj_list = &aunet->contobj_list;
-+	rcu_read_lock();
-+	spin_lock(&aunet->contobj_list_lock);
-+	list_for_each_entry_rcu(contns, contobj_list, list)
-+		if (contns->obj == cont) {
-+			contns->count--;
-+			if (contns->count < 1) {
-+				list_del_rcu(&contns->list);
-+				kfree_rcu(contns, rcu);
-+			}
-+			break;
-+		}
-+	spin_unlock(&aunet->contobj_list_lock);
-+	rcu_read_unlock();
-+}
-+
-+void audit_copy_namespaces(struct net *net, struct task_struct *tsk)
-+{
-+	struct audit_contobj *cont;
-+
-+	rcu_read_lock();
-+	cont = _audit_contobj_get(tsk);
-+	audit_netns_contid_add(net, cont);
-+	rcu_read_unlock();
-+}
-+
-+void audit_switch_task_namespaces(struct nsproxy *ns, struct task_struct *p)
-+{
-+	struct audit_contobj *cont;
-+	struct nsproxy *new = p->nsproxy;
-+
-+	rcu_read_lock();
-+	cont = _audit_contobj_get(p);
-+	if (!cont)
-+		goto out;
-+	audit_netns_contid_del(ns->net_ns, cont);
-+	if (new)
-+		audit_netns_contid_add(new->net_ns, cont);
-+	else
-+		_audit_contobj_put(cont);
-+	_audit_contobj_put(cont);
-+out:
-+	rcu_read_unlock();
-+}
-+
-+/**
-+ * audit_log_netns_contid_list - List contids for the given network namespace
-+ * @net: the network namespace of interest
-+ * @context: the audit context to use
-+ *
-+ * Description:
-+ * Issues a CONTAINER_ID record with a CSV list of contids associated
-+ * with a network namespace to accompany a NETFILTER_PKT record.
-+ */
-+void audit_log_netns_contid_list(struct net *net, struct audit_context *context)
-+{
-+	struct audit_buffer *ab = NULL;
-+	struct audit_contobj_netns *cont;
-+	struct audit_net *aunet;
-+
-+	/* Generate AUDIT_CONTAINER_ID record with container ID CSV list */
-+	rcu_read_lock();
-+	aunet = net_generic(net, audit_net_id);
-+	if (!aunet)
-+		goto out;
-+	list_for_each_entry_rcu(cont, &aunet->contobj_list, list) {
-+		if (!ab) {
-+			ab = audit_log_start(context, GFP_ATOMIC,
-+					     AUDIT_CONTAINER_ID);
-+			if (!ab) {
-+				audit_log_lost("out of memory in audit_log_netns_contid_list");
-+				goto out;
-+			}
-+			audit_log_format(ab, "contid=");
-+		} else
-+			audit_log_format(ab, ",");
-+		audit_log_format(ab, "%llu", cont->obj->id);
-+	}
-+	audit_log_end(ab);
-+out:
-+	rcu_read_unlock();
-+}
-+EXPORT_SYMBOL(audit_log_netns_contid_list);
-+
- void audit_panic(const char *message)
- {
- 	switch (audit_failure) {
-@@ -1786,7 +1931,6 @@ static int __net_init audit_net_init(struct net *net)
- 		.flags	= NL_CFG_F_NONROOT_RECV,
- 		.groups	= AUDIT_NLGRP_MAX,
- 	};
--
- 	struct audit_net *aunet = net_generic(net, audit_net_id);
- 
- 	aunet->sk = netlink_kernel_create(net, NETLINK_AUDIT, &cfg);
-@@ -1795,7 +1939,8 @@ static int __net_init audit_net_init(struct net *net)
- 		return -ENOMEM;
- 	}
- 	aunet->sk->sk_sndtimeo = MAX_SCHEDULE_TIMEOUT;
--
-+	INIT_LIST_HEAD(&aunet->contobj_list);
-+	spin_lock_init(&aunet->contobj_list_lock);
- 	return 0;
- }
- 
-@@ -2585,6 +2730,7 @@ int audit_set_contid(struct task_struct *task, u64 contid)
- 	int rc = 0;
- 	struct audit_buffer *ab;
- 	struct audit_contobj *oldcont = NULL;
-+	struct net *net = task->nsproxy->net_ns;
- 
- 	task_lock(task);
- 	/* Can't set if audit disabled */
-@@ -2657,6 +2803,10 @@ int audit_set_contid(struct task_struct *task, u64 contid)
- 		spin_unlock(&audit_contobj_list_lock);
- 		task->audit->cont = newcont;
- 		_audit_contobj_put(oldcont);
-+		audit_netns_contid_del(net, oldcont);
-+		_audit_contobj_put(oldcont);
-+		_audit_contobj_hold(newcont);
-+		audit_netns_contid_add(net, newcont);
- 	}
- conterror:
- 	task_unlock(task);
-diff --git a/kernel/nsproxy.c b/kernel/nsproxy.c
-index b03df67621d0..5eddb3377049 100644
---- a/kernel/nsproxy.c
-+++ b/kernel/nsproxy.c
-@@ -26,6 +26,7 @@
- #include <linux/syscalls.h>
- #include <linux/cgroup.h>
- #include <linux/perf_event.h>
-+#include <linux/audit.h>
- 
- static struct kmem_cache *nsproxy_cachep;
- 
-@@ -187,6 +188,8 @@ int copy_namespaces(unsigned long flags, struct task_struct *tsk)
- 	}
- 
- 	tsk->nsproxy = new_ns;
-+	if (flags & CLONE_NEWNET)
-+		audit_copy_namespaces(new_ns->net_ns, tsk);
- 	return 0;
- }
- 
-@@ -249,6 +252,7 @@ void switch_task_namespaces(struct task_struct *p, struct nsproxy *new)
- 	ns = p->nsproxy;
- 	p->nsproxy = new;
- 	task_unlock(p);
-+	audit_switch_task_namespaces(ns, p);
- 
- 	if (ns && atomic_dec_and_test(&ns->count))
- 		free_nsproxy(ns);
-diff --git a/net/netfilter/nft_log.c b/net/netfilter/nft_log.c
-index fe4831f2258f..98d1e7e1a83c 100644
---- a/net/netfilter/nft_log.c
-+++ b/net/netfilter/nft_log.c
-@@ -66,13 +66,16 @@ static void nft_log_eval_audit(const struct nft_pktinfo *pkt)
- 	struct sk_buff *skb = pkt->skb;
- 	struct audit_buffer *ab;
- 	int fam = -1;
-+	struct audit_context *context;
-+	struct net *net;
- 
- 	if (!audit_enabled)
- 		return;
- 
--	ab = audit_log_start(NULL, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
-+	context = audit_alloc_local(GFP_ATOMIC);
-+	ab = audit_log_start(context, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
- 	if (!ab)
--		return;
-+		goto errout;
- 
- 	audit_log_format(ab, "mark=%#x", skb->mark);
- 
-@@ -99,6 +102,10 @@ static void nft_log_eval_audit(const struct nft_pktinfo *pkt)
- 		audit_log_format(ab, " saddr=? daddr=? proto=-1");
- 
- 	audit_log_end(ab);
-+	net = xt_net(&pkt->xt);
-+	audit_log_netns_contid_list(net, context);
-+errout:
-+	audit_free_context(context);
- }
- 
- static void nft_log_eval(const struct nft_expr *expr,
-diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
-index 9cdc16b0d0d8..ecf868a1abde 100644
---- a/net/netfilter/xt_AUDIT.c
-+++ b/net/netfilter/xt_AUDIT.c
-@@ -68,10 +68,13 @@ static bool audit_ip6(struct audit_buffer *ab, struct sk_buff *skb)
- {
- 	struct audit_buffer *ab;
- 	int fam = -1;
-+	struct audit_context *context;
-+	struct net *net;
- 
- 	if (audit_enabled == AUDIT_OFF)
--		goto errout;
--	ab = audit_log_start(NULL, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
-+		goto out;
-+	context = audit_alloc_local(GFP_ATOMIC);
-+	ab = audit_log_start(context, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
- 	if (ab == NULL)
- 		goto errout;
- 
-@@ -101,7 +104,11 @@ static bool audit_ip6(struct audit_buffer *ab, struct sk_buff *skb)
- 
- 	audit_log_end(ab);
- 
-+	net = xt_net(par);
-+	audit_log_netns_contid_list(net, context);
- errout:
-+	audit_free_context(context);
-+out:
- 	return XT_CONTINUE;
- }
- 
--- 
-1.8.3.1
+tw:/home/bor # systemctl start firewalld.service
+tw:/home/bor # dig -p 5353 @224.0.0.251 leap15.local +short
 
+; <<>> DiG 9.16.4 <<>> -p 5353 @224.0.0.251 leap15.local +short
+; (1 server found)
+;; global options: +cmd
+;; connection timed out; no servers could be reached
+tw:/home/bor #
+
+Configure mDNS helper (rules for related packets are already default in
+firewalld):
+
+w:/home/bor # nfct add helper mdns inet udp
+tw:/home/bor # systemctl start conntrackd.service
+tw:/home/bor # nfct list helper
+{
+	.name = mdns,
+	.queuenum = 6,
+	.l3protonum = 2,
+	.l4protonum = 17,
+	.priv_data_len = 0,
+	.status = enabled,
+};
+tw:/home/bor # iptables -t raw -A OUTPUT -m addrtype --dst-type
+MULTICAST -p udp --dport 5353 -j CT --helper mdns
+tw:/home/bor #
+
+Let's try resolving again
+
+bor@tw:~> dig -p 5353 @224.0.0.251 leap15.local +short
+169.254.1.76
+bor@tw:~>
+
+And expectations are correctly added
+
+tw:/home/bor # conntrack -E expect
+    [NEW] 30 proto=17 src=0.0.0.0 dst=169.254.33.186 sport=5353
+dport=38407 mask-src=0.0.0.0 mask-dst=0.0.0.0 sport=65535 dport=65535
+master-src=169.254.33.186 master-dst=224.0.0.251 sport=38407 dport=5353
+PERMANENT class=0 helper=mdns
+^Cconntrack v1.4.6 (conntrack-tools): 1 expectation events have been shown.
+tw:/home/bor #
+
+Now try registering interface for mDNS multicast group (exactly what
+Avahi does):
+
+tw:/home/bor # ip maddress show dev enp0s5
+3:	enp0s5
+	link  01:00:5e:00:00:01
+	link  33:33:00:00:00:01
+	link  33:33:ff:89:87:bc
+	inet  224.0.0.1
+	inet6 ff02::1:ff89:87bc
+	inet6 ff02::1
+	inet6 ff01::1
+tw:/home/bor #
+
+bor@tw:~> python
+Python 2.7.18 (default, Apr 23 2020, 09:27:04) [GCC] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import socket
+>>> import struct
+>>> s = socket.socket (socket.AF_INET, socket.SOCK_DGRAM)
+>>> s.bind (("0.0.0.0", 5353))
+>>> req = struct.pack ("=4sl", socket.inet_aton("224.0.0.251"),
+socket.INADDR_ANY)
+>>> s.setsockopt (socket.SOL_IP, socket.IP_ADD_MEMBERSHIP, req)
+>>>
+
+tw:/home/bor # ss -4lunp
+State     Recv-Q    Send-Q        Local Address:Port       Peer
+Address:Port    Process
+UNCONN    0         0                   0.0.0.0:5353
+0.0.0.0:*        users:(("python",pid=8420,fd=3))
+tw:/home/bor # ip maddress show dev enp0s5
+3:	enp0s5
+	link  01:00:5e:00:00:01
+	link  33:33:00:00:00:01
+	link  33:33:ff:89:87:bc
+	link  01:00:5e:00:00:fb
+	inet  224.0.0.251
+	inet  224.0.0.1
+	inet6 ff02::1:ff89:87bc
+	inet6 ff02::1
+	inet6 ff01::1
+tw:/home/bor #
+
+Let's try to resolve again
+
+tw:/home/bor # dig -p 5353 @224.0.0.251 leap15.local +short
+
+; <<>> DiG 9.16.4 <<>> -p 5353 @224.0.0.251 leap15.local +short
+; (1 server found)
+;; global options: +cmd
+;; connection timed out; no servers could be reached
+tw:/home/bor #
+
+and checking what happens is expectations get deleted immediately
+
+tw:/home/bor # conntrack -E expect
+    [NEW] 30 proto=17 src=0.0.0.0 dst=169.254.33.186 sport=5353
+dport=56327 mask-src=0.0.0.0 mask-dst=0.0.0.0 sport=65535 dport=65535
+master-src=169.254.33.186 master-dst=224.0.0.251 sport=56327 dport=5353
+PERMANENT class=0 helper=mdns
+[DESTROY] 30 proto=17 src=0.0.0.0 dst=169.254.33.186 sport=5353
+dport=56327 mask-src=0.0.0.0 mask-dst=0.0.0.0 sport=65535 dport=65535
+master-src=169.254.33.186 master-dst=224.0.0.251 sport=56327 dport=5353
+PERMANENT class=0 helper=mdns
+    [NEW] 30 proto=17 src=0.0.0.0 dst=169.254.33.186 sport=5353
+dport=56327 mask-src=0.0.0.0 mask-dst=0.0.0.0 sport=65535 dport=65535
+master-src=169.254.33.186 master-dst=224.0.0.251 sport=56327 dport=5353
+PERMANENT class=0 helper=mdns
+[DESTROY] 30 proto=17 src=0.0.0.0 dst=169.254.33.186 sport=5353
+dport=56327 mask-src=0.0.0.0 mask-dst=0.0.0.0 sport=65535 dport=65535
+master-src=169.254.33.186 master-dst=224.0.0.251 sport=56327 dport=5353
+PERMANENT class=0 helper=mdns
+    [NEW] 30 proto=17 src=0.0.0.0 dst=169.254.33.186 sport=5353
+dport=56327 mask-src=0.0.0.0 mask-dst=0.0.0.0 sport=65535 dport=65535
+master-src=169.254.33.186 master-dst=224.0.0.251 sport=56327 dport=5353
+PERMANENT class=0 helper=mdns
+[DESTROY] 30 proto=17 src=0.0.0.0 dst=169.254.33.186 sport=5353
+dport=56327 mask-src=0.0.0.0 mask-dst=0.0.0.0 sport=65535 dport=65535
+master-src=169.254.33.186 master-dst=224.0.0.251 sport=56327 dport=5353
+PERMANENT class=0 helper=mdns
+    [NEW] 30 proto=17 src=0.0.0.0 dst=169.254.33.186 sport=5353
+dport=56327 mask-src=0.0.0.0 mask-dst=0.0.0.0 sport=65535 dport=65535
+master-src=169.254.33.186 master-dst=224.0.0.251 sport=56327 dport=5353
+PERMANENT class=0 helper=mdns
+[DESTROY] 30 proto=17 src=0.0.0.0 dst=169.254.33.186 sport=5353
+dport=56327 mask-src=0.0.0.0 mask-dst=0.0.0.0 sport=65535 dport=65535
+master-src=169.254.33.186 master-dst=224.0.0.251 sport=56327 dport=5353
+PERMANENT class=0 helper=mdns
+^Cconntrack v1.4.6 (conntrack-tools): 8 expectation events have been shown.
+tw:/home/bor #
+
+This is real life issue, as lot of distributions have Avahi enabled by
+default, Avahi registers multicast group as the first thing so discovery
+fails as long as Avahi daemon is running which is default.
+
+bor@tw:~> uname -a
+Linux tw.0.2.15 5.7.5-1-default #1 SMP Tue Jun 23 06:00:46 UTC 2020
+(a1775d0) x86_64 x86_64 x86_64 GNU/Linux
+bor@tw:~>
