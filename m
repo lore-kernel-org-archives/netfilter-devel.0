@@ -2,71 +2,85 @@ Return-Path: <SRS0=CJVJ=AL=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8329C433E0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jun 2020 17:09:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2DF3C433E0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jun 2020 20:27:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8E5D7206BE
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jun 2020 17:09:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D7FE220768
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jun 2020 20:27:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390030AbgF3RJe (ORCPT
+        id S1729412AbgF3U15 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 Jun 2020 13:09:34 -0400
-Received: from correo.us.es ([193.147.175.20]:41908 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389482AbgF3RJe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Jun 2020 13:09:34 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 454D811EB2A
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Jun 2020 19:09:33 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 36FEFFC5EC
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Jun 2020 19:09:33 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 22F4AFC5F1; Tue, 30 Jun 2020 19:09:33 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 140A4DA722;
-        Tue, 30 Jun 2020 19:09:31 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 30 Jun 2020 19:09:31 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id E8E854265A32;
-        Tue, 30 Jun 2020 19:09:30 +0200 (CEST)
-Date:   Tue, 30 Jun 2020 19:09:30 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Eric Dumazet <edumazet@google.com>
-Cc:     Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
-        Eric Dumazet <eric.dumazet@gmail.com>,
-        syzbot <syzkaller@googlegroups.com>
-Subject: Re: [PATCH net] netfilter: ipset: call ip_set_free() instead of
- kfree()
-Message-ID: <20200630170930.GA27849@salvia>
-References: <20200630000417.2249731-1-edumazet@google.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200630000417.2249731-1-edumazet@google.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Tue, 30 Jun 2020 16:27:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52448 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726051AbgF3U15 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Jun 2020 16:27:57 -0400
+Received: from shards.monkeyblade.net (shards.monkeyblade.net [IPv6:2620:137:e000::1:9])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D419C061755;
+        Tue, 30 Jun 2020 13:27:57 -0700 (PDT)
+Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id 57BE912778958;
+        Tue, 30 Jun 2020 13:27:54 -0700 (PDT)
+Date:   Tue, 30 Jun 2020 13:27:53 -0700 (PDT)
+Message-Id: <20200630.132753.950744279782703849.davem@davemloft.net>
+To:     netdev@vger.kernel.org
+CC:     linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        bpf@vger.kernel.org, xdp-newbies@vger.kernel.org
+Subject: LPC 2020 Networking and BPF Track CFP
+From:   David Miller <davem@davemloft.net>
+X-Mailer: Mew version 6.8 on Emacs 26.3
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Tue, 30 Jun 2020 13:27:54 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jun 29, 2020 at 05:04:17PM -0700, Eric Dumazet wrote:
-> Whenever ip_set_alloc() is used, allocated memory can either
-> use kmalloc() or vmalloc(). We should call kvfree() or
-> ip_set_free()
 
-Applied, thanks.
+This is a call for proposals for the networking and bpf track at the
+Linux Plumbers Conference on the wider internet, which will be
+happening on August 24th-28th, 2020.
+
+This year the technical committee is comprised of:
+
+David S. Miller <davem@davemloft.net>
+Alexei Starovoitov <ast@kernel.org>
+Daniel Borkmann <daniel@iogearbox.net>
+Jakub Sitnicki <jakub@cloudflare.com>
+Paolo Abeni <pabeni@redhat.com>
+Jakub Kicinski <kuba@kernel.org>
+Michal Kubecek <mkubecek@suse.cz>
+Sabrina Dubroca <sd@queasysnail.net>
+
+We are seeking talks of 40 minutes in length (including Q & A),
+optionally accompanied by papers of 2 to 10 pages in length.  The
+papers, while not required, are very strongly encouraged by the
+committee.  The submitters intention to provide a paper will be taken
+into consideration as a criteria when deciding which proposals to
+accept.
+
+Any kind of advanced networking and/or bpf related topic will be
+considered.
+
+Please submit your proposals on the LPC website at:
+
+	https://www.linuxplumbersconf.org/event/7/abstracts/#submit-abstract
+
+And be sure to select "Networking & BPF Summit" in the Track
+pulldown menu.
+
+Proposals must be submitted by August 2nd, and submitters will be
+notified of acceptance by August 9th.
+
+Final slides and papers (as PDF) are due on August 24th, the first day of
+the conference.
