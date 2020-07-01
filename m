@@ -2,388 +2,352 @@ Return-Path: <SRS0=HFPz=AM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
+	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F40F5C433E2
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Jul 2020 20:53:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70383C433DF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Jul 2020 21:24:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D7F432082F
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Jul 2020 20:53:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 443732085B
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Jul 2020 21:24:35 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XnRcLfTm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727072AbgGAUxN (ORCPT
+        id S1727101AbgGAVYf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 Jul 2020 16:53:13 -0400
-Received: from correo.us.es ([193.147.175.20]:35386 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727047AbgGAUxM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Jul 2020 16:53:12 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E2A40DA72D
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Jul 2020 22:53:08 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D6261DA78A
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Jul 2020 22:53:08 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id CBEBBDA789; Wed,  1 Jul 2020 22:53:08 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 79895DA73F
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Jul 2020 22:53:06 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 01 Jul 2020 22:53:06 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 61E9F4265A2F
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Jul 2020 22:53:06 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v2 6/6] netfilter: nf_tables: add NFT_CHAIN_BINDING
-Date:   Wed,  1 Jul 2020 22:53:01 +0200
-Message-Id: <20200701205301.17204-6-pablo@netfilter.org>
+        Wed, 1 Jul 2020 17:24:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58912 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725915AbgGAVYe (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 1 Jul 2020 17:24:34 -0400
+Received: from mail-qt1-x843.google.com (mail-qt1-x843.google.com [IPv6:2607:f8b0:4864:20::843])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 525FEC08C5C1;
+        Wed,  1 Jul 2020 14:24:34 -0700 (PDT)
+Received: by mail-qt1-x843.google.com with SMTP id o38so19655770qtf.6;
+        Wed, 01 Jul 2020 14:24:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=HNgXajlw3yKSbwqzHDIsRyZxdWIn3EPNAUewdN0Q0mk=;
+        b=XnRcLfTmzVm6LXJ0fo4mpQin00TY+ZFmUkHVfy2ncX4eJUmSzN3J20CgSaHXJdxH1B
+         LI6TdXGenpRm9xBvha2sApAoboy0cLX+43X2ngJY5vMFF3hwTWe1LtJioKLRuyWYHs4I
+         UowHp78B7IxQCPQDAyV1ZhrxIvqkmorsEOfbbGF2rWWrjHRSVQOaToMm3ad2QIgGWI9Y
+         eyvOWiOdB7cATG9HXFNnWCsMEfRmSbiKPIhhyuTuOIMHgAFSqARCECUS83yEDORbLhXr
+         //qybMjV9+t2XNfy7chevZA4pqeTTltni2Vkl2cw4Twar3Ksr9B8W/jvgYkrloXxGh0z
+         5IFw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=HNgXajlw3yKSbwqzHDIsRyZxdWIn3EPNAUewdN0Q0mk=;
+        b=iXU+IPm2X11+6lTe+Z+6VVWnGy5laCf/ZN5D59z9OpvZDTqTtGP5jsV9USw08gFwso
+         lZdtDx5Lsh9zUyl7O4pZx0JdgqdSUOTZuMiLRN802COUprjZxZz2vn7C+YMvRxjWC47v
+         Qo0Wic4B3XlnoqJMwpRpxfygTSZFu/Oz7llUf2sf3dvdz80bBfd+zKwbnY2y+AU+9F4F
+         e3DQ7ItOmAeg6jNbnAWqcMq2Shmrk7+y2iozMXY/gQldcI+CPOrTJhk+hsptwDextAkX
+         EU55+NrzLCxzOrv5a4jsw6i3XCU3ZVeQk97pIOTYZfqIs6YqyXwqofLVvhcijCSZ9jdj
+         BH7g==
+X-Gm-Message-State: AOAM53219rM7TobCHzFEiEMWdB0lUISqFnjnmmhZMZhwgQV6DUiWbBRo
+        jQeua1pEfWnPT5Ju76WLVdc=
+X-Google-Smtp-Source: ABdhPJyEfbCtdKH3o/DPaV6xZA5lH6yn/N3BFwV7ZBZ0J1ZEiHHu42j/LccIiD0vEqGWcmhytSfPLw==
+X-Received: by 2002:ac8:7cb1:: with SMTP id z17mr28964995qtv.336.1593638673386;
+        Wed, 01 Jul 2020 14:24:33 -0700 (PDT)
+Received: from localhost.localdomain (toroon0411w-lp130-02-64-231-189-42.dsl.bell.ca. [64.231.189.42])
+        by smtp.googlemail.com with ESMTPSA id h131sm2032750qke.29.2020.07.01.14.24.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 01 Jul 2020 14:24:32 -0700 (PDT)
+From:   Andrew Sy Kim <kim.andrewsy@gmail.com>
+Cc:     Julian Anastasov <ja@ssi.bg>, Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Andrew Sy Kim <kim.andrewsy@gmail.com>
+Subject: [PATCH] netfilter/ipvs: queue delayed work to expire no destination connections if expire_nodest_conn=1
+Date:   Wed,  1 Jul 2020 17:24:07 -0400
+Message-Id: <20200701212408.14069-1-kim.andrewsy@gmail.com>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200701205301.17204-1-pablo@netfilter.org>
-References: <20200701205301.17204-1-pablo@netfilter.org>
+In-Reply-To: <alpine.LFD.2.22.394.2006152210030.17355@ja.home.ssi.bg>
+References: <alpine.LFD.2.22.394.2006152210030.17355@ja.home.ssi.bg>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+To:     unlisted-recipients:; (no To-header on input)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This new chain flag specifies that:
+When expire_nodest_conn=1 and a destination is deleted, IPVS does not
+expire the existing connections until the next matching incoming packet.
+If there are many connection entries from a single client to a single
+destination, many packets may get dropped before all the connections are
+expired (more likely with lots of UDP traffic). An optimization can be
+made where upon deletion of a destination, IPVS queues up delayed work
+to immediately expire any connections with a deleted destination. This
+ensures any reused source ports from a client (within the IPVS timeouts)
+are scheduled to new real servers instead of silently dropped.
 
-* the kernel dynamically allocates the chain name, if no chain name
-  is specified.
+This patch was applied on top of Julian's patch "ipvs: allow
+connection reuse for unconfirmed conntrack":
+https://marc.info/?l=netfilter-devel&m=159361668110823&w=2
 
-* If the immediate expression that refers to this chain is removed,
-  then this bound chain (and its content) is destroyed.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Andrew Sy Kim <kim.andrewsy@gmail.com>
 ---
-v2: fix NFTA_CHAIN_FLAGS netlink dumping.
+ include/net/ip_vs.h             | 29 ++++++++++++++++++++
+ net/netfilter/ipvs/ip_vs_conn.c | 36 +++++++++++++++++++++++++
+ net/netfilter/ipvs/ip_vs_core.c | 47 ++++++++++++++-------------------
+ net/netfilter/ipvs/ip_vs_ctl.c  | 22 +++++++++++++++
+ 4 files changed, 107 insertions(+), 27 deletions(-)
 
- include/net/netfilter/nf_tables.h        | 13 +++-
- include/uapi/linux/netfilter/nf_tables.h |  1 +
- net/netfilter/nf_tables_api.c            | 78 ++++++++++++++++++++----
- net/netfilter/nft_immediate.c            | 51 ++++++++++++++++
- 4 files changed, 130 insertions(+), 13 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 6d1e7da6e00a..0ebbe000bb0a 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -899,6 +899,8 @@ static inline struct nft_userdata *nft_userdata(const struct nft_rule *rule)
- 	return (void *)&rule->data[rule->dlen];
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index 011f407b76fe..91a9e1d590a6 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -14,6 +14,7 @@
+ #include <linux/spinlock.h>             /* for struct rwlock_t */
+ #include <linux/atomic.h>               /* for struct atomic_t */
+ #include <linux/refcount.h>             /* for struct refcount_t */
++#include <linux/workqueue.h>
+ 
+ #include <linux/compiler.h>
+ #include <linux/timer.h>
+@@ -886,6 +887,8 @@ struct netns_ipvs {
+ 	atomic_t		conn_out_counter;
+ 
+ #ifdef CONFIG_SYSCTL
++	/* delayed work for expiring no dest connections */
++	struct delayed_work	expire_nodest_conn_work;
+ 	/* 1/rate drop and drop-entry variables */
+ 	struct delayed_work	defense_work;   /* Work handler */
+ 	int			drop_rate;
+@@ -1051,6 +1054,11 @@ static inline int sysctl_conn_reuse_mode(struct netns_ipvs *ipvs)
+ 	return ipvs->sysctl_conn_reuse_mode;
  }
  
-+void nf_tables_rule_destroy(const struct nft_ctx *ctx, struct nft_rule *rule);
-+
- static inline void nft_set_elem_update_expr(const struct nft_set_ext *ext,
- 					    struct nft_regs *regs,
- 					    const struct nft_pktinfo *pkt)
-@@ -944,7 +946,8 @@ struct nft_chain {
- 	struct nft_table		*table;
- 	u64				handle;
- 	u32				use;
--	u8				flags:6,
-+	u8				flags:5,
-+					bound:1,
- 					genmask:2;
- 	char				*name;
- 
-@@ -989,6 +992,14 @@ int nft_chain_validate_dependency(const struct nft_chain *chain,
- int nft_chain_validate_hooks(const struct nft_chain *chain,
-                              unsigned int hook_flags);
- 
-+static inline bool nft_chain_is_bound(struct nft_chain *chain)
++static inline int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs)
 +{
-+	return (chain->flags & NFT_CHAIN_BINDING) && chain->bound;
++	return ipvs->sysctl_expire_nodest_conn;
 +}
 +
-+void nft_chain_del(struct nft_chain *chain);
-+void nf_tables_chain_destroy(struct nft_ctx *ctx);
-+
- struct nft_stats {
- 	u64			bytes;
- 	u64			pkts;
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 2cf7cc3b50c1..e00b4ae6174e 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -187,6 +187,7 @@ enum nft_table_attributes {
- enum nft_chain_flags {
- 	NFT_CHAIN_BASE		= (1 << 0),
- 	NFT_CHAIN_HW_OFFLOAD	= (1 << 1),
-+	NFT_CHAIN_BINDING	= (1 << 2),
- };
- 
- /**
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 572f049d7de4..06f652fe9fd5 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1098,6 +1098,9 @@ static int nft_flush_table(struct nft_ctx *ctx)
- 		if (!nft_is_active_next(ctx->net, chain))
- 			continue;
- 
-+		if (nft_chain_is_bound(chain))
-+			continue;
-+
- 		ctx->chain = chain;
- 
- 		err = nft_delchain(ctx);
-@@ -1413,13 +1416,12 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
- 					      lockdep_commit_lock_is_held(net));
- 		if (nft_dump_stats(skb, stats))
- 			goto nla_put_failure;
--
--		if ((chain->flags & NFT_CHAIN_HW_OFFLOAD) &&
--		    nla_put_be32(skb, NFTA_CHAIN_FLAGS,
--				 htonl(NFT_CHAIN_HW_OFFLOAD)))
--			goto nla_put_failure;
- 	}
- 
-+	if (chain->flags &&
-+	    nla_put_be32(skb, NFTA_CHAIN_FLAGS, htonl(chain->flags)))
-+		goto nla_put_failure;
-+
- 	if (nla_put_be32(skb, NFTA_CHAIN_USE, htonl(chain->use)))
- 		goto nla_put_failure;
- 
-@@ -1621,7 +1623,7 @@ static void nf_tables_chain_free_chain_rules(struct nft_chain *chain)
- 	kvfree(chain->rules_next);
+ static inline int sysctl_schedule_icmp(struct netns_ipvs *ipvs)
+ {
+ 	return ipvs->sysctl_schedule_icmp;
+@@ -1138,6 +1146,11 @@ static inline int sysctl_conn_reuse_mode(struct netns_ipvs *ipvs)
+ 	return 1;
  }
  
--static void nf_tables_chain_destroy(struct nft_ctx *ctx)
-+void nf_tables_chain_destroy(struct nft_ctx *ctx)
++static inline int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs)
++{
++	return 0;
++}
++
+ static inline int sysctl_schedule_icmp(struct netns_ipvs *ipvs)
  {
- 	struct nft_chain *chain = ctx->chain;
- 	struct nft_hook *hook, *next;
-@@ -1928,6 +1930,8 @@ static int nft_chain_add(struct nft_table *table, struct nft_chain *chain)
  	return 0;
- }
+@@ -1507,6 +1520,22 @@ static inline int ip_vs_todrop(struct netns_ipvs *ipvs)
+ static inline int ip_vs_todrop(struct netns_ipvs *ipvs) { return 0; }
+ #endif
  
-+static u64 chain_id;
++#ifdef CONFIG_SYSCTL
++/* Enqueue delayed work for expiring no dest connections
++ * Only run when sysctl_expire_nodest=1
++ */
++static inline void ip_vs_enqueue_expire_nodest_conns(struct netns_ipvs *ipvs)
++{
++	if (sysctl_expire_nodest_conn(ipvs))
++		queue_delayed_work(system_long_wq,
++				   &ipvs->expire_nodest_conn_work, 1);
++}
 +
- static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- 			      u8 policy, u32 flags)
- {
-@@ -1936,6 +1940,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- 	struct nft_base_chain *basechain;
- 	struct nft_stats __percpu *stats;
- 	struct net *net = ctx->net;
-+	char name[NFT_NAME_MAXLEN];
- 	struct nft_trans *trans;
- 	struct nft_chain *chain;
- 	struct nft_rule **rules;
-@@ -1947,6 +1952,9 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- 	if (nla[NFTA_CHAIN_HOOK]) {
- 		struct nft_chain_hook hook;
++void ip_vs_expire_nodest_conn_flush(struct netns_ipvs *ipvs);
++#else
++static inline void ip_vs_enqueue_expire_nodest_conns(struct netns_ipvs) {}
++#endif
++
+ #define IP_VS_DFWD_METHOD(dest) (atomic_read(&(dest)->conn_flags) & \
+ 				 IP_VS_CONN_F_FWD_MASK)
  
-+		if (flags & NFT_CHAIN_BINDING)
-+			return -EOPNOTSUPP;
-+
- 		err = nft_chain_parse_hook(net, nla, &hook, family, true);
- 		if (err < 0)
- 			return err;
-@@ -1976,16 +1984,33 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- 			return err;
- 		}
- 	} else {
-+		if (flags & NFT_CHAIN_BASE)
-+			return -EINVAL;
-+		if (flags & NFT_CHAIN_HW_OFFLOAD)
-+			return -EOPNOTSUPP;
-+
- 		chain = kzalloc(sizeof(*chain), GFP_KERNEL);
- 		if (chain == NULL)
- 			return -ENOMEM;
-+
-+		chain->flags = flags;
- 	}
- 	ctx->chain = chain;
- 
- 	INIT_LIST_HEAD(&chain->rules);
- 	chain->handle = nf_tables_alloc_handle(table);
- 	chain->table = table;
--	chain->name = nla_strdup(nla[NFTA_CHAIN_NAME], GFP_KERNEL);
-+
-+	if (nla[NFTA_CHAIN_NAME]) {
-+		chain->name = nla_strdup(nla[NFTA_CHAIN_NAME], GFP_KERNEL);
-+	} else {
-+		if (!(flags & NFT_CHAIN_BINDING))
-+			return -EINVAL;
-+
-+		snprintf(name, sizeof(name), "__chain%llu", ++chain_id);
-+		chain->name = kstrdup(name, GFP_KERNEL);
-+	}
-+
- 	if (!chain->name) {
- 		err = -ENOMEM;
- 		goto err1;
-@@ -2958,8 +2983,7 @@ static int nf_tables_getrule(struct net *net, struct sock *nlsk,
- 	return err;
- }
- 
--static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
--				   struct nft_rule *rule)
-+void nf_tables_rule_destroy(const struct nft_ctx *ctx, struct nft_rule *rule)
- {
- 	struct nft_expr *expr, *next;
- 
-@@ -5330,11 +5354,24 @@ static int nf_tables_newsetelem(struct net *net, struct sock *nlsk,
-  */
- void nft_data_hold(const struct nft_data *data, enum nft_data_types type)
- {
-+	struct nft_chain *chain;
-+	struct nft_rule *rule;
-+
- 	if (type == NFT_DATA_VERDICT) {
- 		switch (data->verdict.code) {
- 		case NFT_JUMP:
- 		case NFT_GOTO:
--			data->verdict.chain->use++;
-+			chain = data->verdict.chain;
-+			chain->use++;
-+
-+			if (!nft_chain_is_bound(chain))
-+				break;
-+
-+			chain->table->use++;
-+			list_for_each_entry(rule, &chain->rules, list)
-+				chain->use++;
-+
-+			nft_chain_add(chain->table, chain);
- 			break;
- 		}
- 	}
-@@ -7474,7 +7511,7 @@ static void nft_obj_del(struct nft_object *obj)
- 	list_del_rcu(&obj->list);
- }
- 
--static void nft_chain_del(struct nft_chain *chain)
-+void nft_chain_del(struct nft_chain *chain)
- {
- 	struct nft_table *table = chain->table;
- 
-@@ -7825,6 +7862,10 @@ static int __nf_tables_abort(struct net *net, bool autoload)
- 				kfree(nft_trans_chain_name(trans));
- 				nft_trans_destroy(trans);
- 			} else {
-+				if (nft_chain_is_bound(trans->ctx.chain)) {
-+					nft_trans_destroy(trans);
-+					break;
-+				}
- 				trans->ctx.table->use--;
- 				nft_chain_del(trans->ctx.chain);
- 				nf_tables_unregister_hook(trans->ctx.net,
-@@ -8321,10 +8362,23 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
- 
- static void nft_verdict_uninit(const struct nft_data *data)
- {
-+	struct nft_chain *chain;
-+	struct nft_rule *rule;
-+
- 	switch (data->verdict.code) {
- 	case NFT_JUMP:
- 	case NFT_GOTO:
--		data->verdict.chain->use--;
-+		chain = data->verdict.chain;
-+		chain->use--;
-+
-+		if (!nft_chain_is_bound(chain))
-+			break;
-+
-+		chain->table->use--;
-+		list_for_each_entry(rule, &chain->rules, list)
-+			chain->use--;
-+
-+		nft_chain_del(chain);
- 		break;
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index b3921ae92740..7a5f57949fb9 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1389,6 +1389,42 @@ static void ip_vs_conn_flush(struct netns_ipvs *ipvs)
+ 		goto flush_again;
  	}
  }
-diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
-index c7f0ef73d939..255603df1789 100644
---- a/net/netfilter/nft_immediate.c
-+++ b/net/netfilter/nft_immediate.c
-@@ -54,6 +54,23 @@ static int nft_immediate_init(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		goto err1;
- 
-+	if (priv->dreg == NFT_REG_VERDICT) {
-+		struct nft_chain *chain = priv->data.verdict.chain;
 +
-+		switch (priv->data.verdict.code) {
-+		case NFT_JUMP:
-+		case NFT_GOTO:
-+			if (nft_chain_is_bound(chain)) {
-+				err = -EBUSY;
-+				goto err1;
++#ifdef CONFIG_SYSCTL
++void ip_vs_expire_nodest_conn_flush(struct netns_ipvs *ipvs)
++{
++	int idx;
++	struct ip_vs_conn *cp, *cp_c;
++	struct ip_vs_dest *dest;
++
++	rcu_read_lock();
++	for (idx = 0; idx < ip_vs_conn_tab_size; idx++) {
++		hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[idx], c_list) {
++			if (cp->ipvs != ipvs)
++				continue;
++
++			dest = cp->dest;
++			if (!dest || (dest->flags & IP_VS_DEST_F_AVAILABLE))
++				continue;
++
++			cp_c = cp->control;
++			IP_VS_DBG(4, "del connection\n");
++			ip_vs_conn_del(cp);
++			if (cp_c && !atomic_read(&cp_c->n_control)) {
++				IP_VS_DBG(4, "del controlling connection\n");
++				ip_vs_conn_del(cp_c);
 +			}
-+			chain->bound = true;
-+			break;
-+		default:
-+			break;
 +		}
-+	}
++		cond_resched_rcu();
 +
- 	return 0;
- 
- err1:
-@@ -81,6 +98,39 @@ static void nft_immediate_deactivate(const struct nft_ctx *ctx,
- 	return nft_data_release(&priv->data, nft_dreg_to_type(priv->dreg));
++		/* netns clean up started, abort delayed work */
++		if (!ipvs->enable)
++			return;
++	}
++	rcu_read_unlock();
++}
++#endif
++
+ /*
+  * per netns init and exit
+  */
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index b4a6b7662f3f..e3668a6e54e4 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -694,16 +694,10 @@ static int sysctl_nat_icmp_send(struct netns_ipvs *ipvs)
+ 	return ipvs->sysctl_nat_icmp_send;
  }
  
-+static void nft_immediate_destroy(const struct nft_ctx *ctx,
-+				  const struct nft_expr *expr)
-+{
-+	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
-+	const struct nft_data *data = &priv->data;
-+	struct nft_ctx chain_ctx;
-+	struct nft_chain *chain;
-+	struct nft_rule *rule;
-+
-+	if (priv->dreg != NFT_REG_VERDICT)
-+		return;
-+
-+	switch (data->verdict.code) {
-+	case NFT_JUMP:
-+	case NFT_GOTO:
-+		chain = data->verdict.chain;
-+
-+		if (!nft_chain_is_bound(chain))
-+			break;
-+
-+		chain_ctx = *ctx;
-+		chain_ctx.chain = chain;
-+
-+		list_for_each_entry(rule, &chain->rules, list)
-+			nf_tables_rule_destroy(&chain_ctx, rule);
-+
-+		nf_tables_chain_destroy(&chain_ctx);
-+		break;
-+	default:
-+		break;
+-static int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs)
+-{
+-	return ipvs->sysctl_expire_nodest_conn;
+-}
+-
+ #else
+ 
+ static int sysctl_snat_reroute(struct netns_ipvs *ipvs) { return 0; }
+ static int sysctl_nat_icmp_send(struct netns_ipvs *ipvs) { return 0; }
+-static int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs) { return 0; }
+ 
+ #endif
+ 
+@@ -2097,36 +2091,35 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
+ 		}
+ 	}
+ 
+-	if (unlikely(!cp)) {
+-		int v;
+-
+-		if (!ip_vs_try_to_schedule(ipvs, af, skb, pd, &v, &cp, &iph))
+-			return v;
+-	}
+-
+-	IP_VS_DBG_PKT(11, af, pp, skb, iph.off, "Incoming packet");
+-
+ 	/* Check the server status */
+-	if (cp->dest && !(cp->dest->flags & IP_VS_DEST_F_AVAILABLE)) {
++	if (cp && cp->dest && !(cp->dest->flags & IP_VS_DEST_F_AVAILABLE)) {
+ 		/* the destination server is not available */
++		if (sysctl_expire_nodest_conn(ipvs)) {
++			bool old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
+ 
+-		__u32 flags = cp->flags;
+-
+-		/* when timer already started, silently drop the packet.*/
+-		if (timer_pending(&cp->timer))
+-			__ip_vs_conn_put(cp);
+-		else
+-			ip_vs_conn_put(cp);
++			if (!old_ct)
++				cp->flags &= ~IP_VS_CONN_F_NFCT;
+ 
+-		if (sysctl_expire_nodest_conn(ipvs) &&
+-		    !(flags & IP_VS_CONN_F_ONE_PACKET)) {
+-			/* try to expire the connection immediately */
+ 			ip_vs_conn_expire_now(cp);
++			__ip_vs_conn_put(cp);
++			if (old_ct)
++				return NF_DROP;
++			cp = NULL;
++		} else {
++			__ip_vs_conn_put(cp);
++			return NF_DROP;
+ 		}
 +	}
-+}
+ 
+-		return NF_DROP;
++	if (unlikely(!cp)) {
++		int v;
 +
- static int nft_immediate_dump(struct sk_buff *skb, const struct nft_expr *expr)
++		if (!ip_vs_try_to_schedule(ipvs, af, skb, pd, &v, &cp, &iph))
++			return v;
+ 	}
+ 
++	IP_VS_DBG_PKT(11, af, pp, skb, iph.off, "Incoming packet");
++
+ 	ip_vs_in_stats(cp, skb);
+ 	ip_vs_set_state(cp, IP_VS_DIR_INPUT, skb, pd);
+ 	if (cp->packet_xmit)
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 4af83f466dfc..f984d2c881ff 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -210,6 +210,17 @@ static void update_defense_level(struct netns_ipvs *ipvs)
+ 	local_bh_enable();
+ }
+ 
++/* Handler for delayed work for expiring no
++ * destination connections
++ */
++static void expire_nodest_conn_handler(struct work_struct *work)
++{
++	struct netns_ipvs *ipvs;
++
++	ipvs = container_of(work, struct netns_ipvs,
++			    expire_nodest_conn_work.work);
++	ip_vs_expire_nodest_conn_flush(ipvs);
++}
+ 
+ /*
+  *	Timer for checking the defense
+@@ -1164,6 +1175,12 @@ static void __ip_vs_del_dest(struct netns_ipvs *ipvs, struct ip_vs_dest *dest,
+ 	list_add(&dest->t_list, &ipvs->dest_trash);
+ 	dest->idle_start = 0;
+ 	spin_unlock_bh(&ipvs->dest_trash_lock);
++
++	/* Queue up delayed work to expire all no destination connections.
++	 * No-op when CONFIG_SYSCTL is disabled.
++	 */
++	if (!cleanup)
++		ip_vs_enqueue_expire_nodest_conns(ipvs);
+ }
+ 
+ 
+@@ -4086,6 +4103,10 @@ static int __net_init ip_vs_control_net_init_sysctl(struct netns_ipvs *ipvs)
+ 	queue_delayed_work(system_long_wq, &ipvs->defense_work,
+ 			   DEFENSE_TIMER_PERIOD);
+ 
++	/* Init delayed work for expiring no dest conn */
++	INIT_DELAYED_WORK(&ipvs->expire_nodest_conn_work,
++			  expire_nodest_conn_handler);
++
+ 	return 0;
+ }
+ 
+@@ -4093,6 +4114,7 @@ static void __net_exit ip_vs_control_net_cleanup_sysctl(struct netns_ipvs *ipvs)
  {
- 	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
-@@ -170,6 +220,7 @@ static const struct nft_expr_ops nft_imm_ops = {
- 	.init		= nft_immediate_init,
- 	.activate	= nft_immediate_activate,
- 	.deactivate	= nft_immediate_deactivate,
-+	.destroy	= nft_immediate_destroy,
- 	.dump		= nft_immediate_dump,
- 	.validate	= nft_immediate_validate,
- 	.offload	= nft_immediate_offload,
+ 	struct net *net = ipvs->net;
+ 
++	cancel_delayed_work_sync(&ipvs->expire_nodest_conn_work);
+ 	cancel_delayed_work_sync(&ipvs->defense_work);
+ 	cancel_work_sync(&ipvs->defense_work.work);
+ 	unregister_net_sysctl_table(ipvs->sysctl_hdr);
 -- 
 2.20.1
 
