@@ -2,158 +2,99 @@ Return-Path: <SRS0=HFPz=AM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC1CFC433DF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Jul 2020 15:18:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93ADDC433E1
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Jul 2020 20:32:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ADC7A206C3
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Jul 2020 15:18:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 73D96208A7
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Jul 2020 20:32:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1593635546;
+	bh=Qu1PVZWZQB1pW5uORGG9JkdLLWLwrioSV8gFiogltGY=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=KP3Mt2eEMGn01pfDCNlIQGMkxPGCIE09p00zij30qoFOwtsMNE79ST0mlbkv9t75k
+	 7m1PSup1vFEng6vjFTh8s3f9zk9x4eJJO8Z7YmpblIiXZxyTbT3AGmQV+ju4n8MBJr
+	 cFArRIoJVMjzZ4w1ls1fwAExNA8lxC1GRgU/y5aw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731672AbgGAPSA (ORCPT
+        id S1726990AbgGAUcX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 Jul 2020 11:18:00 -0400
-Received: from ja.ssi.bg ([178.16.129.10]:53136 "EHLO ja.ssi.bg"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727887AbgGAPR7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Jul 2020 11:17:59 -0400
-Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id 061FHmqs004803;
-        Wed, 1 Jul 2020 18:17:48 +0300
-Received: (from root@localhost)
-        by ja.home.ssi.bg (8.15.2/8.15.2/Submit) id 061FHl8t004802;
-        Wed, 1 Jul 2020 18:17:47 +0300
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Simon Horman <horms@verge.net.au>
-Cc:     lvs-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, YangYuxi <yx.atom1@gmail.com>
-Subject: [PATCH net-next] ipvs: allow connection reuse for unconfirmed conntrack
-Date:   Wed,  1 Jul 2020 18:17:19 +0300
-Message-Id: <20200701151719.4751-1-ja@ssi.bg>
-X-Mailer: git-send-email 2.26.2
+        Wed, 1 Jul 2020 16:32:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50734 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726144AbgGAUcX (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 1 Jul 2020 16:32:23 -0400
+Received: from mail-lj1-x241.google.com (mail-lj1-x241.google.com [IPv6:2a00:1450:4864:20::241])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D59D8C08C5DB
+        for <netfilter-devel@vger.kernel.org>; Wed,  1 Jul 2020 13:32:22 -0700 (PDT)
+Received: by mail-lj1-x241.google.com with SMTP id b25so25235224ljp.6
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Jul 2020 13:32:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=yQTuuRnTRD5guY+N3kjgnPLHXT6P3qZiYHrrKJ47r1w=;
+        b=M5E2TfLcC3cfW8OMyrKhXxxtIvY0Y104cXmmv3Q4raTCa6ajB/XOROYaclyuBwWh+A
+         QwyVYKRQgeqALuvdcW7sv0dw33dOl/5F5gCyZFcJBfQqk4HuU7lj0CC2aelEfwTDdC0Y
+         4kjCbqfpjXn7jho9KN1KvD2s7uo+DH0VG6r6M=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=yQTuuRnTRD5guY+N3kjgnPLHXT6P3qZiYHrrKJ47r1w=;
+        b=e4/Pcw6MAp8Teml7/AQngJZyhFbKjqi4RK5jud7jBd6OWX6U3k2Gn5IlejIvLvXs8w
+         ot5Mx8CUgnXU1gtwE1xsSu349OvAB7O7j4787GlpRoLnkkDGQiSfdgxNUlebXFK8ERC+
+         sJNj3gRxvKjiIzo+CFCHW4p2iu0Kgp759KdEmMq4IYOZTleUkk2DdgNY8W3OVTA5PSzf
+         F+vXoE9eMykId7uaSZJ39nRAa+5wl1L35jp4Tv3B2XXygPp+9hQ2P1sQ73sahWlYzkSa
+         AE2Bi69YAu23rphRjeAmvSj2pmcL5VSSq6GHYv776gZktqaKUQuJ/FChMBsICaW3DR0+
+         ua3Q==
+X-Gm-Message-State: AOAM533BzmupBCIJHNqV+UB/l2bHVKKREwlsjQDJ3MzAbaWsSU0yFVjR
+        ZZFWmROQNwYWig4juFFLH4+p0axqfJM=
+X-Google-Smtp-Source: ABdhPJxpFsZg6aZ2bRsCmke3Wg/O/+xUzgtA/Zdqd1/ag9muLFkY8r0+a/vS7hJ3xDyUkxYzWiukPA==
+X-Received: by 2002:a2e:9891:: with SMTP id b17mr10974516ljj.22.1593635540863;
+        Wed, 01 Jul 2020 13:32:20 -0700 (PDT)
+Received: from mail-lf1-f52.google.com (mail-lf1-f52.google.com. [209.85.167.52])
+        by smtp.gmail.com with ESMTPSA id y24sm2167521ljy.91.2020.07.01.13.32.19
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 01 Jul 2020 13:32:19 -0700 (PDT)
+Received: by mail-lf1-f52.google.com with SMTP id t74so14516014lff.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Jul 2020 13:32:19 -0700 (PDT)
+X-Received: by 2002:a19:8a07:: with SMTP id m7mr16119813lfd.31.1593635539128;
+ Wed, 01 Jul 2020 13:32:19 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <20200624161335.1810359-14-hch@lst.de> <20200701091943.GC3874@shao2-debian>
+ <20200701121344.GA14149@lst.de>
+In-Reply-To: <20200701121344.GA14149@lst.de>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Wed, 1 Jul 2020 13:32:03 -0700
+X-Gmail-Original-Message-ID: <CAHk-=whYihRm0brAXPc0dFcsU2M+FA4VoOiwGGdVLC_sHT=M1g@mail.gmail.com>
+Message-ID: <CAHk-=whYihRm0brAXPc0dFcsU2M+FA4VoOiwGGdVLC_sHT=M1g@mail.gmail.com>
+Subject: Re: [fs] 140402bab8: stress-ng.splice.ops_per_sec -100.0% regression
+To:     Christoph Hellwig <hch@lst.de>
+Cc:     kernel test robot <rong.a.chen@intel.com>,
+        Al Viro <viro@zeniv.linux.org.uk>, Ian Kent <raven@themaw.net>,
+        David Howells <dhowells@redhat.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        LSM List <linux-security-module@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>, lkp@lists.01.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-YangYuxi is reporting that connection reuse
-is causing one-second delay when SYN hits
-existing connection in TIME_WAIT state.
-Such delay was added to give time to expire
-both the IPVS connection and the corresponding
-conntrack. This was considered a rare case
-at that time but it is causing problem for
-some environments such as Kubernetes.
+On Wed, Jul 1, 2020 at 5:13 AM Christoph Hellwig <hch@lst.de> wrote:
+>
+> FYI, this is because stress-nh tests splice using /dev/null.  Which
+> happens to actually have the iter ops, but doesn't have explicit
+> splice_read operation.
 
-As nf_conntrack_tcp_packet() can decide to
-release the conntrack in TIME_WAIT state and
-to replace it with a fresh NEW conntrack, we
-can use this to allow rescheduling just by
-tuning our check: if the conntrack is
-confirmed we can not schedule it to different
-real server and the one-second delay still
-applies but if new conntrack was created,
-we are free to select new real server without
-any delays.
+Heh. I guess a splice op for /dev/null should be fairly trivial to implement..
 
-YangYuxi lists some of the problem reports:
-
-- One second connection delay in masquerading mode:
-https://marc.info/?t=151683118100004&r=1&w=2
-
-- IPVS low throughput #70747
-https://github.com/kubernetes/kubernetes/issues/70747
-
-- Apache Bench can fill up ipvs service proxy in seconds #544
-https://github.com/cloudnativelabs/kube-router/issues/544
-
-- Additional 1s latency in `host -> service IP -> pod`
-https://github.com/kubernetes/kubernetes/issues/90854
-
-Fixes: f719e3754ee2 ("ipvs: drop first packet to redirect conntrack")
-Co-developed-by: YangYuxi <yx.atom1@gmail.com>
-Signed-off-by: YangYuxi <yx.atom1@gmail.com>
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
----
- include/net/ip_vs.h             | 10 ++++------
- net/netfilter/ipvs/ip_vs_core.c | 12 +++++++-----
- 2 files changed, 11 insertions(+), 11 deletions(-)
-
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 83be2d93b407..fe96aa462d05 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -1624,18 +1624,16 @@ static inline void ip_vs_conn_drop_conntrack(struct ip_vs_conn *cp)
- }
- #endif /* CONFIG_IP_VS_NFCT */
- 
--/* Really using conntrack? */
--static inline bool ip_vs_conn_uses_conntrack(struct ip_vs_conn *cp,
--					     struct sk_buff *skb)
-+/* Using old conntrack that can not be redirected to another real server? */
-+static inline bool ip_vs_conn_uses_old_conntrack(struct ip_vs_conn *cp,
-+						 struct sk_buff *skb)
- {
- #ifdef CONFIG_IP_VS_NFCT
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_conn *ct;
- 
--	if (!(cp->flags & IP_VS_CONN_F_NFCT))
--		return false;
- 	ct = nf_ct_get(skb, &ctinfo);
--	if (ct)
-+	if (ct && nf_ct_is_confirmed(ct))
- 		return true;
- #endif
- 	return false;
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index aa6a603a2425..517f6a2ac15a 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2066,14 +2066,14 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
- 
- 	conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
- 	if (conn_reuse_mode && !iph.fragoffs && is_new_conn(skb, &iph) && cp) {
--		bool uses_ct = false, resched = false;
-+		bool old_ct = false, resched = false;
- 
- 		if (unlikely(sysctl_expire_nodest_conn(ipvs)) && cp->dest &&
- 		    unlikely(!atomic_read(&cp->dest->weight))) {
- 			resched = true;
--			uses_ct = ip_vs_conn_uses_conntrack(cp, skb);
-+			old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
- 		} else if (is_new_conn_expected(cp, conn_reuse_mode)) {
--			uses_ct = ip_vs_conn_uses_conntrack(cp, skb);
-+			old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
- 			if (!atomic_read(&cp->n_control)) {
- 				resched = true;
- 			} else {
-@@ -2081,15 +2081,17 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
- 				 * that uses conntrack while it is still
- 				 * referenced by controlled connection(s).
- 				 */
--				resched = !uses_ct;
-+				resched = !old_ct;
- 			}
- 		}
- 
- 		if (resched) {
-+			if (!old_ct)
-+				cp->flags &= ~IP_VS_CONN_F_NFCT;
- 			if (!atomic_read(&cp->n_control))
- 				ip_vs_conn_expire_now(cp);
- 			__ip_vs_conn_put(cp);
--			if (uses_ct)
-+			if (old_ct)
- 				return NF_DROP;
- 			cp = NULL;
- 		}
--- 
-2.26.2
-
+               Linus
