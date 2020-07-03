@@ -2,94 +2,126 @@ Return-Path: <SRS0=cAfZ=AO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DB51C433DF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jul 2020 14:19:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60705C433DF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jul 2020 20:26:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 62D88206BE
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jul 2020 14:19:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3BD1420782
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jul 2020 20:26:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Rl1bOO27"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="atZUyL+N"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726475AbgGCOTZ (ORCPT
+        id S1726488AbgGCU0M (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Jul 2020 10:19:25 -0400
-Received: from us-smtp-2.mimecast.com ([205.139.110.61]:28149 "EHLO
+        Fri, 3 Jul 2020 16:26:12 -0400
+Received: from us-smtp-2.mimecast.com ([205.139.110.61]:53073 "EHLO
         us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726035AbgGCOTX (ORCPT
+        by vger.kernel.org with ESMTP id S1726147AbgGCU0L (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Jul 2020 10:19:23 -0400
+        Fri, 3 Jul 2020 16:26:11 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1593785962;
+        s=mimecast20190719; t=1593807970;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=H1wWTI7QYlHZxaFsJCKponeO6UgXh5yMDcs00qFvbfU=;
-        b=Rl1bOO27RtCvuBjCyOs6y8VI2r9uEB/jYyweu29P92gZGVxdEVn33+AIJ8yY7LBJianIWs
-        Lbql/bKCWbqEsr6mLbFfh3Zn/aHHTPk0Z2kcKt0XgA9GsJybigIgPG+E+XIGamXLkvPLfq
-        r9lQzH/i4Y/yLr3yvxS+1uadNfbU+0Y=
+        bh=PEKYLzk367tTswLsxH06yejo5bBazH5JcJIISwE0HOY=;
+        b=atZUyL+NKl5hqeKZmQEQVDqDLhBCA3YPSDZcZF7ERb6Bh5Qcz10YX1zxfeZuA2pgjVBn1v
+        /aB9baVCKLZRsWuSEiv4owyXOEjQR72WhkB4VoKsVRUgU5T1K6IXYwR6EfzDPWj4WUGMbn
+        CCdHjlmyzkDNwzxBckMylcZDJtyKH/E=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-58-hSnsQ8pwOhypj_SvCm9ZgQ-1; Fri, 03 Jul 2020 10:19:18 -0400
-X-MC-Unique: hSnsQ8pwOhypj_SvCm9ZgQ-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+ us-mta-76-vilHhKrVN1quK0fQV7H9fg-1; Fri, 03 Jul 2020 16:26:09 -0400
+X-MC-Unique: vilHhKrVN1quK0fQV7H9fg-1
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 13BC018A8221;
-        Fri,  3 Jul 2020 14:19:17 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 0596C800597;
+        Fri,  3 Jul 2020 20:26:08 +0000 (UTC)
 Received: from madcap2.tricolour.ca (unknown [10.10.110.3])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 60C2218B05;
-        Fri,  3 Jul 2020 14:19:06 +0000 (UTC)
-Date:   Fri, 3 Jul 2020 10:19:03 -0400
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 3A14F1002382;
+        Fri,  3 Jul 2020 20:25:59 +0000 (UTC)
+Date:   Fri, 3 Jul 2020 16:25:57 -0400
 From:   Richard Guy Briggs <rgb@redhat.com>
 To:     Paul Moore <paul@paul-moore.com>
-Cc:     Jones Desougi <jones.desougi+netfilter@gmail.com>,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, sgrubb@redhat.com,
-        Ondrej Mosnacek <omosnace@redhat.com>,
-        Florian Westphal <fw@strlen.de>, twoerner@redhat.com,
-        Eric Paris <eparis@parisplace.org>, tgraf@infradead.org,
-        dan.carpenter@oracle.com
-Subject: Re: [PATCH ghak124 v3fix] audit: add gfp parameter to audit_log_nfcfg
-Message-ID: <20200703141903.zniosc4bxuw5dhit@madcap2.tricolour.ca>
-References: <3eda864fb69977252a061c8c3ccd2d8fcd1f3a9b.1593278952.git.rgb@redhat.com>
- <CAGdUbJEwoxEFJZDUjF7ZwKurKNibPW86=s3yFSA6BBt-YsC=Nw@mail.gmail.com>
- <CAHC9VhTYy5Zd6kB77xYL6HbnqL29AL6jF8RzVAN6=UC6eVLqCg@mail.gmail.com>
+Cc:     linux-audit@redhat.com,
+        Jones Desougi <jones.desougi+netfilter@gmail.com>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] audit: use the proper gfp flags in the audit_log_nfcfg()
+ calls
+Message-ID: <20200703202557.tm6o33uignjpmepa@madcap2.tricolour.ca>
+References: <159378341669.5956.13490174029711421419.stgit@sifl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAHC9VhTYy5Zd6kB77xYL6HbnqL29AL6jF8RzVAN6=UC6eVLqCg@mail.gmail.com>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+In-Reply-To: <159378341669.5956.13490174029711421419.stgit@sifl>
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-07-03 09:41, Paul Moore wrote:
-> On Fri, Jul 3, 2020 at 8:41 AM Jones Desougi
-> <jones.desougi+netfilter@gmail.com> wrote:
-> >
-> > Doesn't seem entirely consistent now either though. Two cases below.
+On 2020-07-03 09:36, Paul Moore wrote:
+> Commit 142240398e50 ("audit: add gfp parameter to audit_log_nfcfg")
+> incorrectly passed gfp flags to audit_log_nfcfg() which were not
+> consistent with the calling function, this commit fixes that.
 > 
-> Yes, you're right, that patch was incorrect; thanks for catching that.
-> I just posted a fix (lore link below) that fixes the two problems you
-> pointed out as well as converts a call in a RCU protected section to
-> an ATOMIC.
+> Fixes: 142240398e50 ("audit: add gfp parameter to audit_log_nfcfg")
+> Reported-by: Jones Desougi <jones.desougi+netfilter@gmail.com>
+> Signed-off-by: Paul Moore <paul@paul-moore.com>
 
-Thanks Paul.  I was just about to switch branches and fix these.  :-)
-I really need to upgrade this devel machine so I can use git 2.x
-worktrees...
+Looks good to me.  For what it's worth:
 
-I checked all of these (I thought) thoroughly before I started changing
-code and obviously didn't after.  :-/
+Reviewed-by: Richard Guy Briggs <rgb@redhat.com>
 
-> https://lore.kernel.org/linux-audit/159378341669.5956.13490174029711421419.stgit@sifl
+> ---
+>  net/netfilter/nf_tables_api.c |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
 > 
-> paul moore
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index f7ff91479647..886e64291f41 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -5953,7 +5953,7 @@ static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
+>  				goto cont;
+>  
+>  			if (reset) {
+> -				char *buf = kasprintf(GFP_KERNEL,
+> +				char *buf = kasprintf(GFP_ATOMIC,
+>  						      "%s:%llu;?:0",
+>  						      table->name,
+>  						      table->handle);
+> @@ -5962,7 +5962,7 @@ static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
+>  						family,
+>  						obj->handle,
+>  						AUDIT_NFT_OP_OBJ_RESET,
+> -						GFP_KERNEL);
+> +						GFP_ATOMIC);
+>  				kfree(buf);
+>  			}
+>  
+> @@ -6084,7 +6084,7 @@ static int nf_tables_getobj(struct net *net, struct sock *nlsk,
+>  				family,
+>  				obj->handle,
+>  				AUDIT_NFT_OP_OBJ_RESET,
+> -				GFP_KERNEL);
+> +				GFP_ATOMIC);
+>  		kfree(buf);
+>  	}
+>  
+> @@ -6172,7 +6172,7 @@ void nft_obj_notify(struct net *net, const struct nft_table *table,
+>  			event == NFT_MSG_NEWOBJ ?
+>  				AUDIT_NFT_OP_OBJ_REGISTER :
+>  				AUDIT_NFT_OP_OBJ_UNREGISTER,
+> -			GFP_KERNEL);
+> +			gfp);
+>  	kfree(buf);
+>  
+>  	if (!report &&
+> 
 
 - RGB
 
