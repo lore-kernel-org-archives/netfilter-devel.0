@@ -2,156 +2,182 @@ Return-Path: <SRS0=cAfZ=AO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DB21C433E1
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jul 2020 12:41:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0354CC433E0
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jul 2020 12:45:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1DE4622203
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jul 2020 12:41:14 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="M366pNrb"
+	by mail.kernel.org (Postfix) with ESMTP id DD8E920782
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Jul 2020 12:45:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726147AbgGCMlK (ORCPT
+        id S1726098AbgGCMpN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Jul 2020 08:41:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54722 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726074AbgGCMlJ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Jul 2020 08:41:09 -0400
-Received: from mail-io1-xd43.google.com (mail-io1-xd43.google.com [IPv6:2607:f8b0:4864:20::d43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 952C5C08C5C1;
-        Fri,  3 Jul 2020 05:41:09 -0700 (PDT)
-Received: by mail-io1-xd43.google.com with SMTP id q8so32315301iow.7;
-        Fri, 03 Jul 2020 05:41:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=/3fARxYuRtacDsta1lOXw0YQpGPHS40fG/Dlgh9w8EI=;
-        b=M366pNrbiKkM1b6xE+0QpdAMagpAv24Q5q/wfLwg/Zn4G2nQo7mZSjDNcn53v8l93O
-         LMbZ8qdFaFY105cX6XMyqohfH8jK3qqaI5DP67W8PXgL/6Cgb0q6/GmGNXsU2POpYPCL
-         iM3iTrfKRwaXArU7FD/Y1N7YcvL9hz1pDgBJeonDWapwxCta/9/j5LSfvkYf7m1IbaUI
-         COFr5y58ROXvmTzGHKZ4S4VyhFnEQDOObewoqX4pSHvS5DQkcFMlY4YSBNKD5hed8950
-         Kyjty+p33+9ceSZjOrTT4kbOEkI1cO4UTDWngFqKU82lQL6uyrRODK+wAFPUZIR1a7uL
-         MQDw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=/3fARxYuRtacDsta1lOXw0YQpGPHS40fG/Dlgh9w8EI=;
-        b=YYzkjH1TjF1JndDVYI/zia5IJuRqgwoVfPv1DmfM+N/NhotXeVZlP/5fj/unnKVATq
-         w43chRj8bECvZYmCLFolp8IJz+LnDJyV2ArKMotPIgYv7+RjvUbUQ8LPBHbYiiRtIJDG
-         QDsvWP63e0Fymhngk5gFjnWpKArdmYSZqTBe7rFNcf2qWaWX//XtDF5mWsiezLXlDKd7
-         ScmeihpLK/nBn4ljQNswdlhIII9Ch8T+jOvXCKrmtZvS4/Umf8WJ1uH4lrPF2E5UCzcy
-         7JTtUa71A7aaTHm/3h2XslaJJ+bYIczRyqog5rIosnukplvIDrY26SDVO2UZyXqS0X2P
-         wGRg==
-X-Gm-Message-State: AOAM532QtC8ugNWTlu2Cs7AGa9FMMkZD2IJGra+hgYELc0d8RF+bTzFi
-        xqIE2hn3ENzdOLVicxzOxkBV1LnQqPlBhmFWIrY=
-X-Google-Smtp-Source: ABdhPJyaKBMDtXfp8jmSH/dLZJsnXIMsz48usB6Up3Wt1Y1DSANqMYxTz/l4fcbEYrunGZop8YhtM9fwEPOtlnfn92U=
-X-Received: by 2002:a6b:5b0e:: with SMTP id v14mr12102540ioh.145.1593780068905;
- Fri, 03 Jul 2020 05:41:08 -0700 (PDT)
+        Fri, 3 Jul 2020 08:45:13 -0400
+Received: from correo.us.es ([193.147.175.20]:47318 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726022AbgGCMpN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 3 Jul 2020 08:45:13 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 2C6B2118442
+        for <netfilter-devel@vger.kernel.org>; Fri,  3 Jul 2020 14:45:11 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1C5EADA722
+        for <netfilter-devel@vger.kernel.org>; Fri,  3 Jul 2020 14:45:11 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 11A9DDA792; Fri,  3 Jul 2020 14:45:11 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A433CDA722
+        for <netfilter-devel@vger.kernel.org>; Fri,  3 Jul 2020 14:45:08 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 03 Jul 2020 14:45:08 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 90EFD42EF4E2
+        for <netfilter-devel@vger.kernel.org>; Fri,  3 Jul 2020 14:45:08 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] src: Allow for empty set variable definition
+Date:   Fri,  3 Jul 2020 14:45:05 +0200
+Message-Id: <20200703124505.26729-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-References: <3eda864fb69977252a061c8c3ccd2d8fcd1f3a9b.1593278952.git.rgb@redhat.com>
-In-Reply-To: <3eda864fb69977252a061c8c3ccd2d8fcd1f3a9b.1593278952.git.rgb@redhat.com>
-From:   Jones Desougi <jones.desougi+netfilter@gmail.com>
-Date:   Fri, 3 Jul 2020 14:40:57 +0200
-Message-ID: <CAGdUbJEwoxEFJZDUjF7ZwKurKNibPW86=s3yFSA6BBt-YsC=Nw@mail.gmail.com>
-Subject: Re: [PATCH ghak124 v3fix] audit: add gfp parameter to audit_log_nfcfg
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, Paul Moore <paul@paul-moore.com>,
-        sgrubb@redhat.com, omosnace@redhat.com,
-        Florian Westphal <fw@strlen.de>, twoerner@redhat.com,
-        eparis@parisplace.org, tgraf@infradead.org,
-        dan.carpenter@oracle.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Doesn't seem entirely consistent now either though. Two cases below.
+Allow for empty set definition in variables if they are merged to
+non-empty set definition:
 
-   /Jones
+ define BASE_ALLOWED_INCOMING_TCP_PORTS = {22, 80, 443}
+ define EXTRA_ALLOWED_INCOMING_TCP_PORTS = {}
 
-On Sun, Jun 28, 2020 at 5:27 AM Richard Guy Briggs <rgb@redhat.com> wrote:
->
-> Fixed an inconsistent use of GFP flags in nft_obj_notify() that used
-> GFP_KERNEL when a GFP flag was passed in to that function.  Given this
-> allocated memory was then used in audit_log_nfcfg() it led to an audit
-> of all other GFP allocations in net/netfilter/nf_tables_api.c and a
-> modification of audit_log_nfcfg() to accept a GFP parameter.
->
-> Reported-by: Dan Carptenter <dan.carpenter@oracle.com>
-> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> ---
-> Passes audit-testsuite.
->
->  include/linux/audit.h           |  8 ++++----
->  kernel/auditsc.c                |  4 ++--
->  net/bridge/netfilter/ebtables.c |  6 +++---
->  net/netfilter/nf_tables_api.c   | 33 +++++++++++++++++++++------------
->  net/netfilter/x_tables.c        |  5 +++--
->  5 files changed, 33 insertions(+), 23 deletions(-)
->
-...
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index 164700273947..f7ff91479647 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-...
-> @@ -6071,13 +6077,14 @@ static int nf_tables_getobj(struct net *net, struct sock *nlsk,
->                 reset = true;
->
->         if (reset) {
-> -               char *buf = kasprintf(GFP_KERNEL, "%s:%llu;?:0",
-> +               char *buf = kasprintf(GFP_ATOMIC, "%s:%llu;?:0",
->                                       table->name, table->handle);
->
->                 audit_log_nfcfg(buf,
->                                 family,
->                                 obj->handle,
-> -                               AUDIT_NFT_OP_OBJ_RESET);
-> +                               AUDIT_NFT_OP_OBJ_RESET,
-> +                               GFP_KERNEL);
->                 kfree(buf);
->         }
->
+ table inet filter {
+    chain input {
+        type filter hook input priority 0; policy drop;
+        tcp dport {$BASE_ALLOWED_INCOMING_TCP_PORTS, $EXTRA_ALLOWED_INCOMING_TCP_PORTS} ct state new counter accept
+    }
+ }
 
-Replaces one GFP_KERNEL (with GFP_ATOMIC) but also adds a new one in
-the following statement.
-Is that intentional?
+However, disallow this:
 
-> @@ -6156,7 +6163,7 @@ void nft_obj_notify(struct net *net, const struct nft_table *table,
->  {
->         struct sk_buff *skb;
->         int err;
-> -       char *buf = kasprintf(GFP_KERNEL, "%s:%llu;?:0",
-> +       char *buf = kasprintf(gfp, "%s:%llu;?:0",
->                               table->name, table->handle);
->
->         audit_log_nfcfg(buf,
-> @@ -6164,7 +6171,8 @@ void nft_obj_notify(struct net *net, const struct nft_table *table,
->                         obj->handle,
->                         event == NFT_MSG_NEWOBJ ?
->                                 AUDIT_NFT_OP_OBJ_REGISTER :
-> -                               AUDIT_NFT_OP_OBJ_UNREGISTER);
-> +                               AUDIT_NFT_OP_OBJ_UNREGISTER,
-> +                       GFP_KERNEL);
->         kfree(buf);
->
->         if (!report &&
+ define EXTRA_ALLOWED_INCOMING_TCP_PORTS = {}
 
-It would seem these two hunks form a similar discrepancy.
+ table inet filter {
+    chain input {
+        type filter hook input priority 0; policy drop;
+        tcp dport {$EXTRA_ALLOWED_INCOMING_TCP_PORTS} ct state new counter accept
+    }
+ }
 
-...
+ # nft -f x.nft
+ /tmp/x.nft:6:18-52: Error: Set is empty
+        tcp dport {$EXTRA_ALLOWED_INCOMING_TCP_PORTS} ct state new counter accept
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-> --
-> 1.8.3.1
->
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/evaluate.c                                  |  3 +++
+ src/parser_bison.y                              |  1 +
+ tests/shell/testcases/sets/0049set_define_0     | 16 ++++++++++++++++
+ tests/shell/testcases/sets/0050set_define_1     | 17 +++++++++++++++++
+ .../shell/testcases/sets/dumps/0049set_define_0 |  6 ++++++
+ 5 files changed, 43 insertions(+)
+ create mode 100755 tests/shell/testcases/sets/0049set_define_0
+ create mode 100755 tests/shell/testcases/sets/0050set_define_1
+ create mode 100644 tests/shell/testcases/sets/dumps/0049set_define_0
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 827ee48a48ed..2bfe55524fac 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1897,6 +1897,9 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
+ 				return -1;
+ 			break;
+ 		case EXPR_SET:
++			if (right->size == 0)
++				return expr_error(ctx->msgs, right, "Set is empty");
++
+ 			right = rel->right =
+ 				implicit_set_declaration(ctx, "__set%d",
+ 							 expr_get(left), NULL,
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 8a04d3b409a5..1676aa33e431 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -3845,6 +3845,7 @@ set_rhs_expr		:	concat_rhs_expr
+ 
+ initializer_expr	:	rhs_expr
+ 			|	list_rhs_expr
++			|	'{' '}'		{ $$ = compound_expr_alloc(&@$, EXPR_SET); }
+ 			;
+ 
+ counter_config		:	PACKETS		NUM	BYTES	NUM
+diff --git a/tests/shell/testcases/sets/0049set_define_0 b/tests/shell/testcases/sets/0049set_define_0
+new file mode 100755
+index 000000000000..1d512f7b5a54
+--- /dev/null
++++ b/tests/shell/testcases/sets/0049set_define_0
+@@ -0,0 +1,16 @@
++#!/bin/bash
++
++set -e
++
++EXPECTED="define BASE_ALLOWED_INCOMING_TCP_PORTS = {22, 80, 443}
++define EXTRA_ALLOWED_INCOMING_TCP_PORTS = {}
++
++table inet filter {
++	chain input {
++		type filter hook input priority 0; policy drop;
++		tcp dport {\$BASE_ALLOWED_INCOMING_TCP_PORTS, \$EXTRA_ALLOWED_INCOMING_TCP_PORTS} ct state new counter accept
++	}
++}
++"
++
++$NFT -f - <<< "$EXPECTED"
+diff --git a/tests/shell/testcases/sets/0050set_define_1 b/tests/shell/testcases/sets/0050set_define_1
+new file mode 100755
+index 000000000000..c12de177c7ec
+--- /dev/null
++++ b/tests/shell/testcases/sets/0050set_define_1
+@@ -0,0 +1,17 @@
++#!/bin/bash
++
++set -e
++
++EXPECTED="define BASE_ALLOWED_INCOMING_TCP_PORTS = {}
++
++table inet filter {
++	chain input {
++		type filter hook input priority 0; policy drop;
++		tcp dport {\$BASE_ALLOWED_INCOMING_TCP_PORTS} ct state new counter accept
++	}
++}
++"
++
++$NFT -f - <<< "$EXPECTED" &> /dev/null || exit 0
++echo "E: Accepted empty set" 1>&2
++exit 1
+diff --git a/tests/shell/testcases/sets/dumps/0049set_define_0 b/tests/shell/testcases/sets/dumps/0049set_define_0
+new file mode 100644
+index 000000000000..998b387a8151
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0049set_define_0
+@@ -0,0 +1,6 @@
++table inet filter {
++	chain input {
++		type filter hook input priority filter; policy drop;
++		tcp dport { 22, 80, 443 } ct state new counter packets 0 bytes 0 accept
++	}
++}
+-- 
+2.20.1
+
