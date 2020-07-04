@@ -2,120 +2,511 @@ Return-Path: <SRS0=AjNT=AP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EE06C433E0
-	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Jul 2020 04:53:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DF4FC433E0
+	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Jul 2020 13:29:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DD9222084C
-	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Jul 2020 04:53:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 165EC20885
+	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Jul 2020 13:29:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=voleatech.de header.i=@voleatech.de header.b="Kz4DMgfd"
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="DaBE+q/L"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725849AbgGDEx1 (ORCPT
+        id S1727897AbgGDN3P (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 4 Jul 2020 00:53:27 -0400
-Received: from mail-vi1eur05on2107.outbound.protection.outlook.com ([40.107.21.107]:34369
-        "EHLO EUR05-VI1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725790AbgGDEx1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 4 Jul 2020 00:53:27 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=cg71V+WOEhnuT7U44o1RtsLc90iRqymxHnzNnSIUsryLFqfcKdYJN2XPyC4SsfUrwT5N5+/9LqxjIirdHsO0m7Gv2p5C3OW+g75EJLStwunIcnnXLxP3UHHFNl2Gicegb02grqUVmNfa8FnKqhB+0iX800KlKh8x2KjTS1gfbK8v3KM/CpDR/HdnNt6pxTFg7XCpGDx9UzQgqcJiD7dVDo4kA89PRJ4CbcuJuJMnaZJM99acnrIK1RSLKZOOKE4fMJ3E018+3tx2wmN0lyVfwADhR4cZbHacvA+tvvo2YOn8UMRofI7oOFEffYWvu/hFWR1b4mfVygrX7oKNkp8Kbg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=5lQ2Y2bUTvj6uQpS1SVxkKHZnwiPRCf5P2PRaXnVf3w=;
- b=NTVloCIMGKMwIu827tL4QxPc7DSugQA7c0fiimu1mW2lpQd799U2EJETrSnCiCiU7HIK/3JcUkfTpBpA8IK4aezanNPpqO709estcYJAsu89pynq270Z5tXyloIMLG0mqLfEvoMUlDO26tYxa8gMVflpgi/No1EbpyC4Q3VtTpWEojgCEoTY+Tv+DXBnZjYfoIOl5HsPB8Jfvny/XQaRDBYw8nSu9Lcar1fwMznp7LxDhZMSjaxuPk5zwEwP/qSItJeDCzxKo72NQhcNk6QylD+9ivRIbc4nQiUpMko3IiVagfwYgoV6osfKEC6sD3agSEr3klXj/JmaN0PpGgivaw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=voleatech.de; dmarc=pass action=none header.from=voleatech.de;
- dkim=pass header.d=voleatech.de; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=voleatech.de;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=5lQ2Y2bUTvj6uQpS1SVxkKHZnwiPRCf5P2PRaXnVf3w=;
- b=Kz4DMgfdnRYD05Zv0mB/yOXugCMZFHBqZTQmHM0gIpjqgwHUWfQJHR/s7RHKzTflpfmSnNGQF9jArZ5W6hdqrP9AslMJKuW9i2DgYOPQjkla8yZTxr8G75JG2RxrztLwUXWmQRfiZSt+3Q1l2k2vlU7WLKkHDO87bIxg5/3bhjk=
-Authentication-Results: netfilter.org; dkim=none (message not signed)
- header.d=none;netfilter.org; dmarc=none action=none header.from=voleatech.de;
-Received: from AM4PR0501MB2785.eurprd05.prod.outlook.com
- (2603:10a6:200:5d::11) by AM0PR0502MB3972.eurprd05.prod.outlook.com
- (2603:10a6:208:8::17) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3153.24; Sat, 4 Jul
- 2020 04:53:23 +0000
-Received: from AM4PR0501MB2785.eurprd05.prod.outlook.com
- ([fe80::39a1:e237:5fef:6f39]) by AM4PR0501MB2785.eurprd05.prod.outlook.com
- ([fe80::39a1:e237:5fef:6f39%11]) with mapi id 15.20.3153.029; Sat, 4 Jul 2020
- 04:53:23 +0000
-Date:   Sat, 4 Jul 2020 06:53:21 +0200
-From:   Sven Auhagen <sven.auhagen@voleatech.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH 1/1 v2] netfilter: Restore the CT mark in Flow Offload
-Message-ID: <20200704045321.a66dptiwvvyxjy4o@SvensMacBookAir.sven.lan>
-References: <20200601111209.fluj44n5utfoicko@SvensMacBookAir.sven.lan>
- <20200704001133.GA1023@salvia>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200704001133.GA1023@salvia>
-X-ClientProxiedBy: AM0PR02CA0077.eurprd02.prod.outlook.com
- (2603:10a6:208:154::18) To AM4PR0501MB2785.eurprd05.prod.outlook.com
- (2603:10a6:200:5d::11)
+        Sat, 4 Jul 2020 09:29:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57150 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726738AbgGDN3O (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 4 Jul 2020 09:29:14 -0400
+Received: from mail-ed1-x544.google.com (mail-ed1-x544.google.com [IPv6:2a00:1450:4864:20::544])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EACB2C08C5DF
+        for <netfilter-devel@vger.kernel.org>; Sat,  4 Jul 2020 06:29:13 -0700 (PDT)
+Received: by mail-ed1-x544.google.com with SMTP id d18so24652427edv.6
+        for <netfilter-devel@vger.kernel.org>; Sat, 04 Jul 2020 06:29:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=8IRJl7J7RNznaeWdhi2pz+TO0Qae9LLFxbo2SwQ1/yU=;
+        b=DaBE+q/L1Uo1nr2/MQ9FMGrkMt1wWeFCJ/xGWg6Yx1uCdS/w6jV3R0edeRdvodxsi1
+         OwyMweBGlVFSlmwMMwouGI2X52/Z0hKqw5YOLeUq4p91LTO/AoMV7XeMWt1BEdrFfctN
+         NQfpbn3W2qy15I7W642OJO6ealc+3h0ESDwWkDNoSupX4sRW1lJSjtCfZU9GNmrJmTce
+         KFIEpZdjyhoDiEhxe0AJdUUN8JBMJq8StzDRPn7eWVK93cF6UxVmR4bDjCKVG3ALC9bC
+         k1FkC5kM1He+dKcOKlr1lXbd9rXQ8ITx5qNTH4H2ALmO0ER3dl699lRh1eWcnGVWOhBO
+         wGGg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=8IRJl7J7RNznaeWdhi2pz+TO0Qae9LLFxbo2SwQ1/yU=;
+        b=c4D5hJxFsdVC0/ZhTdDV91jwlMylIXMNS3FwxdLVSsIw4ouDWip+qKNCyaYCh6w/BK
+         QYPhTqU1nQ9feU72JZC4KJXSWWTiEGMHGk1Z8vQxIyhL6oqQVt77yP6LGHiYLIqDgZ1I
+         Ib49p/ZgIAWVrVYvqcN0EultaYjCuSQUoy0YAblw4TYqPnO+adkYNeuNE1BBc0CjPMXL
+         7HroeK1345iqUUQEM6CUmhmUv6oIkz2OJKIq02chzW1KPFea+gxefefoB1owQftqesuz
+         HiJyeTGg2Mc+Ofkw2pR3hA6NbQEJRjLhLaJmPFbG3EQMaUPGxyP3JXGf91XubvVRd9BS
+         Mraw==
+X-Gm-Message-State: AOAM531QQTesdkzFMZxOs7SC6HPDB36ydUlG8qyu77o+te3XVBq1U7yc
+        4bQZ9cVI6jmj4n0/o2hcMSWcOhlRmhcd0sKCt4jG
+X-Google-Smtp-Source: ABdhPJx94SMJzFxdRPe8MFmpQPE6GdQuK/fWkpI5heYGNo1aaq14PzbQzgKLgznv10JgFp8bt4kwdsVe3sCwAuBceac=
+X-Received: by 2002:a05:6402:1d89:: with SMTP id dk9mr34213847edb.31.1593869352317;
+ Sat, 04 Jul 2020 06:29:12 -0700 (PDT)
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from SvensMacBookAir.sven.lan (109.193.235.168) by AM0PR02CA0077.eurprd02.prod.outlook.com (2603:10a6:208:154::18) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3153.20 via Frontend Transport; Sat, 4 Jul 2020 04:53:22 +0000
-X-Originating-IP: [109.193.235.168]
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 2c2dc399-8a52-4d89-ffc6-08d81fd62df9
-X-MS-TrafficTypeDiagnostic: AM0PR0502MB3972:
-X-Microsoft-Antispam-PRVS: <AM0PR0502MB3972DC006AF1F1255AFAC1C5EF6B0@AM0PR0502MB3972.eurprd05.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:8882;
-X-Forefront-PRVS: 0454444834
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: PNglrtKJGowXL1GeNhZBLcHAjQ3movXuIuI3gBIBxfSTIwUqrNfwa5O4+tBFOHh5nYpS/blB7d1EXVW50qjQ1h8r56KXDVYe0UdH2l1w5Se1wcHIYYriPG5qjSKLC+ChhI+UL2DeKXzTUUPqe+sT3r6mMsKqlZMco+GEb2hrcYaJmz5YtfgC4BzEVIRHt+pnnOpqLMOisZq7tiDG1hs2jqbEWdA85xg9Cc6SeVSLxS3J6diUenxXTpalh2ZlP/95VGEdQSQ3cBK7VkJ0cCpishbzcpdQTCCKSsoS87+bI6xQ7HlqU6c4qAcgrINevF4s
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM4PR0501MB2785.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(366004)(346002)(376002)(39830400003)(136003)(396003)(8676002)(6916009)(55016002)(956004)(9686003)(86362001)(8936002)(2906002)(316002)(83380400001)(508600001)(26005)(7696005)(52116002)(6506007)(186003)(4744005)(1076003)(16526019)(5660300002)(4326008)(66556008)(66476007)(66946007)(44832011);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData: ZXxO1sPxftWQio4JRMxlj4fkAoefekMoogkM5wlbYPhYG7LHADehEYWVXoMrstBVHCgyywS2FDQpYD/3hgR+T99Mv48OtBRNVpVB2cukPRGg6dzfujl1p7fnLTjluJoLGY/yRiwFFqLiEHG5vzzAcI3+9NRH/oHxciUaEwCtb2X/6v+YAI0H1PQiFcPmB0Xyg6DDvrUKq9O4TzLYBtyGmsjrTK3CAPVtG2GPk0+M+wzR/UcShjx4tk8K3EltSqNQhRORsr1HuG6Z0C1TwsTRLagtic0yiBhv5cLP4rMkK6yQexCIezrUEU2R/agqsDizFpr6//Hp3DUSy0pAQp0Gr4f7/HFEqBZ27Z6UJBZSA01ApcLagvedZEYHTzjY/VG3LbdolemakczRpIaA0H0QfbGtBjzldfWzpzTppQshSykaQzrQ4ToAoui3dNgMvfjwq+fXVmtYi3g7rIbCEMoYZlD4UIdbR1LgqfUW/UrMZhgJR1jqE9Tw4ujmQF9T4AJa
-X-OriginatorOrg: voleatech.de
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2c2dc399-8a52-4d89-ffc6-08d81fd62df9
-X-MS-Exchange-CrossTenant-AuthSource: AM4PR0501MB2785.eurprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Jul 2020 04:53:23.0205
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: b82a99f6-7981-4a72-9534-4d35298f847b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: WxVJgUEaAxQIBIQsVQj107MFPi9eqqqU1NngK28TJ11kLSN7c5SiazoiE5fW/y7IKiUWgQ++cV5cjYt8MHueNKHYyRKGHT9yMFWEYxxmEh4=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR0502MB3972
+References: <cover.1593198710.git.rgb@redhat.com> <e5a1ab6955c565743372b392a93f7d1ac98478a2.1593198710.git.rgb@redhat.com>
+In-Reply-To: <e5a1ab6955c565743372b392a93f7d1ac98478a2.1593198710.git.rgb@redhat.com>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Sat, 4 Jul 2020 09:29:01 -0400
+Message-ID: <CAHC9VhTcFrPDSmvBBXevo-atCnxy4WK2YQ0WOeg4M1Sfz0qPgA@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V9 02/13] audit: add container id
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        sgrubb@redhat.com, Ondrej Mosnacek <omosnace@redhat.com>,
+        dhowells@redhat.com, simo@redhat.com,
+        Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
+        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
+        mpatel@redhat.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Jul 04, 2020 at 02:11:33AM +0200, Pablo Neira Ayuso wrote:
-> Hi Sven,
-> 
-> On Mon, Jun 01, 2020 at 01:12:09PM +0200, Sven Auhagen wrote:
-> > The skb mark is often used in TC action at egress.
-> > In order to have the skb mark set we can add it to the
-> > skb when we do a flow offload lookup from the CT mark.
-> 
-> Thanks for your patch.
-> 
-> I can see a use case for this, however, enabling the skb->mark =
-> ct->mark restoration is not very flexible.
-> 
-> Every time a default behaviour like this is introduced in the
-> netfilter codebase, there is someone following up to request a toggle
-> to enable / to disable it.
+On Sat, Jun 27, 2020 at 9:22 AM Richard Guy Briggs <rgb@redhat.com> wrote:
+>
+> Implement the proc fs write to set the audit container identifier of a
+> process, emitting an AUDIT_CONTAINER_OP record to document the event.
+>
+> This is a write from the container orchestrator task to a proc entry of
+> the form /proc/PID/audit_containerid where PID is the process ID of the
+> newly created task that is to become the first task in a container, or
+> an additional task added to a container.
+>
+> The write expects up to a u64 value (unset: 18446744073709551615).
+>
+> The writer must have capability CAP_AUDIT_CONTROL.
+>
+> This will produce a record such as this:
+>   type=CONTAINER_OP msg=audit(2018-06-06 12:39:29.636:26949) : op=set opid=2209 contid=123456 old-contid=18446744073709551615
+>
+> The "op" field indicates an initial set.  The "opid" field is the
+> object's PID, the process being "contained".  New and old audit
+> container identifier values are given in the "contid" fields.
+>
+> It is not permitted to unset the audit container identifier.
+> A child inherits its parent's audit container identifier.
+>
+> Store the audit container identifier in a refcounted kernel object that
+> is added to the master list of audit container identifiers.  This will
+> allow multiple container orchestrators/engines to work on the same
+> machine without danger of inadvertantly re-using an existing identifier.
+> It will also allow an orchestrator to inject a process into an existing
+> container by checking if the original container owner is the one
+> injecting the task.  A hash table list is used to optimize searches.
+>
+> Please see the github audit kernel issue for the main feature:
+>   https://github.com/linux-audit/audit-kernel/issues/90
+> Please see the github audit userspace issue for supporting additions:
+>   https://github.com/linux-audit/audit-userspace/issues/51
+> Please see the github audit testsuiite issue for the test case:
+>   https://github.com/linux-audit/audit-testsuite/issues/64
+> Please see the github audit wiki for the feature overview:
+>   https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
+>
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> Acked-by: Serge Hallyn <serge@hallyn.com>
+> Acked-by: Steve Grubb <sgrubb@redhat.com>
+> Acked-by: Neil Horman <nhorman@tuxdriver.com>
+> Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
+> ---
+>  fs/proc/base.c             |  36 +++++++++++
+>  include/linux/audit.h      |  33 ++++++++++
+>  include/uapi/linux/audit.h |   2 +
+>  kernel/audit.c             | 148 +++++++++++++++++++++++++++++++++++++++++++++
+>  kernel/audit.h             |   8 +++
+>  5 files changed, 227 insertions(+)
+>
+> diff --git a/fs/proc/base.c b/fs/proc/base.c
+> index d86c0afc8a85..6c17ab32e71b 100644
+> --- a/fs/proc/base.c
+> +++ b/fs/proc/base.c
+> @@ -1317,6 +1317,40 @@ static ssize_t proc_sessionid_read(struct file * file, char __user * buf,
+>         .read           = proc_sessionid_read,
+>         .llseek         = generic_file_llseek,
+>  };
+> +
+> +static ssize_t proc_contid_write(struct file *file, const char __user *buf,
+> +                                  size_t count, loff_t *ppos)
+> +{
+> +       struct inode *inode = file_inode(file);
+> +       u64 contid;
+> +       int rv;
+> +       struct task_struct *task = get_proc_task(inode);
+> +
+> +       if (!task)
+> +               return -ESRCH;
+> +       if (*ppos != 0) {
+> +               /* No partial writes. */
+> +               put_task_struct(task);
+> +               return -EINVAL;
+> +       }
+> +
+> +       rv = kstrtou64_from_user(buf, count, 10, &contid);
+> +       if (rv < 0) {
+> +               put_task_struct(task);
+> +               return rv;
+> +       }
+> +
+> +       rv = audit_set_contid(task, contid);
+> +       put_task_struct(task);
+> +       if (rv < 0)
+> +               return rv;
+> +       return count;
+> +}
+> +
+> +static const struct file_operations proc_contid_operations = {
+> +       .write          = proc_contid_write,
+> +       .llseek         = generic_file_llseek,
+> +};
+>  #endif
+>
+>  #ifdef CONFIG_FAULT_INJECTION
+> @@ -3219,6 +3253,7 @@ static int proc_stack_depth(struct seq_file *m, struct pid_namespace *ns,
+>  #ifdef CONFIG_AUDIT
+>         REG("loginuid",   S_IWUSR|S_IRUGO, proc_loginuid_operations),
+>         REG("sessionid",  S_IRUGO, proc_sessionid_operations),
+> +       REG("audit_containerid", S_IWUSR, proc_contid_operations),
+>  #endif
+>  #ifdef CONFIG_FAULT_INJECTION
+>         REG("make-it-fail", S_IRUGO|S_IWUSR, proc_fault_inject_operations),
+> @@ -3558,6 +3593,7 @@ static int proc_tid_comm_permission(struct inode *inode, int mask)
+>  #ifdef CONFIG_AUDIT
+>         REG("loginuid",  S_IWUSR|S_IRUGO, proc_loginuid_operations),
+>         REG("sessionid",  S_IRUGO, proc_sessionid_operations),
+> +       REG("audit_containerid", S_IWUSR, proc_contid_operations),
+>  #endif
+>  #ifdef CONFIG_FAULT_INJECTION
+>         REG("make-it-fail", S_IRUGO|S_IWUSR, proc_fault_inject_operations),
+> diff --git a/include/linux/audit.h b/include/linux/audit.h
+> index c2150415f9df..2800d4f1a2a8 100644
+> --- a/include/linux/audit.h
+> +++ b/include/linux/audit.h
+> @@ -100,9 +100,18 @@ enum audit_nfcfgop {
+>         AUDIT_XT_OP_UNREGISTER,
+>  };
+>
+> +struct audit_contobj {
+> +       struct list_head        list;
+> +       u64                     id;
+> +       struct task_struct      *owner;
+> +       refcount_t              refcount;
+> +       struct rcu_head         rcu;
+> +};
+> +
+>  struct audit_task_info {
+>         kuid_t                  loginuid;
+>         unsigned int            sessionid;
+> +       struct audit_contobj    *cont;
+>  #ifdef CONFIG_AUDITSYSCALL
+>         struct audit_context    *ctx;
+>  #endif
+> @@ -204,6 +213,15 @@ static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
+>         return tsk->audit->sessionid;
+>  }
+>
+> +extern int audit_set_contid(struct task_struct *tsk, u64 contid);
+> +
+> +static inline u64 audit_get_contid(struct task_struct *tsk)
+> +{
+> +       if (!tsk->audit || !tsk->audit->cont)
+> +               return AUDIT_CID_UNSET;
+> +       return tsk->audit->cont->id;
+> +}
+> +
+>  extern u32 audit_enabled;
+>
+>  extern int audit_signal_info(int sig, struct task_struct *t);
+> @@ -268,6 +286,11 @@ static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
+>         return AUDIT_SID_UNSET;
+>  }
+>
+> +static inline u64 audit_get_contid(struct task_struct *tsk)
+> +{
+> +       return AUDIT_CID_UNSET;
+> +}
+> +
+>  #define audit_enabled AUDIT_OFF
+>
+>  static inline int audit_signal_info(int sig, struct task_struct *t)
+> @@ -692,6 +715,16 @@ static inline bool audit_loginuid_set(struct task_struct *tsk)
+>         return uid_valid(audit_get_loginuid(tsk));
+>  }
+>
+> +static inline bool audit_contid_valid(u64 contid)
+> +{
+> +       return contid != AUDIT_CID_UNSET;
+> +}
+> +
+> +static inline bool audit_contid_set(struct task_struct *tsk)
+> +{
+> +       return audit_contid_valid(audit_get_contid(tsk));
+> +}
+> +
+>  static inline void audit_log_string(struct audit_buffer *ab, const char *buf)
+>  {
+>         audit_log_n_string(ab, buf, strlen(buf));
+> diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
+> index 9b6a973f4cc3..859382527210 100644
+> --- a/include/uapi/linux/audit.h
+> +++ b/include/uapi/linux/audit.h
+> @@ -71,6 +71,7 @@
+>  #define AUDIT_TTY_SET          1017    /* Set TTY auditing status */
+>  #define AUDIT_SET_FEATURE      1018    /* Turn an audit feature on or off */
+>  #define AUDIT_GET_FEATURE      1019    /* Get which features are enabled */
+> +#define AUDIT_CONTAINER_OP     1020    /* Define the container id and info */
+>
+>  #define AUDIT_FIRST_USER_MSG   1100    /* Userspace messages mostly uninteresting to kernel */
+>  #define AUDIT_USER_AVC         1107    /* We filter this differently */
+> @@ -491,6 +492,7 @@ struct audit_tty_status {
+>
+>  #define AUDIT_UID_UNSET (unsigned int)-1
+>  #define AUDIT_SID_UNSET ((unsigned int)-1)
+> +#define AUDIT_CID_UNSET ((u64)-1)
+>
+>  /* audit_rule_data supports filter rules with both integer and string
+>   * fields.  It corresponds with AUDIT_ADD_RULE, AUDIT_DEL_RULE and
+> diff --git a/kernel/audit.c b/kernel/audit.c
+> index 5d8147a29291..6d387793f702 100644
+> --- a/kernel/audit.c
+> +++ b/kernel/audit.c
+> @@ -138,6 +138,13 @@ struct auditd_connection {
+>
+>  /* Hash for inode-based rules */
+>  struct list_head audit_inode_hash[AUDIT_INODE_BUCKETS];
+> +/* Hash for contid object lists */
+> +struct list_head audit_contid_hash[AUDIT_CONTID_BUCKETS];
+> +/* Lock all additions and deletions to the contid hash lists, assignment
+> + * of container objects to tasks.  There should be no need for
+> + * interaction with tasklist_lock
+> + */
+> +static DEFINE_SPINLOCK(audit_contobj_list_lock);
+>
+>  static struct kmem_cache *audit_buffer_cache;
+>
+> @@ -212,6 +219,33 @@ void __init audit_task_init(void)
+>                                              0, SLAB_PANIC, NULL);
+>  }
+>
+> +/* rcu_read_lock must be held by caller unless new */
+> +static struct audit_contobj *_audit_contobj_hold(struct audit_contobj *cont)
+> +{
+> +       if (cont)
+> +               refcount_inc(&cont->refcount);
+> +       return cont;
+> +}
+> +
+> +static struct audit_contobj *_audit_contobj_get(struct task_struct *tsk)
+> +{
+> +       if (!tsk->audit)
+> +               return NULL;
+> +       return _audit_contobj_hold(tsk->audit->cont);
+> +}
+> +
+> +/* rcu_read_lock must be held by caller */
+> +static void _audit_contobj_put(struct audit_contobj *cont)
+> +{
+> +       if (!cont)
+> +               return;
+> +       if (refcount_dec_and_test(&cont->refcount)) {
+> +               put_task_struct(cont->owner);
+> +               list_del_rcu(&cont->list);
+> +               kfree_rcu(cont, rcu);
+> +       }
+> +}
+> +
+>  /**
+>   * audit_alloc - allocate an audit info block for a task
+>   * @tsk: task
+> @@ -232,6 +266,9 @@ int audit_alloc(struct task_struct *tsk)
+>         }
+>         info->loginuid = audit_get_loginuid(current);
+>         info->sessionid = audit_get_sessionid(current);
+> +       rcu_read_lock();
+> +       info->cont = _audit_contobj_get(current);
+> +       rcu_read_unlock();
+>         tsk->audit = info;
+>
+>         ret = audit_alloc_syscall(tsk);
+> @@ -246,6 +283,7 @@ int audit_alloc(struct task_struct *tsk)
+>  struct audit_task_info init_struct_audit = {
+>         .loginuid = INVALID_UID,
+>         .sessionid = AUDIT_SID_UNSET,
+> +       .cont = NULL,
+>  #ifdef CONFIG_AUDITSYSCALL
+>         .ctx = NULL,
+>  #endif
+> @@ -262,6 +300,9 @@ void audit_free(struct task_struct *tsk)
+>         struct audit_task_info *info = tsk->audit;
+>
+>         audit_free_syscall(tsk);
+> +       rcu_read_lock();
+> +       _audit_contobj_put(tsk->audit->cont);
+> +       rcu_read_unlock();
+>         /* Freeing the audit_task_info struct must be performed after
+>          * audit_log_exit() due to need for loginuid and sessionid.
+>          */
+> @@ -1709,6 +1750,9 @@ static int __init audit_init(void)
+>         for (i = 0; i < AUDIT_INODE_BUCKETS; i++)
+>                 INIT_LIST_HEAD(&audit_inode_hash[i]);
+>
+> +       for (i = 0; i < AUDIT_CONTID_BUCKETS; i++)
+> +               INIT_LIST_HEAD(&audit_contid_hash[i]);
+> +
+>         mutex_init(&audit_cmd_mutex.lock);
+>         audit_cmd_mutex.owner = NULL;
+>
+> @@ -2410,6 +2454,110 @@ int audit_signal_info(int sig, struct task_struct *t)
+>         return audit_signal_info_syscall(t);
+>  }
+>
+> +/*
+> + * audit_set_contid - set current task's audit contid
+> + * @task: target task
+> + * @contid: contid value
+> + *
+> + * Returns 0 on success, -EPERM on permission failure.
+> + *
+> + * If the original container owner goes away, no task injection is
+> + * possible to an existing container.
+> + *
+> + * Called (set) from fs/proc/base.c::proc_contid_write().
+> + */
+> +int audit_set_contid(struct task_struct *task, u64 contid)
+> +{
+> +       int rc = 0;
+> +       struct audit_buffer *ab;
+> +       struct audit_contobj *oldcont = NULL;
+> +
+> +       task_lock(task);
+> +       /* Can't set if audit disabled */
+> +       if (!task->audit) {
+> +               task_unlock(task);
+> +               return -ENOPROTOOPT;
+> +       }
+> +       read_lock(&tasklist_lock);
+> +       /* Don't allow the contid to be unset */
+> +       if (!audit_contid_valid(contid)) {
+> +               rc = -EINVAL;
+> +               goto unlock;
+> +       }
+> +       /* if we don't have caps, reject */
+> +       if (!capable(CAP_AUDIT_CONTROL)) {
+> +               rc = -EPERM;
+> +               goto unlock;
+> +       }
+> +       /* if task has children or is not single-threaded, deny */
+> +       if (!list_empty(&task->children) ||
+> +           !(thread_group_leader(task) && thread_group_empty(task))) {
+> +               rc = -EBUSY;
+> +               goto unlock;
+> +       }
+> +       /* if contid is already set, deny */
+> +       if (audit_contid_set(task))
+> +               rc = -EEXIST;
+> +unlock:
+> +       read_unlock(&tasklist_lock);
+> +       rcu_read_lock();
+> +       oldcont = _audit_contobj_get(task);
+> +       if (!rc) {
+> +               struct audit_contobj *cont = NULL, *newcont = NULL;
+> +               int h = audit_hash_contid(contid);
+> +
+> +               spin_lock(&audit_contobj_list_lock);
+> +               list_for_each_entry_rcu(cont, &audit_contid_hash[h], list)
+> +                       if (cont->id == contid) {
+> +                               /* task injection to existing container */
+> +                               if (current == cont->owner) {
+> +                                       _audit_contobj_hold(cont);
+> +                                       newcont = cont;
+> +                               } else {
+> +                                       rc = -ENOTUNIQ;
+> +                                       spin_unlock(&audit_contobj_list_lock);
+> +                                       goto conterror;
+> +                               }
+> +                               break;
+> +                       }
+> +               if (!newcont) {
+> +                       newcont = kmalloc(sizeof(*newcont), GFP_ATOMIC);
+> +                       if (newcont) {
+> +                               INIT_LIST_HEAD(&newcont->list);
+> +                               newcont->id = contid;
+> +                               newcont->owner = get_task_struct(current);
+> +                               refcount_set(&newcont->refcount, 1);
+> +                               list_add_rcu(&newcont->list,
+> +                                            &audit_contid_hash[h]);
+> +                       } else {
+> +                               rc = -ENOMEM;
+> +                               spin_unlock(&audit_contobj_list_lock);
+> +                               goto conterror;
+> +                       }
+> +               }
+> +               spin_unlock(&audit_contobj_list_lock);
+> +               task->audit->cont = newcont;
+> +               _audit_contobj_put(oldcont);
+> +       }
+> +conterror:
+> +       task_unlock(task);
+> +
+> +       if (!audit_enabled)
+> +               return rc;
+> +
+> +       ab = audit_log_start(audit_context(), GFP_KERNEL, AUDIT_CONTAINER_OP);
+> +       if (!ab)
+> +               return rc;
+> +
+> +       audit_log_format(ab,
+> +                        "op=set opid=%d contid=%llu old-contid=%llu",
+> +                        task_tgid_nr(task), contid, oldcont ? oldcont->id : -1);
+> +       _audit_contobj_put(oldcont);
+> +       rcu_read_unlock();
+> +       audit_log_end(ab);
+> +       return rc;
+> +}
+> +
+>  /**
+>   * audit_log_end - end one audit record
+>   * @ab: the audit_buffer
+> diff --git a/kernel/audit.h b/kernel/audit.h
+> index 9bee09757068..182fc76ea276 100644
+> --- a/kernel/audit.h
+> +++ b/kernel/audit.h
+> @@ -210,6 +210,14 @@ static inline int audit_hash_ino(u32 ino)
+>         return (ino & (AUDIT_INODE_BUCKETS-1));
+>  }
+>
+> +#define AUDIT_CONTID_BUCKETS   32
+> +extern struct list_head audit_contid_hash[AUDIT_CONTID_BUCKETS];
+> +
+> +static inline int audit_hash_contid(u64 contid)
+> +{
+> +       return (contid & (AUDIT_CONTID_BUCKETS-1));
+> +}
+> +
+>  /* Indicates that audit should log the full pathname. */
+>  #define AUDIT_NAME_FULL -1
+>
+> --
+> 1.8.3.1
+>
 
-Hi Pablo,
 
-I understand the argument.
-Please disregard the patch in this case.
-
-Best
-Sven
-
+-- 
+paul moore
+www.paul-moore.com
