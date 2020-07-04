@@ -2,75 +2,97 @@ Return-Path: <SRS0=AjNT=AP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CC14C433E0
-	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Jul 2020 00:11:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 326E6C433E1
+	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Jul 2020 00:14:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7878E20739
-	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Jul 2020 00:11:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1396620739
+	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Jul 2020 00:14:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726379AbgGDALh (ORCPT
+        id S1726774AbgGDAOH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Jul 2020 20:11:37 -0400
-Received: from correo.us.es ([193.147.175.20]:56514 "EHLO mail.us.es"
+        Fri, 3 Jul 2020 20:14:07 -0400
+Received: from correo.us.es ([193.147.175.20]:56756 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726188AbgGDALh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Jul 2020 20:11:37 -0400
+        id S1726474AbgGDAOG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 3 Jul 2020 20:14:06 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 32B1EED5C0
-        for <netfilter-devel@vger.kernel.org>; Sat,  4 Jul 2020 02:11:36 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id C1C67ED5C5
+        for <netfilter-devel@vger.kernel.org>; Sat,  4 Jul 2020 02:14:04 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 23E31DA78B
-        for <netfilter-devel@vger.kernel.org>; Sat,  4 Jul 2020 02:11:36 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B338CDA73D
+        for <netfilter-devel@vger.kernel.org>; Sat,  4 Jul 2020 02:14:04 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 19043DA73D; Sat,  4 Jul 2020 02:11:36 +0200 (CEST)
+        id A8500DA722; Sat,  4 Jul 2020 02:14:04 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 03551DA73D;
-        Sat,  4 Jul 2020 02:11:34 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7F49CDA72F;
+        Sat,  4 Jul 2020 02:14:02 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 04 Jul 2020 02:11:34 +0200 (CEST)
+ Sat, 04 Jul 2020 02:14:02 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id D542742EF532;
-        Sat,  4 Jul 2020 02:11:33 +0200 (CEST)
-Date:   Sat, 4 Jul 2020 02:11:33 +0200
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 5A73942EF532;
+        Sat,  4 Jul 2020 02:14:02 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Sven Auhagen <sven.auhagen@voleatech.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH 1/1 v2] netfilter: Restore the CT mark in Flow Offload
-Message-ID: <20200704001133.GA1023@salvia>
-References: <20200601111209.fluj44n5utfoicko@SvensMacBookAir.sven.lan>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org
+Subject: [PATCH 0/2] Netfilter fixes for net
+Date:   Sat,  4 Jul 2020 02:13:57 +0200
+Message-Id: <20200704001359.1304-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200601111209.fluj44n5utfoicko@SvensMacBookAir.sven.lan>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Sven,
+Hi,
 
-On Mon, Jun 01, 2020 at 01:12:09PM +0200, Sven Auhagen wrote:
-> The skb mark is often used in TC action at egress.
-> In order to have the skb mark set we can add it to the
-> skb when we do a flow offload lookup from the CT mark.
+The following patchset contains Netfilter fixes for net:
 
-Thanks for your patch.
+1) Use kvfree() to release vmalloc()'ed areas in ipset, from Eric Dumazet.
 
-I can see a use case for this, however, enabling the skb->mark =
-ct->mark restoration is not very flexible.
+2) UAF in nfnetlink_queue from the nf_conntrack_update() path.
 
-Every time a default behaviour like this is introduced in the
-netfilter codebase, there is someone following up to request a toggle
-to enable / to disable it.
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thank you.
+
+----------------------------------------------------------------
+
+The following changes since commit 33c568ba49e2b0ff7c3daead5d9427be797a4c43:
+
+  Merge tag 'mac80211-for-net-2020-06-29' of git://git.kernel.org/pub/scm/linux/kernel/git/jberg/mac80211 (2020-06-29 16:58:30 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to d005fbb855d3b5660d62ee5a6bd2d99c13ff8cf3:
+
+  netfilter: conntrack: refetch conntrack after nf_conntrack_update() (2020-07-03 14:47:03 +0200)
+
+----------------------------------------------------------------
+Eric Dumazet (1):
+      netfilter: ipset: call ip_set_free() instead of kfree()
+
+Pablo Neira Ayuso (1):
+      netfilter: conntrack: refetch conntrack after nf_conntrack_update()
+
+ net/netfilter/ipset/ip_set_bitmap_ip.c    | 2 +-
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c | 2 +-
+ net/netfilter/ipset/ip_set_bitmap_port.c  | 2 +-
+ net/netfilter/ipset/ip_set_hash_gen.h     | 4 ++--
+ net/netfilter/nf_conntrack_core.c         | 2 ++
+ 5 files changed, 7 insertions(+), 5 deletions(-)
