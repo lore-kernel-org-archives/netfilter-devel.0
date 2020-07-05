@@ -2,404 +2,320 @@ Return-Path: <SRS0=UuyC=AQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42AFCC433E0
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Jul 2020 14:43:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E1E7C433E0
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Jul 2020 15:10:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 160F120739
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Jul 2020 14:43:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48D072075D
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Jul 2020 15:10:04 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="UmdjKJ50"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726923AbgGEOnt (ORCPT
+        id S1727807AbgGEPJ5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 5 Jul 2020 10:43:49 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:59383 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726826AbgGEOnt (ORCPT
+        Sun, 5 Jul 2020 11:09:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38934 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726996AbgGEPJ4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 5 Jul 2020 10:43:49 -0400
-Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 4D10541169;
-        Sun,  5 Jul 2020 22:28:35 +0800 (CST)
-From:   wenxu@ucloud.cn
-To:     davem@davemloft.net, pablo@netfilter.org
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [PATCH net-next 1/3] netfilter: nf_defrag_ipv4: Add nf_ct_frag_gather support
-Date:   Sun,  5 Jul 2020 22:28:30 +0800
-Message-Id: <1593959312-6135-2-git-send-email-wenxu@ucloud.cn>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1593959312-6135-1-git-send-email-wenxu@ucloud.cn>
-References: <1593959312-6135-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVQ01DQkJCQk5DS0hDSEhZV1koWU
-        FJQjdXWS1ZQUlXWQ8JGhUIEh9ZQVkdIjULOBw5FTFQAi9PDD0dATYjNzocVlZVQk5CQyhJWVdZCQ
-        4XHghZQVk1NCk2OjckKS43PllXWRYaDxIVHRRZQVk0MFkG
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Kwg6Phw5Qz5RLE1KLz81LTUD
-        KwEKFAhVSlVKTkJIQk5CSEpOT0lIVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUJMQ0s3Bg++
-X-HM-Tid: 0a731f60f7822086kuqy4d10541169
+        Sun, 5 Jul 2020 11:09:56 -0400
+Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4DEBCC08C5E0
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Jul 2020 08:09:56 -0700 (PDT)
+Received: by mail-ej1-x642.google.com with SMTP id w6so39779162ejq.6
+        for <netfilter-devel@vger.kernel.org>; Sun, 05 Jul 2020 08:09:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=+a+NkZk/z82sUmwa8lAR9nOo6EtZay2vAebfwkhsk6k=;
+        b=UmdjKJ50jJWLthi/DT6Fs4iFmWFWyVC7Y7eZrOOgck5bWy1qD1rM0CMXNWKAJDlHVL
+         MAa2rwS/APF5ZIIu7ChRJtgEZ53i8mPF0SjaJsiJKKGawhM60E/UxhFkn1iaFCLKkDvX
+         ABjq8jVd+aSn/1mm8gcR3scWaSwN1qN6a3STwAf24/t6ZOCeOFxo9U4AkYeDjAYvwVle
+         q6JqxJ/OONYa7eHq//8Oh7lZaQDQjIrW4vcI+eC9CiyArhAChgft2Fyel1fL2i4bo0FM
+         6wrDxMJNUxIz0louWOYU4KpBGZlmriR+9XhHFy+lzf7hU5ECANHSv5nn2SFzJDJ0i7zK
+         Dr2w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=+a+NkZk/z82sUmwa8lAR9nOo6EtZay2vAebfwkhsk6k=;
+        b=mi8RaRrqErO74upGGRyS+00wnfX9u8bF2BR5EJH+YFdrpjFhpSum1sXGRqO4iWT7gY
+         HOO9XxFauOBr5xMLAnLdIT9igNu6l1GQxsxTk9qZh2OIu2xRFONqxck9dZZxeWlgxtwL
+         uf06NT7hwjg3+NtXH9BK5A8ww0En0hhZXciTH6OUZ9IB2S9QSp8cFIByilEZJWKAXoY/
+         FAngoY61onsb05k0DKNL998fWaGU5bLQL/l92b2qewl2Zs4Q8Qj/XMf5rOQKn3SWizOD
+         9LxlWaUz+6Oug+WZX2KEUnmfIHtZkeU3U/Xy2XqYgKuipzfJXNhswzrEeOXE/0J6IIDn
+         d+Sw==
+X-Gm-Message-State: AOAM533cVLF+hygs7odFCe4AQK70Cu62U3UrIAJI8rwrX7DXoVqgXJcN
+        bKGcjebMCyLoSBoce0sc94j5PDik8WI+I03ibrvO
+X-Google-Smtp-Source: ABdhPJzoaJJDK0x6hHKY5IxkG2I5cD4JeTPSKb1HFyRKKxTq3fNryDZXuEZTaO6XoOjUl+x6NLfxACNsUd1JYOUwikw=
+X-Received: by 2002:a17:906:7d86:: with SMTP id v6mr38973801ejo.542.1593961794741;
+ Sun, 05 Jul 2020 08:09:54 -0700 (PDT)
+MIME-Version: 1.0
+References: <cover.1593198710.git.rgb@redhat.com> <6abeb26e64489fc29b00c86b60b501c8b7316424.1593198710.git.rgb@redhat.com>
+In-Reply-To: <6abeb26e64489fc29b00c86b60b501c8b7316424.1593198710.git.rgb@redhat.com>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Sun, 5 Jul 2020 11:09:43 -0400
+Message-ID: <CAHC9VhTx=4879F1MSXg4=Xd1i5rhEtyam6CakQhy=_ZjGtTaMA@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V9 01/13] audit: collect audit task parameters
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        sgrubb@redhat.com, Ondrej Mosnacek <omosnace@redhat.com>,
+        dhowells@redhat.com, simo@redhat.com,
+        Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
+        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
+        mpatel@redhat.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+On Sat, Jun 27, 2020 at 9:21 AM Richard Guy Briggs <rgb@redhat.com> wrote:
+>
+> The audit-related parameters in struct task_struct should ideally be
+> collected together and accessed through a standard audit API.
+>
+> Collect the existing loginuid, sessionid and audit_context together in a
+> new struct audit_task_info called "audit" in struct task_struct.
+>
+> Use kmem_cache to manage this pool of memory.
+> Un-inline audit_free() to be able to always recover that memory.
+>
+> Please see the upstream github issue
+> https://github.com/linux-audit/audit-kernel/issues/81
+>
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> Acked-by: Neil Horman <nhorman@tuxdriver.com>
+> Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
+> ---
+>  include/linux/audit.h | 49 +++++++++++++++++++++++------------
+>  include/linux/sched.h |  7 +----
+>  init/init_task.c      |  3 +--
+>  init/main.c           |  2 ++
+>  kernel/audit.c        | 71 +++++++++++++++++++++++++++++++++++++++++++++++++--
+>  kernel/audit.h        |  5 ++++
+>  kernel/auditsc.c      | 26 ++++++++++---------
+>  kernel/fork.c         |  1 -
+>  8 files changed, 124 insertions(+), 40 deletions(-)
+>
+> diff --git a/include/linux/audit.h b/include/linux/audit.h
+> index 3fcd9ee49734..c2150415f9df 100644
+> --- a/include/linux/audit.h
+> +++ b/include/linux/audit.h
+> @@ -100,6 +100,16 @@ enum audit_nfcfgop {
+>         AUDIT_XT_OP_UNREGISTER,
+>  };
+>
+> +struct audit_task_info {
+> +       kuid_t                  loginuid;
+> +       unsigned int            sessionid;
+> +#ifdef CONFIG_AUDITSYSCALL
+> +       struct audit_context    *ctx;
+> +#endif
+> +};
+> +
+> +extern struct audit_task_info init_struct_audit;
+> +
+>  extern int is_audit_feature_set(int which);
+>
+>  extern int __init audit_register_class(int class, unsigned *list);
 
-Add nf_ct_frag_gather for conntrack defrag and it will
-elide the CB clear when packets are defragmented by
-connection tracking
+...
 
-Signed-off-by: wenxu <wenxu@ucloud.cn>
----
- include/net/netfilter/ipv4/nf_defrag_ipv4.h |   2 +
- net/ipv4/netfilter/nf_defrag_ipv4.c         | 314 ++++++++++++++++++++++++++++
- 2 files changed, 316 insertions(+)
+> diff --git a/include/linux/sched.h b/include/linux/sched.h
+> index b62e6aaf28f0..2213ac670386 100644
+> --- a/include/linux/sched.h
+> +++ b/include/linux/sched.h
+> @@ -34,7 +34,6 @@
+>  #include <linux/kcsan.h>
+>
+>  /* task_struct member predeclarations (sorted alphabetically): */
+> -struct audit_context;
+>  struct backing_dev_info;
+>  struct bio_list;
+>  struct blk_plug;
+> @@ -946,11 +945,7 @@ struct task_struct {
+>         struct callback_head            *task_works;
+>
+>  #ifdef CONFIG_AUDIT
+> -#ifdef CONFIG_AUDITSYSCALL
+> -       struct audit_context            *audit_context;
+> -#endif
+> -       kuid_t                          loginuid;
+> -       unsigned int                    sessionid;
+> +       struct audit_task_info          *audit;
+>  #endif
+>         struct seccomp                  seccomp;
 
-diff --git a/include/net/netfilter/ipv4/nf_defrag_ipv4.h b/include/net/netfilter/ipv4/nf_defrag_ipv4.h
-index bcbd724..b3ac92b 100644
---- a/include/net/netfilter/ipv4/nf_defrag_ipv4.h
-+++ b/include/net/netfilter/ipv4/nf_defrag_ipv4.h
-@@ -4,5 +4,7 @@
- 
- struct net;
- int nf_defrag_ipv4_enable(struct net *);
-+int nf_ct_frag_gather(struct net *net, struct sk_buff *skb,
-+		      u32 user, u16 *frag_max_size);
- 
- #endif /* _NF_DEFRAG_IPV4_H */
-diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
-index 8115611..a4ac207 100644
---- a/net/ipv4/netfilter/nf_defrag_ipv4.c
-+++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
-@@ -11,6 +11,7 @@
- #include <net/netns/generic.h>
- #include <net/route.h>
- #include <net/ip.h>
-+#include <net/inet_frag.h>
- 
- #include <linux/netfilter_bridge.h>
- #include <linux/netfilter_ipv4.h>
-@@ -22,6 +23,319 @@
- 
- static DEFINE_MUTEX(defrag4_mutex);
- 
-+/* Describe an entry in the "incomplete datagrams" queue. */
-+struct ipq {
-+	struct inet_frag_queue q;
-+
-+	u8		ecn; /* RFC3168 support */
-+	u16		max_df_size; /* largest frag with DF set seen */
-+	int             iif;
-+	unsigned int    rid;
-+	struct inet_peer *peer;
-+};
-+
-+static void ipq_kill(struct ipq *ipq)
-+{
-+	inet_frag_kill(&ipq->q);
-+}
-+
-+static void ipq_put(struct ipq *ipq)
-+{
-+	inet_frag_put(&ipq->q);
-+}
-+
-+static bool nf_ct_frag_coalesce_ok(const struct ipq *qp)
-+{
-+	return qp->q.key.v4.user == IP_DEFRAG_LOCAL_DELIVER;
-+}
-+
-+static u8 nf_ct_frag_ecn(u8 tos)
-+{
-+	return 1 << (tos & INET_ECN_MASK);
-+}
-+
-+static int nf_ct_frag_too_far(struct ipq *qp)
-+{
-+	struct inet_peer *peer = qp->peer;
-+	unsigned int max = qp->q.fqdir->max_dist;
-+	unsigned int start, end;
-+
-+	int rc;
-+
-+	if (!peer || !max)
-+		return 0;
-+
-+	start = qp->rid;
-+	end = atomic_inc_return(&peer->rid);
-+	qp->rid = end;
-+
-+	rc = qp->q.fragments_tail && (end - start) > max;
-+
-+	return rc;
-+}
-+
-+static int nf_ct_frag_reinit(struct ipq *qp)
-+{
-+	unsigned int sum_truesize = 0;
-+
-+	if (!mod_timer(&qp->q.timer, jiffies + qp->q.fqdir->timeout)) {
-+		refcount_inc(&qp->q.refcnt);
-+		return -ETIMEDOUT;
-+	}
-+
-+	sum_truesize = inet_frag_rbtree_purge(&qp->q.rb_fragments);
-+	sub_frag_mem_limit(qp->q.fqdir, sum_truesize);
-+
-+	qp->q.flags = 0;
-+	qp->q.len = 0;
-+	qp->q.meat = 0;
-+	qp->q.rb_fragments = RB_ROOT;
-+	qp->q.fragments_tail = NULL;
-+	qp->q.last_run_head = NULL;
-+	qp->iif = 0;
-+	qp->ecn = 0;
-+
-+	return 0;
-+}
-+
-+static struct ipq *ip_find(struct net *net, struct iphdr *iph,
-+			   u32 user, int vif)
-+{
-+	struct frag_v4_compare_key key = {
-+		.saddr = iph->saddr,
-+		.daddr = iph->daddr,
-+		.user = user,
-+		.vif = vif,
-+		.id = iph->id,
-+		.protocol = iph->protocol,
-+	};
-+	struct inet_frag_queue *q;
-+
-+	q = inet_frag_find(net->ipv4.fqdir, &key);
-+	if (!q)
-+		return NULL;
-+
-+	return container_of(q, struct ipq, q);
-+}
-+
-+static int nf_ct_frag_reasm(struct ipq *qp, struct sk_buff *skb,
-+			    struct sk_buff *prev_tail, struct net_device *dev,
-+			    u16 *frag_max_size)
-+{
-+	struct iphdr *iph;
-+	void *reasm_data;
-+	int len, err;
-+	u8 ecn;
-+
-+	ipq_kill(qp);
-+
-+	ecn = ip_frag_ecn_table[qp->ecn];
-+	if (unlikely(ecn == 0xff)) {
-+		err = -EINVAL;
-+		goto out_fail;
-+	}
-+
-+	/* Make the one we just received the head. */
-+	reasm_data = inet_frag_reasm_prepare(&qp->q, skb, prev_tail);
-+	if (!reasm_data)
-+		goto out_nomem;
-+
-+	len = ip_hdrlen(skb) + qp->q.len;
-+	err = -E2BIG;
-+	if (len > 65535)
-+		goto out_oversize;
-+
-+	inet_frag_reasm_finish(&qp->q, skb, reasm_data,
-+			       nf_ct_frag_coalesce_ok(qp));
-+
-+	skb->dev = dev;
-+	if (frag_max_size)
-+		*frag_max_size = max(qp->max_df_size, qp->q.max_size);
-+
-+	iph = ip_hdr(skb);
-+	iph->tot_len = htons(len);
-+	iph->tos |= ecn;
-+
-+	/* When we set IP_DF on a refragmented skb we must also force a
-+	 * call to ip_fragment to avoid forwarding a DF-skb of size s while
-+	 * original sender only sent fragments of size f (where f < s).
-+	 *
-+	 * We only set DF/IPSKB_FRAG_PMTU if such DF fragment was the largest
-+	 * frag seen to avoid sending tiny DF-fragments in case skb was built
-+	 * from one very small df-fragment and one large non-df frag.
-+	 */
-+	if (qp->max_df_size == qp->q.max_size)
-+		iph->frag_off = htons(IP_DF);
-+	else
-+		iph->frag_off = 0;
-+
-+	ip_send_check(iph);
-+
-+	qp->q.rb_fragments = RB_ROOT;
-+	qp->q.fragments_tail = NULL;
-+	qp->q.last_run_head = NULL;
-+	return 0;
-+
-+out_nomem:
-+	net_dbg_ratelimited("queue_glue: no memory for gluing queue %p\n", qp);
-+	err = -ENOMEM;
-+	goto out_fail;
-+out_oversize:
-+	net_info_ratelimited("Oversized IP packet from %pI4\n", &qp->q.key.v4.saddr);
-+out_fail:
-+	return err;
-+}
-+
-+static int nf_ct_frag_queue(struct ipq *qp, struct sk_buff *skb, u16 *frag_max_size)
-+{
-+	int ihl, end, flags, offset;
-+	struct sk_buff *prev_tail;
-+	struct net_device *dev;
-+	unsigned int fragsize;
-+	int err = -ENOENT;
-+	u8 ecn;
-+
-+	if (qp->q.flags & INET_FRAG_COMPLETE)
-+		goto err;
-+
-+	if (unlikely(nf_ct_frag_too_far(qp))) {
-+		err = nf_ct_frag_reinit(qp);
-+		if (unlikely(err)) {
-+			ipq_kill(qp);
-+			goto err;
-+		}
-+	}
-+
-+	ecn = nf_ct_frag_ecn(ip_hdr(skb)->tos);
-+	offset = ntohs(ip_hdr(skb)->frag_off);
-+	flags = offset & ~IP_OFFSET;
-+	offset &= IP_OFFSET;
-+	offset <<= 3;		/* offset is in 8-byte chunks */
-+	ihl = ip_hdrlen(skb);
-+
-+	/* Determine the position of this fragment. */
-+	end = offset + skb->len - skb_network_offset(skb) - ihl;
-+	err = -EINVAL;
-+
-+	/* Is this the final fragment? */
-+	if ((flags & IP_MF) == 0) {
-+		/* If we already have some bits beyond end
-+		 * or have different end, the segment is corrupted.
-+		 */
-+		if (end < qp->q.len ||
-+		    ((qp->q.flags & INET_FRAG_LAST_IN) && end != qp->q.len))
-+			goto discard_qp;
-+		qp->q.flags |= INET_FRAG_LAST_IN;
-+		qp->q.len = end;
-+	} else {
-+		if (end & 7) {
-+			end &= ~7;
-+			if (skb->ip_summed != CHECKSUM_UNNECESSARY)
-+				skb->ip_summed = CHECKSUM_NONE;
-+		}
-+		if (end > qp->q.len) {
-+			/* Some bits beyond end -> corruption. */
-+			if (qp->q.flags & INET_FRAG_LAST_IN)
-+				goto discard_qp;
-+			qp->q.len = end;
-+		}
-+	}
-+	if (end == offset)
-+		goto discard_qp;
-+
-+	err = -ENOMEM;
-+	if (!pskb_pull(skb, skb_network_offset(skb) + ihl))
-+		goto discard_qp;
-+
-+	err = pskb_trim_rcsum(skb, end - offset);
-+	if (err)
-+		goto discard_qp;
-+
-+	/* Note : skb->rbnode and skb->dev share the same location. */
-+	dev = skb->dev;
-+	/* Makes sure compiler wont do silly aliasing games */
-+	barrier();
-+
-+	prev_tail = qp->q.fragments_tail;
-+	err = inet_frag_queue_insert(&qp->q, skb, offset, end);
-+	if (err)
-+		goto insert_error;
-+
-+	if (dev)
-+		qp->iif = dev->ifindex;
-+
-+	qp->q.stamp = skb->tstamp;
-+	qp->q.meat += skb->len;
-+	qp->ecn |= ecn;
-+	add_frag_mem_limit(qp->q.fqdir, skb->truesize);
-+	if (offset == 0)
-+		qp->q.flags |= INET_FRAG_FIRST_IN;
-+
-+	fragsize = skb->len + ihl;
-+
-+	if (fragsize > qp->q.max_size)
-+		qp->q.max_size = fragsize;
-+
-+	if (ip_hdr(skb)->frag_off & htons(IP_DF) &&
-+	    fragsize > qp->max_df_size)
-+		qp->max_df_size = fragsize;
-+
-+	if (qp->q.flags == (INET_FRAG_FIRST_IN | INET_FRAG_LAST_IN) &&
-+	    qp->q.meat == qp->q.len) {
-+		unsigned long orefdst = skb->_skb_refdst;
-+
-+		skb->_skb_refdst = 0UL;
-+		err = nf_ct_frag_reasm(qp, skb, prev_tail, dev, frag_max_size);
-+		skb->_skb_refdst = orefdst;
-+		if (err)
-+			inet_frag_kill(&qp->q);
-+		return err;
-+	}
-+
-+	skb_dst_drop(skb);
-+	return -EINPROGRESS;
-+
-+insert_error:
-+	if (err == IPFRAG_DUP) {
-+		kfree_skb(skb);
-+		return -EINVAL;
-+	}
-+	err = -EINVAL;
-+discard_qp:
-+	inet_frag_kill(&qp->q);
-+err:
-+	kfree_skb(skb);
-+	return err;
-+}
-+
-+int nf_ct_frag_gather(struct net *net, struct sk_buff *skb,
-+		      u32 user, u16 *frag_max_size)
-+{
-+	struct net_device *dev = skb->dev ? : skb_dst(skb)->dev;
-+	int vif = l3mdev_master_ifindex_rcu(dev);
-+	struct ipq *qp;
-+
-+	skb_orphan(skb);
-+
-+	/* Lookup (or create) queue header */
-+	qp = ip_find(net, ip_hdr(skb), user, vif);
-+	if (qp) {
-+		int ret;
-+
-+		spin_lock(&qp->q.lock);
-+
-+		ret = nf_ct_frag_queue(qp, skb, frag_max_size);
-+
-+		spin_unlock(&qp->q.lock);
-+		ipq_put(qp);
-+		return ret;
-+	}
-+
-+	kfree_skb(skb);
-+	return -ENOMEM;
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_frag_gather);
-+
- static int nf_ct_ipv4_gather_frags(struct net *net, struct sk_buff *skb,
- 				   u_int32_t user)
- {
--- 
-1.8.3.1
+In the early days of this patchset we talked a lot about how to handle
+the task_struct and the changes that would be necessary, ultimately
+deciding that encapsulating all of the audit fields into an
+audit_task_info struct.  However, what is puzzling me a bit at this
+moment is why we are only including audit_task_info in task_info by
+reference *and* making it a build time conditional (via CONFIG_AUDIT).
 
+If audit is enabled at build time it would seem that we are always
+going to allocate an audit_task_info struct, so I have to wonder why
+we don't simply embed it inside the task_info struct (similar to the
+seccomp struct in the snippet above?  Of course the audit_context
+struct needs to remain as is, I'm talking only about the
+task_info/audit_task_info struct.
+
+Richard, I'm sure you can answer this off the top of your head, but
+I'd have to go digging through the archives to pull out the relevant
+discussions so I figured I would just ask you for a reminder ... ?  I
+imagine it's also possible things have changed a bit since those early
+discussions and the solution we arrived at then no longer makes as
+much sense as it did before.
+
+> diff --git a/init/init_task.c b/init/init_task.c
+> index 15089d15010a..92d34c4b7702 100644
+> --- a/init/init_task.c
+> +++ b/init/init_task.c
+> @@ -130,8 +130,7 @@ struct task_struct init_task
+>         .thread_group   = LIST_HEAD_INIT(init_task.thread_group),
+>         .thread_node    = LIST_HEAD_INIT(init_signals.thread_head),
+>  #ifdef CONFIG_AUDIT
+> -       .loginuid       = INVALID_UID,
+> -       .sessionid      = AUDIT_SID_UNSET,
+> +       .audit          = &init_struct_audit,
+>  #endif
+>  #ifdef CONFIG_PERF_EVENTS
+>         .perf_event_mutex = __MUTEX_INITIALIZER(init_task.perf_event_mutex),
+> diff --git a/init/main.c b/init/main.c
+> index 0ead83e86b5a..349470ad7458 100644
+> --- a/init/main.c
+> +++ b/init/main.c
+> @@ -96,6 +96,7 @@
+>  #include <linux/jump_label.h>
+>  #include <linux/mem_encrypt.h>
+>  #include <linux/kcsan.h>
+> +#include <linux/audit.h>
+>
+>  #include <asm/io.h>
+>  #include <asm/bugs.h>
+> @@ -1028,6 +1029,7 @@ asmlinkage __visible void __init start_kernel(void)
+>         nsfs_init();
+>         cpuset_init();
+>         cgroup_init();
+> +       audit_task_init();
+>         taskstats_init_early();
+>         delayacct_init();
+>
+> diff --git a/kernel/audit.c b/kernel/audit.c
+> index 8c201f414226..5d8147a29291 100644
+> --- a/kernel/audit.c
+> +++ b/kernel/audit.c
+> @@ -203,6 +203,73 @@ struct audit_reply {
+>         struct sk_buff *skb;
+>  };
+>
+> +static struct kmem_cache *audit_task_cache;
+> +
+> +void __init audit_task_init(void)
+> +{
+> +       audit_task_cache = kmem_cache_create("audit_task",
+> +                                            sizeof(struct audit_task_info),
+> +                                            0, SLAB_PANIC, NULL);
+> +}
+> +
+> +/**
+> + * audit_alloc - allocate an audit info block for a task
+> + * @tsk: task
+> + *
+> + * Call audit_alloc_syscall to filter on the task information and
+> + * allocate a per-task audit context if necessary.  This is called from
+> + * copy_process, so no lock is needed.
+> + */
+> +int audit_alloc(struct task_struct *tsk)
+> +{
+> +       int ret = 0;
+> +       struct audit_task_info *info;
+> +
+> +       info = kmem_cache_alloc(audit_task_cache, GFP_KERNEL);
+> +       if (!info) {
+> +               ret = -ENOMEM;
+> +               goto out;
+> +       }
+> +       info->loginuid = audit_get_loginuid(current);
+> +       info->sessionid = audit_get_sessionid(current);
+> +       tsk->audit = info;
+> +
+> +       ret = audit_alloc_syscall(tsk);
+> +       if (ret) {
+> +               tsk->audit = NULL;
+> +               kmem_cache_free(audit_task_cache, info);
+> +       }
+> +out:
+> +       return ret;
+> +}
+
+This is a big nitpick, and I'm only mentioning this in the case you
+need to respin this patchset: the "out" label is unnecessary in the
+function above.  Simply return the error code, there is no need to
+jump to "out" only to immediately return the error code there and
+nothing more.
+
+> +struct audit_task_info init_struct_audit = {
+> +       .loginuid = INVALID_UID,
+> +       .sessionid = AUDIT_SID_UNSET,
+> +#ifdef CONFIG_AUDITSYSCALL
+> +       .ctx = NULL,
+> +#endif
+> +};
+> +
+> +/**
+> + * audit_free - free per-task audit info
+> + * @tsk: task whose audit info block to free
+> + *
+> + * Called from copy_process and do_exit
+> + */
+> +void audit_free(struct task_struct *tsk)
+> +{
+> +       struct audit_task_info *info = tsk->audit;
+> +
+> +       audit_free_syscall(tsk);
+> +       /* Freeing the audit_task_info struct must be performed after
+> +        * audit_log_exit() due to need for loginuid and sessionid.
+> +        */
+> +       info = tsk->audit;
+> +       tsk->audit = NULL;
+> +       kmem_cache_free(audit_task_cache, info);
+
+Another nitpick, and this one may even become a moot point given the
+question posed above.  However, is there any reason we couldn't get
+rid of "info" and simplify this a bit?
+
+  audit_free_syscall(tsk);
+  kmem_cache_free(audit_task_cache, tsk->audit);
+  tsk->audit = NULL;
+
+> diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+> index 468a23390457..f00c1da587ea 100644
+> --- a/kernel/auditsc.c
+> +++ b/kernel/auditsc.c
+> @@ -1612,7 +1615,6 @@ void __audit_free(struct task_struct *tsk)
+>                 if (context->current_state == AUDIT_RECORD_CONTEXT)
+>                         audit_log_exit();
+>         }
+> -
+>         audit_set_context(tsk, NULL);
+>         audit_free_context(context);
+>  }
+
+This nitpick is barely worth the time it is taking me to write this,
+but the whitespace change above isn't strictly necessary.
+
+
+--
+paul moore
+www.paul-moore.com
