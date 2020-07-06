@@ -6,86 +6,158 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E925C433DF
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jul 2020 11:12:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09912C433E0
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jul 2020 11:17:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 81EBB20715
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jul 2020 11:12:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E1E6C20724
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jul 2020 11:17:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728903AbgGFLM4 (ORCPT
+        id S1728815AbgGFLR6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Jul 2020 07:12:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53494 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728578AbgGFLM4 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Jul 2020 07:12:56 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EADCDC061794
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Jul 2020 04:12:55 -0700 (PDT)
-Received: from localhost ([::1]:47852 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.94)
-        (envelope-from <phil@nwl.cc>)
-        id 1jsP3M-0001S8-Ts; Mon, 06 Jul 2020 13:12:52 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] tests: shell: Add help output to run-tests.sh
-Date:   Mon,  6 Jul 2020 13:12:49 +0200
-Message-Id: <20200706111249.11547-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.27.0
+        Mon, 6 Jul 2020 07:17:58 -0400
+Received: from correo.us.es ([193.147.175.20]:55264 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728578AbgGFLR6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Jul 2020 07:17:58 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 25273DA715
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Jul 2020 13:17:56 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 11723DA73F
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Jul 2020 13:17:56 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 0D127DA72F; Mon,  6 Jul 2020 13:17:56 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AC2BFDA792
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Jul 2020 13:17:53 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 06 Jul 2020 13:17:53 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 98F4642EF42E
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Jul 2020 13:17:53 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] segtree: zap element statement when decomposing interval
+Date:   Mon,  6 Jul 2020 13:17:48 +0200
+Message-Id: <20200706111748.29601-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The script has quite a few options nowadays, so add a bit of help text
-also.
+Otherwise, interval sets do not display element statement such as
+counters.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Fixes: 6d80e0f15492 ("src: support for counter in set definition")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- iptables/tests/shell/run-tests.sh | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ src/segtree.c                                 | 16 ++++++++++++++++
+ .../testcases/sets/0051set_interval_counter_0 | 19 +++++++++++++++++++
+ .../sets/dumps/0051set_interval_counter_0.nft | 13 +++++++++++++
+ 3 files changed, 48 insertions(+)
+ create mode 100755 tests/shell/testcases/sets/0051set_interval_counter_0
+ create mode 100644 tests/shell/testcases/sets/dumps/0051set_interval_counter_0.nft
 
-diff --git a/iptables/tests/shell/run-tests.sh b/iptables/tests/shell/run-tests.sh
-index 2125e2cb119bb..65c37adb75f2a 100755
---- a/iptables/tests/shell/run-tests.sh
-+++ b/iptables/tests/shell/run-tests.sh
-@@ -4,6 +4,21 @@
- TESTDIR="./$(dirname $0)/"
- RETURNCODE_SEPARATOR="_"
+diff --git a/src/segtree.c b/src/segtree.c
+index b6ca6083ea0b..c143a6a74a21 100644
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -1027,6 +1027,10 @@ void interval_map_decompose(struct expr *set)
+ 					tmp->timeout = low->left->timeout;
+ 				if (low->left->expiration)
+ 					tmp->expiration = low->left->expiration;
++				if (low->left->stmt) {
++					tmp->stmt = low->left->stmt;
++					low->left->stmt = NULL;
++				}
  
-+usage() {
-+	cat <<EOF
-+Usage: $(basename $0) [-v|--verbose] [-H|--host] [-V|--valgrind]
-+		      [[-l|--legacy]|[-n|--nft]] [testscript ...]
+ 				tmp = mapping_expr_alloc(&tmp->location, tmp,
+ 							 expr_clone(low->right));
+@@ -1037,6 +1041,10 @@ void interval_map_decompose(struct expr *set)
+ 					tmp->timeout = low->timeout;
+ 				if (low->expiration)
+ 					tmp->expiration = low->expiration;
++				if (low->left->stmt) {
++					tmp->stmt = low->stmt;
++					low->stmt = NULL;
++				}
+ 			}
+ 
+ 			compound_expr_add(set, tmp);
+@@ -1059,6 +1067,10 @@ void interval_map_decompose(struct expr *set)
+ 					prefix->timeout = low->left->timeout;
+ 				if (low->left->expiration)
+ 					prefix->expiration = low->left->expiration;
++				if (low->left->stmt) {
++					prefix->stmt = low->left->stmt;
++					low->left->stmt = NULL;
++				}
+ 
+ 				prefix = mapping_expr_alloc(&low->location, prefix,
+ 							    expr_clone(low->right));
+@@ -1069,6 +1081,10 @@ void interval_map_decompose(struct expr *set)
+ 					prefix->timeout = low->timeout;
+ 				if (low->expiration)
+ 					prefix->expiration = low->expiration;
++				if (low->stmt) {
++					prefix->stmt = low->stmt;
++					low->stmt = NULL;
++				}
+ 			}
+ 
+ 			compound_expr_add(set, prefix);
+diff --git a/tests/shell/testcases/sets/0051set_interval_counter_0 b/tests/shell/testcases/sets/0051set_interval_counter_0
+new file mode 100755
+index 000000000000..ea90e264bfcc
+--- /dev/null
++++ b/tests/shell/testcases/sets/0051set_interval_counter_0
+@@ -0,0 +1,19 @@
++#!/bin/bash
 +
-+-v | --verbose		Enable verbose mode (do not drop testscript output).
-+-H | --host		Run tests against installed binaries in \$PATH,
-+			not those built in this source tree.
-+-V | --valgrind		Enable leak checking via valgrind.
-+-l | --legacy		Test legacy variant only. Conflicts with --nft.
-+-n | --nft		Test nft variant only. Conflicts with --legacy.
-+testscript		Run only specific test(s). Implies --verbose.
-+EOF
++set -e
++
++EXPECTED="table ip x {
++	set s {
++		type ipv4_addr
++		flags interval
++		counter
++		elements = { 192.168.2.0/24 }
++	}
++
++	chain y {
++		type filter hook output priority filter; policy accept;
++		ip daddr @s
++	}
++}"
++
++$NFT -f - <<< "$EXPECTED"
+diff --git a/tests/shell/testcases/sets/dumps/0051set_interval_counter_0.nft b/tests/shell/testcases/sets/dumps/0051set_interval_counter_0.nft
+new file mode 100644
+index 000000000000..fd488a76432f
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0051set_interval_counter_0.nft
+@@ -0,0 +1,13 @@
++table ip x {
++	set s {
++		type ipv4_addr
++		flags interval
++		counter
++		elements = { 192.168.2.0/24 counter packets 0 bytes 0 }
++	}
++
++	chain y {
++		type filter hook output priority filter; policy accept;
++		ip daddr @s
++	}
 +}
-+
- msg_error() {
-         echo "E: $1 ..." >&2
-         exit 1
-@@ -50,6 +65,10 @@ while [ -n "$1" ]; do
- 		VALGRIND=y
- 		shift
- 		;;
-+	-h|--help)
-+		usage
-+		exit 0
-+		;;
- 	*${RETURNCODE_SEPARATOR}+([0-9]))
- 		SINGLE+=" $1"
- 		VERBOSE=y
 -- 
-2.27.0
+2.20.1
 
