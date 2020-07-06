@@ -2,162 +2,56 @@ Return-Path: <SRS0=Edk1=AR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09912C433E0
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jul 2020 11:17:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA85EC433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jul 2020 14:38:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E1E6C20724
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jul 2020 11:17:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B54F1206CB
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jul 2020 14:38:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728815AbgGFLR6 (ORCPT
+        id S1729280AbgGFOil (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Jul 2020 07:17:58 -0400
-Received: from correo.us.es ([193.147.175.20]:55264 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728578AbgGFLR6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Jul 2020 07:17:58 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 25273DA715
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Jul 2020 13:17:56 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 11723DA73F
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Jul 2020 13:17:56 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 0D127DA72F; Mon,  6 Jul 2020 13:17:56 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AC2BFDA792
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Jul 2020 13:17:53 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 06 Jul 2020 13:17:53 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 98F4642EF42E
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Jul 2020 13:17:53 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] segtree: zap element statement when decomposing interval
-Date:   Mon,  6 Jul 2020 13:17:48 +0200
-Message-Id: <20200706111748.29601-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        Mon, 6 Jul 2020 10:38:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57350 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729148AbgGFOik (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Jul 2020 10:38:40 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00D4FC061755;
+        Mon,  6 Jul 2020 07:38:39 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1jsSGI-0005GB-J2; Mon, 06 Jul 2020 16:38:26 +0200
+Date:   Mon, 6 Jul 2020 16:38:26 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     wenxu@ucloud.cn
+Cc:     davem@davemloft.net, pablo@netfilter.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net-next 1/3] netfilter: nf_defrag_ipv4: Add
+ nf_ct_frag_gather support
+Message-ID: <20200706143826.GA32005@breakpoint.cc>
+References: <1593959312-6135-1-git-send-email-wenxu@ucloud.cn>
+ <1593959312-6135-2-git-send-email-wenxu@ucloud.cn>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1593959312-6135-2-git-send-email-wenxu@ucloud.cn>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Otherwise, interval sets do not display element statement such as
-counters.
+wenxu@ucloud.cn <wenxu@ucloud.cn> wrote:
+> From: wenxu <wenxu@ucloud.cn>
+> 
+> Add nf_ct_frag_gather for conntrack defrag and it will
+> elide the CB clear when packets are defragmented by
+> connection tracking
 
-Fixes: 6d80e0f15492 ("src: support for counter in set definition")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/segtree.c                                 | 16 ++++++++++++++++
- .../testcases/sets/0051set_interval_counter_0 | 19 +++++++++++++++++++
- .../sets/dumps/0051set_interval_counter_0.nft | 13 +++++++++++++
- 3 files changed, 48 insertions(+)
- create mode 100755 tests/shell/testcases/sets/0051set_interval_counter_0
- create mode 100644 tests/shell/testcases/sets/dumps/0051set_interval_counter_0.nft
-
-diff --git a/src/segtree.c b/src/segtree.c
-index b6ca6083ea0b..c143a6a74a21 100644
---- a/src/segtree.c
-+++ b/src/segtree.c
-@@ -1027,6 +1027,10 @@ void interval_map_decompose(struct expr *set)
- 					tmp->timeout = low->left->timeout;
- 				if (low->left->expiration)
- 					tmp->expiration = low->left->expiration;
-+				if (low->left->stmt) {
-+					tmp->stmt = low->left->stmt;
-+					low->left->stmt = NULL;
-+				}
- 
- 				tmp = mapping_expr_alloc(&tmp->location, tmp,
- 							 expr_clone(low->right));
-@@ -1037,6 +1041,10 @@ void interval_map_decompose(struct expr *set)
- 					tmp->timeout = low->timeout;
- 				if (low->expiration)
- 					tmp->expiration = low->expiration;
-+				if (low->left->stmt) {
-+					tmp->stmt = low->stmt;
-+					low->stmt = NULL;
-+				}
- 			}
- 
- 			compound_expr_add(set, tmp);
-@@ -1059,6 +1067,10 @@ void interval_map_decompose(struct expr *set)
- 					prefix->timeout = low->left->timeout;
- 				if (low->left->expiration)
- 					prefix->expiration = low->left->expiration;
-+				if (low->left->stmt) {
-+					prefix->stmt = low->left->stmt;
-+					low->left->stmt = NULL;
-+				}
- 
- 				prefix = mapping_expr_alloc(&low->location, prefix,
- 							    expr_clone(low->right));
-@@ -1069,6 +1081,10 @@ void interval_map_decompose(struct expr *set)
- 					prefix->timeout = low->timeout;
- 				if (low->expiration)
- 					prefix->expiration = low->expiration;
-+				if (low->stmt) {
-+					prefix->stmt = low->stmt;
-+					low->stmt = NULL;
-+				}
- 			}
- 
- 			compound_expr_add(set, prefix);
-diff --git a/tests/shell/testcases/sets/0051set_interval_counter_0 b/tests/shell/testcases/sets/0051set_interval_counter_0
-new file mode 100755
-index 000000000000..ea90e264bfcc
---- /dev/null
-+++ b/tests/shell/testcases/sets/0051set_interval_counter_0
-@@ -0,0 +1,19 @@
-+#!/bin/bash
-+
-+set -e
-+
-+EXPECTED="table ip x {
-+	set s {
-+		type ipv4_addr
-+		flags interval
-+		counter
-+		elements = { 192.168.2.0/24 }
-+	}
-+
-+	chain y {
-+		type filter hook output priority filter; policy accept;
-+		ip daddr @s
-+	}
-+}"
-+
-+$NFT -f - <<< "$EXPECTED"
-diff --git a/tests/shell/testcases/sets/dumps/0051set_interval_counter_0.nft b/tests/shell/testcases/sets/dumps/0051set_interval_counter_0.nft
-new file mode 100644
-index 000000000000..fd488a76432f
---- /dev/null
-+++ b/tests/shell/testcases/sets/dumps/0051set_interval_counter_0.nft
-@@ -0,0 +1,13 @@
-+table ip x {
-+	set s {
-+		type ipv4_addr
-+		flags interval
-+		counter
-+		elements = { 192.168.2.0/24 counter packets 0 bytes 0 }
-+	}
-+
-+	chain y {
-+		type filter hook output priority filter; policy accept;
-+		ip daddr @s
-+	}
-+}
--- 
-2.20.1
-
+Why is this patch required?
+Can't you rework ip_defrag to avoid the cb clear if you need that?
