@@ -1,121 +1,126 @@
-Return-Path: <SRS0=UuyC=AQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=Edk1=AR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C28CC433DF
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Jul 2020 15:12:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB06EC433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jul 2020 05:40:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4CA3420737
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Jul 2020 15:12:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9B12320739
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jul 2020 05:40:31 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="1/6AOOiC"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="uRYZhSZJ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728090AbgGEPMB (ORCPT
+        id S1728794AbgGFFk3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 5 Jul 2020 11:12:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39346 "EHLO
+        Mon, 6 Jul 2020 01:40:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58960 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728080AbgGEPMA (ORCPT
+        with ESMTP id S1726684AbgGFFk3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 5 Jul 2020 11:12:00 -0400
-Received: from mail-ej1-x643.google.com (mail-ej1-x643.google.com [IPv6:2a00:1450:4864:20::643])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 499AFC08C5DE
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Jul 2020 08:12:00 -0700 (PDT)
-Received: by mail-ej1-x643.google.com with SMTP id dp18so39752642ejc.8
-        for <netfilter-devel@vger.kernel.org>; Sun, 05 Jul 2020 08:12:00 -0700 (PDT)
+        Mon, 6 Jul 2020 01:40:29 -0400
+Received: from mail-io1-xd43.google.com (mail-io1-xd43.google.com [IPv6:2607:f8b0:4864:20::d43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22A12C061794;
+        Sun,  5 Jul 2020 22:40:29 -0700 (PDT)
+Received: by mail-io1-xd43.google.com with SMTP id v6so24392789iob.4;
+        Sun, 05 Jul 2020 22:40:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=BI1aAShmO7FXnwtN8B6Od+9nVsaMtVkeWnOGj2Zvm4Y=;
-        b=1/6AOOiCg9ot1+F9UhkykucC0qMYgzK2GA9zYzKmMovooAnH48coFkCRo57BXWCcAp
-         7CF9ClAVqv7j/oaBJkTGbl26Rszr/MUIfDjdNl7f5JnJxKj2yn0TKisOxrCwtEbFgNGQ
-         /PqTAREqKfODffSK5H0TJGvTykPpy5976yQ7kuXJRMMseZOA5Ew/izF5q5DOEnUEoRD4
-         ESr2tMdE8VI3TJe1XP8JUoKk5p9bUKtecSGxZUYV+q3k6YAqd72YHNOSHy2+GpdRqEFx
-         dcvTHlVfR+822lyGWe9L3viPVcELzcQa2U96GrkmRWDqUDYx+kBFP2kg/4CFOsa4vnMk
-         aSxw==
+        bh=3sBadRV7FFtFvYs75qslugpz7Oyujs0hv8LXW+77v68=;
+        b=uRYZhSZJ13+CNC2XFKVKruTQ/BZz390wUvNAzm5zyT0VSuXmqzENCGYj5KjBe2aHEv
+         PXBIIRgjDXJjuIab5cFWZCjelD/kHsYOniAepCT3wWkyv+PQCccKlZqHww1ikqlFoHlC
+         /sj36qC3LZz/KJALxwKVt9EeiYAdg9DFHxh1Jmj1fzZBOtIZf42ToKVrzCDU0XFqux5M
+         vG+glKJLKfhNscARLY+zOZkdo7l5bC3VhPNlu2MHoP8SJDdA5/SnhWYw98aw2EIzreiN
+         Fh6E0Hk0YkZWoWnOnaabJg4PY1TutzYec1QR/7GlT3IuhWsGppkMn5oxXi02Z2o3YCnn
+         xPFA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=BI1aAShmO7FXnwtN8B6Od+9nVsaMtVkeWnOGj2Zvm4Y=;
-        b=YIK6jytcnhe3bHcjtRxScPbuneze9QQNMB8lA2FXsA14+tpHwlvF6oO/KNNuqnpAi7
-         KF97vcNdfCsnFT7dDhMetyQLKEwT9OL19gRHyb7OS7Feuz5H9HKF8PYg/ogGiEcIWgDv
-         CrkK9n4H18GOq6m72oTb41BnbLUMetriJSEkJ6wwAIaDiRGm4cJX8Y6374K+tx6LmUNj
-         veKUTi4RLdwSWNWg76U5BOuuwLKSKFiH2BnDNLWhOb0KvQeMI2ldIQDdDWxRGllopAzk
-         RmxTkNNKIkqgy0la0fz0Wtwp9wk1XnVGf2J4ECF2g9pvFsgmdgZf2lIJSOaw7y9y2n0/
-         IWuA==
-X-Gm-Message-State: AOAM532aXHTCxL+BB3NQ24KY40OgqNRPtKqrXiP0DG1lku+IX9xbarZo
-        4Ov315Z+fhlnbln4dU8EwPNb3n/EWMb7l3Yb7ftp
-X-Google-Smtp-Source: ABdhPJy+1+ndZZah7VkLTSj7twGu3m1RKvwdW+PIAE3WsheefQt0o8KCRqSrelgLi4drC0Gf6mOHLfy4/pYyZRxzQXY=
-X-Received: by 2002:a17:906:1a59:: with SMTP id j25mr37962178ejf.398.1593961918982;
- Sun, 05 Jul 2020 08:11:58 -0700 (PDT)
+        bh=3sBadRV7FFtFvYs75qslugpz7Oyujs0hv8LXW+77v68=;
+        b=qhXEvy2luaJH6RY04iPAzU+qtEB+T2MvHlr9UR4U52NTjVCgAkSa3TgzJ8ULF8+wDd
+         FhUp6wrcETvn9DqUSQrmZlAMpg90ZOYwxIzTYpAmYQWbTEF3kdHRpCKkG+ud0FmsWYuk
+         t1jMJAu9mdd7+V1uavhv3/zwHl07o/FVXJbfDu9issOQkL3DzIfermQFGa44mAFMIYFR
+         sK7+pEiM39t9AyR0Ff5gWnYTMwTlREFSrvnYsepbAKx6j3lOpQwkatNqubVRy4+W7MIq
+         s/q4qS0spzREilyTfUAvbrfKL5edAVapjshIoWozCQrBa3RtD4sQplIdEIpij7T2o5M6
+         VDeg==
+X-Gm-Message-State: AOAM5330DLfFgYZGjVtMJb0poGLWvtlNUlgEnHBSRtEbv5x0omLHUkFO
+        B4k2AfORBcFeDwb5seqHt+R1oLQtwPChZRgFFGlNHCW/
+X-Google-Smtp-Source: ABdhPJz/+RVTdWmd5r5KJu7Of7dDt/ath/o+DCbUw40LALWdyp/OMjAYJOmlHjuRVjw6ggeeL///zp147GWcDfVEBts=
+X-Received: by 2002:a05:6602:1225:: with SMTP id z5mr24075647iot.64.1594014028358;
+ Sun, 05 Jul 2020 22:40:28 -0700 (PDT)
 MIME-Version: 1.0
-References: <cover.1593198710.git.rgb@redhat.com> <b6cb5500cfd7e8686ac2a7758103688c2da7f4ce.1593198710.git.rgb@redhat.com>
-In-Reply-To: <b6cb5500cfd7e8686ac2a7758103688c2da7f4ce.1593198710.git.rgb@redhat.com>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Sun, 5 Jul 2020 11:11:47 -0400
-Message-ID: <CAHC9VhRvuu-_+gh9ejr0sFDNR6erV2BAig6qrT9gOEB6GczXvw@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V9 13/13] audit: add capcontid to set contid
- outside init_user_ns
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        sgrubb@redhat.com, Ondrej Mosnacek <omosnace@redhat.com>,
-        dhowells@redhat.com, simo@redhat.com,
-        Eric Paris <eparis@parisplace.org>,
-        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
-        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
-        mpatel@redhat.com
+References: <1593959312-6135-1-git-send-email-wenxu@ucloud.cn> <1593959312-6135-2-git-send-email-wenxu@ucloud.cn>
+In-Reply-To: <1593959312-6135-2-git-send-email-wenxu@ucloud.cn>
+From:   Cong Wang <xiyou.wangcong@gmail.com>
+Date:   Sun, 5 Jul 2020 22:40:17 -0700
+Message-ID: <CAM_iQpWmM8bJ5up47gt06VpoSrP6YVd=RZO2HTD0quXtQkRyxg@mail.gmail.com>
+Subject: Re: [PATCH net-next 1/3] netfilter: nf_defrag_ipv4: Add
+ nf_ct_frag_gather support
+To:     wenxu <wenxu@ucloud.cn>
+Cc:     David Miller <davem@davemloft.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Jun 27, 2020 at 9:24 AM Richard Guy Briggs <rgb@redhat.com> wrote:
->
-> Provide a mechanism similar to CAP_AUDIT_CONTROL to explicitly give a
-> process in a non-init user namespace the capability to set audit
-> container identifiers of individual children.
->
-> Provide the /proc/$PID/audit_capcontid interface to capcontid.
-> Valid values are: 1==enabled, 0==disabled
->
-> Writing a "1" to this special file for the target process $PID will
-> enable the target process to set audit container identifiers of its
-> descendants.
->
-> A process must already have CAP_AUDIT_CONTROL in the initial user
-> namespace or have had audit_capcontid enabled by a previous use of this
-> feature by its parent on this process in order to be able to enable it
-> for another process.  The target process must be a descendant of the
-> calling process.
->
-> Report this action in new message type AUDIT_SET_CAPCONTID 1022 with
-> fields opid= capcontid= old-capcontid=
->
-> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> ---
->  fs/proc/base.c             | 57 +++++++++++++++++++++++++++++++++++++++++++++-
->  include/linux/audit.h      | 14 ++++++++++++
->  include/uapi/linux/audit.h |  1 +
->  kernel/audit.c             | 38 ++++++++++++++++++++++++++++++-
->  4 files changed, 108 insertions(+), 2 deletions(-)
+On Sun, Jul 5, 2020 at 7:34 AM <wenxu@ucloud.cn> wrote:
+> +static int nf_ct_frag_reinit(struct ipq *qp)
+> +{
+> +       unsigned int sum_truesize = 0;
+> +
+> +       if (!mod_timer(&qp->q.timer, jiffies + qp->q.fqdir->timeout)) {
+> +               refcount_inc(&qp->q.refcnt);
+> +               return -ETIMEDOUT;
+> +       }
+> +
+> +       sum_truesize = inet_frag_rbtree_purge(&qp->q.rb_fragments);
+> +       sub_frag_mem_limit(qp->q.fqdir, sum_truesize);
+> +
+> +       qp->q.flags = 0;
+> +       qp->q.len = 0;
+> +       qp->q.meat = 0;
+> +       qp->q.rb_fragments = RB_ROOT;
+> +       qp->q.fragments_tail = NULL;
+> +       qp->q.last_run_head = NULL;
+> +       qp->iif = 0;
+> +       qp->ecn = 0;
+> +
+> +       return 0;
+> +}
+> +
+> +static struct ipq *ip_find(struct net *net, struct iphdr *iph,
+> +                          u32 user, int vif)
+> +{
+> +       struct frag_v4_compare_key key = {
+> +               .saddr = iph->saddr,
+> +               .daddr = iph->daddr,
+> +               .user = user,
+> +               .vif = vif,
+> +               .id = iph->id,
+> +               .protocol = iph->protocol,
+> +       };
+> +       struct inet_frag_queue *q;
+> +
+> +       q = inet_frag_find(net->ipv4.fqdir, &key);
+> +       if (!q)
+> +               return NULL;
+> +
+> +       return container_of(q, struct ipq, q);
+> +}
 
-This seems very similar to the capable/ns_capable combination I
-mentioned in patch 11/13; any reasons why you feel that this might be
-a better approach?  My current thinking is that the capable/ns_capable
-approach is preferable as it leverages existing kernel mechanisms and
-doesn't require us to reinvent the wheel in the audit subsystem.
 
+Please avoid copy-n-paste code by finding a proper way
+to reuse them.
 
---
-paul moore
-www.paul-moore.com
+Thanks.
