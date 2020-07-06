@@ -2,125 +2,90 @@ Return-Path: <SRS0=Edk1=AR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB06EC433DF
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jul 2020 05:40:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E925C433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jul 2020 11:12:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B12320739
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jul 2020 05:40:31 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="uRYZhSZJ"
+	by mail.kernel.org (Postfix) with ESMTP id 81EBB20715
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Jul 2020 11:12:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728794AbgGFFk3 (ORCPT
+        id S1728903AbgGFLM4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Jul 2020 01:40:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58960 "EHLO
+        Mon, 6 Jul 2020 07:12:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53494 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726684AbgGFFk3 (ORCPT
+        with ESMTP id S1728578AbgGFLM4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Jul 2020 01:40:29 -0400
-Received: from mail-io1-xd43.google.com (mail-io1-xd43.google.com [IPv6:2607:f8b0:4864:20::d43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22A12C061794;
-        Sun,  5 Jul 2020 22:40:29 -0700 (PDT)
-Received: by mail-io1-xd43.google.com with SMTP id v6so24392789iob.4;
-        Sun, 05 Jul 2020 22:40:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=3sBadRV7FFtFvYs75qslugpz7Oyujs0hv8LXW+77v68=;
-        b=uRYZhSZJ13+CNC2XFKVKruTQ/BZz390wUvNAzm5zyT0VSuXmqzENCGYj5KjBe2aHEv
-         PXBIIRgjDXJjuIab5cFWZCjelD/kHsYOniAepCT3wWkyv+PQCccKlZqHww1ikqlFoHlC
-         /sj36qC3LZz/KJALxwKVt9EeiYAdg9DFHxh1Jmj1fzZBOtIZf42ToKVrzCDU0XFqux5M
-         vG+glKJLKfhNscARLY+zOZkdo7l5bC3VhPNlu2MHoP8SJDdA5/SnhWYw98aw2EIzreiN
-         Fh6E0Hk0YkZWoWnOnaabJg4PY1TutzYec1QR/7GlT3IuhWsGppkMn5oxXi02Z2o3YCnn
-         xPFA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=3sBadRV7FFtFvYs75qslugpz7Oyujs0hv8LXW+77v68=;
-        b=qhXEvy2luaJH6RY04iPAzU+qtEB+T2MvHlr9UR4U52NTjVCgAkSa3TgzJ8ULF8+wDd
-         FhUp6wrcETvn9DqUSQrmZlAMpg90ZOYwxIzTYpAmYQWbTEF3kdHRpCKkG+ud0FmsWYuk
-         t1jMJAu9mdd7+V1uavhv3/zwHl07o/FVXJbfDu9issOQkL3DzIfermQFGa44mAFMIYFR
-         sK7+pEiM39t9AyR0Ff5gWnYTMwTlREFSrvnYsepbAKx6j3lOpQwkatNqubVRy4+W7MIq
-         s/q4qS0spzREilyTfUAvbrfKL5edAVapjshIoWozCQrBa3RtD4sQplIdEIpij7T2o5M6
-         VDeg==
-X-Gm-Message-State: AOAM5330DLfFgYZGjVtMJb0poGLWvtlNUlgEnHBSRtEbv5x0omLHUkFO
-        B4k2AfORBcFeDwb5seqHt+R1oLQtwPChZRgFFGlNHCW/
-X-Google-Smtp-Source: ABdhPJz/+RVTdWmd5r5KJu7Of7dDt/ath/o+DCbUw40LALWdyp/OMjAYJOmlHjuRVjw6ggeeL///zp147GWcDfVEBts=
-X-Received: by 2002:a05:6602:1225:: with SMTP id z5mr24075647iot.64.1594014028358;
- Sun, 05 Jul 2020 22:40:28 -0700 (PDT)
+        Mon, 6 Jul 2020 07:12:56 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EADCDC061794
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Jul 2020 04:12:55 -0700 (PDT)
+Received: from localhost ([::1]:47852 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.94)
+        (envelope-from <phil@nwl.cc>)
+        id 1jsP3M-0001S8-Ts; Mon, 06 Jul 2020 13:12:52 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] tests: shell: Add help output to run-tests.sh
+Date:   Mon,  6 Jul 2020 13:12:49 +0200
+Message-Id: <20200706111249.11547-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-References: <1593959312-6135-1-git-send-email-wenxu@ucloud.cn> <1593959312-6135-2-git-send-email-wenxu@ucloud.cn>
-In-Reply-To: <1593959312-6135-2-git-send-email-wenxu@ucloud.cn>
-From:   Cong Wang <xiyou.wangcong@gmail.com>
-Date:   Sun, 5 Jul 2020 22:40:17 -0700
-Message-ID: <CAM_iQpWmM8bJ5up47gt06VpoSrP6YVd=RZO2HTD0quXtQkRyxg@mail.gmail.com>
-Subject: Re: [PATCH net-next 1/3] netfilter: nf_defrag_ipv4: Add
- nf_ct_frag_gather support
-To:     wenxu <wenxu@ucloud.cn>
-Cc:     David Miller <davem@davemloft.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Jul 5, 2020 at 7:34 AM <wenxu@ucloud.cn> wrote:
-> +static int nf_ct_frag_reinit(struct ipq *qp)
-> +{
-> +       unsigned int sum_truesize = 0;
-> +
-> +       if (!mod_timer(&qp->q.timer, jiffies + qp->q.fqdir->timeout)) {
-> +               refcount_inc(&qp->q.refcnt);
-> +               return -ETIMEDOUT;
-> +       }
-> +
-> +       sum_truesize = inet_frag_rbtree_purge(&qp->q.rb_fragments);
-> +       sub_frag_mem_limit(qp->q.fqdir, sum_truesize);
-> +
-> +       qp->q.flags = 0;
-> +       qp->q.len = 0;
-> +       qp->q.meat = 0;
-> +       qp->q.rb_fragments = RB_ROOT;
-> +       qp->q.fragments_tail = NULL;
-> +       qp->q.last_run_head = NULL;
-> +       qp->iif = 0;
-> +       qp->ecn = 0;
-> +
-> +       return 0;
-> +}
-> +
-> +static struct ipq *ip_find(struct net *net, struct iphdr *iph,
-> +                          u32 user, int vif)
-> +{
-> +       struct frag_v4_compare_key key = {
-> +               .saddr = iph->saddr,
-> +               .daddr = iph->daddr,
-> +               .user = user,
-> +               .vif = vif,
-> +               .id = iph->id,
-> +               .protocol = iph->protocol,
-> +       };
-> +       struct inet_frag_queue *q;
-> +
-> +       q = inet_frag_find(net->ipv4.fqdir, &key);
-> +       if (!q)
-> +               return NULL;
-> +
-> +       return container_of(q, struct ipq, q);
-> +}
+The script has quite a few options nowadays, so add a bit of help text
+also.
 
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables/tests/shell/run-tests.sh | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-Please avoid copy-n-paste code by finding a proper way
-to reuse them.
+diff --git a/iptables/tests/shell/run-tests.sh b/iptables/tests/shell/run-tests.sh
+index 2125e2cb119bb..65c37adb75f2a 100755
+--- a/iptables/tests/shell/run-tests.sh
++++ b/iptables/tests/shell/run-tests.sh
+@@ -4,6 +4,21 @@
+ TESTDIR="./$(dirname $0)/"
+ RETURNCODE_SEPARATOR="_"
+ 
++usage() {
++	cat <<EOF
++Usage: $(basename $0) [-v|--verbose] [-H|--host] [-V|--valgrind]
++		      [[-l|--legacy]|[-n|--nft]] [testscript ...]
++
++-v | --verbose		Enable verbose mode (do not drop testscript output).
++-H | --host		Run tests against installed binaries in \$PATH,
++			not those built in this source tree.
++-V | --valgrind		Enable leak checking via valgrind.
++-l | --legacy		Test legacy variant only. Conflicts with --nft.
++-n | --nft		Test nft variant only. Conflicts with --legacy.
++testscript		Run only specific test(s). Implies --verbose.
++EOF
++}
++
+ msg_error() {
+         echo "E: $1 ..." >&2
+         exit 1
+@@ -50,6 +65,10 @@ while [ -n "$1" ]; do
+ 		VALGRIND=y
+ 		shift
+ 		;;
++	-h|--help)
++		usage
++		exit 0
++		;;
+ 	*${RETURNCODE_SEPARATOR}+([0-9]))
+ 		SINGLE+=" $1"
+ 		VERBOSE=y
+-- 
+2.27.0
 
-Thanks.
