@@ -2,44 +2,41 @@ Return-Path: <SRS0=uhap=AS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 211DFC433E2
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC9D2C433E0
 	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Jul 2020 04:55:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 09B4320708
+	by mail.kernel.org (Postfix) with ESMTP id BDBFD20708
 	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Jul 2020 04:55:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728150AbgGGEzQ (ORCPT
+        id S1728137AbgGGEzP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 Jul 2020 00:55:16 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:7556 "EHLO
+        Tue, 7 Jul 2020 00:55:15 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:7514 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727789AbgGGEzP (ORCPT
+        with ESMTP id S1727088AbgGGEzP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 7 Jul 2020 00:55:15 -0400
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 3509541AED;
-        Tue,  7 Jul 2020 12:55:13 +0800 (CST)
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 052944174E;
+        Tue,  7 Jul 2020 12:55:11 +0800 (CST)
 From:   wenxu@ucloud.cn
 To:     netdev@vger.kernel.org
 Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de
-Subject: [PATCH net-next v2 3/3] net/sched: act_ct: fix clobber qdisc_skb_cb in defrag
-Date:   Tue,  7 Jul 2020 12:55:11 +0800
-Message-Id: <1594097711-9365-4-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH net-next v2 0/3] make nf_ct_frag/6_gather elide the skb CB clear
+Date:   Tue,  7 Jul 2020 12:55:08 +0800
+Message-Id: <1594097711-9365-1-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1594097711-9365-1-git-send-email-wenxu@ucloud.cn>
-References: <1594097711-9365-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSUlNS0tLSkNCTENKSkJZV1koWU
-        FJQjdXWS1ZQUlXWQ8JGhUIEh9ZQVkdIjULOBw6SBUDGAM6OikdOjABLzocVlZVSklPSShJWVdZCQ
-        4XHghZQVk1NCk2OjckKS43PllXWRYaDxIVHRRZQVk0MFkG
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6NRA6MQw6TD4BFk0vNCJRAgo1
-        NElPCRdVSlVKTkJPS0JMTEpISUxCVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUpDQkw3Bg++
-X-HM-Tid: 0a7327a0c04c2086kuqy3509541aed
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZSFVOTU1CQkJNTEhDT0hIQ1lXWShZQU
+        lCN1dZLVlBSVdZDwkaFQgSH1lBWR0iNQs4HDoVEgMuDTo6KR0kGg0vOhxWVlVKT0pCKElZV1kJDh
+        ceCFlBWTU0KTY6NyQpLjc#WVdZFhoPEhUdFFlBWTQwWQY+
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6NFE6CQw4MT5MEk0qQyEMAg8D
+        MRUKFDZVSlVKTkJPS0JMTEpJQktLVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUlKTEs3Bg++
+X-HM-Tid: 0a7327a0bba52086kuqy052944174e
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -47,33 +44,40 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-using ip_defrag_ignore_cb to defrag in act_ct to elide CB clear.
-Avoid serious crashes and problems in ct subsystem. Because Some packet
-schedulers store pointers in the qdisc CB private area and Parallel
-accesses to the SKB.
+Add nf_ct_frag_gather and Make nf_ct_frag6_gather elide the CB clear 
+when packets are defragmented by connection tracking. This can make
+each subsystem such as br_netfilter, openvswitch, act_ct do defrag
+without restore the CB. 
+This also avoid serious crashes and problems in  ct subsystem.
+Because Some packet schedulers store pointers in the qdisc CB private
+area and parallel accesses to the SKB.
 
-Fixes: b57dc7c13ea9 ("net/sched: Introduce action ct")
-Signed-off-by: wenxu <wenxu@ucloud.cn>
----
- net/sched/act_ct.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+This series following up
+http://patchwork.ozlabs.org/project/netdev/patch/1593422178-26949-1-git-send-email-wenxu@ucloud.cn/
 
-diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
-index 20f3d11..a8e9e62 100644
---- a/net/sched/act_ct.c
-+++ b/net/sched/act_ct.c
-@@ -697,10 +697,7 @@ static int tcf_ct_handle_fragments(struct net *net, struct sk_buff *skb,
- 	if (family == NFPROTO_IPV4) {
- 		enum ip_defrag_users user = IP_DEFRAG_CONNTRACK_IN + zone;
- 
--		memset(IPCB(skb), 0, sizeof(struct inet_skb_parm));
--		local_bh_disable();
--		err = ip_defrag(net, skb, user);
--		local_bh_enable();
-+		err = ip_defrag_ignore_cb(net, skb, user, NULL);
- 		if (err && err != -EINPROGRESS)
- 			goto out_free;
- 	} else { /* NFPROTO_IPV6 */
+patch1: add nf_ct_frag_gather elide the CB clear
+patch2: make nf_ct_frag6_gather elide the CB clear
+patch3: fix clobber qdisc_skb_cb in act_ct with defrag
+
+v2: resue some ip_defrag function in patch1
+
+wenxu (3):
+  net: ip_fragment: Add ip_defrag_ignore_cb support
+  netfilter: nf_conntrack_reasm: make nf_ct_frag6_gather elide the CB
+    clear
+  net/sched: act_ct: fix clobber qdisc_skb_cb in defrag
+
+ include/linux/netfilter_ipv6.h              |  9 ++---
+ include/net/ip.h                            |  2 ++
+ include/net/netfilter/ipv6/nf_defrag_ipv6.h |  3 +-
+ net/bridge/netfilter/nf_conntrack_bridge.c  |  7 ++--
+ net/ipv4/ip_fragment.c                      | 55 ++++++++++++++++++++++++-----
+ net/ipv6/netfilter/nf_conntrack_reasm.c     | 19 ++++++----
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c   |  3 +-
+ net/openvswitch/conntrack.c                 |  8 ++---
+ net/sched/act_ct.c                          |  8 ++---
+ 9 files changed, 77 insertions(+), 37 deletions(-)
+
 -- 
 1.8.3.1
 
