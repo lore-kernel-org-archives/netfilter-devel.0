@@ -2,53 +2,55 @@ Return-Path: <SRS0=D3ak=AT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.8 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C20CAC433E3
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:46:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0871AC433E0
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:46:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B35E9206F6
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:46:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EA757206E2
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:46:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728573AbgGHRq0 (ORCPT
+        id S1728561AbgGHRqx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Jul 2020 13:46:26 -0400
-Received: from correo.us.es ([193.147.175.20]:34750 "EHLO mail.us.es"
+        Wed, 8 Jul 2020 13:46:53 -0400
+Received: from correo.us.es ([193.147.175.20]:34772 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728508AbgGHRqZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1728547AbgGHRqZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 8 Jul 2020 13:46:25 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4C7303066B0
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 19:46:22 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 25C683066AA
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 19:46:24 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3CD8BDA84A
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 19:46:22 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 11CC8DA84B
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 19:46:24 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 31D39DA853; Wed,  8 Jul 2020 19:46:22 +0200 (CEST)
+        id 06101DA797; Wed,  8 Jul 2020 19:46:24 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B7CE8DA73D;
-        Wed,  8 Jul 2020 19:46:19 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 50A06DA78F;
+        Wed,  8 Jul 2020 19:46:21 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 08 Jul 2020 19:46:19 +0200 (CEST)
+ Wed, 08 Jul 2020 19:46:21 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 891F14265A2F;
-        Wed,  8 Jul 2020 19:46:19 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 21CFB42EF42B;
+        Wed,  8 Jul 2020 19:46:21 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 03/12] ipvs: register hooks only with services
-Date:   Wed,  8 Jul 2020 19:46:00 +0200
-Message-Id: <20200708174609.1343-4-pablo@netfilter.org>
+Subject: [PATCH 05/12] ipvs: allow connection reuse for unconfirmed conntrack
+Date:   Wed,  8 Jul 2020 19:46:02 +0200
+Message-Id: <20200708174609.1343-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200708174609.1343-1-pablo@netfilter.org>
 References: <20200708174609.1343-1-pablo@netfilter.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -58,240 +60,120 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Julian Anastasov <ja@ssi.bg>
 
-Keep the IPVS hooks registered in Netfilter only
-while there are configured virtual services. This
-saves CPU cycles while IPVS is loaded but not used.
+YangYuxi is reporting that connection reuse
+is causing one-second delay when SYN hits
+existing connection in TIME_WAIT state.
+Such delay was added to give time to expire
+both the IPVS connection and the corresponding
+conntrack. This was considered a rare case
+at that time but it is causing problem for
+some environments such as Kubernetes.
 
+As nf_conntrack_tcp_packet() can decide to
+release the conntrack in TIME_WAIT state and
+to replace it with a fresh NEW conntrack, we
+can use this to allow rescheduling just by
+tuning our check: if the conntrack is
+confirmed we can not schedule it to different
+real server and the one-second delay still
+applies but if new conntrack was created,
+we are free to select new real server without
+any delays.
+
+YangYuxi lists some of the problem reports:
+
+- One second connection delay in masquerading mode:
+https://marc.info/?t=151683118100004&r=1&w=2
+
+- IPVS low throughput #70747
+https://github.com/kubernetes/kubernetes/issues/70747
+
+- Apache Bench can fill up ipvs service proxy in seconds #544
+https://github.com/cloudnativelabs/kube-router/issues/544
+
+- Additional 1s latency in `host -> service IP -> pod`
+https://github.com/kubernetes/kubernetes/issues/90854
+
+Fixes: f719e3754ee2 ("ipvs: drop first packet to redirect conntrack")
+Co-developed-by: YangYuxi <yx.atom1@gmail.com>
+Signed-off-by: YangYuxi <yx.atom1@gmail.com>
 Signed-off-by: Julian Anastasov <ja@ssi.bg>
 Reviewed-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/ip_vs.h             |  5 +++
- net/netfilter/ipvs/ip_vs_core.c | 80 ++++++++++++++++++++++++++-------
- net/netfilter/ipvs/ip_vs_ctl.c  | 23 +++++++++-
- 3 files changed, 89 insertions(+), 19 deletions(-)
+ include/net/ip_vs.h             | 10 ++++------
+ net/netfilter/ipvs/ip_vs_core.c | 12 +++++++-----
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 83be2d93b407..0c9881241323 100644
+index 0c9881241323..011f407b76fe 100644
 --- a/include/net/ip_vs.h
 +++ b/include/net/ip_vs.h
-@@ -874,6 +874,7 @@ struct netns_ipvs {
- 	struct ip_vs_stats		tot_stats;  /* Statistics & est. */
- 
- 	int			num_services;    /* no of virtual services */
-+	int			num_services6;   /* IPv6 virtual services */
- 
- 	/* Trash for destinations */
- 	struct list_head	dest_trash;
-@@ -960,6 +961,7 @@ struct netns_ipvs {
- 	 * are not supported when synchronization is enabled.
- 	 */
- 	unsigned int		mixed_address_family_dests;
-+	unsigned int		hooks_afmask;	/* &1=AF_INET, &2=AF_INET6 */
- };
- 
- #define DEFAULT_SYNC_THRESHOLD	3
-@@ -1670,6 +1672,9 @@ static inline void ip_vs_unregister_conntrack(struct ip_vs_service *svc)
- #endif
+@@ -1626,18 +1626,16 @@ static inline void ip_vs_conn_drop_conntrack(struct ip_vs_conn *cp)
  }
+ #endif /* CONFIG_IP_VS_NFCT */
  
-+int ip_vs_register_hooks(struct netns_ipvs *ipvs, unsigned int af);
-+void ip_vs_unregister_hooks(struct netns_ipvs *ipvs, unsigned int af);
-+
- static inline int
- ip_vs_dest_conn_overhead(struct ip_vs_dest *dest)
+-/* Really using conntrack? */
+-static inline bool ip_vs_conn_uses_conntrack(struct ip_vs_conn *cp,
+-					     struct sk_buff *skb)
++/* Using old conntrack that can not be redirected to another real server? */
++static inline bool ip_vs_conn_uses_old_conntrack(struct ip_vs_conn *cp,
++						 struct sk_buff *skb)
  {
+ #ifdef CONFIG_IP_VS_NFCT
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct;
+ 
+-	if (!(cp->flags & IP_VS_CONN_F_NFCT))
+-		return false;
+ 	ct = nf_ct_get(skb, &ctinfo);
+-	if (ct)
++	if (ct && nf_ct_is_confirmed(ct))
+ 		return true;
+ #endif
+ 	return false;
 diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index aa6a603a2425..ca3670152565 100644
+index ca3670152565..b4a6b7662f3f 100644
 --- a/net/netfilter/ipvs/ip_vs_core.c
 +++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2256,7 +2256,7 @@ ip_vs_forward_icmp_v6(void *priv, struct sk_buff *skb,
- #endif
+@@ -2066,14 +2066,14 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
  
+ 	conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
+ 	if (conn_reuse_mode && !iph.fragoffs && is_new_conn(skb, &iph) && cp) {
+-		bool uses_ct = false, resched = false;
++		bool old_ct = false, resched = false;
  
--static const struct nf_hook_ops ip_vs_ops[] = {
-+static const struct nf_hook_ops ip_vs_ops4[] = {
- 	/* After packet filtering, change source only for VS/NAT */
- 	{
- 		.hook		= ip_vs_reply4,
-@@ -2302,7 +2302,10 @@ static const struct nf_hook_ops ip_vs_ops[] = {
- 		.hooknum	= NF_INET_FORWARD,
- 		.priority	= 100,
- 	},
-+};
-+
- #ifdef CONFIG_IP_VS_IPV6
-+static const struct nf_hook_ops ip_vs_ops6[] = {
- 	/* After packet filtering, change source only for VS/NAT */
- 	{
- 		.hook		= ip_vs_reply6,
-@@ -2348,8 +2351,64 @@ static const struct nf_hook_ops ip_vs_ops[] = {
- 		.hooknum	= NF_INET_FORWARD,
- 		.priority	= 100,
- 	},
--#endif
- };
-+#endif
-+
-+int ip_vs_register_hooks(struct netns_ipvs *ipvs, unsigned int af)
-+{
-+	const struct nf_hook_ops *ops;
-+	unsigned int count;
-+	unsigned int afmask;
-+	int ret = 0;
-+
-+	if (af == AF_INET6) {
-+#ifdef CONFIG_IP_VS_IPV6
-+		ops = ip_vs_ops6;
-+		count = ARRAY_SIZE(ip_vs_ops6);
-+		afmask = 2;
-+#else
-+		return -EINVAL;
-+#endif
-+	} else {
-+		ops = ip_vs_ops4;
-+		count = ARRAY_SIZE(ip_vs_ops4);
-+		afmask = 1;
-+	}
-+
-+	if (!(ipvs->hooks_afmask & afmask)) {
-+		ret = nf_register_net_hooks(ipvs->net, ops, count);
-+		if (ret >= 0)
-+			ipvs->hooks_afmask |= afmask;
-+	}
-+	return ret;
-+}
-+
-+void ip_vs_unregister_hooks(struct netns_ipvs *ipvs, unsigned int af)
-+{
-+	const struct nf_hook_ops *ops;
-+	unsigned int count;
-+	unsigned int afmask;
-+
-+	if (af == AF_INET6) {
-+#ifdef CONFIG_IP_VS_IPV6
-+		ops = ip_vs_ops6;
-+		count = ARRAY_SIZE(ip_vs_ops6);
-+		afmask = 2;
-+#else
-+		return;
-+#endif
-+	} else {
-+		ops = ip_vs_ops4;
-+		count = ARRAY_SIZE(ip_vs_ops4);
-+		afmask = 1;
-+	}
-+
-+	if (ipvs->hooks_afmask & afmask) {
-+		nf_unregister_net_hooks(ipvs->net, ops, count);
-+		ipvs->hooks_afmask &= ~afmask;
-+	}
-+}
-+
- /*
-  *	Initialize IP Virtual Server netns mem.
-  */
-@@ -2425,19 +2484,6 @@ static void __net_exit __ip_vs_cleanup_batch(struct list_head *net_list)
- 	}
- }
+ 		if (unlikely(sysctl_expire_nodest_conn(ipvs)) && cp->dest &&
+ 		    unlikely(!atomic_read(&cp->dest->weight))) {
+ 			resched = true;
+-			uses_ct = ip_vs_conn_uses_conntrack(cp, skb);
++			old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
+ 		} else if (is_new_conn_expected(cp, conn_reuse_mode)) {
+-			uses_ct = ip_vs_conn_uses_conntrack(cp, skb);
++			old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
+ 			if (!atomic_read(&cp->n_control)) {
+ 				resched = true;
+ 			} else {
+@@ -2081,15 +2081,17 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
+ 				 * that uses conntrack while it is still
+ 				 * referenced by controlled connection(s).
+ 				 */
+-				resched = !uses_ct;
++				resched = !old_ct;
+ 			}
+ 		}
  
--static int __net_init __ip_vs_dev_init(struct net *net)
--{
--	int ret;
--
--	ret = nf_register_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
--	if (ret < 0)
--		goto hook_fail;
--	return 0;
--
--hook_fail:
--	return ret;
--}
--
- static void __net_exit __ip_vs_dev_cleanup_batch(struct list_head *net_list)
- {
- 	struct netns_ipvs *ipvs;
-@@ -2446,7 +2492,8 @@ static void __net_exit __ip_vs_dev_cleanup_batch(struct list_head *net_list)
- 	EnterFunction(2);
- 	list_for_each_entry(net, net_list, exit_list) {
- 		ipvs = net_ipvs(net);
--		nf_unregister_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
-+		ip_vs_unregister_hooks(ipvs, AF_INET);
-+		ip_vs_unregister_hooks(ipvs, AF_INET6);
- 		ipvs->enable = 0;	/* Disable packet reception */
- 		smp_wmb();
- 		ip_vs_sync_net_cleanup(ipvs);
-@@ -2462,7 +2509,6 @@ static struct pernet_operations ipvs_core_ops = {
- };
- 
- static struct pernet_operations ipvs_core_dev_ops = {
--	.init = __ip_vs_dev_init,
- 	.exit_batch = __ip_vs_dev_cleanup_batch,
- };
- 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 412656c34f20..0eed388c960b 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1272,6 +1272,7 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
- 	struct ip_vs_scheduler *sched = NULL;
- 	struct ip_vs_pe *pe = NULL;
- 	struct ip_vs_service *svc = NULL;
-+	int ret_hooks = -1;
- 
- 	/* increase the module use count */
- 	if (!ip_vs_use_count_inc())
-@@ -1313,6 +1314,14 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
- 	}
- #endif
- 
-+	if ((u->af == AF_INET && !ipvs->num_services) ||
-+	    (u->af == AF_INET6 && !ipvs->num_services6)) {
-+		ret = ip_vs_register_hooks(ipvs, u->af);
-+		if (ret < 0)
-+			goto out_err;
-+		ret_hooks = ret;
-+	}
-+
- 	svc = kzalloc(sizeof(struct ip_vs_service), GFP_KERNEL);
- 	if (svc == NULL) {
- 		IP_VS_DBG(1, "%s(): no memory\n", __func__);
-@@ -1374,6 +1383,8 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
- 	/* Count only IPv4 services for old get/setsockopt interface */
- 	if (svc->af == AF_INET)
- 		ipvs->num_services++;
-+	else if (svc->af == AF_INET6)
-+		ipvs->num_services6++;
- 
- 	/* Hash the service into the service table */
- 	ip_vs_svc_hash(svc);
-@@ -1385,6 +1396,8 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
- 
- 
-  out_err:
-+	if (ret_hooks >= 0)
-+		ip_vs_unregister_hooks(ipvs, u->af);
- 	if (svc != NULL) {
- 		ip_vs_unbind_scheduler(svc, sched);
- 		ip_vs_service_free(svc);
-@@ -1500,9 +1513,15 @@ static void __ip_vs_del_service(struct ip_vs_service *svc, bool cleanup)
- 	struct ip_vs_pe *old_pe;
- 	struct netns_ipvs *ipvs = svc->ipvs;
- 
--	/* Count only IPv4 services for old get/setsockopt interface */
--	if (svc->af == AF_INET)
-+	if (svc->af == AF_INET) {
- 		ipvs->num_services--;
-+		if (!ipvs->num_services)
-+			ip_vs_unregister_hooks(ipvs, svc->af);
-+	} else if (svc->af == AF_INET6) {
-+		ipvs->num_services6--;
-+		if (!ipvs->num_services6)
-+			ip_vs_unregister_hooks(ipvs, svc->af);
-+	}
- 
- 	ip_vs_stop_estimator(svc->ipvs, &svc->stats);
- 
+ 		if (resched) {
++			if (!old_ct)
++				cp->flags &= ~IP_VS_CONN_F_NFCT;
+ 			if (!atomic_read(&cp->n_control))
+ 				ip_vs_conn_expire_now(cp);
+ 			__ip_vs_conn_put(cp);
+-			if (uses_ct)
++			if (old_ct)
+ 				return NF_DROP;
+ 			cp = NULL;
+ 		}
 -- 
 2.20.1
 
