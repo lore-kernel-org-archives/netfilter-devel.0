@@ -2,354 +2,361 @@ Return-Path: <SRS0=D3ak=AT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
-	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A50E7C433E0
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 16:06:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 004F8C433E0
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 16:09:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 791CC20672
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 16:06:39 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kNxnpG9F"
+	by mail.kernel.org (Postfix) with ESMTP id D16F520672
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 16:09:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730179AbgGHQGj (ORCPT
+        id S1730282AbgGHQJi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Jul 2020 12:06:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37072 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728148AbgGHQGi (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Jul 2020 12:06:38 -0400
-Received: from mail-io1-xd33.google.com (mail-io1-xd33.google.com [IPv6:2607:f8b0:4864:20::d33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9677C061A0B;
-        Wed,  8 Jul 2020 09:06:38 -0700 (PDT)
-Received: by mail-io1-xd33.google.com with SMTP id f23so47623863iof.6;
-        Wed, 08 Jul 2020 09:06:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=1lTODY4AjBiAs/HXa92Z68/naUJqx4JbgdWa09Z9a44=;
-        b=kNxnpG9FN+lR9ufifxYkYr3bHoktU7Tq9WVVMoYZdtkrA9GVhHjjR19PENiFJBsvl3
-         r6s7Nyc+gBuHF16NeeP6uNNx4cipvv93cwQAIAfM/RsUPx29YWrSmIZbRIMbPjjDJjQc
-         AIqG8nHv7NIPqRUfwYGWyzSSfqztL/rb+eVlnemtrQyNU3YZNMHIzCurvdEmjtzgKLxT
-         iDeAs9ViR0e2rDyO6IIrTApOL/Af7LF+t6uthgrMFcy8fAv2GOCUv4M4GALeoZr9bRs1
-         LsuhJDUvuQY6y3c4tWBUGfLrdLIsCbaCTEcVkVKgOODBgpvNNQ0jDL5UBOjEXkvLtVQf
-         8n/g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=1lTODY4AjBiAs/HXa92Z68/naUJqx4JbgdWa09Z9a44=;
-        b=VIT25QaTFLWJ5g4nDUAyOroUktotvHpKPNTVUklx/+qzoyt2z9H4CXH3F/FHaD1sJv
-         XVANgWSdCGJVk91DmELflAxtcwxXDgw1JntSQa965Jk0t+e4Zm6Sdvh85U/uJn1OcdVG
-         dvJ/3oT1Z1duD2QcMhfj41ScUTUEo1aav8TQapQ3+gWGd1WJp/g2CuhZY5Csd+R0twXH
-         2Vtsc7M1BmlAksOYzucYktqYfPZeszsT56vCmB5yBSa/H6eU2SJkB1yelEyhnEP7fts4
-         zb9RX5Jc0FDvvldNeu9sWl74QTwE+q2oQLNktgEElDZ/+3lC3UCE99nuWCur6UyoEg35
-         mWfA==
-X-Gm-Message-State: AOAM5305yNk/fWMs/tCuTRBWos36W7Zsu2Z2ysdD68dSnPZYE333WY5a
-        rsSnV9cwA/Q4K9o9EXXUV2ti4cHI
-X-Google-Smtp-Source: ABdhPJzMsnOOM1PJRbBRT4Hr9cyGYqP6x4EanNb4StTudaTKeYXlX3Vjk7OzPl/3JA6MafGyorRwbw==
-X-Received: by 2002:a6b:6b18:: with SMTP id g24mr35807339ioc.8.1594224397846;
-        Wed, 08 Jul 2020 09:06:37 -0700 (PDT)
-Received: from T480s.vmware.com (toroon0411w-lp130-02-64-231-189-42.dsl.bell.ca. [64.231.189.42])
-        by smtp.googlemail.com with ESMTPSA id c7sm76698ilo.85.2020.07.08.09.06.36
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 08 Jul 2020 09:06:37 -0700 (PDT)
-From:   Andrew Sy Kim <kim.andrewsy@gmail.com>
-Cc:     Julian Anastasov <ja@ssi.bg>, Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Andrew Sy Kim <kim.andrewsy@gmail.com>
-Subject: [PATCHv2 net-next] ipvs: queue delayed work to expire no destination connections if expire_nodest_conn=1
-Date:   Wed,  8 Jul 2020 12:06:18 -0400
-Message-Id: <20200708160618.13013-1-kim.andrewsy@gmail.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <alpine.LFD.2.23.451.2007081847310.3373@ja.home.ssi.bg>
-References: <alpine.LFD.2.23.451.2007081847310.3373@ja.home.ssi.bg>
+        Wed, 8 Jul 2020 12:09:38 -0400
+Received: from correo.us.es ([193.147.175.20]:48578 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730141AbgGHQJi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Jul 2020 12:09:38 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 690EC1BFA81
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 18:09:35 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 52951DA78D
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 18:09:35 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 47BE3DA789; Wed,  8 Jul 2020 18:09:35 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 86D42DA78C;
+        Wed,  8 Jul 2020 18:09:32 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 08 Jul 2020 18:09:32 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 546F342EF42A;
+        Wed,  8 Jul 2020 18:09:32 +0200 (CEST)
+Date:   Wed, 8 Jul 2020 18:09:31 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Roopa Prabhu <roopa@cumulusnetworks.com>,
+        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, bridge@lists.linux-foundation.org,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH][next] netfilter: nf_tables: Use fallthrough
+ pseudo-keyword
+Message-ID: <20200708160931.GA14715@salvia>
+References: <20200707194717.GA3596@embeddedor>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-To:     unlisted-recipients:; (no To-header on input)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200707194717.GA3596@embeddedor>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When expire_nodest_conn=1 and a destination is deleted, IPVS does not
-expire the existing connections until the next matching incoming packet.
-If there are many connection entries from a single client to a single
-destination, many packets may get dropped before all the connections are
-expired (more likely with lots of UDP traffic). An optimization can be
-made where upon deletion of a destination, IPVS queues up delayed work
-to immediately expire any connections with a deleted destination. This
-ensures any reused source ports from a client (within the IPVS timeouts)
-are scheduled to new real servers instead of silently dropped.
+On Tue, Jul 07, 2020 at 02:47:17PM -0500, Gustavo A. R. Silva wrote:
+> Replace the existing /* fall through */ comments and its variants with
+> the new pseudo-keyword macro fallthrough[1]. Also, remove unnecessary
+> fall-through markings when it is the case.
 
-Signed-off-by: Andrew Sy Kim <kim.andrewsy@gmail.com>
----
-This patch was applied on top of Julian's patch "ipvs: allow
-connection reuse for unconfirmed conntrack":
-https://marc.info/?l=netfilter-devel&m=159361668110823&w=2
- include/net/ip_vs.h             | 29 ++++++++++++++++++++
- net/netfilter/ipvs/ip_vs_conn.c | 39 +++++++++++++++++++++++++++
- net/netfilter/ipvs/ip_vs_core.c | 47 ++++++++++++++-------------------
- net/netfilter/ipvs/ip_vs_ctl.c  | 22 +++++++++++++++
- 4 files changed, 110 insertions(+), 27 deletions(-)
+I suggest:
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 011f407b76fe..91a9e1d590a6 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -14,6 +14,7 @@
- #include <linux/spinlock.h>             /* for struct rwlock_t */
- #include <linux/atomic.h>               /* for struct atomic_t */
- #include <linux/refcount.h>             /* for struct refcount_t */
-+#include <linux/workqueue.h>
- 
- #include <linux/compiler.h>
- #include <linux/timer.h>
-@@ -886,6 +887,8 @@ struct netns_ipvs {
- 	atomic_t		conn_out_counter;
- 
- #ifdef CONFIG_SYSCTL
-+	/* delayed work for expiring no dest connections */
-+	struct delayed_work	expire_nodest_conn_work;
- 	/* 1/rate drop and drop-entry variables */
- 	struct delayed_work	defense_work;   /* Work handler */
- 	int			drop_rate;
-@@ -1051,6 +1054,11 @@ static inline int sysctl_conn_reuse_mode(struct netns_ipvs *ipvs)
- 	return ipvs->sysctl_conn_reuse_mode;
- }
- 
-+static inline int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs)
-+{
-+	return ipvs->sysctl_expire_nodest_conn;
-+}
-+
- static inline int sysctl_schedule_icmp(struct netns_ipvs *ipvs)
- {
- 	return ipvs->sysctl_schedule_icmp;
-@@ -1138,6 +1146,11 @@ static inline int sysctl_conn_reuse_mode(struct netns_ipvs *ipvs)
- 	return 1;
- }
- 
-+static inline int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs)
-+{
-+	return 0;
-+}
-+
- static inline int sysctl_schedule_icmp(struct netns_ipvs *ipvs)
- {
- 	return 0;
-@@ -1507,6 +1520,22 @@ static inline int ip_vs_todrop(struct netns_ipvs *ipvs)
- static inline int ip_vs_todrop(struct netns_ipvs *ipvs) { return 0; }
- #endif
- 
-+#ifdef CONFIG_SYSCTL
-+/* Enqueue delayed work for expiring no dest connections
-+ * Only run when sysctl_expire_nodest=1
-+ */
-+static inline void ip_vs_enqueue_expire_nodest_conns(struct netns_ipvs *ipvs)
-+{
-+	if (sysctl_expire_nodest_conn(ipvs))
-+		queue_delayed_work(system_long_wq,
-+				   &ipvs->expire_nodest_conn_work, 1);
-+}
-+
-+void ip_vs_expire_nodest_conn_flush(struct netns_ipvs *ipvs);
-+#else
-+static inline void ip_vs_enqueue_expire_nodest_conns(struct netns_ipvs) {}
-+#endif
-+
- #define IP_VS_DFWD_METHOD(dest) (atomic_read(&(dest)->conn_flags) & \
- 				 IP_VS_CONN_F_FWD_MASK)
- 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index b3921ae92740..a5e9b2d55e57 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -1389,6 +1389,45 @@ static void ip_vs_conn_flush(struct netns_ipvs *ipvs)
- 		goto flush_again;
- 	}
- }
-+
-+#ifdef CONFIG_SYSCTL
-+void ip_vs_expire_nodest_conn_flush(struct netns_ipvs *ipvs)
-+{
-+	int idx;
-+	struct ip_vs_conn *cp, *cp_c;
-+	struct ip_vs_dest *dest;
-+
-+	rcu_read_lock();
-+	for (idx = 0; idx < ip_vs_conn_tab_size; idx++) {
-+		hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[idx], c_list) {
-+			if (cp->ipvs != ipvs)
-+				continue;
-+
-+			dest = cp->dest;
-+			if (!dest || (dest->flags & IP_VS_DEST_F_AVAILABLE))
-+				continue;
-+
-+			if (atomic_read(&cp->n_control))
-+				continue;
-+
-+			cp_c = cp->control;
-+			IP_VS_DBG(4, "del connection\n");
-+			ip_vs_conn_del(cp);
-+			if (cp_c && !atomic_read(&cp_c->n_control)) {
-+				IP_VS_DBG(4, "del controlling connection\n");
-+				ip_vs_conn_del(cp_c);
-+			}
-+		}
-+		cond_resched_rcu();
-+
-+		/* netns clean up started, abort delayed work */
-+		if (!ipvs->enable)
-+			return;
-+	}
-+	rcu_read_unlock();
-+}
-+#endif
-+
- /*
-  * per netns init and exit
-  */
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index b4a6b7662f3f..e3668a6e54e4 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -694,16 +694,10 @@ static int sysctl_nat_icmp_send(struct netns_ipvs *ipvs)
- 	return ipvs->sysctl_nat_icmp_send;
- }
- 
--static int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs)
--{
--	return ipvs->sysctl_expire_nodest_conn;
--}
--
- #else
- 
- static int sysctl_snat_reroute(struct netns_ipvs *ipvs) { return 0; }
- static int sysctl_nat_icmp_send(struct netns_ipvs *ipvs) { return 0; }
--static int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs) { return 0; }
- 
- #endif
- 
-@@ -2097,36 +2091,35 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
- 		}
- 	}
- 
--	if (unlikely(!cp)) {
--		int v;
--
--		if (!ip_vs_try_to_schedule(ipvs, af, skb, pd, &v, &cp, &iph))
--			return v;
--	}
--
--	IP_VS_DBG_PKT(11, af, pp, skb, iph.off, "Incoming packet");
--
- 	/* Check the server status */
--	if (cp->dest && !(cp->dest->flags & IP_VS_DEST_F_AVAILABLE)) {
-+	if (cp && cp->dest && !(cp->dest->flags & IP_VS_DEST_F_AVAILABLE)) {
- 		/* the destination server is not available */
-+		if (sysctl_expire_nodest_conn(ipvs)) {
-+			bool old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
- 
--		__u32 flags = cp->flags;
--
--		/* when timer already started, silently drop the packet.*/
--		if (timer_pending(&cp->timer))
--			__ip_vs_conn_put(cp);
--		else
--			ip_vs_conn_put(cp);
-+			if (!old_ct)
-+				cp->flags &= ~IP_VS_CONN_F_NFCT;
- 
--		if (sysctl_expire_nodest_conn(ipvs) &&
--		    !(flags & IP_VS_CONN_F_ONE_PACKET)) {
--			/* try to expire the connection immediately */
- 			ip_vs_conn_expire_now(cp);
-+			__ip_vs_conn_put(cp);
-+			if (old_ct)
-+				return NF_DROP;
-+			cp = NULL;
-+		} else {
-+			__ip_vs_conn_put(cp);
-+			return NF_DROP;
- 		}
-+	}
- 
--		return NF_DROP;
-+	if (unlikely(!cp)) {
-+		int v;
-+
-+		if (!ip_vs_try_to_schedule(ipvs, af, skb, pd, &v, &cp, &iph))
-+			return v;
- 	}
- 
-+	IP_VS_DBG_PKT(11, af, pp, skb, iph.off, "Incoming packet");
-+
- 	ip_vs_in_stats(cp, skb);
- 	ip_vs_set_state(cp, IP_VS_DIR_INPUT, skb, pd);
- 	if (cp->packet_xmit)
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 4af83f466dfc..f984d2c881ff 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -210,6 +210,17 @@ static void update_defense_level(struct netns_ipvs *ipvs)
- 	local_bh_enable();
- }
- 
-+/* Handler for delayed work for expiring no
-+ * destination connections
-+ */
-+static void expire_nodest_conn_handler(struct work_struct *work)
-+{
-+	struct netns_ipvs *ipvs;
-+
-+	ipvs = container_of(work, struct netns_ipvs,
-+			    expire_nodest_conn_work.work);
-+	ip_vs_expire_nodest_conn_flush(ipvs);
-+}
- 
- /*
-  *	Timer for checking the defense
-@@ -1164,6 +1175,12 @@ static void __ip_vs_del_dest(struct netns_ipvs *ipvs, struct ip_vs_dest *dest,
- 	list_add(&dest->t_list, &ipvs->dest_trash);
- 	dest->idle_start = 0;
- 	spin_unlock_bh(&ipvs->dest_trash_lock);
-+
-+	/* Queue up delayed work to expire all no destination connections.
-+	 * No-op when CONFIG_SYSCTL is disabled.
-+	 */
-+	if (!cleanup)
-+		ip_vs_enqueue_expire_nodest_conns(ipvs);
- }
- 
- 
-@@ -4086,6 +4103,10 @@ static int __net_init ip_vs_control_net_init_sysctl(struct netns_ipvs *ipvs)
- 	queue_delayed_work(system_long_wq, &ipvs->defense_work,
- 			   DEFENSE_TIMER_PERIOD);
- 
-+	/* Init delayed work for expiring no dest conn */
-+	INIT_DELAYED_WORK(&ipvs->expire_nodest_conn_work,
-+			  expire_nodest_conn_handler);
-+
- 	return 0;
- }
- 
-@@ -4093,6 +4114,7 @@ static void __net_exit ip_vs_control_net_cleanup_sysctl(struct netns_ipvs *ipvs)
- {
- 	struct net *net = ipvs->net;
- 
-+	cancel_delayed_work_sync(&ipvs->expire_nodest_conn_work);
- 	cancel_delayed_work_sync(&ipvs->defense_work);
- 	cancel_work_sync(&ipvs->defense_work.work);
- 	unregister_net_sysctl_table(ipvs->sysctl_hdr);
--- 
-2.20.1
+        netfilter: Use fallthrough pseudo-keyword
 
+instead, since this is also updating iptables and ipset codebase.
+
+More comments below, thanks.
+
+> [1] https://www.kernel.org/doc/html/latest/process/deprecated.html?highlight=fallthrough#implicit-switch-case-fall-through
+> 
+> Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+> ---
+>  net/bridge/netfilter/ebtables.c         |    2 +-
+>  net/netfilter/ipset/ip_set_core.c       |    2 +-
+>  net/netfilter/nf_conntrack_h323_asn1.c  |    6 +++---
+>  net/netfilter/nf_conntrack_proto.c      |    2 +-
+>  net/netfilter/nf_conntrack_proto_tcp.c  |    2 +-
+>  net/netfilter/nf_conntrack_standalone.c |    2 +-
+>  net/netfilter/nf_nat_core.c             |   10 +++++-----
+>  net/netfilter/nf_synproxy_core.c        |    6 ++----
+>  net/netfilter/nf_tables_api.c           |    8 ++++----
+>  net/netfilter/nf_tables_core.c          |    2 +-
+>  net/netfilter/nfnetlink_cttimeout.c     |    2 +-
+>  net/netfilter/nft_cmp.c                 |    4 ++--
+>  net/netfilter/nft_ct.c                  |    4 ++--
+>  net/netfilter/nft_fib.c                 |    2 +-
+>  net/netfilter/nft_payload.c             |    2 +-
+>  net/netfilter/utils.c                   |    8 ++++----
+>  net/netfilter/x_tables.c                |    2 +-
+>  17 files changed, 32 insertions(+), 34 deletions(-)
+> 
+> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+> index c83ffe912163..38e946fdd041 100644
+> --- a/net/bridge/netfilter/ebtables.c
+> +++ b/net/bridge/netfilter/ebtables.c
+> @@ -1935,7 +1935,7 @@ static int compat_mtw_from_user(const struct compat_ebt_entry_mwt *mwt,
+>  			size_kern = match_size;
+>  		module_put(match->me);
+>  		break;
+> -	case EBT_COMPAT_WATCHER: /* fallthrough */
+> +	case EBT_COMPAT_WATCHER:
+>  	case EBT_COMPAT_TARGET:
+>  		wt = xt_request_find_target(NFPROTO_BRIDGE, name,
+>  					    mwt->u.revision);
+> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> index 340cb955af25..7d1f6d2da3f1 100644
+> --- a/net/netfilter/ipset/ip_set_core.c
+> +++ b/net/netfilter/ipset/ip_set_core.c
+> @@ -1642,7 +1642,7 @@ ip_set_dump_do(struct sk_buff *skb, struct netlink_callback *cb)
+>  				goto next_set;
+>  			if (set->variant->uref)
+>  				set->variant->uref(set, cb, true);
+> -			/* fall through */
+> +			fallthrough;
+>  		default:
+>  			ret = set->variant->list(set, skb, cb);
+>  			if (!cb->args[IPSET_CB_ARG0])
+> diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
+> index 573cb4481481..e697a824b001 100644
+> --- a/net/netfilter/nf_conntrack_h323_asn1.c
+> +++ b/net/netfilter/nf_conntrack_h323_asn1.c
+> @@ -257,15 +257,15 @@ static unsigned int get_uint(struct bitstr *bs, int b)
+>  	case 4:
+>  		v |= *bs->cur++;
+>  		v <<= 8;
+> -		/* fall through */
+> +		fallthrough;
+>  	case 3:
+>  		v |= *bs->cur++;
+>  		v <<= 8;
+> -		/* fall through */
+> +		fallthrough;
+>  	case 2:
+>  		v |= *bs->cur++;
+>  		v <<= 8;
+> -		/* fall through */
+> +		fallthrough;
+>  	case 1:
+>  		v |= *bs->cur++;
+>  		break;
+> diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+> index a0560d175a7f..95f79980348c 100644
+> --- a/net/netfilter/nf_conntrack_proto.c
+> +++ b/net/netfilter/nf_conntrack_proto.c
+> @@ -610,7 +610,7 @@ void nf_ct_netns_put(struct net *net, uint8_t nfproto)
+>  	switch (nfproto) {
+>  	case NFPROTO_BRIDGE:
+>  		nf_ct_netns_do_put(net, NFPROTO_BRIDGE);
+> -		/* fall through */
+> +		fallthrough;
+>  	case NFPROTO_INET:
+>  		nf_ct_netns_do_put(net, NFPROTO_IPV4);
+>  		nf_ct_netns_do_put(net, NFPROTO_IPV6);
+> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+> index 1926fd56df56..6892e497781c 100644
+> --- a/net/netfilter/nf_conntrack_proto_tcp.c
+> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
+> @@ -900,7 +900,7 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
+>  				return -NF_REPEAT;
+>  			return NF_DROP;
+>  		}
+> -		/* Fall through */
+> +		fallthrough;
+>  	case TCP_CONNTRACK_IGNORE:
+>  		/* Ignored packets:
+>  		 *
+> diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+> index 6a26299cb064..a604f43e3e6b 100644
+> --- a/net/netfilter/nf_conntrack_standalone.c
+> +++ b/net/netfilter/nf_conntrack_standalone.c
+> @@ -60,7 +60,7 @@ print_tuple(struct seq_file *s, const struct nf_conntrack_tuple *tuple,
+>  			   ntohs(tuple->src.u.tcp.port),
+>  			   ntohs(tuple->dst.u.tcp.port));
+>  		break;
+> -	case IPPROTO_UDPLITE: /* fallthrough */
+> +	case IPPROTO_UDPLITE:
+>  	case IPPROTO_UDP:
+>  		seq_printf(s, "sport=%hu dport=%hu ",
+>  			   ntohs(tuple->src.u.udp.port),
+> diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+> index bfc555fcbc72..c2f1bcb8f8e6 100644
+> --- a/net/netfilter/nf_nat_core.c
+> +++ b/net/netfilter/nf_nat_core.c
+> @@ -408,7 +408,7 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+>  	static const unsigned int max_attempts = 128;
+>  
+>  	switch (tuple->dst.protonum) {
+> -	case IPPROTO_ICMP: /* fallthrough */
+> +	case IPPROTO_ICMP:
+>  	case IPPROTO_ICMPV6:
+>  		/* id is same for either direction... */
+>  		keyptr = &tuple->src.u.icmp.id;
+> @@ -442,10 +442,10 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+>  		}
+>  		goto find_free_id;
+>  #endif
+> -	case IPPROTO_UDP:	/* fallthrough */
+> -	case IPPROTO_UDPLITE:	/* fallthrough */
+> -	case IPPROTO_TCP:	/* fallthrough */
+> -	case IPPROTO_SCTP:	/* fallthrough */
+> +	case IPPROTO_UDP:
+> +	case IPPROTO_UDPLITE:
+> +	case IPPROTO_TCP:
+> +	case IPPROTO_SCTP:
+>  	case IPPROTO_DCCP:	/* fallthrough */
+                                ^^^^^^^^^^^^^^^^
+Remove this too ?
+
+>  		if (maniptype == NF_NAT_MANIP_SRC)
+>  			keyptr = &tuple->src.u.all;
+> diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
+> index b9cbe1e2453e..e911635d9ccb 100644
+> --- a/net/netfilter/nf_synproxy_core.c
+> +++ b/net/netfilter/nf_synproxy_core.c
+> @@ -704,8 +704,7 @@ ipv4_synproxy_hook(void *priv, struct sk_buff *skb,
+>  		nf_ct_seqadj_init(ct, ctinfo, 0);
+>  		synproxy->tsoff = 0;
+>  		this_cpu_inc(snet->stats->conn_reopened);
+> -
+> -		/* fall through */
+> +		fallthrough;
+>  	case TCP_CONNTRACK_SYN_SENT:
+>  		if (!synproxy_parse_options(skb, thoff, th, &opts))
+>  			return NF_DROP;
+> @@ -1128,8 +1127,7 @@ ipv6_synproxy_hook(void *priv, struct sk_buff *skb,
+>  		nf_ct_seqadj_init(ct, ctinfo, 0);
+>  		synproxy->tsoff = 0;
+>  		this_cpu_inc(snet->stats->conn_reopened);
+> -
+> -		/* fall through */
+> +		fallthrough;
+>  	case TCP_CONNTRACK_SYN_SENT:
+>  		if (!synproxy_parse_options(skb, thoff, th, &opts))
+>  			return NF_DROP;
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 7647ecfa0d40..f4c2a37aae8e 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -4291,7 +4291,7 @@ void nf_tables_deactivate_set(const struct nft_ctx *ctx, struct nft_set *set,
+>  	case NFT_TRANS_ABORT:
+>  	case NFT_TRANS_RELEASE:
+>  		set->use--;
+> -		/* fall through */
+> +		fallthrough;
+>  	default:
+>  		nf_tables_unbind_set(ctx, set, binding,
+>  				     phase == NFT_TRANS_COMMIT);
+> @@ -6159,7 +6159,7 @@ void nf_tables_deactivate_flowtable(const struct nft_ctx *ctx,
+>  	case NFT_TRANS_ABORT:
+>  	case NFT_TRANS_RELEASE:
+>  		flowtable->use--;
+> -		/* fall through */
+> +		fallthrough;
+>  	default:
+>  		return;
+>  	}
+> @@ -7165,7 +7165,7 @@ static int nf_tables_validate(struct net *net)
+>  		break;
+>  	case NFT_VALIDATE_NEED:
+>  		nft_validate_state_update(net, NFT_VALIDATE_DO);
+> -		/* fall through */
+> +		fallthrough;
+>  	case NFT_VALIDATE_DO:
+>  		list_for_each_entry(table, &net->nft.tables, list) {
+>  			if (nft_table_validate(net, table) < 0)
+> @@ -8234,7 +8234,7 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
+>  		default:
+>  			return -EINVAL;
+>  		}
+> -		/* fall through */
+> +		fallthrough;
+>  	case NFT_CONTINUE:
+>  	case NFT_BREAK:
+>  	case NFT_RETURN:
+> diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+> index 96c74c4c7176..587897a2498b 100644
+> --- a/net/netfilter/nf_tables_core.c
+> +++ b/net/netfilter/nf_tables_core.c
+> @@ -213,7 +213,7 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+>  		jumpstack[stackptr].chain = chain;
+>  		jumpstack[stackptr].rules = rules + 1;
+>  		stackptr++;
+> -		/* fall through */
+> +		fallthrough;
+>  	case NFT_GOTO:
+>  		nft_trace_packet(&info, chain, rule,
+>  				 NFT_TRACETYPE_RULE);
+> diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+> index da915c224a82..89a381f7f945 100644
+> --- a/net/netfilter/nfnetlink_cttimeout.c
+> +++ b/net/netfilter/nfnetlink_cttimeout.c
+> @@ -451,7 +451,7 @@ static int cttimeout_default_get(struct net *net, struct sock *ctnl,
+>  	case IPPROTO_TCP:
+>  		timeouts = nf_tcp_pernet(net)->timeouts;
+>  		break;
+> -	case IPPROTO_UDP: /* fallthrough */
+> +	case IPPROTO_UDP:
+>  	case IPPROTO_UDPLITE:
+>  		timeouts = nf_udp_pernet(net)->timeouts;
+>  		break;
+> diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
+> index 8a28c127effc..16f4d84599ac 100644
+> --- a/net/netfilter/nft_cmp.c
+> +++ b/net/netfilter/nft_cmp.c
+> @@ -43,7 +43,7 @@ void nft_cmp_eval(const struct nft_expr *expr,
+>  	case NFT_CMP_LT:
+>  		if (d == 0)
+>  			goto mismatch;
+> -		/* fall through */
+> +		fallthrough;
+>  	case NFT_CMP_LTE:
+>  		if (d > 0)
+>  			goto mismatch;
+> @@ -51,7 +51,7 @@ void nft_cmp_eval(const struct nft_expr *expr,
+>  	case NFT_CMP_GT:
+>  		if (d == 0)
+>  			goto mismatch;
+> -		/* fall through */
+> +		fallthrough;
+>  	case NFT_CMP_GTE:
+>  		if (d < 0)
+>  			goto mismatch;
+> diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+> index faea72c2df32..8b65be8a29e3 100644
+> --- a/net/netfilter/nft_ct.c
+> +++ b/net/netfilter/nft_ct.c
+> @@ -129,7 +129,7 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
+>  		return;
+>  	}
+>  #endif
+> -	case NFT_CT_BYTES: /* fallthrough */
+> +	case NFT_CT_BYTES:
+>  	case NFT_CT_PKTS: {
+>  		const struct nf_conn_acct *acct = nf_conn_acct_find(ct);
+>  		u64 count = 0;
+> @@ -1013,7 +1013,7 @@ static int nft_ct_helper_obj_init(const struct nft_ctx *ctx,
+>  		help6 = nf_conntrack_helper_try_module_get(name, family,
+>  							   priv->l4proto);
+>  		break;
+> -	case NFPROTO_NETDEV: /* fallthrough */
+> +	case NFPROTO_NETDEV:
+>  	case NFPROTO_BRIDGE: /* same */
+
+Remove this /* same */, it refers to /* fallthrough */
+
+>  	case NFPROTO_INET:
+>  		help4 = nf_conntrack_helper_try_module_get(name, NFPROTO_IPV4,
