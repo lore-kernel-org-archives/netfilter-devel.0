@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DDC6C433E3
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:47:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA877C433E0
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:47:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 088BB206E9
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:47:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B88DE206E9
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:47:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726758AbgGHRrE (ORCPT
+        id S1728527AbgGHRqX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Jul 2020 13:47:04 -0400
-Received: from correo.us.es ([193.147.175.20]:34756 "EHLO mail.us.es"
+        Wed, 8 Jul 2020 13:46:23 -0400
+Received: from correo.us.es ([193.147.175.20]:34722 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728518AbgGHRqY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Jul 2020 13:46:24 -0400
+        id S1726851AbgGHRqW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Jul 2020 13:46:22 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A67B13066AB
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 19:46:22 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id C88E73066A7
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 19:46:20 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 959E4DA798
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 19:46:22 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B5C7CDA798
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 19:46:20 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 8ABE3DA792; Wed,  8 Jul 2020 19:46:22 +0200 (CEST)
+        id AAF04DA791; Wed,  8 Jul 2020 19:46:20 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 44A9ADA78E;
-        Wed,  8 Jul 2020 19:46:20 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7B959DA72F;
+        Wed,  8 Jul 2020 19:46:18 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 08 Jul 2020 19:46:20 +0200 (CEST)
+ Wed, 08 Jul 2020 19:46:18 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 14AB24265A2F;
-        Wed,  8 Jul 2020 19:46:20 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 4CDE34265A2F;
+        Wed,  8 Jul 2020 19:46:18 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 04/12] ipvs: avoid expiring many connections from timer
-Date:   Wed,  8 Jul 2020 19:46:01 +0200
-Message-Id: <20200708174609.1343-5-pablo@netfilter.org>
+Subject: [PATCH 01/12] netfilter: introduce support for reject at prerouting stage
+Date:   Wed,  8 Jul 2020 19:45:58 +0200
+Message-Id: <20200708174609.1343-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200708174609.1343-1-pablo@netfilter.org>
 References: <20200708174609.1343-1-pablo@netfilter.org>
@@ -56,142 +56,145 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Julian Anastasov <ja@ssi.bg>
+From: Laura Garcia Liebana <nevola@gmail.com>
 
-Add new functions ip_vs_conn_del() and ip_vs_conn_del_put()
-to release many IPVS connections in process context.
-They are suitable for connections found in table
-when we do not want to overload the timers.
+REJECT statement can be only used in INPUT, FORWARD and OUTPUT
+chains. This patch adds support of REJECT, both icmp and tcp
+reset, at PREROUTING stage.
 
-Currently, the change is useful for the dropentry delayed
-work but it will be used also in following patch
-when flushing connections to failed destinations.
+The need for this patch comes from the requirement of some
+forwarding devices to reject traffic before the natting and
+routing decisions.
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Reviewed-by: Simon Horman <horms@verge.net.au>
+The main use case is to be able to send a graceful termination
+to legitimate clients that, under any circumstances, the NATed
+endpoints are not available. This option allows clients to
+decide either to perform a reconnection or manage the error in
+their side, instead of just dropping the connection and let
+them die due to timeout.
+
+It is supported ipv4, ipv6 and inet families for nft
+infrastructure.
+
+Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_conn.c | 53 +++++++++++++++++++++++----------
- net/netfilter/ipvs/ip_vs_ctl.c  |  6 ++--
- 2 files changed, 42 insertions(+), 17 deletions(-)
+ net/ipv4/netfilter/nf_reject_ipv4.c | 21 +++++++++++++++++++++
+ net/ipv6/netfilter/nf_reject_ipv6.c | 26 ++++++++++++++++++++++++++
+ net/netfilter/nft_reject.c          |  3 ++-
+ 3 files changed, 49 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 02f2f636798d..b3921ae92740 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -807,6 +807,31 @@ static void ip_vs_conn_rcu_free(struct rcu_head *head)
- 	kmem_cache_free(ip_vs_conn_cachep, cp);
+diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+index 2361fdac2c43..9dcfa4e461b6 100644
+--- a/net/ipv4/netfilter/nf_reject_ipv4.c
++++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+@@ -96,6 +96,21 @@ void nf_reject_ip_tcphdr_put(struct sk_buff *nskb, const struct sk_buff *oldskb,
  }
+ EXPORT_SYMBOL_GPL(nf_reject_ip_tcphdr_put);
  
-+/* Try to delete connection while not holding reference */
-+static void ip_vs_conn_del(struct ip_vs_conn *cp)
++static int nf_reject_fill_skb_dst(struct sk_buff *skb_in)
 +{
-+	if (del_timer(&cp->timer)) {
-+		/* Drop cp->control chain too */
-+		if (cp->control)
-+			cp->timeout = 0;
-+		ip_vs_conn_expire(&cp->timer);
-+	}
++	struct dst_entry *dst = NULL;
++	struct flowi fl;
++
++	memset(&fl, 0, sizeof(struct flowi));
++	fl.u.ip4.daddr = ip_hdr(skb_in)->saddr;
++	nf_ip_route(dev_net(skb_in->dev), &dst, &fl, false);
++	if (!dst)
++		return -1;
++
++	skb_dst_set(skb_in, dst);
++	return 0;
 +}
 +
-+/* Try to delete connection while holding reference */
-+static void ip_vs_conn_del_put(struct ip_vs_conn *cp)
-+{
-+	if (del_timer(&cp->timer)) {
-+		/* Drop cp->control chain too */
-+		if (cp->control)
-+			cp->timeout = 0;
-+		__ip_vs_conn_put(cp);
-+		ip_vs_conn_expire(&cp->timer);
-+	} else {
-+		__ip_vs_conn_put(cp);
-+	}
-+}
-+
- static void ip_vs_conn_expire(struct timer_list *t)
+ /* Send RST reply */
+ void nf_send_reset(struct net *net, struct sk_buff *oldskb, int hook)
  {
- 	struct ip_vs_conn *cp = from_timer(cp, t, timer);
-@@ -827,14 +852,17 @@ static void ip_vs_conn_expire(struct timer_list *t)
+@@ -109,6 +124,9 @@ void nf_send_reset(struct net *net, struct sk_buff *oldskb, int hook)
+ 	if (!oth)
+ 		return;
  
- 		/* does anybody control me? */
- 		if (ct) {
-+			bool has_ref = !cp->timeout && __ip_vs_conn_get(ct);
++	if (hook == NF_INET_PRE_ROUTING && nf_reject_fill_skb_dst(oldskb))
++		return;
 +
- 			ip_vs_control_del(cp);
- 			/* Drop CTL or non-assured TPL if not used anymore */
--			if (!cp->timeout && !atomic_read(&ct->n_control) &&
-+			if (has_ref && !atomic_read(&ct->n_control) &&
- 			    (!(ct->flags & IP_VS_CONN_F_TEMPLATE) ||
- 			     !(ct->state & IP_VS_CTPL_S_ASSURED))) {
- 				IP_VS_DBG(4, "drop controlling connection\n");
--				ct->timeout = 0;
--				ip_vs_conn_expire_now(ct);
-+				ip_vs_conn_del_put(ct);
-+			} else if (has_ref) {
-+				__ip_vs_conn_put(ct);
- 			}
- 		}
+ 	if (skb_rtable(oldskb)->rt_flags & (RTCF_BROADCAST | RTCF_MULTICAST))
+ 		return;
  
-@@ -1317,8 +1345,7 @@ void ip_vs_random_dropentry(struct netns_ipvs *ipvs)
+@@ -175,6 +193,9 @@ void nf_send_unreach(struct sk_buff *skb_in, int code, int hook)
+ 	if (iph->frag_off & htons(IP_OFFSET))
+ 		return;
  
- drop:
- 			IP_VS_DBG(4, "drop connection\n");
--			cp->timeout = 0;
--			ip_vs_conn_expire_now(cp);
-+			ip_vs_conn_del(cp);
- 		}
- 		cond_resched_rcu();
- 	}
-@@ -1341,19 +1368,15 @@ static void ip_vs_conn_flush(struct netns_ipvs *ipvs)
- 		hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[idx], c_list) {
- 			if (cp->ipvs != ipvs)
- 				continue;
--			/* As timers are expired in LIFO order, restart
--			 * the timer of controlling connection first, so
--			 * that it is expired after us.
--			 */
-+			if (atomic_read(&cp->n_control))
-+				continue;
- 			cp_c = cp->control;
--			/* cp->control is valid only with reference to cp */
--			if (cp_c && __ip_vs_conn_get(cp)) {
-+			IP_VS_DBG(4, "del connection\n");
-+			ip_vs_conn_del(cp);
-+			if (cp_c && !atomic_read(&cp_c->n_control)) {
- 				IP_VS_DBG(4, "del controlling connection\n");
--				ip_vs_conn_expire_now(cp_c);
--				__ip_vs_conn_put(cp);
-+				ip_vs_conn_del(cp_c);
- 			}
--			IP_VS_DBG(4, "del connection\n");
--			ip_vs_conn_expire_now(cp);
- 		}
- 		cond_resched_rcu();
- 	}
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 0eed388c960b..4af83f466dfc 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -224,7 +224,8 @@ static void defense_work_handler(struct work_struct *work)
- 	update_defense_level(ipvs);
- 	if (atomic_read(&ipvs->dropentry))
- 		ip_vs_random_dropentry(ipvs);
--	schedule_delayed_work(&ipvs->defense_work, DEFENSE_TIMER_PERIOD);
-+	queue_delayed_work(system_long_wq, &ipvs->defense_work,
-+			   DEFENSE_TIMER_PERIOD);
++	if (hook == NF_INET_PRE_ROUTING && nf_reject_fill_skb_dst(skb_in))
++		return;
++
+ 	if (skb_csum_unnecessary(skb_in) || !nf_reject_verify_csum(proto)) {
+ 		icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
+ 		return;
+diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+index 5fae66f66671..4aef6baaa55e 100644
+--- a/net/ipv6/netfilter/nf_reject_ipv6.c
++++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+@@ -126,6 +126,21 @@ void nf_reject_ip6_tcphdr_put(struct sk_buff *nskb,
  }
- #endif
+ EXPORT_SYMBOL_GPL(nf_reject_ip6_tcphdr_put);
  
-@@ -4082,7 +4083,8 @@ static int __net_init ip_vs_control_net_init_sysctl(struct netns_ipvs *ipvs)
- 	ipvs->sysctl_tbl = tbl;
- 	/* Schedule defense work */
- 	INIT_DELAYED_WORK(&ipvs->defense_work, defense_work_handler);
--	schedule_delayed_work(&ipvs->defense_work, DEFENSE_TIMER_PERIOD);
-+	queue_delayed_work(system_long_wq, &ipvs->defense_work,
-+			   DEFENSE_TIMER_PERIOD);
++static int nf_reject6_fill_skb_dst(struct sk_buff *skb_in)
++{
++	struct dst_entry *dst = NULL;
++	struct flowi fl;
++
++	memset(&fl, 0, sizeof(struct flowi));
++	fl.u.ip6.daddr = ipv6_hdr(skb_in)->saddr;
++	nf_ip6_route(dev_net(skb_in->dev), &dst, &fl, false);
++	if (!dst)
++		return -1;
++
++	skb_dst_set(skb_in, dst);
++	return 0;
++}
++
+ void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
+ {
+ 	struct net_device *br_indev __maybe_unused;
+@@ -154,6 +169,14 @@ void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
+ 	fl6.daddr = oip6h->saddr;
+ 	fl6.fl6_sport = otcph->dest;
+ 	fl6.fl6_dport = otcph->source;
++
++	if (hook == NF_INET_PRE_ROUTING) {
++		nf_ip6_route(net, &dst, flowi6_to_flowi(&fl6), false);
++		if (!dst)
++			return;
++		skb_dst_set(oldskb, dst);
++	}
++
+ 	fl6.flowi6_oif = l3mdev_master_ifindex(skb_dst(oldskb)->dev);
+ 	fl6.flowi6_mark = IP6_REPLY_MARK(net, oldskb->mark);
+ 	security_skb_classify_flow(oldskb, flowi6_to_flowi(&fl6));
+@@ -245,6 +268,9 @@ void nf_send_unreach6(struct net *net, struct sk_buff *skb_in,
+ 	if (hooknum == NF_INET_LOCAL_OUT && skb_in->dev == NULL)
+ 		skb_in->dev = net->loopback_dev;
  
- 	return 0;
++	if (hooknum == NF_INET_PRE_ROUTING && nf_reject6_fill_skb_dst(skb_in))
++		return;
++
+ 	icmpv6_send(skb_in, ICMPV6_DEST_UNREACH, code, 0);
  }
+ EXPORT_SYMBOL_GPL(nf_send_unreach6);
+diff --git a/net/netfilter/nft_reject.c b/net/netfilter/nft_reject.c
+index 86eafbb0fdd0..61fb7e8afbf0 100644
+--- a/net/netfilter/nft_reject.c
++++ b/net/netfilter/nft_reject.c
+@@ -30,7 +30,8 @@ int nft_reject_validate(const struct nft_ctx *ctx,
+ 	return nft_chain_validate_hooks(ctx->chain,
+ 					(1 << NF_INET_LOCAL_IN) |
+ 					(1 << NF_INET_FORWARD) |
+-					(1 << NF_INET_LOCAL_OUT));
++					(1 << NF_INET_LOCAL_OUT) |
++					(1 << NF_INET_PRE_ROUTING));
+ }
+ EXPORT_SYMBOL_GPL(nft_reject_validate);
+ 
 -- 
 2.20.1
 
