@@ -2,255 +2,266 @@ Return-Path: <SRS0=D3ak=AT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4906C433DF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 01:42:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8647C433DF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 09:27:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8FC6620774
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 01:42:47 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="PZ4JRGZR"
+	by mail.kernel.org (Postfix) with ESMTP id A75BA2065C
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 09:27:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729130AbgGHBmp (ORCPT
+        id S1728010AbgGHJ1V (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 Jul 2020 21:42:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43972 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729113AbgGHBmp (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Jul 2020 21:42:45 -0400
-Received: from mail-ed1-x544.google.com (mail-ed1-x544.google.com [IPv6:2a00:1450:4864:20::544])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C6F1C08C5E2
-        for <netfilter-devel@vger.kernel.org>; Tue,  7 Jul 2020 18:42:43 -0700 (PDT)
-Received: by mail-ed1-x544.google.com with SMTP id e22so40257502edq.8
-        for <netfilter-devel@vger.kernel.org>; Tue, 07 Jul 2020 18:42:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Vr0HrDNNXcQz20CPEZA0xNxAWROxrJKqR4BgLb+gX4s=;
-        b=PZ4JRGZRc4zRpqAd8JaJoxjLqZclbeOviMlQlmgZy5ZiGGjNe9C0k8xUi7fNmYOkNY
-         6Sx8AHonSor+GV1v8Z5OTzg0VMPRIw+JxZ/6NkP6XHOz6ba1QEvdV5GntSOqhmKmvID+
-         uqq6iR/UNCuhZQBlJHKApLV780c46V4F6TPgMl9XJkFsaDkQPcSewtpZ7wdma59cpuSa
-         OT/Y17HZEiDD+PeNIiY+gQiAXCFl0/tfGKog239WGjTCCXshe8NJCKOqep0zkNuq1mVn
-         IhGKVTbQU8haKPaZfuyi4Fs6LsmI8ffIrLKmuDPErRwv+2Dw674NvRAioa50X5sc71QI
-         oGqg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Vr0HrDNNXcQz20CPEZA0xNxAWROxrJKqR4BgLb+gX4s=;
-        b=ktCARoY4aEcLF/Oi+MAcVMRYfN8Ur66UBooDUb9vaiMgyfQ/t6QoH24u91uDScV2O/
-         flJvO0qcn7pVQW0TiGtiFdrMDAgSfAL5ldkc63ac+aKmtjlr08BJz64uSPqG/GkB8LYv
-         7jQ6Jxc3mYZDUdQud+9x4nZ9X2+lHZt0VeR+YUNNSqCEv1Abhj59pXwBurULmnEQvBhC
-         NRTWlhT8nNqqdFg1f9GrtVZHPXVmp5IPXtxZ9P4VpxmdftDKBtybMif3vKO7bNXJhRXD
-         d1MLyxeTvMy2GnttClIY8aAFYpK+nTUcwDETjfXW034aOhpHa+ph9YAch+NkkrX3W2yB
-         wl2w==
-X-Gm-Message-State: AOAM5321SmZZBq4SUZ1GHQgWVt9NeJ6MYiNP3Jn9DTdhTqumFdXDWUl8
-        Pq0ED1h6LlHpyNq0FF/WKGG0mMz2CEvMdgojH+Vr
-X-Google-Smtp-Source: ABdhPJwO+ZDB5KAHb6lbjzYaXLS3ryyhdLtNi06zlDHVmSwDEOn6n4tDRWttj6dBFy4xjaW4NpkPFMWLHPakgoFSOcQ=
-X-Received: by 2002:aa7:d6cf:: with SMTP id x15mr62837018edr.164.1594172561943;
- Tue, 07 Jul 2020 18:42:41 -0700 (PDT)
+        Wed, 8 Jul 2020 05:27:21 -0400
+Received: from correo.us.es ([193.147.175.20]:42772 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726144AbgGHJ1V (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Jul 2020 05:27:21 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id B40B9EB462
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 11:27:16 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A4CF6DA3A1
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 11:27:16 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 99094DA72F; Wed,  8 Jul 2020 11:27:16 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 30E36DA73F
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 11:27:14 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 08 Jul 2020 11:27:14 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 0F01942EF42D
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 11:27:14 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 1/2] src: use expression to store the log prefix
+Date:   Wed,  8 Jul 2020 11:27:06 +0200
+Message-Id: <20200708092707.21405-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-References: <cover.1593198710.git.rgb@redhat.com> <6abeb26e64489fc29b00c86b60b501c8b7316424.1593198710.git.rgb@redhat.com>
- <CAHC9VhTx=4879F1MSXg4=Xd1i5rhEtyam6CakQhy=_ZjGtTaMA@mail.gmail.com> <20200707025014.x33eyxbankw2fbww@madcap2.tricolour.ca>
-In-Reply-To: <20200707025014.x33eyxbankw2fbww@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Tue, 7 Jul 2020 21:42:31 -0400
-Message-ID: <CAHC9VhTTGLf9MPS_FgL1ibUVoH+YzMtPK6+2dp_j8a5o9fzftA@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V9 01/13] audit: collect audit task parameters
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
-        containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jul 6, 2020 at 10:50 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2020-07-05 11:09, Paul Moore wrote:
-> > On Sat, Jun 27, 2020 at 9:21 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > >
-> > > The audit-related parameters in struct task_struct should ideally be
-> > > collected together and accessed through a standard audit API.
-> > >
-> > > Collect the existing loginuid, sessionid and audit_context together in a
-> > > new struct audit_task_info called "audit" in struct task_struct.
-> > >
-> > > Use kmem_cache to manage this pool of memory.
-> > > Un-inline audit_free() to be able to always recover that memory.
-> > >
-> > > Please see the upstream github issue
-> > > https://github.com/linux-audit/audit-kernel/issues/81
-> > >
-> > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > > Acked-by: Neil Horman <nhorman@tuxdriver.com>
-> > > Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
-> > > ---
-> > >  include/linux/audit.h | 49 +++++++++++++++++++++++------------
-> > >  include/linux/sched.h |  7 +----
-> > >  init/init_task.c      |  3 +--
-> > >  init/main.c           |  2 ++
-> > >  kernel/audit.c        | 71 +++++++++++++++++++++++++++++++++++++++++++++++++--
-> > >  kernel/audit.h        |  5 ++++
-> > >  kernel/auditsc.c      | 26 ++++++++++---------
-> > >  kernel/fork.c         |  1 -
-> > >  8 files changed, 124 insertions(+), 40 deletions(-)
-> > >
-> > > diff --git a/include/linux/audit.h b/include/linux/audit.h
-> > > index 3fcd9ee49734..c2150415f9df 100644
-> > > --- a/include/linux/audit.h
-> > > +++ b/include/linux/audit.h
-> > > @@ -100,6 +100,16 @@ enum audit_nfcfgop {
-> > >         AUDIT_XT_OP_UNREGISTER,
-> > >  };
-> > >
-> > > +struct audit_task_info {
-> > > +       kuid_t                  loginuid;
-> > > +       unsigned int            sessionid;
-> > > +#ifdef CONFIG_AUDITSYSCALL
-> > > +       struct audit_context    *ctx;
-> > > +#endif
-> > > +};
-> > > +
-> > > +extern struct audit_task_info init_struct_audit;
-> > > +
-> > >  extern int is_audit_feature_set(int which);
-> > >
-> > >  extern int __init audit_register_class(int class, unsigned *list);
-> >
-> > ...
-> >
-> > > diff --git a/include/linux/sched.h b/include/linux/sched.h
-> > > index b62e6aaf28f0..2213ac670386 100644
-> > > --- a/include/linux/sched.h
-> > > +++ b/include/linux/sched.h
-> > > @@ -34,7 +34,6 @@
-> > >  #include <linux/kcsan.h>
-> > >
-> > >  /* task_struct member predeclarations (sorted alphabetically): */
-> > > -struct audit_context;
-> > >  struct backing_dev_info;
-> > >  struct bio_list;
-> > >  struct blk_plug;
-> > > @@ -946,11 +945,7 @@ struct task_struct {
-> > >         struct callback_head            *task_works;
-> > >
-> > >  #ifdef CONFIG_AUDIT
-> > > -#ifdef CONFIG_AUDITSYSCALL
-> > > -       struct audit_context            *audit_context;
-> > > -#endif
-> > > -       kuid_t                          loginuid;
-> > > -       unsigned int                    sessionid;
-> > > +       struct audit_task_info          *audit;
-> > >  #endif
-> > >         struct seccomp                  seccomp;
-> >
-> > In the early days of this patchset we talked a lot about how to handle
-> > the task_struct and the changes that would be necessary, ultimately
-> > deciding that encapsulating all of the audit fields into an
-> > audit_task_info struct.  However, what is puzzling me a bit at this
-> > moment is why we are only including audit_task_info in task_info by
-> > reference *and* making it a build time conditional (via CONFIG_AUDIT).
-> >
-> > If audit is enabled at build time it would seem that we are always
-> > going to allocate an audit_task_info struct, so I have to wonder why
-> > we don't simply embed it inside the task_info struct (similar to the
-> > seccomp struct in the snippet above?  Of course the audit_context
-> > struct needs to remain as is, I'm talking only about the
-> > task_info/audit_task_info struct.
->
-> I agree that including the audit_task_info struct in the struct
-> task_struct would have been preferred to simplify allocation and free,
-> but the reason it was included by reference instead was to make the
-> task_struct size independent of audit so that future changes would not
-> cause as many kABI challenges.  This first change will cause kABI
-> challenges regardless, but it was future ones that we were trying to
-> ease.
->
-> Does that match with your recollection?
+Intsead of using an array of char.
 
-I guess, sure.  I suppose what I was really asking was if we had a
-"good" reason for not embedding the audit_task_info struct.
-Regardless, thanks for the explanation, that was helpful.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/expression.h             |  2 ++
+ include/linux/netfilter/nf_log.h |  3 +++
+ include/statement.h              |  2 +-
+ src/expression.c                 |  9 +++++++++
+ src/json.c                       |  9 ++++++---
+ src/netlink_delinearize.c        |  6 +++++-
+ src/netlink_linearize.c          |  7 +++++--
+ src/parser_bison.y               |  7 ++++++-
+ src/parser_json.c                |  4 +++-
+ src/statement.c                  | 11 ++++++++---
+ 10 files changed, 48 insertions(+), 12 deletions(-)
 
-From an upstream perspective, I think embedding the audit_task_info
-struct is the Right Thing To Do.  The code is cleaner and more robust
-if we embed the struct.
-
-> > Richard, I'm sure you can answer this off the top of your head, but
-> > I'd have to go digging through the archives to pull out the relevant
-> > discussions so I figured I would just ask you for a reminder ... ?  I
-> > imagine it's also possible things have changed a bit since those early
-> > discussions and the solution we arrived at then no longer makes as
-> > much sense as it did before.
->
-> Agreed, it doesn't make as much sense now as it did when proposed, but
-> will make more sense in the future depending on when this change gets
-> accepted upstream.  This is why I wanted this patch to go through as
-> part of ghak81 at the time the rest of it did so that future kABI issues
-> would be easier to handle, but that ship has long sailed.
-
-To be clear, kABI issues with task_struct really aren't an issue with
-the upstream kernel.  I know that you know all of this already
-Richard, I'm mostly talking to everyone else on the To/CC line in case
-they are casually watching this discussion.
-
-While I'm sympathetic to long-lifetime enterprise distros such as
-RHEL, my responsibility is to ensure the upstream kernel is as good as
-we can make it, and in this case I believe that means embedding
-audit_task_info into the task_struct.
-
-> I didn't make
-> that argument then and I regret it now that I realize and recall some of
-> the thinking behind the change.  Your reasons at the time were that
-> contid was the only user of that change but there have been some
-> CONFIG_AUDIT and CONFIG_AUDITSYSCALL changes since that were related.
-
-Agreed that there are probably some common goals and benefits with
-those changes and the audit container ID work, however, I believe that
-discussion quickly goes back to upstream vs RHEL.
-
-> > > diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-> > > index 468a23390457..f00c1da587ea 100644
-> > > --- a/kernel/auditsc.c
-> > > +++ b/kernel/auditsc.c
-> > > @@ -1612,7 +1615,6 @@ void __audit_free(struct task_struct *tsk)
-> > >                 if (context->current_state == AUDIT_RECORD_CONTEXT)
-> > >                         audit_log_exit();
-> > >         }
-> > > -
-> > >         audit_set_context(tsk, NULL);
-> > >         audit_free_context(context);
-> > >  }
-> >
-> > This nitpick is barely worth the time it is taking me to write this,
-> > but the whitespace change above isn't strictly necessary.
->
-> Sure, it is a harmless but noisy cleanup when the function was being
-> cleaned up and renamed.  It wasn't an accident, but a style preference.
-> Do you prefer a vertical space before cleanup actions at the end of
-> functions and more versus less vertical whitespace in general?
-
-As I mentioned above, this really was barely worth mentioning, but I
-made the comment simply because I feel this patchset is going to draw
-a lot of attention once it is merged and I feel keeping the patchset
-as small, and as focused, as possible is a good thing.
-
-However, I'm not going to lose even a second of sleep over a single
-blank line gone missing ;)
-
+diff --git a/include/expression.h b/include/expression.h
+index 8135a516cf3a..87937a5040b3 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -381,6 +381,8 @@ extern const struct datatype *expr_basetype(const struct expr *expr);
+ extern void expr_set_type(struct expr *expr, const struct datatype *dtype,
+ 			  enum byteorder byteorder);
+ 
++void expr_to_string(const struct expr *expr, char *string);
++
+ struct eval_ctx;
+ extern int expr_binary_error(struct list_head *msgs,
+ 			     const struct expr *e1, const struct expr *e2,
+diff --git a/include/linux/netfilter/nf_log.h b/include/linux/netfilter/nf_log.h
+index 8be21e02387d..2ae00932d3d2 100644
+--- a/include/linux/netfilter/nf_log.h
++++ b/include/linux/netfilter/nf_log.h
+@@ -1,3 +1,4 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+ #ifndef _NETFILTER_NF_LOG_H
+ #define _NETFILTER_NF_LOG_H
+ 
+@@ -9,4 +10,6 @@
+ #define NF_LOG_MACDECODE	0x20	/* Decode MAC header */
+ #define NF_LOG_MASK		0x2f
+ 
++#define NF_LOG_PREFIXLEN	128
++
+ #endif /* _NETFILTER_NF_LOG_H */
+diff --git a/include/statement.h b/include/statement.h
+index 7d96b3947dfc..061bc6194915 100644
+--- a/include/statement.h
++++ b/include/statement.h
+@@ -75,7 +75,7 @@ enum {
+ };
+ 
+ struct log_stmt {
+-	const char		*prefix;
++	struct expr		*prefix;
+ 	unsigned int		snaplen;
+ 	uint16_t		group;
+ 	uint16_t		qthreshold;
+diff --git a/src/expression.c b/src/expression.c
+index a6bde70f508e..fe529f98de7b 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -175,6 +175,15 @@ void expr_describe(const struct expr *expr, struct output_ctx *octx)
+ 	}
+ }
+ 
++void expr_to_string(const struct expr *expr, char *string)
++{
++	int len = expr->len / BITS_PER_BYTE;
++
++	assert(expr->dtype == &string_type);
++
++	mpz_export_data(string, expr->value, BYTEORDER_HOST_ENDIAN, len);
++}
++
+ void expr_set_type(struct expr *expr, const struct datatype *dtype,
+ 		   enum byteorder byteorder)
+ {
+diff --git a/src/json.c b/src/json.c
+index ed7131816d7d..24583060e68e 100644
+--- a/src/json.c
++++ b/src/json.c
+@@ -1224,9 +1224,12 @@ json_t *log_stmt_json(const struct stmt *stmt, struct output_ctx *octx)
+ {
+ 	json_t *root = json_object(), *flags;
+ 
+-	if (stmt->log.flags & STMT_LOG_PREFIX)
+-		json_object_set_new(root, "prefix",
+-				    json_string(stmt->log.prefix));
++	if (stmt->log.flags & STMT_LOG_PREFIX) {
++		char prefix[NF_LOG_PREFIXLEN] = {};
++
++		expr_to_string(stmt->log.prefix, prefix);
++		json_object_set_new(root, "prefix", json_string(prefix));
++	}
+ 	if (stmt->log.flags & STMT_LOG_GROUP)
+ 		json_object_set_new(root, "group",
+ 				    json_integer(stmt->log.group));
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 8de4830c4f80..7d7e07cf89ce 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -901,7 +901,11 @@ static void netlink_parse_log(struct netlink_parse_ctx *ctx,
+ 	stmt = log_stmt_alloc(loc);
+ 	prefix = nftnl_expr_get_str(nle, NFTNL_EXPR_LOG_PREFIX);
+ 	if (nftnl_expr_is_set(nle, NFTNL_EXPR_LOG_PREFIX)) {
+-		stmt->log.prefix = xstrdup(prefix);
++		stmt->log.prefix = constant_expr_alloc(&internal_location,
++						       &string_type,
++						       BYTEORDER_HOST_ENDIAN,
++						       (strlen(prefix) + 1) * BITS_PER_BYTE,
++						       prefix);
+ 		stmt->log.flags |= STMT_LOG_PREFIX;
+ 	}
+ 	if (nftnl_expr_is_set(nle, NFTNL_EXPR_LOG_GROUP)) {
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 08f7f89f1066..528f1e5cd0fe 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -10,6 +10,7 @@
+  */
+ 
+ #include <linux/netfilter/nf_tables.h>
++#include <linux/netfilter/nf_log.h>
+ 
+ #include <string.h>
+ #include <rule.h>
+@@ -1006,8 +1007,10 @@ static void netlink_gen_log_stmt(struct netlink_linearize_ctx *ctx,
+ 
+ 	nle = alloc_nft_expr("log");
+ 	if (stmt->log.prefix != NULL) {
+-		nftnl_expr_set_str(nle, NFTNL_EXPR_LOG_PREFIX,
+-				      stmt->log.prefix);
++		char prefix[NF_LOG_PREFIXLEN] = {};
++
++		expr_to_string(stmt->log.prefix, prefix);
++		nftnl_expr_set_str(nle, NFTNL_EXPR_LOG_PREFIX, prefix);
+ 	}
+ 	if (stmt->log.flags & STMT_LOG_GROUP) {
+ 		nftnl_expr_set_u16(nle, NFTNL_EXPR_LOG_GROUP, stmt->log.group);
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 72e67186c913..2fecc3472fba 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -2636,7 +2636,12 @@ log_args		:	log_arg
+ 
+ log_arg			:	PREFIX			string
+ 			{
+-				$<stmt>0->log.prefix	 = $2;
++				struct expr *expr;
++
++				expr = constant_expr_alloc(&@$, &string_type,
++							   BYTEORDER_HOST_ENDIAN,
++							   strlen($2) * BITS_PER_BYTE, $2);
++				$<stmt>0->log.prefix	 = expr;
+ 				$<stmt>0->log.flags 	|= STMT_LOG_PREFIX;
+ 			}
+ 			|	GROUP			NUM
+diff --git a/src/parser_json.c b/src/parser_json.c
+index 9fdef6913ad5..59347168cdc8 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -2159,7 +2159,9 @@ static struct stmt *json_parse_log_stmt(struct json_ctx *ctx,
+ 	stmt = log_stmt_alloc(int_loc);
+ 
+ 	if (!json_unpack(value, "{s:s}", "prefix", &tmpstr)) {
+-		stmt->log.prefix = xstrdup(tmpstr);
++		stmt->log.prefix = constant_expr_alloc(int_loc, &string_type,
++						       BYTEORDER_HOST_ENDIAN,
++						       (strlen(tmpstr) + 1) * BITS_PER_BYTE, tmpstr);
+ 		stmt->log.flags |= STMT_LOG_PREFIX;
+ 	}
+ 	if (!json_unpack(value, "{s:i}", "group", &tmp)) {
+diff --git a/src/statement.c b/src/statement.c
+index 21a1bc8d40dd..afedbba21b75 100644
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -18,6 +18,7 @@
+ 
+ #include <arpa/inet.h>
+ #include <linux/netfilter.h>
++#include <linux/netfilter/nf_log.h>
+ #include <netinet/ip_icmp.h>
+ #include <netinet/icmp6.h>
+ #include <statement.h>
+@@ -300,8 +301,12 @@ int log_level_parse(const char *level)
+ static void log_stmt_print(const struct stmt *stmt, struct output_ctx *octx)
+ {
+ 	nft_print(octx, "log");
+-	if (stmt->log.flags & STMT_LOG_PREFIX)
+-		nft_print(octx, " prefix \"%s\"", stmt->log.prefix);
++	if (stmt->log.flags & STMT_LOG_PREFIX) {
++		char prefix[NF_LOG_PREFIXLEN] = {};
++
++		expr_to_string(stmt->log.prefix, prefix);
++		nft_print(octx, " prefix \"%s\"", prefix);
++	}
+ 	if (stmt->log.flags & STMT_LOG_GROUP)
+ 		nft_print(octx, " group %u", stmt->log.group);
+ 	if (stmt->log.flags & STMT_LOG_SNAPLEN)
+@@ -338,7 +343,7 @@ static void log_stmt_print(const struct stmt *stmt, struct output_ctx *octx)
+ 
+ static void log_stmt_destroy(struct stmt *stmt)
+ {
+-	xfree(stmt->log.prefix);
++	expr_free(stmt->log.prefix);
+ }
+ 
+ static const struct stmt_ops log_stmt_ops = {
 -- 
-paul moore
-www.paul-moore.com
+2.20.1
+
