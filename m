@@ -2,336 +2,134 @@ Return-Path: <SRS0=D3ak=AT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA3E4C433E0
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:20:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EA76C433E1
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:46:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB6312065F
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:20:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 75D9C207F9
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:46:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726211AbgGHRUH (ORCPT
+        id S1728502AbgGHRqW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Jul 2020 13:20:07 -0400
-Received: from ja.ssi.bg ([178.16.129.10]:48730 "EHLO ja.ssi.bg"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725446AbgGHRUH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Jul 2020 13:20:07 -0400
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id 068HJtKu007607;
-        Wed, 8 Jul 2020 20:19:55 +0300
-Date:   Wed, 8 Jul 2020 20:19:55 +0300 (EEST)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Andrew Sy Kim <kim.andrewsy@gmail.com>
-cc:     Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net-next] ipvs: queue delayed work to expire no destination
- connections if expire_nodest_conn=1
-In-Reply-To: <20200708161638.13584-1-kim.andrewsy@gmail.com>
-Message-ID: <alpine.LFD.2.23.451.2007082006311.3373@ja.home.ssi.bg>
-References: <20200708161245.GB14873@salvia> <20200708161638.13584-1-kim.andrewsy@gmail.com>
+        Wed, 8 Jul 2020 13:46:22 -0400
+Received: from correo.us.es ([193.147.175.20]:34710 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728489AbgGHRqW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Jul 2020 13:46:22 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id A2EEF3066A0
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 19:46:19 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 902C1DA78F
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 19:46:19 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 85CBBDA73D; Wed,  8 Jul 2020 19:46:19 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 63836DA722;
+        Wed,  8 Jul 2020 19:46:17 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 08 Jul 2020 19:46:17 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 3693C4265A2F;
+        Wed,  8 Jul 2020 19:46:17 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH 00/12] Netfilter/IPVS updates for net-next
+Date:   Wed,  8 Jul 2020 19:45:57 +0200
+Message-Id: <20200708174609.1343-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi,
 
-	Hello,
+The following patchset contains Netfilter updates for net-next:
 
-On Wed, 8 Jul 2020, Andrew Sy Kim wrote:
+1) Support for rejecting packets from the prerouting chain, from
+   Laura Garcia Liebana.
 
-> When expire_nodest_conn=1 and a destination is deleted, IPVS does not
-> expire the existing connections until the next matching incoming packet.
-> If there are many connection entries from a single client to a single
-> destination, many packets may get dropped before all the connections are
-> expired (more likely with lots of UDP traffic). An optimization can be
-> made where upon deletion of a destination, IPVS queues up delayed work
-> to immediately expire any connections with a deleted destination. This
-> ensures any reused source ports from a client (within the IPVS timeouts)
-> are scheduled to new real servers instead of silently dropped.
-> 
-> Signed-off-by: Andrew Sy Kim <kim.andrewsy@gmail.com>
+2) Remove useless assignment in pipapo, from Stefano Brivio.
 
-	OK, patch content is same, subject has "ipvs:" prefix,
-empty line after Signed-off-by is removed, so this patch can
-be applied without any modifications.
+3) On demand hook registration in IPVS, from Julian Anastasov.
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
+4) Expire IPVS connection from process context to not overload
+   timers, also from Julian.
 
-	Andrew can read Documentation/process/submitting-patches.rst
-after line 751 about using version tags and logging changes
-between versions after the --- line.
+5) Fallback to conntrack TCP tracker to handle connection reuse
+   in IPVS, from Julian Anastasov.
 
-> ---
-> This patch was applied on top of Julian's patch "ipvs: allow
-> connection reuse for unconfirmed conntrack":
-> https://marc.info/?l=netfilter-devel&m=159361668110823&w=2
-> 
->  include/net/ip_vs.h             | 29 ++++++++++++++++++++
->  net/netfilter/ipvs/ip_vs_conn.c | 39 +++++++++++++++++++++++++++
->  net/netfilter/ipvs/ip_vs_core.c | 47 ++++++++++++++-------------------
->  net/netfilter/ipvs/ip_vs_ctl.c  | 22 +++++++++++++++
->  4 files changed, 110 insertions(+), 27 deletions(-)
-> 
-> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-> index 011f407b76fe..91a9e1d590a6 100644
-> --- a/include/net/ip_vs.h
-> +++ b/include/net/ip_vs.h
-> @@ -14,6 +14,7 @@
->  #include <linux/spinlock.h>             /* for struct rwlock_t */
->  #include <linux/atomic.h>               /* for struct atomic_t */
->  #include <linux/refcount.h>             /* for struct refcount_t */
-> +#include <linux/workqueue.h>
->  
->  #include <linux/compiler.h>
->  #include <linux/timer.h>
-> @@ -886,6 +887,8 @@ struct netns_ipvs {
->  	atomic_t		conn_out_counter;
->  
->  #ifdef CONFIG_SYSCTL
-> +	/* delayed work for expiring no dest connections */
-> +	struct delayed_work	expire_nodest_conn_work;
->  	/* 1/rate drop and drop-entry variables */
->  	struct delayed_work	defense_work;   /* Work handler */
->  	int			drop_rate;
-> @@ -1051,6 +1054,11 @@ static inline int sysctl_conn_reuse_mode(struct netns_ipvs *ipvs)
->  	return ipvs->sysctl_conn_reuse_mode;
->  }
->  
-> +static inline int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs)
-> +{
-> +	return ipvs->sysctl_expire_nodest_conn;
-> +}
-> +
->  static inline int sysctl_schedule_icmp(struct netns_ipvs *ipvs)
->  {
->  	return ipvs->sysctl_schedule_icmp;
-> @@ -1138,6 +1146,11 @@ static inline int sysctl_conn_reuse_mode(struct netns_ipvs *ipvs)
->  	return 1;
->  }
->  
-> +static inline int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs)
-> +{
-> +	return 0;
-> +}
-> +
->  static inline int sysctl_schedule_icmp(struct netns_ipvs *ipvs)
->  {
->  	return 0;
-> @@ -1507,6 +1520,22 @@ static inline int ip_vs_todrop(struct netns_ipvs *ipvs)
->  static inline int ip_vs_todrop(struct netns_ipvs *ipvs) { return 0; }
->  #endif
->  
-> +#ifdef CONFIG_SYSCTL
-> +/* Enqueue delayed work for expiring no dest connections
-> + * Only run when sysctl_expire_nodest=1
-> + */
-> +static inline void ip_vs_enqueue_expire_nodest_conns(struct netns_ipvs *ipvs)
-> +{
-> +	if (sysctl_expire_nodest_conn(ipvs))
-> +		queue_delayed_work(system_long_wq,
-> +				   &ipvs->expire_nodest_conn_work, 1);
-> +}
-> +
-> +void ip_vs_expire_nodest_conn_flush(struct netns_ipvs *ipvs);
-> +#else
-> +static inline void ip_vs_enqueue_expire_nodest_conns(struct netns_ipvs) {}
-> +#endif
-> +
->  #define IP_VS_DFWD_METHOD(dest) (atomic_read(&(dest)->conn_flags) & \
->  				 IP_VS_CONN_F_FWD_MASK)
->  
-> diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-> index b3921ae92740..a5e9b2d55e57 100644
-> --- a/net/netfilter/ipvs/ip_vs_conn.c
-> +++ b/net/netfilter/ipvs/ip_vs_conn.c
-> @@ -1389,6 +1389,45 @@ static void ip_vs_conn_flush(struct netns_ipvs *ipvs)
->  		goto flush_again;
->  	}
->  }
-> +
-> +#ifdef CONFIG_SYSCTL
-> +void ip_vs_expire_nodest_conn_flush(struct netns_ipvs *ipvs)
-> +{
-> +	int idx;
-> +	struct ip_vs_conn *cp, *cp_c;
-> +	struct ip_vs_dest *dest;
-> +
-> +	rcu_read_lock();
-> +	for (idx = 0; idx < ip_vs_conn_tab_size; idx++) {
-> +		hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[idx], c_list) {
-> +			if (cp->ipvs != ipvs)
-> +				continue;
-> +
-> +			dest = cp->dest;
-> +			if (!dest || (dest->flags & IP_VS_DEST_F_AVAILABLE))
-> +				continue;
-> +
-> +			if (atomic_read(&cp->n_control))
-> +				continue;
-> +
-> +			cp_c = cp->control;
-> +			IP_VS_DBG(4, "del connection\n");
-> +			ip_vs_conn_del(cp);
-> +			if (cp_c && !atomic_read(&cp_c->n_control)) {
-> +				IP_VS_DBG(4, "del controlling connection\n");
-> +				ip_vs_conn_del(cp_c);
-> +			}
-> +		}
-> +		cond_resched_rcu();
-> +
-> +		/* netns clean up started, abort delayed work */
-> +		if (!ipvs->enable)
-> +			return;
-> +	}
-> +	rcu_read_unlock();
-> +}
-> +#endif
-> +
->  /*
->   * per netns init and exit
->   */
-> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-> index b4a6b7662f3f..e3668a6e54e4 100644
-> --- a/net/netfilter/ipvs/ip_vs_core.c
-> +++ b/net/netfilter/ipvs/ip_vs_core.c
-> @@ -694,16 +694,10 @@ static int sysctl_nat_icmp_send(struct netns_ipvs *ipvs)
->  	return ipvs->sysctl_nat_icmp_send;
->  }
->  
-> -static int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs)
-> -{
-> -	return ipvs->sysctl_expire_nodest_conn;
-> -}
-> -
->  #else
->  
->  static int sysctl_snat_reroute(struct netns_ipvs *ipvs) { return 0; }
->  static int sysctl_nat_icmp_send(struct netns_ipvs *ipvs) { return 0; }
-> -static int sysctl_expire_nodest_conn(struct netns_ipvs *ipvs) { return 0; }
->  
->  #endif
->  
-> @@ -2097,36 +2091,35 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
->  		}
->  	}
->  
-> -	if (unlikely(!cp)) {
-> -		int v;
-> -
-> -		if (!ip_vs_try_to_schedule(ipvs, af, skb, pd, &v, &cp, &iph))
-> -			return v;
-> -	}
-> -
-> -	IP_VS_DBG_PKT(11, af, pp, skb, iph.off, "Incoming packet");
-> -
->  	/* Check the server status */
-> -	if (cp->dest && !(cp->dest->flags & IP_VS_DEST_F_AVAILABLE)) {
-> +	if (cp && cp->dest && !(cp->dest->flags & IP_VS_DEST_F_AVAILABLE)) {
->  		/* the destination server is not available */
-> +		if (sysctl_expire_nodest_conn(ipvs)) {
-> +			bool old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
->  
-> -		__u32 flags = cp->flags;
-> -
-> -		/* when timer already started, silently drop the packet.*/
-> -		if (timer_pending(&cp->timer))
-> -			__ip_vs_conn_put(cp);
-> -		else
-> -			ip_vs_conn_put(cp);
-> +			if (!old_ct)
-> +				cp->flags &= ~IP_VS_CONN_F_NFCT;
->  
-> -		if (sysctl_expire_nodest_conn(ipvs) &&
-> -		    !(flags & IP_VS_CONN_F_ONE_PACKET)) {
-> -			/* try to expire the connection immediately */
->  			ip_vs_conn_expire_now(cp);
-> +			__ip_vs_conn_put(cp);
-> +			if (old_ct)
-> +				return NF_DROP;
-> +			cp = NULL;
-> +		} else {
-> +			__ip_vs_conn_put(cp);
-> +			return NF_DROP;
->  		}
-> +	}
->  
-> -		return NF_DROP;
-> +	if (unlikely(!cp)) {
-> +		int v;
-> +
-> +		if (!ip_vs_try_to_schedule(ipvs, af, skb, pd, &v, &cp, &iph))
-> +			return v;
->  	}
->  
-> +	IP_VS_DBG_PKT(11, af, pp, skb, iph.off, "Incoming packet");
-> +
->  	ip_vs_in_stats(cp, skb);
->  	ip_vs_set_state(cp, IP_VS_DIR_INPUT, skb, pd);
->  	if (cp->packet_xmit)
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index 4af83f466dfc..f984d2c881ff 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -210,6 +210,17 @@ static void update_defense_level(struct netns_ipvs *ipvs)
->  	local_bh_enable();
->  }
->  
-> +/* Handler for delayed work for expiring no
-> + * destination connections
-> + */
-> +static void expire_nodest_conn_handler(struct work_struct *work)
-> +{
-> +	struct netns_ipvs *ipvs;
-> +
-> +	ipvs = container_of(work, struct netns_ipvs,
-> +			    expire_nodest_conn_work.work);
-> +	ip_vs_expire_nodest_conn_flush(ipvs);
-> +}
->  
->  /*
->   *	Timer for checking the defense
-> @@ -1164,6 +1175,12 @@ static void __ip_vs_del_dest(struct netns_ipvs *ipvs, struct ip_vs_dest *dest,
->  	list_add(&dest->t_list, &ipvs->dest_trash);
->  	dest->idle_start = 0;
->  	spin_unlock_bh(&ipvs->dest_trash_lock);
-> +
-> +	/* Queue up delayed work to expire all no destination connections.
-> +	 * No-op when CONFIG_SYSCTL is disabled.
-> +	 */
-> +	if (!cleanup)
-> +		ip_vs_enqueue_expire_nodest_conns(ipvs);
->  }
->  
->  
-> @@ -4086,6 +4103,10 @@ static int __net_init ip_vs_control_net_init_sysctl(struct netns_ipvs *ipvs)
->  	queue_delayed_work(system_long_wq, &ipvs->defense_work,
->  			   DEFENSE_TIMER_PERIOD);
->  
-> +	/* Init delayed work for expiring no dest conn */
-> +	INIT_DELAYED_WORK(&ipvs->expire_nodest_conn_work,
-> +			  expire_nodest_conn_handler);
-> +
->  	return 0;
->  }
->  
-> @@ -4093,6 +4114,7 @@ static void __net_exit ip_vs_control_net_cleanup_sysctl(struct netns_ipvs *ipvs)
->  {
->  	struct net *net = ipvs->net;
->  
-> +	cancel_delayed_work_sync(&ipvs->expire_nodest_conn_work);
->  	cancel_delayed_work_sync(&ipvs->defense_work);
->  	cancel_work_sync(&ipvs->defense_work.work);
->  	unregister_net_sysctl_table(ipvs->sysctl_hdr);
-> -- 
-> 2.20.1
+6) Several patches to support for chain bindings.
 
-Regards
+7) Expose enum nft_chain_flags through UAPI.
 
---
-Julian Anastasov <ja@ssi.bg>
+8) Reject unsupported chain flags from the netlink control plane.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+Thank you.
+
+----------------------------------------------------------------
+
+The following changes since commit 5fb62372a0207f1514fa6052c51991198c46ffe2:
+
+  Merge branch 'dpaa2-eth-send-a-scatter-gather-FD-instead-of-realloc-ing' (2020-06-29 17:42:48 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
+
+for you to fetch changes up to c1f79a2eefdcc0aef5d7a911c27a3f75f1936ecd:
+
+  netfilter: nf_tables: reject unsupported chain flags (2020-07-04 02:51:28 +0200)
+
+----------------------------------------------------------------
+Julian Anastasov (3):
+      ipvs: register hooks only with services
+      ipvs: avoid expiring many connections from timer
+      ipvs: allow connection reuse for unconfirmed conntrack
+
+Laura Garcia Liebana (1):
+      netfilter: introduce support for reject at prerouting stage
+
+Pablo Neira Ayuso (7):
+      netfilter: nf_tables: add NFTA_CHAIN_ID attribute
+      netfilter: nf_tables: add NFTA_RULE_CHAIN_ID attribute
+      netfilter: nf_tables: add NFTA_VERDICT_CHAIN_ID attribute
+      netfilter: nf_tables: expose enum nft_chain_flags through UAPI
+      netfilter: nf_tables: add nft_chain_add()
+      netfilter: nf_tables: add NFT_CHAIN_BINDING
+      netfilter: nf_tables: reject unsupported chain flags
+
+Stefano Brivio (1):
+      netfilter: nft_set_pipapo: Drop useless assignment of scratch  map index on insert
+
+ include/net/ip_vs.h                      |  15 ++-
+ include/net/netfilter/nf_tables.h        |  23 ++--
+ include/uapi/linux/netfilter/nf_tables.h |  14 +++
+ net/ipv4/netfilter/nf_reject_ipv4.c      |  21 ++++
+ net/ipv6/netfilter/nf_reject_ipv6.c      |  26 +++++
+ net/netfilter/ipvs/ip_vs_conn.c          |  53 ++++++---
+ net/netfilter/ipvs/ip_vs_core.c          |  92 +++++++++++----
+ net/netfilter/ipvs/ip_vs_ctl.c           |  29 ++++-
+ net/netfilter/nf_tables_api.c            | 188 +++++++++++++++++++++++++------
+ net/netfilter/nft_immediate.c            |  51 +++++++++
+ net/netfilter/nft_reject.c               |   3 +-
+ net/netfilter/nft_set_pipapo.c           |   2 -
+ 12 files changed, 428 insertions(+), 89 deletions(-)
