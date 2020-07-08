@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC763C433E2
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:46:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DDC6C433E3
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:47:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DCAD4206E2
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:46:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 088BB206E9
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:47:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727870AbgGHRqx (ORCPT
+        id S1726758AbgGHRrE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Jul 2020 13:46:53 -0400
-Received: from correo.us.es ([193.147.175.20]:34780 "EHLO mail.us.es"
+        Wed, 8 Jul 2020 13:47:04 -0400
+Received: from correo.us.es ([193.147.175.20]:34756 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728551AbgGHRq0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Jul 2020 13:46:26 -0400
+        id S1728518AbgGHRqY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Jul 2020 13:46:24 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3BA553066B1
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 19:46:24 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id A67B13066AB
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 19:46:22 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2A5F8DA792
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 19:46:24 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 959E4DA798
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 19:46:22 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 1234BDA84D; Wed,  8 Jul 2020 19:46:24 +0200 (CEST)
+        id 8ABE3DA792; Wed,  8 Jul 2020 19:46:22 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DA570DA840;
-        Wed,  8 Jul 2020 19:46:21 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 44A9ADA78E;
+        Wed,  8 Jul 2020 19:46:20 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 08 Jul 2020 19:46:21 +0200 (CEST)
+ Wed, 08 Jul 2020 19:46:20 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id ACF954265A2F;
-        Wed,  8 Jul 2020 19:46:21 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 14AB24265A2F;
+        Wed,  8 Jul 2020 19:46:20 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 06/12] netfilter: nf_tables: add NFTA_CHAIN_ID attribute
-Date:   Wed,  8 Jul 2020 19:46:03 +0200
-Message-Id: <20200708174609.1343-7-pablo@netfilter.org>
+Subject: [PATCH 04/12] ipvs: avoid expiring many connections from timer
+Date:   Wed,  8 Jul 2020 19:46:01 +0200
+Message-Id: <20200708174609.1343-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200708174609.1343-1-pablo@netfilter.org>
 References: <20200708174609.1343-1-pablo@netfilter.org>
@@ -56,116 +56,142 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This netlink attribute allows you to refer to chains inside a
-transaction as an alternative to the name and the handle. The chain
-binding support requires this new chain ID approach.
+From: Julian Anastasov <ja@ssi.bg>
 
+Add new functions ip_vs_conn_del() and ip_vs_conn_del_put()
+to release many IPVS connections in process context.
+They are suitable for connections found in table
+when we do not want to overload the timers.
+
+Currently, the change is useful for the dropentry delayed
+work but it will be used also in following patch
+when flushing connections to failed destinations.
+
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Reviewed-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h        |  3 +++
- include/uapi/linux/netfilter/nf_tables.h |  2 ++
- net/netfilter/nf_tables_api.c            | 15 ++++++++++++---
- 3 files changed, 17 insertions(+), 3 deletions(-)
+ net/netfilter/ipvs/ip_vs_conn.c | 53 +++++++++++++++++++++++----------
+ net/netfilter/ipvs/ip_vs_ctl.c  |  6 ++--
+ 2 files changed, 42 insertions(+), 17 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 6f0f6fca9ac3..3e5226684017 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1433,6 +1433,7 @@ struct nft_trans_chain {
- 	char				*name;
- 	struct nft_stats __percpu	*stats;
- 	u8				policy;
-+	u32				chain_id;
- };
- 
- #define nft_trans_chain_update(trans)	\
-@@ -1443,6 +1444,8 @@ struct nft_trans_chain {
- 	(((struct nft_trans_chain *)trans->data)->stats)
- #define nft_trans_chain_policy(trans)	\
- 	(((struct nft_trans_chain *)trans->data)->policy)
-+#define nft_trans_chain_id(trans)	\
-+	(((struct nft_trans_chain *)trans->data)->chain_id)
- 
- struct nft_trans_table {
- 	bool				update;
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 4565456c0ef4..477779595b78 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -196,6 +196,7 @@ enum nft_table_attributes {
-  * @NFTA_CHAIN_TYPE: type name of the string (NLA_NUL_STRING)
-  * @NFTA_CHAIN_COUNTERS: counter specification of the chain (NLA_NESTED: nft_counter_attributes)
-  * @NFTA_CHAIN_FLAGS: chain flags
-+ * @NFTA_CHAIN_ID: uniquely identifies a chain in a transaction (NLA_U32)
-  */
- enum nft_chain_attributes {
- 	NFTA_CHAIN_UNSPEC,
-@@ -209,6 +210,7 @@ enum nft_chain_attributes {
- 	NFTA_CHAIN_COUNTERS,
- 	NFTA_CHAIN_PAD,
- 	NFTA_CHAIN_FLAGS,
-+	NFTA_CHAIN_ID,
- 	__NFTA_CHAIN_MAX
- };
- #define NFTA_CHAIN_MAX		(__NFTA_CHAIN_MAX - 1)
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 7647ecfa0d40..650ef0dd0773 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -280,9 +280,15 @@ static struct nft_trans *nft_trans_chain_add(struct nft_ctx *ctx, int msg_type)
- 	if (trans == NULL)
- 		return ERR_PTR(-ENOMEM);
- 
--	if (msg_type == NFT_MSG_NEWCHAIN)
-+	if (msg_type == NFT_MSG_NEWCHAIN) {
- 		nft_activate_next(ctx->net, ctx->chain);
- 
-+		if (ctx->nla[NFTA_CHAIN_ID]) {
-+			nft_trans_chain_id(trans) =
-+				ntohl(nla_get_be32(ctx->nla[NFTA_CHAIN_ID]));
-+		}
-+	}
-+
- 	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
- 	return trans;
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 02f2f636798d..b3921ae92740 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -807,6 +807,31 @@ static void ip_vs_conn_rcu_free(struct rcu_head *head)
+ 	kmem_cache_free(ip_vs_conn_cachep, cp);
  }
-@@ -1274,6 +1280,7 @@ static const struct nla_policy nft_chain_policy[NFTA_CHAIN_MAX + 1] = {
- 				    .len = NFT_MODULE_AUTOLOAD_LIMIT },
- 	[NFTA_CHAIN_COUNTERS]	= { .type = NLA_NESTED },
- 	[NFTA_CHAIN_FLAGS]	= { .type = NLA_U32 },
-+	[NFTA_CHAIN_ID]		= { .type = NLA_U32 },
- };
  
- static const struct nla_policy nft_hook_policy[NFTA_HOOK_MAX + 1] = {
-@@ -2154,9 +2161,9 @@ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
- 	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
- 	u8 genmask = nft_genmask_next(net);
- 	int family = nfmsg->nfgen_family;
-+	struct nft_chain *chain = NULL;
- 	const struct nlattr *attr;
- 	struct nft_table *table;
--	struct nft_chain *chain;
- 	u8 policy = NF_ACCEPT;
- 	struct nft_ctx ctx;
- 	u64 handle = 0;
-@@ -2181,7 +2188,7 @@ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
- 			return PTR_ERR(chain);
- 		}
- 		attr = nla[NFTA_CHAIN_HANDLE];
--	} else {
-+	} else if (nla[NFTA_CHAIN_NAME]) {
- 		chain = nft_chain_lookup(net, table, attr, genmask);
- 		if (IS_ERR(chain)) {
- 			if (PTR_ERR(chain) != -ENOENT) {
-@@ -2190,6 +2197,8 @@ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
++/* Try to delete connection while not holding reference */
++static void ip_vs_conn_del(struct ip_vs_conn *cp)
++{
++	if (del_timer(&cp->timer)) {
++		/* Drop cp->control chain too */
++		if (cp->control)
++			cp->timeout = 0;
++		ip_vs_conn_expire(&cp->timer);
++	}
++}
++
++/* Try to delete connection while holding reference */
++static void ip_vs_conn_del_put(struct ip_vs_conn *cp)
++{
++	if (del_timer(&cp->timer)) {
++		/* Drop cp->control chain too */
++		if (cp->control)
++			cp->timeout = 0;
++		__ip_vs_conn_put(cp);
++		ip_vs_conn_expire(&cp->timer);
++	} else {
++		__ip_vs_conn_put(cp);
++	}
++}
++
+ static void ip_vs_conn_expire(struct timer_list *t)
+ {
+ 	struct ip_vs_conn *cp = from_timer(cp, t, timer);
+@@ -827,14 +852,17 @@ static void ip_vs_conn_expire(struct timer_list *t)
+ 
+ 		/* does anybody control me? */
+ 		if (ct) {
++			bool has_ref = !cp->timeout && __ip_vs_conn_get(ct);
++
+ 			ip_vs_control_del(cp);
+ 			/* Drop CTL or non-assured TPL if not used anymore */
+-			if (!cp->timeout && !atomic_read(&ct->n_control) &&
++			if (has_ref && !atomic_read(&ct->n_control) &&
+ 			    (!(ct->flags & IP_VS_CONN_F_TEMPLATE) ||
+ 			     !(ct->state & IP_VS_CTPL_S_ASSURED))) {
+ 				IP_VS_DBG(4, "drop controlling connection\n");
+-				ct->timeout = 0;
+-				ip_vs_conn_expire_now(ct);
++				ip_vs_conn_del_put(ct);
++			} else if (has_ref) {
++				__ip_vs_conn_put(ct);
  			}
- 			chain = NULL;
  		}
-+	} else if (!nla[NFTA_CHAIN_ID]) {
-+		return -EINVAL;
- 	}
  
- 	if (nla[NFTA_CHAIN_POLICY]) {
+@@ -1317,8 +1345,7 @@ void ip_vs_random_dropentry(struct netns_ipvs *ipvs)
+ 
+ drop:
+ 			IP_VS_DBG(4, "drop connection\n");
+-			cp->timeout = 0;
+-			ip_vs_conn_expire_now(cp);
++			ip_vs_conn_del(cp);
+ 		}
+ 		cond_resched_rcu();
+ 	}
+@@ -1341,19 +1368,15 @@ static void ip_vs_conn_flush(struct netns_ipvs *ipvs)
+ 		hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[idx], c_list) {
+ 			if (cp->ipvs != ipvs)
+ 				continue;
+-			/* As timers are expired in LIFO order, restart
+-			 * the timer of controlling connection first, so
+-			 * that it is expired after us.
+-			 */
++			if (atomic_read(&cp->n_control))
++				continue;
+ 			cp_c = cp->control;
+-			/* cp->control is valid only with reference to cp */
+-			if (cp_c && __ip_vs_conn_get(cp)) {
++			IP_VS_DBG(4, "del connection\n");
++			ip_vs_conn_del(cp);
++			if (cp_c && !atomic_read(&cp_c->n_control)) {
+ 				IP_VS_DBG(4, "del controlling connection\n");
+-				ip_vs_conn_expire_now(cp_c);
+-				__ip_vs_conn_put(cp);
++				ip_vs_conn_del(cp_c);
+ 			}
+-			IP_VS_DBG(4, "del connection\n");
+-			ip_vs_conn_expire_now(cp);
+ 		}
+ 		cond_resched_rcu();
+ 	}
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 0eed388c960b..4af83f466dfc 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -224,7 +224,8 @@ static void defense_work_handler(struct work_struct *work)
+ 	update_defense_level(ipvs);
+ 	if (atomic_read(&ipvs->dropentry))
+ 		ip_vs_random_dropentry(ipvs);
+-	schedule_delayed_work(&ipvs->defense_work, DEFENSE_TIMER_PERIOD);
++	queue_delayed_work(system_long_wq, &ipvs->defense_work,
++			   DEFENSE_TIMER_PERIOD);
+ }
+ #endif
+ 
+@@ -4082,7 +4083,8 @@ static int __net_init ip_vs_control_net_init_sysctl(struct netns_ipvs *ipvs)
+ 	ipvs->sysctl_tbl = tbl;
+ 	/* Schedule defense work */
+ 	INIT_DELAYED_WORK(&ipvs->defense_work, defense_work_handler);
+-	schedule_delayed_work(&ipvs->defense_work, DEFENSE_TIMER_PERIOD);
++	queue_delayed_work(system_long_wq, &ipvs->defense_work,
++			   DEFENSE_TIMER_PERIOD);
+ 
+ 	return 0;
+ }
 -- 
 2.20.1
 
