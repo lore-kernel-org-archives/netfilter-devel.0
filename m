@@ -2,53 +2,53 @@ Return-Path: <SRS0=D3ak=AT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EA76C433E1
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:46:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCA8BC433E0
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:46:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 75D9C207F9
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:46:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ACEB0206E2
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 17:46:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728502AbgGHRqW (ORCPT
+        id S1728611AbgGHRq1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Jul 2020 13:46:22 -0400
-Received: from correo.us.es ([193.147.175.20]:34710 "EHLO mail.us.es"
+        Wed, 8 Jul 2020 13:46:27 -0400
+Received: from correo.us.es ([193.147.175.20]:34792 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728489AbgGHRqW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Jul 2020 13:46:22 -0400
+        id S1728553AbgGHRq0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Jul 2020 13:46:26 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A2EEF3066A0
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 19:46:19 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id B3A933066AE
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 19:46:24 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 902C1DA78F
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 19:46:19 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A13C2DA798
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 19:46:24 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 85CBBDA73D; Wed,  8 Jul 2020 19:46:19 +0200 (CEST)
+        id 9FE10DA797; Wed,  8 Jul 2020 19:46:24 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 63836DA722;
-        Wed,  8 Jul 2020 19:46:17 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7118BDA73D;
+        Wed,  8 Jul 2020 19:46:22 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 08 Jul 2020 19:46:17 +0200 (CEST)
+ Wed, 08 Jul 2020 19:46:22 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 3693C4265A2F;
-        Wed,  8 Jul 2020 19:46:17 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 430024265A2F;
+        Wed,  8 Jul 2020 19:46:22 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 00/12] Netfilter/IPVS updates for net-next
-Date:   Wed,  8 Jul 2020 19:45:57 +0200
-Message-Id: <20200708174609.1343-1-pablo@netfilter.org>
+Subject: [PATCH 07/12] netfilter: nf_tables: add NFTA_RULE_CHAIN_ID attribute
+Date:   Wed,  8 Jul 2020 19:46:04 +0200
+Message-Id: <20200708174609.1343-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200708174609.1343-1-pablo@netfilter.org>
+References: <20200708174609.1343-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -56,80 +56,88 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+This new netlink attribute allows you to add rules to chains by the
+chain ID.
 
-The following patchset contains Netfilter updates for net-next:
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/uapi/linux/netfilter/nf_tables.h |  1 +
+ net/netfilter/nf_tables_api.c            | 36 +++++++++++++++++++++---
+ 2 files changed, 33 insertions(+), 4 deletions(-)
 
-1) Support for rejecting packets from the prerouting chain, from
-   Laura Garcia Liebana.
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 477779595b78..2304d1b7ba5e 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -240,6 +240,7 @@ enum nft_rule_attributes {
+ 	NFTA_RULE_PAD,
+ 	NFTA_RULE_ID,
+ 	NFTA_RULE_POSITION_ID,
++	NFTA_RULE_CHAIN_ID,
+ 	__NFTA_RULE_MAX
+ };
+ #define NFTA_RULE_MAX		(__NFTA_RULE_MAX - 1)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 650ef0dd0773..fbe8f9209813 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2153,6 +2153,22 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 	return err;
+ }
+ 
++static struct nft_chain *nft_chain_lookup_byid(const struct net *net,
++					       const struct nlattr *nla)
++{
++	u32 id = ntohl(nla_get_be32(nla));
++	struct nft_trans *trans;
++
++	list_for_each_entry(trans, &net->nft.commit_list, list) {
++		struct nft_chain *chain = trans->ctx.chain;
++
++		if (trans->msg_type == NFT_MSG_NEWCHAIN &&
++		    id == nft_trans_chain_id(trans))
++			return chain;
++	}
++	return ERR_PTR(-ENOENT);
++}
++
+ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
+ 			      struct sk_buff *skb, const struct nlmsghdr *nlh,
+ 			      const struct nlattr * const nla[],
+@@ -2633,6 +2649,7 @@ static const struct nla_policy nft_rule_policy[NFTA_RULE_MAX + 1] = {
+ 				    .len = NFT_USERDATA_MAXLEN },
+ 	[NFTA_RULE_ID]		= { .type = NLA_U32 },
+ 	[NFTA_RULE_POSITION_ID]	= { .type = NLA_U32 },
++	[NFTA_RULE_CHAIN_ID]	= { .type = NLA_U32 },
+ };
+ 
+ static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
+@@ -3039,10 +3056,21 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
+ 		return PTR_ERR(table);
+ 	}
+ 
+-	chain = nft_chain_lookup(net, table, nla[NFTA_RULE_CHAIN], genmask);
+-	if (IS_ERR(chain)) {
+-		NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_CHAIN]);
+-		return PTR_ERR(chain);
++	if (nla[NFTA_RULE_CHAIN]) {
++		chain = nft_chain_lookup(net, table, nla[NFTA_RULE_CHAIN],
++					 genmask);
++		if (IS_ERR(chain)) {
++			NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_CHAIN]);
++			return PTR_ERR(chain);
++		}
++	} else if (nla[NFTA_RULE_CHAIN_ID]) {
++		chain = nft_chain_lookup_byid(net, nla[NFTA_RULE_CHAIN_ID]);
++		if (IS_ERR(chain)) {
++			NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_CHAIN_ID]);
++			return PTR_ERR(chain);
++		}
++	} else {
++		return -EINVAL;
+ 	}
+ 
+ 	if (nla[NFTA_RULE_HANDLE]) {
+-- 
+2.20.1
 
-2) Remove useless assignment in pipapo, from Stefano Brivio.
-
-3) On demand hook registration in IPVS, from Julian Anastasov.
-
-4) Expire IPVS connection from process context to not overload
-   timers, also from Julian.
-
-5) Fallback to conntrack TCP tracker to handle connection reuse
-   in IPVS, from Julian Anastasov.
-
-6) Several patches to support for chain bindings.
-
-7) Expose enum nft_chain_flags through UAPI.
-
-8) Reject unsupported chain flags from the netlink control plane.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
-
-Thank you.
-
-----------------------------------------------------------------
-
-The following changes since commit 5fb62372a0207f1514fa6052c51991198c46ffe2:
-
-  Merge branch 'dpaa2-eth-send-a-scatter-gather-FD-instead-of-realloc-ing' (2020-06-29 17:42:48 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
-
-for you to fetch changes up to c1f79a2eefdcc0aef5d7a911c27a3f75f1936ecd:
-
-  netfilter: nf_tables: reject unsupported chain flags (2020-07-04 02:51:28 +0200)
-
-----------------------------------------------------------------
-Julian Anastasov (3):
-      ipvs: register hooks only with services
-      ipvs: avoid expiring many connections from timer
-      ipvs: allow connection reuse for unconfirmed conntrack
-
-Laura Garcia Liebana (1):
-      netfilter: introduce support for reject at prerouting stage
-
-Pablo Neira Ayuso (7):
-      netfilter: nf_tables: add NFTA_CHAIN_ID attribute
-      netfilter: nf_tables: add NFTA_RULE_CHAIN_ID attribute
-      netfilter: nf_tables: add NFTA_VERDICT_CHAIN_ID attribute
-      netfilter: nf_tables: expose enum nft_chain_flags through UAPI
-      netfilter: nf_tables: add nft_chain_add()
-      netfilter: nf_tables: add NFT_CHAIN_BINDING
-      netfilter: nf_tables: reject unsupported chain flags
-
-Stefano Brivio (1):
-      netfilter: nft_set_pipapo: Drop useless assignment of scratch  map index on insert
-
- include/net/ip_vs.h                      |  15 ++-
- include/net/netfilter/nf_tables.h        |  23 ++--
- include/uapi/linux/netfilter/nf_tables.h |  14 +++
- net/ipv4/netfilter/nf_reject_ipv4.c      |  21 ++++
- net/ipv6/netfilter/nf_reject_ipv6.c      |  26 +++++
- net/netfilter/ipvs/ip_vs_conn.c          |  53 ++++++---
- net/netfilter/ipvs/ip_vs_core.c          |  92 +++++++++++----
- net/netfilter/ipvs/ip_vs_ctl.c           |  29 ++++-
- net/netfilter/nf_tables_api.c            | 188 +++++++++++++++++++++++++------
- net/netfilter/nft_immediate.c            |  51 +++++++++
- net/netfilter/nft_reject.c               |   3 +-
- net/netfilter/nft_set_pipapo.c           |   2 -
- 12 files changed, 428 insertions(+), 89 deletions(-)
