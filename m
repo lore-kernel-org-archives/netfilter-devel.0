@@ -1,422 +1,256 @@
-Return-Path: <SRS0=uhap=AS=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=D3ak=AT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DB90C433E0
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Jul 2020 19:42:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4906C433DF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 01:42:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 06C07206BE
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Jul 2020 19:41:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594150920;
-	bh=MKiankuisiqEc/WQL0kZBzbmZ+hawSXGCP9/kjSXctU=;
-	h=Date:From:To:Cc:Subject:List-ID:From;
-	b=NPvkS/747q76Z7Aw3QkkVJLpFd4eJQpk6nxjIx5mptlYaERxrri2apthChDkDZsCR
-	 TNchcqjRahmcKRoSSR73s/11IgyP/4im5MHRVX13sCSLrM0YXj2Vs9VknmI+Y/BC/c
-	 vR4nTBGLk0C5oqMWxSuAWyjL8T+aPXTsZGqOSSYM=
+	by mail.kernel.org (Postfix) with ESMTP id 8FC6620774
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 01:42:47 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="PZ4JRGZR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728244AbgGGTlz (ORCPT
+        id S1729130AbgGHBmp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 Jul 2020 15:41:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56518 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726763AbgGGTly (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Jul 2020 15:41:54 -0400
-Received: from embeddedor (unknown [200.39.26.250])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8ECE6206BE;
-        Tue,  7 Jul 2020 19:41:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594150912;
-        bh=MKiankuisiqEc/WQL0kZBzbmZ+hawSXGCP9/kjSXctU=;
-        h=Date:From:To:Cc:Subject:From;
-        b=MtHtJjophvaS9h3syJTrxeN1cU5LRt9/9Socw+2NYaIr/VXO4Qn7Xua5t5UbMP0O9
-         fhbb7b3ZThRdbYjWuevbAHXM0yDZwbLDuRMOUWv436zU4cHA4jYqlKLkDjmXHKfyvT
-         4YduQEqoy+djjv2i5x6Peq9cn8kxOCLufo1SEtEw=
-Date:   Tue, 7 Jul 2020 14:47:17 -0500
-From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Roopa Prabhu <roopa@cumulusnetworks.com>,
-        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, bridge@lists.linux-foundation.org,
-        netdev@vger.kernel.org,
-        "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Subject: [PATCH][next] netfilter: nf_tables: Use fallthrough pseudo-keyword
-Message-ID: <20200707194717.GA3596@embeddedor>
+        Tue, 7 Jul 2020 21:42:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43972 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729113AbgGHBmp (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 7 Jul 2020 21:42:45 -0400
+Received: from mail-ed1-x544.google.com (mail-ed1-x544.google.com [IPv6:2a00:1450:4864:20::544])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C6F1C08C5E2
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Jul 2020 18:42:43 -0700 (PDT)
+Received: by mail-ed1-x544.google.com with SMTP id e22so40257502edq.8
+        for <netfilter-devel@vger.kernel.org>; Tue, 07 Jul 2020 18:42:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Vr0HrDNNXcQz20CPEZA0xNxAWROxrJKqR4BgLb+gX4s=;
+        b=PZ4JRGZRc4zRpqAd8JaJoxjLqZclbeOviMlQlmgZy5ZiGGjNe9C0k8xUi7fNmYOkNY
+         6Sx8AHonSor+GV1v8Z5OTzg0VMPRIw+JxZ/6NkP6XHOz6ba1QEvdV5GntSOqhmKmvID+
+         uqq6iR/UNCuhZQBlJHKApLV780c46V4F6TPgMl9XJkFsaDkQPcSewtpZ7wdma59cpuSa
+         OT/Y17HZEiDD+PeNIiY+gQiAXCFl0/tfGKog239WGjTCCXshe8NJCKOqep0zkNuq1mVn
+         IhGKVTbQU8haKPaZfuyi4Fs6LsmI8ffIrLKmuDPErRwv+2Dw674NvRAioa50X5sc71QI
+         oGqg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Vr0HrDNNXcQz20CPEZA0xNxAWROxrJKqR4BgLb+gX4s=;
+        b=ktCARoY4aEcLF/Oi+MAcVMRYfN8Ur66UBooDUb9vaiMgyfQ/t6QoH24u91uDScV2O/
+         flJvO0qcn7pVQW0TiGtiFdrMDAgSfAL5ldkc63ac+aKmtjlr08BJz64uSPqG/GkB8LYv
+         7jQ6Jxc3mYZDUdQud+9x4nZ9X2+lHZt0VeR+YUNNSqCEv1Abhj59pXwBurULmnEQvBhC
+         NRTWlhT8nNqqdFg1f9GrtVZHPXVmp5IPXtxZ9P4VpxmdftDKBtybMif3vKO7bNXJhRXD
+         d1MLyxeTvMy2GnttClIY8aAFYpK+nTUcwDETjfXW034aOhpHa+ph9YAch+NkkrX3W2yB
+         wl2w==
+X-Gm-Message-State: AOAM5321SmZZBq4SUZ1GHQgWVt9NeJ6MYiNP3Jn9DTdhTqumFdXDWUl8
+        Pq0ED1h6LlHpyNq0FF/WKGG0mMz2CEvMdgojH+Vr
+X-Google-Smtp-Source: ABdhPJwO+ZDB5KAHb6lbjzYaXLS3ryyhdLtNi06zlDHVmSwDEOn6n4tDRWttj6dBFy4xjaW4NpkPFMWLHPakgoFSOcQ=
+X-Received: by 2002:aa7:d6cf:: with SMTP id x15mr62837018edr.164.1594172561943;
+ Tue, 07 Jul 2020 18:42:41 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-User-Agent: Mutt/1.9.4 (2018-02-28)
+References: <cover.1593198710.git.rgb@redhat.com> <6abeb26e64489fc29b00c86b60b501c8b7316424.1593198710.git.rgb@redhat.com>
+ <CAHC9VhTx=4879F1MSXg4=Xd1i5rhEtyam6CakQhy=_ZjGtTaMA@mail.gmail.com> <20200707025014.x33eyxbankw2fbww@madcap2.tricolour.ca>
+In-Reply-To: <20200707025014.x33eyxbankw2fbww@madcap2.tricolour.ca>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Tue, 7 Jul 2020 21:42:31 -0400
+Message-ID: <CAHC9VhTTGLf9MPS_FgL1ibUVoH+YzMtPK6+2dp_j8a5o9fzftA@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V9 01/13] audit: collect audit task parameters
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
+        containers@lists.linux-foundation.org,
+        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
+        simo@redhat.com, netdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
+        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Replace the existing /* fall through */ comments and its variants with
-the new pseudo-keyword macro fallthrough[1]. Also, remove unnecessary
-fall-through markings when it is the case.
+On Mon, Jul 6, 2020 at 10:50 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2020-07-05 11:09, Paul Moore wrote:
+> > On Sat, Jun 27, 2020 at 9:21 AM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > >
+> > > The audit-related parameters in struct task_struct should ideally be
+> > > collected together and accessed through a standard audit API.
+> > >
+> > > Collect the existing loginuid, sessionid and audit_context together in a
+> > > new struct audit_task_info called "audit" in struct task_struct.
+> > >
+> > > Use kmem_cache to manage this pool of memory.
+> > > Un-inline audit_free() to be able to always recover that memory.
+> > >
+> > > Please see the upstream github issue
+> > > https://github.com/linux-audit/audit-kernel/issues/81
+> > >
+> > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> > > Acked-by: Neil Horman <nhorman@tuxdriver.com>
+> > > Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
+> > > ---
+> > >  include/linux/audit.h | 49 +++++++++++++++++++++++------------
+> > >  include/linux/sched.h |  7 +----
+> > >  init/init_task.c      |  3 +--
+> > >  init/main.c           |  2 ++
+> > >  kernel/audit.c        | 71 +++++++++++++++++++++++++++++++++++++++++++++++++--
+> > >  kernel/audit.h        |  5 ++++
+> > >  kernel/auditsc.c      | 26 ++++++++++---------
+> > >  kernel/fork.c         |  1 -
+> > >  8 files changed, 124 insertions(+), 40 deletions(-)
+> > >
+> > > diff --git a/include/linux/audit.h b/include/linux/audit.h
+> > > index 3fcd9ee49734..c2150415f9df 100644
+> > > --- a/include/linux/audit.h
+> > > +++ b/include/linux/audit.h
+> > > @@ -100,6 +100,16 @@ enum audit_nfcfgop {
+> > >         AUDIT_XT_OP_UNREGISTER,
+> > >  };
+> > >
+> > > +struct audit_task_info {
+> > > +       kuid_t                  loginuid;
+> > > +       unsigned int            sessionid;
+> > > +#ifdef CONFIG_AUDITSYSCALL
+> > > +       struct audit_context    *ctx;
+> > > +#endif
+> > > +};
+> > > +
+> > > +extern struct audit_task_info init_struct_audit;
+> > > +
+> > >  extern int is_audit_feature_set(int which);
+> > >
+> > >  extern int __init audit_register_class(int class, unsigned *list);
+> >
+> > ...
+> >
+> > > diff --git a/include/linux/sched.h b/include/linux/sched.h
+> > > index b62e6aaf28f0..2213ac670386 100644
+> > > --- a/include/linux/sched.h
+> > > +++ b/include/linux/sched.h
+> > > @@ -34,7 +34,6 @@
+> > >  #include <linux/kcsan.h>
+> > >
+> > >  /* task_struct member predeclarations (sorted alphabetically): */
+> > > -struct audit_context;
+> > >  struct backing_dev_info;
+> > >  struct bio_list;
+> > >  struct blk_plug;
+> > > @@ -946,11 +945,7 @@ struct task_struct {
+> > >         struct callback_head            *task_works;
+> > >
+> > >  #ifdef CONFIG_AUDIT
+> > > -#ifdef CONFIG_AUDITSYSCALL
+> > > -       struct audit_context            *audit_context;
+> > > -#endif
+> > > -       kuid_t                          loginuid;
+> > > -       unsigned int                    sessionid;
+> > > +       struct audit_task_info          *audit;
+> > >  #endif
+> > >         struct seccomp                  seccomp;
+> >
+> > In the early days of this patchset we talked a lot about how to handle
+> > the task_struct and the changes that would be necessary, ultimately
+> > deciding that encapsulating all of the audit fields into an
+> > audit_task_info struct.  However, what is puzzling me a bit at this
+> > moment is why we are only including audit_task_info in task_info by
+> > reference *and* making it a build time conditional (via CONFIG_AUDIT).
+> >
+> > If audit is enabled at build time it would seem that we are always
+> > going to allocate an audit_task_info struct, so I have to wonder why
+> > we don't simply embed it inside the task_info struct (similar to the
+> > seccomp struct in the snippet above?  Of course the audit_context
+> > struct needs to remain as is, I'm talking only about the
+> > task_info/audit_task_info struct.
+>
+> I agree that including the audit_task_info struct in the struct
+> task_struct would have been preferred to simplify allocation and free,
+> but the reason it was included by reference instead was to make the
+> task_struct size independent of audit so that future changes would not
+> cause as many kABI challenges.  This first change will cause kABI
+> challenges regardless, but it was future ones that we were trying to
+> ease.
+>
+> Does that match with your recollection?
 
-[1] https://www.kernel.org/doc/html/latest/process/deprecated.html?highlight=fallthrough#implicit-switch-case-fall-through
+I guess, sure.  I suppose what I was really asking was if we had a
+"good" reason for not embedding the audit_task_info struct.
+Regardless, thanks for the explanation, that was helpful.
 
-Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
----
- net/bridge/netfilter/ebtables.c         |    2 +-
- net/netfilter/ipset/ip_set_core.c       |    2 +-
- net/netfilter/nf_conntrack_h323_asn1.c  |    6 +++---
- net/netfilter/nf_conntrack_proto.c      |    2 +-
- net/netfilter/nf_conntrack_proto_tcp.c  |    2 +-
- net/netfilter/nf_conntrack_standalone.c |    2 +-
- net/netfilter/nf_nat_core.c             |   10 +++++-----
- net/netfilter/nf_synproxy_core.c        |    6 ++----
- net/netfilter/nf_tables_api.c           |    8 ++++----
- net/netfilter/nf_tables_core.c          |    2 +-
- net/netfilter/nfnetlink_cttimeout.c     |    2 +-
- net/netfilter/nft_cmp.c                 |    4 ++--
- net/netfilter/nft_ct.c                  |    4 ++--
- net/netfilter/nft_fib.c                 |    2 +-
- net/netfilter/nft_payload.c             |    2 +-
- net/netfilter/utils.c                   |    8 ++++----
- net/netfilter/x_tables.c                |    2 +-
- 17 files changed, 32 insertions(+), 34 deletions(-)
+From an upstream perspective, I think embedding the audit_task_info
+struct is the Right Thing To Do.  The code is cleaner and more robust
+if we embed the struct.
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index c83ffe912163..38e946fdd041 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -1935,7 +1935,7 @@ static int compat_mtw_from_user(const struct compat_ebt_entry_mwt *mwt,
- 			size_kern = match_size;
- 		module_put(match->me);
- 		break;
--	case EBT_COMPAT_WATCHER: /* fallthrough */
-+	case EBT_COMPAT_WATCHER:
- 	case EBT_COMPAT_TARGET:
- 		wt = xt_request_find_target(NFPROTO_BRIDGE, name,
- 					    mwt->u.revision);
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 340cb955af25..7d1f6d2da3f1 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1642,7 +1642,7 @@ ip_set_dump_do(struct sk_buff *skb, struct netlink_callback *cb)
- 				goto next_set;
- 			if (set->variant->uref)
- 				set->variant->uref(set, cb, true);
--			/* fall through */
-+			fallthrough;
- 		default:
- 			ret = set->variant->list(set, skb, cb);
- 			if (!cb->args[IPSET_CB_ARG0])
-diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
-index 573cb4481481..e697a824b001 100644
---- a/net/netfilter/nf_conntrack_h323_asn1.c
-+++ b/net/netfilter/nf_conntrack_h323_asn1.c
-@@ -257,15 +257,15 @@ static unsigned int get_uint(struct bitstr *bs, int b)
- 	case 4:
- 		v |= *bs->cur++;
- 		v <<= 8;
--		/* fall through */
-+		fallthrough;
- 	case 3:
- 		v |= *bs->cur++;
- 		v <<= 8;
--		/* fall through */
-+		fallthrough;
- 	case 2:
- 		v |= *bs->cur++;
- 		v <<= 8;
--		/* fall through */
-+		fallthrough;
- 	case 1:
- 		v |= *bs->cur++;
- 		break;
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index a0560d175a7f..95f79980348c 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -610,7 +610,7 @@ void nf_ct_netns_put(struct net *net, uint8_t nfproto)
- 	switch (nfproto) {
- 	case NFPROTO_BRIDGE:
- 		nf_ct_netns_do_put(net, NFPROTO_BRIDGE);
--		/* fall through */
-+		fallthrough;
- 	case NFPROTO_INET:
- 		nf_ct_netns_do_put(net, NFPROTO_IPV4);
- 		nf_ct_netns_do_put(net, NFPROTO_IPV6);
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 1926fd56df56..6892e497781c 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -900,7 +900,7 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 				return -NF_REPEAT;
- 			return NF_DROP;
- 		}
--		/* Fall through */
-+		fallthrough;
- 	case TCP_CONNTRACK_IGNORE:
- 		/* Ignored packets:
- 		 *
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 6a26299cb064..a604f43e3e6b 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -60,7 +60,7 @@ print_tuple(struct seq_file *s, const struct nf_conntrack_tuple *tuple,
- 			   ntohs(tuple->src.u.tcp.port),
- 			   ntohs(tuple->dst.u.tcp.port));
- 		break;
--	case IPPROTO_UDPLITE: /* fallthrough */
-+	case IPPROTO_UDPLITE:
- 	case IPPROTO_UDP:
- 		seq_printf(s, "sport=%hu dport=%hu ",
- 			   ntohs(tuple->src.u.udp.port),
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index bfc555fcbc72..c2f1bcb8f8e6 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -408,7 +408,7 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
- 	static const unsigned int max_attempts = 128;
- 
- 	switch (tuple->dst.protonum) {
--	case IPPROTO_ICMP: /* fallthrough */
-+	case IPPROTO_ICMP:
- 	case IPPROTO_ICMPV6:
- 		/* id is same for either direction... */
- 		keyptr = &tuple->src.u.icmp.id;
-@@ -442,10 +442,10 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
- 		}
- 		goto find_free_id;
- #endif
--	case IPPROTO_UDP:	/* fallthrough */
--	case IPPROTO_UDPLITE:	/* fallthrough */
--	case IPPROTO_TCP:	/* fallthrough */
--	case IPPROTO_SCTP:	/* fallthrough */
-+	case IPPROTO_UDP:
-+	case IPPROTO_UDPLITE:
-+	case IPPROTO_TCP:
-+	case IPPROTO_SCTP:
- 	case IPPROTO_DCCP:	/* fallthrough */
- 		if (maniptype == NF_NAT_MANIP_SRC)
- 			keyptr = &tuple->src.u.all;
-diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
-index b9cbe1e2453e..e911635d9ccb 100644
---- a/net/netfilter/nf_synproxy_core.c
-+++ b/net/netfilter/nf_synproxy_core.c
-@@ -704,8 +704,7 @@ ipv4_synproxy_hook(void *priv, struct sk_buff *skb,
- 		nf_ct_seqadj_init(ct, ctinfo, 0);
- 		synproxy->tsoff = 0;
- 		this_cpu_inc(snet->stats->conn_reopened);
--
--		/* fall through */
-+		fallthrough;
- 	case TCP_CONNTRACK_SYN_SENT:
- 		if (!synproxy_parse_options(skb, thoff, th, &opts))
- 			return NF_DROP;
-@@ -1128,8 +1127,7 @@ ipv6_synproxy_hook(void *priv, struct sk_buff *skb,
- 		nf_ct_seqadj_init(ct, ctinfo, 0);
- 		synproxy->tsoff = 0;
- 		this_cpu_inc(snet->stats->conn_reopened);
--
--		/* fall through */
-+		fallthrough;
- 	case TCP_CONNTRACK_SYN_SENT:
- 		if (!synproxy_parse_options(skb, thoff, th, &opts))
- 			return NF_DROP;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 7647ecfa0d40..f4c2a37aae8e 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4291,7 +4291,7 @@ void nf_tables_deactivate_set(const struct nft_ctx *ctx, struct nft_set *set,
- 	case NFT_TRANS_ABORT:
- 	case NFT_TRANS_RELEASE:
- 		set->use--;
--		/* fall through */
-+		fallthrough;
- 	default:
- 		nf_tables_unbind_set(ctx, set, binding,
- 				     phase == NFT_TRANS_COMMIT);
-@@ -6159,7 +6159,7 @@ void nf_tables_deactivate_flowtable(const struct nft_ctx *ctx,
- 	case NFT_TRANS_ABORT:
- 	case NFT_TRANS_RELEASE:
- 		flowtable->use--;
--		/* fall through */
-+		fallthrough;
- 	default:
- 		return;
- 	}
-@@ -7165,7 +7165,7 @@ static int nf_tables_validate(struct net *net)
- 		break;
- 	case NFT_VALIDATE_NEED:
- 		nft_validate_state_update(net, NFT_VALIDATE_DO);
--		/* fall through */
-+		fallthrough;
- 	case NFT_VALIDATE_DO:
- 		list_for_each_entry(table, &net->nft.tables, list) {
- 			if (nft_table_validate(net, table) < 0)
-@@ -8234,7 +8234,7 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
- 		default:
- 			return -EINVAL;
- 		}
--		/* fall through */
-+		fallthrough;
- 	case NFT_CONTINUE:
- 	case NFT_BREAK:
- 	case NFT_RETURN:
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index 96c74c4c7176..587897a2498b 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -213,7 +213,7 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
- 		jumpstack[stackptr].chain = chain;
- 		jumpstack[stackptr].rules = rules + 1;
- 		stackptr++;
--		/* fall through */
-+		fallthrough;
- 	case NFT_GOTO:
- 		nft_trace_packet(&info, chain, rule,
- 				 NFT_TRACETYPE_RULE);
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index da915c224a82..89a381f7f945 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -451,7 +451,7 @@ static int cttimeout_default_get(struct net *net, struct sock *ctnl,
- 	case IPPROTO_TCP:
- 		timeouts = nf_tcp_pernet(net)->timeouts;
- 		break;
--	case IPPROTO_UDP: /* fallthrough */
-+	case IPPROTO_UDP:
- 	case IPPROTO_UDPLITE:
- 		timeouts = nf_udp_pernet(net)->timeouts;
- 		break;
-diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
-index 8a28c127effc..16f4d84599ac 100644
---- a/net/netfilter/nft_cmp.c
-+++ b/net/netfilter/nft_cmp.c
-@@ -43,7 +43,7 @@ void nft_cmp_eval(const struct nft_expr *expr,
- 	case NFT_CMP_LT:
- 		if (d == 0)
- 			goto mismatch;
--		/* fall through */
-+		fallthrough;
- 	case NFT_CMP_LTE:
- 		if (d > 0)
- 			goto mismatch;
-@@ -51,7 +51,7 @@ void nft_cmp_eval(const struct nft_expr *expr,
- 	case NFT_CMP_GT:
- 		if (d == 0)
- 			goto mismatch;
--		/* fall through */
-+		fallthrough;
- 	case NFT_CMP_GTE:
- 		if (d < 0)
- 			goto mismatch;
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index faea72c2df32..8b65be8a29e3 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -129,7 +129,7 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
- 		return;
- 	}
- #endif
--	case NFT_CT_BYTES: /* fallthrough */
-+	case NFT_CT_BYTES:
- 	case NFT_CT_PKTS: {
- 		const struct nf_conn_acct *acct = nf_conn_acct_find(ct);
- 		u64 count = 0;
-@@ -1013,7 +1013,7 @@ static int nft_ct_helper_obj_init(const struct nft_ctx *ctx,
- 		help6 = nf_conntrack_helper_try_module_get(name, family,
- 							   priv->l4proto);
- 		break;
--	case NFPROTO_NETDEV: /* fallthrough */
-+	case NFPROTO_NETDEV:
- 	case NFPROTO_BRIDGE: /* same */
- 	case NFPROTO_INET:
- 		help4 = nf_conntrack_helper_try_module_get(name, NFPROTO_IPV4,
-diff --git a/net/netfilter/nft_fib.c b/net/netfilter/nft_fib.c
-index cfac0964f48d..4dfdaeaf09a5 100644
---- a/net/netfilter/nft_fib.c
-+++ b/net/netfilter/nft_fib.c
-@@ -32,7 +32,7 @@ int nft_fib_validate(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	unsigned int hooks;
- 
- 	switch (priv->result) {
--	case NFT_FIB_RESULT_OIF: /* fallthrough */
-+	case NFT_FIB_RESULT_OIF:
- 	case NFT_FIB_RESULT_OIFNAME:
- 		hooks = (1 << NF_INET_PRE_ROUTING);
- 		break;
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index a7de3a58f553..ed7cb9f747f6 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -467,7 +467,7 @@ static int nft_payload_l4csum_offset(const struct nft_pktinfo *pkt,
- 	case IPPROTO_UDP:
- 		if (!nft_payload_udp_checksum(skb, pkt->xt.thoff))
- 			return -1;
--		/* Fall through. */
-+		fallthrough;
- 	case IPPROTO_UDPLITE:
- 		*l4csum_offset = offsetof(struct udphdr, check);
- 		break;
-diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
-index 51b454d8fa9c..cedf47ab3c6f 100644
---- a/net/netfilter/utils.c
-+++ b/net/netfilter/utils.c
-@@ -25,7 +25,7 @@ __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
- 			skb->ip_summed = CHECKSUM_UNNECESSARY;
- 			break;
- 		}
--		/* fall through */
-+		fallthrough;
- 	case CHECKSUM_NONE:
- 		if (protocol != IPPROTO_TCP && protocol != IPPROTO_UDP)
- 			skb->csum = 0;
-@@ -51,7 +51,7 @@ static __sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
- 	case CHECKSUM_COMPLETE:
- 		if (len == skb->len - dataoff)
- 			return nf_ip_checksum(skb, hook, dataoff, protocol);
--		/* fall through */
-+		fallthrough;
- 	case CHECKSUM_NONE:
- 		skb->csum = csum_tcpudp_nofold(iph->saddr, iph->daddr, protocol,
- 					       skb->len - dataoff, 0);
-@@ -79,7 +79,7 @@ __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
- 			skb->ip_summed = CHECKSUM_UNNECESSARY;
- 			break;
- 		}
--		/* fall through */
-+		fallthrough;
- 	case CHECKSUM_NONE:
- 		skb->csum = ~csum_unfold(
- 				csum_ipv6_magic(&ip6h->saddr, &ip6h->daddr,
-@@ -106,7 +106,7 @@ static __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
- 	case CHECKSUM_COMPLETE:
- 		if (len == skb->len - dataoff)
- 			return nf_ip6_checksum(skb, hook, dataoff, protocol);
--		/* fall through */
-+		fallthrough;
- 	case CHECKSUM_NONE:
- 		hsum = skb_checksum(skb, 0, dataoff, 0);
- 		skb->csum = ~csum_unfold(csum_ipv6_magic(&ip6h->saddr,
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 99a468be4a59..8b2daccaf8df 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1571,7 +1571,7 @@ static void *xt_mttg_seq_next(struct seq_file *seq, void *v, loff_t *ppos,
- 		trav->curr = trav->curr->next;
- 		if (trav->curr != trav->head)
- 			break;
--		/* fall through */
-+		fallthrough;
- 	default:
- 		return NULL;
- 	}
+> > Richard, I'm sure you can answer this off the top of your head, but
+> > I'd have to go digging through the archives to pull out the relevant
+> > discussions so I figured I would just ask you for a reminder ... ?  I
+> > imagine it's also possible things have changed a bit since those early
+> > discussions and the solution we arrived at then no longer makes as
+> > much sense as it did before.
+>
+> Agreed, it doesn't make as much sense now as it did when proposed, but
+> will make more sense in the future depending on when this change gets
+> accepted upstream.  This is why I wanted this patch to go through as
+> part of ghak81 at the time the rest of it did so that future kABI issues
+> would be easier to handle, but that ship has long sailed.
 
+To be clear, kABI issues with task_struct really aren't an issue with
+the upstream kernel.  I know that you know all of this already
+Richard, I'm mostly talking to everyone else on the To/CC line in case
+they are casually watching this discussion.
+
+While I'm sympathetic to long-lifetime enterprise distros such as
+RHEL, my responsibility is to ensure the upstream kernel is as good as
+we can make it, and in this case I believe that means embedding
+audit_task_info into the task_struct.
+
+> I didn't make
+> that argument then and I regret it now that I realize and recall some of
+> the thinking behind the change.  Your reasons at the time were that
+> contid was the only user of that change but there have been some
+> CONFIG_AUDIT and CONFIG_AUDITSYSCALL changes since that were related.
+
+Agreed that there are probably some common goals and benefits with
+those changes and the audit container ID work, however, I believe that
+discussion quickly goes back to upstream vs RHEL.
+
+> > > diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+> > > index 468a23390457..f00c1da587ea 100644
+> > > --- a/kernel/auditsc.c
+> > > +++ b/kernel/auditsc.c
+> > > @@ -1612,7 +1615,6 @@ void __audit_free(struct task_struct *tsk)
+> > >                 if (context->current_state == AUDIT_RECORD_CONTEXT)
+> > >                         audit_log_exit();
+> > >         }
+> > > -
+> > >         audit_set_context(tsk, NULL);
+> > >         audit_free_context(context);
+> > >  }
+> >
+> > This nitpick is barely worth the time it is taking me to write this,
+> > but the whitespace change above isn't strictly necessary.
+>
+> Sure, it is a harmless but noisy cleanup when the function was being
+> cleaned up and renamed.  It wasn't an accident, but a style preference.
+> Do you prefer a vertical space before cleanup actions at the end of
+> functions and more versus less vertical whitespace in general?
+
+As I mentioned above, this really was barely worth mentioning, but I
+made the comment simply because I feel this patchset is going to draw
+a lot of attention once it is merged and I feel keeping the patchset
+as small, and as focused, as possible is a good thing.
+
+However, I'm not going to lose even a second of sleep over a single
+blank line gone missing ;)
+
+-- 
+paul moore
+www.paul-moore.com
