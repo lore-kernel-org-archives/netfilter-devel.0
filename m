@@ -1,97 +1,251 @@
-Return-Path: <SRS0=D3ak=AT=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=5odi=AW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 667E5C433DF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 22:27:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31F41C433E1
+	for <netfilter-devel@archiver.kernel.org>; Sat, 11 Jul 2020 08:45:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4173620772
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Jul 2020 22:27:23 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="Ydbcyukd"
+	by mail.kernel.org (Postfix) with ESMTP id 1905320725
+	for <netfilter-devel@archiver.kernel.org>; Sat, 11 Jul 2020 08:45:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726215AbgGHW1X (ORCPT
+        id S1728089AbgGKIpQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Jul 2020 18:27:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39528 "EHLO
+        Sat, 11 Jul 2020 04:45:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43062 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726044AbgGHW1W (ORCPT
+        with ESMTP id S1728049AbgGKIpQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Jul 2020 18:27:22 -0400
-Received: from mail-ej1-x641.google.com (mail-ej1-x641.google.com [IPv6:2a00:1450:4864:20::641])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37D63C061A0B
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2020 15:27:22 -0700 (PDT)
-Received: by mail-ej1-x641.google.com with SMTP id l12so120233ejn.10
-        for <netfilter-devel@vger.kernel.org>; Wed, 08 Jul 2020 15:27:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=M3CJ5AkQEOPgCtVjox2BEo7zZTUcB1g6AUdNDrislks=;
-        b=YdbcyukdBt0/BihY6qrOOsKzKLM9AZEfw5xuty/aYBt7X6PL8SE54b9dcXONpzezJk
-         y0d79RQnmgHSfuI8rPiwOCic4f8K/7WIwT/xtJIrLi3j8hpETiwnb+lahyFMeNesA8bT
-         jbNS4TAaUVz513AcR1+WxJkwCeDPaHjWq0zhvlfOz4Xb+DNCBXiFPwjw4iBPkLQYmv9q
-         N0hdqnTlVVCubRe7p/xOuKGFoiDzVmcWEHt9cj2N0TU+F2eP84ldh2R8BPSBOgZWzZ61
-         5A3jHADoJx7E2kVfWTH5Q37tEPVPFgA8OV+vMKKUkEZ4ORVFr6uodQjpkLlN4eDlyXCn
-         bKIQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=M3CJ5AkQEOPgCtVjox2BEo7zZTUcB1g6AUdNDrislks=;
-        b=YcXap19WBiN/++gJ6IERQcWweqssCeG/wu+qYVj0Qc1IRba4sT9evx3mhsOrRma5yX
-         X/E6sbfVfy050E9S/lpdc84kY5kNqXTATrPFeiUt8p4uoR3XDcZ91OjwUyMKlsu2Xlj9
-         peaFhp3wVk8Kg/qHuJ6DRl+zuk+qfOk3Z8Q9VqyNp0PIHlUt4Lkjy6cwnEx+Lf0hIs/n
-         JGYl/NAsB7xiTj05IZtY0LgU3DhqceHkhPxWd9DT2Olw4K+oSW7tw+75o+RfaWzBwpVh
-         z13r6y5ClV3aOrYAcJjuPqk+JxtQWrSVLm59p1AHhJb1EAuq+L3EITixxrkayekFhLkk
-         1KDw==
-X-Gm-Message-State: AOAM533hhfpkSmTWrhm9gHlWAPXMBpO8KK2ZyTwYAfzWCNMTo6SSl1bS
-        xXpUNA514q/jKl/FTv3eai3ICDTtBXwdhFVHpOxw
-X-Google-Smtp-Source: ABdhPJzB+/J71xUafKgkFpZ97jdj5CfyFcTng+kyUSwgIbEmbgV3ILMKYWcFKxMVPcN1xATY3ewRxSUsiyZE1XDyvA0=
-X-Received: by 2002:a17:906:4757:: with SMTP id j23mr26607711ejs.431.1594247240854;
- Wed, 08 Jul 2020 15:27:20 -0700 (PDT)
+        Sat, 11 Jul 2020 04:45:16 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55335C08C5DD
+        for <netfilter-devel@vger.kernel.org>; Sat, 11 Jul 2020 01:45:16 -0700 (PDT)
+Received: from localhost ([::1]:59256 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.94)
+        (envelope-from <phil@nwl.cc>)
+        id 1juB8D-0006EA-Rm; Sat, 11 Jul 2020 10:45:13 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [libnftnl PATCH] chain: Implement chain list sorting
+Date:   Sat, 11 Jul 2020 10:45:05 +0200
+Message-Id: <20200711084505.23825-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-References: <159378341669.5956.13490174029711421419.stgit@sifl> <20200703202557.tm6o33uignjpmepa@madcap2.tricolour.ca>
-In-Reply-To: <20200703202557.tm6o33uignjpmepa@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Wed, 8 Jul 2020 18:27:09 -0400
-Message-ID: <CAHC9VhQzUht4MGh1KNyb3K+zMqKbm_YKPWKL1_f8ONeWn6DBFQ@mail.gmail.com>
-Subject: Re: [PATCH] audit: use the proper gfp flags in the audit_log_nfcfg() calls
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     linux-audit@redhat.com,
-        Jones Desougi <jones.desougi+netfilter@gmail.com>,
-        netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jul 3, 2020 at 4:26 PM Richard Guy Briggs <rgb@redhat.com> wrote:
->
-> On 2020-07-03 09:36, Paul Moore wrote:
-> > Commit 142240398e50 ("audit: add gfp parameter to audit_log_nfcfg")
-> > incorrectly passed gfp flags to audit_log_nfcfg() which were not
-> > consistent with the calling function, this commit fixes that.
-> >
-> > Fixes: 142240398e50 ("audit: add gfp parameter to audit_log_nfcfg")
-> > Reported-by: Jones Desougi <jones.desougi+netfilter@gmail.com>
-> > Signed-off-by: Paul Moore <paul@paul-moore.com>
->
-> Looks good to me.  For what it's worth:
+Add two convenience functions for nftnl_chain_list sorting, both
+accepting a pointer to a user-defined comparison function:
 
-Thanks, applied to audit/next.  Also, for the record, reviews are
-always welcome; I really dislike merging my own patches without
-reviews.  Sometimes it needs to be done to fix a serious fault, build
-error, etc. but in general I'm of the opinion that maintainer patches
-should be treated just the same as any other patch.
+* nftnl_chain_list_sort: Sort existing elements in a list.
+* nftnl_chain_list_add_sorted: Add a new element to the sorted list.
 
-> Reviewed-by: Richard Guy Briggs <rgb@redhat.com>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ include/libnftnl/chain.h    |  3 ++
+ src/chain.c                 | 59 ++++++++++++++++++++++++++++++++++
+ src/libnftnl.map            |  5 +++
+ tests/Makefile.am           |  4 +++
+ tests/nft-chain-list-test.c | 63 +++++++++++++++++++++++++++++++++++++
+ 5 files changed, 134 insertions(+)
+ create mode 100644 tests/nft-chain-list-test.c
 
+diff --git a/include/libnftnl/chain.h b/include/libnftnl/chain.h
+index 291bf22a2fddf..476ea8d496c35 100644
+--- a/include/libnftnl/chain.h
++++ b/include/libnftnl/chain.h
+@@ -102,6 +102,9 @@ void nftnl_chain_list_add(struct nftnl_chain *r, struct nftnl_chain_list *list);
+ void nftnl_chain_list_add_tail(struct nftnl_chain *r, struct nftnl_chain_list *list);
+ void nftnl_chain_list_del(struct nftnl_chain *c);
+ 
++void nftnl_chain_list_sort(struct nftnl_chain_list *list, int (*cmp)(struct nftnl_chain *a, struct nftnl_chain *b));
++void nftnl_chain_list_add_sorted(struct nftnl_chain *r, struct nftnl_chain_list *list, int (*cmp)(struct nftnl_chain *a, struct nftnl_chain *b));
++
+ struct nftnl_chain_list_iter;
+ 
+ struct nftnl_chain_list_iter *nftnl_chain_list_iter_create(const struct nftnl_chain_list *l);
+diff --git a/src/chain.c b/src/chain.c
+index 5f1213013e530..9fc36c038a480 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -1031,6 +1031,65 @@ void nftnl_chain_list_add_tail(struct nftnl_chain *r, struct nftnl_chain_list *l
+ 	list_add_tail(&r->head, &list->list);
+ }
+ 
++static void __nftnl_chain_list_sort(struct list_head *list,
++				    int (*cmp)(struct nftnl_chain *a,
++					       struct nftnl_chain *b))
++{
++	struct nftnl_chain *pivot, *cur, *sav;
++	LIST_HEAD(sublist);
++
++	if (list_empty(list))
++		return;
++
++	/* grab first item as pivot (dividing) value */
++	pivot = list_entry(list->next, struct nftnl_chain, head);
++	list_del(&pivot->head);
++
++	/* move any smaller value into sublist */
++	list_for_each_entry_safe(cur, sav, list, head) {
++		if (cmp(pivot, cur) > 0) {
++			list_del(&cur->head);
++			list_add_tail(&cur->head, &sublist);
++		}
++	}
++	/* conquer divided */
++	__nftnl_chain_list_sort(&sublist, cmp);
++	__nftnl_chain_list_sort(list, cmp);
++
++	/* merge divided and pivot again */
++	list_add_tail(&pivot->head, &sublist);
++	list_splice(&sublist, list);
++}
++
++EXPORT_SYMBOL(nftnl_chain_list_sort);
++void nftnl_chain_list_sort(struct nftnl_chain_list *list,
++			   int (*cmp)(struct nftnl_chain *a,
++				      struct nftnl_chain *b))
++{
++	__nftnl_chain_list_sort(&list->list, cmp);
++}
++
++EXPORT_SYMBOL(nftnl_chain_list_add_sorted);
++void nftnl_chain_list_add_sorted(struct nftnl_chain *c,
++				 struct nftnl_chain_list *list,
++				 int (*cmp)(struct nftnl_chain *a,
++					    struct nftnl_chain *b))
++{
++	int key = djb_hash(c->name) % CHAIN_NAME_HSIZE;
++	struct list_head *pos = &list->list;
++	struct nftnl_chain *cur;
++
++	hlist_add_head(&c->hnode, &list->name_hash[key]);
++
++	list_for_each_entry(cur, &list->list, head) {
++		if (cmp(c, cur) < 0) {
++			pos = &cur->head;
++			break;
++		}
++	}
++	list_add_tail(&c->head, pos);
++}
++
+ EXPORT_SYMBOL(nftnl_chain_list_del);
+ void nftnl_chain_list_del(struct nftnl_chain *r)
+ {
+diff --git a/src/libnftnl.map b/src/libnftnl.map
+index f62640f83e6b5..379580e9945b8 100644
+--- a/src/libnftnl.map
++++ b/src/libnftnl.map
+@@ -368,3 +368,8 @@ LIBNFTNL_14 {
+   nftnl_flowtable_set_array;
+   nftnl_flowtable_get_array;
+ } LIBNFTNL_13;
++
++LIBNFTNL_15 {
++  nftnl_chain_list_add_sorted;
++  nftnl_chain_list_sort;
++} LIBNFTNL_14;
+diff --git a/tests/Makefile.am b/tests/Makefile.am
+index c7d77edc020f2..eedc3828eb8ca 100644
+--- a/tests/Makefile.am
++++ b/tests/Makefile.am
+@@ -2,6 +2,7 @@ include $(top_srcdir)/Make_global.am
+ 
+ check_PROGRAMS = 	nft-table-test			\
+ 			nft-chain-test			\
++			nft-chain-list-test		\
+ 			nft-object-test			\
+ 			nft-rule-test			\
+ 			nft-set-test			\
+@@ -41,6 +42,9 @@ nft_table_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+ nft_chain_test_SOURCES = nft-chain-test.c
+ nft_chain_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+ 
++nft_chain_list_test_SOURCES = nft-chain-list-test.c
++nft_chain_list_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
++
+ nft_object_test_SOURCES = nft-object-test.c
+ nft_object_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+ 
+diff --git a/tests/nft-chain-list-test.c b/tests/nft-chain-list-test.c
+new file mode 100644
+index 0000000000000..2bf3ccb8b238a
+--- /dev/null
++++ b/tests/nft-chain-list-test.c
+@@ -0,0 +1,63 @@
++/*
++ * Copyright (c) 2020  Red Hat GmbH.  Author: Phil Sutter <phil@nwl.cc>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation, either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <linux/netfilter/nf_tables.h>
++#include <libnftnl/chain.h>
++
++static struct nftnl_chain *alloc_chain(const char *name)
++{
++	struct nftnl_chain *c = nftnl_chain_alloc();
++
++	if (c)
++		nftnl_chain_set_str(c, NFTNL_CHAIN_NAME, name);
++	return c;
++}
++
++static int chain_name_cmp(struct nftnl_chain *a, struct nftnl_chain *b)
++{
++	return strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_NAME),
++		      nftnl_chain_get_str(b, NFTNL_CHAIN_NAME));
++}
++
++static int chain_name_check(struct nftnl_chain *c, void *data)
++{
++	return atoi(nftnl_chain_get_str(c, NFTNL_CHAIN_NAME))
++		!= (*(int *)data)++;
++}
++
++int main(int argc, char *argv[])
++{
++	struct nftnl_chain_list *list = nftnl_chain_list_alloc();
++	int i = 1, rc;
++
++	nftnl_chain_list_add_tail(alloc_chain("4"), list);
++	nftnl_chain_list_add_tail(alloc_chain("6"), list);
++	nftnl_chain_list_add_tail(alloc_chain("2"), list);
++
++	nftnl_chain_list_sort(list, chain_name_cmp);
++
++	nftnl_chain_list_add_sorted(alloc_chain("3"), list, chain_name_cmp);
++	nftnl_chain_list_add_sorted(alloc_chain("5"), list, chain_name_cmp);
++	nftnl_chain_list_add_sorted(alloc_chain("1"), list, chain_name_cmp);
++
++	rc = nftnl_chain_list_foreach(list, chain_name_check, &i);
++	nftnl_chain_list_free(list);
++
++	if (rc || i < 7) {
++		printf("\033[31mERROR:\e[0m chain names not in sorted order\n");
++		exit(EXIT_FAILURE);
++	}
++
++	printf("%s: \033[32mOK\e[0m\n", argv[0]);
++	return EXIT_SUCCESS;
++
++}
 -- 
-paul moore
-www.paul-moore.com
+2.27.0
+
