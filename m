@@ -2,119 +2,189 @@ Return-Path: <SRS0=S2pA=AZ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2ED6C433EC
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jul 2020 10:56:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33B98C433DF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jul 2020 16:51:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 75D2B22208
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jul 2020 10:56:46 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="Dw1vLfZ7"
+	by mail.kernel.org (Postfix) with ESMTP id 1203D2242B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Jul 2020 16:51:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726830AbgGNK4p (ORCPT
+        id S1728177AbgGNQvs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 Jul 2020 06:56:45 -0400
-Received: from userp2120.oracle.com ([156.151.31.85]:36518 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726352AbgGNK4p (ORCPT
+        Tue, 14 Jul 2020 12:51:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47986 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727046AbgGNQvs (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Jul 2020 06:56:45 -0400
-Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-        by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06EArVXd074243;
-        Tue, 14 Jul 2020 10:56:33 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : mime-version : content-type; s=corp-2020-01-29;
- bh=ehXGBW7cF2hucskYfoTY5drfHVwNM1dijmT3+mi5klE=;
- b=Dw1vLfZ7tkpOAnL7cOzD59qqv7/tvTWN1gy+qsOJUZ5ZjTPs1H1H1egszhRZlssUrsS5
- sExjWZDNybMOxusCBEdBbutdRfzo2Nv3J60aUK2wxmihHkWWLzcNli6Era9u/7tkmYSH
- Jlj7sjz+AUX+DdTcYvd1rUFDFosSNNos9MNtiKf/MA2BT8kW+fZmt/If2Jr3on1Idw0f
- tnvWf4E8G6gxsHu6KuZLYLEniXdg2voCND/axcpGa9rkQyg5dIGm7WmTOIpI2GRA2/Ef
- dYu59D5XyLOEs6FgocPhT2429Y7nyjBSdIRIF29326OJOJowVwbsEd1t3dYFWbZ4JOFW AQ== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by userp2120.oracle.com with ESMTP id 32762nchnv-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 14 Jul 2020 10:56:33 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06EAra7X058555;
-        Tue, 14 Jul 2020 10:56:32 GMT
-Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
-        by userp3020.oracle.com with ESMTP id 327q6s25wn-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 14 Jul 2020 10:56:32 +0000
-Received: from abhmp0018.oracle.com (abhmp0018.oracle.com [141.146.116.24])
-        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 06EAuU7V015773;
-        Tue, 14 Jul 2020 10:56:30 GMT
-Received: from mwanda (/41.57.98.10)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Tue, 14 Jul 2020 03:56:29 -0700
-Date:   Tue, 14 Jul 2020 13:56:22 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        kernel-janitors@vger.kernel.org
-Subject: [PATCH] netfilter: nf_tables: Fix a use after free in
- nft_immediate_destroy()
-Message-ID: <20200714105622.GB294318@mwanda>
+        Tue, 14 Jul 2020 12:51:48 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5BD23C061755
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Jul 2020 09:51:48 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1jvO9i-0001Jl-7K; Tue, 14 Jul 2020 18:51:46 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     syzkaller-bugs@googlegroups.com,
+        syzbot+2570f2c036e3da5db176@syzkaller.appspotmail.com,
+        Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: nf_tables: fix nat hook table deletion
+Date:   Tue, 14 Jul 2020 18:51:39 +0200
+Message-Id: <20200714165139.14385-1-fw@strlen.de>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-X-Mailer: git-send-email haha only kidding
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9681 signatures=668680
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 suspectscore=0
- phishscore=0 malwarescore=0 mlxlogscore=999 bulkscore=0 mlxscore=0
- spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2006250000 definitions=main-2007140083
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9681 signatures=668680
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 malwarescore=0 spamscore=0
- clxscore=1011 priorityscore=1501 mlxlogscore=999 lowpriorityscore=0
- bulkscore=0 suspectscore=0 phishscore=0 adultscore=0 impostorscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
- definitions=main-2007140083
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The nf_tables_rule_release() function frees "rule" so we have to use
-the _safe() version of list_for_each_entry().
+sybot came up with following transaction:
+ add table ip syz0
+ add chain ip syz0 syz2 { type nat hook prerouting priority 0; policy accept; }
+ add table ip syz0 { flags dormant; }
+ delete chain ip syz0 syz2
+ delete table ip syz0
 
-Fixes: d0e2c7de92c7 ("netfilter: nf_tables: add NFT_CHAIN_BINDING")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+which yields:
+hook not found, pf 2 num 0
+WARNING: CPU: 0 PID: 6775 at net/netfilter/core.c:413 __nf_unregister_net_hook+0x3e6/0x4a0 net/netfilter/core.c:413
+[..]
+ nft_unregister_basechain_hooks net/netfilter/nf_tables_api.c:206 [inline]
+ nft_table_disable net/netfilter/nf_tables_api.c:835 [inline]
+ nf_tables_table_disable net/netfilter/nf_tables_api.c:868 [inline]
+ nf_tables_commit+0x32d3/0x4d70 net/netfilter/nf_tables_api.c:7550
+ nfnetlink_rcv_batch net/netfilter/nfnetlink.c:486 [inline]
+ nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:544 [inline]
+ nfnetlink_rcv+0x14a5/0x1e50 net/netfilter/nfnetlink.c:562
+ netlink_unicast_kernel net/netlink/af_netlink.c:1303 [inline]
+
+Problem is that when I added ability to override base hook registration
+to make nat basechains register with the nat core instead of netfilter
+core, I forgot to update nft_table_disable() to use that instead of
+the 'raw' hook register interface.
+
+In syzbot transaction, the basechain is of 'nat' type. Its registered
+with the nat core.  The switch to 'dormant mode' attempts to delete from
+netfilter core instead.
+
+After updating nft_table_disable/enable to use the correct helper,
+nft_(un)register_basechain_hooks can be folded into the only remaining
+caller.
+
+Because nft_trans_table_enable() won't do anything when the DORMANT flag
+is set, remove the flag first, then re-add it in case re-enablement
+fails, else this patch breaks sequence:
+
+add table ip x { flags dormant; }
+/* add base chains */
+add table ip x
+
+The last 'add' will remove the dormant flags, but won't have any other
+effect -- base chains are not registered.
+Then, next 'set dormant flag' will create another 'hook not found'
+splat.
+
+Reported-by: syzbot+2570f2c036e3da5db176@syzkaller.appspotmail.com
+Fixes: 4e25ceb80b58 ("netfilter: nf_tables: allow chain type to override hook register")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_immediate.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nf_tables_api.c | 41 ++++++++++++-----------------------
+ 1 file changed, 14 insertions(+), 27 deletions(-)
 
-diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
-index 9e556638bb32..c63eb3b17178 100644
---- a/net/netfilter/nft_immediate.c
-+++ b/net/netfilter/nft_immediate.c
-@@ -103,9 +103,9 @@ static void nft_immediate_destroy(const struct nft_ctx *ctx,
- {
- 	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
- 	const struct nft_data *data = &priv->data;
-+	struct nft_rule *rule, *n;
- 	struct nft_ctx chain_ctx;
- 	struct nft_chain *chain;
--	struct nft_rule *rule;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 7647ecfa0d40..88325b264737 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -188,24 +188,6 @@ static void nft_netdev_unregister_hooks(struct net *net,
+ 		nf_unregister_net_hook(net, &hook->ops);
+ }
  
- 	if (priv->dreg != NFT_REG_VERDICT)
- 		return;
-@@ -121,7 +121,7 @@ static void nft_immediate_destroy(const struct nft_ctx *ctx,
- 		chain_ctx = *ctx;
- 		chain_ctx.chain = chain;
+-static int nft_register_basechain_hooks(struct net *net, int family,
+-					struct nft_base_chain *basechain)
+-{
+-	if (family == NFPROTO_NETDEV)
+-		return nft_netdev_register_hooks(net, &basechain->hook_list);
+-
+-	return nf_register_net_hook(net, &basechain->ops);
+-}
+-
+-static void nft_unregister_basechain_hooks(struct net *net, int family,
+-					   struct nft_base_chain *basechain)
+-{
+-	if (family == NFPROTO_NETDEV)
+-		nft_netdev_unregister_hooks(net, &basechain->hook_list);
+-	else
+-		nf_unregister_net_hook(net, &basechain->ops);
+-}
+-
+ static int nf_tables_register_hook(struct net *net,
+ 				   const struct nft_table *table,
+ 				   struct nft_chain *chain)
+@@ -223,7 +205,10 @@ static int nf_tables_register_hook(struct net *net,
+ 	if (basechain->type->ops_register)
+ 		return basechain->type->ops_register(net, ops);
  
--		list_for_each_entry(rule, &chain->rules, list)
-+		list_for_each_entry_safe(rule, n, &chain->rules, list)
- 			nf_tables_rule_release(&chain_ctx, rule);
+-	return nft_register_basechain_hooks(net, table->family, basechain);
++	if (table->family == NFPROTO_NETDEV)
++		return nft_netdev_register_hooks(net, &basechain->hook_list);
++
++	return nf_register_net_hook(net, &basechain->ops);
+ }
  
- 		nf_tables_chain_destroy(&chain_ctx);
+ static void nf_tables_unregister_hook(struct net *net,
+@@ -242,7 +227,10 @@ static void nf_tables_unregister_hook(struct net *net,
+ 	if (basechain->type->ops_unregister)
+ 		return basechain->type->ops_unregister(net, ops);
+ 
+-	nft_unregister_basechain_hooks(net, table->family, basechain);
++	if (table->family == NFPROTO_NETDEV)
++		nft_netdev_unregister_hooks(net, &basechain->hook_list);
++	else
++		nf_unregister_net_hook(net, &basechain->ops);
+ }
+ 
+ static int nft_trans_table_add(struct nft_ctx *ctx, int msg_type)
+@@ -832,8 +820,7 @@ static void nft_table_disable(struct net *net, struct nft_table *table, u32 cnt)
+ 		if (cnt && i++ == cnt)
+ 			break;
+ 
+-		nft_unregister_basechain_hooks(net, table->family,
+-					       nft_base_chain(chain));
++		nf_tables_unregister_hook(net, table, chain);
+ 	}
+ }
+ 
+@@ -848,8 +835,7 @@ static int nf_tables_table_enable(struct net *net, struct nft_table *table)
+ 		if (!nft_is_base_chain(chain))
+ 			continue;
+ 
+-		err = nft_register_basechain_hooks(net, table->family,
+-						   nft_base_chain(chain));
++		err = nf_tables_register_hook(net, table, chain);
+ 		if (err < 0)
+ 			goto err_register_hooks;
+ 
+@@ -894,11 +880,12 @@ static int nf_tables_updtable(struct nft_ctx *ctx)
+ 		nft_trans_table_enable(trans) = false;
+ 	} else if (!(flags & NFT_TABLE_F_DORMANT) &&
+ 		   ctx->table->flags & NFT_TABLE_F_DORMANT) {
++		ctx->table->flags &= ~NFT_TABLE_F_DORMANT;
+ 		ret = nf_tables_table_enable(ctx->net, ctx->table);
+-		if (ret >= 0) {
+-			ctx->table->flags &= ~NFT_TABLE_F_DORMANT;
++		if (ret >= 0)
+ 			nft_trans_table_enable(trans) = true;
+-		}
++		else
++			ctx->table->flags |= NFT_TABLE_F_DORMANT;
+ 	}
+ 	if (ret < 0)
+ 		goto err;
 -- 
-2.27.0
+2.26.2
 
