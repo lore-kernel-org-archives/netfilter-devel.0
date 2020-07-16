@@ -1,104 +1,119 @@
-Return-Path: <SRS0=26XO=A2=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=+/pN=A3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9A83C433E2
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Jul 2020 21:17:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06920C433E0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jul 2020 02:46:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C68AA2065D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Jul 2020 21:17:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0ED920663
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jul 2020 02:46:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726424AbgGOVRU (ORCPT
+        id S1726996AbgGPCqv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 Jul 2020 17:17:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58002 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725917AbgGOVRU (ORCPT
+        Wed, 15 Jul 2020 22:46:51 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:39909 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727105AbgGPCqv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Jul 2020 17:17:20 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E74AC061755;
-        Wed, 15 Jul 2020 14:17:20 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1jvomA-0004YJ-VR; Wed, 15 Jul 2020 23:17:15 +0200
-Date:   Wed, 15 Jul 2020 23:17:14 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     wenxu@ucloud.cn, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, fw@strlen.de,
+        Wed, 15 Jul 2020 22:46:51 -0400
+Received: from [192.168.188.14] (unknown [106.75.220.2])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 819E941E5C;
+        Thu, 16 Jul 2020 10:42:15 +0800 (CST)
+Subject: Re: [PATCH net-next v2 0/3] make nf_ct_frag/6_gather elide the skb CB
+ clear
+To:     Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>
+Cc:     Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
         Cong Wang <xiyou.wangcong@gmail.com>
-Subject: Re: [PATCH net-next v2 0/3] make nf_ct_frag/6_gather elide the skb
- CB clear
-Message-ID: <20200715211714.GR32005@breakpoint.cc>
 References: <1594097711-9365-1-git-send-email-wenxu@ucloud.cn>
  <20200715132659.34fa0e14@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <20200715211714.GR32005@breakpoint.cc>
+From:   wenxu <wenxu@ucloud.cn>
+Message-ID: <70a49463-03aa-4fa3-c7a0-0391fb84c6c5@ucloud.cn>
+Date:   Thu, 16 Jul 2020 10:42:11 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200715132659.34fa0e14@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20200715211714.GR32005@breakpoint.cc>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgYFAkeWUFZS1VLWVdZKFlBSUI3V1ktWUFJV1kPCR
+        oVCBIfWUFZShlDGh9NTRhCHxpOVkpOQk9DTUxISE5DS0pVGRETFhoSFyQUDg9ZV1kWGg8SFR0UWU
+        FZT0tIVUpKS0hKTFVKS0tZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MDo6EQw*AT4CNzgSPw8TNCIN
+        LA8aFAhVSlVKTkJPQ01MSEhOQk5KVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpLTVVM
+        TlVJSUtVSVlXWQgBWUFITE5CNwY+
+X-HM-Tid: 0a735580421a2086kuqy819e941e5c
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Jakub Kicinski <kuba@kernel.org> wrote:
-> On Tue,  7 Jul 2020 12:55:08 +0800 wenxu@ucloud.cn wrote:
-> > From: wenxu <wenxu@ucloud.cn>
-> > 
-> > Add nf_ct_frag_gather and Make nf_ct_frag6_gather elide the CB clear 
-> > when packets are defragmented by connection tracking. This can make
-> > each subsystem such as br_netfilter, openvswitch, act_ct do defrag
-> > without restore the CB. 
-> > This also avoid serious crashes and problems in  ct subsystem.
-> > Because Some packet schedulers store pointers in the qdisc CB private
-> > area and parallel accesses to the SKB.
-> > 
-> > This series following up
-> > http://patchwork.ozlabs.org/project/netdev/patch/1593422178-26949-1-git-send-email-wenxu@ucloud.cn/
-> > 
-> > patch1: add nf_ct_frag_gather elide the CB clear
-> > patch2: make nf_ct_frag6_gather elide the CB clear
-> > patch3: fix clobber qdisc_skb_cb in act_ct with defrag
-> > 
-> > v2: resue some ip_defrag function in patch1
-> 
-> Florian, Cong - are you willing to venture an ack on these? Anyone?
 
-Nope, sorry.  Reason is that I can't figure out the need for this series.
-Taking a huge step back:
+On 7/16/2020 5:17 AM, Florian Westphal wrote:
+> Jakub Kicinski <kuba@kernel.org> wrote:
+>> On Tue,  7 Jul 2020 12:55:08 +0800 wenxu@ucloud.cn wrote:
+>>> From: wenxu <wenxu@ucloud.cn>
+>>>
+>>> Add nf_ct_frag_gather and Make nf_ct_frag6_gather elide the CB clear 
+>>> when packets are defragmented by connection tracking. This can make
+>>> each subsystem such as br_netfilter, openvswitch, act_ct do defrag
+>>> without restore the CB. 
+>>> This also avoid serious crashes and problems in  ct subsystem.
+>>> Because Some packet schedulers store pointers in the qdisc CB private
+>>> area and parallel accesses to the SKB.
+>>>
+>>> This series following up
+>>> http://patchwork.ozlabs.org/project/netdev/patch/1593422178-26949-1-git-send-email-wenxu@ucloud.cn/
+>>>
+>>> patch1: add nf_ct_frag_gather elide the CB clear
+>>> patch2: make nf_ct_frag6_gather elide the CB clear
+>>> patch3: fix clobber qdisc_skb_cb in act_ct with defrag
+>>>
+>>> v2: resue some ip_defrag function in patch1
+>> Florian, Cong - are you willing to venture an ack on these? Anyone?
+> Nope, sorry.  Reason is that I can't figure out the need for this series.
+> Taking a huge step back:
+>
+> http://patchwork.ozlabs.org/project/netdev/patch/1593422178-26949-1-git-send-email-wenxu@ucloud.cn/
+>
+> That patch looks ok to me:
+> I understand the problem statement/commit message and I can see how its addressed.
+>
+> I don't understand why the CB clearing must be avoided.
+>
+> defrag assumes skb ownership -- e.g. it may realloc skb->data
+> (calls pskb_may_pull), it calls skb_orphan(), etc.
+>
+> AFAICS, tcf_classify makes same assumption -- exclusive ownership
+> and no parallel skb accesses.
+>
+> So, if in fact the "only" problem is the loss of
+> qdisc_skb_cb(skb)->pkt_len, then the other patch looks ok to me.
+>
+> If we indeed have parallel access, then I do not understand how
+> avoiding the memsets in the defrag path makes things any better
+> (see above wrt. skb pull and the like).
 
-http://patchwork.ozlabs.org/project/netdev/patch/1593422178-26949-1-git-send-email-wenxu@ucloud.cn/
+Hi David,
 
-That patch looks ok to me:
-I understand the problem statement/commit message and I can see how its addressed.
 
-I don't understand why the CB clearing must be avoided.
+What case for the parallel access the skb in tcf_classify?
 
-defrag assumes skb ownership -- e.g. it may realloc skb->data
-(calls pskb_may_pull), it calls skb_orphan(), etc.
+If there indeed have this. Maybe it can't do defrag which also
 
-AFAICS, tcf_classify makes same assumption -- exclusive ownership
-and no parallel skb accesses.
+access and modify the skb?
 
-So, if in fact the "only" problem is the loss of
-qdisc_skb_cb(skb)->pkt_len, then the other patch looks ok to me.
 
-If we indeed have parallel access, then I do not understand how
-avoiding the memsets in the defrag path makes things any better
-(see above wrt. skb pull and the like).
+BR
 
-As for these patches here:
+wenxu
 
-- if (!(IPCB(skb)->flags & IPSKB_FRAG_COMPLETE) &&
-+ if ((ignore_skb_cb || !(IPCB(skb)->flags & IPSKB_FRAG_COMPLETE)) &&
 
-This is very questionable, we take different code path depending
-on call site.
-
-Why is it okay to unconditionally take this branch for act_ct case (ignore_skb_cb set)?
