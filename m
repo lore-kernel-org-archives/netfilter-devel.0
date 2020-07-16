@@ -2,118 +2,123 @@ Return-Path: <SRS0=+/pN=A3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	CHARSET_FARAWAY_HEADER,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06920C433E0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jul 2020 02:46:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 445EAC433E5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jul 2020 08:16:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E0ED920663
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jul 2020 02:46:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 28241207F9
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Jul 2020 08:16:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726996AbgGPCqv (ORCPT
+        id S1726425AbgGPIQp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 Jul 2020 22:46:51 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:39909 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727105AbgGPCqv (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Jul 2020 22:46:51 -0400
-Received: from [192.168.188.14] (unknown [106.75.220.2])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 819E941E5C;
-        Thu, 16 Jul 2020 10:42:15 +0800 (CST)
-Subject: Re: [PATCH net-next v2 0/3] make nf_ct_frag/6_gather elide the skb CB
- clear
-To:     Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>
-Cc:     Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Cong Wang <xiyou.wangcong@gmail.com>
-References: <1594097711-9365-1-git-send-email-wenxu@ucloud.cn>
- <20200715132659.34fa0e14@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
- <20200715211714.GR32005@breakpoint.cc>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <70a49463-03aa-4fa3-c7a0-0391fb84c6c5@ucloud.cn>
-Date:   Thu, 16 Jul 2020 10:42:11 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+        Thu, 16 Jul 2020 04:16:45 -0400
+Received: from szxga02-in.huawei.com ([45.249.212.188]:2580 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725867AbgGPIQp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Jul 2020 04:16:45 -0400
+Received: from nkgeml708-chm.china.huawei.com (unknown [172.30.72.54])
+        by Forcepoint Email with ESMTP id DE94255744157899DEBE;
+        Thu, 16 Jul 2020 16:16:41 +0800 (CST)
+Received: from nkgeml708-chm.china.huawei.com (10.98.57.160) by
+ nkgeml708-chm.china.huawei.com (10.98.57.160) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1913.5; Thu, 16 Jul 2020 16:16:41 +0800
+Received: from nkgeml708-chm.china.huawei.com ([10.98.57.160]) by
+ nkgeml708-chm.china.huawei.com ([10.98.57.160]) with mapi id 15.01.1913.007;
+ Thu, 16 Jul 2020 16:16:41 +0800
+From:   "Guodeqing (A)" <geffrey.guo@huawei.com>
+To:     Julian Anastasov <ja@ssi.bg>
+CC:     "wensong@linux-vs.org" <wensong@linux-vs.org>,
+        "horms@verge.net.au" <horms@verge.net.au>,
+        "pablo@netfilter.org" <pablo@netfilter.org>,
+        "kadlec@netfilter.org" <kadlec@netfilter.org>,
+        "fw@strlen.de" <fw@strlen.de>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "kuba@kernel.org" <kuba@kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: =?gb2312?B?tPC4tDogW1BBVENIXSBpcHZzOiBmaXggdGhlIGNvbm5lY3Rpb24gc3luYyBm?=
+ =?gb2312?Q?ailed_in_some_cases?=
+Thread-Topic: [PATCH] ipvs: fix the connection sync failed in some cases
+Thread-Index: AQHWWnVcQeKvQJuISkaQl2jKbtaPdKkIYbIAgAFkcQA=
+Date:   Thu, 16 Jul 2020 08:16:41 +0000
+Message-ID: <4b51941de0ab441385c356cccfee7370@huawei.com>
+References: <1594796027-66136-1-git-send-email-geffrey.guo@huawei.com>
+ <alpine.LFD.2.23.451.2007152016420.6034@ja.home.ssi.bg>
+In-Reply-To: <alpine.LFD.2.23.451.2007152016420.6034@ja.home.ssi.bg>
+Accept-Language: zh-CN, en-US
+Content-Language: zh-CN
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.164.122.165]
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-In-Reply-To: <20200715211714.GR32005@breakpoint.cc>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgYFAkeWUFZS1VLWVdZKFlBSUI3V1ktWUFJV1kPCR
-        oVCBIfWUFZShlDGh9NTRhCHxpOVkpOQk9DTUxISE5DS0pVGRETFhoSFyQUDg9ZV1kWGg8SFR0UWU
-        FZT0tIVUpKS0hKTFVKS0tZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MDo6EQw*AT4CNzgSPw8TNCIN
-        LA8aFAhVSlVKTkJPQ01MSEhOQk5KVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpLTVVM
-        TlVJSUtVSVlXWQgBWUFITE5CNwY+
-X-HM-Tid: 0a735580421a2086kuqy819e941e5c
+X-CFilter-Loop: Reflected
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-On 7/16/2020 5:17 AM, Florian Westphal wrote:
-> Jakub Kicinski <kuba@kernel.org> wrote:
->> On Tue,  7 Jul 2020 12:55:08 +0800 wenxu@ucloud.cn wrote:
->>> From: wenxu <wenxu@ucloud.cn>
->>>
->>> Add nf_ct_frag_gather and Make nf_ct_frag6_gather elide the CB clear 
->>> when packets are defragmented by connection tracking. This can make
->>> each subsystem such as br_netfilter, openvswitch, act_ct do defrag
->>> without restore the CB. 
->>> This also avoid serious crashes and problems in  ct subsystem.
->>> Because Some packet schedulers store pointers in the qdisc CB private
->>> area and parallel accesses to the SKB.
->>>
->>> This series following up
->>> http://patchwork.ozlabs.org/project/netdev/patch/1593422178-26949-1-git-send-email-wenxu@ucloud.cn/
->>>
->>> patch1: add nf_ct_frag_gather elide the CB clear
->>> patch2: make nf_ct_frag6_gather elide the CB clear
->>> patch3: fix clobber qdisc_skb_cb in act_ct with defrag
->>>
->>> v2: resue some ip_defrag function in patch1
->> Florian, Cong - are you willing to venture an ack on these? Anyone?
-> Nope, sorry.  Reason is that I can't figure out the need for this series.
-> Taking a huge step back:
->
-> http://patchwork.ozlabs.org/project/netdev/patch/1593422178-26949-1-git-send-email-wenxu@ucloud.cn/
->
-> That patch looks ok to me:
-> I understand the problem statement/commit message and I can see how its addressed.
->
-> I don't understand why the CB clearing must be avoided.
->
-> defrag assumes skb ownership -- e.g. it may realloc skb->data
-> (calls pskb_may_pull), it calls skb_orphan(), etc.
->
-> AFAICS, tcf_classify makes same assumption -- exclusive ownership
-> and no parallel skb accesses.
->
-> So, if in fact the "only" problem is the loss of
-> qdisc_skb_cb(skb)->pkt_len, then the other patch looks ok to me.
->
-> If we indeed have parallel access, then I do not understand how
-> avoiding the memsets in the defrag path makes things any better
-> (see above wrt. skb pull and the like).
-
-Hi David,
-
-
-What case for the parallel access the skb in tcf_classify?
-
-If there indeed have this. Maybe it can't do defrag which also
-
-access and modify the skb?
-
-
-BR
-
-wenxu
-
-
+SSBkbyBhIGlwdnMgY29ubmVjdGlvbiBzeW5jIHRlc3QgaW4gYSAzLjEwIHZlcnNpb24ga2VybmVs
+IHdoaWNoIGhhcyB0aGUgN2MxM2Y5N2ZmZGU2IGNvbW1pdCB3aGljaCBzdWNjZWVkLiBJIHdpbGwg
+bW9kaWZ5IHRoZSBmaXhlcyBpbmZvcm1hdGlvbiBvZiB0aGUgcGF0Y2ggYW5kIHJlcGxhY2UgdGhl
+IHNrYl9xdWV1ZV9lbXB0eSB3aXRoIHNrYl9xdWV1ZV9lbXB0eV9sb2NrbGVzcy4NClRoYW5rcy4N
+Cg0KLS0tLS3Tyrz+1K28/i0tLS0tDQq3orz+yMs6IEp1bGlhbiBBbmFzdGFzb3YgW21haWx0bzpq
+YUBzc2kuYmddIA0Kt6LLzcqxvOQ6IFRodXJzZGF5LCBKdWx5IDE2LCAyMDIwIDE6MzYNCsrVvP7I
+yzogR3VvZGVxaW5nIChBKSA8Z2VmZnJleS5ndW9AaHVhd2VpLmNvbT4NCrOty806IHdlbnNvbmdA
+bGludXgtdnMub3JnOyBob3Jtc0B2ZXJnZS5uZXQuYXU7IHBhYmxvQG5ldGZpbHRlci5vcmc7IGth
+ZGxlY0BuZXRmaWx0ZXIub3JnOyBmd0BzdHJsZW4uZGU7IGRhdmVtQGRhdmVtbG9mdC5uZXQ7IGt1
+YmFAa2VybmVsLm9yZzsgbmV0ZGV2QHZnZXIua2VybmVsLm9yZzsgbHZzLWRldmVsQHZnZXIua2Vy
+bmVsLm9yZzsgbmV0ZmlsdGVyLWRldmVsQHZnZXIua2VybmVsLm9yZw0K1vfM4jogUmU6IFtQQVRD
+SF0gaXB2czogZml4IHRoZSBjb25uZWN0aW9uIHN5bmMgZmFpbGVkIGluIHNvbWUgY2FzZXMNCg0K
+DQoJSGVsbG8sDQoNCk9uIFdlZCwgMTUgSnVsIDIwMjAsIGd1b2RlcWluZyB3cm90ZToNCg0KPiBU
+aGUgc3luY190aHJlYWRfYmFja3VwIG9ubHkgY2hlY2tzIHNrX3JlY2VpdmVfcXVldWUgaXMgZW1w
+dHkgb3Igbm90LCANCj4gdGhlcmUgaXMgYSBzaXR1YXRpb24gd2hpY2ggY2Fubm90IHN5bmMgdGhl
+IGNvbm5lY3Rpb24gZW50cmllcyB3aGVuIA0KPiBza19yZWNlaXZlX3F1ZXVlIGlzIGVtcHR5IGFu
+ZCBza19ybWVtX2FsbG9jIGlzIGxhcmdlciB0aGFuIHNrX3JjdmJ1ZiwgDQo+IHRoZSBzeW5jIHBh
+Y2tldHMgYXJlIGRyb3BwZWQgaW4gX191ZHBfZW5xdWV1ZV9zY2hlZHVsZV9za2IsIHRoaXMgaXMg
+DQo+IGJlY2F1c2UgdGhlIHBhY2tldHMgaW4gcmVhZGVyX3F1ZXVlIGlzIG5vdCByZWFkLCBzbyB0
+aGUgcm1lbSBpcyBub3QgDQo+IHJlY2xhaW1lZC4NCg0KCUdvb2QgY2F0Y2guIFdlIG1pc3NlZCB0
+aGlzIGNoYW5nZSBpbiBVRFAuLi4NCg0KPiBIZXJlIEkgYWRkIHRoZSBjaGVjayBvZiB3aGV0aGVy
+IHRoZSByZWFkZXJfcXVldWUgb2YgdGhlIHVkcCBzb2NrIGlzIA0KPiBlbXB0eSBvciBub3QgdG8g
+c29sdmUgdGhpcyBwcm9ibGVtLg0KPiANCj4gRml4ZXM6IDdjMTNmOTdmZmRlNiAoInVkcDogZG8g
+ZndkIG1lbW9yeSBzY2hlZHVsaW5nIG9uIGRlcXVldWUiKQ0KDQoJV2h5IHRoaXMgY29tbWl0IGFu
+ZCBub3QgMjI3NmY1OGFjNTg5IHdoaWNoIGFkZHMgcmVhZGVyX3F1ZXVlIHRvIHVkcF9wb2xsKCkg
+PyBNYXkgYmUgYm90aD8NCg0KPiBSZXBvcnRlZC1ieTogemhvdXh1ZG9uZyA8emhvdXh1ZG9uZzhA
+aHVhd2VpLmNvbT4NCj4gU2lnbmVkLW9mZi1ieTogZ3VvZGVxaW5nIDxnZWZmcmV5Lmd1b0BodWF3
+ZWkuY29tPg0KPiAtLS0NCj4gIG5ldC9uZXRmaWx0ZXIvaXB2cy9pcF92c19zeW5jLmMgfCAxMiAr
+KysrKysrKy0tLS0NCj4gIDEgZmlsZSBjaGFuZ2VkLCA4IGluc2VydGlvbnMoKyksIDQgZGVsZXRp
+b25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvbmV0L25ldGZpbHRlci9pcHZzL2lwX3ZzX3N5bmMu
+YyANCj4gYi9uZXQvbmV0ZmlsdGVyL2lwdnMvaXBfdnNfc3luYy5jIGluZGV4IDYwNWUwZjYuLmFi
+ZThkNjMgMTAwNjQ0DQo+IC0tLSBhL25ldC9uZXRmaWx0ZXIvaXB2cy9pcF92c19zeW5jLmMNCj4g
+KysrIGIvbmV0L25ldGZpbHRlci9pcHZzL2lwX3ZzX3N5bmMuYw0KPiBAQCAtMTcxNyw2ICsxNzE3
+LDggQEAgc3RhdGljIGludCBzeW5jX3RocmVhZF9iYWNrdXAodm9pZCAqZGF0YSkgIHsNCj4gIAlz
+dHJ1Y3QgaXBfdnNfc3luY190aHJlYWRfZGF0YSAqdGluZm8gPSBkYXRhOw0KPiAgCXN0cnVjdCBu
+ZXRuc19pcHZzICppcHZzID0gdGluZm8tPmlwdnM7DQo+ICsJc3RydWN0IHNvY2sgKnNrID0gdGlu
+Zm8tPnNvY2stPnNrOw0KPiArCXN0cnVjdCB1ZHBfc29jayAqdXAgPSB1ZHBfc2soc2spOw0KPiAg
+CWludCBsZW47DQo+ICANCj4gIAlwcl9pbmZvKCJzeW5jIHRocmVhZCBzdGFydGVkOiBzdGF0ZSA9
+IEJBQ0tVUCwgbWNhc3RfaWZuID0gJXMsICINCj4gQEAgLTE3MjQsMTIgKzE3MjYsMTQgQEAgc3Rh
+dGljIGludCBzeW5jX3RocmVhZF9iYWNrdXAodm9pZCAqZGF0YSkNCj4gIAkJaXB2cy0+YmNmZy5t
+Y2FzdF9pZm4sIGlwdnMtPmJjZmcuc3luY2lkLCB0aW5mby0+aWQpOw0KPiAgDQo+ICAJd2hpbGUg
+KCFrdGhyZWFkX3Nob3VsZF9zdG9wKCkpIHsNCj4gLQkJd2FpdF9ldmVudF9pbnRlcnJ1cHRpYmxl
+KCpza19zbGVlcCh0aW5mby0+c29jay0+c2spLA0KPiAtCQkJICFza2JfcXVldWVfZW1wdHkoJnRp
+bmZvLT5zb2NrLT5zay0+c2tfcmVjZWl2ZV9xdWV1ZSkNCj4gLQkJCSB8fCBrdGhyZWFkX3Nob3Vs
+ZF9zdG9wKCkpOw0KPiArCQl3YWl0X2V2ZW50X2ludGVycnVwdGlibGUoKnNrX3NsZWVwKHNrKSwN
+Cj4gKwkJCQkJICFza2JfcXVldWVfZW1wdHkoJnNrLT5za19yZWNlaXZlX3F1ZXVlKSB8fA0KPiAr
+CQkJCQkgIXNrYl9xdWV1ZV9lbXB0eSgmdXAtPnJlYWRlcl9xdWV1ZSkgfHwNCg0KCU1heSBiZSB3
+ZSBzaG91bGQgdXNlIHNrYl9xdWV1ZV9lbXB0eV9sb2NrbGVzcyBmb3IgNS40KyBhbmQgc2tiX3F1
+ZXVlX2VtcHR5KCkgZm9yIGJhY2twb3J0cyB0byA0LjE0IGFuZCA0LjE5Li4uDQoNCj4gKwkJCQkJ
+IGt0aHJlYWRfc2hvdWxkX3N0b3AoKSk7DQo+ICANCj4gIAkJLyogZG8gd2UgaGF2ZSBkYXRhIG5v
+dz8gKi8NCj4gLQkJd2hpbGUgKCFza2JfcXVldWVfZW1wdHkoJih0aW5mby0+c29jay0+c2stPnNr
+X3JlY2VpdmVfcXVldWUpKSkgew0KPiArCQl3aGlsZSAoIXNrYl9xdWV1ZV9lbXB0eSgmc2stPnNr
+X3JlY2VpdmVfcXVldWUpIHx8DQo+ICsJCSAgICAgICAhc2tiX3F1ZXVlX2VtcHR5KCZ1cC0+cmVh
+ZGVyX3F1ZXVlKSkgew0KDQoJSGVyZSB0b28NCg0KPiAgCQkJbGVuID0gaXBfdnNfcmVjZWl2ZSh0
+aW5mby0+c29jaywgdGluZm8tPmJ1ZiwNCj4gIAkJCQkJaXB2cy0+YmNmZy5zeW5jX21heGxlbik7
+DQo+ICAJCQlpZiAobGVuIDw9IDApIHsNCj4gLS0NCj4gMi43LjQNCg0KUmVnYXJkcw0KDQotLQ0K
+SnVsaWFuIEFuYXN0YXNvdiA8amFAc3NpLmJnPg0K
