@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8F18C4346E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:27:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84346C43470
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:27:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B035F2176B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:27:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E41021744
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:27:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ZEqOtR7Y"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="nof+laVG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728300AbgGQG1Z (ORCPT
+        id S1728308AbgGQG1Z (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Fri, 17 Jul 2020 02:27:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53888 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53900 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726056AbgGQGYK (ORCPT
+        with ESMTP id S1726166AbgGQGYK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 17 Jul 2020 02:24:10 -0400
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FC16C061755;
-        Thu, 16 Jul 2020 23:24:08 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4BBBC08C5DC;
+        Thu, 16 Jul 2020 23:24:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
         References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
         Content-Type:Content-ID:Content-Description;
-        bh=f8sxF6lqgSOtJgTg8maQxOEGY1f8ZNeToFNAXuRekpY=; b=ZEqOtR7YleQvC92xGmKC91Kk8L
-        WTEXAQTf/mF9q9Sr6E1umt3uL5isI+jl33iT6B+NTWGjBQCHmj5vR2cqc1gH3RLw87ZBI2KJCyK4j
-        OsS524C9XTPJYGNJrzCJ0VEVOeyFwAvP/JchrRtBr8ED8bo6wbJFPIQWRaekV0RZYb5LDDC0UrqeR
-        Kus4x/xm2hTJTg5FJATe/2UhIbHHDHlA3jUWlAv1s3QZx4Q0PEQpxDBuCxzrE9R/3L9T6dPjNnTit
-        /CDWgXJrbMMzBa/1e6cziI38mK/P6j9Kyif5s6YoYnAzkO1g0wtsXDHyWgAfdl3/mbxZnLS51qNWF
-        JN+mKrIg==;
+        bh=WmIks9a/wTCxBPMm3mUIfDve+aMKbFTuVLjUhhuXkXc=; b=nof+laVGHZXP6VygkDkDi1sX2z
+        Mk8QWBGUizyyZ08eiROiRxQMquusa4e6/lJj2qbGiP4AoZGX9IibG3S/FG/NaMX99/JgP0ITNi8sa
+        DkuxO72q+UdcdP1AApoBqnu83WPf3wLeVDxzDPJ/LCqW4IShRc4kh6BFVhiiIOC0OKDXnYCmAWNLt
+        29AF8h6c87CJ0kelQay90KhSZli451wfXXgBVKhGEzQxj3ufGXCo0dlzS4ofOZPMVJVNiI22i0VtT
+        JNJyXNlzEB6kS5PBA5zsLOteduzRmslRru/pM6xkSqZaXbe65M5pwQaq91g7RffKtF+nyl4X994dh
+        dsrkuolQ==;
 Received: from [2001:4bb8:105:4a81:3772:912d:640:e6c6] (helo=localhost)
         by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jwJmi-00051X-6v; Fri, 17 Jul 2020 06:23:53 +0000
+        id 1jwJmm-00051x-2i; Fri, 17 Jul 2020 06:23:59 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     "David S. Miller" <davem@davemloft.net>
 Cc:     Alexei Starovoitov <ast@kernel.org>,
@@ -55,9 +55,9 @@ Cc:     Alexei Starovoitov <ast@kernel.org>,
         linux-bluetooth@vger.kernel.org, bridge@lists.linux-foundation.org,
         linux-can@vger.kernel.org, dccp@vger.kernel.org,
         linux-wpan@vger.kernel.org, mptcp@lists.01.org
-Subject: [PATCH 02/22] net: streamline __sys_setsockopt
-Date:   Fri, 17 Jul 2020 08:23:11 +0200
-Message-Id: <20200717062331.691152-3-hch@lst.de>
+Subject: [PATCH 04/22] net: simplify cBPF setsockopt compat handling
+Date:   Fri, 17 Jul 2020 08:23:13 +0200
+Message-Id: <20200717062331.691152-5-hch@lst.de>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20200717062331.691152-1-hch@lst.de>
 References: <20200717062331.691152-1-hch@lst.de>
@@ -69,89 +69,266 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Return early when sockfd_lookup_light fails to reduce a level of
-indentation for most of the function body.
+Add a helper that copies either a native or compat bpf_fprog from
+userspace after verifying the length, and remove the compat setsockopt
+handlers that now aren't required.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- net/socket.c | 57 +++++++++++++++++++++++++---------------------------
- 1 file changed, 27 insertions(+), 30 deletions(-)
+ include/linux/filter.h |  4 ++--
+ include/net/compat.h   |  1 -
+ net/compat.c           | 45 +-----------------------------------------
+ net/core/filter.c      | 23 +++++++++++++++++++++
+ net/core/sock.c        | 30 ++++++++++------------------
+ net/packet/af_packet.c | 33 ++++---------------------------
+ 6 files changed, 40 insertions(+), 96 deletions(-)
 
-diff --git a/net/socket.c b/net/socket.c
-index 770503c4ca76c9..49a6daf0293b83 100644
---- a/net/socket.c
-+++ b/net/socket.c
-@@ -2107,43 +2107,40 @@ static int __sys_setsockopt(int fd, int level, int optname,
- 		return -EINVAL;
+diff --git a/include/linux/filter.h b/include/linux/filter.h
+index 0b0144752d780a..4d049c8e1fbeaa 100644
+--- a/include/linux/filter.h
++++ b/include/linux/filter.h
+@@ -502,13 +502,11 @@ static inline bool insn_is_zext(const struct bpf_insn *insn)
+ 		offsetof(TYPE, MEMBER);						\
+ 	})
  
- 	sock = sockfd_lookup_light(fd, &err, &fput_needed);
--	if (sock != NULL) {
--		err = security_socket_setsockopt(sock, level, optname);
--		if (err)
--			goto out_put;
-+	if (!sock)
-+		return err;
+-#ifdef CONFIG_COMPAT
+ /* A struct sock_filter is architecture independent. */
+ struct compat_sock_fprog {
+ 	u16		len;
+ 	compat_uptr_t	filter;	/* struct sock_filter * */
+ };
+-#endif
  
--		err = BPF_CGROUP_RUN_PROG_SETSOCKOPT(sock->sk, &level,
--						     &optname, optval, &optlen,
--						     &kernel_optval);
-+	err = security_socket_setsockopt(sock, level, optname);
-+	if (err)
-+		goto out_put;
+ struct sock_fprog_kern {
+ 	u16			len;
+@@ -1278,4 +1276,6 @@ struct bpf_sockopt_kern {
+ 	s32		retval;
+ };
  
--		if (err < 0) {
--			goto out_put;
--		} else if (err > 0) {
--			err = 0;
--			goto out_put;
--		}
-+	err = BPF_CGROUP_RUN_PROG_SETSOCKOPT(sock->sk, &level, &optname,
-+					     optval, &optlen, &kernel_optval);
-+	if (err < 0)
-+		goto out_put;
-+	if (err > 0) {
-+		err = 0;
-+		goto out_put;
-+	}
- 
--		if (kernel_optval) {
--			set_fs(KERNEL_DS);
--			optval = (char __user __force *)kernel_optval;
--		}
-+	if (kernel_optval) {
-+		set_fs(KERNEL_DS);
-+		optval = (char __user __force *)kernel_optval;
-+	}
- 
--		if (level == SOL_SOCKET && !sock_use_custom_sol_socket(sock))
--			err =
--			    sock_setsockopt(sock, level, optname, optval,
-+	if (level == SOL_SOCKET && !sock_use_custom_sol_socket(sock))
-+		err = sock_setsockopt(sock, level, optname, optval, optlen);
-+	else
-+		err = sock->ops->setsockopt(sock, level, optname, optval,
- 					    optlen);
--		else
--			err =
--			    sock->ops->setsockopt(sock, level, optname, optval,
--						  optlen);
- 
--		if (kernel_optval) {
--			set_fs(oldfs);
--			kfree(kernel_optval);
--		}
--out_put:
--		fput_light(sock->file, fput_needed);
-+	if (kernel_optval) {
-+		set_fs(oldfs);
-+		kfree(kernel_optval);
- 	}
++int copy_bpf_fprog_from_user(struct sock_fprog *dst, void __user *src, int len);
 +
-+out_put:
-+	fput_light(sock->file, fput_needed);
- 	return err;
+ #endif /* __LINUX_FILTER_H__ */
+diff --git a/include/net/compat.h b/include/net/compat.h
+index f241666117d88c..745db0d605b62b 100644
+--- a/include/net/compat.h
++++ b/include/net/compat.h
+@@ -61,7 +61,6 @@ int __get_compat_msghdr(struct msghdr *kmsg, struct compat_msghdr __user *umsg,
+ 			compat_size_t *len);
+ int get_compat_msghdr(struct msghdr *, struct compat_msghdr __user *,
+ 		      struct sockaddr __user **, struct iovec **);
+-struct sock_fprog __user *get_compat_bpf_fprog(char __user *optval);
+ int put_cmsg_compat(struct msghdr*, int, int, int, void *);
+ 
+ int cmsghdr_from_user_compat_to_kern(struct msghdr *, struct sock *,
+diff --git a/net/compat.c b/net/compat.c
+index 5e3041a2c37d4d..3e6c2c5ff2609c 100644
+--- a/net/compat.c
++++ b/net/compat.c
+@@ -335,49 +335,6 @@ void scm_detach_fds_compat(struct msghdr *kmsg, struct scm_cookie *scm)
+ 	__scm_destroy(scm);
  }
  
+-/* allocate a 64-bit sock_fprog on the user stack for duration of syscall. */
+-struct sock_fprog __user *get_compat_bpf_fprog(char __user *optval)
+-{
+-	struct compat_sock_fprog __user *fprog32 = (struct compat_sock_fprog __user *)optval;
+-	struct sock_fprog __user *kfprog = compat_alloc_user_space(sizeof(struct sock_fprog));
+-	struct compat_sock_fprog f32;
+-	struct sock_fprog f;
+-
+-	if (copy_from_user(&f32, fprog32, sizeof(*fprog32)))
+-		return NULL;
+-	memset(&f, 0, sizeof(f));
+-	f.len = f32.len;
+-	f.filter = compat_ptr(f32.filter);
+-	if (copy_to_user(kfprog, &f, sizeof(struct sock_fprog)))
+-		return NULL;
+-
+-	return kfprog;
+-}
+-EXPORT_SYMBOL_GPL(get_compat_bpf_fprog);
+-
+-static int do_set_attach_filter(struct socket *sock, int level, int optname,
+-				char __user *optval, unsigned int optlen)
+-{
+-	struct sock_fprog __user *kfprog;
+-
+-	kfprog = get_compat_bpf_fprog(optval);
+-	if (!kfprog)
+-		return -EFAULT;
+-
+-	return sock_setsockopt(sock, level, optname, (char __user *)kfprog,
+-			      sizeof(struct sock_fprog));
+-}
+-
+-static int compat_sock_setsockopt(struct socket *sock, int level, int optname,
+-				char __user *optval, unsigned int optlen)
+-{
+-	if (optname == SO_ATTACH_FILTER ||
+-	    optname == SO_ATTACH_REUSEPORT_CBPF)
+-		return do_set_attach_filter(sock, level, optname,
+-					    optval, optlen);
+-	return sock_setsockopt(sock, level, optname, optval, optlen);
+-}
+-
+ static int __compat_sys_setsockopt(int fd, int level, int optname,
+ 				   char __user *optval, unsigned int optlen)
+ {
+@@ -396,7 +353,7 @@ static int __compat_sys_setsockopt(int fd, int level, int optname,
+ 		}
+ 
+ 		if (level == SOL_SOCKET)
+-			err = compat_sock_setsockopt(sock, level,
++			err = sock_setsockopt(sock, level,
+ 					optname, optval, optlen);
+ 		else if (sock->ops->compat_setsockopt)
+ 			err = sock->ops->compat_setsockopt(sock, level,
+diff --git a/net/core/filter.c b/net/core/filter.c
+index bdd2382e655d85..2bf6624796d86f 100644
+--- a/net/core/filter.c
++++ b/net/core/filter.c
+@@ -77,6 +77,29 @@
+ #include <net/transp_v6.h>
+ #include <linux/btf_ids.h>
+ 
++int copy_bpf_fprog_from_user(struct sock_fprog *dst, void __user *src, int len)
++{
++	if (in_compat_syscall()) {
++		struct compat_sock_fprog f32;
++
++		if (len != sizeof(f32))
++			return -EINVAL;
++		if (copy_from_user(&f32, src, sizeof(f32)))
++			return -EFAULT;
++		memset(dst, 0, sizeof(*dst));
++		dst->len = f32.len;
++		dst->filter = compat_ptr(f32.filter);
++	} else {
++		if (len != sizeof(*dst))
++			return -EINVAL;
++		if (copy_from_user(dst, src, sizeof(*dst)))
++			return -EFAULT;
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(copy_bpf_fprog_from_user);
++
+ /**
+  *	sk_filter_trim_cap - run a packet through a socket filter
+  *	@sk: sock associated with &sk_buff
+diff --git a/net/core/sock.c b/net/core/sock.c
+index 11d6f77dd56207..e085df79482520 100644
+--- a/net/core/sock.c
++++ b/net/core/sock.c
+@@ -1059,19 +1059,14 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
+ 		ret = sock_set_timeout(&sk->sk_sndtimeo, optval, optlen, optname == SO_SNDTIMEO_OLD);
+ 		break;
+ 
+-	case SO_ATTACH_FILTER:
+-		ret = -EINVAL;
+-		if (optlen == sizeof(struct sock_fprog)) {
+-			struct sock_fprog fprog;
+-
+-			ret = -EFAULT;
+-			if (copy_from_user(&fprog, optval, sizeof(fprog)))
+-				break;
++	case SO_ATTACH_FILTER: {
++		struct sock_fprog fprog;
+ 
++		ret = copy_bpf_fprog_from_user(&fprog, optval, optlen);
++		if (!ret)
+ 			ret = sk_attach_filter(&fprog, sk);
+-		}
+ 		break;
+-
++	}
+ 	case SO_ATTACH_BPF:
+ 		ret = -EINVAL;
+ 		if (optlen == sizeof(u32)) {
+@@ -1085,19 +1080,14 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
+ 		}
+ 		break;
+ 
+-	case SO_ATTACH_REUSEPORT_CBPF:
+-		ret = -EINVAL;
+-		if (optlen == sizeof(struct sock_fprog)) {
+-			struct sock_fprog fprog;
+-
+-			ret = -EFAULT;
+-			if (copy_from_user(&fprog, optval, sizeof(fprog)))
+-				break;
++	case SO_ATTACH_REUSEPORT_CBPF: {
++		struct sock_fprog fprog;
+ 
++		ret = copy_bpf_fprog_from_user(&fprog, optval, optlen);
++		if (!ret)
+ 			ret = sk_reuseport_attach_filter(&fprog, sk);
+-		}
+ 		break;
+-
++	}
+ 	case SO_ATTACH_REUSEPORT_EBPF:
+ 		ret = -EINVAL;
+ 		if (optlen == sizeof(u32)) {
+diff --git a/net/packet/af_packet.c b/net/packet/af_packet.c
+index 781fee93b7d5e3..35aee9e980536d 100644
+--- a/net/packet/af_packet.c
++++ b/net/packet/af_packet.c
+@@ -1545,10 +1545,10 @@ static int fanout_set_data_cbpf(struct packet_sock *po, char __user *data,
+ 
+ 	if (sock_flag(&po->sk, SOCK_FILTER_LOCKED))
+ 		return -EPERM;
+-	if (len != sizeof(fprog))
+-		return -EINVAL;
+-	if (copy_from_user(&fprog, data, len))
+-		return -EFAULT;
++
++	ret = copy_bpf_fprog_from_user(&fprog, data, len);
++	if (ret)
++		return ret;
+ 
+ 	ret = bpf_prog_create_from_user(&new, &fprog, NULL, false);
+ 	if (ret)
+@@ -4040,28 +4040,6 @@ static int packet_getsockopt(struct socket *sock, int level, int optname,
+ 	return 0;
+ }
+ 
+-
+-#ifdef CONFIG_COMPAT
+-static int compat_packet_setsockopt(struct socket *sock, int level, int optname,
+-				    char __user *optval, unsigned int optlen)
+-{
+-	struct packet_sock *po = pkt_sk(sock->sk);
+-
+-	if (level != SOL_PACKET)
+-		return -ENOPROTOOPT;
+-
+-	if (optname == PACKET_FANOUT_DATA &&
+-	    po->fanout && po->fanout->type == PACKET_FANOUT_CBPF) {
+-		optval = (char __user *)get_compat_bpf_fprog(optval);
+-		if (!optval)
+-			return -EFAULT;
+-		optlen = sizeof(struct sock_fprog);
+-	}
+-
+-	return packet_setsockopt(sock, level, optname, optval, optlen);
+-}
+-#endif
+-
+ static int packet_notifier(struct notifier_block *this,
+ 			   unsigned long msg, void *ptr)
+ {
+@@ -4549,9 +4527,6 @@ static const struct proto_ops packet_ops = {
+ 	.shutdown =	sock_no_shutdown,
+ 	.setsockopt =	packet_setsockopt,
+ 	.getsockopt =	packet_getsockopt,
+-#ifdef CONFIG_COMPAT
+-	.compat_setsockopt = compat_packet_setsockopt,
+-#endif
+ 	.sendmsg =	packet_sendmsg,
+ 	.recvmsg =	packet_recvmsg,
+ 	.mmap =		packet_mmap,
 -- 
 2.27.0
 
