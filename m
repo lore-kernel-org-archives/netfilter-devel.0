@@ -2,147 +2,120 @@ Return-Path: <SRS0=dQkn=A4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9037C433E0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 08:40:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE8C3C433E0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 09:18:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B422B2064B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 08:40:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B428820684
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 09:18:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="YCkgS13T"
+	dkim=pass (2048-bit key) header.d=tessares-net.20150623.gappssmtp.com header.i=@tessares-net.20150623.gappssmtp.com header.b="xR7/TE9+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726547AbgGQIkS (ORCPT
+        id S1726393AbgGQJSM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Jul 2020 04:40:18 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:42989 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1725864AbgGQIkS (ORCPT
+        Fri, 17 Jul 2020 05:18:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52444 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726059AbgGQJSL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Jul 2020 04:40:18 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1594975216;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=5c/aaAStOXPOEWCYfpTREuudixuTM2JeHlYigmTtaYM=;
-        b=YCkgS13T5ZhcbOosu+AN2PRXk8+eOq3K5iOo9HgNKqXOgl+OWOUqMHR48sjqW1L1w8k3Ur
-        XEvMkXISJJR4dgiKUHLCsszkoaKlRUL3YBziGU1tcZSUKFmkJfb8a8AEYudq/iBrcthU3c
-        T5bSCbGMurB1NZFnAMxjvymDNq7nBuA=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-456-hcSeYmGNNNykha0nL2M_NA-1; Fri, 17 Jul 2020 04:39:53 -0400
-X-MC-Unique: hcSeYmGNNNykha0nL2M_NA-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id CF018800465;
-        Fri, 17 Jul 2020 08:39:52 +0000 (UTC)
-Received: from lithium.redhat.com (ovpn-112-32.ams2.redhat.com [10.36.112.32])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 7E4D56FED1;
-        Fri, 17 Jul 2020 08:39:51 +0000 (UTC)
-From:   Giuseppe Scrivano <gscrivan@redhat.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     gscrivan@redhat.com, Phil Sutter <phil@nwl.cc>,
-        Florian Westphal <fw@strlen.de>
-Subject: [iptables PATCH v3] iptables: accept lock file name at runtime
-Date:   Fri, 17 Jul 2020 10:39:40 +0200
-Message-Id: <20200717083940.618618-1-gscrivan@redhat.com>
+        Fri, 17 Jul 2020 05:18:11 -0400
+Received: from mail-ej1-x643.google.com (mail-ej1-x643.google.com [IPv6:2a00:1450:4864:20::643])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7AA51C08C5CE
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Jul 2020 02:18:11 -0700 (PDT)
+Received: by mail-ej1-x643.google.com with SMTP id p20so9972903ejd.13
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Jul 2020 02:18:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=tessares-net.20150623.gappssmtp.com; s=20150623;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=ABtoKcunWta1zPd9OAU4HivGakSrvH6t7PoGrVg1IHw=;
+        b=xR7/TE9+zWjcsvx6d03jd1AgLl1RxCF+57iDGUw8QqO8NNJiU5y/1PDhMHyK6SBPD0
+         Tu9kE2ltrVcgIGDsEFYeGOdvGGs9gXhWrY0fvfmRtJuRWzhuLiSsJxij8VwijPfHjTPS
+         3aRzO2LOdNynO+M1Cxqg8LEaNT7+cWaMS9ZleuZy42uIKF7zbE+VVsfyNZHqDLg2WCO5
+         2IhHaXOEiidwv/4zssU9rGm6ibTKTyOzBFUfh4ZlLc65xFj4ZNu5VWofuJadgyUIYj5C
+         Y93p7sEtG5rh/7aWXf9IEREZyDETtvRRffJXB7kNBwNCJiHJc9kale3U3Oqjmxgbkhyq
+         rtqQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=ABtoKcunWta1zPd9OAU4HivGakSrvH6t7PoGrVg1IHw=;
+        b=te4pCKUitpgUllCrK197UUrIbqEQ/uLZE6ETMh9vpCDBXqVhL+FFRNf3PAMyM06yGU
+         ghi+Ycc0cIp9nkRskwDcSWFnWGLr2icuCGzlTwUNgxz4fJ9VLtaO+BHB9FS7yFFP7BxJ
+         L5pH+Z9dxrHvk88bSvi6nWZJE++uAFdcYnqvpqFhg1sx+gBLBD14BFX1YwThlFyWqqh3
+         rTA6fbCAJNKuTyyaUiWiMXA4t/cX7ZxoW6o11qioYwKC5QBr+yXKG7Qy+KwF9WWt3KTs
+         ju5jEZoh6/JHovaNnt06nVHg3UCPE9xMli4zTxgXBokJwr6iBLGkiMGcDGjj0wC3hEck
+         mguA==
+X-Gm-Message-State: AOAM531G4PbqQJ2P9if9dsGz/1/0D5SDS+YO4NTU1Kpn8CC8mYbX7G91
+        +5unRS91GAa5RJXqdrsux4tEdA==
+X-Google-Smtp-Source: ABdhPJwKJni/XUuyRKR8S/sAchcIII3C/3Gdc/GCPUNVX6T8sPkuUFzqwgJFnhzYtCojkw18DlkE7Q==
+X-Received: by 2002:a17:907:426c:: with SMTP id nx20mr7604495ejb.548.1594977490002;
+        Fri, 17 Jul 2020 02:18:10 -0700 (PDT)
+Received: from tsr-lap-08.nix.tessares.net ([81.246.10.41])
+        by smtp.gmail.com with ESMTPSA id p4sm7541372eji.123.2020.07.17.02.18.08
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 17 Jul 2020 02:18:08 -0700 (PDT)
+Subject: Re: [MPTCP] [PATCH 05/22] net: remove
+ compat_sock_common_{get,set}sockopt
+To:     Christoph Hellwig <hch@lst.de>,
+        "David S. Miller" <davem@davemloft.net>
+Cc:     Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Chas Williams <3chas3@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        bpf@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        linux-sctp@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-bluetooth@vger.kernel.org, bridge@lists.linux-foundation.org,
+        linux-can@vger.kernel.org, dccp@vger.kernel.org,
+        linux-wpan@vger.kernel.org, mptcp@lists.01.org
+References: <20200717062331.691152-1-hch@lst.de>
+ <20200717062331.691152-6-hch@lst.de>
+From:   Matthieu Baerts <matthieu.baerts@tessares.net>
+Message-ID: <203f5f41-1de0-575e-864b-53a9412d97f6@tessares.net>
+Date:   Fri, 17 Jul 2020 11:18:08 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+In-Reply-To: <20200717062331.691152-6-hch@lst.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-allow users to override at runtime the lock file to use through the
-XTABLES_LOCKFILE environment variable.
+Hi Christoph,
 
-It allows to use iptables when the user has granted enough
-capabilities (e.g. a user+network namespace) to configure the network
-but that lacks access to the XT_LOCK_NAME (by default placed under
-/run).
+On 17/07/2020 08:23, Christoph Hellwig wrote:
+> Add the compat handling to sock_common_{get,set}sockopt instead,
+> keyed of in_compat_syscall().  This allow to remove the now unused
+> ->compat_{get,set}sockopt methods from struct proto_ops.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>   include/linux/net.h      |  6 ------
+>   include/net/sock.h       |  4 ----
+>   net/core/sock.c          | 30 ++++++------------------------
+>   net/mptcp/protocol.c     |  6 ------
 
-$ XTABLES_LOCKFILE=/tmp/xtables unshare -rn iptables ...
+Thank you for looking at that!
 
-Signed-off-by: Giuseppe Scrivano <gscrivan@redhat.com>
----
- configure.ac           |  1 +
- iptables/iptables.8.in |  8 ++++++++
- iptables/xshared.c     | 11 ++++++++---
- 3 files changed, 17 insertions(+), 3 deletions(-)
+For MPTCP-related code:
 
-diff --git a/configure.ac b/configure.ac
-index 31a8bb26..d37752a2 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -219,6 +219,7 @@ AC_SUBST([libxtables_vmajor])
- 
- AC_DEFINE_UNQUOTED([XT_LOCK_NAME], "${xt_lock_name}",
- 	[Location of the iptables lock file])
-+AC_SUBST([XT_LOCK_NAME], "${xt_lock_name}")
- 
- AC_CONFIG_FILES([Makefile extensions/GNUmakefile include/Makefile
- 	iptables/Makefile iptables/xtables.pc
-diff --git a/iptables/iptables.8.in b/iptables/iptables.8.in
-index 054564b3..999cf339 100644
---- a/iptables/iptables.8.in
-+++ b/iptables/iptables.8.in
-@@ -397,6 +397,14 @@ corresponding to that rule's position in the chain.
- \fB\-\-modprobe=\fP\fIcommand\fP
- When adding or inserting rules into a chain, use \fIcommand\fP
- to load any necessary modules (targets, match extensions, etc).
-+
-+.SH LOCK FILE
-+iptables uses the \fI@XT_LOCK_NAME@\fP file to take an exclusive lock at
-+launch.
-+
-+The \fBXTABLES_LOCKFILE\fP environment variable can be used to override
-+the default setting.
-+
- .SH MATCH AND TARGET EXTENSIONS
- .PP
- iptables can use extended packet matching and target modules.
-diff --git a/iptables/xshared.c b/iptables/xshared.c
-index c1d1371a..7d97637f 100644
---- a/iptables/xshared.c
-+++ b/iptables/xshared.c
-@@ -249,15 +249,20 @@ void xs_init_match(struct xtables_match *match)
- static int xtables_lock(int wait, struct timeval *wait_interval)
- {
- 	struct timeval time_left, wait_time;
-+	const char *lock_file;
- 	int fd, i = 0;
- 
- 	time_left.tv_sec = wait;
- 	time_left.tv_usec = 0;
- 
--	fd = open(XT_LOCK_NAME, O_CREAT, 0600);
-+	lock_file = getenv("XTABLES_LOCKFILE");
-+	if (lock_file == NULL || lock_file[0] == '\0')
-+		lock_file = XT_LOCK_NAME;
-+
-+	fd = open(lock_file, O_CREAT, 0600);
- 	if (fd < 0) {
- 		fprintf(stderr, "Fatal: can't open lock file %s: %s\n",
--			XT_LOCK_NAME, strerror(errno));
-+			lock_file, strerror(errno));
- 		return XT_LOCK_FAILED;
- 	}
- 
-@@ -265,7 +270,7 @@ static int xtables_lock(int wait, struct timeval *wait_interval)
- 		if (flock(fd, LOCK_EX) == 0)
- 			return fd;
- 
--		fprintf(stderr, "Can't lock %s: %s\n", XT_LOCK_NAME,
-+		fprintf(stderr, "Can't lock %s: %s\n", lock_file,
- 			strerror(errno));
- 		return XT_LOCK_BUSY;
- 	}
+Acked-by: Matthieu Baerts <matthieu.baerts@tessares.net>
+
+Cheers,
+Matt
 -- 
-2.26.2
-
+Tessares | Belgium | Hybrid Access Solutions
+www.tessares.net
