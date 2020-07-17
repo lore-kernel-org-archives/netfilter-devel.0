@@ -3,136 +3,238 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-11.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14C08C433DF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 09:27:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B01F9C433E0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 09:35:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E30B62076A
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 09:27:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8FF4B2070E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 09:35:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726205AbgGQJ1v (ORCPT
+        id S1726635AbgGQJfY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Jul 2020 05:27:51 -0400
-Received: from correo.us.es ([193.147.175.20]:44032 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726056AbgGQJ1v (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Jul 2020 05:27:51 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4A9F71798BE
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Jul 2020 11:27:49 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3BED0DA860
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Jul 2020 11:27:49 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 2B2B8DA850; Fri, 17 Jul 2020 11:27:49 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DF402DA78A;
-        Fri, 17 Jul 2020 11:27:44 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 17 Jul 2020 11:27:44 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Fri, 17 Jul 2020 05:35:24 -0400
+Received: from proxima.lasnet.de ([78.47.171.185]:53924 "EHLO
+        proxima.lasnet.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725932AbgGQJfX (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 17 Jul 2020 05:35:23 -0400
+X-Greylist: delayed 522 seconds by postgrey-1.27 at vger.kernel.org; Fri, 17 Jul 2020 05:35:19 EDT
+Received: from localhost.localdomain (p200300e9d737160bc31b0c5d63306033.dip0.t-ipconnect.de [IPv6:2003:e9:d737:160b:c31b:c5d:6330:6033])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id BC2D04265A32;
-        Fri, 17 Jul 2020 11:27:44 +0200 (CEST)
-Date:   Fri, 17 Jul 2020 11:27:44 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Giuseppe Scrivano <gscrivan@redhat.com>
-Cc:     netfilter-devel@vger.kernel.org, Phil Sutter <phil@nwl.cc>,
-        Florian Westphal <fw@strlen.de>
-Subject: Re: [iptables PATCH v3] iptables: accept lock file name at runtime
-Message-ID: <20200717092744.GA17027@salvia>
-References: <20200717083940.618618-1-gscrivan@redhat.com>
+        (Authenticated sender: stefan@datenfreihafen.org)
+        by proxima.lasnet.de (Postfix) with ESMTPSA id B77EDC0617;
+        Fri, 17 Jul 2020 11:26:35 +0200 (CEST)
+Subject: Re: [PATCH 05/22] net: remove compat_sock_common_{get,set}sockopt
+To:     Christoph Hellwig <hch@lst.de>,
+        "David S. Miller" <davem@davemloft.net>
+Cc:     Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Chas Williams <3chas3@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        bpf@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        linux-sctp@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-bluetooth@vger.kernel.org, bridge@lists.linux-foundation.org,
+        linux-can@vger.kernel.org, dccp@vger.kernel.org,
+        linux-wpan@vger.kernel.org, mptcp@lists.01.org
+References: <20200717062331.691152-1-hch@lst.de>
+ <20200717062331.691152-6-hch@lst.de>
+From:   Stefan Schmidt <stefan@datenfreihafen.org>
+Message-ID: <52d031f9-70c2-89c1-941f-c8187a6a2b68@datenfreihafen.org>
+Date:   Fri, 17 Jul 2020 11:26:34 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.9.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200717083940.618618-1-gscrivan@redhat.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <20200717062331.691152-6-hch@lst.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jul 17, 2020 at 10:39:40AM +0200, Giuseppe Scrivano wrote:
-> allow users to override at runtime the lock file to use through the
-> XTABLES_LOCKFILE environment variable.
+Hello.
+
+On 17.07.20 08:23, Christoph Hellwig wrote:
+> Add the compat handling to sock_common_{get,set}sockopt instead,
+> keyed of in_compat_syscall().  This allow to remove the now unused
+> ->compat_{get,set}sockopt methods from struct proto_ops.
 > 
-> It allows to use iptables when the user has granted enough
-> capabilities (e.g. a user+network namespace) to configure the network
-> but that lacks access to the XT_LOCK_NAME (by default placed under
-> /run).
-> 
-> $ XTABLES_LOCKFILE=/tmp/xtables unshare -rn iptables ...
-> 
-> Signed-off-by: Giuseppe Scrivano <gscrivan@redhat.com>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 > ---
->  configure.ac           |  1 +
->  iptables/iptables.8.in |  8 ++++++++
->  iptables/xshared.c     | 11 ++++++++---
->  3 files changed, 17 insertions(+), 3 deletions(-)
+>   include/linux/net.h      |  6 ------
+>   include/net/sock.h       |  4 ----
+>   net/core/sock.c          | 30 ++++++------------------------
+>   net/dccp/ipv4.c          |  4 ----
+>   net/dccp/ipv6.c          |  2 --
+>   net/ieee802154/socket.c  |  8 --------
+>   net/ipv4/af_inet.c       |  6 ------
+>   net/ipv6/af_inet6.c      |  4 ----
+>   net/ipv6/ipv6_sockglue.c | 12 ++----------
+>   net/ipv6/raw.c           |  2 --
+>   net/l2tp/l2tp_ip.c       |  4 ----
+>   net/l2tp/l2tp_ip6.c      |  2 --
+>   net/mptcp/protocol.c     |  6 ------
+>   net/phonet/socket.c      |  8 --------
+>   net/sctp/ipv6.c          |  2 --
+>   net/sctp/protocol.c      |  4 ----
+>   16 files changed, 8 insertions(+), 96 deletions(-)
 > 
-> diff --git a/configure.ac b/configure.ac
-> index 31a8bb26..d37752a2 100644
-> --- a/configure.ac
-> +++ b/configure.ac
-> @@ -219,6 +219,7 @@ AC_SUBST([libxtables_vmajor])
->  
->  AC_DEFINE_UNQUOTED([XT_LOCK_NAME], "${xt_lock_name}",
->  	[Location of the iptables lock file])
-> +AC_SUBST([XT_LOCK_NAME], "${xt_lock_name}")
->  
->  AC_CONFIG_FILES([Makefile extensions/GNUmakefile include/Makefile
->  	iptables/Makefile iptables/xtables.pc
-> diff --git a/iptables/iptables.8.in b/iptables/iptables.8.in
-> index 054564b3..999cf339 100644
-> --- a/iptables/iptables.8.in
-> +++ b/iptables/iptables.8.in
-> @@ -397,6 +397,14 @@ corresponding to that rule's position in the chain.
->  \fB\-\-modprobe=\fP\fIcommand\fP
->  When adding or inserting rules into a chain, use \fIcommand\fP
->  to load any necessary modules (targets, match extensions, etc).
-> +
-> +.SH LOCK FILE
-> +iptables uses the \fI@XT_LOCK_NAME@\fP file to take an exclusive lock at
-> +launch.
-> +
-> +The \fBXTABLES_LOCKFILE\fP environment variable can be used to override
-> +the default setting.
-> +
->  .SH MATCH AND TARGET EXTENSIONS
->  .PP
->  iptables can use extended packet matching and target modules.
-> diff --git a/iptables/xshared.c b/iptables/xshared.c
-> index c1d1371a..7d97637f 100644
-> --- a/iptables/xshared.c
-> +++ b/iptables/xshared.c
-> @@ -249,15 +249,20 @@ void xs_init_match(struct xtables_match *match)
->  static int xtables_lock(int wait, struct timeval *wait_interval)
->  {
->  	struct timeval time_left, wait_time;
-> +	const char *lock_file;
->  	int fd, i = 0;
->  
->  	time_left.tv_sec = wait;
->  	time_left.tv_usec = 0;
->  
-> -	fd = open(XT_LOCK_NAME, O_CREAT, 0600);
-> +	lock_file = getenv("XTABLES_LOCKFILE");
-> +	if (lock_file == NULL || lock_file[0] == '\0')
+> diff --git a/include/linux/net.h b/include/linux/net.h
+> index 016a9c5faa3479..858ff1d981540d 100644
+> --- a/include/linux/net.h
+> +++ b/include/linux/net.h
+> @@ -165,12 +165,6 @@ struct proto_ops {
+>   				      int optname, char __user *optval, unsigned int optlen);
+>   	int		(*getsockopt)(struct socket *sock, int level,
+>   				      int optname, char __user *optval, int __user *optlen);
+> -#ifdef CONFIG_COMPAT
+> -	int		(*compat_setsockopt)(struct socket *sock, int level,
+> -				      int optname, char __user *optval, unsigned int optlen);
+> -	int		(*compat_getsockopt)(struct socket *sock, int level,
+> -				      int optname, char __user *optval, int __user *optlen);
+> -#endif
+>   	void		(*show_fdinfo)(struct seq_file *m, struct socket *sock);
+>   	int		(*sendmsg)   (struct socket *sock, struct msghdr *m,
+>   				      size_t total_len);
+> diff --git a/include/net/sock.h b/include/net/sock.h
+> index 4bf8841651486d..1fd7cf5fc7516c 100644
+> --- a/include/net/sock.h
+> +++ b/include/net/sock.h
+> @@ -1744,10 +1744,6 @@ int sock_common_recvmsg(struct socket *sock, struct msghdr *msg, size_t size,
+>   			int flags);
+>   int sock_common_setsockopt(struct socket *sock, int level, int optname,
+>   				  char __user *optval, unsigned int optlen);
+> -int compat_sock_common_getsockopt(struct socket *sock, int level,
+> -		int optname, char __user *optval, int __user *optlen);
+> -int compat_sock_common_setsockopt(struct socket *sock, int level,
+> -		int optname, char __user *optval, unsigned int optlen);
+>   
+>   void sk_common_release(struct sock *sk);
+>   
+> diff --git a/net/core/sock.c b/net/core/sock.c
+> index e085df79482520..018404d1762682 100644
+> --- a/net/core/sock.c
+> +++ b/net/core/sock.c
+> @@ -3199,23 +3199,14 @@ int sock_common_getsockopt(struct socket *sock, int level, int optname,
+>   {
+>   	struct sock *sk = sock->sk;
+>   
+> -	return sk->sk_prot->getsockopt(sk, level, optname, optval, optlen);
+> -}
+> -EXPORT_SYMBOL(sock_common_getsockopt);
+> -
+>   #ifdef CONFIG_COMPAT
+> -int compat_sock_common_getsockopt(struct socket *sock, int level, int optname,
+> -				  char __user *optval, int __user *optlen)
+> -{
+> -	struct sock *sk = sock->sk;
+> -
+> -	if (sk->sk_prot->compat_getsockopt != NULL)
+> +	if (in_compat_syscal() && sk->sk_prot->compat_getsockopt)
+>   		return sk->sk_prot->compat_getsockopt(sk, level, optname,
+>   						      optval, optlen);
+> +#endif
+>   	return sk->sk_prot->getsockopt(sk, level, optname, optval, optlen);
+>   }
+> -EXPORT_SYMBOL(compat_sock_common_getsockopt);
+> -#endif
+> +EXPORT_SYMBOL(sock_common_getsockopt);
+>   
+>   int sock_common_recvmsg(struct socket *sock, struct msghdr *msg, size_t size,
+>   			int flags)
+> @@ -3240,23 +3231,14 @@ int sock_common_setsockopt(struct socket *sock, int level, int optname,
+>   {
+>   	struct sock *sk = sock->sk;
+>   
+> -	return sk->sk_prot->setsockopt(sk, level, optname, optval, optlen);
+> -}
+> -EXPORT_SYMBOL(sock_common_setsockopt);
+> -
+>   #ifdef CONFIG_COMPAT
+> -int compat_sock_common_setsockopt(struct socket *sock, int level, int optname,
+> -				  char __user *optval, unsigned int optlen)
+> -{
+> -	struct sock *sk = sock->sk;
+> -
+> -	if (sk->sk_prot->compat_setsockopt != NULL)
+> +	if (in_compat_syscall() && sk->sk_prot->compat_setsockopt)
+>   		return sk->sk_prot->compat_setsockopt(sk, level, optname,
+>   						      optval, optlen);
+> +#endif
+>   	return sk->sk_prot->setsockopt(sk, level, optname, optval, optlen);
+>   }
+> -EXPORT_SYMBOL(compat_sock_common_setsockopt);
+> -#endif
+> +EXPORT_SYMBOL(sock_common_setsockopt);
+>   
+>   void sk_common_release(struct sock *sk)
+>   {
+> diff --git a/net/dccp/ipv4.c b/net/dccp/ipv4.c
+> index a7e989919c5307..316cc5ac0da72b 100644
+> --- a/net/dccp/ipv4.c
+> +++ b/net/dccp/ipv4.c
+> @@ -999,10 +999,6 @@ static const struct proto_ops inet_dccp_ops = {
+>   	.recvmsg	   = sock_common_recvmsg,
+>   	.mmap		   = sock_no_mmap,
+>   	.sendpage	   = sock_no_sendpage,
+> -#ifdef CONFIG_COMPAT
+> -	.compat_setsockopt = compat_sock_common_setsockopt,
+> -	.compat_getsockopt = compat_sock_common_getsockopt,
+> -#endif
+>   };
+>   
+>   static struct inet_protosw dccp_v4_protosw = {
+> diff --git a/net/dccp/ipv6.c b/net/dccp/ipv6.c
+> index 650187d688519c..b50f85a72cd5fc 100644
+> --- a/net/dccp/ipv6.c
+> +++ b/net/dccp/ipv6.c
+> @@ -1083,8 +1083,6 @@ static const struct proto_ops inet6_dccp_ops = {
+>   	.sendpage	   = sock_no_sendpage,
+>   #ifdef CONFIG_COMPAT
+>   	.compat_ioctl	   = inet6_compat_ioctl,
+> -	.compat_setsockopt = compat_sock_common_setsockopt,
+> -	.compat_getsockopt = compat_sock_common_getsockopt,
+>   #endif
+>   };
+>   
+> diff --git a/net/ieee802154/socket.c b/net/ieee802154/socket.c
+> index d93d4531aa9bc5..94ae9662133e30 100644
+> --- a/net/ieee802154/socket.c
+> +++ b/net/ieee802154/socket.c
+> @@ -423,10 +423,6 @@ static const struct proto_ops ieee802154_raw_ops = {
+>   	.recvmsg	   = sock_common_recvmsg,
+>   	.mmap		   = sock_no_mmap,
+>   	.sendpage	   = sock_no_sendpage,
+> -#ifdef CONFIG_COMPAT
+> -	.compat_setsockopt = compat_sock_common_setsockopt,
+> -	.compat_getsockopt = compat_sock_common_getsockopt,
+> -#endif
+>   };
+>   
+>   /* DGRAM Sockets (802.15.4 dataframes) */
+> @@ -986,10 +982,6 @@ static const struct proto_ops ieee802154_dgram_ops = {
+>   	.recvmsg	   = sock_common_recvmsg,
+>   	.mmap		   = sock_no_mmap,
+>   	.sendpage	   = sock_no_sendpage,
+> -#ifdef CONFIG_COMPAT
+> -	.compat_setsockopt = compat_sock_common_setsockopt,
+> -	.compat_getsockopt = compat_sock_common_getsockopt,
+> -#endif
 
-Probably remove the check for lock_file[0] == '\0'
+For the ieee802154 part:
 
-Or is this intentional?
+Acked-by: Stefan Schmidt <stefan@datenfreihafen.org>
 
-git grep getenv in iptables does not show any similar handling for
-getenv().
-
-Thanks.
+regards
+Stefan Schmidt
