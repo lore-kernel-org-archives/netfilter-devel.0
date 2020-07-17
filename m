@@ -2,113 +2,147 @@ Return-Path: <SRS0=dQkn=A4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48E31C433E5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 08:18:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9037C433E0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 08:40:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2413720737
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 08:18:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B422B2064B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 08:40:18 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="HpvTVSQ7"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="YCkgS13T"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728385AbgGQISh (ORCPT
+        id S1726547AbgGQIkS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Jul 2020 04:18:37 -0400
-Received: from us-smtp-2.mimecast.com ([205.139.110.61]:35382 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726240AbgGQISh (ORCPT
+        Fri, 17 Jul 2020 04:40:18 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:42989 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1725864AbgGQIkS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Jul 2020 04:18:37 -0400
+        Fri, 17 Jul 2020 04:40:18 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1594973916;
+        s=mimecast20190719; t=1594975216;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=3iQemxM0vfs0ZJ7JexzBhkKu5sQVlb+hUv2k6hkxROw=;
-        b=HpvTVSQ72NKYREHOTcH16PQ7JZtAoZOzIS8t3HEWNoDwQudb8g/HZhuAJP4GHC1RxL866c
-        awKgLzwVfFc69KqJDtpPmPfO4M4tGC/4AZAXPTR9116km5xxpKaGetnFqShPYKpcfBCRmP
-        +oEXN4m94G3IuUFbLyay1BmE6pAF/VQ=
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=5c/aaAStOXPOEWCYfpTREuudixuTM2JeHlYigmTtaYM=;
+        b=YCkgS13T5ZhcbOosu+AN2PRXk8+eOq3K5iOo9HgNKqXOgl+OWOUqMHR48sjqW1L1w8k3Ur
+        XEvMkXISJJR4dgiKUHLCsszkoaKlRUL3YBziGU1tcZSUKFmkJfb8a8AEYudq/iBrcthU3c
+        T5bSCbGMurB1NZFnAMxjvymDNq7nBuA=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-58-agvqh-mdMMCOquCPu6Ygaw-1; Fri, 17 Jul 2020 04:18:34 -0400
-X-MC-Unique: agvqh-mdMMCOquCPu6Ygaw-1
+ us-mta-456-hcSeYmGNNNykha0nL2M_NA-1; Fri, 17 Jul 2020 04:39:53 -0400
+X-MC-Unique: hcSeYmGNNNykha0nL2M_NA-1
 Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 07FA18015F4;
-        Fri, 17 Jul 2020 08:18:33 +0000 (UTC)
-Received: from localhost (ovpn-112-32.ams2.redhat.com [10.36.112.32])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 7F01972E4A;
-        Fri, 17 Jul 2020 08:18:32 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id CF018800465;
+        Fri, 17 Jul 2020 08:39:52 +0000 (UTC)
+Received: from lithium.redhat.com (ovpn-112-32.ams2.redhat.com [10.36.112.32])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 7E4D56FED1;
+        Fri, 17 Jul 2020 08:39:51 +0000 (UTC)
 From:   Giuseppe Scrivano <gscrivan@redhat.com>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-Subject: Re: [iptables PATCH v2] iptables: accept lock file name at runtime
-References: <20200715065152.4172896-1-gscrivan@redhat.com>
-        <20200716215535.GD23632@orbyte.nwl.cc>
-Date:   Fri, 17 Jul 2020 10:18:30 +0200
-In-Reply-To: <20200716215535.GD23632@orbyte.nwl.cc> (Phil Sutter's message of
-        "Thu, 16 Jul 2020 23:55:35 +0200")
-Message-ID: <874kq6o8q1.fsf@redhat.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.3 (gnu/linux)
+To:     netfilter-devel@vger.kernel.org
+Cc:     gscrivan@redhat.com, Phil Sutter <phil@nwl.cc>,
+        Florian Westphal <fw@strlen.de>
+Subject: [iptables PATCH v3] iptables: accept lock file name at runtime
+Date:   Fri, 17 Jul 2020 10:39:40 +0200
+Message-Id: <20200717083940.618618-1-gscrivan@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Phil,
+allow users to override at runtime the lock file to use through the
+XTABLES_LOCKFILE environment variable.
 
-thanks for the review.
+It allows to use iptables when the user has granted enough
+capabilities (e.g. a user+network namespace) to configure the network
+but that lacks access to the XT_LOCK_NAME (by default placed under
+/run).
 
-Phil Sutter <phil@nwl.cc> writes:
+$ XTABLES_LOCKFILE=/tmp/xtables unshare -rn iptables ...
 
-> Hi,
->
-> On Wed, Jul 15, 2020 at 08:51:52AM +0200, Giuseppe Scrivano wrote:
->> allow users to override at runtime the lock file to use through the
->> XTABLES_LOCKFILE environment variable.
->> 
->> It allows using iptables from a network namespace owned by an user
->> that has no write access to XT_LOCK_NAME (by default under /run), and
->> without setting up a new mount namespace.
->
-> This sentence appears overly complicated to me. Isn't the problem just
-> that XT_LOCK_NAME may not be writeable? That "user that has no write
-> access" is typically root anyway as iptables doesn't support being
-> called by non-privileged UIDs.
+Signed-off-by: Giuseppe Scrivano <gscrivan@redhat.com>
+---
+ configure.ac           |  1 +
+ iptables/iptables.8.in |  8 ++++++++
+ iptables/xshared.c     | 11 ++++++++---
+ 3 files changed, 17 insertions(+), 3 deletions(-)
 
-I'll rephrase it but it is really about the user not having access to the
-lock file.
-
-Without involving user namespaces, a simple reproducer for the issue can be:
-
-$ caps="cap_net_admin,cap_net_raw,cap_setpcap,cap_setuid,cap_setgid"
-$ capsh --caps="$caps"+eip  --keep=1 --gid=1000 --uid=1000  \
-        --addamb="$caps" \
-        -- -c "iptables -F ..."
-
-iptables seems to work fine even if the user is not running as root, as
-long as enough capabilities are granted.
-
-
->> $ XTABLES_LOCKFILE=/tmp/xtables unshare -rn iptables ...
->> 
->> Signed-off-by: Giuseppe Scrivano <gscrivan@redhat.com>
->> ---
->>  iptables/xshared.c | 7 ++++++-
->>  1 file changed, 6 insertions(+), 1 deletion(-)
->
-> Could you please update the man page as well? Unless you clarify why
-> this should be a hidden feature, of course. :)
-
-sure, I'll send a v3 shortly.
-
-Giuseppe
+diff --git a/configure.ac b/configure.ac
+index 31a8bb26..d37752a2 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -219,6 +219,7 @@ AC_SUBST([libxtables_vmajor])
+ 
+ AC_DEFINE_UNQUOTED([XT_LOCK_NAME], "${xt_lock_name}",
+ 	[Location of the iptables lock file])
++AC_SUBST([XT_LOCK_NAME], "${xt_lock_name}")
+ 
+ AC_CONFIG_FILES([Makefile extensions/GNUmakefile include/Makefile
+ 	iptables/Makefile iptables/xtables.pc
+diff --git a/iptables/iptables.8.in b/iptables/iptables.8.in
+index 054564b3..999cf339 100644
+--- a/iptables/iptables.8.in
++++ b/iptables/iptables.8.in
+@@ -397,6 +397,14 @@ corresponding to that rule's position in the chain.
+ \fB\-\-modprobe=\fP\fIcommand\fP
+ When adding or inserting rules into a chain, use \fIcommand\fP
+ to load any necessary modules (targets, match extensions, etc).
++
++.SH LOCK FILE
++iptables uses the \fI@XT_LOCK_NAME@\fP file to take an exclusive lock at
++launch.
++
++The \fBXTABLES_LOCKFILE\fP environment variable can be used to override
++the default setting.
++
+ .SH MATCH AND TARGET EXTENSIONS
+ .PP
+ iptables can use extended packet matching and target modules.
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index c1d1371a..7d97637f 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -249,15 +249,20 @@ void xs_init_match(struct xtables_match *match)
+ static int xtables_lock(int wait, struct timeval *wait_interval)
+ {
+ 	struct timeval time_left, wait_time;
++	const char *lock_file;
+ 	int fd, i = 0;
+ 
+ 	time_left.tv_sec = wait;
+ 	time_left.tv_usec = 0;
+ 
+-	fd = open(XT_LOCK_NAME, O_CREAT, 0600);
++	lock_file = getenv("XTABLES_LOCKFILE");
++	if (lock_file == NULL || lock_file[0] == '\0')
++		lock_file = XT_LOCK_NAME;
++
++	fd = open(lock_file, O_CREAT, 0600);
+ 	if (fd < 0) {
+ 		fprintf(stderr, "Fatal: can't open lock file %s: %s\n",
+-			XT_LOCK_NAME, strerror(errno));
++			lock_file, strerror(errno));
+ 		return XT_LOCK_FAILED;
+ 	}
+ 
+@@ -265,7 +270,7 @@ static int xtables_lock(int wait, struct timeval *wait_interval)
+ 		if (flock(fd, LOCK_EX) == 0)
+ 			return fd;
+ 
+-		fprintf(stderr, "Can't lock %s: %s\n", XT_LOCK_NAME,
++		fprintf(stderr, "Can't lock %s: %s\n", lock_file,
+ 			strerror(errno));
+ 		return XT_LOCK_BUSY;
+ 	}
+-- 
+2.26.2
 
