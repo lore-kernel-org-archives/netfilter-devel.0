@@ -2,45 +2,44 @@ Return-Path: <SRS0=dQkn=A4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-8.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84346C43470
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:27:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D811EC433EA
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 08:02:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5E41021744
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:27:33 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="nof+laVG"
+	by mail.kernel.org (Postfix) with ESMTP id BDAFA20704
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 08:02:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728308AbgGQG1Z (ORCPT
+        id S1728271AbgGQICX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Jul 2020 02:27:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53900 "EHLO
+        Fri, 17 Jul 2020 04:02:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40760 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726166AbgGQGYK (ORCPT
+        with ESMTP id S1728261AbgGQICV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Jul 2020 02:24:10 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4BBBC08C5DC;
-        Thu, 16 Jul 2020 23:24:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
-        References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
-        Content-Type:Content-ID:Content-Description;
-        bh=WmIks9a/wTCxBPMm3mUIfDve+aMKbFTuVLjUhhuXkXc=; b=nof+laVGHZXP6VygkDkDi1sX2z
-        Mk8QWBGUizyyZ08eiROiRxQMquusa4e6/lJj2qbGiP4AoZGX9IibG3S/FG/NaMX99/JgP0ITNi8sa
-        DkuxO72q+UdcdP1AApoBqnu83WPf3wLeVDxzDPJ/LCqW4IShRc4kh6BFVhiiIOC0OKDXnYCmAWNLt
-        29AF8h6c87CJ0kelQay90KhSZli451wfXXgBVKhGEzQxj3ufGXCo0dlzS4ofOZPMVJVNiI22i0VtT
-        JNJyXNlzEB6kS5PBA5zsLOteduzRmslRru/pM6xkSqZaXbe65M5pwQaq91g7RffKtF+nyl4X994dh
-        dsrkuolQ==;
-Received: from [2001:4bb8:105:4a81:3772:912d:640:e6c6] (helo=localhost)
-        by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jwJmm-00051x-2i; Fri, 17 Jul 2020 06:23:59 +0000
-From:   Christoph Hellwig <hch@lst.de>
-To:     "David S. Miller" <davem@davemloft.net>
+        Fri, 17 Jul 2020 04:02:21 -0400
+Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12010C08C5DC
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Jul 2020 01:02:21 -0700 (PDT)
+Received: from gallifrey.ext.pengutronix.de ([2001:67c:670:201:5054:ff:fe8d:eefb] helo=bjornoya.blackshift.org)
+        by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <mkl@pengutronix.de>)
+        id 1jwLJO-0000MA-Fl; Fri, 17 Jul 2020 10:01:42 +0200
+Received: from [IPv6:2a03:f580:87bc:d400:6150:3c6e:283b:b7f7] (unknown [IPv6:2a03:f580:87bc:d400:6150:3c6e:283b:b7f7])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-384) server-signature RSA-PSS (4096 bits) server-digest SHA256
+         client-signature RSA-PSS (4096 bits) client-digest SHA256)
+        (Client CN "mkl@blackshift.org", Issuer "StartCom Class 1 Client CA" (not verified))
+        (Authenticated sender: mkl@blackshift.org)
+        by smtp.blackshift.org (Postfix) with ESMTPSA id AE488532E22;
+        Fri, 17 Jul 2020 08:01:30 +0000 (UTC)
+Subject: Re: [PATCH 22/22] net: make ->{get,set}sockopt in proto_ops optional
+To:     Christoph Hellwig <hch@lst.de>,
+        "David S. Miller" <davem@davemloft.net>
 Cc:     Alexei Starovoitov <ast@kernel.org>,
         Daniel Borkmann <daniel@iogearbox.net>,
         Chas Williams <3chas3@gmail.com>,
@@ -55,280 +54,67 @@ Cc:     Alexei Starovoitov <ast@kernel.org>,
         linux-bluetooth@vger.kernel.org, bridge@lists.linux-foundation.org,
         linux-can@vger.kernel.org, dccp@vger.kernel.org,
         linux-wpan@vger.kernel.org, mptcp@lists.01.org
-Subject: [PATCH 04/22] net: simplify cBPF setsockopt compat handling
-Date:   Fri, 17 Jul 2020 08:23:13 +0200
-Message-Id: <20200717062331.691152-5-hch@lst.de>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20200717062331.691152-1-hch@lst.de>
 References: <20200717062331.691152-1-hch@lst.de>
+ <20200717062331.691152-23-hch@lst.de>
+From:   Marc Kleine-Budde <mkl@pengutronix.de>
+Autocrypt: addr=mkl@pengutronix.de; prefer-encrypt=mutual; keydata=
+ mQINBFFVq30BEACtnSvtXHoeHJxG6nRULcvlkW6RuNwHKmrqoksispp43X8+nwqIFYgb8UaX
+ zu8T6kZP2wEIpM9RjEL3jdBjZNCsjSS6x1qzpc2+2ivjdiJsqeaagIgvy2JWy7vUa4/PyGfx
+ QyUeXOxdj59DvLwAx8I6hOgeHx2X/ntKAMUxwawYfPZpP3gwTNKc27dJWSomOLgp+gbmOmgc
+ 6U5KwhAxPTEb3CsT5RicsC+uQQFumdl5I6XS+pbeXZndXwnj5t84M+HEj7RN6bUfV2WZO/AB
+ Xt5+qFkC/AVUcj/dcHvZwQJlGeZxoi4veCoOT2MYqfR0ax1MmN+LVRvKm29oSyD4Ts/97cbs
+ XsZDRxnEG3z/7Winiv0ZanclA7v7CQwrzsbpCv+oj+zokGuKasofzKdpywkjAfSE1zTyF+8K
+ nxBAmzwEqeQ3iKqBc3AcCseqSPX53mPqmwvNVS2GqBpnOfY7Mxr1AEmxdEcRYbhG6Xdn+ACq
+ Dq0Db3A++3PhMSaOu125uIAIwMXRJIzCXYSqXo8NIeo9tobk0C/9w3fUfMTrBDtSviLHqlp8
+ eQEP8+TDSmRP/CwmFHv36jd+XGmBHzW5I7qw0OORRwNFYBeEuiOIgxAfjjbLGHh9SRwEqXAL
+ kw+WVTwh0MN1k7I9/CDVlGvc3yIKS0sA+wudYiselXzgLuP5cQARAQABtCZNYXJjIEtsZWlu
+ ZS1CdWRkZSA8bWtsQHBlbmd1dHJvbml4LmRlPokCVAQTAQoAPgIbAwIeAQIXgAULCQgHAwUV
+ CgkICwUWAgMBABYhBMFAC6CzmJ5vvH1bXCte4hHFiupUBQJcUsSbBQkM366zAAoJECte4hHF
+ iupUgkAP/2RdxKPZ3GMqag33jKwKAbn/fRqAFWqUH9TCsRH3h6+/uEPnZdzhkL4a9p/6OeJn
+ Z6NXqgsyRAOTZsSFcwlfxLNHVxBWm8pMwrBecdt4lzrjSt/3ws2GqxPsmza1Gs61lEdYvLST
+ Ix2vPbB4FAfE0kizKAjRZzlwOyuHOr2ilujDsKTpFtd8lV1nBNNn6HBIBR5ShvJnwyUdzuby
+ tOsSt7qJEvF1x3y49bHCy3uy+MmYuoEyG6zo9udUzhVsKe3hHYC2kfB16ZOBjFC3lH2U5An+
+ yQYIIPZrSWXUeKjeMaKGvbg6W9Oi4XEtrwpzUGhbewxCZZCIrzAH2hz0dUhacxB201Y/faY6
+ BdTS75SPs+zjTYo8yE9Y9eG7x/lB60nQjJiZVNvZ88QDfVuLl/heuIq+fyNajBbqbtBT5CWf
+ mOP4Dh4xjm3Vwlz8imWW/drEVJZJrPYqv0HdPbY8jVMpqoe5jDloyVn3prfLdXSbKPexlJaW
+ 5tnPd4lj8rqOFShRnLFCibpeHWIumqrIqIkiRA9kFW3XMgtU6JkIrQzhJb6Tc6mZg2wuYW0d
+ Wo2qvdziMgPkMFiWJpsxM9xPk9BBVwR+uojNq5LzdCsXQ2seG0dhaOTaaIDWVS8U/V8Nqjrl
+ 6bGG2quo5YzJuXKjtKjZ4R6k762pHJ3tnzI/jnlc1sXz
+Message-ID: <5f88e695-d787-2191-feef-883a067788ed@pengutronix.de>
+Date:   Fri, 17 Jul 2020 10:01:28 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
+In-Reply-To: <20200717062331.691152-23-hch@lst.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: de-DE
+Content-Transfer-Encoding: 7bit
+X-SA-Exim-Connect-IP: 2001:67c:670:201:5054:ff:fe8d:eefb
+X-SA-Exim-Mail-From: mkl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: netfilter-devel@vger.kernel.org
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add a helper that copies either a native or compat bpf_fprog from
-userspace after verifying the length, and remove the compat setsockopt
-handlers that now aren't required.
+On 7/17/20 8:23 AM, Christoph Hellwig wrote:
+> Just check for a NULL method instead of wiring up
+> sock_no_{get,set}sockopt.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  net/can/bcm.c               |  2 --
+>  net/core/sock.c             | 14 --------------
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- include/linux/filter.h |  4 ++--
- include/net/compat.h   |  1 -
- net/compat.c           | 45 +-----------------------------------------
- net/core/filter.c      | 23 +++++++++++++++++++++
- net/core/sock.c        | 30 ++++++++++------------------
- net/packet/af_packet.c | 33 ++++---------------------------
- 6 files changed, 40 insertions(+), 96 deletions(-)
+For the CAN part:
 
-diff --git a/include/linux/filter.h b/include/linux/filter.h
-index 0b0144752d780a..4d049c8e1fbeaa 100644
---- a/include/linux/filter.h
-+++ b/include/linux/filter.h
-@@ -502,13 +502,11 @@ static inline bool insn_is_zext(const struct bpf_insn *insn)
- 		offsetof(TYPE, MEMBER);						\
- 	})
- 
--#ifdef CONFIG_COMPAT
- /* A struct sock_filter is architecture independent. */
- struct compat_sock_fprog {
- 	u16		len;
- 	compat_uptr_t	filter;	/* struct sock_filter * */
- };
--#endif
- 
- struct sock_fprog_kern {
- 	u16			len;
-@@ -1278,4 +1276,6 @@ struct bpf_sockopt_kern {
- 	s32		retval;
- };
- 
-+int copy_bpf_fprog_from_user(struct sock_fprog *dst, void __user *src, int len);
-+
- #endif /* __LINUX_FILTER_H__ */
-diff --git a/include/net/compat.h b/include/net/compat.h
-index f241666117d88c..745db0d605b62b 100644
---- a/include/net/compat.h
-+++ b/include/net/compat.h
-@@ -61,7 +61,6 @@ int __get_compat_msghdr(struct msghdr *kmsg, struct compat_msghdr __user *umsg,
- 			compat_size_t *len);
- int get_compat_msghdr(struct msghdr *, struct compat_msghdr __user *,
- 		      struct sockaddr __user **, struct iovec **);
--struct sock_fprog __user *get_compat_bpf_fprog(char __user *optval);
- int put_cmsg_compat(struct msghdr*, int, int, int, void *);
- 
- int cmsghdr_from_user_compat_to_kern(struct msghdr *, struct sock *,
-diff --git a/net/compat.c b/net/compat.c
-index 5e3041a2c37d4d..3e6c2c5ff2609c 100644
---- a/net/compat.c
-+++ b/net/compat.c
-@@ -335,49 +335,6 @@ void scm_detach_fds_compat(struct msghdr *kmsg, struct scm_cookie *scm)
- 	__scm_destroy(scm);
- }
- 
--/* allocate a 64-bit sock_fprog on the user stack for duration of syscall. */
--struct sock_fprog __user *get_compat_bpf_fprog(char __user *optval)
--{
--	struct compat_sock_fprog __user *fprog32 = (struct compat_sock_fprog __user *)optval;
--	struct sock_fprog __user *kfprog = compat_alloc_user_space(sizeof(struct sock_fprog));
--	struct compat_sock_fprog f32;
--	struct sock_fprog f;
--
--	if (copy_from_user(&f32, fprog32, sizeof(*fprog32)))
--		return NULL;
--	memset(&f, 0, sizeof(f));
--	f.len = f32.len;
--	f.filter = compat_ptr(f32.filter);
--	if (copy_to_user(kfprog, &f, sizeof(struct sock_fprog)))
--		return NULL;
--
--	return kfprog;
--}
--EXPORT_SYMBOL_GPL(get_compat_bpf_fprog);
--
--static int do_set_attach_filter(struct socket *sock, int level, int optname,
--				char __user *optval, unsigned int optlen)
--{
--	struct sock_fprog __user *kfprog;
--
--	kfprog = get_compat_bpf_fprog(optval);
--	if (!kfprog)
--		return -EFAULT;
--
--	return sock_setsockopt(sock, level, optname, (char __user *)kfprog,
--			      sizeof(struct sock_fprog));
--}
--
--static int compat_sock_setsockopt(struct socket *sock, int level, int optname,
--				char __user *optval, unsigned int optlen)
--{
--	if (optname == SO_ATTACH_FILTER ||
--	    optname == SO_ATTACH_REUSEPORT_CBPF)
--		return do_set_attach_filter(sock, level, optname,
--					    optval, optlen);
--	return sock_setsockopt(sock, level, optname, optval, optlen);
--}
--
- static int __compat_sys_setsockopt(int fd, int level, int optname,
- 				   char __user *optval, unsigned int optlen)
- {
-@@ -396,7 +353,7 @@ static int __compat_sys_setsockopt(int fd, int level, int optname,
- 		}
- 
- 		if (level == SOL_SOCKET)
--			err = compat_sock_setsockopt(sock, level,
-+			err = sock_setsockopt(sock, level,
- 					optname, optval, optlen);
- 		else if (sock->ops->compat_setsockopt)
- 			err = sock->ops->compat_setsockopt(sock, level,
-diff --git a/net/core/filter.c b/net/core/filter.c
-index bdd2382e655d85..2bf6624796d86f 100644
---- a/net/core/filter.c
-+++ b/net/core/filter.c
-@@ -77,6 +77,29 @@
- #include <net/transp_v6.h>
- #include <linux/btf_ids.h>
- 
-+int copy_bpf_fprog_from_user(struct sock_fprog *dst, void __user *src, int len)
-+{
-+	if (in_compat_syscall()) {
-+		struct compat_sock_fprog f32;
-+
-+		if (len != sizeof(f32))
-+			return -EINVAL;
-+		if (copy_from_user(&f32, src, sizeof(f32)))
-+			return -EFAULT;
-+		memset(dst, 0, sizeof(*dst));
-+		dst->len = f32.len;
-+		dst->filter = compat_ptr(f32.filter);
-+	} else {
-+		if (len != sizeof(*dst))
-+			return -EINVAL;
-+		if (copy_from_user(dst, src, sizeof(*dst)))
-+			return -EFAULT;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(copy_bpf_fprog_from_user);
-+
- /**
-  *	sk_filter_trim_cap - run a packet through a socket filter
-  *	@sk: sock associated with &sk_buff
-diff --git a/net/core/sock.c b/net/core/sock.c
-index 11d6f77dd56207..e085df79482520 100644
---- a/net/core/sock.c
-+++ b/net/core/sock.c
-@@ -1059,19 +1059,14 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
- 		ret = sock_set_timeout(&sk->sk_sndtimeo, optval, optlen, optname == SO_SNDTIMEO_OLD);
- 		break;
- 
--	case SO_ATTACH_FILTER:
--		ret = -EINVAL;
--		if (optlen == sizeof(struct sock_fprog)) {
--			struct sock_fprog fprog;
--
--			ret = -EFAULT;
--			if (copy_from_user(&fprog, optval, sizeof(fprog)))
--				break;
-+	case SO_ATTACH_FILTER: {
-+		struct sock_fprog fprog;
- 
-+		ret = copy_bpf_fprog_from_user(&fprog, optval, optlen);
-+		if (!ret)
- 			ret = sk_attach_filter(&fprog, sk);
--		}
- 		break;
--
-+	}
- 	case SO_ATTACH_BPF:
- 		ret = -EINVAL;
- 		if (optlen == sizeof(u32)) {
-@@ -1085,19 +1080,14 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
- 		}
- 		break;
- 
--	case SO_ATTACH_REUSEPORT_CBPF:
--		ret = -EINVAL;
--		if (optlen == sizeof(struct sock_fprog)) {
--			struct sock_fprog fprog;
--
--			ret = -EFAULT;
--			if (copy_from_user(&fprog, optval, sizeof(fprog)))
--				break;
-+	case SO_ATTACH_REUSEPORT_CBPF: {
-+		struct sock_fprog fprog;
- 
-+		ret = copy_bpf_fprog_from_user(&fprog, optval, optlen);
-+		if (!ret)
- 			ret = sk_reuseport_attach_filter(&fprog, sk);
--		}
- 		break;
--
-+	}
- 	case SO_ATTACH_REUSEPORT_EBPF:
- 		ret = -EINVAL;
- 		if (optlen == sizeof(u32)) {
-diff --git a/net/packet/af_packet.c b/net/packet/af_packet.c
-index 781fee93b7d5e3..35aee9e980536d 100644
---- a/net/packet/af_packet.c
-+++ b/net/packet/af_packet.c
-@@ -1545,10 +1545,10 @@ static int fanout_set_data_cbpf(struct packet_sock *po, char __user *data,
- 
- 	if (sock_flag(&po->sk, SOCK_FILTER_LOCKED))
- 		return -EPERM;
--	if (len != sizeof(fprog))
--		return -EINVAL;
--	if (copy_from_user(&fprog, data, len))
--		return -EFAULT;
-+
-+	ret = copy_bpf_fprog_from_user(&fprog, data, len);
-+	if (ret)
-+		return ret;
- 
- 	ret = bpf_prog_create_from_user(&new, &fprog, NULL, false);
- 	if (ret)
-@@ -4040,28 +4040,6 @@ static int packet_getsockopt(struct socket *sock, int level, int optname,
- 	return 0;
- }
- 
--
--#ifdef CONFIG_COMPAT
--static int compat_packet_setsockopt(struct socket *sock, int level, int optname,
--				    char __user *optval, unsigned int optlen)
--{
--	struct packet_sock *po = pkt_sk(sock->sk);
--
--	if (level != SOL_PACKET)
--		return -ENOPROTOOPT;
--
--	if (optname == PACKET_FANOUT_DATA &&
--	    po->fanout && po->fanout->type == PACKET_FANOUT_CBPF) {
--		optval = (char __user *)get_compat_bpf_fprog(optval);
--		if (!optval)
--			return -EFAULT;
--		optlen = sizeof(struct sock_fprog);
--	}
--
--	return packet_setsockopt(sock, level, optname, optval, optlen);
--}
--#endif
--
- static int packet_notifier(struct notifier_block *this,
- 			   unsigned long msg, void *ptr)
- {
-@@ -4549,9 +4527,6 @@ static const struct proto_ops packet_ops = {
- 	.shutdown =	sock_no_shutdown,
- 	.setsockopt =	packet_setsockopt,
- 	.getsockopt =	packet_getsockopt,
--#ifdef CONFIG_COMPAT
--	.compat_setsockopt = compat_packet_setsockopt,
--#endif
- 	.sendmsg =	packet_sendmsg,
- 	.recvmsg =	packet_recvmsg,
- 	.mmap =		packet_mmap,
+Acked-by: Marc Kleine-Budde <mkl@pengutronix.de>
+
+Marc
+
 -- 
-2.27.0
-
+Pengutronix e.K.                 | Marc Kleine-Budde           |
+Embedded Linux                   | https://www.pengutronix.de  |
+Vertretung West/Dortmund         | Phone: +49-231-2826-924     |
+Amtsgericht Hildesheim, HRA 2686 | Fax:   +49-5121-206917-5555 |
