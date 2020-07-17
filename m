@@ -2,43 +2,42 @@ Return-Path: <SRS0=dQkn=A4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 548F9C433ED
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:27:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81F61C433FE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:27:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 272CC2083E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:27:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5887221741
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:27:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="lXo2xnKU"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="nvZ6F7vo"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728252AbgGQG04 (ORCPT
+        id S1728269AbgGQG1F (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Jul 2020 02:26:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53908 "EHLO
+        Fri, 17 Jul 2020 02:27:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53892 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726665AbgGQGYM (ORCPT
+        with ESMTP id S1726635AbgGQGYK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Jul 2020 02:24:12 -0400
+        Fri, 17 Jul 2020 02:24:10 -0400
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3AA5C08C5DD;
-        Thu, 16 Jul 2020 23:24:11 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B515C08C5CE;
+        Thu, 16 Jul 2020 23:24:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
-        References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
-        Content-Type:Content-ID:Content-Description;
-        bh=n2ODUYKF6/KbpzWzYvYsX0GmzUVJvLLKJNQfebeWuwA=; b=lXo2xnKUT2Zz9SodyFhrLMjmwS
-        VsBB6iza3jroWdP5Sn+p2coUEpc32Tto0/NdonV2GZjjjUJnZLETAW3WTnagM/jxob5TZcgU+hzbC
-        HBISjz1Y5i4/wF0ozC7HeooMkN7FAMd0Y4jhnbjoPpt4Ogg8KV+nfXWVILf8I4xn/BdcvhbNjRsu1
-        cPnwWdGNBM1POBS/rtQa/muCTLCz27XU1JsRtKuKYcIuY5l4x10POJ5OPwtPvqn58fQvtcxG+pzZJ
-        As7pZmVBUqITScc1cuBvkoDpFDT3bNTUTeT2PRKmG/D9lFTHcT++szLQhUxkig3T6vQrGWEmS+ybo
-        /sfdf1DA==;
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:In-Reply-To:References;
+        bh=51LUd0SvoR+n6SohN5Sodlx7y79ij0S/XRUh9Hk9k/E=; b=nvZ6F7vo++iceOmLkAGswI4yK1
+        dN/jJBIgk1kmqjzbzRQLYzB00lmetgml707o/ROIFgH8ThKG9kfWAbnxcSbHVegAZ+fkXfzOP2ciD
+        HJ7ZmAMX/Wj3aubE/GXDFzkCnGQQgD7rgHE14n/7A82ro+ME6LubXjKOC1Q0x68iaWMz19OK4jaUb
+        gLt2uTJFiLtDbUibTI+HQZ+r+9Y1iraHIOSW2gdgleYLY1D5OQl3+HF3xddqnxQcenZZ9sCZz7h5T
+        DgKbvNL6/5PgAng3xBJXnBv43b5eNyWINxeRPdgjL16ddqssTf+g3zKmNRQ5v6Hnr0TaedUOHle9b
+        1jGLhcEQ==;
 Received: from [2001:4bb8:105:4a81:3772:912d:640:e6c6] (helo=localhost)
         by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jwJmq-00052J-2X; Fri, 17 Jul 2020 06:24:01 +0000
+        id 1jwJmO-00050u-Ag; Fri, 17 Jul 2020 06:23:42 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     "David S. Miller" <davem@davemloft.net>
 Cc:     Alexei Starovoitov <ast@kernel.org>,
@@ -55,12 +54,10 @@ Cc:     Alexei Starovoitov <ast@kernel.org>,
         linux-bluetooth@vger.kernel.org, bridge@lists.linux-foundation.org,
         linux-can@vger.kernel.org, dccp@vger.kernel.org,
         linux-wpan@vger.kernel.org, mptcp@lists.01.org
-Subject: [PATCH 05/22] net: remove compat_sock_common_{get,set}sockopt
-Date:   Fri, 17 Jul 2020 08:23:14 +0200
-Message-Id: <20200717062331.691152-6-hch@lst.de>
+Subject: sockopt cleanups
+Date:   Fri, 17 Jul 2020 08:23:09 +0200
+Message-Id: <20200717062331.691152-1-hch@lst.de>
 X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20200717062331.691152-1-hch@lst.de>
-References: <20200717062331.691152-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
@@ -69,378 +66,109 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add the compat handling to sock_common_{get,set}sockopt instead,
-keyed of in_compat_syscall().  This allow to remove the now unused
-->compat_{get,set}sockopt methods from struct proto_ops.
+Hi Dave,
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- include/linux/net.h      |  6 ------
- include/net/sock.h       |  4 ----
- net/core/sock.c          | 30 ++++++------------------------
- net/dccp/ipv4.c          |  4 ----
- net/dccp/ipv6.c          |  2 --
- net/ieee802154/socket.c  |  8 --------
- net/ipv4/af_inet.c       |  6 ------
- net/ipv6/af_inet6.c      |  4 ----
- net/ipv6/ipv6_sockglue.c | 12 ++----------
- net/ipv6/raw.c           |  2 --
- net/l2tp/l2tp_ip.c       |  4 ----
- net/l2tp/l2tp_ip6.c      |  2 --
- net/mptcp/protocol.c     |  6 ------
- net/phonet/socket.c      |  8 --------
- net/sctp/ipv6.c          |  2 --
- net/sctp/protocol.c      |  4 ----
- 16 files changed, 8 insertions(+), 96 deletions(-)
+this series cleans up various lose ends in the sockopt code, most
+importantly removing the compat_{get,set}sockopt infrastructure in favor
+of just using in_compat_syscall() in the few places that care.
 
-diff --git a/include/linux/net.h b/include/linux/net.h
-index 016a9c5faa3479..858ff1d981540d 100644
---- a/include/linux/net.h
-+++ b/include/linux/net.h
-@@ -165,12 +165,6 @@ struct proto_ops {
- 				      int optname, char __user *optval, unsigned int optlen);
- 	int		(*getsockopt)(struct socket *sock, int level,
- 				      int optname, char __user *optval, int __user *optlen);
--#ifdef CONFIG_COMPAT
--	int		(*compat_setsockopt)(struct socket *sock, int level,
--				      int optname, char __user *optval, unsigned int optlen);
--	int		(*compat_getsockopt)(struct socket *sock, int level,
--				      int optname, char __user *optval, int __user *optlen);
--#endif
- 	void		(*show_fdinfo)(struct seq_file *m, struct socket *sock);
- 	int		(*sendmsg)   (struct socket *sock, struct msghdr *m,
- 				      size_t total_len);
-diff --git a/include/net/sock.h b/include/net/sock.h
-index 4bf8841651486d..1fd7cf5fc7516c 100644
---- a/include/net/sock.h
-+++ b/include/net/sock.h
-@@ -1744,10 +1744,6 @@ int sock_common_recvmsg(struct socket *sock, struct msghdr *msg, size_t size,
- 			int flags);
- int sock_common_setsockopt(struct socket *sock, int level, int optname,
- 				  char __user *optval, unsigned int optlen);
--int compat_sock_common_getsockopt(struct socket *sock, int level,
--		int optname, char __user *optval, int __user *optlen);
--int compat_sock_common_setsockopt(struct socket *sock, int level,
--		int optname, char __user *optval, unsigned int optlen);
- 
- void sk_common_release(struct sock *sk);
- 
-diff --git a/net/core/sock.c b/net/core/sock.c
-index e085df79482520..018404d1762682 100644
---- a/net/core/sock.c
-+++ b/net/core/sock.c
-@@ -3199,23 +3199,14 @@ int sock_common_getsockopt(struct socket *sock, int level, int optname,
- {
- 	struct sock *sk = sock->sk;
- 
--	return sk->sk_prot->getsockopt(sk, level, optname, optval, optlen);
--}
--EXPORT_SYMBOL(sock_common_getsockopt);
--
- #ifdef CONFIG_COMPAT
--int compat_sock_common_getsockopt(struct socket *sock, int level, int optname,
--				  char __user *optval, int __user *optlen)
--{
--	struct sock *sk = sock->sk;
--
--	if (sk->sk_prot->compat_getsockopt != NULL)
-+	if (in_compat_syscal() && sk->sk_prot->compat_getsockopt)
- 		return sk->sk_prot->compat_getsockopt(sk, level, optname,
- 						      optval, optlen);
-+#endif
- 	return sk->sk_prot->getsockopt(sk, level, optname, optval, optlen);
- }
--EXPORT_SYMBOL(compat_sock_common_getsockopt);
--#endif
-+EXPORT_SYMBOL(sock_common_getsockopt);
- 
- int sock_common_recvmsg(struct socket *sock, struct msghdr *msg, size_t size,
- 			int flags)
-@@ -3240,23 +3231,14 @@ int sock_common_setsockopt(struct socket *sock, int level, int optname,
- {
- 	struct sock *sk = sock->sk;
- 
--	return sk->sk_prot->setsockopt(sk, level, optname, optval, optlen);
--}
--EXPORT_SYMBOL(sock_common_setsockopt);
--
- #ifdef CONFIG_COMPAT
--int compat_sock_common_setsockopt(struct socket *sock, int level, int optname,
--				  char __user *optval, unsigned int optlen)
--{
--	struct sock *sk = sock->sk;
--
--	if (sk->sk_prot->compat_setsockopt != NULL)
-+	if (in_compat_syscall() && sk->sk_prot->compat_setsockopt)
- 		return sk->sk_prot->compat_setsockopt(sk, level, optname,
- 						      optval, optlen);
-+#endif
- 	return sk->sk_prot->setsockopt(sk, level, optname, optval, optlen);
- }
--EXPORT_SYMBOL(compat_sock_common_setsockopt);
--#endif
-+EXPORT_SYMBOL(sock_common_setsockopt);
- 
- void sk_common_release(struct sock *sk)
- {
-diff --git a/net/dccp/ipv4.c b/net/dccp/ipv4.c
-index a7e989919c5307..316cc5ac0da72b 100644
---- a/net/dccp/ipv4.c
-+++ b/net/dccp/ipv4.c
-@@ -999,10 +999,6 @@ static const struct proto_ops inet_dccp_ops = {
- 	.recvmsg	   = sock_common_recvmsg,
- 	.mmap		   = sock_no_mmap,
- 	.sendpage	   = sock_no_sendpage,
--#ifdef CONFIG_COMPAT
--	.compat_setsockopt = compat_sock_common_setsockopt,
--	.compat_getsockopt = compat_sock_common_getsockopt,
--#endif
- };
- 
- static struct inet_protosw dccp_v4_protosw = {
-diff --git a/net/dccp/ipv6.c b/net/dccp/ipv6.c
-index 650187d688519c..b50f85a72cd5fc 100644
---- a/net/dccp/ipv6.c
-+++ b/net/dccp/ipv6.c
-@@ -1083,8 +1083,6 @@ static const struct proto_ops inet6_dccp_ops = {
- 	.sendpage	   = sock_no_sendpage,
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	   = inet6_compat_ioctl,
--	.compat_setsockopt = compat_sock_common_setsockopt,
--	.compat_getsockopt = compat_sock_common_getsockopt,
- #endif
- };
- 
-diff --git a/net/ieee802154/socket.c b/net/ieee802154/socket.c
-index d93d4531aa9bc5..94ae9662133e30 100644
---- a/net/ieee802154/socket.c
-+++ b/net/ieee802154/socket.c
-@@ -423,10 +423,6 @@ static const struct proto_ops ieee802154_raw_ops = {
- 	.recvmsg	   = sock_common_recvmsg,
- 	.mmap		   = sock_no_mmap,
- 	.sendpage	   = sock_no_sendpage,
--#ifdef CONFIG_COMPAT
--	.compat_setsockopt = compat_sock_common_setsockopt,
--	.compat_getsockopt = compat_sock_common_getsockopt,
--#endif
- };
- 
- /* DGRAM Sockets (802.15.4 dataframes) */
-@@ -986,10 +982,6 @@ static const struct proto_ops ieee802154_dgram_ops = {
- 	.recvmsg	   = sock_common_recvmsg,
- 	.mmap		   = sock_no_mmap,
- 	.sendpage	   = sock_no_sendpage,
--#ifdef CONFIG_COMPAT
--	.compat_setsockopt = compat_sock_common_setsockopt,
--	.compat_getsockopt = compat_sock_common_getsockopt,
--#endif
- };
- 
- /* Create a socket. Initialise the socket, blank the addresses
-diff --git a/net/ipv4/af_inet.c b/net/ipv4/af_inet.c
-index ff141d630bdf09..4307503a6f0b41 100644
---- a/net/ipv4/af_inet.c
-+++ b/net/ipv4/af_inet.c
-@@ -1043,8 +1043,6 @@ const struct proto_ops inet_stream_ops = {
- 	.sendpage_locked   = tcp_sendpage_locked,
- 	.peek_len	   = tcp_peek_len,
- #ifdef CONFIG_COMPAT
--	.compat_setsockopt = compat_sock_common_setsockopt,
--	.compat_getsockopt = compat_sock_common_getsockopt,
- 	.compat_ioctl	   = inet_compat_ioctl,
- #endif
- 	.set_rcvlowat	   = tcp_set_rcvlowat,
-@@ -1073,8 +1071,6 @@ const struct proto_ops inet_dgram_ops = {
- 	.sendpage	   = inet_sendpage,
- 	.set_peek_off	   = sk_set_peek_off,
- #ifdef CONFIG_COMPAT
--	.compat_setsockopt = compat_sock_common_setsockopt,
--	.compat_getsockopt = compat_sock_common_getsockopt,
- 	.compat_ioctl	   = inet_compat_ioctl,
- #endif
- };
-@@ -1105,8 +1101,6 @@ static const struct proto_ops inet_sockraw_ops = {
- 	.mmap		   = sock_no_mmap,
- 	.sendpage	   = inet_sendpage,
- #ifdef CONFIG_COMPAT
--	.compat_setsockopt = compat_sock_common_setsockopt,
--	.compat_getsockopt = compat_sock_common_getsockopt,
- 	.compat_ioctl	   = inet_compat_ioctl,
- #endif
- };
-diff --git a/net/ipv6/af_inet6.c b/net/ipv6/af_inet6.c
-index b304b882e0312f..0306509ab06374 100644
---- a/net/ipv6/af_inet6.c
-+++ b/net/ipv6/af_inet6.c
-@@ -688,8 +688,6 @@ const struct proto_ops inet6_stream_ops = {
- 	.peek_len	   = tcp_peek_len,
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	   = inet6_compat_ioctl,
--	.compat_setsockopt = compat_sock_common_setsockopt,
--	.compat_getsockopt = compat_sock_common_getsockopt,
- #endif
- 	.set_rcvlowat	   = tcp_set_rcvlowat,
- };
-@@ -717,8 +715,6 @@ const struct proto_ops inet6_dgram_ops = {
- 	.set_peek_off	   = sk_set_peek_off,
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	   = inet6_compat_ioctl,
--	.compat_setsockopt = compat_sock_common_setsockopt,
--	.compat_getsockopt = compat_sock_common_getsockopt,
- #endif
- };
- 
-diff --git a/net/ipv6/ipv6_sockglue.c b/net/ipv6/ipv6_sockglue.c
-index 20576e87a5f7e8..6ab44ec2c369da 100644
---- a/net/ipv6/ipv6_sockglue.c
-+++ b/net/ipv6/ipv6_sockglue.c
-@@ -914,12 +914,8 @@ int compat_ipv6_setsockopt(struct sock *sk, int level, int optname,
- {
- 	int err;
- 
--	if (level == SOL_IP && sk->sk_type != SOCK_RAW) {
--		if (udp_prot.compat_setsockopt != NULL)
--			return udp_prot.compat_setsockopt(sk, level, optname,
--							  optval, optlen);
-+	if (level == SOL_IP && sk->sk_type != SOCK_RAW)
- 		return udp_prot.setsockopt(sk, level, optname, optval, optlen);
--	}
- 
- 	if (level != SOL_IPV6)
- 		return -ENOPROTOOPT;
-@@ -1480,12 +1476,8 @@ int compat_ipv6_getsockopt(struct sock *sk, int level, int optname,
- {
- 	int err;
- 
--	if (level == SOL_IP && sk->sk_type != SOCK_RAW) {
--		if (udp_prot.compat_getsockopt != NULL)
--			return udp_prot.compat_getsockopt(sk, level, optname,
--							  optval, optlen);
-+	if (level == SOL_IP && sk->sk_type != SOCK_RAW)
- 		return udp_prot.getsockopt(sk, level, optname, optval, optlen);
--	}
- 
- 	if (level != SOL_IPV6)
- 		return -ENOPROTOOPT;
-diff --git a/net/ipv6/raw.c b/net/ipv6/raw.c
-index 8ef5a7b30524fd..e23c6b46175870 100644
---- a/net/ipv6/raw.c
-+++ b/net/ipv6/raw.c
-@@ -1378,8 +1378,6 @@ const struct proto_ops inet6_sockraw_ops = {
- 	.sendpage	   = sock_no_sendpage,
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	   = inet6_compat_ioctl,
--	.compat_setsockopt = compat_sock_common_setsockopt,
--	.compat_getsockopt = compat_sock_common_getsockopt,
- #endif
- };
- 
-diff --git a/net/l2tp/l2tp_ip.c b/net/l2tp/l2tp_ip.c
-index 955662a6dee754..f8d7412cfb3d37 100644
---- a/net/l2tp/l2tp_ip.c
-+++ b/net/l2tp/l2tp_ip.c
-@@ -638,10 +638,6 @@ static const struct proto_ops l2tp_ip_ops = {
- 	.recvmsg	   = sock_common_recvmsg,
- 	.mmap		   = sock_no_mmap,
- 	.sendpage	   = sock_no_sendpage,
--#ifdef CONFIG_COMPAT
--	.compat_setsockopt = compat_sock_common_setsockopt,
--	.compat_getsockopt = compat_sock_common_getsockopt,
--#endif
- };
- 
- static struct inet_protosw l2tp_ip_protosw = {
-diff --git a/net/l2tp/l2tp_ip6.c b/net/l2tp/l2tp_ip6.c
-index 526ed2c24dd5e0..2cdc0b7a7a43c3 100644
---- a/net/l2tp/l2tp_ip6.c
-+++ b/net/l2tp/l2tp_ip6.c
-@@ -773,8 +773,6 @@ static const struct proto_ops l2tp_ip6_ops = {
- 	.sendpage	   = sock_no_sendpage,
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	   = inet6_compat_ioctl,
--	.compat_setsockopt = compat_sock_common_setsockopt,
--	.compat_getsockopt = compat_sock_common_getsockopt,
- #endif
- };
- 
-diff --git a/net/mptcp/protocol.c b/net/mptcp/protocol.c
-index dbe43e0cd734e4..f0b0b503c2628d 100644
---- a/net/mptcp/protocol.c
-+++ b/net/mptcp/protocol.c
-@@ -2166,10 +2166,6 @@ static const struct proto_ops mptcp_stream_ops = {
- 	.recvmsg	   = inet_recvmsg,
- 	.mmap		   = sock_no_mmap,
- 	.sendpage	   = inet_sendpage,
--#ifdef CONFIG_COMPAT
--	.compat_setsockopt = compat_sock_common_setsockopt,
--	.compat_getsockopt = compat_sock_common_getsockopt,
--#endif
- };
- 
- static struct inet_protosw mptcp_protosw = {
-@@ -2222,8 +2218,6 @@ static const struct proto_ops mptcp_v6_stream_ops = {
- 	.sendpage	   = inet_sendpage,
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	   = inet6_compat_ioctl,
--	.compat_setsockopt = compat_sock_common_setsockopt,
--	.compat_getsockopt = compat_sock_common_getsockopt,
- #endif
- };
- 
-diff --git a/net/phonet/socket.c b/net/phonet/socket.c
-index 76d499f6af9ab3..87c60f83c18061 100644
---- a/net/phonet/socket.c
-+++ b/net/phonet/socket.c
-@@ -441,10 +441,6 @@ const struct proto_ops phonet_dgram_ops = {
- 	.shutdown	= sock_no_shutdown,
- 	.setsockopt	= sock_no_setsockopt,
- 	.getsockopt	= sock_no_getsockopt,
--#ifdef CONFIG_COMPAT
--	.compat_setsockopt = sock_no_setsockopt,
--	.compat_getsockopt = sock_no_getsockopt,
--#endif
- 	.sendmsg	= pn_socket_sendmsg,
- 	.recvmsg	= sock_common_recvmsg,
- 	.mmap		= sock_no_mmap,
-@@ -466,10 +462,6 @@ const struct proto_ops phonet_stream_ops = {
- 	.shutdown	= sock_no_shutdown,
- 	.setsockopt	= sock_common_setsockopt,
- 	.getsockopt	= sock_common_getsockopt,
--#ifdef CONFIG_COMPAT
--	.compat_setsockopt = compat_sock_common_setsockopt,
--	.compat_getsockopt = compat_sock_common_getsockopt,
--#endif
- 	.sendmsg	= pn_socket_sendmsg,
- 	.recvmsg	= sock_common_recvmsg,
- 	.mmap		= sock_no_mmap,
-diff --git a/net/sctp/ipv6.c b/net/sctp/ipv6.c
-index ccfa0ab3e7f481..ebda31b7747d08 100644
---- a/net/sctp/ipv6.c
-+++ b/net/sctp/ipv6.c
-@@ -1033,8 +1033,6 @@ static const struct proto_ops inet6_seqpacket_ops = {
- 	.mmap		   = sock_no_mmap,
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	   = inet6_compat_ioctl,
--	.compat_setsockopt = compat_sock_common_setsockopt,
--	.compat_getsockopt = compat_sock_common_getsockopt,
- #endif
- };
- 
-diff --git a/net/sctp/protocol.c b/net/sctp/protocol.c
-index cde29f3c7fb3c4..8d25cc464efdf3 100644
---- a/net/sctp/protocol.c
-+++ b/net/sctp/protocol.c
-@@ -1036,10 +1036,6 @@ static const struct proto_ops inet_seqpacket_ops = {
- 	.recvmsg	   = inet_recvmsg,
- 	.mmap		   = sock_no_mmap,
- 	.sendpage	   = sock_no_sendpage,
--#ifdef CONFIG_COMPAT
--	.compat_setsockopt = compat_sock_common_setsockopt,
--	.compat_getsockopt = compat_sock_common_getsockopt,
--#endif
- };
- 
- /* Registration with AF_INET family.  */
--- 
-2.27.0
-
+Diffstat:
+ arch/arm64/include/asm/unistd32.h                  |    4 
+ arch/mips/kernel/syscalls/syscall_n32.tbl          |    4 
+ arch/mips/kernel/syscalls/syscall_o32.tbl          |    4 
+ arch/parisc/kernel/syscalls/syscall.tbl            |    4 
+ arch/powerpc/kernel/syscalls/syscall.tbl           |    4 
+ arch/s390/kernel/syscalls/syscall.tbl              |    4 
+ arch/sparc/kernel/sys32.S                          |   12 
+ arch/sparc/kernel/syscalls/syscall.tbl             |    4 
+ arch/x86/entry/syscall_x32.c                       |    7 
+ arch/x86/entry/syscalls/syscall_32.tbl             |    4 
+ arch/x86/entry/syscalls/syscall_64.tbl             |    4 
+ crypto/af_alg.c                                    |    1 
+ crypto/algif_aead.c                                |    4 
+ crypto/algif_hash.c                                |    4 
+ crypto/algif_rng.c                                 |    2 
+ crypto/algif_skcipher.c                            |    4 
+ drivers/atm/eni.c                                  |   17 
+ drivers/atm/firestream.c                           |    2 
+ drivers/atm/fore200e.c                             |   27 -
+ drivers/atm/horizon.c                              |   40 -
+ drivers/atm/iphase.c                               |   16 
+ drivers/atm/lanai.c                                |    2 
+ drivers/atm/solos-pci.c                            |    2 
+ drivers/atm/zatm.c                                 |   16 
+ drivers/isdn/mISDN/socket.c                        |    2 
+ drivers/net/ppp/pppoe.c                            |    2 
+ drivers/net/ppp/pptp.c                             |    2 
+ include/linux/atmdev.h                             |    9 
+ include/linux/compat.h                             |    4 
+ include/linux/filter.h                             |    4 
+ include/linux/net.h                                |    6 
+ include/linux/netfilter.h                          |   14 
+ include/linux/netfilter/x_tables.h                 |    2 
+ include/linux/syscalls.h                           |    4 
+ include/net/compat.h                               |    1 
+ include/net/inet_connection_sock.h                 |   13 
+ include/net/ip.h                                   |    4 
+ include/net/ipv6.h                                 |    4 
+ include/net/sctp/structs.h                         |   10 
+ include/net/sock.h                                 |   14 
+ include/net/tcp.h                                  |    4 
+ include/uapi/asm-generic/unistd.h                  |    4 
+ net/appletalk/ddp.c                                |    2 
+ net/atm/common.c                                   |   14 
+ net/bluetooth/bnep/sock.c                          |    2 
+ net/bluetooth/cmtp/sock.c                          |    2 
+ net/bluetooth/hidp/sock.c                          |    2 
+ net/bridge/netfilter/ebtables.c                    |  214 +++-----
+ net/caif/caif_socket.c                             |    2 
+ net/can/bcm.c                                      |    2 
+ net/compat.c                                       |  122 ----
+ net/core/filter.c                                  |   23 
+ net/core/sock.c                                    |   72 --
+ net/dccp/dccp.h                                    |    6 
+ net/dccp/ipv4.c                                    |   12 
+ net/dccp/ipv6.c                                    |   14 
+ net/dccp/proto.c                                   |   26 -
+ net/ieee802154/socket.c                            |    8 
+ net/ipv4/af_inet.c                                 |    6 
+ net/ipv4/inet_connection_sock.c                    |   28 -
+ net/ipv4/ip_sockglue.c                             |  541 +++++++++------------
+ net/ipv4/netfilter/arp_tables.c                    |   84 ---
+ net/ipv4/netfilter/ip_tables.c                     |   85 ---
+ net/ipv4/raw.c                                     |   22 
+ net/ipv4/tcp.c                                     |   24 
+ net/ipv4/tcp_ipv4.c                                |    8 
+ net/ipv4/udp.c                                     |   24 
+ net/ipv4/udp_impl.h                                |    6 
+ net/ipv4/udplite.c                                 |    4 
+ net/ipv6/af_inet6.c                                |    4 
+ net/ipv6/ipv6_sockglue.c                           |  537 +++++++++-----------
+ net/ipv6/netfilter/ip6_tables.c                    |   86 ---
+ net/ipv6/raw.c                                     |   52 --
+ net/ipv6/tcp_ipv6.c                                |   12 
+ net/ipv6/udp.c                                     |   25 
+ net/ipv6/udp_impl.h                                |    6 
+ net/ipv6/udplite.c                                 |    4 
+ net/key/af_key.c                                   |    2 
+ net/l2tp/l2tp_ip.c                                 |    8 
+ net/l2tp/l2tp_ip6.c                                |    6 
+ net/mptcp/protocol.c                               |    6 
+ net/netfilter/nf_sockopt.c                         |   60 --
+ net/netfilter/x_tables.c                           |    9 
+ net/nfc/llcp_sock.c                                |    2 
+ net/nfc/rawsock.c                                  |    4 
+ net/packet/af_packet.c                             |   35 -
+ net/phonet/socket.c                                |   10 
+ net/qrtr/qrtr.c                                    |    2 
+ net/sctp/ipv6.c                                    |    6 
+ net/sctp/protocol.c                                |    8 
+ net/smc/af_smc.c                                   |    9 
+ net/socket.c                                       |  103 ++-
+ net/unix/af_unix.c                                 |    6 
+ net/vmw_vsock/af_vsock.c                           |    2 
+ tools/include/uapi/asm-generic/unistd.h            |    4 
+ tools/perf/arch/powerpc/entry/syscalls/syscall.tbl |    4 
+ tools/perf/arch/s390/entry/syscalls/syscall.tbl    |    4 
+ tools/perf/arch/x86/entry/syscalls/syscall_64.tbl  |    4 
+ 98 files changed, 786 insertions(+), 1884 deletions(-)
