@@ -2,43 +2,43 @@ Return-Path: <SRS0=dQkn=A4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_SBL,URIBL_SBL_A,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83AF7C43461
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:26:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C337C43463
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:26:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5D9B120768
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:26:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 30E6D20768
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:26:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Uc0ddcNE"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="aFcX2soS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728202AbgGQG0U (ORCPT
+        id S1727034AbgGQGYW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Jul 2020 02:26:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53944 "EHLO
+        Fri, 17 Jul 2020 02:24:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727043AbgGQGYX (ORCPT
+        with ESMTP id S1726113AbgGQGYR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Jul 2020 02:24:23 -0400
+        Fri, 17 Jul 2020 02:24:17 -0400
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D1A9C061755;
-        Thu, 16 Jul 2020 23:24:23 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84C1AC08C5C0;
+        Thu, 16 Jul 2020 23:24:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
         References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
         Content-Type:Content-ID:Content-Description;
-        bh=onGMObakYuJolqNUDGEoKH222TJ4CRvXciqCD06UH/4=; b=Uc0ddcNECGZcu9NFgN8NW/9NDo
-        9YsTXvgLnALfkSMrgDoBURQ9+dpcHCrJcbgqduNESwel2WYvkDDv4y9m/FOkibo8xgGZF2kGOlddN
-        OLGEJiOxYSHPni5Byri9LJSVIvsPNGVWp83iGMhpqCLTfcwiBtGEvW2miEfaCHx6CvEoEub4Xo0XE
-        5A7p2ZxvckF66jQI0VYWK99tE+Dag48jDYcBYr+d9WCkh+GsOG7NmwGIitI4Eb/a+aGKIbnsA5oSv
-        YWSuCicEdqvh2HaWOmLeKUKgzFx/TFWPLtAVsUuU4RKtOxpgsrrlbjybpWo6GtLB0QqCeYUHC08qr
-        mK+F0ICg==;
+        bh=15CB9V7QI/EJP4CEaWkoXbSz4JSBsbnp24tauy2SAlc=; b=aFcX2soSjBmLa8/cRhua5QBWnT
+        7gyYF7oDmYQFLRFdjsrPLADpoApsS91mlCTiDWBDRNpYne4Q4FB9+D+vEGKWN1fkd52ifFfy6y70i
+        QlTP4pYrRVhtkusVcZaJS2BzoSvxYPXODbLDwD+yVF0u35uVyoBPGPUz/+ZRPXy/YWPyi7AOeziTG
+        7YpC4zg3wHYdi9UDxHVd4uXYngadXhSP8kWziNbYQAOp3wIfafvDQhe5UpxM4Cihj6hY6novUL7+a
+        ZABKfMAt5UbDLVDUnDhPHh6vXC0yzJO/s4rgEjJ8e65eXAKEw5RyxAO+pdFtfHGSc/YmBJY0vT/q0
+        6nRGA/Eg==;
 Received: from [2001:4bb8:105:4a81:3772:912d:640:e6c6] (helo=localhost)
         by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jwJn0-00053W-6X; Fri, 17 Jul 2020 06:24:10 +0000
+        id 1jwJmv-00052k-DO; Fri, 17 Jul 2020 06:24:06 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     "David S. Miller" <davem@davemloft.net>
 Cc:     Alexei Starovoitov <ast@kernel.org>,
@@ -55,9 +55,9 @@ Cc:     Alexei Starovoitov <ast@kernel.org>,
         linux-bluetooth@vger.kernel.org, bridge@lists.linux-foundation.org,
         linux-can@vger.kernel.org, dccp@vger.kernel.org,
         linux-wpan@vger.kernel.org, mptcp@lists.01.org
-Subject: [PATCH 10/22] netfilter/ebtables: clean up compat {get,set}sockopt handling
-Date:   Fri, 17 Jul 2020 08:23:19 +0200
-Message-Id: <20200717062331.691152-11-hch@lst.de>
+Subject: [PATCH 07/22] netfilter/arp_tables: clean up compat {get,set}sockopt handling
+Date:   Fri, 17 Jul 2020 08:23:16 +0200
+Message-Id: <20200717062331.691152-8-hch@lst.de>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20200717062331.691152-1-hch@lst.de>
 References: <20200717062331.691152-1-hch@lst.de>
@@ -70,264 +70,184 @@ List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Merge the native and compat {get,set}sockopt handlers using
-in_compat_syscall().  Note that this required moving a fair
-amout of code around to be done sanely.
+in_compat_syscall().
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- net/bridge/netfilter/ebtables.c | 214 +++++++++++++++-----------------
- 1 file changed, 98 insertions(+), 116 deletions(-)
+ net/ipv4/netfilter/arp_tables.c | 85 ++++++++-------------------------
+ 1 file changed, 21 insertions(+), 64 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index c83ffe9121639c..fe13108af1f542 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -1451,86 +1451,6 @@ static int copy_everything_to_user(struct ebt_table *t, void __user *user,
- 	   ebt_entry_to_user, entries, tmp.entries);
- }
- 
--static int do_ebt_set_ctl(struct sock *sk,
--	int cmd, void __user *user, unsigned int len)
--{
--	int ret;
--	struct net *net = sock_net(sk);
--
--	if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
--		return -EPERM;
--
--	switch (cmd) {
--	case EBT_SO_SET_ENTRIES:
--		ret = do_replace(net, user, len);
--		break;
--	case EBT_SO_SET_COUNTERS:
--		ret = update_counters(net, user, len);
--		break;
--	default:
--		ret = -EINVAL;
--	}
--	return ret;
--}
--
--static int do_ebt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
--{
--	int ret;
--	struct ebt_replace tmp;
--	struct ebt_table *t;
--	struct net *net = sock_net(sk);
--
--	if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
--		return -EPERM;
--
--	if (copy_from_user(&tmp, user, sizeof(tmp)))
--		return -EFAULT;
--
--	tmp.name[sizeof(tmp.name) - 1] = '\0';
--
--	t = find_table_lock(net, tmp.name, &ret, &ebt_mutex);
--	if (!t)
--		return ret;
--
--	switch (cmd) {
--	case EBT_SO_GET_INFO:
--	case EBT_SO_GET_INIT_INFO:
--		if (*len != sizeof(struct ebt_replace)) {
--			ret = -EINVAL;
--			mutex_unlock(&ebt_mutex);
--			break;
--		}
--		if (cmd == EBT_SO_GET_INFO) {
--			tmp.nentries = t->private->nentries;
--			tmp.entries_size = t->private->entries_size;
--			tmp.valid_hooks = t->valid_hooks;
--		} else {
--			tmp.nentries = t->table->nentries;
--			tmp.entries_size = t->table->entries_size;
--			tmp.valid_hooks = t->table->valid_hooks;
--		}
--		mutex_unlock(&ebt_mutex);
--		if (copy_to_user(user, &tmp, *len) != 0) {
--			ret = -EFAULT;
--			break;
--		}
--		ret = 0;
--		break;
--
--	case EBT_SO_GET_ENTRIES:
--	case EBT_SO_GET_INIT_ENTRIES:
--		ret = copy_everything_to_user(t, user, len, cmd);
--		mutex_unlock(&ebt_mutex);
--		break;
--
--	default:
--		mutex_unlock(&ebt_mutex);
--		ret = -EINVAL;
--	}
--
--	return ret;
--}
--
- #ifdef CONFIG_COMPAT
- /* 32 bit-userspace compatibility definitions. */
- struct compat_ebt_replace {
-@@ -2314,28 +2234,6 @@ static int compat_update_counters(struct net *net, void __user *user,
- 					hlp.num_counters, user, len);
- }
- 
--static int compat_do_ebt_set_ctl(struct sock *sk,
--		int cmd, void __user *user, unsigned int len)
--{
--	int ret;
--	struct net *net = sock_net(sk);
--
--	if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
--		return -EPERM;
--
--	switch (cmd) {
--	case EBT_SO_SET_ENTRIES:
--		ret = compat_do_replace(net, user, len);
--		break;
--	case EBT_SO_SET_COUNTERS:
--		ret = compat_update_counters(net, user, len);
--		break;
--	default:
--		ret = -EINVAL;
--	}
--	return ret;
--}
--
- static int compat_do_ebt_get_ctl(struct sock *sk, int cmd,
- 		void __user *user, int *len)
- {
-@@ -2344,14 +2242,6 @@ static int compat_do_ebt_get_ctl(struct sock *sk, int cmd,
- 	struct ebt_table *t;
- 	struct net *net = sock_net(sk);
- 
--	if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
--		return -EPERM;
--
--	/* try real handler in case userland supplied needed padding */
--	if ((cmd == EBT_SO_GET_INFO ||
--	     cmd == EBT_SO_GET_INIT_INFO) && *len != sizeof(tmp))
--			return do_ebt_get_ctl(sk, cmd, user, len);
--
- 	if (copy_from_user(&tmp, user, sizeof(tmp)))
- 		return -EFAULT;
- 
-@@ -2413,20 +2303,112 @@ static int compat_do_ebt_get_ctl(struct sock *sk, int cmd,
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index b167f4a5b68453..15807fb4a65f3e 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -787,8 +787,7 @@ static int compat_table_info(const struct xt_table_info *info,
  }
  #endif
  
-+static int do_ebt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
-+{
-+	struct net *net = sock_net(sk);
-+	struct ebt_replace tmp;
-+	struct ebt_table *t;
-+	int ret;
-+
-+	if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
-+		return -EPERM;
-+
-+#ifdef CONFIG_COMPAT
-+	/* try real handler in case userland supplied needed padding */
-+	if (in_compat_syscall() &&
-+	    ((cmd != EBT_SO_GET_INFO && cmd != EBT_SO_GET_INIT_INFO) ||
-+	     *len != sizeof(tmp)))
-+		return compat_do_ebt_get_ctl(sk, cmd, user, len);
-+#endif
-+
-+	if (copy_from_user(&tmp, user, sizeof(tmp)))
-+		return -EFAULT;
-+
-+	tmp.name[sizeof(tmp.name) - 1] = '\0';
-+
-+	t = find_table_lock(net, tmp.name, &ret, &ebt_mutex);
-+	if (!t)
-+		return ret;
-+
-+	switch (cmd) {
-+	case EBT_SO_GET_INFO:
-+	case EBT_SO_GET_INIT_INFO:
-+		if (*len != sizeof(struct ebt_replace)) {
-+			ret = -EINVAL;
-+			mutex_unlock(&ebt_mutex);
-+			break;
-+		}
-+		if (cmd == EBT_SO_GET_INFO) {
-+			tmp.nentries = t->private->nentries;
-+			tmp.entries_size = t->private->entries_size;
-+			tmp.valid_hooks = t->valid_hooks;
-+		} else {
-+			tmp.nentries = t->table->nentries;
-+			tmp.entries_size = t->table->entries_size;
-+			tmp.valid_hooks = t->table->valid_hooks;
-+		}
-+		mutex_unlock(&ebt_mutex);
-+		if (copy_to_user(user, &tmp, *len) != 0) {
-+			ret = -EFAULT;
-+			break;
-+		}
-+		ret = 0;
-+		break;
-+
-+	case EBT_SO_GET_ENTRIES:
-+	case EBT_SO_GET_INIT_ENTRIES:
-+		ret = copy_everything_to_user(t, user, len, cmd);
-+		mutex_unlock(&ebt_mutex);
-+		break;
-+
-+	default:
-+		mutex_unlock(&ebt_mutex);
-+		ret = -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
-+static int do_ebt_set_ctl(struct sock *sk, int cmd, void __user *user,
-+		unsigned int len)
-+{
-+	struct net *net = sock_net(sk);
-+	int ret;
-+
-+	if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
-+		return -EPERM;
-+
-+	switch (cmd) {
-+	case EBT_SO_SET_ENTRIES:
+-static int get_info(struct net *net, void __user *user,
+-		    const int *len, int compat)
++static int get_info(struct net *net, void __user *user, const int *len)
+ {
+ 	char name[XT_TABLE_MAXNAMELEN];
+ 	struct xt_table *t;
+@@ -802,7 +801,7 @@ static int get_info(struct net *net, void __user *user,
+ 
+ 	name[XT_TABLE_MAXNAMELEN-1] = '\0';
+ #ifdef CONFIG_COMPAT
+-	if (compat)
++	if (in_compat_syscall())
+ 		xt_compat_lock(NFPROTO_ARP);
+ #endif
+ 	t = xt_request_find_table_lock(net, NFPROTO_ARP, name);
+@@ -812,7 +811,7 @@ static int get_info(struct net *net, void __user *user,
+ #ifdef CONFIG_COMPAT
+ 		struct xt_table_info tmp;
+ 
+-		if (compat) {
++		if (in_compat_syscall()) {
+ 			ret = compat_table_info(private, &tmp);
+ 			xt_compat_flush_offsets(NFPROTO_ARP);
+ 			private = &tmp;
+@@ -837,7 +836,7 @@ static int get_info(struct net *net, void __user *user,
+ 	} else
+ 		ret = PTR_ERR(t);
+ #ifdef CONFIG_COMPAT
+-	if (compat)
++	if (in_compat_syscall())
+ 		xt_compat_unlock(NFPROTO_ARP);
+ #endif
+ 	return ret;
+@@ -998,7 +997,7 @@ static int do_replace(struct net *net, const void __user *user,
+ }
+ 
+ static int do_add_counters(struct net *net, const void __user *user,
+-			   unsigned int len, int compat)
++			   unsigned int len)
+ {
+ 	unsigned int i;
+ 	struct xt_counters_info tmp;
+@@ -1009,7 +1008,8 @@ static int do_add_counters(struct net *net, const void __user *user,
+ 	struct arpt_entry *iter;
+ 	unsigned int addend;
+ 
+-	paddc = xt_copy_counters_from_user(user, len, &tmp, compat);
++	paddc = xt_copy_counters_from_user(user, len, &tmp,
++					   in_compat_syscall());
+ 	if (IS_ERR(paddc))
+ 		return PTR_ERR(paddc);
+ 
+@@ -1294,30 +1294,6 @@ static int compat_do_replace(struct net *net, void __user *user,
+ 	return ret;
+ }
+ 
+-static int compat_do_arpt_set_ctl(struct sock *sk, int cmd, void __user *user,
+-				  unsigned int len)
+-{
+-	int ret;
+-
+-	if (!ns_capable(sock_net(sk)->user_ns, CAP_NET_ADMIN))
+-		return -EPERM;
+-
+-	switch (cmd) {
+-	case ARPT_SO_SET_REPLACE:
+-		ret = compat_do_replace(sock_net(sk), user, len);
+-		break;
+-
+-	case ARPT_SO_SET_ADD_COUNTERS:
+-		ret = do_add_counters(sock_net(sk), user, len, 1);
+-		break;
+-
+-	default:
+-		ret = -EINVAL;
+-	}
+-
+-	return ret;
+-}
+-
+ static int compat_copy_entry_to_user(struct arpt_entry *e, void __user **dstptr,
+ 				     compat_uint_t *size,
+ 				     struct xt_counters *counters,
+@@ -1425,29 +1401,6 @@ static int compat_get_entries(struct net *net,
+ 	xt_compat_unlock(NFPROTO_ARP);
+ 	return ret;
+ }
+-
+-static int do_arpt_get_ctl(struct sock *, int, void __user *, int *);
+-
+-static int compat_do_arpt_get_ctl(struct sock *sk, int cmd, void __user *user,
+-				  int *len)
+-{
+-	int ret;
+-
+-	if (!ns_capable(sock_net(sk)->user_ns, CAP_NET_ADMIN))
+-		return -EPERM;
+-
+-	switch (cmd) {
+-	case ARPT_SO_GET_INFO:
+-		ret = get_info(sock_net(sk), user, len, 1);
+-		break;
+-	case ARPT_SO_GET_ENTRIES:
+-		ret = compat_get_entries(sock_net(sk), user, len);
+-		break;
+-	default:
+-		ret = do_arpt_get_ctl(sk, cmd, user, len);
+-	}
+-	return ret;
+-}
+ #endif
+ 
+ static int do_arpt_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
+@@ -1459,11 +1412,16 @@ static int do_arpt_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned
+ 
+ 	switch (cmd) {
+ 	case ARPT_SO_SET_REPLACE:
+-		ret = do_replace(sock_net(sk), user, len);
 +#ifdef CONFIG_COMPAT
 +		if (in_compat_syscall())
-+			ret = compat_do_replace(net, user, len);
++			ret = compat_do_replace(sock_net(sk), user, len);
 +		else
 +#endif
-+			ret = do_replace(net, user, len);
-+		break;
-+	case EBT_SO_SET_COUNTERS:
++			ret = do_replace(sock_net(sk), user, len);
+ 		break;
+ 
+ 	case ARPT_SO_SET_ADD_COUNTERS:
+-		ret = do_add_counters(sock_net(sk), user, len, 0);
++		ret = do_add_counters(sock_net(sk), user, len);
+ 		break;
+ 
+ 	default:
+@@ -1482,11 +1440,16 @@ static int do_arpt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len
+ 
+ 	switch (cmd) {
+ 	case ARPT_SO_GET_INFO:
+-		ret = get_info(sock_net(sk), user, len, 0);
++		ret = get_info(sock_net(sk), user, len);
+ 		break;
+ 
+ 	case ARPT_SO_GET_ENTRIES:
+-		ret = get_entries(sock_net(sk), user, len);
 +#ifdef CONFIG_COMPAT
 +		if (in_compat_syscall())
-+			ret = compat_update_counters(net, user, len);
++			ret = compat_get_entries(sock_net(sk), user, len);
 +		else
 +#endif
-+			ret = update_counters(net, user, len);
-+		break;
-+	default:
-+		ret = -EINVAL;
-+	}
-+	return ret;
-+}
-+
- static struct nf_sockopt_ops ebt_sockopts = {
- 	.pf		= PF_INET,
- 	.set_optmin	= EBT_BASE_CTL,
- 	.set_optmax	= EBT_SO_SET_MAX + 1,
- 	.set		= do_ebt_set_ctl,
++			ret = get_entries(sock_net(sk), user, len);
+ 		break;
+ 
+ 	case ARPT_SO_GET_REVISION_TARGET: {
+@@ -1610,15 +1573,9 @@ static struct nf_sockopt_ops arpt_sockopts = {
+ 	.set_optmin	= ARPT_BASE_CTL,
+ 	.set_optmax	= ARPT_SO_SET_MAX+1,
+ 	.set		= do_arpt_set_ctl,
 -#ifdef CONFIG_COMPAT
--	.compat_set	= compat_do_ebt_set_ctl,
+-	.compat_set	= compat_do_arpt_set_ctl,
 -#endif
- 	.get_optmin	= EBT_BASE_CTL,
- 	.get_optmax	= EBT_SO_GET_MAX + 1,
- 	.get		= do_ebt_get_ctl,
+ 	.get_optmin	= ARPT_BASE_CTL,
+ 	.get_optmax	= ARPT_SO_GET_MAX+1,
+ 	.get		= do_arpt_get_ctl,
 -#ifdef CONFIG_COMPAT
--	.compat_get	= compat_do_ebt_get_ctl,
+-	.compat_get	= compat_do_arpt_get_ctl,
 -#endif
  	.owner		= THIS_MODULE,
  };
