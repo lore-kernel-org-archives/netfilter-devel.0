@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D4B5C433F4
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:24:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF109C433ED
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:24:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 471E320737
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:24:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 77FC32074B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:24:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ngePkQgp"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ddaAJJea"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727853AbgGQGYe (ORCPT
+        id S1726941AbgGQGY2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Jul 2020 02:24:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53976 "EHLO
+        Fri, 17 Jul 2020 02:24:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53950 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727814AbgGQGYb (ORCPT
+        with ESMTP id S1727058AbgGQGYZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Jul 2020 02:24:31 -0400
+        Fri, 17 Jul 2020 02:24:25 -0400
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4AC31C061755;
-        Thu, 16 Jul 2020 23:24:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D77CC061755;
+        Thu, 16 Jul 2020 23:24:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
         References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
         Content-Type:Content-ID:Content-Description;
-        bh=5UhNspDdIml9tpfUfRWGkC9v9AOZv925n+e1F7He35A=; b=ngePkQgpsw8v14v2e2H1RuLUgP
-        0xqQQ043zu+gtXRpXV0bf1ADe/edoqtXj7z3kKW9mKK+iCMOqbmpx3giNOQFrEznviF1qfzoZwbDo
-        xr7UnllY+pDKH2CH55FbdxZENM4P5ohmSYAJ0fRT7rs+qqeSNBf08yCPD3u4f/qFc5Y9NGvnoQNep
-        Q1DsD4GKGED6DkS1FkzSoMqYpNOH/w2g4VpT16FR3tH0BYHZ8AioctdDH4k7C39SaqLi85vEZptIG
-        vVRFnCSAKWjMPjLVXYuX97UKI3rDl+CoNmVE1f7b4ZTU02I8+ZHtLq4ucRfi35nEz/aA046/AsP0+
-        9sdcqAzw==;
+        bh=hTVOd3UZredsxZyfKUM3xddwhLoRQHrm4mrO/1PLzMY=; b=ddaAJJead2QuCg8AEy4hqxQ947
+        pYgOj7htGBfdPViQwK0s0Vw8MrYBgAvSHG2QfBVCuIb8m7J9H5KoNFX1OM67AI2yDKNOYXn07f8WN
+        VASvMsJRwd6ugDo9abPx3J8v3xJ+Gwtq8xRfI6WJRA3+Jwdix5gvgoLm/72Y9Qp18kBgaR0LrvxiJ
+        apAqoAoJ0teV8HW4EFrM0bJBw9zVGN+nUohIDxEKdymjzfarx00DmA+eAMwLy7QdaYBsmlJYE5fB1
+        0nH3dfU9kXdg5kuqTzgKjGj+c7qVx9HbYNApA0JC0ONocXO2Cp746qhMENQQVOaj+X9jGFtJBpnLe
+        unpW/dIw==;
 Received: from [2001:4bb8:105:4a81:3772:912d:640:e6c6] (helo=localhost)
         by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jwJnA-00054z-MC; Fri, 17 Jul 2020 06:24:21 +0000
+        id 1jwJn2-00053o-Dz; Fri, 17 Jul 2020 06:24:13 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     "David S. Miller" <davem@davemloft.net>
 Cc:     Alexei Starovoitov <ast@kernel.org>,
@@ -55,9 +55,9 @@ Cc:     Alexei Starovoitov <ast@kernel.org>,
         linux-bluetooth@vger.kernel.org, bridge@lists.linux-foundation.org,
         linux-can@vger.kernel.org, dccp@vger.kernel.org,
         linux-wpan@vger.kernel.org, mptcp@lists.01.org
-Subject: [PATCH 16/22] net/ipv4: factor out mcast join/leave setsockopt helpers
-Date:   Fri, 17 Jul 2020 08:23:25 +0200
-Message-Id: <20200717062331.691152-17-hch@lst.de>
+Subject: [PATCH 11/22] netfilter: remove the compat_{get,set} methods
+Date:   Fri, 17 Jul 2020 08:23:20 +0200
+Message-Id: <20200717062331.691152-12-hch@lst.de>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20200717062331.691152-1-hch@lst.de>
 References: <20200717062331.691152-1-hch@lst.de>
@@ -69,149 +69,149 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Factor out one helper each for setting the native and compat
-version of the MCAST_MSFILTER option.
+All instances handle compat sockopts via in_compat_syscall() now, so
+remove the compat_{get,set} methods as well as the
+compat_nf_{get,set}sockopt wrappers.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- net/ipv4/ip_sockglue.c | 109 +++++++++++++++++++++--------------------
- 1 file changed, 56 insertions(+), 53 deletions(-)
+ include/linux/netfilter.h  | 14 -------------
+ net/ipv4/ip_sockglue.c     |  5 ++---
+ net/ipv6/ipv6_sockglue.c   |  5 ++---
+ net/netfilter/nf_sockopt.c | 42 --------------------------------------
+ 4 files changed, 4 insertions(+), 62 deletions(-)
 
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index eb312e7ca36ee5..711b4d4486f042 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -164,17 +164,9 @@ struct nf_sockopt_ops {
+ 	int set_optmin;
+ 	int set_optmax;
+ 	int (*set)(struct sock *sk, int optval, void __user *user, unsigned int len);
+-#ifdef CONFIG_COMPAT
+-	int (*compat_set)(struct sock *sk, int optval,
+-			void __user *user, unsigned int len);
+-#endif
+ 	int get_optmin;
+ 	int get_optmax;
+ 	int (*get)(struct sock *sk, int optval, void __user *user, int *len);
+-#ifdef CONFIG_COMPAT
+-	int (*compat_get)(struct sock *sk, int optval,
+-			void __user *user, int *len);
+-#endif
+ 	/* Use the module struct to lock set/get code in place */
+ 	struct module *owner;
+ };
+@@ -350,12 +342,6 @@ int nf_setsockopt(struct sock *sk, u_int8_t pf, int optval, char __user *opt,
+ 		  unsigned int len);
+ int nf_getsockopt(struct sock *sk, u_int8_t pf, int optval, char __user *opt,
+ 		  int *len);
+-#ifdef CONFIG_COMPAT
+-int compat_nf_setsockopt(struct sock *sk, u_int8_t pf, int optval,
+-		char __user *opt, unsigned int len);
+-int compat_nf_getsockopt(struct sock *sk, u_int8_t pf, int optval,
+-		char __user *opt, int *len);
+-#endif
+ 
+ struct flowi;
+ struct nf_queue_entry;
 diff --git a/net/ipv4/ip_sockglue.c b/net/ipv4/ip_sockglue.c
-index b587dee006f882..73bb88fbe54661 100644
+index 84ec3703c90916..95f4248c6fc5ed 100644
 --- a/net/ipv4/ip_sockglue.c
 +++ b/net/ipv4/ip_sockglue.c
-@@ -806,6 +806,60 @@ static int compat_ip_set_mcast_msfilter(struct sock *sk, void __user *optval,
- }
+@@ -1446,8 +1446,7 @@ int compat_ip_setsockopt(struct sock *sk, int level, int optname,
+ 			optname != IP_IPSEC_POLICY &&
+ 			optname != IP_XFRM_POLICY &&
+ 			!ip_mroute_opt(optname))
+-		err = compat_nf_setsockopt(sk, PF_INET, optname, optval,
+-					   optlen);
++		err = nf_setsockopt(sk, PF_INET, optname, optval, optlen);
  #endif
+ 	return err;
+ }
+@@ -1821,7 +1820,7 @@ int compat_ip_getsockopt(struct sock *sk, int level, int optname,
+ 		if (get_user(len, optlen))
+ 			return -EFAULT;
  
-+static int ip_mcast_join_leave(struct sock *sk, int optname,
-+		void __user *optval, int optlen)
-+{
-+	struct ip_mreqn mreq = { };
-+	struct sockaddr_in *psin;
-+	struct group_req greq;
-+
-+	if (optlen < sizeof(struct group_req))
-+		return -EINVAL;
-+	if (copy_from_user(&greq, optval, sizeof(greq)))
-+		return -EFAULT;
-+
-+	psin = (struct sockaddr_in *)&greq.gr_group;
-+	if (psin->sin_family != AF_INET)
-+		return -EINVAL;
-+	mreq.imr_multiaddr = psin->sin_addr;
-+	mreq.imr_ifindex = greq.gr_interface;
-+	if (optname == MCAST_JOIN_GROUP)
-+		return ip_mc_join_group(sk, &mreq);
-+	return ip_mc_leave_group(sk, &mreq);
-+}
-+
-+#ifdef CONFIG_COMPAT
-+static int compat_ip_mcast_join_leave(struct sock *sk, int optname,
-+		void __user *optval, int optlen)
-+{
-+	struct compat_group_req greq;
-+	struct ip_mreqn mreq = { };
-+	struct sockaddr_in *psin;
-+	int err;
-+
-+	if (optlen < sizeof(struct compat_group_req))
-+		return -EINVAL;
-+	if (copy_from_user(&greq, optval, sizeof(greq)))
-+		return -EFAULT;
-+
-+	psin = (struct sockaddr_in *)&greq.gr_group;
-+	if (psin->sin_family != AF_INET)
-+		return -EINVAL;
-+	mreq.imr_multiaddr = psin->sin_addr;
-+	mreq.imr_ifindex = greq.gr_interface;
-+
-+	rtnl_lock();
-+	lock_sock(sk);
-+	if (optname == MCAST_JOIN_GROUP)
-+		err = ip_mc_join_group(sk, &mreq);
-+	else
-+		err = ip_mc_leave_group(sk, &mreq);
-+	release_sock(sk);
-+	rtnl_unlock();
-+	return err;
-+}
-+#endif
-+
- static int do_ip_setsockopt(struct sock *sk, int level,
- 			    int optname, char __user *optval, unsigned int optlen)
- {
-@@ -1211,29 +1265,8 @@ static int do_ip_setsockopt(struct sock *sk, int level,
+-		err = compat_nf_getsockopt(sk, PF_INET, optname, optval, &len);
++		err = nf_getsockopt(sk, PF_INET, optname, optval, &len);
+ 		if (err >= 0)
+ 			err = put_user(len, optlen);
+ 		return err;
+diff --git a/net/ipv6/ipv6_sockglue.c b/net/ipv6/ipv6_sockglue.c
+index 6ab44ec2c369da..6adfbdcb7979bd 100644
+--- a/net/ipv6/ipv6_sockglue.c
++++ b/net/ipv6/ipv6_sockglue.c
+@@ -1030,8 +1030,7 @@ int compat_ipv6_setsockopt(struct sock *sk, int level, int optname,
+ 	/* we need to exclude all possible ENOPROTOOPTs except default case */
+ 	if (err == -ENOPROTOOPT && optname != IPV6_IPSEC_POLICY &&
+ 	    optname != IPV6_XFRM_POLICY)
+-		err = compat_nf_setsockopt(sk, PF_INET6, optname, optval,
+-					   optlen);
++		err = nf_setsockopt(sk, PF_INET6, optname, optval, optlen);
+ #endif
+ 	return err;
+ }
+@@ -1531,7 +1530,7 @@ int compat_ipv6_getsockopt(struct sock *sk, int level, int optname,
+ 		if (get_user(len, optlen))
+ 			return -EFAULT;
+ 
+-		err = compat_nf_getsockopt(sk, PF_INET6, optname, optval, &len);
++		err = nf_getsockopt(sk, PF_INET6, optname, optval, &len);
+ 		if (err >= 0)
+ 			err = put_user(len, optlen);
  	}
- 	case MCAST_JOIN_GROUP:
- 	case MCAST_LEAVE_GROUP:
--	{
--		struct group_req greq;
--		struct sockaddr_in *psin;
--		struct ip_mreqn mreq;
+diff --git a/net/netfilter/nf_sockopt.c b/net/netfilter/nf_sockopt.c
+index 46cb3786e0ec5c..02870993d335c9 100644
+--- a/net/netfilter/nf_sockopt.c
++++ b/net/netfilter/nf_sockopt.c
+@@ -122,45 +122,3 @@ int nf_getsockopt(struct sock *sk, u_int8_t pf, int val, char __user *opt,
+ 	return nf_sockopt(sk, pf, val, opt, len, 1);
+ }
+ EXPORT_SYMBOL(nf_getsockopt);
 -
--		if (optlen < sizeof(struct group_req))
--			goto e_inval;
--		err = -EFAULT;
--		if (copy_from_user(&greq, optval, sizeof(greq)))
--			break;
--		psin = (struct sockaddr_in *)&greq.gr_group;
--		if (psin->sin_family != AF_INET)
--			goto e_inval;
--		memset(&mreq, 0, sizeof(mreq));
--		mreq.imr_multiaddr = psin->sin_addr;
--		mreq.imr_ifindex = greq.gr_interface;
+-#ifdef CONFIG_COMPAT
+-static int compat_nf_sockopt(struct sock *sk, u_int8_t pf, int val,
+-			     char __user *opt, int *len, int get)
+-{
+-	struct nf_sockopt_ops *ops;
+-	int ret;
 -
--		if (optname == MCAST_JOIN_GROUP)
--			err = ip_mc_join_group(sk, &mreq);
+-	ops = nf_sockopt_find(sk, pf, val, get);
+-	if (IS_ERR(ops))
+-		return PTR_ERR(ops);
+-
+-	if (get) {
+-		if (ops->compat_get)
+-			ret = ops->compat_get(sk, val, opt, len);
 -		else
--			err = ip_mc_leave_group(sk, &mreq);
-+		err = ip_mcast_join_leave(sk, optname, optval, optlen);
- 		break;
--	}
- 	case MCAST_JOIN_SOURCE_GROUP:
- 	case MCAST_LEAVE_SOURCE_GROUP:
- 	case MCAST_BLOCK_SOURCE:
-@@ -1389,37 +1422,7 @@ int compat_ip_setsockopt(struct sock *sk, int level, int optname,
- 	switch (optname) {
- 	case MCAST_JOIN_GROUP:
- 	case MCAST_LEAVE_GROUP:
--	{
--		struct compat_group_req __user *gr32 = (void __user *)optval;
--		struct group_req greq;
--		struct sockaddr_in *psin = (struct sockaddr_in *)&greq.gr_group;
--		struct ip_mreqn mreq;
--
--		if (optlen < sizeof(struct compat_group_req))
--			return -EINVAL;
--
--		if (get_user(greq.gr_interface, &gr32->gr_interface) ||
--		    copy_from_user(&greq.gr_group, &gr32->gr_group,
--				sizeof(greq.gr_group)))
--			return -EFAULT;
--
--		if (psin->sin_family != AF_INET)
--			return -EINVAL;
--
--		memset(&mreq, 0, sizeof(mreq));
--		mreq.imr_multiaddr = psin->sin_addr;
--		mreq.imr_ifindex = greq.gr_interface;
--
--		rtnl_lock();
--		lock_sock(sk);
--		if (optname == MCAST_JOIN_GROUP)
--			err = ip_mc_join_group(sk, &mreq);
+-			ret = ops->get(sk, val, opt, len);
+-	} else {
+-		if (ops->compat_set)
+-			ret = ops->compat_set(sk, val, opt, *len);
 -		else
--			err = ip_mc_leave_group(sk, &mreq);
--		release_sock(sk);
--		rtnl_unlock();
--		return err;
+-			ret = ops->set(sk, val, opt, *len);
 -	}
-+		return compat_ip_mcast_join_leave(sk, optname, optval, optlen);
- 	case MCAST_JOIN_SOURCE_GROUP:
- 	case MCAST_LEAVE_SOURCE_GROUP:
- 	case MCAST_BLOCK_SOURCE:
+-
+-	module_put(ops->owner);
+-	return ret;
+-}
+-
+-int compat_nf_setsockopt(struct sock *sk, u_int8_t pf,
+-		int val, char __user *opt, unsigned int len)
+-{
+-	return compat_nf_sockopt(sk, pf, val, opt, &len, 0);
+-}
+-EXPORT_SYMBOL(compat_nf_setsockopt);
+-
+-int compat_nf_getsockopt(struct sock *sk, u_int8_t pf,
+-		int val, char __user *opt, int *len)
+-{
+-	return compat_nf_sockopt(sk, pf, val, opt, len, 1);
+-}
+-EXPORT_SYMBOL(compat_nf_getsockopt);
+-#endif
 -- 
 2.27.0
 
