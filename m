@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF276C4346B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:25:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0965C43445
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:25:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B8D8420737
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:25:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 96EAF20737
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Jul 2020 06:25:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="TlVmg/K9"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="cLAkMx61"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728129AbgGQGZp (ORCPT
+        id S1727779AbgGQGY3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Jul 2020 02:25:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53972 "EHLO
+        Fri, 17 Jul 2020 02:24:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53952 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727058AbgGQGYa (ORCPT
+        with ESMTP id S1727065AbgGQGYZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Jul 2020 02:24:30 -0400
+        Fri, 17 Jul 2020 02:24:25 -0400
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D0FAC061755;
-        Thu, 16 Jul 2020 23:24:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF9F7C08C5C0;
+        Thu, 16 Jul 2020 23:24:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
         References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
         Content-Type:Content-ID:Content-Description;
-        bh=j6gd4Pw6hNpVEHfOF2IcEGR8joZO+dN7+wdCSBqFWjw=; b=TlVmg/K9KqvbS9luWHYPdSlF+l
-        IcakB40GrVEKZU1uOXxCMHY2uiRi5CPgQsFlRmxCIWfSu8v9JpryhcQTQ7ddwbqY1BLqFIdFnla/0
-        2yiO0R39cliys55aKmgvAGAEZh3eTUgdy+bn3FaBXvQBMRzB/jmuHJd5PvC8Z1SCazEqL3YFqWadF
-        FeOIAyjwWhg4kYInkSG4P0pUQbXrtwcAc3e5AkQrZoMKITl15xLX8UjXxTx2YnZXruvjFIIrl1mI4
-        YnVS6v8LNWj8ottBkTWh310+p6myZ4LOFZVTTtAB7oAITAgs2I5hAFcShk4dMrkvRiewZDX0XYENX
-        wxNZb2tw==;
+        bh=milvAVOJM4QLrRIHrecFW2GQRin+zd5F1vYyEysY7aY=; b=cLAkMx61vS6bwmd5Zd6uLyOfjO
+        FgVzMLW/0vRlJLKn+atJQKqBiPdF+U5ARr5iGTBorAQzgeqPKzY3EOx2DDiJuc7ouc222OqWynkYB
+        nlUfxQqT+4SONem/13J3C/tjq+V1QbpfmaLCfbOge+hsPTsTNjjZ2uiesF3elNxm9AeTZUBLIT4Oy
+        HHHI4r01Su6AMPqsIEs9/fhoWHJnuCf7dAw6AhPjjRuT+wkFL12TSZF8rp40ZzOkKwQCwPbC3q8zv
+        FoAxxR8D1oGS0Cmdx+S2JiPfNyC4SIkkWqK3Zotj8YceIpSQN/r2Vt2xbXJhixo8cW2/PSLlivkw9
+        LJyzhv2g==;
 Received: from [2001:4bb8:105:4a81:3772:912d:640:e6c6] (helo=localhost)
         by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jwJn9-00054j-2U; Fri, 17 Jul 2020 06:24:19 +0000
+        id 1jwJn4-000545-1S; Fri, 17 Jul 2020 06:24:15 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     "David S. Miller" <davem@davemloft.net>
 Cc:     Alexei Starovoitov <ast@kernel.org>,
@@ -55,9 +55,9 @@ Cc:     Alexei Starovoitov <ast@kernel.org>,
         linux-bluetooth@vger.kernel.org, bridge@lists.linux-foundation.org,
         linux-can@vger.kernel.org, dccp@vger.kernel.org,
         linux-wpan@vger.kernel.org, mptcp@lists.01.org
-Subject: [PATCH 15/22] net/ipv4: factor out MCAST_MSFILTER setsockopt helpers
-Date:   Fri, 17 Jul 2020 08:23:24 +0200
-Message-Id: <20200717062331.691152-16-hch@lst.de>
+Subject: [PATCH 12/22] netfilter: remove the compat argument to xt_copy_counters_from_user
+Date:   Fri, 17 Jul 2020 08:23:21 +0200
+Message-Id: <20200717062331.691152-13-hch@lst.de>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20200717062331.691152-1-hch@lst.de>
 References: <20200717062331.691152-1-hch@lst.de>
@@ -69,202 +69,110 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Factor out one helper each for setting the native and compat
-version of the MCAST_MSFILTER option.
+Lift the in_compat_syscall() from the callers instead.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- net/ipv4/ip_sockglue.c | 162 ++++++++++++++++++++++-------------------
- 1 file changed, 86 insertions(+), 76 deletions(-)
+ include/linux/netfilter/x_tables.h | 2 +-
+ net/ipv4/netfilter/arp_tables.c    | 3 +--
+ net/ipv4/netfilter/ip_tables.c     | 3 +--
+ net/ipv6/netfilter/ip6_tables.c    | 3 +--
+ net/netfilter/x_tables.c           | 9 ++++-----
+ 5 files changed, 8 insertions(+), 12 deletions(-)
 
-diff --git a/net/ipv4/ip_sockglue.c b/net/ipv4/ip_sockglue.c
-index 70d32c9476a2e3..b587dee006f882 100644
---- a/net/ipv4/ip_sockglue.c
-+++ b/net/ipv4/ip_sockglue.c
-@@ -722,6 +722,90 @@ static int do_mcast_group_source(struct sock *sk, int optname,
- 	return ip_mc_source(add, omode, sk, &mreqs, greqs->gsr_interface);
- }
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 5da88451853b28..b8b943ee7b8b66 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -302,7 +302,7 @@ int xt_data_to_user(void __user *dst, const void *src,
+ 		    int usersize, int size, int aligned_size);
  
-+static int ip_set_mcast_msfilter(struct sock *sk, void __user *optval,
-+		int optlen)
-+{
-+	struct group_filter *gsf = NULL;
-+	int err;
-+
-+	if (optlen < GROUP_FILTER_SIZE(0))
-+		return -EINVAL;
-+	if (optlen > sysctl_optmem_max)
-+		return -ENOBUFS;
-+
-+	gsf = memdup_user(optval, optlen);
-+	if (IS_ERR(gsf))
-+		return PTR_ERR(gsf);
-+
-+	/* numsrc >= (4G-140)/128 overflow in 32 bits */
-+	err = -ENOBUFS;
-+	if (gsf->gf_numsrc >= 0x1ffffff ||
-+	    gsf->gf_numsrc > sock_net(sk)->ipv4.sysctl_igmp_max_msf)
-+		goto out_free_gsf;
-+
-+	err = -EINVAL;
-+	if (GROUP_FILTER_SIZE(gsf->gf_numsrc) > optlen)
-+		goto out_free_gsf;
-+
-+	err = set_mcast_msfilter(sk, gsf->gf_interface, gsf->gf_numsrc,
-+				 gsf->gf_fmode, &gsf->gf_group, gsf->gf_slist);
-+out_free_gsf:
-+	kfree(gsf);
-+	return err;
-+}
-+
-+#ifdef CONFIG_COMPAT
-+static int compat_ip_set_mcast_msfilter(struct sock *sk, void __user *optval,
-+		int optlen)
-+{
-+	const int size0 = offsetof(struct compat_group_filter, gf_slist);
-+	struct compat_group_filter *gf32;
-+	unsigned int n;
-+	void *p;
-+	int err;
-+
-+	if (optlen < size0)
-+		return -EINVAL;
-+	if (optlen > sysctl_optmem_max - 4)
-+		return -ENOBUFS;
-+
-+	p = kmalloc(optlen + 4, GFP_KERNEL);
-+	if (!p)
-+		return -ENOMEM;
-+	gf32 = p + 4; /* we want ->gf_group and ->gf_slist aligned */
-+
-+	err = -EFAULT;
-+	if (copy_from_user(gf32, optval, optlen))
-+		goto out_free_gsf;
-+
-+	/* numsrc >= (4G-140)/128 overflow in 32 bits */
-+	n = gf32->gf_numsrc;
-+	err = -ENOBUFS;
-+	if (n >= 0x1ffffff)
-+		goto out_free_gsf;
-+
-+	err = -EINVAL;
-+	if (offsetof(struct compat_group_filter, gf_slist[n]) > optlen)
-+		goto out_free_gsf;
-+
-+	rtnl_lock();
-+	lock_sock(sk);
-+
-+	/* numsrc >= (4G-140)/128 overflow in 32 bits */
-+	err = -ENOBUFS;
-+	if (n > sock_net(sk)->ipv4.sysctl_igmp_max_msf)
-+		goto out_unlock;
-+	err = set_mcast_msfilter(sk, gf32->gf_interface, n, gf32->gf_fmode,
-+				 &gf32->gf_group, gf32->gf_slist);
-+out_unlock:
-+	release_sock(sk);
-+	rtnl_unlock();
-+out_free_gsf:
-+	kfree(p);
-+	return err;
-+}
-+#endif
-+
- static int do_ip_setsockopt(struct sock *sk, int level,
- 			    int optname, char __user *optval, unsigned int optlen)
+ void *xt_copy_counters_from_user(const void __user *user, unsigned int len,
+-				 struct xt_counters_info *info, bool compat);
++				 struct xt_counters_info *info);
+ struct xt_counters *xt_counters_alloc(unsigned int counters);
+ 
+ struct xt_table *xt_register_table(struct net *net,
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 15807fb4a65f3e..2c8a4dad39d748 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -1008,8 +1008,7 @@ static int do_add_counters(struct net *net, const void __user *user,
+ 	struct arpt_entry *iter;
+ 	unsigned int addend;
+ 
+-	paddc = xt_copy_counters_from_user(user, len, &tmp,
+-					   in_compat_syscall());
++	paddc = xt_copy_counters_from_user(user, len, &tmp);
+ 	if (IS_ERR(paddc))
+ 		return PTR_ERR(paddc);
+ 
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index fbfad38f397949..161901dd1cae7f 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -1163,8 +1163,7 @@ do_add_counters(struct net *net, const void __user *user,
+ 	struct ipt_entry *iter;
+ 	unsigned int addend;
+ 
+-	paddc = xt_copy_counters_from_user(user, len, &tmp,
+-					   in_compat_syscall());
++	paddc = xt_copy_counters_from_user(user, len, &tmp);
+ 	if (IS_ERR(paddc))
+ 		return PTR_ERR(paddc);
+ 
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 96c48e91e6c7f7..fd1f8f93123188 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1179,8 +1179,7 @@ do_add_counters(struct net *net, const void __user *user, unsigned int len)
+ 	struct ip6t_entry *iter;
+ 	unsigned int addend;
+ 
+-	paddc = xt_copy_counters_from_user(user, len, &tmp,
+-					   in_compat_syscall());
++	paddc = xt_copy_counters_from_user(user, len, &tmp);
+ 	if (IS_ERR(paddc))
+ 		return PTR_ERR(paddc);
+ 	t = xt_find_table_lock(net, AF_INET6, tmp.name);
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 99a468be4a59fb..32bab45af7e415 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1033,15 +1033,14 @@ EXPORT_SYMBOL_GPL(xt_check_target);
+  * @user: src pointer to userspace memory
+  * @len: alleged size of userspace memory
+  * @info: where to store the xt_counters_info metadata
+- * @compat: true if we setsockopt call is done by 32bit task on 64bit kernel
+  *
+  * Copies counter meta data from @user and stores it in @info.
+  *
+  * vmallocs memory to hold the counters, then copies the counter data
+  * from @user to the new memory and returns a pointer to it.
+  *
+- * If @compat is true, @info gets converted automatically to the 64bit
+- * representation.
++ * If called from a compat syscall, @info gets converted automatically to the
++ * 64bit representation.
+  *
+  * The metadata associated with the counters is stored in @info.
+  *
+@@ -1049,13 +1048,13 @@ EXPORT_SYMBOL_GPL(xt_check_target);
+  * If IS_ERR is false, caller has to vfree the pointer.
+  */
+ void *xt_copy_counters_from_user(const void __user *user, unsigned int len,
+-				 struct xt_counters_info *info, bool compat)
++				 struct xt_counters_info *info)
  {
-@@ -1167,37 +1251,8 @@ static int do_ip_setsockopt(struct sock *sk, int level,
- 		break;
- 	}
- 	case MCAST_MSFILTER:
--	{
--		struct group_filter *gsf = NULL;
--
--		if (optlen < GROUP_FILTER_SIZE(0))
--			goto e_inval;
--		if (optlen > sysctl_optmem_max) {
--			err = -ENOBUFS;
--			break;
--		}
--		gsf = memdup_user(optval, optlen);
--		if (IS_ERR(gsf)) {
--			err = PTR_ERR(gsf);
--			break;
--		}
--		/* numsrc >= (4G-140)/128 overflow in 32 bits */
--		if (gsf->gf_numsrc >= 0x1ffffff ||
--		    gsf->gf_numsrc > net->ipv4.sysctl_igmp_max_msf) {
--			err = -ENOBUFS;
--			goto mc_msf_out;
--		}
--		if (GROUP_FILTER_SIZE(gsf->gf_numsrc) > optlen) {
--			err = -EINVAL;
--			goto mc_msf_out;
--		}
--		err = set_mcast_msfilter(sk, gsf->gf_interface,
--					 gsf->gf_numsrc, gsf->gf_fmode,
--					 &gsf->gf_group, gsf->gf_slist);
--mc_msf_out:
--		kfree(gsf);
-+		err = ip_set_mcast_msfilter(sk, optval, optlen);
- 		break;
--	}
- 	case IP_MULTICAST_ALL:
- 		if (optlen < 1)
- 			goto e_inval;
-@@ -1391,52 +1446,7 @@ int compat_ip_setsockopt(struct sock *sk, int level, int optname,
- 		return err;
- 	}
- 	case MCAST_MSFILTER:
--	{
--		const int size0 = offsetof(struct compat_group_filter, gf_slist);
--		struct compat_group_filter *gf32;
--		unsigned int n;
--		void *p;
--
--		if (optlen < size0)
--			return -EINVAL;
--		if (optlen > sysctl_optmem_max - 4)
--			return -ENOBUFS;
--
--		p = kmalloc(optlen + 4, GFP_KERNEL);
--		if (!p)
--			return -ENOMEM;
--		gf32 = p + 4; /* we want ->gf_group and ->gf_slist aligned */
--		if (copy_from_user(gf32, optval, optlen)) {
--			err = -EFAULT;
--			goto mc_msf_out;
--		}
--
--		n = gf32->gf_numsrc;
--		/* numsrc >= (4G-140)/128 overflow in 32 bits */
--		if (n >= 0x1ffffff) {
--			err = -ENOBUFS;
--			goto mc_msf_out;
--		}
--		if (offsetof(struct compat_group_filter, gf_slist[n]) > optlen) {
--			err = -EINVAL;
--			goto mc_msf_out;
--		}
--
--		rtnl_lock();
--		lock_sock(sk);
--		/* numsrc >= (4G-140)/128 overflow in 32 bits */
--		if (n > sock_net(sk)->ipv4.sysctl_igmp_max_msf)
--			err = -ENOBUFS;
--		else
--			err = set_mcast_msfilter(sk, gf32->gf_interface,
--						 n, gf32->gf_fmode,
--						 &gf32->gf_group, gf32->gf_slist);
--		release_sock(sk);
--		rtnl_unlock();
--mc_msf_out:
--		kfree(p);
--		return err;
--	}
-+		return compat_ip_set_mcast_msfilter(sk, optval, optlen);
- 	}
+ 	void *mem;
+ 	u64 size;
  
- 	err = do_ip_setsockopt(sk, level, optname, optval, optlen);
+ #ifdef CONFIG_COMPAT
+-	if (compat) {
++	if (in_compat_syscall()) {
+ 		/* structures only differ in size due to alignment */
+ 		struct compat_xt_counters_info compat_tmp;
+ 
 -- 
 2.27.0
 
