@@ -2,284 +2,214 @@ Return-Path: <SRS0=Dw8A=A6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AA55C433E1
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jul 2020 10:02:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC96DC433E3
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jul 2020 11:52:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7AE782073A
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jul 2020 10:02:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B75A9207DF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 Jul 2020 11:52:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726067AbgGSKCc (ORCPT
+        id S1726051AbgGSLwO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 19 Jul 2020 06:02:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48632 "EHLO
+        Sun, 19 Jul 2020 07:52:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37120 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725836AbgGSKCb (ORCPT
+        with ESMTP id S1725836AbgGSLwN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 19 Jul 2020 06:02:31 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C5A1C0619D2
-        for <netfilter-devel@vger.kernel.org>; Sun, 19 Jul 2020 03:02:31 -0700 (PDT)
-Received: from localhost ([::1]:51928 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.94)
-        (envelope-from <phil@nwl.cc>)
-        id 1jx69M-0005fl-Cd; Sun, 19 Jul 2020 12:02:28 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org,
-        "Gustavo A . R . Silva" <gustavo@embeddedor.com>
-Subject: [nf-next PATCH v2] netfilter: include: uapi: Use C99 flexible array member
-Date:   Sun, 19 Jul 2020 12:02:20 +0200
-Message-Id: <20200719100220.4666-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.27.0
+        Sun, 19 Jul 2020 07:52:13 -0400
+Received: from smtp.al2klimov.de (smtp.al2klimov.de [IPv6:2a01:4f8:c0c:1465::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59F5DC0619D2;
+        Sun, 19 Jul 2020 04:52:13 -0700 (PDT)
+Received: from authenticated-user (PRIMARY_HOSTNAME [PUBLIC_IP])
+        by smtp.al2klimov.de (Postfix) with ESMTPA id 0C10BBC06E;
+        Sun, 19 Jul 2020 11:52:08 +0000 (UTC)
+From:   "Alexander A. Klimov" <grandmaster@al2klimov.de>
+To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, kuba@kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org,
+        linux-decnet-user@lists.sourceforge.net, netdev@vger.kernel.org
+Cc:     "Alexander A. Klimov" <grandmaster@al2klimov.de>
+Subject: [PATCH for v5.9] netfilter: Replace HTTP links with HTTPS ones
+Date:   Sun, 19 Jul 2020 13:52:02 +0200
+Message-Id: <20200719115202.58449-1-grandmaster@al2klimov.de>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+Authentication-Results: smtp.al2klimov.de;
+        auth=pass smtp.auth=aklimov@al2klimov.de smtp.mailfrom=grandmaster@al2klimov.de
+X-Spamd-Bar: /
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Recent versions of gcc started to complain about the old-style
-zero-length array as last member of various structs. For instance, while
-compiling iptables:
+Rationale:
+Reduces attack surface on kernel devs opening the links for MITM
+as HTTPS traffic is much harder to manipulate.
 
-| In file included from /usr/include/string.h:495,
-|                  from libip4tc.c:15:
-| In function 'memcpy',
-|     inlined from 'iptcc_compile_chain' at libiptc.c:1172:2,
-|     inlined from 'iptcc_compile_table' at libiptc.c:1243:13,
-|     inlined from 'iptc_commit' at libiptc.c:2572:8,
-|     inlined from 'iptc_commit' at libiptc.c:2510:1:
-| /usr/include/bits/string_fortified.h:34:10: warning: writing 16 bytes into a region of size 0 [-Wstringop-overflow=]
-|    34 |   return __builtin___memcpy_chk (__dest, __src, __len, __bos0 (__dest));
-|       |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-| In file included from ../include/libiptc/libiptc.h:12,
-|                  from libip4tc.c:29:
-| libiptc.c: In function 'iptc_commit':
-| ../include/linux/netfilter_ipv4/ip_tables.h:202:19: note: at offset 0 to object 'entries' with size 0 declared here
-|   202 |  struct ipt_entry entries[0];
-|       |                   ^~~~~~~
+Deterministic algorithm:
+For each file:
+  If not .svg:
+    For each line:
+      If doesn't contain `\bxmlns\b`:
+        For each link, `\bhttp://[^# \t\r\n]*(?:\w|/)`:
+	  If neither `\bgnu\.org/license`, nor `\bmozilla\.org/MPL\b`:
+            If both the HTTP and HTTPS versions
+            return 200 OK and serve the same content:
+              Replace HTTP with HTTPS.
 
-(Similar for libip6tc.c.)
-
-Avoid this warning by declaring these fields as an ISO C99 flexible
-array member. This makes gcc aware of the intended use and enables
-sanity checking as described in:
-https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
-
-This patch is actually a follow-up on commit 6daf14140129d ("netfilter:
-Replace zero-length array with flexible-array member") which seems to
-have missed a few spots. Like it, alignment attribute syntax is fixed
-where found in line with zero-length array fields.
-
-Cc: Gustavo A. R. Silva <gustavo@embeddedor.com>
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Alexander A. Klimov <grandmaster@al2klimov.de>
 ---
-Changes since v1:
-- Fix up any zero-length arrays found via:
-  `grep -r '\[0\]' include/uapi/linux/netfilter*`.
-- Perform alignment attribute syntax fixup just like 6daf14140129d does.
-- Point at relationship with 6daf14140129d in commit message.
-- Add Gustavo to Cc: for verification.
----
- include/uapi/linux/netfilter/x_tables.h         |  6 +++---
- include/uapi/linux/netfilter_arp/arp_tables.h   |  6 +++---
- include/uapi/linux/netfilter_bridge/ebt_among.h |  2 +-
- include/uapi/linux/netfilter_bridge/ebtables.h  | 10 +++++-----
- include/uapi/linux/netfilter_ipv4/ip_tables.h   |  6 +++---
- include/uapi/linux/netfilter_ipv6/ip6_tables.h  |  6 +++---
- 6 files changed, 18 insertions(+), 18 deletions(-)
+ Continuing my work started at 93431e0607e5.
+ See also: git log --oneline '--author=Alexander A. Klimov <grandmaster@al2klimov.de>' v5.7..master
+ (Actually letting a shell for loop submit all this stuff for me.)
 
-diff --git a/include/uapi/linux/netfilter/x_tables.h b/include/uapi/linux/netfilter/x_tables.h
-index a8283f7dbc519..7a52c69c74a2b 100644
---- a/include/uapi/linux/netfilter/x_tables.h
-+++ b/include/uapi/linux/netfilter/x_tables.h
-@@ -28,7 +28,7 @@ struct xt_entry_match {
- 		__u16 match_size;
- 	} u;
+ If there are any URLs to be removed completely
+ or at least not (just) HTTPSified:
+ Just clearly say so and I'll *undo my change*.
+ See also: https://lkml.org/lkml/2020/6/27/64
+
+ If there are any valid, but yet not changed URLs:
+ See: https://lkml.org/lkml/2020/6/26/837
+
+ If you apply the patch, please let me know.
+
+ Sorry again to all maintainers who complained about subject lines.
+ Now I realized that you want an actually perfect prefixes,
+ not just subsystem ones.
+ I tried my best...
+ And yes, *I could* (at least half-)automate it.
+ Impossible is nothing! :)
+
+
+ include/uapi/linux/netfilter/xt_connmark.h | 2 +-
+ net/decnet/netfilter/dn_rtmsg.c            | 2 +-
+ net/netfilter/Kconfig                      | 2 +-
+ net/netfilter/nfnetlink_acct.c             | 2 +-
+ net/netfilter/nft_set_pipapo.c             | 4 ++--
+ net/netfilter/xt_connmark.c                | 2 +-
+ net/netfilter/xt_nfacct.c                  | 2 +-
+ net/netfilter/xt_time.c                    | 2 +-
+ 8 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/include/uapi/linux/netfilter/xt_connmark.h b/include/uapi/linux/netfilter/xt_connmark.h
+index 1aa5c955ee1e..f01c19b83a2b 100644
+--- a/include/uapi/linux/netfilter/xt_connmark.h
++++ b/include/uapi/linux/netfilter/xt_connmark.h
+@@ -4,7 +4,7 @@
  
--	unsigned char data[0];
-+	unsigned char data[];
- };
+ #include <linux/types.h>
  
- struct xt_entry_target {
-@@ -51,7 +51,7 @@ struct xt_entry_target {
- 		__u16 target_size;
- 	} u;
- 
--	unsigned char data[0];
-+	unsigned char data[];
- };
- 
- #define XT_TARGET_INIT(__name, __size)					       \
-@@ -119,7 +119,7 @@ struct xt_counters_info {
- 	unsigned int num_counters;
- 
- 	/* The counters (actually `number' of these). */
--	struct xt_counters counters[0];
-+	struct xt_counters counters[];
- };
- 
- #define XT_INV_PROTO		0x40	/* Invert the sense of PROTO. */
-diff --git a/include/uapi/linux/netfilter_arp/arp_tables.h b/include/uapi/linux/netfilter_arp/arp_tables.h
-index bbf5af2b67a8f..a6ac2463f787a 100644
---- a/include/uapi/linux/netfilter_arp/arp_tables.h
-+++ b/include/uapi/linux/netfilter_arp/arp_tables.h
-@@ -109,7 +109,7 @@ struct arpt_entry
- 	struct xt_counters counters;
- 
- 	/* The matches (if any), then the target. */
--	unsigned char elems[0];
-+	unsigned char elems[];
- };
- 
+-/* Copyright (C) 2002,2004 MARA Systems AB <http://www.marasystems.com>
++/* Copyright (C) 2002,2004 MARA Systems AB <https://www.marasystems.com>
+  * by Henrik Nordstrom <hno@marasystems.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff --git a/net/decnet/netfilter/dn_rtmsg.c b/net/decnet/netfilter/dn_rtmsg.c
+index dc705769acc9..26a9193df783 100644
+--- a/net/decnet/netfilter/dn_rtmsg.c
++++ b/net/decnet/netfilter/dn_rtmsg.c
+@@ -6,7 +6,7 @@
+  *
+  *              DECnet Routing Message Grabulator
+  *
+- *              (C) 2000 ChyGwyn Limited  -  http://www.chygwyn.com/
++ *              (C) 2000 ChyGwyn Limited  -  https://www.chygwyn.com/
+  *
+  * Author:      Steven Whitehouse <steve@chygwyn.com>
+  */
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 0ffe2b8723c4..25313c29d799 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -447,7 +447,7 @@ config NF_TABLES
+ 	  replace the existing {ip,ip6,arp,eb}_tables infrastructure. It
+ 	  provides a pseudo-state machine with an extensible instruction-set
+ 	  (also known as expressions) that the userspace 'nft' utility
+-	  (http://www.netfilter.org/projects/nftables) uses to build the
++	  (https://www.netfilter.org/projects/nftables) uses to build the
+ 	  rule-set. It also comes with the generic set infrastructure that
+ 	  allows you to construct mappings between matchings and actions
+ 	  for performance lookups.
+diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
+index 5827117f2635..5bfec829c12f 100644
+--- a/net/netfilter/nfnetlink_acct.c
++++ b/net/netfilter/nfnetlink_acct.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
  /*
-@@ -181,7 +181,7 @@ struct arpt_replace {
- 	struct xt_counters __user *counters;
+  * (C) 2011 Pablo Neira Ayuso <pablo@netfilter.org>
+- * (C) 2011 Intra2net AG <http://www.intra2net.com>
++ * (C) 2011 Intra2net AG <https://www.intra2net.com>
+  */
+ #include <linux/init.h>
+ #include <linux/module.h>
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 8c04388296b0..78070aa65f62 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -312,7 +312,7 @@
+  *      Jay Ligatti, Josh Kuhn, and Chris Gage.
+  *      Proceedings of the IEEE International Conference on Computer
+  *      Communication Networks (ICCCN), August 2010.
+- *      http://www.cse.usf.edu/~ligatti/papers/grouper-conf.pdf
++ *      https://www.cse.usf.edu/~ligatti/papers/grouper-conf.pdf
+  *
+  * [Rottenstreich 2010]
+  *      Worst-Case TCAM Rule Expansion
+@@ -325,7 +325,7 @@
+  *      Kirill Kogan, Sergey Nikolenko, Ori Rottenstreich, William Culhane,
+  *      and Patrick Eugster.
+  *      Proceedings of the 2014 ACM conference on SIGCOMM, August 2014.
+- *      http://www.sigcomm.org/sites/default/files/ccr/papers/2014/August/2619239-2626294.pdf
++ *      https://www.sigcomm.org/sites/default/files/ccr/papers/2014/August/2619239-2626294.pdf
+  */
  
- 	/* The entries (hang off end: not really an array). */
--	struct arpt_entry entries[0];
-+	struct arpt_entry entries[];
- };
- 
- /* The argument to ARPT_SO_GET_ENTRIES. */
-@@ -193,7 +193,7 @@ struct arpt_get_entries {
- 	unsigned int size;
- 
- 	/* The entries. */
--	struct arpt_entry entrytable[0];
-+	struct arpt_entry entrytable[];
- };
- 
- /* Helper functions */
-diff --git a/include/uapi/linux/netfilter_bridge/ebt_among.h b/include/uapi/linux/netfilter_bridge/ebt_among.h
-index 9acf757bc1f79..73b26a280c4fd 100644
---- a/include/uapi/linux/netfilter_bridge/ebt_among.h
-+++ b/include/uapi/linux/netfilter_bridge/ebt_among.h
-@@ -40,7 +40,7 @@ struct ebt_mac_wormhash_tuple {
- struct ebt_mac_wormhash {
- 	int table[257];
- 	int poolsize;
--	struct ebt_mac_wormhash_tuple pool[0];
-+	struct ebt_mac_wormhash_tuple pool[];
- };
- 
- #define ebt_mac_wormhash_size(x) ((x) ? sizeof(struct ebt_mac_wormhash) \
-diff --git a/include/uapi/linux/netfilter_bridge/ebtables.h b/include/uapi/linux/netfilter_bridge/ebtables.h
-index a494cf43a7552..0b4f8994a0a54 100644
---- a/include/uapi/linux/netfilter_bridge/ebtables.h
-+++ b/include/uapi/linux/netfilter_bridge/ebtables.h
-@@ -87,7 +87,7 @@ struct ebt_entries {
- 	/* nr. of entries */
- 	unsigned int nentries;
- 	/* entry list */
--	char data[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
-+	char data[] __aligned(__alignof__(struct ebt_replace));
- };
- 
- /* used for the bitmask of struct ebt_entry */
-@@ -129,7 +129,7 @@ struct ebt_entry_match {
- 	} u;
- 	/* size of data */
- 	unsigned int match_size;
--	unsigned char data[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
-+	unsigned char data[] __aligned(__alignof__(struct ebt_replace));
- };
- 
- struct ebt_entry_watcher {
-@@ -142,7 +142,7 @@ struct ebt_entry_watcher {
- 	} u;
- 	/* size of data */
- 	unsigned int watcher_size;
--	unsigned char data[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
-+	unsigned char data[] __aligned(__alignof__(struct ebt_replace));
- };
- 
- struct ebt_entry_target {
-@@ -155,7 +155,7 @@ struct ebt_entry_target {
- 	} u;
- 	/* size of data */
- 	unsigned int target_size;
--	unsigned char data[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
-+	unsigned char data[] __aligned(__alignof__(struct ebt_replace));
- };
- 
- #define EBT_STANDARD_TARGET "standard"
-@@ -188,7 +188,7 @@ struct ebt_entry {
- 	unsigned int target_offset;
- 	/* sizeof ebt_entry + matches + watchers + target */
- 	unsigned int next_offset;
--	unsigned char elems[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
-+	unsigned char elems[] __aligned(__alignof__(struct ebt_replace));
- };
- 
- static __inline__ struct ebt_entry_target *
-diff --git a/include/uapi/linux/netfilter_ipv4/ip_tables.h b/include/uapi/linux/netfilter_ipv4/ip_tables.h
-index 50c7fee625ae9..1485df28b2391 100644
---- a/include/uapi/linux/netfilter_ipv4/ip_tables.h
-+++ b/include/uapi/linux/netfilter_ipv4/ip_tables.h
-@@ -121,7 +121,7 @@ struct ipt_entry {
- 	struct xt_counters counters;
- 
- 	/* The matches (if any), then the target. */
--	unsigned char elems[0];
-+	unsigned char elems[];
- };
- 
+ #include <linux/kernel.h>
+diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
+index eec2f3a88d73..e5ebc0810675 100644
+--- a/net/netfilter/xt_connmark.c
++++ b/net/netfilter/xt_connmark.c
+@@ -2,7 +2,7 @@
  /*
-@@ -203,7 +203,7 @@ struct ipt_replace {
- 	struct xt_counters __user *counters;
+  *	xt_connmark - Netfilter module to operate on connection marks
+  *
+- *	Copyright (C) 2002,2004 MARA Systems AB <http://www.marasystems.com>
++ *	Copyright (C) 2002,2004 MARA Systems AB <https://www.marasystems.com>
+  *	by Henrik Nordstrom <hno@marasystems.com>
+  *	Copyright © CC Computer Consultants GmbH, 2007 - 2008
+  *	Jan Engelhardt <jengelh@medozas.de>
+diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
+index 5aab6df74e0f..a97c2259bbc8 100644
+--- a/net/netfilter/xt_nfacct.c
++++ b/net/netfilter/xt_nfacct.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+ /*
+  * (C) 2011 Pablo Neira Ayuso <pablo@netfilter.org>
+- * (C) 2011 Intra2net AG <http://www.intra2net.com>
++ * (C) 2011 Intra2net AG <https://www.intra2net.com>
+  */
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
- 	/* The entries (hang off end: not really an array). */
--	struct ipt_entry entries[0];
-+	struct ipt_entry entries[];
- };
- 
- /* The argument to IPT_SO_GET_ENTRIES. */
-@@ -215,7 +215,7 @@ struct ipt_get_entries {
- 	unsigned int size;
- 
- 	/* The entries. */
--	struct ipt_entry entrytable[0];
-+	struct ipt_entry entrytable[];
- };
- 
- /* Helper functions */
-diff --git a/include/uapi/linux/netfilter_ipv6/ip6_tables.h b/include/uapi/linux/netfilter_ipv6/ip6_tables.h
-index d9e364f96a5cf..d4d7f47d9104d 100644
---- a/include/uapi/linux/netfilter_ipv6/ip6_tables.h
-+++ b/include/uapi/linux/netfilter_ipv6/ip6_tables.h
-@@ -125,7 +125,7 @@ struct ip6t_entry {
- 	struct xt_counters counters;
- 
- 	/* The matches (if any), then the target. */
--	unsigned char elems[0];
-+	unsigned char elems[];
- };
- 
- /* Standard entry */
-@@ -243,7 +243,7 @@ struct ip6t_replace {
- 	struct xt_counters __user *counters;
- 
- 	/* The entries (hang off end: not really an array). */
--	struct ip6t_entry entries[0];
-+	struct ip6t_entry entries[];
- };
- 
- /* The argument to IP6T_SO_GET_ENTRIES. */
-@@ -255,7 +255,7 @@ struct ip6t_get_entries {
- 	unsigned int size;
- 
- 	/* The entries. */
--	struct ip6t_entry entrytable[0];
-+	struct ip6t_entry entrytable[];
- };
- 
- /* Helper functions */
+diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
+index 67cb98489415..6aa12d0f54e2 100644
+--- a/net/netfilter/xt_time.c
++++ b/net/netfilter/xt_time.c
+@@ -5,7 +5,7 @@
+  *	based on ipt_time by Fabrice MARIE <fabrice@netfilter.org>
+  *	This is a module which is used for time matching
+  *	It is using some modified code from dietlibc (localtime() function)
+- *	that you can find at http://www.fefe.de/dietlibc/
++ *	that you can find at https://www.fefe.de/dietlibc/
+  *	This file is distributed under the terms of the GNU General Public
+  *	License (GPL). Copies of the GPL can be obtained from gnu.org/gpl.
+  */
 -- 
 2.27.0
 
