@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7D78C4345F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jul 2020 12:52:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1783FC43461
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jul 2020 12:52:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B83EA22CF7
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jul 2020 12:52:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E8C8D22CF7
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jul 2020 12:52:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="MadyBZx0"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ohlAv+VY"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728849AbgGTMsO (ORCPT
+        id S1729381AbgGTMwL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 Jul 2020 08:48:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40486 "EHLO
+        Mon, 20 Jul 2020 08:52:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40502 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728074AbgGTMsJ (ORCPT
+        with ESMTP id S1728816AbgGTMsL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Jul 2020 08:48:09 -0400
+        Mon, 20 Jul 2020 08:48:11 -0400
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4EED7C061794;
-        Mon, 20 Jul 2020 05:48:09 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23789C061794;
+        Mon, 20 Jul 2020 05:48:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
         References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
         Content-Type:Content-ID:Content-Description;
-        bh=v9KgsOSWea1bJKFDijg05Yu/Lxnc3rcc50PR6ELHK4E=; b=MadyBZx0Wf8x+2kw7O1nJxOIOd
-        FbU4MH1JyD5v78V7lQ/HRw45yXpPVs9JO/G+kH4DiN1QWFmw0WGQv/S2d22ogQPe/4gqcuswjDMxD
-        UA+RyowobKCKhwuLpSB8o4bKj8XVpqEmqj4r0KjhkUO/Xe3omvaNi1zO6Mu7Ul5xJ63b84wq7p4uE
-        igF3dMEhdDGLmF1UIoeXtgDt60qeorgzwuf6irI/HPydWG6GGi42y2nO3TPoyuU57ddcRPRbw8sYq
-        A124JUfae++O65R5yqh735FbvAIm2bAY6i4tx8g4ymy/GWe+BCXCPTa9ItoQv2rd6m2uecW1hKmJ+
-        VToa8WXQ==;
+        bh=sgYWyMfm87Lwp87OiHiXBGeztL7pp9vtxgWCGygwlyQ=; b=ohlAv+VYwEBD8MZ2GI6LDCZyTj
+        +2dygLPuHwB4q01kC05RSq3Dr+sPFXczHgi0nOgfC+b4SmHYTZerQFRXvPa1y1h6Sb7yBJMpgPxPj
+        bIHqMKdY+yDXM0FeLNQFGLH3ZmDZd56XNZ3dvQL19CJPxySpKLErEfzKmf8uwwXZkotGjvEn82DsQ
+        Rlao5M7ezXGmItEie2BE4Bm1hJ+YyoD/PaGZSNZTz+x5KM+oXsP+ygCRk2ia3dvcXL43IdfFFl00j
+        Is5pnhTz2uV8XvZlYuMUCO8iRi6faULVlv2d0g7DJVpQ/ayBLUp13B2uyjGIPQdVR/lCd8rsoQmNG
+        KqzoRfXQ==;
 Received: from [2001:4bb8:105:4a81:2a8f:15b1:2c3:7be7] (helo=localhost)
         by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jxVCt-0004Wa-Pp; Mon, 20 Jul 2020 12:47:49 +0000
+        id 1jxVD3-0004XQ-2H; Mon, 20 Jul 2020 12:47:58 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
@@ -58,9 +58,9 @@ Cc:     linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org,
         mptcp@lists.01.org, lvs-devel@vger.kernel.org,
         rds-devel@oss.oracle.com, linux-afs@lists.infradead.org,
         tipc-discussion@lists.sourceforge.net, linux-x25@vger.kernel.org
-Subject: [PATCH 03/24] net: add a new sockptr_t type
-Date:   Mon, 20 Jul 2020 14:47:16 +0200
-Message-Id: <20200720124737.118617-4-hch@lst.de>
+Subject: [PATCH 06/24] net: switch sock_set_timeout to sockptr_t
+Date:   Mon, 20 Jul 2020 14:47:19 +0200
+Message-Id: <20200720124737.118617-7-hch@lst.de>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20200720124737.118617-1-hch@lst.de>
 References: <20200720124737.118617-1-hch@lst.de>
@@ -72,146 +72,71 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add a uptr_t type that can hold a pointer to either a user or kernel
-memory region, and simply helpers to copy to and from it.  For
-architectures like x86 that have non-overlapping user and kernel
-address space it just is a union and uses a TASK_SIZE check to
-select the proper copy routine.  For architectures with overlapping
-address spaces a flag to indicate the address space is used instead.
+Pass a sockptr_t to prepare for set_fs-less handling of the kernel
+pointer from bpf-cgroup.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- include/linux/sockptr.h | 121 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 121 insertions(+)
- create mode 100644 include/linux/sockptr.h
+ net/core/sock.c | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/sockptr.h b/include/linux/sockptr.h
-new file mode 100644
-index 00000000000000..e41dfa52555dec
---- /dev/null
-+++ b/include/linux/sockptr.h
-@@ -0,0 +1,121 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+/*
-+ * Copyright (c) 2020 Christoph Hellwig.
-+ *
-+ * Support for "universal" pointers that can point to either kernel or userspace
-+ * memory.
-+ */
-+#ifndef _LINUX_SOCKPTR_H
-+#define _LINUX_SOCKPTR_H
-+
-+#include <linux/slab.h>
-+#include <linux/uaccess.h>
-+
-+#ifdef CONFIG_ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
-+typedef union {
-+	void		*kernel;
-+	void __user	*user;
-+} sockptr_t;
-+
-+static inline bool sockptr_is_kernel(sockptr_t sockptr)
-+{
-+	return (unsigned long)sockptr.kernel >= TASK_SIZE;
-+}
-+
-+static inline sockptr_t KERNEL_SOCKPTR(void *p)
-+{
-+	return (sockptr_t) { .kernel = p };
-+}
-+#else /* CONFIG_ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE */
-+typedef struct {
-+	union {
-+		void		*kernel;
-+		void __user	*user;
-+	};
-+	bool		is_kernel : 1;
-+} sockptr_t;
-+
-+static inline bool sockptr_is_kernel(sockptr_t sockptr)
-+{
-+	return sockptr.is_kernel;
-+}
-+
-+static inline sockptr_t KERNEL_SOCKPTR(void *p)
-+{
-+	return (sockptr_t) { .kernel = p, .is_kernel = true };
-+}
-+#endif /* CONFIG_ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE */
-+
-+static inline sockptr_t USER_SOCKPTR(void __user *p)
-+{
-+	return (sockptr_t) { .user = p };
-+}
-+
-+static inline bool sockptr_is_null(sockptr_t sockptr)
-+{
-+	return !sockptr.user && !sockptr.kernel;
-+}
-+
-+static inline int copy_from_sockptr(void *dst, sockptr_t src, size_t size)
-+{
-+	if (!sockptr_is_kernel(src))
-+		return copy_from_user(dst, src.user, size);
-+	memcpy(dst, src.kernel, size);
-+	return 0;
-+}
-+
-+static inline int copy_to_sockptr(sockptr_t dst, const void *src, size_t size)
-+{
-+	if (!sockptr_is_kernel(dst))
-+		return copy_to_user(dst.user, src, size);
-+	memcpy(dst.kernel, src, size);
-+	return 0;
-+}
-+
-+static inline void *memdup_sockptr(sockptr_t src, size_t len)
-+{
-+	void *p = kmalloc_track_caller(len, GFP_USER | __GFP_NOWARN);
-+
-+	if (!p)
-+		return ERR_PTR(-ENOMEM);
-+	if (copy_from_sockptr(p, src, len)) {
-+		kfree(p);
-+		return ERR_PTR(-EFAULT);
-+	}
-+	return p;
-+}
-+
-+static inline void *memdup_sockptr_nul(sockptr_t src, size_t len)
-+{
-+	char *p = kmalloc_track_caller(len + 1, GFP_KERNEL);
-+
-+	if (!p)
-+		return ERR_PTR(-ENOMEM);
-+	if (copy_from_sockptr(p, src, len)) {
-+		kfree(p);
-+		return ERR_PTR(-EFAULT);
-+	}
-+	p[len] = '\0';
-+	return p;
-+}
-+
-+static inline void sockptr_advance(sockptr_t sockptr, size_t len)
-+{
-+	if (sockptr_is_kernel(sockptr))
-+		sockptr.kernel += len;
-+	else
-+		sockptr.user += len;
-+}
-+
-+static inline long strncpy_from_sockptr(char *dst, sockptr_t src, size_t count)
-+{
-+	if (sockptr_is_kernel(src)) {
-+		size_t len = min(strnlen(src.kernel, count - 1) + 1, count);
-+
-+		memcpy(dst, src.kernel, len);
-+		return len;
-+	}
-+	return strncpy_from_user(dst, src.user, count);
-+}
-+
-+#endif /* _LINUX_SOCKPTR_H */
+diff --git a/net/core/sock.c b/net/core/sock.c
+index bd20fc5cce0850..d45bb1c2c36abf 100644
+--- a/net/core/sock.c
++++ b/net/core/sock.c
+@@ -360,7 +360,8 @@ static int sock_get_timeout(long timeo, void *optval, bool old_timeval)
+ 	return sizeof(tv);
+ }
+ 
+-static int sock_set_timeout(long *timeo_p, char __user *optval, int optlen, bool old_timeval)
++static int sock_set_timeout(long *timeo_p, sockptr_t optval, int optlen,
++			    bool old_timeval)
+ {
+ 	struct __kernel_sock_timeval tv;
+ 
+@@ -370,7 +371,7 @@ static int sock_set_timeout(long *timeo_p, char __user *optval, int optlen, bool
+ 		if (optlen < sizeof(tv32))
+ 			return -EINVAL;
+ 
+-		if (copy_from_user(&tv32, optval, sizeof(tv32)))
++		if (copy_from_sockptr(&tv32, optval, sizeof(tv32)))
+ 			return -EFAULT;
+ 		tv.tv_sec = tv32.tv_sec;
+ 		tv.tv_usec = tv32.tv_usec;
+@@ -379,14 +380,14 @@ static int sock_set_timeout(long *timeo_p, char __user *optval, int optlen, bool
+ 
+ 		if (optlen < sizeof(old_tv))
+ 			return -EINVAL;
+-		if (copy_from_user(&old_tv, optval, sizeof(old_tv)))
++		if (copy_from_sockptr(&old_tv, optval, sizeof(old_tv)))
+ 			return -EFAULT;
+ 		tv.tv_sec = old_tv.tv_sec;
+ 		tv.tv_usec = old_tv.tv_usec;
+ 	} else {
+ 		if (optlen < sizeof(tv))
+ 			return -EINVAL;
+-		if (copy_from_user(&tv, optval, sizeof(tv)))
++		if (copy_from_sockptr(&tv, optval, sizeof(tv)))
+ 			return -EFAULT;
+ 	}
+ 	if (tv.tv_usec < 0 || tv.tv_usec >= USEC_PER_SEC)
+@@ -1050,12 +1051,14 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
+ 
+ 	case SO_RCVTIMEO_OLD:
+ 	case SO_RCVTIMEO_NEW:
+-		ret = sock_set_timeout(&sk->sk_rcvtimeo, optval, optlen, optname == SO_RCVTIMEO_OLD);
++		ret = sock_set_timeout(&sk->sk_rcvtimeo, USER_SOCKPTR(optval),
++				       optlen, optname == SO_RCVTIMEO_OLD);
+ 		break;
+ 
+ 	case SO_SNDTIMEO_OLD:
+ 	case SO_SNDTIMEO_NEW:
+-		ret = sock_set_timeout(&sk->sk_sndtimeo, optval, optlen, optname == SO_SNDTIMEO_OLD);
++		ret = sock_set_timeout(&sk->sk_sndtimeo, USER_SOCKPTR(optval),
++				       optlen, optname == SO_SNDTIMEO_OLD);
+ 		break;
+ 
+ 	case SO_ATTACH_FILTER: {
 -- 
 2.27.0
 
