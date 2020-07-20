@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C82D1C43463
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jul 2020 12:52:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5FC4C433E3
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jul 2020 12:53:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A9F4A22D00
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jul 2020 12:52:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B1E1622D02
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jul 2020 12:53:01 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="r3wFqS6H"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="HIM07y0S"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729531AbgGTMwj (ORCPT
+        id S1729591AbgGTMxB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 Jul 2020 08:52:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40496 "EHLO
+        Mon, 20 Jul 2020 08:53:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40492 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728703AbgGTMsK (ORCPT
+        with ESMTP id S1728487AbgGTMsJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Jul 2020 08:48:10 -0400
+        Mon, 20 Jul 2020 08:48:09 -0400
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D8A97C061794;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7EAE9C0619D4;
         Mon, 20 Jul 2020 05:48:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
         References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
         Content-Type:Content-ID:Content-Description;
-        bh=NOaRlO8PH56EoeQ6wPKZ+NHx4xWBn4wtfdyd3UU7j5Q=; b=r3wFqS6HvDtdd0R6F6qyrxhLxQ
-        0UmwqQvsG/ORHCNVtcyBkrRyN8Jl7NMUK+kN9rgMr7dJqvgRbNpsmGad7MyMT0Cslsg7ne9Zs1UlE
-        /RwPyLdiHDpNgBjCzw/HmZWsORXbrednhTKLDHU0qAnYKNBOOFKeNoZ82aOb0D1SeYW1aLzwzDOBP
-        heWVXUEQRk3EcbcAs4HVrc9bFRGjDJl3iUtWA6BGC9ZrXLSjvOE0L6VJHRbQKC45uIe6QuMjN7Gk/
-        O53gfIacoSmqnhrDUA7vy0qZZc0gL1aupHUgKPNVJamV2BJZVG7ttr+EMAYA95puN7nmqMY+irCXk
-        KTg4Ltzw==;
+        bh=BjAfLkPDE3yZtg4lK7QhOgoW888N1+wDiCi2cbIh45M=; b=HIM07y0S6HWIwmCN7WHloUTyD/
+        90NWYxEF7A8OOMt+yg4W0FNSTev46GNQHm0M10gQP0DPfw41j+camChNVNUSzdAS2+W9B6xEJFxj0
+        4n2KStvYzNC3b3fLRhUHbpg0C1h1bH+rhr3+ykUcvcbFAUG565FRK+y1r6zNQk9xHx3nUtlG0xpfa
+        R4b3lYzoJn2Vsv07mi0Lr720W4t4f2K5zuJDLvkLLB7iLOadFMXPV1+OtITvRH1r7qcG7E4NGoir+
+        m5wZVdfOiGPje1P9oONZz0Y/9ohF3QfiJ1TkC//hfbo3TJ3Y4xN43vztrFOMr/5DT0r0fJAP1prMs
+        TGHdbaAg==;
 Received: from [2001:4bb8:105:4a81:2a8f:15b1:2c3:7be7] (helo=localhost)
         by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jxVD0-0004Ww-Nu; Mon, 20 Jul 2020 12:47:55 +0000
+        id 1jxVCm-0004WM-TP; Mon, 20 Jul 2020 12:47:41 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
@@ -58,9 +58,9 @@ Cc:     linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org,
         mptcp@lists.01.org, lvs-devel@vger.kernel.org,
         rds-devel@oss.oracle.com, linux-afs@lists.infradead.org,
         tipc-discussion@lists.sourceforge.net, linux-x25@vger.kernel.org
-Subject: [PATCH 05/24] net: switch sock_setbindtodevice to sockptr_t
-Date:   Mon, 20 Jul 2020 14:47:18 +0200
-Message-Id: <20200720124737.118617-6-hch@lst.de>
+Subject: [PATCH 01/24] bpfilter: reject kernel addresses
+Date:   Mon, 20 Jul 2020 14:47:14 +0200
+Message-Id: <20200720124737.118617-2-hch@lst.de>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20200720124737.118617-1-hch@lst.de>
 References: <20200720124737.118617-1-hch@lst.de>
@@ -72,46 +72,30 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pass a sockptr_t to prepare for set_fs-less handling of the kernel
-pointer from bpf-cgroup.
+When feeding addresses to userspace we can't support kernel addresses
+that were fed under set_fs(KERNEL_DS) from bpf-cgroup.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- net/core/sock.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ net/bpfilter/bpfilter_kern.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/net/core/sock.c b/net/core/sock.c
-index 91224709869389..bd20fc5cce0850 100644
---- a/net/core/sock.c
-+++ b/net/core/sock.c
-@@ -608,8 +608,7 @@ int sock_bindtoindex(struct sock *sk, int ifindex, bool lock_sk)
- }
- EXPORT_SYMBOL(sock_bindtoindex);
+diff --git a/net/bpfilter/bpfilter_kern.c b/net/bpfilter/bpfilter_kern.c
+index 2c31e82cb953af..977e9dad72ca4f 100644
+--- a/net/bpfilter/bpfilter_kern.c
++++ b/net/bpfilter/bpfilter_kern.c
+@@ -41,6 +41,11 @@ static int __bpfilter_process_sockopt(struct sock *sk, int optname,
+ 	ssize_t n;
+ 	int ret = -EFAULT;
  
--static int sock_setbindtodevice(struct sock *sk, char __user *optval,
--				int optlen)
-+static int sock_setbindtodevice(struct sock *sk, sockptr_t optval, int optlen)
- {
- 	int ret = -ENOPROTOOPT;
- #ifdef CONFIG_NETDEVICES
-@@ -631,7 +630,7 @@ static int sock_setbindtodevice(struct sock *sk, char __user *optval,
- 	memset(devname, 0, sizeof(devname));
- 
- 	ret = -EFAULT;
--	if (copy_from_user(devname, optval, optlen))
-+	if (copy_from_sockptr(devname, optval, optlen))
- 		goto out;
- 
- 	index = 0;
-@@ -839,7 +838,7 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
- 	 */
- 
- 	if (optname == SO_BINDTODEVICE)
--		return sock_setbindtodevice(sk, optval, optlen);
-+		return sock_setbindtodevice(sk, USER_SOCKPTR(optval), optlen);
- 
- 	if (optlen < sizeof(int))
- 		return -EINVAL;
++	if (uaccess_kernel()) {
++		pr_err("kernel access not supported\n");
++		return -EFAULT;
++	}
++
+ 	req.is_set = is_set;
+ 	req.pid = current->pid;
+ 	req.cmd = optname;
 -- 
 2.27.0
 
