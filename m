@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06424C4345C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jul 2020 12:49:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1466C43460
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jul 2020 12:49:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D9DD422C9C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jul 2020 12:49:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C26A22C9C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jul 2020 12:49:41 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="uWZ6jCpz"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="PEIxnuYK"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729363AbgGTMtc (ORCPT
+        id S1729227AbgGTMsv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 Jul 2020 08:49:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40634 "EHLO
+        Mon, 20 Jul 2020 08:48:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40614 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729236AbgGTMsw (ORCPT
+        with ESMTP id S1729189AbgGTMsq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Jul 2020 08:48:52 -0400
+        Mon, 20 Jul 2020 08:48:46 -0400
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4740AC061794;
-        Mon, 20 Jul 2020 05:48:52 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72F94C061794;
+        Mon, 20 Jul 2020 05:48:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
         References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
         Content-Type:Content-ID:Content-Description;
-        bh=JqWr7BncnAaw1KsTe15pYPZ3Aib5oHtxDPbe0sMml/w=; b=uWZ6jCpzKP3knqB1HbYIqdAFmE
-        JG/8kt3ysyB2oyx6jw5vOzeoluSO+BWwt8WMZAh30P3716tRc/lq2aNq+FR4nWuq5scmQO2/ZsF9y
-        CVYkp2Iu/+kj9A4Kb4LI3X/qjbklr889G2byiZTkmSQIOWbj30FBvtgbYw5bY+zCbho9KixHprDAM
-        q6OmvoWuRk884tf85LS/cT3lh+ONS4oBVU/5escrUuBJGq32mUZirYyqwG0yKxXqwnLQC1bES8v8p
-        Fr5SZi1XZZOaC5Y2wZ1QlzVqibyGLKDzTbblN474UGSM/VJ3FCsD8yLKMPVyxA0znelhoXpI5VlIZ
-        Fnf4QKzw==;
+        bh=mHiWtESnfpmKOGnGR9J/VvKy447qDpvbyAZDADMp9hY=; b=PEIxnuYKVsyL4VbGipt5/qeMxh
+        hdLo1McwTpyeTRwLfRW8ZgnD8c7KxJu0KZ/qM4WKOnDjX1k53poojoKl8WDY9mRYwM12pb/UJH4Ua
+        CjyNfvuUsmPtIdMkbXPySDCjC9omPKaUZTa4ecBGlbbyDsIipip7l9Xd+wV4Z2UN9foVgIgX+4hsa
+        KANIuyKJjP0qKJA+oPLGsnhL2kIOPH9R7JhwnddXENJ3aLzrcjP+UlS8SO64LU6yvSOrerU+9833A
+        Vh5Nitqyj536Ahxvaz9eEXy0pVwRw0YrrEuyg//N9bEQT+EfyRUcSOFTCy0UWfNW7ClrBPHCvB1de
+        bSeAcmkA==;
 Received: from [2001:4bb8:105:4a81:2a8f:15b1:2c3:7be7] (helo=localhost)
         by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jxVDh-0004dA-FX; Mon, 20 Jul 2020 12:48:38 +0000
+        id 1jxVDd-0004cd-10; Mon, 20 Jul 2020 12:48:33 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
@@ -58,9 +58,9 @@ Cc:     linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org,
         mptcp@lists.01.org, lvs-devel@vger.kernel.org,
         rds-devel@oss.oracle.com, linux-afs@lists.infradead.org,
         tipc-discussion@lists.sourceforge.net, linux-x25@vger.kernel.org
-Subject: [PATCH 21/24] net/udp: switch udp_lib_setsockopt to sockptr_t
-Date:   Mon, 20 Jul 2020 14:47:34 +0200
-Message-Id: <20200720124737.118617-22-hch@lst.de>
+Subject: [PATCH 19/24] net/ipv6: factor out a ipv6_set_opt_hdr helper
+Date:   Mon, 20 Jul 2020 14:47:32 +0200
+Message-Id: <20200720124737.118617-20-hch@lst.de>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20200720124737.118617-1-hch@lst.de>
 References: <20200720124737.118617-1-hch@lst.de>
@@ -72,75 +72,183 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pass a sockptr_t to prepare for set_fs-less handling of the kernel
-pointer from bpf-cgroup.
+Factour out a helper to set the IPv6 option headers from
+do_ipv6_setsockopt.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- include/net/udp.h | 2 +-
- net/ipv4/udp.c    | 7 ++++---
- net/ipv6/udp.c    | 3 ++-
- 3 files changed, 7 insertions(+), 5 deletions(-)
+ net/ipv6/ipv6_sockglue.c | 150 +++++++++++++++++++--------------------
+ 1 file changed, 75 insertions(+), 75 deletions(-)
 
-diff --git a/include/net/udp.h b/include/net/udp.h
-index 17a9e86a807638..295d52a7359827 100644
---- a/include/net/udp.h
-+++ b/include/net/udp.h
-@@ -306,7 +306,7 @@ struct sk_buff *skb_udp_tunnel_segment(struct sk_buff *skb,
- int udp_lib_getsockopt(struct sock *sk, int level, int optname,
- 		       char __user *optval, int __user *optlen);
- int udp_lib_setsockopt(struct sock *sk, int level, int optname,
--		       char __user *optval, unsigned int optlen,
-+		       sockptr_t optval, unsigned int optlen,
- 		       int (*push_pending_frames)(struct sock *));
- struct sock *udp4_lib_lookup(struct net *net, __be32 saddr, __be16 sport,
- 			     __be32 daddr, __be16 dport, int dif);
-diff --git a/net/ipv4/udp.c b/net/ipv4/udp.c
-index d4be4471c424e3..641303aa17d3dd 100644
---- a/net/ipv4/udp.c
-+++ b/net/ipv4/udp.c
-@@ -2532,7 +2532,7 @@ void udp_destroy_sock(struct sock *sk)
-  *	Socket option code for UDP
-  */
- int udp_lib_setsockopt(struct sock *sk, int level, int optname,
--		       char __user *optval, unsigned int optlen,
-+		       sockptr_t optval, unsigned int optlen,
- 		       int (*push_pending_frames)(struct sock *))
- {
- 	struct udp_sock *up = udp_sk(sk);
-@@ -2543,7 +2543,7 @@ int udp_lib_setsockopt(struct sock *sk, int level, int optname,
- 	if (optlen < sizeof(int))
- 		return -EINVAL;
- 
--	if (get_user(val, (int __user *)optval))
-+	if (copy_from_sockptr(&val, optval, sizeof(val)))
- 		return -EFAULT;
- 
- 	valbool = val ? 1 : 0;
-@@ -2651,7 +2651,8 @@ int udp_setsockopt(struct sock *sk, int level, int optname,
- 		   char __user *optval, unsigned int optlen)
- {
- 	if (level == SOL_UDP  ||  level == SOL_UDPLITE)
--		return udp_lib_setsockopt(sk, level, optname, optval, optlen,
-+		return udp_lib_setsockopt(sk, level, optname,
-+					  USER_SOCKPTR(optval), optlen,
- 					  udp_push_pending_frames);
- 	return ip_setsockopt(sk, level, optname, optval, optlen);
+diff --git a/net/ipv6/ipv6_sockglue.c b/net/ipv6/ipv6_sockglue.c
+index 3897fb55372d38..90442c8366dff2 100644
+--- a/net/ipv6/ipv6_sockglue.c
++++ b/net/ipv6/ipv6_sockglue.c
+@@ -315,6 +315,80 @@ static int compat_ipv6_mcast_join_leave(struct sock *sk, int optname,
+ 	return ipv6_sock_mc_drop(sk, gr32.gr_interface, &psin6->sin6_addr);
  }
-diff --git a/net/ipv6/udp.c b/net/ipv6/udp.c
-index 5aff0856a05b44..05353b31fa07bc 100644
---- a/net/ipv6/udp.c
-+++ b/net/ipv6/udp.c
-@@ -1565,7 +1565,8 @@ int udpv6_setsockopt(struct sock *sk, int level, int optname,
- 		     char __user *optval, unsigned int optlen)
+ 
++static int ipv6_set_opt_hdr(struct sock *sk, int optname, void __user *optval,
++		int optlen)
++{
++	struct ipv6_pinfo *np = inet6_sk(sk);
++	struct ipv6_opt_hdr *new = NULL;
++	struct net *net = sock_net(sk);
++	struct ipv6_txoptions *opt;
++	int err;
++
++	/* hop-by-hop / destination options are privileged option */
++	if (optname != IPV6_RTHDR && !ns_capable(net->user_ns, CAP_NET_RAW))
++		return -EPERM;
++
++	/* remove any sticky options header with a zero option
++	 * length, per RFC3542.
++	 */
++	if (optlen > 0) {
++		if (!optval)
++			return -EINVAL;
++		if (optlen < sizeof(struct ipv6_opt_hdr) ||
++		    optlen & 0x7 ||
++		    optlen > 8 * 255)
++			return -EINVAL;
++
++		new = memdup_user(optval, optlen);
++		if (IS_ERR(new))
++			return PTR_ERR(new);
++		if (unlikely(ipv6_optlen(new) > optlen)) {
++			kfree(new);
++			return -EINVAL;
++		}
++	}
++
++	opt = rcu_dereference_protected(np->opt, lockdep_sock_is_held(sk));
++	opt = ipv6_renew_options(sk, opt, optname, new);
++	kfree(new);
++	if (IS_ERR(opt))
++		return PTR_ERR(opt);
++
++	/* routing header option needs extra check */
++	err = -EINVAL;
++	if (optname == IPV6_RTHDR && opt && opt->srcrt) {
++		struct ipv6_rt_hdr *rthdr = opt->srcrt;
++		switch (rthdr->type) {
++#if IS_ENABLED(CONFIG_IPV6_MIP6)
++		case IPV6_SRCRT_TYPE_2:
++			if (rthdr->hdrlen != 2 || rthdr->segments_left != 1)
++				goto sticky_done;
++			break;
++#endif
++		case IPV6_SRCRT_TYPE_4:
++		{
++			struct ipv6_sr_hdr *srh =
++				(struct ipv6_sr_hdr *)opt->srcrt;
++
++			if (!seg6_validate_srh(srh, optlen, false))
++				goto sticky_done;
++			break;
++		}
++		default:
++			goto sticky_done;
++		}
++	}
++
++	err = 0;
++	opt = ipv6_update_options(sk, opt);
++sticky_done:
++	if (opt) {
++		atomic_sub(opt->tot_len, &sk->sk_omem_alloc);
++		txopt_put(opt);
++	}
++	return err;
++}
++
+ static int do_ipv6_setsockopt(struct sock *sk, int level, int optname,
+ 		    char __user *optval, unsigned int optlen)
  {
- 	if (level == SOL_UDP  ||  level == SOL_UDPLITE)
--		return udp_lib_setsockopt(sk, level, optname, optval, optlen,
-+		return udp_lib_setsockopt(sk, level, optname,
-+					  USER_SOCKPTR(optval), optlen,
- 					  udp_v6_push_pending_frames);
- 	return ipv6_setsockopt(sk, level, optname, optval, optlen);
- }
+@@ -580,82 +654,8 @@ static int do_ipv6_setsockopt(struct sock *sk, int level, int optname,
+ 	case IPV6_RTHDRDSTOPTS:
+ 	case IPV6_RTHDR:
+ 	case IPV6_DSTOPTS:
+-	{
+-		struct ipv6_txoptions *opt;
+-		struct ipv6_opt_hdr *new = NULL;
+-
+-		/* hop-by-hop / destination options are privileged option */
+-		retv = -EPERM;
+-		if (optname != IPV6_RTHDR && !ns_capable(net->user_ns, CAP_NET_RAW))
+-			break;
+-
+-		/* remove any sticky options header with a zero option
+-		 * length, per RFC3542.
+-		 */
+-		if (optlen == 0)
+-			optval = NULL;
+-		else if (!optval)
+-			goto e_inval;
+-		else if (optlen < sizeof(struct ipv6_opt_hdr) ||
+-			 optlen & 0x7 || optlen > 8 * 255)
+-			goto e_inval;
+-		else {
+-			new = memdup_user(optval, optlen);
+-			if (IS_ERR(new)) {
+-				retv = PTR_ERR(new);
+-				break;
+-			}
+-			if (unlikely(ipv6_optlen(new) > optlen)) {
+-				kfree(new);
+-				goto e_inval;
+-			}
+-		}
+-
+-		opt = rcu_dereference_protected(np->opt,
+-						lockdep_sock_is_held(sk));
+-		opt = ipv6_renew_options(sk, opt, optname, new);
+-		kfree(new);
+-		if (IS_ERR(opt)) {
+-			retv = PTR_ERR(opt);
+-			break;
+-		}
+-
+-		/* routing header option needs extra check */
+-		retv = -EINVAL;
+-		if (optname == IPV6_RTHDR && opt && opt->srcrt) {
+-			struct ipv6_rt_hdr *rthdr = opt->srcrt;
+-			switch (rthdr->type) {
+-#if IS_ENABLED(CONFIG_IPV6_MIP6)
+-			case IPV6_SRCRT_TYPE_2:
+-				if (rthdr->hdrlen != 2 ||
+-				    rthdr->segments_left != 1)
+-					goto sticky_done;
+-
+-				break;
+-#endif
+-			case IPV6_SRCRT_TYPE_4:
+-			{
+-				struct ipv6_sr_hdr *srh = (struct ipv6_sr_hdr *)
+-							  opt->srcrt;
+-
+-				if (!seg6_validate_srh(srh, optlen, false))
+-					goto sticky_done;
+-				break;
+-			}
+-			default:
+-				goto sticky_done;
+-			}
+-		}
+-
+-		retv = 0;
+-		opt = ipv6_update_options(sk, opt);
+-sticky_done:
+-		if (opt) {
+-			atomic_sub(opt->tot_len, &sk->sk_omem_alloc);
+-			txopt_put(opt);
+-		}
++		retv = ipv6_set_opt_hdr(sk, optname, optval, optlen);
+ 		break;
+-	}
+ 
+ 	case IPV6_PKTINFO:
+ 	{
 -- 
 2.27.0
 
