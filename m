@@ -2,96 +2,167 @@ Return-Path: <SRS0=qgEK=A7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA2E8C4345E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jul 2020 12:53:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDCE8C433E2
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jul 2020 13:23:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C0ED422D02
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jul 2020 12:53:10 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="b3r2mKtI"
+	by mail.kernel.org (Postfix) with ESMTP id C231620729
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Jul 2020 13:23:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729583AbgGTMxA (ORCPT
+        id S1727019AbgGTNXa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 Jul 2020 08:53:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40494 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728639AbgGTMsJ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Jul 2020 08:48:09 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93D01C0619D6;
-        Mon, 20 Jul 2020 05:48:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
-        References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
-        Content-Type:Content-ID:Content-Description;
-        bh=KEtThMnZn1T5ZTjfnNtMK17c9WUSVU4JmbBC5GmCo8k=; b=b3r2mKtIMupzynpcKcbswq0IqO
-        x3CWNt0l1PaHzJxn2EcCC+srtF/Mq7HfV7lip1uXJnLFShlYH6QJQY2jSIkrIhnf3sVEJDkDqNjCk
-        V9gH3mJH8SwG877l7uoU1FWRwM1GLEq8XtvlkXitbXzib9XAND6UehTN8tWUA9fqsXsKJmKc92eZP
-        41LRqgsw0A7LsuqS0rj5uDt0YAbFizVFlTTXyAufbzXcu0u4npMvicFmVcDeqbg1ysEaqfgYRNkAX
-        lniUhrynXQcYhppU4L4hxBrdsYQ3Wipg5bJvAirZt9QkqUN7wtobU7Ll7F9/YFeTzKA4LaNkLx22I
-        ibp2wKgg==;
-Received: from [2001:4bb8:105:4a81:2a8f:15b1:2c3:7be7] (helo=localhost)
-        by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jxVCp-0004WT-Jf; Mon, 20 Jul 2020 12:47:46 +0000
-From:   Christoph Hellwig <hch@lst.de>
-To:     "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Eric Dumazet <edumazet@google.com>
-Cc:     linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, bpf@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-sctp@vger.kernel.org, linux-hams@vger.kernel.org,
-        linux-bluetooth@vger.kernel.org, bridge@lists.linux-foundation.org,
-        linux-can@vger.kernel.org, dccp@vger.kernel.org,
-        linux-decnet-user@lists.sourceforge.net,
-        linux-wpan@vger.kernel.org, linux-s390@vger.kernel.org,
-        mptcp@lists.01.org, lvs-devel@vger.kernel.org,
-        rds-devel@oss.oracle.com, linux-afs@lists.infradead.org,
-        tipc-discussion@lists.sourceforge.net, linux-x25@vger.kernel.org
-Subject: [PATCH 02/24] bpfilter: fix up a sparse annotation
-Date:   Mon, 20 Jul 2020 14:47:15 +0200
-Message-Id: <20200720124737.118617-3-hch@lst.de>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20200720124737.118617-1-hch@lst.de>
-References: <20200720124737.118617-1-hch@lst.de>
+        Mon, 20 Jul 2020 09:23:30 -0400
+Received: from [216.151.45.106] ([216.151.45.106]:55950 "EHLO localhost"
+        rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726030AbgGTNXa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 20 Jul 2020 09:23:30 -0400
+X-Greylist: delayed 358 seconds by postgrey-1.27 at vger.kernel.org; Mon, 20 Jul 2020 09:23:29 EDT
+Received: by localhost (Postfix, from userid 1000)
+        id 2AAA52C95D; Mon, 20 Jul 2020 23:17:31 +1000 (AEST)
+From:   Michael Zhou <mzhou@cse.unsw.edu.au>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Michael Zhou <mzhou@cse.unsw.edu.au>
+Subject: [PATCH] net/ipv6/netfilter/ip6t_NPT: rewrite addresses in ICMPv6 original packet
+Date:   Mon, 20 Jul 2020 23:17:01 +1000
+Message-Id: <20200720131701.17941-1-mzhou@cse.unsw.edu.au>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The __user doesn't make sense when casting to an integer type.
+Detect and rewrite a prefix embedded in an ICMPv6 original packet that was
+rewritten by a corresponding DNPT/SNPT rule so it will be recognised by
+the host that sent the original packet.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Example
+
+Rules in effect on the 1:2:3:4::/64 + 5:6:7:8::/64 side router:
+* SNPT src-pfx 1:2:3:4::/64 dst-pfx 5:6:7:8::/64
+* DNPT src-pfx 5:6:7:8::/64 dst-pfx 1:2:3:4::/64
+
+No rules on the 9:a:b:c::/64 side.
+
+1. 1:2:3:4::1 sends UDP packet to 9:a:b:c::1
+2. Router applies SNPT changing src to 5:6:7:8::ffef::1
+3. 9:a:b:c::1 receives packet with (src 5:6:7:8::ffef::1 dst 9:a:b:c::1)
+	and replies with ICMPv6 port unreachable to 5:6:7:8::ffef::1,
+	including original packet (src 5:6:7:8::ffef::1 dst 9:a:b:c::1)
+4. Router forwards ICMPv6 packet with (src 9:a:b:c::1 dst 5:6:7:8::ffef::1)
+	including original packet (src 5:6:7:8::ffef::1 dst 9:a:b:c::1)
+	and applies DNPT changing dst to 1:2:3:4::1
+5. 1:2:3:4::1 receives ICMPv6 packet with (src 9:a:b:c::1 dst 1:2:3:4::1)
+	including original packet (src 5:6:7:8::ffef::1 dst 9:a:b:c::1).
+	It doesn't recognise the original packet as the src doesn't
+	match anything it originally sent
+
+With this change, at step 4, DNPT will also rewrite the original packet
+src to 1:2:3:4::1, so at step 5, 1:2:3:4::1 will recognise the ICMPv6
+error and provide feedback to the application properly.
+
+Conversely, SNPT will help when ICMPv6 errors are sent from the
+translated network.
+
+1. 9:a:b:c::1 sends UDP packet to 5:6:7:8::ffef::1
+2. Router applies DNPT changing dst to 1:2:3:4::1
+3. 1:2:3:4::1 receives packet with (src 9:a:b:c::1 dst 1:2:3:4::1)
+	and replies with ICMPv6 port unreachable to 9:a:b:c::1
+	including original packet (src 9:a:b:c::1 dst 1:2:3:4::1)
+4. Router forwards ICMPv6 packet with (src 1:2:3:4::1 dst 9:a:b:c::1)
+	including original packet (src 9:a:b:c::1 dst 1:2:3:4::1)
+	and applies SNPT changing src to 5:6:7:8::ffef::1
+5. 9:a:b:c::1 receives ICMPv6 packet with
+	(src 5:6:7:8::ffef::1 dst 9:a:b:c::1) including
+	original packet (src 9:a:b:c::1 dst 1:2:3:4::1).
+	It doesn't recognise the original packet as the dst doesn't
+	match anything it already sent
+
+The change to SNPT means the ICMPv6 original packet dst will be
+rewritten to 5:6:7:8::ffef::1 in step 4, allowing the error to be
+properly recognised in step 5.
+
+Signed-off-by: Michael Zhou <mzhou@cse.unsw.edu.au>
 ---
- net/bpfilter/bpfilter_kern.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/ipv6/netfilter/ip6t_NPT.c | 37 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
-diff --git a/net/bpfilter/bpfilter_kern.c b/net/bpfilter/bpfilter_kern.c
-index 977e9dad72ca4f..713b4b3d02005d 100644
---- a/net/bpfilter/bpfilter_kern.c
-+++ b/net/bpfilter/bpfilter_kern.c
-@@ -49,7 +49,7 @@ static int __bpfilter_process_sockopt(struct sock *sk, int optname,
- 	req.is_set = is_set;
- 	req.pid = current->pid;
- 	req.cmd = optname;
--	req.addr = (long __force __user)optval;
-+	req.addr = (__force long)optval;
- 	req.len = optlen;
- 	if (!bpfilter_ops.info.tgid)
- 		goto out;
+diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
+index 9ee077bf4f49..b25e786607ed 100644
+--- a/net/ipv6/netfilter/ip6t_NPT.c
++++ b/net/ipv6/netfilter/ip6t_NPT.c
+@@ -77,16 +77,42 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
+ 	return true;
+ }
+ 
++static struct ipv6hdr *ip6t_npt_icmpv6_bounced_ipv6hdr(struct sk_buff *skb)
++{
++	if (ipv6_hdr(skb)->nexthdr != IPPROTO_ICMPV6)
++		return NULL;
++
++	if (!icmpv6_is_err(icmp6_hdr(skb)->icmp6_type))
++		return NULL;
++
++	if ((const unsigned char *)&icmp6_hdr(skb)[1] + sizeof(struct ipv6hdr) >
++			skb_tail_pointer(skb))
++		return NULL;
++
++	return (struct ipv6hdr *)&icmp6_hdr(skb)[1];
++}
++
+ static unsigned int
+ ip6t_snpt_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+ 	const struct ip6t_npt_tginfo *npt = par->targinfo;
++	struct ipv6hdr *bounced_hdr;
++	struct in6_addr bounced_pfx;
+ 
+ 	if (!ip6t_npt_map_pfx(npt, &ipv6_hdr(skb)->saddr)) {
+ 		icmpv6_send(skb, ICMPV6_PARAMPROB, ICMPV6_HDR_FIELD,
+ 			    offsetof(struct ipv6hdr, saddr));
+ 		return NF_DROP;
+ 	}
++
++	/* rewrite dst addr of bounced packet which was sent to dst range */
++	bounced_hdr = ip6t_npt_icmpv6_bounced_ipv6hdr(skb);
++	if (bounced_hdr) {
++		ipv6_addr_prefix(&bounced_pfx, &bounced_hdr->daddr, npt->src_pfx_len);
++		if (ipv6_addr_cmp(&bounced_pfx, &npt->src_pfx.in6) == 0)
++			ip6t_npt_map_pfx(npt, &bounced_hdr->daddr);
++	}
++
+ 	return XT_CONTINUE;
+ }
+ 
+@@ -94,12 +120,23 @@ static unsigned int
+ ip6t_dnpt_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+ 	const struct ip6t_npt_tginfo *npt = par->targinfo;
++	struct ipv6hdr *bounced_hdr;
++	struct in6_addr bounced_pfx;
+ 
+ 	if (!ip6t_npt_map_pfx(npt, &ipv6_hdr(skb)->daddr)) {
+ 		icmpv6_send(skb, ICMPV6_PARAMPROB, ICMPV6_HDR_FIELD,
+ 			    offsetof(struct ipv6hdr, daddr));
+ 		return NF_DROP;
+ 	}
++
++	/* rewrite src addr of bounced packet which was sent from dst range */
++	bounced_hdr = ip6t_npt_icmpv6_bounced_ipv6hdr(skb);
++	if (bounced_hdr) {
++		ipv6_addr_prefix(&bounced_pfx, &bounced_hdr->saddr, npt->src_pfx_len);
++		if (ipv6_addr_cmp(&bounced_pfx, &npt->src_pfx.in6) == 0)
++			ip6t_npt_map_pfx(npt, &bounced_hdr->saddr);
++	}
++
+ 	return XT_CONTINUE;
+ }
+ 
 -- 
-2.27.0
+2.25.1
 
