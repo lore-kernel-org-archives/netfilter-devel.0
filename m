@@ -2,61 +2,56 @@ Return-Path: <SRS0=0X8Q=BA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFADEC433E1
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jul 2020 12:48:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6CE9C433E1
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jul 2020 13:03:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9C89D206E3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jul 2020 12:48:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 774F62073A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jul 2020 13:03:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="QCBfzyFS"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="tJEOcR+m"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726616AbgGUMsH (ORCPT
+        id S1727799AbgGUNDs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Jul 2020 08:48:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38518 "EHLO
+        Tue, 21 Jul 2020 09:03:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41006 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726214AbgGUMsH (ORCPT
+        with ESMTP id S1726673AbgGUNDr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Jul 2020 08:48:07 -0400
+        Tue, 21 Jul 2020 09:03:47 -0400
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0080BC061794
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jul 2020 05:48:06 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92957C061794
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jul 2020 06:03:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
+        :Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=XbDVZBNbu8TghnVKHO3bH9Zo7ZedFCbjtWS2fJ2cwJ0=; b=QCBfzyFS9ukWW0Y0dNRq54b7mX
-        si5qrSEXVFInv2f0GQvmwmOU3/W4dKSWqc1OmSbiDbDD3KlIARfMx5KN+rDZAG4Hno2ETER2WChxa
-        SBiQxyKJh/nt9A/Yz97pe9iqr28hMsI9CnolthN5vN5AxBHTUqP81d3/j5DBYxsUQo/oxNztrZuQW
-        HgZm07urpgzDSeizk4BjVHGspQMMZpGhVne/B7QrgY7GBH8keDR3rSdhK/2Ffd0a6uaUzAuxpamNs
-        zNhgU0LZAtrLBf39wkAPayimfRwpiHYOmjZ6P5AstN5VEVCaw1agFufbwM/tXyJn2VBAg1kXmT0EK
-        3B5TMnsw==;
-Received: from celephais.dreamlands ([192.168.96.3] helo=dreamlands)
-        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
+        bh=LQHkYT5vNkD4JkWE7hlOeP1wdduOYZE3ZPN0xDb/R+E=; b=tJEOcR+mvXZyRujn2Ld/y6bWO2
+        SSALDGlo5kYFqyL+xxpXizIp9gxGE7crhKcF1aAgRE8rBOq16d+nmHQhgbo03MvXvSNdDyqk8JGki
+        uCqmw76st/+taQ3wlUoZzZcaL3uI+wMpCp9sUfvwk1dDazNxJed6A/G3gFMI98Vhv+dMn+l2MoqQD
+        6X81w/mdCq/O5sYVi4mgmLN/6hF+EaVkH7JgenvL4Ps8/ZZd4EllUCZtD6JiCWxjQgXUv8lmB1LSf
+        AoT7Qwf/Yg3F3NIaXpWYP/ykjz91P4U4pW04ZEXYuNs2uhLhYu/d3c7yXBvF/GeMqmkey41H9Qurp
+        waXhUqAA==;
+Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
+        by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1jxrgg-0000Px-UX; Tue, 21 Jul 2020 13:48:03 +0100
-Date:   Tue, 21 Jul 2020 13:48:01 +0100
+        id 1jxrvu-0001Fx-4K; Tue, 21 Jul 2020 14:03:46 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Jan Engelhardt <jengelh@inai.de>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH xtables-addons] doc: fix quoted string in libxt_DNETMAP
- man-page.
-Message-ID: <20200721124801.GA885340@dreamlands>
-References: <20200721083136.710735-1-jeremy@azazel.net>
- <nycvar.YFH.7.77.849.2007211114060.23166@n3.vanv.qr>
+Subject: [PATCH xtables-addons v2] doc: fix quoted string in libxt_DNETMAP man-page.
+Date:   Tue, 21 Jul 2020 14:03:45 +0100
+Message-Id: <20200721130345.717735-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="yrj/dFKFPuw6o+aM"
-Content-Disposition: inline
-In-Reply-To: <nycvar.YFH.7.77.849.2007211114060.23166@n3.vanv.qr>
-X-SA-Exim-Connect-IP: 192.168.96.3
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
 X-SA-Exim-Mail-From: jeremy@azazel.net
 X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -64,51 +59,35 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+In roff, lines beginning with a single quote are control lines.  In the
+libxt_DNETMAP man-page there is a single-quoted string at the beginning
+of a line, which troff tries and fails to interpret as a macro:
 
---yrj/dFKFPuw6o+aM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+  troff: <standard input>:49: warning: macro 'S'' not defined
 
-On 2020-07-21, at 11:16:00 +0200, Jan Engelhardt wrote:
-> On Tuesday 2020-07-21 10:31, Jeremy Sowden wrote:
-> > In roff, lines beginning with a single quote are control lines.  In
-> > the libxt_DNETMAP man-page there is a single-quoted string at the
-> > beginning of a line, which troff tries and fails to interpret as a
-> > macro:
->
-> Is there some escaping magic available that would make this work as
-> well? I would fear that if the next person (me included) comes around
-> to use an editor's "wrap at 80 cols" feature, that the quote might
-> re-shift to the start of line. If all else, I'd just pick " over ' -
-> in the hope that that does not have a special meaning.
+This means that the line is not output.
 
-Good point.  I had another look at the documentation and found escape-
-sequences for opening and closing single quotes.  I'll send out a new
-version of the patch.
+Replace the single quotes with the appropriate escape-sequences.
 
-> > -boot time). Please note that the \fBttl\fR and \fBlasthit\fR entries contain an
-> > -'\fBS\fR' in case of a static binding.
-> > +boot time). Please note that the \fBttl\fR and \fBlasthit\fR entries contain
-> > +an '\fBS\fR' in case of a static binding.
+Fixes: 2b38d081a50b ("doc: spelling and grammar corrections to DNETMAP")
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ extensions/libxt_DNETMAP.man | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-J.
+diff --git a/extensions/libxt_DNETMAP.man b/extensions/libxt_DNETMAP.man
+index 7a8fe404435b..a59b6551fcbe 100644
+--- a/extensions/libxt_DNETMAP.man
++++ b/extensions/libxt_DNETMAP.man
+@@ -46,7 +46,7 @@ Contains the binding table for the given \fIsubnet/mask\fP. Each line contains
+ \fBprenat address\fR, \fBpostnat address\fR, \fBttl\fR (seconds until the entry
+ times out), \fBlasthit\fR (last hit to the entry in seconds relative to system
+ boot time). Please note that the \fBttl\fR and \fBlasthit\fR entries contain an
+-'\fBS\fR' in case of a static binding.
++\(oq\fBS\fR\(cq in case of a static binding.
+ .TP
+ \fB/proc/net/xt_DNETMAP/\fR\fIsubnet\fR\fB_\fR\fImask\fR\fB_stat\fR
+ Contains statistics for a given \fIsubnet/mask\fP. The line contains four
+-- 
+2.27.0
 
---yrj/dFKFPuw6o+aM
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQGzBAABCgAdFiEEd/6/sDFjb+OCRmRMonv1GCHZ79cFAl8W4/cACgkQonv1GCHZ
-79fRDAv+PdRcG9eEwAyglwukmKWQ0u60ZFNfksT9LTAxGoXsaM7FJDTRempSzYkH
-iEzFZJ3ypLLb/Gqww6YW3mh7CUqTw1HiWee80L/cG0hcvmAt3Liyj3hyAgLeVEFw
-obH61z8YorB3c30fKNu5qyiTjD0RdVSFflfYnG89+7ronORwaUNeY4DmyTkN29GG
-8PMUQRN5Cy3JB0CNKeboRlYFiGfNimnitJyJgeHqGXIgD6WSMy0TvJ99WV2bhPfp
-Zpjdn5A/Vugx34L+Pn7ZFEZ1Isab23O2LDCdPIDiyyzhg/z6HHKmpo+dEM5CiJDf
-j1b2ZLYm4UuLONHYXg7to2smeD6H9bkz2CmuAw0RT/N6kYJsM+JNxEh2bI5HTO8b
-Ik49UioZw5ZkJ61V1LJx2AimuVeOgKiEq9fNH+3jVLmSxju7CCCexhuNOOquS95X
-UaJI7STnLFG+eEz0nOTkJyY76pPs5sAJ2Y+jR+l5pAScQqH8mmncxhb4YgyU0EFQ
-XSJ0IYFl
-=khV/
------END PGP SIGNATURE-----
-
---yrj/dFKFPuw6o+aM--
