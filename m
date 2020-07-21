@@ -2,62 +2,108 @@ Return-Path: <SRS0=0X8Q=BA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10708C433DF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jul 2020 09:16:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 997E9C433E6
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jul 2020 09:38:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E5AE220792
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jul 2020 09:16:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 825A72070A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jul 2020 09:38:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728109AbgGUJQD (ORCPT
+        id S1728387AbgGUJi3 convert rfc822-to-8bit (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Jul 2020 05:16:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33930 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726928AbgGUJQD (ORCPT
+        Tue, 21 Jul 2020 05:38:29 -0400
+Received: from eu-smtp-delivery-151.mimecast.com ([185.58.86.151]:35055 "EHLO
+        eu-smtp-delivery-151.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727963AbgGUJi3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Jul 2020 05:16:03 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06FEFC061794
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jul 2020 02:16:03 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 8688E59B99E83; Tue, 21 Jul 2020 11:16:00 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 834D660C4008F;
-        Tue, 21 Jul 2020 11:16:00 +0200 (CEST)
-Date:   Tue, 21 Jul 2020 11:16:00 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     Jeremy Sowden <jeremy@azazel.net>
-cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH xtables-addons] doc: fix quoted string in libxt_DNETMAP
- man-page.
-In-Reply-To: <20200721083136.710735-1-jeremy@azazel.net>
-Message-ID: <nycvar.YFH.7.77.849.2007211114060.23166@n3.vanv.qr>
-References: <20200721083136.710735-1-jeremy@azazel.net>
-User-Agent: Alpine 2.22 (LSU 394 2020-01-19)
+        Tue, 21 Jul 2020 05:38:29 -0400
+Received: from AcuMS.aculab.com (156.67.243.126 [156.67.243.126]) (Using
+ TLS) by relay.mimecast.com with ESMTP id
+ uk-mta-217-o-9Oq5ZpNDO7uw1k_-mRfA-1; Tue, 21 Jul 2020 10:38:24 +0100
+X-MC-Unique: o-9Oq5ZpNDO7uw1k_-mRfA-1
+Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:43c:695e:880f:8750) by
+ AcuMS.aculab.com (fd9f:af1c:a25b:0:43c:695e:880f:8750) with Microsoft SMTP
+ Server (TLS) id 15.0.1347.2; Tue, 21 Jul 2020 10:38:23 +0100
+Received: from AcuMS.Aculab.com ([fe80::43c:695e:880f:8750]) by
+ AcuMS.aculab.com ([fe80::43c:695e:880f:8750%12]) with mapi id 15.00.1347.000;
+ Tue, 21 Jul 2020 10:38:23 +0100
+From:   David Laight <David.Laight@ACULAB.COM>
+To:     'Christoph Hellwig' <hch@lst.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        "Daniel Borkmann" <daniel@iogearbox.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Eric Dumazet <edumazet@google.com>
+CC:     "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "bpf@vger.kernel.org" <bpf@vger.kernel.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "coreteam@netfilter.org" <coreteam@netfilter.org>,
+        "linux-sctp@vger.kernel.org" <linux-sctp@vger.kernel.org>,
+        "linux-hams@vger.kernel.org" <linux-hams@vger.kernel.org>,
+        "linux-bluetooth@vger.kernel.org" <linux-bluetooth@vger.kernel.org>,
+        "bridge@lists.linux-foundation.org" 
+        <bridge@lists.linux-foundation.org>,
+        "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>,
+        "dccp@vger.kernel.org" <dccp@vger.kernel.org>,
+        "linux-decnet-user@lists.sourceforge.net" 
+        <linux-decnet-user@lists.sourceforge.net>,
+        "linux-wpan@vger.kernel.org" <linux-wpan@vger.kernel.org>,
+        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
+        "mptcp@lists.01.org" <mptcp@lists.01.org>,
+        "lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
+        "rds-devel@oss.oracle.com" <rds-devel@oss.oracle.com>,
+        "linux-afs@lists.infradead.org" <linux-afs@lists.infradead.org>,
+        "tipc-discussion@lists.sourceforge.net" 
+        <tipc-discussion@lists.sourceforge.net>,
+        "linux-x25@vger.kernel.org" <linux-x25@vger.kernel.org>
+Subject: RE: get rid of the address_space override in setsockopt
+Thread-Topic: get rid of the address_space override in setsockopt
+Thread-Index: AQHWXznU7Ce8ImOXV0WGgKrMes+hhakRxpwA
+Date:   Tue, 21 Jul 2020 09:38:23 +0000
+Message-ID: <60c52e31e9f240718fcda0dd5c2faeca@AcuMS.aculab.com>
+References: <20200720124737.118617-1-hch@lst.de>
+In-Reply-To: <20200720124737.118617-1-hch@lst.de>
+Accept-Language: en-GB, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-ms-exchange-transport-fromentityheader: Hosted
+x-originating-ip: [10.202.205.107]
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: aculab.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tuesday 2020-07-21 10:31, Jeremy Sowden wrote:
+From: Christoph Hellwig
+> Sent: 20 July 2020 13:47
+>
+> setsockopt is the last place in architecture-independ code that still
+> uses set_fs to force the uaccess routines to operate on kernel pointers.
+> 
+> This series adds a new sockptr_t type that can contained either a kernel
+> or user pointer, and which has accessors that do the right thing, and
+> then uses it for setsockopt, starting by refactoring some low-level
+> helpers and moving them over to it before finally doing the main
+> setsockopt method.
 
->In roff, lines beginning with a single quote are control lines.  In the
->libxt_DNETMAP man-page there is a single-quoted string at the beginning
->of a line, which troff tries and fails to interpret as a macro:
+Are you planning to make the equivalent change to getsockopt()?
+Having mismatched interfaces would be very strange.
 
-Is there some escaping magic available that would make this work as 
-well? I would fear that if the next person (me included) comes around 
-to use an editor's "wrap at 80 cols" feature, that the quote might 
-re-shift to the start of line. If all else, I'd just pick " over ' - in 
-the hope that that does not have a special meaning.
+	David
 
->-boot time). Please note that the \fBttl\fR and \fBlasthit\fR entries contain an
->-'\fBS\fR' in case of a static binding.
->+boot time). Please note that the \fBttl\fR and \fBlasthit\fR entries contain
->+an '\fBS\fR' in case of a static binding.
+-
+Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
+Registration No: 1397386 (Wales)
+
