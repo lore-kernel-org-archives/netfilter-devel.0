@@ -2,103 +2,96 @@ Return-Path: <SRS0=0X8Q=BA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0DC8C433E6
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jul 2020 08:37:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88570C433E0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jul 2020 09:04:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 94CC32080D
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jul 2020 08:37:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3CFA620720
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jul 2020 09:04:50 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="JZPjudKy"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728827AbgGUIhO convert rfc822-to-8bit (ORCPT
+        id S1726919AbgGUJEu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Jul 2020 04:37:14 -0400
-Received: from eu-smtp-delivery-151.mimecast.com ([207.82.80.151]:28638 "EHLO
-        eu-smtp-delivery-151.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728322AbgGUIhC (ORCPT
+        Tue, 21 Jul 2020 05:04:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60428 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726521AbgGUJEt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Jul 2020 04:37:02 -0400
-Received: from AcuMS.aculab.com (156.67.243.126 [156.67.243.126]) (Using
- TLS) by relay.mimecast.com with ESMTP id
- uk-mta-210-Hj1lpiGkPReD_62cmwnEEw-1; Tue, 21 Jul 2020 09:36:58 +0100
-X-MC-Unique: Hj1lpiGkPReD_62cmwnEEw-1
-Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:43c:695e:880f:8750) by
- AcuMS.aculab.com (fd9f:af1c:a25b:0:43c:695e:880f:8750) with Microsoft SMTP
- Server (TLS) id 15.0.1347.2; Tue, 21 Jul 2020 09:36:57 +0100
-Received: from AcuMS.Aculab.com ([fe80::43c:695e:880f:8750]) by
- AcuMS.aculab.com ([fe80::43c:695e:880f:8750%12]) with mapi id 15.00.1347.000;
- Tue, 21 Jul 2020 09:36:57 +0100
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     'Christoph Hellwig' <hch@lst.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        "Daniel Borkmann" <daniel@iogearbox.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Eric Dumazet <edumazet@google.com>
-CC:     "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "bpf@vger.kernel.org" <bpf@vger.kernel.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "coreteam@netfilter.org" <coreteam@netfilter.org>,
-        "linux-sctp@vger.kernel.org" <linux-sctp@vger.kernel.org>,
-        "linux-hams@vger.kernel.org" <linux-hams@vger.kernel.org>,
-        "linux-bluetooth@vger.kernel.org" <linux-bluetooth@vger.kernel.org>,
-        "bridge@lists.linux-foundation.org" 
-        <bridge@lists.linux-foundation.org>,
-        "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>,
-        "dccp@vger.kernel.org" <dccp@vger.kernel.org>,
-        "linux-decnet-user@lists.sourceforge.net" 
-        <linux-decnet-user@lists.sourceforge.net>,
-        "linux-wpan@vger.kernel.org" <linux-wpan@vger.kernel.org>,
-        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-        "mptcp@lists.01.org" <mptcp@lists.01.org>,
-        "lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
-        "rds-devel@oss.oracle.com" <rds-devel@oss.oracle.com>,
-        "linux-afs@lists.infradead.org" <linux-afs@lists.infradead.org>,
-        "tipc-discussion@lists.sourceforge.net" 
-        <tipc-discussion@lists.sourceforge.net>,
-        "linux-x25@vger.kernel.org" <linux-x25@vger.kernel.org>
-Subject: RE: [PATCH 12/24] bpfilter: switch bpfilter_ip_set_sockopt to
- sockptr_t
-Thread-Topic: [PATCH 12/24] bpfilter: switch bpfilter_ip_set_sockopt to
- sockptr_t
-Thread-Index: AQHWXznUwerjSVAdx0W80SUXvcknn6kRtZIA
-Date:   Tue, 21 Jul 2020 08:36:57 +0000
-Message-ID: <f9493b4c514441b4b51bc7e4e75e8c40@AcuMS.aculab.com>
-References: <20200720124737.118617-1-hch@lst.de>
- <20200720124737.118617-13-hch@lst.de>
-In-Reply-To: <20200720124737.118617-13-hch@lst.de>
-Accept-Language: en-GB, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+        Tue, 21 Jul 2020 05:04:49 -0400
+X-Greylist: delayed 1990 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 21 Jul 2020 02:04:49 PDT
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8ED67C061794
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jul 2020 02:04:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
+        :Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=vr5BY6x1L2drsWA3P3XrCNE771NsvvB6xZimeUg4lZs=; b=JZPjudKyxmQRdLh556pKlRaWbH
+        CVX7RMEwgLQeIfGCGHrj6CvPH/vYT9ZbODQ8MYdGTYJzD2ic1on3AHW7ebMgDTocSpx6YDzwaycWw
+        ERhgdhNyeNJ5SbQ8G7lyXi3blHjZ0g4RBUOHRJZI1HfdZ/sDhFq5gq+1wAgL4sUKeu3HKlUcOMdZ4
+        8iHtvp4W3Tu5qqptJ8BZXATxFbpR7bLLnj+DTSt/7JmeMENEbXJcuKM85g4kGfqfdkjsYn3AnPvOr
+        5wfK0xhNg3c97N5v2Q5fLctfraGYKYJHKERv9hoLOht3hHYojp7sNLgTOay1+JqMzQkWx7zLdtN/u
+        Yx+xfFSg==;
+Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
+        by kadath.azazel.net with esmtp (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1jxngW-0006Vv-J6; Tue, 21 Jul 2020 09:31:36 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH xtables-addons] doc: fix quoted string in libxt_DNETMAP man-page.
+Date:   Tue, 21 Jul 2020 09:31:36 +0100
+Message-Id: <20200721083136.710735-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Christoph Hellwig
-> Sent: 20 July 2020 13:47
-> 
-> This is mostly to prepare for cleaning up the callers, as bpfilter by
-> design can't handle kernel pointers.
-                      ^^^ user ??
+In roff, lines beginning with a single quote are control lines.  In the
+libxt_DNETMAP man-page there is a single-quoted string at the beginning
+of a line, which troff tries and fails to interpret as a macro:
 
-	David
+  troff: <standard input>:49: warning: macro 'S'' not defined
 
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
+This means that the line is not output.
+
+Adjust the formatting of the paragraph to move the string from the
+beginning of the line.
+
+Fixes: 2b38d081a50b ("doc: spelling and grammar corrections to DNETMAP")
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ extensions/libxt_DNETMAP.man | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/extensions/libxt_DNETMAP.man b/extensions/libxt_DNETMAP.man
+index 7a8fe404435b..56cd2a68c6e6 100644
+--- a/extensions/libxt_DNETMAP.man
++++ b/extensions/libxt_DNETMAP.man
+@@ -45,8 +45,8 @@ The module creates the following entries for each new specified subnet:
+ Contains the binding table for the given \fIsubnet/mask\fP. Each line contains
+ \fBprenat address\fR, \fBpostnat address\fR, \fBttl\fR (seconds until the entry
+ times out), \fBlasthit\fR (last hit to the entry in seconds relative to system
+-boot time). Please note that the \fBttl\fR and \fBlasthit\fR entries contain an
+-'\fBS\fR' in case of a static binding.
++boot time). Please note that the \fBttl\fR and \fBlasthit\fR entries contain
++an '\fBS\fR' in case of a static binding.
+ .TP
+ \fB/proc/net/xt_DNETMAP/\fR\fIsubnet\fR\fB_\fR\fImask\fR\fB_stat\fR
+ Contains statistics for a given \fIsubnet/mask\fP. The line contains four
+-- 
+2.27.0
 
