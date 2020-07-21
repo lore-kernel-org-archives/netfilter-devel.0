@@ -4,61 +4,59 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.5 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94904C433E0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jul 2020 23:20:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29E0AC433E2
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jul 2020 23:23:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D75C2073A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jul 2020 23:20:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0CE122073A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Jul 2020 23:23:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731423AbgGUXUO (ORCPT
+        id S1728456AbgGUXXc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Jul 2020 19:20:14 -0400
-Received: from correo.us.es ([193.147.175.20]:55732 "EHLO mail.us.es"
+        Tue, 21 Jul 2020 19:23:32 -0400
+Received: from correo.us.es ([193.147.175.20]:56108 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726148AbgGUXUN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Jul 2020 19:20:13 -0400
+        id S1726652AbgGUXXc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 Jul 2020 19:23:32 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 27B062EFEA9
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jul 2020 01:20:10 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id D18DB2EFEA5
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jul 2020 01:23:30 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1AEF9DA722
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jul 2020 01:20:10 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C40B1DA798
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jul 2020 01:23:30 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id EFD31DA78C; Wed, 22 Jul 2020 01:20:09 +0200 (CEST)
+        id B9028DA722; Wed, 22 Jul 2020 01:23:30 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B8911DA72F;
-        Wed, 22 Jul 2020 01:20:07 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 635D4DA722;
+        Wed, 22 Jul 2020 01:23:28 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 22 Jul 2020 01:20:07 +0200 (CEST)
+ Wed, 22 Jul 2020 01:23:28 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 8B7D94265A2F;
-        Wed, 22 Jul 2020 01:20:07 +0200 (CEST)
-Date:   Wed, 22 Jul 2020 01:20:07 +0200
+        by entrada.int (Postfix) with ESMTPSA id 299974265A2F;
+        Wed, 22 Jul 2020 01:23:28 +0200 (CEST)
+Date:   Wed, 22 Jul 2020 01:23:27 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Julian Anastasov <ja@ssi.bg>
-Cc:     Andrew Sy Kim <kim.andrewsy@gmail.com>,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Randy Dunlap <rdunlap@infradead.org>, netdev@vger.kernel.org
-Subject: Re: [PATCH] ipvs: add missing struct name in
- ip_vs_enqueue_expire_nodest_conns when CONFIG_SYSCTL is disabled
-Message-ID: <20200721232007.GA6367@salvia>
-References: <20200717162450.1049-1-kim.andrewsy@gmail.com>
- <alpine.LFD.2.23.451.2007172032370.4536@ja.home.ssi.bg>
+Cc:     guodeqing <geffrey.guo@huawei.com>, wensong@linux-vs.org,
+        horms@verge.net.au, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, kuba@kernel.org, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH,v2] ipvs: fix the connection sync failed in some cases
+Message-ID: <20200721232327.GA6430@salvia>
+References: <1594887128-7453-1-git-send-email-geffrey.guo@huawei.com>
+ <alpine.LFD.2.23.451.2007190837120.3463@ja.home.ssi.bg>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.23.451.2007172032370.4536@ja.home.ssi.bg>
+In-Reply-To: <alpine.LFD.2.23.451.2007190837120.3463@ja.home.ssi.bg>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -66,23 +64,39 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jul 17, 2020 at 08:36:36PM +0300, Julian Anastasov wrote:
+On Sun, Jul 19, 2020 at 09:08:39AM +0300, Julian Anastasov wrote:
 > 
 > 	Hello,
 > 
-> On Fri, 17 Jul 2020, Andrew Sy Kim wrote:
+> On Thu, 16 Jul 2020, guodeqing wrote:
 > 
-> > Adds missing "*ipvs" to ip_vs_enqueue_expire_nodest_conns when
-> > CONFIG_SYSCTL is disabled
+> > The sync_thread_backup only checks sk_receive_queue is empty or not,
+> > there is a situation which cannot sync the connection entries when
+> > sk_receive_queue is empty and sk_rmem_alloc is larger than sk_rcvbuf,
+> > the sync packets are dropped in __udp_enqueue_schedule_skb, this is
+> > because the packets in reader_queue is not read, so the rmem is
+> > not reclaimed.
 > > 
-> > Signed-off-by: Andrew Sy Kim <kim.andrewsy@gmail.com>
+> > Here I add the check of whether the reader_queue of the udp sock is
+> > empty or not to solve this problem.
+> > 
+> > Fixes: 2276f58ac589 ("udp: use a separate rx queue for packet reception")
+> > Reported-by: zhouxudong <zhouxudong8@huawei.com>
+> > Signed-off-by: guodeqing <geffrey.guo@huawei.com>
+> 
+> 	Looks good to me, thanks!
 > 
 > Acked-by: Julian Anastasov <ja@ssi.bg>
 > 
-> 	Pablo, please apply this too.
+> 	Simon, Pablo, this patch should be applied to the nf tree.
 
-I have squashed this fix and "ipvs: ensure RCU read unlock when
-connection flushing and ipvs is disabled" into the original patch:
+Applied, thanks.
 
-"ipvs: queue delayed work to expire no destination connections if
-expire_nodest_conn=1"
+> As the reader_queue appears in 4.13, this patch can be backported
+> to 4.14, 4.19, 5.4, etc, they all have skb_queue_empty_lockless.
+
+The Fixes: tag should help -stable maintainer pull this into the next
+batch. Otherwise, feel free to drop a line to stable@vger.kernel.org
+to request inclusion after this patch hits Linus' tree.
+
+Thanks.
