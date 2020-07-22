@@ -2,119 +2,98 @@ Return-Path: <SRS0=uHYT=BB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A4D4C433E1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jul 2020 12:18:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2D1DC433EC
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jul 2020 15:32:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EB8D620771
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jul 2020 12:18:02 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=mojatatu-com.20150623.gappssmtp.com header.i=@mojatatu-com.20150623.gappssmtp.com header.b="CnSJjYRY"
+	by mail.kernel.org (Postfix) with ESMTP id C0132207E8
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jul 2020 15:32:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732180AbgGVMSA (ORCPT
+        id S1732850AbgGVPcP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Jul 2020 08:18:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59498 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731695AbgGVMSA (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Jul 2020 08:18:00 -0400
-Received: from mail-qk1-x741.google.com (mail-qk1-x741.google.com [IPv6:2607:f8b0:4864:20::741])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AA99C0619DE
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jul 2020 05:18:00 -0700 (PDT)
-Received: by mail-qk1-x741.google.com with SMTP id l6so1684732qkc.6
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jul 2020 05:18:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=mojatatu-com.20150623.gappssmtp.com; s=20150623;
-        h=to:cc:from:subject:message-id:date:user-agent:mime-version
-         :content-language:content-transfer-encoding;
-        bh=9BLR65N0DK1WAQMfwhXDmyYdZtIuFhu+7sSKbnFmGBg=;
-        b=CnSJjYRYgqBKnxAhOoaJ73NC/11jUXO2fnXl8A5srULkyc23EdpfH6Ag4Q7sCpj6gi
-         I/ylHYX+iAernqvFYDNpMCrKakL7VTYKqHvxJWoDFr+D/1L5rWLCOwe7+woNil+p1DxE
-         0mIi1dlKiESkZbULrUqwdlH0PUen1RETVPqbXF3Q2MbNKoZTOGuEeuAyEh0k7l5mqSeZ
-         PRylw9vf8GZVNTVhymFrGwiHHwcWBFTc+J+zEghe8A4ptqw0EIw382NX6n+HUMoBsFZ9
-         19bKmdWmFrngTHa+5kCXS7OIJdUXbp432jrGvChPy/4ZHYEYT/ViUz20hH89eM281slH
-         +brQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:to:cc:from:subject:message-id:date:user-agent
-         :mime-version:content-language:content-transfer-encoding;
-        bh=9BLR65N0DK1WAQMfwhXDmyYdZtIuFhu+7sSKbnFmGBg=;
-        b=JYVAenX6g9//FK1q94iQFpBXj+g36tBTngXVsyJ9qCCfYJkYy21WIJthqXaBfcuCCz
-         FMmYUWljn2SZr6S9X5OUsVpQ31vJKP+QUO4laVtvv7hwlD3TtxJBQKOALN2obet8nWAA
-         CfHPCHW9aaqcOPeYWQYK1u78RVRrNCC5BZ1kkDtf8i2LVLgTlqAMPjex/Lgr0Cwwzm1I
-         vsNBpZdS/hP9XR5hMCjgacLQLbCWq4BUhQuAZI6TJLcZJdKBqEkN5K/yOz9KyYiY+YbH
-         7e7CmZGXKzLuY+c51bezip8BlAvLgP0764KmXkPGRx8CVsk9bGoSho9bZ6+TCT6R84Fl
-         d0aQ==
-X-Gm-Message-State: AOAM532eMrRhICFL6ZnlWFgRRvOO4T5udvuTB5lXJXtGS/kWYDcxG6nh
-        oi3/FVXG15cuo/eF4UILl7YPLA==
-X-Google-Smtp-Source: ABdhPJySwEgIk1wlhe/sam1JP4nwt9CL9Bwb+k3i5jgoFi/eE7Ln59o7n1GLDtwUtC3KQ8XRdfaZzw==
-X-Received: by 2002:a37:9e48:: with SMTP id h69mr15470028qke.249.1595420279202;
-        Wed, 22 Jul 2020 05:17:59 -0700 (PDT)
-Received: from [192.168.2.17] (kntaon1617w-grc-04-64-229-0-222.dsl.bell.ca. [64.229.0.222])
-        by smtp.googlemail.com with ESMTPSA id r6sm24372519qtt.81.2020.07.22.05.17.58
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 22 Jul 2020 05:17:58 -0700 (PDT)
-To:     people <people@netdevconf.info>, attendees-0x14@netdevconf.info
-Cc:     "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        linux-wireless <linux-wireless@vger.kernel.org>,
-        lartc@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        prog-committee-0x14@netdevconf.info, lwn@lwn.net
-From:   Jamal Hadi Salim <jhs@mojatatu.com>
-Subject: Netdev conf 0x14 update and logistics
-Message-ID: <0a3269f5-049b-a042-a368-26a274433006@mojatatu.com>
-Date:   Wed, 22 Jul 2020 08:17:57 -0400
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+        Wed, 22 Jul 2020 11:32:15 -0400
+Received: from correo.us.es ([193.147.175.20]:44328 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726717AbgGVPcM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 22 Jul 2020 11:32:12 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id E63B361528
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jul 2020 17:32:09 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D8673DA3A3
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jul 2020 17:32:09 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id CDB69DA3AD; Wed, 22 Jul 2020 17:32:09 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9EF59DA3A3
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jul 2020 17:32:07 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 22 Jul 2020 17:32:07 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 8318F4265A2F
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jul 2020 17:32:07 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] evaluate: bail out with concatenations and singleton values
+Date:   Wed, 22 Jul 2020 17:32:04 +0200
+Message-Id: <20200722153204.5175-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Some logistics for Netdev 0x14 virtual conference:
+The rule:
 
-Netdev 0x14 virtual conference will kick off on July 28th
-3PM GMT(This coming Tuesday!) with a keynote from
-networking industry visionary Nick McKeown.
+ # nft add rule x y iifname . oifname p . q
 
-What does Nick want to talk to us about?
-Nick has a vision on how we can work together to realize
-a world where owners of large networks can express the
-intended behavior they want in their network using a
-high-level language, and then seamlessly compile and
-deploy it across all their various network devices.
+is equivalent to:
 
-Please come listen, hear him and engage him.
+ # nft add rule x y iifname p oifname q
 
-More info:
-https://netdevconf.info/0x14/session.html?keynote-mckeown
+Bail out with:
 
-For more of the good stuff, see:
-https://netdevconf.info/0x14/accepted-sessions.html
+ Error: Use concatenations with sets and maps, not singleton values
+ add rule x y iifname . oifname p . q
+              ^^^^^^^^^^^^^^^^^ ~~~~~
 
-All sessions will run starting 3PM GMT to allow for the
-different time zones' participation and spread across
-several days to reduce classical virtual conference
-fatigue.
+instead of:
 
-The schedule is at:
-https://netdevconf.info/0x14/schedule.html
+ BUG: invalid expression type concat
+ nft: evaluate.c:1916: expr_evaluate_relational: Assertion `0' failed.
+ Aborted
 
-Note: you can visualize the schedule in multiple different
-formats by clicking on the "schedule" pull down menu.
-You can also grab a calendar sync on the right hand side
-bar.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/evaluate.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Dont miss the fun. Registration is open.
-https://netdevconf.info/0x14/registration.html
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 9290c6ff39ef..1f56dae5ec13 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1912,6 +1912,10 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
+ 			    byteorder_conversion(ctx, &rel->left, BYTEORDER_BIG_ENDIAN) < 0)
+ 				return -1;
+ 			break;
++		case EXPR_CONCAT:
++			return expr_binary_error(ctx->msgs, left, right,
++						 "Use concatenations with sets and maps, not singleton values");
++			break;
+ 		default:
+ 			BUG("invalid expression type %s\n", expr_name(right));
+ 		}
+-- 
+2.20.1
 
-cheers,
-jamal
