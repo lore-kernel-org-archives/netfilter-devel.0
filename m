@@ -6,22 +6,22 @@ X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B317C433E5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jul 2020 08:00:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE685C433E5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jul 2020 08:01:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4F88020658
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jul 2020 08:00:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D315D20792
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jul 2020 08:01:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728297AbgGVIAh (ORCPT
+        id S1728574AbgGVIBt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Jul 2020 04:00:37 -0400
-Received: from verein.lst.de ([213.95.11.211]:55326 "EHLO verein.lst.de"
+        Wed, 22 Jul 2020 04:01:49 -0400
+Received: from verein.lst.de ([213.95.11.211]:55344 "EHLO verein.lst.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726153AbgGVIAg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Jul 2020 04:00:36 -0400
+        id S1726254AbgGVIBr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 22 Jul 2020 04:01:47 -0400
 Received: by verein.lst.de (Postfix, from userid 2407)
-        id A465468B05; Wed, 22 Jul 2020 10:00:24 +0200 (CEST)
-Date:   Wed, 22 Jul 2020 10:00:23 +0200
+        id 92E6A6736F; Wed, 22 Jul 2020 10:01:42 +0200 (CEST)
+Date:   Wed, 22 Jul 2020 10:01:42 +0200
 From:   'Christoph Hellwig' <hch@lst.de>
 To:     David Laight <David.Laight@ACULAB.COM>
 Cc:     'Christoph Hellwig' <hch@lst.de>,
@@ -58,24 +58,27 @@ Cc:     'Christoph Hellwig' <hch@lst.de>,
         "linux-x25@vger.kernel.org" <linux-x25@vger.kernel.org>
 Subject: Re: [PATCH 12/24] bpfilter: switch bpfilter_ip_set_sockopt to
  sockptr_t
-Message-ID: <20200722080023.GC26554@lst.de>
-References: <20200720124737.118617-1-hch@lst.de> <20200720124737.118617-13-hch@lst.de> <f9493b4c514441b4b51bc7e4e75e8c40@AcuMS.aculab.com>
+Message-ID: <20200722080142.GA26841@lst.de>
+References: <20200720124737.118617-1-hch@lst.de> <20200720124737.118617-13-hch@lst.de> <f9493b4c514441b4b51bc7e4e75e8c40@AcuMS.aculab.com> <20200722080023.GC26554@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <f9493b4c514441b4b51bc7e4e75e8c40@AcuMS.aculab.com>
+In-Reply-To: <20200722080023.GC26554@lst.de>
 User-Agent: Mutt/1.5.17 (2007-11-01)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jul 21, 2020 at 08:36:57AM +0000, David Laight wrote:
-> From: Christoph Hellwig
-> > Sent: 20 July 2020 13:47
-> > 
-> > This is mostly to prepare for cleaning up the callers, as bpfilter by
-> > design can't handle kernel pointers.
->                       ^^^ user ??
+On Wed, Jul 22, 2020 at 10:00:23AM +0200, 'Christoph Hellwig' wrote:
+> On Tue, Jul 21, 2020 at 08:36:57AM +0000, David Laight wrote:
+> > From: Christoph Hellwig
+> > > Sent: 20 July 2020 13:47
+> > > 
+> > > This is mostly to prepare for cleaning up the callers, as bpfilter by
+> > > design can't handle kernel pointers.
+> >                       ^^^ user ??
+> 
+> No, it can't handle user pointers. 
 
-No, it can't handle user pointers. 
+Err, I mean it can only handle user pointers.
