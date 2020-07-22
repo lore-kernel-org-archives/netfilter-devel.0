@@ -2,112 +2,88 @@ Return-Path: <SRS0=uHYT=BB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03060C433E5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jul 2020 17:10:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1F06C433DF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jul 2020 22:48:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CF34F206F5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jul 2020 17:09:59 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QbFOpYWq"
+	by mail.kernel.org (Postfix) with ESMTP id BBCFD2086A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jul 2020 22:48:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732001AbgGVRJ5 (ORCPT
+        id S1733065AbgGVWs0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Jul 2020 13:09:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48720 "EHLO
+        Wed, 22 Jul 2020 18:48:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44934 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726462AbgGVRJz (ORCPT
+        with ESMTP id S1726447AbgGVWsZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Jul 2020 13:09:55 -0400
-Received: from mail-lj1-x241.google.com (mail-lj1-x241.google.com [IPv6:2a00:1450:4864:20::241])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBCACC0619DC;
-        Wed, 22 Jul 2020 10:09:54 -0700 (PDT)
-Received: by mail-lj1-x241.google.com with SMTP id h19so3257561ljg.13;
-        Wed, 22 Jul 2020 10:09:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=nqelWpCqH7nOe0oSyngzrBNpGRC3PyDyz91JHpls3Xk=;
-        b=QbFOpYWq197fvdaI4E7hogiJ5z6DhlnMwFbSAyObyOYxQk/ojAWvAxU5xeCwIzRoyp
-         bGpv6okHRbaDCk3F5IJgGXS3Wesi1t0HKLxD0rWbntKFa+o4FEuZ/aNqddB2gT9rJhFi
-         ekTLt46VwAAqYYSOS+Ti6gpiM2sULyDbPlDxrV2EC1wYfvYmkCiCMfUA2sia4+eUOZSm
-         DpKqJKTrsnJtuquGnG9/42hXesw1S5DhQmqbpijEy6OLbaHF8RyBbV+paN+wC914K+DB
-         Om2JyFGEZL8bVoXG7xFZFOn3b/hxnJAALpQKOVax/+9YzLSzmIzDLinAT6/sMjMDDXxC
-         pBiA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=nqelWpCqH7nOe0oSyngzrBNpGRC3PyDyz91JHpls3Xk=;
-        b=k3wIByikShOaLkMc1Od1tLGwmab7hG9iKbyDULD2uOU+twM7jxZwJn7IWxMKu4MHdb
-         2Um8GRz1pnUx6Or1zrBKsXK1VsWCVoqGK+g00uoLdXwN0ZIjQs2SY1NcE1kAF8LDVTbU
-         yec/VCQcloskNDtE/ZzYq3LleNJ4xRU3nJ3wI0s/geljdUP2TUb94FrsAN6b/v2V85qz
-         Jc8CdA/0064dg3bpth9PgXEMbwg5daPhBpS5N9zJpR/T9aF3Yn/Utf8++olez5sBFyLk
-         PhS8JcXdC8vjOKTUaUQOoc6YRUqpWtVVYj0gjyhYOFPmkN984ejeamHM/Bn02+cBPon8
-         gMPw==
-X-Gm-Message-State: AOAM531Eo1Acr/3nE2b3iA/QDxbQGbfSLq/pJjtA4rrQ+YuHqM+38kBs
-        PxMKDcJqZcbVcOCj/Ts6eT4QBe1XJMs+YgpX9dqBNA==
-X-Google-Smtp-Source: ABdhPJzXtI3YBeORsJYQmEu28fVJCUtGV7rd5sI5b8tsC3G9617tl0t2hP5zU+hEdegWolMtC+F/64n4emjrett5jt8=
-X-Received: by 2002:a2e:90da:: with SMTP id o26mr95292ljg.91.1595437793253;
- Wed, 22 Jul 2020 10:09:53 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200720124737.118617-1-hch@lst.de> <20200720204756.iengwcguikj2yrxt@ast-mbp.dhcp.thefacebook.com>
- <20200722075657.GB26554@lst.de>
-In-Reply-To: <20200722075657.GB26554@lst.de>
-From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date:   Wed, 22 Jul 2020 10:09:41 -0700
-Message-ID: <CAADnVQKy0+rsRftEzp4PvxQtj7uOwybz0Nd4_h0FR37p2Q=X4w@mail.gmail.com>
-Subject: Re: get rid of the address_space override in setsockopt
-To:     Christoph Hellwig <hch@lst.de>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
-        bpf <bpf@vger.kernel.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        coreteam@netfilter.org, linux-sctp@vger.kernel.org,
-        linux-hams@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-        "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>,
-        linux-can@vger.kernel.org, dccp@vger.kernel.org,
-        linux-decnet-user@lists.sourceforge.net,
-        linux-wpan@vger.kernel.org,
-        linux-s390 <linux-s390@vger.kernel.org>, mptcp@lists.01.org,
-        lvs-devel@vger.kernel.org, rds-devel@oss.oracle.com,
-        linux-afs@lists.infradead.org,
-        tipc-discussion@lists.sourceforge.net, linux-x25@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        Wed, 22 Jul 2020 18:48:25 -0400
+Received: from shards.monkeyblade.net (shards.monkeyblade.net [IPv6:2620:137:e000::1:9])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD098C0619DC;
+        Wed, 22 Jul 2020 15:48:25 -0700 (PDT)
+Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id 34A3511E8DD83;
+        Wed, 22 Jul 2020 15:31:39 -0700 (PDT)
+Date:   Wed, 22 Jul 2020 15:48:20 -0700 (PDT)
+Message-Id: <20200722.154820.1749937838006185071.davem@davemloft.net>
+To:     netdev@vger.kernel.org
+CC:     linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        bpf@vger.kernel.org, xdp-newbies@vger.kernel.org, lwn@lwn.net
+Subject: LPC 2020 Networking and BPF Track CFP (Reminder)
+From:   David Miller <davem@davemloft.net>
+X-Mailer: Mew version 6.8 on Emacs 26.3
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Wed, 22 Jul 2020 15:31:39 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jul 22, 2020 at 12:56 AM Christoph Hellwig <hch@lst.de> wrote:
->
-> On Mon, Jul 20, 2020 at 01:47:56PM -0700, Alexei Starovoitov wrote:
-> > > a kernel pointer.  This is something that works for most common sockopts
-> > > (and is something that the ePBF support relies on), but unfortunately
-> > > in various corner cases we either don't use the passed in length, or in
-> > > one case actually copy data back from setsockopt, so we unfortunately
-> > > can't just always do the copy in the highlevel code, which would have
-> > > been much nicer.
-> >
-> > could you rebase on bpf-next tree and we can route it this way then?
-> > we'll also test the whole thing before applying.
->
-> The bpf-next tree is missing all my previous setsockopt cleanups, so
-> there series won't apply.
 
-Right. I've realized that after sending that email two days ago.
-Now bpf-next->net-next PR is pending and as soon as it's merged
-bpf-next will have all the recent bits.
+[ The deadline is a week and a half away, please get your submissions
+  in soon! ]
+
+This is a reminder for the call for proposals for the networking and
+bpf track at the Linux Plumbers Conference on the wider internet,
+which will be happening on August 24th-28th, 2020.
+
+This year the technical committee is comprised of:
+
+David S. Miller <davem@davemloft.net>
+Alexei Starovoitov <ast@kernel.org>
+Daniel Borkmann <daniel@iogearbox.net>
+Jakub Sitnicki <jakub@cloudflare.com>
+Paolo Abeni <pabeni@redhat.com>
+Jakub Kicinski <kuba@kernel.org>
+Michal Kubecek <mkubecek@suse.cz>
+Sabrina Dubroca <sd@queasysnail.net>
+
+We are seeking talks of 40 minutes in length (including Q & A),
+optionally accompanied by papers of 2 to 10 pages in length.  The
+papers, while not required, are very strongly encouraged by the
+committee.  The submitters intention to provide a paper will be taken
+into consideration as a criteria when deciding which proposals to
+accept.
+
+Any kind of advanced networking and/or bpf related topic will be
+considered.
+
+Please submit your proposals on the LPC website at:
+
+	https://www.linuxplumbersconf.org/event/7/abstracts/#submit-abstract
+
+And be sure to select "Networking & BPF Summit" in the Track
+pulldown menu.
+
+Proposals must be submitted by August 2nd, and submitters will be
+notified of acceptance by August 9th.
+
+Final slides and papers (as PDF) are due on August 24th, the first day of
+the conference.
