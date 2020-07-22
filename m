@@ -2,73 +2,85 @@ Return-Path: <SRS0=uHYT=BB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 060A8C433E3
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jul 2020 06:03:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7124BC433E3
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jul 2020 07:56:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E266020771
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jul 2020 06:03:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 571302077D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Jul 2020 07:56:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728602AbgGVGDs (ORCPT
+        id S1728606AbgGVH4b (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Jul 2020 02:03:48 -0400
-Received: from ja.ssi.bg ([178.16.129.10]:51892 "EHLO ja.ssi.bg"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727084AbgGVGDs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Jul 2020 02:03:48 -0400
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id 06M631l3002786;
-        Wed, 22 Jul 2020 09:03:01 +0300
-Date:   Wed, 22 Jul 2020 09:03:01 +0300 (EEST)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-cc:     Andrew Sy Kim <kim.andrewsy@gmail.com>,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Randy Dunlap <rdunlap@infradead.org>, netdev@vger.kernel.org
-Subject: Re: [PATCH] ipvs: add missing struct name in ip_vs_enqueue_expire_nodest_conns
- when CONFIG_SYSCTL is disabled
-In-Reply-To: <20200721232007.GA6367@salvia>
-Message-ID: <alpine.LFD.2.23.451.2007220901320.2433@ja.home.ssi.bg>
-References: <20200717162450.1049-1-kim.andrewsy@gmail.com> <alpine.LFD.2.23.451.2007172032370.4536@ja.home.ssi.bg> <20200721232007.GA6367@salvia>
+        Wed, 22 Jul 2020 03:56:31 -0400
+Received: from verein.lst.de ([213.95.11.211]:55291 "EHLO verein.lst.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726153AbgGVH4a (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 22 Jul 2020 03:56:30 -0400
+Received: by verein.lst.de (Postfix, from userid 2407)
+        id E5D696736F; Wed, 22 Jul 2020 09:56:20 +0200 (CEST)
+Date:   Wed, 22 Jul 2020 09:56:20 +0200
+From:   Christoph Hellwig <hch@lst.de>
+To:     Eric Biggers <ebiggers@kernel.org>
+Cc:     Christoph Hellwig <hch@lst.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Eric Dumazet <edumazet@google.com>,
+        linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, bpf@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-sctp@vger.kernel.org, linux-hams@vger.kernel.org,
+        linux-bluetooth@vger.kernel.org, bridge@lists.linux-foundation.org,
+        linux-can@vger.kernel.org, dccp@vger.kernel.org,
+        linux-decnet-user@lists.sourceforge.net,
+        linux-wpan@vger.kernel.org, linux-s390@vger.kernel.org,
+        mptcp@lists.01.org, lvs-devel@vger.kernel.org,
+        rds-devel@oss.oracle.com, linux-afs@lists.infradead.org,
+        tipc-discussion@lists.sourceforge.net, linux-x25@vger.kernel.org
+Subject: Re: [PATCH 03/24] net: add a new sockptr_t type
+Message-ID: <20200722075620.GA26554@lst.de>
+References: <20200720124737.118617-1-hch@lst.de> <20200720124737.118617-4-hch@lst.de> <20200720163748.GA1292162@gmail.com> <20200720174322.GA21785@lst.de> <20200720175543.GF1292162@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200720175543.GF1292162@gmail.com>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-	Hello,
-
-On Wed, 22 Jul 2020, Pablo Neira Ayuso wrote:
-
-> On Fri, Jul 17, 2020 at 08:36:36PM +0300, Julian Anastasov wrote:
-> > 
-> > On Fri, 17 Jul 2020, Andrew Sy Kim wrote:
-> > 
-> > > Adds missing "*ipvs" to ip_vs_enqueue_expire_nodest_conns when
-> > > CONFIG_SYSCTL is disabled
+On Mon, Jul 20, 2020 at 10:55:43AM -0700, Eric Biggers wrote:
+> On Mon, Jul 20, 2020 at 07:43:22PM +0200, Christoph Hellwig wrote:
+> > On Mon, Jul 20, 2020 at 09:37:48AM -0700, Eric Biggers wrote:
+> > > How does this not introduce a massive security hole when
+> > > CONFIG_ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE?
 > > > 
-> > > Signed-off-by: Andrew Sy Kim <kim.andrewsy@gmail.com>
+> > > AFAICS, userspace can pass in a pointer >= TASK_SIZE,
+> > > and this code makes it be treated as a kernel pointer.
 > > 
-> > Acked-by: Julian Anastasov <ja@ssi.bg>
+> > Yeah, we'll need to validate that before initializing the pointer.
 > > 
-> > 	Pablo, please apply this too.
+> > But thinking this a little further:  doesn't this mean any
+> > set_fs(KERNEL_DS) that has other user pointers than the one it is
+> > intended for has the same issue?  Pretty much all of these are gone
+> > in mainline now, but in older stable kernels there might be some
+> > interesting cases, especially in the compat ioctl handlers.
 > 
-> I have squashed this fix and "ipvs: ensure RCU read unlock when
-> connection flushing and ipvs is disabled" into the original patch:
+> Yes.  I thought that eliminating that class of bug is one of the main
+> motivations for your "remove set_fs" work.  See commit 128394eff343
+> ("sg_write()/bsg_write() is not fit to be called under KERNEL_DS") for a case
+> where this type of bug was fixed.
 > 
-> "ipvs: queue delayed work to expire no destination connections if
-> expire_nodest_conn=1"
+> Are you aware of any specific cases that weren't already fixed?  If there are
+> any, they need to be urgently fixed.
 
-	Very good, thanks!
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+current mainline has almost no set_fs left, and setsockopt seems
+pretty much safe.  But if we go back a long term stable release or two
+I bet I'd find one or two.
