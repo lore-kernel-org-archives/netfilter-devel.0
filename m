@@ -4,52 +4,52 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8526C433E3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 10:38:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C63B2C433E0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 10:41:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A46E220737
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 10:38:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9A33320737
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 10:41:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728222AbgGWKiP (ORCPT
+        id S1728156AbgGWKli (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Jul 2020 06:38:15 -0400
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:50901 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728123AbgGWKiP (ORCPT
+        Thu, 23 Jul 2020 06:41:38 -0400
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:34796 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726675AbgGWKlh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Jul 2020 06:38:15 -0400
-Received: by mail-wm1-f65.google.com with SMTP id c80so4516604wme.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Jul 2020 03:38:12 -0700 (PDT)
+        Thu, 23 Jul 2020 06:41:37 -0400
+Received: by mail-wr1-f66.google.com with SMTP id f7so4694748wrw.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Jul 2020 03:41:34 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:from:to:date:message-id:user-agent
          :mime-version:content-transfer-encoding;
-        bh=kO9V8JhFlxTn5JCtK6rPpmYwFb9gUDtxGIt8XuZ7rJU=;
-        b=o/trqbj0fM/uk189Zu3vFhJbKGBOiRBHgsth80BDGdnfOHlIuFl/MVN30wBjUZcpwq
-         xH+hYgkXb+HOWST4rACH6TAstuG18mVijwbTV1yiXKM15q+xS0gRySOeJ9zTEpMDd5Qp
-         6YYLLt6gPItDVmVeB/2G2Vy3+iZ9OLN8SqnEbwml6WUTPwnbqKTNe2m/dWPCRqAx/c6w
-         PtpjVXv2BB+7mmJQpyzVdsfO5SlWzZ6Y6UXP04ZYDWKL6S1Djtmz/xYv4XW6WrL9Qg62
-         FddUk9KOcTK2mRu6I5ESZrogCqxf2mukupjK0qefpBRjE1FzxzpBzoEJYXoKScaDuNjl
-         wTAA==
-X-Gm-Message-State: AOAM530onu8UAu1fMiqXLvjkR05uK8VRRqLwOO1ey2rObdZhig5W/vP+
-        0WG5i7fx6C/OFXtORo20iMoyHlwgZP4=
-X-Google-Smtp-Source: ABdhPJxnmw33LW7vUCgEiccka4fqyPLAILiS6W6ouQO8e95IBnkLpMxMclHEiXoMhCbs2Vym5wbHjA==
-X-Received: by 2002:a1c:3bc1:: with SMTP id i184mr3506977wma.119.1595500690896;
-        Thu, 23 Jul 2020 03:38:10 -0700 (PDT)
+        bh=sDu53XC11HXIkZ1ivSmQs/SrLABmdLznBTBQYYWwkrk=;
+        b=CvH4bc1Ua612BxmhAH5zSa20uee+csmy1h6BmxDpD/7yu3JofjtRkcEoFdoTyjqt0X
+         qIpRL87aBj8h+HZGuaJN/Gr7wMCy1vy1BPUw0UGNvr+DQjxEKcJpTekJfIJVbVRaZRYa
+         l0lRh9R9loFArclqRKC0E/oaI6GFfMxavRrA+4Yd+eGMNgNShEiOnuORh64VR04cKXlm
+         AQ1n8NRH7Zvaucy3TZ9sOEWTxzOUQC0+gpeo6E+TQH39ITpEeJV34pesfUuWh7P8NoSY
+         A4H4XbcD72t1rDts3CjbMkdz/Bp46rnbNXEUF1qz2JoS2EXkIPSCfaItswm5N6Ukd2r3
+         Xmcw==
+X-Gm-Message-State: AOAM532/1F4hvZzvHsTHLZsnu7HY0/JgFy4w1W324Thl6f4364zZyK18
+        PQAB3vZyjKyVJqRE1f+nU+kZpiIRDWo=
+X-Google-Smtp-Source: ABdhPJxZ3ha5nAvaOif0XlqwEK4FcTJJua3qphYlXAENdPASPoz6eH3S1UIqMvNmASoCbAvrUmDfig==
+X-Received: by 2002:adf:f485:: with SMTP id l5mr3237823wro.147.1595500893077;
+        Thu, 23 Jul 2020 03:41:33 -0700 (PDT)
 Received: from localhost (79.red-80-24-233.staticip.rima-tde.net. [80.24.233.79])
-        by smtp.gmail.com with ESMTPSA id c136sm3068939wmd.10.2020.07.23.03.38.09
+        by smtp.gmail.com with ESMTPSA id x4sm3897545wru.81.2020.07.23.03.41.31
         for <netfilter-devel@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Jul 2020 03:38:10 -0700 (PDT)
-Subject: [nft PATCH] nft: rearrange help output to group related options
+        Thu, 23 Jul 2020 03:41:32 -0700 (PDT)
+Subject: [nft PATCH 2] nft: rearrange help output to group related options
  together
 From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Date:   Thu, 23 Jul 2020 12:38:09 +0200
-Message-ID: <159550068914.41232.11789462187226358215.stgit@endurance>
+Date:   Thu, 23 Jul 2020 12:41:31 +0200
+Message-ID: <159550086144.41526.8909925188540953249.stgit@endurance>
 User-Agent: StGit/0.19
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -141,6 +141,8 @@ While at it, refresh the man page to better reflex this new grouping, and add so
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
 ---
+v2: code formatting.
+
  doc/nft.txt |   86 ++++++++++++++++++++++---------------
  src/main.c  |  139 +++++++++++++++++++++++++++++++++++++----------------------
  2 files changed, 138 insertions(+), 87 deletions(-)
@@ -274,7 +276,7 @@ index ba0c8c0b..e64c8e13 100644
  *--terse*::
  	Omit contents of sets from output.
 diff --git a/src/main.c b/src/main.c
-index 6c182358..b4000710 100644
+index 6c182358..acd91aa9 100644
 --- a/src/main.c
 +++ b/src/main.c
 @@ -24,17 +24,31 @@
@@ -416,9 +418,9 @@ index 6c182358..b4000710 100644
  	print_option(&nft_options[IDX_VERSION_LONG]);
  
 -	fputs("\n", stdout);
-+        printf("\n"
-+               "Options (with operative meaning):"
-+               "\n");
++	printf("\n"
++	       "Options (with operative meaning):"
++	       "\n");
  
  	print_option(&nft_options[IDX_CHECK]);
  	print_option(&nft_options[IDX_FILE]);
@@ -430,9 +432,9 @@ index 6c182358..b4000710 100644
 -		print_option(&nft_options[i]);
 +	print_option(&nft_options[IDX_INCLUDEPATH]);
 +
-+        printf("\n"
-+               "Options (output text modifiers for data translation):"
-+               "\n");
++	printf("\n"
++	       "Options (output text modifiers for data translation):"
++	       "\n");
 +
 +	print_option(&nft_options[IDX_REVERSEDNS]);
 +	print_option(&nft_options[IDX_SERVICE]);
@@ -442,9 +444,9 @@ index 6c182358..b4000710 100644
 +	print_option(&nft_options[IDX_NUMERIC_PROTO]);
 +	print_option(&nft_options[IDX_NUMERIC_TIME]);
 +
-+        printf("\n"
-+               "Options (output text modifiers for parsing and other operations):"
-+               "\n");
++	printf("\n"
++	       "Options (output text modifiers for parsing and other operations):"
++	       "\n");
 +
 +	print_option(&nft_options[IDX_DEBUG]);
 +	print_option(&nft_options[IDX_ECHO]);
