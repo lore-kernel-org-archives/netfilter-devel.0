@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9E4AC43616
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 06:10:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D45BC4363A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 06:11:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A47D92065F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 06:10:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C8262065F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 06:11:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="UubGJx5U"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="MjJqnKUL"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727781AbgGWGJy (ORCPT
+        id S1728067AbgGWGKz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Jul 2020 02:09:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56490 "EHLO
+        Thu, 23 Jul 2020 02:10:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56540 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726929AbgGWGJm (ORCPT
+        with ESMTP id S1727779AbgGWGJy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Jul 2020 02:09:42 -0400
+        Thu, 23 Jul 2020 02:09:54 -0400
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21D86C0619DC;
-        Wed, 22 Jul 2020 23:09:42 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 845FAC0619E2;
+        Wed, 22 Jul 2020 23:09:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
         References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
         Content-Type:Content-ID:Content-Description;
-        bh=AgSxP7iVdXVEFS4IDrHx6ue4s0yWgQSmSEoUvewskkk=; b=UubGJx5UZwlfDZKlY0aminCkgD
-        TkOTjy6IQbG5S2CEEDBygCyqeSmFkmj050BgX/zCO7ZQhoijKBeefKdIYxudTh+C8mO8wrlBjkkdc
-        CNAQqLasagTDFNnE8YJX420qR8hR+zVHIihD5njNfOM1haYOm78uiHJZCD2fJk/pHLXt8cJwzck2G
-        d9T/mnVxBvuzPP+bsp721z5n9lnXCWiykSYhCnIy/x6+dGK6dwI9GOXv9d05ZojqKq522p8klLoU/
-        qzRiBLYFytH94kjENFy3YjMg30MfbSZRFnPejzFB/dvpRHoO2rOz932v79OqbUsmd5ii7pjIoA9EI
-        TL3hATzg==;
+        bh=B8ko5pqj9E5RJoiDMAT4LWCptgAPGsTT9yGUOg+zWgY=; b=MjJqnKULSWCVH3PByQuNM/qNXX
+        HtMB9dNpDBTWgJugcO7sE/5ko9tHLFvQQR2XB+seIcDgNTq0BIUT+jAS9YnxntKaMacKvA3QzLDz+
+        zGlGK28S4DDyYfe4AW2lZ7egTVp764ymWynHmgHFOMbVH5dRl56eBZKRzkiXR6tj4nh5pm3fHpJ0C
+        D7KIViHus2vbs8lwyCCqFoTyuA7CUg8gUDjDutcOgepeoe8H4V4VclrD+KVF5iFtHs5JYWGRp57sI
+        ctRlfcOu0L+2rfrA9FFOOVRguL7CObocmaxk45GM10m0ZW5jysNmi0VmrX1q8LwS7ICnZPKjKkGuJ
+        piwC5ebg==;
 Received: from [2001:4bb8:18c:2acc:91df:aae8:fa3b:de9c] (helo=localhost)
         by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jyUQ6-0003mG-1B; Thu, 23 Jul 2020 06:09:31 +0000
+        id 1jyUQG-0003oW-J1; Thu, 23 Jul 2020 06:09:41 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
@@ -58,9 +58,9 @@ Cc:     linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org,
         mptcp@lists.01.org, lvs-devel@vger.kernel.org,
         rds-devel@oss.oracle.com, linux-afs@lists.infradead.org,
         tipc-discussion@lists.sourceforge.net, linux-x25@vger.kernel.org
-Subject: [PATCH 15/26] net/ipv4: merge ip_options_get and ip_options_get_from_user
-Date:   Thu, 23 Jul 2020 08:08:57 +0200
-Message-Id: <20200723060908.50081-16-hch@lst.de>
+Subject: [PATCH 22/26] net/udp: switch udp_lib_setsockopt to sockptr_t
+Date:   Thu, 23 Jul 2020 08:09:04 +0200
+Message-Id: <20200723060908.50081-23-hch@lst.de>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20200723060908.50081-1-hch@lst.de>
 References: <20200723060908.50081-1-hch@lst.de>
@@ -72,127 +72,75 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Use the sockptr_t type to merge the versions.
+Pass a sockptr_t to prepare for set_fs-less handling of the kernel
+pointer from bpf-cgroup.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- include/net/ip.h       |  5 ++---
- net/ipv4/ip_options.c  | 43 +++++++++++-------------------------------
- net/ipv4/ip_sockglue.c |  7 ++++---
- 3 files changed, 17 insertions(+), 38 deletions(-)
+ include/net/udp.h | 2 +-
+ net/ipv4/udp.c    | 7 ++++---
+ net/ipv6/udp.c    | 3 ++-
+ 3 files changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/include/net/ip.h b/include/net/ip.h
-index 3d34acc95ca825..d66ad3a9522081 100644
---- a/include/net/ip.h
-+++ b/include/net/ip.h
-@@ -23,6 +23,7 @@
- #include <linux/in.h>
- #include <linux/skbuff.h>
- #include <linux/jhash.h>
-+#include <linux/sockptr.h>
- 
- #include <net/inet_sock.h>
- #include <net/route.h>
-@@ -707,9 +708,7 @@ int __ip_options_compile(struct net *net, struct ip_options *opt,
- int ip_options_compile(struct net *net, struct ip_options *opt,
- 		       struct sk_buff *skb);
- int ip_options_get(struct net *net, struct ip_options_rcu **optp,
--		   unsigned char *data, int optlen);
--int ip_options_get_from_user(struct net *net, struct ip_options_rcu **optp,
--			     unsigned char __user *data, int optlen);
-+		   sockptr_t data, int optlen);
- void ip_options_undo(struct ip_options *opt);
- void ip_forward_options(struct sk_buff *skb);
- int ip_options_rcv_srr(struct sk_buff *skb, struct net_device *dev);
-diff --git a/net/ipv4/ip_options.c b/net/ipv4/ip_options.c
-index ddaa01ec2bce82..948747aac4e2d0 100644
---- a/net/ipv4/ip_options.c
-+++ b/net/ipv4/ip_options.c
-@@ -519,15 +519,20 @@ void ip_options_undo(struct ip_options *opt)
- 	}
- }
- 
--static struct ip_options_rcu *ip_options_get_alloc(const int optlen)
-+int ip_options_get(struct net *net, struct ip_options_rcu **optp,
-+		   sockptr_t data, int optlen)
+diff --git a/include/net/udp.h b/include/net/udp.h
+index 17a9e86a807638..295d52a7359827 100644
+--- a/include/net/udp.h
++++ b/include/net/udp.h
+@@ -306,7 +306,7 @@ struct sk_buff *skb_udp_tunnel_segment(struct sk_buff *skb,
+ int udp_lib_getsockopt(struct sock *sk, int level, int optname,
+ 		       char __user *optval, int __user *optlen);
+ int udp_lib_setsockopt(struct sock *sk, int level, int optname,
+-		       char __user *optval, unsigned int optlen,
++		       sockptr_t optval, unsigned int optlen,
+ 		       int (*push_pending_frames)(struct sock *));
+ struct sock *udp4_lib_lookup(struct net *net, __be32 saddr, __be16 sport,
+ 			     __be32 daddr, __be16 dport, int dif);
+diff --git a/net/ipv4/udp.c b/net/ipv4/udp.c
+index bb95cddcb040a6..c6cb2d09dbc75e 100644
+--- a/net/ipv4/udp.c
++++ b/net/ipv4/udp.c
+@@ -2588,7 +2588,7 @@ void udp_destroy_sock(struct sock *sk)
+  *	Socket option code for UDP
+  */
+ int udp_lib_setsockopt(struct sock *sk, int level, int optname,
+-		       char __user *optval, unsigned int optlen,
++		       sockptr_t optval, unsigned int optlen,
+ 		       int (*push_pending_frames)(struct sock *))
  {
--	return kzalloc(sizeof(struct ip_options_rcu) + ((optlen + 3) & ~3),
-+	struct ip_options_rcu *opt;
-+
-+	opt = kzalloc(sizeof(struct ip_options_rcu) + ((optlen + 3) & ~3),
- 		       GFP_KERNEL);
--}
-+	if (!opt)
-+		return -ENOMEM;
-+	if (optlen && copy_from_sockptr(opt->opt.__data, data, optlen)) {
-+		kfree(opt);
-+		return -EFAULT;
-+	}
+ 	struct udp_sock *up = udp_sk(sk);
+@@ -2599,7 +2599,7 @@ int udp_lib_setsockopt(struct sock *sk, int level, int optname,
+ 	if (optlen < sizeof(int))
+ 		return -EINVAL;
  
--static int ip_options_get_finish(struct net *net, struct ip_options_rcu **optp,
--				 struct ip_options_rcu *opt, int optlen)
--{
- 	while (optlen & 3)
- 		opt->opt.__data[optlen++] = IPOPT_END;
- 	opt->opt.optlen = optlen;
-@@ -540,32 +545,6 @@ static int ip_options_get_finish(struct net *net, struct ip_options_rcu **optp,
- 	return 0;
- }
+-	if (get_user(val, (int __user *)optval))
++	if (copy_from_sockptr(&val, optval, sizeof(val)))
+ 		return -EFAULT;
  
--int ip_options_get_from_user(struct net *net, struct ip_options_rcu **optp,
--			     unsigned char __user *data, int optlen)
--{
--	struct ip_options_rcu *opt = ip_options_get_alloc(optlen);
--
--	if (!opt)
--		return -ENOMEM;
--	if (optlen && copy_from_user(opt->opt.__data, data, optlen)) {
--		kfree(opt);
--		return -EFAULT;
--	}
--	return ip_options_get_finish(net, optp, opt, optlen);
--}
--
--int ip_options_get(struct net *net, struct ip_options_rcu **optp,
--		   unsigned char *data, int optlen)
--{
--	struct ip_options_rcu *opt = ip_options_get_alloc(optlen);
--
--	if (!opt)
--		return -ENOMEM;
--	if (optlen)
--		memcpy(opt->opt.__data, data, optlen);
--	return ip_options_get_finish(net, optp, opt, optlen);
--}
--
- void ip_forward_options(struct sk_buff *skb)
+ 	valbool = val ? 1 : 0;
+@@ -2707,7 +2707,8 @@ int udp_setsockopt(struct sock *sk, int level, int optname,
+ 		   char __user *optval, unsigned int optlen)
  {
- 	struct   ip_options *opt	= &(IPCB(skb)->opt);
-diff --git a/net/ipv4/ip_sockglue.c b/net/ipv4/ip_sockglue.c
-index ac495b0cff8ffb..b12f39b52008a3 100644
---- a/net/ipv4/ip_sockglue.c
-+++ b/net/ipv4/ip_sockglue.c
-@@ -280,7 +280,8 @@ int ip_cmsg_send(struct sock *sk, struct msghdr *msg, struct ipcm_cookie *ipc,
- 			err = cmsg->cmsg_len - sizeof(struct cmsghdr);
- 
- 			/* Our caller is responsible for freeing ipc->opt */
--			err = ip_options_get(net, &ipc->opt, CMSG_DATA(cmsg),
-+			err = ip_options_get(net, &ipc->opt,
-+					     KERNEL_SOCKPTR(CMSG_DATA(cmsg)),
- 					     err < 40 ? err : 40);
- 			if (err)
- 				return err;
-@@ -940,8 +941,8 @@ static int do_ip_setsockopt(struct sock *sk, int level,
- 
- 		if (optlen > 40)
- 			goto e_inval;
--		err = ip_options_get_from_user(sock_net(sk), &opt,
--					       optval, optlen);
-+		err = ip_options_get(sock_net(sk), &opt, USER_SOCKPTR(optval),
-+					      optlen);
- 		if (err)
- 			break;
- 		old = rcu_dereference_protected(inet->inet_opt,
+ 	if (level == SOL_UDP  ||  level == SOL_UDPLITE)
+-		return udp_lib_setsockopt(sk, level, optname, optval, optlen,
++		return udp_lib_setsockopt(sk, level, optname,
++					  USER_SOCKPTR(optval), optlen,
+ 					  udp_push_pending_frames);
+ 	return ip_setsockopt(sk, level, optname, optval, optlen);
+ }
+diff --git a/net/ipv6/udp.c b/net/ipv6/udp.c
+index 7c1143feb2bf7e..2df1e6c9d7cbf6 100644
+--- a/net/ipv6/udp.c
++++ b/net/ipv6/udp.c
+@@ -1622,7 +1622,8 @@ int udpv6_setsockopt(struct sock *sk, int level, int optname,
+ 		     char __user *optval, unsigned int optlen)
+ {
+ 	if (level == SOL_UDP  ||  level == SOL_UDPLITE)
+-		return udp_lib_setsockopt(sk, level, optname, optval, optlen,
++		return udp_lib_setsockopt(sk, level, optname,
++					  USER_SOCKPTR(optval), optlen,
+ 					  udp_v6_push_pending_frames);
+ 	return ipv6_setsockopt(sk, level, optname, optval, optlen);
+ }
 -- 
 2.27.0
 
