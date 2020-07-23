@@ -2,133 +2,99 @@ Return-Path: <SRS0=/ZNS=BC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62C0AC433EB
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 14:56:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E58CC433E4
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 15:41:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4C573207BB
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 14:56:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3BE77206D8
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 15:41:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728792AbgGWO4j convert rfc822-to-8bit (ORCPT
+        id S1729616AbgGWPlA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Jul 2020 10:56:39 -0400
-Received: from eu-smtp-delivery-151.mimecast.com ([207.82.80.151]:31591 "EHLO
-        eu-smtp-delivery-151.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728431AbgGWO4i (ORCPT
+        Thu, 23 Jul 2020 11:41:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60362 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726761AbgGWPk6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Jul 2020 10:56:38 -0400
-Received: from AcuMS.aculab.com (156.67.243.126 [156.67.243.126]) (Using
- TLS) by relay.mimecast.com with ESMTP id
- uk-mta-82-SdYRZOb-OAyxxDdIZA3c_Q-1; Thu, 23 Jul 2020 15:56:34 +0100
-X-MC-Unique: SdYRZOb-OAyxxDdIZA3c_Q-1
-Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:43c:695e:880f:8750) by
- AcuMS.aculab.com (fd9f:af1c:a25b:0:43c:695e:880f:8750) with Microsoft SMTP
- Server (TLS) id 15.0.1347.2; Thu, 23 Jul 2020 15:56:33 +0100
-Received: from AcuMS.Aculab.com ([fe80::43c:695e:880f:8750]) by
- AcuMS.aculab.com ([fe80::43c:695e:880f:8750%12]) with mapi id 15.00.1347.000;
- Thu, 23 Jul 2020 15:56:33 +0100
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     'Christoph Hellwig' <hch@lst.de>
-CC:     "David S. Miller" <davem@davemloft.net>,
+        Thu, 23 Jul 2020 11:40:58 -0400
+Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8452C0619DC;
+        Thu, 23 Jul 2020 08:40:52 -0700 (PDT)
+Received: by a3.inai.de (Postfix, from userid 25121)
+        id 049975872C746; Thu, 23 Jul 2020 17:40:49 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by a3.inai.de (Postfix) with ESMTP id 038D360C4009F;
+        Thu, 23 Jul 2020 17:40:49 +0200 (CEST)
+Date:   Thu, 23 Jul 2020 17:40:49 +0200 (CEST)
+From:   Jan Engelhardt <jengelh@inai.de>
+To:     Christoph Hellwig <hch@lst.de>
+cc:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
         Alexei Starovoitov <ast@kernel.org>,
         Daniel Borkmann <daniel@iogearbox.net>,
         Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
         Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
         Eric Dumazet <edumazet@google.com>,
-        "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "bpf@vger.kernel.org" <bpf@vger.kernel.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "coreteam@netfilter.org" <coreteam@netfilter.org>,
-        "linux-sctp@vger.kernel.org" <linux-sctp@vger.kernel.org>,
-        "linux-hams@vger.kernel.org" <linux-hams@vger.kernel.org>,
-        "linux-bluetooth@vger.kernel.org" <linux-bluetooth@vger.kernel.org>,
-        "bridge@lists.linux-foundation.org" 
-        <bridge@lists.linux-foundation.org>,
-        "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>,
-        "dccp@vger.kernel.org" <dccp@vger.kernel.org>,
-        "linux-decnet-user@lists.sourceforge.net" 
-        <linux-decnet-user@lists.sourceforge.net>,
-        "linux-wpan@vger.kernel.org" <linux-wpan@vger.kernel.org>,
-        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-        "mptcp@lists.01.org" <mptcp@lists.01.org>,
-        "lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
-        "rds-devel@oss.oracle.com" <rds-devel@oss.oracle.com>,
-        "linux-afs@lists.infradead.org" <linux-afs@lists.infradead.org>,
-        "tipc-discussion@lists.sourceforge.net" 
-        <tipc-discussion@lists.sourceforge.net>,
-        "linux-x25@vger.kernel.org" <linux-x25@vger.kernel.org>
-Subject: RE: [PATCH 03/26] bpfilter: reject kernel addresses
-Thread-Topic: [PATCH 03/26] bpfilter: reject kernel addresses
-Thread-Index: AQHWYLhxJPyZOJNDGEen8+LVytPg86kVPIvA///w6YCAABGh0A==
-Date:   Thu, 23 Jul 2020 14:56:33 +0000
-Message-ID: <5fc6b1716f1b4534bda95bab49512754@AcuMS.aculab.com>
-References: <20200723060908.50081-1-hch@lst.de>
- <20200723060908.50081-4-hch@lst.de>
- <c3dc5b4d84e64230bb6ca8df7bb70705@AcuMS.aculab.com>
- <20200723144455.GA12280@lst.de>
-In-Reply-To: <20200723144455.GA12280@lst.de>
-Accept-Language: en-GB, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+        linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, bpf@vger.kernel.org,
+        Netfilter Developer Mailing List 
+        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
+        linux-sctp@vger.kernel.org, linux-hams@vger.kernel.org,
+        linux-bluetooth@vger.kernel.org, bridge@lists.linux-foundation.org,
+        linux-can@vger.kernel.org, dccp@vger.kernel.org,
+        linux-decnet-user@lists.sourceforge.net,
+        linux-wpan@vger.kernel.org, linux-s390@vger.kernel.org,
+        mptcp@lists.01.org, lvs-devel@vger.kernel.org,
+        rds-devel@oss.oracle.com, linux-afs@lists.infradead.org,
+        tipc-discussion@lists.sourceforge.net, linux-x25@vger.kernel.org
+Subject: Re: [PATCH 04/26] net: add a new sockptr_t type
+In-Reply-To: <20200723060908.50081-5-hch@lst.de>
+Message-ID: <nycvar.YFH.7.77.849.2007231725090.11202@n3.vanv.qr>
+References: <20200723060908.50081-1-hch@lst.de> <20200723060908.50081-5-hch@lst.de>
+User-Agent: Alpine 2.22 (LSU 394 2020-01-19)
 MIME-Version: 1.0
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: 'Christoph Hellwig'
-> Sent: 23 July 2020 15:45
-> 
-> On Thu, Jul 23, 2020 at 02:42:11PM +0000, David Laight wrote:
-> > From: Christoph Hellwig
-> > > Sent: 23 July 2020 07:09
-> > >
-> > > The bpfilter user mode helper processes the optval address using
-> > > process_vm_readv.  Don't send it kernel addresses fed under
-> > > set_fs(KERNEL_DS) as that won't work.
-> >
-> > What sort of operations is the bpf filter doing on the sockopt buffers?
-> >
-> > Any attempts to reject some requests can be thwarted by a second
-> > application thread modifying the buffer after the bpf filter has
-> > checked that it allowed.
-> >
-> > You can't do security by reading a user buffer twice.
-> 
-> I'm not saying that I approve of the design, but the current bpfilter
-> design uses process_vm_readv to access the buffer, which obviously does
-> not work with kernel buffers.
 
-Is this a different bit of bpf that that which used to directly
-intercept setsockopt() requests and pass them down from a kernel buffer?
+On Thursday 2020-07-23 08:08, Christoph Hellwig wrote:
+>+typedef struct {
+>+	union {
+>+		void		*kernel;
+>+		void __user	*user;
+>+	};
+>+	bool		is_kernel : 1;
+>+} sockptr_t;
+>+
+>+static inline bool sockptr_is_null(sockptr_t sockptr)
+>+{
+>+	return !sockptr.user && !sockptr.kernel;
+>+}
 
-I can't held feeling that bpf is getting 'too big for its boots' and
-will have a local-user privilege escalation hiding in it somewhere.
+"""If the member used to access the contents of a union is not the same as the
+member last used to store a value, the object representation of the value that
+was stored is reinterpreted as an object representation of the new type (this
+is known as type punning). If the size of the new type is larger than the size
+of the last-written type, the contents of the excess bytes are unspecified (and
+may be a trap representation)"""
 
-I've had to fix my 'out of tree' driver to remove the [sg]etsockopt()
-calls. Some of the replacements will go badly wrong if I've accidentally
-lost track of the socket type.
-I do have a daemon process sleeping in the driver - so I can wake it up
-and make the requests from it with a user buffer.
-I may have to implement that to get the negotiated number of 'ostreams'
-to an SCTP connection.
+As I am not too versed with the consequences of trap representations, I will
+just point out that a future revision of the C standard may introduce (proposal
+N2362) stronger C++-like requirements; as for union, that would imply a simple:
 
-	David
+"""It's undefined behavior to read from the member of the union that wasn't
+most recently written.""" [cppreference.com]
 
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
+
+So, in the spirit of copy_from/to_sockptr, the is_null function should read
+
+{
+	return sockptr.is_kernel ? !sockptr.user : !sockptr.kernel;
+}
 
