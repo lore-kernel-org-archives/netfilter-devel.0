@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0989CC433E5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 06:10:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90847C4332E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 06:10:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D82932065F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 06:10:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F89120888
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 06:10:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="aIaMhclE"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="if/Qegv4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727982AbgGWGKf (ORCPT
+        id S1727804AbgGWGJz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Jul 2020 02:10:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56546 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727808AbgGWGJz (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 23 Jul 2020 02:09:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56500 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726649AbgGWGJp (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 23 Jul 2020 02:09:45 -0400
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 910CCC0619DC;
-        Wed, 22 Jul 2020 23:09:55 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22A5DC0619DC;
+        Wed, 22 Jul 2020 23:09:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
         References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
         Content-Type:Content-ID:Content-Description;
-        bh=UdgYuJlmWZokLcAOPnfw8PlZRvn7vjQf/6iOObq/cjM=; b=aIaMhclEEnD1ULwrKvn78xfvE4
-        8LhP29U8BKD5dCx/PZ4xzwjJk056rLJlvUegZOy3Vu6Yef9on/jdjTYZDrYzfTZl8bVQbbTop0UWR
-        M8Yx1TSJ9NA/9mJk31ud6h2bSkcvPf+C2+x6wKPLcYNdkFZ6us0Lb3ds14cqloxiLsw3vi7XqwMx5
-        hpYczsqWiGeLGvsYypY38x3+nsPb17XruzF454E+faRyBokX2ig/VaOf+Jyic1oOFiasUFAxiY5zh
-        h3Y5fDzIOIWdfMwKL7ZrXjv5DnfDd7AZWh3ZQ4AiSNMLsHjYpJvbeUT3B/4GZ+BqlGh21EpzBzSK+
-        4fcp8kXw==;
+        bh=7JpGBoLpaFE7Jf5UF2pDwmquZJ8aXq1cjTXF4rce5nE=; b=if/Qegv4brr1NXoBiud4NJcKIp
+        V7zYS2WTQuFNMlIeqML7By9MKB8BvXuzZYn/xCkWhSa63kU6Rl63ePHIdT8VvpiDZV8tJl9S6jbeV
+        iSeG9VgSbS1Ld1QuuPrqeu562yQRRnU0tKUBhgdN5cqchwPyXO1pgzYvgNbRFZNbk39h1InTlUdB9
+        XMqzDab2vgcAazMkysGnZWsSl4JlgdoBNR8lP/9CVu3XXew+u7ghJRJENmwh6sgXq4erH5QxcLlyN
+        E2M3yh0TCRU+aNENg8H8W9YAc6M4/B8vxXE/N4ONqP61HGCG9h8KGpQ0wQ4sdmlw9KE8QSa9Igv56
+        8a0ehEqg==;
 Received: from [2001:4bb8:18c:2acc:91df:aae8:fa3b:de9c] (helo=localhost)
         by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jyUQJ-0003pG-7a; Thu, 23 Jul 2020 06:09:43 +0000
+        id 1jyUQ8-0003mj-AB; Thu, 23 Jul 2020 06:09:32 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
@@ -58,9 +58,9 @@ Cc:     linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org,
         mptcp@lists.01.org, lvs-devel@vger.kernel.org,
         rds-devel@oss.oracle.com, linux-afs@lists.infradead.org,
         tipc-discussion@lists.sourceforge.net, linux-x25@vger.kernel.org
-Subject: [PATCH 24/26] net/tcp: switch do_tcp_setsockopt to sockptr_t
-Date:   Thu, 23 Jul 2020 08:09:06 +0200
-Message-Id: <20200723060908.50081-25-hch@lst.de>
+Subject: [PATCH 16/26] net/ipv4: switch do_ip_setsockopt to sockptr_t
+Date:   Thu, 23 Jul 2020 08:08:58 +0200
+Message-Id: <20200723060908.50081-17-hch@lst.de>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20200723060908.50081-1-hch@lst.de>
 References: <20200723060908.50081-1-hch@lst.de>
@@ -77,131 +77,253 @@ pointer from bpf-cgroup.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- net/ipv4/tcp.c | 34 ++++++++++++++++------------------
- 1 file changed, 16 insertions(+), 18 deletions(-)
+ net/ipv4/ip_sockglue.c | 68 ++++++++++++++++++++----------------------
+ 1 file changed, 33 insertions(+), 35 deletions(-)
 
-diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
-index 49bf15c27deac7..71cbc61c335f71 100644
---- a/net/ipv4/tcp.c
-+++ b/net/ipv4/tcp.c
-@@ -2764,7 +2764,7 @@ static inline bool tcp_can_repair_sock(const struct sock *sk)
- 		(sk->sk_state != TCP_LISTEN);
+diff --git a/net/ipv4/ip_sockglue.c b/net/ipv4/ip_sockglue.c
+index b12f39b52008a3..f7f1507b89fe24 100644
+--- a/net/ipv4/ip_sockglue.c
++++ b/net/ipv4/ip_sockglue.c
+@@ -683,15 +683,15 @@ static int set_mcast_msfilter(struct sock *sk, int ifindex,
+ 	return -EADDRNOTAVAIL;
  }
  
--static int tcp_repair_set_window(struct tcp_sock *tp, char __user *optbuf, int len)
-+static int tcp_repair_set_window(struct tcp_sock *tp, sockptr_t optbuf, int len)
+-static int copy_group_source_from_user(struct group_source_req *greqs,
+-		void __user *optval, int optlen)
++static int copy_group_source_from_sockptr(struct group_source_req *greqs,
++		sockptr_t optval, int optlen)
  {
- 	struct tcp_repair_window opt;
+ 	if (in_compat_syscall()) {
+ 		struct compat_group_source_req gr32;
  
-@@ -2774,7 +2774,7 @@ static int tcp_repair_set_window(struct tcp_sock *tp, char __user *optbuf, int l
- 	if (len != sizeof(opt))
+ 		if (optlen != sizeof(gr32))
+ 			return -EINVAL;
+-		if (copy_from_user(&gr32, optval, sizeof(gr32)))
++		if (copy_from_sockptr(&gr32, optval, sizeof(gr32)))
+ 			return -EFAULT;
+ 		greqs->gsr_interface = gr32.gsr_interface;
+ 		greqs->gsr_group = gr32.gsr_group;
+@@ -699,7 +699,7 @@ static int copy_group_source_from_user(struct group_source_req *greqs,
+ 	} else {
+ 		if (optlen != sizeof(*greqs))
+ 			return -EINVAL;
+-		if (copy_from_user(greqs, optval, sizeof(*greqs)))
++		if (copy_from_sockptr(greqs, optval, sizeof(*greqs)))
+ 			return -EFAULT;
+ 	}
+ 
+@@ -707,14 +707,14 @@ static int copy_group_source_from_user(struct group_source_req *greqs,
+ }
+ 
+ static int do_mcast_group_source(struct sock *sk, int optname,
+-		void __user *optval, int optlen)
++		sockptr_t optval, int optlen)
+ {
+ 	struct group_source_req greqs;
+ 	struct ip_mreq_source mreqs;
+ 	struct sockaddr_in *psin;
+ 	int omode, add, err;
+ 
+-	err = copy_group_source_from_user(&greqs, optval, optlen);
++	err = copy_group_source_from_sockptr(&greqs, optval, optlen);
+ 	if (err)
+ 		return err;
+ 
+@@ -754,8 +754,7 @@ static int do_mcast_group_source(struct sock *sk, int optname,
+ 	return ip_mc_source(add, omode, sk, &mreqs, greqs.gsr_interface);
+ }
+ 
+-static int ip_set_mcast_msfilter(struct sock *sk, void __user *optval,
+-		int optlen)
++static int ip_set_mcast_msfilter(struct sock *sk, sockptr_t optval, int optlen)
+ {
+ 	struct group_filter *gsf = NULL;
+ 	int err;
+@@ -765,7 +764,7 @@ static int ip_set_mcast_msfilter(struct sock *sk, void __user *optval,
+ 	if (optlen > sysctl_optmem_max)
+ 		return -ENOBUFS;
+ 
+-	gsf = memdup_user(optval, optlen);
++	gsf = memdup_sockptr(optval, optlen);
+ 	if (IS_ERR(gsf))
+ 		return PTR_ERR(gsf);
+ 
+@@ -786,7 +785,7 @@ static int ip_set_mcast_msfilter(struct sock *sk, void __user *optval,
+ 	return err;
+ }
+ 
+-static int compat_ip_set_mcast_msfilter(struct sock *sk, void __user *optval,
++static int compat_ip_set_mcast_msfilter(struct sock *sk, sockptr_t optval,
+ 		int optlen)
+ {
+ 	const int size0 = offsetof(struct compat_group_filter, gf_slist);
+@@ -806,7 +805,7 @@ static int compat_ip_set_mcast_msfilter(struct sock *sk, void __user *optval,
+ 	gf32 = p + 4; /* we want ->gf_group and ->gf_slist aligned */
+ 
+ 	err = -EFAULT;
+-	if (copy_from_user(gf32, optval, optlen))
++	if (copy_from_sockptr(gf32, optval, optlen))
+ 		goto out_free_gsf;
+ 
+ 	/* numsrc >= (4G-140)/128 overflow in 32 bits */
+@@ -831,7 +830,7 @@ static int compat_ip_set_mcast_msfilter(struct sock *sk, void __user *optval,
+ }
+ 
+ static int ip_mcast_join_leave(struct sock *sk, int optname,
+-		void __user *optval, int optlen)
++		sockptr_t optval, int optlen)
+ {
+ 	struct ip_mreqn mreq = { };
+ 	struct sockaddr_in *psin;
+@@ -839,7 +838,7 @@ static int ip_mcast_join_leave(struct sock *sk, int optname,
+ 
+ 	if (optlen < sizeof(struct group_req))
  		return -EINVAL;
- 
--	if (copy_from_user(&opt, optbuf, sizeof(opt)))
-+	if (copy_from_sockptr(&opt, optbuf, sizeof(opt)))
+-	if (copy_from_user(&greq, optval, sizeof(greq)))
++	if (copy_from_sockptr(&greq, optval, sizeof(greq)))
  		return -EFAULT;
  
- 	if (opt.max_window < opt.snd_wnd)
-@@ -2796,17 +2796,17 @@ static int tcp_repair_set_window(struct tcp_sock *tp, char __user *optbuf, int l
- 	return 0;
+ 	psin = (struct sockaddr_in *)&greq.gr_group;
+@@ -853,7 +852,7 @@ static int ip_mcast_join_leave(struct sock *sk, int optname,
  }
  
--static int tcp_repair_options_est(struct sock *sk,
--		struct tcp_repair_opt __user *optbuf, unsigned int len)
-+static int tcp_repair_options_est(struct sock *sk, sockptr_t optbuf,
-+		unsigned int len)
+ static int compat_ip_mcast_join_leave(struct sock *sk, int optname,
+-		void __user *optval, int optlen)
++		sockptr_t optval, int optlen)
  {
- 	struct tcp_sock *tp = tcp_sk(sk);
- 	struct tcp_repair_opt opt;
+ 	struct compat_group_req greq;
+ 	struct ip_mreqn mreq = { };
+@@ -861,7 +860,7 @@ static int compat_ip_mcast_join_leave(struct sock *sk, int optname,
  
- 	while (len >= sizeof(opt)) {
--		if (copy_from_user(&opt, optbuf, sizeof(opt)))
-+		if (copy_from_sockptr(&opt, optbuf, sizeof(opt)))
- 			return -EFAULT;
+ 	if (optlen < sizeof(struct compat_group_req))
+ 		return -EINVAL;
+-	if (copy_from_user(&greq, optval, sizeof(greq)))
++	if (copy_from_sockptr(&greq, optval, sizeof(greq)))
+ 		return -EFAULT;
  
--		optbuf++;
-+		sockptr_advance(optbuf, sizeof(opt));
- 		len -= sizeof(opt);
+ 	psin = (struct sockaddr_in *)&greq.gr_group;
+@@ -875,8 +874,8 @@ static int compat_ip_mcast_join_leave(struct sock *sk, int optname,
+ 	return ip_mc_leave_group(sk, &mreq);
+ }
  
- 		switch (opt.opt_code) {
-@@ -3020,8 +3020,8 @@ EXPORT_SYMBOL(tcp_sock_set_keepcnt);
- /*
-  *	Socket option code for TCP.
-  */
--static int do_tcp_setsockopt(struct sock *sk, int level,
--		int optname, char __user *optval, unsigned int optlen)
-+static int do_tcp_setsockopt(struct sock *sk, int level, int optname,
+-static int do_ip_setsockopt(struct sock *sk, int level,
+-			    int optname, char __user *optval, unsigned int optlen)
++static int do_ip_setsockopt(struct sock *sk, int level, int optname,
 +		sockptr_t optval, unsigned int optlen)
  {
- 	struct tcp_sock *tp = tcp_sk(sk);
- 	struct inet_connection_sock *icsk = inet_csk(sk);
-@@ -3037,7 +3037,7 @@ static int do_tcp_setsockopt(struct sock *sk, int level,
- 		if (optlen < 1)
- 			return -EINVAL;
+ 	struct inet_sock *inet = inet_sk(sk);
+ 	struct net *net = sock_net(sk);
+@@ -910,12 +909,12 @@ static int do_ip_setsockopt(struct sock *sk, int level,
+ 	case IP_RECVFRAGSIZE:
+ 	case IP_RECVERR_RFC4884:
+ 		if (optlen >= sizeof(int)) {
+-			if (get_user(val, (int __user *) optval))
++			if (copy_from_sockptr(&val, optval, sizeof(val)))
+ 				return -EFAULT;
+ 		} else if (optlen >= sizeof(char)) {
+ 			unsigned char ucval;
  
--		val = strncpy_from_user(name, optval,
-+		val = strncpy_from_sockptr(name, optval,
- 					min_t(long, TCP_CA_NAME_MAX-1, optlen));
- 		if (val < 0)
- 			return -EFAULT;
-@@ -3056,7 +3056,7 @@ static int do_tcp_setsockopt(struct sock *sk, int level,
- 		if (optlen < 1)
- 			return -EINVAL;
+-			if (get_user(ucval, (unsigned char __user *) optval))
++			if (copy_from_sockptr(&ucval, optval, sizeof(ucval)))
+ 				return -EFAULT;
+ 			val = (int) ucval;
+ 		}
+@@ -926,8 +925,7 @@ static int do_ip_setsockopt(struct sock *sk, int level,
+ 	if (optname == IP_ROUTER_ALERT)
+ 		return ip_ra_control(sk, val ? 1 : 0, NULL);
+ 	if (ip_mroute_opt(optname))
+-		return ip_mroute_setsockopt(sk, optname, USER_SOCKPTR(optval),
+-					    optlen);
++		return ip_mroute_setsockopt(sk, optname, optval, optlen);
  
--		val = strncpy_from_user(name, optval,
-+		val = strncpy_from_sockptr(name, optval,
- 					min_t(long, TCP_ULP_NAME_MAX - 1,
- 					      optlen));
- 		if (val < 0)
-@@ -3079,7 +3079,7 @@ static int do_tcp_setsockopt(struct sock *sk, int level,
- 		    optlen != TCP_FASTOPEN_KEY_BUF_LENGTH)
- 			return -EINVAL;
+ 	err = 0;
+ 	if (needs_rtnl)
+@@ -941,8 +939,7 @@ static int do_ip_setsockopt(struct sock *sk, int level,
  
--		if (copy_from_user(key, optval, optlen))
-+		if (copy_from_sockptr(key, optval, optlen))
- 			return -EFAULT;
+ 		if (optlen > 40)
+ 			goto e_inval;
+-		err = ip_options_get(sock_net(sk), &opt, USER_SOCKPTR(optval),
+-					      optlen);
++		err = ip_options_get(sock_net(sk), &opt, optval, optlen);
+ 		if (err)
+ 			break;
+ 		old = rcu_dereference_protected(inet->inet_opt,
+@@ -1140,17 +1137,17 @@ static int do_ip_setsockopt(struct sock *sk, int level,
  
- 		if (optlen == TCP_FASTOPEN_KEY_BUF_LENGTH)
-@@ -3095,7 +3095,7 @@ static int do_tcp_setsockopt(struct sock *sk, int level,
- 	if (optlen < sizeof(int))
- 		return -EINVAL;
+ 		err = -EFAULT;
+ 		if (optlen >= sizeof(struct ip_mreqn)) {
+-			if (copy_from_user(&mreq, optval, sizeof(mreq)))
++			if (copy_from_sockptr(&mreq, optval, sizeof(mreq)))
+ 				break;
+ 		} else {
+ 			memset(&mreq, 0, sizeof(mreq));
+ 			if (optlen >= sizeof(struct ip_mreq)) {
+-				if (copy_from_user(&mreq, optval,
+-						   sizeof(struct ip_mreq)))
++				if (copy_from_sockptr(&mreq, optval,
++						      sizeof(struct ip_mreq)))
+ 					break;
+ 			} else if (optlen >= sizeof(struct in_addr)) {
+-				if (copy_from_user(&mreq.imr_address, optval,
+-						   sizeof(struct in_addr)))
++				if (copy_from_sockptr(&mreq.imr_address, optval,
++						      sizeof(struct in_addr)))
+ 					break;
+ 			}
+ 		}
+@@ -1202,11 +1199,12 @@ static int do_ip_setsockopt(struct sock *sk, int level,
+ 			goto e_inval;
+ 		err = -EFAULT;
+ 		if (optlen >= sizeof(struct ip_mreqn)) {
+-			if (copy_from_user(&mreq, optval, sizeof(mreq)))
++			if (copy_from_sockptr(&mreq, optval, sizeof(mreq)))
+ 				break;
+ 		} else {
+ 			memset(&mreq, 0, sizeof(mreq));
+-			if (copy_from_user(&mreq, optval, sizeof(struct ip_mreq)))
++			if (copy_from_sockptr(&mreq, optval,
++					      sizeof(struct ip_mreq)))
+ 				break;
+ 		}
  
--	if (get_user(val, (int __user *)optval))
-+	if (copy_from_sockptr(&val, optval, sizeof(val)))
- 		return -EFAULT;
+@@ -1226,7 +1224,7 @@ static int do_ip_setsockopt(struct sock *sk, int level,
+ 			err = -ENOBUFS;
+ 			break;
+ 		}
+-		msf = memdup_user(optval, optlen);
++		msf = memdup_sockptr(optval, optlen);
+ 		if (IS_ERR(msf)) {
+ 			err = PTR_ERR(msf);
+ 			break;
+@@ -1257,7 +1255,7 @@ static int do_ip_setsockopt(struct sock *sk, int level,
  
- 	lock_sock(sk);
-@@ -3174,9 +3174,7 @@ static int do_tcp_setsockopt(struct sock *sk, int level,
- 		if (!tp->repair)
- 			err = -EINVAL;
- 		else if (sk->sk_state == TCP_ESTABLISHED)
--			err = tcp_repair_options_est(sk,
--					(struct tcp_repair_opt __user *)optval,
--					optlen);
-+			err = tcp_repair_options_est(sk, optval, optlen);
- 		else
- 			err = -EPERM;
+ 		if (optlen != sizeof(struct ip_mreq_source))
+ 			goto e_inval;
+-		if (copy_from_user(&mreqs, optval, sizeof(mreqs))) {
++		if (copy_from_sockptr(&mreqs, optval, sizeof(mreqs))) {
+ 			err = -EFAULT;
+ 			break;
+ 		}
+@@ -1324,8 +1322,7 @@ static int do_ip_setsockopt(struct sock *sk, int level,
+ 		err = -EPERM;
+ 		if (!ns_capable(sock_net(sk)->user_ns, CAP_NET_ADMIN))
+ 			break;
+-		err = xfrm_user_policy(sk, optname, USER_SOCKPTR(optval),
+-				       optlen);
++		err = xfrm_user_policy(sk, optname, optval, optlen);
  		break;
-@@ -3249,8 +3247,7 @@ static int do_tcp_setsockopt(struct sock *sk, int level,
- #ifdef CONFIG_TCP_MD5SIG
- 	case TCP_MD5SIG:
- 	case TCP_MD5SIG_EXT:
--		err = tp->af_specific->md5_parse(sk, optname,
--						 USER_SOCKPTR(optval), optlen);
-+		err = tp->af_specific->md5_parse(sk, optname, optval, optlen);
- 		break;
- #endif
- 	case TCP_USER_TIMEOUT:
-@@ -3334,7 +3331,8 @@ int tcp_setsockopt(struct sock *sk, int level, int optname, char __user *optval,
- 	if (level != SOL_TCP)
- 		return icsk->icsk_af_ops->setsockopt(sk, level, optname,
- 						     optval, optlen);
--	return do_tcp_setsockopt(sk, level, optname, optval, optlen);
-+	return do_tcp_setsockopt(sk, level, optname, USER_SOCKPTR(optval),
-+				 optlen);
- }
- EXPORT_SYMBOL(tcp_setsockopt);
  
+ 	case IP_TRANSPARENT:
+@@ -1412,7 +1409,8 @@ int ip_setsockopt(struct sock *sk, int level,
+ 	if (level != SOL_IP)
+ 		return -ENOPROTOOPT;
+ 
+-	err = do_ip_setsockopt(sk, level, optname, optval, optlen);
++	err = do_ip_setsockopt(sk, level, optname, USER_SOCKPTR(optval),
++			       optlen);
+ #if IS_ENABLED(CONFIG_BPFILTER_UMH)
+ 	if (optname >= BPFILTER_IPT_SO_SET_REPLACE &&
+ 	    optname < BPFILTER_IPT_SET_MAX)
 -- 
 2.27.0
 
