@@ -2,79 +2,83 @@ Return-Path: <SRS0=/ZNS=BC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28C61C43445
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 01:39:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25C7DC433E0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 01:39:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E0F4320781
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 01:39:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0621320781
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Jul 2020 01:39:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bniU+4f0"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="R4FPmaq4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387700AbgGWBja (ORCPT
+        id S2387732AbgGWBjz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Jul 2020 21:39:30 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:49383 "EHLO
+        Wed, 22 Jul 2020 21:39:55 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:57686 "EHLO
         us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S2387462AbgGWBj3 (ORCPT
+        with ESMTP id S1733075AbgGWBjz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Jul 2020 21:39:29 -0400
+        Wed, 22 Jul 2020 21:39:55 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1595468368;
+        s=mimecast20190719; t=1595468394;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=y65Ic7xyixrgoKM3KzC9SeurqcOsc1M4Xp3tNaOmohE=;
-        b=bniU+4f0Qt1I1irl6K3a4O9uHu4QOm25xeOIQZuOu1IaQfqvoTnPfdCnCNg0y9Rzai7hQ4
-        P5J0VgGQJEgoPALFo2hqOwEKs/iyWq5LLwKNrBTYSf5OhPsQIpjIdPynwAO8LyYj0b+y/G
-        RYDfvALhnRAlzEBZ2NBvga3GvSkDAr4=
+        bh=j09wBfZSkgNAG8rgXViyGL7gthBd7q0Sy6owM9xrjL0=;
+        b=R4FPmaq4jsn7C4+q0NS8l5CbOQS+dzVRoy3l9XKWAPCtl8iZvWVit7rqm2w6lOUaP1WFrC
+        cZv8P0cNo75KfumI1SqO+UjG6xmeku7T8VdS8g9nZ/rKMj9joriaUFi7p3pGAzpa1ue+7Q
+        dvh1uREfJ41vYz5apSuk8vm3nCy76IQ=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-509-UxYUDVlsNmucM41MNNghKw-1; Wed, 22 Jul 2020 21:39:26 -0400
-X-MC-Unique: UxYUDVlsNmucM41MNNghKw-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+ us-mta-326-jMEMrsxlPKqGZPGyg4J1qw-1; Wed, 22 Jul 2020 21:39:52 -0400
+X-MC-Unique: jMEMrsxlPKqGZPGyg4J1qw-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 6B4081B18BC0;
-        Thu, 23 Jul 2020 01:39:25 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id EE07B59;
+        Thu, 23 Jul 2020 01:39:50 +0000 (UTC)
 Received: from elisabeth (unknown [10.36.110.10])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 4ACD627CDD;
-        Thu, 23 Jul 2020 01:39:23 +0000 (UTC)
-Date:   Thu, 23 Jul 2020 03:39:18 +0200
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 7BD748AD1C;
+        Thu, 23 Jul 2020 01:39:48 +0000 (UTC)
+Date:   Thu, 23 Jul 2020 03:39:41 +0200
 From:   Stefano Brivio <sbrivio@redhat.com>
 To:     Florian Westphal <fw@strlen.de>
 Cc:     <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft 1/2] netlink: fix concat range expansion in map case
-Message-ID: <20200723033918.3d88ffed@elisabeth>
-In-Reply-To: <20200722115126.12596-1-fw@strlen.de>
+Subject: Re: [PATCH nft 2/2] tests: extend 0043concatenated_ranges_0 to
+ cover maps too
+Message-ID: <20200723033941.560c3df5@elisabeth>
+In-Reply-To: <20200722115126.12596-2-fw@strlen.de>
 References: <20200722115126.12596-1-fw@strlen.de>
+        <20200722115126.12596-2-fw@strlen.de>
 Organization: Red Hat
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, 22 Jul 2020 13:51:25 +0200
+On Wed, 22 Jul 2020 13:51:26 +0200
 Florian Westphal <fw@strlen.de> wrote:
 
-> This is not a display bug, nft sends broken information
-> to kernel.  Use the correct key expression to fix this.
+> +			"map")
+> +				mapt=": mark"
+> +				mark=$RANDOM
+> +				mapv=$(printf " : 0x%08x" ${mark})
 
-Thanks for fixing this! I didn't realise it could be so simple. :)
+I don't have $RANDOM in dash :( Can you use $(date +%s) (it's
+POSIX.2-1992) or a fixed number instead? The test doesn't fail for me
+because printf turns that empty variable into 0x00000000 anyway, but it's
+not really specified.
 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-
-Fixes: 8ac2f3b2fca3 ("src: Add support for concatenated set ranges")
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
+Looks good to me otherwise.
 
 -- 
 Stefano
