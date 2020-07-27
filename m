@@ -2,436 +2,373 @@ Return-Path: <SRS0=nQ4N=BG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-11.5 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F552C433DF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jul 2020 16:11:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4BF7C433E1
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jul 2020 16:16:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6C2B220672
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jul 2020 16:11:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 809AC20714
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jul 2020 16:16:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728476AbgG0QLj (ORCPT
+        id S1731194AbgG0QQC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 27 Jul 2020 12:11:39 -0400
-Received: from correo.us.es ([193.147.175.20]:60114 "EHLO mail.us.es"
+        Mon, 27 Jul 2020 12:16:02 -0400
+Received: from verein.lst.de ([213.95.11.211]:44295 "EHLO verein.lst.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727975AbgG0QLj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Jul 2020 12:11:39 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 62546E8E86
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jul 2020 18:11:35 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 53D03DA78D
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jul 2020 18:11:35 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 4974DDA78B; Mon, 27 Jul 2020 18:11:35 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C66A8DA789;
-        Mon, 27 Jul 2020 18:11:32 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 27 Jul 2020 18:11:32 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id A9D774265A2F;
-        Mon, 27 Jul 2020 18:11:32 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     arturo@netfilter.org
-Subject: [PATCH nft] nft: rearrange help output to group related options together
-Date:   Mon, 27 Jul 2020 18:11:29 +0200
-Message-Id: <20200727161129.31632-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        id S1726728AbgG0QQB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 Jul 2020 12:16:01 -0400
+Received: by verein.lst.de (Postfix, from userid 2407)
+        id 4880068B05; Mon, 27 Jul 2020 18:15:55 +0200 (CEST)
+Date:   Mon, 27 Jul 2020 18:15:55 +0200
+From:   Christoph Hellwig <hch@lst.de>
+To:     Ido Schimmel <idosch@idosch.org>
+Cc:     Christoph Hellwig <hch@lst.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Eric Dumazet <edumazet@google.com>,
+        linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, bpf@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-sctp@vger.kernel.org, linux-hams@vger.kernel.org,
+        linux-bluetooth@vger.kernel.org, bridge@lists.linux-foundation.org,
+        linux-can@vger.kernel.org, dccp@vger.kernel.org,
+        linux-decnet-user@lists.sourceforge.net,
+        linux-wpan@vger.kernel.org, linux-s390@vger.kernel.org,
+        mptcp@lists.01.org, lvs-devel@vger.kernel.org,
+        rds-devel@oss.oracle.com, linux-afs@lists.infradead.org,
+        tipc-discussion@lists.sourceforge.net, linux-x25@vger.kernel.org
+Subject: Re: [PATCH 19/26] net/ipv6: switch ipv6_flowlabel_opt to sockptr_t
+Message-ID: <20200727161555.GA7817@lst.de>
+References: <20200723060908.50081-1-hch@lst.de> <20200723060908.50081-20-hch@lst.de> <20200727121505.GA1804864@shredder> <20200727130029.GA26393@lst.de> <20200727133331.GA1851348@shredder>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200727133331.GA1851348@shredder>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Arturo Borrero Gonzalez <arturo@netfilter.org>
+I have to admit I didn't spot the difference between the good and the
+bad output even after trying hard..
 
-It has been reported that nft options are a bit chaotic. With a growing list of options for the nft
-CLI, we can do better when presenting them to the user who requests help.
+But can you try the patch below?
 
-This patch introduces a textual output grouping for options, in 4 groups:
-  * Options (general)     -- common Unix utility options
-  * Options (operative)   -- the options that modify the operative behaviour of nft
-  * Options (translation) -- output text modifiers for data translation
-  * Options (parsing)     -- output text modifiers for parsing and other operations
-
-There is no behavior change in this patch, is mostly a cosmetic change in the hope that users will
-find the nft tool a bit less confusing to use.
-
-After this patch, the help output is:
-
-=== 8< ===
-% nft --help
-Usage: nft [ options ] [ cmds... ]
-
-Options (general):
-  -h, help                      Show this help
-  -v, version                   Show version information
-  -V                            Show extended version information
-
-Options (ruleset input handling):
-  -f, file <filename>           Read input from <filename>
-  -i, interactive               Read input from interactive CLI
-  -I, includepath <directory>   Add <directory> to the paths searched for include files. Defaul[..]
-  -c, check                     Check commands validity without actually applying the changes.
-
-Options (ruleset list formatting):
-  -a, handle                    Output rule handle.
-  -s, stateless                 Omit stateful information of ruleset.
-  -t, terse                     Omit contents of sets.
-  -S, service                   Translate ports to service names as described in /etc/services.
-  -N, reversedns                Translate IP addresses to names.
-  -u, guid                      Print UID/GID as defined in /etc/passwd and /etc/group.
-  -n, numeric                   Print fully numerical output.
-  -y, numeric-priority          Print chain priority numerically.
-  -p, numeric-protocol          Print layer 4 protocols numerically.
-  -T, numeric-time              Print time values numerically.
-
-Options (command output format):
-  -e, echo                      Echo what has been added, inserted or replaced.
-  -j, json                      Format output in JSON
-  -d, debug <level [,level...]> Specify debugging level (scanner, parser, eval, netlink, mnl, p[..]
-=== 8< ===
-
-While at it, refresh the man page to better reflex this new grouping, and add some missing options.
-
-Joint work with Pablo.
-
-Signed-off-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- doc/nft.txt |  94 +++++++++++++++++++++---------------
- src/main.c  | 136 ++++++++++++++++++++++++++++++++--------------------
- 2 files changed, 139 insertions(+), 91 deletions(-)
+From cce2d2e1b43ecee5f4af7cf116808b74b330080f Mon Sep 17 00:00:00 2001
+From: Christoph Hellwig <hch@lst.de>
+Date: Mon, 27 Jul 2020 17:42:27 +0200
+Subject: net: remove sockptr_advance
 
-diff --git a/doc/nft.txt b/doc/nft.txt
-index ba0c8c0bef44..5326de167de8 100644
---- a/doc/nft.txt
-+++ b/doc/nft.txt
-@@ -22,7 +22,10 @@ for Netfilter.
+sockptr_advance never properly worked.  Replace it with _offset variants
+of copy_from_sockptr and copy_to_sockptr.
+
+Fixes: ba423fdaa589 ("net: add a new sockptr_t type")
+Reported-by: Jason A. Donenfeld <Jason@zx2c4.com>
+Reported-by: Ido Schimmel <idosch@idosch.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/crypto/chelsio/chtls/chtls_main.c | 12 +++++-----
+ include/linux/sockptr.h                   | 27 +++++++++++------------
+ net/dccp/proto.c                          |  5 ++---
+ net/ipv4/netfilter/arp_tables.c           |  8 +++----
+ net/ipv4/netfilter/ip_tables.c            |  8 +++----
+ net/ipv4/tcp.c                            |  5 +++--
+ net/ipv6/ip6_flowlabel.c                  | 11 ++++-----
+ net/ipv6/netfilter/ip6_tables.c           |  8 +++----
+ net/netfilter/x_tables.c                  |  7 +++---
+ net/tls/tls_main.c                        |  6 ++---
+ 10 files changed, 49 insertions(+), 48 deletions(-)
+
+diff --git a/drivers/crypto/chelsio/chtls/chtls_main.c b/drivers/crypto/chelsio/chtls/chtls_main.c
+index c3058dcdb33c5c..66d247efd5615b 100644
+--- a/drivers/crypto/chelsio/chtls/chtls_main.c
++++ b/drivers/crypto/chelsio/chtls/chtls_main.c
+@@ -525,9 +525,9 @@ static int do_chtls_setsockopt(struct sock *sk, int optname,
+ 		/* Obtain version and type from previous copy */
+ 		crypto_info[0] = tmp_crypto_info;
+ 		/* Now copy the following data */
+-		sockptr_advance(optval, sizeof(*crypto_info));
+-		rc = copy_from_sockptr((char *)crypto_info + sizeof(*crypto_info),
+-				optval,
++		rc = copy_from_sockptr_offset((char *)crypto_info +
++				sizeof(*crypto_info),
++				optval, sizeof(*crypto_info),
+ 				sizeof(struct tls12_crypto_info_aes_gcm_128)
+ 				- sizeof(*crypto_info));
  
- OPTIONS
- -------
--For a full summary of options, run *nft --help*.
-+The command accepts several different options which are documented here in groups for better
-+understanding of their meaning. You can get information about options by running *nft --help*.
-+
-+.General options:
+@@ -542,9 +542,9 @@ static int do_chtls_setsockopt(struct sock *sk, int optname,
+ 	}
+ 	case TLS_CIPHER_AES_GCM_256: {
+ 		crypto_info[0] = tmp_crypto_info;
+-		sockptr_advance(optval, sizeof(*crypto_info));
+-		rc = copy_from_sockptr((char *)crypto_info + sizeof(*crypto_info),
+-				    optval,
++		rc = copy_from_sockptr_offset((char *)crypto_info +
++				sizeof(*crypto_info),
++				optval, sizeof(*crypto_info),
+ 				sizeof(struct tls12_crypto_info_aes_gcm_256)
+ 				- sizeof(*crypto_info));
  
- *-h*::
- *--help*::
-@@ -32,42 +35,73 @@ For a full summary of options, run *nft --help*.
- *--version*::
- 	Show version.
+diff --git a/include/linux/sockptr.h b/include/linux/sockptr.h
+index b13ea1422f93a5..9e6c81d474cba8 100644
+--- a/include/linux/sockptr.h
++++ b/include/linux/sockptr.h
+@@ -69,19 +69,26 @@ static inline bool sockptr_is_null(sockptr_t sockptr)
+ 	return !sockptr.user;
+ }
  
--*-n*::
--*--numeric*::
--	Print fully numerical output.
-+*-V*::
-+	Show long version information, including compile-time configuration.
-+
-+.Ruleset input handling options that specify to how to load rulesets:
-+
-+*-f*::
-+*--file 'filename'*::
-+	Read input from 'filename'. If 'filename' is -, read from stdin.
-+
-+*-i*::
-+*--interactive*::
-+	Read input from an interactive readline CLI. You can use quit to exit, or use the EOF marker,
-+	normally this is CTRL-D.
-+
-+*-I*::
-+*--includepath directory*::
-+	Add the directory 'directory' to the list of directories to be searched for included files. This
-+	option may be specified multiple times.
-+
-+*-c*::
-+*--check*::
-+	Check commands validity without actually applying the changes.
-+
-+.Ruleset list output formatting that modify the output of the list ruleset command:
-+
-+*-a*::
-+*--handle*::
-+	Show object handles in output.
- 
- *-s*::
- *--stateless*::
- 	Omit stateful information of rules and stateful objects.
- 
--*-N*::
--*--reversedns*::
--	Translate IP address to names via reverse DNS lookup. This may slow down
--	your listing since it generates network traffic.
-+*-t*::
-+*--terse*::
-+	Omit contents of sets from output.
- 
- *-S*::
- *--service*::
- 	Translate ports to service names as defined by /etc/services.
- 
-+*-N*::
-+*--reversedns*::
-+	Translate IP address to names via reverse DNS lookup. This may slow down
-+	your listing since it generates network traffic.
-+
- *-u*::
- *--guid*::
- 	Translate numeric UID/GID to names as defined by /etc/passwd and /etc/group.
- 
--*-p*::
--*--numeric-protocol*::
--	Display layer 4 protocol numerically.
-+*-n*::
-+*--numeric*::
-+	Print fully numerical output.
- 
- *-y*::
- *--numeric-priority*::
- 	Display base chain priority numerically.
- 
--*-c*::
--*--check*::
--	Check commands validity without actually applying the changes.
-+*-p*::
-+*--numeric-protocol*::
-+	Display layer 4 protocol numerically.
- 
--*-a*::
--*--handle*::
--	Show object handles in output.
-+*-T*::
-+*--numeric-time*::
-+	Show time, day and hour values in numeric format.
-+
-+.Command output formatting:
- 
- *-e*::
- *--echo*::
-@@ -78,27 +112,11 @@ For a full summary of options, run *nft --help*.
- *--json*::
- 	Format output in JSON. See libnftables-json(5) for a schema description.
- 
--*-I*::
--*--includepath directory*::
--	Add the directory 'directory' to the list of directories to be searched for included files. This
--	option may be specified multiple times.
--
--*-f*::
--*--file 'filename'*::
--	Read input from 'filename'. If 'filename' is -, read from stdin.
--
--*-i*::
--*--interactive*::
--	Read input from an interactive readline CLI. You can use quit to exit, or use the EOF marker,
--	normally this is CTRL-D.
--
--*-T*::
--*--numeric-time*::
--	Show time, day and hour values in numeric format.
--
--*-t*::
--*--terse*::
--	Omit contents of sets from output.
-+*-d*::
-+*--debug* 'level'::
-+	Enable debugging output. The debug level can be any of *scanner*, *parser*, *eval*,
-+        *netlink*, *mnl*, *proto-ctx*, *segtree*, *all*. You can combine more than one by
-+        separating by the ',' symbol, for example '-d eval,mnl'.
- 
- INPUT FILE FORMATS
- ------------------
-diff --git a/src/main.c b/src/main.c
-index 6c18235821fc..3c26f51029ff 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -24,17 +24,37 @@
- 
- static struct nft_ctx *nft;
- 
--/*
-- * These options are grouped separately in the help, so we give them named
-- * indices for use there.
-- */
- enum opt_indices {
-+        /* General options */
- 	IDX_HELP,
- 	IDX_VERSION,
- 	IDX_VERSION_LONG,
--	IDX_CHECK,
-+        /* Ruleset input handling */
- 	IDX_FILE,
-+#define IDX_RULESET_INPUT_START	IDX_FILE
- 	IDX_INTERACTIVE,
-+        IDX_INCLUDEPATH,
-+	IDX_CHECK,
-+#define IDX_RULESET_INPUT_END	IDX_CHECK
-+        /* Ruleset list formatting */
-+        IDX_HANDLE,
-+#define IDX_RULESET_LIST_START	IDX_HANDLE
-+        IDX_STATELESS,
-+        IDX_TERSE,
-+        IDX_SERVICE,
-+        IDX_REVERSEDNS,
-+        IDX_GUID,
-+        IDX_NUMERIC,
-+        IDX_NUMERIC_PRIO,
-+        IDX_NUMERIC_PROTO,
-+        IDX_NUMERIC_TIME,
-+#define IDX_RULESET_LIST_END IDX_NUMERIC_TIME
-+        /* Command output formatting */
-+        IDX_ECHO,
-+#define IDX_CMD_OUTPUT_START	IDX_ECHO
-+        IDX_JSON,
-+        IDX_DEBUG,
-+#define IDX_CMD_OUTPUT_END	IDX_DEBUG
- };
- 
- enum opt_vals {
-@@ -72,46 +92,46 @@ struct nft_opt {
- 	(struct nft_opt) { .name = n, .val = v, .arg = a, .help = h }
- 
- static const struct nft_opt nft_options[] = {
--	NFT_OPT("help",			OPT_HELP,		NULL,
--		"Show this help"),
--	NFT_OPT("version",		OPT_VERSION,		NULL,
--		"Show version information"),
--	NFT_OPT(NULL,                   OPT_VERSION_LONG,       NULL,
--		"Show extended version information"),
--	NFT_OPT("check",		OPT_CHECK,		NULL,
--		"Check commands validity without actually applying the changes."),
--	NFT_OPT("file",			OPT_FILE,		"<filename>",
--		"Read input from <filename>"),
--	NFT_OPT("interactive",		OPT_INTERACTIVE,	NULL,
--		"Read input from interactive CLI"),
--	NFT_OPT("numeric",		OPT_NUMERIC,		NULL,
--		"Print fully numerical output."),
--	NFT_OPT("stateless",		OPT_STATELESS,		NULL,
--		"Omit stateful information of ruleset."),
--	NFT_OPT("reversedns",		OPT_IP2NAME,		NULL,
--		"Translate IP addresses to names."),
--	NFT_OPT("service",		OPT_SERVICE,		NULL,
--		"Translate ports to service names as described in /etc/services."),
--	NFT_OPT("includepath",		OPT_INCLUDEPATH,	"<directory>",
--		"Add <directory> to the paths searched for include files. Default is: " DEFAULT_INCLUDE_PATH),
--	NFT_OPT("debug",		OPT_DEBUG,		"<level [,level...]>",
--		"Specify debugging level (scanner, parser, eval, netlink, mnl, proto-ctx, segtree, all)"),
--	NFT_OPT("handle",		OPT_HANDLE_OUTPUT,	NULL,
--		"Output rule handle."),
--	NFT_OPT("echo",			OPT_ECHO,		NULL,
--		"Echo what has been added, inserted or replaced."),
--	NFT_OPT("json",			OPT_JSON,		NULL,
--		"Format output in JSON"),
--	NFT_OPT("guid",			OPT_GUID,		NULL,
--		"Print UID/GID as defined in /etc/passwd and /etc/group."),
--	NFT_OPT("numeric-priority",	OPT_NUMERIC_PRIO,	NULL,
--		"Print chain priority numerically."),
--	NFT_OPT("numeric-protocol",	OPT_NUMERIC_PROTO,	NULL,
--		"Print layer 4 protocols numerically."),
--	NFT_OPT("numeric-time",		OPT_NUMERIC_TIME,	NULL,
--		"Print time values numerically."),
--	NFT_OPT("terse",		OPT_TERSE,		NULL,
--		"Omit contents of sets."),
-+	[IDX_HELP]          = NFT_OPT("help",			OPT_HELP,		NULL,
-+				     "Show this help"),
-+	[IDX_VERSION]       = NFT_OPT("version",			OPT_VERSION,		NULL,
-+				     "Show version information"),
-+	[IDX_VERSION_LONG]  = NFT_OPT(NULL,			OPT_VERSION_LONG,	NULL,
-+				     "Show extended version information"),
-+	[IDX_FILE]	    = NFT_OPT("file",			OPT_FILE,		"<filename>",
-+				     "Read input from <filename>"),
-+	[IDX_INTERACTIVE]   = NFT_OPT("interactive",		OPT_INTERACTIVE,	NULL,
-+				     "Read input from interactive CLI"),
-+	[IDX_INCLUDEPATH]   = NFT_OPT("includepath",		OPT_INCLUDEPATH,	"<directory>",
-+				     "Add <directory> to the paths searched for include files. Default is: " DEFAULT_INCLUDE_PATH),
-+	[IDX_CHECK]	    = NFT_OPT("check",			OPT_CHECK,		NULL,
-+				     "Check commands validity without actually applying the changes."),
-+	[IDX_HANDLE]	    = NFT_OPT("handle",			OPT_HANDLE_OUTPUT,	NULL,
-+				     "Output rule handle."),
-+	[IDX_STATELESS]     = NFT_OPT("stateless",		OPT_STATELESS,		NULL,
-+				     "Omit stateful information of ruleset."),
-+	[IDX_TERSE]	    = NFT_OPT("terse",			OPT_TERSE,		NULL,
-+				      "Omit contents of sets."),
-+	[IDX_SERVICE]       = NFT_OPT("service",			OPT_SERVICE,		NULL,
-+				     "Translate ports to service names as described in /etc/services."),
-+	[IDX_REVERSEDNS]    = NFT_OPT("reversedns",		OPT_IP2NAME,		NULL,
-+				     "Translate IP addresses to names."),
-+	[IDX_GUID]	    = NFT_OPT("guid",			OPT_GUID,		NULL,
-+				     "Print UID/GID as defined in /etc/passwd and /etc/group."),
-+	[IDX_NUMERIC]       = NFT_OPT("numeric",			OPT_NUMERIC,		NULL,
-+				     "Print fully numerical output."),
-+	[IDX_NUMERIC_PRIO]  = NFT_OPT("numeric-priority",	OPT_NUMERIC_PRIO,	NULL,
-+				     "Print chain priority numerically."),
-+	[IDX_NUMERIC_PROTO] = NFT_OPT("numeric-protocol",	OPT_NUMERIC_PROTO,	NULL,
-+				     "Print layer 4 protocols numerically."),
-+	[IDX_NUMERIC_TIME]  = NFT_OPT("numeric-time",		OPT_NUMERIC_TIME,	NULL,
-+				      "Print time values numerically."),
-+	[IDX_ECHO]	    = NFT_OPT("echo",			OPT_ECHO,		NULL,
-+				     "Echo what has been added, inserted or replaced."),
-+	[IDX_JSON]	    = NFT_OPT("json",			OPT_JSON,		NULL,
-+				     "Format output in JSON"),
-+	[IDX_DEBUG]	    = NFT_OPT("debug",			OPT_DEBUG,		"<level [,level...]>",
-+				     "Specify debugging level (scanner, parser, eval, netlink, mnl, proto-ctx, segtree, all)"),
- };
- 
- #define NR_NFT_OPTIONS (sizeof(nft_options) / sizeof(nft_options[0]))
-@@ -169,25 +189,35 @@ static void print_option(const struct nft_opt *opt)
- 
- static void show_help(const char *name)
+-static inline int copy_from_sockptr(void *dst, sockptr_t src, size_t size)
++static inline int copy_from_sockptr_offset(void *dst, sockptr_t src,
++		size_t offset, size_t size)
  {
--	size_t i;
-+	int i;
+ 	if (!sockptr_is_kernel(src))
+-		return copy_from_user(dst, src.user, size);
+-	memcpy(dst, src.kernel, size);
++		return copy_from_user(dst, src.user + offset, size);
++	memcpy(dst, src.kernel + offset, size);
+ 	return 0;
+ }
  
- 	printf("Usage: %s [ options ] [ cmds... ]\n"
- 	       "\n"
--	       "Options:\n", name);
-+	       "Options (general):\n", name);
- 
- 	print_option(&nft_options[IDX_HELP]);
- 	print_option(&nft_options[IDX_VERSION]);
- 	print_option(&nft_options[IDX_VERSION_LONG]);
- 
--	fputs("\n", stdout);
-+	printf("\n"
-+	       "Options (ruleset input handling):"
-+	       "\n");
- 
--	print_option(&nft_options[IDX_CHECK]);
--	print_option(&nft_options[IDX_FILE]);
--	print_option(&nft_options[IDX_INTERACTIVE]);
-+	for (i = IDX_RULESET_INPUT_START; i <= IDX_RULESET_INPUT_END; i++)
-+		print_option(&nft_options[i]);
- 
--	fputs("\n", stdout);
-+	printf("\n"
-+	       "Options (ruleset list formatting):"
-+	       "\n");
+-static inline int copy_to_sockptr(sockptr_t dst, const void *src, size_t size)
++static inline int copy_from_sockptr(void *dst, sockptr_t src, size_t size)
++{
++	return copy_from_sockptr_offset(dst, src, 0, size);
++}
 +
-+	for (i = IDX_RULESET_LIST_START; i <= IDX_RULESET_LIST_END; i++)
-+		print_option(&nft_options[i]);
++static inline int copy_to_sockptr_offset(sockptr_t dst, size_t offset,
++		const void *src, size_t size)
+ {
+ 	if (!sockptr_is_kernel(dst))
+-		return copy_to_user(dst.user, src, size);
+-	memcpy(dst.kernel, src, size);
++		return copy_to_user(dst.user + offset, src, size);
++	memcpy(dst.kernel + offset, src, size);
+ 	return 0;
+ }
+ 
+@@ -112,14 +119,6 @@ static inline void *memdup_sockptr_nul(sockptr_t src, size_t len)
+ 	return p;
+ }
+ 
+-static inline void sockptr_advance(sockptr_t sockptr, size_t len)
+-{
+-	if (sockptr_is_kernel(sockptr))
+-		sockptr.kernel += len;
+-	else
+-		sockptr.user += len;
+-}
+-
+ static inline long strncpy_from_sockptr(char *dst, sockptr_t src, size_t count)
+ {
+ 	if (sockptr_is_kernel(src)) {
+diff --git a/net/dccp/proto.c b/net/dccp/proto.c
+index 2e9e8449698fb4..d148ab1530e57b 100644
+--- a/net/dccp/proto.c
++++ b/net/dccp/proto.c
+@@ -426,9 +426,8 @@ static int dccp_setsockopt_service(struct sock *sk, const __be32 service,
+ 			return -ENOMEM;
+ 
+ 		sl->dccpsl_nr = optlen / sizeof(u32) - 1;
+-		sockptr_advance(optval, sizeof(service));
+-		if (copy_from_sockptr(sl->dccpsl_list, optval,
+-				      optlen - sizeof(service)) ||
++		if (copy_from_sockptr_offset(sl->dccpsl_list, optval,
++				sizeof(service), optlen - sizeof(service)) ||
+ 		    dccp_list_has_service(sl, DCCP_SERVICE_INVALID_VALUE)) {
+ 			kfree(sl);
+ 			return -EFAULT;
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 9a1567dbc022b6..d1e04d2b5170ec 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -971,8 +971,8 @@ static int do_replace(struct net *net, sockptr_t arg, unsigned int len)
+ 		return -ENOMEM;
+ 
+ 	loc_cpu_entry = newinfo->entries;
+-	sockptr_advance(arg, sizeof(tmp));
+-	if (copy_from_sockptr(loc_cpu_entry, arg, tmp.size) != 0) {
++	if (copy_from_sockptr_offset(loc_cpu_entry, arg, sizeof(tmp),
++			tmp.size) != 0) {
+ 		ret = -EFAULT;
+ 		goto free_newinfo;
+ 	}
+@@ -1267,8 +1267,8 @@ static int compat_do_replace(struct net *net, sockptr_t arg, unsigned int len)
+ 		return -ENOMEM;
+ 
+ 	loc_cpu_entry = newinfo->entries;
+-	sockptr_advance(arg, sizeof(tmp));
+-	if (copy_from_sockptr(loc_cpu_entry, arg, tmp.size) != 0) {
++	if (copy_from_sockptr_offset(loc_cpu_entry, arg, sizeof(tmp),
++			tmp.size) != 0) {
+ 		ret = -EFAULT;
+ 		goto free_newinfo;
+ 	}
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index f2a9680303d8c0..f15bc21d730164 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -1126,8 +1126,8 @@ do_replace(struct net *net, sockptr_t arg, unsigned int len)
+ 		return -ENOMEM;
+ 
+ 	loc_cpu_entry = newinfo->entries;
+-	sockptr_advance(arg, sizeof(tmp));
+-	if (copy_from_sockptr(loc_cpu_entry, arg, tmp.size) != 0) {
++	if (copy_from_sockptr_offset(loc_cpu_entry, arg, sizeof(tmp),
++			tmp.size) != 0) {
+ 		ret = -EFAULT;
+ 		goto free_newinfo;
+ 	}
+@@ -1508,8 +1508,8 @@ compat_do_replace(struct net *net, sockptr_t arg, unsigned int len)
+ 		return -ENOMEM;
+ 
+ 	loc_cpu_entry = newinfo->entries;
+-	sockptr_advance(arg, sizeof(tmp));
+-	if (copy_from_sockptr(loc_cpu_entry, arg, tmp.size) != 0) {
++	if (copy_from_sockptr_offset(loc_cpu_entry, arg, sizeof(tmp),
++			tmp.size) != 0) {
+ 		ret = -EFAULT;
+ 		goto free_newinfo;
+ 	}
+diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
+index 27de9380ed140e..4afec552f211b9 100644
+--- a/net/ipv4/tcp.c
++++ b/net/ipv4/tcp.c
+@@ -2801,12 +2801,13 @@ static int tcp_repair_options_est(struct sock *sk, sockptr_t optbuf,
+ {
+ 	struct tcp_sock *tp = tcp_sk(sk);
+ 	struct tcp_repair_opt opt;
++	size_t offset = 0;
+ 
+ 	while (len >= sizeof(opt)) {
+-		if (copy_from_sockptr(&opt, optbuf, sizeof(opt)))
++		if (copy_from_sockptr_offset(&opt, optbuf, offset, sizeof(opt)))
+ 			return -EFAULT;
+ 
+-		sockptr_advance(optbuf, sizeof(opt));
++		offset += sizeof(opt);
+ 		len -= sizeof(opt);
+ 
+ 		switch (opt.opt_code) {
+diff --git a/net/ipv6/ip6_flowlabel.c b/net/ipv6/ip6_flowlabel.c
+index 215b6f5e733ec9..2d655260dedc75 100644
+--- a/net/ipv6/ip6_flowlabel.c
++++ b/net/ipv6/ip6_flowlabel.c
+@@ -401,8 +401,8 @@ fl_create(struct net *net, struct sock *sk, struct in6_flowlabel_req *freq,
+ 		memset(fl->opt, 0, sizeof(*fl->opt));
+ 		fl->opt->tot_len = sizeof(*fl->opt) + olen;
+ 		err = -EFAULT;
+-		sockptr_advance(optval, CMSG_ALIGN(sizeof(*freq)));
+-		if (copy_from_sockptr(fl->opt + 1, optval, olen))
++		if (copy_from_sockptr_offset(fl->opt + 1, optval,
++				CMSG_ALIGN(sizeof(*freq)), olen))
+ 			goto done;
+ 
+ 		msg.msg_controllen = olen;
+@@ -703,9 +703,10 @@ static int ipv6_flowlabel_get(struct sock *sk, struct in6_flowlabel_req *freq,
+ 		goto recheck;
+ 
+ 	if (!freq->flr_label) {
+-		sockptr_advance(optval,
+-				offsetof(struct in6_flowlabel_req, flr_label));
+-		if (copy_to_sockptr(optval, &fl->label, sizeof(fl->label))) {
++		size_t offset = offsetof(struct in6_flowlabel_req, flr_label);
 +
-+	printf("\n"
-+	       "Options (command output formatting):"
-+	       "\n");
++		if (copy_to_sockptr_offset(optval, offset, &fl->label,
++				sizeof(fl->label))) {
+ 			/* Intentionally ignore fault. */
+ 		}
+ 	}
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 1d52957a413f4a..2e2119bfcf1373 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1143,8 +1143,8 @@ do_replace(struct net *net, sockptr_t arg, unsigned int len)
+ 		return -ENOMEM;
  
--	for (i = IDX_INTERACTIVE + 1; i < NR_NFT_OPTIONS; ++i)
-+	for (i = IDX_CMD_OUTPUT_START; i <= IDX_CMD_OUTPUT_END; i++)
- 		print_option(&nft_options[i]);
+ 	loc_cpu_entry = newinfo->entries;
+-	sockptr_advance(arg, sizeof(tmp));
+-	if (copy_from_sockptr(loc_cpu_entry, arg, tmp.size) != 0) {
++	if (copy_from_sockptr_offset(loc_cpu_entry, arg, sizeof(tmp),
++			tmp.size) != 0) {
+ 		ret = -EFAULT;
+ 		goto free_newinfo;
+ 	}
+@@ -1517,8 +1517,8 @@ compat_do_replace(struct net *net, sockptr_t arg, unsigned int len)
+ 		return -ENOMEM;
  
- 	fputs("\n", stdout);
+ 	loc_cpu_entry = newinfo->entries;
+-	sockptr_advance(arg, sizeof(tmp));
+-	if (copy_from_sockptr(loc_cpu_entry, arg, tmp.size) != 0) {
++	if (copy_from_sockptr_offset(loc_cpu_entry, arg, sizeof(tmp),
++			tmp.size) != 0) {
+ 		ret = -EFAULT;
+ 		goto free_newinfo;
+ 	}
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index b97eb4b538fd4e..91bf6635ea9ee4 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1050,6 +1050,7 @@ EXPORT_SYMBOL_GPL(xt_check_target);
+ void *xt_copy_counters(sockptr_t arg, unsigned int len,
+ 		       struct xt_counters_info *info)
+ {
++	size_t offset;
+ 	void *mem;
+ 	u64 size;
+ 
+@@ -1067,7 +1068,7 @@ void *xt_copy_counters(sockptr_t arg, unsigned int len,
+ 
+ 		memcpy(info->name, compat_tmp.name, sizeof(info->name) - 1);
+ 		info->num_counters = compat_tmp.num_counters;
+-		sockptr_advance(arg, sizeof(compat_tmp));
++		offset = sizeof(compat_tmp);
+ 	} else
+ #endif
+ 	{
+@@ -1078,7 +1079,7 @@ void *xt_copy_counters(sockptr_t arg, unsigned int len,
+ 		if (copy_from_sockptr(info, arg, sizeof(*info)) != 0)
+ 			return ERR_PTR(-EFAULT);
+ 
+-		sockptr_advance(arg, sizeof(*info));
++		offset = sizeof(*info);
+ 	}
+ 	info->name[sizeof(info->name) - 1] = '\0';
+ 
+@@ -1092,7 +1093,7 @@ void *xt_copy_counters(sockptr_t arg, unsigned int len,
+ 	if (!mem)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	if (copy_from_sockptr(mem, arg, len) == 0)
++	if (copy_from_sockptr_offset(mem, arg, offset, len) == 0)
+ 		return mem;
+ 
+ 	vfree(mem);
+diff --git a/net/tls/tls_main.c b/net/tls/tls_main.c
+index d77f7d821130db..bbc52b088d2968 100644
+--- a/net/tls/tls_main.c
++++ b/net/tls/tls_main.c
+@@ -522,9 +522,9 @@ static int do_tls_setsockopt_conf(struct sock *sk, sockptr_t optval,
+ 		goto err_crypto_info;
+ 	}
+ 
+-	sockptr_advance(optval, sizeof(*crypto_info));
+-	rc = copy_from_sockptr(crypto_info + 1, optval,
+-			       optlen - sizeof(*crypto_info));
++	rc = copy_from_sockptr_offset(crypto_info + 1, optval,
++				      sizeof(*crypto_info),
++				      optlen - sizeof(*crypto_info));
+ 	if (rc) {
+ 		rc = -EFAULT;
+ 		goto err_crypto_info;
 -- 
-2.20.1
+2.27.0
 
