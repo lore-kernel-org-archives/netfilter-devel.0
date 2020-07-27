@@ -1,66 +1,153 @@
-Return-Path: <SRS0=LWry=BF=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=nQ4N=BG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A8ACC433E1
-	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Jul 2020 17:47:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BFCFEC433E3
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jul 2020 01:52:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 302D4206E3
-	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Jul 2020 17:47:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9C54D2070B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jul 2020 01:52:20 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ulRkaaW1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726759AbgGZRrD (ORCPT
+        id S1727781AbgG0BwP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 26 Jul 2020 13:47:03 -0400
-Received: from mail.redfish-solutions.com ([45.33.216.244]:48906 "EHLO
-        mail.redfish-solutions.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726663AbgGZRrD (ORCPT
+        Sun, 26 Jul 2020 21:52:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33954 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726817AbgG0BwO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 26 Jul 2020 13:47:03 -0400
-X-Greylist: delayed 854 seconds by postgrey-1.27 at vger.kernel.org; Sun, 26 Jul 2020 13:47:03 EDT
-Received: from macmini.redfish-solutions.com (macmini.redfish-solutions.com [192.168.1.38])
-        (authenticated bits=0)
-        by mail.redfish-solutions.com (8.15.2/8.15.2) with ESMTPSA id 06QHWjav085249
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Sun, 26 Jul 2020 11:32:45 -0600
-Content-Type: text/plain;
-        charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 13.4 \(3608.80.23.2.2\))
-Subject: Re: [PATCH 1/1] geoip: add quiet flag to xt_geoip_build
-From:   Philip Prindeville <philipp@redfish-solutions.com>
-In-Reply-To: <nycvar.YFH.7.77.849.2005261459250.6469@n3.vanv.qr>
-Date:   Sun, 26 Jul 2020 11:32:44 -0600
-Cc:     netfilter-devel@vger.kernel.org
-Content-Transfer-Encoding: 7bit
-Message-Id: <52068C27-7A75-4F28-8DE2-C13CF196E2B5@redfish-solutions.com>
-References: <20200525200542.29000-1-philipp@redfish-solutions.com>
- <nycvar.YFH.7.77.849.2005261459250.6469@n3.vanv.qr>
-To:     Jan Engelhardt <jengelh@inai.de>
-X-Mailer: Apple Mail (2.3608.80.23.2.2)
-X-Scanned-By: MIMEDefang 2.84 on 192.168.1.3
+        Sun, 26 Jul 2020 21:52:14 -0400
+Received: from mail-qv1-xf44.google.com (mail-qv1-xf44.google.com [IPv6:2607:f8b0:4864:20::f44])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9819DC0619D2;
+        Sun, 26 Jul 2020 18:52:14 -0700 (PDT)
+Received: by mail-qv1-xf44.google.com with SMTP id o2so6755299qvk.6;
+        Sun, 26 Jul 2020 18:52:14 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:subject:date:message-id:in-reply-to:references;
+        bh=s0MTKKieN/5uVLS9bf74sUuYGfWvsi8uePbeYi7/ZQQ=;
+        b=ulRkaaW1PHcCELDSdF9HxDj/uDBqyLm7aAEVHTvTq2QGpk6MJ1rgM+xjfHBhwORICq
+         aHnRrfVDzUSW+3dRGzk/5qDez9RBFjsuPkvHy4K3CY4r+gm8DcS5sCNnoCD88Hk2p8ko
+         P8YlgWPyvctOLknja1GCrRNdud90Jmbb0Xb2tQH/Nd+oIkYhlLjVDwHuHEr4PldIZPZq
+         wmoZxBMk2P1rU7zGuURTTqYnastOQiaNB0mXl5OzhpyyBq7CPRSdQenqSWbhLEIfZJoi
+         2RSaOhrRHOdcm/IF6kMBsHz22IW/kFBQwkhG2Vqq+mpah9pHr7OAvAbuemMzPrZhVupd
+         geHw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:subject:date:message-id:in-reply-to
+         :references;
+        bh=s0MTKKieN/5uVLS9bf74sUuYGfWvsi8uePbeYi7/ZQQ=;
+        b=nwHb7tOct8YfB6A7Zhciam5g8LvbHqKhmW3m4wbA/bFZq62aDploGd4foUu0SFHVDf
+         Mm/+AI7a8/hXDm4YvNHY1CpGy/ZmRgh8cIFGRy5pvcfOdPDDfMm2vkJPx209gWI1Ewfi
+         KPlV8jOLJO/czoSDEsJp5XlhOSt8LC6y+pzn6kL7//nBGFwNOuhgx8GltVGfDVyTWA+f
+         UBgbcRvf6iwk+jEY4ovLAtVOkKXqzBkJEVA5+ME7FwYwKb+4TUMSJYtC/skNVg6EPH/3
+         wvzyw2pplM0dtw2LhbpFFfqZs3U7DSk4Fv/eSLlrN/rRY8ICd8S/6PaJizswyXHOP4F8
+         yZuw==
+X-Gm-Message-State: AOAM533uF931eBaHryaBltQidr1/yBp1Z6gjBv2a4ZkW1y+xJeV45ced
+        a92ut58C9P6w0yCkKQHnTT0=
+X-Google-Smtp-Source: ABdhPJxSpUpXepXtpRmIc6e37L65Fv/e797GhCbnMphucuUsumOMoskJridQh/wS8Wfgd5AG5ymYvQ==
+X-Received: by 2002:a0c:82a2:: with SMTP id i31mr20687818qva.106.1595814733886;
+        Sun, 26 Jul 2020 18:52:13 -0700 (PDT)
+Received: from linux.home ([2604:2000:1344:41d:9cb8:60da:6bf0:c998])
+        by smtp.googlemail.com with ESMTPSA id 184sm15359142qkl.37.2020.07.26.18.52.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 26 Jul 2020 18:52:13 -0700 (PDT)
+From:   Gaurav Singh <gaurav1086@gmail.com>
+To:     gaurav1086@gmail.com, Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org (open list:NETFILTER),
+        coreteam@netfilter.org (open list:NETFILTER),
+        netdev@vger.kernel.org (open list:NETWORKING [IPv4/IPv6]),
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH] netfilter: ip6tables: Remove redundant null checks
+Date:   Sun, 26 Jul 2020 21:52:05 -0400
+Message-Id: <20200727015206.26423-1-gaurav1086@gmail.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20200625023626.32557-1-gaurav1086@gmail.com>
+References: <20200625023626.32557-1-gaurav1086@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+netfilter: ip6tables: Remove redundant null checks
 
-> On May 26, 2020, at 6:59 AM, Jan Engelhardt <jengelh@inai.de> wrote:
-> 
-> On Monday 2020-05-25 22:05, Philip Prindeville wrote:
-> 
->> From: Philip Prindeville <philipp@redfish-solutions.com>
->> 
->> Conceivably someone might want to run a refresh of the geoip database
->> from within a script, particularly an unattended script such as a cron
->> job.  Don't generate output in that case.
-> 
-> added.
+Signed-off-by: Gaurav Singh <gaurav1086@gmail.com>
+---
+ net/ipv6/netfilter/ip6t_ah.c   | 3 +--
+ net/ipv6/netfilter/ip6t_frag.c | 3 +--
+ net/ipv6/netfilter/ip6t_hbh.c  | 3 +--
+ net/ipv6/netfilter/ip6t_rt.c   | 3 +--
+ 4 files changed, 4 insertions(+), 8 deletions(-)
 
-
-Thanks.
-
-BTW, when is 3.10 due out?
+diff --git a/net/ipv6/netfilter/ip6t_ah.c b/net/ipv6/netfilter/ip6t_ah.c
+index 4e15a14435e4..70da2f2ce064 100644
+--- a/net/ipv6/netfilter/ip6t_ah.c
++++ b/net/ipv6/netfilter/ip6t_ah.c
+@@ -74,8 +74,7 @@ static bool ah_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		 ahinfo->hdrres, ah->reserved,
+ 		 !(ahinfo->hdrres && ah->reserved));
+ 
+-	return (ah != NULL) &&
+-		spi_match(ahinfo->spis[0], ahinfo->spis[1],
++	return spi_match(ahinfo->spis[0], ahinfo->spis[1],
+ 			  ntohl(ah->spi),
+ 			  !!(ahinfo->invflags & IP6T_AH_INV_SPI)) &&
+ 		(!ahinfo->hdrlen ||
+diff --git a/net/ipv6/netfilter/ip6t_frag.c b/net/ipv6/netfilter/ip6t_frag.c
+index fb91eeee4a1e..3aad6439386b 100644
+--- a/net/ipv6/netfilter/ip6t_frag.c
++++ b/net/ipv6/netfilter/ip6t_frag.c
+@@ -85,8 +85,7 @@ frag_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		 !((fraginfo->flags & IP6T_FRAG_NMF) &&
+ 		   (ntohs(fh->frag_off) & IP6_MF)));
+ 
+-	return (fh != NULL) &&
+-		id_match(fraginfo->ids[0], fraginfo->ids[1],
++	return id_match(fraginfo->ids[0], fraginfo->ids[1],
+ 			 ntohl(fh->identification),
+ 			 !!(fraginfo->invflags & IP6T_FRAG_INV_IDS)) &&
+ 		!((fraginfo->flags & IP6T_FRAG_RES) &&
+diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
+index 467b2a86031b..e7a3fb9355ee 100644
+--- a/net/ipv6/netfilter/ip6t_hbh.c
++++ b/net/ipv6/netfilter/ip6t_hbh.c
+@@ -86,8 +86,7 @@ hbh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		  ((optinfo->hdrlen == hdrlen) ^
+ 		   !!(optinfo->invflags & IP6T_OPTS_INV_LEN))));
+ 
+-	ret = (oh != NULL) &&
+-	      (!(optinfo->flags & IP6T_OPTS_LEN) ||
++	ret = (!(optinfo->flags & IP6T_OPTS_LEN) ||
+ 	       ((optinfo->hdrlen == hdrlen) ^
+ 		!!(optinfo->invflags & IP6T_OPTS_INV_LEN)));
+ 
+diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
+index f633dc84ca3f..733c83d38b30 100644
+--- a/net/ipv6/netfilter/ip6t_rt.c
++++ b/net/ipv6/netfilter/ip6t_rt.c
+@@ -89,8 +89,7 @@ static bool rt_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		 !((rtinfo->flags & IP6T_RT_RES) &&
+ 		   (((const struct rt0_hdr *)rh)->reserved)));
+ 
+-	ret = (rh != NULL) &&
+-	      (segsleft_match(rtinfo->segsleft[0], rtinfo->segsleft[1],
++	ret = (segsleft_match(rtinfo->segsleft[0], rtinfo->segsleft[1],
+ 			      rh->segments_left,
+ 			      !!(rtinfo->invflags & IP6T_RT_INV_SGS))) &&
+ 	      (!(rtinfo->flags & IP6T_RT_LEN) ||
+-- 
+2.17.1
 
