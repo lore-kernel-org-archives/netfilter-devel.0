@@ -2,161 +2,139 @@ Return-Path: <SRS0=nQ4N=BG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 213A0C433EB
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jul 2020 09:52:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14EBAC433E1
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jul 2020 10:20:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 08CBD20786
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jul 2020 09:52:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ED9852074F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jul 2020 10:20:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727887AbgG0Jvw convert rfc822-to-8bit (ORCPT
+        id S1727789AbgG0KUu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 27 Jul 2020 05:51:52 -0400
-Received: from eu-smtp-delivery-151.mimecast.com ([185.58.86.151]:22998 "EHLO
-        eu-smtp-delivery-151.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727843AbgG0Jvv (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Jul 2020 05:51:51 -0400
-Received: from AcuMS.aculab.com (156.67.243.126 [156.67.243.126]) (Using
- TLS) by relay.mimecast.com with ESMTP id
- uk-mta-157-rSG2T3OdNGGcdmdBioAAVQ-1; Mon, 27 Jul 2020 10:51:47 +0100
-X-MC-Unique: rSG2T3OdNGGcdmdBioAAVQ-1
-Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:43c:695e:880f:8750) by
- AcuMS.aculab.com (fd9f:af1c:a25b:0:43c:695e:880f:8750) with Microsoft SMTP
- Server (TLS) id 15.0.1347.2; Mon, 27 Jul 2020 10:51:45 +0100
-Received: from AcuMS.Aculab.com ([fe80::43c:695e:880f:8750]) by
- AcuMS.aculab.com ([fe80::43c:695e:880f:8750%12]) with mapi id 15.00.1347.000;
- Mon, 27 Jul 2020 10:51:45 +0100
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     'David Miller' <davem@davemloft.net>, "hch@lst.de" <hch@lst.de>
-CC:     "kuba@kernel.org" <kuba@kernel.org>,
-        "ast@kernel.org" <ast@kernel.org>,
-        "daniel@iogearbox.net" <daniel@iogearbox.net>,
-        "kuznet@ms2.inr.ac.ru" <kuznet@ms2.inr.ac.ru>,
-        "yoshfuji@linux-ipv6.org" <yoshfuji@linux-ipv6.org>,
-        "edumazet@google.com" <edumazet@google.com>,
-        "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "bpf@vger.kernel.org" <bpf@vger.kernel.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "coreteam@netfilter.org" <coreteam@netfilter.org>,
-        "linux-sctp@vger.kernel.org" <linux-sctp@vger.kernel.org>,
-        "linux-hams@vger.kernel.org" <linux-hams@vger.kernel.org>,
-        "linux-bluetooth@vger.kernel.org" <linux-bluetooth@vger.kernel.org>,
-        "bridge@lists.linux-foundation.org" 
-        <bridge@lists.linux-foundation.org>,
-        "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>,
-        "dccp@vger.kernel.org" <dccp@vger.kernel.org>,
-        "linux-decnet-user@lists.sourceforge.net" 
-        <linux-decnet-user@lists.sourceforge.net>,
-        "linux-wpan@vger.kernel.org" <linux-wpan@vger.kernel.org>,
-        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-        "mptcp@lists.01.org" <mptcp@lists.01.org>,
-        "lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
-        "rds-devel@oss.oracle.com" <rds-devel@oss.oracle.com>,
-        "linux-afs@lists.infradead.org" <linux-afs@lists.infradead.org>,
-        "tipc-discussion@lists.sourceforge.net" 
-        <tipc-discussion@lists.sourceforge.net>,
-        "linux-x25@vger.kernel.org" <linux-x25@vger.kernel.org>
-Subject: RE: get rid of the address_space override in setsockopt v2
-Thread-Topic: get rid of the address_space override in setsockopt v2
-Thread-Index: AQHWYgvqDt5Xt3HFu0u82UKLVqcKxKkbLTEQ
-Date:   Mon, 27 Jul 2020 09:51:45 +0000
-Message-ID: <8ae792c27f144d4bb5cbea0c1cce4eed@AcuMS.aculab.com>
-References: <20200723060908.50081-1-hch@lst.de>
- <20200724.154342.1433271593505001306.davem@davemloft.net>
-In-Reply-To: <20200724.154342.1433271593505001306.davem@davemloft.net>
-Accept-Language: en-GB, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+        Mon, 27 Jul 2020 06:20:50 -0400
+Received: from correo.us.es ([193.147.175.20]:51696 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726139AbgG0KUu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 Jul 2020 06:20:50 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 66794F259A
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jul 2020 12:20:48 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2AF0ADA54D
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jul 2020 12:20:48 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 0796DDA91D; Mon, 27 Jul 2020 12:20:44 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9F69CBAAC7;
+        Mon, 27 Jul 2020 12:20:16 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 27 Jul 2020 12:20:16 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 6963E42EF4E1;
+        Mon, 27 Jul 2020 12:20:16 +0200 (CEST)
+Date:   Mon, 27 Jul 2020 12:20:16 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH 00/18] nft: Sorted chain listing et al.
+Message-ID: <20200727102016.GA5823@salvia>
+References: <20200711101831.29506-1-phil@nwl.cc>
+ <20200723122257.GA22824@salvia>
+ <20200725115541.GA13697@orbyte.nwl.cc>
 MIME-Version: 1.0
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200725115541.GA13697@orbyte.nwl.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: David Miller
-> Sent: 24 July 2020 23:44
+Hi Phil,
+
+On Sat, Jul 25, 2020 at 01:55:41PM +0200, Phil Sutter wrote:
+> Hi Pablo,
 > 
-> From: Christoph Hellwig <hch@lst.de>
-> Date: Thu, 23 Jul 2020 08:08:42 +0200
+> On Thu, Jul 23, 2020 at 02:22:57PM +0200, Pablo Neira Ayuso wrote:
+> > On Sat, Jul 11, 2020 at 12:18:13PM +0200, Phil Sutter wrote:
+> > > Work in this series centered around Harald's complaint about seemingly
+> > > random custom chain ordering in iptables-nft-save output. nftables
+> > > returns chains in the order they were created which differs from
+> > > legacy iptables which sorts by name.
+> > > 
+> > > The intuitive approach of simply sorting chains in tables'
+> > > nftnl_chain_lists is problematic since base chains, which shall be
+> > > dumped first, are contained in there as well. Patch 15 solves this by
+> > > introducing a per-table array of nftnl_chain pointers to hold only base
+> > > chains (the hook values determine the array index). The old
+> > > nftnl_chain_list now contains merely non-base chains and is sorted upon
+> > > population by the new nftnl_chain_list_add_sorted() function.
+> > > 
+> > > Having dedicated slots for base chains allows for another neat trick,
+> > > namely to create only immediately required base chains. Apart from the
+> > > obvious case, where adding a rule to OUTPUT chain doesn't cause creation
+> > > of INPUT or FORWARD chains, this means ruleset modifications can be
+> > > avoided completely when listing, flushing or zeroing counters (unless
+> > > chains exist).
+> > 
+> > Patches from 1 to 7, they look good to me. Would it be possible to
+> > apply these patches independently from this batch or they are a strong
+> > dependency?
 > 
-> > setsockopt is the last place in architecture-independ code that still
-> > uses set_fs to force the uaccess routines to operate on kernel pointers.
-> >
-> > This series adds a new sockptr_t type that can contained either a kernel
-> > or user pointer, and which has accessors that do the right thing, and
-> > then uses it for setsockopt, starting by refactoring some low-level
-> > helpers and moving them over to it before finally doing the main
-> > setsockopt method.
-> >
-> > Note that apparently the eBPF selftests do not even cover this path, so
-> > the series has been tested with a testing patch that always copies the
-> > data first and passes a kernel pointer.  This is something that works for
-> > most common sockopts (and is something that the ePBF support relies on),
-> > but unfortunately in various corner cases we either don't use the passed
-> > in length, or in one case actually copy data back from setsockopt, or in
-> > case of bpfilter straight out do not work with kernel pointers at all.
-> >
-> > Against net-next/master.
-> >
-> > Changes since v1:
-> >  - check that users don't pass in kernel addresses
-> >  - more bpfilter cleanups
-> >  - cosmetic mptcp tweak
+> I just pushed them after making sure they don't break any of the
+> testsuites. Fingers crossed I didn't miss a detail which breaks without
+> the other patches. :)
+
+Good.
+
+> > I think it's better if we go slightly different direction?
+> > 
+> > https://patchwork.ozlabs.org/project/netfilter-devel/patch/20200723121553.7400-1-pablo@netfilter.org/
 > 
-> Series applied to net-next, I'm build testing and will push this out when
-> that is done.
+> That's interesting. At least it would allow us to reorganize the
+> cache-related data structures, e.g. move the nft_cache->table array
+> items into nft_cache->table items.
+> 
+> > Instead of adding more functions into libnftnl for specific list
+> > handling, which are not used by nft, use linux list native handling.
+> 
+> OK.
+> 
+> > I think there is not need to cache the full nftnl_table object,
+> > probably it should be even possible to just use it to collect the
+> > attributes from the kernel to populate the nft_table object that I'm
+> > proposing.
+> 
+> Yes, for iptables-nft at least we should be completely fine with table
+> name alone.
 
-Hmmm... this code does:
+Good.
 
-int __sys_setsockopt(int fd, int level, int optname, char __user *user_optval,
-		int optlen)
-{
-	sockptr_t optval;
-	char *kernel_optval = NULL;
-	int err, fput_needed;
-	struct socket *sock;
+> > IIRC embedded people complained on the size of libnftnl, going this
+> > direction I suggest, we can probably deprecated iterators for a number
+> > of objects and get it slimmer in the midrun.
+> 
+> OK. I'll keep that in mind.
+> 
+> So I'll rework my changes based on your nft_table idea and introduce an
+> nft_chain struct to be organized in a standard list_head list. This will
+> allow me to perform the sorting in iptables-nft itself.
 
-	if (optlen < 0)
-		return -EINVAL;
+Good.
 
-	err = init_user_sockptr(&optval, user_optval);
-	if (err)
-		return err;
+> Should I base this onto your nft_table patch (and exploit it a bit
+> further) or keep them separate for now?
 
-And the called code does:
-	if (copy_from_sockptr(&opt, optbuf, sizeof(opt)))
-		return -EFAULT;
+I'll push it out so you can rebase on top, OK?
 
-
-Which means that only the base of the user's buffer is checked
-for being in userspace.
-
-I'm sure there is code that processes options in chunks.
-This probably means it is possible to put a chunk boundary
-at the end of userspace and continue processing the very start
-of kernel memory.
-
-At best this faults on the kernel copy code and crashes the system.
-
-Maybe there wasn't any code that actually incremented the user address.
-But it is hardly robust.
-
-	David
-
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
-
+Thanks.
