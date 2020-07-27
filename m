@@ -2,292 +2,116 @@ Return-Path: <SRS0=nQ4N=BG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.6 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	HK_RANDOM_FROM,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1840AC433ED
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jul 2020 17:58:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A4E9C433E5
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jul 2020 18:23:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ED43520714
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jul 2020 17:58:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5FC862073E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jul 2020 18:23:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="HEMVnZX7"
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="pxd6lnhA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731342AbgG0R6E (ORCPT
+        id S1730884AbgG0SXJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 27 Jul 2020 13:58:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42750 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729371AbgG0R6C (ORCPT
+        Mon, 27 Jul 2020 14:23:09 -0400
+Received: from wnew2-smtp.messagingengine.com ([64.147.123.27]:46683 "EHLO
+        wnew2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729205AbgG0SXH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Jul 2020 13:58:02 -0400
-Received: from mail-pf1-x449.google.com (mail-pf1-x449.google.com [IPv6:2607:f8b0:4864:20::449])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7DE5BC0619D2
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jul 2020 10:58:02 -0700 (PDT)
-Received: by mail-pf1-x449.google.com with SMTP id x62so12923963pfc.20
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jul 2020 10:58:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
-         :cc;
-        bh=v79kbmUkhVfOjNte7kKJtv1wRDHs0zSXbmGajTvWXv4=;
-        b=HEMVnZX7jaCR6Dx3/f8jO8MM2TJn10Vgm+3WwNJZC2gGx5Xuheqe2zDflWymTVnCb6
-         Td3RdtBmv1zC+GgRd5hCzx10VyDj6FvqTBDw8mynJPtkZBo7qAmX5R5CiJEPTJCBbKXS
-         1xFnzfN/29lJsw2grBcfZCyN3/rXzo62GQYeBwHWOgbmeDicxMkfDb9/XxUjS3T22Fr2
-         dLnaF9pFF3ZyLmQ1rihimEBPxc8QQKj9u8KL6EUbn0RwyyGlM8/hRHa0Hns+GBTDNbJn
-         RTlJ+tXPR90s7DOfGAosp8XIQPTn6Lm7wjjG4iuRdjJMk2qBWcJey87UyBHuaJVHnyYd
-         Jm7g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
-         :references:subject:from:to:cc;
-        bh=v79kbmUkhVfOjNte7kKJtv1wRDHs0zSXbmGajTvWXv4=;
-        b=nIgqRXlD+D04bADKojCw6mHo5yc5Ihw+lABOeOnU5nsIedUH8dgOT4gPQaXHio+H4m
-         06mdrqzspszC0/1OH1YtITFlzcOpHu3eMwFL72l5FGrDu/XN//QUDkRmuH/aPjQ/Vlha
-         jFNRSwPzFN7EWG4BizzB+zfSQExnpRfkxsmWnGHjqmJMv4R0vsRARVTjwMRtcnDPT92T
-         CZC6PnuDwStd8h3FPcwzCLdOJ94hjIH6sKBcVy+Sb9gX7oyc0AJiSRoM77ZQU8z3tN1s
-         YhXBPC+74fmMX+u9xkAIbBvjEVhfPxFzkKrEfUE8TvqT2NHf6Yj/GWnOpdnKrT0KtqaC
-         jl6g==
-X-Gm-Message-State: AOAM5308CyAc4tLmejT6COZGxytZWn0ZH9YTcuQEQBsdBpiE0eADivSA
-        lzesnGdWRDQlTI0nlaP8QxR5OgIUHK3aycV3Bek=
-X-Google-Smtp-Source: ABdhPJyb0sm0pWa5ByI1RgPKb62bIHEnGcfdYmL0NVmKgoJbCACCmb96SrUbd51FxVdHNXFIvotUvmJ8NstJCkhTP5w=
-X-Received: by 2002:a65:6086:: with SMTP id t6mr20167995pgu.342.1595872681997;
- Mon, 27 Jul 2020 10:58:01 -0700 (PDT)
-Date:   Mon, 27 Jul 2020 17:57:20 +0000
-In-Reply-To: <20200727175720.4022402-1-willmcvicker@google.com>
-Message-Id: <20200727175720.4022402-2-willmcvicker@google.com>
-Mime-Version: 1.0
-References: <20200727175720.4022402-1-willmcvicker@google.com>
-X-Mailer: git-send-email 2.28.0.rc0.142.g3c755180ce-goog
-Subject: [PATCH 1/1] netfilter: nat: add range checks for access to nf_nat_l[34]protos[]
-From:   Will McVicker <willmcvicker@google.com>
-To:     security@kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>
+        Mon, 27 Jul 2020 14:23:07 -0400
+Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
+        by mailnew.west.internal (Postfix) with ESMTP id D24DDE02;
+        Mon, 27 Jul 2020 14:23:04 -0400 (EDT)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute4.internal (MEProxy); Mon, 27 Jul 2020 14:23:06 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:content-type:date:from:in-reply-to
+        :message-id:mime-version:references:subject:to:x-me-proxy
+        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; bh=Afhna7
+        9fjG2N/ESpGlT1yod24pbovs9kG7jTtRp8uec=; b=pxd6lnhAQY6lq36Rw0t2Wr
+        FNTj7Aqv7utLvfCSPVSKK7zYkP/Oi6k9NUUf7rFRtAgNJ4ISpkANzMes5KPdO5xP
+        uQhBAs0exKeEZWKHlguK1wyxAhd7/2StnncNBaDA+r1X7J3jOA/5IUqtqukcS8Zy
+        6b1F7WsC7K7Gxls+h+LpTkFCZf/cBDkEzEii5uRHhbH0he4RqOm0VhtaaNhJ0ONh
+        sA1OegTDCQaheFhFJspfeBf1dkuokHpdFLa9JDtSfErlJ23gF/vUAREvveiVNSbI
+        s2U0p/YcHBpouuo2EToObgfipcm60uYWCoTDshKh/Ld62ZeuhBlR0923rp/WSgug
+        ==
+X-ME-Sender: <xms:hhsfXw256bt5Qvmk7qwJktXsYXMYpGtJEPiP9Uh0o4S3z4J60JG_Ug>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeduiedriedtgdduvdeiucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    cujfgurhepfffhvffukfhfgggtuggjsehttdertddttddvnecuhfhrohhmpefkughoucfu
+    tghhihhmmhgvlhcuoehiughoshgthhesihguohhstghhrdhorhhgqeenucggtffrrghtth
+    gvrhhnpedtffekkeefudffveegueejffejhfetgfeuuefgvedtieehudeuueekhfduheel
+    teenucfkphepjeelrddukedurddvrddujeelnecuvehluhhsthgvrhfuihiivgeptdenuc
+    frrghrrghmpehmrghilhhfrhhomhepihguohhstghhsehiughoshgthhdrohhrgh
+X-ME-Proxy: <xmx:hhsfX7GUtyQL-qzWlnNrDA6BRLNqA_sVqs6SkDPZ3OFYz2rLpuLPKA>
+    <xmx:hhsfX46tTRqe9_4re0uj3hKI21pc6E5kOG5GBQ_4I2GbhCEFmzhFVQ>
+    <xmx:hhsfX53ly2RhKyVXpSc-AP7Py8h3bUEfu3XyInk15A9EOdXPwhk-DQ>
+    <xmx:iBsfX7VuEFOpnGbNFKVSKt3rokiDITnfnJBSqLDGQ8efu7Vwr-9kkM4RTJM>
+Received: from localhost (bzq-79-181-2-179.red.bezeqint.net [79.181.2.179])
+        by mail.messagingengine.com (Postfix) with ESMTPA id BA5ED328005D;
+        Mon, 27 Jul 2020 14:23:01 -0400 (EDT)
+Date:   Mon, 27 Jul 2020 21:22:59 +0300
+From:   Ido Schimmel <idosch@idosch.org>
+To:     Christoph Hellwig <hch@lst.de>
 Cc:     "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
         Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
         Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Eric Dumazet <edumazet@google.com>,
+        linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, bpf@vger.kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        kernel-team@android.com, Will McVicker <willmcvicker@google.com>
-Content-Type: text/plain; charset="UTF-8"
+        linux-sctp@vger.kernel.org, linux-hams@vger.kernel.org,
+        linux-bluetooth@vger.kernel.org, bridge@lists.linux-foundation.org,
+        linux-can@vger.kernel.org, dccp@vger.kernel.org,
+        linux-decnet-user@lists.sourceforge.net,
+        linux-wpan@vger.kernel.org, linux-s390@vger.kernel.org,
+        mptcp@lists.01.org, lvs-devel@vger.kernel.org,
+        rds-devel@oss.oracle.com, linux-afs@lists.infradead.org,
+        tipc-discussion@lists.sourceforge.net, linux-x25@vger.kernel.org
+Subject: Re: [PATCH 19/26] net/ipv6: switch ipv6_flowlabel_opt to sockptr_t
+Message-ID: <20200727182259.GA1931870@shredder>
+References: <20200723060908.50081-1-hch@lst.de>
+ <20200723060908.50081-20-hch@lst.de>
+ <20200727121505.GA1804864@shredder>
+ <20200727130029.GA26393@lst.de>
+ <20200727133331.GA1851348@shredder>
+ <20200727161555.GA7817@lst.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200727161555.GA7817@lst.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The indexes to the nf_nat_l[34]protos arrays come from userspace. So we
-need to make sure that before indexing the arrays, we verify the index
-is within the array bounds in order to prevent an OOB memory access.
-Here is an example kernel panic on 4.14.180 when userspace passes in an
-index greater than NFPROTO_NUMPROTO.
+On Mon, Jul 27, 2020 at 06:15:55PM +0200, Christoph Hellwig wrote:
+> I have to admit I didn't spot the difference between the good and the
+> bad output even after trying hard..
+> 
+> But can you try the patch below?
+> 
+> ---
+> From cce2d2e1b43ecee5f4af7cf116808b74b330080f Mon Sep 17 00:00:00 2001
+> From: Christoph Hellwig <hch@lst.de>
+> Date: Mon, 27 Jul 2020 17:42:27 +0200
+> Subject: net: remove sockptr_advance
+> 
+> sockptr_advance never properly worked.  Replace it with _offset variants
+> of copy_from_sockptr and copy_to_sockptr.
+> 
+> Fixes: ba423fdaa589 ("net: add a new sockptr_t type")
+> Reported-by: Jason A. Donenfeld <Jason@zx2c4.com>
+> Reported-by: Ido Schimmel <idosch@idosch.org>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-Internal error: Oops - BUG: 0 [#1] PREEMPT SMP
-Modules linked in:...
-Process poc (pid: 5614, stack limit = 0x00000000a3933121)
-CPU: 4 PID: 5614 Comm: poc Tainted: G S      W  O    4.14.180-g051355490483
-Hardware name: Qualcomm Technologies, Inc. SM8150 V2 PM8150 Google Inc. MSM
-task: 000000002a3dfffe task.stack: 00000000a3933121
-pc : __cfi_check_fail+0x1c/0x24
-lr : __cfi_check_fail+0x1c/0x24
-...
-Call trace:
-__cfi_check_fail+0x1c/0x24
-name_to_dev_t+0x0/0x468
-nfnetlink_parse_nat_setup+0x234/0x258
-ctnetlink_parse_nat_setup+0x4c/0x228
-ctnetlink_new_conntrack+0x590/0xc40
-nfnetlink_rcv_msg+0x31c/0x4d4
-netlink_rcv_skb+0x100/0x184
-nfnetlink_rcv+0xf4/0x180
-netlink_unicast+0x360/0x770
-netlink_sendmsg+0x5a0/0x6a4
-___sys_sendmsg+0x314/0x46c
-SyS_sendmsg+0xb4/0x108
-el0_svc_naked+0x34/0x38
+Tested-by: Ido Schimmel <idosch@mellanox.com>
 
-Signed-off-by: Will McVicker <willmcvicker@google.com>
----
- net/ipv4/netfilter/nf_nat_l3proto_ipv4.c |  6 ++++--
- net/ipv6/netfilter/nf_nat_l3proto_ipv6.c |  5 +++--
- net/netfilter/nf_nat_core.c              | 27 ++++++++++++++++++++++--
- net/netfilter/nf_nat_helper.c            |  4 ++++
- 4 files changed, 36 insertions(+), 6 deletions(-)
-
-diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-index 6115bf1ff6f0..1912fc66147c 100644
---- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-@@ -218,7 +218,8 @@ int nf_nat_icmp_reply_translation(struct sk_buff *skb,
- 		return 1;
- 
- 	l4proto = __nf_nat_l4proto_find(NFPROTO_IPV4, inside->ip.protocol);
--	if (!nf_nat_ipv4_manip_pkt(skb, hdrlen + sizeof(inside->icmp),
-+	if (!l4proto ||
-+	    !nf_nat_ipv4_manip_pkt(skb, hdrlen + sizeof(inside->icmp),
- 				   l4proto, &ct->tuplehash[!dir].tuple, !manip))
- 		return 0;
- 
-@@ -234,7 +235,8 @@ int nf_nat_icmp_reply_translation(struct sk_buff *skb,
- 	/* Change outer to look like the reply to an incoming packet */
- 	nf_ct_invert_tuplepr(&target, &ct->tuplehash[!dir].tuple);
- 	l4proto = __nf_nat_l4proto_find(NFPROTO_IPV4, 0);
--	if (!nf_nat_ipv4_manip_pkt(skb, 0, l4proto, &target, manip))
-+	if (!l4proto ||
-+	    !nf_nat_ipv4_manip_pkt(skb, 0, l4proto, &target, manip))
- 		return 0;
- 
- 	return 1;
-diff --git a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-index ca6d38698b1a..a72840baf27b 100644
---- a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-@@ -228,7 +228,8 @@ int nf_nat_icmpv6_reply_translation(struct sk_buff *skb,
- 		return 1;
- 
- 	l4proto = __nf_nat_l4proto_find(NFPROTO_IPV6, inside->ip6.nexthdr);
--	if (!nf_nat_ipv6_manip_pkt(skb, hdrlen + sizeof(inside->icmp6),
-+	if (!l4proto ||
-+	    !nf_nat_ipv6_manip_pkt(skb, hdrlen + sizeof(inside->icmp6),
- 				   l4proto, &ct->tuplehash[!dir].tuple, !manip))
- 		return 0;
- 
-@@ -245,7 +246,7 @@ int nf_nat_icmpv6_reply_translation(struct sk_buff *skb,
- 
- 	nf_ct_invert_tuplepr(&target, &ct->tuplehash[!dir].tuple);
- 	l4proto = __nf_nat_l4proto_find(NFPROTO_IPV6, IPPROTO_ICMPV6);
--	if (!nf_nat_ipv6_manip_pkt(skb, 0, l4proto, &target, manip))
-+	if (!l4proto || !nf_nat_ipv6_manip_pkt(skb, 0, l4proto, &target, manip))
- 		return 0;
- 
- 	return 1;
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 2268b10a9dcf..d28185f38955 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -64,12 +64,16 @@ struct nat_net {
- inline const struct nf_nat_l3proto *
- __nf_nat_l3proto_find(u8 family)
- {
-+	if (family >= NFPROTO_NUMPROTO)
-+		return NULL;
- 	return rcu_dereference(nf_nat_l3protos[family]);
- }
- 
- inline const struct nf_nat_l4proto *
- __nf_nat_l4proto_find(u8 family, u8 protonum)
- {
-+	if (family >= NFPROTO_NUMPROTO)
-+		return NULL;
- 	return rcu_dereference(nf_nat_l4protos[family][protonum]);
- }
- EXPORT_SYMBOL_GPL(__nf_nat_l4proto_find);
-@@ -317,7 +321,7 @@ find_best_ips_proto(const struct nf_conntrack_zone *zone,
-  * range. It might not be possible to get a unique tuple, but we try.
-  * At worst (or if we race), we will end up with a final duplicate in
-  * __ip_conntrack_confirm and drop the packet. */
--static void
-+static int
- get_unique_tuple(struct nf_conntrack_tuple *tuple,
- 		 const struct nf_conntrack_tuple *orig_tuple,
- 		 const struct nf_nat_range2 *range,
-@@ -328,13 +332,22 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
- 	const struct nf_nat_l3proto *l3proto;
- 	const struct nf_nat_l4proto *l4proto;
- 	struct net *net = nf_ct_net(ct);
-+	int ret = 0;
- 
- 	zone = nf_ct_zone(ct);
- 
- 	rcu_read_lock();
- 	l3proto = __nf_nat_l3proto_find(orig_tuple->src.l3num);
-+	if (!l3proto) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
- 	l4proto = __nf_nat_l4proto_find(orig_tuple->src.l3num,
- 					orig_tuple->dst.protonum);
-+	if (!l4proto) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
- 
- 	/* 1) If this srcip/proto/src-proto-part is currently mapped,
- 	 * and that same mapping gives a unique tuple within the given
-@@ -387,6 +400,7 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
- 	l4proto->unique_tuple(l3proto, tuple, range, maniptype, ct);
- out:
- 	rcu_read_unlock();
-+	return ret;
- }
- 
- struct nf_conn_nat *nf_ct_nat_ext_add(struct nf_conn *ct)
-@@ -409,6 +423,7 @@ nf_nat_setup_info(struct nf_conn *ct,
- {
- 	struct net *net = nf_ct_net(ct);
- 	struct nf_conntrack_tuple curr_tuple, new_tuple;
-+	int err;
- 
- 	/* Can't setup nat info for confirmed ct. */
- 	if (nf_ct_is_confirmed(ct))
-@@ -428,7 +443,9 @@ nf_nat_setup_info(struct nf_conn *ct,
- 	nf_ct_invert_tuplepr(&curr_tuple,
- 			     &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
- 
--	get_unique_tuple(&new_tuple, &curr_tuple, range, ct, maniptype);
-+	err = get_unique_tuple(&new_tuple, &curr_tuple, range, ct, maniptype);
-+	if (err < 0)
-+		return NF_DROP;
- 
- 	if (!nf_ct_tuple_equal(&new_tuple, &curr_tuple)) {
- 		struct nf_conntrack_tuple reply;
-@@ -509,8 +526,12 @@ static unsigned int nf_nat_manip_pkt(struct sk_buff *skb, struct nf_conn *ct,
- 	nf_ct_invert_tuplepr(&target, &ct->tuplehash[!dir].tuple);
- 
- 	l3proto = __nf_nat_l3proto_find(target.src.l3num);
-+	if (!l3proto)
-+		return NF_DROP;
- 	l4proto = __nf_nat_l4proto_find(target.src.l3num,
- 					target.dst.protonum);
-+	if (!l4proto)
-+		return NF_DROP;
- 	if (!l3proto->manip_pkt(skb, 0, l4proto, &target, mtype))
- 		return NF_DROP;
- 
-@@ -816,6 +837,8 @@ static int nfnetlink_parse_nat_proto(struct nlattr *attr,
- 		return err;
- 
- 	l4proto = __nf_nat_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
-+	if (!l4proto)
-+		return -EINVAL;
- 	if (l4proto->nlattr_to_range)
- 		err = l4proto->nlattr_to_range(tb, range);
- 
-diff --git a/net/netfilter/nf_nat_helper.c b/net/netfilter/nf_nat_helper.c
-index 99606baedda4..6f694444137e 100644
---- a/net/netfilter/nf_nat_helper.c
-+++ b/net/netfilter/nf_nat_helper.c
-@@ -121,6 +121,8 @@ bool __nf_nat_mangle_tcp_packet(struct sk_buff *skb,
- 	datalen = skb->len - protoff;
- 
- 	l3proto = __nf_nat_l3proto_find(nf_ct_l3num(ct));
-+	if (!l3proto)
-+		return false;
- 	l3proto->csum_recalc(skb, IPPROTO_TCP, tcph, &tcph->check,
- 			     datalen, oldlen);
- 
-@@ -179,6 +181,8 @@ nf_nat_mangle_udp_packet(struct sk_buff *skb,
- 		return true;
- 
- 	l3proto = __nf_nat_l3proto_find(nf_ct_l3num(ct));
-+	if (!l3proto)
-+		return false;
- 	l3proto->csum_recalc(skb, IPPROTO_UDP, udph, &udph->check,
- 			     datalen, oldlen);
- 
--- 
-2.28.0.rc0.142.g3c755180ce-goog
-
+Thanks!
