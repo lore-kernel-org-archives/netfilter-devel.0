@@ -7,47 +7,45 @@ X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66A47C433EA
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Jul 2020 18:17:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 402DEC433E3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Jul 2020 18:17:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4C6252070B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Jul 2020 18:17:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2B4972070B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Jul 2020 18:17:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728964AbgG1SRU (ORCPT
+        id S1728829AbgG1SRR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 28 Jul 2020 14:17:20 -0400
-Received: from correo.us.es ([193.147.175.20]:41604 "EHLO mail.us.es"
+        Tue, 28 Jul 2020 14:17:17 -0400
+Received: from correo.us.es ([193.147.175.20]:41592 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728755AbgG1SRT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 Jul 2020 14:17:19 -0400
+        id S1728723AbgG1SRQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 28 Jul 2020 14:17:16 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4485615AEA8
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2020 20:17:18 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id C0A2F15AEB0
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2020 20:17:15 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 383B3DA72F
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2020 20:17:18 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B3F1FDA73D
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2020 20:17:15 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 2E0A8DA78E; Tue, 28 Jul 2020 20:17:18 +0200 (CEST)
+        id A9AC8DA72F; Tue, 28 Jul 2020 20:17:15 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3A8EBDA73D
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2020 20:17:16 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 95E21DA78F
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2020 20:17:13 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 28 Jul 2020 20:17:16 +0200 (CEST)
+ Tue, 28 Jul 2020 20:17:13 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 1C9F74265A32
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2020 20:17:16 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 78F084265A2F
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2020 20:17:13 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 3/3] evaluate: UAF in hook priority expression
-Date:   Tue, 28 Jul 2020 20:17:10 +0200
-Message-Id: <20200728181710.14919-3-pablo@netfilter.org>
+Subject: [PATCH nft 1/3] parser_bison: memleak symbol redefinition
+Date:   Tue, 28 Jul 2020 20:17:08 +0200
+Message-Id: <20200728181710.14919-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200728181710.14919-1-pablo@netfilter.org>
-References: <20200728181710.14919-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
@@ -56,35 +54,25 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Release priority expression right before assigning the constant
-expression that results from the evaluation.
+Missing expr_free() from the error path.
 
-Fixes: 627c451b2351 ("src: allow variables in the chain priority specification")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/evaluate.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ src/parser_bison.y | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 536325e83537..7f93621827e6 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -3707,7 +3707,6 @@ static bool evaluate_priority(struct eval_ctx *ctx, struct prio_spec *prio,
- 	mpz_export_data(prio_str, prio->expr->value, BYTEORDER_HOST_ENDIAN,
- 			NFT_NAME_MAXLEN);
- 	loc = prio->expr->location;
--	expr_free(prio->expr);
- 
- 	if (sscanf(prio_str, "%s %c %d", prio_fst, &op, &prio_snd) < 3) {
- 		priority = std_prio_lookup(prio_str, family, hook);
-@@ -3724,6 +3723,7 @@ static bool evaluate_priority(struct eval_ctx *ctx, struct prio_spec *prio,
- 		else
- 			return false;
- 	}
-+	expr_free(prio->expr);
- 	prio->expr = constant_expr_alloc(&loc, &integer_type,
- 					 BYTEORDER_HOST_ENDIAN,
- 					 sizeof(int) * BITS_PER_BYTE,
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index f0cca64136ee..167c315810ed 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -862,6 +862,7 @@ common_block		:	INCLUDE		QUOTED_STRING	stmt_separator
+ 				if (symbol_lookup(scope, $2) != NULL) {
+ 					erec_queue(error(&@2, "redefinition of symbol '%s'", $2),
+ 						   state->msgs);
++					expr_free($4);
+ 					xfree($2);
+ 					YYERROR;
+ 				}
 -- 
 2.20.1
 
