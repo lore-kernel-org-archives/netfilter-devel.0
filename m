@@ -1,117 +1,52 @@
-Return-Path: <SRS0=nQ4N=BG=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=tHxH=BH=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A4E9C433E5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jul 2020 18:23:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AF11C433E3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Jul 2020 08:03:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5FC862073E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Jul 2020 18:23:12 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="pxd6lnhA"
+	by mail.kernel.org (Postfix) with ESMTP id 620C52177B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Jul 2020 08:03:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730884AbgG0SXJ (ORCPT
+        id S1727916AbgG1IDG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 27 Jul 2020 14:23:09 -0400
-Received: from wnew2-smtp.messagingengine.com ([64.147.123.27]:46683 "EHLO
-        wnew2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729205AbgG0SXH (ORCPT
+        Tue, 28 Jul 2020 04:03:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60576 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726990AbgG1IDG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Jul 2020 14:23:07 -0400
-Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
-        by mailnew.west.internal (Postfix) with ESMTP id D24DDE02;
-        Mon, 27 Jul 2020 14:23:04 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute4.internal (MEProxy); Mon, 27 Jul 2020 14:23:06 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-type:date:from:in-reply-to
-        :message-id:mime-version:references:subject:to:x-me-proxy
-        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; bh=Afhna7
-        9fjG2N/ESpGlT1yod24pbovs9kG7jTtRp8uec=; b=pxd6lnhAQY6lq36Rw0t2Wr
-        FNTj7Aqv7utLvfCSPVSKK7zYkP/Oi6k9NUUf7rFRtAgNJ4ISpkANzMes5KPdO5xP
-        uQhBAs0exKeEZWKHlguK1wyxAhd7/2StnncNBaDA+r1X7J3jOA/5IUqtqukcS8Zy
-        6b1F7WsC7K7Gxls+h+LpTkFCZf/cBDkEzEii5uRHhbH0he4RqOm0VhtaaNhJ0ONh
-        sA1OegTDCQaheFhFJspfeBf1dkuokHpdFLa9JDtSfErlJ23gF/vUAREvveiVNSbI
-        s2U0p/YcHBpouuo2EToObgfipcm60uYWCoTDshKh/Ld62ZeuhBlR0923rp/WSgug
-        ==
-X-ME-Sender: <xms:hhsfXw256bt5Qvmk7qwJktXsYXMYpGtJEPiP9Uh0o4S3z4J60JG_Ug>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeduiedriedtgdduvdeiucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepfffhvffukfhfgggtuggjsehttdertddttddvnecuhfhrohhmpefkughoucfu
-    tghhihhmmhgvlhcuoehiughoshgthhesihguohhstghhrdhorhhgqeenucggtffrrghtth
-    gvrhhnpedtffekkeefudffveegueejffejhfetgfeuuefgvedtieehudeuueekhfduheel
-    teenucfkphepjeelrddukedurddvrddujeelnecuvehluhhsthgvrhfuihiivgeptdenuc
-    frrghrrghmpehmrghilhhfrhhomhepihguohhstghhsehiughoshgthhdrohhrgh
-X-ME-Proxy: <xmx:hhsfX7GUtyQL-qzWlnNrDA6BRLNqA_sVqs6SkDPZ3OFYz2rLpuLPKA>
-    <xmx:hhsfX46tTRqe9_4re0uj3hKI21pc6E5kOG5GBQ_4I2GbhCEFmzhFVQ>
-    <xmx:hhsfX53ly2RhKyVXpSc-AP7Py8h3bUEfu3XyInk15A9EOdXPwhk-DQ>
-    <xmx:iBsfX7VuEFOpnGbNFKVSKt3rokiDITnfnJBSqLDGQ8efu7Vwr-9kkM4RTJM>
-Received: from localhost (bzq-79-181-2-179.red.bezeqint.net [79.181.2.179])
-        by mail.messagingengine.com (Postfix) with ESMTPA id BA5ED328005D;
-        Mon, 27 Jul 2020 14:23:01 -0400 (EDT)
-Date:   Mon, 27 Jul 2020 21:22:59 +0300
-From:   Ido Schimmel <idosch@idosch.org>
-To:     Christoph Hellwig <hch@lst.de>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Eric Dumazet <edumazet@google.com>,
-        linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, bpf@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-sctp@vger.kernel.org, linux-hams@vger.kernel.org,
-        linux-bluetooth@vger.kernel.org, bridge@lists.linux-foundation.org,
-        linux-can@vger.kernel.org, dccp@vger.kernel.org,
-        linux-decnet-user@lists.sourceforge.net,
-        linux-wpan@vger.kernel.org, linux-s390@vger.kernel.org,
-        mptcp@lists.01.org, lvs-devel@vger.kernel.org,
-        rds-devel@oss.oracle.com, linux-afs@lists.infradead.org,
-        tipc-discussion@lists.sourceforge.net, linux-x25@vger.kernel.org
-Subject: Re: [PATCH 19/26] net/ipv6: switch ipv6_flowlabel_opt to sockptr_t
-Message-ID: <20200727182259.GA1931870@shredder>
-References: <20200723060908.50081-1-hch@lst.de>
- <20200723060908.50081-20-hch@lst.de>
- <20200727121505.GA1804864@shredder>
- <20200727130029.GA26393@lst.de>
- <20200727133331.GA1851348@shredder>
- <20200727161555.GA7817@lst.de>
+        Tue, 28 Jul 2020 04:03:06 -0400
+Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2CF3C061794
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2020 01:03:05 -0700 (PDT)
+Received: by a3.inai.de (Postfix, from userid 25121)
+        id 23AD858726429; Tue, 28 Jul 2020 10:03:04 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by a3.inai.de (Postfix) with ESMTP id 22C9160C531ED;
+        Tue, 28 Jul 2020 10:03:04 +0200 (CEST)
+Date:   Tue, 28 Jul 2020 10:03:04 +0200 (CEST)
+From:   Jan Engelhardt <jengelh@inai.de>
+To:     Jeremy Sowden <jeremy@azazel.net>
+cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH xtables-addons v2] doc: fix quoted string in libxt_DNETMAP
+ man-page.
+In-Reply-To: <20200721130345.717735-1-jeremy@azazel.net>
+Message-ID: <nycvar.YFH.7.77.849.2007281002570.16610@n3.vanv.qr>
+References: <20200721130345.717735-1-jeremy@azazel.net>
+User-Agent: Alpine 2.22 (LSU 394 2020-01-19)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200727161555.GA7817@lst.de>
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jul 27, 2020 at 06:15:55PM +0200, Christoph Hellwig wrote:
-> I have to admit I didn't spot the difference between the good and the
-> bad output even after trying hard..
-> 
-> But can you try the patch below?
-> 
-> ---
-> From cce2d2e1b43ecee5f4af7cf116808b74b330080f Mon Sep 17 00:00:00 2001
-> From: Christoph Hellwig <hch@lst.de>
-> Date: Mon, 27 Jul 2020 17:42:27 +0200
-> Subject: net: remove sockptr_advance
-> 
-> sockptr_advance never properly worked.  Replace it with _offset variants
-> of copy_from_sockptr and copy_to_sockptr.
-> 
-> Fixes: ba423fdaa589 ("net: add a new sockptr_t type")
-> Reported-by: Jason A. Donenfeld <Jason@zx2c4.com>
-> Reported-by: Ido Schimmel <idosch@idosch.org>
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+On Tuesday 2020-07-21 15:03, Jeremy Sowden wrote:
 
-Tested-by: Ido Schimmel <idosch@mellanox.com>
+>In roff, lines beginning with a single quote are control lines.[..]
 
-Thanks!
+Added.
