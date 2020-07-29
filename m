@@ -6,58 +6,62 @@ X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E82C1C433DF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Jul 2020 20:44:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F6F5C433DF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Jul 2020 20:44:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D09CD2068F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Jul 2020 20:44:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F2FCD2068F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Jul 2020 20:44:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726751AbgG2UoC (ORCPT
+        id S1726976AbgG2Uog (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 29 Jul 2020 16:44:02 -0400
-Received: from correo.us.es ([193.147.175.20]:55766 "EHLO mail.us.es"
+        Wed, 29 Jul 2020 16:44:36 -0400
+Received: from correo.us.es ([193.147.175.20]:55858 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726606AbgG2UoB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 Jul 2020 16:44:01 -0400
+        id S1726496AbgG2Uof (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 29 Jul 2020 16:44:35 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id F0B20FB36A
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2020 22:44:00 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id C6F10FB366
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2020 22:44:34 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E399BDA852
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2020 22:44:00 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B95D3DA796
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2020 22:44:34 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D0EFEDA844; Wed, 29 Jul 2020 22:44:00 +0200 (CEST)
+        id AEBF4DA78B; Wed, 29 Jul 2020 22:44:34 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AFB7DDA78A;
-        Wed, 29 Jul 2020 22:43:58 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A409CDA73D;
+        Wed, 29 Jul 2020 22:44:32 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 29 Jul 2020 22:43:58 +0200 (CEST)
+ Wed, 29 Jul 2020 22:44:32 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 742A34265A2F;
-        Wed, 29 Jul 2020 22:43:58 +0200 (CEST)
-Date:   Wed, 29 Jul 2020 22:43:58 +0200
+        by entrada.int (Postfix) with ESMTPSA id 704684265A2F;
+        Wed, 29 Jul 2020 22:44:32 +0200 (CEST)
+Date:   Wed, 29 Jul 2020 22:44:32 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     "Alexander A. Klimov" <grandmaster@al2klimov.de>
-Cc:     kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
-        kuba@kernel.org, paul@paul-moore.com,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org,
-        linux-decnet-user@lists.sourceforge.net, netdev@vger.kernel.org,
-        linux-security-module@vger.kernel.org
-Subject: Re: [PATCH v2] netfilter: Replace HTTP links with HTTPS ones
-Message-ID: <20200729204358.GA11388@salvia>
-References: <20200724112856.GA26061@salvia>
- <20200725170225.4505-1-grandmaster@al2klimov.de>
+To:     Gaurav Singh <gaurav1086@gmail.com>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Jakub Kicinski <kuba@kernel.org>,
+        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
+        "open list:NETFILTER" <coreteam@netfilter.org>,
+        "open list:NETWORKING [IPv4/IPv6]" <netdev@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] netfilter: ip6tables: Remove redundant null checks
+Message-ID: <20200729204432.GA11422@salvia>
+References: <20200625023626.32557-1-gaurav1086@gmail.com>
+ <20200727015206.26423-1-gaurav1086@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200725170225.4505-1-grandmaster@al2klimov.de>
+In-Reply-To: <20200727015206.26423-1-gaurav1086@gmail.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -65,9 +69,4 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Jul 25, 2020 at 07:02:25PM +0200, Alexander A. Klimov wrote:
-> Rationale:
-> Reduces attack surface on kernel devs opening the links for MITM
-> as HTTPS traffic is much harder to manipulate.
-
-Applied.
+Applied, thanks.
