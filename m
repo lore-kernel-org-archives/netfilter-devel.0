@@ -2,130 +2,245 @@ Return-Path: <SRS0=oAJK=BK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35E9FC433E3
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jul 2020 09:22:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4004DC433DF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jul 2020 10:50:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1970622B40
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jul 2020 09:22:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 024E020838
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Jul 2020 10:50:29 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="HmxJx7kf"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732136AbgGaJWV (ORCPT
+        id S1732743AbgGaKu2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 31 Jul 2020 05:22:21 -0400
-Received: from correo.us.es ([193.147.175.20]:57876 "EHLO mail.us.es"
+        Fri, 31 Jul 2020 06:50:28 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:56930 "EHLO mx1.riseup.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732037AbgGaJWU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 31 Jul 2020 05:22:20 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 80BF3154E85
-        for <netfilter-devel@vger.kernel.org>; Fri, 31 Jul 2020 11:22:15 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6EA69DA792
-        for <netfilter-devel@vger.kernel.org>; Fri, 31 Jul 2020 11:22:15 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 641CBDA78F; Fri, 31 Jul 2020 11:22:15 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E9857DA73D;
-        Fri, 31 Jul 2020 11:22:12 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 31 Jul 2020 11:22:12 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id CA0AB4265A2F;
-        Fri, 31 Jul 2020 11:22:12 +0200 (CEST)
-Date:   Fri, 31 Jul 2020 11:22:12 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     "Jose M. Guisado Gomez" <guigom@riseup.net>
-Cc:     netfilter-devel@vger.kernel.org, phil@nwl.cc
-Subject: Re: [PATCH nft v2 1/1] src: enable output with "nft --echo --json"
- and nftables syntax
-Message-ID: <20200731092212.GA1850@salvia>
-References: <20200730195337.3627-1-guigom@riseup.net>
- <20200731000020.4230-2-guigom@riseup.net>
+        id S1729141AbgGaKu2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 31 Jul 2020 06:50:28 -0400
+Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "Sectigo RSA Domain Validation Secure Server CA" (not verified))
+        by mx1.riseup.net (Postfix) with ESMTPS id 4BJ3vz09b1zFgrD
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 Jul 2020 03:50:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1596192627; bh=s3XDgYrgoFseuZtX7P2qwKMPXvc/llA2rDlA/rh1Drw=;
+        h=From:To:Subject:Date:In-Reply-To:References:From;
+        b=HmxJx7kf89CufsE+e/Vu2nqhTH27uipOm6eYJ6LvBfnm84OoVguqiEyQJGlsGndkN
+         pd0EStQUMZ3DDdrIOGNRKef0LlvHhpXmQpBLnD9r08Ndq6YVa8FP3bkrTEL9apq1NK
+         boQCdsKOIwA7qj4n4X4q5y08aakI7C8CfebGIJ+0=
+X-Riseup-User-ID: D4E725CD7FF66750111CC062F72050E73A25F90DA44B2E59501824927FFF9765
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by bell.riseup.net (Postfix) with ESMTPSA id 4BJ3vy2rxnzJnq5
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 Jul 2020 03:50:22 -0700 (PDT)
+From:   "Jose M. Guisado Gomez" <guigom@riseup.net>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft v3] src: enable output with "nft --echo --json" and nftables syntax
+Date:   Fri, 31 Jul 2020 12:49:44 +0200
+Message-Id: <20200731104944.21384-1-guigom@riseup.net>
+In-Reply-To: <20200731092212.GA1850@salvia>
+References: <20200731092212.GA1850@salvia>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="EVF5PPMfhYS0aIcm"
-Content-Disposition: inline
-In-Reply-To: <20200731000020.4230-2-guigom@riseup.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+This patch fixes a bug in which nft did not print any output when
+specifying --echo and --json and reading nftables syntax.
+This was because struct nft_ctx member json_root was only inizialized when
+reading a json formatted file or buffer.
 
---EVF5PPMfhYS0aIcm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Create a json_echo member inside struct nft_ctx to build and store the json object
+containing the json command objects when --json and --echo are passed to nft.
 
-Hi,
+Removes cmd json assoc code which is no longer used at this point.
 
-Cc'ing Phil.
+Fixes: https://bugzilla.netfilter.org/show_bug.cgi?id=1446
 
-On Fri, Jul 31, 2020 at 02:00:22AM +0200, Jose M. Guisado Gomez wrote:
-> diff --git a/src/parser_json.c b/src/parser_json.c
-> index 59347168..237b6f3e 100644
-> --- a/src/parser_json.c
-> +++ b/src/parser_json.c
-> @@ -3884,11 +3884,15 @@ int json_events_cb(const struct nlmsghdr *nlh, struct netlink_mon_handler *monh)
->
->  void json_print_echo(struct nft_ctx *ctx)
->  {
-> -	if (!ctx->json_root)
-> +	if (!ctx->json_echo)
->		return;
->
-> -	json_dumpf(ctx->json_root, ctx->output.output_fp, JSON_PRESERVE_ORDER);
-> +	ctx->json_echo = json_pack("{s:o}", "nftables", ctx->json_echo);
-> +	json_dumpf(ctx->json_echo, ctx->output.output_fp, JSON_PRESERVE_ORDER);
-> +	printf("\n");
->	json_cmd_assoc_free();
-> -	json_decref(ctx->json_root);
-> -	ctx->json_root = NULL;
-> +	if (ctx->json_echo) {
-> +		json_decref(ctx->json_echo);
-> +		ctx->json_echo = NULL;
-> +	}
+Signed-off-by: Jose M. Guisado Gomez <guigom@riseup.net>
+---
+Adds proposed changes on top of v2
 
-I think json_print_echo() should look like this - note I replaced the
-printf("\n"); by fprintf. Also remove the if (ctx->json_echo) branch.
+ include/nftables.h |   1 +
+ src/json.c         |  13 +++-
+ src/monitor.c      |  36 ++++++++---
+ src/parser_json.c  | 152 +++------------------------------------------
+ 4 files changed, 49 insertions(+), 153 deletions(-)
 
-void json_print_echo(struct nft_ctx *ctx)
-{
-	if (!ctx->json_echo)
-		return;
-
-	ctx->json_echo = json_pack("{s:o}", "nftables", ctx->json_echo);
-	json_dumpf(ctx->json_echo, ctx->output.output_fp, JSON_PRESERVE_ORDER);
-	json_decref(ctx->json_echo);
-	ctx->json_echo = NULL;
-	fprintf(ctx->output.output_fp, "\n");
-	fflush(ctx->output.output_fp);
-}
-
-Please, include this update. I'm also attaching a patch that you can
-squash to your v3 patch.
-
-@Phil, I think the entire assoc code can just go away? Maybe you can also
-run firewalld tests to make sure v3 works fine?  IIRC that is a heavy user
-of --echo and --json.
-
-Thanks.
-
---EVF5PPMfhYS0aIcm
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="remove-json-assoc-code.patch"
-
+diff --git a/include/nftables.h b/include/nftables.h
+index 3556728d..9095ff3d 100644
+--- a/include/nftables.h
++++ b/include/nftables.h
+@@ -122,6 +122,7 @@ struct nft_ctx {
+ 	void			*scanner;
+ 	struct scope		*top_scope;
+ 	void			*json_root;
++	json_t			*json_echo;
+ };
+ 
+ enum nftables_exit_codes {
+diff --git a/src/json.c b/src/json.c
+index 888cb371..ffe0e57d 100644
+--- a/src/json.c
++++ b/src/json.c
+@@ -1857,9 +1857,16 @@ int do_command_list_json(struct netlink_ctx *ctx, struct cmd *cmd)
+ static void monitor_print_json(struct netlink_mon_handler *monh,
+ 			       const char *cmd, json_t *obj)
+ {
+-	obj = json_pack("{s:o}", cmd, obj);
+-	json_dumpf(obj, monh->ctx->nft->output.output_fp, 0);
+-	json_decref(obj);
++	struct nft_ctx *nft = monh->ctx->nft;
++
++	if (nft_output_echo(&nft->output)) {
++		obj = json_pack("{s:o}", cmd, obj);
++		json_array_append_new(nft->json_echo, obj);
++	} else {
++		obj = json_pack("{s:o}", cmd, obj);
++		json_dumpf(obj, monh->ctx->nft->output.output_fp, 0);
++		json_decref(obj);
++	}
+ }
+ 
+ void monitor_print_table_json(struct netlink_mon_handler *monh,
+diff --git a/src/monitor.c b/src/monitor.c
+index 3872ebcf..ea901c53 100644
+--- a/src/monitor.c
++++ b/src/monitor.c
+@@ -221,12 +221,14 @@ static int netlink_events_table_cb(const struct nlmsghdr *nlh, int type,
+ 		if (nft_output_handle(&monh->ctx->nft->output))
+ 			nft_mon_print(monh, " # handle %" PRIu64 "",
+ 				      t->handle.handle.id);
++		nft_mon_print(monh, "\n");
+ 		break;
+ 	case NFTNL_OUTPUT_JSON:
+ 		monitor_print_table_json(monh, cmd, t);
++		if(!nft_output_echo(&monh->ctx->nft->output))
++			nft_mon_print(monh, "\n");
+ 		break;
+ 	}
+-	nft_mon_print(monh, "\n");
+ 	table_free(t);
+ 	nftnl_table_free(nlt);
+ 	return MNL_CB_OK;
+@@ -258,12 +260,14 @@ static int netlink_events_chain_cb(const struct nlmsghdr *nlh, int type,
+ 				      c->handle.chain.name);
+ 			break;
+ 		}
++		nft_mon_print(monh, "\n");
+ 		break;
+ 	case NFTNL_OUTPUT_JSON:
+ 		monitor_print_chain_json(monh, cmd, c);
++		if(!nft_output_echo(&monh->ctx->nft->output))
++			nft_mon_print(monh, "\n");
+ 		break;
+ 	}
+-	nft_mon_print(monh, "\n");
+ 	chain_free(c);
+ 	nftnl_chain_free(nlc);
+ 	return MNL_CB_OK;
+@@ -304,12 +308,14 @@ static int netlink_events_set_cb(const struct nlmsghdr *nlh, int type,
+ 				      set->handle.set.name);
+ 			break;
+ 		}
++		nft_mon_print(monh, "\n");
+ 		break;
+ 	case NFTNL_OUTPUT_JSON:
+ 		monitor_print_set_json(monh, cmd, set);
++		if(!nft_output_echo(&monh->ctx->nft->output))
++			nft_mon_print(monh, "\n");
+ 		break;
+ 	}
+-	nft_mon_print(monh, "\n");
+ 	set_free(set);
+ out:
+ 	nftnl_set_free(nls);
+@@ -441,6 +447,7 @@ static int netlink_events_setelem_cb(const struct nlmsghdr *nlh, int type,
+ 		nft_mon_print(monh, "%s element %s %s %s ",
+ 			      cmd, family2str(family), table, setname);
+ 		expr_print(dummyset->init, &monh->ctx->nft->output);
++		nft_mon_print(monh, "\n");
+ 		break;
+ 	case NFTNL_OUTPUT_JSON:
+ 		dummyset->handle.family = family;
+@@ -450,9 +457,10 @@ static int netlink_events_setelem_cb(const struct nlmsghdr *nlh, int type,
+ 		/* prevent set_free() from trying to free those */
+ 		dummyset->handle.set.name = NULL;
+ 		dummyset->handle.table.name = NULL;
++		if(!nft_output_echo(&monh->ctx->nft->output))
++			nft_mon_print(monh, "\n");
+ 		break;
+ 	}
+-	nft_mon_print(monh, "\n");
+ 	set_free(dummyset);
+ out:
+ 	nftnl_set_free(nls);
+@@ -492,12 +500,14 @@ static int netlink_events_obj_cb(const struct nlmsghdr *nlh, int type,
+ 			       obj->handle.obj.name);
+ 			break;
+ 		}
++		nft_mon_print(monh, "\n");
+ 		break;
+ 	case NFTNL_OUTPUT_JSON:
+ 		monitor_print_obj_json(monh, cmd, obj);
++		if(!nft_output_echo(&monh->ctx->nft->output))
++			nft_mon_print(monh, "\n");
+ 		break;
+ 	}
+-	nft_mon_print(monh, "\n");
+ 	obj_free(obj);
+ 	nftnl_obj_free(nlo);
+ 	return MNL_CB_OK;
+@@ -542,12 +552,14 @@ static int netlink_events_rule_cb(const struct nlmsghdr *nlh, int type,
+ 				      r->handle.handle.id);
+ 			break;
+ 		}
++		nft_mon_print(monh, "\n");
+ 		break;
+ 	case NFTNL_OUTPUT_JSON:
+ 		monitor_print_rule_json(monh, cmd, r);
++		if(!nft_output_echo(&monh->ctx->nft->output))
++			nft_mon_print(monh, "\n");
+ 		break;
+ 	}
+-	nft_mon_print(monh, "\n");
+ 	rule_free(r);
+ 	nftnl_rule_free(nlr);
+ 	return MNL_CB_OK;
+@@ -912,6 +924,8 @@ int netlink_echo_callback(const struct nlmsghdr *nlh, void *data)
+ {
+ 	struct netlink_cb_data *nl_cb_data = data;
+ 	struct netlink_ctx *ctx = nl_cb_data->nl_ctx;
++	struct nft_ctx *nft = ctx->nft;
++
+ 	struct netlink_mon_handler echo_monh = {
+ 		.format = NFTNL_OUTPUT_DEFAULT,
+ 		.ctx = ctx,
+@@ -922,8 +936,14 @@ int netlink_echo_callback(const struct nlmsghdr *nlh, void *data)
+ 	if (!nft_output_echo(&echo_monh.ctx->nft->output))
+ 		return MNL_CB_OK;
+ 
+-	if (nft_output_json(&ctx->nft->output))
+-		return json_events_cb(nlh, &echo_monh);
++	if (nft_output_json(&nft->output)) {
++		if (!nft->json_echo) {
++			nft->json_echo = json_array();
++			if (!nft->json_echo)
++				memory_allocation_error();
++		}
++		echo_monh.format = NFTNL_OUTPUT_JSON;
++	}
+ 
+ 	return netlink_events_cb(nlh, &echo_monh);
+ }
 diff --git a/src/parser_json.c b/src/parser_json.c
-index 237b6f3e1732..66539ef5c13b 100644
+index 59347168..2453ac05 100644
 --- a/src/parser_json.c
 +++ b/src/parser_json.c
 @@ -3645,46 +3645,6 @@ static int json_verify_metainfo(struct json_ctx *ctx, json_t *root)
@@ -199,7 +314,7 @@ index 237b6f3e1732..66539ef5c13b 100644
  	return ret;
  }
  
-@@ -3792,96 +3748,6 @@ int nft_parse_json_filename(struct nft_ctx *nft, const char *filename,
+@@ -3792,103 +3748,15 @@ int nft_parse_json_filename(struct nft_ctx *nft, const char *filename,
  	return ret;
  }
  
@@ -295,14 +410,21 @@ index 237b6f3e1732..66539ef5c13b 100644
 -
  void json_print_echo(struct nft_ctx *ctx)
  {
- 	if (!ctx->json_echo)
-@@ -3890,7 +3756,6 @@ void json_print_echo(struct nft_ctx *ctx)
- 	ctx->json_echo = json_pack("{s:o}", "nftables", ctx->json_echo);
- 	json_dumpf(ctx->json_echo, ctx->output.output_fp, JSON_PRESERVE_ORDER);
- 	printf("\n");
+-	if (!ctx->json_root)
++	if (!ctx->json_echo)
+ 		return;
+ 
+-	json_dumpf(ctx->json_root, ctx->output.output_fp, JSON_PRESERVE_ORDER);
 -	json_cmd_assoc_free();
- 	if (ctx->json_echo) {
- 		json_decref(ctx->json_echo);
- 		ctx->json_echo = NULL;
+-	json_decref(ctx->json_root);
+-	ctx->json_root = NULL;
++	ctx->json_echo = json_pack("{s:o}", "nftables", ctx->json_echo);
++	json_dumpf(ctx->json_echo, ctx->output.output_fp, JSON_PRESERVE_ORDER);
++	json_decref(ctx->json_echo);
++	ctx->json_echo = NULL;
++	fprintf(ctx->output.output_fp, "\n");
++	fflush(ctx->output.output_fp);
+ }
+-- 
+2.27.0
 
---EVF5PPMfhYS0aIcm--
