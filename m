@@ -4,48 +4,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0F6AC433E3
-	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Aug 2020 18:32:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1615DC433E0
+	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Aug 2020 18:32:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C284320759
-	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Aug 2020 18:32:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 048CA2065E
+	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Aug 2020 18:32:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727833AbgHBScM (ORCPT
+        id S1726999AbgHBScJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 2 Aug 2020 14:32:12 -0400
-Received: from correo.us.es ([193.147.175.20]:45732 "EHLO mail.us.es"
+        Sun, 2 Aug 2020 14:32:09 -0400
+Received: from correo.us.es ([193.147.175.20]:45734 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727773AbgHBScL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 2 Aug 2020 14:32:11 -0400
+        id S1725917AbgHBScI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 2 Aug 2020 14:32:08 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EC9D7E4B84
-        for <netfilter-devel@vger.kernel.org>; Sun,  2 Aug 2020 20:32:09 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 9ACB5E4B84
+        for <netfilter-devel@vger.kernel.org>; Sun,  2 Aug 2020 20:32:06 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DDF80DA73F
-        for <netfilter-devel@vger.kernel.org>; Sun,  2 Aug 2020 20:32:09 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8AC1ADA78C
+        for <netfilter-devel@vger.kernel.org>; Sun,  2 Aug 2020 20:32:06 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D37E8DA791; Sun,  2 Aug 2020 20:32:09 +0200 (CEST)
+        id 803D2DA73D; Sun,  2 Aug 2020 20:32:06 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5CF73DA789;
-        Sun,  2 Aug 2020 20:32:07 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 59947DA73F;
+        Sun,  2 Aug 2020 20:32:04 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 02 Aug 2020 20:32:07 +0200 (CEST)
+ Sun, 02 Aug 2020 20:32:04 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (120.205.137.78.rev.vodafone.pt [78.137.205.120])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 794964265A2F;
-        Sun,  2 Aug 2020 20:32:06 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 7B32A4265A2F;
+        Sun,  2 Aug 2020 20:32:03 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 7/7] netfilter: nf_tables: report EEXIST on overlaps
-Date:   Sun,  2 Aug 2020 20:31:48 +0200
-Message-Id: <20200802183149.2808-8-pablo@netfilter.org>
+Subject: [PATCH 5/7] netfilter: ip6tables: Remove redundant null checks
+Date:   Sun,  2 Aug 2020 20:31:46 +0200
+Message-Id: <20200802183149.2808-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200802183149.2808-1-pablo@netfilter.org>
 References: <20200802183149.2808-1-pablo@netfilter.org>
@@ -57,96 +57,75 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Replace EBUSY by EEXIST in the following cases:
+From: Gaurav Singh <gaurav1086@gmail.com>
 
-- If the user adds a chain with a different configuration such as different
-  type, hook and priority.
+Remove superfluous check for NULL pointer to header.
 
-- If the user adds a non-base chain that clashes with an existing basechain.
-
-- If the user adds a { key : value } mapping element and the key exists
-  but the value differs.
-
-- If the device already belongs to an existing flowtable.
-
-User describe that this error reporting is confusing:
-
-- https://bugzilla.netfilter.org/show_bug.cgi?id=1176
-- https://bugzilla.netfilter.org/show_bug.cgi?id=1413
-
+Signed-off-by: Gaurav Singh <gaurav1086@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ net/ipv6/netfilter/ip6t_ah.c   | 3 +--
+ net/ipv6/netfilter/ip6t_frag.c | 3 +--
+ net/ipv6/netfilter/ip6t_hbh.c  | 3 +--
+ net/ipv6/netfilter/ip6t_rt.c   | 3 +--
+ 4 files changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index fac552b0179f..6571789989bc 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2097,7 +2097,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+diff --git a/net/ipv6/netfilter/ip6t_ah.c b/net/ipv6/netfilter/ip6t_ah.c
+index 4e15a14435e4..70da2f2ce064 100644
+--- a/net/ipv6/netfilter/ip6t_ah.c
++++ b/net/ipv6/netfilter/ip6t_ah.c
+@@ -74,8 +74,7 @@ static bool ah_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		 ahinfo->hdrres, ah->reserved,
+ 		 !(ahinfo->hdrres && ah->reserved));
  
- 	if (nla[NFTA_CHAIN_HOOK]) {
- 		if (!nft_is_base_chain(chain))
--			return -EBUSY;
-+			return -EEXIST;
+-	return (ah != NULL) &&
+-		spi_match(ahinfo->spis[0], ahinfo->spis[1],
++	return spi_match(ahinfo->spis[0], ahinfo->spis[1],
+ 			  ntohl(ah->spi),
+ 			  !!(ahinfo->invflags & IP6T_AH_INV_SPI)) &&
+ 		(!ahinfo->hdrlen ||
+diff --git a/net/ipv6/netfilter/ip6t_frag.c b/net/ipv6/netfilter/ip6t_frag.c
+index fb91eeee4a1e..3aad6439386b 100644
+--- a/net/ipv6/netfilter/ip6t_frag.c
++++ b/net/ipv6/netfilter/ip6t_frag.c
+@@ -85,8 +85,7 @@ frag_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		 !((fraginfo->flags & IP6T_FRAG_NMF) &&
+ 		   (ntohs(fh->frag_off) & IP6_MF)));
  
- 		err = nft_chain_parse_hook(ctx->net, nla, &hook, ctx->family,
- 					   false);
-@@ -2107,21 +2107,21 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
- 		basechain = nft_base_chain(chain);
- 		if (basechain->type != hook.type) {
- 			nft_chain_release_hook(&hook);
--			return -EBUSY;
-+			return -EEXIST;
- 		}
+-	return (fh != NULL) &&
+-		id_match(fraginfo->ids[0], fraginfo->ids[1],
++	return id_match(fraginfo->ids[0], fraginfo->ids[1],
+ 			 ntohl(fh->identification),
+ 			 !!(fraginfo->invflags & IP6T_FRAG_INV_IDS)) &&
+ 		!((fraginfo->flags & IP6T_FRAG_RES) &&
+diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
+index 467b2a86031b..e7a3fb9355ee 100644
+--- a/net/ipv6/netfilter/ip6t_hbh.c
++++ b/net/ipv6/netfilter/ip6t_hbh.c
+@@ -86,8 +86,7 @@ hbh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		  ((optinfo->hdrlen == hdrlen) ^
+ 		   !!(optinfo->invflags & IP6T_OPTS_INV_LEN))));
  
- 		if (ctx->family == NFPROTO_NETDEV) {
- 			if (!nft_hook_list_equal(&basechain->hook_list,
- 						 &hook.list)) {
- 				nft_chain_release_hook(&hook);
--				return -EBUSY;
-+				return -EEXIST;
- 			}
- 		} else {
- 			ops = &basechain->ops;
- 			if (ops->hooknum != hook.num ||
- 			    ops->priority != hook.priority) {
- 				nft_chain_release_hook(&hook);
--				return -EBUSY;
-+				return -EEXIST;
- 			}
- 		}
- 		nft_chain_release_hook(&hook);
-@@ -5262,10 +5262,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			if (nft_set_ext_exists(ext, NFT_SET_EXT_DATA) ^
- 			    nft_set_ext_exists(ext2, NFT_SET_EXT_DATA) ||
- 			    nft_set_ext_exists(ext, NFT_SET_EXT_OBJREF) ^
--			    nft_set_ext_exists(ext2, NFT_SET_EXT_OBJREF)) {
--				err = -EBUSY;
-+			    nft_set_ext_exists(ext2, NFT_SET_EXT_OBJREF))
- 				goto err_element_clash;
--			}
- 			if ((nft_set_ext_exists(ext, NFT_SET_EXT_DATA) &&
- 			     nft_set_ext_exists(ext2, NFT_SET_EXT_DATA) &&
- 			     memcmp(nft_set_ext_data(ext),
-@@ -5273,7 +5271,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			    (nft_set_ext_exists(ext, NFT_SET_EXT_OBJREF) &&
- 			     nft_set_ext_exists(ext2, NFT_SET_EXT_OBJREF) &&
- 			     *nft_set_ext_obj(ext) != *nft_set_ext_obj(ext2)))
--				err = -EBUSY;
-+				goto err_element_clash;
- 			else if (!(nlmsg_flags & NLM_F_EXCL))
- 				err = 0;
- 		} else if (err == -ENOTEMPTY) {
-@@ -6423,7 +6421,7 @@ static int nft_register_flowtable_net_hooks(struct net *net,
- 			list_for_each_entry(hook2, &ft->hook_list, list) {
- 				if (hook->ops.dev == hook2->ops.dev &&
- 				    hook->ops.pf == hook2->ops.pf) {
--					err = -EBUSY;
-+					err = -EEXIST;
- 					goto err_unregister_net_hooks;
- 				}
- 			}
+-	ret = (oh != NULL) &&
+-	      (!(optinfo->flags & IP6T_OPTS_LEN) ||
++	ret = (!(optinfo->flags & IP6T_OPTS_LEN) ||
+ 	       ((optinfo->hdrlen == hdrlen) ^
+ 		!!(optinfo->invflags & IP6T_OPTS_INV_LEN)));
+ 
+diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
+index f633dc84ca3f..733c83d38b30 100644
+--- a/net/ipv6/netfilter/ip6t_rt.c
++++ b/net/ipv6/netfilter/ip6t_rt.c
+@@ -89,8 +89,7 @@ static bool rt_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		 !((rtinfo->flags & IP6T_RT_RES) &&
+ 		   (((const struct rt0_hdr *)rh)->reserved)));
+ 
+-	ret = (rh != NULL) &&
+-	      (segsleft_match(rtinfo->segsleft[0], rtinfo->segsleft[1],
++	ret = (segsleft_match(rtinfo->segsleft[0], rtinfo->segsleft[1],
+ 			      rh->segments_left,
+ 			      !!(rtinfo->invflags & IP6T_RT_INV_SGS))) &&
+ 	      (!(rtinfo->flags & IP6T_RT_LEN) ||
 -- 
 2.20.1
 
