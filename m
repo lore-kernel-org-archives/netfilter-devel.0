@@ -1,85 +1,205 @@
-Return-Path: <SRS0=dQO5=BL=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=Ke5S=BM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CA8FC433E3
-	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Aug 2020 22:56:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39F59C433DF
+	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Aug 2020 01:26:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 72321206F6
-	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Aug 2020 22:56:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1CB812076A
+	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Aug 2020 01:26:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727884AbgHAW4L (ORCPT
+        id S1727863AbgHBB0b (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 1 Aug 2020 18:56:11 -0400
-Received: from mail-io1-f69.google.com ([209.85.166.69]:34051 "EHLO
-        mail-io1-f69.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726807AbgHAW4K (ORCPT
+        Sat, 1 Aug 2020 21:26:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60250 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725883AbgHBB0b (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 1 Aug 2020 18:56:10 -0400
-Received: by mail-io1-f69.google.com with SMTP id 127so23880206iou.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 01 Aug 2020 15:56:09 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=dOzePy5yJodn3MAztJ8MjMszFxBpzjO8+9+k54Plw7U=;
-        b=K0HMUF8Z4k85kFrnsDKOEh2Mb0YKJ/bw/mivJRLJsTFJAjfEQCqbwtJ3ZzNrl5p7Hd
-         0qrrciVlFkxLRjz+UQ3Ru/mj1dKlFaGew2bV/gcL7nJD1MQSEGWPCgc0OjFPAt1pgfe8
-         ZGVFUDl2HIMS9m80VNVY9ijhvCh/aF9RhAbXiSrReeYpTrgzgknokg+I0vyzA8x50Mik
-         plqaDFbaSWx/rxDFdkXYFhI5r7fSwQWCTYX8eP9VZPyducMenCqQwRl0FgxF8SKhG93e
-         5NtQTxQIjs8kpVS/0M9UGlHyItKP/7uFxUdBquTh3RWdCtx5bC4g4jx7FktLJOFbpa5H
-         o7sw==
-X-Gm-Message-State: AOAM531jgCYdluxNRCOLYKI6GAa9Qn1wyTjAp8sYr5u0ixYAEvA9Vk8S
-        r6GeGSqR3cojdrC/pPcwNfbLLVzqmsxlRYy+nnBxmtLyExY6
-X-Google-Smtp-Source: ABdhPJzoFyfIZQhNRPiFzD4/WN4vVmjC3jcEN/n2QVLjineSWA8YL2dCDfS0uwVot1kHmJxuiejHJRIs+6Vlg9DaPmCCBtbeQtI1
+        Sat, 1 Aug 2020 21:26:31 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4EDFDC06174A
+        for <netfilter-devel@vger.kernel.org>; Sat,  1 Aug 2020 18:26:31 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1k22lh-0000PV-S4; Sun, 02 Aug 2020 03:26:29 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] selftests: netfilter: add meta iif/oif match test
+Date:   Sun,  2 Aug 2020 03:26:21 +0200
+Message-Id: <20200802012622.15041-1-fw@strlen.de>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-X-Received: by 2002:a92:79c4:: with SMTP id u187mr10446904ilc.194.1596322569603;
- Sat, 01 Aug 2020 15:56:09 -0700 (PDT)
-Date:   Sat, 01 Aug 2020 15:56:09 -0700
-In-Reply-To: <0000000000007450a405abd572a8@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000b54f9f05abd8cfbb@google.com>
-Subject: Re: WARNING in hci_conn_timeout
-From:   syzbot <syzbot+2446dd3cb07277388db6@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net,
-        devel@driverdev.osuosl.org, forest@alittletooquiet.net,
-        gregkh@linuxfoundation.org, johan.hedberg@gmail.com,
-        kaber@trash.net, kadlec@blackhole.kfki.hu, kuba@kernel.org,
-        linux-bluetooth@vger.kernel.org, linux-kernel@vger.kernel.org,
-        marcel@holtmann.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        rvarsha016@gmail.com, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has bisected this issue to:
+simple test case, but would have caught this:
 
-commit 3d30311c0e4d834c94e6a27d6242a942d6a76b85
-Author: Varsha Rao <rvarsha016@gmail.com>
-Date:   Sun Oct 9 11:13:56 2016 +0000
+FAIL: iifgroupcount, want "packets 2", got
+table inet filter {
+        counter iifgroupcount {
+                packets 0 bytes 0
+        }
+}
 
-    staging: vt6655: Removes unnecessary blank lines.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ tools/testing/selftests/netfilter/Makefile    |   2 +-
+ tools/testing/selftests/netfilter/nft_meta.sh | 124 ++++++++++++++++++
+ 2 files changed, 125 insertions(+), 1 deletion(-)
+ create mode 100755 tools/testing/selftests/netfilter/nft_meta.sh
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=17023a14900000
-start commit:   7dc6fd0f Merge branch 'i2c/for-current' of git://git.kerne..
-git tree:       upstream
-final oops:     https://syzkaller.appspot.com/x/report.txt?x=14823a14900000
-console output: https://syzkaller.appspot.com/x/log.txt?x=10823a14900000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=e59ee776d5aa8d55
-dashboard link: https://syzkaller.appspot.com/bug?extid=2446dd3cb07277388db6
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=13f781d4900000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=116a0c14900000
+diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
+index a179f0dca8ce..a374e10ef506 100644
+--- a/tools/testing/selftests/netfilter/Makefile
++++ b/tools/testing/selftests/netfilter/Makefile
+@@ -4,7 +4,7 @@
+ TEST_PROGS := nft_trans_stress.sh nft_nat.sh bridge_brouter.sh \
+ 	conntrack_icmp_related.sh nft_flowtable.sh ipvs.sh \
+ 	nft_concat_range.sh nft_conntrack_helper.sh \
+-	nft_queue.sh
++	nft_queue.sh nft_meta.sh
+ 
+ LDLIBS = -lmnl
+ TEST_GEN_FILES =  nf-queue
+diff --git a/tools/testing/selftests/netfilter/nft_meta.sh b/tools/testing/selftests/netfilter/nft_meta.sh
+new file mode 100755
+index 000000000000..d250b84dd5bc
+--- /dev/null
++++ b/tools/testing/selftests/netfilter/nft_meta.sh
+@@ -0,0 +1,124 @@
++#!/bin/bash
++
++# check iif/iifname/oifgroup/iiftype match.
++
++# Kselftest framework requirement - SKIP code is 4.
++ksft_skip=4
++sfx=$(mktemp -u "XXXXXXXX")
++ns0="ns0-$sfx"
++
++nft --version > /dev/null 2>&1
++if [ $? -ne 0 ];then
++	echo "SKIP: Could not run test without nft tool"
++	exit $ksft_skip
++fi
++
++cleanup()
++{
++	ip netns del "$ns0"
++}
++
++ip netns add "$ns0"
++ip -net "$ns0" link set lo up
++ip -net "$ns0" addr add 127.0.0.1 dev lo
++
++trap cleanup EXIT
++
++ip netns exec "$ns0" nft -f /dev/stdin <<EOF
++table inet filter {
++	counter iifcount {}
++	counter iifnamecount {}
++	counter iifgroupcount {}
++	counter iiftypecount {}
++	counter infproto4count {}
++	counter il4protocounter {}
++	counter imarkcounter {}
++
++	counter oifcount {}
++	counter oifnamecount {}
++	counter oifgroupcount {}
++	counter oiftypecount {}
++	counter onfproto4count {}
++	counter ol4protocounter {}
++	counter oskuidcounter {}
++	counter oskgidcounter {}
++	counter omarkcounter {}
++
++	chain input {
++		type filter hook input priority 0; policy accept;
++
++		meta iif lo counter name "iifcount"
++		meta iifname "lo" counter name "iifnamecount"
++		meta iifgroup "default" counter name "iifgroupcount"
++		meta iiftype "loopback" counter name "iiftypecount"
++		meta nfproto ipv4 counter name "infproto4count"
++		meta l4proto icmp counter name "il4protocounter"
++		meta mark 42 counter name "imarkcounter"
++	}
++
++	chain output {
++		type filter hook output priority 0; policy accept;
++		meta oif lo counter name "oifcount" counter
++		meta oifname "lo" counter name "oifnamecount"
++		meta oifgroup "default" counter name "oifgroupcount"
++		meta oiftype "loopback" counter name "oiftypecount"
++		meta nfproto ipv4 counter name "onfproto4count"
++		meta l4proto icmp counter name "ol4protocounter"
++		meta skuid 0 counter name "oskuidcounter"
++		meta skgid 0 counter name "oskgidcounter"
++		meta mark 42 counter name "omarkcounter"
++	}
++}
++EOF
++
++if [ $? -ne 0 ]; then
++	echo "SKIP: Could not add test ruleset"
++	exit $ksft_skip
++fi
++
++ret=0
++
++check_one_counter()
++{
++	local cname="$1"
++	local want="packets $2"
++	local verbose="$3"
++
++	cnt=$(ip netns exec "$ns0" nft list counter inet filter $cname | grep -q "$want")
++	if [ $? -ne 0 ];then
++		echo "FAIL: $cname, want \"$want\", got"
++		ret=1
++		ip netns exec "$ns0" nft list counter inet filter $counter
++	fi
++}
++
++check_lo_counters()
++{
++	local want="$1"
++	local verbose="$2"
++	local counter
++
++	for counter in iifcount iifnamecount iifgroupcount iiftypecount infproto4count \
++		       oifcount oifnamecount oifgroupcount oiftypecount onfproto4count \
++		       il4protocounter \
++		       ol4protocounter \
++	     ; do
++		check_one_counter "$counter" "$want" "$verbose"
++	done
++}
++
++check_lo_counters "0" false
++ip netns exec "$ns0" ping -q -c 1 127.0.0.1 -m 42 > /dev/null
++
++check_lo_counters "2" true
++
++check_one_counter oskuidcounter "1" true
++check_one_counter oskgidcounter "1" true
++check_one_counter imarkcounter "1" true
++check_one_counter omarkcounter "1" true
++
++if [ $ret -eq 0 ];then
++	echo "OK: nftables meta iif/oif counters at expected values"
++fi
++
++exit $ret
+-- 
+2.26.2
 
-Reported-by: syzbot+2446dd3cb07277388db6@syzkaller.appspotmail.com
-Fixes: 3d30311c0e4d ("staging: vt6655: Removes unnecessary blank lines.")
-
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
