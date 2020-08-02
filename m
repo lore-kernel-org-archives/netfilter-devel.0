@@ -2,137 +2,151 @@ Return-Path: <SRS0=Ke5S=BM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7B82C433E0
-	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Aug 2020 16:48:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 380D3C433DF
+	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Aug 2020 18:32:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9133820738
-	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Aug 2020 16:48:55 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ndWondyU"
+	by mail.kernel.org (Postfix) with ESMTP id 281642065E
+	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Aug 2020 18:32:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727791AbgHBQsz (ORCPT
+        id S1726862AbgHBScB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 2 Aug 2020 12:48:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59284 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725780AbgHBQsz (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 2 Aug 2020 12:48:55 -0400
-Received: from mail-qk1-x742.google.com (mail-qk1-x742.google.com [IPv6:2607:f8b0:4864:20::742])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB32AC06174A
-        for <netfilter-devel@vger.kernel.org>; Sun,  2 Aug 2020 09:48:54 -0700 (PDT)
-Received: by mail-qk1-x742.google.com with SMTP id q128so902319qkd.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 02 Aug 2020 09:48:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to;
-        bh=m/OkVFSdsc8rrMHcC6Ah5ui12yATXkj3wCUaz7wUmoc=;
-        b=ndWondyU0tlc/vyWPCfoNnc69H/HRPLWTebgVhemtGL7cNLPYevOZA4dNAvMNDG9iQ
-         Gd2oqUutToAkT5vS6/R1ue+r18ayfvihOnVPNILSwgr+oy2HZ4g2o7IwHTSlf5n+OWhH
-         Gu4iDAXAieNZEOkhj06Lxpvd8eLz9Ecpl66sGdJ4Up1s8YYki9cFX9/39yKpo5cW0OLR
-         wou559cIr15XgfQPv4NwYJGwDE7L29MrsXaEg6TPyxNZlmGUPKc9bf4KcebyE69mf+t7
-         B0nVdxO5sq08z6nSgRzcm/qFFAQoE5znABff30Tlow3pRzWsmA1CJmaXZSNxs6fWXrkT
-         yjYw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to;
-        bh=m/OkVFSdsc8rrMHcC6Ah5ui12yATXkj3wCUaz7wUmoc=;
-        b=SsyVj8z2Et0BgEJxIrCTRhhM3V4SBsjWImwehba16TYG6Rh+hjux3FUXqgah+b7aFG
-         HYGyXfKuurzmVv+n+dsjRtLzQUa/7JJ/JBM6vw1KCxoIIg4skhbvDRiHnICyRPsyVtCH
-         Hpck9zIY1a+J7wnZUHh8kucStp9uhYXWrjWZnVtrxviZO/DvyH4MTIBdWOSudpaWkihQ
-         DCKf1fxl+Ftrg+h6C6ke8jj/JYHFPu6krN7TkjUP2RWMY0ukWAaHuqJc/PY0K/AsGSLR
-         Hkr97mTW0QkjoGCQiM65X0vq44A5If0LaJzM942wh3+TOeYTDI1q3VZ0djxxbf8r07O1
-         7Meg==
-X-Gm-Message-State: AOAM5323s9xM8b+GZdkMsslmFbqGmUbH07CULHMlpWUweISAXHSagGGF
-        jENreHWCvwBPO94yS/vgO5xTCb4Q9a8=
-X-Google-Smtp-Source: ABdhPJwsuL2gvliroM2dr/QupFgUiih8hU2yl+XsPRySwwtlzpoFn+ZBuLAp9cZkqfpaneXE1PdglA==
-X-Received: by 2002:a05:620a:153c:: with SMTP id n28mr13322877qkk.285.1596386933753;
-        Sun, 02 Aug 2020 09:48:53 -0700 (PDT)
-Received: from [127.0.0.1] ([66.115.173.166])
-        by smtp.gmail.com with ESMTPSA id y9sm18717299qka.0.2020.08.02.09.48.52
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 02 Aug 2020 09:48:52 -0700 (PDT)
-Subject: Re: [PATCH nf] netfilter: nft_meta: fix iifgroup matching
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-References: <20200802012703.15135-1-fw@strlen.de>
- <20200802014923.GA22080@salvia>
-From:   "Demi M. Obenour" <demiobenour@gmail.com>
-Message-ID: <f3eddad5-b96c-28d3-d2c5-79960ddd6cd9@gmail.com>
-Date:   Sun, 2 Aug 2020 12:48:49 -0400
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+        Sun, 2 Aug 2020 14:32:01 -0400
+Received: from correo.us.es ([193.147.175.20]:45716 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726281AbgHBScB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 2 Aug 2020 14:32:01 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id C1E3FE4B81
+        for <netfilter-devel@vger.kernel.org>; Sun,  2 Aug 2020 20:31:58 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B3862DA78D
+        for <netfilter-devel@vger.kernel.org>; Sun,  2 Aug 2020 20:31:58 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id A7D32DA78B; Sun,  2 Aug 2020 20:31:58 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 53B98DA73D;
+        Sun,  2 Aug 2020 20:31:56 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Sun, 02 Aug 2020 20:31:56 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (120.205.137.78.rev.vodafone.pt [78.137.205.120])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 792714265A2F;
+        Sun,  2 Aug 2020 20:31:55 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org
+Subject: [PATCH 0/7] Netfilter updates for net-next
+Date:   Sun,  2 Aug 2020 20:31:41 +0200
+Message-Id: <20200802183149.2808-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-In-Reply-To: <20200802014923.GA22080@salvia>
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="VVoQi4SZOVOWxW2rXSir3FcmCFF6e8oEv"
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---VVoQi4SZOVOWxW2rXSir3FcmCFF6e8oEv
-Content-Type: multipart/mixed; boundary="UMRl5sKNV4rxjS0xieYyX1MBxPXTpSTmV";
- protected-headers="v1"
-From: "Demi M. Obenour" <demiobenour@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Message-ID: <f3eddad5-b96c-28d3-d2c5-79960ddd6cd9@gmail.com>
-Subject: Re: [PATCH nf] netfilter: nft_meta: fix iifgroup matching
-References: <20200802012703.15135-1-fw@strlen.de>
- <20200802014923.GA22080@salvia>
-In-Reply-To: <20200802014923.GA22080@salvia>
+Hi,
 
---UMRl5sKNV4rxjS0xieYyX1MBxPXTpSTmV
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
+1) UAF in chain binding support from previous batch, from Dan Carpenter.
 
-On 2020-08-01 21:49, Pablo Neira Ayuso wrote:
-> On Sun, Aug 02, 2020 at 03:27:03AM +0200, Florian Westphal wrote:
->> iifgroup matching errounously checks the output interface.
->=20
-> Applied, thanks.
+2) Queue up delayed work to expire connections with no destination,
+   from Andrew Sy Kim.
 
-Would you mind also marking this for backport to 5.7?
+3) Use fallthrough pseudo-keyword, from Gustavo A. R. Silva.
 
-Thank you,
+4) Replace HTTP links with HTTPS, from Alexander A. Klimov.
 
-Demi
+5) Remove superfluous null header checks in ip6tables, from
+   Gaurav Singh.
 
+6) Add extended netlink error reporting for expression.
 
---UMRl5sKNV4rxjS0xieYyX1MBxPXTpSTmV--
+7) Report EEXIST on overlapping chain, set elements and flowtable
+   devices.
 
---VVoQi4SZOVOWxW2rXSir3FcmCFF6e8oEv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Please, pull these changes from:
 
------BEGIN PGP SIGNATURE-----
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
 
-iQIzBAEBCAAdFiEEdodNnxM2uiJZBxxxsoi1X/+cIsEFAl8m7nIACgkQsoi1X/+c
-IsFE/Q/+LDGzjFRUG+Q9ii3M2aIFyWH+6q/e5TeJysenFW+Dcl1W8/N3rllpv/lm
-N2OWMULpyUWDBg23Lo642g1d1iv+MNBx4nn9FdP7xO2/YGGBuwjneAEDGsJKm/NL
-Ta4qGuPhBK1UakHzGpZVDW4iKfhXA1VCohujE7IHTprnctyH7OHQMK75ZcR6QTWJ
-4N+4jbBLCC1E2WNBddM46hiEM0DDEbMrhqValpp8U+Ph/keBf+ez7Id93R3oqAZc
-WoEQwl7zLOy0ib+G41kFhIKp7ntDR9BDUDs0h6zn/J9rUbI0tgyhNLraK2zY8dZV
-dEV3Kt2CY60cmrN6sYOMkpLSXSAZVkld0ZB6VVGHIfNHP8QfRh2Jh4A3uoYOIWPJ
-LjM3pw8rXcrvQQGOp2cArtEbpUAHU8ODGiNRBpuxmv0Xfed7pww9HzP5d8Jlu40d
-wYtBfYcvzyQ2g63ZHIoWjTIOJ1GouHI3zQS0n1dijBlEkGiH+NdVJoME2Ep/ONwH
-iSMgXz5DW05cTWaTI/uuf0GKE8pPI40ALHALFMttFymdaX7PkkmcuKDeaVPcBjn5
-gakx2g10lvZbSd0BiQJOmiWbY5lajUIIXGP7J82Sbw0XX58nS2K2+kY1o9A1CV8w
-81Xfpv6Wn2upA9isVmElcUBw6/poyAqUakC4wcLv9Zv/tMwV9+M=
-=KEV4
------END PGP SIGNATURE-----
+Thank you.
 
---VVoQi4SZOVOWxW2rXSir3FcmCFF6e8oEv--
+----------------------------------------------------------------
+
+The following changes since commit 4ff91fa0a3acd072c9a46ebe08a6e2471ddd3c95:
+
+  Merge branch 'udp_tunnel-NIC-RX-port-offload-infrastructure' (2020-07-14 17:04:28 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
+
+for you to fetch changes up to 77a92189ecfd061616ad531d386639aab7baaad9:
+
+  netfilter: nf_tables: report EEXIST on overlaps (2020-08-02 19:53:45 +0200)
+
+----------------------------------------------------------------
+Alexander A. Klimov (1):
+      netfilter: Replace HTTP links with HTTPS ones
+
+Andrew Sy Kim (1):
+      ipvs: queue delayed work to expire no destination connections if expire_nodest_conn=1
+
+Dan Carpenter (1):
+      netfilter: nf_tables: Fix a use after free in nft_immediate_destroy()
+
+Gaurav Singh (1):
+      netfilter: ip6tables: Remove redundant null checks
+
+Gustavo A. R. Silva (1):
+      netfilter: Use fallthrough pseudo-keyword
+
+Pablo Neira Ayuso (2):
+      netfilter: nf_tables: extended netlink error reporting for expressions
+      netfilter: nf_tables: report EEXIST on overlaps
+
+ include/net/ip_vs.h                        | 29 ++++++++++++++++++
+ include/uapi/linux/netfilter/xt_connmark.h |  2 +-
+ net/bridge/netfilter/ebtables.c            |  2 +-
+ net/decnet/netfilter/dn_rtmsg.c            |  2 +-
+ net/ipv6/netfilter/ip6t_ah.c               |  3 +-
+ net/ipv6/netfilter/ip6t_frag.c             |  3 +-
+ net/ipv6/netfilter/ip6t_hbh.c              |  3 +-
+ net/ipv6/netfilter/ip6t_rt.c               |  3 +-
+ net/netfilter/Kconfig                      |  2 +-
+ net/netfilter/ipset/ip_set_core.c          |  2 +-
+ net/netfilter/ipvs/ip_vs_conn.c            | 39 +++++++++++++++++++++++++
+ net/netfilter/ipvs/ip_vs_core.c            | 47 +++++++++++++-----------------
+ net/netfilter/ipvs/ip_vs_ctl.c             | 22 ++++++++++++++
+ net/netfilter/nf_conntrack_h323_asn1.c     |  6 ++--
+ net/netfilter/nf_conntrack_proto.c         |  2 +-
+ net/netfilter/nf_conntrack_proto_tcp.c     |  2 +-
+ net/netfilter/nf_conntrack_standalone.c    |  2 +-
+ net/netfilter/nf_nat_core.c                | 12 ++++----
+ net/netfilter/nf_synproxy_core.c           |  6 ++--
+ net/netfilter/nf_tables_api.c              | 31 +++++++++++---------
+ net/netfilter/nf_tables_core.c             |  2 +-
+ net/netfilter/nfnetlink_acct.c             |  2 +-
+ net/netfilter/nfnetlink_cttimeout.c        |  2 +-
+ net/netfilter/nft_cmp.c                    |  4 +--
+ net/netfilter/nft_ct.c                     |  6 ++--
+ net/netfilter/nft_fib.c                    |  2 +-
+ net/netfilter/nft_immediate.c              |  4 +--
+ net/netfilter/nft_payload.c                |  2 +-
+ net/netfilter/nft_set_pipapo.c             |  4 +--
+ net/netfilter/utils.c                      |  8 ++---
+ net/netfilter/x_tables.c                   |  2 +-
+ net/netfilter/xt_CONNSECMARK.c             |  2 +-
+ net/netfilter/xt_connmark.c                |  2 +-
+ net/netfilter/xt_nfacct.c                  |  2 +-
+ net/netfilter/xt_time.c                    |  2 +-
+ 35 files changed, 173 insertions(+), 93 deletions(-)
