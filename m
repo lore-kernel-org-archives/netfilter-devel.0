@@ -7,49 +7,50 @@ X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EBC9C433E1
-	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Aug 2020 18:32:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34546C433E0
+	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Aug 2020 18:32:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7CFB120759
-	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Aug 2020 18:32:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2188F2065E
+	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Aug 2020 18:32:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727840AbgHBScQ (ORCPT
+        id S1727083AbgHBScJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 2 Aug 2020 14:32:16 -0400
-Received: from correo.us.es ([193.147.175.20]:45784 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727067AbgHBScJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 2 Aug 2020 14:32:09 -0400
+Received: from correo.us.es ([193.147.175.20]:45758 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727017AbgHBScI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 2 Aug 2020 14:32:08 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 12895E4B90
-        for <netfilter-devel@vger.kernel.org>; Sun,  2 Aug 2020 20:32:08 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 892ECE4B81
+        for <netfilter-devel@vger.kernel.org>; Sun,  2 Aug 2020 20:32:05 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 04AF1DA72F
-        for <netfilter-devel@vger.kernel.org>; Sun,  2 Aug 2020 20:32:08 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 69C81DA78E
+        for <netfilter-devel@vger.kernel.org>; Sun,  2 Aug 2020 20:32:05 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id EC4B9DA791; Sun,  2 Aug 2020 20:32:07 +0200 (CEST)
+        id 5F54FDA78C; Sun,  2 Aug 2020 20:32:05 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D22D1DA72F;
-        Sun,  2 Aug 2020 20:32:05 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D9BEADA722;
+        Sun,  2 Aug 2020 20:32:02 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 02 Aug 2020 20:32:05 +0200 (CEST)
+ Sun, 02 Aug 2020 20:32:02 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (120.205.137.78.rev.vodafone.pt [78.137.205.120])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 03F884265A2F;
-        Sun,  2 Aug 2020 20:32:04 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 0942E4265A2F;
+        Sun,  2 Aug 2020 20:32:01 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 6/7] netfilter: nf_tables: extended netlink error reporting for expressions
-Date:   Sun,  2 Aug 2020 20:31:47 +0200
-Message-Id: <20200802183149.2808-7-pablo@netfilter.org>
+Subject: [PATCH 4/7] netfilter: Replace HTTP links with HTTPS ones
+Date:   Sun,  2 Aug 2020 20:31:45 +0200
+Message-Id: <20200802183149.2808-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200802183149.2808-1-pablo@netfilter.org>
 References: <20200802183149.2808-1-pablo@netfilter.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -57,50 +58,163 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch extends 36dd1bcc07e5 ("netfilter: nf_tables: initial support
-for extended ACK reporting") to include netlink extended error reporting
-for expressions. This allows userspace to identify what rule expression
-is triggering the error.
+From: "Alexander A. Klimov" <grandmaster@al2klimov.de>
 
+Rationale:
+Reduces attack surface on kernel devs opening the links for MITM
+as HTTPS traffic is much harder to manipulate.
+
+Deterministic algorithm:
+For each file:
+  If not .svg:
+    For each line:
+      If doesn't contain `\bxmlns\b`:
+        For each link, `\bhttp://[^# \t\r\n]*(?:\w|/)`:
+	  If neither `\bgnu\.org/license`, nor `\bmozilla\.org/MPL\b`:
+            If both the HTTP and HTTPS versions
+            return 200 OK and serve the same content:
+              Replace HTTP with HTTPS.
+
+Signed-off-by: Alexander A. Klimov <grandmaster@al2klimov.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ include/uapi/linux/netfilter/xt_connmark.h | 2 +-
+ net/decnet/netfilter/dn_rtmsg.c            | 2 +-
+ net/netfilter/Kconfig                      | 2 +-
+ net/netfilter/nfnetlink_acct.c             | 2 +-
+ net/netfilter/nft_set_pipapo.c             | 4 ++--
+ net/netfilter/xt_CONNSECMARK.c             | 2 +-
+ net/netfilter/xt_connmark.c                | 2 +-
+ net/netfilter/xt_nfacct.c                  | 2 +-
+ net/netfilter/xt_time.c                    | 2 +-
+ 9 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 0d96e4eb754d..fac552b0179f 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2509,6 +2509,7 @@ int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
+diff --git a/include/uapi/linux/netfilter/xt_connmark.h b/include/uapi/linux/netfilter/xt_connmark.h
+index 1aa5c955ee1e..f01c19b83a2b 100644
+--- a/include/uapi/linux/netfilter/xt_connmark.h
++++ b/include/uapi/linux/netfilter/xt_connmark.h
+@@ -4,7 +4,7 @@
  
- struct nft_expr_info {
- 	const struct nft_expr_ops	*ops;
-+	const struct nlattr		*attr;
- 	struct nlattr			*tb[NFT_EXPR_MAXATTR + 1];
- };
+ #include <linux/types.h>
  
-@@ -2556,7 +2557,9 @@ static int nf_tables_expr_parse(const struct nft_ctx *ctx,
- 	} else
- 		ops = type->ops;
+-/* Copyright (C) 2002,2004 MARA Systems AB <http://www.marasystems.com>
++/* Copyright (C) 2002,2004 MARA Systems AB <https://www.marasystems.com>
+  * by Henrik Nordstrom <hno@marasystems.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff --git a/net/decnet/netfilter/dn_rtmsg.c b/net/decnet/netfilter/dn_rtmsg.c
+index dc705769acc9..26a9193df783 100644
+--- a/net/decnet/netfilter/dn_rtmsg.c
++++ b/net/decnet/netfilter/dn_rtmsg.c
+@@ -6,7 +6,7 @@
+  *
+  *              DECnet Routing Message Grabulator
+  *
+- *              (C) 2000 ChyGwyn Limited  -  http://www.chygwyn.com/
++ *              (C) 2000 ChyGwyn Limited  -  https://www.chygwyn.com/
+  *
+  * Author:      Steven Whitehouse <steve@chygwyn.com>
+  */
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 0ffe2b8723c4..25313c29d799 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -447,7 +447,7 @@ config NF_TABLES
+ 	  replace the existing {ip,ip6,arp,eb}_tables infrastructure. It
+ 	  provides a pseudo-state machine with an extensible instruction-set
+ 	  (also known as expressions) that the userspace 'nft' utility
+-	  (http://www.netfilter.org/projects/nftables) uses to build the
++	  (https://www.netfilter.org/projects/nftables) uses to build the
+ 	  rule-set. It also comes with the generic set infrastructure that
+ 	  allows you to construct mappings between matchings and actions
+ 	  for performance lookups.
+diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
+index 5827117f2635..5bfec829c12f 100644
+--- a/net/netfilter/nfnetlink_acct.c
++++ b/net/netfilter/nfnetlink_acct.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+ /*
+  * (C) 2011 Pablo Neira Ayuso <pablo@netfilter.org>
+- * (C) 2011 Intra2net AG <http://www.intra2net.com>
++ * (C) 2011 Intra2net AG <https://www.intra2net.com>
+  */
+ #include <linux/init.h>
+ #include <linux/module.h>
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index cc6082a5f7ad..9944523f5c2c 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -312,7 +312,7 @@
+  *      Jay Ligatti, Josh Kuhn, and Chris Gage.
+  *      Proceedings of the IEEE International Conference on Computer
+  *      Communication Networks (ICCCN), August 2010.
+- *      http://www.cse.usf.edu/~ligatti/papers/grouper-conf.pdf
++ *      https://www.cse.usf.edu/~ligatti/papers/grouper-conf.pdf
+  *
+  * [Rottenstreich 2010]
+  *      Worst-Case TCAM Rule Expansion
+@@ -325,7 +325,7 @@
+  *      Kirill Kogan, Sergey Nikolenko, Ori Rottenstreich, William Culhane,
+  *      and Patrick Eugster.
+  *      Proceedings of the 2014 ACM conference on SIGCOMM, August 2014.
+- *      http://www.sigcomm.org/sites/default/files/ccr/papers/2014/August/2619239-2626294.pdf
++ *      https://www.sigcomm.org/sites/default/files/ccr/papers/2014/August/2619239-2626294.pdf
+  */
  
-+	info->attr = nla;
- 	info->ops = ops;
-+
- 	return 0;
+ #include <linux/kernel.h>
+diff --git a/net/netfilter/xt_CONNSECMARK.c b/net/netfilter/xt_CONNSECMARK.c
+index a5c8b653476a..76acecf3e757 100644
+--- a/net/netfilter/xt_CONNSECMARK.c
++++ b/net/netfilter/xt_CONNSECMARK.c
+@@ -6,7 +6,7 @@
+  * with the SECMARK target and state match.
+  *
+  * Based somewhat on CONNMARK:
+- *   Copyright (C) 2002,2004 MARA Systems AB <http://www.marasystems.com>
++ *   Copyright (C) 2002,2004 MARA Systems AB <https://www.marasystems.com>
+  *    by Henrik Nordstrom <hno@marasystems.com>
+  *
+  * (C) 2006,2008 Red Hat, Inc., James Morris <jmorris@redhat.com>
+diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
+index eec2f3a88d73..e5ebc0810675 100644
+--- a/net/netfilter/xt_connmark.c
++++ b/net/netfilter/xt_connmark.c
+@@ -2,7 +2,7 @@
+ /*
+  *	xt_connmark - Netfilter module to operate on connection marks
+  *
+- *	Copyright (C) 2002,2004 MARA Systems AB <http://www.marasystems.com>
++ *	Copyright (C) 2002,2004 MARA Systems AB <https://www.marasystems.com>
+  *	by Henrik Nordstrom <hno@marasystems.com>
+  *	Copyright © CC Computer Consultants GmbH, 2007 - 2008
+  *	Jan Engelhardt <jengelh@medozas.de>
+diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
+index 5aab6df74e0f..a97c2259bbc8 100644
+--- a/net/netfilter/xt_nfacct.c
++++ b/net/netfilter/xt_nfacct.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+ /*
+  * (C) 2011 Pablo Neira Ayuso <pablo@netfilter.org>
+- * (C) 2011 Intra2net AG <http://www.intra2net.com>
++ * (C) 2011 Intra2net AG <https://www.intra2net.com>
+  */
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
- err1:
-@@ -3214,8 +3217,10 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
- 	expr = nft_expr_first(rule);
- 	for (i = 0; i < n; i++) {
- 		err = nf_tables_newexpr(&ctx, &info[i], expr);
--		if (err < 0)
-+		if (err < 0) {
-+			NL_SET_BAD_ATTR(extack, info[i].attr);
- 			goto err2;
-+		}
- 
- 		if (info[i].ops->validate)
- 			nft_validate_state_update(net, NFT_VALIDATE_NEED);
+diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
+index 67cb98489415..6aa12d0f54e2 100644
+--- a/net/netfilter/xt_time.c
++++ b/net/netfilter/xt_time.c
+@@ -5,7 +5,7 @@
+  *	based on ipt_time by Fabrice MARIE <fabrice@netfilter.org>
+  *	This is a module which is used for time matching
+  *	It is using some modified code from dietlibc (localtime() function)
+- *	that you can find at http://www.fefe.de/dietlibc/
++ *	that you can find at https://www.fefe.de/dietlibc/
+  *	This file is distributed under the terms of the GNU General Public
+  *	License (GPL). Copies of the GPL can be obtained from gnu.org/gpl.
+  */
 -- 
 2.20.1
 
