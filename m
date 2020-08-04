@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0E17C433E3
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Aug 2020 20:02:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 005AAC433E0
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Aug 2020 20:02:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A30E920842
+	by mail.kernel.org (Postfix) with ESMTP id E5FE120842
 	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Aug 2020 20:02:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726630AbgHDUCp (ORCPT
+        id S1726817AbgHDUC4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 4 Aug 2020 16:02:45 -0400
-Received: from correo.us.es ([193.147.175.20]:49412 "EHLO mail.us.es"
+        Tue, 4 Aug 2020 16:02:56 -0400
+Received: from correo.us.es ([193.147.175.20]:49436 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726472AbgHDUCo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 Aug 2020 16:02:44 -0400
+        id S1726585AbgHDUCq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 4 Aug 2020 16:02:46 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C9434DA7F1
-        for <netfilter-devel@vger.kernel.org>; Tue,  4 Aug 2020 22:02:42 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 747FCDA7FE
+        for <netfilter-devel@vger.kernel.org>; Tue,  4 Aug 2020 22:02:44 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B3AB1DA855
-        for <netfilter-devel@vger.kernel.org>; Tue,  4 Aug 2020 22:02:42 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 68D06DA722
+        for <netfilter-devel@vger.kernel.org>; Tue,  4 Aug 2020 22:02:44 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A896CDA852; Tue,  4 Aug 2020 22:02:42 +0200 (CEST)
+        id 638A3DA855; Tue,  4 Aug 2020 22:02:44 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 94991DA73F;
-        Tue,  4 Aug 2020 22:02:40 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0645DDA722;
+        Tue,  4 Aug 2020 22:02:42 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 04 Aug 2020 22:02:40 +0200 (CEST)
+ Tue, 04 Aug 2020 22:02:42 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (120.205.137.78.rev.vodafone.pt [78.137.205.120])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id BA97E4265A32;
-        Tue,  4 Aug 2020 22:02:39 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 37D024265A32;
+        Tue,  4 Aug 2020 22:02:41 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 2/5] netfilter: nft_meta: fix iifgroup matching
-Date:   Tue,  4 Aug 2020 22:02:05 +0200
-Message-Id: <20200804200208.18620-3-pablo@netfilter.org>
+Subject: [PATCH 3/5] selftests: netfilter: add meta iif/oif match test
+Date:   Tue,  4 Aug 2020 22:02:06 +0200
+Message-Id: <20200804200208.18620-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200804200208.18620-1-pablo@netfilter.org>
 References: <20200804200208.18620-1-pablo@netfilter.org>
@@ -59,29 +59,166 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-iifgroup matching erroneously checks the output interface.
+simple test case, but would have caught this:
 
-Fixes: 8724e819cc9a ("netfilter: nft_meta: move all interface related keys to helper")
-Reported-by: Demi M. Obenour <demiobenour@gmail.com>
+FAIL: iifgroupcount, want "packets 2", got
+table inet filter {
+        counter iifgroupcount {
+                packets 0 bytes 0
+        }
+}
+
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_meta.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/netfilter/Makefile    |   2 +-
+ tools/testing/selftests/netfilter/nft_meta.sh | 124 ++++++++++++++++++
+ 2 files changed, 125 insertions(+), 1 deletion(-)
+ create mode 100755 tools/testing/selftests/netfilter/nft_meta.sh
 
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 951b6e87ed5d..7bc6537f3ccb 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -253,7 +253,7 @@ static bool nft_meta_get_eval_ifname(enum nft_meta_keys key, u32 *dest,
- 			return false;
- 		break;
- 	case NFT_META_IIFGROUP:
--		if (!nft_meta_store_ifgroup(dest, nft_out(pkt)))
-+		if (!nft_meta_store_ifgroup(dest, nft_in(pkt)))
- 			return false;
- 		break;
- 	case NFT_META_OIFGROUP:
+diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
+index a179f0dca8ce..a374e10ef506 100644
+--- a/tools/testing/selftests/netfilter/Makefile
++++ b/tools/testing/selftests/netfilter/Makefile
+@@ -4,7 +4,7 @@
+ TEST_PROGS := nft_trans_stress.sh nft_nat.sh bridge_brouter.sh \
+ 	conntrack_icmp_related.sh nft_flowtable.sh ipvs.sh \
+ 	nft_concat_range.sh nft_conntrack_helper.sh \
+-	nft_queue.sh
++	nft_queue.sh nft_meta.sh
+ 
+ LDLIBS = -lmnl
+ TEST_GEN_FILES =  nf-queue
+diff --git a/tools/testing/selftests/netfilter/nft_meta.sh b/tools/testing/selftests/netfilter/nft_meta.sh
+new file mode 100755
+index 000000000000..d250b84dd5bc
+--- /dev/null
++++ b/tools/testing/selftests/netfilter/nft_meta.sh
+@@ -0,0 +1,124 @@
++#!/bin/bash
++
++# check iif/iifname/oifgroup/iiftype match.
++
++# Kselftest framework requirement - SKIP code is 4.
++ksft_skip=4
++sfx=$(mktemp -u "XXXXXXXX")
++ns0="ns0-$sfx"
++
++nft --version > /dev/null 2>&1
++if [ $? -ne 0 ];then
++	echo "SKIP: Could not run test without nft tool"
++	exit $ksft_skip
++fi
++
++cleanup()
++{
++	ip netns del "$ns0"
++}
++
++ip netns add "$ns0"
++ip -net "$ns0" link set lo up
++ip -net "$ns0" addr add 127.0.0.1 dev lo
++
++trap cleanup EXIT
++
++ip netns exec "$ns0" nft -f /dev/stdin <<EOF
++table inet filter {
++	counter iifcount {}
++	counter iifnamecount {}
++	counter iifgroupcount {}
++	counter iiftypecount {}
++	counter infproto4count {}
++	counter il4protocounter {}
++	counter imarkcounter {}
++
++	counter oifcount {}
++	counter oifnamecount {}
++	counter oifgroupcount {}
++	counter oiftypecount {}
++	counter onfproto4count {}
++	counter ol4protocounter {}
++	counter oskuidcounter {}
++	counter oskgidcounter {}
++	counter omarkcounter {}
++
++	chain input {
++		type filter hook input priority 0; policy accept;
++
++		meta iif lo counter name "iifcount"
++		meta iifname "lo" counter name "iifnamecount"
++		meta iifgroup "default" counter name "iifgroupcount"
++		meta iiftype "loopback" counter name "iiftypecount"
++		meta nfproto ipv4 counter name "infproto4count"
++		meta l4proto icmp counter name "il4protocounter"
++		meta mark 42 counter name "imarkcounter"
++	}
++
++	chain output {
++		type filter hook output priority 0; policy accept;
++		meta oif lo counter name "oifcount" counter
++		meta oifname "lo" counter name "oifnamecount"
++		meta oifgroup "default" counter name "oifgroupcount"
++		meta oiftype "loopback" counter name "oiftypecount"
++		meta nfproto ipv4 counter name "onfproto4count"
++		meta l4proto icmp counter name "ol4protocounter"
++		meta skuid 0 counter name "oskuidcounter"
++		meta skgid 0 counter name "oskgidcounter"
++		meta mark 42 counter name "omarkcounter"
++	}
++}
++EOF
++
++if [ $? -ne 0 ]; then
++	echo "SKIP: Could not add test ruleset"
++	exit $ksft_skip
++fi
++
++ret=0
++
++check_one_counter()
++{
++	local cname="$1"
++	local want="packets $2"
++	local verbose="$3"
++
++	cnt=$(ip netns exec "$ns0" nft list counter inet filter $cname | grep -q "$want")
++	if [ $? -ne 0 ];then
++		echo "FAIL: $cname, want \"$want\", got"
++		ret=1
++		ip netns exec "$ns0" nft list counter inet filter $counter
++	fi
++}
++
++check_lo_counters()
++{
++	local want="$1"
++	local verbose="$2"
++	local counter
++
++	for counter in iifcount iifnamecount iifgroupcount iiftypecount infproto4count \
++		       oifcount oifnamecount oifgroupcount oiftypecount onfproto4count \
++		       il4protocounter \
++		       ol4protocounter \
++	     ; do
++		check_one_counter "$counter" "$want" "$verbose"
++	done
++}
++
++check_lo_counters "0" false
++ip netns exec "$ns0" ping -q -c 1 127.0.0.1 -m 42 > /dev/null
++
++check_lo_counters "2" true
++
++check_one_counter oskuidcounter "1" true
++check_one_counter oskgidcounter "1" true
++check_one_counter imarkcounter "1" true
++check_one_counter omarkcounter "1" true
++
++if [ $ret -eq 0 ];then
++	echo "OK: nftables meta iif/oif counters at expected values"
++fi
++
++exit $ret
 -- 
 2.20.1
 
