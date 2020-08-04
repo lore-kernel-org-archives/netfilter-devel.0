@@ -4,48 +4,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A179C433E1
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Aug 2020 20:02:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69C11C433DF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Aug 2020 20:02:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 45D0520842
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Aug 2020 20:02:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5EF8521744
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Aug 2020 20:02:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726726AbgHDUCs (ORCPT
+        id S1726804AbgHDUCx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 4 Aug 2020 16:02:48 -0400
-Received: from correo.us.es ([193.147.175.20]:49450 "EHLO mail.us.es"
+        Tue, 4 Aug 2020 16:02:53 -0400
+Received: from correo.us.es ([193.147.175.20]:49474 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726707AbgHDUCr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 Aug 2020 16:02:47 -0400
+        id S1726489AbgHDUCs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 4 Aug 2020 16:02:48 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9F42FDA7F6
-        for <netfilter-devel@vger.kernel.org>; Tue,  4 Aug 2020 22:02:45 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 25E77DA802
+        for <netfilter-devel@vger.kernel.org>; Tue,  4 Aug 2020 22:02:47 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 94ACADA8F3
-        for <netfilter-devel@vger.kernel.org>; Tue,  4 Aug 2020 22:02:45 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 19AE4DA8FD
+        for <netfilter-devel@vger.kernel.org>; Tue,  4 Aug 2020 22:02:47 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 8A4FFDA8EB; Tue,  4 Aug 2020 22:02:45 +0200 (CEST)
+        id 0C712DA8EC; Tue,  4 Aug 2020 22:02:47 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5F1CEDA856;
-        Tue,  4 Aug 2020 22:02:43 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CCEF1DA874;
+        Tue,  4 Aug 2020 22:02:44 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 04 Aug 2020 22:02:43 +0200 (CEST)
+ Tue, 04 Aug 2020 22:02:44 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (120.205.137.78.rev.vodafone.pt [78.137.205.120])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 8D9C94265A32;
-        Tue,  4 Aug 2020 22:02:42 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id ECBAB4265A32;
+        Tue,  4 Aug 2020 22:02:43 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 4/5] netfilter: conntrack: Move nf_ct_offload_timeout to header file
-Date:   Tue,  4 Aug 2020 22:02:07 +0200
-Message-Id: <20200804200208.18620-5-pablo@netfilter.org>
+Subject: [PATCH 5/5] netfilter: flowtable: Set offload timeout when adding flow
+Date:   Tue,  4 Aug 2020 22:02:08 +0200
+Message-Id: <20200804200208.18620-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200804200208.18620-1-pablo@netfilter.org>
 References: <20200804200208.18620-1-pablo@netfilter.org>
@@ -59,65 +59,33 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Roi Dayan <roid@mellanox.com>
 
-To be used by callers from other modules.
+On heavily loaded systems the GC can take time to go over all existing
+conns and reset their timeout. At that time other calls like from
+nf_conntrack_in() can call of nf_ct_is_expired() and see the conn as
+expired. To fix this when we set the offload bit we should also reset
+the timeout instead of counting on GC to finish first iteration over
+all conns before the initial timeout.
 
-[ Rename DAY to NF_CT_DAY to avoid possible symbol name pollution
-  issue --Pablo ]
-
+Fixes: 90964016e5d3 ("netfilter: nf_conntrack: add IPS_OFFLOAD status bit")
 Signed-off-by: Roi Dayan <roid@mellanox.com>
-Reviewed-by: Oz Shlomo <ozsh@mellanox.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack.h | 12 ++++++++++++
- net/netfilter/nf_conntrack_core.c    | 12 ------------
- 2 files changed, 12 insertions(+), 12 deletions(-)
+ net/netfilter/nf_flow_table_core.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 90690e37a56f..c7bfddfc65b0 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -279,6 +279,18 @@ static inline bool nf_ct_should_gc(const struct nf_conn *ct)
- 	       !nf_ct_is_dying(ct);
- }
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index b1eb5272b379..4f7a567c536e 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -243,6 +243,8 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
+ 		return err;
+ 	}
  
-+#define	NF_CT_DAY	(86400 * HZ)
++	nf_ct_offload_timeout(flow->ct);
 +
-+/* Set an arbitrary timeout large enough not to ever expire, this save
-+ * us a check for the IPS_OFFLOAD_BIT from the packet path via
-+ * nf_ct_is_expired().
-+ */
-+static inline void nf_ct_offload_timeout(struct nf_conn *ct)
-+{
-+	if (nf_ct_expires(ct) < NF_CT_DAY / 2)
-+		ct->timeout = nfct_time_stamp + NF_CT_DAY;
-+}
-+
- struct kernel_param;
- 
- int nf_conntrack_set_hashsize(const char *val, const struct kernel_param *kp);
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index f33d72c5b06e..c3cea50d1bcb 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1344,18 +1344,6 @@ static bool gc_worker_can_early_drop(const struct nf_conn *ct)
- 	return false;
- }
- 
--#define	DAY	(86400 * HZ)
--
--/* Set an arbitrary timeout large enough not to ever expire, this save
-- * us a check for the IPS_OFFLOAD_BIT from the packet path via
-- * nf_ct_is_expired().
-- */
--static void nf_ct_offload_timeout(struct nf_conn *ct)
--{
--	if (nf_ct_expires(ct) < DAY / 2)
--		ct->timeout = nfct_time_stamp + DAY;
--}
--
- static void gc_worker(struct work_struct *work)
- {
- 	unsigned int min_interval = max(HZ / GC_MAX_BUCKETS_DIV, 1u);
+ 	if (nf_flowtable_hw_offload(flow_table)) {
+ 		__set_bit(NF_FLOW_HW, &flow->flags);
+ 		nf_flow_offload_add(flow_table, flow);
 -- 
 2.20.1
 
