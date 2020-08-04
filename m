@@ -6,42 +6,49 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
 	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D95DCC433DF
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Aug 2020 12:37:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E11BC433E0
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Aug 2020 12:57:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C74E02086A
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Aug 2020 12:37:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 153552075A
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Aug 2020 12:57:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726396AbgHDMhr (ORCPT
+        id S1726954AbgHDM5s (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 4 Aug 2020 08:37:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40126 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725932AbgHDMhr (ORCPT
+        Tue, 4 Aug 2020 08:57:48 -0400
+Received: from us-smtp-1.mimecast.com ([207.211.31.81]:49442 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725856AbgHDM5s (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 Aug 2020 08:37:47 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE46DC06174A
-        for <netfilter-devel@vger.kernel.org>; Tue,  4 Aug 2020 05:37:46 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1k2wCO-0003BZ-5J; Tue, 04 Aug 2020 14:37:44 +0200
-Date:   Tue, 4 Aug 2020 14:37:44 +0200
-From:   Phil Sutter <phil@nwl.cc>
+        Tue, 4 Aug 2020 08:57:48 -0400
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-207-k88_szJdNpe3G8kI4aUz9A-1; Tue, 04 Aug 2020 08:57:40 -0400
+X-MC-Unique: k88_szJdNpe3G8kI4aUz9A-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 047C51DE0;
+        Tue,  4 Aug 2020 12:57:39 +0000 (UTC)
+Received: from localhost (ovpn-115-201.rdu2.redhat.com [10.10.115.201])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id C46137178B;
+        Tue,  4 Aug 2020 12:57:37 +0000 (UTC)
+Date:   Tue, 4 Aug 2020 08:57:36 -0400
+From:   Eric Garver <eric@garver.life>
 To:     "Jose M. Guisado Gomez" <guigom@riseup.net>
-Cc:     netfilter-devel@vger.kernel.org, pablo@netfilter.org, erig@erig.me
+Cc:     netfilter-devel@vger.kernel.org, pablo@netfilter.org, phil@nwl.cc
 Subject: Re: [PATCH nft v4] src: enable json echo output when reading native
  syntax
-Message-ID: <20200804123744.GV13697@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+Message-ID: <20200804125736.tsuz36h3wuycnjsf@egarver>
+Mail-Followup-To: Eric Garver <eric@garver.life>,
         "Jose M. Guisado Gomez" <guigom@riseup.net>,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org, erig@erig.me
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org, phil@nwl.cc
 References: <20200731104944.21384-1-guigom@riseup.net>
  <20200804103846.58872-1-guigom@riseup.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <20200804103846.58872-1-guigom@riseup.net>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -64,32 +71,8 @@ On Tue, Aug 04, 2020 at 12:38:46PM +0200, Jose M. Guisado Gomez wrote:
 > Signed-off-by: Jose M. Guisado Gomez <guigom@riseup.net>
 > ---
 > v4 respects previous behavior for json echo when reading json input too
-> 
->  include/nftables.h |  1 +
->  src/json.c         | 13 ++++++++++---
->  src/monitor.c      | 37 +++++++++++++++++++++++++++++--------
->  src/parser_json.c  | 24 +++++++++++++++++-------
->  4 files changed, 57 insertions(+), 18 deletions(-)
 
-Why not just:
+With this version all firewalld tests pass. Thanks!
 
---- a/src/monitor.c
-+++ b/src/monitor.c
-@@ -922,8 +922,11 @@ int netlink_echo_callback(const struct nlmsghdr *nlh, void *data)
-        if (!nft_output_echo(&echo_monh.ctx->nft->output))
-                return MNL_CB_OK;
- 
--       if (nft_output_json(&ctx->nft->output))
--               return json_events_cb(nlh, &echo_monh);
-+       if (nft_output_json(&ctx->nft->output)) {
-+               if (ctx->nft->json_root)
-+                       return json_events_cb(nlh, &echo_monh);
-+               echo_monh.format = NFTNL_OUTPUT_JSON;
-+       }
- 
-        return netlink_events_cb(nlh, &echo_monh);
- }
+Tested-by: Eric Garver <eric@garver.life>
 
-At a first glance, this seems to work just fine.
-
-Cheers, Phil
