@@ -2,130 +2,162 @@ Return-Path: <SRS0=mmp3=BP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.5 required=3.0 tests=BAYES_00,DATE_IN_PAST_03_06,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 915E9C433E1
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Aug 2020 01:20:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78824C433DF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Aug 2020 09:33:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7592B2075A
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Aug 2020 01:20:23 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jWW/SUs+"
+	by mail.kernel.org (Postfix) with ESMTP id 5124B2075A
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Aug 2020 09:33:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727026AbgHEBUV (ORCPT
+        id S1728134AbgHEJcd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 4 Aug 2020 21:20:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44416 "EHLO
+        Wed, 5 Aug 2020 05:32:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726891AbgHEBUV (ORCPT
+        with ESMTP id S1727079AbgHEJcE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 Aug 2020 21:20:21 -0400
-Received: from mail-qk1-x743.google.com (mail-qk1-x743.google.com [IPv6:2607:f8b0:4864:20::743])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF663C06174A;
-        Tue,  4 Aug 2020 18:20:20 -0700 (PDT)
-Received: by mail-qk1-x743.google.com with SMTP id l64so33499836qkb.8;
-        Tue, 04 Aug 2020 18:20:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=y0GIrQ8itFhpZvTb41Thq1WjSb67rtxrKB3Dhx4CAxA=;
-        b=jWW/SUs+JMYPMrE29BOBZ/90sk76mm5HdxR53NnmuPi59a9/BgcQmEuozCdwo9CJNi
-         okg0lfO9/djlvgLYOX9rpeF8lZ/+TQbBYf7DDO38Zbcwm555ovR2/ctuzbMFNhJvJmFx
-         mRTW3E0U55Lv+nh6jNfarWsu+TAblzCxvgoHoj3OF3+0SLPEqpI2z2SR9/XjJ+WSbf2N
-         o8MKE/EOYx3NUDlCJDsiDj1hfllmz1vmFoNYa0voIuGQ/LWXN1ALReBjz2UGhZoe7him
-         Zik/TOYIoNNT5kLD1tqMpgeFQvSFtuI5SqDwkETBj96K4gogNiT2sNPOiZJ7Cm9vbjyE
-         ZZUg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=y0GIrQ8itFhpZvTb41Thq1WjSb67rtxrKB3Dhx4CAxA=;
-        b=b8Z6nuUfWf+7gdPSmkfx+ODuyquQ0JTR/y2dIo3F0avemYI0jRh0NSYOcsssFTJ46D
-         yQ7WKT18CrKPFcpA9XbAoDBckP2hqe//P+NKFf3+oEuIZj8Ii/b/E1KxYnVXTw8EuCZE
-         bbCjpj5e44w31te6CQlEL/yq1BD7W4Hpb5y3OJjIFrZVpujQK5WOSUHGHwChA4qsA2Yx
-         KX5ZH3nD8BNvBDtxJTi3S+ZyW+wkGHu8t5j4lFTyt3jzl/pSrzk7SVtf+eDFxI/Vnwaa
-         5jhDFYRF1uVKYhh7ePXaNKOhARVbsoizWaQVQ0O47M0vhgzVdz50AEKJAhLtFDV7WQHg
-         ujIw==
-X-Gm-Message-State: AOAM531cN1bXHDSC41Ua2pAjbBa7m4WA2cM+GVHu+e2Pzl1/kG6Mb5Rz
-        +VWeDFqyCfdzZWsQaDLlig4SAQw=
-X-Google-Smtp-Source: ABdhPJz5+svKzjxbguGfY1yf7b2aWwIs983WfjMIFeIXJqzSSeUHsvqvlB+Iv7TgK+nCGsAbpxg+eQ==
-X-Received: by 2002:a37:9701:: with SMTP id z1mr1005337qkd.61.1596590419872;
-        Tue, 04 Aug 2020 18:20:19 -0700 (PDT)
-Received: from localhost.localdomain ([136.56.89.69])
-        by smtp.gmail.com with ESMTPSA id z72sm431148qka.107.2020.08.04.18.20.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 04 Aug 2020 18:20:19 -0700 (PDT)
-From:   Stephen Suryaputra <ssuryaextr@gmail.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     netdev@vger.kernel.org, Stephen Suryaputra <ssuryaextr@gmail.com>
-Subject: [PATCH nf,v2] netfilter: nf_tables: nft_exthdr: the presence return value should be little-endian
-Date:   Tue,  4 Aug 2020 17:44:09 -0400
-Message-Id: <20200804214409.105658-1-ssuryaextr@gmail.com>
-X-Mailer: git-send-email 2.25.1
+        Wed, 5 Aug 2020 05:32:04 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15B35C06174A
+        for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2020 02:31:55 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1k3Fm2-0000bS-Ek; Wed, 05 Aug 2020 11:31:50 +0200
+Date:   Wed, 5 Aug 2020 11:31:50 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     "Jose M. Guisado" <guigom@riseup.net>,
+        netfilter-devel@vger.kernel.org, erig@erig.me
+Subject: Re: [PATCH nft v4] src: enable json echo output when reading native
+ syntax
+Message-ID: <20200805093150.GY13697@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        "Jose M. Guisado" <guigom@riseup.net>,
+        netfilter-devel@vger.kernel.org, erig@erig.me
+References: <20200731104944.21384-1-guigom@riseup.net>
+ <20200804103846.58872-1-guigom@riseup.net>
+ <20200804123744.GV13697@orbyte.nwl.cc>
+ <87971ac3-ed9c-9923-ca3f-df6dfb8b94d9@riseup.net>
+ <20200804131423.GW13697@orbyte.nwl.cc>
+ <6bf33b55-6439-0ae5-9dbf-e18c01969d42@riseup.net>
+ <20200804140454.GA6002@salvia>
+ <20200804142027.GX13697@orbyte.nwl.cc>
+ <20200804191057.GB8820@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200804191057.GB8820@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On big-endian machine, the returned register data when the exthdr is
-present is not being compared correctly because little-endian is
-assumed. The function nft_cmp_fast_mask(), called by nft_cmp_fast_eval()
-and nft_cmp_fast_init(), calls cpu_to_le32().
+Hi,
 
-The following dump also shows that little endian is assumed:
+On Tue, Aug 04, 2020 at 09:10:57PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Aug 04, 2020 at 04:20:27PM +0200, Phil Sutter wrote:
+> > On Tue, Aug 04, 2020 at 04:04:54PM +0200, Pablo Neira Ayuso wrote:
+> > > On Tue, Aug 04, 2020 at 03:44:25PM +0200, Jose M. Guisado wrote:
+> > > > On 4/8/20 15:14, Phil Sutter wrote:
+> > > > > On Tue, Aug 04, 2020 at 03:05:25PM +0200, Jose M. Guisado wrote:
+> > > > > > On 4/8/20 14:37, Phil Sutter wrote:
+> > > > > > > Why not just:
+> > > > > > > 
+> > > > > > > --- a/src/monitor.c
+> > > > > > > +++ b/src/monitor.c
+> > > > > > > @@ -922,8 +922,11 @@ int netlink_echo_callback(const struct nlmsghdr *nlh, void *data)
+> > > > > > >           if (!nft_output_echo(&echo_monh.ctx->nft->output))
+> > > > > > >                   return MNL_CB_OK;
+> > > > > > > -       if (nft_output_json(&ctx->nft->output))
+> > > > > > > -               return json_events_cb(nlh, &echo_monh);
+> > > > > > > +       if (nft_output_json(&ctx->nft->output)) {
+> > > > > > > +               if (ctx->nft->json_root)
+> > > > > > > +                       return json_events_cb(nlh, &echo_monh);
+> > > > > > > +               echo_monh.format = NFTNL_OUTPUT_JSON;
+> > > > > > > +       }
+> > > > > > >           return netlink_events_cb(nlh, &echo_monh);
+> > > > > > >    }
+> > > > > > > 
+> > > > > > > At a first glance, this seems to work just fine.
+> > > > > > > 
+> > > > > > > Cheers, Phil
+> > > > > > 
+> > > > > > This does not output anything on my machine. This is because json_echo
+> > > > > > is not initialized before netlink_echo_callback.
+> > > > > 
+> > > > > Please try my diff above on upstream's master without your changes. In
+> > > > > the tree I did above changes, no symbol named 'json_echo' exists.
+> > > > > 
+> > > > > Cheers, Phil
+> > > > 
+> > > > Just tested it, it works great on my machine. As it outputs the same that
+> > > > would a running nft monitor.
+> > 
+> > Thanks for validating.
+> > 
+> > > > I'm imagining this is preferred if there's no need having the json commands
+> > > > in the output be wrapped inside list of a single json object with its
+> > > > metainfo. That's the main difference with your patch.
+> > 
+> > Yes, 'nft -j monitor' output has always been like this. Given that
+> > monitor potentially runs for a while and picks up multiple distinct
+> > ruleset changes, I wonder how it *should* behave.
+> > 
+> > > If it's not wrapped by the top-level nftables root then this is
+> > > unparseable.
+> > 
+> > We could change monitor code to add the wrapping "nftables" object to
+> > every line printed:
+> > 
+> > --- a/src/json.c
+> > +++ b/src/json.c
+> > @@ -1857,7 +1857,8 @@ int do_command_list_json(struct netlink_ctx *ctx, struct cmd *cmd)
+> >  static void monitor_print_json(struct netlink_mon_handler *monh,
+> >                                const char *cmd, json_t *obj)
+> >  {
+> > -       obj = json_pack("{s:o}", cmd, obj);
+> > +       obj = json_pack("{s:[o, {s:o}]}", "nftables",
+> > +                       generate_json_metainfo(), cmd, obj);
+> >         json_dumpf(obj, monh->ctx->nft->output.output_fp, 0);
+> >         json_decref(obj);
+> >  }
+> 
+> This is probably fine for the monitor + json.
+> 
+> However, nft --echo --json should provide a consistent output whether
+> the input comes from a json file or not.
 
-$ nft --debug=netlink add rule ip recordroute forward ip option rr exists counter
-ip
-  [ exthdr load ipv4 1b @ 7 + 0 present => reg 1 ]
-  [ cmp eq reg 1 0x01000000 ]
-  [ counter pkts 0 bytes 0 ]
+I get your point, but honestly think this is not a straightforward
+question to answer: You qualify consistent output based on JSON input,
+which simply doesn't exist if input is standard syntax. Saying the JSON
+output you get from echo mode is inconsistent because an equivalent JSON
+input would look differently is rather a matter of definition.
 
-Lastly, debug print in nft_cmp_fast_init() and nft_cmp_fast_eval() when
-RR option exists in the packet shows that the comparison fails because
-the assumption:
+Look at non-JSON echo behaviour:
 
-nft_cmp_fast_init:189 priv->sreg=4 desc.len=8 mask=0xff000000 data.data[0]=0x10003e0
-nft_cmp_fast_eval:57 regs->data[priv->sreg=4]=0x1 mask=0xff000000 priv->data=0x1000000
+# nft -e 'add table t2; add chain t2 c'
+add table ip t2
+add chain ip t2 c
 
-v2: use nft_reg_store8() instead (Florian Westphal). Also to avoid the
-    warnings reported by kernel test robot.
+# nft -e -f - <<EOF
+heredoc> table t3 {
+heredoc>   chain c {
+heredoc>   }
+heredoc> }
+heredoc> EOF
+add table ip t3
+add chain ip t3 c
 
-Fixes: dbb5281a1f84 ("netfilter: nf_tables: add support for matching IPv4 options")
-Fixes: c078ca3b0c5b ("netfilter: nft_exthdr: Add support for existence check")
-Signed-off-by: Stephen Suryaputra <ssuryaextr@gmail.com>
----
- net/netfilter/nft_exthdr.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+I'd say this rather resembles how my simplistic patch makes JSON-echo
+behave when reacting to non-JSON input than what Jose's patch is trying
+to achieve.
 
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index 07782836fad6..3c48cdc8935d 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -44,7 +44,7 @@ static void nft_exthdr_ipv6_eval(const struct nft_expr *expr,
- 
- 	err = ipv6_find_hdr(pkt->skb, &offset, priv->type, NULL, NULL);
- 	if (priv->flags & NFT_EXTHDR_F_PRESENT) {
--		*dest = (err >= 0);
-+		nft_reg_store8(dest, err >= 0);
- 		return;
- 	} else if (err < 0) {
- 		goto err;
-@@ -141,7 +141,7 @@ static void nft_exthdr_ipv4_eval(const struct nft_expr *expr,
- 
- 	err = ipv4_find_option(nft_net(pkt), skb, &offset, priv->type);
- 	if (priv->flags & NFT_EXTHDR_F_PRESENT) {
--		*dest = (err >= 0);
-+		nft_reg_store8(dest, err >= 0);
- 		return;
- 	} else if (err < 0) {
- 		goto err;
--- 
-2.25.1
+Jose, what's your use-case anyway? Do you depend on being able to insert
+standard syntax and get JSON back for some reason?
+
+Cheers, Phil
 
