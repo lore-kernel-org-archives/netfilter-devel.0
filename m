@@ -2,125 +2,144 @@ Return-Path: <SRS0=eBSQ=BQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B53C7C433E0
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Aug 2020 17:14:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DFD6C433E0
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Aug 2020 22:21:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 23E7B23119
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Aug 2020 17:14:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 296C2221E3
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Aug 2020 22:21:36 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GyumodkG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730120AbgHFRO0 (ORCPT
+        id S1726388AbgHFWVe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Aug 2020 13:14:26 -0400
-Received: from correo.us.es ([193.147.175.20]:58578 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730052AbgHFRJ4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Aug 2020 13:09:56 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EAAE2FB441
-        for <netfilter-devel@vger.kernel.org>; Thu,  6 Aug 2020 13:21:47 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DC375DA722
-        for <netfilter-devel@vger.kernel.org>; Thu,  6 Aug 2020 13:21:47 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D1C2BDA73F; Thu,  6 Aug 2020 13:21:47 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A109BDA722
-        for <netfilter-devel@vger.kernel.org>; Thu,  6 Aug 2020 13:21:45 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 06 Aug 2020 13:21:45 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (120.205.137.78.rev.vodafone.pt [78.137.205.120])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 2AD4C4265A2F
-        for <netfilter-devel@vger.kernel.org>; Thu,  6 Aug 2020 13:21:45 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] src: cache gets out of sync in interactive mode
-Date:   Thu,  6 Aug 2020 13:21:39 +0200
-Message-Id: <20200806112139.1977-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        Thu, 6 Aug 2020 18:21:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38130 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726167AbgHFWVc (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 6 Aug 2020 18:21:32 -0400
+Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com [IPv6:2607:f8b0:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54080C061574;
+        Thu,  6 Aug 2020 15:21:32 -0700 (PDT)
+Received: by mail-pl1-x642.google.com with SMTP id p1so111079pls.4;
+        Thu, 06 Aug 2020 15:21:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=t1TN4T3jQ2jrlk3a/d7SaKfk2DJyftZUv6bXnlt6NPQ=;
+        b=GyumodkGmYKsGSwVnzxjXGz3Hc6dDp/7EX3r4spkycDyPVNN0ciFP2qEtF0XPhrBf4
+         +cCI0OWrH6x101NHuYUTOaXPwuCecyhxfEvjJRna72hDnNI+bib+8AzwceW3eJdE75Gn
+         SeIJKEi14my/hEJw+qU/KCE5RSHazXH9KHIfKLNltLm7ADcruE5/tGFOBJjd/g0Mnrl5
+         TD9+5yjblEpGaVz4M1LHrXLmcdWRpP5c2NV1JaW3i6df06bY03MlPUl3EghFXAFM5iLk
+         Ox9KU5vu5QYQH83zkF+ICm8Q2r+16LLLSd84hY8z6dVmhZCgoIg7vDd5Gd8rg9nvzxvN
+         9EXA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=t1TN4T3jQ2jrlk3a/d7SaKfk2DJyftZUv6bXnlt6NPQ=;
+        b=e1lzyzb0IUfIRzudWXCJ1cnSbrZG3OU8EoVQ0p+kJDkZ1tnLXS6o966fc2KdC6EHeL
+         3SrIF0a5mXVw76vBuseFHDBVjkkqkjlSiZ4ovEVfQAjHNwieeA9kQTFnWW2rC5ZbPf9O
+         XCVz7HUemkpVnapitCxqsMEN6h+Q28m+bBbKFOppxvOEkVHfUzGS1ldj+fNmo5m0qPl1
+         ED2axOJ1D3LUxfVoNB0CC1/auI0H9efPJaH6IlviqbYNd5RQTwLOmmWz2ftkLDDCIrhJ
+         Wdyw2sb/kvUexW2wviff3HtcudiqYhWO/eNEvVHcZJMxGZcVkKXQc7LPLka0fe1Ye8m0
+         FC6w==
+X-Gm-Message-State: AOAM533QHJUjqnXMz8lHoCE9mfaVnnvTe76eDAuB5RQDhG7tKwWbhiP6
+        q6J7leABOdw2O3ozloO5s2k=
+X-Google-Smtp-Source: ABdhPJwdY4ryrXf97t2P6yPCseaEpoaitTdHlZtd60UHAYlnINemi0RFvJHHjsz9ZaSHJyy7n+NjVw==
+X-Received: by 2002:a17:902:45:: with SMTP id 63mr9766294pla.179.1596752491350;
+        Thu, 06 Aug 2020 15:21:31 -0700 (PDT)
+Received: from [10.1.10.11] (c-73-241-150-58.hsd1.ca.comcast.net. [73.241.150.58])
+        by smtp.gmail.com with ESMTPSA id w82sm9912017pff.7.2020.08.06.15.21.26
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 06 Aug 2020 15:21:30 -0700 (PDT)
+Subject: Re: [PATCH 25/26] net: pass a sockptr_t into ->setsockopt
+To:     Christoph Hellwig <hch@lst.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Eric Dumazet <edumazet@google.com>
+Cc:     linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, bpf@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-sctp@vger.kernel.org, linux-hams@vger.kernel.org,
+        linux-bluetooth@vger.kernel.org, bridge@lists.linux-foundation.org,
+        linux-can@vger.kernel.org, dccp@vger.kernel.org,
+        linux-decnet-user@lists.sourceforge.net,
+        linux-wpan@vger.kernel.org, linux-s390@vger.kernel.org,
+        mptcp@lists.01.org, lvs-devel@vger.kernel.org,
+        rds-devel@oss.oracle.com, linux-afs@lists.infradead.org,
+        tipc-discussion@lists.sourceforge.net, linux-x25@vger.kernel.org,
+        Stefan Schmidt <stefan@datenfreihafen.org>
+References: <20200723060908.50081-1-hch@lst.de>
+ <20200723060908.50081-26-hch@lst.de>
+From:   Eric Dumazet <eric.dumazet@gmail.com>
+Message-ID: <6357942b-0b6e-1901-7dce-e308c9fac347@gmail.com>
+Date:   Thu, 6 Aug 2020 15:21:25 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.9.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <20200723060908.50081-26-hch@lst.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Since 94a945ffa81b ("libnftables: Get rid of explicit cache flushes"),
-the cache logic checks for the generation number to refresh the cache.
 
-This breaks interactive mode when listing stateful objects though. This
-patch adds a new flag to force a cache refresh when the user requests a
-ruleset listing.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/cache.h | 1 +
- src/cache.c     | 2 ++
- src/rule.c      | 8 +++++++-
- 3 files changed, 10 insertions(+), 1 deletion(-)
+On 7/22/20 11:09 PM, Christoph Hellwig wrote:
+> Rework the remaining setsockopt code to pass a sockptr_t instead of a
+> plain user pointer.  This removes the last remaining set_fs(KERNEL_DS)
+> outside of architecture specific code.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> Acked-by: Stefan Schmidt <stefan@datenfreihafen.org> [ieee802154]
+> ---
 
-diff --git a/include/cache.h b/include/cache.h
-index 86a7eff78055..213a6eaf9104 100644
---- a/include/cache.h
-+++ b/include/cache.h
-@@ -30,6 +30,7 @@ enum cache_level_flags {
- 				  NFT_CACHE_CHAIN_BIT |
- 				  NFT_CACHE_RULE_BIT,
- 	NFT_CACHE_FULL		= __NFT_CACHE_MAX_BIT - 1,
-+	NFT_CACHE_REFRESH	= (1 << 29),
- 	NFT_CACHE_UPDATE	= (1 << 30),
- 	NFT_CACHE_FLUSHED	= (1 << 31),
- };
-diff --git a/src/cache.c b/src/cache.c
-index a45111a7920e..7797ff6b0460 100644
---- a/src/cache.c
-+++ b/src/cache.c
-@@ -143,6 +143,8 @@ unsigned int cache_evaluate(struct nft_ctx *nft, struct list_head *cmds)
- 			break;
- 		case CMD_LIST:
- 		case CMD_EXPORT:
-+			flags |= NFT_CACHE_FULL | NFT_CACHE_REFRESH;
-+			break;
- 		case CMD_MONITOR:
- 			flags |= NFT_CACHE_FULL;
- 			break;
-diff --git a/src/rule.c b/src/rule.c
-index 6335aa2189ad..8dc1792b4e5a 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -237,6 +237,11 @@ static bool cache_is_complete(struct nft_cache *cache, unsigned int flags)
- 	return (cache->flags & flags) == flags;
- }
- 
-+static bool cache_needs_refresh(struct nft_cache *cache)
-+{
-+	return cache->flags & NFT_CACHE_REFRESH;
-+}
-+
- static bool cache_is_updated(struct nft_cache *cache, uint16_t genid)
- {
- 	return genid && genid == cache->genid;
-@@ -261,7 +266,8 @@ int cache_update(struct nft_ctx *nft, unsigned int flags, struct list_head *msgs
- replay:
- 	ctx.seqnum = cache->seqnum++;
- 	genid = mnl_genid_get(&ctx);
--	if (cache_is_complete(cache, flags) &&
-+	if (!cache_needs_refresh(cache) &&
-+	    cache_is_complete(cache, flags) &&
- 	    cache_is_updated(cache, genid))
- 		return 0;
- 
--- 
-2.20.1
+
+...
+
+> diff --git a/net/ipv6/raw.c b/net/ipv6/raw.c
+> index 594e01ad670aa6..874f01cd7aec42 100644
+> --- a/net/ipv6/raw.c
+> +++ b/net/ipv6/raw.c
+> @@ -972,13 +972,13 @@ static int rawv6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+>  }
+>  
+
+...
+
+>  static int do_rawv6_setsockopt(struct sock *sk, int level, int optname,
+> -			    char __user *optval, unsigned int optlen)
+> +			       sockptr_t optval, unsigned int optlen)
+>  {
+>  	struct raw6_sock *rp = raw6_sk(sk);
+>  	int val;
+>  
+> -	if (get_user(val, (int __user *)optval))
+> +	if (copy_from_sockptr(&val, optval, sizeof(val)))
+>  		return -EFAULT;
+>  
+
+converting get_user(...)   to  copy_from_sockptr(...) really assumed the optlen
+has been validated to be >= sizeof(int) earlier.
+
+Which is not always the case, for example here.
+
+User application can fool us passing optlen=0, and a user pointer of exactly TASK_SIZE-1
+
 
