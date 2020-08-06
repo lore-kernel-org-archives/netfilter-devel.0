@@ -1,145 +1,169 @@
-Return-Path: <SRS0=eBSQ=BQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=v7HC=BR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DFD6C433E0
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Aug 2020 22:21:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7662C433DF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Aug 2020 01:54:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 296C2221E3
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Aug 2020 22:21:36 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GyumodkG"
+	by mail.kernel.org (Postfix) with ESMTP id CB61822CAF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Aug 2020 01:54:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726388AbgHFWVe (ORCPT
+        id S1726201AbgHGByf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Aug 2020 18:21:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38130 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726167AbgHFWVc (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Aug 2020 18:21:32 -0400
-Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com [IPv6:2607:f8b0:4864:20::642])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54080C061574;
-        Thu,  6 Aug 2020 15:21:32 -0700 (PDT)
-Received: by mail-pl1-x642.google.com with SMTP id p1so111079pls.4;
-        Thu, 06 Aug 2020 15:21:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=t1TN4T3jQ2jrlk3a/d7SaKfk2DJyftZUv6bXnlt6NPQ=;
-        b=GyumodkGmYKsGSwVnzxjXGz3Hc6dDp/7EX3r4spkycDyPVNN0ciFP2qEtF0XPhrBf4
-         +cCI0OWrH6x101NHuYUTOaXPwuCecyhxfEvjJRna72hDnNI+bib+8AzwceW3eJdE75Gn
-         SeIJKEi14my/hEJw+qU/KCE5RSHazXH9KHIfKLNltLm7ADcruE5/tGFOBJjd/g0Mnrl5
-         TD9+5yjblEpGaVz4M1LHrXLmcdWRpP5c2NV1JaW3i6df06bY03MlPUl3EghFXAFM5iLk
-         Ox9KU5vu5QYQH83zkF+ICm8Q2r+16LLLSd84hY8z6dVmhZCgoIg7vDd5Gd8rg9nvzxvN
-         9EXA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=t1TN4T3jQ2jrlk3a/d7SaKfk2DJyftZUv6bXnlt6NPQ=;
-        b=e1lzyzb0IUfIRzudWXCJ1cnSbrZG3OU8EoVQ0p+kJDkZ1tnLXS6o966fc2KdC6EHeL
-         3SrIF0a5mXVw76vBuseFHDBVjkkqkjlSiZ4ovEVfQAjHNwieeA9kQTFnWW2rC5ZbPf9O
-         XCVz7HUemkpVnapitCxqsMEN6h+Q28m+bBbKFOppxvOEkVHfUzGS1ldj+fNmo5m0qPl1
-         ED2axOJ1D3LUxfVoNB0CC1/auI0H9efPJaH6IlviqbYNd5RQTwLOmmWz2ftkLDDCIrhJ
-         Wdyw2sb/kvUexW2wviff3HtcudiqYhWO/eNEvVHcZJMxGZcVkKXQc7LPLka0fe1Ye8m0
-         FC6w==
-X-Gm-Message-State: AOAM533QHJUjqnXMz8lHoCE9mfaVnnvTe76eDAuB5RQDhG7tKwWbhiP6
-        q6J7leABOdw2O3ozloO5s2k=
-X-Google-Smtp-Source: ABdhPJwdY4ryrXf97t2P6yPCseaEpoaitTdHlZtd60UHAYlnINemi0RFvJHHjsz9ZaSHJyy7n+NjVw==
-X-Received: by 2002:a17:902:45:: with SMTP id 63mr9766294pla.179.1596752491350;
-        Thu, 06 Aug 2020 15:21:31 -0700 (PDT)
-Received: from [10.1.10.11] (c-73-241-150-58.hsd1.ca.comcast.net. [73.241.150.58])
-        by smtp.gmail.com with ESMTPSA id w82sm9912017pff.7.2020.08.06.15.21.26
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 06 Aug 2020 15:21:30 -0700 (PDT)
-Subject: Re: [PATCH 25/26] net: pass a sockptr_t into ->setsockopt
-To:     Christoph Hellwig <hch@lst.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Eric Dumazet <edumazet@google.com>
-Cc:     linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, bpf@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-sctp@vger.kernel.org, linux-hams@vger.kernel.org,
-        linux-bluetooth@vger.kernel.org, bridge@lists.linux-foundation.org,
-        linux-can@vger.kernel.org, dccp@vger.kernel.org,
-        linux-decnet-user@lists.sourceforge.net,
-        linux-wpan@vger.kernel.org, linux-s390@vger.kernel.org,
-        mptcp@lists.01.org, lvs-devel@vger.kernel.org,
-        rds-devel@oss.oracle.com, linux-afs@lists.infradead.org,
-        tipc-discussion@lists.sourceforge.net, linux-x25@vger.kernel.org,
-        Stefan Schmidt <stefan@datenfreihafen.org>
-References: <20200723060908.50081-1-hch@lst.de>
- <20200723060908.50081-26-hch@lst.de>
-From:   Eric Dumazet <eric.dumazet@gmail.com>
-Message-ID: <6357942b-0b6e-1901-7dce-e308c9fac347@gmail.com>
-Date:   Thu, 6 Aug 2020 15:21:25 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.9.0
+        Thu, 6 Aug 2020 21:54:35 -0400
+Received: from [216.151.45.106] ([216.151.45.106]:61352 "EHLO localhost"
+        rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726205AbgHGByd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 6 Aug 2020 21:54:33 -0400
+Received: by localhost (Postfix, from userid 1000)
+        id 4D516D97D; Fri,  7 Aug 2020 01:16:11 +1000 (AEST)
+From:   Michael Zhou <mzhou@cse.unsw.edu.au>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Michael Zhou <mzhou@cse.unsw.edu.au>
+Subject: [PATCH v2] net/ipv6/netfilter/ip6t_NPT: rewrite addresses in ICMPv6 original packet
+Date:   Fri,  7 Aug 2020 01:15:25 +1000
+Message-Id: <20200806151524.12112-1-mzhou@cse.unsw.edu.au>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-In-Reply-To: <20200723060908.50081-26-hch@lst.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Detect and rewrite a prefix embedded in an ICMPv6 original packet that was
+rewritten by a corresponding DNPT/SNPT rule so it will be recognised by
+the host that sent the original packet.
 
+Example
 
-On 7/22/20 11:09 PM, Christoph Hellwig wrote:
-> Rework the remaining setsockopt code to pass a sockptr_t instead of a
-> plain user pointer.  This removes the last remaining set_fs(KERNEL_DS)
-> outside of architecture specific code.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> Acked-by: Stefan Schmidt <stefan@datenfreihafen.org> [ieee802154]
-> ---
+Rules in effect on the 1:2:3:4::/64 + 5:6:7:8::/64 side router:
+* SNPT src-pfx 1:2:3:4::/64 dst-pfx 5:6:7:8::/64
+* DNPT src-pfx 5:6:7:8::/64 dst-pfx 1:2:3:4::/64
 
+No rules on the 9:a:b:c::/64 side.
 
-...
+1. 1:2:3:4::1 sends UDP packet to 9:a:b:c::1
+2. Router applies SNPT changing src to 5:6:7:8::ffef::1
+3. 9:a:b:c::1 receives packet with (src 5:6:7:8::ffef::1 dst 9:a:b:c::1)
+	and replies with ICMPv6 port unreachable to 5:6:7:8::ffef::1,
+	including original packet (src 5:6:7:8::ffef::1 dst 9:a:b:c::1)
+4. Router forwards ICMPv6 packet with (src 9:a:b:c::1 dst 5:6:7:8::ffef::1)
+	including original packet (src 5:6:7:8::ffef::1 dst 9:a:b:c::1)
+	and applies DNPT changing dst to 1:2:3:4::1
+5. 1:2:3:4::1 receives ICMPv6 packet with (src 9:a:b:c::1 dst 1:2:3:4::1)
+	including original packet (src 5:6:7:8::ffef::1 dst 9:a:b:c::1).
+	It doesn't recognise the original packet as the src doesn't
+	match anything it originally sent
 
-> diff --git a/net/ipv6/raw.c b/net/ipv6/raw.c
-> index 594e01ad670aa6..874f01cd7aec42 100644
-> --- a/net/ipv6/raw.c
-> +++ b/net/ipv6/raw.c
-> @@ -972,13 +972,13 @@ static int rawv6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
->  }
->  
+With this change, at step 4, DNPT will also rewrite the original packet
+src to 1:2:3:4::1, so at step 5, 1:2:3:4::1 will recognise the ICMPv6
+error and provide feedback to the application properly.
 
-...
+Conversely, SNPT will help when ICMPv6 errors are sent from the
+translated network.
 
->  static int do_rawv6_setsockopt(struct sock *sk, int level, int optname,
-> -			    char __user *optval, unsigned int optlen)
-> +			       sockptr_t optval, unsigned int optlen)
->  {
->  	struct raw6_sock *rp = raw6_sk(sk);
->  	int val;
->  
-> -	if (get_user(val, (int __user *)optval))
-> +	if (copy_from_sockptr(&val, optval, sizeof(val)))
->  		return -EFAULT;
->  
+1. 9:a:b:c::1 sends UDP packet to 5:6:7:8::ffef::1
+2. Router applies DNPT changing dst to 1:2:3:4::1
+3. 1:2:3:4::1 receives packet with (src 9:a:b:c::1 dst 1:2:3:4::1)
+	and replies with ICMPv6 port unreachable to 9:a:b:c::1
+	including original packet (src 9:a:b:c::1 dst 1:2:3:4::1)
+4. Router forwards ICMPv6 packet with (src 1:2:3:4::1 dst 9:a:b:c::1)
+	including original packet (src 9:a:b:c::1 dst 1:2:3:4::1)
+	and applies SNPT changing src to 5:6:7:8::ffef::1
+5. 9:a:b:c::1 receives ICMPv6 packet with
+	(src 5:6:7:8::ffef::1 dst 9:a:b:c::1) including
+	original packet (src 9:a:b:c::1 dst 1:2:3:4::1).
+	It doesn't recognise the original packet as the dst doesn't
+	match anything it already sent
 
-converting get_user(...)   to  copy_from_sockptr(...) really assumed the optlen
-has been validated to be >= sizeof(int) earlier.
+The change to SNPT means the ICMPv6 original packet dst will be
+rewritten to 5:6:7:8::ffef::1 in step 4, allowing the error to be
+properly recognised in step 5.
 
-Which is not always the case, for example here.
+Signed-off-by: Michael Zhou <mzhou@cse.unsw.edu.au>
+---
+ net/ipv6/netfilter/ip6t_NPT.c | 39 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-User application can fool us passing optlen=0, and a user pointer of exactly TASK_SIZE-1
-
+diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
+index 9ee077bf4f49..787c74aa85e3 100644
+--- a/net/ipv6/netfilter/ip6t_NPT.c
++++ b/net/ipv6/netfilter/ip6t_NPT.c
+@@ -77,16 +77,43 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
+ 	return true;
+ }
+ 
++static struct ipv6hdr *icmpv6_bounced_ipv6hdr(struct sk_buff *skb,
++					      struct ipv6hdr *_bounced_hdr)
++{
++	if (ipv6_hdr(skb)->nexthdr != IPPROTO_ICMPV6)
++		return NULL;
++
++	if (!icmpv6_is_err(icmp6_hdr(skb)->icmp6_type))
++		return NULL;
++
++	return skb_header_pointer(skb,
++				  skb_transport_offset(skb) + sizeof(struct icmp6hdr),
++				  sizeof(struct ipv6hdr),
++				  _bounced_hdr);
++}
++
+ static unsigned int
+ ip6t_snpt_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+ 	const struct ip6t_npt_tginfo *npt = par->targinfo;
++	struct ipv6hdr _bounced_hdr;
++	struct ipv6hdr *bounced_hdr;
++	struct in6_addr bounced_pfx;
+ 
+ 	if (!ip6t_npt_map_pfx(npt, &ipv6_hdr(skb)->saddr)) {
+ 		icmpv6_send(skb, ICMPV6_PARAMPROB, ICMPV6_HDR_FIELD,
+ 			    offsetof(struct ipv6hdr, saddr));
+ 		return NF_DROP;
+ 	}
++
++	/* rewrite dst addr of bounced packet which was sent to dst range */
++	bounced_hdr = icmpv6_bounced_ipv6hdr(skb, &_bounced_hdr);
++	if (bounced_hdr) {
++		ipv6_addr_prefix(&bounced_pfx, &bounced_hdr->daddr, npt->src_pfx_len);
++		if (ipv6_addr_cmp(&bounced_pfx, &npt->src_pfx.in6) == 0)
++			ip6t_npt_map_pfx(npt, &bounced_hdr->daddr);
++	}
++
+ 	return XT_CONTINUE;
+ }
+ 
+@@ -94,12 +121,24 @@ static unsigned int
+ ip6t_dnpt_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+ 	const struct ip6t_npt_tginfo *npt = par->targinfo;
++	struct ipv6hdr _bounced_hdr;
++	struct ipv6hdr *bounced_hdr;
++	struct in6_addr bounced_pfx;
+ 
+ 	if (!ip6t_npt_map_pfx(npt, &ipv6_hdr(skb)->daddr)) {
+ 		icmpv6_send(skb, ICMPV6_PARAMPROB, ICMPV6_HDR_FIELD,
+ 			    offsetof(struct ipv6hdr, daddr));
+ 		return NF_DROP;
+ 	}
++
++	/* rewrite src addr of bounced packet which was sent from dst range */
++	bounced_hdr = icmpv6_bounced_ipv6hdr(skb, &_bounced_hdr);
++	if (bounced_hdr) {
++		ipv6_addr_prefix(&bounced_pfx, &bounced_hdr->saddr, npt->src_pfx_len);
++		if (ipv6_addr_cmp(&bounced_pfx, &npt->src_pfx.in6) == 0)
++			ip6t_npt_map_pfx(npt, &bounced_hdr->saddr);
++	}
++
+ 	return XT_CONTINUE;
+ }
+ 
+-- 
+2.25.1
 
