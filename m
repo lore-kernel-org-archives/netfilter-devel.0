@@ -4,224 +4,123 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6C0FC433E0
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Aug 2020 16:55:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B53C7C433E0
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Aug 2020 17:14:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 090942086A
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Aug 2020 16:55:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 23E7B23119
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Aug 2020 17:14:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729668AbgHFQzd (ORCPT
+        id S1730120AbgHFRO0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Aug 2020 12:55:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44124 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729844AbgHFQzb (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Aug 2020 12:55:31 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAF17C0A3BD0
-        for <netfilter-devel@vger.kernel.org>; Thu,  6 Aug 2020 09:55:30 -0700 (PDT)
-Received: from localhost ([::1]:56920 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.94)
-        (envelope-from <phil@nwl.cc>)
-        id 1k3jAt-00050C-A5; Thu, 06 Aug 2020 18:55:27 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] tests: shell: Merge and extend return codes test
-Date:   Thu,  6 Aug 2020 18:55:23 +0200
-Message-Id: <20200806165523.23604-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.27.0
+        Thu, 6 Aug 2020 13:14:26 -0400
+Received: from correo.us.es ([193.147.175.20]:58578 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730052AbgHFRJ4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 6 Aug 2020 13:09:56 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id EAAE2FB441
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 Aug 2020 13:21:47 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DC375DA722
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 Aug 2020 13:21:47 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id D1C2BDA73F; Thu,  6 Aug 2020 13:21:47 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A109BDA722
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 Aug 2020 13:21:45 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 06 Aug 2020 13:21:45 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (120.205.137.78.rev.vodafone.pt [78.137.205.120])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id 2AD4C4265A2F
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 Aug 2020 13:21:45 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] src: cache gets out of sync in interactive mode
+Date:   Thu,  6 Aug 2020 13:21:39 +0200
+Message-Id: <20200806112139.1977-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Merge scripts for iptables and ip6tables, they were widely identical.
-Also extend the test by one check (removing a non-existent rule with
-valid chain and target) and quote the error messages where differences
-are deliberately ignored.
+Since 94a945ffa81b ("libnftables: Get rid of explicit cache flushes"),
+the cache logic checks for the generation number to refresh the cache.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+This breaks interactive mode when listing stateful objects though. This
+patch adds a new flag to force a cache refresh when the user requests a
+ruleset listing.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- .../testcases/ip6tables/0004-return-codes_0   | 39 --------
- .../testcases/iptables/0004-return-codes_0    | 92 ++++++++++---------
- 2 files changed, 50 insertions(+), 81 deletions(-)
- delete mode 100755 iptables/tests/shell/testcases/ip6tables/0004-return-codes_0
+ include/cache.h | 1 +
+ src/cache.c     | 2 ++
+ src/rule.c      | 8 +++++++-
+ 3 files changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/iptables/tests/shell/testcases/ip6tables/0004-return-codes_0 b/iptables/tests/shell/testcases/ip6tables/0004-return-codes_0
-deleted file mode 100755
-index c583b0ebd97c3..0000000000000
---- a/iptables/tests/shell/testcases/ip6tables/0004-return-codes_0
-+++ /dev/null
-@@ -1,39 +0,0 @@
--#!/bin/sh
--
--# make sure error return codes are as expected useful cases
--# (e.g. commands to check ruleset state)
--
--global_rc=0
--
--cmd() { # (rc, cmd, [args ...])
--	rc_exp=$1; shift
--
--	$XT_MULTI "$@"
--	rc=$?
--
--	[ $rc -eq $rc_exp ] || {
--		echo "---> expected $rc_exp, got $rc for command '$@'"
--		global_rc=1
--	}
--}
--
--# test chain creation
--cmd 0 ip6tables -N foo
--cmd 1 ip6tables -N foo
--# iptables-nft allows this - bug or feature?
--#cmd 2 ip6tables -N "invalid name"
--
--# test rule adding
--cmd 0 ip6tables -A INPUT -j ACCEPT
--cmd 1 ip6tables -A noexist -j ACCEPT
--cmd 2 ip6tables -I INPUT -j foobar
--
--# test rule checking
--cmd 0 ip6tables -C INPUT -j ACCEPT
--cmd 1 ip6tables -C FORWARD -j ACCEPT
--cmd 1 ip6tables -C nonexist -j ACCEPT
--cmd 2 ip6tables -C INPUT -j foobar
--cmd 2 ip6tables -C INPUT -m foobar -j ACCEPT
--cmd 3 ip6tables -t foobar -C INPUT -j ACCEPT
--
--exit $global_rc
-diff --git a/iptables/tests/shell/testcases/iptables/0004-return-codes_0 b/iptables/tests/shell/testcases/iptables/0004-return-codes_0
-index f730bede1f612..0452d9f501e28 100755
---- a/iptables/tests/shell/testcases/iptables/0004-return-codes_0
-+++ b/iptables/tests/shell/testcases/iptables/0004-return-codes_0
-@@ -13,19 +13,21 @@ cmd() { # (rc, msg, cmd, [args ...])
- 		msg_exp="$1"; shift
- 	}
- 
--	msg="$($XT_MULTI "$@" 2>&1 >/dev/null)"
--	rc=$?
-+	for ipt in iptables ip6tables; do
-+		msg="$($XT_MULTI $ipt "$@" 2>&1 >/dev/null)"
-+		rc=$?
- 
--	[ $rc -eq $rc_exp ] || {
--		echo "---> expected return code $rc_exp, got $rc for command '$@'"
--		global_rc=1
--	}
-+		[ $rc -eq $rc_exp ] || {
-+			echo "---> expected return code $rc_exp, got $rc for command '$ipt $@'"
-+			global_rc=1
-+		}
- 
--	[ -n "$msg_exp" ] || return
--	grep -q "$msg_exp" <<< $msg || {
--		echo "---> expected error message '$msg_exp', got '$msg' for command '$@'"
--		global_rc=1
--	}
-+		[ -n "$msg_exp" ] || continue
-+		grep -q "$msg_exp" <<< $msg || {
-+			echo "---> expected error message '$msg_exp', got '$msg' for command '$ipt $@'"
-+			global_rc=1
-+		}
-+	done
+diff --git a/include/cache.h b/include/cache.h
+index 86a7eff78055..213a6eaf9104 100644
+--- a/include/cache.h
++++ b/include/cache.h
+@@ -30,6 +30,7 @@ enum cache_level_flags {
+ 				  NFT_CACHE_CHAIN_BIT |
+ 				  NFT_CACHE_RULE_BIT,
+ 	NFT_CACHE_FULL		= __NFT_CACHE_MAX_BIT - 1,
++	NFT_CACHE_REFRESH	= (1 << 29),
+ 	NFT_CACHE_UPDATE	= (1 << 30),
+ 	NFT_CACHE_FLUSHED	= (1 << 31),
+ };
+diff --git a/src/cache.c b/src/cache.c
+index a45111a7920e..7797ff6b0460 100644
+--- a/src/cache.c
++++ b/src/cache.c
+@@ -143,6 +143,8 @@ unsigned int cache_evaluate(struct nft_ctx *nft, struct list_head *cmds)
+ 			break;
+ 		case CMD_LIST:
+ 		case CMD_EXPORT:
++			flags |= NFT_CACHE_FULL | NFT_CACHE_REFRESH;
++			break;
+ 		case CMD_MONITOR:
+ 			flags |= NFT_CACHE_FULL;
+ 			break;
+diff --git a/src/rule.c b/src/rule.c
+index 6335aa2189ad..8dc1792b4e5a 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -237,6 +237,11 @@ static bool cache_is_complete(struct nft_cache *cache, unsigned int flags)
+ 	return (cache->flags & flags) == flags;
  }
  
- EEXIST_F="File exists."
-@@ -40,48 +42,54 @@ ENOMTH="Couldn't load match \`foobar':No such file or directory"
- ENOTBL="can't initialize iptables table \`foobar': Table does not exist"
++static bool cache_needs_refresh(struct nft_cache *cache)
++{
++	return cache->flags & NFT_CACHE_REFRESH;
++}
++
+ static bool cache_is_updated(struct nft_cache *cache, uint16_t genid)
+ {
+ 	return genid && genid == cache->genid;
+@@ -261,7 +266,8 @@ int cache_update(struct nft_ctx *nft, unsigned int flags, struct list_head *msgs
+ replay:
+ 	ctx.seqnum = cache->seqnum++;
+ 	genid = mnl_genid_get(&ctx);
+-	if (cache_is_complete(cache, flags) &&
++	if (!cache_needs_refresh(cache) &&
++	    cache_is_complete(cache, flags) &&
+ 	    cache_is_updated(cache, genid))
+ 		return 0;
  
- # test chain creation
--cmd 0 iptables -N foo
--cmd 1 "$EEXIST" iptables -N foo
-+cmd 0 -N foo
-+cmd 1 "$EEXIST" -N foo
- # iptables-nft allows this - bug or feature?
--#cmd 2 iptables -N "invalid name"
-+#cmd 2 -N "invalid name"
- 
- # test chain flushing/zeroing
--cmd 0 iptables -F foo
--cmd 0 iptables -Z foo
--cmd 1 "$ENOENT" iptables -F bar
--cmd 1 "$ENOENT" iptables -Z bar
-+cmd 0 -F foo
-+cmd 0 -Z foo
-+cmd 1 "$ENOENT" -F bar
-+cmd 1 "$ENOENT" -Z bar
- 
- # test chain rename
--cmd 0 iptables -E foo bar
--cmd 1 "$EEXIST_F" iptables -E foo bar
--cmd 1 "$ENOENT" iptables -E foo bar2
--cmd 0 iptables -N foo2
--cmd 1 "$EEXIST_F" iptables -E foo2 bar
-+cmd 0 -E foo bar
-+cmd 1 "$EEXIST_F" -E foo bar
-+cmd 1 "$ENOENT" -E foo bar2
-+cmd 0 -N foo2
-+cmd 1 "$EEXIST_F" -E foo2 bar
- 
- # test rule adding
--cmd 0 iptables -A INPUT -j ACCEPT
--cmd 1 "$ENOENT" iptables -A noexist -j ACCEPT
--cmd 2 "" iptables -I INPUT -j foobar
--cmd 2 "" iptables -R INPUT 1 -j foobar
--cmd 2 "" iptables -D INPUT -j foobar
-+cmd 0 -A INPUT -j ACCEPT
-+cmd 1 "$ENOENT" -A noexist -j ACCEPT
-+# next three differ:
-+# legacy: Couldn't load target `foobar':No such file or directory
-+# nft:    Chain 'foobar' does not exist
-+cmd 2 "" -I INPUT -j foobar
-+cmd 2 "" -R INPUT 1 -j foobar
-+cmd 2 "" -D INPUT -j foobar
-+cmd 1 "$EBADRULE" -D INPUT -p tcp --dport 22 -j ACCEPT
- 
- # test rulenum commands
--cmd 1 "$E2BIG_I" iptables -I INPUT 23 -j ACCEPT
--cmd 1 "$E2BIG_D" iptables -D INPUT 23
--cmd 1 "$E2BIG_R" iptables -R INPUT 23 -j ACCEPT
--cmd 1 "$ENOENT" iptables -I nonexist 23 -j ACCEPT
--cmd 1 "$ENOENT" iptables -D nonexist 23
--cmd 1 "$ENOENT" iptables -R nonexist 23 -j ACCEPT
-+cmd 1 "$E2BIG_I" -I INPUT 23 -j ACCEPT
-+cmd 1 "$E2BIG_D" -D INPUT 23
-+cmd 1 "$E2BIG_R" -R INPUT 23 -j ACCEPT
-+cmd 1 "$ENOENT" -I nonexist 23 -j ACCEPT
-+cmd 1 "$ENOENT" -D nonexist 23
-+cmd 1 "$ENOENT" -R nonexist 23 -j ACCEPT
- 
- # test rule checking
--cmd 0 iptables -C INPUT -j ACCEPT
--cmd 1 "$EBADRULE" iptables -C FORWARD -j ACCEPT
--cmd 1 "$BADRULE" iptables -C nonexist -j ACCEPT
--cmd 2 "$ENOMTH" iptables -C INPUT -m foobar -j ACCEPT
-+cmd 0 -C INPUT -j ACCEPT
-+cmd 1 "$EBADRULE" -C FORWARD -j ACCEPT
-+cmd 1 "$BADRULE" -C nonexist -j ACCEPT
-+cmd 2 "$ENOMTH" -C INPUT -m foobar -j ACCEPT
- # messages of those don't match, but iptables-nft ones are actually nicer.
--#cmd 2 "$ENOTGT" iptables -C INPUT -j foobar
--#cmd 3 "$ENOTBL" iptables -t foobar -C INPUT -j ACCEPT
--cmd 2 "" iptables -C INPUT -j foobar
--cmd 3 "" iptables -t foobar -C INPUT -j ACCEPT
-+# legacy: Couldn't load target `foobar':No such file or directory
-+# nft:    Chain 'foobar' does not exist
-+cmd 2 "" -C INPUT -j foobar
-+# legacy: can't initialize ip6tables table `foobar': Table does not exist (do you need to insmod?)
-+# nft:    table 'foobar' does not exist
-+cmd 3 "" -t foobar -C INPUT -j ACCEPT
- 
- exit $global_rc
 -- 
-2.27.0
+2.20.1
 
