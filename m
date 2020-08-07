@@ -2,168 +2,134 @@ Return-Path: <SRS0=v7HC=BR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7662C433DF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Aug 2020 01:54:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E416BC433DF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Aug 2020 02:26:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB61822CAF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Aug 2020 01:54:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DA59820855
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Aug 2020 02:26:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726201AbgHGByf (ORCPT
+        id S1726566AbgHGC0l (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Aug 2020 21:54:35 -0400
-Received: from [216.151.45.106] ([216.151.45.106]:61352 "EHLO localhost"
-        rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726205AbgHGByd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Aug 2020 21:54:33 -0400
-Received: by localhost (Postfix, from userid 1000)
-        id 4D516D97D; Fri,  7 Aug 2020 01:16:11 +1000 (AEST)
-From:   Michael Zhou <mzhou@cse.unsw.edu.au>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Michael Zhou <mzhou@cse.unsw.edu.au>
-Subject: [PATCH v2] net/ipv6/netfilter/ip6t_NPT: rewrite addresses in ICMPv6 original packet
-Date:   Fri,  7 Aug 2020 01:15:25 +1000
-Message-Id: <20200806151524.12112-1-mzhou@cse.unsw.edu.au>
-X-Mailer: git-send-email 2.25.1
+        Thu, 6 Aug 2020 22:26:41 -0400
+Received: from mail-io1-f71.google.com ([209.85.166.71]:49272 "EHLO
+        mail-io1-f71.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726180AbgHGC01 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 6 Aug 2020 22:26:27 -0400
+Received: by mail-io1-f71.google.com with SMTP id 189so510432iov.16
+        for <netfilter-devel@vger.kernel.org>; Thu, 06 Aug 2020 19:26:27 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=yHSo/kuS5ZP8bar2nScAn5lqkwqHBJnis2OUjlmiGf8=;
+        b=XVa5PfvwYUwCwYuUYbrvbpifalqAe1ke52B+gVjn/cXQnrya8MDgiyHCkkTczDFdgt
+         KxrZ4D/3y2vLqQobN7y9CyJYCKZon7mzgDl7Xf48Rh7Dc/3YhWybZir0VMYqLn5J1kxv
+         jnZw82otysp86Mpd9c1OO5sxmDDU6z1RqZpkKcqd0JnT1Vmdg8abtq1cGeyiedPdaXQ0
+         C26trdqsjghblSb1VGIjVCGaGqFU0QtW3leW+Ck80E3wqq0YERKtQJ7S7i1vCeMmtMtM
+         /nxjd4F3VXLSS6NFip5+jtUxloLXSVf63lYWywAzKFbdOHNM9KviCSJvbB/RhuZrnbcq
+         CztQ==
+X-Gm-Message-State: AOAM533CZs76fvtGASlxAVApqCNLOgt+d/hjC4LIc852O2OW7mej0+qY
+        2TCpkeiuJXd1tgWCBRggs3f5tahGGaHJ/AQn2GS8u8Hr2bVZ
+X-Google-Smtp-Source: ABdhPJzWqZlpXxseUdPBQtg4h5n7fncG9tig9ZWsF3MR1GAU9dFy4z0l4sIfNL+g6FoISGc69bCA7oL5MMsm3vF5TUDs1Qt2wrPD
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a92:981d:: with SMTP id l29mr2298152ili.178.1596767186248;
+ Thu, 06 Aug 2020 19:26:26 -0700 (PDT)
+Date:   Thu, 06 Aug 2020 19:26:26 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000ece9db05ac4054e8@google.com>
+Subject: WARNING in compat_do_ebt_get_ctl
+From:   syzbot <syzbot+5accb5c62faa1d346480@syzkaller.appspotmail.com>
+To:     bridge@lists.linux-foundation.org, coreteam@netfilter.org,
+        davem@davemloft.net, fw@strlen.de, kadlec@netfilter.org,
+        kuba@kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        nikolay@cumulusnetworks.com, pablo@netfilter.org,
+        roopa@cumulusnetworks.com, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Detect and rewrite a prefix embedded in an ICMPv6 original packet that was
-rewritten by a corresponding DNPT/SNPT rule so it will be recognised by
-the host that sent the original packet.
+Hello,
 
-Example
+syzbot found the following issue on:
 
-Rules in effect on the 1:2:3:4::/64 + 5:6:7:8::/64 side router:
-* SNPT src-pfx 1:2:3:4::/64 dst-pfx 5:6:7:8::/64
-* DNPT src-pfx 5:6:7:8::/64 dst-pfx 1:2:3:4::/64
+HEAD commit:    47ec5303 Merge git://git.kernel.org/pub/scm/linux/kernel/g..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=17e92e76900000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=7c06047f622c5724
+dashboard link: https://syzkaller.appspot.com/bug?extid=5accb5c62faa1d346480
+compiler:       gcc (GCC) 10.1.0-syz 20200507
+userspace arch: i386
 
-No rules on the 9:a:b:c::/64 side.
+Unfortunately, I don't have any reproducer for this issue yet.
 
-1. 1:2:3:4::1 sends UDP packet to 9:a:b:c::1
-2. Router applies SNPT changing src to 5:6:7:8::ffef::1
-3. 9:a:b:c::1 receives packet with (src 5:6:7:8::ffef::1 dst 9:a:b:c::1)
-	and replies with ICMPv6 port unreachable to 5:6:7:8::ffef::1,
-	including original packet (src 5:6:7:8::ffef::1 dst 9:a:b:c::1)
-4. Router forwards ICMPv6 packet with (src 9:a:b:c::1 dst 5:6:7:8::ffef::1)
-	including original packet (src 5:6:7:8::ffef::1 dst 9:a:b:c::1)
-	and applies DNPT changing dst to 1:2:3:4::1
-5. 1:2:3:4::1 receives ICMPv6 packet with (src 9:a:b:c::1 dst 1:2:3:4::1)
-	including original packet (src 5:6:7:8::ffef::1 dst 9:a:b:c::1).
-	It doesn't recognise the original packet as the src doesn't
-	match anything it originally sent
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+5accb5c62faa1d346480@syzkaller.appspotmail.com
 
-With this change, at step 4, DNPT will also rewrite the original packet
-src to 1:2:3:4::1, so at step 5, 1:2:3:4::1 will recognise the ICMPv6
-error and provide feedback to the application properly.
+WARNING: CPU: 0 PID: 783 at include/linux/thread_info.h:134 copy_overflow include/linux/thread_info.h:134 [inline]
+WARNING: CPU: 0 PID: 783 at include/linux/thread_info.h:134 check_copy_size include/linux/thread_info.h:143 [inline]
+WARNING: CPU: 0 PID: 783 at include/linux/thread_info.h:134 copy_to_user include/linux/uaccess.h:151 [inline]
+WARNING: CPU: 0 PID: 783 at include/linux/thread_info.h:134 compat_do_ebt_get_ctl+0x47e/0x500 net/bridge/netfilter/ebtables.c:2270
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 783 Comm: syz-executor.2 Not tainted 5.8.0-syzkaller #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.12.0-59-gc9ba5276e321-prebuilt.qemu.org 04/01/2014
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x18f/0x20d lib/dump_stack.c:118
+ panic+0x2e3/0x75c kernel/panic.c:231
+ __warn.cold+0x20/0x45 kernel/panic.c:600
+ report_bug+0x1bd/0x210 lib/bug.c:198
+ handle_bug+0x38/0x90 arch/x86/kernel/traps.c:235
+ exc_invalid_op+0x14/0x40 arch/x86/kernel/traps.c:255
+ asm_exc_invalid_op+0x12/0x20 arch/x86/include/asm/idtentry.h:536
+RIP: 0010:copy_overflow include/linux/thread_info.h:134 [inline]
+RIP: 0010:check_copy_size include/linux/thread_info.h:143 [inline]
+RIP: 0010:copy_to_user include/linux/uaccess.h:151 [inline]
+RIP: 0010:compat_do_ebt_get_ctl+0x47e/0x500 net/bridge/netfilter/ebtables.c:2270
+Code: ba fd ff ff 4c 89 f7 e8 a0 11 a4 fa e9 ad fd ff ff e8 06 0f 64 fa 4c 89 e2 be 50 00 00 00 48 c7 c7 00 4e 0e 89 e8 64 20 35 fa <0f> 0b e9 dc fd ff ff 41 bc f2 ff ff ff e9 4f fe ff ff e8 7b 11 a4
+RSP: 0018:ffffc900047b7ae8 EFLAGS: 00010282
+RAX: 0000000000000000 RBX: 1ffff920008f6f5e RCX: 0000000000000000
+RDX: 0000000000040000 RSI: ffffffff815d8eb7 RDI: fffff520008f6f4f
+RBP: ffffffff8a8f3460 R08: 0000000000000001 R09: ffff88802ce31927
+R10: 0000000000000000 R11: 0000000033383754 R12: 000000000000ffab
+R13: 0000000020000100 R14: ffffc900047b7d80 R15: ffffc900047b7b20
+ do_ebt_get_ctl+0x2b4/0x790 net/bridge/netfilter/ebtables.c:2317
+ nf_getsockopt+0x72/0xd0 net/netfilter/nf_sockopt.c:116
+ ip_getsockopt net/ipv4/ip_sockglue.c:1778 [inline]
+ ip_getsockopt+0x164/0x1c0 net/ipv4/ip_sockglue.c:1757
+ raw_getsockopt+0x1a1/0x1d0 net/ipv4/raw.c:876
+ __sys_getsockopt+0x219/0x4c0 net/socket.c:2179
+ __do_sys_getsockopt net/socket.c:2194 [inline]
+ __se_sys_getsockopt net/socket.c:2191 [inline]
+ __ia32_sys_getsockopt+0xb9/0x150 net/socket.c:2191
+ do_syscall_32_irqs_on arch/x86/entry/common.c:84 [inline]
+ __do_fast_syscall_32+0x57/0x80 arch/x86/entry/common.c:126
+ do_fast_syscall_32+0x2f/0x70 arch/x86/entry/common.c:149
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+RIP: 0023:0xf7f24569
+Code: c4 01 10 03 03 74 c0 01 10 05 03 74 b8 01 10 06 03 74 b4 01 10 07 03 74 b0 01 10 08 03 74 d8 01 00 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 eb 0d 90 90 90 90 90 90 90 90 90 90 90 90
+RSP: 002b:00000000f551e0bc EFLAGS: 00000296 ORIG_RAX: 000000000000016d
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000000000
+RDX: 0000000000000082 RSI: 0000000020000100 RDI: 0000000020000180
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+Kernel Offset: disabled
+Rebooting in 86400 seconds..
 
-Conversely, SNPT will help when ICMPv6 errors are sent from the
-translated network.
 
-1. 9:a:b:c::1 sends UDP packet to 5:6:7:8::ffef::1
-2. Router applies DNPT changing dst to 1:2:3:4::1
-3. 1:2:3:4::1 receives packet with (src 9:a:b:c::1 dst 1:2:3:4::1)
-	and replies with ICMPv6 port unreachable to 9:a:b:c::1
-	including original packet (src 9:a:b:c::1 dst 1:2:3:4::1)
-4. Router forwards ICMPv6 packet with (src 1:2:3:4::1 dst 9:a:b:c::1)
-	including original packet (src 9:a:b:c::1 dst 1:2:3:4::1)
-	and applies SNPT changing src to 5:6:7:8::ffef::1
-5. 9:a:b:c::1 receives ICMPv6 packet with
-	(src 5:6:7:8::ffef::1 dst 9:a:b:c::1) including
-	original packet (src 9:a:b:c::1 dst 1:2:3:4::1).
-	It doesn't recognise the original packet as the dst doesn't
-	match anything it already sent
-
-The change to SNPT means the ICMPv6 original packet dst will be
-rewritten to 5:6:7:8::ffef::1 in step 4, allowing the error to be
-properly recognised in step 5.
-
-Signed-off-by: Michael Zhou <mzhou@cse.unsw.edu.au>
 ---
- net/ipv6/netfilter/ip6t_NPT.c | 39 +++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
-index 9ee077bf4f49..787c74aa85e3 100644
---- a/net/ipv6/netfilter/ip6t_NPT.c
-+++ b/net/ipv6/netfilter/ip6t_NPT.c
-@@ -77,16 +77,43 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
- 	return true;
- }
- 
-+static struct ipv6hdr *icmpv6_bounced_ipv6hdr(struct sk_buff *skb,
-+					      struct ipv6hdr *_bounced_hdr)
-+{
-+	if (ipv6_hdr(skb)->nexthdr != IPPROTO_ICMPV6)
-+		return NULL;
-+
-+	if (!icmpv6_is_err(icmp6_hdr(skb)->icmp6_type))
-+		return NULL;
-+
-+	return skb_header_pointer(skb,
-+				  skb_transport_offset(skb) + sizeof(struct icmp6hdr),
-+				  sizeof(struct ipv6hdr),
-+				  _bounced_hdr);
-+}
-+
- static unsigned int
- ip6t_snpt_tg(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct ip6t_npt_tginfo *npt = par->targinfo;
-+	struct ipv6hdr _bounced_hdr;
-+	struct ipv6hdr *bounced_hdr;
-+	struct in6_addr bounced_pfx;
- 
- 	if (!ip6t_npt_map_pfx(npt, &ipv6_hdr(skb)->saddr)) {
- 		icmpv6_send(skb, ICMPV6_PARAMPROB, ICMPV6_HDR_FIELD,
- 			    offsetof(struct ipv6hdr, saddr));
- 		return NF_DROP;
- 	}
-+
-+	/* rewrite dst addr of bounced packet which was sent to dst range */
-+	bounced_hdr = icmpv6_bounced_ipv6hdr(skb, &_bounced_hdr);
-+	if (bounced_hdr) {
-+		ipv6_addr_prefix(&bounced_pfx, &bounced_hdr->daddr, npt->src_pfx_len);
-+		if (ipv6_addr_cmp(&bounced_pfx, &npt->src_pfx.in6) == 0)
-+			ip6t_npt_map_pfx(npt, &bounced_hdr->daddr);
-+	}
-+
- 	return XT_CONTINUE;
- }
- 
-@@ -94,12 +121,24 @@ static unsigned int
- ip6t_dnpt_tg(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct ip6t_npt_tginfo *npt = par->targinfo;
-+	struct ipv6hdr _bounced_hdr;
-+	struct ipv6hdr *bounced_hdr;
-+	struct in6_addr bounced_pfx;
- 
- 	if (!ip6t_npt_map_pfx(npt, &ipv6_hdr(skb)->daddr)) {
- 		icmpv6_send(skb, ICMPV6_PARAMPROB, ICMPV6_HDR_FIELD,
- 			    offsetof(struct ipv6hdr, daddr));
- 		return NF_DROP;
- 	}
-+
-+	/* rewrite src addr of bounced packet which was sent from dst range */
-+	bounced_hdr = icmpv6_bounced_ipv6hdr(skb, &_bounced_hdr);
-+	if (bounced_hdr) {
-+		ipv6_addr_prefix(&bounced_pfx, &bounced_hdr->saddr, npt->src_pfx_len);
-+		if (ipv6_addr_cmp(&bounced_pfx, &npt->src_pfx.in6) == 0)
-+			ip6t_npt_map_pfx(npt, &bounced_hdr->saddr);
-+	}
-+
- 	return XT_CONTINUE;
- }
- 
--- 
-2.25.1
-
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
