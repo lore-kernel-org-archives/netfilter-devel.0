@@ -2,128 +2,249 @@ Return-Path: <SRS0=v7HC=BR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C770CC433DF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Aug 2020 09:18:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CEC1C433DF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Aug 2020 12:02:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9A41E2177B
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Aug 2020 09:18:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 412702075D
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Aug 2020 12:02:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727854AbgHGJSP (ORCPT
+        id S1728270AbgHGMC3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 7 Aug 2020 05:18:15 -0400
-Received: from eu-smtp-delivery-151.mimecast.com ([207.82.80.151]:40992 "EHLO
-        eu-smtp-delivery-151.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726915AbgHGJSI (ORCPT
+        Fri, 7 Aug 2020 08:02:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51126 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726293AbgHGMC2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 7 Aug 2020 05:18:08 -0400
-Received: from AcuMS.aculab.com (156.67.243.126 [156.67.243.126]) (Using
- TLS) by relay.mimecast.com with ESMTP id
- uk-mta-126-koqkZgaFNyeZIHOyATR4EA-1; Fri, 07 Aug 2020 10:18:04 +0100
-X-MC-Unique: koqkZgaFNyeZIHOyATR4EA-1
-Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:43c:695e:880f:8750) by
- AcuMS.aculab.com (fd9f:af1c:a25b:0:43c:695e:880f:8750) with Microsoft SMTP
- Server (TLS) id 15.0.1347.2; Fri, 7 Aug 2020 10:18:03 +0100
-Received: from AcuMS.Aculab.com ([fe80::43c:695e:880f:8750]) by
- AcuMS.aculab.com ([fe80::43c:695e:880f:8750%12]) with mapi id 15.00.1347.000;
- Fri, 7 Aug 2020 10:18:03 +0100
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     'Eric Dumazet' <eric.dumazet@gmail.com>,
-        Christoph Hellwig <hch@lst.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Eric Dumazet <edumazet@google.com>
-CC:     "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "bpf@vger.kernel.org" <bpf@vger.kernel.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "coreteam@netfilter.org" <coreteam@netfilter.org>,
-        "linux-sctp@vger.kernel.org" <linux-sctp@vger.kernel.org>,
-        "linux-hams@vger.kernel.org" <linux-hams@vger.kernel.org>,
-        "linux-bluetooth@vger.kernel.org" <linux-bluetooth@vger.kernel.org>,
-        "bridge@lists.linux-foundation.org" 
-        <bridge@lists.linux-foundation.org>,
-        "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>,
-        "dccp@vger.kernel.org" <dccp@vger.kernel.org>,
-        "linux-decnet-user@lists.sourceforge.net" 
-        <linux-decnet-user@lists.sourceforge.net>,
-        "linux-wpan@vger.kernel.org" <linux-wpan@vger.kernel.org>,
-        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-        "mptcp@lists.01.org" <mptcp@lists.01.org>,
-        "lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
-        "rds-devel@oss.oracle.com" <rds-devel@oss.oracle.com>,
-        "linux-afs@lists.infradead.org" <linux-afs@lists.infradead.org>,
-        "tipc-discussion@lists.sourceforge.net" 
-        <tipc-discussion@lists.sourceforge.net>,
-        "linux-x25@vger.kernel.org" <linux-x25@vger.kernel.org>,
-        Stefan Schmidt <stefan@datenfreihafen.org>
-Subject: RE: [PATCH 25/26] net: pass a sockptr_t into ->setsockopt
-Thread-Topic: [PATCH 25/26] net: pass a sockptr_t into ->setsockopt
-Thread-Index: AQHWbD/ze4VO5Mh7NUG6O93LfP2Gq6ksXaow
-Date:   Fri, 7 Aug 2020 09:18:03 +0000
-Message-ID: <f21589f1262640b09ca27ed20f8e6790@AcuMS.aculab.com>
-References: <20200723060908.50081-1-hch@lst.de>
- <20200723060908.50081-26-hch@lst.de>
- <6357942b-0b6e-1901-7dce-e308c9fac347@gmail.com>
-In-Reply-To: <6357942b-0b6e-1901-7dce-e308c9fac347@gmail.com>
-Accept-Language: en-GB, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+        Fri, 7 Aug 2020 08:02:28 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66067C061574
+        for <netfilter-devel@vger.kernel.org>; Fri,  7 Aug 2020 05:02:27 -0700 (PDT)
+Received: from localhost ([::1]:59772 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.94)
+        (envelope-from <phil@nwl.cc>)
+        id 1k414k-0004ZR-Rf; Fri, 07 Aug 2020 14:02:18 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH v2 2/2] tests: shell: Merge and extend return codes test
+Date:   Fri,  7 Aug 2020 14:02:14 +0200
+Message-Id: <20200807120214.3762-2-phil@nwl.cc>
+X-Mailer: git-send-email 2.27.0
+In-Reply-To: <20200807120214.3762-1-phil@nwl.cc>
+References: <20200807120214.3762-1-phil@nwl.cc>
 MIME-Version: 1.0
-Authentication-Results: relay.mimecast.com;
-        auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-RnJvbTogRXJpYyBEdW1hemV0DQo+IFNlbnQ6IDA2IEF1Z3VzdCAyMDIwIDIzOjIxDQo+IA0KPiBP
-biA3LzIyLzIwIDExOjA5IFBNLCBDaHJpc3RvcGggSGVsbHdpZyB3cm90ZToNCj4gPiBSZXdvcmsg
-dGhlIHJlbWFpbmluZyBzZXRzb2Nrb3B0IGNvZGUgdG8gcGFzcyBhIHNvY2twdHJfdCBpbnN0ZWFk
-IG9mIGENCj4gPiBwbGFpbiB1c2VyIHBvaW50ZXIuICBUaGlzIHJlbW92ZXMgdGhlIGxhc3QgcmVt
-YWluaW5nIHNldF9mcyhLRVJORUxfRFMpDQo+ID4gb3V0c2lkZSBvZiBhcmNoaXRlY3R1cmUgc3Bl
-Y2lmaWMgY29kZS4NCj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IENocmlzdG9waCBIZWxsd2lnIDxo
-Y2hAbHN0LmRlPg0KPiA+IEFja2VkLWJ5OiBTdGVmYW4gU2NobWlkdCA8c3RlZmFuQGRhdGVuZnJl
-aWhhZmVuLm9yZz4gW2llZWU4MDIxNTRdDQo+ID4gLS0tDQo+IA0KPiANCj4gLi4uDQo+IA0KPiA+
-IGRpZmYgLS1naXQgYS9uZXQvaXB2Ni9yYXcuYyBiL25ldC9pcHY2L3Jhdy5jDQo+ID4gaW5kZXgg
-NTk0ZTAxYWQ2NzBhYTYuLjg3NGYwMWNkN2FlYzQyIDEwMDY0NA0KPiA+IC0tLSBhL25ldC9pcHY2
-L3Jhdy5jDQo+ID4gKysrIGIvbmV0L2lwdjYvcmF3LmMNCj4gPiBAQCAtOTcyLDEzICs5NzIsMTMg
-QEAgc3RhdGljIGludCByYXd2Nl9zZW5kbXNnKHN0cnVjdCBzb2NrICpzaywgc3RydWN0IG1zZ2hk
-ciAqbXNnLCBzaXplX3QgbGVuKQ0KPiA+ICB9DQo+ID4NCj4gDQo+IC4uLg0KPiANCj4gPiAgc3Rh
-dGljIGludCBkb19yYXd2Nl9zZXRzb2Nrb3B0KHN0cnVjdCBzb2NrICpzaywgaW50IGxldmVsLCBp
-bnQgb3B0bmFtZSwNCj4gPiAtCQkJICAgIGNoYXIgX191c2VyICpvcHR2YWwsIHVuc2lnbmVkIGlu
-dCBvcHRsZW4pDQo+ID4gKwkJCSAgICAgICBzb2NrcHRyX3Qgb3B0dmFsLCB1bnNpZ25lZCBpbnQg
-b3B0bGVuKQ0KPiA+ICB7DQo+ID4gIAlzdHJ1Y3QgcmF3Nl9zb2NrICpycCA9IHJhdzZfc2soc2sp
-Ow0KPiA+ICAJaW50IHZhbDsNCj4gPg0KPiA+IC0JaWYgKGdldF91c2VyKHZhbCwgKGludCBfX3Vz
-ZXIgKilvcHR2YWwpKQ0KPiA+ICsJaWYgKGNvcHlfZnJvbV9zb2NrcHRyKCZ2YWwsIG9wdHZhbCwg
-c2l6ZW9mKHZhbCkpKQ0KPiA+ICAJCXJldHVybiAtRUZBVUxUOw0KPiA+DQo+IA0KPiBjb252ZXJ0
-aW5nIGdldF91c2VyKC4uLikgICB0byAgY29weV9mcm9tX3NvY2twdHIoLi4uKSByZWFsbHkgYXNz
-dW1lZCB0aGUgb3B0bGVuDQo+IGhhcyBiZWVuIHZhbGlkYXRlZCB0byBiZSA+PSBzaXplb2YoaW50
-KSBlYXJsaWVyLg0KPiANCj4gV2hpY2ggaXMgbm90IGFsd2F5cyB0aGUgY2FzZSwgZm9yIGV4YW1w
-bGUgaGVyZS4NCj4gDQo+IFVzZXIgYXBwbGljYXRpb24gY2FuIGZvb2wgdXMgcGFzc2luZyBvcHRs
-ZW49MCwgYW5kIGEgdXNlciBwb2ludGVyIG9mIGV4YWN0bHkgVEFTS19TSVpFLTENCg0KV29uJ3Qg
-dGhlIHVzZXIgcG9pbnRlciBmb3JjZSBjb3B5X2Zyb21fc29ja3B0cigpIHRvIGNhbGwNCmNvcHlf
-ZnJvbV91c2VyKCkgd2hpY2ggd2lsbCB0aGVuIGRvIGFjY2Vzc19vaygpIG9uIHRoZSBlbnRpcmUN
-CnJhbmdlIGFuZCBzbyByZXR1cm4gLUVGQVVMVC4NCg0KVGhlIG9ubHkgcHJvYmxlbXMgYXJpc2Ug
-aWYgdGhlIGtlcm5lbCBjb2RlIGFkZHMgYW4gb2Zmc2V0IHRvIHRoZQ0KdXNlciBhZGRyZXNzLg0K
-QW5kIHRoZSBsYXRlciBwYXRjaCBhZGRlZCBhbiBvZmZzZXQgdG8gdGhlIGNvcHkgZnVuY3Rpb25z
-Lg0KDQoJRGF2aWQNCg0KLQ0KUmVnaXN0ZXJlZCBBZGRyZXNzIExha2VzaWRlLCBCcmFtbGV5IFJv
-YWQsIE1vdW50IEZhcm0sIE1pbHRvbiBLZXluZXMsIE1LMSAxUFQsIFVLDQpSZWdpc3RyYXRpb24g
-Tm86IDEzOTczODYgKFdhbGVzKQ0K
+Merge scripts for iptables and ip6tables, they were widely identical.
+Also extend the test by one check (removing a non-existent rule with
+valid chain and target) and quote the error messages where differences
+are deliberately ignored.
+
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+Changes since v1:
+- Check error prefix value also.
+---
+ .../testcases/ip6tables/0004-return-codes_0   |  39 ------
+ .../testcases/iptables/0004-return-codes_0    | 113 ++++++++++--------
+ 2 files changed, 61 insertions(+), 91 deletions(-)
+ delete mode 100755 iptables/tests/shell/testcases/ip6tables/0004-return-codes_0
+
+diff --git a/iptables/tests/shell/testcases/ip6tables/0004-return-codes_0 b/iptables/tests/shell/testcases/ip6tables/0004-return-codes_0
+deleted file mode 100755
+index c583b0ebd97c3..0000000000000
+--- a/iptables/tests/shell/testcases/ip6tables/0004-return-codes_0
++++ /dev/null
+@@ -1,39 +0,0 @@
+-#!/bin/sh
+-
+-# make sure error return codes are as expected useful cases
+-# (e.g. commands to check ruleset state)
+-
+-global_rc=0
+-
+-cmd() { # (rc, cmd, [args ...])
+-	rc_exp=$1; shift
+-
+-	$XT_MULTI "$@"
+-	rc=$?
+-
+-	[ $rc -eq $rc_exp ] || {
+-		echo "---> expected $rc_exp, got $rc for command '$@'"
+-		global_rc=1
+-	}
+-}
+-
+-# test chain creation
+-cmd 0 ip6tables -N foo
+-cmd 1 ip6tables -N foo
+-# iptables-nft allows this - bug or feature?
+-#cmd 2 ip6tables -N "invalid name"
+-
+-# test rule adding
+-cmd 0 ip6tables -A INPUT -j ACCEPT
+-cmd 1 ip6tables -A noexist -j ACCEPT
+-cmd 2 ip6tables -I INPUT -j foobar
+-
+-# test rule checking
+-cmd 0 ip6tables -C INPUT -j ACCEPT
+-cmd 1 ip6tables -C FORWARD -j ACCEPT
+-cmd 1 ip6tables -C nonexist -j ACCEPT
+-cmd 2 ip6tables -C INPUT -j foobar
+-cmd 2 ip6tables -C INPUT -m foobar -j ACCEPT
+-cmd 3 ip6tables -t foobar -C INPUT -j ACCEPT
+-
+-exit $global_rc
+diff --git a/iptables/tests/shell/testcases/iptables/0004-return-codes_0 b/iptables/tests/shell/testcases/iptables/0004-return-codes_0
+index f730bede1f612..dcd9dfd3c0806 100755
+--- a/iptables/tests/shell/testcases/iptables/0004-return-codes_0
++++ b/iptables/tests/shell/testcases/iptables/0004-return-codes_0
+@@ -13,75 +13,84 @@ cmd() { # (rc, msg, cmd, [args ...])
+ 		msg_exp="$1"; shift
+ 	}
+ 
+-	msg="$($XT_MULTI "$@" 2>&1 >/dev/null)"
+-	rc=$?
++	for ipt in iptables ip6tables; do
++		msg="$($XT_MULTI $ipt "$@" 2>&1 >/dev/null)"
++		rc=$?
+ 
+-	[ $rc -eq $rc_exp ] || {
+-		echo "---> expected return code $rc_exp, got $rc for command '$@'"
+-		global_rc=1
+-	}
++		[ $rc -eq $rc_exp ] || {
++			echo "---> expected return code $rc_exp, got $rc for command '$ipt $@'"
++			global_rc=1
++		}
+ 
+-	[ -n "$msg_exp" ] || return
+-	grep -q "$msg_exp" <<< $msg || {
+-		echo "---> expected error message '$msg_exp', got '$msg' for command '$@'"
+-		global_rc=1
+-	}
++		[ -n "$msg_exp" ] || continue
++		msg_exp_full="${ipt}$msg_exp"
++		grep -q "$msg_exp_full" <<< $msg || {
++			echo "---> expected error message '$msg_exp_full', got '$msg' for command '$ipt $@'"
++			global_rc=1
++		}
++	done
+ }
+ 
+-EEXIST_F="File exists."
+-EEXIST="Chain already exists."
+-ENOENT="No chain/target/match by that name."
+-E2BIG_I="Index of insertion too big."
+-E2BIG_D="Index of deletion too big."
+-E2BIG_R="Index of replacement too big."
+-EBADRULE="Bad rule (does a matching rule exist in that chain?)."
+-ENOTGT="Couldn't load target \`foobar':No such file or directory"
+-ENOMTH="Couldn't load match \`foobar':No such file or directory"
+-ENOTBL="can't initialize iptables table \`foobar': Table does not exist"
++EEXIST_F=": File exists."
++EEXIST=": Chain already exists."
++ENOENT=": No chain/target/match by that name."
++E2BIG_I=": Index of insertion too big."
++E2BIG_D=": Index of deletion too big."
++E2BIG_R=": Index of replacement too big."
++EBADRULE=": Bad rule (does a matching rule exist in that chain?)."
++#ENOTGT=" v[0-9\.]* [^ ]*: Couldn't load target \`foobar':No such file or directory"
++ENOMTH=" v[0-9\.]* [^ ]*: Couldn't load match \`foobar':No such file or directory"
++ENOTBL=": can't initialize iptables table \`foobar': Table does not exist"
+ 
+ # test chain creation
+-cmd 0 iptables -N foo
+-cmd 1 "$EEXIST" iptables -N foo
++cmd 0 -N foo
++cmd 1 "$EEXIST" -N foo
+ # iptables-nft allows this - bug or feature?
+-#cmd 2 iptables -N "invalid name"
++#cmd 2 -N "invalid name"
+ 
+ # test chain flushing/zeroing
+-cmd 0 iptables -F foo
+-cmd 0 iptables -Z foo
+-cmd 1 "$ENOENT" iptables -F bar
+-cmd 1 "$ENOENT" iptables -Z bar
++cmd 0 -F foo
++cmd 0 -Z foo
++cmd 1 "$ENOENT" -F bar
++cmd 1 "$ENOENT" -Z bar
+ 
+ # test chain rename
+-cmd 0 iptables -E foo bar
+-cmd 1 "$EEXIST_F" iptables -E foo bar
+-cmd 1 "$ENOENT" iptables -E foo bar2
+-cmd 0 iptables -N foo2
+-cmd 1 "$EEXIST_F" iptables -E foo2 bar
++cmd 0 -E foo bar
++cmd 1 "$EEXIST_F" -E foo bar
++cmd 1 "$ENOENT" -E foo bar2
++cmd 0 -N foo2
++cmd 1 "$EEXIST_F" -E foo2 bar
+ 
+ # test rule adding
+-cmd 0 iptables -A INPUT -j ACCEPT
+-cmd 1 "$ENOENT" iptables -A noexist -j ACCEPT
+-cmd 2 "" iptables -I INPUT -j foobar
+-cmd 2 "" iptables -R INPUT 1 -j foobar
+-cmd 2 "" iptables -D INPUT -j foobar
++cmd 0 -A INPUT -j ACCEPT
++cmd 1 "$ENOENT" -A noexist -j ACCEPT
++# next three differ:
++# legacy: Couldn't load target `foobar':No such file or directory
++# nft:    Chain 'foobar' does not exist
++cmd 2 "" -I INPUT -j foobar
++cmd 2 "" -R INPUT 1 -j foobar
++cmd 2 "" -D INPUT -j foobar
++cmd 1 "$EBADRULE" -D INPUT -p tcp --dport 22 -j ACCEPT
+ 
+ # test rulenum commands
+-cmd 1 "$E2BIG_I" iptables -I INPUT 23 -j ACCEPT
+-cmd 1 "$E2BIG_D" iptables -D INPUT 23
+-cmd 1 "$E2BIG_R" iptables -R INPUT 23 -j ACCEPT
+-cmd 1 "$ENOENT" iptables -I nonexist 23 -j ACCEPT
+-cmd 1 "$ENOENT" iptables -D nonexist 23
+-cmd 1 "$ENOENT" iptables -R nonexist 23 -j ACCEPT
++cmd 1 "$E2BIG_I" -I INPUT 23 -j ACCEPT
++cmd 1 "$E2BIG_D" -D INPUT 23
++cmd 1 "$E2BIG_R" -R INPUT 23 -j ACCEPT
++cmd 1 "$ENOENT" -I nonexist 23 -j ACCEPT
++cmd 1 "$ENOENT" -D nonexist 23
++cmd 1 "$ENOENT" -R nonexist 23 -j ACCEPT
+ 
+ # test rule checking
+-cmd 0 iptables -C INPUT -j ACCEPT
+-cmd 1 "$EBADRULE" iptables -C FORWARD -j ACCEPT
+-cmd 1 "$BADRULE" iptables -C nonexist -j ACCEPT
+-cmd 2 "$ENOMTH" iptables -C INPUT -m foobar -j ACCEPT
++cmd 0 -C INPUT -j ACCEPT
++cmd 1 "$EBADRULE" -C FORWARD -j ACCEPT
++cmd 1 "$BADRULE" -C nonexist -j ACCEPT
++cmd 2 "$ENOMTH" -C INPUT -m foobar -j ACCEPT
+ # messages of those don't match, but iptables-nft ones are actually nicer.
+-#cmd 2 "$ENOTGT" iptables -C INPUT -j foobar
+-#cmd 3 "$ENOTBL" iptables -t foobar -C INPUT -j ACCEPT
+-cmd 2 "" iptables -C INPUT -j foobar
+-cmd 3 "" iptables -t foobar -C INPUT -j ACCEPT
++# legacy: Couldn't load target `foobar':No such file or directory
++# nft:    Chain 'foobar' does not exist
++cmd 2 "" -C INPUT -j foobar
++# legacy: can't initialize ip6tables table `foobar': Table does not exist (do you need to insmod?)
++# nft:    table 'foobar' does not exist
++cmd 3 "" -t foobar -C INPUT -j ACCEPT
+ 
+ exit $global_rc
+-- 
+2.27.0
 
