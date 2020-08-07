@@ -2,220 +2,140 @@ Return-Path: <SRS0=v7HC=BR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9406C433E1
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Aug 2020 18:29:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5825DC433E0
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Aug 2020 19:31:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA86E204EA
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Aug 2020 18:29:37 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QBJVGJ0G"
+	by mail.kernel.org (Postfix) with ESMTP id 421DD204EC
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Aug 2020 19:31:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726370AbgHGS30 (ORCPT
+        id S1726038AbgHGTbh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 7 Aug 2020 14:29:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54102 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725934AbgHGS3Y (ORCPT
+        Fri, 7 Aug 2020 15:31:37 -0400
+Received: from mailrelay110.isp.belgacom.be ([195.238.20.137]:57815 "EHLO
+        mailrelay110.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725893AbgHGTbg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 7 Aug 2020 14:29:24 -0400
-Received: from mail-pj1-x1044.google.com (mail-pj1-x1044.google.com [IPv6:2607:f8b0:4864:20::1044])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D3A7C061756;
-        Fri,  7 Aug 2020 11:29:23 -0700 (PDT)
-Received: by mail-pj1-x1044.google.com with SMTP id ha11so1330588pjb.1;
-        Fri, 07 Aug 2020 11:29:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=Z120/2fGgMoMEJFP3y/UN7XiDtbeEapazuzyhr8LDZE=;
-        b=QBJVGJ0GG4JwOGjOXDhn/ptRbCpViFRSryd/D1uD/PPByb8ofXHghQtBL4zAWGT9Xe
-         QK/cUuMjhxG0m1Hgc9zv3PWjG85dcSZ3U99MdqgrJZlSJ7yNitbrWEKj0pKrpQ5j4U2+
-         mYi6rg0gFPqzK2WTohJzzlVFs9f88hQH3fpr0BAInmFjUAgk2jPvQt5YPhc+dRklJCLA
-         1PiMOZ7kUlZdKKqrhoSbKIrPYqUmIDmxZL7Nhpp4CbVKZHsjBzyt1SbkbQp0snfBQJX6
-         D0ebWljTdKFZBlaqVyAN81FA6P/pxFRTidd7EBz+FBfE/yEz78eEPIzn3SALlg9BIULK
-         bJSQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=Z120/2fGgMoMEJFP3y/UN7XiDtbeEapazuzyhr8LDZE=;
-        b=XBEw5BfjOhO7TRexKhdv3xqccXF1PsfVX1ssuCVYLzOJsNiEXk+gJCAgqn9rFwdB1g
-         2YIqOfMExR995vdEmm3U+cadypuRcInt+JC1mKShBlYGFMM6Q1ojgtyjf5LsD1rFarjy
-         DiC86o0dqen+w2Hnx8zSgGOFasa+tJc9YjIiENzOsBm/8zX9gpyz/RahTCncT3IO1eKA
-         jlTPXIH3pVHtjwV8a1hOvDAReyMYud61o5TRGFScvC9BUEJyDw1YmdhVzRy8ZAI7o1H6
-         8gYpYWkOtGeVvG+plRYX9PBzjltSKvq6zXNrVPF+6PDhTsx9IPAwDk1QP8Em/8p5IZ1F
-         22lw==
-X-Gm-Message-State: AOAM531B/YdZD5B+DWTBrQ6T+kMGGS75NFQ0qi3qNuaN2rKUoDL4LLDq
-        GOhATJJRfGrQwKE/goXhZZ0=
-X-Google-Smtp-Source: ABdhPJwIAkNKceIOzLVjCyNTLbqqQvdxFebKOpJzF9rIr6w9P+XPfBqJiKCvAm7AAVFD3CFXOteoEw==
-X-Received: by 2002:a17:902:b210:: with SMTP id t16mr13276026plr.90.1596824962910;
-        Fri, 07 Aug 2020 11:29:22 -0700 (PDT)
-Received: from [10.1.10.11] (c-73-241-150-58.hsd1.ca.comcast.net. [73.241.150.58])
-        by smtp.gmail.com with ESMTPSA id q66sm11499854pjq.17.2020.08.07.11.29.20
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 07 Aug 2020 11:29:21 -0700 (PDT)
-Subject: Re: [PATCH 25/26] net: pass a sockptr_t into ->setsockopt
-To:     David Laight <David.Laight@ACULAB.COM>,
-        'Eric Dumazet' <eric.dumazet@gmail.com>,
-        Christoph Hellwig <hch@lst.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Eric Dumazet <edumazet@google.com>
-Cc:     "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "bpf@vger.kernel.org" <bpf@vger.kernel.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "coreteam@netfilter.org" <coreteam@netfilter.org>,
-        "linux-sctp@vger.kernel.org" <linux-sctp@vger.kernel.org>,
-        "linux-hams@vger.kernel.org" <linux-hams@vger.kernel.org>,
-        "linux-bluetooth@vger.kernel.org" <linux-bluetooth@vger.kernel.org>,
-        "bridge@lists.linux-foundation.org" 
-        <bridge@lists.linux-foundation.org>,
-        "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>,
-        "dccp@vger.kernel.org" <dccp@vger.kernel.org>,
-        "linux-decnet-user@lists.sourceforge.net" 
-        <linux-decnet-user@lists.sourceforge.net>,
-        "linux-wpan@vger.kernel.org" <linux-wpan@vger.kernel.org>,
-        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-        "mptcp@lists.01.org" <mptcp@lists.01.org>,
-        "lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
-        "rds-devel@oss.oracle.com" <rds-devel@oss.oracle.com>,
-        "linux-afs@lists.infradead.org" <linux-afs@lists.infradead.org>,
-        "tipc-discussion@lists.sourceforge.net" 
-        <tipc-discussion@lists.sourceforge.net>,
-        "linux-x25@vger.kernel.org" <linux-x25@vger.kernel.org>,
-        Stefan Schmidt <stefan@datenfreihafen.org>
-References: <20200723060908.50081-1-hch@lst.de>
- <20200723060908.50081-26-hch@lst.de>
- <6357942b-0b6e-1901-7dce-e308c9fac347@gmail.com>
- <f21589f1262640b09ca27ed20f8e6790@AcuMS.aculab.com>
-From:   Eric Dumazet <eric.dumazet@gmail.com>
-Message-ID: <90f626a4-d9e5-91a5-b71d-498e3b125da1@gmail.com>
-Date:   Fri, 7 Aug 2020 11:29:19 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.11.0
+        Fri, 7 Aug 2020 15:31:36 -0400
+IronPort-SDR: 1fyfjNk7TYh21MnooOaHM1kLQxRmr0IVJ7A7BlV4g0PWoDOGvC8XN9SL1+2z3btx+xdbm3uS1g
+ JSDcBoiWM+a9CAfT0oQ+6QpcOH1qEZnRJz+4MvHLGsBfs4mpDkhsGTfE6qLi1soXu9GO+CsghI
+ VYQTiFmiYt4F5rvxd+PrTltxnMHUp/iKMcDtaZ/kZHj4yrZ4pirwD6hrxhlETB0AliSP9tVebK
+ ZdDMTG/aaj+QS//ZfVUmRgo6Qex/6aiRcFm/2HQKJNtA5MZeLysl5a1BKN3Z24vaMul7MV/Y2Z
+ o30=
+X-Belgacom-Dynamic: yes
+IronPort-PHdr: =?us-ascii?q?9a23=3A4BqUPhfX+sSMa0wGZ4kGovmIlGMj4u6mDksu8p?=
+ =?us-ascii?q?Mizoh2WeGdxc24ZBGN2/xhgRfzUJnB7Loc0qyK6v6mCTZLuM3a+Fk5M7V0Hy?=
+ =?us-ascii?q?cfjssXmwFySOWkMmbcaMDQUiohAc5ZX0Vk9XzoeWJcGcL5ekGA6ibqtW1aFR?=
+ =?us-ascii?q?rwLxd6KfroEYDOkcu3y/qy+5rOaAlUmTaxe7x/IAi3oAnLtcQan4RuJrs/xx?=
+ =?us-ascii?q?bHv3BFZ/lYyWR0KFyJgh3y/N2w/Jlt8yRRv/Iu6ctNWrjkcqo7ULJVEi0oP3?=
+ =?us-ascii?q?g668P3uxbDSxCP5mYHXWUNjhVIGQnF4wrkUZr3ryD3q/By2CiePc3xULA0RT?=
+ =?us-ascii?q?Gv5LplRRP0lCsKMSMy/WfKgcJyka1bugqsqRxhzYDJbo+bN/1wcazSc94BWW?=
+ =?us-ascii?q?ZMXdxcWzBbD4+gc4cCCfcKM+ZCr4n6olsDtRuwChO3C+Pu0DBIgGL9060g0+?=
+ =?us-ascii?q?s/DA7JwhYgH9MSv3TXsd74M6kSXvquw6nG1jjDdPBW2Df76IfWbhAtu+qDUq?=
+ =?us-ascii?q?xpfMfX1EIgGB/LgE+Kpoz5IzOayP4Ns26D4ud9W++jl24ppg5wrzWhyMoihY?=
+ =?us-ascii?q?rEi4MWx1zY8Sh0w5o5KNK4RkNlbtCoDJlduj2EOoZyQs4vQGBltDs7x7AJvZ?=
+ =?us-ascii?q?O2ejUBxpogxx7acfOHco6I7wrlVOmPPTd4inNleLajhxms60is0Ov8Vsey3V?=
+ =?us-ascii?q?1XrSRFisHBu3QQ2xDJ98SKSeVx8l281TuO1w3f8PxILEEymKHGMZAu2KQwmY?=
+ =?us-ascii?q?AWsUnbGy/2n1j5g7GOe0U//+io9/znYrL7pp+AL4N0ih/xMqApmsGnBeQ4NR?=
+ =?us-ascii?q?QBUHKf+eS8073j5lH5TK9Ojv0xjqbWqpTaKtkcpq68GQBV04Aj5w6+Dzegzt?=
+ =?us-ascii?q?sYgWEKIVZYdB6dkoTkOE/CLOrlAfq+g1mgiipnyvHeMr3kGJrNL3zDkLn7fb?=
+ =?us-ascii?q?Z67k5R0AQzwspE6JJaEbwBO/HzW0/3tNPGEh81KRe7zPj/BNVnyoweQX6PAr?=
+ =?us-ascii?q?OeMK7KqV+H/PkgI+2LZIIOvjbyNeQl5/DvjX89hV8SY7Op0YEQaHCiEfRsO1?=
+ =?us-ascii?q?+Zbmb0gtcdDWcKuRIzTO/wh1KfVT5ceWq9Urk65j4lFIKmA4bDRoSxgLOfxi?=
+ =?us-ascii?q?e3BJpWZnpJClqUC3fna52EW+sQaCKVOsJhnDIFWKO6S489zxGusBH1y7x9Iu?=
+ =?us-ascii?q?XJ5CISrYjj28Rt5+3PiREy8iR5D8KD3GGRQWF0n2cIRyMo06BluEBy10mM0b?=
+ =?us-ascii?q?ZmjPxcDtFT+fxJXRkgNZLGzOx1FcryWgTfcdeNUlqmRc+mAT4pRNIr39AOe1?=
+ =?us-ascii?q?p9G8mljh3bwyWqBKUVmKKXBJMq6K3c2mP8J8BjxHba2qkhjl0mQtdROm28nK?=
+ =?us-ascii?q?J/8BLTB4HRmUWDi6mqbbgc3DLK9Gqby2qBol1YXxNuXqXbRn0feETWosrj5k?=
+ =?us-ascii?q?/YTL+hF64nMg1fxs6GMKdKbcfpjVpeTvf5JNvee36xm3u3BRuQyLODdpHle2?=
+ =?us-ascii?q?sG0SXGC0gFkwYT8miaNQQkHSiuvTGWMDs7DVvlZ0TE9+RipnK/UkIuiQaQYA?=
+ =?us-ascii?q?kp1LO5/hMerfqRV/0S2q4JomEmsTowVFii98nKEd6NoUxtcfZye9Q4tXlO32?=
+ =?us-ascii?q?PQsURTJJGsIrpjjV1WJwp+tU3GzBZmDIhc18In+iB5hDFuIL6VhQsSPwiT2o?=
+ =?us-ascii?q?r9b+Xa?=
+X-IronPort-Anti-Spam-Filtered: true
+X-IronPort-Anti-Spam-Result: =?us-ascii?q?A2AEBQDUqy1f/xCltltgHgEBCxIMR4R?=
+ =?us-ascii?q?cVF+NNZIskXoLAQEBAQEBAQEBJw0BAgQBAYRMgjklOBMCAwEBAQMCBQEBBgE?=
+ =?us-ascii?q?BAQEBAQUEAYYPRYI3IoNRASMjgT8SgyYBglcptnCEEIUigUCBOIgfhQqBQT+?=
+ =?us-ascii?q?BEYNOijQEjz0jpkKCbIMLhFl9kSYPIaANkiuhQ4F6TSAYgyQJRxkNnGhCMDc?=
+ =?us-ascii?q?CBggBAQMJVwE9AZANAQE?=
+X-IPAS-Result: =?us-ascii?q?A2AEBQDUqy1f/xCltltgHgEBCxIMR4RcVF+NNZIskXoLA?=
+ =?us-ascii?q?QEBAQEBAQEBJw0BAgQBAYRMgjklOBMCAwEBAQMCBQEBBgEBAQEBAQUEAYYPR?=
+ =?us-ascii?q?YI3IoNRASMjgT8SgyYBglcptnCEEIUigUCBOIgfhQqBQT+BEYNOijQEjz0jp?=
+ =?us-ascii?q?kKCbIMLhFl9kSYPIaANkiuhQ4F6TSAYgyQJRxkNnGhCMDcCBggBAQMJVwE9A?=
+ =?us-ascii?q?ZANAQE?=
+Received: from 16.165-182-91.adsl-dyn.isp.belgacom.be (HELO localhost.localdomain) ([91.182.165.16])
+  by relay.skynet.be with ESMTP; 07 Aug 2020 21:31:24 +0200
+From:   Fabian Frederick <fabf@skynet.be>
+To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Fabian Frederick <fabf@skynet.be>
+Subject: [PATCH 1/3 linux-next] selftests: netfilter: add checktool function
+Date:   Fri,  7 Aug 2020 21:31:11 +0200
+Message-Id: <20200807193111.12625-1-fabf@skynet.be>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-In-Reply-To: <f21589f1262640b09ca27ed20f8e6790@AcuMS.aculab.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+avoid repeating the same test for different toolcheck
 
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+---
+ .../selftests/netfilter/nft_flowtable.sh      | 33 +++++++------------
+ 1 file changed, 11 insertions(+), 22 deletions(-)
 
-On 8/7/20 2:18 AM, David Laight wrote:
-> From: Eric Dumazet
->> Sent: 06 August 2020 23:21
->>
->> On 7/22/20 11:09 PM, Christoph Hellwig wrote:
->>> Rework the remaining setsockopt code to pass a sockptr_t instead of a
->>> plain user pointer.  This removes the last remaining set_fs(KERNEL_DS)
->>> outside of architecture specific code.
->>>
->>> Signed-off-by: Christoph Hellwig <hch@lst.de>
->>> Acked-by: Stefan Schmidt <stefan@datenfreihafen.org> [ieee802154]
->>> ---
->>
->>
->> ...
->>
->>> diff --git a/net/ipv6/raw.c b/net/ipv6/raw.c
->>> index 594e01ad670aa6..874f01cd7aec42 100644
->>> --- a/net/ipv6/raw.c
->>> +++ b/net/ipv6/raw.c
->>> @@ -972,13 +972,13 @@ static int rawv6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
->>>  }
->>>
->>
->> ...
->>
->>>  static int do_rawv6_setsockopt(struct sock *sk, int level, int optname,
->>> -			    char __user *optval, unsigned int optlen)
->>> +			       sockptr_t optval, unsigned int optlen)
->>>  {
->>>  	struct raw6_sock *rp = raw6_sk(sk);
->>>  	int val;
->>>
->>> -	if (get_user(val, (int __user *)optval))
->>> +	if (copy_from_sockptr(&val, optval, sizeof(val)))
->>>  		return -EFAULT;
->>>
->>
->> converting get_user(...)   to  copy_from_sockptr(...) really assumed the optlen
->> has been validated to be >= sizeof(int) earlier.
->>
->> Which is not always the case, for example here.
->>
->> User application can fool us passing optlen=0, and a user pointer of exactly TASK_SIZE-1
-> 
-> Won't the user pointer force copy_from_sockptr() to call
-> copy_from_user() which will then do access_ok() on the entire
-> range and so return -EFAULT.
-> 
-> The only problems arise if the kernel code adds an offset to the
-> user address.
-> And the later patch added an offset to the copy functions.
-
-I dunno, I definitely got the following syzbot crash 
-
-No repro found by syzbot yet, but I suspect a 32bit binary program
-did :
-
-setsockopt(fd, 0x29, 0x24, 0xffffffffffffffff, 0x0)
-
-
-BUG: KASAN: wild-memory-access in memcpy include/linux/string.h:406 [inline]
-BUG: KASAN: wild-memory-access in copy_from_sockptr_offset include/linux/sockptr.h:71 [inline]
-BUG: KASAN: wild-memory-access in copy_from_sockptr include/linux/sockptr.h:77 [inline]
-BUG: KASAN: wild-memory-access in do_rawv6_setsockopt net/ipv6/raw.c:1023 [inline]
-BUG: KASAN: wild-memory-access in rawv6_setsockopt+0x1a1/0x6f0 net/ipv6/raw.c:1084
-Read of size 4 at addr 00000000ffffffff by task syz-executor.0/28251
-
-CPU: 3 PID: 28251 Comm: syz-executor.0 Not tainted 5.8.0-syzkaller #0
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.12.0-59-gc9ba5276e321-prebuilt.qemu.org 04/01/2014
-Call Trace:
- __dump_stack lib/dump_stack.c:77 [inline]
- dump_stack+0x18f/0x20d lib/dump_stack.c:118
- __kasan_report mm/kasan/report.c:517 [inline]
- kasan_report.cold+0x5/0x37 mm/kasan/report.c:530
- check_memory_region_inline mm/kasan/generic.c:186 [inline]
- check_memory_region+0x13d/0x180 mm/kasan/generic.c:192
- memcpy+0x20/0x60 mm/kasan/common.c:105
- memcpy include/linux/string.h:406 [inline]
- copy_from_sockptr_offset include/linux/sockptr.h:71 [inline]
- copy_from_sockptr include/linux/sockptr.h:77 [inline]
- do_rawv6_setsockopt net/ipv6/raw.c:1023 [inline]
- rawv6_setsockopt+0x1a1/0x6f0 net/ipv6/raw.c:1084
- __sys_setsockopt+0x2ad/0x6d0 net/socket.c:2138
- __do_sys_setsockopt net/socket.c:2149 [inline]
- __se_sys_setsockopt net/socket.c:2146 [inline]
- __ia32_sys_setsockopt+0xb9/0x150 net/socket.c:2146
- do_syscall_32_irqs_on arch/x86/entry/common.c:84 [inline]
- __do_fast_syscall_32+0x57/0x80 arch/x86/entry/common.c:126
- do_fast_syscall_32+0x2f/0x70 arch/x86/entry/common.c:149
- entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
-RIP: 0023:0xf7f22569
-Code: c4 01 10 03 03 74 c0 01 10 05 03 74 b8 01 10 06 03 74 b4 01 10 07 03 74 b0 01 10 08 03 74 d8 01 00 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 eb 0d 90 90 90 90 90 90 90 90 90 90 90 90
-RSP: 002b:00000000f551c0bc EFLAGS: 00000296 ORIG_RAX: 000000000000016e
-RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000000029
-RDX: 0000000000000024 RSI: 00000000ffffffff RDI: 0000000000000000
-RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
-R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
-==================================================================
+diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
+index d3e0809ab3681..68a183753c6c3 100755
+--- a/tools/testing/selftests/netfilter/nft_flowtable.sh
++++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
+@@ -21,29 +21,18 @@ ns2out=""
+ 
+ log_netns=$(sysctl -n net.netfilter.nf_log_all_netns)
+ 
+-nft --version > /dev/null 2>&1
+-if [ $? -ne 0 ];then
+-	echo "SKIP: Could not run test without nft tool"
+-	exit $ksft_skip
+-fi
+-
+-ip -Version > /dev/null 2>&1
+-if [ $? -ne 0 ];then
+-	echo "SKIP: Could not run test without ip tool"
+-	exit $ksft_skip
+-fi
+-
+-which nc > /dev/null 2>&1
+-if [ $? -ne 0 ];then
+-	echo "SKIP: Could not run test without nc (netcat)"
+-	exit $ksft_skip
+-fi
++checktool (){
++	$1 > /dev/null 2>&1
++	if [ $? -ne 0 ];then
++		echo "SKIP: Could not $2"
++		exit $ksft_skip
++	fi
++}
+ 
+-ip netns add nsr1
+-if [ $? -ne 0 ];then
+-	echo "SKIP: Could not create net namespace"
+-	exit $ksft_skip
+-fi
++checktool "nft --version" "run test without nft tool"
++checktool "ip -Version" "run test without ip tool"
++checktool "which nc" "run test without nc (netcat)"
++checktool "ip netns add nsr1" "create net namespace"
+ 
+ ip netns add ns1
+ ip netns add ns2
+-- 
+2.27.0
 
