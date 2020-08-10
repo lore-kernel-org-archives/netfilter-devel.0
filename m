@@ -2,38 +2,82 @@ Return-Path: <SRS0=PHp+=BU=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA68AC433E0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Aug 2020 11:52:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A67AAC433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Aug 2020 22:09:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D0C6C206C3
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Aug 2020 11:52:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7F9F7206E9
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Aug 2020 22:09:10 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="elE8gXGF"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726518AbgHJLwe (ORCPT
+        id S1726705AbgHJWJG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Aug 2020 07:52:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59534 "EHLO
+        Mon, 10 Aug 2020 18:09:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41424 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726143AbgHJLwd (ORCPT
+        with ESMTP id S1726615AbgHJWJF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Aug 2020 07:52:33 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3A2FC061756
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Aug 2020 04:52:33 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1k56Ln-00021Q-UH; Mon, 10 Aug 2020 13:52:23 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: avoid ipv6 -> nf_defrag_ipv6 module dependency
-Date:   Mon, 10 Aug 2020 13:52:15 +0200
-Message-Id: <20200810115215.369-1-fw@strlen.de>
-X-Mailer: git-send-email 2.26.2
+        Mon, 10 Aug 2020 18:09:05 -0400
+Received: from mail-qk1-x741.google.com (mail-qk1-x741.google.com [IPv6:2607:f8b0:4864:20::741])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72359C06174A;
+        Mon, 10 Aug 2020 15:09:05 -0700 (PDT)
+Received: by mail-qk1-x741.google.com with SMTP id n129so4275028qkd.6;
+        Mon, 10 Aug 2020 15:09:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=3ZbMbahrrNkhzXHol1Zr0zVJbIcJ6vrUXkY246I6Gww=;
+        b=elE8gXGFCgxGb+WPV22Nwena1f+CuNWdGDIMre+3IYPlJ/dgFxnsv/Nif8jf/9So9g
+         Jfq6u/NSq38DCrgFyDUCnVrtGGmwME440my9SPaB2eKBvqacSCkWOroSb302H/A+6/NC
+         aFFqf3hnQoBHQs4bfAIRRTwhGKzSgh+tqHkZiR1s4ZRMDUflziWLspPza1JmWtc5x5BH
+         hu4Tzumv1CTdCpFez/JNDr9TK5nh5chZTSr0bzMdsoAMlEO6Hm717BFu50YmP2Huc7uT
+         O71KhjXh8z3c2xG1Y5UMQPdQCh0Jh59+6yuOQHl1iV7kGHoV8J8a70s1YKxmLmGKTxYf
+         aS6A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=3ZbMbahrrNkhzXHol1Zr0zVJbIcJ6vrUXkY246I6Gww=;
+        b=OcvAAcLl0mlJOdi1rKzwVqmE7GxWv8GsQ/Q+Qkx8NWsCOB7Y1Jh3JhQ39jHc4vok+H
+         2llg+c07Q8zbOrQX7HmAe1vVZbtY85+SVu3mUyMnfqTBHw4fZkCKd8CN6kyPMpIgu7oa
+         t5iAJOISHQEE+ibJM6guczLk7dKawTaQC81uCNZeBUWt0AeMwS8IrIdlRh7OFxqbx2jn
+         nu26/Zh7BWBEkNaSBsaQySKeO1mRW6q5gqATvH+AySZYBpEQx0QdxXHCH9RaQZ72TNhp
+         klepKpiq0neJDTheQ40o3RTziTQEjcz+j+LXxcCfD0dAdzBRIhdjUi09NVacssmiG7bL
+         WsJA==
+X-Gm-Message-State: AOAM533uIH4dDj6v3KkEgI7hVWLN70PsiybUjAZ2ANU+jTFJGcyH4Ld2
+        4J1lyvLxEUgffp3kf1HwlA==
+X-Google-Smtp-Source: ABdhPJwB2LGr4Sy6Pe9wMfFj8Jm3p4RuM27hgGOAJBeSaFB5Lh3TbuSGIbsqy+oIYf6RDWfJ0KnCgg==
+X-Received: by 2002:a37:bd46:: with SMTP id n67mr29206337qkf.190.1597097343411;
+        Mon, 10 Aug 2020 15:09:03 -0700 (PDT)
+Received: from localhost.localdomain (146-115-88-66.s3894.c3-0.sbo-ubr1.sbo.ma.cable.rcncustomer.com. [146.115.88.66])
+        by smtp.gmail.com with ESMTPSA id w12sm14192544qkj.116.2020.08.10.15.09.02
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 10 Aug 2020 15:09:02 -0700 (PDT)
+From:   Peilin Ye <yepeilin.cs@gmail.com>
+To:     Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>
+Cc:     Peilin Ye <yepeilin.cs@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel-mentees@lists.linuxfoundation.org,
+        syzkaller-bugs@googlegroups.com, linux-kernel@vger.kernel.org
+Subject: [Linux-kernel-mentees] [PATCH net] ipvs: Fix uninit-value in do_ip_vs_set_ctl()
+Date:   Mon, 10 Aug 2020 18:07:03 -0400
+Message-Id: <20200810220703.796718-1-yepeilin.cs@gmail.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -41,113 +85,29 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nf_ct_frag6_gather is part of nf_defrag_ipv6.ko, not ipv6 core.
+do_ip_vs_set_ctl() is referencing uninitialized stack value when `len` is
+zero. Fix it.
 
-The current use of the netfilter ipv6 stub indirections  causes a module
-dependency between ipv6 and nf_defrag_ipv6.
-
-This prevents nf_defrag_ipv6 module from being removed because ipv6 can't
-be unloaded.
-
-Remove the indirection and always use a direct call.  This creates a
-depency from nf_conntrack_bridge to nf_defrag_ipv6 instead:
-
-modinfo nf_conntrack
-depends:        nf_conntrack,nf_defrag_ipv6,bridge
-
-.. and nf_conntrack already depends on nf_defrag_ipv6 anyway.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Reported-and-tested-by: syzbot+23b5f9e7caf61d9a3898@syzkaller.appspotmail.com
+Link: https://syzkaller.appspot.com/bug?id=46ebfb92a8a812621a001ef04d90dfa459520fe2
+Signed-off-by: Peilin Ye <yepeilin.cs@gmail.com>
 ---
- I can also re-send it when nf-next reopens later, whatever you prefer.
+ net/netfilter/ipvs/ip_vs_ctl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- include/linux/netfilter_ipv6.h             | 18 ------------------
- net/bridge/netfilter/nf_conntrack_bridge.c |  8 ++++++--
- net/ipv6/netfilter.c                       |  3 ---
- 3 files changed, 6 insertions(+), 23 deletions(-)
-
-diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index aac42c28fe62..9b67394471e1 100644
---- a/include/linux/netfilter_ipv6.h
-+++ b/include/linux/netfilter_ipv6.h
-@@ -58,7 +58,6 @@ struct nf_ipv6_ops {
- 			int (*output)(struct net *, struct sock *, struct sk_buff *));
- 	int (*reroute)(struct sk_buff *skb, const struct nf_queue_entry *entry);
- #if IS_MODULE(CONFIG_IPV6)
--	int (*br_defrag)(struct net *net, struct sk_buff *skb, u32 user);
- 	int (*br_fragment)(struct net *net, struct sock *sk,
- 			   struct sk_buff *skb,
- 			   struct nf_bridge_frag_data *data,
-@@ -117,23 +116,6 @@ static inline int nf_ip6_route(struct net *net, struct dst_entry **dst,
- 
- #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
- 
--static inline int nf_ipv6_br_defrag(struct net *net, struct sk_buff *skb,
--				    u32 user)
--{
--#if IS_MODULE(CONFIG_IPV6)
--	const struct nf_ipv6_ops *v6_ops = nf_get_ipv6_ops();
--
--	if (!v6_ops)
--		return 1;
--
--	return v6_ops->br_defrag(net, skb, user);
--#elif IS_BUILTIN(CONFIG_IPV6)
--	return nf_ct_frag6_gather(net, skb, user);
--#else
--	return 1;
--#endif
--}
--
- int br_ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
- 		    struct nf_bridge_frag_data *data,
- 		    int (*output)(struct net *, struct sock *sk,
-diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
-index 809673222382..8d033a75a766 100644
---- a/net/bridge/netfilter/nf_conntrack_bridge.c
-+++ b/net/bridge/netfilter/nf_conntrack_bridge.c
-@@ -168,6 +168,7 @@ static unsigned int nf_ct_br_defrag4(struct sk_buff *skb,
- static unsigned int nf_ct_br_defrag6(struct sk_buff *skb,
- 				     const struct nf_hook_state *state)
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 412656c34f20..c050b6a42786 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -2418,7 +2418,7 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
  {
-+#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
- 	u16 zone_id = NF_CT_DEFAULT_ZONE_ID;
- 	enum ip_conntrack_info ctinfo;
- 	struct br_input_skb_cb cb;
-@@ -180,14 +181,17 @@ static unsigned int nf_ct_br_defrag6(struct sk_buff *skb,
- 
- 	br_skb_cb_save(skb, &cb, sizeof(struct inet6_skb_parm));
- 
--	err = nf_ipv6_br_defrag(state->net, skb,
--				IP_DEFRAG_CONNTRACK_BRIDGE_IN + zone_id);
-+	err = nf_ct_frag6_gather(state->net, skb,
-+				 IP_DEFRAG_CONNTRACK_BRIDGE_IN + zone_id);
- 	/* queued */
- 	if (err == -EINPROGRESS)
- 		return NF_STOLEN;
- 
- 	br_skb_cb_restore(skb, &cb, IP6CB(skb)->frag_max_size);
- 	return err == 0 ? NF_ACCEPT : NF_DROP;
-+#else
-+	return NF_ACCEPT;
-+#endif
- }
- 
- static int nf_ct_br_ip_check(const struct sk_buff *skb)
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 409e79b84a83..6d0e942d082d 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -245,9 +245,6 @@ static const struct nf_ipv6_ops ipv6ops = {
- 	.route_input		= ip6_route_input,
- 	.fragment		= ip6_fragment,
- 	.reroute		= nf_ip6_reroute,
--#if IS_MODULE(CONFIG_IPV6) && IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
--	.br_defrag		= nf_ct_frag6_gather,
--#endif
- #if IS_MODULE(CONFIG_IPV6)
- 	.br_fragment		= br_ip6_fragment,
- #endif
+ 	struct net *net = sock_net(sk);
+ 	int ret;
+-	unsigned char arg[MAX_SET_ARGLEN];
++	unsigned char arg[MAX_SET_ARGLEN] = {};
+ 	struct ip_vs_service_user *usvc_compat;
+ 	struct ip_vs_service_user_kern usvc;
+ 	struct ip_vs_service *svc;
 -- 
-2.26.2
+2.25.1
 
