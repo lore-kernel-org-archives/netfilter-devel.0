@@ -1,113 +1,102 @@
-Return-Path: <SRS0=PHp+=BU=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=vjpg=BV=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A67AAC433DF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Aug 2020 22:09:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7A0CC433DF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Aug 2020 03:57:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7F9F7206E9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Aug 2020 22:09:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C732A2076B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Aug 2020 03:57:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="elE8gXGF"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Dy6m6mzp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726705AbgHJWJG (ORCPT
+        id S1728239AbgHKD5c (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Aug 2020 18:09:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41424 "EHLO
+        Mon, 10 Aug 2020 23:57:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38176 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726615AbgHJWJF (ORCPT
+        with ESMTP id S1728196AbgHKD5b (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Aug 2020 18:09:05 -0400
-Received: from mail-qk1-x741.google.com (mail-qk1-x741.google.com [IPv6:2607:f8b0:4864:20::741])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72359C06174A;
-        Mon, 10 Aug 2020 15:09:05 -0700 (PDT)
-Received: by mail-qk1-x741.google.com with SMTP id n129so4275028qkd.6;
-        Mon, 10 Aug 2020 15:09:05 -0700 (PDT)
+        Mon, 10 Aug 2020 23:57:31 -0400
+Received: from mail-il1-x144.google.com (mail-il1-x144.google.com [IPv6:2607:f8b0:4864:20::144])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39A22C06174A;
+        Mon, 10 Aug 2020 20:57:31 -0700 (PDT)
+Received: by mail-il1-x144.google.com with SMTP id 77so9445547ilc.5;
+        Mon, 10 Aug 2020 20:57:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=3ZbMbahrrNkhzXHol1Zr0zVJbIcJ6vrUXkY246I6Gww=;
-        b=elE8gXGFCgxGb+WPV22Nwena1f+CuNWdGDIMre+3IYPlJ/dgFxnsv/Nif8jf/9So9g
-         Jfq6u/NSq38DCrgFyDUCnVrtGGmwME440my9SPaB2eKBvqacSCkWOroSb302H/A+6/NC
-         aFFqf3hnQoBHQs4bfAIRRTwhGKzSgh+tqHkZiR1s4ZRMDUflziWLspPza1JmWtc5x5BH
-         hu4Tzumv1CTdCpFez/JNDr9TK5nh5chZTSr0bzMdsoAMlEO6Hm717BFu50YmP2Huc7uT
-         O71KhjXh8z3c2xG1Y5UMQPdQCh0Jh59+6yuOQHl1iV7kGHoV8J8a70s1YKxmLmGKTxYf
-         aS6A==
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=/Ej3O/P5forMr7lkh8Irj0X/aIJv290wNqPXSY+K8SQ=;
+        b=Dy6m6mzpsrA6AiUFbCE/bSjm0Ha27RRY29MhbJd/pIkrgoNaBTwHAWHseayvDnrnCA
+         HwxjeaxYINZHazGU3LyZTfhUmoxozHW8eUuuTVJ2bChVO3S4jc5gnpGqdixrngOjOvZb
+         pT0JrlO6rdHNLUXHOw+rGQRqzehZQ2t0HR9Ie3vLxrt+zMZ3FFs1DyT/jBuUMxkJfg6h
+         cMxGGUnbb16zLxzIVzIFBfrt08riVQ01vqyYYEiqsVUQRbTPP4a+aQTdOpE7Um4t77vW
+         SGhixNnowuHWYLNeYCXspG6tRjf8su5CFtSR4DePU5Ta+mGtOJLAs6rjesqLj0qHV7qj
+         PU3w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=3ZbMbahrrNkhzXHol1Zr0zVJbIcJ6vrUXkY246I6Gww=;
-        b=OcvAAcLl0mlJOdi1rKzwVqmE7GxWv8GsQ/Q+Qkx8NWsCOB7Y1Jh3JhQ39jHc4vok+H
-         2llg+c07Q8zbOrQX7HmAe1vVZbtY85+SVu3mUyMnfqTBHw4fZkCKd8CN6kyPMpIgu7oa
-         t5iAJOISHQEE+ibJM6guczLk7dKawTaQC81uCNZeBUWt0AeMwS8IrIdlRh7OFxqbx2jn
-         nu26/Zh7BWBEkNaSBsaQySKeO1mRW6q5gqATvH+AySZYBpEQx0QdxXHCH9RaQZ72TNhp
-         klepKpiq0neJDTheQ40o3RTziTQEjcz+j+LXxcCfD0dAdzBRIhdjUi09NVacssmiG7bL
-         WsJA==
-X-Gm-Message-State: AOAM533uIH4dDj6v3KkEgI7hVWLN70PsiybUjAZ2ANU+jTFJGcyH4Ld2
-        4J1lyvLxEUgffp3kf1HwlA==
-X-Google-Smtp-Source: ABdhPJwB2LGr4Sy6Pe9wMfFj8Jm3p4RuM27hgGOAJBeSaFB5Lh3TbuSGIbsqy+oIYf6RDWfJ0KnCgg==
-X-Received: by 2002:a37:bd46:: with SMTP id n67mr29206337qkf.190.1597097343411;
-        Mon, 10 Aug 2020 15:09:03 -0700 (PDT)
-Received: from localhost.localdomain (146-115-88-66.s3894.c3-0.sbo-ubr1.sbo.ma.cable.rcncustomer.com. [146.115.88.66])
-        by smtp.gmail.com with ESMTPSA id w12sm14192544qkj.116.2020.08.10.15.09.02
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 10 Aug 2020 15:09:02 -0700 (PDT)
-From:   Peilin Ye <yepeilin.cs@gmail.com>
-To:     Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>
-Cc:     Peilin Ye <yepeilin.cs@gmail.com>,
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=/Ej3O/P5forMr7lkh8Irj0X/aIJv290wNqPXSY+K8SQ=;
+        b=T6WOTko7kXd2VZjt6DMoCG1kWM1ouXj1agzkqwbYfTHj/FPvG+a++w+38KVMsFyRiT
+         tAw/v4nKiA5i0SqLNvaD053ffwN4YlyyofJYBFmYYHzzUpTnRU31EV7BavzKauzlSM+6
+         JlKZ+ktVGYOFpUIrnrc1Wg/xqJQ/CplWCxrAITweQiQYWiu8jZ3w4OunjEgnzeCtscIw
+         9+6CJxVTMopMOzEyovkSCl7D7TRhsty4FWyAhdO3htpTauHpSdS2xNJYG0WgBqFaGJ4X
+         Tz0bvSvQTOVlXhemsVXA1hsyKyG2NmTfplMn6AWrNLsgt/CNfZcu0fThXQ051HmMYkJj
+         QtVQ==
+X-Gm-Message-State: AOAM533Cxt3ntDeLP2DK2LoZ8GEqoA0/4xtAUNJ/NSbBxl7H+yDurM2Z
+        bDf9kI2vxKMWl1sPvsR1TKnRX0KEc+2dcZ8AHtY=
+X-Google-Smtp-Source: ABdhPJxJs7CjX3vzQq4fwm46ZTzG5HJ9oYGcb02FW6eIoE2VtGxgiQ6jHAgG+NKiJD5eiy2VkBGZYzjktmLVzpEwS1A=
+X-Received: by 2002:a92:bad5:: with SMTP id t82mr3521374ill.22.1597118250579;
+ Mon, 10 Aug 2020 20:57:30 -0700 (PDT)
+MIME-Version: 1.0
+References: <20200810220703.796718-1-yepeilin.cs@gmail.com>
+In-Reply-To: <20200810220703.796718-1-yepeilin.cs@gmail.com>
+From:   Cong Wang <xiyou.wangcong@gmail.com>
+Date:   Mon, 10 Aug 2020 20:57:19 -0700
+Message-ID: <CAM_iQpWsQubVJ-AYaLHujHwz68+nsHBcbgbf8XPMEPD=Vu+zaA@mail.gmail.com>
+Subject: Re: [Linux-kernel-mentees] [PATCH net] ipvs: Fix uninit-value in do_ip_vs_set_ctl()
+To:     Peilin Ye <yepeilin.cs@gmail.com>
+Cc:     Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        Julian Anastasov <ja@ssi.bg>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        lvs-devel@vger.kernel.org,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        coreteam@netfilter.org,
         linux-kernel-mentees@lists.linuxfoundation.org,
-        syzkaller-bugs@googlegroups.com, linux-kernel@vger.kernel.org
-Subject: [Linux-kernel-mentees] [PATCH net] ipvs: Fix uninit-value in do_ip_vs_set_ctl()
-Date:   Mon, 10 Aug 2020 18:07:03 -0400
-Message-Id: <20200810220703.796718-1-yepeilin.cs@gmail.com>
-X-Mailer: git-send-email 2.25.1
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        syzkaller-bugs <syzkaller-bugs@googlegroups.com>,
+        LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-do_ip_vs_set_ctl() is referencing uninitialized stack value when `len` is
-zero. Fix it.
+On Mon, Aug 10, 2020 at 3:10 PM Peilin Ye <yepeilin.cs@gmail.com> wrote:
+>
+> do_ip_vs_set_ctl() is referencing uninitialized stack value when `len` is
+> zero. Fix it.
 
-Reported-and-tested-by: syzbot+23b5f9e7caf61d9a3898@syzkaller.appspotmail.com
-Link: https://syzkaller.appspot.com/bug?id=46ebfb92a8a812621a001ef04d90dfa459520fe2
-Signed-off-by: Peilin Ye <yepeilin.cs@gmail.com>
----
- net/netfilter/ipvs/ip_vs_ctl.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Which exact 'cmd' is it here?
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 412656c34f20..c050b6a42786 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -2418,7 +2418,7 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
- {
- 	struct net *net = sock_net(sk);
- 	int ret;
--	unsigned char arg[MAX_SET_ARGLEN];
-+	unsigned char arg[MAX_SET_ARGLEN] = {};
- 	struct ip_vs_service_user *usvc_compat;
- 	struct ip_vs_service_user_kern usvc;
- 	struct ip_vs_service *svc;
--- 
-2.25.1
+I _guess_ it is one of those uninitialized in set_arglen[], which is 0.
+But if that is the case, should it be initialized to
+sizeof(struct ip_vs_service_user) instead because ip_vs_copy_usvc_compat()
+is called anyway. Or, maybe we should just ban len==0 case.
 
+In either case, it does not look like you fix it correctly.
+
+Thanks.
