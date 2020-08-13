@@ -6,55 +6,55 @@ X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 591C1C433DF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Aug 2020 02:24:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62DF7C433E0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Aug 2020 02:24:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3ECD320829
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Aug 2020 02:24:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 436F820829
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Aug 2020 02:24:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726546AbgHMCYF (ORCPT
+        id S1726605AbgHMCYS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Aug 2020 22:24:05 -0400
-Received: from correo.us.es ([193.147.175.20]:34202 "EHLO mail.us.es"
+        Wed, 12 Aug 2020 22:24:18 -0400
+Received: from correo.us.es ([193.147.175.20]:34342 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726486AbgHMCYF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Aug 2020 22:24:05 -0400
+        id S1726587AbgHMCYS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 12 Aug 2020 22:24:18 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 38D57DA38A
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2020 04:24:04 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 24157DA38D
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2020 04:24:17 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2CAFFDA796
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2020 04:24:04 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 17A02DA792
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2020 04:24:17 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 20EA3DA78F; Thu, 13 Aug 2020 04:24:04 +0200 (CEST)
+        id 0D1A7DA78D; Thu, 13 Aug 2020 04:24:17 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 12F83DA704;
-        Thu, 13 Aug 2020 04:24:02 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0259DDA78B;
+        Thu, 13 Aug 2020 04:24:15 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 13 Aug 2020 04:24:02 +0200 (CEST)
+ Thu, 13 Aug 2020 04:24:15 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (246.pool85-48-185.static.orange.es [85.48.185.246])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 93DB642EE38E;
-        Thu, 13 Aug 2020 04:24:01 +0200 (CEST)
-Date:   Thu, 13 Aug 2020 04:24:00 +0200
+        by entrada.int (Postfix) with ESMTPSA id 8BB0B42EE38E;
+        Thu, 13 Aug 2020 04:24:14 +0200 (CEST)
+Date:   Thu, 13 Aug 2020 04:24:12 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Fabian Frederick <fabf@skynet.be>
 Cc:     kadlec@netfilter.org, fw@strlen.de,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: Re: [PATCH 1/3 linux-next] selftests: netfilter: add checktool
- function
-Message-ID: <20200813022400.GA3806@salvia>
-References: <20200807193111.12625-1-fabf@skynet.be>
+Subject: Re: [PATCH 2/3 linux-next] selftests: netfilter: add MTU arguments
+ to flowtables
+Message-ID: <20200813022412.GB3806@salvia>
+References: <20200807193150.12684-1-fabf@skynet.be>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200807193111.12625-1-fabf@skynet.be>
+In-Reply-To: <20200807193150.12684-1-fabf@skynet.be>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -62,7 +62,9 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Aug 07, 2020 at 09:31:11PM +0200, Fabian Frederick wrote:
-> avoid repeating the same test for different toolcheck
+On Fri, Aug 07, 2020 at 09:31:50PM +0200, Fabian Frederick wrote:
+> Add some documentation, default values defined in original
+> script and Originator/Link/Responder arguments
+> using getopts like in tools/power/cpupower/bench/cpufreq-bench_plot.sh
 
-Applied to nf.git, thanks.
+Also applied, thanks.
