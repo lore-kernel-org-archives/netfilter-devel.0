@@ -6,54 +6,55 @@ X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69245C433DF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Aug 2020 02:17:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 591C1C433DF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Aug 2020 02:24:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4FCB9206B2
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Aug 2020 02:17:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3ECD320829
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Aug 2020 02:24:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726578AbgHMCRn (ORCPT
+        id S1726546AbgHMCYF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Aug 2020 22:17:43 -0400
-Received: from correo.us.es ([193.147.175.20]:33616 "EHLO mail.us.es"
+        Wed, 12 Aug 2020 22:24:05 -0400
+Received: from correo.us.es ([193.147.175.20]:34202 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726350AbgHMCRm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Aug 2020 22:17:42 -0400
+        id S1726486AbgHMCYF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 12 Aug 2020 22:24:05 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EDC49DA3C6
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2020 04:17:41 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 38D57DA38A
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2020 04:24:04 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E0990DA789
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2020 04:17:41 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2CAFFDA796
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2020 04:24:04 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D650DDA72F; Thu, 13 Aug 2020 04:17:41 +0200 (CEST)
+        id 20EA3DA78F; Thu, 13 Aug 2020 04:24:04 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D01B3DA722;
-        Thu, 13 Aug 2020 04:17:39 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 12F83DA704;
+        Thu, 13 Aug 2020 04:24:02 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 13 Aug 2020 04:17:39 +0200 (CEST)
+ Thu, 13 Aug 2020 04:24:02 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (246.pool85-48-185.static.orange.es [85.48.185.246])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 6576F42EE38E;
-        Thu, 13 Aug 2020 04:17:39 +0200 (CEST)
-Date:   Thu, 13 Aug 2020 04:17:36 +0200
+        by entrada.int (Postfix) with ESMTPSA id 93DB642EE38E;
+        Thu, 13 Aug 2020 04:24:01 +0200 (CEST)
+Date:   Thu, 13 Aug 2020 04:24:00 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, syzkaller-bugs@googlegroups.com,
-        syzbot+c99868fde67014f7e9f5@syzkaller.appspotmail.com
-Subject: Re: [PATCH nf] netfilter: free chain context when BINDING flag is
- missing
-Message-ID: <20200813021736.GA3650@salvia>
-References: <20200811173909.11246-1-fw@strlen.de>
+To:     Fabian Frederick <fabf@skynet.be>
+Cc:     kadlec@netfilter.org, fw@strlen.de,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH 1/3 linux-next] selftests: netfilter: add checktool
+ function
+Message-ID: <20200813022400.GA3806@salvia>
+References: <20200807193111.12625-1-fabf@skynet.be>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200811173909.11246-1-fw@strlen.de>
+In-Reply-To: <20200807193111.12625-1-fabf@skynet.be>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -61,8 +62,7 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Aug 11, 2020 at 07:39:09PM +0200, Florian Westphal wrote:
-> syzbot found a memory leak in nf_tables_addchain() because the chain
-> object is not free'd correctly on error.
+On Fri, Aug 07, 2020 at 09:31:11PM +0200, Fabian Frederick wrote:
+> avoid repeating the same test for different toolcheck
 
-Applied, thanks.
+Applied to nf.git, thanks.
