@@ -6,53 +6,53 @@ X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78944C433E0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Aug 2020 02:11:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F427C433DF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Aug 2020 02:17:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F59820771
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Aug 2020 02:11:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6A2B0206B2
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Aug 2020 02:17:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726591AbgHMCLe (ORCPT
+        id S1726526AbgHMCRM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Aug 2020 22:11:34 -0400
-Received: from correo.us.es ([193.147.175.20]:33104 "EHLO mail.us.es"
+        Wed, 12 Aug 2020 22:17:12 -0400
+Received: from correo.us.es ([193.147.175.20]:33542 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726167AbgHMCLd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Aug 2020 22:11:33 -0400
+        id S1726350AbgHMCRM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 12 Aug 2020 22:17:12 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0076CDA3C3
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2020 04:11:33 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 2C5E2DA3C3
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2020 04:17:11 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E6692DA789
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2020 04:11:32 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1EFCADA704
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2020 04:17:11 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D9909DA73D; Thu, 13 Aug 2020 04:11:32 +0200 (CEST)
+        id 14AF7DA730; Thu, 13 Aug 2020 04:17:11 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DE139DA722;
-        Thu, 13 Aug 2020 04:11:30 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F067FDA704;
+        Thu, 13 Aug 2020 04:17:08 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 13 Aug 2020 04:11:30 +0200 (CEST)
+ Thu, 13 Aug 2020 04:17:08 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (246.pool85-48-185.static.orange.es [85.48.185.246])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 6A92542EE38E;
-        Thu, 13 Aug 2020 04:11:30 +0200 (CEST)
-Date:   Thu, 13 Aug 2020 04:11:27 +0200
+        by entrada.int (Postfix) with ESMTPSA id 88DEC42EE38E;
+        Thu, 13 Aug 2020 04:17:08 +0200 (CEST)
+Date:   Thu, 13 Aug 2020 04:17:05 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     "Jose M. Guisado Gomez" <guigom@riseup.net>
+To:     Florian Westphal <fw@strlen.de>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] src: add comment support for set declarations
-Message-ID: <20200813021127.GB3336@salvia>
-References: <20200811142719.328237-1-guigom@riseup.net>
- <20200811142719.328237-2-guigom@riseup.net>
+Subject: Re: [PATCH nf] netfilter: avoid ipv6 -> nf_defrag_ipv6 module
+ dependency
+Message-ID: <20200813021705.GA3601@salvia>
+References: <20200810115215.369-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200811142719.328237-2-guigom@riseup.net>
+In-Reply-To: <20200810115215.369-1-fw@strlen.de>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -60,7 +60,21 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Aug 11, 2020 at 04:27:20PM +0200, Jose M. Guisado Gomez wrote:
-> Allow users to add a comment when declaring a named set.
+On Mon, Aug 10, 2020 at 01:52:15PM +0200, Florian Westphal wrote:
+> nf_ct_frag6_gather is part of nf_defrag_ipv6.ko, not ipv6 core.
+> 
+> The current use of the netfilter ipv6 stub indirections  causes a module
+> dependency between ipv6 and nf_defrag_ipv6.
+> 
+> This prevents nf_defrag_ipv6 module from being removed because ipv6 can't
+> be unloaded.
+> 
+> Remove the indirection and always use a direct call.  This creates a
+> depency from nf_conntrack_bridge to nf_defrag_ipv6 instead:
+> 
+> modinfo nf_conntrack
+> depends:        nf_conntrack,nf_defrag_ipv6,bridge
+> 
+> .. and nf_conntrack already depends on nf_defrag_ipv6 anyway.
 
-Applied, thanks.
+Applied to nf.git, thanks.
