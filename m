@@ -1,110 +1,101 @@
-Return-Path: <SRS0=KBuM=BW=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=kGcq=BX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A815EC433E0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Aug 2020 08:48:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1272FC433E1
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Aug 2020 01:28:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 87B7B2076B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Aug 2020 08:48:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EA46420675
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Aug 2020 01:28:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726565AbgHLIso (ORCPT
+        id S1726591AbgHMB2o (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Aug 2020 04:48:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50556 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726255AbgHLIso (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Aug 2020 04:48:44 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB2C7C06174A
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Aug 2020 01:48:43 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1k5mR4-0001I9-KO; Wed, 12 Aug 2020 10:48:38 +0200
-Date:   Wed, 12 Aug 2020 10:48:38 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Netfilter Development Mailinglist 
-        <netfilter-devel@vger.kernel.org>, Ioannis Ilkos <ilkos@google.com>
-Subject: Re: iptables memory leak
-Message-ID: <20200812084838.GE23632@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>,
+        Wed, 12 Aug 2020 21:28:44 -0400
+Received: from correo.us.es ([193.147.175.20]:57334 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726526AbgHMB2n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 12 Aug 2020 21:28:43 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 4A7DDDA7AE
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2020 03:28:41 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3B72DDA78F
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2020 03:28:41 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 29F3EDA78A; Thu, 13 Aug 2020 03:28:41 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9C6DEDA704;
+        Thu, 13 Aug 2020 03:28:38 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 13 Aug 2020 03:28:38 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (246.pool85-48-185.static.orange.es [85.48.185.246])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 111A542EE38E;
+        Thu, 13 Aug 2020 03:28:37 +0200 (CEST)
+Date:   Thu, 13 Aug 2020 03:28:35 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Simon Horman <horms@verge.net.au>
+Cc:     Julian Anastasov <ja@ssi.bg>, Peilin Ye <yepeilin.cs@gmail.com>,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Cong Wang <xiyou.wangcong@gmail.com>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
-        Netfilter Development Mailinglist <netfilter-devel@vger.kernel.org>,
-        Ioannis Ilkos <ilkos@google.com>
-References: <CAHo-Oowt08J-zcLPgXkpiUd9x57qHJ7nnE3Ko9uiApFMZ254uA@mail.gmail.com>
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel-mentees@lists.linuxfoundation.org,
+        syzkaller-bugs@googlegroups.com, linux-kernel@vger.kernel.org
+Subject: Re: [Linux-kernel-mentees] [PATCH net-next v2] ipvs: Fix
+ uninit-value in do_ip_vs_set_ctl()
+Message-ID: <20200813012835.GA1851@salvia>
+References: <20200810220703.796718-1-yepeilin.cs@gmail.com>
+ <20200811074640.841693-1-yepeilin.cs@gmail.com>
+ <alpine.LFD.2.23.451.2008111324570.7428@ja.home.ssi.bg>
+ <20200811125956.GA31293@vergenet.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAHo-Oowt08J-zcLPgXkpiUd9x57qHJ7nnE3Ko9uiApFMZ254uA@mail.gmail.com>
+In-Reply-To: <20200811125956.GA31293@vergenet.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Maciej,
-
-On Tue, Aug 11, 2020 at 12:07:12PM -0700, Maciej Żenczykowski wrote:
-> We've gotten reports of a persistent memory leak in long running
-> ip{,6}tables-restore processes on Android R (where we merged in a
-> newer iptables release).
+On Tue, Aug 11, 2020 at 02:59:59PM +0200, Simon Horman wrote:
+> On Tue, Aug 11, 2020 at 01:29:04PM +0300, Julian Anastasov wrote:
+> > 
+> > 	Hello,
+> > 
+> > On Tue, 11 Aug 2020, Peilin Ye wrote:
+> > 
+> > > do_ip_vs_set_ctl() is referencing uninitialized stack value when `len` is
+> > > zero. Fix it.
+> > > 
+> > > Reported-by: syzbot+23b5f9e7caf61d9a3898@syzkaller.appspotmail.com
+> > > Link: https://syzkaller.appspot.com/bug?id=46ebfb92a8a812621a001ef04d90dfa459520fe2
+> > > Suggested-by: Julian Anastasov <ja@ssi.bg>
+> > > Signed-off-by: Peilin Ye <yepeilin.cs@gmail.com>
+> > 
+> > 	Looks good to me, thanks!
+> > 
+> > Acked-by: Julian Anastasov <ja@ssi.bg>
 > 
-> Memory usage has been seen to hit 100MB each.
+> Pablo, could you consider this for nf-next or should we repost when
+> net-next re-opens?
 
-Did you test current code? I fixed quite a bunch of memleaks recently.
-Did you capture iptables-restore input so we could build a reproducer?
-
-> As a reminder, android runs iptables-restore/ip6tables-restore as a
-> long running child process of netd (to eliminate process startup
-> overhead, which is not insignificant) and communicates to it over a
-> pipe.  We don't use 'nft' nor 'ebtables'.
-> 
-> To quote/paraphrase a coworker: "I got a heap profile while playing
-> around with the networking config (connect & disconnect from wifi,
-> change hotspot params etc) which repros a leak. It looks like
-> xtables_find_target can malloc, but we don't free the results."
-> 
-> We believe (unconfirmed) it's likely due to this commit:
->   commit 148131f20421046fea028e638581e938ec985783[log] [tgz]
->   author Phil Sutter <phil@nwl.cc>Mon Feb 04 21:52:53 2019 +0100
->   committer Florian Westphal <fw@strlen.de>Tue Feb 05 16:09:41 2019 +0100
->   xtables: Fix for false-positive rule matching
-> 
-> Is this known? Fixed?  I don't really understand what the commit is
-> trying to accomplish/fix.  Could we just revert that commit (or the
-> libxtables/xtables.c portion there of)?  Or is it perhaps obvious
-> where the free should be happening?
-
-Not explicitly, but maybe the following commits are worth a try:
-
-432a5ecfa7890bd3495bb1ab5e34c2258090133f
-b199aca80da5741add50cce244492cc005230b66
-
-Not sure if they apply to your code-base, though.
-
-> (and is there a similar problem with matches? the target and match
-> code seem equivalent wrt. to this clone behaviour, maybe there's a
-> similar issue)
-
-Not to my knowledge. FWIW, I enhanced iptables/tests/shell for leak
-checking, all iptables command calls exiting 0 properly free all memory
-now. Of course this is not guaranteed to catch problems in
-iptables-restore not exiting but reiterating over the same tables again
-and again.
-
-BTW: The commit you refer to fixes a problem where iptables would
-incorrectly match a rule as equal although it's not. So without it, if
-you have two rules which only differ in target payload (e.g., value of
-MARK target), a rule delete command will always drop the first one found
-no matter the target payload you passed. If you only delete by rule
-number, you shouldn't need it.
-
-Cheers, Phil
+No worries, it will sit in netfilter's patchwork until net-next
+reopens.
