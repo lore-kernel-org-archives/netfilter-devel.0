@@ -4,128 +4,218 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 638C6C433DF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Aug 2020 18:56:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68141C433DF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Aug 2020 19:22:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 46C3020771
-	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Aug 2020 18:56:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 466042078D
+	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Aug 2020 19:22:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727773AbgHNS4L (ORCPT
+        id S1728132AbgHNTWA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 14 Aug 2020 14:56:11 -0400
-Received: from mailrelay112.isp.belgacom.be ([195.238.20.139]:13761 "EHLO
-        mailrelay112.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726285AbgHNS4L (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 14 Aug 2020 14:56:11 -0400
-IronPort-SDR: 9TuJwu26yOeK04zBZN2TX7Uvmgr2RDvJZfpHIzdm4x3qIonySFcZfyokTKJHAzt0m2Xyej8aRH
- psFGO0CB6UHpfPZj/HD6pSN0fIOe/xd4MgqHyYggqEeU2nHDZJSHbcdtYHjMA2wnUlsUfJEir5
- 1+EdlJQWg5HJUdYMiL7id9uK43N4D3seenVHRjsBXM8CiVYP2XXRMaOkLYjBRfgFeZ4lTWnQVc
- wrW5l5IhoEys3fzsW7L4dO1lXXV1vI7KKUMCrQEyJUgMljMXXgiFYHonRSV/VU+PgkRlfO/4SS
- xR8=
-X-Belgacom-Dynamic: yes
-IronPort-PHdr: =?us-ascii?q?9a23=3AiEK63BKoRDme/GWajNmcpTZWNBhigK39O0sv0r?=
- =?us-ascii?q?FitYgXK/r4rarrMEGX3/hxlliBBdydt6sazbuJ+Pm6AiQp2tWoiDg6aptCVh?=
- =?us-ascii?q?sI2409vjcLJ4q7M3D9N+PgdCcgHc5PBxdP9nC/NlVJSo6lPwWB6nK94iQPFR?=
- =?us-ascii?q?rhKAF7Ovr6GpLIj8Swyuu+54Dfbx9HiTagYL5+NhG7oAfeusULn4dvJLs6xw?=
- =?us-ascii?q?fUrHdPZ+lY335jK0iJnxb76Mew/Zpj/DpVtvk86cNOUrj0crohQ7BAAzsoL2?=
- =?us-ascii?q?465MvwtRneVgSP/WcTUn8XkhVTHQfI6gzxU4rrvSv7sup93zSaPdHzQLspVz?=
- =?us-ascii?q?mu87tnRRn1gyoBKjU38nzYitZogaxbvhyvuhJxzY3Tbo6aO/RzZb/RcNAASG?=
- =?us-ascii?q?ZdRMtdSzBND4WhZIUPFeoBOuNYopH9qVQUthS+BBOjBOXywTFInH/5w7A13P?=
- =?us-ascii?q?o7EQHHwAMgHM8FvXParNrvL6gSX/u4zLLLzTTDafNZxyv95JLTfR8/uPyBW6?=
- =?us-ascii?q?97fsXNx0c1DQzFkkmQppL/PzOTzukDvWuW4u5gW++ui2MrtQ98rDiyy8swl4?=
- =?us-ascii?q?XFmoMYxF/L+yhkzos4O8C1RU55bNO6H5Vcqy+UOYRyT80iQ29kpiI3x7sbsp?=
- =?us-ascii?q?C4ZCgH0JAqywPFZ/CacIWE/AjvWPuQLDp4nn5pZbOyihCv+ka60OL8TNO70F?=
- =?us-ascii?q?NSoypAldnDq24C2gTI6siCVvt95kCh2SuT1wzL6uFLP0Q0la3DJp4lxb4/io?=
- =?us-ascii?q?AcsUDDHi/xg0X2kLWadkEj+ue08evnZqjpppiZN4BuiwH+NLwims25AesmLg?=
- =?us-ascii?q?gDR2yW9fmm2LH+/kD1Xq9GguA3n6TZqpzWOMUWqra8AwBP04Yj7xi/Dy2h0N?=
- =?us-ascii?q?QdhXQHIkhKdwmJj4XyIFHOI/D5DfGhjFSwijtk3O7JMqX7AprRNnjDjKvhfb?=
- =?us-ascii?q?Fl5k5E0gU81tRf55VPB7EHPv3zRkHxtN3cDh8lLQO02fzrCNJn1oMRQWiPGL?=
- =?us-ascii?q?OWMLvOsV+U4eIiO+qMa5UItzb5Nfcq++XjjXknll8Bc6mp3J8XaGymEfR8OU?=
- =?us-ascii?q?mZZmDsgtgZG2cQogU+VPDqiEGFUTNLaXazUbkx5ionCIK8CYfMWIatjKac0y?=
- =?us-ascii?q?ilBpdWfHxJCkiQEXf0cIWJQ/EMZzyOIs9vkzwEUaShRJE71R23qQD11aRnIf?=
- =?us-ascii?q?TQ+iADq5Lj28Z65/fJmREx6zN0FcKd3H+JT21umWMIXTA21rhloUNh0leDzb?=
- =?us-ascii?q?R4g/tAGNNP4PNJSBk1NYLCwONgDtD/QQTBccmVSFaoQ9WmBS0xQcwrw9MUZE?=
- =?us-ascii?q?Z9AdqihAjZ3yW2G78Vi6CLBJss/6LawXfxO9tyxGjY1KQ6kVkmTdVANXe8iq?=
- =?us-ascii?q?586QfTHYjJnFudl6qwcqQcxiHN/n+ZzWWSpEFYTBJwUaLdUHARfETZttr561?=
- =?us-ascii?q?jZT7+tCbUnNBVOydKYJqRRdNK6xWlBEe/qMtDZS2S8h2mxAQqF3PWLdoWuM2?=
- =?us-ascii?q?YU0CHQA2ACnhwd/HKaOBJ4AT2u5yrQExR1CUjrbkWq/eQthmm8SxoaxguLZk?=
- =?us-ascii?q?sp+aC49hMPhPefA6cd17gKkDwiujN5ABC30oSFWJK7uwN9cfAEMpsG61Bd2D?=
- =?us-ascii?q?eBug=3D=3D?=
-X-IronPort-Anti-Spam-Filtered: true
-X-IronPort-Anti-Spam-Result: =?us-ascii?q?A2AFBQD83TZf/xCltlteHgEBCxIMR4R?=
- =?us-ascii?q?dVF+NOJI0kXsLAQEBAQEBAQEBJw0BAgQBAYRMgkolOBMCAwEBAQMCBQEBBgE?=
- =?us-ascii?q?BAQEBAQUEAYYPRYI3IoNRASMjgT8JCYMmAYJXKbRLhBCFGoFAgTiIIoUVgUE?=
- =?us-ascii?q?/hF+KNAS2LoJsgwuEWn6RLQ8hoB+SOKFOgXpNIBiDJAlHGQ2caEIwNwIGCgE?=
- =?us-ascii?q?BAwlXAT0BkAwBAQ?=
-X-IPAS-Result: =?us-ascii?q?A2AFBQD83TZf/xCltlteHgEBCxIMR4RdVF+NOJI0kXsLA?=
- =?us-ascii?q?QEBAQEBAQEBJw0BAgQBAYRMgkolOBMCAwEBAQMCBQEBBgEBAQEBAQUEAYYPR?=
- =?us-ascii?q?YI3IoNRASMjgT8JCYMmAYJXKbRLhBCFGoFAgTiIIoUVgUE/hF+KNAS2LoJsg?=
- =?us-ascii?q?wuEWn6RLQ8hoB+SOKFOgXpNIBiDJAlHGQ2caEIwNwIGCgEBAwlXAT0BkAwBA?=
- =?us-ascii?q?Q?=
-Received: from 16.165-182-91.adsl-dyn.isp.belgacom.be (HELO localhost.localdomain) ([91.182.165.16])
-  by relay.skynet.be with ESMTP; 14 Aug 2020 20:56:01 +0200
-From:   Fabian Frederick <fabf@skynet.be>
-To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Fabian Frederick <fabf@skynet.be>
-Subject: [PATCH 2/2 nf] selftests: netfilter: exit on invalid parameters
-Date:   Fri, 14 Aug 2020 20:55:44 +0200
-Message-Id: <20200814185544.8732-1-fabf@skynet.be>
-X-Mailer: git-send-email 2.27.0
+        Fri, 14 Aug 2020 15:22:00 -0400
+Received: from correo.us.es ([193.147.175.20]:54486 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726196AbgHNTV7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 14 Aug 2020 15:21:59 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 87B5CB6FD0
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Aug 2020 21:21:57 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 79D53DA704
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Aug 2020 21:21:57 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 6F61BDA730; Fri, 14 Aug 2020 21:21:57 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C1CECDA704;
+        Fri, 14 Aug 2020 21:21:54 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 14 Aug 2020 21:21:54 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [213.143.48.157])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id 9104542EF4E0;
+        Fri, 14 Aug 2020 21:21:53 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     sbrivio@redhat.com
+Subject: [PATCH nf] netfilter: nft_set_rbtree: revisit partial overlap detection
+Date:   Fri, 14 Aug 2020 21:21:26 +0200
+Message-Id: <20200814192126.29528-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-exit script with comments when parameters are wrong during address
-addition. No need for a message when trying to change MTU with lower
-values: output is self-explanatory
+Assuming d = memcmp(node, new) when comparing existing nodes and a new
+node, when descending the tree to find the spot to insert the node, the
+overlaps that can be detected are:
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+1) If d < 0 and the new node represents an opening interval and there
+   is an existing opening interval node in the tree, then there is a
+   possible overlap.
+
+2) If d > 0 and the new node represents an end of interval and there is an
+   existing end of interval node, then there is a possible overlap.
+
+When descending the tree, the overlap flag can be reset if the
+conditions above do not evaluate true anymore.
+
+Note that it is not possible to detect some form of overlaps from the
+kernel: Assuming the interval [x, y] exists, then this code cannot
+detect when the interval [ a, b ] when [ a, b ] fully wraps [ x, y ], ie.
+
+             [ a, b ]
+	<---------------->
+             [ x, y ]
+           <---------->
+
+Moreover, skip checks for anonymous sets where it is not possible to
+catch overlaps since anonymous sets might not have an explicit end of
+interval.  e.g.  192.168.0.0/24 and 192.168.1.0/24 results in three tree
+nodes, one open interval for 192.168.0.0, another open interval for
+192.168.1.0 and the end of interval 192.168.2.0. In this case, there is
+no end of interval for 192.168.1.0 since userspace optimizes the
+structure to skip this redundant node.
+
+Fixes: 7c84d41416d8 ("netfilter: nft_set_rbtree: Detect partial overlaps on insertion")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tools/testing/selftests/netfilter/nft_flowtable.sh | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+This is coming after https://bugzilla.netfilter.org/show_bug.cgi?id=1449
+I have removed the documentation in the code, although I could have updated it.
+This patch description what kind of overlaps can be detected.
 
-diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
-index 28e32fddf9b2c..c3617d0037f2e 100755
---- a/tools/testing/selftests/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
-@@ -97,9 +97,17 @@ do
- done
+ net/netfilter/nft_set_rbtree.c | 86 ++++++++++++----------------------
+ 1 file changed, 29 insertions(+), 57 deletions(-)
+
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index b6aad3fc46c3..a70decea3e8c 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -225,39 +225,6 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	bool overlap = false;
+ 	int d;
  
- ip -net nsr1 link set veth0 mtu $omtu
-+if [ $? -ne 0 ]; then
-+	exit 1
-+fi
+-	/* Detect overlaps as we descend the tree. Set the flag in these cases:
+-	 *
+-	 * a1. _ _ __>|  ?_ _ __|  (insert end before existing end)
+-	 * a2. _ _ ___|  ?_ _ _>|  (insert end after existing end)
+-	 * a3. _ _ ___? >|_ _ __|  (insert start before existing end)
+-	 *
+-	 * and clear it later on, as we eventually reach the points indicated by
+-	 * '?' above, in the cases described below. We'll always meet these
+-	 * later, locally, due to tree ordering, and overlaps for the intervals
+-	 * that are the closest together are always evaluated last.
+-	 *
+-	 * b1. _ _ __>|  !_ _ __|  (insert end before existing start)
+-	 * b2. _ _ ___|  !_ _ _>|  (insert end after existing start)
+-	 * b3. _ _ ___! >|_ _ __|  (insert start after existing end)
+-	 *
+-	 * Case a3. resolves to b3.:
+-	 * - if the inserted start element is the leftmost, because the '0'
+-	 *   element in the tree serves as end element
+-	 * - otherwise, if an existing end is found. Note that end elements are
+-	 *   always inserted after corresponding start elements.
+-	 *
+-	 * For a new, rightmost pair of elements, we'll hit cases b3. and b2.,
+-	 * in that order.
+-	 *
+-	 * The flag is also cleared in two special cases:
+-	 *
+-	 * b4. |__ _ _!|<_ _ _   (insert start right before existing end)
+-	 * b5. |__ _ >|!__ _ _   (insert end right after existing start)
+-	 *
+-	 * which always happen as last step and imply that no further
+-	 * overlapping is possible.
+-	 */
+-
+ 	parent = NULL;
+ 	p = &priv->root.rb_node;
+ 	while (*p != NULL) {
+@@ -269,44 +236,49 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 		if (d < 0) {
+ 			p = &parent->rb_left;
+ 
+-			if (nft_rbtree_interval_start(new)) {
+-				if (nft_rbtree_interval_end(rbe) &&
+-				    nft_set_elem_active(&rbe->ext, genmask) &&
+-				    !nft_set_elem_expired(&rbe->ext))
+-					overlap = false;
+-			} else {
+-				overlap = nft_rbtree_interval_end(rbe) &&
+-					  nft_set_elem_active(&rbe->ext,
+-							      genmask) &&
+-					  !nft_set_elem_expired(&rbe->ext);
+-			}
++			if (nft_set_is_anonymous(set) ||
++			    !nft_set_elem_active(&rbe->ext, genmask) ||
++			    nft_set_elem_expired(&rbe->ext))
++				continue;
 +
- ip -net ns1 link set eth0 mtu $omtu
++			if (nft_rbtree_interval_start(new) &&
++			    nft_rbtree_interval_start(rbe))
++				overlap = true;
++			else
++				overlap = false;
+ 		} else if (d > 0) {
+ 			p = &parent->rb_right;
  
- ip -net nsr2 link set veth1 mtu $rmtu
-+if [ $? -ne 0 ]; then
-+	exit 1
-+fi
+-			if (nft_rbtree_interval_end(new)) {
+-				overlap = nft_rbtree_interval_end(rbe) &&
+-					  nft_set_elem_active(&rbe->ext,
+-							      genmask) &&
+-					  !nft_set_elem_expired(&rbe->ext);
+-			} else if (nft_rbtree_interval_end(rbe) &&
+-				   nft_set_elem_active(&rbe->ext, genmask) &&
+-				   !nft_set_elem_expired(&rbe->ext)) {
++			if (nft_set_is_anonymous(set) ||
++			    !nft_set_elem_active(&rbe->ext, genmask) ||
++			    nft_set_elem_expired(&rbe->ext))
++				continue;
 +
- ip -net ns2 link set eth0 mtu $rmtu
++			if (nft_rbtree_interval_end(new) &&
++			    nft_rbtree_interval_end(rbe))
+ 				overlap = true;
+-			}
++			else
++				overlap = false;
+ 		} else {
+ 			if (nft_rbtree_interval_end(rbe) &&
+ 			    nft_rbtree_interval_start(new)) {
+ 				p = &parent->rb_left;
  
- # transfer-net between nsr1 and nsr2.
-@@ -119,6 +127,11 @@ for i in 1 2; do
-   ip -net ns$i addr add 10.0.$i.99/24 dev eth0
-   ip -net ns$i route add default via 10.0.$i.1
-   ip -net ns$i addr add dead:$i::99/64 dev eth0
-+  if [ $? -ne 0 ]; then
-+	echo "ERROR: Check Originator/Responder values (problem during address addition)" 1>&2
-+	exit 1
-+  fi
+-				if (nft_set_elem_active(&rbe->ext, genmask) &&
+-				    !nft_set_elem_expired(&rbe->ext))
++				if (!nft_set_elem_active(&rbe->ext, genmask) ||
++				    nft_set_elem_expired(&rbe->ext))
++					continue;
 +
-   ip -net ns$i route add default via dead:$i::1
-   ip netns exec ns$i sysctl net.ipv4.tcp_no_metrics_save=1 > /dev/null
++				if (!nft_set_is_anonymous(set))
+ 					overlap = false;
+ 			} else if (nft_rbtree_interval_start(rbe) &&
+ 				   nft_rbtree_interval_end(new)) {
+ 				p = &parent->rb_right;
  
+-				if (nft_set_elem_active(&rbe->ext, genmask) &&
+-				    !nft_set_elem_expired(&rbe->ext))
++				if (!nft_set_elem_active(&rbe->ext, genmask) ||
++				    nft_set_elem_expired(&rbe->ext))
++					continue;
++
++				if (!nft_set_is_anonymous(set))
+ 					overlap = false;
+ 			} else if (nft_set_elem_active(&rbe->ext, genmask) &&
+ 				   !nft_set_elem_expired(&rbe->ext)) {
 -- 
-2.27.0
+2.20.1
 
