@@ -2,111 +2,198 @@ Return-Path: <SRS0=d1l0=BZ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F4B4C433DF
-	for <netfilter-devel@archiver.kernel.org>; Sat, 15 Aug 2020 22:03:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31129C433E1
+	for <netfilter-devel@archiver.kernel.org>; Sat, 15 Aug 2020 22:18:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5B78C2053B
-	for <netfilter-devel@archiver.kernel.org>; Sat, 15 Aug 2020 22:03:22 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="F6YWSSf7"
+	by mail.kernel.org (Postfix) with ESMTP id 136E920657
+	for <netfilter-devel@archiver.kernel.org>; Sat, 15 Aug 2020 22:18:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729614AbgHOWDC (ORCPT
+        id S1728898AbgHOWSy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 15 Aug 2020 18:03:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45660 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728691AbgHOVvM (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 15 Aug 2020 17:51:12 -0400
-Received: from mail-qk1-x743.google.com (mail-qk1-x743.google.com [IPv6:2607:f8b0:4864:20::743])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B204C0A3BFD;
-        Sat, 15 Aug 2020 09:53:45 -0700 (PDT)
-Received: by mail-qk1-x743.google.com with SMTP id l64so11223604qkb.8;
-        Sat, 15 Aug 2020 09:53:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=5Ub/tWuszopXYAR+w2VtlhPZQPDBBIzMElKorytVXus=;
-        b=F6YWSSf7ggwCowXQ1pd+nByIQIoaDBJq8wmld8OTn1b0OwpPdw/vTQmPQoILja/Na+
-         QZfF1yT/nart6fUcoBXIHXUnKgZsLcBMemdzihu7vI1yb6Uqw3zuQEb7R9Q7/Aa6+LLs
-         YWcC+SpeSjV6uXgisIzu+SBAr8RVJGP0kg5cT5XexUTaqEN0Pi5dH65WtO6kzFGX6jRM
-         ldC16Xl1ehtvRIXd8uOK7yZwA9vfju93tbZ+Ij8crVERvYCIBzV+YIG4pWrBTxJFyB7G
-         vl6l4sstS693sCPt58cQi8cNvQK3hrExnRKBIYrNXvjjm1oZKCGRGbSPf5UMx8051TKP
-         yicg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=5Ub/tWuszopXYAR+w2VtlhPZQPDBBIzMElKorytVXus=;
-        b=eCRB/JF2XKjbK0sLrh3ZDjmBpzKSPXaLWPww/UZcHiQeCftWOE7Sd+ll2bnPxltpUE
-         oDTc3PM5hl42cwe4tTBi8LWuUu7m9exbPs+vhK1UvK0axrgaProg/i5MdugPTzdLZuNh
-         BxQK7ttaeEsbgwNb+8H5IuoipZlikiGr477BXaolJRhRBpHs9g+5TDYRhFehASHicbyn
-         2GMNU23gLTMOxcmUFtw9ZnsdP6CglHn4K8Jfo7TBCgu69gaPfNqc5v5tDuG9xrIInK+i
-         YPvGUgQUp7lHYSgvWRgTa9TGSLP9LyJQ31WazEtD1PdzqtW3c1gGor3jnXVzheg4SV7L
-         xGsQ==
-X-Gm-Message-State: AOAM530ABhVV8EE1ihP83ANTwyz+shFc8ZVjQLpSt4+wTHGkqYgotF/2
-        i8LxR9umY0POiT1Q1/nQXkY=
-X-Google-Smtp-Source: ABdhPJyzw4iNpkx4ZgbYXyAK6WaxOyCQVQCZzeS/SRwW4PrZjNcFqYJDKFW3ljP6kcdjVRDaqVpptA==
-X-Received: by 2002:a37:8301:: with SMTP id f1mr6555671qkd.86.1597510424332;
-        Sat, 15 Aug 2020 09:53:44 -0700 (PDT)
-Received: from tong-desktop.local ([2601:5c0:c100:b9d:4032:a79a:238d:9f7a])
-        by smtp.googlemail.com with ESMTPSA id b37sm14584866qtk.85.2020.08.15.09.53.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 15 Aug 2020 09:53:43 -0700 (PDT)
-From:   Tong Zhang <ztong0001@gmail.com>
-To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, kuba@kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     ztong0001@gmail.com
-Subject: [PATCH] netfilter: nf_conntrack_sip: fix parsing error
-Date:   Sat, 15 Aug 2020 12:50:30 -0400
-Message-Id: <20200815165030.5849-1-ztong0001@gmail.com>
-X-Mailer: git-send-email 2.25.1
+        Sat, 15 Aug 2020 18:18:54 -0400
+Received: from correo.us.es ([193.147.175.20]:38932 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728842AbgHOWSw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 15 Aug 2020 18:18:52 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 97752DA889
+        for <netfilter-devel@vger.kernel.org>; Sat, 15 Aug 2020 12:32:17 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 86C1CDA844
+        for <netfilter-devel@vger.kernel.org>; Sat, 15 Aug 2020 12:32:17 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 7C5CADA73D; Sat, 15 Aug 2020 12:32:17 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4627DDA704;
+        Sat, 15 Aug 2020 12:32:15 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Sat, 15 Aug 2020 12:32:15 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [213.143.48.187])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id 59D2542EF4E0;
+        Sat, 15 Aug 2020 12:32:14 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH 2/8] netfilter: nft_compat: remove flush counter optimization
+Date:   Sat, 15 Aug 2020 12:31:55 +0200
+Message-Id: <20200815103201.1768-3-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200815103201.1768-1-pablo@netfilter.org>
+References: <20200815103201.1768-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-ct_sip_parse_numerical_param can only return 0 or 1, but the caller is
-checking parsing error using < 0
+From: Florian Westphal <fw@strlen.de>
 
-Signed-off-by: Tong Zhang <ztong0001@gmail.com>
+WARNING: CPU: 1 PID: 16059 at lib/refcount.c:31 refcount_warn_saturate+0xdf/0xf
+[..]
+ __nft_mt_tg_destroy+0x42/0x50 [nft_compat]
+ nft_target_destroy+0x63/0x80 [nft_compat]
+ nf_tables_expr_destroy+0x1b/0x30 [nf_tables]
+ nf_tables_rule_destroy+0x3a/0x70 [nf_tables]
+ nf_tables_exit_net+0x186/0x3d0 [nf_tables]
+
+Happens when a compat expr is destoyed from abort path.
+There is no functional impact; after this work queue is flushed
+unconditionally if its pending.
+
+This removes the waitcount optimization.  Test of repeated
+iptables-restore of a ~60k kubernetes ruleset doesn't indicate
+a slowdown.  In case the counter is needed after all for some workloads
+we can revert this and increment the refcount for the
+!= NFT_PREPARE_TRANS case to avoid the increment/decrement imbalance.
+
+While at it, also flush for match case, this was an oversight
+in the original patch.
+
+Fixes: ffe8923f109b7e ("netfilter: nft_compat: make sure xtables destructors have run")
+Reported-by: kernel test robot <rong.a.chen@intel.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_sip.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nft_compat.c | 37 ++++++++++++++-----------------------
+ 1 file changed, 14 insertions(+), 23 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index b83dc9bf0a5d..08873694120a 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -1269,7 +1269,7 @@ static int process_register_request(struct sk_buff *skb, unsigned int protoff,
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 6428856ccbec..8e56f353ff35 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -27,8 +27,6 @@ struct nft_xt_match_priv {
+ 	void *info;
+ };
  
- 	if (ct_sip_parse_numerical_param(ct, *dptr,
- 					 matchoff + matchlen, *datalen,
--					 "expires=", NULL, NULL, &expires) < 0) {
-+					 "expires=", NULL, NULL, &expires) == 0) {
- 		nf_ct_helper_log(skb, ct, "cannot parse expires");
- 		return NF_DROP;
- 	}
-@@ -1375,7 +1375,7 @@ static int process_register_response(struct sk_buff *skb, unsigned int protoff,
- 						   matchoff + matchlen,
- 						   *datalen, "expires=",
- 						   NULL, NULL, &c_expires);
--		if (ret < 0) {
-+		if (ret == 0) {
- 			nf_ct_helper_log(skb, ct, "cannot parse expires");
- 			return NF_DROP;
- 		}
+-static refcount_t nft_compat_pending_destroy = REFCOUNT_INIT(1);
+-
+ static int nft_compat_chain_validate_dependency(const struct nft_ctx *ctx,
+ 						const char *tablename)
+ {
+@@ -215,6 +213,17 @@ static int nft_parse_compat(const struct nlattr *attr, u16 *proto, bool *inv)
+ 	return 0;
+ }
+ 
++static void nft_compat_wait_for_destructors(void)
++{
++	/* xtables matches or targets can have side effects, e.g.
++	 * creation/destruction of /proc files.
++	 * The xt ->destroy functions are run asynchronously from
++	 * work queue.  If we have pending invocations we thus
++	 * need to wait for those to finish.
++	 */
++	nf_tables_trans_destroy_flush_work();
++}
++
+ static int
+ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 		const struct nlattr * const tb[])
+@@ -238,14 +247,7 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 
+ 	nft_target_set_tgchk_param(&par, ctx, target, info, &e, proto, inv);
+ 
+-	/* xtables matches or targets can have side effects, e.g.
+-	 * creation/destruction of /proc files.
+-	 * The xt ->destroy functions are run asynchronously from
+-	 * work queue.  If we have pending invocations we thus
+-	 * need to wait for those to finish.
+-	 */
+-	if (refcount_read(&nft_compat_pending_destroy) > 1)
+-		nf_tables_trans_destroy_flush_work();
++	nft_compat_wait_for_destructors();
+ 
+ 	ret = xt_check_target(&par, size, proto, inv);
+ 	if (ret < 0)
+@@ -260,7 +262,6 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 
+ static void __nft_mt_tg_destroy(struct module *me, const struct nft_expr *expr)
+ {
+-	refcount_dec(&nft_compat_pending_destroy);
+ 	module_put(me);
+ 	kfree(expr->ops);
+ }
+@@ -468,6 +469,8 @@ __nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 
+ 	nft_match_set_mtchk_param(&par, ctx, match, info, &e, proto, inv);
+ 
++	nft_compat_wait_for_destructors();
++
+ 	return xt_check_match(&par, size, proto, inv);
+ }
+ 
+@@ -716,14 +719,6 @@ static const struct nfnetlink_subsystem nfnl_compat_subsys = {
+ 
+ static struct nft_expr_type nft_match_type;
+ 
+-static void nft_mt_tg_deactivate(const struct nft_ctx *ctx,
+-				 const struct nft_expr *expr,
+-				 enum nft_trans_phase phase)
+-{
+-	if (phase == NFT_TRANS_COMMIT)
+-		refcount_inc(&nft_compat_pending_destroy);
+-}
+-
+ static const struct nft_expr_ops *
+ nft_match_select_ops(const struct nft_ctx *ctx,
+ 		     const struct nlattr * const tb[])
+@@ -762,7 +757,6 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 	ops->type = &nft_match_type;
+ 	ops->eval = nft_match_eval;
+ 	ops->init = nft_match_init;
+-	ops->deactivate = nft_mt_tg_deactivate,
+ 	ops->destroy = nft_match_destroy;
+ 	ops->dump = nft_match_dump;
+ 	ops->validate = nft_match_validate;
+@@ -853,7 +847,6 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 	ops->size = NFT_EXPR_SIZE(XT_ALIGN(target->targetsize));
+ 	ops->init = nft_target_init;
+ 	ops->destroy = nft_target_destroy;
+-	ops->deactivate = nft_mt_tg_deactivate,
+ 	ops->dump = nft_target_dump;
+ 	ops->validate = nft_target_validate;
+ 	ops->data = target;
+@@ -917,8 +910,6 @@ static void __exit nft_compat_module_exit(void)
+ 	nfnetlink_subsys_unregister(&nfnl_compat_subsys);
+ 	nft_unregister_expr(&nft_target_type);
+ 	nft_unregister_expr(&nft_match_type);
+-
+-	WARN_ON_ONCE(refcount_read(&nft_compat_pending_destroy) != 1);
+ }
+ 
+ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_NFT_COMPAT);
 -- 
-2.25.1
+2.20.1
 
