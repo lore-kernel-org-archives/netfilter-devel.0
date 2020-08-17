@@ -2,69 +2,65 @@ Return-Path: <SRS0=xhJ7=B3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A36CBC433E1
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Aug 2020 10:31:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5806EC433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Aug 2020 10:43:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8CD3E206FA
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Aug 2020 10:31:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 323C220758
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Aug 2020 10:43:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727874AbgHQKby (ORCPT
+        id S1726403AbgHQKn0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 17 Aug 2020 06:31:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44170 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726682AbgHQKbx (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Aug 2020 06:31:53 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 85A12C061389
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Aug 2020 03:31:53 -0700 (PDT)
-Received: from localhost ([::1]:60340 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.94)
-        (envelope-from <phil@nwl.cc>)
-        id 1k7cQY-0003eR-0m; Mon, 17 Aug 2020 12:31:42 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        Mon, 17 Aug 2020 06:43:26 -0400
+Received: from correo.us.es ([193.147.175.20]:47340 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726265AbgHQKnY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Aug 2020 06:43:24 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 2367FE8628
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Aug 2020 12:43:23 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1829ADA789
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Aug 2020 12:43:23 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 0DD61DA78E; Mon, 17 Aug 2020 12:43:23 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 00A0EDA789;
+        Mon, 17 Aug 2020 12:43:21 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 17 Aug 2020 12:43:20 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id CDA8F41E4800;
+        Mon, 17 Aug 2020 12:43:20 +0200 (CEST)
+Date:   Mon, 17 Aug 2020 12:43:20 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] Makefile: Add missing man pages to CLEANFILES
-Date:   Mon, 17 Aug 2020 12:31:33 +0200
-Message-Id: <20200817103133.3521-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.27.0
+Subject: Re: [iptables PATCH] Makefile: Add missing man pages to CLEANFILES
+Message-ID: <20200817104320.GA29169@salvia>
+References: <20200817103133.3521-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200817103133.3521-1-phil@nwl.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The list of man pages to remove along with 'make clean' was missing a
-few built ones, add them.
+On Mon, Aug 17, 2020 at 12:31:33PM +0200, Phil Sutter wrote:
+> The list of man pages to remove along with 'make clean' was missing a
+> few built ones, add them.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/Makefile.am | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/iptables/Makefile.am b/iptables/Makefile.am
-index bab094b7c6aa9..4bf5742c9dc95 100644
---- a/iptables/Makefile.am
-+++ b/iptables/Makefile.am
-@@ -67,6 +67,10 @@ man_MANS	+= xtables-nft.8 xtables-translate.8 xtables-legacy.8 \
-                    ebtables-nft.8
- endif
- CLEANFILES       = iptables.8 xtables-monitor.8 \
-+		   iptables-xml.1 iptables-apply.8 \
-+		   iptables-extensions.8 iptables-extensions.8.tmpl \
-+		   iptables-restore.8 iptables-save.8 \
-+		   iptables-restore-translate.8 ip6tables-restore-translate.8 \
- 		   iptables-translate.8 ip6tables-translate.8
- 
- vx_bin_links   = iptables-xml
--- 
-2.27.0
-
+That's fine.
