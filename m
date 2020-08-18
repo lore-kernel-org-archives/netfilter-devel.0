@@ -2,157 +2,155 @@ Return-Path: <SRS0=5oex=B4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E020CC433E1
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Aug 2020 14:16:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D364C433DF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Aug 2020 17:49:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CA579207FF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Aug 2020 14:16:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3CF442080C
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Aug 2020 17:49:07 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=skynet.be header.i=@skynet.be header.b="aEi3FPaN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727075AbgHROQQ (ORCPT
+        id S1726640AbgHRRtD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 Aug 2020 10:16:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49514 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726962AbgHROQL (ORCPT
+        Tue, 18 Aug 2020 13:49:03 -0400
+Received: from mailsec112.isp.belgacom.be ([195.238.20.108]:54974 "EHLO
+        mailsec112.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726541AbgHRRtC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Aug 2020 10:16:11 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A2C9C061389
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Aug 2020 07:16:11 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1k82PD-0007M1-R7; Tue, 18 Aug 2020 16:16:03 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf v2] netfilter: conntrack: allow sctp hearbeat after connection re-use
-Date:   Tue, 18 Aug 2020 16:15:58 +0200
-Message-Id: <20200818141558.24232-1-fw@strlen.de>
-X-Mailer: git-send-email 2.26.2
+        Tue, 18 Aug 2020 13:49:02 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=skynet.be; i=@skynet.be; q=dns/txt; s=rmail;
+  t=1597772942; x=1629308942;
+  h=date:from:to:cc:message-id:in-reply-to:references:
+   subject:mime-version:content-transfer-encoding;
+  bh=zKYHs+klvwgIPbT2SGaBcEdIR1kfh0mcf5Im/4W6QtE=;
+  b=aEi3FPaN9J9j1fQF+62TQCH0JMuCB5oaQNijVB1usFqBVBws+VQpBIpW
+   1BkOp8Lx63IHEcYO70oNghz+RdGfS99+LyLc6AF4IDoWb0RMG98hxqHUB
+   pChtekrm4bUUuKiaXKUepjblPwd3iyR2YEQZCBOzeyGDjuhv7/z8hKVcU
+   w=;
+IronPort-SDR: 4Cch0J3XmjVrg1puVEzlLnmhvt0JQoju4PqNfwbz3sUi7NBbJfFIEJEu6/jEjQpU1JHrPEOWCb
+ lrKwxF7rRyE+6ZLw7wCpM6F5tEGjxX1p1gapEJd0geoift+uQj/NFLPRv3zbzQZ+/sDpfbJEfL
+ IBP6qidJ+4pl4YWUbqh2N65x151StSBmO2xUxMelDlMIzUAMsE6PO+nOw9SajZweXjM+XRZHxI
+ hAzOsKxKftVTiZ+3ikvB0vxShC+xWDFuwQCsBgGlw6oT/mlSlbus2MC6OmDwj9NmoQpRItuwqY
+ 1zQ=
+IronPort-PHdr: =?us-ascii?q?9a23=3AeKyK1hIk1iy5HBmsXNmcpTZWNBhigK39O0sv0r?=
+ =?us-ascii?q?FitYgXKP//rarrMEGX3/hxlliBBdydt6sazbOO7euxByQp2tWoiDg6aptCVh?=
+ =?us-ascii?q?sI2409vjcLJ4q7M3D9N+PgdCcgHc5PBxdP9nC/NlVJSo6lPwWB6nK94iQPFR?=
+ =?us-ascii?q?rhKAF7Ovr6GpLIj8Swyuu+54Dfbx9HiTagYL5+Ngi6oRnQu8UZhYZvK7s6xw?=
+ =?us-ascii?q?fUrHdPZ+lY335jK0iJnxb76Mew/Zpj/DpVtvk86cNOUrj0crohQ7BAAzsoL2?=
+ =?us-ascii?q?465MvwtRneVgSP/WcTUn8XkhVTHQfI6gzxU4rrvSv7sup93zSaPdHzQLspVz?=
+ =?us-ascii?q?mu87tnRRn1gyocKTU37H/YhdBxjKJDoRKuuRp/w5LPYIqIMPZyZ77Rcc8GSW?=
+ =?us-ascii?q?ZEWMtaSi5PDZ6mb4YXAeQPPfhWoYr/qFsAsBWxChWjCuz1xDBLgXH7xrE63u?=
+ =?us-ascii?q?Y7HA3axgEsA9ADvXLJp9v1LqcSVuW1wbHIwzrZdPxW2C3y6I7VeR4hu/GDQ6?=
+ =?us-ascii?q?9/ftTLyUkuCwzFjUibpIvrPzyPzesNvXOW7/FjVeOvjW4otR1xriK0ycgyk4?=
+ =?us-ascii?q?TEgJ8exV/Y+ytj2ok1OcG4R1BhYd6iCJZdtiCXOpZ5T80sXWxkpCQ3x6AatZ?=
+ =?us-ascii?q?OmYCQExogqyhrDZ/GbbYSF/xbuWuieLDp7hn9oZbCyiRau/EavyuDwSMa53V?=
+ =?us-ascii?q?BXpSRLldnMs2oC1x3V6sWfUft9/lmu2TKL1w/P6uFLP1w7lanBJ54n3LEwip?=
+ =?us-ascii?q?weulnAEC/ugEj6kbOael8r9+Wr8ejrf6jqqoWfOoJ2jAz1L74gldalAesiNw?=
+ =?us-ascii?q?gDR22b+eOh27L95UD5W7BKjuEukqnerZDaOdwXpq6nDA9R1YYu8xO/AC2n0N?=
+ =?us-ascii?q?QcmnkGI0lKdwybg4T1OVzCOfb4Auuij1i2izhk2+jKPrznAprTMnjOiKrtca?=
+ =?us-ascii?q?pn50NTywc/181T649OBrwCIv//Qkrxu8bZDh89PQy02eHnCNBl24MQQ22AGa?=
+ =?us-ascii?q?GZPbjJsV+L5uMvJfeDZJMPtDnmNfcp/+TugmMhmV8BYamp2oMaaGujEfR8Ik?=
+ =?us-ascii?q?WZf3vsgtAaHGcQoAUxUezqh0eeUTJJe3myWKc87CkhCI26FYfDWpytgLuZ0S?=
+ =?us-ascii?q?ejBJJZfWRGCleXHHfuaYqER/kMaCOWIs99jDMET6KtS4g71RGhrAX60aZoLv?=
+ =?us-ascii?q?LI+i0EspLuzNt16PfOmhE26zN7E9+Q02eTQGFokGMIRjs23Lxhrkxn0FuD1r?=
+ =?us-ascii?q?J4g/NAH9xJ+/xJShs6NYLbz+FiBdDzVBnMfsyVSFa8RtWpHzcxQsgszNAQe0?=
+ =?us-ascii?q?x9Acmtjgjf3yq2BL8Yj7qLC4Io8qLS3njxI9p9xGjc1KU4klYpXNVPOnOihq?=
+ =?us-ascii?q?Nk6QjTCJDGk1+Dm6apa6scxijN+3mHzWaUu0FYSgFwW73fXX8DfkvWscj55k?=
+ =?us-ascii?q?TaQrCyDrQnKBVOydKcJaRQb93kllNGS+n/ONTQYmKxn3uwCgiSxr+Wa4rqYW?=
+ =?us-ascii?q?od1j3HCEcYiwAT4WqGNQ8mCyenvW3eECFhGkzxY0737+l+p220TlUuwwGJcU?=
+ =?us-ascii?q?Jhzby19QARhfCGTPMTxL0E628drGBPAFuz1tTRQ/CaphRge+0Ietkn4UlG0k?=
+ =?us-ascii?q?rDugB9N4DmJKdn0A0waQNy6m3n3RR+DM1ui8UmoWkrxwk6fayR2l1pbDCJ25?=
+ =?us-ascii?q?3sfLfafDqhtCuzYrLbjwmNmO2d/b0CvbFh8w3u?=
+X-IronPort-Anti-Spam-Filtered: true
+X-IronPort-Anti-Spam-Result: =?us-ascii?q?A2BKAgDpEzxf/1cLMApfHAEBAQEBAQc?=
+ =?us-ascii?q?BARIBAQQEAQFAgUqDGoEzhDeRJIoXkX0LAQEBAQEBAQEBJxAEAQGETAKCHyY?=
+ =?us-ascii?q?4EwIDAQEBAwIFAQEGAQEBAQEBBQQBhg85DII3KQGDEAEBAQMBI1YFCwUGDgo?=
+ =?us-ascii?q?CAiYCAlcGExGDFoJXBbEVdoEyiSuBQIEOKoVPh2uBQT+DI34+h1SCYASPSYt?=
+ =?us-ascii?q?WmxCCbIMMhViRSxOgI5Uvnl6Bek0gGIMkCUcZDZZphX9yNwIGCgEBAwmQbAE?=
+ =?us-ascii?q?B?=
+X-IPAS-Result: =?us-ascii?q?A2BKAgDpEzxf/1cLMApfHAEBAQEBAQcBARIBAQQEAQFAg?=
+ =?us-ascii?q?UqDGoEzhDeRJIoXkX0LAQEBAQEBAQEBJxAEAQGETAKCHyY4EwIDAQEBAwIFA?=
+ =?us-ascii?q?QEGAQEBAQEBBQQBhg85DII3KQGDEAEBAQMBI1YFCwUGDgoCAiYCAlcGExGDF?=
+ =?us-ascii?q?oJXBbEVdoEyiSuBQIEOKoVPh2uBQT+DI34+h1SCYASPSYtWmxCCbIMMhViRS?=
+ =?us-ascii?q?xOgI5Uvnl6Bek0gGIMkCUcZDZZphX9yNwIGCgEBAwmQbAEB?=
+Received: from mailoxbe007-nc1.bc ([10.48.11.87])
+  by privrelay100.skynet.be with ESMTP; 18 Aug 2020 19:48:58 +0200
+Date:   Tue, 18 Aug 2020 19:48:57 +0200 (CEST)
+From:   Fabian Frederick <fabf@skynet.be>
+To:     Stefano Brivio <sbrivio@redhat.com>
+Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Message-ID: <185851852.53771.1597772937306@webmail.appsuite.proximus.be>
+In-Reply-To: <20200818023935.3bee52fc@elisabeth>
+References: <20200814185544.8732-1-fabf@skynet.be>
+ <20200818023935.3bee52fc@elisabeth>
+Subject: Re: [PATCH 2/2 nf] selftests: netfilter: exit on invalid parameters
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-Priority: 3
+Importance: Normal
+X-Mailer: Open-Xchange Mailer v7.10.3-Rev14
+X-Originating-Client: open-xchange-appsuite
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If an sctp connection gets re-used, heartbeats are flagged as invalid
-because their vtag doesn't match.
 
-Handle this in a similar way as TCP conntrack when it suspects that the
-endpoints and conntrack are out-of-sync.
+> On 18/08/2020 02:39 Stefano Brivio <sbrivio@redhat.com> wrote:
+> 
+>  
+> Hi Fabian,
+> 
+> On Fri, 14 Aug 2020 20:55:44 +0200
+> Fabian Frederick <fabf@skynet.be> wrote:
+> 
+> > exit script with comments when parameters are wrong during address
+> > addition. No need for a message when trying to change MTU with lower
+> > values: output is self-explanatory
+> > 
+> > Signed-off-by: Fabian Frederick <fabf@skynet.be>
+> > ---
+> >  tools/testing/selftests/netfilter/nft_flowtable.sh | 13 +++++++++++++
+> >  1 file changed, 13 insertions(+)
+> > 
+> > diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
+> > index 28e32fddf9b2c..c3617d0037f2e 100755
+> > --- a/tools/testing/selftests/netfilter/nft_flowtable.sh
+> > +++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
+> > @@ -97,9 +97,17 @@ do
+> >  done
+> >  
+> >  ip -net nsr1 link set veth0 mtu $omtu
+> > +if [ $? -ne 0 ]; then
+> > +	exit 1
+> > +fi
+> > +
+> 
+> As some of your recent patches are also clean-ups, perhaps you get some
+> assistance from 'shellcheck' (https://www.shellcheck.net/). For
+> example, this could be written as:
+> 
+>   ip -net nsr1 link set veth0 mtu $omtu || exit 1
+> 
+> or, I'm not sure it's doable, you could get all those checks for free
+> by setting the -e flag for the entire script. You would then need to
+> take care explicitly of commands that can legitimately fail.
+Hi Stefano,
 
-When a HEARTBEAT request fails its vtag validation, flag this in the
-conntrack state and accept the packet.
+	Thanks a lot for the tip. I'll let original script developer decide wether that kind of syntax is interesting or not and resend this one if necessary (a lot of ip tests are already done this way in the script). Idea behind my recent patches was to enable testing with different MTU but other feature ideas are welcome :)
 
-When a HEARTBEAT_ACK is received with an invalid vtag in the reverse
-direction after we allowed such a HEARTBEAT through, assume we are
-out-of-sync and re-set the vtag info.
+Best regards,
+Fabian
 
-v2: remove left-over snippet from an older incarnation that moved
-    new_state/old_state assignments, thats not needed so keep that
-    as-is.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/linux/netfilter/nf_conntrack_sctp.h |  2 ++
- net/netfilter/nf_conntrack_proto_sctp.c     | 39 ++++++++++++++++++---
- 2 files changed, 37 insertions(+), 4 deletions(-)
-
-diff --git a/include/linux/netfilter/nf_conntrack_sctp.h b/include/linux/netfilter/nf_conntrack_sctp.h
-index 9a33f171aa82..625f491b95de 100644
---- a/include/linux/netfilter/nf_conntrack_sctp.h
-+++ b/include/linux/netfilter/nf_conntrack_sctp.h
-@@ -9,6 +9,8 @@ struct ip_ct_sctp {
- 	enum sctp_conntrack state;
- 
- 	__be32 vtag[IP_CT_DIR_MAX];
-+	u8 last_dir;
-+	u8 flags;
- };
- 
- #endif /* _NF_CONNTRACK_SCTP_H */
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 4f897b14b606..810cca24b399 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -62,6 +62,8 @@ static const unsigned int sctp_timeouts[SCTP_CONNTRACK_MAX] = {
- 	[SCTP_CONNTRACK_HEARTBEAT_ACKED]	= 210 SECS,
- };
- 
-+#define	SCTP_FLAG_HEARTBEAT_VTAG_FAILED	1
-+
- #define sNO SCTP_CONNTRACK_NONE
- #define	sCL SCTP_CONNTRACK_CLOSED
- #define	sCW SCTP_CONNTRACK_COOKIE_WAIT
-@@ -369,6 +371,7 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
- 	u_int32_t offset, count;
- 	unsigned int *timeouts;
- 	unsigned long map[256 / sizeof(unsigned long)] = { 0 };
-+	bool ignore = false;
- 
- 	if (sctp_error(skb, dataoff, state))
- 		return -NF_ACCEPT;
-@@ -427,15 +430,39 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
- 			/* Sec 8.5.1 (D) */
- 			if (sh->vtag != ct->proto.sctp.vtag[dir])
- 				goto out_unlock;
--		} else if (sch->type == SCTP_CID_HEARTBEAT ||
--			   sch->type == SCTP_CID_HEARTBEAT_ACK) {
-+		} else if (sch->type == SCTP_CID_HEARTBEAT) {
-+			if (ct->proto.sctp.vtag[dir] == 0) {
-+				pr_debug("Setting %d vtag %x for dir %d\n", sch->type, sh->vtag, dir);
-+				ct->proto.sctp.vtag[dir] = sh->vtag;
-+			} else if (sh->vtag != ct->proto.sctp.vtag[dir]) {
-+				if (test_bit(SCTP_CID_DATA, map) || ignore)
-+					goto out_unlock;
-+
-+				ct->proto.sctp.flags |= SCTP_FLAG_HEARTBEAT_VTAG_FAILED;
-+				ct->proto.sctp.last_dir = dir;
-+				ignore = true;
-+				continue;
-+			} else if (ct->proto.sctp.flags & SCTP_FLAG_HEARTBEAT_VTAG_FAILED) {
-+				ct->proto.sctp.flags &= ~SCTP_FLAG_HEARTBEAT_VTAG_FAILED;
-+			}
-+		} else if (sch->type == SCTP_CID_HEARTBEAT_ACK) {
- 			if (ct->proto.sctp.vtag[dir] == 0) {
- 				pr_debug("Setting vtag %x for dir %d\n",
- 					 sh->vtag, dir);
- 				ct->proto.sctp.vtag[dir] = sh->vtag;
- 			} else if (sh->vtag != ct->proto.sctp.vtag[dir]) {
--				pr_debug("Verification tag check failed\n");
--				goto out_unlock;
-+				if (test_bit(SCTP_CID_DATA, map) || ignore)
-+					goto out_unlock;
-+
-+				if ((ct->proto.sctp.flags & SCTP_FLAG_HEARTBEAT_VTAG_FAILED) == 0 ||
-+				    ct->proto.sctp.last_dir == dir)
-+					goto out_unlock;
-+
-+				ct->proto.sctp.flags &= ~SCTP_FLAG_HEARTBEAT_VTAG_FAILED;
-+				ct->proto.sctp.vtag[dir] = sh->vtag;
-+				ct->proto.sctp.vtag[!dir] = 0;
-+			} else if (ct->proto.sctp.flags & SCTP_FLAG_HEARTBEAT_VTAG_FAILED) {
-+				ct->proto.sctp.flags &= ~SCTP_FLAG_HEARTBEAT_VTAG_FAILED;
- 			}
- 		}
- 
-@@ -470,6 +497,10 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
- 	}
- 	spin_unlock_bh(&ct->lock);
- 
-+	/* allow but do not refresh timeout */
-+	if (ignore)
-+		return NF_ACCEPT;
-+
- 	timeouts = nf_ct_timeout_lookup(ct);
- 	if (!timeouts)
- 		timeouts = nf_sctp_pernet(nf_ct_net(ct))->timeouts;
--- 
-2.26.2
-
+> 
+> -- 
+> Stefano
