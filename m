@@ -2,133 +2,126 @@ Return-Path: <SRS0=iLnO=B5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB97BC433DF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Aug 2020 21:59:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 040AFC433E1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Aug 2020 22:00:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A85A7207DE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Aug 2020 21:59:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF2EC2078D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Aug 2020 22:00:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="if++7naz"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Pl5cu4JM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727074AbgHSV74 (ORCPT
+        id S1726664AbgHSWAk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Aug 2020 17:59:56 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:41079 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726948AbgHSV74 (ORCPT
+        Wed, 19 Aug 2020 18:00:40 -0400
+Received: from us-smtp-2.mimecast.com ([207.211.31.81]:50509 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726578AbgHSWAj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Aug 2020 17:59:56 -0400
+        Wed, 19 Aug 2020 18:00:39 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1597874394;
+        s=mimecast20190719; t=1597874438;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=ZNu1v/eRW5l4/6/GoXt9HUBooZgO9i7+aruLqFS9ib0=;
-        b=if++7nazP/ziOs76ggQ14AGGUOBESnjYBYBOX78d4nzIZ3xn9xi1eonLcxsBQ5/Q2WXhSm
-        Dr76JAvxnuLz3ICRKzKcNoF99w27yxF69KDY5/qfS1vB2EaqpzN1fHw+rNxRWTkVPnu0My
-        dNhNBHBILsy/H/VUYYa8ftsyfIgsqaY=
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=aa16Dob3UKsYXcNy1TDw8/Lwx6mMR2YoFH5nBUurNG8=;
+        b=Pl5cu4JMO1N3ZkPZklCGKR9/F9anHQwMmiScC6NLi3nv5u4V9qcj6xGX9x9xreNnbLf1zu
+        5ZA0SYrpIqT5qHK8Vo+AusXgrScdg/0QXWS2wdfw1Y/8R1Pnvr+ulA3FKvMHrrhWzxc58Z
+        jYfKiizUKjiK1FN0XM0Zm2f0CBYYVs4=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-255-TYIkZx79Oh2_zclefYRLiQ-1; Wed, 19 Aug 2020 17:59:38 -0400
-X-MC-Unique: TYIkZx79Oh2_zclefYRLiQ-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
+ us-mta-11-z-78fNU5MNaZQHq4oE_2ww-1; Wed, 19 Aug 2020 18:00:31 -0400
+X-MC-Unique: z-78fNU5MNaZQHq4oE_2ww-1
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 21CC71DDFB;
-        Wed, 19 Aug 2020 21:59:37 +0000 (UTC)
-Received: from elisabeth (unknown [10.36.110.47])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id ED9AF5D9E8;
-        Wed, 19 Aug 2020 21:59:35 +0000 (UTC)
-Date:   Wed, 19 Aug 2020 23:59:31 +0200
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 966051005E65;
+        Wed, 19 Aug 2020 22:00:30 +0000 (UTC)
+Received: from epycfail.redhat.com (unknown [10.36.110.53])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 8684F1014171;
+        Wed, 19 Aug 2020 22:00:29 +0000 (UTC)
 From:   Stefano Brivio <sbrivio@redhat.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: nft_set_rbtree: revisit partial overlap
- detection
-Message-ID: <20200819235931.362539f9@elisabeth>
-In-Reply-To: <20200814192126.29528-1-pablo@netfilter.org>
-References: <20200814192126.29528-1-pablo@netfilter.org>
-Organization: Red Hat
+Cc:     netfilter-devel@vger.kernel.org, Andreas Fischer <netfilter@d9c.eu>
+Subject: [PATCH nft] tests: sets: Check rbtree overlap detection after tree rotations
+Date:   Thu, 20 Aug 2020 00:00:18 +0200
+Message-Id: <d314b0680aa7dcbddebcf768a335db67ef6c33dd.1597873284.git.sbrivio@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi, sorry for the delay.
+Ticket https://bugzilla.netfilter.org/show_bug.cgi?id=1449 showed
+an issue with rbtree overlap detection coming from the fact that,
+after tree rotations performed as part of tree rebalancing, caused
+by deletions, end elements are not necessarily descendants of their
+corresponding start elements.
 
-On Fri, 14 Aug 2020 21:21:26 +0200
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+Add single-sized elements, delete every second one of them, and
+re-add them (they will always be full overlaps) in order to check
+overlap detection after tree rotations.
 
-> Assuming d = memcmp(node, new) when comparing existing nodes and a new
-> node, when descending the tree to find the spot to insert the node, the
-> overlaps that can be detected are:
-> 
-> 1) If d < 0 and the new node represents an opening interval and there
->    is an existing opening interval node in the tree, then there is a
->    possible overlap.
-> 
-> 2) If d > 0 and the new node represents an end of interval and there is an
->    existing end of interval node, then there is a possible overlap.
-> 
-> When descending the tree, the overlap flag can be reset if the
-> conditions above do not evaluate true anymore.
-> 
-> Note that it is not possible to detect some form of overlaps from the
-> kernel: Assuming the interval [x, y] exists, then this code cannot
-> detect when the interval [ a, b ] when [ a, b ] fully wraps [ x, y ], ie.
-> 
->              [ a, b ]
-> 	<---------------->
->              [ x, y ]
->            <---------->
+Port indices used in the sets are pseudo-random numbers generated
+with Marsaglia's Xorshift algorithm with triplet (5, 3, 1), chosen
+for k-distribution over 16-bit periods, which gives a good
+statistical randomness and forces 201 rebalancing operations out of
+250 deletions with the chosen seed (1).
 
-Actually, also this kind of overlap is detected (and already covered by
-testcases). Here, we would notice already while inserting 'x' that it
-sits between non-matching existing start, x, and existing end, y.
+Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+---
+ .../testcases/sets/0044interval_overlap_1     | 36 +++++++++++++++++++
+ 1 file changed, 36 insertions(+)
+ create mode 100755 tests/shell/testcases/sets/0044interval_overlap_1
 
-This can't be detected with just local considerations, and it's the
-reason why the 'overlap' flag is updated as we descend the tree. Now,
-the issue mentioned below:
-	https://bugzilla.netfilter.org/show_bug.cgi?id=1449
-
-comes from a wrong assumption I took, namely, the fact that as end
-elements are always inserted after start elements, they also need to be
-found in the tree as descendants of start elements.
-
-This isn't true with tree rebalancing operations resulting in
-rotations, and in the case reported we have some delete operations
-triggering that.
-
-I fixed this case in a new series I'm posting, together with additional
-tests that cause different types of rotations, and one fix for a false
-negative case instead, that I found while playing around with nft
-(skipping different types of overlap checks while keeping others in
-place).
-
-> Moreover, skip checks for anonymous sets where it is not possible to
-> catch overlaps since anonymous sets might not have an explicit end of
-> interval.  e.g.  192.168.0.0/24 and 192.168.1.0/24 results in three tree
-> nodes, one open interval for 192.168.0.0, another open interval for
-> 192.168.1.0 and the end of interval 192.168.2.0. In this case, there is
-> no end of interval for 192.168.1.0 since userspace optimizes the
-> structure to skip this redundant node.
-
-Now, I couldn't find a way to insert anonymous sets that would trigger
-(partial) overlap detection. This is because those overlaps are already
-handled (by merging) by nft, and if I insert multiple anonymous sets
-with overlapping intervals, they are, well... different sets, so
-anything goes. Let me know if I'm missing something here.
-
+diff --git a/tests/shell/testcases/sets/0044interval_overlap_1 b/tests/shell/testcases/sets/0044interval_overlap_1
+new file mode 100755
+index 000000000000..eeea1943ee55
+--- /dev/null
++++ b/tests/shell/testcases/sets/0044interval_overlap_1
+@@ -0,0 +1,36 @@
++#!/bin/sh -e
++#
++# 0044interval_overlap_1 - Single-sized intervals can never overlap partially
++#
++# Check that inserting, deleting, and inserting single-sized intervals again
++# never leads to a partial overlap. Specifically trigger rbtree rebalancing in
++# the process, to ensure different tree shapes of equivalent sets don't lead to
++# false positives, by deleting every second inserted item.
++
++xorshift() {
++	# Adaptation of Xorshift algorithm from:
++	#   Marsaglia, G. (2003). Xorshift RNGs.
++	#   Journal of Statistical Software, 8(14), 1 - 6.
++	#   doi:http://dx.doi.org/10.18637/jss.v008.i14
++	# with triplet (5, 3, 1), suitable for 16-bit ranges.
++
++	: $((port ^= port << 5))
++	: $((port ^= port >> 3))
++	: $((port ^= port << 1))
++}
++
++$NFT add table t
++$NFT add set t s '{ type inet_service ; flags interval ; }'
++
++for op in add delete add; do
++	port=1
++	skip=0
++	for i in $(seq 1 500); do
++		xorshift
++		if [ "${op}" = "delete" ]; then
++			[ ${skip} -eq 0 ] && skip=1 && continue
++			skip=0
++		fi
++		$NFT ${op} element t s "{ { $((port % 32768 + 32768)) } }"
++	done
++done
 -- 
-Stefano
+2.28.0
 
