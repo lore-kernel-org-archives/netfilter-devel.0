@@ -2,82 +2,77 @@ Return-Path: <SRS0=iLnO=B5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59542C433E1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Aug 2020 13:16:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A8E5C433DF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Aug 2020 21:59:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3113020738
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Aug 2020 13:16:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E8C3D207DE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Aug 2020 21:59:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GagE6qKN"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="gvMMUF5l"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728527AbgHSNQK (ORCPT
+        id S1727040AbgHSV7h (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Aug 2020 09:16:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38572 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727932AbgHSNOF (ORCPT
+        Wed, 19 Aug 2020 17:59:37 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:47959 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726209AbgHSV7g (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Aug 2020 09:14:05 -0400
-Received: from mail-pf1-x42c.google.com (mail-pf1-x42c.google.com [IPv6:2607:f8b0:4864:20::42c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6543C061757
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Aug 2020 06:14:04 -0700 (PDT)
-Received: by mail-pf1-x42c.google.com with SMTP id d22so11666098pfn.5
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Aug 2020 06:14:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=Xh+wWgJC0wYpeMZ/FY8pgcf4puZM1cXJxYtp4LJjjI0=;
-        b=GagE6qKNfCtfKu4aKmCduw3VOPdPWQp9kMYXypDj2XjE5f9zUtJEmgUSfwwroOTENW
-         3FIV+ybylLsBEmDmJdOlvyT/0OyaJVQwK1RzBnVkO4k8Jv6XzF3ftaOrn+q6V0sAfX21
-         z9XtHENiCXci4Ua5uzOZtdPxDyLfHz1bmAHdtlAKWaADrzUIPydEJmW69hWyg/2SW7JU
-         jVBPLYXn0Zx8uIjuB8gJF0vvoFn23MmPS9APKyk7nanK+sHXk+7LiBGVT0lQkjm+50lM
-         aayYYB01oH7ZSTQ2+xztkgZNQllu8SuCHnMd1g15u2AAwFHFo7tbBApMeI/MobDC6feB
-         HwxQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=Xh+wWgJC0wYpeMZ/FY8pgcf4puZM1cXJxYtp4LJjjI0=;
-        b=P4Pt0XvnOEQYKTMSdQz3EV5JzWNfkhSm/UGtHTivL6tUEsb5MvuALMe3nYUySrOnY4
-         tLP0J/alNlTQ5M9/JNHqNC9fHKfnyxMkN/2qR7OHw8Z8lmsadthBI2o0Y9giYQUE1LC0
-         bGxGNPK7xYXE9YgqWOyGIbO+V23cOU07Lrg2skpK5BPV4olJF6nqNpjja989jpLwCmZh
-         xL0EBS16rtSOZshwiY2OejF9mhLVEDWl3SNDLlsHjt2dUjQlTevw1QIubppfnSgue4IO
-         pVlVRZfV0bbMhXhevfF6r1wncg/RZK/rXQ2l+5ozqi4/ewGxE84Ddc6wtPQRhARTTyJS
-         VKsQ==
-X-Gm-Message-State: AOAM531coWsHC1BrQ/D/fKiFj2i+RnM29Ai24nZzE3zii1fK5nL6/or1
-        1X2rHsRAMIwrDDBBKWQwKnrulKp3WcDvUY8lD7fsywhN8T0E9A==
-X-Google-Smtp-Source: ABdhPJwHLHifyH+GHP6kJoxZQtXkZ4BZ5wj0hWsnXMXpadeEe4AwclPJcg7L/Kji0yJhIhBd+RRWMjUgaICrhT5Pxbc=
-X-Received: by 2002:a63:d517:: with SMTP id c23mr16591660pgg.65.1597842843600;
- Wed, 19 Aug 2020 06:14:03 -0700 (PDT)
+        Wed, 19 Aug 2020 17:59:36 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1597874375;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=0ejOJhJTlWNgcwT7ZmNLyZD7EEg0/dzqU1R2xwpDIpY=;
+        b=gvMMUF5ldVHXC2M17QiACA57NskVUOh51JxtVh2N6U+vodrQ+QtBufl4ZndeW+JHRGxFq5
+        Hw7j5nGRyfxtQ8WCZmpLBh4w/tWCezP0m4LA6FB1qbFKItnMlxA5ZKHNTsWs7Qlrs/DF2s
+        mZhKIuowPfbbguLxHJHg6QrRs4g5NeA=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-411-aEyNWiigMIqFPSmqvG0VNQ-1; Wed, 19 Aug 2020 17:59:31 -0400
+X-MC-Unique: aEyNWiigMIqFPSmqvG0VNQ-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 8C8A71005E5A;
+        Wed, 19 Aug 2020 21:59:29 +0000 (UTC)
+Received: from epycfail.redhat.com (unknown [10.36.110.53])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 64BBA5C1D0;
+        Wed, 19 Aug 2020 21:59:27 +0000 (UTC)
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, Andreas Fischer <netfilter@d9c.eu>
+Subject: [PATCH nf 0/2] nft_set_rbtree: Two fixes for overlap detection on insert
+Date:   Wed, 19 Aug 2020 23:59:13 +0200
+Message-Id: <cover.1597873312.git.sbrivio@redhat.com>
 MIME-Version: 1.0
-From:   Amiq Nahas <m992493@gmail.com>
-Date:   Wed, 19 Aug 2020 18:43:52 +0530
-Message-ID: <CAPicJaEusDtr9ODxdFvRwS1HyQicKbU=cbGbKLx+nk_DcucL1Q@mail.gmail.com>
-Subject: [iptables] connlabel, increase the number of labels supported
-To:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Guys,
+Patch 1/2 fixes false positive cases resulting from a flawed
+assumption highlighted by
+	https://bugzilla.netfilter.org/show_bug.cgi?id=1449
+and is addressed for stable (5.6.x).
 
-While nftables has got a solution for this https://lwn.net/Articles/524593/
-I am interested in doing something similar for iptables. If I am not
-wrong currently 128 labels are supported. I would like to increase the
-number of labels to 4096 or 8192 or make it dynamic if possible.
+Patch 2/2 fixes a false negative case I noticed while skipping
+different interval overlap checks in nft.
 
-I see that libnetfilter_conntrack has some macros which seem to govern
-the number of labels supported. Ex: MAX_BITS and HASH_SIZE.
+Stefano Brivio (2):
+  nft_set_rbtree: Handle outcomes of tree rotations in overlap detection
+  nft_set_rbtree: Detect partial overlap with start endpoint match
 
-Any suggestions on how this can be done?
-Please pardon and correct my conceptual and factual errors. I am new
-here and have very little idea of what I am doing.
+ net/netfilter/nft_set_rbtree.c | 57 ++++++++++++++++++++++++++++------
+ 1 file changed, 47 insertions(+), 10 deletions(-)
 
-Thanks
-Amiq
+-- 
+2.28.0
+
