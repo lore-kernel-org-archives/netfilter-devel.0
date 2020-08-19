@@ -2,176 +2,133 @@ Return-Path: <SRS0=iLnO=B5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 970C1C433E3
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Aug 2020 21:59:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB97BC433DF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Aug 2020 21:59:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 755AB207DE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Aug 2020 21:59:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A85A7207DE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Aug 2020 21:59:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="VLy1kDXu"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="if++7naz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727049AbgHSV7j (ORCPT
+        id S1727074AbgHSV74 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Aug 2020 17:59:39 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:56992 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726681AbgHSV7h (ORCPT
+        Wed, 19 Aug 2020 17:59:56 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:41079 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726948AbgHSV74 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Aug 2020 17:59:37 -0400
+        Wed, 19 Aug 2020 17:59:56 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1597874376;
+        s=mimecast20190719; t=1597874394;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=LRVgme0aHZSN40LQ8x3jZkcWqAei3k6qlJ5+ci+N3iI=;
-        b=VLy1kDXubN4utIqIcwNFepeaHIz1U09IaCVsv1sbg/lN1Dx2Mgijb2DdOmwbSFf2V5/1Zz
-        3G+eeO9C1FV9qkLAoQY8naZb+y5fX/YqUiT7zjzZ+BM+pLFRFzWlyOYOYsa9HVXzMFpjSH
-        t+KdyJcI4V3VvOMex3vespvRBZNMy3U=
+        bh=ZNu1v/eRW5l4/6/GoXt9HUBooZgO9i7+aruLqFS9ib0=;
+        b=if++7nazP/ziOs76ggQ14AGGUOBESnjYBYBOX78d4nzIZ3xn9xi1eonLcxsBQ5/Q2WXhSm
+        Dr76JAvxnuLz3ICRKzKcNoF99w27yxF69KDY5/qfS1vB2EaqpzN1fHw+rNxRWTkVPnu0My
+        dNhNBHBILsy/H/VUYYa8ftsyfIgsqaY=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-137-AVpSA1TuMV2KfjZ6szk3xg-1; Wed, 19 Aug 2020 17:59:34 -0400
-X-MC-Unique: AVpSA1TuMV2KfjZ6szk3xg-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+ us-mta-255-TYIkZx79Oh2_zclefYRLiQ-1; Wed, 19 Aug 2020 17:59:38 -0400
+X-MC-Unique: TYIkZx79Oh2_zclefYRLiQ-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 20F51186A574;
-        Wed, 19 Aug 2020 21:59:33 +0000 (UTC)
-Received: from epycfail.redhat.com (unknown [10.36.110.53])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id D0F875C1D0;
-        Wed, 19 Aug 2020 21:59:31 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 21CC71DDFB;
+        Wed, 19 Aug 2020 21:59:37 +0000 (UTC)
+Received: from elisabeth (unknown [10.36.110.47])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id ED9AF5D9E8;
+        Wed, 19 Aug 2020 21:59:35 +0000 (UTC)
+Date:   Wed, 19 Aug 2020 23:59:31 +0200
 From:   Stefano Brivio <sbrivio@redhat.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, Andreas Fischer <netfilter@d9c.eu>
-Subject: [PATCH nf 2/2] nft_set_rbtree: Detect partial overlap with start endpoint match
-Date:   Wed, 19 Aug 2020 23:59:15 +0200
-Message-Id: <c9e0d6efe9f783a32b8cc951547f6b18fb94d7e3.1597873312.git.sbrivio@redhat.com>
-In-Reply-To: <cover.1597873312.git.sbrivio@redhat.com>
-References: <cover.1597873312.git.sbrivio@redhat.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nft_set_rbtree: revisit partial overlap
+ detection
+Message-ID: <20200819235931.362539f9@elisabeth>
+In-Reply-To: <20200814192126.29528-1-pablo@netfilter.org>
+References: <20200814192126.29528-1-pablo@netfilter.org>
+Organization: Red Hat
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Getting creative with nft and omitting the interval_overlap()
-check from the set_overlap() function, without omitting
-set_overlap() altogether, led to the observation of a partial
-overlap that wasn't detected, and would actually result in
-replacement of the end element of an existing interval.
+Hi, sorry for the delay.
 
-This is due to the fact that we'll return -EEXIST on a matching,
-pre-existing start element, instead of -ENOTEMPTY, and the error
-is cleared by API if NLM_F_EXCL is not given. At this point, we
-can insert a matching start, and duplicate the end element as long
-as we don't end up into other intervals.
+On Fri, 14 Aug 2020 21:21:26 +0200
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-For instance, inserting interval 0 - 2 with an existing 0 - 3
-interval would result in a single 0 - 2 interval, and a dangling
-'3' end element. This is because nft will proceed after inserting
-the '0' start element as no error is reported, and no further
-conflicting intervals are detected on insertion of the end element.
+> Assuming d = memcmp(node, new) when comparing existing nodes and a new
+> node, when descending the tree to find the spot to insert the node, the
+> overlaps that can be detected are:
+> 
+> 1) If d < 0 and the new node represents an opening interval and there
+>    is an existing opening interval node in the tree, then there is a
+>    possible overlap.
+> 
+> 2) If d > 0 and the new node represents an end of interval and there is an
+>    existing end of interval node, then there is a possible overlap.
+> 
+> When descending the tree, the overlap flag can be reset if the
+> conditions above do not evaluate true anymore.
+> 
+> Note that it is not possible to detect some form of overlaps from the
+> kernel: Assuming the interval [x, y] exists, then this code cannot
+> detect when the interval [ a, b ] when [ a, b ] fully wraps [ x, y ], ie.
+> 
+>              [ a, b ]
+> 	<---------------->
+>              [ x, y ]
+>            <---------->
 
-This needs a different approach as it's a local condition that can
-be detected by looking for duplicate ends coming from left and
-right, separately. Track those and directly report -ENOTEMPTY on
-duplicated end elements for a matching start.
+Actually, also this kind of overlap is detected (and already covered by
+testcases). Here, we would notice already while inserting 'x' that it
+sits between non-matching existing start, x, and existing end, y.
 
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
----
- net/netfilter/nft_set_rbtree.c | 34 +++++++++++++++++++++++++++++++++-
- 1 file changed, 33 insertions(+), 1 deletion(-)
+This can't be detected with just local considerations, and it's the
+reason why the 'overlap' flag is updated as we descend the tree. Now,
+the issue mentioned below:
+	https://bugzilla.netfilter.org/show_bug.cgi?id=1449
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 27668f4e44ea..217ab3644c25 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -218,11 +218,11 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 			       struct nft_rbtree_elem *new,
- 			       struct nft_set_ext **ext)
- {
-+	bool overlap = false, dup_end_left = false, dup_end_right = false;
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	u8 genmask = nft_genmask_next(net);
- 	struct nft_rbtree_elem *rbe;
- 	struct rb_node *parent, **p;
--	bool overlap = false;
- 	int d;
- 
- 	/* Detect overlaps as we descend the tree. Set the flag in these cases:
-@@ -262,6 +262,20 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 	 *
- 	 * which always happen as last step and imply that no further
- 	 * overlapping is possible.
-+	 *
-+	 * Another special case comes from the fact that start elements matching
-+	 * an already existing start element are allowed: insertion is not
-+	 * performed but we return -EEXIST in that case, and the error will be
-+	 * cleared by the caller if NLM_F_EXCL is not present in the request.
-+	 * This way, request for insertion of an exact overlap isn't reported as
-+	 * error to userspace if not desired.
-+	 *
-+	 * However, if the existing start matches a pre-existing start, but the
-+	 * end element doesn't match the corresponding pre-existing end element,
-+	 * we need to report a partial overlap. This is a local condition that
-+	 * can be noticed without need for a tracking flag, by checking for a
-+	 * local duplicated end for a corresponding start, from left and right,
-+	 * separately.
- 	 */
- 
- 	parent = NULL;
-@@ -281,19 +295,35 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 				    !nft_set_elem_expired(&rbe->ext) && !*p)
- 					overlap = false;
- 			} else {
-+				if (dup_end_left && !*p)
-+					return -ENOTEMPTY;
-+
- 				overlap = nft_rbtree_interval_end(rbe) &&
- 					  nft_set_elem_active(&rbe->ext,
- 							      genmask) &&
- 					  !nft_set_elem_expired(&rbe->ext);
-+
-+				if (overlap) {
-+					dup_end_right = true;
-+					continue;
-+				}
- 			}
- 		} else if (d > 0) {
- 			p = &parent->rb_right;
- 
- 			if (nft_rbtree_interval_end(new)) {
-+				if (dup_end_right && !*p)
-+					return -ENOTEMPTY;
-+
- 				overlap = nft_rbtree_interval_end(rbe) &&
- 					  nft_set_elem_active(&rbe->ext,
- 							      genmask) &&
- 					  !nft_set_elem_expired(&rbe->ext);
-+
-+				if (overlap) {
-+					dup_end_left = true;
-+					continue;
-+				}
- 			} else if (nft_set_elem_active(&rbe->ext, genmask) &&
- 				   !nft_set_elem_expired(&rbe->ext)) {
- 				overlap = nft_rbtree_interval_end(rbe);
-@@ -321,6 +351,8 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 				p = &parent->rb_left;
- 			}
- 		}
-+
-+		dup_end_left = dup_end_right = false;
- 	}
- 
- 	if (overlap)
+comes from a wrong assumption I took, namely, the fact that as end
+elements are always inserted after start elements, they also need to be
+found in the tree as descendants of start elements.
+
+This isn't true with tree rebalancing operations resulting in
+rotations, and in the case reported we have some delete operations
+triggering that.
+
+I fixed this case in a new series I'm posting, together with additional
+tests that cause different types of rotations, and one fix for a false
+negative case instead, that I found while playing around with nft
+(skipping different types of overlap checks while keeping others in
+place).
+
+> Moreover, skip checks for anonymous sets where it is not possible to
+> catch overlaps since anonymous sets might not have an explicit end of
+> interval.  e.g.  192.168.0.0/24 and 192.168.1.0/24 results in three tree
+> nodes, one open interval for 192.168.0.0, another open interval for
+> 192.168.1.0 and the end of interval 192.168.2.0. In this case, there is
+> no end of interval for 192.168.1.0 since userspace optimizes the
+> structure to skip this redundant node.
+
+Now, I couldn't find a way to insert anonymous sets that would trigger
+(partial) overlap detection. This is because those overlaps are already
+handled (by merging) by nft, and if I insert multiple anonymous sets
+with overlapping intervals, they are, well... different sets, so
+anything goes. Let me know if I'm missing something here.
+
 -- 
-2.28.0
+Stefano
 
