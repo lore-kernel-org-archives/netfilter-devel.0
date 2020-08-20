@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FE94C433DF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Aug 2020 17:42:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FE23C433E1
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Aug 2020 19:05:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B878207DE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Aug 2020 17:42:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2B3312075E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Aug 2020 19:05:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728396AbgHTRmz (ORCPT
+        id S1727005AbgHTTF4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Aug 2020 13:42:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48584 "EHLO
+        Thu, 20 Aug 2020 15:05:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33212 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728379AbgHTRmn (ORCPT
+        with ESMTP id S1726868AbgHTTF4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Aug 2020 13:42:43 -0400
+        Thu, 20 Aug 2020 15:05:56 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00688C061386
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Aug 2020 10:42:42 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A6C7C061385
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Aug 2020 12:05:56 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1k8oaH-0003sO-IW; Thu, 20 Aug 2020 19:42:41 +0200
+        id 1k8psp-0004Xx-0r; Thu, 20 Aug 2020 21:05:55 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: fix destination register zeroing
-Date:   Thu, 20 Aug 2020 19:42:36 +0200
-Message-Id: <20200820174236.10591-1-fw@strlen.de>
+Subject: [PATCH nf v2] netfilter: nf_tables: fix destination register zeroing
+Date:   Thu, 20 Aug 2020 21:05:50 +0200
+Message-Id: <20200820190550.7736-1-fw@strlen.de>
 X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -46,41 +46,39 @@ nft list ruleset
    set knock_candidates_ipv4 {
       type ipv4_addr . inet_service
       size 65535
-      elements = { 23.94.139.105 . 123,
-                   23.94.139.105 . 123 }
+      elements = { 127.0.0.1 . 123,
+                   127.0.0.1 . 123 }
       }
  ..
    udp dport 123 add @knock_candidates_ipv4 { ip saddr . 123 }
    udp dport 123 add @knock_candidates_ipv4 { ip saddr . udp dport }
 
-so for some reason a duplicate entry was created, which should
-be impossible.
+It should not have been possible to add a duplicate set entry.
 
-After some debugging it turned out that the problem is the
-immediate value (123) in the second-to-last rule.
+After some debugging it turned out that the problem is the immediate
+value (123) in the second-to-last rule.
 
-Concatenations use 32bit registers, i.e. the elements are 8 bytes
-each, not 6 and it turns out the kernel inserted
+Concatenations use 32bit registers, i.e. the elements are 8 bytes each,
+not 6 and it turns out the kernel inserted
 
-element 698b5e17 ffff7b00  : 0 [end]
-element 698b5e17 00007b00  : 0 [end]
+inet firewall @knock_candidates_ipv4
+        element 0100007f ffff7b00  : 0 [end]
+        element 0100007f 00007b00  : 0 [end]
 
-Note the non-zero upper bits of the first element.
+Note the non-zero upper bits of the first element.  It turns out that
+nft_immediate doesn't zero the destination register, but this is needed
+when the length isn't a multiple of 4.
 
-It turns out that nft_immediate doesn't zero out the
-destination register, but this is needed when the length isn't a
-multiple of 4.
+Furthermore, the zeroing in nft_payload is broken.  We can't use
+[len / 4] = 0 -- if len is a multiple of 4, index is off by one.
 
-Furthermore, the zeroing in nft_payload is also broken.
-We can't use [len / 4] = 0 -- if len is a multiple of 4, this results in
-a buffer-off-by-one.
-
-We can elide the zeroing in this case, so use a conditional instead of
-using [(len -1) / 4].
+Skip zeroing in this case and use a conditional instead of (len -1) / 4.
 
 Fixes: 49499c3e6e18 ("netfilter: nf_tables: switch registers to 32 bit addressing")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
+ v2: revisit commit message.  No other changes.
+
  include/net/netfilter/nf_tables.h | 2 ++
  net/netfilter/nft_payload.c       | 4 +++-
  2 files changed, 5 insertions(+), 1 deletion(-)
