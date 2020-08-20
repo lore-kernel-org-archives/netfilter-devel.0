@@ -2,112 +2,83 @@ Return-Path: <SRS0=xTVu=B6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62E1EC433E5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Aug 2020 10:37:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23C4AC433DF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Aug 2020 12:13:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4EA662078D
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Aug 2020 10:37:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F0F6A207BB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Aug 2020 12:13:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730946AbgHTKhQ (ORCPT
+        id S1729454AbgHTMNf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Aug 2020 06:37:16 -0400
-Received: from bmailout1.hostsharing.net ([83.223.95.100]:40831 "EHLO
-        bmailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731068AbgHTKhJ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Aug 2020 06:37:09 -0400
-Received: from h08.hostsharing.net (h08.hostsharing.net [IPv6:2a01:37:1000::53df:5f1c:0])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (Client CN "*.hostsharing.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (not verified))
-        by bmailout1.hostsharing.net (Postfix) with ESMTPS id AD69730000CD0;
-        Thu, 20 Aug 2020 12:37:01 +0200 (CEST)
-Received: by h08.hostsharing.net (Postfix, from userid 100393)
-        id 694A2132D76; Thu, 20 Aug 2020 12:37:01 +0200 (CEST)
-Date:   Thu, 20 Aug 2020 12:37:01 +0200
-From:   Lukas Wunner <lukas@wunner.de>
-To:     Daniel Borkmann <daniel@iogearbox.net>
-Cc:     Laura Garcia <nevola@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Netfilter Development Mailing list 
-        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Martin Mares <mj@ucw.cz>,
-        Dmitry Safonov <0x7f454c46@gmail.com>,
-        Thomas Graf <tgraf@suug.ch>,
-        Alexei Starovoitov <ast@kernel.org>,
-        David Miller <davem@davemloft.net>
-Subject: Re: [PATCH nf-next 3/3] netfilter: Introduce egress hook
-Message-ID: <20200820103701.on5rqxawqqc7kwdw@wunner.de>
-References: <cover.1583927267.git.lukas@wunner.de>
- <14ab7e5af20124a34a50426fd570da7d3b0369ce.1583927267.git.lukas@wunner.de>
- <a57687ae-2da6-ca2a-1c84-e4332a5e4556@iogearbox.net>
- <20200313145526.ikovaalfuy7rnkdl@salvia>
- <1bd50836-33c4-da44-5771-654bfb0348cc@iogearbox.net>
- <20200315132836.cj36ape6rpw33iqb@salvia>
- <CAF90-WgoteQXB9WQmeT1eOHA3GpPbwPCEvNzwKkN20WqpdHW-A@mail.gmail.com>
- <20200423160542.d3f6yef4av2gqvur@wunner.de>
- <1a27351b-78a8-febc-45d7-6ee2e8ebda9e@iogearbox.net>
+        Thu, 20 Aug 2020 08:13:35 -0400
+Received: from correo.us.es ([193.147.175.20]:54394 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728115AbgHTMNX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 20 Aug 2020 08:13:23 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 9C5471BFA80
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Aug 2020 14:13:19 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8E974DA73D
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Aug 2020 14:13:19 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 844A8DA78B; Thu, 20 Aug 2020 14:13:19 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4545ADA73D
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Aug 2020 14:13:17 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 20 Aug 2020 14:13:17 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id 317BF42EE38E
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Aug 2020 14:13:17 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf 1/2] netfilter: nf_tables: add NFTA_SET_USERDATA if not null
+Date:   Thu, 20 Aug 2020 14:12:54 +0200
+Message-Id: <20200820121255.25047-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1a27351b-78a8-febc-45d7-6ee2e8ebda9e@iogearbox.net>
-User-Agent: NeoMutt/20170113 (1.7.2)
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Apr 28, 2020 at 10:11:19PM +0200, Daniel Borkmann wrote:
-> > https://lore.kernel.org/netdev/bbdee6355234e730ef686f9321bd072bcf4bb232.1584523237.git.daniel@iogearbox.net/
-> > 
-> > In the ensuing discussion it turned out that the performance argument
-> > may be addressed by a rearrangement of sch_handle_egress() and
-> > nf_egress() invocations.  I could look into amending the series
-> > accordingly and resubmitting, though I'm currently swamped with
-> > other work.
-> 
-> The rework of these hooks is still on my todo list, too swamped with
-> other stuff as well right now, but I'll see to have a prototype this
-> net-next development cycle.
+Kernel sends an empty NFTA_SET_USERDATA attribute with no value if
+userspace adds a set no NFTA_SET_USERDATA attribute.
 
-Daniel, I have it running now the way you want it (I think) and am
-benchmarking several variants.  I'm now faced with the following
-choice:
+Fixes: e6d8ecac9e68 ("netfilter: nf_tables: Add new attributes into nft_set to store user data.")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-* One variant speeds up the default case with neither tc nor nft in use
-  (2241 -> 2285 Mb/sec), but tc becomes a little slower (1929 -> 1927
-  Mb/sec).
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index fd814e514f94..71e501c5ad21 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3770,7 +3770,8 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
+ 			goto nla_put_failure;
+ 	}
+ 
+-	if (nla_put(skb, NFTA_SET_USERDATA, set->udlen, set->udata))
++	if (set->udata &&
++	    nla_put(skb, NFTA_SET_USERDATA, set->udlen, set->udata))
+ 		goto nla_put_failure;
+ 
+ 	nest = nla_nest_start_noflag(skb, NFTA_SET_DESC);
+-- 
+2.20.1
 
-* Another variant still speeds up the default case but not by as much
-  (2241 -> 2274 Mb/sec) and speeds up tc as well (1929 -> 1931 Mb/sec).
-
-The difference is that the first variant uses an outer static_key which
-patches in a function containing two inner static_keys for nft + tc.
-The second variant uses an outer static_key and a single inner static_key
-for nft (but no static_key for tc).
-
-nft is slower in the second variant (2231 -> 2225 Mb/sec).
-
-I'm leaning towards the first variant, but because it incurs a small
-performance degradation if tc is used, I wanted to give you a heads-up.
-If this is totally unacceptable for you, I'll post the second variant
-instead.
-
-I need a few more days to update the commit messages, perform further
-testing and apply polish, so I plan to dump the patches to the list
-next week.  Just thought I'd ask for your opinion, I'm aware this is
-difficult to judge without seeing the code.
-
-I'm using static_keys instead of fmodify_return (which you've suggested)
-because I would like to avoid a dependency on BPF as it might not be an
-option for space-constrained embedded machines and a BPF JIT isn't
-available on as many arches as CONFIG_JUMP_LABEL.
-
-Thanks,
-
-Lukas
