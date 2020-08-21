@@ -2,96 +2,159 @@ Return-Path: <SRS0=c8az=B7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D62C2C433E1
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Aug 2020 15:41:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EAD3FC433E1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Aug 2020 16:15:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B1F482063A
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Aug 2020 15:41:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CBD3820578
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Aug 2020 16:15:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1598026555;
+	bh=q80865g4cKNeUhpRJl0wdHIIh4zKgCeHakfCqEH55pw=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=y4n0RmOPQEEn1VB6mXroZSD534HzOQh4mg7DeZHAO9bbfQDI24DAfK84u7Bii2T8q
+	 9g+OX12o0zqzUPF6RBW9XdFy0W2M+946uyk0CL8h5pJUEKJzix83BLcPAB7itCCtWO
+	 2nyA61usL75PIo+cLjZFLPJSim81aDtmoYmaQi7I=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727906AbgHUPld (ORCPT
+        id S1727990AbgHUQPu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Aug 2020 11:41:33 -0400
-Received: from correo.us.es ([193.147.175.20]:33320 "EHLO mail.us.es"
+        Fri, 21 Aug 2020 12:15:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48370 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727849AbgHUPlc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Aug 2020 11:41:32 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A19481022A2
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2020 17:41:30 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 94351DA722
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2020 17:41:30 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 89972DA73F; Fri, 21 Aug 2020 17:41:30 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 67018DA722;
-        Fri, 21 Aug 2020 17:41:28 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 21 Aug 2020 17:41:28 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        id S1727955AbgHUQPg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 21 Aug 2020 12:15:36 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 46A5A42EE38F;
-        Fri, 21 Aug 2020 17:41:28 +0200 (CEST)
-Date:   Fri, 21 Aug 2020 17:41:27 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf v2] netfilter: nf_tables: fix destination register
- zeroing
-Message-ID: <20200821154127.GA31079@salvia>
-References: <20200820190550.7736-1-fw@strlen.de>
+        by mail.kernel.org (Postfix) with ESMTPSA id B22D82063A;
+        Fri, 21 Aug 2020 16:15:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1598026535;
+        bh=q80865g4cKNeUhpRJl0wdHIIh4zKgCeHakfCqEH55pw=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=L5XzyozaZ4SQCxwd5cQYOXGo/WVQrANw47f9ZPD9jc20j0eRqCO7pwQv3Ly0vb8px
+         MBKg1PBuSVV7eTB460FfX4h2NB/fwqb//SyStxeg+RC2qktVPed+9cj87A22j0+qwe
+         wKX9wnxnapshNPi61//ncJgguG//ygwVnnHz2sxw=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.8 56/62] netfilter: nf_tables: report EEXIST on overlaps
+Date:   Fri, 21 Aug 2020 12:14:17 -0400
+Message-Id: <20200821161423.347071-56-sashal@kernel.org>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20200821161423.347071-1-sashal@kernel.org>
+References: <20200821161423.347071-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200820190550.7736-1-fw@strlen.de>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Aug 20, 2020 at 09:05:50PM +0200, Florian Westphal wrote:
-> Following bug was reported via irc:
-> nft list ruleset
->    set knock_candidates_ipv4 {
->       type ipv4_addr . inet_service
->       size 65535
->       elements = { 127.0.0.1 . 123,
->                    127.0.0.1 . 123 }
->       }
->  ..
->    udp dport 123 add @knock_candidates_ipv4 { ip saddr . 123 }
->    udp dport 123 add @knock_candidates_ipv4 { ip saddr . udp dport }
-> 
-> It should not have been possible to add a duplicate set entry.
-> 
-> After some debugging it turned out that the problem is the immediate
-> value (123) in the second-to-last rule.
-> 
-> Concatenations use 32bit registers, i.e. the elements are 8 bytes each,
-> not 6 and it turns out the kernel inserted
-> 
-> inet firewall @knock_candidates_ipv4
->         element 0100007f ffff7b00  : 0 [end]
->         element 0100007f 00007b00  : 0 [end]
-> 
-> Note the non-zero upper bits of the first element.  It turns out that
-> nft_immediate doesn't zero the destination register, but this is needed
-> when the length isn't a multiple of 4.
-> 
-> Furthermore, the zeroing in nft_payload is broken.  We can't use
-> [len / 4] = 0 -- if len is a multiple of 4, index is off by one.
-> 
-> Skip zeroing in this case and use a conditional instead of (len -1) / 4.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Applied, thanks.
+[ Upstream commit 77a92189ecfd061616ad531d386639aab7baaad9 ]
+
+Replace EBUSY by EEXIST in the following cases:
+
+- If the user adds a chain with a different configuration such as different
+  type, hook and priority.
+
+- If the user adds a non-base chain that clashes with an existing basechain.
+
+- If the user adds a { key : value } mapping element and the key exists
+  but the value differs.
+
+- If the device already belongs to an existing flowtable.
+
+User describe that this error reporting is confusing:
+
+- https://bugzilla.netfilter.org/show_bug.cgi?id=1176
+- https://bugzilla.netfilter.org/show_bug.cgi?id=1413
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/nf_tables_api.c | 16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 88325b264737f..d31832d32e028 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2037,7 +2037,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 
+ 	if (nla[NFTA_CHAIN_HOOK]) {
+ 		if (!nft_is_base_chain(chain))
+-			return -EBUSY;
++			return -EEXIST;
+ 
+ 		err = nft_chain_parse_hook(ctx->net, nla, &hook, ctx->family,
+ 					   false);
+@@ -2047,21 +2047,21 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 		basechain = nft_base_chain(chain);
+ 		if (basechain->type != hook.type) {
+ 			nft_chain_release_hook(&hook);
+-			return -EBUSY;
++			return -EEXIST;
+ 		}
+ 
+ 		if (ctx->family == NFPROTO_NETDEV) {
+ 			if (!nft_hook_list_equal(&basechain->hook_list,
+ 						 &hook.list)) {
+ 				nft_chain_release_hook(&hook);
+-				return -EBUSY;
++				return -EEXIST;
+ 			}
+ 		} else {
+ 			ops = &basechain->ops;
+ 			if (ops->hooknum != hook.num ||
+ 			    ops->priority != hook.priority) {
+ 				nft_chain_release_hook(&hook);
+-				return -EBUSY;
++				return -EEXIST;
+ 			}
+ 		}
+ 		nft_chain_release_hook(&hook);
+@@ -5160,10 +5160,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			if (nft_set_ext_exists(ext, NFT_SET_EXT_DATA) ^
+ 			    nft_set_ext_exists(ext2, NFT_SET_EXT_DATA) ||
+ 			    nft_set_ext_exists(ext, NFT_SET_EXT_OBJREF) ^
+-			    nft_set_ext_exists(ext2, NFT_SET_EXT_OBJREF)) {
+-				err = -EBUSY;
++			    nft_set_ext_exists(ext2, NFT_SET_EXT_OBJREF))
+ 				goto err_element_clash;
+-			}
+ 			if ((nft_set_ext_exists(ext, NFT_SET_EXT_DATA) &&
+ 			     nft_set_ext_exists(ext2, NFT_SET_EXT_DATA) &&
+ 			     memcmp(nft_set_ext_data(ext),
+@@ -5171,7 +5169,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			    (nft_set_ext_exists(ext, NFT_SET_EXT_OBJREF) &&
+ 			     nft_set_ext_exists(ext2, NFT_SET_EXT_OBJREF) &&
+ 			     *nft_set_ext_obj(ext) != *nft_set_ext_obj(ext2)))
+-				err = -EBUSY;
++				goto err_element_clash;
+ 			else if (!(nlmsg_flags & NLM_F_EXCL))
+ 				err = 0;
+ 		} else if (err == -ENOTEMPTY) {
+@@ -6308,7 +6306,7 @@ static int nft_register_flowtable_net_hooks(struct net *net,
+ 			list_for_each_entry(hook2, &ft->hook_list, list) {
+ 				if (hook->ops.dev == hook2->ops.dev &&
+ 				    hook->ops.pf == hook2->ops.pf) {
+-					err = -EBUSY;
++					err = -EEXIST;
+ 					goto err_unregister_net_hooks;
+ 				}
+ 			}
+-- 
+2.25.1
+
