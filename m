@@ -7,49 +7,48 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51F7AC433E1
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Aug 2020 11:15:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D465C433E1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Aug 2020 14:39:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2FB0620855
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Aug 2020 11:15:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3C77E2078B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Aug 2020 14:39:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728209AbgHULPD (ORCPT
+        id S1727830AbgHUOjw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Aug 2020 07:15:03 -0400
-Received: from correo.us.es ([193.147.175.20]:38860 "EHLO mail.us.es"
+        Fri, 21 Aug 2020 10:39:52 -0400
+Received: from correo.us.es ([193.147.175.20]:53158 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728173AbgHULO6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Aug 2020 07:14:58 -0400
+        id S1727829AbgHUOjw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 21 Aug 2020 10:39:52 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 15CAEDA716
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2020 13:14:57 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 8BC7FFFB62
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2020 16:39:47 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 03AE7DA704
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2020 13:14:57 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7E35CDA73D
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2020 16:39:47 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id ED4BFDA72F; Fri, 21 Aug 2020 13:14:56 +0200 (CEST)
+        id 73F5BDA730; Fri, 21 Aug 2020 16:39:47 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9A5A0DA704
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2020 13:14:54 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F3E06DA72F;
+        Fri, 21 Aug 2020 16:39:44 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 21 Aug 2020 13:14:54 +0200 (CEST)
+ Fri, 21 Aug 2020 16:39:44 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 8743D41E4801
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2020 13:14:54 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPSA id D98FD42EE38E;
+        Fri, 21 Aug 2020 16:39:44 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/2] src: add chain hashtable cache
-Date:   Fri, 21 Aug 2020 13:14:38 +0200
-Message-Id: <20200821111438.5362-2-pablo@netfilter.org>
+Cc:     ricardo.katz@gmail.com
+Subject: [PATCH nft,v2] src: add chain hashtable cache
+Date:   Fri, 21 Aug 2020 16:39:30 +0200
+Message-Id: <20200821143930.27311-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200821111438.5362-1-pablo@netfilter.org>
-References: <20200821111438.5362-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
@@ -80,20 +79,22 @@ need to keep a temporary list of chains anymore.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/cache.h   | 12 ++++++++
+v2: dump chain netlink cache only once.
+
+ include/cache.h   | 14 ++++++++
  include/netlink.h |  1 -
  include/rule.h    |  4 ++-
- src/cache.c       | 76 +++++++++++++++++++++++++++++++++++++++++++++++
+ src/cache.c       | 92 +++++++++++++++++++++++++++++++++++++++++++++++
  src/evaluate.c    |  6 ++--
- src/netlink.c     | 46 ----------------------------
- src/rule.c        | 21 ++++++-------
- 7 files changed, 103 insertions(+), 63 deletions(-)
+ src/netlink.c     | 46 ------------------------
+ src/rule.c        | 34 +++++++++++-------
+ 7 files changed, 133 insertions(+), 64 deletions(-)
 
 diff --git a/include/cache.h b/include/cache.h
-index b9db1a8f7650..4786e5217b08 100644
+index b9db1a8f7650..baa2bb29f1e7 100644
 --- a/include/cache.h
 +++ b/include/cache.h
-@@ -45,4 +45,16 @@ static inline uint32_t djb_hash(const char *key)
+@@ -45,4 +45,18 @@ static inline uint32_t djb_hash(const char *key)
  	return hash;
  }
  
@@ -104,7 +105,9 @@ index b9db1a8f7650..4786e5217b08 100644
 +struct chain;
 +struct handle;
 +
-+int chain_cache_dump(struct netlink_ctx *ctx, struct table *table);
++struct nftnl_chain_list *chain_cache_dump(struct netlink_ctx *ctx, int *err);
++int chain_cache_init(struct netlink_ctx *ctx, struct table *table,
++		     struct nftnl_chain_list *chain_cache);
 +void chain_cache_add(struct chain *chain, struct table *table);
 +struct chain *chain_cache_find(const struct table *table,
 +			       const struct handle *handle);
@@ -159,7 +162,7 @@ index f2f82cc0ca4b..62d25be2106e 100644
  				  const struct handle *h);
  extern struct chain *chain_lookup_fuzzy(const struct handle *h,
 diff --git a/src/cache.c b/src/cache.c
-index 7797ff6b0460..92140b7e280d 100644
+index 7797ff6b0460..ed2609008e22 100644
 --- a/src/cache.c
 +++ b/src/cache.c
 @@ -12,6 +12,9 @@
@@ -172,7 +175,7 @@ index 7797ff6b0460..92140b7e280d 100644
  
  static unsigned int evaluate_cache_add(struct cmd *cmd, unsigned int flags)
  {
-@@ -164,3 +167,76 @@ unsigned int cache_evaluate(struct nft_ctx *nft, struct list_head *cmds)
+@@ -164,3 +167,92 @@ unsigned int cache_evaluate(struct nft_ctx *nft, struct list_head *cmds)
  
  	return flags;
  }
@@ -185,13 +188,19 @@ index 7797ff6b0460..92140b7e280d 100644
 +static int chain_cache_cb(struct nftnl_chain *nlc, void *arg)
 +{
 +	struct chain_cache_dump_ctx *ctx = arg;
-+	const char *chain_name;
++	const char *chain_name, *table_name;
++	uint32_t hash, family;
 +	struct chain *chain;
-+	uint32_t hash;
 +
++	table_name = nftnl_chain_get_str(nlc, NFTNL_CHAIN_TABLE);
 +	chain_name = nftnl_chain_get_str(nlc, NFTNL_CHAIN_NAME);
-+	hash = djb_hash(chain_name) % NFT_CACHE_HSIZE;
++	family = nftnl_chain_get_u32(nlc, NFTNL_CHAIN_FAMILY);
 +
++	if (strcmp(table_name, ctx->table->handle.table.name) ||
++	    family != ctx->table->handle.family)
++		return 0;
++
++	hash = djb_hash(chain_name) % NFT_CACHE_HSIZE;
 +	chain = netlink_delinearize_chain(ctx->nlctx, nlc);
 +
 +	if (chain->flags & CHAIN_F_BINDING) {
@@ -201,29 +210,39 @@ index 7797ff6b0460..92140b7e280d 100644
 +		list_add_tail(&chain->list, &ctx->table->chains);
 +	}
 +
++	nftnl_chain_list_del(nlc);
++	nftnl_chain_free(nlc);
++
 +	return 0;
 +}
 +
-+int chain_cache_dump(struct netlink_ctx *ctx, struct table *table)
++int chain_cache_init(struct netlink_ctx *ctx, struct table *table,
++		     struct nftnl_chain_list *chain_list)
 +{
 +	struct chain_cache_dump_ctx dump_ctx = {
 +		.nlctx	= ctx,
 +		.table	= table,
 +	};
-+	struct nftnl_chain_list *chain_cache;
-+
-+	chain_cache = mnl_nft_chain_dump(ctx, table->handle.family);
-+	if (chain_cache == NULL) {
-+		if (errno == EINTR)
-+			return -1;
-+
-+		return 0;
-+	}
-+
-+	nftnl_chain_list_foreach(chain_cache, chain_cache_cb, &dump_ctx);
-+	nftnl_chain_list_free(chain_cache);
++	nftnl_chain_list_foreach(chain_list, chain_cache_cb, &dump_ctx);
 +
 +	return 0;
++}
++
++struct nftnl_chain_list *chain_cache_dump(struct netlink_ctx *ctx, int *err)
++{
++	struct nftnl_chain_list *chain_list;
++
++	chain_list = mnl_nft_chain_dump(ctx, AF_UNSPEC);
++	if (chain_list == NULL) {
++		if (errno == EINTR) {
++			*err = -1;
++			return NULL;
++		}
++		*err = 0;
++		return NULL;
++	}
++
++	return chain_list;
 +}
 +
 +void chain_cache_add(struct chain *chain, struct table *table)
@@ -335,15 +354,35 @@ index 20b3cdf5e469..1188590995fe 100644
  					const struct nftnl_table *nlt)
  {
 diff --git a/src/rule.c b/src/rule.c
-index 2b5685c23e54..f41018332753 100644
+index 2b5685c23e54..a925d8448760 100644
 --- a/src/rule.c
 +++ b/src/rule.c
-@@ -174,13 +174,9 @@ static int cache_init_objects(struct netlink_ctx *ctx, unsigned int flags)
+@@ -152,11 +152,18 @@ static int cache_init_tables(struct netlink_ctx *ctx, struct handle *h,
+ 
+ static int cache_init_objects(struct netlink_ctx *ctx, unsigned int flags)
+ {
++	struct nftnl_chain_list *chain_list = NULL;
+ 	struct rule *rule, *nrule;
+ 	struct table *table;
+ 	struct chain *chain;
+ 	struct set *set;
+-	int ret;
++	int ret = 0;
++
++	if (flags & NFT_CACHE_CHAIN_BIT) {
++		chain_list = chain_cache_dump(ctx, &ret);
++		if (!chain_list)
++			return ret;
++	}
+ 
+ 	list_for_each_entry(table, &ctx->nft->cache.list, list) {
+ 		if (flags & NFT_CACHE_SET_BIT) {
+@@ -174,13 +181,9 @@ static int cache_init_objects(struct netlink_ctx *ctx, unsigned int flags)
  			}
  		}
  		if (flags & NFT_CACHE_CHAIN_BIT) {
 -			ret = netlink_list_chains(ctx, &table->handle);
-+			ret = chain_cache_dump(ctx, table);
++			ret = chain_cache_init(ctx, table, chain_list);
  			if (ret < 0)
  				return -1;
 -
@@ -353,7 +392,7 @@ index 2b5685c23e54..f41018332753 100644
  		}
  		if (flags & NFT_CACHE_FLOWTABLE_BIT) {
  			ret = netlink_list_flowtables(ctx, &table->handle);
-@@ -198,7 +194,7 @@ static int cache_init_objects(struct netlink_ctx *ctx, unsigned int flags)
+@@ -198,7 +201,7 @@ static int cache_init_objects(struct netlink_ctx *ctx, unsigned int flags)
  		if (flags & NFT_CACHE_RULE_BIT) {
  			ret = netlink_list_rules(ctx, &table->handle);
  			list_for_each_entry_safe(rule, nrule, &ctx->list, list) {
@@ -362,7 +401,18 @@ index 2b5685c23e54..f41018332753 100644
  				if (!chain)
  					chain = chain_binding_lookup(table,
  							rule->handle.chain.name);
-@@ -256,7 +252,6 @@ int cache_update(struct nft_ctx *nft, unsigned int flags, struct list_head *msgs
+@@ -208,6 +211,10 @@ static int cache_init_objects(struct netlink_ctx *ctx, unsigned int flags)
+ 				return -1;
+ 		}
+ 	}
++
++	if (flags & NFT_CACHE_CHAIN_BIT)
++		nftnl_chain_list_free(chain_list);
++
+ 	return 0;
+ }
+ 
+@@ -256,7 +263,6 @@ int cache_update(struct nft_ctx *nft, unsigned int flags, struct list_head *msgs
  {
  	struct netlink_ctx ctx = {
  		.list		= LIST_HEAD_INIT(ctx.list),
@@ -370,7 +420,7 @@ index 2b5685c23e54..f41018332753 100644
  		.nft		= nft,
  		.msgs		= msgs,
  	};
-@@ -926,11 +921,6 @@ void chain_free(struct chain *chain)
+@@ -926,11 +932,6 @@ void chain_free(struct chain *chain)
  	xfree(chain);
  }
  
@@ -382,7 +432,7 @@ index 2b5685c23e54..f41018332753 100644
  struct chain *chain_lookup(const struct table *table, const struct handle *h)
  {
  	struct chain *chain;
-@@ -1295,6 +1285,7 @@ void chain_print_plain(const struct chain *chain, struct output_ctx *octx)
+@@ -1295,6 +1296,7 @@ void chain_print_plain(const struct chain *chain, struct output_ctx *octx)
  struct table *table_alloc(void)
  {
  	struct table *table;
@@ -390,7 +440,7 @@ index 2b5685c23e54..f41018332753 100644
  
  	table = xzalloc(sizeof(*table));
  	init_list_head(&table->chains);
-@@ -1305,6 +1296,11 @@ struct table *table_alloc(void)
+@@ -1305,6 +1307,11 @@ struct table *table_alloc(void)
  	init_list_head(&table->scope.symbols);
  	table->refcnt = 1;
  
@@ -402,7 +452,7 @@ index 2b5685c23e54..f41018332753 100644
  	return table;
  }
  
-@@ -1329,6 +1325,7 @@ void table_free(struct table *table)
+@@ -1329,6 +1336,7 @@ void table_free(struct table *table)
  		obj_free(obj);
  	handle_free(&table->handle);
  	scope_release(&table->scope);
