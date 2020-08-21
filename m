@@ -6,172 +6,117 @@ X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72F3EC433E3
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Aug 2020 19:37:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6755C433E1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Aug 2020 20:14:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4EB1A2072D
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Aug 2020 19:37:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B17C4207CD
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Aug 2020 20:14:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="sD6uHtx5"
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="j1MIxYG+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726585AbgHUThR (ORCPT
+        id S1726719AbgHUUOE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Aug 2020 15:37:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35614 "EHLO
+        Fri, 21 Aug 2020 16:14:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726433AbgHUThE (ORCPT
+        with ESMTP id S1726364AbgHUUN7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Aug 2020 15:37:04 -0400
-Received: from mail-ej1-x644.google.com (mail-ej1-x644.google.com [IPv6:2a00:1450:4864:20::644])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29E77C0613ED
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2020 12:37:03 -0700 (PDT)
-Received: by mail-ej1-x644.google.com with SMTP id d6so3691640ejr.5
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2020 12:37:03 -0700 (PDT)
+        Fri, 21 Aug 2020 16:13:59 -0400
+Received: from mail-ej1-x641.google.com (mail-ej1-x641.google.com [IPv6:2a00:1450:4864:20::641])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 858ADC061755
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2020 13:13:59 -0700 (PDT)
+Received: by mail-ej1-x641.google.com with SMTP id qc22so3835419ejb.4
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2020 13:13:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=jQURKxDjRWMiMTxRUVV2iQZ2ZeobDW7AH50DwoJj7f8=;
-        b=sD6uHtx5WmZbLrlelrAxJJlU8yrwBa7XdhUItXD/MUiuplcXnFHNbs0uCDwUQgzFtN
-         jurCNLEA/E4vr3a4yeIje3FqyDQI8sRF2c9YCo0QgyXFJuEqVPmkW2lS0/NsyrCgrxja
-         tHGI+6w07Ab8+AjC5II2mNiy2hdZ+3qmZyA6KHRLmlNmhG0wcFb6d/3S35p6poEvsoRd
-         vlwL/zS/4H3Jx2D9+lvUJjrS4TpaS1QO3eL2d4amih7Ujdzt9QbFU97rAayMqUXL50px
-         JXF3OtgHHiAAnV5emKHZq4o9IjgjW6eSdpoPKf4Z/6Md2pN6nt5uPCWgvaPZOR/vzBsW
-         mzSw==
+        bh=4BtYd9/pAyG1sqGYcTy0rM8tdo0b9K0n3vpfXHvN2DE=;
+        b=j1MIxYG+ikKdio/J7EEBu7O+TNel4fKx2ssCXBwf1QibUwKRpqucOcuBx8WB9+MiBp
+         yWrpVaS2g4Or8Vsgeq38loMK2o7Ehei2ZhGdshzTafjfyQPoSREWCiy0QXYZYfRIFhsT
+         rTX73zkaUPpfX9PRT8k7hafwBU0/ZL0kTf0UUf4nCTb6d68XXCqd64OJIKfV2JWombm8
+         WTvRKC3G/CXx75X6/3nsms/N8S8lVzAnUwH06hP72mPQZLr6XxUyXRvWSt0dEEaBoIAL
+         5jICYw/OQX1fLwvVhaTNQEe18HTXI5YoEY/jhuo+AvRywFaNHSFUfJHBfv8LqQl2sIo2
+         vCyw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=jQURKxDjRWMiMTxRUVV2iQZ2ZeobDW7AH50DwoJj7f8=;
-        b=T0qki0tAjonDEGXgSvgSDUQzFZjJC7BBDn7lsAfC5tjsCFKa+wpmYh/wFno0ENZlo9
-         gbFkv8bW/EiVFoYAT6ISzEGIGtPL+nLjR4VTL14q1cwd2oYw0/4pqicBhwE8YlppXduu
-         4ESzzqmgcOm+HXhMfWZAPaQ2zvV94vvUouxzsDhe7NARcug3nPcz3+g0/Qx7nIRlluPN
-         WqOzUaZdm91lQEYxLK/QRNrrVzmhtQJZTkreqx+/CWy72eOn56cjIMu2dLM+VvzOYMJZ
-         UfTAtUuxppFOdqco0oL3XimuX19F0AN3KjYXJAECeAHgh74xUolF4SncR7wAY60TaAPz
-         BNSg==
-X-Gm-Message-State: AOAM532G45qcDE6C3WQ3ATXreUhSTDxpQ8FFA21i2OuJopVYPdHNoEju
-        xCpUM8QHGeqPLMFo6xHPw02P2FP0gmaLZUevvKBz
-X-Google-Smtp-Source: ABdhPJxv9ljf/EC5lZy/k36EEbz/l4zL+9SOFpsYjODOPjAFI0K0Ji1ACIURRzkOqqw0PrvW8Opqs3fti74vNH7Daus=
-X-Received: by 2002:a17:906:43c9:: with SMTP id j9mr4383574ejn.542.1598038620869;
- Fri, 21 Aug 2020 12:37:00 -0700 (PDT)
+        bh=4BtYd9/pAyG1sqGYcTy0rM8tdo0b9K0n3vpfXHvN2DE=;
+        b=Jp6kYE2Rr1Vpr4JMTjFH8eb2mcwurFh8FD0ubnaDvzo6c+4D3U3mTnnVa5WqBpBrGs
+         1iv+MtANb9a6FHDD4ZAMseEqtnky+yrdZuEiqhWoAkSfZpsx2YRlYqrO5Si4Ef+zbN9P
+         0hZDlZUL4wruzcdOigR1+TjvU6eDPyqq+PPvzsdl9fLtU7Q0oWd8Y1V45Fb/13x859rg
+         pNozvrak9Klju4KjWYh+12RKW0ZBWzrpRwUogU6pKSCPRNeD1l8/c3Gggr1MtaYkFY2D
+         BhSB12XI5EOwEYICNOaoKmTE4gChhvIfMuuZPsMi/7f2lmrNb/TCfFnc1zjT9cqsC8qg
+         83Gw==
+X-Gm-Message-State: AOAM532Ld+fsoPUY1/sQi3nkw+O7rODPsRThpaTW43nCZvGvrDIRjgDc
+        rWEm2JIe45Bm3oZR5Pa7O9Ig+jh8i3pdxiBCqSJ1
+X-Google-Smtp-Source: ABdhPJyd88CfX7VJaFvZK1tKg0a4ztk8lkZlg+SopdBDlMcFpbfuejWoSXXNsA00gY0qnev4OvuNLAl+o4ySJ/3jueM=
+X-Received: by 2002:a17:906:43c9:: with SMTP id j9mr4526810ejn.542.1598040837725;
+ Fri, 21 Aug 2020 13:13:57 -0700 (PDT)
 MIME-Version: 1.0
-References: <cover.1593198710.git.rgb@redhat.com> <e5a1ab6955c565743372b392a93f7d1ac98478a2.1593198710.git.rgb@redhat.com>
- <CAHC9VhSgcOS79spSuFDMukw2TnLZfBh2p4BWGfoV_CGUS8b77w@mail.gmail.com> <20200729200545.5apwc7fashwsnglj@madcap2.tricolour.ca>
-In-Reply-To: <20200729200545.5apwc7fashwsnglj@madcap2.tricolour.ca>
+References: <cover.1593198710.git.rgb@redhat.com> <01229b93733d9baf6ac9bb0cc243eeb08ad579cd.1593198710.git.rgb@redhat.com>
+ <CAHC9VhT6cLxxws_pYWcL=mWe786xPoTTFfPZ1=P4hx4V3nytXA@mail.gmail.com> <20200807171025.523i2sxfyfl7dfjy@madcap2.tricolour.ca>
+In-Reply-To: <20200807171025.523i2sxfyfl7dfjy@madcap2.tricolour.ca>
 From:   Paul Moore <paul@paul-moore.com>
-Date:   Fri, 21 Aug 2020 15:36:49 -0400
-Message-ID: <CAHC9VhQTiu+yY6cY8tvBf-1ZtZrre3Ljs+Zd6Jf9ZM766bhUYQ@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V9 02/13] audit: add container id
+Date:   Fri, 21 Aug 2020 16:13:45 -0400
+Message-ID: <CAHC9VhQ3MVUY8Zs4GNXdaqhiPJBzHW_YcCe=DghAgo7g6yrNBw@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V9 11/13] audit: contid check descendancy and nesting
 To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
+        containers@lists.linux-foundation.org,
+        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
         Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        sgrubb@redhat.com, Ondrej Mosnacek <omosnace@redhat.com>,
-        dhowells@redhat.com, simo@redhat.com,
-        Eric Paris <eparis@parisplace.org>,
-        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
-        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
-        mpatel@redhat.com
+        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
+        simo@redhat.com, netdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
+        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>, aris@redhat.com
 Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jul 29, 2020 at 4:06 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2020-07-05 11:09, Paul Moore wrote:
-> > On Sat, Jun 27, 2020 at 9:22 AM Richard Guy Briggs <rgb@redhat.com> wrote:
+On Fri, Aug 7, 2020 at 1:10 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2020-07-05 11:11, Paul Moore wrote:
+> > On Sat, Jun 27, 2020 at 9:23 AM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > Require the target task to be a descendant of the container
+> > > orchestrator/engine.
 
-...
+If you want to get formal about this, you need to define "target" in
+the sentence above.  Target of what?
 
-> > > @@ -212,6 +219,33 @@ void __init audit_task_init(void)
-> > >                                              0, SLAB_PANIC, NULL);
-> > >  }
-> > >
-> > > +/* rcu_read_lock must be held by caller unless new */
-> > > +static struct audit_contobj *_audit_contobj_hold(struct audit_contobj *cont)
-> > > +{
-> > > +       if (cont)
-> > > +               refcount_inc(&cont->refcount);
-> > > +       return cont;
-> > > +}
-> > > +
-> > > +static struct audit_contobj *_audit_contobj_get(struct task_struct *tsk)
-> > > +{
-> > > +       if (!tsk->audit)
-> > > +               return NULL;
-> > > +       return _audit_contobj_hold(tsk->audit->cont);
-> > > +}
-> > > +
-> > > +/* rcu_read_lock must be held by caller */
-> > > +static void _audit_contobj_put(struct audit_contobj *cont)
-> > > +{
-> > > +       if (!cont)
-> > > +               return;
-> > > +       if (refcount_dec_and_test(&cont->refcount)) {
-> > > +               put_task_struct(cont->owner);
-> > > +               list_del_rcu(&cont->list);
-> >
-> > You should check your locking; I'm used to seeing exclusive locks
-> > (e.g. the spinlock) around list adds/removes, it just reads/traversals
-> > that can be done with just the RCU lock held.
->
-> Ok, I've redone the locking yet again.  I knew this on one level but
-> that didn't translate consistently to code...
->
-> > > +               kfree_rcu(cont, rcu);
-> > > +       }
-> > > +}
-> >
-> > Another nitpick, but it might be nice to have similar arguments to the
-> > _get() and _put() functions, e.g. struct audit_contobj, but that is
-> > some serious bikeshedding (basically rename _hold() to _get() and
-> > rename _hold to audit_task_contid_hold() or similar).
->
-> I have some idea what you are trying to say, but I think you misspoke.
-> Did you mean rename _hold to _get, rename _get to
-> audit_task_contobj_hold()?
+FWIW, I read the above to basically mean that a task can only set the
+audit container ID of processes which are beneath it in the "process
+tree" where the "process tree" is defined as the relationship between
+a parent and children processes such that the children processes are
+branches below the parent process.
 
-It reads okay to me, but I know what I'm intending here :)  I agree it
-could be a bit confusing.  Let me try to put my suggestion into some
-quick pseudo-code function prototypes to make things a bit more
-concrete.
+I have no problem with that, with the understanding that nesting
+complicates it somewhat.  For example, this isn't true when one of the
+children is a nested orchestrator, is it?
 
-The _audit_contobj_hold() function would become:
-   struct audit_contobj *_audit_contobj_hold(struct task_struct *tsk);
+> > > You would only change the audit container ID from one set or inherited
+> > > value to another if you were nesting containers.
 
-The _audit_contobj_get() function would become:
-   struct audit_contobj *_audit_contobj_get(struct audit_contobj *cont);
+I thought we decided we were going to allow an orchestrator to move a
+process between audit container IDs, yes?  no?
 
-The _audit_contobj_put() function would become:
-   void _audit_contobj_put(struct audit_contobj *cont);
+> > > If changing the contid, the container orchestrator/engine must be a
+> > > descendant and not same orchestrator as the one that set it so it is not
+> > > possible to change the contid of another orchestrator's container.
 
-Basically swap the _get() and _hold() function names so that the
-arguments are the same for both the _get() and _set() functions.  Does
-this make more sense?
+Try rephrasing the above please, it isn't clear to me what you are
+trying to say.
 
-> > >  /**
-> > >   * audit_alloc - allocate an audit info block for a task
-> > >   * @tsk: task
-> > > @@ -232,6 +266,9 @@ int audit_alloc(struct task_struct *tsk)
-> > >         }
-> > >         info->loginuid = audit_get_loginuid(current);
-> > >         info->sessionid = audit_get_sessionid(current);
-> > > +       rcu_read_lock();
-> > > +       info->cont = _audit_contobj_get(current);
-> > > +       rcu_read_unlock();
-> >
-> > The RCU locks aren't strictly necessary here, are they?  In fact I
-> > suppose we could probably just replace the _get() call with a
-> > refcount_set(1) just as we do in audit_set_contid(), yes?
->
-> I don't understand what you are getting at here.  It needs a *contobj,
-> along with bumping up the refcount of the existing contobj.
+> Are we able to agree on the premises above?  Is anything asserted that
+> should not be and is there anything missing?
 
-Sorry, you can disregard.  My mental definition for audit_alloc() is
-permanently messed up; I usually double check myself before commenting
-on related code, but I must have forgotten here.
+See above.
+
+If you want to go back to the definitions/assumptions stage, it
+probably isn't worth worrying about the other comments until we get
+the above sorted.
 
 -- 
 paul moore
