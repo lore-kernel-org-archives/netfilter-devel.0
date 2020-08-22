@@ -5,66 +5,66 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C35A4C433E4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C23FC433E3
 	for <netfilter-devel@archiver.kernel.org>; Sat, 22 Aug 2020 06:22:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 972C420FC3
+	by mail.kernel.org (Postfix) with ESMTP id 77FF6208E4
 	for <netfilter-devel@archiver.kernel.org>; Sat, 22 Aug 2020 06:22:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="okSyyXdj"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YdHJB05d"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726880AbgHVGWS (ORCPT
+        id S1726909AbgHVGWT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 22 Aug 2020 02:22:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50058 "EHLO
+        Sat, 22 Aug 2020 02:22:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50052 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726874AbgHVGWP (ORCPT
+        with ESMTP id S1726535AbgHVGWN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 22 Aug 2020 02:22:15 -0400
-Received: from mail-wr1-x42e.google.com (mail-wr1-x42e.google.com [IPv6:2a00:1450:4864:20::42e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5344AC061755
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2020 23:22:14 -0700 (PDT)
-Received: by mail-wr1-x42e.google.com with SMTP id b17so3006981wru.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2020 23:22:14 -0700 (PDT)
+        Sat, 22 Aug 2020 02:22:13 -0400
+Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5F0CC061575
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2020 23:22:12 -0700 (PDT)
+Received: by mail-wr1-x434.google.com with SMTP id d16so3770417wrq.9
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2020 23:22:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=yAW9m43a8ApNot/JnpRth6fPzV/22JSvUZ9w3wvTZfI=;
-        b=okSyyXdj6OnnCdRn7mSPMe+wAbeCxXvCXJmSiIyZVWt6vpX60umKex47P7mP+ybkC1
-         0D61FFyipp6ylkUzIT4Ic7hAHPcZvE6zfPIpwaik44ZZPdJyQsOYvDQDf2rFV2AiNFJr
-         6SNGYW2W+3HKhi6+0JXonJiOLUMjbOk78XXZTYLGIaSfnBeOlfpWcavk06M38gwblYE8
-         oJkscmVFk3KprvQyt1TtrU/4dJx9x/fru3L4FD/qfM8syq/fiyk8ZS2mFDH7R/fN+LJX
-         W9VYT52K1OapXKEzegxIkFlh8o+6raBjVSJNegum2XkYJJNlBa4iuFD2n2e5ssL6cnC2
-         cWaw==
+        bh=K1Hk/MM+7Waldffy1TUvpaANXjYs4DAdVECghwnIFmQ=;
+        b=YdHJB05dY1sJ6KschY2OTJjlL7XOR6qZ28jG57KvrW87wTzGg/UsG3tHA6J6zgykE4
+         n3jAnn08F/j0L7XAG6tg4k8hZNKoOdR+DRI0ZFDQXmAQIxsVJIekv/tzjZz3z5VjVqOv
+         +pJtnVlpPRFGXuaU4vjhPFQXbQVprIGNV2q6mewBlNjP60R3D/oTTeSKGZENSBFZoNzN
+         YLGSmAzD6N50jez5CmV57V58caZA1kwDMiObvtcEYWcCThCxEFfU2MdSeRQg3YnvvIGz
+         xzAP3zOjVivsrewsMYygJVd0QnKN463Jeibwyy0Y/OlSpHyCjrthWWHy62/J57Tq21Lc
+         XCEw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=yAW9m43a8ApNot/JnpRth6fPzV/22JSvUZ9w3wvTZfI=;
-        b=FpE2VHsKFoUgHAUM3LmPPmHbLTSKEnxVob6EENf23NmN/F9dcWyYYGaiY4PnE04pXv
-         QTrNk9z/YsKlU5IrfY8yrvxEWSzk44SYq9+hb82gtYZr8JaTQTqYLql7y4rF9M9jvvHO
-         ZdFncwcXDq0hrhcnA6dPyqhiaEMMNOO/9k8uGLTMKOT/d+zuSTu+4Jm7Nd12kg6Ko8NU
-         DSHcbMsvFvVY7JtXLxSjbeQJEspQLF4brjBs/V+SI6ubOkd2frjZ4A5UPk4xex5B9AVw
-         4rXpJS8+hLzOIXpiGUYrSYbHxInojKIgme2PvWeLgutbdnxRCFrtXqk+JlfA0FFNyKWq
-         vjDQ==
-X-Gm-Message-State: AOAM531ewBVzklFfAhFJwJoNSTURvc31TUdWxxf3DrnY+4j143+gHBB6
-        Rb+XW/EFc9nDUuJXmm4HsakQIe4IxOpW/A==
-X-Google-Smtp-Source: ABdhPJy9YnLJLD+E/XDKtPlU/wdJsYTT/1fb2pUYZRa9bsrK80h2kMRz3pvyRhSCfv4SB6J9qAsQDQ==
-X-Received: by 2002:adf:f007:: with SMTP id j7mr5357263wro.195.1598077332023;
-        Fri, 21 Aug 2020 23:22:12 -0700 (PDT)
+        bh=K1Hk/MM+7Waldffy1TUvpaANXjYs4DAdVECghwnIFmQ=;
+        b=e4kWVNX1nX7jP5kaEFn/DpbYcEmy7uSpyWSaKX1EUnsblPJspGTzWb0cwU2rRK3hIQ
+         R7LXua6ypy8n1rz8BFHG8dB6t7wT/Gtot2cmcrM9IbFQuFWEOemdevfrDiSjXdzC/aX/
+         u+lGnHSRy946UHJIMngkY3n6PMCCH88/K2r784BTt5AwGfldEEHZ5l6bhrh0e9UybyN+
+         FBA8ranFrppiKY17A9DUFNpzwFkZRMhYGmsq5FTctbRWXqI8cA8tJju4zWhNqAA/zqV2
+         PeFW7U1OU4MsDn6wsPHwrhp1pk4rYqOEpi8uZAWrHwE2b4pgMpuIQIZsgYcgdyRV1kEn
+         7uIg==
+X-Gm-Message-State: AOAM533ZT3t0dpkVJOF8Ma5Vr9V2C2zHla+ygjtr7NF/qHAu/ju5wODX
+        SECBwsjsUsMFllzJ5IbCO5FZcrxfu2/07A==
+X-Google-Smtp-Source: ABdhPJz6vw7aoVxpoEL7GLeC/bN+hwC8mjAOReyAGvJ7078V5Q7OQ/B6eOlKffmv96GGisqJAmd8IQ==
+X-Received: by 2002:a5d:4910:: with SMTP id x16mr5606402wrq.131.1598077330933;
+        Fri, 21 Aug 2020 23:22:10 -0700 (PDT)
 Received: from localhost.localdomain (BC2467A7.dsl.pool.telekom.hu. [188.36.103.167])
-        by smtp.gmail.com with ESMTPSA id h5sm7016321wrt.31.2020.08.21.23.22.11
+        by smtp.gmail.com with ESMTPSA id h5sm7016321wrt.31.2020.08.21.23.22.09
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 21 Aug 2020 23:22:11 -0700 (PDT)
+        Fri, 21 Aug 2020 23:22:10 -0700 (PDT)
 From:   Balazs Scheidler <bazsi77@gmail.com>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Balazs Scheidler <bazsi77@gmail.com>
-Subject: [PATCH nftables 4/4] tests: allow tests to use a custom nft executable
-Date:   Sat, 22 Aug 2020 08:22:03 +0200
-Message-Id: <20200822062203.3617-5-bazsi77@gmail.com>
+Subject: [PATCH nftables 3/4] tests: added "socked wildcard" testcases
+Date:   Sat, 22 Aug 2020 08:22:02 +0200
+Message-Id: <20200822062203.3617-4-bazsi77@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200822062203.3617-1-bazsi77@gmail.com>
 References: <20200822062203.3617-1-bazsi77@gmail.com>
@@ -75,36 +75,97 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Signed-off-by: Balazs Scheidler <bazsi77@gmail.com>
 ---
- tests/monitor/run-tests.sh | 2 +-
- tests/shell/run-tests.sh   | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ tests/py/inet/socket.t         |  4 ++++
+ tests/py/inet/socket.t.json    | 29 +++++++++++++++++++++++++++++
+ tests/py/inet/socket.t.payload | 29 +++++++++++++++++++++++++++++
+ 3 files changed, 62 insertions(+)
 
-diff --git a/tests/monitor/run-tests.sh b/tests/monitor/run-tests.sh
-index ffb833a7..5a736fc6 100755
---- a/tests/monitor/run-tests.sh
-+++ b/tests/monitor/run-tests.sh
-@@ -1,7 +1,7 @@
- #!/bin/bash
+diff --git a/tests/py/inet/socket.t b/tests/py/inet/socket.t
+index 91846e8e..05e9ebb4 100644
+--- a/tests/py/inet/socket.t
++++ b/tests/py/inet/socket.t
+@@ -9,3 +9,7 @@ socket transparent 1;ok
+ socket transparent 2;fail
  
- cd $(dirname $0)
--nft=../../src/nft
-+nft=${NFT:-../../src/nft}
- debug=false
- test_json=false
+ socket mark 0x00000005;ok
++
++socket wildcard 0;ok
++socket wildcard 1;ok
++socket wildcard 2;fail
+diff --git a/tests/py/inet/socket.t.json b/tests/py/inet/socket.t.json
+index 99d6e248..fa48e79d 100644
+--- a/tests/py/inet/socket.t.json
++++ b/tests/py/inet/socket.t.json
+@@ -43,3 +43,32 @@
+     }
+ ]
  
-diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
-index 943f8877..5233ba86 100755
---- a/tests/shell/run-tests.sh
-+++ b/tests/shell/run-tests.sh
-@@ -2,7 +2,7 @@
++# socket wildcard 0
++[
++    {
++        "match": {
++            "left": {
++                "socket": {
++                    "key": "wildcard"
++                }
++            },
++            "op": "==",
++            "right": 0
++        }
++    }
++]
++
++# socket wildcard 1
++[
++    {
++        "match": {
++            "left": {
++                "socket": {
++                    "key": "wildcard"
++                }
++            },
++            "op": "==",
++            "right": 1
++        }
++    }
++]
+diff --git a/tests/py/inet/socket.t.payload b/tests/py/inet/socket.t.payload
+index 687b7a45..79fcea79 100644
+--- a/tests/py/inet/socket.t.payload
++++ b/tests/py/inet/socket.t.payload
+@@ -43,3 +43,32 @@ inet sockin sockchain
+   [ socket load mark => reg 1 ]
+   [ cmp eq reg 1 0x00000005 ]
  
- # Configuration
- TESTDIR="./$(dirname $0)/testcases"
--SRC_NFT="$(dirname $0)/../../src/nft"
-+SRC_NFT=${NFT:-../../src/nft}
- DIFF=$(which diff)
- 
- msg_error() {
++# socket wildcard 0
++ip sockip4 sockchain
++  [ socket load wildcard => reg 1 ]
++  [ cmp eq reg 1 0x00000000 ]
++
++# socket wildcard 0
++ip6 sockip6 sockchain
++  [ socket load wildcard => reg 1 ]
++  [ cmp eq reg 1 0x00000000 ]
++
++# socket wildcard 0
++inet sockin sockchain
++  [ socket load wildcard => reg 1 ]
++  [ cmp eq reg 1 0x00000000 ]
++
++# socket wildcard 1
++ip sockip4 sockchain
++  [ socket load wildcard => reg 1 ]
++  [ cmp eq reg 1 0x00000001 ]
++
++# socket wildcard 1
++ip6 sockip6 sockchain
++  [ socket load wildcard => reg 1 ]
++  [ cmp eq reg 1 0x00000001 ]
++
++# socket wildcard 1
++inet sockin sockchain
++  [ socket load wildcard => reg 1 ]
++  [ cmp eq reg 1 0x00000001 ]
 -- 
 2.17.1
 
