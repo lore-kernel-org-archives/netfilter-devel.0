@@ -2,170 +2,75 @@ Return-Path: <SRS0=C2Rd=CA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C23FC433E3
-	for <netfilter-devel@archiver.kernel.org>; Sat, 22 Aug 2020 06:22:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C040EC433DF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 22 Aug 2020 09:04:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 77FF6208E4
-	for <netfilter-devel@archiver.kernel.org>; Sat, 22 Aug 2020 06:22:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8A72E20825
+	for <netfilter-devel@archiver.kernel.org>; Sat, 22 Aug 2020 09:04:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YdHJB05d"
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="RR916+CY"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726909AbgHVGWT (ORCPT
+        id S1725991AbgHVJE4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 22 Aug 2020 02:22:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50052 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726535AbgHVGWN (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 22 Aug 2020 02:22:13 -0400
-Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5F0CC061575
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2020 23:22:12 -0700 (PDT)
-Received: by mail-wr1-x434.google.com with SMTP id d16so3770417wrq.9
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2020 23:22:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=K1Hk/MM+7Waldffy1TUvpaANXjYs4DAdVECghwnIFmQ=;
-        b=YdHJB05dY1sJ6KschY2OTJjlL7XOR6qZ28jG57KvrW87wTzGg/UsG3tHA6J6zgykE4
-         n3jAnn08F/j0L7XAG6tg4k8hZNKoOdR+DRI0ZFDQXmAQIxsVJIekv/tzjZz3z5VjVqOv
-         +pJtnVlpPRFGXuaU4vjhPFQXbQVprIGNV2q6mewBlNjP60R3D/oTTeSKGZENSBFZoNzN
-         YLGSmAzD6N50jez5CmV57V58caZA1kwDMiObvtcEYWcCThCxEFfU2MdSeRQg3YnvvIGz
-         xzAP3zOjVivsrewsMYygJVd0QnKN463Jeibwyy0Y/OlSpHyCjrthWWHy62/J57Tq21Lc
-         XCEw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references;
-        bh=K1Hk/MM+7Waldffy1TUvpaANXjYs4DAdVECghwnIFmQ=;
-        b=e4kWVNX1nX7jP5kaEFn/DpbYcEmy7uSpyWSaKX1EUnsblPJspGTzWb0cwU2rRK3hIQ
-         R7LXua6ypy8n1rz8BFHG8dB6t7wT/Gtot2cmcrM9IbFQuFWEOemdevfrDiSjXdzC/aX/
-         u+lGnHSRy946UHJIMngkY3n6PMCCH88/K2r784BTt5AwGfldEEHZ5l6bhrh0e9UybyN+
-         FBA8ranFrppiKY17A9DUFNpzwFkZRMhYGmsq5FTctbRWXqI8cA8tJju4zWhNqAA/zqV2
-         PeFW7U1OU4MsDn6wsPHwrhp1pk4rYqOEpi8uZAWrHwE2b4pgMpuIQIZsgYcgdyRV1kEn
-         7uIg==
-X-Gm-Message-State: AOAM533ZT3t0dpkVJOF8Ma5Vr9V2C2zHla+ygjtr7NF/qHAu/ju5wODX
-        SECBwsjsUsMFllzJ5IbCO5FZcrxfu2/07A==
-X-Google-Smtp-Source: ABdhPJz6vw7aoVxpoEL7GLeC/bN+hwC8mjAOReyAGvJ7078V5Q7OQ/B6eOlKffmv96GGisqJAmd8IQ==
-X-Received: by 2002:a5d:4910:: with SMTP id x16mr5606402wrq.131.1598077330933;
-        Fri, 21 Aug 2020 23:22:10 -0700 (PDT)
-Received: from localhost.localdomain (BC2467A7.dsl.pool.telekom.hu. [188.36.103.167])
-        by smtp.gmail.com with ESMTPSA id h5sm7016321wrt.31.2020.08.21.23.22.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 21 Aug 2020 23:22:10 -0700 (PDT)
-From:   Balazs Scheidler <bazsi77@gmail.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Balazs Scheidler <bazsi77@gmail.com>
-Subject: [PATCH nftables 3/4] tests: added "socked wildcard" testcases
-Date:   Sat, 22 Aug 2020 08:22:02 +0200
-Message-Id: <20200822062203.3617-4-bazsi77@gmail.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200822062203.3617-1-bazsi77@gmail.com>
-References: <20200822062203.3617-1-bazsi77@gmail.com>
+        Sat, 22 Aug 2020 05:04:56 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:51148 "EHLO mx1.riseup.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725877AbgHVJEz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 22 Aug 2020 05:04:55 -0400
+Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "Sectigo RSA Domain Validation Secure Server CA" (not verified))
+        by mx1.riseup.net (Postfix) with ESMTPS id 4BYXX71JrWzFmg3;
+        Sat, 22 Aug 2020 02:04:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1598087095; bh=EOAKjoqrtRSuWn2++u3V++NFPcryAfpwTeF4ZMDq2ec=;
+        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
+        b=RR916+CYNYDhEcIqLOVp7zajwuHRPeuOlvuo/+cbTmddnTNiF/1eLVacXDsyTmmyP
+         FSv4yG3zb39ewwuK5WyEHiyWvIdjD8K6qspIvd47CiT5AjGd/FgryXIbtItL4YaoZx
+         jfpM2V0W/xxX5WYpVCuG4hDMy/6pnuKfpW/8osPg=
+X-Riseup-User-ID: EA1AAC2A493F12143479ABA37D13B3A3CAF23E464E27EDB4E30C1162278C2475
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by capuchin.riseup.net (Postfix) with ESMTPSA id 4BYXX61tndz8v0S;
+        Sat, 22 Aug 2020 02:04:54 -0700 (PDT)
+Subject: Re: [PATCH nf-next 1/3] netfilter: nf_tables: add userdata attributes
+ to nft_table
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+References: <20200820081903.36781-1-guigom@riseup.net>
+ <20200820081903.36781-2-guigom@riseup.net> <20200821172112.GA15625@salvia>
+From:   "Jose M. Guisado" <guigom@riseup.net>
+Message-ID: <62ec1a06-e06c-fdfc-e9e2-7ebc71d0f7d9@riseup.net>
+Date:   Sat, 22 Aug 2020 11:04:52 +0200
+MIME-Version: 1.0
+In-Reply-To: <20200821172112.GA15625@salvia>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Balazs Scheidler <bazsi77@gmail.com>
----
- tests/py/inet/socket.t         |  4 ++++
- tests/py/inet/socket.t.json    | 29 +++++++++++++++++++++++++++++
- tests/py/inet/socket.t.payload | 29 +++++++++++++++++++++++++++++
- 3 files changed, 62 insertions(+)
+On 21/8/20 19:21, Pablo Neira Ayuso wrote:
+>         if (nla[NFTA_TABLE_USERDATA]) {
+>                 udlen = nla_len(nla[NFTA_TABLE_USERDATA]);
+>                 table->udata = kzalloc(udlen, GFP_KERNEL);
+>                 if (table->udata == NULL)
+>                         goto err_table_udata;
+> 
+>                 nla_memcpy(table->udata, nla[NFTA_TABLE_USERDATA], udlen);
+>                 table->udlen = udlen;
+>         }
+> 
+> Probably this simplification instead? kzalloc() zeroes the table
+> object, so table->udata is NULL and ->udlen is zero.
 
-diff --git a/tests/py/inet/socket.t b/tests/py/inet/socket.t
-index 91846e8e..05e9ebb4 100644
---- a/tests/py/inet/socket.t
-+++ b/tests/py/inet/socket.t
-@@ -9,3 +9,7 @@ socket transparent 1;ok
- socket transparent 2;fail
- 
- socket mark 0x00000005;ok
-+
-+socket wildcard 0;ok
-+socket wildcard 1;ok
-+socket wildcard 2;fail
-diff --git a/tests/py/inet/socket.t.json b/tests/py/inet/socket.t.json
-index 99d6e248..fa48e79d 100644
---- a/tests/py/inet/socket.t.json
-+++ b/tests/py/inet/socket.t.json
-@@ -43,3 +43,32 @@
-     }
- ]
- 
-+# socket wildcard 0
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "socket": {
-+                    "key": "wildcard"
-+                }
-+            },
-+            "op": "==",
-+            "right": 0
-+        }
-+    }
-+]
-+
-+# socket wildcard 1
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "socket": {
-+                    "key": "wildcard"
-+                }
-+            },
-+            "op": "==",
-+            "right": 1
-+        }
-+    }
-+]
-diff --git a/tests/py/inet/socket.t.payload b/tests/py/inet/socket.t.payload
-index 687b7a45..79fcea79 100644
---- a/tests/py/inet/socket.t.payload
-+++ b/tests/py/inet/socket.t.payload
-@@ -43,3 +43,32 @@ inet sockin sockchain
-   [ socket load mark => reg 1 ]
-   [ cmp eq reg 1 0x00000005 ]
- 
-+# socket wildcard 0
-+ip sockip4 sockchain
-+  [ socket load wildcard => reg 1 ]
-+  [ cmp eq reg 1 0x00000000 ]
-+
-+# socket wildcard 0
-+ip6 sockip6 sockchain
-+  [ socket load wildcard => reg 1 ]
-+  [ cmp eq reg 1 0x00000000 ]
-+
-+# socket wildcard 0
-+inet sockin sockchain
-+  [ socket load wildcard => reg 1 ]
-+  [ cmp eq reg 1 0x00000000 ]
-+
-+# socket wildcard 1
-+ip sockip4 sockchain
-+  [ socket load wildcard => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# socket wildcard 1
-+ip6 sockip6 sockchain
-+  [ socket load wildcard => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# socket wildcard 1
-+inet sockin sockchain
-+  [ socket load wildcard => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
--- 
-2.17.1
+I see. The reason why I didn't simplify at first was because when using 
+other nf_tables_new* functions with userdata support as reference (like 
+newset or newrule), these are checking for userdata length obtained via 
+nla_len before calling nla_memcpy.
 
