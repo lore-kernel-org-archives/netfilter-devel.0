@@ -2,118 +2,112 @@ Return-Path: <SRS0=Al8F=CB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30B6CC433E1
-	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Aug 2020 12:04:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D1B1C433DF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Aug 2020 18:16:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1033220720
-	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Aug 2020 12:04:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 51E1920768
+	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Aug 2020 18:16:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727056AbgHWMEl (ORCPT
+        id S1726243AbgHWSP7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 23 Aug 2020 08:04:41 -0400
-Received: from correo.us.es ([193.147.175.20]:44940 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726090AbgHWMEi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 23 Aug 2020 08:04:38 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 06369DA705
-        for <netfilter-devel@vger.kernel.org>; Sun, 23 Aug 2020 14:04:37 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EA60BDA722
-        for <netfilter-devel@vger.kernel.org>; Sun, 23 Aug 2020 14:04:36 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id E0082DA73F; Sun, 23 Aug 2020 14:04:36 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 74E9EDA722;
-        Sun, 23 Aug 2020 14:04:34 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 23 Aug 2020 14:04:34 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 589A342EE38F;
-        Sun, 23 Aug 2020 14:04:34 +0200 (CEST)
-Date:   Sun, 23 Aug 2020 14:04:34 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
-        Florian Westphal <fw@strlen.de>
-Subject: Re: nfnetlink: Busy-loop in nfnetlink_rcv_msg()
-Message-ID: <20200823120434.GA16617@salvia>
-References: <20200821230615.GW23632@orbyte.nwl.cc>
+        Sun, 23 Aug 2020 14:15:59 -0400
+Received: from mailrelay102.isp.belgacom.be ([195.238.20.129]:53438 "EHLO
+        mailrelay102.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725867AbgHWSP6 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 23 Aug 2020 14:15:58 -0400
+IronPort-SDR: zIM6P8ffbkrc+YRO3HONKTuRLyO0PH06+gga4LTnGlMGnMxwajgJK7Vas6EP26SypTdufJ+Rgw
+ vyls4H0hcFYQexwLNGetvvz7Nsw+Wb1gm8EO1+OWhi5hLhN8tfXQwTYL5QsgaFYRKGyB2wbjYW
+ 2Fnwr8miazCONtmB9VeKa5BPMleIJzGLsyoFvdebrJ5kLRekYkbm5Bq7Rki0IwG0aE7Dz2C/yI
+ VqAaTpQLKIInHud6fGEZYgASf9/Ctt9aG0VHw8w8y5Tk7KlxORyNotT5X2vuSjutgJPZX32s2k
+ XBo=
+X-Belgacom-Dynamic: yes
+IronPort-PHdr: =?us-ascii?q?9a23=3AySt2xh2yZ8zVUv+SsmDT+DRfVm0co7zxezQtwd?=
+ =?us-ascii?q?8ZsesUKfTxwZ3uMQTl6Ol3ixeRBMOHsqwC0rOI+Pm6ACQp2tWoiDg6aptCVh?=
+ =?us-ascii?q?sI2409vjcLJ4q7M3D9N+PgdCcgHc5PBxdP9nC/NlVJSo6lPwWB6nK94iQPFR?=
+ =?us-ascii?q?rhKAF7Ovr6GpLIj8Swyuu+54Dfbx9HiTagYL5+Ngi6oRjQu8UZnIduNLs9wQ?=
+ =?us-ascii?q?bVr3VVfOhb2XlmLk+JkRbm4cew8p9j8yBOtP8k6sVNT6b0cbkmQLJBFDgpPH?=
+ =?us-ascii?q?w768PttRnYUAuA/WAcXXkMkhpJGAfK8hf3VYrsvyTgt+p93C6aPdDqTb0xRD?=
+ =?us-ascii?q?+v4btnRAPuhSwaMTMy7WPZhdFqjK9DoByvuQFxzYDXbo+SO/VwcbjQcc8ZSG?=
+ =?us-ascii?q?dbQspcTTBNDp+6YoASD+QBJ+FYr4zlqlUOtxSxHgisC/npyjRVhnH2x7M13P?=
+ =?us-ascii?q?k/HgHc3QwvA9EOu2nTodX7LqgdSu61wbLTzTXAb/JW3yny6JTSfh86v/6BRL?=
+ =?us-ascii?q?R9etfexkczDQ3KlEmQqZD7MDOP0OQAq2aV4ulkWOyvimMqqx99rzavyMoxlo?=
+ =?us-ascii?q?XFm54Zx1HL+yt23Ys4K8O1RVN7bNOmDpZeuD2WOYV5TM4mQ29muDg2x7kAtJ?=
+ =?us-ascii?q?WmfyYK0IwqyhrCZ/CdboSF4QzvWPyMLTp5hH9pYq+zihe0/EO90OPzTNO030?=
+ =?us-ascii?q?xPriddl9nMsW0C2ALL58icT/t94l+h2TGS1wDP8u1EIV47la7cK5M5xr4wkY?=
+ =?us-ascii?q?Ycvl7HHi/2n0X2l7OWel8g+uiv9+voeLHmqYKbN49xkA7+M6IultS+AeQ+LA?=
+ =?us-ascii?q?cOQ3CW9OCh2LH54EH0Q6tGgucrnqTYsJ3WP9kXq6+hDw9QyIkj6hK/Dzm80N?=
+ =?us-ascii?q?QfmHkKNFxFdwicgIjnIFzOO/P4DPe5g1uyjDdn3evJMaP5DpXXMnfDiKvhfa?=
+ =?us-ascii?q?p660NE0Ao818tQ55ZTCrwaJvL8RFPxtNLZDh89Lwy73fznBM961oMEVmKFGr?=
+ =?us-ascii?q?WZP7/KsV+U+uIvJPGBZIwPtzngL/gq+eLhgGQ/mVADYamp05oXaHSkHvt4OU?=
+ =?us-ascii?q?WVe33sgs0OEW0SpAoxUPTqiEGeUT5Uf3uyUaw96yogCIK6F4fDQp6igLqb0C?=
+ =?us-ascii?q?imAJJcfnpGBUyUEXf0a4WEXO8BaDmJLc97kzwES7mhS4g62BG0qgD11rpnIf?=
+ =?us-ascii?q?DI+iECqZ3j09117fXJlR4u7Tx0E9id02aVQmFygGwIWzE23KF7oUxh1FiDy7?=
+ =?us-ascii?q?F0jOFGGtxN+fxJVhw3NYDTz+NkEdD+QAHBccmTSFagXNqmBSs9TtUrw98Be0?=
+ =?us-ascii?q?x9Acmtjgjf3yq2BL8Yj6CEBJsu8q3Cw3j+Odxyy3Pd2aknkVYmXsVPNWyihq?=
+ =?us-ascii?q?5j6QfTHZTFk0KDl6alba4cxjLC9H+fzWqSu0FVSAhwXrvZXX8CeETWs8/05l?=
+ =?us-ascii?q?3NT7CwE7QrKAhBxtCYKqtMdNLpiU9KRPD5ONTRe2ixgXu/BQ6UxrOQa4rnY2?=
+ =?us-ascii?q?sd0z/GB0gKiA0T5nWGNAg4Bii/v2LSFidhGky8K3/rpPF3one8Zkk50w+La1?=
+ =?us-ascii?q?Fszfyy4BFRzf+VR/ce1ZoCtTsvqjFoEUz72MjZT5KOuCJ6YL9YbNV77FoDnX?=
+ =?us-ascii?q?nTrQ1jP5uINa1uhlcCNQ9wuhDAzRJyX6tJm8kjqjsE1gd+JLiZ21AJIz2R15?=
+ =?us-ascii?q?7YIb7GLGTuuhqiPf2FkmrC2cqbr/9coM8zrE/u6Vmk?=
+X-IronPort-Anti-Spam-Filtered: true
+X-IronPort-Anti-Spam-Result: =?us-ascii?q?A2BeCQArsUJf/xCltltfgRCBRYMYVF+?=
+ =?us-ascii?q?NOJJKkgILAQEBAQEBAQEBJw0BAgQBAYRMgkclOBMCAwEBAQMCBQEBBgEBAQE?=
+ =?us-ascii?q?BAQUEAYYPRUMWAYFdIoNSASMjgT8SgyYBglcpsCiCKIQQhGmBQIE4AYgjhRm?=
+ =?us-ascii?q?BQT+BEYNOhASGMAS2P4JtgwyEWn6RMQ8hoDKSQ6FagXpNIBiDJAlHGQ2caEI?=
+ =?us-ascii?q?wNwIGCgEBAwlXAT0BjAWBWYJGAQE?=
+X-IPAS-Result: =?us-ascii?q?A2BeCQArsUJf/xCltltfgRCBRYMYVF+NOJJKkgILAQEBA?=
+ =?us-ascii?q?QEBAQEBJw0BAgQBAYRMgkclOBMCAwEBAQMCBQEBBgEBAQEBAQUEAYYPRUMWA?=
+ =?us-ascii?q?YFdIoNSASMjgT8SgyYBglcpsCiCKIQQhGmBQIE4AYgjhRmBQT+BEYNOhASGM?=
+ =?us-ascii?q?AS2P4JtgwyEWn6RMQ8hoDKSQ6FagXpNIBiDJAlHGQ2caEIwNwIGCgEBAwlXA?=
+ =?us-ascii?q?T0BjAWBWYJGAQE?=
+Received: from 16.165-182-91.adsl-dyn.isp.belgacom.be (HELO localhost.localdomain) ([91.182.165.16])
+  by relay.skynet.be with ESMTP; 23 Aug 2020 20:15:55 +0200
+From:   Fabian Frederick <fabf@skynet.be>
+To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        sbrivio@redhat.com
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Fabian Frederick <fabf@skynet.be>
+Subject: [PATCH V2 1/5 nf] selftests: netfilter: fix header example
+Date:   Sun, 23 Aug 2020 20:15:37 +0200
+Message-Id: <20200823181537.13254-1-fabf@skynet.be>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200821230615.GW23632@orbyte.nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Phil,
+nft_flowtable.sh is made for bash not sh.
+Also give values which not return "RTNETLINK answers: Invalid argument"
 
-On Sat, Aug 22, 2020 at 01:06:15AM +0200, Phil Sutter wrote:
-> Hi,
-> 
-> Starting firewalld with two active zones in an lxc container provokes a
-> situation in which nfnetlink_rcv_msg() loops indefinitely, because
-> nc->call_rcu() (nf_tables_getgen() in this case) returns -EAGAIN every
-> time.
-> 
-> I identified netlink_attachskb() as the originator for the above error
-> code. The conditional leading to it looks like this:
-> 
-> | if ((atomic_read(&sk->sk_rmem_alloc) > sk->sk_rcvbuf ||
-> |      test_bit(NETLINK_S_CONGESTED, &nlk->state))) {
-> |         [...]
-> |         if (!*timeo) {
-> 
-> *timeo is zero, so this seems to be a non-blocking socket. Both
-> NETLINK_S_CONGESTED bit is set and sk->sk_rmem_alloc exceeds
-> sk->sk_rcvbuf.
-> 
-> From user space side, firewalld seems to simply call sendto() and the
-> call never returns.
-> 
-> How to solve that? I tried to find other code which does the same, but I
-> haven't found one that does any looping. Should nfnetlink_rcv_msg()
-> maybe just return -EAGAIN to the caller if it comes from call_rcu
-> backend?
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+---
+V2 = V1
 
-It's a bug in the netlink frontend, which erroneously reports -EAGAIN
-to the nfnetlink when the socket buffer is full, see:
+ tools/testing/selftests/netfilter/nft_flowtable.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20200823115536.16631-1-pablo@netfilter.org/
+diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
+index a47d1d8322104..28e32fddf9b2c 100755
+--- a/tools/testing/selftests/netfilter/nft_flowtable.sh
++++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
+@@ -11,7 +11,7 @@
+ # result in fragmentation and/or PMTU discovery.
+ #
+ # You can check with different Orgininator/Link/Responder MTU eg:
+-# sh nft_flowtable.sh -o1000 -l500 -r100
++# nft_flowtable.sh -o8000 -l1500 -r2000
+ #
+ 
+ 
+-- 
+2.27.0
 
-> This happening only in an lxc container may be due to some setsockopt()
-> calls not being allowed. In particular, setsockopt(SO_RCVBUFFORCE)
-> returns EPERM.
-
-SO_RCVBUFFORCE fails with EPERM if CAP_NET_ADMIN is not available.
-
-> The value of sk_rcvbuf is 425984, BTW. sk_rmem_alloc is 426240. In user
-> space, I see a call to setsockopt(SO_RCVBUF) with value 4194304. No idea
-> if this is related and how.
-
-Next problem is to track why socket buffer is getting full with
-GET_GENID.
-
-firewalld heavily uses NLM_F_ECHO, there I can see how it can easily
-reach the default socket buffer size, but with GET_GENID I'm not sure
-yet, probably the problem is elsewhere but it manifests in GET_GENID
-because it's the first thing that is done when sending a batch (maybe
-there are unread messages in the socket buffer, you might check
-/proc/net/netlink to see if the socket buffer keeps growing as
-firewalld moves on).
-
-Is this easy to reproduce? Or does this happens after some time of
-firewalld execution?
