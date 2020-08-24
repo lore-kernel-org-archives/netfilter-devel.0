@@ -2,53 +2,55 @@ Return-Path: <SRS0=keFs=CC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82601C433E3
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Aug 2020 11:40:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40A48C433E1
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Aug 2020 11:40:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 67DC020774
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Aug 2020 11:40:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2262520774
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Aug 2020 11:40:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727883AbgHXLj4 (ORCPT
+        id S1727050AbgHXLkW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 24 Aug 2020 07:39:56 -0400
-Received: from correo.us.es ([193.147.175.20]:41588 "EHLO mail.us.es"
+        Mon, 24 Aug 2020 07:40:22 -0400
+Received: from correo.us.es ([193.147.175.20]:41838 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727034AbgHXLjt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Aug 2020 07:39:49 -0400
+        id S1727881AbgHXLj4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 24 Aug 2020 07:39:56 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 18D71130E30
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2020 13:39:48 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 038AD81A2F
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2020 13:39:53 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7F914DA73F
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2020 13:39:47 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6C1A0DA704
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2020 13:39:52 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7DA9FDA72F; Mon, 24 Aug 2020 13:39:47 +0200 (CEST)
+        id E68E1FC5E0; Mon, 24 Aug 2020 13:39:50 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BEF0EDA730;
-        Mon, 24 Aug 2020 13:39:44 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C3B5BE1511;
+        Mon, 24 Aug 2020 13:39:48 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 24 Aug 2020 13:39:44 +0200 (CEST)
+ Mon, 24 Aug 2020 13:39:48 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 131C742EE38E;
-        Mon, 24 Aug 2020 13:39:45 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPSA id 2649C42EE38E;
+        Mon, 24 Aug 2020 13:39:49 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 0/6] Netfilter fixes for net
-Date:   Mon, 24 Aug 2020 13:39:35 +0200
-Message-Id: <20200824113941.25423-1-pablo@netfilter.org>
+Subject: [PATCH 6/6] netfilter: nf_tables: fix destination register zeroing
+Date:   Mon, 24 Aug 2020 13:39:41 +0200
+Message-Id: <20200824113941.25423-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200824113941.25423-1-pablo@netfilter.org>
+References: <20200824113941.25423-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
@@ -57,62 +59,77 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+From: Florian Westphal <fw@strlen.de>
 
-The following patchset contains Netfilter fixes for net:
+Following bug was reported via irc:
+nft list ruleset
+   set knock_candidates_ipv4 {
+      type ipv4_addr . inet_service
+      size 65535
+      elements = { 127.0.0.1 . 123,
+                   127.0.0.1 . 123 }
+      }
+ ..
+   udp dport 123 add @knock_candidates_ipv4 { ip saddr . 123 }
+   udp dport 123 add @knock_candidates_ipv4 { ip saddr . udp dport }
 
-1) Don't flag SCTP heartbeat as invalid for re-used connections,
-   from Florian Westphal.
+It should not have been possible to add a duplicate set entry.
 
-2) Bogus overlap report due to rbtree tree rotations, from Stefano Brivio.
+After some debugging it turned out that the problem is the immediate
+value (123) in the second-to-last rule.
 
-3) Detect partial overlap with start end point match, also from Stefano.
+Concatenations use 32bit registers, i.e. the elements are 8 bytes each,
+not 6 and it turns out the kernel inserted
 
-4) Skip netlink dump of NFTA_SET_USERDATA is unset.
+inet firewall @knock_candidates_ipv4
+        element 0100007f ffff7b00  : 0 [end]
+        element 0100007f 00007b00  : 0 [end]
 
-5) Incorrect nft_list_attributes enumeration definition.
+Note the non-zero upper bits of the first element.  It turns out that
+nft_immediate doesn't zero the destination register, but this is needed
+when the length isn't a multiple of 4.
 
-6) Missing zeroing before memcpy to destination register, also
-   from Florian.
+Furthermore, the zeroing in nft_payload is broken.  We can't use
+[len / 4] = 0 -- if len is a multiple of 4, index is off by one.
 
-Please, pull these changes from:
+Skip zeroing in this case and use a conditional instead of (len -1) / 4.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+Fixes: 49499c3e6e18 ("netfilter: nf_tables: switch registers to 32 bit addressing")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables.h | 2 ++
+ net/netfilter/nft_payload.c       | 4 +++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-Thank you.
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index bf9491b77d16..224d194ad29d 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -143,6 +143,8 @@ static inline u64 nft_reg_load64(const u32 *sreg)
+ static inline void nft_data_copy(u32 *dst, const struct nft_data *src,
+ 				 unsigned int len)
+ {
++	if (len % NFT_REG32_SIZE)
++		dst[len / NFT_REG32_SIZE] = 0;
+ 	memcpy(dst, src, len);
+ }
+ 
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index ed7cb9f747f6..7a2e59638499 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -87,7 +87,9 @@ void nft_payload_eval(const struct nft_expr *expr,
+ 	u32 *dest = &regs->data[priv->dreg];
+ 	int offset;
+ 
+-	dest[priv->len / NFT_REG32_SIZE] = 0;
++	if (priv->len % NFT_REG32_SIZE)
++		dest[priv->len / NFT_REG32_SIZE] = 0;
++
+ 	switch (priv->base) {
+ 	case NFT_PAYLOAD_LL_HEADER:
+ 		if (!skb_mac_header_was_set(skb))
+-- 
+2.20.1
 
-----------------------------------------------------------------
-
-The following changes since commit cf96d977381d4a23957bade2ddf1c420b74a26b6:
-
-  net: gemini: Fix missing free_netdev() in error path of gemini_ethernet_port_probe() (2020-08-19 16:37:18 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to 1e105e6afa6c3d32bfb52c00ffa393894a525c27:
-
-  netfilter: nf_tables: fix destination register zeroing (2020-08-21 19:00:33 +0200)
-
-----------------------------------------------------------------
-Florian Westphal (2):
-      netfilter: conntrack: allow sctp hearbeat after connection re-use
-      netfilter: nf_tables: fix destination register zeroing
-
-Pablo Neira Ayuso (2):
-      netfilter: nf_tables: add NFTA_SET_USERDATA if not null
-      netfilter: nf_tables: incorrect enum nft_list_attributes definition
-
-Stefano Brivio (2):
-      netfilter: nft_set_rbtree: Handle outcomes of tree rotations in overlap detection
-      netfilter: nft_set_rbtree: Detect partial overlap with start endpoint match
-
- include/linux/netfilter/nf_conntrack_sctp.h |  2 +
- include/net/netfilter/nf_tables.h           |  2 +
- include/uapi/linux/netfilter/nf_tables.h    |  2 +-
- net/netfilter/nf_conntrack_proto_sctp.c     | 39 ++++++++++++++++++--
- net/netfilter/nf_tables_api.c               |  3 +-
- net/netfilter/nft_payload.c                 |  4 +-
- net/netfilter/nft_set_rbtree.c              | 57 ++++++++++++++++++++++++-----
- 7 files changed, 92 insertions(+), 17 deletions(-)
