@@ -4,50 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A77DDC433DF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Aug 2020 11:40:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3117C433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Aug 2020 11:40:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9205820774
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Aug 2020 11:40:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C9D4420774
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Aug 2020 11:40:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727829AbgHXLj6 (ORCPT
+        id S1727841AbgHXLkH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 24 Aug 2020 07:39:58 -0400
-Received: from correo.us.es ([193.147.175.20]:41726 "EHLO mail.us.es"
+        Mon, 24 Aug 2020 07:40:07 -0400
+Received: from correo.us.es ([193.147.175.20]:41836 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727779AbgHXLjw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Aug 2020 07:39:52 -0400
+        id S1727879AbgHXLj4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 24 Aug 2020 07:39:56 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9088881A0C
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2020 13:39:50 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id E223881A2C
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2020 13:39:52 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F238DFC5F2
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2020 13:39:49 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5528DFC5E9
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2020 13:39:52 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 4C5A352547; Mon, 24 Aug 2020 13:39:49 +0200 (CEST)
+        id 5953CDA72F; Mon, 24 Aug 2020 13:39:50 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1F09ADA874;
-        Mon, 24 Aug 2020 13:39:47 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 43A63DA4FD;
+        Mon, 24 Aug 2020 13:39:48 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 24 Aug 2020 13:39:47 +0200 (CEST)
+ Mon, 24 Aug 2020 13:39:48 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 7321F42EE38E;
-        Mon, 24 Aug 2020 13:39:47 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPSA id 9912142EE38F;
+        Mon, 24 Aug 2020 13:39:48 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 3/6] netfilter: nft_set_rbtree: Detect partial overlap with start endpoint match
-Date:   Mon, 24 Aug 2020 13:39:38 +0200
-Message-Id: <20200824113941.25423-4-pablo@netfilter.org>
+Subject: [PATCH 5/6] netfilter: nf_tables: incorrect enum nft_list_attributes definition
+Date:   Mon, 24 Aug 2020 13:39:40 +0200
+Message-Id: <20200824113941.25423-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200824113941.25423-1-pablo@netfilter.org>
 References: <20200824113941.25423-1-pablo@netfilter.org>
@@ -59,120 +59,28 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Stefano Brivio <sbrivio@redhat.com>
+This should be NFTA_LIST_UNSPEC instead of NFTA_LIST_UNPEC, all other
+similar attribute definitions are postfixed with _UNSPEC.
 
-Getting creative with nft and omitting the interval_overlap()
-check from the set_overlap() function, without omitting
-set_overlap() altogether, led to the observation of a partial
-overlap that wasn't detected, and would actually result in
-replacement of the end element of an existing interval.
-
-This is due to the fact that we'll return -EEXIST on a matching,
-pre-existing start element, instead of -ENOTEMPTY, and the error
-is cleared by API if NLM_F_EXCL is not given. At this point, we
-can insert a matching start, and duplicate the end element as long
-as we don't end up into other intervals.
-
-For instance, inserting interval 0 - 2 with an existing 0 - 3
-interval would result in a single 0 - 2 interval, and a dangling
-'3' end element. This is because nft will proceed after inserting
-the '0' start element as no error is reported, and no further
-conflicting intervals are detected on insertion of the end element.
-
-This needs a different approach as it's a local condition that can
-be detected by looking for duplicate ends coming from left and
-right, separately. Track those and directly report -ENOTEMPTY on
-duplicated end elements for a matching start.
-
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+Fixes: 96518518cc41 ("netfilter: add nftables")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_rbtree.c | 34 +++++++++++++++++++++++++++++++++-
- 1 file changed, 33 insertions(+), 1 deletion(-)
+ include/uapi/linux/netfilter/nf_tables.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 27668f4e44ea..217ab3644c25 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -218,11 +218,11 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 			       struct nft_rbtree_elem *new,
- 			       struct nft_set_ext **ext)
- {
-+	bool overlap = false, dup_end_left = false, dup_end_right = false;
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	u8 genmask = nft_genmask_next(net);
- 	struct nft_rbtree_elem *rbe;
- 	struct rb_node *parent, **p;
--	bool overlap = false;
- 	int d;
- 
- 	/* Detect overlaps as we descend the tree. Set the flag in these cases:
-@@ -262,6 +262,20 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 	 *
- 	 * which always happen as last step and imply that no further
- 	 * overlapping is possible.
-+	 *
-+	 * Another special case comes from the fact that start elements matching
-+	 * an already existing start element are allowed: insertion is not
-+	 * performed but we return -EEXIST in that case, and the error will be
-+	 * cleared by the caller if NLM_F_EXCL is not present in the request.
-+	 * This way, request for insertion of an exact overlap isn't reported as
-+	 * error to userspace if not desired.
-+	 *
-+	 * However, if the existing start matches a pre-existing start, but the
-+	 * end element doesn't match the corresponding pre-existing end element,
-+	 * we need to report a partial overlap. This is a local condition that
-+	 * can be noticed without need for a tracking flag, by checking for a
-+	 * local duplicated end for a corresponding start, from left and right,
-+	 * separately.
- 	 */
- 
- 	parent = NULL;
-@@ -281,19 +295,35 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 				    !nft_set_elem_expired(&rbe->ext) && !*p)
- 					overlap = false;
- 			} else {
-+				if (dup_end_left && !*p)
-+					return -ENOTEMPTY;
-+
- 				overlap = nft_rbtree_interval_end(rbe) &&
- 					  nft_set_elem_active(&rbe->ext,
- 							      genmask) &&
- 					  !nft_set_elem_expired(&rbe->ext);
-+
-+				if (overlap) {
-+					dup_end_right = true;
-+					continue;
-+				}
- 			}
- 		} else if (d > 0) {
- 			p = &parent->rb_right;
- 
- 			if (nft_rbtree_interval_end(new)) {
-+				if (dup_end_right && !*p)
-+					return -ENOTEMPTY;
-+
- 				overlap = nft_rbtree_interval_end(rbe) &&
- 					  nft_set_elem_active(&rbe->ext,
- 							      genmask) &&
- 					  !nft_set_elem_expired(&rbe->ext);
-+
-+				if (overlap) {
-+					dup_end_left = true;
-+					continue;
-+				}
- 			} else if (nft_set_elem_active(&rbe->ext, genmask) &&
- 				   !nft_set_elem_expired(&rbe->ext)) {
- 				overlap = nft_rbtree_interval_end(rbe);
-@@ -321,6 +351,8 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 				p = &parent->rb_left;
- 			}
- 		}
-+
-+		dup_end_left = dup_end_right = false;
- 	}
- 
- 	if (overlap)
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 42f351c1f5c5..2b8e12f7a4a6 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -133,7 +133,7 @@ enum nf_tables_msg_types {
+  * @NFTA_LIST_ELEM: list element (NLA_NESTED)
+  */
+ enum nft_list_attributes {
+-	NFTA_LIST_UNPEC,
++	NFTA_LIST_UNSPEC,
+ 	NFTA_LIST_ELEM,
+ 	__NFTA_LIST_MAX
+ };
 -- 
 2.20.1
 
