@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A71B8C433E1
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Aug 2020 22:53:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5A95C433DF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Aug 2020 22:54:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 898F42075F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Aug 2020 22:53:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8FBAF2075F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Aug 2020 22:54:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726630AbgHYWxZ (ORCPT
+        id S1726700AbgHYWyB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 Aug 2020 18:53:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55286 "EHLO
+        Tue, 25 Aug 2020 18:54:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55378 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726180AbgHYWxZ (ORCPT
+        with ESMTP id S1726627AbgHYWyB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Aug 2020 18:53:25 -0400
+        Tue, 25 Aug 2020 18:54:01 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17BF2C061574
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Aug 2020 15:53:25 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28472C061574
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Aug 2020 15:54:01 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1kAhoe-000664-7v; Wed, 26 Aug 2020 00:53:20 +0200
+        id 1kAhpE-00066M-Nd; Wed, 26 Aug 2020 00:53:57 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 4/4] netfilter: conntrack: remove unneeded nf_ct_put
-Date:   Wed, 26 Aug 2020 00:52:45 +0200
-Message-Id: <20200825225245.8072-5-fw@strlen.de>
+Subject: [PATCH conntrack-tools] conntrack: add support for CLASH_RESOLVED counter
+Date:   Wed, 26 Aug 2020 00:53:51 +0200
+Message-Id: <20200825225351.8631-1-fw@strlen.de>
 X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200825225245.8072-1-fw@strlen.de>
-References: <20200825225245.8072-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -43,54 +41,62 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-We can delay refcount increment until we reassign the existing entry to
-the current skb.
+While at it, also allow to display up to 4 counters that are sent
+by kernel but that we do not know.
 
-A 0 refcount can't happen while the nf_conn object is still in the
-hash table and parallel mutations are impossible because we hold the
-bucket lock.
+This is useful to list counters that a new kernel supports with
+and older release of conntrack-tools.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_conntrack_core.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ src/conntrack.c | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 93e77ca0efad..234b7cab37c3 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -908,6 +908,7 @@ static void __nf_conntrack_insert_prepare(struct nf_conn *ct)
- 		tstamp->start = ktime_get_real_ns();
+diff --git a/src/conntrack.c b/src/conntrack.c
+index fb4e5be86ed8..a26fa60bbbc9 100644
+--- a/src/conntrack.c
++++ b/src/conntrack.c
+@@ -1986,11 +1986,13 @@ static int nfct_stats_attr_cb(const struct nlattr *attr, void *data)
+ 	return MNL_CB_OK;
  }
  
-+/* caller must hold locks to prevent concurrent changes */
- static int __nf_ct_resolve_clash(struct sk_buff *skb,
- 				 struct nf_conntrack_tuple_hash *h)
- {
-@@ -921,13 +922,12 @@ static int __nf_ct_resolve_clash(struct sk_buff *skb,
- 	if (nf_ct_is_dying(ct))
- 		return NF_DROP;
- 
--	if (!atomic_inc_not_zero(&ct->ct_general.use))
--		return NF_DROP;
--
- 	if (((ct->status & IPS_NAT_DONE_MASK) == 0) ||
- 	    nf_ct_match(ct, loser_ct)) {
- 		struct net *net = nf_ct_net(ct);
- 
-+		nf_conntrack_get(&ct->ct_general);
++#define UNKNOWN_STATS_NUM 4
 +
- 		nf_ct_acct_merge(ct, ctinfo, loser_ct);
- 		nf_ct_add_to_dying_list(loser_ct);
- 		nf_conntrack_put(&loser_ct->ct_general);
-@@ -937,7 +937,6 @@ static int __nf_ct_resolve_clash(struct sk_buff *skb,
- 		return NF_ACCEPT;
- 	}
+ static int nfct_stats_cb(const struct nlmsghdr *nlh, void *data)
+ {
+-	struct nlattr *tb[CTA_STATS_MAX+1] = {};
++	struct nlattr *tb[CTA_STATS_MAX + UNKNOWN_STATS_NUM + 1] = {};
+ 	struct nfgenmsg *nfg = mnl_nlmsg_get_payload(nlh);
+-	const char *attr2name[CTA_STATS_MAX+1] = {
++	const char *attr2name[CTA_STATS_MAX + UNKNOWN_STATS_NUM + 1] = {
+ 		[CTA_STATS_SEARCHED]	= "searched",
+ 		[CTA_STATS_FOUND]	= "found",
+ 		[CTA_STATS_NEW]		= "new",
+@@ -2004,6 +2006,15 @@ static int nfct_stats_cb(const struct nlmsghdr *nlh, void *data)
+ 		[CTA_STATS_EARLY_DROP]	= "early_drop",
+ 		[CTA_STATS_ERROR]	= "error",
+ 		[CTA_STATS_SEARCH_RESTART] = "search_restart",
++		[CTA_STATS_CLASH_RESOLVE] = "clash_resolve",
++
++		/* leave at end.  Allows to show counters supported
++		 * by newer kernel with older conntrack-tools release.
++		 */
++		[CTA_STATS_MAX + 1] = "unknown1",
++		[CTA_STATS_MAX + 2] = "unknown2",
++		[CTA_STATS_MAX + 3] = "unknown3",
++		[CTA_STATS_MAX + 4] = "unknown4",
+ 	};
+ 	int i;
  
--	nf_ct_put(ct);
- 	return NF_DROP;
- }
+@@ -2011,7 +2022,7 @@ static int nfct_stats_cb(const struct nlmsghdr *nlh, void *data)
  
+ 	printf("cpu=%-4u\t", ntohs(nfg->res_id));
+ 
+-	for (i=0; i<CTA_STATS_MAX+1; i++) {
++	for (i=0; i <= CTA_STATS_MAX + UNKNOWN_STATS_NUM; i++) {
+ 		if (tb[i]) {
+ 			printf("%s=%u ",
+ 				attr2name[i], ntohl(mnl_attr_get_u32(tb[i])));
 -- 
 2.26.2
 
