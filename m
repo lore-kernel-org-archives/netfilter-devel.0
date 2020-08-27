@@ -2,174 +2,97 @@ Return-Path: <SRS0=Uzq3=CF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21673C433E1
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Aug 2020 09:15:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D619C433E1
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Aug 2020 10:37:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E9DD42074A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Aug 2020 09:15:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7336D22BF5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Aug 2020 10:37:15 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XRf1ROSD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728307AbgH0JPP (ORCPT
+        id S1728442AbgH0KhM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 Aug 2020 05:15:15 -0400
-Received: from mailout2.hostsharing.net ([83.223.78.233]:48775 "EHLO
-        mailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728238AbgH0JPN (ORCPT
+        Thu, 27 Aug 2020 06:37:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49848 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726938AbgH0KhI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Aug 2020 05:15:13 -0400
-X-Greylist: delayed 567 seconds by postgrey-1.27 at vger.kernel.org; Thu, 27 Aug 2020 05:15:12 EDT
-Received: from h08.hostsharing.net (h08.hostsharing.net [IPv6:2a01:37:1000::53df:5f1c:0])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (Client CN "*.hostsharing.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (not verified))
-        by mailout2.hostsharing.net (Postfix) with ESMTPS id C9D3B10189A13;
-        Thu, 27 Aug 2020 11:05:39 +0200 (CEST)
-Received: from localhost (pd95be530.dip0.t-ipconnect.de [217.91.229.48])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
-        (No client certificate requested)
-        by h08.hostsharing.net (Postfix) with ESMTPSA id 7ADED6171684;
-        Thu, 27 Aug 2020 11:05:39 +0200 (CEST)
-X-Mailbox-Line: From d593bdcb022fcb59eb3ee44a06b311cc0b50d488 Mon Sep 17 00:00:00 2001
-Message-Id: <d593bdcb022fcb59eb3ee44a06b311cc0b50d488.1598517740.git.lukas@wunner.de>
-In-Reply-To: <cover.1598517739.git.lukas@wunner.de>
+        Thu, 27 Aug 2020 06:37:08 -0400
+Received: from mail-oi1-x243.google.com (mail-oi1-x243.google.com [IPv6:2607:f8b0:4864:20::243])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E87C4C061264;
+        Thu, 27 Aug 2020 03:37:07 -0700 (PDT)
+Received: by mail-oi1-x243.google.com with SMTP id d189so3756414oig.12;
+        Thu, 27 Aug 2020 03:37:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=KuaoIMfHLyJIWamoWVAPqeD7Ertfa+2MhldbBJUBVrw=;
+        b=XRf1ROSDi/xWvXQNoXRe2i+sqCIDghTb9H9MoXf/szhaeltqhBhDEZr/FFYCRFB6zy
+         nT2vLJXyYxaXx58AHy9WAWLZNfuzUPgt3NQ2hyTxPiptl8pTAudEQj+x1WyJqj3LXxiv
+         qkaWU243luWMez6wvjyGU+kIq2+xnDVeTMbPFDAyXZnfJW0AlNCQUOn0m3XpKI4a7bA2
+         MPXXXJVL0mgW1yH8XhoE+BfELYjzt1pUo8V52CvSRLM1xA0z2ibEeysfiwuodgDpdQee
+         C8/Qh+RfrAapjzOexaTIa/uOnj8STyggsjWQ0mqrFrWQzgcpmI6XYMtqVq7OCgr8jS+X
+         sBaQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=KuaoIMfHLyJIWamoWVAPqeD7Ertfa+2MhldbBJUBVrw=;
+        b=J/oWqpI1SEAFkYtWj4GcWSq4Auuhf8yi3JmpESD1xbVB9uRfAnJSeeHsbUmQX1Vfke
+         XHurjzUQLVNj2vW/rYSJvsfHakGF6R3Wtibnh9rr4i2iPzkHmsWGPlN5+Uo/fElcUNko
+         09PolrXABlYyeEK+nq5g9J8CoC8C9h6achiLh3bWZsu4XDiF1FWvlRtbhONc0wPE0Hwv
+         L/H4AtT6rpV2TGcqBI/4iBdYLxwibVlT43mVr7+ubPrFFi0zMyUT7CRvN3/HjxQSCLFL
+         8hsRzgIv6OfEO+a6Lqas5kSbvDaYtqXrznw7C9r3Fq4sowUVgZ8CARQwNQpD44D/6AAc
+         hjbQ==
+X-Gm-Message-State: AOAM531YSXANQsql1rwYk19oYAZzDeFh/Vnz6WNqb/WD8a2zDQOR7SCA
+        P8M40Y/E94hGGF/Yeht/UDu4M+icbGqFfma2ET8=
+X-Google-Smtp-Source: ABdhPJz7+RvG6aRT3j85t2k6G6j8hHFH0uz4BK7UgyYd77VKy+00pl24/6V8iV4lW2MpyTyY8+xGHgrhsAMNhs5aLhQ=
+X-Received: by 2002:a05:6808:6d2:: with SMTP id m18mr6624752oih.89.1598524627393;
+ Thu, 27 Aug 2020 03:37:07 -0700 (PDT)
+MIME-Version: 1.0
 References: <cover.1598517739.git.lukas@wunner.de>
-From:   Lukas Wunner <lukas@wunner.de>
-Date:   Thu, 27 Aug 2020 10:55:02 +0200
-Subject: [PATCH nf-next v3 2/3] netfilter: Generalize ingress hook
-To:     "Pablo Neira Ayuso" <pablo@netfilter.org>,
+In-Reply-To: <cover.1598517739.git.lukas@wunner.de>
+From:   =?UTF-8?Q?Laura_Garc=C3=ADa_Li=C3=A9bana?= <nevola@gmail.com>
+Date:   Thu, 27 Aug 2020 12:36:55 +0200
+Message-ID: <CAF90-Wi4W1U4FSYqyBTqe7sANbdO6=zgr-u+YY+X-gvNmOgc6A@mail.gmail.com>
+Subject: Re: [PATCH nf-next v3 0/3] Netfilter egress hook
+To:     Lukas Wunner <lukas@wunner.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Florian Westphal <fw@strlen.de>,
+        Netfilter Development Mailing list 
+        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
         netdev@vger.kernel.org, Daniel Borkmann <daniel@iogearbox.net>,
         Alexei Starovoitov <ast@kernel.org>,
         Eric Dumazet <edumazet@google.com>,
-        Thomas Graf <tgraf@suug.ch>, Laura Garcia <nevola@gmail.com>,
-        David Miller <davem@davemloft.net>
+        Thomas Graf <tgraf@suug.ch>, David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Prepare for addition of a netfilter egress hook by generalizing the
-ingress hook introduced by commit e687ad60af09 ("netfilter: add
-netfilter ingress hook after handle_ing() under unique static key").
+Hi Lukas, thank you for your patches.
 
-In particular, rename and refactor the ingress hook's static inlines
-such that they can be reused for an egress hook.
+On Thu, Aug 27, 2020 at 10:55 AM Lukas Wunner <lukas@wunner.de> wrote:
+>
+> Introduce a netfilter egress hook to allow filtering outbound AF_PACKETs
+> such as DHCP and to prepare for in-kernel NAT64/NAT46.
+>
 
-No functional change intended.
+Actually, we've found 2 additional use cases in container-based nodes
+that use the egress hook:
 
-Signed-off-by: Lukas Wunner <lukas@wunner.de>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
----
- include/linux/netfilter_netdev.h | 45 ++++++++++++++++++++++----------
- net/core/dev.c                   |  2 +-
- 2 files changed, 32 insertions(+), 15 deletions(-)
+1. intra-node DSR load balancing connectivity
+2. container-based outbound security policies
 
-diff --git a/include/linux/netfilter_netdev.h b/include/linux/netfilter_netdev.h
-index a13774be2eb5..49e26479642e 100644
---- a/include/linux/netfilter_netdev.h
-+++ b/include/linux/netfilter_netdev.h
-@@ -1,34 +1,37 @@
- /* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _NETFILTER_INGRESS_H_
--#define _NETFILTER_INGRESS_H_
-+#ifndef _NETFILTER_NETDEV_H_
-+#define _NETFILTER_NETDEV_H_
- 
- #include <linux/netfilter.h>
- #include <linux/netdevice.h>
- 
--#ifdef CONFIG_NETFILTER_INGRESS
--static inline bool nf_hook_ingress_active(const struct sk_buff *skb)
-+#ifdef CONFIG_NETFILTER
-+static __always_inline bool nf_hook_netdev_active(enum nf_dev_hooks hooknum,
-+					  struct nf_hook_entries __rcu *hooks)
- {
- #ifdef CONFIG_JUMP_LABEL
--	if (!static_key_false(&nf_hooks_needed[NFPROTO_NETDEV][NF_NETDEV_INGRESS]))
-+	if (!static_key_false(&nf_hooks_needed[NFPROTO_NETDEV][hooknum]))
- 		return false;
- #endif
--	return rcu_access_pointer(skb->dev->nf_hooks_ingress);
-+	return rcu_access_pointer(hooks);
- }
- 
- /* caller must hold rcu_read_lock */
--static inline int nf_hook_ingress(struct sk_buff *skb)
-+static __always_inline int nf_hook_netdev(struct sk_buff *skb,
-+					  enum nf_dev_hooks hooknum,
-+					  struct nf_hook_entries __rcu *hooks)
- {
--	struct nf_hook_entries *e = rcu_dereference(skb->dev->nf_hooks_ingress);
-+	struct nf_hook_entries *e = rcu_dereference(hooks);
- 	struct nf_hook_state state;
- 	int ret;
- 
--	/* Must recheck the ingress hook head, in the event it became NULL
--	 * after the check in nf_hook_ingress_active evaluated to true.
-+	/* Must recheck the hook head, in the event it became NULL
-+	 * after the check in nf_hook_netdev_active evaluated to true.
- 	 */
- 	if (unlikely(!e))
- 		return 0;
- 
--	nf_hook_state_init(&state, NF_NETDEV_INGRESS,
-+	nf_hook_state_init(&state, hooknum,
- 			   NFPROTO_NETDEV, skb->dev, NULL, NULL,
- 			   dev_net(skb->dev), NULL);
- 	ret = nf_hook_slow(skb, &state, e, 0);
-@@ -37,10 +40,26 @@ static inline int nf_hook_ingress(struct sk_buff *skb)
- 
- 	return ret;
- }
-+#endif /* CONFIG_NETFILTER */
- 
--static inline void nf_hook_ingress_init(struct net_device *dev)
-+static inline void nf_hook_netdev_init(struct net_device *dev)
- {
-+#ifdef CONFIG_NETFILTER_INGRESS
- 	RCU_INIT_POINTER(dev->nf_hooks_ingress, NULL);
-+#endif
-+}
-+
-+#ifdef CONFIG_NETFILTER_INGRESS
-+static inline bool nf_hook_ingress_active(const struct sk_buff *skb)
-+{
-+	return nf_hook_netdev_active(NF_NETDEV_INGRESS,
-+				     skb->dev->nf_hooks_ingress);
-+}
-+
-+static inline int nf_hook_ingress(struct sk_buff *skb)
-+{
-+	return nf_hook_netdev(skb, NF_NETDEV_INGRESS,
-+			      skb->dev->nf_hooks_ingress);
- }
- #else /* CONFIG_NETFILTER_INGRESS */
- static inline int nf_hook_ingress_active(struct sk_buff *skb)
-@@ -52,7 +71,5 @@ static inline int nf_hook_ingress(struct sk_buff *skb)
- {
- 	return 0;
- }
--
--static inline void nf_hook_ingress_init(struct net_device *dev) {}
- #endif /* CONFIG_NETFILTER_INGRESS */
- #endif /* _NETFILTER_INGRESS_H_ */
-diff --git a/net/core/dev.c b/net/core/dev.c
-index e7ff11ec492c..e1aae2df6762 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -10308,7 +10308,7 @@ struct net_device *alloc_netdev_mqs(int sizeof_priv, const char *name,
- 	if (!dev->ethtool_ops)
- 		dev->ethtool_ops = &default_ethtool_ops;
- 
--	nf_hook_ingress_init(dev);
-+	nf_hook_netdev_init(dev);
- 
- 	return dev;
- 
--- 
-2.27.0
+We've been using your previous patch in an experimental project and
+it's working fine.
 
+Great job!
