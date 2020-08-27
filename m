@@ -2,97 +2,70 @@ Return-Path: <SRS0=Uzq3=CF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D619C433E1
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Aug 2020 10:37:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CA3CC433DF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Aug 2020 14:14:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7336D22BF5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Aug 2020 10:37:15 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XRf1ROSD"
+	by mail.kernel.org (Postfix) with ESMTP id 3D29C2054F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Aug 2020 14:14:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728442AbgH0KhM (ORCPT
+        id S1727917AbgH0OKa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 Aug 2020 06:37:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49848 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726938AbgH0KhI (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Aug 2020 06:37:08 -0400
-Received: from mail-oi1-x243.google.com (mail-oi1-x243.google.com [IPv6:2607:f8b0:4864:20::243])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E87C4C061264;
-        Thu, 27 Aug 2020 03:37:07 -0700 (PDT)
-Received: by mail-oi1-x243.google.com with SMTP id d189so3756414oig.12;
-        Thu, 27 Aug 2020 03:37:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=KuaoIMfHLyJIWamoWVAPqeD7Ertfa+2MhldbBJUBVrw=;
-        b=XRf1ROSDi/xWvXQNoXRe2i+sqCIDghTb9H9MoXf/szhaeltqhBhDEZr/FFYCRFB6zy
-         nT2vLJXyYxaXx58AHy9WAWLZNfuzUPgt3NQ2hyTxPiptl8pTAudEQj+x1WyJqj3LXxiv
-         qkaWU243luWMez6wvjyGU+kIq2+xnDVeTMbPFDAyXZnfJW0AlNCQUOn0m3XpKI4a7bA2
-         MPXXXJVL0mgW1yH8XhoE+BfELYjzt1pUo8V52CvSRLM1xA0z2ibEeysfiwuodgDpdQee
-         C8/Qh+RfrAapjzOexaTIa/uOnj8STyggsjWQ0mqrFrWQzgcpmI6XYMtqVq7OCgr8jS+X
-         sBaQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=KuaoIMfHLyJIWamoWVAPqeD7Ertfa+2MhldbBJUBVrw=;
-        b=J/oWqpI1SEAFkYtWj4GcWSq4Auuhf8yi3JmpESD1xbVB9uRfAnJSeeHsbUmQX1Vfke
-         XHurjzUQLVNj2vW/rYSJvsfHakGF6R3Wtibnh9rr4i2iPzkHmsWGPlN5+Uo/fElcUNko
-         09PolrXABlYyeEK+nq5g9J8CoC8C9h6achiLh3bWZsu4XDiF1FWvlRtbhONc0wPE0Hwv
-         L/H4AtT6rpV2TGcqBI/4iBdYLxwibVlT43mVr7+ubPrFFi0zMyUT7CRvN3/HjxQSCLFL
-         8hsRzgIv6OfEO+a6Lqas5kSbvDaYtqXrznw7C9r3Fq4sowUVgZ8CARQwNQpD44D/6AAc
-         hjbQ==
-X-Gm-Message-State: AOAM531YSXANQsql1rwYk19oYAZzDeFh/Vnz6WNqb/WD8a2zDQOR7SCA
-        P8M40Y/E94hGGF/Yeht/UDu4M+icbGqFfma2ET8=
-X-Google-Smtp-Source: ABdhPJz7+RvG6aRT3j85t2k6G6j8hHFH0uz4BK7UgyYd77VKy+00pl24/6V8iV4lW2MpyTyY8+xGHgrhsAMNhs5aLhQ=
-X-Received: by 2002:a05:6808:6d2:: with SMTP id m18mr6624752oih.89.1598524627393;
- Thu, 27 Aug 2020 03:37:07 -0700 (PDT)
+        Thu, 27 Aug 2020 10:10:30 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:10339 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727781AbgH0OKO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 27 Aug 2020 10:10:14 -0400
+Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id A14B365A25F8A4801769;
+        Thu, 27 Aug 2020 22:09:55 +0800 (CST)
+Received: from localhost (10.174.179.108) by DGGEMS404-HUB.china.huawei.com
+ (10.3.19.204) with Microsoft SMTP Server id 14.3.487.0; Thu, 27 Aug 2020
+ 22:09:48 +0800
+From:   YueHaibing <yuehaibing@huawei.com>
+To:     <pablo@netfilter.org>, <kadlec@netfilter.org>, <fw@strlen.de>,
+        <davem@davemloft.net>, <kuba@kernel.org>, <mcroce@redhat.com>
+CC:     <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+        <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        YueHaibing <yuehaibing@huawei.com>
+Subject: [PATCH net-next] netfilter: xt_HMARK: Use ip_is_fragment() helper
+Date:   Thu, 27 Aug 2020 22:08:13 +0800
+Message-ID: <20200827140813.28624-1-yuehaibing@huawei.com>
+X-Mailer: git-send-email 2.10.2.windows.1
 MIME-Version: 1.0
-References: <cover.1598517739.git.lukas@wunner.de>
-In-Reply-To: <cover.1598517739.git.lukas@wunner.de>
-From:   =?UTF-8?Q?Laura_Garc=C3=ADa_Li=C3=A9bana?= <nevola@gmail.com>
-Date:   Thu, 27 Aug 2020 12:36:55 +0200
-Message-ID: <CAF90-Wi4W1U4FSYqyBTqe7sANbdO6=zgr-u+YY+X-gvNmOgc6A@mail.gmail.com>
-Subject: Re: [PATCH nf-next v3 0/3] Netfilter egress hook
-To:     Lukas Wunner <lukas@wunner.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Netfilter Development Mailing list 
-        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Daniel Borkmann <daniel@iogearbox.net>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Thomas Graf <tgraf@suug.ch>, David Miller <davem@davemloft.net>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
+X-Originating-IP: [10.174.179.108]
+X-CFilter-Loop: Reflected
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Lukas, thank you for your patches.
+Use ip_is_fragment() to simpify code.
 
-On Thu, Aug 27, 2020 at 10:55 AM Lukas Wunner <lukas@wunner.de> wrote:
->
-> Introduce a netfilter egress hook to allow filtering outbound AF_PACKETs
-> such as DHCP and to prepare for in-kernel NAT64/NAT46.
->
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+---
+ net/netfilter/xt_HMARK.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Actually, we've found 2 additional use cases in container-based nodes
-that use the egress hook:
+diff --git a/net/netfilter/xt_HMARK.c b/net/netfilter/xt_HMARK.c
+index 713fb38541df..8928ec56c388 100644
+--- a/net/netfilter/xt_HMARK.c
++++ b/net/netfilter/xt_HMARK.c
+@@ -276,7 +276,7 @@ hmark_pkt_set_htuple_ipv4(const struct sk_buff *skb, struct hmark_tuple *t,
+ 		return 0;
+ 
+ 	/* follow-up fragments don't contain ports, skip all fragments */
+-	if (ip->frag_off & htons(IP_MF | IP_OFFSET))
++	if (ip_is_fragment(ip))
+ 		return 0;
+ 
+ 	hmark_set_tuple_ports(skb, (ip->ihl * 4) + nhoff, t, info);
+-- 
+2.17.1
 
-1. intra-node DSR load balancing connectivity
-2. container-based outbound security policies
 
-We've been using your previous patch in an experimental project and
-it's working fine.
-
-Great job!
