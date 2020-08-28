@@ -2,112 +2,107 @@ Return-Path: <SRS0=v1Ge=CG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4559C433E7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Aug 2020 09:14:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FF72C433E7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Aug 2020 15:08:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C32792071B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Aug 2020 09:14:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3F245208C9
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Aug 2020 15:08:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ASAb4ZKP"
+	dkim=pass (2048-bit key) header.d=6wind.com header.i=@6wind.com header.b="CTzbyprJ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728708AbgH1JOc (ORCPT
+        id S1728039AbgH1PIe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 28 Aug 2020 05:14:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35102 "EHLO
+        Fri, 28 Aug 2020 11:08:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33734 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728218AbgH1JO3 (ORCPT
+        with ESMTP id S1726307AbgH1PIZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Aug 2020 05:14:29 -0400
-Received: from mail-wr1-x441.google.com (mail-wr1-x441.google.com [IPv6:2a00:1450:4864:20::441])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CAF8C061264;
-        Fri, 28 Aug 2020 02:14:29 -0700 (PDT)
-Received: by mail-wr1-x441.google.com with SMTP id l7so595120wrx.8;
-        Fri, 28 Aug 2020 02:14:28 -0700 (PDT)
+        Fri, 28 Aug 2020 11:08:25 -0400
+Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 645BDC061264
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Aug 2020 08:08:23 -0700 (PDT)
+Received: by mail-wr1-x444.google.com with SMTP id w13so1614750wrk.5
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Aug 2020 08:08:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=bFeVd3y76f8JCnVoxv7uErhjRJ/Acf3IGCqwDe0vYzo=;
-        b=ASAb4ZKP8q64pDUw994tv3+INDcE6zs3SLcXLuq022GJSwmDFTUIbp0r5/gUTHxImB
-         AeTldyKDlHW8yA4Y4athGifCHZUW5eInuIS/dJI4KbZmYx5/1cwuGEp2ZtwkNJO1cUZG
-         /79oGU/ew5dOOUT1MdppsyGCkaAQnNvvuQLyx32CONUDD6Gw+LgKMqTm/rvAnPtwWrc2
-         lZ0VHi/rtBY99xPPqy+HvqxGeOzRXxXvM5YXd0SgvbDwpvZoz1xjmPc+bqG51UIBu+1i
-         ijBorsf4YoOnyM+A1Y/H7B0m8z1s/UtBhuafPkhwTRpNjE2cpUI6btJfTpE/BwltRL+w
-         MjCA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+        d=6wind.com; s=google;
+        h=reply-to:subject:to:cc:references:from:organization:message-id:date
          :user-agent:mime-version:in-reply-to:content-language
          :content-transfer-encoding;
-        bh=bFeVd3y76f8JCnVoxv7uErhjRJ/Acf3IGCqwDe0vYzo=;
-        b=GKUTSGWRAUgprAZKvYAxWfJJ9vci1S+qXvGNAQIK4n88cHPKOXrzePvaaAZmXgRpBs
-         CN0HIZgkIudSq/fJJmenHfvraCdhUt36vuBQJYbIdiWeiy9M5dUmVJNz79RcIejFulDy
-         KfuA+2t6ANwavTHdpOcf+V4bNMNw1MAHHI7EkvWgoViL2PZ2Eu1PCZuw7tJ5ps2+5hr3
-         DmXFC+buMOCgRDwJMm6lFNqYHErqPPGP/ThY4Jhi8X2VlJ8n68AP+tqf4SP4mx6LcncS
-         nuSMGOiSYcqtCr3Gtn/si0be6ZWyUcG44aBGlwzKfDu2CYiGtF4zuYZbx6i8BtBs9trg
-         pttg==
-X-Gm-Message-State: AOAM531BwQAHCwG1B0nbkf5+D1g+BUYFeJPyWc64RQ9aZOLDFkWK1qAm
-        p92gIGh7WBBMT/ftgnvmbUWSJZVVUtY=
-X-Google-Smtp-Source: ABdhPJwptDnJe4CUd3jREwjgLVQaaP6WY676T+Tlsou+GFhr1kWQhjvUYUyk9XPHFR72Jg+REhSRdw==
-X-Received: by 2002:a05:6000:1204:: with SMTP id e4mr613648wrx.95.1598606067682;
-        Fri, 28 Aug 2020 02:14:27 -0700 (PDT)
-Received: from [192.168.8.147] ([37.171.241.197])
-        by smtp.gmail.com with ESMTPSA id p1sm2713000wma.0.2020.08.28.02.14.26
+        bh=ona2SramZlOzoBjP/aJ5NnGGdz2GwYgLuTlQT94U0hE=;
+        b=CTzbyprJ6gg7Ng1f7JKIYOiw19rZ8MsC9LXJxlx1AUjvXqxdfbD7dUGt3IY+jvLe6/
+         w7naHbgmd77NXUXb4Vfa+purkaMUDniQwUQXNIKfDhV81NR3364+sIm5RLgTZzLgWlwI
+         ojDrAV+OcPffbUyPYUIK1Zxt3Ty08sUiirCXxPAWVdz6svj2Q5BkWrvd0qjcCbQ4MJvD
+         k7b03bFx/7Ovmf+ESu1OU1HPF9nSDa6Uhlvw27gxmlGiFvyL1xZnSqDwcmzk9jAhbv0Q
+         DI62eXPsDO1pV6eBdjcGLp23bZNQJbPK90UdQ/w7qiE5gWZ/0mxLikOR4vzljPUUaTy6
+         kMDA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:reply-to:subject:to:cc:references:from
+         :organization:message-id:date:user-agent:mime-version:in-reply-to
+         :content-language:content-transfer-encoding;
+        bh=ona2SramZlOzoBjP/aJ5NnGGdz2GwYgLuTlQT94U0hE=;
+        b=kaZd7IBCeG3fcNjp+pm7F+Wk/Ap2qwKZAVfuH1cRfrxvE1qhDWzO/ZfRk4V2eRAWPp
+         KhfIFYBS9IpLg6PttYdD+fFTAxmczuidacNJQzyqPHtFTL0izU+P6tYytz3vWJWJej2I
+         /iskEub6WPp5lpKYLDqmCI9JATYjia43xYqUXIYHPMYWYC9z+hGADXNbjoTgbgSj6INZ
+         CUQUZ/RgBRe972SbkVANk4j1f1wInirVJG6aKIokWYsJuFsEa50Rxw13Ra+1X1xO6Ild
+         ctXTL39NSDdD003qVCO/evieJ6zSoehS/WdVZwQ4wHvhhZFUAe2Qh9zYSlHqZaxSmHVz
+         gVVQ==
+X-Gm-Message-State: AOAM532l2gTNsJPwuoE1u4MmcrAgZw6fVaeJTE9bOjtMtUafRW+cj8uu
+        KjVPUIluuU7TXFCjG90dnVfmYA==
+X-Google-Smtp-Source: ABdhPJyqK2T9Ry68896tVj6D58pAxeSIYSJcpFTiLME6ybN+vbrbFEM19hvPratI33Gdch0THPDEzw==
+X-Received: by 2002:a5d:5352:: with SMTP id t18mr1851532wrv.407.1598627302028;
+        Fri, 28 Aug 2020 08:08:22 -0700 (PDT)
+Received: from ?IPv6:2a01:e0a:410:bb00:584b:67d:d1b3:7399? ([2a01:e0a:410:bb00:584b:67d:d1b3:7399])
+        by smtp.gmail.com with ESMTPSA id 5sm2731995wmz.22.2020.08.28.08.08.20
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 28 Aug 2020 02:14:27 -0700 (PDT)
-Subject: Re: [PATCH nf-next v3 0/3] Netfilter egress hook
-To:     Daniel Borkmann <daniel@iogearbox.net>,
-        Lukas Wunner <lukas@wunner.de>,
+        Fri, 28 Aug 2020 08:08:21 -0700 (PDT)
+Reply-To: nicolas.dichtel@6wind.com
+Subject: Re: [PATCH] Remove ipvs v6 dependency on iptables
+To:     Lach <iam@lach.pw>, ja@ssi.bg
+Cc:     "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        Jakub Kicinski <kuba@kernel.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Thomas Graf <tgraf@suug.ch>, Laura Garcia <nevola@gmail.com>,
-        David Miller <davem@davemloft.net>
-References: <cover.1598517739.git.lukas@wunner.de>
- <454130d7-7256-838d-515e-c7340892278c@iogearbox.net>
-From:   Eric Dumazet <eric.dumazet@gmail.com>
-Message-ID: <a9006cf7-f4ba-81b1-fca1-fd2e97939fdc@gmail.com>
-Date:   Fri, 28 Aug 2020 11:14:25 +0200
+        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+References: <alpine.LFD.2.23.451.2008272357240.4567@ja.home.ssi.bg>
+ <20200827220715.6508-1-iam@lach.pw>
+From:   Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Organization: 6WIND
+Message-ID: <e4765a73-e6a1-f5ba-dd8b-7c1ee1e5883d@6wind.com>
+Date:   Fri, 28 Aug 2020 17:08:20 +0200
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.11.0
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-In-Reply-To: <454130d7-7256-838d-515e-c7340892278c@iogearbox.net>
+In-Reply-To: <20200827220715.6508-1-iam@lach.pw>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-
-On 8/28/20 12:14 AM, Daniel Borkmann wrote:
-> Hi Lukas,
+Le 28/08/2020 à 00:07, Lach a écrit :
+> This dependency was added in 63dca2c0b0e7a92cb39d1b1ecefa32ffda201975, because this commit had dependency on
+> ipv6_find_hdr, which was located in iptables-specific code
 > 
-> On 8/27/20 10:55 AM, Lukas Wunner wrote:
->> Introduce a netfilter egress hook to allow filtering outbound AF_PACKETs
->> such as DHCP and to prepare for in-kernel NAT64/NAT46.
-> 
-> Thinking more about this, how will this allow to sufficiently filter AF_PACKET?
-> It won't. Any AF_PACKET application can freely set PACKET_QDISC_BYPASS without
-> additional privileges and then dev_queue_xmit() is being bypassed in the host ns.
-> This is therefore ineffective and not sufficient. (From container side these can
-> be caught w/ host veth on ingress, but not in host ns, of course, so hook won't
-> be invoked.)
+> But it is no longer required, because f8f626754ebeca613cf1af2e6f890cfde0e74d5b moved them to a more common location
+> ---
+Your 'Signed-off-by' is missing, the commit log lines are too long, a commit
+should not be referenced like this.
+Please run checkpatch on your submissions.
 
 
-Presumably dev_direct_xmit() could be augmented to support the hook.
-
-dev_direct_xmit() (packet_direct_xmit()) was introduced to bypass qdisc,
-not to bypass everything.
-
-
+Regards,
+Nicolas
