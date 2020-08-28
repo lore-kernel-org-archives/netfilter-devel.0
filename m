@@ -6,53 +6,54 @@ X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F6C5C433E2
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Aug 2020 17:22:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F4E5C433E2
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Aug 2020 17:25:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1405F20872
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Aug 2020 17:22:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0283B207DF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Aug 2020 17:25:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726436AbgH1RWh (ORCPT
+        id S1726392AbgH1RZM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 28 Aug 2020 13:22:37 -0400
-Received: from correo.us.es ([193.147.175.20]:54814 "EHLO mail.us.es"
+        Fri, 28 Aug 2020 13:25:12 -0400
+Received: from correo.us.es ([193.147.175.20]:55244 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726995AbgH1RWh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Aug 2020 13:22:37 -0400
+        id S1726010AbgH1RZM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 28 Aug 2020 13:25:12 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 2A3071C4367
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Aug 2020 19:22:36 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 8874DDA713
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Aug 2020 19:25:10 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1CC34DA78A
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Aug 2020 19:22:36 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 78D37DA722
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Aug 2020 19:25:10 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 125CBDA789; Fri, 28 Aug 2020 19:22:36 +0200 (CEST)
+        id 6E660DA73F; Fri, 28 Aug 2020 19:25:10 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0D51BDA722;
-        Fri, 28 Aug 2020 19:22:34 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6D8A2DA722;
+        Fri, 28 Aug 2020 19:25:08 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 28 Aug 2020 19:22:34 +0200 (CEST)
+ Fri, 28 Aug 2020 19:25:08 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id DBAC242EF4E1;
-        Fri, 28 Aug 2020 19:22:33 +0200 (CEST)
-Date:   Fri, 28 Aug 2020 19:22:33 +0200
+        by entrada.int (Postfix) with ESMTPSA id 508E942EF4E1;
+        Fri, 28 Aug 2020 19:25:08 +0200 (CEST)
+Date:   Fri, 28 Aug 2020 19:25:07 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Michael Zhou <mzhou@cse.unsw.edu.au>
+To:     "Jose M. Guisado Gomez" <guigom@riseup.net>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v2] net/ipv6/netfilter/ip6t_NPT: rewrite addresses in
- ICMPv6 original packet
-Message-ID: <20200828172233.GB6651@salvia>
-References: <20200806151524.12112-1-mzhou@cse.unsw.edu.au>
+Subject: Re: [PATCH nf-next v2 1/3] netfilter: nf_tables: add userdata
+ attributes to nft_table
+Message-ID: <20200828172507.GA6756@salvia>
+References: <20200820081903.36781-2-guigom@riseup.net>
+ <20200822090930.1561-1-guigom@riseup.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20200806151524.12112-1-mzhou@cse.unsw.edu.au>
+In-Reply-To: <20200822090930.1561-1-guigom@riseup.net>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -60,9 +61,10 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Aug 07, 2020 at 01:15:25AM +1000, Michael Zhou wrote:
-> Detect and rewrite a prefix embedded in an ICMPv6 original packet that was
-> rewritten by a corresponding DNPT/SNPT rule so it will be recognised by
-> the host that sent the original packet.
+On Sat, Aug 22, 2020 at 11:09:30AM +0200, Jose M. Guisado Gomez wrote:
+> Enables storing userdata for nft_table. Field udata points to user data
+> and udlen store its length.
+> 
+> Adds new attribute flag NFTA_TABLE_USERDATA
 
 Applied, thanks.
