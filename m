@@ -2,74 +2,152 @@ Return-Path: <SRS0=v1Ge=CG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB630C433E2
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Aug 2020 16:46:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 604ADC433E6
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Aug 2020 16:58:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF50620848
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Aug 2020 16:46:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EA6542074A
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Aug 2020 16:58:30 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=opendium.com header.i=@opendium.com header.b="jr4PpUci"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728015AbgH1QqT (ORCPT
+        id S1726439AbgH1Q6a (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 28 Aug 2020 12:46:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49034 "EHLO
+        Fri, 28 Aug 2020 12:58:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50894 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726500AbgH1QqS (ORCPT
+        with ESMTP id S1725814AbgH1Q63 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Aug 2020 12:46:18 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E587C061264;
-        Fri, 28 Aug 2020 09:46:18 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1kBhVf-0002Bi-5F; Fri, 28 Aug 2020 18:45:51 +0200
-Date:   Fri, 28 Aug 2020 18:45:51 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Will McVicker <willmcvicker@google.com>, stable@vger.kernel.org,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        kernel-team@android.com
-Subject: Re: [PATCH v3 1/1] netfilter: nat: add a range check for l3/l4
- protonum
-Message-ID: <20200828164551.GG7319@breakpoint.cc>
-References: <20200804113711.GA20988@salvia>
- <20200824193832.853621-1-willmcvicker@google.com>
- <20200824193832.853621-2-willmcvicker@google.com>
- <20200828164234.GA30990@salvia>
+        Fri, 28 Aug 2020 12:58:29 -0400
+X-Greylist: delayed 2247 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 28 Aug 2020 09:58:28 PDT
+Received: from opendium2.opendium.net (opendium2.opendium.net [IPv6:2a01:4f8:10b:3d07::8])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6E2AC061264
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Aug 2020 09:58:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=opendium.com; s=open; h=Content-Type:MIME-Version:Date:Message-ID:To:
+        Subject:From:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
+        List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=XlOvnqiNVPx7uykD+x3MYYtKADTDOKh6kQWIb5+2nJw=; b=jr4PpUciLfkrhiw1tS5wtne8E5
+        36ZRtPEEvPrP6ocG/i3lexy78XQztFMDo4sfhSv3UJ3JUzIEWg26ivZ+3kD9vjxgoCQ/0Y8sbrpdT
+        eW4Je0o1uUz0Ex8zZDKEldzXxj4rE+drelBHI+3L7rhoGJ9VGniD05ZR16bqwkos2nP0=;
+Received: from [2a00:1940:103:8:c032:ccff:fe47:456e] (helo=rivendell.nexusuk.org)
+        by opendium2.opendium.net with esmtpsa (TLSv1.3:TLS_AES_128_GCM_SHA256:128)
+        (Exim 4.92.3)
+        (envelope-from <steve@opendium.com>)
+        id 1kBh7b-0006Jl-QE
+        for netfilter-devel@vger.kernel.org; Fri, 28 Aug 2020 17:20:59 +0100
+From:   Steve Hill <steve@opendium.com>
+Subject: [PATCH] netfilter: No increment ctx->level for NFT_GOTO
+Organization: Opendium
+To:     netfilter-devel@vger.kernel.org
+Message-ID: <231a0c69-60b1-0b18-0ed6-fcf7a9058ff0@opendium.com>
+Date:   Fri, 28 Aug 2020 17:20:59 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.6.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200828164234.GA30990@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: multipart/mixed;
+ boundary="------------AA7A2FB1FFA83754A30DE8F5"
+Content-Language: en-GB
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Hi Will,
-> 
-> Given this is for -stable maintainers only, I'd suggest:
-> 
-> 1) Specify what -stable kernel versions this patch applies to.
->    Explain that this problem is gone since what kernel version.
-> 
-> 2) Maybe clarify that this is only for stable in the patch subject,
->    e.g. [PATCH -stable v3] netfilter: nat: add a range check for l3/l4
+This is a multi-part message in MIME format.
+--------------AA7A2FB1FFA83754A30DE8F5
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hmm, we silently accept a tuple that we can't really deal with, no?
+nft_immediate_validate() and nft_lookup_validate_setelem() treat 
+NFT_GOTO and NFT_JUMP identically, incrementing pctx->level for both. 
+This results in a -EMLINK ("Too many links") being unexpectedly returned 
+for rulesets that use lots of gotos.
 
-> > +	if (l3num != NFPROTO_IPV4 && l3num != NFPROTO_IPV6)
-> > +		return -EOPNOTSUPP;
+This fixes this problem by not incrementing pctx->level when following 
+gotos.
 
-I vote to apply this to nf.git
+Fixes: https://bugzilla.netfilter.org/show_bug.cgi?id=1459
+Signed-off-by: Steve Hill <steve@opendium.com>
+---
+diff -urN 
+linux-4.18.0-193.14.2.el8.x86_64.vanilla/net/netfilter/nft_immediate.c 
+linux-4.18.0-193.14.2.el8.x86_64.opendium/net/netfilter/nft_immediate.c
+--- 
+linux-4.18.0-193.14.2.el8.x86_64.vanilla/net/netfilter/nft_immediate.c 
+2020-07-19 15:03:44.000000000 +0100
++++ 
+linux-4.18.0-193.14.2.el8.x86_64.opendium/net/netfilter/nft_immediate.c 
+2020-08-26 15:39:47.004754668 +0100
+@@ -113,13 +113,19 @@
 
+      switch (data->verdict.code) {
+      case NFT_JUMP:
+-    case NFT_GOTO:
+          pctx->level++;
+          err = nft_chain_validate(ctx, data->verdict.chain);
+          if (err < 0)
+              return err;
+          pctx->level--;
+          break;
++    case NFT_GOTO:
++        err = nft_chain_validate(ctx, data->verdict.chain);
++        if (err < 0)
++            return err;
++        break;
+      default:
+          break;
+      }
+diff -urN 
+linux-4.18.0-193.14.2.el8.x86_64.vanilla/net/netfilter/nft_lookup.c 
+linux-4.18.0-193.14.2.el8.x86_64.opendium/net/netfilter/nft_lookup.c
+--- linux-4.18.0-193.14.2.el8.x86_64.vanilla/net/netfilter/nft_lookup.c 
+2020-07-19 15:03:44.000000000 +0100
++++ linux-4.18.0-193.14.2.el8.x86_64.opendium/net/netfilter/nft_lookup.c 
+2020-08-26 15:42:35.885223417 +0100
+@@ -176,13 +176,19 @@
+      data = nft_set_ext_data(ext);
+      switch (data->verdict.code) {
+      case NFT_JUMP:
+-    case NFT_GOTO:
+          pctx->level++;
+          err = nft_chain_validate(ctx, data->verdict.chain);
+          if (err < 0)
+              return err;
+          pctx->level--;
+          break;
++    case NFT_GOTO:
++        err = nft_chain_validate(ctx, data->verdict.chain);
++        if (err < 0)
++            return err;
++        break;
+      default:
+          break;
+      }
+
+--------------AA7A2FB1FFA83754A30DE8F5
+Content-Type: text/x-vcard; charset=utf-8;
+ name="steve.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="steve.vcf"
+
+begin:vcard
+fn:Steve Hill
+n:Hill;Steve
+org:Opendium Limited
+adr:1 Brue Close;;Highfield House;Bruton;Somerset;BA10 0HY;England
+email;internet:steve@opendium.com
+title:Technical Director
+x-mozilla-html:FALSE
+url:https://www.opendium.com
+version:2.1
+end:vcard
+
+
+--------------AA7A2FB1FFA83754A30DE8F5--
