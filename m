@@ -2,58 +2,68 @@ Return-Path: <SRS0=v1Ge=CG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06536C433E6
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Aug 2020 16:37:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 982A0C433E6
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Aug 2020 16:42:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DD38A20872
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Aug 2020 16:37:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6A70520872
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Aug 2020 16:42:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727864AbgH1QhE (ORCPT
+        id S1727969AbgH1Qmj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 28 Aug 2020 12:37:04 -0400
-Received: from correo.us.es ([193.147.175.20]:45648 "EHLO mail.us.es"
+        Fri, 28 Aug 2020 12:42:39 -0400
+Received: from correo.us.es ([193.147.175.20]:46676 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727807AbgH1QhD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Aug 2020 12:37:03 -0400
+        id S1727000AbgH1Qmj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 28 Aug 2020 12:42:39 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4650418D008
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Aug 2020 18:37:02 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id E8D1018D013
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Aug 2020 18:42:37 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 37D72DA72F
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Aug 2020 18:37:02 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DAAD2DA844
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Aug 2020 18:42:37 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 36DE8DA73F; Fri, 28 Aug 2020 18:37:02 +0200 (CEST)
+        id C78BCDA860; Fri, 28 Aug 2020 18:42:37 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 11F21DA73D;
-        Fri, 28 Aug 2020 18:37:00 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 89478DA844;
+        Fri, 28 Aug 2020 18:42:35 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 28 Aug 2020 18:37:00 +0200 (CEST)
+ Fri, 28 Aug 2020 18:42:35 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id D5D8242EF4E3;
-        Fri, 28 Aug 2020 18:36:59 +0200 (CEST)
-Date:   Fri, 28 Aug 2020 18:36:59 +0200
+        by entrada.int (Postfix) with ESMTPSA id 51A0642EF4E1;
+        Fri, 28 Aug 2020 18:42:35 +0200 (CEST)
+Date:   Fri, 28 Aug 2020 18:42:34 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Fabian Frederick <fabf@skynet.be>
-Cc:     kadlec@netfilter.org, fw@strlen.de, sbrivio@redhat.com,
+To:     Will McVicker <willmcvicker@google.com>
+Cc:     stable@vger.kernel.org,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH V2 1/5 nf] selftests: netfilter: fix header example
-Message-ID: <20200828163659.GA28045@salvia>
-References: <20200823181537.13254-1-fabf@skynet.be>
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        kernel-team@android.com
+Subject: Re: [PATCH v3 1/1] netfilter: nat: add a range check for l3/l4
+ protonum
+Message-ID: <20200828164234.GA30990@salvia>
+References: <20200804113711.GA20988@salvia>
+ <20200824193832.853621-1-willmcvicker@google.com>
+ <20200824193832.853621-2-willmcvicker@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200823181537.13254-1-fabf@skynet.be>
+In-Reply-To: <20200824193832.853621-2-willmcvicker@google.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -61,9 +71,71 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Aug 23, 2020 at 08:15:37PM +0200, Fabian Frederick wrote:
-> nft_flowtable.sh is made for bash not sh.
-> Also give values which not return "RTNETLINK answers: Invalid
-> argument"
+Hi Will,
 
-Series from 1 to 5 is applied.
+Given this is for -stable maintainers only, I'd suggest:
+
+1) Specify what -stable kernel versions this patch applies to.
+   Explain that this problem is gone since what kernel version.
+
+2) Maybe clarify that this is only for stable in the patch subject,
+   e.g. [PATCH -stable v3] netfilter: nat: add a range check for l3/l4
+
+Otherwise, this -stable maintainers might not identify this patch as
+something that is targetted to them.
+
+Thanks.
+
+On Mon, Aug 24, 2020 at 07:38:32PM +0000, Will McVicker wrote:
+> The indexes to the nf_nat_l[34]protos arrays come from userspace. So
+> check the tuple's family, e.g. l3num, when creating the conntrack in
+> order to prevent an OOB memory access during setup.  Here is an example
+> kernel panic on 4.14.180 when userspace passes in an index greater than
+> NFPROTO_NUMPROTO.
+> 
+> Internal error: Oops - BUG: 0 [#1] PREEMPT SMP
+> Modules linked in:...
+> Process poc (pid: 5614, stack limit = 0x00000000a3933121)
+> CPU: 4 PID: 5614 Comm: poc Tainted: G S      W  O    4.14.180-g051355490483
+> Hardware name: Qualcomm Technologies, Inc. SM8150 V2 PM8150 Google Inc. MSM
+> task: 000000002a3dfffe task.stack: 00000000a3933121
+> pc : __cfi_check_fail+0x1c/0x24
+> lr : __cfi_check_fail+0x1c/0x24
+> ...
+> Call trace:
+> __cfi_check_fail+0x1c/0x24
+> name_to_dev_t+0x0/0x468
+> nfnetlink_parse_nat_setup+0x234/0x258
+> ctnetlink_parse_nat_setup+0x4c/0x228
+> ctnetlink_new_conntrack+0x590/0xc40
+> nfnetlink_rcv_msg+0x31c/0x4d4
+> netlink_rcv_skb+0x100/0x184
+> nfnetlink_rcv+0xf4/0x180
+> netlink_unicast+0x360/0x770
+> netlink_sendmsg+0x5a0/0x6a4
+> ___sys_sendmsg+0x314/0x46c
+> SyS_sendmsg+0xb4/0x108
+> el0_svc_naked+0x34/0x38
+> 
+> Fixes: c1d10adb4a521 ("[NETFILTER]: Add ctnetlink port for nf_conntrack")
+> Signed-off-by: Will McVicker <willmcvicker@google.com>
+> ---
+>  net/netfilter/nf_conntrack_netlink.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+> index 31fa94064a62..0b89609a6e9d 100644
+> --- a/net/netfilter/nf_conntrack_netlink.c
+> +++ b/net/netfilter/nf_conntrack_netlink.c
+> @@ -1129,6 +1129,8 @@ ctnetlink_parse_tuple(const struct nlattr * const cda[],
+>  	if (!tb[CTA_TUPLE_IP])
+>  		return -EINVAL;
+>  
+> +	if (l3num != NFPROTO_IPV4 && l3num != NFPROTO_IPV6)
+> +		return -EOPNOTSUPP;
+>  	tuple->src.l3num = l3num;
+>  
+>  	err = ctnetlink_parse_tuple_ip(tb[CTA_TUPLE_IP], tuple);
+> -- 
+> 2.28.0.297.g1956fa8f8d-goog
+> 
