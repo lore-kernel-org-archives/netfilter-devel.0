@@ -2,40 +2,42 @@ Return-Path: <SRS0=fjj5=CH=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-11.1 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLACK,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 642F0C433E2
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Aug 2020 09:59:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D41D8C433E6
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Aug 2020 10:54:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 496242076D
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Aug 2020 09:59:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B892220791
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Aug 2020 10:54:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727882AbgH2J7K (ORCPT
+        id S1728082AbgH2KyZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 29 Aug 2020 05:59:10 -0400
-Received: from mg.ssi.bg ([178.16.128.9]:54564 "EHLO mg.ssi.bg"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726900AbgH2J7K (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 29 Aug 2020 05:59:10 -0400
-Received: from mg.ssi.bg (localhost [127.0.0.1])
-        by mg.ssi.bg (Proxmox) with ESMTP id C88C136A2E
-        for <netfilter-devel@vger.kernel.org>; Sat, 29 Aug 2020 12:59:08 +0300 (EEST)
-Received: from ink.ssi.bg (ink.ssi.bg [178.16.128.7])
-        by mg.ssi.bg (Proxmox) with ESMTP id 238F236A2D
-        for <netfilter-devel@vger.kernel.org>; Sat, 29 Aug 2020 12:59:08 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [178.16.129.10])
-        by ink.ssi.bg (Postfix) with ESMTPS id 128B73C09BA;
-        Sat, 29 Aug 2020 12:58:57 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id 07T9wsnW007570;
-        Sat, 29 Aug 2020 12:58:55 +0300
-Date:   Sat, 29 Aug 2020 12:58:54 +0300 (EEST)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Yaroslav Bolyukin <iam@lach.pw>
-cc:     Nicolas Dichtel <nicolas.dichtel@6wind.com>,
-        Wensong Zhang <wensong@linux-vs.org>,
+        Sat, 29 Aug 2020 06:54:25 -0400
+Received: from forward105p.mail.yandex.net ([77.88.28.108]:43743 "EHLO
+        forward105p.mail.yandex.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728070AbgH2Kx7 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 29 Aug 2020 06:53:59 -0400
+X-Greylist: delayed 7360 seconds by postgrey-1.27 at vger.kernel.org; Sat, 29 Aug 2020 06:53:31 EDT
+Received: from forward101q.mail.yandex.net (forward101q.mail.yandex.net [IPv6:2a02:6b8:c0e:4b:0:640:4012:bb98])
+        by forward105p.mail.yandex.net (Yandex) with ESMTP id C036A4D41A1A;
+        Sat, 29 Aug 2020 13:52:44 +0300 (MSK)
+Received: from mxback7q.mail.yandex.net (mxback7q.mail.yandex.net [IPv6:2a02:6b8:c0e:41:0:640:cbbf:d618])
+        by forward101q.mail.yandex.net (Yandex) with ESMTP id BAC61CF40002;
+        Sat, 29 Aug 2020 13:52:44 +0300 (MSK)
+Received: from vla1-00787b9b359d.qloud-c.yandex.net (vla1-00787b9b359d.qloud-c.yandex.net [2a02:6b8:c0d:2915:0:640:78:7b9b])
+        by mxback7q.mail.yandex.net (mxback/Yandex) with ESMTP id gCYnzgL8Ka-qh8iouRw;
+        Sat, 29 Aug 2020 13:52:44 +0300
+Received: by vla1-00787b9b359d.qloud-c.yandex.net (smtp/Yandex) with ESMTPSA id 8pPW436arS-qelORpTN;
+        Sat, 29 Aug 2020 13:52:42 +0300
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+        (Client certificate not present)
+From:   Yaroslav Bolyukin <iam@lach.pw>
+To:     ja@ssi.bg
+Cc:     iam@lach.pw, Wensong Zhang <wensong@linux-vs.org>,
         Simon Horman <horms@verge.net.au>,
         "David S. Miller" <davem@davemloft.net>,
         Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
@@ -46,85 +48,56 @@ cc:     Nicolas Dichtel <nicolas.dichtel@6wind.com>,
         Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
         lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCH] Remove ipvs v6 dependency on iptables
-In-Reply-To: <20200829085005.24931-1-iam@lach.pw>
-Message-ID: <alpine.LFD.2.23.451.2008291233110.3043@ja.home.ssi.bg>
-References: <e4765a73-e6a1-f5ba-dd8b-7c1ee1e5883d@6wind.com> <20200829085005.24931-1-iam@lach.pw>
+Subject: [PATCHv4 net-next] Remove ipvs v6 dependency on iptables
+Date:   Sat, 29 Aug 2020 15:51:37 +0500
+Message-Id: <20200829105136.3533-1-iam@lach.pw>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <alpine.LFD.2.23.451.2008291233110.3043@ja.home.ssi.bg>
+References: <alpine.LFD.2.23.451.2008291233110.3043@ja.home.ssi.bg>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+This dependency was added because ipv6_find_hdr was in iptables specific
+code but is no longer required
 
-	Hello,
+Fixes: f8f626754ebe ("ipv6: Move ipv6_find_hdr() out of Netfilter code.")
+Fixes: 63dca2c0b0e7 ("ipvs: Fix faulty IPv6 extension header handling in IPVS").
+Signed-off-by: Yaroslav Bolyukin <iam@lach.pw>
+---
+ include/net/ip_vs.h        | 3 ---
+ net/netfilter/ipvs/Kconfig | 1 -
+ 2 files changed, 4 deletions(-)
 
-On Sat, 29 Aug 2020, Yaroslav Bolyukin wrote:
-
-> This dependency was added as part of commit ecefa32ffda201975
-> ("ipvs: Fix faulty IPv6 extension header handling in IPVS"), because it
-> had dependency on ipv6_find_hdr, which was located in iptables-specific
-> code
-> 
-> But it is no longer required after commit e6f890cfde0e74d5b
-> ("ipv6:Move ipv6_find_hdr() out of Netfilter code.")
-> 
-> Also remove ip6tables include from ip_vs
-> 
-> Signed-off-by: Yaroslav Bolyukin <iam@lach.pw>
-
-	The commit you reference better to be added as special
-tag, eg: Fixes: f8f626754ebe ("ipv6: Move ipv6_find_hdr() out of 
-Netfilter code.") before the Signed-off-by line. Then you may skip 
-mentioning the commit in the description, it will be in Fixes tag.
-Note that the first 12 chars from the commit id are used, not the last.
-Second Fixes line can be for 63dca2c0b0e7 ("ipvs: Fix faulty IPv6 
-extension header handling in IPVS"). Both Fixes lines should not be
-wrapped.
-
-	The Subject line needs to include version and tree,
-for example: [PATCHv2 net-next] ipvs: remove v6 dependency on iptables
-You increase the version when sending modified patch.
-
-	You can check the Documentation/process/submitting-patches.rst
-guide for more info.
-
-> ---
->  include/net/ip_vs.h        | 3 ---
->  net/netfilter/ipvs/Kconfig | 1 -
->  2 files changed, 4 deletions(-)
-> 
-> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-> index 9a59a3378..d609e957a 100644
-> --- a/include/net/ip_vs.h
-> +++ b/include/net/ip_vs.h
-> @@ -25,9 +25,6 @@
->  #include <linux/ip.h>
->  #include <linux/ipv6.h>			/* for struct ipv6hdr */
->  #include <net/ipv6.h>
-> -#if IS_ENABLED(CONFIG_IP_VS_IPV6)
-> -#include <linux/netfilter_ipv6/ip6_tables.h>
-> -#endif
->  #if IS_ENABLED(CONFIG_NF_CONNTRACK)
->  #include <net/netfilter/nf_conntrack.h>
->  #endif
-> diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
-> index 2c1593089..eb0e329f9 100644
-> --- a/net/netfilter/ipvs/Kconfig
-> +++ b/net/netfilter/ipvs/Kconfig
-> @@ -29,7 +29,6 @@ if IP_VS
->  config	IP_VS_IPV6
->  	bool "IPv6 support for IPVS"
->  	depends on IPV6 = y || IP_VS = IPV6
-> -	select IP6_NF_IPTABLES
->  	select NF_DEFRAG_IPV6
->  	help
->  	  Add IPv6 support to IPVS.
-> -- 
-
-Regards
-
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index 9a59a3378..d609e957a 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -25,9 +25,6 @@
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>			/* for struct ipv6hdr */
+ #include <net/ipv6.h>
+-#if IS_ENABLED(CONFIG_IP_VS_IPV6)
+-#include <linux/netfilter_ipv6/ip6_tables.h>
+-#endif
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+ #include <net/netfilter/nf_conntrack.h>
+ #endif
+diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
+index 2c1593089..eb0e329f9 100644
+--- a/net/netfilter/ipvs/Kconfig
++++ b/net/netfilter/ipvs/Kconfig
+@@ -29,7 +29,6 @@ if IP_VS
+ config	IP_VS_IPV6
+ 	bool "IPv6 support for IPVS"
+ 	depends on IPV6 = y || IP_VS = IPV6
+-	select IP6_NF_IPTABLES
+ 	select NF_DEFRAG_IPV6
+ 	help
+ 	  Add IPv6 support to IPVS.
 --
-Julian Anastasov <ja@ssi.bg>
+2.28.0
 
