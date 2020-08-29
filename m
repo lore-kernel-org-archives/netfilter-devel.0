@@ -2,102 +2,72 @@ Return-Path: <SRS0=fjj5=CH=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.1 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLACK,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D41D8C433E6
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Aug 2020 10:54:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 246C6C433E2
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Aug 2020 11:07:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B892220791
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Aug 2020 10:54:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F147720848
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Aug 2020 11:07:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728082AbgH2KyZ (ORCPT
+        id S1726952AbgH2LHi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 29 Aug 2020 06:54:25 -0400
-Received: from forward105p.mail.yandex.net ([77.88.28.108]:43743 "EHLO
-        forward105p.mail.yandex.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728070AbgH2Kx7 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 29 Aug 2020 06:53:59 -0400
-X-Greylist: delayed 7360 seconds by postgrey-1.27 at vger.kernel.org; Sat, 29 Aug 2020 06:53:31 EDT
-Received: from forward101q.mail.yandex.net (forward101q.mail.yandex.net [IPv6:2a02:6b8:c0e:4b:0:640:4012:bb98])
-        by forward105p.mail.yandex.net (Yandex) with ESMTP id C036A4D41A1A;
-        Sat, 29 Aug 2020 13:52:44 +0300 (MSK)
-Received: from mxback7q.mail.yandex.net (mxback7q.mail.yandex.net [IPv6:2a02:6b8:c0e:41:0:640:cbbf:d618])
-        by forward101q.mail.yandex.net (Yandex) with ESMTP id BAC61CF40002;
-        Sat, 29 Aug 2020 13:52:44 +0300 (MSK)
-Received: from vla1-00787b9b359d.qloud-c.yandex.net (vla1-00787b9b359d.qloud-c.yandex.net [2a02:6b8:c0d:2915:0:640:78:7b9b])
-        by mxback7q.mail.yandex.net (mxback/Yandex) with ESMTP id gCYnzgL8Ka-qh8iouRw;
-        Sat, 29 Aug 2020 13:52:44 +0300
-Received: by vla1-00787b9b359d.qloud-c.yandex.net (smtp/Yandex) with ESMTPSA id 8pPW436arS-qelORpTN;
-        Sat, 29 Aug 2020 13:52:42 +0300
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
-        (Client certificate not present)
-From:   Yaroslav Bolyukin <iam@lach.pw>
-To:     ja@ssi.bg
-Cc:     iam@lach.pw, Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: [PATCHv4 net-next] Remove ipvs v6 dependency on iptables
-Date:   Sat, 29 Aug 2020 15:51:37 +0500
-Message-Id: <20200829105136.3533-1-iam@lach.pw>
-X-Mailer: git-send-email 2.28.0
-In-Reply-To: <alpine.LFD.2.23.451.2008291233110.3043@ja.home.ssi.bg>
-References: <alpine.LFD.2.23.451.2008291233110.3043@ja.home.ssi.bg>
+        Sat, 29 Aug 2020 07:07:38 -0400
+Received: from correo.us.es ([193.147.175.20]:42196 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726876AbgH2LHh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 29 Aug 2020 07:07:37 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id DBF44D28C2
+        for <netfilter-devel@vger.kernel.org>; Sat, 29 Aug 2020 13:07:35 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CC86EDA730
+        for <netfilter-devel@vger.kernel.org>; Sat, 29 Aug 2020 13:07:35 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id C2399DA704; Sat, 29 Aug 2020 13:07:35 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B5BFADA73F;
+        Sat, 29 Aug 2020 13:07:33 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Sat, 29 Aug 2020 13:07:33 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 999E242EF4E0;
+        Sat, 29 Aug 2020 13:07:33 +0200 (CEST)
+Date:   Sat, 29 Aug 2020 13:07:33 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Balazs Scheidler <bazsi77@gmail.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next v2] netfilter: nft_socket: add wildcard support
+Message-ID: <20200829110733.GA24324@salvia>
+References: <20200828154425.21259-1-pablo@netfilter.org>
+ <20200829061915.21634-1-bazsi77@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20200829061915.21634-1-bazsi77@gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This dependency was added because ipv6_find_hdr was in iptables specific
-code but is no longer required
+On Sat, Aug 29, 2020 at 08:19:15AM +0200, Balazs Scheidler wrote:
+> Add NFT_SOCKET_WILDCARD to match to wildcard socket listener.
 
-Fixes: f8f626754ebe ("ipv6: Move ipv6_find_hdr() out of Netfilter code.")
-Fixes: 63dca2c0b0e7 ("ipvs: Fix faulty IPv6 extension header handling in IPVS").
-Signed-off-by: Yaroslav Bolyukin <iam@lach.pw>
----
- include/net/ip_vs.h        | 3 ---
- net/netfilter/ipvs/Kconfig | 1 -
- 2 files changed, 4 deletions(-)
+Applied, thanks Balazs.
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 9a59a3378..d609e957a 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -25,9 +25,6 @@
- #include <linux/ip.h>
- #include <linux/ipv6.h>			/* for struct ipv6hdr */
- #include <net/ipv6.h>
--#if IS_ENABLED(CONFIG_IP_VS_IPV6)
--#include <linux/netfilter_ipv6/ip6_tables.h>
--#endif
- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
- #include <net/netfilter/nf_conntrack.h>
- #endif
-diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
-index 2c1593089..eb0e329f9 100644
---- a/net/netfilter/ipvs/Kconfig
-+++ b/net/netfilter/ipvs/Kconfig
-@@ -29,7 +29,6 @@ if IP_VS
- config	IP_VS_IPV6
- 	bool "IPv6 support for IPVS"
- 	depends on IPV6 = y || IP_VS = IPV6
--	select IP6_NF_IPTABLES
- 	select NF_DEFRAG_IPV6
- 	help
- 	  Add IPv6 support to IPVS.
---
-2.28.0
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Signed-off-by: Balazs Scheidler <bazsi77@gmail.com>
+> ---
+> @Pablo: this contains the enum addition as well as the explicit check for IPv6
 
+Thanks, hopefully this is fixing up the kbuild robot report.
