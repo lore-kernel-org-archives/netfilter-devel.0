@@ -1,104 +1,123 @@
-Return-Path: <SRS0=XBPj=CI=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=WPBU=CJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB51EC433E2
-	for <netfilter-devel@archiver.kernel.org>; Sun, 30 Aug 2020 11:43:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE886C433E2
+	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Aug 2020 09:37:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 886222087D
-	for <netfilter-devel@archiver.kernel.org>; Sun, 30 Aug 2020 11:43:51 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="bDCA/LuP"
+	by mail.kernel.org (Postfix) with ESMTP id 8F47D2068F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Aug 2020 09:37:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728700AbgH3Lnv (ORCPT
+        id S1726305AbgHaJg5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 30 Aug 2020 07:43:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51550 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728691AbgH3Lnu (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 30 Aug 2020 07:43:50 -0400
-Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 369D8C061573
-        for <netfilter-devel@vger.kernel.org>; Sun, 30 Aug 2020 04:43:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=yh1AiHeLkQnDvGXjVBZtF3IPRjOzmlzmzrYYV06MunM=; b=bDCA/LuPAieS0NGp+wsMEN01Ue
-        owuWHQYiKsrRjPBL4AXy5UrJOJCqDTz8DiNi3vwK99vpT10v9O+f37FN0I5TEAUFVrhQwiNX1j+xB
-        OPfQOXH0nYXKMreahJaYpd3LeyGAhQoIitBT/+dvf0mCTebWndJE3jHOhdAU0XDlMMNVFM5jmnnEy
-        AcF9zE3NAPIV0uNJvDkhOj7Ei5lOWHNFI2l/3psHa6ml8HJVScfXM1pk3q3zBsUz2m8CNTAl7Azhv
-        Rjm8/RYbKf7gvjQc/WBdIMdRKs7ALjPFTLMKG92ro2RtjEkvrMbBd0yKHRiR7poK6Nyyc/gRvoqmK
-        izpDPbAw==;
-Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:5ec5:d4ff:fe95:cee6] helo=dreamlands)
-        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1kCLkM-0003Iy-O5; Sun, 30 Aug 2020 12:43:42 +0100
-Date:   Sun, 30 Aug 2020 12:43:41 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH xtables-addons] build: clean some extra build artefacts.
-Message-ID: <20200830114341.GA1414639@dreamlands>
-References: <20200829204127.2709641-1-jeremy@azazel.net>
- <nycvar.YFH.7.77.849.2008301337350.1576@n3.vanv.qr>
+        Mon, 31 Aug 2020 05:36:57 -0400
+Received: from correo.us.es ([193.147.175.20]:40336 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726174AbgHaJg5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 31 Aug 2020 05:36:57 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 6EBC5DA70A
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Aug 2020 11:36:54 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5CBA2DA704
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Aug 2020 11:36:54 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 51FB5DA78D; Mon, 31 Aug 2020 11:36:54 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3296CDA72F;
+        Mon, 31 Aug 2020 11:36:52 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 31 Aug 2020 11:36:52 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id 08C9942EF4E0;
+        Mon, 31 Aug 2020 11:36:52 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH 0/8] Netfilter fixes for net
+Date:   Mon, 31 Aug 2020 11:36:40 +0200
+Message-Id: <20200831093648.20765-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="liOOAslEiF7prFVr"
-Content-Disposition: inline
-In-Reply-To: <nycvar.YFH.7.77.849.2008301337350.1576@n3.vanv.qr>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:5ec5:d4ff:fe95:cee6
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi,
 
---liOOAslEiF7prFVr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The following patchset contains Netfilter fixes for net:
 
-On 2020-08-30, at 13:39:28 +0200, Jan Engelhardt wrote:
-> On Saturday 2020-08-29 22:41, Jeremy Sowden wrote:
-> > Because extensions/Makefile.am does not contain a `SUBDIRS` variable
-> > listing extensions/ACCOUNT and extensions/pknock, when `make distclean`
-> > is run, make does not recurse into them.  Add a `distclean-local` target
-> > to extensions/Makefile.am to fix this.
->
-> I find it suspicious that the userspace tools are not even built.
-> Therefore, I just added those directories to SUBDIRS. This should
-> conveniently also cure the need for an extra call to distcleaning.
+1) Do not delete clash entries on reply, let them expire instead,
+   from Florian Westphal.
 
-Thanks,
+2) Do not report EAGAIN to nfnetlink, otherwise this enters a busy loop.
+   Update nfnetlink_unicast() to translate EAGAIN to ENOBUFS.
 
-J.
+3) Remove repeated words in code comments, from Randy Dunlap.
 
---liOOAslEiF7prFVr
-Content-Type: application/pgp-signature; name="signature.asc"
+4) Several patches for the flowtable selftests, from Fabian Frederick.
 
------BEGIN PGP SIGNATURE-----
+Please, pull these changes from:
 
-iQGzBAABCgAdFiEEd/6/sDFjb+OCRmRMonv1GCHZ79cFAl9LkN4ACgkQonv1GCHZ
-79e2IAv6AjE/3uWjPhGtVB9JgiEBETa30VeE8fzjidxXJxVgplQ0gNmYZ8Ro7pVT
-G56gyfqDZfLbgqPfpFLad5YRHAuThP1UAODjXIx7I/Z30BYStYC3DW70FyXo37Ck
-mrFOxFnkE9wk5oDVeD8bSlqdU2oNVxFq+zC+2s1cyOBymzXlUri484dKEpoZeiqp
-m3fmrHVZXKybQw0jvvGOYjEisorV4JNknyiKdAqLgLH60lin93nd0p+KY0rpdOr7
-Z9TEwbJX2pkxpFFREry4ic4azomAvlbrGXKg2unzO0lxlAizbP6dcH5JMYyPmhgD
-MCxH+3LGkGqZdG+WrEy1KMD/JWnt7HlbKA9uHsigNgloNHCi19jco8GEw3b6QbgB
-EetZxNV/wd8RdWWcIWh+RxsN/Z08o27nbarac4zyB9OpelAowiN4rqEHZPO5sKCa
-5eXxQZ9qRlVkMjR7CxiTx0bDmEhmU520dNBfxgnb/Ukm0nFy5vjpQhBaUDXa6v1D
-kItLDW2V
-=OtUG
------END PGP SIGNATURE-----
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
---liOOAslEiF7prFVr--
+Thank you.
+
+----------------------------------------------------------------
+
+The following changes since commit 5438dd45831ee33869779bd1919b05816ae4dbc9:
+
+  net_sched: fix error path in red_init() (2020-08-28 07:16:46 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to c46172147ebbeb70094db48d76ab7945d96c638b:
+
+  netfilter: conntrack: do not auto-delete clash entries on reply (2020-08-29 13:03:06 +0200)
+
+----------------------------------------------------------------
+Fabian Frederick (5):
+      selftests: netfilter: fix header example
+      selftests: netfilter: exit on invalid parameters
+      selftests: netfilter: remove unused variable in make_file()
+      selftests: netfilter: simplify command testing
+      selftests: netfilter: add command usage
+
+Florian Westphal (1):
+      netfilter: conntrack: do not auto-delete clash entries on reply
+
+Pablo Neira Ayuso (1):
+      netfilter: nfnetlink: nfnetlink_unicast() reports EAGAIN instead of ENOBUFS
+
+Randy Dunlap (1):
+      netfilter: delete repeated words
+
+ include/linux/netfilter/nfnetlink.h                |  3 +-
+ net/ipv4/netfilter/nf_nat_pptp.c                   |  2 +-
+ net/netfilter/nf_conntrack_pptp.c                  |  2 +-
+ net/netfilter/nf_conntrack_proto_tcp.c             |  2 +-
+ net/netfilter/nf_conntrack_proto_udp.c             | 26 ++++-----
+ net/netfilter/nf_tables_api.c                      | 61 ++++++++++----------
+ net/netfilter/nfnetlink.c                          | 11 +++-
+ net/netfilter/nfnetlink_log.c                      |  3 +-
+ net/netfilter/nfnetlink_queue.c                    |  2 +-
+ net/netfilter/nft_flow_offload.c                   |  2 +-
+ net/netfilter/xt_recent.c                          |  2 +-
+ tools/testing/selftests/netfilter/nft_flowtable.sh | 67 ++++++++++++----------
+ 12 files changed, 92 insertions(+), 91 deletions(-)
