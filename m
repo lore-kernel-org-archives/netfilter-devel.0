@@ -2,287 +2,87 @@ Return-Path: <SRS0=WPBU=CJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC81BC433E2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Aug 2020 09:37:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D884C433E6
+	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Aug 2020 10:36:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE8E72068F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Aug 2020 09:37:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E20DC2083E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Aug 2020 10:36:46 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="PD49v47r"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726589AbgHaJhc (ORCPT
+        id S1726515AbgHaKgq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 31 Aug 2020 05:37:32 -0400
-Received: from correo.us.es ([193.147.175.20]:40380 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726167AbgHaJg7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 31 Aug 2020 05:36:59 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 8764F15AEB2
-        for <netfilter-devel@vger.kernel.org>; Mon, 31 Aug 2020 11:36:56 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 77DBDDA852
-        for <netfilter-devel@vger.kernel.org>; Mon, 31 Aug 2020 11:36:56 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 76FD0DA850; Mon, 31 Aug 2020 11:36:56 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1A541DA78C;
-        Mon, 31 Aug 2020 11:36:54 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 31 Aug 2020 11:36:54 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id E330342EF4E0;
-        Mon, 31 Aug 2020 11:36:53 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 2/8] netfilter: nfnetlink: nfnetlink_unicast() reports EAGAIN instead of ENOBUFS
-Date:   Mon, 31 Aug 2020 11:36:42 +0200
-Message-Id: <20200831093648.20765-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200831093648.20765-1-pablo@netfilter.org>
-References: <20200831093648.20765-1-pablo@netfilter.org>
+        Mon, 31 Aug 2020 06:36:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37366 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726204AbgHaKgo (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 31 Aug 2020 06:36:44 -0400
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 271E5C061573
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Aug 2020 03:36:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
+        :Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=5xggnq6qBiB/iIsI/rhgljEDvE3aaPg691NcOmydijA=; b=PD49v47r/HZn2hCbQNjPtFgQPv
+        Cmz+YyoYZijDkV3+yzQh0N12WAOwAV5CjXGbHNJB33X0w48wCcHbLX9n9hyeVUYr6xTfpvb101nRS
+        7eEXokHmlGefZv6Fnks7VePm3hFjNhLRpifWaAbO8Mah2DGZsmysH2mxikDcyC22q5++M/Ggh+FAX
+        MeC8KSTjMIk4dBuETcCOwZR8Uz3mJiVd5uiKXsxRb35O/6Nmm+B8pe+LFXujwRkKp8Y271JVdQReB
+        uuHeEEzsrZy6I90APGq70PyY9bcptx1MQJ+ybkaFw4S+fU5DLhj2BdlslVcoGDwMzLbj3P7Xo5tkG
+        AnGwpEyA==;
+Received: from ulthar.dreamlands ([192.168.96.2] helo=ulthar.dreamlands.azazel.net)
+        by kadath.azazel.net with esmtp (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1kChB0-0007Zt-38; Mon, 31 Aug 2020 11:36:38 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
+        Helmut Grohne <helmut@subdivi.de>
+Subject: [PATCH xtables-addons] build: don't hard-code pkg-config.
+Date:   Mon, 31 Aug 2020 11:36:35 +0100
+Message-Id: <20200831103635.524666-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.28.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-SA-Exim-Connect-IP: 192.168.96.2
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Frontend callback reports EAGAIN to nfnetlink to retry a command, this
-is used to signal that module autoloading is required. Unfortunately,
-nlmsg_unicast() reports EAGAIN in case the receiver socket buffer gets
-full, so it enters a busy-loop.
+From: Helmut Grohne <helmut@subdivi.de>
 
-This patch updates nfnetlink_unicast() to turn EAGAIN into ENOBUFS and
-to use nlmsg_unicast(). Remove the flags field in nfnetlink_unicast()
-since this is always MSG_DONTWAIT in the existing code which is exactly
-what nlmsg_unicast() passes to netlink_unicast() as parameter.
+Use $PKG_CONFIG in configure.ac in order to allow it to be overridden.
+Fixes cross-compilation.
 
-Fixes: 96518518cc41 ("netfilter: add nftables")
-Reported-by: Phil Sutter <phil@nwl.cc>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- include/linux/netfilter/nfnetlink.h |  3 +-
- net/netfilter/nf_tables_api.c       | 61 ++++++++++++++---------------
- net/netfilter/nfnetlink.c           | 11 ++++--
- net/netfilter/nfnetlink_log.c       |  3 +-
- net/netfilter/nfnetlink_queue.c     |  2 +-
- 5 files changed, 40 insertions(+), 40 deletions(-)
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
-index 851425c3178f..89016d08f6a2 100644
---- a/include/linux/netfilter/nfnetlink.h
-+++ b/include/linux/netfilter/nfnetlink.h
-@@ -43,8 +43,7 @@ int nfnetlink_has_listeners(struct net *net, unsigned int group);
- int nfnetlink_send(struct sk_buff *skb, struct net *net, u32 portid,
- 		   unsigned int group, int echo, gfp_t flags);
- int nfnetlink_set_err(struct net *net, u32 portid, u32 group, int error);
--int nfnetlink_unicast(struct sk_buff *skb, struct net *net, u32 portid,
--		      int flags);
-+int nfnetlink_unicast(struct sk_buff *skb, struct net *net, u32 portid);
+diff --git a/configure.ac b/configure.ac
+index 8f8a13b9d4b7..7d779964f77d 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -27,7 +27,7 @@ fi
+ AC_CHECK_HEADERS([linux/netfilter/x_tables.h], [],
+ 	[AC_MSG_ERROR([You need to have linux/netfilter/x_tables.h, see INSTALL file for details])])
+ PKG_CHECK_MODULES([libxtables], [xtables >= 1.6.0])
+-xtlibdir="$(pkg-config --variable=xtlibdir xtables)"
++xtlibdir="$($PKG_CONFIG --variable=xtlibdir xtables)"
  
- static inline u16 nfnl_msg_type(u8 subsys, u8 msg_type)
- {
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 71e501c5ad21..b7dc1cbf40ea 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -815,11 +815,11 @@ static int nf_tables_gettable(struct net *net, struct sock *nlsk,
- 					nlh->nlmsg_seq, NFT_MSG_NEWTABLE, 0,
- 					family, table);
- 	if (err < 0)
--		goto err;
-+		goto err_fill_table_info;
- 
--	return nlmsg_unicast(nlsk, skb2, NETLINK_CB(skb).portid);
-+	return nfnetlink_unicast(skb2, net, NETLINK_CB(skb).portid);
- 
--err:
-+err_fill_table_info:
- 	kfree_skb(skb2);
- 	return err;
- }
-@@ -1563,11 +1563,11 @@ static int nf_tables_getchain(struct net *net, struct sock *nlsk,
- 					nlh->nlmsg_seq, NFT_MSG_NEWCHAIN, 0,
- 					family, table, chain);
- 	if (err < 0)
--		goto err;
-+		goto err_fill_chain_info;
- 
--	return nlmsg_unicast(nlsk, skb2, NETLINK_CB(skb).portid);
-+	return nfnetlink_unicast(skb2, net, NETLINK_CB(skb).portid);
- 
--err:
-+err_fill_chain_info:
- 	kfree_skb(skb2);
- 	return err;
- }
-@@ -3008,11 +3008,11 @@ static int nf_tables_getrule(struct net *net, struct sock *nlsk,
- 				       nlh->nlmsg_seq, NFT_MSG_NEWRULE, 0,
- 				       family, table, chain, rule, NULL);
- 	if (err < 0)
--		goto err;
-+		goto err_fill_rule_info;
- 
--	return nlmsg_unicast(nlsk, skb2, NETLINK_CB(skb).portid);
-+	return nfnetlink_unicast(skb2, net, NETLINK_CB(skb).portid);
- 
--err:
-+err_fill_rule_info:
- 	kfree_skb(skb2);
- 	return err;
- }
-@@ -3968,11 +3968,11 @@ static int nf_tables_getset(struct net *net, struct sock *nlsk,
- 
- 	err = nf_tables_fill_set(skb2, &ctx, set, NFT_MSG_NEWSET, 0);
- 	if (err < 0)
--		goto err;
-+		goto err_fill_set_info;
- 
--	return nlmsg_unicast(nlsk, skb2, NETLINK_CB(skb).portid);
-+	return nfnetlink_unicast(skb2, net, NETLINK_CB(skb).portid);
- 
--err:
-+err_fill_set_info:
- 	kfree_skb(skb2);
- 	return err;
- }
-@@ -4860,24 +4860,18 @@ static int nft_get_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	err = -ENOMEM;
- 	skb = nlmsg_new(NLMSG_GOODSIZE, GFP_ATOMIC);
- 	if (skb == NULL)
--		goto err1;
-+		return err;
- 
- 	err = nf_tables_fill_setelem_info(skb, ctx, ctx->seq, ctx->portid,
- 					  NFT_MSG_NEWSETELEM, 0, set, &elem);
- 	if (err < 0)
--		goto err2;
-+		goto err_fill_setelem;
- 
--	err = nfnetlink_unicast(skb, ctx->net, ctx->portid, MSG_DONTWAIT);
--	/* This avoids a loop in nfnetlink. */
--	if (err < 0)
--		goto err1;
-+	return nfnetlink_unicast(skb, ctx->net, ctx->portid);
- 
--	return 0;
--err2:
-+err_fill_setelem:
- 	kfree_skb(skb);
--err1:
--	/* this avoids a loop in nfnetlink. */
--	return err == -EAGAIN ? -ENOBUFS : err;
-+	return err;
- }
- 
- /* called with rcu_read_lock held */
-@@ -6182,10 +6176,11 @@ static int nf_tables_getobj(struct net *net, struct sock *nlsk,
- 				      nlh->nlmsg_seq, NFT_MSG_NEWOBJ, 0,
- 				      family, table, obj, reset);
- 	if (err < 0)
--		goto err;
-+		goto err_fill_obj_info;
- 
--	return nlmsg_unicast(nlsk, skb2, NETLINK_CB(skb).portid);
--err:
-+	return nfnetlink_unicast(skb2, net, NETLINK_CB(skb).portid);
-+
-+err_fill_obj_info:
- 	kfree_skb(skb2);
- 	return err;
- }
-@@ -7045,10 +7040,11 @@ static int nf_tables_getflowtable(struct net *net, struct sock *nlsk,
- 					    NFT_MSG_NEWFLOWTABLE, 0, family,
- 					    flowtable, &flowtable->hook_list);
- 	if (err < 0)
--		goto err;
-+		goto err_fill_flowtable_info;
- 
--	return nlmsg_unicast(nlsk, skb2, NETLINK_CB(skb).portid);
--err:
-+	return nfnetlink_unicast(skb2, net, NETLINK_CB(skb).portid);
-+
-+err_fill_flowtable_info:
- 	kfree_skb(skb2);
- 	return err;
- }
-@@ -7234,10 +7230,11 @@ static int nf_tables_getgen(struct net *net, struct sock *nlsk,
- 	err = nf_tables_fill_gen_info(skb2, net, NETLINK_CB(skb).portid,
- 				      nlh->nlmsg_seq);
- 	if (err < 0)
--		goto err;
-+		goto err_fill_gen_info;
- 
--	return nlmsg_unicast(nlsk, skb2, NETLINK_CB(skb).portid);
--err:
-+	return nfnetlink_unicast(skb2, net, NETLINK_CB(skb).portid);
-+
-+err_fill_gen_info:
- 	kfree_skb(skb2);
- 	return err;
- }
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 5f24edf95830..3a2e64e13b22 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -149,10 +149,15 @@ int nfnetlink_set_err(struct net *net, u32 portid, u32 group, int error)
- }
- EXPORT_SYMBOL_GPL(nfnetlink_set_err);
- 
--int nfnetlink_unicast(struct sk_buff *skb, struct net *net, u32 portid,
--		      int flags)
-+int nfnetlink_unicast(struct sk_buff *skb, struct net *net, u32 portid)
- {
--	return netlink_unicast(net->nfnl, skb, portid, flags);
-+	int err;
-+
-+	err = nlmsg_unicast(net->nfnl, skb, portid);
-+	if (err == -EAGAIN)
-+		err = -ENOBUFS;
-+
-+	return err;
- }
- EXPORT_SYMBOL_GPL(nfnetlink_unicast);
- 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index f02992419850..b35e8d9a5b37 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -356,8 +356,7 @@ __nfulnl_send(struct nfulnl_instance *inst)
- 			goto out;
- 		}
- 	}
--	nfnetlink_unicast(inst->skb, inst->net, inst->peer_portid,
--			  MSG_DONTWAIT);
-+	nfnetlink_unicast(inst->skb, inst->net, inst->peer_portid);
- out:
- 	inst->qlen = 0;
- 	inst->skb = NULL;
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index dadfc06245a3..d1d8bca03b4f 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -681,7 +681,7 @@ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
- 	*packet_id_ptr = htonl(entry->id);
- 
- 	/* nfnetlink_unicast will either free the nskb or add it to a socket */
--	err = nfnetlink_unicast(nskb, net, queue->peer_portid, MSG_DONTWAIT);
-+	err = nfnetlink_unicast(nskb, net, queue->peer_portid);
- 	if (err < 0) {
- 		if (queue->flags & NFQA_CFG_F_FAIL_OPEN) {
- 			failopen = 1;
+ AC_ARG_WITH([xtlibdir],
+ 	AS_HELP_STRING([--with-xtlibdir=PATH],
 -- 
-2.20.1
+2.28.0
 
