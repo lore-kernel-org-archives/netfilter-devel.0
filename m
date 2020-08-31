@@ -2,116 +2,69 @@ Return-Path: <SRS0=WPBU=CJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CEF2C433E2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Aug 2020 17:12:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0B2DC433E2
+	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Aug 2020 18:23:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1099520678
-	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Aug 2020 17:12:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DD393214DB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Aug 2020 18:23:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728987AbgHaRMV (ORCPT
+        id S1729788AbgHaSXP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 31 Aug 2020 13:12:21 -0400
-Received: from mg.ssi.bg ([178.16.128.9]:41756 "EHLO mg.ssi.bg"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727044AbgHaRMU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 31 Aug 2020 13:12:20 -0400
-Received: from mg.ssi.bg (localhost [127.0.0.1])
-        by mg.ssi.bg (Proxmox) with ESMTP id 1B84C247A0;
-        Mon, 31 Aug 2020 20:12:17 +0300 (EEST)
-Received: from ink.ssi.bg (ink.ssi.bg [178.16.128.7])
-        by mg.ssi.bg (Proxmox) with ESMTP id 7A1112479F;
-        Mon, 31 Aug 2020 20:12:16 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [178.16.129.10])
-        by ink.ssi.bg (Postfix) with ESMTPS id DD17E3C24C7;
-        Mon, 31 Aug 2020 20:12:09 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id 07VHC5NF006196;
-        Mon, 31 Aug 2020 20:12:06 +0300
-Date:   Mon, 31 Aug 2020 20:12:05 +0300 (EEST)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Yaroslav Bolyukin <iam@lach.pw>
-cc:     "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCHv5 net-next] ipvs: remove dependency on ip6_tables
-In-Reply-To: <20200829135953.20228-1-iam@lach.pw>
-Message-ID: <alpine.LFD.2.23.451.2008312005270.4425@ja.home.ssi.bg>
-References: <alpine.LFD.2.23.451.2008291233110.3043@ja.home.ssi.bg> <20200829135953.20228-1-iam@lach.pw>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        Mon, 31 Aug 2020 14:23:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54146 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729712AbgHaSXD (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 31 Aug 2020 14:23:03 -0400
+Received: from shards.monkeyblade.net (shards.monkeyblade.net [IPv6:2620:137:e000::1:9])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B157AC061575;
+        Mon, 31 Aug 2020 11:23:01 -0700 (PDT)
+Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id F33CD12837DA1;
+        Mon, 31 Aug 2020 11:06:08 -0700 (PDT)
+Date:   Mon, 31 Aug 2020 11:22:52 -0700 (PDT)
+Message-Id: <20200831.112252.101534188648531041.davem@davemloft.net>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        kuba@kernel.org
+Subject: Re: [PATCH 0/8] Netfilter fixes for net
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20200831093648.20765-1-pablo@netfilter.org>
+References: <20200831093648.20765-1-pablo@netfilter.org>
+X-Mailer: Mew version 6.8 on Emacs 26.3
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Mon, 31 Aug 2020 11:06:09 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon, 31 Aug 2020 11:36:40 +0200
 
-	Hello,
-
-On Sat, 29 Aug 2020, Yaroslav Bolyukin wrote:
-
-> This dependency was added because ipv6_find_hdr was in iptables specific
-> code but is no longer required
+> The following patchset contains Netfilter fixes for net:
 > 
-> Fixes: f8f626754ebe ("ipv6: Move ipv6_find_hdr() out of Netfilter code.")
-> Fixes: 63dca2c0b0e7 ("ipvs: Fix faulty IPv6 extension header handling in IPVS").
-> Signed-off-by: Yaroslav Bolyukin <iam@lach.pw>
-
-	Looks good to me, thanks! May be maintainers will
-remove the extra dot after the Fixes line.
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-> ---
->  Missed canonical patch format section, subsystem is now spevified
+> 1) Do not delete clash entries on reply, let them expire instead,
+>    from Florian Westphal.
 > 
->  include/net/ip_vs.h        | 3 ---
->  net/netfilter/ipvs/Kconfig | 1 -
->  2 files changed, 4 deletions(-)
+> 2) Do not report EAGAIN to nfnetlink, otherwise this enters a busy loop.
+>    Update nfnetlink_unicast() to translate EAGAIN to ENOBUFS.
 > 
-> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-> index 9a59a3378..d609e957a 100644
-> --- a/include/net/ip_vs.h
-> +++ b/include/net/ip_vs.h
-> @@ -25,9 +25,6 @@
->  #include <linux/ip.h>
->  #include <linux/ipv6.h>			/* for struct ipv6hdr */
->  #include <net/ipv6.h>
-> -#if IS_ENABLED(CONFIG_IP_VS_IPV6)
-> -#include <linux/netfilter_ipv6/ip6_tables.h>
-> -#endif
->  #if IS_ENABLED(CONFIG_NF_CONNTRACK)
->  #include <net/netfilter/nf_conntrack.h>
->  #endif
-> diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
-> index 2c1593089..eb0e329f9 100644
-> --- a/net/netfilter/ipvs/Kconfig
-> +++ b/net/netfilter/ipvs/Kconfig
-> @@ -29,7 +29,6 @@ if IP_VS
->  config	IP_VS_IPV6
->  	bool "IPv6 support for IPVS"
->  	depends on IPV6 = y || IP_VS = IPV6
-> -	select IP6_NF_IPTABLES
->  	select NF_DEFRAG_IPV6
->  	help
->  	  Add IPv6 support to IPVS.
-> --
-> 2.28.0
+> 3) Remove repeated words in code comments, from Randy Dunlap.
+> 
+> 4) Several patches for the flowtable selftests, from Fabian Frederick.
+> 
+> Please, pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
-
+Pulled, thanks Pablo.
