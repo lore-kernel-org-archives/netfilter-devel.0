@@ -1,91 +1,115 @@
-Return-Path: <SRS0=WPBU=CJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=ANAP=CK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLACK,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24A9EC433E2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Aug 2020 21:18:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D88D8C43461
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Sep 2020 07:06:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F219120678
-	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Aug 2020 21:18:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7F5420665
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Sep 2020 07:06:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730226AbgHaVS2 (ORCPT
+        id S1726293AbgIAHGC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 31 Aug 2020 17:18:28 -0400
-Received: from correo.us.es ([193.147.175.20]:50196 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730221AbgHaVS1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 31 Aug 2020 17:18:27 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 139981C442B
-        for <netfilter-devel@vger.kernel.org>; Mon, 31 Aug 2020 23:18:24 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0595DDA791
-        for <netfilter-devel@vger.kernel.org>; Mon, 31 Aug 2020 23:18:24 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DEA2FDA7B6; Mon, 31 Aug 2020 23:18:23 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8465BDA78B;
-        Mon, 31 Aug 2020 23:18:21 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 31 Aug 2020 23:18:21 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 44245426CCB9;
-        Mon, 31 Aug 2020 23:18:21 +0200 (CEST)
-Date:   Mon, 31 Aug 2020 23:18:20 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     Yaroslav Bolyukin <iam@lach.pw>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCHv5 net-next] ipvs: remove dependency on ip6_tables
-Message-ID: <20200831211820.GB24186@salvia>
-References: <alpine.LFD.2.23.451.2008291233110.3043@ja.home.ssi.bg>
- <20200829135953.20228-1-iam@lach.pw>
- <alpine.LFD.2.23.451.2008312005270.4425@ja.home.ssi.bg>
+        Tue, 1 Sep 2020 03:06:02 -0400
+Received: from sitav-80046.hsr.ch ([152.96.80.46]:34144 "EHLO
+        mail.strongswan.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726044AbgIAHF7 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 1 Sep 2020 03:05:59 -0400
+X-Greylist: delayed 570 seconds by postgrey-1.27 at vger.kernel.org; Tue, 01 Sep 2020 03:05:58 EDT
+Received: from think.wlp.is (unknown [185.12.128.225])
+        by mail.strongswan.org (Postfix) with ESMTPSA id 306AD40412;
+        Tue,  1 Sep 2020 08:56:26 +0200 (CEST)
+From:   Martin Willi <martin@strongswan.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        Florent Fourcot <florent.fourcot@wifirst.fr>,
+        Romain Bellan <romain.bellan@wifirst.fr>
+Subject: [PATCH nf] netfilter: ctnetlink: fix mark based dump filtering regression
+Date:   Tue,  1 Sep 2020 08:56:19 +0200
+Message-Id: <20200901065619.4484-1-martin@strongswan.org>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.23.451.2008312005270.4425@ja.home.ssi.bg>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Aug 31, 2020 at 08:12:05PM +0300, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Sat, 29 Aug 2020, Yaroslav Bolyukin wrote:
-> 
-> > This dependency was added because ipv6_find_hdr was in iptables specific
-> > code but is no longer required
-> > 
-> > Fixes: f8f626754ebe ("ipv6: Move ipv6_find_hdr() out of Netfilter code.")
-> > Fixes: 63dca2c0b0e7 ("ipvs: Fix faulty IPv6 extension header handling in IPVS").
-> > Signed-off-by: Yaroslav Bolyukin <iam@lach.pw>
-> 
-> 	Looks good to me, thanks! May be maintainers will
-> remove the extra dot after the Fixes line.
+conntrack mark based dump filtering may falsely skip entries if a mask
+is given: If the mask-based check does not filter out the entry, the
+else-if check is always true and compares the mark without considering
+the mask. The if/else-if logic seems wrong.
 
-Applied, thanks. I have also removed the extra dot.
+Given that the mask during filter setup is implicitly set to 0xffffffff
+if not specified explicitly, the mark filtering flags seem to just
+complicate things. Restore the previously used approach by always
+matching against a zero mask is no filter mark is given.
+
+Fixes: cb8aa9a3affb ("netfilter: ctnetlink: add kernel side filtering for dump")
+Signed-off-by: Martin Willi <martin@strongswan.org>
+---
+ net/netfilter/nf_conntrack_netlink.c | 19 +++----------------
+ 1 file changed, 3 insertions(+), 16 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 832eabecfbdd..9bb82fcb7d6c 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -851,7 +851,6 @@ static int ctnetlink_done(struct netlink_callback *cb)
+ }
+ 
+ struct ctnetlink_filter {
+-	u_int32_t cta_flags;
+ 	u8 family;
+ 
+ 	u_int32_t orig_flags;
+@@ -906,10 +905,6 @@ static int ctnetlink_parse_tuple_filter(const struct nlattr * const cda[],
+ 					 struct nf_conntrack_zone *zone,
+ 					 u_int32_t flags);
+ 
+-/* applied on filters */
+-#define CTA_FILTER_F_CTA_MARK			(1 << 0)
+-#define CTA_FILTER_F_CTA_MARK_MASK		(1 << 1)
+-
+ static struct ctnetlink_filter *
+ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
+ {
+@@ -930,14 +925,10 @@ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
+ #ifdef CONFIG_NF_CONNTRACK_MARK
+ 	if (cda[CTA_MARK]) {
+ 		filter->mark.val = ntohl(nla_get_be32(cda[CTA_MARK]));
+-		filter->cta_flags |= CTA_FILTER_FLAG(CTA_MARK);
+-
+-		if (cda[CTA_MARK_MASK]) {
++		if (cda[CTA_MARK_MASK])
+ 			filter->mark.mask = ntohl(nla_get_be32(cda[CTA_MARK_MASK]));
+-			filter->cta_flags |= CTA_FILTER_FLAG(CTA_MARK_MASK);
+-		} else {
++		else
+ 			filter->mark.mask = 0xffffffff;
+-		}
+ 	} else if (cda[CTA_MARK_MASK]) {
+ 		err = -EINVAL;
+ 		goto err_filter;
+@@ -1117,11 +1108,7 @@ static int ctnetlink_filter_match(struct nf_conn *ct, void *data)
+ 	}
+ 
+ #ifdef CONFIG_NF_CONNTRACK_MARK
+-	if ((filter->cta_flags & CTA_FILTER_FLAG(CTA_MARK_MASK)) &&
+-	    (ct->mark & filter->mark.mask) != filter->mark.val)
+-		goto ignore_entry;
+-	else if ((filter->cta_flags & CTA_FILTER_FLAG(CTA_MARK)) &&
+-		 ct->mark != filter->mark.val)
++	if ((ct->mark & filter->mark.mask) != filter->mark.val)
+ 		goto ignore_entry;
+ #endif
+ 
+-- 
+2.25.1
+
