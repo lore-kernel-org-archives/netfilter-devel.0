@@ -1,85 +1,115 @@
-Return-Path: <SRS0=fjj5=CH=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=mfO0=CN=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE86BC433E2
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Aug 2020 07:04:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16150C43461
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Sep 2020 08:55:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B996B20738
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Aug 2020 07:04:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D2EBC20722
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Sep 2020 08:55:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iuENatEK"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ScIzy1nh"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726614AbgH2HEP (ORCPT
+        id S1729795AbgIDIzO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 29 Aug 2020 03:04:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40484 "EHLO
+        Fri, 4 Sep 2020 04:55:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36652 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725886AbgH2HEO (ORCPT
+        with ESMTP id S1726575AbgIDIzN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 29 Aug 2020 03:04:14 -0400
-Received: from mail-wr1-x42b.google.com (mail-wr1-x42b.google.com [IPv6:2a00:1450:4864:20::42b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E481EC061236
-        for <netfilter-devel@vger.kernel.org>; Sat, 29 Aug 2020 00:04:13 -0700 (PDT)
-Received: by mail-wr1-x42b.google.com with SMTP id e16so1130465wrm.2
-        for <netfilter-devel@vger.kernel.org>; Sat, 29 Aug 2020 00:04:13 -0700 (PDT)
+        Fri, 4 Sep 2020 04:55:13 -0400
+Received: from mail-oi1-x243.google.com (mail-oi1-x243.google.com [IPv6:2607:f8b0:4864:20::243])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 327AEC061244;
+        Fri,  4 Sep 2020 01:55:10 -0700 (PDT)
+Received: by mail-oi1-x243.google.com with SMTP id 185so5832637oie.11;
+        Fri, 04 Sep 2020 01:55:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:subject:date:message-id;
-        bh=BZLlLa3Hlaiq35ZTA7sA2UlrjtA3U5jNJPzosqXWGis=;
-        b=iuENatEKRyLW22S3uvX1HNn1mwZLa67iekMwYvJfMbg5Jo+yv8Z/NiUrfm6cY+pmZn
-         1MUpf9pCMoRGoaUPargX+UjitKLEXV87iKWPuIUOfulxP59DxFiq5o6AdN9uRyKyOKYY
-         TVemMp2sJ7JzzUBNHSVu0/z+CZLQmCs0blRHBp3gnC5A8wstfj8V/B/oxik1y2MH7Nds
-         qJVKDKgy05ZXKlMBj7YzzY0spaHp/uS0s3dYr5Q/yuMyNjkjJCasLyrlLmSlKcO/YmTg
-         IQLM7RfLnx7g3lFSoPyTPM/NSF/AmHYh7w8YDJbT4BaYiAX8VdrvxwTmvqBLBXKCGOpt
-         HP0A==
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=i+gOyPCdIyGCm4XMv5Y3cKmm1nxzeoFv/Hh57QwfVj4=;
+        b=ScIzy1nhKlV3F2Tnu3jZgvIaz0RTIooDM05bAi/PWHDYgGW+I/IgcPwVQNNs6Ottru
+         nUnFxgJC1cvUUfAX7wbltNg5KLWFmbu+L46Hm2l+y5sPdeMZTiVM1O2pXLmtrS3t/r2D
+         Jr2EzfsBTA4eYS4D+/qIB6jTiFJou/EtB53eOi90gHLMxZ7q+2XsduAC2Gr1nqzEVtnC
+         MG+RSYe1z1mQ+KMuSc+HkZfHwWLGAwwv5TOOyEcbej+2Ynhx/J/auACABASdpHM+ACXY
+         8VBbfL1EzZxTIe1sf+6E0VqbeisXrEUZk98eyVgPU4jyYr3STL0/0auGwk7tS7XQtdy9
+         v6dQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:subject:date:message-id;
-        bh=BZLlLa3Hlaiq35ZTA7sA2UlrjtA3U5jNJPzosqXWGis=;
-        b=fyCNRhyq/mLLRee9+KEdMW7c5V6jraUHNJq2VgvwG5b7FS9o1d0AYPKxb+rlxl4pgc
-         lZgTV3kbTHrzCVA1M8CZfzNXn56nlN87sBJwfMTIP/BxHEJ40tPUbHfO7eWgL4sKqiWJ
-         yng+WmzcD75oCCIUieEHEulwqUmVWcHBBWuy6I/XT2jgfpoBVC3JahNBd5Bk4MR5SK0F
-         a0JBkhFyH0wBTPg+Eo6GW+4Fb3+h5HFx8qOVCnG/gHUwnWnijrzEzESlwX01p3li3mGN
-         SFsP+9rm/h/pquWr9w/CNqlZx+i9uDs2mJZjTFYjMKNLq6cHcNMeo3hkaAOFYaC4fd3C
-         MGhw==
-X-Gm-Message-State: AOAM533/JT4DSePYCb5SEDJAYPQHF2V5lB1skPn86gMMz5l21d/KTyft
-        HyLk31Tq23MV9IcN9E+Idy6cjb9u6CkTnw==
-X-Google-Smtp-Source: ABdhPJwKkekl1XNFR9Y+3jVERCCxJBNMY1p9S8LkhHwy9GTLRiRg/EkTU/ziROPnt/A15P2xhEc4sg==
-X-Received: by 2002:a5d:4b0f:: with SMTP id v15mr401170wrq.296.1598684650612;
-        Sat, 29 Aug 2020 00:04:10 -0700 (PDT)
-Received: from localhost.localdomain (94-21-174-118.pool.digikabel.hu. [94.21.174.118])
-        by smtp.gmail.com with ESMTPSA id f2sm2489756wrj.54.2020.08.29.00.04.09
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 29 Aug 2020 00:04:10 -0700 (PDT)
-From:   Balazs Scheidler <bazsi77@gmail.com>
-To:     netfilter-devel@vger.kernel.org
-Subject: 
-Date:   Sat, 29 Aug 2020 09:04:00 +0200
-Message-Id: <20200829070405.23636-1-bazsi77@gmail.com>
-X-Mailer: git-send-email 2.17.1
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=i+gOyPCdIyGCm4XMv5Y3cKmm1nxzeoFv/Hh57QwfVj4=;
+        b=gtE7Q6d9O7IJ0SauwgbEuLggdCuaceBgb0408iiNVzE8iFe5/OfEy1Hm8uxpPLg7NU
+         zLLi1k6RMAvt8YoQwo/k8m0dm+SMMa9qLdVbEkV9bE91TJSZg6SB/IBlKrtPNuvvXQCI
+         EflPpH9R5Vti8zifZcy4VaoLo5txl12ZqYO8sQrCai/HPw5bxaan8Oy2Da9CunsOZq+o
+         8FP2QtVMtdoxxCY14CjYdkUG6ibdpnqwg4gaM3Yseb6XSCfMryb86+MjPqS86brAh+AO
+         GCYdOQ3KlrqVLklz+6FvpxWwL4kijmyYML0jdODb8Pn5yWgypJSU/n9gImmGcoN0rloT
+         qqog==
+X-Gm-Message-State: AOAM533jlo8PJyfb2KI7G/v/bNbQuQva/9lyNp/W8tmav11VsIennTLb
+        gYCmGtLUUup4cz/HQzj06fjhpbV4wE95QM9FDek=
+X-Google-Smtp-Source: ABdhPJzEiFuPI1OFwRYsp+/tEOqrOi8oM7RVs/uMXwK21j/4KnLgFhXkk5nXeFSxaSrreUgF2hBjRwYgjZfhyp/RvSM=
+X-Received: by 2002:a54:4688:: with SMTP id k8mr4608943oic.163.1599209709924;
+ Fri, 04 Sep 2020 01:55:09 -0700 (PDT)
+MIME-Version: 1.0
+References: <cover.1598517739.git.lukas@wunner.de> <d2256c451876583bbbf8f0e82a5a43ce35c5cf2f.1598517740.git.lukas@wunner.de>
+ <5f49527acaf5d_3ca6d208e3@john-XPS-13-9370.notmuch> <5f5078705304_9154c2084c@john-XPS-13-9370.notmuch>
+In-Reply-To: <5f5078705304_9154c2084c@john-XPS-13-9370.notmuch>
+From:   =?UTF-8?Q?Laura_Garc=C3=ADa_Li=C3=A9bana?= <nevola@gmail.com>
+Date:   Fri, 4 Sep 2020 10:54:58 +0200
+Message-ID: <CAF90-WgMiJkFsZaGBJQVVrmQz9==cq22NErpcWuE7z-Q+A8PzQ@mail.gmail.com>
+Subject: Re: [PATCH nf-next v3 3/3] netfilter: Introduce egress hook
+To:     John Fastabend <john.fastabend@gmail.com>
+Cc:     Lukas Wunner <lukas@wunner.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Netfilter Development Mailing list 
+        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Daniel Borkmann <daniel@iogearbox.net>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Thomas Graf <tgraf@suug.ch>, David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi,
 
-This is the userspace counterpart of "netfilter: nft_socket: add wildcard
-support" posted a few minutes ago. 
+On Thu, Sep 3, 2020 at 7:00 AM John Fastabend <john.fastabend@gmail.com> wrote:
+>
+[...]
+>
+> I don't think it actualy improves performance at least I didn't observe
+> that. From the code its not clear why this would be the case either. As
+> a nit I would prefer that line removed from the commit message.
+>
 
-Compared from v1:
-  - it incorporating the changes requested by @Pablo and @Stefano.
+It hasn't been proven to be untrue either.
 
-It doesn't - yet - incorporate changing the type to "boolean", since that
-would probably touch both "wildcard" and "transparent" I would do that in a
-followup branch.
 
-Cheers,
-Bazsi
+[...]
+>
+> Do you have plans to address the performance degradation? Otherwise
+> if I was building some new components its unclear why we would
+> choose the slower option over the tc hook. The two suggested
+> use cases security policy and DSR sound like new features, any
+> reason to not just use existing infrastructure?
+>
 
+Unfortunately, tc is not an option as it is required to interact with
+nft objects (sets, maps, chains, etc), more complex than just a drop.
+Also, when building new features we try to maintain the application
+stack as simple as possible, not trying to do ugly integrations.
+
+I understand that you measure performance with a drop, but using this
+hook we reduce the datapath consistently for these use cases and
+hence, improving traffic performance.
+
+Thank you for your time!
