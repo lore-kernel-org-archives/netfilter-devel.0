@@ -2,161 +2,134 @@ Return-Path: <SRS0=mfO0=CN=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,FAKE_REPLY_C,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08A9EC2D0A8
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Sep 2020 15:50:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2106C433E2
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Sep 2020 16:22:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD5532078E
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Sep 2020 15:50:52 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="L9UuAZYO"
+	by mail.kernel.org (Postfix) with ESMTP id 87CFB20795
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Sep 2020 16:22:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727095AbgIDPuj (ORCPT
+        id S1726814AbgIDQV6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 4 Sep 2020 11:50:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43966 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726594AbgIDPql (ORCPT
+        Fri, 4 Sep 2020 12:21:58 -0400
+Received: from bmailout2.hostsharing.net ([83.223.78.240]:42247 "EHLO
+        bmailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726184AbgIDQV6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 4 Sep 2020 11:46:41 -0400
-Received: from mail-pj1-x1043.google.com (mail-pj1-x1043.google.com [IPv6:2607:f8b0:4864:20::1043])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C87CC061260;
-        Fri,  4 Sep 2020 08:46:36 -0700 (PDT)
-Received: by mail-pj1-x1043.google.com with SMTP id np15so5351459pjb.0;
-        Fri, 04 Sep 2020 08:46:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:message-id:in-reply-to:references:subject
-         :mime-version:content-transfer-encoding;
-        bh=P3kdadb7or6VPI0n3EicueQkmOf+NTRhMs4WyoKsTS8=;
-        b=L9UuAZYO63fn3JLL3ywvMMoxd5eBh4vocJvzFlIQy7Yi6HkPZ/GWG+zV6gRFlo30NR
-         Oo8jbDoT7O79MrMbZEIolZphNLuZz1On53t9ny3aM1Y0bS8j5H84Drbb/7Nnn3nIHAU8
-         mdxI2/l/klXwEua8206/fBJ0KSgzvHb72285Wk43WKUmni2z971vbJQHM1LzktI6mHEE
-         yqQWjEmZZC3mIeJ3qqpE3giesqVMLgyb2f4qSBjmb09h1Irn0OUOF9QqLzQowG+fFGBQ
-         dMjS3ogIMJD3vNAhSgNg1ylLQo4LiTdtiJGoOXK8SBobMltqBvSX1v7sUACll9BdXgha
-         tM+w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:message-id:in-reply-to
-         :references:subject:mime-version:content-transfer-encoding;
-        bh=P3kdadb7or6VPI0n3EicueQkmOf+NTRhMs4WyoKsTS8=;
-        b=MvaK4glYDuxGWF8t3TxtTlucTBZSBUEWwTNiAgKmGT0ti/YxQJYsVHA5qk6qUd3grX
-         sjSZuowlX/gu6IhwI5nf/7O1fh2JkIdfkVAtIBG7Y+JnzxZIGAJYTYQL9HW7nmI0oFRg
-         Cj+qMo065wWr+ERiEDyJK5ozacB6YXGioyM8Goubl/bJda4yLL4Ftn+AcwfDnxyVAjb/
-         f5RZgC51pAsAZeNR7Y1f213D5/rt+Y8qezps91ZpErsimm8cbgMz4gyFd5RF4ZhYSFhe
-         ORZqrRm/gmtQGwM38Uvn5AkVyj53dCy20Y0naiiAUiew3ped4H/AV56n3lniuHd6y94d
-         DoHw==
-X-Gm-Message-State: AOAM533htVjxTmr+9j31B5PJywrG+HZPvbwAO0XPpF4fckm76xVAwbF2
-        ADDZO59CIm9z8dvEut6WyEc=
-X-Google-Smtp-Source: ABdhPJy9bZWz1Upu/lBNU9Hd4PEA0NL8q01xlyoQkFXBRcT4qQARIH8TVQAKJIFKthZf3xrCUhu7tg==
-X-Received: by 2002:a17:90b:4d10:: with SMTP id mw16mr8744069pjb.100.1599234395499;
-        Fri, 04 Sep 2020 08:46:35 -0700 (PDT)
-Received: from localhost ([184.63.162.180])
-        by smtp.gmail.com with ESMTPSA id y128sm6726949pfy.74.2020.09.04.08.46.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 04 Sep 2020 08:46:34 -0700 (PDT)
-Date:   Fri, 04 Sep 2020 08:46:27 -0700
-From:   John Fastabend <john.fastabend@gmail.com>
-To:     =?UTF-8?B?TGF1cmEgR2FyY8OtYSBMacOpYmFuYQ==?= <nevola@gmail.com>,
-        John Fastabend <john.fastabend@gmail.com>
-Cc:     Lukas Wunner <lukas@wunner.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Fri, 4 Sep 2020 12:21:58 -0400
+Received: from h08.hostsharing.net (h08.hostsharing.net [83.223.95.28])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client CN "*.hostsharing.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (not verified))
+        by bmailout2.hostsharing.net (Postfix) with ESMTPS id EE97F28034C24;
+        Fri,  4 Sep 2020 18:21:54 +0200 (CEST)
+Received: by h08.hostsharing.net (Postfix, from userid 100393)
+        id BC126413C8; Fri,  4 Sep 2020 18:21:54 +0200 (CEST)
+Date:   Fri, 4 Sep 2020 18:21:54 +0200
+From:   Lukas Wunner <lukas@wunner.de>
+To:     John Fastabend <john.fastabend@gmail.com>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
-        Netfilter Development Mailing list 
-        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org, Daniel Borkmann <daniel@iogearbox.net>,
         Alexei Starovoitov <ast@kernel.org>,
         Eric Dumazet <edumazet@google.com>,
-        Thomas Graf <tgraf@suug.ch>, David Miller <davem@davemloft.net>
-Message-ID: <5f5261535a32a_1932208c8@john-XPS-13-9370.notmuch>
-In-Reply-To: <CAF90-WgMiJkFsZaGBJQVVrmQz9==cq22NErpcWuE7z-Q+A8PzQ@mail.gmail.com>
-References: <cover.1598517739.git.lukas@wunner.de>
- <d2256c451876583bbbf8f0e82a5a43ce35c5cf2f.1598517740.git.lukas@wunner.de>
- <5f49527acaf5d_3ca6d208e3@john-XPS-13-9370.notmuch>
- <5f5078705304_9154c2084c@john-XPS-13-9370.notmuch>
- <CAF90-WgMiJkFsZaGBJQVVrmQz9==cq22NErpcWuE7z-Q+A8PzQ@mail.gmail.com>
+        Thomas Graf <tgraf@suug.ch>, Laura Garcia <nevola@gmail.com>,
+        David Miller <davem@davemloft.net>
 Subject: Re: [PATCH nf-next v3 3/3] netfilter: Introduce egress hook
-Mime-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Message-ID: <20200904162154.GA24295@wunner.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5f5261535a32a_1932208c8@john-XPS-13-9370.notmuch>
+ <5f5078705304_9154c2084c@john-XPS-13-9370.notmuch>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Laura Garc=C3=ADa Li=C3=A9bana wrote:
-> Hi,
-> =
+On Wed, Sep 02, 2020 at 10:00:32PM -0700, John Fastabend wrote:
+> Lukas Wunner wrote:
+> > * Before:       4730418pps 2270Mb/sec (2270600640bps)
+> > * After:        4759206pps 2284Mb/sec (2284418880bps)
+> 
+> I used a 10Gbps ixgbe nic to measure the performance after the dummy
+> device hung on me for some reason. I'll try to investigate what happened
+> later. It was unrelated to these patches though.
+> 
+> But, with 10Gbps NIC and doing a pktgen benchmark with and without
+> the patches applied I didn't see any measurable differences. Both
+> cases reached 14Mpps.
 
-> On Thu, Sep 3, 2020 at 7:00 AM John Fastabend <john.fastabend@gmail.com=
-> wrote:
-> >
-> [...]
-> >
-> > I don't think it actualy improves performance at least I didn't obser=
-ve
-> > that. From the code its not clear why this would be the case either. =
-As
-> > a nit I would prefer that line removed from the commit message.
-> >
-> =
+Hm, I strongly suspect you may have measured performance of the NIC and
+that you'd get different before/after numbers with the dummy device.
 
-> It hasn't been proven to be untrue either.
 
-huh? Its stated in the commit message with no reason for why it might
-be the case and I can't reproduce it. Also the numbers posted show such a=
+> > * Before + tc:  4063912pps 1950Mb/sec (1950677760bps)
+> > * After  + tc:  4007728pps 1923Mb/sec (1923709440bps)
+> 
+> Same here before/after aggregate appears to be the same. Even the
+> numbers above show a 1.2% degradation. Just curious is the above
+> from a single run or averaged over multiple runs or something
+> else? Seems like noise to me.
 
-slight increase (~1%) its likely just random system noise.
+I performed at least 3 runs, but included just a single number in
+the commit message for brevity.  That number is intended to show
+where the numbers settled:
 
-Sorry maybe that was a joke? Just poured some coffee so might be missing =
-it.
+Before:           2257 2270 2270           Mb/sec
+After:            2282 2283 2284 2282      Mb/sec
 
-> =
+Before + tc:      1941 1950 1951           Mb/sec
+After  + tc:      1923 1923 1919 1920 1919 Mb/sec
 
-> =
+After + nft:      1782 1783 1782 1781      Mb/sec
+After + nft + tc: 1574 1566 1566           Mb/sec
 
-> [...]
-> >
-> > Do you have plans to address the performance degradation? Otherwise
-> > if I was building some new components its unclear why we would
-> > choose the slower option over the tc hook. The two suggested
-> > use cases security policy and DSR sound like new features, any
-> > reason to not just use existing infrastructure?
-> >
-> =
+So there's certainly some noise but still a speedup is clearly
+visible if neither tc nor nft is used, and a slight degradation
+if tc is used.
 
-> Unfortunately, tc is not an option as it is required to interact with
-> nft objects (sets, maps, chains, etc), more complex than just a drop.
-> Also, when building new features we try to maintain the application
-> stack as simple as possible, not trying to do ugly integrations.
 
-We have code that interacts with iptables as well. How I read the
-above is in your case you have a bunch of existing software and you
-want something slightly faster. Even if its not as fast the 10%
-overhead is OK in your case and/or you believe the overhead of all
-the other components is much higher so it will be lost in the noise.
+> I did see something odd where it appeared fairness between threads
+> was slightly worse. I don't have any explanation for this? Did
+> you have a chance to run the test with -t >1?
 
-> I understand that you measure performance with a drop, but using this
-> hook we reduce the datapath consistently for these use cases and
-> hence, improving traffic performance.
+Sorry, no, I only tested with a single thread on an otherwise idle
+machine.
 
-I measured drops because it was the benchmark provided in the patch
-series. Also it likely looks a lot like any DDOS that might be put
-there. You mentioned security policies which should probably include
-DDOS so I would expect drop performance to be at least a useful
-metric even if its not the only or most important in your case.
 
-Lets post a selftest that represents the use case so folks like
-myself can understand and benchmark correctly. This gives the extra
-benefit of ensuring we don't regress going forward and can add it
-to CI.
+> Do you have plans to address the performance degradation? Otherwise
+> if I was building some new components its unclear why we would
+> choose the slower option over the tc hook. The two suggested
+> use cases security policy and DSR sound like new features, any
+> reason to not just use existing infrastructure?
+> 
+> Is the use case primarily legacy things already running in
+> nft infrastructure? I guess if you have code running now
+> moving it to this hook is faster and even if its 10% slower
+> than it could be that may be better than a rewrite?
 
-> =
+nft and tc are orthogonal, i.e. filtering/mangling versus queueing.
+However tc has gained the ability to filter packets as well, hence
+there's some overlap in functionality.  Naturally tc does not allow
+the full glory of nft filtering/mangling options as Laura has stated,
+hence the need to add nft in the egress path.
 
-> Thank you for your time!=
+
+> huh? Its stated in the commit message with no reason for why it might
+> be the case and I can't reproduce it.
+
+The reason as stated in the commit message is that cache pressure is
+apparently reduced with the tc handling moved out of the hotpath,
+an effect that Eric Dumazet had previously observed for the ingress path:
+
+https://lore.kernel.org/netdev/1431387038.566.47.camel@edumazet-glaptop2.roam.corp.google.com/
+
+Thanks a lot for taking the time to give these patches a whirl.
+
+Lukas
