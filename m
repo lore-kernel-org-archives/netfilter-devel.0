@@ -1,161 +1,59 @@
-Return-Path: <SRS0=rBKl=CO=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=v4nU=CP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-2.5 required=3.0 tests=BAYES_40,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37D0FC433E2
-	for <netfilter-devel@archiver.kernel.org>; Sat,  5 Sep 2020 11:23:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5DE3C433E2
+	for <netfilter-devel@archiver.kernel.org>; Sun,  6 Sep 2020 00:18:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DC5EC2074B
-	for <netfilter-devel@archiver.kernel.org>; Sat,  5 Sep 2020 11:23:29 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="imojGsDf"
+	by mail.kernel.org (Postfix) with ESMTP id A6BE72075A
+	for <netfilter-devel@archiver.kernel.org>; Sun,  6 Sep 2020 00:18:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728461AbgIELWz (ORCPT
+        id S1728505AbgIFASX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 5 Sep 2020 07:22:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53930 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726597AbgIELSy (ORCPT
+        Sat, 5 Sep 2020 20:18:23 -0400
+Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:42636 "EHLO
+        mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728103AbgIFASW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 5 Sep 2020 07:18:54 -0400
-Received: from mail-oi1-x241.google.com (mail-oi1-x241.google.com [IPv6:2607:f8b0:4864:20::241])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F692C061244;
-        Sat,  5 Sep 2020 04:18:49 -0700 (PDT)
-Received: by mail-oi1-x241.google.com with SMTP id d189so9065427oig.12;
-        Sat, 05 Sep 2020 04:18:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=u0IiXGtqdVhPBP8lypoHpnMMZjPnrNzat1vDiguO3/w=;
-        b=imojGsDfX9o3sISaUmP+ekDfe+wEkw4hcXh16I+lmcZFsLPw3eJV+66Ao9Mho2M2R0
-         lo0xZnnlGf7tHHVmHqPmAWF5xQFGMMDZLYTcgpWAFltwCvPnqtKNybQidOiwkBkpKE20
-         sL0l9Zsl9niBUAQYRF2HrD/4Y9RaU/meyHtysjANHaaoNExpNlH+2KNekwuYJnVzohdv
-         0FdS1yGaijCUKFVbZeoKZEki/WCDEHY4pOjsBQO5aRq7Lo6bA8K07rS3hGUosIEewXWO
-         BtMxAJu+XnIBHymTHmyPIWnHIrBr5H3T2PR4u/QIQvm/b3N6bxSzJBN4PN/p2cm7z3OZ
-         XhWw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=u0IiXGtqdVhPBP8lypoHpnMMZjPnrNzat1vDiguO3/w=;
-        b=QAG06Ryjv8AgYE9m7XSh2pAzq9iE6lE/hjEHrKlmslHq/f0aftP49129kWtCQpxJVi
-         lucl0kA/1/3R76iV3B0LN2ShGeCu4Bko010LpLCIyWB6lwlM2XFSNRI2RXTyORxDWcit
-         kH+6iQgT2WJTfa/dImEJGah2J42N2sqk0e0fZ6kC8vmk/BAxJTp6O1WjaX6XD246HXGs
-         USGBcd3nx44tBXp+pn0yC5efBVQFF2SMmeuuymyPl8dWU58AKfA6MBtTQ/VSzr3qonFV
-         rUCKcbLx0niu2OZFki0RvS+RjL4O4p5Ii3FsSzMqYuIdHcwXIHEA8JsLUWgshPyhZObH
-         E7TQ==
-X-Gm-Message-State: AOAM530pPCZ98vFnn64RsjwcR6/MjUL8Dq+MYQe5FypPjGF3Iq9qRFk1
-        lImtrIiyqK+0y5MutLZ6QAza/WZ+laghxz3jklU=
-X-Google-Smtp-Source: ABdhPJxTEHXBi2TidmZO09UM27LyyZZJr1CpyAZVOQPu6doAHTWAtUKAU5t7KV7Jtyne2NYAfEovB0V/pV4K50na/J8=
-X-Received: by 2002:a54:4688:: with SMTP id k8mr7804768oic.163.1599304728501;
- Sat, 05 Sep 2020 04:18:48 -0700 (PDT)
+        Sat, 5 Sep 2020 20:18:22 -0400
+Received: from dimstar.local.net (n49-192-221-78.sun4.vic.optusnet.com.au [49.192.221.78])
+        by mail105.syd.optusnet.com.au (Postfix) with SMTP id 122373A7BF8
+        for <netfilter-devel@vger.kernel.org>; Sun,  6 Sep 2020 10:18:18 +1000 (AEST)
+Received: (qmail 22224 invoked by uid 501); 6 Sep 2020 00:18:17 -0000
+Date:   Sun, 6 Sep 2020 10:18:17 +1000
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Can someone please update libnetfilter_queue online documentation
+Message-ID: <20200906001817.GB6585@dimstar.local.net>
+Mail-Followup-To: Netfilter Development <netfilter-devel@vger.kernel.org>
 MIME-Version: 1.0
-References: <20200904162154.GA24295@wunner.de> <813edf35-6fcf-c569-aab7-4da654546d9d@iogearbox.net>
-In-Reply-To: <813edf35-6fcf-c569-aab7-4da654546d9d@iogearbox.net>
-From:   =?UTF-8?Q?Laura_Garc=C3=ADa_Li=C3=A9bana?= <nevola@gmail.com>
-Date:   Sat, 5 Sep 2020 13:18:37 +0200
-Message-ID: <CAF90-WhWpiAPcpU81P3cPTUmRD-xGkuZ9GZA8Q3cPN7RQKhXeA@mail.gmail.com>
-Subject: Re: [PATCH nf-next v3 3/3] netfilter: Introduce egress hook
-To:     Daniel Borkmann <daniel@iogearbox.net>
-Cc:     Lukas Wunner <lukas@wunner.de>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Netfilter Development Mailing list 
-        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Thomas Graf <tgraf@suug.ch>, David Miller <davem@davemloft.net>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.3 cv=XJ9OtjpE c=1 sm=1 tr=0 cx=a_idp_d
+        a=6xKf4iIoQv62Sz4byRKdFA==:117 a=6xKf4iIoQv62Sz4byRKdFA==:17
+        a=kj9zAlcOel0A:10 a=reM5J-MqmosA:10 a=RSmzAf-M6YYA:10 a=3HDBlxybAAAA:8
+        a=2iCmBLDIqrXrismR8BEA:9 a=CjuIK1q_8ugA:10 a=3ZB0DOFoXBkA:10
+        a=QPIECt7LLFIA:10 a=laEoCiVfU_Unz3mSdgXN:22
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Daniel,
+Hi everyone,
 
-On Fri, Sep 4, 2020 at 11:14 PM Daniel Borkmann <daniel@iogearbox.net> wrote:
->
-[...]
->
-> Its trivial to achieve with tc/BPF on the existing egress hook today. Probably
-> takes less time than to write up this mail ...
->
-> root@x:~/x# cat foo.c
->
-> #include <linux/bpf.h>
-> #include <linux/if_ether.h>
-> #include <arpa/inet.h>
->
-> #ifndef __section
-> # define __section(NAME)                \
->     __attribute__((section(NAME), used))
-> #endif
->
-> #define ETH_P_KUNBUSGW  0x419C
->
-> #define PASS    0
-> #define DROP    2
->
-> int foo(struct __sk_buff *skb)
-> {
->         void *data_end = (void *)(long)skb->data_end;
->         void *data = (void *)(long)skb->data;
->         struct ethhdr *eth = data;
->
->         if (data + sizeof(*eth) > data_end)
->                 return DROP;
->
->         return eth->h_proto == htons(ETH_P_KUNBUSGW) ? PASS : DROP;
-> }
->
-> char __license[] __section("license") = "";
->
-> root@x:~/x# clang -target bpf -Wall -O2 -c foo.c -o foo.o
-> root@x:~/x# ip link add dev foo type dummy
-> root@x:~/x# ip link set up dev foo
-> root@x:~/x# tc qdisc add dev foo clsact
-> root@x:~/x# tc filter add dev foo egress bpf da obj foo.o sec .text
->
-> There we go, attached to the device on existing egress. Double checking it
-> does what we want:
->
-> root@x:~/x# cat foo.t
-> {
->     0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
->     0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb,
->     0x41, 0x9c
-> }
-> root@x:~/x# trafgen -i foo.t -o foo -n 1 -q
-> root@x:~/x# tcpdump -i foo
-> [...]
-> 22:43:42.981112 bb:bb:bb:bb:bb:bb (oui Unknown) > aa:aa:aa:aa:aa:aa (oui Unknown), ethertype Unknown (0x419c), length 14:
->
-> root@x:~/x# cat bar.t
-> {
->     0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
->     0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb,
->     0xee, 0xee
-> }
-> root@x:~/x# trafgen -i bar.t -o foo -n 1 -q
-> root@x:~/x# tcpdump -i foo
-> [... nothing/filtered ...]
->
+The online doc for libnetfilter_queue at
+https://netfilter.org/projects/libnetfilter_queue/doxygen/html/ is still at
+release 1.0.3.
 
-Something like this seems more trivial to me:
+Documentation forms a large part of release 1.0.4 / 1.0.5, so can someone please
+build 1.0.5 doc and put it up?
 
-table netdev mytable {
-    chain mychain {
-        type filter hook egress device "eth0" priority 100; policy drop;
-        meta protocol != 0x419C accept
-    }
-}
+You only need to do './configure --with-doxygen; make' and you have it.
 
-Cheers.
+Cheers ... Duncan.
