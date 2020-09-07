@@ -2,121 +2,100 @@ Return-Path: <SRS0=Y+c4=CQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E424AC433E2
-	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Sep 2020 10:19:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7192DC43461
+	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Sep 2020 10:40:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 88E9C207C3
-	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Sep 2020 10:19:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D6D2D20738
+	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Sep 2020 10:40:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="jly9ZVPy"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="HqgfP1Wj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728739AbgIGKTo (ORCPT
+        id S1728937AbgIGKju (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 7 Sep 2020 06:19:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60988 "EHLO
+        Mon, 7 Sep 2020 06:39:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35832 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728618AbgIGKTk (ORCPT
+        with ESMTP id S1728880AbgIGKjY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 7 Sep 2020 06:19:40 -0400
-Received: from mail-ej1-x644.google.com (mail-ej1-x644.google.com [IPv6:2a00:1450:4864:20::644])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A5F1C061573
-        for <netfilter-devel@vger.kernel.org>; Mon,  7 Sep 2020 03:19:40 -0700 (PDT)
-Received: by mail-ej1-x644.google.com with SMTP id i22so17517714eja.5
-        for <netfilter-devel@vger.kernel.org>; Mon, 07 Sep 2020 03:19:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=netronome-com.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=FKt9Ni9znuL/T5DiGGNRnDoYpXehn3oQFsifjWsLIGg=;
-        b=jly9ZVPylGHnaA+MOBaKixpbQj5+JlStiySeH3qn/+1+oel+sLn8P3AxtDuy86A9E2
-         aBA7e02V9MlJkZWCwqGAO7lNmM8GX+GrZrx1zk5w0+fCUh1EpztHwVAWcJDVm9Y7fEGg
-         2m5QsBOnlUHDNyPcxyZe09vLh+RPWnGTVP9UWCWEu+ngMY1yHWJt5DpSUPcpYLU+gqN0
-         mgNSUeC3kxF7QdjK6Hs+mWgqPWS6pIxQAHaCY7jL7bsnKzSuqLlvNb+pV/zovO7EzOVS
-         asLiNuvQxlLLbdHrnWFFP0FrkPfHk5/5uyXqZJittIhL9QkDkhiE5Gv7JwRM8eVzgpfW
-         GKNQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=FKt9Ni9znuL/T5DiGGNRnDoYpXehn3oQFsifjWsLIGg=;
-        b=t8ltcGVofFyyhhtZF+RzvRpDeSz4s68Q0khYYzatUZ/8hKjMTJYifRXXwmD8RrPMSs
-         NdxBa/rjFeHVU+cIbzHIP9xQkqc/Lsc/fQwdtifFdCmnUMnGIEQ3ksvQ1AoXPldhxGW1
-         aqTaazzjpjbmHnMlDRHPHeenFNyxA045IT8rFBEjD0bjNoP+FM8MQwp1OrK3sa6vo87M
-         NKAHCs+MHTDVh7Z6oabIYuDy/1aihRJca/RGTSfIw0o0RzY44/SDIvGREBHU2flYRdJs
-         nt/YzJbs1fWtuqDqlkcH+obuThE0OYUQiJ1OEiE6korYlb7Zqn8xBqwCkdtKFKW6Qn3U
-         tUMQ==
-X-Gm-Message-State: AOAM5329b+FuDIWy4euaXWGyPVAktk93dTWlz1VxwRKggJf+wcbm8BEO
-        /pq/vGXh9HiiJogue/HExqPxO9jIX2ZKxQ==
-X-Google-Smtp-Source: ABdhPJzbbal6iYv3ya8B+7Go7waH2YQEAoZAbOw0/xIqd5/TAyHQHCWvPWecDtmFJ7wSJlJjsd9i7w==
-X-Received: by 2002:a17:906:3e81:: with SMTP id a1mr19854774ejj.227.1599473979033;
-        Mon, 07 Sep 2020 03:19:39 -0700 (PDT)
-Received: from netronome.com ([2001:982:7ed1:404:a2a4:c5ff:fe4c:9ce9])
-        by smtp.gmail.com with ESMTPSA id i15sm6834108edf.82.2020.09.07.03.19.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 07 Sep 2020 03:19:38 -0700 (PDT)
-Date:   Mon, 7 Sep 2020 12:19:36 +0200
-From:   Simon Horman <simon.horman@netronome.com>
-To:     Eelco Chaudron <echaudro@redhat.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net-net] netfilter: conntrack: nf_conncount_init is
- failing with IPv6 disabled
-Message-ID: <20200907101934.GA3739@netronome.com>
-References: <159897212470.60236.5737844268627410321.stgit@ebuild>
+        Mon, 7 Sep 2020 06:39:24 -0400
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C5CAC061573
+        for <netfilter-devel@vger.kernel.org>; Mon,  7 Sep 2020 03:39:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=fJ1k0JtZ8Zhl0SUQ72gB3ju0wRHICxTvHHbpiKcccsE=; b=HqgfP1WjFRiO1uFZv4qcQ87B/u
+        5uEFe4sEvp5WfAVi6xM7hdH5oRSnnITRjkWbR7DxvXciqqMIV4wCT6PqzSonqmVMrTnEgOo21Tfry
+        IB3luvf287VB3/BhOrA8hAFQMLMwzUa1IMFdiHfZxzlwG1GzBue8znReoSPBy8K1+W0dl2jsRAU0/
+        68TqJOEZQZ8KF3/1cPF+FYijV2btB/dmtOUKo7rltPcDBqmKIvrtEPo2uJdlEDbz1mectw35JRhou
+        mr5VLS0co2WoDk5/Y9gjjQIfD2LlrSoV2338z6w7/5A5YPwwZtlXVsf+kbdOiPOYhG9PG0lDoknHf
+        TV9iXG2w==;
+Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
+        by kadath.azazel.net with esmtp (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1kFEYF-0007bS-74; Mon, 07 Sep 2020 11:39:07 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Duncan Roe <duncan_roe@optusnet.com.au>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH libnetfilter_queue] build: check whether dot is available when configuring doxygen.
+Date:   Mon,  7 Sep 2020 11:39:04 +0100
+Message-Id: <20200907103904.238656-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20200907012255.GC6585@dimstar.local.net>
+References: <20200907012255.GC6585@dimstar.local.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <159897212470.60236.5737844268627410321.stgit@ebuild>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-+ Pablo, netfilter-devel@vger.kernel.org
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ configure.ac   | 4 ++++
+ doxygen.cfg.in | 2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-On Tue, Sep 01, 2020 at 04:56:02PM +0200, Eelco Chaudron wrote:
-> The openvswitch module fails initialization when used in a kernel
-> without IPv6 enabled. nf_conncount_init() fails because the ct code
-> unconditionally tries to initialize the netns IPv6 related bit,
-> regardless of the build option. The change below ignores the IPv6
-> part if not enabled.
-> 
-> Note that the corresponding _put() function already has this IPv6
-> configuration check.
-> 
-> Fixes: 11efd5cb04a1 ("openvswitch: Support conntrack zone limit")
-> Signed-off-by: Eelco Chaudron <echaudro@redhat.com>
+diff --git a/configure.ac b/configure.ac
+index d8d1d387c773..32e499071b26 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -41,6 +41,10 @@ AC_ARG_WITH([doxygen], [AS_HELP_STRING([--with-doxygen],
+ 	    [], [with_doxygen=no])
+ AS_IF([test "x$with_doxygen" = xyes], [
+ 	AC_CHECK_PROGS([DOXYGEN], [doxygen])
++	AC_CHECK_PROGS([DOT], [dot], [""])
++	AS_IF([test "x$DOT" != "x"],
++	      [AC_SUBST(HAVE_DOT, YES)],
++	      [AC_SUBST(HAVE_DOT, NO)])
+ ])
+ 
+ AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
+diff --git a/doxygen.cfg.in b/doxygen.cfg.in
+index 3f13f97ad8ba..c54f534ada3f 100644
+--- a/doxygen.cfg.in
++++ b/doxygen.cfg.in
+@@ -161,7 +161,7 @@ PERL_PATH              = /usr/bin/perl
+ CLASS_DIAGRAMS         = YES
+ MSCGEN_PATH            =
+ HIDE_UNDOC_RELATIONS   = YES
+-HAVE_DOT               = YES
++HAVE_DOT               = @HAVE_DOT@
+ CLASS_GRAPH            = YES
+ COLLABORATION_GRAPH    = YES
+ GROUP_GRAPHS           = YES
+-- 
+2.28.0
 
-Reviewed-by: Simon Horman <simon.horman@netronome.com>
-
-> ---
->  net/netfilter/nf_conntrack_proto.c |    2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-> index 95f79980348c..47e9319d2cf3 100644
-> --- a/net/netfilter/nf_conntrack_proto.c
-> +++ b/net/netfilter/nf_conntrack_proto.c
-> @@ -565,6 +565,7 @@ static int nf_ct_netns_inet_get(struct net *net)
->  	int err;
->  
->  	err = nf_ct_netns_do_get(net, NFPROTO_IPV4);
-> +#if IS_ENABLED(CONFIG_IPV6)
->  	if (err < 0)
->  		goto err1;
->  	err = nf_ct_netns_do_get(net, NFPROTO_IPV6);
-> @@ -575,6 +576,7 @@ static int nf_ct_netns_inet_get(struct net *net)
->  err2:
->  	nf_ct_netns_put(net, NFPROTO_IPV4);
->  err1:
-> +#endif
->  	return err;
->  }
->  
-> 
