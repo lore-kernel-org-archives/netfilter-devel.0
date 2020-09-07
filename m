@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-13.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDFDDC2D0A8
-	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Sep 2020 17:13:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80E22C43461
+	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Sep 2020 17:13:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AE4352080A
-	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Sep 2020 17:13:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 543152080A
+	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Sep 2020 17:13:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599498810;
-	bh=N2TzsaDDwqM6tAPNhthsqRzY7Ob4UQpx+wDCC0gnkxQ=;
+	s=default; t=1599498813;
+	bh=g9SHDM3H2JEOEEdifkFbeSNLr4gOLGNQG+IjRWov03Y=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=K+byCeTsfEAOH+vQhzcNlJ11lQ4pMKg5t+uRyIcME+3GD4wMvyRzjLabFxpz4vwLW
-	 PA8cfQrDcMrKsyp7LWOmaOKQGPfI1GGburF4S5OQWq5pFdUUBX7WpIpxResb8dDdnG
-	 ixUXidvMSN+velVHeXmo+q/75f0dYCr8S/Kp6qVk=
+	b=C0l5tVPT+10vNWvPLIy6exKECYNezmdTxpRXlqcTixgKmFXQErOB2M24/GU4/m9X0
+	 JrKfwkSXwYmHQfQkK91B9KsUOcQYtP0qEfOca3lu0wDJpHN/rTD6S8x1nGi/NnJJmz
+	 lpW52Or3wIsMaQlntMh/+VDGPHgXJGzZtG/byNfk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730119AbgIGRMm (ORCPT
+        id S1731152AbgIGRMk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 7 Sep 2020 13:12:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46346 "EHLO mail.kernel.org"
+        Mon, 7 Sep 2020 13:12:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46412 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730617AbgIGQc1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 7 Sep 2020 12:32:27 -0400
+        id S1730621AbgIGQc3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 7 Sep 2020 12:32:29 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 331F92080A;
-        Mon,  7 Sep 2020 16:32:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C7A6520757;
+        Mon,  7 Sep 2020 16:32:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599496346;
-        bh=N2TzsaDDwqM6tAPNhthsqRzY7Ob4UQpx+wDCC0gnkxQ=;
+        s=default; t=1599496348;
+        bh=g9SHDM3H2JEOEEdifkFbeSNLr4gOLGNQG+IjRWov03Y=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=gqoK64BhITZA1wY5V5vAzv/4aQAu/OTImrKxhm3Y8OeJnGGgDpulpMDei8UXcPlHi
-         ZqhMsLUYhnefbD/aF28UHZiWhqHISvWMfgPJvK8uUKSmLHUWbdyY5rDhO8iKzsOrZl
-         59V0ZZQxlT1URmaLk1PaXBBJpCUJJWGPkZWYNvs0=
+        b=tZWQweq7AiT9GhSpqgD0NkB8pGl3Xi5XBo8BM6+lbzPWlSGRH5Wt5wJYnaPA5CWTr
+         MHYhEPT+Si/xkkamRvJqdot1F0uoRL9+OkShFf9LpjDly+ged6pUOIjn0ZSzYKmWDH
+         Dbr8RXM7UFqx5AVEvbsiNljF4mEyrvZPH0nb8Xes=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
+Cc:     Stefano Brivio <sbrivio@redhat.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.8 04/53] netfilter: conntrack: allow sctp hearbeat after connection re-use
-Date:   Mon,  7 Sep 2020 12:31:30 -0400
-Message-Id: <20200907163220.1280412-4-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.8 06/53] netfilter: nft_set_rbtree: Detect partial overlap with start endpoint match
+Date:   Mon,  7 Sep 2020 12:31:32 -0400
+Message-Id: <20200907163220.1280412-6-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200907163220.1280412-1-sashal@kernel.org>
 References: <20200907163220.1280412-1-sashal@kernel.org>
@@ -61,124 +61,123 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Stefano Brivio <sbrivio@redhat.com>
 
-[ Upstream commit cc5453a5b7e90c39f713091a7ebc53c1f87d1700 ]
+[ Upstream commit 0726763043dc10dd4c12481f050b1a5ef8f15410 ]
 
-If an sctp connection gets re-used, heartbeats are flagged as invalid
-because their vtag doesn't match.
+Getting creative with nft and omitting the interval_overlap()
+check from the set_overlap() function, without omitting
+set_overlap() altogether, led to the observation of a partial
+overlap that wasn't detected, and would actually result in
+replacement of the end element of an existing interval.
 
-Handle this in a similar way as TCP conntrack when it suspects that the
-endpoints and conntrack are out-of-sync.
+This is due to the fact that we'll return -EEXIST on a matching,
+pre-existing start element, instead of -ENOTEMPTY, and the error
+is cleared by API if NLM_F_EXCL is not given. At this point, we
+can insert a matching start, and duplicate the end element as long
+as we don't end up into other intervals.
 
-When a HEARTBEAT request fails its vtag validation, flag this in the
-conntrack state and accept the packet.
+For instance, inserting interval 0 - 2 with an existing 0 - 3
+interval would result in a single 0 - 2 interval, and a dangling
+'3' end element. This is because nft will proceed after inserting
+the '0' start element as no error is reported, and no further
+conflicting intervals are detected on insertion of the end element.
 
-When a HEARTBEAT_ACK is received with an invalid vtag in the reverse
-direction after we allowed such a HEARTBEAT through, assume we are
-out-of-sync and re-set the vtag info.
+This needs a different approach as it's a local condition that can
+be detected by looking for duplicate ends coming from left and
+right, separately. Track those and directly report -ENOTEMPTY on
+duplicated end elements for a matching start.
 
-v2: remove left-over snippet from an older incarnation that moved
-    new_state/old_state assignments, thats not needed so keep that
-    as-is.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- include/linux/netfilter/nf_conntrack_sctp.h |  2 ++
- net/netfilter/nf_conntrack_proto_sctp.c     | 39 ++++++++++++++++++---
- 2 files changed, 37 insertions(+), 4 deletions(-)
+ net/netfilter/nft_set_rbtree.c | 34 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 33 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack_sctp.h b/include/linux/netfilter/nf_conntrack_sctp.h
-index 9a33f171aa822..625f491b95de8 100644
---- a/include/linux/netfilter/nf_conntrack_sctp.h
-+++ b/include/linux/netfilter/nf_conntrack_sctp.h
-@@ -9,6 +9,8 @@ struct ip_ct_sctp {
- 	enum sctp_conntrack state;
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index b85ce6f0c0a6f..f317ad80cd6bc 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -218,11 +218,11 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 			       struct nft_rbtree_elem *new,
+ 			       struct nft_set_ext **ext)
+ {
++	bool overlap = false, dup_end_left = false, dup_end_right = false;
+ 	struct nft_rbtree *priv = nft_set_priv(set);
+ 	u8 genmask = nft_genmask_next(net);
+ 	struct nft_rbtree_elem *rbe;
+ 	struct rb_node *parent, **p;
+-	bool overlap = false;
+ 	int d;
  
- 	__be32 vtag[IP_CT_DIR_MAX];
-+	u8 last_dir;
-+	u8 flags;
- };
+ 	/* Detect overlaps as we descend the tree. Set the flag in these cases:
+@@ -262,6 +262,20 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	 *
+ 	 * which always happen as last step and imply that no further
+ 	 * overlapping is possible.
++	 *
++	 * Another special case comes from the fact that start elements matching
++	 * an already existing start element are allowed: insertion is not
++	 * performed but we return -EEXIST in that case, and the error will be
++	 * cleared by the caller if NLM_F_EXCL is not present in the request.
++	 * This way, request for insertion of an exact overlap isn't reported as
++	 * error to userspace if not desired.
++	 *
++	 * However, if the existing start matches a pre-existing start, but the
++	 * end element doesn't match the corresponding pre-existing end element,
++	 * we need to report a partial overlap. This is a local condition that
++	 * can be noticed without need for a tracking flag, by checking for a
++	 * local duplicated end for a corresponding start, from left and right,
++	 * separately.
+ 	 */
  
- #endif /* _NF_CONNTRACK_SCTP_H */
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 4f897b14b6069..810cca24b3990 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -62,6 +62,8 @@ static const unsigned int sctp_timeouts[SCTP_CONNTRACK_MAX] = {
- 	[SCTP_CONNTRACK_HEARTBEAT_ACKED]	= 210 SECS,
- };
+ 	parent = NULL;
+@@ -281,19 +295,35 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 				    !nft_set_elem_expired(&rbe->ext) && !*p)
+ 					overlap = false;
+ 			} else {
++				if (dup_end_left && !*p)
++					return -ENOTEMPTY;
++
+ 				overlap = nft_rbtree_interval_end(rbe) &&
+ 					  nft_set_elem_active(&rbe->ext,
+ 							      genmask) &&
+ 					  !nft_set_elem_expired(&rbe->ext);
++
++				if (overlap) {
++					dup_end_right = true;
++					continue;
++				}
+ 			}
+ 		} else if (d > 0) {
+ 			p = &parent->rb_right;
  
-+#define	SCTP_FLAG_HEARTBEAT_VTAG_FAILED	1
+ 			if (nft_rbtree_interval_end(new)) {
++				if (dup_end_right && !*p)
++					return -ENOTEMPTY;
 +
- #define sNO SCTP_CONNTRACK_NONE
- #define	sCL SCTP_CONNTRACK_CLOSED
- #define	sCW SCTP_CONNTRACK_COOKIE_WAIT
-@@ -369,6 +371,7 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
- 	u_int32_t offset, count;
- 	unsigned int *timeouts;
- 	unsigned long map[256 / sizeof(unsigned long)] = { 0 };
-+	bool ignore = false;
- 
- 	if (sctp_error(skb, dataoff, state))
- 		return -NF_ACCEPT;
-@@ -427,15 +430,39 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
- 			/* Sec 8.5.1 (D) */
- 			if (sh->vtag != ct->proto.sctp.vtag[dir])
- 				goto out_unlock;
--		} else if (sch->type == SCTP_CID_HEARTBEAT ||
--			   sch->type == SCTP_CID_HEARTBEAT_ACK) {
-+		} else if (sch->type == SCTP_CID_HEARTBEAT) {
-+			if (ct->proto.sctp.vtag[dir] == 0) {
-+				pr_debug("Setting %d vtag %x for dir %d\n", sch->type, sh->vtag, dir);
-+				ct->proto.sctp.vtag[dir] = sh->vtag;
-+			} else if (sh->vtag != ct->proto.sctp.vtag[dir]) {
-+				if (test_bit(SCTP_CID_DATA, map) || ignore)
-+					goto out_unlock;
+ 				overlap = nft_rbtree_interval_end(rbe) &&
+ 					  nft_set_elem_active(&rbe->ext,
+ 							      genmask) &&
+ 					  !nft_set_elem_expired(&rbe->ext);
 +
-+				ct->proto.sctp.flags |= SCTP_FLAG_HEARTBEAT_VTAG_FAILED;
-+				ct->proto.sctp.last_dir = dir;
-+				ignore = true;
-+				continue;
-+			} else if (ct->proto.sctp.flags & SCTP_FLAG_HEARTBEAT_VTAG_FAILED) {
-+				ct->proto.sctp.flags &= ~SCTP_FLAG_HEARTBEAT_VTAG_FAILED;
-+			}
-+		} else if (sch->type == SCTP_CID_HEARTBEAT_ACK) {
- 			if (ct->proto.sctp.vtag[dir] == 0) {
- 				pr_debug("Setting vtag %x for dir %d\n",
- 					 sh->vtag, dir);
- 				ct->proto.sctp.vtag[dir] = sh->vtag;
- 			} else if (sh->vtag != ct->proto.sctp.vtag[dir]) {
--				pr_debug("Verification tag check failed\n");
--				goto out_unlock;
-+				if (test_bit(SCTP_CID_DATA, map) || ignore)
-+					goto out_unlock;
-+
-+				if ((ct->proto.sctp.flags & SCTP_FLAG_HEARTBEAT_VTAG_FAILED) == 0 ||
-+				    ct->proto.sctp.last_dir == dir)
-+					goto out_unlock;
-+
-+				ct->proto.sctp.flags &= ~SCTP_FLAG_HEARTBEAT_VTAG_FAILED;
-+				ct->proto.sctp.vtag[dir] = sh->vtag;
-+				ct->proto.sctp.vtag[!dir] = 0;
-+			} else if (ct->proto.sctp.flags & SCTP_FLAG_HEARTBEAT_VTAG_FAILED) {
-+				ct->proto.sctp.flags &= ~SCTP_FLAG_HEARTBEAT_VTAG_FAILED;
++				if (overlap) {
++					dup_end_left = true;
++					continue;
++				}
+ 			} else if (nft_set_elem_active(&rbe->ext, genmask) &&
+ 				   !nft_set_elem_expired(&rbe->ext)) {
+ 				overlap = nft_rbtree_interval_end(rbe);
+@@ -321,6 +351,8 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 				p = &parent->rb_left;
  			}
  		}
- 
-@@ -470,6 +497,10 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
- 	}
- 	spin_unlock_bh(&ct->lock);
- 
-+	/* allow but do not refresh timeout */
-+	if (ignore)
-+		return NF_ACCEPT;
 +
- 	timeouts = nf_ct_timeout_lookup(ct);
- 	if (!timeouts)
- 		timeouts = nf_sctp_pernet(nf_ct_net(ct))->timeouts;
++		dup_end_left = dup_end_right = false;
+ 	}
+ 
+ 	if (overlap)
 -- 
 2.25.1
 
