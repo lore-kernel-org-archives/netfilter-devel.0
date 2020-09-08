@@ -2,128 +2,84 @@ Return-Path: <SRS0=572t=CR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0149C43461
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Sep 2020 16:11:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6251AC433E2
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Sep 2020 17:53:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8C69A20738
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Sep 2020 16:11:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 231302078B
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Sep 2020 17:53:14 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HktnVl3J"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731306AbgIHQLs (ORCPT
+        id S1731656AbgIHRwi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Sep 2020 12:11:48 -0400
-Received: from mail-ed1-f66.google.com ([209.85.208.66]:36841 "EHLO
-        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731471AbgIHQLV (ORCPT
+        Tue, 8 Sep 2020 13:52:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56840 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731631AbgIHQNo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Sep 2020 12:11:21 -0400
-Received: by mail-ed1-f66.google.com with SMTP id w1so16615592edr.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 08 Sep 2020 09:11:20 -0700 (PDT)
+        Tue, 8 Sep 2020 12:13:44 -0400
+Received: from mail-io1-xd43.google.com (mail-io1-xd43.google.com [IPv6:2607:f8b0:4864:20::d43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D362FC0612A4
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Sep 2020 06:05:38 -0700 (PDT)
+Received: by mail-io1-xd43.google.com with SMTP id u6so7050937iow.9
+        for <netfilter-devel@vger.kernel.org>; Tue, 08 Sep 2020 06:05:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=iEeqc7izn1gfQDcpn1vS0AEKGEVlFCoidzpeUAn3nuQ=;
+        b=HktnVl3JUpc47IjAXaLdUkTcu5uSHRpPVcerINmHDjjwFw6KNnfpvJWZHO/6mNhguU
+         yaaprGCTuYDd2zFS596+KNDoMcW7P0z0ScNZywkXD7asB7j6Fh0u/ktCx7DHvewcTbR4
+         9wNuh0sKAXhHxkLGMmh+UF/+FfS9D8FO8mC/PlO0w1D57PX2ltox5nGU2ZN3HEe4GWpm
+         TK6js6i6v22qQ7zVrw6Bvu1GNAvgNL73UYHaxjcrHCmu8vRkFb2FDani3+v8W2nX7Q0l
+         Kv91ziC2Ugoe+lwulA/M4UVyIxf4JroMtNmhWHPDavHHFG3MYZjiu564f28SPehAonwI
+         abJA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:autocrypt
-         :message-id:date:user-agent:mime-version:in-reply-to
-         :content-language:content-transfer-encoding;
-        bh=jh4hHYFwlWS3q3v7W7IbFtTJL9RsdkyeEh+zHqxq1Uw=;
-        b=pVrxD+8fNbZbhJ6+cl4w1lGsVsJ7GOm3DOaY9/MBgC3D4TZWwWL5UC+LMw3PL4NWFW
-         IBiqcFHTHzaaapdC661ZF1JsjQNzpfX0+isWDNN+97VFCM57005NYKS/qzp1PZCjeDUz
-         Gj5LlPCEx8HbD1Kj67cbEVtqnVJpig/Nl5LvW91k0HWaU/LIc8HtOvMiqCEIE/kO0sSr
-         hIQn6JREyzOmTAOepaeDqJNCSOhbKEVM60kDAuiR50LhaFR0nhvtcWs0Q+ky4/CgS3Xc
-         zAYQ/YPTxQ2/TfDxuhQYU+jenlGsHkbBZXpAdrzAvmKJL9kqc0xldMfONd0W2pLAFJNd
-         zdfQ==
-X-Gm-Message-State: AOAM533YwahJ0FjNW2c/FBC++T9R5K9q6B9vNrA4Fd9VkK+Qc8YzmAnG
-        3Wk3qFtJgtv1KnGuWdj/aUIi2v2izzHE6gVD
-X-Google-Smtp-Source: ABdhPJwI3OvIT5CfblyxYhJ3tEQjzEDqyOD9zIlFrqzHreOBujh2qCgXf15+KSJVaRVh7r82xtR2aA==
-X-Received: by 2002:a05:6000:ce:: with SMTP id q14mr26028965wrx.112.1599565602686;
-        Tue, 08 Sep 2020 04:46:42 -0700 (PDT)
-Received: from [10.239.43.214] (79.red-80-24-233.staticip.rima-tde.net. [80.24.233.79])
-        by smtp.gmail.com with ESMTPSA id e18sm33251192wrx.50.2020.09.08.04.46.41
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 08 Sep 2020 04:46:42 -0700 (PDT)
-Subject: Re: [PATCH nf-next v3 3/3] netfilter: Introduce egress hook
-To:     Daniel Borkmann <daniel@iogearbox.net>,
-        Lukas Wunner <lukas@wunner.de>,
-        John Fastabend <john.fastabend@gmail.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Thomas Graf <tgraf@suug.ch>, Laura Garcia <nevola@gmail.com>,
-        David Miller <davem@davemloft.net>
-References: <20200904162154.GA24295@wunner.de>
- <813edf35-6fcf-c569-aab7-4da654546d9d@iogearbox.net>
-From:   Arturo Borrero Gonzalez <arturo@debian.org>
-Autocrypt: addr=arturo@debian.org; keydata=
- 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
- EXgmBmyUKrJkh/zvupp9t9Y2ioPbcMObRIEXio4=
-Message-ID: <0b7ca97e-9548-b0a8-cdd1-5200cb3b997d@debian.org>
-Date:   Tue, 8 Sep 2020 13:46:40 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.12.0
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=iEeqc7izn1gfQDcpn1vS0AEKGEVlFCoidzpeUAn3nuQ=;
+        b=qaE7bbMClv/dgloIIYfARphfdHh+D4QFLefQ2bV8SamDzkmUglHwjl1JPCgMvGslmP
+         kJep0d0K/di+bvLoRCiNegqrkQJV46RTOEmf19BHUYcTqowwoMqQWlEcaybOzz/oudBD
+         ByJDNyb2oonf/AxHxVUzlzbezUGdeDNUi0cY0kqax117HsFaqlpDYQKqIOdQ0CQJL+WC
+         XckRulkwP4ql0bMUv38kkIKf9A6uvMVpZ0GLZa+SSN5AyhMPelHqzwUEGESzyVo4q/gd
+         J/XmmY17SqhDwXQ3WbZWTHqsnzk+IHX8bXrUOkkUXujzhaSkdj4gZFGSbMA6/ov8aW5m
+         elDQ==
+X-Gm-Message-State: AOAM533zyeQQuaXHWvspsJ6Sj3PMhe1O/o1DLdyoc66a0xhkR5PpdgJv
+        JkaxCia5v8CC3fGefoL+izNoY8BLVE9JjNsWhmGhNFzFYxA=
+X-Google-Smtp-Source: ABdhPJxUvQA2DHHxI/YKdbSTv3D8YGu0CykzL/jAJEla+HY5NSoNy7dPacw+9W+BTVIh7si/mubHH7Av1XLP00+3RJU=
+X-Received: by 2002:a05:6638:210f:: with SMTP id n15mr22537928jaj.41.1599570338020;
+ Tue, 08 Sep 2020 06:05:38 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <813edf35-6fcf-c569-aab7-4da654546d9d@iogearbox.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+From:   Gopal Yadav <gopunop@gmail.com>
+Date:   Tue, 8 Sep 2020 18:35:27 +0530
+Message-ID: <CAAUOv8iRkeAVDn3UK8DHju+-RvWViopGajN_+9y+Rm30pTWa+A@mail.gmail.com>
+Subject: [nftables] TODO: Replace yy_switch_to_buffer by yypop_buffer_state
+ and yypush_buffer_state
+To:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-09-04 23:14, Daniel Borkmann wrote:
-> root@x:~/x# clang -target bpf -Wall -O2 -c foo.c -o foo.o
+Hi Netfilter Team,
 
-In my honest opinion (debian hat), the simplification of the stack is a key
-point for end users/developers. A gain in usability might justify a small
-performance penalty.
+I am looking to resolve a todo task in function yy_switch_to_buffer in
+nftables/src/scanner.c file.
+I am not familiar with lex but searching around I found that scanner.c
+is produced by lex according to the scanner.l file.
+Therefore my guess is, changing the scanner.c file directly is not the
+solution, right?
+Changes would have to be done in scanner.l, right?
+How should I proceed to complete this todo?
 
-I can think on both sysadmins and network apps developers, or even casual
-advanced users. For many people, dealing with the network stack is already
-challenging enough.
+I browsed bugzilla to find some other issues to solve, but I feel
+lost. Are there any beginner friendly issues to solve or any other
+starting point?
 
-Also, ideally, servers would be clean of the GCC or CLANG suites.
+Thanks
+Gopal
