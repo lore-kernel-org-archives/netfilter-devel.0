@@ -2,211 +2,69 @@ Return-Path: <SRS0=572t=CR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AE8CC2BC11
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Sep 2020 18:59:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8A56C433E2
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Sep 2020 19:41:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 61A712068D
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Sep 2020 18:59:12 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="l7MXgcIZ"
+	by mail.kernel.org (Postfix) with ESMTP id 791FE207DE
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Sep 2020 19:41:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731429AbgIHS7J (ORCPT
+        id S1731791AbgIHTlW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Sep 2020 14:59:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54462 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731392AbgIHS7G (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Sep 2020 14:59:06 -0400
-Received: from mail-pj1-x1043.google.com (mail-pj1-x1043.google.com [IPv6:2607:f8b0:4864:20::1043])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF773C061573;
-        Tue,  8 Sep 2020 11:59:05 -0700 (PDT)
-Received: by mail-pj1-x1043.google.com with SMTP id t7so73532pjd.3;
-        Tue, 08 Sep 2020 11:59:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:message-id:in-reply-to:references:subject
-         :mime-version:content-transfer-encoding;
-        bh=zedEPQGTgVh6pwqDk0aWi8hxMzGKzWUmqBIMlLqZOG4=;
-        b=l7MXgcIZjI4C9SmbVSd/BmycyCfbx5QonD/hyX8DJ8mlPQDUcmyRlizQIDEWPyF24j
-         z4GnRnkEk3Jaq+9jBALEya6feS/8AFJMDxUOcZDH9Z2JGGMQZD/zGwm6uqHRwgr7nzn1
-         GwOlTyNr7X5LWNckKX9/kQL7ufTKJHCVXeCVuskSq3yWqLmYVzG4kuKhNfq/DRMl+faQ
-         RXAip3TFE4JsLMJ4OnvHWIFxZwMpkeniLy0TCkM3HV9mFyWfpGihCIc9Q30v1RbzTQGx
-         IFoezPYHOGKn9vOksTejlgv7i1fDBKSD5n3uuZncfcy3eyDtnfx9SG/b7IzxttHvb6d5
-         yuQQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:message-id:in-reply-to
-         :references:subject:mime-version:content-transfer-encoding;
-        bh=zedEPQGTgVh6pwqDk0aWi8hxMzGKzWUmqBIMlLqZOG4=;
-        b=cTDmQYA7QnSQcVWzgd3qr/nCyANsWsZDyTd8i4+cQaX79ZZ5KztRCdxl8VGY28II2E
-         hZq/Y9ME9JOF9RacPl0VRI1TOH8edq/owX7OZVlQppv+rjjjCiV36QzDbYGN5r6Tgssm
-         hpPl+IGFYrXra0L7QJnJyZzxUq3EaIMd4Xthb70gNViE2WpemRCtXrdVHdwaLsmal8xi
-         D/Xc5lPjFHno3rbi42HVkFJ/S/OgMogIXYLQorHcSoE8yrFdMkQHU4JmAMEQI04bv4Sf
-         vaEberg9h52vj1W5k6eB93/8x3bv29FDou5KgFY4pXzR5Xth8Lh37/y9lV5sqLn5+k/L
-         lz1w==
-X-Gm-Message-State: AOAM531FRmccA+0pnNdsuIHlwCs2J0dBnMhT9H4w7khdlAUwyksv707m
-        SWTL3gVN8tBzKtF87PW0sMA=
-X-Google-Smtp-Source: ABdhPJy2AVjojpzvmfZCrMU+GLKjch2IFyH+TW23AfdHdvweaw7ZVqq/ze7bnk6ilAMA7HmZN6I+5A==
-X-Received: by 2002:a17:90a:528a:: with SMTP id w10mr215768pjh.107.1599591545258;
-        Tue, 08 Sep 2020 11:59:05 -0700 (PDT)
-Received: from localhost ([184.63.162.180])
-        by smtp.gmail.com with ESMTPSA id bt13sm48279pjb.23.2020.09.08.11.59.02
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Sep 2020 11:59:04 -0700 (PDT)
-Date:   Tue, 08 Sep 2020 11:58:56 -0700
-From:   John Fastabend <john.fastabend@gmail.com>
-To:     Lukas Wunner <lukas@wunner.de>,
-        John Fastabend <john.fastabend@gmail.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Daniel Borkmann <daniel@iogearbox.net>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Thomas Graf <tgraf@suug.ch>, Laura Garcia <nevola@gmail.com>,
-        David Miller <davem@davemloft.net>
-Message-ID: <5f57d4702cb4d_10343208ab@john-XPS-13-9370.notmuch>
-In-Reply-To: <20200904162154.GA24295@wunner.de>
-References: <20200904162154.GA24295@wunner.de>
-Subject: Re: [PATCH nf-next v3 3/3] netfilter: Introduce egress hook
-Mime-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: 7bit
+        Tue, 8 Sep 2020 15:41:22 -0400
+Received: from correo.us.es ([193.147.175.20]:48688 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730925AbgIHPyh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 8 Sep 2020 11:54:37 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id EE88B190C84
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Sep 2020 16:36:38 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E05B7DA791
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Sep 2020 16:36:38 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id D6055DA78F; Tue,  8 Sep 2020 16:36:38 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C79BADA78C;
+        Tue,  8 Sep 2020 16:36:36 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 08 Sep 2020 16:36:36 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id AA7CB4301DE0;
+        Tue,  8 Sep 2020 16:36:36 +0200 (CEST)
+Date:   Tue, 8 Sep 2020 16:36:36 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     "Jose M. Guisado Gomez" <guigom@riseup.net>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next 1/3, v2] netfilter: nf_tables: add userdata
+ support for nft_object
+Message-ID: <20200908143636.GA8366@salvia>
+References: <20200908104225.GA14876@salvia>
+ <20200908110141.44921-1-guigom@riseup.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20200908110141.44921-1-guigom@riseup.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Lukas Wunner wrote:
-> On Wed, Sep 02, 2020 at 10:00:32PM -0700, John Fastabend wrote:
-> > Lukas Wunner wrote:
-> > > * Before:       4730418pps 2270Mb/sec (2270600640bps)
-> > > * After:        4759206pps 2284Mb/sec (2284418880bps)
-> > 
-> > I used a 10Gbps ixgbe nic to measure the performance after the dummy
-> > device hung on me for some reason. I'll try to investigate what happened
-> > later. It was unrelated to these patches though.
-> > 
-> > But, with 10Gbps NIC and doing a pktgen benchmark with and without
-> > the patches applied I didn't see any measurable differences. Both
-> > cases reached 14Mpps.
+On Tue, Sep 08, 2020 at 01:01:41PM +0200, Jose M. Guisado Gomez wrote:
+> Enables storing userdata for nft_object. Initially this will store an
+> optional comment but can be extended in the future as needed.
 > 
-> Hm, I strongly suspect you may have measured performance of the NIC and
-> that you'd get different before/after numbers with the dummy device.
+> Adds new attribute NFTA_OBJ_USERDATA to nft_object.
 
-OK tried again on dummy device.
-
-> 
-> 
-> > > * Before + tc:  4063912pps 1950Mb/sec (1950677760bps)
-> > > * After  + tc:  4007728pps 1923Mb/sec (1923709440bps)
-> > 
-> > Same here before/after aggregate appears to be the same. Even the
-> > numbers above show a 1.2% degradation. Just curious is the above
-> > from a single run or averaged over multiple runs or something
-> > else? Seems like noise to me.
-> 
-> I performed at least 3 runs, but included just a single number in
-> the commit message for brevity.  That number is intended to show
-> where the numbers settled:
-> 
-> Before:           2257 2270 2270           Mb/sec
-> After:            2282 2283 2284 2282      Mb/sec
-> 
-> Before + tc:      1941 1950 1951           Mb/sec
-> After  + tc:      1923 1923 1919 1920 1919 Mb/sec
-> 
-> After + nft:      1782 1783 1782 1781      Mb/sec
-> After + nft + tc: 1574 1566 1566           Mb/sec
-> 
-> So there's certainly some noise but still a speedup is clearly
-> visible if neither tc nor nft is used, and a slight degradation
-> if tc is used.
-
-After running multiple times it does seem to be some small performance
-improvement by adding noinline there. Its small though (maybe 1-2%?)
-and I can't detect this on anything, but the dummy device.
-
-But the degradation with clsact is also caused from this noinline.
-If I add the noinline directly into the existing code I see the
-same impact. Likely some some small performance improvement for the
-no clsact case, but a very real degradation in the clsact case. Presumably,
-due to having to do a call now. I didn't collect perf output
-just did the simple test.
-
-One piece I don't understand fully yet is on a single thread test
-the degradation is small, but as the number of threads increases
-the degradation increases. At single thread its 1-2%, but creeps
-up to about 5% with 16 cores. Can you confirm this?
-
-> 
-> 
-> > I did see something odd where it appeared fairness between threads
-> > was slightly worse. I don't have any explanation for this? Did
-> > you have a chance to run the test with -t >1?
-> 
-> Sorry, no, I only tested with a single thread on an otherwise idle
-> machine.
-
-We need to also consider the case with many threads or at least
-become convinced its not going to change with thread count. What
-I see is degradation is creeping up as cores increase.
-
-> 
-> 
-> > Do you have plans to address the performance degradation? Otherwise
-> > if I was building some new components its unclear why we would
-> > choose the slower option over the tc hook. The two suggested
-> > use cases security policy and DSR sound like new features, any
-> > reason to not just use existing infrastructure?
-> > 
-> > Is the use case primarily legacy things already running in
-> > nft infrastructure? I guess if you have code running now
-> > moving it to this hook is faster and even if its 10% slower
-> > than it could be that may be better than a rewrite?
-> 
-> nft and tc are orthogonal, i.e. filtering/mangling versus queueing.
-> However tc has gained the ability to filter packets as well, hence
-> there's some overlap in functionality.  Naturally tc does not allow
-> the full glory of nft filtering/mangling options as Laura has stated,
-> hence the need to add nft in the egress path.
-> 
-> 
-> > huh? Its stated in the commit message with no reason for why it might
-> > be the case and I can't reproduce it.
-> 
-> The reason as stated in the commit message is that cache pressure is
-> apparently reduced with the tc handling moved out of the hotpath,
-> an effect that Eric Dumazet had previously observed for the ingress path:
-> 
-> https://lore.kernel.org/netdev/1431387038.566.47.camel@edumazet-glaptop2.roam.corp.google.com/
-
-OK, seems possible it could be an icache miss we are hitting. To really
-confirm this though I would want to look at icache statistics. Otherwise
-it feels likely, but difficult to tell for sure.
-
-This noinline change subtle and buried in another patch. If you really
-want to noinline that function pull it out of the series and push as its
-own patch. I am against it because it appears to be directly degrading
-performance for my use case and only providing small (if measurable at all)
-gain in the normal case. But, at least if its submitted as its own patch we
-can debate the merits. We would need performance data for some real devices
-veth, nic, and dummy device also across many threads to get a good
-handle on it. Also perf data would help understand whats happening. My
-preference would be to also nail down the icache stats so we can be sure
-this noininline improvment in non clsact case is fully understood.
-
-> 
-> Thanks a lot for taking the time to give these patches a whirl.
-> 
-> Lukas
-
-
+Applied, thanks.
