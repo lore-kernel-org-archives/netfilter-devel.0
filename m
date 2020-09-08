@@ -2,102 +2,128 @@ Return-Path: <SRS0=572t=CR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99061C2BBD0
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Sep 2020 15:14:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0149C43461
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Sep 2020 16:11:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6AF3523C8E
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Sep 2020 15:14:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8C69A20738
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Sep 2020 16:11:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730292AbgIHPNy (ORCPT
+        id S1731306AbgIHQLs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Sep 2020 11:13:54 -0400
-Received: from correo.us.es ([193.147.175.20]:33094 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730145AbgIHPLS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Sep 2020 11:11:18 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9F1B21F0D06
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Sep 2020 17:09:56 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 90492DA78D
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Sep 2020 17:09:56 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 8F99CDA72F; Tue,  8 Sep 2020 17:09:56 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6AD0BDA730;
-        Tue,  8 Sep 2020 17:09:54 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 08 Sep 2020 17:09:54 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 4026A4301DE0;
-        Tue,  8 Sep 2020 17:09:54 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 4/5] netfilter: conntrack: nf_conncount_init is failing with IPv6 disabled
-Date:   Tue,  8 Sep 2020 17:09:46 +0200
-Message-Id: <20200908150947.12623-5-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200908150947.12623-1-pablo@netfilter.org>
-References: <20200908150947.12623-1-pablo@netfilter.org>
+        Tue, 8 Sep 2020 12:11:48 -0400
+Received: from mail-ed1-f66.google.com ([209.85.208.66]:36841 "EHLO
+        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731471AbgIHQLV (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 8 Sep 2020 12:11:21 -0400
+Received: by mail-ed1-f66.google.com with SMTP id w1so16615592edr.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 08 Sep 2020 09:11:20 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:autocrypt
+         :message-id:date:user-agent:mime-version:in-reply-to
+         :content-language:content-transfer-encoding;
+        bh=jh4hHYFwlWS3q3v7W7IbFtTJL9RsdkyeEh+zHqxq1Uw=;
+        b=pVrxD+8fNbZbhJ6+cl4w1lGsVsJ7GOm3DOaY9/MBgC3D4TZWwWL5UC+LMw3PL4NWFW
+         IBiqcFHTHzaaapdC661ZF1JsjQNzpfX0+isWDNN+97VFCM57005NYKS/qzp1PZCjeDUz
+         Gj5LlPCEx8HbD1Kj67cbEVtqnVJpig/Nl5LvW91k0HWaU/LIc8HtOvMiqCEIE/kO0sSr
+         hIQn6JREyzOmTAOepaeDqJNCSOhbKEVM60kDAuiR50LhaFR0nhvtcWs0Q+ky4/CgS3Xc
+         zAYQ/YPTxQ2/TfDxuhQYU+jenlGsHkbBZXpAdrzAvmKJL9kqc0xldMfONd0W2pLAFJNd
+         zdfQ==
+X-Gm-Message-State: AOAM533YwahJ0FjNW2c/FBC++T9R5K9q6B9vNrA4Fd9VkK+Qc8YzmAnG
+        3Wk3qFtJgtv1KnGuWdj/aUIi2v2izzHE6gVD
+X-Google-Smtp-Source: ABdhPJwI3OvIT5CfblyxYhJ3tEQjzEDqyOD9zIlFrqzHreOBujh2qCgXf15+KSJVaRVh7r82xtR2aA==
+X-Received: by 2002:a05:6000:ce:: with SMTP id q14mr26028965wrx.112.1599565602686;
+        Tue, 08 Sep 2020 04:46:42 -0700 (PDT)
+Received: from [10.239.43.214] (79.red-80-24-233.staticip.rima-tde.net. [80.24.233.79])
+        by smtp.gmail.com with ESMTPSA id e18sm33251192wrx.50.2020.09.08.04.46.41
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 08 Sep 2020 04:46:42 -0700 (PDT)
+Subject: Re: [PATCH nf-next v3 3/3] netfilter: Introduce egress hook
+To:     Daniel Borkmann <daniel@iogearbox.net>,
+        Lukas Wunner <lukas@wunner.de>,
+        John Fastabend <john.fastabend@gmail.com>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Thomas Graf <tgraf@suug.ch>, Laura Garcia <nevola@gmail.com>,
+        David Miller <davem@davemloft.net>
+References: <20200904162154.GA24295@wunner.de>
+ <813edf35-6fcf-c569-aab7-4da654546d9d@iogearbox.net>
+From:   Arturo Borrero Gonzalez <arturo@debian.org>
+Autocrypt: addr=arturo@debian.org; keydata=
+ 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
+ EXgmBmyUKrJkh/zvupp9t9Y2ioPbcMObRIEXio4=
+Message-ID: <0b7ca97e-9548-b0a8-cdd1-5200cb3b997d@debian.org>
+Date:   Tue, 8 Sep 2020 13:46:40 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.12.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <813edf35-6fcf-c569-aab7-4da654546d9d@iogearbox.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Eelco Chaudron <echaudro@redhat.com>
+On 2020-09-04 23:14, Daniel Borkmann wrote:
+> root@x:~/x# clang -target bpf -Wall -O2 -c foo.c -o foo.o
 
-The openvswitch module fails initialization when used in a kernel
-without IPv6 enabled. nf_conncount_init() fails because the ct code
-unconditionally tries to initialize the netns IPv6 related bit,
-regardless of the build option. The change below ignores the IPv6
-part if not enabled.
+In my honest opinion (debian hat), the simplification of the stack is a key
+point for end users/developers. A gain in usability might justify a small
+performance penalty.
 
-Note that the corresponding _put() function already has this IPv6
-configuration check.
+I can think on both sysadmins and network apps developers, or even casual
+advanced users. For many people, dealing with the network stack is already
+challenging enough.
 
-Fixes: 11efd5cb04a1 ("openvswitch: Support conntrack zone limit")
-Signed-off-by: Eelco Chaudron <echaudro@redhat.com>
-Reviewed-by: Simon Horman <simon.horman@netronome.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_proto.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index 95f79980348c..47e9319d2cf3 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -565,6 +565,7 @@ static int nf_ct_netns_inet_get(struct net *net)
- 	int err;
- 
- 	err = nf_ct_netns_do_get(net, NFPROTO_IPV4);
-+#if IS_ENABLED(CONFIG_IPV6)
- 	if (err < 0)
- 		goto err1;
- 	err = nf_ct_netns_do_get(net, NFPROTO_IPV6);
-@@ -575,6 +576,7 @@ static int nf_ct_netns_inet_get(struct net *net)
- err2:
- 	nf_ct_netns_put(net, NFPROTO_IPV4);
- err1:
-+#endif
- 	return err;
- }
- 
--- 
-2.20.1
-
+Also, ideally, servers would be clean of the GCC or CLANG suites.
