@@ -1,38 +1,69 @@
-Return-Path: <SRS0=Y+c4=CQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=572t=CR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12451C433E2
-	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Sep 2020 22:11:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97BC1C433E2
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Sep 2020 06:19:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DD9B1215A4
-	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Sep 2020 22:11:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5874A2078B
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Sep 2020 06:19:48 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="uP2Fx1u1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727838AbgIGWLl (ORCPT
+        id S1728009AbgIHGTp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 7 Sep 2020 18:11:41 -0400
-Received: from www62.your-server.de ([213.133.104.62]:32838 "EHLO
-        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727103AbgIGWLk (ORCPT
+        Tue, 8 Sep 2020 02:19:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49548 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726787AbgIHGTo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 7 Sep 2020 18:11:40 -0400
-Received: from sslproxy02.your-server.de ([78.47.166.47])
-        by www62.your-server.de with esmtpsa (TLSv1.2:DHE-RSA-AES256-GCM-SHA384:256)
-        (Exim 4.89_1)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1kFPMB-000321-Rm; Tue, 08 Sep 2020 00:11:23 +0200
-Received: from [178.196.57.75] (helo=pc-9.home)
-        by sslproxy02.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1kFPMB-000Kx6-HZ; Tue, 08 Sep 2020 00:11:23 +0200
+        Tue, 8 Sep 2020 02:19:44 -0400
+Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com [IPv6:2607:f8b0:4864:20::341])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84FA8C061573;
+        Mon,  7 Sep 2020 23:19:43 -0700 (PDT)
+Received: by mail-ot1-x341.google.com with SMTP id c10so13911233otm.13;
+        Mon, 07 Sep 2020 23:19:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=O6IpCwnpVtuGiVfJIjlwB8wH7sUVjdjhn0wXwD10MTI=;
+        b=uP2Fx1u17fd93yAjsHtJWGchrz7RZ2ywazWvuDld9ZK5zydAWJ8wes1PlVcqECWVpE
+         IY/cmwCrpRC3FOaG90diGm4+pfRbmZIuR1YczmGjFAsaArDShQbWc1dBw73ZIOgOLRhJ
+         1DNH6FWN5BQps7sQUlP8vnjcLs1yPA77tVYV90HpBJOcKs020rGgURxipCEibHKlndWI
+         lmIyH2dhGxo0534Ybz6iSUZsS8DWkfLKGqCkuDv6P4QQjPV2dwYvOeVr9NTw11OLEPxP
+         fYPdb9/ap+NPfkK9qbbkIX1BBx7iAdls1qHvIgZG2JDTv0KaWOgS2KMtmARs5q/zXKPr
+         Zbog==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=O6IpCwnpVtuGiVfJIjlwB8wH7sUVjdjhn0wXwD10MTI=;
+        b=fr+kddgMQkAW2EL1jgI37W5D1hvTHevCRhYjEoTTuAA7jawjE0vJJeVNfniCfEt/k4
+         fv3MieXUQMbtzVVHdcQkwU5a20WSNrwyM/t1UY++Jm0A9w/tM6P3pwXPG0vMOKo4rX2L
+         52SO0ckwbdogE+q4WzypOXccLnESoH1wBw3LQNp96ZndGJWimA9nf9kXG/IQVolU9pmQ
+         pNYFzJaz7VJ3CDd+hx4niDMS9uo7DgsbHBllKN93MiaeLitviGbAPZLp15V9Q1MG2exY
+         X5hPdpijcKhUG7LD/+Z7i7+IGlaONUkeQucgIRwkVC2eGLDtokl9few0+D+0hDI4U4+B
+         DK/Q==
+X-Gm-Message-State: AOAM53395ugeFdmzQxvh7smL6t4zmC5iDwlbjq7KMTQojs/dh+/VDGvm
+        FYjv1tQ6JzfzUaC2eoMEryaLZyVJsDkOGHPyhZs=
+X-Google-Smtp-Source: ABdhPJwPVozyVw2sgKIYfk4YB+lMYcydSx1Iyg5o+9TfaKmqOSlJ6yvBOGNKcX9PGZPtulqcEd0HWDjDn69Shq0NALY=
+X-Received: by 2002:a9d:315:: with SMTP id 21mr305769otv.278.1599545982863;
+ Mon, 07 Sep 2020 23:19:42 -0700 (PDT)
+MIME-Version: 1.0
+References: <20200904162154.GA24295@wunner.de> <813edf35-6fcf-c569-aab7-4da654546d9d@iogearbox.net>
+ <CAF90-WhWpiAPcpU81P3cPTUmRD-xGkuZ9GZA8Q3cPN7RQKhXeA@mail.gmail.com> <b1ae75ac-82b5-aa24-c59a-3988d94d6a10@iogearbox.net>
+In-Reply-To: <b1ae75ac-82b5-aa24-c59a-3988d94d6a10@iogearbox.net>
+From:   =?UTF-8?Q?Laura_Garc=C3=ADa_Li=C3=A9bana?= <nevola@gmail.com>
+Date:   Tue, 8 Sep 2020 08:19:31 +0200
+Message-ID: <CAF90-WjhAS6V_UFYpsnxUDH=sH+1j_2y+Sz2RHU7CWo4iPiC7w@mail.gmail.com>
 Subject: Re: [PATCH nf-next v3 3/3] netfilter: Introduce egress hook
-To:     =?UTF-8?Q?Laura_Garc=c3=ada_Li=c3=a9bana?= <nevola@gmail.com>
+To:     Daniel Borkmann <daniel@iogearbox.net>
 Cc:     Lukas Wunner <lukas@wunner.de>,
         John Fastabend <john.fastabend@gmail.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
@@ -43,37 +74,36 @@ Cc:     Lukas Wunner <lukas@wunner.de>,
         netdev@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
         Eric Dumazet <edumazet@google.com>,
         Thomas Graf <tgraf@suug.ch>, David Miller <davem@davemloft.net>
-References: <20200904162154.GA24295@wunner.de>
- <813edf35-6fcf-c569-aab7-4da654546d9d@iogearbox.net>
- <CAF90-WhWpiAPcpU81P3cPTUmRD-xGkuZ9GZA8Q3cPN7RQKhXeA@mail.gmail.com>
-From:   Daniel Borkmann <daniel@iogearbox.net>
-Message-ID: <b1ae75ac-82b5-aa24-c59a-3988d94d6a10@iogearbox.net>
-Date:   Tue, 8 Sep 2020 00:11:22 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.2
-MIME-Version: 1.0
-In-Reply-To: <CAF90-WhWpiAPcpU81P3cPTUmRD-xGkuZ9GZA8Q3cPN7RQKhXeA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-Authenticated-Sender: daniel@iogearbox.net
-X-Virus-Scanned: Clear (ClamAV 0.102.4/25923/Mon Sep  7 15:37:02 2020)
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 9/5/20 1:18 PM, Laura García Liébana wrote:
-> On Fri, Sep 4, 2020 at 11:14 PM Daniel Borkmann <daniel@iogearbox.net> wrote:
-[...]
-> Something like this seems more trivial to me:
-> 
-> table netdev mytable {
->      chain mychain {
->          type filter hook egress device "eth0" priority 100; policy drop;
->          meta protocol != 0x419C accept
->      }
-> }
+Hi Daniel,
 
-Sure, different frontends, so what?! You could also wrap that code into a
-simple a.out or have nft style syntax jit to bpf ...
+On Tue, Sep 8, 2020 at 12:11 AM Daniel Borkmann <daniel@iogearbox.net> wrot=
+e:
+>
+> On 9/5/20 1:18 PM, Laura Garc=C3=ADa Li=C3=A9bana wrote:
+> > On Fri, Sep 4, 2020 at 11:14 PM Daniel Borkmann <daniel@iogearbox.net> =
+wrote:
+> [...]
+> > Something like this seems more trivial to me:
+> >
+> > table netdev mytable {
+> >      chain mychain {
+> >          type filter hook egress device "eth0" priority 100; policy dro=
+p;
+> >          meta protocol !=3D 0x419C accept
+> >      }
+> > }
+>
+> Sure, different frontends, so what?! You could also wrap that code into a
+> simple a.out or have nft style syntax jit to bpf ...
+
+Not only syntax but get rid of bpf and tc from the application stack
+and only maintain 1 interface.
+
+Thanks!
