@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFE80C433E2
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 09:45:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7ED41C433E2
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 09:45:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7BE0121973
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 09:45:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3867C21D7A
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 09:45:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728015AbgIIJo6 (ORCPT
+        id S1729614AbgIIJpH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Sep 2020 05:44:58 -0400
-Received: from correo.us.es ([193.147.175.20]:34974 "EHLO mail.us.es"
+        Wed, 9 Sep 2020 05:45:07 -0400
+Received: from correo.us.es ([193.147.175.20]:34866 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729251AbgIIJme (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Sep 2020 05:42:34 -0400
+        id S1727976AbgIIJmb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 9 Sep 2020 05:42:31 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AA5BB2EFEAF
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2020 11:42:29 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 621DB2EFEC7
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2020 11:42:28 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9AB7CDA904
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2020 11:42:29 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 50955DA84B
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2020 11:42:28 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 8DCFEDA90B; Wed,  9 Sep 2020 11:42:29 +0200 (CEST)
+        id 45B26DA73D; Wed,  9 Sep 2020 11:42:28 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4CC79DA7E1;
-        Wed,  9 Sep 2020 11:42:27 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DDBACDA73D;
+        Wed,  9 Sep 2020 11:42:25 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 09 Sep 2020 11:42:27 +0200 (CEST)
+ Wed, 09 Sep 2020 11:42:25 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 217414301DE4;
-        Wed,  9 Sep 2020 11:42:27 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPSA id B3D9D4301DE1;
+        Wed,  9 Sep 2020 11:42:25 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 05/13] netfilter: conntrack: remove ignore stats
-Date:   Wed,  9 Sep 2020 11:42:11 +0200
-Message-Id: <20200909094219.17732-6-pablo@netfilter.org>
+Subject: [PATCH 03/13] netfilter: nf_tables: add userdata attributes to nft_table
+Date:   Wed,  9 Sep 2020 11:42:09 +0200
+Message-Id: <20200909094219.17732-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200909094219.17732-1-pablo@netfilter.org>
 References: <20200909094219.17732-1-pablo@netfilter.org>
@@ -59,95 +59,116 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: "Jose M. Guisado Gomez" <guigom@riseup.net>
 
-This counter increments when nf_conntrack_in sees a packet that already
-has a conntrack attached or when the packet is marked as UNTRACKED.
-Neither is an error.
+Enables storing userdata for nft_table. Field udata points to user data
+and udlen store its length.
 
-The former is normal for loopback traffic.  The second happens for
-certain ICMPv6 packets or when nftables/ip(6)tables rules are in place.
+Adds new attribute flag NFTA_TABLE_USERDATA
 
-In case someone needs to count UNTRACKED packets, or packets
-that are marked as untracked before conntrack_in this can be done with
-both nftables and ip(6)tables rules.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Jose M. Guisado Gomez <guigom@riseup.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/nf_conntrack_common.h      | 1 -
- include/uapi/linux/netfilter/nfnetlink_conntrack.h | 2 +-
- net/netfilter/nf_conntrack_core.c                  | 4 +---
- net/netfilter/nf_conntrack_netlink.c               | 1 -
- net/netfilter/nf_conntrack_standalone.c            | 2 +-
- 5 files changed, 3 insertions(+), 7 deletions(-)
+ include/net/netfilter/nf_tables.h        |  2 ++
+ include/uapi/linux/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nf_tables_api.c            | 22 +++++++++++++++++++++-
+ 3 files changed, 25 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
-index 1db83c931d9c..96b90d7e361f 100644
---- a/include/linux/netfilter/nf_conntrack_common.h
-+++ b/include/linux/netfilter/nf_conntrack_common.h
-@@ -8,7 +8,6 @@
- struct ip_conntrack_stat {
- 	unsigned int found;
- 	unsigned int invalid;
--	unsigned int ignore;
- 	unsigned int insert;
- 	unsigned int insert_failed;
- 	unsigned int drop;
-diff --git a/include/uapi/linux/netfilter/nfnetlink_conntrack.h b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-index 262881792671..3e471558da82 100644
---- a/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-@@ -247,7 +247,7 @@ enum ctattr_stats_cpu {
- 	CTA_STATS_FOUND,
- 	CTA_STATS_NEW,		/* no longer used */
- 	CTA_STATS_INVALID,
--	CTA_STATS_IGNORE,
-+	CTA_STATS_IGNORE,	/* no longer used */
- 	CTA_STATS_DELETE,	/* no longer used */
- 	CTA_STATS_DELETE_LIST,	/* no longer used */
- 	CTA_STATS_INSERT,
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 3cfbafdff941..a111bcf1b93c 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1800,10 +1800,8 @@ nf_conntrack_in(struct sk_buff *skb, const struct nf_hook_state *state)
- 	if (tmpl || ctinfo == IP_CT_UNTRACKED) {
- 		/* Previously seen (loopback or untracked)?  Ignore. */
- 		if ((tmpl && !nf_ct_is_template(tmpl)) ||
--		     ctinfo == IP_CT_UNTRACKED) {
--			NF_CT_STAT_INC_ATOMIC(state->net, ignore);
-+		     ctinfo == IP_CT_UNTRACKED)
- 			return NF_ACCEPT;
--		}
- 		skb->_nfct = 0;
- 	}
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index bf9491b77d16..97a7e147a59a 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1080,6 +1080,8 @@ struct nft_table {
+ 					flags:8,
+ 					genmask:2;
+ 	char				*name;
++	u16				udlen;
++	u8				*udata;
+ };
  
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 832eabecfbdd..c64f23a8f373 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2509,7 +2509,6 @@ ctnetlink_ct_stat_cpu_fill_info(struct sk_buff *skb, u32 portid, u32 seq,
+ void nft_register_chain_type(const struct nft_chain_type *);
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 42f351c1f5c5..aeb88cbd303e 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -172,6 +172,7 @@ enum nft_table_flags {
+  * @NFTA_TABLE_NAME: name of the table (NLA_STRING)
+  * @NFTA_TABLE_FLAGS: bitmask of enum nft_table_flags (NLA_U32)
+  * @NFTA_TABLE_USE: number of chains in this table (NLA_U32)
++ * @NFTA_TABLE_USERDATA: user data (NLA_BINARY)
+  */
+ enum nft_table_attributes {
+ 	NFTA_TABLE_UNSPEC,
+@@ -180,6 +181,7 @@ enum nft_table_attributes {
+ 	NFTA_TABLE_USE,
+ 	NFTA_TABLE_HANDLE,
+ 	NFTA_TABLE_PAD,
++	NFTA_TABLE_USERDATA,
+ 	__NFTA_TABLE_MAX
+ };
+ #define NFTA_TABLE_MAX		(__NFTA_TABLE_MAX - 1)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index fd814e514f94..6ccce2a2e715 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -650,6 +650,8 @@ static const struct nla_policy nft_table_policy[NFTA_TABLE_MAX + 1] = {
+ 				    .len = NFT_TABLE_MAXNAMELEN - 1 },
+ 	[NFTA_TABLE_FLAGS]	= { .type = NLA_U32 },
+ 	[NFTA_TABLE_HANDLE]	= { .type = NLA_U64 },
++	[NFTA_TABLE_USERDATA]	= { .type = NLA_BINARY,
++				    .len = NFT_USERDATA_MAXLEN }
+ };
  
- 	if (nla_put_be32(skb, CTA_STATS_FOUND, htonl(st->found)) ||
- 	    nla_put_be32(skb, CTA_STATS_INVALID, htonl(st->invalid)) ||
--	    nla_put_be32(skb, CTA_STATS_IGNORE, htonl(st->ignore)) ||
- 	    nla_put_be32(skb, CTA_STATS_INSERT, htonl(st->insert)) ||
- 	    nla_put_be32(skb, CTA_STATS_INSERT_FAILED,
- 				htonl(st->insert_failed)) ||
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index a604f43e3e6b..b673a03624d2 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -439,7 +439,7 @@ static int ct_cpu_seq_show(struct seq_file *seq, void *v)
- 		   st->found,
- 		   0,
- 		   st->invalid,
--		   st->ignore,
-+		   0,
- 		   0,
- 		   0,
- 		   st->insert,
+ static int nf_tables_fill_table_info(struct sk_buff *skb, struct net *net,
+@@ -676,6 +678,11 @@ static int nf_tables_fill_table_info(struct sk_buff *skb, struct net *net,
+ 			 NFTA_TABLE_PAD))
+ 		goto nla_put_failure;
+ 
++	if (table->udata) {
++		if (nla_put(skb, NFTA_TABLE_USERDATA, table->udlen, table->udata))
++			goto nla_put_failure;
++	}
++
+ 	nlmsg_end(skb, nlh);
+ 	return 0;
+ 
+@@ -977,8 +984,9 @@ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
+ 	int family = nfmsg->nfgen_family;
+ 	const struct nlattr *attr;
+ 	struct nft_table *table;
+-	u32 flags = 0;
+ 	struct nft_ctx ctx;
++	u32 flags = 0;
++	u16 udlen = 0;
+ 	int err;
+ 
+ 	lockdep_assert_held(&net->nft.commit_mutex);
+@@ -1014,6 +1022,16 @@ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
+ 	if (table->name == NULL)
+ 		goto err_strdup;
+ 
++	if (nla[NFTA_TABLE_USERDATA]) {
++		udlen = nla_len(nla[NFTA_TABLE_USERDATA]);
++		table->udata = kzalloc(udlen, GFP_KERNEL);
++		if (table->udata == NULL)
++			goto err_table_udata;
++
++		nla_memcpy(table->udata, nla[NFTA_TABLE_USERDATA], udlen);
++		table->udlen = udlen;
++	}
++
+ 	err = rhltable_init(&table->chains_ht, &nft_chain_ht_params);
+ 	if (err)
+ 		goto err_chain_ht;
+@@ -1036,6 +1054,8 @@ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
+ err_trans:
+ 	rhltable_destroy(&table->chains_ht);
+ err_chain_ht:
++	kfree(table->udata);
++err_table_udata:
+ 	kfree(table->name);
+ err_strdup:
+ 	kfree(table);
 -- 
 2.20.1
 
