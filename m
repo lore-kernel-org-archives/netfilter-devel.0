@@ -7,74 +7,74 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7493AC43461
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 18:26:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02921C43461
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 18:26:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 285EE21D40
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 18:26:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A2AE2206E6
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 18:26:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729779AbgIIS0k (ORCPT
+        id S1729449AbgIIS0t (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Sep 2020 14:26:40 -0400
+        Wed, 9 Sep 2020 14:26:49 -0400
 Received: from mailrelay105.isp.belgacom.be ([195.238.20.132]:5273 "EHLO
         mailrelay105.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725975AbgIIS0c (ORCPT
+        by vger.kernel.org with ESMTP id S1729525AbgIIS0o (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Sep 2020 14:26:32 -0400
-IronPort-SDR: bD8uNhFGVHwEVPYlwW5V5w67iMWVYwJpup2/wKODiZDjkJl4W0UA0clZ2xOG5QUebakvN+0kVg
- pAHcfR1bvr4gvRFOh+S5nE50W5IKd1PSD6xCcwORVr0mPm0c7dRc/TW4+8CAj9CvJ5gSGXlV5k
- 4FaEoD94Kb38IuHnrxv7DrhLcYw8A7G2P9zLhIgqSoYxDdSXUZfnjzfy906E1yaLU5sH/THK/F
- K/JzVEwplBFApBINpeijljEch+QjLiFVVgHxqs/IRk3jPCx7QwdAnV8t07xUDK6WWc/HAxuJSb
- GKk=
+        Wed, 9 Sep 2020 14:26:44 -0400
+IronPort-SDR: pNX6ncdP65mDe1+h142elqQ5LUq0gy5gtBLRwL9zTsIHJwzLSrJgbGrLD0LA18UefqzTjMEMAQ
+ 2UwwWg87erL19RWH2XZUyxL6AEnit+lISd0MnlokClJzSPyP6VjYQrrsAX0exVhAJ56NLg6dSP
+ 30Ta4D2VfWvUzChbFtR0419icVua4PzeDPGDrCO6a0NUOc31vPfCp/aKdu3WSfQzf63YjXXw0g
+ yzXMlMAeZzB/pa13tSygbcGqAe9Ya0xXbp31ueY5ZuszsA/ZtQYHPDNLqY0FYE6VQ8VrCttS2c
+ FxE=
 X-Belgacom-Dynamic: yes
-IronPort-PHdr: =?us-ascii?q?9a23=3ADmRruhcXQ/3uiqyw0Dyk0imOlGMj4u6mDksu8p?=
- =?us-ascii?q?Mizoh2WeGdxc27YheN2/xhgRfzUJnB7Loc0qyK6v6mADFdqsbQ+Fk5M7V0Hy?=
- =?us-ascii?q?cfjssXmwFySOWkMmbcaMDQUiohAc5ZX0Vk9XzoeWJcGcL5ekGA6ibqtW1aFR?=
- =?us-ascii?q?rwLxd6KfroEYDOkcu3y/qy+5rOaAlUmTaxe7x/IAi3oAnLq8UbgYtvJqkyxx?=
- =?us-ascii?q?bNv3BFZ/lYyWR0KFyJgh3y/N2w/Jlt8yRRv/Iu6ctNWrjkcqo7ULJVEi0oP3?=
- =?us-ascii?q?g668P3uxbDSxCP5mYHXWUNjhVIGQnF4wrkUZr3ryD3q/By2CiePc3xULA0RT?=
- =?us-ascii?q?Gv5LplRRP0lCsKMSMy/WfKgcJyka1bugqsqRxhzYDJbo+bN/1wcazSc94BWW?=
- =?us-ascii?q?ZMXdxcWzBbD4+gc4cCCfcKM+ZCr4n6olsDtRuwChO3C+Pu0DBIgGL9060g0+?=
- =?us-ascii?q?s/DA7JwhYgH9MSv3TXsd74M6kSXvquw6nG1jjDdPBW2Df76IfWbhAtu+qDUq?=
- =?us-ascii?q?xpfMfX1EIgGB/LgE+Kpoz5IzOayP4Ns26D4uRuVu+ij24ppgBxrzSxyMoiip?=
- =?us-ascii?q?TEip4IxlzY9Ch3z4k7KMC2RUNlfNOpEJlduj+VOYdqTM0sTGVltiY6xLEYvZ?=
- =?us-ascii?q?O2ejUBxpc/xxPHb/GLbpKE7g/gWeqPOzt0mXNodbKlixqv8EWtzPD3WNOu31?=
- =?us-ascii?q?ZQtCVFl8HBtnUK1xPO9MeKUuB9/kK92TaX0ADT9/1ELVg0laXFL54hxaY9lp?=
- =?us-ascii?q?4UsUvfBCD2nEX2jKiNdkU44OSo7+Pnban8qZ+YKoB0jQT+Pb4vmsy5Geg4Mw?=
- =?us-ascii?q?4OUHaH+emk0LDv4Ff1TKhJg/EoiKXVrZHXKMQBqqKkAgJZyoMj5Ay+Dzei3t?=
- =?us-ascii?q?QYh34HLFdddRKJlYfmIF/OLevjDfe8g1Wslilkx+zcMrL6HJrBNmLDn6v5fb?=
- =?us-ascii?q?Zh905czxI+zchF6J1PDrEBJ+n+Wknvu9zEAB85Mgi0w/r5B9VnzI8eXniPAq?=
- =?us-ascii?q?CBOqPIrVCI/v4vI/WLZIINuzbyMeUq5/rwgnAlglIde7em3YcZaHC5GvRmP1?=
- =?us-ascii?q?uWYWD2jtcGC2cKsRI0TPb2h12aTT5Te3GyUroy5jA1E4+mFpvDRpqpgLOf2i?=
- =?us-ascii?q?e3BIBZaX5eAFCWDXjob5mEW+sLaC+KJM9ujCAEVbagS48lyRGhqhX6x6N6Ie?=
- =?us-ascii?q?XK5C0Xq5bj2cNr5+3cix4y7yZ4D8eD3GGXSWF7gGcISyUx3KBlrkx30k2D3r?=
- =?us-ascii?q?Rgg/xECdxT4OtEXRs9NZ7G0eN6F879VRjEftqSTlapXMmmAT8wTtI1398BfV?=
- =?us-ascii?q?x9F8+ljhDZ0CqgG6UVmKCTBJwo7qLc2GD8J8BjxHbayaYukUcmT9BRNW2pmK?=
- =?us-ascii?q?F/7RLfB43XnEWDkaala6Ac0DTK9GeZwmqEpFtYXxJoUaXZQXAfYVPbrdrj6U?=
- =?us-ascii?q?zZQb+jEq8nMghByM6ENKRKdsflgk5YS6SrBNOLe2u7n2CYAxuUyLKIcIfwPW?=
- =?us-ascii?q?IH02GVC0EIlw0Y1XCLKQY/AjusuSTZFjMqXVzwS1jw6+1zrjW3Qxwa1QaPOm?=
- =?us-ascii?q?No3bu8/FY7n/GQRukS1bFM7CkooTtcB1Ws2d/KTdCN8VkyNJ5AaM8wtQ8UnV?=
- =?us-ascii?q?nSsBZwa8St?=
+IronPort-PHdr: =?us-ascii?q?9a23=3Aa5HhahRaTOHR35jRawbZFyIxhNpsv+yvbD5Q0Y?=
+ =?us-ascii?q?Iujvd0So/mwa67ZRKEt8tkgFKBZ4jH8fUM07OQ7/m+HzVdvN3R4TgrS99lb1?=
+ =?us-ascii?q?c9k8IYnggtUoauKHbQC7rUVRE8B9lIT1R//nu2YgB/Ecf6YEDO8DXptWZBUh?=
+ =?us-ascii?q?rwOhBoKevrB4Xck9q41/yo+53Ufg5EmCexbal9IRmrrAjdrNQajItiJ6o+yR?=
+ =?us-ascii?q?bEpmZDdvhLy29vOV+dhQv36N2q/J5k/SRQuvYh+NBFXK7nYak2TqFWASo/PW?=
+ =?us-ascii?q?wt68LlqRfMTQ2U5nsBSWoWiQZHAxLE7B7hQJj8tDbxu/dn1ymbOc32Sq00WS?=
+ =?us-ascii?q?in4qx2RhLklDsLOjgk+2zRl8d+jr9UoAi5qhJ/3YDafY+bOvl5cKzSct0XXn?=
+ =?us-ascii?q?ZNU8VLWiBdGI6wc5cDAuwcNuhYtYn9oF4OoAO+Cwa2H+zvyyVHhnnr1qM6ye?=
+ =?us-ascii?q?QuDxzJ0xI6H9IPrHvUr8j+OaAcUe+v16bIwy7Ob+hV2Tb97ojHbAwhreuXUr?=
+ =?us-ascii?q?1uaMfcz1QkGAzZgFuKs4PlIy+V2foXs2id9+duW+GihmonpQxwojWj2MkhhI?=
+ =?us-ascii?q?nUi44J11zI6SR0zok6K9ClRkN2f8OpHZtSuiyEOIV6Xs0sTW5stSg6yrMKp5?=
+ =?us-ascii?q?q2cS4Xw5ok3x7Sc/iKf5WS7h7+V+udPy10iG9kdb+/nRq+7Emtx+vhXceuyl?=
+ =?us-ascii?q?lKtDBKktzUu3AI0Bzc99aIR+Nm/kekxTaPzwfT6vxYIUwslarUNZohwrkom5?=
+ =?us-ascii?q?oXtkTMAjX5mEH2jK+RbUUk5vKk6+DgYrr6vJCcM5J7igb7Mqs0m8y/B/w0Mg?=
+ =?us-ascii?q?kIX2eF5eSxzLnu8VDjTLlXjfA6jLPVvI3bKMkbvKK1Hg5Y3p4m6xmlDjem1N?=
+ =?us-ascii?q?oYnWMALFJAYB+HgZLmNErAIP3jFve/gFStkDF1yPDaJLHuGYvCImDZkLj9Zb?=
+ =?us-ascii?q?Z991JcyA0rwNBH/Z1bEbUBIPXoV0/3qtPYEhE5Mw2ww+b7Ftp9zJkSWWWVAq?=
+ =?us-ascii?q?+WKKnSq0OH5vozI+mQY48YoDX9JOI46P7qk3A2hUQQfa+30psLZnC4H/BmI1?=
+ =?us-ascii?q?mHbnr2mNsBFn0KvgUmRuzwlFKCSSJTZ2q1X68k6DE6BpmrDZzfRoC3hLyOwi?=
+ =?us-ascii?q?G7EodLaW9YElqMC2vnd52YW/cQbyKfOslhnSIYVbivSo8h0Q2uuxHgy7Z+M+?=
+ =?us-ascii?q?Xb5DMYuozn1NVu+e3Tmg899SZuA8SezW6NVWd0kX0MRzMs26B/u0N9wE+Z0a?=
+ =?us-ascii?q?dkm/xYCcBT5/RRXwgmMp7c1fJ1C8zsVQ3be9eEU1CmTcu6ATE/T9Ixx8MObF?=
+ =?us-ascii?q?hnG9m4iRDDxSWqCacPl7OXHJw07r7c33/pKsZ71XnGyLQugEc4QsZUK22mib?=
+ =?us-ascii?q?Bw9xLJC47KjUqZjaCqeroY3CLX82eD12WOtllCUAFsSaXFQWwfZkzOoNT3/E?=
+ =?us-ascii?q?zNVLGuBK88MgtCyc+CLLVFasHzgVpdWviwcOjZNnq4kWO3LRCF2r2NaJbnYS?=
+ =?us-ascii?q?MaxiqZQEsNnwQe9l6AOBQwByO9rniYCyZhURrhfGv37fN6pXX9QkJn4RuNah?=
+ =?us-ascii?q?hP3rC08xhdq+aRR/4J37kH8HMvoj96NE2+ztTbF5yKqlwyL+1nfdoh7QIfhi?=
+ =?us-ascii?q?rivAtnM8n4Ig=3D=3D?=
 X-IronPort-Anti-Spam-Filtered: true
-X-IronPort-Anti-Spam-Result: =?us-ascii?q?A2CmQgCXHVlf/xCltltfGgEBAQEBPAE?=
- =?us-ascii?q?BAQECAgEBAQECAQEBAQMBAQEBHIFKgRyBfFVfjTqSUZICCwEBAQEBAQEBASM?=
- =?us-ascii?q?RAQIEAQGES4IUJTgTAgMBAQEDAgUBAQYBAQEBAQEFBAGGD0WCNyKDUgEjI4E?=
- =?us-ascii?q?/EoMmAYJXKbUihBCEdYFCgTgBiCuFGYFBP4RfhASGMAS2aoJvgw2EXX6ROw8?=
- =?us-ascii?q?hoFYtkiShaoF6TSAYO4JpCUcZDY4oGo4mQjA3AgYKAQEDCVcBPQGKbIJGAQE?=
-X-IPAS-Result: =?us-ascii?q?A2CmQgCXHVlf/xCltltfGgEBAQEBPAEBAQECAgEBAQECA?=
- =?us-ascii?q?QEBAQMBAQEBHIFKgRyBfFVfjTqSUZICCwEBAQEBAQEBASMRAQIEAQGES4IUJ?=
- =?us-ascii?q?TgTAgMBAQEDAgUBAQYBAQEBAQEFBAGGD0WCNyKDUgEjI4E/EoMmAYJXKbUih?=
- =?us-ascii?q?BCEdYFCgTgBiCuFGYFBP4RfhASGMAS2aoJvgw2EXX6ROw8hoFYtkiShaoF6T?=
- =?us-ascii?q?SAYO4JpCUcZDY4oGo4mQjA3AgYKAQEDCVcBPQGKbIJGAQE?=
+X-IronPort-Anti-Spam-Result: =?us-ascii?q?A2AZEgCXHVlf/xCltltfHAEBATwBAQQ?=
+ =?us-ascii?q?EAQECAQEHAQEcgUqBHCACAQEBgVdVX406klGSAgsBAQEBAQEBAQEjEQECBAE?=
+ =?us-ascii?q?BhEuCFCU4EwIDAQEBAwIFAQEGAQEBAQEBBQQBhg9Fgjcig1IBIyOBPxKDJgG?=
+ =?us-ascii?q?CVym1IoQQhHWBQoE2AgEBAQEBiCeFGYFBP4ERg06KNAS2aoJvgw2EXX6ROw8?=
+ =?us-ascii?q?hoFaSUaFqgXpNIBg7gmkJRxkNjlaOEkIwNwIGCgEBAwlXAT0BjTIBAQ?=
+X-IPAS-Result: =?us-ascii?q?A2AZEgCXHVlf/xCltltfHAEBATwBAQQEAQECAQEHAQEcg?=
+ =?us-ascii?q?UqBHCACAQEBgVdVX406klGSAgsBAQEBAQEBAQEjEQECBAEBhEuCFCU4EwIDA?=
+ =?us-ascii?q?QEBAwIFAQEGAQEBAQEBBQQBhg9Fgjcig1IBIyOBPxKDJgGCVym1IoQQhHWBQ?=
+ =?us-ascii?q?oE2AgEBAQEBiCeFGYFBP4ERg06KNAS2aoJvgw2EXX6ROw8hoFaSUaFqgXpNI?=
+ =?us-ascii?q?Bg7gmkJRxkNjlaOEkIwNwIGCgEBAwlXAT0BjTIBAQ?=
 Received: from 16.165-182-91.adsl-dyn.isp.belgacom.be (HELO localhost.localdomain) ([91.182.165.16])
-  by relay.skynet.be with ESMTP; 09 Sep 2020 20:26:30 +0200
+  by relay.skynet.be with ESMTP; 09 Sep 2020 20:26:41 +0200
 From:   Fabian Frederick <fabf@skynet.be>
 To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de
 Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org, Fabian Frederick <fabf@skynet.be>
-Subject: [PATCH 2/3 nf] selftests: netfilter: fix nft_meta.sh error reporting
-Date:   Wed,  9 Sep 2020 20:26:13 +0200
-Message-Id: <20200909182613.23784-1-fabf@skynet.be>
+Subject: [PATCH 3/3 nf] selftests: netfilter: remove unused cnt and simplify command testing
+Date:   Wed,  9 Sep 2020 20:26:24 +0200
+Message-Id: <20200909182624.23834-1-fabf@skynet.be>
 X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -83,39 +83,40 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When some test directly done with check_one_counter() fails,
-counter variable is undefined. This patch calls ip with cname
-which avoids errors like:
-FAIL: oskuidcounter, want "packets 2", got
-Error: syntax error, unexpected newline, expecting string
-list counter inet filter
-                        ^
-Error is now correctly rendered:
-FAIL: oskuidcounter, want "packets 2", got
-table inet filter {
-	counter oskuidcounter {
-		packets 1 bytes 84
-	}
-}
+cnt was not used in nft_meta.sh
+This patch also fixes 2 shellcheck SC2181 warnings:
+"check exit code directly with e.g. 'if mycmd;', not indirectly with
+$?."
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 ---
- tools/testing/selftests/netfilter/nft_meta.sh | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/netfilter/nft_meta.sh | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/tools/testing/selftests/netfilter/nft_meta.sh b/tools/testing/selftests/netfilter/nft_meta.sh
-index 17b2d6eaa2044..1f5b46542c14c 100755
+index 1f5b46542c14c..18a1abca32629 100755
 --- a/tools/testing/selftests/netfilter/nft_meta.sh
 +++ b/tools/testing/selftests/netfilter/nft_meta.sh
-@@ -90,7 +90,7 @@ check_one_counter()
- 	if [ $? -ne 0 ];then
+@@ -7,8 +7,7 @@ ksft_skip=4
+ sfx=$(mktemp -u "XXXXXXXX")
+ ns0="ns0-$sfx"
+ 
+-nft --version > /dev/null 2>&1
+-if [ $? -ne 0 ];then
++if ! nft --version > /dev/null 2>&1; then
+ 	echo "SKIP: Could not run test without nft tool"
+ 	exit $ksft_skip
+ fi
+@@ -86,8 +85,7 @@ check_one_counter()
+ 	local want="packets $2"
+ 	local verbose="$3"
+ 
+-	cnt=$(ip netns exec "$ns0" nft list counter inet filter $cname | grep -q "$want")
+-	if [ $? -ne 0 ];then
++	if ! ip netns exec "$ns0" nft list counter inet filter $cname | grep -q "$want"; then
  		echo "FAIL: $cname, want \"$want\", got"
  		ret=1
--		ip netns exec "$ns0" nft list counter inet filter $counter
-+		ip netns exec "$ns0" nft list counter inet filter $cname
- 	fi
- }
- 
+ 		ip netns exec "$ns0" nft list counter inet filter $cname
 -- 
 2.27.0
 
