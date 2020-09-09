@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7ED41C433E2
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 09:45:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06064C433E2
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 09:45:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3867C21D7A
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 09:45:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B637D21973
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 09:45:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729614AbgIIJpH (ORCPT
+        id S1730245AbgIIJpU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Sep 2020 05:45:07 -0400
-Received: from correo.us.es ([193.147.175.20]:34866 "EHLO mail.us.es"
+        Wed, 9 Sep 2020 05:45:20 -0400
+Received: from correo.us.es ([193.147.175.20]:34800 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727976AbgIIJmb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Sep 2020 05:42:31 -0400
+        id S1726726AbgIIJm3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 9 Sep 2020 05:42:29 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 621DB2EFEC7
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2020 11:42:28 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 1EEF22EFEA3
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2020 11:42:27 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 50955DA84B
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2020 11:42:28 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0F675DA798
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2020 11:42:27 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 45B26DA73D; Wed,  9 Sep 2020 11:42:28 +0200 (CEST)
+        id 0371FDA793; Wed,  9 Sep 2020 11:42:27 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DDBACDA73D;
-        Wed,  9 Sep 2020 11:42:25 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 69A98DA84A;
+        Wed,  9 Sep 2020 11:42:24 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 09 Sep 2020 11:42:25 +0200 (CEST)
+ Wed, 09 Sep 2020 11:42:24 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id B3D9D4301DE1;
-        Wed,  9 Sep 2020 11:42:25 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPSA id 3E9594301DE3;
+        Wed,  9 Sep 2020 11:42:24 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 03/13] netfilter: nf_tables: add userdata attributes to nft_table
-Date:   Wed,  9 Sep 2020 11:42:09 +0200
-Message-Id: <20200909094219.17732-4-pablo@netfilter.org>
+Subject: [PATCH 01/13] netfilter: ip6t_NPT: rewrite addresses in ICMPv6 original packet
+Date:   Wed,  9 Sep 2020 11:42:07 +0200
+Message-Id: <20200909094219.17732-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200909094219.17732-1-pablo@netfilter.org>
 References: <20200909094219.17732-1-pablo@netfilter.org>
@@ -59,116 +59,137 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: "Jose M. Guisado Gomez" <guigom@riseup.net>
+From: Michael Zhou <mzhou@cse.unsw.edu.au>
 
-Enables storing userdata for nft_table. Field udata points to user data
-and udlen store its length.
+Detect and rewrite a prefix embedded in an ICMPv6 original packet that was
+rewritten by a corresponding DNPT/SNPT rule so it will be recognised by
+the host that sent the original packet.
 
-Adds new attribute flag NFTA_TABLE_USERDATA
+Example
 
-Signed-off-by: Jose M. Guisado Gomez <guigom@riseup.net>
+Rules in effect on the 1:2:3:4::/64 + 5:6:7:8::/64 side router:
+* SNPT src-pfx 1:2:3:4::/64 dst-pfx 5:6:7:8::/64
+* DNPT src-pfx 5:6:7:8::/64 dst-pfx 1:2:3:4::/64
+
+No rules on the 9:a:b:c::/64 side.
+
+1. 1:2:3:4::1 sends UDP packet to 9:a:b:c::1
+2. Router applies SNPT changing src to 5:6:7:8::ffef::1
+3. 9:a:b:c::1 receives packet with (src 5:6:7:8::ffef::1 dst 9:a:b:c::1)
+	and replies with ICMPv6 port unreachable to 5:6:7:8::ffef::1,
+	including original packet (src 5:6:7:8::ffef::1 dst 9:a:b:c::1)
+4. Router forwards ICMPv6 packet with (src 9:a:b:c::1 dst 5:6:7:8::ffef::1)
+	including original packet (src 5:6:7:8::ffef::1 dst 9:a:b:c::1)
+	and applies DNPT changing dst to 1:2:3:4::1
+5. 1:2:3:4::1 receives ICMPv6 packet with (src 9:a:b:c::1 dst 1:2:3:4::1)
+	including original packet (src 5:6:7:8::ffef::1 dst 9:a:b:c::1).
+	It doesn't recognise the original packet as the src doesn't
+	match anything it originally sent
+
+With this change, at step 4, DNPT will also rewrite the original packet
+src to 1:2:3:4::1, so at step 5, 1:2:3:4::1 will recognise the ICMPv6
+error and provide feedback to the application properly.
+
+Conversely, SNPT will help when ICMPv6 errors are sent from the
+translated network.
+
+1. 9:a:b:c::1 sends UDP packet to 5:6:7:8::ffef::1
+2. Router applies DNPT changing dst to 1:2:3:4::1
+3. 1:2:3:4::1 receives packet with (src 9:a:b:c::1 dst 1:2:3:4::1)
+	and replies with ICMPv6 port unreachable to 9:a:b:c::1
+	including original packet (src 9:a:b:c::1 dst 1:2:3:4::1)
+4. Router forwards ICMPv6 packet with (src 1:2:3:4::1 dst 9:a:b:c::1)
+	including original packet (src 9:a:b:c::1 dst 1:2:3:4::1)
+	and applies SNPT changing src to 5:6:7:8::ffef::1
+5. 9:a:b:c::1 receives ICMPv6 packet with
+	(src 5:6:7:8::ffef::1 dst 9:a:b:c::1) including
+	original packet (src 9:a:b:c::1 dst 1:2:3:4::1).
+	It doesn't recognise the original packet as the dst doesn't
+	match anything it already sent
+
+The change to SNPT means the ICMPv6 original packet dst will be
+rewritten to 5:6:7:8::ffef::1 in step 4, allowing the error to be
+properly recognised in step 5.
+
+Signed-off-by: Michael Zhou <mzhou@cse.unsw.edu.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h        |  2 ++
- include/uapi/linux/netfilter/nf_tables.h |  2 ++
- net/netfilter/nf_tables_api.c            | 22 +++++++++++++++++++++-
- 3 files changed, 25 insertions(+), 1 deletion(-)
+ net/ipv6/netfilter/ip6t_NPT.c | 39 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index bf9491b77d16..97a7e147a59a 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1080,6 +1080,8 @@ struct nft_table {
- 					flags:8,
- 					genmask:2;
- 	char				*name;
-+	u16				udlen;
-+	u8				*udata;
- };
+diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
+index 9ee077bf4f49..787c74aa85e3 100644
+--- a/net/ipv6/netfilter/ip6t_NPT.c
++++ b/net/ipv6/netfilter/ip6t_NPT.c
+@@ -77,16 +77,43 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
+ 	return true;
+ }
  
- void nft_register_chain_type(const struct nft_chain_type *);
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 42f351c1f5c5..aeb88cbd303e 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -172,6 +172,7 @@ enum nft_table_flags {
-  * @NFTA_TABLE_NAME: name of the table (NLA_STRING)
-  * @NFTA_TABLE_FLAGS: bitmask of enum nft_table_flags (NLA_U32)
-  * @NFTA_TABLE_USE: number of chains in this table (NLA_U32)
-+ * @NFTA_TABLE_USERDATA: user data (NLA_BINARY)
-  */
- enum nft_table_attributes {
- 	NFTA_TABLE_UNSPEC,
-@@ -180,6 +181,7 @@ enum nft_table_attributes {
- 	NFTA_TABLE_USE,
- 	NFTA_TABLE_HANDLE,
- 	NFTA_TABLE_PAD,
-+	NFTA_TABLE_USERDATA,
- 	__NFTA_TABLE_MAX
- };
- #define NFTA_TABLE_MAX		(__NFTA_TABLE_MAX - 1)
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index fd814e514f94..6ccce2a2e715 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -650,6 +650,8 @@ static const struct nla_policy nft_table_policy[NFTA_TABLE_MAX + 1] = {
- 				    .len = NFT_TABLE_MAXNAMELEN - 1 },
- 	[NFTA_TABLE_FLAGS]	= { .type = NLA_U32 },
- 	[NFTA_TABLE_HANDLE]	= { .type = NLA_U64 },
-+	[NFTA_TABLE_USERDATA]	= { .type = NLA_BINARY,
-+				    .len = NFT_USERDATA_MAXLEN }
- };
++static struct ipv6hdr *icmpv6_bounced_ipv6hdr(struct sk_buff *skb,
++					      struct ipv6hdr *_bounced_hdr)
++{
++	if (ipv6_hdr(skb)->nexthdr != IPPROTO_ICMPV6)
++		return NULL;
++
++	if (!icmpv6_is_err(icmp6_hdr(skb)->icmp6_type))
++		return NULL;
++
++	return skb_header_pointer(skb,
++				  skb_transport_offset(skb) + sizeof(struct icmp6hdr),
++				  sizeof(struct ipv6hdr),
++				  _bounced_hdr);
++}
++
+ static unsigned int
+ ip6t_snpt_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+ 	const struct ip6t_npt_tginfo *npt = par->targinfo;
++	struct ipv6hdr _bounced_hdr;
++	struct ipv6hdr *bounced_hdr;
++	struct in6_addr bounced_pfx;
  
- static int nf_tables_fill_table_info(struct sk_buff *skb, struct net *net,
-@@ -676,6 +678,11 @@ static int nf_tables_fill_table_info(struct sk_buff *skb, struct net *net,
- 			 NFTA_TABLE_PAD))
- 		goto nla_put_failure;
- 
-+	if (table->udata) {
-+		if (nla_put(skb, NFTA_TABLE_USERDATA, table->udlen, table->udata))
-+			goto nla_put_failure;
+ 	if (!ip6t_npt_map_pfx(npt, &ipv6_hdr(skb)->saddr)) {
+ 		icmpv6_send(skb, ICMPV6_PARAMPROB, ICMPV6_HDR_FIELD,
+ 			    offsetof(struct ipv6hdr, saddr));
+ 		return NF_DROP;
+ 	}
++
++	/* rewrite dst addr of bounced packet which was sent to dst range */
++	bounced_hdr = icmpv6_bounced_ipv6hdr(skb, &_bounced_hdr);
++	if (bounced_hdr) {
++		ipv6_addr_prefix(&bounced_pfx, &bounced_hdr->daddr, npt->src_pfx_len);
++		if (ipv6_addr_cmp(&bounced_pfx, &npt->src_pfx.in6) == 0)
++			ip6t_npt_map_pfx(npt, &bounced_hdr->daddr);
 +	}
 +
- 	nlmsg_end(skb, nlh);
- 	return 0;
+ 	return XT_CONTINUE;
+ }
  
-@@ -977,8 +984,9 @@ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
- 	int family = nfmsg->nfgen_family;
- 	const struct nlattr *attr;
- 	struct nft_table *table;
--	u32 flags = 0;
- 	struct nft_ctx ctx;
-+	u32 flags = 0;
-+	u16 udlen = 0;
- 	int err;
+@@ -94,12 +121,24 @@ static unsigned int
+ ip6t_dnpt_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+ 	const struct ip6t_npt_tginfo *npt = par->targinfo;
++	struct ipv6hdr _bounced_hdr;
++	struct ipv6hdr *bounced_hdr;
++	struct in6_addr bounced_pfx;
  
- 	lockdep_assert_held(&net->nft.commit_mutex);
-@@ -1014,6 +1022,16 @@ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
- 	if (table->name == NULL)
- 		goto err_strdup;
- 
-+	if (nla[NFTA_TABLE_USERDATA]) {
-+		udlen = nla_len(nla[NFTA_TABLE_USERDATA]);
-+		table->udata = kzalloc(udlen, GFP_KERNEL);
-+		if (table->udata == NULL)
-+			goto err_table_udata;
+ 	if (!ip6t_npt_map_pfx(npt, &ipv6_hdr(skb)->daddr)) {
+ 		icmpv6_send(skb, ICMPV6_PARAMPROB, ICMPV6_HDR_FIELD,
+ 			    offsetof(struct ipv6hdr, daddr));
+ 		return NF_DROP;
+ 	}
 +
-+		nla_memcpy(table->udata, nla[NFTA_TABLE_USERDATA], udlen);
-+		table->udlen = udlen;
++	/* rewrite src addr of bounced packet which was sent from dst range */
++	bounced_hdr = icmpv6_bounced_ipv6hdr(skb, &_bounced_hdr);
++	if (bounced_hdr) {
++		ipv6_addr_prefix(&bounced_pfx, &bounced_hdr->saddr, npt->src_pfx_len);
++		if (ipv6_addr_cmp(&bounced_pfx, &npt->src_pfx.in6) == 0)
++			ip6t_npt_map_pfx(npt, &bounced_hdr->saddr);
 +	}
 +
- 	err = rhltable_init(&table->chains_ht, &nft_chain_ht_params);
- 	if (err)
- 		goto err_chain_ht;
-@@ -1036,6 +1054,8 @@ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
- err_trans:
- 	rhltable_destroy(&table->chains_ht);
- err_chain_ht:
-+	kfree(table->udata);
-+err_table_udata:
- 	kfree(table->name);
- err_strdup:
- 	kfree(table);
+ 	return XT_CONTINUE;
+ }
+ 
 -- 
 2.20.1
 
