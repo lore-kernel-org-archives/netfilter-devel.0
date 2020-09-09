@@ -4,50 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B797C10DAA
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 09:43:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD92DC433E2
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 09:44:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3575921973
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 09:43:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D6B421D79
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 09:44:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727782AbgIIJn3 (ORCPT
+        id S1729865AbgIIJnZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Sep 2020 05:43:29 -0400
-Received: from correo.us.es ([193.147.175.20]:34868 "EHLO mail.us.es"
+        Wed, 9 Sep 2020 05:43:25 -0400
+Received: from correo.us.es ([193.147.175.20]:35038 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729719AbgIIJmh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1729971AbgIIJmh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 9 Sep 2020 05:42:37 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 36B652EFEBC
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2020 11:42:31 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 6C5AC303D0E
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2020 11:42:33 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 07A8BDA730
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2020 11:42:31 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6065FE150F
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2020 11:42:33 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id EE830DA73D; Wed,  9 Sep 2020 11:42:30 +0200 (CEST)
+        id 559DAE150D; Wed,  9 Sep 2020 11:42:33 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B343ADA730;
-        Wed,  9 Sep 2020 11:42:28 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 30EA8E150C;
+        Wed,  9 Sep 2020 11:42:31 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 09 Sep 2020 11:42:28 +0200 (CEST)
+ Wed, 09 Sep 2020 11:42:31 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 7308A4301DED;
-        Wed,  9 Sep 2020 11:42:28 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPSA id 006BC4301DE1;
+        Wed,  9 Sep 2020 11:42:30 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 07/13] netfilter: conntrack: remove unneeded nf_ct_put
-Date:   Wed,  9 Sep 2020 11:42:13 +0200
-Message-Id: <20200909094219.17732-8-pablo@netfilter.org>
+Subject: [PATCH 11/13] netfilter: ebt_stp: Remove unused macro BPDU_TYPE_TCN
+Date:   Wed,  9 Sep 2020 11:42:17 +0200
+Message-Id: <20200909094219.17732-12-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200909094219.17732-1-pablo@netfilter.org>
 References: <20200909094219.17732-1-pablo@netfilter.org>
@@ -59,57 +59,30 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Wang Hai <wanghai38@huawei.com>
 
-We can delay refcount increment until we reassign the existing entry to
-the current skb.
+BPDU_TYPE_TCN is never used after it was introduced.
+So better to remove it.
 
-A 0 refcount can't happen while the nf_conn object is still in the
-hash table and parallel mutations are impossible because we hold the
-bucket lock.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Signed-off-by: Wang Hai <wanghai38@huawei.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_core.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ net/bridge/netfilter/ebt_stp.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 93e77ca0efad..234b7cab37c3 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -908,6 +908,7 @@ static void __nf_conntrack_insert_prepare(struct nf_conn *ct)
- 		tstamp->start = ktime_get_real_ns();
- }
+diff --git a/net/bridge/netfilter/ebt_stp.c b/net/bridge/netfilter/ebt_stp.c
+index 0d6d20c9105e..8f68afda5f81 100644
+--- a/net/bridge/netfilter/ebt_stp.c
++++ b/net/bridge/netfilter/ebt_stp.c
+@@ -15,7 +15,6 @@
+ #include <linux/netfilter_bridge/ebt_stp.h>
  
-+/* caller must hold locks to prevent concurrent changes */
- static int __nf_ct_resolve_clash(struct sk_buff *skb,
- 				 struct nf_conntrack_tuple_hash *h)
- {
-@@ -921,13 +922,12 @@ static int __nf_ct_resolve_clash(struct sk_buff *skb,
- 	if (nf_ct_is_dying(ct))
- 		return NF_DROP;
+ #define BPDU_TYPE_CONFIG 0
+-#define BPDU_TYPE_TCN 0x80
  
--	if (!atomic_inc_not_zero(&ct->ct_general.use))
--		return NF_DROP;
--
- 	if (((ct->status & IPS_NAT_DONE_MASK) == 0) ||
- 	    nf_ct_match(ct, loser_ct)) {
- 		struct net *net = nf_ct_net(ct);
- 
-+		nf_conntrack_get(&ct->ct_general);
-+
- 		nf_ct_acct_merge(ct, ctinfo, loser_ct);
- 		nf_ct_add_to_dying_list(loser_ct);
- 		nf_conntrack_put(&loser_ct->ct_general);
-@@ -937,7 +937,6 @@ static int __nf_ct_resolve_clash(struct sk_buff *skb,
- 		return NF_ACCEPT;
- 	}
- 
--	nf_ct_put(ct);
- 	return NF_DROP;
- }
- 
+ struct stp_header {
+ 	u8 dsap;
 -- 
 2.20.1
 
