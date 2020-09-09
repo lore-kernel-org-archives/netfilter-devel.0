@@ -4,50 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 358A1C2D0E0
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 09:44:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CCF7C433E2
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 09:44:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 01ECB21973
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 09:44:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20CAF21973
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 09:44:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729986AbgIIJnY (ORCPT
+        id S1728643AbgIIJom (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Sep 2020 05:43:24 -0400
-Received: from correo.us.es ([193.147.175.20]:34866 "EHLO mail.us.es"
+        Wed, 9 Sep 2020 05:44:42 -0400
+Received: from correo.us.es ([193.147.175.20]:35002 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729738AbgIIJmh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Sep 2020 05:42:37 -0400
+        id S1729455AbgIIJmf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 9 Sep 2020 05:42:35 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id ACDBB2EFEDE
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2020 11:42:31 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 6098F2EFEB5
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2020 11:42:30 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 96E5DE1506
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2020 11:42:31 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 53AEDDA8FF
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2020 11:42:30 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 9521EE1505; Wed,  9 Sep 2020 11:42:31 +0200 (CEST)
+        id 4756DDA911; Wed,  9 Sep 2020 11:42:30 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4EFEEDA8F3;
-        Wed,  9 Sep 2020 11:42:29 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EB8F3DA856;
+        Wed,  9 Sep 2020 11:42:27 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 09 Sep 2020 11:42:29 +0200 (CEST)
+ Wed, 09 Sep 2020 11:42:27 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 223544301DE1;
-        Wed,  9 Sep 2020 11:42:29 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPSA id C06D34301DE1;
+        Wed,  9 Sep 2020 11:42:27 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 08/13] netfilter: xt_HMARK: Use ip_is_fragment() helper
-Date:   Wed,  9 Sep 2020 11:42:14 +0200
-Message-Id: <20200909094219.17732-9-pablo@netfilter.org>
+Subject: [PATCH 06/13] netfilter: conntrack: add clash resolution stat counter
+Date:   Wed,  9 Sep 2020 11:42:12 +0200
+Message-Id: <20200909094219.17732-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200909094219.17732-1-pablo@netfilter.org>
 References: <20200909094219.17732-1-pablo@netfilter.org>
@@ -59,29 +59,128 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: YueHaibing <yuehaibing@huawei.com>
+From: Florian Westphal <fw@strlen.de>
 
-Use ip_is_fragment() to simpify code.
+There is a misconception about what "insert_failed" means.
 
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+We increment this even when a clash got resolved, so it might not indicate
+a problem.
+
+Add a dedicated counter for clash resolution and only increment
+insert_failed if a clash cannot be resolved.
+
+For the old /proc interface, export this in place of an older stat
+that got removed a while back.
+For ctnetlink, export this with a new attribute.
+
+Also correct an outdated comment that implies we add a duplicate tuple --
+we only add the (unique) reply direction.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_HMARK.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/netfilter/nf_conntrack_common.h      | 1 +
+ include/uapi/linux/netfilter/nfnetlink_conntrack.h | 1 +
+ net/netfilter/nf_conntrack_core.c                  | 9 +++++----
+ net/netfilter/nf_conntrack_netlink.c               | 4 +++-
+ net/netfilter/nf_conntrack_standalone.c            | 2 +-
+ 5 files changed, 11 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/xt_HMARK.c b/net/netfilter/xt_HMARK.c
-index 713fb38541df..8928ec56c388 100644
---- a/net/netfilter/xt_HMARK.c
-+++ b/net/netfilter/xt_HMARK.c
-@@ -276,7 +276,7 @@ hmark_pkt_set_htuple_ipv4(const struct sk_buff *skb, struct hmark_tuple *t,
- 		return 0;
+diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
+index 96b90d7e361f..0c7d8d1e945d 100644
+--- a/include/linux/netfilter/nf_conntrack_common.h
++++ b/include/linux/netfilter/nf_conntrack_common.h
+@@ -10,6 +10,7 @@ struct ip_conntrack_stat {
+ 	unsigned int invalid;
+ 	unsigned int insert;
+ 	unsigned int insert_failed;
++	unsigned int clash_resolve;
+ 	unsigned int drop;
+ 	unsigned int early_drop;
+ 	unsigned int error;
+diff --git a/include/uapi/linux/netfilter/nfnetlink_conntrack.h b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
+index 3e471558da82..d8484be72fdc 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_conntrack.h
++++ b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
+@@ -256,6 +256,7 @@ enum ctattr_stats_cpu {
+ 	CTA_STATS_EARLY_DROP,
+ 	CTA_STATS_ERROR,
+ 	CTA_STATS_SEARCH_RESTART,
++	CTA_STATS_CLASH_RESOLVE,
+ 	__CTA_STATS_MAX,
+ };
+ #define CTA_STATS_MAX (__CTA_STATS_MAX - 1)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index a111bcf1b93c..93e77ca0efad 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -859,7 +859,6 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
  
- 	/* follow-up fragments don't contain ports, skip all fragments */
--	if (ip->frag_off & htons(IP_MF | IP_OFFSET))
-+	if (ip_is_fragment(ip))
- 		return 0;
+ out:
+ 	nf_conntrack_double_unlock(hash, reply_hash);
+-	NF_CT_STAT_INC(net, insert_failed);
+ 	local_bh_enable();
+ 	return -EEXIST;
+ }
+@@ -934,7 +933,7 @@ static int __nf_ct_resolve_clash(struct sk_buff *skb,
+ 		nf_conntrack_put(&loser_ct->ct_general);
+ 		nf_ct_set(skb, ct, ctinfo);
  
- 	hmark_set_tuple_ports(skb, (ip->ihl * 4) + nhoff, t, info);
+-		NF_CT_STAT_INC(net, insert_failed);
++		NF_CT_STAT_INC(net, clash_resolve);
+ 		return NF_ACCEPT;
+ 	}
+ 
+@@ -998,6 +997,8 @@ static int nf_ct_resolve_clash_harder(struct sk_buff *skb, u32 repl_idx)
+ 
+ 	hlist_nulls_add_head_rcu(&loser_ct->tuplehash[IP_CT_DIR_REPLY].hnnode,
+ 				 &nf_conntrack_hash[repl_idx]);
++
++	NF_CT_STAT_INC(net, clash_resolve);
+ 	return NF_ACCEPT;
+ }
+ 
+@@ -1027,10 +1028,10 @@ static int nf_ct_resolve_clash_harder(struct sk_buff *skb, u32 repl_idx)
+  *
+  * Failing that, the new, unconfirmed conntrack is still added to the table
+  * provided that the collision only occurs in the ORIGINAL direction.
+- * The new entry will be added after the existing one in the hash list,
++ * The new entry will be added only in the non-clashing REPLY direction,
+  * so packets in the ORIGINAL direction will continue to match the existing
+  * entry.  The new entry will also have a fixed timeout so it expires --
+- * due to the collision, it will not see bidirectional traffic.
++ * due to the collision, it will only see reply traffic.
+  *
+  * Returns NF_DROP if the clash could not be resolved.
+  */
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index c64f23a8f373..89d99f6dfd0a 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -2516,7 +2516,9 @@ ctnetlink_ct_stat_cpu_fill_info(struct sk_buff *skb, u32 portid, u32 seq,
+ 	    nla_put_be32(skb, CTA_STATS_EARLY_DROP, htonl(st->early_drop)) ||
+ 	    nla_put_be32(skb, CTA_STATS_ERROR, htonl(st->error)) ||
+ 	    nla_put_be32(skb, CTA_STATS_SEARCH_RESTART,
+-				htonl(st->search_restart)))
++				htonl(st->search_restart)) ||
++	    nla_put_be32(skb, CTA_STATS_CLASH_RESOLVE,
++				htonl(st->clash_resolve)))
+ 		goto nla_put_failure;
+ 
+ 	nlmsg_end(skb, nlh);
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index b673a03624d2..0ff39740797d 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -435,7 +435,7 @@ static int ct_cpu_seq_show(struct seq_file *seq, void *v)
+ 	seq_printf(seq, "%08x  %08x %08x %08x %08x %08x %08x %08x "
+ 			"%08x %08x %08x %08x %08x  %08x %08x %08x %08x\n",
+ 		   nr_conntracks,
+-		   0,
++		   st->clash_resolve, /* was: searched */
+ 		   st->found,
+ 		   0,
+ 		   st->invalid,
 -- 
 2.20.1
 
