@@ -1,127 +1,75 @@
-Return-Path: <SRS0=572t=CR=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=paBM=CS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.9 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB575C43461
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Sep 2020 20:17:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43D73C433E2
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 03:08:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8E28720936
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Sep 2020 20:17:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13F60206F4
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 03:08:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729413AbgIHURU (ORCPT
+        id S1727935AbgIIDIQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Sep 2020 16:17:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46408 "EHLO
+        Tue, 8 Sep 2020 23:08:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45780 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729479AbgIHPKB (ORCPT
+        with ESMTP id S1726605AbgIIDIQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Sep 2020 11:10:01 -0400
-Received: from www62.your-server.de (www62.your-server.de [IPv6:2a01:4f8:d0a:276a::2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C23F0C0611E1;
-        Tue,  8 Sep 2020 06:33:35 -0700 (PDT)
-Received: from sslproxy02.your-server.de ([78.47.166.47])
-        by www62.your-server.de with esmtpsa (TLSv1.2:DHE-RSA-AES256-GCM-SHA384:256)
-        (Exim 4.89_1)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1kFd9t-0003Q5-MN; Tue, 08 Sep 2020 14:55:37 +0200
-Received: from [178.196.57.75] (helo=pc-9.home)
-        by sslproxy02.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1kFd9t-000LSc-Cs; Tue, 08 Sep 2020 14:55:37 +0200
-Subject: Re: [PATCH nf-next v3 3/3] netfilter: Introduce egress hook
-To:     Lukas Wunner <lukas@wunner.de>
-Cc:     John Fastabend <john.fastabend@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Thomas Graf <tgraf@suug.ch>, Laura Garcia <nevola@gmail.com>,
-        David Miller <davem@davemloft.net>
-References: <20200904162154.GA24295@wunner.de>
- <813edf35-6fcf-c569-aab7-4da654546d9d@iogearbox.net>
- <20200905052403.GA10306@wunner.de>
-From:   Daniel Borkmann <daniel@iogearbox.net>
-Message-ID: <e8aecc2b-80cb-8ee5-8efe-7ae5c4eafc70@iogearbox.net>
-Date:   Tue, 8 Sep 2020 14:55:36 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.2
-MIME-Version: 1.0
-In-Reply-To: <20200905052403.GA10306@wunner.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
+        Tue, 8 Sep 2020 23:08:16 -0400
+Received: from shards.monkeyblade.net (shards.monkeyblade.net [IPv6:2620:137:e000::1:9])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26A58C061573;
+        Tue,  8 Sep 2020 20:08:16 -0700 (PDT)
+Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id 9A8C111E3E4C3;
+        Tue,  8 Sep 2020 19:51:28 -0700 (PDT)
+Date:   Tue, 08 Sep 2020 20:08:14 -0700 (PDT)
+Message-Id: <20200908.200814.605061181268198897.davem@davemloft.net>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        kuba@kernel.org
+Subject: Re: [PATCH 0/5] Netfilter fixes for net
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20200908150947.12623-1-pablo@netfilter.org>
+References: <20200908150947.12623-1-pablo@netfilter.org>
+X-Mailer: Mew version 6.8 on Emacs 27.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-X-Authenticated-Sender: daniel@iogearbox.net
-X-Virus-Scanned: Clear (ClamAV 0.102.4/25923/Mon Sep  7 15:37:02 2020)
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [2620:137:e000::1:9]); Tue, 08 Sep 2020 19:51:28 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Lukas,
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Tue,  8 Sep 2020 17:09:42 +0200
 
-On 9/5/20 7:24 AM, Lukas Wunner wrote:
-> On Fri, Sep 04, 2020 at 11:14:37PM +0200, Daniel Borkmann wrote:
->> On 9/4/20 6:21 PM, Lukas Wunner wrote:
-[...]
->> The tc queueing layer which is below is not the tc egress hook; the
->> latter is for filtering/mangling/forwarding or helping the lower tc
->> queueing layer to classify.
+> The following patchset contains Netfilter fixes for net:
 > 
-> People want to apply netfilter rules on egress, so either we need an
-> egress hook in the xmit path or we'd have to teach tc to filter and
-> mangle based on netfilter rules.  The former seemed more straight-forward
-> to me but I'm happy to pursue other directions.
-
-I would strongly prefer something where nf integrates into existing tc hook,
-not only due to the hook reuse which would be better, but also to allow for a
-more flexible interaction between tc/BPF use cases and nf, to name one
-example... consider two different entities in the system setting up the two, that
-is, one adding rules for nf ingress/egress on the phys device for host fw and
-the other one for routing traffic into/from containers at the tc layer,
-then traffic going into host ns will hit nf ingress and on egress side the
-nf egress part; however, traffic going to containers via existing tc redirect
-will not see the nf ingress as expected but would on reverse path incorrectly
-hit the nf egress one which is /not/ the case for dev_queue_xmit() today. So
-there would need to be more flexible coordination between the two so these
-subsystems don't step on each other and the orchestration system can flexibly
-arrange those needs depending on the use case. Conceptually the tc/nf
-ingress/egress hook would be the same anyway in the sense that we have
-some sort of a list or array with callbacks performing actions on the skb,
-passing on, dropping or forwarding, so this should be consolidated where
-both can register into an array of callbacks as processing pipeline that
-can be atomically swapped at runtime, and then similar as with tc or LSMs
-allow to delegate or terminate the processing in a generic way.
-
-[...]
->> the case is rather if distros start adding DHCP
->> filtering rules by default there as per your main motivation then
->> everyone needs to pay this price, which is completely unreasonable
->> to perform in __dev_queue_xmit().
+> 1) Allow conntrack entries with l3num == NFPROTO_IPV4 or == NFPROTO_IPV6
+>    only via ctnetlink, from Will McVicker.
 > 
-> So first you're saying that the patches are unnecessary and everything
-> they do can be achieved with tc... and then you're saying distros are
-> going to use the nft hook to filter DHCP by default, which will cost
-> performance.  That seems contradictory.  Why aren't distros using tc
-> today to filter DHCP?
+> 2) Batch notifications to userspace to improve netlink socket receive
+>    utilization.
+> 
+> 3) Restore mark based dump filtering via ctnetlink, from Martin Willi.
+> 
+> 4) nf_conncount_init() fails with -EPROTO with CONFIG_IPV6, from
+>    Eelco Chaudron.
+> 
+> 5) Containers fail to match on meta skuid and skgid, use socket user_ns
+>    to retrieve meta skuid and skgid.
+> 
+> Please, pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-Again, I'm not sure why you ask me, you guys brought up lack of DHCP filtering
-as why this hook is needed. My gut feeling why it is not there today, because the
-use case was not strong enough to do it on nf or tc layer that anyone cared to fix
-it over the last few decades (!). And if you check a typical DHCP client that is
-present on major modern distros like systemd-networkd's DHCP client then they
-already implement filtering of malicious packets via BPF at socket layer including
-checking for cookies in the DHCP header that are set by the application itself to
-prevent spoofing [0].
-
-Thanks,
-Daniel
-
-   [0] https://github.com/systemd/systemd/blob/master/src/libsystemd-network/dhcp-network.c#L28
+Pulled, thanks Pablo.
