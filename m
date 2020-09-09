@@ -2,74 +2,163 @@ Return-Path: <SRS0=paBM=CS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43D73C433E2
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 03:08:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8008CC433E2
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 09:42:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 13F60206F4
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 03:08:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 57F8D21D7B
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Sep 2020 09:42:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727935AbgIIDIQ (ORCPT
+        id S1728970AbgIIJmc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Sep 2020 23:08:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45780 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726605AbgIIDIQ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Sep 2020 23:08:16 -0400
-Received: from shards.monkeyblade.net (shards.monkeyblade.net [IPv6:2620:137:e000::1:9])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26A58C061573;
-        Tue,  8 Sep 2020 20:08:16 -0700 (PDT)
-Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id 9A8C111E3E4C3;
-        Tue,  8 Sep 2020 19:51:28 -0700 (PDT)
-Date:   Tue, 08 Sep 2020 20:08:14 -0700 (PDT)
-Message-Id: <20200908.200814.605061181268198897.davem@davemloft.net>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        kuba@kernel.org
-Subject: Re: [PATCH 0/5] Netfilter fixes for net
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20200908150947.12623-1-pablo@netfilter.org>
-References: <20200908150947.12623-1-pablo@netfilter.org>
-X-Mailer: Mew version 6.8 on Emacs 27.1
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [2620:137:e000::1:9]); Tue, 08 Sep 2020 19:51:28 -0700 (PDT)
+        Wed, 9 Sep 2020 05:42:32 -0400
+Received: from correo.us.es ([193.147.175.20]:34794 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726060AbgIIJm2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 9 Sep 2020 05:42:28 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id CBD752EFEA7
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2020 11:42:25 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BB28ADA78A
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2020 11:42:25 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id AE57CDA78F; Wed,  9 Sep 2020 11:42:25 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6538DDA844;
+        Wed,  9 Sep 2020 11:42:23 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 09 Sep 2020 11:42:23 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id 37C7B4301DE1;
+        Wed,  9 Sep 2020 11:42:23 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org
+Subject: [PATCH 00/13] Netfilter updates for net-next
+Date:   Wed,  9 Sep 2020 11:42:06 +0200
+Message-Id: <20200909094219.17732-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue,  8 Sep 2020 17:09:42 +0200
+Hi,
 
-> The following patchset contains Netfilter fixes for net:
-> 
-> 1) Allow conntrack entries with l3num == NFPROTO_IPV4 or == NFPROTO_IPV6
->    only via ctnetlink, from Will McVicker.
-> 
-> 2) Batch notifications to userspace to improve netlink socket receive
->    utilization.
-> 
-> 3) Restore mark based dump filtering via ctnetlink, from Martin Willi.
-> 
-> 4) nf_conncount_init() fails with -EPROTO with CONFIG_IPV6, from
->    Eelco Chaudron.
-> 
-> 5) Containers fail to match on meta skuid and skgid, use socket user_ns
->    to retrieve meta skuid and skgid.
-> 
-> Please, pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+The following patchset contains Netfilter updates for net-next:
 
-Pulled, thanks Pablo.
+1) Rewrite inner header IPv6 in ICMPv6 messages in ip6t_NPT,
+   from Michael Zhou.
+
+2) do_ip_vs_set_ctl() dereferences uninitialized value,
+   from Peilin Ye.
+
+3) Support for userdata in tables, from Jose M. Guisado.
+
+4) Do not increment ct error and invalid stats at the same time,
+   from Florian Westphal.
+
+5) Remove ct ignore stats, also from Florian.
+
+6) Add ct stats for clash resolution, from Florian Westphal.
+
+7) Bump reference counter bump on ct clash resolution only,
+   this is safe because bucket lock is held, again from Florian.
+
+8) Use ip_is_fragment() in xt_HMARK, from YueHaibing.
+
+9) Add wildcard support for nft_socket, from Balazs Scheidler.
+
+10) Remove superfluous IPVS dependency on iptables, from
+    Yaroslav Bolyukin.
+
+11) Remove unused definition in ebt_stp, from Wang Hai.
+
+12) Replace CONFIG_NFT_CHAIN_NAT_{IPV4,IPV6} by CONFIG_NFT_NAT
+    in selftests/net, from Fabian Frederick.
+
+13) Add userdata support for nft_object, from Jose M. Guisado.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+Thank you.
+
+----------------------------------------------------------------
+
+The following changes since commit 0f091e43310f5c292b7094f9f115e651358e8053:
+
+  netlabel: remove unused param from audit_log_format() (2020-08-28 09:08:51 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
+
+for you to fetch changes up to b131c96496b369c7b14125e7c50e89ac7cec8051:
+
+  netfilter: nf_tables: add userdata support for nft_object (2020-09-08 16:35:38 +0200)
+
+----------------------------------------------------------------
+Balazs Scheidler (1):
+      netfilter: nft_socket: add wildcard support
+
+Fabian Frederick (1):
+      selftests/net: replace obsolete NFT_CHAIN configuration
+
+Florian Westphal (4):
+      netfilter: conntrack: do not increment two error counters at same time
+      netfilter: conntrack: remove ignore stats
+      netfilter: conntrack: add clash resolution stat counter
+      netfilter: conntrack: remove unneeded nf_ct_put
+
+Jose M. Guisado Gomez (2):
+      netfilter: nf_tables: add userdata attributes to nft_table
+      netfilter: nf_tables: add userdata support for nft_object
+
+Michael Zhou (1):
+      netfilter: ip6t_NPT: rewrite addresses in ICMPv6 original packet
+
+Peilin Ye (1):
+      ipvs: Fix uninit-value in do_ip_vs_set_ctl()
+
+Wang Hai (1):
+      netfilter: ebt_stp: Remove unused macro BPDU_TYPE_TCN
+
+Yaroslav Bolyukin (1):
+      ipvs: remove dependency on ip6_tables
+
+YueHaibing (1):
+      netfilter: xt_HMARK: Use ip_is_fragment() helper
+
+ include/linux/netfilter/nf_conntrack_common.h      |  2 +-
+ include/net/ip_vs.h                                |  3 --
+ include/net/netfilter/nf_tables.h                  |  4 ++
+ include/uapi/linux/netfilter/nf_tables.h           |  6 +++
+ include/uapi/linux/netfilter/nfnetlink_conntrack.h |  3 +-
+ net/bridge/netfilter/ebt_stp.c                     |  1 -
+ net/ipv6/netfilter/ip6t_NPT.c                      | 39 +++++++++++++++
+ net/netfilter/ipvs/Kconfig                         |  1 -
+ net/netfilter/ipvs/ip_vs_ctl.c                     |  7 +--
+ net/netfilter/nf_conntrack_core.c                  | 25 ++++------
+ net/netfilter/nf_conntrack_netlink.c               |  5 +-
+ net/netfilter/nf_conntrack_standalone.c            |  4 +-
+ net/netfilter/nf_tables_api.c                      | 57 ++++++++++++++++++----
+ net/netfilter/nft_socket.c                         | 27 ++++++++++
+ net/netfilter/xt_HMARK.c                           |  2 +-
+ tools/testing/selftests/net/config                 |  3 +-
+ 16 files changed, 148 insertions(+), 41 deletions(-)
