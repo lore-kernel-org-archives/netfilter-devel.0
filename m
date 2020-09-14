@@ -2,102 +2,164 @@ Return-Path: <SRS0=xYKs=CX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C23BC433E2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Sep 2020 10:46:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1BE7C433E2
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Sep 2020 11:35:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 37EB520829
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Sep 2020 10:46:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 91816208DB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Sep 2020 11:35:02 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="s2FNW8gU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726498AbgINKqa (ORCPT
+        id S1726023AbgINLez (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 14 Sep 2020 06:46:30 -0400
-Received: from correo.us.es ([193.147.175.20]:41338 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726500AbgINKqK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 14 Sep 2020 06:46:10 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 74B8FF258B
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Sep 2020 12:46:08 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 65444DA793
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Sep 2020 12:46:08 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 5AF56DA789; Mon, 14 Sep 2020 12:46:08 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 420BDDA789;
-        Mon, 14 Sep 2020 12:46:06 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 14 Sep 2020 12:46:06 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 2463A42EF9E1;
-        Mon, 14 Sep 2020 12:46:06 +0200 (CEST)
-Date:   Mon, 14 Sep 2020 12:46:05 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Gopal Yadav <gopunop@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] Solves Bug 1388 - Combining --terse with --json has no
- effect
-Message-ID: <20200914104605.GA1617@salvia>
-References: <CAAUOv8iVoKLZxx1xGVLj-=k4pSNyES5SWaaScx=17WV789Kw3Q@mail.gmail.com>
+        Mon, 14 Sep 2020 07:34:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38106 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726098AbgINLaG (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 14 Sep 2020 07:30:06 -0400
+Received: from mail-oo1-xc42.google.com (mail-oo1-xc42.google.com [IPv6:2607:f8b0:4864:20::c42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAFC5C06174A;
+        Mon, 14 Sep 2020 04:30:05 -0700 (PDT)
+Received: by mail-oo1-xc42.google.com with SMTP id b12so1143366oop.13;
+        Mon, 14 Sep 2020 04:30:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=IHo51WPtHcrSuIjkvqKEkR20E8SnHKbY5of3aXU8Wwg=;
+        b=s2FNW8gUo4Ok1ljCbNhs8UjPxIyqdTsEDolS/6nxpgW3Jt+jJYQhyFF4unJ6RuYA7p
+         sIqLHMmz2IQjn+difqr+CfIdnPy3KEAErlAqHb5dX3Odf8FmqiVcdcp9c9XsNEagh9wu
+         j3GssXAy4iHGvNSFuAMr+Z9vQWGUBPkQGxF3rVVaH0iOVMlGY4s5lr0XgujwpalmpHJg
+         qYTj8f7jQjfkj6XXFFyDMsLblhRGcdMATAAzcx1Pf7f/+bD6vw3kYHW4lYvYSAls59qv
+         iAKBzav1+Sgh92AuhuBWRkXfvoTdz2X7rddU2u4vQ+bwDUBoqJ2hfsu92LIN0K8nNgbE
+         C3dA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=IHo51WPtHcrSuIjkvqKEkR20E8SnHKbY5of3aXU8Wwg=;
+        b=MuRRh44u2tYwhduxfP4nEh0MfsaBCJEAIN9tB93U3rqY0OvwKGHzz6hkDVhtcQtifH
+         wGaYULhifzpsNNLxvh+fhOueq2l+vzXuT1bAKeRoNK3PXUuscXReHWz77Qb1B+zzfVqt
+         828ieVcUo5VTjBxpWlfL9VuhyIvcMh8asG4WliIRfXb5ej5rUvWMbOrG7nj1lZha+hza
+         RyP8O9sxCiolQQHmONqIFEWnU6TlowcudM2NsicwJzk/TmE3HBVPojKw6TFOzHvtKUd7
+         6REL7dzFjATlzz+tjAqtR0vHU/AHmEjPxpR18DKkN4p9rLijQ2A3OlEB6p5yg3WW2E5K
+         JhoA==
+X-Gm-Message-State: AOAM5321zpmzXnjpBosoUPDtPxiX//gWd07VOGEnGWFjyjBp/Q+2q7Ef
+        LTKyQ5G+uZCRWQklWIqAj60Of022rE6WcrcU0f0=
+X-Google-Smtp-Source: ABdhPJyfVIwFTkpMKyOVv+ePSakgff3nevRYR2pTEtP6/5/HT6YWsWTYNx0eRRXKOx0u+maWIdRXTqP9WsTqW4XBcFY=
+X-Received: by 2002:a4a:3e13:: with SMTP id t19mr9816013oot.49.1600083005286;
+ Mon, 14 Sep 2020 04:30:05 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <CAAUOv8iVoKLZxx1xGVLj-=k4pSNyES5SWaaScx=17WV789Kw3Q@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+References: <20200904162154.GA24295@wunner.de> <813edf35-6fcf-c569-aab7-4da654546d9d@iogearbox.net>
+ <20200905052403.GA10306@wunner.de> <e8aecc2b-80cb-8ee5-8efe-7ae5c4eafc70@iogearbox.net>
+ <CAF90-Whc3HL9x-7TJ7m3tZp10RNmQxFD=wdQUJLCaUajL2RqXg@mail.gmail.com> <8e991436-cb1c-1306-51ac-bb582bfaa8a7@iogearbox.net>
+In-Reply-To: <8e991436-cb1c-1306-51ac-bb582bfaa8a7@iogearbox.net>
+From:   =?UTF-8?Q?Laura_Garc=C3=ADa_Li=C3=A9bana?= <nevola@gmail.com>
+Date:   Mon, 14 Sep 2020 13:29:52 +0200
+Message-ID: <CAF90-Wh=wzjNtFWRv9bzn=-Dkg-Qc9G_cnyoq0jSypxQQgg3uA@mail.gmail.com>
+Subject: Re: [PATCH nf-next v3 3/3] netfilter: Introduce egress hook
+To:     Daniel Borkmann <daniel@iogearbox.net>
+Cc:     Lukas Wunner <lukas@wunner.de>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Netfilter Development Mailing list 
+        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Thomas Graf <tgraf@suug.ch>, David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Gopal,
+Hi Daniel,
 
-On Fri, Sep 11, 2020 at 11:04:57PM +0530, Gopal Yadav wrote:
-> Solves Bug 1388 - Combining --terse with --json has no effect
-> 
-> Signed-off-by: Gopal Yadav <gopunop@gmail.com>
-> ---
->  src/json.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/src/json.c b/src/json.c
-> index a9f5000f..702cf6eb 100644
-> --- a/src/json.c
-> +++ b/src/json.c
-> @@ -147,7 +147,8 @@ static json_t *set_print_json(struct output_ctx
-> *octx, const struct set *set)
->          list_for_each_entry(i, &set->init->expressions, list)
->              json_array_append_new(array, expr_print_json(i, octx));
-> 
-> -        json_object_set_new(root, "elem", array);
-> +        if (!(octx->flags & NFT_CTX_OUTPUT_TERSE))
-> +            json_object_set_new(root, "elem", array);
->      }
+On Fri, Sep 11, 2020 at 6:28 PM Daniel Borkmann <daniel@iogearbox.net> wrot=
+e:
+>
+> On 9/11/20 9:42 AM, Laura Garc=C3=ADa Li=C3=A9bana wrote:
+> > On Tue, Sep 8, 2020 at 2:55 PM Daniel Borkmann <daniel@iogearbox.net> w=
+rote:
+> >> On 9/5/20 7:24 AM, Lukas Wunner wrote:
+> >>> On Fri, Sep 04, 2020 at 11:14:37PM +0200, Daniel Borkmann wrote:
+> >>>> On 9/4/20 6:21 PM, Lukas Wunner wrote:
+> >> [...]
+> >>>> The tc queueing layer which is below is not the tc egress hook; the
+> >>>> latter is for filtering/mangling/forwarding or helping the lower tc
+> >>>> queueing layer to classify.
+> >>>
+> >>> People want to apply netfilter rules on egress, so either we need an
+> >>> egress hook in the xmit path or we'd have to teach tc to filter and
+> >>> mangle based on netfilter rules.  The former seemed more straight-for=
+ward
+> >>> to me but I'm happy to pursue other directions.
+> >>
+> >> I would strongly prefer something where nf integrates into existing tc=
+ hook,
+> >> not only due to the hook reuse which would be better, but also to allo=
+w for a
+> >> more flexible interaction between tc/BPF use cases and nf, to name one
+> >
+> > That sounds good but I'm afraid that it would take too much back and
+> > forth discussions. We'll really appreciate it if this small patch can
+> > be unblocked and then rethink the refactoring of ingress/egress hooks
+> > that you commented in another thread.
+>
+> I'm not sure whether your comment was serious or not, but nope, this need=
+s
+> to be addressed as mentioned as otherwise this use case would regress. It
 
-I suggest you update your patch and send a v2 using:
+This patch doesn't break anything. The tc redirect use case that you
+just commented on is the expected behavior and the same will happen
+with ingress. To be consistent, in the case that someone requires both
+hooks, another tc redirect would be needed in the egress path. If you
+mean to bypass the nf egress if tc redirect in ingress is used, that
+would lead in a huge security concern.
 
-        if (!nft_output_terse(octx) && set->init && set->init->size > 0) {
-                ...
+Please elaborate on where do you see a break in this patch.
 
-It would be also good if you can add a test. For instance, have a look at:
+> is one thing for you wanting to remove tc / BPF from your application sta=
+ck
+> as you call it, but not at the cost of breaking others.
+>
 
-        tests/shell/testcases/transactions/0049huge_0
+I'm not intended to remove tc / BPF from my application stack as I'm
+not using it and, as I explained in past emails, it can't be used for
+my use cases.
 
-which also adds a shell tests for json. You can just get back the
-listing in json and compare it. I suggest you use the
-testcases/listing/ folder to store this new test.
+In addition, let's review your NACK reasons:
 
-Please, also check you MUA, it seems it mangles your attachments.
+   This reverts the following commits:
 
-Thanks.
+     8537f78647c0 ("netfilter: Introduce egress hook")
+     5418d3881e1f ("netfilter: Generalize ingress hook")
+     b030f194aed2 ("netfilter: Rename ingress hook include file")
+
+   From the discussion in [0], the author's main motivation to add a hook
+   in fast path is for an out of tree kernel module, which is a red flag
+   to begin with. Other mentioned potential use cases like NAT{64,46}
+   is on future extensions w/o concrete code in the tree yet. Revert as
+   suggested [1] given the weak justification to add more hooks to critical
+   fast-path.
+
+     [0] https://lore.kernel.org/netdev/cover.1583927267.git.lukas@wunner.d=
+e/
+     [1] https://lore.kernel.org/netdev/20200318.011152.72770718915606186.d=
+avem@davemloft.net/
+
+
+It has been explained already that there are more use cases that
+require this hook in nf, not only for future developments or out of
+tree modules.
+
+Thank you!
