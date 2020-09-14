@@ -2,406 +2,164 @@ Return-Path: <SRS0=xYKs=CX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2514C43461
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Sep 2020 20:09:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D726C433E2
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Sep 2020 22:02:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9ED57208DB
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Sep 2020 20:09:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D27D9206F4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Sep 2020 22:02:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726019AbgINUJA (ORCPT
+        id S1726050AbgINWCS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 14 Sep 2020 16:09:00 -0400
-Received: from correo.us.es ([193.147.175.20]:55488 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726050AbgINUI4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 14 Sep 2020 16:08:56 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7121B4A7062
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Sep 2020 22:08:54 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5E7ACDA78B
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Sep 2020 22:08:54 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 53CD2DA78A; Mon, 14 Sep 2020 22:08:54 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D09EFDA78C
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Sep 2020 22:08:51 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 14 Sep 2020 22:08:51 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id BDED74301DE0
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Sep 2020 22:08:51 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/2] src: context tracking for multiple transport protocols
-Date:   Mon, 14 Sep 2020 22:08:46 +0200
-Message-Id: <20200914200846.31726-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200914200846.31726-1-pablo@netfilter.org>
-References: <20200914200846.31726-1-pablo@netfilter.org>
+        Mon, 14 Sep 2020 18:02:18 -0400
+Received: from www62.your-server.de ([213.133.104.62]:34602 "EHLO
+        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726009AbgINWCR (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 14 Sep 2020 18:02:17 -0400
+Received: from sslproxy02.your-server.de ([78.47.166.47])
+        by www62.your-server.de with esmtpsa (TLSv1.2:DHE-RSA-AES256-GCM-SHA384:256)
+        (Exim 4.89_1)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1kHwY0-0008F6-Ov; Tue, 15 Sep 2020 00:02:04 +0200
+Received: from [178.196.57.75] (helo=pc-9.home)
+        by sslproxy02.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1kHwY0-0009dt-G3; Tue, 15 Sep 2020 00:02:04 +0200
+Subject: Re: [PATCH nf-next v3 3/3] netfilter: Introduce egress hook
+To:     =?UTF-8?Q?Laura_Garc=c3=ada_Li=c3=a9bana?= <nevola@gmail.com>
+Cc:     Lukas Wunner <lukas@wunner.de>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Netfilter Development Mailing list 
+        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Thomas Graf <tgraf@suug.ch>, David Miller <davem@davemloft.net>
+References: <20200904162154.GA24295@wunner.de>
+ <813edf35-6fcf-c569-aab7-4da654546d9d@iogearbox.net>
+ <20200905052403.GA10306@wunner.de>
+ <e8aecc2b-80cb-8ee5-8efe-7ae5c4eafc70@iogearbox.net>
+ <CAF90-Whc3HL9x-7TJ7m3tZp10RNmQxFD=wdQUJLCaUajL2RqXg@mail.gmail.com>
+ <8e991436-cb1c-1306-51ac-bb582bfaa8a7@iogearbox.net>
+ <CAF90-Wh=wzjNtFWRv9bzn=-Dkg-Qc9G_cnyoq0jSypxQQgg3uA@mail.gmail.com>
+From:   Daniel Borkmann <daniel@iogearbox.net>
+Message-ID: <29b888f5-5e8e-73fe-18db-6c5dd57c6b4f@iogearbox.net>
+Date:   Tue, 15 Sep 2020 00:02:03 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
+In-Reply-To: <CAF90-Wh=wzjNtFWRv9bzn=-Dkg-Qc9G_cnyoq0jSypxQQgg3uA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-Authenticated-Sender: daniel@iogearbox.net
+X-Virus-Scanned: Clear (ClamAV 0.102.4/25929/Sun Sep 13 15:53:46 2020)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch extends the protocol context infrastructure to track multiple
-transport protocols when they are specified from sets.
+On 9/14/20 1:29 PM, Laura García Liébana wrote:
+> On Fri, Sep 11, 2020 at 6:28 PM Daniel Borkmann <daniel@iogearbox.net> wrote:
+>> On 9/11/20 9:42 AM, Laura García Liébana wrote:
+>>> On Tue, Sep 8, 2020 at 2:55 PM Daniel Borkmann <daniel@iogearbox.net> wrote:
+>>>> On 9/5/20 7:24 AM, Lukas Wunner wrote:
+>>>>> On Fri, Sep 04, 2020 at 11:14:37PM +0200, Daniel Borkmann wrote:
+>>>>>> On 9/4/20 6:21 PM, Lukas Wunner wrote:
+>>>> [...]
+>>>>>> The tc queueing layer which is below is not the tc egress hook; the
+>>>>>> latter is for filtering/mangling/forwarding or helping the lower tc
+>>>>>> queueing layer to classify.
+>>>>>
+>>>>> People want to apply netfilter rules on egress, so either we need an
+>>>>> egress hook in the xmit path or we'd have to teach tc to filter and
+>>>>> mangle based on netfilter rules.  The former seemed more straight-forward
+>>>>> to me but I'm happy to pursue other directions.
+>>>>
+>>>> I would strongly prefer something where nf integrates into existing tc hook,
+>>>> not only due to the hook reuse which would be better, but also to allow for a
+>>>> more flexible interaction between tc/BPF use cases and nf, to name one
+>>>
+>>> That sounds good but I'm afraid that it would take too much back and
+>>> forth discussions. We'll really appreciate it if this small patch can
+>>> be unblocked and then rethink the refactoring of ingress/egress hooks
+>>> that you commented in another thread.
+>>
+>> I'm not sure whether your comment was serious or not, but nope, this needs
+>> to be addressed as mentioned as otherwise this use case would regress. It
+> 
+> This patch doesn't break anything. The tc redirect use case that you
+> just commented on is the expected behavior and the same will happen
+> with ingress. To be consistent, in the case that someone requires both
+> hooks, another tc redirect would be needed in the egress path. If you
+> mean to bypass the nf egress if tc redirect in ingress is used, that
+> would lead in a huge security concern.
 
-This removes errors like:
+I'm not sure I parse what you're saying above ... today it is possible and
+perfectly fine to e.g. redirect to a host-facing veth from tc ingress which
+then goes into container. Only traffic that goes up the host stack is seen
+by nf ingress hook in that case. Likewise, reply traffic can be redirected
+from host-facing veth to phys dev for xmit w/o any netfilter interference.
+This means netfilter in host ns really only sees traffic to/from host as
+intended. This is fine today, however, if 3rd party entities (e.g. distro
+side) start pushing down rules on the two nf hooks, then these use cases will
+break on the egress one due to this asymmetric layering violation. Hence my
+ask that this needs to be configurable from a control plane perspective so
+that both use cases can live next to each other w/o breakage. Most trivial
+one I can think of is (aside from the fact to refactor the hooks and improve
+their performance) a flag e.g. for skb that can be set from tc/BPF layer to
+bypass the nf hooks. Basically a flexible opt-in so that existing use-cases
+can be retained w/o breakage. This is one option with what I meant in my
+earlier mail.
 
- "transport protocol mapping is only valid after transport protocol match"
+>> is one thing for you wanting to remove tc / BPF from your application stack
+>> as you call it, but not at the cost of breaking others.
+> 
+> I'm not intended to remove tc / BPF from my application stack as I'm
+> not using it and, as I explained in past emails, it can't be used for
+> my use cases.
+> 
+> In addition, let's review your NACK reasons:
+> 
+>     This reverts the following commits:
+> 
+>       8537f78647c0 ("netfilter: Introduce egress hook")
+>       5418d3881e1f ("netfilter: Generalize ingress hook")
+>       b030f194aed2 ("netfilter: Rename ingress hook include file")
+> 
+>     From the discussion in [0], the author's main motivation to add a hook
+>     in fast path is for an out of tree kernel module, which is a red flag
+>     to begin with. Other mentioned potential use cases like NAT{64,46}
+>     is on future extensions w/o concrete code in the tree yet. Revert as
+>     suggested [1] given the weak justification to add more hooks to critical
+>     fast-path.
+> 
+>       [0] https://lore.kernel.org/netdev/cover.1583927267.git.lukas@wunner.de/
+>       [1] https://lore.kernel.org/netdev/20200318.011152.72770718915606186.davem@davemloft.net/
+> 
+> It has been explained already that there are more use cases that
+> require this hook in nf, not only for future developments or out of
+> tree modules.
 
-when invoking:
+Sure, aside from the two mentioned cases above, we scratched DHCP a little
+bit on the surface but it was found that i) you need a af_packet specific
+hook to get there instead, and ii) dhcp clients implement their own filtering
+internally to check for bogus messages. What is confusing to me is whether
+this is just brought up as an example or whether you actually care to solve
+it (.. but then why would you do that in fast-path to penalize every other
+traffic as well just for this type of slow-path filtering instead of doing
+in af_packet only). Similarly, why not add this along with /actual/ nat64
+code with /concrete/ explanation of why it cannot be performed in post-routing?
+Either way, whatever your actual/real use-case, the above must be addressed
+one way or another.
 
- # nft add rule x z meta l4proto { tcp, udp } dnat to 1.1.1.1:80
-
-This patch also catches conflicts like:
-
- # nft add rule x z ip protocol { tcp, udp } tcp dport 20 dnat to 1.1.1.1:80
- Error: conflicting protocols specified: udp vs. tcp
- add rule x z ip protocol { tcp, udp } tcp dport 20 dnat to 1.1.1.1:80
-                                       ^^^^^^^^^
-and:
-
- # nft add rule x z meta l4proto { tcp, udp } tcp dport 20 dnat to 1.1.1.1:80
- Error: conflicting protocols specified: udp vs. tcp
- add rule x z meta l4proto { tcp, udp } tcp dport 20 dnat to 1.1.1.1:80
-                                        ^^^^^^^^^
-Note that:
-
-- the singleton protocol context tracker is left in place until the
-  existing users are updated to use this new multiprotocol tracker.
-  Moving forward, it would be good to consolidate things around this new
-  multiprotocol context tracker infrastructure.
-
-- link and network layers are not updated to use this infrastructure
-  yet. The code that deals with vlan conflicts relies on forcing
-  protocol context updates to the singleton protocol base.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/expression.h |  4 +++-
- include/proto.h      | 11 +++++++++
- src/ct.c             |  8 ++++---
- src/evaluate.c       | 14 +++++++++--
- src/expression.c     | 16 ++++++++++---
- src/meta.c           | 13 +++++-----
- src/payload.c        |  7 +++---
- src/proto.c          | 57 ++++++++++++++++++++++++++++++++++++++++++++
- 8 files changed, 112 insertions(+), 18 deletions(-)
-
-diff --git a/include/expression.h b/include/expression.h
-index 130912a89e04..b039882cf1d1 100644
---- a/include/expression.h
-+++ b/include/expression.h
-@@ -167,7 +167,9 @@ struct expr_ops {
- 	bool			(*cmp)(const struct expr *e1,
- 				       const struct expr *e2);
- 	void			(*pctx_update)(struct proto_ctx *ctx,
--					       const struct expr *expr);
-+					       const struct location *loc,
-+					       const struct expr *left,
-+					       const struct expr *right);
- 	int			(*build_udata)(struct nftnl_udata_buf *udbuf,
- 					       const struct expr *expr);
- 	struct expr *		(*parse_udata)(const struct nftnl_udata *ud);
-diff --git a/include/proto.h b/include/proto.h
-index 1771ba8e8d8c..304b048e4e60 100644
---- a/include/proto.h
-+++ b/include/proto.h
-@@ -152,6 +152,8 @@ struct dev_proto_desc {
- extern int proto_dev_type(const struct proto_desc *desc, uint16_t *res);
- extern const struct proto_desc *proto_dev_desc(uint16_t type);
- 
-+#define PROTO_CTX_NUM_PROTOS	16
-+
- /**
-  * struct proto_ctx - protocol context
-  *
-@@ -172,6 +174,11 @@ struct proto_ctx {
- 		struct location			location;
- 		const struct proto_desc		*desc;
- 		unsigned int			offset;
-+		struct {
-+			struct location		location;
-+			const struct proto_desc	*desc;
-+		} protos[PROTO_CTX_NUM_PROTOS];
-+		unsigned int			num_protos;
- 	} protocol[PROTO_BASE_MAX + 1];
- };
- 
-@@ -180,6 +187,10 @@ extern void proto_ctx_init(struct proto_ctx *ctx, unsigned int family,
- extern void proto_ctx_update(struct proto_ctx *ctx, enum proto_bases base,
- 			     const struct location *loc,
- 			     const struct proto_desc *desc);
-+bool proto_ctx_is_ambiguous(struct proto_ctx *ctx, enum proto_bases bases);
-+const struct proto_desc *proto_ctx_find_conflict(struct proto_ctx *ctx,
-+						 enum proto_bases base,
-+						 const struct proto_desc *desc);
- extern const struct proto_desc *proto_find_upper(const struct proto_desc *base,
- 						 unsigned int num);
- extern int proto_find_num(const struct proto_desc *base,
-diff --git a/src/ct.c b/src/ct.c
-index 0842c838b913..2218ecc7a684 100644
---- a/src/ct.c
-+++ b/src/ct.c
-@@ -351,9 +351,11 @@ static void ct_expr_clone(struct expr *new, const struct expr *expr)
- 	new->ct = expr->ct;
- }
- 
--static void ct_expr_pctx_update(struct proto_ctx *ctx, const struct expr *expr)
-+static void ct_expr_pctx_update(struct proto_ctx *ctx,
-+				const struct location *loc,
-+				const struct expr *left,
-+				const struct expr *right)
- {
--	const struct expr *left = expr->left, *right = expr->right;
- 	const struct proto_desc *base = NULL, *desc;
- 	uint32_t nhproto;
- 
-@@ -366,7 +368,7 @@ static void ct_expr_pctx_update(struct proto_ctx *ctx, const struct expr *expr)
- 	if (!desc)
- 		return;
- 
--	proto_ctx_update(ctx, left->ct.base + 1, &expr->location, desc);
-+	proto_ctx_update(ctx, left->ct.base + 1, loc, desc);
- }
- 
- #define NFTNL_UDATA_CT_KEY 0
-diff --git a/src/evaluate.c b/src/evaluate.c
-index e3fe70624699..c8045e5ded72 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -710,6 +710,17 @@ static int __expr_evaluate_payload(struct eval_ctx *ctx, struct expr *expr)
- 		return 0;
- 	}
- 
-+	if (payload->payload.base == desc->base &&
-+	    proto_ctx_is_ambiguous(&ctx->pctx, base)) {
-+		desc = proto_ctx_find_conflict(&ctx->pctx, base, payload->payload.desc);
-+		assert(desc);
-+
-+		return expr_error(ctx->msgs, payload,
-+				  "conflicting protocols specified: %s vs. %s",
-+				  desc->name,
-+				  payload->payload.desc->name);
-+	}
-+
- 	/* No conflict: Same payload protocol as context, adjust offset
- 	 * if needed.
- 	 */
-@@ -1874,8 +1885,7 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
- 		 * Update protocol context for payload and meta iiftype
- 		 * equality expressions.
- 		 */
--		if (expr_is_singleton(right))
--			relational_expr_pctx_update(&ctx->pctx, rel);
-+		relational_expr_pctx_update(&ctx->pctx, rel);
- 
- 		/* fall through */
- 	case OP_NEQ:
-diff --git a/src/expression.c b/src/expression.c
-index fe529f98de7b..87bd4d01bb72 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -708,16 +708,26 @@ struct expr *relational_expr_alloc(const struct location *loc, enum ops op,
- void relational_expr_pctx_update(struct proto_ctx *ctx,
- 				 const struct expr *expr)
- {
--	const struct expr *left = expr->left;
-+	const struct expr *left = expr->left, *right = expr->right;
- 	const struct expr_ops *ops;
-+	const struct expr *i;
- 
- 	assert(expr->etype == EXPR_RELATIONAL);
- 	assert(expr->op == OP_EQ || expr->op == OP_IMPLICIT);
- 
- 	ops = expr_ops(left);
- 	if (ops->pctx_update &&
--	    (left->flags & EXPR_F_PROTOCOL))
--		ops->pctx_update(ctx, expr);
-+	    (left->flags & EXPR_F_PROTOCOL)) {
-+		if (expr_is_singleton(right))
-+			ops->pctx_update(ctx, &expr->location, left, right);
-+		else if (right->etype == EXPR_SET) {
-+			list_for_each_entry(i, &right->expressions, list) {
-+				if (i->etype == EXPR_SET_ELEM &&
-+				    i->key->etype == EXPR_VALUE)
-+					ops->pctx_update(ctx, &expr->location, left, i->key);
-+			}
-+		}
-+	}
- }
- 
- static void range_expr_print(const struct expr *expr, struct output_ctx *octx)
-diff --git a/src/meta.c b/src/meta.c
-index d92d0d323b9b..73d58b1f53b5 100644
---- a/src/meta.c
-+++ b/src/meta.c
-@@ -753,10 +753,11 @@ static void meta_expr_clone(struct expr *new, const struct expr *expr)
-  * Update LL protocol context based on IIFTYPE meta match in non-LL hooks.
-  */
- static void meta_expr_pctx_update(struct proto_ctx *ctx,
--				  const struct expr *expr)
-+				  const struct location *loc,
-+				  const struct expr *left,
-+				  const struct expr *right)
- {
- 	const struct hook_proto_desc *h = &hook_proto_desc[ctx->family];
--	const struct expr *left = expr->left, *right = expr->right;
- 	const struct proto_desc *desc;
- 	uint8_t protonum;
- 
-@@ -771,7 +772,7 @@ static void meta_expr_pctx_update(struct proto_ctx *ctx,
- 		if (desc == NULL)
- 			desc = &proto_unknown;
- 
--		proto_ctx_update(ctx, PROTO_BASE_LL_HDR, &expr->location, desc);
-+		proto_ctx_update(ctx, PROTO_BASE_LL_HDR, loc, desc);
- 		break;
- 	case NFT_META_NFPROTO:
- 		protonum = mpz_get_uint8(right->value);
-@@ -784,7 +785,7 @@ static void meta_expr_pctx_update(struct proto_ctx *ctx,
- 				desc = h->desc;
- 		}
- 
--		proto_ctx_update(ctx, PROTO_BASE_NETWORK_HDR, &expr->location, desc);
-+		proto_ctx_update(ctx, PROTO_BASE_NETWORK_HDR, loc, desc);
- 		break;
- 	case NFT_META_L4PROTO:
- 		desc = proto_find_upper(&proto_inet_service,
-@@ -792,7 +793,7 @@ static void meta_expr_pctx_update(struct proto_ctx *ctx,
- 		if (desc == NULL)
- 			desc = &proto_unknown;
- 
--		proto_ctx_update(ctx, PROTO_BASE_TRANSPORT_HDR, &expr->location, desc);
-+		proto_ctx_update(ctx, PROTO_BASE_TRANSPORT_HDR, loc, desc);
- 		break;
- 	case NFT_META_PROTOCOL:
- 		if (h->base != PROTO_BASE_LL_HDR)
-@@ -806,7 +807,7 @@ static void meta_expr_pctx_update(struct proto_ctx *ctx,
- 		if (desc == NULL)
- 			desc = &proto_unknown;
- 
--		proto_ctx_update(ctx, PROTO_BASE_NETWORK_HDR, &expr->location, desc);
-+		proto_ctx_update(ctx, PROTO_BASE_NETWORK_HDR, loc, desc);
- 		break;
- 	default:
- 		break;
-diff --git a/src/payload.c b/src/payload.c
-index 29242537237e..ca422d5bcd56 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -80,9 +80,10 @@ static void payload_expr_clone(struct expr *new, const struct expr *expr)
-  * Update protocol context for relational payload expressions.
-  */
- static void payload_expr_pctx_update(struct proto_ctx *ctx,
--				     const struct expr *expr)
-+				     const struct location *loc,
-+				     const struct expr *left,
-+				     const struct expr *right)
- {
--	const struct expr *left = expr->left, *right = expr->right;
- 	const struct proto_desc *base, *desc;
- 	unsigned int proto = 0;
- 
-@@ -102,7 +103,7 @@ static void payload_expr_pctx_update(struct proto_ctx *ctx,
- 		assert(base->length > 0);
- 		ctx->protocol[base->base].offset += base->length;
- 	}
--	proto_ctx_update(ctx, desc->base, &expr->location, desc);
-+	proto_ctx_update(ctx, desc->base, loc, desc);
- }
- 
- #define NFTNL_UDATA_SET_KEY_PAYLOAD_DESC 0
-diff --git a/src/proto.c b/src/proto.c
-index 7d001501d7d2..7de2bbf91ae4 100644
---- a/src/proto.c
-+++ b/src/proto.c
-@@ -193,12 +193,69 @@ void proto_ctx_update(struct proto_ctx *ctx, enum proto_bases base,
- 		      const struct location *loc,
- 		      const struct proto_desc *desc)
- {
-+	bool found = false;
-+	unsigned int i;
-+
-+	switch (base) {
-+	case PROTO_BASE_LL_HDR:
-+	case PROTO_BASE_NETWORK_HDR:
-+		break;
-+	case PROTO_BASE_TRANSPORT_HDR:
-+		if (ctx->protocol[base].num_protos >= PROTO_CTX_NUM_PROTOS)
-+			break;
-+
-+		for (i = 0; i < ctx->protocol[base].num_protos; i++) {
-+			if (ctx->protocol[base].protos[i].desc == desc) {
-+				found = true;
-+				break;
-+			}
-+		}
-+		if (!found) {
-+			i = ctx->protocol[base].num_protos++;
-+			ctx->protocol[base].protos[i].desc = desc;
-+			ctx->protocol[base].protos[i].location = *loc;
-+		}
-+		break;
-+	default:
-+		BUG("unknown protocol base %d", base);
-+	}
-+
- 	ctx->protocol[base].location	= *loc;
- 	ctx->protocol[base].desc	= desc;
- 
- 	proto_ctx_debug(ctx, base, ctx->debug_mask);
- }
- 
-+bool proto_ctx_is_ambiguous(struct proto_ctx *ctx, enum proto_bases base)
-+{
-+	return ctx->protocol[base].num_protos > 1;
-+}
-+
-+const struct proto_desc *proto_ctx_find_conflict(struct proto_ctx *ctx,
-+						 enum proto_bases base,
-+						 const struct proto_desc *desc)
-+{
-+	unsigned int i;
-+
-+	switch (base) {
-+	case PROTO_BASE_LL_HDR:
-+	case PROTO_BASE_NETWORK_HDR:
-+		if (desc != ctx->protocol[base].desc)
-+			return ctx->protocol[base].desc;
-+		break;
-+	case PROTO_BASE_TRANSPORT_HDR:
-+		for (i = 0; i < ctx->protocol[base].num_protos; i++) {
-+			if (desc != ctx->protocol[base].protos[i].desc)
-+				return ctx->protocol[base].protos[i].desc;
-+		}
-+		break;
-+	default:
-+		BUG("unknown protocol base %d", base);
-+	}
-+
-+	return NULL;
-+}
-+
- #define HDR_TEMPLATE(__name, __dtype, __type, __member)			\
- 	PROTO_HDR_TEMPLATE(__name, __dtype,				\
- 			   BYTEORDER_BIG_ENDIAN,			\
--- 
-2.20.1
-
+Thanks,
+Daniel
