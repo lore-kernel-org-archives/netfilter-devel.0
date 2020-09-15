@@ -2,85 +2,101 @@ Return-Path: <SRS0=y7Ah=CY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F91DC433E2
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Sep 2020 02:14:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63F95C433E2
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Sep 2020 09:07:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8000520678
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Sep 2020 02:14:54 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=yandex.ru header.i=@yandex.ru header.b="hOXdmUk2"
+	by mail.kernel.org (Postfix) with ESMTP id 330D82076C
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Sep 2020 09:07:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726035AbgIOCOy (ORCPT
+        id S1726447AbgIOJGn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 14 Sep 2020 22:14:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33986 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726019AbgIOCOu (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 14 Sep 2020 22:14:50 -0400
-X-Greylist: delayed 356 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 14 Sep 2020 19:14:49 PDT
-Received: from forward105j.mail.yandex.net (forward105j.mail.yandex.net [IPv6:2a02:6b8:0:801:2::108])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA5DDC06174A
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Sep 2020 19:14:49 -0700 (PDT)
-Received: from forward103q.mail.yandex.net (forward103q.mail.yandex.net [IPv6:2a02:6b8:c0e:50:0:640:b21c:d009])
-        by forward105j.mail.yandex.net (Yandex) with ESMTP id 811EEB20C4A
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Sep 2020 05:08:43 +0300 (MSK)
-Received: from mxback6q.mail.yandex.net (mxback6q.mail.yandex.net [IPv6:2a02:6b8:c0e:42:0:640:9de5:975f])
-        by forward103q.mail.yandex.net (Yandex) with ESMTP id 77CDA61E0005
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Sep 2020 05:08:43 +0300 (MSK)
-Received: from vla3-b0c95643f530.qloud-c.yandex.net (vla3-b0c95643f530.qloud-c.yandex.net [2a02:6b8:c15:341d:0:640:b0c9:5643])
-        by mxback6q.mail.yandex.net (mxback/Yandex) with ESMTP id 8rm7QJl11a-8h2mPhwF;
-        Tue, 15 Sep 2020 05:08:43 +0300
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yandex.ru; s=mail; t=1600135723;
-        bh=trinj5Ci42LOmAJI7eMtKVPL9Ote7lla+hamvDNXUCg=;
-        h=Subject:To:From:Message-Id:Cc:Date;
-        b=hOXdmUk2BSvZUisRZ33u3grq4DUuDwBc/BqRZcqTvAH4wQfFQKIRxkGEPmeczv2Bl
-         WyNB20Ga9gdU/wKx+dkMgH72nVyZ9m9vnAJoiDtGfOoIAFHa8eObehiGu8O5/AsDty
-         YTi44rXxUY9QKR07gup89Mb+Ps5RbVziK2RURatI=
-Authentication-Results: mxback6q.mail.yandex.net; dkim=pass header.i=@yandex.ru
-Received: by vla3-b0c95643f530.qloud-c.yandex.net (smtp/Yandex) with ESMTPSA id CExPGOtIGs-8gm0SYMJ;
-        Tue, 15 Sep 2020 05:08:42 +0300
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
-        (Client certificate not present)
-From:   igo95862 <igo95862@yandex.ru>
-To:     netfilter-devel@vger.kernel.org
-Cc:     igo95862 <igo95862@yandex.ru>
-Subject: [PATCH libmnl] doxygen: Fixed link to the git source tree on the website.
-Date:   Mon, 14 Sep 2020 19:08:26 -0700
-Message-Id: <20200915020826.67909-1-igo95862@yandex.ru>
-X-Mailer: git-send-email 2.28.0
+        Tue, 15 Sep 2020 05:06:43 -0400
+Received: from mga03.intel.com ([134.134.136.65]:35019 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726269AbgIOJGe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 15 Sep 2020 05:06:34 -0400
+IronPort-SDR: RZD/fFWTjvWyaYIJCtNMDzEdl4brC47SlQmB8DC403Dr6vIA5u/jFu0AFJj/JoHYnbKKWwa4bw
+ iw1Jurkpfvfw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9744"; a="159272034"
+X-IronPort-AV: E=Sophos;i="5.76,429,1592895600"; 
+   d="scan'208";a="159272034"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Sep 2020 02:06:31 -0700
+IronPort-SDR: JN6muYTQqB3wm3kCXqk1xsORqKL94poqyPOQLwwV9SSOFBG1M/RLedvNq9ruyR1KSefDfAWvPJ
+ brvH/uTc728w==
+X-IronPort-AV: E=Sophos;i="5.76,429,1592895600"; 
+   d="scan'208";a="482690707"
+Received: from emoriart-mobl.ger.corp.intel.com (HELO localhost) ([10.252.7.208])
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Sep 2020 02:06:16 -0700
+From:   Jani Nikula <jani.nikula@linux.intel.com>
+To:     Joe Perches <joe@perches.com>, LKML <linux-kernel@vger.kernel.org>,
+        Jiri Kosina <trivial@kernel.org>
+Cc:     linux-wireless@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        oss-drivers@netronome.com, nouveau@lists.freedesktop.org,
+        alsa-devel <alsa-devel@alsa-project.org>,
+        dri-devel@lists.freedesktop.org, linux-ide@vger.kernel.org,
+        dm-devel@redhat.com, linux-mtd@lists.infradead.org,
+        linux-i2c@vger.kernel.org, sparclinux@vger.kernel.org,
+        kvmarm@lists.cs.columbia.edu, linux-rtc@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org,
+        dccp@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-atm-general@lists.sourceforge.net,
+        linux-afs@lists.infradead.org, coreteam@netfilter.org,
+        intel-wired-lan@lists.osuosl.org, linux-serial@vger.kernel.org,
+        linux-input@vger.kernel.org, linux-mmc@vger.kernel.org,
+        Kees Cook <kees.cook@canonical.com>,
+        linux-media@vger.kernel.org, linux-pm@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-sctp@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, linux-nvme@lists.infradead.org,
+        storagedev@microchip.com, ceph-devel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-nfs@vger.kernel.org,
+        linux-parisc@vger.kernel.org, netdev@vger.kernel.org,
+        linux-usb@vger.kernel.org,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        linux-mips@vger.kernel.org, iommu@lists.linux-foundation.org,
+        netfilter-devel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        bpf@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+Subject: Re: [Intel-gfx] [trivial PATCH] treewide: Convert switch/case fallthrough; to break;
+In-Reply-To: <e6387578c75736d61b2fe70d9783d91329a97eb4.camel@perches.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+References: <e6387578c75736d61b2fe70d9783d91329a97eb4.camel@perches.com>
+Date:   Tue, 15 Sep 2020 12:06:21 +0300
+Message-ID: <87d02nxvci.fsf@intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Old link no longer worked.
-Also upgraded it to https.
----
- src/socket.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Wed, 09 Sep 2020, Joe Perches <joe@perches.com> wrote:
+> diff --git a/drivers/gpu/drm/i915/display/intel_sprite.c b/drivers/gpu/drm/i915/display/intel_sprite.c
+> index 5ac0dbf0e03d..35ac539cc2b1 100644
+> --- a/drivers/gpu/drm/i915/display/intel_sprite.c
+> +++ b/drivers/gpu/drm/i915/display/intel_sprite.c
+> @@ -2861,7 +2861,7 @@ static bool gen12_plane_format_mod_supported(struct drm_plane *_plane,
+>  	case I915_FORMAT_MOD_Y_TILED_GEN12_MC_CCS:
+>  		if (!gen12_plane_supports_mc_ccs(dev_priv, plane->id))
+>  			return false;
+> -		fallthrough;
+> +		break;
+>  	case DRM_FORMAT_MOD_LINEAR:
+>  	case I915_FORMAT_MOD_X_TILED:
+>  	case I915_FORMAT_MOD_Y_TILED:
 
-diff --git a/src/socket.c b/src/socket.c
-index d7c67a8..dbfb06c 100644
---- a/src/socket.c
-+++ b/src/socket.c
-@@ -59,7 +59,7 @@
-  *
-  * \section scm Git Tree
-  * The current development version of libmnl can be accessed at:
-- * http://git.netfilter.org/cgi-bin/gitweb.cgi?p=libmnl.git;a=summary
-+ * https://git.netfilter.org/libmnl/
-  *
-  * \section using Using libmnl
-  * You can access several example files under examples/ in the libmnl source
+Acked-by: Jani Nikula <jani.nikula@intel.com>
+
+for merging via whichever tree seems best.
+
+BR,
+Jani.
+
+
 -- 
-2.28.0
-
+Jani Nikula, Intel Open Source Graphics Center
