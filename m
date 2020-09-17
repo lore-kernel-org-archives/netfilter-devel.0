@@ -1,83 +1,140 @@
-Return-Path: <SRS0=QZFf=CZ=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=29NK=C2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 259A2C43461
-	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Sep 2020 20:42:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E2C5C433E2
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Sep 2020 08:13:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB0EE20770
-	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Sep 2020 20:42:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D8C0621D90
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Sep 2020 08:13:12 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="Xm9muXpL"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726987AbgIPUkx (ORCPT
+        id S1726399AbgIQINM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 16 Sep 2020 16:40:53 -0400
-Received: from correo.us.es ([193.147.175.20]:49082 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726756AbgIPREz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Sep 2020 13:04:55 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CDE54508CE0
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Sep 2020 16:44:50 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BD4C5DA78D
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Sep 2020 16:44:50 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B2244DA72F; Wed, 16 Sep 2020 16:44:50 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9D14CDA722;
-        Wed, 16 Sep 2020 16:44:48 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 16 Sep 2020 16:44:48 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 8142842EFB81;
-        Wed, 16 Sep 2020 16:44:48 +0200 (CEST)
-Date:   Wed, 16 Sep 2020 16:44:48 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Gopal Yadav <gopunop@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] Solves Bug 1388 - Combining --terse with --json has no
- effect
-Message-ID: <20200916144448.GA13562@salvia>
-References: <CAAUOv8iVoKLZxx1xGVLj-=k4pSNyES5SWaaScx=17WV789Kw3Q@mail.gmail.com>
- <20200914104605.GA1617@salvia>
- <CAAUOv8i_1fx1OJFKtFAsU7Haq10qQisNqQhEGF75_+22_1A4pQ@mail.gmail.com>
+        Thu, 17 Sep 2020 04:13:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56876 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726442AbgIQING (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 17 Sep 2020 04:13:06 -0400
+Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BBB1C0611C3
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2020 01:03:41 -0700 (PDT)
+Received: by mail-wm1-x342.google.com with SMTP id s13so1013989wmh.4
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2020 01:03:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=netronome-com.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=TUShtxADeMIRUv08jDyFnIdO2h4AVdi1g89uLOtrWXw=;
+        b=Xm9muXpLMfdw+3JTaQ5+6nxJDSneO0K8th2wgQ0VLh2VI2BmK+XWoQ9cDtIn8+KaRJ
+         B45Xbntr5JjNU8mF7nIZd8VP+CTHviEtF1Um5VazOhr6GEQCgh9bbRNIM6C+XWioNjmk
+         ImuOo8Gi8eD0FtSQ7hHZ1yPAo82BLFHJwGGg0UxKCYs0oMSSpMWIe45dJUN+DzUELaKQ
+         JzvvcS8KVPQMZJTfgm/lLBewbBl9UGKGHM3XV6hYGQwunOqgCSfJKO8sQaLl1M6X9BRD
+         K+XM2hJttDJQqNZl5Xftk9yd2fnhmTZR2ol6vfSH0itoQkT2+o/FcX7saxpuLl0f47l5
+         EzpA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=TUShtxADeMIRUv08jDyFnIdO2h4AVdi1g89uLOtrWXw=;
+        b=YowQMsFR58mDa2SFWCoH6RVxfMS86CcSSHtAyVNWcqgQNSomkCTa59E9ipSZnNysUv
+         gMOp70odpd6RUrQUTZZxLmC6VBx9BvBsJfW4ki3kXCpvXkwl6Jm/f/G3dJSmvWazViss
+         CVKJOTr/K/nsI3j0Aae1cxWfg73bsI1atR66Q2xUG7jp/nOeg6G1PB3Y/oAOEAwAM0i0
+         bg0oILM0QoY/XH6lRxRrWeW8n9Bk8oUectZhoiSCP/B6gGCCj66a7lwZmjigl7k2GTq8
+         p9hCk1iAU+wO3FHXv5Ll5u7NLZfPOUpM4ynF00xNJNTOY1Vqbxx38XnPQido51INrrj3
+         ObYg==
+X-Gm-Message-State: AOAM530aoRzvd+eYzO9VmkX2X7N8uVHWAt+/ENLFjZjP/En7IxGA2k+0
+        NhhGZucxOKPs8BSrOIRkyyxp+yqf/8S6m/t1
+X-Google-Smtp-Source: ABdhPJzTwzfeJOnCQh65prZummqH9JR09Yxja+zvv2OTSAZpPcom4k7xuvXSyH3Yv50qn/8+2aIWyQ==
+X-Received: by 2002:a1c:e256:: with SMTP id z83mr8793930wmg.33.1600329817598;
+        Thu, 17 Sep 2020 01:03:37 -0700 (PDT)
+Received: from netronome.com ([2001:982:756:703:d63d:7eff:fe99:ac9d])
+        by smtp.gmail.com with ESMTPSA id a13sm9836030wme.26.2020.09.17.01.03.36
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 17 Sep 2020 01:03:36 -0700 (PDT)
+Date:   Thu, 17 Sep 2020 10:03:35 +0200
+From:   Simon Horman <simon.horman@netronome.com>
+To:     Joe Perches <joe@perches.com>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Jiri Kosina <trivial@kernel.org>,
+        Kees Cook <kees.cook@canonical.com>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu,
+        linux-mips@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-crypto@vger.kernel.org, linux-ide@vger.kernel.org,
+        linux-atm-general@lists.sourceforge.net, netdev@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        nouveau@lists.freedesktop.org, linux-input@vger.kernel.org,
+        linux-i2c@vger.kernel.org, linux-rdma@vger.kernel.org,
+        iommu@lists.linux-foundation.org, dm-devel@redhat.com,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, intel-wired-lan@lists.osuosl.org,
+        oss-drivers@netronome.com, linux-usb@vger.kernel.org,
+        linux-wireless@vger.kernel.org, linux-mediatek@lists.infradead.org,
+        linux-nvme@lists.infradead.org, linux-pm@vger.kernel.org,
+        linux-rtc@vger.kernel.org, linux-scsi@vger.kernel.org,
+        storagedev@microchip.com, sparclinux@vger.kernel.org,
+        linux-serial@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-parisc@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux-afs@lists.infradead.org, ceph-devel@vger.kernel.org,
+        linux-nfs@vger.kernel.org, bpf@vger.kernel.org,
+        dccp@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-sctp@vger.kernel.org,
+        alsa-devel <alsa-devel@alsa-project.org>
+Subject: Re: [oss-drivers] [trivial PATCH] treewide: Convert switch/case
+ fallthrough; to break;
+Message-ID: <20200917080334.GB5769@netronome.com>
+References: <e6387578c75736d61b2fe70d9783d91329a97eb4.camel@perches.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAAUOv8i_1fx1OJFKtFAsU7Haq10qQisNqQhEGF75_+22_1A4pQ@mail.gmail.com>
+In-Reply-To: <e6387578c75736d61b2fe70d9783d91329a97eb4.camel@perches.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
-Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 16, 2020 at 07:07:40PM +0530, Gopal Yadav wrote:
-> On Mon, Sep 14, 2020 at 4:16 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+On Wed, Sep 09, 2020 at 01:06:39PM -0700, Joe Perches wrote:
+> fallthrough to a separate case/default label break; isn't very readable.
 > 
-> > It would be also good if you can add a test. For instance, have a look at:
-> >
-> >         tests/shell/testcases/transactions/0049huge_0
-> >
-> > which also adds a shell tests for json. You can just get back the
-> > listing in json and compare it. I suggest you use the
-> > testcases/listing/ folder to store this new test.
+> Convert pseudo-keyword fallthrough; statements to a simple break; when
+> the next label is case or default and the only statement in the next
+> label block is break;
 > 
-> Do you mean get back the terse json listing with "nft -j -t list
-> ruleset" and compare it with "nft -j list ruleset" and check if they
-> are different. And also check if attribute "elem" is present or
-> something else?
+> Found using:
+> 
+> $ grep-2.5.4 -rP --include=*.[ch] -n "fallthrough;(\s*(case\s+\w+|default)\s*:\s*){1,7}break;" *
+> 
+> Miscellanea:
+> 
+> o Move or coalesce a couple label blocks above a default: block.
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
 
-I think you can add a set with elements, then run "nft -j -t list
-ruleset" and check that the elements are not present in the json
-output, keep it simple.
+...
+
+> diff --git a/drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000_pcie.c b/drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000_pcie.c
+> index 252fe06f58aa..1d5b87079104 100644
+> --- a/drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000_pcie.c
+> +++ b/drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000_pcie.c
+> @@ -345,7 +345,7 @@ static int matching_bar(struct nfp_bar *bar, u32 tgt, u32 act, u32 tok,
+>  		baract = NFP_CPP_ACTION_RW;
+>  		if (act == 0)
+>  			act = NFP_CPP_ACTION_RW;
+> -		fallthrough;
+> +		break;
+>  	case NFP_PCIE_BAR_PCIE2CPP_MapType_FIXED:
+>  		break;
+>  	default:
+
+This is a cascading fall-through handling all map types.
+I don't think this change improves readability.
+
+...
