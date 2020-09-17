@@ -2,139 +2,248 @@ Return-Path: <SRS0=29NK=C2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E2C5C433E2
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Sep 2020 08:13:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A621C433E2
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Sep 2020 10:28:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D8C0621D90
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Sep 2020 08:13:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E55FE2083B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Sep 2020 10:28:38 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="Xm9muXpL"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RqHuaOdm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726399AbgIQINM (ORCPT
+        id S1726559AbgIQK23 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 17 Sep 2020 04:13:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56876 "EHLO
+        Thu, 17 Sep 2020 06:28:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726442AbgIQING (ORCPT
+        with ESMTP id S1726545AbgIQK22 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 17 Sep 2020 04:13:06 -0400
-Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BBB1C0611C3
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2020 01:03:41 -0700 (PDT)
-Received: by mail-wm1-x342.google.com with SMTP id s13so1013989wmh.4
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2020 01:03:41 -0700 (PDT)
+        Thu, 17 Sep 2020 06:28:28 -0400
+Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com [IPv6:2607:f8b0:4864:20::244])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02F4AC06174A;
+        Thu, 17 Sep 2020 03:28:28 -0700 (PDT)
+Received: by mail-oi1-x244.google.com with SMTP id a3so1900615oib.4;
+        Thu, 17 Sep 2020 03:28:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=netronome-com.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=TUShtxADeMIRUv08jDyFnIdO2h4AVdi1g89uLOtrWXw=;
-        b=Xm9muXpLMfdw+3JTaQ5+6nxJDSneO0K8th2wgQ0VLh2VI2BmK+XWoQ9cDtIn8+KaRJ
-         B45Xbntr5JjNU8mF7nIZd8VP+CTHviEtF1Um5VazOhr6GEQCgh9bbRNIM6C+XWioNjmk
-         ImuOo8Gi8eD0FtSQ7hHZ1yPAo82BLFHJwGGg0UxKCYs0oMSSpMWIe45dJUN+DzUELaKQ
-         JzvvcS8KVPQMZJTfgm/lLBewbBl9UGKGHM3XV6hYGQwunOqgCSfJKO8sQaLl1M6X9BRD
-         K+XM2hJttDJQqNZl5Xftk9yd2fnhmTZR2ol6vfSH0itoQkT2+o/FcX7saxpuLl0f47l5
-         EzpA==
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=ptYB+2YxqjfJpTc3PmxXkmZ15dGcdrLu7QLIcznhvc4=;
+        b=RqHuaOdmpyOf+j9RiBUhsHFL8EkySKMFlmQy3YU7YXH3bMuPllku3LmyW5HjmL+OIA
+         VFbXGQIyaNlrdI5nZ8VHuE5IkYbrMOGwdEKMCj9tH0+lWqmQ50l+5q9oV+giaoxmOGIl
+         3moc1ZIjx32DLhRi7H2B8mrnhYODksHe6U0Shn12kjDImEBVvcA/MHLFFYaOpBwbNmZ+
+         dlwpQgKusncXCnHNIz8F3a6fyZF1T4DNUPDC5pWloe4qfd5Y8bXkxPnXrUbXndpT2yy4
+         2OVtWTcWFe1Cnzj3KQFIUa7DBOj1xskZpssewN1GMf2sxYjfEywV6Qzx+IeAvP/24Po1
+         H+7A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=TUShtxADeMIRUv08jDyFnIdO2h4AVdi1g89uLOtrWXw=;
-        b=YowQMsFR58mDa2SFWCoH6RVxfMS86CcSSHtAyVNWcqgQNSomkCTa59E9ipSZnNysUv
-         gMOp70odpd6RUrQUTZZxLmC6VBx9BvBsJfW4ki3kXCpvXkwl6Jm/f/G3dJSmvWazViss
-         CVKJOTr/K/nsI3j0Aae1cxWfg73bsI1atR66Q2xUG7jp/nOeg6G1PB3Y/oAOEAwAM0i0
-         bg0oILM0QoY/XH6lRxRrWeW8n9Bk8oUectZhoiSCP/B6gGCCj66a7lwZmjigl7k2GTq8
-         p9hCk1iAU+wO3FHXv5Ll5u7NLZfPOUpM4ynF00xNJNTOY1Vqbxx38XnPQido51INrrj3
-         ObYg==
-X-Gm-Message-State: AOAM530aoRzvd+eYzO9VmkX2X7N8uVHWAt+/ENLFjZjP/En7IxGA2k+0
-        NhhGZucxOKPs8BSrOIRkyyxp+yqf/8S6m/t1
-X-Google-Smtp-Source: ABdhPJzTwzfeJOnCQh65prZummqH9JR09Yxja+zvv2OTSAZpPcom4k7xuvXSyH3Yv50qn/8+2aIWyQ==
-X-Received: by 2002:a1c:e256:: with SMTP id z83mr8793930wmg.33.1600329817598;
-        Thu, 17 Sep 2020 01:03:37 -0700 (PDT)
-Received: from netronome.com ([2001:982:756:703:d63d:7eff:fe99:ac9d])
-        by smtp.gmail.com with ESMTPSA id a13sm9836030wme.26.2020.09.17.01.03.36
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Sep 2020 01:03:36 -0700 (PDT)
-Date:   Thu, 17 Sep 2020 10:03:35 +0200
-From:   Simon Horman <simon.horman@netronome.com>
-To:     Joe Perches <joe@perches.com>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Jiri Kosina <trivial@kernel.org>,
-        Kees Cook <kees.cook@canonical.com>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu,
-        linux-mips@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-ide@vger.kernel.org,
-        linux-atm-general@lists.sourceforge.net, netdev@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        nouveau@lists.freedesktop.org, linux-input@vger.kernel.org,
-        linux-i2c@vger.kernel.org, linux-rdma@vger.kernel.org,
-        iommu@lists.linux-foundation.org, dm-devel@redhat.com,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, intel-wired-lan@lists.osuosl.org,
-        oss-drivers@netronome.com, linux-usb@vger.kernel.org,
-        linux-wireless@vger.kernel.org, linux-mediatek@lists.infradead.org,
-        linux-nvme@lists.infradead.org, linux-pm@vger.kernel.org,
-        linux-rtc@vger.kernel.org, linux-scsi@vger.kernel.org,
-        storagedev@microchip.com, sparclinux@vger.kernel.org,
-        linux-serial@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-parisc@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        linux-afs@lists.infradead.org, ceph-devel@vger.kernel.org,
-        linux-nfs@vger.kernel.org, bpf@vger.kernel.org,
-        dccp@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-sctp@vger.kernel.org,
-        alsa-devel <alsa-devel@alsa-project.org>
-Subject: Re: [oss-drivers] [trivial PATCH] treewide: Convert switch/case
- fallthrough; to break;
-Message-ID: <20200917080334.GB5769@netronome.com>
-References: <e6387578c75736d61b2fe70d9783d91329a97eb4.camel@perches.com>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=ptYB+2YxqjfJpTc3PmxXkmZ15dGcdrLu7QLIcznhvc4=;
+        b=GVwGlZB/Ag1oxg1eG/DWpKKtBWGI87BlloQtOpMzIMzsK4V/gmscb6y3B4wEbLFvdx
+         hE1q3iaogdl+FPJUXpUqcWNsK9y/i1qqlWuY0TPEick9NRJTerQM5WZCRsCAiowgFy1Q
+         klonq7I8LIc3PrFcDvhSaZKQNI/lB0RBCqg6tFOXBkNgn3skLD5DArUqzpzk343wseoU
+         u5mdE4ts6MInshIJbiIjjAcHesjCqv+/MbErQcDZy2AKtdEa1eP0yRRuj+jEO1B0BZF+
+         RJxYzaynlmSJToq/L8LzrPIe/Ss75snWhlqjXg5E+9MwHpSJIGI/M47DGMxR0iRvkqSu
+         nmeQ==
+X-Gm-Message-State: AOAM532i8p6QxKTtT7EOPleBbbgdSgSSoPBCs6WZ6xFEwFDxHLuwFM33
+        omditxs2hHwyNLeL1vFv7TAPt7aZni0KWVzhnPs=
+X-Google-Smtp-Source: ABdhPJwkotvJGKJOFQiCEnpUsBRdm7f5L3y8uf9Rsa+YFS30Sm6tTvTfN4Wq9LIWloL4Rgwtkzkk+9kEOHeibWMtm6A=
+X-Received: by 2002:aca:da8b:: with SMTP id r133mr5803110oig.163.1600338507323;
+ Thu, 17 Sep 2020 03:28:27 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <e6387578c75736d61b2fe70d9783d91329a97eb4.camel@perches.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+References: <20200904162154.GA24295@wunner.de> <813edf35-6fcf-c569-aab7-4da654546d9d@iogearbox.net>
+ <20200905052403.GA10306@wunner.de> <e8aecc2b-80cb-8ee5-8efe-7ae5c4eafc70@iogearbox.net>
+ <CAF90-Whc3HL9x-7TJ7m3tZp10RNmQxFD=wdQUJLCaUajL2RqXg@mail.gmail.com>
+ <8e991436-cb1c-1306-51ac-bb582bfaa8a7@iogearbox.net> <CAF90-Wh=wzjNtFWRv9bzn=-Dkg-Qc9G_cnyoq0jSypxQQgg3uA@mail.gmail.com>
+ <29b888f5-5e8e-73fe-18db-6c5dd57c6b4f@iogearbox.net>
+In-Reply-To: <29b888f5-5e8e-73fe-18db-6c5dd57c6b4f@iogearbox.net>
+From:   =?UTF-8?Q?Laura_Garc=C3=ADa_Li=C3=A9bana?= <nevola@gmail.com>
+Date:   Thu, 17 Sep 2020 12:28:15 +0200
+Message-ID: <CAF90-Wiof1aut-KoA=uA-T=UGmUpQvZx_ckwY7KnBbYB8Y3+PA@mail.gmail.com>
+Subject: Re: [PATCH nf-next v3 3/3] netfilter: Introduce egress hook
+To:     Daniel Borkmann <daniel@iogearbox.net>
+Cc:     Lukas Wunner <lukas@wunner.de>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Netfilter Development Mailing list 
+        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Thomas Graf <tgraf@suug.ch>, David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 09, 2020 at 01:06:39PM -0700, Joe Perches wrote:
-> fallthrough to a separate case/default label break; isn't very readable.
-> 
-> Convert pseudo-keyword fallthrough; statements to a simple break; when
-> the next label is case or default and the only statement in the next
-> label block is break;
-> 
-> Found using:
-> 
-> $ grep-2.5.4 -rP --include=*.[ch] -n "fallthrough;(\s*(case\s+\w+|default)\s*:\s*){1,7}break;" *
-> 
-> Miscellanea:
-> 
-> o Move or coalesce a couple label blocks above a default: block.
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
+Hi Daniel,
 
-...
+On Tue, Sep 15, 2020 at 12:02 AM Daniel Borkmann <daniel@iogearbox.net> wro=
+te:
+>
+> On 9/14/20 1:29 PM, Laura Garc=C3=ADa Li=C3=A9bana wrote:
+> > On Fri, Sep 11, 2020 at 6:28 PM Daniel Borkmann <daniel@iogearbox.net> =
+wrote:
+> >> On 9/11/20 9:42 AM, Laura Garc=C3=ADa Li=C3=A9bana wrote:
+> >>> On Tue, Sep 8, 2020 at 2:55 PM Daniel Borkmann <daniel@iogearbox.net>=
+ wrote:
+> >>>> On 9/5/20 7:24 AM, Lukas Wunner wrote:
+> >>>>> On Fri, Sep 04, 2020 at 11:14:37PM +0200, Daniel Borkmann wrote:
+> >>>>>> On 9/4/20 6:21 PM, Lukas Wunner wrote:
+> >>>> [...]
+> >>>>>> The tc queueing layer which is below is not the tc egress hook; th=
+e
+> >>>>>> latter is for filtering/mangling/forwarding or helping the lower t=
+c
+> >>>>>> queueing layer to classify.
+> >>>>>
+> >>>>> People want to apply netfilter rules on egress, so either we need a=
+n
+> >>>>> egress hook in the xmit path or we'd have to teach tc to filter and
+> >>>>> mangle based on netfilter rules.  The former seemed more straight-f=
+orward
+> >>>>> to me but I'm happy to pursue other directions.
+> >>>>
+> >>>> I would strongly prefer something where nf integrates into existing =
+tc hook,
+> >>>> not only due to the hook reuse which would be better, but also to al=
+low for a
+> >>>> more flexible interaction between tc/BPF use cases and nf, to name o=
+ne
+> >>>
+> >>> That sounds good but I'm afraid that it would take too much back and
+> >>> forth discussions. We'll really appreciate it if this small patch can
+> >>> be unblocked and then rethink the refactoring of ingress/egress hooks
+> >>> that you commented in another thread.
+> >>
+> >> I'm not sure whether your comment was serious or not, but nope, this n=
+eeds
+> >> to be addressed as mentioned as otherwise this use case would regress.=
+ It
+> >
+> > This patch doesn't break anything. The tc redirect use case that you
+> > just commented on is the expected behavior and the same will happen
+> > with ingress. To be consistent, in the case that someone requires both
+> > hooks, another tc redirect would be needed in the egress path. If you
+> > mean to bypass the nf egress if tc redirect in ingress is used, that
+> > would lead in a huge security concern.
+>
+> I'm not sure I parse what you're saying above ... today it is possible an=
+d
+> perfectly fine to e.g. redirect to a host-facing veth from tc ingress whi=
+ch
+> then goes into container. Only traffic that goes up the host stack is see=
+n
+> by nf ingress hook in that case. Likewise, reply traffic can be redirecte=
+d
+> from host-facing veth to phys dev for xmit w/o any netfilter interference=
+.
+> This means netfilter in host ns really only sees traffic to/from host as
+> intended. This is fine today, however, if 3rd party entities (e.g. distro
+> side) start pushing down rules on the two nf hooks, then these use cases =
+will
+> break on the egress one due to this asymmetric layering violation. Hence =
+my
+> ask that this needs to be configurable from a control plane perspective s=
+o
+> that both use cases can live next to each other w/o breakage. Most trivia=
+l
 
-> diff --git a/drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000_pcie.c b/drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000_pcie.c
-> index 252fe06f58aa..1d5b87079104 100644
-> --- a/drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000_pcie.c
-> +++ b/drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000_pcie.c
-> @@ -345,7 +345,7 @@ static int matching_bar(struct nfp_bar *bar, u32 tgt, u32 act, u32 tok,
->  		baract = NFP_CPP_ACTION_RW;
->  		if (act == 0)
->  			act = NFP_CPP_ACTION_RW;
-> -		fallthrough;
-> +		break;
->  	case NFP_PCIE_BAR_PCIE2CPP_MapType_FIXED:
->  		break;
->  	default:
+Why does it should be symmetric? Fast-paths create "asymmetric
+layering" continuously, see: packet hit XDP to user space bypassing
+ingress, but in the response will hit egress. So the "breakage" is
+already there.
 
-This is a cascading fall-through handling all map types.
-I don't think this change improves readability.
+Also, we're here to create mechanisms not policies that distros have to fol=
+low.
 
-...
+> one I can think of is (aside from the fact to refactor the hooks and impr=
+ove
+> their performance) a flag e.g. for skb that can be set from tc/BPF layer =
+to
+> bypass the nf hooks. Basically a flexible opt-in so that existing use-cas=
+es
+> can be retained w/o breakage. This is one option with what I meant in my
+> earlier mail.
+
+No comment.
+
+>
+> >> is one thing for you wanting to remove tc / BPF from your application =
+stack
+> >> as you call it, but not at the cost of breaking others.
+> >
+> > I'm not intended to remove tc / BPF from my application stack as I'm
+> > not using it and, as I explained in past emails, it can't be used for
+> > my use cases.
+> >
+> > In addition, let's review your NACK reasons:
+> >
+> >     This reverts the following commits:
+> >
+> >       8537f78647c0 ("netfilter: Introduce egress hook")
+> >       5418d3881e1f ("netfilter: Generalize ingress hook")
+> >       b030f194aed2 ("netfilter: Rename ingress hook include file")
+> >
+> >     From the discussion in [0], the author's main motivation to add a h=
+ook
+> >     in fast path is for an out of tree kernel module, which is a red fl=
+ag
+> >     to begin with. Other mentioned potential use cases like NAT{64,46}
+> >     is on future extensions w/o concrete code in the tree yet. Revert a=
+s
+> >     suggested [1] given the weak justification to add more hooks to cri=
+tical
+> >     fast-path.
+> >
+> >       [0] https://lore.kernel.org/netdev/cover.1583927267.git.lukas@wun=
+ner.de/
+> >       [1] https://lore.kernel.org/netdev/20200318.011152.72770718915606=
+186.davem@davemloft.net/
+> >
+> > It has been explained already that there are more use cases that
+> > require this hook in nf, not only for future developments or out of
+> > tree modules.
+>
+> Sure, aside from the two mentioned cases above, we scratched DHCP a littl=
+e
+> bit on the surface but it was found that i) you need a af_packet specific
+> hook to get there instead, and ii) dhcp clients implement their own filte=
+ring
+> internally to check for bogus messages. What is confusing to me is whethe=
+r
+> this is just brought up as an example or whether you actually care to sol=
+ve
+
+I need a af_packet filter in nf egress but never said it was related
+to DHCP. It is more related to clustering.
+
+> it (.. but then why would you do that in fast-path to penalize every othe=
+r
+> traffic as well just for this type of slow-path filtering instead of doin=
+g
+
+With nft if the hook is not registered it is not going to be used at
+all, so the penalty will never happen to any traffic.
+
+> in af_packet only). Similarly, why not add this along with /actual/ nat64
+> code with /concrete/ explanation of why it cannot be performed in post-ro=
+uting?
+> Either way, whatever your actual/real use-case, the above must be address=
+ed
+> one way or another.
+>
+
+Pablo already explained why it should be done in egress [0].
+
+Thank you for your time!
+
+
+[0] https://marc.info/?l=3Dlinux-netdev&m=3D158449203321811&w=3D2
