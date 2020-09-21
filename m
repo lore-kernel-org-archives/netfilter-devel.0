@@ -2,139 +2,151 @@ Return-Path: <SRS0=tgdo=C6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94D5BC43463
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Sep 2020 10:02:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94BF1C43468
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Sep 2020 13:35:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 668B821D7A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Sep 2020 10:02:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 55B86206A4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Sep 2020 13:35:51 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="UagbDtkp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726582AbgIUKCq (ORCPT
+        id S1726584AbgIUNfv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Sep 2020 06:02:46 -0400
-Received: from mail-io1-f80.google.com ([209.85.166.80]:40784 "EHLO
-        mail-io1-f80.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726406AbgIUKCW (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Sep 2020 06:02:22 -0400
-Received: by mail-io1-f80.google.com with SMTP id f8so9488341iow.7
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2020 03:02:21 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=8At/pGVVkTvpu/mp8Xc1NUUCOQaO1LHGiWdU5OkrovU=;
-        b=esIyP6M8JdVUapl2vREmfVbWd7vBXwIBMczmV8zi9pTe/S9gOoJT1DHjEOj/mtNXa6
-         FqlhzfrgZmU2NlUG/fKR0iJeltacuxxz89rrkjrktXiAIN2F4sBoX/ftG5klqHjlXr71
-         KNwCiHReyImzT9IgeUpDCMSD5aHd/VEHm3S0oZdcesihErq5SSUMaGx6ACIC4DCB27NM
-         n/FmJOvQPKWNGAR7/qQC0FrIpoQnGQtkwdN0DpmsHLmOSLYNNZqUioF4NdDkTloa1JtR
-         vbEZUAi543Hco7E0Csy0TjFiH6mYPzzywfuVmf3EWNcylB5O36uCkyG/UAwmVTAD7z6Z
-         byKA==
-X-Gm-Message-State: AOAM530aVThj5BVEU4vjVtaNBqJLpJMpjIfkgkTqqMpOi5uVFiGb/Uiw
-        etCOsFgiIVALxfIMX2Rd7y2kGuOiFUHhLhTiB7hqC70BsFJx
-X-Google-Smtp-Source: ABdhPJxPUybSAP4Njtc33THXv/FIAL+YAdszuiOczoJOLnIlLdsyLDL4g4fKHLTRtNpCNgn4E9o9Ol9mX2203FoqPwF5SL6quLgc
+        Mon, 21 Sep 2020 09:35:51 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:40556 "EHLO mx1.riseup.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726641AbgIUNfu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 21 Sep 2020 09:35:50 -0400
+Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "Sectigo RSA Domain Validation Secure Server CA" (not verified))
+        by mx1.riseup.net (Postfix) with ESMTPS id 4Bw4z54rYfzFdwP;
+        Mon, 21 Sep 2020 06:29:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1600694945; bh=8rn7kDAAijHk3O8tDcXEWY7DP7elCS9PE1/nTiho9Ag=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=UagbDtkpQGF9epx6m7fVVtQ2EllKHXM6Z7uEh8l8C2bQG2c2nFVUBxDIJ0AG2fj6Q
+         ulyHQcDOWxYUydKh06rEVvBmejh4hEjDJS/EEdajlrZ+HPbwK8h6L2309ED4sHIj8g
+         IkWKxr5FGdHBoRoJ39m/C7gVjKKk6f8WDGEcVXBc=
+X-Riseup-User-ID: 7BF4991D0C40CD34D39359B3F88545BF375379A8CF01C36C85C2F48812E3E130
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by bell.riseup.net (Postfix) with ESMTPSA id 4Bw4z46TK1zJnD0;
+        Mon, 21 Sep 2020 06:29:04 -0700 (PDT)
+From:   "Jose M. Guisado Gomez" <guigom@riseup.net>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next 1/3] netfilter: nf_tables: add userdata attributes to nft_chain
+Date:   Mon, 21 Sep 2020 15:28:21 +0200
+Message-Id: <20200921132822.55231-2-guigom@riseup.net>
+In-Reply-To: <20200921132822.55231-1-guigom@riseup.net>
+References: <20200921132822.55231-1-guigom@riseup.net>
 MIME-Version: 1.0
-X-Received: by 2002:a92:d07:: with SMTP id 7mr39101806iln.243.1600682541373;
- Mon, 21 Sep 2020 03:02:21 -0700 (PDT)
-Date:   Mon, 21 Sep 2020 03:02:21 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <00000000000046e0e905afcff205@google.com>
-Subject: KASAN: vmalloc-out-of-bounds Read in bpf_trace_run2
-From:   syzbot <syzbot+845923d2172947529b58@syzkaller.appspotmail.com>
-To:     andriin@fb.com, ast@kernel.org, bpf@vger.kernel.org,
-        coreteam@netfilter.org, daniel@iogearbox.net, davem@davemloft.net,
-        hawk@kernel.org, john.fastabend@gmail.com, kaber@trash.net,
-        kadlec@blackhole.kfki.hu, kafai@fb.com, kpsingh@chromium.org,
-        kuba@kernel.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com, mingo@redhat.com, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        rostedt@goodmis.org, songliubraving@fb.com,
-        syzkaller-bugs@googlegroups.com, yhs@fb.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+Enables storing userdata for nft_chain. Field udata points to user data
+and udlen stores its length.
 
-syzbot found the following issue on:
+Adds new attribute flag NFTA_CHAIN_USERDATA.
 
-HEAD commit:    70b97111 bpf: Use hlist_add_head_rcu when linking to local..
-git tree:       bpf-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=15c624ad900000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=7e0ca96a9b6ee858
-dashboard link: https://syzkaller.appspot.com/bug?extid=845923d2172947529b58
-compiler:       gcc (GCC) 10.1.0-syz 20200507
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=10193f3b900000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=168c729b900000
-
-The issue was bisected to:
-
-commit 0a93dc1c18fd86f936bcb44f72dc044c0ea826a8
-Author: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Date:   Wed Oct 12 11:11:16 2016 +0000
-
-    [media] dvb-core: don't break long lines
-
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=170e18d3900000
-final oops:     https://syzkaller.appspot.com/x/report.txt?x=148e18d3900000
-console output: https://syzkaller.appspot.com/x/log.txt?x=108e18d3900000
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+845923d2172947529b58@syzkaller.appspotmail.com
-Fixes: 0a93dc1c18fd ("[media] dvb-core: don't break long lines")
-
-==================================================================
-BUG: KASAN: vmalloc-out-of-bounds in __bpf_trace_run kernel/trace/bpf_trace.c:1937 [inline]
-BUG: KASAN: vmalloc-out-of-bounds in bpf_trace_run2+0x397/0x3d0 kernel/trace/bpf_trace.c:1974
-Read of size 8 at addr ffffc90000e76030 by task syz-executor514/6838
-
-CPU: 0 PID: 6838 Comm: syz-executor514 Not tainted 5.9.0-rc1-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-Call Trace:
- __dump_stack lib/dump_stack.c:77 [inline]
- dump_stack+0x18f/0x20d lib/dump_stack.c:118
- print_address_description.constprop.0.cold+0x5/0x497 mm/kasan/report.c:383
- __kasan_report mm/kasan/report.c:513 [inline]
- kasan_report.cold+0x1f/0x37 mm/kasan/report.c:530
- __bpf_trace_run kernel/trace/bpf_trace.c:1937 [inline]
- bpf_trace_run2+0x397/0x3d0 kernel/trace/bpf_trace.c:1974
- trace_sys_enter include/trace/events/syscalls.h:18 [inline]
- syscall_trace_enter kernel/entry/common.c:64 [inline]
- syscall_enter_from_user_mode+0x22c/0x290 kernel/entry/common.c:82
- do_syscall_64+0xf/0x70 arch/x86/entry/common.c:41
- entry_SYSCALL_64_after_hwframe+0x44/0xa9
-RIP: 0033:0x4441ba
-Code: 25 18 00 00 00 00 74 01 f0 48 0f b1 3d ef f9 28 00 48 39 c2 75 da f3 c3 0f 1f 84 00 00 00 00 00 48 63 ff b8 e4 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 06 f3 c3 0f 1f 40 00 48 c7 c2 d0 ff ff ff f7
-RSP: 002b:00007ffeec2fd9d8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e4
-RAX: ffffffffffffffda RBX: 0000000000001ac2 RCX: 00000000004441ba
-RDX: 0000000000000000 RSI: 00007ffeec2fd9e0 RDI: 0000000000000001
-RBP: 000000000000e4f7 R08: 0000000000001ab6 R09: 00000000022b5880
-R10: 0000000000000000 R11: 0000000000000246 R12: 00000000004022d0
-R13: 0000000000402360 R14: 0000000000000000 R15: 0000000000000000
-
-
-Memory state around the buggy address:
- ffffc90000e75f00: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
- ffffc90000e75f80: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
->ffffc90000e76000: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
-                                     ^
- ffffc90000e76080: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
- ffffc90000e76100: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
-==================================================================
-
-
+Signed-off-by: Jose M. Guisado Gomez <guigom@riseup.net>
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+ include/net/netfilter/nf_tables.h        |  2 ++
+ include/uapi/linux/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nf_tables_api.c            | 19 +++++++++++++++++++
+ 3 files changed, 23 insertions(+)
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
-syzbot can test patches for this issue, for details see:
-https://goo.gl/tpsmEJ#testing-patches
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 8ceca0e419b3..4686fafbfd8a 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -952,6 +952,8 @@ struct nft_chain {
+ 					bound:1,
+ 					genmask:2;
+ 	char				*name;
++	u16				udlen;
++	u8				*udata;
+ 
+ 	/* Only used during control plane commit phase: */
+ 	struct nft_rule			**rules_next;
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 3c2469b43742..352ee51707a1 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -208,6 +208,7 @@ enum nft_chain_flags {
+  * @NFTA_CHAIN_COUNTERS: counter specification of the chain (NLA_NESTED: nft_counter_attributes)
+  * @NFTA_CHAIN_FLAGS: chain flags
+  * @NFTA_CHAIN_ID: uniquely identifies a chain in a transaction (NLA_U32)
++ * @NFTA_CHAIN_USERDATA: user data (NLA_BINARY)
+  */
+ enum nft_chain_attributes {
+ 	NFTA_CHAIN_UNSPEC,
+@@ -222,6 +223,7 @@ enum nft_chain_attributes {
+ 	NFTA_CHAIN_PAD,
+ 	NFTA_CHAIN_FLAGS,
+ 	NFTA_CHAIN_ID,
++	NFTA_CHAIN_USERDATA,
+ 	__NFTA_CHAIN_MAX
+ };
+ #define NFTA_CHAIN_MAX		(__NFTA_CHAIN_MAX - 1)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 84c0c1aaae99..c8065c6eae86 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1306,6 +1306,8 @@ static const struct nla_policy nft_chain_policy[NFTA_CHAIN_MAX + 1] = {
+ 	[NFTA_CHAIN_COUNTERS]	= { .type = NLA_NESTED },
+ 	[NFTA_CHAIN_FLAGS]	= { .type = NLA_U32 },
+ 	[NFTA_CHAIN_ID]		= { .type = NLA_U32 },
++	[NFTA_CHAIN_USERDATA]	= { .type = NLA_BINARY,
++				    .len = NFT_USERDATA_MAXLEN },
+ };
+ 
+ static const struct nla_policy nft_hook_policy[NFTA_HOOK_MAX + 1] = {
+@@ -1447,6 +1449,10 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
+ 	if (nla_put_be32(skb, NFTA_CHAIN_USE, htonl(chain->use)))
+ 		goto nla_put_failure;
+ 
++	if (chain->udata &&
++	    nla_put(skb, NFTA_CHAIN_USERDATA, chain->udlen, chain->udata))
++		goto nla_put_failure;
++
+ 	nlmsg_end(skb, nlh);
+ 	return 0;
+ 
+@@ -1978,6 +1984,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 	struct nft_trans *trans;
+ 	struct nft_chain *chain;
+ 	struct nft_rule **rules;
++	u16 udlen = 0;
+ 	int err;
+ 
+ 	if (table->use == UINT_MAX)
+@@ -2052,6 +2059,18 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 		goto err1;
+ 	}
+ 
++	if (nla[NFTA_CHAIN_USERDATA]) {
++		udlen = nla_len(nla[NFTA_CHAIN_USERDATA]);
++		chain->udata = kzalloc(udlen, GFP_KERNEL);
++		if (chain->udata == NULL) {
++			err = -ENOMEM;
++			goto err1;
++		}
++
++		nla_memcpy(chain->udata, nla[NFTA_CHAIN_USERDATA], udlen);
++		chain->udlen = udlen;
++	}
++
+ 	rules = nf_tables_chain_alloc_rules(chain, 0);
+ 	if (!rules) {
+ 		err = -ENOMEM;
+-- 
+2.27.0
+
