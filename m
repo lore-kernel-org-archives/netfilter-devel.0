@@ -2,82 +2,139 @@ Return-Path: <SRS0=tgdo=C6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83FD7C43465
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Sep 2020 07:32:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94D5BC43463
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Sep 2020 10:02:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5A0A020709
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Sep 2020 07:32:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 668B821D7A
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Sep 2020 10:02:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726441AbgIUHcL (ORCPT
+        id S1726582AbgIUKCq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Sep 2020 03:32:11 -0400
-Received: from kirsty.vergenet.net ([202.4.237.240]:51692 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726211AbgIUHcL (ORCPT
+        Mon, 21 Sep 2020 06:02:46 -0400
+Received: from mail-io1-f80.google.com ([209.85.166.80]:40784 "EHLO
+        mail-io1-f80.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726406AbgIUKCW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Sep 2020 03:32:11 -0400
-X-Greylist: delayed 447 seconds by postgrey-1.27 at vger.kernel.org; Mon, 21 Sep 2020 03:32:10 EDT
-Received: from reginn.horms.nl (unknown [80.127.179.77])
-        by kirsty.vergenet.net (Postfix) with ESMTPA id C1DC425B7CE;
-        Mon, 21 Sep 2020 17:24:42 +1000 (AEST)
-Received: by reginn.horms.nl (Postfix, from userid 7100)
-        id 90EA89402DE; Mon, 21 Sep 2020 09:24:40 +0200 (CEST)
-Date:   Mon, 21 Sep 2020 09:24:40 +0200
-From:   Simon Horman <horms@verge.net.au>
-To:     YueHaibing <yuehaibing@huawei.com>
-Cc:     wensong@linux-vs.org, ja@ssi.bg, pablo@netfilter.org,
-        kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
-        kuba@kernel.org, netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net-next] ipvs: Remove unused macros
-Message-ID: <20200921072436.GA8437@vergenet.net>
-References: <20200918131656.46260-1-yuehaibing@huawei.com>
+        Mon, 21 Sep 2020 06:02:22 -0400
+Received: by mail-io1-f80.google.com with SMTP id f8so9488341iow.7
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2020 03:02:21 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=8At/pGVVkTvpu/mp8Xc1NUUCOQaO1LHGiWdU5OkrovU=;
+        b=esIyP6M8JdVUapl2vREmfVbWd7vBXwIBMczmV8zi9pTe/S9gOoJT1DHjEOj/mtNXa6
+         FqlhzfrgZmU2NlUG/fKR0iJeltacuxxz89rrkjrktXiAIN2F4sBoX/ftG5klqHjlXr71
+         KNwCiHReyImzT9IgeUpDCMSD5aHd/VEHm3S0oZdcesihErq5SSUMaGx6ACIC4DCB27NM
+         n/FmJOvQPKWNGAR7/qQC0FrIpoQnGQtkwdN0DpmsHLmOSLYNNZqUioF4NdDkTloa1JtR
+         vbEZUAi543Hco7E0Csy0TjFiH6mYPzzywfuVmf3EWNcylB5O36uCkyG/UAwmVTAD7z6Z
+         byKA==
+X-Gm-Message-State: AOAM530aVThj5BVEU4vjVtaNBqJLpJMpjIfkgkTqqMpOi5uVFiGb/Uiw
+        etCOsFgiIVALxfIMX2Rd7y2kGuOiFUHhLhTiB7hqC70BsFJx
+X-Google-Smtp-Source: ABdhPJxPUybSAP4Njtc33THXv/FIAL+YAdszuiOczoJOLnIlLdsyLDL4g4fKHLTRtNpCNgn4E9o9Ol9mX2203FoqPwF5SL6quLgc
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200918131656.46260-1-yuehaibing@huawei.com>
-Organisation: Horms Solutions BV
-User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Received: by 2002:a92:d07:: with SMTP id 7mr39101806iln.243.1600682541373;
+ Mon, 21 Sep 2020 03:02:21 -0700 (PDT)
+Date:   Mon, 21 Sep 2020 03:02:21 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <00000000000046e0e905afcff205@google.com>
+Subject: KASAN: vmalloc-out-of-bounds Read in bpf_trace_run2
+From:   syzbot <syzbot+845923d2172947529b58@syzkaller.appspotmail.com>
+To:     andriin@fb.com, ast@kernel.org, bpf@vger.kernel.org,
+        coreteam@netfilter.org, daniel@iogearbox.net, davem@davemloft.net,
+        hawk@kernel.org, john.fastabend@gmail.com, kaber@trash.net,
+        kadlec@blackhole.kfki.hu, kafai@fb.com, kpsingh@chromium.org,
+        kuba@kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com, mingo@redhat.com, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        rostedt@goodmis.org, songliubraving@fb.com,
+        syzkaller-bugs@googlegroups.com, yhs@fb.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Sep 18, 2020 at 09:16:56PM +0800, YueHaibing wrote:
-> They are not used since commit e4ff67513096 ("ipvs: add
-> sync_maxlen parameter for the sync daemon")
-> 
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+Hello,
 
-Thanks, this look good to me.
+syzbot found the following issue on:
 
-Acked-by: Simon Horman <horms@verge.net.au>
+HEAD commit:    70b97111 bpf: Use hlist_add_head_rcu when linking to local..
+git tree:       bpf-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=15c624ad900000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=7e0ca96a9b6ee858
+dashboard link: https://syzkaller.appspot.com/bug?extid=845923d2172947529b58
+compiler:       gcc (GCC) 10.1.0-syz 20200507
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=10193f3b900000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=168c729b900000
 
-Pablo, please consider this for nf-next.
+The issue was bisected to:
 
-> ---
->  net/netfilter/ipvs/ip_vs_sync.c | 3 ---
->  1 file changed, 3 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-> index 2b8abbfe018c..16b48064f715 100644
-> --- a/net/netfilter/ipvs/ip_vs_sync.c
-> +++ b/net/netfilter/ipvs/ip_vs_sync.c
-> @@ -242,9 +242,6 @@ struct ip_vs_sync_thread_data {
->        |                    IPVS Sync Connection (1)                   |
->  */
->  
-> -#define SYNC_MESG_HEADER_LEN	4
-> -#define MAX_CONNS_PER_SYNCBUFF	255 /* nr_conns in ip_vs_sync_mesg is 8 bit */
-> -
->  /* Version 0 header */
->  struct ip_vs_sync_mesg_v0 {
->  	__u8                    nr_conns;
-> -- 
-> 2.17.1
-> 
+commit 0a93dc1c18fd86f936bcb44f72dc044c0ea826a8
+Author: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Date:   Wed Oct 12 11:11:16 2016 +0000
+
+    [media] dvb-core: don't break long lines
+
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=170e18d3900000
+final oops:     https://syzkaller.appspot.com/x/report.txt?x=148e18d3900000
+console output: https://syzkaller.appspot.com/x/log.txt?x=108e18d3900000
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+845923d2172947529b58@syzkaller.appspotmail.com
+Fixes: 0a93dc1c18fd ("[media] dvb-core: don't break long lines")
+
+==================================================================
+BUG: KASAN: vmalloc-out-of-bounds in __bpf_trace_run kernel/trace/bpf_trace.c:1937 [inline]
+BUG: KASAN: vmalloc-out-of-bounds in bpf_trace_run2+0x397/0x3d0 kernel/trace/bpf_trace.c:1974
+Read of size 8 at addr ffffc90000e76030 by task syz-executor514/6838
+
+CPU: 0 PID: 6838 Comm: syz-executor514 Not tainted 5.9.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x18f/0x20d lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0x5/0x497 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report.cold+0x1f/0x37 mm/kasan/report.c:530
+ __bpf_trace_run kernel/trace/bpf_trace.c:1937 [inline]
+ bpf_trace_run2+0x397/0x3d0 kernel/trace/bpf_trace.c:1974
+ trace_sys_enter include/trace/events/syscalls.h:18 [inline]
+ syscall_trace_enter kernel/entry/common.c:64 [inline]
+ syscall_enter_from_user_mode+0x22c/0x290 kernel/entry/common.c:82
+ do_syscall_64+0xf/0x70 arch/x86/entry/common.c:41
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x4441ba
+Code: 25 18 00 00 00 00 74 01 f0 48 0f b1 3d ef f9 28 00 48 39 c2 75 da f3 c3 0f 1f 84 00 00 00 00 00 48 63 ff b8 e4 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 06 f3 c3 0f 1f 40 00 48 c7 c2 d0 ff ff ff f7
+RSP: 002b:00007ffeec2fd9d8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e4
+RAX: ffffffffffffffda RBX: 0000000000001ac2 RCX: 00000000004441ba
+RDX: 0000000000000000 RSI: 00007ffeec2fd9e0 RDI: 0000000000000001
+RBP: 000000000000e4f7 R08: 0000000000001ab6 R09: 00000000022b5880
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000004022d0
+R13: 0000000000402360 R14: 0000000000000000 R15: 0000000000000000
+
+
+Memory state around the buggy address:
+ ffffc90000e75f00: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+ ffffc90000e75f80: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+>ffffc90000e76000: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+                                     ^
+ ffffc90000e76080: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+ ffffc90000e76100: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+==================================================================
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+syzbot can test patches for this issue, for details see:
+https://goo.gl/tpsmEJ#testing-patches
