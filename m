@@ -2,63 +2,69 @@ Return-Path: <SRS0=+Cxx=DA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8193DC4363D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Sep 2020 06:06:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BADEFC47426
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Sep 2020 06:07:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 29171221E8
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Sep 2020 06:06:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7EC9E20739
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Sep 2020 06:07:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="MLF42AAC"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lT7Ov8Ri"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726752AbgIWGGf (ORCPT
+        id S1726989AbgIWGHD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 23 Sep 2020 02:06:35 -0400
-Received: from mail-m973.mail.163.com ([123.126.97.3]:53688 "EHLO
-        mail-m973.mail.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726871AbgIWGGV (ORCPT
+        Wed, 23 Sep 2020 02:07:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40898 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726902AbgIWGGi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 23 Sep 2020 02:06:21 -0400
-X-Greylist: delayed 916 seconds by postgrey-1.27 at vger.kernel.org; Wed, 23 Sep 2020 02:06:19 EDT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=ldeUR
-        Yewu2fM70h0EcU97t98Qm0u/6Ht4u3dUu5od6Y=; b=MLF42AACz3rkP1GNgHZK/
-        srL2AkQcuHuQxZjKikGuEcoZjhrqQhtHdAxLmncCzw8tMv5QeDLh6njaM67t5S33
-        XlAgSIraM/OdUnHgWYWIuXJ8U1bv3Foj6OKs/EvVwHfERJNT08p14bpOZo7xGQ3r
-        l0wJ/C1vQtH5wRyDKQpW0I=
-Received: from localhost.localdomain (unknown [111.202.93.98])
-        by smtp3 (Coremail) with SMTP id G9xpCgC37aAO4mpfz4khDw--.2743S2;
-        Wed, 23 Sep 2020 13:50:06 +0800 (CST)
-From:   "longguang.yue" <bigclouds@163.com>
-Cc:     ylg <bigclouds@163.com>, Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        Julian Anastasov <ja@ssi.bg>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] ipvs: adjust the debug order of src and dst
-Date:   Wed, 23 Sep 2020 13:49:59 +0800
-Message-Id: <20200923055000.82748-1-bigclouds@163.com>
-X-Mailer: git-send-email 2.20.1 (Apple Git-117)
+        Wed, 23 Sep 2020 02:06:38 -0400
+Received: from mail-lj1-x244.google.com (mail-lj1-x244.google.com [IPv6:2a00:1450:4864:20::244])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD50FC061755;
+        Tue, 22 Sep 2020 23:06:37 -0700 (PDT)
+Received: by mail-lj1-x244.google.com with SMTP id k25so16202285ljk.0;
+        Tue, 22 Sep 2020 23:06:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=zhNLPdt3MABy9YGkQQhQ6/eOKIUXSwNa1xulGA5X34I=;
+        b=lT7Ov8RiWALgWo1tGW58nncRiqRjEqVnH4H0E5Yobwk9FNfUMCkYZfDjZvfB5orEP1
+         +YpacYIhhKTJNnlLPzzbUo0RfIaFLJhb/tDOA/EOCjfS7FGPsOEvvXv6k75sub9w73ng
+         wXZETZ/7tVv61t4+eu088LGRF+qzVs+5exUq0Jxflj7BSbmE4BRCG86nliVX+LQ5fj37
+         gCqfJIkkELSCCxlMtMl0W+Nu/LOjCHxxPoCDFFg+Eyifj8TyBN/C8r88oDWhxsf3Bg4q
+         1hyaMUiWzqUKKCLf4I/EOiD38fvIR+mv6i81Th4zYDo4VoRru7GhoxG5NSmQTVE2WAVa
+         wPBg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=zhNLPdt3MABy9YGkQQhQ6/eOKIUXSwNa1xulGA5X34I=;
+        b=OjR+O8cWbZMdD4pnYNQA/XL5Ju3R1qrPD501tVgXjSExR4n6OS1DvSmOiHIZB8ioLR
+         CWkq1nYm7oEOIYISewcnu2kRZc3ROHw9o1P+JXQAV3mvQN32Q9Pzn9MDq0HeSs3/g07Z
+         BpvU1p3p99CBMfABGpMOpvcS1B7qU2uKFjm1aucvNC2JD52b5l6TuGcvSHc+UoYNfCbC
+         Hzb5ZyrrK7voieBEkY6d/WK9y2ZgfMMK1V6EZXWa3eo6IOfcTlCX8xiqXE9P4KS9Saza
+         LdFAHeaHM1Uzjqd17ccwjeNa1vCzoSdGw74btzajoe3brdJM1Ch0GV9ImuXoB3Y5FePr
+         jEyg==
+X-Gm-Message-State: AOAM532f0rsuBuIMFFo7A1SgyKj6S34v5bf5qXEXOkMPGQGQi9CH0XSU
+        KPYdAEiHFr9aPjSDfCgmQBZhUbqfH8OJ7e6wPJmdV0t3qDSk1g==
+X-Google-Smtp-Source: ABdhPJxfzcC+TydkSiRcCojlYcHR2hO+JoT7gp8X19M834MP43Q1uN1L4utP9tCc1HEcdobJ3iR8M8cdOvp5959jYWw=
+X-Received: by 2002:a2e:b006:: with SMTP id y6mr2376853ljk.462.1600841196247;
+ Tue, 22 Sep 2020 23:06:36 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: G9xpCgC37aAO4mpfz4khDw--.2743S2
-X-Coremail-Antispam: 1Uf129KBjvdXoWrurWUGFWUXr1kZF47Zr1fWFg_yoWftwcEya
-        92vF95WF1UX3WUAa1UGr48X34xGrW7Ja1FvryvqFyjv345C3y0y3yv9rnavr43Wan0gF1r
-        tr92gry2k3ZrKjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-        9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IUUZjjPUUUUU==
-X-Originating-IP: [111.202.93.98]
-X-CM-SenderInfo: peljuzprxg2qqrwthudrp/xtbBZA6oQ1QHKz5e-QAAsk
-To:     unlisted-recipients:; (no To-header on input)
+From:   yue longguang <yuelongguang@gmail.com>
+Date:   Wed, 23 Sep 2020 14:06:25 +0800
+Message-ID: <CAPaK2r921GtJVhwGKnZyCcQ1qkcWA=8TBWwNkW03R_=7TKzo6g@mail.gmail.com>
+Subject: [PATCH] ipvs: adjust the debug order of src and dst
+To:     wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
+        pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        David Miller <davem@davemloft.net>, kuba@kernel.org,
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -72,23 +78,24 @@ Signed-off-by: ylg <bigclouds@163.com>
  net/netfilter/ipvs/ip_vs_proto_tcp.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c
+b/net/netfilter/ipvs/ip_vs_proto_tcp.c
 index dc2e7da2742a..6567eb45a234 100644
 --- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
 +++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-@@ -548,10 +548,10 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
- 			      th->fin ? 'F' : '.',
- 			      th->ack ? 'A' : '.',
- 			      th->rst ? 'R' : '.',
--			      IP_VS_DBG_ADDR(cp->daf, &cp->daddr),
--			      ntohs(cp->dport),
- 			      IP_VS_DBG_ADDR(cp->af, &cp->caddr),
- 			      ntohs(cp->cport),
-+			      IP_VS_DBG_ADDR(cp->daf, &cp->daddr),
-+			      ntohs(cp->dport),
- 			      tcp_state_name(cp->state),
- 			      tcp_state_name(new_state),
- 			      refcount_read(&cp->refcnt));
+@@ -548,10 +548,10 @@ set_tcp_state(struct ip_vs_proto_data *pd,
+struct ip_vs_conn *cp,
+       th->fin ? 'F' : '.',
+       th->ack ? 'A' : '.',
+       th->rst ? 'R' : '.',
+-      IP_VS_DBG_ADDR(cp->daf, &cp->daddr),
+-      ntohs(cp->dport),
+       IP_VS_DBG_ADDR(cp->af, &cp->caddr),
+       ntohs(cp->cport),
++      IP_VS_DBG_ADDR(cp->daf, &cp->daddr),
++      ntohs(cp->dport),
+       tcp_state_name(cp->state),
+       tcp_state_name(new_state),
+       refcount_read(&cp->refcnt));
 -- 
 2.20.1 (Apple Git-117)
-
