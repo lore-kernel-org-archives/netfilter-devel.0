@@ -2,103 +2,55 @@ Return-Path: <SRS0=+Cxx=DA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57FE5C4727E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Sep 2020 11:45:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB835C2D0A8
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Sep 2020 12:43:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 20AE42176B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Sep 2020 11:45:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48F2720BED
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Sep 2020 12:43:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726584AbgIWLpy (ORCPT
+        id S1726558AbgIWMnD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 23 Sep 2020 07:45:54 -0400
-Received: from correo.us.es ([193.147.175.20]:48756 "EHLO mail.us.es"
+        Wed, 23 Sep 2020 08:43:03 -0400
+Received: from vps0.lunn.ch ([185.16.172.187]:51174 "EHLO vps0.lunn.ch"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726445AbgIWLpx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 23 Sep 2020 07:45:53 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DF628DA38B
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Sep 2020 13:45:51 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D22AEDA78D
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Sep 2020 13:45:51 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C7B3BDA73F; Wed, 23 Sep 2020 13:45:51 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A2C88DA789;
-        Wed, 23 Sep 2020 13:45:49 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 23 Sep 2020 13:45:49 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 874C54301DE2;
-        Wed, 23 Sep 2020 13:45:49 +0200 (CEST)
-Date:   Wed, 23 Sep 2020 13:45:49 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org,
-        Serhey Popovych <serhe.popovych@gmail.com>
-Subject: Re: [iptables PATCH 0/3] libxtables: Fix for pointless socket() calls
-Message-ID: <20200923114549.GA3947@salvia>
-References: <20200922225341.8976-1-phil@nwl.cc>
+        id S1726513AbgIWMnC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 23 Sep 2020 08:43:02 -0400
+X-Greylist: delayed 2130 seconds by postgrey-1.27 at vger.kernel.org; Wed, 23 Sep 2020 08:43:02 EDT
+Received: from andrew by vps0.lunn.ch with local (Exim 4.94)
+        (envelope-from <andrew@lunn.ch>)
+        id 1kL3YC-00FsR9-OA; Wed, 23 Sep 2020 14:07:08 +0200
+Date:   Wed, 23 Sep 2020 14:07:08 +0200
+From:   Andrew Lunn <andrew@lunn.ch>
+To:     yue longguang <yuelongguang@gmail.com>
+Cc:     wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
+        pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        David Miller <davem@davemloft.net>, kuba@kernel.org,
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] ipvs: adjust the debug order of src and dst
+Message-ID: <20200923120708.GD3770354@lunn.ch>
+References: <CAPaK2r921GtJVhwGKnZyCcQ1qkcWA=8TBWwNkW03R_=7TKzo6g@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200922225341.8976-1-phil@nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <CAPaK2r921GtJVhwGKnZyCcQ1qkcWA=8TBWwNkW03R_=7TKzo6g@mail.gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Phil,
+On Wed, Sep 23, 2020 at 02:06:25PM +0800, yue longguang wrote:
+> From: ylg <bigclouds@163.com>
+> 
+> adjust the debug order of src and dst when tcp state changes
 
-On Wed, Sep 23, 2020 at 12:53:38AM +0200, Phil Sutter wrote:
-> The motivation for this series was a bug report claiming a near 100%
-> slowdown of iptables-restore when passed a large number of rules
-> containing conntrack match between two kernel versions. Turns out the
-> curlprit kernel change was within SELinux and in fact a performance
-> optimization, namely an introduced hash table mapping from security
-> context string to SID. This hash table insert, which happened for each
-> new socket, slowed iptables-restore down considerably.
-> 
-> The actual problem exposed by the above was that iptables-restore opens
-> a surprisingly large number of sockets when restoring said ruleset. This
-> stems from bugs in extension compatibility checks done during extension
-> registration (actually, "full registration").
-> 
-> One of the problems was that incompatible older revsions of an extension
-> never were never dropped from the pending list, and thus retried for
-> each rule using the extension. Coincidently, conntrack revision 0
-> matches this criteria.
-> 
-> Another problem was a (likely) accidental recursion of
-> xtables_fully_register_pending_*() via xtables_find_*(). In combination
-> with incompatible match revisions stuck in pending list, this caused
-> even more extra compatibility checks.
-> 
-> Solve all these problems by making pending extension lists sorted by
-> (descending) revision number. If at least one revision was compatible
-> with the kernel, any following incompatible ones may safely be dropped.
-> This should on one hand get rid of the repeated compatibility checks
-> while on the other maintain the presumptions stated in commit
-> 3b2530ce7a0d6 ("xtables: Do not register matches/targets with
-> incompatible revision").
-> 
-> Patch 1 establishes the needed sorting in pending extension lists,
-> patch 2 then simplifies xtables_fully_register_pending_*() functions.
-> Patch 3 is strictly speaking not necessary but nice to have as it
-> streamlines array-based extension registrators with the extension
-> sorting.
+Hi Yue
 
-Did you run iptables-tests.py with older kernel?
+You need to explain why you are doing something, not what you are
+doing, in the commit message.
 
-Thanks.
+	Andrew
