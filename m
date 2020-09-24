@@ -2,143 +2,90 @@ Return-Path: <SRS0=YHiM=DB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-11.3 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 116CBC2D0E2
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Sep 2020 10:18:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A50DCC4727E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Sep 2020 15:55:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D203A23600
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Sep 2020 10:18:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5756C238E3
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Sep 2020 15:55:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727409AbgIXKSa (ORCPT
+        id S1728605AbgIXPz4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 24 Sep 2020 06:18:30 -0400
-Received: from mailrelay116.isp.belgacom.be ([195.238.20.143]:26251 "EHLO
-        mailrelay116.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727003AbgIXKSa (ORCPT
+        Thu, 24 Sep 2020 11:55:56 -0400
+Received: from kirsty.vergenet.net ([202.4.237.240]:34704 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728343AbgIXPzz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Sep 2020 06:18:30 -0400
-IronPort-SDR: DCfxdUB7+wkZiND4NjWP5owk82Lv8LVfOg2wenZiKWydMFcelbo1Q32WqPgTYVOXHg/thHHlxh
- VduG/K0Zk0c7iBn0ZFtZ8PrELGTAGgySK/0vP6Xar5Bm7lKh/wLRPntCn9EV20ExzPV4iJ9f+5
- u04TpeIfONtFInMRU8QKEgxWMN/IRjOHh/1qcO53FoDpUSUGmhbtoUtbmvUxbP1K8HhZERzlkO
- Lr7uGajBGS4fP51WxG6yUvNnqZotkmR9RL64Kz7VARRGUWXRoPDnumFi29e7YYosCDdyiCmAiw
- F+Q=
-X-Belgacom-Dynamic: yes
-IronPort-PHdr: =?us-ascii?q?9a23=3A6+o6hR394WyQ1vt9smDT+DRfVm0co7zxezQtwd?=
- =?us-ascii?q?8ZsesXI/rxwZ3uMQTl6Ol3ixeRBMOHsq0C0rqd6f+oGTRZp8rY7jZaKN0Efi?=
- =?us-ascii?q?RGoP1epxYnDs+BBB+zB9/RRAt+Iv5/UkR49WqwK0lfFZW2TVTTpnqv8WxaQU?=
- =?us-ascii?q?2nZkJ6KevvB4Hdkdm82fys9J3PeQVIgye2ba9vIBmsogjdq8sbjZF/JqsyxR?=
- =?us-ascii?q?fFvHlFcPlSyW90OF6fhRnx6tqx8ZJ57yhcp/ct/NNcXKvneKg1UaZWByk8PW?=
- =?us-ascii?q?Av483ruxjDTQ+R6XYZT24bjBlGDRXb4R/jRpv+vTf0ueR72CmBIM35Vqs0Vi?=
- =?us-ascii?q?i476dqUxDnliEKPCMk/W7Ni8xwiKVboA+9pxF63oXZbp2ZOOZ4c6jAe94RWG?=
- =?us-ascii?q?hPUdtLVyFZAo2ycZYBAeQCM+hfoIbzqEADoQe9CAS2GO/i0CNEimPw0KYn0+?=
- =?us-ascii?q?ohCwbG3Ak4EtwOqnvbt9T1O70UUeuozKfI1yvMYO5I1jfn6YjHbhMhquyLUL?=
- =?us-ascii?q?J+a8Xe0kcvGhjejlWTqY3lOS2a1vgXv2eA8eVtTOSigHMopA9tuDag3Nssip?=
- =?us-ascii?q?XXiYIPzFDJ7St3zYUxKNO4SUN2YcCoHZVQuSyHK4d6X98uTmBntig117ALt4?=
- =?us-ascii?q?C2cTUKxZkl2RPRZOCLfYaH7B/nVOifISl0iXZjdbmihBiy6VCtx+nhWsWuzV?=
- =?us-ascii?q?pHrTRJnsPRun0M1xHf8NWLR/p780y8wziAzRrT5ftBIU0skKrbLIMuzaAom5?=
- =?us-ascii?q?oItETDAjf2mELrjK+Kbkkk+van6+DgYrj+op+cMJN7hRv6MqQuncy/Gvg4Ph?=
- =?us-ascii?q?IKX2ic5euzzrnj8lD+QLVPlPI2k6/ZvIjbJcQduKG5HxdY34I+5xqlEjur08?=
- =?us-ascii?q?oUkWMaIF9EeB+LlZXlNlDWLPD9F/i/glCskDlxx/DBO73sGpvNIWLYn7fvZr?=
- =?us-ascii?q?t98E1cyQo1zd9B+5JYEKoOL+zrVk/rqNPYFgM5MxCzw+v/ENVyzJgRWWaIAq?=
- =?us-ascii?q?KCNqPdr0OI5uwuI+mIeI8apiz9J+Ii5/70gn8zgUUdcrWx3ZsLdHC4GexrI0?=
- =?us-ascii?q?aDbnXxhtcOD3sFsxE4TOP0lF2CXz9TZ3KuX60i/DE3EoWmDZ3MRoq1mryOwD?=
- =?us-ascii?q?+7HoFKZmBBEl2MH3npep6fW/cQciKSJtFukjoeWbe8VYArzQuuuxPiy7p7Mu?=
- =?us-ascii?q?rU/TUVtZT929hp6e3TlBUy9SBqAMSHym2CUn97nn0WSD8yx61/v0N9xUmZ0a?=
- =?us-ascii?q?RigPxXC8ZT5/VXXQc+L5LcyPZ6C9/qUALbYtiJUEqmQsmhATwpUt0xxMUObF?=
- =?us-ascii?q?hhG9q8lB/D2jGnA7kLmLyXCpw086bc32TvKMZn0XrG07Mhj1Y+SMtVKWKmnr?=
- =?us-ascii?q?J/9xTUB4PRlUWWibqqerkC0y7T72qD02WOs19CUAJqUqXKQ2ofZk3IotT9/E?=
- =?us-ascii?q?/CSKWuCbs/OAtb1cGCMrdKasHujVheSvfsIs/RY2yqlmerBhaJxrWMY5T2e2?=
- =?us-ascii?q?kHxyrSFhtMrwdG5X+MMQ8WACq9rWPaEDF0U1X1bAek8uByrH6wZkk50w+La1?=
- =?us-ascii?q?Fszfyy4BFRzfKDY+gPxLYJvmEtpmZaBlG4ivzfAduJoUJPZqhQbMk861QPgW?=
- =?us-ascii?q?zQvQJVJZ+xKa1+wFQTJVck93jy3gl6X90T2fMhq2knmVJ/?=
-X-IronPort-Anti-Spam-Filtered: true
-X-IronPort-Anti-Spam-Result: =?us-ascii?q?A2CmQgAocmxf/xCltltgGgEBAQEBPAE?=
- =?us-ascii?q?BAQECAgEBAQECAQEBAQMBAQEBHIFKgRyBfFVfjT6SXpIECwEBAQEBAQEBASQ?=
- =?us-ascii?q?RAQIEAQGES4IuJTgTAgMBAQEDAgUBAQYBAQEBAQEFBAGGD0WCNyKDUgEjI4E?=
- =?us-ascii?q?/EoMmAYJXKbc5hBCFI4FCgTgBiC6FGoFBP4ERg06KNASaV5xggnGDE4Rpf5F?=
- =?us-ascii?q?LDyKhDSuSWaIWgXpNIBiDJAlHGQ2caEIwNwIGCgEBAwlXAT0BjwQBAQ?=
-X-IPAS-Result: =?us-ascii?q?A2CmQgAocmxf/xCltltgGgEBAQEBPAEBAQECAgEBAQECA?=
- =?us-ascii?q?QEBAQMBAQEBHIFKgRyBfFVfjT6SXpIECwEBAQEBAQEBASQRAQIEAQGES4IuJ?=
- =?us-ascii?q?TgTAgMBAQEDAgUBAQYBAQEBAQEFBAGGD0WCNyKDUgEjI4E/EoMmAYJXKbc5h?=
- =?us-ascii?q?BCFI4FCgTgBiC6FGoFBP4ERg06KNASaV5xggnGDE4Rpf5FLDyKhDSuSWaIWg?=
- =?us-ascii?q?XpNIBiDJAlHGQ2caEIwNwIGCgEBAwlXAT0BjwQBAQ?=
-Received: from 16.165-182-91.adsl-dyn.isp.belgacom.be (HELO localhost.localdomain) ([91.182.165.16])
-  by relay.skynet.be with ESMTP; 24 Sep 2020 12:17:57 +0200
-From:   Fabian Frederick <fabf@skynet.be>
-To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Fabian Frederick <fabf@skynet.be>
-Subject: [PATCH 1/1 nf] selftests: netfilter: add time counter check
-Date:   Thu, 24 Sep 2020 12:17:33 +0200
-Message-Id: <20200924101733.11479-1-fabf@skynet.be>
-X-Mailer: git-send-email 2.27.0
+        Thu, 24 Sep 2020 11:55:55 -0400
+Received: from madeliefje.horms.nl (unknown [83.161.246.101])
+        by kirsty.vergenet.net (Postfix) with ESMTPA id 4984E25AD79;
+        Fri, 25 Sep 2020 01:55:52 +1000 (AEST)
+Received: by madeliefje.horms.nl (Postfix, from userid 7100)
+        id 982D2152D; Thu, 24 Sep 2020 17:55:50 +0200 (CEST)
+Date:   Thu, 24 Sep 2020 17:55:50 +0200
+From:   Simon Horman <horms@verge.net.au>
+To:     "longguang.yue" <bigclouds@163.com>
+Cc:     Wensong Zhang <wensong@linux-vs.org>, Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] ipvs: adjust the debug order of src and dst
+Message-ID: <20200924155550.GC13127@vergenet.net>
+References: <20200923055000.82748-1-bigclouds@163.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200923055000.82748-1-bigclouds@163.com>
+Organisation: Horms Solutions BV
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Check packets are correctly placed in current year.
-Also do a NULL check for another one.
+On Wed, Sep 23, 2020 at 01:49:59PM +0800, longguang.yue wrote:
+> From: ylg <bigclouds@163.com>
+> 
+> adjust the debug order of src and dst when tcp state changes
+> 
+> Signed-off-by: ylg <bigclouds@163.com>
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
----
- tools/testing/selftests/netfilter/nft_meta.sh | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+Hi,
 
-diff --git a/tools/testing/selftests/netfilter/nft_meta.sh b/tools/testing/selftests/netfilter/nft_meta.sh
-index 18a1abca32629..087f0e6e71ce7 100755
---- a/tools/testing/selftests/netfilter/nft_meta.sh
-+++ b/tools/testing/selftests/netfilter/nft_meta.sh
-@@ -23,6 +23,8 @@ ip -net "$ns0" addr add 127.0.0.1 dev lo
- 
- trap cleanup EXIT
- 
-+currentyear=$(date +%G)
-+lastyear=$((currentyear-1))
- ip netns exec "$ns0" nft -f /dev/stdin <<EOF
- table inet filter {
- 	counter iifcount {}
-@@ -33,6 +35,8 @@ table inet filter {
- 	counter il4protocounter {}
- 	counter imarkcounter {}
- 	counter icpu0counter {}
-+	counter ilastyearcounter {}
-+	counter icurrentyearcounter {}
- 
- 	counter oifcount {}
- 	counter oifnamecount {}
-@@ -55,6 +59,8 @@ table inet filter {
- 		meta l4proto icmp counter name "il4protocounter"
- 		meta mark 42 counter name "imarkcounter"
- 		meta cpu 0 counter name "icpu0counter"
-+		meta time "$lastyear-01-01" - "$lastyear-12-31" counter name ilastyearcounter
-+		meta time "$currentyear-01-01" - "$currentyear-12-31" counter name icurrentyearcounter
- 	}
- 
- 	chain output {
-@@ -100,8 +106,7 @@ check_lo_counters()
- 
- 	for counter in iifcount iifnamecount iifgroupcount iiftypecount infproto4count \
- 		       oifcount oifnamecount oifgroupcount oiftypecount onfproto4count \
--		       il4protocounter \
--		       ol4protocounter \
-+		       il4protocounter icurrentyearcounter ol4protocounter \
- 	     ; do
- 		check_one_counter "$counter" "$want" "$verbose"
- 	done
-@@ -116,6 +121,7 @@ check_one_counter oskuidcounter "1" true
- check_one_counter oskgidcounter "1" true
- check_one_counter imarkcounter "1" true
- check_one_counter omarkcounter "1" true
-+check_one_counter ilastyearcounter "0" true
- 
- if [ $ret -eq 0 ];then
- 	echo "OK: nftables meta iif/oif counters at expected values"
--- 
-2.27.0
+This sounds reasonable to me but please provide your real name
+in the Signed-off-by name, which should be consistent with the From field
+at the top of the commit message (or, if absent of the email).
 
+Thanks!
+
+> ---
+>  net/netfilter/ipvs/ip_vs_proto_tcp.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+> index dc2e7da2742a..6567eb45a234 100644
+> --- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
+> +++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+> @@ -548,10 +548,10 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
+>  			      th->fin ? 'F' : '.',
+>  			      th->ack ? 'A' : '.',
+>  			      th->rst ? 'R' : '.',
+> -			      IP_VS_DBG_ADDR(cp->daf, &cp->daddr),
+> -			      ntohs(cp->dport),
+>  			      IP_VS_DBG_ADDR(cp->af, &cp->caddr),
+>  			      ntohs(cp->cport),
+> +			      IP_VS_DBG_ADDR(cp->daf, &cp->daddr),
+> +			      ntohs(cp->dport),
+>  			      tcp_state_name(cp->state),
+>  			      tcp_state_name(new_state),
+>  			      refcount_read(&cp->refcnt));
+> -- 
+> 2.20.1 (Apple Git-117)
+> 
