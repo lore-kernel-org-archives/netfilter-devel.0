@@ -2,86 +2,109 @@ Return-Path: <SRS0=8C00=DE=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D77BDC4346E
-	for <netfilter-devel@archiver.kernel.org>; Sun, 27 Sep 2020 08:37:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B06CBC47420
+	for <netfilter-devel@archiver.kernel.org>; Sun, 27 Sep 2020 12:25:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7525D207BC
-	for <netfilter-devel@archiver.kernel.org>; Sun, 27 Sep 2020 08:37:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 758FF23718
+	for <netfilter-devel@archiver.kernel.org>; Sun, 27 Sep 2020 12:25:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="WAOyKzyk"
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="Vo09yjMl"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730397AbgI0IhU (ORCPT
+        id S1726540AbgI0MY7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 27 Sep 2020 04:37:20 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:59512 "EHLO mx1.riseup.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727263AbgI0IhT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 27 Sep 2020 04:37:19 -0400
-Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (Client CN "*.riseup.net", Issuer "Sectigo RSA Domain Validation Secure Server CA" (not verified))
-        by mx1.riseup.net (Postfix) with ESMTPS id 4BzfCg5Fy0zDt1D;
-        Sun, 27 Sep 2020 01:37:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1601195839; bh=pjTp4QBVot3yYmrSdvrxcaOV0q4MNbP1whRripFSRSI=;
-        h=From:To:Cc:Subject:Date:From;
-        b=WAOyKzykviiF/12vnT6gnPBZkzXDCiVdRO6kUf5PT287/W9AShLmXj1taagJzB3qM
-         ztob97fVuoPKRw8PVP47Bw0Z/pcaH7war1T+tBERLew8A9riHxTmR4RnfsDTV7BcUl
-         mcQyMeLiOdgPH+gyIoz93u5b3Io7lTIBngYMy3YQ=
-X-Riseup-User-ID: 891D3262CF59A06408F4EFA64830AF7224799407CD4F11F0082A5ADDE620E995
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by bell.riseup.net (Postfix) with ESMTPSA id 4BzfCf6WffzJnBf;
-        Sun, 27 Sep 2020 01:37:18 -0700 (PDT)
-From:   "Jose M. Guisado Gomez" <guigom@riseup.net>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next] netfilter: nf_tables: fix userdata memleak
-Date:   Sun, 27 Sep 2020 10:36:22 +0200
-Message-Id: <20200927083621.9822-1-guigom@riseup.net>
+        Sun, 27 Sep 2020 08:24:59 -0400
+Received: from mail-m972.mail.163.com ([123.126.97.2]:35324 "EHLO
+        mail-m972.mail.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726328AbgI0MY6 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 27 Sep 2020 08:24:58 -0400
+X-Greylist: delayed 953 seconds by postgrey-1.27 at vger.kernel.org; Sun, 27 Sep 2020 08:24:56 EDT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=v9Duc
+        /2Q8SO2UadA0hRP5VIDU0Yovle4kISsZXu8EyM=; b=Vo09yjMlYeJZZLdpiTBNH
+        vSFSlFaSF4eCzBL/o1dj+Ry0agVzvnHG3h4O/zkp3xg9308KsbXnmVqu9VhU6/yd
+        mG8Ub/WEAYTOFH/HmCEmo8ETZsO0hS1Kgaihs7vG1QfJfpA5+KpwskzGUv175qAa
+        bSWXjTFLQ8gfrq0c4inrrI=
+Received: from localhost.localdomain (unknown [111.202.93.98])
+        by smtp2 (Coremail) with SMTP id GtxpCgAHT2OjgHBfnmAxRQ--.300S2;
+        Sun, 27 Sep 2020 20:08:03 +0800 (CST)
+From:   "longguang.yue" <bigclouds@163.com>
+Cc:     yuelongguang@gmail.com, "longguang.yue" <bigclouds@163.com>,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netdev@vger.kernel.org (open list:IPVS),
+        lvs-devel@vger.kernel.org (open list:IPVS),
+        netfilter-devel@vger.kernel.org (open list:NETFILTER),
+        coreteam@netfilter.org (open list:NETFILTER),
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH v4] ipvs: adjust the debug info in function set_tcp_state
+Date:   Sun, 27 Sep 2020 20:07:56 +0800
+Message-Id: <20200927120756.75676-1-bigclouds@163.com>
+X-Mailer: git-send-email 2.20.1 (Apple Git-117)
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: GtxpCgAHT2OjgHBfnmAxRQ--.300S2
+X-Coremail-Antispam: 1Uf129KBjvJXoW7Kw1UZr48Cr45JrW8ZFW5Wrg_yoW8XrWDpa
+        sayayagrW7JrZ7JrsrJr48u398Cr4vvrn0qFW5K34fJas8Xrs3tFnYkay09a1UArZ7X3y7
+        Xr1Yk3y5Aa92y3DanT9S1TB71UUUUjUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07jyApnUUUUU=
+X-Originating-IP: [111.202.93.98]
+X-CM-SenderInfo: peljuzprxg2qqrwthudrp/xtbBUQOsQ1aD8gSgwgAAs8
+To:     unlisted-recipients:; (no To-header on input)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When userdata was introduced for tables and objects its allocation was
-only freed inside the error path of the new{table, object} functions.
+        outputting client,virtual,dst addresses info when tcp state changes,
+        which makes the connection debug more clear
 
-Free user data inside corresponding destroy functions for tables and
-objects.
-
-Fixes: b131c96496b3 ("netfilter: nf_tables: add userdata support for nft_object")
-Fixes: 7a81575b806e ("netfilter: nf_tables: add userdata attributes to nft_table")
-Signed-off-by: Jose M. Guisado Gomez <guigom@riseup.net>
+Signed-off-by: longguang.yue <bigclouds@163.com>
 ---
- net/netfilter/nf_tables_api.c | 2 ++
- 1 file changed, 2 insertions(+)
+ net/netfilter/ipvs/ip_vs_proto_tcp.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 84c0c1aaae99..b3c3c3fc1969 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1211,6 +1211,7 @@ static void nf_tables_table_destroy(struct nft_ctx *ctx)
+diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+index dc2e7da2742a..7da51390cea6 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+@@ -539,8 +539,8 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
+ 	if (new_state != cp->state) {
+ 		struct ip_vs_dest *dest = cp->dest;
  
- 	rhltable_destroy(&ctx->table->chains_ht);
- 	kfree(ctx->table->name);
-+	kfree(ctx->table->udata);
- 	kfree(ctx->table);
- }
- 
-@@ -6231,6 +6232,7 @@ static void nft_obj_destroy(const struct nft_ctx *ctx, struct nft_object *obj)
- 
- 	module_put(obj->ops->type->owner);
- 	kfree(obj->key.name);
-+	kfree(obj->udata);
- 	kfree(obj);
- }
- 
+-		IP_VS_DBG_BUF(8, "%s %s [%c%c%c%c] %s:%d->"
+-			      "%s:%d state: %s->%s conn->refcnt:%d\n",
++		IP_VS_DBG_BUF(8, "%s %s [%c%c%c%c] c:%s:%d v:%s:%d "
++			      "d:%s:%d state: %s->%s conn->refcnt:%d\n",
+ 			      pd->pp->name,
+ 			      ((state_off == TCP_DIR_OUTPUT) ?
+ 			       "output " : "input "),
+@@ -548,10 +548,12 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
+ 			      th->fin ? 'F' : '.',
+ 			      th->ack ? 'A' : '.',
+ 			      th->rst ? 'R' : '.',
+-			      IP_VS_DBG_ADDR(cp->daf, &cp->daddr),
+-			      ntohs(cp->dport),
+ 			      IP_VS_DBG_ADDR(cp->af, &cp->caddr),
+ 			      ntohs(cp->cport),
++			      IP_VS_DBG_ADDR(cp->af, &cp->vaddr),
++			      ntohs(cp->vport),
++			      IP_VS_DBG_ADDR(cp->daf, &cp->daddr),
++			      ntohs(cp->dport),
+ 			      tcp_state_name(cp->state),
+ 			      tcp_state_name(new_state),
+ 			      refcount_read(&cp->refcnt));
 -- 
-2.27.0
+2.20.1 (Apple Git-117)
 
