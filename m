@@ -2,96 +2,82 @@ Return-Path: <SRS0=suW2=DF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3F50C2D0A8
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Sep 2020 16:50:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66718C4741F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Sep 2020 17:40:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A8D4A20717
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Sep 2020 16:50:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 25C132083B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Sep 2020 17:40:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726734AbgI1QuP (ORCPT
+        id S1726634AbgI1RkM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 28 Sep 2020 12:50:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33636 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726504AbgI1QuP (ORCPT
+        Mon, 28 Sep 2020 13:40:12 -0400
+Received: from mail-il1-f206.google.com ([209.85.166.206]:38365 "EHLO
+        mail-il1-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726460AbgI1RkI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Sep 2020 12:50:15 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70DB3C061755
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Sep 2020 09:50:15 -0700 (PDT)
-Received: from localhost ([::1]:39122 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.94)
-        (envelope-from <phil@nwl.cc>)
-        id 1kMwLs-0000XW-Ci; Mon, 28 Sep 2020 18:50:12 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, Eric Garver <e@erig.me>,
-        netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] nft: Fix for broken address mask match detection
-Date:   Mon, 28 Sep 2020 19:05:47 +0200
-Message-Id: <20200928170547.13857-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.28.0
+        Mon, 28 Sep 2020 13:40:08 -0400
+Received: by mail-il1-f206.google.com with SMTP id f75so1422694ilh.5
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Sep 2020 10:40:06 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
+         :from:to;
+        bh=YJj+NKirC78aDBHmX2WKsxxPVFYimQaCt4KWlG1d+NM=;
+        b=ZArF5WI/4XOz2iLdMqrrUNFYX4y8CAyMQ2pugMtq3OFRIRDhUXbp4jDtNsKyU7P6IH
+         V1ypgBhKKtnFtYmmY6yJlb33rV8sqEmSauSEqnoA1KAjn13hlIFwijJFvYm2fjQaX6DH
+         OBcVY+DJCLCdQMPkgcJ2oKfWQfpNLCNnmVWNs09EiiRZ/7Zu3oYXUZFRKvjLCLzNlXRK
+         UPP4qL3rxsiR+ZQ6NOtbpxxr2AUNavKenVJbGYwo1ZL+DRkC7xhu9GQQEhTqDOeRi7eP
+         SWTcsCdvo06/udhXRAXv3oBlLV8geabD1NwrWeta4JzeL4xkwm49IOYf5b2Ck7KFOa2z
+         9EGQ==
+X-Gm-Message-State: AOAM533pT/SZzW+d+Bt4wWKZ3Fwfwx7E7qXCceEGruMPg7EaE4xkTzmi
+        ONCL5gWUJoz2lDOt8lZE52chx6G2MZnb0YaCZ9AnEYgPV2+I
+X-Google-Smtp-Source: ABdhPJyACsKcOzagLGt6tchEW46xgXXf0ncWeiIXVtEwQtLLeOF/H8MmdTl5xCixGz8iVvFR/G5TTrpiwBozN+CFGBXJmyS2hR2v
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a92:d105:: with SMTP id a5mr2164301ilb.206.1601314805962;
+ Mon, 28 Sep 2020 10:40:05 -0700 (PDT)
+Date:   Mon, 28 Sep 2020 10:40:05 -0700
+In-Reply-To: <000000000000650d4005b00bcb0c@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000002edd5605b0632812@google.com>
+Subject: Re: general protection fault in strncasecmp
+From:   syzbot <syzbot+459a5dce0b4cb70fd076@syzkaller.appspotmail.com>
+To:     akpm@linux-foundation.org, coreteam@netfilter.org,
+        davem@davemloft.net, dhowells@redhat.com, hch@lst.de,
+        hdanton@sina.com, kaber@trash.net, kadlec@blackhole.kfki.hu,
+        linux-afs@lists.infradead.org, linux-kernel@vger.kernel.org,
+        mhiramat@kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com, torvalds@linux-foundation.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Trying to decide whether a bitwise expression is needed to match parts
-of a source or destination address only, add_addr() checks if all bytes
-in 'mask' are 0xff or not. The check is apparently broken though as each
-byte in 'mask' is cast to a signed char before comparing against 0xff,
-therefore the bitwise is always added:
+syzbot has bisected this issue to:
 
-| # ./bad/iptables-nft -A foo -s 10.0.0.1 -j ACCEPT
-| # ./good/iptables-nft -A foo -s 10.0.0.2 -j ACCEPT
-| # nft --debug=netlink list chain ip filter foo
-| ip filter foo 5
-|   [ payload load 4b @ network header + 12 => reg 1 ]
-|   [ bitwise reg 1 = (reg=1 & 0xffffffff ) ^ 0x00000000 ]
-|   [ cmp eq reg 1 0x0100000a ]
-|   [ counter pkts 0 bytes 0 ]
-|   [ immediate reg 0 accept ]
-|
-| ip filter foo 6 5
-|   [ payload load 4b @ network header + 12 => reg 1 ]
-|   [ cmp eq reg 1 0x0200000a ]
-|   [ counter pkts 0 bytes 0 ]
-|   [ immediate reg 0 accept ]
-|
-| table ip filter {
-| 	chain foo {
-| 		ip saddr 10.0.0.1 counter packets 0 bytes 0 accept
-| 		ip saddr 10.0.0.2 counter packets 0 bytes 0 accept
-| 	}
-| }
+commit bfd45be0b83e8f711f3abc892850d6047972d127
+Author: Christoph Hellwig <hch@lst.de>
+Date:   Tue Oct 11 20:52:22 2016 +0000
 
-Fix the cast, safe an extra op and gain 100% performance in ideal cases.
+    kprobes: include <asm/sections.h> instead of <asm-generic/sections.h>
 
-Fixes: 56859380eb328 ("xtables-compat: avoid unneeded bitwise ops")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/nft-shared.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1613329d900000
+start commit:   98477740 Merge branch 'rcu/urgent' of git://git.kernel.org..
+git tree:       upstream
+final oops:     https://syzkaller.appspot.com/x/report.txt?x=1513329d900000
+console output: https://syzkaller.appspot.com/x/log.txt?x=1113329d900000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=5f4c828c9e3cef97
+dashboard link: https://syzkaller.appspot.com/bug?extid=459a5dce0b4cb70fd076
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=125d46c5900000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=16c58f8b900000
 
-diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
-index c5a8f3fcc051d..7741d23befc5a 100644
---- a/iptables/nft-shared.c
-+++ b/iptables/nft-shared.c
-@@ -165,7 +165,7 @@ void add_outiface(struct nftnl_rule *r, char *iface, uint32_t op)
- void add_addr(struct nftnl_rule *r, int offset,
- 	      void *data, void *mask, size_t len, uint32_t op)
- {
--	const char *m = mask;
-+	const unsigned char *m = mask;
- 	int i;
- 
- 	add_payload(r, offset, len, NFT_PAYLOAD_NETWORK_HEADER);
--- 
-2.28.0
+Reported-by: syzbot+459a5dce0b4cb70fd076@syzkaller.appspotmail.com
+Fixes: bfd45be0b83e ("kprobes: include <asm/sections.h> instead of <asm-generic/sections.h>")
 
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
