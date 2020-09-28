@@ -2,111 +2,96 @@ Return-Path: <SRS0=suW2=DF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EDE4C4346E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Sep 2020 03:06:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E886C2D0A8
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Sep 2020 07:18:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BDB142311C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Sep 2020 03:06:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 31946207F7
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Sep 2020 07:18:52 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="UutTpSCI"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nThYQSip"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726458AbgI1DGN (ORCPT
+        id S1726465AbgI1HSw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 27 Sep 2020 23:06:13 -0400
-Received: from mail-m975.mail.163.com ([123.126.97.5]:60194 "EHLO
-        mail-m975.mail.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726396AbgI1DGM (ORCPT
+        Mon, 28 Sep 2020 03:18:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57974 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726380AbgI1HSv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 27 Sep 2020 23:06:12 -0400
-X-Greylist: delayed 933 seconds by postgrey-1.27 at vger.kernel.org; Sun, 27 Sep 2020 23:06:11 EDT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=HDfLA
-        qYVfb3Z0S+amqSDOqr45I27vSggNM6rJRnL+Bk=; b=UutTpSCIgUClsa27oNpmC
-        LOtikznCIargqvC808q0xr3TdErNG4V8K6AQ7uxMv/TpXkRGVBEQVly9ktOpWT3B
-        WMF6gqgzFf7sYQWNJ6VIF4MYiRDqOqKmRV1c8uKQWpdjivoF7xEp2QEFrclcu+KJ
-        QtNCH1QvEbpntZSXJCXzv8=
-Received: from localhost.localdomain (unknown [111.202.93.98])
-        by smtp5 (Coremail) with SMTP id HdxpCgAXFuZKT3FfGVziOA--.341S2;
-        Mon, 28 Sep 2020 10:49:46 +0800 (CST)
-From:   "longguang.yue" <bigclouds@163.com>
-To:     yuelongguang@gmail.com
-Cc:     "longguang.yue" <bigclouds@163.com>,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        Julian Anastasov <ja@ssi.bg>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netdev@vger.kernel.org (open list:IPVS),
-        lvs-devel@vger.kernel.org (open list:IPVS),
-        netfilter-devel@vger.kernel.org (open list:NETFILTER),
-        coreteam@netfilter.org (open list:NETFILTER),
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v5] ipvs: adjust the debug info in function set_tcp_state
-Date:   Mon, 28 Sep 2020 10:49:38 +0800
-Message-Id: <20200928024938.97121-1-bigclouds@163.com>
-X-Mailer: git-send-email 2.20.1 (Apple Git-117)
-In-Reply-To: <alpine.LFD.2.23.451.2009271625160.35554@ja.home.ssi.bg>
-References: <alpine.LFD.2.23.451.2009271625160.35554@ja.home.ssi.bg>
+        Mon, 28 Sep 2020 03:18:51 -0400
+Received: from mail-il1-x12c.google.com (mail-il1-x12c.google.com [IPv6:2607:f8b0:4864:20::12c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7EF3C0613CE
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Sep 2020 00:18:51 -0700 (PDT)
+Received: by mail-il1-x12c.google.com with SMTP id e5so186807ilr.8
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Sep 2020 00:18:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=hBCwY12fbhQ97Sow1AZcoeytvc3Oc3qVzcmSFC74EPY=;
+        b=nThYQSipcLIF13AsbDQVy9Q78Eagy5mNWzxuoXmzr3AiQvwoL3AUkCtThHym/+SuP4
+         9q8aG0kDdFN6uYUCCz+7Ws2TOmvu26VdYfR/EGwJINO/OsObNYCeTvvCS/By6FnP2msJ
+         UjSXp1hxLdwTP1g377IiZxTATjtk61JkRA3ar2BDSG2mH7BitqE7tFUxkm5Bbnb+UvHo
+         ffdsUYsuH0edH73s1pOZ7xrmK6GpBTBgb9nsjSS3waDi4JG6MK/CNihQVQL9GU7hUaXb
+         6QpS/FmXRGmNdgGc/c5hZMGR4xQZ1pnuY4oemTityiwX602pwhNfF1wCkHMcRlhKjWra
+         tzyQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=hBCwY12fbhQ97Sow1AZcoeytvc3Oc3qVzcmSFC74EPY=;
+        b=ShnduKwWbdHC7SXYqAWtA4k+rGM4MBY1f/+/05GygaNXPviegnJcXOpTm9Hkm8m17r
+         b6bxEbFsTJkXVykqEYxiWqBVG65ADCWJqnBFJ+TxDCBAwt41F4zb24WvZ5J8jSjoCo49
+         JgixkoIiOVNfhABOH/NPY+qUyu/Nl1hxAbQ2Z0nLzMxr+flasPZ6cgO1pFGgem5AJ6hx
+         D/upl67l8p+vLzZIOkY2j8fllJPxqez5vBmgBveAk+d8L5sFykhudckflz1ra4PgNo0M
+         lPeMSlwSrlO+Neqc1Ya7xXbwSYDktIwyETjETTtEE21FR7My4Z5k68uEbKpgjBMd0UZ4
+         sYRg==
+X-Gm-Message-State: AOAM532+yy04gjj55HUUArpSWlPD0cLjOhXkL3C+h6c9GCvn2iaezB/j
+        qxtbC2hyaeGdz7OHFns7qi+X966eF2MSsm+udifHPjbJA3eWSg==
+X-Google-Smtp-Source: ABdhPJwSvjze9a2ZFYui8/Fcdu5lqcBs7yDo8KuLxqDBmscph4iRkttxd9wHQB4NkKdVzGTqm02lv3IIX6rBUyxTLvs=
+X-Received: by 2002:a92:ce05:: with SMTP id b5mr55227ilo.239.1601277530711;
+ Mon, 28 Sep 2020 00:18:50 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: HdxpCgAXFuZKT3FfGVziOA--.341S2
-X-Coremail-Antispam: 1Uf129KBjvJXoW7Kw1UZr48Cr45JrW8ZFW5Wrg_yoW8XrWDpa
-        sayayagrW7JrZ7JrsrJr48u398Cr4vvrn0qFW5K34fJas8Xrs3tFnYkay09a1UArZ7X3yx
-        Xr1Yk3y5Aa92y3DanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07j0OJ5UUUUU=
-X-Originating-IP: [111.202.93.98]
-X-CM-SenderInfo: peljuzprxg2qqrwthudrp/xtbBzwqtQ1aD8mLZkwAAsk
+From:   Gopal Yadav <gopunop@gmail.com>
+Date:   Mon, 28 Sep 2020 12:48:39 +0530
+Message-ID: <CAAUOv8iOGYqi9YvvszTJ40b8bqAWT3dzhDbjdHHJTPQtnaseSw@mail.gmail.com>
+Subject: [nftables] counter not working on kernel 5.6
+To:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Outputting client,virtual,dst addresses info when tcp state changes,
-which makes the connection debug more clear
+Running the below commands:
 
-Signed-off-by: longguang.yue <bigclouds@163.com>
----
- net/netfilter/ipvs/ip_vs_proto_tcp.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+nft add table inet dev
+nft add set inet dev ports_udp { type inet_service\; size 65536\;
+flags dynamic, timeout\; timeout 30d\; }
+nft add element inet dev ports_udp { 53 timeout 30d counter }
+nft list ruleset
 
-diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-index dc2e7da2742a..7da51390cea6 100644
---- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-@@ -539,8 +539,8 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
- 	if (new_state != cp->state) {
- 		struct ip_vs_dest *dest = cp->dest;
- 
--		IP_VS_DBG_BUF(8, "%s %s [%c%c%c%c] %s:%d->"
--			      "%s:%d state: %s->%s conn->refcnt:%d\n",
-+		IP_VS_DBG_BUF(8, "%s %s [%c%c%c%c] c:%s:%d v:%s:%d "
-+			      "d:%s:%d state: %s->%s conn->refcnt:%d\n",
- 			      pd->pp->name,
- 			      ((state_off == TCP_DIR_OUTPUT) ?
- 			       "output " : "input "),
-@@ -548,10 +548,12 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
- 			      th->fin ? 'F' : '.',
- 			      th->ack ? 'A' : '.',
- 			      th->rst ? 'R' : '.',
--			      IP_VS_DBG_ADDR(cp->daf, &cp->daddr),
--			      ntohs(cp->dport),
- 			      IP_VS_DBG_ADDR(cp->af, &cp->caddr),
- 			      ntohs(cp->cport),
-+			      IP_VS_DBG_ADDR(cp->af, &cp->vaddr),
-+			      ntohs(cp->vport),
-+			      IP_VS_DBG_ADDR(cp->daf, &cp->daddr),
-+			      ntohs(cp->dport),
- 			      tcp_state_name(cp->state),
- 			      tcp_state_name(new_state),
- 			      refcount_read(&cp->refcnt));
--- 
-2.20.1 (Apple Git-117)
+Output:
+table inet dev {
+set ports_udp {
+type inet_service
+size 65536
+flags dynamic,timeout
+timeout 30d
+elements = { 53 expires 29d23h59m56s184ms }
+}
+}
 
+Expected Output:
+table inet dev {
+set ports_udp {
+type inet_service
+size 65536
+flags dynamic,timeout
+timeout 30d
+elements = { 53 expires 29d23h59m56s184ms counter packets 0 bytes 0 }
+}
+}
+
+Am I doing something wrong?
