@@ -2,68 +2,41 @@ Return-Path: <SRS0=rcIs=DG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30947C4346E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Sep 2020 05:17:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19ECEC4346E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Sep 2020 08:34:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EAE7D21548
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Sep 2020 05:17:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C6A9F20759
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Sep 2020 08:34:52 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rawzs6k4"
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="Rch5DBd1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727289AbgI2FRj (ORCPT
+        id S1727484AbgI2Ies (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 29 Sep 2020 01:17:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35946 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726108AbgI2FRj (ORCPT
+        Tue, 29 Sep 2020 04:34:48 -0400
+Received: from mail-m974.mail.163.com ([123.126.97.4]:52928 "EHLO
+        mail-m974.mail.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725372AbgI2Ier (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 29 Sep 2020 01:17:39 -0400
-Received: from mail-lf1-x144.google.com (mail-lf1-x144.google.com [IPv6:2a00:1450:4864:20::144])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F09FC061755;
-        Mon, 28 Sep 2020 22:17:35 -0700 (PDT)
-Received: by mail-lf1-x144.google.com with SMTP id 77so4020075lfj.0;
-        Mon, 28 Sep 2020 22:17:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Xif5oC/NRIYYhpW7XETZfA0h68yDq+U57n1x8FOdeWU=;
-        b=rawzs6k4NMlg6bsVsbWsPDBl2UaCGARw1RPjil0OKWhWmLKHo+FOAGheM4W/l1jgCh
-         ntfnJQD1rlXTUrk+If0qpZD2YxEp3os+qzms7fAR7NI0dZkd+LmOdlaKA7/39J2TQThs
-         n7OIgwshgCO5DCcBoNk+gpLg8GsgWOyArueI5twuJ25+eeLBroZfYUD85jJqmBBC1HsZ
-         AOsL6pO/eQ3kcK4P8XtgmWLVbRC888sDzCDtBJ//C6VivSP8Rc6IvHdx5+cDx/pL3iCi
-         U447icvBcUcFBM0BdPKdDNq8m83UnVT2/ZMBdhmV+wtQSxmPW4Pjf6HHHzhjk24ybuW2
-         mbhA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Xif5oC/NRIYYhpW7XETZfA0h68yDq+U57n1x8FOdeWU=;
-        b=TLiionnPO0fs/L8jXVBWjVXYmBe2t5T/n2VVqORsjgDl9e504eCiJ0CJhRVASWz7U/
-         vRLQ5y2WZWM4rIWSxZaT2B9UpxW36/6eqXxLUhARRabr/fdPcAqL3hvB6AfC2dxEResp
-         69g2KsGzNYYLOzxvtLd4ncn6iVO/FCHaL/x3Jef1F65e2+XXnhcOlYMF+Dq3Ykf6Ka9Z
-         0GxpQad4CwxVYug+KBFWoNM1ZF5g9jV5hB/BiVirhyWJt88GuUmAjnHExTmADhfQujKu
-         oYu2RahCtUETEf+znITqC/gp2TinaPFJ8ZOxcNOMJFefos+zsrXSqiqJcUHL8Fsc3iuz
-         Khkw==
-X-Gm-Message-State: AOAM531tURi6cbj6RyVICuC/CDBKSnXAodX9DUNlNYg3jQT8JgQq7RpE
-        bDbS4I1yGdQ55fxkHnE3GRKwvhQ9vpNznJMVHVw=
-X-Google-Smtp-Source: ABdhPJycgZBSkevRQeXI1VbUJ3Yyp8eqTYufhpIaDs+0WpIrV5IhsXpb1BlXRucnYS+kLO+uTMnYwDrzZsNB+58IdvU=
-X-Received: by 2002:a05:6512:31d2:: with SMTP id j18mr621070lfe.316.1601356651774;
- Mon, 28 Sep 2020 22:17:31 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200929050302.28105-1-bigclouds@163.com>
-In-Reply-To: <20200929050302.28105-1-bigclouds@163.com>
-From:   yue longguang <yuelongguang@gmail.com>
-Date:   Tue, 29 Sep 2020 13:17:20 +0800
-Message-ID: <CAPaK2r__afG7epSM6As3SehhCvTk4KvXB_UjQuwjCNZmf-giGA@mail.gmail.com>
-Subject: Re: [PATCH] ipvs: Add traffic statistic up even it is VS/DR or VS/TUN mode
-To:     "longguang.yue" <bigclouds@163.com>
-Cc:     Wensong Zhang <wensong@linux-vs.org>,
+        Tue, 29 Sep 2020 04:34:47 -0400
+X-Greylist: delayed 938 seconds by postgrey-1.27 at vger.kernel.org; Tue, 29 Sep 2020 04:34:46 EDT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=uJw7P
+        bcKiwi2XDoJgHU84ZZoA4o7HeGvmqfG+5az7NQ=; b=Rch5DBd1wq3OPbV+pGi1J
+        sTNEnhW6f4f3z88dTUN4HcS+OjL71Ve71ISYm5tp52UHtD9jJtnCGO+SJuwrbx56
+        WnvMT6MVq22LY35zeR9xoTuf40qN3efev4SbKNilGO99Ydd8LQ/HMXpzBYq3DPC0
+        4dOCS6Cd1tYcEilUgDDfEw=
+Received: from localhost.localdomain (unknown [111.202.93.98])
+        by smtp4 (Coremail) with SMTP id HNxpCgDncWjK7XJfSDh4Rw--.1631S2;
+        Tue, 29 Sep 2020 16:18:18 +0800 (CST)
+From:   "longguang.yue" <bigclouds@163.com>
+Cc:     yuelongguang@gmail.com, "longguang.yue" <bigclouds@163.com>,
+        Wensong Zhang <wensong@linux-vs.org>,
         Simon Horman <horms@verge.net.au>,
         Julian Anastasov <ja@ssi.bg>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
@@ -71,51 +44,90 @@ Cc:     Wensong Zhang <wensong@linux-vs.org>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
-        "open list:IPVS" <netdev@vger.kernel.org>,
-        "open list:IPVS" <lvs-devel@vger.kernel.org>,
-        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
-        "open list:NETFILTER" <coreteam@netfilter.org>,
-        open list <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        netdev@vger.kernel.org (open list:IPVS),
+        lvs-devel@vger.kernel.org (open list:IPVS),
+        netfilter-devel@vger.kernel.org (open list:NETFILTER),
+        coreteam@netfilter.org (open list:NETFILTER),
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH v2] ipvs: Add traffic statistic up even it is VS/DR or VS/TUN mode
+Date:   Tue, 29 Sep 2020 16:18:11 +0800
+Message-Id: <20200929081811.32302-1-bigclouds@163.com>
+X-Mailer: git-send-email 2.20.1 (Apple Git-117)
+In-Reply-To: <20200929050302.28105-1-bigclouds@163.com>
+References: <20200929050302.28105-1-bigclouds@163.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: HNxpCgDncWjK7XJfSDh4Rw--.1631S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxJryDCFykGr18CrWfGr4rZrb_yoW8uw1DpF
+        18tay3XrW8WFy5J3WxAr97CryfCr1kt3Zrur4Yka4Sy3WDXF13AFsYkrWa9ay5ArsYqaya
+        qw4Fqw13C34Dt3DanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07j3xhdUUUUU=
+X-Originating-IP: [111.202.93.98]
+X-CM-SenderInfo: peljuzprxg2qqrwthudrp/xtbBzwquQ1aD8nIV5wAAsP
+To:     unlisted-recipients:; (no To-header on input)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-especially in public cloud case, statistic is related to monitorring
-and billing , both ingress and egress packets will go throught ipvs,
-even dr/tun mode.
-in dr/tun mode, ipvs need to do nothing except  statistic, so
-skb->ipvs_property = 1
+It's ipvs's duty to do traffic statistic if packets get hit,
+no matter what mode it is.
 
-regards
+Signed-off-by: longguang.yue <bigclouds@163.com>
+---
+ net/netfilter/ipvs/ip_vs_conn.c | 13 +++++++++++--
+ net/netfilter/ipvs/ip_vs_core.c |  5 ++++-
+ 2 files changed, 15 insertions(+), 3 deletions(-)
 
-On Tue, Sep 29, 2020 at 1:04 PM longguang.yue <bigclouds@163.com> wrote:
->
-> It's ipvs's duty to do traffic statistic if packets get hit,
-> no matter what mode it is.
->
-> Signed-off-by: longguang.yue <bigclouds@163.com>
-> ---
->  net/netfilter/ipvs/ip_vs_core.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
->
-> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-> index e3668a6e54e4..ed523057f07f 100644
-> --- a/net/netfilter/ipvs/ip_vs_core.c
-> +++ b/net/netfilter/ipvs/ip_vs_core.c
-> @@ -1413,8 +1413,11 @@ ip_vs_out(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, in
->                              ipvs, af, skb, &iph);
->
->         if (likely(cp)) {
-> -               if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ)
-> +               if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ){
-> +                       ip_vs_out_stats(cp, skb);
-> +                       skb->ipvs_property = 1;
->                         goto ignore_cp;
-> +               }
->                 return handle_response(af, skb, pd, cp, &iph, hooknum);
->         }
->
-> --
-> 2.20.1 (Apple Git-117)
->
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index a90b8eac16ac..2620c585d0c0 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -401,6 +401,8 @@ struct ip_vs_conn *ip_vs_ct_in_get(const struct ip_vs_conn_param *p)
+ struct ip_vs_conn *ip_vs_conn_out_get(const struct ip_vs_conn_param *p)
+ {
+ 	unsigned int hash;
++	__be16 cport;
++	const union nf_inet_addr *caddr;
+ 	struct ip_vs_conn *cp, *ret=NULL;
+ 
+ 	/*
+@@ -411,10 +413,17 @@ struct ip_vs_conn *ip_vs_conn_out_get(const struct ip_vs_conn_param *p)
+ 	rcu_read_lock();
+ 
+ 	hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[hash], c_list) {
+-		if (p->vport == cp->cport && p->cport == cp->dport &&
++		if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ){
++			cport = cp->vport;
++			caddr = &cp->vaddr;
++		} else {
++			cport = cp->dport;
++			caddr = &cp->daddr;
++		}
++		if (p->vport == cp->cport && p->cport == cport &&
+ 		    cp->af == p->af &&
+ 		    ip_vs_addr_equal(p->af, p->vaddr, &cp->caddr) &&
+-		    ip_vs_addr_equal(p->af, p->caddr, &cp->daddr) &&
++		    ip_vs_addr_equal(p->af, p->caddr, caddr) &&
+ 		    p->protocol == cp->protocol &&
+ 		    cp->ipvs == p->ipvs) {
+ 			if (!__ip_vs_conn_get(cp))
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index e3668a6e54e4..ed523057f07f 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -1413,8 +1413,11 @@ ip_vs_out(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, in
+ 			     ipvs, af, skb, &iph);
+ 
+ 	if (likely(cp)) {
+-		if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ)
++		if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ){
++			ip_vs_out_stats(cp, skb);
++			skb->ipvs_property = 1;
+ 			goto ignore_cp;
++		}
+ 		return handle_response(af, skb, pd, cp, &iph, hooknum);
+ 	}
+ 
+-- 
+2.20.1 (Apple Git-117)
+
