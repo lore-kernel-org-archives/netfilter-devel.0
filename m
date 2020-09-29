@@ -2,82 +2,128 @@ Return-Path: <SRS0=rcIs=DG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BE86C4741F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Sep 2020 00:18:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3ED41C2D0A8
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Sep 2020 02:16:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C681C2075A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Sep 2020 00:18:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A6D52145D
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Sep 2020 02:16:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="txxrKViS"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DZhXDdSM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727153AbgI2ASm (ORCPT
+        id S1727371AbgI2CQE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 28 Sep 2020 20:18:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46614 "EHLO
+        Mon, 28 Sep 2020 22:16:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36284 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726379AbgI2ASm (ORCPT
+        with ESMTP id S1727035AbgI2CQE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Sep 2020 20:18:42 -0400
-Received: from mail-il1-x142.google.com (mail-il1-x142.google.com [IPv6:2607:f8b0:4864:20::142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB4AFC0613CE;
-        Mon, 28 Sep 2020 14:50:57 -0700 (PDT)
-Received: by mail-il1-x142.google.com with SMTP id s88so2848877ilb.6;
-        Mon, 28 Sep 2020 14:50:57 -0700 (PDT)
+        Mon, 28 Sep 2020 22:16:04 -0400
+Received: from mail-lf1-x143.google.com (mail-lf1-x143.google.com [IPv6:2a00:1450:4864:20::143])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 831FEC061755;
+        Mon, 28 Sep 2020 19:16:03 -0700 (PDT)
+Received: by mail-lf1-x143.google.com with SMTP id u8so3674543lff.1;
+        Mon, 28 Sep 2020 19:16:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=fKP0iCW5C41AVuyVgy4H4iCpIWkNbhmKoGGaIw+FRPw=;
-        b=txxrKViSulx5nWg0jtDkzjfDTpBwfo0AEStIUXIx3QHK1HCmFE8x4JEv8jzMIQ0VMy
-         HghahSBICquGrNLxO7fyA6HR4GVMM4Rl5av5KH4D5HjmHcOs61027JJ6+89uF+APN2uh
-         BN5hR29lcMhmOyrTIGQgLyuhM0RZbcLiM2oONLO+xGJ7Pvw9Q5+LIOLIGEoN9XOgnSnm
-         cjcK2Nw4um/650TxfHCJ/mRHVYLpDoBVl8sbZeXELWaCrsoXs1zgIh9t4MOz62uTrUkT
-         wifctUHQ0XztsVxuN7niWW4MoQCqWbtXpzlc8R7uqqaTCA09mNimTS840oPEmyBYk722
-         PcqQ==
+        bh=DjSQ9+lJ+KOY1QhLkpVLHaBOWFdrcLty+nw0yJV/I8Q=;
+        b=DZhXDdSMQJIGkkVrGwyQS/lGggQc5c3pvIXYhO/IPdOhvQbCY+2marDi29JbT2EsKu
+         yFJZHGwHAVox4UH2X2grKfs/9aOk7V/MQYOMlAVwDCWEpTT8Qha5YjjpVgtFX53/PEGY
+         65Om4LcgoWwGsOtjri619XxiMgldZC+WAQbaE4XCJGF4B/aYF5sN/P8/WmgfSf/c7qpk
+         ERrZXQr2wol0jNmvtQHOYFSkFNz9E+4/LOeAlnNMiJegctoKTYOPSyrXui3T+YsoclU7
+         lt41N1uZG4PGWEuTqnJ+PVaEvxOLrfMMBQWL0FYkCsJ4ifddfSz3PTgiT0JA1uKXZ4To
+         Ab+g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=fKP0iCW5C41AVuyVgy4H4iCpIWkNbhmKoGGaIw+FRPw=;
-        b=Itk3MQDwbH50hFJ9aJpsBHagqzjFehArlr0l8Sz4AHL5tVkqFtPfeCfrldkKUgfA0i
-         iRtCJ8+euWFUUKSob0szxpwIXMX6b2i1BsEPWl8ash+6N35nmldkxHqOJomkbBxeso6M
-         jFV+7Z5vJJbbNhMwMjLth4j1ABE9mL+DeEBOsGJ91xNk+Xah12uhCOJW0oOLJbcirzCy
-         yHvQ/dZnIqo1IdHNZaqhJ1bFRPSFlgnJBb8MupcDbqTMbIEsSpDfQ3jA+21reVDzWzuQ
-         too3qw+b6EbXkZHUgVbQQ4kPBKJqIqm2iPndtY0itBDHulNMGP3rZAwjwTj0eOkK3rO7
-         rN6A==
-X-Gm-Message-State: AOAM530CMvu1q+NPPi344udasnWdWhuZxbAnvTJhyEBmxi12vGW1DEp7
-        iOnrQBtPME50FoZKhQAm0bHtiGBxyBikcYtulcQ=
-X-Google-Smtp-Source: ABdhPJwcIzK8LFFyJn81id6zB83vyHuZH7bJQhMEXxa2VQMxxrs7pEGmiSSMyNFguEMIPBLO+YYTOW4tnrNUnMXSDqY=
-X-Received: by 2002:a92:4a0c:: with SMTP id m12mr392985ilf.238.1601329857041;
- Mon, 28 Sep 2020 14:50:57 -0700 (PDT)
+        bh=DjSQ9+lJ+KOY1QhLkpVLHaBOWFdrcLty+nw0yJV/I8Q=;
+        b=VFlNgeEvacsTG23U2JdwY36hVbWYK1FF5S7vqzOUYvjQDrCpGWVBGzEHnN91tQ0Khs
+         AcDbDX6rMyQDhDSIC4TYPxDcfYQ/90Hsc4B4BHlAZpwMfbbPUcgT/+2KiIMye6X1x7H3
+         FlSwQ+/oi68/q8mPr4m5wQ0i8U/f4Yo761mXtxhEgEyfWBQ5XYU6OtX79/jzFJpTB7oc
+         QMYm55OZPgw8tDUqbbWqnzc784N5REESAhv/Gaw+pKJAsEYrjB5XvusWhpkPJA0aN0NH
+         kaKL0iuWzeycecd/Y2BGxg2FCW+D96fIOVrFfjvF1NJ0fjgrwlUd5P5U1at9N4sAT8Ei
+         bSpw==
+X-Gm-Message-State: AOAM531sligha/B7hk65AQ6OGUN5jKp1Q/lAi8RwMvTC71z5HNMNuNm9
+        iFcyXy4qWsnvLhlBpoz0LJzx1jR2aKs7TJpb/XE=
+X-Google-Smtp-Source: ABdhPJzqPVHpxv1ABhfMES4dUiXbyCk4RTPwO8HCUtEr/JaIgCt6w4BXYPRcNnSoFkQntb43JJE/GzPGH6BacmE9YvY=
+X-Received: by 2002:ac2:5594:: with SMTP id v20mr402181lfg.344.1601345760502;
+ Mon, 28 Sep 2020 19:16:00 -0700 (PDT)
 MIME-Version: 1.0
-References: <000000000000095d3605b05a9909@google.com>
-In-Reply-To: <000000000000095d3605b05a9909@google.com>
-From:   Cong Wang <xiyou.wangcong@gmail.com>
-Date:   Mon, 28 Sep 2020 14:50:45 -0700
-Message-ID: <CAM_iQpWotD4ZE0QBYMzB0_sEtxo0yLzeVfo-_6rXPwW9o9wwYQ@mail.gmail.com>
-Subject: Re: KASAN: use-after-free Read in tcf_action_init
-To:     syzbot <syzbot+9f43bb6a66ff96a21931@syzkaller.appspotmail.com>
-Cc:     coreteam@netfilter.org, David Miller <davem@davemloft.net>,
-        enric.balletbo@collabora.com, groeck@chromium.org,
-        gwendal@chromium.org, Jamal Hadi Salim <jhs@mojatatu.com>,
-        jic23@kernel.org, Jiri Pirko <jiri@resnulli.us>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Jakub Kicinski <kuba@kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
+References: <alpine.LFD.2.23.451.2009271625160.35554@ja.home.ssi.bg> <20200928024938.97121-1-bigclouds@163.com>
+In-Reply-To: <20200928024938.97121-1-bigclouds@163.com>
+From:   yue longguang <yuelongguang@gmail.com>
+Date:   Tue, 29 Sep 2020 10:15:49 +0800
+Message-ID: <CAPaK2r8DnR_dcZ8E9w0mvDbK2KiWCt+JswO=-tqvbWb2RibaYw@mail.gmail.com>
+Subject: Re: [PATCH v5] ipvs: adjust the debug info in function set_tcp_state
+To:     Julian Anastasov <ja@ssi.bg>, "longguang.yue" <bigclouds@163.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>
+        Simon Horman <horms@verge.net.au>
+Cc:     Wensong Zhang <wensong@linux-vs.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        "open list:IPVS" <netdev@vger.kernel.org>,
+        "open list:IPVS" <lvs-devel@vger.kernel.org>,
+        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
+        "open list:NETFILTER" <coreteam@netfilter.org>,
+        open list <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-#syz fix: net_sched: commit action insertions together
+I sincerely apologize for the trouble which takes up much of your
+time. If the last patch does not work , would you please fix it?
+thanks
+
+On Mon, Sep 28, 2020 at 10:51 AM longguang.yue <bigclouds@163.com> wrote:
+>
+> Outputting client,virtual,dst addresses info when tcp state changes,
+> which makes the connection debug more clear
+>
+> Signed-off-by: longguang.yue <bigclouds@163.com>
+> ---
+>  net/netfilter/ipvs/ip_vs_proto_tcp.c | 10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
+>
+> diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+> index dc2e7da2742a..7da51390cea6 100644
+> --- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
+> +++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+> @@ -539,8 +539,8 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
+>         if (new_state != cp->state) {
+>                 struct ip_vs_dest *dest = cp->dest;
+>
+> -               IP_VS_DBG_BUF(8, "%s %s [%c%c%c%c] %s:%d->"
+> -                             "%s:%d state: %s->%s conn->refcnt:%d\n",
+> +               IP_VS_DBG_BUF(8, "%s %s [%c%c%c%c] c:%s:%d v:%s:%d "
+> +                             "d:%s:%d state: %s->%s conn->refcnt:%d\n",
+>                               pd->pp->name,
+>                               ((state_off == TCP_DIR_OUTPUT) ?
+>                                "output " : "input "),
+> @@ -548,10 +548,12 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
+>                               th->fin ? 'F' : '.',
+>                               th->ack ? 'A' : '.',
+>                               th->rst ? 'R' : '.',
+> -                             IP_VS_DBG_ADDR(cp->daf, &cp->daddr),
+> -                             ntohs(cp->dport),
+>                               IP_VS_DBG_ADDR(cp->af, &cp->caddr),
+>                               ntohs(cp->cport),
+> +                             IP_VS_DBG_ADDR(cp->af, &cp->vaddr),
+> +                             ntohs(cp->vport),
+> +                             IP_VS_DBG_ADDR(cp->daf, &cp->daddr),
+> +                             ntohs(cp->dport),
+>                               tcp_state_name(cp->state),
+>                               tcp_state_name(new_state),
+>                               refcount_read(&cp->refcnt));
+> --
+> 2.20.1 (Apple Git-117)
+>
