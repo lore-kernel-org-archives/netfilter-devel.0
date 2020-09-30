@@ -2,132 +2,67 @@ Return-Path: <SRS0=6DLs=DH=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38A53C4727D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Sep 2020 01:27:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DC96C2D0A8
+	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Sep 2020 05:04:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CA28820B1F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Sep 2020 01:27:16 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="Xir3yfGc"
+	by mail.kernel.org (Postfix) with ESMTP id EC7FC206A5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Sep 2020 05:04:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729645AbgI3B1M (ORCPT
+        id S1725440AbgI3FEa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 29 Sep 2020 21:27:12 -0400
-Received: from mail-m972.mail.163.com ([123.126.97.2]:33818 "EHLO
-        mail-m972.mail.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726689AbgI3B1L (ORCPT
+        Wed, 30 Sep 2020 01:04:30 -0400
+Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:58973 "EHLO
+        mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725320AbgI3FEa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 29 Sep 2020 21:27:11 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=uJR2+
-        kHD67D/W0UAJxory5DlslOyqbmHQlUC5LT3n4Q=; b=Xir3yfGciA25slWNSHSYt
-        tDFo8y4o0sSdYkCy+BDdrqjU2FHswbFc5b0znEplbLSnQy38SwJqH81hNisx8+HK
-        fVArAwqy3pBN9tJvtfKFGmSrbQt0nmWnUBWb0VWm1O2EKoWJB39ZdeLByfU8vULZ
-        Ls4OvJKaovT+UUsVRyhAgw=
-Received: from localhost.localdomain (unknown [111.202.93.98])
-        by smtp2 (Coremail) with SMTP id GtxpCgDXpYW53nNfgTuFRg--.396S2;
-        Wed, 30 Sep 2020 09:26:18 +0800 (CST)
-From:   "longguang.yue" <bigclouds@163.com>
-Cc:     kuba@kernel.org, yuelongguang@gmail.com,
-        "longguang.yue" <bigclouds@163.com>,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        Julian Anastasov <ja@ssi.bg>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        netdev@vger.kernel.org (open list:IPVS),
-        lvs-devel@vger.kernel.org (open list:IPVS),
-        netfilter-devel@vger.kernel.org (open list:NETFILTER),
-        coreteam@netfilter.org (open list:NETFILTER),
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v3] ipvs: Add traffic statistic up even it is VS/DR or VS/TUN mode
-Date:   Wed, 30 Sep 2020 09:26:10 +0800
-Message-Id: <20200930012611.54859-1-bigclouds@163.com>
-X-Mailer: git-send-email 2.20.1 (Apple Git-117)
-In-Reply-To: <20200929074110.33d7d740@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-References: <20200929074110.33d7d740@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: GtxpCgDXpYW53nNfgTuFRg--.396S2
-X-Coremail-Antispam: 1Uf129KBjvJXoWxJryDGw15Gw1kKrWrKr1rWFg_yoW8uw17pF
-        18ta43XrW8GFy5J3W7Ar97CryfCr1kt3Zrur4Yk34Sy3WDXFnxAFs0krya9a45ArsYqaya
-        qw4Fqw13Crykt3DanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07jx5r7UUUUU=
-X-Originating-IP: [111.202.93.98]
-X-CM-SenderInfo: peljuzprxg2qqrwthudrp/xtbBZBqvQ1QHK4aeXwAAst
-To:     unlisted-recipients:; (no To-header on input)
+        Wed, 30 Sep 2020 01:04:30 -0400
+X-Greylist: delayed 1101 seconds by postgrey-1.27 at vger.kernel.org; Wed, 30 Sep 2020 01:04:29 EDT
+Received: from dimstar.local.net (n49-192-70-185.sun3.vic.optusnet.com.au [49.192.70.185])
+        by mail105.syd.optusnet.com.au (Postfix) with SMTP id D09873AC060
+        for <netfilter-devel@vger.kernel.org>; Wed, 30 Sep 2020 15:04:26 +1000 (AEST)
+Received: (qmail 12504 invoked by uid 501); 30 Sep 2020 05:04:26 -0000
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org, dunc@dimstar.local.net
+Subject: [PATCH libnetfilter_queue] src: doc: Fix doxygen warning
+Date:   Wed, 30 Sep 2020 15:04:26 +1000
+Message-Id: <20200930050426.12462-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.17.5
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.3 cv=YKPhNiOx c=1 sm=1 tr=0 cx=a_idp_d
+        a=zRnOCfNoldqEzXEIOSrMkw==:117 a=zRnOCfNoldqEzXEIOSrMkw==:17
+        a=reM5J-MqmosA:10 a=RSmzAf-M6YYA:10 a=PO7r1zJSAAAA:8
+        a=lYee_BwEX8FsesqnFeAA:9
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-It's ipvs's duty to do traffic statistic if packets get hit,
-no matter what mode it is.
+src/extra/checksum.c had a stray group close sequnce at the end.
 
-Signed-off-by: longguang.yue <bigclouds@163.com>
+(Spotted after sending doxygen o/p to /dev/null)
+
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
- net/netfilter/ipvs/ip_vs_conn.c | 14 ++++++++++++--
- net/netfilter/ipvs/ip_vs_core.c |  5 ++++-
- 2 files changed, 16 insertions(+), 3 deletions(-)
+ src/extra/checksum.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index a90b8eac16ac..c4d164ce8ca7 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -401,6 +401,8 @@ struct ip_vs_conn *ip_vs_ct_in_get(const struct ip_vs_conn_param *p)
- struct ip_vs_conn *ip_vs_conn_out_get(const struct ip_vs_conn_param *p)
- {
- 	unsigned int hash;
-+	__be16 cport;
-+	const union nf_inet_addr *caddr;
- 	struct ip_vs_conn *cp, *ret=NULL;
+diff --git a/src/extra/checksum.c b/src/extra/checksum.c
+index a650b64..ffc8c75 100644
+--- a/src/extra/checksum.c
++++ b/src/extra/checksum.c
+@@ -80,7 +80,3 @@ uint16_t nfq_checksum_tcpudp_ipv6(struct ip6_hdr *ip6h, void *transport_hdr,
  
- 	/*
-@@ -411,10 +413,18 @@ struct ip_vs_conn *ip_vs_conn_out_get(const struct ip_vs_conn_param *p)
- 	rcu_read_lock();
- 
- 	hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[hash], c_list) {
--		if (p->vport == cp->cport && p->cport == cp->dport &&
-+		cport = cp->dport;
-+		caddr = &cp->daddr;
-+
-+		if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ) {
-+			cport = cp->vport;
-+			caddr = &cp->vaddr;
-+		}
-+
-+		if (p->vport == cp->cport && p->cport == cport &&
- 		    cp->af == p->af &&
- 		    ip_vs_addr_equal(p->af, p->vaddr, &cp->caddr) &&
--		    ip_vs_addr_equal(p->af, p->caddr, &cp->daddr) &&
-+		    ip_vs_addr_equal(p->af, p->caddr, caddr) &&
- 		    p->protocol == cp->protocol &&
- 		    cp->ipvs == p->ipvs) {
- 			if (!__ip_vs_conn_get(cp))
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index e3668a6e54e4..7ba88dab297a 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1413,8 +1413,11 @@ ip_vs_out(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, in
- 			     ipvs, af, skb, &iph);
- 
- 	if (likely(cp)) {
--		if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ)
-+		if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ) {
-+			ip_vs_out_stats(cp, skb);
-+			skb->ipvs_property = 1;
- 			goto ignore_cp;
-+		}
- 		return handle_response(af, skb, pd, cp, &iph, hooknum);
- 	}
- 
+ 	return nfq_checksum(sum, (uint16_t *)payload, len);
+ }
+-
+-/**
+- * @}
+- */
 -- 
-2.20.1 (Apple Git-117)
+2.17.5
 
