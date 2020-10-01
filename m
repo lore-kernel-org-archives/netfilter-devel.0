@@ -2,134 +2,90 @@ Return-Path: <SRS0=AsZf=DI=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD78DC4727E
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Oct 2020 16:40:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7A0AC4727E
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Oct 2020 16:40:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A1F62072E
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Oct 2020 16:40:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B982E2072E
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Oct 2020 16:40:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732096AbgJAQkC (ORCPT
+        id S1732119AbgJAQkG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Oct 2020 12:40:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49878 "EHLO
+        Thu, 1 Oct 2020 12:40:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49890 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731917AbgJAQkC (ORCPT
+        with ESMTP id S1731917AbgJAQkG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Oct 2020 12:40:02 -0400
+        Thu, 1 Oct 2020 12:40:06 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2293DC0613D0
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Oct 2020 09:40:02 -0700 (PDT)
-Received: from localhost ([::1]:47988 helo=tatos)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07C39C0613D0
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Oct 2020 09:40:06 -0700 (PDT)
+Received: from localhost ([::1]:48002 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.94)
         (envelope-from <phil@nwl.cc>)
-        id 1kO1cd-0004Lb-8x; Thu, 01 Oct 2020 18:39:59 +0200
+        id 1kO1ci-0004N2-JP; Thu, 01 Oct 2020 18:40:04 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [net-next PATCH 1/2] net: netfilter: Enable fast nft_cmp for inverted matches
-Date:   Thu,  1 Oct 2020 18:57:43 +0200
-Message-Id: <20201001165744.25466-2-phil@nwl.cc>
+Subject: [net-next PATCH 0/2] netfilter: Improve inverted IP prefix matches
+Date:   Thu,  1 Oct 2020 18:57:42 +0200
+Message-Id: <20201001165744.25466-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.28.0
-In-Reply-To: <20201001165744.25466-1-phil@nwl.cc>
-References: <20201001165744.25466-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add a boolean indicating NFT_CMP_NEQ. To include it into the match
-decision, it is sufficient to XOR it with the data comparison's result.
+The following two patches improve packet throughput in a test setup
+sending UDP packets (using iperf3) between two netns. The ruleset used
+on receiver side is like this:
 
-While being at it, store the mask that is calculated during expression
-init and free the eval routine from having to recalculate it each time.
+| *filter
+| :test - [0:0]
+| -A INPUT -j test
+| -A INPUT -j ACCEPT
+| -A test ! -s 10.0.0.0/10 -j DROP # this line repeats 10000 times
+| COMMIT
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- include/net/netfilter/nf_tables_core.h |  2 ++
- net/netfilter/nf_tables_core.c         |  3 +--
- net/netfilter/nft_cmp.c                | 10 +++++-----
- 3 files changed, 8 insertions(+), 7 deletions(-)
+These are the generated VM instructions for each rule:
 
-diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
-index 78516de14d316..df2d91c814cb3 100644
---- a/include/net/netfilter/nf_tables_core.h
-+++ b/include/net/netfilter/nf_tables_core.h
-@@ -25,8 +25,10 @@ void nf_tables_core_module_exit(void);
- 
- struct nft_cmp_fast_expr {
- 	u32			data;
-+	u32			mask;
- 	enum nft_registers	sreg:8;
- 	u8			len;
-+	bool			inv;
- };
- 
- struct nft_immediate_expr {
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index 587897a2498b8..e92feacaf5516 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -51,9 +51,8 @@ static void nft_cmp_fast_eval(const struct nft_expr *expr,
- 			      struct nft_regs *regs)
- {
- 	const struct nft_cmp_fast_expr *priv = nft_expr_priv(expr);
--	u32 mask = nft_cmp_fast_mask(priv->len);
- 
--	if ((regs->data[priv->sreg] & mask) == priv->data)
-+	if (((regs->data[priv->sreg] & priv->mask) == priv->data) ^ priv->inv)
- 		return;
- 	regs->verdict.code = NFT_BREAK;
- }
-diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
-index 16f4d84599ac7..832c3b08991e7 100644
---- a/net/netfilter/nft_cmp.c
-+++ b/net/netfilter/nft_cmp.c
-@@ -167,7 +167,6 @@ static int nft_cmp_fast_init(const struct nft_ctx *ctx,
- 	struct nft_cmp_fast_expr *priv = nft_expr_priv(expr);
- 	struct nft_data_desc desc;
- 	struct nft_data data;
--	u32 mask;
- 	int err;
- 
- 	err = nft_data_init(NULL, &data, sizeof(data), &desc,
-@@ -181,10 +180,11 @@ static int nft_cmp_fast_init(const struct nft_ctx *ctx,
- 		return err;
- 
- 	desc.len *= BITS_PER_BYTE;
--	mask = nft_cmp_fast_mask(desc.len);
- 
--	priv->data = data.data[0] & mask;
-+	priv->mask = nft_cmp_fast_mask(desc.len);
-+	priv->data = data.data[0] & priv->mask;
- 	priv->len  = desc.len;
-+	priv->inv  = ntohl(nla_get_be32(tb[NFTA_CMP_OP])) != NFT_CMP_EQ;
- 	return 0;
- }
- 
-@@ -201,7 +201,7 @@ static int nft_cmp_fast_offload(struct nft_offload_ctx *ctx,
- 		},
- 		.sreg	= priv->sreg,
- 		.len	= priv->len / BITS_PER_BYTE,
--		.op	= NFT_CMP_EQ,
-+		.op	= priv->inv ? NFT_CMP_NEQ : NFT_CMP_EQ,
- 	};
- 
- 	return __nft_cmp_offload(ctx, flow, &cmp);
-@@ -272,7 +272,7 @@ nft_cmp_select_ops(const struct nft_ctx *ctx, const struct nlattr * const tb[])
- 		goto err1;
- 	}
- 
--	if (desc.len <= sizeof(u32) && op == NFT_CMP_EQ)
-+	if (desc.len <= sizeof(u32) && (op == NFT_CMP_EQ || op == NFT_CMP_NEQ))
- 		return &nft_cmp_fast_ops;
- 
- 	return &nft_cmp_ops;
+| [ payload load 4b @ network header + 12 => reg 1 ]
+| [ bitwise reg 1 = (reg=1 & 0x0000c0ff ) ^ 0x00000000 ]
+| [ cmp eq reg 1 0x0000000a ]
+| [ counter pkts 0 bytes 0 ]
+| [ immediate reg 0 drop ]
+
+Both sender and receiver reside within 10/10 network, iperf3 is just
+used to fill the (virtual) wire:
+
+| iperf3 -c 10.0.0.2 -u -b 10G -t 1000
+
+On receiver side, "packets received" counter of 'netstat -su' is
+monitored to calculate throughput. Averaging over about a minute, these
+are the figures:
+
+legacy:			~10000pkt/s
+nft (base):		~3000pkt/s
+nft (patch1):		~4000pkt/s
+nft (patch1+2):		~5200pkt/s
+
+In summary, this increases nftables throughput for this specific test
+case from 1/3 of legacy iptables to 1/2.
+
+Phil Sutter (2):
+  net: netfilter: Enable fast nft_cmp for inverted matches
+  net: netfilter: Implement fast bitwise expression
+
+ include/net/netfilter/nf_tables_core.h |  11 ++
+ net/netfilter/nf_tables_core.c         |  15 ++-
+ net/netfilter/nft_bitwise.c            | 141 +++++++++++++++++++++++--
+ net/netfilter/nft_cmp.c                |  10 +-
+ 4 files changed, 164 insertions(+), 13 deletions(-)
+
 -- 
 2.28.0
 
