@@ -6,47 +6,50 @@ X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
 	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96A96C4363D
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Oct 2020 11:25:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D98AFC4363D
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Oct 2020 11:30:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 66000206DD
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Oct 2020 11:25:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A7FBB206DC
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Oct 2020 11:30:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387773AbgJBLZm (ORCPT
+        id S1726010AbgJBLah (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Oct 2020 07:25:42 -0400
-Received: from mail-wm1-f67.google.com ([209.85.128.67]:38241 "EHLO
-        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387561AbgJBLZl (ORCPT
+        Fri, 2 Oct 2020 07:30:37 -0400
+Received: from mail-wr1-f45.google.com ([209.85.221.45]:42052 "EHLO
+        mail-wr1-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725953AbgJBLaf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Oct 2020 07:25:41 -0400
-Received: by mail-wm1-f67.google.com with SMTP id v12so1363427wmh.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 02 Oct 2020 04:25:40 -0700 (PDT)
+        Fri, 2 Oct 2020 07:30:35 -0400
+Received: by mail-wr1-f45.google.com with SMTP id c18so1412758wrm.9
+        for <netfilter-devel@vger.kernel.org>; Fri, 02 Oct 2020 04:30:33 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:to:cc:references:from:autocrypt
          :message-id:date:user-agent:mime-version:in-reply-to
          :content-language:content-transfer-encoding;
-        bh=w5CseqWISFDUVTzNwQy7+1FdvR9xf1fWyLcwScJY4uc=;
-        b=c7IEQOyBHdFuxMD93F9ilsjKi+gjSSLf27/qZzrjH9UiGMbj1VIdp1okRSvHcsoms9
-         fanuEFzfmtLsgD16ZWTR1SvftCh9oJdBFlKvOgt1QOs1KQEVg9UuqbUaX5ULic7vKl+B
-         3/oXq+324CfxkYet6NSyYfb3X59Cou4j42NvkepZCiI2sdvRKVs6Vb02Gq381xkc/7cl
-         hpax4PKliL8gTToOXPgZlSAk3OMs/TLLYsmxoNYd0vLNAw478O/xaGgJPVYa0EcMubdf
-         Elk/93YPqgJ2EGbVxbhDj348k97Wtmv5grVl0rt6oWGd3puwD9gilCcAMVEFc219S48y
-         8I+w==
-X-Gm-Message-State: AOAM5328pvVq+WxvNDwGEsFGpifOrCxd2oqczPwFl0yy0MjyLHzPM+0n
-        RVMDZ6VtXwUJdmj8Jc3eQQvGoMYvbRR0hw==
-X-Google-Smtp-Source: ABdhPJzegrepGdpzmjrkaYX9Mq4vlldegXspy/3MLUceGw3uLSVnIDwASuubNaj7Nwp1T9aqamuL7w==
-X-Received: by 2002:a1c:9994:: with SMTP id b142mr2282873wme.94.1601637939199;
-        Fri, 02 Oct 2020 04:25:39 -0700 (PDT)
+        bh=AptZQMsaq27ykogJhDOvb1N55H7ET3xSGtUUXxCkHas=;
+        b=nUAsEdhLKs489lNW3mnXTSP7w2K6dswCntpTPsd9M5lmhL+LC4DahImgkVnTt2UeiP
+         /MxviDpGBDud+zukLulzfy+4Exv0XFikgdppMmfwxiWKKNOI9Ov1I9IwyQABZkUhJwxb
+         sfyNI+p2UNrp/4gplyvuYidPm0fpj+pXYQUOQ24YTLVjMrmTc2cxJeQWT12RhJIUae24
+         Fa3iu77YvrNLt4ndkxdSrd3+PiZM5jPq4iIYRA2ab5EBT526CPe6HYyiw/kJZmZdD4i4
+         UHMxHwskGLtBOzOiLC3EdUG/ClfXW2UpTs6pLuynjYOSQB9UJmxXSETAOzfpS2spNvEA
+         1O5g==
+X-Gm-Message-State: AOAM533NFLamuU8keJATBsEhSeRFCbSayu+3KsqICoIyjsQF7s7Zwm7l
+        frlzksSjCmsSO05BPr5ZMM10GXMAt4iEYQ==
+X-Google-Smtp-Source: ABdhPJzvM54fsv8xeLeoPzM3YXH10NYZMN2b+hBQ1fOhzhiwi6mQLovS/pIpkb9bjgr0OG5rmJD8pw==
+X-Received: by 2002:adf:91a4:: with SMTP id 33mr2682783wri.170.1601638232782;
+        Fri, 02 Oct 2020 04:30:32 -0700 (PDT)
 Received: from [10.239.43.214] (79.red-80-24-233.staticip.rima-tde.net. [80.24.233.79])
-        by smtp.gmail.com with ESMTPSA id f63sm140245wme.38.2020.10.02.04.25.38
+        by smtp.gmail.com with ESMTPSA id u13sm1380583wrm.77.2020.10.02.04.30.31
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 02 Oct 2020 04:25:38 -0700 (PDT)
-Subject: Re: [iptables PATCH] nft: Optimize class-based IP prefix matches
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org
-References: <20201002090334.29788-1-phil@nwl.cc>
+        Fri, 02 Oct 2020 04:30:32 -0700 (PDT)
+Subject: Re: iptables-nft-restore issue
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Phil Sutter <phil@nwl.cc>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+References: <198c69b7-d7b2-f910-c469-199bfe2fda28@netfilter.org>
+ <20200930115922.GC20140@breakpoint.cc> <20200930121314.GA21983@salvia>
+ <20200930122453.GA24863@salvia>
 From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
 Autocrypt: addr=arturo@netfilter.org; keydata=
  mQINBFD+Z5kBEADBJXuDQP41sQ/ANmzCCR/joRBgunGhAMnXgS1IlJe7NdX5yZ7+dOM8Lhe3
@@ -91,12 +94,12 @@ Autocrypt: addr=arturo@netfilter.org; keydata=
  /rJNIF3K5uGoI9ikF00swEWL0yTWvv3rvD0OiVOuptrUNHPbxACHzlw4UGVqvAxSvFIoXUOd
  BzQBnObBvPcu14uTb5C19hUP4xwOsds5BlYlUdV4IJjufE71Xz56DDV8h8pV4d6UY5MlLcfk
  EXgmBmyUKrJkh/zvupp9t9Y2ioPbcMObRIEXio4=
-Message-ID: <9c63d7a4-c034-5c38-842d-f262d9db8fa7@netfilter.org>
-Date:   Fri, 2 Oct 2020 13:25:37 +0200
+Message-ID: <fd7a8319-e008-4fa5-1c24-af6c9da9612a@netfilter.org>
+Date:   Fri, 2 Oct 2020 13:30:31 +0200
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
  Thunderbird/68.12.0
 MIME-Version: 1.0
-In-Reply-To: <20201002090334.29788-1-phil@nwl.cc>
+In-Reply-To: <20200930122453.GA24863@salvia>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
@@ -104,7 +107,9 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-10-02 11:03, Phil Sutter wrote:
-> +#define max(x, y) ((x) > (y) ? (x) : (y))
+On 2020-09-30 14:26, Pablo Neira Ayuso wrote:
+> 
+> Probably this patch?
+> 
 
-This is unused, right? not sure if on purpose.
+The patch seems to work. Let me submit it with a testcase.
