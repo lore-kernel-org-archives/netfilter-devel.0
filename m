@@ -2,125 +2,134 @@ Return-Path: <SRS0=cI96=DJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D39C4C4363D
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Oct 2020 11:44:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18E15C4363D
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Oct 2020 11:51:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9C495206E3
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Oct 2020 11:44:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC417206B6
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Oct 2020 11:51:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726282AbgJBLol (ORCPT
+        id S1726176AbgJBLvf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Oct 2020 07:44:41 -0400
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:36962 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725964AbgJBLol (ORCPT
+        Fri, 2 Oct 2020 07:51:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58416 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725964AbgJBLvf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Oct 2020 07:44:41 -0400
-Received: by mail-wr1-f67.google.com with SMTP id z4so1475654wrr.4
-        for <netfilter-devel@vger.kernel.org>; Fri, 02 Oct 2020 04:44:39 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:from:to:cc:date:message-id:user-agent
-         :mime-version:content-transfer-encoding;
-        bh=a3HOBVVlIIKm0zgt9fjVQizcrcaUMFm+zhWiUrEhifM=;
-        b=FhBKzKFgJm7dQdWetIsG+0FveBAB+NRLdHhx9HjAEOBFo3d2NrLhtz6AxAslDFlp4P
-         CkSkk9o7wugn949Cq1pXuJnYifMWgw6xpv8JEHfyTcB2V9iHZIWCvAeY33Kqt4FGpde+
-         Xo3TkAsAC7USwZImhkzcDV/Fg+ZfubeLFE76ODKcdhk/Qy/xdPuKCFYb54Yj0Pzt8QLG
-         H+RAz3BFphbTmL2s6TDkOEoYj5bMTSgj2pMCuCPpn9C/GYxjkUGsxdqaDF97jWngqS+e
-         fe0A2E89fyItu5Jnuxp38ZDfDNWmynNu1fcZI8Vy16XarSJnvMSDlDxKfAo3V6xqNr7F
-         D7gw==
-X-Gm-Message-State: AOAM533XO03M+U/+vX6Gdqo36F5F4CCrZ2jRbvaLuTweB0ZmN8hkrOOC
-        SX9Z2fk21/zjtogQ6Dg6kA4uZj1JqtYeGg==
-X-Google-Smtp-Source: ABdhPJyQF1tx6UlulR8m4hsH1JiF3HyLw60RE6qBU00CYWIVRNpwX9tclkDBHr27oMb686O7xh686w==
-X-Received: by 2002:adf:f34a:: with SMTP id e10mr2586578wrp.91.1601639078242;
-        Fri, 02 Oct 2020 04:44:38 -0700 (PDT)
-Received: from localhost (79.red-80-24-233.staticip.rima-tde.net. [80.24.233.79])
-        by smtp.gmail.com with ESMTPSA id r5sm1428028wrp.15.2020.10.02.04.44.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 02 Oct 2020 04:44:37 -0700 (PDT)
-Subject: [iptables PATCH] iptables-nft: fix basechain policy configuration
-From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     phil@nwl.cc, pablo@netfilter.org
-Date:   Fri, 02 Oct 2020 13:44:36 +0200
-Message-ID: <160163907669.18523.7311010971070291883.stgit@endurance>
-User-Agent: StGit/0.19
+        Fri, 2 Oct 2020 07:51:35 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40DF7C0613D0
+        for <netfilter-devel@vger.kernel.org>; Fri,  2 Oct 2020 04:51:35 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1kOJb3-0006mz-TR; Fri, 02 Oct 2020 13:51:33 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: nfnetlink: place subsys mutexes in distinct lockdep classes
+Date:   Fri,  2 Oct 2020 13:51:29 +0200
+Message-Id: <20201002115129.22273-1-fw@strlen.de>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From time to time there are lockdep reports similar to this one:
 
-Previous to this patch, the basechain policy could not be properly configured if it wasn't
-explictly set when loading the ruleset, leading to iptables-nft-restore (and ip6tables-nft-restore)
-trying to send an invalid ruleset to the kernel.
+ WARNING: possible circular locking dependency detected
+ ------------------------------------------------------
+ 000000004f61aa56 (&table[i].mutex){+.+.}, at: nfnl_lock [nfnetlink]
+ but task is already holding lock:
+ [..] (&net->nft.commit_mutex){+.+.}, at: nf_tables_valid_genid [nf_tables]
+ which lock already depends on the new lock.
+ the existing dependency chain (in reverse order) is:
+ -> #1 (&net->nft.commit_mutex){+.+.}:
+ [..]
+        nf_tables_valid_genid+0x18/0x60 [nf_tables]
+        nfnetlink_rcv_batch+0x24c/0x620 [nfnetlink]
+        nfnetlink_rcv+0x110/0x140 [nfnetlink]
+        netlink_unicast+0x12c/0x1e0
+ [..]
+        sys_sendmsg+0x18/0x40
+        linux_sparc_syscall+0x34/0x44
+ -> #0 (&table[i].mutex){+.+.}:
+ [..]
+        nfnl_lock+0x24/0x40 [nfnetlink]
+        ip_set_nfnl_get_byindex+0x19c/0x280 [ip_set]
+        set_match_v1_checkentry+0x14/0xc0 [xt_set]
+        xt_check_match+0x238/0x260 [x_tables]
+        __nft_match_init+0x160/0x180 [nft_compat]
+ [..]
+        sys_sendmsg+0x18/0x40
+        linux_sparc_syscall+0x34/0x44
+ other info that might help us debug this:
+  Possible unsafe locking scenario:
+        CPU0                    CPU1
+        ----                    ----
+   lock(&net->nft.commit_mutex);
+                                lock(&table[i].mutex);
+                                lock(&net->nft.commit_mutex);
+   lock(&table[i].mutex);
 
-CC: Phil Sutter <phil@nwl.cc>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
+Lockdep considers this an ABBA deadlock because the different nfnl subsys
+mutexes reside in the same lockdep class, but this is a false positive.
+
+CPU1 table[i] refers to the nftables subsys mutex, whereas CPU1 locks
+the ipset subsys mutex.
+
+Yi Che reported a similar lockdep splat, this time between ipset and
+ctnetlink subsys mutexes.
+
+Time to place them in distinct classes to avoid these warnings.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- iptables/nft.c                                     |    6 +++++-
- .../testcases/nft-only/0008-basechain-policy_0     |   21 ++++++++++++++++++++
- 2 files changed, 26 insertions(+), 1 deletion(-)
- create mode 100755 iptables/tests/shell/testcases/nft-only/0008-basechain-policy_0
+ net/netfilter/nfnetlink.c | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
-diff --git a/iptables/nft.c b/iptables/nft.c
-index 27bb98d1..f29fe5b4 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -678,7 +678,9 @@ nft_chain_builtin_alloc(const struct builtin_table *table,
- 	nftnl_chain_set_str(c, NFTNL_CHAIN_NAME, chain->name);
- 	nftnl_chain_set_u32(c, NFTNL_CHAIN_HOOKNUM, chain->hook);
- 	nftnl_chain_set_u32(c, NFTNL_CHAIN_PRIO, chain->prio);
--	nftnl_chain_set_u32(c, NFTNL_CHAIN_POLICY, policy);
-+	if (policy >= 0)
-+		nftnl_chain_set_u32(c, NFTNL_CHAIN_POLICY, policy);
-+
- 	nftnl_chain_set_str(c, NFTNL_CHAIN_TYPE, chain->type);
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 3a2e64e13b22..2daa1f6ae344 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -46,6 +46,23 @@ static struct {
+ 	const struct nfnetlink_subsystem __rcu	*subsys;
+ } table[NFNL_SUBSYS_COUNT];
  
- 	return c;
-@@ -911,6 +913,8 @@ int nft_chain_set(struct nft_handle *h, const char *table,
- 		c = nft_chain_new(h, table, chain, NF_DROP, counters);
- 	else if (strcmp(policy, "ACCEPT") == 0)
- 		c = nft_chain_new(h, table, chain, NF_ACCEPT, counters);
-+	else if (strcmp(policy, "-") == 0)
-+		c = nft_chain_new(h, table, chain, -1, counters);
- 	else
- 		errno = EINVAL;
++static struct lock_class_key nfnl_lockdep_keys[NFNL_SUBSYS_COUNT];
++
++static const char *const nfnl_lockdep_names[NFNL_SUBSYS_COUNT] = {
++	[NFNL_SUBSYS_NONE] = "nfnl_subsys_none",
++	[NFNL_SUBSYS_CTNETLINK] = "nfnl_subsys_ctnetlink",
++	[NFNL_SUBSYS_CTNETLINK_EXP] = "nfnl_subsys_ctnetlink_exp",
++	[NFNL_SUBSYS_QUEUE] = "nfnl_subsys_queue",
++	[NFNL_SUBSYS_ULOG] = "nfnl_subsys_ulog",
++	[NFNL_SUBSYS_OSF] = "nfnl_subsys_osf",
++	[NFNL_SUBSYS_IPSET] = "nfnl_subsys_ipset",
++	[NFNL_SUBSYS_ACCT] = "nfnl_subsys_acct",
++	[NFNL_SUBSYS_CTNETLINK_TIMEOUT] = "nfnl_subsys_cttimeout",
++	[NFNL_SUBSYS_CTHELPER] = "nfnl_subsys_cthelper",
++	[NFNL_SUBSYS_NFTABLES] = "nfnl_subsys_nftables",
++	[NFNL_SUBSYS_NFT_COMPAT] = "nfnl_subsys_nftcompat",
++};
++
+ static const int nfnl_group2type[NFNLGRP_MAX+1] = {
+ 	[NFNLGRP_CONNTRACK_NEW]		= NFNL_SUBSYS_CTNETLINK,
+ 	[NFNLGRP_CONNTRACK_UPDATE]	= NFNL_SUBSYS_CTNETLINK,
+@@ -632,7 +649,7 @@ static int __init nfnetlink_init(void)
+ 		BUG_ON(nfnl_group2type[i] == NFNL_SUBSYS_NONE);
  
-diff --git a/iptables/tests/shell/testcases/nft-only/0008-basechain-policy_0 b/iptables/tests/shell/testcases/nft-only/0008-basechain-policy_0
-new file mode 100755
-index 00000000..61e408e8
---- /dev/null
-+++ b/iptables/tests/shell/testcases/nft-only/0008-basechain-policy_0
-@@ -0,0 +1,21 @@
-+#!/bin/bash
-+
-+[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
-+set -e
-+
-+# make sure iptables-nft-restore can correctly handle basechain policies when they aren't set
-+
-+$XT_MULTI iptables-restore <<EOF
-+*raw
-+:OUTPUT - [0:0]
-+:PREROUTING - [0:0]
-+:neutron-linuxbri-OUTPUT - [0:0]
-+:neutron-linuxbri-PREROUTING - [0:0]
-+-I OUTPUT 1 -j neutron-linuxbri-OUTPUT
-+-I PREROUTING 1 -j neutron-linuxbri-PREROUTING
-+-I neutron-linuxbri-PREROUTING 1 -m physdev --physdev-in brq7425e328-56 -j CT --zone 4097
-+-I neutron-linuxbri-PREROUTING 2 -i brq7425e328-56 -j CT --zone 4097
-+-I neutron-linuxbri-PREROUTING 3 -m physdev --physdev-in tap7f101a28-1d -j CT --zone 4097
-+
-+COMMIT
-+EOF
+ 	for (i=0; i<NFNL_SUBSYS_COUNT; i++)
+-		mutex_init(&table[i].mutex);
++		__mutex_init(&table[i].mutex, nfnl_lockdep_names[i], &nfnl_lockdep_keys[i]);
+ 
+ 	return register_pernet_subsys(&nfnetlink_net_ops);
+ }
+-- 
+2.26.2
 
