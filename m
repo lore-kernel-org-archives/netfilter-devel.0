@@ -1,202 +1,53 @@
-Return-Path: <SRS0=cI96=DJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=DeQi=DK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Level: *
+X-Spam-Status: No, score=1.1 required=3.0 tests=BAYES_50,
+	HEADER_FROM_DIFFERENT_DOMAINS,HK_NAME_MR_MRS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3D0CC4727D
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Oct 2020 19:52:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FFC6C4727D
+	for <netfilter-devel@archiver.kernel.org>; Sat,  3 Oct 2020 08:59:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7767520719
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Oct 2020 19:52:54 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="iS6cH+P5"
+	by mail.kernel.org (Postfix) with ESMTP id CFC3C207FB
+	for <netfilter-devel@archiver.kernel.org>; Sat,  3 Oct 2020 08:58:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725446AbgJBTwx (ORCPT
+        id S1725768AbgJCI67 convert rfc822-to-8bit (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Oct 2020 15:52:53 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:29902 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725747AbgJBTwx (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Oct 2020 15:52:53 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1601668371;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=hRr/pDEXOFI8IyjbRkjNDNwPb0Hh+iZXihdzjIb1dq0=;
-        b=iS6cH+P5+x0+Uq1FR//BswPqTFH0nrNI/IBjw+GAqpRDG9cQDNsk979PitzvquoJEISzqN
-        QQdB2RnatkVBbA2QbuEEuYkUVRny5k4kkuA7u5Fsp6p8qOBZltwXRyfhvgafd0/rC0h/uZ
-        Q4OeIdZ5hL61XvlkYcpeON2zDgOUi34=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-161-h1pnc9sdNo6udeNBTyvn3Q-1; Fri, 02 Oct 2020 15:52:49 -0400
-X-MC-Unique: h1pnc9sdNo6udeNBTyvn3Q-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 303FC1018722;
-        Fri,  2 Oct 2020 19:52:47 +0000 (UTC)
-Received: from madcap2.tricolour.ca (unknown [10.10.110.18])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 8D74F73677;
-        Fri,  2 Oct 2020 19:52:34 +0000 (UTC)
-Date:   Fri, 2 Oct 2020 15:52:31 -0400
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        sgrubb@redhat.com, Ondrej Mosnacek <omosnace@redhat.com>,
-        dhowells@redhat.com, simo@redhat.com,
-        Eric Paris <eparis@parisplace.org>,
-        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
-        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
-        mpatel@redhat.com
-Subject: Re: [PATCH ghak90 V9 05/13] audit: log container info of syscalls
-Message-ID: <20201002195231.GH2882171@madcap2.tricolour.ca>
-References: <cover.1593198710.git.rgb@redhat.com>
- <6e2e10432e1400f747918eeb93bf45029de2aa6c.1593198710.git.rgb@redhat.com>
- <CAHC9VhSCm5eeBcyY8bBsnxr-hK4rkso9_NJHJec2OXLu4m5QTA@mail.gmail.com>
- <20200729194058.kcbsqjhzunjpipgm@madcap2.tricolour.ca>
- <CAHC9VhRUwCKBjffA_XNSjUwvUn8e6zfmy8WD203dK7R2KD0__g@mail.gmail.com>
+        Sat, 3 Oct 2020 04:58:59 -0400
+Received: from [5.8.93.113] ([5.8.93.113]:56144 "EHLO mail.huclangia.tk"
+        rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+        id S1725730AbgJCI67 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 3 Oct 2020 04:58:59 -0400
+Received: from huclangia.tk (unknown [139.64.247.249])
+        by mail.huclangia.tk (Postfix) with ESMTPA id 910CBCEE8A8
+        for <netfilter-devel@vger.kernel.org>; Sat,  3 Oct 2020 08:35:47 +0000 (UTC)
+Reply-To: mariabdullah101@taxrag.com
+From:   Mrs Maria Abdullah <admin@huclangia.tk>
+To:     netfilter-devel@vger.kernel.org
+Subject: Hello!
+Date:   3 Oct 2020 04:35:42 -0400
+Message-ID: <20201003043542.E8B709DDF07F4F14@huclangia.tk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHC9VhRUwCKBjffA_XNSjUwvUn8e6zfmy8WD203dK7R2KD0__g@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-08-21 15:15, Paul Moore wrote:
-> On Wed, Jul 29, 2020 at 3:41 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > On 2020-07-05 11:10, Paul Moore wrote:
-> > > On Sat, Jun 27, 2020 at 9:22 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> 
-> ...
-> 
-> > > > diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-> > > > index f03d3eb0752c..9e79645e5c0e 100644
-> > > > --- a/kernel/auditsc.c
-> > > > +++ b/kernel/auditsc.c
-> > > > @@ -1458,6 +1466,7 @@ static void audit_log_exit(void)
-> > > >         struct audit_buffer *ab;
-> > > >         struct audit_aux_data *aux;
-> > > >         struct audit_names *n;
-> > > > +       struct audit_contobj *cont;
-> > > >
-> > > >         context->personality = current->personality;
-> > > >
-> > > > @@ -1541,7 +1550,7 @@ static void audit_log_exit(void)
-> > > >         for (aux = context->aux_pids; aux; aux = aux->next) {
-> > > >                 struct audit_aux_data_pids *axs = (void *)aux;
-> > > >
-> > > > -               for (i = 0; i < axs->pid_count; i++)
-> > > > +               for (i = 0; i < axs->pid_count; i++) {
-> > > >                         if (audit_log_pid_context(context, axs->target_pid[i],
-> > > >                                                   axs->target_auid[i],
-> > > >                                                   axs->target_uid[i],
-> > > > @@ -1549,14 +1558,20 @@ static void audit_log_exit(void)
-> > > >                                                   axs->target_sid[i],
-> > > >                                                   axs->target_comm[i]))
-> > > >                                 call_panic = 1;
-> > > > +                       audit_log_container_id(context, axs->target_cid[i]);
-> > > > +               }
-> > >
-> > > It might be nice to see an audit event example including the
-> > > ptrace/signal information.  I'm concerned there may be some confusion
-> > > about associating the different audit container IDs with the correct
-> > > information in the event.
-> >
-> > This is the subject of ghat81, which is a test for ptrace and signal
-> > records.
-> >
-> > This was the reason I had advocated for an op= field since there is a
-> > possibility of multiple contid records per event.
-> 
-> I think an "op=" field is the wrong way to link audit container ID to
-> a particular record.  It may be convenient, but I fear that it would
-> be overloading the field too much.
+Hello,
 
-Ok, after looking at the field dictionary how about item, rel, ref or rec?
-Item perhaps could be added to the OBJ_PID records, but that might be
-overloading a field that is already used in PATH records.  "rel" for
-relates-to, "ref" for reference to, "rec" for record...  Perhaps pid=
-would be enough to tie this record to the OBJ_PID record or the SYSCALL
-record, but in the case of network events, the pid may refer to a kernel
-thread.
+My Name is Mrs.Maria Abdullah from Wales United Kingdom,
 
-> Like I said above, I think it would be good to see an audit event
-> example including the ptrace/signal information.  This way we can talk
-> about it on-list and hash out the various solutions if it proves to be
-> a problem.
+I would like to work with you to carry out a promise i made to 
+God by willing all that i have to the charity because i am very 
+sick now (Covid-19 Virus Infection)
 
-See the list posting from 2020-09-29 "auditing signals" pointing to
-ghat81 test case about testing ptrace and signals from 18 months ago.
+Get back to me for more details via my private email.
 
-I think I have a way to generate a signal to multiple targets in one
-syscall...  The added challenge is to also give those targets different
-audit container identifiers.
+Email: mariabdullah101@taxrag.com
 
-> > > > @@ -1575,6 +1590,14 @@ static void audit_log_exit(void)
-> > > >
-> > > >         audit_log_proctitle();
-> > > >
-> > > > +       rcu_read_lock();
-> > > > +       cont = _audit_contobj_get(current);
-> > > > +       rcu_read_unlock();
-> > > > +       audit_log_container_id(context, cont);
-> > > > +       rcu_read_lock();
-> > > > +       _audit_contobj_put(cont);
-> > > > +       rcu_read_unlock();
-> > >
-> > > Do we need to grab an additional reference for the audit container
-> > > object here?  We don't create any additional references here that
-> > > persist beyond the lifetime of this function, right?
-> >
-> > Why do we need another reference?  There's one for each pointer pointing
-> > to it and so far we have just one from this task.  Or are you thinking
-> > of the contid hash list, which is only added to when a task points to it
-> > and gets removed from that list when the last task stops pointing to it.
-> > Later that gets more complicated with network namespaces and nested
-> > container objects.  For now we just needed it while generating the
-> > record, then it gets freed.
-> 
-> I don't think we need to grab an additional reference here, that is
-> why I asked the question.  The code above grabs a reference for the
-> audit container ID object associated with the current task and then
-> drops it before returning; if the current task, and it's associated
-> audit container ID object, disappears in the middle of the function
-> we've got much bigger worries :)
+Thanks and God bless you.
 
-I misunderstood your question previously thinking you wanted yet another
-reference taken in this case, when in fact it was the opposite and you
-thought the one taken here was superfluous.
-
-I don't *need* to grab the additional references here, but those are the
-accessor functions that exist, so I either create sub-accessor functions
-without the refcount manipulations that called from the primary accessor
-functions or open code a reduncancy...  The locking has been updated to
-protect the _put by a spin-lock.  Now that I look at it, the 4th to 7th
-lines could be bypassed by a cont == NULL check.
-
-It is somewhat hidden now since this sequence of 7 commands has been
-abstracted into another function that is called from a second location.
-
-> paul moore
-
-- RGB
-
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
-
+Maria
