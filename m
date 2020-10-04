@@ -4,50 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 222CDC4363C
-	for <netfilter-devel@archiver.kernel.org>; Sun,  4 Oct 2020 19:50:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FF71C47095
+	for <netfilter-devel@archiver.kernel.org>; Sun,  4 Oct 2020 19:50:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F08422068E
-	for <netfilter-devel@archiver.kernel.org>; Sun,  4 Oct 2020 19:50:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 555D52068E
+	for <netfilter-devel@archiver.kernel.org>; Sun,  4 Oct 2020 19:50:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726523AbgJDTuM (ORCPT
+        id S1726560AbgJDTuM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sun, 4 Oct 2020 15:50:12 -0400
-Received: from correo.us.es ([193.147.175.20]:34934 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:34948 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726327AbgJDTuK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 4 Oct 2020 15:50:10 -0400
+        id S1726536AbgJDTuL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 4 Oct 2020 15:50:11 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C0461EF42D
-        for <netfilter-devel@vger.kernel.org>; Sun,  4 Oct 2020 21:50:08 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id A11B7EF438
+        for <netfilter-devel@vger.kernel.org>; Sun,  4 Oct 2020 21:50:09 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B3A10DA78D
-        for <netfilter-devel@vger.kernel.org>; Sun,  4 Oct 2020 21:50:08 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 90F12DA704
+        for <netfilter-devel@vger.kernel.org>; Sun,  4 Oct 2020 21:50:09 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A961FDA78B; Sun,  4 Oct 2020 21:50:08 +0200 (CEST)
+        id 86A34DA78C; Sun,  4 Oct 2020 21:50:09 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 93F3ADA72F;
-        Sun,  4 Oct 2020 21:50:06 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4CFB6DA73F;
+        Sun,  4 Oct 2020 21:50:07 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 04 Oct 2020 21:50:06 +0200 (CEST)
+ Sun, 04 Oct 2020 21:50:07 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 69A4942EF9E2;
-        Sun,  4 Oct 2020 21:50:06 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPSA id 23E7142EF9E2;
+        Sun,  4 Oct 2020 21:50:07 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 02/11] netfilter: nf_tables: Remove ununsed function nft_data_debug
-Date:   Sun,  4 Oct 2020 21:49:31 +0200
-Message-Id: <20201004194940.7368-3-pablo@netfilter.org>
+Subject: [PATCH 03/11] ipvs: Remove unused macros
+Date:   Sun,  4 Oct 2020 21:49:32 +0200
+Message-Id: <20201004194940.7368-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201004194940.7368-1-pablo@netfilter.org>
 References: <20201004194940.7368-1-pablo@netfilter.org>
@@ -60,32 +60,30 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: YueHaibing <yuehaibing@huawei.com>
 
-It is never used, so can be removed.
+They are not used since commit e4ff67513096 ("ipvs: add
+sync_maxlen parameter for the sync daemon")
 
 Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+Acked-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h | 7 -------
- 1 file changed, 7 deletions(-)
+ net/netfilter/ipvs/ip_vs_sync.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 8ceca0e419b3..c4c526507ddb 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -148,13 +148,6 @@ static inline void nft_data_copy(u32 *dst, const struct nft_data *src,
- 	memcpy(dst, src, len);
- }
+diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
+index 2b8abbfe018c..16b48064f715 100644
+--- a/net/netfilter/ipvs/ip_vs_sync.c
++++ b/net/netfilter/ipvs/ip_vs_sync.c
+@@ -242,9 +242,6 @@ struct ip_vs_sync_thread_data {
+       |                    IPVS Sync Connection (1)                   |
+ */
  
--static inline void nft_data_debug(const struct nft_data *data)
--{
--	pr_debug("data[0]=%x data[1]=%x data[2]=%x data[3]=%x\n",
--		 data->data[0], data->data[1],
--		 data->data[2], data->data[3]);
--}
+-#define SYNC_MESG_HEADER_LEN	4
+-#define MAX_CONNS_PER_SYNCBUFF	255 /* nr_conns in ip_vs_sync_mesg is 8 bit */
 -
- /**
-  *	struct nft_ctx - nf_tables rule/set context
-  *
+ /* Version 0 header */
+ struct ip_vs_sync_mesg_v0 {
+ 	__u8                    nr_conns;
 -- 
 2.20.1
 
