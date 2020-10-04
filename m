@@ -2,150 +2,195 @@ Return-Path: <SRS0=OxIk=DL=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A0D3C4363C
-	for <netfilter-devel@archiver.kernel.org>; Sun,  4 Oct 2020 14:53:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88896C4363D
+	for <netfilter-devel@archiver.kernel.org>; Sun,  4 Oct 2020 15:26:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B8BD4206B6
-	for <netfilter-devel@archiver.kernel.org>; Sun,  4 Oct 2020 14:53:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3FD56206B6
+	for <netfilter-devel@archiver.kernel.org>; Sun,  4 Oct 2020 15:26:18 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="T5wFp/df"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725830AbgJDOxp (ORCPT
+        id S1725868AbgJDP0P (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 4 Oct 2020 10:53:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47938 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725825AbgJDOxp (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 4 Oct 2020 10:53:45 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2ACEC0613CE
-        for <netfilter-devel@vger.kernel.org>; Sun,  4 Oct 2020 07:53:44 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1kP5ON-0005pW-QF; Sun, 04 Oct 2020 16:53:39 +0200
-Date:   Sun, 4 Oct 2020 16:53:39 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org,
-        Serhey Popovych <serhe.popovych@gmail.com>
-Subject: Re: [iptables PATCH 1/3] libxtables: Make sure extensions register
- in revision order
-Message-ID: <20201004145339.GE29050@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org,
-        Serhey Popovych <serhe.popovych@gmail.com>
-References: <20200922225341.8976-1-phil@nwl.cc>
- <20200922225341.8976-2-phil@nwl.cc>
- <20201003111741.GA3035@salvia>
+        Sun, 4 Oct 2020 11:26:15 -0400
+Received: from m12-12.163.com ([220.181.12.12]:41414 "EHLO m12-12.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725825AbgJDP0P (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 4 Oct 2020 11:26:15 -0400
+X-Greylist: delayed 372 seconds by postgrey-1.27 at vger.kernel.org; Sun, 04 Oct 2020 11:26:06 EDT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=QsZOg
+        Wj0qY2aGvq2XKOmihqC8Wjmrpv4Ukoiv9YR3Qc=; b=T5wFp/dfmNhGCyEyGjypT
+        673n05mAFO+K/MgQMGrV18mPfyw7gcqL5YqZiHn0kiz8v/hSkat4IsD6I0EKk+zD
+        e3uo93X3loLQrcOrf0RHQdOhKz3VYR9mZfaBYenCXKd3dRenOK13O/vxw1a9pQzy
+        AVcxL+9viVpFtP4OFjbAWE=
+Received: from localhost.localdomain (unknown [114.247.184.147])
+        by smtp8 (Coremail) with SMTP id DMCowAD35Qct5XlfwTcNQQ--.163S2;
+        Sun, 04 Oct 2020 23:07:26 +0800 (CST)
+From:   "longguang.yue" <bigclouds@163.com>
+Cc:     ja@ssi.bg, kuba@kernel.org, wensong@linux-vs.org,
+        horms@verge.net.au, pablo@netfilter.org, kadlec@netfilter.org,
+        fw@strlen.de, davem@davemloft.net, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, yuelongguang@gmail.com,
+        "longguang.yue" <bigclouds@163.com>
+Subject: [PATCH v6] ipvs: inspect reply packets from DR/TUN real servers
+Date:   Sun,  4 Oct 2020 23:07:16 +0800
+Message-Id: <20201004150716.83274-1-bigclouds@163.com>
+X-Mailer: git-send-email 2.20.1 (Apple Git-117)
+In-Reply-To: <alpine.LFD.2.23.451.2010041409460.5398@ja.home.ssi.bg>
+References: <alpine.LFD.2.23.451.2010041409460.5398@ja.home.ssi.bg>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201003111741.GA3035@salvia>
-Sender:  <n0-1@orbyte.nwl.cc>
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: DMCowAD35Qct5XlfwTcNQQ--.163S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxAw4UJF1kZr45GryDCF15urg_yoWrAF15p3
+        WUKa9xZrWkGFy5t3WxArn7urnxAr1kJw17ur45Ka4fA3Z8JF15XFsY9FyFyFW5CrZYqa4a
+        q3WFqw45C34DJrJanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07UnZ2fUUUUU=
+X-Originating-IP: [114.247.184.147]
+X-CM-SenderInfo: peljuzprxg2qqrwthudrp/xtbBUQ6zQ1aD8kWn9wAAsd
+To:     unlisted-recipients:; (no To-header on input)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+Just like for MASQ, inspect the reply packets coming from DR/TUN
+real servers and alter the connection's state and timeout
+according to the protocol.
 
-On Sat, Oct 03, 2020 at 01:17:41PM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Sep 23, 2020 at 12:53:39AM +0200, Phil Sutter wrote:
-> > Insert extensions into pending lists in ordered fashion: Group by
-> > extension name (and, for matches, family) and order groups by descending
-> > revision number.
-> >
-> > This allows to simplify the later full registration considerably. Since
-> > that involves kernel compatibility checks, the extra cycles here pay off
-> > eventually.
-> > 
-> > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > ---
-> >  libxtables/xtables.c | 64 +++++++++++++++++++++++++++++++++++++++-----
-> >  1 file changed, 58 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/libxtables/xtables.c b/libxtables/xtables.c
-> > index 8907ba2069be7..63d0ea5def2d5 100644
-> > --- a/libxtables/xtables.c
-> > +++ b/libxtables/xtables.c
-> > @@ -948,8 +948,14 @@ static void xtables_check_options(const char *name, const struct option *opt)
-> >  		}
-> >  }
-> >  
-> > +static int xtables_match_prefer(const struct xtables_match *a,
-> > +				const struct xtables_match *b);
-> > +
-> >  void xtables_register_match(struct xtables_match *me)
-> >  {
-> > +	struct xtables_match **pos;
-> > +	bool seen_myself = false;
-> > +
-> >  	if (me->next) {
-> >  		fprintf(stderr, "%s: match \"%s\" already registered\n",
-> >  			xt_params->program_name, me->name);
-> > @@ -1001,10 +1007,32 @@ void xtables_register_match(struct xtables_match *me)
-> >  	if (me->extra_opts != NULL)
-> >  		xtables_check_options(me->name, me->extra_opts);
-> >  
-> > +	/* order into linked list of matches pending full registration */
-> > +	for (pos = &xtables_pending_matches; *pos; pos = &(*pos)->next) {
-> > +		/* NOTE: No extension_cmp() here as we accept all families */
-> > +		if (strcmp(me->name, (*pos)->name) ||
-> > +		    me->family != (*pos)->family) {
-> > +			if (seen_myself)
-> > +				break;
-> > +			continue;
-> > +		}
-> > +		seen_myself = true;
-> > +		if (xtables_match_prefer(me, *pos) >= 0)
-> 
-> xtables_match_prefer() evaluates >= 0 if 'me' has higher revision
-> number than *pos. So list order is: higher revision first.
+It's ipvs's duty to do traffic statistic if packets get hit,
+no matter what mode it is.
 
-Correct.
+---
+Changes in v1: support DR/TUN mode statistic
+Changes in v2: ip_vs_conn_out_get handles DR/TUN mode's conn
+Changes in v3: fix checkpatch
+Changes in v4, v5: restructure and optimise this feature
+Changes in v6: rewrite subject and patch description
 
-> > +			break;
-> > +	}
-> > +	if (!*pos)
-> > +		pos = &xtables_pending_matches;
-> >  
-> > -	/* place on linked list of matches pending full registration */
-> > -	me->next = xtables_pending_matches;
-> > -	xtables_pending_matches = me;
-> > +	me->next = *pos;
-> 
-> This line above is placing 'me' right before the existing match in the list.
+Signed-off-by: longguang.yue <bigclouds@163.com>
+---
+ net/netfilter/ipvs/ip_vs_conn.c | 18 +++++++++++++++---
+ net/netfilter/ipvs/ip_vs_core.c | 17 ++++++-----------
+ 2 files changed, 21 insertions(+), 14 deletions(-)
 
-Also correct. As stated in the description, xtables_pending_matches
-should be grouped by name and family and within those groups ordered by
-descending revision.
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index a90b8eac16ac..af08ca2d9174 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -401,6 +401,8 @@ struct ip_vs_conn *ip_vs_ct_in_get(const struct ip_vs_conn_param *p)
+ struct ip_vs_conn *ip_vs_conn_out_get(const struct ip_vs_conn_param *p)
+ {
+ 	unsigned int hash;
++	__be16 sport;
++	const union nf_inet_addr *saddr;
+ 	struct ip_vs_conn *cp, *ret=NULL;
+ 
+ 	/*
+@@ -411,10 +413,20 @@ struct ip_vs_conn *ip_vs_conn_out_get(const struct ip_vs_conn_param *p)
+ 	rcu_read_lock();
+ 
+ 	hlist_for_each_entry_rcu(cp, &ip_vs_conn_tab[hash], c_list) {
+-		if (p->vport == cp->cport && p->cport == cp->dport &&
+-		    cp->af == p->af &&
++		if (p->vport != cp->cport)
++			continue;
++
++		if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ) {
++			sport = cp->vport;
++			saddr = &cp->vaddr;
++		} else {
++			sport = cp->dport;
++			saddr = &cp->daddr;
++		}
++
++		if (p->cport == sport && cp->af == p->af &&
+ 		    ip_vs_addr_equal(p->af, p->vaddr, &cp->caddr) &&
+-		    ip_vs_addr_equal(p->af, p->caddr, &cp->daddr) &&
++		    ip_vs_addr_equal(p->af, p->caddr, saddr) &&
+ 		    p->protocol == cp->protocol &&
+ 		    cp->ipvs == p->ipvs) {
+ 			if (!__ip_vs_conn_get(cp))
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index e3668a6e54e4..494ea1fcf4d8 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -875,7 +875,7 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
+ 	unsigned int verdict = NF_DROP;
+ 
+ 	if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ)
+-		goto ignore_cp;
++		goto after_nat;
+ 
+ 	/* Ensure the checksum is correct */
+ 	if (!skb_csum_unnecessary(skb) && ip_vs_checksum_complete(skb, ihl)) {
+@@ -900,7 +900,7 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
+ 
+ 	if (ip_vs_route_me_harder(cp->ipvs, af, skb, hooknum))
+ 		goto out;
+-
++after_nat:
+ 	/* do the statistics and put it back */
+ 	ip_vs_out_stats(cp, skb);
+ 
+@@ -909,8 +909,6 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
+ 		ip_vs_notrack(skb);
+ 	else
+ 		ip_vs_update_conntrack(skb, cp, 0);
+-
+-ignore_cp:
+ 	verdict = NF_ACCEPT;
+ 
+ out:
+@@ -1276,6 +1274,9 @@ handle_response(int af, struct sk_buff *skb, struct ip_vs_proto_data *pd,
+ {
+ 	struct ip_vs_protocol *pp = pd->pp;
+ 
++	if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ)
++		goto after_nat;
++
+ 	IP_VS_DBG_PKT(11, af, pp, skb, iph->off, "Outgoing packet");
+ 
+ 	if (skb_ensure_writable(skb, iph->len))
+@@ -1316,6 +1317,7 @@ handle_response(int af, struct sk_buff *skb, struct ip_vs_proto_data *pd,
+ 
+ 	IP_VS_DBG_PKT(10, af, pp, skb, iph->off, "After SNAT");
+ 
++after_nat:
+ 	ip_vs_out_stats(cp, skb);
+ 	ip_vs_set_state(cp, IP_VS_DIR_OUTPUT, skb, pd);
+ 	skb->ipvs_property = 1;
+@@ -1413,8 +1415,6 @@ ip_vs_out(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, in
+ 			     ipvs, af, skb, &iph);
+ 
+ 	if (likely(cp)) {
+-		if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ)
+-			goto ignore_cp;
+ 		return handle_response(af, skb, pd, cp, &iph, hooknum);
+ 	}
+ 
+@@ -1475,14 +1475,9 @@ ip_vs_out(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, in
+ 		}
+ 	}
+ 
+-out:
+ 	IP_VS_DBG_PKT(12, af, pp, skb, iph.off,
+ 		      "ip_vs_out: packet continues traversal as normal");
+ 	return NF_ACCEPT;
+-
+-ignore_cp:
+-	__ip_vs_conn_put(cp);
+-	goto out;
+ }
+ 
+ /*
+-- 
+2.20.1 (Apple Git-117)
 
-> > +	*pos = me;
-> 
-> This line above only works if *pos is &xtables_pending_matches?
 
-This piece of code confused me at first, too. I even wrote a quick test
-to make sure the pointer stuff works as intended. :D
-
-In fact, *pos can't be &xtables_pending_matches: pos is type 'struct
-xtables_match **' (note the double pointer). pos is either
-&xtables_pending_matches or the address of the right position's previous
-element's 'next' pointer. Still confusing, but the for-loop is clear:
-
-| for (pos = &xtables_pending_matches; *pos; pos = &(*pos)->next) {
-
-So by doing '*pos = me', the 'next' pointer value is changed (or the
-value of xtables_pending_matches.
-
-> Looking at the in-tree extensions, they are always ordered from lower
-> to higher (in array definitions).
-
-This is in favor of the sorting algorithm: Inserting revision N+1 will
-find revision N first in its group if revisions 0..N were inserted
-before. So having extension revisions ordered ascending in their array
-is optimal.
-
-Cheers, Phil
