@@ -4,50 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58B9AC47095
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35151C4363C
 	for <netfilter-devel@archiver.kernel.org>; Sun,  4 Oct 2020 19:50:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 28BDB2068E
-	for <netfilter-devel@archiver.kernel.org>; Sun,  4 Oct 2020 19:50:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F03702067D
+	for <netfilter-devel@archiver.kernel.org>; Sun,  4 Oct 2020 19:50:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726671AbgJDTuZ (ORCPT
+        id S1726673AbgJDTuZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sun, 4 Oct 2020 15:50:25 -0400
-Received: from correo.us.es ([193.147.175.20]:34982 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:34970 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726534AbgJDTuO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1726590AbgJDTuO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 4 Oct 2020 15:50:14 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 930DAEF438
-        for <netfilter-devel@vger.kernel.org>; Sun,  4 Oct 2020 21:50:12 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 6B1BFEF435
+        for <netfilter-devel@vger.kernel.org>; Sun,  4 Oct 2020 21:50:11 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 84057DA791
-        for <netfilter-devel@vger.kernel.org>; Sun,  4 Oct 2020 21:50:12 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5DA8FDA789
+        for <netfilter-devel@vger.kernel.org>; Sun,  4 Oct 2020 21:50:11 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 82744DA722; Sun,  4 Oct 2020 21:50:12 +0200 (CEST)
+        id 53657DA78D; Sun,  4 Oct 2020 21:50:11 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 34CEDDA722;
-        Sun,  4 Oct 2020 21:50:10 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 18415DA72F;
+        Sun,  4 Oct 2020 21:50:09 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 04 Oct 2020 21:50:10 +0200 (CEST)
+ Sun, 04 Oct 2020 21:50:09 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 0BC9942EF9E2;
-        Sun,  4 Oct 2020 21:50:10 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPSA id E3FAB42EF9E2;
+        Sun,  4 Oct 2020 21:50:08 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 08/11] netfilter: ipset: enable memory accounting for ipset allocations
-Date:   Sun,  4 Oct 2020 21:49:37 +0200
-Message-Id: <20201004194940.7368-9-pablo@netfilter.org>
+Subject: [PATCH 06/11] netfilter: nf_tables: add userdata attributes to nft_chain
+Date:   Sun,  4 Oct 2020 21:49:35 +0200
+Message-Id: <20201004194940.7368-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201004194940.7368-1-pablo@netfilter.org>
 References: <20201004194940.7368-1-pablo@netfilter.org>
@@ -58,48 +58,158 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Vasily Averin <vvs@virtuozzo.com>
+From: "Jose M. Guisado Gomez" <guigom@riseup.net>
 
-Currently netadmin inside non-trusted container can quickly allocate
-whole node's memory via request of huge ipset hashtable.
-Other ipset-related memory allocations should be restricted too.
+Enables storing userdata for nft_chain. Field udata points to user data
+and udlen stores its length.
 
-v2: fixed typo ALLOC -> ACCOUNT
+Adds new attribute flag NFTA_CHAIN_USERDATA.
 
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Signed-off-by: Jose M. Guisado Gomez <guigom@riseup.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_core.c | 17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ include/net/netfilter/nf_tables.h        |  2 ++
+ include/uapi/linux/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nf_tables_api.c            | 33 ++++++++++++++++++------
+ 3 files changed, 29 insertions(+), 8 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 920b7c4331f0..6f35832f0de3 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -250,22 +250,7 @@ EXPORT_SYMBOL_GPL(ip_set_type_unregister);
- void *
- ip_set_alloc(size_t size)
- {
--	void *members = NULL;
--
--	if (size < KMALLOC_MAX_SIZE)
--		members = kzalloc(size, GFP_KERNEL | __GFP_NOWARN);
--
--	if (members) {
--		pr_debug("%p: allocated with kmalloc\n", members);
--		return members;
--	}
--
--	members = vzalloc(size);
--	if (!members)
--		return NULL;
--	pr_debug("%p: allocated with vmalloc\n", members);
--
--	return members;
-+	return kvzalloc(size, GFP_KERNEL_ACCOUNT);
- }
- EXPORT_SYMBOL_GPL(ip_set_alloc);
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index c4c526507ddb..0bd2a081ae39 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -945,6 +945,8 @@ struct nft_chain {
+ 					bound:1,
+ 					genmask:2;
+ 	char				*name;
++	u16				udlen;
++	u8				*udata;
  
+ 	/* Only used during control plane commit phase: */
+ 	struct nft_rule			**rules_next;
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 3c2469b43742..352ee51707a1 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -208,6 +208,7 @@ enum nft_chain_flags {
+  * @NFTA_CHAIN_COUNTERS: counter specification of the chain (NLA_NESTED: nft_counter_attributes)
+  * @NFTA_CHAIN_FLAGS: chain flags
+  * @NFTA_CHAIN_ID: uniquely identifies a chain in a transaction (NLA_U32)
++ * @NFTA_CHAIN_USERDATA: user data (NLA_BINARY)
+  */
+ enum nft_chain_attributes {
+ 	NFTA_CHAIN_UNSPEC,
+@@ -222,6 +223,7 @@ enum nft_chain_attributes {
+ 	NFTA_CHAIN_PAD,
+ 	NFTA_CHAIN_FLAGS,
+ 	NFTA_CHAIN_ID,
++	NFTA_CHAIN_USERDATA,
+ 	__NFTA_CHAIN_MAX
+ };
+ #define NFTA_CHAIN_MAX		(__NFTA_CHAIN_MAX - 1)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 0473316aa392..3cfff31e4818 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1304,6 +1304,8 @@ static const struct nla_policy nft_chain_policy[NFTA_CHAIN_MAX + 1] = {
+ 	[NFTA_CHAIN_COUNTERS]	= { .type = NLA_NESTED },
+ 	[NFTA_CHAIN_FLAGS]	= { .type = NLA_U32 },
+ 	[NFTA_CHAIN_ID]		= { .type = NLA_U32 },
++	[NFTA_CHAIN_USERDATA]	= { .type = NLA_BINARY,
++				    .len = NFT_USERDATA_MAXLEN },
+ };
+ 
+ static const struct nla_policy nft_hook_policy[NFTA_HOOK_MAX + 1] = {
+@@ -1445,6 +1447,10 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
+ 	if (nla_put_be32(skb, NFTA_CHAIN_USE, htonl(chain->use)))
+ 		goto nla_put_failure;
+ 
++	if (chain->udata &&
++	    nla_put(skb, NFTA_CHAIN_USERDATA, chain->udlen, chain->udata))
++		goto nla_put_failure;
++
+ 	nlmsg_end(skb, nlh);
+ 	return 0;
+ 
+@@ -1682,9 +1688,11 @@ void nf_tables_chain_destroy(struct nft_ctx *ctx)
+ 			free_percpu(rcu_dereference_raw(basechain->stats));
+ 		}
+ 		kfree(chain->name);
++		kfree(chain->udata);
+ 		kfree(basechain);
+ 	} else {
+ 		kfree(chain->name);
++		kfree(chain->udata);
+ 		kfree(chain);
+ 	}
+ }
+@@ -2038,7 +2046,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 	} else {
+ 		if (!(flags & NFT_CHAIN_BINDING)) {
+ 			err = -EINVAL;
+-			goto err1;
++			goto err_destroy_chain;
+ 		}
+ 
+ 		snprintf(name, sizeof(name), "__chain%llu", ++chain_id);
+@@ -2047,13 +2055,22 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 
+ 	if (!chain->name) {
+ 		err = -ENOMEM;
+-		goto err1;
++		goto err_destroy_chain;
++	}
++
++	if (nla[NFTA_CHAIN_USERDATA]) {
++		chain->udata = nla_memdup(nla[NFTA_CHAIN_USERDATA], GFP_KERNEL);
++		if (chain->udata == NULL) {
++			err = -ENOMEM;
++			goto err_destroy_chain;
++		}
++		chain->udlen = nla_len(nla[NFTA_CHAIN_USERDATA]);
+ 	}
+ 
+ 	rules = nf_tables_chain_alloc_rules(chain, 0);
+ 	if (!rules) {
+ 		err = -ENOMEM;
+-		goto err1;
++		goto err_destroy_chain;
+ 	}
+ 
+ 	*rules = NULL;
+@@ -2062,12 +2079,12 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 
+ 	err = nf_tables_register_hook(net, table, chain);
+ 	if (err < 0)
+-		goto err1;
++		goto err_destroy_chain;
+ 
+ 	trans = nft_trans_chain_add(ctx, NFT_MSG_NEWCHAIN);
+ 	if (IS_ERR(trans)) {
+ 		err = PTR_ERR(trans);
+-		goto err2;
++		goto err_unregister_hook;
+ 	}
+ 
+ 	nft_trans_chain_policy(trans) = NFT_CHAIN_POLICY_UNSET;
+@@ -2077,15 +2094,15 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 	err = nft_chain_add(table, chain);
+ 	if (err < 0) {
+ 		nft_trans_destroy(trans);
+-		goto err2;
++		goto err_unregister_hook;
+ 	}
+ 
+ 	table->use++;
+ 
+ 	return 0;
+-err2:
++err_unregister_hook:
+ 	nf_tables_unregister_hook(net, table, chain);
+-err1:
++err_destroy_chain:
+ 	nf_tables_chain_destroy(ctx);
+ 
+ 	return err;
 -- 
 2.20.1
 
