@@ -2,163 +2,71 @@ Return-Path: <SRS0=CgNT=DN=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 323B5C41604
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Oct 2020 20:04:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01389C4363D
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Oct 2020 23:59:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D1DB620760
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Oct 2020 20:04:14 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="b0AZ1KfU"
+	by mail.kernel.org (Postfix) with ESMTP id BDB372100A
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Oct 2020 23:59:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727143AbgJFUEO (ORCPT
+        id S1726477AbgJFX7W (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Oct 2020 16:04:14 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:36163 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725962AbgJFUEO (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Oct 2020 16:04:14 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1602014652;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=nAsLvgW1nDOTPpn1U85aTp/X7z+VtDo99/tckF5jXNI=;
-        b=b0AZ1KfU4KzPOezVO266xI8B+WZADO2unNrvIT6FqcjxtCP0foq81INWDasOuNK+OGrbLz
-        l60vnzW36+POwZwQ9tJZt4m4WSk1lHGpgFmtnpV+4M2JXct+AIbSeyAUFqQmJns0jAqgjO
-        qWeLTSqAKD+JY48Ce46m/ojWfw2Jmis=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-483-r50GUUy5MiC9VEv4faOv2Q-1; Tue, 06 Oct 2020 16:04:10 -0400
-X-MC-Unique: r50GUUy5MiC9VEv4faOv2Q-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        Tue, 6 Oct 2020 19:59:22 -0400
+Received: from correo.us.es ([193.147.175.20]:45900 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725925AbgJFX7W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 6 Oct 2020 19:59:22 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 8F6BF1F0CE2
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Oct 2020 01:59:19 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 81D56DA730
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Oct 2020 01:59:19 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 77809DA72F; Wed,  7 Oct 2020 01:59:19 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5D048DA704;
+        Wed,  7 Oct 2020 01:59:17 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 07 Oct 2020 01:59:17 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 9DA58804018;
-        Tue,  6 Oct 2020 20:04:08 +0000 (UTC)
-Received: from madcap2.tricolour.ca (unknown [10.10.110.18])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 767315D9CD;
-        Tue,  6 Oct 2020 20:03:50 +0000 (UTC)
-Date:   Tue, 6 Oct 2020 16:03:47 -0400
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
-        containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>, aris@redhat.com
-Subject: Re: [PATCH ghak90 V9 11/13] audit: contid check descendancy and
- nesting
-Message-ID: <20201006200347.GI2882171@madcap2.tricolour.ca>
-References: <cover.1593198710.git.rgb@redhat.com>
- <01229b93733d9baf6ac9bb0cc243eeb08ad579cd.1593198710.git.rgb@redhat.com>
- <CAHC9VhT6cLxxws_pYWcL=mWe786xPoTTFfPZ1=P4hx4V3nytXA@mail.gmail.com>
- <20200807171025.523i2sxfyfl7dfjy@madcap2.tricolour.ca>
- <CAHC9VhQ3MVUY8Zs4GNXdaqhiPJBzHW_YcCe=DghAgo7g6yrNBw@mail.gmail.com>
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 42A1842EF42A;
+        Wed,  7 Oct 2020 01:59:17 +0200 (CEST)
+Date:   Wed, 7 Oct 2020 01:59:16 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH v2] libxtables: Make sure extensions register in
+ revision order
+Message-ID: <20201006235916.GA2143@salvia>
+References: <20200922225341.8976-2-phil@nwl.cc>
+ <20201006120748.22006-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <CAHC9VhQ3MVUY8Zs4GNXdaqhiPJBzHW_YcCe=DghAgo7g6yrNBw@mail.gmail.com>
+In-Reply-To: <20201006120748.22006-1-phil@nwl.cc>
 User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-08-21 16:13, Paul Moore wrote:
-> On Fri, Aug 7, 2020 at 1:10 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > On 2020-07-05 11:11, Paul Moore wrote:
-> > > On Sat, Jun 27, 2020 at 9:23 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > > Require the target task to be a descendant of the container
-> > > > orchestrator/engine.
+On Tue, Oct 06, 2020 at 02:07:48PM +0200, Phil Sutter wrote:
+> Insert extensions into pending lists in ordered fashion: Group by
+> extension name (and, for matches, family) and order groups by descending
+> revision number.
 > 
-> If you want to get formal about this, you need to define "target" in
-> the sentence above.  Target of what?
+> This allows to simplify the later full registration considerably. Since
+> that involves kernel compatibility checks, the extra cycles here pay off
+> eventually.
 
-The target is the task having its audit container identifier modified by
-the orchestrator current task.
-
-> FWIW, I read the above to basically mean that a task can only set the
-> audit container ID of processes which are beneath it in the "process
-> tree" where the "process tree" is defined as the relationship between
-> a parent and children processes such that the children processes are
-> branches below the parent process.
-
-Yes.
-
-> I have no problem with that, with the understanding that nesting
-> complicates it somewhat.  For example, this isn't true when one of the
-> children is a nested orchestrator, is it?
-
-It should still be true if that child is a nested orchestrator that has
-not yet spawned any children or threads (or they have all died off).
-
-It does get more complicated when we consider the scenario outlined
-below about perceived layer violations...
-
-> > > > You would only change the audit container ID from one set or inherited
-> > > > value to another if you were nesting containers.
-> 
-> I thought we decided we were going to allow an orchestrator to move a
-> process between audit container IDs, yes?  no?
-
-We did?  I don't remember anything about that.  Has this been requested?
-This seems to violate the rule that we can't change the audit container
-identifier once it has been set (other than nesting).  Can you suggest a
-use case?
-
-> > > > If changing the contid, the container orchestrator/engine must be a
-> > > > descendant and not same orchestrator as the one that set it so it is not
-> > > > possible to change the contid of another orchestrator's container.
-> 
-> Try rephrasing the above please, it isn't clear to me what you are
-> trying to say.
-
-This is harder than I expected to rephrase...  It also makes it clear
-that there are some scenarios that have not been considered that may
-need to be restricted.
-
-Orchestrator A spawned task B which is itself an orchestrator without
-chidren yet.  Orchestrator A sets the audit container identifier of B.
-Neither A, nor B, nor any other child of A (or any of their
-descendants), nor any orchestrator outside the tree of A (uncles, aunts
-and cousins are outside), can change the audit container identifier of
-B.
-
-Orchestrator B spawns task C.  Here's where it gets tricky.  It seems
-like a layer violation for B to spawn a child C and have A reach over B
-to set the audit container identifier of C, especially if B is also an
-orchestrator.  This all will be especially hard to police if we don't
-limit the ability of an orchestrator task to set an audit container
-identifier to that orchestrator's immediate children, only once.
-
-> > Are we able to agree on the premises above?  Is anything asserted that
-> > should not be and is there anything missing?
-> 
-> See above.
-> 
-> If you want to go back to the definitions/assumptions stage, it
-> probably isn't worth worrying about the other comments until we get
-> the above sorted.
-
-I don't want to.  I'm trying to confirm that we are on the same page.
-
-> paul moore
-
-- RGB
-
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
-
+LGTM.
