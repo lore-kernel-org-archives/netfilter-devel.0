@@ -2,76 +2,181 @@ Return-Path: <SRS0=CgNT=DN=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A999AC41604
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Oct 2020 08:57:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B874C41604
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Oct 2020 09:27:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 41DA62075A
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Oct 2020 08:57:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DBE90206B5
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Oct 2020 09:27:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726013AbgJFI5m (ORCPT
+        id S1725960AbgJFJ10 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Oct 2020 04:57:42 -0400
-Received: from correo.us.es ([193.147.175.20]:54324 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725891AbgJFI5l (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Oct 2020 04:57:41 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DD23439626D
-        for <netfilter-devel@vger.kernel.org>; Tue,  6 Oct 2020 10:57:40 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C31BCDA911
-        for <netfilter-devel@vger.kernel.org>; Tue,  6 Oct 2020 10:57:40 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id BC57ADA85E; Tue,  6 Oct 2020 10:57:40 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A070ADA4CB;
-        Tue,  6 Oct 2020 10:56:21 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 06 Oct 2020 10:56:21 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 75B2142EF9E6;
-        Tue,  6 Oct 2020 10:56:21 +0200 (CEST)
-Date:   Tue, 6 Oct 2020 10:56:21 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH] nft: Optimize class-based IP prefix matches
-Message-ID: <20201006085621.GA16275@salvia>
-References: <20201002090334.29788-1-phil@nwl.cc>
+        Tue, 6 Oct 2020 05:27:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45610 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725891AbgJFJ10 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 6 Oct 2020 05:27:26 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1922AC061755
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Oct 2020 02:27:26 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1kPjFj-0007Ec-9s; Tue, 06 Oct 2020 11:27:23 +0200
+Date:   Tue, 6 Oct 2020 11:27:23 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org,
+        Serhey Popovych <serhe.popovych@gmail.com>
+Subject: Re: [iptables PATCH 1/3] libxtables: Make sure extensions register
+ in revision order
+Message-ID: <20201006092723.GJ29050@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org,
+        Serhey Popovych <serhe.popovych@gmail.com>
+References: <20200922225341.8976-1-phil@nwl.cc>
+ <20200922225341.8976-2-phil@nwl.cc>
+ <20201003111741.GA3035@salvia>
+ <20201004145339.GE29050@orbyte.nwl.cc>
+ <20201005224255.GA13440@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20201002090334.29788-1-phil@nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <20201005224255.GA13440@salvia>
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Oct 02, 2020 at 11:03:34AM +0200, Phil Sutter wrote:
-> Payload expression works on byte-boundaries, leverage this with suitable
-> prefix lengths.
+Hi Pablo,
 
-Interesing. But it kicks in the raw payload expression in nftables.
+On Tue, Oct 06, 2020 at 12:42:55AM +0200, Pablo Neira Ayuso wrote:
+> On Sun, Oct 04, 2020 at 04:53:39PM +0200, Phil Sutter wrote:
+> > On Sat, Oct 03, 2020 at 01:17:41PM +0200, Pablo Neira Ayuso wrote:
+> > > On Wed, Sep 23, 2020 at 12:53:39AM +0200, Phil Sutter wrote:
+> > > > Insert extensions into pending lists in ordered fashion: Group by
+> > > > extension name (and, for matches, family) and order groups by descending
+> > > > revision number.
+> > > >
+> > > > This allows to simplify the later full registration considerably. Since
+> > > > that involves kernel compatibility checks, the extra cycles here pay off
+> > > > eventually.
+> > > > 
+> > > > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > > > ---
+> > > >  libxtables/xtables.c | 64 +++++++++++++++++++++++++++++++++++++++-----
+> > > >  1 file changed, 58 insertions(+), 6 deletions(-)
+> > > > 
+> > > > diff --git a/libxtables/xtables.c b/libxtables/xtables.c
+> > > > index 8907ba2069be7..63d0ea5def2d5 100644
+> > > > --- a/libxtables/xtables.c
+> > > > +++ b/libxtables/xtables.c
+> > > > @@ -948,8 +948,14 @@ static void xtables_check_options(const char *name, const struct option *opt)
+> > > >  		}
+> > > >  }
+> > > >  
+> > > > +static int xtables_match_prefer(const struct xtables_match *a,
+> > > > +				const struct xtables_match *b);
+> > > > +
+> > > >  void xtables_register_match(struct xtables_match *me)
+> > > >  {
+> > > > +	struct xtables_match **pos;
+> > > > +	bool seen_myself = false;
+> > > > +
+> > > >  	if (me->next) {
+> > > >  		fprintf(stderr, "%s: match \"%s\" already registered\n",
+> > > >  			xt_params->program_name, me->name);
+> > > > @@ -1001,10 +1007,32 @@ void xtables_register_match(struct xtables_match *me)
+> > > >  	if (me->extra_opts != NULL)
+> > > >  		xtables_check_options(me->name, me->extra_opts);
+> > > >  
+> > > > +	/* order into linked list of matches pending full registration */
+> > > > +	for (pos = &xtables_pending_matches; *pos; pos = &(*pos)->next) {
+> > > > +		/* NOTE: No extension_cmp() here as we accept all families */
+> > > > +		if (strcmp(me->name, (*pos)->name) ||
+> > > > +		    me->family != (*pos)->family) {
+> > > > +			if (seen_myself)
+> > > > +				break;
+> > > > +			continue;
+> > > > +		}
+> > > > +		seen_myself = true;
+> > > > +		if (xtables_match_prefer(me, *pos) >= 0)
+> > > 
+> > > xtables_match_prefer() evaluates >= 0 if 'me' has higher revision
+> > > number than *pos. So list order is: higher revision first.
+> > 
+> > Correct.
+> > 
+> > > > +			break;
+> > > > +	}
+> > > > +	if (!*pos)
+> > > > +		pos = &xtables_pending_matches;
+> > > >  
+> > > > -	/* place on linked list of matches pending full registration */
+> > > > -	me->next = xtables_pending_matches;
+> > > > -	xtables_pending_matches = me;
+> > > > +	me->next = *pos;
+> > > 
+> > > This line above is placing 'me' right before the existing match in the list.
+> > 
+> > Also correct. As stated in the description, xtables_pending_matches
+> > should be grouped by name and family and within those groups ordered by
+> > descending revision.
+> > 
+> > > > +	*pos = me;
+> > > 
+> > > This line above only works if *pos is &xtables_pending_matches?
+> > 
+> > This piece of code confused me at first, too. I even wrote a quick test
+> > to make sure the pointer stuff works as intended. :D
+> > 
+> > In fact, *pos can't be &xtables_pending_matches: pos is type 'struct
+> > xtables_match **' (note the double pointer). pos is either
+> > &xtables_pending_matches or the address of the right position's previous
+> > element's 'next' pointer. Still confusing, but the for-loop is clear:
+> > 
+> > | for (pos = &xtables_pending_matches; *pos; pos = &(*pos)->next) {
+> > 
+> > So by doing '*pos = me', the 'next' pointer value is changed (or the
+> > value of xtables_pending_matches.
+> 
+> pos is always &xtables_pending_matches:
+> 
+> - The first element in the array finds no matching, then:
+> 
+>         if (!*pos)
+>                pos = &xtables_pending_matches;
+> 
+>   kicks in and and pos is set to &xtables_pending_matches, so this is
+>   inserted in the first position of the xtables_pending_matches.
+> 
+> - The follow up element in the array (higher revision) finds itself at
+>   the very beginning of the iteration, so pos here is
+>   &xtables_pending_matches too.
+> 
+> So *pos = me; is always updating the next pointer in the
+> xtables_pending_matches.
 
-# nft list ruleset
-table ip filter {
-        chain INPUT {
-                type filter hook input priority filter; policy accept;
-                @nh,96,24 8323072 counter packets 0 bytes 0
-        }
+This is true only if you assume the ordering of arrays passed to the
+function. But you can't since it's an exported library function. Also,
+there are already cases where the above does not hold due to the
+grouping by name *and* family value. Apply the patch, build with
+-DDEBUG, add a rule with connlimit match and you'll see.
 
-Would you send a patch for nftables too? There is already approximate
-offset matching in the tree, it should not be too hard to amend.
+I found a bug, though: When inserting same name and family extensions in
+descending revision order, for all consecutive extensions the for-loop
+never breaks and the 'if (!*pos)' clause inserts the new (lowest)
+revision into the beginning. The fix is trivial though.
 
-Thanks.
+[...]
+> May I suggest you please extend the commit message a bit to describe
+> this logic?
+
+Yes, I will do that.
+
+Cheers, Phil
