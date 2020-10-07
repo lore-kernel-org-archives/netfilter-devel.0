@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E296C3279D
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Oct 2020 00:10:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18B4FC4741F
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Oct 2020 00:10:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 15BC620739
+	by mail.kernel.org (Postfix) with ESMTP id E73F620739
 	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Oct 2020 00:10:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726999AbgJGAKo (ORCPT
+        id S1726970AbgJGAKn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Oct 2020 20:10:44 -0400
-Received: from correo.us.es ([193.147.175.20]:46968 "EHLO mail.us.es"
+        Tue, 6 Oct 2020 20:10:43 -0400
+Received: from correo.us.es ([193.147.175.20]:46982 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726877AbgJGAKj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1726884AbgJGAKj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 6 Oct 2020 20:10:39 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 2488B1F0CE1
+        by mail.us.es (Postfix) with ESMTP id 71B6A1F0CF2
         for <netfilter-devel@vger.kernel.org>; Wed,  7 Oct 2020 02:10:37 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1569ADA78B
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 63EFBDA78C
         for <netfilter-devel@vger.kernel.org>; Wed,  7 Oct 2020 02:10:37 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 0B219DA722; Wed,  7 Oct 2020 02:10:37 +0200 (CEST)
+        id 58BE2DA73F; Wed,  7 Oct 2020 02:10:37 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id ED294DA73D;
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 726F1DA72F;
         Wed,  7 Oct 2020 02:10:34 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
@@ -39,15 +39,15 @@ Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id C1C5242EF42B;
+        by entrada.int (Postfix) with ESMTPSA id 47D8242EF42A;
         Wed,  7 Oct 2020 02:10:34 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 2/4] selftests: netfilter: fix nft_meta.sh error reporting
-Date:   Wed,  7 Oct 2020 02:10:25 +0200
-Message-Id: <20201007001027.2530-3-pablo@netfilter.org>
+Subject: [PATCH 1/4] selftests: netfilter: add cpu counter check
+Date:   Wed,  7 Oct 2020 02:10:24 +0200
+Message-Id: <20201007001027.2530-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201007001027.2530-1-pablo@netfilter.org>
 References: <20201007001027.2530-1-pablo@netfilter.org>
@@ -60,40 +60,55 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Fabian Frederick <fabf@skynet.be>
 
-When some test directly done with check_one_counter() fails,
-counter variable is undefined. This patch calls ip with cname
-which avoids errors like:
-FAIL: oskuidcounter, want "packets 2", got
-Error: syntax error, unexpected newline, expecting string
-list counter inet filter
-                        ^
-Error is now correctly rendered:
-FAIL: oskuidcounter, want "packets 2", got
-table inet filter {
-	counter oskuidcounter {
-		packets 1 bytes 84
-	}
-}
+run task on first CPU with netfilter counters reset and check
+cpu meta after another ping
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tools/testing/selftests/netfilter/nft_meta.sh | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/netfilter/nft_meta.sh | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
 diff --git a/tools/testing/selftests/netfilter/nft_meta.sh b/tools/testing/selftests/netfilter/nft_meta.sh
-index 17b2d6eaa204..1f5b46542c14 100755
+index d250b84dd5bc..17b2d6eaa204 100755
 --- a/tools/testing/selftests/netfilter/nft_meta.sh
 +++ b/tools/testing/selftests/netfilter/nft_meta.sh
-@@ -90,7 +90,7 @@ check_one_counter()
- 	if [ $? -ne 0 ];then
- 		echo "FAIL: $cname, want \"$want\", got"
- 		ret=1
--		ip netns exec "$ns0" nft list counter inet filter $counter
-+		ip netns exec "$ns0" nft list counter inet filter $cname
- 	fi
- }
+@@ -33,6 +33,7 @@ table inet filter {
+ 	counter infproto4count {}
+ 	counter il4protocounter {}
+ 	counter imarkcounter {}
++	counter icpu0counter {}
  
+ 	counter oifcount {}
+ 	counter oifnamecount {}
+@@ -54,6 +55,7 @@ table inet filter {
+ 		meta nfproto ipv4 counter name "infproto4count"
+ 		meta l4proto icmp counter name "il4protocounter"
+ 		meta mark 42 counter name "imarkcounter"
++		meta cpu 0 counter name "icpu0counter"
+ 	}
+ 
+ 	chain output {
+@@ -119,6 +121,18 @@ check_one_counter omarkcounter "1" true
+ 
+ if [ $ret -eq 0 ];then
+ 	echo "OK: nftables meta iif/oif counters at expected values"
++else
++	exit $ret
++fi
++
++#First CPU execution and counter
++taskset -p 01 $$ > /dev/null
++ip netns exec "$ns0" nft reset counters > /dev/null
++ip netns exec "$ns0" ping -q -c 1 127.0.0.1 > /dev/null
++check_one_counter icpu0counter "2" true
++
++if [ $ret -eq 0 ];then
++	echo "OK: nftables meta cpu counter at expected values"
+ fi
+ 
+ exit $ret
 -- 
 2.20.1
 
