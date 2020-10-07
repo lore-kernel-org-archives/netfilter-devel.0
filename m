@@ -2,316 +2,122 @@ Return-Path: <SRS0=fUKQ=DO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84125C4363D
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Oct 2020 23:15:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B60EC4363D
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Oct 2020 23:22:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 23B222083B
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Oct 2020 23:15:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B77F22053B
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Oct 2020 23:22:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728403AbgJGXPA (ORCPT
+        id S1727261AbgJGXW2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 7 Oct 2020 19:15:00 -0400
-Received: from correo.us.es ([193.147.175.20]:45480 "EHLO mail.us.es"
+        Wed, 7 Oct 2020 19:22:28 -0400
+Received: from correo.us.es ([193.147.175.20]:46820 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728008AbgJGXPA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Oct 2020 19:15:00 -0400
+        id S1726219AbgJGXW2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 7 Oct 2020 19:22:28 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id F227DE4B88
-        for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2020 01:14:57 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 91A4AE4B89
+        for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2020 01:22:26 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E054CDA73D
-        for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2020 01:14:57 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 81D42DA722
+        for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2020 01:22:26 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D5E5BDA73F; Thu,  8 Oct 2020 01:14:57 +0200 (CEST)
+        id 777E2DA704; Thu,  8 Oct 2020 01:22:26 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 86BF0DA73D
-        for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2020 01:14:55 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 65EB3DA722
+        for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2020 01:22:24 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 08 Oct 2020 01:14:55 +0200 (CEST)
+ Thu, 08 Oct 2020 01:22:24 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 7185B42EF42A
-        for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2020 01:14:55 +0200 (CEST)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 47B7642EF42A
+        for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2020 01:22:24 +0200 (CEST)
+Date:   Thu, 8 Oct 2020 01:22:23 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next 4/4] netfilter: nf_tables: add inet ingress support
-Date:   Thu,  8 Oct 2020 01:14:48 +0200
-Message-Id: <20201007231448.27346-5-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20201007231448.27346-1-pablo@netfilter.org>
+Subject: Re: [PATCH nf-next 0/4] Add nf_tables ingress hook for the inet
+ family
+Message-ID: <20201007232223.GA27414@salvia>
 References: <20201007231448.27346-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20201007231448.27346-1-pablo@netfilter.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds a new ingress hook for the inet family. The inet ingress
-hook emulates the IP receive path code, therefore, unclean packets are
-drop before walking over the ruleset in this basechain.
+On Thu, Oct 08, 2020 at 01:14:44AM +0200, Pablo Neira Ayuso wrote:
+> Hi,
+> 
+> The following patchset adds support for the inet ingress hook:
+> 
+> Patch #1 adds nf_static_key_inc() and nf_static_key_dec() helper functions.
+> Patch #2 adds nf_ingress_hook() helper function.
+> Patch #3 adds inet ingress hook support to the core.
+> Patch #4 adds inet ingress hook support for nf_tables.
+> 
+> The following example shows how to place offenders into the 'blackhole'
+> set. Offenders in this case are those that connect to the local SSH port
+> over the specified rate limit. The inet ingress chain is used to
+> shortcircuit the evaluation of the traffic coming from the offender at
+> early stage in the packet processing receive path.
+> 
+>   table inet filter {
+>         set blackhole {
+>                 type ipv4_addr
+>                 size 65535
+>                 flags dynamic,timeout
+>                 timeout 5m
+>         }
+> 
+>         chain input {
+>                 type filter hook input priority filter; policy accept;
+>                 ct state new tcp dport 22 update @blackhole { ip saddr limit rate over 4/minute } counter packets 0 bytes 0
 
-This patch also introduces the nft_base_chain_netdev() helper function
-to check if this hook is bound to one or more devices (through the hook
-list infrastructure). This check allows to perform the same handling for
-the inet ingress as it would be a netdev ingress chain from the control
-plane.
+Actually, this should be:
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables.h      |  6 ++++
- include/net/netfilter/nf_tables_ipv4.h | 33 ++++++++++++++++++
- include/net/netfilter/nf_tables_ipv6.h | 46 ++++++++++++++++++++++++++
- net/netfilter/nf_tables_api.c          | 14 ++++----
- net/netfilter/nft_chain_filter.c       | 35 +++++++++++++++++++-
- 5 files changed, 126 insertions(+), 8 deletions(-)
+                  ct state new tcp dport 22 limit rate over 4/minute update @blackhole { ip saddr } counter packets 0 bytes 0
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 0bd2a081ae39..3965ce18226f 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1081,6 +1081,12 @@ struct nft_table {
- 	u8				*udata;
- };
- 
-+static inline bool nft_base_chain_netdev(int family, u32 hooknum)
-+{
-+	return family == NFPROTO_NETDEV ||
-+	       (family == NFPROTO_INET && hooknum == NF_INET_INGRESS);
-+}
-+
- void nft_register_chain_type(const struct nft_chain_type *);
- void nft_unregister_chain_type(const struct nft_chain_type *);
- 
-diff --git a/include/net/netfilter/nf_tables_ipv4.h b/include/net/netfilter/nf_tables_ipv4.h
-index ed7b511f0a59..1f7bea39ad1b 100644
---- a/include/net/netfilter/nf_tables_ipv4.h
-+++ b/include/net/netfilter/nf_tables_ipv4.h
-@@ -53,4 +53,37 @@ static inline void nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt,
- 		nft_set_pktinfo_unspec(pkt, skb);
- }
- 
-+static inline int nft_set_pktinfo_ipv4_ingress(struct nft_pktinfo *pkt,
-+					       struct sk_buff *skb)
-+{
-+	struct iphdr *iph;
-+	u32 len, thoff;
-+
-+	if (!pskb_may_pull(skb, sizeof(*iph)))
-+		return -1;
-+
-+	iph = ip_hdr(skb);
-+	if (iph->ihl < 5 || iph->version != 4)
-+		goto inhdr_error;
-+
-+	len = ntohs(iph->tot_len);
-+	thoff = iph->ihl * 4;
-+	if (skb->len < len) {
-+		__IP_INC_STATS(nft_net(pkt), IPSTATS_MIB_INTRUNCATEDPKTS);
-+		return -1;
-+	} else if (len < thoff) {
-+		goto inhdr_error;
-+	}
-+
-+	pkt->tprot_set = true;
-+	pkt->tprot = iph->protocol;
-+	pkt->xt.thoff = thoff;
-+	pkt->xt.fragoff = ntohs(iph->frag_off) & IP_OFFSET;
-+
-+	return 0;
-+
-+inhdr_error:
-+	__IP_INC_STATS(nft_net(pkt), IPSTATS_MIB_INHDRERRORS);
-+	return -1;
-+}
- #endif
-diff --git a/include/net/netfilter/nf_tables_ipv6.h b/include/net/netfilter/nf_tables_ipv6.h
-index d0f1c537b017..867de29f3f7a 100644
---- a/include/net/netfilter/nf_tables_ipv6.h
-+++ b/include/net/netfilter/nf_tables_ipv6.h
-@@ -70,4 +70,50 @@ static inline void nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt,
- 		nft_set_pktinfo_unspec(pkt, skb);
- }
- 
-+static inline int nft_set_pktinfo_ipv6_ingress(struct nft_pktinfo *pkt,
-+					       struct sk_buff *skb)
-+{
-+#if IS_ENABLED(CONFIG_IPV6)
-+	unsigned int flags = IP6_FH_F_AUTH;
-+	unsigned short frag_off;
-+	unsigned int thoff = 0;
-+	struct inet6_dev *idev;
-+	struct ipv6hdr *ip6h;
-+	int protohdr;
-+	u32 pkt_len;
-+
-+	if (!pskb_may_pull(skb, sizeof(*ip6h)))
-+		return -1;
-+
-+	ip6h = ipv6_hdr(skb);
-+	if (ip6h->version != 6)
-+		goto inhdr_error;
-+
-+	pkt_len = ntohs(ip6h->payload_len);
-+	if (pkt_len + sizeof(*ip6h) > skb->len) {
-+		idev = __in6_dev_get(nft_in(pkt));
-+		__IP6_INC_STATS(nft_net(pkt), idev, IPSTATS_MIB_INTRUNCATEDPKTS);
-+		return -1;
-+	}
-+
-+	protohdr = ipv6_find_hdr(pkt->skb, &thoff, -1, &frag_off, &flags);
-+	if (protohdr < 0)
-+		goto inhdr_error;
-+
-+	pkt->tprot_set = true;
-+	pkt->tprot = protohdr;
-+	pkt->xt.thoff = thoff;
-+	pkt->xt.fragoff = frag_off;
-+
-+	return 0;
-+
-+inhdr_error:
-+	idev = __in6_dev_get(nft_in(pkt));
-+	__IP6_INC_STATS(nft_net(pkt), idev, IPSTATS_MIB_INHDRERRORS);
-+	return -1;
-+#else
-+	return -1;
-+#endif
-+}
-+
- #endif
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index ae2c04d411b1..f22ad21d0230 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -206,7 +206,7 @@ static int nf_tables_register_hook(struct net *net,
- 	if (basechain->type->ops_register)
- 		return basechain->type->ops_register(net, ops);
- 
--	if (table->family == NFPROTO_NETDEV)
-+	if (nft_base_chain_netdev(table->family, basechain->ops.hooknum))
- 		return nft_netdev_register_hooks(net, &basechain->hook_list);
- 
- 	return nf_register_net_hook(net, &basechain->ops);
-@@ -228,7 +228,7 @@ static void nf_tables_unregister_hook(struct net *net,
- 	if (basechain->type->ops_unregister)
- 		return basechain->type->ops_unregister(net, ops);
- 
--	if (table->family == NFPROTO_NETDEV)
-+	if (nft_base_chain_netdev(table->family, basechain->ops.hooknum))
- 		nft_netdev_unregister_hooks(net, &basechain->hook_list);
- 	else
- 		nf_unregister_net_hook(net, &basechain->ops);
-@@ -1381,7 +1381,7 @@ static int nft_dump_basechain_hook(struct sk_buff *skb, int family,
- 	if (nla_put_be32(skb, NFTA_HOOK_PRIORITY, htonl(ops->priority)))
- 		goto nla_put_failure;
- 
--	if (family == NFPROTO_NETDEV) {
-+	if (nft_base_chain_netdev(family, ops->hooknum)) {
- 		nest_devs = nla_nest_start_noflag(skb, NFTA_HOOK_DEVS);
- 		list_for_each_entry(hook, &basechain->hook_list, list) {
- 			if (!first)
-@@ -1685,7 +1685,7 @@ void nf_tables_chain_destroy(struct nft_ctx *ctx)
- 	if (nft_is_base_chain(chain)) {
- 		struct nft_base_chain *basechain = nft_base_chain(chain);
- 
--		if (ctx->family == NFPROTO_NETDEV) {
-+		if (nft_base_chain_netdev(ctx->family, basechain->ops.hooknum)) {
- 			list_for_each_entry_safe(hook, next,
- 						 &basechain->hook_list, list) {
- 				list_del_rcu(&hook->list);
-@@ -1877,7 +1877,7 @@ static int nft_chain_parse_hook(struct net *net,
- 	hook->type = type;
- 
- 	INIT_LIST_HEAD(&hook->list);
--	if (family == NFPROTO_NETDEV) {
-+	if (nft_base_chain_netdev(family, hook->num)) {
- 		err = nft_chain_parse_netdev(net, ha, &hook->list);
- 		if (err < 0) {
- 			module_put(type->owner);
-@@ -1944,7 +1944,7 @@ static int nft_basechain_init(struct nft_base_chain *basechain, u8 family,
- 	INIT_LIST_HEAD(&basechain->hook_list);
- 	chain = &basechain->chain;
- 
--	if (family == NFPROTO_NETDEV) {
-+	if (nft_base_chain_netdev(family, hook->num)) {
- 		list_splice_init(&hook->list, &basechain->hook_list);
- 		list_for_each_entry(h, &basechain->hook_list, list)
- 			nft_basechain_hook_init(&h->ops, family, hook, chain);
-@@ -2168,7 +2168,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
- 			return -EEXIST;
- 		}
- 
--		if (ctx->family == NFPROTO_NETDEV) {
-+		if (nft_base_chain_netdev(ctx->family, hook.num)) {
- 			if (!nft_hook_list_equal(&basechain->hook_list,
- 						 &hook.list)) {
- 				nft_chain_release_hook(&hook);
-diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
-index c78d01bc02e9..eb6b8679fe8f 100644
---- a/net/netfilter/nft_chain_filter.c
-+++ b/net/netfilter/nft_chain_filter.c
-@@ -161,16 +161,49 @@ static unsigned int nft_do_chain_inet(void *priv, struct sk_buff *skb,
- 	return nft_do_chain(&pkt, priv);
- }
- 
-+static unsigned int nft_do_chain_inet_ingress(void *priv, struct sk_buff *skb,
-+					      const struct nf_hook_state *state)
-+{
-+	struct nf_hook_state ingress_state = *state;
-+	struct nft_pktinfo pkt;
-+
-+	switch (skb->protocol) {
-+	case htons(ETH_P_IP):
-+		/* Original hook is NFPROTO_NETDEV and NF_NETDEV_INGRESS. */
-+		ingress_state.pf = NFPROTO_IPV4;
-+		ingress_state.hook = NF_INET_INGRESS;
-+		nft_set_pktinfo(&pkt, skb, &ingress_state);
-+
-+		if (nft_set_pktinfo_ipv4_ingress(&pkt, skb) < 0)
-+			return NF_DROP;
-+		break;
-+	case htons(ETH_P_IPV6):
-+		ingress_state.pf = NFPROTO_IPV4;
-+		ingress_state.hook = NF_INET_INGRESS;
-+		nft_set_pktinfo(&pkt, skb, &ingress_state);
-+
-+		if (nft_set_pktinfo_ipv6_ingress(&pkt, skb) < 0)
-+			return NF_DROP;
-+		break;
-+	default:
-+		return NF_ACCEPT;
-+	}
-+
-+	return nft_do_chain(&pkt, priv);
-+}
-+
- static const struct nft_chain_type nft_chain_filter_inet = {
- 	.name		= "filter",
- 	.type		= NFT_CHAIN_T_DEFAULT,
- 	.family		= NFPROTO_INET,
--	.hook_mask	= (1 << NF_INET_LOCAL_IN) |
-+	.hook_mask	= (1 << NF_INET_INGRESS) |
-+			  (1 << NF_INET_LOCAL_IN) |
- 			  (1 << NF_INET_LOCAL_OUT) |
- 			  (1 << NF_INET_FORWARD) |
- 			  (1 << NF_INET_PRE_ROUTING) |
- 			  (1 << NF_INET_POST_ROUTING),
- 	.hooks		= {
-+		[NF_INET_INGRESS]	= nft_do_chain_inet_ingress,
- 		[NF_INET_LOCAL_IN]	= nft_do_chain_inet,
- 		[NF_INET_LOCAL_OUT]	= nft_do_chain_inet,
- 		[NF_INET_FORWARD]	= nft_do_chain_inet,
--- 
-2.20.1
+maybe this example is not that useful...
 
+... But the overall idea is to share sets with the ingress hook, which
+was not possible so far :-)
+
+>         }
+> 
+>         chain ingress {
+>                 type filter hook unknown device "enp0s25" priority filter; policy accept;
+>                 ip saddr @blackhole counter packets 0 bytes 0 drop
+>         }
+>   }
+> 
+> Pablo Neira Ayuso (4):
+>   netfilter: add nf_static_key_{inc,dec}
+>   netfilter: add nf_ingress_hook() helper function
+>   netfilter: add inet ingress support
+>   netfilter: nf_tables: add inet ingress support
+> 
+>  include/net/netfilter/nf_tables.h      |   6 ++
+>  include/net/netfilter/nf_tables_ipv4.h |  33 +++++++
+>  include/net/netfilter/nf_tables_ipv6.h |  46 +++++++++
+>  include/uapi/linux/netfilter.h         |   1 +
+>  net/netfilter/core.c                   | 127 ++++++++++++++++++++-----
+>  net/netfilter/nf_tables_api.c          |  14 +--
+>  net/netfilter/nft_chain_filter.c       |  35 ++++++-
+>  7 files changed, 228 insertions(+), 34 deletions(-)
+> 
+> --
+> 2.20.1
+> 
