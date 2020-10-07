@@ -2,68 +2,98 @@ Return-Path: <SRS0=fUKQ=DO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 162FDC46466
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Oct 2020 00:02:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E296C3279D
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Oct 2020 00:10:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D7CF020739
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Oct 2020 00:02:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 15BC620739
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Oct 2020 00:10:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726719AbgJGACT (ORCPT
+        id S1726999AbgJGAKo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Oct 2020 20:02:19 -0400
-Received: from correo.us.es ([193.147.175.20]:46210 "EHLO mail.us.es"
+        Tue, 6 Oct 2020 20:10:44 -0400
+Received: from correo.us.es ([193.147.175.20]:46968 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725925AbgJGACT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Oct 2020 20:02:19 -0400
+        id S1726877AbgJGAKj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 6 Oct 2020 20:10:39 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 2FC371F0CE1
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Oct 2020 02:02:18 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 2488B1F0CE1
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Oct 2020 02:10:37 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 212CCDA73D
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Oct 2020 02:02:18 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1569ADA78B
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Oct 2020 02:10:37 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 16947DA730; Wed,  7 Oct 2020 02:02:18 +0200 (CEST)
+        id 0B219DA722; Wed,  7 Oct 2020 02:10:37 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1DA89DA722;
-        Wed,  7 Oct 2020 02:02:16 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id ED294DA73D;
+        Wed,  7 Oct 2020 02:10:34 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 07 Oct 2020 02:02:16 +0200 (CEST)
+ Wed, 07 Oct 2020 02:10:34 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 0071542EF42A;
-        Wed,  7 Oct 2020 02:02:15 +0200 (CEST)
-Date:   Wed, 7 Oct 2020 02:02:15 +0200
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id C1C5242EF42B;
+        Wed,  7 Oct 2020 02:10:34 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org,
-        Serhey Popovych <serhe.popovych@gmail.com>
-Subject: Re: [iptables PATCH 0/3] libxtables: Fix for pointless socket() calls
-Message-ID: <20201007000215.GB2143@salvia>
-References: <20200922225341.8976-1-phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH 2/4] selftests: netfilter: fix nft_meta.sh error reporting
+Date:   Wed,  7 Oct 2020 02:10:25 +0200
+Message-Id: <20201007001027.2530-3-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20201007001027.2530-1-pablo@netfilter.org>
+References: <20201007001027.2530-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20200922225341.8976-1-phil@nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 23, 2020 at 12:53:38AM +0200, Phil Sutter wrote:
-> Patch 1 establishes the needed sorting in pending extension lists,
-> patch 2 then simplifies xtables_fully_register_pending_*() functions.
-> Patch 3 is strictly speaking not necessary but nice to have as it
-> streamlines array-based extension registrators with the extension
-> sorting.
+From: Fabian Frederick <fabf@skynet.be>
 
-Series with patch 1 (v2) LGTM.
+When some test directly done with check_one_counter() fails,
+counter variable is undefined. This patch calls ip with cname
+which avoids errors like:
+FAIL: oskuidcounter, want "packets 2", got
+Error: syntax error, unexpected newline, expecting string
+list counter inet filter
+                        ^
+Error is now correctly rendered:
+FAIL: oskuidcounter, want "packets 2", got
+table inet filter {
+	counter oskuidcounter {
+		packets 1 bytes 84
+	}
+}
+
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ tools/testing/selftests/netfilter/nft_meta.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/testing/selftests/netfilter/nft_meta.sh b/tools/testing/selftests/netfilter/nft_meta.sh
+index 17b2d6eaa204..1f5b46542c14 100755
+--- a/tools/testing/selftests/netfilter/nft_meta.sh
++++ b/tools/testing/selftests/netfilter/nft_meta.sh
+@@ -90,7 +90,7 @@ check_one_counter()
+ 	if [ $? -ne 0 ];then
+ 		echo "FAIL: $cname, want \"$want\", got"
+ 		ret=1
+-		ip netns exec "$ns0" nft list counter inet filter $counter
++		ip netns exec "$ns0" nft list counter inet filter $cname
+ 	fi
+ }
+ 
+-- 
+2.20.1
+
