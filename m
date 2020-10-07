@@ -2,105 +2,108 @@ Return-Path: <SRS0=fUKQ=DO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-10.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4DC4C4363D
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Oct 2020 14:03:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C439EC4727F
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Oct 2020 19:32:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 474FE205F4
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Oct 2020 14:03:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E810207EA
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Oct 2020 19:32:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Tib/o6a5"
+	dkim=pass (2048-bit key) header.d=arista.com header.i=@arista.com header.b="mXoD2Q+n"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728566AbgJGODv (ORCPT
+        id S1727858AbgJGTcx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 7 Oct 2020 10:03:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55922 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728469AbgJGODv (ORCPT
+        Wed, 7 Oct 2020 15:32:53 -0400
+Received: from mx.aristanetworks.com ([162.210.129.12]:28723 "EHLO
+        smtp.aristanetworks.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726129AbgJGTcx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Oct 2020 10:03:51 -0400
-Received: from mail-pl1-x62d.google.com (mail-pl1-x62d.google.com [IPv6:2607:f8b0:4864:20::62d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A70B2C061755
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Oct 2020 07:03:51 -0700 (PDT)
-Received: by mail-pl1-x62d.google.com with SMTP id h2so1040603pll.11
-        for <netfilter-devel@vger.kernel.org>; Wed, 07 Oct 2020 07:03:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=h3ZAonb118O0d/Lcv9VCRzcfU78H6+ewqmcz0JFfLkg=;
-        b=Tib/o6a5DO/+ZVc34OUGyVGHihjV2a/0R2AWl84iaQq22TunfSmrmWtUx0T2ZllR4r
-         9ItMetAkTUaSxsRshpneGitsL7nFBzXWExT8mUS6990Gp6lAPcvwYHrGDfbUPnlsCzLN
-         Pq3FBd4RYBdrX4B6csiNF9P9QA7aWTi38urroLhDbUyanFKjvkpsYSBrH9K+hvqiVlvK
-         x0juVLqIjPJvGHqGu+25neGsSqxVCwZztm65v3OP2DQCNjWkUedzFEui9b8Xh0b4X7gm
-         bAKxIPLhpYNqzx4Eu9YaMXZRu5P8XG+2sEC0MX3F+NO8ZWw8X7HGkwBXaVZX/A7KKJ7j
-         3Zmw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=h3ZAonb118O0d/Lcv9VCRzcfU78H6+ewqmcz0JFfLkg=;
-        b=uag1Q/zdhdtxzcjCupjV7OQ00phIZK7sjKY5L+AmKeTL6Xm0UnKZqfNku3xtpkmkFD
-         6B/2EXwYuP6faf36aRK/jqtlJHembgWWfOeXg9rGQdj4yCvPE698cuLfPxl6qXCBAQqK
-         1Z0HNvhAy0DbQArCNdUtUH4Iao4QCY0dHtpoSD9xHH4aPg+D8BkhMXdPI3/sZ2oGLAA5
-         1MEemM7fs1s5oszrrOXkNnv3B5ljXqk293JK2RKu6cec0MqRFrR6Qo7bubu3+wgxqkNB
-         /qIHEzGjqP2y38Go44yoSA+Jqq8UuzAGidmgdwJFWZmIi4pr9ZUI6Oz0qDyGiLBq7qMJ
-         tlfw==
-X-Gm-Message-State: AOAM533wgVutY4Ybd295Z1rtzb6pfcRYtQVlWgG0Gwik7uUmEon6Wi2d
-        X4SXnIuB2LpCaOr4zKYd/VwqbVEZJqKOmg==
-X-Google-Smtp-Source: ABdhPJwgJrMfIYfMYo60ugUZ4aWUC3nWkDAqIRWtzI9iXwXaLqQ6K02oyTos96ESkrbMO7/BCxMMqA==
-X-Received: by 2002:a17:902:a9cc:b029:d3:77f7:3ca9 with SMTP id b12-20020a170902a9ccb02900d377f73ca9mr3049145plr.75.1602079430841;
-        Wed, 07 Oct 2020 07:03:50 -0700 (PDT)
-Received: from localhost.localdomain ([183.83.42.133])
-        by smtp.googlemail.com with ESMTPSA id a15sm3489664pgi.69.2020.10.07.07.03.48
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 07 Oct 2020 07:03:50 -0700 (PDT)
-From:   Gopal Yadav <gopunop@gmail.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Gopal Yadav <gopunop@gmail.com>
-Subject: [PATCH v2] Solves Bug 1462 - `nft -j list set` does not show counters
-Date:   Wed,  7 Oct 2020 19:33:37 +0530
-Message-Id: <20201007140337.21218-1-gopunop@gmail.com>
-X-Mailer: git-send-email 2.17.1
+        Wed, 7 Oct 2020 15:32:53 -0400
+Received: from us180.sjc.aristanetworks.com (us180.sjc.aristanetworks.com [10.243.128.7])
+        by smtp.aristanetworks.com (Postfix) with ESMTP id 925304000A4;
+        Wed,  7 Oct 2020 12:32:52 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arista.com;
+        s=Arista-A; t=1602099172;
+        bh=C0+5yjcysMk84GoYj0z05bOXjUBeWKhioIraoOaj5pU=;
+        h=Date:To:Subject:From:From;
+        b=mXoD2Q+nkriF0p709lff2+rKBzk1REnY4s8WWlfDsdp8XssJvXd27weNqnsFx5/U/
+         sRUi67pxVPh5Y1O4b2/L1D+zOL9gmM86BSOv1xl5badSNO8lnSusEz9+dTETDN/B2P
+         yDPwY0lve2/jTMyBTnHwZM2B3zQZ1yFqXPIE+Q458cvvJ+bWR0ZKcN8LvQTzqSDKl9
+         c8HjBTU+6M9Ifi9cVezxItw69tTl98ScyOuKIrXsD0rOAjhqdMPRjsWLzgrg449rob
+         BLG0t3+vLnLsM8/zxfEgRo1tDe4Sahgq6xzk7LYcqIq14UeYcigAnEkAUCMGKhDceW
+         7zhhKeaxmY6cQ==
+Received: by us180.sjc.aristanetworks.com (Postfix, from userid 10189)
+        id 7009D95C169C; Wed,  7 Oct 2020 12:32:52 -0700 (PDT)
+Date:   Wed, 07 Oct 2020 12:32:52 -0700
+To:     linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+        kuba@kernel.org, davem@davemloft.net, fw@strlen.org,
+        kadlec@netfilter.org, pablo@netfilter.org, fruggeri@arista.com
+Subject: [PATCH nf v2] netfilter: conntrack: connection timeout after
+ re-register
+User-Agent: Heirloom mailx 12.5 7/5/10
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Message-Id: <20201007193252.7009D95C169C@us180.sjc.aristanetworks.com>
+From:   fruggeri@arista.com (Francesco Ruggeri)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Solves Bug 1462 - `nft -j list set` does not show counters
+If the first packet conntrack sees after a re-register is an outgoing
+keepalive packet with no data (SEG.SEQ = SND.NXT-1), td_end is set to
+SND.NXT-1.
+When the peer correctly acknowledges SND.NXT, tcp_in_window fails
+check III (Upper bound for valid (s)ack: sack <= receiver.td_end) and
+returns false, which cascades into nf_conntrack_in setting
+skb->_nfct = 0 and in later conntrack iptables rules not matching.
+In cases where iptables are dropping packets that do not match
+conntrack rules this can result in idle tcp connections to time out.
 
-Signed-off-by: Gopal Yadav <gopunop@gmail.com>
+v2: adjust td_end when getting the reply rather than when sending out
+    the keepalive packet.
+
+Fixes: f94e63801ab2 ("netfilter: conntrack: reset tcp maxwin on re-register")
+Signed-off-by: Francesco Ruggeri <fruggeri@arista.com>
 ---
- src/json.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_proto_tcp.c | 19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-diff --git a/src/json.c b/src/json.c
-index 5856f9fc..ea6e392c 100644
---- a/src/json.c
-+++ b/src/json.c
-@@ -589,7 +589,7 @@ json_t *set_elem_expr_json(const struct expr *expr, struct output_ctx *octx)
- 		return NULL;
- 
- 	/* these element attributes require formal set elem syntax */
--	if (expr->timeout || expr->expiration || expr->comment) {
-+	if (expr->timeout || expr->expiration || expr->comment || expr->stmt) {
- 		root = json_pack("{s:o}", "val", root);
- 
- 		if (expr->timeout) {
-@@ -604,6 +604,11 @@ json_t *set_elem_expr_json(const struct expr *expr, struct output_ctx *octx)
- 			tmp = json_string(expr->comment);
- 			json_object_set_new(root, "comment", tmp);
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index e8c86ee4c1c4..c8fb2187ad4b 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -541,13 +541,20 @@ static bool tcp_in_window(const struct nf_conn *ct,
+ 			swin = win << sender->td_scale;
+ 			sender->td_maxwin = (swin == 0 ? 1 : swin);
+ 			sender->td_maxend = end + sender->td_maxwin;
+-			/*
+-			 * We haven't seen traffic in the other direction yet
+-			 * but we have to tweak window tracking to pass III
+-			 * and IV until that happens.
+-			 */
+-			if (receiver->td_maxwin == 0)
++			if (receiver->td_maxwin == 0) {
++				/* We haven't seen traffic in the other
++				 * direction yet but we have to tweak window
++				 * tracking to pass III and IV until that
++				 * happens.
++				 */
+ 				receiver->td_end = receiver->td_maxend = sack;
++			} else if (sack == receiver->td_end + 1) {
++				/* Likely a reply to a keepalive.
++				 * Needed for III.
++				 */
++				receiver->td_end++;
++			}
++
  		}
-+		if (expr->stmt) {
-+			tmp = stmt_print_json(expr->stmt, octx);
-+			json_object_update_missing(root, tmp);
-+			json_decref(tmp);
-+		}
- 		return json_pack("{s:o}", "elem", root);
- 	}
- 
+ 	} else if (((state->state == TCP_CONNTRACK_SYN_SENT
+ 		     && dir == IP_CT_DIR_ORIGINAL)
 -- 
-2.17.1
+2.28.0
 
