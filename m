@@ -6,96 +6,82 @@ X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F6D0C4363C
-	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Oct 2020 14:39:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 048F7C4363A
+	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Oct 2020 14:58:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E788521924
-	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Oct 2020 14:39:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AE93F20708
+	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Oct 2020 14:58:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730663AbgJHOjb (ORCPT
+        id S1730694AbgJHO60 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 8 Oct 2020 10:39:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58176 "EHLO
+        Thu, 8 Oct 2020 10:58:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32890 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730353AbgJHOjb (ORCPT
+        with ESMTP id S1729833AbgJHO60 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Oct 2020 10:39:31 -0400
-X-Greylist: delayed 383 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 08 Oct 2020 07:39:31 PDT
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C0A9C061755
-        for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2020 07:39:31 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 87EBC58757E96; Thu,  8 Oct 2020 16:33:04 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 871B760E6E48A;
-        Thu,  8 Oct 2020 16:33:04 +0200 (CEST)
-Date:   Thu, 8 Oct 2020 16:33:04 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     Phil Sutter <phil@nwl.cc>
-cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Thu, 8 Oct 2020 10:58:26 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC95CC061755
+        for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2020 07:58:25 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1kQXN8-000606-Iv; Thu, 08 Oct 2020 16:58:22 +0200
+Date:   Thu, 8 Oct 2020 16:58:22 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH] libiptc: Avoid gcc-10 zero-length array
- warning
-In-Reply-To: <20201008130116.25798-1-phil@nwl.cc>
-Message-ID: <s95qopq1-3o5o-oo9-1qso-osp024914p67@vanv.qr>
+Subject: Re: [iptables PATCH] libiptc: Avoid gcc-10 zero-length array warning
+Message-ID: <20201008145822.GA13016@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Jan Engelhardt <jengelh@inai.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
 References: <20201008130116.25798-1-phil@nwl.cc>
+ <s95qopq1-3o5o-oo9-1qso-osp024914p67@vanv.qr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <s95qopq1-3o5o-oo9-1qso-osp024914p67@vanv.qr>
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi Jan,
 
-On Thursday 2020-10-08 15:01, Phil Sutter wrote:
+On Thu, Oct 08, 2020 at 04:33:04PM +0200, Jan Engelhardt wrote:
+[...]
+> Anyway, gcc-10/C mode does not reject embedding (and a number of maintainers
+> have made it abundantly clear in the past they don't care if UAPI uses anti-C++
+> "features"). Nonreject example:
+> 
+> » cat x.c
+> struct a2 {
+>         int x;
+>         int z[];
+> };
+> struct m {
+>         struct a2 y;
+>         long q;
+> };
+> » gcc -Wall -std=c11 -c -w -v x.c
+> GNU C11 (SUSE Linux) version 10.2.1 20200825 [revision c0746a1beb1ba073c7981eb09f55b3d993b32e5c] (x86_64-suse-linux)
 
->Gcc-10 doesn't like the use of zero-length arrays as last struct member
->to denote variable sized objects.
+No need to pass '-w', gcc seems to accept the above unless one passes
+'-pedantic' and thereby enables strict ISO C mode:
 
-On the contrary. It does not complain about the declaration of T x[0],
-but about the write beyond the end of an array of size 0 (literally).
-Such past-end writes are Undefined Behavior by the standard, and tools
-like cov-scan (based on llvm I believe) report it just the same.
+| % gcc -Wall -pedantic -std=c11 -c x.c   
+| x.c:6:19: warning: invalid use of structure with flexible array member [-Wpedantic]
+|     6 |         struct a2 y;
+|       |                   ^
 
-That's why C99 probably had to come up with "T y[]"; the array is now
-of unspecified size rather than size 0. cov-scan agrees.
+While the question of whether kernel UAPI headers should adhere to
+strict ISO C or not may be debatable, my motivation for working around
+the situation in user space comes from Gustavo's complaints when I tried
+to convert the relevant struct members into flexible arrays. He
+apparently is a burnt child looking at commit 1e6e9d0f4859e ("uapi:
+revert flexible-array conversions").
 
-Since GCC has retained "T x[0]" as an extension, it would be a gcc bug
-to warn about its own extension in conjunction with memcpy.
-
-
->The suggested alternative, namely to
->use a flexible array member as defined by C99, is problematic as that
->doesn't allow for said struct to be embedded into others.
-
-Both T x[0] and T y[], in gcc, invoke the flexible scheme.
-
-Both share the "embedding problem" - i.e. by using the flexible array,
-you can accidentally access members of the surrounding struct.
-
-gcc only complains about this when combining "T y[]" with C++ mode.
-I find this to be an unusual choice and would suggest opening a bug.
-
-The reason T x[0], when embedded, in C++, does not elicit a warning
-is probably because it is already considered UB to access past-end-of-array
-(see above); and I raise the hypothesis that the GNU extension of T x[0] is
-actually only specified for C.
-
-Anyway, gcc-10/C mode does not reject embedding (and a number of maintainers
-have made it abundantly clear in the past they don't care if UAPI uses anti-C++
-"features"). Nonreject example:
-
-» cat x.c
-struct a2 {
-        int x;
-        int z[];
-};
-struct m {
-        struct a2 y;
-        long q;
-};
-» gcc -Wall -std=c11 -c -w -v x.c
-GNU C11 (SUSE Linux) version 10.2.1 20200825 [revision c0746a1beb1ba073c7981eb09f55b3d993b32e5c] (x86_64-suse-linux)
-»
-
-
+Cheers, Phil
