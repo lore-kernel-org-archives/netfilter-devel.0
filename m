@@ -6,90 +6,118 @@ X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3500AC43457
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Oct 2020 18:56:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C064C433DF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Oct 2020 19:05:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D311F222BA
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Oct 2020 18:56:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 399DE22314
+	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Oct 2020 19:05:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388267AbgJISz7 (ORCPT
+        id S2388349AbgJITF2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 9 Oct 2020 14:55:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38444 "EHLO
+        Fri, 9 Oct 2020 15:05:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39900 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388184AbgJISz7 (ORCPT
+        with ESMTP id S2388317AbgJITF1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Oct 2020 14:55:59 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 325D7C0613D2;
-        Fri,  9 Oct 2020 11:55:59 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1kQxYW-0000rj-1m; Fri, 09 Oct 2020 20:55:52 +0200
-Date:   Fri, 9 Oct 2020 20:55:52 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Francesco Ruggeri <fruggeri@arista.com>,
-        open list <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>, coreteam@netfilter.org,
-        netfilter-devel@vger.kernel.org, Jakub Kicinski <kuba@kernel.org>,
-        David Miller <davem@davemloft.net>, fw@strlen.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf v2] netfilter: conntrack: connection timeout after
- re-register
-Message-ID: <20201009185552.GF5723@breakpoint.cc>
-References: <20201007193252.7009D95C169C@us180.sjc.aristanetworks.com>
- <CA+HUmGhBxBHU85oFfvoAyP=hG17DG2kgO67eawk1aXmSjehOWQ@mail.gmail.com>
- <alpine.DEB.2.23.453.2010090838430.19307@blackhole.kfki.hu>
- <20201009110323.GC5723@breakpoint.cc>
- <alpine.DEB.2.23.453.2010092035550.19307@blackhole.kfki.hu>
+        Fri, 9 Oct 2020 15:05:27 -0400
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA6A4C0613D2
+        for <netfilter-devel@vger.kernel.org>; Fri,  9 Oct 2020 12:05:27 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 2DBABCC012C;
+        Fri,  9 Oct 2020 21:05:26 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Fri,  9 Oct 2020 21:05:24 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+        by smtp2.kfki.hu (Postfix) with ESMTP id BE968CC011F;
+        Fri,  9 Oct 2020 21:05:23 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id B564B340D60; Fri,  9 Oct 2020 21:05:23 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by blackhole.kfki.hu (Postfix) with ESMTP id B144B340D5C;
+        Fri,  9 Oct 2020 21:05:23 +0200 (CEST)
+Date:   Fri, 9 Oct 2020 21:05:23 +0200 (CEST)
+From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+X-X-Sender: kadlec@blackhole.kfki.hu
+To:     Phil Sutter <phil@nwl.cc>
+cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Arturo Borrero Gonzalez <arturo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH] iptables-nft: fix basechain policy
+ configuration
+In-Reply-To: <20201009120455.GJ13016@orbyte.nwl.cc>
+Message-ID: <alpine.DEB.2.23.453.2010092056500.19307@blackhole.kfki.hu>
+References: <160163907669.18523.7311010971070291883.stgit@endurance> <20201008173156.GA14654@salvia> <20201009082953.GD13016@orbyte.nwl.cc> <20201009085039.GB7851@salvia> <20201009093705.GF13016@orbyte.nwl.cc> <alpine.DEB.2.23.453.2010091226090.19307@blackhole.kfki.hu>
+ <20201009120455.GJ13016@orbyte.nwl.cc>
+User-Agent: Alpine 2.23 (DEB 453 2020-06-18)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.23.453.2010092035550.19307@blackhole.kfki.hu>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
-> > The repro clears all rules, waits 4 seconds, then restores the ruleset. 
-> > using iptables-restore < FOO; sleep 4; iptables-restore < FOO will not 
-> > result in any unregister ops.
-> >
-> > We could make kernel defer unregister via some work queue but i don't
-> > see what this would help/accomplish (and its questionable of how long it
-> > should wait).
+Hi Phil,
+
+On Fri, 9 Oct 2020, Phil Sutter wrote:
+
+> On Fri, Oct 09, 2020 at 12:37:25PM +0200, Jozsef Kadlecsik wrote:
+> [...]
+> > I know lots of effort went into backward compatibility, this should be 
+> > included there too.
 > 
-> Sorry, I can't put together the two paragraphs above: in the first you 
-> wrote that no (hook) unregister-register happens and in the second one 
-> that those could be derefed.
-
-Sorry, my reply is confusing indeed.
-
-Matches/targets that need conntrack increment a refcount.
-So, when all rules are flushed, refcount goes down to 0 and conntrack is
-disabled because the hooks get removed..
-
-Just doing iptables-restore doesn't unregister as long as both the old
-and new rulesets need conntrack.
-
-The "delay unregister" remark was wrt. the "all rules were deleted"
-case, i.e. add a "grace period" rather than acting right away when
-conntrack use count did hit 0.
-
-> > We could disallow unregister, but that seems silly (forces reboot...).
-> > 
-> > I think the patch is fine.
+> Certainly doable. Some hacking turned into quite a mess, though:
 > 
-> The patch is fine, but why the packets are handled by conntrack (after the 
-> first restore and during the 4s sleep? And then again after the second 
-> restore?) as if all conntrack entries were removed?
+> When restoring without '--noflush', a chain cache is needed - simply 
+> doable by treating NFT_CL_FAKE differently. Reacting upon a chain policy 
+> of '-' is easy, just lookup the existing chain's policy from cache and 
+> use that. Things then become ugly for not specified chains: 
+> 'flush_table' callback really deletes the table. So one has to gather 
+> the existing builtin chains first, check if their policy is non-default 
+> and restore those. If they don't exist though, one has to expect for 
+> them to occur when refreshing the transaction (due to concurrent ruleset 
+> change). So the batch jobs have to be created either way and just set to 
+> 'skip' if either table or chain doesn't exist or the policy is ACCEPT.
 
-Conntrack entries are not removed, only the base hooks get unregistered.
-This is a problem for tcp window tracking.
+I think the main problem is the difference between nft and iptables when 
+printing the base chains and their policy, as you wrote:
 
-When re-register occurs, kernel is supposed to switch the existing
-entries to "loose" mode so window tracking won't flag packets as
-invalid, but apparently this isn't enough to handle keepalive case.
+> But that is a significant divergence between legacy and nft:
+> 
+> | # iptables -P FORWARD DROP
+> | # iptables-restore <<EOF
+> | *filter
+> | COMMIT
+> | EOF
+> | # iptables-save
+>
+> With legacy, the output is:
+> 
+> | *filter
+> | :INPUT ACCEPT [0:0]
+> | :FORWARD DROP [0:0]
+> | :OUTPUT ACCEPT [0:0]
+> | COMMIT
+> 
+> With nft, there's no output at all. What do you think, should we fix
+> that? If so, which side?
+
+It looks as nft would loose the DROP policy of FORWARD! That looks like 
+definitely wrong. It was explicitly set, so it should be printed/saved. 
+
+Also, if nft in >legacy mode< would print the base chains with their 
+policy (regardless of the value), couldn't then restore mode handle those 
+properly?
+ 
+> But first I need more coffee. %)
+
+Me too... :-)
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
