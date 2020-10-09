@@ -2,122 +2,73 @@ Return-Path: <SRS0=CfkY=DQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C064C433DF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Oct 2020 19:05:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3130C433E7
+	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Oct 2020 19:19:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 399DE22314
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Oct 2020 19:05:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9CDC022282
+	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Oct 2020 19:19:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1602271187;
+	bh=FoN664Emd6xgE5fhzr8F3qqH1cWM2zG9+qpyq0+bgt0=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=Sf+t8NR9h4zm3SUGmn/MbtHhOMAR9b2OWkcWb+xmmWg32E8KvY1h0tLoCPELxS4eP
+	 KsfZGRUnLvyK988CI32KEh+0X3bSJWi4Z/iQKaM8NPYjQ63U9+B0S+7a3Wn/Dblz/g
+	 yvAr6wq6Mwi2iwbd8rCAViFJupwrcne/PbME+5LE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388349AbgJITF2 (ORCPT
+        id S2388541AbgJITTq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 9 Oct 2020 15:05:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39900 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388317AbgJITF1 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Oct 2020 15:05:27 -0400
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA6A4C0613D2
-        for <netfilter-devel@vger.kernel.org>; Fri,  9 Oct 2020 12:05:27 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 2DBABCC012C;
-        Fri,  9 Oct 2020 21:05:26 +0200 (CEST)
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Fri,  9 Oct 2020 21:05:24 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id BE968CC011F;
-        Fri,  9 Oct 2020 21:05:23 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id B564B340D60; Fri,  9 Oct 2020 21:05:23 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by blackhole.kfki.hu (Postfix) with ESMTP id B144B340D5C;
-        Fri,  9 Oct 2020 21:05:23 +0200 (CEST)
-Date:   Fri, 9 Oct 2020 21:05:23 +0200 (CEST)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-X-X-Sender: kadlec@blackhole.kfki.hu
-To:     Phil Sutter <phil@nwl.cc>
-cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Arturo Borrero Gonzalez <arturo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH] iptables-nft: fix basechain policy
- configuration
-In-Reply-To: <20201009120455.GJ13016@orbyte.nwl.cc>
-Message-ID: <alpine.DEB.2.23.453.2010092056500.19307@blackhole.kfki.hu>
-References: <160163907669.18523.7311010971070291883.stgit@endurance> <20201008173156.GA14654@salvia> <20201009082953.GD13016@orbyte.nwl.cc> <20201009085039.GB7851@salvia> <20201009093705.GF13016@orbyte.nwl.cc> <alpine.DEB.2.23.453.2010091226090.19307@blackhole.kfki.hu>
- <20201009120455.GJ13016@orbyte.nwl.cc>
-User-Agent: Alpine 2.23 (DEB 453 2020-06-18)
+        Fri, 9 Oct 2020 15:19:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40510 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726118AbgJITTq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 9 Oct 2020 15:19:46 -0400
+Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.7])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5F5A92227E;
+        Fri,  9 Oct 2020 19:19:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1602271185;
+        bh=FoN664Emd6xgE5fhzr8F3qqH1cWM2zG9+qpyq0+bgt0=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=NtORSbJLJ2lkD1Qf54dFMIEq/UyVcm6Vn6FlSs80npeFYuzLHxcaKn+cSs7obY3Hs
+         2IebHohWn5Zpq21LzG8+27RoQGMzANwcu598OwrxCPHy7nCRNHfGGYipbnWRv+K8aN
+         QYnDhHgsOWiKTv/xZeIximyPDocvU/LuTT0O0jSY=
+Date:   Fri, 9 Oct 2020 12:19:44 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH 0/4] Netfilter fixes for net
+Message-ID: <20201009121944.75660189@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <20201007001027.2530-1-pablo@netfilter.org>
+References: <20201007001027.2530-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Phil,
-
-On Fri, 9 Oct 2020, Phil Sutter wrote:
-
-> On Fri, Oct 09, 2020 at 12:37:25PM +0200, Jozsef Kadlecsik wrote:
-> [...]
-> > I know lots of effort went into backward compatibility, this should be 
-> > included there too.
+On Wed,  7 Oct 2020 02:10:23 +0200 Pablo Neira Ayuso wrote:
+> The following patchset contains Netfilter selftests fixes from
+> Fabian Frederick:
 > 
-> Certainly doable. Some hacking turned into quite a mess, though:
+> 1) Extend selftest nft_meta.sh to check for meta cpu.
 > 
-> When restoring without '--noflush', a chain cache is needed - simply 
-> doable by treating NFT_CL_FAKE differently. Reacting upon a chain policy 
-> of '-' is easy, just lookup the existing chain's policy from cache and 
-> use that. Things then become ugly for not specified chains: 
-> 'flush_table' callback really deletes the table. So one has to gather 
-> the existing builtin chains first, check if their policy is non-default 
-> and restore those. If they don't exist though, one has to expect for 
-> them to occur when refreshing the transaction (due to concurrent ruleset 
-> change). So the batch jobs have to be created either way and just set to 
-> 'skip' if either table or chain doesn't exist or the policy is ACCEPT.
-
-I think the main problem is the difference between nft and iptables when 
-printing the base chains and their policy, as you wrote:
-
-> But that is a significant divergence between legacy and nft:
+> 2) Fix selftest nft_meta.sh error reporting.
 > 
-> | # iptables -P FORWARD DROP
-> | # iptables-restore <<EOF
-> | *filter
-> | COMMIT
-> | EOF
-> | # iptables-save
->
-> With legacy, the output is:
+> 3) Fix shellcheck warnings in selftest nft_meta.sh.
 > 
-> | *filter
-> | :INPUT ACCEPT [0:0]
-> | :FORWARD DROP [0:0]
-> | :OUTPUT ACCEPT [0:0]
-> | COMMIT
+> 4) Extend selftest nft_meta.sh to check for meta time.
 > 
-> With nft, there's no output at all. What do you think, should we fix
-> that? If so, which side?
+> Please, pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-It looks as nft would loose the DROP policy of FORWARD! That looks like 
-definitely wrong. It was explicitly set, so it should be printed/saved. 
-
-Also, if nft in >legacy mode< would print the base chains with their 
-policy (regardless of the value), couldn't then restore mode handle those 
-properly?
- 
-> But first I need more coffee. %)
-
-Me too... :-)
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Pulled, thank you!
