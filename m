@@ -2,100 +2,83 @@ Return-Path: <SRS0=0qAu=DR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF358C433DF
-	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Oct 2020 06:42:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4533C2BD0C
+	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Oct 2020 22:57:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 780732067D
-	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Oct 2020 06:42:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6B01E2080C
+	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Oct 2020 22:57:21 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="J9DRHcSP"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727320AbgJJGma (ORCPT
+        id S1731091AbgJJW5U (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 10 Oct 2020 02:42:30 -0400
-Received: from kirsty.vergenet.net ([202.4.237.240]:60528 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727092AbgJJGmL (ORCPT
+        Sat, 10 Oct 2020 18:57:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41796 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731109AbgJJTwx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 10 Oct 2020 02:42:11 -0400
-Received: from madeliefje.horms.nl (tulip.horms.nl [83.161.246.101])
-        by kirsty.vergenet.net (Postfix) with ESMTPA id 3A9C725B7E4;
-        Sat, 10 Oct 2020 17:42:08 +1100 (AEDT)
-Received: by madeliefje.horms.nl (Postfix, from userid 7100)
-        id 4633E1399; Sat, 10 Oct 2020 08:42:06 +0200 (CEST)
-Date:   Sat, 10 Oct 2020 08:42:06 +0200
-From:   Simon Horman <horms@verge.net.au>
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     lvs-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Evgeny B <abt-admin@mail.ru>,
-        Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH net] ipvs: clear skb->tstamp in forwarding path
-Message-ID: <20201010064206.GC22339@vergenet.net>
-References: <20201009182425.9050-1-ja@ssi.bg>
+        Sat, 10 Oct 2020 15:52:53 -0400
+Received: from mail-pf1-x431.google.com (mail-pf1-x431.google.com [IPv6:2607:f8b0:4864:20::431])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45B48C0610CF
+        for <netfilter-devel@vger.kernel.org>; Sat, 10 Oct 2020 05:01:04 -0700 (PDT)
+Received: by mail-pf1-x431.google.com with SMTP id f19so9197361pfj.11
+        for <netfilter-devel@vger.kernel.org>; Sat, 10 Oct 2020 05:01:04 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=McaAe4xg+u6Al1zaMAh0vWZE392TsCmmqetPorSk0wo=;
+        b=J9DRHcSPrilE4I24q8t46kQ5Qcz/Sr7vABUCvHEwi3RByj/ElYb2KiPUbGZGfv2kpg
+         jv7krcnaBApwgUUPvxRQaLLwduXilhvZLfhKCdfDjSYfrmOLpgSiOILl2ODqIm1UWem2
+         iivCY0ySSNzbb0DUvAi6+IFeY8NiSoJjL/thLCwpugp9hyxGylN/NmpUuk+hFujg24ez
+         nwOEV1og3TAjT3qHTDlXTSfrZb749QxUHo2tJSuLWRubR5oFkn66+WXSrBwDTtChxRYD
+         GcBSf1IOq/NHfm0bs/pomNrySIScl+Wov49WQYYqqwK1V5nARM+CG7ADPVwi92ePe0yh
+         emOw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=McaAe4xg+u6Al1zaMAh0vWZE392TsCmmqetPorSk0wo=;
+        b=ShI3+5n8IRxtIv/tVE3Z6r2ZcDu7qv+2D7K8tEtaqCR/9ex46UxVFRJ1jWA8KbHNyP
+         DNFvTcpLUTPNphmVl2FfV+5mmpffs4AjIGy98+xENCIEdlMEZzGTz1djABFGvMMi/M9p
+         gLMcMboi2bupsO1mrf8YukUmv3PE+ykFh3VAmOip4PJjPb03YILFR5d+YMA+pYgbGKJd
+         xAEUImh4ucVP5uyNVKQAOfXZsqzYlMH8rGDYxK7u6QOqizQi+hqaZsKy19owXjaiLBvK
+         3FaqVLR9o4KiGRKMKRo//kpJopNyPZ6qFxKpoCuxHbPE8ZmXFFavFxeoKJuJq8G8Ec/l
+         kPwA==
+X-Gm-Message-State: AOAM5314IbcX7eCvgKERUb2MB2GCeqBqK39rlCknccM0xbhuKlLY7c8T
+        HdzykmUZAv44IF7EfAuPRkTSOczu/gz3PlXb90+qZQSVkIj+lQ==
+X-Google-Smtp-Source: ABdhPJxC5lLIJrf5eVBuB7EoTX6X5MXziGjAJtN/La55vYwOnjnbNH0YTpKSz/ykSPyvEpn+gRmaluPNGYZGxtjQOwA=
+X-Received: by 2002:a62:7a0a:0:b029:152:192d:9231 with SMTP id
+ v10-20020a627a0a0000b0290152192d9231mr15755257pfc.61.1602331263637; Sat, 10
+ Oct 2020 05:01:03 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201009182425.9050-1-ja@ssi.bg>
-Organisation: Horms Solutions BV
-User-Agent: Mutt/1.10.1 (2018-07-13)
+From:   Amiq Nahas <m992493@gmail.com>
+Date:   Sat, 10 Oct 2020 17:30:52 +0530
+Message-ID: <CAPicJaHQfiy+AOZeb0XbzR4g-cJqdwrq3jeM0bB1BOBk7Dwk_w@mail.gmail.com>
+Subject: [ulogd2] Problem while running
+To:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Oct 09, 2020 at 09:24:25PM +0300, Julian Anastasov wrote:
-> fq qdisc requires tstamp to be cleared in forwarding path
-> 
-> Reported-by: Evgeny B <abt-admin@mail.ru>
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=209427
-> Suggested-by: Eric Dumazet <eric.dumazet@gmail.com>
-> Fixes: 8203e2d844d3 ("net: clear skb->tstamp in forwarding paths")
-> Fixes: fb420d5d91c1 ("tcp/fq: move back to CLOCK_MONOTONIC")
-> Fixes: 80b14dee2bea ("net: Add a new socket option for a future transmit time.")
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+I am building ulogd2 and when I do "/ulogd --uid ulog --pidfile
+/run/ulog/ulogd.pid -v"
+I get the below errors:
 
-Reviewed-by: Simon Horman <horms@verge.net.au>
+ulogd.c:722 load_plugin: '/usr/local/lib/ulogd/ulogd_BASE.so':
+/usr/local/lib/ulogd/ulogd_BASE.so: undefined symbol:
+register_interpreter
 
-Pablo, could you consider this for nf ?
+ulogd.c:722 load_plugin: '/usr/local/lib/ulogd/ulogd_LOGEMU.so':
+/usr/local/lib/ulogd/ulogd_LOGEMU.so: undefined symbol: ulogd_keyh
 
-> ---
->  net/netfilter/ipvs/ip_vs_xmit.c | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-> index b00866d777fe..d2e5a8f644b8 100644
-> --- a/net/netfilter/ipvs/ip_vs_xmit.c
-> +++ b/net/netfilter/ipvs/ip_vs_xmit.c
-> @@ -609,6 +609,8 @@ static inline int ip_vs_tunnel_xmit_prepare(struct sk_buff *skb,
->  	if (ret == NF_ACCEPT) {
->  		nf_reset_ct(skb);
->  		skb_forward_csum(skb);
-> +		if (skb->dev)
-> +			skb->tstamp = 0;
->  	}
->  	return ret;
->  }
-> @@ -649,6 +651,8 @@ static inline int ip_vs_nat_send_or_cont(int pf, struct sk_buff *skb,
->  
->  	if (!local) {
->  		skb_forward_csum(skb);
-> +		if (skb->dev)
-> +			skb->tstamp = 0;
->  		NF_HOOK(pf, NF_INET_LOCAL_OUT, cp->ipvs->net, NULL, skb,
->  			NULL, skb_dst(skb)->dev, dst_output);
->  	} else
-> @@ -669,6 +673,8 @@ static inline int ip_vs_send_or_cont(int pf, struct sk_buff *skb,
->  	if (!local) {
->  		ip_vs_drop_early_demux_sk(skb);
->  		skb_forward_csum(skb);
-> +		if (skb->dev)
-> +			skb->tstamp = 0;
->  		NF_HOOK(pf, NF_INET_LOCAL_OUT, cp->ipvs->net, NULL, skb,
->  			NULL, skb_dst(skb)->dev, dst_output);
->  	} else
-> -- 
-> 2.26.2
-> 
-> 
+ulogd.c:1597 not even a single working plugin stack
+
+Fatal error.
+
+Couldn't find any solution for this. Any suggestions?
+Thanks
