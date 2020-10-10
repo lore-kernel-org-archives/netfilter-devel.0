@@ -1,92 +1,101 @@
-Return-Path: <SRS0=CfkY=DQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=0qAu=DR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95696C433DF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Oct 2020 20:08:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF358C433DF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Oct 2020 06:42:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 58BE72053B
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Oct 2020 20:08:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 780732067D
+	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Oct 2020 06:42:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391228AbgJIUIo (ORCPT
+        id S1727320AbgJJGma (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 9 Oct 2020 16:08:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49364 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388178AbgJIUF7 (ORCPT
+        Sat, 10 Oct 2020 02:42:30 -0400
+Received: from kirsty.vergenet.net ([202.4.237.240]:60528 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727092AbgJJGmL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Oct 2020 16:05:59 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29AFCC0613D5;
-        Fri,  9 Oct 2020 13:05:59 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1kQyeC-0001He-AQ; Fri, 09 Oct 2020 22:05:48 +0200
-Date:   Fri, 9 Oct 2020 22:05:48 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Francesco Ruggeri <fruggeri@arista.com>,
-        open list <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>, coreteam@netfilter.org,
-        netfilter-devel@vger.kernel.org, Jakub Kicinski <kuba@kernel.org>,
-        David Miller <davem@davemloft.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf v2] netfilter: conntrack: connection timeout after
- re-register
-Message-ID: <20201009200548.GG5723@breakpoint.cc>
-References: <20201007193252.7009D95C169C@us180.sjc.aristanetworks.com>
- <CA+HUmGhBxBHU85oFfvoAyP=hG17DG2kgO67eawk1aXmSjehOWQ@mail.gmail.com>
- <alpine.DEB.2.23.453.2010090838430.19307@blackhole.kfki.hu>
- <20201009110323.GC5723@breakpoint.cc>
- <alpine.DEB.2.23.453.2010092035550.19307@blackhole.kfki.hu>
- <20201009185552.GF5723@breakpoint.cc>
- <alpine.DEB.2.23.453.2010092132220.19307@blackhole.kfki.hu>
+        Sat, 10 Oct 2020 02:42:11 -0400
+Received: from madeliefje.horms.nl (tulip.horms.nl [83.161.246.101])
+        by kirsty.vergenet.net (Postfix) with ESMTPA id 3A9C725B7E4;
+        Sat, 10 Oct 2020 17:42:08 +1100 (AEDT)
+Received: by madeliefje.horms.nl (Postfix, from userid 7100)
+        id 4633E1399; Sat, 10 Oct 2020 08:42:06 +0200 (CEST)
+Date:   Sat, 10 Oct 2020 08:42:06 +0200
+From:   Simon Horman <horms@verge.net.au>
+To:     Julian Anastasov <ja@ssi.bg>
+Cc:     lvs-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Evgeny B <abt-admin@mail.ru>,
+        Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH net] ipvs: clear skb->tstamp in forwarding path
+Message-ID: <20201010064206.GC22339@vergenet.net>
+References: <20201009182425.9050-1-ja@ssi.bg>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.23.453.2010092132220.19307@blackhole.kfki.hu>
+In-Reply-To: <20201009182425.9050-1-ja@ssi.bg>
+Organisation: Horms Solutions BV
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
-> > The "delay unregister" remark was wrt. the "all rules were deleted"
-> > case, i.e. add a "grace period" rather than acting right away when
-> > conntrack use count did hit 0.
+On Fri, Oct 09, 2020 at 09:24:25PM +0300, Julian Anastasov wrote:
+> fq qdisc requires tstamp to be cleared in forwarding path
 > 
-> Now I understand it, thanks really. The hooks are removed, so conntrack 
-> cannot "see" the packets and the entries become stale. 
+> Reported-by: Evgeny B <abt-admin@mail.ru>
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=209427
+> Suggested-by: Eric Dumazet <eric.dumazet@gmail.com>
+> Fixes: 8203e2d844d3 ("net: clear skb->tstamp in forwarding paths")
+> Fixes: fb420d5d91c1 ("tcp/fq: move back to CLOCK_MONOTONIC")
+> Fixes: 80b14dee2bea ("net: Add a new socket option for a future transmit time.")
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
 
-Yes.
+Reviewed-by: Simon Horman <horms@verge.net.au>
 
-> What is the rationale behind "remove the conntrack hooks when there are no 
-> rule left referring to conntrack"? Performance optimization? But then the 
-> content of the whole conntrack table could be deleted too... ;-)
+Pablo, could you consider this for nf ?
 
-Yes, this isn't the case at the moment -- only hooks are removed,
-entries will eventually time out.
-
-> > Conntrack entries are not removed, only the base hooks get unregistered. 
-> > This is a problem for tcp window tracking.
-> > 
-> > When re-register occurs, kernel is supposed to switch the existing 
-> > entries to "loose" mode so window tracking won't flag packets as 
-> > invalid, but apparently this isn't enough to handle keepalive case.
+> ---
+>  net/netfilter/ipvs/ip_vs_xmit.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
 > 
-> "loose" (nf_ct_tcp_loose) mode doesn't disable window tracking, it 
-> enables/disables picking up already established connections. 
+> diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+> index b00866d777fe..d2e5a8f644b8 100644
+> --- a/net/netfilter/ipvs/ip_vs_xmit.c
+> +++ b/net/netfilter/ipvs/ip_vs_xmit.c
+> @@ -609,6 +609,8 @@ static inline int ip_vs_tunnel_xmit_prepare(struct sk_buff *skb,
+>  	if (ret == NF_ACCEPT) {
+>  		nf_reset_ct(skb);
+>  		skb_forward_csum(skb);
+> +		if (skb->dev)
+> +			skb->tstamp = 0;
+>  	}
+>  	return ret;
+>  }
+> @@ -649,6 +651,8 @@ static inline int ip_vs_nat_send_or_cont(int pf, struct sk_buff *skb,
+>  
+>  	if (!local) {
+>  		skb_forward_csum(skb);
+> +		if (skb->dev)
+> +			skb->tstamp = 0;
+>  		NF_HOOK(pf, NF_INET_LOCAL_OUT, cp->ipvs->net, NULL, skb,
+>  			NULL, skb_dst(skb)->dev, dst_output);
+>  	} else
+> @@ -669,6 +673,8 @@ static inline int ip_vs_send_or_cont(int pf, struct sk_buff *skb,
+>  	if (!local) {
+>  		ip_vs_drop_early_demux_sk(skb);
+>  		skb_forward_csum(skb);
+> +		if (skb->dev)
+> +			skb->tstamp = 0;
+>  		NF_HOOK(pf, NF_INET_LOCAL_OUT, cp->ipvs->net, NULL, skb,
+>  			NULL, skb_dst(skb)->dev, dst_output);
+>  	} else
+> -- 
+> 2.26.2
 > 
-> nf_ct_tcp_be_liberal would disable TCP window checking (but not tracking) 
-> for non RST packets.
-
-You are right, mixup on my part.
-
-> But both seems to be modified only via the proc entries.
-
-Yes, we iterate table on re-register and modify the existing entries.
+> 
