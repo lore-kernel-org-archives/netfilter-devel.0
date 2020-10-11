@@ -2,94 +2,74 @@ Return-Path: <SRS0=sMKv=DS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B271EC43457
-	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Oct 2020 08:33:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92C4AC433E7
+	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Oct 2020 19:23:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8232220781
-	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Oct 2020 08:33:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 03F30215A4
+	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Oct 2020 19:23:46 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="NaI5AV0V"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729192AbgJKIdj (ORCPT
+        id S1726417AbgJKTXq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 11 Oct 2020 04:33:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45420 "EHLO
+        Sun, 11 Oct 2020 15:23:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59966 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726070AbgJKIdj (ORCPT
+        with ESMTP id S1726072AbgJKTXq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 11 Oct 2020 04:33:39 -0400
-X-Greylist: delayed 400 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 11 Oct 2020 01:33:39 PDT
-Received: from bmailout2.hostsharing.net (bmailout2.hostsharing.net [IPv6:2a01:37:3000::53df:4ef0:0])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F371C0613CE;
-        Sun, 11 Oct 2020 01:33:39 -0700 (PDT)
-Received: from h08.hostsharing.net (h08.hostsharing.net [IPv6:2a01:37:1000::53df:5f1c:0])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (Client CN "*.hostsharing.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (not verified))
-        by bmailout2.hostsharing.net (Postfix) with ESMTPS id 917862800B1C9;
-        Sun, 11 Oct 2020 10:26:57 +0200 (CEST)
-Received: by h08.hostsharing.net (Postfix, from userid 100393)
-        id 75F9F86D80; Sun, 11 Oct 2020 10:26:57 +0200 (CEST)
-Date:   Sun, 11 Oct 2020 10:26:57 +0200
-From:   Lukas Wunner <lukas@wunner.de>
-To:     Daniel Borkmann <daniel@iogearbox.net>
-Cc:     Laura =?iso-8859-1?Q?Garc=EDa_Li=E9bana?= <nevola@gmail.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Netfilter Development Mailing list 
-        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Thomas Graf <tgraf@suug.ch>, David Miller <davem@davemloft.net>
-Subject: Re: [PATCH nf-next v3 3/3] netfilter: Introduce egress hook
-Message-ID: <20201011082657.GB15225@wunner.de>
-References: <20200904162154.GA24295@wunner.de>
- <813edf35-6fcf-c569-aab7-4da654546d9d@iogearbox.net>
- <20200905052403.GA10306@wunner.de>
- <e8aecc2b-80cb-8ee5-8efe-7ae5c4eafc70@iogearbox.net>
- <CAF90-Whc3HL9x-7TJ7m3tZp10RNmQxFD=wdQUJLCaUajL2RqXg@mail.gmail.com>
- <8e991436-cb1c-1306-51ac-bb582bfaa8a7@iogearbox.net>
- <CAF90-Wh=wzjNtFWRv9bzn=-Dkg-Qc9G_cnyoq0jSypxQQgg3uA@mail.gmail.com>
- <29b888f5-5e8e-73fe-18db-6c5dd57c6b4f@iogearbox.net>
+        Sun, 11 Oct 2020 15:23:46 -0400
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C30BC0613CE
+        for <netfilter-devel@vger.kernel.org>; Sun, 11 Oct 2020 12:23:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
+        :Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=UlTd4oelOXTVBlr169gbFvAkZVciQ9o2maL0hBAwiq4=; b=NaI5AV0V+VzR9qDHLo/jEJsoYP
+        Sg87WXmXmQx1X0GkxsdP0epIXSBzCxAdxcYLSSNJnh6F5BzGuAsNiu9snP4BVKpsFIIQuhsYZSh4F
+        41tadLmjVWUFlf/7B6Uw6H0wNastZy3FBw+PY6sDI/hOD2Z1WBSBl+Qtt7N1naYPP04OiFMhBiC43
+        0clK95wggcSD8OmR2+hB3IGsS1o/2UW7z7TS0TsZ7kvWgYbokToelkjFYEZIRb3pPGZu80AVW0ny8
+        jknS+ikc0ARpn5H/if96oGi3Oo+LSRzmVGGHttv8fdPdofTUGgk0gX7QNvWAvHjeDD+40mO3h8t4z
+        IDrCfKQw==;
+Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
+        by kadath.azazel.net with esmtp (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1kRgwX-00016N-G7; Sun, 11 Oct 2020 20:23:41 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH nft 0/3] tests: py: fixes for failing JSON tests
+Date:   Sun, 11 Oct 2020 20:23:21 +0100
+Message-Id: <20201011192324.209237-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.28.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <29b888f5-5e8e-73fe-18db-6c5dd57c6b4f@iogearbox.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Sep 15, 2020 at 12:02:03AM +0200, Daniel Borkmann wrote:
-> today it is possible and
-> perfectly fine to e.g. redirect to a host-facing veth from tc ingress which
-> then goes into container. Only traffic that goes up the host stack is seen
-> by nf ingress hook in that case. Likewise, reply traffic can be redirected
-> from host-facing veth to phys dev for xmit w/o any netfilter interference.
-> This means netfilter in host ns really only sees traffic to/from host as
-> intended. This is fine today, however, if 3rd party entities (e.g. distro
-> side) start pushing down rules on the two nf hooks, then these use cases will
-> break on the egress one due to this asymmetric layering violation. Hence my
-> ask that this needs to be configurable from a control plane perspective so
-> that both use cases can live next to each other w/o breakage. Most trivial
-> one I can think of is (aside from the fact to refactor the hooks and improve
-> their performance) a flag e.g. for skb that can be set from tc/BPF layer to
-> bypass the nf hooks. Basically a flexible opt-in so that existing use-cases
-> can be retained w/o breakage.
+Fixes for a few Python tests with missing or incorrect JSON output.
 
-I argue that being able to filter traffic coming out of the container
-is desirable because why should the host trust the software running
-in the container to never send malicious packets.
+Jeremy Sowden (3):
+  tests: py: add missing JSON output for ct test.
+  tests: py: correct order of set elements in test JSON output.
+  tests: py: add missing test JSON output for TCP flag tests.
 
-As for the flag you're asking for, it already exists in the form of
-skb->mark.  Just let tc set the mark when the packet exits the container
-and add a netfilter rule to accept packets carrying that mark.  Or do
-not set any netfilter egress rules at all to disable the egress
-filtering and avoid the performance impact it would imply.
+ tests/py/any/ct.t.json          | 15 ++++++
+ tests/py/any/ct.t.json.output   | 20 +++----
+ tests/py/inet/tcp.t.json        | 93 +++++++++++++++++++++++++++++++++
+ tests/py/inet/tcp.t.json.output | 93 +++++++++++++++++++++++++++++++++
+ 4 files changed, 211 insertions(+), 10 deletions(-)
 
-Thanks,
+-- 
+2.28.0
 
-Lukas
