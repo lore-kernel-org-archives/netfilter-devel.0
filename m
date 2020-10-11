@@ -1,84 +1,130 @@
-Return-Path: <SRS0=0qAu=DR=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=sMKv=DS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4533C2BD0C
-	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Oct 2020 22:57:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCAA0C43457
+	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Oct 2020 07:59:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6B01E2080C
-	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Oct 2020 22:57:21 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="J9DRHcSP"
+	by mail.kernel.org (Postfix) with ESMTP id ACBA8206BE
+	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Oct 2020 07:59:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731091AbgJJW5U (ORCPT
+        id S1729049AbgJKH7M (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 10 Oct 2020 18:57:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41796 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731109AbgJJTwx (ORCPT
+        Sun, 11 Oct 2020 03:59:12 -0400
+Received: from bmailout1.hostsharing.net ([83.223.95.100]:35101 "EHLO
+        bmailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725844AbgJKH7M (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 10 Oct 2020 15:52:53 -0400
-Received: from mail-pf1-x431.google.com (mail-pf1-x431.google.com [IPv6:2607:f8b0:4864:20::431])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45B48C0610CF
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 Oct 2020 05:01:04 -0700 (PDT)
-Received: by mail-pf1-x431.google.com with SMTP id f19so9197361pfj.11
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 Oct 2020 05:01:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=McaAe4xg+u6Al1zaMAh0vWZE392TsCmmqetPorSk0wo=;
-        b=J9DRHcSPrilE4I24q8t46kQ5Qcz/Sr7vABUCvHEwi3RByj/ElYb2KiPUbGZGfv2kpg
-         jv7krcnaBApwgUUPvxRQaLLwduXilhvZLfhKCdfDjSYfrmOLpgSiOILl2ODqIm1UWem2
-         iivCY0ySSNzbb0DUvAi6+IFeY8NiSoJjL/thLCwpugp9hyxGylN/NmpUuk+hFujg24ez
-         nwOEV1og3TAjT3qHTDlXTSfrZb749QxUHo2tJSuLWRubR5oFkn66+WXSrBwDTtChxRYD
-         GcBSf1IOq/NHfm0bs/pomNrySIScl+Wov49WQYYqqwK1V5nARM+CG7ADPVwi92ePe0yh
-         emOw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=McaAe4xg+u6Al1zaMAh0vWZE392TsCmmqetPorSk0wo=;
-        b=ShI3+5n8IRxtIv/tVE3Z6r2ZcDu7qv+2D7K8tEtaqCR/9ex46UxVFRJ1jWA8KbHNyP
-         DNFvTcpLUTPNphmVl2FfV+5mmpffs4AjIGy98+xENCIEdlMEZzGTz1djABFGvMMi/M9p
-         gLMcMboi2bupsO1mrf8YukUmv3PE+ykFh3VAmOip4PJjPb03YILFR5d+YMA+pYgbGKJd
-         xAEUImh4ucVP5uyNVKQAOfXZsqzYlMH8rGDYxK7u6QOqizQi+hqaZsKy19owXjaiLBvK
-         3FaqVLR9o4KiGRKMKRo//kpJopNyPZ6qFxKpoCuxHbPE8ZmXFFavFxeoKJuJq8G8Ec/l
-         kPwA==
-X-Gm-Message-State: AOAM5314IbcX7eCvgKERUb2MB2GCeqBqK39rlCknccM0xbhuKlLY7c8T
-        HdzykmUZAv44IF7EfAuPRkTSOczu/gz3PlXb90+qZQSVkIj+lQ==
-X-Google-Smtp-Source: ABdhPJxC5lLIJrf5eVBuB7EoTX6X5MXziGjAJtN/La55vYwOnjnbNH0YTpKSz/ykSPyvEpn+gRmaluPNGYZGxtjQOwA=
-X-Received: by 2002:a62:7a0a:0:b029:152:192d:9231 with SMTP id
- v10-20020a627a0a0000b0290152192d9231mr15755257pfc.61.1602331263637; Sat, 10
- Oct 2020 05:01:03 -0700 (PDT)
+        Sun, 11 Oct 2020 03:59:12 -0400
+Received: from h08.hostsharing.net (h08.hostsharing.net [83.223.95.28])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client CN "*.hostsharing.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (not verified))
+        by bmailout1.hostsharing.net (Postfix) with ESMTPS id C8ACF30000CEB;
+        Sun, 11 Oct 2020 09:59:05 +0200 (CEST)
+Received: by h08.hostsharing.net (Postfix, from userid 100393)
+        id AF33988EAF; Sun, 11 Oct 2020 09:59:05 +0200 (CEST)
+Date:   Sun, 11 Oct 2020 09:59:05 +0200
+From:   Lukas Wunner <lukas@wunner.de>
+To:     Daniel Borkmann <daniel@iogearbox.net>
+Cc:     John Fastabend <john.fastabend@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Thomas Graf <tgraf@suug.ch>, Laura Garcia <nevola@gmail.com>,
+        David Miller <davem@davemloft.net>
+Subject: Re: [PATCH nf-next v3 3/3] netfilter: Introduce egress hook
+Message-ID: <20201011075905.GA15225@wunner.de>
+References: <20200904162154.GA24295@wunner.de>
+ <813edf35-6fcf-c569-aab7-4da654546d9d@iogearbox.net>
+ <20200905052403.GA10306@wunner.de>
+ <e8aecc2b-80cb-8ee5-8efe-7ae5c4eafc70@iogearbox.net>
 MIME-Version: 1.0
-From:   Amiq Nahas <m992493@gmail.com>
-Date:   Sat, 10 Oct 2020 17:30:52 +0530
-Message-ID: <CAPicJaHQfiy+AOZeb0XbzR4g-cJqdwrq3jeM0bB1BOBk7Dwk_w@mail.gmail.com>
-Subject: [ulogd2] Problem while running
-To:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e8aecc2b-80cb-8ee5-8efe-7ae5c4eafc70@iogearbox.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-I am building ulogd2 and when I do "/ulogd --uid ulog --pidfile
-/run/ulog/ulogd.pid -v"
-I get the below errors:
+On Tue, Sep 08, 2020 at 02:55:36PM +0200, Daniel Borkmann wrote:
+> I would strongly prefer something where nf integrates into existing
+> tc hook, not only due to the hook reuse which would be better,
+> but also to allow for a more flexible interaction between tc/BPF
+> use cases
+[...]
+> one option to move forward [...] overall rework of ingress/egress
+> side to be a more flexible pipeline (think of cont/ok actions
+> as with tc filters or stackable LSMs to process & delegate).
 
-ulogd.c:722 load_plugin: '/usr/local/lib/ulogd/ulogd_BASE.so':
-/usr/local/lib/ulogd/ulogd_BASE.so: undefined symbol:
-register_interpreter
+Interaction between netfilter and tc is facilitated by skb->mark.
+Both netfilter and tc are able to set and match by way of the mark.
+E.g. a netfilter hook may set the mark and tc may later perform an
+action if a matching mark is found.
 
-ulogd.c:722 load_plugin: '/usr/local/lib/ulogd/ulogd_LOGEMU.so':
-/usr/local/lib/ulogd/ulogd_LOGEMU.so: undefined symbol: ulogd_keyh
+Because the placement of netfilter and tc hooks in the data path
+has been unchanged for decades, we must assume that users depend
+on their order for setting and matching the mark.
 
-ulogd.c:1597 not even a single working plugin stack
+Thus, reworking the data path in the way you suggest (a flexible
+pipeline) must not change the order of the hooks.  It would have
+to be a fixed pipeline.  But what's the benefit then compared to
+separate netfilter and tc hooks which are patched in at runtime
+and become NOPs if not used?  (Which is what the present series is
+aiming for.)
 
-Fatal error.
 
-Couldn't find any solution for this. Any suggestions?
-Thanks
+> to name one example... consider two different entities in the system
+> setting up the two, that is, one adding rules for nf ingress/egress
+> on the phys device for host fw and the other one for routing traffic
+> into/from containers at the tc layer, then traffic going into host ns
+> will hit nf ingress and on egress side the nf egress part; however,
+> traffic going to containers via existing tc redirect will not see the
+> nf ingress as expected but would on reverse path incorrectly
+> hit the nf egress one which is /not/ the case for dev_queue_xmit() today.
+
+Using tc to bounce ingress traffic into a container -- is that actually
+a thing or is it a hypothetical example?  I think at least Docker uses
+plain vanilla routing and bridging to move packets in and out of
+containers.
+
+However you're right that if tc *is* used to redirect ingress packets
+to a container veth, then the data path would look like:
+
+host tc -> container tc -> container nft
+
+Whereas the egress data path would look like:
+
+container nft -> container tc -> host nft -> host tc
+
+But I argue that the egress data path is actually correct because the
+host must be able to firewall packets coming out of the container
+in case the container has been compromised.
+
+
+> And if you check a typical DHCP client that is present on major
+> modern distros like systemd-networkd's DHCP client then they
+> already implement filtering of malicious packets via BPF at
+> socket layer including checking for cookies in the DHCP header
+> that are set by the application itself to prevent spoofing [0].
+> 
+> [0] https://github.com/systemd/systemd/blob/master/src/libsystemd-network/dhcp-network.c#L28
+
+That's an *ingress* filter so that user space only receives DHCP
+packets and nothing else.
+
+We're talking about the ability to filter *egress* DHCP packets
+(among others) at the kernel level to guard against unwanted
+packets coming from user space.
+
+Thanks,
+
+Lukas
