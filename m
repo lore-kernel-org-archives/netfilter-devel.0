@@ -2,189 +2,185 @@ Return-Path: <SRS0=LXG+=DT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11B62C43457
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Oct 2020 20:37:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E48A4C43457
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Oct 2020 20:55:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C1A5F208D5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Oct 2020 20:37:12 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="n0imRydN"
+	by mail.kernel.org (Postfix) with ESMTP id BA64E2078E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Oct 2020 20:55:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728236AbgJLUhM (ORCPT
+        id S1731635AbgJLUz4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 12 Oct 2020 16:37:12 -0400
-Received: from sonic317-38.consmr.mail.ne1.yahoo.com ([66.163.184.49]:45190
-        "EHLO sonic317-38.consmr.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727292AbgJLUhL (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Oct 2020 16:37:11 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1602535030; bh=AfU4tEGic6KQi2q/KY4oQA7M/bMh1AWYHAZwfip3Ww4=; h=From:To:Cc:Subject:Date:In-Reply-To:References:From:Subject; b=n0imRydNZCk72wSmqCS7kqG6xxSTNfWc54ofl5PpYO6buvD5k+cvEAoRUJOr9we9w593TUrkkORhuO73UnHDb+Kfg1JKuhO0oTO9OMbmgr1VmOLYSjHJGtZSGZ6IVYufceW9MSNZxXwXjZ/l0f/C2tIB4kvYDOVRrE/1uXUBZlSOXlS/x8kDoJucb0RAMoNHtTCOQX/cuUi1QlZca/VttFnFbkyPOs3awresAcN4DR5Lp8V/4gM1QCXLsQZwtDnbZW+gO5IJ80mgphelHjvXs0VJ1WAQEFo/xn0ajU2m070QoA4OMV9Ard/zLeZwXgcmx/9YK1Bchx8dNGYUhrWVsg==
-X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1602535030; bh=cyu7IpR3Af+V+mmg35Aq2U1YaQC/Qy5M/S9WX2BGOcu=; h=From:To:Subject:Date; b=joQTeOuOya2KUkMqAas/SfXACBBcM45RXerqSg1vxLE2tgkwcX1ZxDzVn9kcfImfbnzTJzGswU/bC63GN4cGXi0QSodxDrKngXId8jDpgUjCcZuseiyM/OHPLI0wUxwiAvfPI2ABCns92aEun/NpfgH0j2SzSly3tqmXCfqE5kEsK8sQODWY8vkVzXDo4hXgfPIFvJQI7GtfDRt7zZlmT7vPKEMGfOtouZFkXHkTztjHPxyl88KDGfdqaxVeQy4jwEj4SbbGFn7VgEE6jOQmH23RfwIJNEcxoFUSrZ46VA9P11wlBV9gx6SGb5LZp/3NiPvdKMqhDL9ZNxErrLOnRQ==
-X-YMail-OSG: NXldRPQVM1klca8zFalDBF2V5rpJNj.d66mW5Tszt.iS06p95tuc.R7cxu52cMu
- v77yhROaD4LQGDxzB47GFfZzrJEPYoH.un86vkn0lWkiC9lQkDMp1dHBPLJsjAurgw8vNAw8_Pmn
- w6oPyiXE3Q_LgCa4QS3ojcIpEZR3FvMeU.UCapRovsBnY4GX1jtmuGxhTfUmdOJzK30jzYhFjL2U
- BJRcD8qwueg7vsdCUGLQZiMnmhPd_hCwj2ZdfJp2ksXLRI1yiAsLdg.7XsMBaA2R2i2nS1UuePyh
- Skbbw8bxvP_Bp6vRdC.mv4byiqdAwGB3QqmIIwY0UZEAIV_DqwjoAMIdtKNZO1cL_pLXWzZYCdn2
- eTXhndibsNMUMACl85WLNz.sK2P9Sq9nDjyLglLddLSPJYNe6ea.ry6m.4Uca2keY0RRiC1AD3tS
- 4OOehrBbeAGWiAwV2ynFavPp3io4dGP1FWZlK5kP0ZCk8rwJTTq0r2ZHoJYPAw.Wy3H3sdmmTMhc
- ZgQ_UrAevpds3mNBPfG5chTMb79MUmzC1lZkPmg4K4OS97lwlECQuk5VO6XCDSLVrlFeQymby99E
- ThWgipUiPVFX_svI7vAfZgwAimCxGyWxNkSDL3KeE2bI17b8yO98LSbaGTJJi2y.o7TtI3E9jMkv
- pn4wUvYenk7qzbJEz87XQuIlLsP1FUFro8iZ5oEUTuGnP.YRuCIUJnjx8Q6zP2NbBQVhfQ_UjjW6
- szDyvts_zZzrgi4AlBcCYzDou76WRNPZmyDY4YxxFrfsL8Rhffr0774qexUUyIu6nhTDNtXOMF23
- Db7P7aZJOFPO68TdBY9QvDES7kVlP.IDxB7UTnPPHufVz_FsZdHAiC3EVe1S6m_EniIeQarCjnug
- w4cua0GyVVhCWg7xVYs7GOoxDLBPiM9yeVs8hPXRpFtL_XRX0oxRjBTPETF5qWvqq9_9yDKDjZWp
- 1feTLgGLYpEk.TYDMZfSjKj2ykxv3Bc9kbQCpcIr3jusBsKqdGrxjL021PhjtAEakswY8cHpcPI8
- 4scoXrGjIQ22HjFzfG.jzclCJCiG.UFlml3nja8kp9_XaBWQtu82hG0IN1pWVN5DndDbx.gzEUo4
- H5ZOpSjvbMcbC9.BTYLvjcD.vUrPrdh1PPPxgCjuMTisYlmPyK02CNi0KCnNiSyYqfkvkzl5buHF
- ccD3fSv8r75jHn9QWVRYriz8Sfby_bgtQTsJ2av9MfHk4Xynj4wg4Bs8ZIyv_rEeaQXM1sKgxt9O
- z_e.TpUI1qd.NL99y94VouYTGuJBhIyr6bY6KnGqbeqZALdF.sMgd2qQkHlGcEcKlSe4S6psn109
- uvBNSP2AZFpucx9dp_VbCMJgpH0YHb.ayixYZNGY7b09zL1qSKCSDw.IZZcp4qymMdiMtfBjgnUx
- dklzfw3uHv.x7FHZfKMhmsbkieh31FEk55wcDM2c55cVr1Nvm.sNVcUUkO98.1U3Uiu8xPg1.Lw0
- Il0o_6_ubXYfXl4v_tMG_VwqYa3knZU0d3KkboiSmlhD_.Q4G33bUialbFu_dIqjXJ6d_Rky7Lha
- s9LEsvDdyqoBgxxd10KgZ.fbA1_kWIqlJNYDnx9zk9ZuKESxr7qDjbA--
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic317.consmr.mail.ne1.yahoo.com with HTTP; Mon, 12 Oct 2020 20:37:10 +0000
-Received: by smtp416.mail.gq1.yahoo.com (VZM Hermes SMTP Server) with ESMTPA ID e62583af68d35fda33e6a51faf5fc845;
-          Mon, 12 Oct 2020 20:37:05 +0000 (UTC)
-From:   Casey Schaufler <casey@schaufler-ca.com>
-To:     casey.schaufler@intel.com, jmorris@namei.org,
-        linux-security-module@vger.kernel.org, selinux@vger.kernel.org
-Cc:     casey@schaufler-ca.com, linux-audit@redhat.com,
-        keescook@chromium.org, john.johansen@canonical.com,
-        penguin-kernel@i-love.sakura.ne.jp, paul@paul-moore.com,
-        sds@tycho.nsa.gov, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: [PATCH v21 16/23] LSM: security_secid_to_secctx in netlink netfilter
-Date:   Mon, 12 Oct 2020 13:19:17 -0700
-Message-Id: <20201012201924.71463-17-casey@schaufler-ca.com>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20201012201924.71463-1-casey@schaufler-ca.com>
-References: <20201012201924.71463-1-casey@schaufler-ca.com>
+        Mon, 12 Oct 2020 16:55:56 -0400
+Received: from correo.us.es ([193.147.175.20]:34646 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726510AbgJLUzx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 12 Oct 2020 16:55:53 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id AB0F6508CD2
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2020 22:55:51 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9B212DA73F
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2020 22:55:51 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 9057CDA73D; Mon, 12 Oct 2020 22:55:51 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6D5E4DA78A
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2020 22:55:49 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 12 Oct 2020 22:55:49 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id 5528F42EF536
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2020 22:55:49 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] netfilter: nf_log: missing vlan offload tag and proto
+Date:   Mon, 12 Oct 2020 22:55:44 +0200
+Message-Id: <20201012205545.24927-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Change netlink netfilter interfaces to use lsmcontext
-pointers, and remove scaffolding.
+Dump vlan tag and proto for the usual vlan offload case if the
+NF_LOG_MACDECODE flag is set on. Without this information the logging is
+misleading as they is no reference to the VLAN header.
 
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: John Johansen <john.johansen@canonical.com>
-Acked-by: Stephen Smalley <sds@tycho.nsa.gov>
-Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
-Cc: netdev@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
+[12716.993704] test: IN=veth0 OUT= MACSRC=86:6c:92:ea:d6:73 MACDST=0e:3b:eb:86:73:76 VPROTO=8100 VID=10 MACPROTO=0800 SRC=192.168.10.2 DST=172.217.168.163 LEN=52 TOS=0x00 PREC=0x00 TTL=64 ID=2548 DF PROTO=TCP SPT=55848 DPT=80 WINDOW=501 RES=0x00 ACK FIN URGP=0
+[12721.157643] test: IN=veth0 OUT= MACSRC=86:6c:92:ea:d6:73 MACDST=0e:3b:eb:86:73:76 VPROTO=8100 VID=10 MACPROTO=0806 ARP HTYPE=1 PTYPE=0x0800 OPCODE=2 MACSRC=86:6c:92:ea:d6:73 IPSRC=192.168.10.2 MACDST=0e:3b:eb:86:73:76 IPDST=192.168.10.1
+
+Fixes: 83e96d443b37 ("netfilter: log: split family specific code to nf_log_{ip,ip6,common}.c files")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_queue.c | 37 +++++++++++++--------------------
- 1 file changed, 14 insertions(+), 23 deletions(-)
+ include/net/netfilter/nf_log.h   |  1 +
+ net/ipv4/netfilter/nf_log_arp.c  | 19 +++++++++++++++++--
+ net/ipv4/netfilter/nf_log_ipv4.c |  6 ++++--
+ net/ipv6/netfilter/nf_log_ipv6.c |  8 +++++---
+ net/netfilter/nf_log_common.c    | 12 ++++++++++++
+ 5 files changed, 39 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 84be5a49a157..0d8b83d84422 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -301,15 +301,13 @@ static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
- 	return -1;
- }
- 
--static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
-+static void nfqnl_get_sk_secctx(struct sk_buff *skb, struct lsmcontext *context)
+diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
+index 0d3920896d50..716db4a0fed8 100644
+--- a/include/net/netfilter/nf_log.h
++++ b/include/net/netfilter/nf_log.h
+@@ -108,6 +108,7 @@ int nf_log_dump_tcp_header(struct nf_log_buf *m, const struct sk_buff *skb,
+ 			   unsigned int logflags);
+ void nf_log_dump_sk_uid_gid(struct net *net, struct nf_log_buf *m,
+ 			    struct sock *sk);
++void nf_log_dump_vlan(struct nf_log_buf *m, const struct sk_buff *skb);
+ void nf_log_dump_packet_common(struct nf_log_buf *m, u_int8_t pf,
+ 			       unsigned int hooknum, const struct sk_buff *skb,
+ 			       const struct net_device *in,
+diff --git a/net/ipv4/netfilter/nf_log_arp.c b/net/ipv4/netfilter/nf_log_arp.c
+index 7a83f881efa9..136030ad2e54 100644
+--- a/net/ipv4/netfilter/nf_log_arp.c
++++ b/net/ipv4/netfilter/nf_log_arp.c
+@@ -43,16 +43,31 @@ static void dump_arp_packet(struct nf_log_buf *m,
+ 			    const struct nf_loginfo *info,
+ 			    const struct sk_buff *skb, unsigned int nhoff)
  {
--	u32 seclen = 0;
- #if IS_ENABLED(CONFIG_NETWORK_SECMARK)
- 	struct lsmblob blob;
--	struct lsmcontext context = { };
+-	const struct arphdr *ah;
+-	struct arphdr _arph;
+ 	const struct arppayload *ap;
+ 	struct arppayload _arpp;
++	const struct arphdr *ah;
++	unsigned int logflags;
++	struct arphdr _arph;
  
- 	if (!skb || !sk_fullsock(skb->sk))
--		return 0;
+ 	ah = skb_header_pointer(skb, 0, sizeof(_arph), &_arph);
+ 	if (ah == NULL) {
+ 		nf_log_buf_add(m, "TRUNCATED");
+ 		return;
+ 	}
++
++	if (info->type == NF_LOG_TYPE_LOG)
++		logflags = info->u.log.logflags;
++	else
++		logflags = NF_LOG_DEFAULT_MASK;
++
++	if (logflags & NF_LOG_MACDECODE) {
++		nf_log_buf_add(m, "MACSRC=%pM MACDST=%pM ",
++			       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest);
++		nf_log_dump_vlan(m, skb);
++		nf_log_buf_add(m, "MACPROTO=%04x ",
++			       ntohs(eth_hdr(skb)->h_proto));
++	}
++
+ 	nf_log_buf_add(m, "ARP HTYPE=%d PTYPE=0x%04x OPCODE=%d",
+ 		       ntohs(ah->ar_hrd), ntohs(ah->ar_pro), ntohs(ah->ar_op));
+ 
+diff --git a/net/ipv4/netfilter/nf_log_ipv4.c b/net/ipv4/netfilter/nf_log_ipv4.c
+index 0c72156130b6..d07583fac8f8 100644
+--- a/net/ipv4/netfilter/nf_log_ipv4.c
++++ b/net/ipv4/netfilter/nf_log_ipv4.c
+@@ -284,8 +284,10 @@ static void dump_ipv4_mac_header(struct nf_log_buf *m,
+ 
+ 	switch (dev->type) {
+ 	case ARPHRD_ETHER:
+-		nf_log_buf_add(m, "MACSRC=%pM MACDST=%pM MACPROTO=%04x ",
+-			       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest,
++		nf_log_buf_add(m, "MACSRC=%pM MACDST=%pM ",
++			       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest);
++		nf_log_dump_vlan(m, skb);
++		nf_log_buf_add(m, "MACPROTO=%04x ",
+ 			       ntohs(eth_hdr(skb)->h_proto));
+ 		return;
+ 	default:
+diff --git a/net/ipv6/netfilter/nf_log_ipv6.c b/net/ipv6/netfilter/nf_log_ipv6.c
+index da64550a5707..8210ff34ed9b 100644
+--- a/net/ipv6/netfilter/nf_log_ipv6.c
++++ b/net/ipv6/netfilter/nf_log_ipv6.c
+@@ -297,9 +297,11 @@ static void dump_ipv6_mac_header(struct nf_log_buf *m,
+ 
+ 	switch (dev->type) {
+ 	case ARPHRD_ETHER:
+-		nf_log_buf_add(m, "MACSRC=%pM MACDST=%pM MACPROTO=%04x ",
+-		       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest,
+-		       ntohs(eth_hdr(skb)->h_proto));
++		nf_log_buf_add(m, "MACSRC=%pM MACDST=%pM ",
++			       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest);
++		nf_log_dump_vlan(m, skb);
++		nf_log_buf_add(m, "MACPROTO=%04x ",
++			       ntohs(eth_hdr(skb)->h_proto));
+ 		return;
+ 	default:
+ 		break;
+diff --git a/net/netfilter/nf_log_common.c b/net/netfilter/nf_log_common.c
+index ae5628ddbe6d..fd7c5f0f5c25 100644
+--- a/net/netfilter/nf_log_common.c
++++ b/net/netfilter/nf_log_common.c
+@@ -171,6 +171,18 @@ nf_log_dump_packet_common(struct nf_log_buf *m, u_int8_t pf,
+ }
+ EXPORT_SYMBOL_GPL(nf_log_dump_packet_common);
+ 
++void nf_log_dump_vlan(struct nf_log_buf *m, const struct sk_buff *skb)
++{
++	u16 vid;
++
++	if (!skb_vlan_tag_present(skb))
 +		return;
- 
- 	read_lock_bh(&skb->sk->sk_callback_lock);
- 
-@@ -318,14 +316,12 @@ static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
- 		 * blob. security_secid_to_secctx() will know which security
- 		 * module to use to create the secctx.  */
- 		lsmblob_init(&blob, skb->secmark);
--		security_secid_to_secctx(&blob, &context);
--		*secdata = context.context;
-+		security_secid_to_secctx(&blob, context);
- 	}
- 
- 	read_unlock_bh(&skb->sk->sk_callback_lock);
--	seclen = context.len;
- #endif
--	return seclen;
-+	return;
- }
- 
- static u32 nfqnl_get_bridge_size(struct nf_queue_entry *entry)
-@@ -398,12 +394,10 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	struct net_device *indev;
- 	struct net_device *outdev;
- 	struct nf_conn *ct = NULL;
-+	struct lsmcontext context = { };
- 	enum ip_conntrack_info ctinfo;
- 	struct nfnl_ct_hook *nfnl_ct;
- 	bool csum_verify;
--	struct lsmcontext scaff; /* scaffolding */
--	char *secdata = NULL;
--	u32 seclen = 0;
- 
- 	size = nlmsg_total_size(sizeof(struct nfgenmsg))
- 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
-@@ -469,9 +463,9 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	}
- 
- 	if ((queue->flags & NFQA_CFG_F_SECCTX) && entskb->sk) {
--		seclen = nfqnl_get_sk_secctx(entskb, &secdata);
--		if (seclen)
--			size += nla_total_size(seclen);
-+		nfqnl_get_sk_secctx(entskb, &context);
-+		if (context.len)
-+			size += nla_total_size(context.len);
- 	}
- 
- 	skb = alloc_skb(size, GFP_ATOMIC);
-@@ -604,7 +598,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	    nfqnl_put_sk_uidgid(skb, entskb->sk) < 0)
- 		goto nla_put_failure;
- 
--	if (seclen && nla_put(skb, NFQA_SECCTX, seclen, secdata))
-+	if (context.len &&
-+	    nla_put(skb, NFQA_SECCTX, context.len, context.context))
- 		goto nla_put_failure;
- 
- 	if (ct && nfnl_ct->build(skb, ct, ctinfo, NFQA_CT, NFQA_CT_INFO) < 0)
-@@ -632,10 +627,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	}
- 
- 	nlh->nlmsg_len = skb->len;
--	if (seclen) {
--		lsmcontext_init(&scaff, secdata, seclen, 0);
--		security_release_secctx(&scaff);
--	}
-+	if (context.len)
-+		security_release_secctx(&context);
- 	return skb;
- 
- nla_put_failure:
-@@ -643,10 +636,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	kfree_skb(skb);
- 	net_err_ratelimited("nf_queue: error creating packet message\n");
- nlmsg_failure:
--	if (seclen) {
--		lsmcontext_init(&scaff, secdata, seclen, 0);
--		security_release_secctx(&scaff);
--	}
-+	if (context.len)
-+		security_release_secctx(&context);
- 	return NULL;
- }
- 
++
++	vid = skb_vlan_tag_get(skb);
++	nf_log_buf_add(m, "VPROTO=%04x VID=%u ", ntohs(skb->vlan_proto), vid);
++}
++EXPORT_SYMBOL_GPL(nf_log_dump_vlan);
++
+ /* bridge and netdev logging families share this code. */
+ void nf_log_l2packet(struct net *net, u_int8_t pf,
+ 		     __be16 protocol,
 -- 
-2.24.1
+2.20.1
 
