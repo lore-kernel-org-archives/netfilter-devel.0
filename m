@@ -6,61 +6,69 @@ X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B010C433E7
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Oct 2020 00:01:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2027DC433E7
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Oct 2020 00:02:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EE2882083B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Oct 2020 00:01:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D53FE2074D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Oct 2020 00:02:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729583AbgJLABC (ORCPT
+        id S1729600AbgJLAC1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 11 Oct 2020 20:01:02 -0400
-Received: from correo.us.es ([193.147.175.20]:33472 "EHLO mail.us.es"
+        Sun, 11 Oct 2020 20:02:27 -0400
+Received: from correo.us.es ([193.147.175.20]:33692 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726460AbgJLABC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 11 Oct 2020 20:01:02 -0400
+        id S1726460AbgJLAC1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 11 Oct 2020 20:02:27 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 13BC2E780C
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2020 02:01:01 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 68C98E7811
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2020 02:02:26 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 04CC1DA78B
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2020 02:01:01 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5BBAADA704
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2020 02:02:26 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id EDEA8DA722; Mon, 12 Oct 2020 02:01:00 +0200 (CEST)
+        id 3BE27DA78A; Mon, 12 Oct 2020 02:02:26 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1DF37DA72F;
-        Mon, 12 Oct 2020 02:00:59 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 58C15DA730;
+        Mon, 12 Oct 2020 02:02:24 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 12 Oct 2020 02:00:59 +0200 (CEST)
+ Mon, 12 Oct 2020 02:02:24 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id EBF0641FF201;
-        Mon, 12 Oct 2020 02:00:58 +0200 (CEST)
-Date:   Mon, 12 Oct 2020 02:00:58 +0200
+        by entrada.int (Postfix) with ESMTPSA id 3CBAC41FF201;
+        Mon, 12 Oct 2020 02:02:24 +0200 (CEST)
+Date:   Mon, 12 Oct 2020 02:02:23 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Julian Anastasov <ja@ssi.bg>
 Cc:     Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, Evgeny B <abt-admin@mail.ru>,
-        Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH net] ipvs: clear skb->tstamp in forwarding path
-Message-ID: <20201012000058.GA9184@salvia>
-References: <20201009182425.9050-1-ja@ssi.bg>
+        netfilter-devel@vger.kernel.org,
+        "longguang.yue" <bigclouds@163.com>, yuelongguang@gmail.com
+Subject: Re: [PATCH v8 net-next] ipvs: inspect reply packets from DR/TUN real
+ servers
+Message-ID: <20201012000223.GA14420@salvia>
+References: <20201005201347.13644-1-ja@ssi.bg>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20201009182425.9050-1-ja@ssi.bg>
+In-Reply-To: <20201005201347.13644-1-ja@ssi.bg>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Oct 09, 2020 at 09:24:25PM +0300, Julian Anastasov wrote:
-> fq qdisc requires tstamp to be cleared in forwarding path
+On Mon, Oct 05, 2020 at 11:13:47PM +0300, Julian Anastasov wrote:
+> From: longguang.yue <bigclouds@163.com>
+> 
+> Just like for MASQ, inspect the reply packets coming from DR/TUN
+> real servers and alter the connection's state and timeout
+> according to the protocol.
+> 
+> It's ipvs's duty to do traffic statistic if packets get hit,
+> no matter what mode it is.
 
 Applied, thanks.
