@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1B40C41604
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Oct 2020 01:38:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EE9EC2D0A3
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Oct 2020 01:38:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B944420782
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Oct 2020 01:38:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 15D9C2078E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Oct 2020 01:38:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727680AbgJLBig (ORCPT
+        id S1727651AbgJLBig (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sun, 11 Oct 2020 21:38:36 -0400
-Received: from correo.us.es ([193.147.175.20]:41716 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:41714 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727466AbgJLBif (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 11 Oct 2020 21:38:35 -0400
+        id S1727433AbgJLBic (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 11 Oct 2020 21:38:32 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C3B1CE780E
+        by mail.us.es (Postfix) with ESMTP id 39939E781D
         for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2020 03:38:30 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B39AFDA73F
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2B5E1DA722
         for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2020 03:38:30 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A94AEDA722; Mon, 12 Oct 2020 03:38:30 +0200 (CEST)
+        id 202A1DA78D; Mon, 12 Oct 2020 03:38:30 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A71FCDA789;
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2E080DA722;
         Mon, 12 Oct 2020 03:38:28 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
@@ -39,15 +39,15 @@ Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 7863D41FF201;
-        Mon, 12 Oct 2020 03:38:28 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPSA id 028F241FF201;
+        Mon, 12 Oct 2020 03:38:27 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 4/6] netfilter: add inet ingress support
-Date:   Mon, 12 Oct 2020 03:38:17 +0200
-Message-Id: <20201012013819.23128-5-pablo@netfilter.org>
+Subject: [PATCH 3/6] netfilter: add nf_ingress_hook() helper function
+Date:   Mon, 12 Oct 2020 03:38:16 +0200
+Message-Id: <20201012013819.23128-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201012013819.23128-1-pablo@netfilter.org>
 References: <20201012013819.23128-1-pablo@netfilter.org>
@@ -58,187 +58,47 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds the NF_INET_INGRESS pseudohook for the NFPROTO_INET
-family. This is a mapping this new hook to the existing NFPROTO_NETDEV
-and NF_NETDEV_INGRESS hook. The hook does not guarantee that packets are
-inet only, users must filter out non-ip traffic explicitly.
-
-This infrastructure makes it easier to support this new hook in nf_tables.
+Add helper function to check if this is an ingress hook.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter.h |   1 +
- net/netfilter/core.c           | 103 ++++++++++++++++++++++++++-------
- 2 files changed, 83 insertions(+), 21 deletions(-)
+ net/netfilter/core.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter.h b/include/uapi/linux/netfilter.h
-index ca9e63d6e0e4..6a6179af0d7c 100644
---- a/include/uapi/linux/netfilter.h
-+++ b/include/uapi/linux/netfilter.h
-@@ -45,6 +45,7 @@ enum nf_inet_hooks {
- 	NF_INET_FORWARD,
- 	NF_INET_LOCAL_OUT,
- 	NF_INET_POST_ROUTING,
-+	NF_INET_INGRESS,
- 	NF_INET_NUMHOOKS
- };
- 
 diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index c82f779a587e..63d032191e62 100644
+index b9ec8ecf7e30..c82f779a587e 100644
 --- a/net/netfilter/core.c
 +++ b/net/netfilter/core.c
-@@ -281,6 +281,16 @@ nf_hook_entry_head(struct net *net, int pf, unsigned int hooknum,
- 		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_bridge) <= hooknum))
- 			return NULL;
- 		return net->nf.hooks_bridge + hooknum;
-+#endif
-+#ifdef CONFIG_NETFILTER_INGRESS
-+	case NFPROTO_INET:
-+		if (WARN_ON_ONCE(hooknum != NF_INET_INGRESS))
-+			return NULL;
-+		if (!dev || dev_net(dev) != net) {
-+			WARN_ON_ONCE(1);
-+			return NULL;
-+		}
-+		return &dev->nf_hooks_ingress;
- #endif
- 	case NFPROTO_IPV4:
- 		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_ipv4) <= hooknum))
-@@ -311,22 +321,56 @@ nf_hook_entry_head(struct net *net, int pf, unsigned int hooknum,
+@@ -311,6 +311,11 @@ nf_hook_entry_head(struct net *net, int pf, unsigned int hooknum,
  	return NULL;
  }
  
-+static int nf_ingress_check(struct net *net, const struct nf_hook_ops *reg,
-+			    int hooknum)
++static inline bool nf_ingress_hook(const struct nf_hook_ops *reg, int pf)
 +{
-+#ifndef CONFIG_NETFILTER_INGRESS
-+	if (reg->hooknum == hooknum)
-+		return -EOPNOTSUPP;
-+#endif
-+	if (reg->hooknum != hooknum ||
-+	    !reg->dev || dev_net(reg->dev) != net)
-+		return -EINVAL;
-+
-+	return 0;
++	return pf == NFPROTO_NETDEV && reg->hooknum == NF_NETDEV_INGRESS;
 +}
 +
- static inline bool nf_ingress_hook(const struct nf_hook_ops *reg, int pf)
- {
--	return pf == NFPROTO_NETDEV && reg->hooknum == NF_NETDEV_INGRESS;
-+	if ((pf == NFPROTO_NETDEV && reg->hooknum == NF_NETDEV_INGRESS) ||
-+	    (pf == NFPROTO_INET && reg->hooknum == NF_INET_INGRESS))
-+		return true;
-+
-+	return false;
- }
- 
  static void nf_static_key_inc(const struct nf_hook_ops *reg, int pf)
  {
  #ifdef CONFIG_JUMP_LABEL
--       static_key_slow_inc(&nf_hooks_needed[pf][reg->hooknum]);
-+	int hooknum;
-+
-+	if (pf == NFPROTO_INET && reg->hooknum == NF_INET_INGRESS) {
-+		pf = NFPROTO_NETDEV;
-+		hooknum = NF_NETDEV_INGRESS;
-+	} else {
-+		hooknum = reg->hooknum;
-+	}
-+	static_key_slow_inc(&nf_hooks_needed[pf][hooknum]);
+@@ -359,7 +364,7 @@ static int __nf_register_net_hook(struct net *net, int pf,
+ 
+ 	hooks_validate(new_hooks);
+ #ifdef CONFIG_NETFILTER_INGRESS
+-	if (pf == NFPROTO_NETDEV && reg->hooknum == NF_NETDEV_INGRESS)
++	if (nf_ingress_hook(reg, pf))
+ 		net_inc_ingress_queue();
  #endif
- }
+ 	nf_static_key_inc(reg, pf);
+@@ -416,7 +421,7 @@ static void __nf_unregister_net_hook(struct net *net, int pf,
  
- static void nf_static_key_dec(const struct nf_hook_ops *reg, int pf)
- {
- #ifdef CONFIG_JUMP_LABEL
--       static_key_slow_dec(&nf_hooks_needed[pf][reg->hooknum]);
-+	int hooknum;
-+
-+	if (pf == NFPROTO_INET && reg->hooknum == NF_INET_INGRESS) {
-+		pf = NFPROTO_NETDEV;
-+		hooknum = NF_NETDEV_INGRESS;
-+	} else {
-+		hooknum = reg->hooknum;
-+	}
-+	static_key_slow_dec(&nf_hooks_needed[pf][hooknum]);
+ 	if (nf_remove_net_hook(p, reg)) {
+ #ifdef CONFIG_NETFILTER_INGRESS
+-		if (pf == NFPROTO_NETDEV && reg->hooknum == NF_NETDEV_INGRESS)
++		if (nf_ingress_hook(reg, pf))
+ 			net_dec_ingress_queue();
  #endif
- }
- 
-@@ -335,15 +379,22 @@ static int __nf_register_net_hook(struct net *net, int pf,
- {
- 	struct nf_hook_entries *p, *new_hooks;
- 	struct nf_hook_entries __rcu **pp;
-+	int err;
- 
--	if (pf == NFPROTO_NETDEV) {
--#ifndef CONFIG_NETFILTER_INGRESS
--		if (reg->hooknum == NF_NETDEV_INGRESS)
--			return -EOPNOTSUPP;
--#endif
--		if (reg->hooknum != NF_NETDEV_INGRESS ||
--		    !reg->dev || dev_net(reg->dev) != net)
--			return -EINVAL;
-+	switch (pf) {
-+	case NFPROTO_NETDEV:
-+		err = nf_ingress_check(net, reg, NF_NETDEV_INGRESS);
-+		if (err < 0)
-+			return err;
-+		break;
-+	case NFPROTO_INET:
-+		if (reg->hooknum != NF_INET_INGRESS)
-+			break;
-+
-+		err = nf_ingress_check(net, reg, NF_INET_INGRESS);
-+		if (err < 0)
-+			return err;
-+		break;
- 	}
- 
- 	pp = nf_hook_entry_head(net, pf, reg->hooknum, reg->dev);
-@@ -441,8 +492,12 @@ static void __nf_unregister_net_hook(struct net *net, int pf,
- void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
- {
- 	if (reg->pf == NFPROTO_INET) {
--		__nf_unregister_net_hook(net, NFPROTO_IPV4, reg);
--		__nf_unregister_net_hook(net, NFPROTO_IPV6, reg);
-+		if (reg->hooknum == NF_INET_INGRESS) {
-+			__nf_unregister_net_hook(net, NFPROTO_INET, reg);
-+		} else {
-+			__nf_unregister_net_hook(net, NFPROTO_IPV4, reg);
-+			__nf_unregister_net_hook(net, NFPROTO_IPV6, reg);
-+		}
- 	} else {
- 		__nf_unregister_net_hook(net, reg->pf, reg);
- 	}
-@@ -467,14 +522,20 @@ int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
- 	int err;
- 
- 	if (reg->pf == NFPROTO_INET) {
--		err = __nf_register_net_hook(net, NFPROTO_IPV4, reg);
--		if (err < 0)
--			return err;
--
--		err = __nf_register_net_hook(net, NFPROTO_IPV6, reg);
--		if (err < 0) {
--			__nf_unregister_net_hook(net, NFPROTO_IPV4, reg);
--			return err;
-+		if (reg->hooknum == NF_INET_INGRESS) {
-+			err = __nf_register_net_hook(net, NFPROTO_INET, reg);
-+			if (err < 0)
-+				return err;
-+		} else {
-+			err = __nf_register_net_hook(net, NFPROTO_IPV4, reg);
-+			if (err < 0)
-+				return err;
-+
-+			err = __nf_register_net_hook(net, NFPROTO_IPV6, reg);
-+			if (err < 0) {
-+				__nf_unregister_net_hook(net, NFPROTO_IPV4, reg);
-+				return err;
-+			}
- 		}
- 	} else {
- 		err = __nf_register_net_hook(net, reg->pf, reg);
+ 		nf_static_key_dec(reg, pf);
 -- 
 2.20.1
 
