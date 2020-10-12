@@ -1,239 +1,71 @@
-Return-Path: <SRS0=sMKv=DS=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=LXG+=DT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E69DC433DF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Oct 2020 22:18:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2769C433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Oct 2020 00:00:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 69BEC20735
-	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Oct 2020 22:18:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9E0452083B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Oct 2020 00:00:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387651AbgJKWSS (ORCPT
+        id S1726986AbgJLAA3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 11 Oct 2020 18:18:18 -0400
-Received: from correo.us.es ([193.147.175.20]:48232 "EHLO mail.us.es"
+        Sun, 11 Oct 2020 20:00:29 -0400
+Received: from correo.us.es ([193.147.175.20]:33418 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387645AbgJKWSS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 11 Oct 2020 18:18:18 -0400
+        id S1726460AbgJLAA2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 11 Oct 2020 20:00:28 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 051CFE2C4F
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2020 00:18:14 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id D53E1E780C
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2020 02:00:27 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E7A53DA722
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2020 00:18:13 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C827EDA72F
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2020 02:00:27 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DD791DA704; Mon, 12 Oct 2020 00:18:13 +0200 (CEST)
+        id BDB0BDA73D; Mon, 12 Oct 2020 02:00:27 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B3765DA72F
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2020 00:18:11 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D86D5DA72F;
+        Mon, 12 Oct 2020 02:00:25 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 12 Oct 2020 00:18:11 +0200 (CEST)
+ Mon, 12 Oct 2020 02:00:25 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 9854D41FF201
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2020 00:18:11 +0200 (CEST)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id B9DE441FF201;
+        Mon, 12 Oct 2020 02:00:25 +0200 (CEST)
+Date:   Mon, 12 Oct 2020 02:00:25 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next] netfilter: flowtable: reduce calls to pskb_may_pull()
-Date:   Mon, 12 Oct 2020 00:18:07 +0200
-Message-Id: <20201011221807.31062-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf v2] selftests: netfilter: extend nfqueue test case
+Message-ID: <20201012000025.GA9167@salvia>
+References: <20201009115834.24241-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20201009115834.24241-1-fw@strlen.de>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Make two unfront calls to pskb_may_pull() to linearize the network and
-transport header.
+On Fri, Oct 09, 2020 at 01:58:34PM +0200, Florian Westphal wrote:
+> add a test with re-queueing: usespace doesn't pass accept verdict,
+> but tells to re-queue to another nf_queue instance.
+> 
+> Also, make the second nf-queue program use non-gso mode, kernel will
+> have to perform software segmentation.
+> 
+> Lastly, do not queue every packet, just one per second, and add delay
+> when re-injecting the packet to the kernel.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_flow_table_core.c | 12 +++-----
- net/netfilter/nf_flow_table_ip.c   | 45 +++++++++++++++++-------------
- 2 files changed, 30 insertions(+), 27 deletions(-)
-
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 4f7a567c536e..513f78db3cb2 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -395,8 +395,7 @@ static int nf_flow_nat_port_tcp(struct sk_buff *skb, unsigned int thoff,
- {
- 	struct tcphdr *tcph;
- 
--	if (!pskb_may_pull(skb, thoff + sizeof(*tcph)) ||
--	    skb_try_make_writable(skb, thoff + sizeof(*tcph)))
-+	if (skb_try_make_writable(skb, thoff + sizeof(*tcph)))
- 		return -1;
- 
- 	tcph = (void *)(skb_network_header(skb) + thoff);
-@@ -410,8 +409,7 @@ static int nf_flow_nat_port_udp(struct sk_buff *skb, unsigned int thoff,
- {
- 	struct udphdr *udph;
- 
--	if (!pskb_may_pull(skb, thoff + sizeof(*udph)) ||
--	    skb_try_make_writable(skb, thoff + sizeof(*udph)))
-+	if (skb_try_make_writable(skb, thoff + sizeof(*udph)))
- 		return -1;
- 
- 	udph = (void *)(skb_network_header(skb) + thoff);
-@@ -449,8 +447,7 @@ int nf_flow_snat_port(const struct flow_offload *flow,
- 	struct flow_ports *hdr;
- 	__be16 port, new_port;
- 
--	if (!pskb_may_pull(skb, thoff + sizeof(*hdr)) ||
--	    skb_try_make_writable(skb, thoff + sizeof(*hdr)))
-+	if (skb_try_make_writable(skb, thoff + sizeof(*hdr)))
- 		return -1;
- 
- 	hdr = (void *)(skb_network_header(skb) + thoff);
-@@ -481,8 +478,7 @@ int nf_flow_dnat_port(const struct flow_offload *flow,
- 	struct flow_ports *hdr;
- 	__be16 port, new_port;
- 
--	if (!pskb_may_pull(skb, thoff + sizeof(*hdr)) ||
--	    skb_try_make_writable(skb, thoff + sizeof(*hdr)))
-+	if (skb_try_make_writable(skb, thoff + sizeof(*hdr)))
- 		return -1;
- 
- 	hdr = (void *)(skb_network_header(skb) + thoff);
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index a3bca758b849..a698dbe28ef5 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -25,9 +25,6 @@ static int nf_flow_state_check(struct flow_offload *flow, int proto,
- 	if (proto != IPPROTO_TCP)
- 		return 0;
- 
--	if (!pskb_may_pull(skb, thoff + sizeof(*tcph)))
--		return -1;
--
- 	tcph = (void *)(skb_network_header(skb) + thoff);
- 	if (unlikely(tcph->fin || tcph->rst)) {
- 		flow_offload_teardown(flow);
-@@ -42,8 +39,7 @@ static int nf_flow_nat_ip_tcp(struct sk_buff *skb, unsigned int thoff,
- {
- 	struct tcphdr *tcph;
- 
--	if (!pskb_may_pull(skb, thoff + sizeof(*tcph)) ||
--	    skb_try_make_writable(skb, thoff + sizeof(*tcph)))
-+	if (skb_try_make_writable(skb, thoff + sizeof(*tcph)))
- 		return -1;
- 
- 	tcph = (void *)(skb_network_header(skb) + thoff);
-@@ -57,8 +53,7 @@ static int nf_flow_nat_ip_udp(struct sk_buff *skb, unsigned int thoff,
- {
- 	struct udphdr *udph;
- 
--	if (!pskb_may_pull(skb, thoff + sizeof(*udph)) ||
--	    skb_try_make_writable(skb, thoff + sizeof(*udph)))
-+	if (skb_try_make_writable(skb, thoff + sizeof(*udph)))
- 		return -1;
- 
- 	udph = (void *)(skb_network_header(skb) + thoff);
-@@ -167,8 +162,8 @@ static bool ip_has_options(unsigned int thoff)
- static int nf_flow_tuple_ip(struct sk_buff *skb, const struct net_device *dev,
- 			    struct flow_offload_tuple *tuple)
- {
-+	unsigned int thoff, hdrsize;
- 	struct flow_ports *ports;
--	unsigned int thoff;
- 	struct iphdr *iph;
- 
- 	if (!pskb_may_pull(skb, sizeof(*iph)))
-@@ -181,15 +176,22 @@ static int nf_flow_tuple_ip(struct sk_buff *skb, const struct net_device *dev,
- 	    unlikely(ip_has_options(thoff)))
- 		return -1;
- 
--	if (iph->protocol != IPPROTO_TCP &&
--	    iph->protocol != IPPROTO_UDP)
-+	switch (iph->protocol) {
-+	case IPPROTO_TCP:
-+		hdrsize = sizeof(struct tcphdr);
-+		break;
-+	case IPPROTO_UDP:
-+		hdrsize = sizeof(struct udphdr);
-+		break;
-+	default:
- 		return -1;
-+	}
- 
- 	if (iph->ttl <= 1)
- 		return -1;
- 
- 	thoff = iph->ihl * 4;
--	if (!pskb_may_pull(skb, thoff + sizeof(*ports)))
-+	if (!pskb_may_pull(skb, thoff + hdrsize))
- 		return -1;
- 
- 	iph = ip_hdr(skb);
-@@ -315,8 +317,7 @@ static int nf_flow_nat_ipv6_tcp(struct sk_buff *skb, unsigned int thoff,
- {
- 	struct tcphdr *tcph;
- 
--	if (!pskb_may_pull(skb, thoff + sizeof(*tcph)) ||
--	    skb_try_make_writable(skb, thoff + sizeof(*tcph)))
-+	if (skb_try_make_writable(skb, thoff + sizeof(*tcph)))
- 		return -1;
- 
- 	tcph = (void *)(skb_network_header(skb) + thoff);
-@@ -332,8 +333,7 @@ static int nf_flow_nat_ipv6_udp(struct sk_buff *skb, unsigned int thoff,
- {
- 	struct udphdr *udph;
- 
--	if (!pskb_may_pull(skb, thoff + sizeof(*udph)) ||
--	    skb_try_make_writable(skb, thoff + sizeof(*udph)))
-+	if (skb_try_make_writable(skb, thoff + sizeof(*udph)))
- 		return -1;
- 
- 	udph = (void *)(skb_network_header(skb) + thoff);
-@@ -439,24 +439,31 @@ static int nf_flow_nat_ipv6(const struct flow_offload *flow,
- static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
- 			      struct flow_offload_tuple *tuple)
- {
-+	unsigned int thoff, hdrsize;
- 	struct flow_ports *ports;
- 	struct ipv6hdr *ip6h;
--	unsigned int thoff;
- 
- 	if (!pskb_may_pull(skb, sizeof(*ip6h)))
- 		return -1;
- 
- 	ip6h = ipv6_hdr(skb);
- 
--	if (ip6h->nexthdr != IPPROTO_TCP &&
--	    ip6h->nexthdr != IPPROTO_UDP)
-+	switch (ip6h->nexthdr) {
-+	case IPPROTO_TCP:
-+		hdrsize = sizeof(struct tcphdr);
-+		break;
-+	case IPPROTO_UDP:
-+		hdrsize = sizeof(struct udphdr);
-+		break;
-+	default:
- 		return -1;
-+	}
- 
- 	if (ip6h->hop_limit <= 1)
- 		return -1;
- 
- 	thoff = sizeof(*ip6h);
--	if (!pskb_may_pull(skb, thoff + sizeof(*ports)))
-+	if (!pskb_may_pull(skb, thoff + hdrsize))
- 		return -1;
- 
- 	ip6h = ipv6_hdr(skb);
--- 
-2.20.1
-
+Applied, thanks.
