@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79C10C433DF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Oct 2020 23:46:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87005C4363A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Oct 2020 23:46:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3584221582
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Oct 2020 23:46:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5FF1F21582
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Oct 2020 23:46:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730040AbgJMXqR (ORCPT
+        id S1730054AbgJMXqV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:46:17 -0400
-Received: from correo.us.es ([193.147.175.20]:59932 "EHLO mail.us.es"
+        Tue, 13 Oct 2020 19:46:21 -0400
+Received: from correo.us.es ([193.147.175.20]:59928 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730016AbgJMXqN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1729871AbgJMXqN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 13 Oct 2020 19:46:13 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 50EE2E4B9B
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Oct 2020 01:46:09 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id D138FE4BA6
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Oct 2020 01:46:08 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3EF4ADA78B
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Oct 2020 01:46:09 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C0D1DDA78A
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Oct 2020 01:46:08 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 34C82DA72F; Wed, 14 Oct 2020 01:46:09 +0200 (CEST)
+        id ABD45DA797; Wed, 14 Oct 2020 01:46:08 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 27DD6DA73D;
-        Wed, 14 Oct 2020 01:46:07 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A2CC9DA72F;
+        Wed, 14 Oct 2020 01:46:06 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 14 Oct 2020 01:46:07 +0200 (CEST)
+ Wed, 14 Oct 2020 01:46:06 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id E78DB42EFB80;
+        by entrada.int (Postfix) with ESMTPSA id 7A23B42EFB80;
         Wed, 14 Oct 2020 01:46:06 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 4/4] netfilter: nf_log: missing vlan offload tag and proto
-Date:   Wed, 14 Oct 2020 01:45:59 +0200
-Message-Id: <20201013234559.15113-5-pablo@netfilter.org>
+Subject: [PATCH 3/4] netfilter: nftables: extend error reporting for chain updates
+Date:   Wed, 14 Oct 2020 01:45:58 +0200
+Message-Id: <20201013234559.15113-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201013234559.15113-1-pablo@netfilter.org>
 References: <20201013234559.15113-1-pablo@netfilter.org>
@@ -58,132 +58,96 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Dump vlan tag and proto for the usual vlan offload case if the
-NF_LOG_MACDECODE flag is set on. Without this information the logging is
-misleading as there is no reference to the VLAN header.
+The initial support for netlink extended ACK is missing the chain update
+path, which results in misleading error reporting in case of EEXIST.
 
-[12716.993704] test: IN=veth0 OUT= MACSRC=86:6c:92:ea:d6:73 MACDST=0e:3b:eb:86:73:76 VPROTO=8100 VID=10 MACPROTO=0800 SRC=192.168.10.2 DST=172.217.168.163 LEN=52 TOS=0x00 PREC=0x00 TTL=64 ID=2548 DF PROTO=TCP SPT=55848 DPT=80 WINDOW=501 RES=0x00 ACK FIN URGP=0
-[12721.157643] test: IN=veth0 OUT= MACSRC=86:6c:92:ea:d6:73 MACDST=0e:3b:eb:86:73:76 VPROTO=8100 VID=10 MACPROTO=0806 ARP HTYPE=1 PTYPE=0x0800 OPCODE=2 MACSRC=86:6c:92:ea:d6:73 IPSRC=192.168.10.2 MACDST=0e:3b:eb:86:73:76 IPDST=192.168.10.1
-
-Fixes: 83e96d443b37 ("netfilter: log: split family specific code to nf_log_{ip,ip6,common}.c files")
+Fixes 36dd1bcc07e5 ("netfilter: nf_tables: initial support for extended ACK reporting")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_log.h   |  1 +
- net/ipv4/netfilter/nf_log_arp.c  | 19 +++++++++++++++++--
- net/ipv4/netfilter/nf_log_ipv4.c |  6 ++++--
- net/ipv6/netfilter/nf_log_ipv6.c |  8 +++++---
- net/netfilter/nf_log_common.c    | 12 ++++++++++++
- 5 files changed, 39 insertions(+), 7 deletions(-)
+ net/netfilter/nf_tables_api.c | 19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
-index 0d3920896d50..716db4a0fed8 100644
---- a/include/net/netfilter/nf_log.h
-+++ b/include/net/netfilter/nf_log.h
-@@ -108,6 +108,7 @@ int nf_log_dump_tcp_header(struct nf_log_buf *m, const struct sk_buff *skb,
- 			   unsigned int logflags);
- void nf_log_dump_sk_uid_gid(struct net *net, struct nf_log_buf *m,
- 			    struct sock *sk);
-+void nf_log_dump_vlan(struct nf_log_buf *m, const struct sk_buff *skb);
- void nf_log_dump_packet_common(struct nf_log_buf *m, u_int8_t pf,
- 			       unsigned int hooknum, const struct sk_buff *skb,
- 			       const struct net_device *in,
-diff --git a/net/ipv4/netfilter/nf_log_arp.c b/net/ipv4/netfilter/nf_log_arp.c
-index 7a83f881efa9..136030ad2e54 100644
---- a/net/ipv4/netfilter/nf_log_arp.c
-+++ b/net/ipv4/netfilter/nf_log_arp.c
-@@ -43,16 +43,31 @@ static void dump_arp_packet(struct nf_log_buf *m,
- 			    const struct nf_loginfo *info,
- 			    const struct sk_buff *skb, unsigned int nhoff)
- {
--	const struct arphdr *ah;
--	struct arphdr _arph;
- 	const struct arppayload *ap;
- 	struct arppayload _arpp;
-+	const struct arphdr *ah;
-+	unsigned int logflags;
-+	struct arphdr _arph;
- 
- 	ah = skb_header_pointer(skb, 0, sizeof(_arph), &_arph);
- 	if (ah == NULL) {
- 		nf_log_buf_add(m, "TRUNCATED");
- 		return;
- 	}
-+
-+	if (info->type == NF_LOG_TYPE_LOG)
-+		logflags = info->u.log.logflags;
-+	else
-+		logflags = NF_LOG_DEFAULT_MASK;
-+
-+	if (logflags & NF_LOG_MACDECODE) {
-+		nf_log_buf_add(m, "MACSRC=%pM MACDST=%pM ",
-+			       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest);
-+		nf_log_dump_vlan(m, skb);
-+		nf_log_buf_add(m, "MACPROTO=%04x ",
-+			       ntohs(eth_hdr(skb)->h_proto));
-+	}
-+
- 	nf_log_buf_add(m, "ARP HTYPE=%d PTYPE=0x%04x OPCODE=%d",
- 		       ntohs(ah->ar_hrd), ntohs(ah->ar_pro), ntohs(ah->ar_op));
- 
-diff --git a/net/ipv4/netfilter/nf_log_ipv4.c b/net/ipv4/netfilter/nf_log_ipv4.c
-index 0c72156130b6..d07583fac8f8 100644
---- a/net/ipv4/netfilter/nf_log_ipv4.c
-+++ b/net/ipv4/netfilter/nf_log_ipv4.c
-@@ -284,8 +284,10 @@ static void dump_ipv4_mac_header(struct nf_log_buf *m,
- 
- 	switch (dev->type) {
- 	case ARPHRD_ETHER:
--		nf_log_buf_add(m, "MACSRC=%pM MACDST=%pM MACPROTO=%04x ",
--			       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest,
-+		nf_log_buf_add(m, "MACSRC=%pM MACDST=%pM ",
-+			       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest);
-+		nf_log_dump_vlan(m, skb);
-+		nf_log_buf_add(m, "MACPROTO=%04x ",
- 			       ntohs(eth_hdr(skb)->h_proto));
- 		return;
- 	default:
-diff --git a/net/ipv6/netfilter/nf_log_ipv6.c b/net/ipv6/netfilter/nf_log_ipv6.c
-index da64550a5707..8210ff34ed9b 100644
---- a/net/ipv6/netfilter/nf_log_ipv6.c
-+++ b/net/ipv6/netfilter/nf_log_ipv6.c
-@@ -297,9 +297,11 @@ static void dump_ipv6_mac_header(struct nf_log_buf *m,
- 
- 	switch (dev->type) {
- 	case ARPHRD_ETHER:
--		nf_log_buf_add(m, "MACSRC=%pM MACDST=%pM MACPROTO=%04x ",
--		       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest,
--		       ntohs(eth_hdr(skb)->h_proto));
-+		nf_log_buf_add(m, "MACSRC=%pM MACDST=%pM ",
-+			       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest);
-+		nf_log_dump_vlan(m, skb);
-+		nf_log_buf_add(m, "MACPROTO=%04x ",
-+			       ntohs(eth_hdr(skb)->h_proto));
- 		return;
- 	default:
- 		break;
-diff --git a/net/netfilter/nf_log_common.c b/net/netfilter/nf_log_common.c
-index ae5628ddbe6d..fd7c5f0f5c25 100644
---- a/net/netfilter/nf_log_common.c
-+++ b/net/netfilter/nf_log_common.c
-@@ -171,6 +171,18 @@ nf_log_dump_packet_common(struct nf_log_buf *m, u_int8_t pf,
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 4603b667973a..0e43063767d6 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2103,7 +2103,8 @@ static bool nft_hook_list_equal(struct list_head *hook_list1,
  }
- EXPORT_SYMBOL_GPL(nf_log_dump_packet_common);
  
-+void nf_log_dump_vlan(struct nf_log_buf *m, const struct sk_buff *skb)
-+{
-+	u16 vid;
-+
-+	if (!skb_vlan_tag_present(skb))
-+		return;
-+
-+	vid = skb_vlan_tag_get(skb);
-+	nf_log_buf_add(m, "VPROTO=%04x VID=%u ", ntohs(skb->vlan_proto), vid);
-+}
-+EXPORT_SYMBOL_GPL(nf_log_dump_vlan);
-+
- /* bridge and netdev logging families share this code. */
- void nf_log_l2packet(struct net *net, u_int8_t pf,
- 		     __be16 protocol,
+ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+-			      u32 flags)
++			      u32 flags, const struct nlattr *attr,
++			      struct netlink_ext_ack *extack)
+ {
+ 	const struct nlattr * const *nla = ctx->nla;
+ 	struct nft_table *table = ctx->table;
+@@ -2119,9 +2120,10 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 		return -EOPNOTSUPP;
+ 
+ 	if (nla[NFTA_CHAIN_HOOK]) {
+-		if (!nft_is_base_chain(chain))
++		if (!nft_is_base_chain(chain)) {
++			NL_SET_BAD_ATTR(extack, attr);
+ 			return -EEXIST;
+-
++		}
+ 		err = nft_chain_parse_hook(ctx->net, nla, &hook, ctx->family,
+ 					   false);
+ 		if (err < 0)
+@@ -2130,6 +2132,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 		basechain = nft_base_chain(chain);
+ 		if (basechain->type != hook.type) {
+ 			nft_chain_release_hook(&hook);
++			NL_SET_BAD_ATTR(extack, attr);
+ 			return -EEXIST;
+ 		}
+ 
+@@ -2137,6 +2140,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 			if (!nft_hook_list_equal(&basechain->hook_list,
+ 						 &hook.list)) {
+ 				nft_chain_release_hook(&hook);
++				NL_SET_BAD_ATTR(extack, attr);
+ 				return -EEXIST;
+ 			}
+ 		} else {
+@@ -2144,6 +2148,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 			if (ops->hooknum != hook.num ||
+ 			    ops->priority != hook.priority) {
+ 				nft_chain_release_hook(&hook);
++				NL_SET_BAD_ATTR(extack, attr);
+ 				return -EEXIST;
+ 			}
+ 		}
+@@ -2156,8 +2161,10 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 
+ 		chain2 = nft_chain_lookup(ctx->net, table,
+ 					  nla[NFTA_CHAIN_NAME], genmask);
+-		if (!IS_ERR(chain2))
++		if (!IS_ERR(chain2)) {
++			NL_SET_BAD_ATTR(extack, nla[NFTA_CHAIN_NAME]);
+ 			return -EEXIST;
++		}
+ 	}
+ 
+ 	if (nla[NFTA_CHAIN_COUNTERS]) {
+@@ -2200,6 +2207,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 			    nft_trans_chain_update(tmp) &&
+ 			    nft_trans_chain_name(tmp) &&
+ 			    strcmp(name, nft_trans_chain_name(tmp)) == 0) {
++				NL_SET_BAD_ATTR(extack, nla[NFTA_CHAIN_NAME]);
+ 				kfree(name);
+ 				goto err;
+ 			}
+@@ -2322,7 +2330,8 @@ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
+ 			return -EOPNOTSUPP;
+ 
+ 		flags |= chain->flags & NFT_CHAIN_BASE;
+-		return nf_tables_updchain(&ctx, genmask, policy, flags);
++		return nf_tables_updchain(&ctx, genmask, policy, flags, attr,
++					  extack);
+ 	}
+ 
+ 	return nf_tables_addchain(&ctx, family, genmask, policy, flags);
 -- 
 2.20.1
 
