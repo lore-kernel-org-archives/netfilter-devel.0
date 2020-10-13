@@ -4,50 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75AC0C433DF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Oct 2020 23:46:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79C10C433DF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Oct 2020 23:46:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 41DFC21582
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Oct 2020 23:46:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3584221582
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Oct 2020 23:46:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389019AbgJMXqM (ORCPT
+        id S1730040AbgJMXqR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:46:12 -0400
-Received: from correo.us.es ([193.147.175.20]:59900 "EHLO mail.us.es"
+        Tue, 13 Oct 2020 19:46:17 -0400
+Received: from correo.us.es ([193.147.175.20]:59932 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729994AbgJMXqL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:46:11 -0400
+        id S1730016AbgJMXqN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:46:13 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BC1D5E4BA0
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Oct 2020 01:46:08 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 50EE2E4B9B
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Oct 2020 01:46:09 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A82A1DA792
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Oct 2020 01:46:08 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3EF4ADA78B
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Oct 2020 01:46:09 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 9DC3BDA78C; Wed, 14 Oct 2020 01:46:08 +0200 (CEST)
+        id 34C82DA72F; Wed, 14 Oct 2020 01:46:09 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 279FBDA722;
-        Wed, 14 Oct 2020 01:46:06 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 27DD6DA73D;
+        Wed, 14 Oct 2020 01:46:07 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 14 Oct 2020 01:46:06 +0200 (CEST)
+ Wed, 14 Oct 2020 01:46:07 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id E6AE542EFB80;
-        Wed, 14 Oct 2020 01:46:05 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPSA id E78DB42EFB80;
+        Wed, 14 Oct 2020 01:46:06 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 2/4] ipvs: clear skb->tstamp in forwarding path
-Date:   Wed, 14 Oct 2020 01:45:57 +0200
-Message-Id: <20201013234559.15113-3-pablo@netfilter.org>
+Subject: [PATCH 4/4] netfilter: nf_log: missing vlan offload tag and proto
+Date:   Wed, 14 Oct 2020 01:45:59 +0200
+Message-Id: <20201013234559.15113-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201013234559.15113-1-pablo@netfilter.org>
 References: <20201013234559.15113-1-pablo@netfilter.org>
@@ -58,54 +58,132 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Julian Anastasov <ja@ssi.bg>
+Dump vlan tag and proto for the usual vlan offload case if the
+NF_LOG_MACDECODE flag is set on. Without this information the logging is
+misleading as there is no reference to the VLAN header.
 
-fq qdisc requires tstamp to be cleared in forwarding path
+[12716.993704] test: IN=veth0 OUT= MACSRC=86:6c:92:ea:d6:73 MACDST=0e:3b:eb:86:73:76 VPROTO=8100 VID=10 MACPROTO=0800 SRC=192.168.10.2 DST=172.217.168.163 LEN=52 TOS=0x00 PREC=0x00 TTL=64 ID=2548 DF PROTO=TCP SPT=55848 DPT=80 WINDOW=501 RES=0x00 ACK FIN URGP=0
+[12721.157643] test: IN=veth0 OUT= MACSRC=86:6c:92:ea:d6:73 MACDST=0e:3b:eb:86:73:76 VPROTO=8100 VID=10 MACPROTO=0806 ARP HTYPE=1 PTYPE=0x0800 OPCODE=2 MACSRC=86:6c:92:ea:d6:73 IPSRC=192.168.10.2 MACDST=0e:3b:eb:86:73:76 IPDST=192.168.10.1
 
-Reported-by: Evgeny B <abt-admin@mail.ru>
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=209427
-Suggested-by: Eric Dumazet <eric.dumazet@gmail.com>
-Fixes: 8203e2d844d3 ("net: clear skb->tstamp in forwarding paths")
-Fixes: fb420d5d91c1 ("tcp/fq: move back to CLOCK_MONOTONIC")
-Fixes: 80b14dee2bea ("net: Add a new socket option for a future transmit time.")
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Reviewed-by: Simon Horman <horms@verge.net.au>
+Fixes: 83e96d443b37 ("netfilter: log: split family specific code to nf_log_{ip,ip6,common}.c files")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_xmit.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ include/net/netfilter/nf_log.h   |  1 +
+ net/ipv4/netfilter/nf_log_arp.c  | 19 +++++++++++++++++--
+ net/ipv4/netfilter/nf_log_ipv4.c |  6 ++++--
+ net/ipv6/netfilter/nf_log_ipv6.c |  8 +++++---
+ net/netfilter/nf_log_common.c    | 12 ++++++++++++
+ 5 files changed, 39 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index b00866d777fe..d2e5a8f644b8 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -609,6 +609,8 @@ static inline int ip_vs_tunnel_xmit_prepare(struct sk_buff *skb,
- 	if (ret == NF_ACCEPT) {
- 		nf_reset_ct(skb);
- 		skb_forward_csum(skb);
-+		if (skb->dev)
-+			skb->tstamp = 0;
- 	}
- 	return ret;
- }
-@@ -649,6 +651,8 @@ static inline int ip_vs_nat_send_or_cont(int pf, struct sk_buff *skb,
+diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
+index 0d3920896d50..716db4a0fed8 100644
+--- a/include/net/netfilter/nf_log.h
++++ b/include/net/netfilter/nf_log.h
+@@ -108,6 +108,7 @@ int nf_log_dump_tcp_header(struct nf_log_buf *m, const struct sk_buff *skb,
+ 			   unsigned int logflags);
+ void nf_log_dump_sk_uid_gid(struct net *net, struct nf_log_buf *m,
+ 			    struct sock *sk);
++void nf_log_dump_vlan(struct nf_log_buf *m, const struct sk_buff *skb);
+ void nf_log_dump_packet_common(struct nf_log_buf *m, u_int8_t pf,
+ 			       unsigned int hooknum, const struct sk_buff *skb,
+ 			       const struct net_device *in,
+diff --git a/net/ipv4/netfilter/nf_log_arp.c b/net/ipv4/netfilter/nf_log_arp.c
+index 7a83f881efa9..136030ad2e54 100644
+--- a/net/ipv4/netfilter/nf_log_arp.c
++++ b/net/ipv4/netfilter/nf_log_arp.c
+@@ -43,16 +43,31 @@ static void dump_arp_packet(struct nf_log_buf *m,
+ 			    const struct nf_loginfo *info,
+ 			    const struct sk_buff *skb, unsigned int nhoff)
+ {
+-	const struct arphdr *ah;
+-	struct arphdr _arph;
+ 	const struct arppayload *ap;
+ 	struct arppayload _arpp;
++	const struct arphdr *ah;
++	unsigned int logflags;
++	struct arphdr _arph;
  
- 	if (!local) {
- 		skb_forward_csum(skb);
-+		if (skb->dev)
-+			skb->tstamp = 0;
- 		NF_HOOK(pf, NF_INET_LOCAL_OUT, cp->ipvs->net, NULL, skb,
- 			NULL, skb_dst(skb)->dev, dst_output);
- 	} else
-@@ -669,6 +673,8 @@ static inline int ip_vs_send_or_cont(int pf, struct sk_buff *skb,
- 	if (!local) {
- 		ip_vs_drop_early_demux_sk(skb);
- 		skb_forward_csum(skb);
-+		if (skb->dev)
-+			skb->tstamp = 0;
- 		NF_HOOK(pf, NF_INET_LOCAL_OUT, cp->ipvs->net, NULL, skb,
- 			NULL, skb_dst(skb)->dev, dst_output);
- 	} else
+ 	ah = skb_header_pointer(skb, 0, sizeof(_arph), &_arph);
+ 	if (ah == NULL) {
+ 		nf_log_buf_add(m, "TRUNCATED");
+ 		return;
+ 	}
++
++	if (info->type == NF_LOG_TYPE_LOG)
++		logflags = info->u.log.logflags;
++	else
++		logflags = NF_LOG_DEFAULT_MASK;
++
++	if (logflags & NF_LOG_MACDECODE) {
++		nf_log_buf_add(m, "MACSRC=%pM MACDST=%pM ",
++			       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest);
++		nf_log_dump_vlan(m, skb);
++		nf_log_buf_add(m, "MACPROTO=%04x ",
++			       ntohs(eth_hdr(skb)->h_proto));
++	}
++
+ 	nf_log_buf_add(m, "ARP HTYPE=%d PTYPE=0x%04x OPCODE=%d",
+ 		       ntohs(ah->ar_hrd), ntohs(ah->ar_pro), ntohs(ah->ar_op));
+ 
+diff --git a/net/ipv4/netfilter/nf_log_ipv4.c b/net/ipv4/netfilter/nf_log_ipv4.c
+index 0c72156130b6..d07583fac8f8 100644
+--- a/net/ipv4/netfilter/nf_log_ipv4.c
++++ b/net/ipv4/netfilter/nf_log_ipv4.c
+@@ -284,8 +284,10 @@ static void dump_ipv4_mac_header(struct nf_log_buf *m,
+ 
+ 	switch (dev->type) {
+ 	case ARPHRD_ETHER:
+-		nf_log_buf_add(m, "MACSRC=%pM MACDST=%pM MACPROTO=%04x ",
+-			       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest,
++		nf_log_buf_add(m, "MACSRC=%pM MACDST=%pM ",
++			       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest);
++		nf_log_dump_vlan(m, skb);
++		nf_log_buf_add(m, "MACPROTO=%04x ",
+ 			       ntohs(eth_hdr(skb)->h_proto));
+ 		return;
+ 	default:
+diff --git a/net/ipv6/netfilter/nf_log_ipv6.c b/net/ipv6/netfilter/nf_log_ipv6.c
+index da64550a5707..8210ff34ed9b 100644
+--- a/net/ipv6/netfilter/nf_log_ipv6.c
++++ b/net/ipv6/netfilter/nf_log_ipv6.c
+@@ -297,9 +297,11 @@ static void dump_ipv6_mac_header(struct nf_log_buf *m,
+ 
+ 	switch (dev->type) {
+ 	case ARPHRD_ETHER:
+-		nf_log_buf_add(m, "MACSRC=%pM MACDST=%pM MACPROTO=%04x ",
+-		       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest,
+-		       ntohs(eth_hdr(skb)->h_proto));
++		nf_log_buf_add(m, "MACSRC=%pM MACDST=%pM ",
++			       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest);
++		nf_log_dump_vlan(m, skb);
++		nf_log_buf_add(m, "MACPROTO=%04x ",
++			       ntohs(eth_hdr(skb)->h_proto));
+ 		return;
+ 	default:
+ 		break;
+diff --git a/net/netfilter/nf_log_common.c b/net/netfilter/nf_log_common.c
+index ae5628ddbe6d..fd7c5f0f5c25 100644
+--- a/net/netfilter/nf_log_common.c
++++ b/net/netfilter/nf_log_common.c
+@@ -171,6 +171,18 @@ nf_log_dump_packet_common(struct nf_log_buf *m, u_int8_t pf,
+ }
+ EXPORT_SYMBOL_GPL(nf_log_dump_packet_common);
+ 
++void nf_log_dump_vlan(struct nf_log_buf *m, const struct sk_buff *skb)
++{
++	u16 vid;
++
++	if (!skb_vlan_tag_present(skb))
++		return;
++
++	vid = skb_vlan_tag_get(skb);
++	nf_log_buf_add(m, "VPROTO=%04x VID=%u ", ntohs(skb->vlan_proto), vid);
++}
++EXPORT_SYMBOL_GPL(nf_log_dump_vlan);
++
+ /* bridge and netdev logging families share this code. */
+ void nf_log_l2packet(struct net *net, u_int8_t pf,
+ 		     __be16 protocol,
 -- 
 2.20.1
 
