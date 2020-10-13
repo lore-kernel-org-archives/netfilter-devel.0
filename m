@@ -6,87 +6,102 @@ X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37E4EC433DF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Oct 2020 09:29:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43A92C433DF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Oct 2020 09:40:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0BAF720725
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Oct 2020 09:29:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F077520714
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Oct 2020 09:40:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404228AbgJMJ3I (ORCPT
+        id S2391308AbgJMJkL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Oct 2020 05:29:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46066 "EHLO
+        Tue, 13 Oct 2020 05:40:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47754 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2404225AbgJMJ3I (ORCPT
+        with ESMTP id S2387597AbgJMJkL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Oct 2020 05:29:08 -0400
+        Tue, 13 Oct 2020 05:40:11 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C80EC0613D0
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Oct 2020 02:29:07 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69A76C0613D0
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Oct 2020 02:40:11 -0700 (PDT)
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
         (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1kSGcC-000780-2Z; Tue, 13 Oct 2020 11:29:04 +0200
-Date:   Tue, 13 Oct 2020 11:29:04 +0200
+        id 1kSGmv-0007H1-Sn; Tue, 13 Oct 2020 11:40:09 +0200
+Date:   Tue, 13 Oct 2020 11:40:09 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH v2 01/10] nft: Fix selective chain compatibility
- checks
-Message-ID: <20201013092904.GS13016@orbyte.nwl.cc>
+Subject: Re: [iptables PATCH v2 02/10] nft: Implement nft_chain_foreach()
+Message-ID: <20201013094009.GT13016@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org
 References: <20200923174849.5773-1-phil@nwl.cc>
- <20200923174849.5773-2-phil@nwl.cc>
- <20201012115424.GA26845@salvia>
+ <20200923174849.5773-3-phil@nwl.cc>
+ <20201012120118.GB26845@salvia>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20201012115424.GA26845@salvia>
+In-Reply-To: <20201012120118.GB26845@salvia>
 Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+Hi,
 
-On Mon, Oct 12, 2020 at 01:54:24PM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Sep 23, 2020 at 07:48:40PM +0200, Phil Sutter wrote:
-> > Since commit 80251bc2a56ed ("nft: remove cache build calls"), 'chain'
-> > parameter passed to nft_chain_list_get() is no longer effective. To
-> > still support running nft_is_chain_compatible() on specific chains only,
-> > add a short path to nft_is_table_compatible().
-> > 
-> > Follow-up patches will kill nft_chain_list_get(), so don't bother
-> > dropping the unused parameter from its signature.
+On Mon, Oct 12, 2020 at 02:01:18PM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Sep 23, 2020 at 07:48:41PM +0200, Phil Sutter wrote:
+> > This is just a fancy wrapper around nftnl_chain_list_foreach() with the
+> > added benefit of detecting invalid table names or uninitialized chain
+> > lists. This in turn allows to drop the checks in flush_rule_cache() and
+> > ignore the return code of nft_chain_foreach() as it fails only if the
+> > dropped checks had failed, too.
 > 
-> This has a Fixes: tag.
+> At quick glance, this is reducing the LoC.
 > 
-> What is precisely the problem? How does show from the iptables and
-> iptables-restore interface?
+> However, I'm not sure this is better, before this code:
 > 
-> Not sure I understand the problem.
+> 1) You fetch the list
+> 2) You use it from several spots in the function
+> 
+> with this patch you might look up for the chain list several times in
+> the same function.
 
-Before the big caching rework, nft_chain_list_get() could cause a
-cache-fetch to populate table's chain list. If a chain name was passed
-to it, that cache-fetch would retrieve only the specified chain (if not
-in cache already).
+Hmm. There might be exceptions, but typically we should have a function
+that takes an optional chain name and the body roughly looks like this:
 
-In the current code, nft_is_table_compatible() happens in the second
-stage where cache is present already and nft_chain_list_get() really
-just returns the table's chain list again. This means that the
-compatibility check happens for all chains in cache which belong to that
-table and the original optimization (to check only the interesting
-chain) is not effective anymore.
+| if (chain) {
+| 	return do_something(nft_chain_find(..., chain));
+| }
+| return nft_chain_foreach(..., do_something);
 
-The "short path" (actually: short-cut) introduced in this patch allows
-to limit compat check to a specific chain again. The impact is not as
-big anymore as nft_chain_list_get() does no longer populate the cache,
-but still there's no point in checking unintereresting chains'
-compatibility.
+[...]
+> I can also see calls to:
+> 
+> nft_chain_find(h, table, chain);
+> 
+> and
+> 
+> nft_chain_foreach(...)
+> 
+> from the same function.
+> 
+> This patch also updates paths in very different ways, there is no
+> common idiom being replaced.
 
-Above all else though, this is fallout from the preparations to drop
-nft_chain_list_get() and given the above, I found it makes sense to push
-it as a separate commit.
+Which in particular are those?
+
+The overall agenda is that looking up a chain won't be a trivial
+nftnl_chain_list lookup anymore. And iterating over a table's chains
+won't be a matter of iterating over a list, because I split base-chains
+from user-defined ones:
+
+* Base-chains sit in an array of size NF_INET_NUMHOOKS.
+* User-defined chains sit in an (open-coded) list ordered by name.
+
+So the old nft_chain_list_get() is not possible anymore, therefore I
+replace everything by either nft_chain_find() or nft_chain_foreach().
+Functions should not use both in the same code-path, so if you spot that
+I should have a close look again.
 
 Cheers, Phil
