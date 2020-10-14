@@ -4,191 +4,151 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28E34C43457
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Oct 2020 09:23:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED31EC433E7
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Oct 2020 09:39:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BAA58206DD
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Oct 2020 09:23:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 796382076D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Oct 2020 09:39:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="yGsJGrun"
+	dkim=pass (2048-bit key) header.d=orange.com header.i=@orange.com header.b="DRaFxs+E"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729110AbgJNJXH (ORCPT
+        id S1726361AbgJNJjM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 14 Oct 2020 05:23:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39970 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731224AbgJNJWy (ORCPT
+        Wed, 14 Oct 2020 05:39:12 -0400
+Received: from relais-inet.orange.com ([80.12.66.40]:31635 "EHLO
+        relais-inet.orange.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726028AbgJNJjM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Oct 2020 05:22:54 -0400
-Received: from mail-il1-x143.google.com (mail-il1-x143.google.com [IPv6:2607:f8b0:4864:20::143])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10A62C05110C
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Oct 2020 23:50:14 -0700 (PDT)
-Received: by mail-il1-x143.google.com with SMTP id l16so3874893ilt.13
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Oct 2020 23:50:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:from:date:message-id:subject:to:cc;
-        bh=4ElDEesyg0K0qnDmN25EoqLVZHDvVGnEe9oIGE+GbpY=;
-        b=yGsJGrunBc8kcDsuG6rQsb9Gi1UWyLuGHPMOjfNqcJYM8NYjLqrxTBD9axJuRe18zU
-         HQkqtoT0925++y4wEzZBq13ntiRfp+ztZ0mDXnUdL/DvJhCreJEXfAa182D+qe97LEkO
-         irPKkX4zfBbl1xcfW5PpBAR52e4Oxl4tjn5J3Yh3jn1ITYtzYpjqrPFLqodqCN8XfrUk
-         dLs6vZPItghAdRarI9xQ1Cxs2V5c5nxJNBgLLgZBspfGmq2VhatarOyYFOVd0EAD4080
-         lhCt/ii1JOENmaqe3S7tG0tp2S0XruPJjXdxCV4VttS68y59UWFitMvHdujhyBd/saDj
-         eSRA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=4ElDEesyg0K0qnDmN25EoqLVZHDvVGnEe9oIGE+GbpY=;
-        b=J4jfAnWuXZvUehrJeaQ2HP08AnIVOEV/FCpMjXQ1/oiCybg59UKHuzpvIyeGBA3daC
-         IIeFGxL8IEIYFUeIX9ALVI1zX3HqfpJXOTQoqxZQV4YUGFqAv3CGuQD8UiXzDfCUt7VJ
-         Wb2Fs6LpqnRTsOS3TxWit3wkStN4uo0LDoOP8LaHbjQ8Q5oHRFSUihumRkefZ8handZ/
-         bcLzS9jprYzwo3OHxo/IJHryjrxwRcUx23g5ZCNa8pBCETMZsm9gCMlV0BVdmQSc0Bo2
-         nSKT3WqJKsYPEylAKJBOjXAF1zrzPBVn2ETxKPSamnPi/qt5qHqaoGQwrMzV5Ec8QmuU
-         UstA==
-X-Gm-Message-State: AOAM531j3uZNPkE8piZ+hXBlPc/POJwMLmp+WqUynbEPJl0/HZaRJ8L8
-        6PM/y6SDHmpT+/WRDQl+M92yChyMTSdJ/yFdbaA/AA==
-X-Google-Smtp-Source: ABdhPJwp3I8FXlHDe3+yUeiJIWIJmB6SHTRFkbQNvXxGizAU1lL1FALkkQgXS5sL9C/VXtC/MPUiLkp0WUpyy1PrrpA=
-X-Received: by 2002:a05:6e02:5ad:: with SMTP id k13mr1306184ils.71.1602658213139;
- Tue, 13 Oct 2020 23:50:13 -0700 (PDT)
+        Wed, 14 Oct 2020 05:39:12 -0400
+X-Greylist: delayed 432 seconds by postgrey-1.27 at vger.kernel.org; Wed, 14 Oct 2020 05:39:11 EDT
+Received: from opfedar05.francetelecom.fr (unknown [xx.xx.xx.7])
+        by opfedar25.francetelecom.fr (ESMTP service) with ESMTP id 4CB6cp109gz8vRP;
+        Wed, 14 Oct 2020 11:31:54 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=orange.com;
+        s=ORANGE001; t=1602667914;
+        bh=qNw6y2kY2Jbzy87F+oQdoGQXWfS0B9dEBU2/mD/oJ0o=;
+        h=From:To:Subject:Date:Message-ID:Content-Type:
+         Content-Transfer-Encoding:MIME-Version;
+        b=DRaFxs+Ea9FiCwmbsj3Sr+BKATWKzAT9Llxo6dtbQ0S8X8rYUE0nUg1h+d7gQ3HdP
+         pVE2bDfG5iU2etb6uxjPSRkLHxPpwPfQWJM4asSJMm9VKfZhJjWZEeSrKOTF3bOkOg
+         /UdJ7U83VO6k1r0O1fw6bnHzurxgxUAu7YdmEDvYMDJIJjdJ2ytChll7peElWKX7bg
+         3dkQlKLFcs4jc/uBDGtLdFzNIZfexwQwQcnD+rqZYxgQCyyRkA9RLiTD0xBLrLk0oQ
+         nzYWKMcsgyBr493SswlqeCmTnyOSRUaLw0CFpQoW8FeTeCD/dTMiUADjmsBj1mk9Ka
+         GDo8gNlSBpGOg==
+Received: from Exchangemail-eme6.itn.ftgroup (unknown [xx.xx.13.73])
+        by opfedar05.francetelecom.fr (ESMTP service) with ESMTP id 4CB6cn6zLFz2xCD;
+        Wed, 14 Oct 2020 11:31:53 +0200 (CEST)
+From:   <timothee.cocault@orange.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+CC:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: Bug: ebtables snat drops small packets
+Thread-Topic: Bug: ebtables snat drops small packets
+Thread-Index: AdaiDCXbAG6o1RoDRYa681Sp+IMcHg==
+Date:   Wed, 14 Oct 2020 09:31:52 +0000
+Message-ID: <19748_1602667914_5F86C589_19748_131_22_585B71F7B267D04784B84104A88F7DEE0DB50179@OPEXCAUBM34.corporate.adroot.infra.ftgroup>
+Accept-Language: fr-FR, en-US
+Content-Language: fr-FR
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.114.13.245]
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-From:   Naresh Kamboju <naresh.kamboju@linaro.org>
-Date:   Wed, 14 Oct 2020 12:20:00 +0530
-Message-ID: <CA+G9fYvFUpODs+NkSYcnwKnXm62tmP=ksLeBPmB+KFrB2rvCtQ@mail.gmail.com>
-Subject: WARNING: at net/netfilter/nf_tables_api.c:622 lockdep_nfnl_nft_mutex_not_held+0x28/0x38
- [nf_tables]
-To:     "open list:KERNEL SELFTEST FRAMEWORK" 
-        <linux-kselftest@vger.kernel.org>, Netdev <netdev@vger.kernel.org>,
-        lkft-triage@lists.linaro.org,
-        open list <linux-kernel@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org
-Cc:     pablo@netfilter.org, Florian Westphal <fw@strlen.de>,
-        fabf@skynet.be, Shuah Khan <shuah@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-While running kselftest netfilter on arm64 hikey device on Linux next
-20201013 the following
-kernel warning noticed.
+Hi !
 
-metadata:
-  git branch: master
-  git repo: https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
-  git commit: f2fb1afc57304f9dd68c20a08270e287470af2eb
-  git describe: next-20201013
-  make_kernelversion: 5.9.0
-  kernel-config:
-http://snapshots.linaro.org/openembedded/lkft/lkft/sumo/hikey/lkft/linux-next/879/config
+I noticed a bug when using the snat module of ebtables.
+If the ethernet payload of a packet is less than 12 bytes, the packet gets =
+dropped.
 
-steps to reproduce:
----------------------------
-# cd /opt/kselftests/default-in-kernel/
-# ./run_kselftest.sh -c netfilter
+I traced it down to this commit which changes calls to `skb_make_writable` =
+to `skb_ensure_writable` :
+https://github.com/torvalds/linux/commit/c1a8311679014a79b04c039e32bde34fb6=
+8952fd
 
-crash log:
-----------------
-# selftests: netfilter: nft_trans_stress.sh
-[ 1913.862919] ------------[ cut here ]------------
-[ 1913.869773] WARNING: CPU: 2 PID: 31416 at
-/usr/src/kernel/net/netfilter/nf_tables_api.c:622
-lockdep_nfnl_nft_mutex_not_held+0x28/0x38 [nf_tables]
-[ 1913.885399] Modules linked in: nf_tables nfnetlink act_mirred
-cls_u32 sch_etf xt_conntrack nf_conntrack nf_defrag_ipv4 libcrc32c
-ip6_tables nf_defrag_ipv6 ip_tables x_tables netdevsim 8021q garp mrp
-bridge stp llc sch_fq sch_ingress veth algif_hash wl18xx wlcore
-mac80211 cfg80211 snd_soc_hdmi_codec hci_uart btqca btbcm crct10dif_ce
-snd_soc_audio_graph_card snd_soc_simple_card_utils adv7511 wlcore_sdio
-cec bluetooth kirin_drm lima rfkill dw_drm_dsi gpu_sched
-drm_kms_helper drm fuse [last unloaded: test_blackhole_dev]
-[ 1913.941924] CPU: 2 PID: 31416 Comm: nft Tainted: G        W
-5.9.0-next-20201013 #1
-[ 1913.954131] Hardware name: HiKey Development Board (DT)
-[ 1913.963342] pstate: 00000005 (nzcv daif -PAN -UAO -TCO BTYPE=--)
-[ 1913.973483] pc : lockdep_nfnl_nft_mutex_not_held+0x28/0x38 [nf_tables]
-[ 1913.984271] lr : lockdep_nfnl_nft_mutex_not_held+0x18/0x38 [nf_tables]
-[ 1913.995018] sp : ffff800013bc3550
-[ 1914.002559] x29: ffff800013bc3550 x28: ffff800013bc3930
-[ 1914.012197] x27: 0000000000000001 x26: ffff000045dc4e00
-[ 1914.021880] x25: 0000000000000001 x24: ffff000045dc4e00
-[ 1914.031565] x23: ffff800013bc3930 x22: 0000000000000001
-[ 1914.041298] x21: ffff800012750000 x20: ffff800013bc3668
-[ 1914.051068] x19: ffff800012750000 x18: 0000000000000000
-[ 1914.060876] x17: 0000000000000000 x16: 0000000000000000
-[ 1914.070699] x15: 0000000000000000 x14: ffff800009996d48
-[ 1914.080534] x13: ffffffffff000000 x12: 0000000000000028
-[ 1914.090418] x11: 0101010101010101 x10: 7f7f7f7f7f7f7f7f
-[ 1914.100355] x9 : fefefefefefefeff x8 : 7f7f7f7f7f7f7f7f
-[ 1914.110325] x7 : fefeff53544f4d48 x6 : 0000000000007ab8
-[ 1914.120339] x5 : 0000000000000005 x4 : 0000000000000001
-[ 1914.130388] x3 : 0000000000000001 x2 : 0000000000000000
-[ 1914.140454] x1 : 00000000ffffffff x0 : 0000000000000001
-[ 1914.150529] Call trace:
-[ 1914.157789]  lockdep_nfnl_nft_mutex_not_held+0x28/0x38 [nf_tables]
-[ 1914.168967]  nft_chain_parse_hook+0x58/0x320 [nf_tables]
-[ 1914.179342]  nf_tables_addchain.isra.66+0xb8/0x510 [nf_tables]
-[ 1914.190340]  nf_tables_newchain+0x408/0x618 [nf_tables]
-[ 1914.200734]  nfnetlink_rcv_batch+0x4a0/0x610 [nfnetlink]
-[ 1914.211284]  nfnetlink_rcv+0x174/0x1a8 [nfnetlink]
-[ 1914.221351]  netlink_unicast+0x1dc/0x290
-[ 1914.230589]  netlink_sendmsg+0x2b8/0x3f8
-[ 1914.239840]  ____sys_sendmsg+0x288/0x2d0
-[ 1914.249117]  ___sys_sendmsg+0x90/0xd0
-[ 1914.258154]  __sys_sendmsg+0x78/0xd0
-[ 1914.267140]  __arm64_sys_sendmsg+0x2c/0x38
-[ 1914.276705]  el0_svc_common.constprop.3+0x7c/0x198
-[ 1914.287041]  do_el0_svc+0x34/0xa0
-[ 1914.295928]  el0_sync_handler+0x128/0x190
-[ 1914.305567]  el0_sync+0x140/0x180
-[ 1914.314535] CPU: 2 PID: 31416 Comm: nft Tainted: G        W
-5.9.0-next-20201013 #1
-[ 1914.328670] Hardware name: HiKey Development Board (DT)
-[ 1914.339812] Call trace:
-[ 1914.348184]  dump_backtrace+0x0/0x1f0
-[ 1914.357841]  show_stack+0x2c/0x80
-[ 1914.367181]  dump_stack+0xf8/0x160
-[ 1914.376615]  __warn+0xac/0x168
-[ 1914.385732]  report_bug+0xcc/0x180
-[ 1914.395242]  bug_handler+0x24/0x78
-[ 1914.404783]  call_break_hook+0x80/0xa0
-[ 1914.414725]  brk_handler+0x28/0x68
-[ 1914.424358]  do_debug_exception+0xbc/0x128
-[ 1914.434744]  el1_sync_handler+0x7c/0x128
-[ 1914.445017]  el1_sync+0x7c/0x100
-[ 1914.454625]  lockdep_nfnl_nft_mutex_not_held+0x28/0x38 [nf_tables]
-[ 1914.467351]  nft_chain_parse_hook+0x58/0x320 [nf_tables]
-[ 1914.479276]  nf_tables_addchain.isra.66+0xb8/0x510 [nf_tables]
-[ 1914.491818]  nf_tables_newchain+0x408/0x618 [nf_tables]
-[ 1914.503774]  nfnetlink_rcv_batch+0x4a0/0x610 [nfnetlink]
-[ 1914.515899]  nfnetlink_rcv+0x174/0x1a8 [nfnetlink]
-[ 1914.527525]  netlink_unicast+0x1dc/0x290
-[ 1914.538318]  netlink_sendmsg+0x2b8/0x3f8
-[ 1914.549125]  ____sys_sendmsg+0x288/0x2d0
-[ 1914.559959]  ___sys_sendmsg+0x90/0xd0
-[ 1914.570557]  __sys_sendmsg+0x78/0xd0
-[ 1914.581111]  __arm64_sys_sendmsg+0x2c/0x38
-[ 1914.592241]  el0_svc_common.constprop.3+0x7c/0x198
-[ 1914.604152]  do_el0_svc+0x34/0xa0
-[ 1914.614497]  el0_sync_handler+0x128/0x190
-[ 1914.625540]  el0_sync+0x140/0x180
-[ 1914.635652] irq event stamp: 0
-[ 1914.645091] hardirqs last  enabled at (0): [<0000000000000000>] 0x0
-[ 1914.657471] hardirqs last disabled at (0): [<ffff80001008975c>]
-copy_process+0x68c/0x1910
-[ 1914.671402] softirqs last  enabled at (0): [<ffff80001008975c>]
-copy_process+0x68c/0x1910
-[ 1914.685201] softirqs last disabled at (0): [<0000000000000000>] 0x0
-[ 1914.696977] ---[ end trace 180274a5ab806f4e ]---
-[ 1917.244483] hisi_thermal f7030700.tsensor: sensor <2> THERMAL
-ALARM: 66385 > 65000
+The diff gives a clear hint of the bug. For example, in `net/bridge/netfilt=
+er/ebt_snat.c` :
 
-Full test log link,
-https://qa-reports.linaro.org/lkft/linux-next-master/build/next-20201013/testrun/3302070/suite/linux-log-parser/test/check-kernel-warning-1839079/log
+-   if (!skb_make_writable(skb, 0))
++   if (skb_ensure_writable(skb, ETH_ALEN * 2))
+        return EBT_DROP;
+
+The goal was to make the ethernet source and destination address writable, =
+but the function seems to expects a number of bytes after the Ethernet head=
+er.
+Hence, packets with a payload < 12 bytes are dropped. It probably applies t=
+o the other changes of the commit too.
+
+I can confirm that setting the `write_len` parameter back to 0 "fixes" the =
+bug, but I'm not familiar with the code enough to know if the call is neede=
+d altogether.
 
 
--- 
-Linaro LKFT
-https://lkft.linaro.org
+Given below is a "minimal" working example to reproduce the bug:
+
+Setup two bridges, linked with veth adapters:
+
+    ip link add veth1 type veth peer name veth2
+    ip link set veth1 address 66:47:61:00:00:01
+    ip link set veth2 address 66:47:61:00:00:02
+    ip link add br1 type bridge
+    ip link add br2 type bridge
+    ip link set veth1 master br1
+    ip link set veth2 master br2
+    ip link set br1 up
+    ip link set br2 up
+    ip link set veth1 up
+    ip link set veth2 up
+
+Add a rule that changes the source of 802.1X packets from br1 to br2:
+
+    ebtables -t nat -A POSTROUTING -s 66:47:61:00:00:01 -p 0x888e -j snat -=
+-to-src 66:47:61:00:00:03 --snat-target ACCEPT
+
+Send a packet to br2 (a dummy 802.1X packet with 12 bytes of payload):
+
+    #!/usr/bin/env python3
+    import socket
+    size =3D 12
+    s =3D socket.socket(socket.AF_PACKET, socket.SOCK_DGRAM)
+    addr =3D ('br1', 0x888e, 0, 1, b'\x66\x47\x61\x00\x00\x02')
+    s.sendto(b'\xff' * size, addr)
+    s.close()
+
+If we run tcpdump/wireshark on br2, we can see that the packets are present=
+, with the snatted source MAC (:03).
+However, if we send a packet with size =3D 11, the packet is dropped and we=
+ don't see it on br2.
+
+
+Regards,
+Timoth=E9e.
+
+___________________________________________________________________________=
+______________________________________________
+
+Ce message et ses pieces jointes peuvent contenir des informations confiden=
+tielles ou privilegiees et ne doivent donc
+pas etre diffuses, exploites ou copies sans autorisation. Si vous avez recu=
+ ce message par erreur, veuillez le signaler
+a l'expediteur et le detruire ainsi que les pieces jointes. Les messages el=
+ectroniques etant susceptibles d'alteration,
+Orange decline toute responsabilite si ce message a ete altere, deforme ou =
+falsifie. Merci.
+
+This message and its attachments may contain confidential or privileged inf=
+ormation that may be protected by law;
+they should not be distributed, used or copied without authorisation.
+If you have received this email in error, please notify the sender and dele=
+te this message and its attachments.
+As emails may be altered, Orange is not liable for messages that have been =
+modified, changed or falsified.
+Thank you.
+
