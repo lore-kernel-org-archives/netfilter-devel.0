@@ -2,75 +2,73 @@ Return-Path: <SRS0=46WK=DW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16761C433E7
-	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Oct 2020 19:01:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06EADC433DF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Oct 2020 19:47:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AFC32218AC
-	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Oct 2020 19:01:26 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="biGPjqwC"
+	by mail.kernel.org (Postfix) with ESMTP id 9FAA7206DD
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Oct 2020 19:47:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1602791274;
+	bh=OKj5OghpJrPlsoA9aCuGSDcJqT/RXPzJFqtejR5rWx0=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=utbt/y0vU4+NIrGgELhh2KfC1Nv7ItsxHlXniuabMOlS8AX9ZJFp+O4gYr9flaGbW
+	 5Kfah0LWGSaf8sMseiMCC75wDXC6PFW3c3Bz+EJR78Eo3ZSAQP1z4OPF3HToYBFOer
+	 1XOtu118Tg0LvsdIG4uqFBcWW3gjNTmyGUSfMjIo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391386AbgJOTB0 (ORCPT
+        id S2391894AbgJOTrw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 15 Oct 2020 15:01:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43020 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730427AbgJOTB0 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 15 Oct 2020 15:01:26 -0400
-Received: from mail-io1-xd41.google.com (mail-io1-xd41.google.com [IPv6:2607:f8b0:4864:20::d41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A8A9C061755
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2020 12:01:26 -0700 (PDT)
-Received: by mail-io1-xd41.google.com with SMTP id k6so85407ior.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2020 12:01:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=v8QJbk43RZKuJB3mWX9/L7CnpitIQ6DkcC6JKIIxnFo=;
-        b=biGPjqwCQTZox6sVU8AaLnQkWkz5HMx1xMZWOxUF8vGTSgWckn4qQd2+qOhPfsxAtX
-         xs/XWvBL6+RT5T1PGTVDO2/023OyiYJFkt8yCRilGlqPJnAQK6E4eC6ldeK7/u9HDetX
-         PbOQ6oTRTelKusg78wajAJa60TjRyi+kBDd5aBUqKIDeCwcxznlovP7u7PyXJkf/p8W/
-         Qtm3+LV24BMx7tHCpmXlbyjx38dHox+BLHhEgDipxN4Hg47bnSIWyuQI10qEnMLkBooF
-         +Q7D8KIJ5tyGuW0Q4S7R5adXgZlukTCl0aIn0kU5vEqC698v36WNuhhpT96ZxyMUTnyP
-         wBWg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=v8QJbk43RZKuJB3mWX9/L7CnpitIQ6DkcC6JKIIxnFo=;
-        b=NWI93ovt7N+/jc4KlY7XkkmuI0vNjsh7aSCRsVm3e5xlKLxegu5NtxJ4RzY2mWtMwG
-         eWsc7wKrp4w01Xw4rwNmSaNq8TMbjvvFbIvFyyzyNnHVs2pB596bS6ERpc7gpXnj4JXr
-         exOQqyrwLlXo0KDGH34jmOnhN3xLNMUuaHednAg0wC3Kdm+8vVnewGCFEXZb4nelKYrz
-         UaEPuk+Y6AQ41GPUbU7vucDn9LWTaYy2sNex36465b8DN2gj0DVtBGpHGwp1JNBCUArg
-         /+rNTq54IRSzc5DIAL1BTPz7idoivBuvGd5MpXuCsfsMHuO9q5FHMyfLGbe//pg7Q8K2
-         stEg==
-X-Gm-Message-State: AOAM530gztx2NPtuaIc3d/5jK0O79ahN0q3vYB6vNu0UwYSrXgfkuVWp
-        lAOVL5aveiE+4OFP4p1o4grV3++WIEorszjg9TCvka0qpSw=
-X-Google-Smtp-Source: ABdhPJwgDmRzOjWicuKGq7oSOoHhYZegJhXPUKFXgeCEnOVBGBHR07LJym9Jqp9s7PhTSBz8RPymw804ESIY7XFjdzs=
-X-Received: by 2002:a6b:8b92:: with SMTP id n140mr4119586iod.107.1602788484412;
- Thu, 15 Oct 2020 12:01:24 -0700 (PDT)
+        Thu, 15 Oct 2020 15:47:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33634 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2391890AbgJOTrv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 15 Oct 2020 15:47:51 -0400
+Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.5])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 79571206DD;
+        Thu, 15 Oct 2020 19:47:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1602791270;
+        bh=OKj5OghpJrPlsoA9aCuGSDcJqT/RXPzJFqtejR5rWx0=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=pjUMw+Ysxlpi9c+zVluPvSvHulTuNDWb3rDmUpG7CdiEDvOrJhRp4FvbWlb3suRoE
+         UIxvUSpJqbF9RRWuuLCCDpVJpdnPVAcR6sykUgrzytDisRGkdVTL9I2U+f3XvoRLZE
+         PTEt4BCNJ68zSpvnaWM2Uy1h1oy6KqEbtx3yaZXE=
+Date:   Thu, 15 Oct 2020 12:47:48 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH net-next,v2 0/9] netfilter: flowtable bridge and vlan
+ enhancements
+Message-ID: <20201015124748.7793cbda@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <20201015163038.26992-1-pablo@netfilter.org>
+References: <20201015163038.26992-1-pablo@netfilter.org>
 MIME-Version: 1.0
-From:   Gopal Yadav <gopunop@gmail.com>
-Date:   Fri, 16 Oct 2020 00:31:13 +0530
-Message-ID: <CAAUOv8hTaseM_fSzQiscRS2=N-2bxSRuXEvwg-_RmTQS0BJ_Bg@mail.gmail.com>
-Subject: [nft] Bug 1444 - Segfault
-To:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In this bug https://bugzilla.netfilter.org/show_bug.cgi?id=1444
-The segfault occurs when set_ref_expr_print() calls expr_print() with
-expr->set->init as its argument because there is no space allocated
-for expr->set->init.
+On Thu, 15 Oct 2020 18:30:29 +0200 Pablo Neira Ayuso wrote:
+> The following patchset adds infrastructure to augment the Netfilter
+> flowtable fastpath [1] to support for local network topologies that
+> combine IP forwarding, bridge and vlan devices.
+> 
+> A typical scenario that can benefit from this infrastructure is composed
+> of several VMs connected to bridge ports where the bridge master device
+> 'br0' has an IP address. A DHCP server is also assumed to be running to
+> provide connectivity to the VMs. The VMs reach the Internet through
+> 'br0' as default gateway, which makes the packet enter the IP forwarding
+> path. Then, netfilter is used to NAT the packets before they leave to
+> through the wan device.
 
-See: http://git.netfilter.org/nftables/tree/src/expression.c#n1209
+Hi Pablo, I should have looked at this closer yesterday, but I think it
+warrants a little more review than we can afford right now. 
 
-Will a simple if-check for expr->set->init be an appropriate solution for this?
-
-Thanks
+Let's take it after the merge window, sorry!
