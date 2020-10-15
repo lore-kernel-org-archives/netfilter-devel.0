@@ -2,158 +2,177 @@ Return-Path: <SRS0=46WK=DW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BE28C433DF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Oct 2020 16:17:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 079B1C433E7
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Oct 2020 16:30:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4054E21D7F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Oct 2020 16:17:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A75AB22255
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Oct 2020 16:30:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388946AbgJOQRG (ORCPT
+        id S2389862AbgJOQat (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 15 Oct 2020 12:17:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45760 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388461AbgJOQRG (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 15 Oct 2020 12:17:06 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D52DDC061755
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2020 09:17:05 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1kT5w7-0001PA-Pt; Thu, 15 Oct 2020 18:17:03 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Davide Caratti <dcaratti@redhat.com>,
-        Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: nftables: allow re-computing sctp CRC-32C in 'payload' statements
-Date:   Thu, 15 Oct 2020 18:16:51 +0200
-Message-Id: <20201015161651.4902-1-fw@strlen.de>
-X-Mailer: git-send-email 2.26.2
+        Thu, 15 Oct 2020 12:30:49 -0400
+Received: from correo.us.es ([193.147.175.20]:47232 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2388357AbgJOQat (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 15 Oct 2020 12:30:49 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id D25DCE2C4F
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2020 18:30:46 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C57A9DA73F
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2020 18:30:46 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id BB320DA793; Thu, 15 Oct 2020 18:30:46 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 44DCCDA73F;
+        Thu, 15 Oct 2020 18:30:44 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 15 Oct 2020 18:30:44 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id 0423C42EF4E1;
+        Thu, 15 Oct 2020 18:30:43 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH net-next,v2 0/9] netfilter: flowtable bridge and vlan enhancements
+Date:   Thu, 15 Oct 2020 18:30:29 +0200
+Message-Id: <20201015163038.26992-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Davide Caratti <dcaratti@redhat.com>
+Hi,
 
-nftables payload statements are used to mangle SCTP headers, but they can
-only replace the Internet Checksum. As a consequence, nftables rules that
-mangle sport/dport/vtag in SCTP headers potentially generate packets that
-are discarded by the receiver, unless the CRC-32C is "offloaded" (e.g the
-rule mangles a skb having 'ip_summed' equal to 'CHECKSUM_PARTIAL'.
+[ This is v2 fixing up the sparse warnings. ]
 
-Fix this extending uAPI definitions and L4 checksum update function, in a
-way that userspace programs (e.g. nft) can instruct the kernel to compute
-CRC-32C in SCTP headers. Also ensure that LIBCRC32C is built if NF_TABLES
-is 'y' or 'm' in the kernel build configuration.
+The following patchset adds infrastructure to augment the Netfilter
+flowtable fastpath [1] to support for local network topologies that
+combine IP forwarding, bridge and vlan devices.
 
-Signed-off-by: Davide Caratti <dcaratti@redhat.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- NB: I accidentally pushed the userspace side to nftables.git already,
- my bad.  Here is the kernel part.
+A typical scenario that can benefit from this infrastructure is composed
+of several VMs connected to bridge ports where the bridge master device
+'br0' has an IP address. A DHCP server is also assumed to be running to
+provide connectivity to the VMs. The VMs reach the Internet through
+'br0' as default gateway, which makes the packet enter the IP forwarding
+path. Then, netfilter is used to NAT the packets before they leave to
+through the wan device.
 
- include/uapi/linux/netfilter/nf_tables.h |  2 ++
- net/netfilter/Kconfig                    |  1 +
- net/netfilter/nft_payload.c              | 28 ++++++++++++++++++++++++
- 3 files changed, 31 insertions(+)
+Something like this:
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 352ee51707a1..98272cb5f617 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -749,10 +749,12 @@ enum nft_payload_bases {
-  *
-  * @NFT_PAYLOAD_CSUM_NONE: no checksumming
-  * @NFT_PAYLOAD_CSUM_INET: internet checksum (RFC 791)
-+ * @NFT_PAYLOAD_CSUM_SCTP: CRC-32c, for use in SCTP header (RFC 3309)
-  */
- enum nft_payload_csum_types {
- 	NFT_PAYLOAD_CSUM_NONE,
- 	NFT_PAYLOAD_CSUM_INET,
-+	NFT_PAYLOAD_CSUM_SCTP,
- };
- 
- enum nft_payload_csum_flags {
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 25313c29d799..52370211e46b 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -441,6 +441,7 @@ endif # NF_CONNTRACK
- 
- config NF_TABLES
- 	select NETFILTER_NETLINK
-+	select LIBCRC32C
- 	tristate "Netfilter nf_tables support"
- 	help
- 	  nftables is the new packet classification framework that intends to
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 7a2e59638499..dcd3c7b8a367 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -22,6 +22,7 @@
- #include <linux/icmpv6.h>
- #include <linux/ip.h>
- #include <linux/ipv6.h>
-+#include <net/sctp/checksum.h>
- 
- static bool nft_payload_rebuild_vlan_hdr(const struct sk_buff *skb, int mac_off,
- 					 struct vlan_ethhdr *veth)
-@@ -484,6 +485,19 @@ static int nft_payload_l4csum_offset(const struct nft_pktinfo *pkt,
- 	return 0;
- }
- 
-+static int nft_payload_csum_sctp(struct sk_buff *skb, int offset)
-+{
-+	struct sctphdr *sh;
-+
-+	if (skb_ensure_writable(skb, offset + sizeof(*sh)))
-+		return -1;
-+
-+	sh = (struct sctphdr *)(skb->data + offset);
-+	sh->checksum = sctp_compute_cksum(skb, offset);
-+	skb->ip_summed = CHECKSUM_UNNECESSARY;
-+	return 0;
-+}
-+
- static int nft_payload_l4csum_update(const struct nft_pktinfo *pkt,
- 				     struct sk_buff *skb,
- 				     __wsum fsum, __wsum tsum)
-@@ -587,6 +601,13 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
- 	    skb_store_bits(skb, offset, src, priv->len) < 0)
- 		goto err;
- 
-+	if (priv->csum_type == NFT_PAYLOAD_CSUM_SCTP &&
-+	    pkt->tprot == IPPROTO_SCTP &&
-+	    skb->ip_summed != CHECKSUM_PARTIAL) {
-+		if (nft_payload_csum_sctp(skb, pkt->xt.thoff))
-+			goto err;
-+	}
-+
- 	return;
- err:
- 	regs->verdict.code = NFT_BREAK;
-@@ -623,6 +644,13 @@ static int nft_payload_set_init(const struct nft_ctx *ctx,
- 	case NFT_PAYLOAD_CSUM_NONE:
- 	case NFT_PAYLOAD_CSUM_INET:
- 		break;
-+	case NFT_PAYLOAD_CSUM_SCTP:
-+		if (priv->base != NFT_PAYLOAD_TRANSPORT_HEADER)
-+			return -EINVAL;
-+
-+		if (priv->csum_offset != offsetof(struct sctphdr, checksum))
-+			return -EINVAL;
-+		break;
- 	default:
- 		return -EOPNOTSUPP;
- 	}
--- 
-2.26.2
+                       fast path
+                .------------------------.
+               /                          \
+               |           IP forwarding   |
+               |          /             \  .
+               |       br0               eth0
+               .       / \
+               -- veth1  veth2
+                   .
+                   .
+                   .
+                 ethX
+           ab:cd:ef:ab:cd:ef
+                  VM
+
+The idea is to accelerate forwarding by building a fast path that takes
+packets from the ingress path of the bridge port and place them in the
+egress path of the wan device (and vice versa). Hence, skipping the
+classic bridge and IP stack paths.
+
+Patch #1 adds the transmit path type field to the flow tuple. Two transmit
+         paths are supported so far: the neighbour and the xfrm transmit
+         paths. This patch comes in preparation to add a new direct ethernet
+         transmit path (see patch #7).
+
+Patch #2 adds dev_fill_forward_path() and .ndo_fill_forward_path() to
+         netdev_ops. This new function describes the list of netdevice hops
+         to reach a given destination MAC address in the local network topology,
+         e.g.
+                           IP forwarding
+                          /             \
+                       br0              eth0
+                       / \
+                   veth1 veth2
+                    .
+                    .
+                    .
+                   ethX
+             ab:cd:ef:ab:cd:ef
+
+          where veth1 and veth2 are bridge ports and eth0 provides Internet
+          connectivity. ethX is the interface in the VM which is connected to
+          the veth1 bridge port. Then, for packets going to br0 whose
+          destination MAC address is ab:cd:ef:ab:cd:ef, dev_fill_forward_path()
+          provides the following path: br0 -> veth1.
+
+Patch #3 adds .ndo_fill_forward_path for vlan devices, which provides the next
+         device hop via vlan->real_dev. This also annotates the vlan id and
+         protocol. This is useful to know what vlan headers are expected from
+         the ingress device. This also provides information regarding the vlan
+         headers to be pushed before transmission via the egress device.
+
+Patch #4 adds .ndo_fill_forward_path for bridge devices, which allows to make
+         lookups to the FDB to locate the next device hop (bridge port) in the
+         forwarding path.
+
+Patch #5 updates the flowtable to use the dev_fill_forward_path()
+         infrastructure to obtain the ingress device in the forwarding path.
+
+Patch #6 updates the flowtable to use the dev_fill_forward_path()
+         infrastructure to obtain the egress device in the forwarding path.
+
+Patch #7 adds the direct ethernet transmit path, which pushes the
+         ethernet header to the packet and send it through dev_queue_xmit().
+
+Patch #8 uses the direct ethernet transmit path (added in the previous
+         patch) to transmit packets to bridge ports - in case
+         dev_fill_forward_path() describes a topology that includes a bridge.
+
+Patch #9 updates the flowtable to include the vlan information in the flow tuple
+         for lookups from the ingress path as well as the vlan headers to be
+         pushed into the packet before transmission to the egress device.
+         802.1q and 802.1ad (q-in-q) are supported. The vlan information is
+         also described by dev_fill_forward_path().
+
+Please, apply.
+
+[1] https://www.kernel.org/doc/html/latest/networking/nf_flowtable.html
+
+Pablo Neira Ayuso (9):
+  netfilter: flowtable: add xmit path types
+  net: resolve forwarding path from virtual netdevice and HW destination address
+  net: 8021q: resolve forwarding path for vlan devices
+  bridge: resolve forwarding path for bridge devices
+  netfilter: flowtable: use dev_fill_forward_path() to obtain ingress device
+  netfilter: flowtable: use dev_fill_forward_path() to obtain egress device
+  netfilter: flowtable: add direct xmit path
+  netfilter: flowtable: bridge port support
+  netfilter: flowtable: add vlan support
+
+ include/linux/netdevice.h             |  35 ++++
+ include/net/netfilter/nf_flow_table.h |  41 ++++-
+ net/8021q/vlan_dev.c                  |  15 ++
+ net/bridge/br_device.c                |  22 +++
+ net/core/dev.c                        |  31 ++++
+ net/netfilter/nf_flow_table_core.c    |  27 ++-
+ net/netfilter/nf_flow_table_ip.c      | 247 ++++++++++++++++++++++----
+ net/netfilter/nft_flow_offload.c      | 107 ++++++++++-
+ 8 files changed, 484 insertions(+), 41 deletions(-)
+
+--
+2.20.1
 
