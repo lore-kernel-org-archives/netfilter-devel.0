@@ -4,53 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 483D9C433E7
-	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Oct 2020 16:31:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22548C433DF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Oct 2020 16:39:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 004F52225A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Oct 2020 16:31:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CBCE622255
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Oct 2020 16:39:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390020AbgJOQbF (ORCPT
+        id S2389811AbgJOQjj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 15 Oct 2020 12:31:05 -0400
-Received: from correo.us.es ([193.147.175.20]:47268 "EHLO mail.us.es"
+        Thu, 15 Oct 2020 12:39:39 -0400
+Received: from correo.us.es ([193.147.175.20]:52654 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389973AbgJOQaw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 15 Oct 2020 12:30:52 -0400
+        id S2389747AbgJOQjj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 15 Oct 2020 12:39:39 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 8CB3EE2C6A
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2020 18:30:51 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id A8E1FE4B87
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2020 18:39:37 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 80105DA796
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2020 18:30:51 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9C38FDA704
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2020 18:39:37 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 747A5DA791; Thu, 15 Oct 2020 18:30:51 +0200 (CEST)
+        id 916ADDA789; Thu, 15 Oct 2020 18:39:37 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3F929DA722;
-        Thu, 15 Oct 2020 18:30:49 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 623DDDA73D;
+        Thu, 15 Oct 2020 18:39:35 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 15 Oct 2020 18:30:49 +0200 (CEST)
+ Thu, 15 Oct 2020 18:39:35 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id F1E6142EF4E2;
-        Thu, 15 Oct 2020 18:30:48 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPSA id 3121542EF4E0;
+        Thu, 15 Oct 2020 18:39:35 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next,v2 7/9] netfilter: flowtable: add direct xmit path
-Date:   Thu, 15 Oct 2020 18:30:36 +0200
-Message-Id: <20201015163038.26992-8-pablo@netfilter.org>
+Subject: [PATCH net-next] netfilter: nftables: allow re-computing sctp CRC-32C in 'payload' statements
+Date:   Thu, 15 Oct 2020 18:39:27 +0200
+Message-Id: <20201015163927.28730-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20201015163038.26992-1-pablo@netfilter.org>
-References: <20201015163038.26992-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
@@ -58,185 +56,121 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add FLOW_OFFLOAD_XMIT_DIRECT to turn on the direct dev_queue_xmit() path
-to transmit ethernet frames. Cache the source and destination hardware
-address for flow to use dev_queue_xmit() to transfer packets.
+From: Davide Caratti <dcaratti@redhat.com>
 
+nftables payload statements are used to mangle SCTP headers, but they can
+only replace the Internet Checksum. As a consequence, nftables rules that
+mangle sport/dport/vtag in SCTP headers potentially generate packets that
+are discarded by the receiver, unless the CRC-32C is "offloaded" (e.g the
+rule mangles a skb having 'ip_summed' equal to 'CHECKSUM_PARTIAL'.
+
+Fix this extending uAPI definitions and L4 checksum update function, in a
+way that userspace programs (e.g. nft) can instruct the kernel to compute
+CRC-32C in SCTP headers. Also ensure that LIBCRC32C is built if NF_TABLES
+is 'y' or 'm' in the kernel build configuration.
+
+Signed-off-by: Davide Caratti <dcaratti@redhat.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: no changes.
+@Jakub: This is my last pending item in nf-next I think, I'm not planning to
+	send a pull request for a single patch, so please directly apply this
+	one to net-next. Thank you.
 
- include/net/netfilter/nf_flow_table.h |  5 +++++
- net/netfilter/nf_flow_table_core.c    |  2 ++
- net/netfilter/nf_flow_table_ip.c      | 24 ++++++++++++++++++++++++
- net/netfilter/nft_flow_offload.c      | 16 +++++++++++-----
- 4 files changed, 42 insertions(+), 5 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h |  2 ++
+ net/netfilter/Kconfig                    |  1 +
+ net/netfilter/nft_payload.c              | 28 ++++++++++++++++++++++++
+ 3 files changed, 31 insertions(+)
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index fe225e881cc7..1b57d1d1270d 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -92,6 +92,7 @@ enum flow_offload_tuple_dir {
- enum flow_offload_xmit_type {
- 	FLOW_OFFLOAD_XMIT_NEIGH		= 0,
- 	FLOW_OFFLOAD_XMIT_XFRM,
-+	FLOW_OFFLOAD_XMIT_DIRECT,
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 352ee51707a1..98272cb5f617 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -749,10 +749,12 @@ enum nft_payload_bases {
+  *
+  * @NFT_PAYLOAD_CSUM_NONE: no checksumming
+  * @NFT_PAYLOAD_CSUM_INET: internet checksum (RFC 791)
++ * @NFT_PAYLOAD_CSUM_SCTP: CRC-32c, for use in SCTP header (RFC 3309)
+  */
+ enum nft_payload_csum_types {
+ 	NFT_PAYLOAD_CSUM_NONE,
+ 	NFT_PAYLOAD_CSUM_INET,
++	NFT_PAYLOAD_CSUM_SCTP,
  };
  
- struct flow_offload_tuple {
-@@ -119,6 +120,8 @@ struct flow_offload_tuple {
- 	u16				mtu;
- 	u32				oifidx;
+ enum nft_payload_csum_flags {
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 25313c29d799..52370211e46b 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -441,6 +441,7 @@ endif # NF_CONNTRACK
  
-+	u8				h_source[ETH_ALEN];
-+	u8				h_dest[ETH_ALEN];
- 	struct dst_entry		*dst_cache;
- };
+ config NF_TABLES
+ 	select NETFILTER_NETLINK
++	select LIBCRC32C
+ 	tristate "Netfilter nf_tables support"
+ 	help
+ 	  nftables is the new packet classification framework that intends to
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 7a2e59638499..dcd3c7b8a367 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -22,6 +22,7 @@
+ #include <linux/icmpv6.h>
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
++#include <net/sctp/checksum.h>
  
-@@ -167,6 +170,8 @@ struct nf_flow_route {
- 		} in;
- 		struct {
- 			u32		ifindex;
-+			u8		h_source[ETH_ALEN];
-+			u8		h_dest[ETH_ALEN];
- 		} out;
- 		struct dst_entry	*dst;
- 	} tuple[FLOW_OFFLOAD_DIR_MAX];
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 99f01f08c550..725366339b85 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -94,6 +94,8 @@ static int flow_offload_fill_route(struct flow_offload *flow,
- 	}
- 
- 	flow_tuple->iifidx = route->tuple[dir].in.ifindex;
-+	memcpy(flow_tuple->h_dest, route->tuple[dir].out.h_dest, ETH_ALEN);
-+	memcpy(flow_tuple->h_source, route->tuple[dir].out.h_source, ETH_ALEN);
- 	flow_tuple->oifidx = route->tuple[dir].out.ifindex;
- 
- 	if (dst_xfrm(dst))
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 92f444db8d9f..1fa5c67cd914 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -247,6 +247,24 @@ static unsigned int nf_flow_xmit_xfrm(struct sk_buff *skb,
- 	return NF_STOLEN;
+ static bool nft_payload_rebuild_vlan_hdr(const struct sk_buff *skb, int mac_off,
+ 					 struct vlan_ethhdr *veth)
+@@ -484,6 +485,19 @@ static int nft_payload_l4csum_offset(const struct nft_pktinfo *pkt,
+ 	return 0;
  }
  
-+static unsigned int nf_flow_queue_xmit(struct sk_buff *skb,
-+				       struct net_device *outdev,
-+				       const struct flow_offload_tuple *tuple)
++static int nft_payload_csum_sctp(struct sk_buff *skb, int offset)
 +{
-+	struct ethhdr *eth;
++	struct sctphdr *sh;
 +
-+	skb->dev = outdev;
-+	skb_push(skb, skb->mac_len);
-+	skb_reset_mac_header(skb);
++	if (skb_ensure_writable(skb, offset + sizeof(*sh)))
++		return -1;
 +
-+	eth = eth_hdr(skb);
-+	memcpy(eth->h_source, tuple->h_source, ETH_ALEN);
-+	memcpy(eth->h_dest, tuple->h_dest, ETH_ALEN);
-+	dev_queue_xmit(skb);
-+
-+	return NF_STOLEN;
++	sh = (struct sctphdr *)(skb->data + offset);
++	sh->checksum = sctp_compute_cksum(skb, offset);
++	skb->ip_summed = CHECKSUM_UNNECESSARY;
++	return 0;
 +}
 +
- unsigned int
- nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 			const struct nf_hook_state *state)
-@@ -325,6 +343,9 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 		IPCB(skb)->flags = IPSKB_FORWARDED;
- 		ret = nf_flow_xmit_xfrm(skb, state, &rt->dst);
+ static int nft_payload_l4csum_update(const struct nft_pktinfo *pkt,
+ 				     struct sk_buff *skb,
+ 				     __wsum fsum, __wsum tsum)
+@@ -587,6 +601,13 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 	    skb_store_bits(skb, offset, src, priv->len) < 0)
+ 		goto err;
+ 
++	if (priv->csum_type == NFT_PAYLOAD_CSUM_SCTP &&
++	    pkt->tprot == IPPROTO_SCTP &&
++	    skb->ip_summed != CHECKSUM_PARTIAL) {
++		if (nft_payload_csum_sctp(skb, pkt->xt.thoff))
++			goto err;
++	}
++
+ 	return;
+ err:
+ 	regs->verdict.code = NFT_BREAK;
+@@ -623,6 +644,13 @@ static int nft_payload_set_init(const struct nft_ctx *ctx,
+ 	case NFT_PAYLOAD_CSUM_NONE:
+ 	case NFT_PAYLOAD_CSUM_INET:
  		break;
-+	case FLOW_OFFLOAD_XMIT_DIRECT:
-+		ret = nf_flow_queue_xmit(skb, outdev, &tuplehash->tuple);
++	case NFT_PAYLOAD_CSUM_SCTP:
++		if (priv->base != NFT_PAYLOAD_TRANSPORT_HEADER)
++			return -EINVAL;
++
++		if (priv->csum_offset != offsetof(struct sctphdr, checksum))
++			return -EINVAL;
 +		break;
  	default:
- 		WARN_ON_ONCE(1);
- 		ret = NF_DROP;
-@@ -581,6 +602,9 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 		IP6CB(skb)->flags = IP6SKB_FORWARDED;
- 		ret = nf_flow_xmit_xfrm(skb, state, &rt->dst);
- 		break;
-+	case FLOW_OFFLOAD_XMIT_DIRECT:
-+		ret = nf_flow_queue_xmit(skb, outdev, &tuplehash->tuple);
-+		break;
- 	default:
- 		WARN_ON_ONCE(1);
- 		ret = NF_DROP;
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 6a6633e2ceeb..d440e436cb16 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -21,12 +21,11 @@ struct nft_flow_offload {
- 
- static int nft_dev_fill_forward_path(const struct nf_flow_route *route,
- 				     const struct nf_conn *ct,
--				     enum ip_conntrack_dir dir,
-+				     enum ip_conntrack_dir dir, u8 *dst,
- 				     struct net_device_path_stack *stack)
- {
- 	const struct dst_entry *dst_cache = route->tuple[dir].dst;
- 	const void *daddr = &ct->tuplehash[!dir].tuple.src.u3;
--	unsigned char ha[ETH_ALEN];
- 	struct net_device *dev;
- 	struct neighbour *n;
- 	struct rtable *rt;
-@@ -41,18 +40,20 @@ static int nft_dev_fill_forward_path(const struct nf_flow_route *route,
- 
- 	read_lock_bh(&n->lock);
- 	nud_state = n->nud_state;
--	ether_addr_copy(ha, n->ha);
-+	ether_addr_copy(dst, n->ha);
- 	read_unlock_bh(&n->lock);
- 	neigh_release(n);
- 
- 	if (!(nud_state & NUD_VALID))
- 		return -1;
- 
--	return dev_fill_forward_path(dev, ha, stack);
-+	return dev_fill_forward_path(dev, dst, stack);
- }
- 
- struct nft_forward_info {
- 	u32 iifindex;
-+	u8 h_source[ETH_ALEN];
-+	u8 h_dest[ETH_ALEN];
- };
- 
- static int nft_dev_forward_path(struct nf_flow_route *route,
-@@ -62,11 +63,12 @@ static int nft_dev_forward_path(struct nf_flow_route *route,
- 	struct net_device_path_stack stack = {};
- 	struct nft_forward_info info = {};
- 	struct net_device_path *path;
-+	unsigned char dst[ETH_ALEN];
- 	int i, ret;
- 
- 	memset(&stack, 0, sizeof(stack));
- 
--	ret = nft_dev_fill_forward_path(route, ct, dir, &stack);
-+	ret = nft_dev_fill_forward_path(route, ct, dir, dst, &stack);
- 	if (ret < 0)
- 		return -1;
- 
-@@ -74,6 +76,8 @@ static int nft_dev_forward_path(struct nf_flow_route *route,
- 		path = &stack.path[i];
- 		switch (path->type) {
- 		case DEV_PATH_ETHERNET:
-+			memcpy(info.h_dest, path->dev->dev_addr, ETH_ALEN);
-+			memcpy(info.h_source, dst, ETH_ALEN);
- 			info.iifindex = path->dev->ifindex;
- 			break;
- 		case DEV_PATH_VLAN:
-@@ -84,6 +88,8 @@ static int nft_dev_forward_path(struct nf_flow_route *route,
+ 		return -EOPNOTSUPP;
  	}
- 
- 	route->tuple[!dir].in.ifindex = info.iifindex;
-+	memcpy(route->tuple[dir].out.h_dest, info.h_source, ETH_ALEN);
-+	memcpy(route->tuple[dir].out.h_source, info.h_dest, ETH_ALEN);
- 	route->tuple[dir].out.ifindex = info.iifindex;
- 
- 	return 0;
 -- 
 2.20.1
 
