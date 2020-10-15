@@ -1,76 +1,204 @@
-Return-Path: <SRS0=zc7w=DV=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=46WK=DW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F0BAC433E7
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Oct 2020 19:36:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3963CC433DF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Oct 2020 01:16:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A87062223F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Oct 2020 19:36:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD81622265
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Oct 2020 01:16:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390752AbgJNTf4 (ORCPT
+        id S1731511AbgJOBQp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 14 Oct 2020 15:35:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51394 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390744AbgJNTf4 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Oct 2020 15:35:56 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4FC90C061755;
-        Wed, 14 Oct 2020 12:35:56 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1kSmYx-0003tJ-Cz; Wed, 14 Oct 2020 21:35:51 +0200
-Date:   Wed, 14 Oct 2020 21:35:51 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Francesco Ruggeri <fruggeri@arista.com>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>, coreteam@netfilter.org,
-        netfilter-devel@vger.kernel.org, Jakub Kicinski <kuba@kernel.org>,
-        David Miller <davem@davemloft.net>
-Subject: Re: [PATCH nf v2] netfilter: conntrack: connection timeout after
- re-register
-Message-ID: <20201014193551.GD16895@breakpoint.cc>
-References: <CA+HUmGhBxBHU85oFfvoAyP=hG17DG2kgO67eawk1aXmSjehOWQ@mail.gmail.com>
- <alpine.DEB.2.23.453.2010090838430.19307@blackhole.kfki.hu>
- <20201009110323.GC5723@breakpoint.cc>
- <alpine.DEB.2.23.453.2010092035550.19307@blackhole.kfki.hu>
- <20201009185552.GF5723@breakpoint.cc>
- <alpine.DEB.2.23.453.2010092132220.19307@blackhole.kfki.hu>
- <20201009200548.GG5723@breakpoint.cc>
- <20201014000628.GA15290@salvia>
- <20201014082341.GA16895@breakpoint.cc>
- <CA+HUmGij2kddxovowfK=Wt=SB6N2sTLTb1Hs+65MfrZGpv=YWg@mail.gmail.com>
+        Wed, 14 Oct 2020 21:16:45 -0400
+Received: from correo.us.es ([193.147.175.20]:38734 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730233AbgJOBQn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Oct 2020 21:16:43 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 5530BDA7B7
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2020 03:16:42 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3D35ADA78C
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2020 03:16:42 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 32D06DA789; Thu, 15 Oct 2020 03:16:42 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 26DB4DA722;
+        Thu, 15 Oct 2020 03:16:40 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 15 Oct 2020 03:16:40 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id E91D041FF201;
+        Thu, 15 Oct 2020 03:16:39 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH net-next 1/9] netfilter: flowtable: add xmit path types
+Date:   Thu, 15 Oct 2020 03:16:22 +0200
+Message-Id: <20201015011630.2399-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20201015011630.2399-1-pablo@netfilter.org>
+References: <20201015011630.2399-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+HUmGij2kddxovowfK=Wt=SB6N2sTLTb1Hs+65MfrZGpv=YWg@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Francesco Ruggeri <fruggeri@arista.com> wrote:
-> On Wed, Oct 14, 2020 at 1:23 AM Florian Westphal <fw@strlen.de> wrote:
-> >
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > Legacy would still be flawed though.
-> >
-> > Its fine too, new rule blob gets handled (and match/target checkentry
-> > called) before old one is dismantled.
-> >
-> > We only have a 0 refcount + hook unregister when rules get
-> > flushed/removed explicitly.
-> 
-> Should the patch be used in the meantime while this gets
-> worked out?
+Add the xmit_type field that defines the two supported xmit paths in the
+flowtable data plane, which are the neighbour and the xfrm xmit paths.
+This patch prepares for new flowtable xmit path types to come.
 
-I think the patch is correct, and I do NOT see a better solution.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_flow_table.h |  6 ++++
+ net/netfilter/nf_flow_table_core.c    |  4 +++
+ net/netfilter/nf_flow_table_ip.c      | 50 ++++++++++++++++++---------
+ 3 files changed, 44 insertions(+), 16 deletions(-)
+
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 16e8b2f8d006..08e779f149ee 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -89,6 +89,11 @@ enum flow_offload_tuple_dir {
+ 	FLOW_OFFLOAD_DIR_MAX = IP_CT_DIR_MAX
+ };
+ 
++enum flow_offload_xmit_type {
++	FLOW_OFFLOAD_XMIT_NEIGH		= 0,
++	FLOW_OFFLOAD_XMIT_XFRM,
++};
++
+ struct flow_offload_tuple {
+ 	union {
+ 		struct in_addr		src_v4;
+@@ -108,6 +113,7 @@ struct flow_offload_tuple {
+ 	u8				l3proto;
+ 	u8				l4proto;
+ 	u8				dir;
++	enum flow_offload_xmit_type	xmit_type:8;
+ 
+ 	u16				mtu;
+ 
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 513f78db3cb2..97f04f244961 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -95,6 +95,10 @@ static int flow_offload_fill_route(struct flow_offload *flow,
+ 	}
+ 
+ 	flow_tuple->iifidx = other_dst->dev->ifindex;
++
++	if (dst_xfrm(dst))
++		flow_tuple->xmit_type = FLOW_OFFLOAD_XMIT_XFRM;
++
+ 	flow_tuple->dst_cache = dst;
+ 
+ 	return 0;
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index a698dbe28ef5..e215c79e6777 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -252,6 +252,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 	unsigned int thoff;
+ 	struct iphdr *iph;
+ 	__be32 nexthop;
++	int ret;
+ 
+ 	if (skb->protocol != htons(ETH_P_IP))
+ 		return NF_ACCEPT;
+@@ -295,19 +296,27 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 	if (flow_table->flags & NF_FLOWTABLE_COUNTER)
+ 		nf_ct_acct_update(flow->ct, tuplehash->tuple.dir, skb->len);
+ 
+-	if (unlikely(dst_xfrm(&rt->dst))) {
++	switch (tuplehash->tuple.xmit_type) {
++	case FLOW_OFFLOAD_XMIT_NEIGH:
++		skb->dev = outdev;
++		nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
++		skb_dst_set_noref(skb, &rt->dst);
++		neigh_xmit(NEIGH_ARP_TABLE, outdev, &nexthop, skb);
++		ret = NF_STOLEN;
++		break;
++	case FLOW_OFFLOAD_XMIT_XFRM:
+ 		memset(skb->cb, 0, sizeof(struct inet_skb_parm));
+ 		IPCB(skb)->iif = skb->dev->ifindex;
+ 		IPCB(skb)->flags = IPSKB_FORWARDED;
+-		return nf_flow_xmit_xfrm(skb, state, &rt->dst);
++		ret = nf_flow_xmit_xfrm(skb, state, &rt->dst);
++		break;
++	default:
++		WARN_ON_ONCE(1);
++		ret = NF_DROP;
++		break;
+ 	}
+ 
+-	skb->dev = outdev;
+-	nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
+-	skb_dst_set_noref(skb, &rt->dst);
+-	neigh_xmit(NEIGH_ARP_TABLE, outdev, &nexthop, skb);
+-
+-	return NF_STOLEN;
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(nf_flow_offload_ip_hook);
+ 
+@@ -493,6 +502,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 	struct net_device *outdev;
+ 	struct ipv6hdr *ip6h;
+ 	struct rt6_info *rt;
++	int ret;
+ 
+ 	if (skb->protocol != htons(ETH_P_IPV6))
+ 		return NF_ACCEPT;
+@@ -536,18 +546,26 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 	if (flow_table->flags & NF_FLOWTABLE_COUNTER)
+ 		nf_ct_acct_update(flow->ct, tuplehash->tuple.dir, skb->len);
+ 
+-	if (unlikely(dst_xfrm(&rt->dst))) {
++	switch (tuplehash->tuple.xmit_type) {
++	case FLOW_OFFLOAD_XMIT_NEIGH:
++		skb->dev = outdev;
++		nexthop = rt6_nexthop(rt, &flow->tuplehash[!dir].tuple.src_v6);
++		skb_dst_set_noref(skb, &rt->dst);
++		neigh_xmit(NEIGH_ND_TABLE, outdev, nexthop, skb);
++		ret = NF_STOLEN;
++		break;
++	case FLOW_OFFLOAD_XMIT_XFRM:
+ 		memset(skb->cb, 0, sizeof(struct inet6_skb_parm));
+ 		IP6CB(skb)->iif = skb->dev->ifindex;
+ 		IP6CB(skb)->flags = IP6SKB_FORWARDED;
+-		return nf_flow_xmit_xfrm(skb, state, &rt->dst);
++		ret = nf_flow_xmit_xfrm(skb, state, &rt->dst);
++		break;
++	default:
++		WARN_ON_ONCE(1);
++		ret = NF_DROP;
++		break;
+ 	}
+ 
+-	skb->dev = outdev;
+-	nexthop = rt6_nexthop(rt, &flow->tuplehash[!dir].tuple.src_v6);
+-	skb_dst_set_noref(skb, &rt->dst);
+-	neigh_xmit(NEIGH_ND_TABLE, outdev, nexthop, skb);
+-
+-	return NF_STOLEN;
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(nf_flow_offload_ipv6_hook);
+-- 
+2.20.1
+
