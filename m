@@ -4,50 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AE69C433DF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Oct 2020 01:17:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 577AAC43457
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Oct 2020 01:17:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 014BC22254
-	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Oct 2020 01:17:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1CFBF22257
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Oct 2020 01:17:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387422AbgJOBRJ (ORCPT
+        id S1732039AbgJOBRI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 14 Oct 2020 21:17:09 -0400
-Received: from correo.us.es ([193.147.175.20]:38764 "EHLO mail.us.es"
+        Wed, 14 Oct 2020 21:17:08 -0400
+Received: from correo.us.es ([193.147.175.20]:38762 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731362AbgJOBQq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Oct 2020 21:16:46 -0400
+        id S1731442AbgJOBQr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Oct 2020 21:16:47 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 90FFFDA7FC
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2020 03:16:44 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 5CEF2DA7F1
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2020 03:16:43 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7842ADA78C
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2020 03:16:44 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 45BFEDA73F
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2020 03:16:43 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 6CEC4DA73D; Thu, 15 Oct 2020 03:16:44 +0200 (CEST)
+        id 3B4AFDA722; Thu, 15 Oct 2020 03:16:43 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5A6E4DA78A;
-        Thu, 15 Oct 2020 03:16:42 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 483C1DA72F;
+        Thu, 15 Oct 2020 03:16:41 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 15 Oct 2020 03:16:42 +0200 (CEST)
+ Thu, 15 Oct 2020 03:16:41 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 31AFE41FF201;
-        Thu, 15 Oct 2020 03:16:42 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPSA id 1FEFE41FF201;
+        Thu, 15 Oct 2020 03:16:41 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 5/9] netfilter: flowtable: use dev_fill_forward_path() to obtain ingress device
-Date:   Thu, 15 Oct 2020 03:16:26 +0200
-Message-Id: <20201015011630.2399-6-pablo@netfilter.org>
+Subject: [PATCH net-next 3/9] net: 8021q: resolve forwarding path for vlan devices
+Date:   Thu, 15 Oct 2020 03:16:24 +0200
+Message-Id: <20201015011630.2399-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201015011630.2399-1-pablo@netfilter.org>
 References: <20201015011630.2399-1-pablo@netfilter.org>
@@ -58,165 +58,89 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The ingress device in the tuple is obtained from route in the reply
-direction. Use dev_fill_forward_path() instead to provide the real
-ingress device for this flow.
+Add .ndo_fill_forward_path for vlan devices.
+
+For instance, assuming the following topology:
+
+                   IP forwarding
+                  /             \
+            eth0.100             eth0
+            |
+            eth0
+            .
+            .
+            .
+           ethX
+     ab:cd:ef:ab:cd:ef
+
+For packets in the IP forwarding going to eth0.100 whose destination MAC
+address is ab:cd:ef:ab:cd:ef, dev_fill_forward_path() provides the
+following path:
+
+            eth0.100 -> eth0
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_flow_table.h |  6 ++-
- net/netfilter/nf_flow_table_core.c    |  3 +-
- net/netfilter/nft_flow_offload.c      | 75 ++++++++++++++++++++++++++-
- 3 files changed, 80 insertions(+), 4 deletions(-)
+ include/linux/netdevice.h |  7 +++++++
+ net/8021q/vlan_dev.c      | 15 +++++++++++++++
+ 2 files changed, 22 insertions(+)
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index 08e779f149ee..ecb84d4358cc 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -112,9 +112,10 @@ struct flow_offload_tuple {
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index b77960621c27..6a3370fafe4b 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -835,11 +835,18 @@ typedef u16 (*select_queue_fallback_t)(struct net_device *dev,
  
- 	u8				l3proto;
- 	u8				l4proto;
-+
-+	/* All members above are keys for lookups, see flow_offload_hash(). */
- 	u8				dir;
- 	enum flow_offload_xmit_type	xmit_type:8;
--
- 	u16				mtu;
+ enum net_device_path_type {
+ 	DEV_PATH_ETHERNET = 0,
++	DEV_PATH_VLAN,
+ };
  
- 	struct dst_entry		*dst_cache;
-@@ -160,6 +161,9 @@ static inline __s32 nf_flow_timeout_delta(unsigned int timeout)
- 
- struct nf_flow_route {
- 	struct {
+ struct net_device_path {
+ 	enum net_device_path_type	type;
+ 	const struct net_device		*dev;
++	union {
 +		struct {
-+			u32		ifindex;
-+		} in;
- 		struct dst_entry	*dst;
- 	} tuple[FLOW_OFFLOAD_DIR_MAX];
- };
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 97f04f244961..66abc7f287a3 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -79,7 +79,6 @@ static int flow_offload_fill_route(struct flow_offload *flow,
- 				   enum flow_offload_tuple_dir dir)
- {
- 	struct flow_offload_tuple *flow_tuple = &flow->tuplehash[dir].tuple;
--	struct dst_entry *other_dst = route->tuple[!dir].dst;
- 	struct dst_entry *dst = route->tuple[dir].dst;
- 
- 	if (!dst_hold_safe(route->tuple[dir].dst))
-@@ -94,7 +93,7 @@ static int flow_offload_fill_route(struct flow_offload *flow,
- 		break;
- 	}
- 
--	flow_tuple->iifidx = other_dst->dev->ifindex;
-+	flow_tuple->iifidx = route->tuple[dir].in.ifindex;
- 
- 	if (dst_xfrm(dst))
- 		flow_tuple->xmit_type = FLOW_OFFLOAD_XMIT_XFRM;
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 3a6c84fb2c90..4b476b0a3c88 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -19,6 +19,75 @@ struct nft_flow_offload {
- 	struct nft_flowtable	*flowtable;
++			__be16		id;
++			__be16		proto;
++		} vlan;
++	};
  };
  
-+static int nft_dev_fill_forward_path(const struct nf_flow_route *route,
-+				     const struct nf_conn *ct,
-+				     enum ip_conntrack_dir dir,
-+				     struct net_device_path_stack *stack)
+ #define NET_DEVICE_PATH_STACK_MAX	5
+diff --git a/net/8021q/vlan_dev.c b/net/8021q/vlan_dev.c
+index ec8408d1638f..f06a507557f9 100644
+--- a/net/8021q/vlan_dev.c
++++ b/net/8021q/vlan_dev.c
+@@ -767,6 +767,20 @@ static int vlan_dev_get_iflink(const struct net_device *dev)
+ 	return real_dev->ifindex;
+ }
+ 
++static int vlan_dev_fill_forward_path(struct net_device_path_ctx *ctx,
++				      struct net_device_path *path)
 +{
-+	const struct dst_entry *dst_cache = route->tuple[dir].dst;
-+	const void *daddr = &ct->tuplehash[!dir].tuple.src.u3;
-+	unsigned char ha[ETH_ALEN];
-+	struct net_device *dev;
-+	struct neighbour *n;
-+	struct rtable *rt;
-+	u8 nud_state;
++	struct vlan_dev_priv *vlan = vlan_dev_priv(ctx->dev);
 +
-+	rt = (struct rtable *)dst_cache;
-+	dev = rt->dst.dev;
-+
-+	n = dst_neigh_lookup(dst_cache, daddr);
-+	if (!n)
-+		return -1;
-+
-+	read_lock_bh(&n->lock);
-+	nud_state = n->nud_state;
-+	ether_addr_copy(ha, n->ha);
-+	read_unlock_bh(&n->lock);
-+	neigh_release(n);
-+
-+	if (!(nud_state & NUD_VALID))
-+		return -1;
-+
-+	return dev_fill_forward_path(dev, ha, stack);
-+}
-+
-+struct nft_forward_info {
-+	u32 iifindex;
-+};
-+
-+static int nft_dev_forward_path(struct nf_flow_route *route,
-+				const struct nf_conn *ct,
-+				enum ip_conntrack_dir dir)
-+{
-+	struct net_device_path_stack stack = {};
-+	struct nft_forward_info info = {};
-+	struct net_device_path *path;
-+	int i, ret;
-+
-+	memset(&stack, 0, sizeof(stack));
-+
-+	ret = nft_dev_fill_forward_path(route, ct, dir, &stack);
-+	if (ret < 0)
-+		return -1;
-+
-+	for (i = stack.num_paths - 1; i >= 0; i--) {
-+		path = &stack.path[i];
-+		switch (path->type) {
-+		case DEV_PATH_ETHERNET:
-+			info.iifindex = path->dev->ifindex;
-+			break;
-+		case DEV_PATH_VLAN:
-+			return -1;
-+		case DEV_PATH_BRIDGE:
-+			return -1;
-+		}
-+	}
-+
-+	route->tuple[!dir].in.ifindex = info.iifindex;
++	path->type = DEV_PATH_VLAN;
++	path->vlan.id = vlan->vlan_id;
++	path->vlan.proto = vlan->vlan_proto;
++	path->dev = ctx->dev;
++	ctx->dev = vlan->real_dev;
 +
 +	return 0;
 +}
 +
- static int nft_flow_route(const struct nft_pktinfo *pkt,
- 			  const struct nf_conn *ct,
- 			  struct nf_flow_route *route,
-@@ -47,6 +116,10 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
- 	route->tuple[dir].dst		= this_dst;
- 	route->tuple[!dir].dst		= other_dst;
+ static const struct ethtool_ops vlan_ethtool_ops = {
+ 	.get_link_ksettings	= vlan_ethtool_get_link_ksettings,
+ 	.get_drvinfo	        = vlan_ethtool_get_drvinfo,
+@@ -805,6 +819,7 @@ static const struct net_device_ops vlan_netdev_ops = {
+ #endif
+ 	.ndo_fix_features	= vlan_dev_fix_features,
+ 	.ndo_get_iflink		= vlan_dev_get_iflink,
++	.ndo_fill_forward_path	= vlan_dev_fill_forward_path,
+ };
  
-+	if (nft_dev_forward_path(route, ct, IP_CT_DIR_ORIGINAL) < 0 ||
-+	    nft_dev_forward_path(route, ct, IP_CT_DIR_REPLY) < 0)
-+		return -ENOENT;
-+
- 	return 0;
- }
- 
-@@ -74,8 +147,8 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- 	struct nft_flow_offload *priv = nft_expr_priv(expr);
- 	struct nf_flowtable *flowtable = &priv->flowtable->data;
- 	struct tcphdr _tcph, *tcph = NULL;
-+	struct nf_flow_route route = {};
- 	enum ip_conntrack_info ctinfo;
--	struct nf_flow_route route;
- 	struct flow_offload *flow;
- 	enum ip_conntrack_dir dir;
- 	struct nf_conn *ct;
+ static void vlan_dev_free(struct net_device *dev)
 -- 
 2.20.1
 
