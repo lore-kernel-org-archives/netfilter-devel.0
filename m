@@ -2,274 +2,137 @@ Return-Path: <SRS0=ZKiM=DX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4320FC43467
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Oct 2020 14:31:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCF54C433E7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Oct 2020 15:28:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB65820866
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Oct 2020 14:31:55 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KEPwHDzp"
+	by mail.kernel.org (Postfix) with ESMTP id 7DE27207C4
+	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Oct 2020 15:28:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2408862AbgJPObw (ORCPT
+        id S2395483AbgJPP24 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 16 Oct 2020 10:31:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54740 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2408810AbgJPObw (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 16 Oct 2020 10:31:52 -0400
-Received: from mail-wm1-x341.google.com (mail-wm1-x341.google.com [IPv6:2a00:1450:4864:20::341])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82B52C061755;
-        Fri, 16 Oct 2020 07:31:51 -0700 (PDT)
-Received: by mail-wm1-x341.google.com with SMTP id l15so1714149wmh.1;
-        Fri, 16 Oct 2020 07:31:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
-        bh=JhJ1ftA7kjox7P/4cVGornY0Zt3XCqMs1tOsZMwTst0=;
-        b=KEPwHDzp6CJaL7FjKD0mK27m1ukxtLaAKhBNXXMD8uJlCcLHRGzJ6mOqoWn2XZDMhu
-         6IkxoHJdwjpGZmS2rS9VFqV4Nu2YAFuLlqUlrds3/nOxwKiLj3lwp2e8NpjY9S5Kt77T
-         8v/G3+zAdoaCgE9Ois1Pa68YOeO7I5i2asdFcNOqhFyNfQBVxlcSrz6/sai+BF/Kk7GN
-         Ray8572RxXhuqtp0f1izXS8FoTubd85ze1WEmye6n70EtKbVcJGP7fR7DgOlnwWWf9xo
-         J4FXFbX8ONDUfDDTdWciZKJkul6VMH0rNh3NdGEMTzk1okJTiEX3+wEtJ0P5PYe4jvfF
-         E5JA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to;
-        bh=JhJ1ftA7kjox7P/4cVGornY0Zt3XCqMs1tOsZMwTst0=;
-        b=E8JSqX09w7O9NMKRTuUQ+MwczGfQpRmOHCUTSzviNvoNvAsTyag98A22QM6N/hJObp
-         iYykjrilnRQQC6guKWQPIn0Wl2R+Gn5mnH+Zjh34JxiOCikEqqo5fXDRZT8ldZTFbYZs
-         mmH5oOKP+CzOF9k+xG1le8CE/rYmYCLciDHTH1/M+ASUamplaTyTe3dmD6Dgpi8lnquR
-         8DYBpZUHREoXsnKou1AGSWX5KFWQqI5pYS2v8UzBCxhO5NQwgGiGabcV6WMtVI5zvBc2
-         tR5QYBNT/3olPI4tUeNhnL4aVw72+EpS03FL+5hwYFSjK4WZzmg/82my5NEMlmszmcfq
-         FFqg==
-X-Gm-Message-State: AOAM531FNUt3K2m4xBRkYJejSR7/hpKj/SKiRdTH/BoKy+RKk7WPbyke
-        y3TX4wmwrFHp6wowxyCldgB988nS8x48Dv5qg+TBMDLby7iB70c+6yk=
-X-Google-Smtp-Source: ABdhPJwIKbSf8IbEycXdpFdcwwvFGNPnTgbIrkZfQgDb392Gm8Zqbih0ZVqRJTC/LZE836i5MKBWoLWZXwG+6O23j4A=
-X-Received: by 2002:a1c:68d5:: with SMTP id d204mr4147551wmc.100.1602858709682;
- Fri, 16 Oct 2020 07:31:49 -0700 (PDT)
+        Fri, 16 Oct 2020 11:28:56 -0400
+Received: from correo.us.es ([193.147.175.20]:51156 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2395234AbgJPP2z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 16 Oct 2020 11:28:55 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id DB0F7DA388
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Oct 2020 17:28:52 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CC8FFDA791
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Oct 2020 17:28:52 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id C1DA4DA78D; Fri, 16 Oct 2020 17:28:52 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8B851DA704;
+        Fri, 16 Oct 2020 17:28:50 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 16 Oct 2020 17:28:50 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 6F7AA42EE38E;
+        Fri, 16 Oct 2020 17:28:50 +0200 (CEST)
+Date:   Fri, 16 Oct 2020 17:28:50 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+        Florian Westphal <fw@strlen.de>
+Subject: Re: [iptables PATCH 3/3] nft: Fix for concurrent noflush restore
+ calls
+Message-ID: <20201016152850.GA1416@salvia>
+References: <20201005144858.11578-1-phil@nwl.cc>
+ <20201005144858.11578-4-phil@nwl.cc>
+ <20201012125450.GA26934@salvia>
+ <20201013100803.GW13016@orbyte.nwl.cc>
+ <20201013101502.GA29142@salvia>
+ <20201014094640.GA13016@orbyte.nwl.cc>
 MIME-Version: 1.0
-References: <CABXGCsPd7Mz559CmUG0nLPGfKYZA-wp5vR8WJTd+xOOeeXEjuQ@mail.gmail.com>
-In-Reply-To: <CABXGCsPd7Mz559CmUG0nLPGfKYZA-wp5vR8WJTd+xOOeeXEjuQ@mail.gmail.com>
-From:   Mikhail Gavrilov <mikhail.v.gavrilov@gmail.com>
-Date:   Fri, 16 Oct 2020 19:31:38 +0500
-Message-ID: <CABXGCsP1yoyO+hzma2RSZTqYk2YzAwByHVcZ76XkC5wQYaKQ7Q@mail.gmail.com>
-Subject: Re: [bugreport] [5.10] warning at net/netfilter/nf_tables_api.c:622
-To:     Linux List Kernel Mailing <linux-kernel@vger.kernel.org>,
-        Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20201014094640.GA13016@orbyte.nwl.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 16 Oct 2020 at 12:11, Mikhail Gavrilov
-<mikhail.v.gavrilov@gmail.com> wrote:
->
-> Hi folks,
-> today I joined to testing Kernel 5.10 and see that every boot happens
-> this warning:
->
-> [   22.180180] ------------[ cut here ]------------
-> [   22.180193] WARNING: CPU: 28 PID: 1205 at
-> net/netfilter/nf_tables_api.c:622 nft_chain_parse_hook+0x224/0x330
-> [nf_tables]
-> [   22.180194] Modules linked in: nf_tables nfnetlink ip6table_filter
-> ip6_tables iptable_filter cmac bnep sunrpc vfat fat
-> snd_hda_codec_realtek snd_hda_codec_generic ledtrig_audio
-> snd_hda_codec_hdmi mt76x2u mt76x2_common mt76x02_usb iwlmvm mt76_usb
-> uvcvideo snd_hda_intel mt76x02_lib gspca_zc3xx snd_intel_dspcfg btusb
-> gspca_main videobuf2_vmalloc btrtl mt76 edac_mce_amd snd_hda_codec
-> btbcm videobuf2_memops btintel kvm_amd snd_usb_audio videobuf2_v4l2
-> snd_hda_core mac80211 kvm bluetooth snd_usbmidi_lib joydev
-> videobuf2_common iwlwifi snd_seq xpad snd_hwdep ff_memless videodev
-> snd_rawmidi snd_seq_device libarc4 eeepc_wmi snd_pcm ecdh_generic
-> irqbypass asus_wmi mc rapl sparse_keymap ecc snd_timer sp5100_tco
-> video cfg80211 wmi_bmof pcspkr snd k10temp i2c_piix4 soundcore rfkill
-> acpi_cpufreq binfmt_misc zram ip_tables hid_logitech_hidpp
-> hid_logitech_dj amdgpu iommu_v2 gpu_sched ttm drm_kms_helper
-> crct10dif_pclmul crc32_pclmul crc32c_intel cec drm ccp
-> ghash_clmulni_intel igb nvme dca nvme_core
-> [   22.180273]  i2c_algo_bit wmi pinctrl_amd fuse
-> [   22.180279] CPU: 28 PID: 1205 Comm: ebtables Not tainted
-> 5.10.0-0.rc0.20201014gitb5fc7a89e58b.41.fc34.x86_64 #1
-> [   22.180281] Hardware name: System manufacturer System Product
-> Name/ROG STRIX X570-I GAMING, BIOS 2606 08/13/2020
-> [   22.180289] RIP: 0010:nft_chain_parse_hook+0x224/0x330 [nf_tables]
-> [   22.180292] Code: a0 14 00 00 be ff ff ff ff e8 68 82 e1 e4 85 c0
-> 0f 85 21 fe ff ff 0f 0b bf 0a 00 00 00 e8 14 60 97 ff 84 c0 0f 84 1f
-> fe ff ff <0f> 0b e9 18 fe ff ff 48 85 f6 74 61 4c 89 ef e8 78 d0 ff ff
-> 48 89
-> [   22.180294] RSP: 0018:ffffa9850214f780 EFLAGS: 00010202
-> [   22.180296] RAX: 0000000000000001 RBX: ffffa9850214f810 RCX: 0000000000000000
-> [   22.180297] RDX: ffffa9850214f810 RSI: 00000000ffffffff RDI: ffffffffc0851c20
-> [   22.180299] RBP: 0000000000000007 R08: 0000000000000001 R09: ffffa9850214f847
-> [   22.180300] R10: 0000000000000000 R11: 0000000000000007 R12: ffffa9850214fa88
-> [   22.180301] R13: ffffffffa6fdfcc0 R14: ffffa9850214fa88 R15: ffff993c5c12c800
-> [   22.180304] FS:  00007ff92ed99540(0000) GS:ffff993c8a200000(0000)
-> knlGS:0000000000000000
-> [   22.180305] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [   22.180307] CR2: 00007ff92ed1e000 CR3: 00000007d3714000 CR4: 0000000000350ee0
-> [   22.180308] Call Trace:
-> [   22.180319]  ? __rhashtable_lookup+0x11d/0x210 [nf_tables]
-> [   22.180329]  nf_tables_addchain.constprop.0+0xab/0x5e0 [nf_tables]
-> [   22.180337]  ? nft_chain_lookup.part.0+0x12c/0x1e0 [nf_tables]
-> [   22.180344]  ? get_order+0x20/0x20 [nf_tables]
-> [   22.180350]  ? nft_chain_hash+0x30/0x30 [nf_tables]
-> [   22.180356]  ? nft_dump_register+0x40/0x40 [nf_tables]
-> [   22.180368]  nf_tables_newchain+0x54d/0x730 [nf_tables]
-> [   22.180376]  nfnetlink_rcv_batch+0x2a4/0x950 [nfnetlink]
-> [   22.180385]  ? lock_acquire+0x175/0x400
-> [   22.180387]  ? lock_release+0x1e7/0x400
-> [   22.180391]  ? cred_has_capability.isra.0+0x68/0x100
-> [   22.180395]  ? __nla_validate_parse+0x4f/0x8d0
-> [   22.180401]  nfnetlink_rcv+0x115/0x130 [nfnetlink]
-> [   22.180407]  netlink_unicast+0x16d/0x230
-> [   22.180426]  netlink_sendmsg+0x23f/0x460
-> [   22.180431]  sock_sendmsg+0x5e/0x60
-> [   22.180434]  ____sys_sendmsg+0x231/0x270
-> [   22.180438]  ? import_iovec+0x17/0x20
-> [   22.180440]  ? sendmsg_copy_msghdr+0x5c/0x80
-> [   22.180444]  ___sys_sendmsg+0x75/0xb0
-> [   22.180450]  ? cred_has_capability.isra.0+0x68/0x100
-> [   22.180452]  ? lock_acquire+0x175/0x400
-> [   22.180454]  ? lock_acquire+0x93/0x400
-> [   22.180457]  ? lock_release+0x1e7/0x400
-> [   22.180459]  ? lock_release+0x1e7/0x400
-> [   22.180462]  ? trace_hardirqs_on+0x1b/0xe0
-> [   22.180465]  ? sock_setsockopt+0xdf/0x1010
-> [   22.180467]  ? __local_bh_enable_ip+0x82/0xd0
-> [   22.180470]  ? sock_setsockopt+0xdf/0x1010
-> [   22.180473]  __sys_sendmsg+0x49/0x80
-> [   22.180480]  do_syscall_64+0x33/0x40
-> [   22.180483]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> [   22.180486] RIP: 0033:0x7ff92efdb087
-> [   22.180488] Code: 0c 00 f7 d8 64 89 02 48 c7 c0 ff ff ff ff eb b7
-> 0f 1f 00 f3 0f 1e fa 64 8b 04 25 18 00 00 00 85 c0 75 10 b8 2e 00 00
-> 00 0f 05 <48> 3d 00 f0 ff ff 77 51 c3 48 83 ec 28 89 54 24 1c 48 89 74
-> 24 10
-> [   22.180490] RSP: 002b:00007fff54436b38 EFLAGS: 00000246 ORIG_RAX:
-> 000000000000002e
-> [   22.180492] RAX: ffffffffffffffda RBX: 00007fff54436b40 RCX: 00007ff92efdb087
-> [   22.180494] RDX: 0000000000000000 RSI: 00007fff54437be0 RDI: 0000000000000003
-> [   22.180495] RBP: 00007fff544381e0 R08: 0000000000000004 R09: 000055b281bcf1d0
-> [   22.180496] R10: 00007fff54437bcc R11: 0000000000000246 R12: 0000000000007000
-> [   22.180497] R13: 0000000000000001 R14: 00007fff54436b50 R15: 00007fff54438200
-> [   22.180503] irq event stamp: 0
-> [   22.180505] hardirqs last  enabled at (0): [<0000000000000000>] 0x0
-> [   22.180507] hardirqs last disabled at (0): [<ffffffffa50d7683>]
-> copy_process+0x723/0x1c80
-> [   22.180509] softirqs last  enabled at (0): [<ffffffffa50d7683>]
-> copy_process+0x723/0x1c80
-> [   22.180511] softirqs last disabled at (0): [<0000000000000000>] 0x0
-> [   22.180512] ---[ end trace 6a0904ace1916b5d ]---
->
-> reproductivity 100% reliable on my system
->
-> $ /usr/src/kernels/`uname -r`/scripts/faddr2line
-> /lib/debug/lib/modules/`uname
-> -r`/kernel/net/netfilter/nf_tables.ko.debug nft_chain_parse_hook+0x224
-> nft_chain_parse_hook+0x224/0x330:
-> lockdep_nfnl_nft_mutex_not_held at
-> /usr/src/debug/kernel-20201014gitb5fc7a89e58b/linux-5.10.0-0.rc0.20201014gitb5fc7a89e58b.41.fc34.x86_64/net/netfilter/nf_tables_api.c:622
-> (inlined by) lockdep_nfnl_nft_mutex_not_held at
-> /usr/src/debug/kernel-20201014gitb5fc7a89e58b/linux-5.10.0-0.rc0.20201014gitb5fc7a89e58b.41.fc34.x86_64/net/netfilter/nf_tables_api.c:619
-> (inlined by) nft_chain_parse_hook at
-> /usr/src/debug/kernel-20201014gitb5fc7a89e58b/linux-5.10.0-0.rc0.20201014gitb5fc7a89e58b.41.fc34.x86_64/net/netfilter/nf_tables_api.c:1816
->
-> $ git blame -L 617,627 net/netfilter/nf_tables_api.c
-> 452238e8d5ffd (Florian Westphal  2018-07-11 13:45:10 +0200 617) #endif
-> 452238e8d5ffd (Florian Westphal  2018-07-11 13:45:10 +0200 618)
-> f102d66b335a4 (Florian Westphal  2018-07-11 13:45:14 +0200 619) static
-> void lockdep_nfnl_nft_mutex_not_held(void)
-> f102d66b335a4 (Florian Westphal  2018-07-11 13:45:14 +0200 620) {
-> f102d66b335a4 (Florian Westphal  2018-07-11 13:45:14 +0200 621) #ifdef
-> CONFIG_PROVE_LOCKING
-> f102d66b335a4 (Florian Westphal  2018-07-11 13:45:14 +0200 622)
->  WARN_ON_ONCE(lockdep_nfnl_is_held(NFNL_SUBSYS_NFTABLES));
-> f102d66b335a4 (Florian Westphal  2018-07-11 13:45:14 +0200 623) #endif
-> f102d66b335a4 (Florian Westphal  2018-07-11 13:45:14 +0200 624) }
-> f102d66b335a4 (Florian Westphal  2018-07-11 13:45:14 +0200 625)
-> 32537e91847a5 (Pablo Neira Ayuso 2018-03-27 11:53:05 +0200 626) static
-> const struct nft_chain_type *
-> 452238e8d5ffd (Florian Westphal  2018-07-11 13:45:10 +0200 627)
-> nf_tables_chain_type_lookup(struct net *net, const struct nlattr *nla,
->
-> $ git show f102d66b335a4
-> commit f102d66b335a417d4848da9441f585695a838934
-> Author: Florian Westphal <fw@strlen.de>
-> Date:   Wed Jul 11 13:45:14 2018 +0200
->
->     netfilter: nf_tables: use dedicated mutex to guard transactions
->
->     Continue to use nftnl subsys mutex to protect (un)registration of
-> hook types,
->     expressions and so on, but force batch operations to do their own
->     locking.
->
->     This allows distinct net namespaces to perform transactions in parallel.
->
->     Signed-off-by: Florian Westphal <fw@strlen.de>
->     Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
->
-> diff --git a/include/net/netns/nftables.h b/include/net/netns/nftables.h
-> index 94767ea3a490..286fd960896f 100644
-> --- a/include/net/netns/nftables.h
-> +++ b/include/net/netns/nftables.h
-> @@ -7,6 +7,7 @@
->  struct netns_nftables {
->         struct list_head        tables;
->         struct list_head        commit_list;
-> +       struct mutex            commit_mutex;
->         unsigned int            base_seq;
->         u8                      gencursor;
->         u8                      validate_state;
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index 68436edd9cdf..c0fb2bcd30fe 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -480,12 +480,19 @@ static void nft_request_module(struct net *net,
-> const char *fmt, ...)
->         if (WARN(ret >= MODULE_NAME_LEN, "truncated: '%s' (len %d)",
-> module_name, ret))
->                 return;
->
-> -       nfnl_unlock(NFNL_SUBSYS_NFTABLES);
-> +       mutex_unlock(&net->nft.commit_mutex);
->         request_module("%s", module_name);
-> -       nfnl_lock(NFNL_SUBSYS_NFTABLES);
-> +       mutex_lock(&net->nft.commit_mutex);
->  }
->  #endif
->
-> +static void lockdep_nfnl_nft_mutex_not_held(void)
-> +{
-> +#ifdef CONFIG_PROVE_LOCKING
-> +       WARN_ON_ONCE(lockdep_nfnl_is_held(NFNL_SUBSYS_NFTABLES));
-> +#endif
-> +}
-> +
->  static const struct nft_chain_type *
->  nf_tables_chain_type_lookup(struct net *net, const struct nlattr *nla,
->
-> The last changes were made by Florian. That is why I invited you here,
-> can you clarify the situation.
->
-> Full dmesg output: https://pastebin.com/tZY3npHG
->
+On Wed, Oct 14, 2020 at 11:46:40AM +0200, Phil Sutter wrote:
+> On Tue, Oct 13, 2020 at 12:15:02PM +0200, Pablo Neira Ayuso wrote:
+> > On Tue, Oct 13, 2020 at 12:08:03PM +0200, Phil Sutter wrote:
+> > [...]
+> > > On Mon, Oct 12, 2020 at 02:54:50PM +0200, Pablo Neira Ayuso wrote:
+> > > [...]
+> > > > Patch LGTM, thanks Phil.
+> > > > 
+> > > > What I don't clearly see yet is what scenario is triggering the bug in
+> > > > the existing code, if you don't mind to explain.
+> > > 
+> > > See the test case attached to the patch: An other iptables-restore
+> > > process may add references (i.e., jumps) to a chain the own
+> > > iptables-restore process wants to delete. This should not be a problem
+> > > because these references are added to a chain that is being flushed by
+> > > the own process as well. But if that chain doesn't exist while the own
+> > > process fetches kernel's ruleset, this flush job is not created.
+> > 
+> > Let me rephrase this:
+> > 
+> > 1) process A fetches the ruleset, finds no chain C (no flush job then)
+> > 2) process B adds new chain C, flush job is present
+> > 3) process B adds the ruleset
+> > 4) process A appends rules to the existing chain C (because there is
+> >    no flush job)
+> > 
+> > Is this the scenario? If so, I wonder why the generation ID is not
+> > helping to refresh and retry.
+> 
+> Not quite, let me try to put this more clearly:
+> 
+> * Dump A:
+>   | *filter
+>   | :FOO - [0:0] # flush chain FOO
+>   | -X BAR       # remove chain BAR
+>   | COMMIT
+> 
+> * Dump B:
+>   | *filter
+>   | -A FOO -j BAR # reference BAR from a rule in FOO
+>   | COMMIT
+> 
+> * Kernel ruleset:
+>   | *filter
+>   | :BAR - [0:0]
+>   | COMMIT
+> 
+> * Process A:
+>   * read dump A
+>   * fetch cache
+> 
+> * Process B:
+>   * read dump B
+>   * fetch ruleset
+>   * commit to kernel
+> 
+> * Process A:
+>   * skip flush chain FOO job: not present
+>   * add delete chain BAR job: chain exists
+>   * commit fails (genid outdated)
+>   * refresh transaction:
+>     * delete chain BAR job remains active
+>     * genid updated
+>   * commit fails: can't remove chain BAR: EBUSY
 
-Here https://lkml.org/lkml/2020/10/16/494 attached the patch which
-cure also this problem.
-Sorry for the noise.
+Makes sense. Thanks a lot for explaining. Probably you can include
+this in the commit description for the record.
 
---
-Best Regards,
-Mike Gavrilov.
+> I realize the test case is not quite effective, ruleset should be
+> emptied upon each iteration of concurrent restore job startup.
+
+Please, update the test and revamp.
