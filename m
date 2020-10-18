@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6BA2C433E7
-	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Oct 2020 19:37:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B39EC433E7
+	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Oct 2020 19:42:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8C2C8206CA
-	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Oct 2020 19:37:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4E380206CA
+	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Oct 2020 19:42:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603049872;
-	bh=JC0Y0QPLd4dv2Chd2uSnFM6k2pNn9+xYOM4MwLSX+Ps=;
+	s=default; t=1603050134;
+	bh=+f97MW3Ziot5kmxH1SHjTxmPRgZq+m1Ur0geShQzcGA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=QtVv+2NdSG/6JiihlogKc/E8J3sIP4wLMC+6OVs7kPgTsubq6rujpj2hRbyEjcoNX
-	 8fZIN7I+GOrK8ZCWIUmnU8MOzZBmvojJT44LY6gqWAnJ1UTqTOfPXILMSQBtJy+D2I
-	 /1bcMuuwFsZQG+2rLxaGIhyB5bRJkTUFr0b+z9Bw=
+	b=liedeXSEBwyUMxixICT/dcnXUTTvGpqNdAChZhsw6R3yIF8cHGuHflShzHJX66L3i
+	 4wtQCflEmbSxOlkLgUqs7ipg0jD55WJxYPgYV0D9XRP7jKd2fWvWyyITg8DNlBSn/o
+	 U2ar+BQeMzwGU3EZf+BPD/5pwTCoa70xwC2q+izs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732833AbgJRTho (ORCPT
+        id S1730571AbgJRTYA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 18 Oct 2020 15:37:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39718 "EHLO mail.kernel.org"
+        Sun, 18 Oct 2020 15:24:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37672 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731228AbgJRTZT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 18 Oct 2020 15:25:19 -0400
+        id S1730551AbgJRTX7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 18 Oct 2020 15:23:59 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C5A2C222C8;
-        Sun, 18 Oct 2020 19:25:17 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8CB84222E7;
+        Sun, 18 Oct 2020 19:23:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603049119;
-        bh=JC0Y0QPLd4dv2Chd2uSnFM6k2pNn9+xYOM4MwLSX+Ps=;
+        s=default; t=1603049038;
+        bh=+f97MW3Ziot5kmxH1SHjTxmPRgZq+m1Ur0geShQzcGA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=I/UTwr1vfNZNZnCFBRSRBXlvnAUX8TmcEYTPukCr3taqO0HbZw3QiQvE9wMHzM8Hl
-         ZocWgSgRefUzp0BFBoK0erbD4GsDGbwPOa/v52ZcsgYczL4Oe+Lru0OfZO52ZlhyUK
-         hyB6RpHjkN7URlIecD5IjgQLA3cjRVoiw8C8IRtE=
+        b=lzSPZS3FkEEL4vfUOAZTLUCjasA4MC8Ymg0Xj8H02Y9HdrVgr0RHxZMKzAv96hd5e
+         NIDVypsXyMvha7vt1ovPjOfNrfsHzVM/o4wGdoWW/aK1d8+OtAi7C8CAR16zjfxQ46
+         LRm3CFQu9s67Z7ezsxleNM1JN5oDjNJaReQ+9Up0=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Peilin Ye <yepeilin.cs@gmail.com>,
@@ -49,12 +49,12 @@ Cc:     Peilin Ye <yepeilin.cs@gmail.com>,
         Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
         lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org
-Subject: [PATCH AUTOSEL 4.19 50/56] ipvs: Fix uninit-value in do_ip_vs_set_ctl()
-Date:   Sun, 18 Oct 2020 15:24:11 -0400
-Message-Id: <20201018192417.4055228-50-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 69/80] ipvs: Fix uninit-value in do_ip_vs_set_ctl()
+Date:   Sun, 18 Oct 2020 15:22:20 -0400
+Message-Id: <20201018192231.4054535-69-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20201018192417.4055228-1-sashal@kernel.org>
-References: <20201018192417.4055228-1-sashal@kernel.org>
+In-Reply-To: <20201018192231.4054535-1-sashal@kernel.org>
+References: <20201018192231.4054535-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -83,10 +83,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index c339b5e386b78..3ad1de081e3c7 100644
+index 3cccc88ef817b..99168af0c28d9 100644
 --- a/net/netfilter/ipvs/ip_vs_ctl.c
 +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -2393,6 +2393,10 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
+@@ -2465,6 +2465,10 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
  		/* Set timeout values for (tcp tcpfin udp) */
  		ret = ip_vs_set_timeout(ipvs, (struct ip_vs_timeout_user *)arg);
  		goto out_unlock;
@@ -97,7 +97,7 @@ index c339b5e386b78..3ad1de081e3c7 100644
  	}
  
  	usvc_compat = (struct ip_vs_service_user *)arg;
-@@ -2469,9 +2473,6 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
+@@ -2541,9 +2545,6 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
  		break;
  	case IP_VS_SO_SET_DELDEST:
  		ret = ip_vs_del_dest(svc, &udest);
