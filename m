@@ -1,112 +1,114 @@
-Return-Path: <SRS0=5q/u=DZ=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=0udB=D2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B39EC433E7
-	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Oct 2020 19:42:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FE63C433DF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Oct 2020 03:04:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4E380206CA
-	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Oct 2020 19:42:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603050134;
-	bh=+f97MW3Ziot5kmxH1SHjTxmPRgZq+m1Ur0geShQzcGA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=liedeXSEBwyUMxixICT/dcnXUTTvGpqNdAChZhsw6R3yIF8cHGuHflShzHJX66L3i
-	 4wtQCflEmbSxOlkLgUqs7ipg0jD55WJxYPgYV0D9XRP7jKd2fWvWyyITg8DNlBSn/o
-	 U2ar+BQeMzwGU3EZf+BPD/5pwTCoa70xwC2q+izs=
+	by mail.kernel.org (Postfix) with ESMTP id BBBD82224D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Oct 2020 03:04:28 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="VAYx4xzB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730571AbgJRTYA (ORCPT
+        id S1731310AbgJSDE2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 18 Oct 2020 15:24:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37672 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730551AbgJRTX7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 18 Oct 2020 15:23:59 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8CB84222E7;
-        Sun, 18 Oct 2020 19:23:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603049038;
-        bh=+f97MW3Ziot5kmxH1SHjTxmPRgZq+m1Ur0geShQzcGA=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=lzSPZS3FkEEL4vfUOAZTLUCjasA4MC8Ymg0Xj8H02Y9HdrVgr0RHxZMKzAv96hd5e
-         NIDVypsXyMvha7vt1ovPjOfNrfsHzVM/o4wGdoWW/aK1d8+OtAi7C8CAR16zjfxQ46
-         LRm3CFQu9s67Z7ezsxleNM1JN5oDjNJaReQ+9Up0=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Peilin Ye <yepeilin.cs@gmail.com>,
-        syzbot+23b5f9e7caf61d9a3898@syzkaller.appspotmail.com,
-        Julian Anastasov <ja@ssi.bg>,
-        Simon Horman <horms@verge.net.au>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Subject: [PATCH AUTOSEL 5.4 69/80] ipvs: Fix uninit-value in do_ip_vs_set_ctl()
-Date:   Sun, 18 Oct 2020 15:22:20 -0400
-Message-Id: <20201018192231.4054535-69-sashal@kernel.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20201018192231.4054535-1-sashal@kernel.org>
-References: <20201018192231.4054535-1-sashal@kernel.org>
+        Sun, 18 Oct 2020 23:04:28 -0400
+Received: from mail-m974.mail.163.com ([123.126.97.4]:47242 "EHLO
+        mail-m974.mail.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729978AbgJSDE2 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 18 Oct 2020 23:04:28 -0400
+X-Greylist: delayed 659 seconds by postgrey-1.27 at vger.kernel.org; Sun, 18 Oct 2020 23:04:27 EDT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=Ykvhb
+        B0FduTIFU2H88Qvlxq6Xoq8/R3Ed6TaCDS62HM=; b=VAYx4xzB58ybEXeAQE37q
+        qNqWECc+EtUfA+L98epvmxcHY1qUAMpKsOWn4gApqw0R7GTfclap0XdbQtx+NI2K
+        RcDSFytI7AL99B425mCjCbEOHVZiXgZDVgqTWd1UZKDdXjtMRa2PXf6EMeYtzVEn
+        FISIBv1A9UNPPtJ6FFKNNM=
+Received: from yangyi0100.home.langchao.com (unknown [111.207.123.58])
+        by smtp4 (Coremail) with SMTP id HNxpCgDH1y82Ao1fRfVXUw--.131S2;
+        Mon, 19 Oct 2020 11:04:25 +0800 (CST)
+From:   yang_y_yi@163.com
+To:     netfilter-devel@vger.kernel.org
+Cc:     yangyi01@inspur.com, yang_y_yi@163.com
+Subject: [PATCH] conntrack: fix zone sync issue
+Date:   Mon, 19 Oct 2020 11:04:22 +0800
+Message-Id: <20201019030422.396340-1-yang_y_yi@163.com>
+X-Mailer: git-send-email 2.19.2.windows.1
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: HNxpCgDH1y82Ao1fRfVXUw--.131S2
+X-Coremail-Antispam: 1Uf129KBjvJXoW7urWUXryfKrW5Cw4kCF4kZwb_yoW8Xry7p3
+        Z5Ary8GFZxtry2yF48Cryvg3WYgws5Wry3Wayru3sYva17tr10yr47K348urZxW39rAr4f
+        CryDKa45AF48Xr7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zR4mhwUUUUU=
+X-Originating-IP: [111.207.123.58]
+X-CM-SenderInfo: 51dqwsp1b1xqqrwthudrp/1tbiFgTCi144NqzrtgABs7
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Peilin Ye <yepeilin.cs@gmail.com>
+From: Yi Yang <yangyi01@inspur.com>
 
-[ Upstream commit c5a8a8498eed1c164afc94f50a939c1a10abf8ad ]
+In some use cases, zone is used to differentiate different
+conntrack state tables, so zone also should be synchronized
+if it is set.
 
-do_ip_vs_set_ctl() is referencing uninitialized stack value when `len` is
-zero. Fix it.
-
-Reported-by: syzbot+23b5f9e7caf61d9a3898@syzkaller.appspotmail.com
-Link: https://syzkaller.appspot.com/bug?id=46ebfb92a8a812621a001ef04d90dfa459520fe2
-Suggested-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Peilin Ye <yepeilin.cs@gmail.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Reviewed-by: Simon Horman <horms@verge.net.au>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Yi Yang <yangyi01@inspur.com>
 ---
- net/netfilter/ipvs/ip_vs_ctl.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/network.h | 1 +
+ src/build.c       | 3 +++
+ src/parse.c       | 5 +++++
+ 3 files changed, 9 insertions(+)
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 3cccc88ef817b..99168af0c28d9 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -2465,6 +2465,10 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
- 		/* Set timeout values for (tcp tcpfin udp) */
- 		ret = ip_vs_set_timeout(ipvs, (struct ip_vs_timeout_user *)arg);
- 		goto out_unlock;
-+	} else if (!len) {
-+		/* No more commands with len == 0 below */
-+		ret = -EINVAL;
-+		goto out_unlock;
- 	}
+diff --git a/include/network.h b/include/network.h
+index 95aad82..20def34 100644
+--- a/include/network.h
++++ b/include/network.h
+@@ -232,6 +232,7 @@ enum nta_attr {
+ 	NTA_SNAT_IPV6,		/* uint32_t * 4 */
+ 	NTA_DNAT_IPV6,		/* uint32_t * 4 */
+ 	NTA_SYNPROXY,		/* struct nft_attr_synproxy */
++	NTA_ZONE,		/* uint16_t */
+ 	NTA_MAX
+ };
  
- 	usvc_compat = (struct ip_vs_service_user *)arg;
-@@ -2541,9 +2545,6 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
- 		break;
- 	case IP_VS_SO_SET_DELDEST:
- 		ret = ip_vs_del_dest(svc, &udest);
--		break;
--	default:
--		ret = -EINVAL;
- 	}
+diff --git a/src/build.c b/src/build.c
+index 99ff230..4771997 100644
+--- a/src/build.c
++++ b/src/build.c
+@@ -315,6 +315,9 @@ void ct2msg(const struct nf_conntrack *ct, struct nethdr *n)
+ 	    nfct_attr_is_set(ct, ATTR_SYNPROXY_ITS) &&
+ 	    nfct_attr_is_set(ct, ATTR_SYNPROXY_TSOFF))
+ 		ct_build_synproxy(ct, n);
++
++	if (nfct_attr_is_set(ct, ATTR_ZONE))
++	    ct_build_u16(ct, ATTR_ZONE, n, NTA_ZONE);
+ }
  
-   out_unlock:
+ static void
+diff --git a/src/parse.c b/src/parse.c
+index 7e524ed..e97a721 100644
+--- a/src/parse.c
++++ b/src/parse.c
+@@ -205,6 +205,11 @@ static struct ct_parser h[NTA_MAX] = {
+ 		.parse	= ct_parse_synproxy,
+ 		.size	= NTA_SIZE(sizeof(struct nta_attr_synproxy)),
+ 	},
++	[NTA_ZONE] = {
++		.parse	= ct_parse_u16,
++		.attr	= ATTR_ZONE,
++		.size	= NTA_SIZE(sizeof(uint16_t)),
++	},
+ };
+ 
+ static void
 -- 
-2.25.1
+1.8.3.1
 
