@@ -2,89 +2,118 @@ Return-Path: <SRS0=bd9C=D3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE82AC388F9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Oct 2020 15:22:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AB3EC388F7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Oct 2020 16:46:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A46EB21D6C
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Oct 2020 15:22:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E80D7206CA
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Oct 2020 16:46:29 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="Zci+qb4y"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2408687AbgJTPWv (ORCPT
+        id S2394869AbgJTQqX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Oct 2020 11:22:51 -0400
-Received: from correo.us.es ([193.147.175.20]:52284 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2408634AbgJTPWu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Oct 2020 11:22:50 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0855EDA738
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Oct 2020 17:22:49 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EEF7AFF13C
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Oct 2020 17:22:48 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DE8C4FC619; Tue, 20 Oct 2020 17:22:48 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9491CFB388;
-        Tue, 20 Oct 2020 17:22:46 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 20 Oct 2020 17:22:46 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 655FA4301DE0;
-        Tue, 20 Oct 2020 17:22:46 +0200 (CEST)
-Date:   Tue, 20 Oct 2020 17:22:46 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     "longguang.yue" <bigclouds@163.com>, yuelongguang@gmail.com,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        "open list:IPVS" <netdev@vger.kernel.org>,
-        "open list:IPVS" <lvs-devel@vger.kernel.org>,
-        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
-        "open list:NETFILTER" <coreteam@netfilter.org>,
-        open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v5] ipvs: adjust the debug info in function set_tcp_state
-Message-ID: <20201020152246.GA19962@salvia>
-References: <alpine.LFD.2.23.451.2009271625160.35554@ja.home.ssi.bg>
- <20200928024938.97121-1-bigclouds@163.com>
- <alpine.LFD.2.23.451.2009300803110.6056@ja.home.ssi.bg>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.23.451.2009300803110.6056@ja.home.ssi.bg>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Tue, 20 Oct 2020 12:46:23 -0400
+Received: from aserp2120.oracle.com ([141.146.126.78]:33438 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2394856AbgJTQqW (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 20 Oct 2020 12:46:22 -0400
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 09KGijJJ011295;
+        Tue, 20 Oct 2020 16:46:01 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=content-type :
+ mime-version : subject : from : in-reply-to : date : cc :
+ content-transfer-encoding : message-id : references : to;
+ s=corp-2020-01-29; bh=0xbHYWfx1qsUJtKvtGxxhzbbAgoheE44Yomg5cvr3Ag=;
+ b=Zci+qb4yadT5XHBTFYvxPzWJ9dHRjjMJ471c1KkIAJJWc7+d+C0/7PrXrBNaHdwIjXTR
+ n12EudbVQuSKIB7c4OZA0fa3vFFKh02UFLY+60FuqPCXlFVEEW8Poap9FQXuJSYiPhXJ
+ nDdgIl+o+qv1PumeLIV03fz4+VhbFJ25dp8s1bb6/jzr/0x9nAHiAU81sMNZsgXqXrd5
+ ngG9916doQiO8qRfsFJorZ+6g3cHrnE6gy4RFuS2EcfqW+RK8rWoVQTP63HAiH1zZJyp
+ AFTsfxbVaB+zCpQQ6Vb9S+uusNwfLMMcA62xE6lOCVlgLazdV+mchKKEserc3tXMHrQQ 3A== 
+Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
+        by aserp2120.oracle.com with ESMTP id 349jrpmb75-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Tue, 20 Oct 2020 16:46:01 +0000
+Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
+        by userp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 09KGeuDs170853;
+        Tue, 20 Oct 2020 16:46:00 GMT
+Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
+        by userp3030.oracle.com with ESMTP id 348ahwggky-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 20 Oct 2020 16:46:00 +0000
+Received: from abhmp0020.oracle.com (abhmp0020.oracle.com [141.146.116.26])
+        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 09KGjwGZ025270;
+        Tue, 20 Oct 2020 16:45:58 GMT
+Received: from smirzamo-mac.lan (/136.52.113.136)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Tue, 20 Oct 2020 09:45:58 -0700
+Content-Type: text/plain;
+        charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 13.4 \(3608.120.23.2.1\))
+Subject: Re: [PATCH linux-5.9 1/1] net: netfilter: fix KASAN:
+ slab-out-of-bounds Read in nft_flow_rule_create
+From:   Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
+In-Reply-To: <20201020115047.GA15628@salvia>
+Date:   Tue, 20 Oct 2020 09:45:57 -0700
+Cc:     linux-kernel@vger.kernel.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, kuba@kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <28C74722-8F35-4397-B567-FA5BCF525891@oracle.com>
+References: <20201019172532.3906-1-saeed.mirzamohammadi@oracle.com>
+ <20201020115047.GA15628@salvia>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+X-Mailer: Apple Mail (2.3608.120.23.2.1)
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9779 signatures=668682
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 phishscore=0 bulkscore=0
+ malwarescore=0 spamscore=0 mlxlogscore=999 mlxscore=0 suspectscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
+ definitions=main-2010200112
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9780 signatures=668682
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 lowpriorityscore=0
+ priorityscore=1501 impostorscore=0 adultscore=0 bulkscore=0 malwarescore=0
+ mlxlogscore=999 mlxscore=0 spamscore=0 suspectscore=0 clxscore=1015
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
+ definitions=main-2010200112
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 30, 2020 at 08:08:02AM +0300, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Mon, 28 Sep 2020, longguang.yue wrote:
-> 
-> > Outputting client,virtual,dst addresses info when tcp state changes,
-> > which makes the connection debug more clear
-> > 
-> > Signed-off-by: longguang.yue <bigclouds@163.com>
-> 
-> 	OK, v5 can be used instead of fixing v4.
-> 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
+Thanks! Yes, that looks good to me.
 
-Applied, thanks.
+Saeed
+
+> On Oct 20, 2020, at 4:50 AM, Pablo Neira Ayuso <pablo@netfilter.org> =
+wrote:
+>=20
+> On Mon, Oct 19, 2020 at 10:25:32AM -0700, =
+saeed.mirzamohammadi@oracle.com wrote:
+>> From: Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
+>>=20
+>> This patch fixes the issue due to:
+>>=20
+>> BUG: KASAN: slab-out-of-bounds in nft_flow_rule_create+0x622/0x6a2
+>> net/netfilter/nf_tables_offload.c:40
+>> Read of size 8 at addr ffff888103910b58 by task syz-executor227/16244
+>>=20
+>> The error happens when expr->ops is accessed early on before =
+performing the boundary check and after nft_expr_next() moves the expr =
+to go out-of-bounds.
+>>=20
+>> This patch checks the boundary condition before expr->ops that fixes =
+the slab-out-of-bounds Read issue.
+>=20
+> Thanks. I made a slight variant of your patch.
+>=20
+> I'm attaching it, it is also fixing the problem but it introduced
+> nft_expr_more() and use it everywhere.
+>=20
+> Let me know if this looks fine to you.
+> <0001-netfilter-fix-KASAN-slab-out-of-bounds-Read-in-nft_f.patch>
+
