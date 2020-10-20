@@ -2,118 +2,94 @@ Return-Path: <SRS0=bd9C=D3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AB3EC388F7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Oct 2020 16:46:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BB9BC4363A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Oct 2020 18:01:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E80D7206CA
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Oct 2020 16:46:29 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="Zci+qb4y"
+	by mail.kernel.org (Postfix) with ESMTP id CB2F2206CA
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Oct 2020 18:01:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2394869AbgJTQqX (ORCPT
+        id S2408894AbgJTSBE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Oct 2020 12:46:23 -0400
-Received: from aserp2120.oracle.com ([141.146.126.78]:33438 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2394856AbgJTQqW (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Oct 2020 12:46:22 -0400
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 09KGijJJ011295;
-        Tue, 20 Oct 2020 16:46:01 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=content-type :
- mime-version : subject : from : in-reply-to : date : cc :
- content-transfer-encoding : message-id : references : to;
- s=corp-2020-01-29; bh=0xbHYWfx1qsUJtKvtGxxhzbbAgoheE44Yomg5cvr3Ag=;
- b=Zci+qb4yadT5XHBTFYvxPzWJ9dHRjjMJ471c1KkIAJJWc7+d+C0/7PrXrBNaHdwIjXTR
- n12EudbVQuSKIB7c4OZA0fa3vFFKh02UFLY+60FuqPCXlFVEEW8Poap9FQXuJSYiPhXJ
- nDdgIl+o+qv1PumeLIV03fz4+VhbFJ25dp8s1bb6/jzr/0x9nAHiAU81sMNZsgXqXrd5
- ngG9916doQiO8qRfsFJorZ+6g3cHrnE6gy4RFuS2EcfqW+RK8rWoVQTP63HAiH1zZJyp
- AFTsfxbVaB+zCpQQ6Vb9S+uusNwfLMMcA62xE6lOCVlgLazdV+mchKKEserc3tXMHrQQ 3A== 
-Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
-        by aserp2120.oracle.com with ESMTP id 349jrpmb75-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 20 Oct 2020 16:46:01 +0000
-Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
-        by userp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 09KGeuDs170853;
-        Tue, 20 Oct 2020 16:46:00 GMT
-Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
-        by userp3030.oracle.com with ESMTP id 348ahwggky-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 20 Oct 2020 16:46:00 +0000
-Received: from abhmp0020.oracle.com (abhmp0020.oracle.com [141.146.116.26])
-        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 09KGjwGZ025270;
-        Tue, 20 Oct 2020 16:45:58 GMT
-Received: from smirzamo-mac.lan (/136.52.113.136)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Tue, 20 Oct 2020 09:45:58 -0700
-Content-Type: text/plain;
-        charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 13.4 \(3608.120.23.2.1\))
-Subject: Re: [PATCH linux-5.9 1/1] net: netfilter: fix KASAN:
- slab-out-of-bounds Read in nft_flow_rule_create
-From:   Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
-In-Reply-To: <20201020115047.GA15628@salvia>
-Date:   Tue, 20 Oct 2020 09:45:57 -0700
-Cc:     linux-kernel@vger.kernel.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, kuba@kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <28C74722-8F35-4397-B567-FA5BCF525891@oracle.com>
-References: <20201019172532.3906-1-saeed.mirzamohammadi@oracle.com>
- <20201020115047.GA15628@salvia>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-X-Mailer: Apple Mail (2.3608.120.23.2.1)
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9779 signatures=668682
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 phishscore=0 bulkscore=0
- malwarescore=0 spamscore=0 mlxlogscore=999 mlxscore=0 suspectscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
- definitions=main-2010200112
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9780 signatures=668682
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 lowpriorityscore=0
- priorityscore=1501 impostorscore=0 adultscore=0 bulkscore=0 malwarescore=0
- mlxlogscore=999 mlxscore=0 spamscore=0 suspectscore=0 clxscore=1015
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
- definitions=main-2010200112
+        Tue, 20 Oct 2020 14:01:04 -0400
+Received: from mg.ssi.bg ([178.16.128.9]:44678 "EHLO mg.ssi.bg"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2408890AbgJTSBD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 20 Oct 2020 14:01:03 -0400
+Received: from mg.ssi.bg (localhost [127.0.0.1])
+        by mg.ssi.bg (Proxmox) with ESMTP id D448F2A4D0;
+        Tue, 20 Oct 2020 21:01:00 +0300 (EEST)
+Received: from ink.ssi.bg (ink.ssi.bg [178.16.128.7])
+        by mg.ssi.bg (Proxmox) with ESMTP id 15F392A444;
+        Tue, 20 Oct 2020 21:01:00 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [178.16.129.10])
+        by ink.ssi.bg (Postfix) with ESMTPS id E0FD23C09C1;
+        Tue, 20 Oct 2020 21:00:59 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id 09KI0xrP006704;
+        Tue, 20 Oct 2020 21:00:59 +0300
+Date:   Tue, 20 Oct 2020 21:00:59 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Damien Claisse <d.claisse@criteo.com>
+cc:     "lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        Mahesh Bandewar <maheshb@google.com>
+Subject: Re: Network namespace, ipvlan and IPVS source NAT
+In-Reply-To: <1A2C4E81-2244-4104-B543-08713F000C0C@criteo.com>
+Message-ID: <79a56db-5657-6dda-5de0-d7565ef950c6@ssi.bg>
+References: <1A2C4E81-2244-4104-B543-08713F000C0C@criteo.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Thanks! Yes, that looks good to me.
 
-Saeed
+	Hello,
 
-> On Oct 20, 2020, at 4:50 AM, Pablo Neira Ayuso <pablo@netfilter.org> =
-wrote:
->=20
-> On Mon, Oct 19, 2020 at 10:25:32AM -0700, =
-saeed.mirzamohammadi@oracle.com wrote:
->> From: Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
->>=20
->> This patch fixes the issue due to:
->>=20
->> BUG: KASAN: slab-out-of-bounds in nft_flow_rule_create+0x622/0x6a2
->> net/netfilter/nf_tables_offload.c:40
->> Read of size 8 at addr ffff888103910b58 by task syz-executor227/16244
->>=20
->> The error happens when expr->ops is accessed early on before =
-performing the boundary check and after nft_expr_next() moves the expr =
-to go out-of-bounds.
->>=20
->> This patch checks the boundary condition before expr->ops that fixes =
-the slab-out-of-bounds Read issue.
->=20
-> Thanks. I made a slight variant of your patch.
->=20
-> I'm attaching it, it is also fixing the problem but it introduced
-> nft_expr_more() and use it everywhere.
->=20
-> Let me know if this looks fine to you.
-> <0001-netfilter-fix-KASAN-slab-out-of-bounds-Read-in-nft_f.patch>
+On Tue, 20 Oct 2020, Damien Claisse wrote:
+
+> I'm trying to understand a limitation in ipvlan/netfilter that prevents doing routed IPVS with source NAT inside a namespace.
+> 
+> Setup is the following: there is an "lvs" namespace, with an ipvlan interface (in l3 mode) moved to this namespace, linked to physical interface. Goal is to isolate load balanced traffic in a separate namespace.
+> This setup is working flawlessly with l3 routed IPIP encapsulation, but I also have a use case for applications that don't support encapsulation, hence the need to do l3 routed load balancing with source NAT.
+> Issue is that if I put iptables NAT rule in namespace using ipvs module, nothing happens, packet is forwarded but source IP is not translated. It seems like netfilter is blind to ipvlan l3 traffic. I also tried using "l3s" mode that should to go through netfilter, but in that case, packets for virtual IPs are rejected with a TCP reset. Virtual IPs in namespace seem not visible to this mode.
+> 
+> I'm wondering what would be the best way to make it happen:
+> - patch ipvlan to lookup for VIPs in namespaces
+> - patch netfilter ipvs NAT module to translate in root namespace
+> - any other better idea is welcome
+> 
+> Please find below commands to reproduce the issue. In this example physical load balancer interface is enp4s0, virtual IP is 192.168.42.1 (to be exported by a routing protocol, or route manually added to a client in same subnet as load balancer for testing), load balancer IP is 192.168.10.10, and real server IP is 192.168.20.20
+> 
+> - In root namespace:
+> ip netns add lvs
+> ip link add ipvlan0 link enp4s0 type ipvlan mode l3s
+> ip link set ipvlan0 up
+> ip link set ipvlan0 netns lvs
+> 
+> - In lvs namespace (ip netns exec lvs bash):
+> ip addr add 192.168.42.1/32 dev ipvlan0
+> ip route add default via 192.168.10.10 dev ipvlan0 onlink
+> ipvsadm -A -t 192.168.42.1:80 -s rr
+> ipvsadm -a -t 192.168.42.1:80 -r 192.168.20.20:80 -m
+> iptables -t nat -A POSTROUTING -m ipvs --vaddr 192.168.42.1/24 --vport 80 -j SNAT --to-source 192.168.10.10
+
+	Make sure /proc/sys/net/ipv4/vs/conntrack is set to 1
+to allow IPVS to keep the netfilter conntracks for its
+packets. This is supported with the CONFIG_IP_VS_NFCT=y
+kernel option.
+
+> What I'd expect: a packet outgoing from enp4s0 with source IP 192.168.10.10 and destination IP 192.168.20.20
+> What I see from a test client:
+> - in l3 mode: a packet outgoing from enp4s0 with source client IP address and destination 192.168.20.20 (hence missing source NAT). I also don't see any conntrack event when doing conntrack -E
+> - in l3s mode: connection reset sent to client. While reading l3s implementation, I wonder where route lookup is done in ipvlan_l3_rcv, it seems that namespaces' virtual IP addresses are not visible during this lookup, hence the TCP RST.
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
