@@ -2,115 +2,133 @@ Return-Path: <SRS0=Y5HT=D4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-5.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF3C9C56202
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Oct 2020 16:49:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21FF4C5DF9D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Oct 2020 17:53:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9C40D21D7B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Oct 2020 16:49:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C0D5F22447
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Oct 2020 17:53:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="OzBMRE9h"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="dVQtkUVD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2503160AbgJUQtq (ORCPT
+        id S2503755AbgJURx3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 21 Oct 2020 12:49:46 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:54881 "EHLO
+        Wed, 21 Oct 2020 13:53:29 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:56580 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2503156AbgJUQtq (ORCPT
+        by vger.kernel.org with ESMTP id S2503749AbgJURx3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Oct 2020 12:49:46 -0400
+        Wed, 21 Oct 2020 13:53:29 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1603298984;
+        s=mimecast20190719; t=1603302807;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=EBKIX4NScpYanL37LvbZAWmxt6PXSYIFIAOMsAhRQoo=;
-        b=OzBMRE9huCdQpPbDy2s92gt+eRlpTVVksGbHJOHyRU3KPPOlq6giEO1t5O578ggwLDuFay
-        QNGNmdoYer/5F0CpmpjFnIea2Lb9hw6WwRRJCxSF+3wB8MiiAEbcSgdHKMTuX2yDFmU0dw
-        /dpnkfeIwQo7FsAcWEvQ7E6UIzhDnDw=
+        bh=0aM6MG+N6GRh+zh31VWFPduo2rgWm3emASszSAw8inM=;
+        b=dVQtkUVDhMe6hJ36UJkcJNAJMIJpA1I1O8kaqEQyrmEfH4muWRRUbNPvxLlxQjJ0ExqLdj
+        rkmb1Jg7EuzEyE5Bs74izyyhK/a2u6iuqMR/DvBU/Ox10mWN+uckbZE/gXlW78B8pmC3IU
+        Tao5jPLFYuBy6RT/EfpXYxv5qC51sDE=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-429-IGvRjFQzPdiBi1AylCyuRA-1; Wed, 21 Oct 2020 12:49:39 -0400
-X-MC-Unique: IGvRjFQzPdiBi1AylCyuRA-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+ us-mta-582-0BAAGVqzMda2Ab5lMPFbVA-1; Wed, 21 Oct 2020 13:53:23 -0400
+X-MC-Unique: 0BAAGVqzMda2Ab5lMPFbVA-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 0A50B5F9C1;
-        Wed, 21 Oct 2020 16:49:37 +0000 (UTC)
-Received: from x2.localnet (ovpn-117-184.rdu2.redhat.com [10.10.117.184])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 406B6389;
-        Wed, 21 Oct 2020 16:49:26 +0000 (UTC)
-From:   Steve Grubb <sgrubb@redhat.com>
-To:     Paul Moore <paul@paul-moore.com>, linux-audit@redhat.com
-Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 57DDD804B66;
+        Wed, 21 Oct 2020 17:53:20 +0000 (UTC)
+Received: from madcap2.tricolour.ca (unknown [10.10.110.2])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id E934B5D9EF;
+        Wed, 21 Oct 2020 17:53:06 +0000 (UTC)
+Date:   Wed, 21 Oct 2020 13:53:03 -0400
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Steve Grubb <sgrubb@redhat.com>
+Cc:     Paul Moore <paul@paul-moore.com>, linux-audit@redhat.com,
+        nhorman@tuxdriver.com, linux-api@vger.kernel.org,
         containers@lists.linux-foundation.org,
         LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
         netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
         simo@redhat.com, netdev@vger.kernel.org,
         linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>,
-        Richard Guy Briggs <rgb@redhat.com>
+        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
 Subject: Re: [PATCH ghak90 V9 05/13] audit: log container info of syscalls
-Date:   Wed, 21 Oct 2020 12:49:25 -0400
-Message-ID: <2174083.ElGaqSPkdT@x2>
-Organization: Red Hat
-In-Reply-To: <20201021163926.GA3929765@madcap2.tricolour.ca>
-References: <cover.1593198710.git.rgb@redhat.com> <20201002195231.GH2882171@madcap2.tricolour.ca> <20201021163926.GA3929765@madcap2.tricolour.ca>
+Message-ID: <20201021175303.GH2882171@madcap2.tricolour.ca>
+References: <cover.1593198710.git.rgb@redhat.com>
+ <20201002195231.GH2882171@madcap2.tricolour.ca>
+ <20201021163926.GA3929765@madcap2.tricolour.ca>
+ <2174083.ElGaqSPkdT@x2>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2174083.ElGaqSPkdT@x2>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wednesday, October 21, 2020 12:39:26 PM EDT Richard Guy Briggs wrote:
-> > I think I have a way to generate a signal to multiple targets in one
-> > syscall...  The added challenge is to also give those targets different
-> > audit container identifiers.
+On 2020-10-21 12:49, Steve Grubb wrote:
+> On Wednesday, October 21, 2020 12:39:26 PM EDT Richard Guy Briggs wrote:
+> > > I think I have a way to generate a signal to multiple targets in one
+> > > syscall...  The added challenge is to also give those targets different
+> > > audit container identifiers.
+> > 
+> > Here is an exmple I was able to generate after updating the testsuite
+> > script to include a signalling example of a nested audit container
+> > identifier:
+> > 
+> > ----
+> > type=PROCTITLE msg=audit(2020-10-21 10:31:16.655:6731) :
+> > proctitle=/usr/bin/perl -w containerid/test type=CONTAINER_ID
+> > msg=audit(2020-10-21 10:31:16.655:6731) :
+> > contid=7129731255799087104^3333941723245477888 type=OBJ_PID
+> > msg=audit(2020-10-21 10:31:16.655:6731) : opid=115583 oauid=root ouid=root
+> > oses=1 obj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+> > ocomm=perl type=CONTAINER_ID msg=audit(2020-10-21 10:31:16.655:6731) :
+> > contid=3333941723245477888 type=OBJ_PID msg=audit(2020-10-21
+> > 10:31:16.655:6731) : opid=115580 oauid=root ouid=root oses=1
+> > obj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 ocomm=perl
+> > type=CONTAINER_ID msg=audit(2020-10-21 10:31:16.655:6731) :
+> > contid=8098399240850112512^3333941723245477888 type=OBJ_PID
+> > msg=audit(2020-10-21 10:31:16.655:6731) : opid=115582 oauid=root ouid=root
+> > oses=1 obj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+> > ocomm=perl type=SYSCALL msg=audit(2020-10-21 10:31:16.655:6731) :
+> > arch=x86_64 syscall=kill success=yes exit=0 a0=0xfffe3c84 a1=SIGTERM
+> > a2=0x4d524554 a3=0x0 items=0 ppid=115564 pid=115567 auid=root uid=root
+> > gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root
+> > tty=ttyS0 ses=1 comm=perl exe=/usr/bin/perl
+> > subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+> > key=testsuite-1603290671-AcLtUulY ----
+> > 
+> > There are three CONTAINER_ID records which need some way of associating
+> > with OBJ_PID records.  An additional CONTAINER_ID record would be present
+> > if the killing process itself had an audit container identifier.  I think
+> > the most obvious way to connect them is with a pid= field in the
+> > CONTAINER_ID record.
 > 
-> Here is an exmple I was able to generate after updating the testsuite
-> script to include a signalling example of a nested audit container
-> identifier:
-> 
-> ----
-> type=PROCTITLE msg=audit(2020-10-21 10:31:16.655:6731) :
-> proctitle=/usr/bin/perl -w containerid/test type=CONTAINER_ID
-> msg=audit(2020-10-21 10:31:16.655:6731) :
-> contid=7129731255799087104^3333941723245477888 type=OBJ_PID
-> msg=audit(2020-10-21 10:31:16.655:6731) : opid=115583 oauid=root ouid=root
-> oses=1 obj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
-> ocomm=perl type=CONTAINER_ID msg=audit(2020-10-21 10:31:16.655:6731) :
-> contid=3333941723245477888 type=OBJ_PID msg=audit(2020-10-21
-> 10:31:16.655:6731) : opid=115580 oauid=root ouid=root oses=1
-> obj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 ocomm=perl
-> type=CONTAINER_ID msg=audit(2020-10-21 10:31:16.655:6731) :
-> contid=8098399240850112512^3333941723245477888 type=OBJ_PID
-> msg=audit(2020-10-21 10:31:16.655:6731) : opid=115582 oauid=root ouid=root
-> oses=1 obj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
-> ocomm=perl type=SYSCALL msg=audit(2020-10-21 10:31:16.655:6731) :
-> arch=x86_64 syscall=kill success=yes exit=0 a0=0xfffe3c84 a1=SIGTERM
-> a2=0x4d524554 a3=0x0 items=0 ppid=115564 pid=115567 auid=root uid=root
-> gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root
-> tty=ttyS0 ses=1 comm=perl exe=/usr/bin/perl
-> subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
-> key=testsuite-1603290671-AcLtUulY ----
-> 
-> There are three CONTAINER_ID records which need some way of associating
-> with OBJ_PID records.  An additional CONTAINER_ID record would be present
-> if the killing process itself had an audit container identifier.  I think
-> the most obvious way to connect them is with a pid= field in the
-> CONTAINER_ID record.
+> pid is the process sending the signal, opid is the process receiving the 
+> signal. I think you mean opid?
 
-pid is the process sending the signal, opid is the process receiving the 
-signal. I think you mean opid?
+If the process sending the signal (it has a pid= field) has an audit
+container identifier, it will generate a CONTAINER_ID record.  Each
+process being signalled (each has an opid= field) that has an audit
+container identifier will also generate a CONTAINER_ID record.  The
+former will be much more common.  Which do we use in the CONTAINER_ID
+record?  Having swinging fields, pid vs opid does not seem like a
+reasonable solution.  Do we go back to "ref=pid=..." vs "ref=opid=..."?
 
--Steve
+> -Steve
 
+- RGB
+
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
 
