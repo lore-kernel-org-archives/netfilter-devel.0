@@ -4,50 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 980A0C4363A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 17:29:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4353BC388F9
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 17:29:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 40AED24182
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 17:29:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EA59C24641
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 17:29:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2900180AbgJVR3l (ORCPT
+        id S2900434AbgJVR3w (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Oct 2020 13:29:41 -0400
-Received: from correo.us.es ([193.147.175.20]:54166 "EHLO mail.us.es"
+        Thu, 22 Oct 2020 13:29:52 -0400
+Received: from correo.us.es ([193.147.175.20]:54120 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2900169AbgJVR3j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Oct 2020 13:29:39 -0400
+        id S2899801AbgJVR3i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 22 Oct 2020 13:29:38 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DCD041C43A9
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 19:29:38 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id A01081C4393
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 19:29:36 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CFAFCDA73D
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 19:29:38 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8EC56DA853
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 19:29:36 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C5730DA72F; Thu, 22 Oct 2020 19:29:38 +0200 (CEST)
+        id 8318BDA84A; Thu, 22 Oct 2020 19:29:36 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AC7C1DA73D;
-        Thu, 22 Oct 2020 19:29:36 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1692ADA84D;
+        Thu, 22 Oct 2020 19:29:34 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 22 Oct 2020 19:29:36 +0200 (CEST)
+ Thu, 22 Oct 2020 19:29:34 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 7FA9F42EE38E;
-        Thu, 22 Oct 2020 19:29:36 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPSA id DE13D42EE38E;
+        Thu, 22 Oct 2020 19:29:33 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 7/7] netfilter: nf_fwd_netdev: clear timestamp in forwarding path
-Date:   Thu, 22 Oct 2020 19:29:25 +0200
-Message-Id: <20201022172925.22770-8-pablo@netfilter.org>
+Subject: [PATCH 2/7] netfilter: conntrack: connection timeout after re-register
+Date:   Thu, 22 Oct 2020 19:29:20 +0200
+Message-Id: <20201022172925.22770-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201022172925.22770-1-pablo@netfilter.org>
 References: <20201022172925.22770-1-pablo@netfilter.org>
@@ -58,42 +58,59 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Similar to 7980d2eabde8 ("ipvs: clear skb->tstamp in forwarding path").
-fq qdisc requires tstamp to be cleared in forwarding path.
+From: Francesco Ruggeri <fruggeri@arista.com>
 
-Fixes: 8203e2d844d3 ("net: clear skb->tstamp in forwarding paths")
-Fixes: fb420d5d91c1 ("tcp/fq: move back to CLOCK_MONOTONIC")
-Fixes: 80b14dee2bea ("net: Add a new socket option for a future transmit time.")
+If the first packet conntrack sees after a re-register is an outgoing
+keepalive packet with no data (SEG.SEQ = SND.NXT-1), td_end is set to
+SND.NXT-1.
+When the peer correctly acknowledges SND.NXT, tcp_in_window fails
+check III (Upper bound for valid (s)ack: sack <= receiver.td_end) and
+returns false, which cascades into nf_conntrack_in setting
+skb->_nfct = 0 and in later conntrack iptables rules not matching.
+In cases where iptables are dropping packets that do not match
+conntrack rules this can result in idle tcp connections to time out.
+
+v2: adjust td_end when getting the reply rather than when sending out
+    the keepalive packet.
+
+Fixes: f94e63801ab2 ("netfilter: conntrack: reset tcp maxwin on re-register")
+Signed-off-by: Francesco Ruggeri <fruggeri@arista.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_dup_netdev.c  | 1 +
- net/netfilter/nft_fwd_netdev.c | 1 +
- 2 files changed, 2 insertions(+)
+ net/netfilter/nf_conntrack_proto_tcp.c | 19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
-index 2b01a151eaa8..a579e59ee5c5 100644
---- a/net/netfilter/nf_dup_netdev.c
-+++ b/net/netfilter/nf_dup_netdev.c
-@@ -19,6 +19,7 @@ static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev)
- 		skb_push(skb, skb->mac_len);
- 
- 	skb->dev = dev;
-+	skb->tstamp = 0;
- 	dev_queue_xmit(skb);
- }
- 
-diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
-index 3087e23297db..b77985986b24 100644
---- a/net/netfilter/nft_fwd_netdev.c
-+++ b/net/netfilter/nft_fwd_netdev.c
-@@ -138,6 +138,7 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
- 		return;
- 
- 	skb->dev = dev;
-+	skb->tstamp = 0;
- 	neigh_xmit(neigh_table, dev, addr, skb);
- out:
- 	regs->verdict.code = verdict;
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index e8c86ee4c1c4..c8fb2187ad4b 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -541,13 +541,20 @@ static bool tcp_in_window(const struct nf_conn *ct,
+ 			swin = win << sender->td_scale;
+ 			sender->td_maxwin = (swin == 0 ? 1 : swin);
+ 			sender->td_maxend = end + sender->td_maxwin;
+-			/*
+-			 * We haven't seen traffic in the other direction yet
+-			 * but we have to tweak window tracking to pass III
+-			 * and IV until that happens.
+-			 */
+-			if (receiver->td_maxwin == 0)
++			if (receiver->td_maxwin == 0) {
++				/* We haven't seen traffic in the other
++				 * direction yet but we have to tweak window
++				 * tracking to pass III and IV until that
++				 * happens.
++				 */
+ 				receiver->td_end = receiver->td_maxend = sack;
++			} else if (sack == receiver->td_end + 1) {
++				/* Likely a reply to a keepalive.
++				 * Needed for III.
++				 */
++				receiver->td_end++;
++			}
++
+ 		}
+ 	} else if (((state->state == TCP_CONNTRACK_SYN_SENT
+ 		     && dir == IP_CT_DIR_ORIGINAL)
 -- 
 2.20.1
 
