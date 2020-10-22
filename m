@@ -2,89 +2,82 @@ Return-Path: <SRS0=B2LC=D5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08B24C56201
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 17:29:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53E8BC4363A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 17:30:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B032124182
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 17:29:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9389724182
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 17:30:19 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="TLca35oM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S367999AbgJVR34 (ORCPT
+        id S369206AbgJVRaT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Oct 2020 13:29:56 -0400
-Received: from correo.us.es ([193.147.175.20]:54132 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2900087AbgJVR3i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Oct 2020 13:29:38 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 011581C43A0
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 19:29:37 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DDB0ADA84F
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 19:29:36 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D336FDA840; Thu, 22 Oct 2020 19:29:36 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9C9CDDA858;
-        Thu, 22 Oct 2020 19:29:34 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 22 Oct 2020 19:29:34 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 70AB442EE393;
-        Thu, 22 Oct 2020 19:29:34 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 3/7] netfilter: Drop fragmented ndisc packets assembled in netfilter
-Date:   Thu, 22 Oct 2020 19:29:21 +0200
-Message-Id: <20201022172925.22770-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20201022172925.22770-1-pablo@netfilter.org>
-References: <20201022172925.22770-1-pablo@netfilter.org>
+        Thu, 22 Oct 2020 13:30:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33298 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S368010AbgJVRaT (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 22 Oct 2020 13:30:19 -0400
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D86D6C0613D2
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 10:30:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=a6iDeEpz4uHi0cBGe88N79CiX2NM6O94Y9A/6095EH0=; b=TLca35oMxyN5F62JlcSB6nEbq7
+        7SsqoZ7Sd3EEE9IgD0bSH69PuOBSj35ereLkojN3/cOtAMAMIs9ohnmDVaGyggbDgd7LPvYwDUFik
+        0AjJ8IMQSP2toq+JVP6xkUj9Y4yxByiDStbI8CuKmnjqJXDkCVmae4hq82etBgslClwQ4KCHxb7L/
+        tokJGo8BibTEVUzfeN/jJCYAjWYyAkYQ1+OBTZXfXu7uSWGj2qA0DkyxCc3U2yECkHnZVxE7FW8pO
+        EN3WbMzAPuMWvB/E5WKTpdUPWNvMFO/NUNPzgANJmLBH6Nece/9TJiHfYf0VW6GIszejsBlEpi2R9
+        NAzWDTNg==;
+Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
+        by kadath.azazel.net with esmtp (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1kVePl-0003s0-9c; Thu, 22 Oct 2020 18:30:13 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH xtables-addons 1/3] pknock: pknlusr: fix formatting.
+Date:   Thu, 22 Oct 2020 18:30:03 +0100
+Message-Id: <20201022173006.635720-2-jeremy@azazel.net>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20201022173006.635720-1-jeremy@azazel.net>
+References: <20201022173006.635720-1-jeremy@azazel.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Georg Kohmann <geokohma@cisco.com>
-
-Fragmented ndisc packets assembled in netfilter not dropped as specified
-in RFC 6980, section 5. This behaviour breaks TAHI IPv6 Core Conformance
-Tests v6LC.2.1.22/23, V6LC.2.2.26/27 and V6LC.2.3.18.
-
-Setting IP6SKB_FRAGMENTED flag during reassembly.
-
-References: commit b800c3b966bc ("ipv6: drop fragmented ndisc packets by default (RFC 6980)")
-Signed-off-by: Georg Kohmann <geokohma@cisco.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- net/ipv6/netfilter/nf_conntrack_reasm.c | 1 +
- 1 file changed, 1 insertion(+)
+ extensions/pknock/pknlusr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index fed9666a2f7d..054d287eb13d 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -355,6 +355,7 @@ static int nf_ct_frag6_reasm(struct frag_queue *fq, struct sk_buff *skb,
- 	ipv6_hdr(skb)->payload_len = htons(payload_len);
- 	ipv6_change_dsfield(ipv6_hdr(skb), 0xff, ecn);
- 	IP6CB(skb)->frag_max_size = sizeof(struct ipv6hdr) + fq->q.max_size;
-+	IP6CB(skb)->flags |= IP6SKB_FRAGMENTED;
+diff --git a/extensions/pknock/pknlusr.c b/extensions/pknock/pknlusr.c
+index 6153bf6de099..161a9610a018 100644
+--- a/extensions/pknock/pknlusr.c
++++ b/extensions/pknock/pknlusr.c
+@@ -76,7 +76,7 @@ int main(void)
+ 			return 1;
+ 		}
  
- 	/* Yes, and fold redundant checksum back. 8) */
- 	if (skb->ip_summed == CHECKSUM_COMPLETE)
+-	nlmsg = (struct xt_pknock_nl_msg *) (buf + sizeof(struct cn_msg) + sizeof(struct nlmsghdr));
++		nlmsg = (struct xt_pknock_nl_msg *) (buf + sizeof(struct cn_msg) + sizeof(struct nlmsghdr));
+ 
+ 		ip = inet_ntop(AF_INET, &nlmsg->peer_ip, ipbuf, sizeof(ipbuf));
+ 		printf("rule_name: %s - ip %s\n", nlmsg->rule_name, ip);
 -- 
-2.20.1
+2.28.0
 
