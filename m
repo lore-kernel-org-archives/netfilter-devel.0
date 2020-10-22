@@ -2,77 +2,89 @@ Return-Path: <SRS0=B2LC=D5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1BB2C5517A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 19:16:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCEA3C5517A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 19:20:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6FFE42465A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 19:16:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D65A24658
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 19:20:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603394218;
-	bh=b+HpGV/SQiY/H5FbibSh4WTK4U78aHJqHe+3GHGYePQ=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=C8JMBLTTIc+BsJFracy8lLnYQe3SaPnoqBFcOBiDfDdelcqW4Puo8LNidCRQFHIWZ
-	 1W+KKLCMFD1BwTRI7PD3bJvxZIGtNWYT7HLpcOBMalOtr2jN0yf9ueEiOIUhpx0noG
-	 RUieVTs+l5NvzsCRGGJ2KqRpvcOxyQigCDIrLFdY=
+	s=default; t=1603394407;
+	bh=8djNLPvWAmclL2ddtNvo78VX2pkl6LPOHC/J3qyxn04=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:List-ID:From;
+	b=gVryRFzUp/T6z/Jvw5+18IiT2B6CyjjYlngX9m3bxguzfwuB/y31FAAF3HI4iZ08i
+	 eO5k9otnNOTzCbpjI2YeIJ+MenYDBuUMT0uAxGUSGeMqv01qV9iGSUv3o44It/jJLB
+	 OI6aIgiRa26bndPWTHnoWhEkR8kJ03F0lClMoBUs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S370031AbgJVTQ5 (ORCPT
+        id S370050AbgJVTUF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Oct 2020 15:16:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38278 "EHLO mail.kernel.org"
+        Thu, 22 Oct 2020 15:20:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39416 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2508751AbgJVTQ4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Oct 2020 15:16:56 -0400
-Received: from kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net (c-67-180-217-166.hsd1.ca.comcast.net [67.180.217.166])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C01A224656;
-        Thu, 22 Oct 2020 19:16:55 +0000 (UTC)
+        id S370047AbgJVTUF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 22 Oct 2020 15:20:05 -0400
+Content-Type: text/plain; charset="utf-8"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603394216;
-        bh=b+HpGV/SQiY/H5FbibSh4WTK4U78aHJqHe+3GHGYePQ=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=p0gQU1GmG5L7gwBk7Wj659fEPpi94yqsY17dOdbSsdcGnLNKypv9o0twA0uIupPmd
-         MDQf7aSjlEtI/Kr0JPUJzz4Qtjg+RctZ2PDqwci8MsoTL0kk0P1YDA8/C+gnAeODVc
-         hTrDnM98YL45OPdcVG5mBtaAQns3kpWA+/8QRg3g=
-Date:   Thu, 22 Oct 2020 12:16:53 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
+        s=default; t=1603394404;
+        bh=8djNLPvWAmclL2ddtNvo78VX2pkl6LPOHC/J3qyxn04=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=mvieYnByl+g/OUBIATbDUxv3Ooh3O8kWTMqwkwMNrwywwcnIqvGLfcFCDoOKCA8EL
+         pvww3HY29ZMeVlbyZ0uXgnRQpadAvXyPJYBDAw+vRcFymhCkyE6eXpWOP2sb4l2iPj
+         BP9vG+v1HcSwn3LIiBcB6WmNTshuKjHAaOoXMOk8=
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH 1/7] ipvs: adjust the debug info in function set_tcp_state
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <160339440440.27493.8723179015537547907.git-patchwork-notify@kernel.org>
+Date:   Thu, 22 Oct 2020 19:20:04 +0000
+References: <20201022172925.22770-2-pablo@netfilter.org>
+In-Reply-To: <20201022172925.22770-2-pablo@netfilter.org>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH 0/7] Netfilter fixes for net
-Message-ID: <20201022121653.1238a843@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
-In-Reply-To: <20201022172925.22770-1-pablo@netfilter.org>
-References: <20201022172925.22770-1-pablo@netfilter.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        netdev@vger.kernel.org, kuba@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 22 Oct 2020 19:29:18 +0200 Pablo Neira Ayuso wrote:
-> Hi Jakub,
-> 
-> The following patchset contains Netfilter fixes for net:
-> 
-> 1) Update debugging in IPVS tcp protocol handler to make it easier
->    to understand, from longguang.yue
-> 
-> 2) Update TCP tracker to deal with keepalive packet after
->    re-registration, from Franceso Ruggeri.
-> 
-> 3) Missing IP6SKB_FRAGMENTED from netfilter fragment reassembly,
->    from Georg Kohmann.
-> 
-> 4) Fix bogus packet drop in ebtables nat extensions, from
->    Thimothee Cocault.
-> 
-> 5) Fix typo in flowtable documentation.
-> 
-> 6) Reset skb timestamp in nft_fwd_netdev.
+Hello:
 
-Pulled, please remember about that [PATCH net] tag if you can, thanks!
+This series was applied to netdev/net.git (refs/heads/master):
+
+On Thu, 22 Oct 2020 19:29:19 +0200 you wrote:
+> From: "longguang.yue" <bigclouds@163.com>
+> 
+> Outputting client,virtual,dst addresses info when tcp state changes,
+> which makes the connection debug more clear
+> 
+> Signed-off-by: longguang.yue <bigclouds@163.com>
+> Acked-by: Julian Anastasov <ja@ssi.bg>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> [...]
+
+Here is the summary with links:
+  - [1/7] ipvs: adjust the debug info in function set_tcp_state
+    https://git.kernel.org/netdev/net/c/79dce09ab027
+  - [2/7] netfilter: conntrack: connection timeout after re-register
+    https://git.kernel.org/netdev/net/c/4f25434bccc2
+  - [3/7] netfilter: Drop fragmented ndisc packets assembled in netfilter
+    https://git.kernel.org/netdev/net/c/68f9f9c2c3b6
+  - [4/7] netfilter: ebtables: Fixes dropping of small packets in bridge nat
+    https://git.kernel.org/netdev/net/c/63137bc5882a
+  - [5/7] docs: nf_flowtable: fix typo.
+    https://git.kernel.org/netdev/net/c/64747d5ed199
+  - [6/7] netfilter: nftables_offload: KASAN slab-out-of-bounds Read in nft_flow_rule_create
+    https://git.kernel.org/netdev/net/c/31cc578ae2de
+  - [7/7] netfilter: nf_fwd_netdev: clear timestamp in forwarding path
+    https://git.kernel.org/netdev/net/c/c77761c8a594
+
+You are awesome, thank you!
+--
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
