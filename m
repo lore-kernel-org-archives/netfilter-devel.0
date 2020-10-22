@@ -7,47 +7,50 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5554FC388F2
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 12:50:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36503C388F7
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 17:29:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 00F2E22267
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 12:50:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D039B24656
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 17:29:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2898977AbgJVMuX (ORCPT
+        id S2900148AbgJVR3j (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Oct 2020 08:50:23 -0400
-Received: from correo.us.es ([193.147.175.20]:45828 "EHLO mail.us.es"
+        Thu, 22 Oct 2020 13:29:39 -0400
+Received: from correo.us.es ([193.147.175.20]:54106 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2894401AbgJVMuX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Oct 2020 08:50:23 -0400
+        id S2900109AbgJVR3h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 22 Oct 2020 13:29:37 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C77F6501F22
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 14:50:21 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id BFDC41C4399
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 19:29:35 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B856ADA73D
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 14:50:21 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AFC0EDA84A
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 19:29:35 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id ADD26DA722; Thu, 22 Oct 2020 14:50:21 +0200 (CEST)
+        id A4BC3DA722; Thu, 22 Oct 2020 19:29:35 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 81841DA73D
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 14:50:19 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6C980DA84A;
+        Thu, 22 Oct 2020 19:29:33 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 22 Oct 2020 14:50:19 +0200 (CEST)
+ Thu, 22 Oct 2020 19:29:33 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 70CA542EE38E
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 14:50:19 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPSA id 41B6C42EE38E;
+        Thu, 22 Oct 2020 19:29:33 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v3] netfilter: nf_fwd_netdev: clear timestamp in forwarding path
-Date:   Thu, 22 Oct 2020 14:50:14 +0200
-Message-Id: <20201022125014.18764-1-pablo@netfilter.org>
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
+Subject: [PATCH 1/7] ipvs: adjust the debug info in function set_tcp_state
+Date:   Thu, 22 Oct 2020 19:29:19 +0200
+Message-Id: <20201022172925.22770-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20201022172925.22770-1-pablo@netfilter.org>
+References: <20201022172925.22770-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
@@ -55,44 +58,48 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Similar to 7980d2eabde8 ("ipvs: clear skb->tstamp in forwarding path").
-fq qdisc requires tstamp to be cleared in forwarding path.
+From: "longguang.yue" <bigclouds@163.com>
 
-Fixes: 8203e2d844d3 ("net: clear skb->tstamp in forwarding paths")
-Fixes: fb420d5d91c1 ("tcp/fq: move back to CLOCK_MONOTONIC")
-Fixes: 80b14dee2bea ("net: Add a new socket option for a future transmit time.")
+Outputting client,virtual,dst addresses info when tcp state changes,
+which makes the connection debug more clear
+
+Signed-off-by: longguang.yue <bigclouds@163.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v3: fix neighbour path too.
+ net/netfilter/ipvs/ip_vs_proto_tcp.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
- net/netfilter/nf_dup_netdev.c  | 1 +
- net/netfilter/nft_fwd_netdev.c | 1 +
- 2 files changed, 2 insertions(+)
-
-diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
-index 2b01a151eaa8..a579e59ee5c5 100644
---- a/net/netfilter/nf_dup_netdev.c
-+++ b/net/netfilter/nf_dup_netdev.c
-@@ -19,6 +19,7 @@ static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev)
- 		skb_push(skb, skb->mac_len);
+diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+index dc2e7da2742a..7da51390cea6 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+@@ -539,8 +539,8 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
+ 	if (new_state != cp->state) {
+ 		struct ip_vs_dest *dest = cp->dest;
  
- 	skb->dev = dev;
-+	skb->tstamp = 0;
- 	dev_queue_xmit(skb);
- }
- 
-diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
-index 3087e23297db..b77985986b24 100644
---- a/net/netfilter/nft_fwd_netdev.c
-+++ b/net/netfilter/nft_fwd_netdev.c
-@@ -138,6 +138,7 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
- 		return;
- 
- 	skb->dev = dev;
-+	skb->tstamp = 0;
- 	neigh_xmit(neigh_table, dev, addr, skb);
- out:
- 	regs->verdict.code = verdict;
+-		IP_VS_DBG_BUF(8, "%s %s [%c%c%c%c] %s:%d->"
+-			      "%s:%d state: %s->%s conn->refcnt:%d\n",
++		IP_VS_DBG_BUF(8, "%s %s [%c%c%c%c] c:%s:%d v:%s:%d "
++			      "d:%s:%d state: %s->%s conn->refcnt:%d\n",
+ 			      pd->pp->name,
+ 			      ((state_off == TCP_DIR_OUTPUT) ?
+ 			       "output " : "input "),
+@@ -548,10 +548,12 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
+ 			      th->fin ? 'F' : '.',
+ 			      th->ack ? 'A' : '.',
+ 			      th->rst ? 'R' : '.',
+-			      IP_VS_DBG_ADDR(cp->daf, &cp->daddr),
+-			      ntohs(cp->dport),
+ 			      IP_VS_DBG_ADDR(cp->af, &cp->caddr),
+ 			      ntohs(cp->cport),
++			      IP_VS_DBG_ADDR(cp->af, &cp->vaddr),
++			      ntohs(cp->vport),
++			      IP_VS_DBG_ADDR(cp->daf, &cp->daddr),
++			      ntohs(cp->dport),
+ 			      tcp_state_name(cp->state),
+ 			      tcp_state_name(new_state),
+ 			      refcount_read(&cp->refcnt));
 -- 
 2.20.1
 
