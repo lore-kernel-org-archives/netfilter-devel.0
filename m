@@ -2,154 +2,133 @@ Return-Path: <SRS0=B2LC=D5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 376D6C388F9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 759B2C56201
 	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 17:29:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DE96C24182
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 17:29:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2B7672463F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 17:29:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2900430AbgJVR3v (ORCPT
+        id S2900120AbgJVR3h (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Oct 2020 13:29:51 -0400
-Received: from correo.us.es ([193.147.175.20]:54162 "EHLO mail.us.es"
+        Thu, 22 Oct 2020 13:29:37 -0400
+Received: from correo.us.es ([193.147.175.20]:54082 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2900147AbgJVR3k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Oct 2020 13:29:40 -0400
+        id S2900088AbgJVR3g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 22 Oct 2020 13:29:36 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 847D71C43A8
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 19:29:38 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id E63C41C4383
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 19:29:33 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7756CDA72F
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 19:29:38 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D809BDA853
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 19:29:33 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 65F50DA852; Thu, 22 Oct 2020 19:29:38 +0200 (CEST)
+        id CDA99DA852; Thu, 22 Oct 2020 19:29:33 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 31763DA722;
-        Thu, 22 Oct 2020 19:29:36 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A27E2DA722;
+        Thu, 22 Oct 2020 19:29:31 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 22 Oct 2020 19:29:36 +0200 (CEST)
+ Thu, 22 Oct 2020 19:29:31 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 0647042EE38E;
-        Thu, 22 Oct 2020 19:29:35 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPSA id 7488442EE38E;
+        Thu, 22 Oct 2020 19:29:31 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 6/7] netfilter: nftables_offload: KASAN slab-out-of-bounds Read in nft_flow_rule_create
-Date:   Thu, 22 Oct 2020 19:29:24 +0200
-Message-Id: <20201022172925.22770-7-pablo@netfilter.org>
+Subject: [PATCH 0/7] Netfilter fixes for net
+Date:   Thu, 22 Oct 2020 19:29:18 +0200
+Message-Id: <20201022172925.22770-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20201022172925.22770-1-pablo@netfilter.org>
-References: <20201022172925.22770-1-pablo@netfilter.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
+Hi Jakub,
 
-This patch fixes the issue due to:
+The following patchset contains Netfilter fixes for net:
 
-BUG: KASAN: slab-out-of-bounds in nft_flow_rule_create+0x622/0x6a2
-net/netfilter/nf_tables_offload.c:40
-Read of size 8 at addr ffff888103910b58 by task syz-executor227/16244
+1) Update debugging in IPVS tcp protocol handler to make it easier
+   to understand, from longguang.yue
 
-The error happens when expr->ops is accessed early on before performing the boundary check and after nft_expr_next() moves the expr to go out-of-bounds.
+2) Update TCP tracker to deal with keepalive packet after
+   re-registration, from Franceso Ruggeri.
 
-This patch checks the boundary condition before expr->ops that fixes the slab-out-of-bounds Read issue.
+3) Missing IP6SKB_FRAGMENTED from netfilter fragment reassembly,
+   from Georg Kohmann.
 
-Add nft_expr_more() and use it to fix this problem.
+4) Fix bogus packet drop in ebtables nat extensions, from
+   Thimothee Cocault.
 
-Signed-off-by: Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables.h | 6 ++++++
- net/netfilter/nf_tables_api.c     | 6 +++---
- net/netfilter/nf_tables_offload.c | 4 ++--
- 3 files changed, 11 insertions(+), 5 deletions(-)
+5) Fix typo in flowtable documentation.
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 3f7e56b1171e..55b4cadf290a 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -891,6 +891,12 @@ static inline struct nft_expr *nft_expr_last(const struct nft_rule *rule)
- 	return (struct nft_expr *)&rule->data[rule->dlen];
- }
- 
-+static inline bool nft_expr_more(const struct nft_rule *rule,
-+				 const struct nft_expr *expr)
-+{
-+	return expr != nft_expr_last(rule) && expr->ops;
-+}
-+
- static inline struct nft_userdata *nft_userdata(const struct nft_rule *rule)
- {
- 	return (void *)&rule->data[rule->dlen];
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 9957e0ed8658..65cb8e3c13d9 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -302,7 +302,7 @@ static void nft_rule_expr_activate(const struct nft_ctx *ctx,
- 	struct nft_expr *expr;
- 
- 	expr = nft_expr_first(rule);
--	while (expr != nft_expr_last(rule) && expr->ops) {
-+	while (nft_expr_more(rule, expr)) {
- 		if (expr->ops->activate)
- 			expr->ops->activate(ctx, expr);
- 
-@@ -317,7 +317,7 @@ static void nft_rule_expr_deactivate(const struct nft_ctx *ctx,
- 	struct nft_expr *expr;
- 
- 	expr = nft_expr_first(rule);
--	while (expr != nft_expr_last(rule) && expr->ops) {
-+	while (nft_expr_more(rule, expr)) {
- 		if (expr->ops->deactivate)
- 			expr->ops->deactivate(ctx, expr, phase);
- 
-@@ -3080,7 +3080,7 @@ static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
- 	 * is called on error from nf_tables_newrule().
- 	 */
- 	expr = nft_expr_first(rule);
--	while (expr != nft_expr_last(rule) && expr->ops) {
-+	while (nft_expr_more(rule, expr)) {
- 		next = nft_expr_next(expr);
- 		nf_tables_expr_destroy(ctx, expr);
- 		expr = next;
-diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 7c7e06624dc3..9f625724a20f 100644
---- a/net/netfilter/nf_tables_offload.c
-+++ b/net/netfilter/nf_tables_offload.c
-@@ -37,7 +37,7 @@ struct nft_flow_rule *nft_flow_rule_create(struct net *net,
- 	struct nft_expr *expr;
- 
- 	expr = nft_expr_first(rule);
--	while (expr->ops && expr != nft_expr_last(rule)) {
-+	while (nft_expr_more(rule, expr)) {
- 		if (expr->ops->offload_flags & NFT_OFFLOAD_F_ACTION)
- 			num_actions++;
- 
-@@ -61,7 +61,7 @@ struct nft_flow_rule *nft_flow_rule_create(struct net *net,
- 	ctx->net = net;
- 	ctx->dep.type = NFT_OFFLOAD_DEP_UNSPEC;
- 
--	while (expr->ops && expr != nft_expr_last(rule)) {
-+	while (nft_expr_more(rule, expr)) {
- 		if (!expr->ops->offload) {
- 			err = -EOPNOTSUPP;
- 			goto err_out;
--- 
-2.20.1
+6) Reset skb timestamp in nft_fwd_netdev.
 
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit df6afe2f7c19349de2ee560dc62ea4d9ad3ff889:
+
+  nexthop: Fix performance regression in nexthop deletion (2020-10-19 20:07:15 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to c77761c8a59405cb7aa44188b30fffe13fbdd02d:
+
+  netfilter: nf_fwd_netdev: clear timestamp in forwarding path (2020-10-22 14:49:36 +0200)
+
+----------------------------------------------------------------
+Francesco Ruggeri (1):
+      netfilter: conntrack: connection timeout after re-register
+
+Georg Kohmann (1):
+      netfilter: Drop fragmented ndisc packets assembled in netfilter
+
+Jeremy Sowden (1):
+      docs: nf_flowtable: fix typo.
+
+Pablo Neira Ayuso (1):
+      netfilter: nf_fwd_netdev: clear timestamp in forwarding path
+
+Saeed Mirzamohammadi (1):
+      netfilter: nftables_offload: KASAN slab-out-of-bounds Read in nft_flow_rule_create
+
+Timothée COCAULT (1):
+      netfilter: ebtables: Fixes dropping of small packets in bridge nat
+
+longguang.yue (1):
+      ipvs: adjust the debug info in function set_tcp_state
+
+ Documentation/networking/nf_flowtable.rst |  2 +-
+ include/net/netfilter/nf_tables.h         |  6 ++++++
+ net/bridge/netfilter/ebt_dnat.c           |  2 +-
+ net/bridge/netfilter/ebt_redirect.c       |  2 +-
+ net/bridge/netfilter/ebt_snat.c           |  2 +-
+ net/ipv6/netfilter/nf_conntrack_reasm.c   |  1 +
+ net/netfilter/ipvs/ip_vs_proto_tcp.c      | 10 ++++++----
+ net/netfilter/nf_conntrack_proto_tcp.c    | 19 +++++++++++++------
+ net/netfilter/nf_dup_netdev.c             |  1 +
+ net/netfilter/nf_tables_api.c             |  6 +++---
+ net/netfilter/nf_tables_offload.c         |  4 ++--
+ net/netfilter/nft_fwd_netdev.c            |  1 +
+ 12 files changed, 37 insertions(+), 19 deletions(-)
