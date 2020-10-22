@@ -4,50 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC2D4C4363A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 17:29:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 980A0C4363A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 17:29:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A93C424182
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 17:29:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 40AED24182
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 17:29:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2900184AbgJVR3m (ORCPT
+        id S2900180AbgJVR3l (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Oct 2020 13:29:42 -0400
-Received: from correo.us.es ([193.147.175.20]:54150 "EHLO mail.us.es"
+        Thu, 22 Oct 2020 13:29:41 -0400
+Received: from correo.us.es ([193.147.175.20]:54166 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2900086AbgJVR3k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Oct 2020 13:29:40 -0400
+        id S2900169AbgJVR3j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 22 Oct 2020 13:29:39 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6EDDE1C4397
+        by mail.us.es (Postfix) with ESMTP id DCD041C43A9
         for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 19:29:38 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5F296DA72F
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CFAFCDA73D
         for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 19:29:38 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 544EFDA73F; Thu, 22 Oct 2020 19:29:38 +0200 (CEST)
+        id C5730DA72F; Thu, 22 Oct 2020 19:29:38 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id ACB44DA844;
-        Thu, 22 Oct 2020 19:29:35 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AC7C1DA73D;
+        Thu, 22 Oct 2020 19:29:36 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 22 Oct 2020 19:29:35 +0200 (CEST)
+ Thu, 22 Oct 2020 19:29:36 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 7F71F42EE38E;
-        Thu, 22 Oct 2020 19:29:35 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPSA id 7FA9F42EE38E;
+        Thu, 22 Oct 2020 19:29:36 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH 5/7] docs: nf_flowtable: fix typo.
-Date:   Thu, 22 Oct 2020 19:29:23 +0200
-Message-Id: <20201022172925.22770-6-pablo@netfilter.org>
+Subject: [PATCH 7/7] netfilter: nf_fwd_netdev: clear timestamp in forwarding path
+Date:   Thu, 22 Oct 2020 19:29:25 +0200
+Message-Id: <20201022172925.22770-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201022172925.22770-1-pablo@netfilter.org>
 References: <20201022172925.22770-1-pablo@netfilter.org>
@@ -58,29 +58,42 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Jeremy Sowden <jeremy@azazel.net>
+Similar to 7980d2eabde8 ("ipvs: clear skb->tstamp in forwarding path").
+fq qdisc requires tstamp to be cleared in forwarding path.
 
-"mailined" should be "mainlined."
-
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+Fixes: 8203e2d844d3 ("net: clear skb->tstamp in forwarding paths")
+Fixes: fb420d5d91c1 ("tcp/fq: move back to CLOCK_MONOTONIC")
+Fixes: 80b14dee2bea ("net: Add a new socket option for a future transmit time.")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- Documentation/networking/nf_flowtable.rst | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_dup_netdev.c  | 1 +
+ net/netfilter/nft_fwd_netdev.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/Documentation/networking/nf_flowtable.rst b/Documentation/networking/nf_flowtable.rst
-index b6e1fa141aae..6cdf9a1724b6 100644
---- a/Documentation/networking/nf_flowtable.rst
-+++ b/Documentation/networking/nf_flowtable.rst
-@@ -109,7 +109,7 @@ More reading
- This documentation is based on the LWN.net articles [1]_\ [2]_. Rafal Milecki
- also made a very complete and comprehensive summary called "A state of network
- acceleration" that describes how things were before this infrastructure was
--mailined [3]_ and it also makes a rough summary of this work [4]_.
-+mainlined [3]_ and it also makes a rough summary of this work [4]_.
+diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
+index 2b01a151eaa8..a579e59ee5c5 100644
+--- a/net/netfilter/nf_dup_netdev.c
++++ b/net/netfilter/nf_dup_netdev.c
+@@ -19,6 +19,7 @@ static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev)
+ 		skb_push(skb, skb->mac_len);
  
- .. [1] https://lwn.net/Articles/738214/
- .. [2] https://lwn.net/Articles/742164/
+ 	skb->dev = dev;
++	skb->tstamp = 0;
+ 	dev_queue_xmit(skb);
+ }
+ 
+diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
+index 3087e23297db..b77985986b24 100644
+--- a/net/netfilter/nft_fwd_netdev.c
++++ b/net/netfilter/nft_fwd_netdev.c
+@@ -138,6 +138,7 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
+ 		return;
+ 
+ 	skb->dev = dev;
++	skb->tstamp = 0;
+ 	neigh_xmit(neigh_table, dev, addr, skb);
+ out:
+ 	regs->verdict.code = verdict;
 -- 
 2.20.1
 
