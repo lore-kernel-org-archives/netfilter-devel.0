@@ -1,91 +1,138 @@
-Return-Path: <SRS0=B2LC=D5=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=t7ih=D6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A328C388F9
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 20:40:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F030C388F7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Oct 2020 01:21:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B38C024640
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Oct 2020 20:40:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A71D520878
+	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Oct 2020 01:21:45 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="bWPmglrU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S371832AbgJVUkk (ORCPT
+        id S374284AbgJWBVo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Oct 2020 16:40:40 -0400
-Received: from correo.us.es ([193.147.175.20]:34402 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S371812AbgJVUkj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Oct 2020 16:40:39 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 081BEE8E85
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 22:40:38 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EDC3EDA73D
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 22:40:37 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id E3827DA704; Thu, 22 Oct 2020 22:40:37 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B7F85DA789
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 22:40:35 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 22 Oct 2020 22:40:35 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id A5DA442EE395
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 22:40:35 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] netfilter: nftables: fix netlink report logic in flowtable and genid
-Date:   Thu, 22 Oct 2020 22:40:32 +0200
-Message-Id: <20201022204032.28904-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
+        Thu, 22 Oct 2020 21:21:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49356 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S374285AbgJWBVo (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 22 Oct 2020 21:21:44 -0400
+Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B31C5C0613D4
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 18:21:43 -0700 (PDT)
+Received: by mail-ej1-x642.google.com with SMTP id p5so93134ejj.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2020 18:21:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=aoxn8RZh5GwLX2OTvbY4F3fYrAFarAXAp+zyIW9UVc0=;
+        b=bWPmglrUmUWeh/iJB7I1EBJU+TdBzoO9kJeAZdj0Mj7vyjbv9DyccX5Lt+lUFusiZw
+         HWpqEJDPjpY3Pe66lK3CAkBsqcDG1SzJroJ/TrLWOH68lnkP3CHZa96739LkvB31F0p2
+         UKaI6v6FS6fL3igL3m2SvuN8QdEUHemh+0A+WspZbjpxU8NlNH1xji6y4zYUku/PAtIG
+         VlsE4Z2Vr2DxmyRQoiSH2mQuJn6k9T8lU/ZuPxibEI768Vlsje7dAVkK4A+TJ9+adHG8
+         +FBZ1+GlJF4yKcmomBogElmJ3P88v835veafFeBLgDo8obHbAFEfQjagR4wLw4RxeZia
+         Dx4Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=aoxn8RZh5GwLX2OTvbY4F3fYrAFarAXAp+zyIW9UVc0=;
+        b=dTbV/jJzGBPbakrlfCuk4HObPnPOg1Fi1ZbcbK1ATFBxE+XOShg55RdHM1VDbtcQtv
+         C8RQOmHFdzdPrGHIFbgLRpT8HQBgwGAnM05HyAJAcSoanUfYrz/MlCFG5DrX7Z7URxZc
+         KefSYqMWnUr5eE/LyaHrzJTUQRR5bg2apZinmtL03znsy2pgBRK5wNsfseeuLQRxUi52
+         fK2RSuDMNtc5ug2AwMk//NzjcKIb4ElWy80qCV3MLB7tJD1gmgxUt4uGFk3ka0J0AoS6
+         mLA3gtj6ku520jJUiBuHKS67s9A80XZjgvVUkJp09G8lyv8cw79rAjsCvFb/iTkN9Sa2
+         Yr0Q==
+X-Gm-Message-State: AOAM533b4Nr4oCn4lRH+/3DA5ihpfujr0qEMbCzNpBD6Cs25EBs/teRJ
+        hnxi7/tU4gQbdLZ6g5XU79iMgEMfimzXU9wBhPs6
+X-Google-Smtp-Source: ABdhPJzDtfnYw+rfKgxc4a8mUFIh6ll/aQ2+0itoJxliGHEeO3L/XBWkrOQEYSixIJb79O9lCBjh5YKgmDlUs8u/x/U=
+X-Received: by 2002:a17:906:25cc:: with SMTP id n12mr4813564ejb.488.1603416102090;
+ Thu, 22 Oct 2020 18:21:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+References: <cover.1593198710.git.rgb@redhat.com> <6e2e10432e1400f747918eeb93bf45029de2aa6c.1593198710.git.rgb@redhat.com>
+ <CAHC9VhSCm5eeBcyY8bBsnxr-hK4rkso9_NJHJec2OXLu4m5QTA@mail.gmail.com>
+ <20200729194058.kcbsqjhzunjpipgm@madcap2.tricolour.ca> <CAHC9VhRUwCKBjffA_XNSjUwvUn8e6zfmy8WD203dK7R2KD0__g@mail.gmail.com>
+ <20201002195231.GH2882171@madcap2.tricolour.ca> <20201021163926.GA3929765@madcap2.tricolour.ca>
+In-Reply-To: <20201021163926.GA3929765@madcap2.tricolour.ca>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Thu, 22 Oct 2020 21:21:31 -0400
+Message-ID: <CAHC9VhRb7XMyTrcrmzM3yQO+eLdO_r2+DOLKr9apDDeH4ua2Ew@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V9 05/13] audit: log container info of syscalls
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
+        containers@lists.linux-foundation.org,
+        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
+        simo@redhat.com, netdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
+        mpatel@redhat.com, Serge Hallyn <serge@hallyn.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The netlink report should be sent regardless the available listeners.
+On Wed, Oct 21, 2020 at 12:39 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> Here is an exmple I was able to generate after updating the testsuite
+> script to include a signalling example of a nested audit container
+> identifier:
+>
+> ----
+> type=3DPROCTITLE msg=3Daudit(2020-10-21 10:31:16.655:6731) : proctitle=3D=
+/usr/bin/perl -w containerid/test
+> type=3DCONTAINER_ID msg=3Daudit(2020-10-21 10:31:16.655:6731) : contid=3D=
+7129731255799087104^3333941723245477888
+> type=3DOBJ_PID msg=3Daudit(2020-10-21 10:31:16.655:6731) : opid=3D115583 =
+oauid=3Droot ouid=3Droot oses=3D1 obj=3Dunconfined_u:unconfined_r:unconfine=
+d_t:s0-s0:c0.c1023 ocomm=3Dperl
+> type=3DCONTAINER_ID msg=3Daudit(2020-10-21 10:31:16.655:6731) : contid=3D=
+3333941723245477888
+> type=3DOBJ_PID msg=3Daudit(2020-10-21 10:31:16.655:6731) : opid=3D115580 =
+oauid=3Droot ouid=3Droot oses=3D1 obj=3Dunconfined_u:unconfined_r:unconfine=
+d_t:s0-s0:c0.c1023 ocomm=3Dperl
+> type=3DCONTAINER_ID msg=3Daudit(2020-10-21 10:31:16.655:6731) : contid=3D=
+8098399240850112512^3333941723245477888
+> type=3DOBJ_PID msg=3Daudit(2020-10-21 10:31:16.655:6731) : opid=3D115582 =
+oauid=3Droot ouid=3Droot oses=3D1 obj=3Dunconfined_u:unconfined_r:unconfine=
+d_t:s0-s0:c0.c1023 ocomm=3Dperl
+> type=3DSYSCALL msg=3Daudit(2020-10-21 10:31:16.655:6731) : arch=3Dx86_64 =
+syscall=3Dkill success=3Dyes exit=3D0 a0=3D0xfffe3c84 a1=3DSIGTERM a2=3D0x4=
+d524554 a3=3D0x0 items=3D0 ppid=3D115564 pid=3D115567 auid=3Droot uid=3Droo=
+t gid=3Droot euid=3Droot suid=3Droot fsuid=3Droot egid=3Droot sgid=3Droot f=
+sgid=3Droot tty=3DttyS0 ses=3D1 comm=3Dperl exe=3D/usr/bin/perl subj=3Dunco=
+nfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=3Dtestsuite-160329067=
+1-AcLtUulY
+> ----
+>
+> There are three CONTAINER_ID records which need some way of associating w=
+ith OBJ_PID records.  An additional CONTAINER_ID record would be present if=
+ the killing process itself had an audit container identifier.  I think the=
+ most obvious way to connect them is with a pid=3D field in the CONTAINER_I=
+D record.
 
-Fixes: 84d7fce69388 ("netfilter: nf_tables: export rule-set generation ID")
-Fixes: 3b49e2e94e6e ("netfilter: nf_tables: add flow table netlink frontend")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Using a "pid=3D" field as a way to link CONTAINER_ID records to other
+records raises a few questions.  What happens if/when we need to
+represent those PIDs in the context of a namespace?  Are we ever going
+to need to link to records which don't have a "pid=3D" field?  I haven't
+done the homework to know if either of these are a concern right now,
+but I worry that this might become a problem in the future.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 65cb8e3c13d9..9b70e136fb5d 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -7137,7 +7137,7 @@ static void nf_tables_flowtable_notify(struct nft_ctx *ctx,
- 			GFP_KERNEL);
- 	kfree(buf);
- 
--	if (ctx->report &&
-+	if (!ctx->report &&
- 	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
- 		return;
- 
-@@ -7259,7 +7259,7 @@ static void nf_tables_gen_notify(struct net *net, struct sk_buff *skb,
- 	audit_log_nfcfg("?:0;?:0", 0, net->nft.base_seq,
- 			AUDIT_NFT_OP_GEN_REGISTER, GFP_KERNEL);
- 
--	if (nlmsg_report(nlh) &&
-+	if (!nlmsg_report(nlh) &&
- 	    !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
- 		return;
- 
--- 
-2.20.1
+The idea of using something like "item=3D" is interesting.  As you
+mention, the "item=3D" field does present some overlap problems with the
+PATH record, but perhaps we can do something similar.  What if we
+added a "record=3D" (or similar, I'm not worried about names at this
+point) to each record, reset to 0/1 at the start of each event, and
+when we needed to link records somehow we could add a "related=3D1,..,N"
+field.  This would potentially be useful beyond just the audit
+container ID work.
 
+--=20
+paul moore
+www.paul-moore.com
