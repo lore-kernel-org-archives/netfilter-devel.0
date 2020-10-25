@@ -2,88 +2,240 @@ Return-Path: <SRS0=hvDf=EA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29A05C388F7
-	for <netfilter-devel@archiver.kernel.org>; Sun, 25 Oct 2020 18:16:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76321C56201
+	for <netfilter-devel@archiver.kernel.org>; Sun, 25 Oct 2020 22:29:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8FE7B21707
-	for <netfilter-devel@archiver.kernel.org>; Sun, 25 Oct 2020 18:16:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35FF3222C2
+	for <netfilter-devel@archiver.kernel.org>; Sun, 25 Oct 2020 22:29:23 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="R0l8S5ot"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lvfMgB6F"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1417988AbgJYSQA (ORCPT
+        id S1419485AbgJYW3U (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 25 Oct 2020 14:16:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54520 "EHLO
+        Sun, 25 Oct 2020 18:29:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36810 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1417977AbgJYSP7 (ORCPT
+        with ESMTP id S1419360AbgJYW3U (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 25 Oct 2020 14:15:59 -0400
-Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7D47C061755
-        for <netfilter-devel@vger.kernel.org>; Sun, 25 Oct 2020 11:15:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
-        :Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=+XpJnKupvh+Sg32pHP/2hLfgXeeUfBbHsSiF1ntnvg8=; b=R0l8S5otEMQF0xXPKXu9iNWcZe
-        GeOWLIzdH6vmH1T3UfRRiKJduopqjVKEQ4/UXJrGdrf0AjHMqCMj+rm3E7R0hm8hbNkG6sqrs9RyN
-        aNS2UCxpg5H7iJoBrd8dRoVDCcpu46j/7XKVln5BFDYYyLxjYZLsnbHLvkFIkzKC+HIQ8mJ1NBcXy
-        qyHT5WqjFRmhmziKi6JvMbTXdBjfie12JNI3Sf/3l7JBGpzAfAZvIvjuhF7Vfa9ZcVk5Cy+hQNonq
-        +UeLORfrJcE+joAJZ4SNq2HVBvBF/f/QFVr7nwxHuR9Fa03p3QkUeqTIkbA2yQ6VN4NqT6xAWpms7
-        GLdgirNw==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
-        by kadath.azazel.net with esmtp (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1kWkYd-00010U-DM; Sun, 25 Oct 2020 18:15:55 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH xtables-addons] pnock: pknlusr: mention the group ID command-line paramater in the man-page.
-Date:   Sun, 25 Oct 2020 18:15:51 +0000
-Message-Id: <20201025181551.962197-1-jeremy@azazel.net>
-X-Mailer: git-send-email 2.28.0
+        Sun, 25 Oct 2020 18:29:20 -0400
+Received: from mail-ej1-x644.google.com (mail-ej1-x644.google.com [IPv6:2a00:1450:4864:20::644])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EE9CC061755;
+        Sun, 25 Oct 2020 15:29:19 -0700 (PDT)
+Received: by mail-ej1-x644.google.com with SMTP id h24so10730526ejg.9;
+        Sun, 25 Oct 2020 15:29:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:reply-to:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to;
+        bh=lh2oS0OcdW/8/KVlxidM+IVHUHZT9Oaa9CWag9blTrU=;
+        b=lvfMgB6F7HQZQ8d7WfSI56Pd+ImLiyWdCjGsgXPLcOU0JXd5UAwHudJhDI8Lz2w74u
+         uxk0v//O3brXwOBywx3aAPK8m57ZPw3VndRZSPuuyA/JqsJWTrv7IKBNlWQFVj56e/LI
+         /jmxfgMnNhEwzmGPUW4lLCtosElcIhzYf9J+7vCVbsqUVu5nCcWR4dtP8wC5T+U31QFu
+         whRsQU9g0j76ztPh+AdeBWYMlztpIdsrGO+QS5cz4shhXRvZivTrZ6RJl3RCTNQZCwm8
+         OF1+Tu8uY5U5Y5a38Z3HaW3R5PInIMoe6QaIXnd3ssj5xFJ3mHpXtMz1x0eKPNUng01+
+         kGBA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:reply-to
+         :references:mime-version:content-disposition
+         :content-transfer-encoding:in-reply-to;
+        bh=lh2oS0OcdW/8/KVlxidM+IVHUHZT9Oaa9CWag9blTrU=;
+        b=f8A7M+aqm/xCvWoxQpq+NI8sR1xVe1NVWhoa/yZoZV8rrgM8GQX7fx1UIvLchlGZE1
+         XVJkM+7AG4nrjsV+Y1+QiHV1n76ZR+oEaxakJR8rTECLfHn7PgqJniNOs2F7Cr4UPS/z
+         Eqwfs0RPiy0DZO35ooq/yBow+CDzUqD5/slc2MQIYSHespWHe0YmLNn3pR+x2PvJmCKA
+         IlZEGTb8nu1Qgd5F1FDtJKYSKjJOwciskg+6L1ohHEafQg0Vfuw99TFoFqGy8Clh4g3t
+         ZlS5hv7eGxeYHvj7bRaqBnRpiNDRxeF97TuhZ1FbSHWxxoYbQUi9AQcuWLOKXMGjIvjP
+         oBBw==
+X-Gm-Message-State: AOAM532k4XesH5D2ZgnPkF9R++cKTq7oYDCqkiHJmGpiA1X2E9ypLzQ7
+        Q1qdJ8193W1OxnUy/SZTtXf/ZLqQPbuJ2g==
+X-Google-Smtp-Source: ABdhPJybTN4d3NEuEwszBwb9KG4Fifsz/c2RociVCzidJ7soLTC19SpC6VfDoIDLLfhfkMWJD1vyTw==
+X-Received: by 2002:a17:906:3488:: with SMTP id g8mr12379738ejb.296.1603664958123;
+        Sun, 25 Oct 2020 15:29:18 -0700 (PDT)
+Received: from x230 ([62.201.25.198])
+        by smtp.gmail.com with ESMTPSA id t15sm4144110edr.27.2020.10.25.15.29.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 25 Oct 2020 15:29:17 -0700 (PDT)
+Date:   Sun, 25 Oct 2020 23:29:15 +0100
+From:   Petr Vorel <petr.vorel@gmail.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     Rich Felker <dalias@aerifal.cx>, linux-api@vger.kernel.org,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v3 1/1] uapi: Move constants from <linux/kernel.h> to
+ <linux/const.h>
+Message-ID: <20201025222915.GA40443@x230>
+Reply-To: Petr Vorel <petr.vorel@gmail.com>
+References: <20201015190013.8901-1-petr.vorel@gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+In-Reply-To: <20201015190013.8901-1-petr.vorel@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- extensions/pknock/pknlusr.8 | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Hi Pablo, Jozsef, Florian,
 
-diff --git a/extensions/pknock/pknlusr.8 b/extensions/pknock/pknlusr.8
-index a34b8fe1abbb..2c24bff52ec5 100644
---- a/extensions/pknock/pknlusr.8
-+++ b/extensions/pknock/pknlusr.8
-@@ -4,12 +4,15 @@
- pknlusr \(em userspace monitor for successful xt_pknock matches
- .SH Synopsis
- .PP
--\fBpknlusr\fP
-+\fBpknlusr\fP [ \fIgroup-id\fP ]
- .SH Description
- \fIxt_pknock\fP is an xtables match extension that implements so-called \fIport
- knocking\fP. It can be configured to send information about each successful
- match via a netlink socket to userspace. \fBpknluser\fP listens for these
- notifications.
-+.PP
-+By default, \fBpknlusr\fP listens for messages sent to netlink multicast group
-+1.  Another group ID may be passed as a command-line argument.
- .SH See also
- .PP
- xtables-addons(8)
--- 
-2.28.0
+Cc you as the patch touched also netlink UAPI headers.
 
+Kind regards,
+Petr
+
+> and include <linux/const.h> in UAPI headers instead of <linux/kernel.h>.
+
+> The reason is to avoid indirect <linux/sysinfo.h> include when using
+> some network headers: <linux/netlink.h> or others -> <linux/kernel.h>
+> -> <linux/sysinfo.h>.
+
+> This indirect include causes on MUSL redefinition of struct sysinfo when
+> included both <sys/sysinfo.h> and some of UAPI headers:
+
+> In file included from x86_64-buildroot-linux-musl/sysroot/usr/include/linux/kernel.h:5,
+>                  from x86_64-buildroot-linux-musl/sysroot/usr/include/linux/netlink.h:5,
+>                  from ../include/tst_netlink.h:14,
+>                  from tst_crypto.c:13:
+> x86_64-buildroot-linux-musl/sysroot/usr/include/linux/sysinfo.h:8:8: error: redefinition of ‘struct sysinfo’
+>  struct sysinfo {
+>         ^~~~~~~
+> In file included from ../include/tst_safe_macros.h:15,
+>                  from ../include/tst_test.h:93,
+>                  from tst_crypto.c:11:
+> x86_64-buildroot-linux-musl/sysroot/usr/include/sys/sysinfo.h:10:8: note: originally defined here
+
+> Suggested-by: Rich Felker <dalias@aerifal.cx>
+> Signed-off-by: Petr Vorel <petr.vorel@gmail.com>
+> ---
+> Changes v2->v3:
+> * Move things to <linux/const.h> instead of creating new header
+> <linux/align.h>.
+
+> Kind regards,
+> Petr
+
+>  include/uapi/linux/const.h              | 5 +++++
+>  include/uapi/linux/ethtool.h            | 2 +-
+>  include/uapi/linux/kernel.h             | 9 +--------
+>  include/uapi/linux/lightnvm.h           | 2 +-
+>  include/uapi/linux/mroute6.h            | 2 +-
+>  include/uapi/linux/netfilter/x_tables.h | 2 +-
+>  include/uapi/linux/netlink.h            | 2 +-
+>  include/uapi/linux/sysctl.h             | 2 +-
+>  8 files changed, 12 insertions(+), 14 deletions(-)
+
+> diff --git a/include/uapi/linux/const.h b/include/uapi/linux/const.h
+> index 5ed721ad5b19..af2a44c08683 100644
+> --- a/include/uapi/linux/const.h
+> +++ b/include/uapi/linux/const.h
+> @@ -28,4 +28,9 @@
+>  #define _BITUL(x)	(_UL(1) << (x))
+>  #define _BITULL(x)	(_ULL(1) << (x))
+
+> +#define __ALIGN_KERNEL(x, a)		__ALIGN_KERNEL_MASK(x, (typeof(x))(a) - 1)
+> +#define __ALIGN_KERNEL_MASK(x, mask)	(((x) + (mask)) & ~(mask))
+> +
+> +#define __KERNEL_DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
+> +
+>  #endif /* _UAPI_LINUX_CONST_H */
+> diff --git a/include/uapi/linux/ethtool.h b/include/uapi/linux/ethtool.h
+> index b4f2d134e713..0a9cced74e6d 100644
+> --- a/include/uapi/linux/ethtool.h
+> +++ b/include/uapi/linux/ethtool.h
+> @@ -14,7 +14,7 @@
+>  #ifndef _UAPI_LINUX_ETHTOOL_H
+>  #define _UAPI_LINUX_ETHTOOL_H
+
+> -#include <linux/kernel.h>
+> +#include <linux/const.h>
+>  #include <linux/types.h>
+>  #include <linux/if_ether.h>
+
+> diff --git a/include/uapi/linux/kernel.h b/include/uapi/linux/kernel.h
+> index 0ff8f7477847..fadf2db71fe8 100644
+> --- a/include/uapi/linux/kernel.h
+> +++ b/include/uapi/linux/kernel.h
+> @@ -3,13 +3,6 @@
+>  #define _UAPI_LINUX_KERNEL_H
+
+>  #include <linux/sysinfo.h>
+> -
+> -/*
+> - * 'kernel.h' contains some often-used function prototypes etc
+> - */
+> -#define __ALIGN_KERNEL(x, a)		__ALIGN_KERNEL_MASK(x, (typeof(x))(a) - 1)
+> -#define __ALIGN_KERNEL_MASK(x, mask)	(((x) + (mask)) & ~(mask))
+> -
+> -#define __KERNEL_DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
+> +#include <linux/const.h>
+
+>  #endif /* _UAPI_LINUX_KERNEL_H */
+> diff --git a/include/uapi/linux/lightnvm.h b/include/uapi/linux/lightnvm.h
+> index f9a1be7fc696..ead2e72e5c88 100644
+> --- a/include/uapi/linux/lightnvm.h
+> +++ b/include/uapi/linux/lightnvm.h
+> @@ -21,7 +21,7 @@
+>  #define _UAPI_LINUX_LIGHTNVM_H
+
+>  #ifdef __KERNEL__
+> -#include <linux/kernel.h>
+> +#include <linux/const.h>
+>  #include <linux/ioctl.h>
+>  #else /* __KERNEL__ */
+>  #include <stdio.h>
+> diff --git a/include/uapi/linux/mroute6.h b/include/uapi/linux/mroute6.h
+> index c36177a86516..a1fd6173e2db 100644
+> --- a/include/uapi/linux/mroute6.h
+> +++ b/include/uapi/linux/mroute6.h
+> @@ -2,7 +2,7 @@
+>  #ifndef _UAPI__LINUX_MROUTE6_H
+>  #define _UAPI__LINUX_MROUTE6_H
+
+> -#include <linux/kernel.h>
+> +#include <linux/const.h>
+>  #include <linux/types.h>
+>  #include <linux/sockios.h>
+>  #include <linux/in6.h>		/* For struct sockaddr_in6. */
+> diff --git a/include/uapi/linux/netfilter/x_tables.h b/include/uapi/linux/netfilter/x_tables.h
+> index a8283f7dbc51..b8c6bb233ac1 100644
+> --- a/include/uapi/linux/netfilter/x_tables.h
+> +++ b/include/uapi/linux/netfilter/x_tables.h
+> @@ -1,7 +1,7 @@
+>  /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+>  #ifndef _UAPI_X_TABLES_H
+>  #define _UAPI_X_TABLES_H
+> -#include <linux/kernel.h>
+> +#include <linux/const.h>
+>  #include <linux/types.h>
+
+>  #define XT_FUNCTION_MAXNAMELEN 30
+> diff --git a/include/uapi/linux/netlink.h b/include/uapi/linux/netlink.h
+> index eac8a6a648ea..7ba6d3b9cdec 100644
+> --- a/include/uapi/linux/netlink.h
+> +++ b/include/uapi/linux/netlink.h
+> @@ -2,7 +2,7 @@
+>  #ifndef _UAPI__LINUX_NETLINK_H
+>  #define _UAPI__LINUX_NETLINK_H
+
+> -#include <linux/kernel.h>
+> +#include <linux/const.h>
+>  #include <linux/socket.h> /* for __kernel_sa_family_t */
+>  #include <linux/types.h>
+
+> diff --git a/include/uapi/linux/sysctl.h b/include/uapi/linux/sysctl.h
+> index 27c1ed2822e6..458179df9b27 100644
+> --- a/include/uapi/linux/sysctl.h
+> +++ b/include/uapi/linux/sysctl.h
+> @@ -23,7 +23,7 @@
+>  #ifndef _UAPI_LINUX_SYSCTL_H
+>  #define _UAPI_LINUX_SYSCTL_H
+
+> -#include <linux/kernel.h>
+> +#include <linux/const.h>
+>  #include <linux/types.h>
+>  #include <linux/compiler.h>
