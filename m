@@ -1,88 +1,72 @@
-Return-Path: <SRS0=LVSz=EB=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=ZDGT=EC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 822D4C2D0A3
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Oct 2020 16:48:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B9EEC55179
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Oct 2020 06:23:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E9BF221FC
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Oct 2020 16:48:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E4CF216FD
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Oct 2020 06:23:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1603779781;
+	bh=yP09p9hZPmd+16unIG3T+EwKYoIL0pNMvswa7AvAxT4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=FMEQab5Zg5gbclZ4xqspVZCOxJALDQ+SjRWW6PbWX966gcCVlBwLjsvJ0BKNVmkpg
+	 j3hmW2yyqqJeGa9woByP7C8Nh/FeEH92hFxw+xIUaWTlZof5cBstjYpUFf2TAu9VnQ
+	 zKf+/VpOtgRw0Nc62V2nxVDhmU1he0jxCENv51dI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1786390AbgJZQs3 (ORCPT
+        id S2506452AbgJ0GWy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 26 Oct 2020 12:48:29 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:57888 "EHLO orbyte.nwl.cc"
+        Tue, 27 Oct 2020 02:22:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56380 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1781100AbgJZQqw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 26 Oct 2020 12:46:52 -0400
-X-Greylist: delayed 1037 seconds by postgrey-1.27 at vger.kernel.org; Mon, 26 Oct 2020 12:46:51 EDT
-Received: from localhost ([::1]:55698 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.94)
-        (envelope-from <phil@nwl.cc>)
-        id 1kX5NF-0006z5-No; Mon, 26 Oct 2020 17:29:33 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] tests: shell: Improve concurrent noflush restore test a bit
-Date:   Mon, 26 Oct 2020 17:29:38 +0100
-Message-Id: <20201026162938.18889-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.28.0
+        id S2506440AbgJ0GVP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 27 Oct 2020 02:21:15 -0400
+Received: from localhost (83-86-74-64.cable.dynamic.v4.ziggo.nl [83.86.74.64])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 48BAB207DE;
+        Tue, 27 Oct 2020 06:21:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1603779675;
+        bh=yP09p9hZPmd+16unIG3T+EwKYoIL0pNMvswa7AvAxT4=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=OCXK1MqAXCw5aWvtyva7JWe+UcoOZ5sHTdsOJe8euA0Z9GAQ5oQ/5o9hngO4ggqOv
+         Sl/feiQXVE6RZyIvPh6UBuJF35zOv9GK6BaXFw9YnrFEV6y0fEZqg3PGjBiCZDCVrM
+         Rr0xlE0sI10yslvBYX3WpP1XRhMUJ2mXe5Wp9VWg=
+Date:   Tue, 27 Oct 2020 07:21:11 +0100
+From:   Greg KH <gregkh@linuxfoundation.org>
+To:     Saeed Mirzamohammadi <saeed.mirzamohammadi@oracle.com>
+Cc:     stable@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+        linux-kernel@vger.kernel.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, kuba@kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH linux-5.9 1/1] net: netfilter: fix KASAN:
+ slab-out-of-bounds Read in nft_flow_rule_create
+Message-ID: <20201027062111.GD206502@kroah.com>
+References: <20201019172532.3906-1-saeed.mirzamohammadi@oracle.com>
+ <20201020115047.GA15628@salvia>
+ <28C74722-8F35-4397-B567-FA5BCF525891@oracle.com>
+ <3BE1A64B-7104-4220-BAD1-870338A33B15@oracle.com>
+ <566D38F7-7C99-40F4-A948-03F2F0439BBB@oracle.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <566D38F7-7C99-40F4-A948-03F2F0439BBB@oracle.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The described issue happens only if chain FOO does not exist at program
-start so flush the ruleset after each iteration to make sure this is the
-case. Sadly the bug is still not 100% reproducible on my testing VM.
+On Sun, Oct 25, 2020 at 04:31:57PM -0700, Saeed Mirzamohammadi wrote:
+> Adding stable.
 
-While being at it, add a paragraph describing what exact situation the
-test is trying to provoke.
+What did that do?
 
-Fixes: dac904bdcd9a1 ("nft: Fix for concurrent noflush restore calls")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- .../ipt-restore/0016-concurrent-restores_0         | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+confused,
 
-diff --git a/iptables/tests/shell/testcases/ipt-restore/0016-concurrent-restores_0 b/iptables/tests/shell/testcases/ipt-restore/0016-concurrent-restores_0
-index 53ec12fa368af..aa746ab458a3c 100755
---- a/iptables/tests/shell/testcases/ipt-restore/0016-concurrent-restores_0
-+++ b/iptables/tests/shell/testcases/ipt-restore/0016-concurrent-restores_0
-@@ -1,5 +1,14 @@
- #!/bin/bash
- 
-+# test for iptables-restore --noflush skipping an explicitly requested chain
-+# flush because the chain did not exist when cache was fetched. In order to
-+# expect for that chain to appear when refreshing the transaction (due to a
-+# concurrent ruleset change), the chain flush job has to be present in batch
-+# job list (although disabled at first).
-+# The input line requesting chain flush is ':FOO - [0:0]'. RS1 and RS2 contents
-+# are crafted to cause EBUSY when deleting the BAR* chains if FOO is not
-+# flushed in the same transaction.
-+
- set -e
- 
- RS="*filter
-@@ -45,7 +54,12 @@ RS2="$RS
- COMMIT
- "
- 
-+NORS="*filter
-+COMMIT
-+"
-+
- for n in $(seq 1 10); do
-+	$XT_MULTI iptables-restore <<< "$NORS"
- 	$XT_MULTI iptables-restore --noflush -w <<< "$RS1" &
- 	$XT_MULTI iptables-restore --noflush -w <<< "$RS2" &
- 	wait -n
--- 
-2.28.0
-
+greg k-h
