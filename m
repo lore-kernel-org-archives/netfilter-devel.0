@@ -7,64 +7,83 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F5BAC55179
-	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Oct 2020 22:31:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11E55C388F7
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Oct 2020 22:52:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2BF6220724
-	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Oct 2020 22:31:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B3CEE20728
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Oct 2020 22:52:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387988AbgJ1Wby (ORCPT
+        id S2389763AbgJ1Wwr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 28 Oct 2020 18:31:54 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:35404 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387973AbgJ1Wbx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 28 Oct 2020 18:31:53 -0400
-Received: from localhost ([::1]:60792 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.94)
-        (envelope-from <phil@nwl.cc>)
-        id 1kXorH-0000iq-2t; Wed, 28 Oct 2020 18:03:35 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] tests/shell: Restore testcases/sets/0036add_set_element_expiration_0
-Date:   Wed, 28 Oct 2020 18:03:38 +0100
-Message-Id: <20201028170338.32033-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.28.0
+        Wed, 28 Oct 2020 18:52:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59532 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389775AbgJ1Wwq (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 28 Oct 2020 18:52:46 -0400
+X-Greylist: delayed 4201 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 28 Oct 2020 15:52:46 PDT
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46DC9C0613CF
+        for <netfilter-devel@vger.kernel.org>; Wed, 28 Oct 2020 15:52:46 -0700 (PDT)
+Received: from [90.77.255.23] (helo=localhost.localdomain)
+        by ganesha.gnumonks.org with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        (Exim 4.89)
+        (envelope-from <pablo@netfilter.org>)
+        id 1kXr5z-0007e9-BL
+        for netfilter-devel@vger.kernel.org; Wed, 28 Oct 2020 20:27:01 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH conntrack] conntrack: allow to filter event by family
+Date:   Wed, 28 Oct 2020 20:26:44 +0100
+Message-Id: <20201028192644.5697-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This reverts both commits 46b54fdcf266d3d631ffb6102067825d7672db46 and
-0e258556f7f3da35deeb6d5cfdec51eafc7db80d.
+This patch allows you to filter event through -f, e.g.
 
-With both applied, the test succeeded *only* if 'nft monitor' was
-running in background, which is equivalent to the original problem
-(where the test succeeded only if *no* 'nft monitor' was running).
+ conntrack -E -f ipv4
 
-The test merely exposed a kernel bug, so in fact it is correct.
-
-Fixes: 46b54fdcf266d ("Revert "monitor: do not print generation ID with --echo"")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tests/shell/testcases/sets/0036add_set_element_expiration_0 | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ src/conntrack.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/tests/shell/testcases/sets/0036add_set_element_expiration_0 b/tests/shell/testcases/sets/0036add_set_element_expiration_0
-index 7b2e39a3f0406..51ed0f2c1b3e8 100755
---- a/tests/shell/testcases/sets/0036add_set_element_expiration_0
-+++ b/tests/shell/testcases/sets/0036add_set_element_expiration_0
-@@ -6,7 +6,7 @@ RULESET="add table ip x
- add set ip x y { type ipv4_addr; flags dynamic,timeout; } 
- add element ip x y { 1.1.1.1 timeout 30s expires 15s }"
+diff --git a/src/conntrack.c b/src/conntrack.c
+index db35b070dadb..66f513b84a2c 100644
+--- a/src/conntrack.c
++++ b/src/conntrack.c
+@@ -393,7 +393,7 @@ static char commands_v_options[NUMBER_OF_CMD][NUMBER_OF_OPT] =
+ /*CT_DELETE*/ {2,2,2,2,2,2,2,0,0,0,0,2,2,0,2,2,2,2,2,2,0,0,0,2,2,0,0,2,2},
+ /*CT_GET*/    {3,3,3,3,1,0,0,0,0,0,0,0,0,0,0,2,0,0,0,2,0,0,0,0,2,0,0,0,0},
+ /*CT_FLUSH*/  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+-/*CT_EVENT*/  {2,2,2,2,2,0,0,0,2,0,0,2,2,0,2,0,0,2,2,2,2,2,2,2,2,0,0,2,2},
++/*CT_EVENT*/  {2,2,2,2,2,0,0,0,2,0,0,2,2,0,2,0,2,2,2,2,2,2,2,2,2,0,0,2,2},
+ /*VERSION*/   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+ /*HELP*/      {0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+ /*EXP_LIST*/  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,2,0,0,0,0,0,0,0,0,0},
+@@ -1425,6 +1425,7 @@ exp_event_sighandler(int s)
  
--test_output=$($NFT -e -f - <<< "$RULESET" 2>&1 | head -n -1)
-+test_output=$($NFT -e -f - <<< "$RULESET" 2>&1)
+ static int event_cb(const struct nlmsghdr *nlh, void *data)
+ {
++	struct nfgenmsg *nfh = mnl_nlmsg_get_payload(nlh);
+ 	unsigned int op_type = NFCT_O_DEFAULT;
+ 	struct nf_conntrack *obj = data;
+ 	enum nf_conntrack_msg_type type;
+@@ -1456,7 +1457,9 @@ static int event_cb(const struct nlmsghdr *nlh, void *data)
+ 	if (nfct_nlmsg_parse(nlh, ct) < 0)
+ 		goto out;
  
- if [ "$test_output" != "$RULESET" ] ; then
- 	$DIFF -u <(echo "$test_output") <(echo "$RULESET")
+-	if (nfct_filter(obj, ct))
++	if ((filter_family != AF_UNSPEC &&
++	     filter_family != nfh->nfgen_family) ||
++	    nfct_filter(obj, ct))
+ 		goto out;
+ 
+ 	if (output_mask & _O_XML) {
 -- 
-2.28.0
+2.20.1
 
