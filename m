@@ -2,106 +2,86 @@ Return-Path: <SRS0=f/Zg=EE=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B6A8C55178
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Oct 2020 11:52:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D428C55178
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Oct 2020 12:02:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 19E8A20732
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Oct 2020 11:52:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C414F20731
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Oct 2020 12:02:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="V71S1AoR"
+	dkim=pass (2048-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="0AjD+LqA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725775AbgJ2Lwd (ORCPT
+        id S1725767AbgJ2MCc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 29 Oct 2020 07:52:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40896 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725763AbgJ2Lwb (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Oct 2020 07:52:31 -0400
-Received: from mail-ej1-x643.google.com (mail-ej1-x643.google.com [IPv6:2a00:1450:4864:20::643])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28203C0613D3
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2020 04:52:30 -0700 (PDT)
-Received: by mail-ej1-x643.google.com with SMTP id p5so3432315ejj.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2020 04:52:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloud.ionos.com; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=jWlfYByzghbHE6nPcLpVNi2cBqC/iPZgjdI+QoItV6s=;
-        b=V71S1AoRSBl3sCC/azw0tYMSL70RAvd3QKlRse02aN0Ee/GfZ0IbTRdFSdNcf8J9hK
-         fM11Mg5lOFRilrhHfcLHgcZD79yP/hvncPs3U8XAHP1cFEFb8T/FOJ4YzaQnx3hD9Xxp
-         n+WdhDHIH5yib0GfoZ8FqDIdYUnPkecAEyd1MM4OJ3XCEtXHMlDhqyPCYMMI6+Bu5So5
-         y1eTga8G+gLbkjPJWlDosjl4HYnlvGatW73+GZiaus99d1sMbLhhdGjkddU/6Q2Ccf3z
-         cR++O+EN9m/vhtESw40LGgDGiGrbTgAU132fUerEhic9OODrs6g5/vws119OadVEWG4h
-         Y7Iw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=jWlfYByzghbHE6nPcLpVNi2cBqC/iPZgjdI+QoItV6s=;
-        b=hSRMwlAF2AJ7Gph3y2udMEtvurEMWAkdJO9lvBjTLS3nwJYsjLd+9z0g8VG0b1vwnh
-         5hl28/yCU+qsgm3a09b39dzgLOARYudkubpgvCAcG2RsCvL9RQoinU1s235ucN9/a14w
-         iibnYolYPLiMxNC1PGJDCa8ih51Hg7Ei1oRCg0DjOOS66KyT8llzo80HZxwCiq8k/7Ey
-         j7sfjWamJYJFA4Td9+49DWMquDxSQx3gF4NKH0hV6iIQU48osR37NiP7B7DCt0YuQVH4
-         dprQnuCgxADyuaL3265Cej9zzQg+o1GSzLpha1LBmBHQ1BU16B4B5N9Q+Qc9FWzCO+hS
-         ODSg==
-X-Gm-Message-State: AOAM530WeYxmMvvmET6ud6k8Q+FXq8ZvY7pXpehtOy1+wXosUSeYYcHi
-        TW0VZF+egwqnhat3P4VFO6cJj1e3sZW4Og==
-X-Google-Smtp-Source: ABdhPJx7VDdaoyhuxuOWGu1Sse/RN/n3tx//g9XgNMw6jJHuRtD/E4zlunIWZh+eKhznkGC02PXOig==
-X-Received: by 2002:a17:907:43c0:: with SMTP id ok24mr3607853ejb.385.1603972348611;
-        Thu, 29 Oct 2020 04:52:28 -0700 (PDT)
-Received: from msennikovskii4.fkb.profitbricks.net (ip5f5af104.dynamic.kabel-deutschland.de. [95.90.241.4])
-        by smtp.gmail.com with ESMTPSA id q19sm1391188ejz.90.2020.10.29.04.52.28
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Oct 2020 04:52:28 -0700 (PDT)
-From:   Mikhail Sennikovsky <mikhail.sennikovskii@cloud.ionos.com>
-To:     netfilter-devel@vger.kernel.org, pablo@netfilter.org
-Cc:     Mikhail Sennikovsky <mikhail.sennikovskii@cloud.ionos.com>
-Subject: [PATCH v2 2/2] conntrack.8: man update for opts format support
-Date:   Thu, 29 Oct 2020 12:51:56 +0100
-Message-Id: <20201029115156.69784-3-mikhail.sennikovskii@cloud.ionos.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20201029115156.69784-1-mikhail.sennikovskii@cloud.ionos.com>
-References: <20201029115156.69784-1-mikhail.sennikovskii@cloud.ionos.com>
+        Thu, 29 Oct 2020 08:02:32 -0400
+Received: from mail.zx2c4.com ([192.95.5.64]:47057 "EHLO mail.zx2c4.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725385AbgJ2MCc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 29 Oct 2020 08:02:32 -0400
+Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTP id dfef3042;
+        Thu, 29 Oct 2020 12:00:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; d=zx2c4.com; h=mime-version
+        :references:in-reply-to:from:date:message-id:subject:to
+        :content-type; s=mail; bh=IKnebaGdC8b0mR1Q29fh+gfHHKY=; b=0AjD+L
+        qAaaGb/LT4eA679KOrP/IXYQcl4wa49hRRzOR3k2Qf4MrKVMGSRksJoWpLmot2QD
+        8i+tfcG6ZbP2wUWQNvjOCX/+rGPKhQig8LhKVAzZbaboK7hhsPYrNdAThAAMOH2O
+        +vj+AIvCZCedHoijgLb+A8kk/BPxJssessPhJUFyPGJJLb7TYPbxjH9r7j9DFN3a
+        zD8h5kPKPVjpVujayjlnsdZvPBio0+aS8Me9XJodXiZVDSBykiKU988D5Lrrblyx
+        YzbFaPhYmwoL86sJIHsuHc7rz0K9OAHX1eb1B6XAGpOqQ4eIi9hIs1e7gGCX1mhv
+        CqI0A4Y8lpSeBGKg==
+Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 27a2ba2a (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
+        Thu, 29 Oct 2020 12:00:42 +0000 (UTC)
+Received: by mail-yb1-f170.google.com with SMTP id h196so1940688ybg.4;
+        Thu, 29 Oct 2020 05:02:04 -0700 (PDT)
+X-Gm-Message-State: AOAM531TDI9Ohlodc7OKl9A2wAo+IFIsawkDA7WFCaDJzUl+PmUCPWiT
+        wdAU3jXRkEmhd6Ts1uHdlnk93NkpFw28nfxTA/A=
+X-Google-Smtp-Source: ABdhPJws4sMjJ5gTYRaTuZplBgwYUu2/72U5E+Kxj9cpw3q9A2obBZ/+APgdYoDi4qCVG9iuuU/mnkse+Zyil03bdpA=
+X-Received: by 2002:a25:bbc4:: with SMTP id c4mr5432372ybk.178.1603972923657;
+ Thu, 29 Oct 2020 05:02:03 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20201029025606.3523771-1-Jason@zx2c4.com> <20201029025606.3523771-3-Jason@zx2c4.com>
+In-Reply-To: <20201029025606.3523771-3-Jason@zx2c4.com>
+From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
+Date:   Thu, 29 Oct 2020 13:01:53 +0100
+X-Gmail-Original-Message-ID: <CAHmME9ohyPOwQryPMzk7oNGaBeKSJoFmSQkemRoUYKhjqgQ7ag@mail.gmail.com>
+Message-ID: <CAHmME9ohyPOwQryPMzk7oNGaBeKSJoFmSQkemRoUYKhjqgQ7ag@mail.gmail.com>
+Subject: Re: [PATCH nf 2/2] netfilter: use actual socket sk rather than skb sk
+ when routing harder
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Mikhail Sennikovsky <mikhail.sennikovskii@cloud.ionos.com>
----
- conntrack.8 | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+As a historical note, this code goes all the way back to Rusty in
+2.3.14, where it looked like this:
 
-diff --git a/conntrack.8 b/conntrack.8
-index 1174c6c..e48d74e 100644
---- a/conntrack.8
-+++ b/conntrack.8
-@@ -109,7 +109,7 @@ Show the in-kernel connection tracking system statistics.
- Atomically zero counters after reading them.  This option is only valid in
- combination with the "\-L, \-\-dump" command options.
- .TP
--.BI "-o, --output [extended,xml,timestamp,id,ktimestamp,labels,userspace] "
-+.BI "-o, --output [extended,xml,save,timestamp,id,ktimestamp,labels,userspace] "
- Display output in a certain format. With the extended output option, this tool
- displays the layer 3 information. With ktimestamp, it displays the in-kernel
- timestamp available since 2.6.38 (you can enable it via the \fBsysctl(8)\fP
-@@ -376,6 +376,9 @@ additional information.
- .B conntrack \-L \-o xml
- Show the connection tracking table in XML
- .TP
-+.B conntrack \-L \-o save
-+Show the connection tracking table in conntrack tool options format
-+.TP
- .B conntrack \-L -f ipv6 -o extended
- Only dump IPv6 connections in /proc/net/nf_conntrack format, with
- additional information.
--- 
-2.25.1
+#ifdef CONFIG_NETFILTER
+/* To preserve the cute illusion that a locally-generated packet can
+  be mangled before routing, we actually reroute if a hook altered
+  the packet. -RR */
+static int route_me_harder(struct sk_buff *skb)
+{
+       struct iphdr *iph = skb->nh.iph;
+       struct rtable *rt;
 
+       if (ip_route_output(&rt, iph->daddr, iph->saddr,
+                           RT_TOS(iph->tos) | RTO_CONN,
+                           skb->sk ? skb->sk->bound_dev_if : 0)) {
+               printk("route_me_harder: No more route.\n");
+               return -EINVAL;
+       }
+
+       /* Drop old route. */
+       dst_release(skb->dst);
+
+       skb->dst = &rt->u.dst;
+       return 0;
+}
+#endif
+
+And until now, it was never updated to take the separate sock *sk parameter.
