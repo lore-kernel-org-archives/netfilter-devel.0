@@ -2,66 +2,69 @@ Return-Path: <SRS0=f/Zg=EE=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BD8BC55178
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Oct 2020 12:02:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC7C0C2D0A3
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Oct 2020 12:49:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A717720731
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Oct 2020 12:02:53 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="wjucsa1U"
+	by mail.kernel.org (Postfix) with ESMTP id 9237D2075E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Oct 2020 12:49:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725832AbgJ2MCu (ORCPT
+        id S1725771AbgJ2Mtu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 29 Oct 2020 08:02:50 -0400
-Received: from mail.zx2c4.com ([192.95.5.64]:34979 "EHLO mail.zx2c4.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725300AbgJ2MCu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Oct 2020 08:02:50 -0400
-Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTP id ed5be1d0;
-        Thu, 29 Oct 2020 12:01:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; d=zx2c4.com; h=mime-version
-        :references:in-reply-to:from:date:message-id:subject:to
-        :content-type; s=mail; bh=UWei3Dja6hmoCFMeKlYb7qUdCuc=; b=wjucsa
-        1UUmENTJ4WFke7zVHvQDNlZ67IRa7Pr1o66yL+z4Z/hyqcxcVZXFhQ+qXQamcGXE
-        FmcV49QUWjx0hPXHKCfBZzQWEMRTWgz7Jl6/QIiKJMyqsN+pGGWETd48JXBdgiIy
-        aBULLFK1kNbR1tRsKqhI1KsZ0M0xJek3tsf0JEr/hcqZPvIjL/TGB4Z1gm7de0DL
-        G6Z4pn/6eqzhrjx1BVBczRfe231Q1avHFyupr5SVx40LQK423UbOwh7augg787jn
-        iY9ebzIy39nuiSrW0/tlX9ABxfxllnMi/+/xVBB0EgF+yOCz961drt6fbDpVciL0
-        8LuB4bhh/2g+y3Cg==
-Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 6b9afe77 (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
-        Thu, 29 Oct 2020 12:01:26 +0000 (UTC)
-Received: by mail-yb1-f170.google.com with SMTP id f6so1966295ybr.0;
-        Thu, 29 Oct 2020 05:02:48 -0700 (PDT)
-X-Gm-Message-State: AOAM532cakGi/IZlVWmJT3/88uR3uv9Uz6aZxf4H3nOFO8fhLRHLeyjR
-        vlXB7ZieMBy+OK8RtyRfQEsk7oQcFm0DG8Tym04=
-X-Google-Smtp-Source: ABdhPJydtCA7yNokEssotSDE1p/MWWWFiuS8KTDtiI3b5tTpq5vbldI2DbdK/zzuil3AWJwEdJTJKwRBWXbRkRfaAy4=
-X-Received: by 2002:a25:6089:: with SMTP id u131mr5629352ybb.456.1603972968557;
- Thu, 29 Oct 2020 05:02:48 -0700 (PDT)
+        Thu, 29 Oct 2020 08:49:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49708 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725379AbgJ2Mtu (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 29 Oct 2020 08:49:50 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 046D1C0613CF
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2020 05:49:50 -0700 (PDT)
+Received: from localhost ([::1]:34964 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.94)
+        (envelope-from <phil@nwl.cc>)
+        id 1kY7NE-0006Ux-4V; Thu, 29 Oct 2020 13:49:48 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [nft PATCH] tests/shell: Improve fix in sets/0036add_set_element_expiration_0
+Date:   Thu, 29 Oct 2020 13:49:51 +0100
+Message-Id: <20201029124951.13521-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.28.0
 MIME-Version: 1.0
-References: <20201029025606.3523771-1-Jason@zx2c4.com> <20201029025606.3523771-3-Jason@zx2c4.com>
- <CAHmME9ohyPOwQryPMzk7oNGaBeKSJoFmSQkemRoUYKhjqgQ7ag@mail.gmail.com>
-In-Reply-To: <CAHmME9ohyPOwQryPMzk7oNGaBeKSJoFmSQkemRoUYKhjqgQ7ag@mail.gmail.com>
-From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
-Date:   Thu, 29 Oct 2020 13:02:37 +0100
-X-Gmail-Original-Message-ID: <CAHmME9r+n7B8cdGHYJvztOp2z7ghBYQA0VRZ4y2VZZroQubBAQ@mail.gmail.com>
-Message-ID: <CAHmME9r+n7B8cdGHYJvztOp2z7ghBYQA0VRZ4y2VZZroQubBAQ@mail.gmail.com>
-Subject: Re: [PATCH nf 2/2] netfilter: use actual socket sk rather than skb sk
- when routing harder
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Netdev <netdev@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Oct 29, 2020 at 1:01 PM Jason A. Donenfeld <Jason@zx2c4.com> wrote:
->
-> As a historical note, this code goes all the way back to Rusty in
-> 2.3.14, where it looked like this:
+Explicitly eliminate the newgen message from output instead of just the
+last line to make sure no other output is dropped by accident. This also
+allows the test to pass in unpatched kernels which do not emit the
+newgen message despite NLM_F_ECHO if no netlink listeners are present.
 
-Grrr, typo. 2.3.15.
+Fixes: 46b54fdcf266d ("Revert "monitor: do not print generation ID with --echo"")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ tests/shell/testcases/sets/0036add_set_element_expiration_0 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/shell/testcases/sets/0036add_set_element_expiration_0 b/tests/shell/testcases/sets/0036add_set_element_expiration_0
+index 7b2e39a3f0406..3097d077506ca 100755
+--- a/tests/shell/testcases/sets/0036add_set_element_expiration_0
++++ b/tests/shell/testcases/sets/0036add_set_element_expiration_0
+@@ -6,7 +6,7 @@ RULESET="add table ip x
+ add set ip x y { type ipv4_addr; flags dynamic,timeout; } 
+ add element ip x y { 1.1.1.1 timeout 30s expires 15s }"
+ 
+-test_output=$($NFT -e -f - <<< "$RULESET" 2>&1 | head -n -1)
++test_output=$($NFT -e -f - <<< "$RULESET" 2>&1 | grep -v '# new generation')
+ 
+ if [ "$test_output" != "$RULESET" ] ; then
+ 	$DIFF -u <(echo "$test_output") <(echo "$RULESET")
+-- 
+2.28.0
+
