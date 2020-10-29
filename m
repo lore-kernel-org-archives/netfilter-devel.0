@@ -2,405 +2,210 @@ Return-Path: <SRS0=f/Zg=EE=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38642C4363A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Oct 2020 15:48:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D06FEC2D0A3
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Oct 2020 22:50:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 802242076B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Oct 2020 15:48:28 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="ofufj60u"
+	by mail.kernel.org (Postfix) with ESMTP id 72F0F20782
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Oct 2020 22:50:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728426AbgJ2Ps1 (ORCPT
+        id S1725800AbgJ2WuQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 29 Oct 2020 11:48:27 -0400
-Received: from smtp-out.kfki.hu ([148.6.0.46]:54051 "EHLO smtp-out.kfki.hu"
+        Thu, 29 Oct 2020 18:50:16 -0400
+Received: from correo.us.es ([193.147.175.20]:36718 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728146AbgJ2Ps1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Oct 2020 11:48:27 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by smtp1.kfki.hu (Postfix) with ESMTP id 3C3FB3C8013C;
-        Thu, 29 Oct 2020 16:39:52 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        blackhole.kfki.hu; h=mime-version:references:in-reply-to
-        :x-mailer:message-id:date:date:from:from:received:received
-        :received; s=20151130; t=1603985990; x=1605800391; bh=J4P1en5y1s
-        0oiceMnuRAuyMqyN6sf5cqJvtKOMxWSq8=; b=ofufj60ugl+34AMYVRwCSBHbvX
-        MSlodla+jV9biECND467QoKZBim1EBH0C2K/JpkjOfHRX3g/Y/dcDmambZl1/EQ7
-        BE90DSJwti43d/Rg4hXajN9VA3JAoGzf93qaNX5+/ZlXB75h0MmOXCwGZoBKXrJx
-        SJUufbUwXlWxjyckk=
-X-Virus-Scanned: Debian amavisd-new at smtp1.kfki.hu
-Received: from smtp1.kfki.hu ([127.0.0.1])
-        by localhost (smtp1.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Thu, 29 Oct 2020 16:39:50 +0100 (CET)
-Received: from blackhole.kfki.hu (blackhole.kfki.hu [IPv6:2001:738:5001:1::240:2])
-        by smtp1.kfki.hu (Postfix) with ESMTP id F08D93C8013D;
-        Thu, 29 Oct 2020 16:39:49 +0100 (CET)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id E3E7A340D6E; Thu, 29 Oct 2020 16:39:49 +0100 (CET)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+        id S1725768AbgJ2WuP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 29 Oct 2020 18:50:15 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 976F03066A8
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2020 23:50:13 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 873B3DA730
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2020 23:50:13 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 7CE0ADA72F; Thu, 29 Oct 2020 23:50:13 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F3018DA704
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2020 23:50:10 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 29 Oct 2020 23:50:10 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id E05804301DE0
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2020 23:50:10 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4/4] netfilter: ipset: Expose the initval hash parameter to userspace
-Date:   Thu, 29 Oct 2020 16:39:49 +0100
-Message-Id: <20201029153949.6567-5-kadlec@netfilter.org>
+Subject: [PATCH nf] netfilter: nf_tables: missing validation from the abort path
+Date:   Thu, 29 Oct 2020 23:50:06 +0100
+Message-Id: <20201029225006.3333-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20201029153949.6567-1-kadlec@netfilter.org>
-References: <20201029153949.6567-1-kadlec@netfilter.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-It makes possible to reproduce exactly the same set after a save/restore.
+If userspace does not include the trailing end of batch message, then
+nfnetlink aborts the transaction. This allows to check that ruleset
+updates trigger no errors.
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+After this patch, invoking this command from the prerouting chain:
+
+ # nft -c add rule x y fib saddr . oif type local
+
+fails since oif is not supported there.
+
+This patch fixes the lack of rule validation from the abort/check path
+to catch configuration errors such as the one above.
+
+Fixes: a654de8fdc18 ("netfilter: nf_tables: fix chain dependency validation")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/ipset/ip_set.h  |  2 +-
- net/netfilter/ipset/ip_set_hash_gen.h        | 13 +++++++++----
- net/netfilter/ipset/ip_set_hash_ip.c         |  3 ++-
- net/netfilter/ipset/ip_set_hash_ipmac.c      |  3 ++-
- net/netfilter/ipset/ip_set_hash_ipmark.c     |  3 ++-
- net/netfilter/ipset/ip_set_hash_ipport.c     |  3 ++-
- net/netfilter/ipset/ip_set_hash_ipportip.c   |  3 ++-
- net/netfilter/ipset/ip_set_hash_ipportnet.c  |  3 ++-
- net/netfilter/ipset/ip_set_hash_mac.c        |  3 ++-
- net/netfilter/ipset/ip_set_hash_net.c        |  3 ++-
- net/netfilter/ipset/ip_set_hash_netiface.c   |  3 ++-
- net/netfilter/ipset/ip_set_hash_netnet.c     |  3 ++-
- net/netfilter/ipset/ip_set_hash_netport.c    |  3 ++-
- net/netfilter/ipset/ip_set_hash_netportnet.c |  3 ++-
- 14 files changed, 34 insertions(+), 17 deletions(-)
+ include/linux/netfilter/nfnetlink.h |  9 ++++++++-
+ net/netfilter/nf_tables_api.c       | 15 ++++++++++-----
+ net/netfilter/nfnetlink.c           | 22 ++++++++++++++++++----
+ 3 files changed, 36 insertions(+), 10 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/ipset/ip_set.h b/include/uapi/l=
-inux/netfilter/ipset/ip_set.h
-index 398f7b909b7d..6397d75899bc 100644
---- a/include/uapi/linux/netfilter/ipset/ip_set.h
-+++ b/include/uapi/linux/netfilter/ipset/ip_set.h
-@@ -92,7 +92,7 @@ enum {
- 	/* Reserve empty slots */
- 	IPSET_ATTR_CADT_MAX =3D 16,
- 	/* Create-only specific attributes */
--	IPSET_ATTR_GC,
-+	IPSET_ATTR_INITVAL,	/* was unused IPSET_ATTR_GC */
- 	IPSET_ATTR_HASHSIZE,
- 	IPSET_ATTR_MAXELEM,
- 	IPSET_ATTR_NETMASK,
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/=
-ip_set_hash_gen.h
-index 4e3544442b26..5f1208ad049e 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -1301,9 +1301,11 @@ mtype_head(struct ip_set *set, struct sk_buff *skb=
-)
- 	if (nla_put_u32(skb, IPSET_ATTR_MARKMASK, h->markmask))
- 		goto nla_put_failure;
- #endif
--	if (set->flags & IPSET_CREATE_FLAG_BUCKETSIZE &&
--	    nla_put_u8(skb, IPSET_ATTR_BUCKETSIZE, h->bucketsize))
--		goto nla_put_failure;
-+	if (set->flags & IPSET_CREATE_FLAG_BUCKETSIZE) {
-+		if (nla_put_u8(skb, IPSET_ATTR_BUCKETSIZE, h->bucketsize) ||
-+		    nla_put_net32(skb, IPSET_ATTR_INITVAL, htonl(h->initval)))
-+			goto nla_put_failure;
-+	}
- 	if (nla_put_net32(skb, IPSET_ATTR_REFERENCES, htonl(set->ref)) ||
- 	    nla_put_net32(skb, IPSET_ATTR_MEMSIZE, htonl(memsize)) ||
- 	    nla_put_net32(skb, IPSET_ATTR_ELEMENTS, htonl(elements)))
-@@ -1546,7 +1548,10 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struc=
-t ip_set *set,
- #ifdef IP_SET_HASH_WITH_MARKMASK
- 	h->markmask =3D markmask;
- #endif
--	get_random_bytes(&h->initval, sizeof(h->initval));
-+	if (tb[IPSET_ATTR_INITVAL])
-+		h->initval =3D ntohl(nla_get_be32(tb[IPSET_ATTR_INITVAL]));
-+	else
-+		get_random_bytes(&h->initval, sizeof(h->initval));
- 	h->bucketsize =3D AHASH_MAX_SIZE;
- 	if (tb[IPSET_ATTR_BUCKETSIZE]) {
- 		h->bucketsize =3D nla_get_u8(tb[IPSET_ATTR_BUCKETSIZE]);
-diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/i=
-p_set_hash_ip.c
-index 0495d515c498..d1bef23fd4f5 100644
---- a/net/netfilter/ipset/ip_set_hash_ip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ip.c
-@@ -24,7 +24,7 @@
- /*				2	   Comments support */
- /*				3	   Forceadd support */
- /*				4	   skbinfo support */
--#define IPSET_TYPE_REV_MAX	5	/* bucketsize support  */
-+#define IPSET_TYPE_REV_MAX	5	/* bucketsize, initval support  */
-=20
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@netfilter.org>");
-@@ -283,6 +283,7 @@ static struct ip_set_type hash_ip_type __read_mostly =
-=3D {
- 	.create_policy	=3D {
- 		[IPSET_ATTR_HASHSIZE]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_MAXELEM]	=3D { .type =3D NLA_U32 },
-+		[IPSET_ATTR_INITVAL]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_BUCKETSIZE]	=3D { .type =3D NLA_U8 },
- 		[IPSET_ATTR_RESIZE]	=3D { .type =3D NLA_U8  },
- 		[IPSET_ATTR_TIMEOUT]	=3D { .type =3D NLA_U32 },
-diff --git a/net/netfilter/ipset/ip_set_hash_ipmac.c b/net/netfilter/ipse=
-t/ip_set_hash_ipmac.c
-index 2655501f9fe3..467c59a83c0a 100644
---- a/net/netfilter/ipset/ip_set_hash_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipmac.c
-@@ -23,7 +23,7 @@
- #include <linux/netfilter/ipset/ip_set_hash.h>
-=20
- #define IPSET_TYPE_REV_MIN	0
--#define IPSET_TYPE_REV_MAX	1	/* bucketsize support  */
-+#define IPSET_TYPE_REV_MAX	1	/* bucketsize, initval support  */
-=20
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Tomasz Chilinski <tomasz.chilinski@chilan.com>");
-@@ -273,6 +273,7 @@ static struct ip_set_type hash_ipmac_type __read_most=
-ly =3D {
- 	.create_policy	=3D {
- 		[IPSET_ATTR_HASHSIZE]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_MAXELEM]	=3D { .type =3D NLA_U32 },
-+		[IPSET_ATTR_INITVAL]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_BUCKETSIZE]	=3D { .type =3D NLA_U8 },
- 		[IPSET_ATTR_RESIZE]	=3D { .type =3D NLA_U8  },
- 		[IPSET_ATTR_TIMEOUT]	=3D { .type =3D NLA_U32 },
-diff --git a/net/netfilter/ipset/ip_set_hash_ipmark.c b/net/netfilter/ips=
-et/ip_set_hash_ipmark.c
-index 5bbed85d0e47..18346d18aa16 100644
---- a/net/netfilter/ipset/ip_set_hash_ipmark.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipmark.c
-@@ -22,7 +22,7 @@
- #define IPSET_TYPE_REV_MIN	0
- /*				1	   Forceadd support */
- /*				2	   skbinfo support */
--#define IPSET_TYPE_REV_MAX	3	/* bucketsize support  */
-+#define IPSET_TYPE_REV_MAX	3	/* bucketsize, initval support  */
-=20
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Vytas Dauksa <vytas.dauksa@smoothwall.net>");
-@@ -281,6 +281,7 @@ static struct ip_set_type hash_ipmark_type __read_mos=
-tly =3D {
- 		[IPSET_ATTR_MARKMASK]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_HASHSIZE]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_MAXELEM]	=3D { .type =3D NLA_U32 },
-+		[IPSET_ATTR_INITVAL]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_BUCKETSIZE]	=3D { .type =3D NLA_U8 },
- 		[IPSET_ATTR_RESIZE]	=3D { .type =3D NLA_U8  },
- 		[IPSET_ATTR_TIMEOUT]	=3D { .type =3D NLA_U32 },
-diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ips=
-et/ip_set_hash_ipport.c
-index c1ac2e89e2d3..e1ca11196515 100644
---- a/net/netfilter/ipset/ip_set_hash_ipport.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipport.c
-@@ -26,7 +26,7 @@
- /*				3    Comments support added */
- /*				4    Forceadd support added */
- /*				5    skbinfo support added */
--#define IPSET_TYPE_REV_MAX	6 /* bucketsize support added */
-+#define IPSET_TYPE_REV_MAX	6 /* bucketsize, initval support added */
-=20
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@netfilter.org>");
-@@ -347,6 +347,7 @@ static struct ip_set_type hash_ipport_type __read_mos=
-tly =3D {
- 	.create_policy	=3D {
- 		[IPSET_ATTR_HASHSIZE]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_MAXELEM]	=3D { .type =3D NLA_U32 },
-+		[IPSET_ATTR_INITVAL]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_BUCKETSIZE]	=3D { .type =3D NLA_U8 },
- 		[IPSET_ATTR_RESIZE]	=3D { .type =3D NLA_U8  },
- 		[IPSET_ATTR_PROTO]	=3D { .type =3D NLA_U8 },
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportip.c b/net/netfilter/i=
-pset/ip_set_hash_ipportip.c
-index d3f4a672986e..ab179e064597 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportip.c
-@@ -26,7 +26,7 @@
- /*				3    Comments support added */
- /*				4    Forceadd support added */
- /*				5    skbinfo support added */
--#define IPSET_TYPE_REV_MAX	6 /* bucketsize support added */
-+#define IPSET_TYPE_REV_MAX	6 /* bucketsize, initval support added */
-=20
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@netfilter.org>");
-@@ -362,6 +362,7 @@ static struct ip_set_type hash_ipportip_type __read_m=
-ostly =3D {
- 	.create_policy	=3D {
- 		[IPSET_ATTR_HASHSIZE]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_MAXELEM]	=3D { .type =3D NLA_U32 },
-+		[IPSET_ATTR_INITVAL]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_BUCKETSIZE]	=3D { .type =3D NLA_U8 },
- 		[IPSET_ATTR_RESIZE]	=3D { .type =3D NLA_U8  },
- 		[IPSET_ATTR_TIMEOUT]	=3D { .type =3D NLA_U32 },
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/=
-ipset/ip_set_hash_ipportnet.c
-index 8f7fe360736a..8f075b44cf64 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-@@ -28,7 +28,7 @@
- /*				5    Comments support added */
- /*				6    Forceadd support added */
- /*				7    skbinfo support added */
--#define IPSET_TYPE_REV_MAX	8 /* bucketsize support added */
-+#define IPSET_TYPE_REV_MAX	8 /* bucketsize, initval support added */
-=20
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@netfilter.org>");
-@@ -519,6 +519,7 @@ static struct ip_set_type hash_ipportnet_type __read_=
-mostly =3D {
- 	.create_policy	=3D {
- 		[IPSET_ATTR_HASHSIZE]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_MAXELEM]	=3D { .type =3D NLA_U32 },
-+		[IPSET_ATTR_INITVAL]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_BUCKETSIZE]	=3D { .type =3D NLA_U8 },
- 		[IPSET_ATTR_RESIZE]	=3D { .type =3D NLA_U8  },
- 		[IPSET_ATTR_TIMEOUT]	=3D { .type =3D NLA_U32 },
-diff --git a/net/netfilter/ipset/ip_set_hash_mac.c b/net/netfilter/ipset/=
-ip_set_hash_mac.c
-index 00dd7e20df3c..718814730acf 100644
---- a/net/netfilter/ipset/ip_set_hash_mac.c
-+++ b/net/netfilter/ipset/ip_set_hash_mac.c
-@@ -16,7 +16,7 @@
- #include <linux/netfilter/ipset/ip_set_hash.h>
-=20
- #define IPSET_TYPE_REV_MIN	0
--#define IPSET_TYPE_REV_MAX	1	/* bucketsize support */
-+#define IPSET_TYPE_REV_MAX	1	/* bucketsize, initval support */
-=20
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@netfilter.org>");
-@@ -130,6 +130,7 @@ static struct ip_set_type hash_mac_type __read_mostly=
- =3D {
- 	.create_policy	=3D {
- 		[IPSET_ATTR_HASHSIZE]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_MAXELEM]	=3D { .type =3D NLA_U32 },
-+		[IPSET_ATTR_INITVAL]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_BUCKETSIZE]	=3D { .type =3D NLA_U8 },
- 		[IPSET_ATTR_RESIZE]	=3D { .type =3D NLA_U8  },
- 		[IPSET_ATTR_TIMEOUT]	=3D { .type =3D NLA_U32 },
-diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/=
-ip_set_hash_net.c
-index d366e816b6ed..c1a11f041ac6 100644
---- a/net/netfilter/ipset/ip_set_hash_net.c
-+++ b/net/netfilter/ipset/ip_set_hash_net.c
-@@ -25,7 +25,7 @@
- /*				4    Comments support added */
- /*				5    Forceadd support added */
- /*				6    skbinfo support added */
--#define IPSET_TYPE_REV_MAX	7 /* bucketsize support added */
-+#define IPSET_TYPE_REV_MAX	7 /* bucketsize, initval support added */
-=20
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@netfilter.org>");
-@@ -360,6 +360,7 @@ static struct ip_set_type hash_net_type __read_mostly=
- =3D {
- 	.create_policy	=3D {
- 		[IPSET_ATTR_HASHSIZE]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_MAXELEM]	=3D { .type =3D NLA_U32 },
-+		[IPSET_ATTR_INITVAL]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_BUCKETSIZE]	=3D { .type =3D NLA_U8 },
- 		[IPSET_ATTR_RESIZE]	=3D { .type =3D NLA_U8  },
- 		[IPSET_ATTR_TIMEOUT]	=3D { .type =3D NLA_U32 },
-diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/i=
-pset/ip_set_hash_netiface.c
-index 38b1d77584d4..3d74169b794c 100644
---- a/net/netfilter/ipset/ip_set_hash_netiface.c
-+++ b/net/netfilter/ipset/ip_set_hash_netiface.c
-@@ -27,7 +27,7 @@
- /*				5    Forceadd support added */
- /*				6    skbinfo support added */
- /*				7    interface wildcard support added */
--#define IPSET_TYPE_REV_MAX	8 /* bucketsize support added */
-+#define IPSET_TYPE_REV_MAX	8 /* bucketsize, initval support added */
-=20
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@netfilter.org>");
-@@ -476,6 +476,7 @@ static struct ip_set_type hash_netiface_type __read_m=
-ostly =3D {
- 	.create_policy	=3D {
- 		[IPSET_ATTR_HASHSIZE]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_MAXELEM]	=3D { .type =3D NLA_U32 },
-+		[IPSET_ATTR_INITVAL]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_BUCKETSIZE]	=3D { .type =3D NLA_U8 },
- 		[IPSET_ATTR_RESIZE]	=3D { .type =3D NLA_U8  },
- 		[IPSET_ATTR_PROTO]	=3D { .type =3D NLA_U8 },
-diff --git a/net/netfilter/ipset/ip_set_hash_netnet.c b/net/netfilter/ips=
-et/ip_set_hash_netnet.c
-index 0cc7970f36e9..6532f0505e66 100644
---- a/net/netfilter/ipset/ip_set_hash_netnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netnet.c
-@@ -23,7 +23,7 @@
- #define IPSET_TYPE_REV_MIN	0
- /*				1	   Forceadd support added */
- /*				2	   skbinfo support added */
--#define IPSET_TYPE_REV_MAX	3	/* bucketsize support added */
-+#define IPSET_TYPE_REV_MAX	3	/* bucketsize, initval support added */
-=20
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>");
-@@ -465,6 +465,7 @@ static struct ip_set_type hash_netnet_type __read_mos=
-tly =3D {
- 	.create_policy	=3D {
- 		[IPSET_ATTR_HASHSIZE]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_MAXELEM]	=3D { .type =3D NLA_U32 },
-+		[IPSET_ATTR_INITVAL]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_BUCKETSIZE]	=3D { .type =3D NLA_U8 },
- 		[IPSET_ATTR_RESIZE]	=3D { .type =3D NLA_U8  },
- 		[IPSET_ATTR_TIMEOUT]	=3D { .type =3D NLA_U32 },
-diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ip=
-set/ip_set_hash_netport.c
-index b356d7d85e34..ec1564a1cb5a 100644
---- a/net/netfilter/ipset/ip_set_hash_netport.c
-+++ b/net/netfilter/ipset/ip_set_hash_netport.c
-@@ -27,7 +27,7 @@
- /*				5    Comments support added */
- /*				6    Forceadd support added */
- /*				7    skbinfo support added */
--#define IPSET_TYPE_REV_MAX	8 /* bucketsize support added */
-+#define IPSET_TYPE_REV_MAX	8 /* bucketsize, initval support added */
-=20
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@netfilter.org>");
-@@ -466,6 +466,7 @@ static struct ip_set_type hash_netport_type __read_mo=
-stly =3D {
- 	.create_policy	=3D {
- 		[IPSET_ATTR_HASHSIZE]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_MAXELEM]	=3D { .type =3D NLA_U32 },
-+		[IPSET_ATTR_INITVAL]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_BUCKETSIZE]	=3D { .type =3D NLA_U8 },
- 		[IPSET_ATTR_RESIZE]	=3D { .type =3D NLA_U8  },
- 		[IPSET_ATTR_PROTO]	=3D { .type =3D NLA_U8 },
-diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter=
-/ipset/ip_set_hash_netportnet.c
-index eeb39688f26f..0e91d1e82f1c 100644
---- a/net/netfilter/ipset/ip_set_hash_netportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
-@@ -24,7 +24,7 @@
- /*				0    Comments support added */
- /*				1    Forceadd support added */
- /*				2    skbinfo support added */
--#define IPSET_TYPE_REV_MAX	3 /* bucketsize support added */
-+#define IPSET_TYPE_REV_MAX	3 /* bucketsize, initval support added */
-=20
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>");
-@@ -564,6 +564,7 @@ static struct ip_set_type hash_netportnet_type __read=
-_mostly =3D {
- 	.create_policy	=3D {
- 		[IPSET_ATTR_HASHSIZE]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_MAXELEM]	=3D { .type =3D NLA_U32 },
-+		[IPSET_ATTR_INITVAL]	=3D { .type =3D NLA_U32 },
- 		[IPSET_ATTR_BUCKETSIZE]	=3D { .type =3D NLA_U8 },
- 		[IPSET_ATTR_RESIZE]	=3D { .type =3D NLA_U8  },
- 		[IPSET_ATTR_TIMEOUT]	=3D { .type =3D NLA_U32 },
---=20
+diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
+index 89016d08f6a2..f6267e2883f2 100644
+--- a/include/linux/netfilter/nfnetlink.h
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -24,6 +24,12 @@ struct nfnl_callback {
+ 	const u_int16_t attr_count;		/* number of nlattr's */
+ };
+ 
++enum nfnl_abort_action {
++	NFNL_ABORT_NONE		= 0,
++	NFNL_ABORT_AUTOLOAD,
++	NFNL_ABORT_VALIDATE,
++};
++
+ struct nfnetlink_subsystem {
+ 	const char *name;
+ 	__u8 subsys_id;			/* nfnetlink subsystem ID */
+@@ -31,7 +37,8 @@ struct nfnetlink_subsystem {
+ 	const struct nfnl_callback *cb;	/* callback for individual types */
+ 	struct module *owner;
+ 	int (*commit)(struct net *net, struct sk_buff *skb);
+-	int (*abort)(struct net *net, struct sk_buff *skb, bool autoload);
++	int (*abort)(struct net *net, struct sk_buff *skb,
++		     enum nfnl_abort_action action);
+ 	void (*cleanup)(struct net *net);
+ 	bool (*valid_genid)(struct net *net, u32 genid);
+ };
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 9b70e136fb5d..0f58e98542be 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -8053,12 +8053,16 @@ static void nf_tables_abort_release(struct nft_trans *trans)
+ 	kfree(trans);
+ }
+ 
+-static int __nf_tables_abort(struct net *net, bool autoload)
++static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ {
+ 	struct nft_trans *trans, *next;
+ 	struct nft_trans_elem *te;
+ 	struct nft_hook *hook;
+ 
++	if (action == NFNL_ABORT_VALIDATE &&
++	    nf_tables_validate(net) < 0)
++		return -EAGAIN;
++
+ 	list_for_each_entry_safe_reverse(trans, next, &net->nft.commit_list,
+ 					 list) {
+ 		switch (trans->msg_type) {
+@@ -8190,7 +8194,7 @@ static int __nf_tables_abort(struct net *net, bool autoload)
+ 		nf_tables_abort_release(trans);
+ 	}
+ 
+-	if (autoload)
++	if (action == NFNL_ABORT_AUTOLOAD)
+ 		nf_tables_module_autoload(net);
+ 	else
+ 		nf_tables_module_autoload_cleanup(net);
+@@ -8203,9 +8207,10 @@ static void nf_tables_cleanup(struct net *net)
+ 	nft_validate_state_update(net, NFT_VALIDATE_SKIP);
+ }
+ 
+-static int nf_tables_abort(struct net *net, struct sk_buff *skb, bool autoload)
++static int nf_tables_abort(struct net *net, struct sk_buff *skb,
++			   enum nfnl_abort_action action)
+ {
+-	int ret = __nf_tables_abort(net, autoload);
++	int ret = __nf_tables_abort(net, action);
+ 
+ 	mutex_unlock(&net->nft.commit_mutex);
+ 
+@@ -8836,7 +8841,7 @@ static void __net_exit nf_tables_exit_net(struct net *net)
+ {
+ 	mutex_lock(&net->nft.commit_mutex);
+ 	if (!list_empty(&net->nft.commit_list))
+-		__nf_tables_abort(net, false);
++		__nf_tables_abort(net, NFNL_ABORT_NONE);
+ 	__nft_release_tables(net);
+ 	mutex_unlock(&net->nft.commit_mutex);
+ 	WARN_ON_ONCE(!list_empty(&net->nft.tables));
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 2daa1f6ae344..d3df66a39b5e 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -333,7 +333,7 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		return netlink_ack(skb, nlh, -EINVAL, NULL);
+ replay:
+ 	status = 0;
+-
++replay_abort:
+ 	skb = netlink_skb_clone(oskb, GFP_KERNEL);
+ 	if (!skb)
+ 		return netlink_ack(oskb, nlh, -ENOMEM, NULL);
+@@ -499,7 +499,7 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	}
+ done:
+ 	if (status & NFNL_BATCH_REPLAY) {
+-		ss->abort(net, oskb, true);
++		ss->abort(net, oskb, NFNL_ABORT_AUTOLOAD);
+ 		nfnl_err_reset(&err_list);
+ 		kfree_skb(skb);
+ 		module_put(ss->owner);
+@@ -510,11 +510,25 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			status |= NFNL_BATCH_REPLAY;
+ 			goto done;
+ 		} else if (err) {
+-			ss->abort(net, oskb, false);
++			ss->abort(net, oskb, NFNL_ABORT_NONE);
+ 			netlink_ack(oskb, nlmsg_hdr(oskb), err, NULL);
+ 		}
+ 	} else {
+-		ss->abort(net, oskb, false);
++		enum nfnl_abort_action abort_action;
++
++		if (status & NFNL_BATCH_FAILURE)
++			abort_action = NFNL_ABORT_NONE;
++		else
++			abort_action = NFNL_ABORT_VALIDATE;
++
++		err = ss->abort(net, oskb, abort_action);
++		if (err == -EAGAIN) {
++			nfnl_err_reset(&err_list);
++			kfree_skb(skb);
++			module_put(ss->owner);
++			status |= NFNL_BATCH_FAILURE;
++			goto replay_abort;
++		}
+ 	}
+ 	if (ss->cleanup)
+ 		ss->cleanup(net);
+-- 
 2.20.1
 
