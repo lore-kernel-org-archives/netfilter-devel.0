@@ -2,74 +2,86 @@ Return-Path: <SRS0=8Ikc=EF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDE13C00A89
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Oct 2020 19:33:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01C59C00A89
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Oct 2020 19:39:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 73913206E3
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Oct 2020 19:33:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A48A5206CB
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Oct 2020 19:39:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727357AbgJ3Td2 (ORCPT
+        id S1727364AbgJ3TjG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 30 Oct 2020 15:33:28 -0400
-Received: from correo.us.es ([193.147.175.20]:56270 "EHLO mail.us.es"
+        Fri, 30 Oct 2020 15:39:06 -0400
+Received: from correo.us.es ([193.147.175.20]:37482 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727698AbgJ3TXE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 30 Oct 2020 15:23:04 -0400
+        id S1726625AbgJ3Til (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 30 Oct 2020 15:38:41 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EDA49154E90
-        for <netfilter-devel@vger.kernel.org>; Fri, 30 Oct 2020 20:23:03 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 893BA1BFA87
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Oct 2020 20:38:39 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DF567DA73D
-        for <netfilter-devel@vger.kernel.org>; Fri, 30 Oct 2020 20:23:03 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7B530DA704
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Oct 2020 20:38:39 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D4CA8DA789; Fri, 30 Oct 2020 20:23:03 +0100 (CET)
+        id 70FF4DA73F; Fri, 30 Oct 2020 20:38:39 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7CA0BDA73D;
-        Fri, 30 Oct 2020 20:23:01 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 36C4EDA78A
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Oct 2020 20:38:37 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 30 Oct 2020 20:23:01 +0100 (CET)
+ Fri, 30 Oct 2020 20:38:37 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 5EAE542EF42A;
-        Fri, 30 Oct 2020 20:23:01 +0100 (CET)
-Date:   Fri, 30 Oct 2020 20:23:01 +0100
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id 2173A42EF42B
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Oct 2020 20:38:37 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     "Jason A. Donenfeld" <Jason@zx2c4.com>
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH nf 0/2] route_me_harder routing loop with tunnels
-Message-ID: <20201030192301.GA19199@salvia>
-References: <20201029025606.3523771-1-Jason@zx2c4.com>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] tests: shell: exercise validate with nft -c
+Date:   Fri, 30 Oct 2020 20:38:34 +0100
+Message-Id: <20201030193834.26945-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20201029025606.3523771-1-Jason@zx2c4.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Oct 29, 2020 at 03:56:04AM +0100, Jason A. Donenfeld wrote:
-> Hi Pablo,
-> 
-> This series fixes a bug in the route_me_harder family of functions with
-> regards to tunnel interfaces. The first patch contains an addition to
-> the wireguard test suite; I normally send my wireguard patches through
-> Dave's tree, but I thought it'd be nice to send these together here
-> because the test case is illustrative of the issue. The second patch
-> then fixes the issue with a lengthy explanation of what's going on.
-> 
-> These are intended for net.git/nf.git, not the -next variety, and to
-> eventually be backported to stable. So, the second patch has a proper
-> Fixes: line on it to help with that.
+Using oif in fib from prerouting is not support, make sure -c reports an
+error.
 
-Series applied, thanks.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ tests/shell/testcases/nft-f/0023check_1 | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+ create mode 100755 tests/shell/testcases/nft-f/0023check_1
+
+diff --git a/tests/shell/testcases/nft-f/0023check_1 b/tests/shell/testcases/nft-f/0023check_1
+new file mode 100755
+index 000000000000..42793b6ec68c
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/0023check_1
+@@ -0,0 +1,12 @@
++#!/bin/bash
++
++RULESET="table ip foo {
++	chain bar {
++		type filter hook prerouting priority 0;
++	}
++}"
++
++$NFT -f - <<< "$RULESET"
++
++$NFT -c add rule foo bar fib saddr . oif type local && exit 1
++exit 0
+-- 
+2.20.1
+
