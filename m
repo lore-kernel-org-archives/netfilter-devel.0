@@ -2,80 +2,184 @@ Return-Path: <SRS0=mmf4=EG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AFA5C388F7
-	for <netfilter-devel@archiver.kernel.org>; Sat, 31 Oct 2020 10:53:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88096C388F7
+	for <netfilter-devel@archiver.kernel.org>; Sat, 31 Oct 2020 14:27:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 664C220739
-	for <netfilter-devel@archiver.kernel.org>; Sat, 31 Oct 2020 10:53:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4BD5420663
+	for <netfilter-devel@archiver.kernel.org>; Sat, 31 Oct 2020 14:27:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726757AbgJaKx2 (ORCPT
+        id S1726188AbgJaO1Q (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 31 Oct 2020 06:53:28 -0400
-Received: from correo.us.es ([193.147.175.20]:45578 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726697AbgJaKx1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 31 Oct 2020 06:53:27 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 95574E862B
-        for <netfilter-devel@vger.kernel.org>; Sat, 31 Oct 2020 11:53:26 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 86379DA730
-        for <netfilter-devel@vger.kernel.org>; Sat, 31 Oct 2020 11:53:26 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7BFDBDA73F; Sat, 31 Oct 2020 11:53:26 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6C4ADDA730;
-        Sat, 31 Oct 2020 11:53:24 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 31 Oct 2020 11:53:24 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 4B01C42EF42B;
-        Sat, 31 Oct 2020 11:53:24 +0100 (CET)
-Date:   Sat, 31 Oct 2020 11:53:23 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     "Jose M. Guisado Gomez" <guigom@riseup.net>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH 0/5] add support for reject verdict in netdev
-Message-ID: <20201031105323.GA2135@salvia>
-References: <20201022194355.1816-1-guigom@riseup.net>
+        Sat, 31 Oct 2020 10:27:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58958 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726027AbgJaO1Q (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 31 Oct 2020 10:27:16 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2DADBC0617A6
+        for <netfilter-devel@vger.kernel.org>; Sat, 31 Oct 2020 07:27:16 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1kYrqa-0003gW-K5; Sat, 31 Oct 2020 15:27:12 +0100
+Date:   Sat, 31 Oct 2020 15:27:12 +0100
+From:   Phil Sutter <phil@netfilter.org>
+To:     netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Cc:     netdev@vger.kernel.org, netfilter-announce@lists.netfilter.org,
+        lwn@lwn.net
+Subject: [ANNOUNCE] iptables 1.8.6 release
+Message-ID: <20201031142712.GA10193@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@netfilter.org>,
+        netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-announce@lists.netfilter.org,
+        lwn@lwn.net
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: multipart/mixed; boundary="k+w/mQv8wyuph6w0"
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20201022194355.1816-1-guigom@riseup.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Sender:  <n0-1@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Oct 22, 2020 at 09:43:50PM +0200, Jose M. Guisado Gomez wrote:
-> This patch series comprises changes in kernel space and user space to
-> enable the reject verdict for the netdev family.
-> 
-> In addition, some code refactor has been made to the nft_reject
-> infrastructure in kernel, adding two new functions to create the icmp or
-> tcp reset skbuffs to avoid using ip_local_out. Also, reject init and
-> dump functions has been unified into nft_reject.c
-> 
-> This follows previous work from Laura García.
-> 
-> nf-next
-> -------
-> 
-> Jose M. Guisado Gomez (3):
->   net: netfilter: add reject skbuff creation helpers
->   net: netfilter: unify reject init and dump into nft_reject
->   net: netfilter: add reject verdict support for netdev
 
-Applied these three patches to nf-next, thanks.
+--k+w/mQv8wyuph6w0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi!
+
+The Netfilter project proudly presents:
+
+iptables 1.8.6
+
+This release contains the following fixes and enhancements:
+
+iptables-nft:
+- Fix ip6tables error messages, they were incorrectly prefixed
+  'iptables:'.
+- Fix for pointless 'bitwise' expression being added to each IP address
+  match, needlessly slowing down run-time performance (by 50% in worst
+  cases).
+
+iptables-nft-restore:
+- Correctly print the flushed chains in verbose mode, like legacy
+  restore does.
+- Restoring multiple tables could fail if a ruleset flush happened in
+  parallel (e.g. via 'nft flush ruleset').
+- Fix for bogus error messages if a refreshed transaction fails.
+- Support basechain policy value of '-' (indicating to not change the
+  chain's policy).
+- Fix for spurious errors in concurrent restore calls with '--noflush'.
+
+iptables-legacy:
+- Allow to configure lock file location via XTABLES_LOCKFILE environment
+  variable.
+
+xtables-monitor:
+- Fix printing of IP addresses in ip6tables rules.
+
+xtables-translate:
+- Exit gracefully when called with '--help'.
+- Fix some memory leaks.
+- Add support for conntrack '--ctstate' match.
+- Fix translation of ICMP type 'any' match.
+
+libxtables:
+- Fix for lower extension revisions not supported by the kernel anymore
+  being retried each time the extension is used in a rule. This
+  significantly improves performance when restoring large rulesets which
+  extensively use e.g. conntrack match.
+
+tests:
+- Add help text to tests/shell/run-tests.sh.
+- Test ip6tables error messages also, not just return codes.
+
+General:
+- Rejecting packets with ctstate INVALID might close good connections if
+  packet reordering happened. Document this and suggest to use DROP
+  target instead.
+- Fix for iptables-apply script not being installed by 'make install'.
+- Fix 'make uninstall', it was completely broken.
+- Fix compiler warnings when building with NO_SHARED_LIBS.
+- Extend 'make clean' to remove some generated man pages left in place.
+- Fix for gcc-10 zero-length array warnings.
+
+See the attached changelog for more details.
+
+You can download it from:
+
+http://www.netfilter.org/projects/iptables/downloads.html#iptables-1.8.6
+
+To build the code, libnftnl 1.1.6 is required:
+
+* http://netfilter.org/projects/libnftnl/downloads.html#libnftnl-1.1.6
+
+In case of bugs and feature requests, file them via:
+
+* https://bugzilla.netfilter.org
+
+Happy firewalling!
+
+--k+w/mQv8wyuph6w0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: attachment; filename="iptables-1.8.6.txt"
+Content-Transfer-Encoding: 8bit
+
+Arturo Borrero Gonzalez (1):
+  xtables-translate: don't fail if help was requested
+
+Giuseppe Scrivano (1):
+  iptables: accept lock file name at runtime
+
+Jan Engelhardt (2):
+  doc: document danger of applying REJECT to INVALID CTs
+  build: resolve iptables-apply not getting installed
+
+Maciej Żenczykowski (1):
+  libxtables: compiler warning fixes for NO_SHARED_LIBS
+
+Pablo Neira Ayuso (3):
+  extensions: libxt_conntrack: provide translation for DNAT and SNAT
+    --ctstate
+  iptables: replace libnftnl table list by linux list
+  iptables-nft: fix basechain policy configuration
+
+Phil Sutter (31):
+  xtables-restore: Fix verbose mode table flushing
+  build: Fix for failing 'make uninstall'
+  xtables-translate: Use proper clear_cs function
+  tests: shell: Add help output to run-tests.sh
+  nft: Make table creation purely implicit
+  nft: Be lazy when flushing
+  nft: cache: Drop duplicate chain check
+  nft: Drop pointless nft_xt_builtin_init() call
+  nft: Turn nft_chain_save() into a foreach-callback
+  nft: Use nft_chain_find() in two more places
+  nft: Reorder enum nft_table_type
+  nft: Eliminate table list from cache
+  nft: Fix command name in ip6tables error message
+  tests: shell: Merge and extend return codes test
+  xtables-monitor: Fix ip6tables rule printing
+  nft: Fix for ruleset flush while restoring
+  Makefile: Add missing man pages to CLEANFILES
+  nft: cache: Check consistency with NFT_CL_FAKE, too
+  nft: Extend use of nftnl_chain_list_foreach()
+  nft: Fold nftnl_rule_list_chain_save() into caller
+  nft: Use nft_chain_find() in nft_chain_builtin_init()
+  nft: Fix for broken address mask match detection
+  extensions: libipt_icmp: Fix translation of type 'any'
+  libxtables: Make sure extensions register in revision order
+  libxtables: Simplify pending extension registration
+  libxtables: Register multiple extensions in ascending order
+  nft: Make batch_add_chain() return the added batch object
+  nft: Fix error reporting for refreshed transactions
+  libiptc: Avoid gcc-10 zero-length array warning
+  nft: Fix for concurrent noflush restore calls
+  tests: shell: Improve concurrent noflush restore test a bit
+
+--k+w/mQv8wyuph6w0--
