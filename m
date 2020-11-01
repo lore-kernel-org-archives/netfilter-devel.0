@@ -2,51 +2,51 @@ Return-Path: <SRS0=/QgY=EH=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AC3DC2D0A3
-	for <netfilter-devel@archiver.kernel.org>; Sun,  1 Nov 2020 11:57:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADAB5C2D0A3
+	for <netfilter-devel@archiver.kernel.org>; Sun,  1 Nov 2020 11:58:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1892120665
-	for <netfilter-devel@archiver.kernel.org>; Sun,  1 Nov 2020 11:57:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7CC3C2084C
+	for <netfilter-devel@archiver.kernel.org>; Sun,  1 Nov 2020 11:58:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726513AbgKAL5I (ORCPT
+        id S1726442AbgKAL6L (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 1 Nov 2020 06:57:08 -0500
-Received: from correo.us.es ([193.147.175.20]:47734 "EHLO mail.us.es"
+        Sun, 1 Nov 2020 06:58:11 -0500
+Received: from correo.us.es ([193.147.175.20]:48056 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726159AbgKAL5I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 1 Nov 2020 06:57:08 -0500
+        id S1726159AbgKAL6L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 1 Nov 2020 06:58:11 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AD637819A5
-        for <netfilter-devel@vger.kernel.org>; Sun,  1 Nov 2020 12:57:06 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 102F5819A5
+        for <netfilter-devel@vger.kernel.org>; Sun,  1 Nov 2020 12:58:09 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9E7CFDA722
-        for <netfilter-devel@vger.kernel.org>; Sun,  1 Nov 2020 12:57:06 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 03A4ADA704
+        for <netfilter-devel@vger.kernel.org>; Sun,  1 Nov 2020 12:58:09 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 93F5FDA789; Sun,  1 Nov 2020 12:57:06 +0100 (CET)
+        id ED57BDA72F; Sun,  1 Nov 2020 12:58:08 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3C085DA722
-        for <netfilter-devel@vger.kernel.org>; Sun,  1 Nov 2020 12:57:04 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BC995DA704
+        for <netfilter-devel@vger.kernel.org>; Sun,  1 Nov 2020 12:58:06 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 01 Nov 2020 12:57:04 +0100 (CET)
+ Sun, 01 Nov 2020 12:58:06 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 2838B41FF20E
-        for <netfilter-devel@vger.kernel.org>; Sun,  1 Nov 2020 12:57:04 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id A7DAF41FF208
+        for <netfilter-devel@vger.kernel.org>; Sun,  1 Nov 2020 12:58:06 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Subject: [PATCH nf-next,v2] netfilter: nft_reject_inet: allow to use reject from inet ingress
-Date:   Sun,  1 Nov 2020 12:57:00 +0100
-Message-Id: <20201101115700.21702-1-pablo@netfilter.org>
+Date:   Sun,  1 Nov 2020 12:58:02 +0100
+Message-Id: <20201101115802.22927-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
