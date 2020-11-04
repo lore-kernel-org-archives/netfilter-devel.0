@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A3D8C2D0A3
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Nov 2020 14:12:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7B6DC55179
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Nov 2020 14:12:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 242A621734
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Nov 2020 14:12:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 59073221E2
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Nov 2020 14:12:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730343AbgKDOMJ (ORCPT
+        id S1729946AbgKDOMI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Nov 2020 09:12:09 -0500
-Received: from correo.us.es ([193.147.175.20]:35816 "EHLO mail.us.es"
+        Wed, 4 Nov 2020 09:12:08 -0500
+Received: from correo.us.es ([193.147.175.20]:35764 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730052AbgKDOMF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Nov 2020 09:12:05 -0500
+        id S1729902AbgKDOME (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 4 Nov 2020 09:12:04 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 57432B60F5
-        for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2020 15:12:03 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id D7AD5B60E7
+        for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2020 15:12:00 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 48107DA793
-        for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2020 15:12:03 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C7908DA792
+        for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2020 15:12:00 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 3D57BDA78D; Wed,  4 Nov 2020 15:12:03 +0100 (CET)
+        id C6A4BDA730; Wed,  4 Nov 2020 15:12:00 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C37F3DA78E;
-        Wed,  4 Nov 2020 15:12:00 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 421A0DA801;
+        Wed,  4 Nov 2020 15:11:58 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 04 Nov 2020 15:12:00 +0100 (CET)
+ Wed, 04 Nov 2020 15:11:58 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 81BC042EF9E0;
-        Wed,  4 Nov 2020 15:12:00 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id 0580742EF9E2;
+        Wed,  4 Nov 2020 15:11:57 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org
-Subject: [PATCH net-next 7/8] netfilter: nftables: Add __printf() attribute
-Date:   Wed,  4 Nov 2020 15:11:48 +0100
-Message-Id: <20201104141149.30082-8-pablo@netfilter.org>
+Subject: [PATCH net-next 3/8] netfilter: nft_reject: add reject verdict support for netdev
+Date:   Wed,  4 Nov 2020 15:11:44 +0100
+Message-Id: <20201104141149.30082-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201104141149.30082-1-pablo@netfilter.org>
 References: <20201104141149.30082-1-pablo@netfilter.org>
@@ -58,32 +58,254 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Andrew Lunn <andrew@lunn.ch>
+From: "Jose M. Guisado Gomez" <guigom@riseup.net>
 
-nft_request_module calls vsnprintf() using parameters passed to it.
-Make the function with __printf() attribute so the compiler can check
-the format and arguments.
+Adds support for reject from ingress hook in netdev family.
+Both stacks ipv4 and ipv6.  With reject packets supporting ICMP
+and TCP RST.
 
-Signed-off-by: Andrew Lunn <andrew@lunn.ch>
+This ability is required in devices that need to REJECT legitimate
+clients which traffic is forwarded from the ingress hook.
+
+Joint work with Laura Garcia.
+
+Signed-off-by: Jose M. Guisado Gomez <guigom@riseup.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/netfilter/Kconfig             |  10 ++
+ net/netfilter/Makefile            |   1 +
+ net/netfilter/nft_reject_netdev.c | 189 ++++++++++++++++++++++++++++++
+ 3 files changed, 200 insertions(+)
+ create mode 100644 net/netfilter/nft_reject_netdev.c
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 65cb8e3c13d9..522a9d28754b 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -581,7 +581,8 @@ struct nft_module_request {
- };
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 52370211e46b..49fbef0d99be 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -682,6 +682,16 @@ config NFT_FIB_NETDEV
+ 	  The lookup will be delegated to the IPv4 or IPv6 FIB depending
+ 	  on the protocol of the packet.
  
- #ifdef CONFIG_MODULES
--static int nft_request_module(struct net *net, const char *fmt, ...)
-+static __printf(2, 3) int nft_request_module(struct net *net, const char *fmt,
-+					     ...)
- {
- 	char module_name[MODULE_NAME_LEN];
- 	struct nft_module_request *req;
++config NFT_REJECT_NETDEV
++	depends on NFT_REJECT_IPV4
++	depends on NFT_REJECT_IPV6
++	tristate "Netfilter nf_tables netdev REJECT support"
++	help
++	  This option enables the REJECT support from the netdev table.
++	  The return packet generation will be delegated to the IPv4
++	  or IPv6 ICMP or TCP RST implementation depending on the
++	  protocol of the packet.
++
+ endif # NF_TABLES_NETDEV
+ 
+ endif # NF_TABLES
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 0e0ded87e27b..33da7bf1b68e 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -101,6 +101,7 @@ obj-$(CONFIG_NFT_QUEUE)		+= nft_queue.o
+ obj-$(CONFIG_NFT_QUOTA)		+= nft_quota.o
+ obj-$(CONFIG_NFT_REJECT) 	+= nft_reject.o
+ obj-$(CONFIG_NFT_REJECT_INET)	+= nft_reject_inet.o
++obj-$(CONFIG_NFT_REJECT_NETDEV)	+= nft_reject_netdev.o
+ obj-$(CONFIG_NFT_TUNNEL)	+= nft_tunnel.o
+ obj-$(CONFIG_NFT_COUNTER)	+= nft_counter.o
+ obj-$(CONFIG_NFT_LOG)		+= nft_log.o
+diff --git a/net/netfilter/nft_reject_netdev.c b/net/netfilter/nft_reject_netdev.c
+new file mode 100644
+index 000000000000..d89f68754f42
+--- /dev/null
++++ b/net/netfilter/nft_reject_netdev.c
+@@ -0,0 +1,189 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * Copyright (c) 2020 Laura Garcia Liebana <nevola@gmail.com>
++ * Copyright (c) 2020 Jose M. Guisado <guigom@riseup.net>
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/netlink.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nft_reject.h>
++#include <net/netfilter/ipv4/nf_reject.h>
++#include <net/netfilter/ipv6/nf_reject.h>
++
++static void nft_reject_queue_xmit(struct sk_buff *nskb, struct sk_buff *oldskb)
++{
++	dev_hard_header(nskb, nskb->dev, ntohs(oldskb->protocol),
++			eth_hdr(oldskb)->h_source, eth_hdr(oldskb)->h_dest,
++			nskb->len);
++	dev_queue_xmit(nskb);
++}
++
++static void nft_reject_netdev_send_v4_tcp_reset(struct net *net,
++						struct sk_buff *oldskb,
++						const struct net_device *dev,
++						int hook)
++{
++	struct sk_buff *nskb;
++
++	nskb = nf_reject_skb_v4_tcp_reset(net, oldskb, dev, hook);
++	if (!nskb)
++		return;
++
++	nft_reject_queue_xmit(nskb, oldskb);
++}
++
++static void nft_reject_netdev_send_v4_unreach(struct net *net,
++					      struct sk_buff *oldskb,
++					      const struct net_device *dev,
++					      int hook, u8 code)
++{
++	struct sk_buff *nskb;
++
++	nskb = nf_reject_skb_v4_unreach(net, oldskb, dev, hook, code);
++	if (!nskb)
++		return;
++
++	nft_reject_queue_xmit(nskb, oldskb);
++}
++
++static void nft_reject_netdev_send_v6_tcp_reset(struct net *net,
++						struct sk_buff *oldskb,
++						const struct net_device *dev,
++						int hook)
++{
++	struct sk_buff *nskb;
++
++	nskb = nf_reject_skb_v6_tcp_reset(net, oldskb, dev, hook);
++	if (!nskb)
++		return;
++
++	nft_reject_queue_xmit(nskb, oldskb);
++}
++
++
++static void nft_reject_netdev_send_v6_unreach(struct net *net,
++					      struct sk_buff *oldskb,
++					      const struct net_device *dev,
++					      int hook, u8 code)
++{
++	struct sk_buff *nskb;
++
++	nskb = nf_reject_skb_v6_unreach(net, oldskb, dev, hook, code);
++	if (!nskb)
++		return;
++
++	nft_reject_queue_xmit(nskb, oldskb);
++}
++
++static void nft_reject_netdev_eval(const struct nft_expr *expr,
++				   struct nft_regs *regs,
++				   const struct nft_pktinfo *pkt)
++{
++	struct ethhdr *eth = eth_hdr(pkt->skb);
++	struct nft_reject *priv = nft_expr_priv(expr);
++	const unsigned char *dest = eth->h_dest;
++
++	if (is_broadcast_ether_addr(dest) ||
++	    is_multicast_ether_addr(dest))
++		goto out;
++
++	switch (eth->h_proto) {
++	case htons(ETH_P_IP):
++		switch (priv->type) {
++		case NFT_REJECT_ICMP_UNREACH:
++			nft_reject_netdev_send_v4_unreach(nft_net(pkt), pkt->skb,
++							  nft_in(pkt),
++							  nft_hook(pkt),
++							  priv->icmp_code);
++			break;
++		case NFT_REJECT_TCP_RST:
++			nft_reject_netdev_send_v4_tcp_reset(nft_net(pkt), pkt->skb,
++							    nft_in(pkt),
++							    nft_hook(pkt));
++			break;
++		case NFT_REJECT_ICMPX_UNREACH:
++			nft_reject_netdev_send_v4_unreach(nft_net(pkt), pkt->skb,
++							  nft_in(pkt),
++							  nft_hook(pkt),
++							  nft_reject_icmp_code(priv->icmp_code));
++			break;
++		}
++		break;
++	case htons(ETH_P_IPV6):
++		switch (priv->type) {
++		case NFT_REJECT_ICMP_UNREACH:
++			nft_reject_netdev_send_v6_unreach(nft_net(pkt), pkt->skb,
++							  nft_in(pkt),
++							  nft_hook(pkt),
++							  priv->icmp_code);
++			break;
++		case NFT_REJECT_TCP_RST:
++			nft_reject_netdev_send_v6_tcp_reset(nft_net(pkt), pkt->skb,
++							    nft_in(pkt),
++							    nft_hook(pkt));
++			break;
++		case NFT_REJECT_ICMPX_UNREACH:
++			nft_reject_netdev_send_v6_unreach(nft_net(pkt), pkt->skb,
++							  nft_in(pkt),
++							  nft_hook(pkt),
++							  nft_reject_icmpv6_code(priv->icmp_code));
++			break;
++		}
++		break;
++	default:
++		/* No explicit way to reject this protocol, drop it. */
++		break;
++	}
++out:
++	regs->verdict.code = NF_DROP;
++}
++
++static int nft_reject_netdev_validate(const struct nft_ctx *ctx,
++				      const struct nft_expr *expr,
++				      const struct nft_data **data)
++{
++	return nft_chain_validate_hooks(ctx->chain, (1 << NF_NETDEV_INGRESS));
++}
++
++static struct nft_expr_type nft_reject_netdev_type;
++static const struct nft_expr_ops nft_reject_netdev_ops = {
++	.type		= &nft_reject_netdev_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_reject)),
++	.eval		= nft_reject_netdev_eval,
++	.init		= nft_reject_init,
++	.dump		= nft_reject_dump,
++	.validate	= nft_reject_netdev_validate,
++};
++
++static struct nft_expr_type nft_reject_netdev_type __read_mostly = {
++	.family		= NFPROTO_NETDEV,
++	.name		= "reject",
++	.ops		= &nft_reject_netdev_ops,
++	.policy		= nft_reject_policy,
++	.maxattr	= NFTA_REJECT_MAX,
++	.owner		= THIS_MODULE,
++};
++
++static int __init nft_reject_netdev_module_init(void)
++{
++	return nft_register_expr(&nft_reject_netdev_type);
++}
++
++static void __exit nft_reject_netdev_module_exit(void)
++{
++	nft_unregister_expr(&nft_reject_netdev_type);
++}
++
++module_init(nft_reject_netdev_module_init);
++module_exit(nft_reject_netdev_module_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Laura Garcia Liebana <nevola@gmail.com>");
++MODULE_AUTHOR("Jose M. Guisado <guigom@riseup.net>");
++MODULE_DESCRIPTION("Reject packets from netdev via nftables");
++MODULE_ALIAS_NFT_AF_EXPR(5, "reject");
 -- 
 2.20.1
 
