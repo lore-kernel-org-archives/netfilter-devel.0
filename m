@@ -2,51 +2,54 @@ Return-Path: <SRS0=dzjG=EK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CFE8C2D0A3
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Nov 2020 12:52:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D278C388F7
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Nov 2020 12:52:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD432221F8
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Nov 2020 12:52:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C6B29221F8
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Nov 2020 12:52:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729935AbgKDMw4 (ORCPT
+        id S1729787AbgKDMw6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Nov 2020 07:52:56 -0500
-Received: from correo.us.es ([193.147.175.20]:47850 "EHLO mail.us.es"
+        Wed, 4 Nov 2020 07:52:58 -0500
+Received: from correo.us.es ([193.147.175.20]:47870 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729880AbgKDMw4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Nov 2020 07:52:56 -0500
+        id S1729309AbgKDMw6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 4 Nov 2020 07:52:58 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DB87B82DC71
-        for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2020 13:52:54 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 7008B82DC75
+        for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2020 13:52:56 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CBA91DA72F
-        for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2020 13:52:54 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5D828DA73F
+        for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2020 13:52:56 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id CAC93DA78F; Wed,  4 Nov 2020 13:52:54 +0100 (CET)
+        id 5C749DA730; Wed,  4 Nov 2020 13:52:56 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7E9C6DA72F
-        for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2020 13:52:52 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 29EB5DA798
+        for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2020 13:52:54 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 04 Nov 2020 13:52:52 +0100 (CET)
+ Wed, 04 Nov 2020 13:52:54 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 5AABE42EF9E3
-        for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2020 13:52:52 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id 1288542EF9E2
+        for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2020 13:52:54 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf 0/2] fixes for nftables offload
-Date:   Wed,  4 Nov 2020 13:52:47 +0100
-Message-Id: <20201104125249.11704-1-pablo@netfilter.org>
+Subject: [PATCH nf 1/2] netfilter: nftables_offload: set address type in control dissector
+Date:   Wed,  4 Nov 2020 13:52:48 +0100
+Message-Id: <20201104125249.11704-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20201104125249.11704-1-pablo@netfilter.org>
+References: <20201104125249.11704-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
@@ -54,26 +57,105 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+If the address type is missing through the control dissector, then
+matching on IPv4 and IPv6 addresses does not work. Set it accordingly so
+rules that specify and IP address match on packets.
 
-These patchset fixes nftables offload for the two cases:
+Fixes: c9626a2cbdb2 ("netfilter: nf_tables: add hardware offload support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables_offload.h |  4 ++++
+ net/netfilter/nf_tables_offload.c         | 18 ++++++++++++++++++
+ net/netfilter/nft_payload.c               |  4 ++++
+ 3 files changed, 26 insertions(+)
 
-- matching on exact IP address
-- matching on prefix IP address
-
-Tested with mlx5.
-
-Pablo Neira Ayuso (2):
-  netfilter: nftables_offload: set address type in control dissector
-  netfilter: nftables_offload: build mask based from the matching bytes
-
- include/net/netfilter/nf_tables_offload.h |  7 +++
- net/netfilter/nf_tables_offload.c         | 18 ++++++
- net/netfilter/nft_cmp.c                   |  8 +--
- net/netfilter/nft_meta.c                  | 16 +++---
- net/netfilter/nft_payload.c               | 68 +++++++++++++++++------
- 5 files changed, 88 insertions(+), 29 deletions(-)
-
+diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
+index ea7d1d78b92d..bddd34c5bd79 100644
+--- a/include/net/netfilter/nf_tables_offload.h
++++ b/include/net/netfilter/nf_tables_offload.h
+@@ -37,6 +37,7 @@ void nft_offload_update_dependency(struct nft_offload_ctx *ctx,
+ 
+ struct nft_flow_key {
+ 	struct flow_dissector_key_basic			basic;
++	struct flow_dissector_key_control		control;
+ 	union {
+ 		struct flow_dissector_key_ipv4_addrs	ipv4;
+ 		struct flow_dissector_key_ipv6_addrs	ipv6;
+@@ -62,6 +63,9 @@ struct nft_flow_rule {
+ 
+ #define NFT_OFFLOAD_F_ACTION	(1 << 0)
+ 
++void nft_flow_rule_set_addr_type(struct nft_flow_rule *flow,
++				 enum flow_dissector_key_id addr_type);
++
+ struct nft_rule;
+ struct nft_flow_rule *nft_flow_rule_create(struct net *net, const struct nft_rule *rule);
+ void nft_flow_rule_destroy(struct nft_flow_rule *flow);
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 9f625724a20f..9a3c5ac057b6 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -28,6 +28,24 @@ static struct nft_flow_rule *nft_flow_rule_alloc(int num_actions)
+ 	return flow;
+ }
+ 
++void nft_flow_rule_set_addr_type(struct nft_flow_rule *flow,
++				 enum flow_dissector_key_id addr_type)
++{
++	struct nft_flow_match *match = &flow->match;
++	struct nft_flow_key *mask = &match->mask;
++	struct nft_flow_key *key = &match->key;
++
++	if (match->dissector.used_keys & BIT(FLOW_DISSECTOR_KEY_CONTROL))
++		return;
++
++	key->control.addr_type = addr_type;
++	mask->control.addr_type = 0xffff;
++	match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_CONTROL);
++	match->dissector.offset[FLOW_DISSECTOR_KEY_CONTROL] =
++		offsetof(struct nft_flow_key, control);
++}
++EXPORT_SYMBOL_GPL(nft_flow_rule_set_addr_type);
++
+ struct nft_flow_rule *nft_flow_rule_create(struct net *net,
+ 					   const struct nft_rule *rule)
+ {
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index dcd3c7b8a367..bbf811d030d5 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -244,6 +244,7 @@ static int nft_payload_offload_ip(struct nft_offload_ctx *ctx,
+ 
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_IPV4_ADDRS, ipv4, src,
+ 				  sizeof(struct in_addr), reg);
++		nft_flow_rule_set_addr_type(flow, FLOW_DISSECTOR_KEY_IPV4_ADDRS);
+ 		break;
+ 	case offsetof(struct iphdr, daddr):
+ 		if (priv->len != sizeof(struct in_addr))
+@@ -251,6 +252,7 @@ static int nft_payload_offload_ip(struct nft_offload_ctx *ctx,
+ 
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_IPV4_ADDRS, ipv4, dst,
+ 				  sizeof(struct in_addr), reg);
++		nft_flow_rule_set_addr_type(flow, FLOW_DISSECTOR_KEY_IPV4_ADDRS);
+ 		break;
+ 	case offsetof(struct iphdr, protocol):
+ 		if (priv->len != sizeof(__u8))
+@@ -280,6 +282,7 @@ static int nft_payload_offload_ip6(struct nft_offload_ctx *ctx,
+ 
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_IPV6_ADDRS, ipv6, src,
+ 				  sizeof(struct in6_addr), reg);
++		nft_flow_rule_set_addr_type(flow, FLOW_DISSECTOR_KEY_IPV6_ADDRS);
+ 		break;
+ 	case offsetof(struct ipv6hdr, daddr):
+ 		if (priv->len != sizeof(struct in6_addr))
+@@ -287,6 +290,7 @@ static int nft_payload_offload_ip6(struct nft_offload_ctx *ctx,
+ 
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_IPV6_ADDRS, ipv6, dst,
+ 				  sizeof(struct in6_addr), reg);
++		nft_flow_rule_set_addr_type(flow, FLOW_DISSECTOR_KEY_IPV6_ADDRS);
+ 		break;
+ 	case offsetof(struct ipv6hdr, nexthdr):
+ 		if (priv->len != sizeof(__u8))
 -- 
 2.20.1
 
