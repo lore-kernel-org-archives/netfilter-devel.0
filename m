@@ -2,341 +2,140 @@ Return-Path: <SRS0=dzjG=EK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDC42C2D0A3
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Nov 2020 12:53:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBDB1C4741F
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Nov 2020 13:01:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E64B221F8
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Nov 2020 12:53:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E20D2071A
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Nov 2020 13:01:56 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=cisco.com header.i=@cisco.com header.b="V8bH9mbL"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729939AbgKDMxC (ORCPT
+        id S1728922AbgKDNBy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Nov 2020 07:53:02 -0500
-Received: from correo.us.es ([193.147.175.20]:47888 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729782AbgKDMxC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Nov 2020 07:53:02 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4708A82DC73
-        for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2020 13:52:58 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 33B2FDA72F
-        for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2020 13:52:58 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 32C07DA78A; Wed,  4 Nov 2020 13:52:58 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7DF6ADA72F
-        for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2020 13:52:55 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 04 Nov 2020 13:52:55 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from localhost.localdomain (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 6269E42EF9E0
-        for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2020 13:52:55 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf 2/2] netfilter: nftables_offload: build mask based from the matching bytes
-Date:   Wed,  4 Nov 2020 13:52:49 +0100
-Message-Id: <20201104125249.11704-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20201104125249.11704-1-pablo@netfilter.org>
-References: <20201104125249.11704-1-pablo@netfilter.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Wed, 4 Nov 2020 08:01:54 -0500
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:3919 "EHLO
+        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726350AbgKDNBx (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 4 Nov 2020 08:01:53 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=cisco.com; i=@cisco.com; l=3128; q=dns/txt; s=iport;
+  t=1604494912; x=1605704512;
+  h=from:to:cc:subject:date:message-id;
+  bh=Xedl5loCyFTqDwsd8vz4oe/M0aI9zoTGkjKi7JduHxw=;
+  b=V8bH9mbLpzVOusQGubPwAzkyF4+dDwsqDDJftpQvbt5BlWEGD+XgYHU8
+   UNQVy9zOiM93boAQoIxubY7gDHOK2HQkPxFLgoLgRhBUAALXRQZKBoQGi
+   69x56oxuh0pYWcnp+7Ulqz3mVUoFMw49SJjz9d/OmO++bLxd5A4GIBUfC
+   w=;
+X-IronPort-AV: E=Sophos;i="5.77,450,1596499200"; 
+   d="scan'208";a="30856083"
+Received: from aer-iport-nat.cisco.com (HELO aer-core-1.cisco.com) ([173.38.203.22])
+  by aer-iport-1.cisco.com with ESMTP/TLS/DHE-RSA-SEED-SHA; 04 Nov 2020 13:01:51 +0000
+Received: from rdbuild16.cisco.com.rd.cisco.com (rdbuild16.cisco.com [10.47.15.16])
+        by aer-core-1.cisco.com (8.15.2/8.15.2) with ESMTP id 0A4D1o83028097;
+        Wed, 4 Nov 2020 13:01:50 GMT
+From:   Georg Kohmann <geokohma@cisco.com>
+To:     netdev@vger.kernel.org
+Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
+        kuba@kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, Georg Kohmann <geokohma@cisco.com>
+Subject: [PATCH net] ipv6/netfilter: Discard first fragment not including all headers
+Date:   Wed,  4 Nov 2020 14:01:28 +0100
+Message-Id: <20201104130128.14619-1-geokohma@cisco.com>
+X-Mailer: git-send-email 2.10.2
+X-Outbound-SMTP-Client: 10.47.15.16, rdbuild16.cisco.com
+X-Outbound-Node: aer-core-1.cisco.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Userspace might match on prefix bytes of header fields if they are on
-the byte boundary, this requires that the mask is adjusted accordingly.
-Use NFT_OFFLOAD_MATCH_EXACT() for meta since prefix byte matching is not
-allowed for this type of selector.
+Packets are processed even though the first fragment don't include all
+headers through the upper layer header. This breaks TAHI IPv6 Core
+Conformance Test v6LC.1.3.6.
 
-Fixes: c9626a2cbdb2 ("netfilter: nf_tables: add hardware offload support")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Referring to RFC8200 SECTION 4.5: "If the first fragment does not include
+all headers through an Upper-Layer header, then that fragment should be
+discarded and an ICMP Parameter Problem, Code 3, message should be sent to
+the source of the fragment, with the Pointer field set to zero."
+
+Utilize the fragment offset returned by find_prev_fhdr() to let
+ipv6_skip_exthdr() start it's traverse from the fragment header.
+Apply the same logic for checking that all headers are included as used
+in commit 2efdaaaf883a ("IPv6: reply ICMP error if the first fragment don't
+include all headers"). Check that TCP, UDP and ICMP headers are completely
+included in the fragment and all other headers are included with at least
+one byte.
+
+Return 0 to drop the fragment. This is the same behaviour as used on other
+protocol errors in this function, e.g. when nf_ct_frag6_queue() returns
+-EPROTO. The Fragment will later be picked up by ipv6_frag_rcv() in
+reassembly.c. ipv6_frag_rcv() will then send an appropriate ICMP Parameter
+Problem message back to the source.
+
+References commit 2efdaaaf883a ("IPv6: reply ICMP error if the first
+fragment don't include all headers")
+Signed-off-by: Georg Kohmann <geokohma@cisco.com>
 ---
- include/net/netfilter/nf_tables_offload.h |  3 ++
- net/netfilter/nft_cmp.c                   |  8 +--
- net/netfilter/nft_meta.c                  | 16 +++---
- net/netfilter/nft_payload.c               | 64 +++++++++++++++++------
- 4 files changed, 62 insertions(+), 29 deletions(-)
+ net/ipv6/netfilter/nf_conntrack_reasm.c | 28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
-index bddd34c5bd79..1d34fe154fe0 100644
---- a/include/net/netfilter/nf_tables_offload.h
-+++ b/include/net/netfilter/nf_tables_offload.h
-@@ -78,6 +78,9 @@ int nft_flow_rule_offload_commit(struct net *net);
- 		offsetof(struct nft_flow_key, __base.__field);		\
- 	(__reg)->len		= __len;				\
- 	(__reg)->key		= __key;				\
-+
-+#define NFT_OFFLOAD_MATCH_EXACT(__key, __base, __field, __len, __reg)	\
-+	NFT_OFFLOAD_MATCH(__key, __base, __field, __len, __reg)		\
- 	memset(&(__reg)->mask, 0xff, (__reg)->len);
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 054d287..dffa3a8 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -440,11 +440,13 @@ find_prev_fhdr(struct sk_buff *skb, u8 *prevhdrp, int *prevhoff, int *fhoff)
+ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+ {
+ 	u16 savethdr = skb->transport_header;
+-	int fhoff, nhoff, ret;
++	int fhoff, nhoff, ret, offset;
+ 	struct frag_hdr *fhdr;
+ 	struct frag_queue *fq;
+ 	struct ipv6hdr *hdr;
+ 	u8 prevhdr;
++	u8 nexthdr = NEXTHDR_FRAGMENT;
++	__be16 frag_off;
  
- int nft_chain_offload_priority(struct nft_base_chain *basechain);
-diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
-index bc079d68a536..00e563a72d3d 100644
---- a/net/netfilter/nft_cmp.c
-+++ b/net/netfilter/nft_cmp.c
-@@ -123,11 +123,11 @@ static int __nft_cmp_offload(struct nft_offload_ctx *ctx,
- 	u8 *mask = (u8 *)&flow->match.mask;
- 	u8 *key = (u8 *)&flow->match.key;
+ 	/* Jumbo payload inhibits frag. header */
+ 	if (ipv6_hdr(skb)->payload_len == 0) {
+@@ -455,6 +457,30 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+ 	if (find_prev_fhdr(skb, &prevhdr, &nhoff, &fhoff) < 0)
+ 		return 0;
  
--	if (priv->op != NFT_CMP_EQ || reg->len != priv->len)
-+	if (priv->op != NFT_CMP_EQ || priv->len > reg->len)
- 		return -EOPNOTSUPP;
- 
--	memcpy(key + reg->offset, &priv->data, priv->len);
--	memcpy(mask + reg->offset, &reg->mask, priv->len);
-+	memcpy(key + reg->offset, &priv->data, reg->len);
-+	memcpy(mask + reg->offset, &reg->mask, reg->len);
- 
- 	flow->match.dissector.used_keys |= BIT(reg->key);
- 	flow->match.dissector.offset[reg->key] = reg->base_offset;
-@@ -137,7 +137,7 @@ static int __nft_cmp_offload(struct nft_offload_ctx *ctx,
- 	    nft_reg_load16(priv->data.data) != ARPHRD_ETHER)
- 		return -EOPNOTSUPP;
- 
--	nft_offload_update_dependency(ctx, &priv->data, priv->len);
-+	nft_offload_update_dependency(ctx, &priv->data, reg->len);
- 
- 	return 0;
- }
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index b37bd02448d8..bf4b3ad5314c 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -724,22 +724,22 @@ static int nft_meta_get_offload(struct nft_offload_ctx *ctx,
- 
- 	switch (priv->key) {
- 	case NFT_META_PROTOCOL:
--		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_BASIC, basic, n_proto,
--				  sizeof(__u16), reg);
-+		NFT_OFFLOAD_MATCH_EXACT(FLOW_DISSECTOR_KEY_BASIC, basic, n_proto,
-+					sizeof(__u16), reg);
- 		nft_offload_set_dependency(ctx, NFT_OFFLOAD_DEP_NETWORK);
- 		break;
- 	case NFT_META_L4PROTO:
--		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_BASIC, basic, ip_proto,
--				  sizeof(__u8), reg);
-+		NFT_OFFLOAD_MATCH_EXACT(FLOW_DISSECTOR_KEY_BASIC, basic, ip_proto,
-+					sizeof(__u8), reg);
- 		nft_offload_set_dependency(ctx, NFT_OFFLOAD_DEP_TRANSPORT);
- 		break;
- 	case NFT_META_IIF:
--		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_META, meta,
--				  ingress_ifindex, sizeof(__u32), reg);
-+		NFT_OFFLOAD_MATCH_EXACT(FLOW_DISSECTOR_KEY_META, meta,
-+					ingress_ifindex, sizeof(__u32), reg);
- 		break;
- 	case NFT_META_IIFTYPE:
--		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_META, meta,
--				  ingress_iftype, sizeof(__u16), reg);
-+		NFT_OFFLOAD_MATCH_EXACT(FLOW_DISSECTOR_KEY_META, meta,
-+					ingress_iftype, sizeof(__u16), reg);
- 		break;
- 	default:
- 		return -EOPNOTSUPP;
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index bbf811d030d5..5b399968a16c 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -165,6 +165,32 @@ static int nft_payload_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	return -1;
- }
- 
-+static bool nft_payload_offload_mask(struct nft_offload_reg *reg,
-+				     u32 priv_len, u32 field_len)
-+{
-+	unsigned int remainder, delta, k;
-+	struct nft_data mask = {};
-+
-+	if (priv_len == field_len) {
-+		memset(&reg->mask, 0xff, priv_len);
-+		return true;
-+	} else if (priv_len > field_len) {
-+		return false;
++	/* Discard the first fragment if it does not include all headers
++	 * RFC 8200, Section 4.5
++	 */
++	offset = ipv6_skip_exthdr(skb, fhoff, &nexthdr, &frag_off);
++	if (offset >= 0 && !(frag_off & htons(IP6_OFFSET))) {
++		switch (nexthdr) {
++		case NEXTHDR_TCP:
++			offset += sizeof(struct tcphdr);
++			break;
++		case NEXTHDR_UDP:
++			offset += sizeof(struct udphdr);
++			break;
++		case NEXTHDR_ICMP:
++			offset += sizeof(struct icmp6hdr);
++			break;
++		default:
++			offset += 1;
++		}
++		if (offset > skb->len) {
++			pr_debug("Drop incomplete fragment\n");
++			return 0;
++		}
 +	}
 +
-+	memset(&mask, 0xff, field_len);
-+	remainder = priv_len % sizeof(u32);
-+	if (remainder) {
-+		k = priv_len / sizeof(u32);
-+		delta = field_len - priv_len;
-+		mask.data[k] = htonl(~((1 << (delta * BITS_PER_BYTE)) - 1));
-+	}
-+
-+	memcpy(&reg->mask, &mask, field_len);
-+
-+	return true;
-+}
-+
- static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
- 				  struct nft_flow_rule *flow,
- 				  const struct nft_payload *priv)
-@@ -173,21 +199,21 @@ static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
+ 	if (!pskb_may_pull(skb, fhoff + sizeof(*fhdr)))
+ 		return -ENOMEM;
  
- 	switch (priv->offset) {
- 	case offsetof(struct ethhdr, h_source):
--		if (priv->len != ETH_ALEN)
-+		if (!nft_payload_offload_mask(reg, priv->len, ETH_ALEN))
- 			return -EOPNOTSUPP;
- 
- 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_ETH_ADDRS, eth_addrs,
- 				  src, ETH_ALEN, reg);
- 		break;
- 	case offsetof(struct ethhdr, h_dest):
--		if (priv->len != ETH_ALEN)
-+		if (!nft_payload_offload_mask(reg, priv->len, ETH_ALEN))
- 			return -EOPNOTSUPP;
- 
- 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_ETH_ADDRS, eth_addrs,
- 				  dst, ETH_ALEN, reg);
- 		break;
- 	case offsetof(struct ethhdr, h_proto):
--		if (priv->len != sizeof(__be16))
-+		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
- 			return -EOPNOTSUPP;
- 
- 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_BASIC, basic,
-@@ -195,14 +221,14 @@ static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
- 		nft_offload_set_dependency(ctx, NFT_OFFLOAD_DEP_NETWORK);
- 		break;
- 	case offsetof(struct vlan_ethhdr, h_vlan_TCI):
--		if (priv->len != sizeof(__be16))
-+		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
- 			return -EOPNOTSUPP;
- 
- 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_VLAN, vlan,
- 				  vlan_tci, sizeof(__be16), reg);
- 		break;
- 	case offsetof(struct vlan_ethhdr, h_vlan_encapsulated_proto):
--		if (priv->len != sizeof(__be16))
-+		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
- 			return -EOPNOTSUPP;
- 
- 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_VLAN, vlan,
-@@ -210,7 +236,7 @@ static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
- 		nft_offload_set_dependency(ctx, NFT_OFFLOAD_DEP_NETWORK);
- 		break;
- 	case offsetof(struct vlan_ethhdr, h_vlan_TCI) + sizeof(struct vlan_hdr):
--		if (priv->len != sizeof(__be16))
-+		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
- 			return -EOPNOTSUPP;
- 
- 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_CVLAN, vlan,
-@@ -218,7 +244,7 @@ static int nft_payload_offload_ll(struct nft_offload_ctx *ctx,
- 		break;
- 	case offsetof(struct vlan_ethhdr, h_vlan_encapsulated_proto) +
- 							sizeof(struct vlan_hdr):
--		if (priv->len != sizeof(__be16))
-+		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
- 			return -EOPNOTSUPP;
- 
- 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_CVLAN, vlan,
-@@ -239,7 +265,8 @@ static int nft_payload_offload_ip(struct nft_offload_ctx *ctx,
- 
- 	switch (priv->offset) {
- 	case offsetof(struct iphdr, saddr):
--		if (priv->len != sizeof(struct in_addr))
-+		if (!nft_payload_offload_mask(reg, priv->len,
-+					      sizeof(struct in_addr)))
- 			return -EOPNOTSUPP;
- 
- 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_IPV4_ADDRS, ipv4, src,
-@@ -247,7 +274,8 @@ static int nft_payload_offload_ip(struct nft_offload_ctx *ctx,
- 		nft_flow_rule_set_addr_type(flow, FLOW_DISSECTOR_KEY_IPV4_ADDRS);
- 		break;
- 	case offsetof(struct iphdr, daddr):
--		if (priv->len != sizeof(struct in_addr))
-+		if (!nft_payload_offload_mask(reg, priv->len,
-+					      sizeof(struct in_addr)))
- 			return -EOPNOTSUPP;
- 
- 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_IPV4_ADDRS, ipv4, dst,
-@@ -255,7 +283,7 @@ static int nft_payload_offload_ip(struct nft_offload_ctx *ctx,
- 		nft_flow_rule_set_addr_type(flow, FLOW_DISSECTOR_KEY_IPV4_ADDRS);
- 		break;
- 	case offsetof(struct iphdr, protocol):
--		if (priv->len != sizeof(__u8))
-+		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__u8)))
- 			return -EOPNOTSUPP;
- 
- 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_BASIC, basic, ip_proto,
-@@ -277,7 +305,8 @@ static int nft_payload_offload_ip6(struct nft_offload_ctx *ctx,
- 
- 	switch (priv->offset) {
- 	case offsetof(struct ipv6hdr, saddr):
--		if (priv->len != sizeof(struct in6_addr))
-+		if (!nft_payload_offload_mask(reg, priv->len,
-+					      sizeof(struct in6_addr)))
- 			return -EOPNOTSUPP;
- 
- 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_IPV6_ADDRS, ipv6, src,
-@@ -285,7 +314,8 @@ static int nft_payload_offload_ip6(struct nft_offload_ctx *ctx,
- 		nft_flow_rule_set_addr_type(flow, FLOW_DISSECTOR_KEY_IPV6_ADDRS);
- 		break;
- 	case offsetof(struct ipv6hdr, daddr):
--		if (priv->len != sizeof(struct in6_addr))
-+		if (!nft_payload_offload_mask(reg, priv->len,
-+					      sizeof(struct in6_addr)))
- 			return -EOPNOTSUPP;
- 
- 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_IPV6_ADDRS, ipv6, dst,
-@@ -293,7 +323,7 @@ static int nft_payload_offload_ip6(struct nft_offload_ctx *ctx,
- 		nft_flow_rule_set_addr_type(flow, FLOW_DISSECTOR_KEY_IPV6_ADDRS);
- 		break;
- 	case offsetof(struct ipv6hdr, nexthdr):
--		if (priv->len != sizeof(__u8))
-+		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__u8)))
- 			return -EOPNOTSUPP;
- 
- 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_BASIC, basic, ip_proto,
-@@ -335,14 +365,14 @@ static int nft_payload_offload_tcp(struct nft_offload_ctx *ctx,
- 
- 	switch (priv->offset) {
- 	case offsetof(struct tcphdr, source):
--		if (priv->len != sizeof(__be16))
-+		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
- 			return -EOPNOTSUPP;
- 
- 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_PORTS, tp, src,
- 				  sizeof(__be16), reg);
- 		break;
- 	case offsetof(struct tcphdr, dest):
--		if (priv->len != sizeof(__be16))
-+		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
- 			return -EOPNOTSUPP;
- 
- 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_PORTS, tp, dst,
-@@ -363,14 +393,14 @@ static int nft_payload_offload_udp(struct nft_offload_ctx *ctx,
- 
- 	switch (priv->offset) {
- 	case offsetof(struct udphdr, source):
--		if (priv->len != sizeof(__be16))
-+		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
- 			return -EOPNOTSUPP;
- 
- 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_PORTS, tp, src,
- 				  sizeof(__be16), reg);
- 		break;
- 	case offsetof(struct udphdr, dest):
--		if (priv->len != sizeof(__be16))
-+		if (!nft_payload_offload_mask(reg, priv->len, sizeof(__be16)))
- 			return -EOPNOTSUPP;
- 
- 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_PORTS, tp, dst,
 -- 
-2.20.1
+2.10.2
 
