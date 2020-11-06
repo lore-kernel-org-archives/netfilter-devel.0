@@ -2,186 +2,774 @@ Return-Path: <SRS0=e//N=EM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1,
-	USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 380F8C55178
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Nov 2020 18:05:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5CB2C2D0A3
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Nov 2020 22:03:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC38E206FA
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Nov 2020 18:05:35 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=cisco.com header.i=@cisco.com header.b="bXZQbETi";
-	dkim=pass (1024-bit key) header.d=cisco.onmicrosoft.com header.i=@cisco.onmicrosoft.com header.b="ztKejeE2"
+	by mail.kernel.org (Postfix) with ESMTP id 584452065D
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Nov 2020 22:03:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727647AbgKFSFd (ORCPT
+        id S1728684AbgKFWDm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 6 Nov 2020 13:05:33 -0500
-Received: from alln-iport-4.cisco.com ([173.37.142.91]:24937 "EHLO
-        alln-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726999AbgKFSFd (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 Nov 2020 13:05:33 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=cisco.com; i=@cisco.com; l=2666; q=dns/txt; s=iport;
-  t=1604685930; x=1605895530;
-  h=from:to:cc:subject:date:message-id:references:
-   in-reply-to:content-id:content-transfer-encoding:
-   mime-version;
-  bh=w+8RR1NLBjXb3gtaFOr4Owkp6c8iyDTmPXJCalq6/qE=;
-  b=bXZQbETiZWr4CNC/0LQ1NAgQHFqvp7fr/+KWP5KyVumt6Q1i/J08WAl9
-   /X3vudLysFFwtwhi4zpSc9TRHAL14UWpzUrTw2UbgfSSciQbN2nmZmpGh
-   WzBPc7rFbufJABuO8j1VCwlmrZBWl8jXWFvWvZGOyHet+VOeO5LHaXA8+
-   o=;
-X-IPAS-Result: =?us-ascii?q?A0BoCwA7j6VffYENJK1iHQEBAQEJARIBBQUBQIFPgVJRg?=
- =?us-ascii?q?VMvLoQ9g0kDjSUumQGCUwNUCwEBAQ0BAS0CBAEBhEoCF4F4AiU4EwIDAQEBA?=
- =?us-ascii?q?wIDAQEBAQUBAQECAQYEFAEBhjwMhXMBAQEDEhEEDQwBATcBDwIBCA4KAgImA?=
- =?us-ascii?q?gICMBUQAgQNAQcBAR6DBIJWAy4BpHECgTuIaHZ/M4MEAQEFhQ8YghAJgQ4qg?=
- =?us-ascii?q?nKDc4ZXG4FBP4E4gms+hD4XgwCCX5MoPaRFCoJtmwEFBwMfoXC0FAIEAgQFA?=
- =?us-ascii?q?g4BAQWBayGBWXAVgyRQFwINjh83gzqKWHQ4AgYBCQEBAwl8jUwBAQ?=
-IronPort-PHdr: =?us-ascii?q?9a23=3A2Omm1ROx8ldBmIjRKGIl6mtXPHoupqn0MwgJ65?=
- =?us-ascii?q?Eul7NJdOG58o//OFDEvKwz3lzER4PW77RDkeWF+6zjWGlV55GHvThCdZFXTB?=
- =?us-ascii?q?YKhI0QmBBoG8+KD0D3bZuIJyw3FchPThlpqne8N0UGG8vkYVDW5Hqo4m1aFh?=
- =?us-ascii?q?D2LwEgIOPzF8bbhNi20Obn/ZrVbk1IiTOxbKk0Ig+xqFDat9Idhs1pLaNixw?=
- =?us-ascii?q?=3D=3D?=
-X-IronPort-Anti-Spam-Filtered: true
-X-IronPort-AV: E=Sophos;i="5.77,457,1596499200"; 
-   d="scan'208";a="582939195"
-Received: from alln-core-9.cisco.com ([173.36.13.129])
-  by alln-iport-4.cisco.com with ESMTP/TLS/DHE-RSA-SEED-SHA; 06 Nov 2020 18:05:30 +0000
-Received: from XCH-RCD-004.cisco.com (xch-rcd-004.cisco.com [173.37.102.14])
-        by alln-core-9.cisco.com (8.15.2/8.15.2) with ESMTPS id 0A6I5TXX031531
-        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=FAIL);
-        Fri, 6 Nov 2020 18:05:30 GMT
-Received: from xhs-aln-002.cisco.com (173.37.135.119) by XCH-RCD-004.cisco.com
- (173.37.102.14) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Fri, 6 Nov
- 2020 12:05:29 -0600
-Received: from xhs-aln-003.cisco.com (173.37.135.120) by xhs-aln-002.cisco.com
- (173.37.135.119) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Fri, 6 Nov
- 2020 12:05:28 -0600
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (173.37.151.57)
- by xhs-aln-003.cisco.com (173.37.135.120) with Microsoft SMTP Server (TLS) id
- 15.0.1497.2 via Frontend Transport; Fri, 6 Nov 2020 12:05:28 -0600
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=hJOQ5dVmIqnUfGmrCjDy6zmIqVbsXKesiJUz/SbrEdIy/w9uRI4WosxQChrhFo3VLHAuIUDayr6AKMDHpE6Sz2WAL+wCm5iCQ8hn9JX8iaZKrlHy4AcncPLNjir8J0ALz7d7MfG7cwj4SHONCbCRIzZmbmrUv83g6Cbtx7HzFiqp2oXQZqzlmFviqdo/hIwrS4/xPoRcIq5pO2+xurPICKoOVU0TQBAFgX8tP9RpN49CAepqyrp0NvyirzH0ey80zn1okD7Q85NBgSM0jkBbGviKUvT8uSZc/vtKolc7NeZn+8RrfKl5V+qi/h9KqlY4c7amf2+ZHCG94lIOpMUCYA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=w+8RR1NLBjXb3gtaFOr4Owkp6c8iyDTmPXJCalq6/qE=;
- b=NaKM/6pSGu+OSxyMavCat4n6ykAd/nZ/VVpbtHC73zX0+/LzPh8zCcCE+uLJ+Sp/8AIidSat5UXcoo/9IBwHDSKwVzM0etW7AuXXLYaFtc1O6cXg9s0CDNNv3UnxyfhEkz2AyDltAAXAmT94hvoXYCXvLfa5aw9KBo+2fZrJm6r/Lz1//owrOqDR4hvvN2tDQSQj6JsnxCUtWKISTsirp/QEqIpd9xaXw0h7XZHKDCrDsjxGjDDIb9CISCM1ywsoPb7x3/YrFUXbhc5zLDaMVdbpAFyulBbGluIeQhVFZHO2mhjzja6ELQRXUkUfc4DXU2nTJW8ssG0j3E8qwnoRQg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=cisco.com; dmarc=pass action=none header.from=cisco.com;
- dkim=pass header.d=cisco.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cisco.onmicrosoft.com;
- s=selector2-cisco-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=w+8RR1NLBjXb3gtaFOr4Owkp6c8iyDTmPXJCalq6/qE=;
- b=ztKejeE2W3PJOKGrlQ5qNu20LBBl2N7DqSGuudrKpNUXDCc5WxmgLqcSuCweY3oSTeFJiZK4KyYAAwGhimBHtLK6EJEuRyU3+TuxHekwcI9FGCbG1r4YhKEQxiTHIK87tSx1RBP4why5J5Q9i+VRdrancCGsb3T/+ReqYRds5xY=
-Received: from MN2PR11MB4429.namprd11.prod.outlook.com (2603:10b6:208:18b::12)
- by BL0PR11MB3204.namprd11.prod.outlook.com (2603:10b6:208:60::31) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3499.18; Fri, 6 Nov
- 2020 18:05:27 +0000
-Received: from MN2PR11MB4429.namprd11.prod.outlook.com
- ([fe80::35e6:aaac:9100:c8d2]) by MN2PR11MB4429.namprd11.prod.outlook.com
- ([fe80::35e6:aaac:9100:c8d2%5]) with mapi id 15.20.3541.021; Fri, 6 Nov 2020
- 18:05:27 +0000
-From:   "Georg Kohmann (geokohma)" <geokohma@cisco.com>
-To:     Jakub Kicinski <kuba@kernel.org>
-CC:     "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "pablo@netfilter.org" <pablo@netfilter.org>,
-        "kadlec@netfilter.org" <kadlec@netfilter.org>,
-        "fw@strlen.de" <fw@strlen.de>,
-        "davem@davemloft.net" <davem@davemloft.net>,
-        "kuznet@ms2.inr.ac.ru" <kuznet@ms2.inr.ac.ru>,
-        "yoshfuji@linux-ipv6.org" <yoshfuji@linux-ipv6.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "coreteam@netfilter.org" <coreteam@netfilter.org>
-Subject: Re: [PATCH net v2] ipv6/netfilter: Discard first fragment not
- including all headers
-Thread-Topic: [PATCH net v2] ipv6/netfilter: Discard first fragment not
- including all headers
-Thread-Index: AQHWtD3xtGc4Rv40RUiV27+UIhZqJam7U42AgAASvYA=
-Date:   Fri, 6 Nov 2020 18:05:27 +0000
-Message-ID: <e5b033cd-8de1-8fe6-5da9-e997a0570db1@cisco.com>
-References: <20201106130803.12354-1-geokohma@cisco.com>
- <20201106085815.603de8d6@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20201106085815.603de8d6@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-Accept-Language: nb-NO, en-US
-Content-Language: nb-NO
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-user-agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.3.1
-authentication-results: kernel.org; dkim=none (message not signed)
- header.d=none;kernel.org; dmarc=none action=none header.from=cisco.com;
-x-originating-ip: [2001:420:c0c0:1002::30e]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: b589b6a0-7880-4cbf-4a15-08d8827e8a8d
-x-ms-traffictypediagnostic: BL0PR11MB3204:
-x-microsoft-antispam-prvs: <BL0PR11MB32045F73D3172E716447CE64CDED0@BL0PR11MB3204.namprd11.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:6430;
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: cMPoKDq5pl8fsR44OWsaB6vLFSIKCDSbxAjxALkNxojjWGjhoIMi60djWr9gZ0b59OHiX8Xfkv1uk6yk6Pt/KPIwl7kmMUpNR4qUB59LZsqgHaz1UuDv1PkvcXaAX4zgkEbax/slyKYeSrQ19zi3MSDP2DkBLnE+zE3KCA8b8SoIGaqRzn48CyHTKtiXen5BFa42g9SPNnaBzPCP7/q1lpIrcDNXjlgUaLUrdVCMWkoFf6VnUFWuYPPEFlOaiUeTfMBrbrxRDzfUeJMKVWK2P313nw6FmuWm2LSpYvMJYe81i9/RkqxMowXo28Tn0bYD79SfTRZs0Ql2QKDKA5GPwB9GXzoB9Mb6YIrRkjcsr8SfI8cMUnpLB51+zFRboayi
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR11MB4429.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(136003)(366004)(346002)(39860400002)(396003)(376002)(31686004)(71200400001)(186003)(7416002)(36756003)(4326008)(316002)(2616005)(31696002)(66476007)(66446008)(91956017)(64756008)(6506007)(6486002)(76116006)(8676002)(53546011)(8936002)(66946007)(478600001)(6916009)(6512007)(86362001)(66556008)(5660300002)(83380400001)(54906003)(2906002)(43740500002);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata: dRjzyiduuWPk2kPAwLjD1GHbI9orGA+T74w6g4vqqnZI+WR9JVUONGHLC82pCzRgGl5a5AJhwVpPigb/SNoQNBVkfWwxcI5WP9M77pNo41hMZynFIuHzBEP30GRPnBC6abFNj4hXi0rbVAJrwd1iYdh6LFFXPThU3Q4046QsgB5D2h3vibH8bRMPB6yRsp9S1l6Bl2u6uUFZ8XKKq3mwQAvgxYwIv5/JeIG5YwPw9WM58oLMTN7UBEa9icQoY1txs7sc48Ge3DyrVPumYdMtY4hofGHELbdXDFIU27/NnPEXO5wie3gCoQ6hSQ86LKShpI4tZSLE5bfPu6wxcMmu5A1tWRZ3oMbu9kVuCVsWSRhdrTu7zoStkVuILreut2D2w+0mHn+mottYQovS6PEKqTvcoKlRfm5j0JGJjYOJlddKbqUXoljNGmDBDh8+YD/L29XZzNSmRtsm6YoPL666cw1N6zha8k7cYTFk6wRtPcSJYYBLH4pqxoBv+9Mopf8BwgDTg2t+dlBvCXtXTCtRgnc1vicdx3VvmAye8opV1nfjjgP4aKMshG9xJsmhRXoRQKjekKRNe3/dja0/j6Dbq2/EDbkLIWog8lYGiq2XhlA99AiMIuAJlYsVxxSTwxmD6wy90/L0iU/m0ulDDqArRn1QIq82d39RHl3UFHc3804=
-x-ms-exchange-transport-forked: True
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <101030A735C9854BA62611CF925B183E@namprd11.prod.outlook.com>
-Content-Transfer-Encoding: base64
+        Fri, 6 Nov 2020 17:03:42 -0500
+Received: from mx3.molgen.mpg.de ([141.14.17.11]:43647 "EHLO mx1.molgen.mpg.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728154AbgKFWDm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 6 Nov 2020 17:03:42 -0500
+Received: from localhost.localdomain (ip5f5af1f7.dynamic.kabel-deutschland.de [95.90.241.247])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pmenzel)
+        by mx.molgen.mpg.de (Postfix) with ESMTPSA id BE5DC20646211;
+        Fri,  6 Nov 2020 23:03:34 +0100 (CET)
+From:   Paul Menzel <pmenzel@molgen.mpg.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, Xin Liu <xinxliu@microsoft.com>,
+        Guohan Lu <lguohan@gmail.com>,
+        Kiran Kella <kiran.kella@broadcom.com>,
+        Akhilesh Samineni <akhilesh.samineni@broadcom.com>,
+        Paul Menzel <pmenzel@molgen.mpg.de>
+Subject: [PATCH] netfilter: nf_nat: Support fullcone NAT
+Date:   Fri,  6 Nov 2020 23:01:07 +0100
+Message-Id: <20201106220106.80432-1-pmenzel@molgen.mpg.de>
+X-Mailer: git-send-email 2.29.2
 MIME-Version: 1.0
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: MN2PR11MB4429.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: b589b6a0-7880-4cbf-4a15-08d8827e8a8d
-X-MS-Exchange-CrossTenant-originalarrivaltime: 06 Nov 2020 18:05:27.3491
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 5ae1af62-9505-4097-a69a-c1553ef7840e
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: moAuFJ5rh4qwNE6aWZ5LX9WIAPwa8Kui9JwVM4tWzdL8s7lK2UzNOOYcUyR1IlYc+UcuL8gPRBDBxMtJjrvD4Q==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL0PR11MB3204
-X-OriginatorOrg: cisco.com
-X-Outbound-SMTP-Client: 173.37.102.14, xch-rcd-004.cisco.com
-X-Outbound-Node: alln-core-9.cisco.com
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-T24gMDYuMTEuMjAyMCAxNzo1OCwgSmFrdWIgS2ljaW5za2kgd3JvdGU6DQo+IE9uIEZyaSwgIDYg
-Tm92IDIwMjAgMTQ6MDg6MDMgKzAxMDAgR2VvcmcgS29obWFubiB3cm90ZToNCj4+IGRpZmYgLS1n
-aXQgYS9uZXQvaXB2Ni9yZWFzc2VtYmx5LmMgYi9uZXQvaXB2Ni9yZWFzc2VtYmx5LmMNCj4+IGlu
-ZGV4IGM4Y2YxYmIuLmU2MTczZjUgMTAwNjQ0DQo+PiAtLS0gYS9uZXQvaXB2Ni9yZWFzc2VtYmx5
-LmMNCj4+ICsrKyBiL25ldC9pcHY2L3JlYXNzZW1ibHkuYw0KPj4gQEAgLTMyNSw3ICszMjUsNyBA
-QCBzdGF0aWMgaW50IGlwdjZfZnJhZ19yY3Yoc3RydWN0IHNrX2J1ZmYgKnNrYikNCj4+ICAJY29u
-c3Qgc3RydWN0IGlwdjZoZHIgKmhkciA9IGlwdjZfaGRyKHNrYik7DQo+PiAgCXN0cnVjdCBuZXQg
-Km5ldCA9IGRldl9uZXQoc2tiX2RzdChza2IpLT5kZXYpOw0KPj4gIAlfX2JlMTYgZnJhZ19vZmY7
-DQo+PiAtCWludCBpaWYsIG9mZnNldDsNCj4+ICsJaW50IGlpZjsNCj4+ICAJdTggbmV4dGhkcjsN
-Cj4+ICANCj4+ICAJaWYgKElQNkNCKHNrYiktPmZsYWdzICYgSVA2U0tCX0ZSQUdNRU5URUQpDQo+
-PiBAQCAtMzYyLDI0ICszNjIsMTEgQEAgc3RhdGljIGludCBpcHY2X2ZyYWdfcmN2KHN0cnVjdCBz
-a19idWZmICpza2IpDQo+PiAgCSAqIHRoZSBzb3VyY2Ugb2YgdGhlIGZyYWdtZW50LCB3aXRoIHRo
-ZSBQb2ludGVyIGZpZWxkIHNldCB0byB6ZXJvLg0KPj4gIAkgKi8NCj4+ICAJbmV4dGhkciA9IGhk
-ci0+bmV4dGhkcjsNCj4+IC0Jb2Zmc2V0ID0gaXB2Nl9za2lwX2V4dGhkcihza2IsIHNrYl90cmFu
-c3BvcnRfb2Zmc2V0KHNrYiksICZuZXh0aGRyLCAmZnJhZ19vZmYpOw0KPj4gLQlpZiAob2Zmc2V0
-ID49IDApIHsNCj4+IC0JCS8qIENoZWNrIHNvbWUgY29tbW9uIHByb3RvY29scycgaGVhZGVyICov
-DQo+PiAtCQlpZiAobmV4dGhkciA9PSBJUFBST1RPX1RDUCkNCj4+IC0JCQlvZmZzZXQgKz0gc2l6
-ZW9mKHN0cnVjdCB0Y3BoZHIpOw0KPj4gLQkJZWxzZSBpZiAobmV4dGhkciA9PSBJUFBST1RPX1VE
-UCkNCj4+IC0JCQlvZmZzZXQgKz0gc2l6ZW9mKHN0cnVjdCB1ZHBoZHIpOw0KPj4gLQkJZWxzZSBp
-ZiAobmV4dGhkciA9PSBJUFBST1RPX0lDTVBWNikNCj4+IC0JCQlvZmZzZXQgKz0gc2l6ZW9mKHN0
-cnVjdCBpY21wNmhkcik7DQo+PiAtCQllbHNlDQo+PiAtCQkJb2Zmc2V0ICs9IDE7DQo+PiAtDQo+
-PiAtCQlpZiAoIShmcmFnX29mZiAmIGh0b25zKElQNl9PRkZTRVQpKSAmJiBvZmZzZXQgPiBza2It
-Pmxlbikgew0KPj4gLQkJCV9fSVA2X0lOQ19TVEFUUyhuZXQsIF9faW42X2Rldl9nZXRfc2FmZWx5
-KHNrYi0+ZGV2KSwNCj4+IC0JCQkJCUlQU1RBVFNfTUlCX0lOSERSRVJST1JTKTsNCj4+IC0JCQlp
-Y21wdjZfcGFyYW1fcHJvYihza2IsIElDTVBWNl9IRFJfSU5DT01QLCAwKTsNCj4+IC0JCQlyZXR1
-cm4gLTE7DQo+PiAtCQl9DQo+PiArCWlmICghaXB2Nl9mcmFnX3ZhbGlkYXRlKHNrYiwgc2tiX3Ry
-YW5zcG9ydF9vZmZzZXQoc2tiKSwgJm5leHRoZHIpKSB7DQo+PiArCQlfX0lQNl9JTkNfU1RBVFMo
-bmV0LCBfX2luNl9kZXZfZ2V0X3NhZmVseShza2ItPmRldiksDQo+PiArCQkJCUlQU1RBVFNfTUlC
-X0lOSERSRVJST1JTKTsNCj4+ICsJCWljbXB2Nl9wYXJhbV9wcm9iKHNrYiwgSUNNUFY2X0hEUl9J
-TkNPTVAsIDApOw0KPj4gKwkJcmV0dXJuIC0xOw0KPj4gIAl9DQo+IG5ldC9pcHY2L3JlYXNzZW1i
-bHkuYzogSW4gZnVuY3Rpb24g4oCYaXB2Nl9mcmFnX3JjduKAmToNCj4gbmV0L2lwdjYvcmVhc3Nl
-bWJseS5jOjMyNzo5OiB3YXJuaW5nOiB1bnVzZWQgdmFyaWFibGUg4oCYZnJhZ19vZmbigJkgWy1X
-dW51c2VkLXZhcmlhYmxlXQ0KPiAgIDMyNyB8ICBfX2JlMTYgZnJhZ19vZmY7DQo+ICAgICAgIHwg
-ICAgICAgICBefn5+fn5+fg0KVGhhbmtzIGZvciB0ZWxsaW5nIG1lLiBJIHdpbGwgZml4IGl0Lg0K
-R2VvcmcNCg==
+From: Kiran Kella <kiran.kella@broadcom.com>
+
+Changes done in the kernel to ensure 3-tuple uniqueness of the conntrack
+entries for the fullcone nat functionality.
+
+*   Hashlist is maintained for the 3-tuple unique keys (Protocol/Source
+    IP/Port) for all the conntrack entries.
+
+*   When NAT table rules are created with the fullcone option, the
+    SNAT/POSTROUTING stage ensures the ports from the pool are picked up in
+    such a way that the 3-tuple is uniquely assigned.
+
+*   In the DNAT/POSTROUTING stage, the fullcone behavior is ensured by checking
+    and reusing the 3-tuple for the Source IP/Port in the original direction.
+
+*   When the pool is exhausted of the 3-tuple assignments, the packets are
+    dropped, else, they will be going out of the router they being 5-tuple
+    unique (which is not intended).
+
+*   Passing fullcone option using iptables is part of another PR (in
+    sonic-buildimage repo).
+
+The kernel changes mentioned above are done to counter the challenges
+explained in the section *3.4.2.1 Handling NAT model mismatch between
+the ASIC and the Kernel* in the NAT HLD [1].
+
+[1]: https://github.com/kirankella/SONiC/blob/nat_doc_changes/doc/nat/nat_design_spec.md
+
+[Add to SONiC in https://github.com/Azure/sonic-linux-kernel/pull/100]
+Signed-off-by: Kiran Kella <kiran.kella@broadcom.com>
+[forward port to Linux v4.19, https://github.com/Azure/sonic-linux-kernel/pull/147]
+Signed-off-by: Akhilesh Samineni <akhilesh.samineni@broadcom.com>
+Signed-off-by: Paul Menzel <pmenzel@molgen.mpg.de>
+---
+Dear Linux folks,
+
+
+This is taken from switch network operating system (NOS) SONiC’s Linux
+repository, where the support was added in September 2019 [1], and
+forwarded ported to Linux 4.19 by Akhilesh in June 2020 [2].
+
+I am sending it upstream as a request for comments, before effort is put
+into forward porting it to Linux master.
+
+
+Kind regards,
+
+Paul 
+
+
+[1]: https://github.com/Azure/sonic-linux-kernel/pull/100
+[2]: https://github.com/Azure/sonic-linux-kernel/pull/147
+
+ include/net/netfilter/nf_conntrack.h     |   3 +
+ include/net/netfilter/nf_nat.h           |   6 +
+ include/net/netfilter/nf_nat_l4proto.h   |  12 +-
+ include/uapi/linux/netfilter/nf_nat.h    |   1 +
+ net/ipv4/netfilter/nf_nat_proto_gre.c    |   8 +-
+ net/ipv4/netfilter/nf_nat_proto_icmp.c   |   6 +-
+ net/ipv6/netfilter/nf_nat_proto_icmpv6.c |   5 +-
+ net/netfilter/nf_nat_core.c              | 173 ++++++++++++++++++++---
+ net/netfilter/nf_nat_proto_common.c      |  32 +++--
+ net/netfilter/nf_nat_proto_dccp.c        |   6 +-
+ net/netfilter/nf_nat_proto_sctp.c        |   6 +-
+ net/netfilter/nf_nat_proto_tcp.c         |   6 +-
+ net/netfilter/nf_nat_proto_udp.c         |  12 +-
+ net/netfilter/nf_nat_proto_unknown.c     |   4 +-
+ 14 files changed, 220 insertions(+), 60 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index f45141bdbb83..64b9293a31f6 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -84,6 +84,9 @@ struct nf_conn {
+ #if IS_ENABLED(CONFIG_NF_NAT)
+ 	struct hlist_node	nat_bysource;
+ #endif
++        /* To optionally ensure 3-tuple uniqueness on the translated source */
++        struct hlist_node       nat_by_manip_src;
++
+ 	/* all members below initialized via memset */
+ 	u8 __nfct_init_offset[0];
+ 
+diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
+index a17eb2f8d40e..7c3cc3c7b35f 100644
+--- a/include/net/netfilter/nf_nat.h
++++ b/include/net/netfilter/nf_nat.h
+@@ -51,6 +51,12 @@ struct nf_conn_nat *nf_ct_nat_ext_add(struct nf_conn *ct);
+ int nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
+ 		      const struct nf_conn *ignored_conntrack);
+ 
++/* Is this 3-tuple already taken? (not by us)*/
++int
++nf_nat_used_3_tuple(const struct nf_conntrack_tuple *tuple,
++		    const struct nf_conn *ignored_conntrack,
++		    enum nf_nat_manip_type maniptype);
++
+ static inline struct nf_conn_nat *nfct_nat(const struct nf_conn *ct)
+ {
+ #if defined(CONFIG_NF_NAT) || defined(CONFIG_NF_NAT_MODULE)
+diff --git a/include/net/netfilter/nf_nat_l4proto.h b/include/net/netfilter/nf_nat_l4proto.h
+index b4d6b29bca62..fbcbb9ad9e4b 100644
+--- a/include/net/netfilter/nf_nat_l4proto.h
++++ b/include/net/netfilter/nf_nat_l4proto.h
+@@ -32,7 +32,7 @@ struct nf_nat_l4proto {
+ 	 * possible.  Per-protocol part of tuple is initialized to the
+ 	 * incoming packet.
+ 	 */
+-	void (*unique_tuple)(const struct nf_nat_l3proto *l3proto,
++	int  (*unique_tuple)(const struct nf_nat_l3proto *l3proto,
+ 			     struct nf_conntrack_tuple *tuple,
+ 			     const struct nf_nat_range2 *range,
+ 			     enum nf_nat_manip_type maniptype,
+@@ -70,11 +70,11 @@ bool nf_nat_l4proto_in_range(const struct nf_conntrack_tuple *tuple,
+ 			     const union nf_conntrack_man_proto *min,
+ 			     const union nf_conntrack_man_proto *max);
+ 
+-void nf_nat_l4proto_unique_tuple(const struct nf_nat_l3proto *l3proto,
+-				 struct nf_conntrack_tuple *tuple,
+-				 const struct nf_nat_range2 *range,
+-				 enum nf_nat_manip_type maniptype,
+-				 const struct nf_conn *ct, u16 *rover);
++int nf_nat_l4proto_unique_tuple(const struct nf_nat_l3proto *l3proto,
++				struct nf_conntrack_tuple *tuple,
++				const struct nf_nat_range2 *range,
++				enum nf_nat_manip_type maniptype,
++				const struct nf_conn *ct, u16 *rover);
+ 
+ int nf_nat_l4proto_nlattr_to_range(struct nlattr *tb[],
+ 				   struct nf_nat_range2 *range);
+diff --git a/include/uapi/linux/netfilter/nf_nat.h b/include/uapi/linux/netfilter/nf_nat.h
+index 4a95c0db14d4..1cda390e17c6 100644
+--- a/include/uapi/linux/netfilter/nf_nat.h
++++ b/include/uapi/linux/netfilter/nf_nat.h
+@@ -11,6 +11,7 @@
+ #define NF_NAT_RANGE_PERSISTENT			(1 << 3)
+ #define NF_NAT_RANGE_PROTO_RANDOM_FULLY		(1 << 4)
+ #define NF_NAT_RANGE_PROTO_OFFSET		(1 << 5)
++#define NF_NAT_RANGE_FULLCONE		        (1 << 6)
+ 
+ #define NF_NAT_RANGE_PROTO_RANDOM_ALL		\
+ 	(NF_NAT_RANGE_PROTO_RANDOM | NF_NAT_RANGE_PROTO_RANDOM_FULLY)
+diff --git a/net/ipv4/netfilter/nf_nat_proto_gre.c b/net/ipv4/netfilter/nf_nat_proto_gre.c
+index 00fda6331ce5..d2ca4f6003ba 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_gre.c
++++ b/net/ipv4/netfilter/nf_nat_proto_gre.c
+@@ -38,7 +38,7 @@ MODULE_AUTHOR("Harald Welte <laforge@gnumonks.org>");
+ MODULE_DESCRIPTION("Netfilter NAT protocol helper module for GRE");
+ 
+ /* generate unique tuple ... */
+-static void
++static int
+ gre_unique_tuple(const struct nf_nat_l3proto *l3proto,
+ 		 struct nf_conntrack_tuple *tuple,
+ 		 const struct nf_nat_range2 *range,
+@@ -52,7 +52,7 @@ gre_unique_tuple(const struct nf_nat_l3proto *l3proto,
+ 	/* If there is no master conntrack we are not PPTP,
+ 	   do not change tuples */
+ 	if (!ct->master)
+-		return;
++		return 0;
+ 
+ 	if (maniptype == NF_NAT_MANIP_SRC)
+ 		keyptr = &tuple->src.u.gre.key;
+@@ -73,11 +73,11 @@ gre_unique_tuple(const struct nf_nat_l3proto *l3proto,
+ 	for (i = 0; ; ++key) {
+ 		*keyptr = htons(min + key % range_size);
+ 		if (++i == range_size || !nf_nat_used_tuple(tuple, ct))
+-			return;
++			return 1;
+ 	}
+ 
+ 	pr_debug("%p: no NAT mapping\n", ct);
+-	return;
++	return 0;
+ }
+ 
+ /* manipulate a GRE packet according to maniptype */
+diff --git a/net/ipv4/netfilter/nf_nat_proto_icmp.c b/net/ipv4/netfilter/nf_nat_proto_icmp.c
+index 6d7cf1d79baf..403783cda503 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_nat_proto_icmp.c
+@@ -27,7 +27,7 @@ icmp_in_range(const struct nf_conntrack_tuple *tuple,
+ 	       ntohs(tuple->src.u.icmp.id) <= ntohs(max->icmp.id);
+ }
+ 
+-static void
++static int
+ icmp_unique_tuple(const struct nf_nat_l3proto *l3proto,
+ 		  struct nf_conntrack_tuple *tuple,
+ 		  const struct nf_nat_range2 *range,
+@@ -48,9 +48,9 @@ icmp_unique_tuple(const struct nf_nat_l3proto *l3proto,
+ 		tuple->src.u.icmp.id = htons(ntohs(range->min_proto.icmp.id) +
+ 					     (id % range_size));
+ 		if (++i == range_size || !nf_nat_used_tuple(tuple, ct))
+-			return;
++			return 1;
+ 	}
+-	return;
++	return 0;
+ }
+ 
+ static bool
+diff --git a/net/ipv6/netfilter/nf_nat_proto_icmpv6.c b/net/ipv6/netfilter/nf_nat_proto_icmpv6.c
+index d9bf42ba44fa..7ff30a023f04 100644
+--- a/net/ipv6/netfilter/nf_nat_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_nat_proto_icmpv6.c
+@@ -29,7 +29,7 @@ icmpv6_in_range(const struct nf_conntrack_tuple *tuple,
+ 	       ntohs(tuple->src.u.icmp.id) <= ntohs(max->icmp.id);
+ }
+ 
+-static void
++static int
+ icmpv6_unique_tuple(const struct nf_nat_l3proto *l3proto,
+ 		    struct nf_conntrack_tuple *tuple,
+ 		    const struct nf_nat_range2 *range,
+@@ -50,8 +50,9 @@ icmpv6_unique_tuple(const struct nf_nat_l3proto *l3proto,
+ 		tuple->src.u.icmp.id = htons(ntohs(range->min_proto.icmp.id) +
+ 					     (id % range_size));
+ 		if (++i == range_size || !nf_nat_used_tuple(tuple, ct))
+-			return;
++			return 1;
+ 	}
++	return 0;
+ }
+ 
+ static bool
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 2268b10a9dcf..1b83427a7a68 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -43,6 +43,7 @@ static const struct nf_nat_l4proto __rcu **nf_nat_l4protos[NFPROTO_NUMPROTO]
+ static unsigned int nat_net_id __read_mostly;
+ 
+ static struct hlist_head *nf_nat_bysource __read_mostly;
++static struct hlist_head *nf_nat_by_manip_src __read_mostly;
+ static unsigned int nf_nat_htable_size __read_mostly;
+ static unsigned int nf_nat_hash_rnd __read_mostly;
+ 
+@@ -155,6 +156,31 @@ hash_by_src(const struct net *n, const struct nf_conntrack_tuple *tuple)
+ 	return reciprocal_scale(hash, nf_nat_htable_size);
+ }
+ 
++static inline unsigned int
++hash_by_dst(const struct net *n, const struct nf_conntrack_tuple *tuple)
++{
++	unsigned int hash;
++
++	get_random_once(&nf_nat_hash_rnd, sizeof(nf_nat_hash_rnd));
++
++	hash = jhash2((u32 *)&tuple->dst, sizeof(tuple->dst) / sizeof(u32),
++	      tuple->dst.protonum ^ nf_nat_hash_rnd ^ net_hash_mix(n));
++
++	return reciprocal_scale(hash, nf_nat_htable_size);
++}
++
++static inline int
++same_reply_dst(const struct nf_conn *ct,
++	       const struct nf_conntrack_tuple *tuple)
++{
++	const struct nf_conntrack_tuple *t;
++
++	t = &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
++	return (t->dst.protonum == tuple->dst.protonum &&
++		nf_inet_addr_cmp(&t->dst.u3, &tuple->dst.u3) &&
++		t->dst.u.all == tuple->dst.u.all);
++}
++
+ /* Is this tuple already taken? (not by us) */
+ int
+ nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
+@@ -171,7 +197,40 @@ nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
+ 	nf_ct_invert_tuplepr(&reply, tuple);
+ 	return nf_conntrack_tuple_taken(&reply, ignored_conntrack);
+ }
++
++/* Is this 3-tuple already taken? (not by us) */
++int
++nf_nat_used_3_tuple(const struct nf_conntrack_tuple *tuple,
++		    const struct nf_conn *ignored_conntrack,
++		    enum nf_nat_manip_type maniptype)
++{
++	const struct nf_conn *ct;
++	const struct nf_conntrack_zone *zone;
++	unsigned int h;
++	struct net *net = nf_ct_net(ignored_conntrack);
++
++	/* 3-tuple uniqueness is required for translated source only */
++	if (maniptype != NF_NAT_MANIP_SRC) {
++		return 0;
++	}
++	zone = nf_ct_zone(ignored_conntrack);
++
++	/* The tuple passed here is the inverted reply (with translated source) */
++	h = hash_by_src(net, tuple);
++	hlist_for_each_entry_rcu(ct, &nf_nat_by_manip_src[h], nat_by_manip_src) {
++		struct nf_conntrack_tuple reply;
++		nf_ct_invert_tuplepr(&reply, tuple);
++		/* Compare against the destination in the reply */
++		if (same_reply_dst(ct, &reply) &&
++		    net_eq(net, nf_ct_net(ct)) &&
++		    nf_ct_zone_equal(ct, zone, IP_CT_DIR_ORIGINAL)) {
++			return 1;
++		}
++	}
++	return 0;
++}
+ EXPORT_SYMBOL(nf_nat_used_tuple);
++EXPORT_SYMBOL(nf_nat_used_3_tuple);
+ 
+ /* If we source map this tuple so reply looks like reply_tuple, will
+  * that meet the constraints of range.
+@@ -237,6 +296,36 @@ find_appropriate_src(struct net *net,
+ 	return 0;
+ }
+ 
++/* Only called for DST manip */
++static int
++find_appropriate_dst(struct net *net,
++		     const struct nf_conntrack_zone *zone,
++		     const struct nf_nat_l3proto *l3proto,
++		     const struct nf_nat_l4proto *l4proto,
++		     const struct nf_conntrack_tuple *tuple,
++		     struct nf_conntrack_tuple *result)
++{
++	struct nf_conntrack_tuple reply;
++	unsigned int h;
++	const struct nf_conn *ct;
++
++	nf_ct_invert_tuplepr(&reply, tuple);
++	h = hash_by_src(net, &reply);
++
++	hlist_for_each_entry_rcu(ct, &nf_nat_by_manip_src[h], nat_by_manip_src) {
++		if (same_reply_dst(ct, tuple) &&
++		    net_eq(net, nf_ct_net(ct)) &&
++		    nf_ct_zone_equal(ct, zone, IP_CT_DIR_REPLY)) {
++			/* Copy destination part from original tuple. */
++			nf_ct_invert_tuplepr(result,
++				       &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
++			result->src = tuple->src;
++			return 1;
++		}
++	}
++	return 0;
++}
++
+ /* For [FUTURE] fragmentation handling, we want the least-used
+  * src-ip/dst-ip/proto triple.  Fairness doesn't come into it.  Thus
+  * if the range specifies 1.2.3.4 ports 10000-10005 and 1.2.3.5 ports
+@@ -314,10 +403,15 @@ find_best_ips_proto(const struct nf_conntrack_zone *zone,
+ /* Manipulate the tuple into the range given. For NF_INET_POST_ROUTING,
+  * we change the source to map into the range. For NF_INET_PRE_ROUTING
+  * and NF_INET_LOCAL_OUT, we change the destination to map into the
+- * range. It might not be possible to get a unique tuple, but we try.
++ * range. It might not be possible to get a unique 5-tuple, but we try.
+  * At worst (or if we race), we will end up with a final duplicate in
+- * __ip_conntrack_confirm and drop the packet. */
+-static void
++ * __ip_conntrack_confirm and drop the packet.
++ * If the range is of type fullcone, if we end up with a 3-tuple
++ * duplicate, we do not wait till the packet reaches the
++ * nf_conntrack_confirm to drop the packet. Instead return the packet
++ * to be dropped at this stage.
++ */
++static int
+ get_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 		 const struct nf_conntrack_tuple *orig_tuple,
+ 		 const struct nf_nat_range2 *range,
+@@ -327,8 +421,11 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 	const struct nf_conntrack_zone *zone;
+ 	const struct nf_nat_l3proto *l3proto;
+ 	const struct nf_nat_l4proto *l4proto;
++	struct nf_nat_range2 nat_range;
+ 	struct net *net = nf_ct_net(ct);
+ 
++        memcpy(&nat_range, range, sizeof(struct nf_nat_range2));
++
+ 	zone = nf_ct_zone(ct);
+ 
+ 	rcu_read_lock();
+@@ -345,48 +442,77 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 	 * manips not an issue.
+ 	 */
+ 	if (maniptype == NF_NAT_MANIP_SRC &&
+-	    !(range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL)) {
++	    !(nat_range.flags & NF_NAT_RANGE_PROTO_RANDOM_ALL)) {
+ 		/* try the original tuple first */
+-		if (in_range(l3proto, l4proto, orig_tuple, range)) {
++		if (in_range(l3proto, l4proto, orig_tuple, &nat_range)) {
+ 			if (!nf_nat_used_tuple(orig_tuple, ct)) {
+ 				*tuple = *orig_tuple;
+ 				goto out;
+ 			}
+ 		} else if (find_appropriate_src(net, zone, l3proto, l4proto,
+-						orig_tuple, tuple, range)) {
++						orig_tuple, tuple, &nat_range)) {
+ 			pr_debug("get_unique_tuple: Found current src map\n");
+ 			if (!nf_nat_used_tuple(tuple, ct))
+ 				goto out;
+ 		}
+ 	}
+ 
++	if (maniptype == NF_NAT_MANIP_DST) {
++		if (nat_range.flags & NF_NAT_RANGE_FULLCONE) {
++			/* Destination IP range does not apply when fullcone flag is set. */
++			nat_range.min_addr.ip = nat_range.max_addr.ip = orig_tuple->dst.u3.ip;
++			nat_range.min_proto.all = nat_range.max_proto.all = 0;
++
++			/* If this dstip/proto/dst-proto-part is mapped currently
++			 * as a translated source for a given tuple, use that
++			 */
++			if (find_appropriate_dst(net, zone, l3proto, l4proto,
++						orig_tuple, tuple)) {
++				if (!nf_nat_used_tuple(tuple, ct)) {
++					goto out;
++				}
++			} else {
++				/* If not mapped, proceed with the original tuple */
++				*tuple = *orig_tuple;
++				goto out;
++			}
++		}
++	}
++
+ 	/* 2) Select the least-used IP/proto combination in the given range */
+ 	*tuple = *orig_tuple;
+-	find_best_ips_proto(zone, tuple, range, ct, maniptype);
++	find_best_ips_proto(zone, tuple, &nat_range, ct, maniptype);
+ 
+ 	/* 3) The per-protocol part of the manip is made to map into
+ 	 * the range to make a unique tuple.
+ 	 */
+ 
+ 	/* Only bother mapping if it's not already in range and unique */
+-	if (!(range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL)) {
+-		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
+-			if (!(range->flags & NF_NAT_RANGE_PROTO_OFFSET) &&
++	if (!(nat_range.flags & NF_NAT_RANGE_PROTO_RANDOM_ALL)) {
++		if (nat_range.flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
++			if (!(nat_range.flags & NF_NAT_RANGE_PROTO_OFFSET) &&
+ 			    l4proto->in_range(tuple, maniptype,
+-			          &range->min_proto,
+-			          &range->max_proto) &&
+-			    (range->min_proto.all == range->max_proto.all ||
+-			     !nf_nat_used_tuple(tuple, ct)))
+-				goto out;
++			          &(nat_range.min_proto),
++			          &(nat_range.max_proto))) {
++				if (nat_range.flags & NF_NAT_RANGE_FULLCONE) {
++					if (!nf_nat_used_3_tuple(tuple, ct, maniptype))
++						goto out;
++				} else {
++					if ((nat_range.min_proto.all == nat_range.max_proto.all) ||
++					    !nf_nat_used_tuple(tuple, ct))
++						goto out;
++				}
++			}
+ 		} else if (!nf_nat_used_tuple(tuple, ct)) {
+ 			goto out;
+ 		}
+ 	}
+ 
+ 	/* Last chance: get protocol to try to obtain unique tuple. */
+-	l4proto->unique_tuple(l3proto, tuple, range, maniptype, ct);
++	return l4proto->unique_tuple(l3proto, tuple, &nat_range, maniptype, ct);
+ out:
+ 	rcu_read_unlock();
++	return 1;
+ }
+ 
+ struct nf_conn_nat *nf_ct_nat_ext_add(struct nf_conn *ct)
+@@ -428,7 +554,9 @@ nf_nat_setup_info(struct nf_conn *ct,
+ 	nf_ct_invert_tuplepr(&curr_tuple,
+ 			     &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
+ 
+-	get_unique_tuple(&new_tuple, &curr_tuple, range, ct, maniptype);
++	if (! get_unique_tuple(&new_tuple, &curr_tuple, range, ct, maniptype)) {
++		return NF_DROP;
++	}
+ 
+ 	if (!nf_ct_tuple_equal(&new_tuple, &curr_tuple)) {
+ 		struct nf_conntrack_tuple reply;
+@@ -450,12 +578,16 @@ nf_nat_setup_info(struct nf_conn *ct,
+ 
+ 	if (maniptype == NF_NAT_MANIP_SRC) {
+ 		unsigned int srchash;
++		unsigned int manip_src_hash;
+ 		spinlock_t *lock;
+ 
++		manip_src_hash = hash_by_src(net, &new_tuple);
+ 		srchash = hash_by_src(net,
+ 				      &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
+ 		lock = &nf_nat_locks[srchash % CONNTRACK_LOCKS];
+ 		spin_lock_bh(lock);
++		hlist_add_head_rcu(&ct->nat_by_manip_src,
++				   &nf_nat_by_manip_src[manip_src_hash]);
+ 		hlist_add_head_rcu(&ct->nat_bysource,
+ 				   &nf_nat_bysource[srchash]);
+ 		spin_unlock_bh(lock);
+@@ -644,6 +776,7 @@ static void __nf_nat_cleanup_conntrack(struct nf_conn *ct)
+ 	h = hash_by_src(nf_ct_net(ct), &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
+ 	spin_lock_bh(&nf_nat_locks[h % CONNTRACK_LOCKS]);
+ 	hlist_del_rcu(&ct->nat_bysource);
++	hlist_del_rcu(&ct->nat_by_manip_src);
+ 	spin_unlock_bh(&nf_nat_locks[h % CONNTRACK_LOCKS]);
+ }
+ 
+@@ -1055,9 +1188,14 @@ static int __init nf_nat_init(void)
+ 	if (!nf_nat_bysource)
+ 		return -ENOMEM;
+ 
++	nf_nat_by_manip_src = nf_ct_alloc_hashtable(&nf_nat_htable_size, 0);
++	if (!nf_nat_by_manip_src)
++		return -ENOMEM;
++
+ 	ret = nf_ct_extend_register(&nat_extend);
+ 	if (ret < 0) {
+ 		kvfree(nf_nat_bysource);
++		kvfree(nf_nat_by_manip_src);
+ 		pr_err("Unable to register extension\n");
+ 		return ret;
+ 	}
+@@ -1096,6 +1234,7 @@ static void __exit nf_nat_cleanup(void)
+ 		kfree(nf_nat_l4protos[i]);
+ 	synchronize_net();
+ 	kvfree(nf_nat_bysource);
++	kvfree(nf_nat_by_manip_src);
+ 	unregister_pernet_subsys(&nat_net_ops);
+ }
+ 
+diff --git a/net/netfilter/nf_nat_proto_common.c b/net/netfilter/nf_nat_proto_common.c
+index 5d849d835561..6ee918302a02 100644
+--- a/net/netfilter/nf_nat_proto_common.c
++++ b/net/netfilter/nf_nat_proto_common.c
+@@ -34,12 +34,12 @@ bool nf_nat_l4proto_in_range(const struct nf_conntrack_tuple *tuple,
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_l4proto_in_range);
+ 
+-void nf_nat_l4proto_unique_tuple(const struct nf_nat_l3proto *l3proto,
+-				 struct nf_conntrack_tuple *tuple,
+-				 const struct nf_nat_range2 *range,
+-				 enum nf_nat_manip_type maniptype,
+-				 const struct nf_conn *ct,
+-				 u16 *rover)
++int nf_nat_l4proto_unique_tuple(const struct nf_nat_l3proto *l3proto,
++				struct nf_conntrack_tuple *tuple,
++				const struct nf_nat_range2 *range,
++				enum nf_nat_manip_type maniptype,
++				const struct nf_conn *ct,
++				u16 *rover)
+ {
+ 	unsigned int range_size, min, max, i;
+ 	__be16 *portptr;
+@@ -54,7 +54,7 @@ void nf_nat_l4proto_unique_tuple(const struct nf_nat_l3proto *l3proto,
+ 	if (!(range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)) {
+ 		/* If it's dst rewrite, can't change port */
+ 		if (maniptype == NF_NAT_MANIP_DST)
+-			return;
++			return 0;
+ 
+ 		if (ntohs(*portptr) < 1024) {
+ 			/* Loose convention: >> 512 is credential passing */
+@@ -87,17 +87,27 @@ void nf_nat_l4proto_unique_tuple(const struct nf_nat_l3proto *l3proto,
+ 		off = (ntohs(*portptr) - ntohs(range->base_proto.all));
+ 	} else {
+ 		off = *rover;
++		if ((range->flags & NF_NAT_RANGE_FULLCONE) && (maniptype == NF_NAT_MANIP_SRC)) {
++			/* Try from the next L4 port in the range */
++			off++;
++		}
+ 	}
+ 
+-	for (i = 0; ; ++off) {
++	for (i = 0; (i != range_size); ++i, ++off) {
+ 		*portptr = htons(min + off % range_size);
+-		if (++i != range_size && nf_nat_used_tuple(tuple, ct))
+-			continue;
++		if ((range->flags & NF_NAT_RANGE_FULLCONE) && (maniptype == NF_NAT_MANIP_SRC)) {
++			if (nf_nat_used_3_tuple(tuple, ct, maniptype))
++				continue;
++		} else {
++			if (nf_nat_used_tuple(tuple, ct))
++				continue;
++		}
+ 		if (!(range->flags & (NF_NAT_RANGE_PROTO_RANDOM_ALL|
+ 					NF_NAT_RANGE_PROTO_OFFSET)))
+ 			*rover = off;
+-		return;
++		return 1;
+ 	}
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_l4proto_unique_tuple);
+ 
+diff --git a/net/netfilter/nf_nat_proto_dccp.c b/net/netfilter/nf_nat_proto_dccp.c
+index 67ea0d83aa5a..68ef70bb55df 100644
+--- a/net/netfilter/nf_nat_proto_dccp.c
++++ b/net/netfilter/nf_nat_proto_dccp.c
+@@ -20,15 +20,15 @@
+ 
+ static u_int16_t dccp_port_rover;
+ 
+-static void
++static int
+ dccp_unique_tuple(const struct nf_nat_l3proto *l3proto,
+ 		  struct nf_conntrack_tuple *tuple,
+ 		  const struct nf_nat_range2 *range,
+ 		  enum nf_nat_manip_type maniptype,
+ 		  const struct nf_conn *ct)
+ {
+-	nf_nat_l4proto_unique_tuple(l3proto, tuple, range, maniptype, ct,
+-				    &dccp_port_rover);
++	return  nf_nat_l4proto_unique_tuple(l3proto, tuple, range, maniptype, ct,
++					    &dccp_port_rover);
+ }
+ 
+ static bool
+diff --git a/net/netfilter/nf_nat_proto_sctp.c b/net/netfilter/nf_nat_proto_sctp.c
+index 1c5d9b65fbba..a9d9070c36c8 100644
+--- a/net/netfilter/nf_nat_proto_sctp.c
++++ b/net/netfilter/nf_nat_proto_sctp.c
+@@ -14,15 +14,15 @@
+ 
+ static u_int16_t nf_sctp_port_rover;
+ 
+-static void
++static int
+ sctp_unique_tuple(const struct nf_nat_l3proto *l3proto,
+ 		  struct nf_conntrack_tuple *tuple,
+ 		  const struct nf_nat_range2 *range,
+ 		  enum nf_nat_manip_type maniptype,
+ 		  const struct nf_conn *ct)
+ {
+-	nf_nat_l4proto_unique_tuple(l3proto, tuple, range, maniptype, ct,
+-				    &nf_sctp_port_rover);
++	return nf_nat_l4proto_unique_tuple(l3proto, tuple, range, maniptype, ct,
++					    &nf_sctp_port_rover);
+ }
+ 
+ static bool
+diff --git a/net/netfilter/nf_nat_proto_tcp.c b/net/netfilter/nf_nat_proto_tcp.c
+index f15fcd475f98..1b039055421f 100644
+--- a/net/netfilter/nf_nat_proto_tcp.c
++++ b/net/netfilter/nf_nat_proto_tcp.c
+@@ -20,15 +20,15 @@
+ 
+ static u16 tcp_port_rover;
+ 
+-static void
++static int
+ tcp_unique_tuple(const struct nf_nat_l3proto *l3proto,
+ 		 struct nf_conntrack_tuple *tuple,
+ 		 const struct nf_nat_range2 *range,
+ 		 enum nf_nat_manip_type maniptype,
+ 		 const struct nf_conn *ct)
+ {
+-	nf_nat_l4proto_unique_tuple(l3proto, tuple, range, maniptype, ct,
+-				    &tcp_port_rover);
++	return nf_nat_l4proto_unique_tuple(l3proto, tuple, range, maniptype, ct,
++					   &tcp_port_rover);
+ }
+ 
+ static bool
+diff --git a/net/netfilter/nf_nat_proto_udp.c b/net/netfilter/nf_nat_proto_udp.c
+index 5790f70a83b2..0b26bb52aef6 100644
+--- a/net/netfilter/nf_nat_proto_udp.c
++++ b/net/netfilter/nf_nat_proto_udp.c
+@@ -19,15 +19,15 @@
+ 
+ static u16 udp_port_rover;
+ 
+-static void
++static int
+ udp_unique_tuple(const struct nf_nat_l3proto *l3proto,
+ 		 struct nf_conntrack_tuple *tuple,
+ 		 const struct nf_nat_range2 *range,
+ 		 enum nf_nat_manip_type maniptype,
+ 		 const struct nf_conn *ct)
+ {
+-	nf_nat_l4proto_unique_tuple(l3proto, tuple, range, maniptype, ct,
+-				    &udp_port_rover);
++	return nf_nat_l4proto_unique_tuple(l3proto, tuple, range, maniptype, ct,
++					   &udp_port_rover);
+ }
+ 
+ static void
+@@ -97,15 +97,15 @@ static bool udplite_manip_pkt(struct sk_buff *skb,
+ 	return true;
+ }
+ 
+-static void
++static int
+ udplite_unique_tuple(const struct nf_nat_l3proto *l3proto,
+ 		     struct nf_conntrack_tuple *tuple,
+ 		     const struct nf_nat_range2 *range,
+ 		     enum nf_nat_manip_type maniptype,
+ 		     const struct nf_conn *ct)
+ {
+-	nf_nat_l4proto_unique_tuple(l3proto, tuple, range, maniptype, ct,
+-				    &udplite_port_rover);
++	return nf_nat_l4proto_unique_tuple(l3proto, tuple, range, maniptype, ct,
++					   &udplite_port_rover);
+ }
+ 
+ const struct nf_nat_l4proto nf_nat_l4proto_udplite = {
+diff --git a/net/netfilter/nf_nat_proto_unknown.c b/net/netfilter/nf_nat_proto_unknown.c
+index c5db3e251232..377a2938cd79 100644
+--- a/net/netfilter/nf_nat_proto_unknown.c
++++ b/net/netfilter/nf_nat_proto_unknown.c
+@@ -25,7 +25,7 @@ static bool unknown_in_range(const struct nf_conntrack_tuple *tuple,
+ 	return true;
+ }
+ 
+-static void unknown_unique_tuple(const struct nf_nat_l3proto *l3proto,
++static int unknown_unique_tuple(const struct nf_nat_l3proto *l3proto,
+ 				 struct nf_conntrack_tuple *tuple,
+ 				 const struct nf_nat_range2 *range,
+ 				 enum nf_nat_manip_type maniptype,
+@@ -34,7 +34,7 @@ static void unknown_unique_tuple(const struct nf_nat_l3proto *l3proto,
+ 	/* Sorry: we can't help you; if it's not unique, we can't frob
+ 	 * anything.
+ 	 */
+-	return;
++	return 0;
+ }
+ 
+ static bool
