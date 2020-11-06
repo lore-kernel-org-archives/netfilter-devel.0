@@ -2,227 +2,101 @@ Return-Path: <SRS0=e//N=EM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6513C388F2
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Nov 2020 07:36:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9731C388F2
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Nov 2020 08:20:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8CA542071A
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Nov 2020 07:36:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E867208B3
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Nov 2020 08:20:23 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="vaPz8WGl"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726495AbgKFHgX (ORCPT
+        id S1726443AbgKFIUT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 6 Nov 2020 02:36:23 -0500
-Received: from sitav-80046.hsr.ch ([152.96.80.46]:47984 "EHLO
-        mail.strongswan.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725842AbgKFHgW (ORCPT
+        Fri, 6 Nov 2020 03:20:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42308 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726121AbgKFIUT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 Nov 2020 02:36:22 -0500
-X-Greylist: delayed 336 seconds by postgrey-1.27 at vger.kernel.org; Fri, 06 Nov 2020 02:36:21 EST
-Received: from localhost.localdomain (unknown [185.12.128.224])
-        by mail.strongswan.org (Postfix) with ESMTPSA id DBDAA4207E;
-        Fri,  6 Nov 2020 08:30:43 +0100 (CET)
-From:   Martin Willi <martin@strongswan.org>
-To:     David Ahern <dsahern@kernel.org>,
-        Shrijeet Mukherjee <shrijeet@gmail.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [PATCH net] vrf: Fix fast path output packet handling with async Netfilter rules
-Date:   Fri,  6 Nov 2020 08:30:30 +0100
-Message-Id: <20201106073030.3974927-1-martin@strongswan.org>
-X-Mailer: git-send-email 2.25.1
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Fri, 6 Nov 2020 03:20:19 -0500
+Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com [IPv6:2607:f8b0:4864:20::442])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35704C0613CF;
+        Fri,  6 Nov 2020 00:20:19 -0800 (PST)
+Received: by mail-pf1-x442.google.com with SMTP id v12so602841pfm.13;
+        Fri, 06 Nov 2020 00:20:19 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=f2B4u15lC2Ii8tq/d8kCTsZtVNP3WmCeuq2bZvx3ex0=;
+        b=vaPz8WGlio/V0T7a0R81qmZoIkZpylBBNoCVbgjXNYSAAtFYVSfPZW/1aCza+xy3Qq
+         Z3lOeF68roT/EEpuMSAcSFTocyXuW98Cmr1PL+fTK9ZERXdSxu3FORYit5DfDwS2ZxNl
+         dUFd7gs+Mn5q/KaCu+Fw7quVHVCvbgmS4gyp7Lro3Qi6WbjVO2xbHIyoCV39JKwuOG6Y
+         aKQKlFPWTTcm6qmsFfBl9o0N0KK5lOI4S3H0V9hoYF2/CS5MD1GoyqTIAS++C2SFfyBT
+         FWelGYdeNFm8vgQCPf/JCiJKi9Z/WEfF1aPm0nTi4igTxYOtHXDh2BxwCiQF94IBNvYA
+         Hrfg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=f2B4u15lC2Ii8tq/d8kCTsZtVNP3WmCeuq2bZvx3ex0=;
+        b=ghBzkn6BIBEQtliH3i83Eow2owZ2IJWi4jiINzvOMerqoIcYoKxrEcDkhygO1x7i4o
+         NHGVJeoejwNQ2BBzEUEuZaxzATAy8VVMACn45cAfzHVdG5m/Geg3jEVAJL/mn0L0Y2fH
+         cb49fJ4V5po/fwcNuAgm/ww43C/TwKnRluTe+NaY4xysx3ZA/FcPekgTWYAutIVXGy7c
+         VSdRh2P8jl4I81gkgKH79Are4tOlAbRtkmyRXK6e4pEhaShYUGG6cSvItZbML90ZLMuh
+         OGlQoEeuXkd9uQb3PxwAHIsIcJMkw0mB+74QjWhbVoYeyZTcbdq4X/sU//8E52c/fHYq
+         ppZQ==
+X-Gm-Message-State: AOAM532yRqLvbfPbvkwnJ71YAKBPkhb+9/ARlabyKjnYDaf713fy3JHF
+        lI9O68ZVbsuMj1AjFJafLY5c//aL66N9
+X-Google-Smtp-Source: ABdhPJwr/2o3Byk4DBdlB7a1P7ZbpNs4X0OJ56qGKs0Oc39AI2TalVwlH8x9OdPAJvUSidUsrhb7pw==
+X-Received: by 2002:a63:3041:: with SMTP id w62mr852183pgw.166.1604650818861;
+        Fri, 06 Nov 2020 00:20:18 -0800 (PST)
+Received: from he-cluster.localdomain (67.216.221.250.16clouds.com. [67.216.221.250])
+        by smtp.gmail.com with ESMTPSA id d7sm896697pgh.17.2020.11.06.00.20.17
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 06 Nov 2020 00:20:18 -0800 (PST)
+From:   xiakaixu1987@gmail.com
+X-Google-Original-From: kaixuxia@tencent.com
+To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, Kaixu Xia <kaixuxia@tencent.com>
+Subject: [PATCH] netfilter: Remove unnecessary conversion to bool
+Date:   Fri,  6 Nov 2020 16:20:13 +0800
+Message-Id: <1604650813-1132-1-git-send-email-kaixuxia@tencent.com>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-VRF devices use an optimized direct path on output if a default qdisc
-is involved, calling Netfilter hooks directly. This path, however, does
-not consider Netfilter rules completing asynchronously, such as with
-NFQUEUE. The Netfilter okfn() is called for asynchronously accepted
-packets, but the VRF never passes that packet down the stack to send
-it out over the slave device. Using the slower redirect path for this
-seems not feasible, as we do not know beforehand if a Netfilter hook
-has asynchronously completing rules.
+From: Kaixu Xia <kaixuxia@tencent.com>
 
-Fix the use of asynchronously completing Netfilter rules in OUTPUT and
-POSTROUTING by using a special completion function that additionally
-calls dst_output() to pass the packet down the stack. Also, slightly
-adjust the use of nf_reset_ct() so that is called in the asynchronous
-case, too.
+Here we could use the '!=' expression to fix the following coccicheck
+warning:
 
-Fixes: dcdd43c41e60 ("net: vrf: performance improvements for IPv4")
-Fixes: a9ec54d1b0cd ("net: vrf: performance improvements for IPv6")
-Signed-off-by: Martin Willi <martin@strongswan.org>
+./net/netfilter/xt_nfacct.c:30:41-46: WARNING: conversion to bool not needed here
+
+Reported-by: Tosk Robot <tencent_os_robot@tencent.com>
+Signed-off-by: Kaixu Xia <kaixuxia@tencent.com>
 ---
- drivers/net/vrf.c | 92 +++++++++++++++++++++++++++++++++++------------
- 1 file changed, 69 insertions(+), 23 deletions(-)
+ net/netfilter/xt_nfacct.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/vrf.c b/drivers/net/vrf.c
-index 60c1aadece89..f2793ffde191 100644
---- a/drivers/net/vrf.c
-+++ b/drivers/net/vrf.c
-@@ -608,8 +608,7 @@ static netdev_tx_t vrf_xmit(struct sk_buff *skb, struct net_device *dev)
- 	return ret;
+diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
+index a97c2259bbc8..7c6bf1c16813 100644
+--- a/net/netfilter/xt_nfacct.c
++++ b/net/netfilter/xt_nfacct.c
+@@ -27,7 +27,7 @@ static bool nfacct_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 
+ 	overquota = nfnl_acct_overquota(xt_net(par), info->nfacct);
+ 
+-	return overquota == NFACCT_UNDERQUOTA ? false : true;
++	return overquota != NFACCT_UNDERQUOTA;
  }
  
--static int vrf_finish_direct(struct net *net, struct sock *sk,
--			     struct sk_buff *skb)
-+static void vrf_finish_direct(struct sk_buff *skb)
- {
- 	struct net_device *vrf_dev = skb->dev;
- 
-@@ -628,7 +627,8 @@ static int vrf_finish_direct(struct net *net, struct sock *sk,
- 		skb_pull(skb, ETH_HLEN);
- 	}
- 
--	return 1;
-+	/* reset skb device */
-+	nf_reset_ct(skb);
- }
- 
- #if IS_ENABLED(CONFIG_IPV6)
-@@ -707,15 +707,41 @@ static struct sk_buff *vrf_ip6_out_redirect(struct net_device *vrf_dev,
- 	return skb;
- }
- 
-+static int vrf_output6_direct_finish(struct net *net, struct sock *sk,
-+				     struct sk_buff *skb)
-+{
-+	vrf_finish_direct(skb);
-+
-+	return vrf_ip6_local_out(net, sk, skb);
-+}
-+
- static int vrf_output6_direct(struct net *net, struct sock *sk,
- 			      struct sk_buff *skb)
- {
-+	int err = 1;
-+
- 	skb->protocol = htons(ETH_P_IPV6);
- 
--	return NF_HOOK_COND(NFPROTO_IPV6, NF_INET_POST_ROUTING,
--			    net, sk, skb, NULL, skb->dev,
--			    vrf_finish_direct,
--			    !(IPCB(skb)->flags & IPSKB_REROUTED));
-+	if (!(IPCB(skb)->flags & IPSKB_REROUTED))
-+		err = nf_hook(NFPROTO_IPV6, NF_INET_POST_ROUTING, net, sk, skb,
-+			      NULL, skb->dev, vrf_output6_direct_finish);
-+
-+	if (likely(err == 1))
-+		vrf_finish_direct(skb);
-+
-+	return err;
-+}
-+
-+static int vrf_ip6_out_direct_finish(struct net *net, struct sock *sk,
-+				     struct sk_buff *skb)
-+{
-+	int err;
-+
-+	err = vrf_output6_direct(net, sk, skb);
-+	if (likely(err == 1))
-+		err = vrf_ip6_local_out(net, sk, skb);
-+
-+	return err;
- }
- 
- static struct sk_buff *vrf_ip6_out_direct(struct net_device *vrf_dev,
-@@ -728,18 +754,15 @@ static struct sk_buff *vrf_ip6_out_direct(struct net_device *vrf_dev,
- 	skb->dev = vrf_dev;
- 
- 	err = nf_hook(NFPROTO_IPV6, NF_INET_LOCAL_OUT, net, sk,
--		      skb, NULL, vrf_dev, vrf_output6_direct);
-+		      skb, NULL, vrf_dev, vrf_ip6_out_direct_finish);
- 
- 	if (likely(err == 1))
- 		err = vrf_output6_direct(net, sk, skb);
- 
--	/* reset skb device */
- 	if (likely(err == 1))
--		nf_reset_ct(skb);
--	else
--		skb = NULL;
-+		return skb;
- 
--	return skb;
-+	return NULL;
- }
- 
- static struct sk_buff *vrf_ip6_out(struct net_device *vrf_dev,
-@@ -919,15 +942,41 @@ static struct sk_buff *vrf_ip_out_redirect(struct net_device *vrf_dev,
- 	return skb;
- }
- 
-+static int vrf_output_direct_finish(struct net *net, struct sock *sk,
-+				    struct sk_buff *skb)
-+{
-+	vrf_finish_direct(skb);
-+
-+	return vrf_ip_local_out(net, sk, skb);
-+}
-+
- static int vrf_output_direct(struct net *net, struct sock *sk,
- 			     struct sk_buff *skb)
- {
-+	int err = 1;
-+
- 	skb->protocol = htons(ETH_P_IP);
- 
--	return NF_HOOK_COND(NFPROTO_IPV4, NF_INET_POST_ROUTING,
--			    net, sk, skb, NULL, skb->dev,
--			    vrf_finish_direct,
--			    !(IPCB(skb)->flags & IPSKB_REROUTED));
-+	if (!(IPCB(skb)->flags & IPSKB_REROUTED))
-+		err = nf_hook(NFPROTO_IPV4, NF_INET_POST_ROUTING, net, sk, skb,
-+			      NULL, skb->dev, vrf_output_direct_finish);
-+
-+	if (likely(err == 1))
-+		vrf_finish_direct(skb);
-+
-+	return err;
-+}
-+
-+static int vrf_ip_out_direct_finish(struct net *net, struct sock *sk,
-+				    struct sk_buff *skb)
-+{
-+	int err;
-+
-+	err = vrf_output_direct(net, sk, skb);
-+	if (likely(err == 1))
-+		err = vrf_ip_local_out(net, sk, skb);
-+
-+	return err;
- }
- 
- static struct sk_buff *vrf_ip_out_direct(struct net_device *vrf_dev,
-@@ -940,18 +989,15 @@ static struct sk_buff *vrf_ip_out_direct(struct net_device *vrf_dev,
- 	skb->dev = vrf_dev;
- 
- 	err = nf_hook(NFPROTO_IPV4, NF_INET_LOCAL_OUT, net, sk,
--		      skb, NULL, vrf_dev, vrf_output_direct);
-+		      skb, NULL, vrf_dev, vrf_ip_out_direct_finish);
- 
- 	if (likely(err == 1))
- 		err = vrf_output_direct(net, sk, skb);
- 
--	/* reset skb device */
- 	if (likely(err == 1))
--		nf_reset_ct(skb);
--	else
--		skb = NULL;
-+		return skb;
- 
--	return skb;
-+	return NULL;
- }
- 
- static struct sk_buff *vrf_ip_out(struct net_device *vrf_dev,
+ static int
 -- 
-2.25.1
+2.20.0
 
