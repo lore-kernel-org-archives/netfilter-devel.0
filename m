@@ -2,125 +2,150 @@ Return-Path: <SRS0=tTqd=EO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-13.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B177C55ABD
-	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Nov 2020 20:37:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC5E9C388F9
+	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Nov 2020 21:27:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B0288206ED
-	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Nov 2020 20:37:56 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="o+lHSzyf"
+	by mail.kernel.org (Postfix) with ESMTP id 4D139206DC
+	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Nov 2020 21:27:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728832AbgKHUh4 (ORCPT
+        id S1727929AbgKHV1U (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 8 Nov 2020 15:37:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38196 "EHLO
+        Sun, 8 Nov 2020 16:27:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45792 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727570AbgKHUhz (ORCPT
+        with ESMTP id S1727570AbgKHV1T (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 8 Nov 2020 15:37:55 -0500
-Received: from mail-yb1-xb41.google.com (mail-yb1-xb41.google.com [IPv6:2607:f8b0:4864:20::b41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C13EC0613CF
-        for <netfilter-devel@vger.kernel.org>; Sun,  8 Nov 2020 12:37:54 -0800 (PST)
-Received: by mail-yb1-xb41.google.com with SMTP id 2so2242880ybc.12
-        for <netfilter-devel@vger.kernel.org>; Sun, 08 Nov 2020 12:37:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=/k9WXGwgenU9y8S3vc7U0IF9dT4fySKJeSG6P4Ph3CI=;
-        b=o+lHSzyf9Ezcybl5RPkn+ZMlNzC7GvX0LVZkfB1WG2/SXyZBxDkpX5csWatqunamEg
-         RLk1WbhLqAxAwajs56SOxuNd3ClTe0nujfe8OLmIrrxlAFx27Auae27J5tqKJPjI3yXo
-         xD7pX76oXd91f+8LMkf5gDXiYbqKfkr+zi+z04lbhRH/SjZ6Cq7w6HkOJTmL8EVm6us+
-         /GRBuX1e1lz/BzT8vgxpMuRTY3JGi3D/sJhmKNc2WPg8I8M17mtcoHrWeNj3jinLM7SZ
-         c8000g9nuL+eO6R8H3/Ggb6wby+wLBs4wuee9nmueZJU9VnA0NwMFMzCLFHTOljGygXA
-         Y9DQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=/k9WXGwgenU9y8S3vc7U0IF9dT4fySKJeSG6P4Ph3CI=;
-        b=iKw5bv2itbsXxm5M/DrfZurdfMqtN1+XcXHUiAj3ADa4EsTF/et5m71uZsIQq2vUjf
-         K5heItD2RR/y/MGjn5/HLTDjXhGtuU7/tf/g1Dlea4VPEUQi25PaYSyYJRuUeJ1XSXvZ
-         5t1uTUwTXorLBewX/i0fsU2wTb6j/B3+DwrPao87k1Nu7Y89l/EMLlQ2V655ef6QtKT+
-         iH3xBF4YNY3lwKeuakSPIfImPnxu2R0h9/ULkHt9Z+cry/QmZ3nBDpsp55A8he5ZrPan
-         dCEKdKb/518eZ/ttTDZFJwwdhcEWO7ExxAPRTjJBNles8ExkOuIGyogVrZwx4jiETf03
-         cSTQ==
-X-Gm-Message-State: AOAM532XxXlrOo1fD+NSqu1D6IoAJbNHfJ64jHW5YiGY9wcvgpUuNXgc
-        IvANx509/ACQ52vxgv09J3aCFLb7KeWl0RuwmFinbFR96rSSg89R
-X-Google-Smtp-Source: ABdhPJwn1B3dAunQCUSgWtJKpO6z6YNZH8DptZcoUm7QHsRCZzCKFkBuFdT+209BTqMTfb4HMdtpqMtdj6QDzO+S51E=
-X-Received: by 2002:a5b:149:: with SMTP id c9mr1012654ybp.3.1604867873592;
- Sun, 08 Nov 2020 12:37:53 -0800 (PST)
-MIME-Version: 1.0
-References: <CAHOuc7N4gWZQmGaHdZ3oMt6S2PA-8JXTEabaybsH2bM9zHcBfA@mail.gmail.com>
- <alpine.DEB.2.23.453.2011020953550.16514@localhost>
-In-Reply-To: <alpine.DEB.2.23.453.2011020953550.16514@localhost>
-From:   Oskar Berggren <oskar.berggren@gmail.com>
-Date:   Sun, 8 Nov 2020 21:37:42 +0100
-Message-ID: <CAHOuc7Ou_=rXSGCweVtN8QhMx8XaA9DPvBZBPHTe2SS05C0GsQ@mail.gmail.com>
+        Sun, 8 Nov 2020 16:27:19 -0500
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::45])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD203C0613CF
+        for <netfilter-devel@vger.kernel.org>; Sun,  8 Nov 2020 13:27:19 -0800 (PST)
+Received: from localhost (localhost [127.0.0.1])
+        by smtp0.kfki.hu (Postfix) with ESMTP id 7417F67400E5;
+        Sun,  8 Nov 2020 22:27:15 +0100 (CET)
+X-Virus-Scanned: Debian amavisd-new at smtp0.kfki.hu
+Received: from smtp0.kfki.hu ([127.0.0.1])
+        by localhost (smtp0.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Sun,  8 Nov 2020 22:27:11 +0100 (CET)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
+        by smtp0.kfki.hu (Postfix) with ESMTP id 6D1AA67400DC;
+        Sun,  8 Nov 2020 22:27:11 +0100 (CET)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id 5F8C8340D5C; Sun,  8 Nov 2020 22:27:11 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+        by blackhole.kfki.hu (Postfix) with ESMTP id 5AE8A340D5B;
+        Sun,  8 Nov 2020 22:27:11 +0100 (CET)
+Date:   Sun, 8 Nov 2020 22:27:11 +0100 (CET)
+From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+X-X-Sender: kadlec@blackhole.kfki.hu
+To:     Oskar Berggren <oskar.berggren@gmail.com>
+cc:     netfilter-devel@vger.kernel.org
 Subject: Re: ipset 7.7 modules fail to build on kernel 4.19.152
-To:     Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <CAHOuc7Ou_=rXSGCweVtN8QhMx8XaA9DPvBZBPHTe2SS05C0GsQ@mail.gmail.com>
+Message-ID: <alpine.DEB.2.23.453.2011082203260.26301@blackhole.kfki.hu>
+References: <CAHOuc7N4gWZQmGaHdZ3oMt6S2PA-8JXTEabaybsH2bM9zHcBfA@mail.gmail.com> <alpine.DEB.2.23.453.2011020953550.16514@localhost> <CAHOuc7Ou_=rXSGCweVtN8QhMx8XaA9DPvBZBPHTe2SS05C0GsQ@mail.gmail.com>
+User-Agent: Alpine 2.23 (DEB 453 2020-06-18)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Den m=C3=A5n 2 nov. 2020 kl 09:55 skrev Jozsef Kadlecsik <kadlec@netfilter.=
-org>:
->
-> Hi,
->
-> On Sun, 1 Nov 2020, Oskar Berggren wrote:
->
-> > I can build ipset 7.6 modules on 4.19.152 kernel (Debian buster
-> > current stable), but 7.7 fails:
-> >
-> > $ configure; make
-> > $ make modules
-> > jhash.h:90:32 `fallthrough` undeclared
-> > jhash.h:136:21 `fallthrough` undeclared
-> >
-> > ip_set_core.c:90:40 macro list_for_each_entry_rcu passed 4 arguments
-> > but takes just 3
-> > ip_set_core.c:89:2 list_for_each_entry_rcu undeclared
-> >
-> > Plus a few more but I think they are just because the compiler is
-> > confused after the above problems.
-> >
-> > There are commits in 7.7 touching the above pieces of code.
->
-> Does the patch fixes all the issues above?
->
-> diff --git a/kernel/include/linux/jhash.h b/kernel/include/linux/jhash.h
-> index 5e578b1..8df77ec 100644
-> --- a/kernel/include/linux/jhash.h
-> +++ b/kernel/include/linux/jhash.h
-> @@ -1,5 +1,6 @@
->  #ifndef _LINUX_JHASH_H
->  #define _LINUX_JHASH_H
-> +#include <linux/netfilter/ipset/ip_set_compat.h>
->
->  /* jhash.h: Jenkins hash support.
->   *
+Hi Oskar,
 
+On Sun, 8 Nov 2020, Oskar Berggren wrote:
 
-It fixes the problems listed for jhash.h, but unfortunately not for
-ip_set_core.c.
+> > > ip_set_core.c:90:40 macro list_for_each_entry_rcu passed 4 arguments 
+> > > but takes just 3 ip_set_core.c:89:2 list_for_each_entry_rcu 
+> > > undeclared
+> It fixes the problems listed for jhash.h, but unfortunately not for 
+> ip_set_core.c.
+> 
+> There don't seem to be any compat layer for list_for_each_entry_rcu in
+> ipset sources.
+> 
+> The fourth parameter to list_for_each_entry_rcu seems to appear in
+> 5.4-rc1 by this commit:
+> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=28875945ba98d1b47a8a706812b6494d165bb0a0
 
-There don't seem to be any compat layer for list_for_each_entry_rcu in
-ipset sources.
+The backward compatibility for list_for_each_entry_rcu() with three args 
+only was missing indeed, the patch below should fix it:
 
-The fourth parameter to list_for_each_entry_rcu seems to appear in
-5.4-rc1 by this commit:
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?=
-id=3D28875945ba98d1b47a8a706812b6494d165bb0a0
+diff --git a/configure.ac b/configure.ac
+index 1058315..7388cdd 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -746,6 +746,16 @@ else
+ 	AC_SUBST(HAVE_SYNCHRONIZE_RCU_BH, undef)
+ fi
+ 
++AC_MSG_CHECKING([kernel source for the fourth arg of list_for_each_entry_rcu() in rculist.h])
++if test -f $ksourcedir/include/linux/rculist.h && \
++   $GREP -q 'define list_for_each_entry_rcu(pos, head, member, cond' $ksourcedir/include/linux/rculist.h; then
++	AC_MSG_RESULT(yes)
++	AC_SUBST(HAVE_LIST_FOR_EACH_ENTRY_RCU_FOUR_ARGS, define)
++else
++	AC_MSG_RESULT(no)
++	AC_SUBST(HAVE_LIST_FOR_EACH_ENTRY_RCU_FOUR_ARGS, undef)
++fi
++
+ AC_MSG_CHECKING([kernel source for struct net_generic])
+ if test -f $ksourcedir/include/net/netns/generic.h && \
+    $GREP -q 'struct net_generic' $ksourcedir/include/net/netns/generic.h; then
+diff --git a/kernel/include/linux/netfilter/ipset/ip_set_compat.h.in b/kernel/include/linux/netfilter/ipset/ip_set_compat.h.in
+index 87e0641..0bcff2c 100644
+--- a/kernel/include/linux/netfilter/ipset/ip_set_compat.h.in
++++ b/kernel/include/linux/netfilter/ipset/ip_set_compat.h.in
+@@ -56,6 +56,7 @@
+ #@HAVE_LOCKDEP_NFNL_IS_HELD@ HAVE_LOCKDEP_NFNL_IS_HELD
+ #@HAVE_COND_RESCHED_RCU@ HAVE_COND_RESCHED_RCU
+ #@HAVE_SKB_IIF@ HAVE_SKB_IIF
++#@HAVE_LIST_FOR_EACH_ENTRY_RCU_FOUR_ARGS@ HAVE_LIST_FOR_EACH_ENTRY_RCU_FOUR_ARGS
+ 
+ #ifdef HAVE_EXPORT_SYMBOL_GPL_IN_MODULE_H
+ #include <linux/module.h>
+@@ -469,6 +470,14 @@ static inline u16 nfnl_msg_type(u8 subsys, u8 msg_type)
+ #define dev_get_by_index_rcu __dev_get_by_index
+ #endif
+ 
++#ifdef HAVE_LIST_FOR_EACH_ENTRY_RCU_FOUR_ARGS
++#define list_for_each_entry_rcu_compat(pos, head, member, cond) \
++	list_for_each_entry_rcu(pos, head, member, cond)
++#else
++#define list_for_each_entry_rcu_compat(pos, head, member, cond) \
++	list_for_each_entry_rcu(pos, head, member)
++#endif
++
+ /* Compiler attributes */
+ #ifndef __has_attribute
+ # define __has_attribute(x) __GCC4_has_attribute_##x
+diff --git a/kernel/net/netfilter/ipset/ip_set_core.c b/kernel/net/netfilter/ipset/ip_set_core.c
+index fb35e23..9de8289 100644
+--- a/kernel/net/netfilter/ipset/ip_set_core.c
++++ b/kernel/net/netfilter/ipset/ip_set_core.c
+@@ -86,8 +86,8 @@ find_set_type(const char *name, u8 family, u8 revision)
+ {
+ 	struct ip_set_type *type;
+ 
+-	list_for_each_entry_rcu(type, &ip_set_type_list, list,
+-				lockdep_is_held(&ip_set_type_mutex))
++	list_for_each_entry_rcu_compat(type, &ip_set_type_list, list,
++				       lockdep_is_held(&ip_set_type_mutex))
+ 		if (STRNCMP(type->name, name) &&
+ 		    (type->family == family ||
+ 		     type->family == NFPROTO_UNSPEC) &&
 
+I'm going to release ipset 7.8 in the next days - 7.7 was actually not 
+announced yet :-).
 
-/Oskar
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
