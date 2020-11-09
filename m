@@ -1,153 +1,122 @@
-Return-Path: <SRS0=tTqd=EO=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=wVpJ=EP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-17.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2583AC388F9
-	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Nov 2020 22:01:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4666DC4741F
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Nov 2020 09:19:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BBC67206A5
-	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Nov 2020 22:01:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CDB79206ED
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Nov 2020 09:19:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nhX4kGeq"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kfg4eU3V"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727929AbgKHWBX (ORCPT
+        id S1726999AbgKIJTy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 8 Nov 2020 17:01:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51036 "EHLO
+        Mon, 9 Nov 2020 04:19:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42720 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727570AbgKHWBW (ORCPT
+        with ESMTP id S1725854AbgKIJTy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 8 Nov 2020 17:01:22 -0500
-Received: from mail-yb1-xb36.google.com (mail-yb1-xb36.google.com [IPv6:2607:f8b0:4864:20::b36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FBDAC0613CF
-        for <netfilter-devel@vger.kernel.org>; Sun,  8 Nov 2020 14:01:22 -0800 (PST)
-Received: by mail-yb1-xb36.google.com with SMTP id v92so306111ybi.4
-        for <netfilter-devel@vger.kernel.org>; Sun, 08 Nov 2020 14:01:22 -0800 (PST)
+        Mon, 9 Nov 2020 04:19:54 -0500
+Received: from mail-wr1-x441.google.com (mail-wr1-x441.google.com [IPv6:2a00:1450:4864:20::441])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CAEFFC0613CF;
+        Mon,  9 Nov 2020 01:19:53 -0800 (PST)
+Received: by mail-wr1-x441.google.com with SMTP id 33so7851858wrl.7;
+        Mon, 09 Nov 2020 01:19:53 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=/VWvCCeEVbMZdq9UF5aG+wVC8fHZ26437znnIuTzxNk=;
-        b=nhX4kGeqLPTyLBZshwviKp4YyeJd8bw2LyoDXsT5M6FDXv7pQEhR68tvv2YTdzR8+J
-         Gh0RwYVNnDqHmn0Rib6pD14elREKLbBnJxC8w1k36gq2gAHHqD+cq6puVTrPyQuRNoVv
-         v7/JzehJQ4duvGPJQDFuzY95cStPH/QQOh8x/xMeEsNqV/r/shAip25Pl+DGWuRQJ1dX
-         m6EKEqaiv1Por4ODn2unnOywVC6Pnh/Em5uhndaXjPPAaCHp+xh+CR3w67P4ga3NpMXF
-         dskYOMBH645Ef90CMhWH8T4Yg2FrEF20924DeU9gcZFKepRBEQxepMI3Muk/eQcXAAQk
-         TJcw==
+        h=from:to:cc:subject:date:message-id;
+        bh=GUBLLHbst2zeH9c/A9PODgvPT5XA5rVjk1jholZ9SRQ=;
+        b=kfg4eU3VVoKvTjZjQS8sEhcZqElqp8XNyGsIdRnYkMYgri+stxfPtjWUdzVkHaLivh
+         D9cYFvEwbHvIgANjHGO/WOgF9ujbCKGKSxWQUflX22LZ/+Qftl1YaZNOE2Evr4oNHyiP
+         yogLQ29pzKUtD8YvTlYjNKKastnRKNOPq3+zSet9fzCfB9MH3rp0OpdCZ/0IOVKsEJXJ
+         PJKTafiYyLmrqqEAi3ND0NRwWxZFCJPI6urdk1xAT4qPrktxoFBBXVL/ksGvNZsbaP7S
+         i3EmWoB5kv9CvMmM9qVlSJLI03PVn9QRAL+W4Fz67yQh+JH/CKDfTy4j463pzcXSOCjO
+         xyaw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=/VWvCCeEVbMZdq9UF5aG+wVC8fHZ26437znnIuTzxNk=;
-        b=rZRpnIN3J8J4NqmLUVzFbs6CA3wpuqrbUoSop6lrn+sRsvVm7b+UkcG0nSNcgT6ooa
-         8npPFogZ6KC6h92HQq2oyqxiPFblPR2hzfn/hrnoMxeQU3zW44sJATIhsdgyxXxjZovk
-         qnLbM6blYlFSYGZP/irC5DFCW4/Luz57m1P1fVPYqEKiN/SikmJFSz5NAxGnCtLdkBB9
-         1B07MLlpivjv+rmfIrUYVbuweINtyj8HT4s1UBzUh7kb3Sg/GNGfTTm7HJeUEpk4F3NU
-         XlUvo+a1gwPB+7IuuB3OG9u1KnYzDSm1yB/ycnRhJYWmoyzIu1SrW5H8hrPo9S+W3ZBG
-         l6sg==
-X-Gm-Message-State: AOAM53170jcACJV0Yp1BHVKqgn4q1RhODIoRTukh/X8/bdrn5Cbv0Fj4
-        2s1/l9AV7IX50p6Fb9SO40ezzJOscY01Di4wjYU=
-X-Google-Smtp-Source: ABdhPJz0uRzAQXChYGhq+4Phcs3KqURZNeS5zoMCy8d140AjuQF9k/Rue+Lw8/tFdmnc5sdl+9N7JBs2Ey+qJx1t8hQ=
-X-Received: by 2002:a25:2f84:: with SMTP id v126mr14847319ybv.509.1604872880781;
- Sun, 08 Nov 2020 14:01:20 -0800 (PST)
-MIME-Version: 1.0
-References: <CAHOuc7N4gWZQmGaHdZ3oMt6S2PA-8JXTEabaybsH2bM9zHcBfA@mail.gmail.com>
- <alpine.DEB.2.23.453.2011020953550.16514@localhost> <CAHOuc7Ou_=rXSGCweVtN8QhMx8XaA9DPvBZBPHTe2SS05C0GsQ@mail.gmail.com>
- <alpine.DEB.2.23.453.2011082203260.26301@blackhole.kfki.hu>
-In-Reply-To: <alpine.DEB.2.23.453.2011082203260.26301@blackhole.kfki.hu>
-From:   Oskar Berggren <oskar.berggren@gmail.com>
-Date:   Sun, 8 Nov 2020 23:01:09 +0100
-Message-ID: <CAHOuc7P+vHrPofOg9FHAUMhuDu=ewxgBp2h8TxmveNoZEayfkQ@mail.gmail.com>
-Subject: Re: ipset 7.7 modules fail to build on kernel 4.19.152
-To:     Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=GUBLLHbst2zeH9c/A9PODgvPT5XA5rVjk1jholZ9SRQ=;
+        b=HCbfB4QqwE+xAolvAklGve/XMmHEKM15tSf+YFx/lYy7544IvArWqkK0tU8N7Fp/vh
+         VEGHw0ZvQ8BNSorr9uYfOj6Dz7s1uOO11Hp98AcrwAMu1UKavjIvDkrd0vlFWl7mT+Jz
+         FWxw8MHmO5+AkmmxaQgcKAN0dltc8ieVN6wlIEzAHXIvFnVqJc/29SLL/+5catWQqO42
+         n2XJMM/GEDUbD78xG8y09xchrnZFvvVfecp3DKMJawctjSzoKrdHXA02+Iyjf3bYO9Ac
+         JHAco3HJZvpIPqTnREm9fn5WeeG0I/Ugb25z9tbztSAPe/0+YJ65VAhMfScx78GrnUBe
+         QMrg==
+X-Gm-Message-State: AOAM533NehUqmAYsx46DdAjeoKvkBKhRJZXHFWpfpx5HEryZkPWuQPzY
+        wFFWs7NwTAFkpVuW5DQ9ZwU=
+X-Google-Smtp-Source: ABdhPJwu3gruSVyzNdsY7JRGI+5F9eOc2RfKuCvT6dlP/5VnN22JiqZ5VBwPY1g+RHnRn+ytK29Iog==
+X-Received: by 2002:adf:f24b:: with SMTP id b11mr2099778wrp.342.1604913592343;
+        Mon, 09 Nov 2020 01:19:52 -0800 (PST)
+Received: from felia.fritz.box ([2001:16b8:2dd6:1d00:48a4:9af6:6f6a:ebcb])
+        by smtp.gmail.com with ESMTPSA id f16sm12696366wrp.66.2020.11.09.01.19.51
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 09 Nov 2020 01:19:51 -0800 (PST)
+From:   Lukas Bulwahn <lukas.bulwahn@gmail.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Cc:     Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>,
+        Pia Eichinger <pia.eichinger@st.oth-regensburg.de>,
+        Joe Perches <joe@perches.com>, kernel-janitors@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Subject: [PATCH] MAINTAINERS: rectify file patterns for NETFILTER
+Date:   Mon,  9 Nov 2020 10:19:42 +0100
+Message-Id: <20201109091942.32280-1-lukas.bulwahn@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Den s=C3=B6n 8 nov. 2020 kl 22:27 skrev Jozsef Kadlecsik <kadlec@netfilter.=
-org>:
->
-> Hi Oskar,
->
-> On Sun, 8 Nov 2020, Oskar Berggren wrote:
->
-> > > > ip_set_core.c:90:40 macro list_for_each_entry_rcu passed 4 argument=
-s
-> > > > but takes just 3 ip_set_core.c:89:2 list_for_each_entry_rcu
-> > > > undeclared
-> > It fixes the problems listed for jhash.h, but unfortunately not for
-> > ip_set_core.c.
->
-> The backward compatibility for list_for_each_entry_rcu() with three args
-> only was missing indeed, the patch below should fix it:
+The two file patterns in the NETFILTER section:
 
-That took care of the problems in ip_set_core.c, now I got problems
-with jhash.h again. Same problem, but different compile unit, and
-despite having the additional include that you suggested.
+  F:      include/linux/netfilter*
+  F:      include/uapi/linux/netfilter*
 
-WITHOUT including the compat layer the problem occurs here:
-  CC [M]  /home/oskar/Downloads/ipset-7.7/kernel/net/netfilter/ipset/ip_set=
-_core.o
-In file included from
-/usr/src/linux-headers-4.19.0-12-common/include/net/inet_sock.h:22,
-                 from
-/usr/src/linux-headers-4.19.0-12-common/include/net/inet_connection_sock.h:=
-24,
-                 from
-/usr/src/linux-headers-4.19.0-12-common/include/linux/tcp.h:24,
-                 from
-/usr/src/linux-headers-4.19.0-12-common/include/linux/ipv6.h:87,
-                 from
-/home/oskar/Downloads/ipset-7.7/kernel/include/linux/netfilter/ipset/ip_set=
-.h:11,
-                 from
-/home/oskar/Downloads/ipset-7.7/kernel/net/netfilter/ipset/ip_set_core.c:23=
-:
-/home/oskar/Downloads/ipset-7.7/kernel/include/linux/jhash.h: In
-function =E2=80=98jhash=E2=80=99:
-/home/oskar/Downloads/ipset-7.7/kernel/include/linux/jhash.h:91:32:
-error: =E2=80=98fallthrough=E2=80=99 undeclared (first use in this function=
-)
-  case 12: c +=3D (u32)k[11]<<24; fallthrough;
-[...same on line 137...]
+intended to match the directories:
 
+  ./include{/uapi}/linux/netfilter_{arp,bridge,ipv4,ipv6}
 
-WITH the compat layer included (and the fix for
-list_for_each_entry_rcu), the same error appears slightly later:
-  CC [M]  /home/oskar/Downloads/ipset-7.7/kernel/net/netfilter/ipset/ip_set=
-_core.o
-  CC [M]  /home/oskar/Downloads/ipset-7.7/kernel/net/netfilter/ipset/ip_set=
-_getport.o
-  CC [M]  /home/oskar/Downloads/ipset-7.7/kernel/net/netfilter/ipset/pfxlen=
-.o
-In file included from
-/usr/src/linux-headers-4.19.0-12-common/include/net/inet_sock.h:22,
-                 from
-/usr/src/linux-headers-4.19.0-12-common/include/net/inet_connection_sock.h:=
-24,
-                 from
-/usr/src/linux-headers-4.19.0-12-common/include/linux/tcp.h:24,
-                 from
-/usr/src/linux-headers-4.19.0-12-common/include/net/tcp.h:24,
-                 from
-/home/oskar/Downloads/ipset-7.7/kernel/include/linux/netfilter/ipset/pfxlen=
-.h:7,
-                 from
-/home/oskar/Downloads/ipset-7.7/kernel/net/netfilter/ipset/pfxlen.c:4:
-/home/oskar/Downloads/ipset-7.7/kernel/include/linux/jhash.h: In
-function =E2=80=98jhash=E2=80=99:
-/home/oskar/Downloads/ipset-7.7/kernel/include/linux/jhash.h:91:32:
-error: =E2=80=98fallthrough=E2=80=99 undeclared (first use in this function=
-)
-  case 12: c +=3D (u32)k[11]<<24; fallthrough;
-[...same on line 137...]
+A quick check with ./scripts/get_maintainer.pl --letters -f will show that
+they are not matched, though, because this pattern only matches files, but
+not directories.
 
-/Oskar
+Rectify the patterns to match the intended directories.
+
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+---
+applies cleanly on v5.10-rc3 and next-20201109
+
+Pablo, Jozsef, Florian, please pick this minor non-urgent clean-up patch.
+
+ MAINTAINERS | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index cba8ddf87a08..572a064a9c95 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -12139,10 +12139,10 @@ W:	http://www.nftables.org/
+ Q:	http://patchwork.ozlabs.org/project/netfilter-devel/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+-F:	include/linux/netfilter*
++F:	include/linux/netfilter*/
+ F:	include/linux/netfilter/
+ F:	include/net/netfilter/
+-F:	include/uapi/linux/netfilter*
++F:	include/uapi/linux/netfilter*/
+ F:	include/uapi/linux/netfilter/
+ F:	net/*/netfilter.c
+ F:	net/*/netfilter/
+-- 
+2.17.1
+
