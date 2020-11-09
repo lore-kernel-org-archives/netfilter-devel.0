@@ -2,56 +2,50 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E88DC55ABD
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Nov 2020 22:17:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC10AC5517A
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Nov 2020 23:45:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 20216206CB
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Nov 2020 22:17:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A86E206ED
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Nov 2020 23:45:01 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="KcFPTBvE"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="VwH99c07"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729956AbgKIWRA (ORCPT
+        id S1729493AbgKIXo7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 Nov 2020 17:17:00 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53530 "EHLO mail.kernel.org"
+        Mon, 9 Nov 2020 18:44:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42892 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729336AbgKIWRA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Nov 2020 17:17:00 -0500
-Received: from kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net (unknown [163.114.132.5])
+        id S1730180AbgKIXo6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 9 Nov 2020 18:44:58 -0500
+Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.5])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 16EB9206BE;
-        Mon,  9 Nov 2020 22:16:59 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8BCCF206BE;
+        Mon,  9 Nov 2020 23:44:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604960219;
-        bh=ROrsqtYaKXfk3QoJVLVQQdpZkH8gX3j3DtkJ5PIVV2g=;
+        s=default; t=1604965497;
+        bh=q+Q5C3LOOUohAHuz+9+ERkhxjKYvOcSn+Co0anM60z8=;
         h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=KcFPTBvE4LyxKT+LnRnmg0jcIbffymp9YQmfgjOZC3m/0SUcWvVAARlRURhXfNw95
-         49109i5GvRP7Lv9n68YxB7xWfcNHmLrXBtZfhIAA42MdvEPDOc20fSwIAotRs4Fcm/
-         NmoQtEjS0fTNI44pXBpCdjMqrckZryZ5g2P839MM=
-Date:   Mon, 9 Nov 2020 14:16:58 -0800
+        b=VwH99c07l8ODLXMVwF59vg3yGrLW/NLqq6Fb8nxZntN7LGI+wGPAykbo6a62U6BPn
+         nr8XgFQztP0PrzmA4OyDILS2KDxjw0WhbnNboxMYfTUesFxUxs3HpSRcwtWxPV3NNd
+         I7X+P7MSJKftFQ44UW2yw3aXf1gQ37C5BFlWN15U=
+Date:   Mon, 9 Nov 2020 15:44:56 -0800
 From:   Jakub Kicinski <kuba@kernel.org>
-To:     "Georg Kohmann (geokohma)" <geokohma@cisco.com>
-Cc:     "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "pablo@netfilter.org" <pablo@netfilter.org>,
-        "kadlec@netfilter.org" <kadlec@netfilter.org>,
-        "fw@strlen.de" <fw@strlen.de>,
-        "davem@davemloft.net" <davem@davemloft.net>,
-        "kuznet@ms2.inr.ac.ru" <kuznet@ms2.inr.ac.ru>,
-        "yoshfuji@linux-ipv6.org" <yoshfuji@linux-ipv6.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "coreteam@netfilter.org" <coreteam@netfilter.org>
-Subject: Re: [PATCH net v3] ipv6/netfilter: Discard first fragment not
- including all headers
-Message-ID: <20201109141658.0265373d@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
-In-Reply-To: <3c81d2ae-ba14-60d8-247d-87fabf407fea@cisco.com>
-References: <20201109115249.14491-1-geokohma@cisco.com>
-        <20201109125009.5e54ec8b@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
-        <3c81d2ae-ba14-60d8-247d-87fabf407fea@cisco.com>
+To:     David Ahern <dsahern@kernel.org>
+Cc:     Martin Willi <martin@strongswan.org>,
+        Shrijeet Mukherjee <shrijeet@gmail.com>,
+        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net] vrf: Fix fast path output packet handling with
+ async Netfilter rules
+Message-ID: <20201109154456.0d19e6c0@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <20201106073030.3974927-1-martin@strongswan.org>
+References: <20201106073030.3974927-1-martin@strongswan.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -59,12 +53,24 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, 9 Nov 2020 22:08:47 +0000 Georg Kohmann (geokohma) wrote:
-> >> +bool ipv6_frag_validate(struct sk_buff *skb, int start, u8 *nexthdrp)  
-> > (a) why place this function in exthdrs_core? I don't see any header
-> >     specific code here, IMO it belongs in reassembly.c.  
+On Fri,  6 Nov 2020 08:30:30 +0100 Martin Willi wrote:
+> VRF devices use an optimized direct path on output if a default qdisc
+> is involved, calling Netfilter hooks directly. This path, however, does
+> not consider Netfilter rules completing asynchronously, such as with
+> NFQUEUE. The Netfilter okfn() is called for asynchronously accepted
+> packets, but the VRF never passes that packet down the stack to send
+> it out over the slave device. Using the slower redirect path for this
+> seems not feasible, as we do not know beforehand if a Netfilter hook
+> has asynchronously completing rules.
 > 
-> ipv6_frag_validate() is used in both reassembly.c and nf_conntrack_reasm.c
-> Where should I put the prototype so it can be used both places?
+> Fix the use of asynchronously completing Netfilter rules in OUTPUT and
+> POSTROUTING by using a special completion function that additionally
+> calls dst_output() to pass the packet down the stack. Also, slightly
+> adjust the use of nf_reset_ct() so that is called in the asynchronous
+> case, too.
+> 
+> Fixes: dcdd43c41e60 ("net: vrf: performance improvements for IPv4")
+> Fixes: a9ec54d1b0cd ("net: vrf: performance improvements for IPv6")
+> Signed-off-by: Martin Willi <martin@strongswan.org>
 
-The prototype can stay in net/ipv6.h
+David, can we get an ack?
