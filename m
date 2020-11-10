@@ -2,75 +2,110 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC10AC5517A
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Nov 2020 23:45:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE34BC388F7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Nov 2020 04:04:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7A86E206ED
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Nov 2020 23:45:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9B0D52063A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Nov 2020 04:04:36 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="VwH99c07"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="amMNTrzi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729493AbgKIXo7 (ORCPT
+        id S1733072AbgKJEEd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 Nov 2020 18:44:59 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42892 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730180AbgKIXo6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Nov 2020 18:44:58 -0500
-Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.5])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8BCCF206BE;
-        Mon,  9 Nov 2020 23:44:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604965497;
-        bh=q+Q5C3LOOUohAHuz+9+ERkhxjKYvOcSn+Co0anM60z8=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=VwH99c07l8ODLXMVwF59vg3yGrLW/NLqq6Fb8nxZntN7LGI+wGPAykbo6a62U6BPn
-         nr8XgFQztP0PrzmA4OyDILS2KDxjw0WhbnNboxMYfTUesFxUxs3HpSRcwtWxPV3NNd
-         I7X+P7MSJKftFQ44UW2yw3aXf1gQ37C5BFlWN15U=
-Date:   Mon, 9 Nov 2020 15:44:56 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     David Ahern <dsahern@kernel.org>
+        Mon, 9 Nov 2020 23:04:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48548 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1733185AbgKJEER (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 9 Nov 2020 23:04:17 -0500
+Received: from mail-il1-x142.google.com (mail-il1-x142.google.com [IPv6:2607:f8b0:4864:20::142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9743DC0613D3;
+        Mon,  9 Nov 2020 20:04:17 -0800 (PST)
+Received: by mail-il1-x142.google.com with SMTP id n5so10490505ile.7;
+        Mon, 09 Nov 2020 20:04:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=sBu1hrR+iEJufcemJ2emJd9xFC60p5FCu0431kHwAT0=;
+        b=amMNTrzi3vw7eunKB3n+N2X0yC/qRkMSiFX1sIfzReAgXkVBV4dS++n9O6aVZgYCsi
+         UF6ifGBFbW+q1EV6uvCkpNosWLWwS4GwoA75I8WJKu8SzHVJa7a5KcXCTKTHr18X3xs7
+         7BqDP4+4zHGjhCmFYxZqjQ/sRMq1D6ntAWqa1Z9IWWfXnJzW+tLo/XJ4cEXm3QEfKPTQ
+         ylXPh+fQIdEMWQ8kuu5PMjAKYyjk3vEHh7aoR+p9L/49TeaPkFwTx1qX6Rnof//qH3XX
+         R6hy8UkSWkciwro5EPN7a0tbxW00t4bayRTCGx9zPt194QVQtNZq/02+mjWBHcBgaILS
+         nMQg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=sBu1hrR+iEJufcemJ2emJd9xFC60p5FCu0431kHwAT0=;
+        b=WNTbx+4tvIMkJlbBb4c0Jr+UqINuiYoCkSXkmesHsulouJaq7NAdTTTK5S5nCQIQLn
+         PdJS83I2klaxHmBHQuP5zFsgsXsbwv7aVE/e7QLqZ493yKpIHJr//Aztu17ygj9zrKIZ
+         fG22FUsjwiyZmfQecfW3Sofmgl4aVFixCUQDIT37Lc9ghK1A8uIygrDb20CfgKui3Nus
+         mUpyo8y/aQOdIfYTREUP2xhpjgYJTNJE3c4TNKYBv+C+WuN8oy4XbZaQ5mJxUFrTrmo2
+         ZrDw1DAUAZS2mMzi4I9DAxcMb2h3I8X9z2FO4ZL1wEI2aKw2KnixQiYHPitRrejtOaj2
+         tLxQ==
+X-Gm-Message-State: AOAM533Dxc/eTZtlOSODQ6T5z951Xm97Qfq2RvfJ+blxR2Piyorp96s5
+        yArSYu+L7sHEueMW/CrHXO/3lv8GK/g=
+X-Google-Smtp-Source: ABdhPJyL9H2AaOSFP9/Yp8RQ+LXrYMR4VCl09wYd4CSL3AdNFk2XGutQwf3ZF3ToiX1LvEJ+GPrDLg==
+X-Received: by 2002:a92:ac0a:: with SMTP id r10mr12874486ilh.205.1604981056948;
+        Mon, 09 Nov 2020 20:04:16 -0800 (PST)
+Received: from Davids-MacBook-Pro.local ([2601:282:800:dc80:7980:a277:20c7:aa44])
+        by smtp.googlemail.com with ESMTPSA id u18sm6632863iob.53.2020.11.09.20.04.15
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 09 Nov 2020 20:04:16 -0800 (PST)
+Subject: Re: [PATCH net] vrf: Fix fast path output packet handling with async
+ Netfilter rules
+To:     Jakub Kicinski <kuba@kernel.org>, David Ahern <dsahern@kernel.org>
 Cc:     Martin Willi <martin@strongswan.org>,
         Shrijeet Mukherjee <shrijeet@gmail.com>,
         "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
         netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net] vrf: Fix fast path output packet handling with
- async Netfilter rules
-Message-ID: <20201109154456.0d19e6c0@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20201106073030.3974927-1-martin@strongswan.org>
 References: <20201106073030.3974927-1-martin@strongswan.org>
+ <20201109154456.0d19e6c0@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+From:   David Ahern <dsahern@gmail.com>
+Message-ID: <685d299a-fbaf-7393-300e-774bde294174@gmail.com>
+Date:   Mon, 9 Nov 2020 21:04:13 -0700
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
+ Gecko/20100101 Thunderbird/78.4.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20201109154456.0d19e6c0@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri,  6 Nov 2020 08:30:30 +0100 Martin Willi wrote:
-> VRF devices use an optimized direct path on output if a default qdisc
-> is involved, calling Netfilter hooks directly. This path, however, does
-> not consider Netfilter rules completing asynchronously, such as with
-> NFQUEUE. The Netfilter okfn() is called for asynchronously accepted
-> packets, but the VRF never passes that packet down the stack to send
-> it out over the slave device. Using the slower redirect path for this
-> seems not feasible, as we do not know beforehand if a Netfilter hook
-> has asynchronously completing rules.
+On 11/9/20 4:44 PM, Jakub Kicinski wrote:
+> On Fri,  6 Nov 2020 08:30:30 +0100 Martin Willi wrote:
+>> VRF devices use an optimized direct path on output if a default qdisc
+>> is involved, calling Netfilter hooks directly. This path, however, does
+>> not consider Netfilter rules completing asynchronously, such as with
+>> NFQUEUE. The Netfilter okfn() is called for asynchronously accepted
+>> packets, but the VRF never passes that packet down the stack to send
+>> it out over the slave device. Using the slower redirect path for this
+>> seems not feasible, as we do not know beforehand if a Netfilter hook
+>> has asynchronously completing rules.
+>>
+>> Fix the use of asynchronously completing Netfilter rules in OUTPUT and
+>> POSTROUTING by using a special completion function that additionally
+>> calls dst_output() to pass the packet down the stack. Also, slightly
+>> adjust the use of nf_reset_ct() so that is called in the asynchronous
+>> case, too.
+>>
+>> Fixes: dcdd43c41e60 ("net: vrf: performance improvements for IPv4")
+>> Fixes: a9ec54d1b0cd ("net: vrf: performance improvements for IPv6")
+>> Signed-off-by: Martin Willi <martin@strongswan.org>
 > 
-> Fix the use of asynchronously completing Netfilter rules in OUTPUT and
-> POSTROUTING by using a special completion function that additionally
-> calls dst_output() to pass the packet down the stack. Also, slightly
-> adjust the use of nf_reset_ct() so that is called in the asynchronous
-> case, too.
+> David, can we get an ack?
 > 
-> Fixes: dcdd43c41e60 ("net: vrf: performance improvements for IPv4")
-> Fixes: a9ec54d1b0cd ("net: vrf: performance improvements for IPv6")
-> Signed-off-by: Martin Willi <martin@strongswan.org>
 
-David, can we get an ack?
+It would be good to get a netfilter maintainer to review; I think it is ok.
