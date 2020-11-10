@@ -2,73 +2,72 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE362C5517A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Nov 2020 08:40:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C8DFC388F7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Nov 2020 08:48:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 849AE20731
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Nov 2020 08:40:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E46EE20780
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Nov 2020 08:48:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="b9o392c8"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="QdSo2Jb8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731131AbgKJIkF (ORCPT
+        id S1726690AbgKJIsP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 10 Nov 2020 03:40:05 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:56473 "EHLO
+        Tue, 10 Nov 2020 03:48:15 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:39006 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729518AbgKJIjy (ORCPT
+        by vger.kernel.org with ESMTP id S1726213AbgKJIsP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 Nov 2020 03:39:54 -0500
+        Tue, 10 Nov 2020 03:48:15 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1604997593;
+        s=mimecast20190719; t=1604998093;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=hyh7UaM+g2trOiYngrS9dlcrb+FW3phxTbIaNTk+T7A=;
-        b=b9o392c8a6dLMBfCuW/vlXBKcgWWQ750CX5sv2CDbqAxeK5/Xqcru3xMRlVbF3O5sCRQ7B
-        fY4qN5iUK+kl/iWedqi+V7qcZxedIB1Gb4XxUYC72dpEJJMCBmFR/kDZ26n5Rhzp/Ounmg
-        GqVJHzy0MCGZekCd+E2ikGCYl1CErx4=
-Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
- [209.85.128.69]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-526-KeGyJCg8PqaMy4fqIlWfGg-1; Tue, 10 Nov 2020 03:39:50 -0500
-X-MC-Unique: KeGyJCg8PqaMy4fqIlWfGg-1
-Received: by mail-wm1-f69.google.com with SMTP id h2so960812wmm.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2020 00:39:49 -0800 (PST)
+        bh=arjHCPlBEDuR8rSzREf+BlIUonpkRpzcvVzFwoXgIGM=;
+        b=QdSo2Jb8X1icu6712UOX8WNXR81m8mhqzgVt1qFoLMUas2V6LPsabKUGHp5ga4NLlcsiF8
+        E8SC1LCuIkEaNfyj6Zfk5/ZWMelgIdu1jxlQGw41EZFsEKExzN1aWAQ1EZ6oS/1B1hOjn/
+        DduZ1F+Cu9Lv/0uMkvKn4rZh4Oi4X0w=
+Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
+ [209.85.128.70]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-278-NA6N2vbkNRKaf8LbsCAfNQ-1; Tue, 10 Nov 2020 03:48:11 -0500
+X-MC-Unique: NA6N2vbkNRKaf8LbsCAfNQ-1
+Received: by mail-wm1-f70.google.com with SMTP id 8so443805wmg.6
+        for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2020 00:48:11 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=hyh7UaM+g2trOiYngrS9dlcrb+FW3phxTbIaNTk+T7A=;
-        b=hwIwJRDyU+mKP343edk+R7dNCLHIBPD2EYrIOlpl6gSOADCoJbxeX/lC/YXdnLYEM+
-         bb3bwZx/0jG+ltLLmpDJQXFO2smub17rp0ybmP61fbX+oOd0/T2mhGcDopAUFb0RNbJ9
-         biwZap+2n5283ctVI6u+t0p0S912drdlMvGJtqrn/9/cuDN4fVCzv+HjRKbEG1aWmvoC
-         pPqstcV6IAy96JnO1A/sC+5cD1HxHO4SgbW0DvYuY1HYqYkAZnyk8lUzSTdxdDXucb9T
-         tRNh+yH6Y1q12ze7DCKCcyPB0vpYS6SuBhmF4iIC3jXoIaa2ZdvK/GzqzN797hyDCx6t
-         K9NQ==
-X-Gm-Message-State: AOAM531clakR+eo8D8WxHvDvUJSnrXFpd20MZ1LuOsld/c5v1b9ppLqW
-        ga8N1OrgzLUKuOQESVSThUHDyszdN7AtIsdSY5jzCBLljZcIexerUFzG94+u8o7BpEaqF8t2mP5
-        PHxmqi0bPJoNPlIm3T1SLX5PvbEyAMLKvFLOgEbgYT7HN
-X-Received: by 2002:a1c:1906:: with SMTP id 6mr3356323wmz.87.1604997588698;
-        Tue, 10 Nov 2020 00:39:48 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJygpgV8AXXuqlYLBeLe3dxUBkWwtMJMFF9d1iDZ4oUQhYNTvKRIcdpuQ/GdhgZUyOjn8cfx8iWl2yN8a32afMU=
-X-Received: by 2002:a1c:1906:: with SMTP id 6mr3356300wmz.87.1604997588429;
- Tue, 10 Nov 2020 00:39:48 -0800 (PST)
+        bh=arjHCPlBEDuR8rSzREf+BlIUonpkRpzcvVzFwoXgIGM=;
+        b=YsGy4UFGN3227AcfuUcgpdGLPTgRlPZbP/gIcyoPGXvScNcxEj2cTWQ4pvSS5YccAa
+         xQuxt4o273e0IwA8r+SSQtXthViAlLsEOc9BhwORD5PoBDYLZnPoAE/XW5EJDzAOtJKW
+         G4gQk1jRwLUpqIWolqSFEyiRJS+oASJFKUHTVgZp/RuNNmHhNLHz7iDekqTuMzj9MBrx
+         nUyTRuUXp1JDhCfqVqKcx1o8wkxkLz+lPXhBGK9ERew4q5umHKnGtFZPyXPZA4t7bgVM
+         mceJLDBsxpjBl65frUH195SDT7eiyTiR1JNaKw6mSXlrCi0acX7hDly2/URp3ftJl0V+
+         KZjQ==
+X-Gm-Message-State: AOAM530hLste0SAz7bLgBrfthx597VXgLf9KC+CWfZixAuS1u2zJatkk
+        9gyJqRF6eHxItnUJq6sdIFww/SLHHnAEd1UJsTINNvq1t5L57aZrlDmy2FBSPbo1CZ5QfMQDDGk
+        INpZ91AOYRe6LJKi0nq2c+BfJBQraWQCv0uKendbdLlbD
+X-Received: by 2002:a05:600c:2cb4:: with SMTP id h20mr3462037wmc.119.1604998090413;
+        Tue, 10 Nov 2020 00:48:10 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJyMSyb8OkNRE3T1JGs1r3ka/msK6DDLRuyEE0GNqP0f8/5qr1Y9l2p7meE6KzUHF99t5Ov1mNtYgeCXVEf/6M0=
+X-Received: by 2002:a05:600c:2cb4:: with SMTP id h20mr3462022wmc.119.1604998090204;
+ Tue, 10 Nov 2020 00:48:10 -0800 (PST)
 MIME-Version: 1.0
-References: <20201109072930.14048-1-nusiddiq@redhat.com> <20201109115458.0590541b@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
-In-Reply-To: <20201109115458.0590541b@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
+References: <20201109072930.14048-1-nusiddiq@redhat.com> <20201109213557.GE23619@breakpoint.cc>
+In-Reply-To: <20201109213557.GE23619@breakpoint.cc>
 From:   Numan Siddique <nusiddiq@redhat.com>
-Date:   Tue, 10 Nov 2020 14:09:37 +0530
-Message-ID: <CAH=CPzpXfLLPWLgH07iEQQJQyWNCW2uv6hh7oFCe-1uVY825SQ@mail.gmail.com>
+Date:   Tue, 10 Nov 2020 14:17:58 +0530
+Message-ID: <CAH=CPzqTy3yxgBEJ9cVpp3pmGN9u4OsL9GrA+1w6rVum7B8zJw@mail.gmail.com>
 Subject: Re: [net-next] netfiler: conntrack: Add the option to set ct tcp flag
  - BE_LIBERAL per-ct basis.
-To:     Jakub Kicinski <kuba@kernel.org>
+To:     Florian Westphal <fw@strlen.de>
 Cc:     ovs dev <dev@openvswitch.org>, netdev <netdev@vger.kernel.org>,
         Pravin B Shelar <pshelar@ovn.org>,
-        Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
@@ -76,9 +75,9 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Nov 10, 2020 at 1:25 AM Jakub Kicinski <kuba@kernel.org> wrote:
+On Tue, Nov 10, 2020 at 3:06 AM Florian Westphal <fw@strlen.de> wrote:
 >
-> On Mon,  9 Nov 2020 12:59:30 +0530 nusiddiq@redhat.com wrote:
+> nusiddiq@redhat.com <nusiddiq@redhat.com> wrote:
 > > From: Numan Siddique <nusiddiq@redhat.com>
 > >
 > > Before calling nf_conntrack_in(), caller can set this flag in the
@@ -102,12 +101,70 @@ On Tue, Nov 10, 2020 at 1:25 AM Jakub Kicinski <kuba@kernel.org> wrote:
 > >
 > > Suggested-by: Florian Westphal <fw@strlen.de>
 > > Signed-off-by: Numan Siddique <nusiddiq@redhat.com>
+> > ---
+> >  include/net/netfilter/nf_conntrack_l4proto.h |  6 ++++++
+> >  net/netfilter/nf_conntrack_core.c            | 13 +++++++++++--
+> >  net/openvswitch/conntrack.c                  |  1 +
+> >  3 files changed, 18 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+> > index 88186b95b3c2..572ae8d2a622 100644
+> > --- a/include/net/netfilter/nf_conntrack_l4proto.h
+> > +++ b/include/net/netfilter/nf_conntrack_l4proto.h
+> > @@ -203,6 +203,12 @@ static inline struct nf_icmp_net *nf_icmpv6_pernet(struct net *net)
+> >  {
+> >       return &net->ct.nf_ct_proto.icmpv6;
+> >  }
+> > +
+> > +static inline void nf_ct_set_tcp_be_liberal(struct nf_conn *ct)
+> > +{
+> > +     ct->proto.tcp.seen[0].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
+> > +     ct->proto.tcp.seen[1].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
+> > +}
+> >  #endif
+> >
+> >  #ifdef CONFIG_NF_CT_PROTO_DCCP
+> > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> > index 234b7cab37c3..8290c5b04e88 100644
+> > --- a/net/netfilter/nf_conntrack_core.c
+> > +++ b/net/netfilter/nf_conntrack_core.c
+> > @@ -1748,10 +1748,18 @@ static int nf_conntrack_handle_packet(struct nf_conn *ct,
+> >                                     struct sk_buff *skb,
+> >                                     unsigned int dataoff,
+> >                                     enum ip_conntrack_info ctinfo,
+> > -                                   const struct nf_hook_state *state)
+> > +                                   const struct nf_hook_state *state,
+> > +                                   union nf_conntrack_proto *tmpl_proto)
 >
-> Please repost Ccing Pablo & netfilter-devel.
+> I would prefer if we could avoid adding yet another function argument.
+>
+> AFAICS its enough to call the new nf_ct_set_tcp_be_liberal() helper
+> before nf_conntrack_confirm() in ovs_ct_commit(), e.g.:
 
-Thanks. I will repost.
+Thanks for the comments. I actually tried this approach first, but it
+doesn't seem to work.
+I noticed that for the committed connections, the ct tcp flag -
+IP_CT_TCP_FLAG_BE_LIBERAL is
+not set when nf_conntrack_in() calls resolve_normal_ct().
 
+Would you expect that the tcp ct flags should have been preserved once
+the connection is committed ?
+
+Thanks
 Numan
 
+>
+> diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
+> --- a/net/openvswitch/conntrack.c
+> +++ b/net/openvswitch/conntrack.c
+> @@ -1235,10 +1235,13 @@ static int ovs_ct_commit(struct net *net, struct sw_flow_key *key,
+>         if (!nf_ct_is_confirmed(ct)) {
+>                 err = ovs_ct_init_labels(ct, key, &info->labels.value,
+>                                          &info->labels.mask);
+>                 if (err)
+>                         return err;
+> +
+> +               if (nf_ct_protonum(ct) == IPPROTO_TCP)
+> +                       nf_ct_set_tcp_be_liberal(ct);
 >
 
