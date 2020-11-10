@@ -2,196 +2,401 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DDEAC388F7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Nov 2020 13:37:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC334C388F7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Nov 2020 13:52:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EAC6F20809
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Nov 2020 13:37:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E12B20780
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Nov 2020 13:52:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732305AbgKJNhV (ORCPT
+        id S1730572AbgKJNw6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 10 Nov 2020 08:37:21 -0500
-Received: from correo.us.es ([193.147.175.20]:36770 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730710AbgKJNhU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 Nov 2020 08:37:20 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7437C396278
-        for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2020 14:37:18 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 64FA2DA84D
-        for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2020 14:37:18 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 6356CDA840; Tue, 10 Nov 2020 14:37:18 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id ADF1ADA789;
-        Tue, 10 Nov 2020 14:37:15 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 10 Nov 2020 14:37:15 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 7CCF642EF9E0;
-        Tue, 10 Nov 2020 14:37:15 +0100 (CET)
-Date:   Tue, 10 Nov 2020 14:37:15 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Casey Schaufler <casey@schaufler-ca.com>
-Cc:     casey.schaufler@intel.com, jmorris@namei.org,
-        linux-security-module@vger.kernel.org, selinux@vger.kernel.org,
-        linux-audit@redhat.com, keescook@chromium.org,
-        john.johansen@canonical.com, penguin-kernel@i-love.sakura.ne.jp,
-        paul@paul-moore.com, sds@tycho.nsa.gov,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v22 16/23] LSM: security_secid_to_secctx in netlink
- netfilter
-Message-ID: <20201110133715.GA1890@salvia>
-References: <20201105004924.11651-1-casey@schaufler-ca.com>
- <20201105004924.11651-17-casey@schaufler-ca.com>
+        Tue, 10 Nov 2020 08:52:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54788 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726462AbgKJNw6 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 10 Nov 2020 08:52:58 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2A7DC0613CF
+        for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2020 05:52:57 -0800 (PST)
+Received: from localhost ([::1]:37930 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.94)
+        (envelope-from <phil@nwl.cc>)
+        id 1kcU4u-0006TK-03; Tue, 10 Nov 2020 14:52:56 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] tests/shell: Add test for bitwise avoidance fixes
+Date:   Tue, 10 Nov 2020 14:52:47 +0100
+Message-Id: <20201110135247.22586-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.28.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20201105004924.11651-17-casey@schaufler-ca.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Casey,
+Masked address matching was recently improved to avoid bitwise
+expression if the given mask covers full bytes. Make use of nft netlink
+debug output to assert iptables-nft generates the right bytecode for
+each situation.
 
-On Wed, Nov 04, 2020 at 04:49:17PM -0800, Casey Schaufler wrote:
-> Change netlink netfilter interfaces to use lsmcontext
-> pointers, and remove scaffolding.
-> 
-> Reviewed-by: Kees Cook <keescook@chromium.org>
-> Reviewed-by: John Johansen <john.johansen@canonical.com>
-> Acked-by: Stephen Smalley <sds@tycho.nsa.gov>
-> Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
-> Cc: netdev@vger.kernel.org
-> Cc: netfilter-devel@vger.kernel.org
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ .../nft-only/0009-needless-bitwise_0          | 339 ++++++++++++++++++
+ 1 file changed, 339 insertions(+)
+ create mode 100755 iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0
 
-You can carry this tag in your follow up patches.
+diff --git a/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0 b/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0
+new file mode 100755
+index 0000000000000..c5c6e706a1029
+--- /dev/null
++++ b/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0
+@@ -0,0 +1,339 @@
++#!/bin/bash -x
++
++[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
++set -e
++
++nft flush ruleset
++
++(
++	echo "*filter"
++	for plen in "" 32 30 24 16 8 0; do
++		addr="10.1.2.3${plen:+/}$plen"
++		echo "-A OUTPUT -d $addr"
++	done
++	echo "COMMIT"
++) | $XT_MULTI iptables-restore
++
++(
++	echo "*filter"
++	for plen in "" 128 124 120 112 88 80 64 48 16 8 0; do
++		addr="feed:c0ff:ee00:0102:0304:0506:0708:090A${plen:+/}$plen"
++		echo "-A OUTPUT -d $addr"
++	done
++	echo "COMMIT"
++) | $XT_MULTI ip6tables-restore
++
++masks="
++ff:ff:ff:ff:ff:ff
++ff:ff:ff:ff:ff:f0
++ff:ff:ff:ff:ff:00
++ff:ff:ff:ff:00:00
++ff:ff:ff:00:00:00
++ff:ff:00:00:00:00
++ff:00:00:00:00:00
++"
++(
++	echo "*filter"
++	for plen in "" 32 30 24 16 8 0; do
++		addr="10.1.2.3${plen:+/}$plen"
++		echo "-A OUTPUT -d $addr"
++	done
++	for mask in $masks; do
++		echo "-A OUTPUT --destination-mac fe:ed:00:c0:ff:ee/$mask"
++	done
++	echo "COMMIT"
++) | $XT_MULTI arptables-restore
++
++(
++	echo "*filter"
++	for mask in $masks; do
++		echo "-A OUTPUT -d fe:ed:00:c0:ff:ee/$mask"
++	done
++	echo "COMMIT"
++) | $XT_MULTI ebtables-restore
++
++EXPECT="ip filter OUTPUT 4
++  [ payload load 4b @ network header + 16 => reg 1 ]
++  [ cmp eq reg 1 0x0302010a ]
++  [ counter pkts 0 bytes 0 ]
++
++ip filter OUTPUT 5 4
++  [ payload load 4b @ network header + 16 => reg 1 ]
++  [ cmp eq reg 1 0x0302010a ]
++  [ counter pkts 0 bytes 0 ]
++
++ip filter OUTPUT 6 5
++  [ payload load 4b @ network header + 16 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0xfcffffff ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x0002010a ]
++  [ counter pkts 0 bytes 0 ]
++
++ip filter OUTPUT 7 6
++  [ payload load 3b @ network header + 16 => reg 1 ]
++  [ cmp eq reg 1 0x0002010a ]
++  [ counter pkts 0 bytes 0 ]
++
++ip filter OUTPUT 8 7
++  [ payload load 2b @ network header + 16 => reg 1 ]
++  [ cmp eq reg 1 0x0000010a ]
++  [ counter pkts 0 bytes 0 ]
++
++ip filter OUTPUT 9 8
++  [ payload load 1b @ network header + 16 => reg 1 ]
++  [ cmp eq reg 1 0x0000000a ]
++  [ counter pkts 0 bytes 0 ]
++
++ip filter OUTPUT 10 9
++  [ counter pkts 0 bytes 0 ]
++
++ip6 filter OUTPUT 4
++  [ payload load 16b @ network header + 24 => reg 1 ]
++  [ cmp eq reg 1 0xffc0edfe 0x020100ee 0x06050403 0x0a090807 ]
++  [ counter pkts 0 bytes 0 ]
++
++ip6 filter OUTPUT 5 4
++  [ payload load 16b @ network header + 24 => reg 1 ]
++  [ cmp eq reg 1 0xffc0edfe 0x020100ee 0x06050403 0x0a090807 ]
++  [ counter pkts 0 bytes 0 ]
++
++ip6 filter OUTPUT 6 5
++  [ payload load 16b @ network header + 24 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0xffffffff 0xffffffff 0xffffffff 0xf0ffffff ) ^ 0x00000000 0x00000000 0x00000000 0x00000000 ]
++  [ cmp eq reg 1 0xffc0edfe 0x020100ee 0x06050403 0x00090807 ]
++  [ counter pkts 0 bytes 0 ]
++
++ip6 filter OUTPUT 7 6
++  [ payload load 15b @ network header + 24 => reg 1 ]
++  [ cmp eq reg 1 0xffc0edfe 0x020100ee 0x06050403 0x00090807 ]
++  [ counter pkts 0 bytes 0 ]
++
++ip6 filter OUTPUT 8 7
++  [ payload load 14b @ network header + 24 => reg 1 ]
++  [ cmp eq reg 1 0xffc0edfe 0x020100ee 0x06050403 0x00000807 ]
++  [ counter pkts 0 bytes 0 ]
++
++ip6 filter OUTPUT 9 8
++  [ payload load 11b @ network header + 24 => reg 1 ]
++  [ cmp eq reg 1 0xffc0edfe 0x020100ee 0x00050403 ]
++  [ counter pkts 0 bytes 0 ]
++
++ip6 filter OUTPUT 10 9
++  [ payload load 10b @ network header + 24 => reg 1 ]
++  [ cmp eq reg 1 0xffc0edfe 0x020100ee 0x00000403 ]
++  [ counter pkts 0 bytes 0 ]
++
++ip6 filter OUTPUT 11 10
++  [ payload load 8b @ network header + 24 => reg 1 ]
++  [ cmp eq reg 1 0xffc0edfe 0x020100ee ]
++  [ counter pkts 0 bytes 0 ]
++
++ip6 filter OUTPUT 12 11
++  [ payload load 6b @ network header + 24 => reg 1 ]
++  [ cmp eq reg 1 0xffc0edfe 0x000000ee ]
++  [ counter pkts 0 bytes 0 ]
++
++ip6 filter OUTPUT 13 12
++  [ payload load 2b @ network header + 24 => reg 1 ]
++  [ cmp eq reg 1 0x0000edfe ]
++  [ counter pkts 0 bytes 0 ]
++
++ip6 filter OUTPUT 14 13
++  [ payload load 1b @ network header + 24 => reg 1 ]
++  [ cmp eq reg 1 0x000000fe ]
++  [ counter pkts 0 bytes 0 ]
++
++ip6 filter OUTPUT 15 14
++  [ counter pkts 0 bytes 0 ]
++
++arp filter OUTPUT 3
++  [ payload load 2b @ network header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x00000100 ]
++  [ payload load 1b @ network header + 4 => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 1 ]
++  [ cmp eq reg 1 0x00000004 ]
++  [ payload load 4b @ network header + 24 => reg 1 ]
++  [ cmp eq reg 1 0x0302010a ]
++  [ counter pkts 0 bytes 0 ]
++
++arp filter OUTPUT 4 3
++  [ payload load 2b @ network header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x00000100 ]
++  [ payload load 1b @ network header + 4 => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 1 ]
++  [ cmp eq reg 1 0x00000004 ]
++  [ payload load 4b @ network header + 24 => reg 1 ]
++  [ cmp eq reg 1 0x0302010a ]
++  [ counter pkts 0 bytes 0 ]
++
++arp filter OUTPUT 5 4
++  [ payload load 2b @ network header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x00000100 ]
++  [ payload load 1b @ network header + 4 => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 1 ]
++  [ cmp eq reg 1 0x00000004 ]
++  [ payload load 4b @ network header + 24 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0xfcffffff ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x0002010a ]
++  [ counter pkts 0 bytes 0 ]
++
++arp filter OUTPUT 6 5
++  [ payload load 2b @ network header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x00000100 ]
++  [ payload load 1b @ network header + 4 => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 1 ]
++  [ cmp eq reg 1 0x00000004 ]
++  [ payload load 3b @ network header + 24 => reg 1 ]
++  [ cmp eq reg 1 0x0002010a ]
++  [ counter pkts 0 bytes 0 ]
++
++arp filter OUTPUT 7 6
++  [ payload load 2b @ network header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x00000100 ]
++  [ payload load 1b @ network header + 4 => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 1 ]
++  [ cmp eq reg 1 0x00000004 ]
++  [ payload load 2b @ network header + 24 => reg 1 ]
++  [ cmp eq reg 1 0x0000010a ]
++  [ counter pkts 0 bytes 0 ]
++
++arp filter OUTPUT 8 7
++  [ payload load 2b @ network header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x00000100 ]
++  [ payload load 1b @ network header + 4 => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 1 ]
++  [ cmp eq reg 1 0x00000004 ]
++  [ payload load 1b @ network header + 24 => reg 1 ]
++  [ cmp eq reg 1 0x0000000a ]
++  [ counter pkts 0 bytes 0 ]
++
++arp filter OUTPUT 9 8
++  [ payload load 2b @ network header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x00000100 ]
++  [ payload load 1b @ network header + 4 => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 1 ]
++  [ cmp eq reg 1 0x00000004 ]
++  [ counter pkts 0 bytes 0 ]
++
++arp filter OUTPUT 10 9
++  [ payload load 2b @ network header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x00000100 ]
++  [ payload load 1b @ network header + 4 => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 1 ]
++  [ cmp eq reg 1 0x00000004 ]
++  [ payload load 6b @ network header + 18 => reg 1 ]
++  [ cmp eq reg 1 0xc000edfe 0x0000eeff ]
++  [ counter pkts 0 bytes 0 ]
++
++arp filter OUTPUT 11 10
++  [ payload load 2b @ network header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x00000100 ]
++  [ payload load 1b @ network header + 4 => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 1 ]
++  [ cmp eq reg 1 0x00000004 ]
++  [ payload load 6b @ network header + 18 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0xffffffff 0x0000f0ff ) ^ 0x00000000 0x00000000 ]
++  [ cmp eq reg 1 0xc000edfe 0x0000e0ff ]
++  [ counter pkts 0 bytes 0 ]
++
++arp filter OUTPUT 12 11
++  [ payload load 2b @ network header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x00000100 ]
++  [ payload load 1b @ network header + 4 => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 1 ]
++  [ cmp eq reg 1 0x00000004 ]
++  [ payload load 5b @ network header + 18 => reg 1 ]
++  [ cmp eq reg 1 0xc000edfe 0x000000ff ]
++  [ counter pkts 0 bytes 0 ]
++
++arp filter OUTPUT 13 12
++  [ payload load 2b @ network header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x00000100 ]
++  [ payload load 1b @ network header + 4 => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 1 ]
++  [ cmp eq reg 1 0x00000004 ]
++  [ payload load 4b @ network header + 18 => reg 1 ]
++  [ cmp eq reg 1 0xc000edfe ]
++  [ counter pkts 0 bytes 0 ]
++
++arp filter OUTPUT 14 13
++  [ payload load 2b @ network header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x00000100 ]
++  [ payload load 1b @ network header + 4 => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 1 ]
++  [ cmp eq reg 1 0x00000004 ]
++  [ payload load 3b @ network header + 18 => reg 1 ]
++  [ cmp eq reg 1 0x0000edfe ]
++  [ counter pkts 0 bytes 0 ]
++
++arp filter OUTPUT 15 14
++  [ payload load 2b @ network header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x00000100 ]
++  [ payload load 1b @ network header + 4 => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 1 ]
++  [ cmp eq reg 1 0x00000004 ]
++  [ payload load 2b @ network header + 18 => reg 1 ]
++  [ cmp eq reg 1 0x0000edfe ]
++  [ counter pkts 0 bytes 0 ]
++
++arp filter OUTPUT 16 15
++  [ payload load 2b @ network header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x00000100 ]
++  [ payload load 1b @ network header + 4 => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 1b @ network header + 5 => reg 1 ]
++  [ cmp eq reg 1 0x00000004 ]
++  [ payload load 1b @ network header + 18 => reg 1 ]
++  [ cmp eq reg 1 0x000000fe ]
++  [ counter pkts 0 bytes 0 ]
++
++bridge filter OUTPUT 4
++  [ payload load 6b @ link header + 0 => reg 1 ]
++  [ cmp eq reg 1 0xc000edfe 0x0000eeff ]
++  [ counter pkts 0 bytes 0 ]
++
++bridge filter OUTPUT 5 4
++  [ payload load 6b @ link header + 0 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0xffffffff 0x0000f0ff ) ^ 0x00000000 0x00000000 ]
++  [ cmp eq reg 1 0xc000edfe 0x0000e0ff ]
++  [ counter pkts 0 bytes 0 ]
++
++bridge filter OUTPUT 6 5
++  [ payload load 5b @ link header + 0 => reg 1 ]
++  [ cmp eq reg 1 0xc000edfe 0x000000ff ]
++  [ counter pkts 0 bytes 0 ]
++
++bridge filter OUTPUT 7 6
++  [ payload load 4b @ link header + 0 => reg 1 ]
++  [ cmp eq reg 1 0xc000edfe ]
++  [ counter pkts 0 bytes 0 ]
++
++bridge filter OUTPUT 8 7
++  [ payload load 3b @ link header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x0000edfe ]
++  [ counter pkts 0 bytes 0 ]
++
++bridge filter OUTPUT 9 8
++  [ payload load 2b @ link header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x0000edfe ]
++  [ counter pkts 0 bytes 0 ]
++
++bridge filter OUTPUT 10 9
++  [ payload load 1b @ link header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x000000fe ]
++  [ counter pkts 0 bytes 0 ]
++"
++
++diff -u -Z <(echo "$EXPECT") <(nft --debug=netlink list ruleset | awk '/^table/{exit} {print}')
+-- 
+2.28.0
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-Thanks.
-
-> ---
->  net/netfilter/nfnetlink_queue.c | 37 +++++++++++++--------------------
->  1 file changed, 14 insertions(+), 23 deletions(-)
-> 
-> diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-> index 84be5a49a157..0d8b83d84422 100644
-> --- a/net/netfilter/nfnetlink_queue.c
-> +++ b/net/netfilter/nfnetlink_queue.c
-> @@ -301,15 +301,13 @@ static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
->  	return -1;
->  }
->  
-> -static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
-> +static void nfqnl_get_sk_secctx(struct sk_buff *skb, struct lsmcontext *context)
->  {
-> -	u32 seclen = 0;
->  #if IS_ENABLED(CONFIG_NETWORK_SECMARK)
->  	struct lsmblob blob;
-> -	struct lsmcontext context = { };
->  
->  	if (!skb || !sk_fullsock(skb->sk))
-> -		return 0;
-> +		return;
->  
->  	read_lock_bh(&skb->sk->sk_callback_lock);
->  
-> @@ -318,14 +316,12 @@ static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
->  		 * blob. security_secid_to_secctx() will know which security
->  		 * module to use to create the secctx.  */
->  		lsmblob_init(&blob, skb->secmark);
-> -		security_secid_to_secctx(&blob, &context);
-> -		*secdata = context.context;
-> +		security_secid_to_secctx(&blob, context);
->  	}
->  
->  	read_unlock_bh(&skb->sk->sk_callback_lock);
-> -	seclen = context.len;
->  #endif
-> -	return seclen;
-> +	return;
->  }
->  
->  static u32 nfqnl_get_bridge_size(struct nf_queue_entry *entry)
-> @@ -398,12 +394,10 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
->  	struct net_device *indev;
->  	struct net_device *outdev;
->  	struct nf_conn *ct = NULL;
-> +	struct lsmcontext context = { };
->  	enum ip_conntrack_info ctinfo;
->  	struct nfnl_ct_hook *nfnl_ct;
->  	bool csum_verify;
-> -	struct lsmcontext scaff; /* scaffolding */
-> -	char *secdata = NULL;
-> -	u32 seclen = 0;
->  
->  	size = nlmsg_total_size(sizeof(struct nfgenmsg))
->  		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
-> @@ -469,9 +463,9 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
->  	}
->  
->  	if ((queue->flags & NFQA_CFG_F_SECCTX) && entskb->sk) {
-> -		seclen = nfqnl_get_sk_secctx(entskb, &secdata);
-> -		if (seclen)
-> -			size += nla_total_size(seclen);
-> +		nfqnl_get_sk_secctx(entskb, &context);
-> +		if (context.len)
-> +			size += nla_total_size(context.len);
->  	}
->  
->  	skb = alloc_skb(size, GFP_ATOMIC);
-> @@ -604,7 +598,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
->  	    nfqnl_put_sk_uidgid(skb, entskb->sk) < 0)
->  		goto nla_put_failure;
->  
-> -	if (seclen && nla_put(skb, NFQA_SECCTX, seclen, secdata))
-> +	if (context.len &&
-> +	    nla_put(skb, NFQA_SECCTX, context.len, context.context))
->  		goto nla_put_failure;
->  
->  	if (ct && nfnl_ct->build(skb, ct, ctinfo, NFQA_CT, NFQA_CT_INFO) < 0)
-> @@ -632,10 +627,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
->  	}
->  
->  	nlh->nlmsg_len = skb->len;
-> -	if (seclen) {
-> -		lsmcontext_init(&scaff, secdata, seclen, 0);
-> -		security_release_secctx(&scaff);
-> -	}
-> +	if (context.len)
-> +		security_release_secctx(&context);
->  	return skb;
->  
->  nla_put_failure:
-> @@ -643,10 +636,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
->  	kfree_skb(skb);
->  	net_err_ratelimited("nf_queue: error creating packet message\n");
->  nlmsg_failure:
-> -	if (seclen) {
-> -		lsmcontext_init(&scaff, secdata, seclen, 0);
-> -		security_release_secctx(&scaff);
-> -	}
-> +	if (context.len)
-> +		security_release_secctx(&context);
->  	return NULL;
->  }
->  
-> -- 
-> 2.24.1
-> 
