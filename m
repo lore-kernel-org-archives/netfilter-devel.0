@@ -2,185 +2,127 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_IN_DEF_DKIM_WL
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83143C55ABD
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Nov 2020 19:26:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26078C56202
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Nov 2020 22:00:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3868E20809
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Nov 2020 19:26:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C508F20781
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Nov 2020 22:00:28 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="oeJ7kH7O"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726706AbgKJT0k (ORCPT
+        id S1732240AbgKJWAS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 10 Nov 2020 14:26:40 -0500
-Received: from namei.org ([65.99.196.166]:52328 "EHLO namei.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726307AbgKJT0k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 Nov 2020 14:26:40 -0500
-Received: from localhost (localhost [127.0.0.1])
-        by namei.org (8.14.4/8.14.4) with ESMTP id 0AAJQCLt001815;
-        Tue, 10 Nov 2020 19:26:12 GMT
-Date:   Wed, 11 Nov 2020 06:26:12 +1100 (AEDT)
-From:   James Morris <jmorris@namei.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-cc:     Casey Schaufler <casey@schaufler-ca.com>,
-        casey.schaufler@intel.com, linux-security-module@vger.kernel.org,
-        selinux@vger.kernel.org, linux-audit@redhat.com,
-        keescook@chromium.org, john.johansen@canonical.com,
-        penguin-kernel@i-love.sakura.ne.jp, paul@paul-moore.com,
-        sds@tycho.nsa.gov, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v22 16/23] LSM: security_secid_to_secctx in netlink
- netfilter
-In-Reply-To: <20201110133715.GA1890@salvia>
-Message-ID: <alpine.LRH.2.21.2011110626050.32313@namei.org>
-References: <20201105004924.11651-1-casey@schaufler-ca.com> <20201105004924.11651-17-casey@schaufler-ca.com> <20201110133715.GA1890@salvia>
-User-Agent: Alpine 2.21 (LRH 202 2017-01-01)
+        Tue, 10 Nov 2020 17:00:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46582 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732233AbgKJWAR (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 10 Nov 2020 17:00:17 -0500
+Received: from mail-pg1-x542.google.com (mail-pg1-x542.google.com [IPv6:2607:f8b0:4864:20::542])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0CF3C0613D4
+        for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2020 14:00:17 -0800 (PST)
+Received: by mail-pg1-x542.google.com with SMTP id f38so11461593pgm.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2020 14:00:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=nU4xdx0PhV/+PUHMgjylz0is+Ov2vSZjSeguacOwknk=;
+        b=oeJ7kH7OF0jjmTVKpjRBEAH5AVOrmtiz2xZOLgUwCYhw5j7Ba6O1L9IItIZa6fRHG6
+         JonKpQOL7Ctn5Iggjtqg3LuQwPPi2wXNEa6zeJRtQCiKnmdoPtMu+PZ5YytitkwWoT+n
+         Dew1CA4VFyk7xRiibxh3K4fYs/1C5JwqmJomaXnJFN9FJcz8LpVlNeRM+X1lkuZsBSUx
+         V3U4Irj5I2vEfkAzMC5ibCf5+8QHF8A6GGBagdadgIEF1jQSP65jUirThJ9OhQ8G/uvo
+         xuhknOh/qSku7JDp8/8AipVHV5wWuiceOvcQrYEZRDv7mGYTlkFExucbcwFFOXdTRG7v
+         AKUA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=nU4xdx0PhV/+PUHMgjylz0is+Ov2vSZjSeguacOwknk=;
+        b=ElfuchDsONG5t735S+r1fFZ5P09gOrt8hW0985B6k0ydfMcM0KGQfqu8trYNFB9fqS
+         i8zGBZ71WnbPClPl7Vj39iRQplzHTjrGwwh0j1eb11dWE1RTfs+proUHzIyMf4KAuVVQ
+         Yn5xnE6hJ2k9mbCFWXEUXiXB8WxNbZ/5T2ZrXyEmmNU12lcQJauhdKyZGbwOMP+vdxYU
+         U9EsTbf4/fe6+RcYoLU+BbHAxFVC7E3275srMcDf3pxLxVs+lSsQhG7G62nTZnbYjWXI
+         Uh6LmTQW5CdW+Di+YXoVGYQHn0PbB2O9qOVMWgnoogznXpJyH681CmtUXjsKjc5a1znX
+         YKiA==
+X-Gm-Message-State: AOAM533+S3BG9XopOpUDz4LBiK12kaJ1bESy3Wk6VTfW2GlPzw/NhJQm
+        1kceS651PLTeN/yVT8eun91sN+by81QPcABxfDdb1g==
+X-Google-Smtp-Source: ABdhPJxRbIXmjboGU6ktCqQNzoBKt+np2VFvQVLTANiLZV5o9uu7KBTidzS01s26V4sTl8fbu4m3S4mzAFhLxakwk48=
+X-Received: by 2002:a62:5e06:0:b029:164:a9ca:b07e with SMTP id
+ s6-20020a625e060000b0290164a9cab07emr14857161pfb.36.1605045616991; Tue, 10
+ Nov 2020 14:00:16 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+References: <20201107075550.2244055-1-ndesaulniers@google.com> <4910042649a4f3ab22fac93191b8c1fa0a2e17c3.camel@perches.com>
+In-Reply-To: <4910042649a4f3ab22fac93191b8c1fa0a2e17c3.camel@perches.com>
+From:   Nick Desaulniers <ndesaulniers@google.com>
+Date:   Tue, 10 Nov 2020 14:00:05 -0800
+Message-ID: <CAKwvOdn50VP4h7tidMnnFeMA1M-FevykP+Y0ozieisS7Nn4yoQ@mail.gmail.com>
+Subject: Re: [PATCH] netfilter: conntrack: fix -Wformat
+To:     Joe Perches <joe@perches.com>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Nathan Chancellor <natechancellor@gmail.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Network Development <netdev@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        clang-built-linux <clang-built-linux@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, 10 Nov 2020, Pablo Neira Ayuso wrote:
+On Sat, Nov 7, 2020 at 2:33 AM Joe Perches <joe@perches.com> wrote:
+>
+> On Fri, 2020-11-06 at 23:55 -0800, Nick Desaulniers wrote:
+> > Clang is more aggressive about -Wformat warnings when the format flag
+> > specifies a type smaller than the parameter. Fixes 8 instances of:
+> >
+> > warning: format specifies type 'unsigned short' but the argument has
+> > type 'int' [-Wformat]
+>
+> Likely clang's -Wformat message is still bogus.
+> Wasn't that going to be fixed?
+>
+> Integer promotions are already done on these types to int anyway.
+> Didn't we have this discussion last year?
+>
+> https://lore.kernel.org/lkml/CAKwvOd=mqzj2pAZEUsW-M_62xn4pijpCJmP=B1h_-wEb0NeZsA@mail.gmail.com/
+> https://lore.kernel.org/lkml/CAHk-=wgoxnmsj8GEVFJSvTwdnWm8wVJthefNk2n6+4TC=20e0Q@mail.gmail.com/
+> https://lore.kernel.org/lkml/a68114afb134b8633905f5a25ae7c4e6799ce8f1.camel@perches.com/
 
-> Hi Casey,
-> 
-> On Wed, Nov 04, 2020 at 04:49:17PM -0800, Casey Schaufler wrote:
-> > Change netlink netfilter interfaces to use lsmcontext
-> > pointers, and remove scaffolding.
-> > 
-> > Reviewed-by: Kees Cook <keescook@chromium.org>
-> > Reviewed-by: John Johansen <john.johansen@canonical.com>
-> > Acked-by: Stephen Smalley <sds@tycho.nsa.gov>
-> > Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
-> > Cc: netdev@vger.kernel.org
-> > Cc: netfilter-devel@vger.kernel.org
-> 
-> You can carry this tag in your follow up patches.
-> 
-> Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Now I'll have to page in some old context...
 
-Thanks for the review!
+The case we addressed last year was printing char with a wider format
+string like %hd: https://reviews.llvm.org/rL369791,
+https://bugs.llvm.org/show_bug.cgi?id=41467 and
+https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95588 have a little more
+info but not much.  Which is the case that Linus commented on.  Let's
+say we're printing a "wider format than intended." Those have been
+fixed in Clang.  These cases are printing a "narrower format than
+intended."  Two distinct cases.
 
-> 
-> Thanks.
-> 
-> > ---
-> >  net/netfilter/nfnetlink_queue.c | 37 +++++++++++++--------------------
-> >  1 file changed, 14 insertions(+), 23 deletions(-)
-> > 
-> > diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-> > index 84be5a49a157..0d8b83d84422 100644
-> > --- a/net/netfilter/nfnetlink_queue.c
-> > +++ b/net/netfilter/nfnetlink_queue.c
-> > @@ -301,15 +301,13 @@ static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
-> >  	return -1;
-> >  }
-> >  
-> > -static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
-> > +static void nfqnl_get_sk_secctx(struct sk_buff *skb, struct lsmcontext *context)
-> >  {
-> > -	u32 seclen = 0;
-> >  #if IS_ENABLED(CONFIG_NETWORK_SECMARK)
-> >  	struct lsmblob blob;
-> > -	struct lsmcontext context = { };
-> >  
-> >  	if (!skb || !sk_fullsock(skb->sk))
-> > -		return 0;
-> > +		return;
-> >  
-> >  	read_lock_bh(&skb->sk->sk_callback_lock);
-> >  
-> > @@ -318,14 +316,12 @@ static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
-> >  		 * blob. security_secid_to_secctx() will know which security
-> >  		 * module to use to create the secctx.  */
-> >  		lsmblob_init(&blob, skb->secmark);
-> > -		security_secid_to_secctx(&blob, &context);
-> > -		*secdata = context.context;
-> > +		security_secid_to_secctx(&blob, context);
-> >  	}
-> >  
-> >  	read_unlock_bh(&skb->sk->sk_callback_lock);
-> > -	seclen = context.len;
-> >  #endif
-> > -	return seclen;
-> > +	return;
-> >  }
-> >  
-> >  static u32 nfqnl_get_bridge_size(struct nf_queue_entry *entry)
-> > @@ -398,12 +394,10 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
-> >  	struct net_device *indev;
-> >  	struct net_device *outdev;
-> >  	struct nf_conn *ct = NULL;
-> > +	struct lsmcontext context = { };
-> >  	enum ip_conntrack_info ctinfo;
-> >  	struct nfnl_ct_hook *nfnl_ct;
-> >  	bool csum_verify;
-> > -	struct lsmcontext scaff; /* scaffolding */
-> > -	char *secdata = NULL;
-> > -	u32 seclen = 0;
-> >  
-> >  	size = nlmsg_total_size(sizeof(struct nfgenmsg))
-> >  		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
-> > @@ -469,9 +463,9 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
-> >  	}
-> >  
-> >  	if ((queue->flags & NFQA_CFG_F_SECCTX) && entskb->sk) {
-> > -		seclen = nfqnl_get_sk_secctx(entskb, &secdata);
-> > -		if (seclen)
-> > -			size += nla_total_size(seclen);
-> > +		nfqnl_get_sk_secctx(entskb, &context);
-> > +		if (context.len)
-> > +			size += nla_total_size(context.len);
-> >  	}
-> >  
-> >  	skb = alloc_skb(size, GFP_ATOMIC);
-> > @@ -604,7 +598,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
-> >  	    nfqnl_put_sk_uidgid(skb, entskb->sk) < 0)
-> >  		goto nla_put_failure;
-> >  
-> > -	if (seclen && nla_put(skb, NFQA_SECCTX, seclen, secdata))
-> > +	if (context.len &&
-> > +	    nla_put(skb, NFQA_SECCTX, context.len, context.context))
-> >  		goto nla_put_failure;
-> >  
-> >  	if (ct && nfnl_ct->build(skb, ct, ctinfo, NFQA_CT, NFQA_CT_INFO) < 0)
-> > @@ -632,10 +627,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
-> >  	}
-> >  
-> >  	nlh->nlmsg_len = skb->len;
-> > -	if (seclen) {
-> > -		lsmcontext_init(&scaff, secdata, seclen, 0);
-> > -		security_release_secctx(&scaff);
-> > -	}
-> > +	if (context.len)
-> > +		security_release_secctx(&context);
-> >  	return skb;
-> >  
-> >  nla_put_failure:
-> > @@ -643,10 +636,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
-> >  	kfree_skb(skb);
-> >  	net_err_ratelimited("nf_queue: error creating packet message\n");
-> >  nlmsg_failure:
-> > -	if (seclen) {
-> > -		lsmcontext_init(&scaff, secdata, seclen, 0);
-> > -		security_release_secctx(&scaff);
-> > -	}
-> > +	if (context.len)
-> > +		security_release_secctx(&context);
-> >  	return NULL;
-> >  }
-> >  
-> > -- 
-> > 2.24.1
-> > 
-> 
+>
+> Look at commit cbacb5ab0aa0 ("docs: printk-formats: Stop encouraging use
+> of unnecessary %h[xudi] and %hh[xudi]")
+>
+> The "h" and "hh" things should never be used. The only reason for them
+> being used if if you have an "int", but you want to print it out as a
+> "char" (and honestly, that is a really bad reason, you'd be better off
+> just using a proper cast to make the code more obvious).
+>
+> So if what you have a "char" (or unsigned char) you should always just
+> print it out as an "int", knowing that the compiler already did the
+> proper type conversion.
 
+Yeah, we could go through and remove %h and %hh to solve this, too, right?
 -- 
-James Morris
-<jmorris@namei.org>
-
+Thanks,
+~Nick Desaulniers
