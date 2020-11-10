@@ -2,103 +2,185 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC2CEC55ABD
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Nov 2020 15:02:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83143C55ABD
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Nov 2020 19:26:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A659E20731
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Nov 2020 15:02:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3868E20809
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Nov 2020 19:26:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730799AbgKJPCP (ORCPT
+        id S1726706AbgKJT0k (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 10 Nov 2020 10:02:15 -0500
-Received: from sitav-80046.hsr.ch ([152.96.80.46]:40470 "EHLO
-        mail.strongswan.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730200AbgKJPCP (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 Nov 2020 10:02:15 -0500
-Received: from think (unknown [185.12.128.224])
-        by mail.strongswan.org (Postfix) with ESMTPSA id BD6AE402A5;
-        Tue, 10 Nov 2020 16:02:13 +0100 (CET)
-Message-ID: <2df88651a28cf77daf09e3d1282261d518794629.camel@strongswan.org>
-Subject: Re: [PATCH net] vrf: Fix fast path output packet handling with
- async Netfilter rules
-From:   Martin Willi <martin@strongswan.org>
+        Tue, 10 Nov 2020 14:26:40 -0500
+Received: from namei.org ([65.99.196.166]:52328 "EHLO namei.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726307AbgKJT0k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 10 Nov 2020 14:26:40 -0500
+Received: from localhost (localhost [127.0.0.1])
+        by namei.org (8.14.4/8.14.4) with ESMTP id 0AAJQCLt001815;
+        Tue, 10 Nov 2020 19:26:12 GMT
+Date:   Wed, 11 Nov 2020 06:26:12 +1100 (AEDT)
+From:   James Morris <jmorris@namei.org>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     David Ahern <dsahern@kernel.org>,
-        Shrijeet Mukherjee <shrijeet@gmail.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Date:   Tue, 10 Nov 2020 16:02:13 +0100
-In-Reply-To: <20201110133506.GA1777@salvia>
-References: <20201106073030.3974927-1-martin@strongswan.org>
-         <20201110133506.GA1777@salvia>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.36.4-0ubuntu1 
+cc:     Casey Schaufler <casey@schaufler-ca.com>,
+        casey.schaufler@intel.com, linux-security-module@vger.kernel.org,
+        selinux@vger.kernel.org, linux-audit@redhat.com,
+        keescook@chromium.org, john.johansen@canonical.com,
+        penguin-kernel@i-love.sakura.ne.jp, paul@paul-moore.com,
+        sds@tycho.nsa.gov, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v22 16/23] LSM: security_secid_to_secctx in netlink
+ netfilter
+In-Reply-To: <20201110133715.GA1890@salvia>
+Message-ID: <alpine.LRH.2.21.2011110626050.32313@namei.org>
+References: <20201105004924.11651-1-casey@schaufler-ca.com> <20201105004924.11651-17-casey@schaufler-ca.com> <20201110133715.GA1890@salvia>
+User-Agent: Alpine 2.21 (LRH 202 2017-01-01)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
- 
-> > +static int vrf_output6_direct_finish(struct net *net, struct sock *sk,
-> > +				     struct sk_buff *skb)
-> > +{
-> > +	vrf_finish_direct(skb);
-> > +
-> > +	return vrf_ip6_local_out(net, sk, skb);
-> > +}
-> > +
-> >  static int vrf_output6_direct(struct net *net, struct sock *sk,
-> >  			      struct sk_buff *skb)
-> >  {
-> > +	int err = 1;
-> > +
-> >  	skb->protocol = htons(ETH_P_IPV6);
+On Tue, 10 Nov 2020, Pablo Neira Ayuso wrote:
+
+> Hi Casey,
+> 
+> On Wed, Nov 04, 2020 at 04:49:17PM -0800, Casey Schaufler wrote:
+> > Change netlink netfilter interfaces to use lsmcontext
+> > pointers, and remove scaffolding.
+> > 
+> > Reviewed-by: Kees Cook <keescook@chromium.org>
+> > Reviewed-by: John Johansen <john.johansen@canonical.com>
+> > Acked-by: Stephen Smalley <sds@tycho.nsa.gov>
+> > Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
+> > Cc: netdev@vger.kernel.org
+> > Cc: netfilter-devel@vger.kernel.org
+> 
+> You can carry this tag in your follow up patches.
+> 
+> Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+Thanks for the review!
+
+> 
+> Thanks.
+> 
+> > ---
+> >  net/netfilter/nfnetlink_queue.c | 37 +++++++++++++--------------------
+> >  1 file changed, 14 insertions(+), 23 deletions(-)
+> > 
+> > diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+> > index 84be5a49a157..0d8b83d84422 100644
+> > --- a/net/netfilter/nfnetlink_queue.c
+> > +++ b/net/netfilter/nfnetlink_queue.c
+> > @@ -301,15 +301,13 @@ static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
+> >  	return -1;
+> >  }
 > >  
-> > -	return NF_HOOK_COND(NFPROTO_IPV6, NF_INET_POST_ROUTING,
-> > -			    net, sk, skb, NULL, skb->dev,
-> > -			    vrf_finish_direct,
-> > -			    !(IPCB(skb)->flags & IPSKB_REROUTED));
-> > +	if (!(IPCB(skb)->flags & IPSKB_REROUTED))
-> > +		err = nf_hook(NFPROTO_IPV6, NF_INET_POST_ROUTING, net, sk, skb,
-> > +			      NULL, skb->dev, vrf_output6_direct_finish);
+> > -static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
+> > +static void nfqnl_get_sk_secctx(struct sk_buff *skb, struct lsmcontext *context)
+> >  {
+> > -	u32 seclen = 0;
+> >  #if IS_ENABLED(CONFIG_NETWORK_SECMARK)
+> >  	struct lsmblob blob;
+> > -	struct lsmcontext context = { };
+> >  
+> >  	if (!skb || !sk_fullsock(skb->sk))
+> > -		return 0;
+> > +		return;
+> >  
+> >  	read_lock_bh(&skb->sk->sk_callback_lock);
+> >  
+> > @@ -318,14 +316,12 @@ static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
+> >  		 * blob. security_secid_to_secctx() will know which security
+> >  		 * module to use to create the secctx.  */
+> >  		lsmblob_init(&blob, skb->secmark);
+> > -		security_secid_to_secctx(&blob, &context);
+> > -		*secdata = context.context;
+> > +		security_secid_to_secctx(&blob, context);
+> >  	}
+> >  
+> >  	read_unlock_bh(&skb->sk->sk_callback_lock);
+> > -	seclen = context.len;
+> >  #endif
+> > -	return seclen;
+> > +	return;
+> >  }
+> >  
+> >  static u32 nfqnl_get_bridge_size(struct nf_queue_entry *entry)
+> > @@ -398,12 +394,10 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+> >  	struct net_device *indev;
+> >  	struct net_device *outdev;
+> >  	struct nf_conn *ct = NULL;
+> > +	struct lsmcontext context = { };
+> >  	enum ip_conntrack_info ctinfo;
+> >  	struct nfnl_ct_hook *nfnl_ct;
+> >  	bool csum_verify;
+> > -	struct lsmcontext scaff; /* scaffolding */
+> > -	char *secdata = NULL;
+> > -	u32 seclen = 0;
+> >  
+> >  	size = nlmsg_total_size(sizeof(struct nfgenmsg))
+> >  		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
+> > @@ -469,9 +463,9 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+> >  	}
+> >  
+> >  	if ((queue->flags & NFQA_CFG_F_SECCTX) && entskb->sk) {
+> > -		seclen = nfqnl_get_sk_secctx(entskb, &secdata);
+> > -		if (seclen)
+> > -			size += nla_total_size(seclen);
+> > +		nfqnl_get_sk_secctx(entskb, &context);
+> > +		if (context.len)
+> > +			size += nla_total_size(context.len);
+> >  	}
+> >  
+> >  	skb = alloc_skb(size, GFP_ATOMIC);
+> > @@ -604,7 +598,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+> >  	    nfqnl_put_sk_uidgid(skb, entskb->sk) < 0)
+> >  		goto nla_put_failure;
+> >  
+> > -	if (seclen && nla_put(skb, NFQA_SECCTX, seclen, secdata))
+> > +	if (context.len &&
+> > +	    nla_put(skb, NFQA_SECCTX, context.len, context.context))
+> >  		goto nla_put_failure;
+> >  
+> >  	if (ct && nfnl_ct->build(skb, ct, ctinfo, NFQA_CT, NFQA_CT_INFO) < 0)
+> > @@ -632,10 +627,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+> >  	}
+> >  
+> >  	nlh->nlmsg_len = skb->len;
+> > -	if (seclen) {
+> > -		lsmcontext_init(&scaff, secdata, seclen, 0);
+> > -		security_release_secctx(&scaff);
+> > -	}
+> > +	if (context.len)
+> > +		security_release_secctx(&context);
+> >  	return skb;
+> >  
+> >  nla_put_failure:
+> > @@ -643,10 +636,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+> >  	kfree_skb(skb);
+> >  	net_err_ratelimited("nf_queue: error creating packet message\n");
+> >  nlmsg_failure:
+> > -	if (seclen) {
+> > -		lsmcontext_init(&scaff, secdata, seclen, 0);
+> > -		security_release_secctx(&scaff);
+> > -	}
+> > +	if (context.len)
+> > +		security_release_secctx(&context);
+> >  	return NULL;
+> >  }
+> >  
+> > -- 
+> > 2.24.1
+> > 
 > 
-> I might missing something... this looks very similar to NF_HOOK_COND
-> but it's open-coded.
-> 
-> My question, could you still use NF_HOOK_COND?
-> 
->         ret = NF_HOOK_COND(NFPROTO_IPV6, ..., vrf_output6_direct_finish);
-> 
-> just update the okfn.
 
-I don't think this will work. The point of the patch is to have
-different paths for sync and async Netfilter rules: In the async case
-we call vrf_output6_direct_finish() to additionally do dst_output(). In
-the (existing) synchronous path we just do vrf_finish_direct() and let
-the caller do the dst_output().
-
-If we prefer a common okfn(), we could return 0 to omit dst_output() in
-ip/ip6_local_out(). This changes/extends the call stack for the common
-case, though, and this is what I've tried to avoid.
-
-> > +	if (likely(err == 1))
-> 
-> I'd suggest you remove likely() here and elsewhere in this patch.
-> Just let the branch predictor make its work instead of assuming that
-> the ruleset accepts traffic.
-
-The likely() may be questionable, but I seems that is done in most
-places when checking for synchronous Netfilter completion. But I'm fine
-with changing these hunks, if you prefer.
-
-Thanks,
-Martin
+-- 
+James Morris
+<jmorris@namei.org>
 
