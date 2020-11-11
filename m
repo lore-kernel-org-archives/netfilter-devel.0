@@ -4,51 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E0C4C5517A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E425DC61DD8
 	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Nov 2020 19:38:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2583D208B8
+	by mail.kernel.org (Postfix) with ESMTP id 95124208B8
 	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Nov 2020 19:38:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727480AbgKKTiG (ORCPT
+        id S1726960AbgKKTiE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 11 Nov 2020 14:38:06 -0500
-Received: from correo.us.es ([193.147.175.20]:45134 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726523AbgKKTiE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 11 Nov 2020 14:38:04 -0500
+Received: from correo.us.es ([193.147.175.20]:45092 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725984AbgKKTiD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 11 Nov 2020 14:38:03 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 540231878CC
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2020 20:38:03 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 513641878A6
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2020 20:38:01 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3FB62DA73F
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2020 20:38:03 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 44C0FDA858
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2020 20:38:01 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 2860EDA855; Wed, 11 Nov 2020 20:38:03 +0100 (CET)
+        id 413E6DA852; Wed, 11 Nov 2020 20:38:01 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BCAEEDA730;
-        Wed, 11 Nov 2020 20:38:00 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0228BDA84A;
+        Wed, 11 Nov 2020 20:37:59 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 11 Nov 2020 20:38:00 +0100 (CET)
+ Wed, 11 Nov 2020 20:37:59 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 8790E42EF9E1;
-        Wed, 11 Nov 2020 20:38:00 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id BC05B42EF9E1;
+        Wed, 11 Nov 2020 20:37:58 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         razor@blackwall.org, jeremy@azazel.net
-Subject: [PATCH net-next,v3 4/9] net: 8021q: resolve forwarding path for vlan devices
-Date:   Wed, 11 Nov 2020 20:37:32 +0100
-Message-Id: <20201111193737.1793-5-pablo@netfilter.org>
+Subject: [PATCH net-next,v3 1/9] netfilter: flowtable: add hash offset field to tuple
+Date:   Wed, 11 Nov 2020 20:37:29 +0100
+Message-Id: <20201111193737.1793-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201111193737.1793-1-pablo@netfilter.org>
 References: <20201111193737.1793-1-pablo@netfilter.org>
@@ -59,89 +59,61 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add .ndo_fill_forward_path for vlan devices.
-
-For instance, assuming the following topology:
-
-                   IP forwarding
-                  /             \
-            eth0.100             eth0
-            |
-            eth0
-            .
-            .
-            .
-           ethX
-     ab:cd:ef:ab:cd:ef
-
-For packets going through IP forwarding to eth0.100 whose destination
-MAC address is ab:cd:ef:ab:cd:ef, dev_fill_forward_path() provides the
-following path:
-
-        eth0.100 -> eth0
+Add a placeholder field to calculate hash tuple offset. Similar to
+2c407aca6497 ("netfilter: conntrack: avoid gcc-10 zero-length-bounds
+warning").
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netdevice.h |  7 +++++++
- net/8021q/vlan_dev.c      | 15 +++++++++++++++
- 2 files changed, 22 insertions(+)
+ include/net/netfilter/nf_flow_table.h | 4 ++++
+ net/netfilter/nf_flow_table_core.c    | 6 +++---
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index 752649d8669f..ca8525a1a797 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -835,11 +835,18 @@ typedef u16 (*select_queue_fallback_t)(struct net_device *dev,
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 16e8b2f8d006..54c4d5c908a5 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -107,6 +107,10 @@ struct flow_offload_tuple {
  
- enum net_device_path_type {
- 	DEV_PATH_ETHERNET = 0,
-+	DEV_PATH_VLAN,
- };
+ 	u8				l3proto;
+ 	u8				l4proto;
++
++	/* All members above are keys for lookups, see flow_offload_hash(). */
++	struct { }			__hash;
++
+ 	u8				dir;
  
- struct net_device_path {
- 	enum net_device_path_type	type;
- 	const struct net_device		*dev;
-+	union {
-+		struct {
-+			u16		id;
-+			__be16		proto;
-+		} vlan;
-+	};
- };
+ 	u16				mtu;
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 513f78db3cb2..55fca71ace26 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -191,14 +191,14 @@ static u32 flow_offload_hash(const void *data, u32 len, u32 seed)
+ {
+ 	const struct flow_offload_tuple *tuple = data;
  
- #define NET_DEVICE_PATH_STACK_MAX	5
-diff --git a/net/8021q/vlan_dev.c b/net/8021q/vlan_dev.c
-index ec8408d1638f..f06a507557f9 100644
---- a/net/8021q/vlan_dev.c
-+++ b/net/8021q/vlan_dev.c
-@@ -767,6 +767,20 @@ static int vlan_dev_get_iflink(const struct net_device *dev)
- 	return real_dev->ifindex;
+-	return jhash(tuple, offsetof(struct flow_offload_tuple, dir), seed);
++	return jhash(tuple, offsetof(struct flow_offload_tuple, __hash), seed);
  }
  
-+static int vlan_dev_fill_forward_path(struct net_device_path_ctx *ctx,
-+				      struct net_device_path *path)
-+{
-+	struct vlan_dev_priv *vlan = vlan_dev_priv(ctx->dev);
-+
-+	path->type = DEV_PATH_VLAN;
-+	path->vlan.id = vlan->vlan_id;
-+	path->vlan.proto = vlan->vlan_proto;
-+	path->dev = ctx->dev;
-+	ctx->dev = vlan->real_dev;
-+
-+	return 0;
-+}
-+
- static const struct ethtool_ops vlan_ethtool_ops = {
- 	.get_link_ksettings	= vlan_ethtool_get_link_ksettings,
- 	.get_drvinfo	        = vlan_ethtool_get_drvinfo,
-@@ -805,6 +819,7 @@ static const struct net_device_ops vlan_netdev_ops = {
- #endif
- 	.ndo_fix_features	= vlan_dev_fix_features,
- 	.ndo_get_iflink		= vlan_dev_get_iflink,
-+	.ndo_fill_forward_path	= vlan_dev_fill_forward_path,
- };
+ static u32 flow_offload_hash_obj(const void *data, u32 len, u32 seed)
+ {
+ 	const struct flow_offload_tuple_rhash *tuplehash = data;
  
- static void vlan_dev_free(struct net_device *dev)
+-	return jhash(&tuplehash->tuple, offsetof(struct flow_offload_tuple, dir), seed);
++	return jhash(&tuplehash->tuple, offsetof(struct flow_offload_tuple, __hash), seed);
+ }
+ 
+ static int flow_offload_hash_cmp(struct rhashtable_compare_arg *arg,
+@@ -207,7 +207,7 @@ static int flow_offload_hash_cmp(struct rhashtable_compare_arg *arg,
+ 	const struct flow_offload_tuple *tuple = arg->key;
+ 	const struct flow_offload_tuple_rhash *x = ptr;
+ 
+-	if (memcmp(&x->tuple, tuple, offsetof(struct flow_offload_tuple, dir)))
++	if (memcmp(&x->tuple, tuple, offsetof(struct flow_offload_tuple, __hash)))
+ 		return 1;
+ 
+ 	return 0;
 -- 
 2.20.1
 
