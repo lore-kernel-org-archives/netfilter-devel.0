@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2779EC5517A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Nov 2020 19:38:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 620C5C388F9
+	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Nov 2020 19:38:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DBEF120825
-	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Nov 2020 19:38:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C58720825
+	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Nov 2020 19:38:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727629AbgKKTiK (ORCPT
+        id S1727672AbgKKTiL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 11 Nov 2020 14:38:10 -0500
-Received: from correo.us.es ([193.147.175.20]:45202 "EHLO mail.us.es"
+        Wed, 11 Nov 2020 14:38:11 -0500
+Received: from correo.us.es ([193.147.175.20]:45134 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727489AbgKKTiH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 11 Nov 2020 14:38:07 -0500
+        id S1727442AbgKKTiJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 11 Nov 2020 14:38:09 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id F1E8A1878CF
+        by mail.us.es (Postfix) with ESMTP id 1EB981878BF
         for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2020 20:38:05 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DFDB6DA73F
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0EFF7DA856
         for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2020 20:38:05 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DF15BDA72F; Wed, 11 Nov 2020 20:38:05 +0100 (CET)
+        id 0441EDA850; Wed, 11 Nov 2020 20:38:05 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8F395DA84D;
-        Wed, 11 Nov 2020 20:38:03 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 78CE6DA84B;
+        Wed, 11 Nov 2020 20:38:02 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 11 Nov 2020 20:38:03 +0100 (CET)
+ Wed, 11 Nov 2020 20:38:02 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 52BC842EF9E1;
-        Wed, 11 Nov 2020 20:38:03 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id 3EC6642EF9E1;
+        Wed, 11 Nov 2020 20:38:02 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         razor@blackwall.org, jeremy@azazel.net
-Subject: [PATCH net-next,v3 9/9] selftests: netfilter: flowtable bridge and VLAN support
-Date:   Wed, 11 Nov 2020 20:37:37 +0100
-Message-Id: <20201111193737.1793-10-pablo@netfilter.org>
+Subject: [PATCH net-next,v3 7/9] netfilter: flowtable: use dev_fill_forward_path() to obtain egress device
+Date:   Wed, 11 Nov 2020 20:37:35 +0100
+Message-Id: <20201111193737.1793-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201111193737.1793-1-pablo@netfilter.org>
 References: <20201111193737.1793-1-pablo@netfilter.org>
@@ -59,113 +59,338 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds two new tests to cover bridge and VLAN support:
+The egress device in the tuple is obtained from route. Use
+dev_fill_forward_path() instead to provide the real egress device for
+this flow whenever this is available.
 
-- Add a bridge device to the Router1 (nsr1) container and attach the
-  veth0 device to the bridge. Set the IP address to the bridge device
-  to exercise the bridge forwarding path.
+The new FLOW_OFFLOAD_XMIT_DIRECT type uses dev_queue_xmit() to transmit
+ethernet frames. Cache the source and destination hardware address to
+use dev_queue_xmit() to transfer packets.
 
-- Add VLAN encapsulation between to the bridge device in the Router1 and
-  one of the sender containers (ns1).
+The FLOW_OFFLOAD_XMIT_DIRECT replaces FLOW_OFFLOAD_XMIT_NEIGH if
+dev_fill_forward_path() finds a direct transmit path.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- .../selftests/netfilter/nft_flowtable.sh      | 82 +++++++++++++++++++
- 1 file changed, 82 insertions(+)
+ include/net/netfilter/nf_flow_table.h | 16 +++++-
+ net/netfilter/nf_flow_table_core.c    | 35 ++++++++++---
+ net/netfilter/nf_flow_table_ip.c      | 72 +++++++++++++++++++++------
+ net/netfilter/nft_flow_offload.c      | 25 ++++++++--
+ 4 files changed, 118 insertions(+), 30 deletions(-)
 
-diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
-index 431296c0f91c..427d94816f2d 100755
---- a/tools/testing/selftests/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
-@@ -371,6 +371,88 @@ else
- 	ip netns exec nsr1 nft list ruleset
- fi
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 963f99fb1c06..83110e4705c0 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -92,6 +92,7 @@ enum flow_offload_tuple_dir {
+ enum flow_offload_xmit_type {
+ 	FLOW_OFFLOAD_XMIT_NEIGH		= 0,
+ 	FLOW_OFFLOAD_XMIT_XFRM,
++	FLOW_OFFLOAD_XMIT_DIRECT,
+ };
  
-+# Another test:
-+# Add bridge interface br0 to Router1, with NAT enabled.
-+ip -net nsr1 link add name br0 type bridge
-+ip -net nsr1 addr flush dev veth0
-+ip -net nsr1 link set up dev veth0
-+ip -net nsr1 link set veth0 master br0
-+ip -net nsr1 addr add 10.0.1.1/24 dev br0
-+ip -net nsr1 addr add dead:1::1/64 dev br0
-+ip -net nsr1 link set up dev br0
+ struct flow_offload_tuple {
+@@ -120,8 +121,14 @@ struct flow_offload_tuple {
+ 					xmit_type:2;
+ 
+ 	u16				mtu;
+-
+-	struct dst_entry		*dst_cache;
++	union {
++		struct dst_entry	*dst_cache;
++		struct {
++			u32		ifidx;
++			u8		h_source[ETH_ALEN];
++			u8		h_dest[ETH_ALEN];
++		} out;
++	};
+ };
+ 
+ struct flow_offload_tuple_rhash {
+@@ -168,6 +175,11 @@ struct nf_flow_route {
+ 		struct {
+ 			u32			ifindex;
+ 		} in;
++		struct {
++			u32			ifindex;
++			u8			h_source[ETH_ALEN];
++			u8			h_dest[ETH_ALEN];
++		} out;
+ 		enum flow_offload_xmit_type	xmit_type;
+ 	} tuple[FLOW_OFFLOAD_DIR_MAX];
+ };
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 27b4315d7b96..751bc1c27c16 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -81,9 +81,6 @@ static int flow_offload_fill_route(struct flow_offload *flow,
+ 	struct flow_offload_tuple *flow_tuple = &flow->tuplehash[dir].tuple;
+ 	struct dst_entry *dst = route->tuple[dir].dst;
+ 
+-	if (!dst_hold_safe(route->tuple[dir].dst))
+-		return -1;
+-
+ 	switch (flow_tuple->l3proto) {
+ 	case NFPROTO_IPV4:
+ 		flow_tuple->mtu = ip_dst_mtu_maybe_forward(dst, true);
+@@ -94,12 +91,36 @@ static int flow_offload_fill_route(struct flow_offload *flow,
+ 	}
+ 
+ 	flow_tuple->iifidx = route->tuple[dir].in.ifindex;
 +
-+ip netns exec nsr1 sysctl net.ipv4.conf.br0.forwarding=1 > /dev/null
++	switch (route->tuple[dir].xmit_type) {
++	case FLOW_OFFLOAD_XMIT_DIRECT:
++		memcpy(flow_tuple->out.h_dest, route->tuple[dir].out.h_dest,
++		       ETH_ALEN);
++		memcpy(flow_tuple->out.h_source, route->tuple[dir].out.h_source,
++		       ETH_ALEN);
++		flow_tuple->out.ifidx = route->tuple[dir].out.ifindex;
++		break;
++	case FLOW_OFFLOAD_XMIT_XFRM:
++	case FLOW_OFFLOAD_XMIT_NEIGH:
++		if (!dst_hold_safe(route->tuple[dir].dst))
++			return -1;
 +
-+# br0 with NAT enabled.
-+ip netns exec nsr1 nft -f - <<EOF
-+flush table ip nat
-+table ip nat {
-+   chain prerouting {
-+      type nat hook prerouting priority 0; policy accept;
-+      meta iif "br0" ip daddr 10.6.6.6 tcp dport 1666 counter dnat ip to 10.0.2.99:12345
-+   }
-+
-+   chain postrouting {
-+      type nat hook postrouting priority 0; policy accept;
-+      meta oifname "veth1" counter masquerade
-+   }
++		flow_tuple->dst_cache = dst;
++		break;
++	}
+ 	flow_tuple->xmit_type = route->tuple[dir].xmit_type;
+-	flow_tuple->dst_cache = dst;
+ 
+ 	return 0;
+ }
+ 
++static void nft_flow_dst_release(struct flow_offload *flow,
++				 enum flow_offload_tuple_dir dir)
++{
++	if (flow->tuplehash[dir].tuple.xmit_type == FLOW_OFFLOAD_XMIT_NEIGH ||
++	    flow->tuplehash[dir].tuple.xmit_type == FLOW_OFFLOAD_XMIT_XFRM)
++		dst_release(flow->tuplehash[dir].tuple.dst_cache);
 +}
-+EOF
 +
-+if test_tcp_forwarding_nat ns1 ns2; then
-+	echo "PASS: flow offloaded for ns1/ns2 with bridge NAT"
-+else
-+	echo "FAIL: flow offload for ns1/ns2 with bridge NAT" 1>&2
-+	ip netns exec nsr1 nft list ruleset
-+	ret=1
-+fi
+ int flow_offload_route_init(struct flow_offload *flow,
+ 			    const struct nf_flow_route *route)
+ {
+@@ -118,7 +139,7 @@ int flow_offload_route_init(struct flow_offload *flow,
+ 	return 0;
+ 
+ err_route_reply:
+-	dst_release(route->tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst);
++	nft_flow_dst_release(flow, FLOW_OFFLOAD_DIR_ORIGINAL);
+ 
+ 	return err;
+ }
+@@ -169,8 +190,8 @@ static void flow_offload_fixup_ct(struct nf_conn *ct)
+ 
+ static void flow_offload_route_release(struct flow_offload *flow)
+ {
+-	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst_cache);
+-	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst_cache);
++	nft_flow_dst_release(flow, FLOW_OFFLOAD_DIR_ORIGINAL);
++	nft_flow_dst_release(flow, FLOW_OFFLOAD_DIR_REPLY);
+ }
+ 
+ void flow_offload_free(struct flow_offload *flow)
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index 03314cc06e04..d10ba09a41b5 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -248,6 +248,24 @@ static unsigned int nf_flow_xmit_xfrm(struct sk_buff *skb,
+ 	return NF_STOLEN;
+ }
+ 
++static unsigned int nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
++				       const struct flow_offload_tuple_rhash *tuplehash,
++				       unsigned short type)
++{
++	struct net_device *outdev;
 +
-+# Another test:
-+# Add bridge interface br0 to Router1, with NAT and VLAN.
-+ip -net nsr1 link set veth0 nomaster
-+ip -net nsr1 link set down dev veth0
-+ip -net nsr1 link add link veth0 name veth0.10 type vlan id 10
-+ip -net nsr1 link set up dev veth0
-+ip -net nsr1 link set up dev veth0.10
-+ip -net nsr1 link set veth0.10 master br0
++	outdev = dev_get_by_index_rcu(net, tuplehash->tuple.out.ifidx);
++	if (!outdev)
++		return NF_DROP;
 +
-+ip -net ns1 addr flush dev eth0
-+ip -net ns1 link add link eth0 name eth0.10 type vlan id 10
-+ip -net ns1 link set eth0 up
-+ip -net ns1 link set eth0.10 up
-+ip -net ns1 addr add 10.0.1.99/24 dev eth0.10
-+ip -net ns1 route add default via 10.0.1.1
-+ip -net ns1 addr add dead:1::99/64 dev eth0.10
++	skb->dev = outdev;
++	dev_hard_header(skb, skb->dev, type, tuplehash->tuple.out.h_dest,
++			tuplehash->tuple.out.h_source, skb->len);
++	dev_queue_xmit(skb);
 +
-+if test_tcp_forwarding_nat ns1 ns2; then
-+	echo "PASS: flow offloaded for ns1/ns2 with bridge NAT and VLAN"
-+else
-+	echo "FAIL: flow offload for ns1/ns2 with bridge NAT and VLAN" 1>&2
-+	ip netns exec nsr1 nft list ruleset
-+	ret=1
-+fi
++	return NF_STOLEN;
++}
 +
-+# restore test topology (remove bridge and VLAN)
-+ip -net nsr1 link set veth0 nomaster
-+ip -net nsr1 link set veth0 down
-+ip -net nsr1 link set veth0.10 down
-+ip -net nsr1 link delete veth0.10 type vlan
-+ip -net nsr1 link delete br0 type bridge
-+ip -net ns1 addr flush dev eth0.10
-+ip -net ns1 link set eth0.10 down
-+ip -net ns1 link set eth0 down
-+ip -net ns1 link delete eth0.10 type vlan
+ unsigned int
+ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 			const struct nf_hook_state *state)
+@@ -262,6 +280,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 	unsigned int thoff;
+ 	struct iphdr *iph;
+ 	__be32 nexthop;
++	int ret;
+ 
+ 	if (skb->protocol != htons(ETH_P_IP))
+ 		return NF_ACCEPT;
+@@ -303,22 +322,32 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 	if (flow_table->flags & NF_FLOWTABLE_COUNTER)
+ 		nf_ct_acct_update(flow->ct, tuplehash->tuple.dir, skb->len);
+ 
+-	rt = (struct rtable *)tuplehash->tuple.dst_cache;
+-
+ 	if (unlikely(tuplehash->tuple.xmit_type == FLOW_OFFLOAD_XMIT_XFRM)) {
++		rt = (struct rtable *)tuplehash->tuple.dst_cache;
+ 		memset(skb->cb, 0, sizeof(struct inet_skb_parm));
+ 		IPCB(skb)->iif = skb->dev->ifindex;
+ 		IPCB(skb)->flags = IPSKB_FORWARDED;
+ 		return nf_flow_xmit_xfrm(skb, state, &rt->dst);
+ 	}
+ 
+-	outdev = rt->dst.dev;
+-	skb->dev = outdev;
+-	nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
+-	skb_dst_set_noref(skb, &rt->dst);
+-	neigh_xmit(NEIGH_ARP_TABLE, outdev, &nexthop, skb);
++	switch (tuplehash->tuple.xmit_type) {
++	case FLOW_OFFLOAD_XMIT_NEIGH:
++		rt = (struct rtable *)tuplehash->tuple.dst_cache;
++		outdev = rt->dst.dev;
++		skb->dev = outdev;
++		nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
++		skb_dst_set_noref(skb, &rt->dst);
++		neigh_xmit(NEIGH_ARP_TABLE, outdev, &nexthop, skb);
++		ret = NF_STOLEN;
++		break;
++	case FLOW_OFFLOAD_XMIT_DIRECT:
++		ret = nf_flow_queue_xmit(state->net, skb, tuplehash, ETH_P_IP);
++		if (ret == NF_DROP)
++			flow_offload_teardown(flow);
++		break;
++	}
+ 
+-	return NF_STOLEN;
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(nf_flow_offload_ip_hook);
+ 
+@@ -504,6 +533,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 	struct net_device *outdev;
+ 	struct ipv6hdr *ip6h;
+ 	struct rt6_info *rt;
++	int ret;
+ 
+ 	if (skb->protocol != htons(ETH_P_IPV6))
+ 		return NF_ACCEPT;
+@@ -545,21 +575,31 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 	if (flow_table->flags & NF_FLOWTABLE_COUNTER)
+ 		nf_ct_acct_update(flow->ct, tuplehash->tuple.dir, skb->len);
+ 
+-	rt = (struct rt6_info *)tuplehash->tuple.dst_cache;
+-
+ 	if (unlikely(tuplehash->tuple.xmit_type == FLOW_OFFLOAD_XMIT_NEIGH)) {
++		rt = (struct rt6_info *)tuplehash->tuple.dst_cache;
+ 		memset(skb->cb, 0, sizeof(struct inet6_skb_parm));
+ 		IP6CB(skb)->iif = skb->dev->ifindex;
+ 		IP6CB(skb)->flags = IP6SKB_FORWARDED;
+ 		return nf_flow_xmit_xfrm(skb, state, &rt->dst);
+ 	}
+ 
+-	outdev = rt->dst.dev;
+-	skb->dev = outdev;
+-	nexthop = rt6_nexthop(rt, &flow->tuplehash[!dir].tuple.src_v6);
+-	skb_dst_set_noref(skb, &rt->dst);
+-	neigh_xmit(NEIGH_ND_TABLE, outdev, nexthop, skb);
++	switch (tuplehash->tuple.xmit_type) {
++	case FLOW_OFFLOAD_XMIT_NEIGH:
++		rt = (struct rt6_info *)tuplehash->tuple.dst_cache;
++		outdev = rt->dst.dev;
++		skb->dev = outdev;
++		nexthop = rt6_nexthop(rt, &flow->tuplehash[!dir].tuple.src_v6);
++		skb_dst_set_noref(skb, &rt->dst);
++		neigh_xmit(NEIGH_ND_TABLE, outdev, nexthop, skb);
++		ret = NF_STOLEN;
++		break;
++	case FLOW_OFFLOAD_XMIT_DIRECT:
++		ret = nf_flow_queue_xmit(state->net, skb, tuplehash, ETH_P_IPV6);
++		if (ret == NF_DROP)
++			flow_offload_teardown(flow);
++		break;
++	}
+ 
+-	return NF_STOLEN;
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(nf_flow_offload_ipv6_hook);
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index cae53c56f957..849fc40786cf 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -39,12 +39,11 @@ static void nft_default_forward_path(struct nf_flow_route *route,
+ static int nft_dev_fill_forward_path(const struct nf_flow_route *route,
+ 				     const struct dst_entry *dst_cache,
+ 				     const struct nf_conn *ct,
+-				     enum ip_conntrack_dir dir,
++				     enum ip_conntrack_dir dir, u8 *ha,
+ 				     struct net_device_path_stack *stack)
+ {
+ 	const void *daddr = &ct->tuplehash[!dir].tuple.src.u3;
+ 	struct net_device *dev = dst_cache->dev;
+-	unsigned char ha[ETH_ALEN];
+ 	struct neighbour *n;
+ 	u8 nud_state;
+ 
+@@ -66,10 +65,14 @@ static int nft_dev_fill_forward_path(const struct nf_flow_route *route,
+ 
+ struct nft_forward_info {
+ 	const struct net_device *indev;
++	u8 h_source[ETH_ALEN];
++	u8 h_dest[ETH_ALEN];
++	enum flow_offload_xmit_type xmit_type;
+ };
+ 
+ static void nft_dev_path_info(const struct net_device_path_stack *stack,
+-			      struct nft_forward_info *info)
++			      struct nft_forward_info *info,
++			      unsigned char *ha)
+ {
+ 	const struct net_device_path *path;
+ 	int i;
+@@ -79,10 +82,14 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
+ 		switch (path->type) {
+ 		case DEV_PATH_ETHERNET:
+ 			info->indev = path->dev;
++			memcpy(info->h_dest, path->dev->dev_addr, ETH_ALEN);
++			memcpy(info->h_source, ha, ETH_ALEN);
+ 			break;
+ 		case DEV_PATH_VLAN:
+ 			break;
+ 		case DEV_PATH_BRIDGE:
++			memcpy(info->h_dest, path->dev->dev_addr, ETH_ALEN);
++			info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
+ 			break;
+ 		}
+ 	}
+@@ -113,14 +120,22 @@ static void nft_dev_forward_path(struct nf_flow_route *route,
+ 	const struct dst_entry *dst = route->tuple[dir].dst;
+ 	struct net_device_path_stack stack = {};
+ 	struct nft_forward_info info = {};
++	unsigned char ha[ETH_ALEN];
+ 
+-	if (nft_dev_fill_forward_path(route, dst, ct, dir, &stack) >= 0)
+-		nft_dev_path_info(&stack, &info);
++	if (nft_dev_fill_forward_path(route, dst, ct, dir, ha, &stack) >= 0)
++		nft_dev_path_info(&stack, &info, ha);
+ 
+ 	if (!info.indev || !nft_flowtable_find_dev(info.indev, ft))
+ 		return;
+ 
+ 	route->tuple[!dir].in.ifindex = info.indev->ifindex;
 +
-+# restore address in ns1 and nsr1
-+ip -net ns1 link set eth0 up
-+ip -net ns1 addr add 10.0.1.99/24 dev eth0
-+ip -net ns1 route add default via 10.0.1.1
-+ip -net ns1 addr add dead:1::99/64 dev eth0
-+ip -net ns1 route add default via dead:1::1
-+ip -net nsr1 addr add 10.0.1.1/24 dev veth0
-+ip -net nsr1 addr add dead:1::1/64 dev veth0
-+ip -net nsr1 link set up dev veth0
-+
- KEY_SHA="0x"$(ps -xaf | sha1sum | cut -d " " -f 1)
- KEY_AES="0x"$(ps -xaf | md5sum | cut -d " " -f 1)
- SPI1=$RANDOM
++	if (info.xmit_type == FLOW_OFFLOAD_XMIT_DIRECT) {
++		memcpy(route->tuple[dir].out.h_dest, info.h_source, ETH_ALEN);
++		memcpy(route->tuple[dir].out.h_source, info.h_dest, ETH_ALEN);
++		route->tuple[dir].out.ifindex = info.indev->ifindex;
++		route->tuple[dir].xmit_type = info.xmit_type;
++	}
+ }
+ 
+ static int nft_flow_route(const struct nft_pktinfo *pkt,
 -- 
 2.20.1
 
