@@ -2,71 +2,160 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5ADF3C2D0A3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Nov 2020 08:41:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51A8AC2D0A3
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Nov 2020 13:08:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C456F204EA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Nov 2020 08:41:40 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=fullbizgoal.com header.i=@fullbizgoal.com header.b="VrEKoJna"
+	by mail.kernel.org (Postfix) with ESMTP id 0A35B21D7F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Nov 2020 13:08:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725966AbgKLIlk (ORCPT
+        id S1728039AbgKLNIm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 12 Nov 2020 03:41:40 -0500
-Received: from mail.fullbizgoal.com ([80.211.27.207]:39830 "EHLO
-        server1.mail.fullbizgoal.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1725941AbgKLIlk (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Nov 2020 03:41:40 -0500
-Received: by server1.mail.fullbizgoal.com (Postfix, from userid 1001)
-        id 0CFA0A2FAA; Thu, 12 Nov 2020 08:40:47 +0000 (GMT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=fullbizgoal.com;
-        s=mail; t=1605170498;
-        bh=1A+RQztZunBjkjQlXgr2uQY18vlGaIq8j7jGOmWqiI0=;
-        h=Date:From:To:Subject:From;
-        b=VrEKoJnahgJEiMYGNBE6x+lsbMNwVeOUYCOhpUwfsri568dM7bSXcajwcYZI90hjO
-         SxYzkiEXc2kjtPeogFefhfmRg2sRtzjliO5HrDVcUyEbdbSTn397IM4X9lHieBiYaA
-         BqLaolQp9JYWT/7FK+QsCjjDn8ny7BcIeCEG/P4hP83hk+M4xFG3BOEj4AQyaTNGyZ
-         lnx05tv+mfjYR9WJG6ZckGk6KLTp7R0s3CNV2jO3clOnqIAxV91MAuib4Iy61ABDtl
-         4DNScIOEtNlqWWySzORMuXLJuuh6hSVm76hkK4MblFBet6N6w82f2UK2BdQACGnrbk
-         VoQ8l9XbGru4w==
-Received: by mail.fullbizgoal.com for <netfilter-devel@vger.kernel.org>; Thu, 12 Nov 2020 08:40:00 GMT
-Message-ID: <20201112073001-0.1.30.hnfa.0.y9efcn5h39@fullbizgoal.com>
-Date:   Thu, 12 Nov 2020 08:40:00 GMT
-From:   "Ethan Smith" <ethan.smith@fullbizgoal.com>
-To:     <netfilter-devel@vger.kernel.org>
-Subject: Disinfectant
-X-Mailer: mail.fullbizgoal.com
+        Thu, 12 Nov 2020 08:08:42 -0500
+Received: from correo.us.es ([193.147.175.20]:38314 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727762AbgKLNIm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 12 Nov 2020 08:08:42 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id E8AF34FFE10
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Nov 2020 14:08:39 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D91A1DA730
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Nov 2020 14:08:39 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id CE903DA722; Thu, 12 Nov 2020 14:08:39 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A01DCDA730
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Nov 2020 14:08:37 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 12 Nov 2020 14:08:37 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id 8B7D24301DE1
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Nov 2020 14:08:37 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf,v2 1/2] netfilter: nftables_offload: set address type in control dissector
+Date:   Thu, 12 Nov 2020 14:08:32 +0100
+Message-Id: <20201112130833.11383-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Good morning,
+If the address type is missing through the control dissector, then
+matching on IPv4 and IPv6 addresses does not work. Set it accordingly so
+rules that specify an IP address succesfully match on packets.
 
-looking for companies interested in raising additional capital by diversi=
-fying their offer in soaps, liquids and gels for hand disinfection and co=
-smetics for body and hair care.
+Fixes: c9626a2cbdb2 ("netfilter: nf_tables: add hardware offload support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: no changes.
 
-The distribution of innovative products corresponding to the current pref=
-erences of customers in the field of hygiene and preventive healthcare al=
-lows our partners to gain new markets and achieve better economic results=
-=2E
+ include/net/netfilter/nf_tables_offload.h |  4 ++++
+ net/netfilter/nf_tables_offload.c         | 18 ++++++++++++++++++
+ net/netfilter/nft_payload.c               |  4 ++++
+ 3 files changed, 26 insertions(+)
 
-In addition to products with bactericidal action, our range includes show=
-er gels, shampoos and hair conditioners, as well as efficient, concentrat=
-ed detergents.
+diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
+index ea7d1d78b92d..bddd34c5bd79 100644
+--- a/include/net/netfilter/nf_tables_offload.h
++++ b/include/net/netfilter/nf_tables_offload.h
+@@ -37,6 +37,7 @@ void nft_offload_update_dependency(struct nft_offload_ctx *ctx,
+ 
+ struct nft_flow_key {
+ 	struct flow_dissector_key_basic			basic;
++	struct flow_dissector_key_control		control;
+ 	union {
+ 		struct flow_dissector_key_ipv4_addrs	ipv4;
+ 		struct flow_dissector_key_ipv6_addrs	ipv6;
+@@ -62,6 +63,9 @@ struct nft_flow_rule {
+ 
+ #define NFT_OFFLOAD_F_ACTION	(1 << 0)
+ 
++void nft_flow_rule_set_addr_type(struct nft_flow_rule *flow,
++				 enum flow_dissector_key_id addr_type);
++
+ struct nft_rule;
+ struct nft_flow_rule *nft_flow_rule_create(struct net *net, const struct nft_rule *rule);
+ void nft_flow_rule_destroy(struct nft_flow_rule *flow);
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 9f625724a20f..9a3c5ac057b6 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -28,6 +28,24 @@ static struct nft_flow_rule *nft_flow_rule_alloc(int num_actions)
+ 	return flow;
+ }
+ 
++void nft_flow_rule_set_addr_type(struct nft_flow_rule *flow,
++				 enum flow_dissector_key_id addr_type)
++{
++	struct nft_flow_match *match = &flow->match;
++	struct nft_flow_key *mask = &match->mask;
++	struct nft_flow_key *key = &match->key;
++
++	if (match->dissector.used_keys & BIT(FLOW_DISSECTOR_KEY_CONTROL))
++		return;
++
++	key->control.addr_type = addr_type;
++	mask->control.addr_type = 0xffff;
++	match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_CONTROL);
++	match->dissector.offset[FLOW_DISSECTOR_KEY_CONTROL] =
++		offsetof(struct nft_flow_key, control);
++}
++EXPORT_SYMBOL_GPL(nft_flow_rule_set_addr_type);
++
+ struct nft_flow_rule *nft_flow_rule_create(struct net *net,
+ 					   const struct nft_rule *rule)
+ {
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index dcd3c7b8a367..bbf811d030d5 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -244,6 +244,7 @@ static int nft_payload_offload_ip(struct nft_offload_ctx *ctx,
+ 
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_IPV4_ADDRS, ipv4, src,
+ 				  sizeof(struct in_addr), reg);
++		nft_flow_rule_set_addr_type(flow, FLOW_DISSECTOR_KEY_IPV4_ADDRS);
+ 		break;
+ 	case offsetof(struct iphdr, daddr):
+ 		if (priv->len != sizeof(struct in_addr))
+@@ -251,6 +252,7 @@ static int nft_payload_offload_ip(struct nft_offload_ctx *ctx,
+ 
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_IPV4_ADDRS, ipv4, dst,
+ 				  sizeof(struct in_addr), reg);
++		nft_flow_rule_set_addr_type(flow, FLOW_DISSECTOR_KEY_IPV4_ADDRS);
+ 		break;
+ 	case offsetof(struct iphdr, protocol):
+ 		if (priv->len != sizeof(__u8))
+@@ -280,6 +282,7 @@ static int nft_payload_offload_ip6(struct nft_offload_ctx *ctx,
+ 
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_IPV6_ADDRS, ipv6, src,
+ 				  sizeof(struct in6_addr), reg);
++		nft_flow_rule_set_addr_type(flow, FLOW_DISSECTOR_KEY_IPV6_ADDRS);
+ 		break;
+ 	case offsetof(struct ipv6hdr, daddr):
+ 		if (priv->len != sizeof(struct in6_addr))
+@@ -287,6 +290,7 @@ static int nft_payload_offload_ip6(struct nft_offload_ctx *ctx,
+ 
+ 		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_IPV6_ADDRS, ipv6, dst,
+ 				  sizeof(struct in6_addr), reg);
++		nft_flow_rule_set_addr_type(flow, FLOW_DISSECTOR_KEY_IPV6_ADDRS);
+ 		break;
+ 	case offsetof(struct ipv6hdr, nexthdr):
+ 		if (priv->len != sizeof(__u8))
+-- 
+2.20.1
 
-The versatility (suitable for all skin types) combined with an affordable=
- price means that customers make an informed choice of a product among ot=
-hers available on the market.
-
-Are you interested in cooperation?
-
-Ethan Smith
