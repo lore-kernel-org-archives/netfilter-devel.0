@@ -2,86 +2,279 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98847C5519F
-	for <netfilter-devel@archiver.kernel.org>; Sat, 14 Nov 2020 17:36:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3472AC63697
+	for <netfilter-devel@archiver.kernel.org>; Sat, 14 Nov 2020 17:42:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 01E69221F9
-	for <netfilter-devel@archiver.kernel.org>; Sat, 14 Nov 2020 17:36:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DF90F2223C
+	for <netfilter-devel@archiver.kernel.org>; Sat, 14 Nov 2020 17:42:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="JHzvazaG"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QO4QLsnw"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726456AbgKNRgJ (ORCPT
+        id S1726102AbgKNRmh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 14 Nov 2020 12:36:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56300 "EHLO
+        Sat, 14 Nov 2020 12:42:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57278 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726092AbgKNRgJ (ORCPT
+        with ESMTP id S1726088AbgKNRmg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 14 Nov 2020 12:36:09 -0500
-Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BBD4C0613D1
-        for <netfilter-devel@vger.kernel.org>; Sat, 14 Nov 2020 09:36:09 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=SasLK5AOHbA/fh4Nz6Y4rt6JYWexBR2yyV/zzZIn8pg=; b=JHzvazaGucjXTgGsRLtxH421YF
-        q59sM5FHYG/GsJpnN4effriYsszhXwOg0ci+b7b6gbHs7LJLnMesMHNDSos1QkF4fBzWrkDRQddkE
-        Lc8vyky8wKYnXt+Frj6ttx/Vw1C4fTEzUSPW3wiWNiFce0lpRAWfXx4DCgCxfDoslkTVfmtT5snrK
-        xI89sergTiHozJnjiTiMZq4wjSWlUY/aSyQ1TqQPT9pFbpwIQ8qcfXNVb4UX1hocce3YiuhWEYhSb
-        JtL+oElPLVCyI8Ic0uMkHYJs5UhcaTHnA8j2cUw0fu0myy6+WJyBJCXGDMbRLJEqVfAVOjRX7eWlM
-        0KzrU5Aw==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
-        by kadath.azazel.net with esmtp (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1kdzT5-0001wO-5O; Sat, 14 Nov 2020 17:36:07 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH libnftnl 1/1] bitwise: improve formatting of registers in bitwise dumps.
-Date:   Sat, 14 Nov 2020 17:36:05 +0000
-Message-Id: <20201114173605.244338-2-jeremy@azazel.net>
-X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20201114173605.244338-1-jeremy@azazel.net>
-References: <20201114173605.244338-1-jeremy@azazel.net>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+        Sat, 14 Nov 2020 12:42:36 -0500
+Received: from mail-pg1-x543.google.com (mail-pg1-x543.google.com [IPv6:2607:f8b0:4864:20::543])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C041BC0613D1
+        for <netfilter-devel@vger.kernel.org>; Sat, 14 Nov 2020 09:42:36 -0800 (PST)
+Received: by mail-pg1-x543.google.com with SMTP id h6so9395458pgk.4
+        for <netfilter-devel@vger.kernel.org>; Sat, 14 Nov 2020 09:42:36 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:content-transfer-encoding:mime-version:subject:message-id:date
+         :cc:to;
+        bh=bRlrpwkmstJu1d89wKBPH1yyb9oj106zB6LAcNX3xw0=;
+        b=QO4QLsnw6hzdy33kiHltoSLIwiIAURasBUIX61JITeu42aunPyQ+kDFNosROI80B5l
+         tW6aIQTgBjhVbkV35Qc5PTQNw+PXPUKszZ4A8WX4A6Z7CmcmnlOanVaQzuFfKvCQIGhJ
+         /sk83/S9/eVnOs21GX7ThZ1I7coNPRjTVUEdYMoVcUYbZFxdM/44my750Fj5aYE85OBA
+         qDOEikfZxRLIfQfJjyYJ/Q2/IGy0ag9M/enMcwA0oCL443/ZeW8Fyzmc35igXYGek+2m
+         xuwUEgMcQLfoJy4Tlv9b0q3TuV1d3kFJr8Bzeo7l4DDyI15aaqsq5Ipb4ZeDSAFP7cf2
+         xW2w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:content-transfer-encoding:mime-version
+         :subject:message-id:date:cc:to;
+        bh=bRlrpwkmstJu1d89wKBPH1yyb9oj106zB6LAcNX3xw0=;
+        b=jM4oFlGjsgLBrYvSogRnAqq0MnuT8rf/UKs506SMMKg4CEM8Pzz35QNbd1kxJDwssX
+         qmOEUV1iKu3ZbneCTOi1Ghm2/uiL26xtdozvEokSydVD9qtcqlPKr8NCRnMLOeD/OwIr
+         B76nTOLHQsyzkVHYFWCm5WVxvhnFI2q4RWYu7PuYKFEk4ACiTOU9FCvega2boBQNSlWd
+         0IDCxC+fdjMjxHXzWEBSsE+NqDPuTQfxEcDUeJERpPh3CqmyHGrtNaUOBOdCq+G/TdhD
+         3Dw68x1tv31WvHRZuYIlqRO/4BKJSLODsTsVXqlT/pcJhCB0cQUKRcoyyENYPlvknHfn
+         E6cA==
+X-Gm-Message-State: AOAM533PsxRpTbmF02JT90Rb4rfHDA9Ym6K0DhCSe0xPSd3Q40Nd9Ld+
+        Oub2iaWqF4/ckSbwWBBsJ6uv6LrnNqCfXA==
+X-Google-Smtp-Source: ABdhPJw3thJjDzu9Ef/Nwg9sazM+w+IO8j79nVRLloTj7/EcanHMmiQK3yOY4sO4FxnyC6xhDbsoBA==
+X-Received: by 2002:a63:cd0f:: with SMTP id i15mr6620095pgg.46.1605375755812;
+        Sat, 14 Nov 2020 09:42:35 -0800 (PST)
+Received: from [10.7.1.10] ([133.130.111.179])
+        by smtp.gmail.com with ESMTPSA id a23sm11733264pgv.35.2020.11.14.09.42.32
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Sat, 14 Nov 2020 09:42:35 -0800 (PST)
+From:   Wang Shanker <shankerwangmiao@gmail.com>
+Content-Type: text/plain;
+        charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Mime-Version: 1.0 (Mac OS X Mail 13.4 \(3608.120.23.2.4\))
+Subject: [PATCH] netfilter: nfnl_acct: remove data from struct net
+Message-Id: <2D679487-4F6A-405E-AC4E-B47539F1969A@gmail.com>
+Date:   Sun, 15 Nov 2020 01:42:30 +0800
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+To:     netfilter-devel@vger.kernel.org
+X-Mailer: Apple Mail (2.3608.120.23.2.4)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Registers are formatted as 'reg %u' everywhere apart from in bitwise
-expressions where they are formatted as 'reg=%u'.  Change bitwise to
-match.
+This patch removes nfnl_acct_list from struct net, making it possible to
+compile the nfacct module out of tree.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+Signed-off-by: Miao Wang <shankerwangmiao@gmail.com>
 ---
- src/expr/bitwise.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/net/net_namespace.h    |  3 ---
+ net/netfilter/nfnetlink_acct.c | 38 ++++++++++++++++++++++++++--------
+ 2 files changed, 29 insertions(+), 12 deletions(-)
 
-diff --git a/src/expr/bitwise.c b/src/expr/bitwise.c
-index 9ea2f662b3e6..ba379a84485e 100644
---- a/src/expr/bitwise.c
-+++ b/src/expr/bitwise.c
-@@ -215,7 +215,7 @@ nftnl_expr_bitwise_snprintf_bool(char *buf, size_t size,
+diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
+index 22bc07f4b043..dc20a47e3828 100644
+--- a/include/net/net_namespace.h
++++ b/include/net/net_namespace.h
+@@ -151,9 +151,6 @@ struct net {
+ #endif
+ 	struct sock		*nfnl;
+ 	struct sock		*nfnl_stash;
+-#if IS_ENABLED(CONFIG_NETFILTER_NETLINK_ACCT)
+-	struct list_head        nfnl_acct_list;
+-#endif
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
+ 	struct list_head	nfct_timeout_list;
+ #endif
+diff --git a/net/netfilter/nfnetlink_acct.c =
+b/net/netfilter/nfnetlink_acct.c
+index 5bfec829c12f..ae56756fab46 100644
+--- a/net/netfilter/nfnetlink_acct.c
++++ b/net/netfilter/nfnetlink_acct.c
+@@ -16,6 +16,7 @@
+ #include <linux/errno.h>
+ #include <net/netlink.h>
+ #include <net/sock.h>
++#include <net/netns/generic.h>
+=20
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nfnetlink.h>
+@@ -41,6 +42,17 @@ struct nfacct_filter {
+ 	u32 mask;
+ };
+=20
++struct nfnl_acct_net {
++	struct list_head        nfnl_acct_list;
++};
++
++static unsigned int nfnl_acct_net_id __read_mostly;
++
++static inline struct nfnl_acct_net *nfnl_acct_pernet(struct net *net)
++{
++	return net_generic(net, nfnl_acct_net_id);
++}
++
+ #define NFACCT_F_QUOTA (NFACCT_F_QUOTA_PKTS | NFACCT_F_QUOTA_BYTES)
+ #define NFACCT_OVERQUOTA_BIT	2	/* NFACCT_F_OVERQUOTA */
+=20
+@@ -53,6 +65,7 @@ static int nfnl_acct_new(struct net *net, struct sock =
+*nfnl,
+ 	char *acct_name;
+ 	unsigned int size =3D 0;
+ 	u32 flags =3D 0;
++	struct nfnl_acct_net *nfnl_acct_net =3D nfnl_acct_pernet(net);
+=20
+ 	if (!tb[NFACCT_NAME])
+ 		return -EINVAL;
+@@ -61,7 +74,7 @@ static int nfnl_acct_new(struct net *net, struct sock =
+*nfnl,
+ 	if (strlen(acct_name) =3D=3D 0)
+ 		return -EINVAL;
+=20
+-	list_for_each_entry(nfacct, &net->nfnl_acct_list, head) {
++	list_for_each_entry(nfacct, &nfnl_acct_net->nfnl_acct_list, =
+head) {
+ 		if (strncmp(nfacct->name, acct_name, NFACCT_NAME_MAX) !=3D=
+ 0)
+ 			continue;
+=20
+@@ -123,7 +136,7 @@ static int nfnl_acct_new(struct net *net, struct =
+sock *nfnl,
+ 			     =
+be64_to_cpu(nla_get_be64(tb[NFACCT_PKTS])));
+ 	}
+ 	refcount_set(&nfacct->refcnt, 1);
+-	list_add_tail_rcu(&nfacct->head, &net->nfnl_acct_list);
++	list_add_tail_rcu(&nfacct->head, =
+&nfnl_acct_net->nfnl_acct_list);
+ 	return 0;
+ }
+=20
+@@ -190,6 +203,7 @@ nfnl_acct_dump(struct sk_buff *skb, struct =
+netlink_callback *cb)
+ 	struct net *net =3D sock_net(skb->sk);
+ 	struct nf_acct *cur, *last;
+ 	const struct nfacct_filter *filter =3D cb->data;
++	struct nfnl_acct_net *nfnl_acct_net =3D nfnl_acct_pernet(net);
+=20
+ 	if (cb->args[2])
+ 		return 0;
+@@ -199,7 +213,7 @@ nfnl_acct_dump(struct sk_buff *skb, struct =
+netlink_callback *cb)
+ 		cb->args[1] =3D 0;
+=20
+ 	rcu_read_lock();
+-	list_for_each_entry_rcu(cur, &net->nfnl_acct_list, head) {
++	list_for_each_entry_rcu(cur, &nfnl_acct_net->nfnl_acct_list, =
+head) {
+ 		if (last) {
+ 			if (cur !=3D last)
+ 				continue;
+@@ -272,6 +286,7 @@ static int nfnl_acct_get(struct net *net, struct =
+sock *nfnl,
+ 	int ret =3D -ENOENT;
+ 	struct nf_acct *cur;
+ 	char *acct_name;
++	struct nfnl_acct_net *nfnl_acct_net =3D nfnl_acct_pernet(net);
+=20
+ 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
+ 		struct netlink_dump_control c =3D {
+@@ -288,7 +303,7 @@ static int nfnl_acct_get(struct net *net, struct =
+sock *nfnl,
+ 		return -EINVAL;
+ 	acct_name =3D nla_data(tb[NFACCT_NAME]);
+=20
+-	list_for_each_entry(cur, &net->nfnl_acct_list, head) {
++	list_for_each_entry(cur, &nfnl_acct_net->nfnl_acct_list, head) {
+ 		struct sk_buff *skb2;
+=20
+ 		if (strncmp(cur->name, acct_name, NFACCT_NAME_MAX)!=3D =
+0)
+@@ -345,16 +360,17 @@ static int nfnl_acct_del(struct net *net, struct =
+sock *nfnl,
+ 	struct nf_acct *cur, *tmp;
+ 	int ret =3D -ENOENT;
+ 	char *acct_name;
++	struct nfnl_acct_net *nfnl_acct_net =3D nfnl_acct_pernet(net);
+=20
+ 	if (!tb[NFACCT_NAME]) {
+-		list_for_each_entry_safe(cur, tmp, &net->nfnl_acct_list, =
+head)
++		list_for_each_entry_safe(cur, tmp, =
+&nfnl_acct_net->nfnl_acct_list, head)
+ 			nfnl_acct_try_del(cur);
+=20
+ 		return 0;
+ 	}
+ 	acct_name =3D nla_data(tb[NFACCT_NAME]);
+=20
+-	list_for_each_entry(cur, &net->nfnl_acct_list, head) {
++	list_for_each_entry(cur, &nfnl_acct_net->nfnl_acct_list, head) {
+ 		if (strncmp(cur->name, acct_name, NFACCT_NAME_MAX) !=3D =
+0)
+ 			continue;
+=20
+@@ -403,9 +419,10 @@ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_ACCT);
+ struct nf_acct *nfnl_acct_find_get(struct net *net, const char =
+*acct_name)
  {
- 	int remain = size, offset = 0, ret;
- 
--	ret = snprintf(buf, remain, "reg %u = (reg=%u & ",
-+	ret = snprintf(buf, remain, "reg %u = ( reg %u & ",
- 		       bitwise->dreg, bitwise->sreg);
- 	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
- 
--- 
-2.29.2
+ 	struct nf_acct *cur, *acct =3D NULL;
++	struct nfnl_acct_net *nfnl_acct_net =3D nfnl_acct_pernet(net);
+=20
+ 	rcu_read_lock();
+-	list_for_each_entry_rcu(cur, &net->nfnl_acct_list, head) {
++	list_for_each_entry_rcu(cur, &nfnl_acct_net->nfnl_acct_list, =
+head) {
+ 		if (strncmp(cur->name, acct_name, NFACCT_NAME_MAX)!=3D =
+0)
+ 			continue;
+=20
+@@ -488,7 +505,7 @@ EXPORT_SYMBOL_GPL(nfnl_acct_overquota);
+=20
+ static int __net_init nfnl_acct_net_init(struct net *net)
+ {
+-	INIT_LIST_HEAD(&net->nfnl_acct_list);
++	INIT_LIST_HEAD(&nfnl_acct_pernet(net)->nfnl_acct_list);
+=20
+ 	return 0;
+ }
+@@ -496,8 +513,9 @@ static int __net_init nfnl_acct_net_init(struct net =
+*net)
+ static void __net_exit nfnl_acct_net_exit(struct net *net)
+ {
+ 	struct nf_acct *cur, *tmp;
++	struct nfnl_acct_net *nfnl_acct_net =3D nfnl_acct_pernet(net);
+=20
+-	list_for_each_entry_safe(cur, tmp, &net->nfnl_acct_list, head) {
++	list_for_each_entry_safe(cur, tmp, =
+&nfnl_acct_net->nfnl_acct_list, head) {
+ 		list_del_rcu(&cur->head);
+=20
+ 		if (refcount_dec_and_test(&cur->refcnt))
+@@ -508,6 +526,8 @@ static void __net_exit nfnl_acct_net_exit(struct net =
+*net)
+ static struct pernet_operations nfnl_acct_ops =3D {
+         .init   =3D nfnl_acct_net_init,
+         .exit   =3D nfnl_acct_net_exit,
++	.id     =3D &nfnl_acct_net_id,
++	.size   =3D sizeof(struct nfnl_acct_net),
+ };
+=20
+ static int __init nfnl_acct_init(void)
+--=20
+2.20.1
+
 
