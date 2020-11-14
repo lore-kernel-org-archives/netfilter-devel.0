@@ -6,44 +6,43 @@ X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA1A5C55ABD
-	for <netfilter-devel@archiver.kernel.org>; Sat, 14 Nov 2020 01:42:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99ED1C55ABD
+	for <netfilter-devel@archiver.kernel.org>; Sat, 14 Nov 2020 01:56:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 82B112225F
-	for <netfilter-devel@archiver.kernel.org>; Sat, 14 Nov 2020 01:42:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C16E22256
+	for <netfilter-devel@archiver.kernel.org>; Sat, 14 Nov 2020 01:56:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="hn6OJbMJ"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="HAefGWjQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726163AbgKNBms (ORCPT
+        id S1726174AbgKNBz6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Nov 2020 20:42:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53746 "EHLO mail.kernel.org"
+        Fri, 13 Nov 2020 20:55:58 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55990 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725981AbgKNBms (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Nov 2020 20:42:48 -0500
+        id S1725981AbgKNBz6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 13 Nov 2020 20:55:58 -0500
 Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.6])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AC6F82225D;
-        Sat, 14 Nov 2020 01:42:47 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4C15A2225D;
+        Sat, 14 Nov 2020 01:55:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605318167;
-        bh=IB4mWQp1asevj/XF1O4v3O6eLR/wQDEZh7gq6SH4B18=;
+        s=default; t=1605318957;
+        bh=bvBQa1aHrc5u2eym5ixpn8V2pbjAJS/vj6NoLTlrsCE=;
         h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=hn6OJbMJLQbXg/PU2Q+uJY8Oea7Mh9LfwPhS2FhlogiGpllCEwa3Bk8iCHU7gctl1
-         5PnMVEMyg8oncnLGc2jn8mNDK2c99oUyF++b/yRxcNOM1bClXsKKubNMMS+e/CE3l2
-         quL0YpGEDdFI29iQldBxmXZO5QIqXYm+gMmlzCgw=
-Date:   Fri, 13 Nov 2020 17:42:46 -0800
+        b=HAefGWjQLDzjnTdTzsNFt9rK3ieKvKo7YcTWiMG5gH/mR+zmu26Ke0GM3nAI+eKFW
+         5YS/3KbJfomHKdyoHSq4gWXhQ4/b1EFIaCvMZHTauhnDpu9wLME72wCvwUwyBm8hWb
+         Ju8aJuIHo002q8oq572XdvCuTGUlkwgvT+H3nQwQ=
+Date:   Fri, 13 Nov 2020 17:55:56 -0800
 From:   Jakub Kicinski <kuba@kernel.org>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
         netdev@vger.kernel.org, razor@blackwall.org, jeremy@azazel.net
-Subject: Re: [PATCH net-next,v3 3/9] net: resolve forwarding path from
- virtual netdevice and HW destination address
-Message-ID: <20201113174246.300997fb@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20201111193737.1793-4-pablo@netfilter.org>
+Subject: Re: [PATCH net-next,v3 0/9] netfilter: flowtable bridge and vlan
+ enhancements
+Message-ID: <20201113175556.25e57856@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <20201111193737.1793-1-pablo@netfilter.org>
 References: <20201111193737.1793-1-pablo@netfilter.org>
-        <20201111193737.1793-4-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -51,40 +50,42 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, 11 Nov 2020 20:37:31 +0100 Pablo Neira Ayuso wrote:
-> +int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
-> +			  struct net_device_path_stack *stack)
-> +{
-> +	const struct net_device *last_dev;
-> +	struct net_device_path_ctx ctx;
-> +	struct net_device_path *path;
-> +	int ret = 0;
-> +
-> +	memset(&ctx, 0, sizeof(ctx));
-> +	ctx.dev = dev;
-> +	ctx.daddr = daddr;
-> +
-> +	while (ctx.dev && ctx.dev->netdev_ops->ndo_fill_forward_path) {
-> +		last_dev = ctx.dev;
-> +
-> +		path = &stack->path[stack->num_paths++];
+On Wed, 11 Nov 2020 20:37:28 +0100 Pablo Neira Ayuso wrote:
+> The following patchset augments the Netfilter flowtable fastpath [1] to
+> support for network topologies that combine IP forwarding, bridge and
+> VLAN devices.
+> 
+> A typical scenario that can benefit from this infrastructure is composed
+> of several VMs connected to bridge ports where the bridge master device
+> 'br0' has an IP address. A DHCP server is also assumed to be running to
+> provide connectivity to the VMs. The VMs reach the Internet through
+> 'br0' as default gateway, which makes the packet enter the IP forwarding
+> path. Then, netfilter is used to NAT the packets before they leave
+> through the wan device.
+> 
+> Something like this:
+> 
+>                        fast path
+>                 .------------------------.
+>                /                          \
+>                |           IP forwarding   |
+>                |          /             \  .
+>                |       br0               eth0
+>                .       / \
+>                -- veth1  veth2
+>                    .
+>                    .
+>                    .
+>                  eth0
+>            ab:cd:ef:ab:cd:ef
+>                   VM
+> 
+> The idea is to accelerate forwarding by building a fast path that takes
+> packets from the ingress path of the bridge port and place them in the
+> egress path of the wan device (and vice versa). Hence, skipping the
+> classic bridge and IP stack paths.
 
-I don't see you checking that this stack doesn't overflow.
-
-What am I missing?
-
-> +		ret = ctx.dev->netdev_ops->ndo_fill_forward_path(&ctx, path);
-> +		if (ret < 0)
-> +			return -1;
-> +
-> +		if (WARN_ON_ONCE(last_dev == ctx.dev))
-> +			return -1;
-> +	}
-> +	path = &stack->path[stack->num_paths++];
-> +	path->type = DEV_PATH_ETHERNET;
-> +	path->dev = ctx.dev;
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(dev_fill_forward_path);
-
+The problem that immediately comes to mind is that if there is any
+dynamic forwarding state the cache you're creating would need to be
+flushed when FDB changes. Are you expecting users would plug into the
+flowtable devices where they know things are fairly static?
