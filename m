@@ -2,88 +2,106 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF83DC61DD8
-	for <netfilter-devel@archiver.kernel.org>; Sat, 14 Nov 2020 16:53:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0658FC61DD8
+	for <netfilter-devel@archiver.kernel.org>; Sat, 14 Nov 2020 17:04:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7E3B9207DE
-	for <netfilter-devel@archiver.kernel.org>; Sat, 14 Nov 2020 16:53:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA12C223FD
+	for <netfilter-devel@archiver.kernel.org>; Sat, 14 Nov 2020 17:04:12 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="bTA7AyOd"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726625AbgKNQxf (ORCPT
+        id S1726174AbgKNRDv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 14 Nov 2020 11:53:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49732 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726603AbgKNQxf (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 14 Nov 2020 11:53:35 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D60DDC0613D1
-        for <netfilter-devel@vger.kernel.org>; Sat, 14 Nov 2020 08:53:34 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1kdynq-0005rq-KC; Sat, 14 Nov 2020 17:53:30 +0100
-Date:   Sat, 14 Nov 2020 17:53:30 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Sean Tranchetti <stranche@codeaurora.org>
-Cc:     pablo@netfilter.org, netfilter-devel@vger.kernel.org, fw@strlen.de,
-        subashab@codeaurora.org
-Subject: Re: [PATCH nf] x_tables: Properly close read section with
- read_seqcount_retry
-Message-ID: <20201114165330.GM23619@breakpoint.cc>
-References: <1605320516-17810-1-git-send-email-stranche@codeaurora.org>
+        Sat, 14 Nov 2020 12:03:51 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36110 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726061AbgKNRDv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 14 Nov 2020 12:03:51 -0500
+Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (c-67-180-217-166.hsd1.ca.comcast.net [67.180.217.166])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id B7DAF223FD;
+        Sat, 14 Nov 2020 17:03:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1605373429;
+        bh=pzU/753r2/Z0FkJrG7+Nvoa2z8DU/A2K1iWoWx955N0=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=bTA7AyOdTwek8wk1L1pvDTaS1swVG1Qk2sYRKirq8SjWhEW/Ke8n68NlEAmewJ41Y
+         brLtzZ2wQf4MhFihaJClr21t4WhsKlkZQ6h08TZN3vu6Jf5r1DVEXrbuRC6Qi3TXnL
+         3tRWOVVIWNOvnrm3j4/mB7FNjOrd6SrXSqRxGh6k=
+Date:   Sat, 14 Nov 2020 09:03:47 -0800
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Tobias Waldekranz <tobias@waldekranz.com>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, razor@blackwall.org, jeremy@azazel.net
+Subject: Re: [PATCH net-next,v3 0/9] netfilter: flowtable bridge and vlan
+ enhancements
+Message-ID: <20201114090347.2e7c1457@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <87sg9cjaxo.fsf@waldekranz.com>
+References: <20201111193737.1793-1-pablo@netfilter.org>
+        <20201113175556.25e57856@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        <20201114115906.GA21025@salvia>
+        <87sg9cjaxo.fsf@waldekranz.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1605320516-17810-1-git-send-email-stranche@codeaurora.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Sean Tranchetti <stranche@codeaurora.org> wrote:
-> xtables uses a modified version of a seqcount lock for synchronization
-> between replacing private table information and the packet processing
-> path (i.e. XX_do_table). The main modification is in the "write"
-> semantics, where instead of adding 1 for each write, the write side will
-> add 1 only if it finds no other writes ongoing, and adds 1 again (thereby
-> clearing the LSB) when it finishes.
+On Sat, 14 Nov 2020 15:00:03 +0100 Tobias Waldekranz wrote:
+> On Sat, Nov 14, 2020 at 12:59, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > If any of the flowtable device goes down / removed, the entries are
+> > removed from the flowtable. This means packets of existing flows are
+> > pushed up back to classic bridge / forwarding path to re-evaluate the
+> > fast path.
+> >
+> > For each new flow, the fast path that is selected freshly, so they use
+> > the up-to-date FDB to select a new bridge port.
+> >
+> > Existing flows still follow the old path. The same happens with FIB
+> > currently.
+> >
+> > It should be possible to explore purging entries in the flowtable that
+> > are stale due to changes in the topology (either in FDB or FIB).
+> >
+> > What scenario do you have specifically in mind? Something like VM
+> > migrates from one bridge port to another?  
+
+Indeed, 2 VMs A and B, talking to each other, A is _outside_ the
+system (reachable via eth0), B is inside (veth1). When A moves inside
+and gets its veth. Neither B's veth1 not eth0 will change state, so
+cache wouldn't get flushed, right?
+
+> This should work in the case when the bridge ports are normal NICs or
+> switchdev ports, right?
 > 
-> This allows the read side to avoid calling read_seqcount_begin() in a loop
-> if a write is detected, since the value is guaranteed to only increment
-> once all writes have completed. As such, it is only necessary to check if
-> the initial value of the sequence count has changed to inform the reader
-> that all writes are finished.
+> In that case, relying on link state is brittle as you can easily have a
+> switch or a media converter between the bridge and the end-station:
 > 
-> However, the current check for the changed value uses the wrong API;
-> raw_seqcount_read() is protected by smp_rmb() in the same way as
-> read_seqcount_begin(), making it appropriate for ENTERING read-side
-> critical sections, but not exiting them. For that, read_seqcount_rety()
-> must be used to ensure the proper barrier placement for synchronization
-> with xt_write_recseq_end() (itself modeled after write_seqcount_end()).
+>         br0                  br0
+>         / \                  / \
+>     eth0   eth1          eth0   eth1
+>      /      \      =>     /      \
+>   [sw0]     [sw1]      [sw0]     [sw1]
+>    /          \         /          \
+>   A                                 A
+> 
+> In a scenario like this, A has clearly moved. But neither eth0 nor eth1
+> has seen any changes in link state.
+> 
+> This particular example is a bit contrived. But this is essentially what
+> happens in redundant topologies when reconfigurations occur (e.g. STP).
+> 
+> These protocols will typically signal reconfigurations to all bridges
+> though, so as long as the affected flows are flushed at the same time as
+> the FDB it should work.
+> 
+> Interesting stuff!
 
-[..]
-
-> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-> index af22dbe..39f1f2b 100644
-> --- a/net/netfilter/x_tables.c
-> +++ b/net/netfilter/x_tables.c
-> @@ -1404,7 +1404,7 @@ xt_replace_table(struct xt_table *table,
->  			do {
->  				cond_resched();
->  				cpu_relax();
-> -			} while (seq == raw_read_seqcount(s));
-> +			} while (!read_seqcount_retry(s, seq));
-
-I'm fine with this change but AFAIU this is just a cleanup since
-this part isn't a read-sequence as no  'shared state' is accessed/read between
-the seqcount begin and the do{}while. smb_rmb placement should not matter here.
-
-Did I miss anything?
-
-Thanks.
-
+Agreed, could be interesting for all NAT/conntrack setups, not just VMs.
