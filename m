@@ -2,91 +2,98 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+X-Spam-Status: No, score=-11.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E818C4742C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Nov 2020 03:42:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D6C0C4742C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Nov 2020 03:59:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2A15F2225E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Nov 2020 03:42:57 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="dBB+XQDO"
+	by mail.kernel.org (Postfix) with ESMTP id 049E720773
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Nov 2020 03:59:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726655AbgKPDmP (ORCPT
+        id S1726788AbgKPD6h (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 15 Nov 2020 22:42:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57786 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726359AbgKPDmP (ORCPT
+        Sun, 15 Nov 2020 22:58:37 -0500
+Received: from smtprelay0094.hostedemail.com ([216.40.44.94]:35450 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726532AbgKPD6h (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 15 Nov 2020 22:42:15 -0500
-Received: from merlin.infradead.org (merlin.infradead.org [IPv6:2001:8b0:10b:1231::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5850EC0613CF;
-        Sun, 15 Nov 2020 19:42:15 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=merlin.20170209; h=Content-Transfer-Encoding:MIME-Version:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:In-Reply-To:References;
-        bh=zql9Wmwi3sE1HYgw8ZdAK67RzlkxzMR12yOWc2tObwI=; b=dBB+XQDOhLl0c6Qr6FP86RlKX9
-        +3NMHlnmbassjX2cz/53VIkRW/NsvD9Jg68lZCIZ+Iktas/avxSnvCiZ/rxa6f3zI/qwLcOCf2oW3
-        +aDfYw8dStRwK/V88munLm88worWTNOTGOl1yOBLupBdvgqA9Tjkj7tojgY9qzX+Ttyjw0sC7YQ/o
-        rAGGqA13+WMERtXA3R3NOGz/Q+FmNKg5IXnJH9n4gjBwT0vvraWoNikmI1nLrTW9tTnMnwwAl3KwG
-        FdmbcIsHsKcNV7C4fyYRqdLgKz+TeZwP1bV5jpgugVuNSjvtzEdAEDexlUHihgVuO83+Kcp+M4hFh
-        TKx5YNqQ==;
-Received: from [2601:1c0:6280:3f0::f32] (helo=smtpauth.infradead.org)
-        by merlin.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1keVP7-0001f8-65; Mon, 16 Nov 2020 03:42:09 +0000
-From:   Randy Dunlap <rdunlap@infradead.org>
-To:     netdev@vger.kernel.org
-Cc:     Randy Dunlap <rdunlap@infradead.org>,
-        kernel test robot <lkp@intel.com>,
-        "Jose M . Guisado Gomez" <guigom@riseup.net>,
+        Sun, 15 Nov 2020 22:58:37 -0500
+Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
+        by smtprelay02.hostedemail.com (Postfix) with ESMTP id 5630C1730858;
+        Mon, 16 Nov 2020 03:58:36 +0000 (UTC)
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-HE-Tag: scent45_491207927325
+X-Filterd-Recvd-Size: 2428
+Received: from XPS-9350.home (unknown [47.151.133.149])
+        (Authenticated sender: joe@perches.com)
+        by omf04.hostedemail.com (Postfix) with ESMTPA;
+        Mon, 16 Nov 2020 03:58:34 +0000 (UTC)
+Message-ID: <d03c87f9fcc4bb68c148cfad12cafef5f2385eef.camel@perches.com>
+Subject: Re: [PATCH] MAINTAINERS: rectify file patterns for NETFILTER
+From:   Joe Perches <joe@perches.com>
+To:     Lukas Bulwahn <lukas.bulwahn@gmail.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Jakub Kicinski <kuba@kernel.org>
-Subject: [PATCH net-next] netfilter: nf_reject: bridge: fix build errors due to code movement
-Date:   Sun, 15 Nov 2020 19:42:03 -0800
-Message-Id: <20201116034203.7264-1-rdunlap@infradead.org>
-X-Mailer: git-send-email 2.26.2
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Cc:     Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>,
+        Pia Eichinger <pia.eichinger@st.oth-regensburg.de>,
+        kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Date:   Sun, 15 Nov 2020 19:58:33 -0800
+In-Reply-To: <20201109091942.32280-1-lukas.bulwahn@gmail.com>
+References: <20201109091942.32280-1-lukas.bulwahn@gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+User-Agent: Evolution 3.38.1-1 
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Fix build errors in net/bridge/netfilter/nft_reject_bridge.ko
-by selecting NF_REJECT_IPV4, which provides the missing symbols.
+On Mon, 2020-11-09 at 10:19 +0100, Lukas Bulwahn wrote:
+> The two file patterns in the NETFILTER section:
+> 
+>   F:      include/linux/netfilter*
+>   F:      include/uapi/linux/netfilter*
+> 
+> intended to match the directories:
+> 
+>   ./include{/uapi}/linux/netfilter_{arp,bridge,ipv4,ipv6}
+> 
+> A quick check with ./scripts/get_maintainer.pl --letters -f will show that
+> they are not matched, though, because this pattern only matches files, but
+> not directories.
+> 
+> Rectify the patterns to match the intended directories.
+[]
+diff --git a/MAINTAINERS b/MAINTAINERS
+[]
+> @@ -12139,10 +12139,10 @@ W:	http://www.nftables.org/
+>  Q:	http://patchwork.ozlabs.org/project/netfilter-devel/list/
+>  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+>  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+> -F:	include/linux/netfilter*
+> +F:	include/linux/netfilter*/
+>  F:	include/linux/netfilter/
 
-ERROR: modpost: "nf_reject_skb_v4_tcp_reset" [net/bridge/netfilter/nft_reject_bridge.ko] undefined!
-ERROR: modpost: "nf_reject_skb_v4_unreach" [net/bridge/netfilter/nft_reject_bridge.ko] undefined!
+This line could be deleted or perhaps moved up one line above
 
-Fixes: fa538f7cf05a ("netfilter: nf_reject: add reject skbuff creation helpers")
-Reported-by: kernel test robot <lkp@intel.com>
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: kernel test robot <lkp@intel.com>
-Cc: Jose M. Guisado Gomez <guigom@riseup.net>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
-Cc: Jakub Kicinski <kuba@kernel.org>
----
- net/bridge/netfilter/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+F:	include/linux/netfilter/
+F:	include/linux/netfilter*/
 
---- linux-next-20201113.orig/net/bridge/netfilter/Kconfig
-+++ linux-next-20201113/net/bridge/netfilter/Kconfig
-@@ -18,6 +18,7 @@ config NFT_BRIDGE_META
- config NFT_BRIDGE_REJECT
- 	tristate "Netfilter nf_tables bridge reject support"
- 	depends on NFT_REJECT
-+	depends on NF_REJECT_IPV4
- 	help
- 	  Add support to reject packets.
- 
+(as the second line already matches the first line's files too)
+
+>  F:	include/net/netfilter/
+> -F:	include/uapi/linux/netfilter*
+> +F:	include/uapi/linux/netfilter*/
+>  F:	include/uapi/linux/netfilter/
+
+same here.
+
+>  F:	net/*/netfilter.c
+>  F:	net/*/netfilter/
+
+
