@@ -2,152 +2,120 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5048EC55ABD
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Nov 2020 06:33:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5419C4742C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Nov 2020 08:16:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 033DE2222E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Nov 2020 06:33:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3519120DD4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Nov 2020 08:16:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mg.codeaurora.org header.i=@mg.codeaurora.org header.b="FmRZu3cP"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kpM8zXJ/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727044AbgKPGcJ (ORCPT
+        id S1728141AbgKPICG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 Nov 2020 01:32:09 -0500
-Received: from m42-4.mailgun.net ([69.72.42.4]:27356 "EHLO m42-4.mailgun.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726898AbgKPGcI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Nov 2020 01:32:08 -0500
-DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mg.codeaurora.org; q=dns/txt;
- s=smtp; t=1605508328; h=Message-ID: References: In-Reply-To: Subject:
- Cc: To: From: Date: Content-Transfer-Encoding: Content-Type:
- MIME-Version: Sender; bh=XWNcUq154jgRoEak0j3R0KCbD4xxlg8GNLM2hYtND5E=;
- b=FmRZu3cP8TnbPj4M5+91I/sAqwqJfqFgw6T/mBWVIORw1OH/zsfBOK72oLur9TrCoj2y/kLn
- rNcautCpu9+v9vq79t93SfwH2AX9LA7HVIPIzrups+OainYL4M+kVKm4pqCR3qbKqnDRI3Dw
- R0al7ezCEHdgJ3KIOZRM78c7LW4=
-X-Mailgun-Sending-Ip: 69.72.42.4
-X-Mailgun-Sid: WyJlM2NhZSIsICJuZXRmaWx0ZXItZGV2ZWxAdmdlci5rZXJuZWwub3JnIiwgImJlOWU0YSJd
-Received: from smtp.codeaurora.org
- (ec2-35-166-182-171.us-west-2.compute.amazonaws.com [35.166.182.171]) by
- smtp-out-n09.prod.us-west-2.postgun.com with SMTP id
- 5fb21ce7e9dd187f53539a4c (version=TLS1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256); Mon, 16 Nov 2020 06:32:07
- GMT
-Sender: subashab=codeaurora.org@mg.codeaurora.org
-Received: by smtp.codeaurora.org (Postfix, from userid 1001)
-        id 3C078C43460; Mon, 16 Nov 2020 06:32:07 +0000 (UTC)
-Received: from mail.codeaurora.org (localhost.localdomain [127.0.0.1])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: subashab)
-        by smtp.codeaurora.org (Postfix) with ESMTPSA id 85CEEC433C6;
-        Mon, 16 Nov 2020 06:32:06 +0000 (UTC)
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date:   Sun, 15 Nov 2020 23:32:06 -0700
-From:   subashab@codeaurora.org
-To:     Florian Westphal <fw@strlen.de>, pablo@netfilter.org
-Cc:     Sean Tranchetti <stranche@codeaurora.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] x_tables: Properly close read section with
- read_seqcount_retry
-In-Reply-To: <20201114165330.GM23619@breakpoint.cc>
-References: <1605320516-17810-1-git-send-email-stranche@codeaurora.org>
- <20201114165330.GM23619@breakpoint.cc>
-Message-ID: <2ab4bcb63cbacba12ad927621fb56aab@codeaurora.org>
-X-Sender: subashab@codeaurora.org
-User-Agent: Roundcube Webmail/1.3.9
+        Mon, 16 Nov 2020 03:02:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40928 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727973AbgKPICF (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 16 Nov 2020 03:02:05 -0500
+Received: from mail-pf1-x443.google.com (mail-pf1-x443.google.com [IPv6:2607:f8b0:4864:20::443])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7C38C0613CF;
+        Mon, 16 Nov 2020 00:02:05 -0800 (PST)
+Received: by mail-pf1-x443.google.com with SMTP id q5so13389919pfk.6;
+        Mon, 16 Nov 2020 00:02:05 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=9Y1yLZPbBL2X5WIYzh0MGolabV4K2PbjAEx9PhCuf+Q=;
+        b=kpM8zXJ/HI3JAXzLtyf43BKIVH0eKHa0+/czdTViRIu70kSn8YwBwt5Rin3vQ1B/V5
+         7rXATO838psjNSblinn929eJATjAnVZjiR9bnBk7hZCcLju6mVRew6AJMrt7wFc1Fl7S
+         Z4caCceE4pIaUUNt8DXbXosT+gL+8NBJSi+6VSoqKw3MwAzoY9hX8xE/41NgWxBDT2cz
+         VytAjDZDgdc1kgxYrOIabmqd6Nab8eg0PTEn3nDiLhbeERmkgdQNx0QEg16oqQ+mrgae
+         1m0uVRk2yg2jAyfXUj0VOdFRGT45FT3oSt4te7MN+DRJpItPZs1OXwD4UwfwkMWN3IGD
+         R89A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=9Y1yLZPbBL2X5WIYzh0MGolabV4K2PbjAEx9PhCuf+Q=;
+        b=LkYT4hJrH67LJBYpx57gTh5Tt94fcfTBzvBTge8zHr+x11mlFRSbbdyRT5jby3DWv4
+         y/Y2S8GxxuBj/9Iwa5Hlk3h9KLcnuVwJIsvQvoZ7tjmXrnsHFNjTP1FifFVTV89uolth
+         kjnsE90LxoiEggHM/EQUfqoqvhWGrfdWSpKIkj23kLRgnUJ5uaVw0z57J+k5L5Mq0luF
+         N2S0QBHMapTQa+7eGBnMmULSIPuie6QAfMVRX5x5DA07tXA/6zYQQg2UNKh6XkNLybod
+         ooS/kIbRxHY7aW5JI4pUKYV8mXe7+da/wyVjj/KOYM3H5NQAQb7ld8fFMbraFD9VRd/9
+         zEwg==
+X-Gm-Message-State: AOAM530tApaQ5VBKHuO0vPl9IUIo+Zh3BfBlJ3Zt9n1xkEIn9L2M0AJm
+        jGzEWRAZF1Hd8zZcjbtsl5k=
+X-Google-Smtp-Source: ABdhPJzhWi0/OjAlz2/BIbIgxQj1UreWhYu3egSm7uojQxyPCrwoHDeQL3pL61qwOodl2i14XkH5LA==
+X-Received: by 2002:a62:8857:0:b029:18b:cf28:9bbe with SMTP id l84-20020a6288570000b029018bcf289bbemr12903100pfd.45.1605513725298;
+        Mon, 16 Nov 2020 00:02:05 -0800 (PST)
+Received: from localhost.localdomain ([8.210.202.142])
+        by smtp.gmail.com with ESMTPSA id w10sm15031227pgj.91.2020.11.16.00.01.59
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 16 Nov 2020 00:02:04 -0800 (PST)
+From:   Yejune Deng <yejune.deng@gmail.com>
+To:     wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
+        pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, kuba@kernel.org
+Cc:     netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        yejune.deng@gmail.com
+Subject: [PATCH] ipvs: replace atomic_add_return()
+Date:   Mon, 16 Nov 2020 16:01:47 +0800
+Message-Id: <1605513707-7579-1-git-send-email-yejune.deng@gmail.com>
+X-Mailer: git-send-email 1.9.1
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-> I'm fine with this change but AFAIU this is just a cleanup since
-> this part isn't a read-sequence as no  'shared state' is accessed/read 
-> between
-> the seqcount begin and the do{}while. smb_rmb placement should not 
-> matter here.
-> 
-> Did I miss anything?
-> 
-> Thanks.
+atomic_inc_return() looks better
 
-Hi Florian
+Signed-off-by: Yejune Deng <yejune.deng@gmail.com>
+---
+ net/netfilter/ipvs/ip_vs_core.c | 2 +-
+ net/netfilter/ipvs/ip_vs_sync.c | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-To provide more background on this, we are seeing occasional crashes in 
-a
-regression rack in the packet receive path where there appear to be
-some rules being modified concurrently.
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index c0b8215..54e086c 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -2137,7 +2137,7 @@ static int ip_vs_in_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 	if (cp->flags & IP_VS_CONN_F_ONE_PACKET)
+ 		pkts = sysctl_sync_threshold(ipvs);
+ 	else
+-		pkts = atomic_add_return(1, &cp->in_pkts);
++		pkts = atomic_inc_return(&cp->in_pkts);
+ 
+ 	if (ipvs->sync_state & IP_VS_STATE_MASTER)
+ 		ip_vs_sync_conn(ipvs, cp, pkts);
+diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
+index 16b4806..9d43277 100644
+--- a/net/netfilter/ipvs/ip_vs_sync.c
++++ b/net/netfilter/ipvs/ip_vs_sync.c
+@@ -615,7 +615,7 @@ static void ip_vs_sync_conn_v0(struct netns_ipvs *ipvs, struct ip_vs_conn *cp,
+ 	cp = cp->control;
+ 	if (cp) {
+ 		if (cp->flags & IP_VS_CONN_F_TEMPLATE)
+-			pkts = atomic_add_return(1, &cp->in_pkts);
++			pkts = atomic_inc_return(&cp->in_pkts);
+ 		else
+ 			pkts = sysctl_sync_threshold(ipvs);
+ 		ip_vs_sync_conn(ipvs, cp, pkts);
+@@ -776,7 +776,7 @@ void ip_vs_sync_conn(struct netns_ipvs *ipvs, struct ip_vs_conn *cp, int pkts)
+ 	if (!cp)
+ 		return;
+ 	if (cp->flags & IP_VS_CONN_F_TEMPLATE)
+-		pkts = atomic_add_return(1, &cp->in_pkts);
++		pkts = atomic_inc_return(&cp->in_pkts);
+ 	else
+ 		pkts = sysctl_sync_threshold(ipvs);
+ 	goto sloop;
+-- 
+1.9.1
 
-Unable to handle kernel NULL pointer dereference at virtual
-address 000000000000008e
-pc : ip6t_do_table+0x5d0/0x89c
-lr : ip6t_do_table+0x5b8/0x89c
-ip6t_do_table+0x5d0/0x89c
-ip6table_filter_hook+0x24/0x30
-nf_hook_slow+0x84/0x120
-ip6_input+0x74/0xe0
-ip6_rcv_finish+0x7c/0x128
-ipv6_rcv+0xac/0xe4
-__netif_receive_skb+0x84/0x17c
-process_backlog+0x15c/0x1b8
-napi_poll+0x88/0x284
-net_rx_action+0xbc/0x23c
-__do_softirq+0x20c/0x48c
-
-We found that ip6t_do_table was reading stale values from the READ_ONCE
-leading to use after free when dereferencing per CPU jumpstack values.
-
-[https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/net/ipv6/netfilter/ip6_tables.c?h=v5.4.77#n282]
-	addend = xt_write_recseq_begin();
-	private = READ_ONCE(table->private); /* Address dependency. */
-
-We were able to confirm that the xt_replace_table & __do_replace
-had already executed by logging the seqcount values. The value of
-seqcount at ip6t_do_table was 1 more than the value at xt_replace_table.
-The seqcount read at xt_replace_table also showed that it was an even 
-value
-and hence meant that there was no conccurent writer instance 
-(xt_write_recseq_begin)
-at that point.
-
-[https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/net/netfilter/x_tables.c?h=v5.4.77#n1401]
-		u32 seq = raw_read_seqcount(s);
-
-This means that table assignment at xt_replace_table did not take effect
-as expected.
-
-[https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/net/netfilter/x_tables.c?h=v5.4.77#n1386]
-	smp_wmb();
-	table->private = newinfo;
-
-	/* make sure all cpus see new ->private value */
-	smp_wmb();
-
-We want to know if this barrier usage is as expected here.
-Alternatively, would changing this help here -
-
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 525f674..417ea1b 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1431,11 +1431,11 @@ xt_replace_table(struct xt_table *table,
-          * Ensure contents of newinfo are visible before assigning to
-          * private.
-          */
--       smp_wmb();
--       table->private = newinfo;
-+       smp_mb();
-+       WRITE_ONCE(table->private, newinfo);
-
-         /* make sure all cpus see new ->private value */
--       smp_wmb();
-+       smp_mb();
-
-         /*
-          * Even though table entries have now been swapped, other CPU's
