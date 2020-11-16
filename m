@@ -2,144 +2,138 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D300C4742C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Nov 2020 13:05:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B96EC5519F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Nov 2020 13:07:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 457802223D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Nov 2020 13:05:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3FA6020715
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Nov 2020 13:07:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="MsICjj5F"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="DCMa5AnS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728323AbgKPNEo (ORCPT
+        id S1728566AbgKPNHM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 Nov 2020 08:04:44 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:26976 "EHLO
+        Mon, 16 Nov 2020 08:07:12 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:31394 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728150AbgKPNEn (ORCPT
+        by vger.kernel.org with ESMTP id S1727416AbgKPNHL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Nov 2020 08:04:43 -0500
+        Mon, 16 Nov 2020 08:07:11 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1605531881;
+        s=mimecast20190719; t=1605532030;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=16F1Ae9+Lt+pnjHUyamx5MmnQ1PJZRCDvWTJnbrAA2g=;
-        b=MsICjj5FpozIt86+IMkMdWf6jXV/Yu++MXyPioj7lXHTsZS59oiyEFIaTCB+fQdMJJb5Ln
-        O4mPHz5TPgw8+7CZrJwK2PVeJPPU6qRooxKncyrKrS0E+3HEEZfbS+bV6tySXJwAzYTNGC
-        gZ+7pmlF8UEljvhrFfVt7vQE5W5ctWI=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-249-luXAYhZoPHC6RbflqktWbQ-1; Mon, 16 Nov 2020 08:04:39 -0500
-X-MC-Unique: luXAYhZoPHC6RbflqktWbQ-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 889ED8015AD;
-        Mon, 16 Nov 2020 13:04:37 +0000 (UTC)
-Received: from nusiddiq.home.org.com (ovpn-116-24.sin2.redhat.com [10.67.116.24])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 01FC01A8EC;
-        Mon, 16 Nov 2020 13:04:33 +0000 (UTC)
-From:   nusiddiq@redhat.com
-To:     dev@openvswitch.org, netdev@vger.kernel.org
-Cc:     Pravin B Shelar <pshelar@ovn.org>, Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Numan Siddique <nusiddiq@redhat.com>
-Subject: [PATCH net-next v2] net: openvswitch: Be liberal in tcp conntrack.
-Date:   Mon, 16 Nov 2020 18:31:26 +0530
-Message-Id: <20201116130126.3065077-1-nusiddiq@redhat.com>
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=Hp7/XGrMjjbxTryFPRwkhJ9mINX2i7AhQuO6lk+85Ik=;
+        b=DCMa5AnSMLUNBJ9FJo41TzXUS3IOHeEtmq4MZsRcauDQDJLoO39RTdT8tx27LCO0x4C72Q
+        sSWCrMacCuksnPRc2iFK79BI33rVOOvHlxhxdcrs/eBT90JA1qmz4LCwNwVN3IdKFXFDc7
+        rt00zMQfUQyJd11U3Ho5baViOq4Mw9Y=
+Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
+ [209.85.221.71]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-590-CwieJOEDPNi-FFq34ZVNIw-1; Mon, 16 Nov 2020 08:07:08 -0500
+X-MC-Unique: CwieJOEDPNi-FFq34ZVNIw-1
+Received: by mail-wr1-f71.google.com with SMTP id w17so10947666wrp.11
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2020 05:07:07 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Hp7/XGrMjjbxTryFPRwkhJ9mINX2i7AhQuO6lk+85Ik=;
+        b=G2gZPyVQHmdUEnhZJFBsCdA91Omjpsy7is6vXsgzJTi3sMvbmLV9SFNCGgdnDpSCIp
+         FYecc2cc6scfKSeDcdUgJGZs7mvKCv77mBq5gysGLnwZjYIP2YJwx2OFZf8DbPglw7qP
+         ScoboCBKAH6k7GP5Yf7DSDjqCoja7L5VmdVGp+EZ+Om+j5f1D/jFSZTLO1PrmhmMlsMj
+         QpuhRkqVY8nWUy+SQFuRCRCCo9QPokazmR6rKxi/tO4OtlEzj5p+i+9R+HCQDgQg6mF6
+         awCjuHY/OfL2eptWc6tgOpv/1Iq7F1l/uj1Ptnic6O9EgWimUYYhuObOoa/2hoN3jX6Z
+         NSPA==
+X-Gm-Message-State: AOAM530Q9ppcxNUKV2XzSUCh45hLPOedeJqA9d69sKU5euuk4Ztr5r2O
+        xxOvqcT6U485v6HfGtGVq8GVqooHNo5NKy5uWng7YVrxe3aGi/LdHE3QzcwVpU8oAPakNZ9Apyt
+        tBFWP2RK7QxFdo96mSt5VDPXcyJpLslp3w9mZz82ypIQ2
+X-Received: by 2002:adf:f2c7:: with SMTP id d7mr19572628wrp.142.1605532026809;
+        Mon, 16 Nov 2020 05:07:06 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJyE0w188WkdB7Bp/Nkxx892OynTXXfN5PEDQwR4CfhprUKR2rGevw9tw4aHr6ZggEnGX56or9k+Codlm4pIusk=
+X-Received: by 2002:adf:f2c7:: with SMTP id d7mr19572601wrp.142.1605532026600;
+ Mon, 16 Nov 2020 05:07:06 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+References: <20201109072930.14048-1-nusiddiq@redhat.com> <20201109213557.GE23619@breakpoint.cc>
+ <CAH=CPzqTy3yxgBEJ9cVpp3pmGN9u4OsL9GrA+1w6rVum7B8zJw@mail.gmail.com>
+ <20201110122542.GG23619@breakpoint.cc> <CAH=CPzqRKTfQW05UxFQwVpvMSOZ7wNgLeiP3txY8T45jdx_E5Q@mail.gmail.com>
+ <20201110131141.GH23619@breakpoint.cc>
+In-Reply-To: <20201110131141.GH23619@breakpoint.cc>
+From:   Numan Siddique <nusiddiq@redhat.com>
+Date:   Mon, 16 Nov 2020 18:36:52 +0530
+Message-ID: <CAH=CPzrBY3_nt7OmhFk2D+7ajZvxOFcE6tZRSd_hYmhpDTcRZA@mail.gmail.com>
+Subject: Re: [net-next] netfiler: conntrack: Add the option to set ct tcp flag
+ - BE_LIBERAL per-ct basis.
+To:     Florian Westphal <fw@strlen.de>
+Cc:     ovs dev <dev@openvswitch.org>, netdev <netdev@vger.kernel.org>,
+        Pravin B Shelar <pshelar@ovn.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Numan Siddique <nusiddiq@redhat.com>
+On Tue, Nov 10, 2020 at 6:41 PM Florian Westphal <fw@strlen.de> wrote:
+>
+> Numan Siddique <nusiddiq@redhat.com> wrote:
+> > On Tue, Nov 10, 2020 at 5:55 PM Florian Westphal <fw@strlen.de> wrote:
+> > >
+> > > Numan Siddique <nusiddiq@redhat.com> wrote:
+> > > > On Tue, Nov 10, 2020 at 3:06 AM Florian Westphal <fw@strlen.de> wrote:
+> > > > Thanks for the comments. I actually tried this approach first, but it
+> > > > doesn't seem to work.
+> > > > I noticed that for the committed connections, the ct tcp flag -
+> > > > IP_CT_TCP_FLAG_BE_LIBERAL is
+> > > > not set when nf_conntrack_in() calls resolve_normal_ct().
+> > >
+> > > Yes, it won't be set during nf_conntrack_in, thats why I suggested
+> > > to do it before confirming the connection.
+> >
+> > Sorry for the confusion. What I mean is - I tested  your suggestion - i.e called
+> > nf_ct_set_tcp_be_liberal()  before calling nf_conntrack_confirm().
+> >
+> >  Once the connection is established, for subsequent packets, openvswitch
+> >  calls nf_conntrack_in() [1] to see if the packet is part of the
+> > existing connection or not (i.e ct.new or ct.est )
+> > and if the packet happens to be out-of-window then skb->_nfct is set
+> > to NULL. And the tcp
+> > be flags set during confirmation are not reflected when
+> > nf_conntrack_in() calls resolve_normal_ct().
+>
+> Can you debug where this happens?  This looks very very wrong.
+> resolve_normal_ct() has no business to check any of those flags
+> (and I don't see where it uses them, it should only deal with the
+>  tuples).
+>
+> The flags come into play when nf_conntrack_handle_packet() gets called
+> after resolve_normal_ct has found an entry, since that will end up
+> calling the tcp conntrack part.
+>
+> The entry found/returned by resolve_normal_ct should be the same
+> nf_conn entry that was confirmed earlier, i.e. it should be in "liberal"
+> mode.
 
-There is no easy way to distinguish if a conntracked tcp packet is
-marked invalid because of tcp_in_window() check error or because
-it doesn't belong to an existing connection. With this patch,
-openvswitch sets liberal tcp flag for the established sessions so
-that out of window packets are not marked invalid.
+I debugged a bit. Calling nf_ct_set_tcp_be_liberal() in ct_commit
+doesn't work because
+  - the first SYN packet during connection establishment is committed
+to the contract.
+  - but tcp_in_window() calls tcp_options() which clears the tcp ct
+flags for the SYN and SYN-ACK packets.
+    And hence the flags get cleared.
 
-A helper function - nf_ct_set_tcp_be_liberal(nf_conn) is added which
-sets this flag for both the directions of the nf_conn.
+So I think it should be enough if openvswitch calls
+nf_ct_set_tcp_be_liberal() once the connection is established.
 
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Numan Siddique <nusiddiq@redhat.com>
----
- include/net/netfilter/nf_conntrack_l4proto.h | 14 ++++++++++++++
- net/netfilter/nf_conntrack_proto_tcp.c       |  6 ------
- net/openvswitch/conntrack.c                  |  8 ++++++++
- 3 files changed, 22 insertions(+), 6 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index 88186b95b3c2..9be7320b994f 100644
---- a/include/net/netfilter/nf_conntrack_l4proto.h
-+++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -203,6 +203,20 @@ static inline struct nf_icmp_net *nf_icmpv6_pernet(struct net *net)
- {
- 	return &net->ct.nf_ct_proto.icmpv6;
- }
-+
-+/* Caller must check nf_ct_protonum(ct) is IPPROTO_TCP before calling. */
-+static inline void nf_ct_set_tcp_be_liberal(struct nf_conn *ct)
-+{
-+	ct->proto.tcp.seen[0].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
-+	ct->proto.tcp.seen[1].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
-+}
-+
-+/* Caller must check nf_ct_protonum(ct) is IPPROTO_TCP before calling. */
-+static inline bool nf_conntrack_tcp_established(const struct nf_conn *ct)
-+{
-+	return ct->proto.tcp.state == TCP_CONNTRACK_ESTABLISHED &&
-+	       test_bit(IPS_ASSURED_BIT, &ct->status);
-+}
- #endif
- 
- #ifdef CONFIG_NF_CT_PROTO_DCCP
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index c8fb2187ad4b..811c6c9b59e1 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -834,12 +834,6 @@ static noinline bool tcp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 	return true;
- }
- 
--static bool nf_conntrack_tcp_established(const struct nf_conn *ct)
--{
--	return ct->proto.tcp.state == TCP_CONNTRACK_ESTABLISHED &&
--	       test_bit(IPS_ASSURED_BIT, &ct->status);
--}
--
- /* Returns verdict for packet, or -1 for invalid. */
- int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 			    struct sk_buff *skb,
-diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
-index 4beb96139d77..6a88daab0190 100644
---- a/net/openvswitch/conntrack.c
-+++ b/net/openvswitch/conntrack.c
-@@ -1037,6 +1037,14 @@ static int __ovs_ct_lookup(struct net *net, struct sw_flow_key *key,
- 		    ovs_ct_helper(skb, info->family) != NF_ACCEPT) {
- 			return -EINVAL;
- 		}
-+
-+		if (nf_ct_protonum(ct) == IPPROTO_TCP &&
-+		    nf_ct_is_confirmed(ct) && nf_conntrack_tcp_established(ct)) {
-+			/* Be liberal for tcp packets so that out-of-window
-+			 * packets are not marked invalid.
-+			 */
-+			nf_ct_set_tcp_be_liberal(ct);
-+		}
- 	}
- 
- 	return 0;
--- 
-2.28.0
+I posted v2. Request to take a look.
+
+Thanks
+Numan
+
+>
 
