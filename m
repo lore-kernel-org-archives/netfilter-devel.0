@@ -2,120 +2,115 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5419C4742C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Nov 2020 08:16:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AFDCC4742C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Nov 2020 10:19:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3519120DD4
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Nov 2020 08:16:54 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kpM8zXJ/"
+	by mail.kernel.org (Postfix) with ESMTP id E0BF9216C4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Nov 2020 10:19:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728141AbgKPICG (ORCPT
+        id S1728623AbgKPJnD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 Nov 2020 03:02:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40928 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727973AbgKPICF (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Nov 2020 03:02:05 -0500
-Received: from mail-pf1-x443.google.com (mail-pf1-x443.google.com [IPv6:2607:f8b0:4864:20::443])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7C38C0613CF;
-        Mon, 16 Nov 2020 00:02:05 -0800 (PST)
-Received: by mail-pf1-x443.google.com with SMTP id q5so13389919pfk.6;
-        Mon, 16 Nov 2020 00:02:05 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=9Y1yLZPbBL2X5WIYzh0MGolabV4K2PbjAEx9PhCuf+Q=;
-        b=kpM8zXJ/HI3JAXzLtyf43BKIVH0eKHa0+/czdTViRIu70kSn8YwBwt5Rin3vQ1B/V5
-         7rXATO838psjNSblinn929eJATjAnVZjiR9bnBk7hZCcLju6mVRew6AJMrt7wFc1Fl7S
-         Z4caCceE4pIaUUNt8DXbXosT+gL+8NBJSi+6VSoqKw3MwAzoY9hX8xE/41NgWxBDT2cz
-         VytAjDZDgdc1kgxYrOIabmqd6Nab8eg0PTEn3nDiLhbeERmkgdQNx0QEg16oqQ+mrgae
-         1m0uVRk2yg2jAyfXUj0VOdFRGT45FT3oSt4te7MN+DRJpItPZs1OXwD4UwfwkMWN3IGD
-         R89A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=9Y1yLZPbBL2X5WIYzh0MGolabV4K2PbjAEx9PhCuf+Q=;
-        b=LkYT4hJrH67LJBYpx57gTh5Tt94fcfTBzvBTge8zHr+x11mlFRSbbdyRT5jby3DWv4
-         y/Y2S8GxxuBj/9Iwa5Hlk3h9KLcnuVwJIsvQvoZ7tjmXrnsHFNjTP1FifFVTV89uolth
-         kjnsE90LxoiEggHM/EQUfqoqvhWGrfdWSpKIkj23kLRgnUJ5uaVw0z57J+k5L5Mq0luF
-         N2S0QBHMapTQa+7eGBnMmULSIPuie6QAfMVRX5x5DA07tXA/6zYQQg2UNKh6XkNLybod
-         ooS/kIbRxHY7aW5JI4pUKYV8mXe7+da/wyVjj/KOYM3H5NQAQb7ld8fFMbraFD9VRd/9
-         zEwg==
-X-Gm-Message-State: AOAM530tApaQ5VBKHuO0vPl9IUIo+Zh3BfBlJ3Zt9n1xkEIn9L2M0AJm
-        jGzEWRAZF1Hd8zZcjbtsl5k=
-X-Google-Smtp-Source: ABdhPJzhWi0/OjAlz2/BIbIgxQj1UreWhYu3egSm7uojQxyPCrwoHDeQL3pL61qwOodl2i14XkH5LA==
-X-Received: by 2002:a62:8857:0:b029:18b:cf28:9bbe with SMTP id l84-20020a6288570000b029018bcf289bbemr12903100pfd.45.1605513725298;
-        Mon, 16 Nov 2020 00:02:05 -0800 (PST)
-Received: from localhost.localdomain ([8.210.202.142])
-        by smtp.gmail.com with ESMTPSA id w10sm15031227pgj.91.2020.11.16.00.01.59
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 16 Nov 2020 00:02:04 -0800 (PST)
-From:   Yejune Deng <yejune.deng@gmail.com>
-To:     wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
-        pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, kuba@kernel.org
-Cc:     netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        yejune.deng@gmail.com
-Subject: [PATCH] ipvs: replace atomic_add_return()
-Date:   Mon, 16 Nov 2020 16:01:47 +0800
-Message-Id: <1605513707-7579-1-git-send-email-yejune.deng@gmail.com>
-X-Mailer: git-send-email 1.9.1
+        Mon, 16 Nov 2020 04:43:03 -0500
+Received: from correo.us.es ([193.147.175.20]:51662 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728616AbgKPJnC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 16 Nov 2020 04:43:02 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 9FFFFD2DA2E
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2020 10:42:58 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 844307CC8B
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2020 10:42:58 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id C72951B57DD; Mon, 16 Nov 2020 10:39:28 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1931523B9D8;
+        Mon, 16 Nov 2020 10:17:37 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 16 Nov 2020 10:17:32 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id CF2AE4265A5A;
+        Mon, 16 Nov 2020 10:17:36 +0100 (CET)
+Date:   Mon, 16 Nov 2020 10:17:36 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Joe Perches <joe@perches.com>
+Cc:     Lukas Bulwahn <lukas.bulwahn@gmail.com>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>,
+        Pia Eichinger <pia.eichinger@st.oth-regensburg.de>,
+        kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] MAINTAINERS: rectify file patterns for NETFILTER
+Message-ID: <20201116091736.GA32490@salvia>
+References: <20201109091942.32280-1-lukas.bulwahn@gmail.com>
+ <d03c87f9fcc4bb68c148cfad12cafef5f2385eef.camel@perches.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <d03c87f9fcc4bb68c148cfad12cafef5f2385eef.camel@perches.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-atomic_inc_return() looks better
+Hi Lukas,
 
-Signed-off-by: Yejune Deng <yejune.deng@gmail.com>
----
- net/netfilter/ipvs/ip_vs_core.c | 2 +-
- net/netfilter/ipvs/ip_vs_sync.c | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+On Sun, Nov 15, 2020 at 07:58:33PM -0800, Joe Perches wrote:
+> On Mon, 2020-11-09 at 10:19 +0100, Lukas Bulwahn wrote:
+> > The two file patterns in the NETFILTER section:
+> > 
+> >   F:      include/linux/netfilter*
+> >   F:      include/uapi/linux/netfilter*
+> > 
+> > intended to match the directories:
+> > 
+> >   ./include{/uapi}/linux/netfilter_{arp,bridge,ipv4,ipv6}
+> > 
+> > A quick check with ./scripts/get_maintainer.pl --letters -f will show that
+> > they are not matched, though, because this pattern only matches files, but
+> > not directories.
+> > 
+> > Rectify the patterns to match the intended directories.
+> []
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> []
+> > @@ -12139,10 +12139,10 @@ W:	http://www.nftables.org/
+> >  Q:	http://patchwork.ozlabs.org/project/netfilter-devel/list/
+> >  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+> >  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+> > -F:	include/linux/netfilter*
+> > +F:	include/linux/netfilter*/
+> >  F:	include/linux/netfilter/
+> 
+> This line could be deleted or perhaps moved up one line above
+> 
+> F:	include/linux/netfilter/
+> F:	include/linux/netfilter*/
+> 
+> (as the second line already matches the first line's files too)
+> 
+> >  F:	include/net/netfilter/
+> > -F:	include/uapi/linux/netfilter*
+> > +F:	include/uapi/linux/netfilter*/
+> >  F:	include/uapi/linux/netfilter/
+> 
+> same here.
+> 
+> >  F:	net/*/netfilter.c
+> >  F:	net/*/netfilter/
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index c0b8215..54e086c 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2137,7 +2137,7 @@ static int ip_vs_in_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
- 	if (cp->flags & IP_VS_CONN_F_ONE_PACKET)
- 		pkts = sysctl_sync_threshold(ipvs);
- 	else
--		pkts = atomic_add_return(1, &cp->in_pkts);
-+		pkts = atomic_inc_return(&cp->in_pkts);
- 
- 	if (ipvs->sync_state & IP_VS_STATE_MASTER)
- 		ip_vs_sync_conn(ipvs, cp, pkts);
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index 16b4806..9d43277 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -615,7 +615,7 @@ static void ip_vs_sync_conn_v0(struct netns_ipvs *ipvs, struct ip_vs_conn *cp,
- 	cp = cp->control;
- 	if (cp) {
- 		if (cp->flags & IP_VS_CONN_F_TEMPLATE)
--			pkts = atomic_add_return(1, &cp->in_pkts);
-+			pkts = atomic_inc_return(&cp->in_pkts);
- 		else
- 			pkts = sysctl_sync_threshold(ipvs);
- 		ip_vs_sync_conn(ipvs, cp, pkts);
-@@ -776,7 +776,7 @@ void ip_vs_sync_conn(struct netns_ipvs *ipvs, struct ip_vs_conn *cp, int pkts)
- 	if (!cp)
- 		return;
- 	if (cp->flags & IP_VS_CONN_F_TEMPLATE)
--		pkts = atomic_add_return(1, &cp->in_pkts);
-+		pkts = atomic_inc_return(&cp->in_pkts);
- 	else
- 		pkts = sysctl_sync_threshold(ipvs);
- 	goto sloop;
--- 
-1.9.1
-
+Please, send a v2 to address this feedback. Thank you.
