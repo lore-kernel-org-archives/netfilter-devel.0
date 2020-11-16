@@ -2,57 +2,91 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=0.6 required=3.0 tests=BAYES_50,DKIM_ADSP_CUSTOM_MED,
-	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,FREEMAIL_REPLYTO_END_DIGIT,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6FC6C83010
-	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Nov 2020 16:45:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E818C4742C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Nov 2020 03:42:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC3CB2419A
-	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Nov 2020 16:45:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2A15F2225E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Nov 2020 03:42:57 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="dBB+XQDO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727371AbgKOQoX convert rfc822-to-8bit (ORCPT
+        id S1726655AbgKPDmP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 15 Nov 2020 11:44:23 -0500
-Received: from sw73-70-41.adsl.seed.net.tw ([203.73.70.41]:34414 "EHLO
-        oa.trendtek.com.tw" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-        with ESMTP id S1727352AbgKOQoX (ORCPT
+        Sun, 15 Nov 2020 22:42:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57786 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726359AbgKPDmP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 15 Nov 2020 11:44:23 -0500
-Received: from [156.96.44.214] ([156.96.44.214])
-        (authenticated bits=0)
-        by oa.trendtek.com.tw (8.13.8/8.13.1) with ESMTP id 0AFGiAZn032191
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2020 00:44:21 +0800
-Message-Id: <202011151644.0AFGiAZn032191@oa.trendtek.com.tw>
-Content-Type: text/plain; charset="iso-8859-1"
+        Sun, 15 Nov 2020 22:42:15 -0500
+Received: from merlin.infradead.org (merlin.infradead.org [IPv6:2001:8b0:10b:1231::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5850EC0613CF;
+        Sun, 15 Nov 2020 19:42:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=merlin.20170209; h=Content-Transfer-Encoding:MIME-Version:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:In-Reply-To:References;
+        bh=zql9Wmwi3sE1HYgw8ZdAK67RzlkxzMR12yOWc2tObwI=; b=dBB+XQDOhLl0c6Qr6FP86RlKX9
+        +3NMHlnmbassjX2cz/53VIkRW/NsvD9Jg68lZCIZ+Iktas/avxSnvCiZ/rxa6f3zI/qwLcOCf2oW3
+        +aDfYw8dStRwK/V88munLm88worWTNOTGOl1yOBLupBdvgqA9Tjkj7tojgY9qzX+Ttyjw0sC7YQ/o
+        rAGGqA13+WMERtXA3R3NOGz/Q+FmNKg5IXnJH9n4gjBwT0vvraWoNikmI1nLrTW9tTnMnwwAl3KwG
+        FdmbcIsHsKcNV7C4fyYRqdLgKz+TeZwP1bV5jpgugVuNSjvtzEdAEDexlUHihgVuO83+Kcp+M4hFh
+        TKx5YNqQ==;
+Received: from [2601:1c0:6280:3f0::f32] (helo=smtpauth.infradead.org)
+        by merlin.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1keVP7-0001f8-65; Mon, 16 Nov 2020 03:42:09 +0000
+From:   Randy Dunlap <rdunlap@infradead.org>
+To:     netdev@vger.kernel.org
+Cc:     Randy Dunlap <rdunlap@infradead.org>,
+        kernel test robot <lkp@intel.com>,
+        "Jose M . Guisado Gomez" <guigom@riseup.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Jakub Kicinski <kuba@kernel.org>
+Subject: [PATCH net-next] netfilter: nf_reject: bridge: fix build errors due to code movement
+Date:   Sun, 15 Nov 2020 19:42:03 -0800
+Message-Id: <20201116034203.7264-1-rdunlap@infradead.org>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Description: Mail message body
-Subject: Corporate and Personal Loan *
-To:     netfilter-devel@vger.kernel.org
-From:   "Investment  Corporate" <financialcapability6@gmail.com>
-Date:   Sun, 15 Nov 2020 08:44:18 -0800
-Reply-To: hmurrah39@gmail.com
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello netfilter-devel@vger.kernel.org
+Fix build errors in net/bridge/netfilter/nft_reject_bridge.ko
+by selecting NF_REJECT_IPV4, which provides the missing symbols.
 
+ERROR: modpost: "nf_reject_skb_v4_tcp_reset" [net/bridge/netfilter/nft_reject_bridge.ko] undefined!
+ERROR: modpost: "nf_reject_skb_v4_unreach" [net/bridge/netfilter/nft_reject_bridge.ko] undefined!
 
-We are Base Investment Company offering Corporate and Personal Loan at 3% Interest Rate for a duration of 10Years.
+Fixes: fa538f7cf05a ("netfilter: nf_reject: add reject skbuff creation helpers")
+Reported-by: kernel test robot <lkp@intel.com>
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: kernel test robot <lkp@intel.com>
+Cc: Jose M. Guisado Gomez <guigom@riseup.net>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org
+Cc: Jakub Kicinski <kuba@kernel.org>
+---
+ net/bridge/netfilter/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-
-We also pay 1% commission to brokers, who introduce project owners for finance or other opportunities.
-
-
-Please get back to me if you are interested for more
-
-details.
-
-
-Yours faithfully,
-
-Hashim Murrah
+--- linux-next-20201113.orig/net/bridge/netfilter/Kconfig
++++ linux-next-20201113/net/bridge/netfilter/Kconfig
+@@ -18,6 +18,7 @@ config NFT_BRIDGE_META
+ config NFT_BRIDGE_REJECT
+ 	tristate "Netfilter nf_tables bridge reject support"
+ 	depends on NFT_REJECT
++	depends on NF_REJECT_IPV4
+ 	help
+ 	  Add support to reject packets.
+ 
