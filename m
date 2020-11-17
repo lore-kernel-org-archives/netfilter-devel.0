@@ -2,73 +2,76 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 124C9C2D0E4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Nov 2020 11:56:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 906FFC6379F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Nov 2020 18:07:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AAC8824630
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Nov 2020 11:56:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 44A942225E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Nov 2020 18:07:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728047AbgKQL4I (ORCPT
+        id S1730524AbgKQSHJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Nov 2020 06:56:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46338 "EHLO
+        Tue, 17 Nov 2020 13:07:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47342 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728010AbgKQL4I (ORCPT
+        with ESMTP id S1729869AbgKQSHJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Nov 2020 06:56:08 -0500
+        Tue, 17 Nov 2020 13:07:09 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A786AC0613CF
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2020 03:56:07 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1kezae-0005Vp-B1; Tue, 17 Nov 2020 12:56:04 +0100
-Date:   Tue, 17 Nov 2020 12:56:04 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E119C0613CF
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2020 10:07:09 -0800 (PST)
+Received: from localhost ([::1]:53848 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.94)
+        (envelope-from <phil@nwl.cc>)
+        id 1kf5Nj-00010k-0j; Tue, 17 Nov 2020 19:07:07 +0100
 From:   Phil Sutter <phil@nwl.cc>
-To:     Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH] ebtables: Fix for broken chain renaming
-Message-ID: <20201117115604.GW11766@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH 1/2] iptables-test.py: Accept multiple test files on commandline
+Date:   Tue, 17 Nov 2020 19:06:57 +0100
+Message-Id: <20201117180658.31425-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.28.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201117110804.GA12096@salvia>
- <20201117110725.GH22792@breakpoint.cc>
-Sender:  <n0-1@orbyte.nwl.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+This allows to call the script like so:
 
-On Tue, Nov 17, 2020 at 12:07:25PM +0100, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > Loading extensions pollutes 'errno' value, hence before using it to
-> > indicate failure it should be sanitized. This was done by the called
-> > function before the parsing/netlink split and not migrated by accident.
-> > Move it into calling code to clarify the connection.
-> > 
-> > Fixes: a7f1e208cdf9c ("nft: split parsing from netlink commands")
-> > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> 
-> Heh.  Thanks for adding a test -- LGTM, feel free to push this.
+| # ./iptables-test.py -n extensions/libebt_*.t
 
-DONE. Thanks for the quick review, I'll go fix Fedora now. :/
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables-test.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-On Tue, Nov 17, 2020 at 12:08:04PM +0100, Pablo Neira Ayuso wrote:
-> LGTM, this is fixing one recent netfilter's bugzilla ticket, right?
+diff --git a/iptables-test.py b/iptables-test.py
+index 6b6eb611a7290..52897a5d93ced 100755
+--- a/iptables-test.py
++++ b/iptables-test.py
+@@ -310,7 +310,7 @@ def show_missing():
+ #
+ def main():
+     parser = argparse.ArgumentParser(description='Run iptables tests')
+-    parser.add_argument('filename', nargs='?',
++    parser.add_argument('filename', nargs='*',
+                         metavar='path/to/file.t',
+                         help='Run only this test')
+     parser.add_argument('-H', '--host', action='store_true',
+@@ -359,7 +359,7 @@ def main():
+         return
+ 
+     if args.filename:
+-        file_list = [args.filename]
++        file_list = args.filename
+     else:
+         file_list = [os.path.join(EXTENSIONS_PATH, i)
+                      for i in os.listdir(EXTENSIONS_PATH)
+-- 
+2.28.0
 
-Oh, right! I noticed it because of a ticket for Fedora[1]. Will close
-nfbz#1481 as well. Thanks for the heads-up!
-
-Cheers, Phil
-
-[1] https://bugzilla.redhat.com/show_bug.cgi?id=1898130
