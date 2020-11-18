@@ -2,218 +2,190 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1EB1C6379F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Nov 2020 05:34:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CF80C63777
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Nov 2020 12:13:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5FEEB20B80
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Nov 2020 05:34:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BABA524654
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Nov 2020 12:13:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="CugPd5MD"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="FfcNrT7g"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726339AbgKRFeL (ORCPT
+        id S1726299AbgKRMNa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Nov 2020 00:34:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41200 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726077AbgKRFeK (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Nov 2020 00:34:10 -0500
-Received: from mail-ej1-x643.google.com (mail-ej1-x643.google.com [IPv6:2a00:1450:4864:20::643])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6D49C061A4D
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2020 21:34:08 -0800 (PST)
-Received: by mail-ej1-x643.google.com with SMTP id o9so1019853ejg.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2020 21:34:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=BopsKmSar3n4P2J12Sr3SxLSSPQixGWTU7etCFUvEQ0=;
-        b=CugPd5MD9jNugwhqO/Gr9MkjMcbb6CXIe/YBJ6yWCBjU5fr3YpbYt4AZzxNba/bSYl
-         uyDHBGpm4uVezOQh7dKVM83R0kZ0IlQvAbA2PN+lNfsIoadedA4zFWuhVkRA1gYbxIyD
-         Xm3as8ORxmOYFMdHgqBb4FkvJgHMHGu4ToX8hECpJACyOPamikY/1/UQHszQLjnJPhQ7
-         ebIlRScaG0El2TITFAhbsoeURuVy0UEm4iEaqnsPyHE3UjvEiQA3nOZkrq6d2WzVBVfl
-         F+q1amVs1YcZsOVix0qmYlgKOBbaBbP5i+Ul8Y6SMKKYzy7Xtq4pCHAAHoH6UcGMqR6s
-         cfvw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=BopsKmSar3n4P2J12Sr3SxLSSPQixGWTU7etCFUvEQ0=;
-        b=e2qckBAvsvu3XOZuRL9hF8d3orpRyjA9bfau7Jlw4q2p/8Tix5P7RIzCVfdPKsOxwn
-         GAGGz7AFEfS03WIARVJJsQ6B6jwl7wc1GxhY3qHbq7/yWplB5LFigB8DSFb8QhU4jZGY
-         VwspIOMCL6kbEDC1s8vhePQ4OI63JtAalh3Q8aZU1aJr8EjKhG6mqIN+BEijnxzAmTir
-         wzPnNVOWucQaOp/qCsE00eN2ba4+MDdkH+7eXQ5vd+mZmbutgzMJQI/utQK6pJE+Svh9
-         P0bxYC6Y43/C/oG7oELnbNWFg/XpVTsLyY4hU5Tl0Pi5+3ZvPDvP4CjnzDqtnapwQuAA
-         RBtg==
-X-Gm-Message-State: AOAM531cW1ZpV0T+ChIBPy8fOE7yxGxKYThqak9WGJ3MMurZo7wC0CO1
-        BNhPk8E9t63AMU1aPhfigzGiJMjXkeuE9RMP9TIiYQ==
-X-Google-Smtp-Source: ABdhPJwogktE2pJm2xh3pNFBobna/9Th5ECROtOqF+Zx+ceiLF964yBgqeJMX0OYZPoDfFT6pYfrw/wIJCLy66utgj8=
-X-Received: by 2002:a17:906:3087:: with SMTP id 7mr21857605ejv.375.1605677647248;
- Tue, 17 Nov 2020 21:34:07 -0800 (PST)
+        Wed, 18 Nov 2020 07:13:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44430 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726181AbgKRMNa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 18 Nov 2020 07:13:30 -0500
+Received: from willie-the-truck (236.31.169.217.in-addr.arpa [217.169.31.236])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id E5285221F1;
+        Wed, 18 Nov 2020 12:13:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1605701609;
+        bh=Hk9npYYTcYFoTOdymkyR7/vJ0NLC+SY81UtZilJlVDQ=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=FfcNrT7g9urtKkSSBcmdgfYBBuBgs0g3/rhMojttNbZ0fwBj/iACH4ZrTbGJpzhsd
+         +Y44uKSR5JA9N1H2LA4GqsAsyky0aUdvHQK/coDNiaGfTtfwgv/4xJTmNzOB8rYJQH
+         CJ7rlcHumAUtfpm1UgvCrTDdLp0q/bxI+Auaz/3Y=
+Date:   Wed, 18 Nov 2020 12:13:24 +0000
+From:   Will Deacon <will@kernel.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     subashab@codeaurora.org, pablo@netfilter.org,
+        Sean Tranchetti <stranche@codeaurora.org>,
+        netfilter-devel@vger.kernel.org, peterz@infradead.org,
+        tglx@linutronix.de
+Subject: Re: [PATCH nf] x_tables: Properly close read section with
+ read_seqcount_retry
+Message-ID: <20201118121322.GA1821@willie-the-truck>
+References: <1605320516-17810-1-git-send-email-stranche@codeaurora.org>
+ <20201114165330.GM23619@breakpoint.cc>
+ <2ab4bcb63cbacba12ad927621fb56aab@codeaurora.org>
+ <20201116141810.GB22792@breakpoint.cc>
+ <8256f40ba9b73181f121baafe12cac61@codeaurora.org>
+ <20201116170440.GA26150@breakpoint.cc>
+ <983d178e6f3aac81d491362ab60db61f@codeaurora.org>
+ <20201116182028.GE22792@breakpoint.cc>
 MIME-Version: 1.0
-References: <20201117122138.925150709@linuxfoundation.org>
-In-Reply-To: <20201117122138.925150709@linuxfoundation.org>
-From:   Naresh Kamboju <naresh.kamboju@linaro.org>
-Date:   Wed, 18 Nov 2020 11:03:55 +0530
-Message-ID: <CA+G9fYt+YNy=34HLHpDrc6=73Nhu14NEf7AP+woyZryny+b-2Q@mail.gmail.com>
-Subject: Re: [PATCH 5.9 000/255] 5.9.9-rc1 review
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     open list <linux-kernel@vger.kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Shuah Khan <shuah@kernel.org>, patches@kernelci.org,
-        lkft-triage@lists.linaro.org, pavel@denx.de,
-        linux- stable <stable@vger.kernel.org>,
-        "open list:KERNEL SELFTEST FRAMEWORK" 
-        <linux-kselftest@vger.kernel.org>, Netdev <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201116182028.GE22792@breakpoint.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, 17 Nov 2020 at 19:02, Greg Kroah-Hartman
-<gregkh@linuxfoundation.org> wrote:
->
-> This is the start of the stable review cycle for the 5.9.9 release.
-> There are 255 patches in this series, all will be posted as a response
-> to this one.  If anyone has any issues with these being applied, please
-> let me know.
->
-> Responses should be made by Thu, 19 Nov 2020 12:20:51 +0000.
-> Anything received after that time might be too late.
->
-> The whole patch series can be found in one patch at:
->         https://www.kernel.org/pub/linux/kernel/v5.x/stable-review/patch-=
-5.9.9-rc1.gz
-> or in the git tree and branch at:
->         git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable=
--rc.git linux-5.9.y
-> and the diffstat can be found below.
->
-> thanks,
->
-> greg k-h
+Hi all,
 
-Results from Linaro=E2=80=99s test farm.
-No regressions on arm64, arm, x86_64, and i386.
+[+tglx and peterz for seqcount abuse]
 
-Tested-by: Linux Kernel Functional Testing <lkft@linaro.org>
+On Mon, Nov 16, 2020 at 07:20:28PM +0100, Florian Westphal wrote:
+> subashab@codeaurora.org <subashab@codeaurora.org> wrote:
+> > > > Unfortunately we are seeing it on ARM64 regression systems which
+> > > > runs a
+> > > > variety of
+> > > > usecases so the exact steps are not known.
+> > > 
+> > > Ok.  Would you be willing to run some of those with your suggested
+> > > change to see if that resolves the crashes or is that so rare that this
+> > > isn't practical?
+> > 
+> > I can try that out. Let me know if you have any other suggestions as well
+> > and I can try that too.
+> > 
+> > I assume we cant add locks here as it would be in the packet processing
+> > path.
+> 
+> Yes.  We can add a synchronize_net() in xt_replace_table if needed
+> though, before starting to put the references on the old ruleset
+> This would avoid the free of the jumpstack while skbs are still
+> in-flight.
 
-NOTE:
-1)
-BUG: Invalid wait context on arm64 db410c device while booting.
-This issue has not reproduced after several testing loops.
-https://lore.kernel.org/stable/CA+G9fYsk54r9Re4E9BWpqsoxLjpCvxRKFWRgdiKVcPo=
-YE5z0Hw@mail.gmail.com/T/#u
+I tried to make sense of what's going on here, and it looks to me like
+the interaction between xt_replace_table() and ip6t_do_table() relies on
+store->load order that is _not_ enforced in the code.
 
-2)
-kselftest test suite version upgrade to v5.9
+xt_replace_table() does:
 
-3)
-While running kselftest netfilter on x86, i386, arm64 and arm devices
-the following kernel warning was noticed.
-WARNING: at net/netfilter/nf_tables_api.c:622
-lockdep_nfnl_nft_mutex_not_held+0x19/0x20 [nf_tables]
-https://lore.kernel.org/linux-kselftest/CA+G9fYvFUpODs+NkSYcnwKnXm62tmP=3Dk=
-sLeBPmB+KFrB2rvCtQ@mail.gmail.com/
+	table->private = newinfo;
 
-4)
-From this release we have started building kernels with clang-10 toolchain
-and testing LTP testsuite on qemu_arm64, qemu_arm, qemu_x86_64 and qemu_i38=
-6.
+	/* make sure all cpus see new ->private value */
+	smp_wmb();
 
-Summary
-------------------------------------------------------------------------
+	/*
+	 * Even though table entries have now been swapped, other CPU's
+	 * may still be using the old entries...
+	 */
+	local_bh_enable();
 
-kernel: 5.9.9-rc1
-git repo: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stab=
-le-rc.git
-git branch: linux-5.9.y
-git commit: fb1622495321923cbb1ae2c6cf2da1e9ca286800
-git describe: v5.9.8-256-gfb1622495321
-Test details: https://qa-reports.linaro.org/lkft/linux-stable-rc-linux-5.9.=
-y/build/v5.9.8-256-gfb1622495321
+	/* ... so wait for even xt_recseq on all cpus */
+	for_each_possible_cpu(cpu) {
+		seqcount_t *s = &per_cpu(xt_recseq, cpu);
+		u32 seq = raw_read_seqcount(s);
 
-No regressions (compared to build v5.9.8)
+		if (seq & 1) {
+			do {
+				cond_resched();
+				cpu_relax();
+			} while (seq == raw_read_seqcount(s));
+		}
+	}
 
-No fixes (compared to build v5.9.8)
+and I think the idea here is that we swizzle the table->private pointer
+to point to the new data, and then wait for all pre-existing readers to
+finish with the old table (isn't this what RCU is for?).
 
-Ran 52946 total tests in the following environments and test suites.
+On the reader side, ip6t_do_table() does:
 
-Environments
---------------
-- dragonboard-410c
-- hi6220-hikey
-- i386
-- juno-r2
-- juno-r2-compat
-- juno-r2-kasan
-- nxp-ls2088
-- qemu-arm-clang
-- qemu-arm64-clang
-- qemu-arm64-kasan
-- qemu-i386-clang
-- qemu-x86_64-clang
-- qemu-x86_64-kasan
-- qemu_arm
-- qemu_arm64
-- qemu_arm64-compat
-- qemu_i386
-- qemu_x86_64
-- qemu_x86_64-compat
-- x15
-- x86
-- x86-kasan
+	addend = xt_write_recseq_begin();
+	private = READ_ONCE(table->private); /* Address dependency. */
 
-Test Suites
------------
-* build
-* install-android-platform-tools-r2600
-* libhugetlbfs
-* linux-log-parser
-* ltp-cap_bounds-tests
-* ltp-commands-tests
-* ltp-containers-tests
-* ltp-cpuhotplug-tests
-* ltp-crypto-tests
-* ltp-dio-tests
-* ltp-fcntl-locktests-tests
-* ltp-filecaps-tests
-* ltp-fs-tests
-* ltp-fs_bind-tests
-* ltp-fs_perms_simple-tests
-* ltp-fsx-tests
-* ltp-hugetlb-tests
-* ltp-io-tests
-* ltp-ipc-tests
-* ltp-math-tests
-* ltp-mm-tests
-* ltp-nptl-tests
-* ltp-pty-tests
-* ltp-sched-tests
-* ltp-securebits-tests
-* ltp-syscalls-tests
-* ltp-tracing-tests
-* perf
-* v4l2-compliance
-* ltp-controllers-tests
-* ltp-cve-tests
-* network-basic-tests
-* kselftest
-* ltp-open-posix-tests
-* kvm-unit-tests
-* kunit
-* kselftest-vsyscall-mode-native
-* kselftest-vsyscall-mode-none
+where xt_write_recseq_begin() is pretty creative:
 
---=20
-Linaro LKFT
-https://lkft.linaro.org
+	unsigned int addend = (__this_cpu_read(xt_recseq.sequence) + 1) & 1;
+	__this_cpu_add(xt_recseq.sequence, addend);
+	smp_wmb();
+	return addend;
+
+I think this can be boiled down to an instance of the "SB" litmus test:
+
+CPU 0				CPU 1
+
+Wtable = newinfo		Rseq = 0
+smp_wmb()			Wseq = 1	(i.e. seq += 1)
+Rseq = 0			smp_wmb()
+<free oldinfo>			Rtable = oldinfo
+
+Since smp_wmb() only orders store-store, then both CPUs can hoist the reads
+up and we get the undesirable outcome. This should be observable on x86 too.
+
+Given that this appears to be going wrong in practice, I've included a quick
+hack below which should fix the ordering. However, I think it would be
+better if we could avoid abusing the seqcount code for this sort of thing.
+
+Cheers,
+
+Will
+
+--->8
+
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 5deb099d156d..8ec48466410a 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -376,7 +376,7 @@ static inline unsigned int xt_write_recseq_begin(void)
+ 	 * since addend is most likely 1
+ 	 */
+ 	__this_cpu_add(xt_recseq.sequence, addend);
+-	smp_wmb();
++	smp_mb();
+ 
+ 	return addend;
+ }
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index af22dbe85e2c..383a47ff0c40 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1384,10 +1384,12 @@ xt_replace_table(struct xt_table *table,
+ 	 * private.
+ 	 */
+ 	smp_wmb();
+-	table->private = newinfo;
+-
+-	/* make sure all cpus see new ->private value */
+-	smp_wmb();
++	WRITE_ONCE(table->private, newinfo);
++	/*
++	 * make sure all cpus see new ->private value before we load the
++	 * sequence counters
++	 */
++	smp_mb();
+ 
+ 	/*
+ 	 * Even though table entries have now been swapped, other CPU's
