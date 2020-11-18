@@ -2,101 +2,218 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAE59C6379F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Nov 2020 04:03:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1EB1C6379F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Nov 2020 05:34:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8E4162465E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Nov 2020 04:03:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5FEEB20B80
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Nov 2020 05:34:31 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="CugPd5MD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727709AbgKREDC convert rfc822-to-8bit (ORCPT
+        id S1726339AbgKRFeL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Nov 2020 23:03:02 -0500
-Received: from mail.redfish-solutions.com ([45.33.216.244]:48666 "EHLO
-        mail.redfish-solutions.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726238AbgKREDB (ORCPT
+        Wed, 18 Nov 2020 00:34:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41200 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726077AbgKRFeK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Nov 2020 23:03:01 -0500
-Received: from [192.168.3.4] (174-27-108-50.bois.qwest.net [174.27.108.50] (may be forged))
-        (authenticated bits=0)
-        by mail.redfish-solutions.com (8.15.2/8.15.2) with ESMTPSA id 0AI42upj320555
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 17 Nov 2020 21:02:57 -0700
-Content-Type: text/plain;
-        charset=utf-8
-Mime-Version: 1.0 (Mac OS X Mail 14.0 \(3654.20.0.2.21\))
-Subject: Re: Issues w/ db-ip country database
-From:   Philip Prindeville <philipp_subx@redfish-solutions.com>
-In-Reply-To: <EC421C64-614D-40CC-B544-40DB2A657EE4@redfish-solutions.com>
-Date:   Tue, 17 Nov 2020 21:02:56 -0700
-Cc:     netfilter-devel@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <E9387BD8-079E-4E05-B964-4FA7986B47E8@redfish-solutions.com>
-References: <8B419AF6-031F-4F6A-A3FB-3118780F6119@redfish-solutions.com>
- <2qp4q17-pqpo-2q0-24r0-q466sro3pp44@vanv.qr>
- <B6D36DF0-178A-4985-AB85-4BEE2AAD9116@redfish-solutions.com>
- <548ron6o-rq26-725-rqp4-r0p6n83r36r@vanv.qr>
- <EC421C64-614D-40CC-B544-40DB2A657EE4@redfish-solutions.com>
-To:     Jan Engelhardt <jengelh@inai.de>
-X-Mailer: Apple Mail (2.3654.20.0.2.21)
-X-Scanned-By: MIMEDefang 2.84 on 192.168.1.3
+        Wed, 18 Nov 2020 00:34:10 -0500
+Received: from mail-ej1-x643.google.com (mail-ej1-x643.google.com [IPv6:2a00:1450:4864:20::643])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6D49C061A4D
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2020 21:34:08 -0800 (PST)
+Received: by mail-ej1-x643.google.com with SMTP id o9so1019853ejg.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2020 21:34:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=BopsKmSar3n4P2J12Sr3SxLSSPQixGWTU7etCFUvEQ0=;
+        b=CugPd5MD9jNugwhqO/Gr9MkjMcbb6CXIe/YBJ6yWCBjU5fr3YpbYt4AZzxNba/bSYl
+         uyDHBGpm4uVezOQh7dKVM83R0kZ0IlQvAbA2PN+lNfsIoadedA4zFWuhVkRA1gYbxIyD
+         Xm3as8ORxmOYFMdHgqBb4FkvJgHMHGu4ToX8hECpJACyOPamikY/1/UQHszQLjnJPhQ7
+         ebIlRScaG0El2TITFAhbsoeURuVy0UEm4iEaqnsPyHE3UjvEiQA3nOZkrq6d2WzVBVfl
+         F+q1amVs1YcZsOVix0qmYlgKOBbaBbP5i+Ul8Y6SMKKYzy7Xtq4pCHAAHoH6UcGMqR6s
+         cfvw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=BopsKmSar3n4P2J12Sr3SxLSSPQixGWTU7etCFUvEQ0=;
+        b=e2qckBAvsvu3XOZuRL9hF8d3orpRyjA9bfau7Jlw4q2p/8Tix5P7RIzCVfdPKsOxwn
+         GAGGz7AFEfS03WIARVJJsQ6B6jwl7wc1GxhY3qHbq7/yWplB5LFigB8DSFb8QhU4jZGY
+         VwspIOMCL6kbEDC1s8vhePQ4OI63JtAalh3Q8aZU1aJr8EjKhG6mqIN+BEijnxzAmTir
+         wzPnNVOWucQaOp/qCsE00eN2ba4+MDdkH+7eXQ5vd+mZmbutgzMJQI/utQK6pJE+Svh9
+         P0bxYC6Y43/C/oG7oELnbNWFg/XpVTsLyY4hU5Tl0Pi5+3ZvPDvP4CjnzDqtnapwQuAA
+         RBtg==
+X-Gm-Message-State: AOAM531cW1ZpV0T+ChIBPy8fOE7yxGxKYThqak9WGJ3MMurZo7wC0CO1
+        BNhPk8E9t63AMU1aPhfigzGiJMjXkeuE9RMP9TIiYQ==
+X-Google-Smtp-Source: ABdhPJwogktE2pJm2xh3pNFBobna/9Th5ECROtOqF+Zx+ceiLF964yBgqeJMX0OYZPoDfFT6pYfrw/wIJCLy66utgj8=
+X-Received: by 2002:a17:906:3087:: with SMTP id 7mr21857605ejv.375.1605677647248;
+ Tue, 17 Nov 2020 21:34:07 -0800 (PST)
+MIME-Version: 1.0
+References: <20201117122138.925150709@linuxfoundation.org>
+In-Reply-To: <20201117122138.925150709@linuxfoundation.org>
+From:   Naresh Kamboju <naresh.kamboju@linaro.org>
+Date:   Wed, 18 Nov 2020 11:03:55 +0530
+Message-ID: <CA+G9fYt+YNy=34HLHpDrc6=73Nhu14NEf7AP+woyZryny+b-2Q@mail.gmail.com>
+Subject: Re: [PATCH 5.9 000/255] 5.9.9-rc1 review
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     open list <linux-kernel@vger.kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Shuah Khan <shuah@kernel.org>, patches@kernelci.org,
+        lkft-triage@lists.linaro.org, pavel@denx.de,
+        linux- stable <stable@vger.kernel.org>,
+        "open list:KERNEL SELFTEST FRAMEWORK" 
+        <linux-kselftest@vger.kernel.org>, Netdev <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Tue, 17 Nov 2020 at 19:02, Greg Kroah-Hartman
+<gregkh@linuxfoundation.org> wrote:
+>
+> This is the start of the stable review cycle for the 5.9.9 release.
+> There are 255 patches in this series, all will be posted as a response
+> to this one.  If anyone has any issues with these being applied, please
+> let me know.
+>
+> Responses should be made by Thu, 19 Nov 2020 12:20:51 +0000.
+> Anything received after that time might be too late.
+>
+> The whole patch series can be found in one patch at:
+>         https://www.kernel.org/pub/linux/kernel/v5.x/stable-review/patch-=
+5.9.9-rc1.gz
+> or in the git tree and branch at:
+>         git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable=
+-rc.git linux-5.9.y
+> and the diffstat can be found below.
+>
+> thanks,
+>
+> greg k-h
 
+Results from Linaro=E2=80=99s test farm.
+No regressions on arm64, arm, x86_64, and i386.
 
-> On Nov 17, 2020, at 1:32 PM, Philip Prindeville <philipp_subx@redfish-solutions.com> wrote:
-> 
-> 
->> On Nov 17, 2020, at 12:20 PM, Jan Engelhardt <jengelh@inai.de> wrote:
->> 
->> On Tuesday 2020-11-17 19:08, Philip Prindeville wrote:
->>>>> Many known blocks owned by Chinanet for instance, don’t show up as /11 or /13
->>>>> networks, but as dozens of /23 networks instead in China, the US, Japan, and
->>>>> Canada. Clearly not correct.
->>> 
->>> 183.128.0.0/11 is supposedly a single block of Chinanet, but the database
->>> shows it as being 329 subnets (164 supposedly in the US), again mostly /23’s
->>> and /22’s:
->>> 183.136.192.0,183.136.193.99,CN
->>> 183.136.193.100,183.136.193.255,US
->> 
->> 100 is not "nicely divisible" along a bit boundary, that's already a giveaway
->> that something is atypical.
->> Maybe it's a set of VPN endpoints (into China) for external 
->> companies registered with MIIT/PSB or something.
-> 
-> 
-> So, what to do?  How to move forward?
-> 
-> I sent them a question about this over the weekend and I’m still waiting to hear back.
-> 
-> Given that people might use this data to block APT’s, I think the data should be something that doesn’t raise more questions than it answers...
-> 
-> 
->> 
->>> 212.174.0.0/15 supposedly is a single block of TurkTelecom, but the database
->>> shows it as being 296 subnets, mostly /23’s.
->> 
->> and to add icing, WHOIS has four entries for it.
->> 212.174.0.0/17 212.174.128.0/17 212.175.0.0/17 212.175.128.0/17
-> 
-> 
-> Yeah, I don’t get that either.
-> 
+Tested-by: Linux Kernel Functional Testing <lkft@linaro.org>
 
+NOTE:
+1)
+BUG: Invalid wait context on arm64 db410c device while booting.
+This issue has not reproduced after several testing loops.
+https://lore.kernel.org/stable/CA+G9fYsk54r9Re4E9BWpqsoxLjpCvxRKFWRgdiKVcPo=
+YE5z0Hw@mail.gmail.com/T/#u
 
-If anyone else is feeling uneasy about the reliability of the dbip-country-lite data, I’ve branched master of xtables-addons (on SF.net) and reverted the changes that made it use that database:
+2)
+kselftest test suite version upgrade to v5.9
 
-https://sourceforge.net/u/pprindeville/xtables-addons/ci/revert-to-maxmind/tree/
+3)
+While running kselftest netfilter on x86, i386, arm64 and arm devices
+the following kernel warning was noticed.
+WARNING: at net/netfilter/nf_tables_api.c:622
+lockdep_nfnl_nft_mutex_not_held+0x19/0x20 [nf_tables]
+https://lore.kernel.org/linux-kselftest/CA+G9fYvFUpODs+NkSYcnwKnXm62tmP=3Dk=
+sLeBPmB+KFrB2rvCtQ@mail.gmail.com/
 
-So you can use that until the dust settles and we figure out the discrepancies.
+4)
+From this release we have started building kernels with clang-10 toolchain
+and testing LTP testsuite on qemu_arm64, qemu_arm, qemu_x86_64 and qemu_i38=
+6.
 
-Thanks.
+Summary
+------------------------------------------------------------------------
 
--Philip
+kernel: 5.9.9-rc1
+git repo: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stab=
+le-rc.git
+git branch: linux-5.9.y
+git commit: fb1622495321923cbb1ae2c6cf2da1e9ca286800
+git describe: v5.9.8-256-gfb1622495321
+Test details: https://qa-reports.linaro.org/lkft/linux-stable-rc-linux-5.9.=
+y/build/v5.9.8-256-gfb1622495321
 
+No regressions (compared to build v5.9.8)
+
+No fixes (compared to build v5.9.8)
+
+Ran 52946 total tests in the following environments and test suites.
+
+Environments
+--------------
+- dragonboard-410c
+- hi6220-hikey
+- i386
+- juno-r2
+- juno-r2-compat
+- juno-r2-kasan
+- nxp-ls2088
+- qemu-arm-clang
+- qemu-arm64-clang
+- qemu-arm64-kasan
+- qemu-i386-clang
+- qemu-x86_64-clang
+- qemu-x86_64-kasan
+- qemu_arm
+- qemu_arm64
+- qemu_arm64-compat
+- qemu_i386
+- qemu_x86_64
+- qemu_x86_64-compat
+- x15
+- x86
+- x86-kasan
+
+Test Suites
+-----------
+* build
+* install-android-platform-tools-r2600
+* libhugetlbfs
+* linux-log-parser
+* ltp-cap_bounds-tests
+* ltp-commands-tests
+* ltp-containers-tests
+* ltp-cpuhotplug-tests
+* ltp-crypto-tests
+* ltp-dio-tests
+* ltp-fcntl-locktests-tests
+* ltp-filecaps-tests
+* ltp-fs-tests
+* ltp-fs_bind-tests
+* ltp-fs_perms_simple-tests
+* ltp-fsx-tests
+* ltp-hugetlb-tests
+* ltp-io-tests
+* ltp-ipc-tests
+* ltp-math-tests
+* ltp-mm-tests
+* ltp-nptl-tests
+* ltp-pty-tests
+* ltp-sched-tests
+* ltp-securebits-tests
+* ltp-syscalls-tests
+* ltp-tracing-tests
+* perf
+* v4l2-compliance
+* ltp-controllers-tests
+* ltp-cve-tests
+* network-basic-tests
+* kselftest
+* ltp-open-posix-tests
+* kvm-unit-tests
+* kunit
+* kselftest-vsyscall-mode-native
+* kselftest-vsyscall-mode-none
+
+--=20
+Linaro LKFT
+https://lkft.linaro.org
