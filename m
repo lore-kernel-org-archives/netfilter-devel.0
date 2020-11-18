@@ -5,50 +5,50 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60AB8C56201
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BEB2BC64E69
 	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Nov 2020 22:30:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EB58B246E1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Nov 2020 22:30:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 856DB246E1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Nov 2020 22:30:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726787AbgKRWaX (ORCPT
+        id S1726920AbgKRWaZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Nov 2020 17:30:23 -0500
-Received: from correo.us.es ([193.147.175.20]:51156 "EHLO mail.us.es"
+        Wed, 18 Nov 2020 17:30:25 -0500
+Received: from correo.us.es ([193.147.175.20]:51216 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726184AbgKRWaW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Nov 2020 17:30:22 -0500
+        id S1726723AbgKRWaX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 18 Nov 2020 17:30:23 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B19C718FD8C
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2020 23:30:19 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id C8F0B18FDAA
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2020 23:30:21 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A1FC6DA901
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2020 23:30:19 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B8C89DA8FF
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2020 23:30:21 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A0E0BDA8FD; Wed, 18 Nov 2020 23:30:19 +0100 (CET)
+        id AF728DA8FB; Wed, 18 Nov 2020 23:30:21 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4B9C2DA902;
-        Wed, 18 Nov 2020 23:30:17 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 86E33DA8F3;
+        Wed, 18 Nov 2020 23:30:19 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 18 Nov 2020 23:30:17 +0100 (CET)
+ Wed, 18 Nov 2020 23:30:19 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 0753D42514A8;
-        Wed, 18 Nov 2020 23:30:16 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id 432BF42514A8;
+        Wed, 18 Nov 2020 23:30:19 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         razor@blackwall.org, tobias@waldekranz.com, jeremy@azazel.net
-Subject: [PATCH net-next,v4 2/9] netfilter: flowtable: add xmit path types
-Date:   Wed, 18 Nov 2020 23:30:04 +0100
-Message-Id: <20201118223011.3216-3-pablo@netfilter.org>
+Subject: [PATCH net-next,v4 5/9] bridge: resolve forwarding path for bridge devices
+Date:   Wed, 18 Nov 2020 23:30:07 +0100
+Message-Id: <20201118223011.3216-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201118223011.3216-1-pablo@netfilter.org>
 References: <20201118223011.3216-1-pablo@netfilter.org>
@@ -59,205 +59,74 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add the xmit_type field that defines the two supported xmit paths in the
-flowtable data plane, which are the neighbour and the xfrm xmit paths.
-This patch prepares for new flowtable xmit path types to come.
+Add .ndo_fill_forward_path for bridge devices.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v4: no changes
+v4: - Check for valid bridge dst pointer after READ_ONCE, per Nikolay
+      Aleksandrov.
 
- include/net/netfilter/nf_flow_table.h | 11 +++++++--
- net/netfilter/nf_flow_table_core.c    |  1 +
- net/netfilter/nf_flow_table_ip.c      | 32 ++++++++++++++++++---------
- net/netfilter/nft_flow_offload.c      | 20 +++++++++++++++--
- 4 files changed, 50 insertions(+), 14 deletions(-)
+ include/linux/netdevice.h |  1 +
+ net/bridge/br_device.c    | 27 +++++++++++++++++++++++++++
+ 2 files changed, 28 insertions(+)
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index 54c4d5c908a5..7d477be06913 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -89,6 +89,11 @@ enum flow_offload_tuple_dir {
- 	FLOW_OFFLOAD_DIR_MAX = IP_CT_DIR_MAX
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index e9690e1a6559..281551c70536 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -836,6 +836,7 @@ typedef u16 (*select_queue_fallback_t)(struct net_device *dev,
+ enum net_device_path_type {
+ 	DEV_PATH_ETHERNET = 0,
+ 	DEV_PATH_VLAN,
++	DEV_PATH_BRIDGE,
  };
  
-+enum flow_offload_xmit_type {
-+	FLOW_OFFLOAD_XMIT_NEIGH		= 0,
-+	FLOW_OFFLOAD_XMIT_XFRM,
-+};
+ struct net_device_path {
+diff --git a/net/bridge/br_device.c b/net/bridge/br_device.c
+index 387403931a63..ce03d82e384a 100644
+--- a/net/bridge/br_device.c
++++ b/net/bridge/br_device.c
+@@ -391,6 +391,32 @@ static int br_del_slave(struct net_device *dev, struct net_device *slave_dev)
+ 	return br_del_if(br, slave_dev);
+ }
+ 
++static int br_fill_forward_path(struct net_device_path_ctx *ctx,
++				struct net_device_path *path)
++{
++	struct net_bridge_fdb_entry *f;
++	struct net_bridge_port *dst;
++	struct net_bridge *br;
 +
- struct flow_offload_tuple {
- 	union {
- 		struct in_addr		src_v4;
-@@ -111,7 +116,8 @@ struct flow_offload_tuple {
- 	/* All members above are keys for lookups, see flow_offload_hash(). */
- 	struct { }			__hash;
- 
--	u8				dir;
-+	u8				dir:6,
-+					xmit_type:2;
- 
- 	u16				mtu;
- 
-@@ -158,7 +164,8 @@ static inline __s32 nf_flow_timeout_delta(unsigned int timeout)
- 
- struct nf_flow_route {
- 	struct {
--		struct dst_entry	*dst;
-+		struct dst_entry		*dst;
-+		enum flow_offload_xmit_type	xmit_type;
- 	} tuple[FLOW_OFFLOAD_DIR_MAX];
++	if (netif_is_bridge_port(ctx->dev))
++		return -1;
++
++	br = netdev_priv(ctx->dev);
++	f = br_fdb_find_rcu(br, ctx->daddr, 0);
++	if (!f || !f->dst)
++		return -1;
++
++	dst = READ_ONCE(f->dst);
++	if (!dst)
++		return -1;
++
++	path->type = DEV_PATH_BRIDGE;
++	path->dev = dst->br->dev;
++	ctx->dev = dst->dev;
++
++	return 0;
++}
++
+ static const struct ethtool_ops br_ethtool_ops = {
+ 	.get_drvinfo		 = br_getinfo,
+ 	.get_link		 = ethtool_op_get_link,
+@@ -425,6 +451,7 @@ static const struct net_device_ops br_netdev_ops = {
+ 	.ndo_bridge_setlink	 = br_setlink,
+ 	.ndo_bridge_dellink	 = br_dellink,
+ 	.ndo_features_check	 = passthru_features_check,
++	.ndo_fill_forward_path	 = br_fill_forward_path,
  };
  
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 55fca71ace26..57dd8e40e474 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -95,6 +95,7 @@ static int flow_offload_fill_route(struct flow_offload *flow,
- 	}
- 
- 	flow_tuple->iifidx = other_dst->dev->ifindex;
-+	flow_tuple->xmit_type = route->tuple[dir].xmit_type;
- 	flow_tuple->dst_cache = dst;
- 
- 	return 0;
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index a698dbe28ef5..03314cc06e04 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -220,10 +220,20 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
- 	return true;
- }
- 
--static int nf_flow_offload_dst_check(struct dst_entry *dst)
-+static inline struct dst_entry *
-+nft_flow_dst(struct flow_offload_tuple_rhash *tuplehash)
- {
--	if (unlikely(dst_xfrm(dst)))
-+	return tuplehash->tuple.dst_cache;
-+}
-+
-+static int nf_flow_offload_dst_check(struct flow_offload_tuple_rhash *tuplehash)
-+{
-+	struct dst_entry *dst;
-+
-+	if (unlikely(tuplehash->tuple.xmit_type == FLOW_OFFLOAD_XMIT_XFRM)) {
-+		dst = nft_flow_dst(tuplehash);
- 		return dst_check(dst, 0) ? 0 : -1;
-+	}
- 
- 	return 0;
- }
-@@ -265,8 +275,6 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 
- 	dir = tuplehash->tuple.dir;
- 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
--	rt = (struct rtable *)flow->tuplehash[dir].tuple.dst_cache;
--	outdev = rt->dst.dev;
- 
- 	if (unlikely(nf_flow_exceeds_mtu(skb, flow->tuplehash[dir].tuple.mtu)))
- 		return NF_ACCEPT;
-@@ -280,7 +288,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 
- 	flow_offload_refresh(flow_table, flow);
- 
--	if (nf_flow_offload_dst_check(&rt->dst)) {
-+	if (nf_flow_offload_dst_check(tuplehash)) {
- 		flow_offload_teardown(flow);
- 		return NF_ACCEPT;
- 	}
-@@ -295,13 +303,16 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 	if (flow_table->flags & NF_FLOWTABLE_COUNTER)
- 		nf_ct_acct_update(flow->ct, tuplehash->tuple.dir, skb->len);
- 
--	if (unlikely(dst_xfrm(&rt->dst))) {
-+	rt = (struct rtable *)tuplehash->tuple.dst_cache;
-+
-+	if (unlikely(tuplehash->tuple.xmit_type == FLOW_OFFLOAD_XMIT_XFRM)) {
- 		memset(skb->cb, 0, sizeof(struct inet_skb_parm));
- 		IPCB(skb)->iif = skb->dev->ifindex;
- 		IPCB(skb)->flags = IPSKB_FORWARDED;
- 		return nf_flow_xmit_xfrm(skb, state, &rt->dst);
- 	}
- 
-+	outdev = rt->dst.dev;
- 	skb->dev = outdev;
- 	nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
- 	skb_dst_set_noref(skb, &rt->dst);
-@@ -506,8 +517,6 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 
- 	dir = tuplehash->tuple.dir;
- 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
--	rt = (struct rt6_info *)flow->tuplehash[dir].tuple.dst_cache;
--	outdev = rt->dst.dev;
- 
- 	if (unlikely(nf_flow_exceeds_mtu(skb, flow->tuplehash[dir].tuple.mtu)))
- 		return NF_ACCEPT;
-@@ -518,7 +527,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 
- 	flow_offload_refresh(flow_table, flow);
- 
--	if (nf_flow_offload_dst_check(&rt->dst)) {
-+	if (nf_flow_offload_dst_check(tuplehash)) {
- 		flow_offload_teardown(flow);
- 		return NF_ACCEPT;
- 	}
-@@ -536,13 +545,16 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 	if (flow_table->flags & NF_FLOWTABLE_COUNTER)
- 		nf_ct_acct_update(flow->ct, tuplehash->tuple.dir, skb->len);
- 
--	if (unlikely(dst_xfrm(&rt->dst))) {
-+	rt = (struct rt6_info *)tuplehash->tuple.dst_cache;
-+
-+	if (unlikely(tuplehash->tuple.xmit_type == FLOW_OFFLOAD_XMIT_NEIGH)) {
- 		memset(skb->cb, 0, sizeof(struct inet6_skb_parm));
- 		IP6CB(skb)->iif = skb->dev->ifindex;
- 		IP6CB(skb)->flags = IP6SKB_FORWARDED;
- 		return nf_flow_xmit_xfrm(skb, state, &rt->dst);
- 	}
- 
-+	outdev = rt->dst.dev;
- 	skb->dev = outdev;
- 	nexthop = rt6_nexthop(rt, &flow->tuplehash[!dir].tuple.src_v6);
- 	skb_dst_set_noref(skb, &rt->dst);
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 3a6c84fb2c90..1da2bb24f6c0 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -19,6 +19,22 @@ struct nft_flow_offload {
- 	struct nft_flowtable	*flowtable;
- };
- 
-+static enum flow_offload_xmit_type nft_xmit_type(struct dst_entry *dst)
-+{
-+	if (dst_xfrm(dst))
-+		return FLOW_OFFLOAD_XMIT_XFRM;
-+
-+	return FLOW_OFFLOAD_XMIT_NEIGH;
-+}
-+
-+static void nft_default_forward_path(struct nf_flow_route *route,
-+				     struct dst_entry *dst_cache,
-+				     enum ip_conntrack_dir dir)
-+{
-+	route->tuple[dir].dst		= dst_cache;
-+	route->tuple[dir].xmit_type	= nft_xmit_type(dst_cache);
-+}
-+
- static int nft_flow_route(const struct nft_pktinfo *pkt,
- 			  const struct nf_conn *ct,
- 			  struct nf_flow_route *route,
-@@ -44,8 +60,8 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
- 	if (!other_dst)
- 		return -ENOENT;
- 
--	route->tuple[dir].dst		= this_dst;
--	route->tuple[!dir].dst		= other_dst;
-+	nft_default_forward_path(route, this_dst, dir);
-+	nft_default_forward_path(route, other_dst, !dir);
- 
- 	return 0;
- }
+ static struct device_type br_type = {
 -- 
 2.20.1
 
