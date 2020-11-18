@@ -5,50 +5,50 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEB2BC64E69
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1F6EC6379F
 	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Nov 2020 22:30:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 856DB246E1
+	by mail.kernel.org (Postfix) with ESMTP id AE72E246DC
 	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Nov 2020 22:30:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726920AbgKRWaZ (ORCPT
+        id S1727008AbgKRWa1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Nov 2020 17:30:25 -0500
-Received: from correo.us.es ([193.147.175.20]:51216 "EHLO mail.us.es"
+        Wed, 18 Nov 2020 17:30:27 -0500
+Received: from correo.us.es ([193.147.175.20]:51210 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726723AbgKRWaX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Nov 2020 17:30:23 -0500
+        id S1726944AbgKRWaZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 18 Nov 2020 17:30:25 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C8F0B18FDAA
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2020 23:30:21 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 1EB62190C89
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2020 23:30:25 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B8C89DA8FF
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2020 23:30:21 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0F755DA730
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2020 23:30:25 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id AF728DA8FB; Wed, 18 Nov 2020 23:30:21 +0100 (CET)
+        id 024FBDA8FB; Wed, 18 Nov 2020 23:30:25 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 86E33DA8F3;
-        Wed, 18 Nov 2020 23:30:19 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B30CCDA704;
+        Wed, 18 Nov 2020 23:30:22 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 18 Nov 2020 23:30:19 +0100 (CET)
+ Wed, 18 Nov 2020 23:30:22 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from localhost.localdomain (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPSA id 432BF42514A8;
-        Wed, 18 Nov 2020 23:30:19 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPSA id 70A7442514A8;
+        Wed, 18 Nov 2020 23:30:22 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         razor@blackwall.org, tobias@waldekranz.com, jeremy@azazel.net
-Subject: [PATCH net-next,v4 5/9] bridge: resolve forwarding path for bridge devices
-Date:   Wed, 18 Nov 2020 23:30:07 +0100
-Message-Id: <20201118223011.3216-6-pablo@netfilter.org>
+Subject: [PATCH net-next,v4 9/9] selftests: netfilter: flowtable bridge and VLAN support
+Date:   Wed, 18 Nov 2020 23:30:11 +0100
+Message-Id: <20201118223011.3216-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20201118223011.3216-1-pablo@netfilter.org>
 References: <20201118223011.3216-1-pablo@netfilter.org>
@@ -59,74 +59,115 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add .ndo_fill_forward_path for bridge devices.
+This patch adds two new tests to cover bridge and VLAN support:
+
+- Add a bridge device to the Router1 (nsr1) container and attach the
+  veth0 device to the bridge. Set the IP address to the bridge device
+  to exercise the bridge forwarding path.
+
+- Add VLAN encapsulation between to the bridge device in the Router1 and
+  one of the sender containers (ns1).
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v4: - Check for valid bridge dst pointer after READ_ONCE, per Nikolay
-      Aleksandrov.
+v4: no changes.
 
- include/linux/netdevice.h |  1 +
- net/bridge/br_device.c    | 27 +++++++++++++++++++++++++++
- 2 files changed, 28 insertions(+)
+ .../selftests/netfilter/nft_flowtable.sh      | 82 +++++++++++++++++++
+ 1 file changed, 82 insertions(+)
 
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index e9690e1a6559..281551c70536 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -836,6 +836,7 @@ typedef u16 (*select_queue_fallback_t)(struct net_device *dev,
- enum net_device_path_type {
- 	DEV_PATH_ETHERNET = 0,
- 	DEV_PATH_VLAN,
-+	DEV_PATH_BRIDGE,
- };
+diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
+index 431296c0f91c..427d94816f2d 100755
+--- a/tools/testing/selftests/netfilter/nft_flowtable.sh
++++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
+@@ -371,6 +371,88 @@ else
+ 	ip netns exec nsr1 nft list ruleset
+ fi
  
- struct net_device_path {
-diff --git a/net/bridge/br_device.c b/net/bridge/br_device.c
-index 387403931a63..ce03d82e384a 100644
---- a/net/bridge/br_device.c
-+++ b/net/bridge/br_device.c
-@@ -391,6 +391,32 @@ static int br_del_slave(struct net_device *dev, struct net_device *slave_dev)
- 	return br_del_if(br, slave_dev);
- }
- 
-+static int br_fill_forward_path(struct net_device_path_ctx *ctx,
-+				struct net_device_path *path)
-+{
-+	struct net_bridge_fdb_entry *f;
-+	struct net_bridge_port *dst;
-+	struct net_bridge *br;
++# Another test:
++# Add bridge interface br0 to Router1, with NAT enabled.
++ip -net nsr1 link add name br0 type bridge
++ip -net nsr1 addr flush dev veth0
++ip -net nsr1 link set up dev veth0
++ip -net nsr1 link set veth0 master br0
++ip -net nsr1 addr add 10.0.1.1/24 dev br0
++ip -net nsr1 addr add dead:1::1/64 dev br0
++ip -net nsr1 link set up dev br0
 +
-+	if (netif_is_bridge_port(ctx->dev))
-+		return -1;
++ip netns exec nsr1 sysctl net.ipv4.conf.br0.forwarding=1 > /dev/null
 +
-+	br = netdev_priv(ctx->dev);
-+	f = br_fdb_find_rcu(br, ctx->daddr, 0);
-+	if (!f || !f->dst)
-+		return -1;
++# br0 with NAT enabled.
++ip netns exec nsr1 nft -f - <<EOF
++flush table ip nat
++table ip nat {
++   chain prerouting {
++      type nat hook prerouting priority 0; policy accept;
++      meta iif "br0" ip daddr 10.6.6.6 tcp dport 1666 counter dnat ip to 10.0.2.99:12345
++   }
 +
-+	dst = READ_ONCE(f->dst);
-+	if (!dst)
-+		return -1;
-+
-+	path->type = DEV_PATH_BRIDGE;
-+	path->dev = dst->br->dev;
-+	ctx->dev = dst->dev;
-+
-+	return 0;
++   chain postrouting {
++      type nat hook postrouting priority 0; policy accept;
++      meta oifname "veth1" counter masquerade
++   }
 +}
++EOF
 +
- static const struct ethtool_ops br_ethtool_ops = {
- 	.get_drvinfo		 = br_getinfo,
- 	.get_link		 = ethtool_op_get_link,
-@@ -425,6 +451,7 @@ static const struct net_device_ops br_netdev_ops = {
- 	.ndo_bridge_setlink	 = br_setlink,
- 	.ndo_bridge_dellink	 = br_dellink,
- 	.ndo_features_check	 = passthru_features_check,
-+	.ndo_fill_forward_path	 = br_fill_forward_path,
- };
- 
- static struct device_type br_type = {
++if test_tcp_forwarding_nat ns1 ns2; then
++	echo "PASS: flow offloaded for ns1/ns2 with bridge NAT"
++else
++	echo "FAIL: flow offload for ns1/ns2 with bridge NAT" 1>&2
++	ip netns exec nsr1 nft list ruleset
++	ret=1
++fi
++
++# Another test:
++# Add bridge interface br0 to Router1, with NAT and VLAN.
++ip -net nsr1 link set veth0 nomaster
++ip -net nsr1 link set down dev veth0
++ip -net nsr1 link add link veth0 name veth0.10 type vlan id 10
++ip -net nsr1 link set up dev veth0
++ip -net nsr1 link set up dev veth0.10
++ip -net nsr1 link set veth0.10 master br0
++
++ip -net ns1 addr flush dev eth0
++ip -net ns1 link add link eth0 name eth0.10 type vlan id 10
++ip -net ns1 link set eth0 up
++ip -net ns1 link set eth0.10 up
++ip -net ns1 addr add 10.0.1.99/24 dev eth0.10
++ip -net ns1 route add default via 10.0.1.1
++ip -net ns1 addr add dead:1::99/64 dev eth0.10
++
++if test_tcp_forwarding_nat ns1 ns2; then
++	echo "PASS: flow offloaded for ns1/ns2 with bridge NAT and VLAN"
++else
++	echo "FAIL: flow offload for ns1/ns2 with bridge NAT and VLAN" 1>&2
++	ip netns exec nsr1 nft list ruleset
++	ret=1
++fi
++
++# restore test topology (remove bridge and VLAN)
++ip -net nsr1 link set veth0 nomaster
++ip -net nsr1 link set veth0 down
++ip -net nsr1 link set veth0.10 down
++ip -net nsr1 link delete veth0.10 type vlan
++ip -net nsr1 link delete br0 type bridge
++ip -net ns1 addr flush dev eth0.10
++ip -net ns1 link set eth0.10 down
++ip -net ns1 link set eth0 down
++ip -net ns1 link delete eth0.10 type vlan
++
++# restore address in ns1 and nsr1
++ip -net ns1 link set eth0 up
++ip -net ns1 addr add 10.0.1.99/24 dev eth0
++ip -net ns1 route add default via 10.0.1.1
++ip -net ns1 addr add dead:1::99/64 dev eth0
++ip -net ns1 route add default via dead:1::1
++ip -net nsr1 addr add 10.0.1.1/24 dev veth0
++ip -net nsr1 addr add dead:1::1/64 dev veth0
++ip -net nsr1 link set up dev veth0
++
+ KEY_SHA="0x"$(ps -xaf | sha1sum | cut -d " " -f 1)
+ KEY_AES="0x"$(ps -xaf | md5sum | cut -d " " -f 1)
+ SPI1=$RANDOM
 -- 
 2.20.1
 
