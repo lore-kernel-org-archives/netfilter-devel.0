@@ -2,103 +2,60 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1967BC63798
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 10:38:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BA73C388F9
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 12:06:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B2D46246D3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 10:38:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16CC02469D
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 12:06:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726641AbgKSKiQ (ORCPT
+        id S1727155AbgKSMGI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Nov 2020 05:38:16 -0500
-Received: from szxga07-in.huawei.com ([45.249.212.35]:7936 "EHLO
-        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726515AbgKSKiP (ORCPT
+        Thu, 19 Nov 2020 07:06:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41694 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727048AbgKSMGI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Nov 2020 05:38:15 -0500
-Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CcGNN4TCpz6wHs;
-        Thu, 19 Nov 2020 18:37:56 +0800 (CST)
-Received: from huawei.com (10.175.113.133) by DGGEMS402-HUB.china.huawei.com
- (10.3.19.202) with Microsoft SMTP Server id 14.3.487.0; Thu, 19 Nov 2020
- 18:38:10 +0800
-From:   Wang Hai <wanghai38@huawei.com>
-To:     <horms@verge.net.au>, <ja@ssi.bg>, <pablo@netfilter.org>,
-        <kadlec@netfilter.org>, <fw@strlen.de>, <davem@davemloft.net>,
-        <kuba@kernel.org>, <christian@brauner.io>,
-        <hans.schillstrom@ericsson.com>
-CC:     <lvs-devel@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
-        <coreteam@netfilter.org>, <netdev@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-Subject: [PATCH net] ipvs: fix possible memory leak in ip_vs_control_net_init
-Date:   Thu, 19 Nov 2020 18:41:02 +0800
-Message-ID: <20201119104102.67427-1-wanghai38@huawei.com>
-X-Mailer: git-send-email 2.17.1
+        Thu, 19 Nov 2020 07:06:08 -0500
+Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30443C0613CF
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2020 04:06:08 -0800 (PST)
+Received: by a3.inai.de (Postfix, from userid 25121)
+        id 5F29A588CBBD6; Thu, 19 Nov 2020 13:06:05 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+        by a3.inai.de (Postfix) with ESMTP id 5AF0860D8A2E2;
+        Thu, 19 Nov 2020 13:06:05 +0100 (CET)
+Date:   Thu, 19 Nov 2020 13:06:05 +0100 (CET)
+From:   Jan Engelhardt <jengelh@inai.de>
+To:     Philip Prindeville <philipp_subx@redfish-solutions.com>
+cc:     netfilter-devel@vger.kernel.org
+Subject: Re: Issues w/ db-ip country database
+In-Reply-To: <E9387BD8-079E-4E05-B964-4FA7986B47E8@redfish-solutions.com>
+Message-ID: <438q8o9q-p8qq-3969-2561-96915r3q39rp@vanv.qr>
+References: <8B419AF6-031F-4F6A-A3FB-3118780F6119@redfish-solutions.com> <2qp4q17-pqpo-2q0-24r0-q466sro3pp44@vanv.qr> <B6D36DF0-178A-4985-AB85-4BEE2AAD9116@redfish-solutions.com> <548ron6o-rq26-725-rqp4-r0p6n83r36r@vanv.qr> <EC421C64-614D-40CC-B544-40DB2A657EE4@redfish-solutions.com>
+ <E9387BD8-079E-4E05-B964-4FA7986B47E8@redfish-solutions.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.175.113.133]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-kmemleak report a memory leak as follows:
+On Wednesday 2020-11-18 05:02, Philip Prindeville wrote:
+>>> 
+>>>> 212.174.0.0/15 supposedly is a single block of TurkTelecom, but the database
+>>>> shows it as being 296 subnets, mostly /23’s.
+>>> 
+>>> and to add icing, WHOIS has four entries for it.
+>>> 212.174.0.0/17 212.174.128.0/17 212.175.0.0/17 212.175.128.0/17
+>> 
+>> Yeah, I don’t get that either.
+>
+>https://sourceforge.net/u/pprindeville/xtables-addons/ci/revert-to-maxmind/tree/
+>So you can use that until the dust settles and we figure out the discrepancies.
 
-BUG: memory leak
-unreferenced object 0xffff8880759ea000 (size 256):
-comm "syz-executor.3", pid 6484, jiffies 4297476946 (age 48.546s)
-hex dump (first 32 bytes):
-00 00 00 00 01 00 00 00 08 a0 9e 75 80 88 ff ff ...........u....
-08 a0 9e 75 80 88 ff ff 00 00 00 00 ad 4e ad de ...u.........N..
-backtrace:
-[<00000000c0bf2deb>] kmem_cache_zalloc include/linux/slab.h:656 [inline]
-[<00000000c0bf2deb>] __proc_create+0x23d/0x7d0 fs/proc/generic.c:421
-[<000000009d718d02>] proc_create_reg+0x8e/0x140 fs/proc/generic.c:535
-[<0000000097bbfc4f>] proc_create_net_data+0x8c/0x1b0 fs/proc/proc_net.c:126
-[<00000000652480fc>] ip_vs_control_net_init+0x308/0x13a0 net/netfilter/ipvs/ip_vs_ctl.c:4169
-[<000000004c927ebe>] __ip_vs_init+0x211/0x400 net/netfilter/ipvs/ip_vs_core.c:2429
-[<00000000aa6b72d9>] ops_init+0xa8/0x3c0 net/core/net_namespace.c:151
-[<00000000153fd114>] setup_net+0x2de/0x7e0 net/core/net_namespace.c:341
-[<00000000be4e4f07>] copy_net_ns+0x27d/0x530 net/core/net_namespace.c:482
-[<00000000f1c23ec9>] create_new_namespaces+0x382/0xa30 kernel/nsproxy.c:110
-[<00000000098a5757>] copy_namespaces+0x2e6/0x3b0 kernel/nsproxy.c:179
-[<0000000026ce39e9>] copy_process+0x220a/0x5f00 kernel/fork.c:2072
-[<00000000b71f4efe>] _do_fork+0xc7/0xda0 kernel/fork.c:2428
-[<000000002974ee96>] __do_sys_clone3+0x18a/0x280 kernel/fork.c:2703
-[<0000000062ac0a4d>] do_syscall_64+0x33/0x40 arch/x86/entry/common.c:46
-[<0000000093f1ce2c>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
-
-In the error path of ip_vs_control_net_init(), remove_proc_entry() needs
-to be called to remove the added proc entry, otherwise a memory leak
-will occur.
-
-Fixes: b17fc9963f83 ("IPVS: netns, ip_vs_stats and its procfs")
-Fixes: 61b1ab4583e2 ("IPVS: netns, add basic init per netns.")
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Signed-off-by: Wang Hai <wanghai38@huawei.com>
----
- net/netfilter/ipvs/ip_vs_ctl.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index e279ded4e306..d99bb89e7c25 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -4180,6 +4180,9 @@ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
- 	return 0;
- 
- err:
-+	remove_proc_entry("ip_vs_stats_percpu", ipvs->net->proc_net);
-+	remove_proc_entry("ip_vs_stats", ipvs->net->proc_net);
-+	remove_proc_entry("ip_vs", ipvs->net->proc_net);
- 	free_percpu(ipvs->tot_stats.cpustats);
- 	return -ENOMEM;
- }
--- 
-2.17.1
-
+I added them to the main xt-a repo (but xt_geoip_dl_maxmind probably won't do
+much these days).
