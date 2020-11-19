@@ -2,79 +2,89 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12E10C2D0E4
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 13:29:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C073C63697
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 13:32:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB99E22255
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 13:29:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3499F22255
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 13:32:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727189AbgKSN3Z (ORCPT
+        id S1727210AbgKSNco (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Nov 2020 08:29:25 -0500
-Received: from correo.us.es ([193.147.175.20]:56186 "EHLO mail.us.es"
+        Thu, 19 Nov 2020 08:32:44 -0500
+Received: from correo.us.es ([193.147.175.20]:58498 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727134AbgKSN3Z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Nov 2020 08:29:25 -0500
+        id S1727134AbgKSNco (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 19 Nov 2020 08:32:44 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C51471C41DA
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2020 14:29:23 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 910871F0CF7
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2020 14:32:42 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B70A8FC5E7
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2020 14:29:23 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 834F1114D84
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2020 14:32:42 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B127CFC5EC; Thu, 19 Nov 2020 14:29:23 +0100 (CET)
+        id 68A2E114D89; Thu, 19 Nov 2020 14:32:42 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 969A4DA73F;
-        Thu, 19 Nov 2020 14:29:21 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0D53F114D67;
+        Thu, 19 Nov 2020 14:32:40 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 19 Nov 2020 14:29:21 +0100 (CET)
+ Thu, 19 Nov 2020 14:32:40 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 73EAA42EF4E0;
-        Thu, 19 Nov 2020 14:29:21 +0100 (CET)
-Date:   Thu, 19 Nov 2020 14:29:21 +0100
+        by entrada.int (Postfix) with ESMTPSA id D775942EF4E1;
+        Thu, 19 Nov 2020 14:32:39 +0100 (CET)
+Date:   Thu, 19 Nov 2020 14:32:39 +0100
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Eric Dumazet <eric.dumazet@gmail.com>
-Cc:     Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        syzbot <syzkaller@googlegroups.com>
-Subject: Re: [PATCH net] netfilter: ipset: prevent uninit-value in
- hash_ip6_add
-Message-ID: <20201119132921.GA21910@salvia>
-References: <20201119095932.1962839-1-eric.dumazet@gmail.com>
+To:     Georg Kohmann <geokohma@cisco.com>
+Cc:     netdev@vger.kernel.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
+        kuba@kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, rdunlap@infradead.org
+Subject: Re: [PATCH net v2] ipv6: Remove dependency of
+ ipv6_frag_thdr_truncated on ipv6 module
+Message-ID: <20201119133239.GA22069@salvia>
+References: <20201119095833.8409-1-geokohma@cisco.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20201119095932.1962839-1-eric.dumazet@gmail.com>
+In-Reply-To: <20201119095833.8409-1-geokohma@cisco.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Nov 19, 2020 at 01:59:32AM -0800, Eric Dumazet wrote:
-> From: Eric Dumazet <edumazet@google.com>
+On Thu, Nov 19, 2020 at 10:58:33AM +0100, Georg Kohmann wrote:
+> IPV6=m
+> NF_DEFRAG_IPV6=y
 > 
-> syzbot found that we are not validating user input properly
-> before copying 16 bytes [1].
+> ld: net/ipv6/netfilter/nf_conntrack_reasm.o: in function
+> `nf_ct_frag6_gather':
+> net/ipv6/netfilter/nf_conntrack_reasm.c:462: undefined reference to
+> `ipv6_frag_thdr_truncated'
 > 
-> Using NLA_BINARY in ipaddr_policy[] for IPv6 address is not correct,
-> since it ensures at most 16 bytes were provided.
+> Netfilter is depending on ipv6 symbol ipv6_frag_thdr_truncated. This
+> dependency is forcing IPV6=y.
 > 
-> We should instead make sure user provided exactly 16 bytes.
+> Remove this dependency by moving ipv6_frag_thdr_truncated out of ipv6. This
+> is the same solution as used with a similar issues: Referring to
+> commit 70b095c843266 ("ipv6: remove dependency of nf_defrag_ipv6 on ipv6
+> module")
 > 
-> In old kernels (before v4.20), fix would be to remove the NLA_BINARY,
-> since NLA_POLICY_EXACT_LEN() was not yet available.
+> Fixes: 9d9e937b1c8b ("ipv6/netfilter: Discard first fragment not including all headers")
+> Reported-by: Randy Dunlap <rdunlap@infradead.org>
+> Reported-by: kernel test robot <lkp@intel.com>
+> Signed-off-by: Georg Kohmann <geokohma@cisco.com>
 
-Applied, thanks.
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+Thanks.
