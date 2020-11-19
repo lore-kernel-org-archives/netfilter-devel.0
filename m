@@ -2,139 +2,74 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 442A4C6379D
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 18:23:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C21AAC6379F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 19:00:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ED91F22201
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 18:23:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6136224655
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 19:00:20 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="j8nwrkTy"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729004AbgKSSWo (ORCPT
+        id S1727930AbgKSTAH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Nov 2020 13:22:44 -0500
-Received: from mg.ssi.bg ([178.16.128.9]:39778 "EHLO mg.ssi.bg"
+        Thu, 19 Nov 2020 14:00:07 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60180 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727881AbgKSSWn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Nov 2020 13:22:43 -0500
-Received: from mg.ssi.bg (localhost [127.0.0.1])
-        by mg.ssi.bg (Proxmox) with ESMTP id 1B7DBEFAB;
-        Thu, 19 Nov 2020 20:22:41 +0200 (EET)
-Received: from ink.ssi.bg (ink.ssi.bg [178.16.128.7])
-        by mg.ssi.bg (Proxmox) with ESMTP id 52838EF23;
-        Thu, 19 Nov 2020 20:22:39 +0200 (EET)
-Received: from ja.ssi.bg (unknown [178.16.129.10])
-        by ink.ssi.bg (Postfix) with ESMTPS id B8BA13C0332;
-        Thu, 19 Nov 2020 20:22:33 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id 0AJIMUmD008429;
-        Thu, 19 Nov 2020 20:22:32 +0200
-Date:   Thu, 19 Nov 2020 20:22:30 +0200 (EET)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Wang Hai <wanghai38@huawei.com>
-cc:     horms@verge.net.au, pablo@netfilter.org, kadlec@netfilter.org,
-        fw@strlen.de, davem@davemloft.net, kuba@kernel.org,
-        christian@brauner.io, hans.schillstrom@ericsson.com,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net] ipvs: fix possible memory leak in
- ip_vs_control_net_init
-In-Reply-To: <20201119104102.67427-1-wanghai38@huawei.com>
-Message-ID: <f111e78-b9c1-453-c6e5-a063e62cd83b@ssi.bg>
-References: <20201119104102.67427-1-wanghai38@huawei.com>
+        id S1727292AbgKSTAG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 19 Nov 2020 14:00:06 -0500
+Content-Type: text/plain; charset="utf-8"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1605812406;
+        bh=awsBQKIb9yz8PNPsnrGB++344Ac/GiSnUsOxKtArYHk=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=j8nwrkTyXieELSrHH4IkmP8D+MeHZjmvamx1NZxXuXg0sbelq19uW7JnXMUhdoEX5
+         B8iD13BFmaogQuc8pxetuvpTAKZ1A75CcN+pjZvIHOL9jfaMiT+UuB4bOgCp2lOt8r
+         54U07H0Pvyprv8w8VbWZ6mP/T02gZ5NsUGCzqiwo=
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net v2] ipv6: Remove dependency of ipv6_frag_thdr_truncated on
+ ipv6 module
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <160581240611.6156.2848486844975021359.git-patchwork-notify@kernel.org>
+Date:   Thu, 19 Nov 2020 19:00:06 +0000
+References: <20201119095833.8409-1-geokohma@cisco.com>
+In-Reply-To: <20201119095833.8409-1-geokohma@cisco.com>
+To:     Georg Kohmann <geokohma@cisco.com>
+Cc:     netdev@vger.kernel.org, pablo@netfilter.org, kadlec@netfilter.org,
+        fw@strlen.de, davem@davemloft.net, kuznet@ms2.inr.ac.ru,
+        yoshfuji@linux-ipv6.org, kuba@kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        rdunlap@infradead.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hello:
 
-	Hello,
+This patch was applied to netdev/net.git (refs/heads/master):
 
-On Thu, 19 Nov 2020, Wang Hai wrote:
-
-> kmemleak report a memory leak as follows:
+On Thu, 19 Nov 2020 10:58:33 +0100 you wrote:
+> IPV6=m
+> NF_DEFRAG_IPV6=y
 > 
-> BUG: memory leak
-> unreferenced object 0xffff8880759ea000 (size 256):
-> comm "syz-executor.3", pid 6484, jiffies 4297476946 (age 48.546s)
-> hex dump (first 32 bytes):
-> 00 00 00 00 01 00 00 00 08 a0 9e 75 80 88 ff ff ...........u....
-> 08 a0 9e 75 80 88 ff ff 00 00 00 00 ad 4e ad de ...u.........N..
-> backtrace:
-> [<00000000c0bf2deb>] kmem_cache_zalloc include/linux/slab.h:656 [inline]
-> [<00000000c0bf2deb>] __proc_create+0x23d/0x7d0 fs/proc/generic.c:421
-> [<000000009d718d02>] proc_create_reg+0x8e/0x140 fs/proc/generic.c:535
-> [<0000000097bbfc4f>] proc_create_net_data+0x8c/0x1b0 fs/proc/proc_net.c:126
-> [<00000000652480fc>] ip_vs_control_net_init+0x308/0x13a0 net/netfilter/ipvs/ip_vs_ctl.c:4169
-> [<000000004c927ebe>] __ip_vs_init+0x211/0x400 net/netfilter/ipvs/ip_vs_core.c:2429
-> [<00000000aa6b72d9>] ops_init+0xa8/0x3c0 net/core/net_namespace.c:151
-> [<00000000153fd114>] setup_net+0x2de/0x7e0 net/core/net_namespace.c:341
-> [<00000000be4e4f07>] copy_net_ns+0x27d/0x530 net/core/net_namespace.c:482
-> [<00000000f1c23ec9>] create_new_namespaces+0x382/0xa30 kernel/nsproxy.c:110
-> [<00000000098a5757>] copy_namespaces+0x2e6/0x3b0 kernel/nsproxy.c:179
-> [<0000000026ce39e9>] copy_process+0x220a/0x5f00 kernel/fork.c:2072
-> [<00000000b71f4efe>] _do_fork+0xc7/0xda0 kernel/fork.c:2428
-> [<000000002974ee96>] __do_sys_clone3+0x18a/0x280 kernel/fork.c:2703
-> [<0000000062ac0a4d>] do_syscall_64+0x33/0x40 arch/x86/entry/common.c:46
-> [<0000000093f1ce2c>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
+> ld: net/ipv6/netfilter/nf_conntrack_reasm.o: in function
+> `nf_ct_frag6_gather':
+> net/ipv6/netfilter/nf_conntrack_reasm.c:462: undefined reference to
+> `ipv6_frag_thdr_truncated'
 > 
-> In the error path of ip_vs_control_net_init(), remove_proc_entry() needs
-> to be called to remove the added proc entry, otherwise a memory leak
-> will occur.
-> 
-> Fixes: b17fc9963f83 ("IPVS: netns, ip_vs_stats and its procfs")
-> Fixes: 61b1ab4583e2 ("IPVS: netns, add basic init per netns.")
-> Reported-by: Hulk Robot <hulkci@huawei.com>
-> Signed-off-by: Wang Hai <wanghai38@huawei.com>
-> ---
->  net/netfilter/ipvs/ip_vs_ctl.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index e279ded4e306..d99bb89e7c25 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -4180,6 +4180,9 @@ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
->  	return 0;
+> [...]
 
-	May be we should add some #ifdef CONFIG_PROC_FS because
-proc_create_net* return NULL when PROC is not used. For example:
+Here is the summary with links:
+  - [net,v2] ipv6: Remove dependency of ipv6_frag_thdr_truncated on ipv6 module
+    https://git.kernel.org/netdev/net/c/2d8f6481c17d
 
-#ifdef CONFIG_PROC_FS
-	if (!proc_create_net...
-		goto err_vs;
-	if (!proc_create_net...
-		goto err_stats;
-	...
-#endif
-	...
-
->  err:
-
-#ifdef CONFIG_PROC_FS
-> +	remove_proc_entry("ip_vs_stats_percpu", ipvs->net->proc_net);
-
-err_percpu:
-> +	remove_proc_entry("ip_vs_stats", ipvs->net->proc_net);
-
-err_stats:
-> +	remove_proc_entry("ip_vs", ipvs->net->proc_net);
-
-err_vs:
-#endif
-
->  	free_percpu(ipvs->tot_stats.cpustats);
->  	return -ENOMEM;
->  }
-> -- 
-
-Regards
-
+You are awesome, thank you!
 --
-Julian Anastasov <ja@ssi.bg>
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
