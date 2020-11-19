@@ -2,112 +2,207 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-26.2 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 764ACC56201
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 08:16:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA554C2D0E4
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 09:59:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0709D246BB
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 08:16:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 76AD3221FE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 09:59:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=tessares-net.20150623.gappssmtp.com header.i=@tessares-net.20150623.gappssmtp.com header.b="1pzoHtWy"
+	dkim=pass (1024-bit key) header.d=cisco.com header.i=@cisco.com header.b="iBewRdPj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726287AbgKSIQH (ORCPT
+        id S1727058AbgKSJ6n (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Nov 2020 03:16:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34418 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725813AbgKSIQH (ORCPT
+        Thu, 19 Nov 2020 04:58:43 -0500
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:38034 "EHLO
+        aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726641AbgKSJ6m (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Nov 2020 03:16:07 -0500
-Received: from mail-ed1-x530.google.com (mail-ed1-x530.google.com [IPv6:2a00:1450:4864:20::530])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0EE9C0613D4
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2020 00:16:06 -0800 (PST)
-Received: by mail-ed1-x530.google.com with SMTP id t9so4879299edq.8
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2020 00:16:06 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=tessares-net.20150623.gappssmtp.com; s=20150623;
-        h=to:cc:references:from:subject:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=0N03fUfoN8yfl3q/oDJDvpvzt8NJMQouo/L6XzQZyqE=;
-        b=1pzoHtWyRoTkv4lqbFhi5pTwVfsmr0MSDurmgfcXMgBob/7SAGtVi24jGa5GrmG2rs
-         r3ceIE/MYG/nfTYlUgkNsnd/qXHMLdF5rh0bK04g0degO5jT43dTT9tJZw/NOjdOd6lk
-         PC4rf1+BHegMRRYpO08FN56xpg0Fer7FHMlDtzQ7efTyN92wqFdp2io92c1WXYB4i/Hl
-         XQhpI1HAu8tfHjRXVk9n4oXtuGjlw6FHVcnO6zpNbFPfrQ/7ZrxPa8KnzuXF0dgr6vRV
-         +llHTbCOd6xqIzKGF9WPIIgq7YCeVJQtsBWBYVbQLpd6F1a7NBzqKtQJRicVuqFIUotN
-         xQXA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:to:cc:references:from:subject:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=0N03fUfoN8yfl3q/oDJDvpvzt8NJMQouo/L6XzQZyqE=;
-        b=CWtXVanfnc5SkUrgwdgFrOfht1Zegs8Ixw/fUmfvbHAGV4ZG/wr/Jnskz3s77J4jVC
-         eJNZUxqRJSr1NHMClDgiallJo9ysNhi4iSwmLOiDCo50/CVjLbm0RvGF8A1SnB9Awp03
-         Gauak/6NuEeThC7jrF7Aq+msoFK1FPAcUF6l/KOTElX17gZcDeGaSRw1isQKUt7YnhVu
-         B9e7KJTC/hyqvAlK5Ze5XnF/ueNdB9yRHwCkXgFLZ+ebAIkYk5hAnhrgBP9Sl42QIabA
-         r+5VChygIkI/RewnP4s3iNShywTD54gNd96L1iXp/lMwLVn5knbecMqiVV29I/R1OQqJ
-         qUzg==
-X-Gm-Message-State: AOAM5329LhtqqvGIOTvjT9Kw9FddrIRvs9WPQxuTRbrWSNYn1FSSJZgs
-        Oambv++yZNzpaI5dkUxg3gL9dA==
-X-Google-Smtp-Source: ABdhPJzCyLol7tDRuOKIesbLbReSC+eycr32hWVDSpLjGpuMpF1hcZXdQ22LcclRTimvBOOCNCvyAg==
-X-Received: by 2002:a50:a845:: with SMTP id j63mr30780645edc.32.1605773765277;
-        Thu, 19 Nov 2020 00:16:05 -0800 (PST)
-Received: from tsr-lap-08.nix.tessares.net ([2a02:578:85b0:e00:f696:2fcd:4e91:8958])
-        by smtp.gmail.com with ESMTPSA id y4sm14658940edr.20.2020.11.19.00.16.03
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 19 Nov 2020 00:16:04 -0800 (PST)
-To:     Naresh Kamboju <naresh.kamboju@linaro.org>,
-        Netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
-        "open list:KERNEL SELFTEST FRAMEWORK" 
-        <linux-kselftest@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        lkft-triage@lists.linaro.org, mptcp@lists.01.org
-Cc:     Shuah Khan <shuah@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
-        Geliang Tang <geliangtang@gmail.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Paolo Abeni <pabeni@redhat.com>
-References: <CA+G9fYvkRAKBzthvdurQ44q_f9HimG2ur9+M=bgyZ0c+XWucgg@mail.gmail.com>
-From:   Matthieu Baerts <matthieu.baerts@tessares.net>
-Subject: Re: [MPTCP] WARNING: net/mptcp/protocol.c:719
- mptcp_reset_timer+0x40/0x50
-Message-ID: <67f05a8c-d582-1748-bf74-9fa9a761427b@tessares.net>
-Date:   Thu, 19 Nov 2020 09:16:02 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.4.3
-MIME-Version: 1.0
-In-Reply-To: <CA+G9fYvkRAKBzthvdurQ44q_f9HimG2ur9+M=bgyZ0c+XWucgg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+        Thu, 19 Nov 2020 04:58:42 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=cisco.com; i=@cisco.com; l=4745; q=dns/txt; s=iport;
+  t=1605779921; x=1606989521;
+  h=from:to:cc:subject:date:message-id;
+  bh=XpH5Llq5yqOXzUfAm72xjR7OmEhimEezllApczko3xg=;
+  b=iBewRdPjFqN4VQdesa5jmEv/I95NGVxPhlzWMd/A2L+S12wiM+TqF+zI
+   4Vf4e0JYwOvobsq/jnJVtcU2GifP8SxTDCa4VenFwZ+nm3ZwM4WBFu/Gc
+   RuiGyZAQmFFwA+6kDgNwDfXQ5Km6UjrGbE6BkCslO2YP3Q6XbzdJ0pCvO
+   Q=;
+X-IronPort-AV: E=Sophos;i="5.77,490,1596499200"; 
+   d="scan'208";a="31245973"
+Received: from aer-iport-nat.cisco.com (HELO aer-core-1.cisco.com) ([173.38.203.22])
+  by aer-iport-2.cisco.com with ESMTP/TLS/DHE-RSA-SEED-SHA; 19 Nov 2020 09:58:40 +0000
+Received: from rdbuild16.cisco.com.rd.cisco.com (rdbuild16.cisco.com [10.47.15.16])
+        by aer-core-1.cisco.com (8.15.2/8.15.2) with ESMTP id 0AJ9wd5u019107;
+        Thu, 19 Nov 2020 09:58:39 GMT
+From:   Georg Kohmann <geokohma@cisco.com>
+To:     netdev@vger.kernel.org
+Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
+        kuba@kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, rdunlap@infradead.org,
+        Georg Kohmann <geokohma@cisco.com>
+Subject: [PATCH net v2] ipv6: Remove dependency of ipv6_frag_thdr_truncated on ipv6 module
+Date:   Thu, 19 Nov 2020 10:58:33 +0100
+Message-Id: <20201119095833.8409-1-geokohma@cisco.com>
+X-Mailer: git-send-email 2.10.2
+X-Outbound-SMTP-Client: 10.47.15.16, rdbuild16.cisco.com
+X-Outbound-Node: aer-core-1.cisco.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Naresh,
+IPV6=m
+NF_DEFRAG_IPV6=y
 
-On 19/11/2020 08:04, Naresh Kamboju wrote:
-> While running kselftest net/mptcp: mptcp_join.sh on x86_64 device running
-> linux next 20201118 tag the following warning was noticed.
+ld: net/ipv6/netfilter/nf_conntrack_reasm.o: in function
+`nf_ct_frag6_gather':
+net/ipv6/netfilter/nf_conntrack_reasm.c:462: undefined reference to
+`ipv6_frag_thdr_truncated'
 
-Thank you for testing MPTCP and having reported this bug!
+Netfilter is depending on ipv6 symbol ipv6_frag_thdr_truncated. This
+dependency is forcing IPV6=y.
 
-It looks like it is similar to what syzbot reported yesterday:
+Remove this dependency by moving ipv6_frag_thdr_truncated out of ipv6. This
+is the same solution as used with a similar issues: Referring to
+commit 70b095c843266 ("ipv6: remove dependency of nf_defrag_ipv6 on ipv6
+module")
 
-https://lists.01.org/hyperkitty/list/mptcp@lists.01.org/thread/N4IWIL6CYR6VSOOOXF25N3EWDW4GTQ6A/
+Fixes: 9d9e937b1c8b ("ipv6/netfilter: Discard first fragment not including all headers")
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Signed-off-by: Georg Kohmann <geokohma@cisco.com>
+---
 
-If it is the same, a patch has already been sent to netdev ML:
+Notes:
+    v2: Add Fixes tag and fix spelling in comment.
 
-https://patchwork.kernel.org/project/netdevbpf/patch/1a72039f112cae048c44d398ffa14e0a1432db3d.1605737083.git.pabeni@redhat.com/
+ include/net/ipv6.h                      |  2 --
+ include/net/ipv6_frag.h                 | 30 ++++++++++++++++++++++++++++++
+ net/ipv6/netfilter/nf_conntrack_reasm.c |  2 +-
+ net/ipv6/reassembly.c                   | 31 +------------------------------
+ 4 files changed, 32 insertions(+), 33 deletions(-)
 
-If it is easy for you to reproduce the issue, please feel free to 
-validate Paolo's patch :)
-
-Cheers,
-Matt
+diff --git a/include/net/ipv6.h b/include/net/ipv6.h
+index 637cc6d..bd1f396 100644
+--- a/include/net/ipv6.h
++++ b/include/net/ipv6.h
+@@ -1064,8 +1064,6 @@ int ipv6_skip_exthdr(const struct sk_buff *, int start, u8 *nexthdrp,
+ 
+ bool ipv6_ext_hdr(u8 nexthdr);
+ 
+-bool ipv6_frag_thdr_truncated(struct sk_buff *skb, int start, u8 *nexthdrp);
+-
+ enum {
+ 	IP6_FH_F_FRAG		= (1 << 0),
+ 	IP6_FH_F_AUTH		= (1 << 1),
+diff --git a/include/net/ipv6_frag.h b/include/net/ipv6_frag.h
+index a21e8b1..851029e 100644
+--- a/include/net/ipv6_frag.h
++++ b/include/net/ipv6_frag.h
+@@ -108,5 +108,35 @@ ip6frag_expire_frag_queue(struct net *net, struct frag_queue *fq)
+ 	rcu_read_unlock();
+ 	inet_frag_put(&fq->q);
+ }
++
++/* Check if the upper layer header is truncated in the first fragment. */
++static inline bool
++ipv6frag_thdr_truncated(struct sk_buff *skb, int start, u8 *nexthdrp)
++{
++	u8 nexthdr = *nexthdrp;
++	__be16 frag_off;
++	int offset;
++
++	offset = ipv6_skip_exthdr(skb, start, &nexthdr, &frag_off);
++	if (offset < 0 || (frag_off & htons(IP6_OFFSET)))
++		return false;
++	switch (nexthdr) {
++	case NEXTHDR_TCP:
++		offset += sizeof(struct tcphdr);
++		break;
++	case NEXTHDR_UDP:
++		offset += sizeof(struct udphdr);
++		break;
++	case NEXTHDR_ICMP:
++		offset += sizeof(struct icmp6hdr);
++		break;
++	default:
++		offset += 1;
++	}
++	if (offset > skb->len)
++		return true;
++	return false;
++}
++
+ #endif
+ #endif
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index b9cc0b3..c129ad3 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -459,7 +459,7 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+ 	/* Discard the first fragment if it does not include all headers
+ 	 * RFC 8200, Section 4.5
+ 	 */
+-	if (ipv6_frag_thdr_truncated(skb, fhoff, &nexthdr)) {
++	if (ipv6frag_thdr_truncated(skb, fhoff, &nexthdr)) {
+ 		pr_debug("Drop incomplete fragment\n");
+ 		return 0;
+ 	}
+diff --git a/net/ipv6/reassembly.c b/net/ipv6/reassembly.c
+index e3869ba..47a0dc4 100644
+--- a/net/ipv6/reassembly.c
++++ b/net/ipv6/reassembly.c
+@@ -318,35 +318,6 @@ static int ip6_frag_reasm(struct frag_queue *fq, struct sk_buff *skb,
+ 	return -1;
+ }
+ 
+-/* Check if the upper layer header is truncated in the first fragment. */
+-bool ipv6_frag_thdr_truncated(struct sk_buff *skb, int start, u8 *nexthdrp)
+-{
+-	u8 nexthdr = *nexthdrp;
+-	__be16 frag_off;
+-	int offset;
+-
+-	offset = ipv6_skip_exthdr(skb, start, &nexthdr, &frag_off);
+-	if (offset < 0 || (frag_off & htons(IP6_OFFSET)))
+-		return false;
+-	switch (nexthdr) {
+-	case NEXTHDR_TCP:
+-		offset += sizeof(struct tcphdr);
+-		break;
+-	case NEXTHDR_UDP:
+-		offset += sizeof(struct udphdr);
+-		break;
+-	case NEXTHDR_ICMP:
+-		offset += sizeof(struct icmp6hdr);
+-		break;
+-	default:
+-		offset += 1;
+-	}
+-	if (offset > skb->len)
+-		return true;
+-	return false;
+-}
+-EXPORT_SYMBOL(ipv6_frag_thdr_truncated);
+-
+ static int ipv6_frag_rcv(struct sk_buff *skb)
+ {
+ 	struct frag_hdr *fhdr;
+@@ -390,7 +361,7 @@ static int ipv6_frag_rcv(struct sk_buff *skb)
+ 	 * the source of the fragment, with the Pointer field set to zero.
+ 	 */
+ 	nexthdr = hdr->nexthdr;
+-	if (ipv6_frag_thdr_truncated(skb, skb_transport_offset(skb), &nexthdr)) {
++	if (ipv6frag_thdr_truncated(skb, skb_transport_offset(skb), &nexthdr)) {
+ 		__IP6_INC_STATS(net, __in6_dev_get_safely(skb->dev),
+ 				IPSTATS_MIB_INHDRERRORS);
+ 		icmpv6_param_prob(skb, ICMPV6_HDR_INCOMP, 0);
 -- 
-Tessares | Belgium | Hybrid Access Solutions
-www.tessares.net
+2.10.2
+
