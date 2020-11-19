@@ -2,89 +2,80 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C073C63697
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 13:32:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8B00C56201
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 15:35:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3499F22255
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 13:32:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5222924695
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Nov 2020 15:35:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727210AbgKSNco (ORCPT
+        id S1728451AbgKSPfG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Nov 2020 08:32:44 -0500
-Received: from correo.us.es ([193.147.175.20]:58498 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727134AbgKSNco (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Nov 2020 08:32:44 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 910871F0CF7
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2020 14:32:42 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 834F1114D84
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2020 14:32:42 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 68A2E114D89; Thu, 19 Nov 2020 14:32:42 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0D53F114D67;
-        Thu, 19 Nov 2020 14:32:40 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 19 Nov 2020 14:32:40 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id D775942EF4E1;
-        Thu, 19 Nov 2020 14:32:39 +0100 (CET)
-Date:   Thu, 19 Nov 2020 14:32:39 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Georg Kohmann <geokohma@cisco.com>
-Cc:     netdev@vger.kernel.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
-        kuba@kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, rdunlap@infradead.org
-Subject: Re: [PATCH net v2] ipv6: Remove dependency of
- ipv6_frag_thdr_truncated on ipv6 module
-Message-ID: <20201119133239.GA22069@salvia>
-References: <20201119095833.8409-1-geokohma@cisco.com>
+        Thu, 19 Nov 2020 10:35:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45816 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726691AbgKSPfG (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 19 Nov 2020 10:35:06 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4577C0613CF
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2020 07:35:05 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1kflxe-000311-9E; Thu, 19 Nov 2020 16:35:02 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Naresh Kamboju <naresh.kamboju@linaro.org>
+Subject: [PATCH nf] netfilter: nf_tables: avoid false-postive lockdep splat
+Date:   Thu, 19 Nov 2020 16:34:54 +0100
+Message-Id: <20201119153454.28089-1-fw@strlen.de>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20201119095833.8409-1-geokohma@cisco.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Nov 19, 2020 at 10:58:33AM +0100, Georg Kohmann wrote:
-> IPV6=m
-> NF_DEFRAG_IPV6=y
-> 
-> ld: net/ipv6/netfilter/nf_conntrack_reasm.o: in function
-> `nf_ct_frag6_gather':
-> net/ipv6/netfilter/nf_conntrack_reasm.c:462: undefined reference to
-> `ipv6_frag_thdr_truncated'
-> 
-> Netfilter is depending on ipv6 symbol ipv6_frag_thdr_truncated. This
-> dependency is forcing IPV6=y.
-> 
-> Remove this dependency by moving ipv6_frag_thdr_truncated out of ipv6. This
-> is the same solution as used with a similar issues: Referring to
-> commit 70b095c843266 ("ipv6: remove dependency of nf_defrag_ipv6 on ipv6
-> module")
-> 
-> Fixes: 9d9e937b1c8b ("ipv6/netfilter: Discard first fragment not including all headers")
-> Reported-by: Randy Dunlap <rdunlap@infradead.org>
-> Reported-by: kernel test robot <lkp@intel.com>
-> Signed-off-by: Georg Kohmann <geokohma@cisco.com>
+There are reports wrt lockdep splat in nftables, e.g.:
+------------[ cut here ]------------
+WARNING: CPU: 2 PID: 31416 at net/netfilter/nf_tables_api.c:622
+lockdep_nfnl_nft_mutex_not_held+0x28/0x38 [nf_tables]
+...
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+These are caused by an earlier, unrelated bug such as a n ABBA deadlock
+in a different subsystem.
+In such an event, lockdep is disabled and lockdep_is_held returns true
+unconditionally.  This then causes the WARN() in nf_tables.
 
-Thanks.
+Make the WARN conditional on lockdep still active to avoid this.
+
+Fixes: f102d66b335a417 ("netfilter: nf_tables: use dedicated mutex to guard transactions")
+Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Link: https://lore.kernel.org/linux-kselftest/CA+G9fYvFUpODs+NkSYcnwKnXm62tmP=ksLeBPmB+KFrB2rvCtQ@mail.gmail.com/
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_tables_api.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 0f58e98542be..23abf1578594 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -619,7 +619,8 @@ static int nft_request_module(struct net *net, const char *fmt, ...)
+ static void lockdep_nfnl_nft_mutex_not_held(void)
+ {
+ #ifdef CONFIG_PROVE_LOCKING
+-	WARN_ON_ONCE(lockdep_nfnl_is_held(NFNL_SUBSYS_NFTABLES));
++	if (debug_locks)
++		WARN_ON_ONCE(lockdep_nfnl_is_held(NFNL_SUBSYS_NFTABLES));
+ #endif
+ }
+ 
+-- 
+2.26.2
+
