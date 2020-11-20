@@ -2,100 +2,121 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 224FBC5519F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 10:48:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEA3CC5519F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 12:50:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8B28B20888
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 10:48:05 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="RadFmD+h"
+	by mail.kernel.org (Postfix) with ESMTP id A2ECD2236F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 12:50:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727063AbgKTKrp (ORCPT
+        id S1726693AbgKTMtp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Nov 2020 05:47:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54070 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725766AbgKTKro (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Nov 2020 05:47:44 -0500
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FF35C0613CF
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2020 02:47:44 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=1L5jZaxwaAEFGievx6sty1SCpwXqm09MeOMpo11lABk=; b=RadFmD+hkdMOkPMLLUXixJtQ/7
-        LYzXm2hhXW+kYAwO81MmZ68gccndi8jiX5RDwA7EQZNZ/JM76jD1HCejPIfR6J3Ewm/sK1soR89tZ
-        JNQwlgWm7m+8StsUK00XzeghPF9koMaM60j8y3WodvSQu5rvaGayGS+bLNh9LQKNsvkFa90vZolU7
-        rUkx8cbH+RomFMB6sqpz0FZxPlqBJi74LMaCEZmxllKzLeK3H2g3FOp4+9uq+Sc3FkYpDxk8WZfJF
-        Dn3/WLjZCv0yoEPUytz8bYq97b5LlSoosMEi7aii0KqYsMs1deRFc0P9mSv5QCWfvy9wZ587zCzl8
-        UbX7fa/A==;
-Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
-        by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1kg3x3-0001f4-6M; Fri, 20 Nov 2020 10:47:37 +0000
-Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 870AF3011C6;
-        Fri, 20 Nov 2020 11:47:36 +0100 (CET)
-Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
-        id 6F0AD200DF1A2; Fri, 20 Nov 2020 11:47:36 +0100 (CET)
-Date:   Fri, 20 Nov 2020 11:47:36 +0100
-From:   Peter Zijlstra <peterz@infradead.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     subashab@codeaurora.org, Will Deacon <will@kernel.org>,
-        pablo@netfilter.org, Sean Tranchetti <stranche@codeaurora.org>,
-        netfilter-devel@vger.kernel.org, tglx@linutronix.de
-Subject: Re: [PATCH nf] x_tables: Properly close read section with
- read_seqcount_retry
-Message-ID: <20201120104736.GC3021@hirez.programming.kicks-ass.net>
-References: <20201118121322.GA1821@willie-the-truck>
- <20201118124228.GJ22792@breakpoint.cc>
- <20201118125406.GA2029@willie-the-truck>
- <20201118131419.GK22792@breakpoint.cc>
- <7d52f54a7e3ebc794f0b775e793ab142@codeaurora.org>
- <20201118211007.GA15137@breakpoint.cc>
- <7d8bc917b7a6790fa789085ba8324b08@codeaurora.org>
- <20201120094413.GA3040@hirez.programming.kicks-ass.net>
- <20201120095301.GB3092@hirez.programming.kicks-ass.net>
- <20201120102032.GO15137@breakpoint.cc>
+        Fri, 20 Nov 2020 07:49:45 -0500
+Received: from correo.us.es ([193.147.175.20]:37912 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726561AbgKTMtp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 20 Nov 2020 07:49:45 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 4BDBC18CE93
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2020 13:49:43 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3EC81DA722
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2020 13:49:43 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 35B94FC5ED; Fri, 20 Nov 2020 13:49:43 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0B5E4DA72F;
+        Fri, 20 Nov 2020 13:49:41 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 20 Nov 2020 13:49:41 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from localhost.localdomain (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPSA id B583A4265A5A;
+        Fri, 20 Nov 2020 13:49:40 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        fw@strlen.de, razor@blackwall.org, jeremy@azazel.net,
+        tobias@waldekranz.com
+Subject: [PATCH net-next,v5 1/9] netfilter: flowtable: add hash offset field to tuple
+Date:   Fri, 20 Nov 2020 13:49:13 +0100
+Message-Id: <20201120124921.32172-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20201120124921.32172-1-pablo@netfilter.org>
+References: <20201120124921.32172-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201120102032.GO15137@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Nov 20, 2020 at 11:20:32AM +0100, Florian Westphal wrote:
-> Peter Zijlstra <peterz@infradead.org> wrote:
-> > On Fri, Nov 20, 2020 at 10:44:13AM +0100, Peter Zijlstra wrote:
-> > > On Thu, Nov 19, 2020 at 10:53:13PM -0700, subashab@codeaurora.org wrote:
-> > > > +struct xt_table_info
-> > > > +*xt_table_get_private_protected(const struct xt_table *table)
-> > > > +{
-> > > > +	return rcu_dereference_protected(table->private,
-> > > > +					 mutex_is_locked(&xt[table->af].mutex));
-> > > > +}
-> > > > +EXPORT_SYMBOL(xt_table_get_private_protected);
-> > > 
-> > > In all debug builds this function compiles to a single memory
-> > 
-> > ! went missing... :/
-> 
-> ? Not sure about "!".
+Add a placeholder field to calculate hash tuple offset. Similar to
+2c407aca6497 ("netfilter: conntrack: avoid gcc-10 zero-length-bounds
+warning").
 
-!debug gets you a single deref, for debug builds do we get extra code.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v5: no changes
 
-> > > dereference. Do you really want that out-of-line?
-> 
-> Its the lesser of two evils, the other solution would be to export
-> xt[] from x_tables.c; its static right now.
+ include/net/netfilter/nf_flow_table.h | 4 ++++
+ net/netfilter/nf_flow_table_core.c    | 6 +++---
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-Bah, missed that.
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 16e8b2f8d006..54c4d5c908a5 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -107,6 +107,10 @@ struct flow_offload_tuple {
+ 
+ 	u8				l3proto;
+ 	u8				l4proto;
++
++	/* All members above are keys for lookups, see flow_offload_hash(). */
++	struct { }			__hash;
++
+ 	u8				dir;
+ 
+ 	u16				mtu;
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 513f78db3cb2..55fca71ace26 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -191,14 +191,14 @@ static u32 flow_offload_hash(const void *data, u32 len, u32 seed)
+ {
+ 	const struct flow_offload_tuple *tuple = data;
+ 
+-	return jhash(tuple, offsetof(struct flow_offload_tuple, dir), seed);
++	return jhash(tuple, offsetof(struct flow_offload_tuple, __hash), seed);
+ }
+ 
+ static u32 flow_offload_hash_obj(const void *data, u32 len, u32 seed)
+ {
+ 	const struct flow_offload_tuple_rhash *tuplehash = data;
+ 
+-	return jhash(&tuplehash->tuple, offsetof(struct flow_offload_tuple, dir), seed);
++	return jhash(&tuplehash->tuple, offsetof(struct flow_offload_tuple, __hash), seed);
+ }
+ 
+ static int flow_offload_hash_cmp(struct rhashtable_compare_arg *arg,
+@@ -207,7 +207,7 @@ static int flow_offload_hash_cmp(struct rhashtable_compare_arg *arg,
+ 	const struct flow_offload_tuple *tuple = arg->key;
+ 	const struct flow_offload_tuple_rhash *x = ptr;
+ 
+-	if (memcmp(&x->tuple, tuple, offsetof(struct flow_offload_tuple, dir)))
++	if (memcmp(&x->tuple, tuple, offsetof(struct flow_offload_tuple, __hash)))
+ 		return 1;
+ 
+ 	return 0;
+-- 
+2.20.1
+
