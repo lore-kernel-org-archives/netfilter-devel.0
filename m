@@ -2,81 +2,148 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C167C63777
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 08:07:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F54DC63777
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 08:24:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EE3D422227
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 08:07:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 34F6222240
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 08:24:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725809AbgKTIHc (ORCPT
+        id S1727043AbgKTIXj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Nov 2020 03:07:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57520 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725766AbgKTIHc (ORCPT
+        Fri, 20 Nov 2020 03:23:39 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:7708 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725766AbgKTIXj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Nov 2020 03:07:32 -0500
-X-Greylist: delayed 40733 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 20 Nov 2020 00:07:32 PST
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::45])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06605C0613CF;
-        Fri, 20 Nov 2020 00:07:32 -0800 (PST)
-Received: from localhost (localhost [127.0.0.1])
-        by smtp0.kfki.hu (Postfix) with ESMTP id 7EE6567400C9;
-        Fri, 20 Nov 2020 09:07:30 +0100 (CET)
-X-Virus-Scanned: Debian amavisd-new at smtp0.kfki.hu
-Received: from smtp0.kfki.hu ([127.0.0.1])
-        by localhost (smtp0.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Fri, 20 Nov 2020 09:07:28 +0100 (CET)
-Received: from blackhole.kfki.hu (blackhole.kfki.hu [IPv6:2001:738:5001:1::240:2])
-        by smtp0.kfki.hu (Postfix) with ESMTP id 4662A6740114;
-        Fri, 20 Nov 2020 09:07:27 +0100 (CET)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 39EBD340D5C; Fri, 20 Nov 2020 09:07:27 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-        by blackhole.kfki.hu (Postfix) with ESMTP id 356C5340D5B;
-        Fri, 20 Nov 2020 09:07:27 +0100 (CET)
-Date:   Fri, 20 Nov 2020 09:07:27 +0100 (CET)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-X-X-Sender: kadlec@blackhole.kfki.hu
-To:     Neutron Soutmun <neo.neutron@gmail.com>
-cc:     Jan Engelhardt <jengelh@inai.de>, netfilter@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [ANNOUNCE] ipset 7.8 released
-In-Reply-To: <CAMQP0skDvG-vOAGmcx2kn21KYS9UgMfxND7NTi_X75GOnx_izw@mail.gmail.com>
-Message-ID: <alpine.DEB.2.23.453.2011200904550.19567@blackhole.kfki.hu>
-References: <alpine.DEB.2.23.453.2011192141150.19567@blackhole.kfki.hu> <45rqn0n5-5385-o997-rn9q-os784nqrn9p@vanv.qr> <alpine.DEB.2.23.453.2011192237290.19567@blackhole.kfki.hu> <83oq5412-o0sq-5q31-s7o5-s0q28s12844@vanv.qr>
- <CAMQP0skDvG-vOAGmcx2kn21KYS9UgMfxND7NTi_X75GOnx_izw@mail.gmail.com>
-User-Agent: Alpine 2.23 (DEB 453 2020-06-18)
+        Fri, 20 Nov 2020 03:23:39 -0500
+Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.60])
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4CcqLJ0WTSzkYwy;
+        Fri, 20 Nov 2020 16:23:04 +0800 (CST)
+Received: from huawei.com (10.175.113.133) by DGGEMS413-HUB.china.huawei.com
+ (10.3.19.213) with Microsoft SMTP Server id 14.3.487.0; Fri, 20 Nov 2020
+ 16:23:19 +0800
+From:   Wang Hai <wanghai38@huawei.com>
+To:     <ja@ssi.bg>, <horms@verge.net.au>, <pablo@netfilter.org>,
+        <kadlec@netfilter.org>, <fw@strlen.de>, <davem@davemloft.net>,
+        <kuba@kernel.org>, <christian@brauner.io>,
+        <hans.schillstrom@ericsson.com>
+CC:     <lvs-devel@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+        <coreteam@netfilter.org>, <netdev@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+Subject: [PATCH net v2] ipvs: fix possible memory leak in ip_vs_control_net_init
+Date:   Fri, 20 Nov 2020 16:26:10 +0800
+Message-ID: <20201120082610.60917-1-wanghai38@huawei.com>
+X-Mailer: git-send-email 2.17.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
+X-Originating-IP: [10.175.113.133]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+kmemleak report a memory leak as follows:
 
-On Fri, 20 Nov 2020, Neutron Soutmun wrote:
+BUG: memory leak
+unreferenced object 0xffff8880759ea000 (size 256):
+comm "syz-executor.3", pid 6484, jiffies 4297476946 (age 48.546s)
+hex dump (first 32 bytes):
+00 00 00 00 01 00 00 00 08 a0 9e 75 80 88 ff ff ...........u....
+08 a0 9e 75 80 88 ff ff 00 00 00 00 ad 4e ad de ...u.........N..
+backtrace:
+[<00000000c0bf2deb>] kmem_cache_zalloc include/linux/slab.h:656 [inline]
+[<00000000c0bf2deb>] __proc_create+0x23d/0x7d0 fs/proc/generic.c:421
+[<000000009d718d02>] proc_create_reg+0x8e/0x140 fs/proc/generic.c:535
+[<0000000097bbfc4f>] proc_create_net_data+0x8c/0x1b0 fs/proc/proc_net.c:126
+[<00000000652480fc>] ip_vs_control_net_init+0x308/0x13a0 net/netfilter/ipvs/ip_vs_ctl.c:4169
+[<000000004c927ebe>] __ip_vs_init+0x211/0x400 net/netfilter/ipvs/ip_vs_core.c:2429
+[<00000000aa6b72d9>] ops_init+0xa8/0x3c0 net/core/net_namespace.c:151
+[<00000000153fd114>] setup_net+0x2de/0x7e0 net/core/net_namespace.c:341
+[<00000000be4e4f07>] copy_net_ns+0x27d/0x530 net/core/net_namespace.c:482
+[<00000000f1c23ec9>] create_new_namespaces+0x382/0xa30 kernel/nsproxy.c:110
+[<00000000098a5757>] copy_namespaces+0x2e6/0x3b0 kernel/nsproxy.c:179
+[<0000000026ce39e9>] copy_process+0x220a/0x5f00 kernel/fork.c:2072
+[<00000000b71f4efe>] _do_fork+0xc7/0xda0 kernel/fork.c:2428
+[<000000002974ee96>] __do_sys_clone3+0x18a/0x280 kernel/fork.c:2703
+[<0000000062ac0a4d>] do_syscall_64+0x33/0x40 arch/x86/entry/common.c:46
+[<0000000093f1ce2c>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
 
-> For the ipset 7.9, I found the released download url is 
-> http://ipset.netfilter.org/ipset-7.9.tar.bz2, however, it's previous 
-> releases are in http://ftp.netfilter.org/pub/ipset/
-> 
-> The Debian has the tool to detect the new release with package watch [1] 
-> file. Could you please consider uploading the new release to the 
-> fpt.netfiler.org/pub/ipset also.
+In the error path of ip_vs_control_net_init(), remove_proc_entry() needs
+to be called to remove the added proc entry, otherwise a memory leak
+will occur.
 
-It has been fixed. Please note, I switched from md5 to sha512 at 
-generating the checksum file, so the filename is changed accordingly to 
-<packagename>.sha512sum.txt.
+Also, add some '#ifdef CONFIG_PROC_FS' because proc_create_net* return NULL
+when PROC is not used.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Fixes: b17fc9963f83 ("IPVS: netns, ip_vs_stats and its procfs")
+Fixes: 61b1ab4583e2 ("IPVS: netns, add basic init per netns.")
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Signed-off-by: Wang Hai <wanghai38@huawei.com>
+---
+v1->v2: add some '#ifdef CONFIG_PROC_FS' and check the return value of proc_create_net*
+ net/netfilter/ipvs/ip_vs_ctl.c | 27 +++++++++++++++++++++------
+ 1 file changed, 21 insertions(+), 6 deletions(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index e279ded4e306..c00394ba20db 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -4167,12 +4167,17 @@ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
+ 
+ 	spin_lock_init(&ipvs->tot_stats.lock);
+ 
+-	proc_create_net("ip_vs", 0, ipvs->net->proc_net, &ip_vs_info_seq_ops,
+-			sizeof(struct ip_vs_iter));
+-	proc_create_net_single("ip_vs_stats", 0, ipvs->net->proc_net,
+-			ip_vs_stats_show, NULL);
+-	proc_create_net_single("ip_vs_stats_percpu", 0, ipvs->net->proc_net,
+-			ip_vs_stats_percpu_show, NULL);
++#ifdef CONFIG_PROC_FS
++	if (!proc_create_net("ip_vs", 0, ipvs->net->proc_net, &ip_vs_info_seq_ops,
++			sizeof(struct ip_vs_iter)))
++		goto err_vs;
++	if (!proc_create_net_single("ip_vs_stats", 0, ipvs->net->proc_net,
++			ip_vs_stats_show, NULL))
++		goto err_stats;
++	if (!proc_create_net_single("ip_vs_stats_percpu", 0, ipvs->net->proc_net,
++			ip_vs_stats_percpu_show, NULL))
++		goto err_percpu;
++#endif
+ 
+ 	if (ip_vs_control_net_init_sysctl(ipvs))
+ 		goto err;
+@@ -4180,6 +4185,14 @@ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
+ 	return 0;
+ 
+ err:
++#ifdef CONFIG_PROC_FS
++	remove_proc_entry("ip_vs_stats_percpu", ipvs->net->proc_net);
++err_percpu:
++	remove_proc_entry("ip_vs_stats", ipvs->net->proc_net);
++err_stats:
++	remove_proc_entry("ip_vs", ipvs->net->proc_net);
++err_vs:
++#endif
+ 	free_percpu(ipvs->tot_stats.cpustats);
+ 	return -ENOMEM;
+ }
+@@ -4188,9 +4201,11 @@ void __net_exit ip_vs_control_net_cleanup(struct netns_ipvs *ipvs)
+ {
+ 	ip_vs_trash_cleanup(ipvs);
+ 	ip_vs_control_net_cleanup_sysctl(ipvs);
++#ifdef CONFIG_PROC_FS
+ 	remove_proc_entry("ip_vs_stats_percpu", ipvs->net->proc_net);
+ 	remove_proc_entry("ip_vs_stats", ipvs->net->proc_net);
+ 	remove_proc_entry("ip_vs", ipvs->net->proc_net);
++#endif
+ 	free_percpu(ipvs->tot_stats.cpustats);
+ }
+ 
+-- 
+2.17.1
+
