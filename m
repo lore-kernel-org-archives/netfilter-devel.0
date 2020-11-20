@@ -2,136 +2,233 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01A54C2D0E4
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 19:17:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51CEAC64E69
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 19:26:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE97A22240
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 19:17:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 06407221F1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 19:26:26 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=embeddedor.com header.i=@embeddedor.com header.b="RC17bKQE"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732296AbgKTTQv (ORCPT
+        id S1730651AbgKTT0Y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Nov 2020 14:16:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48586 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732258AbgKTTQv (ORCPT
+        Fri, 20 Nov 2020 14:26:24 -0500
+Received: from gateway23.websitewelcome.com ([192.185.50.104]:13468 "EHLO
+        gateway23.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1732345AbgKTT0X (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Nov 2020 14:16:51 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0144AC0613CF
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2020 11:16:50 -0800 (PST)
-Received: from localhost ([::1]:50718 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.94)
-        (envelope-from <phil@nwl.cc>)
-        id 1kgBto-0008ED-Sh; Fri, 20 Nov 2020 20:16:48 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, Derek Dai <daiderek@gmail.com>
-Subject: [nft PATCH] json: echo: Speedup seqnum_to_json()
-Date:   Fri, 20 Nov 2020 20:16:40 +0100
-Message-Id: <20201120191640.21243-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.28.0
+        Fri, 20 Nov 2020 14:26:23 -0500
+Received: from cm14.websitewelcome.com (cm14.websitewelcome.com [100.42.49.7])
+        by gateway23.websitewelcome.com (Postfix) with ESMTP id F09521039C
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2020 13:04:51 -0600 (CST)
+Received: from gator4166.hostgator.com ([108.167.133.22])
+        by cmsmtp with SMTP
+        id gBiFkKdAEfgo0gBiFkDPAU; Fri, 20 Nov 2020 13:04:51 -0600
+X-Authority-Reason: nr=8
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=embeddedor.com; s=default; h=Content-Transfer-Encoding:Content-Type:
+        In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=o6HouBgCeARvPDycxq+DQL9GTuV0FZaznhFf+B5lvvQ=; b=RC17bKQEy60oNUOsP9/+FoFba3
+        7IOvK7tatxfYFulfXrzo1R1inJiR70+fGm96EOiyxuGoF10JW8F/HPs+jPpuI495euTAFQHufGSAV
+        KFk2OzUW7hWgtf7v4LM6Poy7NupLGz6fEDbexZ2hS8wrxAWAlGQM9lxjgUTuzQh4+AEwwhtM/J+sO
+        AoW8/bIYU33TR8wm0Dkj1ZL5b4OT77sQWi2RWgP14r2tlNn5M1PdILrguUL1Nl2Hy0yV5KIqCCVAo
+        j0nfxV1qHzIcwVylK9t1AWmoK15QajwvXxprFA+S9YfES+wOdY+ET5oNf4zzGyJ24cDNT8LjZrCcC
+        nhh+2ALA==;
+Received: from 187-162-31-110.static.axtel.net ([187.162.31.110]:52360 helo=[192.168.15.4])
+        by gator4166.hostgator.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        (Exim 4.93)
+        (envelope-from <gustavo@embeddedor.com>)
+        id 1kgBiD-00024G-7d; Fri, 20 Nov 2020 13:04:49 -0600
+Subject: Re: [PATCH 000/141] Fix fall-through warnings for Clang
+To:     Jakub Kicinski <kuba@kernel.org>,
+        "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Cc:     linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org,
+        amd-gfx@lists.freedesktop.org, bridge@lists.linux-foundation.org,
+        ceph-devel@vger.kernel.org, cluster-devel@redhat.com,
+        coreteam@netfilter.org, devel@driverdev.osuosl.org,
+        dm-devel@redhat.com, drbd-dev@lists.linbit.com,
+        dri-devel@lists.freedesktop.org, GR-everest-linux-l2@marvell.com,
+        GR-Linux-NIC-Dev@marvell.com, intel-gfx@lists.freedesktop.org,
+        intel-wired-lan@lists.osuosl.org, keyrings@vger.kernel.org,
+        linux1394-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org,
+        linux-afs@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-arm-msm@vger.kernel.org,
+        linux-atm-general@lists.sourceforge.net,
+        linux-block@vger.kernel.org, linux-can@vger.kernel.org,
+        linux-cifs@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-decnet-user@lists.sourceforge.net,
+        linux-ext4@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux-geode@lists.infradead.org, linux-gpio@vger.kernel.org,
+        linux-hams@vger.kernel.org, linux-hwmon@vger.kernel.org,
+        linux-i3c@lists.infradead.org, linux-ide@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-integrity@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-mm@kvack.org,
+        linux-mtd@lists.infradead.org, linux-nfs@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-scsi@vger.kernel.org, linux-sctp@vger.kernel.org,
+        linux-security-module@vger.kernel.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        linux-usb@vger.kernel.org, linux-watchdog@vger.kernel.org,
+        linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, nouveau@lists.freedesktop.org,
+        op-tee@lists.trustedfirmware.org, oss-drivers@netronome.com,
+        patches@opensource.cirrus.com, rds-devel@oss.oracle.com,
+        reiserfs-devel@vger.kernel.org, samba-technical@lists.samba.org,
+        selinux@vger.kernel.org, target-devel@vger.kernel.org,
+        tipc-discussion@lists.sourceforge.net,
+        usb-storage@lists.one-eyed-alien.net,
+        virtualization@lists.linux-foundation.org,
+        wcn36xx@lists.infradead.org, x86@kernel.org,
+        xen-devel@lists.xenproject.org, linux-hardening@vger.kernel.org,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Nathan Chancellor <natechancellor@gmail.com>,
+        Miguel Ojeda <ojeda@kernel.org>, Joe Perches <joe@perches.com>,
+        Kees Cook <keescook@chromium.org>
+References: <cover.1605896059.git.gustavoars@kernel.org>
+ <20201120105344.4345c14e@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+From:   "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Autocrypt: addr=gustavo@embeddedor.com; keydata=
+ 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
+ AP7RWS474w==
+Message-ID: <4609d49b-4dd3-c017-b76e-a8a536871c05@embeddedor.com>
+Date:   Fri, 20 Nov 2020 13:04:55 -0600
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20201120105344.4345c14e@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
+X-AntiAbuse: Primary Hostname - gator4166.hostgator.com
+X-AntiAbuse: Original Domain - vger.kernel.org
+X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
+X-AntiAbuse: Sender Address Domain - embeddedor.com
+X-BWhitelist: no
+X-Source-IP: 187.162.31.110
+X-Source-L: No
+X-Exim-ID: 1kgBiD-00024G-7d
+X-Source: 
+X-Source-Args: 
+X-Source-Dir: 
+X-Source-Sender: 187-162-31-110.static.axtel.net ([192.168.15.4]) [187.162.31.110]:52360
+X-Source-Auth: gustavo@embeddedor.com
+X-Email-Count: 134
+X-Source-Cap: Z3V6aWRpbmU7Z3V6aWRpbmU7Z2F0b3I0MTY2Lmhvc3RnYXRvci5jb20=
+X-Local-Domain: yes
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Derek Dai reports:
-"If there are a lot of command in JSON node, seqnum_to_json() will slow
-down application (eg: firewalld) dramatically since it iterate whole
-command list every time."
 
-He sent a patch implementing a lookup table, but we can do better: Speed
-this up by introducing a hash table to store the struct json_cmd_assoc
-objects in, taking their netlink sequence number as key.
+Hi,
 
-Quickly tested restoring a ruleset containing about 19k rules:
+On 11/20/20 12:53, Jakub Kicinski wrote:
+> On Fri, 20 Nov 2020 12:21:39 -0600 Gustavo A. R. Silva wrote:
+>> This series aims to fix almost all remaining fall-through warnings in
+>> order to enable -Wimplicit-fallthrough for Clang.
+>>
+>> In preparation to enable -Wimplicit-fallthrough for Clang, explicitly
+>> add multiple break/goto/return/fallthrough statements instead of just
+>> letting the code fall through to the next case.
+>>
+>> Notice that in order to enable -Wimplicit-fallthrough for Clang, this
+>> change[1] is meant to be reverted at some point. So, this patch helps
+>> to move in that direction.
+>>
+>> Something important to mention is that there is currently a discrepancy
+>> between GCC and Clang when dealing with switch fall-through to empty case
+>> statements or to cases that only contain a break/continue/return
+>> statement[2][3][4].
+> 
+> Are we sure we want to make this change? Was it discussed before?
+> 
+> Are there any bugs Clangs puritanical definition of fallthrough helped
+> find?
+> 
+> IMVHO compiler warnings are supposed to warn about issues that could
+> be bugs. Falling through to default: break; can hardly be a bug?!
 
-| # time ./before/nft -jeaf large_ruleset.json >/dev/null
-| 4.85user 0.47system 0:05.48elapsed 97%CPU (0avgtext+0avgdata 69732maxresident)k
-| 0inputs+0outputs (15major+16937minor)pagefaults 0swaps
+The justification for this is explained in this same changelog text:
 
-| # time ./after/nft -jeaf large_ruleset.json >/dev/null
-| 0.18user 0.44system 0:00.70elapsed 89%CPU (0avgtext+0avgdata 68484maxresident)k
-| 0inputs+0outputs (15major+16645minor)pagefaults 0swaps
+Now that the -Wimplicit-fallthrough option has been globally enabled[5],
+any compiler should really warn on missing either a fallthrough annotation
+or any of the other case-terminating statements (break/continue/return/
+goto) when falling through to the next case statement. Making exceptions
+to this introduces variation in case handling which may continue to lead
+to bugs, misunderstandings, and a general lack of robustness. The point
+of enabling options like -Wimplicit-fallthrough is to prevent human error
+and aid developers in spotting bugs before their code is even built/
+submitted/committed, therefore eliminating classes of bugs. So, in order
+to really accomplish this, we should, and can, move in the direction of
+addressing any error-prone scenarios and get rid of the unintentional
+fallthrough bug-class in the kernel, entirely, even if there is some minor
+redundancy. Better to have explicit case-ending statements than continue to
+have exceptions where one must guess as to the right result. The compiler
+will eliminate any actual redundancy.
 
-Bugzilla: https://bugzilla.netfilter.org/show_bug.cgi?id=1479
-Reported-by: Derek Dai <daiderek@gmail.com>
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- src/parser_json.c | 28 ++++++++++++++++++----------
- 1 file changed, 18 insertions(+), 10 deletions(-)
+Note that there is already a patch in mainline that addresses almost
+40,000 of these issues[6].
 
-diff --git a/src/parser_json.c b/src/parser_json.c
-index b1de56a4a0d27..6ebbb408d6839 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -3762,42 +3762,50 @@ static int json_verify_metainfo(struct json_ctx *ctx, json_t *root)
- }
- 
- struct json_cmd_assoc {
--	struct json_cmd_assoc *next;
-+	struct hlist_node hnode;
- 	const struct cmd *cmd;
- 	json_t *json;
- };
- 
--static struct json_cmd_assoc *json_cmd_list = NULL;
-+#define CMD_ASSOC_HSIZE		512
-+static struct hlist_head json_cmd_assoc_hash[CMD_ASSOC_HSIZE];
- 
- static void json_cmd_assoc_free(void)
- {
- 	struct json_cmd_assoc *cur;
-+	struct hlist_node *pos, *n;
-+	int i;
- 
--	while (json_cmd_list) {
--		cur = json_cmd_list;
--		json_cmd_list = cur->next;
--		free(cur);
-+	for (i = 0; i < CMD_ASSOC_HSIZE; i++) {
-+		hlist_for_each_entry_safe(cur, pos, n,
-+					  &json_cmd_assoc_hash[i], hnode)
-+			free(cur);
- 	}
- }
- 
- static void json_cmd_assoc_add(json_t *json, const struct cmd *cmd)
- {
- 	struct json_cmd_assoc *new = xzalloc(sizeof *new);
-+	int key = cmd->seqnum % CMD_ASSOC_HSIZE;
- 
--	new->next	= json_cmd_list;
- 	new->json	= json;
- 	new->cmd	= cmd;
--	json_cmd_list	= new;
-+
-+	hlist_add_head(&new->hnode, &json_cmd_assoc_hash[key]);
- }
- 
- static json_t *seqnum_to_json(const uint32_t seqnum)
- {
--	const struct json_cmd_assoc *cur;
-+	int key = seqnum % CMD_ASSOC_HSIZE;
-+	struct json_cmd_assoc *cur;
-+	struct hlist_node *n;
- 
--	for (cur = json_cmd_list; cur; cur = cur->next) {
-+
-+	hlist_for_each_entry(cur, n, &json_cmd_assoc_hash[key], hnode) {
- 		if (cur->cmd->seqnum == seqnum)
- 			return cur->json;
- 	}
-+
- 	return NULL;
- }
- 
--- 
-2.28.0
+[1] commit e2079e93f562c ("kbuild: Do not enable -Wimplicit-fallthrough for clang for now")
+[2] ClangBuiltLinux#636
+[3] https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91432
+[4] https://godbolt.org/z/xgkvIh
+[5] commit a035d552a93b ("Makefile: Globally enable fall-through warning")
+[6] commit 4169e889e588 ("include: jhash/signal: Fix fall-through warnings for Clang")
 
+Thanks
+--
+Gustavo
