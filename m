@@ -2,215 +2,170 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C531C63777
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 20:33:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E37D0C64E7C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 20:48:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E56E4221EB
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 20:33:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E2F62223F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 20:48:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="F+I6Sh7d"
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="avd4TaFU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731345AbgKTUdH (ORCPT
+        id S1729864AbgKTUsH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Nov 2020 15:33:07 -0500
-Received: from sonic317-38.consmr.mail.ne1.yahoo.com ([66.163.184.49]:37117
-        "EHLO sonic317-38.consmr.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1731083AbgKTUdG (ORCPT
+        Fri, 20 Nov 2020 15:48:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34832 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729666AbgKTUsG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Nov 2020 15:33:06 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1605904384; bh=p1YuVBPZn7hPysARDQWvRpJ3a5rIGoVi+47szzIkwO0=; h=From:To:Cc:Subject:Date:In-Reply-To:References:From:Subject; b=F+I6Sh7d2h6vGrIanUav0m4hVWb2xdGgaspur+nEjVmtS3aqZTnCVM2w9bUJixXRzArClYVxWZq1JJ8286hq/DPuFNQ7ImAttkj5QW+LSOF/r3s0BoKT+YnPNvDnMnjM+Uf7DPVdG+1XjGlqM0AHnxB41mVWPizv3M9bFvWQtvwhBg4RxXNe+kF9EsIihfswPDzng8PZe/9KlR1r19jHYa3Yckp0tg3jNRbGhwSSECjYkXrTY9II1grWURIWBreE7dMthR7mnecZcbgeYroegg/NeckuDh95iI+f0bhp+tPBAB98dKqz3DwuSqMqsxGhPrwMn4JetLBGiN99iStitQ==
-X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1605904384; bh=i/sIO63Ulfk83/Oc09fol4Q0rsuVBvLzpPZfWEzITJ/=; h=From:To:Subject:Date:From:Subject; b=niHWB/iEgXKj1vczruLuEq8rfA/VBWCB9ULj1eXRLxAEns54jS2MT/i0W7wWn9R58CJ8Ks93/YpWu5mNFnJSbV0eYJPaLl66YD3qCnvdwWsMAogXVq2kUGBYW9D4iR3SZbHkFbOiiAqmxJhd6koXok2ZJrQoQRaIlrrAigejyv7dPicskD+duG+aqaZyJsghngrxAIewm+bKZFJEuMQIAtqKV//XYp7ujk+YiQK65hCVjveNczbvsq/Jgja9sA8nbzqtLLzDAx2MWZDLlQxToVhF63Nk+TxpoOk5Hyqs7a5jMg28xlWNrrFrufqkYD879ImGRxRhHVUza8edgKazZw==
-X-YMail-OSG: 8eLaW1EVM1mKsLIVlBJZdxQ7KyzuMKjKxFH4OsKeG7wxCRhDLhgWAPxmjoJPIu6
- OKchM9GBNxRGMvABQXm8WzduzB1EpjpLzBRWXasn5eM0fPvnkKY2RDBHZR7maMqQ7DmAn.8YSLsj
- ighoK842dgwRTcwLTPdleM3B_T29dXeZea1Nn2rQtZgi2XEXOB5cAnrY54erQo0266IcNr101lck
- dA09BONqVAZBBhx7sKV.yI_94rd9aM5Au_YxXUvzeKljsXROMddA4OvyXZCbDHC502PO4Q1v3htu
- 7lp.VXzqPmk0csggA2rJrsrgVuRpPfxqtWiukRryaVtGLyRzYqcwFGbHu7yQqBxJ.k8j4AQnFumU
- 1myCog_sck.Y9QYz_fSMk5HCT3.hYhVJDGDZ8iEaJl2WlHY4lV.JXAXuegWsO_U3fVtknEjnp7xB
- rwQPW57OiCiWYqOPwYolVLKaynkjFlSNaZrjbBTa1x4Gb4hsII9mZ.FB9DGIKr96q5x10r.sj7it
- NK_YKUbO8cNR2hAeXhp6OV.V7lqHWqUYaDAQbVE2Q3b6zIJ.8YXbSs5_Y1S1fmpzynEb0XfgBJwe
- 2Twxd4CVc4N9wIK20.PZ193mkzVY_ZtCabeUvtSHfRJbIVydVPurXvRf.CUOdsDKRhSE4iV.5ffd
- nSpBzjnFUbXLXTcZueVMWqzUuGR0C_zc8X6.VYf2OTB5Fknm9Z5zw2ixwnNC1uOY1bwkyhcWRHL6
- jraHzVis_vbOhPwqzdPuu0k.ptbuW_LI7.ef3okIhW9XkeMJaNQpMEaeaXlUhELfje.lkkKsYulk
- 09a290G_GiGNw8Oam7SphaRwfDGsAGV68UsnwgX6hn9GC5ykT93IWKjgHw4iprNS3WRoEzFWmfQv
- ys36DdMdBCX8Ofh3uTsyjc8QRES_6_UP_OkF9NzbAKH.TE61RPepvlZUmXIRWKbY5aYgDvGx8Tcr
- yVpnVTuCQe_Atvau.ExCLiEDyyyVMb9IljgEYzMOzBF.MlTM.LwIOJeiQLTMHJOTBHpg88NzkPC6
- ucjnY5wDSOtnjNAB562L.0KnkSw80gb8xunv04F1vruKGzC8eWaOM3j_mj1NI01T8rKctjsgE867
- 1JrYgbkNdI2OOYMBlzqIPTKXZLfTXU_GzVSx7havFEwht9e5XvCHfHpW4hNil8qzR5GAlBTuRuj7
- MF_Cw4HveaAauOfGcXtNkzZnjSYMkPrXINWNMWn3ZVlYgg6u_6djtJg9KAgNqMo2wSEke2MGQSvs
- PYSU7DLlb_hn5NW7XmfO2uwUFcNbKD073c3JYSdh8U7N46yB6_dxcGSXqVGN4bEh5N9z.Twa3gs4
- 13dzihOGfOPmqLDYI4BHco2AkhAbCoWFFEDremQzim9hUigAYV0FA0fWwpSAcRJe7jaijUjS07tB
- BsvcbiH04T_t3_0AVWHozuWwYbKvuEav6e5EoJ33392WkGOta2fhkdDrX2I4Ozhx.dAqtwkrGDDa
- NV1myVpDK31zXufgHGyYGrzkqkmqZEJfNVTc7QQrZL5FyO_MXZ937IMqmkXMvKOcz8jYDueorQsA
- Kg0XQMb2QpeOtXktrx8tYoi4dpWrrjBhxexFQ9rxEKbvq_YPbWM5OPB8qljTi6e1Hrg_2QAEC.vS
- yuLeB7A9qTm.c1ljh96A00p5hpTlsVPApRBKipep.FVhlNDT1N.1QyGHqvhv33yDLN6tD6HUOqGs
- 1q.xU8U5FkHR.NbvNVySBlE44_ozTGXos0ptcSR5Lvl3lRP_38bglhbLKd7vFOVRXjbjcouFZqrK
- Tb3QJKeNsRLSaTnoR4hSF1qMbqFVzrzhnQVuthqZw48lXsoU9nNhwYnO9o2elf7pf1BiaqEvePd1
- 3anNXYbsLIx5.svMYmAlHelqsbG5iFAe7WMKNk6xZSYLAusHDj8pIQziCl_ulXTbdqN7DU27di5_
- jrzESMozi_.ySvvUaBitgITsqdrHyAhODB0r7AGwG29tLEmKzI3pRU_zjFF_5mjLFSX8L.mBX1ku
- iYAWO9PFZMO8Vu9G4_suHa.a9mh4ljtAmV7ZBpm27c.7tshVubVNrwYPlFJjp1iikEUSPFTFUrdE
- gQWIb9isCvZhtAmzL.ajzuxUXDRmUkppTBpEUnOmfECBsYv9ugsIUhOTvenjjPu4RaNd_bQIX8UQ
- Q1fkdvK5CLk4LV9u5a1XeDOUjHjK5cKfvjWiDruCAfZVh0FSehuWndvesIycBgScqpYqG8P_BxuH
- E5w_lhyGtw0bPGcBz9dPgmUXwEGgCykEYOsiIorfvXfgLGJh.eT84Si9ZI1UgUwh8W8UXmkF2Lu0
- jWHOsZw9go3kQjfc4wiyY.vu8_DUAKsBvb_HTAFHxfPV_8obOt854H48g3Je_vFYxppBjl7RkeWr
- TEiEFJHO.cJeMxcTdPf2wy3obiqsWw7JxX6Xp_PlJYRlTdnxvaADMmq7eFi2.RrihZBNEXC7Z0ml
- FtUk9hOF7MUDH2aYrY.S8QzB0bGWHUzCM2bJzgJhBlYHi2qXCLif1Rr8hKwWikE6b2kJYk7Zq92b
- 54xBDvir3xzjCkCT4iEEysMrnvVS68y_0ZipLH8UgEXqCJQ_5RJGR0FNmNr.2A_zdMNo3PT0qYwr
- SYw5b.aAZkcZp2rbsCYm0keXOvitsek.GVyJUY3IXXOOZ9YYR_tIBN95s43RMSVkGbwnRf.qPH08
- OmG95nWLHcAQOZO.zY5t3BSdYEd_EL8zVKD6GMVFPdLATphReucIBkZAfY8g0mZ5D14VE89bVkcb
- 0ee73gSzTN_8Hkc8MsD2C1loJePnbbtLuBYMQQRgf4E3k36dYS.pfLrVv0DqTCjur6pGD5LO3yL6
- 20wyaKZMjyyTPJjXIn_Rx9BJd5vnJLPT7eGOS2zYJIDgL6EwJgmHuG7cTTyHicFfaQF_OVn.FFEA
- GdkZ1f8VfHG6oAe96ENLaFDib6hLM4BBQDoTJPfc23uQqlmn4lGCNpldC8SbAjcoJnElo8REX1Ej
- VhKLIosu7lEcJeupNKYqRF1YCk9.66FsW_CTr2_46uvEalqUwOCQIy4JCO27aPix_lL.tfwhOLbx
- Dwzc_lBjNDozNavWLs7fvWECnELMBGllFem2nQrkP2lBx.1o3yhVz2RIASFnqQuTrBcQ8bQi7bnR
- LAUlsvyrMEBbQalqo.M6WlxVnqVsD._oN0IITQMAXxF5c6G20CXv7S6e06Ja6P6h.0DCc95uJHdt
- r3prgh7mV4vdn7s8BtKFVKKEqbGOF38nyS4ZrTiAy2z5BfaASuQXwwFMF1z2qx3JtDTKU4UKTQiE
- -
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic317.consmr.mail.ne1.yahoo.com with HTTP; Fri, 20 Nov 2020 20:33:04 +0000
-Received: by smtp401.mail.gq1.yahoo.com (VZM Hermes SMTP Server) with ESMTPA ID 359628cbfcbaed5b6afc835050250cb1;
-          Fri, 20 Nov 2020 20:33:00 +0000 (UTC)
-From:   Casey Schaufler <casey@schaufler-ca.com>
-To:     casey.schaufler@intel.com, jmorris@namei.org,
-        linux-security-module@vger.kernel.org, selinux@vger.kernel.org
-Cc:     casey@schaufler-ca.com, linux-audit@redhat.com,
-        keescook@chromium.org, john.johansen@canonical.com,
-        penguin-kernel@i-love.sakura.ne.jp, paul@paul-moore.com,
-        sds@tycho.nsa.gov, linux-kernel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [PATCH v23 16/23] LSM: security_secid_to_secctx in netlink netfilter
-Date:   Fri, 20 Nov 2020 12:15:00 -0800
-Message-Id: <20201120201507.11993-17-casey@schaufler-ca.com>
-X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20201120201507.11993-1-casey@schaufler-ca.com>
-References: <20201120201507.11993-1-casey@schaufler-ca.com>
+        Fri, 20 Nov 2020 15:48:06 -0500
+Received: from mail-vs1-xe42.google.com (mail-vs1-xe42.google.com [IPv6:2607:f8b0:4864:20::e42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97919C061A49
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2020 12:48:04 -0800 (PST)
+Received: by mail-vs1-xe42.google.com with SMTP id y78so5735596vsy.6
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2020 12:48:04 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=v0uQ3+ZvQ790GJbfbb1ESqfRrqQ38XoL7hho1t1Gb0k=;
+        b=avd4TaFUM+Ab56B8iWTc3giej2JyPXQeNqj8Vqwh4pMfYMm6E7ROZ43KbUMGq3c2kN
+         Y7wgImiWtwhH33QCuhXwX5xfYnbd8ZoAoymaiVLMsflRM4OrtMTi7raBVieCeB5e9/kv
+         qCr4nXKui27aGXF6t1ziK2ispJ9UlbNRnpYGc=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=v0uQ3+ZvQ790GJbfbb1ESqfRrqQ38XoL7hho1t1Gb0k=;
+        b=TXraa3TVMoLSc7Z8Y9iwU4UJipKmSRCF9eKMSfGwLEgi2wAeQrogIi6hMwxY+ZyvwN
+         Kp3WX2U5y9O7HqTNuBW5q9assrbnacHckf+5k6SUeu4y4pj7xKE2fsty3jsH9OVRuzDD
+         YTWpcF+8W/aQTuPbkmhDcWxoQ/HjgjxAXX+MH2psa9ClRlydEryd/RkPGTd2W5lZKZM+
+         LTSKQGKVXH52wC6AJsLr8tM3EEFKEe1UFrzOz9jM6+L8DcZ7Vhln2vrjMGbAI8Rskxtr
+         8qKr3o2UAdll2zjmlFoxqn/RXar5xqXScwFURy4Cf3F9Np5SFbqsmi9AfQlVAYj0hFAo
+         J4aw==
+X-Gm-Message-State: AOAM533Ex4LhoNtzpDsCYlGMxHkG5sd+MxBiIBHRkeBdOussDZlC3P7R
+        futu5hssRt/L+ngCz8ZgRycvomlBXqfZE9yT
+X-Google-Smtp-Source: ABdhPJzEbaB+IYipfwOUXoCmdplAutZXXBsmC8OBp1xOfb5CPZl7t2eHSBKNbswFZQhoeAMsBYl7Qg==
+X-Received: by 2002:a62:d108:0:b029:163:d3cf:f00e with SMTP id z8-20020a62d1080000b0290163d3cff00emr15313890pfg.43.1605905283088;
+        Fri, 20 Nov 2020 12:48:03 -0800 (PST)
+Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
+        by smtp.gmail.com with ESMTPSA id a67sm3215381pfa.77.2020.11.20.12.48.01
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 20 Nov 2020 12:48:02 -0800 (PST)
+Date:   Fri, 20 Nov 2020 12:48:01 -0800
+From:   Kees Cook <keescook@chromium.org>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+        linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org,
+        amd-gfx@lists.freedesktop.org, bridge@lists.linux-foundation.org,
+        ceph-devel@vger.kernel.org, cluster-devel@redhat.com,
+        coreteam@netfilter.org, devel@driverdev.osuosl.org,
+        dm-devel@redhat.com, drbd-dev@lists.linbit.com,
+        dri-devel@lists.freedesktop.org, GR-everest-linux-l2@marvell.com,
+        GR-Linux-NIC-Dev@marvell.com, intel-gfx@lists.freedesktop.org,
+        intel-wired-lan@lists.osuosl.org, keyrings@vger.kernel.org,
+        linux1394-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org,
+        linux-afs@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-arm-msm@vger.kernel.org,
+        linux-atm-general@lists.sourceforge.net,
+        linux-block@vger.kernel.org, linux-can@vger.kernel.org,
+        linux-cifs@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-decnet-user@lists.sourceforge.net,
+        linux-ext4@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux-geode@lists.infradead.org, linux-gpio@vger.kernel.org,
+        linux-hams@vger.kernel.org, linux-hwmon@vger.kernel.org,
+        linux-i3c@lists.infradead.org, linux-ide@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-integrity@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-mm@kvack.org,
+        linux-mtd@lists.infradead.org, linux-nfs@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-scsi@vger.kernel.org, linux-sctp@vger.kernel.org,
+        linux-security-module@vger.kernel.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        linux-usb@vger.kernel.org, linux-watchdog@vger.kernel.org,
+        linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, nouveau@lists.freedesktop.org,
+        op-tee@lists.trustedfirmware.org, oss-drivers@netronome.com,
+        patches@opensource.cirrus.com, rds-devel@oss.oracle.com,
+        reiserfs-devel@vger.kernel.org, samba-technical@lists.samba.org,
+        selinux@vger.kernel.org, target-devel@vger.kernel.org,
+        tipc-discussion@lists.sourceforge.net,
+        usb-storage@lists.one-eyed-alien.net,
+        virtualization@lists.linux-foundation.org,
+        wcn36xx@lists.infradead.org, x86@kernel.org,
+        xen-devel@lists.xenproject.org, linux-hardening@vger.kernel.org,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Nathan Chancellor <natechancellor@gmail.com>,
+        Miguel Ojeda <ojeda@kernel.org>, Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 000/141] Fix fall-through warnings for Clang
+Message-ID: <202011201244.78E002D5@keescook>
+References: <cover.1605896059.git.gustavoars@kernel.org>
+ <20201120105344.4345c14e@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <202011201129.B13FDB3C@keescook>
+ <20201120115142.292999b2@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201120115142.292999b2@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Change netlink netfilter interfaces to use lsmcontext
-pointers, and remove scaffolding.
+On Fri, Nov 20, 2020 at 11:51:42AM -0800, Jakub Kicinski wrote:
+> On Fri, 20 Nov 2020 11:30:40 -0800 Kees Cook wrote:
+> > On Fri, Nov 20, 2020 at 10:53:44AM -0800, Jakub Kicinski wrote:
+> > > On Fri, 20 Nov 2020 12:21:39 -0600 Gustavo A. R. Silva wrote:  
+> > > > This series aims to fix almost all remaining fall-through warnings in
+> > > > order to enable -Wimplicit-fallthrough for Clang.
+> > > > 
+> > > > In preparation to enable -Wimplicit-fallthrough for Clang, explicitly
+> > > > add multiple break/goto/return/fallthrough statements instead of just
+> > > > letting the code fall through to the next case.
+> > > > 
+> > > > Notice that in order to enable -Wimplicit-fallthrough for Clang, this
+> > > > change[1] is meant to be reverted at some point. So, this patch helps
+> > > > to move in that direction.
+> > > > 
+> > > > Something important to mention is that there is currently a discrepancy
+> > > > between GCC and Clang when dealing with switch fall-through to empty case
+> > > > statements or to cases that only contain a break/continue/return
+> > > > statement[2][3][4].  
+> > > 
+> > > Are we sure we want to make this change? Was it discussed before?
+> > > 
+> > > Are there any bugs Clangs puritanical definition of fallthrough helped
+> > > find?
+> > > 
+> > > IMVHO compiler warnings are supposed to warn about issues that could
+> > > be bugs. Falling through to default: break; can hardly be a bug?!  
+> > 
+> > It's certainly a place where the intent is not always clear. I think
+> > this makes all the cases unambiguous, and doesn't impact the machine
+> > code, since the compiler will happily optimize away any behavioral
+> > redundancy.
+> 
+> If none of the 140 patches here fix a real bug, and there is no change
+> to machine code then it sounds to me like a W=2 kind of a warning.
 
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: John Johansen <john.johansen@canonical.com>
-Acked-by: Stephen Smalley <sds@tycho.nsa.gov>
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
-Cc: netdev@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
----
- net/netfilter/nfnetlink_queue.c | 37 +++++++++++++--------------------
- 1 file changed, 14 insertions(+), 23 deletions(-)
+I'd like to avoid splitting common -W options between default and W=2
+just based on the compiler. Getting -Wimplicit-fallthrough enabled found
+plenty of bugs, so making sure it works correctly for both compilers
+feels justified to me. (This is just a subset of the same C language
+short-coming.)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 84be5a49a157..0d8b83d84422 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -301,15 +301,13 @@ static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
- 	return -1;
- }
- 
--static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
-+static void nfqnl_get_sk_secctx(struct sk_buff *skb, struct lsmcontext *context)
- {
--	u32 seclen = 0;
- #if IS_ENABLED(CONFIG_NETWORK_SECMARK)
- 	struct lsmblob blob;
--	struct lsmcontext context = { };
- 
- 	if (!skb || !sk_fullsock(skb->sk))
--		return 0;
-+		return;
- 
- 	read_lock_bh(&skb->sk->sk_callback_lock);
- 
-@@ -318,14 +316,12 @@ static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
- 		 * blob. security_secid_to_secctx() will know which security
- 		 * module to use to create the secctx.  */
- 		lsmblob_init(&blob, skb->secmark);
--		security_secid_to_secctx(&blob, &context);
--		*secdata = context.context;
-+		security_secid_to_secctx(&blob, context);
- 	}
- 
- 	read_unlock_bh(&skb->sk->sk_callback_lock);
--	seclen = context.len;
- #endif
--	return seclen;
-+	return;
- }
- 
- static u32 nfqnl_get_bridge_size(struct nf_queue_entry *entry)
-@@ -398,12 +394,10 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	struct net_device *indev;
- 	struct net_device *outdev;
- 	struct nf_conn *ct = NULL;
-+	struct lsmcontext context = { };
- 	enum ip_conntrack_info ctinfo;
- 	struct nfnl_ct_hook *nfnl_ct;
- 	bool csum_verify;
--	struct lsmcontext scaff; /* scaffolding */
--	char *secdata = NULL;
--	u32 seclen = 0;
- 
- 	size = nlmsg_total_size(sizeof(struct nfgenmsg))
- 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
-@@ -469,9 +463,9 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	}
- 
- 	if ((queue->flags & NFQA_CFG_F_SECCTX) && entskb->sk) {
--		seclen = nfqnl_get_sk_secctx(entskb, &secdata);
--		if (seclen)
--			size += nla_total_size(seclen);
-+		nfqnl_get_sk_secctx(entskb, &context);
-+		if (context.len)
-+			size += nla_total_size(context.len);
- 	}
- 
- 	skb = alloc_skb(size, GFP_ATOMIC);
-@@ -604,7 +598,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	    nfqnl_put_sk_uidgid(skb, entskb->sk) < 0)
- 		goto nla_put_failure;
- 
--	if (seclen && nla_put(skb, NFQA_SECCTX, seclen, secdata))
-+	if (context.len &&
-+	    nla_put(skb, NFQA_SECCTX, context.len, context.context))
- 		goto nla_put_failure;
- 
- 	if (ct && nfnl_ct->build(skb, ct, ctinfo, NFQA_CT, NFQA_CT_INFO) < 0)
-@@ -632,10 +627,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	}
- 
- 	nlh->nlmsg_len = skb->len;
--	if (seclen) {
--		lsmcontext_init(&scaff, secdata, seclen, 0);
--		security_release_secctx(&scaff);
--	}
-+	if (context.len)
-+		security_release_secctx(&context);
- 	return skb;
- 
- nla_put_failure:
-@@ -643,10 +636,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	kfree_skb(skb);
- 	net_err_ratelimited("nf_queue: error creating packet message\n");
- nlmsg_failure:
--	if (seclen) {
--		lsmcontext_init(&scaff, secdata, seclen, 0);
--		security_release_secctx(&scaff);
--	}
-+	if (context.len)
-+		security_release_secctx(&context);
- 	return NULL;
- }
- 
+> I think clang is just being annoying here, but if I'm the only one who
+> feels this way chances are I'm wrong :)
+
+It's being pretty pedantic, but I don't think it's unreasonable to
+explicitly state how every case ends. GCC's silence for the case of
+"fall through to a break" doesn't really seem justified.
+
 -- 
-2.24.1
-
+Kees Cook
