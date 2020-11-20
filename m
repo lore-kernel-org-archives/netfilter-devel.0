@@ -2,71 +2,81 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DC1BC63798
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 06:32:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C167C63777
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 08:07:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C0F20222BA
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 06:32:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE3D422227
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 08:07:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726392AbgKTGcT (ORCPT
+        id S1725809AbgKTIHc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Nov 2020 01:32:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42706 "EHLO
+        Fri, 20 Nov 2020 03:07:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57520 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725831AbgKTGcT (ORCPT
+        with ESMTP id S1725766AbgKTIHc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Nov 2020 01:32:19 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CF8EC0613CF;
-        Thu, 19 Nov 2020 22:32:19 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1kfzxr-00074O-R6; Fri, 20 Nov 2020 07:32:11 +0100
-Date:   Fri, 20 Nov 2020 07:32:11 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     nusiddiq@redhat.com, dev@openvswitch.org, netdev@vger.kernel.org,
-        Pravin B Shelar <pshelar@ovn.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net-next v2] net: openvswitch: Be liberal in tcp
- conntrack.
-Message-ID: <20201120063211.GN15137@breakpoint.cc>
-References: <20201116130126.3065077-1-nusiddiq@redhat.com>
- <20201119205749.0c3eaf8b@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
+        Fri, 20 Nov 2020 03:07:32 -0500
+X-Greylist: delayed 40733 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 20 Nov 2020 00:07:32 PST
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::45])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06605C0613CF;
+        Fri, 20 Nov 2020 00:07:32 -0800 (PST)
+Received: from localhost (localhost [127.0.0.1])
+        by smtp0.kfki.hu (Postfix) with ESMTP id 7EE6567400C9;
+        Fri, 20 Nov 2020 09:07:30 +0100 (CET)
+X-Virus-Scanned: Debian amavisd-new at smtp0.kfki.hu
+Received: from smtp0.kfki.hu ([127.0.0.1])
+        by localhost (smtp0.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Fri, 20 Nov 2020 09:07:28 +0100 (CET)
+Received: from blackhole.kfki.hu (blackhole.kfki.hu [IPv6:2001:738:5001:1::240:2])
+        by smtp0.kfki.hu (Postfix) with ESMTP id 4662A6740114;
+        Fri, 20 Nov 2020 09:07:27 +0100 (CET)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id 39EBD340D5C; Fri, 20 Nov 2020 09:07:27 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+        by blackhole.kfki.hu (Postfix) with ESMTP id 356C5340D5B;
+        Fri, 20 Nov 2020 09:07:27 +0100 (CET)
+Date:   Fri, 20 Nov 2020 09:07:27 +0100 (CET)
+From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+X-X-Sender: kadlec@blackhole.kfki.hu
+To:     Neutron Soutmun <neo.neutron@gmail.com>
+cc:     Jan Engelhardt <jengelh@inai.de>, netfilter@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [ANNOUNCE] ipset 7.8 released
+In-Reply-To: <CAMQP0skDvG-vOAGmcx2kn21KYS9UgMfxND7NTi_X75GOnx_izw@mail.gmail.com>
+Message-ID: <alpine.DEB.2.23.453.2011200904550.19567@blackhole.kfki.hu>
+References: <alpine.DEB.2.23.453.2011192141150.19567@blackhole.kfki.hu> <45rqn0n5-5385-o997-rn9q-os784nqrn9p@vanv.qr> <alpine.DEB.2.23.453.2011192237290.19567@blackhole.kfki.hu> <83oq5412-o0sq-5q31-s7o5-s0q28s12844@vanv.qr>
+ <CAMQP0skDvG-vOAGmcx2kn21KYS9UgMfxND7NTi_X75GOnx_izw@mail.gmail.com>
+User-Agent: Alpine 2.23 (DEB 453 2020-06-18)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201119205749.0c3eaf8b@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Jakub Kicinski <kuba@kernel.org> wrote:
-> On Mon, 16 Nov 2020 18:31:26 +0530 nusiddiq@redhat.com wrote:
-> > From: Numan Siddique <nusiddiq@redhat.com>
-> > 
-> > There is no easy way to distinguish if a conntracked tcp packet is
-> > marked invalid because of tcp_in_window() check error or because
-> > it doesn't belong to an existing connection. With this patch,
-> > openvswitch sets liberal tcp flag for the established sessions so
-> > that out of window packets are not marked invalid.
-> > 
-> > A helper function - nf_ct_set_tcp_be_liberal(nf_conn) is added which
-> > sets this flag for both the directions of the nf_conn.
-> > 
-> > Suggested-by: Florian Westphal <fw@strlen.de>
-> > Signed-off-by: Numan Siddique <nusiddiq@redhat.com>
+Hi,
+
+On Fri, 20 Nov 2020, Neutron Soutmun wrote:
+
+> For the ipset 7.9, I found the released download url is 
+> http://ipset.netfilter.org/ipset-7.9.tar.bz2, however, it's previous 
+> releases are in http://ftp.netfilter.org/pub/ipset/
 > 
-> Florian, LGTY?
+> The Debian has the tool to detect the new release with package watch [1] 
+> file. Could you please consider uploading the new release to the 
+> fpt.netfiler.org/pub/ipset also.
 
-Sorry, this one sailed past me.
+It has been fixed. Please note, I switched from md5 to sha512 at 
+generating the checksum file, so the filename is changed accordingly to 
+<packagename>.sha512sum.txt.
 
-Acked-by: Florian Westphal <fw@strlen.de>
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
