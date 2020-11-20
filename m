@@ -2,118 +2,85 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 840DCC63798
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 08:30:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D24AC5519F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 09:44:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2507D223BE
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 08:30:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 023ED22227
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 09:44:38 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="hk1CTowR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726483AbgKTI37 (ORCPT
+        id S1727220AbgKTJoi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Nov 2020 03:29:59 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:7709 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725801AbgKTI37 (ORCPT
+        Fri, 20 Nov 2020 04:44:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44294 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726882AbgKTJoi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Nov 2020 03:29:59 -0500
-Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.58])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4CcqTq21P7zkc9s;
-        Fri, 20 Nov 2020 16:29:35 +0800 (CST)
-Received: from [10.174.179.81] (10.174.179.81) by
- DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
- 14.3.487.0; Fri, 20 Nov 2020 16:29:53 +0800
-Subject: Re: [PATCH net] ipvs: fix possible memory leak in
- ip_vs_control_net_init
-To:     Julian Anastasov <ja@ssi.bg>
-CC:     <horms@verge.net.au>, <pablo@netfilter.org>,
-        <kadlec@netfilter.org>, <fw@strlen.de>, <davem@davemloft.net>,
-        <kuba@kernel.org>, <christian@brauner.io>,
-        <hans.schillstrom@ericsson.com>, <lvs-devel@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-        <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-References: <20201119104102.67427-1-wanghai38@huawei.com>
- <f111e78-b9c1-453-c6e5-a063e62cd83b@ssi.bg>
-From:   "wanghai (M)" <wanghai38@huawei.com>
-Message-ID: <0574c34c-60a8-8d8d-38b1-962898e55801@huawei.com>
-Date:   Fri, 20 Nov 2020 16:29:52 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+        Fri, 20 Nov 2020 04:44:38 -0500
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15D69C0613CF
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2020 01:44:38 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=RaKKP1yME5xlKc0GhWt0PlS7Ny+DOORFyh2QHhMqMcc=; b=hk1CTowRU0KjeXdSfYNapKPUKr
+        SySkrEmKusWCLxr/itxsNdWInUv9BWVArAiu5plM4B2KztoUT72rqQ53UDR30E2VJqIGDsza2JMqs
+        n2D9dEFcjjRWAAnY+Vp9ySkPYR0CKU3b1CYhNJpjyg8EH/bAc+rbBY+i9lQEwN1w07QxrQfAk0XtY
+        aEXzVxNylHjvwM19kq6CasD7bQCHktva3TNl5P8d+ZKUceNxYcnbchVGSxbqTKPvA6xED0PDmlG93
+        qU+Z4QjVpoIj1RkGnV5b0Zze8BalK2Vae480eBAxmBqcpXIXsKtVo5SPMlMfrkAsXDnckI8DiopYU
+        4cQS9ySw==;
+Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
+        by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1kg2xi-00064C-59; Fri, 20 Nov 2020 09:44:27 +0000
+Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client did not present a certificate)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 55F5A306BCA;
+        Fri, 20 Nov 2020 10:44:13 +0100 (CET)
+Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
+        id 3A7BF2B064680; Fri, 20 Nov 2020 10:44:13 +0100 (CET)
+Date:   Fri, 20 Nov 2020 10:44:13 +0100
+From:   Peter Zijlstra <peterz@infradead.org>
+To:     subashab@codeaurora.org
+Cc:     Florian Westphal <fw@strlen.de>, Will Deacon <will@kernel.org>,
+        pablo@netfilter.org, Sean Tranchetti <stranche@codeaurora.org>,
+        netfilter-devel@vger.kernel.org, tglx@linutronix.de
+Subject: Re: [PATCH nf] x_tables: Properly close read section with
+ read_seqcount_retry
+Message-ID: <20201120094413.GA3040@hirez.programming.kicks-ass.net>
+References: <20201116170440.GA26150@breakpoint.cc>
+ <983d178e6f3aac81d491362ab60db61f@codeaurora.org>
+ <20201116182028.GE22792@breakpoint.cc>
+ <20201118121322.GA1821@willie-the-truck>
+ <20201118124228.GJ22792@breakpoint.cc>
+ <20201118125406.GA2029@willie-the-truck>
+ <20201118131419.GK22792@breakpoint.cc>
+ <7d52f54a7e3ebc794f0b775e793ab142@codeaurora.org>
+ <20201118211007.GA15137@breakpoint.cc>
+ <7d8bc917b7a6790fa789085ba8324b08@codeaurora.org>
 MIME-Version: 1.0
-In-Reply-To: <f111e78-b9c1-453-c6e5-a063e62cd83b@ssi.bg>
-Content-Type: text/plain; charset="gbk"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.174.179.81]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7d8bc917b7a6790fa789085ba8324b08@codeaurora.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Thu, Nov 19, 2020 at 10:53:13PM -0700, subashab@codeaurora.org wrote:
+> +struct xt_table_info
+> +*xt_table_get_private_protected(const struct xt_table *table)
+> +{
+> +	return rcu_dereference_protected(table->private,
+> +					 mutex_is_locked(&xt[table->af].mutex));
+> +}
+> +EXPORT_SYMBOL(xt_table_get_private_protected);
 
-ÔÚ 2020/11/20 2:22, Julian Anastasov Ð´µÀ:
-> 	Hello,
->
-> On Thu, 19 Nov 2020, Wang Hai wrote:
->
->> kmemleak report a memory leak as follows:
->>
->> BUG: memory leak
->> unreferenced object 0xffff8880759ea000 (size 256):
->> comm "syz-executor.3", pid 6484, jiffies 4297476946 (age 48.546s)
->> hex dump (first 32 bytes):
->> 00 00 00 00 01 00 00 00 08 a0 9e 75 80 88 ff ff ...........u....
-[...]
->> Reported-by: Hulk Robot <hulkci@huawei.com>
->> Signed-off-by: Wang Hai <wanghai38@huawei.com>
->> ---
->>   net/netfilter/ipvs/ip_vs_ctl.c | 3 +++
->>   1 file changed, 3 insertions(+)
->>
->> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
->> index e279ded4e306..d99bb89e7c25 100644
->> --- a/net/netfilter/ipvs/ip_vs_ctl.c
->> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
->> @@ -4180,6 +4180,9 @@ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
->>   	return 0;
-> 	May be we should add some #ifdef CONFIG_PROC_FS because
-> proc_create_net* return NULL when PROC is not used. For example:
->
-> #ifdef CONFIG_PROC_FS
-> 	if (!proc_create_net...
-> 		goto err_vs;
-> 	if (!proc_create_net...
-> 		goto err_stats;
-> 	...
-> #endif
-> 	...
->
->>   err:
-> #ifdef CONFIG_PROC_FS
->> +	remove_proc_entry("ip_vs_stats_percpu", ipvs->net->proc_net);
-> err_percpu:
->> +	remove_proc_entry("ip_vs_stats", ipvs->net->proc_net);
-> err_stats:
->> +	remove_proc_entry("ip_vs", ipvs->net->proc_net);
-> err_vs:
-> #endif
->
->>   	free_percpu(ipvs->tot_stats.cpustats);
->>   	return -ENOMEM;
->>   }
->> -- 
-> Regards
->
-> --
-> Julian Anastasov <ja@ssi.bg>
->
-> .
-
-Thanks for your advice, I just sent v2
-
-¡°[PATCH net v2] ipvs: fix possible memory leak in ip_vs_control_net_init¡±
-
->
+In all debug builds this function compiles to a single memory
+dereference. Do you really want that out-of-line?
