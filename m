@@ -2,86 +2,584 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-22.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15EBEC71155
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 18:40:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24A06C56201
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 18:50:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C755424199
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 18:40:04 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="0Vrw2eCE"
+	by mail.kernel.org (Postfix) with ESMTP id C71E52242B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 18:50:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731258AbgKTSiH (ORCPT
+        id S1731539AbgKTSuI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Nov 2020 13:38:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56424 "EHLO mail.kernel.org"
+        Fri, 20 Nov 2020 13:50:08 -0500
+Received: from correo.us.es ([193.147.175.20]:39852 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731242AbgKTSiH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Nov 2020 13:38:07 -0500
-Received: from embeddedor (187-162-31-110.static.axtel.net [187.162.31.110])
+        id S1728578AbgKTSuI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 20 Nov 2020 13:50:08 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 200201C0227
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2020 19:50:04 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 11580DA722
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2020 19:50:04 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 06AF8DA78E; Fri, 20 Nov 2020 19:50:04 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 29E47DA722;
+        Fri, 20 Nov 2020 19:50:01 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 20 Nov 2020 19:50:01 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 50D3B21D91;
-        Fri, 20 Nov 2020 18:38:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605897484;
-        bh=AjVdgvoWHF4+7F4kqNwapbEv2+b08/vs3SGIF6KZ0xY=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=0Vrw2eCEIJHv4F3Ai3KizrOhjAFnHljhFWbl7x7NUKr1xsevHhanwFpxAcJ1aCi+o
-         GxglCu4RAyvHDUDgw/RwzGKusB4KqUqdrLfycVS1dB6Oe5Dx9s+jMhiihNmv0g23Bf
-         QTlO/f0AfJcSAr410uJU7zsylWYUz01kgKdPCOPU=
-Date:   Fri, 20 Nov 2020 12:38:09 -0600
-From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Jakub Kicinski <kuba@kernel.org>
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-hardening@vger.kernel.org,
-        "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Subject: [PATCH 108/141] netfilter: ipt_REJECT: Fix fall-through warnings for
- Clang
-Message-ID: <ff4cbf9ab833a9d17306674850116693a17f2780.1605896060.git.gustavoars@kernel.org>
-References: <cover.1605896059.git.gustavoars@kernel.org>
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 0A0B04265A5A;
+        Fri, 20 Nov 2020 19:50:01 +0100 (CET)
+Date:   Fri, 20 Nov 2020 19:50:00 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH] tests: shell: Stabilize
+ nft-only/0009-needless-bitwise_0
+Message-ID: <20201120185000.GA17769@salvia>
+References: <20201120175757.8063-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <cover.1605896059.git.gustavoars@kernel.org>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+In-Reply-To: <20201120175757.8063-1-phil@nwl.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In preparation to enable -Wimplicit-fallthrough for Clang, fix a warning
-by explicitly adding a break statement instead of letting the code fall
-through to the next case.
+On Fri, Nov 20, 2020 at 06:57:57PM +0100, Phil Sutter wrote:
+> Netlink debug output varies depending on host's endianness and therefore
+> the test fails on Big Endian machines. Since for the sake of asserting
+> no needless bitwise expressions in output the actual data values are not
+> relevant, simply crop the output to just the expression names.
 
-Link: https://github.com/KSPP/linux/issues/115
-Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
----
- net/ipv4/netfilter/ipt_REJECT.c | 1 +
- 1 file changed, 1 insertion(+)
+Probably we can fix this in libnftnl before we apply patches like this
+to nft as well?
 
-diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
-index e16b98ee6266..7dbb10bbd0f5 100644
---- a/net/ipv4/netfilter/ipt_REJECT.c
-+++ b/net/ipv4/netfilter/ipt_REJECT.c
-@@ -57,6 +57,7 @@ reject_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 		break;
- 	case IPT_TCP_RESET:
- 		nf_send_reset(xt_net(par), skb, hook);
-+		break;
- 	case IPT_ICMP_ECHOREPLY:
- 		/* Doesn't happen. */
- 		break;
--- 
-2.27.0
-
+> Fixes: 81a2e12851283 ("tests/shell: Add test for bitwise avoidance fixes")
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+>  .../nft-only/0009-needless-bitwise_0          | 413 +++++++++---------
+>  1 file changed, 208 insertions(+), 205 deletions(-)
+> 
+> diff --git a/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0 b/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0
+> index 41d765e537312..0254208bcf69f 100755
+> --- a/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0
+> +++ b/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0
+> @@ -1,4 +1,4 @@
+> -#!/bin/bash -x
+> +#!/bin/bash
+>  
+>  [[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
+>  set -e
+> @@ -53,287 +53,290 @@ ff:00:00:00:00:00
+>  ) | $XT_MULTI ebtables-restore
+>  
+>  EXPECT="ip filter OUTPUT 4
+> -  [ payload load 4b @ network header + 16 => reg 1 ]
+> -  [ cmp eq reg 1 0x0302010a ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  ip filter OUTPUT 5 4
+> -  [ payload load 4b @ network header + 16 => reg 1 ]
+> -  [ cmp eq reg 1 0x0302010a ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  ip filter OUTPUT 6 5
+> -  [ payload load 4b @ network header + 16 => reg 1 ]
+> -  [ bitwise reg 1 = ( reg 1 & 0xfcffffff ) ^ 0x00000000 ]
+> -  [ cmp eq reg 1 0x0002010a ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ bitwise ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  ip filter OUTPUT 7 6
+> -  [ payload load 3b @ network header + 16 => reg 1 ]
+> -  [ cmp eq reg 1 0x0002010a ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  ip filter OUTPUT 8 7
+> -  [ payload load 2b @ network header + 16 => reg 1 ]
+> -  [ cmp eq reg 1 0x0000010a ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  ip filter OUTPUT 9 8
+> -  [ payload load 1b @ network header + 16 => reg 1 ]
+> -  [ cmp eq reg 1 0x0000000a ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  ip filter OUTPUT 10 9
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ counter ]
+>  
+>  ip6 filter OUTPUT 4
+> -  [ payload load 16b @ network header + 24 => reg 1 ]
+> -  [ cmp eq reg 1 0xffc0edfe 0x020100ee 0x06050403 0x0a090807 ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  ip6 filter OUTPUT 5 4
+> -  [ payload load 16b @ network header + 24 => reg 1 ]
+> -  [ cmp eq reg 1 0xffc0edfe 0x020100ee 0x06050403 0x0a090807 ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  ip6 filter OUTPUT 6 5
+> -  [ payload load 16b @ network header + 24 => reg 1 ]
+> -  [ bitwise reg 1 = ( reg 1 & 0xffffffff 0xffffffff 0xffffffff 0xf0ffffff ) ^ 0x00000000 0x00000000 0x00000000 0x00000000 ]
+> -  [ cmp eq reg 1 0xffc0edfe 0x020100ee 0x06050403 0x00090807 ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ bitwise ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  ip6 filter OUTPUT 7 6
+> -  [ payload load 15b @ network header + 24 => reg 1 ]
+> -  [ cmp eq reg 1 0xffc0edfe 0x020100ee 0x06050403 0x00090807 ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  ip6 filter OUTPUT 8 7
+> -  [ payload load 14b @ network header + 24 => reg 1 ]
+> -  [ cmp eq reg 1 0xffc0edfe 0x020100ee 0x06050403 0x00000807 ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  ip6 filter OUTPUT 9 8
+> -  [ payload load 11b @ network header + 24 => reg 1 ]
+> -  [ cmp eq reg 1 0xffc0edfe 0x020100ee 0x00050403 ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  ip6 filter OUTPUT 10 9
+> -  [ payload load 10b @ network header + 24 => reg 1 ]
+> -  [ cmp eq reg 1 0xffc0edfe 0x020100ee 0x00000403 ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  ip6 filter OUTPUT 11 10
+> -  [ payload load 8b @ network header + 24 => reg 1 ]
+> -  [ cmp eq reg 1 0xffc0edfe 0x020100ee ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  ip6 filter OUTPUT 12 11
+> -  [ payload load 6b @ network header + 24 => reg 1 ]
+> -  [ cmp eq reg 1 0xffc0edfe 0x000000ee ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  ip6 filter OUTPUT 13 12
+> -  [ payload load 2b @ network header + 24 => reg 1 ]
+> -  [ cmp eq reg 1 0x0000edfe ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  ip6 filter OUTPUT 14 13
+> -  [ payload load 1b @ network header + 24 => reg 1 ]
+> -  [ cmp eq reg 1 0x000000fe ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  ip6 filter OUTPUT 15 14
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ counter ]
+>  
+>  arp filter OUTPUT 3
+> -  [ payload load 2b @ network header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000100 ]
+> -  [ payload load 1b @ network header + 4 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000006 ]
+> -  [ payload load 1b @ network header + 5 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000004 ]
+> -  [ payload load 4b @ network header + 24 => reg 1 ]
+> -  [ cmp eq reg 1 0x0302010a ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  arp filter OUTPUT 4 3
+> -  [ payload load 2b @ network header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000100 ]
+> -  [ payload load 1b @ network header + 4 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000006 ]
+> -  [ payload load 1b @ network header + 5 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000004 ]
+> -  [ payload load 4b @ network header + 24 => reg 1 ]
+> -  [ cmp eq reg 1 0x0302010a ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  arp filter OUTPUT 5 4
+> -  [ payload load 2b @ network header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000100 ]
+> -  [ payload load 1b @ network header + 4 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000006 ]
+> -  [ payload load 1b @ network header + 5 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000004 ]
+> -  [ payload load 4b @ network header + 24 => reg 1 ]
+> -  [ bitwise reg 1 = ( reg 1 & 0xfcffffff ) ^ 0x00000000 ]
+> -  [ cmp eq reg 1 0x0002010a ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ bitwise ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  arp filter OUTPUT 6 5
+> -  [ payload load 2b @ network header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000100 ]
+> -  [ payload load 1b @ network header + 4 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000006 ]
+> -  [ payload load 1b @ network header + 5 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000004 ]
+> -  [ payload load 3b @ network header + 24 => reg 1 ]
+> -  [ cmp eq reg 1 0x0002010a ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  arp filter OUTPUT 7 6
+> -  [ payload load 2b @ network header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000100 ]
+> -  [ payload load 1b @ network header + 4 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000006 ]
+> -  [ payload load 1b @ network header + 5 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000004 ]
+> -  [ payload load 2b @ network header + 24 => reg 1 ]
+> -  [ cmp eq reg 1 0x0000010a ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  arp filter OUTPUT 8 7
+> -  [ payload load 2b @ network header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000100 ]
+> -  [ payload load 1b @ network header + 4 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000006 ]
+> -  [ payload load 1b @ network header + 5 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000004 ]
+> -  [ payload load 1b @ network header + 24 => reg 1 ]
+> -  [ cmp eq reg 1 0x0000000a ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  arp filter OUTPUT 9 8
+> -  [ payload load 2b @ network header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000100 ]
+> -  [ payload load 1b @ network header + 4 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000006 ]
+> -  [ payload load 1b @ network header + 5 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000004 ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  arp filter OUTPUT 10 9
+> -  [ payload load 2b @ network header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000100 ]
+> -  [ payload load 1b @ network header + 4 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000006 ]
+> -  [ payload load 1b @ network header + 5 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000004 ]
+> -  [ payload load 6b @ network header + 18 => reg 1 ]
+> -  [ cmp eq reg 1 0xc000edfe 0x0000eeff ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  arp filter OUTPUT 11 10
+> -  [ payload load 2b @ network header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000100 ]
+> -  [ payload load 1b @ network header + 4 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000006 ]
+> -  [ payload load 1b @ network header + 5 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000004 ]
+> -  [ payload load 6b @ network header + 18 => reg 1 ]
+> -  [ bitwise reg 1 = ( reg 1 & 0xffffffff 0x0000f0ff ) ^ 0x00000000 0x00000000 ]
+> -  [ cmp eq reg 1 0xc000edfe 0x0000e0ff ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ bitwise ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  arp filter OUTPUT 12 11
+> -  [ payload load 2b @ network header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000100 ]
+> -  [ payload load 1b @ network header + 4 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000006 ]
+> -  [ payload load 1b @ network header + 5 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000004 ]
+> -  [ payload load 5b @ network header + 18 => reg 1 ]
+> -  [ cmp eq reg 1 0xc000edfe 0x000000ff ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  arp filter OUTPUT 13 12
+> -  [ payload load 2b @ network header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000100 ]
+> -  [ payload load 1b @ network header + 4 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000006 ]
+> -  [ payload load 1b @ network header + 5 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000004 ]
+> -  [ payload load 4b @ network header + 18 => reg 1 ]
+> -  [ cmp eq reg 1 0xc000edfe ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  arp filter OUTPUT 14 13
+> -  [ payload load 2b @ network header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000100 ]
+> -  [ payload load 1b @ network header + 4 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000006 ]
+> -  [ payload load 1b @ network header + 5 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000004 ]
+> -  [ payload load 3b @ network header + 18 => reg 1 ]
+> -  [ cmp eq reg 1 0x0000edfe ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  arp filter OUTPUT 15 14
+> -  [ payload load 2b @ network header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000100 ]
+> -  [ payload load 1b @ network header + 4 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000006 ]
+> -  [ payload load 1b @ network header + 5 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000004 ]
+> -  [ payload load 2b @ network header + 18 => reg 1 ]
+> -  [ cmp eq reg 1 0x0000edfe ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  arp filter OUTPUT 16 15
+> -  [ payload load 2b @ network header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000100 ]
+> -  [ payload load 1b @ network header + 4 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000006 ]
+> -  [ payload load 1b @ network header + 5 => reg 1 ]
+> -  [ cmp eq reg 1 0x00000004 ]
+> -  [ payload load 1b @ network header + 18 => reg 1 ]
+> -  [ cmp eq reg 1 0x000000fe ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  bridge filter OUTPUT 4
+> -  [ payload load 6b @ link header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0xc000edfe 0x0000eeff ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  bridge filter OUTPUT 5 4
+> -  [ payload load 6b @ link header + 0 => reg 1 ]
+> -  [ bitwise reg 1 = ( reg 1 & 0xffffffff 0x0000f0ff ) ^ 0x00000000 0x00000000 ]
+> -  [ cmp eq reg 1 0xc000edfe 0x0000e0ff ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ bitwise ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  bridge filter OUTPUT 6 5
+> -  [ payload load 5b @ link header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0xc000edfe 0x000000ff ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  bridge filter OUTPUT 7 6
+> -  [ payload load 4b @ link header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0xc000edfe ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  bridge filter OUTPUT 8 7
+> -  [ payload load 3b @ link header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0x0000edfe ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  bridge filter OUTPUT 9 8
+> -  [ payload load 2b @ link header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0x0000edfe ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  
+>  bridge filter OUTPUT 10 9
+> -  [ payload load 1b @ link header + 0 => reg 1 ]
+> -  [ cmp eq reg 1 0x000000fe ]
+> -  [ counter pkts 0 bytes 0 ]
+> +  [ payload ]
+> +  [ cmp ]
+> +  [ counter ]
+>  "
+>  
+> -diff -u -Z <(echo "$EXPECT") <(nft --debug=netlink list ruleset | awk '/^table/{exit} {print}')
+> +diff -u -Z <(echo "$EXPECT") <(nft --debug=netlink list ruleset | awk '
+> +	/^table/{exit}
+> +	{print gensub(/\[ ([^ ]+) .* ]/,"[ \\1 ]", "g")}'
+> +)
+> -- 
+> 2.28.0
+> 
