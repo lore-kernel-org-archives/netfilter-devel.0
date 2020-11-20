@@ -2,117 +2,136 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FBC6C64E7D
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 18:54:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01A54C2D0E4
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 19:17:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB57D22D0A
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 18:54:17 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="y6BwGzsU"
+	by mail.kernel.org (Postfix) with ESMTP id BE97A22240
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Nov 2020 19:17:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732112AbgKTSxz (ORCPT
+        id S1732296AbgKTTQv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Nov 2020 13:53:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34856 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730460AbgKTSxv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Nov 2020 13:53:51 -0500
-Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.6])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D19712242B;
-        Fri, 20 Nov 2020 18:53:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605898429;
-        bh=RlEnelajx5E1UvOiu4TwGuYZq41CYqRzy+OE2vpEZwM=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=y6BwGzsUDu1zr4tV0nGpfLuqNb1AQVwTl3HIlZXKXQmalkVaXzcKTw6PaiYzn6cs4
-         cCrQcjpmBltf5qc0pbll6lEfWSr4jv5MMDA/VHBdadKQQtZqXFk9pYOspqu5FdKf1A
-         HiIo+vycYYhwL3jW0KIV5eL5D/2xlLalPiHVxUuA=
-Date:   Fri, 20 Nov 2020 10:53:44 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Cc:     linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org,
-        amd-gfx@lists.freedesktop.org, bridge@lists.linux-foundation.org,
-        ceph-devel@vger.kernel.org, cluster-devel@redhat.com,
-        coreteam@netfilter.org, devel@driverdev.osuosl.org,
-        dm-devel@redhat.com, drbd-dev@lists.linbit.com,
-        dri-devel@lists.freedesktop.org, GR-everest-linux-l2@marvell.com,
-        GR-Linux-NIC-Dev@marvell.com, intel-gfx@lists.freedesktop.org,
-        intel-wired-lan@lists.osuosl.org, keyrings@vger.kernel.org,
-        linux1394-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org,
-        linux-afs@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-arm-msm@vger.kernel.org,
-        linux-atm-general@lists.sourceforge.net,
-        linux-block@vger.kernel.org, linux-can@vger.kernel.org,
-        linux-cifs@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-decnet-user@lists.sourceforge.net,
-        linux-ext4@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        linux-geode@lists.infradead.org, linux-gpio@vger.kernel.org,
-        linux-hams@vger.kernel.org, linux-hwmon@vger.kernel.org,
-        linux-i3c@lists.infradead.org, linux-ide@vger.kernel.org,
-        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-integrity@vger.kernel.org,
-        linux-mediatek@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-mm@kvack.org,
-        linux-mtd@lists.infradead.org, linux-nfs@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-sctp@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-stm32@st-md-mailman.stormreply.com,
-        linux-usb@vger.kernel.org, linux-watchdog@vger.kernel.org,
-        linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, nouveau@lists.freedesktop.org,
-        op-tee@lists.trustedfirmware.org, oss-drivers@netronome.com,
-        patches@opensource.cirrus.com, rds-devel@oss.oracle.com,
-        reiserfs-devel@vger.kernel.org, samba-technical@lists.samba.org,
-        selinux@vger.kernel.org, target-devel@vger.kernel.org,
-        tipc-discussion@lists.sourceforge.net,
-        usb-storage@lists.one-eyed-alien.net,
-        virtualization@lists.linux-foundation.org,
-        wcn36xx@lists.infradead.org, x86@kernel.org,
-        xen-devel@lists.xenproject.org, linux-hardening@vger.kernel.org,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Nathan Chancellor <natechancellor@gmail.com>,
-        Miguel Ojeda <ojeda@kernel.org>, Joe Perches <joe@perches.com>,
-        Kees Cook <keescook@chromium.org>
-Subject: Re: [PATCH 000/141] Fix fall-through warnings for Clang
-Message-ID: <20201120105344.4345c14e@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <cover.1605896059.git.gustavoars@kernel.org>
-References: <cover.1605896059.git.gustavoars@kernel.org>
+        Fri, 20 Nov 2020 14:16:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48586 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732258AbgKTTQv (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 20 Nov 2020 14:16:51 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0144AC0613CF
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2020 11:16:50 -0800 (PST)
+Received: from localhost ([::1]:50718 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.94)
+        (envelope-from <phil@nwl.cc>)
+        id 1kgBto-0008ED-Sh; Fri, 20 Nov 2020 20:16:48 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, Derek Dai <daiderek@gmail.com>
+Subject: [nft PATCH] json: echo: Speedup seqnum_to_json()
+Date:   Fri, 20 Nov 2020 20:16:40 +0100
+Message-Id: <20201120191640.21243-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.28.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 20 Nov 2020 12:21:39 -0600 Gustavo A. R. Silva wrote:
-> This series aims to fix almost all remaining fall-through warnings in
-> order to enable -Wimplicit-fallthrough for Clang.
-> 
-> In preparation to enable -Wimplicit-fallthrough for Clang, explicitly
-> add multiple break/goto/return/fallthrough statements instead of just
-> letting the code fall through to the next case.
-> 
-> Notice that in order to enable -Wimplicit-fallthrough for Clang, this
-> change[1] is meant to be reverted at some point. So, this patch helps
-> to move in that direction.
-> 
-> Something important to mention is that there is currently a discrepancy
-> between GCC and Clang when dealing with switch fall-through to empty case
-> statements or to cases that only contain a break/continue/return
-> statement[2][3][4].
+Derek Dai reports:
+"If there are a lot of command in JSON node, seqnum_to_json() will slow
+down application (eg: firewalld) dramatically since it iterate whole
+command list every time."
 
-Are we sure we want to make this change? Was it discussed before?
+He sent a patch implementing a lookup table, but we can do better: Speed
+this up by introducing a hash table to store the struct json_cmd_assoc
+objects in, taking their netlink sequence number as key.
 
-Are there any bugs Clangs puritanical definition of fallthrough helped
-find?
+Quickly tested restoring a ruleset containing about 19k rules:
 
-IMVHO compiler warnings are supposed to warn about issues that could
-be bugs. Falling through to default: break; can hardly be a bug?!
+| # time ./before/nft -jeaf large_ruleset.json >/dev/null
+| 4.85user 0.47system 0:05.48elapsed 97%CPU (0avgtext+0avgdata 69732maxresident)k
+| 0inputs+0outputs (15major+16937minor)pagefaults 0swaps
+
+| # time ./after/nft -jeaf large_ruleset.json >/dev/null
+| 0.18user 0.44system 0:00.70elapsed 89%CPU (0avgtext+0avgdata 68484maxresident)k
+| 0inputs+0outputs (15major+16645minor)pagefaults 0swaps
+
+Bugzilla: https://bugzilla.netfilter.org/show_bug.cgi?id=1479
+Reported-by: Derek Dai <daiderek@gmail.com>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ src/parser_json.c | 28 ++++++++++++++++++----------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
+
+diff --git a/src/parser_json.c b/src/parser_json.c
+index b1de56a4a0d27..6ebbb408d6839 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -3762,42 +3762,50 @@ static int json_verify_metainfo(struct json_ctx *ctx, json_t *root)
+ }
+ 
+ struct json_cmd_assoc {
+-	struct json_cmd_assoc *next;
++	struct hlist_node hnode;
+ 	const struct cmd *cmd;
+ 	json_t *json;
+ };
+ 
+-static struct json_cmd_assoc *json_cmd_list = NULL;
++#define CMD_ASSOC_HSIZE		512
++static struct hlist_head json_cmd_assoc_hash[CMD_ASSOC_HSIZE];
+ 
+ static void json_cmd_assoc_free(void)
+ {
+ 	struct json_cmd_assoc *cur;
++	struct hlist_node *pos, *n;
++	int i;
+ 
+-	while (json_cmd_list) {
+-		cur = json_cmd_list;
+-		json_cmd_list = cur->next;
+-		free(cur);
++	for (i = 0; i < CMD_ASSOC_HSIZE; i++) {
++		hlist_for_each_entry_safe(cur, pos, n,
++					  &json_cmd_assoc_hash[i], hnode)
++			free(cur);
+ 	}
+ }
+ 
+ static void json_cmd_assoc_add(json_t *json, const struct cmd *cmd)
+ {
+ 	struct json_cmd_assoc *new = xzalloc(sizeof *new);
++	int key = cmd->seqnum % CMD_ASSOC_HSIZE;
+ 
+-	new->next	= json_cmd_list;
+ 	new->json	= json;
+ 	new->cmd	= cmd;
+-	json_cmd_list	= new;
++
++	hlist_add_head(&new->hnode, &json_cmd_assoc_hash[key]);
+ }
+ 
+ static json_t *seqnum_to_json(const uint32_t seqnum)
+ {
+-	const struct json_cmd_assoc *cur;
++	int key = seqnum % CMD_ASSOC_HSIZE;
++	struct json_cmd_assoc *cur;
++	struct hlist_node *n;
+ 
+-	for (cur = json_cmd_list; cur; cur = cur->next) {
++
++	hlist_for_each_entry(cur, n, &json_cmd_assoc_hash[key], hnode) {
+ 		if (cur->cmd->seqnum == seqnum)
+ 			return cur->json;
+ 	}
++
+ 	return NULL;
+ }
+ 
+-- 
+2.28.0
+
