@@ -2,225 +2,107 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76706C388F9
-	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Nov 2020 11:12:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D864C63697
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Nov 2020 11:59:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B36F22240
-	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Nov 2020 11:12:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56EE32224A
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Nov 2020 11:59:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727531AbgKULL5 (ORCPT
+        id S1727591AbgKUL6q (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 21 Nov 2020 06:11:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54608 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727524AbgKULL5 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 21 Nov 2020 06:11:57 -0500
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8FDFC0613CF
-        for <netfilter-devel@vger.kernel.org>; Sat, 21 Nov 2020 03:11:56 -0800 (PST)
-Received: by a3.inai.de (Postfix, from userid 65534)
-        id 0597F59777754; Sat, 21 Nov 2020 12:11:53 +0100 (CET)
-Received: from a4.inai.de (a4.inai.de [IPv6:2a01:4f8:10b:45d8::f8])
-        by a3.inai.de (Postfix) with ESMTP id C7F3B59777752;
-        Sat, 21 Nov 2020 12:11:51 +0100 (CET)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org, jengelh@inai.de
-Subject: [PATCH] netfilter: use actual socket sk for REJECT action
-Date:   Sat, 21 Nov 2020 12:11:51 +0100
-Message-Id: <20201121111151.15960-1-jengelh@inai.de>
-X-Mailer: git-send-email 2.29.2
+        Sat, 21 Nov 2020 06:58:46 -0500
+Received: from correo.us.es ([193.147.175.20]:49494 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727224AbgKUL6q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 21 Nov 2020 06:58:46 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 74A67E7807
+        for <netfilter-devel@vger.kernel.org>; Sat, 21 Nov 2020 12:58:43 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 65929DA78E
+        for <netfilter-devel@vger.kernel.org>; Sat, 21 Nov 2020 12:58:43 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 5699ADA78A; Sat, 21 Nov 2020 12:58:43 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 16AB4DA722;
+        Sat, 21 Nov 2020 12:58:41 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Sat, 21 Nov 2020 12:58:41 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id E935C42EF42A;
+        Sat, 21 Nov 2020 12:58:40 +0100 (CET)
+Date:   Sat, 21 Nov 2020 12:58:40 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Alexander Lobakin <alobakin@pm.me>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, fw@strlen.de,
+        razor@blackwall.org, jeremy@azazel.net, tobias@waldekranz.com
+Subject: Re: [PATCH net-next,v5 0/9] netfilter: flowtable bridge and vlan
+ enhancements
+Message-ID: <20201121115840.GA18793@salvia>
+References: <JbOm90Raei3ADlleQvsaCY9krt0lOkG1YFpbZEgylgU@cp4-web-014.plabs.ch>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <JbOm90Raei3ADlleQvsaCY9krt0lOkG1YFpbZEgylgU@cp4-web-014.plabs.ch>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-True to the message of commit v5.10-rc1-105-g46d6c5ae953c, _do_
-actually make use of state->sk when possible, such as in the REJECT
-modules.
+Hi,
 
-Reported-by: Minqiang Chen <ptpt52@gmail.com>
-Cc: Jason A. Donenfeld <Jason@zx2c4.com>
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
----
-Compile-tested only.
-As 46d6c5ae9 has made its way into stable, maybe this one shall too.
+On Fri, Nov 20, 2020 at 03:09:37PM +0000, Alexander Lobakin wrote:
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> Date: Fri, 20 Nov 2020 13:49:12 +0100
+[...]
+> > The following patchset augments the Netfilter flowtable fastpath to
+> > support for network topologies that combine IP forwarding, bridge and
+> > VLAN devices.
+> 
+> I'm curious if this new infra can be expanded later to shortcut other
+> VLAN-like virtual netdevs e.g. DSA-like switch slaves.
+> 
+> I mean, usually we have port0...portX physical port representors
+> and backing CPU port with ethX representor. When in comes to NAT,
+> portX is set as destination. Flow offload calls dev_queue_xmit()
+> on it, switch stack pushes CPU tag into the skb, change skb->dev
+> to ethX and calls another dev_queue_xmit().
+> 
+> If we could (using the new .ndo_fill_forward_path()) tell Netfilter
+> that our real dest is ethX and push the CPU tag via dev_hard_header(),
+> this will omit one more dev_queue_xmit() and a bunch of indirect calls
+> and checks.
 
- include/net/netfilter/ipv4/nf_reject.h | 4 ++--
- include/net/netfilter/ipv6/nf_reject.h | 5 ++---
- net/ipv4/netfilter/ipt_REJECT.c        | 3 ++-
- net/ipv4/netfilter/nf_reject_ipv4.c    | 6 +++---
- net/ipv4/netfilter/nft_reject_ipv4.c   | 3 ++-
- net/ipv6/netfilter/ip6t_REJECT.c       | 2 +-
- net/ipv6/netfilter/nf_reject_ipv6.c    | 5 +++--
- net/ipv6/netfilter/nft_reject_ipv6.c   | 3 ++-
- net/netfilter/nft_reject_inet.c        | 6 ++++--
- 9 files changed, 21 insertions(+), 16 deletions(-)
+If the XMIT_DIRECT path can be used for this with minimal changes,
+that would be good.
 
-diff --git include/net/netfilter/ipv4/nf_reject.h include/net/netfilter/ipv4/nf_reject.h
-index 40e0e0623f46..d8207a82d761 100644
---- include/net/netfilter/ipv4/nf_reject.h
-+++ include/net/netfilter/ipv4/nf_reject.h
-@@ -8,8 +8,8 @@
- #include <net/netfilter/nf_reject.h>
- 
- void nf_send_unreach(struct sk_buff *skb_in, int code, int hook);
--void nf_send_reset(struct net *net, struct sk_buff *oldskb, int hook);
--
-+void nf_send_reset(struct net *net, struct sock *, struct sk_buff *oldskb,
-+		   int hook);
- const struct tcphdr *nf_reject_ip_tcphdr_get(struct sk_buff *oldskb,
- 					     struct tcphdr *_oth, int hook);
- struct iphdr *nf_reject_iphdr_put(struct sk_buff *nskb,
-diff --git include/net/netfilter/ipv6/nf_reject.h include/net/netfilter/ipv6/nf_reject.h
-index 4a3ef9ebdf6f..86e87bc2c516 100644
---- include/net/netfilter/ipv6/nf_reject.h
-+++ include/net/netfilter/ipv6/nf_reject.h
-@@ -7,9 +7,8 @@
- 
- void nf_send_unreach6(struct net *net, struct sk_buff *skb_in, unsigned char code,
- 		      unsigned int hooknum);
--
--void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook);
--
-+void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
-+		    int hook);
- const struct tcphdr *nf_reject_ip6_tcphdr_get(struct sk_buff *oldskb,
- 					      struct tcphdr *otcph,
- 					      unsigned int *otcplen, int hook);
-diff --git net/ipv4/netfilter/ipt_REJECT.c net/ipv4/netfilter/ipt_REJECT.c
-index e16b98ee6266..4b8840734762 100644
---- net/ipv4/netfilter/ipt_REJECT.c
-+++ net/ipv4/netfilter/ipt_REJECT.c
-@@ -56,7 +56,8 @@ reject_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 		nf_send_unreach(skb, ICMP_PKT_FILTERED, hook);
- 		break;
- 	case IPT_TCP_RESET:
--		nf_send_reset(xt_net(par), skb, hook);
-+		nf_send_reset(xt_net(par), par->state->sk, skb, hook);
-+		break;
- 	case IPT_ICMP_ECHOREPLY:
- 		/* Doesn't happen. */
- 		break;
-diff --git net/ipv4/netfilter/nf_reject_ipv4.c net/ipv4/netfilter/nf_reject_ipv4.c
-index 93b07739807b..efe14a6a5d9b 100644
---- net/ipv4/netfilter/nf_reject_ipv4.c
-+++ net/ipv4/netfilter/nf_reject_ipv4.c
-@@ -112,7 +112,8 @@ static int nf_reject_fill_skb_dst(struct sk_buff *skb_in)
- }
- 
- /* Send RST reply */
--void nf_send_reset(struct net *net, struct sk_buff *oldskb, int hook)
-+void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
-+		   int hook)
- {
- 	struct net_device *br_indev __maybe_unused;
- 	struct sk_buff *nskb;
-@@ -144,8 +145,7 @@ void nf_send_reset(struct net *net, struct sk_buff *oldskb, int hook)
- 	niph = nf_reject_iphdr_put(nskb, oldskb, IPPROTO_TCP,
- 				   ip4_dst_hoplimit(skb_dst(nskb)));
- 	nf_reject_ip_tcphdr_put(nskb, oldskb, oth);
--
--	if (ip_route_me_harder(net, nskb->sk, nskb, RTN_UNSPEC))
-+	if (ip_route_me_harder(net, sk, nskb, RTN_UNSPEC))
- 		goto free_nskb;
- 
- 	niph = ip_hdr(nskb);
-diff --git net/ipv4/netfilter/nft_reject_ipv4.c net/ipv4/netfilter/nft_reject_ipv4.c
-index e408f813f5d8..ff437e4ed6db 100644
---- net/ipv4/netfilter/nft_reject_ipv4.c
-+++ net/ipv4/netfilter/nft_reject_ipv4.c
-@@ -27,7 +27,8 @@ static void nft_reject_ipv4_eval(const struct nft_expr *expr,
- 		nf_send_unreach(pkt->skb, priv->icmp_code, nft_hook(pkt));
- 		break;
- 	case NFT_REJECT_TCP_RST:
--		nf_send_reset(nft_net(pkt), pkt->skb, nft_hook(pkt));
-+		nf_send_reset(nft_net(pkt), pkt->xt.state->sk, pkt->skb,
-+			      nft_hook(pkt));
- 		break;
- 	default:
- 		break;
-diff --git net/ipv6/netfilter/ip6t_REJECT.c net/ipv6/netfilter/ip6t_REJECT.c
-index 3ac5485049f0..a35019d2e480 100644
---- net/ipv6/netfilter/ip6t_REJECT.c
-+++ net/ipv6/netfilter/ip6t_REJECT.c
-@@ -61,7 +61,7 @@ reject_tg6(struct sk_buff *skb, const struct xt_action_param *par)
- 		/* Do nothing */
- 		break;
- 	case IP6T_TCP_RESET:
--		nf_send_reset6(net, skb, xt_hooknum(par));
-+		nf_send_reset6(net, par->state->sk, skb, xt_hooknum(par));
- 		break;
- 	case IP6T_ICMP6_POLICY_FAIL:
- 		nf_send_unreach6(net, skb, ICMPV6_POLICY_FAIL, xt_hooknum(par));
-diff --git net/ipv6/netfilter/nf_reject_ipv6.c net/ipv6/netfilter/nf_reject_ipv6.c
-index 4aef6baaa55e..8b145f2a2841 100644
---- net/ipv6/netfilter/nf_reject_ipv6.c
-+++ net/ipv6/netfilter/nf_reject_ipv6.c
-@@ -141,7 +141,8 @@ static int nf_reject6_fill_skb_dst(struct sk_buff *skb_in)
- 	return 0;
- }
- 
--void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
-+void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
-+		    int hook)
- {
- 	struct net_device *br_indev __maybe_unused;
- 	struct sk_buff *nskb;
-@@ -233,7 +234,7 @@ void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
- 		dev_queue_xmit(nskb);
- 	} else
- #endif
--		ip6_local_out(net, nskb->sk, nskb);
-+		ip6_local_out(net, sk, nskb);
- }
- EXPORT_SYMBOL_GPL(nf_send_reset6);
- 
-diff --git net/ipv6/netfilter/nft_reject_ipv6.c net/ipv6/netfilter/nft_reject_ipv6.c
-index c1098a1968e1..7969d1f3018d 100644
---- net/ipv6/netfilter/nft_reject_ipv6.c
-+++ net/ipv6/netfilter/nft_reject_ipv6.c
-@@ -28,7 +28,8 @@ static void nft_reject_ipv6_eval(const struct nft_expr *expr,
- 				 nft_hook(pkt));
- 		break;
- 	case NFT_REJECT_TCP_RST:
--		nf_send_reset6(nft_net(pkt), pkt->skb, nft_hook(pkt));
-+		nf_send_reset6(nft_net(pkt), pkt->xt.state->sk, pkt->skb,
-+			       nft_hook(pkt));
- 		break;
- 	default:
- 		break;
-diff --git net/netfilter/nft_reject_inet.c net/netfilter/nft_reject_inet.c
-index cf8f2646e93c..36b219e2e896 100644
---- net/netfilter/nft_reject_inet.c
-+++ net/netfilter/nft_reject_inet.c
-@@ -28,7 +28,8 @@ static void nft_reject_inet_eval(const struct nft_expr *expr,
- 					nft_hook(pkt));
- 			break;
- 		case NFT_REJECT_TCP_RST:
--			nf_send_reset(nft_net(pkt), pkt->skb, nft_hook(pkt));
-+			nf_send_reset(nft_net(pkt), pkt->xt.state->sk,
-+				      pkt->skb, nft_hook(pkt));
- 			break;
- 		case NFT_REJECT_ICMPX_UNREACH:
- 			nf_send_unreach(pkt->skb,
-@@ -44,7 +45,8 @@ static void nft_reject_inet_eval(const struct nft_expr *expr,
- 					 priv->icmp_code, nft_hook(pkt));
- 			break;
- 		case NFT_REJECT_TCP_RST:
--			nf_send_reset6(nft_net(pkt), pkt->skb, nft_hook(pkt));
-+			nf_send_reset6(nft_net(pkt), pkt->xt.state->sk,
-+				       pkt->skb, nft_hook(pkt));
- 			break;
- 		case NFT_REJECT_ICMPX_UNREACH:
- 			nf_send_unreach6(nft_net(pkt), pkt->skb,
--- 
-2.29.2
+> This might require some sort of "custom" or "private" cookies for
+> N-Tuple though to separate flows from/to different switch ports (as
+> it's done for VLAN: proto + VID).
 
+Probably VLAN proto + VID in the tuple can be reused for this too.
+Maybe add some extra information to tell if this is a VLAN or DSA
+frame. It should be just one extra check for skb->protocol equals DSA.
+Looks like very minimal changes to support for this.
+
+> If so, I'd like to try to implement and publish that idea for reviews
+> after this one lands nf-next.
+
+Exploring new extensions is fine.
+
+I received another email from someone else that would like to extend
+this to support for PPPoE devices with PcEngines APU routers. In
+general, adding more .ndo_fill_forward_path for more device types is
+possible.
