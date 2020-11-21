@@ -2,119 +2,96 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3734AC63798
-	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Nov 2020 18:02:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B27D0C63798
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Nov 2020 18:15:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1648923A65
-	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Nov 2020 18:02:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 613B322202
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Nov 2020 18:15:55 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ki/2KSub"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728087AbgKUSC3 (ORCPT
+        id S1728150AbgKUSPy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 21 Nov 2020 13:02:29 -0500
-Received: from smtprelay0210.hostedemail.com ([216.40.44.210]:53086 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726556AbgKUSC0 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 21 Nov 2020 13:02:26 -0500
-Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
-        by smtprelay07.hostedemail.com (Postfix) with ESMTP id AF7D7181D3025;
-        Sat, 21 Nov 2020 18:02:23 +0000 (UTC)
-X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-HE-Tag: uncle36_3402e8c27356
-X-Filterd-Recvd-Size: 3937
-Received: from XPS-9350.home (unknown [47.151.128.180])
-        (Authenticated sender: joe@perches.com)
-        by omf04.hostedemail.com (Postfix) with ESMTPA;
-        Sat, 21 Nov 2020 18:02:18 +0000 (UTC)
-Message-ID: <f7643c9cb0a896f3ead65e86084b7c143e21ef43.camel@perches.com>
-Subject: Re: [RFC] MAINTAINERS tag for cleanup robot
-From:   Joe Perches <joe@perches.com>
-To:     James Bottomley <James.Bottomley@HansenPartnership.com>,
-        trix@redhat.com, clang-built-linux@googlegroups.com
-Cc:     linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org,
-        xen-devel@lists.xenproject.org, tboot-devel@lists.sourceforge.net,
-        kvm@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-acpi@vger.kernel.org, devel@acpica.org,
-        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, netdev@vger.kernel.org,
-        linux-media@vger.kernel.org, MPT-FusionLinux.pdl@broadcom.com,
-        linux-scsi@vger.kernel.org, linux-wireless@vger.kernel.org,
-        ibm-acpi-devel@lists.sourceforge.net,
-        platform-driver-x86@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        cluster-devel@redhat.com, linux-mtd@lists.infradead.org,
-        keyrings@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, alsa-devel@alsa-project.org,
-        bpf@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-        linux-nfs@vger.kernel.org, patches@opensource.cirrus.com
-Date:   Sat, 21 Nov 2020 10:02:17 -0800
-In-Reply-To: <5843ef910b0e86c00d9c0143dec20f93823b016b.camel@HansenPartnership.com>
-References: <20201121165058.1644182-1-trix@redhat.com>
-         <5843ef910b0e86c00d9c0143dec20f93823b016b.camel@HansenPartnership.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-User-Agent: Evolution 3.38.1-1 
+        Sat, 21 Nov 2020 13:15:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40476 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727235AbgKUSPx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 21 Nov 2020 13:15:53 -0500
+Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.1])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7BB9622201;
+        Sat, 21 Nov 2020 18:15:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1605982552;
+        bh=1BqyxSS8z+G23mtVjHOtKSYckt8/VDf9fdA1rXsvQyg=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=Ki/2KSubvEOQupmqMpT7UyanOWFuIJDxshClsUoexTiPxcqi3Co/CbMmgGIIhDD6a
+         g5zNEqPys8y25HHPamJwpzQP4344zic7FXDxODJeEQOCujul6zO6gIrtxdVoGbaNBD
+         gagf8cBTcBWsAI16EA61NgNBoH5ddLePeW8txbmc=
+Date:   Sat, 21 Nov 2020 10:15:51 -0800
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Tobias Waldekranz <tobias@waldekranz.com>,
+        netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, razor@blackwall.org, jeremy@azazel.net
+Subject: Re: [PATCH net-next,v3 0/9] netfilter: flowtable bridge and vlan
+ enhancements
+Message-ID: <20201121101551.3264c5fd@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <20201121123138.GA21560@salvia>
+References: <20201111193737.1793-1-pablo@netfilter.org>
+        <20201113175556.25e57856@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        <20201114115906.GA21025@salvia>
+        <87sg9cjaxo.fsf@waldekranz.com>
+        <20201114090347.2e7c1457@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        <20201116221815.GA6682@salvia>
+        <20201116142844.7c492fb6@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        <20201116223615.GA6967@salvia>
+        <20201116144521.771da0c6@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        <20201116225658.GA7247@salvia>
+        <20201121123138.GA21560@salvia>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, 2020-11-21 at 09:18 -0800, James Bottomley wrote:
-> On Sat, 2020-11-21 at 08:50 -0800, trix@redhat.com wrote:
-> > A difficult part of automating commits is composing the subsystem
-> > preamble in the commit log.  For the ongoing effort of a fixer
-> > producing one or two fixes a release the use of 'treewide:' does
-> > not seem appropriate.
+On Sat, 21 Nov 2020 13:31:38 +0100 Pablo Neira Ayuso wrote:
+> On Mon, Nov 16, 2020 at 11:56:58PM +0100, Pablo Neira Ayuso wrote:
+> > On Mon, Nov 16, 2020 at 02:45:21PM -0800, Jakub Kicinski wrote:  
+> > > On Mon, 16 Nov 2020 23:36:15 +0100 Pablo Neira Ayuso wrote:  
+> > > > > Are you saying A -> B traffic won't match so it will update the cache,
+> > > > > since conntrack flows are bi-directional?    
+> > > > 
+> > > > Yes, Traffic for A -> B won't match the flowtable entry, this will
+> > > > update the cache.  
+> > > 
+> > > That's assuming there will be A -> B traffic without B sending a
+> > > request which reaches A, first.  
 > > 
-> > It would be better if the normal prefix was used.  Unfortunately
-> > normal is not consistent across the tree.
+> > B might send packets to A but this will not get anywhere. Assuming
+> > TCP, this will trigger retransmissions so B -> A will kick in to
+> > refresh the entry.
 > > 
-> > 	D: Commit subsystem prefix
-> > 
-> > ex/ for FPGA DFL DRIVERS
-> > 
-> > 	D: fpga: dfl:
-> 
-> I've got to bet this is going to cause more issues than it solves. 
-> SCSI uses scsi: <driver>: for drivers but not every driver has a
-> MAINTAINERS entry.  We use either scsi: or scsi: core: for mid layer
-> things, but we're not consistent.  Block uses blk-<something>: for all
-> of it's stuff but almost no <somtehing>s have a MAINTAINERS entry.  So
-> the next thing you're going to cause is an explosion of suggested
-> MAINTAINERs entries.
+> > Is this scenario that you describe a showstopper?  
 
-As well as some changes require simultaneous changes across
-multiple subsystems.
+Sorry I got distracted.
+ 
+> I have been discussing the topology update by tracking fdb updates
+> with the bridge maintainer, I'll be exploring extensions to the
+> existing fdb_notify() infrastructure to deal with this scenario you
+> describe. On my side this topology update scenario is not a priority
+> to be supported in this patchset, but it's feasible to support it
+> later on.
 
-> Has anyone actually complained about treewide:?
+My concern is that invalidation is _the_ hard part of creating caches.
+And I feel like merging this as is would be setting our standards pretty
+low. 
 
-It depends on what you mean by treewide:
-
-If a treewide: patch is applied by some "higher level" maintainer,
-then generally, no.
-
-If the treewide patch is also cc'd to many individual maintainers,
-then yes, many many times.
-
-Mostly because patches cause what is in their view churn or that
-changes are not specific to their subsystem grounds.
-
-The treewide patch is sometimes dropped, sometimes broken up and
-generally not completely applied.
-
-What would be useful in many cases like this is for a pre and post
-application of the treewide patch to be compiled and the object
-code verified for lack of any logic change.
-
-Unfortunately, gcc does not guarantee deterministic compilation so
-this isn't feasible with at least gcc.  Does clang guarantee this?
-
-I'm not sure it's possible:
-https://blog.llvm.org/2019/11/deterministic-builds-with-clang-and-lld.html
-
-
+Please gather some review tags from senior netdev developers. I don't
+feel confident enough to apply this as 100% my own decision.
