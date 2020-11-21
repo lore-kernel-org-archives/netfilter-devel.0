@@ -6,87 +6,91 @@ X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 736B5C388F9
-	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Nov 2020 12:17:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14ED1C63697
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Nov 2020 12:32:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3116A22226
-	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Nov 2020 12:17:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BF23F2224A
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Nov 2020 12:32:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727717AbgKUMR3 (ORCPT
+        id S1727707AbgKUMbn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 21 Nov 2020 07:17:29 -0500
-Received: from correo.us.es ([193.147.175.20]:55040 "EHLO mail.us.es"
+        Sat, 21 Nov 2020 07:31:43 -0500
+Received: from correo.us.es ([193.147.175.20]:58790 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727668AbgKUMR2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 21 Nov 2020 07:17:28 -0500
+        id S1727486AbgKUMbn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 21 Nov 2020 07:31:43 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D070BE780F
-        for <netfilter-devel@vger.kernel.org>; Sat, 21 Nov 2020 13:17:26 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 1AB34E8E90
+        for <netfilter-devel@vger.kernel.org>; Sat, 21 Nov 2020 13:31:41 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C301FDA78F
-        for <netfilter-devel@vger.kernel.org>; Sat, 21 Nov 2020 13:17:26 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0DC3ADA792
+        for <netfilter-devel@vger.kernel.org>; Sat, 21 Nov 2020 13:31:41 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B861ADA78C; Sat, 21 Nov 2020 13:17:26 +0100 (CET)
+        id 022D6DA78C; Sat, 21 Nov 2020 13:31:41 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A01D6DA73D;
-        Sat, 21 Nov 2020 13:17:24 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D5AC4DA722;
+        Sat, 21 Nov 2020 13:31:38 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 21 Nov 2020 13:17:24 +0100 (CET)
+ Sat, 21 Nov 2020 13:31:38 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 814694265A5A;
-        Sat, 21 Nov 2020 13:17:24 +0100 (CET)
-Date:   Sat, 21 Nov 2020 13:17:24 +0100
+        by entrada.int (Postfix) with ESMTPSA id B4BC24265A5A;
+        Sat, 21 Nov 2020 13:31:38 +0100 (CET)
+Date:   Sat, 21 Nov 2020 13:31:38 +0100
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org, Derek Dai <daiderek@gmail.com>,
-        guigom@riseup.net
-Subject: Re: [nft PATCH] json: echo: Speedup seqnum_to_json()
-Message-ID: <20201121121724.GA21214@salvia>
-References: <20201120191640.21243-1-phil@nwl.cc>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     Tobias Waldekranz <tobias@waldekranz.com>,
+        netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, razor@blackwall.org, jeremy@azazel.net
+Subject: Re: [PATCH net-next,v3 0/9] netfilter: flowtable bridge and vlan
+ enhancements
+Message-ID: <20201121123138.GA21560@salvia>
+References: <20201111193737.1793-1-pablo@netfilter.org>
+ <20201113175556.25e57856@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <20201114115906.GA21025@salvia>
+ <87sg9cjaxo.fsf@waldekranz.com>
+ <20201114090347.2e7c1457@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <20201116221815.GA6682@salvia>
+ <20201116142844.7c492fb6@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <20201116223615.GA6967@salvia>
+ <20201116144521.771da0c6@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <20201116225658.GA7247@salvia>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20201120191640.21243-1-phil@nwl.cc>
+In-Reply-To: <20201116225658.GA7247@salvia>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Nov 20, 2020 at 08:16:40PM +0100, Phil Sutter wrote:
-> Derek Dai reports:
-> "If there are a lot of command in JSON node, seqnum_to_json() will slow
-> down application (eg: firewalld) dramatically since it iterate whole
-> command list every time."
+On Mon, Nov 16, 2020 at 11:56:58PM +0100, Pablo Neira Ayuso wrote:
+> On Mon, Nov 16, 2020 at 02:45:21PM -0800, Jakub Kicinski wrote:
+> > On Mon, 16 Nov 2020 23:36:15 +0100 Pablo Neira Ayuso wrote:
+> > > > Are you saying A -> B traffic won't match so it will update the cache,
+> > > > since conntrack flows are bi-directional?  
+> > > 
+> > > Yes, Traffic for A -> B won't match the flowtable entry, this will
+> > > update the cache.
+> > 
+> > That's assuming there will be A -> B traffic without B sending a
+> > request which reaches A, first.
 > 
-> He sent a patch implementing a lookup table, but we can do better: Speed
-> this up by introducing a hash table to store the struct json_cmd_assoc
-> objects in, taking their netlink sequence number as key.
+> B might send packets to A but this will not get anywhere. Assuming
+> TCP, this will trigger retransmissions so B -> A will kick in to
+> refresh the entry.
 > 
-> Quickly tested restoring a ruleset containing about 19k rules:
-> 
-> | # time ./before/nft -jeaf large_ruleset.json >/dev/null
-> | 4.85user 0.47system 0:05.48elapsed 97%CPU (0avgtext+0avgdata 69732maxresident)k
-> | 0inputs+0outputs (15major+16937minor)pagefaults 0swaps
-> 
-> | # time ./after/nft -jeaf large_ruleset.json >/dev/null
-> | 0.18user 0.44system 0:00.70elapsed 89%CPU (0avgtext+0avgdata 68484maxresident)k
-> | 0inputs+0outputs (15major+16645minor)pagefaults 0swaps
+> Is this scenario that you describe a showstopper?
 
-LGTM.
-
-BTW, Jose (he's on Cc) should rewrite his patch to exercise the
-monitor path when --echo and --json are combined _and_ input is _not_
-json.
-
-Hence, leaving --echo and --json where input is json in the way you
-need (using the sequence number to reuse the json input
-representation).
-
-OK?
+I have been discussing the topology update by tracking fdb updates
+with the bridge maintainer, I'll be exploring extensions to the
+existing fdb_notify() infrastructure to deal with this scenario you
+describe. On my side this topology update scenario is not a priority
+to be supported in this patchset, but it's feasible to support it
+later on.
