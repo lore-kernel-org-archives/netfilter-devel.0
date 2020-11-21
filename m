@@ -2,96 +2,121 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B27D0C63798
-	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Nov 2020 18:15:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93960C63777
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Nov 2020 18:56:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 613B322202
-	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Nov 2020 18:15:55 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ki/2KSub"
+	by mail.kernel.org (Postfix) with ESMTP id 528AA21D40
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Nov 2020 18:56:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728150AbgKUSPy (ORCPT
+        id S1727171AbgKUS41 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 21 Nov 2020 13:15:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40476 "EHLO mail.kernel.org"
+        Sat, 21 Nov 2020 13:56:27 -0500
+Received: from correo.us.es ([193.147.175.20]:60054 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727235AbgKUSPx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 21 Nov 2020 13:15:53 -0500
-Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.1])
+        id S1726556AbgKUS41 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 21 Nov 2020 13:56:27 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id A7658160A2C
+        for <netfilter-devel@vger.kernel.org>; Sat, 21 Nov 2020 19:56:24 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 989E0DA796
+        for <netfilter-devel@vger.kernel.org>; Sat, 21 Nov 2020 19:56:24 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 8886DDA791; Sat, 21 Nov 2020 19:56:24 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3EDB6DA78B;
+        Sat, 21 Nov 2020 19:56:22 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Sat, 21 Nov 2020 19:56:22 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7BB9622201;
-        Sat, 21 Nov 2020 18:15:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605982552;
-        bh=1BqyxSS8z+G23mtVjHOtKSYckt8/VDf9fdA1rXsvQyg=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=Ki/2KSubvEOQupmqMpT7UyanOWFuIJDxshClsUoexTiPxcqi3Co/CbMmgGIIhDD6a
-         g5zNEqPys8y25HHPamJwpzQP4344zic7FXDxODJeEQOCujul6zO6gIrtxdVoGbaNBD
-         gagf8cBTcBWsAI16EA61NgNBoH5ddLePeW8txbmc=
-Date:   Sat, 21 Nov 2020 10:15:51 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 1902E4265A5A;
+        Sat, 21 Nov 2020 19:56:22 +0100 (CET)
+Date:   Sat, 21 Nov 2020 19:56:21 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jakub Kicinski <kuba@kernel.org>
 Cc:     Tobias Waldekranz <tobias@waldekranz.com>,
         netfilter-devel@vger.kernel.org, davem@davemloft.net,
         netdev@vger.kernel.org, razor@blackwall.org, jeremy@azazel.net
 Subject: Re: [PATCH net-next,v3 0/9] netfilter: flowtable bridge and vlan
  enhancements
-Message-ID: <20201121101551.3264c5fd@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20201121123138.GA21560@salvia>
-References: <20201111193737.1793-1-pablo@netfilter.org>
-        <20201113175556.25e57856@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-        <20201114115906.GA21025@salvia>
-        <87sg9cjaxo.fsf@waldekranz.com>
-        <20201114090347.2e7c1457@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-        <20201116221815.GA6682@salvia>
-        <20201116142844.7c492fb6@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-        <20201116223615.GA6967@salvia>
-        <20201116144521.771da0c6@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-        <20201116225658.GA7247@salvia>
-        <20201121123138.GA21560@salvia>
+Message-ID: <20201121185621.GA23017@salvia>
+References: <20201114115906.GA21025@salvia>
+ <87sg9cjaxo.fsf@waldekranz.com>
+ <20201114090347.2e7c1457@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <20201116221815.GA6682@salvia>
+ <20201116142844.7c492fb6@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <20201116223615.GA6967@salvia>
+ <20201116144521.771da0c6@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <20201116225658.GA7247@salvia>
+ <20201121123138.GA21560@salvia>
+ <20201121101551.3264c5fd@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20201121101551.3264c5fd@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, 21 Nov 2020 13:31:38 +0100 Pablo Neira Ayuso wrote:
-> On Mon, Nov 16, 2020 at 11:56:58PM +0100, Pablo Neira Ayuso wrote:
-> > On Mon, Nov 16, 2020 at 02:45:21PM -0800, Jakub Kicinski wrote:  
-> > > On Mon, 16 Nov 2020 23:36:15 +0100 Pablo Neira Ayuso wrote:  
-> > > > > Are you saying A -> B traffic won't match so it will update the cache,
-> > > > > since conntrack flows are bi-directional?    
-> > > > 
-> > > > Yes, Traffic for A -> B won't match the flowtable entry, this will
-> > > > update the cache.  
-> > > 
-> > > That's assuming there will be A -> B traffic without B sending a
-> > > request which reaches A, first.  
-> > 
-> > B might send packets to A but this will not get anywhere. Assuming
-> > TCP, this will trigger retransmissions so B -> A will kick in to
-> > refresh the entry.
-> > 
-> > Is this scenario that you describe a showstopper?  
+On Sat, Nov 21, 2020 at 10:15:51AM -0800, Jakub Kicinski wrote:
+> On Sat, 21 Nov 2020 13:31:38 +0100 Pablo Neira Ayuso wrote:
+> > On Mon, Nov 16, 2020 at 11:56:58PM +0100, Pablo Neira Ayuso wrote:
+> > > On Mon, Nov 16, 2020 at 02:45:21PM -0800, Jakub Kicinski wrote:  
+> > > > On Mon, 16 Nov 2020 23:36:15 +0100 Pablo Neira Ayuso wrote:  
+[...]
+> > I have been discussing the topology update by tracking fdb updates
+> > with the bridge maintainer, I'll be exploring extensions to the
+> > existing fdb_notify() infrastructure to deal with this scenario you
+> > describe. On my side this topology update scenario is not a priority
+> > to be supported in this patchset, but it's feasible to support it
+> > later on.
+> 
+> My concern is that invalidation is _the_ hard part of creating caches.
+> And I feel like merging this as is would be setting our standards pretty
+> low. 
 
-Sorry I got distracted.
- 
-> I have been discussing the topology update by tracking fdb updates
-> with the bridge maintainer, I'll be exploring extensions to the
-> existing fdb_notify() infrastructure to deal with this scenario you
-> describe. On my side this topology update scenario is not a priority
-> to be supported in this patchset, but it's feasible to support it
-> later on.
+Interesting, let's summarize a bit to make sure we're on the same
+page:
 
-My concern is that invalidation is _the_ hard part of creating caches.
-And I feel like merging this as is would be setting our standards pretty
-low. 
+- This "cache" is optional, you enable it on demand through ruleset.
+- This "cache" is configurable, you can specify through ruleset policy
+  what policies get into the cache and _when_ they are placed in the
+  cache.
+- This is not affecting any existing default configuration, neither
+  Linux networking not even classic path Netfilter configurations,
+  it's a rather new thing.
+- This is showing performance improvement of ~50% with a very simple
+  testbed. With pktgen, back few years ago I was reaching x2.5
+  performance boost in software in a pktgen testbed.
+- This is adding minimal changes to netdev_ops, just a single
+  callback.
 
-Please gather some review tags from senior netdev developers. I don't
-feel confident enough to apply this as 100% my own decision.
+For the live VM migration you describe, connections might time out,
+but there are many use-cases where this is still valid, some of them
+has been described already here.
+
+> Please gather some review tags from senior netdev developers. I don't
+> feel confident enough to apply this as 100% my own decision.
+
+Fair enough.
+
+This requirement for very specific Netfilter infrastructure which does
+not affect any other Networking subsystem sounds new to me.
+
+What senior developers specifically you would like I should poke to
+get an acknowledgement on this to get this accepted of your
+preference?
+
+Thank you.
