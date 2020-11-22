@@ -2,111 +2,96 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75B1EC63777
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 11:02:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04584C5519F
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 11:03:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E6E920936
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 11:02:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AB57A20789
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 11:03:20 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AiuTz2l6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727663AbgKVLBu (ORCPT
+        id S1727457AbgKVLDA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 22 Nov 2020 06:01:50 -0500
-Received: from correo.us.es ([193.147.175.20]:51590 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727552AbgKVLBu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 22 Nov 2020 06:01:50 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 46306508CDF
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2020 12:01:48 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 38BF1DA8F2
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2020 12:01:48 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 2429DDA8FE; Sun, 22 Nov 2020 12:01:48 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D5A19DA72F;
-        Sun, 22 Nov 2020 12:01:45 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 22 Nov 2020 12:01:45 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id A3D6B4265A5A;
-        Sun, 22 Nov 2020 12:01:45 +0100 (CET)
-Date:   Sun, 22 Nov 2020 12:01:45 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc:     Lukas Wunner <lukas@wunner.de>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Laura =?utf-8?Q?Garc=C3=ADa_Li=C3=A9bana?= <nevola@gmail.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Netfilter Development Mailing list 
-        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
-        Network Development <netdev@vger.kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Thomas Graf <tgraf@suug.ch>, David Miller <davem@davemloft.net>
-Subject: Re: [PATCH nf-next v3 3/3] netfilter: Introduce egress hook
-Message-ID: <20201122110145.GB26512@salvia>
-References: <813edf35-6fcf-c569-aab7-4da654546d9d@iogearbox.net>
- <20200905052403.GA10306@wunner.de>
- <e8aecc2b-80cb-8ee5-8efe-7ae5c4eafc70@iogearbox.net>
- <CAF90-Whc3HL9x-7TJ7m3tZp10RNmQxFD=wdQUJLCaUajL2RqXg@mail.gmail.com>
- <8e991436-cb1c-1306-51ac-bb582bfaa8a7@iogearbox.net>
- <CAF90-Wh=wzjNtFWRv9bzn=-Dkg-Qc9G_cnyoq0jSypxQQgg3uA@mail.gmail.com>
- <29b888f5-5e8e-73fe-18db-6c5dd57c6b4f@iogearbox.net>
- <20201011082657.GB15225@wunner.de>
- <20201121185922.GA23266@salvia>
- <CAADnVQK8qHwdZrqMzQ+4Q9Cg589xLX5zTve92ZKN_zftJg_WHw@mail.gmail.com>
+        Sun, 22 Nov 2020 06:03:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47822 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727360AbgKVLC7 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 22 Nov 2020 06:02:59 -0500
+Received: from mail-yb1-xb35.google.com (mail-yb1-xb35.google.com [IPv6:2607:f8b0:4864:20::b35])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB2C5C0613CF
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2020 03:02:59 -0800 (PST)
+Received: by mail-yb1-xb35.google.com with SMTP id v92so13196461ybi.4
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2020 03:02:59 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=1cV13g1UgMcbrm4MibsDv7ibtxZukqjPEzOENlrkiZs=;
+        b=AiuTz2l6PuzlBdDNrNig2uoPjFqM3XZoYIU6ICioYt9g1vYVNApKV8+PfJg5VjZ13i
+         X8uGU+rP4/BR+BbSZ9P97VJfQQppPzgDf7ZiwK53elE+jFb2yENuUlDXZCvm0zlOHAXB
+         FNtLVzXwnkFE48On1VtkkIWPOTO583fq+9lKMrD41gi/u9ux/CtKN9S9zKlK35VKceuA
+         0Vd2AqW7YQK9BsJ1mmm/FLenl2IXU3HnLpnphZAh2AjI50Bqe5YBwWI6q4aMno50miW+
+         06kLw2USSfMfMdMctWRG85QOJfoYT0qP7DddWGkb0xfnmf88xGXsxXoHolkJtUCqdfre
+         GmuA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=1cV13g1UgMcbrm4MibsDv7ibtxZukqjPEzOENlrkiZs=;
+        b=EDQ7XscRlXzRmH7KxRreQXeum+K8XZrZkuu2WnHMTQ7b+AocbHYGhvpGopsOpLafEH
+         vphdssj0mziLk0O7HYomQ7ohuQP6joD164uhKnEcrISRXjxDaD3c153DD3ArmFvQ1PtH
+         ahPra44pG9qUWlOZlO+uaD/xsi14EvE6JQMI7cNznNJuWxMCDH/ODnv5Nc8IQiIlxFvc
+         dEEmdNwv1V2CUwznvEcIuTIU+NXBHO3MYJX4kD7KIuLu2VOEydE000Ea+rJVmHEBDEm2
+         clFYP0dZdig0Jj7bzhn0iP/Swc5PvqAogkgMQd6pYL6SiGenAztn5YAZo1IoP2dmEAmH
+         BhsA==
+X-Gm-Message-State: AOAM5332mDiaLwGxSVxToKrZB2Xj+VsR6ad0MjgcKdZxkFypCtgr69D7
+        WL5lkla/aoh5hYSjFYd9LxpUIdF0ZHluM0XBt8dfJRHet33gKw==
+X-Google-Smtp-Source: ABdhPJwKy7Cnq/p0PeP4qf1uiRgVUayWLZOPA+uiA6bmTUTcjqbOkzZBVxU4QbfxVBtukBcEs6ZDdIeLlO18feaXczw=
+X-Received: by 2002:a25:d92:: with SMTP id 140mr28640410ybn.402.1606042978969;
+ Sun, 22 Nov 2020 03:02:58 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <CAADnVQK8qHwdZrqMzQ+4Q9Cg589xLX5zTve92ZKN_zftJg_WHw@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+References: <CAHOuc7N4gWZQmGaHdZ3oMt6S2PA-8JXTEabaybsH2bM9zHcBfA@mail.gmail.com>
+ <alpine.DEB.2.23.453.2011020953550.16514@localhost> <CAHOuc7Ou_=rXSGCweVtN8QhMx8XaA9DPvBZBPHTe2SS05C0GsQ@mail.gmail.com>
+ <alpine.DEB.2.23.453.2011082203260.26301@blackhole.kfki.hu>
+ <CAHOuc7P+vHrPofOg9FHAUMhuDu=ewxgBp2h8TxmveNoZEayfkQ@mail.gmail.com>
+ <alpine.DEB.2.23.453.2011191320240.19567@blackhole.kfki.hu> <alpine.DEB.2.23.453.2011192125050.19567@blackhole.kfki.hu>
+In-Reply-To: <alpine.DEB.2.23.453.2011192125050.19567@blackhole.kfki.hu>
+From:   Oskar Berggren <oskar.berggren@gmail.com>
+Date:   Sun, 22 Nov 2020 12:02:47 +0100
+Message-ID: <CAHOuc7P75AiSS6mmbeqVcnrf27cBoMAXeY815Mot21r+PwzAEQ@mail.gmail.com>
+Subject: Re: ipset 7.7 modules fail to build on kernel 4.19.152
+To:     Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Alexei,
-
-On Sat, Nov 21, 2020 at 07:24:24PM -0800, Alexei Starovoitov wrote:
-> On Sat, Nov 21, 2020 at 10:59 AM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+Den tors 19 nov. 2020 kl 21:26 skrev Jozsef Kadlecsik <kadlec@netfilter.org>:
+>
+> Hi Oskar,
+>
+> On Thu, 19 Nov 2020, Jozsef Kadlecsik wrote:
+>
+> > > WITH the compat layer included (and the fix for
+> > > list_for_each_entry_rcu), the same error appears slightly later:
+> > >   CC [M]  /home/oskar/Downloads/ipset-7.7/kernel/net/netfilter/ipset/ip_set_core.o
+> > > ...
 > >
-> > We're lately discussing more and more usecases in the NFWS meetings
-> > where the egress can get really useful.
-> 
-> We also discussed in the meeting XYZ that this hook is completely pointless.
-> Got the hint?
+> > Could you post your compiler type and version? I cannot reproduce the
+> > issue and even don't get how can it happen. The same compatibility layer
+> > is/should be available when compiling pfxlen.c as at compiling
+> > ipset_core.c.
+>
+> No need for it, I could reproduce the issue and fix it. New ipset release
+> is on the way.
 
-No need to use irony.
+Thanks! Can confirm 7.9 builds successfully.
 
-OK, so at this point it's basically a bunch of BPF core developers
-that is pushing back on these egress support series.
-
-The BPF project is moving on and making progress. Why don't you just
-keep convincing more users to adopt your solution? You can just
-provide incentives for them to adopt your software, make more
-benchmarks, more documentation and so on. That's all perfectly fine
-and you are making a great job on that field.
-
-But why you do not just let us move ahead?
-
-If you, the BPF team and your users, do not want to use Netfilter,
-that's perfectly fine. Why don't you let users choose what subsystem
-of choice that they like for packet filtering?
-
-I already made my own mistakes in the past when I pushed back for BPF
-work, that was wrong. It's time to make peace and take this to an end.
-
-Thank you.
+/Oskar
