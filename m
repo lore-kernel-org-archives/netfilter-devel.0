@@ -2,145 +2,112 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F860C64E7A
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 19:54:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59847C5519F
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 19:56:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 670692075A
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 19:54:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F5F42075A
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 19:56:04 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=hansenpartnership.com header.i=@hansenpartnership.com header.b="Xy60wiIz";
-	dkim=pass (1024-bit key) header.d=hansenpartnership.com header.i=@hansenpartnership.com header.b="Xy60wiIz"
+	dkim=pass (1024-bit key) header.d=mg.codeaurora.org header.i=@mg.codeaurora.org header.b="pO1J9ccj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727688AbgKVTyD (ORCPT
+        id S1727757AbgKVTza (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 22 Nov 2020 14:54:03 -0500
-Received: from bedivere.hansenpartnership.com ([96.44.175.130]:50456 "EHLO
-        bedivere.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727297AbgKVTx7 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 22 Nov 2020 14:53:59 -0500
-Received: from localhost (localhost [127.0.0.1])
-        by bedivere.hansenpartnership.com (Postfix) with ESMTP id 5E73C128040D;
-        Sun, 22 Nov 2020 11:53:59 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-        d=hansenpartnership.com; s=20151216; t=1606074839;
-        bh=VEGy54rcLCho40R+6JbprsRZooc9e7x1ylV8+ruCN0g=;
-        h=Message-ID:Subject:From:To:Date:In-Reply-To:References:From;
-        b=Xy60wiIzsyTeElUeeJd3QYsiHNZfzmGET/Nzo9eZo2OJxmb5EOyvszf5Q8Et12YN3
-         QzMj8C6lMBcV0iKMn2xQmIYhyRP6O8RGeJWdk6ZnR1Mz2fkvBJLWRT04tHjc221TnA
-         rtTRX0GCrDoOkJiVFq/y98T9XhefjbMkzX0sdCSc=
-Received: from bedivere.hansenpartnership.com ([127.0.0.1])
-        by localhost (bedivere.hansenpartnership.com [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id OHz2YSDN_nkT; Sun, 22 Nov 2020 11:53:59 -0800 (PST)
-Received: from jarvis.int.hansenpartnership.com (unknown [IPv6:2601:600:8280:66d1::527])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Sun, 22 Nov 2020 14:55:30 -0500
+Received: from m42-4.mailgun.net ([69.72.42.4]:18785 "EHLO m42-4.mailgun.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727370AbgKVTz3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 22 Nov 2020 14:55:29 -0500
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mg.codeaurora.org; q=dns/txt;
+ s=smtp; t=1606074929; h=Message-ID: References: In-Reply-To: Subject:
+ Cc: To: From: Date: Content-Transfer-Encoding: Content-Type:
+ MIME-Version: Sender; bh=+Rcg0+sBXUFNeuyp40r/FoFC9yRzFcPNdejGpYm+AQg=;
+ b=pO1J9ccjwEzlo6qGTdOYOAFsn2ADMiSd3SAVBtnbcDA339htgPPau/zerk39NklPmFa/qTX0
+ jC609j9PDfHlcRfqVV4ZWhXsrLALz1xOeKLoNIQKaIBAH9OVHM9M9HyQcShmSbIKSvbvYNqU
+ 4IfH2Ykw++UF7pt0PZQGcg75nL4=
+X-Mailgun-Sending-Ip: 69.72.42.4
+X-Mailgun-Sid: WyJlM2NhZSIsICJuZXRmaWx0ZXItZGV2ZWxAdmdlci5rZXJuZWwub3JnIiwgImJlOWU0YSJd
+Received: from smtp.codeaurora.org
+ (ec2-35-166-182-171.us-west-2.compute.amazonaws.com [35.166.182.171]) by
+ smtp-out-n05.prod.us-west-2.postgun.com with SMTP id
+ 5fbac2307ef0a8d8431b5455 (version=TLS1.2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256); Sun, 22 Nov 2020 19:55:28
+ GMT
+Sender: subashab=codeaurora.org@mg.codeaurora.org
+Received: by smtp.codeaurora.org (Postfix, from userid 1001)
+        id 8F3C4C43460; Sun, 22 Nov 2020 19:55:28 +0000 (UTC)
+Received: from mail.codeaurora.org (localhost.localdomain [127.0.0.1])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by bedivere.hansenpartnership.com (Postfix) with ESMTPSA id D0B171280404;
-        Sun, 22 Nov 2020 11:53:55 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-        d=hansenpartnership.com; s=20151216; t=1606074839;
-        bh=VEGy54rcLCho40R+6JbprsRZooc9e7x1ylV8+ruCN0g=;
-        h=Message-ID:Subject:From:To:Date:In-Reply-To:References:From;
-        b=Xy60wiIzsyTeElUeeJd3QYsiHNZfzmGET/Nzo9eZo2OJxmb5EOyvszf5Q8Et12YN3
-         QzMj8C6lMBcV0iKMn2xQmIYhyRP6O8RGeJWdk6ZnR1Mz2fkvBJLWRT04tHjc221TnA
-         rtTRX0GCrDoOkJiVFq/y98T9XhefjbMkzX0sdCSc=
-Message-ID: <dbd2cb703ed9eefa7dde9281ea26ab0f7acc8afe.camel@HansenPartnership.com>
-Subject: Re: [PATCH 000/141] Fix fall-through warnings for Clang
-From:   James Bottomley <James.Bottomley@HansenPartnership.com>
-To:     Joe Perches <joe@perches.com>, Kees Cook <keescook@chromium.org>,
-        Jakub Kicinski <kuba@kernel.org>
-Cc:     "Gustavo A. R. Silva" <gustavoars@kernel.org>,
-        linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org,
-        amd-gfx@lists.freedesktop.org, bridge@lists.linux-foundation.org,
-        ceph-devel@vger.kernel.org, cluster-devel@redhat.com,
-        coreteam@netfilter.org, devel@driverdev.osuosl.org,
-        dm-devel@redhat.com, drbd-dev@lists.linbit.com,
-        dri-devel@lists.freedesktop.org, GR-everest-linux-l2@marvell.com,
-        GR-Linux-NIC-Dev@marvell.com, intel-gfx@lists.freedesktop.org,
-        intel-wired-lan@lists.osuosl.org, keyrings@vger.kernel.org,
-        linux1394-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org,
-        linux-afs@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-arm-msm@vger.kernel.org,
-        linux-atm-general@lists.sourceforge.net,
-        linux-block@vger.kernel.org, linux-can@vger.kernel.org,
-        linux-cifs@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-decnet-user@lists.sourceforge.net,
-        linux-ext4@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        linux-geode@lists.infradead.org, linux-gpio@vger.kernel.org,
-        linux-hams@vger.kernel.org, linux-hwmon@vger.kernel.org,
-        linux-i3c@lists.infradead.org, linux-ide@vger.kernel.org,
-        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-integrity@vger.kernel.org,
-        linux-mediatek@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-mm@kvack.org,
-        linux-mtd@lists.infradead.org, linux-nfs@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-sctp@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-stm32@st-md-mailman.stormreply.com,
-        linux-usb@vger.kernel.org, linux-watchdog@vger.kernel.org,
-        linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, nouveau@lists.freedesktop.org,
-        op-tee@lists.trustedfirmware.org, oss-drivers@netronome.com,
-        patches@opensource.cirrus.com, rds-devel@oss.oracle.com,
-        reiserfs-devel@vger.kernel.org, samba-technical@lists.samba.org,
-        selinux@vger.kernel.org, target-devel@vger.kernel.org,
-        tipc-discussion@lists.sourceforge.net,
-        usb-storage@lists.one-eyed-alien.net,
-        virtualization@lists.linux-foundation.org,
-        wcn36xx@lists.infradead.org, x86@kernel.org,
-        xen-devel@lists.xenproject.org, linux-hardening@vger.kernel.org,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Nathan Chancellor <natechancellor@gmail.com>,
-        Miguel Ojeda <ojeda@kernel.org>
-Date:   Sun, 22 Nov 2020 11:53:55 -0800
-In-Reply-To: <d8d1e9add08cdd4158405e77762d4946037208f8.camel@perches.com>
-References: <cover.1605896059.git.gustavoars@kernel.org>
-         <20201120105344.4345c14e@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-         <202011201129.B13FDB3C@keescook>
-         <20201120115142.292999b2@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-         <202011220816.8B6591A@keescook>
-         <9b57fd4914b46f38d54087d75e072d6e947cb56d.camel@HansenPartnership.com>
-         <ca071decb87cc7e905411423c05a48f9fd2f58d7.camel@perches.com>
-         <0147972a72bc13f3629de8a32dee6f1f308994b5.camel@HansenPartnership.com>
-         <d8d1e9add08cdd4158405e77762d4946037208f8.camel@perches.com>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.34.4 
+        (Authenticated sender: subashab)
+        by smtp.codeaurora.org (Postfix) with ESMTPSA id 48736C433C6;
+        Sun, 22 Nov 2020 19:55:26 +0000 (UTC)
 MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
 Content-Transfer-Encoding: 7bit
+Date:   Sun, 22 Nov 2020 12:55:26 -0700
+From:   subashab@codeaurora.org
+To:     Florian Westphal <fw@strlen.de>
+Cc:     will@kernel.org, pablo@netfilter.org, stranche@codeaurora.org,
+        netfilter-devel@vger.kernel.org, tglx@linutronix.de,
+        peterz@infradead.org
+Subject: Re: [PATCH nf] netfilter: x_tables: Switch synchronization to RCU
+In-Reply-To: <20201122193537.GV15137@breakpoint.cc>
+References: <1606072636-23555-1-git-send-email-subashab@codeaurora.org>
+ <20201122193537.GV15137@breakpoint.cc>
+Message-ID: <849b3bf0b35edf5ba1b23636a4b57ba6@codeaurora.org>
+X-Sender: subashab@codeaurora.org
+User-Agent: Roundcube Webmail/1.3.9
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, 2020-11-22 at 11:22 -0800, Joe Perches wrote:
-> On Sun, 2020-11-22 at 11:12 -0800, James Bottomley wrote:
-> > On Sun, 2020-11-22 at 10:25 -0800, Joe Perches wrote:
-> > > On Sun, 2020-11-22 at 10:21 -0800, James Bottomley wrote:
-> > > > Please tell me our reward for all this effort isn't a single
-> > > > missing error print.
-> > > 
-> > > There were quite literally dozens of logical defects found
-> > > by the fallthrough additions.  Very few were logging only.
-> > 
-> > So can you give us the best examples (or indeed all of them if
-> > someone is keeping score)?  hopefully this isn't a US election
-> > situation ...
+On 2020-11-22 12:35, Florian Westphal wrote:
+> Subash Abhinov Kasiviswanathan <subashab@codeaurora.org> wrote:
+>> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+>> index af22dbe..416a617 100644
+>> --- a/net/netfilter/x_tables.c
+>> +++ b/net/netfilter/x_tables.c
+>> @@ -1349,6 +1349,14 @@ struct xt_counters *xt_counters_alloc(unsigned 
+>> int counters)
+>>  }
+>>  EXPORT_SYMBOL(xt_counters_alloc);
+> [..]
 > 
-> Gustavo?  Are you running for congress now?
+>>  	/* Do the substitution. */
+>> -	local_bh_disable();
+>> -	private = table->private;
+>> +	private = xt_table_get_private_protected(table);
+>> 
+>>  	/* Check inside lock: is the old number correct? */
+>>  	if (num_counters != private->number) {
 > 
-> https://lwn.net/Articles/794944/
+> There is a local_bh_enable() here that needs removal.
 
-That's 21 reported fixes of which about 50% seem to produce no change
-in code behaviour at all, a quarter seem to have no user visible effect
-with the remaining quarter producing unexpected errors on obscure
-configuration parameters, which is why no-one really noticed them
-before.
+Thanks, will update that.
 
-James
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 416a617..acce622 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1379,7 +1379,6 @@ xt_replace_table(struct xt_table *table,
+         if (num_counters != private->number) {
+                 pr_debug("num_counters != table->private->number 
+(%u/%u)\n",
+                          num_counters, private->number);
+-               local_bh_enable();
+                 *error = -EAGAIN;
+                 return NULL;
+         }
 
+> 
+> Did you test it with PROVE_LOCKING enabled?
+> 
+> The placement/use of rcu_dereference and the _protected version
+> looks correct, I would not expect splats.
 
+My config doesn't seem to have it. I will enable and try it out.
