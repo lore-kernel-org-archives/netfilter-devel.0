@@ -2,171 +2,130 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84AAAC5519F
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 11:21:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC663C5519F
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 11:33:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2BF5B20773
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 11:21:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9097A208C3
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 11:33:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727499AbgKVLVL (ORCPT
+        id S1727721AbgKVLdZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 22 Nov 2020 06:21:11 -0500
-Received: from mg.ssi.bg ([178.16.128.9]:34182 "EHLO mg.ssi.bg"
+        Sun, 22 Nov 2020 06:33:25 -0500
+Received: from correo.us.es ([193.147.175.20]:59188 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727373AbgKVLVL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 22 Nov 2020 06:21:11 -0500
-Received: from mg.ssi.bg (localhost [127.0.0.1])
-        by mg.ssi.bg (Proxmox) with ESMTP id B30E92803D
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2020 13:21:08 +0200 (EET)
-Received: from ink.ssi.bg (ink.ssi.bg [178.16.128.7])
-        by mg.ssi.bg (Proxmox) with ESMTP id 732BE28038
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2020 13:21:07 +0200 (EET)
-Received: from ja.ssi.bg (unknown [178.16.129.10])
-        by ink.ssi.bg (Postfix) with ESMTPS id D99823C0505;
-        Sun, 22 Nov 2020 13:21:03 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id 0AMBKxNw009931;
-        Sun, 22 Nov 2020 13:21:01 +0200
-Date:   Sun, 22 Nov 2020 13:20:59 +0200 (EET)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Wang Hai <wanghai38@huawei.com>
-cc:     Simon Horman <horms@verge.net.au>, pablo@netfilter.org,
-        christian@brauner.io, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net v2] ipvs: fix possible memory leak in
- ip_vs_control_net_init
-In-Reply-To: <20201120082610.60917-1-wanghai38@huawei.com>
-Message-ID: <21af4c92-8ca6-cce9-64bc-c4e88b6d1e8a@ssi.bg>
-References: <20201120082610.60917-1-wanghai38@huawei.com>
+        id S1727702AbgKVLdY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 22 Nov 2020 06:33:24 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id B551053D26D
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2020 12:33:23 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9E6E5DA4CE
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2020 12:33:23 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 93F41DA4C2; Sun, 22 Nov 2020 12:33:23 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 64EC6DA73F;
+        Sun, 22 Nov 2020 12:33:21 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Sun, 22 Nov 2020 12:33:21 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 4860F4265A5A;
+        Sun, 22 Nov 2020 12:33:21 +0100 (CET)
+Date:   Sun, 22 Nov 2020 12:33:20 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     Tobias Waldekranz <tobias@waldekranz.com>,
+        netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, razor@blackwall.org, jeremy@azazel.net
+Subject: Re: [PATCH net-next,v3 0/9] netfilter: flowtable bridge and vlan
+ enhancements
+Message-ID: <20201122113320.GC26512@salvia>
+References: <20201114090347.2e7c1457@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <20201116221815.GA6682@salvia>
+ <20201116142844.7c492fb6@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <20201116223615.GA6967@salvia>
+ <20201116144521.771da0c6@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <20201116225658.GA7247@salvia>
+ <20201121123138.GA21560@salvia>
+ <20201121101551.3264c5fd@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <20201121185621.GA23017@salvia>
+ <20201121112348.0e25afa3@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20201121112348.0e25afa3@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi Jakub,
 
-	Hello,
-
-On Fri, 20 Nov 2020, Wang Hai wrote:
-
-> kmemleak report a memory leak as follows:
+On Sat, Nov 21, 2020 at 11:23:48AM -0800, Jakub Kicinski wrote:
+> On Sat, 21 Nov 2020 19:56:21 +0100 Pablo Neira Ayuso wrote:
+> > > Please gather some review tags from senior netdev developers. I don't
+> > > feel confident enough to apply this as 100% my own decision.  
+> > 
+> > Fair enough.
+> > 
+> > This requirement for very specific Netfilter infrastructure which does
+> > not affect any other Networking subsystem sounds new to me.
 > 
-> BUG: memory leak
-> unreferenced object 0xffff8880759ea000 (size 256):
-> comm "syz-executor.3", pid 6484, jiffies 4297476946 (age 48.546s)
-> hex dump (first 32 bytes):
-> 00 00 00 00 01 00 00 00 08 a0 9e 75 80 88 ff ff ...........u....
-> 08 a0 9e 75 80 88 ff ff 00 00 00 00 ad 4e ad de ...u.........N..
-> backtrace:
-> [<00000000c0bf2deb>] kmem_cache_zalloc include/linux/slab.h:656 [inline]
-> [<00000000c0bf2deb>] __proc_create+0x23d/0x7d0 fs/proc/generic.c:421
-> [<000000009d718d02>] proc_create_reg+0x8e/0x140 fs/proc/generic.c:535
-> [<0000000097bbfc4f>] proc_create_net_data+0x8c/0x1b0 fs/proc/proc_net.c:126
-> [<00000000652480fc>] ip_vs_control_net_init+0x308/0x13a0 net/netfilter/ipvs/ip_vs_ctl.c:4169
-> [<000000004c927ebe>] __ip_vs_init+0x211/0x400 net/netfilter/ipvs/ip_vs_core.c:2429
-> [<00000000aa6b72d9>] ops_init+0xa8/0x3c0 net/core/net_namespace.c:151
-> [<00000000153fd114>] setup_net+0x2de/0x7e0 net/core/net_namespace.c:341
-> [<00000000be4e4f07>] copy_net_ns+0x27d/0x530 net/core/net_namespace.c:482
-> [<00000000f1c23ec9>] create_new_namespaces+0x382/0xa30 kernel/nsproxy.c:110
-> [<00000000098a5757>] copy_namespaces+0x2e6/0x3b0 kernel/nsproxy.c:179
-> [<0000000026ce39e9>] copy_process+0x220a/0x5f00 kernel/fork.c:2072
-> [<00000000b71f4efe>] _do_fork+0xc7/0xda0 kernel/fork.c:2428
-> [<000000002974ee96>] __do_sys_clone3+0x18a/0x280 kernel/fork.c:2703
-> [<0000000062ac0a4d>] do_syscall_64+0x33/0x40 arch/x86/entry/common.c:46
-> [<0000000093f1ce2c>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
+> You mean me asking for reviews from other senior folks when I don't
+> feel good about some code? I've asked others the same thing in the
+> past, e.g. Paolo for his RPS thing.
+
+No, I'm perfectly fine with peer review.
+
+Note that I am sending this to net-next as a patchset (not as a PR)
+_only_ because this is adding a new .ndo_fill_forward_path to
+netdev_ops.
+
+That's the only thing that is relevant to the Netdev core
+infrastructure IMO, and this new .ndo that is private, not exposed to
+userspace.
+
+Let's have a look at the diffstats again:
+
+ include/linux/netdevice.h                     |  35 +++
+ include/net/netfilter/nf_flow_table.h         |  43 +++-
+ net/8021q/vlan_dev.c                          |  15 ++
+ net/bridge/br_device.c                        |  27 +++
+ net/core/dev.c                                |  46 ++++
+ net/netfilter/nf_flow_table_core.c            |  51 +++--
+ net/netfilter/nf_flow_table_ip.c              | 200 ++++++++++++++----
+ net/netfilter/nft_flow_offload.c              | 159 +++++++++++++-
+ .../selftests/netfilter/nft_flowtable.sh      |  82 +++++++
+ 9 files changed, 598 insertions(+), 60 deletions(-)
+
+So this is adding _minimal_ changes to the NetDev infrastructure. Most
+of the code is an extension to the flowtable Netfilter infrastructure.
+And the flowtable is a cache since its conception.
+
+I am adding the .ndo indirection to avoid the dependencies with
+Netfilter modules, e.g. Netfilter could use direct reference to bridge
+function, but that would pull in bridge modules.
+
+> > What senior developers specifically you would like I should poke to
+> > get an acknowledgement on this to get this accepted of your
+> > preference?
 > 
-> In the error path of ip_vs_control_net_init(), remove_proc_entry() needs
-> to be called to remove the added proc entry, otherwise a memory leak
-> will occur.
-> 
-> Also, add some '#ifdef CONFIG_PROC_FS' because proc_create_net* return NULL
-> when PROC is not used.
-> 
-> Fixes: b17fc9963f83 ("IPVS: netns, ip_vs_stats and its procfs")
-> Fixes: 61b1ab4583e2 ("IPVS: netns, add basic init per netns.")
-> Reported-by: Hulk Robot <hulkci@huawei.com>
-> Signed-off-by: Wang Hai <wanghai38@huawei.com>
-> ---
-> v1->v2: add some '#ifdef CONFIG_PROC_FS' and check the return value of proc_create_net*
->  net/netfilter/ipvs/ip_vs_ctl.c | 27 +++++++++++++++++++++------
->  1 file changed, 21 insertions(+), 6 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index e279ded4e306..c00394ba20db 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -4167,12 +4167,17 @@ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
->  
->  	spin_lock_init(&ipvs->tot_stats.lock);
->  
-> -	proc_create_net("ip_vs", 0, ipvs->net->proc_net, &ip_vs_info_seq_ops,
-> -			sizeof(struct ip_vs_iter));
-> -	proc_create_net_single("ip_vs_stats", 0, ipvs->net->proc_net,
-> -			ip_vs_stats_show, NULL);
-> -	proc_create_net_single("ip_vs_stats_percpu", 0, ipvs->net->proc_net,
-> -			ip_vs_stats_percpu_show, NULL);
-> +#ifdef CONFIG_PROC_FS
-> +	if (!proc_create_net("ip_vs", 0, ipvs->net->proc_net, &ip_vs_info_seq_ops,
-> +			sizeof(struct ip_vs_iter)))
-> +		goto err_vs;
-> +	if (!proc_create_net_single("ip_vs_stats", 0, ipvs->net->proc_net,
-> +			ip_vs_stats_show, NULL))
-> +		goto err_stats;
-> +	if (!proc_create_net_single("ip_vs_stats_percpu", 0, ipvs->net->proc_net,
-> +			ip_vs_stats_percpu_show, NULL))
-> +		goto err_percpu;
+> I don't want to make a list. Maybe netconf attendees are a safe bet?
 
-	Make sure the parameters are properly aligned to function open 
-parenthesis without exceeding 80 columns:
+I have no idea who to ask to, traditionally it's the NetDev maintainer
+(AFAIK it's only you at this stage) that have the last word on
+something to get this merged.
 
-linux# scripts/checkpatch.pl --strict /tmp/file.patch
-
-	It was true only for first call due to some
-renames for the others two in commit 3617d9496cd9 :(
-
-> +#endif
->  
->  	if (ip_vs_control_net_init_sysctl(ipvs))
->  		goto err;
-> @@ -4180,6 +4185,14 @@ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
->  	return 0;
->  
->  err:
-> +#ifdef CONFIG_PROC_FS
-> +	remove_proc_entry("ip_vs_stats_percpu", ipvs->net->proc_net);
-
-	It should look better with an empty line before
-the 3 new labels.
-
-> +err_percpu:
-> +	remove_proc_entry("ip_vs_stats", ipvs->net->proc_net);
-> +err_stats:
-> +	remove_proc_entry("ip_vs", ipvs->net->proc_net);
-> +err_vs:
-> +#endif
->  	free_percpu(ipvs->tot_stats.cpustats);
->  	return -ENOMEM;
->  }
-> @@ -4188,9 +4201,11 @@ void __net_exit ip_vs_control_net_cleanup(struct netns_ipvs *ipvs)
->  {
->  	ip_vs_trash_cleanup(ipvs);
->  	ip_vs_control_net_cleanup_sysctl(ipvs);
-> +#ifdef CONFIG_PROC_FS
->  	remove_proc_entry("ip_vs_stats_percpu", ipvs->net->proc_net);
->  	remove_proc_entry("ip_vs_stats", ipvs->net->proc_net);
->  	remove_proc_entry("ip_vs", ipvs->net->proc_net);
-> +#endif
->  	free_percpu(ipvs->tot_stats.cpustats);
->  }
->  
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
-
+I consider all developers that have reviewed this patchset to be
+senior developers.
