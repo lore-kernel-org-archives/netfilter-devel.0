@@ -2,95 +2,121 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DAB7EC63798
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 14:05:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EF1EC64E75
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 14:47:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4802120789
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 14:05:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2493A20888
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 14:47:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="aXx8HtMt"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="XA3Bdia/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727883AbgKVOFi (ORCPT
+        id S1727876AbgKVOrC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 22 Nov 2020 09:05:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47428 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727876AbgKVOFg (ORCPT
+        Sun, 22 Nov 2020 09:47:02 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:43629 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727903AbgKVOq6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 22 Nov 2020 09:05:36 -0500
-Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 411D1C061A4C
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2020 06:05:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=il/CPPwUrGbQYeXmbvAXy9sjzAPQafR/BMH6uONb8xM=; b=aXx8HtMtKPQSQ2ukNoNLemzN+B
-        94rIP7ssNg3nhPC7TTmFiCuNEH86h3dE/6uT+I+Ev1+2rQ08x8xoQHt5uavnK7c9vjbadIS6QdyFn
-        abnfjhmlYqEMbxUfRRXJ91NGP3gKaKq2oPYKfcVF5D9vWmeoEXfo7FU1voJfQhKVZB69Ft514A9Tk
-        9nz8R5Vzm55ukoXICnhOx4OP1Wuu/eX/J6lRPVIuGOmJy0KLAesgfGckw/T70gdBmyan0VPd6mFI3
-        1cKO0H31uyPta8R+VbIXriw5KFJbf8YeQwxsy0T1yjzLRf3j6MWfeTmKNO/wKcug41hrTMBhfTcaU
-        NjGBSBpQ==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
-        by kadath.azazel.net with esmtp (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1kgpzi-0002wq-Hm; Sun, 22 Nov 2020 14:05:34 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH xtables-addons 4/4] geoip: use correct download URL for MaxMind DB's.
-Date:   Sun, 22 Nov 2020 14:05:30 +0000
-Message-Id: <20201122140530.250248-5-jeremy@azazel.net>
-X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20201122140530.250248-1-jeremy@azazel.net>
-References: <20201122140530.250248-1-jeremy@azazel.net>
+        Sun, 22 Nov 2020 09:46:58 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1606056416;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=apju6gP6XSpkYwp4WdL57a/nFAvNI/QCKhQkuBxc3S8=;
+        b=XA3Bdia/xK9rtALsHLhdMXNkl5EWPz83+inaq5KZnxbZp/pqE7ot4cuq9wfEbTWVu1jCkd
+        fkI/qAlh4sU3l8dOrlq7C5hNdTdH0le7t+rDrYZ5+jjUTJP5ekv3G25710udgF6Q97joi/
+        ih3DR460gM+B9YwlFm0ND3pgcFfhizQ=
+Received: from mail-qt1-f197.google.com (mail-qt1-f197.google.com
+ [209.85.160.197]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-433-1Ek5CaKMOnav0fdWYqWFUg-1; Sun, 22 Nov 2020 09:46:52 -0500
+X-MC-Unique: 1Ek5CaKMOnav0fdWYqWFUg-1
+Received: by mail-qt1-f197.google.com with SMTP id v9so11579749qtw.12
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2020 06:46:52 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=apju6gP6XSpkYwp4WdL57a/nFAvNI/QCKhQkuBxc3S8=;
+        b=sqKacznFgNQdgHYWOxvRxMSjW9nrillhfkZAyIAB9o1FIZ2/FFPzpaeckAytkB2QeC
+         vf7LmvIxnw0+Ax0455hoGedao4rgL5d6A/i6Nj+P+Ueuxng10pc3EHSa9VVN44CMDbiA
+         oV2x512hgruFl8jx6+rexfM5B7umxMd3nI2aj9MVq12GWZ4YLvpbNzA0n1HKbeIFyYKz
+         Jk77netf99k+bFQDRjJNPjb6+3SVj5ylBWZ0pPA8rpyc/6Y4u17Obd+Z4R/2A2Esc23w
+         GRxtxIxlTrDpVv/ClI0CwNXZdCBpZmYTTwxi75MGGuI+8DAdPvPZluE7VklKWJdArKh2
+         U5/Q==
+X-Gm-Message-State: AOAM530ghbt2kAs90q1eorVBmKr8Q95oDGEWMFLgztlNi8dYcrtwW1Mn
+        pWRIT7FIUhzGIAOt7Zbk9LV2bGP8X8yuJCKCoFB00EkK8aqUNV8+WrUsS6b38+Y1OIsKa0Plqz3
+        +r9dcjIUo/EfR3f9dI44jCNJzHNcy
+X-Received: by 2002:ad4:476b:: with SMTP id d11mr26026163qvx.57.1606056412428;
+        Sun, 22 Nov 2020 06:46:52 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJyPQ8vJIBgyJxmgPlUVzOaStXFRaD0Z+d8VDmnR7kdLyNkvwByAGPov006wc7+pJBCcgj+/zw==
+X-Received: by 2002:ad4:476b:: with SMTP id d11mr26026152qvx.57.1606056412222;
+        Sun, 22 Nov 2020 06:46:52 -0800 (PST)
+Received: from trix.remote.csb (075-142-250-213.res.spectrum.com. [75.142.250.213])
+        by smtp.gmail.com with ESMTPSA id x72sm6888242qkb.90.2020.11.22.06.46.47
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 22 Nov 2020 06:46:51 -0800 (PST)
+Subject: Re: [RFC] MAINTAINERS tag for cleanup robot
+To:     Matthew Wilcox <willy@infradead.org>
+Cc:     joe@perches.com, clang-built-linux@googlegroups.com,
+        linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org,
+        xen-devel@lists.xenproject.org, tboot-devel@lists.sourceforge.net,
+        kvm@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-acpi@vger.kernel.org, devel@acpica.org,
+        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, netdev@vger.kernel.org,
+        linux-media@vger.kernel.org, MPT-FusionLinux.pdl@broadcom.com,
+        linux-scsi@vger.kernel.org, linux-wireless@vger.kernel.org,
+        ibm-acpi-devel@lists.sourceforge.net,
+        platform-driver-x86@vger.kernel.org, linux-usb@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        cluster-devel@redhat.com, linux-mtd@lists.infradead.org,
+        keyrings@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, alsa-devel@alsa-project.org,
+        bpf@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+        linux-nfs@vger.kernel.org, patches@opensource.cirrus.com
+References: <20201121165058.1644182-1-trix@redhat.com>
+ <20201122032304.GE4327@casper.infradead.org>
+From:   Tom Rix <trix@redhat.com>
+Message-ID: <ddb08a27-3ca1-fb2e-d51f-4b471f1a56a3@redhat.com>
+Date:   Sun, 22 Nov 2020 06:46:46 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.12.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+In-Reply-To: <20201122032304.GE4327@casper.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The download URL for the GeoLite2 DB's has changed and includes a
-licence-key.  Update the download script to read the key from file or
-stdin and use the correct URL.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- geoip/xt_geoip_dl_maxmind | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+On 11/21/20 7:23 PM, Matthew Wilcox wrote:
+> On Sat, Nov 21, 2020 at 08:50:58AM -0800, trix@redhat.com wrote:
+>> The fixer review is
+>> https://reviews.llvm.org/D91789
+>>
+>> A run over allyesconfig for x86_64 finds 62 issues, 5 are false positives.
+>> The false positives are caused by macros passed to other macros and by
+>> some macro expansions that did not have an extra semicolon.
+>>
+>> This cleans up about 1,000 of the current 10,000 -Wextra-semi-stmt
+>> warnings in linux-next.
+> Are any of them not false-positives?  It's all very well to enable
+> stricter warnings, but if they don't fix any bugs, they're just churn.
+>
+While enabling additional warnings may be a side effect of this effort
 
-diff --git a/geoip/xt_geoip_dl_maxmind b/geoip/xt_geoip_dl_maxmind
-index 1de60442a804..d5640336c1c0 100755
---- a/geoip/xt_geoip_dl_maxmind
-+++ b/geoip/xt_geoip_dl_maxmind
-@@ -1,7 +1,16 @@
- #!/bin/sh
- 
-+if [ $# -eq 1 ]; then
-+    exec <$1
-+elif [ $# -ne 0 ]; then
-+    echo $(basename $0) [ licence_key_file ] 1>&2
-+    exit 1
-+fi
-+
-+read licence_key
-+
- rm -rf GeoLite2-Country-CSV_*
- 
--wget -q http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
-+wget -q -OGeoLite2-Country-CSV.zip "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=${licence_key}&suffix=zip"
- unzip -q GeoLite2-Country-CSV.zip
- rm -f GeoLite2-Country-CSV.zip
--- 
-2.29.2
+the primary goal is to set up a cleaning robot. After that a refactoring robot.
+
+Tom
 
