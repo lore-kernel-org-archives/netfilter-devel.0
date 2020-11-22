@@ -7,24 +7,24 @@ X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B2A6C6379D
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 14:05:59 +0000 (UTC)
-Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD94820786
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C0C4C56202
 	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 14:05:58 +0000 (UTC)
+Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
+	by mail.kernel.org (Postfix) with ESMTP id D4BF320786
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 14:05:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="JkL2AlXI"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="sdwbUprC"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727882AbgKVOFh (ORCPT
+        id S1727881AbgKVOFh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sun, 22 Nov 2020 09:05:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47426 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47424 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727850AbgKVOFg (ORCPT
+        with ESMTP id S1727835AbgKVOFg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 22 Nov 2020 09:05:36 -0500
 Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4F89C061A4B
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF6F7C061A4A
         for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2020 06:05:35 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
          s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
@@ -32,22 +32,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=txpXbQxru/bCifD196lQEsMZ6ymgJxc0EtvT43oj3jM=; b=JkL2AlXIaaWSeMlPeg1O7OZBid
-        mAZrQpprsNdJEnKkfEbucwy9ZGcKFNcBZghmWuMAeyFPtudr3lAcPdyvw91yGHpZymHnRRrZUMhY3
-        /vl9xqa3zfFu+MWxU6edzDVNxVJIk0vwuDkQGIaKYHDP2k2cpG2nv2Lr1PgFzVDAmMDjPgkSSjb4O
-        1CFy2ZYxxHO2YPY17PL+XkaathCw547IgfRbkOJmKHWULF7tvbPOm/zllBu3L8tu0iMpHZKHkMs0f
-        d2IFw2Xt3/VqksUzmmvQNZLoF9pEzDadPIQqepF40Qer0zxnSuQ5xxlzvywX1qtyU/GoyAeuZPi4C
-        9HjEtXbw==;
+        bh=EFWM75OLrHGSvAh/Dx4B71kXcGMTpRV7Os23bdjXy74=; b=sdwbUprCI3sOGDXBtaP/KAh2Gk
+        FxKbnvwPwbva+yIuErjbPmINvWWaJAf0/s/aVAbCP/bOY95CG1bcrvr7SQk9vdOZT4flG8TOktMOm
+        U3PzOFchhOpPWPHyEG071xql1oeDL3YNNuDHAHL5pymszv/89nJJHHGS+5997v+lWCefvj3cMlfBe
+        rtklMe43FkRoigie1zaxnuNQ1+9BN475Le+Pt34UoOsYavpIMNHww9cCjsI/qx6gOHg045exBUioq
+        tHWHEr35W9gpBS3y/nt9tF2hc523/qUhMomoYDJMtcP1AO6Cvj+p2oJdAayJOT4e7edJCpn9TL5v3
+        mUjzDDiQ==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1kgpzh-0002wq-U0; Sun, 22 Nov 2020 14:05:34 +0000
+        id 1kgpzg-0002wq-9X; Sun, 22 Nov 2020 14:05:32 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Jan Engelhardt <jengelh@inai.de>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH xtables-addons 3/4] geoip: add man-pages for MaxMind scripts.
-Date:   Sun, 22 Nov 2020 14:05:29 +0000
-Message-Id: <20201122140530.250248-4-jeremy@azazel.net>
+Subject: [PATCH xtables-addons 1/4] geoip: remove superfluous xt_geoip_fetch_maxmind script.
+Date:   Sun, 22 Nov 2020 14:05:27 +0000
+Message-Id: <20201122140530.250248-2-jeremy@azazel.net>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20201122140530.250248-1-jeremy@azazel.net>
 References: <20201122140530.250248-1-jeremy@azazel.net>
@@ -60,101 +60,129 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+xt_geoip_fetch and xt_geoip_fetch_maxmind are identical.  Remove the
+latter.
+
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- geoip/Makefile.am              |  4 +++-
- geoip/xt_geoip_build_maxmind.1 | 40 ++++++++++++++++++++++++++++++++++
- geoip/xt_geoip_dl_maxmind.1    | 22 +++++++++++++++++++
- 3 files changed, 65 insertions(+), 1 deletion(-)
- create mode 100644 geoip/xt_geoip_build_maxmind.1
- create mode 100644 geoip/xt_geoip_dl_maxmind.1
+ geoip/Makefile.am            |  2 +-
+ geoip/xt_geoip_fetch_maxmind | 95 ------------------------------------
+ 2 files changed, 1 insertion(+), 96 deletions(-)
+ delete mode 100755 geoip/xt_geoip_fetch_maxmind
 
 diff --git a/geoip/Makefile.am b/geoip/Makefile.am
-index 5323c82eb7c4..8c0b6af80054 100644
+index 7bbf3bcf3815..5323c82eb7c4 100644
 --- a/geoip/Makefile.am
 +++ b/geoip/Makefile.am
-@@ -4,4 +4,6 @@ bin_SCRIPTS = xt_geoip_fetch
+@@ -1,6 +1,6 @@
+ # -*- Makefile -*-
+ 
+-bin_SCRIPTS = xt_geoip_fetch xt_geoip_fetch_maxmind
++bin_SCRIPTS = xt_geoip_fetch
  
  pkglibexec_SCRIPTS = xt_geoip_build xt_geoip_build_maxmind xt_geoip_dl xt_geoip_dl_maxmind
  
--man1_MANS = xt_geoip_build.1 xt_geoip_dl.1 xt_geoip_fetch.1
-+man1_MANS = xt_geoip_build.1 xt_geoip_dl.1 \
-+	    xt_geoip_build_maxmind.1 xt_geoip_dl_maxmind.1 \
-+	    xt_geoip_fetch.1
-diff --git a/geoip/xt_geoip_build_maxmind.1 b/geoip/xt_geoip_build_maxmind.1
-new file mode 100644
-index 000000000000..e20e44848b82
---- /dev/null
-+++ b/geoip/xt_geoip_build_maxmind.1
-@@ -0,0 +1,40 @@
-+.TH xt_geoip_build_maxmind 1 "2010-12-17" "xtables-addons" "xtables-addons"
-+.SH Name
-+.PP
-+xt_geoip_build_maxmind \(em convert GeoIP.csv to packed format for xt_geoip
-+.SH Syntax
-+.PP
-+\fI/usr/libexec/xt_geoip/\fP\fBxt_geoip_build_maxmind\fP [\fB\-D\fP
-+\fItarget_dir\fP] [\fB\-S\fP \fIsource_dir\fP]
-+.SH Description
-+.PP
-+xt_geoip_build_maxmind is used to build packed raw representations of the range
-+database that the xt_geoip module relies on. Since kernel memory is precious,
-+much of the preprocessing is done in userspace by this very building tool. One
-+file is produced for each country, so that no more addresses than needed are
-+required to be loaded into memory. The ranges in the packed database files are
-+also ordered, as xt_geoip relies on this property for its bisection approach to
-+work.
-+.PP
-+Since the script is usually installed to the libexec directory of the
-+xtables-addons package and this is outside $PATH (on purpose), invoking the
-+script requires it to be called with a path.
-+.PP Options
-+.TP
-+\fB\-D\fP \fItarget_dir\fP
-+Specifies the target directory into which the files are to be put. Defaults to ".".
-+.TP
-+\fB\-S\fP \fIsource_dir\fP
-+Specifies the source directory of the MaxMind CSV files. Defaults to ".".
-+.TP
-+\fB\-s\fP
-+"System mode". Equivalent to \fB\-D /usr/share/xt_geoip\fP.
-+.SH Application
-+.PP
-+Shell commands to build the databases and put them to where they are expected
-+(usually run as root):
-+.PP
-+xt_geoip_build_maxmind \-s
-+.SH See also
-+.PP
-+xt_geoip_dl_maxmind(1)
-diff --git a/geoip/xt_geoip_dl_maxmind.1 b/geoip/xt_geoip_dl_maxmind.1
-new file mode 100644
-index 000000000000..00a73d7ee90d
---- /dev/null
-+++ b/geoip/xt_geoip_dl_maxmind.1
-@@ -0,0 +1,22 @@
-+.TH xt_geoip_dl_maxmind 1 "2010-12-17" "xtables-addons" "xtables-addons"
-+.SH Name
-+.PP
-+xt_geoip_dl_maxmind \(em download MaxMind GeoIP database files
-+.SH Syntax
-+.PP
-+\fI/usr/libexec/xt_geoip/\fP\fBxt_geoip_dl_maxmind\fP [\fI licence-key file\fP]
-+.SH Description
-+.PP
-+Downloads the MaxMind GeoLite2 databases for IPv4 and IPv6 and unpacks them to
-+the current directory.  The alternate \fBxt_geoip_dl\fP script can be
-+used for the DB-IP Country Lite databases.
-+.PP
-+Since the script is usually installed to the libexec directory of the
-+xtables-addons package and this is outside $PATH (on purpose), invoking the
-+script requires it to be called with a path.
-+.SH Options
-+.PP
-+None.
-+.SH See also
-+.PP
-+xt_geoip_build_maxmind(1)
+diff --git a/geoip/xt_geoip_fetch_maxmind b/geoip/xt_geoip_fetch_maxmind
+deleted file mode 100755
+index 06245195fb51..000000000000
+--- a/geoip/xt_geoip_fetch_maxmind
++++ /dev/null
+@@ -1,95 +0,0 @@
+-#!/usr/bin/perl
+-#
+-#	Utility to query GeoIP database
+-#	Copyright Philip Prindeville, 2018
+-#
+-use Getopt::Long;
+-use Socket qw(AF_INET AF_INET6 inet_ntop);
+-use warnings;
+-use strict;
+-
+-sub AF_INET_SIZE() { 4 }
+-sub AF_INET6_SIZE() { 16 }
+-
+-my $target_dir = ".";
+-my $ipv4 = 0;
+-my $ipv6 = 0;
+-
+-&Getopt::Long::Configure(qw(bundling));
+-&GetOptions(
+-	"D=s" => \$target_dir,
+-	"4"   => \$ipv4,
+-	"6"   => \$ipv6,
+-);
+-
+-if (!-d $target_dir) {
+-	print STDERR "Target directory $target_dir does not exit.\n";
+-	exit 1;
+-}
+-
+-# if neither specified, assume both
+-if (! $ipv4 && ! $ipv6) {
+-	$ipv4 = $ipv6 = 1;
+-}
+-
+-foreach my $cc (@ARGV) {
+-	if ($cc !~ m/^([a-z]{2}|a[12]|o1)$/i) {
+-		print STDERR "Invalid country code '$cc'\n";
+-		exit 1;
+-	}
+-
+-	my $file = $target_dir . '/' . uc($cc) . '.iv4';
+-
+-	if (! -f $file) {
+-		printf STDERR "Can't find data for country '$cc'\n";
+-		exit 1;
+-	}
+-
+-	my ($contents, $buffer, $bytes, $fh);
+-
+-	if ($ipv4) {
+-		open($fh, '<', $file) || die "Couldn't open file for '$cc'\n";
+-
+-		binmode($fh);
+-
+-		while (($bytes = read($fh, $buffer, AF_INET_SIZE * 2)) == AF_INET_SIZE * 2) {
+-			my ($start, $end) = unpack('a4a4', $buffer);
+-			$start = inet_ntop(AF_INET, $start);
+-			$end = inet_ntop(AF_INET, $end);
+-			print $start, '-', $end, "\n";
+-		}
+-		close($fh);
+-		if (! defined $bytes) {
+-			printf STDERR "Error reading file for '$cc'\n";
+-			exit 1;
+-		} elsif ($bytes != 0) {
+-			printf STDERR "Short read on file for '$cc'\n";
+-			exit 1;
+-		}
+-	}
+-
+-	substr($file, -1) = '6';
+-
+-	if ($ipv6) {
+-		open($fh, '<', $file) || die "Couldn't open file for '$cc'\n";
+-
+-		binmode($fh);
+-
+-		while (($bytes = read($fh, $buffer, AF_INET6_SIZE * 2)) == AF_INET6_SIZE * 2) {
+-			my ($start, $end) = unpack('a16a16', $buffer);
+-			$start = inet_ntop(AF_INET6, $start);
+-			$end = inet_ntop(AF_INET6, $end);
+-			print $start, '-', $end, "\n";
+-		}
+-		close($fh);
+-		if (! defined $bytes) {
+-			printf STDERR "Error reading file for '$cc'\n";
+-			exit 1;
+-		} elsif ($bytes != 0) {
+-			printf STDERR "Short read on file for '$cc'\n";
+-			exit 1;
+-		}
+-	}
+-}
+-
+-exit 0;
 -- 
 2.29.2
 
