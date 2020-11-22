@@ -2,112 +2,129 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59847C5519F
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 19:56:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8BFEC63798
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 20:15:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0F5F42075A
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 19:56:04 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mg.codeaurora.org header.i=@mg.codeaurora.org header.b="pO1J9ccj"
+	by mail.kernel.org (Postfix) with ESMTP id 58F0F20776
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 20:15:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727757AbgKVTza (ORCPT
+        id S1727438AbgKVUPL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 22 Nov 2020 14:55:30 -0500
-Received: from m42-4.mailgun.net ([69.72.42.4]:18785 "EHLO m42-4.mailgun.net"
+        Sun, 22 Nov 2020 15:15:11 -0500
+Received: from correo.us.es ([193.147.175.20]:37386 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727370AbgKVTz3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 22 Nov 2020 14:55:29 -0500
-DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mg.codeaurora.org; q=dns/txt;
- s=smtp; t=1606074929; h=Message-ID: References: In-Reply-To: Subject:
- Cc: To: From: Date: Content-Transfer-Encoding: Content-Type:
- MIME-Version: Sender; bh=+Rcg0+sBXUFNeuyp40r/FoFC9yRzFcPNdejGpYm+AQg=;
- b=pO1J9ccjwEzlo6qGTdOYOAFsn2ADMiSd3SAVBtnbcDA339htgPPau/zerk39NklPmFa/qTX0
- jC609j9PDfHlcRfqVV4ZWhXsrLALz1xOeKLoNIQKaIBAH9OVHM9M9HyQcShmSbIKSvbvYNqU
- 4IfH2Ykw++UF7pt0PZQGcg75nL4=
-X-Mailgun-Sending-Ip: 69.72.42.4
-X-Mailgun-Sid: WyJlM2NhZSIsICJuZXRmaWx0ZXItZGV2ZWxAdmdlci5rZXJuZWwub3JnIiwgImJlOWU0YSJd
-Received: from smtp.codeaurora.org
- (ec2-35-166-182-171.us-west-2.compute.amazonaws.com [35.166.182.171]) by
- smtp-out-n05.prod.us-west-2.postgun.com with SMTP id
- 5fbac2307ef0a8d8431b5455 (version=TLS1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256); Sun, 22 Nov 2020 19:55:28
- GMT
-Sender: subashab=codeaurora.org@mg.codeaurora.org
-Received: by smtp.codeaurora.org (Postfix, from userid 1001)
-        id 8F3C4C43460; Sun, 22 Nov 2020 19:55:28 +0000 (UTC)
-Received: from mail.codeaurora.org (localhost.localdomain [127.0.0.1])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        id S1727339AbgKVUPL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 22 Nov 2020 15:15:11 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id CFE9B18CE80
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2020 21:15:08 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C0EF8DA73D
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2020 21:15:08 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id C034BFC5E0; Sun, 22 Nov 2020 21:15:08 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5154FDA73D;
+        Sun, 22 Nov 2020 21:15:06 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Sun, 22 Nov 2020 21:15:06 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [90.77.255.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: subashab)
-        by smtp.codeaurora.org (Postfix) with ESMTPSA id 48736C433C6;
-        Sun, 22 Nov 2020 19:55:26 +0000 (UTC)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 2FD6B41FF201;
+        Sun, 22 Nov 2020 21:15:06 +0100 (CET)
+Date:   Sun, 22 Nov 2020 21:15:05 +0100
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Alexander Lobakin <alobakin@pm.me>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, fw@strlen.de,
+        razor@blackwall.org, jeremy@azazel.net, tobias@waldekranz.com,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net-next,v5 0/9] netfilter: flowtable bridge and vlan
+ enhancements
+Message-ID: <20201122201505.GA31257@salvia>
+References: <20201122102605.2342-1-alobakin@pm.me>
+ <20201122145108.2640-1-alobakin@pm.me>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date:   Sun, 22 Nov 2020 12:55:26 -0700
-From:   subashab@codeaurora.org
-To:     Florian Westphal <fw@strlen.de>
-Cc:     will@kernel.org, pablo@netfilter.org, stranche@codeaurora.org,
-        netfilter-devel@vger.kernel.org, tglx@linutronix.de,
-        peterz@infradead.org
-Subject: Re: [PATCH nf] netfilter: x_tables: Switch synchronization to RCU
-In-Reply-To: <20201122193537.GV15137@breakpoint.cc>
-References: <1606072636-23555-1-git-send-email-subashab@codeaurora.org>
- <20201122193537.GV15137@breakpoint.cc>
-Message-ID: <849b3bf0b35edf5ba1b23636a4b57ba6@codeaurora.org>
-X-Sender: subashab@codeaurora.org
-User-Agent: Roundcube Webmail/1.3.9
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20201122145108.2640-1-alobakin@pm.me>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2020-11-22 12:35, Florian Westphal wrote:
-> Subash Abhinov Kasiviswanathan <subashab@codeaurora.org> wrote:
->> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
->> index af22dbe..416a617 100644
->> --- a/net/netfilter/x_tables.c
->> +++ b/net/netfilter/x_tables.c
->> @@ -1349,6 +1349,14 @@ struct xt_counters *xt_counters_alloc(unsigned 
->> int counters)
->>  }
->>  EXPORT_SYMBOL(xt_counters_alloc);
-> [..]
+On Sun, Nov 22, 2020 at 02:51:18PM +0000, Alexander Lobakin wrote:
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> Date: Sun, 22 Nov 2020 12:42:19 +0100
 > 
->>  	/* Do the substitution. */
->> -	local_bh_disable();
->> -	private = table->private;
->> +	private = xt_table_get_private_protected(table);
->> 
->>  	/* Check inside lock: is the old number correct? */
->>  	if (num_counters != private->number) {
+> > On Sun, Nov 22, 2020 at 10:26:16AM +0000, Alexander Lobakin wrote:
+> >> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> >> Date: Fri, 20 Nov 2020 13:49:12 +0100
+> > [...]
+> >>> Something like this:
+> >>>
+> >>>                        fast path
+> >>>                 .------------------------.
+> >>>                /                          \
+> >>>                |           IP forwarding   |
+> >>>                |          /             \  .
+> >>>                |       br0               eth0
+> >>>                .       / \
+> >>>                -- veth1  veth2
+> >>>                    .
+> >>>                    .
+> >>>                    .
+> >>>                  eth0
+> >>>            ab:cd:ef:ab:cd:ef
+> >>>                   VM
+> >>
+> >> I'm concerned about bypassing vlan and bridge's .ndo_start_xmit() in
+> >> case of this shortcut. We'll have incomplete netdevice Tx stats for
+> >> these two, as it gets updated inside this callbacks.
+> >
+> > TX device stats are being updated accordingly.
+> >
+> > # ip netns exec nsr1 ip -s link
+> > 1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+> >     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+> >     RX: bytes  packets  errors  dropped overrun mcast   
+> >     0          0        0       0       0       0       
+> >     TX: bytes  packets  errors  dropped carrier collsns 
+> >     0          0        0       0       0       0       
+> > 2: veth0@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP mode DEFAULT group default qlen 1000
+> >     link/ether 82:0d:f3:b5:59:5d brd ff:ff:ff:ff:ff:ff link-netns ns1
+> >     RX: bytes  packets  errors  dropped overrun mcast   
+> >     213290848248 4869765  0       0       0       0       
+> >     TX: bytes  packets  errors  dropped carrier collsns 
+> >     315346667  4777953  0       0       0       0       
+> > 3: veth1@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP mode DEFAULT group default qlen 1000
+> >     link/ether 4a:81:2d:9a:02:88 brd ff:ff:ff:ff:ff:ff link-netns ns2
+> >     RX: bytes  packets  errors  dropped overrun mcast   
+> >     315337919  4777833  0       0       0       0       
+> >     TX: bytes  packets  errors  dropped carrier collsns 
+> >     213290844826 4869708  0       0       0       0       
+> > 4: br0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP mode DEFAULT group default qlen 1000
+> >     link/ether 82:0d:f3:b5:59:5d brd ff:ff:ff:ff:ff:ff
+> >     RX: bytes  packets  errors  dropped overrun mcast   
+> >     4101       73       0       0       0       0       
+> >     TX: bytes  packets  errors  dropped carrier collsns 
+> >     5256       74       0       0       0       0       
 > 
-> There is a local_bh_enable() here that needs removal.
+> Aren't these counters very low for br0, despite that br0 is an
+> intermediate point of traffic flow?
 
-Thanks, will update that.
-
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 416a617..acce622 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1379,7 +1379,6 @@ xt_replace_table(struct xt_table *table,
-         if (num_counters != private->number) {
-                 pr_debug("num_counters != table->private->number 
-(%u/%u)\n",
-                          num_counters, private->number);
--               local_bh_enable();
-                 *error = -EAGAIN;
-                 return NULL;
-         }
-
-> 
-> Did you test it with PROVE_LOCKING enabled?
-> 
-> The placement/use of rcu_dereference and the _protected version
-> looks correct, I would not expect splats.
-
-My config doesn't seem to have it. I will enable and try it out.
+Most packets follow the flowtable fast path, which is bypassing the
+br0 device. Bumping br0 stats would be misleading, it would make the
+user think that the packets follow the classic bridge layer path,
+while they do not. The flowtable have counters itself to allow the
+user to collect stats regarding the packets that follow the fastpath.
