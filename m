@@ -2,134 +2,83 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9D00C388F9
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 00:49:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3E48C64E7A
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 03:23:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 578E3207D3
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 00:49:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A44F420786
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 03:23:59 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="uDNAYn41"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="BCb+FFzp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726693AbgKVAoo (ORCPT
+        id S1727174AbgKVDXg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 21 Nov 2020 19:44:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47860 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726398AbgKVAoo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 21 Nov 2020 19:44:44 -0500
-Received: from kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net (c-67-180-217-166.hsd1.ca.comcast.net [67.180.217.166])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 83FC9207D3;
-        Sun, 22 Nov 2020 00:44:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1606005883;
-        bh=aYAcu9g5uwrUz51rMwTPxA1dHvWAXgrSDJc0DfQ6sLk=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=uDNAYn41dWx7zYomT1tUqOihFG17oUmavNHGrF9rQcPuHCb7thM1MBf+gdxVtcp/v
-         UjzqZ73sye8G/710O05oFEwG9Fq6St+/pJvduXkqpJIVwdSrwE89cIvW6JKt7Tt+KF
-         2JdxKDURJ5VwWzYs62/ur8ElLK2p3E3zsopgi3lM=
-Date:   Sat, 21 Nov 2020 16:44:42 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH net 1/4] netfilter: nftables_offload: set address type
- in control dissector
-Message-ID: <20201121164442.01b39ffb@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
-In-Reply-To: <20201121123601.21733-2-pablo@netfilter.org>
-References: <20201121123601.21733-1-pablo@netfilter.org>
-        <20201121123601.21733-2-pablo@netfilter.org>
+        Sat, 21 Nov 2020 22:23:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33526 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726544AbgKVDXe (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 21 Nov 2020 22:23:34 -0500
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9E05C0613CF;
+        Sat, 21 Nov 2020 19:23:33 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=t7P1qjxLtvKyLv5lupmc5Zc5j0L3lqaoBXMlGIL9vWk=; b=BCb+FFzpwYCsAL5/GuZs0qQqU7
+        2wigu715rAloO1MXfHFDjsI/DCCkjrJ0RLz4Myz+wD98+zNWw6243kPWNzvqzMn6Tn8JVpmOuQv+x
+        7EKe3xartwVOhq4ran1ZhW92oaIukRN20h1OI3pPMusUrtae1AY4TqDUCPUPtiDgxz6eQOoVcrvcz
+        Ara6lCihfF7KrYMxKPcv522GOw1XE7kmR9pLBWd69WCJIf1380JdPIessAMMrwuE8sqCmQUL7YEHL
+        BXN0W+EBw/mKx6JrVL7roopk6K2PnHDj+T1EiV35semdke1klNMJQXZf1Gvzraa/TLsC310jvDxAq
+        zJ5cWKdw==;
+Received: from willy by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1kgfxw-0001fc-2G; Sun, 22 Nov 2020 03:23:04 +0000
+Date:   Sun, 22 Nov 2020 03:23:04 +0000
+From:   Matthew Wilcox <willy@infradead.org>
+To:     trix@redhat.com
+Cc:     joe@perches.com, clang-built-linux@googlegroups.com,
+        linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org,
+        xen-devel@lists.xenproject.org, tboot-devel@lists.sourceforge.net,
+        kvm@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-acpi@vger.kernel.org, devel@acpica.org,
+        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, netdev@vger.kernel.org,
+        linux-media@vger.kernel.org, MPT-FusionLinux.pdl@broadcom.com,
+        linux-scsi@vger.kernel.org, linux-wireless@vger.kernel.org,
+        ibm-acpi-devel@lists.sourceforge.net,
+        platform-driver-x86@vger.kernel.org, linux-usb@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        cluster-devel@redhat.com, linux-mtd@lists.infradead.org,
+        keyrings@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, alsa-devel@alsa-project.org,
+        bpf@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+        linux-nfs@vger.kernel.org, patches@opensource.cirrus.com
+Subject: Re: [RFC] MAINTAINERS tag for cleanup robot
+Message-ID: <20201122032304.GE4327@casper.infradead.org>
+References: <20201121165058.1644182-1-trix@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201121165058.1644182-1-trix@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, 21 Nov 2020 13:35:58 +0100 Pablo Neira Ayuso wrote:
-> If the address type is missing through the control dissector, then
-> matching on IPv4 and IPv6 addresses does not work.
-
-Doesn't work where? Are you talking about a specific driver?
-
-> Set it accordingly so
-> rules that specify an IP address succesfully match on packets.
+On Sat, Nov 21, 2020 at 08:50:58AM -0800, trix@redhat.com wrote:
+> The fixer review is
+> https://reviews.llvm.org/D91789
 > 
-> Fixes: c9626a2cbdb2 ("netfilter: nf_tables: add hardware offload support")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  include/net/netfilter/nf_tables_offload.h |  4 ++++
->  net/netfilter/nf_tables_offload.c         | 18 ++++++++++++++++++
->  net/netfilter/nft_payload.c               |  4 ++++
->  3 files changed, 26 insertions(+)
+> A run over allyesconfig for x86_64 finds 62 issues, 5 are false positives.
+> The false positives are caused by macros passed to other macros and by
+> some macro expansions that did not have an extra semicolon.
 > 
-> diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
-> index ea7d1d78b92d..bddd34c5bd79 100644
-> --- a/include/net/netfilter/nf_tables_offload.h
-> +++ b/include/net/netfilter/nf_tables_offload.h
-> @@ -37,6 +37,7 @@ void nft_offload_update_dependency(struct nft_offload_ctx *ctx,
->  
->  struct nft_flow_key {
->  	struct flow_dissector_key_basic			basic;
-> +	struct flow_dissector_key_control		control;
->  	union {
->  		struct flow_dissector_key_ipv4_addrs	ipv4;
->  		struct flow_dissector_key_ipv6_addrs	ipv6;
-> @@ -62,6 +63,9 @@ struct nft_flow_rule {
->  
->  #define NFT_OFFLOAD_F_ACTION	(1 << 0)
->  
-> +void nft_flow_rule_set_addr_type(struct nft_flow_rule *flow,
-> +				 enum flow_dissector_key_id addr_type);
-> +
->  struct nft_rule;
->  struct nft_flow_rule *nft_flow_rule_create(struct net *net, const struct nft_rule *rule);
->  void nft_flow_rule_destroy(struct nft_flow_rule *flow);
-> diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-> index 9f625724a20f..9a3c5ac057b6 100644
-> --- a/net/netfilter/nf_tables_offload.c
-> +++ b/net/netfilter/nf_tables_offload.c
-> @@ -28,6 +28,24 @@ static struct nft_flow_rule *nft_flow_rule_alloc(int num_actions)
->  	return flow;
->  }
->  
-> +void nft_flow_rule_set_addr_type(struct nft_flow_rule *flow,
-> +				 enum flow_dissector_key_id addr_type)
-> +{
-> +	struct nft_flow_match *match = &flow->match;
-> +	struct nft_flow_key *mask = &match->mask;
-> +	struct nft_flow_key *key = &match->key;
-> +
-> +	if (match->dissector.used_keys & BIT(FLOW_DISSECTOR_KEY_CONTROL))
-> +		return;
-> +
-> +	key->control.addr_type = addr_type;
-> +	mask->control.addr_type = 0xffff;
-> +	match->dissector.used_keys |= BIT(FLOW_DISSECTOR_KEY_CONTROL);
-> +	match->dissector.offset[FLOW_DISSECTOR_KEY_CONTROL] =
-> +		offsetof(struct nft_flow_key, control);
+> This cleans up about 1,000 of the current 10,000 -Wextra-semi-stmt
+> warnings in linux-next.
 
-Why is this injecting the match conditionally?
-
-> +}
-> +EXPORT_SYMBOL_GPL(nft_flow_rule_set_addr_type);
-
-And why is this exported? 
-
-nf_tables-objs := nf_tables_core.o nf_tables_api.o nft_chain_filter.o \
-		  nf_tables_trace.o nft_immediate.o nft_cmp.o nft_range.o \
-		  nft_bitwise.o nft_byteorder.o nft_payload.o nft_lookup.o \
-                                                ^^^^^^^^^^^^^
-		  nft_dynset.o nft_meta.o nft_rt.o nft_exthdr.o \
-		  nft_chain_route.o nf_tables_offload.o \
-                                    ^^^^^^^^^^^^^^^^^^^
-		  nft_set_hash.o nft_set_bitmap.o nft_set_rbtree.o \
-		  nft_set_pipapo.o
-
-These are linked together.
+Are any of them not false-positives?  It's all very well to enable
+stricter warnings, but if they don't fix any bugs, they're just churn.
