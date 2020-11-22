@@ -2,80 +2,81 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4B13C5519F
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 12:47:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EDF2C5519F
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 14:05:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7BCA92078D
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 12:47:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E941620786
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 14:05:56 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="GPGHf7IE"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727817AbgKVMqe (ORCPT
+        id S1727879AbgKVOFg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 22 Nov 2020 07:46:34 -0500
-Received: from correo.us.es ([193.147.175.20]:47404 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727702AbgKVMqd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 22 Nov 2020 07:46:33 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 501A1A24C9B
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2020 13:46:32 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3F794DA840
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2020 13:46:32 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 1ED10DA797; Sun, 22 Nov 2020 13:46:32 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D8B11DA73D;
-        Sun, 22 Nov 2020 13:46:28 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 22 Nov 2020 13:46:28 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [90.77.255.23])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id B1EB74265A5A;
-        Sun, 22 Nov 2020 13:46:28 +0100 (CET)
-Date:   Sun, 22 Nov 2020 13:46:28 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     Yejune Deng <yejune.deng@gmail.com>, wensong@linux-vs.org,
-        horms@verge.net.au, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, kuba@kernel.org, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] ipvs: replace atomic_add_return()
-Message-ID: <20201122124628.GA28719@salvia>
-References: <1605513707-7579-1-git-send-email-yejune.deng@gmail.com>
- <9cd77e1e-1c52-d647-9443-485510b4a9b1@ssi.bg>
+        Sun, 22 Nov 2020 09:05:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47420 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727513AbgKVOFf (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 22 Nov 2020 09:05:35 -0500
+Received: from kadath.azazel.net (kadath.azazel.net [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B49ABC0613CF
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2020 06:05:35 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
+        :Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=bUgnqFtotSyiMQolKv7qZFhEukqfTIgIkEIZvqb8AOc=; b=GPGHf7IEEY9xZMZaeHf8S8z81q
+        ZFuLh5pArPsdw9Zniyud/ohPLCetD2RycJaQ/OoJ+W+96si2CpSNiez3cLAYo7x4iU3OLgacOXNQI
+        HmvnKh1hnkkdh4KbHzGQomu+T27c1YV9Gm7PEg51zEAieXYeRGaWV1O787R2+l+fmcetImhLh6dT3
+        vjVcz3r0AKwOUka+jycUp1D1tsH/qGTCX/wr1DEDAj9ULf/kKFUAimCfu6uXSkaYlihLQvQ4b84uD
+        Alw8VFP6R0cicVZGd48QLBcZaL6womLmF1ObKJxLzkTliELnPPoV/FuFHj/Yk7iN6Qj/8FUd8xOiQ
+        4LkrD4YA==;
+Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
+        by kadath.azazel.net with esmtp (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1kgpzf-0002wq-4f; Sun, 22 Nov 2020 14:05:31 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH xtables-addons 0/4] geoip: script fixes
+Date:   Sun, 22 Nov 2020 14:05:26 +0000
+Message-Id: <20201122140530.250248-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.29.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <9cd77e1e-1c52-d647-9443-485510b4a9b1@ssi.bg>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Nov 17, 2020 at 10:57:52PM +0200, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Mon, 16 Nov 2020, Yejune Deng wrote:
-> 
-> > atomic_inc_return() looks better
-> > 
-> > Signed-off-by: Yejune Deng <yejune.deng@gmail.com>
-> 
-> 	Looks good to me for -next, thanks!
-> 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
+A couple of fixes and some man-pages for the MaxMind geoip scripts.
 
-Applied, thanks.
+Jeremy Sowden (4):
+  geoip: remove superfluous xt_geoip_fetch_maxmind script.
+  geoip: fix man-page typo'.
+  geoip: add man-pages for MaxMind scripts.
+  geoip: use correct download URL for MaxMind DB's.
+
+ geoip/Makefile.am              |  6 ++-
+ geoip/xt_geoip_build_maxmind.1 | 40 ++++++++++++++
+ geoip/xt_geoip_dl_maxmind      | 12 ++++-
+ geoip/xt_geoip_dl_maxmind.1    | 22 ++++++++
+ geoip/xt_geoip_fetch.1         |  2 +-
+ geoip/xt_geoip_fetch_maxmind   | 95 ----------------------------------
+ 6 files changed, 77 insertions(+), 100 deletions(-)
+ create mode 100644 geoip/xt_geoip_build_maxmind.1
+ create mode 100644 geoip/xt_geoip_dl_maxmind.1
+ delete mode 100755 geoip/xt_geoip_fetch_maxmind
+
+-- 
+2.29.2
+
