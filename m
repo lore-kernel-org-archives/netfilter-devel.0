@@ -2,121 +2,123 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EF1EC64E75
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 14:47:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8602C56202
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 14:51:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2493A20888
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 14:47:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D9922076C
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Nov 2020 14:51:55 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="XA3Bdia/"
+	dkim=pass (2048-bit key) header.d=pm.me header.i=@pm.me header.b="X2o/z0sO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727876AbgKVOrC (ORCPT
+        id S1727795AbgKVOve (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 22 Nov 2020 09:47:02 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:43629 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727903AbgKVOq6 (ORCPT
+        Sun, 22 Nov 2020 09:51:34 -0500
+Received: from mail-02.mail-europe.com ([51.89.119.103]:37642 "EHLO
+        mail-02.mail-europe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728058AbgKVOve (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 22 Nov 2020 09:46:58 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1606056416;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=apju6gP6XSpkYwp4WdL57a/nFAvNI/QCKhQkuBxc3S8=;
-        b=XA3Bdia/xK9rtALsHLhdMXNkl5EWPz83+inaq5KZnxbZp/pqE7ot4cuq9wfEbTWVu1jCkd
-        fkI/qAlh4sU3l8dOrlq7C5hNdTdH0le7t+rDrYZ5+jjUTJP5ekv3G25710udgF6Q97joi/
-        ih3DR460gM+B9YwlFm0ND3pgcFfhizQ=
-Received: from mail-qt1-f197.google.com (mail-qt1-f197.google.com
- [209.85.160.197]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-433-1Ek5CaKMOnav0fdWYqWFUg-1; Sun, 22 Nov 2020 09:46:52 -0500
-X-MC-Unique: 1Ek5CaKMOnav0fdWYqWFUg-1
-Received: by mail-qt1-f197.google.com with SMTP id v9so11579749qtw.12
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2020 06:46:52 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=apju6gP6XSpkYwp4WdL57a/nFAvNI/QCKhQkuBxc3S8=;
-        b=sqKacznFgNQdgHYWOxvRxMSjW9nrillhfkZAyIAB9o1FIZ2/FFPzpaeckAytkB2QeC
-         vf7LmvIxnw0+Ax0455hoGedao4rgL5d6A/i6Nj+P+Ueuxng10pc3EHSa9VVN44CMDbiA
-         oV2x512hgruFl8jx6+rexfM5B7umxMd3nI2aj9MVq12GWZ4YLvpbNzA0n1HKbeIFyYKz
-         Jk77netf99k+bFQDRjJNPjb6+3SVj5ylBWZ0pPA8rpyc/6Y4u17Obd+Z4R/2A2Esc23w
-         GRxtxIxlTrDpVv/ClI0CwNXZdCBpZmYTTwxi75MGGuI+8DAdPvPZluE7VklKWJdArKh2
-         U5/Q==
-X-Gm-Message-State: AOAM530ghbt2kAs90q1eorVBmKr8Q95oDGEWMFLgztlNi8dYcrtwW1Mn
-        pWRIT7FIUhzGIAOt7Zbk9LV2bGP8X8yuJCKCoFB00EkK8aqUNV8+WrUsS6b38+Y1OIsKa0Plqz3
-        +r9dcjIUo/EfR3f9dI44jCNJzHNcy
-X-Received: by 2002:ad4:476b:: with SMTP id d11mr26026163qvx.57.1606056412428;
-        Sun, 22 Nov 2020 06:46:52 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJyPQ8vJIBgyJxmgPlUVzOaStXFRaD0Z+d8VDmnR7kdLyNkvwByAGPov006wc7+pJBCcgj+/zw==
-X-Received: by 2002:ad4:476b:: with SMTP id d11mr26026152qvx.57.1606056412222;
-        Sun, 22 Nov 2020 06:46:52 -0800 (PST)
-Received: from trix.remote.csb (075-142-250-213.res.spectrum.com. [75.142.250.213])
-        by smtp.gmail.com with ESMTPSA id x72sm6888242qkb.90.2020.11.22.06.46.47
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 22 Nov 2020 06:46:51 -0800 (PST)
-Subject: Re: [RFC] MAINTAINERS tag for cleanup robot
-To:     Matthew Wilcox <willy@infradead.org>
-Cc:     joe@perches.com, clang-built-linux@googlegroups.com,
-        linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org,
-        xen-devel@lists.xenproject.org, tboot-devel@lists.sourceforge.net,
-        kvm@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-acpi@vger.kernel.org, devel@acpica.org,
-        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, netdev@vger.kernel.org,
-        linux-media@vger.kernel.org, MPT-FusionLinux.pdl@broadcom.com,
-        linux-scsi@vger.kernel.org, linux-wireless@vger.kernel.org,
-        ibm-acpi-devel@lists.sourceforge.net,
-        platform-driver-x86@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        cluster-devel@redhat.com, linux-mtd@lists.infradead.org,
-        keyrings@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, alsa-devel@alsa-project.org,
-        bpf@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-        linux-nfs@vger.kernel.org, patches@opensource.cirrus.com
-References: <20201121165058.1644182-1-trix@redhat.com>
- <20201122032304.GE4327@casper.infradead.org>
-From:   Tom Rix <trix@redhat.com>
-Message-ID: <ddb08a27-3ca1-fb2e-d51f-4b471f1a56a3@redhat.com>
-Date:   Sun, 22 Nov 2020 06:46:46 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.12.0
+        Sun, 22 Nov 2020 09:51:34 -0500
+Date:   Sun, 22 Nov 2020 14:51:18 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=pm.me; s=protonmail;
+        t=1606056687; bh=VKTi2TdWNmni+nfDPo4i0OtqRh+E2ou4umPgwKFqw7g=;
+        h=Date:To:From:Cc:Reply-To:Subject:In-Reply-To:References:From;
+        b=X2o/z0sO+7JWaMGhDuRp0/0PywWsdFM3N9qQgXUg8SvW5UsMJi/6shwRGz2ODJjEB
+         cDSX6v0NkSqVAmB5gaVLafR0d996Ix+00UG3vItjyJztyBbVdxuxo+5ILZ1s4HEqvC
+         G1lL21oXKHkob9tYlSyVwUIVyyyRHqbC2/fvQH1mTsZcu4IaPIUa9K77bClZriLsvw
+         dQxEhobM34vsenJuebxcIS4/1gvfSjoOMQ1oQcjMqd4n9fDI5DC6ylmy/yDMLn4p3N
+         QQUeaAlwwJYADlbApLXtdWMxEtaDRHwaYDuDZa9PlpRFq+WpNOehmgAdX1QoQ9pcuo
+         s7vbAkZs3BoGg==
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+From:   Alexander Lobakin <alobakin@pm.me>
+Cc:     Alexander Lobakin <alobakin@pm.me>,
+        netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, fw@strlen.de,
+        razor@blackwall.org, jeremy@azazel.net, tobias@waldekranz.com,
+        linux-kernel@vger.kernel.org
+Reply-To: Alexander Lobakin <alobakin@pm.me>
+Subject: Re: [PATCH net-next,v5 0/9] netfilter: flowtable bridge and vlan enhancements
+Message-ID: <20201122145108.2640-1-alobakin@pm.me>
+In-Reply-To: <20201122102605.2342-1-alobakin@pm.me>
+References: <20201122102605.2342-1-alobakin@pm.me>
 MIME-Version: 1.0
-In-Reply-To: <20201122032304.GE4327@casper.infradead.org>
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Sun, 22 Nov 2020 12:42:19 +0100
 
-On 11/21/20 7:23 PM, Matthew Wilcox wrote:
-> On Sat, Nov 21, 2020 at 08:50:58AM -0800, trix@redhat.com wrote:
->> The fixer review is
->> https://reviews.llvm.org/D91789
+> On Sun, Nov 22, 2020 at 10:26:16AM +0000, Alexander Lobakin wrote:
+>> From: Pablo Neira Ayuso <pablo@netfilter.org>
+>> Date: Fri, 20 Nov 2020 13:49:12 +0100
+> [...]
+>>> Something like this:
+>>>
+>>>                        fast path
+>>>                 .------------------------.
+>>>                /                          \
+>>>                |           IP forwarding   |
+>>>                |          /             \  .
+>>>                |       br0               eth0
+>>>                .       / \
+>>>                -- veth1  veth2
+>>>                    .
+>>>                    .
+>>>                    .
+>>>                  eth0
+>>>            ab:cd:ef:ab:cd:ef
+>>>                   VM
 >>
->> A run over allyesconfig for x86_64 finds 62 issues, 5 are false positives.
->> The false positives are caused by macros passed to other macros and by
->> some macro expansions that did not have an extra semicolon.
->>
->> This cleans up about 1,000 of the current 10,000 -Wextra-semi-stmt
->> warnings in linux-next.
-> Are any of them not false-positives?  It's all very well to enable
-> stricter warnings, but if they don't fix any bugs, they're just churn.
+>> I'm concerned about bypassing vlan and bridge's .ndo_start_xmit() in
+>> case of this shortcut. We'll have incomplete netdevice Tx stats for
+>> these two, as it gets updated inside this callbacks.
 >
-While enabling additional warnings may be a side effect of this effort
+> TX device stats are being updated accordingly.
+>
+> # ip netns exec nsr1 ip -s link
+> 1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN mode DEFAULT group defa=
+ult qlen 1000
+>     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+>     RX: bytes  packets  errors  dropped overrun mcast  =20
+>     0          0        0       0       0       0      =20
+>     TX: bytes  packets  errors  dropped carrier collsns=20
+>     0          0        0       0       0       0      =20
+> 2: veth0@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue st=
+ate UP mode DEFAULT group default qlen 1000
+>     link/ether 82:0d:f3:b5:59:5d brd ff:ff:ff:ff:ff:ff link-netns ns1
+>     RX: bytes  packets  errors  dropped overrun mcast  =20
+>     213290848248 4869765  0       0       0       0      =20
+>     TX: bytes  packets  errors  dropped carrier collsns=20
+>     315346667  4777953  0       0       0       0      =20
+> 3: veth1@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue st=
+ate UP mode DEFAULT group default qlen 1000
+>     link/ether 4a:81:2d:9a:02:88 brd ff:ff:ff:ff:ff:ff link-netns ns2
+>     RX: bytes  packets  errors  dropped overrun mcast  =20
+>     315337919  4777833  0       0       0       0      =20
+>     TX: bytes  packets  errors  dropped carrier collsns=20
+>     213290844826 4869708  0       0       0       0      =20
+> 4: br0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP=
+ mode DEFAULT group default qlen 1000
+>     link/ether 82:0d:f3:b5:59:5d brd ff:ff:ff:ff:ff:ff
+>     RX: bytes  packets  errors  dropped overrun mcast  =20
+>     4101       73       0       0       0       0      =20
+>     TX: bytes  packets  errors  dropped carrier collsns=20
+>     5256       74       0       0       0       0      =20
 
-the primary goal is to set up a cleaning robot. After that a refactoring robot.
+Aren't these counters very low for br0, despite that br0 is an
+intermediate point of traffic flow?
 
-Tom
+> 5: veth0.10@veth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noque=
+ue master br0 state UP mode DEFAULT group default qlen 1000
+>     link/ether 82:0d:f3:b5:59:5d brd ff:ff:ff:ff:ff:ff
+>     RX: bytes  packets  errors  dropped overrun mcast  =20
+>     4101       73       0       0       0       62     =20
+>     TX: bytes  packets  errors  dropped carrier collsns=20
+>     315342363  4777893  0       0       0       0      =20
 
