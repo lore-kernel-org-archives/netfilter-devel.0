@@ -2,183 +2,106 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A8F8C64E69
-	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Nov 2020 18:56:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B264C63697
+	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Nov 2020 19:05:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F319B2073C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Nov 2020 18:56:39 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZA1WcoeO"
+	by mail.kernel.org (Postfix) with ESMTP id DF052208B8
+	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Nov 2020 19:05:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732258AbgKWS4P (ORCPT
+        id S1729557AbgKWTEl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 23 Nov 2020 13:56:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59118 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728339AbgKWS4N (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Nov 2020 13:56:13 -0500
-Received: from mail-yb1-xb41.google.com (mail-yb1-xb41.google.com [IPv6:2607:f8b0:4864:20::b41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01289C061A4D;
-        Mon, 23 Nov 2020 10:56:13 -0800 (PST)
-Received: by mail-yb1-xb41.google.com with SMTP id v92so16909006ybi.4;
-        Mon, 23 Nov 2020 10:56:12 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=KNG9rf3jiBLOHJ1Qe+5HClUHwDC8G2v5PJoNSRMQj2o=;
-        b=ZA1WcoeOdsWbRfOoumZEJTLTRH6V2Lpq2CDbZ0VVs1hbOT/vd/v8/YkJaULhb4MkV5
-         MHmDtgQZ7Y6vQOoRafNcjdab1m8jmYbh8Ox0xcyAJF866JXyArBCoNYzebFkQV1wRZF3
-         r3hM3WSnIq7Ht5VQ2PIwvurJMfamtV7PLgYZxEoHoT74qEv3IGeXPryfDRdu7AW/qetQ
-         L1ocOXaYsoIrsq1AVQ8cgaa4G2qWRkZviQ+mOBHOVW/MFUti3ALLJAr2MKUeWh+s4BW6
-         tAJsdEl41qUIuUvcW5DdLnVlmhWMC8lZFuXyyo4x1R3eX3DaWLHh1JzDrRZDt/CN6qga
-         036w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=KNG9rf3jiBLOHJ1Qe+5HClUHwDC8G2v5PJoNSRMQj2o=;
-        b=cwcDHDSY8W9xdxXPCpZphqylE+s3MSaZikE0CZjpiiG5lTxXJwXfkh5nLxhPGO+XIv
-         eL0FFYvPnKAK5sCCDOcnWyC4jxIVzIaDBIAj+xBZxYNd7/llG22HQ/kdX2IbMecorszD
-         hEO6WdCTfrNVWexUYCMWoj6JXf8G22E0bBTXEwiJD2sKL6Yn2TgzqUgjxd/KxrVmC727
-         bbZmJVVn6kRLddllbQWCsMObKbXzaTOUDtcskwA8UdYYIOKelG7ArIvkaabsrQ1/+v6W
-         6EgiOqUz1woWvdq9qLAqHja8Ing42p0680TG/nqYxSWGaFRuHleuL40GVfdqpzEuCvKM
-         clsA==
-X-Gm-Message-State: AOAM530fACWUHhvC6hWrU1MzVj1zVMilD8v5xY4DNSL7OaB2TkVFLwrp
-        1NHEeOio++xbCI2i2p7M7OVxGr+UrwqXSdQhf5s=
-X-Google-Smtp-Source: ABdhPJyhWLCSkpSmtD0p55Cmpr9Ao1aJs0IYHWLu4Tcyj9q39OBvqgrIxMZMaEy7w1zacpD3mVr5R93EsjzwMBkGuSA=
-X-Received: by 2002:a25:df55:: with SMTP id w82mr977719ybg.135.1606157772316;
- Mon, 23 Nov 2020 10:56:12 -0800 (PST)
+        Mon, 23 Nov 2020 14:04:41 -0500
+Received: from mg.ssi.bg ([178.16.128.9]:58590 "EHLO mg.ssi.bg"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728868AbgKWTEl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 23 Nov 2020 14:04:41 -0500
+Received: from mg.ssi.bg (localhost [127.0.0.1])
+        by mg.ssi.bg (Proxmox) with ESMTP id 29E92306C1
+        for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2020 21:04:40 +0200 (EET)
+Received: from ink.ssi.bg (ink.ssi.bg [178.16.128.7])
+        by mg.ssi.bg (Proxmox) with ESMTP id 80016306B7
+        for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2020 21:04:39 +0200 (EET)
+Received: from ja.ssi.bg (unknown [178.16.129.10])
+        by ink.ssi.bg (Postfix) with ESMTPS id 5A6F13C09BE;
+        Mon, 23 Nov 2020 21:04:30 +0200 (EET)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id 0ANJ4RHZ004531;
+        Mon, 23 Nov 2020 21:04:28 +0200
+Date:   Mon, 23 Nov 2020 21:04:27 +0200 (EET)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     "wanghai (M)" <wanghai38@huawei.com>
+cc:     Simon Horman <horms@verge.net.au>, pablo@netfilter.org,
+        christian@brauner.io, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net v2] ipvs: fix possible memory leak in
+ ip_vs_control_net_init
+In-Reply-To: <66825441-bb06-3d18-0424-df355d596c5f@huawei.com>
+Message-ID: <9c409f4a-42df-1dd8-e69a-d5d3bab8d0c0@ssi.bg>
+References: <20201120082610.60917-1-wanghai38@huawei.com> <21af4c92-8ca6-cce9-64bc-c4e88b6d1e8a@ssi.bg> <66825441-bb06-3d18-0424-df355d596c5f@huawei.com>
 MIME-Version: 1.0
-References: <cover.1605896059.git.gustavoars@kernel.org> <20201120105344.4345c14e@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
- <202011201129.B13FDB3C@keescook> <20201120115142.292999b2@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
- <202011220816.8B6591A@keescook> <9b57fd4914b46f38d54087d75e072d6e947cb56d.camel@HansenPartnership.com>
- <CANiq72nZrHWTA4_Msg6MP9snTyenC6-eGfD27CyfNSu7QoVZbw@mail.gmail.com>
- <1c7d7fde126bc0acf825766de64bf2f9b888f216.camel@HansenPartnership.com>
- <CANiq72m22Jb5_+62NnwX8xds2iUdWDMAqD8PZw9cuxdHd95W0A@mail.gmail.com> <fc45750b6d0277c401015b7aa11e16cd15f32ab2.camel@HansenPartnership.com>
-In-Reply-To: <fc45750b6d0277c401015b7aa11e16cd15f32ab2.camel@HansenPartnership.com>
-From:   Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Date:   Mon, 23 Nov 2020 19:56:01 +0100
-Message-ID: <CANiq72k5tpDoDPmJ0ZWc1DGqm+81Gi-uEENAtvEs9v3SZcx6_Q@mail.gmail.com>
-Subject: Re: [PATCH 000/141] Fix fall-through warnings for Clang
-To:     James Bottomley <James.Bottomley@hansenpartnership.com>
-Cc:     Kees Cook <keescook@chromium.org>,
-        Jakub Kicinski <kuba@kernel.org>,
-        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        alsa-devel@alsa-project.org, amd-gfx@lists.freedesktop.org,
-        bridge@lists.linux-foundation.org, ceph-devel@vger.kernel.org,
-        cluster-devel@redhat.com, coreteam@netfilter.org,
-        devel@driverdev.osuosl.org, dm-devel@redhat.com,
-        drbd-dev@lists.linbit.com, dri-devel@lists.freedesktop.org,
-        GR-everest-linux-l2@marvell.com, GR-Linux-NIC-Dev@marvell.com,
-        intel-gfx@lists.freedesktop.org, intel-wired-lan@lists.osuosl.org,
-        keyrings@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-        linux-acpi@vger.kernel.org, linux-afs@lists.infradead.org,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        linux-arm-msm@vger.kernel.org,
-        linux-atm-general@lists.sourceforge.net,
-        linux-block@vger.kernel.org, linux-can@vger.kernel.org,
-        linux-cifs@vger.kernel.org,
-        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
-        linux-decnet-user@lists.sourceforge.net,
-        Ext4 Developers List <linux-ext4@vger.kernel.org>,
-        linux-fbdev@vger.kernel.org, linux-geode@lists.infradead.org,
-        linux-gpio@vger.kernel.org, linux-hams@vger.kernel.org,
-        linux-hwmon@vger.kernel.org, linux-i3c@lists.infradead.org,
-        linux-ide@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-input <linux-input@vger.kernel.org>,
-        linux-integrity@vger.kernel.org,
-        linux-mediatek@lists.infradead.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-mmc@vger.kernel.org, Linux-MM <linux-mm@kvack.org>,
-        linux-mtd@lists.infradead.org, linux-nfs@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-sctp@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-stm32@st-md-mailman.stormreply.com,
-        linux-usb@vger.kernel.org, linux-watchdog@vger.kernel.org,
-        linux-wireless <linux-wireless@vger.kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, nouveau@lists.freedesktop.org,
-        op-tee@lists.trustedfirmware.org, oss-drivers@netronome.com,
-        patches@opensource.cirrus.com, rds-devel@oss.oracle.com,
-        reiserfs-devel@vger.kernel.org, samba-technical@lists.samba.org,
-        selinux@vger.kernel.org, target-devel@vger.kernel.org,
-        tipc-discussion@lists.sourceforge.net,
-        usb-storage@lists.one-eyed-alien.net,
-        virtualization@lists.linux-foundation.org,
-        wcn36xx@lists.infradead.org,
-        "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>,
-        xen-devel@lists.xenproject.org, linux-hardening@vger.kernel.org,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Nathan Chancellor <natechancellor@gmail.com>,
-        Miguel Ojeda <ojeda@kernel.org>, Joe Perches <joe@perches.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/mixed; boundary="-1463811672-1178358999-1606158270=:3814"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Nov 23, 2020 at 4:58 PM James Bottomley
-<James.Bottomley@hansenpartnership.com> wrote:
->
-> Well, I used git.  It says that as of today in Linus' tree we have 889
-> patches related to fall throughs and the first series went in in
-> october 2017 ... ignoring a couple of outliers back to February.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-I can see ~10k insertions over ~1k commits and 15 years that mention a
-fallthrough in the entire repo. That is including some commits (like
-the biggest one, 960 insertions) that have nothing to do with C
-fallthrough. A single kernel release has an order of magnitude more
-changes than this...
+---1463811672-1178358999-1606158270=:3814
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 
-But if we do the math, for an author, at even 1 minute per line change
-and assuming nothing can be automated at all, it would take 1 month of
-work. For maintainers, a couple of trivial lines is noise compared to
-many other patches.
 
-In fact, this discussion probably took more time than the time it
-would take to review the 200 lines. :-)
+	Hello,
 
-> We're also complaining about the inability to recruit maintainers:
->
-> https://www.theregister.com/2020/06/30/hard_to_find_linux_maintainers_says_torvalds/
->
-> And burn out:
->
-> http://antirez.com/news/129
+On Mon, 23 Nov 2020, wanghai (M) wrote:
 
-Accepting trivial and useful 1-line patches is not what makes a
-voluntary maintainer quit... Thankless work with demanding deadlines is.
+> 在 2020/11/22 19:20, Julian Anastasov 写道:
+> >  Hello,
+> >
+> > On Fri, 20 Nov 2020, Wang Hai wrote:
+> >
+> >> +	if (!proc_create_net_single("ip_vs_stats_percpu", 0,
+> >> ipvs->net->proc_net,
+> >> +			ip_vs_stats_percpu_show, NULL))
+> >> +		goto err_percpu;
+> > 	Make sure the parameters are properly aligned to function open
+> > parenthesis without exceeding 80 columns:
+> >
+> > linux# scripts/checkpatch.pl --strict /tmp/file.patch
+> Thanks, I'll perfect it.
+> > 	It was true only for first call due to some
+> > renames for the others two in commit 3617d9496cd9 :(
+> It does indeed rename in commit 3617d9496cd9.
+> But I don't understand what's wrong with my patch here.
 
-> The whole crux of your argument seems to be maintainers' time isn't
-> important so we should accept all trivial patches
+	Visually, they should look like this:
 
-I have not said that, at all. In fact, I am a voluntary one and I
-welcome patches like this. It takes very little effort on my side to
-review and it helps the kernel overall. Paid maintainers are the ones
-that can take care of big features/reviews.
+        if (!proc_create_net("ip_vs", 0, ipvs->net->proc_net,
+                             &ip_vs_info_seq_ops, sizeof(struct ip_vs_iter)))
+                goto err_vs;
+        if (!proc_create_net_single("ip_vs_stats", 0, ipvs->net->proc_net,
+                                    ip_vs_stats_show, NULL))
+                goto err_stats;
+        if (!proc_create_net_single("ip_vs_stats_percpu", 0,
+                                    ipvs->net->proc_net,
+                                    ip_vs_stats_percpu_show, NULL))
+                goto err_percpu;
 
-> What I'm actually trying to articulate is a way of measuring value of
-> the patch vs cost ... it has nothing really to do with who foots the
-> actual bill.
+	The first one explained:
 
-I understand your point, but you were the one putting it in terms of a
-junior FTE. In my view, 1 month-work (worst case) is very much worth
-removing a class of errors from a critical codebase.
+<1  TAB>if (!proc_create_net("ip_vs", 0, ipvs->net->proc_net,
+<  open parenthesis is here  ^ and all next lines align to first parameter>
+<1  TAB><1  TAB><1 TAB><5 SP>&ip_vs_info_seq_ops, sizeof(struct ip_vs_iter)))
+<1  TAB><1  TAB>goto err_vs;
 
-> One thesis I'm actually starting to formulate is that this continual
-> devaluing of maintainers is why we have so much difficulty keeping and
-> recruiting them.
+Regards
 
-That may very well be true, but I don't feel anybody has devalued
-maintainers in this discussion.
+--
+Julian Anastasov <ja@ssi.bg>
+---1463811672-1178358999-1606158270=:3814--
 
-Cheers,
-Miguel
