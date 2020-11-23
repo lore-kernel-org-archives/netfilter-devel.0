@@ -2,159 +2,124 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1030C64E8A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Nov 2020 14:20:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB801C63798
+	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Nov 2020 14:49:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A66FE20B1F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Nov 2020 14:20:31 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="b0LkeT2q"
+	by mail.kernel.org (Postfix) with ESMTP id A039B217A0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Nov 2020 14:49:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389104AbgKWOUL (ORCPT
+        id S1732051AbgKWOte (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 23 Nov 2020 09:20:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44650 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388810AbgKWOUI (ORCPT
+        Mon, 23 Nov 2020 09:49:34 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:8388 "EHLO
+        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731823AbgKWOte (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Nov 2020 09:20:08 -0500
-Received: from mail-yb1-xb43.google.com (mail-yb1-xb43.google.com [IPv6:2607:f8b0:4864:20::b43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DCBAC0613CF;
-        Mon, 23 Nov 2020 06:20:06 -0800 (PST)
-Received: by mail-yb1-xb43.google.com with SMTP id t33so16099316ybd.0;
-        Mon, 23 Nov 2020 06:20:06 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=WUYMqcUnfpAQa1YuH9tQ3ze5bp2bxaoGLXc9Sg/470Y=;
-        b=b0LkeT2q71Z3peIccxL7MkU5QadaCN3igdEC89IE4ykmdOxIlhuoo/0+H7pQCoNmlh
-         0UX19Z7soasUpz2fDZHX56luUWrH4GLKAJ9K28HwPu9km7qlcvasqfBffaQW+LtXvh6a
-         fVP4J8wQFxbi1QWFB10Wsq9dLONxRShLcqQtcaktrZCy3tSRV5R4FOw2MSdgwNuCxNwd
-         cKQMyE/jYgmlc9Qm972BZKz9xJaasT5iW6gpZgai8YpCh1sxJNgZFzlfCpv21Fvd7rwb
-         akOsznbnFT4mJT95mXFDUPnplTdAJirWAcm8YfzHFRAfOGn9Vk91PuRcq7JipLelDPMB
-         VWgQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=WUYMqcUnfpAQa1YuH9tQ3ze5bp2bxaoGLXc9Sg/470Y=;
-        b=k/qgZ8Z9bBqeNograULAsVmY6QgH/o27YDc4TQqwadJEFPSHfj8njq8ybzc5p5uAqz
-         G2SF1GHjXgxVX+FODMOQfjlRZXXNW8F8Ux14RKIUmWQY2couN16YR3yqVIzbwT4iX+yY
-         VYevTNouvCvLvx1xngkvK6RPKneGbHmGKG5FWBekf4NZ/3kPDSYqCl0zGT3EJ0yk0X4t
-         kU+csohpniyEyWF3yBeZ4aH/Tq8NjSKFDNPVh4gegMfVdeoJsrqFPE3o5GJQHSG5qjFd
-         /s6X6u/SLjhTMvHx9dFj3eBhExXvELYjltJz7wnCgTa8WRq49qIZaylj2t5HkrN/zQMT
-         LOBg==
-X-Gm-Message-State: AOAM533+WIFD/5i1qM3ecRgslbKC6w7KewwGOZRW9A2m2jL8dzVHgZRd
-        FqTd3sI8v3im//r2zntxY7nbBjfQQlZgP2y43RA=
-X-Google-Smtp-Source: ABdhPJyiJqjBIpEzWlk5pyqpoGG3+KpoWdKnlyza2YA6ODhXnRhATytwh5Bq+iGOzNqc5gs+zuqHC8iB1cjfDTXU/ik=
-X-Received: by 2002:a25:bcc7:: with SMTP id l7mr32380985ybm.115.1606141205830;
- Mon, 23 Nov 2020 06:20:05 -0800 (PST)
+        Mon, 23 Nov 2020 09:49:34 -0500
+Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.60])
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4Cfqm91XYmz711Q;
+        Mon, 23 Nov 2020 22:48:57 +0800 (CST)
+Received: from [10.174.179.81] (10.174.179.81) by
+ DGGEMS406-HUB.china.huawei.com (10.3.19.206) with Microsoft SMTP Server id
+ 14.3.487.0; Mon, 23 Nov 2020 22:49:11 +0800
+Subject: Re: [PATCH net v2] ipvs: fix possible memory leak in
+ ip_vs_control_net_init
+To:     Julian Anastasov <ja@ssi.bg>
+CC:     Simon Horman <horms@verge.net.au>, <pablo@netfilter.org>,
+        <christian@brauner.io>, <lvs-devel@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>
+References: <20201120082610.60917-1-wanghai38@huawei.com>
+ <21af4c92-8ca6-cce9-64bc-c4e88b6d1e8a@ssi.bg>
+From:   "wanghai (M)" <wanghai38@huawei.com>
+Message-ID: <66825441-bb06-3d18-0424-df355d596c5f@huawei.com>
+Date:   Mon, 23 Nov 2020 22:49:10 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
 MIME-Version: 1.0
-References: <cover.1605896059.git.gustavoars@kernel.org> <20201120105344.4345c14e@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
- <202011201129.B13FDB3C@keescook> <20201120115142.292999b2@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
- <202011220816.8B6591A@keescook> <9b57fd4914b46f38d54087d75e072d6e947cb56d.camel@HansenPartnership.com>
- <CANiq72nZrHWTA4_Msg6MP9snTyenC6-eGfD27CyfNSu7QoVZbw@mail.gmail.com> <1c7d7fde126bc0acf825766de64bf2f9b888f216.camel@HansenPartnership.com>
-In-Reply-To: <1c7d7fde126bc0acf825766de64bf2f9b888f216.camel@HansenPartnership.com>
-From:   Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Date:   Mon, 23 Nov 2020 15:19:55 +0100
-Message-ID: <CANiq72m22Jb5_+62NnwX8xds2iUdWDMAqD8PZw9cuxdHd95W0A@mail.gmail.com>
-Subject: Re: [PATCH 000/141] Fix fall-through warnings for Clang
-To:     James Bottomley <James.Bottomley@hansenpartnership.com>
-Cc:     Kees Cook <keescook@chromium.org>,
-        Jakub Kicinski <kuba@kernel.org>,
-        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        alsa-devel@alsa-project.org, amd-gfx@lists.freedesktop.org,
-        bridge@lists.linux-foundation.org, ceph-devel@vger.kernel.org,
-        cluster-devel@redhat.com, coreteam@netfilter.org,
-        devel@driverdev.osuosl.org, dm-devel@redhat.com,
-        drbd-dev@lists.linbit.com, dri-devel@lists.freedesktop.org,
-        GR-everest-linux-l2@marvell.com, GR-Linux-NIC-Dev@marvell.com,
-        intel-gfx@lists.freedesktop.org, intel-wired-lan@lists.osuosl.org,
-        keyrings@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-        linux-acpi@vger.kernel.org, linux-afs@lists.infradead.org,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        linux-arm-msm@vger.kernel.org,
-        linux-atm-general@lists.sourceforge.net,
-        linux-block@vger.kernel.org, linux-can@vger.kernel.org,
-        linux-cifs@vger.kernel.org,
-        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
-        linux-decnet-user@lists.sourceforge.net,
-        Ext4 Developers List <linux-ext4@vger.kernel.org>,
-        linux-fbdev@vger.kernel.org, linux-geode@lists.infradead.org,
-        linux-gpio@vger.kernel.org, linux-hams@vger.kernel.org,
-        linux-hwmon@vger.kernel.org, linux-i3c@lists.infradead.org,
-        linux-ide@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-input <linux-input@vger.kernel.org>,
-        linux-integrity@vger.kernel.org,
-        linux-mediatek@lists.infradead.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-mmc@vger.kernel.org, Linux-MM <linux-mm@kvack.org>,
-        linux-mtd@lists.infradead.org, linux-nfs@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-sctp@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-stm32@st-md-mailman.stormreply.com,
-        linux-usb@vger.kernel.org, linux-watchdog@vger.kernel.org,
-        linux-wireless <linux-wireless@vger.kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, nouveau@lists.freedesktop.org,
-        op-tee@lists.trustedfirmware.org, oss-drivers@netronome.com,
-        patches@opensource.cirrus.com, rds-devel@oss.oracle.com,
-        reiserfs-devel@vger.kernel.org, samba-technical@lists.samba.org,
-        selinux@vger.kernel.org, target-devel@vger.kernel.org,
-        tipc-discussion@lists.sourceforge.net,
-        usb-storage@lists.one-eyed-alien.net,
-        virtualization@lists.linux-foundation.org,
-        wcn36xx@lists.infradead.org,
-        "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>,
-        xen-devel@lists.xenproject.org, linux-hardening@vger.kernel.org,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Nathan Chancellor <natechancellor@gmail.com>,
-        Miguel Ojeda <ojeda@kernel.org>, Joe Perches <joe@perches.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <21af4c92-8ca6-cce9-64bc-c4e88b6d1e8a@ssi.bg>
+Content-Type: text/plain; charset="gbk"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.174.179.81]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Nov 22, 2020 at 11:36 PM James Bottomley
-<James.Bottomley@hansenpartnership.com> wrote:
+
+ÔÚ 2020/11/22 19:20, Julian Anastasov Ð´µÀ:
+> 	Hello,
 >
-> Well, it seems to be three years of someone's time plus the maintainer
-> review time and series disruption of nearly a thousand patches.  Let's
-> be conservative and assume the producer worked about 30% on the series
-> and it takes about 5-10 minutes per patch to review, merge and for
-> others to rework existing series.  So let's say it's cost a person year
-> of a relatively junior engineer producing the patches and say 100h of
-> review and application time.  The latter is likely the big ticket item
-> because it's what we have in least supply in the kernel (even though
-> it's 20x vs the producer time).
-
-How are you arriving at such numbers? It is a total of ~200 trivial lines.
-
-> It's not about the risk of the changes it's about the cost of
-> implementing them.  Even if you discount the producer time (which
-> someone gets to pay for, and if I were the engineering manager, I'd be
-> unhappy about), the review/merge/rework time is pretty significant in
-> exchange for six minor bug fixes.  Fine, when a new compiler warning
-> comes along it's certainly reasonable to see if we can benefit from it
-> and the fact that the compiler people think it's worthwhile is enough
-> evidence to assume this initially.  But at some point you have to ask
-> whether that assumption is supported by the evidence we've accumulated
-> over the time we've been using it.  And if the evidence doesn't support
-> it perhaps it is time to stop the experiment.
-
-Maintainers routinely review 1-line trivial patches, not to mention
-internal API changes, etc.
-
-If some company does not want to pay for that, that's fine, but they
-don't get to be maintainers and claim `Supported`.
-
-Cheers,
-Miguel
+> On Fri, 20 Nov 2020, Wang Hai wrote:
+>
+>> kmemleak report a memory leak as follows:
+>>
+>> BUG: memory leak
+>> unreferenced object 0xffff8880759ea000 (size 256):
+>> comm "syz-executor.3", pid 6484, jiffies 4297476946 (age 48.546s)
+[...]
+>>
+>> Fixes: b17fc9963f83 ("IPVS: netns, ip_vs_stats and its procfs")
+>> Fixes: 61b1ab4583e2 ("IPVS: netns, add basic init per netns.")
+>> Reported-by: Hulk Robot <hulkci@huawei.com>
+>> Signed-off-by: Wang Hai <wanghai38@huawei.com>
+>> ---
+[...]
+>>   
+>> -	proc_create_net("ip_vs", 0, ipvs->net->proc_net, &ip_vs_info_seq_ops,
+>> -			sizeof(struct ip_vs_iter));
+>> -	proc_create_net_single("ip_vs_stats", 0, ipvs->net->proc_net,
+>> -			ip_vs_stats_show, NULL);
+>> -	proc_create_net_single("ip_vs_stats_percpu", 0, ipvs->net->proc_net,
+>> -			ip_vs_stats_percpu_show, NULL);
+>> +#ifdef CONFIG_PROC_FS
+>> +	if (!proc_create_net("ip_vs", 0, ipvs->net->proc_net, &ip_vs_info_seq_ops,
+>> +			sizeof(struct ip_vs_iter)))
+>> +		goto err_vs;
+>> +	if (!proc_create_net_single("ip_vs_stats", 0, ipvs->net->proc_net,
+>> +			ip_vs_stats_show, NULL))
+>> +		goto err_stats;
+>> +	if (!proc_create_net_single("ip_vs_stats_percpu", 0, ipvs->net->proc_net,
+>> +			ip_vs_stats_percpu_show, NULL))
+>> +		goto err_percpu;
+> 	Make sure the parameters are properly aligned to function open
+> parenthesis without exceeding 80 columns:
+>
+> linux# scripts/checkpatch.pl --strict /tmp/file.patch
+Thanks, I'll perfect it.
+> 	It was true only for first call due to some
+> renames for the others two in commit 3617d9496cd9 :(
+It does indeed rename in commit 3617d9496cd9.
+But I don't understand what's wrong with my patch here.
+>> +#endif
+>>   
+>>   	if (ip_vs_control_net_init_sysctl(ipvs))
+>>   		goto err;
+>> @@ -4180,6 +4185,14 @@ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
+>>   	return 0;
+>>   
+>>   err:
+>> +#ifdef CONFIG_PROC_FS
+>> +	remove_proc_entry("ip_vs_stats_percpu", ipvs->net->proc_net);
+> 	It should look better with an empty line before
+> the 3 new labels.
+Thanks, I'll perfect it.
+>> +err_percpu:
+[...]
+>>   	remove_proc_entry("ip_vs_stats", ipvs->net->proc_net);
+>>   	remove_proc_entry("ip_vs", ipvs->net->proc_net);
+>> +#endif
+>>   	free_percpu(ipvs->tot_stats.cpustats);
+>>   }
+>>   
+> Regards
+>
+> --
+> Julian Anastasov <ja@ssi.bg>
+>
+> .
+>
